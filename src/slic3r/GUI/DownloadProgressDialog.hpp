@@ -30,6 +30,7 @@ class wxStaticBitmap;
 namespace Slic3r {
 namespace GUI {
 
+
 class DownloadProgressDialog : public DPIDialog
 {
 protected:
@@ -37,7 +38,7 @@ protected:
     void on_close(wxCloseEvent& event);
 
 public:
-    DownloadProgressDialog(wxString title);
+    DownloadProgressDialog(wxString title, bool post_login = false);
     wxString format_text(wxStaticText* st, wxString str, int warp);
     ~DownloadProgressDialog();
 
@@ -53,6 +54,8 @@ public:
 protected:
     virtual std::shared_ptr<UpgradeNetworkJob> make_job(std::shared_ptr<ProgressIndicator> pri);
     virtual void                               on_finish();
+
+    bool m_post_login { false };
 };
 
 

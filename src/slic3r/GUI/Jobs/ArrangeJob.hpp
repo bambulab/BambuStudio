@@ -38,9 +38,11 @@ class ArrangeJob : public PlaterJob
 
     //BBS:prepare the items from current selected partplate
     void prepare_partplate();
-    void prepare_wipe_tower();
 
-    ArrangePolygon prepare_arrange_polygon(void* instance);
+    // prepare the items which are selected and not on the current partplate
+    void prepare_outside_plate();
+
+    void prepare_wipe_tower(bool select = false);
 
 protected:
 
@@ -64,6 +66,8 @@ public:
     }
 
     void finalize() override;
+
+    static ArrangePolygon prepare_arrange_polygon(void *instance);
 };
 
 std::optional<arrangement::ArrangePolygon> get_wipe_tower_arrangepoly(const Plater &);

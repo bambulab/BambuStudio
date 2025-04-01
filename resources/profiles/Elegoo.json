@@ -1,6 +1,6 @@
 {
     "name": "Elegoo",
-    "version": "01.09.00.01",
+    "version": "01.10.00.01",
     "force_update": "0",
     "description": "Elegoo configurations",
     "machine_model_list": [
@@ -39,6 +39,22 @@
         {
             "name": "Elegoo Neptune 3 Max",
             "sub_path": "machine/Elegoo Neptune 3 Max.json"
+        },
+        {
+            "name": "Elegoo Neptune 4",
+            "sub_path": "machine/Elegoo Neptune 4.json"
+        },
+        {
+            "name": "Elegoo Neptune 4 Max",
+            "sub_path": "machine/Elegoo Neptune 4 Max.json"
+        },
+        {
+            "name": "Elegoo Neptune 4 Plus",
+            "sub_path": "machine/Elegoo Neptune 4 Plus.json"
+        },
+        {
+            "name": "Elegoo Neptune 4 Pro",
+            "sub_path": "machine/Elegoo Neptune 4 Pro.json"
         }
     ],
     "process_list": [
@@ -49,6 +65,14 @@
         {
             "name": "fdm_process_elegoo_common",
             "sub_path": "process/fdm_process_elegoo_common.json"
+        },
+        {
+            "name": "fdm_process_neptune4_common",
+            "sub_path": "process/fdm_process_neptune4_common.json"
+        },
+        {
+            "name": "fdm_process_neptune4max_common",
+            "sub_path": "process/fdm_process_neptune4max_common.json"
         },
         {
             "name": "0.08mm Extra Fine @Elegoo Neptune",
@@ -85,6 +109,18 @@
         {
             "name": "0.08mm Extra Fine @Elegoo Neptune3Max",
             "sub_path": "process/0.08mm Extra Fine @Elegoo Neptune3Max.json"
+        },
+        {
+            "name": "0.10mm Standard @Elegoo Neptune4 0.2 nozzle",
+            "sub_path": "process/0.10mm Standard @Elegoo Neptune4 0.2 nozzle.json"
+        },
+        {
+            "name": "0.10mm Standard @Elegoo Neptune4Max 0.2 nozzle",
+            "sub_path": "process/0.10mm Standard @Elegoo Neptune4Max 0.2 nozzle.json"
+        },
+        {
+            "name": "0.10mm Standard @Elegoo Neptune4 Plus 0.2 nozzle",
+            "sub_path": "process/0.10mm Standard @Elegoo Neptune4 Plus 0.2 nozzle.json"
         },
         {
             "name": "0.12mm Fine @Elegoo Neptune",
@@ -195,6 +231,22 @@
             "sub_path": "process/0.20mm Standard @Elegoo Neptune3Max.json"
         },
         {
+            "name": "0.20mm Standard @Elegoo Neptune4 0.4 nozzle",
+            "sub_path": "process/0.20mm Standard @Elegoo Neptune4 0.4 nozzle.json"
+        },
+        {
+            "name": "0.20mm Standard @Elegoo Neptune4Max 0.4 nozzle",
+            "sub_path": "process/0.20mm Standard @Elegoo Neptune4Max 0.4 nozzle.json"
+        },
+        {
+            "name": "0.20mm Standard @Elegoo Neptune4 Plus 0.4 nozzle",
+            "sub_path": "process/0.20mm Standard @Elegoo Neptune4 Plus 0.4 nozzle.json"
+        },
+        {
+            "name": "0.20mm Standard @Elegoo Neptune4Pro 0.4 nozzle",
+            "sub_path": "process/0.20mm Standard @Elegoo Neptune4Pro 0.4 nozzle.json"
+        },
+        {
             "name": "0.24mm Draft @Elegoo Neptune",
             "sub_path": "process/0.24mm Draft @Elegoo Neptune.json"
         },
@@ -265,6 +317,38 @@
         {
             "name": "0.28mm Extra Draft @Elegoo Neptune3Max",
             "sub_path": "process/0.28mm Extra Draft @Elegoo Neptune3Max.json"
+        },
+        {
+            "name": "0.30mm Standard @Elegoo Neptune4 0.6 nozzle",
+            "sub_path": "process/0.30mm Standard @Elegoo Neptune4 0.6 nozzle.json"
+        },
+        {
+            "name": "0.30mm Standard @Elegoo Neptune4Max 0.6 nozzle",
+            "sub_path": "process/0.30mm Standard @Elegoo Neptune4Max 0.6 nozzle.json"
+        },
+        {
+            "name": "0.30mm Standard @Elegoo Neptune4 Plus 0.6 nozzle",
+            "sub_path": "process/0.30mm Standard @Elegoo Neptune4 Plus 0.6 nozzle.json"
+        },
+        {
+            "name": "0.30mm Standard @Elegoo Neptune4Pro 0.6 nozzle",
+            "sub_path": "process/0.30mm Standard @Elegoo Neptune4Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "0.40mm Standard @Elegoo Neptune4 0.8 nozzle",
+            "sub_path": "process/0.40mm Standard @Elegoo Neptune4 0.8 nozzle.json"
+        },
+        {
+            "name": "0.40mm Standard @Elegoo Neptune4Max 0.8 nozzle",
+            "sub_path": "process/0.40mm Standard @Elegoo Neptune4Max 0.8 nozzle.json"
+        },
+        {
+            "name": "0.40mm Standard @Elegoo Neptune4 Plus 0.8 nozzle",
+            "sub_path": "process/0.40mm Standard @Elegoo Neptune4 Plus 0.8 nozzle.json"
+        },
+        {
+            "name": "0.40mm Standard @Elegoo Neptune4Pro 0.8 nozzle",
+            "sub_path": "process/0.40mm Standard @Elegoo Neptune4Pro 0.8 nozzle.json"
         }
     ],
     "filament_list": [
@@ -307,6 +391,10 @@
             "sub_path": "machine/fdm_elegoo_common.json"
         },
         {
+            "name": "fdm_neptune_4_common",
+            "sub_path": "machine/fdm_neptune_4_common.json"
+        },
+        {
             "name": "Elegoo Neptune 0.4 nozzle",
             "sub_path": "machine/Elegoo Neptune 0.4 nozzle.json"
         },
@@ -341,6 +429,70 @@
         {
             "name": "Elegoo Neptune 3 Max 0.4 nozzle",
             "sub_path": "machine/Elegoo Neptune 3 Max 0.4 nozzle.json"
+        },
+        {
+            "name": "Elegoo Neptune 4 0.2 nozzle",
+            "sub_path": "machine/Elegoo Neptune 4 0.2 nozzle.json"
+        },
+        {
+            "name": "Elegoo Neptune 4 0.4 nozzle",
+            "sub_path": "machine/Elegoo Neptune 4 0.4 nozzle.json"
+        },
+        {
+            "name": "Elegoo Neptune 4 0.6 nozzle",
+            "sub_path": "machine/Elegoo Neptune 4 0.6 nozzle.json"
+        },
+        {
+            "name": "Elegoo Neptune 4 0.8 nozzle",
+            "sub_path": "machine/Elegoo Neptune 4 0.8 nozzle.json"
+        },
+        {
+            "name": "Elegoo Neptune 4 Max 0.2 nozzle",
+            "sub_path": "machine/Elegoo Neptune 4 Max 0.2 nozzle.json"
+        },
+        {
+            "name": "Elegoo Neptune 4 Max 0.4 nozzle",
+            "sub_path": "machine/Elegoo Neptune 4 Max 0.4 nozzle.json"
+        },
+        {
+            "name": "Elegoo Neptune 4 Max 0.6 nozzle",
+            "sub_path": "machine/Elegoo Neptune 4 Max 0.6 nozzle.json"
+        },
+        {
+            "name": "Elegoo Neptune 4 Max 0.8 nozzle",
+            "sub_path": "machine/Elegoo Neptune 4 Max 0.8 nozzle.json"
+        },
+        {
+            "name": "Elegoo Neptune 4 Plus 0.2 nozzle",
+            "sub_path": "machine/Elegoo Neptune 4 Plus 0.2 nozzle.json"
+        },
+        {
+            "name": "Elegoo Neptune 4 Plus 0.4 nozzle",
+            "sub_path": "machine/Elegoo Neptune 4 Plus 0.4 nozzle.json"
+        },
+        {
+            "name": "Elegoo Neptune 4 Plus 0.6 nozzle",
+            "sub_path": "machine/Elegoo Neptune 4 Plus 0.6 nozzle.json"
+        },
+        {
+            "name": "Elegoo Neptune 4 Plus 0.8 nozzle",
+            "sub_path": "machine/Elegoo Neptune 4 Plus 0.8 nozzle.json"
+        },
+        {
+            "name": "Elegoo Neptune 4 Pro 0.2 nozzle",
+            "sub_path": "machine/Elegoo Neptune 4 Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "Elegoo Neptune 4 Pro 0.4 nozzle",
+            "sub_path": "machine/Elegoo Neptune 4 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "Elegoo Neptune 4 Pro 0.6 nozzle",
+            "sub_path": "machine/Elegoo Neptune 4 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "Elegoo Neptune 4 Pro 0.8 nozzle",
+            "sub_path": "machine/Elegoo Neptune 4 Pro 0.8 nozzle.json"
         }
     ]
 }

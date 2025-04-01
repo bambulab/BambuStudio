@@ -93,7 +93,7 @@ Pointfs arrange(size_t num_parts, const Vec2d &part_size, coordf_t gap, const Bo
     // Use actual part size (the largest) plus separation distance (half on each side) in spacing algorithm.
     const Vec2d       cell_size(part_size(0) + gap, part_size(1) + gap);
 
-    const BoundingBoxf bed_bbox = (bed_bounding_box != NULL && bed_bounding_box->defined) ? 
+    const BoundingBoxf bed_bbox = (bed_bounding_box != NULL && bed_bounding_box->defined) ?
         *bed_bounding_box :
         // Bogus bed size, large enough not to trigger the unsufficient bed size error.
         BoundingBoxf(
@@ -105,12 +105,12 @@ Pointfs arrange(size_t num_parts, const Vec2d &part_size, coordf_t gap, const Bo
     size_t cellh = size_t(floor((bed_bbox.size()(1) + gap) / cell_size(1)));
     if (num_parts > cellw * cellh)
         throw Slic3r::InvalidArgument("%zu parts won't fit in your print area!\n", num_parts);
-    
+
     // Get a bounding box of cellw x cellh cells, centered at the center of the bed.
     Vec2d       cells_size(cellw * cell_size(0) - gap, cellh * cell_size(1) - gap);
     Vec2d       cells_offset(bed_bbox.center() - 0.5 * cells_size);
     BoundingBoxf cells_bb(cells_offset, cells_size + cells_offset);
-    
+
     // List of cells, sorted by distance from center.
     std::vector<ArrangeItem> cellsorder(cellw * cellh, ArrangeItem());
     for (size_t j = 0; j < cellh; ++ j) {
@@ -167,7 +167,7 @@ arrange(size_t total_parts, const Vec2d &part_size, coordf_t dist, const Boundin
     // use actual part size (the largest) plus separation distance (half on each side) in spacing algorithm
     part(0) += dist;
     part(1) += dist;
-    
+
     Vec2d area(Vec2d::Zero());
     if (bb != NULL && bb->defined) {
         area = bb->size();
@@ -176,46 +176,46 @@ arrange(size_t total_parts, const Vec2d &part_size, coordf_t dist, const Boundin
         area(0) = part(0) * total_parts;
         area(1) = part(1) * total_parts;
     }
-    
+
     // this is how many cells we have available into which to put parts
     size_t cellw = floor((area(0) + dist) / part(0));
     size_t cellh = floor((area(1) + dist) / part(1));
     if (total_parts > (cellw * cellh))
         return false;
-    
+
     // total space used by cells
     Vec2d cells(cellw * part(0), cellh * part(1));
-    
+
     // bounding box of total space used by cells
     BoundingBoxf cells_bb;
     cells_bb.merge(Vec2d(0,0)); // min
     cells_bb.merge(cells);  // max
-    
+
     // center bounding box to area
     cells_bb.translate(
         (area(0) - cells(0)) / 2,
         (area(1) - cells(1)) / 2
     );
-    
+
     // list of cells, sorted by distance from center
     std::vector<ArrangeItemIndex> cellsorder;
-    
+
     // work out distance for all cells, sort into list
     for (size_t i = 0; i <= cellw-1; ++i) {
         for (size_t j = 0; j <= cellh-1; ++j) {
             coordf_t cx = linint(i + 0.5, 0, cellw, cells_bb.min(0), cells_bb.max(0));
             coordf_t cy = linint(j + 0.5, 0, cellh, cells_bb.min(1), cells_bb.max(1));
-            
+
             coordf_t xd = fabs((area(0) / 2) - cx);
             coordf_t yd = fabs((area(1) / 2) - cy);
-            
+
             ArrangeItem c;
             c.pos(0) = cx;
             c.pos(1) = cy;
             c.index_x = i;
             c.index_y = j;
             c.dist = xd * xd + yd * yd - fabs((cellw / 2) - (i + 0.5));
-            
+
             // binary insertion sort
             {
                 coordf_t index = c.dist;
@@ -224,7 +224,7 @@ arrange(size_t total_parts, const Vec2d &part_size, coordf_t dist, const Boundin
                 while (low < high) {
                     size_t mid = (low + ((high - low) / 2)) | 0;
                     coordf_t midval = cellsorder[mid].index;
-                    
+
                     if (midval < index) {
                         low = mid + 1;
                     } else if (midval > index) {
@@ -239,7 +239,7 @@ arrange(size_t total_parts, const Vec2d &part_size, coordf_t dist, const Boundin
             ENDSORT: ;
         }
     }
-    
+
     // the extents of cells actually used by objects
     coordf_t lx = 0;
     coordf_t ty = 0;
@@ -267,17 +267,17 @@ arrange(size_t total_parts, const Vec2d &part_size, coordf_t dist, const Boundin
         cellsorder.erase(cellsorder.begin());
         coordf_t cx = c.item.index_x - lx;
         coordf_t cy = c.item.index_y - ty;
-        
+
         positions.push_back(Vec2d(cx * part(0), cy * part(1)));
     }
-    
+
     if (bb != NULL && bb->defined) {
         for (Pointfs::iterator p = positions.begin(); p != positions.end(); ++p) {
             p->x() += bb->min(0);
             p->y() += bb->min(1);
         }
     }
-    
+
     return true;
 }
 #endif
@@ -330,6 +330,10 @@ Vec3d extract_euler_angles(const Eigen::Matrix<double, 3, 3, Eigen::DontAlign>& 
     return angles;
 }
 
+Vec3d extract_rotation(const Transform3d &transform) {
+    return extract_euler_angles(transform);
+}
+
 Vec3d extract_euler_angles(const Transform3d& transform)
 {
     // use only the non-translational part of the transform
@@ -339,6 +343,56 @@ Vec3d extract_euler_angles(const Transform3d& transform)
     m.col(1).normalize();
     m.col(2).normalize();
     return extract_euler_angles(m);
+}
+
+static Transform3d extract_rotation_matrix(const Transform3d &trafo)
+{
+    Matrix3d rotation;
+    Matrix3d scale;
+    trafo.computeRotationScaling(&rotation, &scale);
+    return Transform3d(rotation);
+}
+
+static std::pair<Transform3d, Transform3d> extract_rotation_scale(const Transform3d &trafo)
+{
+    Matrix3d rotation;
+    Matrix3d scale;
+    trafo.computeRotationScaling(&rotation, &scale);
+    return {Transform3d(rotation), Transform3d(scale)};
+}
+
+static Transform3d extract_scale(const Transform3d &trafo)
+{
+    Matrix3d rotation;
+    Matrix3d scale;
+    trafo.computeRotationScaling(&rotation, &scale);
+    return Transform3d(scale);
+}
+
+
+
+static bool contains_skew(const Transform3d &trafo)
+{
+    Matrix3d rotation;
+    Matrix3d scale;
+    trafo.computeRotationScaling(&rotation, &scale);
+
+    if (scale.isDiagonal()) return false;
+
+    if (scale.determinant() >= 0.0) return true;
+
+    // the matrix contains mirror
+    const Matrix3d ratio = scale.cwiseQuotient(trafo.matrix().block<3, 3>(0, 0));
+
+    auto check_skew = [&ratio](int i, int j, bool &skew) {
+        if (!std::isnan(ratio(i, j)) && !std::isnan(ratio(j, i))) skew |= std::abs(ratio(i, j) * ratio(j, i) - 1.0) > EPSILON;
+    };
+
+    bool has_skew = false;
+    check_skew(0, 1, has_skew);
+    check_skew(0, 2, has_skew);
+    check_skew(1, 2, has_skew);
+    return has_skew;
 }
 
 void rotation_from_two_vectors(Vec3d from, Vec3d to, Vec3d& rotation_axis, double& phi, Matrix3d* rotation_matrix)
@@ -385,95 +439,45 @@ Transform3d scale_transform(const Vec3d &scale)
     return transform;
 }
 
-Transformation::Flags::Flags()
-    : dont_translate(true)
-    , dont_rotate(true)
-    , dont_scale(true)
-    , dont_mirror(true)
+Transform3d Transformation::get_offset_matrix() const { return translation_transform(get_offset()); }
+
+const Vec3d &Transformation::get_rotation() const
 {
+    m_temp_rotation = extract_rotation(extract_rotation_matrix(m_matrix));
+    return m_temp_rotation;
 }
 
-bool Transformation::Flags::needs_update(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
+const Vec3d &Transformation::get_rotation_by_quaternion() const
 {
-    return (this->dont_translate != dont_translate) || (this->dont_rotate != dont_rotate) || (this->dont_scale != dont_scale) || (this->dont_mirror != dont_mirror);
+    Matrix3d           rotation_matrix = m_matrix.matrix().block(0, 0, 3, 3);
+    Eigen::Quaterniond quaternion(rotation_matrix);
+    quaternion.normalize();
+    m_temp_rotation  = quaternion.matrix().eulerAngles(2, 1, 0);
+    std::swap(m_temp_rotation(0), m_temp_rotation(2));
+    return m_temp_rotation;
 }
 
-void Transformation::Flags::set(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror)
+Transform3d Transformation::get_rotation_matrix() const { return extract_rotation_matrix(m_matrix); }
+
+void Transformation::set_rotation_matrix(const Transform3d &rot_mat)
 {
-    this->dont_translate = dont_translate;
-    this->dont_rotate = dont_rotate;
-    this->dont_scale = dont_scale;
-    this->dont_mirror = dont_mirror;
-}
-
-Transformation::Transformation()
-{
-    reset();
-}
-
-Transformation::Transformation(const Transform3d& transform)
-{
-    set_from_transform(transform);
-}
-
-Transform3d Transformation::get_offset_matrix() const { 
-   return translation_transform(get_offset());
-}
-
-void Transformation::set_offset(const Vec3d &offset)
-{
-    set_offset(X, offset(0));
-    set_offset(Y, offset(1));
-    set_offset(Z, offset(2));
-}
-
-void Transformation::set_offset(Axis axis, double offset)
-{
-    if (m_offset(axis) != offset)
-    {
-        m_offset(axis) = offset;
-        m_dirty = true;
-    }
-}
-
-static Transform3d extract_rotation_matrix(const Transform3d &trafo)
-{
-    Matrix3d rotation;
-    Matrix3d scale;
-    trafo.computeRotationScaling(&rotation, &scale);
-    return Transform3d(rotation);
-}
-
-static Transform3d extract_scale(const Transform3d &trafo)
-{
-    Matrix3d rotation;
-    Matrix3d scale;
-    trafo.computeRotationScaling(&rotation, &scale);
-    return Transform3d(scale);
-}
-
-Transform3d Transformation::get_rotation_matrix() const { 
-    return extract_rotation_matrix(m_matrix); 
+    const Vec3d offset     = get_offset();
+    m_matrix               = rot_mat * extract_scale(m_matrix);
+    m_matrix.translation() = offset;
 }
 
 void Transformation::set_rotation(const Vec3d &rotation)
 {
-    set_rotation(X, rotation(0));
-    set_rotation(Y, rotation(1));
-    set_rotation(Z, rotation(2));
+    const Vec3d offset     = get_offset();
+    m_matrix               = rotation_transform(rotation) * extract_scale(m_matrix);
+    m_matrix.translation() = offset;
 }
 
-void Transformation::set_rotation(Axis axis, double rotation)
+const Vec3d &Transformation::get_scaling_factor() const
 {
-    rotation = angle_to_0_2PI(rotation);
-    if (is_approx(std::abs(rotation), 2.0 * (double)PI))
-        rotation = 0.0;
-
-    if (m_rotation(axis) != rotation)
-    {
-        m_rotation(axis) = rotation;
-        m_dirty = true;
-    }
+    const Transform3d scale = extract_scale(m_matrix);
+    m_temp_scaling_factor= {std::abs(scale(0, 0)), std::abs(scale(1, 1)), std::abs(scale(2, 2))};
+    return m_temp_scaling_factor;
 }
 
 Transform3d Transformation::get_scaling_factor_matrix() const
@@ -485,27 +489,65 @@ Transform3d Transformation::get_scaling_factor_matrix() const
     return scale;
 }
 
-void Transformation::set_scaling_factor(const Vec3d& scaling_factor)
+void Transformation::set_scaling_factor(const Vec3d &scaling_factor)
 {
-    set_scaling_factor(X, scaling_factor(0));
-    set_scaling_factor(Y, scaling_factor(1));
-    set_scaling_factor(Z, scaling_factor(2));
+    assert(scaling_factor.x() > 0.0 && scaling_factor.y() > 0.0 && scaling_factor.z() > 0.0);
+
+    const Vec3d offset     = get_offset();
+    m_matrix               = extract_rotation_matrix(m_matrix) * scale_transform(scaling_factor);
+    m_matrix.translation() = offset;
 }
 
 void Transformation::set_scaling_factor(Axis axis, double scaling_factor)
 {
-    if (m_scaling_factor(axis) != std::abs(scaling_factor))
-    {
-        m_scaling_factor(axis) = std::abs(scaling_factor);
-        m_dirty = true;
-    }
+    assert(scaling_factor > 0.0);
+
+    auto [rotation, scale] = extract_rotation_scale(m_matrix);
+    scale(axis, axis)      = scaling_factor;
+
+    const Vec3d offset     = get_offset();
+    m_matrix               = rotation * scale;
+    m_matrix.translation() = offset;
 }
 
-void Transformation::set_mirror(const Vec3d& mirror)
+const Vec3d &Transformation::get_mirror() const
 {
-    set_mirror(X, mirror(0));
-    set_mirror(Y, mirror(1));
-    set_mirror(Z, mirror(2));
+    const Transform3d scale = extract_scale(m_matrix);
+    m_temp_mirror = {scale(0, 0) / std::abs(scale(0, 0)), scale(1, 1) / std::abs(scale(1, 1)), scale(2, 2) / std::abs(scale(2, 2))};
+    return m_temp_mirror;
+}
+
+Transform3d Transformation::get_mirror_matrix() const
+{
+    Transform3d scale = extract_scale(m_matrix);
+    scale(0, 0)       = scale(0, 0) / std::abs(scale(0, 0));
+    scale(1, 1)       = scale(1, 1) / std::abs(scale(1, 1));
+    scale(2, 2)       = scale(2, 2) / std::abs(scale(2, 2));
+    return scale;
+}
+
+void Transformation::set_mirror(const Vec3d &mirror)
+{
+    Vec3d       copy(mirror);
+    const Vec3d abs_mirror = copy.cwiseAbs();
+    for (int i = 0; i < 3; ++i) {
+        if (abs_mirror(i) == 0.0)
+            copy(i) = 1.0;
+        else if (abs_mirror(i) != 1.0)
+            copy(i) /= abs_mirror(i);
+    }
+
+    auto [rotation, scale]  = extract_rotation_scale(m_matrix);
+    const Vec3d curr_scales = {scale(0, 0), scale(1, 1), scale(2, 2)};
+    const Vec3d signs       = curr_scales.cwiseProduct(copy);
+
+    if (signs[0] < 0.0) scale(0, 0) = -scale(0, 0);
+    if (signs[1] < 0.0) scale(1, 1) = -scale(1, 1);
+    if (signs[2] < 0.0) scale(2, 2) = -scale(2, 2);
+
+    const Vec3d offset     = get_offset();
+    m_matrix               = rotation * scale;
+    m_matrix.translation() = offset;
 }
 
 void Transformation::set_mirror(Axis axis, double mirror)
@@ -516,73 +558,35 @@ void Transformation::set_mirror(Axis axis, double mirror)
     else if (abs_mirror != 1.0)
         mirror /= abs_mirror;
 
-    if (m_mirror(axis) != mirror)
-    {
-        m_mirror(axis) = mirror;
-        m_dirty = true;
-    }
+    auto [rotation, scale]  = extract_rotation_scale(m_matrix);
+    const double curr_scale = scale(axis, axis);
+    const double sign       = curr_scale * mirror;
+
+    if (sign < 0.0) scale(axis, axis) = -scale(axis, axis);
+
+    const Vec3d offset     = get_offset();
+    m_matrix               = rotation * scale;
+    m_matrix.translation() = offset;
 }
 
-void Transformation::set_from_transform(const Transform3d& transform)
+bool Transformation::has_skew() const { return contains_skew(m_matrix); }
+
+void Transformation::reset() { m_matrix = Transform3d::Identity(); }
+
+void Transformation::reset_rotation()
 {
-    // offset
-    set_offset(transform.matrix().block(0, 3, 3, 1));
-
-    Eigen::Matrix<double, 3, 3, Eigen::DontAlign> m3x3 = transform.matrix().block(0, 0, 3, 3);
-
-    // mirror
-    // it is impossible to reconstruct the original mirroring factors from a matrix,
-    // we can only detect if the matrix contains a left handed reference system
-    // in which case we reorient it back to right handed by mirroring the x axis
-    Vec3d mirror = Vec3d::Ones();
-    if (m3x3.col(0).dot(m3x3.col(1).cross(m3x3.col(2))) < 0.0)
-    {
-        mirror(0) = -1.0;
-        // remove mirror
-        m3x3.col(0) *= -1.0;
-    }
-    set_mirror(mirror);
-
-    // scale
-    set_scaling_factor(Vec3d(m3x3.col(0).norm(), m3x3.col(1).norm(), m3x3.col(2).norm()));
-
-    // remove scale
-    m3x3.col(0).normalize();
-    m3x3.col(1).normalize();
-    m3x3.col(2).normalize();
-
-    // rotation
-    set_rotation(Geometry::extract_euler_angles(m3x3));
-
-    // forces matrix recalculation matrix
-    m_matrix = get_matrix();
-
-//    // debug check
-//    if (!m_matrix.isApprox(transform))
-//        std::cout << "something went wrong in extracting data from matrix" << std::endl;
-}
-
-void Transformation::reset()
-{
-    m_offset = Vec3d::Zero();
-    m_rotation = Vec3d::Zero();
-    m_scaling_factor = Vec3d::Ones();
-    m_mirror = Vec3d::Ones();
-    m_matrix = Transform3d::Identity();
-    m_dirty = false;
-}
-
-void Transformation::reset_rotation() {
     const Geometry::TransformationSVD svd(*this);
     m_matrix = get_offset_matrix() * Transform3d(svd.v * svd.s * svd.v.transpose()) * svd.mirror_matrix();
 }
 
-void Transformation::reset_scaling_factor() {
+void Transformation::reset_scaling_factor()
+{
     const Geometry::TransformationSVD svd(*this);
     m_matrix = get_offset_matrix() * Transform3d(svd.u) * Transform3d(svd.v.transpose()) * svd.mirror_matrix();
 }
 
-void Transformation::reset_skew() {
+void Transformation::reset_skew()
+{
     auto new_scale_factor = [](const Matrix3d &s) {
         return pow(s(0, 0) * s(1, 1) * s(2, 2), 1. / 3.); // scale average
     };
@@ -591,22 +595,22 @@ void Transformation::reset_skew() {
     m_matrix = get_offset_matrix() * Transform3d(svd.u) * scale_transform(new_scale_factor(svd.s)) * Transform3d(svd.v.transpose()) * svd.mirror_matrix();
 }
 
-const Transform3d& Transformation::get_matrix(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
+const Transform3d &Transformation::get_matrix(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
 {
-    if (m_dirty || m_flags.needs_update(dont_translate, dont_rotate, dont_scale, dont_mirror))
-    {
-        m_matrix = Geometry::assemble_transform(
-            dont_translate ? Vec3d::Zero() : m_offset,
-            dont_rotate ? Vec3d::Zero() : m_rotation,
-            dont_scale ? Vec3d::Ones() : m_scaling_factor,
-            dont_mirror ? Vec3d::Ones() : m_mirror
-            );
-
-        m_flags.set(dont_translate, dont_rotate, dont_scale, dont_mirror);
-        m_dirty = false;
+    if (dont_translate == false && dont_rotate == false && dont_scale == false && dont_mirror == false) {
+        return m_matrix;
     }
-
-    return m_matrix;
+    Transformation refence_tran(m_matrix);
+    if (dont_translate)
+        refence_tran.reset_offset();
+    if (dont_rotate)
+        refence_tran.reset_rotation();
+    if (dont_scale)
+        refence_tran.reset_scaling_factor();
+    if (dont_mirror)
+        refence_tran.reset_mirror();
+    m_temp_matrix = refence_tran.get_matrix();
+    return m_temp_matrix;
 }
 
 Transform3d Transformation::get_matrix_no_offset() const
@@ -623,10 +627,9 @@ Transform3d Transformation::get_matrix_no_scaling_factor() const
     return copy.get_matrix();
 }
 
-Transformation Transformation::operator * (const Transformation& other) const
-{
-    return Transformation(get_matrix() * other.get_matrix());
-}
+Transformation Transformation::operator*(const Transformation &other) const { return Transformation(get_matrix() * other.get_matrix()); }
+//end Transformation
+
 
 Transformation Transformation::volume_to_bed_transformation(const Transformation& instance_transformation, const BoundingBoxf3& bbox)
 {
@@ -806,6 +809,17 @@ Geometry::TransformationSVD::TransformationSVD(const Transform3d &trafo)
     curMat.set_offset(new_pos);
 
     return curMat;
+}
+
+Transformation generate_transform(const Vec3d& x_dir, const Vec3d& y_dir, const Vec3d& z_dir, const Vec3d& origin) {
+     Matrix3d m;
+     m.col(0) = x_dir.normalized();
+     m.col(1) = y_dir.normalized();
+     m.col(2) = z_dir.normalized();
+     Transform3d    mm(m);
+     Transformation tran(mm);
+     tran.set_offset(origin);
+     return tran;
 }
 
 } // namespace Geometry

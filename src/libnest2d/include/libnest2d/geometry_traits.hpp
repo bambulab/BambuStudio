@@ -656,7 +656,7 @@ inline std::string toString(const S& /*sh*/)
 }
 
 template<Formats, class S>
-inline std::string serialize(const S& /*sh*/, double /*scale*/=1, std::string fill = "none", std::string stroke = "black", float stroke_width = 1)
+inline std::string serialize(const S & /*sh*/, const std::string &name = "", double /*scale*/ = 1, std::string fill = "none", std::string stroke = "black", float stroke_width = 1)
 {
     static_assert(always_false<S>::value,
                   "shapelike::serialize() unimplemented!");
@@ -1053,7 +1053,7 @@ inline S convexHull(const S& sh, const PathTag&)
     namespace sl = shapelike;
     
     size_t edges = sl::cend(sh) - sl::cbegin(sh);
-    if(edges <= 3) return {};
+    if(edges < 3) return {};
     
     bool closed = false;
     std::vector<Point> U, L;

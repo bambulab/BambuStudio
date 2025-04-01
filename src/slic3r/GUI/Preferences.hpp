@@ -104,7 +104,7 @@ public:
     // ComboBoxSelectorList    m_comxbo_group;
 
     wxBoxSizer *create_item_title(wxString title, wxWindow *parent, wxString tooltip);
-    wxBoxSizer *create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<wxString> vlist);
+    wxBoxSizer *create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param,const std::vector<wxString>& label_list, const std::vector<std::string>& value_list);
     wxBoxSizer *create_item_region_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist);
     wxBoxSizer *create_item_language_combobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param, std::vector<const wxLanguageInfo *> vlist);
     wxBoxSizer *create_item_loglevel_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist);
@@ -114,6 +114,8 @@ public:
     wxBoxSizer *create_item_button(wxString title, wxString title2, wxWindow *parent, wxString tooltip, std::function<void()> onclick);
     wxWindow* create_item_downloads(wxWindow* parent, int padding_left, std::string param);
     wxBoxSizer *create_item_input(wxString title, wxString title2, wxWindow *parent, wxString tooltip, std::string param, std::function<void(wxString)> onchange = {});
+    wxBoxSizer *create_item_range_input(
+        wxString title, wxWindow *parent, wxString tooltip, std::string param, float range_min, float range_max, int keep_digital,std::function<void(wxString)> onchange = {});
     wxBoxSizer *create_item_backup_input(wxString title, wxWindow *parent, wxString tooltip, std::string param);
     wxBoxSizer *create_item_multiple_combobox(
         wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string parama, std::vector<wxString> vlista, std::vector<wxString> vlistb);

@@ -1,0 +1,27 @@
+{
+    "type": "filament",
+    "filament_id": "GFB00",
+    "setting_id": "GFSB00_Qidi_37",
+    "name": "QIDI ABS-GF @Qidi X-Plus 4 0.6 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "QIDI ABS-GF @Qidi",
+    "filament_max_volumetric_speed": [
+        "22"
+    ],
+    "nozzle_temperature": [
+        "260"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "260"
+    ],
+    "slow_down_min_speed": [
+        "20"
+    ],
+    "slow_down_layer_time": [
+        "5"
+    ],
+    "compatible_printers": [
+        "Qidi X-Plus 4 0.6 nozzle"
+    ]
+}

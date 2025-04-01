@@ -47,6 +47,7 @@ GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)
 
     Bind(wxEVT_THREAD, [this](const wxThreadEvent &evt) {
         if (m_finalizing)  return;
+        if (this->is_print_job() && evt.GetInt() >= 100) { update_percent_finish(); }
 
         auto msg = evt.GetString();
         if (!msg.empty() && !m_worker_error)
@@ -62,7 +63,6 @@ GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)
             // to make sure they close, fade out, whathever
             m_progress->set_progress(m_range);
             m_progress->set_cancel_callback();
-            wxEndBusyCursor();
 
             if (m_worker_error) {
                 m_finalized = true;
@@ -86,7 +86,7 @@ GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)
 
                 finalize();
             }
-
+            wxEndBusyCursor();
             // dont do finalization again for the same process
             m_finalized = true;
         }
@@ -96,6 +96,8 @@ GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)
 void GUI::Job::start()
 { // Start the job. No effect if the job is already running
     if (!m_running.load()) {
+        // Changing cursor to busy
+        wxBeginBusyCursor();
         prepare();
 
         // Save the current status indicatior range and push the new one
@@ -109,9 +111,6 @@ void GUI::Job::start()
 
         m_finalized  = false;
         m_finalizing = false;
-
-        // Changing cursor to busy
-        wxBeginBusyCursor();
 
         try { // Execute the job
             m_worker_error = nullptr;

@@ -36,6 +36,7 @@ class SupportLayer;
 // BBS
 class TreeSupportData;
 class TreeSupport;
+struct ExtrusionLayers;
 
 #define MARGIN_HEIGHT   1.5
 #define MAX_OUTER_NOZZLE_RADIUS   4
@@ -297,6 +298,44 @@ private:
     size_t                                      m_ref_cnt{ 0 };
 };
 
+struct AutoContourHolesCompensationParams
+{
+    AutoContourHolesCompensationParams(const PrintConfig &config)
+    {
+        counter_speed_coef      = config.counter_coef_1.values;
+        counter_diameter_coef   = config.counter_coef_2.values;
+        counter_compensate_coef = config.counter_coef_3.values;
+        hole_speed_coef         = config.hole_coef_1.values;
+        hole_diameter_coef      = config.hole_coef_2.values;
+        hole_compensate_coef    = config.hole_coef_3.values;
+        counter_limit_min_value = config.counter_limit_min.values;
+        counter_limit_max_value = config.counter_limit_max.values;
+        hole_limit_min_value    = config.hole_limit_min.values;
+        hole_limit_max_value    = config.hole_limit_max.values;
+        circle_compensation_speed = config.circle_compensation_speed.values;
+        diameter_limit          = config.diameter_limit.values;
+    }
+
+    AutoContourHolesCompensationParams(){}
+
+    // BBS: params for auto contour and holes compensation
+    std::vector<double> counter_speed_coef;
+    std::vector<double> counter_diameter_coef;
+    std::vector<double> counter_compensate_coef;
+
+    std::vector<double> hole_speed_coef;
+    std::vector<double> hole_diameter_coef;
+    std::vector<double> hole_compensate_coef;
+
+    std::vector<double> counter_limit_min_value;
+    std::vector<double> counter_limit_max_value;
+    std::vector<double> hole_limit_min_value;
+    std::vector<double> hole_limit_max_value;
+
+    std::vector<double> circle_compensation_speed;
+    std::vector<double> diameter_limit;
+};
+
 class PrintObject : public PrintObjectBaseWithState<Print, PrintObjectStep, posCount>
 {
 private: // Prevents erroneous use by other classes.
@@ -347,7 +386,9 @@ public:
     std::vector<groupedVolumeSlices>& firstLayerObjGroupsMod() { return firstLayerObjSliceByGroups; }
 
     bool                         has_brim() const       {
-        return ((this->config().brim_type != btNoBrim && this->config().brim_width.value > 0.) || this->config().brim_type == btAutoBrim)
+        return ((this->config().brim_type != btNoBrim && this->config().brim_width.value > 0.) ||
+                this->config().brim_type == btAutoBrim ||
+                this->config().brim_type == btBrimEars)
             && ! this->has_raft();
     }
 
@@ -403,7 +444,7 @@ public:
     // The slicing parameters are dependent on various configuration values
     // (layer height, first layer height, raft settings, print nozzle diameter etc).
     const SlicingParameters&    slicing_parameters() const { return m_slicing_params; }
-    static SlicingParameters    slicing_parameters(const DynamicPrintConfig &full_config, const ModelObject &model_object, float object_max_z);
+    static SlicingParameters    slicing_parameters(const DynamicPrintConfig &full_config, const ModelObject &model_object, float object_max_z, std::vector<int> variant_index = std::vector<int>());
 
     size_t                      num_printing_regions() const throw() { return m_shared_regions->all_regions.size(); }
     const PrintRegion&          printing_region(size_t idx) const throw() { return *m_shared_regions->all_regions[idx].get(); }
@@ -429,12 +470,12 @@ public:
     std::vector<Polygons>       slice_support_enforcers() const { return this->slice_support_volumes(ModelVolumeType::SUPPORT_ENFORCER); }
 
     // Helpers to project custom facets on slices
-    void project_and_append_custom_facets(bool seam, EnforcerBlockerType type, std::vector<Polygons>& expolys) const;
+    void project_and_append_custom_facets(bool seam, EnforcerBlockerType type, std::vector<Polygons>& expolys, std::vector<std::pair<Vec3f,Vec3f>>* vertical_points=nullptr) const;
 
     //BBS
     BoundingBox get_first_layer_bbox(float& area, float& layer_height, std::string& name);
     void         get_certain_layers(float start, float end, std::vector<LayerPtrs> &out, std::vector<BoundingBox> &boundingbox_objects);
-    std::vector<Point> get_instances_shift_without_plate_offset();
+    std::vector<Point> get_instances_shift_without_plate_offset() const;
     PrintObject* get_shared_object() const { return m_shared_object; }
     void         set_shared_object(PrintObject *object);
     void         clear_shared_object();
@@ -451,6 +492,9 @@ public:
     // OrcaSlicer
     size_t get_klipper_object_id() const { return m_klipper_object_id; }
     void set_klipper_object_id(size_t id) { m_klipper_object_id = id; }
+
+    void set_auto_circle_compenstaion_params(const AutoContourHolesCompensationParams &params){auto_contour_holes_compensation_params = params;};
+    AutoContourHolesCompensationParams get_auto_circle_compenstaion_params() { return auto_contour_holes_compensation_params; };
 
 private:
     // to be called from Print only.
@@ -473,7 +517,7 @@ private:
     // If ! m_slicing_params.valid, recalculate.
     void                    update_slicing_parameters();
 
-    static PrintObjectConfig object_config_from_model_object(const PrintObjectConfig &default_object_config, const ModelObject &object, size_t num_extruders);
+    static PrintObjectConfig object_config_from_model_object(const PrintObjectConfig &default_object_config, const ModelObject &object, size_t num_extruders, std::vector<int>& variant_index);
 
 private:
     void make_perimeters();
@@ -482,6 +526,17 @@ private:
     void ironing();
     void generate_support_material();
     void simplify_extrusion_path();
+
+    /**
+     * @brief Determines the unprintable filaments for each extruder based on its printable area.
+     *
+     * The returned array will always have the same size as the number of extruders.
+     * If extruder num is 1, just return an empty vector.
+     * If an extruder has no unprintable filaments, an empty set will also be returned
+     *
+     * @return A vector of sets representing unprintable filaments for each extruder
+     */
+    std::vector<std::set<int>> detect_extruder_geometric_unprintables() const;
 
     void slice_volumes();
     //BBS
@@ -494,9 +549,11 @@ private:
     void detect_surfaces_type();
     void process_external_surfaces();
     void discover_vertical_shells();
+    void discover_shell_for_perimeters();
     void bridge_over_infill();
     void clip_fill_surfaces();
     void discover_horizontal_shells();
+    void merge_infill_types();
     void combine_infill();
     void _generate_support_material();
     std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> prepare_adaptive_infill_data(
@@ -505,11 +562,12 @@ private:
 
     // BBS
     SupportNecessaryType is_support_necessary();
-
+    void                 merge_layer_node(const size_t layer_id, int &max_merged_id, std::map<int, std::vector<std::pair<int, int>>> &node_record);
     // XYZ in scaled coordinates
     Vec3crd									m_size;
     double                                  m_max_z;
     PrintObjectConfig                       m_config;
+    AutoContourHolesCompensationParams      auto_contour_holes_compensation_params;
     // Translation in Z + Rotation + Scaling / Mirroring.
     Transform3d                             m_trafo = Transform3d::Identity();
     // Slic3r::Point objects in scaled G-code coordinates
@@ -562,10 +620,12 @@ struct FakeWipeTower
     Vec2f pos;
     float width;
     float height;
-    float layer_height;
+    float layer_height;// Due to variable layer height, this parameter may be not right.
     float depth;
     float brim_width;
     Vec2d plate_origin;
+    Vec2f rib_offset{0.f,0.f};
+    std::map<float , Polylines> outer_wall; //wipe tower's true outer wall and brim
 
     void set_fake_extrusion_data(Vec2f p, float w, float h, float lh, float d, float bd, Vec2d o)
     {
@@ -578,7 +638,7 @@ struct FakeWipeTower
         plate_origin = o;
     }
 
-    void set_pos(Vec2f p) { pos = p; }
+    void set_pos(Vec2f p) { pos = p+rib_offset; }
 
     std::vector<ExtrusionPaths> getFakeExtrusionPathsFromWipeTower() const
     {
@@ -604,10 +664,18 @@ struct FakeWipeTower
         }
         return paths;
     }
+
+    ExtrusionLayers getTrueExtrusionLayersFromWipeTower() const;
 };
 
 struct WipeTowerData
 {
+    struct WipeTowerMeshData
+    {
+        Polygon      bottom;
+        TriangleMesh real_wipe_tower_mesh;
+        TriangleMesh real_brim_mesh;
+    };
     // Following section will be consumed by the GCodeGenerator.
     // Tool ordering of a non-sequential print has to be known to calculate the wipe tower.
     // Cache it here, so it does not need to be recalculated during the G-code generation.
@@ -622,7 +690,9 @@ struct WipeTowerData
     // Depth of the wipe tower to pass to GLCanvas3D for exact bounding box:
     float                                                 depth;
     float                                                 brim_width;
-
+    BoundingBoxf                                          bbx;//including brim
+    Vec2f                                                 rib_offset;
+    std::optional<WipeTowerMeshData>                      wipe_tower_mesh_data;//added rib_offset
     void clear() {
         priming.reset(nullptr);
         tool_changes.clear();
@@ -631,7 +701,9 @@ struct WipeTowerData
         number_of_toolchanges = -1;
         depth = 0.f;
         brim_width = 0.f;
+        wipe_tower_mesh_data  = std::nullopt;
     }
+    void construct_mesh(float width, float depth, float height, float brim_width, bool is_rib_wipe_tower, float rib_width, float rib_length, bool fillet_wall);
 
 private:
 	// Only allow the WipeTowerData to be instantiated internally by Print,
@@ -654,6 +726,7 @@ struct PrintStatistics
     double                          total_weight;
     double                          total_wipe_tower_cost;
     double                          total_wipe_tower_filament;
+    unsigned int                    initial_tool;
     std::map<size_t, double>        filament_stats;
 
     // Config with the filled in print statistics.
@@ -671,6 +744,7 @@ struct PrintStatistics
         total_weight           = 0.;
         total_wipe_tower_cost  = 0.;
         total_wipe_tower_filament = 0.;
+        initial_tool = 0;
         filament_stats.clear();
     }
 };
@@ -690,6 +764,19 @@ class ConstPrintRegionPtrsAdaptor : public ConstVectorOfPtrsAdaptor<PrintRegion>
     ConstPrintRegionPtrsAdaptor(const PrintRegionPtrs *data) : ConstVectorOfPtrsAdaptor<PrintRegion>(data) {}
 };
 */
+
+struct StatisticsByExtruderCount
+{
+    // flush weight comes first,then comes filament change time
+    FilamentChangeStats stats_by_single_extruder;
+    FilamentChangeStats stats_by_multi_extruder_best;
+    FilamentChangeStats stats_by_multi_extruder_curr;
+    void clear() {
+        stats_by_single_extruder.clear();
+        stats_by_multi_extruder_best.clear();
+        stats_by_multi_extruder_curr.clear();
+    }
+};
 
 enum FilamentTempType {
     HighTemp=0,
@@ -721,7 +808,7 @@ public:
     // List of existing PrintObject IDs, to remove notifications for non-existent IDs.
     std::vector<ObjectID> print_object_ids() const override;
 
-    ApplyStatus         apply(const Model &model, DynamicPrintConfig config) override;
+    ApplyStatus         apply(const Model &model, DynamicPrintConfig config, bool extruder_applied = false) override;
 
     void                process(std::unordered_map<std::string, long long>* slice_time = nullptr, bool use_cache = false) override;
     // Exports G-code into a file name based on the path_template, returns the file path of the generated G-code file.
@@ -796,10 +883,49 @@ public:
     const PrintStatistics&      print_statistics() const { return m_print_statistics; }
     PrintStatistics&            print_statistics() { return m_print_statistics; }
 
+    const StatisticsByExtruderCount statistics_by_extruder() const { return m_statistics_by_extruder_count; }
+    StatisticsByExtruderCount& statistics_by_extruder() { return m_statistics_by_extruder_count; }
+
     // Wipe tower support.
     bool                        has_wipe_tower() const;
     const WipeTowerData&        wipe_tower_data(size_t filaments_cnt = 0) const;
     const ToolOrdering& 		tool_ordering() const { return m_tool_ordering; }
+
+    void update_filament_maps_to_config(std::vector<int> f_maps);
+    // 1 based group ids
+    std::vector<int> get_filament_maps() const;
+    FilamentMapMode  get_filament_map_mode() const;
+    // get the group label of filament
+    size_t get_extruder_id(unsigned int filament_id) const;
+
+    const std::vector<std::vector<DynamicPrintConfig>>& get_extruder_filament_info() const { return m_extruder_filament_info; }
+    void set_extruder_filament_info(const std::vector<std::vector<DynamicPrintConfig>>& filament_info) { m_extruder_filament_info = filament_info; }
+
+    void set_geometric_unprintable_filaments(const std::vector<std::set<int>> &unprintables_filament_ids) { m_geometric_unprintable_filaments = unprintables_filament_ids; }
+    std::vector<std::set<int>> get_geometric_unprintable_filaments() const { return m_geometric_unprintable_filaments;}
+
+    void set_slice_used_filaments(const std::vector<unsigned int> &first_layer_used_filaments, const std::vector<unsigned int> &used_filaments){
+        m_slice_used_filaments_first_layer = first_layer_used_filaments;
+        m_slice_used_filaments = used_filaments;
+    }
+    std::vector<unsigned int> get_slice_used_filaments(bool first_layer) const { return first_layer ? m_slice_used_filaments_first_layer : m_slice_used_filaments;}
+
+    /**
+    * @brief Determines the unprintable filaments for each extruder based on its physical attributes
+    *
+    * Currently, the criteria for determining unprintable filament include the following:
+    * 1. TPU filaments can only be placed in the master extruder and must be grouped alone.
+    * 2. We only support at most 1 tpu filament.
+    * 3. An extruder can only accommodate filament with a hardness requirement lower than that of its nozzle.
+    *
+    * @param used_filaments Totally used filaments when slicing
+    * @return A vector of sets representing unprintable filaments for each extruder.Return an empty vecto if extruder num is 1
+    */
+    std::vector<std::set<int>> get_physical_unprintable_filaments(const std::vector<unsigned int>& used_filaments) const;
+
+    std::vector<double> get_extruder_printable_height() const;
+    std::vector<Polygons> get_extruder_printable_polygons() const;
+    std::vector<Polygons> get_extruder_unprintable_polygons() const;
 
     bool                        enable_timelapse_print() const;
 
@@ -842,6 +968,14 @@ public:
     void                set_calib_params(const Calib_Params &params);
     const Calib_Params& calib_params() const { return m_calib_params; }
     Vec2d translate_to_print_space(const Vec2d& point) const;
+    float               get_wipe_tower_depth() const { return m_wipe_tower_data.depth; }
+    BoundingBoxf        get_wipe_tower_bbx() const { return m_wipe_tower_data.bbx; }
+    Vec2f               get_rib_offset() const { return m_wipe_tower_data.rib_offset; }
+    const FakeWipeTower& get_fake_wipe_tower() const { return m_fake_wipe_tower; }
+
+    void set_check_multi_filaments_compatibility(bool check) { m_need_check_multi_filaments_compatibility = check; }
+    bool need_check_multi_filaments_compatibility() const { return m_need_check_multi_filaments_compatibility; }
+
     // scaled point
     Vec2d translate_to_print_space(const Point& point) const;
     static FilamentTempType get_filament_temp_type(const std::string& filament_type);
@@ -869,6 +1003,7 @@ private:
     //BBS
     static StringObjectException check_multi_filament_valid(const Print &print);
 
+    bool                has_tpu_filament() const;
     bool                invalidate_state_by_config_options(const ConfigOptionResolver &new_config, const std::vector<t_config_option_key> &opt_keys);
 
     void                _make_skirt();
@@ -898,6 +1033,8 @@ private:
     Polygon                                 m_first_layer_convex_hull;
     Points                                  m_skirt_convex_hull;
 
+    std::vector<std::vector<DynamicPrintConfig>> m_extruder_filament_info;
+
     // Following section will be consumed by the GCodeGenerator.
     ToolOrdering 							m_tool_ordering;
     WipeTowerData                           m_wipe_tower_data {m_tool_ordering};
@@ -905,6 +1042,10 @@ private:
     // Estimated print time, filament consumed.
     PrintStatistics                         m_print_statistics;
     bool                                    m_support_used {false};
+    StatisticsByExtruderCount               m_statistics_by_extruder_count;
+
+    std::vector<unsigned int> m_slice_used_filaments;
+    std::vector<unsigned int> m_slice_used_filaments_first_layer;
 
     //BBS: plate's origin
     Vec3d   m_origin;
@@ -913,9 +1054,14 @@ private:
     //BBS
     ConflictResultOpt m_conflict_result;
     FakeWipeTower     m_fake_wipe_tower;
+    bool              m_has_auto_filament_map_result{false};
+
+    std::vector<std::set<int>> m_geometric_unprintable_filaments;
 
     // OrcaSlicer: calibration
     Calib_Params m_calib_params;
+
+    bool m_need_check_multi_filaments_compatibility{true};
 
     // To allow GCode to set the Print's GCodeExport step status.
     friend class GCode;

@@ -32,6 +32,7 @@ wxDEFINE_EVENT(EVT_GLTOOLBAR_PRINT_SELECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLTOOLBAR_SEND_TO_PRINTER, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLTOOLBAR_SEND_TO_PRINTER_ALL, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLTOOLBAR_PRINT_MULTI_MACHINE, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLTOOLBAR_SEND_MULTI_APP, SimpleEvent);
 
 
 wxDEFINE_EVENT(EVT_GLTOOLBAR_ADD, SimpleEvent);
@@ -842,8 +843,11 @@ void GLToolbar::do_action(GLToolbarItem::EActionType type, int item_id, GLCanvas
                     case GLToolbarItem::Left: { item->do_left_action(); break; }
                     case GLToolbarItem::Right: { item->do_right_action(); break; }
                     }
-
-                    if ((m_type == Normal) && (item->get_state() != GLToolbarItem::Disabled))
+                    if (item->get_continuous_click_flag()) {
+                        item->set_state(GLToolbarItem::Hover);
+                        parent.render();
+                    }
+                    else if ((m_type == Normal) && (item->get_state() != GLToolbarItem::Disabled) && !item->get_continuous_click_flag())
                     {
                         // the item may get disabled during the action, if not, set it back to normal state
                         item->set_state(GLToolbarItem::Normal);

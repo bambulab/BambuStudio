@@ -29,7 +29,7 @@ class Cut {
     const Transform3d           m_cut_matrix;
     ModelObjectCutAttributes    m_attributes;
 
-    void post_process(ModelObject *object, bool is_upper, ModelObjectPtrs &objects, bool keep, bool place_on_cut, bool flip);
+    void post_process(ModelObject *object, bool is_upper, ModelObjectPtrs &objects, bool keep, bool place_on_cut, bool flip, bool discard_half_cut);
     void post_process(ModelObject* upper_object, ModelObject* lower_object, ModelObjectPtrs& objects);
     void finalize(const ModelObjectPtrs& objects);
 

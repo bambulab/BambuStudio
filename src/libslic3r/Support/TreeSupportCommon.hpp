@@ -6,11 +6,12 @@
 #include "../BoundingBox.hpp"
 #include "../Utils.hpp"
 #include "../Slicing.hpp" // SlicingParams
-#include "TreeModelVolumes.hpp"
 #include "SupportLayer.hpp"
 #include "SupportParameters.hpp"
 namespace Slic3r
 {
+    // The number of vertices in each circle.
+    static constexpr const size_t SUPPORT_TREE_CIRCLE_RESOLUTION = 25;
 namespace TreeSupport3D
 {
 using LayerIndex = int;
@@ -60,7 +61,7 @@ struct TreeSupportMeshGroupSettings {
                 config.support_interface_top_layers.value) * this->layer_height :
             0;
         this->support_material_buildplate_only = config.support_on_build_plate_only;
-        this->support_xy_distance       = scaled<coord_t>(config.support_object_xy_distance.value);
+        this->support_xy_distance              = scaled<coord_t>(config.support_object_xy_distance.value);
         this->support_xy_distance_1st_layer = scaled<coord_t>(config.support_object_first_layer_gap.value);
         // Separation of interfaces, it is likely smaller than support_xy_distance.
         this->support_xy_distance_overhang = std::min(this->support_xy_distance, scaled<coord_t>(0.5 * external_perimeter_width));
@@ -71,17 +72,16 @@ struct TreeSupportMeshGroupSettings {
         this->support_floor_enable      = config.support_interface_bottom_layers.value > 0;
         this->support_floor_layers      = config.support_interface_bottom_layers.value;
         this->support_roof_pattern      = config.support_interface_pattern;
-        this->support_pattern           = config.support_base_pattern;
         this->support_line_spacing      = scaled<coord_t>(config.support_base_pattern_spacing.value);
         this->support_wall_count        = std::max(1, config.tree_support_wall_count.value);  // at least 1 wall for organic tree support
         this->support_roof_line_distance = scaled<coord_t>(config.support_interface_spacing.value) + this->support_roof_line_width;
         double support_tree_angle_slow = 25;// TODO add a setting?
-        double support_tree_branch_diameter_angle = 5; // TODO add a setting?
         double tree_support_tip_diameter = 0.8;
+    	this->support_tree_branch_distance = scaled<coord_t>(config.tree_support_branch_distance.value);
         this->support_tree_angle          = std::clamp<double>(config.tree_support_branch_angle * M_PI / 180., 0., 0.5 * M_PI - EPSILON);
         this->support_tree_angle_slow     = std::clamp<double>(support_tree_angle_slow * M_PI / 180., 0., this->support_tree_angle - EPSILON);
         this->support_tree_branch_diameter = scaled<coord_t>(config.tree_support_branch_diameter.value);
-        this->support_tree_branch_diameter_angle = std::clamp<double>(support_tree_branch_diameter_angle * M_PI / 180., 0., 0.5 * M_PI - EPSILON);
+        this->support_tree_branch_diameter_angle  = std::clamp<double>(config.tree_support_branch_diameter_angle * M_PI / 180., 0., 0.5 * M_PI - EPSILON);
         this->support_tree_top_rate = 30; // percent
     //    this->support_tree_tip_diameter = this->support_line_width;
         this->support_tree_tip_diameter = std::clamp(scaled<coord_t>(tree_support_tip_diameter), 0, this->support_tree_branch_diameter);
@@ -164,9 +164,6 @@ struct TreeSupportMeshGroupSettings {
     // Support Roof Pattern (aka top interface)
     // The pattern with which the roofs of the support are printed.
     SupportMaterialInterfacePattern support_roof_pattern                    { smipAuto };
-    // Support Pattern
-    // The pattern of the support structures of the print. The different options available result in sturdy or easy to remove support.
-    SupportMaterialPattern          support_pattern                         { smpRectilinear };
     // Support Line Distance
     // Distance between the printed support structure lines. This setting is calculated by the support density.
     coord_t                         support_line_spacing                    { scaled<coord_t>(2.66 - 0.4) };
@@ -282,7 +279,6 @@ struct TreeSupportSettings
 //              support_infill_angles(mesh_group_settings.support_infill_angles),
           support_roof_angles(mesh_group_settings.support_roof_angles),
           roof_pattern(mesh_group_settings.support_roof_pattern),
-          support_pattern(mesh_group_settings.support_pattern),
           support_roof_line_width(mesh_group_settings.support_roof_line_width),
           support_line_spacing(mesh_group_settings.support_line_spacing),
           support_bottom_offset(mesh_group_settings.support_bottom_offset),
@@ -727,6 +723,17 @@ private:
     // Mutexes, guards
     std::mutex                                          m_mutex_layer_storage;
 };
+
+enum class LineStatus
+{
+    INVALID,
+    TO_MODEL,
+    TO_MODEL_GRACIOUS,
+    TO_MODEL_GRACIOUS_SAFE,
+    TO_BP,
+    TO_BP_SAFE
+};
+
 
 } // namespace TreeSupport3D
 } // namespace slic3r

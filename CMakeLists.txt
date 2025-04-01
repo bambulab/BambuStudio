@@ -42,6 +42,8 @@ set(SLIC3R_GTK "2" CACHE STRING "GTK version to use with wxWidgets on Linux")
 
 set(IS_CROSS_COMPILE FALSE)
 
+set(FLATPAK FALSE CACHE BOOL "Not copy FFMPEG file")
+
 
 if (APPLE)
     set(CMAKE_FIND_FRAMEWORK LAST)
@@ -54,6 +56,8 @@ if (APPLE)
         set(CMAKE_INSTALL_RPATH @executable_path/../Frameworks)
     endif()
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version" FORCE)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(CMAKE_INSTALL_RPATH "$ORIGIN")
 endif ()
 
 # Proposal for C++ unit tests and sandboxes
@@ -167,6 +171,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # WIN10SDK_PATH is used to point CMake to the WIN10 SDK installation directory.
 # We pick it from environment if it is not defined in another way
 if(WIN32)
+    find_package(PkgConfig REQUIRED)
     if(NOT DEFINED WIN10SDK_PATH)
         if(DEFINED ENV{WIN10SDK_PATH})
                 set(WIN10SDK_PATH "$ENV{WIN10SDK_PATH}")
@@ -362,7 +367,7 @@ endif()
 function(slic3r_remap_configs targets from_Cfg to_Cfg)
     if(MSVC)
         string(TOUPPER ${from_Cfg} from_CFG)
-    
+
         foreach(tgt ${targets})
             if(TARGET ${tgt})
                 set_target_properties(${tgt} PROPERTIES MAP_IMPORTED_CONFIG_${from_CFG} ${to_Cfg})
@@ -500,10 +505,10 @@ find_package(cereal REQUIRED)
 set(L10N_DIR "${SLIC3R_RESOURCES_DIR}/i18n")
 set(BBL_L18N_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bbl/i18n")
 add_custom_target(gettext_make_pot
-    COMMAND xgettext --keyword=L --keyword=_L --keyword=_u8L --keyword=L_CONTEXT:1,2c --keyword=_L_PLURAL:1,2 --add-comments=TRN --from-code=UTF-8 --no-location --debug --boost
+    COMMAND xgettext --keyword=L --no-wrap --keyword=_L --keyword=_u8L --keyword=L_CONTEXT:1,2c --keyword=_L_PLURAL:1,2 --add-comments=TRN --from-code=UTF-8 --no-location --debug --boost
         -f "${BBL_L18N_DIR}/list.txt"
         -o "${BBL_L18N_DIR}/BambuStudio.pot"
-	COMMAND hintsToPot ${SLIC3R_RESOURCES_DIR} ${BBL_L18N_DIR}	
+	COMMAND hintsToPot ${SLIC3R_RESOURCES_DIR} ${BBL_L18N_DIR}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generate pot file from strings in the source tree"
 )
@@ -517,7 +522,7 @@ foreach(po_file ${BBL_L10N_PO_FILES})
     SET(po_new_file "${po_dir}/BambuStudio_.po")
     add_custom_command(
         TARGET gettext_merge_po_with_pot PRE_BUILD
-        COMMAND msgmerge -N -o ${po_file} ${po_file} "${BBL_L18N_DIR}/BambuStudio.pot"
+        COMMAND msgmerge --no-wrap -N -o ${po_file} ${po_file} "${BBL_L18N_DIR}/BambuStudio.pot"
         DEPENDS ${po_file}
     )
 endforeach()
@@ -619,6 +624,10 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
             ${CMAKE_PREFIX_PATH}/bin/occt/TKXDESTEP.dll
             ${CMAKE_PREFIX_PATH}/bin/occt/TKXSBase.dll
             ${CMAKE_PREFIX_PATH}/bin/freetype.dll
+            ${CMAKE_PREFIX_PATH}/bin/avcodec-61.dll
+            ${CMAKE_PREFIX_PATH}/bin/swresample-5.dll
+            ${CMAKE_PREFIX_PATH}/bin/swscale-8.dll
+            ${CMAKE_PREFIX_PATH}/bin/avutil-59.dll
          DESTINATION ${_out_dir})
 
     set(${output_dlls}
@@ -654,11 +663,50 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
         ${_out_dir}/TKXSBase.dll
 
         ${_out_dir}/freetype.dll
+        ${_out_dir}/avcodec-61.dll
+        ${_out_dir}/swresample-5.dll
+        ${_out_dir}/swscale-8.dll
+        ${_out_dir}/avutil-59.dll
         PARENT_SCOPE
     )
-    
+
 endfunction()
 
+function(bambustudio_copy_sos target config postfix output_sos)
+
+    set(_out_dir "${CMAKE_CURRENT_BINARY_DIR}")
+    message ("set out_dir to CMAKE_CURRENT_BINARY_DIR: ${_out_dir}")
+
+    file(COPY ${CMAKE_PREFIX_PATH}/lib/libavcodec.so
+            ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61
+            ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61.3.100
+            ${CMAKE_PREFIX_PATH}/lib/libavutil.so
+            ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59
+            ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59.8.100
+            ${CMAKE_PREFIX_PATH}/lib/libswscale.so
+            ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8
+            ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8.1.100
+            ${CMAKE_PREFIX_PATH}/lib/libswresample.so
+            ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5
+            ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5.1.100
+         DESTINATION ${_out_dir})
+
+    set(${output_dlls}
+        ${_out_dir}/libavcodec.so
+        ${_out_dir}/libavcodec.so.61
+        ${_out_dir}/libavcodec.so.61.3.100
+        ${_out_dir}/libavutil.so
+        ${_out_dir}/libavutil.so.59
+        ${_out_dir}/libavutil.so.59.8.100
+        ${_out_dir}/libswscale.so
+        ${_out_dir}/libswscale.so.8
+        ${_out_dir}/libswscale.so.8.1.100
+        ${_out_dir}/libswresample.so
+        ${_out_dir}/libswresample.so.5
+        ${_out_dir}/libswresample.so.5.1.100
+        PARENT_SCOPE
+    )
+endfunction()
 
 # libslic3r, BambuStudio GUI and the BambuStudio executable.
 add_subdirectory(src)
@@ -712,6 +760,20 @@ elseif (CMAKE_MACOSX_BUNDLE)
 else ()
     install(FILES src/platform/unix/BambuStudio.desktop DESTINATION ${CMAKE_INSTALL_PREFIX}/resources/applications)
     install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "${CMAKE_INSTALL_PREFIX}/resources")
+endif ()
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT FLATPAK)
+    set(LIBRARY_FILES
+    ${LIBDIR_BIN}/libavcodec.so.61
+    ${LIBDIR_BIN}/libavcodec.so.61.3.100
+    ${LIBDIR_BIN}/libavutil.so.59
+    ${LIBDIR_BIN}/libavutil.so.59.8.100
+    ${LIBDIR_BIN}/libswresample.so.5
+    ${LIBDIR_BIN}/libswresample.so.5.1.100
+    ${LIBDIR_BIN}/libswscale.so.8
+    ${LIBDIR_BIN}/libswscale.so.8.1.100
+    )
+    install(FILES ${LIBRARY_FILES} DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
 endif ()
 
 configure_file(${LIBDIR}/platform/unix/fhs.hpp.in ${LIBDIR_BIN}/platform/unix/fhs.hpp)

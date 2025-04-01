@@ -38,6 +38,8 @@ public:
     
     inline Radians angleToX() const {
         double ret = std::atan2(getY(axis_), getX(axis_));
+        // horizontal or vertical up-right rectangles are not distinguished, but we need to get the horizontal one
+        if (abs(ret) < EPSILON && abs(bottom_) < abs(right_)) ret += Pi / 2;
         auto s = std::signbit(ret);
         if(s) ret += Pi_2;
         return -ret;

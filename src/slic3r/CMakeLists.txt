@@ -38,6 +38,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/ScrolledWindow.hpp
     GUI/Widgets/StaticBox.cpp
     GUI/Widgets/StaticBox.hpp
+    GUI/Widgets/StaticGroup.cpp
+    GUI/Widgets/StaticGroup.hpp
     GUI/Widgets/ImageSwitchButton.cpp
     GUI/Widgets/ImageSwitchButton.hpp
     GUI/Widgets/SwitchButton.cpp
@@ -58,6 +60,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/TempInput.hpp
     GUI/Widgets/AMSControl.cpp
     GUI/Widgets/AMSControl.hpp
+    GUI/Widgets/AMSItem.cpp
+    GUI/Widgets/AMSItem.hpp
+    GUI/Widgets/FilamentLoad.cpp
+    GUI/Widgets/FilamentLoad.hpp
     GUI/Widgets/FanControl.cpp
     GUI/Widgets/FanControl.hpp
     GUI/Widgets/Scrollbar.cpp
@@ -101,6 +107,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/GLShader.hpp
     GUI/GLCanvas3D.hpp
     GUI/GLCanvas3D.cpp
+    GUI/GLEnums.hpp
     GUI/OpenGLManager.hpp
     GUI/OpenGLManager.cpp
     GUI/Selection.hpp
@@ -139,12 +146,16 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoFaceDetector.hpp
     GUI/Gizmos/GLGizmoMeasure.cpp
     GUI/Gizmos/GLGizmoMeasure.hpp
+    GUI/Gizmos/GLGizmoBrimEars.cpp
+    GUI/Gizmos/GLGizmoBrimEars.hpp
     GUI/Gizmos/GLGizmoAssembly.cpp
     GUI/Gizmos/GLGizmoAssembly.hpp
     GUI/Gizmos/GLGizmoSeam.cpp
     GUI/Gizmos/GLGizmoSeam.hpp
     GUI/Gizmos/GLGizmoText.cpp
     GUI/Gizmos/GLGizmoText.hpp
+    GUI/Gizmos/GLGizmoSVG.cpp
+    GUI/Gizmos/GLGizmoSVG.hpp
     GUI/Gizmos/GLGizmoMeshBoolean.cpp
     GUI/Gizmos/GLGizmoMeshBoolean.hpp
     GUI/GLSelectionRectangle.cpp
@@ -163,6 +174,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/IMToolbar.cpp
     GUI/GCodeViewer.hpp
     GUI/GCodeViewer.cpp
+    GUI/ImageDPIFrame.cpp
+    GUI/ImageDPIFrame.hpp
     GUI/Preferences.cpp
     GUI/Preferences.hpp
     GUI/AMSSetting.cpp
@@ -185,6 +198,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/GUI_Utils.hpp
     GUI/I18N.cpp
     GUI/I18N.hpp
+	GUI/IconManager.cpp
+    GUI/IconManager.hpp
     GUI/MainFrame.cpp
     GUI/MainFrame.hpp
     GUI/BBLTopbar.cpp
@@ -271,6 +286,14 @@ set(SLIC3R_GUI_SOURCES
     GUI/ConfigManipulation.hpp
     GUI/Field.cpp
     GUI/Field.hpp
+    GUI/DragDropPanel.cpp
+    GUI/DragDropPanel.hpp
+    GUI/CapsuleButton.cpp
+    GUI/CapsuleButton.hpp
+    GUI/FilamentMapPanel.cpp
+    GUI/FilamentMapPanel.hpp
+    GUI/FilamentMapDialog.cpp
+    GUI/FilamentMapDialog.hpp
     GUI/OptionsGroup.cpp
     GUI/OptionsGroup.hpp
     GUI/OG_CustomCtrl.cpp
@@ -295,6 +318,14 @@ set(SLIC3R_GUI_SOURCES
     GUI/RemovableDriveManager.hpp
     GUI/SendSystemInfoDialog.cpp
     GUI/SendSystemInfoDialog.hpp
+    GUI/StepMeshDialog.cpp
+    GUI/StepMeshDialog.hpp
+    GUI/BaseTransparentDPIFrame.cpp
+    GUI/BaseTransparentDPIFrame.hpp
+    GUI/SyncAmsInfoDialog.cpp
+    GUI/SyncAmsInfoDialog.hpp
+    GUI/SurfaceDrag.cpp
+    GUI/SurfaceDrag.hpp
     GUI/PlateSettingsDialog.cpp
     GUI/PlateSettingsDialog.hpp
     GUI/ImGuiWrapper.hpp
@@ -324,6 +355,15 @@ set(SLIC3R_GUI_SOURCES
     GUI/UpdateDialogs.hpp
     GUI/Jobs/Job.hpp
     GUI/Jobs/Job.cpp
+    GUI/Jobs/JobNew.hpp
+    GUI/Jobs/Worker.hpp
+    GUI/Jobs/BoostThreadWorker.hpp
+    GUI/Jobs/BoostThreadWorker.cpp
+    GUI/Jobs/BusyCursorJob.hpp
+    GUI/Jobs/ThreadSafeQueue.hpp
+    GUI/Jobs/PlaterWorker.hpp
+    GUI/Jobs/EmbossJob.cpp
+    GUI/Jobs/EmbossJob.hpp
     GUI/Jobs/PlaterJob.hpp
     GUI/Jobs/PlaterJob.cpp
     GUI/Jobs/UpgradeNetworkJob.hpp
@@ -355,6 +395,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/BBLStatusBar.cpp
     GUI/BBLStatusBarSend.hpp
     GUI/BBLStatusBarSend.cpp
+    GUI/BBLStatusBarPrint.hpp
+    GUI/BBLStatusBarPrint.cpp
     GUI/BBLStatusBarBind.hpp
     GUI/BBLStatusBarBind.cpp
     GUI/Mouse3DController.cpp
@@ -376,6 +418,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/InstanceCheck.hpp
     GUI/Search.cpp
     GUI/Search.hpp
+    GUI/FilamentGroupPopup.hpp
+    GUI/FilamentGroupPopup.cpp
     GUI/NotificationManager.cpp
     GUI/NotificationManager.hpp
     GUI/UnsavedChangesDialog.cpp
@@ -402,6 +446,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ModelMall.cpp
     GUI/SelectMachine.hpp
     GUI/SelectMachine.cpp
+    GUI/SelectMachinePop.hpp
+    GUI/SelectMachinePop.cpp
     GUI/SendToPrinter.hpp
     GUI/SendToPrinter.cpp
     GUI/AmsMappingPopup.hpp
@@ -468,6 +514,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/PresetUpdater.hpp
     Utils/Process.cpp
     Utils/Process.hpp
+    Utils/RaycastManager.cpp
+    Utils/RaycastManager.hpp
     Utils/Profile.hpp
     Utils/UndoRedo.cpp
     Utils/UndoRedo.hpp
@@ -502,7 +550,11 @@ set(SLIC3R_GUI_SOURCES
 	Utils/FontConfigHelp.hpp
 	Utils/FontUtils.cpp
 	Utils/FontUtils.hpp
+    Utils/WxFontUtils.hpp
+    Utils/WxFontUtils.cpp
 )
+
+add_subdirectory(GUI/DeviceTab)
 
 if (WIN32)
     list(APPEND SLIC3R_GUI_SOURCES
@@ -525,12 +577,17 @@ if (APPLE)
             GUI/InstanceCheckMac.h
             GUI/wxMediaCtrl2.mm
             GUI/wxMediaCtrl2.h
+            GUI/wxMediaCtrl3.h
         )
     FIND_LIBRARY(DISKARBITRATION_LIBRARY DiskArbitration)
 else ()
     list(APPEND SLIC3R_GUI_SOURCES
+            GUI/AVVideoDecoder.cpp
+            GUI/AVVideoDecoder.hpp
             GUI/wxMediaCtrl2.cpp
             GUI/wxMediaCtrl2.h
+            GUI/wxMediaCtrl3.cpp
+            GUI/wxMediaCtrl3.h
         )
 endif ()
 
@@ -551,8 +608,8 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
 
 encoding_check(libslic3r_gui)
 
-target_link_libraries(libslic3r_gui libslic3r cereal imgui minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
-#target_link_libraries(libslic3r_gui libslic3r cereal imgui minilzo GLEW::GLEW OpenGL::GL hidapi libcurl OpenSSL::SSL OpenSSL::Crypto ${wxWidgets_LIBRARIES} glfw)
+target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
+#target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi libcurl OpenSSL::SSL OpenSSL::Crypto ${wxWidgets_LIBRARIES} glfw)
 
 if (MSVC)
     target_link_libraries(libslic3r_gui Setupapi.lib)
@@ -586,6 +643,15 @@ endif ()
 if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
     add_precompiled_header(libslic3r_gui pchheader.hpp FORCEINCLUDE)
 endif ()
+
+if (NOT APPLE)
+    pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
+        libavcodec
+        libswscale
+        libavutil
+    )
+    target_link_libraries(libslic3r_gui PkgConfig::LIBAV)
+endif()
 
 # We need to implement some hacks for wxWidgets and touch the underlying GTK
 # layer and sub-libraries. This forces us to use the include locations and

@@ -77,6 +77,7 @@ public:
     bool has_duplicate_points() const;
     // Remove exact duplicates, return true if any duplicate has been removed.
     bool remove_duplicate_points();
+    bool remove_colinear_points();
     void clear() { this->points.clear(); }
     void append(const Point &point) { this->points.push_back(point); }
     void append(const Points &src) { this->append(src.begin(), src.end()); }
@@ -94,7 +95,7 @@ public:
     bool intersection(const Line& line, Point* intersection) const;
     bool first_intersection(const Line& line, Point* intersection) const;
     bool intersections(const Line &line, Points *intersections) const;
-
+    void symmetric_y(const coord_t &y_axis);
     static Points _douglas_peucker(const Points &points, const double tolerance);
     static Points visivalingam(const Points& pts, const double tolerance);
     static Points concave_hull_2d(const Points& pts, const double tolerence);

@@ -79,9 +79,8 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
         TargetUrl = host_url + "/sign-in";
         m_networkOk = false;
 
-        wxString strlang = wxGetApp().current_language_code_safe();
+        wxString strlang = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
         if (strlang != "") {
-            strlang.Replace("_", "-");
             TargetUrl = host_url + "/" + strlang + "/sign-in";
         }
 
@@ -272,13 +271,7 @@ void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
         json j = json::parse(into_u8(str_input));
 
         wxString strCmd = j["command"];
-
-        if (strCmd == "autotest_token")
-        {
-            m_AutotestToken = j["data"]["token"];
-        }
         if (strCmd == "user_login") {
-            j["data"]["autotest_token"] = m_AutotestToken;
             wxGetApp().handle_script_message(j.dump());
             Close();
         }
@@ -416,5 +409,13 @@ bool  ZUserLogin::ShowErrorPage()
     return true;
 }
 
+
+std::string ZUserLogin::GetStudioLanguage()
+{
+    std::string strLanguage = wxGetApp().app_config->get("language");
+    if (strLanguage.empty()) strLanguage = "en";
+
+    return strLanguage;
+}
 
 }} // namespace Slic3r::GUI

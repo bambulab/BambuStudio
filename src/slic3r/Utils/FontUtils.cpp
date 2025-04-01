@@ -1,4 +1,5 @@
 #include "FontUtils.hpp"
+//#define STB_TRUETYPE_IMPLEMENTATION
 #include "imgui/imstb_truetype.h"
 #include "libslic3r/Utils.hpp"
 #include <boost/log/trivial.hpp>
@@ -58,9 +59,6 @@ std::string get_file_path(const wxFont &font)
     return path_str;
 }
 #endif // __APPLE__
-    
-using fontinfo_opt = std::optional<stbtt_fontinfo>;
-
 std::string get_human_readable_name(const wxFont &font)
 {
     if (!font.IsOk()) return "Font is NOT ok.";
@@ -71,6 +69,8 @@ std::string get_human_readable_name(const wxFont &font)
         return std::string((font.GetFamilyString() + " " + font.GetStyleString() + " " + font.GetWeightString()).c_str());
     }
 }
+
+using fontinfo_opt = std::optional<stbtt_fontinfo>;
 
 fontinfo_opt load_font_info(const unsigned char *data, unsigned int index)
 {
@@ -275,7 +275,7 @@ bool can_generate_text_shape_from_font(const stbtt_fontinfo &font_info)
     int           num_verts = stbtt_GetGlyphShape(&font_info, glyph_index, &vertices);
     if (num_verts <= 0)
         return false;
- 
+
     return true;
 }
 
@@ -288,7 +288,7 @@ bool can_generate_text_shape(const std::string& font_name) {
     fontinfo_opt font_info_opt = load_font_info(font->data->data(), 0);
     if (!font_info_opt.has_value())
         return false;
-    
+
     return can_generate_text_shape_from_font(*font_info_opt);
 }
 

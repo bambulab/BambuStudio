@@ -38,8 +38,9 @@ public:
         MeshRaycaster* raycaster;
         bool           is_up_part;
         Transform3d    trans;
+        bool           is_modifier;
     };
-    void         part_render(const Vec3d *normal);
+    void         part_render(const Vec3d *cut_center, const Vec3d *normal);
     void         toggle_selection(const Vec2d &mouse_pos);
     void         toggle_selection(int id);
     void         turn_over_selection();
@@ -179,8 +180,12 @@ private:
 
     GLModel m_plane; // old name:PickingModel
 
+    GLModel m_grabber_model;
+
     Vec3d m_cut_line_begin{Vec3d::Zero()};
     Vec3d m_cut_line_end{Vec3d::Zero()};
+
+    GLModel m_cut_line_model;
 
     Transform3d m_rotate_matrix{Transform3d::Identity()};
     Transform3d m_start_dragging_m{Transform3d::Identity()};
@@ -206,7 +211,7 @@ public:
     GLGizmoAdvancedCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
 
     bool gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_position, bool shift_down, bool alt_down, bool control_down);
-    bool on_key(wxKeyEvent &evt);
+    bool on_key(const wxKeyEvent &evt) override;
 
     double get_movement() const { return m_movement; }
     void finish_rotation();
@@ -221,6 +226,8 @@ public:
 
     virtual bool apply_clipping_plane() { return m_connectors_editing; }
 
+    BoundingBoxf3 get_bounding_box() const override;
+
 protected:
     virtual bool on_init();
     virtual void on_load(cereal::BinaryInputArchive &ar) override;
@@ -229,6 +236,7 @@ protected:
     virtual std::string on_get_name() const;
     virtual std::string on_get_name_str() override { return "Cut"; }
     virtual void on_set_state();
+    void         close();
     virtual bool on_is_activable() const;
     virtual CommonGizmosDataID on_get_requirements() const override;
     virtual void on_start_dragging() override;
@@ -312,6 +320,7 @@ private:
     bool has_valid_groove() const;
     bool has_valid_contour() const;
     void reset_cut_by_contours();
+    void render_flip_plane_button(bool disable_pred = false);
     void process_contours();
     void toggle_model_objects_visibility(bool show_in_3d = false);
     void deal_connector_pos_by_type(Vec3d &pos, float &height, CutConnectorType, CutConnectorStyle, bool looking_forward, bool is_edit, const Vec3d &clp_normal);

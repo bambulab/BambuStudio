@@ -16,7 +16,7 @@
 #include "Widgets/TextInput.hpp"
 #include <wx/listimpl.cpp>
 #include <map>
-
+#include "Gizmos/GLGizmoBase.hpp"
 #ifdef __WINDOWS__
 #ifdef _MSW_DARK_MODE
 #include "dark_mode.hpp"
@@ -65,8 +65,16 @@ wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *paren
     return m_sizer_title;
 }
 
-wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<wxString> vlist)
+wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, const std::vector<wxString>& label_list, const std::vector<std::string>& value_list)
 {
+    auto get_value_idx = [value_list](const std::string value) {
+        size_t idx = 0;
+        auto iter = std::find(value_list.begin(), value_list.end(), value);
+        if (iter != value_list.end())
+            idx = std::distance(value_list.begin(), iter);
+        return idx;
+        };
+
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_combox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
 
@@ -82,17 +90,17 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *pa
     combobox->GetDropDown().SetFont(::Label::Body_13);
 
     std::vector<wxString>::iterator iter;
-    for (iter = vlist.begin(); iter != vlist.end(); iter++) { combobox->Append(*iter); }
+    for (auto label : label_list)
+        combobox->Append(label);
 
-
-    auto use_inch = app_config->get(param);
-    if (!use_inch.empty()) { combobox->SetSelection(atoi(use_inch.c_str())); }
+    auto old_value = app_config->get(param);
+    if (!old_value.empty()) { combobox->SetSelection(get_value_idx(old_value)); }
 
     m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
 
     //// save config
-    combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param](wxCommandEvent &e) {
-        app_config->set(param, std::to_string(e.GetSelection()));
+    combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param, value_list](wxCommandEvent &e) {
+        app_config->set(param, value_list[e.GetSelection()]);
         app_config->save();
         e.Skip();
     });
@@ -156,16 +164,28 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
             language_name = wxString::FromUTF8("\xD0\xA0\xD1\x83\xD1\x81\xD1\x81\xD0\xBA\xD0\xB8\xD0\xB9");
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CZECH)) {
-            language_name = wxString::FromUTF8("\xC4\x8D\x65\xC5\xA1\x74\x69\x6E\x61");
+            if (wxGetApp().app_config->get("language") == "ja_JP") {
+                language_name = wxString::FromUTF8("\x43\x7A\x65\x63\x68");
+            }
+            else{
+                language_name = wxString::FromUTF8("\xC4\x8D\x65\xC5\xA1\x74\x69\x6E\x61");
+            }
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_UKRAINIAN)) {
-            language_name = wxString::FromUTF8("\xD0\xA3\xD0\xBA\xD1\x80\xD0\xB0\xD1\x97\xD0\xBD\xD1\x81\xD1\x8C\xD0\xBA\xD0\xB0");
+            if (wxGetApp().app_config->get("language") == "ja_JP") {
+                language_name = wxString::FromUTF8("\x55\x6B\x72\x61\x69\x6E\x69\x61\x6E");
+            } else {
+                language_name = wxString::FromUTF8("\xD0\xA3\xD0\xBA\xD1\x80\xD0\xB0\xD1\x97\xD0\xBD\xD1\x81\xD1\x8C\xD0\xBA\xD0\xB0");
+            }
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_PORTUGUESE_BRAZILIAN)) {
             language_name = wxString::FromUTF8("\x50\x6F\x72\x74\x75\x67\x75\xC3\xAA\x73\x20\x28\x42\x72\x61\x73\x69\x6C\x29");
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_TURKISH)) {
             language_name = wxString::FromUTF8("\x54\xC3\xBC\x72\x6B\xC3\xA7\x65");
+        }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_POLISH)) {
+            language_name = wxString::FromUTF8("Polski");
         }
 
         if (language == vlist[i]->CanonicalName) {
@@ -236,6 +256,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
                 Close();
                 // Reparent(nullptr);
                 GetParent()->RemoveChild(this);
+                Label::initSysFont(app_config->get_language_code());
                 wxGetApp().recreate_GUI(_L("Changing application language"));
             }
         }
@@ -469,6 +490,63 @@ wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2
     return sizer_input;
 }
 
+wxBoxSizer *PreferencesDialog::create_item_range_input(
+    wxString title, wxWindow *parent, wxString tooltip, std::string param, float range_min, float range_max, int keep_digital, std::function<void(wxString)> onchange)
+{
+    wxBoxSizer *sizer_input = new wxBoxSizer(wxHORIZONTAL);
+    auto        input_title = new wxStaticText(parent, wxID_ANY, title);
+    input_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    input_title->SetFont(::Label::Body_13);
+    input_title->SetToolTip(tooltip);
+    input_title->Wrap(-1);
+
+    auto float_value = std::atof(app_config->get(param).c_str());
+    if (float_value < range_min || float_value > range_max) {
+        float_value = range_min;
+        app_config->set(param, std::to_string(range_min));
+        app_config->save();
+    }
+    auto       input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
+    StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
+    input->SetBackgroundColor(input_bg);
+    input->GetTextCtrl()->SetValue(app_config->get(param));
+    wxTextValidator validator(wxFILTER_NUMERIC);
+    input->GetTextCtrl()->SetValidator(validator);
+
+    sizer_input->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
+    sizer_input->Add(input_title, 0, wxALIGN_CENTER_VERTICAL | wxALL, 3);
+    sizer_input->Add(input, 0, wxALIGN_CENTER_VERTICAL, 0);
+    auto format_str=[](int keep_digital,float val){
+        std::stringstream ss;
+        ss << std::fixed << std::setprecision(keep_digital) << val;
+        return ss.str();
+    };
+    auto set_value_to_app = [this, param, onchange, input, range_min, range_max, format_str, keep_digital](float value, bool update_slider) {
+        if (value < range_min) { value = range_min; }
+        if (value > range_max) { value = range_max; }
+        auto str = format_str(keep_digital, value);
+        app_config->set(param, str);
+        app_config->save();
+        if (onchange) {
+            onchange(str);
+        }
+        input->GetTextCtrl()->SetValue(str);
+    };
+    input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, set_value_to_app, input](wxCommandEvent &e) {
+        auto value = std::atof(input->GetTextCtrl()->GetValue().c_str());
+        set_value_to_app(value,true);
+        e.Skip();
+    });
+
+    input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, set_value_to_app, input](wxFocusEvent &e) {
+        auto value = std::atof(input->GetTextCtrl()->GetValue().c_str());
+        set_value_to_app(value, true);
+        e.Skip();
+    });
+
+    return sizer_input;
+}
+
 wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow *parent, wxString tooltip, std::string param)
 {
     wxBoxSizer *m_sizer_input = new wxBoxSizer(wxHORIZONTAL);
@@ -630,8 +708,9 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     auto checkbox = new ::CheckBox(parent);
     if (param == "privacyuse") {
         checkbox->SetValue((app_config->get("firstguide", param) == "true") ? true : false);
-    }
-    else {
+    } else if (param == "auto_stop_liveview") {
+        checkbox->SetValue((app_config->get("liveview", param) == "true") ? false : true);
+    } else {
         checkbox->SetValue((app_config->get(param) == "true") ? true : false);
     }
 
@@ -660,6 +739,9 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
                 }
             }
             app_config->save();
+        }
+        else if (param == "auto_stop_liveview") {
+            app_config->set("liveview", param, !checkbox->GetValue());
         }
         else {
             app_config->set_bool(param, checkbox->GetValue());
@@ -741,6 +823,80 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             }
         }
 
+        if (param == "show_print_history") {
+            auto show_history = app_config->get_bool("show_print_history");
+            if (show_history == true) {
+                if (wxGetApp().mainframe && wxGetApp().mainframe->m_webview) { wxGetApp().mainframe->m_webview->ShowUserPrintTask(true,true); }
+            } else {
+                if (wxGetApp().mainframe && wxGetApp().mainframe->m_webview) { wxGetApp().mainframe->m_webview->ShowUserPrintTask(false); }
+            }
+        }
+
+        if (param == "enable_lod") {
+            if (wxGetApp().plater()->is_project_dirty()) {
+                auto result = MessageDialog(static_cast<wxWindow *>(this), _L("The current project has unsaved changes, save it before continuing?"),
+                                            wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Save"), wxYES_NO  | wxYES_DEFAULT | wxCENTRE)
+                                  .ShowModal();
+                if (result == wxID_YES) {
+                    wxGetApp().plater()->save_project();
+                }
+            }
+            MessageDialog msg_wingow(nullptr, _L("Please note that the model show will undergo certain changes at small pixels case.\nEnabled LOD requires application restart.") + "\n" + _L("Do you want to continue?"), _L("Enable LOD"),
+                wxYES| wxYES_DEFAULT | wxCANCEL | wxCENTRE);
+            if (msg_wingow.ShowModal() == wxID_YES) {
+                Close();
+                GetParent()->RemoveChild(this);
+                wxGetApp().recreate_GUI(_L("Enable LOD"));
+            } else {
+                checkbox->SetValue(!checkbox->GetValue());
+                app_config->set_bool(param, checkbox->GetValue());
+                app_config->save();
+            }
+        }
+
+        if (param == "enable_high_low_temp_mixed_printing") {
+            if (checkbox->GetValue()) {
+                const wxString warning_title = _L("Bed Temperature Difference Warning");
+                const wxString warning_message = 
+                    _L("Using filaments with significantly different temperatures may cause:\n"
+                        "• Extruder clogging\n"
+                        "• Nozzle damage\n"
+                        "• Layer adhesion issues\n\n"
+                        "Continue with enabling this feature?");
+                std::function<void(const wxString&)> link_callback = [](const wxString&) {
+                            const std::string lang_code = wxGetApp().app_config->get("language");
+                            const wxString region = (lang_code.find("zh") != std::string::npos) ? L"zh" : L"en";
+                            const wxString wiki_url = wxString::Format(
+                                L"https://wiki.bambulab.com/%s/filament-acc/filament/h2d-filament-config-limit",
+                                region
+                            );
+                            wxGetApp().open_browser_with_warning_dialog(wiki_url);
+                            };
+
+                MessageDialog msg_dialog(
+                    nullptr,
+                    warning_message,
+                    warning_title,
+                    wxICON_WARNING | wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE,
+                    wxEmptyString,
+                    _L("Click Wiki for help."),
+                    link_callback
+                );
+
+                if (msg_dialog.ShowModal() != wxID_YES) {
+                    checkbox->SetValue(false);
+                    app_config->set_bool(param, false);
+                    app_config->save();
+                }
+            }
+        }
+
+#ifdef __WIN32__
+        if (param == "prefer_to_use_dgpu") {
+            app_config->set_bool(param, checkbox->GetValue());
+            app_config->save();
+        }
+#endif // __WIN32__
         e.Skip();
     });
 
@@ -875,10 +1031,8 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
             if (agent) {
                 json j;
                 std::string value;
-                value = wxGetApp().app_config->get("auto_calculate");
+                value = wxGetApp().app_config->get("auto_calculate_flush");
                 j["auto_flushing"] = value;
-                value = wxGetApp().app_config->get("auto_calculate_when_filament_change");
-                j["auto_calculate_when_filament_change"] = value;
                 agent->track_event("preferences_changed", j.dump());
             }
         } catch(...) {}
@@ -995,7 +1149,8 @@ wxWindow* PreferencesDialog::create_general_page()
         wxLANGUAGE_CZECH,
         wxLANGUAGE_UKRAINIAN,
         wxLANGUAGE_PORTUGUESE_BRAZILIAN,
-        wxLANGUAGE_TURKISH
+        wxLANGUAGE_TURKISH,
+        wxLANGUAGE_POLISH
     };
 
     auto translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
@@ -1021,7 +1176,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto                  item_region= create_item_region_combobox(_L("Login Region"), page, _L("Login Region"), Regions);
 
     std::vector<wxString> Units         = {_L("Metric") + " (mm, g)", _L("Imperial") + " (in, oz)"};
-    auto item_currency = create_item_combobox(_L("Units"), page, _L("Units"), "use_inches", Units);
+    auto item_currency = create_item_combobox(_L("Units"), page, _L("Units"), "use_inches", Units,{"0","1"});
     auto item_single_instance = create_item_checkbox(_L("Keep only one Bambu Studio instance"), page,
 #if __APPLE__
         _L("On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances "
@@ -1031,20 +1186,57 @@ wxWindow* PreferencesDialog::create_general_page()
 #endif
         50, "single_instance");
 
-    auto item_mouse_zoom_settings = create_item_checkbox(_L("Zoom to mouse position"), page, _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50, "zoom_to_mouse");
+    auto item_auto_transfer_when_switch_preset = create_item_checkbox(_L("Automatically transfer modified value when switching process and filament presets"), page,_L("After closing, a popup will appear to ask each time"), 50, "auto_transfer_when_switch_preset");
     auto item_bed_type_follow_preset = create_item_checkbox(_L("Auto plate type"), page,
                                                          _L("Studio will remember build plate selected last time for certain printer model."), 50,
                                                          "user_bed_type");
+    std::vector<wxString> FlushOptionLabels = {_L("All"),_L("Color change"),_L("Disabled")};
+    std::vector<std::string> FlushOptionValues = { "all","color change","disabled" };
+    auto item_auto_flush = create_item_combobox(_L("Auto Flush"), page, _L("Auto calculate flush volumes"), "auto_calculate_flush", FlushOptionLabels, FlushOptionValues);
     //auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" notification after start"), page, _L("If enabled, useful hints are displayed at startup."), 50, "show_hints");
-    auto item_calc_mode = create_item_checkbox(_L("Flushing volumes: Auto-calculate every time when the color is changed."), page, _L("If enabled, auto-calculate every time when the color is changed."), 50, "auto_calculate");
-    auto item_calc_in_long_retract = create_item_checkbox(_L("Flushing volumes: Auto-calculate every time when the filament is changed."), page, _L("If enabled, auto-calculate every time when filament is changed"), 50, "auto_calculate_when_filament_change");
     auto item_multi_machine = create_item_checkbox(_L("Multi-device Management(Take effect after restarting Studio)."), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), 50, "enable_multi_machine");
-    auto title_presets = create_item_title(_L("Presets"), page, _L("Presets"));
-    auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), page, _L("User Sync"), 50, "sync_user_preset");
-    auto item_system_sync        = create_item_checkbox(_L("Update built-in Presets automatically."), page, _L("System Sync"), 50, "sync_system_preset");
-    auto item_save_presets = create_item_button(_L("Clear my choice on the unsaved presets."), _L("Clear"), page, _L("Clear my choice on the unsaved presets."), []() {
-        wxGetApp().app_config->set("save_preset_choise", "");
+    auto item_step_mesh_setting = create_item_checkbox(_L("Show the step mesh parameter setting dialog."), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), 50, "enable_step_mesh_setting");
+    auto item_beta_version_update = create_item_checkbox(_L("Support beta version update."), page, _L("With this option enabled, you can receive beta version updates."), 50, "enable_beta_version_update");
+    auto item_mix_print_high_low_temperature = create_item_checkbox(_L("Remove the restriction on mixed printing of high and low temperature filaments."), page, _L("With this option enabled, you can print materials with a large temperature difference together."), 50, "enable_high_low_temp_mixed_printing");
+    auto item_restore_hide_pop_ups = create_item_button(_L("Clear my choice for synchronizing printer preset after loading the file."), _L("Clear"), page, _L("Clear my choice for synchronizing printer preset after loading the file."), []() {
+        wxGetApp().app_config->erase("app", "sync_after_load_file_show_flag");
     });
+    auto _3d_settings    = create_item_title(_L("3D Settings"), page, _L("3D Settings"));
+    auto item_mouse_zoom_settings  = create_item_checkbox(_L("Zoom to mouse position"), page,
+                                                         _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50,
+                                                         "zoom_to_mouse");
+    auto  item_show_shells_in_preview_settings = create_item_checkbox(_L("Always show shells in preview"), page,
+                                                         _L("Always show shells or not in preview view tab.If change value,you should reslice."), 50,
+                                                         "show_shells_in_preview");
+    auto  item_import_single_svg_and_split         = create_item_checkbox(_L("Import a single SVG and split it"), page,
+                                                                     _L("Import a single SVG and then split it to several parts."), 50,
+                                                                     "import_single_svg_and_split");
+    auto  item_gamma_correct_in_import_obj = create_item_checkbox(_L("Enable gamma correction for the imported obj file"), page,
+                                                                 _L("Perform gamma correction on color after importing the obj model."), 50,
+                                                                 "gamma_correct_in_import_obj");
+    auto  enable_lod_settings       = create_item_checkbox(_L("Improve rendering performance by lod"), page,
+                                                         _L("Improved rendering performance under the scene of multiple plates and many models."), 50,
+                                                         "enable_lod");
+
+#ifdef __WIN32__
+    auto prefer_to_use_dgpu   = create_item_checkbox(_L("Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"), page,
+                                                    _L("If enabled, this feature can improve rendering performance to some extent. However, it may cause flickering on multi-GPU systems, so it is recommended to disable it."), 50, "prefer_to_use_dgpu.");
+#endif // __WIN32__
+
+    float range_min = 1.0, range_max = 2.5;
+    auto item_grabber_size_settings = create_item_range_input(_L("Grabber scale"), page,
+                                                              _L("Set grabber size for move,rotate,scale tool.") + _L("Value range") + ":[" + std::to_string(range_min) + "," +
+                                                                  std::to_string(range_max) +
+                                                                  "]","grabber_size_factor", range_min, range_max, 1,
+        [](wxString value) {
+            double d_value = 0;
+            if (value.ToDouble(&d_value)) {
+                GLGizmoBase::Grabber::GrabberSizeFactor = d_value;
+            }
+        });
+    auto title_presets = create_item_title(_L("Presets"), page, _L("Presets"));
+    auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), page, _L("If enabled, auto sync user presets with cloud after Bambu Studio startup or presets modified."), 50, "sync_user_preset");
+    auto item_system_sync        = create_item_checkbox(_L("Auto check for system presets updates"), page, _L("If enabled, auto check whether there are system presets updates after Bambu Studio startup."), 50, "sync_system_preset");
 
 #ifdef _WIN32
     auto title_associate_file = create_item_title(_L("Associate Files To Bambu Studio"), page, _L("Associate Files To Bambu Studio"));
@@ -1062,6 +1254,7 @@ wxWindow* PreferencesDialog::create_general_page()
     // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
     auto item_modelmall = create_item_checkbox(_L("Show online staff-picked models on the home page"), page, _L("Show online staff-picked models on the home page"), 50, "staff_pick_switch");
 
+    auto item_show_history = create_item_checkbox(_L("Show history on the home page"), page, _L("Show history on the home page"), 50, "show_print_history");
     auto title_project = create_item_title(_L("Project"), page, "");
     auto item_max_recent_count = create_item_input(_L("Maximum recent projects"), "", page, _L("Maximum count of recent projects"), "max_recent_count", [](wxString value) {
         long max = 0;
@@ -1080,10 +1273,20 @@ wxWindow* PreferencesDialog::create_general_page()
     auto title_downloads = create_item_title(_L("Downloads"), page, _L("Downloads"));
     auto item_downloads = create_item_downloads(page,50,"download_path");
 
+    auto title_media = create_item_title(_L("Media"), page, _L("Media"));
+    auto item_auto_stop_liveview = create_item_checkbox(_L("Keep liveview when printing."), page, _L("By default, Liveview will pause after 15 minutes of inactivity on the computer. Check this box to disable this feature during printing."), 50, "auto_stop_liveview");
+
     //dark mode
 #ifdef _WIN32
     auto title_darkmode = create_item_title(_L("Dark Mode"), page, _L("Dark Mode"));
     auto item_darkmode = create_item_darkmode_checkbox(_L("Enable dark mode"), page,_L("Enable dark mode"), 50, "dark_color_mode");
+#endif
+
+#if 0
+    auto title_filament_group = create_item_title(_L("Filament Grouping"), page, _L("Filament Grouping"));
+    //temporarily disable it
+    //auto item_ignore_ext_filament = create_item_checkbox(_L("Ignore ext filament when auto grouping"), page, _L("Ignore ext filament when auto grouping"), 50, "ignore_ext_filament_when_group");
+    auto item_pop_up_filament_map_dialog = create_item_checkbox(_L("Pop up to select filament grouping mode"), page, _L("Pop up to select filament grouping mode"), 50, "pop_up_filament_map_dialog");
 #endif
 
     auto title_user_experience = create_item_title(_L("User Experience"), page, _L("User Experience"));
@@ -1100,29 +1303,45 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_language, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_region, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_currency, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_auto_flush, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_single_instance, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_mouse_zoom_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_bed_type_follow_preset, 0, wxTOP, FromDIP(3));
     //sizer_page->Add(item_hints, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_calc_mode, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_calc_in_long_retract, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_multi_machine, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_step_mesh_setting, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_beta_version_update, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_auto_transfer_when_switch_preset, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_mix_print_high_low_temperature, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_restore_hide_pop_ups, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(_3d_settings, 0, wxTOP | wxEXPAND, FromDIP(20));
+    sizer_page->Add(item_mouse_zoom_settings, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_show_shells_in_preview_settings, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_import_single_svg_and_split, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_gamma_correct_in_import_obj, 0, wxTOP, FromDIP(3));
+#ifdef __WIN32__
+    sizer_page->Add(prefer_to_use_dgpu, 0, wxTOP, FromDIP(3));
+#endif // __WIN32__
+
+    sizer_page->Add(enable_lod_settings, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_grabber_size_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(title_presets, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_user_sync, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_system_sync, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_save_presets, 0, wxTOP, FromDIP(3));
 #ifdef _WIN32
     sizer_page->Add(title_associate_file, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_associate_3mf, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_associate_stl, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_associate_step, 0, wxTOP, FromDIP(3));
 #endif // _WIN32
-    auto item_title_modelmall = sizer_page->Add(title_modelmall, 0, wxTOP | wxEXPAND, FromDIP(20));
-    auto item_item_modelmall = sizer_page->Add(item_modelmall, 0, wxTOP, FromDIP(3));
-    auto update_modelmall = [this, item_title_modelmall, item_item_modelmall] (wxEvent & e) {
+    auto item_title_modelmall   = sizer_page->Add(title_modelmall, 0, wxTOP | wxEXPAND, FromDIP(20));
+    auto item_item_modelmall    = sizer_page->Add(item_modelmall, 0, wxTOP, FromDIP(3));
+    auto item_item_show_history = sizer_page->Add(item_show_history, 0, wxTOP, FromDIP(3));
+
+    auto update_modelmall = [this, item_title_modelmall, item_item_modelmall, item_item_show_history](wxEvent &e) {
         bool has_model_mall = wxGetApp().has_model_mall();
         item_title_modelmall->Show(has_model_mall);
         item_item_modelmall->Show(has_model_mall);
+        item_item_show_history->Show(has_model_mall);
         Layout();
         Fit();
     };
@@ -1136,12 +1355,21 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_backup, 0, wxTOP,FromDIP(3));
     item_backup->Add(item_backup_interval, 0, wxLEFT, 0);
 
-    sizer_page->Add(title_downloads, 0, wxTOP| wxEXPAND, FromDIP(20));
+    sizer_page->Add(title_downloads, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_downloads, 0, wxEXPAND, FromDIP(3));
+
+    sizer_page->Add(title_media, 0, wxTOP| wxEXPAND, FromDIP(20));
+    sizer_page->Add(item_auto_stop_liveview, 0, wxEXPAND, FromDIP(3));
 
 #ifdef _WIN32
     sizer_page->Add(title_darkmode, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_darkmode, 0, wxEXPAND, FromDIP(3));
+#endif
+
+#if 0
+    sizer_page->Add(title_filament_group, 0, wxTOP | wxEXPAND, FromDIP(20));
+    //sizer_page->Add(item_ignore_ext_filament, 0, wxEXPAND, FromDIP(3));
+    sizer_page->Add(item_pop_up_filament_map_dialog, 0, wxEXPAND, FromDIP(3));
 #endif
 
     sizer_page->Add(title_user_experience, 0, wxTOP | wxEXPAND, FromDIP(20));

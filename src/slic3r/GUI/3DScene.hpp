@@ -7,14 +7,17 @@
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Geometry.hpp"
+#include "libslic3r/PrintConfig.hpp"
 // BBS
 #include "libslic3r/ObjectID.hpp"
 
-#include "GLModel.hpp"
+#include "MeshUtils.hpp"
 #include "GLShader.hpp"
+#include "GLEnums.hpp"
 
 #include <functional>
 #include <optional>
+#include <memory>
 
 #ifndef NDEBUG
 #define HAS_GLSAFE
@@ -30,7 +33,6 @@
     #define glsafe(cmd) cmd
     #define glcheck()
 #endif // HAS_GLSAFE
-extern std::vector<std::array<float, 4>> get_extruders_colors();
 extern float FullyTransparentMaterialThreshold;
 extern float FullTransparentModdifiedToFixAlpha;
 extern std::array<float, 4>    adjust_color_for_rendering(const std::array<float, 4> &colors);
@@ -52,6 +54,22 @@ class GLShaderProgram;
 enum ModelInstanceEPrintVolumeState : unsigned char;
 
 using ModelObjectPtrs = std::vector<ModelObject*>;
+
+struct ObjectFilamentInfo {
+    ModelObject* object;
+    std::map<int, int> manual_filaments; //manual mode: filament id -> extruder id can not be printed
+
+    std::vector<int> auto_filaments; //auto mode: filaments in all extruder's outside area
+};
+
+struct ObjectFilamentResults {
+    FilamentMapMode         mode;
+    std::vector<int>        filaments; //filaments has conflicts
+    std::map<int, int>      filament_maps; //filament maps
+    std::vector<ModelObject*> partly_outside_objects; //partly outside objects
+
+    std::vector<ObjectFilamentInfo> object_filaments;
+};
 
 // Return appropriate color based on the ModelVolume.
 std::array<float, 4> color_from_model_volume(const ModelVolume& model_volume);
@@ -212,8 +230,8 @@ public:
     // Release the geometry data, release OpenGL VBOs.
     void release_geometry();
 
-    void render() const;
-    void render(const std::pair<size_t, size_t>& tverts_range, const std::pair<size_t, size_t>& qverts_range) const;
+    void render(const std::shared_ptr<GLShaderProgram>& shader) const;
+    void render(const std::shared_ptr<GLShaderProgram>& shader, const std::pair<size_t, size_t>& tverts_range, const std::pair<size_t, size_t>& qverts_range) const;
 
     // Is there any geometry data stored?
     bool empty() const { return vertices_and_normals_interleaved_size == 0; }
@@ -256,8 +274,20 @@ public:
 private:
     BoundingBox m_bounding_box;
 };
+enum LOD_LEVEL {
+    HIGH, // Origin data
+    MIDDLE,
+    SMALL,
+};
 
 class GLVolume {
+    static float LOD_HIGH_ZOOM;
+    static float LOD_MIDDLE_ZOOM;
+    static float LOD_SMALL_ZOOM;
+    static float LAST_CAMERA_ZOOM_VALUE;
+    mutable LOD_LEVEL m_cur_lod_level = LOD_LEVEL::HIGH;
+    mutable unsigned char m_lod_update_index = 0;
+
 public:
     std::string name;
     bool        is_text_shape{false};
@@ -292,6 +322,9 @@ public:
     virtual ~GLVolume() = default;
 
     // BBS
+    bool simplify_mesh(const TriangleMesh &mesh, std::shared_ptr<GLIndexedVertexArray> va, LOD_LEVEL lod) const;
+    bool simplify_mesh(const indexed_triangle_set &_its, std::shared_ptr<GLIndexedVertexArray> va, LOD_LEVEL lod) const;
+
 protected:
     Geometry::Transformation m_instance_transformation;
     Geometry::Transformation m_volume_transformation;
@@ -327,6 +360,30 @@ protected:
 
     SinkingContours m_sinking_contours;
 
+     // guards m_state
+    struct Configuration
+    {
+        bool     use_count      = false;//diff with glgizmoSimplify
+        float    decimate_ratio = 50.f; // in percent
+        uint32_t wanted_count   = 0;    // initialize by percents
+        float    max_error      = 1.;   // maximal quadric error
+
+        bool operator==(const Configuration &rhs)
+        {
+            return (use_count == rhs.use_count && decimate_ratio == rhs.decimate_ratio && wanted_count == rhs.wanted_count && max_error == rhs.max_error);
+        }
+        bool operator!=(const Configuration &rhs) { return !(*this == rhs); }
+    };
+    struct State
+    {
+        enum Status { idle, running, cancelling };
+
+        Status                                status   = idle;
+        int                                   progress = 0; // percent of done work
+        Configuration                         config;       // Configuration we started with.
+        const ModelVolume *                   mv = nullptr;
+        std::unique_ptr<indexed_triangle_set> result;
+    };
 public:
     // Color of the triangles / quads held by this volume.
     std::array<float, 4> color;
@@ -394,13 +451,18 @@ public:
         bool                force_neutral_color : 1;
         // Whether or not to force rendering of sinking contours
         bool                force_sinking_contours : 1;
+        // slice error
+        bool                slice_error : 1;
+        bool                picking : 1;
     };
 
     // Is mouse or rectangle selection over this object to select/deselect it ?
     EHoverState         	hover;
 
     // Interleaved triangles & normals with indexed triangles & quads.
-    std::shared_ptr<GLIndexedVertexArray>        indexed_vertex_array;
+    std::shared_ptr<GLIndexedVertexArray> indexed_vertex_array;
+    std::shared_ptr<GLIndexedVertexArray> indexed_vertex_array_middle;
+    std::shared_ptr<GLIndexedVertexArray>  indexed_vertex_array_small;
     const TriangleMesh * ori_mesh{nullptr};
     // BBS
     mutable std::vector<GLIndexedVertexArray> mmuseg_ivas;
@@ -409,7 +471,8 @@ public:
     // Ranges of triangle and quad indices to be rendered.
     std::pair<size_t, size_t>   tverts_range;
     std::pair<size_t, size_t>   qverts_range;
-
+    std::pair<size_t, size_t>   tverts_range_lod;
+    std::pair<size_t, size_t>   qverts_range_lod;
     // If the qverts or tverts contain thick extrusions, then offsets keeps pointers of the starts
     // of the extrusions per layer.
     std::vector<coordf_t>       print_zs;
@@ -448,7 +511,6 @@ public:
     double get_instance_rotation(Axis axis) const { return m_instance_transformation.get_rotation(axis); }
 
     void set_instance_rotation(const Vec3d& rotation) { m_instance_transformation.set_rotation(rotation); set_bounding_boxes_as_dirty(); }
-    void set_instance_rotation(Axis axis, double rotation) { m_instance_transformation.set_rotation(axis, rotation); set_bounding_boxes_as_dirty(); }
 
     Vec3d get_instance_scaling_factor() const { return m_instance_transformation.get_scaling_factor(); }
     double get_instance_scaling_factor(Axis axis) const { return m_instance_transformation.get_scaling_factor(axis); }
@@ -476,7 +538,6 @@ public:
     double get_volume_rotation(Axis axis) const { return m_volume_transformation.get_rotation(axis); }
 
     void set_volume_rotation(const Vec3d& rotation) { m_volume_transformation.set_rotation(rotation); set_bounding_boxes_as_dirty(); }
-    void set_volume_rotation(Axis axis, double rotation) { m_volume_transformation.set_rotation(axis, rotation); set_bounding_boxes_as_dirty(); }
 
     const Vec3d& get_volume_scaling_factor() const { return m_volume_transformation.get_scaling_factor(); }
     double get_volume_scaling_factor(Axis axis) const { return m_volume_transformation.get_scaling_factor(axis); }
@@ -524,20 +585,17 @@ public:
     void                set_range(double low, double high);
 
     //BBS: add outline related logic and add virtual specifier
-    virtual void render(bool                         with_outline = false,
+    virtual void render(const Transform3d& view_matrix,
+                        bool               with_outline = false,
                         const std::array<float, 4> &body_color = {1.0f, 1.0f, 1.0f, 1.0f} ) const;
 
     //BBS: add simple render function for thumbnail
-    void simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<std::array<float, 4>>& extruder_colors,bool ban_light =false) const;
+    void simple_render(const std::shared_ptr<GLShaderProgram>& shader, ModelObjectPtrs& model_objects, std::vector<std::array<float, 4>>& extruder_colors,bool ban_light =false) const;
 
     void                finalize_geometry(bool opengl_initialized) { this->indexed_vertex_array->finalize_geometry(opengl_initialized); }
     void                release_geometry() { this->indexed_vertex_array->release_geometry(); }
 
-    void                set_bounding_boxes_as_dirty() {
-        m_transformed_bounding_box.reset();
-        m_transformed_convex_hull_bounding_box.reset();
-        m_transformed_non_sinking_bounding_box.reset();
-    }
+    void                set_bounding_boxes_as_dirty();
 
     bool                is_sla_support() const;
     bool                is_sla_pad() const;
@@ -560,7 +618,7 @@ public:
 class GLWipeTowerVolume : public GLVolume {
 public:
     GLWipeTowerVolume(const std::vector<std::array<float, 4>>& colors);
-    virtual void render(bool with_outline = false, const std::array<float, 4> &body_color = {1.0f, 1.0f, 1.0f, 1.0f}) const;
+    void render(const Transform3d& view_matrix, bool with_outline = false, const std::array<float, 4> &body_color = {1.0f, 1.0f, 1.0f, 1.0f}) const override;
 
     std::vector<GLIndexedVertexArray> iva_per_colors;
     bool                              IsTransparent();
@@ -572,6 +630,7 @@ private:
 typedef std::vector<GLVolume*> GLVolumePtrs;
 typedef std::pair<GLVolume*, std::pair<unsigned int, double>> GLVolumeWithIdAndZ;
 typedef std::vector<GLVolumeWithIdAndZ> GLVolumeWithIdAndZList;
+
 
 class GLVolumeCollection
 {
@@ -634,7 +693,8 @@ public:
         int                      obj_idx,
         const std::vector<int>	&instance_idxs,
         const std::string 		&color_by,
-        bool 					 opengl_initialized);
+        bool 					 opengl_initialized,
+        bool                    lod_enabled);
 
     int load_object_volume(
         const ModelObject *model_object,
@@ -644,7 +704,8 @@ public:
         const std::string &color_by,
         bool 			   opengl_initialized,
         bool               in_assemble_view = false,
-        bool               use_loaded_id = false);
+        bool               use_loaded_id = false,
+        bool               lod_enabled = true);
 
     // Load SLA auxiliary GLVolumes (for support trees or pad).
     void load_object_auxiliary(
@@ -659,21 +720,24 @@ public:
 
     int load_wipe_tower_preview(
         int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool size_unknown, float brim_width, bool opengl_initialized);
-
+    int load_real_wipe_tower_preview(
+    int obj_idx, float pos_x, float pos_y,const TriangleMesh& wt_mesh,const TriangleMesh &brim_mesh,bool render_brim, float rotation_angle, bool size_unknown,  bool opengl_initialized);
     GLVolume* new_toolpath_volume(const std::array<float, 4>& rgba, size_t reserve_vbo_floats = 0);
     GLVolume* new_nontoolpath_volume(const std::array<float, 4>& rgba, size_t reserve_vbo_floats = 0);
 
     int get_selection_support_threshold_angle(bool&) const;
     // Render the volumes by OpenGL.
     //BBS: add outline drawing logic
-    void render(ERenderType                           type,
+    void render(GUI::ERenderPipelineStage             render_pipeline_stage,
+                ERenderType                           type,
                 bool                                  disable_cullface,
                 const Transform3d &                   view_matrix,
-                std::function<bool(const GLVolume &)> filter_func   = std::function<bool(const GLVolume &)>(),
-                bool                                  with_outline = true,
-                const std::array<float, 4>&           body_color           = {1.0f, 1.0f, 1.0f, 1.0f},
-                bool                                  partly_inside_enable =true
-           ) const;
+                const Transform3d&                    projection_matrix,
+                std::function<bool(const GLVolume &)> filter_func          = std::function<bool(const GLVolume &)>(),
+                bool                                  with_outline         = true,
+                const std::array<float, 4> &          body_color           = {1.0f, 1.0f, 1.0f, 1.0f},
+                bool                                  partly_inside_enable = true,
+                std::vector<double> *                 printable_heights    = nullptr) const;
 
     // Finalize the initialization of the geometry & indices,
     // upload the geometry and indices to OpenGL VBO objects
@@ -694,6 +758,12 @@ public:
 
     void set_z_range(float min_z, float max_z) { m_z_range[0] = min_z; m_z_range[1] = max_z; }
     void set_clipping_plane(const double* coeffs) { m_clipping_plane[0] = coeffs[0]; m_clipping_plane[1] = coeffs[1]; m_clipping_plane[2] = coeffs[2]; m_clipping_plane[3] = coeffs[3]; }
+    void set_clipping_plane(double coeffs[4]){
+        m_clipping_plane[0] = coeffs[0];
+        m_clipping_plane[1] = coeffs[1];
+        m_clipping_plane[2] = coeffs[2];
+        m_clipping_plane[3] = coeffs[3];
+    }
 
     bool is_slope_GlobalActive() const { return m_slope.isGlobalActive; }
     bool is_slope_active() const { return m_slope.active; }
@@ -707,7 +777,7 @@ public:
 
     // returns true if all the volumes are completely contained in the print volume
     // returns the containment state in the given out_state, if non-null
-    bool check_outside_state(const Slic3r::BuildVolume& build_volume, ModelInstanceEPrintVolumeState* out_state) const;
+    bool check_outside_state(const Slic3r::BuildVolume& build_volume, ModelInstanceEPrintVolumeState* out_state, ObjectFilamentResults* object_results) const;
     void reset_outside_state();
 
     void update_colors_by_extruder(const DynamicPrintConfig *config, bool is_update_alpha = true);

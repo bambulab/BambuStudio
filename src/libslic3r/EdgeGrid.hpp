@@ -98,7 +98,7 @@ public:
 
 	// Fill in the grid with open polylines or closed contours.
 	// If open flag is indicated, then polylines_or_polygons are considered to be open by default.
-	// Only if the first point of a polyline is equal to the last point of a polyline, 
+	// Only if the first point of a polyline is equal to the last point of a polyline,
 	// then the polyline is considered to be closed and the last repeated point is removed when
 	// inserted into the EdgeGrid.
 	// Most of the Grid functions expect all the contours to be closed, you have been warned!
@@ -169,7 +169,126 @@ public:
 	std::vector<std::pair<ContourEdge, ContourEdge>> intersecting_edges() const;
 	bool 											 has_intersecting_edges() const;
 
-	template<typename VISITOR> void visit_cells_intersecting_line(Slic3r::Point p1, Slic3r::Point p2, VISITOR &visitor) const
+	template<typename VISITOR>
+	void visit_intersect_line_impl(coord_t ix, coord_t iy, Point p1, coord_t ixb, coord_t iyb, Point p2, VISITOR &visitor) const
+	{
+        // Account for the end points.
+        if (!visitor(iy, ix) || (ix == ixb && iy == iyb))
+            // Both ends fall into the same cell.
+            return;
+        // Raster the centeral part of the line.
+        coord_t dx = std::abs(p2(0) - p1(0));
+        coord_t dy = std::abs(p2(1) - p1(1));
+        if (p1(0) < p2(0)) {
+            int64_t ex = int64_t((ix + 1) * m_resolution - p1(0)) * int64_t(dy);
+            if (p1(1) < p2(1)) {
+                // x positive, y positive
+                int64_t ey = int64_t((iy + 1) * m_resolution - p1(1)) * int64_t(dx);
+                do {
+                    assert(ix <= ixb && iy <= iyb);
+                    if (ex < ey) {
+                        ey -= ex;
+                        ex = int64_t(dy) * m_resolution;
+                        ix += 1;
+                        assert(ix <= ixb);
+                    } else if (ex == ey) {
+                        ex = int64_t(dy) * m_resolution;
+                        ey = int64_t(dx) * m_resolution;
+                        ix += 1;
+                        iy += 1;
+                        assert(ix <= ixb);
+                        assert(iy <= iyb);
+                    } else {
+                        assert(ex > ey);
+                        ex -= ey;
+                        ey = int64_t(dx) * m_resolution;
+                        iy += 1;
+                        assert(iy <= iyb);
+                    }
+                    if (!visitor(iy, ix))
+						return;
+                } while (ix != ixb || iy != iyb);
+            } else {
+                // x positive, y non positive
+                int64_t ey = int64_t(p1(1) - iy * m_resolution) * int64_t(dx);
+                do {
+                    assert(ix <= ixb && iy >= iyb);
+                    if (ex <= ey) {
+                        ey -= ex;
+                        ex = int64_t(dy) * m_resolution;
+                        ix += 1;
+                        assert(ix <= ixb);
+                    } else {
+                        ex -= ey;
+                        ey = int64_t(dx) * m_resolution;
+                        iy -= 1;
+                        assert(iy >= iyb);
+                    }
+                    if (!visitor(iy, ix))
+						return;
+                } while (ix != ixb || iy != iyb);
+            }
+        } else {
+            int64_t ex = int64_t(p1(0) - ix * m_resolution) * int64_t(dy);
+            if (p1(1) < p2(1)) {
+                // x non positive, y positive
+                int64_t ey = int64_t((iy + 1) * m_resolution - p1(1)) * int64_t(dx);
+                do {
+                    assert(ix >= ixb && iy <= iyb);
+                    if (ex < ey) {
+                        ey -= ex;
+                        ex = int64_t(dy) * m_resolution;
+                        ix -= 1;
+                        assert(ix >= ixb);
+                    } else {
+                        assert(ex >= ey);
+                        ex -= ey;
+                        ey = int64_t(dx) * m_resolution;
+                        iy += 1;
+                        assert(iy <= iyb);
+                    }
+                    if (!visitor(iy, ix))
+						return;
+                } while (ix != ixb || iy != iyb);
+            } else {
+                // x non positive, y non positive
+                int64_t ey = int64_t(p1(1) - iy * m_resolution) * int64_t(dx);
+                do {
+                    assert(ix >= ixb && iy >= iyb);
+                    if (ex < ey) {
+                        ey -= ex;
+                        ex = int64_t(dy) * m_resolution;
+                        ix -= 1;
+                        assert(ix >= ixb);
+                    } else if (ex == ey) {
+                        // The lower edge of a grid cell belongs to the cell.
+                        // Handle the case where the ray may cross the lower left corner of a cell in a general case,
+                        // or a left or lower edge in a degenerate case (horizontal or vertical line).
+                        if (dx > 0) {
+                            ex = int64_t(dy) * m_resolution;
+                            ix -= 1;
+                            assert(ix >= ixb);
+                        }
+                        if (dy > 0) {
+                            ey = int64_t(dx) * m_resolution;
+                            iy -= 1;
+                            assert(iy >= iyb);
+                        }
+                    } else {
+                        assert(ex > ey);
+                        ex -= ey;
+                        ey = int64_t(dx) * m_resolution;
+                        iy -= 1;
+                        assert(iy >= iyb);
+                    }
+                    if (!visitor(iy, ix))
+						return;
+                } while (ix != ixb || iy != iyb);
+            }
+        }
+	}
+
+	template<typename VISITOR> void visit_cells_intersecting_line(Slic3r::Point p1, Slic3r::Point p2, VISITOR &visitor, bool need_consider_eps = false) const
 	{
 		// End points of the line segment.
 		assert(m_bbox.contains(p1));
@@ -189,127 +308,59 @@ public:
 		assert(iy >= 0 && size_t(iy) < m_rows);
 		assert(ixb >= 0 && size_t(ixb) < m_cols);
 		assert(iyb >= 0 && size_t(iyb) < m_rows);
-		// Account for the end points.
-		if (! visitor(iy, ix) || (ix == ixb && iy == iyb))
-			// Both ends fall into the same cell.
-			return;
-		// Raster the centeral part of the line.
-		coord_t dx = std::abs(p2(0) - p1(0));
-		coord_t dy = std::abs(p2(1) - p1(1));
-		if (p1(0) < p2(0)) {
-			int64_t ex = int64_t((ix + 1)*m_resolution - p1(0)) * int64_t(dy);
-			if (p1(1) < p2(1)) {
-				// x positive, y positive
-				int64_t ey = int64_t((iy + 1)*m_resolution - p1(1)) * int64_t(dx);
-				do {
-					assert(ix <= ixb && iy <= iyb);
-					if (ex < ey) {
-						ey -= ex;
-						ex = int64_t(dy) * m_resolution;
-						ix += 1;
-						assert(ix <= ixb);
-					}
-					else if (ex == ey) {
-						ex = int64_t(dy) * m_resolution;
-						ey = int64_t(dx) * m_resolution;
-						ix += 1;
-						iy += 1;
-						assert(ix <= ixb);
-						assert(iy <= iyb);
-					}
-					else {
-						assert(ex > ey);
-						ex -= ey;
-						ey = int64_t(dx) * m_resolution;
-						iy += 1;
-						assert(iy <= iyb);
-					}
-					if (! visitor(iy, ix))
-						return;
-				} while (ix != ixb || iy != iyb);
-			}
-			else {
-				// x positive, y non positive
-				int64_t ey = int64_t(p1(1) - iy*m_resolution) * int64_t(dx);
-				do {
-					assert(ix <= ixb && iy >= iyb);
-					if (ex <= ey) {
-						ey -= ex;
-						ex = int64_t(dy) * m_resolution;
-						ix += 1;
-						assert(ix <= ixb);
-					}
-					else {
-						ex -= ey;
-						ey = int64_t(dx) * m_resolution;
-						iy -= 1;
-						assert(iy >= iyb);
-					}
-					if (! visitor(iy, ix))
-						return;
-				} while (ix != ixb || iy != iyb);
-			}
+
+		std::vector<std::tuple<float, float, Slic3r::Point>> start_pos;
+        std::vector<std::tuple<float, float, Slic3r::Point>> end_pos;
+        start_pos.push_back(std::make_tuple(ix, iy, p1));
+        end_pos.push_back(std::make_tuple(ixb, iyb, p2));
+
+		if (need_consider_eps) {
+            auto calculate_upper = [&](coord_t value, double eps) {
+				return coord_t((value + eps) / m_resolution);
+			};
+            auto calculate_lower = [&](coord_t value, double eps) {
+				return coord_t((value - eps) / m_resolution);
+			};
+            const double eps = scale_(10 * EPSILON);
+            if (coord_t ix_u = calculate_upper(p1(0), eps);
+				ix_u != ix) {
+                start_pos.push_back(std::make_tuple(ix_u, iy, Slic3r::Point(coord_t(p1(0) + eps), p1(1))));
+            }
+            if (coord_t ix_l = calculate_lower(p1(0), eps);
+				ix_l != ix) {
+                start_pos.push_back(std::make_tuple(ix_l, iy, Slic3r::Point(coord_t(p1(0) - eps), p1(1))));
+            }
+            if (coord_t iy_u = calculate_upper(p1(1), eps);
+				iy_u != iy) {
+                start_pos.push_back(std::make_tuple(ix, iy_u, Slic3r::Point(p1(0), coord_t(p1(1) + eps))));
+            }
+            if (coord_t iy_l = calculate_lower(p1(1), eps);
+				iy_l != iy) {
+                start_pos.push_back(std::make_tuple(ix, iy_l, Slic3r::Point(p1(0), coord_t(p1(1) - eps))));
+            }
+
+            if (coord_t ixb_u = calculate_upper(p2(0), eps);
+				ixb_u != ixb) {
+                end_pos.push_back(std::make_tuple(ixb_u, iyb, Slic3r::Point(coord_t(p2(0) + eps), p2(1))));
+            }
+            if (coord_t ixb_l = calculate_lower(p2(0), eps);
+				ixb_l != ixb) {
+                end_pos.push_back(std::make_tuple(ixb_l, iyb, Slic3r::Point(coord_t(p2(0) - eps), p2(1))));
+            }
+            if (coord_t iyb_u = calculate_upper(p2(1), eps);
+				iyb_u != iyb) {
+                end_pos.push_back(std::make_tuple(ixb, iyb_u, Slic3r::Point(p2(0), coord_t(p2(1) + eps))));
+            }
+            if (coord_t iyb_l = calculate_lower(p2(1), eps);
+				iyb_l != iyb) {
+                end_pos.push_back(std::make_tuple(ixb, iyb_l, Slic3r::Point(p2(0), coord_t(p2(1) - eps))));
+            }
 		}
-		else {
-			int64_t ex = int64_t(p1(0) - ix*m_resolution) * int64_t(dy);
-			if (p1(1) < p2(1)) {
-				// x non positive, y positive
-				int64_t ey = int64_t((iy + 1)*m_resolution - p1(1)) * int64_t(dx);
-				do {
-					assert(ix >= ixb && iy <= iyb);
-					if (ex < ey) {
-						ey -= ex;
-						ex = int64_t(dy) * m_resolution;
-						ix -= 1;
-						assert(ix >= ixb);
-					}
-					else {
-						assert(ex >= ey);
-						ex -= ey;
-						ey = int64_t(dx) * m_resolution;
-						iy += 1;
-						assert(iy <= iyb);
-					}
-					if (! visitor(iy, ix))
-						return;
-				} while (ix != ixb || iy != iyb);
-			}
-			else {
-				// x non positive, y non positive
-				int64_t ey = int64_t(p1(1) - iy*m_resolution) * int64_t(dx);
-				do {
-					assert(ix >= ixb && iy >= iyb);
-					if (ex < ey) {
-						ey -= ex;
-						ex = int64_t(dy) * m_resolution;
-						ix -= 1;
-						assert(ix >= ixb);
-					}
-					else if (ex == ey) {
-						// The lower edge of a grid cell belongs to the cell.
-						// Handle the case where the ray may cross the lower left corner of a cell in a general case,
-						// or a left or lower edge in a degenerate case (horizontal or vertical line).
-						if (dx > 0) {
-							ex = int64_t(dy) * m_resolution;
-							ix -= 1;
-							assert(ix >= ixb);
-						}
-						if (dy > 0) {
-							ey = int64_t(dx) * m_resolution;
-							iy -= 1;
-							assert(iy >= iyb);
-						}
-					}
-					else {
-						assert(ex > ey);
-						ex -= ey;
-						ey = int64_t(dx) * m_resolution;
-						iy -= 1;
-						assert(iy >= iyb);
-					}
-					if (! visitor(iy, ix))
-						return;
-				} while (ix != ixb || iy != iyb);
+
+		for (size_t start_idx = 0; start_idx < start_pos.size(); ++start_idx) {
+            for (size_t end_idx = 0; end_idx < end_pos.size(); ++end_idx) {
+                visit_intersect_line_impl(std::get<0>(start_pos[start_idx]), std::get<1>(start_pos[start_idx]), std::get<2>(start_pos[start_idx]),
+                                          std::get<0>(end_pos[end_idx]), std::get<1>(end_pos[end_idx]), std::get<2>(end_pos[end_idx]), visitor);
 			}
 		}
 	}
@@ -374,8 +425,8 @@ protected:
 			// there is a CCW outmost contour so the out of domain cells are outside.
 			return false;
 		const Cell &cell = m_cells[r * m_cols + c];
-		return 
-			(cell.begin < cell.end) || 
+		return
+			(cell.begin < cell.end) ||
 			(! m_signed_distance_field.empty() && m_signed_distance_field[r * (m_cols + 1) + c] <= 0.f);
 	}
 

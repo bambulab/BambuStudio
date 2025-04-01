@@ -18,8 +18,8 @@
 #include "placer_boilerplate.hpp"
 
 // temporary
-//#include "../tools/svgtools.hpp"
-//#include <iomanip> // setprecision
+#include "../tools/svgtools.hpp"
+#include <iomanip> // setprecision
 
 #include <libnest2d/parallel.hpp>
 
@@ -96,6 +96,7 @@ struct NfpPConfig {
      */
     bool parallel = true;
 
+    bool save_svg = false;
     /**
      * @brief before_packing Callback that is called just before a search for
      * a new item's position is started. You can use this to create various
@@ -128,6 +129,9 @@ struct NfpPConfig {
 
     //BBS: sort function for selector
     std::function<bool(_Item<RawShape>& i1, _Item<RawShape>& i2)> sortfunc;
+
+    std::function<void(const std::string &)> progressFunc = {};
+
     //BBS: excluded region for V4 bed
     std::vector<_Item<RawShape> > m_excluded_regions;
     _ItemGroup<RawShape> m_excluded_items;
@@ -163,9 +167,9 @@ template<class RawShape> class EdgeCache {
     std::vector<ContourCache> holes_;
 
     double accuracy_ = 1.0;
-    
-    static double length(const Edge &e) 
-    { 
+
+    static double length(const Edge &e)
+    {
         return std::sqrt(e.template sqlength<double>());
     }
 
@@ -182,6 +186,11 @@ template<class RawShape> class EdgeCache {
                 contour_.full_distance += length(contour_.emap.back());
                 contour_.distances.emplace_back(contour_.full_distance);
             }
+            if (*sl::cbegin(sh)!=*sl::rcbegin(sh)) {
+                contour_.emap.emplace_back(*std::prev(endit), *sl::cbegin(sh));
+                contour_.full_distance += length(contour_.emap.back());
+                contour_.distances.emplace_back(contour_.full_distance);
+            }
         }
 
         for(auto& h : shapelike::holes(sh)) { // For the holes
@@ -194,6 +203,11 @@ template<class RawShape> class EdgeCache {
 
             while(next != endit) {
                 hc.emap.emplace_back(*(first++), *(next++));
+                hc.full_distance += length(hc.emap.back());
+                hc.distances.emplace_back(hc.full_distance);
+            }
+            if (*sl::cbegin(h) != *sl::rcbegin(h)) {
+                hc.emap.emplace_back(*std::prev(endit), *sl::cbegin(h));
                 hc.full_distance += length(hc.emap.back());
                 hc.distances.emplace_back(hc.full_distance);
             }
@@ -545,10 +559,12 @@ public:
     template<class Range = ConstItemRange<typename Base::DefaultIter>>
     PackResult trypack(Item& item,
                         const Range& remaining = Range()) {
-        auto result = _trypack(item, remaining);
+        if (item.is_wipe_tower) {
+            PackResult result1 = _trypack_with_original_pos(item);
+            if (result1.score() >= 0 && result1.score() < LARGE_COST_TO_REJECT) return result1;
+        }
 
-        // Experimental
-        // if(!result) repack(item, result);
+        auto result = _trypack(item, remaining);
 
         return result;
     }
@@ -674,10 +690,20 @@ private:
 
     using Edges = EdgeCache<RawShape>;
 
+    // item won't overlap with virtual objects if it's inside or touches NFP
+    // @return 1 if current item overlaps with virtual objects, 0 otherwise
+    bool overlapWithVirtObject(const Item& item, const Box& binbb){
+        if (items_.empty()) return 0;
+        Shapes nfps   = calcnfp(item, binbb, Lvl<MaxNfpLevel::value>());
+        auto v = item.referenceVertex();
+        for (const RawShape &nfp : nfps) {
+            if (sl::isInside(v, nfp) || sl::touches(v, nfp)) { return false; }
+        }
+        return true;
+    };
+
     template<class Range = ConstItemRange<typename Base::DefaultIter>>
-    PackResult _trypack(
-            Item& item,
-            const Range& remaining = Range()) {
+    PackResult _trypack(Item& item, const Range& remaining = Range()) {
 
         PackResult ret;
 
@@ -743,48 +769,48 @@ private:
             };
         }
 
-        bool first_object = std::all_of(items_.begin(), items_.end(), [&](const Item &rawShape) { return rawShape.is_virt_object && !rawShape.is_wipe_tower; });
+        for (auto &it : items_) {
+            config_.progressFunc((boost::format("_trypack: plate: %4%, existing object: %1%, pos: (%2%, %3%)") % it.get().name % unscale_(it.get().translation()[0]) %
+                                  unscale_(it.get().translation()[1]) % plateID())
+                                     .str());
+        }
 
-        // item won't overlap with virtual objects if it's inside or touches NFP
-        // @return 1 if current item overlaps with virtual objects, 0 otherwise
-        auto overlapWithVirtObject = [&]() -> double {
-            if (items_.empty()) return 0;
-            nfps   = calcnfp(item, binbb, Lvl<MaxNfpLevel::value>());
-            auto v = item.referenceVertex();
-            for (const RawShape &nfp : nfps) {
-                if (sl::isInside(v, nfp) || sl::touches(v, nfp)) { return 0; }
-            }
-            return 1;
-        };
+        bool first_object = std::all_of(items_.begin(), items_.end(), [&](const Item &rawShape) { return rawShape.is_virt_object && !rawShape.is_wipe_tower; });
 
         if (first_object) {
             setInitialPosition(item);
             auto best_tr = item.translation();
             auto best_rot = item.rotation();
-            best_overfit = overfit(item.transformedShape(), bin_) + overlapWithVirtObject();
+            best_overfit = std::numeric_limits<double>::max();
 
             // try normal inflation first, then 0 inflation if not fit. See STUDIO-5566.
             // Note for by-object printing, bed is expanded by -config_.bed_shrink.x().
             Coord inflation_back = item.inflation();
-            Coord inflations[2]={inflation_back, std::abs(config_.bed_shrink.x())};
+            Coord inflations[2]={inflation_back, 0};
             for (size_t i = 0; i < 2; i++) {
                 item.inflation(inflations[i]);
-                for (auto rot : config_.rotations) {
+                for (auto rot : item.allowed_rotations) {
                     item.translation(initial_tr);
                     item.rotation(initial_rot + rot);
                     setInitialPosition(item);
-                    double of = overfit(item.transformedShape(), bin_);
-                    if (of + overlapWithVirtObject() < best_overfit) {
-                        best_overfit = of;
-                        best_tr = item.translation();
-                        best_rot = item.rotation();
+                    if (!overlapWithVirtObject(item, binbb)) {
+                        double of = overfit(item.transformedShape(), bin_);
+                        if (of < best_overfit) {
+                            best_overfit = of;
+                            best_tr      = item.translation();
+                            best_rot     = item.rotation();
+                            if (best_overfit <= 0) {
+                                config_.progressFunc("First object " + item.name + " can fit with rot=" + std::to_string(rot));
+                                break;
+                            }
+                        }
                     }
                 }
                 can_pack = best_overfit <= 0;
                 if(can_pack) break;
             }
             item.inflation(inflation_back);
-            
+
             if (can_pack)
                 global_score = 0.2;
             item.rotation(best_rot);
@@ -794,7 +820,7 @@ private:
 
             Pile merged_pile = merged_pile_;
 
-            for(auto rot : config_.rotations) {
+            for(auto rot : item.allowed_rotations) {
 
                 item.translation(initial_tr);
                 item.rotation(initial_rot + rot);
@@ -979,6 +1005,7 @@ private:
                     final_rot = initial_rot + rot;
                     can_pack = true;
                     global_score = best_score;
+                    break;
                 }
             }
 
@@ -986,40 +1013,7 @@ private:
             item.rotation(final_rot);
         }
 
-#ifdef SVGTOOLS_HPP
-        svg::SVGWriter<RawShape> svgwriter;
-        Box binbb2(binbb.width() * 2, binbb.height() * 2, binbb.center()); // expand bbox to allow object be drawed outside
-        svgwriter.setSize(binbb2);
-        svgwriter.conf_.x0 = binbb.width();
-        svgwriter.conf_.y0 = -binbb.height()/2; // origin is top left corner
-        svgwriter.add_comment("bed");
-        svgwriter.writeShape(box2RawShape(binbb), "none", "black");
-        svgwriter.add_comment("nfps");
-        for (int i = 0; i < nfps.size(); i++)
-            svgwriter.writeShape(nfps[i], "none", "blue");
-        for (int i = 0; i < items_.size(); i++) {
-            svgwriter.add_comment(items_[i].get().name);
-            svgwriter.writeItem(items_[i], "none", "black");
-        }
-        svgwriter.add_comment("merged_pile_");
-        for (int i = 0; i < merged_pile_.size(); i++)
-            svgwriter.writeShape(merged_pile_[i], "none", "yellow");
-        svgwriter.add_comment("current item");
-        svgwriter.writeItem(item, "red", "red", 2);
-
-        std::stringstream ss;
-        ss.setf(std::ios::fixed | std::ios::showpoint);
-        ss.precision(1);
-        ss << "t=" << round(item.translation().x() / 1e6) << "," << round(item.translation().y() / 1e6)
-            //<< "-rot=" << round(item.rotation().toDegrees())
-            << "-sco=" << round(global_score);
-        svgwriter.draw_text(20, 20, ss.str(), "blue", 20);
-        ss.str("");
-        ss << "items.size=" << items_.size()
-            << "-merged_pile.size=" << merged_pile_.size();
-        svgwriter.draw_text(20, 40, ss.str(), "blue", 20);
-        svgwriter.save(boost::filesystem::path("C:/Users/arthur.tang/AppData/Roaming/BambuStudioInternal/SVG")/ ("nfpplacer_" + std::to_string(plate_id) + "_" + ss.str() + "_" + item.name + ".svg"));
-#endif
+        if (config_.save_svg) saveSVG(binbb, nfps, item, global_score, can_pack);
 
         if(can_pack) {
             ret = PackResult(item);
@@ -1030,6 +1024,87 @@ private:
         }
 
         return ret;
+    }
+
+    PackResult _trypack_with_original_pos(Item &item)
+    {
+        PackResult ret;
+
+        bool   can_pack     = false;
+        double best_overfit = std::numeric_limits<double>::max();
+        double global_score = std::numeric_limits<double>::max();
+
+        auto    initial_tr  = item.translation();
+        auto    initial_rot = item.rotation();
+        Vertex  final_tr    = initial_tr;
+        Radians final_rot   = initial_rot;
+        Shapes  nfps;
+
+        auto   binbb  = sl::boundingBox(bin_);
+
+        for (auto &it : items_) {
+            config_.progressFunc((boost::format("_trypack_with_original_pos: plate: %4%, existing object: %1%, pos: (%2%, %3%)") % it.get().name % unscale_(it.get().translation()[0]) %
+                                  unscale_(it.get().translation()[1]) % plateID())
+                                     .str());
+        }
+       
+        {
+            for (auto rot : item.allowed_rotations) {
+                item.translation(initial_tr);
+                item.rotation(initial_rot + rot);
+
+                if (!overlapWithVirtObject(item, binbb)) {
+                    can_pack     = true;
+                    final_tr     = initial_tr;
+                    final_rot    = initial_rot + rot;
+                    global_score = 0.3;
+                    break;
+                }
+            }
+
+            item.translation(final_tr);
+            item.rotation(final_rot);
+        }
+
+        if (config_.save_svg) saveSVG(binbb, nfps, item, global_score, can_pack);
+
+        if (can_pack) {
+            ret        = PackResult(item);
+            ret.score_ = global_score;
+            // merged_pile_ = nfp::merge(merged_pile_, item.transformedShape());
+            config_.progressFunc((boost::format("_trypack_with_original_pos: item %1% can pack") % item.name).str());
+        } else {
+            ret = PackResult(best_overfit);
+        }
+
+        return ret;
+    }
+
+    void saveSVG(Box &binbb, Shapes &nfps, Item &item, double global_score, bool can_pack)
+    {
+        svg::SVGWriter<RawShape> svgwriter;
+        Box                      binbb2(binbb.width() * 2, binbb.height() * 2, binbb.center()); // expand bbox to allow object be drawed outside
+        svgwriter.setSize(binbb2);
+        svgwriter.conf_.x0 = binbb.width();
+        svgwriter.conf_.y0 = -binbb.height() / 2; // origin is top left corner
+        svgwriter.writeShape(box2RawShape(binbb), "bed", "none", "black");
+        for (int i = 0; i < nfps.size(); i++) svgwriter.writeShape(nfps[i], "nfp_" + std::to_string(i), "none", "blue", 0.2);
+        for (int i = 0; i < items_.size(); i++) { svgwriter.writeItem(items_[i], items_[i].get().name, "none", "black", 0.2); }
+        for (int i = 0; i < merged_pile_.size(); i++) svgwriter.writeShape(merged_pile_[i], "merged_pile_" + std::to_string(i), "none", "yellow", 0.2);
+        svgwriter.writeItem(item, item.name, "red", "red", 0.3);
+
+        std::stringstream ss;
+        ss.setf(std::ios::fixed | std::ios::showpoint);
+        ss.precision(1);
+        ss << "t=" << round(item.translation().x() / 1e6) << ","
+           << round(item.translation().y() / 1e6)
+           //<< "-rot=" << round(item.rotation().toDegrees())
+           << "-sco=" << round(global_score);
+        svgwriter.draw_text(20, 20, ss.str(), "blue", 10);
+        ss.str("");
+        ss << "items.size=" << items_.size() << "-merged_pile.size=" << merged_pile_.size();
+        svgwriter.draw_text(20, 40, ss.str(), "blue", 10);
+        svgwriter.save(boost::filesystem::path("SVG") / ("plate_" + std::to_string(plate_id) + "_" + ss.str() + "_" + item.name + "_canPack=" + std::to_string(can_pack) + ".svg"));
     }
 
     RawShape box2RawShape(Box& bbin)
@@ -1142,20 +1217,10 @@ private:
         default: ; // DONT_ALIGN
         }
 
-        auto d = cb - ci;       
+        auto d = cb - ci;
 
         // BBS make sure the item won't clash with excluded regions
-        // do we have wipe tower after arranging?
         size_t n_objs = 0;
-        std::set<int> extruders;
-        for (const Item& item : items_) {
-            if (!item.is_virt_object) {
-                extruders.insert(item.extrude_ids.begin(), item.extrude_ids.end());
-                n_objs++;
-            }
-        }
-        bool need_wipe_tower = extruders.size() > 1;
-
         std::vector<RawShape> objs,excludes;
         for (Item &item : items_) {
             if (item.isFixed()) {
@@ -1194,7 +1259,7 @@ private:
 
     void setInitialPosition(Item& item) {
         Box bb = item.boundingBox();
-        
+
         Vertex ci, cb;
         Box    bbin = sl::boundingBox(bin_);
         Vertex shrink(10, 10);

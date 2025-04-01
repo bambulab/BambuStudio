@@ -89,7 +89,7 @@
     "travel_speed": "300",
     "travel_speed_z": "0",
     "enable_arc_fitting": "0",
-    "ensure_vertical_shell_thickness": "1",
+    "ensure_vertical_shell_thickness": "enabled",
     "precise_outer_wall": "1",
     "independent_support_layer_height": "1",
     "default_jerk": "15",

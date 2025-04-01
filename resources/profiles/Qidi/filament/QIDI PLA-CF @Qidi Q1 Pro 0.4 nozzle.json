@@ -6,11 +6,8 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "QIDI PLA-CF @Qidi",
-    "extrusion_multiplier": [
+    "filament_flow_ratio": [
         "0.93"
-    ],
-    "first_layer_temperature": [
-        "220"
     ],
     "filament_max_volumetric_speed": [
         "15"

@@ -3,10 +3,9 @@
 
 #include "Camera.hpp"
 #include "GUI_App.hpp"
-#if ENABLE_CAMERA_STATISTICS
+
 #include "Mouse3DController.hpp"
 #include "Plater.hpp"
-#endif // ENABLE_CAMERA_STATISTICS
 
 #include <GL/glew.h>
 
@@ -56,7 +55,7 @@ void Camera::select_next_type()
 void Camera::translate(const Vec3d& displacement) {
     if (!displacement.isApprox(Vec3d::Zero())) {
         m_view_matrix.translate(-displacement);
-        update_target(); 
+        update_target();
     }
 }
 
@@ -106,6 +105,150 @@ void Camera::select_view(const std::string& direction)
         look_at(m_target - 0.707 * m_distance * Vec3d::UnitY() + 0.707 * m_distance * Vec3d::UnitZ(), m_target, Vec3d::UnitY() + Vec3d::UnitZ());
     }
 }
+void Camera::select_view(ViewAngleType type)
+{
+    switch (type) {
+    case Slic3r::GUI::Camera::ViewAngleType::Iso: {
+        select_view("iso");
+        break;
+    }
+    case Slic3r::GUI::Camera::ViewAngleType::Top_Front: {
+        select_view("topfront");
+        break;
+    }
+    case Slic3r::GUI::Camera::ViewAngleType::Left: {
+        select_view("left");
+        break;
+    }
+    case Slic3r::GUI::Camera::ViewAngleType::Right: {
+        select_view("right");
+        break;
+    }
+    case Slic3r::GUI::Camera::ViewAngleType::Top_Plate:
+    case Slic3r::GUI::Camera::ViewAngleType::Top: {
+        select_view("top");
+        break;
+    }
+    case Slic3r::GUI::Camera::ViewAngleType::Bottom: {
+        select_view("bottom");
+        break;
+    }
+    case Slic3r::GUI::Camera::ViewAngleType::Front: {
+        select_view("front");
+        break;
+    }
+    case Slic3r::GUI::Camera::ViewAngleType::Rear: {
+        select_view("rear");
+        break;
+    }
+    default: break;
+    }
+}
+
+const Transform3d Camera::get_view_matrix_for_billboard() const
+{
+    Transform3d view_matrix_for_billboard{ Transform3d::Identity() };
+    double gui_scale = get_gui_scale();
+    view_matrix_for_billboard.data()[3 * 4 + 0] = 0.0f;
+    view_matrix_for_billboard.data()[3 * 4 + 1] = 0.0f;
+    view_matrix_for_billboard.data()[3 * 4 + 2] = -(get_near_z() + 0.10);
+
+    view_matrix_for_billboard.data()[0 * 4 + 0] = gui_scale;
+    view_matrix_for_billboard.data()[1 * 4 + 1] = gui_scale;
+    view_matrix_for_billboard.data()[2 * 4 + 2] = 1.0f;
+
+    return view_matrix_for_billboard;
+}
+//how to use
+//BoundingBox bbox = mesh.aabb.transform(transform);
+//return camera_->getFrustum().intersects(bbox);
+void Camera::debug_frustum()
+{
+    /*ImGuiWrapper &imgui = *wxGetApp().imgui();
+    imgui.begin(std::string("Camera debug_frusm"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+
+    Vec3f              frustum_min  = m_frustum.bbox.min.cast<float>();
+    Vec3f              frustum_max = m_frustum.bbox.max.cast<float>();
+    Vec3f              _0_normal  = m_frustum.planes[0].getNormal().cast<float>();
+    Vec3f              _0_corner    = m_frustum.corners[0].cast<float>();
+    Vec3f              _1_corner    = m_frustum.corners[1].cast<float>();
+
+    ImGui::InputFloat3("m_last_eye", m_last_eye.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputFloat3("m_last_center", m_last_center.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputFloat3("m_last_up", m_last_up.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputFloat3("frustum_min", frustum_min.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputFloat3("frustum_max", frustum_max.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+    for (size_t i = 0; i < 8; i++) {
+        std::string name = "corner" + std::to_string(i);
+        ImGui::InputFloat3(name.c_str(), m_frustum.corners[i].data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+    }
+    for (size_t i = 0; i < 6; i++) {
+        std::string name = "plane_normal" + std::to_string(i);
+        Vec3f       normal = m_frustum.planes[i].getNormal();
+        ImGui::InputFloat3(name.c_str(), normal.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+
+        name   = "plane_center" + std::to_string(i);
+        Vec3f center = m_frustum.planes[i].getCenter();
+        ImGui::InputFloat3(name.c_str(), center.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+    }
+    imgui.end();*/
+}
+
+void Camera::update_frustum()
+{
+    // see https://www8.cs.umu.se/kurser/5DV051/HT12/lab/plane_extraction.pdf
+    const auto vp = m_projection_matrix.matrix() * m_view_matrix.matrix();
+    const auto& vp_matrix = vp.eval();
+
+    const auto vp_data = vp_matrix.data();
+    // left
+    float a = vp_data[0 * 4 + 3] + vp_data[0 * 4 + 0];
+    float b = vp_data[1 * 4 + 3] + vp_data[1 * 4 + 0];
+    float c = vp_data[2 * 4 + 3] + vp_data[2 * 4 + 0];
+    float d = vp_data[3 * 4 + 3] + vp_data[3 * 4 + 0];
+    m_frustum.planes[0].set_abcd(a, b, c, d);
+    m_frustum.planes[0].normailze();
+
+    // right
+    a = vp_data[0 * 4 + 3] - vp_data[0 * 4 + 0];
+    b = vp_data[1 * 4 + 3] - vp_data[1 * 4 + 0];
+    c = vp_data[2 * 4 + 3] - vp_data[2 * 4 + 0];
+    d = vp_data[3 * 4 + 3] - vp_data[3 * 4 + 0];
+    m_frustum.planes[1].set_abcd(a, b, c, d);
+    m_frustum.planes[1].normailze();
+
+    // bottom
+    a = vp_data[0 * 4 + 3] + vp_data[0 * 4 + 1];
+    b = vp_data[1 * 4 + 3] + vp_data[1 * 4 + 1];
+    c = vp_data[2 * 4 + 3] + vp_data[2 * 4 + 1];
+    d = vp_data[3 * 4 + 3] + vp_data[3 * 4 + 1];
+    m_frustum.planes[2].set_abcd(a, b, c, d);
+    m_frustum.planes[2].normailze();
+
+    // top
+    a = vp_data[0 * 4 + 3] - vp_data[0 * 4 + 1];
+    b = vp_data[1 * 4 + 3] - vp_data[1 * 4 + 1];
+    c = vp_data[2 * 4 + 3] - vp_data[2 * 4 + 1];
+    d = vp_data[3 * 4 + 3] - vp_data[3 * 4 + 1];
+    m_frustum.planes[3].set_abcd(a, b, c, d);
+    m_frustum.planes[3].normailze();
+
+    // near
+    a = vp_data[0 * 4 + 3] + vp_data[0 * 4 + 2];
+    b = vp_data[1 * 4 + 3] + vp_data[1 * 4 + 2];
+    c = vp_data[2 * 4 + 3] + vp_data[2 * 4 + 2];
+    d = vp_data[3 * 4 + 3] + vp_data[3 * 4 + 2];
+    m_frustum.planes[4].set_abcd(a, b, c, d);
+    m_frustum.planes[4].normailze();
+
+    // far
+    a = vp_data[0 * 4 + 3] - vp_data[0 * 4 + 2];
+    b = vp_data[1 * 4 + 3] - vp_data[1 * 4 + 2];
+    c = vp_data[2 * 4 + 3] - vp_data[2 * 4 + 2];
+    d = vp_data[3 * 4 + 3] - vp_data[3 * 4 + 2];
+    m_frustum.planes[5].set_abcd(a, b, c, d);
+    m_frustum.planes[5].normailze();
+}
 
 double Camera::get_fov() const
 {
@@ -121,15 +264,11 @@ double Camera::get_fov() const
 
 void Camera::apply_viewport(int x, int y, unsigned int w, unsigned int h)
 {
-    glsafe(::glViewport(0, 0, w, h));
-    glsafe(::glGetIntegerv(GL_VIEWPORT, m_viewport.data()));
-}
-
-void Camera::apply_view_matrix()
-{
-    glsafe(::glMatrixMode(GL_MODELVIEW));
-    glsafe(::glLoadIdentity());
-    glsafe(::glMultMatrixd(m_view_matrix.data()));
+    glsafe(::glViewport(x, y, w, h));
+    m_viewport[0] = x;
+    m_viewport[1] = y;
+    m_viewport[2] = w;
+    m_viewport[3] = h;
 }
 
 void Camera::apply_projection(const BoundingBoxf3& box, double near_z, double far_z)
@@ -137,11 +276,7 @@ void Camera::apply_projection(const BoundingBoxf3& box, double near_z, double fa
     double w = 0.0;
     double h = 0.0;
 
-    const double old_distance = m_distance;
     m_frustrum_zs = calc_tight_frustrum_zs_around(box);
-    if (m_distance != old_distance)
-        // the camera has been moved re-apply view matrix
-        apply_view_matrix();
 
     if (near_z > 0.0)
         m_frustrum_zs.first = std::max(std::min(m_frustrum_zs.first, near_z), FrustrumMinNearZ);
@@ -175,26 +310,55 @@ void Camera::apply_projection(const BoundingBoxf3& box, double near_z, double fa
     }
     }
 
-    glsafe(::glMatrixMode(GL_PROJECTION));
-    glsafe(::glLoadIdentity());
-
     switch (m_type)
     {
     default:
     case EType::Ortho:
     {
-        glsafe(::glOrtho(-w, w, -h, h, m_frustrum_zs.first, m_frustrum_zs.second));
+        // see https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/glOrtho.xml
+        //glsafe(::glOrtho(-w, w, -h, h, m_frustrum_zs.first, m_frustrum_zs.second));
+        m_projection_matrix(0, 0) = 2.0f / (w - (-w));
+        m_projection_matrix(0, 1) = 0.0f;
+        m_projection_matrix(0, 2) = 0.0f;
+        m_projection_matrix(0, 3) = -(w + (-w)) / (w - (-w));
+        m_projection_matrix(1, 0) = 0.0f;
+        m_projection_matrix(1, 1) = 2.0f / (h - (-h));
+        m_projection_matrix(1, 2) = 0.0f;
+        m_projection_matrix(1, 3) = -(h + (-h)) / (h - (-h));
+        m_projection_matrix(2, 0) = 0.0f;
+        m_projection_matrix(2, 1) = 0.0f;
+        m_projection_matrix(2, 2) = -2.0f / (m_frustrum_zs.second - m_frustrum_zs.first);
+        m_projection_matrix(2, 3) = -(m_frustrum_zs.second + m_frustrum_zs.first) / (m_frustrum_zs.second - m_frustrum_zs.first);
+        m_projection_matrix(3, 0) = 0.0f;
+        m_projection_matrix(3, 1) = 0.0f;
+        m_projection_matrix(3, 2) = 0.0f;
+        m_projection_matrix(3, 3) = 1.0f;
         break;
     }
     case EType::Perspective:
     {
-        glsafe(::glFrustum(-w, w, -h, h, m_frustrum_zs.first, m_frustrum_zs.second));
+        // see https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/glFrustum.xml
+        //glsafe(::glFrustum(-w, w, -h, h, m_frustrum_zs.first, m_frustrum_zs.second));
+        m_projection_matrix(0, 0) = 2.0f * m_frustrum_zs.first / (w - (-w));
+        m_projection_matrix(0, 1) = 0.0f;
+        m_projection_matrix(0, 2) = (w + (-w)) / (w - (-w));
+        m_projection_matrix(0, 3) = 0.0f;
+        m_projection_matrix(1, 0) = 0.0f;
+        m_projection_matrix(1, 1) = 2.0f * m_frustrum_zs.first / (h - (-h));
+        m_projection_matrix(1, 2) = (h + (-h)) / (h - (-h));
+        m_projection_matrix(1, 3) = 0.0f;
+        m_projection_matrix(2, 0) = 0.0f;
+        m_projection_matrix(2, 1) = 0.0f;
+        m_projection_matrix(2, 2) = -(m_frustrum_zs.second + m_frustrum_zs.first) / (m_frustrum_zs.second - m_frustrum_zs.first);
+        m_projection_matrix(2, 3) = -2.0f * m_frustrum_zs.second * m_frustrum_zs.first / (m_frustrum_zs.second - m_frustrum_zs.first);
+
+        m_projection_matrix(3, 0) = 0.0f;
+        m_projection_matrix(3, 1) = 0.0f;
+        m_projection_matrix(3, 2) = -1.0f;
+        m_projection_matrix(3, 3) = 0.0f;
         break;
     }
     }
-
-    glsafe(::glGetDoublev(GL_PROJECTION_MATRIX, m_projection_matrix.data()));
-    glsafe(::glMatrixMode(GL_MODELVIEW));
 }
 
 void Camera::zoom_to_box(const BoundingBoxf3& box, double margin_factor)
@@ -219,8 +383,7 @@ void Camera::zoom_to_volumes(const GLVolumePtrs& volumes, double margin_factor)
     }
 }
 
-#if ENABLE_CAMERA_STATISTICS
-void Camera::debug_render() const
+void Camera::debug_render()
 {
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     imgui.begin(std::string("Camera statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
@@ -274,7 +437,6 @@ void Camera::debug_render() const
     ImGui::InputFloat("GUI scale", &gui_scale, 0.0f, 0.0f, "%.6f", ImGuiInputTextFlags_ReadOnly);
     imgui.end();
 }
-#endif // ENABLE_CAMERA_STATISTICS
 
 void Camera::rotate_on_sphere_with_target(double delta_azimut_rad, double delta_zenit_rad, bool apply_limits, Vec3d target)
 {
@@ -333,6 +495,18 @@ void Camera::rotate_local_with_target(const Vec3d& rotation_rad, Vec3d target)
 	}
 }
 
+void Camera::calc_horizontal_rotate_rad(float &rotation_rad) {
+    if (is_looking_front()) {
+        auto right   = get_dir_right();
+        auto temp_rotation_rad = acos(right.dot(Vec3d(1, 0, 0)));
+        auto value = Vec3d(1, 0, 0).cross(right);
+        if (value.z() > 0.01) {
+            temp_rotation_rad = -temp_rotation_rad;
+        }
+        rotation_rad = temp_rotation_rad;
+    }
+}
+
 // Virtual trackball, rotate around an axis, where the eucledian norm of the axis gives the rotation angle in radians.
 void Camera::rotate_local_around_target(const Vec3d& rotation_rad)
 {
@@ -347,11 +521,20 @@ void Camera::rotate_local_around_target(const Vec3d& rotation_rad)
 	}
 }
 
+void Camera::set_rotation(const Transform3d &rotation)
+{
+    const Vec3d translation = m_view_matrix.translation() + m_view_rotation * m_target;
+    m_view_rotation         = Eigen::Quaterniond(rotation.matrix().template block<3, 3>(0, 0));
+    m_view_rotation.normalize();
+    m_view_matrix.fromPositionOrientationScale(m_view_rotation * (-m_target) + translation, m_view_rotation, Vec3d(1., 1., 1.));
+    update_zenit();
+}
+
 std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBoxf3& box)
 {
     std::pair<double, double> ret;
     auto& [near_z, far_z] = ret;
-
+    m_scene_box_radius    = box.radius();
     // box in eye space
     const BoundingBoxf3 eye_box = box.transformed(m_view_matrix);
     near_z = -eye_box.max(2);
@@ -372,18 +555,15 @@ std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBo
     if (near_z < FrustrumMinNearZ) {
         const double delta = FrustrumMinNearZ - near_z;
         set_distance(m_distance + delta);
+        m_last_scene_box_radius = m_scene_box_radius;
         near_z += delta;
         far_z += delta;
+    } else {
+        if (abs(m_last_scene_box_radius - m_scene_box_radius) > 1) {
+            m_last_scene_box_radius = m_scene_box_radius;
+            set_distance(DefaultDistance);
+        }
     }
-// The following is commented out because it causes flickering of the 3D scene GUI
-// when the bounding box of the scene gets large enough
-// We need to introduce some smarter code to move the camera back and forth in such case
-//    else if (near_z > 2.0 * FrustrumMinNearZ && m_distance > DefaultDistance) {
-//        float delta = m_distance - DefaultDistance;
-//        set_distance(DefaultDistance);
-//        near_z -= delta;
-//        far_z -= delta;
-//    }
 
     return ret;
 }
@@ -445,6 +625,16 @@ double Camera::calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, double
     return std::min((double)m_viewport[2] / dx, (double)m_viewport[3] / dy);
 }
 
+void Camera::set_distance(double distance)
+{
+    if (m_distance != distance) {
+        m_view_matrix.translate((distance - m_distance) * get_dir_forward());
+        m_distance = distance;
+
+        update_target();
+    }
+}
+
 double Camera::calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, Vec3d& center, double margin_factor) const
 {
     if (volumes.empty())
@@ -501,16 +691,6 @@ double Camera::calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, Vec3d& c
         return -1.0f;
 
     return std::min((double)m_viewport[2] / dx, (double)m_viewport[3] / dy);
-}
-
-void Camera::set_distance(double distance)
-{
-    if (m_distance != distance) {
-        m_view_matrix.translate((distance - m_distance) * get_dir_forward());
-        m_distance = distance;
-        
-        update_target();
-    }
 }
 
 void Camera::load_camera_view(Camera& cam)
@@ -614,7 +794,7 @@ void Camera::update_target() {
     Vec3d temptarget = get_position() + m_distance * get_dir_forward();
     if (!(temptarget-m_target).isApprox(Vec3d::Zero())){
         m_target = temptarget;
-    }      
+    }
 }
 
 } // GUI

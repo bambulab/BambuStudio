@@ -44,6 +44,7 @@ public:
      */
     WallToolPaths(const Polygons& outline, coord_t bead_width_0, coord_t bead_width_x, size_t inset_count, coord_t wall_0_inset, coordf_t layer_height, const WallToolPathsParams &params);
 
+    void EnableHoleCompensation(bool enable, const std::vector<int>& hole_indices_);
     /*!
      * Generates the Toolpaths
      * \return A reference to the newly create  ToolPaths
@@ -76,6 +77,15 @@ public:
      * \return The inner contour of the generated walls.
      */
     const Polygons& getInnerContour();
+
+    /**
+     * @brief Get the contour of outer wall path
+     * 
+     * Attention! The function is not completed now!
+     * 
+     * @return 
+    */
+    const Polygons& getFirstWallContour();
 
     /*!
      * Removes empty paths from the toolpaths
@@ -130,7 +140,11 @@ private:
     bool toolpaths_generated; //<! Are the toolpaths generated
     std::vector<VariableWidthLines> toolpaths; //<! The generated toolpaths
     Polygons inner_contour;  //<! The inner contour of the generated toolpaths
+    Polygons first_wall_contour; //<! The contour of the first wall
     const WallToolPathsParams m_params;
+private:
+    bool enable_hole_compensation{ false };
+    std::vector<int> hole_indices;
 };
 
 } // namespace Slic3r::Arachne

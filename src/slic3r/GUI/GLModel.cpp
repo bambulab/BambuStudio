@@ -459,6 +459,20 @@ GLModel::~GLModel()
     if (mesh) { delete mesh; }
 }
 
+size_t GLModel::get_vertices_count(int i) const {
+    if (m_render_data.empty() || i >= m_render_data.size()) {
+        return 0;
+    }
+    return m_render_data[i].vertices_count > 0 ? m_render_data[i].vertices_count : m_render_data[i].geometry.vertices_count();
+}
+
+size_t GLModel::get_indices_count(int i) const {
+    if (m_render_data.empty() || i >= m_render_data.size()) {
+        return 0;
+    }
+    return m_render_data[i].indices_count > 0 ? m_render_data[i].indices_count : m_render_data[i].geometry.indices_count();
+}
+
 void GLModel::init_from(Geometry &&data, bool generate_mesh)
 {
     if (is_initialized()) {
@@ -474,20 +488,22 @@ void GLModel::init_from(Geometry &&data, bool generate_mesh)
     m_render_data.clear();
     m_render_data.push_back(RenderData());
     m_render_data.back().indices_count = data.indices.size();
+    m_render_data.back().vertices_count = data.vertices.size();
     m_render_data.back().type          = data.format.type;
     m_render_data.back().color         = data.color.get_data();
     if (generate_mesh) {
         if (!mesh) { mesh = new TriangleMesh(); }
-        mesh->its = std::move(data.get_as_indexed_triangle_set());
+        mesh->its = data.get_as_indexed_triangle_set();
     }
     m_render_data.back().geometry = std::move(data);
+    const auto& geometry = m_render_data.back().geometry;
     // update bounding box
-    for (size_t i = 0; i < data.vertices_count(); ++i) {
-        const size_t position_stride = Geometry::position_stride_floats(data.format);
+    for (size_t i = 0; i < geometry.vertices_count(); ++i) {
+        const size_t position_stride = Geometry::position_stride_floats(geometry.format);
         if (position_stride == 3)
-            m_bounding_box.merge(m_render_data.back().geometry.extract_position_3(i).cast<double>());
+            m_bounding_box.merge(geometry.extract_position_3(i).cast<double>());
         else if (position_stride == 2) {
-            const Vec2f position = m_render_data.back().geometry.extract_position_2(i);
+            const Vec2f position = geometry.extract_position_2(i);
             m_bounding_box.merge(Vec3f(position.x(), position.y(), 0.0f).cast<double>());
         }
     }
@@ -507,6 +523,8 @@ void GLModel::init_from(const InitializationData& data)
         RenderData rdata;
         rdata.type = entity.type;
         rdata.color = entity.color;
+        rdata.geometry.color = entity.color;
+        rdata.geometry.format.type = entity.type;
 
         // vertices/normals data
         std::vector<float> vertices(6 * entity.positions.size());
@@ -570,33 +588,6 @@ void GLModel::init_from(const indexed_triangle_set& its)
     this->init_from(its, bounding_box(its));
 }
 
-void GLModel::init_from(const Polygons& polygons, float z)
-{
-    auto append_polygon = [](const Polygon& polygon, float z, GUI::GLModel::InitializationData& data) {
-        if (!polygon.empty()) {
-            GUI::GLModel::InitializationData::Entity entity;
-            entity.type = GUI::GLModel::PrimitiveType::LineLoop;
-            // contour
-            entity.positions.reserve(polygon.size() + 1);
-            entity.indices.reserve(polygon.size() + 1);
-            unsigned int id = 0;
-            for (const Point& p : polygon) {
-                Vec3f position = unscale(p.x(), p.y(), 0.0).cast<float>();
-                position.z() = z;
-                entity.positions.emplace_back(position);
-                entity.indices.emplace_back(id++);
-            }
-            data.entities.emplace_back(entity);
-        }
-    };
-
-    InitializationData init_data;
-    for (const Polygon& polygon : polygons) {
-        append_polygon(polygon, z, init_data);
-    }
-    init_from(init_data);
-}
-
 bool GLModel::init_from_file(const std::string& filename)
 {
     if (!boost::filesystem::exists(filename))
@@ -623,22 +614,156 @@ bool GLModel::init_from_file(const std::string& filename)
     return true;
 }
 
+void GLModel::init_model_from_polygon(const Polygons &polygons, float z)
+{
+    if (polygons.empty()) {
+        assert(false);
+        return;
+    }
+
+    GLModel::Geometry data;
+    data.format    = {PrimitiveType::Lines, Geometry::EVertexLayout::P3};
+
+    size_t segments_count = 0;
+    for (const Polygon &polygon : polygons) { segments_count += polygon.points.size(); }
+
+    data.reserve_vertices(2 * segments_count);
+    data.reserve_indices(2 * segments_count);
+
+    // vertices + indices
+    unsigned int vertices_counter = 0;
+    for (const Polygon &poly : polygons) {
+        for (size_t i = 0; i < poly.points.size(); ++i) {
+            const Point &p0 = poly.points[i];
+            const Point &p1 = (i == poly.points.size() - 1) ? poly.points.front() : poly.points[i + 1];
+            data.add_vertex(Vec3f(unscale<float>(p0.x()), unscale<float>(p0.y()), z));
+            data.add_vertex(Vec3f(unscale<float>(p1.x()), unscale<float>(p1.y()), z));
+            vertices_counter += 2;
+            data.add_line(vertices_counter - 2, vertices_counter - 1);
+        }
+    }
+
+    // update bounding box
+    for (size_t i = 0; i < data.vertices_count(); ++i) {
+        m_bounding_box.merge(data.extract_position_3(i).cast<double>());
+    }
+    init_from(std::move(data), false);
+}
+
+bool GLModel::init_model_from_poly(const std::vector<Vec2f> &triangles, float z, bool generate_mesh)
+{
+    if (triangles.empty() || triangles.size() % 3 != 0)
+        return false;
+
+    GLModel::Geometry init_data;
+    init_data.format = {GLModel::PrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3T2};
+    init_data.reserve_vertices(triangles.size());
+    init_data.reserve_indices(triangles.size() / 3);
+
+    Vec2f min = triangles.front();
+    Vec2f max = min;
+    for (const Vec2f &v : triangles) {
+        min = min.cwiseMin(v).eval();
+        max = max.cwiseMax(v).eval();
+    }
+
+    const Vec2f size = max - min;
+    if (size.x() <= 0.0f || size.y() <= 0.0f)
+        return false;
+
+    Vec2f inv_size = size.cwiseInverse();
+
+    // vertices + indices
+    unsigned int vertices_counter = 0;
+    for (const Vec2f &v : triangles) {
+        const Vec3f p = {v.x(), v.y(), z};
+        init_data.add_vertex(p, (Vec2f) (v - min).cwiseProduct(inv_size).eval());
+        ++vertices_counter;
+        if (vertices_counter % 3 == 0)
+            init_data.add_triangle(vertices_counter - 3, vertices_counter - 2, vertices_counter - 1);
+    }
+    init_from(std::move(init_data), generate_mesh);
+    return true;
+}
+
+bool GLModel::init_model_from_lines(const Lines &lines, float z, bool generate_mesh)
+{
+    GLModel::Geometry init_data;
+    init_data.format = {GLModel::PrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3};
+    init_data.reserve_vertices(2 * lines.size());
+    init_data.reserve_indices(2 * lines.size());
+
+    for (const auto &l : lines) {
+        init_data.add_vertex(Vec3f(unscale<float>(l.a.x()), unscale<float>(l.a.y()), z));
+        init_data.add_vertex(Vec3f(unscale<float>(l.b.x()), unscale<float>(l.b.y()), z));
+        const unsigned int vertices_counter = (unsigned int) init_data.vertices_count();
+        init_data.add_line(vertices_counter - 2, vertices_counter - 1);
+    }
+    init_from(std::move(init_data), generate_mesh);
+    return true;
+}
+
+bool GLModel::init_model_from_lines(const Lines3 &lines, bool generate_mesh)
+{
+    GLModel::Geometry init_data;
+    init_data.format = {GLModel::PrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3};
+    init_data.reserve_vertices(2 * lines.size());
+    init_data.reserve_indices(2 * lines.size());
+
+    for (const auto &l : lines) {
+        init_data.add_vertex(Vec3f(unscale<float>(l.a.x()), unscale<float>(l.a.y()), unscale<float>(l.a.z())));
+        init_data.add_vertex(Vec3f(unscale<float>(l.b.x()), unscale<float>(l.b.y()), unscale<float>(l.b.z())));
+        const unsigned int vertices_counter = (unsigned int) init_data.vertices_count();
+        init_data.add_line(vertices_counter - 2, vertices_counter - 1);
+    }
+    init_from(std::move(init_data), generate_mesh);
+
+    return true;
+}
+
+bool GLModel::init_model_from_lines(const Line3floats &lines, bool generate_mesh)
+{
+    GLModel::Geometry init_data;
+    init_data.format = {GLModel::PrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3};
+    init_data.reserve_vertices(2 * lines.size());
+    init_data.reserve_indices(2 * lines.size());
+
+    for (const auto &l : lines) {
+        init_data.add_vertex(l.a);
+        init_data.add_vertex(l.b);
+        const unsigned int vertices_counter = (unsigned int) init_data.vertices_count();
+        init_data.add_line(vertices_counter - 2, vertices_counter - 1);
+    }
+    init_from(std::move(init_data), generate_mesh);
+    return true;
+}
+
 void GLModel::set_color(int entity_id, const std::array<float, 4>& color)
 {
     for (size_t i = 0; i < m_render_data.size(); ++i) {
-        if (entity_id == -1 || static_cast<int>(i) == entity_id)
+        if (entity_id == -1 || static_cast<int>(i) == entity_id) {
             m_render_data[i].color = color;
+            m_render_data[i].geometry.color = color;
+        }
     }
+}
+
+void GLModel::set_color(const ColorRGBA &color) {
+    set_color(-1,color.get_data());
 }
 
 void GLModel::reset()
 {
     for (RenderData& data : m_render_data) {
         // release gpu memory
-        if (data.ibo_id > 0)
+        if (data.ibo_id > 0) {
             glsafe(::glDeleteBuffers(1, &data.ibo_id));
-        if (data.vbo_id > 0)
+            data.ibo_id = 0;
+        }
+        if (data.vbo_id > 0) {
             glsafe(::glDeleteBuffers(1, &data.vbo_id));
+            data.vbo_id = 0;
+        }
     }
 
     m_render_data.clear();
@@ -646,59 +771,269 @@ void GLModel::reset()
     m_filename = std::string();
 }
 
-void GLModel::render() const
+static GLenum get_primitive_mode(const GLModel::Geometry::Format &format)
 {
-    GLShaderProgram* shader = wxGetApp().get_current_shader();
-
-    for (const RenderData& data : m_render_data) {
-        // sends data to gpu if not done yet
-        if (data.vbo_id == 0 || data.ibo_id == 0) {
-            auto origin_data = const_cast<RenderData *>(&data);
-            if (data.geometry.vertices_count() > 0 && data.geometry.indices_count() > 0 
-                && !send_to_gpu(*origin_data, data.geometry.vertices, data.geometry.indices))
-                continue;
-        }
-        bool has_normal = true;
-        if (data.geometry.vertices_count() > 0) {
-            has_normal = Geometry::has_normal(data.geometry.format);
-        }
-
-        GLenum mode;
-        switch (data.type)
-        {
-        default:
-        case PrimitiveType::Triangles: { mode = GL_TRIANGLES; break; }
-        case PrimitiveType::Lines:     { mode = GL_LINES; break; }
-        case PrimitiveType::LineStrip: { mode = GL_LINE_STRIP; break; }
-        case PrimitiveType::LineLoop:  { mode = GL_LINE_LOOP; break; }
-        }
-
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, data.vbo_id));
-        if (has_normal) {
-            glsafe(::glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), (const void *) 0));
-            glsafe(::glNormalPointer(GL_FLOAT, 6 * sizeof(float), (const void *) (3 * sizeof(float))));
-
-            glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-            glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
-        } else {
-            glsafe(::glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), (const void *) 0));
-            glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-        }
-
-        if (shader != nullptr)
-            shader->set_uniform("uniform_color", data.color);
-        else
-            glsafe(::glColor4fv(data.color.data()));
-
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data.ibo_id));
-        glsafe(::glDrawElements(mode, static_cast<GLsizei>(data.indices_count), GL_UNSIGNED_INT, (const void*)0));
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-
-        glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
-        glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+    switch (format.type) {
+    case GLModel::PrimitiveType::Points: {
+        return GL_POINTS;
     }
+    default:
+    case GLModel::PrimitiveType::Triangles: {
+        return GL_TRIANGLES;
+    }
+    case GLModel::PrimitiveType::TriangleStrip: {
+        return GL_TRIANGLE_STRIP;
+    }
+    case GLModel::PrimitiveType::TriangleFan: {
+        return GL_TRIANGLE_FAN;
+    }
+    case GLModel::PrimitiveType::Lines: {
+        return GL_LINES;
+    }
+    case GLModel::PrimitiveType::LineStrip: {
+        return GL_LINE_STRIP;
+    }
+    case GLModel::PrimitiveType::LineLoop: {
+        return GL_LINE_LOOP;
+    }
+    }
+}
+
+static GLenum get_index_type(const GLModel::Geometry &data)
+{
+    switch (data.index_type) {
+    default:
+    case GLModel::Geometry::EIndexType::UINT: {
+        return GL_UNSIGNED_INT;
+    }
+    case GLModel::Geometry::EIndexType::USHORT: {
+        return GL_UNSIGNED_SHORT;
+    }
+    case GLModel::Geometry::EIndexType::UBYTE: {
+        return GL_UNSIGNED_BYTE;
+    }
+    }
+}
+
+void GLModel::render_geometry() const {
+    render_geometry(0,std::make_pair<size_t, size_t>(0, get_indices_count()));
+}
+
+void GLModel::render_geometry(int i,const std::pair<size_t, size_t> &range) const
+{
+    if (range.second == range.first) return;
+
+    const auto shader = wxGetApp().get_current_shader();
+    if (shader == nullptr) return;
+
+    auto &render_data = m_render_data[i];
+    // sends data to gpu if not done yet
+    if (render_data.vbo_id == 0 || render_data.ibo_id == 0) {
+        auto origin_data = const_cast<RenderData*>(&render_data);
+        if (render_data.geometry.vertices_count() > 0 && render_data.geometry.indices_count() > 0 &&
+            !send_to_gpu(*origin_data, render_data.geometry.vertices, render_data.geometry.indices))
+            return;
+    }
+    const Geometry &data = render_data.geometry;
+
+
+    const GLenum mode       = get_primitive_mode(data.format);
+    const GLenum index_type = get_index_type(data);
+
+    const size_t vertex_stride_bytes = Geometry::vertex_stride_bytes(data.format);
+    const bool   position            = Geometry::has_position(data.format);
+    const bool   normal              = Geometry::has_normal(data.format);
+    const bool   tex_coord           = Geometry::has_tex_coord(data.format);
+
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, render_data.vbo_id));
+
+    int position_id  = -1;
+    int normal_id    = -1;
+    int tex_coord_id = -1;
+
+    if (position) {
+        position_id = shader->get_attrib_location("v_position");
+        if (position_id != -1) {
+            glsafe(::glVertexAttribPointer(position_id, Geometry::position_stride_floats(data.format), GL_FLOAT, GL_FALSE, vertex_stride_bytes,
+                                           (const void *) Geometry::position_offset_bytes(data.format)));
+            glsafe(::glEnableVertexAttribArray(position_id));
+        }
+    }
+    if (normal) {
+        normal_id = shader->get_attrib_location("v_normal");
+        if (normal_id != -1) {
+            glsafe(::glVertexAttribPointer(normal_id, Geometry::normal_stride_floats(data.format), GL_FLOAT, GL_FALSE, vertex_stride_bytes,
+                                           (const void *) Geometry::normal_offset_bytes(data.format)));
+            glsafe(::glEnableVertexAttribArray(normal_id));
+        }
+    }
+    if (tex_coord) {
+        tex_coord_id = shader->get_attrib_location("v_tex_coord");
+        if (tex_coord_id != -1) {
+            glsafe(::glVertexAttribPointer(tex_coord_id, Geometry::tex_coord_stride_floats(data.format), GL_FLOAT, GL_FALSE, vertex_stride_bytes,
+                                           (const void *) Geometry::tex_coord_offset_bytes(data.format)));
+            glsafe(::glEnableVertexAttribArray(tex_coord_id));
+        }
+    }
+
+    shader->set_uniform("uniform_color", data.color.get_data());
+
+    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_data.ibo_id));
+    glsafe(::glDrawElements(mode, range.second - range.first, index_type, (const void *) (range.first * Geometry::index_stride_bytes(data))));
+    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+    if (tex_coord_id != -1) glsafe(::glDisableVertexAttribArray(tex_coord_id));
+    if (normal_id != -1) glsafe(::glDisableVertexAttribArray(normal_id));
+    if (position_id != -1) glsafe(::glDisableVertexAttribArray(position_id));
+
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+}
+
+void GLModel::create_or_update_mats_vbo(unsigned int &vbo, const std::vector<Slic3r::Geometry::Transformation> &mats)
+{ // first bind
+    if (vbo>0) {
+        glsafe(::glDeleteBuffers(1, &vbo));
+        vbo = 0;
+    }
+    std::vector<Matrix4f> out_mats;
+    out_mats.reserve(mats.size());
+    for (size_t i = 0; i < mats.size(); i++) {
+        out_mats.emplace_back(mats[i].get_matrix().matrix().cast<float>());
+    }
+    glsafe(::glGenBuffers(1, &vbo));
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, vbo));
+    auto one_mat_all_size = sizeof(float) * 16;
+    glsafe(::glBufferData(GL_ARRAY_BUFFER, mats.size() * one_mat_all_size, out_mats.data(), GL_STATIC_DRAW));
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+}
+
+void GLModel::bind_mats_vbo(unsigned int instance_mats_vbo, unsigned int instances_count, const std::vector<int>& locations)
+{
+    if (instance_mats_vbo == 0 || instances_count == 0) {
+        return;
+    }
+    if (locations.size() < 4) {
+        return;
+    }
+    auto one_mat_all_size = sizeof(float) * 16;
+    auto one_mat_col_size = sizeof(float) * 4;
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, instance_mats_vbo));
+
+    glsafe(glEnableVertexAttribArray(locations[0]));
+    glsafe(glVertexAttribPointer(locations[0], 4, GL_FLOAT, GL_FALSE, one_mat_all_size, (void*)0));
+    glsafe(glEnableVertexAttribArray(locations[1]));
+    glsafe(glVertexAttribPointer(locations[1], 4, GL_FLOAT, GL_FALSE, one_mat_all_size, (void*)(one_mat_col_size)));
+    glsafe(glEnableVertexAttribArray(locations[2]));
+    glsafe(glVertexAttribPointer(locations[2], 4, GL_FLOAT, GL_FALSE, one_mat_all_size, (void*)(2 * one_mat_col_size)));
+    glsafe(glEnableVertexAttribArray(locations[3]));
+    glsafe(glVertexAttribPointer(locations[3], 4, GL_FLOAT, GL_FALSE, one_mat_all_size, (void*)(3 * one_mat_col_size)));
+    // Update the matrix every time after an object is drawn//useful
+    glsafe(glVertexAttribDivisor(locations[0], 1));
+    glsafe(glVertexAttribDivisor(locations[1], 1));
+    glsafe(glVertexAttribDivisor(locations[2], 1));
+    glsafe(glVertexAttribDivisor(locations[3], 1));
+
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+}
+
+void GLModel::render_geometry_instance(unsigned int instance_mats_vbo, unsigned int instances_count)
+{
+    render_geometry_instance(instance_mats_vbo, instances_count,std::make_pair<size_t, size_t>(0, get_indices_count()));
+}
+
+void GLModel::render_geometry_instance(unsigned int instance_mats_vbo, unsigned int instances_count, const std::pair<size_t, size_t> &range)
+{
+    if (instance_mats_vbo == 0 || instances_count == 0) {
+        return;
+    }
+    if (m_render_data.size() != 1) { return; }
+    const auto shader = wxGetApp().get_current_shader();
+    if (shader == nullptr) return;
+
+    auto &render_data = m_render_data[0];
+    // sends data to gpu if not done yet
+    if (render_data.vbo_id == 0 || render_data.ibo_id == 0) {
+        if (render_data.geometry.vertices_count() > 0 && render_data.geometry.indices_count() > 0 && !send_to_gpu(render_data.geometry))
+            return;
+    }
+    if (instance_mats_vbo == 0) {
+        return;
+    }
+    const Geometry &data = render_data.geometry;
+
+    const GLenum mode       = get_primitive_mode(data.format);
+    const GLenum index_type = get_index_type(data);
+
+    const size_t vertex_stride_bytes = Geometry::vertex_stride_bytes(data.format);
+    const bool   position            = Geometry::has_position(data.format);
+    const bool   normal              = Geometry::has_normal(data.format);
+    const bool   tex_coord           = Geometry::has_tex_coord(data.format);
+
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, render_data.vbo_id));
+
+    int position_id  = -1;
+    int normal_id    = -1;
+    int tex_coord_id = -1;
+    if (position) {
+        position_id = shader->get_attrib_location("v_position");
+        if (position_id != -1) {
+            glsafe(::glVertexAttribPointer(position_id, Geometry::position_stride_floats(data.format), GL_FLOAT, GL_FALSE, vertex_stride_bytes,
+                                           (const void *) Geometry::position_offset_bytes(data.format)));
+            glsafe(::glEnableVertexAttribArray(position_id));
+        }
+    }
+    if (normal) {
+        normal_id = shader->get_attrib_location("v_normal");
+        if (normal_id != -1) {
+            glsafe(::glVertexAttribPointer(normal_id, Geometry::normal_stride_floats(data.format), GL_FLOAT, GL_FALSE, vertex_stride_bytes,
+                                           (const void *) Geometry::normal_offset_bytes(data.format)));
+            glsafe(::glEnableVertexAttribArray(normal_id));
+        }
+    }
+    if (tex_coord) {
+        tex_coord_id = shader->get_attrib_location("v_tex_coord");
+        if (tex_coord_id != -1) {
+            glsafe(::glVertexAttribPointer(tex_coord_id, Geometry::tex_coord_stride_floats(data.format), GL_FLOAT, GL_FALSE, vertex_stride_bytes,
+                                           (const void *) Geometry::tex_coord_offset_bytes(data.format)));
+            glsafe(::glEnableVertexAttribArray(tex_coord_id));
+        }
+    }
+
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+    //glBindAttribLocation(shader->get_id(), 2, "instanceMatrix");
+    //glBindAttribLocation(2, "instanceMatrix");
+    //shader->bind(shaderProgram, 0, 'position');
+    const int i_loc0 = shader->get_attrib_location("i_data0");
+    const int i_loc1 = shader->get_attrib_location("i_data1");
+    const int i_loc2 = shader->get_attrib_location("i_data2");
+    const int i_loc3 = shader->get_attrib_location("i_data3");
+
+    const bool has_instancing_attributes = (i_loc0 != -1 && i_loc1 != -1 && i_loc2 != -1 && i_loc3 != -1);
+    if (has_instancing_attributes) {
+        bind_mats_vbo(instance_mats_vbo, instances_count, { i_loc0, i_loc1, i_loc2, i_loc3});
+    }
+    else {
+        return;
+    }
+    auto res = shader->set_uniform("uniform_color", render_data.color);
+
+    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_data.ibo_id));
+    glsafe(::glDrawElementsInstanced(mode, range.second - range.first, index_type, (const void *) (range.first * Geometry::index_stride_bytes(data)), instances_count));
+    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+    if (has_instancing_attributes && instance_mats_vbo > 0) {
+        glsafe(::glVertexAttribDivisor(i_loc0, 0));
+        glsafe(::glVertexAttribDivisor(i_loc1, 0));
+        glsafe(::glVertexAttribDivisor(i_loc2, 0));
+        glsafe(::glVertexAttribDivisor(i_loc3, 0));
+        glsafe(::glDisableVertexAttribArray(i_loc0));
+        glsafe(::glDisableVertexAttribArray(i_loc1));
+        glsafe(::glDisableVertexAttribArray(i_loc2));
+        glsafe(::glDisableVertexAttribArray(i_loc3));
+    }
+    if (tex_coord_id != -1) glsafe(::glDisableVertexAttribArray(tex_coord_id));
+    if (normal_id != -1) glsafe(::glDisableVertexAttribArray(normal_id));
+    if (position_id != -1) glsafe(::glDisableVertexAttribArray(position_id));
 }
 
 void GLModel::render_instanced(unsigned int instances_vbo, unsigned int instances_count) const
@@ -706,7 +1041,7 @@ void GLModel::render_instanced(unsigned int instances_vbo, unsigned int instance
     if (instances_vbo == 0)
         return;
 
-    GLShaderProgram* shader = wxGetApp().get_current_shader();
+    const auto shader = wxGetApp().get_current_shader();
     assert(shader == nullptr || boost::algorithm::iends_with(shader->get_name(), "_instanced"));
 
     // vertex attributes
@@ -778,7 +1113,65 @@ void GLModel::render_instanced(unsigned int instances_vbo, unsigned int instance
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
-bool GLModel::send_to_gpu(RenderData& data, const std::vector<float>& vertices, const std::vector<unsigned int>& indices) const
+void GLModel::set_visible(bool flag) {
+    if (m_visible != flag) {
+        m_visible = flag;
+    }
+}
+
+bool GLModel::send_to_gpu(Geometry &geometry)
+{
+    if (m_render_data.size() != 1) { return false; }
+    auto& render_data = m_render_data[0];
+    if (render_data.vbo_id > 0 || render_data.ibo_id > 0) {
+        assert(false);
+        return false;
+    }
+
+    Geometry &data = render_data.geometry;
+    if (data.vertices.empty() || data.indices.empty()) {
+        assert(false);
+        return false;
+    }
+
+    // vertices
+    glsafe(::glGenBuffers(1, &render_data.vbo_id));
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, render_data.vbo_id));
+    glsafe(::glBufferData(GL_ARRAY_BUFFER, data.vertices_size_bytes(), data.vertices.data(), GL_STATIC_DRAW));
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+    render_data.vertices_count = get_vertices_count();
+    data.vertices              = std::vector<float>();
+
+    // indices
+    glsafe(::glGenBuffers(1, &render_data.ibo_id));
+    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_data.ibo_id));
+    const size_t indices_count = data.indices.size();
+    if (render_data.vertices_count <= 256) {
+        // convert indices to unsigned char to save gpu memory
+        std::vector<unsigned char> reduced_indices(indices_count);
+        for (size_t i = 0; i < indices_count; ++i) { reduced_indices[i] = (unsigned char) data.indices[i]; }
+        data.index_type = Geometry::EIndexType::UBYTE;
+        glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_count * sizeof(unsigned char), reduced_indices.data(), GL_STATIC_DRAW));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+    } else if (render_data.vertices_count <= 65536) {
+        // convert indices to unsigned short to save gpu memory
+        std::vector<unsigned short> reduced_indices(indices_count);
+        for (size_t i = 0; i < data.indices.size(); ++i) { reduced_indices[i] = (unsigned short) data.indices[i]; }
+        data.index_type = Geometry::EIndexType::USHORT;
+        glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_count * sizeof(unsigned short), reduced_indices.data(), GL_STATIC_DRAW));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+    } else {
+        data.index_type = Geometry::EIndexType::UINT;
+        glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.indices_size_bytes(), data.indices.data(), GL_STATIC_DRAW));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+    }
+    render_data.indices_count = indices_count;
+    data.indices                = std::vector<unsigned int>();
+
+    return true;
+}
+
+bool GLModel::send_to_gpu(RenderData &data, const std::vector<float> &vertices, const std::vector<unsigned int> &indices) const
 {
     if (data.vbo_id > 0 || data.ibo_id > 0) {
         assert(false);
@@ -801,6 +1194,7 @@ bool GLModel::send_to_gpu(RenderData& data, const std::vector<float>& vertices, 
     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data.ibo_id));
     glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW));
     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
     return true;
 }
 

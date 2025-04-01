@@ -22,11 +22,14 @@ void NotificationProgressIndicator::set_range(int range)
 
 void NotificationProgressIndicator::set_cancel_callback(CancelFn fn)
 {
-    m_nm->progress_indicator_set_cancel_callback(std::move(fn));
+    m_cancelfn = std::move(fn);
+    m_nm->progress_indicator_set_cancel_callback(m_cancelfn);
 }
 
 void NotificationProgressIndicator::set_progress(int pr)
 {
+    if (!pr)
+        set_cancel_callback(m_cancelfn);
     m_nm->progress_indicator_set_progress(pr);
 }
 

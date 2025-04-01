@@ -59,7 +59,7 @@ bool GLShaderProgram::init_from_files(const std::string& name, const ShaderFilen
     // Create a block of C "defines" from list of symbols.
     std::string defines_program;
     for (std::string_view def : defines)
-        // Our shaders are stored with "\r\n", thus replicate the same here for consistency. Likely "\n" would suffice, 
+        // Our shaders are stored with "\r\n", thus replicate the same here for consistency. Likely "\n" would suffice,
         // but we don't know all the OpenGL shader compilers around.
         defines_program += format("#define %s\r\n", def);
 
@@ -69,7 +69,7 @@ bool GLShaderProgram::init_from_files(const std::string& name, const ShaderFilen
     }
 
     bool valid = !sources[static_cast<size_t>(EShaderType::Vertex)].empty() && !sources[static_cast<size_t>(EShaderType::Fragment)].empty() && sources[static_cast<size_t>(EShaderType::Compute)].empty();
-    valid |= !sources[static_cast<size_t>(EShaderType::Compute)].empty() && sources[static_cast<size_t>(EShaderType::Vertex)].empty() && sources[static_cast<size_t>(EShaderType::Fragment)].empty() && 
+    valid |= !sources[static_cast<size_t>(EShaderType::Compute)].empty() && sources[static_cast<size_t>(EShaderType::Vertex)].empty() && sources[static_cast<size_t>(EShaderType::Fragment)].empty() &&
               sources[static_cast<size_t>(EShaderType::Geometry)].empty() && sources[static_cast<size_t>(EShaderType::TessEvaluation)].empty() && sources[static_cast<size_t>(EShaderType::TessControl)].empty();
 
     return valid ? init_from_texts(name, sources) : false;
@@ -102,7 +102,7 @@ bool GLShaderProgram::init_from_texts(const std::string& name, const ShaderSourc
         case EShaderType::Compute:        { id = ::glCreateShader(GL_COMPUTE_SHADER); glcheck(); break; }
         default:                          { break; }
         }
-           
+
         return (id == 0) ? std::make_pair(false, GLuint(0)) : std::make_pair(true, id);
     };
 
@@ -141,11 +141,12 @@ bool GLShaderProgram::init_from_texts(const std::string& name, const ShaderSourc
             GLint params;
             glsafe(::glGetShaderiv(id, GL_COMPILE_STATUS, &params));
             if (params == GL_FALSE) {
-                // Compilation failed. 
+                // Compilation failed.
                 glsafe(::glGetShaderiv(id, GL_INFO_LOG_LENGTH, &params));
                 std::vector<char> msg(params);
                 glsafe(::glGetShaderInfoLog(id, params, &params, msg.data()));
-                BOOST_LOG_TRIVIAL(error) << "Unable to compile " << shader_type_as_string(type) << " shader of shader program '" << name << "':\n" << msg.data();
+                std::string error_info = msg.data();
+                BOOST_LOG_TRIVIAL(error) << "Unable to compile " << shader_type_as_string(type) << " shader of shader program '" << name << "':\n" << error_info;
 
                 // release shaders
                 release_shaders(shader_ids);
@@ -173,7 +174,7 @@ bool GLShaderProgram::init_from_texts(const std::string& name, const ShaderSourc
     GLint params;
     glsafe(::glGetProgramiv(m_id, GL_LINK_STATUS, &params));
     if (params == GL_FALSE) {
-        // Linking failed. 
+        // Linking failed.
         glsafe(::glGetProgramiv(m_id, GL_INFO_LOG_LENGTH, &params));
         std::vector<char> msg(params);
         glsafe(::glGetProgramInfoLog(m_id, params, &params, msg.data()));
@@ -199,11 +200,6 @@ void GLShaderProgram::start_using() const
 {
     assert(m_id > 0);
     glsafe(::glUseProgram(m_id));
-}
-
-void GLShaderProgram::stop_using() const
-{
-    glsafe(::glUseProgram(0));
 }
 
 bool GLShaderProgram::set_uniform(const char* name, int value) const
@@ -339,6 +335,26 @@ bool GLShaderProgram::set_uniform(const char* name, const Matrix3f& value) const
         return true;
     }
     return false;
+}
+
+bool GLShaderProgram::set_uniform(const char *name, const Matrix3d &value) const
+{
+    return set_uniform(name, (Matrix3f) value.cast<float>());
+}
+
+bool GLShaderProgram::set_uniform(const char* name, const Matrix4f& value) const
+{
+    int id = get_uniform_location(name);
+    if (id >= 0) {
+        glsafe(::glUniformMatrix4fv(id, 1, GL_FALSE, static_cast<const GLfloat*>(value.data())));
+        return true;
+    }
+    return false;
+}
+
+bool GLShaderProgram::set_uniform(const char* name, const Matrix4d& value) const
+{
+    return set_uniform(name, (Matrix4f)value.cast<float>());
 }
 
 bool GLShaderProgram::set_uniform(const char* name, const Vec3f& value) const

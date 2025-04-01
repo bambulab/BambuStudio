@@ -28,9 +28,9 @@ struct LayerHeightData
 {
     coordf_t print_z       = 0;
     coordf_t height        = 0;
-    size_t   next_layer_nr = 0;
+    size_t   obj_layer_nr  = 0;
     LayerHeightData()      = default;
-    LayerHeightData(coordf_t z, coordf_t h, size_t next_layer) : print_z(z), height(h), next_layer_nr(next_layer) {}
+    LayerHeightData(coordf_t z, coordf_t h, size_t obj_layer) : print_z(z), height(h), obj_layer_nr(obj_layer) {}
     coordf_t bottom_z() {
         return print_z - height;
     }
@@ -124,7 +124,9 @@ struct SupportNode
     bool           need_extra_wall = false;
     bool           is_sharp_tail   = false;
     bool           valid = true;
+    bool           fading          = false;
     ExPolygon      overhang; // when type==ePolygon, set this value to get original overhang area
+    coordf_t       origin_area;
 
     /*!
      * \brief The direction of the skin lines above the tip of the branch.
@@ -202,7 +204,7 @@ public:
      * \param radius_sample_resolution Sample size used to round requested node radii.
      * \param collision_resolution
      */
-    TreeSupportData(const PrintObject& object, coordf_t max_move, coordf_t radius_sample_resolution, coordf_t collision_resolution);
+    TreeSupportData(const PrintObject& object, coordf_t radius_sample_resolution, coordf_t collision_resolution);
     ~TreeSupportData() {
         clear_nodes();
     }
@@ -247,10 +249,10 @@ public:
     SupportNode* create_node(const Point position, const int distance_to_top, const int obj_layer_nr, const int support_roof_layers_below, const bool to_buildplate, SupportNode* parent,
         coordf_t     print_z_, coordf_t height_, coordf_t dist_mm_to_top_ = 0, coordf_t radius_ = 0);
     void clear_nodes();
-    void remove_invalid_nodes();
     std::vector<LayerHeightData> layer_heights;
 
-    std::vector<SupportNode*> contact_nodes;
+    std::vector<std::unique_ptr<SupportNode>> contact_nodes;
+    // ExPolygon                  m_machine_border;
 
 private:
     /*!
@@ -260,7 +262,7 @@ private:
         coordf_t radius;
         size_t layer_nr;
         int recursions;
-        
+
     };
     struct RadiusLayerPairEquality {
         constexpr bool operator()(const RadiusLayerPair& _Left, const RadiusLayerPair& _Right) const {
@@ -296,7 +298,7 @@ private:
      */
     const ExPolygons& calculate_avoidance(const RadiusLayerPair& key) const;
 
-    tbb::spin_mutex                         									m_mutex;
+    tbb::spin_mutex  m_mutex;
 
 public:
     bool is_slim = false;
@@ -305,11 +307,7 @@ public:
      */
     coordf_t m_xy_distance;
 
-    /*!
-     * \brief The maximum distance that the centrepoint of a tree branch may
-     * move in consequtive layers
-     */
-    coordf_t m_max_move;
+    double branch_scale_factor = 1.0; // tan(45 degrees)
 
     /*!
      * \brief Sample resolution for radius values.
@@ -328,6 +326,8 @@ public:
     // union contours of all layers below
     std::vector<ExPolygons> m_layer_outlines_below;
 
+    std::vector<double> m_max_move_distances;
+
     /*!
      * \brief Caches for the collision, avoidance and internal model polygons
      * at given radius and layer indices.
@@ -336,7 +336,7 @@ public:
      * generally considered OK as the functions are still logically const
      * (ie there is no difference in behaviour for the user betweeen
      * calculating the values each time vs caching the results).
-     * 
+     *
      * coconut: previously stl::unordered_map is used which seems problematic with tbb::parallel_for.
      * So we change to tbb::concurrent_unordered_map
      */
@@ -366,6 +366,10 @@ public:
      */
     TreeSupport(PrintObject& object, const SlicingParameters &slicing_params);
 
+    void move_bounds_to_contact_nodes(std::vector<TreeSupport3D::SupportElements> &move_bounds,
+                                      PrintObject                                 &print_object,
+                                      const TreeSupport3D::TreeSupportSettings    &config);
+
     /*!
      * \brief Create the areas that need support.
      *
@@ -377,13 +381,26 @@ public:
 
     void detect_overhangs(bool check_support_necessity = false);
 
+    SupportNode* create_node(const Point  position,
+        const int    distance_to_top,
+        const int    obj_layer_nr,
+        const int    support_roof_layers_below,
+        const bool   to_buildplate,
+        SupportNode* parent,
+        coordf_t     print_z_,
+        coordf_t     height_,
+        coordf_t     dist_mm_to_top_ = 0,
+        coordf_t     radius_ = 0)
+    {
+        return m_ts_data->create_node(position, distance_to_top, obj_layer_nr, support_roof_layers_below, to_buildplate, parent, print_z_, height_, dist_mm_to_top_, radius_);
+    }
+
     int  avg_node_per_layer = 0;
-    float nodes_angle       = 0;
+    float nodes_angle = 0;
     bool  has_sharp_tails = false;
     bool  has_cantilever = false;
     double max_cantilever_dist = 0;
     SupportType support_type;
-    SupportMaterialStyle support_style;
 
     std::unique_ptr<FillLightning::Generator> generator;
     std::unordered_map<double, size_t> printZ_to_lightninglayer;
@@ -396,8 +413,10 @@ public:
      */
     ExPolygon m_machine_border;
 
-    enum OverhangType { Detected = 0, Enforced, SharpTail };
+    enum OverhangType : uint8_t { Normal = 0, SharpTail = 1, Cantilever = 1 << 1, Small = 1 << 2, BigFlat = 1 << 3, ThinPlate = 1 << 4, SharpTailLowesst = 1 << 5 };
     std::map<const ExPolygon*, OverhangType> overhang_types;
+    std::vector<std::pair<Vec3f, Vec3f>>      m_vertical_enforcer_points;
+
 private:
     /*!
      * \brief Generator for model collision, avoidance and internal guide volumes
@@ -405,6 +424,7 @@ private:
      * Lazily computes volumes as needed.
      *  \warning This class is NOT currently thread-safe and should not be accessed in OpenMP blocks
      */
+    std::vector<std::vector<SupportNode*>> contact_nodes;
     std::shared_ptr<TreeSupportData> m_ts_data;
     std::unique_ptr<TreeSupport3D::TreeModelVolumes> m_model_volumes;
     PrintObject    *m_object;
@@ -416,14 +436,17 @@ private:
     size_t          m_highest_overhang_layer = 0;
     std::vector<std::vector<MinimumSpanningTree>> m_spanning_trees;
     std::vector< std::unordered_map<Line, bool, LineHash>> m_mst_line_x_layer_contour_caches;
-
     float    DO_NOT_MOVER_UNDER_MM = 0.0;
-    coordf_t MAX_BRANCH_RADIUS = 10.0;
-    coordf_t MIN_BRANCH_RADIUS = 0.5;
-    coordf_t MAX_BRANCH_RADIUS_FIRST_LAYER = 12.0;
-    coordf_t MIN_BRANCH_RADIUS_FIRST_LAYER = 2.0;
-    float tree_support_branch_diameter_angle = 5.0;
-    coord_t m_min_radius = scale_(1); // in mm
+    coordf_t base_radius                        = 0.0;
+    const coordf_t MAX_BRANCH_RADIUS = 10.0;
+    const coordf_t MIN_BRANCH_RADIUS = 0.4;
+    const coordf_t MAX_BRANCH_RADIUS_FIRST_LAYER = 12.0;
+    const coordf_t MIN_BRANCH_RADIUS_FIRST_LAYER = 2.0;
+    double diameter_angle_scale_factor = tan(5.0*M_PI/180.0);
+    // minimum roof area (1 mm^2), area smaller than this value will not have interface
+    const double minimum_roof_area{SQ(scaled<double>(1.))};
+    float        top_z_distance = 0.0;
+
     bool  is_strong = false;
     bool  is_slim                            = false;
     bool  with_infill                        = false;
@@ -440,7 +463,7 @@ private:
      * save the resulting support polygons to.
      * \param contact_nodes The nodes to draw as support.
      */
-    void draw_circles(const std::vector<std::vector<SupportNode*>>& contact_nodes);
+    void draw_circles();
 
     /*!
      * \brief Drops down the nodes of the tree support towards the build plate.
@@ -454,18 +477,18 @@ private:
      * dropped down. The nodes are dropped to lower layers inside the same
      * vector of layers.
      */
-    void drop_nodes(std::vector<std::vector<SupportNode *>> &contact_nodes);
+    void drop_nodes();
 
-    void smooth_nodes(std::vector<std::vector<SupportNode *>> &contact_nodes);
+    void smooth_nodes();
 
-    void smooth_nodes(std::vector<std::vector<SupportNode*>>& contact_nodes, const TreeSupport3D::TreeSupportSettings& config);
+    void smooth_nodes(const TreeSupport3D::TreeSupportSettings& config);
 
     /*! BBS: MusangKing: maximum layer height
      * \brief Optimize the generation of tree support by pre-planning the layer_heights
-     * 
+     *
     */
 
-    std::vector<LayerHeightData> plan_layer_heights(std::vector<std::vector<SupportNode *>> &contact_nodes);
+    std::vector<LayerHeightData> plan_layer_heights();
     /*!
      * \brief Creates points where support contacts the model.
      *
@@ -479,7 +502,7 @@ private:
      * \return For each layer, a list of points where the tree should connect
      * with the model.
      */
-    void generate_contact_points(std::vector<std::vector<SupportNode*>>& contact_nodes);
+    void generate_contact_points();
 
     /*!
      * \brief Add a node to the next layer.
@@ -493,8 +516,10 @@ private:
     coordf_t calc_branch_radius(coordf_t base_radius, size_t layers_to_top, size_t tip_layers, double diameter_angle_scale_factor);
     // get unscaled radius(mm) of node based on the distance mm to top
     coordf_t calc_branch_radius(coordf_t base_radius, coordf_t mm_to_top, double diameter_angle_scale_factor, bool use_min_distance=true);
-    coordf_t get_radius(const SupportNode* node, coordf_t base_radius);
+    coordf_t   calc_radius(coordf_t mm_to_top);
+    coordf_t get_radius(const SupportNode* node);
     ExPolygons get_avoidance(coordf_t radius, size_t obj_layer_nr);
+    // layer's expolygon expanded by radius+m_xy_distance
     ExPolygons get_collision(coordf_t radius, size_t layer_nr);
     // get Polygons instead of ExPolygons
     Polygons get_collision_polys(coordf_t radius, size_t layer_nr);

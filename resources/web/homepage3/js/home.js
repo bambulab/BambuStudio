@@ -4,6 +4,7 @@ var m_HotModelList=null;
 var m_ForUModelList=null;
 
 var m_MakerlabList=null;
+var m_PrintHistoryList=null;
 
 function OnHomeInit()
 {
@@ -13,8 +14,26 @@ function OnHomeInit()
 	SendMsg_GetRecentFile();
 	SendMsg_GetStaffPick();
     SendMsg_GetMakerlabList();
+	SendMsg_GetPrintHistory();	    
 	
+    document.getElementById('HotModel_Search_Input').onkeydown = function (event) {
+		if (event.key === 'Enter') {
+			OnSearchOnline();
+		}
+		
+		event.defaultPrevented();
+    };
+	
+	let ModelSearchTip=GetCurrentTextByKey('t122');
+	$('#HotModel_Search_Input').prop('placeholder', ModelSearchTip);
+	
+	//Test
 	//ShowMakerlabList(Test_MakerlabList['list']);
+	
+    //$('#PrintHistoryArea').show();
+    //ShowPrintHistory(Test_PrintTaskList['hits']);
+	
+	//Show4UPick(Test_4UModelList['hits']);
 }
 
 //Recent详情页面的状态
@@ -31,9 +50,25 @@ function OnRecentInit()
     Set_RecentFile_Delete_Checkbox_Event();
 }
 
+var m_LineMenuName='';
 function OnLineInit()
 {
 	TranslatePage();
+	m_LineMenuName=GetQueryString("menu");
+}
+
+function OnLineRetry()
+{
+	if(m_LineMenuName!="" && m_LineMenuName!=null)
+		SwitchContent(m_LineMenuName);
+}
+
+function ShowLineWarn( bShow )
+{
+	if(bShow)
+		$('#WarnMainArea').show();
+	else
+		$('#WarnMainArea').hide();
 }
 
 //------最佳打开文件的右键菜单功能----------
@@ -103,6 +138,7 @@ function Set_RecentFile_MouseRightBtn_Event()
 function HandleStudio( pVal )
 {
 	let strCmd = pVal['command'];
+	//alert(strCmd);
 	
 	if(strCmd=='get_recent_projects')
 	{
@@ -195,6 +231,43 @@ function HandleStudio( pVal )
 		
 		OnHomeInit();
 	}
+	else if(strCmd=='printhistory_task_show')
+	{
+		if( m_PrintHistoryList!=null && pVal['hits'].length>0 )
+		{
+			let SS1=JSON.stringify(pVal['list']);
+			let SS2=JSON.stringify(m_PrintHistoryList);
+			
+			if( SS1==SS2 )
+			{
+				alert("PrintHistory is Same. Ignore");
+				return;
+			}
+		}
+		
+	    m_PrintHistoryList=pVal['hits'];
+				
+		ShowPrintHistory(m_PrintHistoryList);
+	}
+	else if(strCmd=='homepage_leftmenu_show')
+	{
+		let MenuName=pVal['menu'];
+		let nShow=pVal['show']*1;
+		
+		if(MenuName=='printhistory')
+		{		
+			if(nShow==1)
+			{
+				$('#PrintHistoryArea').show();
+			}
+			else
+			{
+				$('#PrintHistoryArea').hide();
+				m_PrintHistoryList=null;
+				$('#PrintHistoryList').html('');
+			}
+		}		
+	}
 }
 
 function OnBoardChange( strMenu )
@@ -210,7 +283,10 @@ function OnBoardChange( strMenu )
 			SendMsg_GetStaffPick();
 		
 		if( m_MakerlabList==null || m_MakerlabList.length==0 )
-			SendMsg_GetMakerlabList();		
+			SendMsg_GetMakerlabList();
+		
+		if( m_PrintHistoryList==null )
+			SendMsg_GetPrintHistory();
 	}
 	else if(strMenu=='recent')
 	{
@@ -663,6 +739,7 @@ function ShowStaffPick( ModelList )
 	$('#HotModelList').html(strPickHtml);
 	InitStaffPick();
 	$('#HotModelArea').show();
+	$('#HotModel_Search_Bar').css('display','flex');
 }
 
 function Show4UPick( ModelList )
@@ -721,6 +798,7 @@ function Show4UPick( ModelList )
 	$('#HotModelList').html(strPickHtml);
 	InitStaffPick();
 	$('#HotModelArea').show();
+	$('#HotModel_Search_Bar').css('display','flex');
 }
 
 function OpenOneStaffPickModel( ModelID )
@@ -735,6 +813,20 @@ function OpenOneStaffPickModel( ModelID )
 	SendWXMessage( JSON.stringify(tSend) );		
 }
 
+
+function OnSearchOnline(event)
+{		
+	let strKW=$('#HotModel_Search_Input').val().trim();
+	if(strKW=='' )
+		return;
+	
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="homepage_online_search";
+	tSend['keyword']=strKW;
+	
+	SendWXMessage( JSON.stringify(tSend) );	
+}
 
 //----------MakerLab------------
 function IsChinese()
@@ -818,6 +910,122 @@ function OnOpenOneMakerlab( ChildUrl )
 	SendWXMessage( JSON.stringify(tSend) );		
 }
 
+//-----------Print History------------
+function SendMsg_GetPrintHistory()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="homepage_printhistory_get";
+	
+	SendWXMessage( JSON.stringify(tSend) );
+}
+
+function convertTimeFormat(timeStr) 
+{
+	const date = new Date(timeStr);  
+	const year = date.getFullYear(); // 取后两位年份
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    return `${year}/${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')} ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+}
+
+
+//只更新HTML内容，不控制显示/隐藏
+function ShowPrintHistory( TaskList )
+{
+	let TaskTotal=TaskList.length;
+	
+	let strTaskHtml='';
+	for(let a=0;a<TaskTotal;a++)
+	{
+		let OneTask=TaskList[a];
+		
+		let TaskID=OneTask['id'];
+		let Status=OneTask['status'];
+				
+		let TaskName=OneTask['designTitle']!=''?OneTask['designTitle']:OneTask['title'];
+		let CoverImg=OneTask['cover'];
+		
+		let DeviceName=OneTask['deviceName'];
+		let CostTime=OneTask['costTime'];
+		if( Status==2 || Status==3 )
+		{
+			if( OneTask['startTime']!=null && OneTask['endTime']!=null )
+			{
+				CostTime=DateToUnixstamp(OneTask['endTime'])-DateToUnixstamp(OneTask['startTime']);
+			}
+		}
+		let strCostTime='';
+		if(CostTime>=3600)
+		{
+			strCostTime=Math.round( (CostTime/3600)*10 )/10+'h';
+		}
+		else if(CostTime>=60)
+		{
+			strCostTime=Math.floor( CostTime/60 )+'min';
+		}
+		else 
+			strCostTime=CostTime+'s';
+		
+		let PlateName='<span tid="t123" class="trans"></span>&nbsp;'+OneTask['plateIndex']+'<span tid="t124" class="trans"></span>';
+		if( OneTask['plateName'].trim()!='' )
+			PlateName+=' - '+OneTask['plateName'].trim();
+		
+		let StartTime=convertTimeFormat( OneTask['startTime'] );
+		
+		let isPublicProfile =OneTask['isPublicProfile'];
+		let sMode=OneTask['mode'];
+		
+		strTaskHtml+=
+			'<div class="PrintHistoryItem GuideBlock" onClick="OnOpenPrintHistory('+TaskID+')" >'+
+			'	<div class="PrintHistoryImg"><img src="'+CoverImg+'" onerror="this.onerror=null;this.src=\'img/d.png\';" /></div>'+
+			'	<div class="PrintHistoryTextBlock">'+
+			'		<div class="PrintHistoryName TextS1">'+TaskName+'</div>'+
+			'		<div class="PrintHistory_Line2">'+
+			'			<img src="img/time.svg" /><span class="PH_PrintTime TextS2">'+strCostTime+'</span>'+
+			'			<img src="img/device.svg" /><span class="PH_DeviceName TextS2">'+DeviceName+'</span>'+
+			'		</div>'+
+			'		<div class="PrintHistoryInfo">'+
+			'			<div class="PrintHistoryPlate TextS2">'+
+			'				<div class="PH_PlateName">'+PlateName+'</div>'+
+			'				<div class="PH_PrintDate">('+StartTime+')</div>'+
+			'			</div>';
+		    switch(Status)
+		{
+			case 2:
+				strTaskHtml+='		<div class="PrintHistoryStatus PH_Status_Success trans" tid="t119">Success</div>';
+				break;
+			case 3:
+				strTaskHtml+='		<div class="PrintHistoryStatus PH_Status_Fail trans" tid="t120">Canceled</div>';
+				break;
+			default:
+				strTaskHtml+='		<div class="PrintHistoryStatus PH_Status_Printing trans" tid="t118">Printing</div>';
+				break;
+		}
+		strTaskHtml+=
+			'		</div>'+
+			'	</div>';
+		if( isPublicProfile==false && sMode!='cloud_slice'  )
+			strTaskHtml+='	<div class="PH_Gcode_Icon">Gcode</div>';
+				
+		strTaskHtml+='</div>';
+	}
+
+	$('#PrintHistoryList').html(strTaskHtml);
+	TranslatePage();
+}
+
+function OnOpenPrintHistory( TaskID )
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="homepage_printhistory_click";
+	tSend['taskid']=TaskID*1;
+	
+	SendWXMessage( JSON.stringify(tSend) );
+}
 
 //---------------Global-----------------
 window.postMessage = HandleStudio;

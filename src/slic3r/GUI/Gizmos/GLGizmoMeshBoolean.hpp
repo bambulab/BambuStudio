@@ -42,18 +42,10 @@ public:
     ~GLGizmoMeshBoolean();
 
     void set_enable(bool enable) { m_enable = enable; }
-    bool get_enable() { return m_enable; }
-    MeshBooleanSelectingState get_selecting_state() { return m_selecting_state; }
-    void set_src_volume(ModelVolume* mv) { 
-        m_src.mv = mv;
-        if (m_src.mv == m_tool.mv)
-            m_tool.reset();
-    }
-    void set_tool_volume(ModelVolume* mv) { 
-        m_tool.mv = mv;
-        if (m_tool.mv == m_src.mv)
-            m_src.reset();
-    }
+    bool get_enable() const { return m_enable; }
+    MeshBooleanSelectingState get_selecting_state() const { return m_selecting_state; }
+    void set_src_volume(ModelVolume* mv);
+    void set_tool_volume(ModelVolume* mv);
 
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
 
@@ -67,12 +59,13 @@ protected:
     virtual void on_set_state() override;
     virtual CommonGizmosDataID on_get_requirements() const override;
     virtual void on_render_input_window(float x, float y, float bottom_limit);
-    virtual void render_input_window_warning(const std::string &text);
+    virtual void render_input_window_warning(const std::string &text,int width);
     void on_load(cereal::BinaryInputArchive &ar) override;
     void on_save(cereal::BinaryOutputArchive &ar) const override;
 
 private:
     bool m_enable{ false };
+    int                  m_full_width;
     MeshBooleanOperation m_operation_mode;
     MeshBooleanSelectingState m_selecting_state;
     bool m_diff_delete_input = false;

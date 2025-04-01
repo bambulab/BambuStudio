@@ -24,6 +24,7 @@ deps/build-linux/*
 install_*
 build_*/
 SVG
+doc/
 **/process_full/
 **/machine_full/
 **/filament_full/

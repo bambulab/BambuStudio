@@ -8,15 +8,23 @@
 
 wxDECLARE_EVENT(wxCUSTOMEVT_SET_TEMP_FINISH, wxCommandEvent);
 
+enum TempInputType {
+    TEMP_OF_MAIN_NOZZLE_TYPE,
+    TEMP_OF_DEPUTY_NOZZLE_TYPE,
+    TEMP_OF_NORMAL_TYPE
+};
+
 class TempInput : public wxNavigationEnabled<StaticBox>
 {
     bool   hover;
 
     bool           m_read_only{false};
+    bool           m_on_changing {false};
     wxSize         labelSize;
     ScalableBitmap normal_icon;
     ScalableBitmap actice_icon;
     ScalableBitmap degree_icon;
+    ScalableBitmap round_scale_hint_icon;/*the size hint of icon, use to compute size*/
 
     StateColor   label_color;
     StateColor   text_color;
@@ -27,6 +35,7 @@ class TempInput : public wxNavigationEnabled<StaticBox>
     int  max_temp     = 0;
     int  min_temp     = 0;
     bool warning_mode = false;
+    TempInputType m_input_type;
 
     int              padding_left    = 0;
     static const int TempInputWidth  = 200;
@@ -43,6 +52,7 @@ public:
     TempInput(wxWindow *     parent,
               int            type,
               wxString       text,
+              TempInputType  input_type,
               wxString       label       = "",
               wxString       normal_icon = "",
               wxString       actice_icon = "",
@@ -60,12 +70,12 @@ public:
                 const wxSize & size        = wxDefaultSize,
                 long           style       = 0);
 
-	
+
     wxPopupTransientWindow *wdialog{nullptr};
     int  temp_type;
     bool actice = false;
 
-    
+
     wxString erasePending(wxString &str);
 
     void SetTagTemp(int temp);
@@ -73,7 +83,9 @@ public:
 
     void SetCurrTemp(int temp);
     void SetCurrTemp(wxString temp);
-   
+    void SetCurrType(TempInputType type);
+    TempInputType GetCurrType(){return m_input_type;};
+
     bool AllisNum(std::string str);
     void SetFinish();
     void Warning(bool warn, WarningType type = WARNING_UNKNOWN);
@@ -106,14 +118,21 @@ public:
 
     wxTextCtrl const *GetTextCtrl() const { return text_ctrl; }
 
+    bool  IsOnChanging() const { return m_on_changing; }
+    void  SetOnChanging() { m_on_changing = true; }
+    void  ReSetOnChanging() { m_on_changing = false; }
+
 protected:
-    virtual void OnEdit() {}
+    virtual void OnEdit();
 
     virtual void DoSetSize(int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO);
 
     void DoSetToolTipText(wxString const &tip) override;
 
 private:
+    void ResetWaringDlg();
+    bool CheckIsValidVal(bool show_warning);
+
     void paintEvent(wxPaintEvent &evt);
 
     void render(wxDC &dc);

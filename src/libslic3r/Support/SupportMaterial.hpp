@@ -19,14 +19,6 @@ inline double layer_z(const SlicingParameters& slicing_params, const size_t laye
 {
 	return slicing_params.object_print_z_min + slicing_params.first_object_layer_height + layer_idx * slicing_params.layer_height;
 }
-inline LayerIndex layer_idx_ceil(const SlicingParameters& slicing_params, const double z)
-{
-	return LayerIndex(ceil((z - slicing_params.object_print_z_min - slicing_params.first_object_layer_height) / slicing_params.layer_height));
-}
-inline LayerIndex layer_idx_floor(const SlicingParameters& slicing_params, const double z)
-{
-	return LayerIndex(floor((z - slicing_params.object_print_z_min - slicing_params.first_object_layer_height) / slicing_params.layer_height));
-}
 
 inline SupportGeneratorLayer& layer_initialize(
 	SupportGeneratorLayer& layer_new,
@@ -52,67 +44,6 @@ inline SupportGeneratorLayer& layer_allocate(
 	layer_storage.push_back(SupportGeneratorLayer());
 	return layer_initialize(layer_storage.back(), layer_type, slicing_params, layer_idx);
 }
-
-// Generate raft layers, also expand the 1st support layer
-// in case there is no raft layer to improve support adhesion.
-SupportGeneratorLayersPtr generate_raft_base(
-	const PrintObject				&object,
-	const SupportParameters			&support_params,
-	const SlicingParameters			&slicing_params,
-	const SupportGeneratorLayersPtr &top_contacts,
-	const SupportGeneratorLayersPtr &interface_layers,
-	const SupportGeneratorLayersPtr &base_interface_layers,
-	const SupportGeneratorLayersPtr &base_layers,
-	SupportGeneratorLayerStorage    &layer_storage);
-
-// returns sorted layers
-SupportGeneratorLayersPtr generate_support_layers(
-	PrintObject							&object,
-    const SupportGeneratorLayersPtr     &raft_layers,
-    const SupportGeneratorLayersPtr     &bottom_contacts,
-    const SupportGeneratorLayersPtr     &top_contacts,
-    const SupportGeneratorLayersPtr     &intermediate_layers,
-    const SupportGeneratorLayersPtr     &interface_layers,
-    const SupportGeneratorLayersPtr     &base_interface_layers);
-
-// Turn some of the base layers into base interface layers.
-// For soluble interfaces with non-soluble bases, print maximum two first interface layers with the base
-// extruder to improve adhesion of the soluble filament to the base.
-std::pair<SupportGeneratorLayersPtr, SupportGeneratorLayersPtr> generate_interface_layers(
-	const PrintObjectConfig& config,
-	const SupportParameters& support_params,
-	const SupportGeneratorLayersPtr& bottom_contacts,
-	const SupportGeneratorLayersPtr& top_contacts,
-	// Input / output, will be merged with output. Only provided for Organic supports.
-	SupportGeneratorLayersPtr& top_interface_layers,
-	SupportGeneratorLayersPtr& top_base_interface_layers,
-	SupportGeneratorLayersPtr& intermediate_layers,
-	SupportGeneratorLayerStorage& layer_storage);
-
-// Produce the support G-code.
-// Used by both classic and tree supports.
-void generate_support_toolpaths(
-	PrintObject                         &object,
-	SupportLayerPtrs    				&support_layers,
-	const PrintObjectConfig 			&config,
-	const SupportParameters 			&support_params,
-	const SlicingParameters 			&slicing_params,
-    const SupportGeneratorLayersPtr 	&raft_layers,
-    const SupportGeneratorLayersPtr   	&bottom_contacts,
-    const SupportGeneratorLayersPtr   	&top_contacts,
-    const SupportGeneratorLayersPtr   	&intermediate_layers,
-	const SupportGeneratorLayersPtr   	&interface_layers,
-    const SupportGeneratorLayersPtr   	&base_interface_layers);
-
-void fill_expolygons_with_sheath_generate_paths(
-	ExtrusionEntitiesPtr& dst,
-	const Polygons& polygons,
-	Fill* filler,
-	float                    density,
-	ExtrusionRole            role,
-	const Flow& flow,
-	bool                     with_sheath,
-	bool                     no_sort);
 
 void export_print_z_polygons_to_svg(const char *path, SupportGeneratorLayer ** const layers, size_t n_layers);
 void export_print_z_polygons_and_extrusions_to_svg(const char *path, SupportGeneratorLayer ** const layers, size_t n_layers, SupportLayer& support_layer);

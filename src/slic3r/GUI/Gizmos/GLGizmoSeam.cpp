@@ -28,11 +28,12 @@ void GLGizmoSeam::on_shutdown()
 bool GLGizmoSeam::on_init()
 {
     m_shortcut_key = WXK_CONTROL_P;
-
-    m_desc["clipping_of_view_caption"] = _L("Alt + Mouse wheel");
+    const wxString ctrl                = GUI::shortkey_ctrl_prefix();
+    const wxString alt                 = GUI::shortkey_alt_prefix();
+    m_desc["clipping_of_view_caption"] = alt + _L("Mouse wheel");
     m_desc["clipping_of_view"] = _L("Section view");
     m_desc["reset_direction"]  = _L("Reset direction");
-    m_desc["cursor_size_caption"] = _L("Ctrl + Mouse wheel");
+    m_desc["cursor_size_caption"]= ctrl + _L("Mouse wheel");
     m_desc["cursor_size"]      = _L("Brush size");
     m_desc["cursor_type"]      = _L("Brush shape");
     m_desc["enforce_caption"]  = _L("Left mouse button");
@@ -102,13 +103,13 @@ bool GLGizmoSeam::on_key_down_select_tool_type(int keyCode) {
 void GLGizmoSeam::render_triangles(const Selection& selection) const
 {
     ClippingPlaneDataWrapper clp_data = this->get_clipping_plane_data();
-    auto* shader = wxGetApp().get_shader("mm_gouraud");
+    const auto& shader = wxGetApp().get_shader("mm_gouraud");
     if (!shader)
         return;
-    shader->start_using();
+    wxGetApp().bind_shader(shader);
     shader->set_uniform("clipping_plane", clp_data.clp_dataf);
     shader->set_uniform("z_range", clp_data.z_range);
-    ScopeGuard guard([shader]() { if (shader) shader->stop_using(); });
+    ScopeGuard guard([shader]() { if (shader) wxGetApp().unbind_shader(); });
 
     const ModelObject* mo = m_c->selection_info()->model_object();
     int                mesh_id = -1;
@@ -124,8 +125,11 @@ void GLGizmoSeam::render_triangles(const Selection& selection) const
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CW));
 
-        glsafe(::glPushMatrix());
-        glsafe(::glMultMatrixd(trafo_matrix.data()));
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const Transform3d matrix = camera.get_view_matrix() * trafo_matrix;
+        shader->set_uniform("view_model_matrix", matrix);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        shader->set_uniform("normal_matrix", (Matrix3d)matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
 
         float normal_z = -::cos(Geometry::deg2rad(m_highlight_by_angle_threshold_deg));
         Matrix3f normal_matrix = static_cast<Matrix3f>(trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>());
@@ -135,9 +139,8 @@ void GLGizmoSeam::render_triangles(const Selection& selection) const
         shader->set_uniform("slope.actived", m_parent.is_using_slope());
         shader->set_uniform("slope.volume_world_normal_matrix", static_cast<Matrix3f>(trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>()));
         shader->set_uniform("slope.normal_z", normal_z);
-        m_triangle_selectors[mesh_id]->render(m_imgui);
+        m_triangle_selectors[mesh_id]->render(m_imgui, trafo_matrix);
 
-        glsafe(::glPopMatrix());
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CCW));
     }
@@ -186,7 +189,8 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
 {
     if (! m_c->selection_info()->model_object())
         return;
-
+    m_imgui_start_pos[0] = x;
+    m_imgui_start_pos[1] = y;
     const float approx_height = m_imgui->scaled(12.5f);
     y = std::min(y, bottom_limit - approx_height);
     //BBS: GUI refactor: move gizmo to the right
@@ -329,21 +333,18 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     auto vertical_only = m_vertical_only;
     if (m_imgui->bbl_checkbox(_L("Vertical"), vertical_only)) {
         m_vertical_only = vertical_only;
-        if (m_vertical_only) {
-            m_is_front_view = true;
-            change_camera_view_angle(m_front_view_radian);
-        }
     }
     auto is_front_view = m_is_front_view;
     m_imgui->bbl_checkbox(_L("View: keep horizontal"), is_front_view);
-    if (m_is_front_view != is_front_view) { 
+    if (m_is_front_view != is_front_view){
         m_is_front_view = is_front_view;
-        if (m_is_front_view) { 
+        if (m_is_front_view) {
+            update_front_view_radian();
             change_camera_view_angle(m_front_view_radian);
         }
     }
     m_imgui->disabled_begin(!m_is_front_view);
-    if (render_slider_double_input_by_format(slider_input_layout, _u8L("Rotate horizontally"), m_front_view_radian, 0.f, 360.f, 0, DoubleShowType::DEGREE)) { 
+    if (render_slider_double_input_by_format(slider_input_layout, _u8L("Rotate horizontally"), m_front_view_radian, -180.f, 180.f, 0, DoubleShowType::DEGREE)) {
        change_camera_view_angle(m_front_view_radian);
     }
     m_imgui->disabled_end();
@@ -372,6 +373,8 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
         m_parent.set_as_dirty();
     }
     ImGui::PopStyleVar(2);
+    m_imgui_end_pos[0] = m_imgui_start_pos[0] + ImGui::GetWindowWidth();
+    m_imgui_end_pos[1] = m_imgui_start_pos[1] + ImGui::GetWindowHeight();
     GizmoImguiEnd();
 
     //BBS
@@ -436,6 +439,7 @@ void GLGizmoSeam::update_from_model_object(bool first_update)
         // Reset of TriangleSelector is done inside TriangleSelectorGUI's constructor, so we don't need it to perform it again in deserialize().
         m_triangle_selectors.back()->deserialize(mv->seam_facets.get_data(), false);
         m_triangle_selectors.back()->request_update_render_data();
+        m_triangle_selectors.back()->set_wireframe_needed(true);
     }
 }
 

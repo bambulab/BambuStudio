@@ -1,0 +1,12 @@
+{
+    "type": "filament",
+    "filament_id": "GFL96",
+    "setting_id": "GFSL96_Qidi_13",
+    "name": "Generic PLA Silk @Qidi X-Plus 4 0.8 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Generic PLA Silk @Qidi",
+	"compatible_printers": [
+		"Qidi X-Plus 4 0.8 nozzle"
+	]
+}

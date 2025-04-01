@@ -4,6 +4,8 @@
 #include "Polygon.hpp"
 #include "Polyline.hpp"
 
+#include <numeric>
+
 namespace Slic3r {
 
 double Polygon::length() const
@@ -99,6 +101,39 @@ void Polygon::douglas_peucker(double tolerance)
     this->points = std::move(p);
 }
 
+bool Polygon::is_approx_circle(double max_deviation, double max_variance, Point &center, double &diameter) const
+{
+    if (this->points.size() < 8) {
+        return false;
+    }
+
+    center = centroid();
+    std::vector<double> distances;
+    for (const auto &point : this->points) {
+        double distance = std::sqrt(std::pow(point.x() - center.x(), 2) + std::pow(point.y() - center.y(), 2));
+        distances.push_back(distance);
+    }
+
+    double max_dist = *std::max_element(distances.begin(), distances.end());
+    double min_dist = *std::min_element(distances.begin(), distances.end());
+
+    if ((max_dist - min_dist) > max_deviation) {
+        return false;
+    }
+
+    double avg_dist = std::accumulate(distances.begin(), distances.end(), 0.0) / distances.size();
+    double variance = 0;
+    for (double d : distances) { variance += std::pow(d - avg_dist, 2); }
+    variance /= distances.size();
+
+    if (variance > max_variance) {
+        return false;
+    }
+
+    diameter = 2 * avg_dist;
+    return true;
+}
+
 Polygons Polygon::simplify(double tolerance) const
 {
     // Works on CCW polygons only, CW contour will be reoriented to CCW by Clipper's simplify_polygons()!
@@ -110,7 +145,7 @@ Polygons Polygon::simplify(double tolerance) const
     points.push_back(points.front());
     Polygon p(MultiPoint::_douglas_peucker(points, tolerance));
     p.points.pop_back();
-    
+
     Polygons pp;
     pp.push_back(p);
     return simplify_polygons(pp);
@@ -125,7 +160,7 @@ void Polygon::triangulate_convex(Polygons* polygons) const
         p.points.push_back(this->points.front());
         p.points.push_back(*(it-1));
         p.points.push_back(*it);
-        
+
         // this should be replaced with a more efficient call to a merge_collinear_segments() method
         if (p.area() > 0) polygons->push_back(p);
     }
@@ -237,11 +272,11 @@ Points filter_points_by_vectors(const Points &poly, FilterFn filter)
         // p2 is next point to the currently visited point p1.
         Vec2d v2 = (p2 - p1).cast<double>();
         if (filter(v1, v2))
-            out.emplace_back(p2);
+            out.emplace_back(p1);
         v1 = v2;
         p1 = p2;
     }
-    
+
     return out;
 }
 
@@ -249,7 +284,7 @@ template<typename ConvexConcaveFilterFn>
 Points filter_convex_concave_points_by_angle_threshold(const Points &poly, double angle_threshold, ConvexConcaveFilterFn convex_concave_filter)
 {
     assert(angle_threshold >= 0.);
-    if (angle_threshold < EPSILON) {
+    if (angle_threshold > EPSILON) {
         double cos_angle  = cos(angle_threshold);
         return filter_points_by_vectors(poly, [convex_concave_filter, cos_angle](const Vec2d &v1, const Vec2d &v2){
             return convex_concave_filter(v1, v2) && v1.normalized().dot(v2.normalized()) < cos_angle;
@@ -373,8 +408,8 @@ Polygon Polygon::transform(const Transform3d& trafo) const
     return dstpoly;
 }
 
-BoundingBox get_extents(const Polygon &poly) 
-{ 
+BoundingBox get_extents(const Polygon &poly)
+{
     return poly.bounding_box();
 }
 
@@ -389,8 +424,8 @@ BoundingBox get_extents(const Polygons &polygons)
     return bb;
 }
 
-BoundingBox get_extents_rotated(const Polygon &poly, double angle) 
-{ 
+BoundingBox get_extents_rotated(const Polygon &poly, double angle)
+{
     return get_extents_rotated(poly.points, angle);
 }
 
@@ -454,6 +489,32 @@ bool has_duplicate_points(const Polygons &polys)
 #endif
 }
 
+bool remove_same_neighbor(Polygon &polygon)
+{
+    Points &points = polygon.points;
+    if (points.empty()) return false;
+    auto last = std::unique(points.begin(), points.end());
+
+    // remove first and last neighbor duplication
+    if (const Point &last_point = *(last - 1); last_point == points.front()) { --last; }
+
+    // no duplicits
+    if (last == points.end()) return false;
+
+    points.erase(last, points.end());
+    return true;
+}
+
+bool remove_same_neighbor(Polygons &polygons)
+{
+    if (polygons.empty()) return false;
+    bool exist = false;
+    for (Polygon &polygon : polygons) exist |= remove_same_neighbor(polygon);
+    // remove empty polygons
+    polygons.erase(std::remove_if(polygons.begin(), polygons.end(), [](const Polygon &p) { return p.points.size() <= 2; }), polygons.end());
+    return exist;
+}
+
 static inline bool is_stick(const Point &p1, const Point &p2, const Point &p3)
 {
     Point v1 = p2 - p1;
@@ -509,7 +570,7 @@ bool remove_sticks(Polygons &polys)
     for (size_t i = 0; i < polys.size(); ++ i) {
         modified |= remove_sticks(polys[i]);
         if (polys[i].points.size() >= 3) {
-            if (j < i) 
+            if (j < i)
                 std::swap(polys[i].points, polys[j].points);
             ++ j;
         }
@@ -525,7 +586,7 @@ bool remove_degenerate(Polygons &polys)
     size_t j = 0;
     for (size_t i = 0; i < polys.size(); ++ i) {
         if (polys[i].points.size() >= 3) {
-            if (j < i) 
+            if (j < i)
                 std::swap(polys[i].points, polys[j].points);
             ++ j;
         } else
@@ -542,7 +603,7 @@ bool remove_small(Polygons &polys, double min_area)
     size_t j = 0;
     for (size_t i = 0; i < polys.size(); ++ i) {
         if (std::abs(polys[i].area()) >= min_area) {
-            if (j < i) 
+            if (j < i)
                 std::swap(polys[i].points, polys[j].points);
             ++ j;
         } else
@@ -646,7 +707,7 @@ bool overlaps(const Polygons& polys1, const Polygons& polys2)
 
 bool contains(const Polygon &polygon, const Point &p, bool border_result)
 {
-    if (const int poly_count_inside = ClipperLib::PointInPolygon(p, polygon.points); 
+    if (const int poly_count_inside = ClipperLib::PointInPolygon(p, polygon.points);
         poly_count_inside == -1)
         return border_result;
     else

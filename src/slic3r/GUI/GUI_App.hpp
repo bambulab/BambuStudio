@@ -5,7 +5,6 @@
 #include <string>
 #include "ImGuiWrapper.hpp"
 #include "ConfigWizard.hpp"
-#include "OpenGLManager.hpp"
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Color.hpp"
@@ -18,7 +17,9 @@
 #include "slic3r/GUI/HMS.hpp"
 #include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
 #include "slic3r/GUI/HttpServer.hpp"
+#include "slic3r/GUI/UnsavedChangesDialog.hpp"
 #include "../Utils/PrintHost.hpp"
+#include "slic3r/GUI/GLEnums.hpp"
 
 #include <wx/app.h>
 #include <wx/colour.h>
@@ -47,10 +48,11 @@ class wxMenuBar;
 class wxTopLevelWindow;
 class wxDataViewCtrl;
 class wxBookCtrlBase;
+class wxGLContext;
+class wxGLCanvas;
 // BBS
 class Notebook;
 struct wxLanguageInfo;
-
 
 namespace Slic3r {
 
@@ -81,7 +83,8 @@ class ParamsDialog;
 class HMSQuery;
 class ModelMallDialog;
 class PingCodeBindDialog;
-
+class NetworkErrorDialog;
+class OpenGLManager;
 
 enum FileType
 {
@@ -133,7 +136,6 @@ enum CameraMenuIDs {
     wxID_CAMERA_ORTHOGONAL,
     wxID_CAMERA_COUNT,
 };
-
 
 class Tab;
 class ConfigWizard;
@@ -237,9 +239,9 @@ private:
     bool            m_opengl_initialized{ false };
 #endif
 
-//import model from mall 
+//import model from mall
     wxString       m_download_file_url;
-   
+
 //#ifdef _WIN32
     wxColour        m_color_label_modified;
     wxColour        m_color_label_sys;
@@ -268,7 +270,7 @@ private:
     // Best translation language, provided by Windows or OSX, owned by wxWidgets.
     const wxLanguageInfo		 *m_language_info_best   = nullptr;
 
-    OpenGLManager m_opengl_mgr;
+    mutable std::shared_ptr<OpenGLManager> m_p_opengl_mgr{ nullptr };
     std::unique_ptr<RemovableDriveManager> m_removable_drive_manager;
 
     std::unique_ptr<ImGuiWrapper> m_imgui;
@@ -304,15 +306,15 @@ private:
     bool             m_is_dark_mode{ false };
     bool             m_adding_script_handler { false };
     bool             m_side_popup_status{false};
-    bool             m_show_http_errpr_msgdlg{false};
+    bool             m_show_error_msgdlg{false};
     wxString         m_info_dialog_content;
+    wxString         m_install_preset_fail_text;
     HttpServer       m_http_server;
 
-    boost::thread    m_check_network_thread;
+    boost::thread    m_check_cert_thread;
 public:
     //try again when subscription fails
     void            on_start_subscribe_again(std::string dev_id);
-    void            check_filaments_in_blacklist(std::string tag_supplier, std::string tag_material, bool& in_blacklist, std::string& action, std::string& info);
     std::string     get_local_models_path();
     bool            OnInit() override;
     int             OnExit() override;
@@ -330,6 +332,7 @@ public:
     void show_message_box(std::string msg) { wxMessageBox(msg); }
     EAppMode get_app_mode() const { return m_app_mode; }
     Slic3r::DeviceManager* getDeviceManager() { return m_device_manager; }
+    bool                   is_blocking_printing(MachineObject *obj_ = nullptr);
     Slic3r::TaskManager*   getTaskManager() { return m_task_manager; }
     HMSQuery* get_hms_query() { return hms_query; }
     NetworkAgent* getAgent() { return m_agent; }
@@ -337,6 +340,10 @@ public:
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
     bool is_recreating_gui() const { return m_is_recreating_gui; }
     std::string logo_name() const { return is_editor() ? "BambuStudio" : "BambuStudio-gcodeviewer"; }
+
+    bool     show_3d_navigator() const { return app_config->get_bool("show_3d_navigator"); }
+    void     toggle_show_3d_navigator() const { app_config->set_bool("show_3d_navigator", !show_3d_navigator()); }
+
     wxString get_inf_dialog_contect () {return m_info_dialog_content;};
 
     std::vector<std::string> split_str(std::string src, std::string separator);
@@ -380,9 +387,9 @@ public:
     bool            get_side_menu_popup_status();
     void            set_side_menu_popup_status(bool status);
     void            link_to_network_check();
-        
+    void            link_to_lan_only_wiki();
 
-    const wxColour& get_label_clr_modified(){ return m_color_label_modified; }
+    const wxColour& get_label_clr_modified() { return m_color_label_modified; }
     const wxColour& get_label_clr_sys()     { return m_color_label_sys; }
     const wxColour& get_label_clr_default() { return m_color_label_default; }
     const wxColour& get_window_default_clr(){ return m_color_window_default; }
@@ -418,9 +425,10 @@ public:
     void            import_model(wxWindow *parent, wxArrayString& input_files) const;
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
 
-    wxString transition_tridid(int trid_id);
+    wxString        transition_tridid(int trid_id) const;
+    wxString        transition_tridid(int trid_id, bool is_n3s) const;
     void            ShowUserGuide();
-    void            ShowDownNetPluginDlg();
+    void            ShowDownNetPluginDlg(bool post_login = false);
     void            ShowUserLogin(bool show = true);
     void            ShowOnlyFilament();
     //BBS
@@ -457,6 +465,9 @@ public:
 
     void            check_update(bool show_tips, int by_user);
     void            check_new_version(bool show_tips = false, int by_user = 0);
+    void            check_cert();
+    void            process_network_msg(std::string dev_id, std::string msg);
+    void            check_beta_version();
     void            request_new_version(int by_user);
     void            enter_force_upgrade();
     void            set_skip_version(bool skip = true);
@@ -500,7 +511,7 @@ public:
     void            update_internal_development();
     void            show_ip_address_enter_dialog(wxString title = wxEmptyString);
     void            show_ip_address_enter_dialog_handler(wxCommandEvent &evt);
-    bool            show_modal_ip_address_enter_dialog(wxString title = wxEmptyString);
+    bool            show_modal_ip_address_enter_dialog(bool input_sn, wxString title = wxEmptyString);
 
     // BBS
     //void            add_config_menu(wxMenuBar *menu);
@@ -509,9 +520,9 @@ public:
     bool            has_current_preset_changes() const;
     void            update_saved_preset_from_current_preset();
     std::vector<std::pair<unsigned int, std::string>> get_selected_presets() const;
-    bool            check_and_save_current_preset_changes(const wxString& caption, const wxString& header, bool remember_choice = true, bool use_dont_save_insted_of_discard = false);
+    bool            check_and_save_current_preset_changes(const wxString& caption, const wxString& header, bool remember_choice = true, bool use_dont_save_insted_of_discard = false, ForceOption force_op = ForceOption::fopDiscard);
     void            apply_keeped_preset_modifications();
-    bool            check_and_keep_current_preset_changes(const wxString& caption, const wxString& header, int action_buttons, bool* postponed_apply_of_keeped_changes = nullptr);
+    bool            check_and_keep_current_preset_changes(const wxString& caption, const wxString& header, int action_buttons, bool* postponed_apply_of_keeped_changes = nullptr, ForceOption force_op = ForceOption::fopDiscard);
     bool            can_load_project();
     bool            check_print_host_queue();
     bool            checked_tab(Tab* tab);
@@ -557,6 +568,8 @@ public:
     std::string         m_mall_model_download_name;
     ModelMallDialog*    m_mall_publish_dialog{ nullptr };
     PingCodeBindDialog* m_ping_code_binding_dialog{ nullptr };
+
+    NetworkErrorDialog* m_server_error_dialog { nullptr };
 
     void            set_download_model_url(std::string url) {m_mall_model_download_url = url;}
     void            set_download_model_name(std::string name) {m_mall_model_download_name = name;}
@@ -625,12 +638,14 @@ public:
     void            gcode_thumbnails_debug();
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG
 
-    OpenGLManager& get_opengl_manager() { return m_opengl_mgr; }
-    GLShaderProgram* get_shader(const std::string& shader_name) { return m_opengl_mgr.get_shader(shader_name); }
-    GLShaderProgram* get_current_shader() { return m_opengl_mgr.get_current_shader(); }
+    const std::shared_ptr<OpenGLManager>& get_opengl_manager() const;
+    const std::shared_ptr<GLShaderProgram>& get_shader(const std::string &shader_name) const;
+    const std::shared_ptr<GLShaderProgram> get_current_shader() const;
+    void bind_shader(const std::shared_ptr<GLShaderProgram>& p_shader);
+    void unbind_shader();
 
-    bool is_gl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const { return m_opengl_mgr.get_gl_info().is_version_greater_or_equal_to(major, minor); }
-    bool is_glsl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const { return m_opengl_mgr.get_gl_info().is_glsl_version_greater_or_equal_to(major, minor); }
+    bool is_gl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const;
+    bool is_glsl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const;
     int  GetSingleChoiceIndex(const wxString& message, const wxString& caption, const wxArrayString& choices, int initialSelection);
 
 #ifdef __WXMSW__
@@ -647,7 +662,11 @@ public:
     bool            check_networking_version();
     void            cancel_networking_install();
     void            restart_networking();
-    void            check_config_updates_from_updater() { check_updates(false); }
+    void            check_config_updates_from_updater();
+    void            check_config_updates_from_menu();
+
+    void set_picking_effect(EPickingEffect effect);
+    EPickingEffect get_picking_effect() const;
 
 private:
     int             updating_bambu_networking();
@@ -677,6 +696,7 @@ private:
     std::string             m_older_data_dir_path;
     boost::optional<Semver> m_last_config_version;
     std::string             m_open_method;
+    EPickingEffect          m_picking_effect{ EPickingEffect::StencilOutline };
 };
 
 DECLARE_APP(GUI_App)

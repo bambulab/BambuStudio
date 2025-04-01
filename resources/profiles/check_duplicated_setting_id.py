@@ -13,7 +13,7 @@ def traverse_files(path):
             traverse_files(file_path)  # 递归遍历子文件夹
         elif file_path.endswith('.json'):
             # 解析 JSON 文件并提取 setting_id 的值
-            with open(file_path) as f:
+            with open(file_path,encoding='UTF-8') as f:
                 try:
                     data = json.load(f)
                     if 'setting_id' in data:

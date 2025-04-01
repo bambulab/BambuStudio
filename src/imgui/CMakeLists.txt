@@ -13,6 +13,8 @@ add_library(imgui STATIC
     imgui_demo.cpp
     imgui_draw.cpp
     imgui_widgets.cpp
+    imgui_stdlib.cpp
+    imgui_stdlib.h
 )
 
 if(Boost_FOUND)

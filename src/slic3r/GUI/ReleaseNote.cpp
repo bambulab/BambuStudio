@@ -33,11 +33,14 @@ wxDEFINE_EVENT(EVT_CHECKBOX_CHANGE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_ENTER_IP_ADDRESS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CLOSE_IPADDRESS_DLG, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CHECK_IP_ADDRESS_FAILED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_CHECK_IP_ADDRESS_LAYOUT, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_RETRY, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PRINT_ERROR_STOP, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_NOZZLE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_JUMP_TO_HMS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_JUMP_TO_LIVEVIEW, wxCommandEvent);
+wxDEFINE_EVENT(EVT_UPDATE_TEXT_MSG, wxCommandEvent);
+wxDEFINE_EVENT(EVT_ERROR_DIALOG_BTN_CLICKED, wxCommandEvent);
 
 ReleaseNoteDialog::ReleaseNoteDialog(Plater *plater /*= nullptr*/)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Release Note"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
@@ -262,16 +265,16 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
     auto        m_line_top   = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
-    
+
 
     wxBoxSizer *m_sizer_body = new wxBoxSizer(wxHORIZONTAL);
 
-    
+
 
     auto sm    = create_scaled_bitmap("BambuStudio", nullptr, 70);
     m_brand = new wxStaticBitmap(this, wxID_ANY, sm, wxDefaultPosition, wxSize(FromDIP(70), FromDIP(70)));
 
-    
+
 
     wxBoxSizer *m_sizer_right = new wxBoxSizer(wxVERTICAL);
 
@@ -309,7 +312,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     m_simplebook_release_note->AddPage(m_vebview_release_note, wxEmptyString, false);
 
 
-    
+
     m_bitmap_open_in_browser = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("open_in_browser", this, 12), wxDefaultPosition, wxDefaultSize, 0 );
     m_link_open_in_browser   = new wxHyperlinkCtrl(this, wxID_ANY, "Open in browser", "");
     m_link_open_in_browser->SetFont(Label::Body_12);
@@ -345,7 +348,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     m_button_skip_version->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_skip_version->SetCornerRadius(FromDIP(12));
 
-    m_button_skip_version->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
+    m_button_skip_version->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         wxGetApp().set_skip_version(true);
         EndModal(wxID_NO);
     });
@@ -364,7 +367,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     });
 
     m_sizer_main->Add(m_line_top, 0, wxEXPAND | wxBOTTOM, 0);
-    
+
     sizer_button->Add(m_bitmap_open_in_browser, 0, wxALIGN_CENTER | wxLEFT, FromDIP(7));
     sizer_button->Add(m_link_open_in_browser, 0, wxALIGN_CENTER| wxLEFT, FromDIP(3));
     //sizer_button->Add(m_remind_choice, 0, wxALL | wxEXPAND, FromDIP(5));
@@ -496,7 +499,7 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
             }
         }
     }
-   
+
 
     if (use_web_link) {
         m_brand->Hide();
@@ -581,7 +584,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_button_ok->SetMaxSize(wxSize(-1, FromDIP(24)));
     m_button_ok->SetCornerRadius(FromDIP(12));
 
-    m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+    m_button_ok->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent& e) {
         wxCommandEvent evt(EVT_SECONDARY_CHECK_CONFIRM, GetId());
         e.SetEventObject(this);
         GetEventHandler()->ProcessEvent(evt);
@@ -598,7 +601,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_button_retry->SetMaxSize(wxSize(-1, FromDIP(24)));
     m_button_retry->SetCornerRadius(FromDIP(12));
 
-    m_button_retry->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+    m_button_retry->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent& e) {
         wxCommandEvent evt(EVT_SECONDARY_CHECK_RETRY, GetId());
         e.SetEventObject(this);
         GetEventHandler()->ProcessEvent(evt);
@@ -614,7 +617,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_button_cancel->SetMaxSize(wxSize(-1, FromDIP(24)));
     m_button_cancel->SetCornerRadius(FromDIP(12));
 
-    m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+    m_button_cancel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent& e) {
             wxCommandEvent evt(EVT_SECONDARY_CHECK_CANCEL);
             e.SetEventObject(this);
             GetEventHandler()->ProcessEvent(evt);
@@ -630,7 +633,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_button_fn->SetMaxSize(wxSize(-1, FromDIP(24)));
     m_button_fn->SetCornerRadius(FromDIP(12));
 
-    m_button_fn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+    m_button_fn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent& e) {
             post_event(wxCommandEvent(EVT_SECONDARY_CHECK_DONE));
             e.Skip();
         });
@@ -644,7 +647,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_button_resume->SetMaxSize(wxSize(-1, FromDIP(24)));
     m_button_resume->SetCornerRadius(FromDIP(12));
 
-    m_button_resume->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+    m_button_resume->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent& e) {
         post_event(wxCommandEvent(EVT_SECONDARY_CHECK_RESUME));
         e.Skip();
         });
@@ -743,6 +746,11 @@ void SecondaryCheckDialog::update_text(wxString text)
 
 void SecondaryCheckDialog::on_show()
 {
+#ifdef __APPLE__
+    if (wxGetApp().mainframe && wxGetApp().mainframe->get_mac_full_screen()) {
+        SetWindowStyleFlag(GetWindowStyleFlag() | wxSTAY_ON_TOP);
+    }
+#endif
     wxGetApp().UpdateFrameDarkUI(this);
     // recover button color
     wxMouseEvent evt_ok(wxEVT_LEFT_UP);
@@ -831,11 +839,11 @@ SecondaryCheckDialog::~SecondaryCheckDialog()
 
 void SecondaryCheckDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
-    rescale(); 
+    rescale();
 }
 
-void SecondaryCheckDialog::msw_rescale() { 
-    wxGetApp().UpdateFrameDarkUI(this); 
+void SecondaryCheckDialog::msw_rescale() {
+    wxGetApp().UpdateFrameDarkUI(this);
     Refresh();
 }
 
@@ -878,7 +886,7 @@ PrintErrorDialog::PrintErrorDialog(wxWindow* parent, wxWindowID id, const wxStri
 
     bottom_sizer->Add(m_sizer_button, 0, wxEXPAND | wxRIGHT | wxLEFT, 0);
 
-    m_sizer_right->Add(bottom_sizer, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(15));
+    m_sizer_right->Add(bottom_sizer, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(20));
     m_sizer_right->Add(0, 0, 0, wxTOP, FromDIP(10));
 
     m_sizer_main->Add(m_sizer_right, 0, wxBOTTOM | wxEXPAND, FromDIP(5));
@@ -898,7 +906,17 @@ PrintErrorDialog::PrintErrorDialog(wxWindow* parent, wxWindowID id, const wxStri
     wxGetApp().UpdateFrameDarkUI(this);
 }
 
-void PrintErrorDialog::post_event(wxCommandEvent&& event)
+void PrintErrorDialog::post_event(wxCommandEvent& event)
+{
+    if (event_parent) {
+        event.SetString("");
+        event.SetEventObject(event_parent);
+        wxPostEvent(event_parent, event);
+        event.Skip();
+    }
+}
+
+void PrintErrorDialog::post_event(wxCommandEvent &&event)
 {
     if (event_parent) {
         event.SetString("");
@@ -934,26 +952,52 @@ void PrintErrorDialog::on_webrequest_state(wxWebRequestEvent& evt)
     }
 }
 
-void PrintErrorDialog::update_text_image(wxString text, wxString image_url)
+void PrintErrorDialog::update_text_image(const wxString& text, const wxString& error_code, const wxString& image_url)
 {
     //if (!m_sizer_text_release_note) {
     //    m_sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
     //}
     wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
 
-    
+    wxString error_code_msg = error_code;
+    if (!error_code.IsEmpty()) {
+        wxDateTime now       = wxDateTime::Now();
+        wxString  show_time = now.Format("%H%M%d");
+        error_code_msg = wxString::Format("[%S %S]", error_code, show_time);
+    }
+
     if (!m_staticText_release_note) {
         m_staticText_release_note = new Label(m_vebview_release_note, text, LB_AUTO_WRAP);
         sizer_text_release_note->Add(m_error_prompt_pic_static, 0, wxALIGN_CENTER, FromDIP(5));
+        sizer_text_release_note->AddSpacer(10);
         sizer_text_release_note->Add(m_staticText_release_note, 0, wxALIGN_CENTER , FromDIP(5));
-        m_vebview_release_note->SetSizer(sizer_text_release_note);
     }
+    if (!m_staticText_error_code) {
+        m_staticText_error_code = new Label(m_vebview_release_note, error_code_msg, LB_AUTO_WRAP);
+        sizer_text_release_note->AddSpacer(5);
+        sizer_text_release_note->Add(m_staticText_error_code, 0, wxALIGN_CENTER, FromDIP(5));
+    }
+
+    m_vebview_release_note->SetSizer(sizer_text_release_note);
+
     if (!image_url.empty()) {
-        web_request = wxWebSession::GetDefault().CreateRequest(this, image_url);
-        BOOST_LOG_TRIVIAL(trace) << "monitor: create new webrequest, state = " << web_request.GetState() << ", url = " << image_url;
-        if (web_request.GetState() == wxWebRequest::State_Idle)
-            web_request.Start();
-        BOOST_LOG_TRIVIAL(trace) << "monitor: start new webrequest, state = " << web_request.GetState() << ", url = " << image_url;
+        const wxImage& img = wxGetApp().get_hms_query()->query_image_from_local(image_url);
+        if (!img.IsOk() && image_url.Contains("http"))
+        {
+            web_request = wxWebSession::GetDefault().CreateRequest(this, image_url);
+            BOOST_LOG_TRIVIAL(trace) << "monitor: create new webrequest, state = " << web_request.GetState() << ", url = " << image_url;
+            if (web_request.GetState() == wxWebRequest::State_Idle) web_request.Start();
+            BOOST_LOG_TRIVIAL(trace) << "monitor: start new webrequest, state = " << web_request.GetState() << ", url = " << image_url;
+        }
+        else
+        {
+            const wxImage& resize_img = img.Scale(FromDIP(320), FromDIP(180), wxIMAGE_QUALITY_HIGH);
+            m_error_prompt_pic_static->SetBitmap(wxBitmap(resize_img));
+
+            Layout();
+            Fit();
+        }
+
         m_error_prompt_pic_static->Show();
 
     }
@@ -964,6 +1008,9 @@ void PrintErrorDialog::update_text_image(wxString text, wxString image_url)
     m_staticText_release_note->SetMaxSize(wxSize(FromDIP(300), -1));
     m_staticText_release_note->SetMinSize(wxSize(FromDIP(300), -1));
     m_staticText_release_note->SetLabelText(text);
+    m_staticText_error_code->SetMaxSize(wxSize(FromDIP(300), -1));
+    m_staticText_error_code->SetMinSize(wxSize(FromDIP(300), -1));
+    m_staticText_error_code->SetLabelText(error_code_msg);
     m_vebview_release_note->Layout();
 
     auto text_size = m_staticText_release_note->GetBestSize();
@@ -972,7 +1019,7 @@ void PrintErrorDialog::update_text_image(wxString text, wxString image_url)
             m_vebview_release_note->SetMinSize(wxSize(FromDIP(320), text_size.y + FromDIP(220)));
         }
         else {
-            m_vebview_release_note->SetMinSize(wxSize(FromDIP(320), text_size.y + FromDIP(25)));
+            m_vebview_release_note->SetMinSize(wxSize(FromDIP(320), text_size.y + FromDIP(50)));
         }
     else {
         m_vebview_release_note->SetMinSize(wxSize(FromDIP(320), FromDIP(340)));
@@ -1030,7 +1077,8 @@ void PrintErrorDialog::update_title_style(wxString title, std::vector<int> butto
 
 }
 
-void PrintErrorDialog::init_button(PrintErrorButton style,wxString buton_text) {
+void PrintErrorDialog::init_button(PrintErrorButton style,wxString buton_text)
+{
     Button* print_error_button = new Button(this, buton_text);
     print_error_button->SetBackgroundColor(btn_bg_white);
     print_error_button->SetBorderColor(wxColour(38, 46, 48));
@@ -1044,8 +1092,8 @@ void PrintErrorDialog::init_button(PrintErrorButton style,wxString buton_text) {
 
 }
 
-void PrintErrorDialog::init_button_list() {
-    
+void PrintErrorDialog::init_button_list()
+{
     init_button(RESUME_PRINTING, _L("Resume Printing"));
     m_button_list[RESUME_PRINTING]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         post_event(wxCommandEvent(EVT_SECONDARY_CHECK_RESUME));
@@ -1122,6 +1170,49 @@ void PrintErrorDialog::init_button_list() {
         post_event(wxCommandEvent(EVT_JUMP_TO_LIVEVIEW));
         e.Skip();
     });
+
+    init_button(NO_REMINDER_NEXT_TIME, _L("No Reminder Next Time"));
+    m_button_list[NO_REMINDER_NEXT_TIME]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        wxCommandEvent evt(EVT_ERROR_DIALOG_BTN_CLICKED);
+        evt.SetInt(NO_REMINDER_NEXT_TIME);
+        post_event(evt);
+        e.Skip();
+    });
+
+    init_button(IGNORE_NO_REMINDER_NEXT_TIME, _L("Ignore. Don't Remind Next Time"));
+    m_button_list[IGNORE_NO_REMINDER_NEXT_TIME]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        wxCommandEvent evt(EVT_ERROR_DIALOG_BTN_CLICKED);
+        evt.SetInt(IGNORE_NO_REMINDER_NEXT_TIME);
+        post_event(evt);
+        e.Skip();
+    });
+
+    init_button(IGNORE_RESUME, _L("Ignore this and Resume"));
+    m_button_list[IGNORE_RESUME]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e)
+        {
+            wxCommandEvent evt(EVT_ERROR_DIALOG_BTN_CLICKED);
+            evt.SetInt(IGNORE_RESUME);
+            post_event(evt);
+            e.Skip();
+        });
+
+    init_button(PROBLEM_SOLVED_RESUME, _L("Problem Solved and Resume"));
+    m_button_list[PROBLEM_SOLVED_RESUME]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e)
+        {
+            wxCommandEvent evt(EVT_ERROR_DIALOG_BTN_CLICKED);
+            evt.SetInt(PROBLEM_SOLVED_RESUME);
+            post_event(evt);
+            e.Skip();
+        });
+
+    init_button(STOP_BUZZER, _L("Stop Buzzer"));
+    m_button_list[STOP_BUZZER]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e)
+        {
+            wxCommandEvent evt(EVT_ERROR_DIALOG_BTN_CLICKED);
+            evt.SetInt(STOP_BUZZER);
+            post_event(evt);
+            e.Skip();
+        });
 }
 
 PrintErrorDialog::~PrintErrorDialog()
@@ -1141,8 +1232,11 @@ void PrintErrorDialog::msw_rescale() {
 
 void PrintErrorDialog::rescale()
 {
-    for(auto used_button:m_used_button)
-        m_button_list[used_button]->Rescale();
+    for (auto used_button : m_used_button) {
+        if (m_button_list.find(used_button) != m_button_list.end()) {
+            m_button_list[used_button]->Rescale();
+        }
+     }
 }
 
 ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id, const wxString& title, enum ButtonStyle btn_style, const wxPoint& pos, const wxSize& size, long style, bool not_show_again_check)
@@ -1224,7 +1318,7 @@ ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id
         m_button_cancel->Hide();
     else
         m_button_cancel->Show();
-    
+
     m_button_update_nozzle = new Button(this, _L("Confirm and Update Nozzle"));
     m_button_update_nozzle->SetBackgroundColor(btn_bg_white);
     m_button_update_nozzle->SetBorderColor(wxColour(38, 46, 48));
@@ -1296,30 +1390,31 @@ void ConfirmBeforeSendDialog::update_text(wxString text)
     Fit();
 }
 
-void ConfirmBeforeSendDialog::update_text(std::vector<ConfirmBeforeSendInfo> texts)
+void ConfirmBeforeSendDialog::update_text(std::vector<ConfirmBeforeSendInfo> texts, bool enable_warning_clr /*= true*/)
 {
     wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
     m_vebview_release_note->SetSizer(sizer_text_release_note);
 
+
     auto height = 0;
     for (auto text : texts) {
         auto label_item = new Label(m_vebview_release_note, text.text, LB_AUTO_WRAP);
-        if (text.level == ConfirmBeforeSendInfo::InfoLevel::Warning) {
+        if (enable_warning_clr && text.level == ConfirmBeforeSendInfo::InfoLevel::Warning) {
             label_item->SetForegroundColour(wxColour(0xFF, 0x6F, 0x00));
         }
-        label_item->SetMaxSize(wxSize(FromDIP(380), -1));
-        label_item->SetMinSize(wxSize(FromDIP(380), -1));
-        label_item->Wrap(FromDIP(380));
+        label_item->SetMaxSize(wxSize(FromDIP(500), -1));
+        label_item->SetMinSize(wxSize(FromDIP(500), -1));
+        label_item->Wrap(FromDIP(500));
         label_item->Layout();
         sizer_text_release_note->Add(label_item, 0, wxALIGN_CENTER | wxALL, FromDIP(3));
         height += label_item->GetSize().y;
     }
-    
+
     m_vebview_release_note->Layout();
-    if (height < FromDIP(380))
-        m_vebview_release_note->SetMinSize(wxSize(FromDIP(400), height + FromDIP(25)));
+    if (height < FromDIP(500))
+        m_vebview_release_note->SetMinSize(wxSize(FromDIP(500), height + FromDIP(25)));
     else {
-        m_vebview_release_note->SetMinSize(wxSize(FromDIP(400), FromDIP(380)));
+        m_vebview_release_note->SetMinSize(wxSize(FromDIP(500), FromDIP(500)));
     }
 
     Layout();
@@ -1334,6 +1429,7 @@ void ConfirmBeforeSendDialog::on_show()
     m_button_ok->GetEventHandler()->ProcessEvent(evt_ok);
     wxMouseEvent evt_cancel(wxEVT_LEFT_UP);
     m_button_cancel->GetEventHandler()->ProcessEvent(evt_cancel);
+    CenterOnScreen();
     this->ShowModal();
 }
 
@@ -1391,9 +1487,19 @@ void ConfirmBeforeSendDialog::hide_button_ok()
     m_button_ok->Hide();
 }
 
-void ConfirmBeforeSendDialog::edit_cancel_button_txt(wxString txt)
+void ConfirmBeforeSendDialog::edit_cancel_button_txt(const wxString& txt, bool switch_green)
 {
     m_button_cancel->SetLabel(txt);
+
+    if (switch_green)
+    {
+        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+                                std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                                std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+        m_button_cancel->SetBackgroundColor(btn_bg_green);
+        m_button_cancel->SetBorderColor(*wxWHITE);
+        m_button_cancel->SetTextColor(wxColour("#FFFFFE"));
+    }
 }
 
 void ConfirmBeforeSendDialog::disable_button_ok()
@@ -1418,98 +1524,179 @@ void ConfirmBeforeSendDialog::rescale()
     m_button_cancel->Rescale();
 }
 
-InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
-    :DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("LAN Connection Failed (Sending print file)"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
+    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe),
+                wxID_ANY,
+                _L("Connect the printer using IP and access code"),
+                wxDefaultPosition,
+                wxDefaultSize,
+                wxCAPTION | wxCLOSE_BOX)
 {
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     SetBackgroundColour(*wxWHITE);
-    m_result = -1;
-    wxBoxSizer* m_sizer_body = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer* m_sizer_main = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer* m_sizer_main_left = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer* m_sizer_main_right = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer* m_sizer_msg = new wxBoxSizer(wxHORIZONTAL);
-    auto        m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
+    m_result                       = -1;
+    wxBoxSizer *m_sizer_border       = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *m_sizer_body       = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *m_sizer_msg        = new wxBoxSizer(wxHORIZONTAL);
+    auto        m_line_top         = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
 
-    comfirm_before_enter_text = _L("Step 1, please confirm Bambu Studio and your printer are in the same LAN.");
-    comfirm_after_enter_text = _L("Step 2, if the IP and Access Code below are different from the actual values on your printer, please correct them.");
+    comfirm_before_check_text = _L("Try the following methods to update the connection parameters and reconnect to the printer.");
+    comfirm_before_enter_text = _L("1. Please confirm Bambu Studio and your printer are in the same LAN.");
+    comfirm_after_enter_text  = _L("2. If the IP and Access Code below are different from the actual values on your printer, please correct them.");
+    comfirm_last_enter_text   = _L("3. Please obtain the device SN from the printer side; it is usually found in the device information on the printer screen.");
 
+    Label *wiki = new Label(this, ::Label::Body_13, _L("View wiki"), LB_AUTO_WRAP);
+    wiki->SetForegroundColour(wxColour(0, 174, 66));
+    wiki->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {SetCursor(wxCURSOR_HAND);});
+    wiki->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {SetCursor(wxCURSOR_ARROW);});
+    wiki->Bind(wxEVT_LEFT_DOWN, [this](auto &e) {
+        wxString url;
+        if (wxGetApp().app_config->get("region") =="China") {
+            url = "https://wiki.bambulab.com/zh/software/bambu-studio/failed-to-send-print-files";
+        }
+        else {
+            url = "https://wiki.bambulab.com/en/software/bambu-studio/failed-to-send-print-files";
+        }
+        wxLaunchDefaultBrowser(url);
+    });
+
+    m_tip0 = new Label(this, ::Label::Body_13, comfirm_before_check_text, LB_AUTO_WRAP);
+    m_tip0->SetMinSize(wxSize(FromDIP(355), -1));
+    m_tip0->SetMaxSize(wxSize(FromDIP(355), -1));
+    m_tip0->Wrap(FromDIP(355));
 
     m_tip1 = new Label(this, ::Label::Body_13, comfirm_before_enter_text, LB_AUTO_WRAP);
-    m_tip1->SetMinSize(wxSize(FromDIP(352), -1));
-    m_tip1->SetMaxSize(wxSize(FromDIP(352), -1));
-    m_tip1->Wrap(FromDIP(352));
-
-    auto        m_line_tips = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
-    m_line_tips->SetBackgroundColour(wxColour(0xEEEEEE));
+    m_tip1->SetMinSize(wxSize(FromDIP(355), -1));
+    m_tip1->SetMaxSize(wxSize(FromDIP(355), -1));
+    m_tip1->Wrap(FromDIP(355));
 
     m_tip2 = new Label(this, ::Label::Body_13, comfirm_after_enter_text, LB_AUTO_WRAP);
-    m_tip2->SetMinSize(wxSize(FromDIP(352), -1));
-    m_tip2->SetMaxSize(wxSize(FromDIP(352), -1));
+    m_tip2->SetMinSize(wxSize(FromDIP(355), -1));
+    m_tip2->SetMaxSize(wxSize(FromDIP(355), -1));
 
+    m_tip3 = new Label(this, ::Label::Body_13, comfirm_last_enter_text, LB_AUTO_WRAP);
+    m_tip3->SetMinSize(wxSize(FromDIP(355), -1));
+    m_tip3->SetMaxSize(wxSize(FromDIP(355), -1));
+
+    ip_input_top_panel = new wxPanel(this);
+    ip_input_bot_panel = new wxPanel(this);
+
+    ip_input_top_panel->SetBackgroundColour(*wxWHITE);
+    ip_input_bot_panel->SetBackgroundColour(*wxWHITE);
+
+    auto m_input_top_sizer = new wxBoxSizer(wxVERTICAL);
+    auto m_input_bot_sizer = new wxBoxSizer(wxVERTICAL);
+
+    /*top input*/
     auto m_input_tip_area = new wxBoxSizer(wxHORIZONTAL);
-    auto m_input_area = new wxBoxSizer(wxHORIZONTAL);
+    auto m_input_area     = new wxBoxSizer(wxHORIZONTAL);
 
-    m_tips_ip = new Label(this, "IP");
+    m_tips_ip = new Label(ip_input_top_panel, "IP");
     m_tips_ip->SetMinSize(wxSize(FromDIP(168), -1));
     m_tips_ip->SetMaxSize(wxSize(FromDIP(168), -1));
 
-    m_input_ip = new TextInput(this, wxEmptyString, wxEmptyString);
+    m_input_ip = new TextInput(ip_input_top_panel, wxEmptyString, wxEmptyString);
     m_input_ip->Bind(wxEVT_TEXT, &InputIpAddressDialog::on_text, this);
     m_input_ip->SetMinSize(wxSize(FromDIP(168), FromDIP(28)));
     m_input_ip->SetMaxSize(wxSize(FromDIP(168), FromDIP(28)));
 
-    m_tips_access_code = new Label(this, _L("Access Code"));
-    m_tips_access_code->SetMinSize(wxSize(FromDIP(168),-1));
-    m_tips_access_code->SetMaxSize(wxSize(FromDIP(168),-1));
+    m_tips_access_code = new Label(ip_input_top_panel, _L("Access Code"));
+    m_tips_access_code->SetMinSize(wxSize(FromDIP(168), -1));
+    m_tips_access_code->SetMaxSize(wxSize(FromDIP(168), -1));
 
-    m_input_access_code = new TextInput(this, wxEmptyString, wxEmptyString);
+    m_input_access_code = new TextInput(ip_input_top_panel, wxEmptyString, wxEmptyString);
     m_input_access_code->Bind(wxEVT_TEXT, &InputIpAddressDialog::on_text, this);
     m_input_access_code->SetMinSize(wxSize(FromDIP(168), FromDIP(28)));
     m_input_access_code->SetMaxSize(wxSize(FromDIP(168), FromDIP(28)));
 
     m_input_tip_area->Add(m_tips_ip, 0, wxALIGN_CENTER, 0);
-    m_input_tip_area->Add(0, 0, 0, wxLEFT, FromDIP(16));
+    m_input_tip_area->Add(0, 0, 0, wxLEFT, FromDIP(20));
     m_input_tip_area->Add(m_tips_access_code, 0, wxALIGN_CENTER, 0);
-   
+
     m_input_area->Add(m_input_ip, 0, wxALIGN_CENTER, 0);
-    m_input_area->Add(0, 0, 0, wxLEFT, FromDIP(16));
+    m_input_area->Add(0, 0, 0, wxLEFT, FromDIP(20));
     m_input_area->Add(m_input_access_code, 0, wxALIGN_CENTER, 0);
 
+    m_input_top_sizer->Add(m_input_tip_area, 0, wxRIGHT | wxEXPAND, FromDIP(18));
+    m_input_top_sizer->Add(0, 0, 0, wxTOP, FromDIP(4));
+    m_input_top_sizer->Add(m_input_area, 0, wxRIGHT | wxEXPAND, FromDIP(18));
+
+    ip_input_top_panel->SetSizer(m_input_top_sizer);
+    ip_input_top_panel->Layout();
+    ip_input_top_panel->Fit();
+
+    /*bom input*/
+    auto m_input_sn_area      = new wxBoxSizer(wxHORIZONTAL);
+    auto m_input_modelID_area = new wxBoxSizer(wxHORIZONTAL);
+
+    m_tips_sn = new Label(ip_input_bot_panel, "SN");
+    m_tips_sn->SetMinSize(wxSize(FromDIP(168), -1));
+    m_tips_sn->SetMaxSize(wxSize(FromDIP(168), -1));
+
+    m_input_sn = new TextInput(ip_input_bot_panel, wxEmptyString, wxEmptyString);
+    m_input_sn->Bind(wxEVT_TEXT, &InputIpAddressDialog::on_text, this);
+    m_input_sn->SetMinSize(wxSize(FromDIP(168), FromDIP(28)));
+    m_input_sn->SetMaxSize(wxSize(FromDIP(168), FromDIP(28)));
+
+    m_tips_modelID = new Label(ip_input_bot_panel, _L("Printer model"));
+    m_tips_modelID->SetMinSize(wxSize(FromDIP(168), -1));
+    m_tips_modelID->SetMaxSize(wxSize(FromDIP(168), -1));
+
+    m_input_modelID = new ComboBox(ip_input_bot_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(168), FromDIP(28)), 0, nullptr, wxCB_READONLY);
+    // m_input_modelID->Bind(wxEVT_TEXT, &InputIpAddressDialog::on_text, this);
+    m_input_modelID->SetMinSize(wxSize(FromDIP(168), FromDIP(28)));
+    m_input_modelID->SetMaxSize(wxSize(FromDIP(168), FromDIP(28)));
+
+    m_models_map = DeviceManager::get_all_model_id_with_name();
+    for (auto it = m_models_map.begin(); it != m_models_map.end(); ++it) {
+        m_input_modelID->Append(it->right);
+        m_input_modelID->SetSelection(0);
+    }
+
+    m_input_sn_area->Add(m_tips_sn, 0, wxALIGN_CENTER, 0);
+    m_input_sn_area->Add(m_tips_modelID, 0, wxALIGN_CENTER, 0);
+
+    m_input_modelID_area->Add(m_input_sn, 0, wxALIGN_CENTER, 0);
+    m_input_modelID_area->Add(m_input_modelID, 0, wxALIGN_CENTER, 0);
+
+    m_input_bot_sizer->Add(m_input_sn_area, 0,  wxEXPAND, 0);
+    m_input_bot_sizer->Add(0, 0, 0, wxTOP, FromDIP(4));
+    m_input_bot_sizer->Add(m_input_modelID_area, 0, wxEXPAND, 0);
+
+    ip_input_bot_panel->SetSizer(m_input_bot_sizer);
+    ip_input_bot_panel->Layout();
+    ip_input_bot_panel->Fit();
+
+    /*other*/
     m_test_right_msg = new Label(this, Label::Body_13, wxEmptyString, LB_AUTO_WRAP);
     m_test_right_msg->SetForegroundColour(wxColour(61, 203, 115));
     m_test_right_msg->Hide();
 
-    
     m_test_wrong_msg = new Label(this, Label::Body_13, wxEmptyString, LB_AUTO_WRAP);
     m_test_wrong_msg->SetForegroundColour(wxColour(208, 27, 27));
     m_test_wrong_msg->Hide();
 
-    m_tip3 = new Label(this, Label::Body_12, _L("Where to find your printer's IP and Access Code?"), LB_AUTO_WRAP);
-    m_tip3->SetMinSize(wxSize(FromDIP(352), -1));
-    m_tip3->SetMaxSize(wxSize(FromDIP(352), -1));
+    m_tip4 = new Label(this, Label::Body_12, _L("Where to find your printer's IP and Access Code?"), LB_AUTO_WRAP);
+    m_tip4->SetMinSize(wxSize(FromDIP(355), -1));
+    m_tip4->SetMaxSize(wxSize(FromDIP(355), -1));
 
-    m_tip4 = new Label(this, ::Label::Body_13, _L("Step 3: Ping the IP address to check for packet loss and latency."), LB_AUTO_WRAP);
-    m_tip4->SetMinSize(wxSize(FromDIP(352), -1));
-    m_tip4->SetMaxSize(wxSize(FromDIP(352), -1));
-    
     m_trouble_shoot = new wxHyperlinkCtrl(this, wxID_ANY, "How to trouble shooting", "");
 
-    m_img_help = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("input_access_code_x1_en", this, 198), wxDefaultPosition, wxSize(FromDIP(352), -1), 0);
-    
+    m_img_help = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("input_access_code_x1_en", this, 198), wxDefaultPosition, wxSize(FromDIP(355), -1), 0);
 
     auto m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-        std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+                            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
 
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-        std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
 
-    m_button_ok = new Button(this, _L("Test"));
+    m_button_ok = new Button(this, _L("Connect"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
     m_button_ok->SetBorderColor(*wxWHITE);
     m_button_ok->SetTextColor(wxColour(0xFFFFFE));
@@ -1517,53 +1704,34 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_ok->SetCornerRadius(FromDIP(12));
-   
-
     m_button_ok->Bind(wxEVT_LEFT_DOWN, &InputIpAddressDialog::on_ok, this);
-
-    auto m_button_cancel = new Button(this, _L("Close"));
-    m_button_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
-    m_button_cancel->SetFont(Label::Body_12);
-    m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetCornerRadius(FromDIP(12));
-
-    m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
-         on_cancel();
-    });
+    m_button_ok->Enable(false);
+    m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+    m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
 
     m_sizer_button->AddStretchSpacer();
-    //m_sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
-    m_sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
+    m_sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
+    // m_sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
     m_sizer_button->Layout();
 
-
-    m_status_bar    = std::make_shared<BBLStatusBarSend>(this);
+    m_status_bar = std::make_shared<BBLStatusBarSend>(this);
     m_status_bar->get_panel()->Hide();
-
 
     auto m_step_icon_panel1 = new wxWindow(this, wxID_ANY);
     auto m_step_icon_panel2 = new wxWindow(this, wxID_ANY);
-   
+    m_step_icon_panel3      = new wxWindow(this, wxID_ANY);
+
     m_step_icon_panel1->SetBackgroundColour(*wxWHITE);
     m_step_icon_panel2->SetBackgroundColour(*wxWHITE);
-   
+    m_step_icon_panel3->SetBackgroundColour(*wxWHITE);
 
     auto m_sizer_step_icon_panel1 = new wxBoxSizer(wxVERTICAL);
     auto m_sizer_step_icon_panel2 = new wxBoxSizer(wxVERTICAL);
-  
-
+    auto m_sizer_step_icon_panel3 = new wxBoxSizer(wxVERTICAL);
 
     m_img_step1 = new wxStaticBitmap(m_step_icon_panel1, wxID_ANY, create_scaled_bitmap("ip_address_step", this, 6), wxDefaultPosition, wxSize(FromDIP(6), FromDIP(6)), 0);
-
-    auto        m_line_tips_left = new wxPanel(m_step_icon_panel1, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
-    m_line_tips_left->SetBackgroundColour(wxColour(0xEEEEEE));
     m_img_step2 = new wxStaticBitmap(m_step_icon_panel2, wxID_ANY, create_scaled_bitmap("ip_address_step", this, 6), wxDefaultPosition, wxSize(FromDIP(6), FromDIP(6)), 0);
-    m_img_step3 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("ip_address_step", this, 6), wxDefaultPosition, wxSize(FromDIP(6), FromDIP(6)), 0);
-
-    m_sizer_step_icon_panel1->Add(m_img_step1, 0, wxALIGN_CENTER|wxALL, FromDIP(5));
-   
+    m_img_step3 = new wxStaticBitmap(m_step_icon_panel3, wxID_ANY, create_scaled_bitmap("ip_address_step", this, 6), wxDefaultPosition, wxSize(FromDIP(6), FromDIP(6)), 0);
 
     m_step_icon_panel1->SetSizer(m_sizer_step_icon_panel1);
     m_step_icon_panel1->Layout();
@@ -1573,72 +1741,69 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_step_icon_panel2->Layout();
     m_step_icon_panel2->Fit();
 
+    m_step_icon_panel3->SetSizer(m_sizer_step_icon_panel3);
+    m_step_icon_panel3->Layout();
+    m_step_icon_panel3->Fit();
 
-
-    m_sizer_step_icon_panel2->Add(m_img_step2, 0, wxALIGN_CENTER|wxALL, FromDIP(5));
-    //m_sizer_step_icon_panel3->Add(m_img_step3, 0, wxALIGN_CENTER|wxALL, FromDIP(5));
+    m_sizer_step_icon_panel1->Add(m_img_step1, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+    m_sizer_step_icon_panel2->Add(m_img_step2, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+    m_sizer_step_icon_panel3->Add(m_img_step3, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
 
     m_step_icon_panel1->SetMinSize(wxSize(-1, m_tip1->GetBestSize().y));
     m_step_icon_panel1->SetMaxSize(wxSize(-1, m_tip1->GetBestSize().y));
 
-    m_sizer_msg->Add(0, 0, 0, wxALIGN_CENTER, FromDIP(20));
-    m_sizer_msg->Add(m_img_step3, 0, wxALL, FromDIP(5));
-    m_sizer_msg->Add(0, 0, 0, wxALIGN_CENTER, FromDIP(8));
-    m_sizer_msg->Add(m_tip4, 0, wxALIGN_CENTER | wxEXPAND | wxLEFT, FromDIP(5));
-    m_img_step3->Hide();
-    m_tip4->Hide();
+    m_step_icon_panel2->SetMinSize(wxSize(-1, m_tip2->GetBestSize().y));
+    m_step_icon_panel2->SetMaxSize(wxSize(-1, m_tip2->GetBestSize().y));
+
+
     m_sizer_msg->Layout();
 
-    m_sizer_main_left->Add(m_step_icon_panel1, 0, wxEXPAND, 0);
-    m_sizer_main_left->Add(0, 0, 0, wxTOP, FromDIP(20));
-    m_sizer_main_left->Add(m_line_tips_left, 1, wxEXPAND, 0);
-    m_sizer_main_left->Add(0, 0, 0, wxTOP, FromDIP(20));
-    m_sizer_main_left->Add(m_step_icon_panel2, 0, wxEXPAND, 0);
 
-    m_sizer_main_left->Layout();
-    
     m_trouble_shoot->Hide();
-   
-    m_sizer_main_right->Add(m_tip1, 0, wxRIGHT|wxEXPAND, FromDIP(18));
-    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(20));
-    m_sizer_main_right->Add(m_line_tips, 0, wxRIGHT|wxEXPAND, FromDIP(18));
-    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(20));
-    m_sizer_main_right->Add(m_tip2, 0, wxRIGHT|wxEXPAND, FromDIP(18));
-    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(12));
-    m_sizer_main_right->Add(m_tip3, 0, wxRIGHT | wxEXPAND, FromDIP(18));
-    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(4));
-    m_sizer_main_right->Add(m_img_help, 0, 0, 0);
-    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(12));
-    m_sizer_main_right->Add(m_input_tip_area, 0, wxRIGHT|wxEXPAND, FromDIP(18));
-    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(4));
-    m_sizer_main_right->Add(m_input_area, 0, wxRIGHT|wxEXPAND, FromDIP(18));
-    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(4));
-    m_sizer_main_right->Add(m_button_ok, 0,  wxRIGHT, FromDIP(18));
-    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(4));
-    m_sizer_main_right->Add(m_test_right_msg, 0, wxRIGHT|wxEXPAND, FromDIP(18));
-    m_sizer_main_right->Add(m_test_wrong_msg, 0, wxRIGHT|wxEXPAND, FromDIP(18));
 
-    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(16));
-    m_sizer_main_right->Add(m_status_bar->get_panel(), 0,wxRIGHT|wxEXPAND, FromDIP(18));
-    m_sizer_main_right->Layout();
-   
-    m_sizer_main->Add(m_sizer_main_left, 0, wxLEFT, FromDIP(18));
-    m_sizer_main->Add(m_sizer_main_right, 0, wxLEFT|wxEXPAND, FromDIP(4));
+    m_sizer_main->Add(wiki, 0, wxEXPAND, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(4));
+    m_sizer_main->Add(m_tip0, 0, wxEXPAND, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(6));
+    m_sizer_main->Add(m_tip1, 0, wxEXPAND, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(20));
+    m_sizer_main->Add(m_tip2, 0, wxEXPAND, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(2));
+    m_sizer_main->Add(m_tip3, 0, wxTOP|wxEXPAND, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(12));
+    m_sizer_main->Add(m_tip4, 0, wxEXPAND, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(3));
+    m_sizer_main->Add(m_img_help, 0, 0, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(12));
+    m_sizer_main->Add(ip_input_top_panel, 0,wxEXPAND, 0);
+    m_sizer_main->Add(ip_input_bot_panel, 0,wxEXPAND, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(4));
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(4));
+    m_sizer_main->Add(m_test_right_msg, 0, wxEXPAND, 0);
+    m_sizer_main->Add(m_test_wrong_msg, 0, wxEXPAND, 0);
+
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(4));
+    m_sizer_main->Add(m_status_bar->get_panel(), 0, wxEXPAND, 0);
     m_sizer_main->Layout();
 
     m_sizer_body->Add(m_line_top, 0, wxEXPAND, 0);
-    m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(20));
-    m_sizer_body->Add(m_sizer_main, 0, wxEXPAND, 0);
+    m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(10));
+    m_sizer_body->Add(m_sizer_main, 0, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(20));
     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(4));
-    m_sizer_body->Add(m_sizer_msg, 0, wxLEFT|wxEXPAND, FromDIP(18));
+    m_sizer_body->Add(m_sizer_msg, 0, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(20));
     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(4));
-    m_sizer_body->Add(m_trouble_shoot, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(40));
-
+    m_sizer_body->Add(m_trouble_shoot, 0, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(20));
     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(8));
-    m_sizer_body->Add(m_sizer_button, 0, wxRIGHT | wxEXPAND, FromDIP(25));
+    m_sizer_body->Add(m_sizer_button, 0, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(20));
+    m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_sizer_body->Layout();
-    
-    SetSizer(m_sizer_body);
+
+    m_sizer_border->Add(0,0,0,wxLEFT, FromDIP(20));
+    m_sizer_border->Add(m_sizer_body, wxEXPAND, 0);
+
+    switch_input_panel(0);
+
+    SetSizer(m_sizer_border);
     Layout();
     Fit();
 
@@ -1646,29 +1811,60 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     Move(wxPoint(GetScreenPosition().x, GetScreenPosition().y - FromDIP(50)));
     wxGetApp().UpdateDlgDarkUI(this);
 
+    closeTimer = new wxTimer();
+    closeTimer->SetOwner(this);
+    Bind(wxEVT_TIMER, &InputIpAddressDialog::OnTimer, this);
+
     Bind(EVT_CHECK_IP_ADDRESS_FAILED, &InputIpAddressDialog::on_check_ip_address_failed, this);
 
     Bind(EVT_CLOSE_IPADDRESS_DLG, [this](auto& e) {
         m_status_bar->reset();
         EndModal(wxID_YES);
     });
-    Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {on_cancel();});
+    Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {
+        on_cancel();
+        closeTimer->Stop();
+    });
 
+    Bind(EVT_UPDATE_TEXT_MSG, &InputIpAddressDialog::update_test_msg_event, this);
+    Bind(EVT_CHECK_IP_ADDRESS_LAYOUT, [this](auto& e) {
+        int mode = e.GetInt();
+        switch_input_panel(mode);
+        Layout();
+        Fit();
+    });
+}
+
+void InputIpAddressDialog::switch_input_panel(int index)
+{
+    if (index == 0) {
+        ip_input_top_panel->Show();
+        ip_input_bot_panel->Hide();
+        m_step_icon_panel3->Hide();
+        m_tip3->Hide();
+    } else {
+        ip_input_top_panel->Hide();
+        ip_input_bot_panel->Show();
+        m_step_icon_panel3->Show();
+        m_tip3->Show();
+
+        m_button_ok->Enable(false);
+        m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+        m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+    }
+    current_input_index = index;
 }
 
 void InputIpAddressDialog::on_cancel()
 {
-    if (m_send_job) {
-        if (m_send_job->is_running()) {
-            m_send_job->cancel();
-            m_send_job->join();
-        }
+    if (m_thread) {
+        m_thread->interrupt();
+        m_thread->detach();
+        delete m_thread;
+        m_thread = nullptr;
     }
-    if (m_result == 0){
-        this->EndModal(wxID_YES);
-    }else {
-        this->EndModal(wxID_CANCEL);
-    }
+
+    EndModal(wxID_CANCEL);
 }
 
 
@@ -1687,7 +1883,7 @@ void InputIpAddressDialog::set_machine_obj(MachineObject* obj)
     auto diagram_bmp = create_scaled_bitmap(img_str + "_en", this, 198);
     m_img_help->SetBitmap(diagram_bmp);
 
-    
+
     auto str_ip = m_input_ip->GetTextCtrl()->GetValue();
     auto str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
     if (isIp(str_ip.ToStdString()) && str_access_code.Length() == 8) {
@@ -1717,17 +1913,15 @@ void InputIpAddressDialog::update_test_msg(wxString msg,bool connected)
          if(connected){
              m_test_right_msg->Show();
              m_test_right_msg->SetLabelText(msg);
-             m_test_right_msg->SetMinSize(wxSize(FromDIP(352), -1));
-             m_test_right_msg->SetMaxSize(wxSize(FromDIP(352), -1));
+             m_test_right_msg->SetMinSize(wxSize(FromDIP(355), -1));
+             m_test_right_msg->SetMaxSize(wxSize(FromDIP(355), -1));
          }
          else{
              m_test_wrong_msg->Show();
              m_test_wrong_msg->SetLabelText(msg);
-             m_test_wrong_msg->SetMinSize(wxSize(FromDIP(352), -1));
-             m_test_wrong_msg->SetMaxSize(wxSize(FromDIP(352), -1));
+             m_test_wrong_msg->SetMinSize(wxSize(FromDIP(355), -1));
+             m_test_wrong_msg->SetMaxSize(wxSize(FromDIP(355), -1));
          }
-
-         
     }
 
     Layout();
@@ -1752,6 +1946,36 @@ bool InputIpAddressDialog::isIp(std::string ipstr)
 
 void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
 {
+    if (!m_need_input_sn) {
+        on_send_retry();
+        return;
+    }
+
+    m_test_right_msg->Hide();
+    m_test_wrong_msg->Hide();
+    m_trouble_shoot->Hide();
+    std::string str_ip = m_input_ip->GetTextCtrl()->GetValue().ToStdString();
+    std::string str_access_code = m_input_access_code->GetTextCtrl()->GetValue().ToStdString();
+    std::string str_sn = m_input_sn->GetTextCtrl()->GetValue().ToStdString();
+    std::string str_model_id = "";
+
+    auto it = m_models_map.right.find(m_input_modelID->GetStringSelection().ToStdString());
+    if (it != m_models_map.right.end()) {
+        str_model_id = it->get_left();
+    }
+
+    m_button_ok->Enable(false);
+    m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+    m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+
+    Refresh();
+    Layout();
+    Fit();
+    m_thread = new boost::thread(boost::bind(&InputIpAddressDialog::workerThreadFunc, this, str_ip, str_access_code, str_sn, str_model_id));
+}
+
+void InputIpAddressDialog::on_send_retry()
+{
     m_test_right_msg->Hide();
     m_test_wrong_msg->Hide();
     m_img_step3->Hide();
@@ -1759,14 +1983,14 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
     m_trouble_shoot->Hide();
     Layout();
     Fit();
-    wxString ip = m_input_ip->GetTextCtrl()->GetValue();
+    wxString ip              = m_input_ip->GetTextCtrl()->GetValue();
     wxString str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
 
-    //check support function
+    // check support function
     if (!m_obj) return;
     if (!m_obj->is_support_send_to_sdcard) {
         wxString input_str = wxString::Format("%s|%s", ip, str_access_code);
-        auto event = wxCommandEvent(EVT_ENTER_IP_ADDRESS);
+        auto     event     = wxCommandEvent(EVT_ENTER_IP_ADDRESS);
         event.SetString(input_str);
         event.SetEventObject(this);
         wxPostEvent(this, event);
@@ -1781,9 +2005,7 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
     m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
     m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
 
-    if (m_send_job) {
-        m_send_job->join();
-    }
+    if (m_send_job) { m_send_job->join(); }
 
     m_status_bar->reset();
     m_status_bar->set_prog_block();
@@ -1796,25 +2018,23 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
             }
             m_send_job->join();
         }
-   });
+    });
 
-
-    m_send_job = std::make_shared<SendJob>(m_status_bar, wxGetApp().plater(), m_obj->dev_id);
-    m_send_job->m_dev_ip = ip.ToStdString();
+    m_send_job                = std::make_shared<SendJob>(m_status_bar, wxGetApp().plater(), m_obj->dev_id);
+    m_send_job->m_dev_ip      = ip.ToStdString();
     m_send_job->m_access_code = str_access_code.ToStdString();
-
 
 #if !BBL_RELEASE_TO_PUBLIC
     m_send_job->m_local_use_ssl_for_mqtt = wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false;
-    m_send_job->m_local_use_ssl_for_ftp = wxGetApp().app_config->get("enable_ssl_for_ftp") == "true" ? true : false;
+    m_send_job->m_local_use_ssl_for_ftp  = wxGetApp().app_config->get("enable_ssl_for_ftp") == "true" ? true : false;
 #else
     m_send_job->m_local_use_ssl_for_mqtt = m_obj->local_use_ssl_for_mqtt;
-    m_send_job->m_local_use_ssl_for_ftp = m_obj->local_use_ssl_for_ftp;
+    m_send_job->m_local_use_ssl_for_ftp  = m_obj->local_use_ssl_for_ftp;
 #endif
 
-    m_send_job->connection_type = m_obj->connection_type();
+    m_send_job->connection_type  = m_obj->connection_type();
     m_send_job->cloud_print_only = true;
-    m_send_job->has_sdcard = m_obj->has_sdcard();
+    m_send_job->has_sdcard       = m_obj->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL;
     m_send_job->set_check_mode();
     m_send_job->set_project_name("verify_job");
 
@@ -1824,17 +2044,118 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
 
     m_send_job->on_check_ip_address_success([this, ip, str_access_code]() {
         wxString input_str = wxString::Format("%s|%s", ip, str_access_code);
-        auto event = wxCommandEvent(EVT_ENTER_IP_ADDRESS);
+        auto     event     = wxCommandEvent(EVT_ENTER_IP_ADDRESS);
         event.SetString(input_str);
         event.SetEventObject(this);
         wxPostEvent(this, event);
         m_result = 0;
-        
+
         update_test_msg(_L("IP and Access Code Verified! You may close the window"), true);
-       
     });
 
     m_send_job->start();
+}
+
+void InputIpAddressDialog::update_test_msg_event(wxCommandEvent& evt)
+{
+    wxString text = evt.GetString();
+    bool beconnect = evt.GetInt();
+    update_test_msg(text, beconnect);
+    Layout();
+    Fit();
+}
+
+void InputIpAddressDialog::post_update_test_msg(wxString text, bool beconnect)
+{
+    wxCommandEvent event(EVT_UPDATE_TEXT_MSG);
+    event.SetEventObject(this);
+    event.SetString(text);
+    event.SetInt(beconnect);
+    wxPostEvent(this, event);
+}
+
+void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_access_code, std::string sn, std::string model_id)
+{
+    post_update_test_msg(_L("connecting..."), true);
+
+    detectResult detectData;
+    auto result = -1;
+    if (current_input_index == 0) {
+
+#ifdef __APPLE__
+        result = -3;
+#else
+        result = wxGetApp().getAgent()->bind_detect(str_ip, "secure", detectData);
+#endif
+
+    } else {
+        result = 0;
+        detectData.dev_name = sn;
+        detectData.dev_id = sn;
+        detectData.connect_type = "lan";
+        detectData.connect_type = "free";
+    }
+
+    if (result < 0) {
+        post_update_test_msg(wxEmptyString, true);
+        if (result == -1) {
+            post_update_test_msg(_L("Failed to connect to printer."), false);
+        }
+        else if (result == -2) {
+            post_update_test_msg(_L("Failed to publish login request."), false);
+        }
+        else if (result == -3) {
+            wxCommandEvent event(EVT_CHECK_IP_ADDRESS_LAYOUT);
+            event.SetEventObject(this);
+            event.SetInt(1);
+            wxPostEvent(this, event);
+        }
+        return;
+    }
+
+    if (detectData.bind_state == "occupied") {
+        post_update_test_msg(wxEmptyString, true);
+        post_update_test_msg(_L("The printer has already been bound."), false);
+        return;
+    }
+
+    if (detectData.connect_type == "cloud") {
+        post_update_test_msg(wxEmptyString, true);
+        post_update_test_msg(_L("The printer mode is incorrect, please switch to LAN Only."), false);
+        return;
+    }
+
+    DeviceManager* dev = wxGetApp().getDeviceManager();
+    m_obj = dev->insert_local_device(detectData.dev_name, detectData.dev_id, str_ip, detectData.connect_type, detectData.bind_state, detectData.version, str_access_code);
+
+
+    if (m_obj) {
+        m_obj->set_user_access_code(str_access_code);
+        wxGetApp().getDeviceManager()->set_selected_machine(m_obj->dev_id);
+    }
+
+
+    closeCount = 1;
+
+    post_update_test_msg(wxEmptyString, true);
+    post_update_test_msg(wxString::Format(_L("Connecting to printer... The dialog will close later"), closeCount), true);
+
+#ifdef __APPLE__
+    wxCommandEvent event(EVT_CLOSE_IPADDRESS_DLG);
+    wxPostEvent(this, event);
+#else
+    closeTimer->Start(1000);
+#endif
+}
+
+void InputIpAddressDialog::OnTimer(wxTimerEvent& event) {
+    if (closeCount > 0) {
+        closeCount--;
+    }
+    else {
+        closeTimer->Stop();
+        EndModal(wxID_CLOSE);
+    }
 }
 
 void InputIpAddressDialog::check_ip_address_failed(int result)
@@ -1851,14 +2172,17 @@ void InputIpAddressDialog::on_check_ip_address_failed(wxCommandEvent& evt)
         update_test_msg(_L("Connection failed, please double check IP and Access Code"), false);
     }
     else {
-        update_test_msg(_L("Connection failed! If your IP and Access Code is correct, \nplease move to step 3 for troubleshooting network issues"), false);
-        m_img_step3->Show();
-        m_tip4->Show();
-        //m_trouble_shoot->Show();
+        if (m_need_input_sn) {
+            update_test_msg(_L("Connection failed! If your IP and Access Code is correct, \nplease move to step 3 for troubleshooting network issues"), false);
+        }
+        else {
+            update_test_msg(_L("Connection failed! Please refer to the wiki page."), false);
+        }
+
         Layout();
         Fit();
     }
-    
+
     m_button_ok->Enable(true);
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
         std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
@@ -1866,22 +2190,44 @@ void InputIpAddressDialog::on_check_ip_address_failed(wxCommandEvent& evt)
     m_button_ok->SetBackgroundColor(btn_bg_green);
 }
 
-void InputIpAddressDialog::on_text(wxCommandEvent& evt)
+void InputIpAddressDialog::on_text(wxCommandEvent &evt)
 {
-    auto str_ip = m_input_ip->GetTextCtrl()->GetValue();
-    auto str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
+    auto str_ip              = m_input_ip->GetTextCtrl()->GetValue();
+    auto str_access_code     = m_input_access_code->GetTextCtrl()->GetValue();
+    auto str_sn     = m_input_sn->GetTextCtrl()->GetValue();
+    bool invalid_access_code = true;
 
-    if (isIp(str_ip.ToStdString()) && str_access_code.Length() == 8) {
+    for (char c : str_access_code) {
+        if (!('0' <= c && c <= '9' || 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z')) {
+            invalid_access_code = false;
+            return;
+        }
+    }
+
+    if (isIp(str_ip.ToStdString()) && str_access_code.Length() == 8 && invalid_access_code) {
         m_button_ok->Enable(true);
         StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+                                std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
         m_button_ok->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
         m_button_ok->SetBackgroundColor(btn_bg_green);
-    }
-    else {
+    } else {
         m_button_ok->Enable(false);
         m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
         m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+    }
+
+    if (current_input_index == 1){
+        if (str_sn.length() == 15) {
+            m_button_ok->Enable(true);
+            StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                                    std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+            m_button_ok->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
+            m_button_ok->SetBackgroundColor(btn_bg_green);
+        } else {
+            m_button_ok->Enable(false);
+            m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+            m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+        }
     }
 }
 
@@ -1895,5 +2241,85 @@ void InputIpAddressDialog::on_dpi_changed(const wxRect& suggested_rect)
 
 }
 
+
+ SendFailedConfirm::SendFailedConfirm(wxWindow *parent /*= nullptr*/):
+     DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe),
+                  wxID_ANY,
+                  _L("sending failed"),
+                  wxDefaultPosition,
+                  wxDefaultSize,
+                  wxCAPTION | wxCLOSE_BOX)
+ {
+     SetMinSize(wxSize(FromDIP(560), -1));
+     SetMaxSize(wxSize(FromDIP(560), -1));
+
+     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
+     SetBackgroundColour(*wxWHITE);
+     auto m_sizer_main    = new wxBoxSizer(wxVERTICAL);
+     auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(400), 1));
+     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
+
+
+     auto tip = new Label(this, _L("Failed to send. Click Retry to attempt sending again. If retrying does not work, please check the reason."));
+     tip->Wrap(FromDIP(480));
+     tip->SetMinSize(wxSize(FromDIP(480), -1));
+     tip->SetMaxSize(wxSize(FromDIP(480), -1));
+
+     wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                             std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+
+     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                             std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+
+
+     auto m_button_retry = new Button(this, _L("Retry"));
+     m_button_retry->SetBackgroundColor(btn_bg_green);
+     m_button_retry->SetBorderColor(*wxWHITE);
+     m_button_retry->SetTextColor(wxColour("#FFFFFE"));
+     m_button_retry->SetFont(Label::Body_12);
+     m_button_retry->SetSize(wxSize(-1, FromDIP(24)));
+     m_button_retry->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+     m_button_retry->SetCornerRadius(FromDIP(12));
+
+     m_button_retry->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+         EndModal(wxYES);
+     });
+
+     auto m_button_input = new Button(this, _L("reconnect"));
+     m_button_input->SetBackgroundColor(btn_bg_white);
+     m_button_input->SetBorderColor(wxColour(38, 46, 48));
+     m_button_input->SetFont(Label::Body_12);
+     m_button_input->SetSize(wxSize(-1, FromDIP(24)));
+     m_button_input->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+     m_button_input->SetCornerRadius(FromDIP(12));
+
+     m_button_input->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+         EndModal(wxAPPLY);
+     });
+
+     button_sizer->Add(0, 0, 1, wxEXPAND, 5);
+     button_sizer->Add(m_button_retry, 0, wxALL, 5);
+     button_sizer->Add(m_button_input, 0, wxALL, 5);
+
+     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
+     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(20));
+     m_sizer_main->Add(tip, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(25));
+     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(25));
+     m_sizer_main->Add(button_sizer, 0, wxEXPAND|wxRIGHT, FromDIP(25));
+     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(20));
+
+     SetSizer(m_sizer_main);
+     Layout();
+     Fit();
+
+     CentreOnParent();
+     wxGetApp().UpdateDlgDarkUI(this);
+ }
+
+void SendFailedConfirm::on_dpi_changed(const wxRect &suggested_rect) {}
 
  }} // namespace Slic3r::GUI

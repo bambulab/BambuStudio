@@ -12,9 +12,11 @@
 #include <algorithm>
 #include "GLGizmosCommon.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/format.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "../GUI/MsgDialog.hpp"
+#include "slic3r/GUI/OpenGLManager.hpp"
 
 #include <imgui/imgui_internal.h>
 #include "FixModelByWin10.hpp"
@@ -93,7 +95,7 @@ static void rotate_z_3d(std::array<Vec3d, 4>& verts, float radian_angle)
         rotate_point_2d(verts[i](0), verts[i](1), c, s);
 }
 
-const double GLGizmoAdvancedCut::Offset = 10.0;
+const double GLGizmoAdvancedCut::Offset = 20.0;
 const double GLGizmoAdvancedCut::Margin = 20.0;
 const std::array<float, 4> GLGizmoAdvancedCut::GrabberColor      = { 1.0, 1.0, 0.0, 1.0 };
 const std::array<float, 4> GLGizmoAdvancedCut::GrabberHoverColor = { 0.7, 0.7, 0.0, 1.0};
@@ -190,7 +192,7 @@ bool GLGizmoAdvancedCut::gizmo_event(SLAGizmoEventType action, const Vec2d &mous
     return false;
 }
 
-bool GLGizmoAdvancedCut::on_key(wxKeyEvent &evt)
+bool GLGizmoAdvancedCut::on_key(const wxKeyEvent& evt)
 {
     bool ctrl_down = evt.GetModifiers() & wxMOD_CONTROL;
 
@@ -377,6 +379,79 @@ void GLGizmoAdvancedCut::reset_all()
     m_rotate_lower = false;
 }
 
+BoundingBoxf3 GLGizmoAdvancedCut::get_bounding_box() const
+{
+    BoundingBoxf3 t_aabb;
+    t_aabb.reset();
+
+    // rotate aabb
+    if (m_is_dragging) {
+        auto t_rotate_aabb = GLGizmoRotate3D::get_bounding_box();
+        if (t_rotate_aabb.defined) {
+            t_aabb.merge(t_rotate_aabb);
+            t_aabb.defined = true;
+        }
+    }
+    else {
+        const auto t_x_aabb = m_gizmos[X].get_bounding_box();
+        t_aabb.merge(t_x_aabb);
+
+        const auto t_y_aabb = m_gizmos[Y].get_bounding_box();
+        t_aabb.merge(t_y_aabb);
+
+        const auto t_z_aabb = m_gizmos[Z].get_bounding_box();
+        t_aabb.merge(t_z_aabb);
+
+        t_aabb.defined = true;
+    }
+    // end rotate aabb
+
+    bool is_render_z_grabber = true;                                      // m_hover_id < 0 || m_hover_id == cube_z_move_id;
+    bool is_render_x_grabber = m_cut_mode == CutMode::cutTongueAndGroove; // m_hover_id < 0 || m_hover_id == cube_x_move_id;
+    // m_move_z_grabber aabb
+    if (is_render_z_grabber) {
+        const auto& z_grabber = m_move_z_grabber.get_cube();
+        if (z_grabber.is_initialized()) {
+            auto z_grabber_aabb = z_grabber.get_bounding_box();
+            const auto& z_grabber_model_matrix = m_move_z_grabber.m_matrix;
+            z_grabber_aabb = z_grabber_aabb.transformed(z_grabber_model_matrix);
+            z_grabber_aabb.defined = true;
+            t_aabb.merge(z_grabber_aabb);
+            t_aabb.defined = true;
+        }
+    }
+    // end m_move_z_grabber
+
+    // m_move_x_grabber aabb
+    if (is_render_x_grabber) {
+        const auto& x_grabber = m_move_x_grabber.get_cube();
+        if (x_grabber.is_initialized()) {
+            auto x_grabber_aabb = x_grabber.get_bounding_box();
+            const auto& x_grabber_model_matrix = m_move_x_grabber.m_matrix;
+            x_grabber_aabb = x_grabber_aabb.transformed(x_grabber_model_matrix);
+            x_grabber_aabb.defined = true;
+            t_aabb.merge(x_grabber_aabb);
+            t_aabb.defined = true;
+        }
+    }
+    // end m_move_x_grabber
+
+    // m_plane aabb
+    if (!m_connectors_editing) {
+        if (m_plane.is_initialized()) {
+            auto t_plane_aabb = m_plane.get_bounding_box();
+            const auto t_plane_model_matrix = Geometry::translation_transform(m_plane_center) * m_rotate_matrix;
+            t_plane_aabb = t_plane_aabb.transformed(t_plane_model_matrix);
+            t_plane_aabb.defined = true;
+            t_aabb.merge(t_plane_aabb);
+            t_aabb.defined = true;
+        }
+    }
+    // end m_plane aabb
+
+    return t_aabb;
+}
+
 bool GLGizmoAdvancedCut::on_init()
 {
     if (!GLGizmoRotate3D::on_init())
@@ -479,6 +554,11 @@ void GLGizmoAdvancedCut::on_set_state()
 
     // Reset m_cut_z on gizmo activation
     if (get_state() == On) {
+        const Selection &selection = m_parent.get_selection();
+        if (selection.is_empty()) {//check selection again
+            close();
+            return;
+        }
         m_hover_id           = -1;
         m_connectors_editing = false;
 
@@ -515,6 +595,13 @@ void GLGizmoAdvancedCut::on_set_state()
     }
 }
 
+void GLGizmoAdvancedCut::close()
+{//close gizmo == open it again
+    auto &mng = m_parent.get_gizmos_manager();
+    if (mng.get_current_type() == GLGizmosManager::Cut)
+        mng.open_gizmo(GLGizmosManager::Cut);
+}
+
 bool GLGizmoAdvancedCut::on_is_activable() const
 {
     const Selection &selection  = m_parent.get_selection();
@@ -524,7 +611,7 @@ bool GLGizmoAdvancedCut::on_is_activable() const
 
     if (const ModelObject *mo = wxGetApp().plater()->model().objects[object_idx]; mo->is_cut() && mo->volumes.size() == 1) {
         const ModelVolume *volume = mo->volumes[0];
-        if (volume->is_cut_connector() && volume->cut_info.connector_type == CutConnectorType::Dowel) 
+        if (volume->is_cut_connector() && volume->cut_info.connector_type == CutConnectorType::Dowel)
             return false;
     }
 
@@ -674,9 +761,10 @@ void GLGizmoAdvancedCut::on_render()
 
     if (m_part_selection) {
         if (!m_connectors_editing) {
-            if (m_is_dragging == false) { m_part_selection->part_render(nullptr); }
-        } else
-            m_part_selection->part_render(&m_plane_normal);
+            if (m_is_dragging == false) { m_part_selection->part_render(nullptr,nullptr); }
+        } else {
+            m_part_selection->part_render(&m_plane_center, &m_plane_normal);
+        }
     }
     if (!m_connectors_editing) {
         render_cut_plane_and_grabbers();
@@ -689,39 +777,40 @@ void GLGizmoAdvancedCut::on_render()
 
 void GLGizmoAdvancedCut::on_render_for_picking()
 {
+    const Camera& camera = wxGetApp().plater()->get_picking_camera();
+    const auto& view_matrix = camera.get_view_matrix();
+    const auto& projection_matrix = camera.get_projection_matrix();
     if (!m_connectors_editing) {
         glsafe(::glDisable(GL_DEPTH_TEST));
         std::array<float, 4> color;
         // pick plane
         {
             color = picking_color_component(2);
-            render_glmodel(m_plane, color, Geometry::translation_transform(m_plane_center) * m_rotate_matrix, true);
+            render_glmodel(m_plane, color, view_matrix * Geometry::translation_transform(m_plane_center) * m_rotate_matrix, projection_matrix, true);
         }
         // pick Rotate
         GLGizmoRotate3D::on_render_for_picking();
 
         BoundingBoxf3 box = m_parent.get_selection().get_bounding_box();
-#if ENABLE_FIXED_GRABBER
-        float mean_size = (float) (GLGizmoBase::Grabber::FixedGrabberSize);
-#else
-        float mean_size = (float) ((box.size().x() + box.size().y() + box.size().z()) / 3.0);
-#endif
         // pick grabber
         {
+            const auto& flat_shader = wxGetApp().get_shader("flat");
+            wxGetApp().bind_shader(flat_shader);
             color                     = picking_color_component(0);
             m_move_z_grabber.color[0] = color[0];
             m_move_z_grabber.color[1] = color[1];
             m_move_z_grabber.color[2] = color[2];
             m_move_z_grabber.color[3] = color[3];
-            m_move_z_grabber.render_for_picking(mean_size);
+            m_move_z_grabber.render_for_picking();
             if (m_cut_mode == CutMode::cutTongueAndGroove) {
                 color                     = picking_color_component(1);
                 m_move_x_grabber.color[0] = color[0];
                 m_move_x_grabber.color[1] = color[1];
                 m_move_x_grabber.color[2] = color[2];
                 m_move_x_grabber.color[3] = color[3];
-                m_move_x_grabber.render_for_picking(mean_size);
+                m_move_x_grabber.render_for_picking();
             }
+            wxGetApp().unbind_shader();
         }
 
     } else {
@@ -749,10 +838,10 @@ void GLGizmoAdvancedCut::on_render_for_picking()
             Transform3d scale_tf = Transform3d::Identity();
             scale_tf.scale(Vec3f(connector.radius, connector.radius, height).cast<double>());
 
-            const Transform3d view_model_matrix = translate_tf * m_rotate_matrix * scale_tf;
+            const Transform3d view_model_matrix = view_matrix * translate_tf * m_rotate_matrix * scale_tf;
 
             std::array<float, 4> color = picking_color_component(i + c_connectors_start_id);
-            render_glmodel(m_shapes[connectors[i].attribs], color, view_model_matrix, true);
+            render_glmodel(m_shapes[connectors[i].attribs], color, view_model_matrix, projection_matrix, true);
         }
     }
 }
@@ -837,7 +926,40 @@ void update_object_cut_id(CutObjectBase &cut_id, ModelObjectCutAttributes attrib
     }
 }
 
-void synchronize_model_after_cut(Model &model, const CutObjectBase &cut_id)
+static void check_objects_after_cut(const ModelObjectPtrs &objects)
+{
+    std::vector<std::string> err_objects_names;
+    std::vector<int>         err_objects_idxs;
+    int                      obj_idx{0};
+    for (const ModelObject *object : objects) {
+        std::vector<std::string> connectors_names;
+        connectors_names.reserve(object->volumes.size());
+        for (const ModelVolume *vol : object->volumes)
+            if (vol->cut_info.is_connector) connectors_names.push_back(vol->name);
+        const size_t connectors_count = connectors_names.size();
+        sort_remove_duplicates(connectors_names);
+        if (connectors_count != connectors_names.size()) err_objects_names.push_back(object->name);
+
+        // check manifol/repairs
+        auto stats = object->get_object_stl_stats();
+        if (!stats.manifold() || stats.repaired()) err_objects_idxs.push_back(obj_idx);
+        obj_idx++;
+    }
+
+    auto plater = wxGetApp().plater();
+    if (!err_objects_names.empty()) {
+        wxString names = from_u8(err_objects_names[0]);
+        for (size_t i = 1; i < err_objects_names.size(); i++) names += ", " + from_u8(err_objects_names[i]);
+        WarningDialog(plater, format_wxstr("Objects(%1%) have duplicated connectors. "
+                                           "Some connectors may be missing in slicing result.\n"
+                                           "Please report to BambuSudio team in which scenario this issue happened.\n"
+                                           "Thank you.",
+                                           names))
+            .ShowModal();
+    }
+}
+
+    void synchronize_model_after_cut(Model &model, const CutObjectBase &cut_id)
 {
     for (ModelObject *obj : model.objects)
         if (obj->is_cut() && obj->cut_id.has_same_id(cut_id) && !obj->cut_id.is_equal(cut_id)) obj->cut_id.copy(cut_id);
@@ -902,6 +1024,7 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
         const ModelObjectPtrs &new_objects = cut_by_contour  ? cut.perform_by_contour(m_part_selection->get_cut_parts(), dowels_count) :
                                              cut_with_groove ? cut.perform_with_groove(m_groove, m_rotate_matrix) :
                                                                cut.perform_with_plane();
+        check_objects_after_cut(new_objects);// Fix for #11487 - Cut Connectors Broken when assigning part to other side
         // fix_non_manifold_edges
 #ifdef HAS_WIN10SDK
         if (is_windows10()) {
@@ -1117,39 +1240,109 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
     if (m_cut_mode == CutMode::cutTongueAndGroove) {
         cp_clr.a(cp_clr.a() - 0.1f);
     }
-    render_glmodel(m_plane, cp_clr.get_data(), Geometry::translation_transform(m_plane_center) * m_rotate_matrix);
+    const Camera& camera = wxGetApp().plater()->get_camera();
+
+    const auto& view_matrix = camera.get_view_matrix();
+    const auto& projection_matrix = camera.get_projection_matrix();
+    render_glmodel(m_plane, cp_clr.get_data(), view_matrix * Geometry::translation_transform(m_plane_center) * m_rotate_matrix, projection_matrix);
 
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_CULL_FACE));
     glsafe(::glDisable(GL_BLEND));
 
     // Draw the grabber and the connecting line
-    m_move_z_grabber.center  = m_plane_center + m_plane_normal * Offset;
+    float radius = Offset;
+    modify_radius(radius);
+    radius *= 0.5f;
+    m_move_z_grabber.center  = m_plane_center + m_plane_normal * radius;
     bool is_render_z_grabber = true;                                      // m_hover_id < 0 || m_hover_id == cube_z_move_id;
     bool is_render_x_grabber = m_cut_mode == CutMode::cutTongueAndGroove; // m_hover_id < 0 || m_hover_id == cube_x_move_id;
     glsafe(::glDisable(GL_DEPTH_TEST));
-    if (is_render_z_grabber) {
-        glsafe(::glLineWidth(m_hover_id != -1 ? 2.0f : 1.5f));
-        glsafe(::glColor3f(1.0, 1.0, 0.0));
-        glLineStipple(1, 0x0FFF);
-        glEnable(GL_LINE_STIPPLE);
-        ::glBegin(GL_LINES);
-        ::glVertex3dv(m_plane_center.data());
-        ::glVertex3dv(m_move_z_grabber.center.data());
-        glsafe(::glEnd());
-        glDisable(GL_LINE_STIPPLE);
+
+    if (!m_grabber_model.is_initialized()) {
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::PrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
+        init_data.reserve_vertices(2);
+        init_data.reserve_indices(2);
+
+        // vertices
+        init_data.add_vertex(Vec3f(-0.5f, 0.0f, 0.0f));
+        init_data.add_vertex(Vec3f(0.5f,  0.0f, 0.0f));
+
+        // indices
+        init_data.add_line(0, 1);
+
+        m_grabber_model.init_from(std::move(init_data));
     }
-    m_move_x_grabber.center = m_plane_center + m_plane_x_direction * Offset;
-    if (is_render_x_grabber) {
-        glsafe(::glLineWidth(m_hover_id != -1 ? 2.0f : 1.5f));
-        glsafe(::glColor3f(1.0, 1.0, 0.0));
-        glLineStipple(1, 0x0FFF);
-        glEnable(GL_LINE_STIPPLE);
-        ::glBegin(GL_LINES);
-        ::glVertex3dv(m_plane_center.data());
-        ::glVertex3dv(m_move_x_grabber.center.data());
-        glsafe(::glEnd());
-        glDisable(GL_LINE_STIPPLE);
+    m_grabber_model.set_color({ 1.0f, 1.0f, 0.0f, 1.0f });
+
+    auto calculate_model_matrix = [](const Vec3d& source, const Vec3d& target, Transform3d& model_matrix)->void {
+        Vec3d the_vector = target - source;
+        const auto scale = the_vector.stableNorm();
+        const Vec3d center = source + 0.5f * scale * the_vector.normalized();
+
+        Vec3d rotation_axis;
+        double rotation_angle;
+        Matrix3d rotation_matrix;
+        Geometry::rotation_from_two_vectors(Vec3d(1.0f, 0.0f, 0.0f), the_vector, rotation_axis, rotation_angle, &rotation_matrix);
+        Matrix4d final_rotation_matrix{ Matrix4d::Identity() };
+        for (int iColumn = 0; iColumn < 3; ++iColumn) {
+            for (int jRow = 0; jRow < 3; ++jRow) {
+                final_rotation_matrix.data()[4 * iColumn + jRow] = rotation_matrix.data()[3 * iColumn + jRow];
+            }
+        }
+
+        model_matrix = Geometry::translation_transform(center.cast<double>()).matrix()
+            * final_rotation_matrix
+            * Geometry::scale_transform({ scale, scale, scale }).matrix();
+    };
+
+    const float fullsize = get_grabber_size();
+    const auto& p_flat_shader = wxGetApp().get_shader("flat");
+    if (p_flat_shader && (is_render_z_grabber || is_render_x_grabber)) {
+        wxGetApp().bind_shader(p_flat_shader);
+
+        const auto& view_matrix = camera.get_view_matrix();
+        const auto& proj_matrix = camera.get_projection_matrix();
+
+        p_flat_shader->set_uniform("projection_matrix", proj_matrix);
+
+        const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+        p_ogl_manager->set_line_width(m_hover_id != -1 ? 2.0f : 1.5f);
+
+        // to do: remove deprecated api: glLineStipple
+#ifdef __APPLE__
+        const auto& gl_info = p_ogl_manager->get_gl_info();
+        const auto formated_gl_version = gl_info.get_formated_gl_version();
+        if (formated_gl_version < 30)
+#endif
+        {
+            glLineStipple(1, 0x0FFF);
+            glEnable(GL_LINE_STIPPLE);
+        }
+
+        if (is_render_z_grabber) {
+
+            Transform3d model_matrix{ Transform3d::Identity() };
+            calculate_model_matrix(m_plane_center, m_move_z_grabber.center, model_matrix);
+            p_flat_shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
+            m_grabber_model.render_geometry();
+        }
+
+        m_move_x_grabber.center = m_plane_center + m_plane_x_direction * Offset;
+        if (is_render_x_grabber) {
+
+            Transform3d model_matrix{ Transform3d::Identity() };
+            calculate_model_matrix(m_plane_center, m_move_x_grabber.center, model_matrix);
+            p_flat_shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
+            m_grabber_model.render_geometry();
+        }
+#ifdef __APPLE__
+        if (formated_gl_version < 30)
+#endif
+        {
+            glDisable(GL_LINE_STIPPLE);
+        }
     }
 
     bool                 hover = (m_hover_id == get_group_id());
@@ -1161,18 +1354,25 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
 
     // BBS set to fixed size grabber
     // float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
-    float fullsize = 8.0f;
-    if (GLGizmoBase::INV_ZOOM > 0) { fullsize = m_move_z_grabber.FixedGrabberSize * GLGizmoBase::INV_ZOOM; }
     GLModel &cube_z = m_move_z_grabber.get_cube();
-    GLModel &cube_x = m_move_x_grabber.get_cube();
+
     if (is_render_z_grabber) {
-        Transform3d cube_mat = Geometry::translation_transform(m_move_z_grabber.center) * m_rotate_matrix * Geometry::scale_transform(fullsize); //
-        render_glmodel(cube_z, render_color, cube_mat);
+        Vec3d t_z_dir = m_move_z_grabber.center - m_plane_center;
+        const auto scale_z = t_z_dir.stableNorm();
+        const Vec3d target_z = m_plane_center + scale_z * t_z_dir.normalized();
+        Transform3d cube_mat_z = Geometry::translation_transform(target_z) * m_rotate_matrix * Geometry::scale_transform(fullsize); //
+        m_move_z_grabber.m_matrix = cube_mat_z;
+        render_glmodel(cube_z, render_color, view_matrix * m_move_z_grabber.m_matrix, projection_matrix);
     }
 
     if (is_render_x_grabber) {
-        Transform3d cube_mat = Geometry::translation_transform(m_move_x_grabber.center) * m_rotate_matrix * Geometry::scale_transform(fullsize); //
-        render_glmodel(cube_x, render_color, cube_mat);
+        GLModel& cube_x = m_move_x_grabber.get_cube();
+        Vec3d t_x_dir = m_move_x_grabber.center - m_plane_center;
+        const auto scale_x = t_x_dir.stableNorm();
+        const Vec3d target_x = m_plane_center + scale_x * t_x_dir.normalized();
+        Transform3d cube_mat_x = Geometry::translation_transform(target_x) * m_rotate_matrix * Geometry::scale_transform(fullsize); //
+        m_move_x_grabber.m_matrix = cube_mat_x;
+        render_glmodel(cube_x, render_color, view_matrix * m_move_x_grabber.m_matrix, projection_matrix);
     }
     // Should be placed at last, because GLGizmoRotate3D clears depth buffer
     GLGizmoRotate3D::set_center(m_plane_center);
@@ -1190,6 +1390,10 @@ void GLGizmoAdvancedCut::on_render_rotate_gizmos() {
             m_gizmos[Z].render();
     }
     else {
+        Transform3d rotate_tran = Geometry::translation_transform(m_plane_center) * m_rotate_matrix;
+        for (int i = 0; i < 3; i++) {
+            m_gizmos[i].set_custom_tran(rotate_tran);
+        }
         m_gizmos[X].render();
         m_gizmos[Y].render();
         m_gizmos[Z].render();
@@ -1217,6 +1421,11 @@ void GLGizmoAdvancedCut::render_connectors()
 
     ColorRGBA  render_color    = CONNECTOR_DEF_COLOR;
     const bool looking_forward = is_looking_forward();
+
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const auto& view_matrix = camera.get_view_matrix();
+    const auto& projection_matrix = camera.get_projection_matrix();
+
     for (size_t i = 0; i < connectors.size(); ++i) {
         const CutConnector &connector = connectors[i];
 
@@ -1247,9 +1456,9 @@ void GLGizmoAdvancedCut::render_connectors()
         Transform3d scale_tf = Transform3d::Identity();
         scale_tf.scale(Vec3f(connector.radius, connector.radius, height).cast<double>());
 
-        const Transform3d view_model_matrix = translate_tf * m_rotate_matrix * scale_tf;
+        const Transform3d view_model_matrix = view_matrix * translate_tf * m_rotate_matrix * scale_tf;
 
-        render_glmodel(m_shapes[connector.attribs], render_color.get_data(), view_model_matrix);
+        render_glmodel(m_shapes[connector.attribs], render_color.get_data(), view_model_matrix, projection_matrix);
     }
 }
 
@@ -1276,16 +1485,77 @@ void GLGizmoAdvancedCut::render_cut_line()
 {
     if (!cut_line_processing() || m_cut_line_end.isApprox(Vec3d::Zero()))
         return;
+    const auto& p_flat_shader = wxGetApp().get_shader("flat");
+    if (!p_flat_shader) {
+        return;
+    }
+
+    if (!m_cut_line_model.is_initialized()) {
+        GLModel::Geometry geo;
+        geo.format.type = GLModel::PrimitiveType::Lines;
+        geo.format.vertex_layout = GLModel::Geometry::EVertexLayout::P3;
+
+        geo.add_vertex(Vec3f{ -0.5f, 0.0f, 0.0f });
+        geo.add_vertex(Vec3f{ 0.5f, 0.0f, 0.0f });
+
+        geo.add_line(0, 1);
+
+        m_cut_line_model.init_from(std::move(geo));
+    }
+
+    Transform3d model_matrix{ Transform3d::Identity() };
+    Vec3d the_vector = m_cut_line_end - m_cut_line_begin;
+    const auto scale = the_vector.stableNorm();
+    Vec3d center = (m_cut_line_end + m_cut_line_begin) * 0.5f;
+
+    Vec3d rotation_axis;
+    double rotation_angle;
+    Matrix3d rotation_matrix;
+    Geometry::rotation_from_two_vectors(Vec3d(1.0f, 0.0f, 0.0f), the_vector, rotation_axis, rotation_angle, &rotation_matrix);
+    Matrix4d final_rotation_matrix{ Matrix4d::Identity() };
+    for (int iColumn = 0; iColumn < 3; ++iColumn) {
+        for (int jRow = 0; jRow < 3; ++jRow) {
+            final_rotation_matrix.data()[4 * iColumn + jRow] = rotation_matrix.data()[3 * iColumn + jRow];
+        }
+    }
+
+    model_matrix = Geometry::translation_transform(center.cast<double>()).matrix()
+        * final_rotation_matrix
+        * Geometry::scale_transform({ scale, scale, scale }).matrix();
+
+    m_cut_line_model.set_color({ 0.0f, 1.0f, 0.0f, 1.0f});
+
+#ifdef __APPLE__
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    const auto& gl_info = p_ogl_manager->get_gl_info();
+    const auto formated_gl_version = gl_info.get_formated_gl_version();
+    if (formated_gl_version < 30)
+#endif
+    {
+        glsafe(::glEnable(GL_LINE_STIPPLE));
+    }
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
-    glsafe(::glColor3f(0.0, 1.0, 0.0));
-    glEnable(GL_LINE_STIPPLE);
-    ::glBegin(GL_LINES);
-    ::glVertex3dv(m_cut_line_begin.data());
-    ::glVertex3dv(m_cut_line_end.data());
-    glsafe(::glEnd());
-    glDisable(GL_LINE_STIPPLE);
+
+    wxGetApp().bind_shader(p_flat_shader);
+
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const auto& view_matrix = camera.get_view_matrix();
+    const auto& proj_matrix = camera.get_projection_matrix();
+    p_flat_shader->set_uniform("projection_matrix", proj_matrix);
+    p_flat_shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
+
+    m_cut_line_model.render_geometry();
+
+    wxGetApp().unbind_shader();
+
+#ifdef __APPLE__
+    if (formated_gl_version < 30)
+#endif
+    {
+        glsafe(::glDisable(GL_LINE_STIPPLE));
+    }
 }
 
 void GLGizmoAdvancedCut::clear_selection()
@@ -1648,6 +1918,23 @@ void GLGizmoAdvancedCut::process_contours()
     toggle_model_objects_visibility();
 }
 
+void GLGizmoAdvancedCut::render_flip_plane_button(bool disable_pred /*=false*/)
+{
+    ImGui::SameLine();
+
+    if (m_hover_id == c_plate_move_id)
+        ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_ButtonHovered));
+
+    m_imgui->disabled_begin(disable_pred);
+    if (m_imgui->button(_L("Flip cut plane")))
+        flip_cut_plane();
+    m_imgui->disabled_end();
+
+    if (m_hover_id == c_plate_move_id)
+        ImGui::PopStyleColor();
+}
+
+
 void GLGizmoAdvancedCut::toggle_model_objects_visibility(bool show_in_3d)
 {
     if (m_part_selection && m_part_selection->valid() && show_in_3d == false && (m_is_dragging == false || m_connectors_editing)) // BBL
@@ -1656,7 +1943,11 @@ void GLGizmoAdvancedCut::toggle_model_objects_visibility(bool show_in_3d)
     {
         const Selection &      selection     = m_parent.get_selection();
         const ModelObjectPtrs &model_objects = selection.get_model()->objects;
-        m_parent.toggle_model_objects_visibility(true, model_objects[selection.get_object_idx()], selection.get_instance_idx());
+        const int idx = selection.get_object_idx();
+        if (idx < 0) {
+            return;
+        }
+        m_parent.toggle_model_objects_visibility(true, model_objects[idx], selection.get_instance_idx());
     }
 }
 
@@ -1905,7 +2196,7 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     m_imgui->text(_L("Rotation") + " ");
     ImGui::SameLine(caption_size + 1 * space_size);
     ImGui::PushItemWidth(unit_size);
-    for (size_t i = 0; i < m_buffered_rotation.size(); i++) {
+    for (int i = 0; i < m_buffered_rotation.size(); i++) {
         if (abs(m_buffered_rotation[i]) < 1e-3) {
             m_buffered_rotation[i] = 0;
         }
@@ -2167,6 +2458,8 @@ void GLGizmoAdvancedCut::render_connectors_input_window(float x, float y, float 
     if (render_reset_button("connectors", _u8L("Remove connectors")))
         reset_connectors();
     m_imgui->disabled_end();
+
+    render_flip_plane_button(m_connectors_editing && connectors.empty());
 
     m_imgui->text(_L("Type"));
     ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.00f, 0.00f, 1.00f));
@@ -2529,14 +2822,18 @@ PartSelection::PartSelection(
     const ModelVolumePtrs &volumes = model_object()->volumes;
 
     // split to parts
-    for (int id = int(volumes.size()) - 1; id >= 0; id--)
-        if (volumes[id]->is_splittable()) volumes[id]->split(1);
+    for (int id = int(volumes.size()) - 1; id >= 0; id--) {
+        auto look = volumes[id]->is_model_part();
+        if (volumes[id]->is_splittable() && volumes[id]->is_model_part()) // we have to split just solid volumes
+            volumes[id]->split(1);
+    }
 
     const Vec3d inst_offset = model_object()->instances[m_instance_idx]->get_offset();
     int         i           = 0;
     m_cut_parts.resize(volumes.size());
     for (const ModelVolume *volume : volumes) {
         assert(volume != nullptr);
+        m_cut_parts[i].is_modifier = !volume->is_model_part();
         m_cut_parts[i].is_up_part = false;
         if (m_cut_parts[i].raycaster) { delete m_cut_parts[i].raycaster; }
         m_cut_parts[i].raycaster = new MeshRaycaster(volume->mesh());
@@ -2613,11 +2910,13 @@ PartSelection::PartSelection(const ModelObject *object, int instance_idx_in) : m
     m_cut_parts.resize(volumes.size());
     for (const ModelVolume *volume : volumes) {
         assert(volume != nullptr);
+        m_cut_parts[i].is_modifier = !volume->is_model_part();
         if (m_cut_parts[i].raycaster) { delete m_cut_parts[i].raycaster; }
         m_cut_parts[i].raycaster = new MeshRaycaster(volume->mesh());
         m_cut_parts[i].glmodel.reset();
         m_cut_parts[i].glmodel.init_from(volume->mesh_ptr()->its);
         m_cut_parts[i].trans    = Geometry::translation_transform(inst_offset) * model_object()->volumes[i]->get_matrix();
+        // Now check whether this part is below or above the plane.
         m_cut_parts[i].is_up_part = volume->is_from_upper();
         i++;
     }
@@ -2625,19 +2924,38 @@ PartSelection::PartSelection(const ModelObject *object, int instance_idx_in) : m
     m_valid = true;
 }
 
-void PartSelection::part_render(const Vec3d *normal)
+void PartSelection::part_render(const Vec3d *cut_center, const Vec3d *normal)
 {
     if (!valid())
         return;
 
-    const Camera &camera             = wxGetApp().plater()->get_camera();
-    const bool    is_looking_forward = normal && camera.get_dir_forward().dot(*normal) < 0.05;
-
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const auto& view_matrix = camera.get_view_matrix();
+    const auto& projection_matrix = camera.get_projection_matrix();
     glEnable(GL_DEPTH_TEST);
     for (size_t id = 0; id < m_cut_parts.size(); ++id) { // m_parts.size() test
-        if (normal && ((is_looking_forward && m_cut_parts[id].is_up_part) || (!is_looking_forward && !m_cut_parts[id].is_up_part)))
-            continue;
-        GLGizmoBase::render_glmodel(m_cut_parts[id].glmodel, m_cut_parts[id].is_up_part ? UPPER_PART_COLOR.get_data() : LOWER_PART_COLOR.get_data(), m_cut_parts[id].trans);
+        bool  is_looking_forward = true;
+        auto is_at_normal_dir  = false;
+        if (cut_center && normal) {
+            auto part_center =m_cut_parts[id].trans * m_cut_parts[id].glmodel.get_bounding_box().center();
+            is_at_normal_dir=(*cut_center - part_center).normalized().dot(*normal) > 0 ;
+            Vec3d valid_normal = is_at_normal_dir ? *normal : -*normal;
+            is_looking_forward = camera.get_dir_forward().dot(valid_normal) < 0.05;
+        }
+        if (cut_center) {
+            if (!is_looking_forward)
+                continue;
+        }
+        if (m_cut_parts[id].is_modifier) {
+            glsafe(::glEnable(GL_BLEND));
+            glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+        }
+        GLGizmoBase::render_glmodel(m_cut_parts[id].glmodel,
+                                    m_cut_parts[id].is_modifier ? MODIFIER_COLOR.get_data() :
+                                                                  (m_cut_parts[id].is_up_part ? UPPER_PART_COLOR.get_data() : LOWER_PART_COLOR.get_data()),
+                                    view_matrix * m_cut_parts[id].trans, projection_matrix);
+        if (m_cut_parts[id].is_modifier)
+            glsafe(::glDisable(GL_BLEND));
     }
 }
 
@@ -2662,13 +2980,13 @@ bool PartSelection::is_one_object() const
     // flawlessly. Because it is currently not always so for self-intersecting
     // objects, let's better check the parts itself:
     if (m_cut_parts.size() < 2) return true;
-    return std::all_of(m_cut_parts.begin(), m_cut_parts.end(), [this](const PartPara &part) { return part.is_up_part == m_cut_parts.front().is_up_part; });
+    return std::all_of(m_cut_parts.begin(), m_cut_parts.end(), [this](const PartPara &part) { return part.is_modifier || part.is_up_part == m_cut_parts.front().is_up_part; });
 }
 
 std::vector<Cut::Part> PartSelection::get_cut_parts()
 {
     std::vector<Cut::Part> parts;
-    for (const auto &part : m_cut_parts) parts.push_back({part.is_up_part, false});
+    for (const auto &part : m_cut_parts) parts.push_back({part.is_up_part, part.is_modifier});
     return parts;
 }
 

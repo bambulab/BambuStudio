@@ -225,7 +225,10 @@ void BackgroundSlicingProcess::process_fff()
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: gcode_result reseted, will start print::process")%__LINE__;
 		m_print->process();
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: after print::process, send slicing complete event to gui...")%__LINE__;
-
+        if (m_current_plate->get_real_filament_map_mode(preset_bundle.project_config) < FilamentMapMode::fmmManual) {
+            std::vector<int> f_maps = m_fff_print->get_filament_maps();
+            m_current_plate->set_filament_maps(f_maps);
+		}
 		wxCommandEvent evt(m_event_slicing_completed_id);
 		// Post the Slicing Finished message for the G-code viewer to update.
 		// Passing the timestamp
@@ -841,7 +844,7 @@ void BackgroundSlicingProcess::prepare_upload()
 			throw Slic3r::RuntimeError(_utf8(L("Copying of the temporary G-code to the output G-code failed")));
         m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
         // Make a copy of the source path, as run_post_process_scripts() is allowed to change it when making a copy of the source file
-        // (not here, but when the final target is a file). 
+        // (not here, but when the final target is a file).
         std::string source_path_str = source_path.string();
         std::string output_name_str = m_upload_job.upload_data.upload_path.string();
 		if (run_post_process_scripts(source_path_str, false, m_upload_job.printhost->get_name(), output_name_str, m_fff_print->full_print_config()))

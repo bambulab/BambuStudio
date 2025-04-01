@@ -129,7 +129,7 @@ public:
 
     // Given a face_idx where the mouse cursor points, return a feature that
     // should be highlighted (if any).
-    std::optional<SurfaceFeature> get_feature(size_t face_idx, const Vec3d& point, const Transform3d & world_tran) const;
+    std::optional<SurfaceFeature> get_feature(size_t face_idx, const Vec3d& point, const Transform3d & world_tran,bool only_select_plane) const;
 
     // Return total number of planes.
     int get_num_of_planes() const;

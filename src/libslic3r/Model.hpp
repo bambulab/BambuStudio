@@ -6,14 +6,16 @@
 #include "Geometry.hpp"
 #include "ObjectID.hpp"
 #include "Point.hpp"
+#include "AppConfig.hpp"
 #include "PrintConfig.hpp"
 #include "Slicing.hpp"
 #include "SLA/SupportPoint.hpp"
 #include "SLA/Hollowing.hpp"
+#include "BrimEarsPoint.hpp"
 #include "TriangleMesh.hpp"
 #include "CustomGCode.hpp"
 #include "enum_bitmask.hpp"
-
+#include "EmbossShape.hpp"
 //BBS: add bbs 3mf
 #include "Format/bbs_3mf.hpp"
 //BBS: add step
@@ -31,7 +33,7 @@
 #include <vector>
 #include <algorithm>
 #include <functional>
-
+#include <optional>
 namespace cereal {
 	class BinaryInputArchive;
 	class BinaryOutputArchive;
@@ -372,6 +374,8 @@ public:
     // Holes to be drilled into the object so resin can flow out
     sla::DrainHoles         sla_drain_holes;
 
+    BrimPoints              brim_points;
+
     /* This vector accumulates the total translation applied to the object by the
         center_around_origin() method. Callers might want to apply the same translation
         to new volumes before adding them to this object in order to preserve alignment
@@ -385,6 +389,7 @@ public:
     CutConnectors cut_connectors;
     CutObjectBase cut_id;
 
+    std::vector<const ModelVolume*> const_volumes() const {return std::vector<const ModelVolume*>(volumes.begin(), volumes.end());}
     Model*                  get_model() { return m_model; }
     const Model*            get_model() const { return m_model; }
     // BBS: production extension
@@ -396,8 +401,8 @@ public:
             return global_config.option<T>(config_option);
     }
 
-    ModelVolume*            add_volume(const TriangleMesh &mesh);
-    ModelVolume*            add_volume(TriangleMesh &&mesh, ModelVolumeType type = ModelVolumeType::MODEL_PART);
+    ModelVolume*            add_volume(const TriangleMesh &mesh, bool modify_to_center_geometry = true);
+    ModelVolume*            add_volume(TriangleMesh &&mesh, ModelVolumeType type = ModelVolumeType::MODEL_PART, bool modify_to_center_geometry = true);
     ModelVolume*            add_volume(const ModelVolume &volume, ModelVolumeType type = ModelVolumeType::INVALID);
     ModelVolume*            add_volume(const ModelVolume &volume, TriangleMesh &&mesh);
     ModelVolume*            add_volume_with_shared_mesh(const ModelVolume &other, ModelVolumeType type = ModelVolumeType::MODEL_PART);
@@ -427,6 +432,7 @@ public:
     // This bounding box is approximate and not snug.
     // This bounding box is being cached.
     const BoundingBoxf3& bounding_box() const;
+    const BoundingBoxf3& bounding_box_in_assembly_view() const;
     void invalidate_bounding_box() { m_bounding_box_valid = false; m_raw_bounding_box_valid = false; m_raw_mesh_bounding_box_valid = false; }
 
     // A mesh containing all transformed instances of this object.
@@ -647,6 +653,7 @@ private:
 
     // Bounding box, cached.
     mutable BoundingBoxf3 m_bounding_box;
+    mutable BoundingBoxf3 m_bounding_box_in_assembly_view;
     mutable bool          m_bounding_box_valid;
     mutable BoundingBoxf3 m_raw_bounding_box;
     mutable bool          m_raw_bounding_box_valid;
@@ -674,7 +681,7 @@ private:
         Internal::StaticSerializationWrapper<ModelConfigObject const> config_wrapper(config);
         Internal::StaticSerializationWrapper<LayerHeightProfile const> layer_heigth_profile_wrapper(layer_height_profile);
         ar(name, module_name, input_file, instances, volumes, config_wrapper, layer_config_ranges, layer_heigth_profile_wrapper,
-            sla_support_points, sla_points_status, sla_drain_holes, printable, origin_translation,
+            sla_support_points, sla_points_status, sla_drain_holes, printable, origin_translation, brim_points,
             m_bounding_box, m_bounding_box_valid, m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid,
             cut_connectors, cut_id);
     }
@@ -685,7 +692,7 @@ private:
         // BBS: add backup, check modify
         SaveObjectGaurd gaurd(*this);
         ar(name, module_name, input_file, instances, volumes, config_wrapper, layer_config_ranges, layer_heigth_profile_wrapper,
-            sla_support_points, sla_points_status, sla_drain_holes, printable, origin_translation,
+            sla_support_points, sla_points_status, sla_drain_holes, printable, origin_translation, brim_points,
             m_bounding_box, m_bounding_box_valid, m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid,
             cut_connectors, cut_id);
         std::vector<ObjectID> volume_ids2;
@@ -721,7 +728,23 @@ enum class EnforcerBlockerType : int8_t {
     Extruder14,
     Extruder15,
     Extruder16,
-    ExtruderMax = Extruder16
+    Extruder17,
+    Extruder18,
+    Extruder19,
+    Extruder20,
+    Extruder21,
+    Extruder22,
+    Extruder23,
+    Extruder24,
+    Extruder25,
+    Extruder26,
+    Extruder27,
+    Extruder28,
+    Extruder29,
+    Extruder30,
+    Extruder31,
+    Extruder32,
+    ExtruderMax = Extruder32
 };
 
 enum class ConversionType : int {
@@ -747,7 +770,10 @@ public:
     indexed_triangle_set get_facets(const ModelVolume& mv, EnforcerBlockerType type) const;
     // BBS
     void get_facets(const ModelVolume& mv, std::vector<indexed_triangle_set>& facets_per_type) const;
-    void set_enforcer_block_type_limit(const ModelVolume& mv, EnforcerBlockerType max_type);
+    void                 set_enforcer_block_type_limit(const ModelVolume  &mv,
+                                                       EnforcerBlockerType max_type,
+                                                       EnforcerBlockerType to_delete_filament = EnforcerBlockerType::NONE,
+                                                       EnforcerBlockerType replace_filament = EnforcerBlockerType::NONE);
     indexed_triangle_set get_facets_strict(const ModelVolume& mv, EnforcerBlockerType type) const;
     bool has_facets(const ModelVolume& mv, EnforcerBlockerType type) const;
     bool empty() const { return m_data.first.empty(); }
@@ -810,6 +836,7 @@ struct RaycastResult
 struct TextInfo
 {
     std::string m_font_name;
+    std::string m_font_version;
     float       m_font_size     = 16.f;
     int         m_curr_font_idx = 0;
     bool        m_bold          = true;
@@ -823,9 +850,9 @@ struct TextInfo
     std::string m_text;
 
     RaycastResult m_rr;
-
     template<typename Archive> void serialize(Archive &ar) {
-        ar(m_font_name, m_font_size, m_curr_font_idx, m_bold, m_italic, m_thickness, m_embeded_depth, m_rotate_angle, m_text_gap, m_is_surface_text, m_keep_horizontal, m_text, m_rr);
+        ar(m_font_name, m_font_version, m_font_size, m_curr_font_idx, m_bold, m_italic, m_thickness, m_embeded_depth, m_rotate_angle, m_text_gap, m_is_surface_text,
+           m_keep_horizontal, m_text, m_rr);
     }
 };
 
@@ -897,6 +924,7 @@ public:
     void                set_mesh(std::shared_ptr<const TriangleMesh> &mesh) { m_mesh = mesh; }
     void                set_mesh(std::unique_ptr<const TriangleMesh> &&mesh) { m_mesh = std::move(mesh); }
 	void				reset_mesh() { m_mesh = std::make_shared<const TriangleMesh>(); }
+    const std::shared_ptr<const TriangleMesh> &get_mesh_shared_ptr() const { return m_mesh; }
     // Configuration parameters specific to an object model geometry or a modifier volume,
     // overriding the global Slic3r settings and the ModelObject settings.
     ModelConfigObject	config;
@@ -917,6 +945,10 @@ public:
     // List of exterior faces
     FacetsAnnotation    exterior_facets;
 
+
+    // Is set only when volume is Embossed Shape
+    // Contain 2d information about embossed shape to be editabled
+    std::optional<EmbossShape> emboss_shape;
     // A parent object owning this modifier volume.
     ModelObject*        get_object() const { return this->object; }
     ModelVolumeType     type() const { return m_type; }
@@ -927,6 +959,8 @@ public:
 	bool                is_support_enforcer()   const { return m_type == ModelVolumeType::SUPPORT_ENFORCER; }
 	bool                is_support_blocker()    const { return m_type == ModelVolumeType::SUPPORT_BLOCKER; }
 	bool                is_support_modifier()   const { return m_type == ModelVolumeType::SUPPORT_BLOCKER || m_type == ModelVolumeType::SUPPORT_ENFORCER; }
+    bool                is_svg() const { return emboss_shape.has_value(); }
+    bool                is_the_only_one_part() const; // behave like an object
     t_model_material_id material_id() const { return m_material_id; }
     void                set_material_id(t_model_material_id material_id);
     void                reset_extra_facets();
@@ -943,11 +977,12 @@ public:
     // BBS
     std::vector<int>    get_extruders() const;
     void                update_extruder_count(size_t extruder_count);
+    void                update_extruder_count_when_delete_filament(size_t extruder_count, size_t filament_id, int replace_filament_id = -1);
 
     // Split this volume, append the result to the object owning this volume.
     // Return the number of volumes created from this one.
     // This is useful to assign different materials to different volumes of an object.
-    size_t              split(unsigned int max_extruders);
+    size_t              split(unsigned int max_extruders, float scale_det = 1.f);
     void                translate(double x, double y, double z) { translate(Vec3d(x, y, z)); }
     void                translate(const Vec3d& displacement);
     void                scale(const Vec3d& scaling_factors);
@@ -996,9 +1031,8 @@ public:
     double get_rotation(Axis axis) const { return m_transformation.get_rotation(axis); }
 
     void set_rotation(const Vec3d& rotation) { m_transformation.set_rotation(rotation); }
-    void set_rotation(Axis axis, double rotation) { m_transformation.set_rotation(axis, rotation); }
 
-    Vec3d get_scaling_factor() const { return m_transformation.get_scaling_factor(); }
+    const Vec3d &get_scaling_factor() const { return m_transformation.get_scaling_factor(); }
     double get_scaling_factor(Axis axis) const { return m_transformation.get_scaling_factor(axis); }
 
     void set_scaling_factor(const Vec3d& scaling_factor) { m_transformation.set_scaling_factor(scaling_factor); }
@@ -1015,9 +1049,8 @@ public:
 
     void set_text_info(const TextInfo& text_info) { m_text_info = text_info; }
     const TextInfo& get_text_info() const { return m_text_info; }
-
-    const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
-
+    bool  is_text() const { return !m_text_info.m_text.empty(); }
+    const Transform3d &get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const;
 	void set_new_unique_id() {
         ObjectBase::set_new_unique_id();
         this->config.set_new_unique_id();
@@ -1056,7 +1089,7 @@ private:
     std::shared_ptr<const TriangleMesh> m_convex_hull;
     //BBS: add convex hull 2d related logic
     mutable Polygon                     m_convex_hull_2d; //BBS, used for convex_hell_2d acceleration
-    mutable Transform3d                 m_cached_trans_matrix; //BBS, used for convex_hell_2d acceleration
+    mutable Transform3d                 m_cached_trans_matrix{Transform3d::Identity()}; // BBS, used for convex_hell_2d acceleration
     mutable Polygon                     m_cached_2d_polygon;   //BBS, used for convex_hell_2d acceleration
     Geometry::Transformation        	m_transformation;
 
@@ -1116,7 +1149,7 @@ private:
         name(other.name), source(other.source), m_mesh(other.m_mesh), m_convex_hull(other.m_convex_hull),
         config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation),
         supported_facets(other.supported_facets), seam_facets(other.seam_facets), mmu_segmentation_facets(other.mmu_segmentation_facets),
-        m_text_info(other.m_text_info)
+        m_text_info(other.m_text_info), emboss_shape(other.emboss_shape)
     {
 		assert(this->id().valid());
         assert(this->config.id().valid());
@@ -1136,7 +1169,8 @@ private:
     }
     // Providing a new mesh, therefore this volume will get a new unique ID assigned.
     ModelVolume(ModelObject *object, const ModelVolume &other, const TriangleMesh &&mesh) :
-        name(other.name), source(other.source), m_mesh(new TriangleMesh(std::move(mesh))), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
+        name(other.name), source(other.source), m_mesh(new TriangleMesh(std::move(mesh))), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation),
+        emboss_shape(other.emboss_shape)
     {
 		assert(this->id().valid());
         assert(this->config.id().valid());
@@ -1183,7 +1217,6 @@ private:
         auto tr = m_transformation;
         ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info, cut_info);
         mesh_changed |= !(tr == m_transformation);
-        if (mesh_changed) m_transformation.get_matrix(true, true, true, true); // force dirty
         auto t = supported_facets.timestamp();
         cereal::load_by_value(ar, supported_facets);
         mesh_changed |= t != supported_facets.timestamp();
@@ -1194,6 +1227,7 @@ private:
         cereal::load_by_value(ar, mmu_segmentation_facets);
         mesh_changed |= t != mmu_segmentation_facets.timestamp();
         cereal::load_by_value(ar, config);
+        cereal::load(ar, emboss_shape);
 		assert(m_mesh);
 		if (has_convex_hull) {
 			cereal::load_optional(ar, m_convex_hull);
@@ -1212,6 +1246,7 @@ private:
         cereal::save_by_value(ar, seam_facets);
         cereal::save_by_value(ar, mmu_segmentation_facets);
         cereal::save_by_value(ar, config);
+        cereal::save(ar, emboss_shape);
 		if (has_convex_hull)
 			cereal::save_optional(ar, m_convex_hull);
 	}
@@ -1231,6 +1266,7 @@ inline const ModelVolume* model_volume_find_by_id(const ModelVolumePtrs &model_v
 enum ModelInstanceEPrintVolumeState : unsigned char
 {
     ModelInstancePVS_Inside,
+    ModelInstancePVS_Limited,
     ModelInstancePVS_Partly_Outside,
     ModelInstancePVS_Fully_Outside,
     ModelInstanceNum_BedStates
@@ -1273,12 +1309,12 @@ public:
         m_assemble_initialized = true;
         m_assemble_transformation = transformation;
     }
-    void set_assemble_from_transform(Transform3d& transform) {
+    void set_assemble_from_transform(const Transform3d& transform) {
         m_assemble_initialized = true;
         m_assemble_transformation.set_from_transform(transform);
     }
     const Vec3d& get_assemble_offset() {return m_assemble_transformation.get_offset(); }
-    void set_assemble_offset(const Vec3d& offset) { m_assemble_transformation.set_offset(offset); }
+    void         set_assemble_offset(const Vec3d &offset){ m_assemble_initialized = true;m_assemble_transformation.set_offset(offset);}
     void set_assemble_rotation(const Vec3d &rotation) { m_assemble_transformation.set_rotation(rotation); }
     void rotate_assemble(double angle, const Vec3d& axis) {
         m_assemble_transformation.set_rotation(m_assemble_transformation.get_rotation() + Geometry::extract_euler_angles(Eigen::Quaterniond(Eigen::AngleAxisd(angle, axis)).toRotationMatrix()));
@@ -1298,16 +1334,9 @@ public:
     double get_rotation(Axis axis) const { return m_transformation.get_rotation(axis); }
 
     void set_rotation(const Vec3d& rotation) { m_transformation.set_rotation(rotation); }
-    void set_rotation(Axis axis, double rotation) { m_transformation.set_rotation(axis, rotation); }
 
     // BBS
-    void rotate(Matrix3d rotation_matrix) {
-        // note: must remove scaling from transformation, otherwise auto-orientation with scaled objects will have problem
-        auto R = get_matrix(true,false,true).matrix().block<3, 3>(0, 0);
-        auto R_new = rotation_matrix * R;
-        auto euler_angles = Geometry::extract_euler_angles(R_new);
-        set_rotation(euler_angles);
-    }
+    void rotate(Matrix3d rotation_matrix);
 
     const Vec3d& get_scaling_factor() const { return m_transformation.get_scaling_factor(); }
     double get_scaling_factor(Axis axis) const { return m_transformation.get_scaling_factor(axis); }
@@ -1328,13 +1357,13 @@ public:
     BoundingBoxf3 transform_mesh_bounding_box(const TriangleMesh& mesh, bool dont_translate = false) const;
     // Transform an external bounding box.
     BoundingBoxf3 transform_bounding_box(const BoundingBoxf3 &bbox, bool dont_translate = false) const;
+    BoundingBoxf3 transform_bounding_box_in_assembly_view(const BoundingBoxf3 &bbox, bool dont_translate = false) const;
     // Transform an external vector.
     Vec3d transform_vector(const Vec3d& v, bool dont_translate = false) const;
     // To be called on an external polygon. It does not translate the polygon, only rotates and scales.
     void transform_polygon(Polygon* polygon) const;
 
-    const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
-
+    const Transform3d &get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const;
     bool is_printable() const { return object->printable && printable && (print_volume_state == ModelInstancePVS_Inside); }
     bool is_assemble_initialized() { return m_assemble_initialized; }
 
@@ -1350,14 +1379,7 @@ public:
     void get_arrange_polygon(void *arrange_polygon, const Slic3r::DynamicPrintConfig &config = Slic3r::DynamicPrintConfig()) const;
 
     // Apply the arrange result on the ModelInstance
-    void apply_arrange_result(const Vec2d& offs, double rotation)
-    {
-        // write the transformation data into the model instance
-        set_rotation(Z, rotation);
-        set_offset(X, unscale<double>(offs(X)));
-        set_offset(Y, unscale<double>(offs(Y)));
-        this->object->invalidate_bounding_box();
-    }
+    void apply_arrange_result(const Vec2d &offs, double rotation);
 
 protected:
     friend class Print;
@@ -1519,6 +1541,11 @@ public:
     std::string stl_design_id;
     std::string design_id;
     std::string stl_design_country;
+
+    std::string  makerlab_region;
+    std::string  makerlab_name;
+    std::string  makerlab_id;
+
     std::shared_ptr<ModelDesignInfo> design_info = nullptr;
     std::shared_ptr<ModelInfo> model_info = nullptr;
     std::shared_ptr<ModelProfileInfo> profile_info = nullptr;
@@ -1565,6 +1592,15 @@ public:
 
     OBJECTBASE_DERIVED_COPY_MOVE_CLONE(Model)
 
+    static Model read_from_step(const std::string&                                      input_file,
+                                LoadStrategy                                            options,
+                                ImportStepProgressFn                                    stepFn,
+                                StepIsUtf8Fn                                            stepIsUtf8Fn,
+                                std::function<int(Slic3r::Step&, double&, double&, bool&)>     step_mesh_fn,
+                                double                                                  linear_defletion,
+                                double                                                  angle_defletion,
+                                bool                                                    is_split_compound);
+
     //BBS: add part plate related logic
     // BBS: backup
     //BBS: is_xxx is used for is_bbs_3mf when loading 3mf, is used for is_inches when loading amf
@@ -1574,8 +1610,6 @@ public:
         LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr,
         std::vector<Preset*>* project_presets = nullptr, bool* is_xxx = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr,
                                 ImportstlProgressFn        stlFn                = nullptr,
-                                ImportStepProgressFn       stepFn               = nullptr,
-                                StepIsUtf8Fn               stepIsUtf8Fn         = nullptr,
                                 BBLProject *               project              = nullptr,
                                 int                        plate_id             = 0,
                                 ObjImportColorFn           objFn                = nullptr
@@ -1589,7 +1623,7 @@ public:
     static Polygon getBedPolygon() { return Model::printSpeedMap.bed_poly; }
     //BBS static functions that update extruder params and speed table
     static void setPrintSpeedTable(const DynamicPrintConfig& config, const PrintConfig& print_config);
-    static void setExtruderParams(const DynamicPrintConfig& config, int extruders_count);
+    static void setExtruderParams(const DynamicPrintConfig& config, int filament_count);
 
     // BBS: backup
     static Model read_from_archive(
@@ -1602,6 +1636,7 @@ public:
     ModelObject* add_object(const char *name, const char *path, const TriangleMesh &mesh);
     ModelObject* add_object(const char *name, const char *path, TriangleMesh &&mesh);
     ModelObject* add_object(const ModelObject &other);
+    void         set_assembly_pos(ModelObject * model_object);
     void         delete_object(size_t idx);
     bool         delete_object(ObjectID id);
     bool         delete_object(ModelObject* object);
@@ -1624,6 +1659,7 @@ public:
     bool          add_default_instances();
     // Returns approximate axis aligned bounding box of this model
     BoundingBoxf3 bounding_box() const;
+    BoundingBoxf3 bounding_box_in_assembly_view() const;
     // Set the print_volume_state of PrintObject::instances,
     // return total number of printable objects.
     unsigned int  update_print_volume_state(const BuildVolume &build_volume);
@@ -1727,6 +1763,8 @@ bool model_custom_seam_data_changed(const ModelObject& mo, const ModelObject& mo
 // Test whether the now ModelObject has newer MMU segmentation data than the old one.
 // The function assumes that volumes list is synchronized.
 extern bool model_mmu_segmentation_data_changed(const ModelObject& mo, const ModelObject& mo_new);
+
+bool model_brim_points_data_changed(const ModelObject& mo, const ModelObject& mo_new);
 
 // If the model has multi-part objects, then it is currently not supported by the SLA mode.
 // Either the model cannot be loaded, or a SLA printer has to be activated.

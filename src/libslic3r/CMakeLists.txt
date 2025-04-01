@@ -60,9 +60,15 @@ set(lisbslic3r_sources
     EdgeGrid.hpp
     ElephantFootCompensation.cpp
     ElephantFootCompensation.hpp
+    Emboss.cpp
+    Emboss.hpp
+    EmbossShape.hpp
     enum_bitmask.hpp
     ExPolygon.cpp
     ExPolygon.hpp
+    ExPolygonSerialize.hpp
+    ExPolygonsIndex.cpp
+    ExPolygonsIndex.hpp
     Extruder.cpp
     Extruder.hpp
     ExtrusionEntity.cpp
@@ -106,8 +112,12 @@ set(lisbslic3r_sources
     Fill/Lightning/TreeNode.hpp
     Fill/FillRectilinear.cpp
     Fill/FillRectilinear.hpp
+    Fill/FillFloatingConcentric.hpp
+    Fill/FillFloatingConcentric.cpp
     Flow.cpp
     Flow.hpp
+    Frustum.cpp
+    Frustum.hpp
     FlushVolCalc.cpp
     FlushVolCalc.hpp
     format.hpp
@@ -131,8 +141,8 @@ set(lisbslic3r_sources
     Format/svg.cpp
     GCode/ThumbnailData.cpp
     GCode/ThumbnailData.hpp
-    GCode/CoolingBuffer.cpp
-    GCode/CoolingBuffer.hpp
+    GCode/GCodeEditor.cpp
+    GCode/GCodeEditor.hpp
     GCode/PostProcessor.cpp
     GCode/PostProcessor.hpp
 #    GCode/PressureEqualizer.cpp
@@ -155,6 +165,10 @@ set(lisbslic3r_sources
     GCode/AvoidCrossingPerimeters.hpp
     GCode/ConflictChecker.cpp
     GCode/ConflictChecker.hpp
+    GCode/Smoothing.cpp
+    GCode/Smoothing.hpp
+    GCode/CoolingBuffer.cpp
+    GCode/CoolingBuffer.hpp
     GCode.cpp
     GCode.hpp
     GCodeReader.cpp
@@ -222,6 +236,8 @@ set(lisbslic3r_sources
     MutablePriorityQueue.hpp
     ObjectID.cpp
     ObjectID.hpp
+    NSVGUtils.cpp
+    NSVGUtils.hpp
 	ParameterUtils.cpp
     ParameterUtils.hpp
     PerimeterGenerator.cpp
@@ -279,6 +295,8 @@ set(lisbslic3r_sources
     SlicesToTriangleMesh.cpp
     SlicingAdaptive.cpp
     SlicingAdaptive.hpp
+    Support/SupportCommon.cpp
+    Support/SupportCommon.hpp
     Support/SupportMaterial.cpp
     Support/SupportMaterial.hpp
     Support/TreeSupport.hpp
@@ -288,6 +306,7 @@ set(lisbslic3r_sources
     Support/TreeModelVolumes.hpp
     Support/TreeModelVolumes.cpp
     Support/TreeSupportCommon.hpp
+    Support/SupportParameters.hpp
     MinimumSpanningTree.hpp
     MinimumSpanningTree.cpp
     Surface.cpp
@@ -311,6 +330,8 @@ set(lisbslic3r_sources
     Utils.hpp
     Time.cpp
     Time.hpp
+    Timer.cpp
+    Timer.hpp
     Thread.cpp
     Thread.hpp
     TriangleSelector.cpp
@@ -382,6 +403,8 @@ set(lisbslic3r_sources
     Arachne/BeadingStrategy/RedistributeBeadingStrategy.cpp
     Arachne/BeadingStrategy/WideningBeadingStrategy.hpp
     Arachne/BeadingStrategy/WideningBeadingStrategy.cpp
+    Arachne/BeadingStrategy/OuterWallContourStrategy.hpp
+    Arachne/BeadingStrategy/OuterWallContourStrategy.cpp
     Arachne/utils/ExtrusionJunction.hpp
     Arachne/utils/ExtrusionJunction.cpp
     Arachne/utils/ExtrusionLine.hpp
@@ -411,6 +434,20 @@ set(lisbslic3r_sources
     RegionExpansion.hpp
     RegionExpansion.cpp
     ClipperZUtils.hpp
+    FlushVolPredictor.hpp
+    FlushVolPredictor.cpp
+    FilamentGroup.hpp
+    FilamentGroup.cpp
+    FilamentGroupUtils.hpp
+    FilamentGroupUtils.cpp
+    GCode/ToolOrderUtils.hpp
+    GCode/ToolOrderUtils.cpp
+    FlushVolPredictor.hpp
+    FlushVolPredictor.cpp
+    Interlocking/InterlockingGenerator.hpp
+    Interlocking/InterlockingGenerator.cpp
+    Interlocking/VoxelUtils.hpp
+    Interlocking/VoxelUtils.cpp
 )
 
 if (APPLE)
@@ -421,7 +458,7 @@ if (APPLE)
         )
 endif ()
 
-add_library(libslic3r STATIC ${lisbslic3r_sources} 
+add_library(libslic3r STATIC ${lisbslic3r_sources}
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h"
     ${OpenVDBUtils_SOURCES})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${lisbslic3r_sources})
@@ -437,8 +474,12 @@ find_package(CGAL REQUIRED)
 find_package(OpenCV REQUIRED core)
 cmake_policy(POP)
 
-add_library(libslic3r_cgal STATIC MeshBoolean.cpp MeshBoolean.hpp  TryCatchSignal.hpp
-    TryCatchSignal.cpp)
+add_library(libslic3r_cgal STATIC
+    CutSurface.hpp CutSurface.cpp
+    IntersectionPoints.hpp IntersectionPoints.cpp
+    MeshBoolean.hpp MeshBoolean.cpp
+    TryCatchSignal.hpp TryCatchSignal.cpp
+    Triangulation.hpp Triangulation.cpp)
 target_include_directories(libslic3r_cgal PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 # Reset compile options of libslic3r_cgal. Despite it being linked privately, CGAL options

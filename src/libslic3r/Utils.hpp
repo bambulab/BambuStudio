@@ -60,9 +60,14 @@
 #define CLI_OBJECT_COLLISION_IN_SEQ_PRINT   -63
 #define CLI_OBJECT_COLLISION_IN_LAYER_PRINT -64
 #define CLI_SPIRAL_MODE_INVALID_PARAMS      -65
+#define CLI_FILAMENT_CAN_NOT_MAP      -66
+#define CLI_ONLY_ONE_TPU_SUPPORTED      -67
+#define CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER  -68
 
 #define CLI_SLICING_ERROR                  -100
 #define CLI_GCODE_PATH_CONFLICTS           -101
+#define CLI_GCODE_PATH_IN_UNPRINTABLE_AREA -102
+#define CLI_FILAMENT_UNPRINTABLE_ON_FIRST_LAYER -103
 
 
 namespace boost { namespace filesystem { class directory_entry; }}
@@ -129,6 +134,39 @@ inline DataType round_up_divide(DataType dividend, DataType divisor) //!< Return
     return (dividend + divisor - 1) / divisor;
 }
 
+template<typename T>
+T get_max_element(const std::vector<T> &vec)
+{
+    static_assert(std::is_arithmetic<T>::value, "T must be of numeric type.");
+    if (vec.empty())
+        return static_cast<T>(0);
+
+    return *std::max_element(vec.begin(), vec.end());
+}
+
+
+template <typename From, typename To>
+std::vector<To> convert_vector(const std::vector<From>& src) {
+    std::vector<To> dst;
+    dst.reserve(src.size());
+    for (const auto& elem : src) {
+        if constexpr (std::is_signed_v<To>) {
+            if (elem > static_cast<From>(std::numeric_limits<To>::max())) {
+                throw std::overflow_error("Source value exceeds destination maximum");
+            }
+            if (elem < static_cast<From>(std::numeric_limits<To>::min())) {
+                throw std::underflow_error("Source value below destination minimum");
+            }
+        }
+        else {
+            if (elem < 0) {
+                throw std::invalid_argument("Negative value in source for unsigned destination");
+            }
+        }
+        dst.push_back(static_cast<To>(elem));
+    }
+    return dst;
+}
 
 // Set a path with GUI localization files.
 void set_local_dir(const std::string &path);
@@ -169,6 +207,7 @@ typedef std::string local_encoded_string;
 extern local_encoded_string encode_path(const char *src);
 extern std::string decode_path(const char *src);
 extern std::string normalize_utf8_nfc(const char *src);
+extern std::vector<std::string> split_string(const std::string &str, char delimiter);
 
 // Safely rename a file even if the target exists.
 // On Windows, the file explorer (or anti-virus or whatever else) often locks the file
@@ -354,6 +393,7 @@ inline typename CONTAINER_TYPE::value_type& next_value_modulo(typename CONTAINER
 }
 
 extern std::string xml_escape(std::string text, bool is_marked = false);
+extern std::string xml_escape_double_quotes_attribute_value(std::string text);
 extern std::string xml_unescape(std::string text);
 
 
@@ -575,6 +615,45 @@ inline std::string get_bbl_monitor_time_dhm(float time_in_secs)
     }
 
     return buffer;
+}
+
+inline std::string get_bbl_finish_time_dhm(float time_in_secs)
+{
+    if (time_in_secs < 1) return "Finished";
+    time_t   finish_time    = std::time(nullptr) + static_cast<time_t>(time_in_secs);
+    std::tm *finish_tm      = std::localtime(&finish_time);
+    int      finish_hour    = finish_tm->tm_hour;
+    int      finish_minute  = finish_tm->tm_min;
+    int      finish_day     = finish_tm->tm_yday;
+    int      finish_year    = finish_tm->tm_year + 1900;
+    time_t   current_time   = std::time(nullptr);
+    std::tm *current_tm     = std::localtime(&current_time);
+    int      current_day    = current_tm->tm_yday;
+    int      current_year   = current_tm->tm_year + 1900;
+
+    int diff_day = 0;
+    if (current_year != finish_year) {
+        if ((current_year % 4 == 0 && current_year % 100 != 0) || current_year % 400 == 0)
+            diff_day = 366 - current_day;
+        else
+            diff_day = 365 - current_day;
+        for (int year = current_year + 1; year < finish_year; year++) {
+            if ((current_year % 4 == 0 && current_year % 100 != 0) || current_year % 400 == 0)
+                diff_day += 366;
+            else
+                diff_day += 365;
+        }
+        diff_day += finish_day;
+    } else {
+        diff_day = finish_day - current_day;
+    }
+
+    std::ostringstream formattedTime;
+    formattedTime << std::setw(2) << std::setfill('0') << finish_hour << ":" << std::setw(2) << std::setfill('0') << finish_minute;
+    std::string finish_time_str = formattedTime.str();
+    if (diff_day != 0) finish_time_str += "+" + std::to_string(diff_day);
+
+    return finish_time_str;
 }
 
 inline std::string get_bbl_remain_time_dhms(float time_in_secs)

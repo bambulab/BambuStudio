@@ -47,8 +47,9 @@ struct SettingsFactory
 class MenuFactory
 {
 public:
-    static const std::vector<std::pair<std::string, std::string>> ADD_VOLUME_MENU_ITEMS;
     static std::vector<wxBitmap>    get_volume_bitmaps();
+    static std::vector<wxBitmap>    get_text_volume_bitmaps();
+    static std::vector<wxBitmap>    get_svg_volume_bitmaps();
 
     MenuFactory();
     ~MenuFactory() = default;
@@ -66,6 +67,9 @@ public:
     wxMenu* object_menu();
     wxMenu* sla_object_menu();
     wxMenu* part_menu();
+    wxMenu *text_part_menu();
+    wxMenu *svg_part_menu();
+    wxMenu* cut_connector_menu();
     wxMenu* instance_menu();
     wxMenu* layer_menu();
     wxMenu* multi_selection_menu();
@@ -74,6 +78,8 @@ public:
     wxMenu* assemble_object_menu();
     wxMenu* assemble_part_menu();
     wxMenu* assemble_multi_selection_menu();
+
+    wxMenu *filament_action_menu(int active_filament_menu_id);
 
 private:
     enum MenuType {
@@ -86,6 +92,9 @@ private:
 
     MenuWithSeparators m_object_menu;
     MenuWithSeparators m_part_menu;
+    MenuWithSeparators m_text_part_menu;
+    MenuWithSeparators m_svg_part_menu;
+    MenuWithSeparators m_cut_cutter_menu;
     MenuWithSeparators m_sla_object_menu;
     MenuWithSeparators m_default_menu;
     MenuWithSeparators m_instance_menu;
@@ -93,6 +102,8 @@ private:
     MenuWithSeparators m_plate_menu;
     MenuWithSeparators m_assemble_object_menu;
     MenuWithSeparators m_assemble_part_menu;
+
+    wxMenu m_filament_action_menu;
 
     int object_menu_count{ 0 };
     int part_menu_count{ 0 };
@@ -112,6 +123,8 @@ private:
     void        create_object_menu();
     void        create_sla_object_menu();
     void        create_part_menu();
+    void        create_text_part_menu();
+    void        create_svg_part_menu();
     //BBS: add part plate related logic
     void        create_plate_menu();
     //BBS: add bbl object menu
@@ -119,8 +132,12 @@ private:
     void        create_bbl_part_menu();
     void        create_bbl_assemble_object_menu();
     void        create_bbl_assemble_part_menu();
+    void        create_cut_cutter_menu();
+
+    void        create_filament_action_menu(bool init, int active_filament_menu_id);
 
     wxMenu*     append_submenu_add_generic(wxMenu* menu, ModelVolumeType type);
+    void        append_menu_item_add_svg(wxMenu *menu, ModelVolumeType type, bool is_submenu_item = true);
     void        append_menu_items_add_volume(wxMenu* menu);
     wxMenuItem* append_menu_item_layers_editing(wxMenu* menu);
     wxMenuItem* append_menu_item_settings(wxMenu* menu);
@@ -136,7 +153,7 @@ private:
     void        append_menu_item_change_extruder(wxMenu* menu);
     void        append_menu_item_set_visible(wxMenu* menu);
     void        append_menu_item_delete(wxMenu* menu);
-    void        append_menu_item_edit_text(wxMenu *menu);
+    void        append_menu_item_delete_all_cutter(wxMenu *menu);
     void        append_menu_item_scale_selection_to_fit_print_volume(wxMenu* menu);
     void        append_menu_items_convert_unit(wxMenu* menu); // Add "Conver/Revert..." menu items (from/to inches/meters) after "Reload From Disk"
     void        append_menu_items_flush_options(wxMenu* menu);
@@ -145,6 +162,8 @@ private:
     void        append_menu_item_merge_parts_to_single_part(wxMenu *menu);
     void        append_menu_items_mirror(wxMenu *menu);
     void        append_menu_item_invalidate_cut_info(wxMenu *menu);
+    void        append_menu_item_edit_text(wxMenu *menu);
+    void        append_menu_item_edit_svg(wxMenu *menu);
 
     //void        append_menu_items_instance_manipulation(wxMenu *menu);
     //void        update_menu_items_instance_manipulation(MenuType type);

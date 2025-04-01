@@ -2134,7 +2134,7 @@ bool ImGui::BBLBeginCombo(const char *label, const char *preview_value, ImGuiCom
     bool hovered, held;
     bool pressed = ButtonBehavior(frame_bb, id, &hovered, &held);
 
-    bool push_color_count = 0;
+    unsigned int push_color_count = 0;
     if (hovered || g.ActiveId == id) {
         ImGui::PushStyleColor(ImGuiCol_Border, GetColorU32(ImGuiCol_BorderActive));
         push_color_count = 1;
@@ -2168,7 +2168,7 @@ bool ImGui::BBLBeginCombo(const char *label, const char *preview_value, ImGuiCom
         OpenPopupEx(popup_id, ImGuiPopupFlags_None);
         popup_open = true;
     }
-     if (push_color_count > 0) { ImGui::PopStyleColor(push_color_count); }
+    if (push_color_count > 0) { ImGui::PopStyleColor(push_color_count); }
     if (!popup_open) return false;
 
     if (has_window_size_constraint) {
@@ -3070,7 +3070,7 @@ bool ImGui::BBLDragFloat(const char *label, float *v, float v_speed, float v_min
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.00f, 0.68f, 0.26f, 0.00f));
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.00f, 0.68f, 0.26f, 0.00f));
     bool bbl_drag_scalar = BBLDragScalar(label, ImGuiDataType_Float, v, v_speed, &v_min, &v_max, format, flags);
-    if (v_max > v_min + 0.001) { 
+    if (v_max > v_min + 0.001) {
         *v = std::clamp(*v, v_min, v_max);
     }
     ImGui::PopStyleColor(3);
@@ -4170,7 +4170,7 @@ bool ImGui::BBLInputScalar(const char *label, ImGuiDataType data_type, void *p_d
     // We are only allowed to access the state if we are already the active widget.
     ImGuiInputTextState *state = GetInputTextState(id);
 
-    bool push_color_count = 0;
+    unsigned int push_color_count = 0;
     if (hovered || g.ActiveId == id) {
         ImGui::PushStyleColor(ImGuiCol_Border, GetColorU32(ImGuiCol_BorderActive));
         push_color_count = 1;
@@ -4815,8 +4815,9 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
         PushStyleColor(ImGuiCol_ChildBg, style.Colors[ImGuiCol_FrameBg]);
         PushStyleVar(ImGuiStyleVar_ChildRounding, style.FrameRounding);
         PushStyleVar(ImGuiStyleVar_ChildBorderSize, style.FrameBorderSize);
+        PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0)); // Ensure no clip rect so mouse hover can reach FramePadding edges
         bool child_visible = BeginChildEx(label, id, frame_bb.GetSize(), true, ImGuiWindowFlags_NoMove);
-        PopStyleVar(2);
+        PopStyleVar(3);
         PopStyleColor();
         if (!child_visible)
         {
@@ -5454,7 +5455,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
                 // Test if cursor is vertically visible
                 if (cursor_offset.y - g.FontSize < scroll_y)
                     scroll_y = ImMax(0.0f, cursor_offset.y - g.FontSize);
-                else if (cursor_offset.y - inner_size.y >= scroll_y)
+                else if (cursor_offset.y - (inner_size.y - style.FramePadding.y * 2.0f) >= scroll_y)
                     scroll_y = cursor_offset.y - inner_size.y + style.FramePadding.y * 2.0f;
                 const float scroll_max_y = ImMax((text_size.y + style.FramePadding.y * 2.0f) - inner_size.y, 0.0f);
                 scroll_y = ImClamp(scroll_y, 0.0f, scroll_max_y);

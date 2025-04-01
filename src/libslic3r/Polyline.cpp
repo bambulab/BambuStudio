@@ -13,7 +13,7 @@ const Point& Polyline::leftmost_point() const
 {
     const Point *p = &this->points.front();
     for (Points::const_iterator it = this->points.begin() + 1; it != this->points.end(); ++ it) {
-        if (it->x() < p->x()) 
+        if (it->x() < p->x())
         	p = &(*it);
     }
     return *p;
@@ -122,7 +122,7 @@ Points Polyline::equally_spaced_points(double distance) const
     Points points;
     points.emplace_back(this->first_point());
     double len = 0;
-    
+
     for (Points::const_iterator it = this->points.begin() + 1; it != this->points.end(); ++it) {
         Vec2d  p1 = (it-1)->cast<double>();
         Vec2d  v  = it->cast<double>() - p1;
@@ -172,7 +172,7 @@ Polylines Polyline::equally_spaced_lines(double distance) const
         if (len == distance) {
             line.append(*it);
             lines.emplace_back(line);
-            
+
             line.clear();
             line.append(*it);
             len = 0;
@@ -202,7 +202,7 @@ template <class T>
 void Polyline::simplify_by_visibility(const T &area)
 {
     Points &pp = this->points;
-    
+
     size_t s = 0;
     bool did_erase = false;
     for (size_t i = s+2; i < pp.size(); i = s + 2) {
@@ -232,7 +232,7 @@ void Polyline::split_at(Point &point, Polyline* p1, Polyline* p2) const
         point = p1->is_valid()? p1->last_point(): p2->first_point();
         return;
     }
-    
+
     //1 find the line to split at
     size_t line_idx = 0;
     Point p = this->first_point();
@@ -530,6 +530,30 @@ BoundingBox get_extents(const Polylines &polylines)
     return bb;
 }
 
+// Return True when erase some otherwise False.
+bool remove_same_neighbor(Polyline &polyline)
+{
+    Points &points = polyline.points;
+    if (points.empty()) return false;
+    auto last = std::unique(points.begin(), points.end());
+
+    // no duplicits
+    if (last == points.end()) return false;
+
+    points.erase(last, points.end());
+    return true;
+}
+
+bool remove_same_neighbor(Polylines &polylines)
+{
+    if (polylines.empty()) return false;
+    bool exist = false;
+    for (Polyline &polyline : polylines) exist |= remove_same_neighbor(polyline);
+    // remove empty polylines
+    polylines.erase(std::remove_if(polylines.begin(), polylines.end(), [](const Polyline &p) { return p.points.size() <= 1; }), polylines.end());
+    return exist;
+}
+
 const Point& leftmost_point(const Polylines &polylines)
 {
     if (polylines.empty())
@@ -550,7 +574,7 @@ bool remove_degenerate(Polylines &polylines)
     size_t j = 0;
     for (size_t i = 0; i < polylines.size(); ++ i) {
         if (polylines[i].points.size() >= 2) {
-            if (j < i) 
+            if (j < i)
                 std::swap(polylines[i].points, polylines[j].points);
             ++ j;
         } else
@@ -592,6 +616,58 @@ ThickLines ThickPolyline::thicklines() const
             lines.emplace_back(this->points[i], this->points[i + 1], this->width[2 * i], this->width[2 * i + 1]);
     }
     return lines;
+}
+
+Polyline Polyline::rebase_at(size_t idx)
+{
+    if (!this->is_closed())
+        return  {};
+    Polyline ret = *this;
+    size_t n = this->points.size();
+    for (size_t j = 0; j < n - 1; ++j) {
+        ret.points[j] = this->points[(idx + j) % (n - 1)];
+    }
+    ret.points[n - 1] = ret.points.front();
+    return ret;
+}
+
+ThickPolyline ThickPolyline::rebase_at(size_t idx)
+{
+    if (!this->is_closed())
+        return {};
+
+    ThickPolyline ret = *this;
+    static_cast<Polyline&>(ret) = Polyline::rebase_at(idx);
+    size_t n = this->points.size();
+    ret.width.resize(2 * n - 2, 0);
+
+    auto get_in_width = [&](size_t i)->double {
+        if (i == 0) return this->width[0];
+        if (i == n - 1) return this->width.back();
+        return this->width[2 * i - 1];
+        };
+    auto get_out_width = [&](size_t i)->double {
+        if (i == 0) return this->width[0];
+        if (i == n - 1) return this->width.back();
+        return this->width[2 * i];
+        };
+
+    ret.width[0] = get_out_width(idx % (n-1));
+    for (size_t j = 1; j < n - 1; ++j) {
+        size_t i = (idx + j) % (n-1);
+        ret.width[2 * j - 1] = get_in_width(i);
+        ret.width[2 * j] = get_out_width(i);
+    }
+
+    ret.width[2 * n - 3] = ret.width.front();
+    return ret;
+}
+
+coordf_t ThickPolyline::get_width_at(size_t point_idx) const
+{
+    if (point_idx < 2)
+        return width[point_idx];
+    return width[2 * point_idx - 1];
 }
 
 Lines3 Polyline3::lines() const

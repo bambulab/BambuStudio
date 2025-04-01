@@ -28,7 +28,7 @@
 #include <stddef.h>
 
 #include <vector>
-#include <Eigen/Geometry> 
+#include <Eigen/Geometry>
 
 // Size of the binary STL header, free form.
 #define LABEL_SIZE             80
@@ -45,7 +45,8 @@ typedef Eigen::Matrix<int,   3, 1, Eigen::DontAlign> stl_triangle_vertex_indices
 static_assert(sizeof(stl_vertex) == 12, "size of stl_vertex incorrect");
 static_assert(sizeof(stl_normal) == 12, "size of stl_normal incorrect");
 
-typedef std::function<void(int current, int total, bool& cancel, std::string& model_id, std::string& code)> ImportstlProgressFn;
+typedef std::function<void(int current, int total, bool& cancel, std::string& model_id, std::string& code,
+    std::string& ml_region, std::string& ml_name, std::string& ml_id)> ImportstlProgressFn;
 
 typedef enum {
     eNormal,  // normal face
@@ -177,7 +178,7 @@ struct FaceProperty
     std::string to_string() const
     {
         std::string str;
-        // skip normal type facet to improve performance 
+        // skip normal type facet to improve performance
         if (type > eNormal && type < eMaxNumFaceTypes) {
             str += std::to_string(type);
             if (area != 0.f)
@@ -229,7 +230,16 @@ struct indexed_triangle_set
     size_t memsize() const {
         return sizeof(*this) + (sizeof(stl_triangle_vertex_indices) + sizeof(FaceProperty)) * indices.size() + sizeof(stl_vertex) * vertices.size();
     }
-
+    void   add_indice(int f0, int f1, int f2, bool check_pts_size = false)
+    {
+        if (f0 < 0 || f1 < 0 || f2 < 0) { return; }
+        if (check_pts_size) {
+            auto pts_size = vertices.size();
+            if (f0 < pts_size && f1 < pts_size  && f2 < pts_size) { indices.emplace_back(f0, f1, f2); }
+        } else {
+            indices.emplace_back(f0, f1, f2);
+        }
+    }
     std::vector<stl_triangle_vertex_indices>    indices;
     std::vector<stl_vertex>                     vertices;
     std::vector<FaceProperty>                   properties;

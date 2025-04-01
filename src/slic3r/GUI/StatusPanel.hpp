@@ -13,7 +13,6 @@
 #include <wx/sizer.h>
 #include <wx/gbsizer.h>
 #include <wx/webrequest.h>
-#include "wxMediaCtrl2.h"
 #include "MediaPlayCtrl.h"
 #include "AMSSetting.hpp"
 #include "Calibration.hpp"
@@ -30,6 +29,7 @@
 #include "Widgets/ProgressBar.hpp"
 #include "Widgets/ImageSwitchButton.hpp"
 #include "Widgets/AMSControl.hpp"
+#include "Widgets/FilamentLoad.hpp"
 #include "Widgets/FanControl.hpp"
 #include "HMS.hpp"
 
@@ -39,6 +39,9 @@ class StepIndicator;
 
 namespace Slic3r {
 namespace GUI {
+
+// Previous definitions
+class MessageDialog;
 
 enum CameraRecordingStatus {
     RECORDING_NONE,
@@ -62,6 +65,13 @@ enum PrintingTaskType {
     NOT_CLEAR
 };
 
+enum ExtruderState {
+    FILLED_LOAD,
+    FILLED_UNLOAD,
+    EMPTY_LOAD,
+    EMPTY_UNLOAD
+};
+
 struct ScoreData
 {
     int                                            rating_id;
@@ -78,6 +88,94 @@ struct ScoreData
 
 typedef std::function<void(BBLModelTask* subtask)> OnGetSubTaskFn;
 
+class ExtruderImage : public wxWindow
+{
+    ScalableBitmap *m_pipe_filled_load;
+    ScalableBitmap *m_pipe_filled_unload;
+    ScalableBitmap *m_pipe_empty_load;
+    ScalableBitmap *m_pipe_empty_unload;
+
+    ScalableBitmap *m_pipe_filled_load_unselected;
+    ScalableBitmap *m_pipe_filled_unload_unselected;
+    ScalableBitmap *m_pipe_empty_load_unselected;
+    ScalableBitmap *m_pipe_empty_unload_unselected;
+
+    ScalableBitmap *m_left_extruder_active_filled;
+    ScalableBitmap *m_left_extruder_active_empty;
+    ScalableBitmap *m_left_extruder_unactive_filled;
+    ScalableBitmap *m_left_extruder_unactive_empty;
+    ScalableBitmap *m_right_extruder_active_filled;
+    ScalableBitmap *m_right_extruder_active_empty;
+    ScalableBitmap *m_right_extruder_unactive_filled;
+    ScalableBitmap *m_right_extruder_unactive_empty;
+
+    ScalableBitmap *m_extruder_single_nozzle_empty_load;
+    ScalableBitmap *m_extruder_single_nozzle_empty_unload;
+    ScalableBitmap *m_extruder_single_nozzle_filled_load;
+    ScalableBitmap *m_extruder_single_nozzle_filled_unload;
+
+    ExtruderState m_left_ext_state   = {ExtruderState::EMPTY_LOAD};
+    ExtruderState m_right_ext_state  = {ExtruderState::EMPTY_LOAD};
+    ExtruderState m_single_ext_state = {ExtruderState::EMPTY_LOAD};
+
+public:
+    void update(int nozzle_num, int nozzle_id);
+    void update(ExtruderState single_state);
+    void update(ExtruderState right_state, ExtruderState left_state);
+
+    void msw_rescale();
+    void setExtruderCount(int nozzle_num);
+    void setExtruderUsed(std::string loc);
+    void paintEvent(wxPaintEvent &evt);
+
+    void     render(wxDC &dc);
+    bool     m_show_state       = {false};
+    int      m_nozzle_num       = 1;
+    int      current_nozzle_idx = 0;
+    std::string current_nozzle_loc = "";
+    wxColour m_colour;
+
+    string m_file_name;
+    bool   m_ams_loading{false};
+    void   doRender(wxDC &dc);
+    ExtruderImage(wxWindow *parent, wxWindowID id, int nozzle_num, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    ~ExtruderImage();
+};
+
+class ExtruderSwithingStatus : public wxPanel
+{
+public:
+    ExtruderSwithingStatus(wxWindow *parent);
+    ~ExtruderSwithingStatus() = default;
+
+public:
+    void updateBy(MachineObject *obj);
+    bool has_content_shown() const;
+
+    void msw_rescale();
+
+private:
+    void updateSwitchingLabel(const ExtruderSwitchState &state);
+
+    void updateBy(const ExtderData& ext_data);
+    void updateBtnGroup(const ExtderData &ext_data);
+    void showQuitBtn(bool show);
+    void showRetryBtn(bool show);
+
+    void on_quit(wxCommandEvent &event);
+    void on_retry(wxCommandEvent &event);
+
+private:
+    MachineObject *m_obj = nullptr;
+
+    Label  *m_switching_status_label = nullptr;
+    Button *m_button_quit      = nullptr;
+    Button *m_button_retry     = nullptr;
+
+    /*the last control time*/
+    time_t m_last_ctrl_time = 0;
+};
+
 class ScoreDialog : public GUI::DPIDialog
 {
 public:
@@ -91,11 +189,11 @@ public:
     void      set_cloud_bitmap(std::vector<std::string> cloud_bitmaps);
 
 protected:
-    enum StatusCode { 
-        UPLOAD_PROGRESS = 0, 
-        UPLOAD_EXIST_ISSUE, 
+    enum StatusCode {
+        UPLOAD_PROGRESS = 0,
+        UPLOAD_EXIST_ISSUE,
         UPLOAD_IMG_FAILED,
-        CODE_NUMBER 
+        CODE_NUMBER
     };
 
     std::shared_ptr<int>     m_tocken;
@@ -113,7 +211,7 @@ protected:
     {
         wxString          local_image_url; //local image path
         std::string       img_url_paths; // oss url path
-        vector<wxPanel *> image_broad; 
+        vector<wxPanel *> image_broad;
         bool              is_selected;
         bool              is_uploaded; // load
         wxBoxSizer *      image_tb_broad = nullptr;
@@ -148,7 +246,19 @@ protected:
     std::set<std::pair<wxStaticBitmap *, wxString>>        add_need_upload_imgs();
     std::pair<wxStaticBitmap *, ImageMsg>                  create_local_thumbnail(wxString &local_path);
     std::pair<wxStaticBitmap *, ImageMsg>                  create_oss_thumbnail(std::string &oss_path);
-    
+
+};
+
+class RectTextPanel : public wxPanel
+{
+public:
+    RectTextPanel(wxWindow *parent);
+
+    void setText(const wxString text);
+
+    void OnPaint(wxPaintEvent &event);
+private:
+    wxString text;
 };
 
 class PrintingTaskPanel : public wxPanel
@@ -157,7 +267,7 @@ public:
     PrintingTaskPanel(wxWindow* parent, PrintingTaskType type);
     ~PrintingTaskPanel();
     void create_panel(wxWindow* parent);
-    
+
 
 private:
     MachineObject*  m_obj;
@@ -181,6 +291,8 @@ private:
     wxStaticText*   m_staticText_progress_percent;
     wxStaticText*   m_staticText_progress_percent_icon;
     wxStaticText*   m_staticText_progress_left;
+    wxStaticText*   m_staticText_finish_time;
+    RectTextPanel*  m_staticText_finish_day;
     wxStaticText*   m_staticText_layers;
     wxStaticText *  m_has_rated_prompt;
     wxStaticText *  m_request_failed_info;
@@ -221,7 +333,9 @@ public:
     void update_stage_value(wxString stage, int val);
     void update_progress_percent(wxString percent, wxString icon);
     void update_left_time(wxString time);
+    void update_finish_time(wxString finish_time);
     void update_left_time(int mc_left_time);
+    void show_layers_num(bool show) { m_staticText_layers->Show(show); }
     void update_layers_num(bool show, wxString num = wxEmptyString);
     void show_priting_use_info(bool show, wxString time = wxEmptyString, wxString weight = wxEmptyString);
     void show_profile_info(bool show, wxString profile = wxEmptyString);
@@ -229,8 +343,9 @@ public:
     void set_brightness_value(int value) { m_brightness_value = value; }
     void set_plate_index(int plate_idx = -1);
     void market_scoring_show();
+    bool is_market_scoring_show();
     void market_scoring_hide();
-    
+
 public:
     ScalableButton* get_abort_button() {return m_button_abort;};
     ScalableButton* get_pause_resume_button() {return m_button_pause_resume;};
@@ -271,6 +386,7 @@ protected:
     wxBitmap m_bitmap_extruder_filled_load;
     wxBitmap m_bitmap_extruder_empty_unload;
     wxBitmap m_bitmap_extruder_filled_unload;
+    wxBitmap m_bitmap_extruder_now;
 
     CameraRecordingStatus m_state_recording{CameraRecordingStatus::RECORDING_NONE};
     CameraTimelapseStatus m_state_timelapse{CameraTimelapseStatus::TIMELAPSE_NONE};
@@ -310,7 +426,7 @@ protected:
     wxStaticBitmap *m_bitmap_static_use_weight;
 
 
-    wxMediaCtrl2 *  m_media_ctrl;
+    wxMediaCtrl3 *  m_media_ctrl;
     MediaPlayCtrl * m_media_play_ctrl;
 
     Label *         m_staticText_printing;
@@ -327,6 +443,10 @@ protected:
     ScalableButton *m_button_pause_resume;
     ScalableButton *m_button_abort;
     Button *        m_button_clean;
+    wxSimplebook*   m_extruder_book;
+    std::vector<ExtruderImage *> m_extruderImage;
+
+    SwitchBoard *   m_nozzle_btn_panel;
 
     wxStaticText *  m_text_tasklist_caption;
 
@@ -337,23 +457,26 @@ protected:
 
     /* TempInput */
     wxBoxSizer *    m_misc_ctrl_sizer;
-    StaticBox*      m_fan_panel; 
+    StaticBox*      m_fan_panel;
     StaticLine *    m_line_nozzle;
-    TempInput* m_tempCtrl_nozzle;
+    TempInput*      m_tempCtrl_nozzle;
     int             m_temp_nozzle_timeout{ 0 };
+    TempInput*      m_tempCtrl_nozzle_deputy;
+    int             m_temp_nozzle_deputy_timeout{ 0 };
     TempInput *     m_tempCtrl_bed;
     int             m_temp_bed_timeout {0};
     TempInput *     m_tempCtrl_chamber;
     int             m_temp_chamber_timeout {0};
-    bool             m_current_support_cham_fan{true};
-    bool             m_current_support_aux_fan{true};
     FanSwitchButton *m_switch_nozzle_fan;
     int             m_switch_nozzle_fan_timeout{0};
     FanSwitchButton *m_switch_printing_fan;
     int             m_switch_printing_fan_timeout{0};
     FanSwitchButton *m_switch_cham_fan;
+    FanSwitchButton *m_switch_fan;
     int             m_switch_cham_fan_timeout{0};
     wxPanel*        m_switch_block_fan;
+    int             m_nozzle_num{ 0 };
+    int             m_current_nozzle_id{ 0 };
 
     float           m_fixed_aspect_ratio{1.8};
 
@@ -363,19 +486,24 @@ protected:
     Button *        m_bpButton_z_1;
     Button *        m_bpButton_z_down_1;
     Button *        m_bpButton_z_down_10;
-    Button *        m_button_unload;
+    //Button *        m_button_unload;
     wxStaticText *  m_staticText_z_tip;
-    wxStaticText *  m_staticText_e;
+    Label *         m_extruder_label;
     Button *        m_bpButton_e_10;
     Button *        m_bpButton_e_down_10;
-    StaticLine *    m_temp_extruder_line;
+    ExtruderSwithingStatus *m_extruder_switching_status;
+
+    wxPanel *       m_temp_temp_line;
+    wxPanel *       m_temp_extruder_line;
     wxBoxSizer*     m_ams_list;
     wxStaticText *  m_ams_debug;
     bool            m_show_ams_group{false};
+    bool            m_show_filament_group{ false };
     AMSControl*     m_ams_control;
     StaticBox*      m_ams_control_box;
     wxStaticBitmap *m_ams_extruder_img;
     wxStaticBitmap* m_bitmap_extruder_img;
+
     wxPanel *       m_panel_separator_right;
     wxPanel *       m_panel_separotor_bottom;
     wxGridBagSizer *m_tasklist_info_sizer{nullptr};
@@ -394,7 +522,15 @@ protected:
     StepIndicator*  m_calibration_flow;
 
     wxPanel *       m_machine_ctrl_panel;
+    wxPanel *       m_scale_panel;
+    wxStaticBitmap* m_img_filament_loading;
     PrintingTaskPanel *       m_project_task_panel;
+
+    FilamentLoad* m_filament_step;
+    wxStaticBitmap *m_filament_load_img;
+
+    Button *m_button_retry {nullptr};
+    StaticBox* m_filament_load_box;
 
     // Virtual event handlers, override them in your derived class
     virtual void on_subtask_pause_resume(wxCommandEvent &event) { event.Skip(); }
@@ -403,7 +539,7 @@ protected:
     virtual void on_bed_temp_kill_focus(wxFocusEvent &event) { event.Skip(); }
     virtual void on_bed_temp_set_focus(wxFocusEvent &event) { event.Skip(); }
     virtual void on_nozzle_temp_kill_focus(wxFocusEvent &event) { event.Skip(); }
-    virtual void on_nozzle_temp_set_focus(wxFocusEvent &event) { event.Skip(); }    
+    virtual void on_nozzle_temp_set_focus(wxFocusEvent &event) { event.Skip(); }
     virtual void on_nozzle_fan_switch(wxCommandEvent &event) { event.Skip(); }
     virtual void on_printing_fan_switch(wxCommandEvent &event) { event.Skip(); }
     virtual void on_axis_ctrl_z_up_10(wxCommandEvent &event) { event.Skip(); }
@@ -412,6 +548,7 @@ protected:
     virtual void on_axis_ctrl_z_down_10(wxCommandEvent &event) { event.Skip(); }
     virtual void on_axis_ctrl_e_up_10(wxCommandEvent &event) { event.Skip(); }
     virtual void on_axis_ctrl_e_down_10(wxCommandEvent &event) { event.Skip(); }
+    virtual void on_nozzle_selected(wxCommandEvent &event) { event.Skip(); }
 
 public:
     StatusBasePanel(wxWindow *      parent,
@@ -423,6 +560,7 @@ public:
 
     ~StatusBasePanel();
 
+    MachineObject* obj{ nullptr };
     void init_bitmaps();
     wxBoxSizer *create_monitoring_page();
     wxBoxSizer *create_machine_control_page(wxWindow *parent);
@@ -431,7 +569,7 @@ public:
     wxBoxSizer *create_temp_control(wxWindow *parent);
     wxBoxSizer *create_misc_control(wxWindow *parent);
     wxBoxSizer *create_axis_control(wxWindow *parent);
-    wxBoxSizer *create_bed_control(wxWindow *parent);
+    wxPanel *create_bed_control(wxWindow *parent);
     wxBoxSizer *create_extruder_control(wxWindow *parent);
 
     void reset_temp_misc_control();
@@ -439,8 +577,11 @@ public:
     int skip_print_error = 0;
     wxBoxSizer *create_ams_group(wxWindow *parent);
     wxBoxSizer *create_settings_group(wxWindow *parent);
+    wxBoxSizer* create_filament_group(wxWindow* parent);
 
-    void show_ams_group(bool show = true);
+	void           expand_filament_loading(wxMouseEvent &e);
+    void           show_ams_group(bool show = true);
+    void show_filament_load_group(bool show = true);
     MediaPlayCtrl* get_media_play_ctrl() {return m_media_play_ctrl;};
 };
 
@@ -467,8 +608,9 @@ protected:
     SecondaryCheckDialog* con_load_dlg = nullptr;
     SecondaryCheckDialog* ctrl_e_hint_dlg = nullptr;
     SecondaryCheckDialog* sdcard_hint_dlg = nullptr;
+    SecondaryCheckDialog* axis_go_home_dlg = nullptr;
 
-    FanControlPopup* m_fan_control_popup{nullptr};
+    FanControlPopupNew* m_fan_control_popup{nullptr};
 
     ExtrusionCalibration *m_extrusion_cali_dlg{nullptr};
 
@@ -515,7 +657,7 @@ protected:
     void on_subtask_pause_resume(wxCommandEvent &event);
     void on_subtask_abort(wxCommandEvent &event);
     void on_print_error_clean(wxCommandEvent &event);
-    void show_error_message(MachineObject* obj, wxString msg, std::string print_error_str = "",wxString image_url="",std::vector<int> used_button=std::vector<int>());
+    void show_error_message(MachineObject *obj, bool is_exist, wxString msg, std::string print_error_str = "", wxString image_url = "", std::vector<int> used_button = std::vector<int>());
     void error_info_reset();
     void show_recenter_dialog();
 
@@ -530,21 +672,22 @@ protected:
     void on_axis_ctrl_e_down_10(wxCommandEvent &event);
     void axis_ctrl_e_hint(bool up_down);
 
-	void on_start_unload(wxCommandEvent &event);
+    void on_nozzle_selected(wxCommandEvent &event);
     /* temp control */
     void on_bed_temp_kill_focus(wxFocusEvent &event);
     void on_bed_temp_set_focus(wxFocusEvent &event);
     void on_set_bed_temp();
     void on_nozzle_temp_kill_focus(wxFocusEvent &event);
     void on_nozzle_temp_set_focus(wxFocusEvent &event);
-    void on_set_nozzle_temp();
+    void on_set_nozzle_temp(int nozzle_id);
     void on_set_chamber_temp();
 
     /* extruder apis */
     void on_ams_load(SimpleEvent &event);
-    void update_filament_step();
+    void update_load_with_temp();
     void on_ams_load_curr();
     void on_ams_load_vams(wxCommandEvent& event);
+    void on_ams_switch(SimpleEvent &event);
     void on_ams_unload(SimpleEvent &event);
     void on_ams_filament_backup(SimpleEvent& event);
     void on_ams_setting_click(SimpleEvent& event);
@@ -556,6 +699,7 @@ protected:
     void on_ams_guide(wxCommandEvent &event);
     void on_ams_retry(wxCommandEvent &event);
     void on_print_error_done(wxCommandEvent& event);
+    void on_print_error_dlg_btn_clicked(wxCommandEvent& event);
 
     void on_fan_changed(wxCommandEvent& event);
     void on_cham_temp_kill_focus(wxFocusEvent& event);
@@ -572,6 +716,7 @@ protected:
     void on_camera_leave(wxMouseEvent& event);
     void on_auto_leveling(wxCommandEvent &event);
     void on_xyz_abs(wxCommandEvent &event);
+
 
     void on_show_parts_options(wxCommandEvent& event);
     /* print options */
@@ -595,7 +740,7 @@ protected:
     void update_ams(MachineObject* obj);
     void update_ams_insert_material(MachineObject* obj);
     void update_extruder_status(MachineObject* obj);
-    void update_ams_control_state(bool is_curr_tray_selected);
+    void update_ams_control_state(std::string ams_id, std::string slot_id);
     void update_cali(MachineObject* obj);
     void update_calib_bitmap();
 
@@ -627,7 +772,6 @@ public:
         STATE_COUNT = 4
     };
 
-    MachineObject *obj {nullptr};
     BBLSubTask *   last_subtask{nullptr};
     std::string    last_profile_id;
     std::string    last_task_id;
@@ -637,7 +781,7 @@ public:
     long           last_read_done_bits{ -1 };
     long           last_reading_bits { -1 };
     long           last_ams_version { -1 };
-    int            last_cali_version{-1};
+    std::optional<int> last_cali_version;
 
     enum ThumbnailState task_thumbnail_state {ThumbnailState::PLACE_HOLDER};
     std::vector<int> last_stage_list_info;

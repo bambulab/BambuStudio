@@ -2,6 +2,7 @@
 #define slic3r_Camera_hpp_
 
 #include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/Frustum.hpp"
 #include "3DScene.hpp"
 #include <array>
 
@@ -31,7 +32,18 @@ struct Camera
         Perspective,
         Num_types
     };
-
+    enum class ViewAngleType : unsigned char {
+        Iso = 0,
+        Top_Front,
+        Left,
+        Right,
+        Top,
+        Bottom,
+        Front,
+        Rear,
+        Count_ViewAngleType,
+        Top_Plate,//for 3mf and Skip parts
+    };
     bool requires_zoom_to_bed{ false };
     //BBS
     bool requires_zoom_to_volumes{ false };
@@ -55,6 +67,11 @@ private:
     std::pair<double, double> m_frustrum_zs;
 
     BoundingBoxf3 m_scene_box;
+    float         m_scene_box_radius{0};
+    float         m_last_scene_box_radius{0};
+    Frustum       m_frustum;
+    Vec3f         m_last_eye, m_last_center, m_last_up;
+    float         m_last_near, m_last_far, m_last_aspect, m_last_fov,m_last_zoom;
 
 public:
     Camera() { set_default_orientation(); }
@@ -69,7 +86,7 @@ public:
     void enable_update_config_on_type_change(bool enable) { m_update_config_on_type_change_enabled = enable; }
 
     void translate(const Vec3d& displacement);
-    const Vec3d& get_target()  { 
+    const Vec3d& get_target()  {
         update_target();
         return m_target; }
     void set_target(const Vec3d& target);
@@ -88,10 +105,11 @@ public:
 
 
     void select_view(const std::string& direction);
-
+    void select_view(ViewAngleType type);
     const std::array<int, 4>& get_viewport() const { return m_viewport; }
     const Transform3d& get_view_matrix() const { return m_view_matrix; }
     const Transform3d& get_projection_matrix() const { return m_projection_matrix; }
+    const Transform3d get_view_matrix_for_billboard() const;
 
     //BBS
     const Eigen::Quaterniond& get_view_rotation() const {return m_view_rotation; }
@@ -100,9 +118,9 @@ public:
     Vec3d get_dir_up() const { return m_view_matrix.matrix().block(0, 0, 3, 3).row(1); }
     Vec3d get_dir_forward() const { return -m_view_matrix.matrix().block(0, 0, 3, 3).row(2); }
 
-
     Vec3d get_position() const { return m_view_matrix.matrix().inverse().block(0, 3, 3, 1); }
-
+    const Frustum &                  getFrustum() const { return m_frustum; }
+    void                             update_frustum();
     double get_near_z() const { return m_frustrum_zs.first; }
     double get_far_z() const { return m_frustrum_zs.second; }
     const std::pair<double, double>& get_z_range() const { return m_frustrum_zs; }
@@ -110,17 +128,14 @@ public:
     double get_fov() const;
 
     void apply_viewport(int x, int y, unsigned int w, unsigned int h);
-    void apply_view_matrix();
     // Calculates and applies the projection matrix tighting the frustrum z range around the given box.
     // If larger z span is needed, pass the desired values of near and far z (negative values are ignored)
     void apply_projection(const BoundingBoxf3& box, double near_z = -1.0, double far_z = -1.0);
 
     void zoom_to_box(const BoundingBoxf3& box, double margin_factor = DefaultZoomToBoxMarginFactor);
     void zoom_to_volumes(const GLVolumePtrs& volumes, double margin_factor = DefaultZoomToVolumesMarginFactor);
-
-#if ENABLE_CAMERA_STATISTICS
-    void debug_render() const;
-#endif // ENABLE_CAMERA_STATISTICS
+    void debug_frustum();
+    void debug_render();
 
     // translate the camera in world space
     void translate_world(const Vec3d& displacement) { set_target(m_target + displacement); }
@@ -128,7 +143,7 @@ public:
     // BBS rotate the camera on a sphere having center == target
     void rotate_on_sphere_with_target(double delta_azimut_rad, double delta_zenit_rad, bool apply_limits, Vec3d target);
     void rotate_local_with_target(const Vec3d& rotation_rad, Vec3d target);
-
+    void calc_horizontal_rotate_rad(float &rotation_rad);
     // rotate the camera on a sphere having center == m_target and radius == m_distance
     // using the given variations of spherical coordinates
     // if apply_limits == true the camera stops rotating when its forward vector is parallel to the world Z axis
@@ -136,7 +151,7 @@ public:
 
     // rotate the camera around three axes parallel to the camera local axes and passing through m_target
     void rotate_local_around_target(const Vec3d& rotation_rad);
-
+    void set_rotation(const Transform3d &rotation);
     // returns true if the camera z axis (forward) is pointing in the negative direction of the world z axis
     bool is_looking_downward() const { return get_dir_forward().dot(Vec3d::UnitZ()) < 0.0; }
     bool is_looking_front() const { return abs(get_dir_up().dot(Vec3d::UnitZ())-1) < 0.001; }
@@ -160,7 +175,7 @@ private:
     std::pair<double, double> calc_tight_frustrum_zs_around(const BoundingBoxf3& box);
     double calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, double margin_factor = DefaultZoomToBoxMarginFactor) const;
     double calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, Vec3d& center, double margin_factor = DefaultZoomToVolumesMarginFactor) const;
-    void set_distance(double distance);
+    void   set_distance(double distance);
 
     void set_default_orientation();
     void set_iso_orientation();

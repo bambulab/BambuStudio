@@ -48,7 +48,7 @@
 #include "slic3r/GUI/HMSPanel.hpp"
 #include "slic3r/GUI/AmsWidgets.hpp"
 #include "Widgets/SideTools.hpp"
-#include "SelectMachine.hpp"
+#include "SelectMachinePop.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -77,7 +77,7 @@ class MonitorPanel : public wxPanel
 private:
     Tabbook*		m_tabpanel{ nullptr };
     wxSizer*        m_main_sizer{ nullptr };
-    
+
     AddMachinePanel*    m_status_add_machine_panel;
     StatusPanel*        m_status_info_panel;
     MediaFilePanel*     m_media_file_panel;
@@ -119,7 +119,7 @@ public:
         PT_DEBUG   = 4,
         PT_MAX_NUM = 5
     };
-    
+
 	void init_bitmap();
     void init_timer();
     void init_tabpanel();
@@ -132,7 +132,6 @@ public:
 
     StatusPanel* get_status_panel() {return m_status_info_panel;};
 	void select_machine(std::string machine_sn);
-    void on_update_all(wxMouseEvent &event);
     void on_timer(wxTimerEvent& event);
     void on_select_printer(wxCommandEvent& event);
     void on_printer_clicked(wxMouseEvent &event);

@@ -14,6 +14,8 @@ class wxImage;
 namespace Slic3r {
 namespace GUI {
 
+    class GLModel;
+
     class GLTexture
     {
         class Compressor
@@ -64,6 +66,13 @@ namespace GUI {
             SingleThreaded,
             MultiThreaded
         };
+        enum ESamplerWrapMode : uint8_t
+        {
+            Repeat,
+            MirrorRepeat,
+            Clamp,
+            Border
+        };
 
         struct UV
         {
@@ -87,6 +96,8 @@ namespace GUI {
         int m_height;
         std::string m_source;
         Compressor m_compressor;
+        ESamplerWrapMode m_wrap_mode_u{ ESamplerWrapMode::Clamp };
+        ESamplerWrapMode m_wrap_mode_v{ ESamplerWrapMode::Clamp };
 
     public:
         GLTexture();
@@ -124,13 +135,19 @@ namespace GUI {
         bool unsent_compressed_data_available() const { return m_compressor.unsent_compressed_data_available(); }
         void send_compressed_data_to_gpu() { m_compressor.send_compressed_data_to_gpu(); }
         bool all_compressed_data_sent_to_gpu() const { return m_compressor.all_compressed_data_sent_to_gpu(); }
+        void set_wrap_mode_u(ESamplerWrapMode mode);
+        void set_wrap_mode_v(ESamplerWrapMode mode);
+        void bind(uint8_t stage = 0);
+        void unbind();
 
         static void render_texture(unsigned int tex_id, float left, float right, float bottom, float top);
         static void render_sub_texture(unsigned int tex_id, float left, float right, float bottom, float top, const Quad_UVs& uvs);
-
+        static void shutdown();
     private:
         bool load_from_png(const std::string& filename, bool use_mipmaps, ECompressionType compression_type, bool apply_anisotropy);
         bool load_from_svg(const std::string& filename, bool use_mipmaps, bool compress, bool apply_anisotropy, unsigned int max_size_px);
+        static GLModel& init_model_for_render_image();
+        static GLModel& get_model_for_render_image();
 
         friend class Compressor;
     };

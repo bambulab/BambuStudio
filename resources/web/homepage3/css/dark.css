@@ -86,10 +86,22 @@ html,body
 	box-shadow: 0px 0px 3px #DCDCDC;
 }
 
+#HotModel_Search_Btn img
+{
+	filter: brightness(78%);
+}
+
+
 /*----User Manual------*/
 .UG_DESC
 {
 	color:#818183;
+}
+
+/*----Recent Opened----*/
+.FileImg
+{
+	background-color:#575757;
 }
 
 /*---Staff PIck----*/
@@ -106,4 +118,57 @@ html,body
 .HotModel_click_info img
 {
 	filter: invert(1);
+}
+
+#HotModel_Search_Bar
+{
+	border: 1px solid #5C5C5C;
+	background-color: #242428;
+}
+
+#HotModel_Search_InputArea
+{
+}
+
+#HotModel_Search_Input
+{
+	background-color: #242428;
+	caret-color: white;
+	color: #FFFFFF;
+}
+
+#HotModel_Search_Btn img
+{
+	filter: invert(100%) brightness(100);
+}
+
+/*----Makerlab-----*/
+.MakerlabItem
+{
+	border: none;
+}
+
+/*---Print History----*/
+.PrintHistoryImg
+{
+	border: 1px solid #474747;
+	background-color: #575757;
+}
+
+#PrintHistory_Refresh_Btn
+{
+	filter: invert(80%) brightness(20);
+}
+
+/*-----Hide Button-----*/
+#HideBtn
+{
+	background-image: url('../img/arrow_light_left.svg');
+	border: 1px solid rgba(48, 48, 51, 1);
+	background-color: rgba(48, 48, 51, 1);
+}
+
+#HideBtn:hover
+{
+	background-color: rgba(70, 70, 71, 1);
 }

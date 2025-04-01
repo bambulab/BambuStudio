@@ -70,7 +70,7 @@ class Plater;
 class GLCanvas3D;
 struct Camera;
 class PartPlateList;
-
+class Bed3D;
 using GCodeResult = GCodeProcessorResult;
 
 class PartPlate : public ObjectBase
@@ -119,40 +119,21 @@ private:
     Pointfs m_raw_shape;
     Pointfs m_shape;
     Pointfs m_exclude_area;
+    std::vector<Pointfs> m_extruder_areas;
+    std::vector<double> m_extruder_heights;
     BoundingBoxf3 m_bounding_box;
     BoundingBoxf3 m_extended_bounding_box;
+    BoundingBoxf3 m_cur_bed_boundingbox;
     mutable std::vector<BoundingBoxf3> m_exclude_bounding_box;
     mutable BoundingBoxf3 m_grabber_box;
     Transform3d m_grabber_trans_matrix;
-    Slic3r::Geometry::Transformation position;
-    std::vector<Vec3f> positions;
-    unsigned int m_vbo_id{ 0 };
-    GeometryBuffer m_triangles;
-    GeometryBuffer m_exclude_triangles;
-    GeometryBuffer m_logo_triangles;
-    GeometryBuffer m_gridlines;
-    GeometryBuffer m_gridlines_bolder;
-    GeometryBuffer m_height_limit_common;
-    GeometryBuffer m_height_limit_bottom;
-    GeometryBuffer m_height_limit_top;
-    GeometryBuffer m_del_icon;
-    GeometryBuffer m_plate_name_edit_icon;
-    //GeometryBuffer m_del_and_background_icon;
-    mutable unsigned int m_del_vbo_id{ 0 };
-    GeometryBuffer m_arrange_icon;
-    mutable unsigned int m_arrange_vbo_id{ 0 };
-    GeometryBuffer m_orient_icon;
-    mutable unsigned int m_orient_vbo_id{ 0 };
-    GeometryBuffer m_lock_icon;
-    mutable unsigned int m_lock_vbo_id{ 0 };
-    GeometryBuffer m_plate_settings_icon;
-    mutable unsigned int m_plate_settings_vbo_id{ 0 };
-    GeometryBuffer m_plate_idx_icon;
-    mutable unsigned int m_plate_idx_vbo_id{ 0 };
-    mutable unsigned int m_plate_name_edit_vbo_id{0};
-    GLTexture m_texture;
 
-    mutable float m_grabber_color[4];
+    GLModel        m_logo_triangles;
+    GLModel        m_height_limit_common;
+    GLModel        m_height_limit_bottom;
+    GLModel        m_height_limit_top;
+    GLModel        m_plate_name_edit_icon;
+
     float m_scale_factor{ 1.0f };
     GLUquadricObject* m_quadric;
     int m_hover_id;
@@ -165,7 +146,7 @@ private:
     // part plate name
     std::string          m_name;        // utf8 string
     bool                 m_name_change = false;
-    GeometryBuffer       m_plate_name_icon;
+    GLModel              m_plate_name_icon;
     mutable unsigned int m_plate_name_vbo_id{0};
     GLTexture            m_name_texture;
 
@@ -174,42 +155,41 @@ private:
     void generate_print_polygon(ExPolygon &print_polygon);
     void generate_exclude_polygon(ExPolygon &exclude_polygon);
     void generate_logo_polygon(ExPolygon &logo_polygon);
+    void generate_logo_polygon(ExPolygon &logo_polygon,const BoundingBoxf3& box);
     void calc_bounding_boxes() const;
-    void calc_triangles(const ExPolygon& poly);
-    void calc_exclude_triangles(const ExPolygon& poly);
-    void calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox);
     void calc_height_limit();
-    void calc_vertex_for_number(int index, bool one_number, GeometryBuffer &buffer);
-    void calc_vertex_for_plate_name(GLTexture& texture, GeometryBuffer &buffer);
-    void calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int index, GeometryBuffer &buffer);
-    void calc_vertex_for_icons(int index, GeometryBuffer &buffer);
+
+    void calc_vertex_for_plate_name(GLTexture &texture, GLModel &buffer);
+    void calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int index, GLModel &buffer);
     void calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer);
-    void render_background(bool force_default_color = false) const;
-    void render_logo(bool bottom, bool render_cali = true) const;
-    void render_logo_texture(GLTexture& logo_texture, const GeometryBuffer& logo_buffer, bool bottom, unsigned int vbo_id) const;
-    void render_exclude_area(bool force_default_color) const;
-    //void render_background_for_picking(const float* render_color) const;
-    void render_grid(bool bottom) const;
-    void render_height_limit(PartPlate::HeightLimitMode mode = HEIGHT_LIMIT_BOTH) const;
+    bool calc_bed_3d_boundingbox(BoundingBoxf3 & box_in_plate_origin);
+    void render_logo(bool bottom, bool render_cali = true);
+    void render_logo_texture(GLTexture &logo_texture, GLModel &logo_buffer, bool bottom);
+
+    void render_height_limit(PartPlate::HeightLimitMode mode = HEIGHT_LIMIT_BOTH);
     void render_label(GLCanvas3D& canvas) const;
     void render_grabber(const float* render_color, bool use_lighting) const;
     void render_face(float x_size, float y_size) const;
     void render_arrows(const float* render_color, bool use_lighting) const;
     void render_left_arrow(const float* render_color, bool use_lighting) const;
     void render_right_arrow(const float* render_color, bool use_lighting) const;
-    void render_icon_texture(int position_id, int tex_coords_id, const GeometryBuffer &buffer, GLTexture &texture, unsigned int &vbo_id) const;
-    void render_plate_name_texture(int position_id, int tex_coords_id);
+
+    void render_icon_texture(GLModel &buffer, GLTexture &texture);
+    void render_plate_name_texture();
     void render_icons(bool bottom, bool only_body = false, int hover_id = -1);
-    void render_only_numbers(bool bottom) const;
-    void render_rectangle_for_picking(const GeometryBuffer &buffer, const float* render_color) const;
-    void on_render_for_picking() const;
+
+    void render_numbers(bool bottom);
+    void on_render_for_picking();
     std::array<float, 4> picking_color_component(int idx) const;
     void release_opengl_resource();
 
+    void on_filament_map_mode_change();
+
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
-    static const unsigned int PLATE_NAME_HOVER_ID = 6;
-    static const unsigned int GRABBER_COUNT = 7;
+    static const unsigned int PLATE_FILAMENT_MAP_ID = 6;
+    static const unsigned int GRABBER_COUNT = 8;
+    static const unsigned int PLATE_NAME_ID = GRABBER_COUNT-1;
 
     static std::array<float, 4> SELECT_COLOR;
     static std::array<float, 4> UNSELECT_COLOR;
@@ -240,6 +220,7 @@ public:
     void reset_bed_type();
     DynamicPrintConfig* config() { return &m_config; }
 
+    void set_logo_box_by_bed(const BoundingBoxf3& box);
     // set print sequence per plate
     //bool print_seq_same_global = true;
     void set_print_seq(PrintSequence print_seq = PrintSequence::ByDefault);
@@ -249,6 +230,19 @@ public:
     // @return PrintSequence::{ByLayer,ByObject}
     PrintSequence get_real_print_seq(bool* plate_same_as_global=nullptr) const;
 
+    std::vector<int> get_real_filament_maps(const DynamicConfig& g_config, bool* use_global_param = nullptr)const;
+    FilamentMapMode  get_real_filament_map_mode(const DynamicConfig& g_config,bool * use_global_param = nullptr) const;
+
+    FilamentMapMode get_filament_map_mode() const;
+    void set_filament_map_mode(const FilamentMapMode& mode);
+
+    // get filament map, 0 based filament ids, 1 based extruder ids
+    std::vector<int> get_filament_maps() const;
+    void set_filament_maps(const std::vector<int>& f_maps);
+
+    void clear_filament_map();
+    void clear_filament_map_mode();
+
     bool has_spiral_mode_config() const;
     bool get_spiral_vase_mode() const;
     void set_spiral_vase_mode(bool spiral_mode, bool as_global);
@@ -257,6 +251,7 @@ public:
     //static const double plate_x_gap = 0.2;
     ThumbnailData thumbnail_data;
     ThumbnailData no_light_thumbnail_data;
+    ThumbnailData obj_preview_thumbnail_data;
     static const int plate_thumbnail_width = 512;
     static const int plate_thumbnail_height = 512;
 
@@ -303,16 +298,26 @@ public:
     Vec2d get_size() const { return Vec2d(m_width, m_depth); }
     ModelObjectPtrs get_objects() { return m_model->objects; }
     ModelObjectPtrs get_objects_on_this_plate();
+    std::set<std::pair<int, int>>& get_obj_and_inst_set() { return obj_to_instance_set; }
+    std::set<std::pair<int, int>>& get_obj_and_inst_outside_set() { return instance_outside_set; }
     ModelInstance* get_instance(int obj_id, int instance_id);
     BoundingBoxf3 get_objects_bounding_box();
 
     Vec3d get_origin() { return m_origin; }
-    Vec3d estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int plate_extruder_size = 0, bool use_global_objects = false) const;
-    arrangement::ArrangePolygon estimate_wipe_tower_polygon(const DynamicPrintConfig & config, int plate_index, int plate_extruder_size = 0, bool use_global_objects = false) const;
+    //Vec3d calculate_wipe_tower_size(const DynamicPrintConfig &config, const double w, const double wipe_volume, int plate_extruder_size = 0, bool use_global_objects = false) const;
+    Vec3d estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int extruder_count = 1, int plate_extruder_size = 0, bool use_global_objects = false) const;
+    arrangement::ArrangePolygon estimate_wipe_tower_polygon(const DynamicPrintConfig & config, int plate_index, Vec3d& wt_pos, Vec3d& wt_size, int extruder_count = 1, int plate_extruder_size = 0, bool use_global_objects = false) const;
+    bool check_objects_empty_and_gcode3mf(std::vector<int> &result) const;
+    // get used filaments from config, 1 based idx
     std::vector<int> get_extruders(bool conside_custom_gcode = false) const;
     std::vector<int> get_extruders_under_cli(bool conside_custom_gcode, DynamicPrintConfig& full_config) const;
     std::vector<int> get_extruders_without_support(bool conside_custom_gcode = false) const;
-    std::vector<int> get_used_extruders();
+    // get used filaments from gcode result, 1 based idx
+    std::vector<int> get_used_filaments();
+    int  get_physical_extruder_by_filament_id(const DynamicConfig& g_config, int idx) const;
+    bool check_filament_printable(const DynamicPrintConfig & config, wxString& error_message);
+    bool check_tpu_printable_status(const DynamicPrintConfig & config, const std::vector<int> &tpu_filaments);
+    bool check_mixture_of_pla_and_petg(const DynamicPrintConfig & config);
 
     /* instance related operations*/
     //judge whether instance is bound in plate or not
@@ -365,34 +370,22 @@ public:
 
     /*rendering related functions*/
     const Pointfs& get_shape() const { return m_shape; }
-    bool set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Vec2d position, float height_to_lid, float height_to_rod);
+    bool set_shape(const Pointfs& shape, const Pointfs& exclude_areas, const std::vector<Pointfs>& extruder_areas, const std::vector<double>& extruder_heights, Vec2d position, float height_to_lid, float height_to_rod);
+    const std::vector<Pointfs>& get_extruder_areas() const { return m_extruder_areas; }
+    const std::vector<double>& get_extruder_heights() const { return m_extruder_heights; }
     bool contains(const Vec3d& point) const;
     bool contains(const GLVolume& v) const;
     bool contains(const BoundingBoxf3& bb) const;
     bool intersects(const BoundingBoxf3& bb) const;
 
     void render(bool bottom, bool only_body = false, bool force_background_color = false, HeightLimitMode mode = HEIGHT_LIMIT_NONE, int hover_id = -1, bool render_cali = false);
-    void render_for_picking() const { on_render_for_picking(); }
     void set_selected();
     void set_unselected();
     void set_hover_id(int id) { m_hover_id = id; }
     const BoundingBoxf3& get_bounding_box(bool extended = false) { return extended ? m_extended_bounding_box : m_bounding_box; }
     const BoundingBox get_bounding_box_crd();
     BoundingBoxf3 get_plate_box() {return get_build_volume();}
-    BoundingBoxf3 get_build_volume()
-    {
-        auto  eps=Slic3r::BuildVolume::SceneEpsilon;
-        Vec3d up_point = Vec3d(m_origin.x() + m_width + eps, m_origin.y() + m_depth + eps, m_origin.z() + m_height + eps);
-        Vec3d low_point  = Vec3d(m_origin.x() - eps, m_origin.y() - eps, m_origin.z() - eps);
-        if (m_raw_shape.size() > 0) {
-            up_point.x() += m_raw_shape[0].x();
-            up_point.y() += m_raw_shape[0].y();
-            low_point.x() += m_raw_shape[0].x();
-            low_point.y() += m_raw_shape[0].y();
-        }
-        BoundingBoxf3 plate_box(low_point, up_point);
-        return plate_box;
-    }
+    BoundingBoxf3 get_build_volume(bool use_share = false);
 
     const std::vector<BoundingBoxf3>& get_exclude_areas() { return m_exclude_bounding_box; }
 
@@ -439,7 +432,9 @@ public:
     {
         bool result = m_slice_result_valid;
         if (result)
-            result = m_gcode_result ? (!m_gcode_result->toolpath_outside) : false;// && !m_gcode_result->conflict_result.has_value()  gcode conflict can also print
+            result = m_gcode_result ?
+            (!m_gcode_result->toolpath_outside && m_gcode_result->gcode_check_result.error_code == 0 && !m_gcode_result->filament_printable_reuslt.has_value()) :
+            false;// && !m_gcode_result->conflict_result.has_value()  gcode conflict can also print
         return result;
     }
 
@@ -488,11 +483,17 @@ public:
     void set_first_layer_print_sequence(const std::vector<int> &sorted_filaments);
     void set_other_layers_print_sequence(const std::vector<LayerPrintSequence>& layer_seq_list);
     void update_first_layer_print_sequence(size_t filament_nums);
+    void update_first_layer_print_sequence_when_delete_filament(size_t filamen_id);
 
     void print() const;
 
     std::map<std::string, std::string> get_diff_object_setting();
     std::map<std::string, std::string> get_diff_plate_setting();
+
+    void on_extruder_count_changed(int extruder_count);
+    void set_filament_count(int filament_count);
+    void on_filament_added();
+    void on_filament_deleted(int filament_count, int filament_id);
 
     friend class cereal::access;
     friend class UndoRedo::StackImpl;
@@ -534,6 +535,7 @@ class PartPlateList : public ObjectBase
 {
     Plater* m_plater; //Plater reference, not own it
     Model* m_model; //Model reference, not own it
+    Bed3D *           m_bed3d{nullptr};
     PrinterTechnology  printer_technology;
 
     std::vector<PartPlate*> m_plate_list;
@@ -556,6 +558,8 @@ class PartPlateList : public ObjectBase
     PartPlate unprintable_plate;
     Pointfs m_shape;
     Pointfs m_exclude_areas;
+    std::vector<Pointfs> m_extruder_areas;
+    std::vector<double> m_extruder_heights;
     BoundingBoxf3 m_bounding_box;
     bool m_intialized;
     std::string m_logo_texture_filename;
@@ -574,6 +578,8 @@ class PartPlateList : public ObjectBase
     GLTexture m_plate_settings_changed_texture;
     GLTexture m_plate_settings_hovered_texture;
     GLTexture m_plate_settings_changed_hovered_texture;
+    GLTexture m_plate_set_filament_map_texture;
+    GLTexture m_plate_set_filament_map_hovered_texture;
     GLTexture m_plate_name_edit_texture;
     GLTexture m_plate_name_edit_hovered_texture;
     GLTexture m_idx_textures[MAX_PLATE_COUNT];
@@ -583,6 +589,8 @@ class PartPlateList : public ObjectBase
     bool render_cali_logo = true;
 
     bool m_is_dark = false;
+
+    int m_filament_count = 1;
 
     void init();
     //compute the origin for printable plate with index i
@@ -600,6 +608,39 @@ class PartPlateList : public ObjectBase
     friend class cereal::access;
     friend class UndoRedo::StackImpl;
     friend class PartPlate;
+//render plate repetitive object and so on
+private:
+    void  generate_print_polygon(ExPolygon &print_polygon);
+    void  generate_exclude_polygon(ExPolygon &exclude_polygon);
+    void  calc_triangles(const ExPolygon &poly);
+    void  calc_vertex_for_icons(int index, GLModel &gl_model);
+    void  calc_exclude_triangles(const ExPolygon &poly);
+    void  calc_gridlines(const ExPolygon &poly, const BoundingBox &pp_bbox);
+    void  calc_vertex_for_number(int index, bool one_number, GLModel &gl_model);
+private:
+    int                                   m_plate_hover_index{-1};
+    int                                   m_plate_hover_action{-1};
+
+    std::vector<Geometry::Transformation> m_plate_trans; // MAX_PLATE_COUNT
+    unsigned int                          m_plate_mats_vbo{0};
+    bool                                  m_update_plate_mats_vbo{true};
+
+    std::vector<Geometry::Transformation> m_unselected_plate_trans;
+    unsigned int                          m_unselected_plate_mats_vbo{0};
+    bool                                  m_update_unselected_plate_mats_vbo{true};
+
+    GLModel                               m_triangles;
+    GLModel                               m_exclude_triangles;
+    GLModel                               m_gridlines;
+    GLModel                               m_gridlines_bolder;
+    GLModel                               m_del_icon;
+    GLModel                               m_arrange_icon;
+    GLModel                               m_orient_icon;
+    GLModel                               m_lock_icon;
+    GLModel                               m_plate_settings_icon;
+    GLModel                               m_plate_filament_map_icon;
+    GLModel                               m_plate_idx_icon;
+    float                                 m_scale_factor{1.0f};
 
 public:
     class BedTextureInfo {
@@ -615,7 +656,7 @@ public:
             std::string filename;
             GLTexture* texture { nullptr };
             Vec2d offset;
-            GeometryBuffer* buffer { nullptr };
+            GLModel*    buffer{nullptr};
             TexturePart(float xx, float yy, float ww, float hh, std::string file){
                 x = xx; y = yy;
                 w = ww; h = hh;
@@ -651,6 +692,7 @@ public:
     static GLTexture bed_textures[(unsigned int)btCount];
     static bool is_load_bedtype_textures;
     static bool is_load_cali_texture;
+    static bool is_load_extruder_only_area_textures;
 
     PartPlateList(int width, int depth, int height, Plater* platerObj, Model* modelObj, PrinterTechnology tech = ptFFF);
     PartPlateList(Plater* platerObj, Model* modelObj, PrinterTechnology tech = ptFFF);
@@ -665,9 +707,12 @@ public:
     //compute the origin for printable plate with index i using new width
     Vec3d compute_origin_using_new_size(int i, int new_width, int new_depth);
 
+    void update_plate_trans(int count);
+    void update_unselected_plate_trans(int count);
     //reset partplate to init states
     void reinit();
-
+    void set_bed3d(Bed3D* _bed3d);
+    Bed3D *get_bed3d() { return m_bed3d; }
     //get the plate stride
     double plate_stride_x();
     double plate_stride_y();
@@ -684,6 +729,7 @@ public:
     //destroy print which has the index of print_index
     int destroy_print(int print_index);
 
+    void add_plate();
     //delete a plate by index
     int delete_plate(int index);
 
@@ -793,8 +839,24 @@ public:
     void postprocess_arrange_polygon(arrangement::ArrangePolygon& arrange_polygon, bool selected);
 
     /*rendering related functions*/
+    void render_instance(bool  bottom,
+                         bool  only_current           = false,
+                         bool  only_body              = false,
+                         bool  force_background_color = false,
+                         int   hover_id               = -1,
+                         bool  show_grid              = true,
+                         bool  enable_multi_instance  = true);
+    void render_instance_grid(bool bottom);
+    void render_unselected_grid(bool bottom);
+    void render_instance_background(bool force_default_color = false);
+    void render_unselected_background(bool force_default_color);
+    void render_grid(bool bottom);
+    void render_exclude_area(bool force_default_color);
+    void render_instance_exclude_area(bool force_default_color);
+    void render_unselected_exclude_area(bool force_default_color);
+
     void on_change_color_mode(bool is_dark) { m_is_dark = is_dark; }
-    void render(bool bottom,    bool only_current = false, bool only_body = false, int hover_id = -1, bool render_cali = false);
+    void render(bool bottom, bool only_current = false, bool only_body = false, int hover_id = -1, bool render_cali = false, bool show_grid = true, bool enable_multi_instance = true);
     void render_for_picking_pass();
     void set_render_option(bool bedtype_texture, bool plate_settings);
     void set_render_cali(bool value = true) { render_cali_logo = value; }
@@ -803,7 +865,7 @@ public:
     int select_plate_by_obj(int obj_index, int instance_index);
     void calc_bounding_boxes();
     void select_plate_view();
-    bool set_shapes(const Pointfs& shape, const Pointfs& exclude_areas, const std::string& custom_texture, float height_to_lid, float height_to_rod);
+    bool set_shapes(const Pointfs& shape, const Pointfs& exclude_areas, const std::vector<Pointfs>& extruder_areas, const std::vector<double>& extruder_heights, const std::string& custom_texture, float height_to_lid, float height_to_rod);
     void set_hover_id(int id);
     void reset_hover_id();
     bool intersects(const BoundingBoxf3 &bb);
@@ -844,7 +906,7 @@ public:
     * if with_gcode = true and specify plate_idx, export plate_idx gcode only
     */
     int store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool with_slice_info = true, int plate_idx = -1);
-    int load_from_3mf_structure(PlateDataPtrs& plate_data_list);
+    int load_from_3mf_structure(PlateDataPtrs& plate_data_list, int filament_count = 1);
     //load gcode files
     int load_gcode_files();
 
@@ -855,16 +917,33 @@ public:
         ar(m_height_to_lid, m_height_to_rod, m_height_limit_mode, m_plate_count, m_current_plate, m_plate_list, unprintable_plate);
         //ar(m_plate_width, m_plate_depth, m_plate_height, m_plate_count, m_current_plate);
     }
-
+    struct Rect
+    {
+        int x;
+        int y;
+        int w;
+        int h;
+    };
+    bool calc_extruder_only_area(Rect &left_only_rect, Rect &right_only_rect);
     void init_bed_type_info();
+    bool init_extruder_only_area_info();
     void load_bedtype_textures();
+    void load_extruder_only_area_textures();
 
     void show_cali_texture(bool show = true);
     void init_cali_texture_info();
     void load_cali_textures();
 
+    void on_extruder_count_changed(int extruder_count);
+
+    void set_filament_count(int filament_count);
+    void on_filament_deleted(int filament_count, int filament_id);
+    void on_filament_added(int filament_count);
+
+    std::map<int, bool> m_allow_bed_type_in_double_nozzle;
     BedTextureInfo bed_texture_info[btCount];
     BedTextureInfo cali_texture_info;
+    BedTextureInfo extruder_only_area_info[(unsigned char) Slic3r::ExtruderOnlyAreaType::btAreaCount];
 };
 
 } // namespace GUI

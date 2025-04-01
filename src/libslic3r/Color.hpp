@@ -107,7 +107,9 @@ public:
 	void g(float g) { m_data[1] = std::clamp(g, 0.0f, 1.0f); }
 	void b(float b) { m_data[2] = std::clamp(b, 0.0f, 1.0f); }
 	void a(float a) { m_data[3] = std::clamp(a, 0.0f, 1.0f); }
-
+    void gamma_correct();
+    static void gamma_correct(RGBA& color);
+    static float gamma_correct(float value);
 	void set(unsigned int comp, float value) {
 		assert(0 <= comp && comp <= 3);
 		m_data[comp] = std::clamp(value, 0.0f, 1.0f);

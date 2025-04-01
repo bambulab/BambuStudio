@@ -46,6 +46,9 @@ extern void stl_internal_reverse_quads(char *buf, size_t cnt);
 const int LOAD_STL_UNIT_NUM           = 5;
 static std::string model_id           = "";
 static std::string country_code       = "";
+static std::string ml_name            = "";
+static std::string ml_id              = "";
+static std::string ml_region          = "";
 
 static FILE *stl_open_count_facets(stl_file *stl, const char *file, unsigned int custom_header_length)
 {
@@ -118,7 +121,7 @@ static FILE *stl_open_count_facets(stl_file *stl, const char *file, unsigned int
       		fclose(fp);
       		return nullptr;
     	}
-    
+
     	// Find the number of facets.
 		char linebuf[100];
 		int num_lines = 1;
@@ -133,9 +136,9 @@ static FILE *stl_open_count_facets(stl_file *stl, const char *file, unsigned int
 		}
 
     	rewind(fp);
-    
+
     	// Get the header.
-		int i = 0;
+		unsigned int i = 0;
     	for (; i < custom_header_length && (stl->stats.header[i] = getc(fp)) != '\n'; ++ i) ;
     	stl->stats.header[i] = '\0'; // Lose the '\n'
         stl->stats.header[custom_header_length] = '\0';
@@ -162,39 +165,70 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, Impor
 	else {
         rewind(fp);
         try{
-            char solid_name[256];
-            int res_solid = fscanf(fp, " solid %[^\n]", solid_name);
+            char solid_content[256];
+            int res_solid = fscanf(fp, " solid %[^\n]", solid_content);
             if (res_solid == 1) {
-                char* mw_position = strstr(solid_name, "MW");
-                if (mw_position != NULL) {
-                    // Extract the value after "MW"
-                    char version_str[16];
-                    char model_id_str[128]; 
-                    char country_code_str[16];
-                    int num_values = sscanf(mw_position + 3, "%s %s %s", version_str, model_id_str, country_code_str);
-                    if (num_values == 3) {
-                        if (strcmp(version_str, "1.0") == 0) {
-                            model_id = model_id_str;
-                            country_code = country_code_str;
+                /*include ml info*/
+                std::string ext_content(solid_content);
+                std::string ml_content;
+                std::string mw_content;
+
+                size_t pos = ext_content.find('&');
+                if (pos != std::string::npos) {
+                    mw_content = ext_content.substr(0, pos);
+                    ml_content = ext_content.substr(pos + 1);
+                }
+
+                if (ml_content.empty() && ext_content.find("ML") != std::string::npos) {
+                    ml_content = ext_content;
+                }
+
+                if (mw_content.empty() && ext_content.find("MW") != std::string::npos) {
+                    mw_content = ext_content;
+                }
+
+                /*parse ml info*/
+                if (!ml_content.empty()) {
+                    std::istringstream iss(ml_content);
+                    std::string token;
+                    std::vector<std::string> result;
+                    while (iss >> token) {
+                        if (token.find(' ') == std::string::npos) {
+                            result.push_back(token);
                         }
                     }
-                    else {
-                        model_id = "";
-                        country_code = "";
+
+                    if (result.size() == 4 && result[0] == "ML") {
+                        ml_region = result[1];
+                        ml_name = result[2];
+                        ml_id = result[3];
                     }
                 }
-                else {
-                    model_id = "";  // No MW format found
-                    country_code = "";
+
+                /*parse mw info*/
+                if (!mw_content.empty()) {
+                    std::istringstream iss(mw_content);
+                    std::string token;
+                    std::vector<std::string> result;
+                    while (iss >> token) {
+                        if (token.find(' ') == std::string::npos) {
+                            result.push_back(token);
+                        }
+                    }
+
+                    if (result.size() == 4 && result[0] == "MW") {
+                        model_id = result[2];
+                        country_code = result[3];
+                    }
                 }
             }
         }
         catch (...){
         }
-        
+
         rewind(fp);
 	}
-    	
+
 
   	char normal_buf[3][32];
 
@@ -204,7 +238,7 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, Impor
         if ((i % unit) == 0) {
             bool cb_cancel = false;
             if (stlFn) {
-                stlFn(i, facets_num, cb_cancel, model_id, country_code);
+                stlFn(i, facets_num, cb_cancel, model_id, country_code, ml_region, ml_name, ml_id);
                 if (cb_cancel)
                     return false;
             }
@@ -213,7 +247,7 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, Impor
   	  	stl_facet facet;
 
     	if (stl->stats.type == binary) {
-  
+
 
       		// Read a single facet from a binary .STL file. We assume little-endian architecture!
       		if (fread(&facet, 1, SIZEOF_STL_FACET, fp) != SIZEOF_STL_FACET)
@@ -285,9 +319,9 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, Impor
 		// Write the facet into memory if none of facet vertices is NAN.
 		bool someone_is_nan = false;
 		for (size_t j = 0; j < 3; ++j) {
-			if (isnan(facet.vertex[j](0)) || isnan(facet.vertex[j](1)) || isnan(facet.vertex[j](2))) { 
+			if (isnan(facet.vertex[j](0)) || isnan(facet.vertex[j](1)) || isnan(facet.vertex[j](2))) {
 				someone_is_nan = true;
-				break; 
+				break;
 			}
 		}
 		if(someone_is_nan)
@@ -304,7 +338,7 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, Impor
 
 bool stl_open(stl_file *stl, const char *file, ImportstlProgressFn stlFn, int custom_header_length)
 {
-    if (custom_header_length < LABEL_SIZE) { 
+    if (custom_header_length < LABEL_SIZE) {
         custom_header_length = LABEL_SIZE;
     }
     Slic3r::CNumericLocalesSetter locales_setter;

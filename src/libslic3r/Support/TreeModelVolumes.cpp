@@ -33,7 +33,7 @@ using namespace std::literals;
 
 // or warning
 // had to use a define beacuse the macro processing inside macro BOOST_LOG_TRIVIAL()
-#define error_level_not_in_cache error
+#define error_level_not_in_cache debug
 
 //FIXME Machine border is currently ignored.
 static Polygons calculateMachineBorderCollision(Polygon machine_border)
@@ -662,6 +662,7 @@ void TreeModelVolumes::calculateAvoidance(const std::vector<RadiusLayerPair> &ke
             // Limiting the offset step so that unioning the shrunk latest_avoidance with the current layer collisions
             // will not create gaps in the resulting avoidance region letting a tree support branch tunneling through an object wall.
             float move_step      = 1.9 * std::max(task.radius, m_current_min_xy_dist);
+            if (move_step < EPSILON) return;
             int   move_steps     = round_up_divide<int>(max_move, move_step);
             assert(move_steps > 0);
             float last_move_step = max_move - (move_steps - 1) * move_step;

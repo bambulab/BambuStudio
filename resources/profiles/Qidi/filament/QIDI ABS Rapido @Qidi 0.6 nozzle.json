@@ -1,0 +1,17 @@
+{
+    "type": "filament",
+    "filament_id": "GFB00",
+    "setting_id": "GFSB00_Qidi_31",
+    "name": "QIDI ABS Rapido @Qidi 0.6 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "QIDI ABS Rapido @Qidi",
+    "pressure_advance": [
+        "0.014"
+    ],
+	"compatible_printers": [
+		"Qidi X-Smart 3 0.6 nozzle",
+		"Qidi X-Plus 3 0.6 nozzle",
+		"Qidi X-Max 3 0.6 nozzle"
+	]
+}

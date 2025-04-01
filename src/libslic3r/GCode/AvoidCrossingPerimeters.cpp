@@ -509,13 +509,14 @@ static float get_perimeter_spacing_external(const Layer &layer)
 
 // Called by avoid_perimeters() and by simplify_travel_heuristics().
 static size_t avoid_perimeters_inner(const AvoidCrossingPerimeters::Boundary &boundary,
-                                     const Point                             &start,
-                                     const Point                             &end,
+                                     const Point                             &start_point,
+                                     const Point                             &end_point,
                                      const Layer                             &layer,
                                      std::vector<TravelPoint>                &result_out)
 {
     const Polygons           &boundaries = boundary.boundaries;
     const EdgeGrid::Grid     &edge_grid  = boundary.grid;
+    Point               start = start_point, end = end_point;
     // Find all intersections between boundaries and the line segment, sort them along the line segment.
     std::vector<Intersection> intersections;
     {
@@ -523,6 +524,29 @@ static size_t avoid_perimeters_inner(const AvoidCrossingPerimeters::Boundary &bo
         AllIntersectionsVisitor visitor(edge_grid, intersections, Line(start, end));
         edge_grid.visit_cells_intersecting_line(start, end, visitor);
         Vec2d dir = (end - start).cast<double>();
+        // if do not intersect due to the boundaries inner-offset, try to find the closest point to do intersect again!
+        if (intersections.empty()) {
+            // try to find the closest point on boundaries to start/end with distance less than extend_distance, which is noted as new start_point/end_point
+            auto                           search_radius         = 1.5 * get_perimeter_spacing(layer);
+            const std::vector<ClosestLine> closest_line_to_start = get_closest_lines_in_radius(boundary.grid, start, search_radius);
+            const std::vector<ClosestLine> closest_line_to_end = get_closest_lines_in_radius(boundary.grid, end, search_radius);
+            if (!(closest_line_to_start.empty() && closest_line_to_end.empty())) {
+                auto new_start_point = closest_line_to_start.empty() ? start : closest_line_to_start.front().point;
+                auto new_end_point   = closest_line_to_end.empty() ? end : closest_line_to_end.front().point;
+                dir                  = (new_end_point - new_start_point).cast<double>();
+                auto unit_direction  = dir.normalized();
+                // out-offset new_start_point/new_end_point epsilon along the Line(new_start_point, new_end_point) for right intersection!
+                new_start_point = new_start_point - (unit_direction * double(coord_t(SCALED_EPSILON))).cast<coord_t>();
+                new_end_point   = new_end_point + (unit_direction * double(coord_t(SCALED_EPSILON))).cast<coord_t>();
+                AllIntersectionsVisitor visitor(edge_grid, intersections, Line(new_start_point, new_end_point));
+                edge_grid.visit_cells_intersecting_line(new_start_point, new_end_point, visitor);
+                if (!intersections.empty()) {
+                    start = new_start_point;
+                    end   = new_end_point;
+                }
+            }            
+        }
+
         for (Intersection &intersection : intersections) {
             float dist_from_line_begin = (intersection.point - boundary.boundaries[intersection.border_idx][intersection.line_idx]).cast<float>().norm();
             intersection.distance = boundary.boundaries_params[intersection.border_idx][intersection.line_idx] + dist_from_line_begin;
@@ -598,6 +622,7 @@ static size_t avoid_perimeters_inner(const AvoidCrossingPerimeters::Boundary &bo
 
     result.push_back({end, -1});
 
+
 #ifdef AVOID_CROSSING_PERIMETERS_DEBUG_OUTPUT
     {
         static int iRun = 0;
@@ -631,6 +656,7 @@ static size_t avoid_perimeters(const AvoidCrossingPerimeters::Boundary &boundary
     std::vector<TravelPoint> path;
     size_t num_intersections = avoid_perimeters_inner(boundary, start, end, layer, path);
     result_out = to_polyline(path);
+
 
 #ifdef AVOID_CROSSING_PERIMETERS_DEBUG_OUTPUT
     {
@@ -705,7 +731,7 @@ static bool need_wipe(const GCode          &gcodegen,
 {
     const ExPolygons               &lslices        = gcodegen.layer()->lslices;
     const std::vector<BoundingBox> &lslices_bboxes = gcodegen.layer()->lslices_bboxes;
-    bool z_lift_enabled = gcodegen.config().z_hop.get_at(gcodegen.writer().extruder()->id()) > 0.;
+    bool z_lift_enabled = gcodegen.config().z_hop.get_at(gcodegen.writer().filament()->id()) > 0.;
     bool wipe_needed    = false;
 
     // If the original unmodified path doesn't have any intersection with boundary, then it is entirely inside the object otherwise is entirely
@@ -1127,7 +1153,6 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
     const Point start         = gcodegen.last_pos() + scaled_origin;
     const Point end           = point + scaled_origin;
     const Line  travel(start, end);
-
     Polyline result_pl;
     size_t   travel_intersection_count = 0;
     Vec2d startf = start.cast<double>();
@@ -1140,7 +1165,7 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
         // Initialize m_internal only when it is necessary.
         if (m_internal.boundaries.empty())
             init_boundary(&m_internal, to_polygons(get_boundary(*gcodegen.layer())));
-
+      
         // Trim the travel line by the bounding box.
         if (!m_internal.boundaries.empty() && Geometry::liang_barsky_line_clipping(startf, endf, m_internal.bbox)) {
             travel_intersection_count = avoid_perimeters(m_internal, startf.cast<coord_t>(), endf.cast<coord_t>(), *gcodegen.layer(), result_pl);

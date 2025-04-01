@@ -258,6 +258,23 @@ public:
     using Scalar = Vec3d::Scalar;
 };
 
+class Line3float
+{
+public:
+    Line3float() : a(Vec3f::Zero()), b(Vec3f::Zero()) {}
+    Line3float(const Vec3f &_a, const Vec3f &_b) : a(_a), b(_b) {}
+
+    Vec3f  vector() const { return this->b - this->a; }
+    Vec3f  unit_vector() const { return (length() == 0.0) ? Vec3f::Zero() : vector().normalized(); }
+    double length() const { return vector().norm(); }
+
+    Vec3f a;
+    Vec3f b;
+
+    static const constexpr int Dim = 3;
+    using Scalar                   = Vec3f::Scalar;
+};
+typedef std::vector<Line3float> Line3floats;
 BoundingBox get_extents(const Lines &lines);
 
 } // namespace Slic3r
@@ -272,7 +289,7 @@ namespace boost { namespace polygon {
     struct segment_traits<Slic3r::Line> {
         typedef coord_t coordinate_type;
         typedef Slic3r::Point point_type;
-    
+
         static inline point_type get(const Slic3r::Line& line, direction_1d dir) {
             return dir.to_int() ? line.b : line.a;
         }

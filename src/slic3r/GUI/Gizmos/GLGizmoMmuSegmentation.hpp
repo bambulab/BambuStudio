@@ -68,7 +68,7 @@ public:
     ~GLGizmoMmuSegmentation() override = default;
 
     void render_painter_gizmo() const override;
-
+    void render_non_manifold_edges() const;
     void set_painter_gizmo_data(const Selection& selection) override;
 
     void render_triangles(const Selection& selection) const override;
@@ -139,6 +139,7 @@ private:
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.
     std::map<std::string, wxString> m_desc;
+    mutable GLModel   m_non_manifold_edges_model;
 };
 
 } // namespace Slic3r

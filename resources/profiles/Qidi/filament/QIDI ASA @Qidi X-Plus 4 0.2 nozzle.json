@@ -1,0 +1,24 @@
+{
+    "type": "filament",
+    "filament_id": "GFB01",
+    "setting_id": "GFSB01_Qidi_10",
+    "name": "QIDI ASA @Qidi X-Plus 4 0.2 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "QIDI ASA @Qidi",
+    "filament_max_volumetric_speed": [
+        "2"
+    ],
+    "nozzle_temperature": [
+        "255"
+    ],
+    "chamber_temperatures" : [
+        "0"
+    ],
+    "pressure_advance": [
+        "0.03"
+    ],
+	"compatible_printers": [
+		"Qidi X-Plus 4 0.2 nozzle"
+	]
+}

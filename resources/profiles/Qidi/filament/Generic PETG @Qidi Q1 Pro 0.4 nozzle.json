@@ -6,12 +6,6 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "Generic PETG @Qidi",
-    "hot_plate_temp_initial_layer": [
-        "80"
-    ],
-    "overhang_fan_speed": [
-        "100"
-    ],
     "pressure_advance":[
         "0.086"
     ],

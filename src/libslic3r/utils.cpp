@@ -1089,6 +1089,18 @@ std::string normalize_utf8_nfc(const char *src)
     return boost::locale::normalize(src, boost::locale::norm_nfc, locale_utf8);
 }
 
+std::vector<std::string> split_string(const std::string &str, char delimiter)
+{
+    std::vector<std::string> result;
+    std::stringstream ss(str);
+    std::string substr;
+
+    while (std::getline(ss, substr, delimiter)) {
+        result.push_back(substr);
+    }
+    return result;
+}
+
 namespace PerlUtils {
     // Get a file name including the extension.
     std::string path_to_filename(const char *src)       { return boost::filesystem::path(src).filename().string(); }
@@ -1200,6 +1212,34 @@ std::string xml_escape(std::string text, bool is_marked/* = false*/)
         case '&':  replacement = "&amp;";  break;
         case '<':  replacement = is_marked ? "<" :"&lt;"; break;
         case '>':  replacement = is_marked ? ">" :"&gt;"; break;
+        default: break;
+        }
+
+        text.replace(pos, 1, replacement);
+        pos += replacement.size();
+    }
+
+    return text;
+}
+
+// Definition of escape symbols https://www.w3.org/TR/REC-xml/#AVNormalize
+// During the read of xml attribute normalization of white spaces is applied
+// Soo for not lose white space character it is escaped before store
+std::string xml_escape_double_quotes_attribute_value(std::string text)
+{
+    std::string::size_type pos = 0;
+    for (;;) {
+        pos = text.find_first_of("\"&<\r\n\t", pos);
+        if (pos == std::string::npos) break;
+
+        std::string replacement;
+        switch (text[pos]) {
+        case '\"': replacement = "&quot;"; break;
+        case '&': replacement = "&amp;"; break;
+        case '<': replacement = "&lt;"; break;
+        case '\r': replacement = "&#xD;"; break;
+        case '\n': replacement = "&#xA;"; break;
+        case '\t': replacement = "&#x9;"; break;
         default: break;
         }
 

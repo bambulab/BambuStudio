@@ -16,7 +16,10 @@ class GLGizmoMove3D : public GLGizmoBase
     static const double Offset;
 
     Vec3d m_displacement;
-
+    Vec3d         origin = Vec3d::Zero();
+    Vec3d         m_center{Vec3d::Zero()};
+    BoundingBoxf3 m_bounding_box;
+    Transform3d   m_orient_matrix{Transform3d::Identity()};
     double m_snap_step;
 
     Vec3d m_starting_drag_position;
@@ -27,6 +30,13 @@ class GLGizmoMove3D : public GLGizmoBase
 
     //BBS: add size adjust related
     GizmoObjectManipulation* m_object_manipulation;
+
+    struct GrabberConnection
+    {
+        GLModel model;
+        Vec3d old_center{ Vec3d::Zero() };
+    };
+    std::array<GrabberConnection, 3> m_grabber_connections;
 
 public:
     //BBS: add obj manipulation logic
@@ -40,6 +50,8 @@ public:
     const Vec3d& get_displacement() const { return m_displacement; }
 
     std::string get_tooltip() const override;
+    void        data_changed(bool is_serializing) override;
+    BoundingBoxf3 get_bounding_box() const override;
 
 protected:
     virtual bool on_init() override;
@@ -58,6 +70,9 @@ protected:
 private:
     double calc_projection(const UpdateData& data) const;
     void render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking) const;
+    void   change_cs_by_selection(); //cs mean Coordinate System
+private:
+    int m_last_selected_obejct_idx, m_last_selected_volume_idx;
 };
 
 

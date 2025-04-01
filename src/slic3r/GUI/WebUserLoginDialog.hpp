@@ -61,6 +61,8 @@ public:
 
     bool run();
 
+    std::string GetStudioLanguage();
+
     static int web_sequence_id;
 private:
     wxTimer *m_timer { nullptr };
@@ -69,8 +71,6 @@ private:
 private:
     wxString   TargetUrl;
     wxWebView *m_browser;
-
-    std::string m_AutotestToken;
 
 #if wxUSE_WEBVIEW_IE
     wxMenuItem *m_script_object_el;

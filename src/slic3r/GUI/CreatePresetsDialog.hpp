@@ -12,8 +12,9 @@
 #include "Widgets/ComboBox.hpp"
 #include "miniz.h"
 #include "ParamsDialog.hpp"
+#include "json_diff.hpp"
 
-namespace Slic3r { 
+namespace Slic3r {
 namespace GUI {
 
 class CreateFilamentPresetDialog : public DPIDialog
@@ -23,7 +24,7 @@ public:
     ~CreateFilamentPresetDialog();
 
 protected:
-    enum FilamentOptionType { 
+    enum FilamentOptionType {
         VENDOR = 0,
         TYPE,
         SERIAL,
@@ -125,6 +126,7 @@ protected:
 
 /**********************************************************    Data Interaction    *******************************************************/
     bool          data_init();
+    void          on_select_printer_model(wxCommandEvent &e);
     void          set_current_visible_printer();
     void          select_curr_radiobox(std::vector<std::pair<RadioBox *, wxString>> &radiobox_list, int btn_idx);
     void          select_all_preset_template(std::vector<std::pair<::CheckBox *, Preset *>> &preset_templates);
@@ -140,12 +142,17 @@ protected:
     bool          load_system_and_user_presets_with_curr_model(PresetBundle &temp_preset_bundle, bool just_template = false);
     void          generate_process_presets_data(std::vector<Preset const *> presets, std::string nozzle);
     void          update_preset_list_size();
+    std::string   get_printer_vendor() const;
+    std::string   get_printer_model() const;
+    std::string   get_nozzle_diameter() const;
+    std::string   get_custom_printer_model() const;
+    std::string   get_custom_printer_name() const;
     wxArrayString printer_preset_sort_with_nozzle_diameter(const VendorProfile &vendor_profile, float nozzle_diameter);
 
     wxBoxSizer *create_radio_item(wxString title, wxWindow *parent, wxString tooltip, std::vector<std::pair<RadioBox *, wxString>> &radiobox_list);
 
-    wxString    curr_create_preset_type();
-    wxString    curr_create_printer_type();
+    wxString    curr_create_preset_type() const;
+    wxString    curr_create_printer_type() const;
 
 private:
     struct CreatePrinterType
@@ -182,10 +189,12 @@ private:
     ComboBox *                                         m_select_vendor                  = nullptr;
     ComboBox *                                         m_select_model                   = nullptr;
     ComboBox *                                         m_select_printer                 = nullptr;
-    ::CheckBox *                                             m_can_not_find_vendor_combox     = nullptr;
+    ::CheckBox *                                       m_can_not_find_vendor_combox     = nullptr;
+    ::CheckBox *                                       m_can_not_find_nozzle_checkbox   = nullptr;
     wxStaticText *                                     m_can_not_find_vendor_text       = nullptr;
     wxTextCtrl *                                       m_custom_vendor_text_ctrl        = nullptr;
     wxTextCtrl *                                       m_custom_model_text_ctrl         = nullptr;
+    wxTextCtrl *                                       m_custom_nozzle_diameter_ctrl    = nullptr;
     ComboBox *                                         m_nozzle_diameter                = nullptr;
     ComboBox *                                         m_printer_vendor                 = nullptr;
     ComboBox *                                         m_printer_model                  = nullptr;
@@ -236,7 +245,7 @@ public:
     ~ExportConfigsDialog();//to do: delete preset
 
 protected:
-    
+
     struct ExportType
     {
         wxString preset_bundle;
@@ -271,6 +280,7 @@ private:
     wxBoxSizer *create_button_item(wxWindow *parent);
     wxBoxSizer *create_select_printer(wxWindow *parent);
     wxBoxSizer *create_radio_item(wxString title, wxWindow *parent, wxString tooltip, std::vector<std::pair<RadioBox *, wxString>> &radiobox_list);
+    std::string create_structure_file(json &structure);
     int         initial_zip_archive(mz_zip_archive &zip_archive, const std::string &file_path);
     ExportCase  save_zip_archive_to_file(mz_zip_archive &zip_archive);
     ExportCase  save_presets_to_zip(const std::string &export_file, const std::vector<std::pair<std::string, std::string>> &config_paths);
@@ -332,7 +342,7 @@ class PresetTree
 {
 public:
     PresetTree(EditFilamentPresetDialog *dialog);
-    
+
     wxPanel *get_preset_tree(std::pair<std::string, std::vector<std::shared_ptr<Preset>>> printer_and_presets);
 
 private:
@@ -355,7 +365,7 @@ class EditFilamentPresetDialog : public DPIDialog
 public:
     EditFilamentPresetDialog(wxWindow *parent, FilamentInfomation *filament_info);
     ~EditFilamentPresetDialog();
-    
+
     wxPanel *get_preset_tree_panel() { return m_preset_tree_panel; }
     std::shared_ptr<Preset> get_need_edit_preset() { return m_need_edit_preset; }
     void     set_printer_name(const std::string &printer_name) { m_selected_printer = printer_name; }

@@ -71,7 +71,7 @@ public:
 		if (it == m_storage.end())
 			return false;
 		auto it2 = it->second.find(key);
-		if (it2 == it->second.end()) 
+		if (it2 == it->second.end())
 			return false;
 		value = it2->second;
 		return true;
@@ -80,6 +80,7 @@ public:
 		{ std::string value; this->get(section, key, value); return value; }
 	std::string 		get(const std::string &key) const
 		{ std::string value; this->get("app", key, value); return value; }
+    bool get_bool(const std::string &key) const { return this->get(key) == "true" || this->get(key) == "1"; }
 	void			    set(const std::string &section, const std::string &key, const std::string &value)
 	{
 #ifndef NDEBUG
@@ -202,6 +203,10 @@ public:
 
     void                save_custom_color_to_config(const std::vector<std::string> &colors);
     std::vector<std::string> get_custom_color_from_config();
+
+    void save_nozzle_volume_types_to_config(const std::string& printer_name, const std::string& nozzle_volume_types);
+    std::string get_nozzle_volume_types_from_config(const std::string& printer_name);
+
 	// reset the current print / filament / printer selections, so that
 	// the  PresetBundle::load_selections(const AppConfig &config) call will select
 	// the first non-default preset when called.
@@ -251,7 +256,7 @@ public:
 
 private:
 	template<typename T>
-	bool get_3dmouse_device_numeric_value(const std::string &device_name, const char *parameter_name, T &out) const 
+	bool get_3dmouse_device_numeric_value(const std::string &device_name, const char *parameter_name, T &out) const
 	{
 	    std::string key = std::string("mouse_device:") + device_name;
 	    auto it = m_storage.find(key);

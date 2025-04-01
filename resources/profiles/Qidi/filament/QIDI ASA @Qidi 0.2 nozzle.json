@@ -9,8 +9,8 @@
     "filament_max_volumetric_speed": [
         "2"
     ],
-    "enable_volume_fan":[
-        "40"
+    "chamber_temperatures" : [
+        "0"
     ],
 	"compatible_printers": [
 		"Qidi X-Max 3 0.2 nozzle",

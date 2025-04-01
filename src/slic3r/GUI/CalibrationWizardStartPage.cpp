@@ -101,7 +101,7 @@ void CalibrationPAStartPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_when_content);
     m_top_sizer->AddSpacer(PRESET_GAP);
 
-    if (wxGetApp().app_config->get_language_code() == "zh-cn") { 
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
         create_bitmap(parent, "cali_page_before_pa_CN", "cali_page_after_pa_CN");
     } else {
         create_bitmap(parent, "cali_page_before_pa", "cali_page_after_pa");
@@ -146,12 +146,32 @@ void CalibrationPAStartPage::on_reset_page()
 
 void CalibrationPAStartPage::on_device_connected(MachineObject* obj)
 {
-    //enable all button
+    update(obj);
+}
+
+void CalibrationPAStartPage::msw_rescale()
+{
+    CalibrationWizardPage::msw_rescale();
+    m_help_panel->msw_rescale();
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
+        create_bitmap(this, "cali_page_before_pa_CN", "cali_page_after_pa_CN");
+    } else {
+        create_bitmap(this, "cali_page_before_pa", "cali_page_after_pa");
+    }
+}
+
+void CalibrationPAStartPage::update(MachineObject *obj)
+{
+    if (!obj)
+        return;
+    curr_obj = obj;
+
+    // enable all button
     m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, true);
     m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, true);
     m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
 
-    if (obj->get_printer_series() == PrinterSeries::SERIES_X1) {
+    if (obj->get_printer_series() == PrinterSeries::SERIES_X1 || obj->get_printer_arch() == PrinterArch::ARCH_I3) {
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, true);
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, true);
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
@@ -167,13 +187,12 @@ void CalibrationPAStartPage::on_device_connected(MachineObject* obj)
             m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
         }
 
-        // is support auto cali
-        bool is_support_pa_auto = (obj->home_flag >> 16 & 1) == 1;
-        if (!is_support_pa_auto) {
+
+        if (!obj->is_support_pa_calibration) {
             m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
         }
     }
-    else if (obj->get_printer_series() == PrinterSeries::SERIES_P1P || obj->get_printer_arch() == PrinterArch::ARCH_I3) {
+    else if (obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
         if (obj->cali_version >= 0) {
             m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, true);
             m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, false);
@@ -183,17 +202,6 @@ void CalibrationPAStartPage::on_device_connected(MachineObject* obj)
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
         m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, false);
-    }
-}
-
-void CalibrationPAStartPage::msw_rescale()
-{
-    CalibrationWizardPage::msw_rescale();
-    m_help_panel->msw_rescale();
-    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
-        create_bitmap(this, "cali_page_before_pa_CN", "cali_page_after_pa_CN");
-    } else {
-        create_bitmap(this, "cali_page_before_pa", "cali_page_after_pa");
     }
 }
 
@@ -226,7 +234,7 @@ void CalibrationFlowRateStartPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_when_content);
     m_top_sizer->AddSpacer(PRESET_GAP);
 
-    if (wxGetApp().app_config->get_language_code() == "zh-cn") { 
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
         create_bitmap(parent, "cali_page_flow_introduction_CN");
     } else {
         create_bitmap(parent, "cali_page_flow_introduction");
@@ -244,7 +252,7 @@ void CalibrationFlowRateStartPage::create_page(wxWindow* parent)
     create_about(parent,
         _L("About this calibration"),
         _L("Flow Rate Calibration measures the ratio of expected to actual extrusion volumes. The default setting works well in Bambu Lab printers and official filaments as they were pre-calibrated and fine-tuned. For a regular filament, you usually won't need to perform a Flow Rate Calibration unless you still see the listed defects after you have done other calibrations. For more details, please check out the wiki article."));
-        
+
     m_top_sizer->Add(m_about_title);
     m_top_sizer->Add(m_about_content);
     m_top_sizer->AddSpacer(PRESET_GAP);
@@ -254,7 +262,7 @@ void CalibrationFlowRateStartPage::create_page(wxWindow* parent)
     auto_cali_title->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
     auto_cali_title->SetMinSize({CALIBRATION_START_PAGE_TEXT_MAX_LENGTH, -1});
 
-    auto auto_cali_content = new Label(this, 
+    auto auto_cali_content = new Label(this,
         _L("Auto Flow Rate Calibration utilizes Bambu Lab's Micro-Lidar technology, directly measuring the calibration patterns. However, please be advised that the efficacy and accuracy of this method may be compromised with specific types of materials. Particularly, filaments that are transparent or semi-transparent, sparkling-particled, or have a high-reflective finish may not be suitable for this calibration and can produce less-than-desirable results.\
 \n\nThe calibration results may vary between each calibration or filament. We are still improving the accuracy and compatibility of this calibration through firmware updates over time.\
 \n\nCaution: Flow Rate Calibration is an advanced process, to be attempted only by those who fully understand its purpose and implications. Incorrect usage can lead to sub-par prints or printer damage. Please make sure to carefully read and understand the process before doing it."));
@@ -291,12 +299,38 @@ void CalibrationFlowRateStartPage::on_reset_page()
 
 void CalibrationFlowRateStartPage::on_device_connected(MachineObject* obj)
 {
+    update(obj);
+}
+
+void CalibrationFlowRateStartPage::msw_rescale()
+{
+    CalibrationWizardPage::msw_rescale();
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
+        create_bitmap(this, "cali_page_flow_introduction_CN");
+    } else {
+        create_bitmap(this, "cali_page_flow_introduction");
+    }
+}
+
+void CalibrationFlowRateStartPage::update(MachineObject *obj)
+{
+    if (!obj)
+        return;
+    curr_obj = obj;
+
     //enable all button
     m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, true);
     m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, true);
     m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
 
-    if (obj->get_printer_series() == PrinterSeries::SERIES_X1) {
+    if (obj->is_multi_extruders() || obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
+        m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, false);
+        m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
+        m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
+
+        m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, false);
+    }
+    else if (obj->get_printer_series() == PrinterSeries::SERIES_X1) {
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, false);
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, true);
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
@@ -309,28 +343,10 @@ void CalibrationFlowRateStartPage::on_device_connected(MachineObject* obj)
             m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, false);
         }
     }
-    else if (obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
-        m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, false);
-        m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
-        m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
-
-        m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, false);
-    }
 
     //is support auto cali
-    bool is_support_flow_rate_auto = (obj->home_flag >> 15 & 1) == 1;
-    if (!is_support_flow_rate_auto) {
+    if (!obj->is_support_flow_calibration) {
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
-    }
-}
-
-void CalibrationFlowRateStartPage::msw_rescale()
-{
-    CalibrationWizardPage::msw_rescale();
-    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
-        create_bitmap(this, "cali_page_flow_introduction_CN");
-    } else {
-        create_bitmap(this, "cali_page_flow_introduction");
     }
 }
 

@@ -1,6 +1,6 @@
 {
     "name": "Anycubic",
-    "version": "01.09.00.01",
+    "version": "01.10.00.01",
     "force_update": "0",
     "description": "Anycubic configurations",
     "machine_model_list": [
@@ -31,6 +31,10 @@
         {
             "name": "Anycubic Kobra 2",
             "sub_path": "machine/Anycubic Kobra 2.json"
+        },
+        {
+            "name": "Anycubic Kobra Plus",
+            "sub_path": "machine/Anycubic Kobra Plus.json"
         }
     ],
     "process_list": [
@@ -89,6 +93,10 @@
         {
             "name": "0.20mm Standard @Anycubic Kobra2",
             "sub_path": "process/0.20mm Standard @Anycubic Kobra2.json"
+        },
+        {
+            "name": "0.20mm Standard @Anycubic KobraPlus",
+            "sub_path": "process/0.20mm Standard @Anycubic KobraPlus.json"
         },
         {
             "name": "0.30mm Draft @Anycubic i3MegaS",
@@ -213,6 +221,10 @@
         {
             "name": "Anycubic Kobra Max 0.4 nozzle",
             "sub_path": "machine/Anycubic Kobra Max 0.4 nozzle.json"
+        },
+        {
+            "name": "Anycubic Kobra Plus 0.4 nozzle",
+            "sub_path": "machine/Anycubic Kobra Plus 0.4 nozzle.json"
         },
         {
             "name": "Anycubic 4Max Pro 0.4 nozzle",

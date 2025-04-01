@@ -34,17 +34,22 @@ wxString get_cali_mode_caption_string(CalibMode mode)
 
 wxString get_calibration_wiki_page(CalibMode cali_mode)
 {
+    std::string language = wxGetApp().app_config->get("language");
+    wxString    region   = "en";
+    if (language.find("zh") == 0)
+        region = "zh";
+
     switch (cali_mode) {
     case CalibMode::Calib_PA_Line:
-        return wxString("https://wiki.bambulab.com/en/software/bambu-studio/calibration_pa");
+        return wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_pa", region);
     case CalibMode::Calib_Flow_Rate:
-        return wxString("https://wiki.bambulab.com/en/software/bambu-studio/calibration_flow_rate");
+        return wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_flow_rate", region);
     case CalibMode::Calib_Vol_speed_Tower:
-        return wxString("https://wiki.bambulab.com/en/software/bambu-studio/calibration_volumetric");
+        return wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_volumetric", region);
     case CalibMode::Calib_Temp_Tower:
-        return wxString("https://wiki.bambulab.com/en/software/bambu-studio/calibration_temperature");
+        return wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_temperature", region);
     case CalibMode::Calib_Retraction_tower:
-        return wxString("https://wiki.bambulab.com/en/software/bambu-studio/calibration_retraction");
+        return wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_retraction", region);
     default:
         return "";
     }
@@ -52,12 +57,12 @@ wxString get_calibration_wiki_page(CalibMode cali_mode)
 
 CalibrationFilamentMode get_cali_filament_mode(MachineObject* obj, CalibMode mode)
 {
-    // default 
+    // default
     if (!obj) return CalibrationFilamentMode::CALI_MODEL_SINGLE;
 
 
     if (mode == CalibMode::Calib_PA_Line) {
-        if (obj->get_printer_series() == PrinterSeries::SERIES_X1)
+        if (obj->get_printer_series() == PrinterSeries::SERIES_X1 || obj->get_printer_arch() == PrinterArch::ARCH_I3)
             return CalibrationFilamentMode::CALI_MODEL_MULITI;
         else if (obj->get_printer_series() == PrinterSeries::SERIES_P1P)
             return CalibrationFilamentMode::CALI_MODEL_SINGLE;
@@ -174,7 +179,7 @@ CaliPageButton::CaliPageButton(wxWindow* parent, CaliPageActionType type, wxStri
         break;
     case CaliPageActionType::CALI_ACTION_AUTO_CALI:
         this->SetLabel(_L("Auto-Calibration"));
-        this->SetToolTip(_L("We would use Lidar to read the calibration result"));
+        this->SetToolTip(_L("The printer will automatically read the calibration results."));
         break;
     case CaliPageActionType::CALI_ACTION_START:
         this->SetLabel(_L("Start Calibration"));
@@ -275,6 +280,19 @@ FilamentComboBox::FilamentComboBox(wxWindow* parent, const wxPoint& pos, const w
     main_sizer->Fit(this);
 }
 
+void FilamentComboBox::ShowPanel()
+{
+    this->Show();
+    set_select_mode(m_mode);
+}
+
+void FilamentComboBox::HidePanel()
+{
+    this->Hide();
+    m_radioBox->Hide();
+    m_checkBox->Hide();
+}
+
 void FilamentComboBox::set_select_mode(CalibrationFilamentMode mode)
 {
     m_mode = mode;
@@ -302,7 +320,7 @@ void FilamentComboBox::load_tray_from_ams(int id, DynamicPrintConfig& tray)
 
         if (m_radioBox)
             m_radioBox->Enable(m_comboBox->is_compatible_with_printer());
-            
+
         if (m_checkBox)
             m_checkBox->Enable(m_comboBox->is_compatible_with_printer());
 
@@ -548,7 +566,7 @@ void CaliPageStepGuide::set_steps_string(wxArrayString steps)
 }
 
 
-CaliPagePicture::CaliPagePicture(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style) 
+CaliPagePicture::CaliPagePicture(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : wxPanel(parent, id, pos, size, style)
 {
     SetBackgroundColour(wxColour(0xCECECE));
@@ -717,7 +735,7 @@ CaliPageActionPanel::CaliPageActionPanel(wxWindow* parent,
             m_action_btns.push_back(new CaliPageButton(btn_parent, CaliPageActionType::CALI_ACTION_PREV));
             m_action_btns.push_back(new CaliPageButton(btn_parent, CaliPageActionType::CALI_ACTION_NEXT));
         }
-        
+
     }
 
     auto top_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -804,7 +822,7 @@ CaliPageSendingPanel::CaliPageSendingPanel(wxWindow* parent, wxWindowID id, cons
     Layout();
     Fit();
 
-    Bind(EVT_SHOW_ERROR_INFO, [this](auto& e) {
+    Bind(EVT_SHOW_ERROR_INFO_SEND, [this](auto& e) {
         show_send_failed_info(true);
         });
 }

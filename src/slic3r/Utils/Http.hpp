@@ -29,6 +29,7 @@ enum HttpErrorCode
 	HttpErrorTimeout			= 13,
 	HttpErrorResourcesExhaust   = 14,
 	HttpErrorVersionLimited		= 15,
+	HttpErrorCertRevoked		= 101,
 };
 
 /// Represetns a Http request

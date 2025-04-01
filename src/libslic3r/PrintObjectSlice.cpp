@@ -4,6 +4,7 @@
 #include "MultiMaterialSegmentation.hpp"
 #include "Print.hpp"
 #include "ClipperUtils.hpp"
+#include "Interlocking/InterlockingGenerator.hpp"
 //BBS
 #include "ShortestPath.hpp"
 
@@ -273,11 +274,15 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                     float z                          = zs[z_idx];
                     int   idx_first_printable_region = -1;
                     bool  complex                    = false;
+                    std::vector<int> printable_region_ids;
                     for (int idx_region = 0; idx_region < int(layer_range.volume_regions.size()); ++ idx_region) {
                         const PrintObjectRegions::VolumeRegion &region = layer_range.volume_regions[idx_region];
                         if (region.bbox->min().z() <= z && region.bbox->max().z() >= z) {
-                            if (idx_first_printable_region == -1 && region.model_volume->is_model_part())
+                            if (region.model_volume->is_model_part())
+                                printable_region_ids.push_back(idx_region);
+                            if (idx_first_printable_region == -1 && region.model_volume->is_model_part()) {
                                 idx_first_printable_region = idx_region;
+                            }
                             else if (idx_first_printable_region != -1) {
                                 // Test for overlap with some other region.
                                 for (int idx_region2 = idx_first_printable_region; idx_region2 < idx_region; ++ idx_region2) {
@@ -293,8 +298,10 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                     if (complex)
                         zs_complex.push_back({ z_idx, z });
                     else if (idx_first_printable_region >= 0) {
-                        const PrintObjectRegions::VolumeRegion &region = layer_range.volume_regions[idx_first_printable_region];
-                        slices_by_region[region.region->print_object_region_id()][z_idx] = std::move(volume_slices_find_by_id(volume_slices, region.model_volume->id()).slices[z_idx]);
+                        for (int printable_region_id : printable_region_ids) {
+                            const PrintObjectRegions::VolumeRegion &region = layer_range.volume_regions[printable_region_id];
+                            append(slices_by_region[region.region->print_object_region_id()][z_idx], std::move(volume_slices_find_by_id(volume_slices, region.model_volume->id()).slices[z_idx]));
+                        }
                     }
                 }
             }
@@ -1049,6 +1056,26 @@ void PrintObject::slice_volumes()
     }
 
 
+    InterlockingGenerator::generate_interlocking_structure(this);
+    m_print->throw_if_canceled();
+
+    // SuperSlicer: filament shrink
+    for (Layer *layer : m_layers) {
+        for (size_t i = 0; i < layer->region_count(); ++i) {
+            LayerRegion *region = layer->get_region(i);
+            ExPolygons ex_polys = to_expolygons(region->slices.surfaces);
+            int       filament_id = region->region().extruder(FlowRole::frPerimeter) - 1;
+            double       scale       = print->config().filament_shrink.values[filament_id] * 0.01;
+            if (scale != 1) {
+                scale = 1 / scale;
+                for (ExPolygon &poly : ex_polys)
+                    poly.scale(scale);
+            }
+
+            region->slices.set(std::move(ex_polys), stInternal);
+        }
+    }
+
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - make_slices in parallel - begin";
     {
         // Compensation value, scaled. Only applying the negative scaling here, as the positive scaling has already been applied during slicing.
@@ -1163,6 +1190,8 @@ void PrintObject::slice_volumes()
                         }
 	                }
 	                // Merge all regions' slices to get islands, chain them by a shortest path.
+                    if (this->config().enable_circle_compensation)
+                        layer->apply_auto_circle_compensation();
 	                layer->make_slices();
 	            }
 	        });

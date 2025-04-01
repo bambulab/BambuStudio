@@ -9,9 +9,6 @@
     "filament_max_volumetric_speed": [
         "4"
     ],
-    "overhang_fan_speed": [
-        "50"
-    ],
     "slow_down_min_speed": [
         "20"
     ],

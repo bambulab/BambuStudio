@@ -15,6 +15,7 @@ public:
     Fill* clone() const override { return new FillRectilinear(*this); }
     ~FillRectilinear() override = default;
     Polylines fill_surface(const Surface *surface, const FillParams &params) override;
+    bool is_self_crossing() override { return false; }
 
 protected:
     // Fill by single directional lines, interconnect the lines along perimeters.
@@ -27,6 +28,9 @@ protected:
         float pattern_shift;
     };
     bool fill_surface_by_multilines(const Surface *surface, FillParams params, const std::initializer_list<SweepParams> &sweep_params, Polylines &polylines_out);
+
+    // The extended bounding box of the whole object that covers any rotation of every layer.
+    BoundingBox extended_object_bounding_box() const;
 };
 
 class FillAlignedRectilinear : public FillRectilinear
@@ -64,6 +68,7 @@ public:
     Fill* clone() const override { return new FillGrid(*this); }
     ~FillGrid() override = default;
     Polylines fill_surface(const Surface *surface, const FillParams &params) override;
+    bool is_self_crossing() override { return true; }
 
 protected:
 	// The grid fill will keep the angle constant between the layers, see the implementation of Slic3r::Fill.
@@ -76,6 +81,7 @@ public:
     Fill* clone() const override { return new FillTriangles(*this); }
     ~FillTriangles() override = default;
     Polylines fill_surface(const Surface *surface, const FillParams &params) override;
+    bool is_self_crossing() override { return true; }
 
 protected:
 	// The grid fill will keep the angle constant between the layers, see the implementation of Slic3r::Fill.
@@ -88,6 +94,7 @@ public:
     Fill* clone() const override { return new FillStars(*this); }
     ~FillStars() override = default;
     Polylines fill_surface(const Surface *surface, const FillParams &params) override;
+    bool is_self_crossing() override { return true; }
 
 protected:
     // The grid fill will keep the angle constant between the layers, see the implementation of Slic3r::Fill.
@@ -100,6 +107,7 @@ public:
     Fill* clone() const override { return new FillCubic(*this); }
     ~FillCubic() override = default;
     Polylines fill_surface(const Surface *surface, const FillParams &params) override;
+    bool is_self_crossing() override { return true; }
 
 protected:
 	// The grid fill will keep the angle constant between the layers, see the implementation of Slic3r::Fill.
@@ -123,6 +131,7 @@ class FillMonotonicLineWGapFill : public Fill
 public:
     ~FillMonotonicLineWGapFill() override = default;
     void fill_surface_extrusion(const Surface *surface, const FillParams &params, ExtrusionEntitiesPtr &out) override;
+    bool is_self_crossing() override { return false; }
 
 protected:
     Fill* clone() const override { return new FillMonotonicLineWGapFill(*this); };
@@ -132,9 +141,28 @@ private:
     void fill_surface_by_lines(const Surface* surface, const FillParams& params, Polylines& polylines_out);
 };
 
-Points sample_grid_pattern(const ExPolygon& expolygon, coord_t spacing, const BoundingBox& global_bounding_box);
-Points sample_grid_pattern(const ExPolygons& expolygons, coord_t spacing, const BoundingBox& global_bounding_box);
-Points sample_grid_pattern(const Polygons& polygons, coord_t spacing, const BoundingBox& global_bounding_box);
+class FillZigZag : public FillRectilinear
+{
+public:
+    Fill* clone() const override { return new FillZigZag(*this); }
+    ~FillZigZag() override = default;
+
+    bool has_consistent_pattern() const override { return true; }
+};
+
+class FillCrossZag : public FillRectilinear
+{
+public:
+    Fill *clone() const override { return new FillCrossZag(*this); }
+    ~FillCrossZag() override = default;
+
+    bool has_consistent_pattern() const override { return true; }
+};
+
+
+Points sample_grid_pattern(const ExPolygon &expolygon, coord_t spacing, const BoundingBox &global_bounding_box);
+Points sample_grid_pattern(const ExPolygons &expolygons, coord_t spacing, const BoundingBox &global_bounding_box);
+Points sample_grid_pattern(const Polygons &polygons, coord_t spacing, const BoundingBox &global_bounding_box);
 
 } // namespace Slic3r
 
