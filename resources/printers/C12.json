@@ -79,5 +79,10 @@
 			},
 			"support_user_preset": true
 		}
+	},
+	"01.07.50.00": {
+		"print": {
+			"support_print_all": true
+		}
 	}
 }
