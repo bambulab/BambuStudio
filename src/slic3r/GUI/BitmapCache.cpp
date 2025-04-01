@@ -13,11 +13,12 @@
     #include <wx/mstream.h>
     #include <wx/rawbmp.h>
 #endif /* __WXGTK2__ */
-
+#include <GL/glew.h>
 #define NANOSVG_IMPLEMENTATION
 #include "nanosvg/nanosvg.h"
 #define NANOSVGRAST_IMPLEMENTATION
 #include "nanosvg/nanosvgrast.h"
+#include "3DScene.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -332,9 +333,11 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
         replaces["\"#6B6B6B\""] = "\"#818182\"";
         replaces["\"#909090\""] = "\"#FFFFFF\"";
         replaces["\"#00FF00\""] = "\"#FF0000\"";
+        replaces["\"#F1F1F1\""] = "\"#36363B\"";
+        replaces["\"#DBDBDB\""] = "\"#4A4A51\"";
     }
-    //if (!new_color.empty())
-    //    replaces["\"#ED6B21\""] = "\"" + new_color + "\"";
+    if (!new_color.empty())
+        replaces["\"#00AE42\""] = "\"" + new_color + "\"";
 
      NSVGimage *image = nullptr;
     if (strstr(bitmap_name.c_str(), "printer_thumbnail") == NULL) {
@@ -539,6 +542,67 @@ bool BitmapCache::parse_color4(const std::string& scolor, unsigned char* rgba_ou
             return false;
         rgba_out[i] = (unsigned char)(digit1 * 16 + digit2);
     }
+    return true;
+}
+//BBS Replace svg green with the specified colour
+bool BitmapCache::load_from_svg_file_change_color(const std::string &filename, unsigned width, unsigned height, ImTextureID &texture_id, const char *hexColor)
+{
+    NSVGimage* image = nsvgParseFromFile(filename.c_str(), "px", 96.0f);
+    if (image == nullptr) {
+        return false;
+    }
+    char temp_color[8];
+    strncpy(temp_color, hexColor, 7);
+    temp_color[7]             = '\0';
+    unsigned int change_color = nsvg__parseColorHex(temp_color);
+    change_color |= (unsigned int) (1.0f * 255) << 24; // opacity
+    unsigned int green_color = 4282560000;
+    for (NSVGshape* shape = image->shapes; shape != nullptr; shape = shape->next) {
+        // find green color
+        if (shape->fill.color == green_color) {
+            shape->fill.color = change_color;
+        }
+    }
+
+    float scale = (float)width / image->width;
+
+    int n_pixels = width * height;
+
+    if (n_pixels <= 0) {
+        nsvgDelete(image);
+        return false;
+    }
+
+    NSVGrasterizer* rast = nsvgCreateRasterizer();
+    if (rast == nullptr) {
+        nsvgDelete(image);
+        return false;
+    }
+    std::vector<unsigned char> data(n_pixels * 4, 0);
+    nsvgRasterize(rast, image, 0, 0, scale, data.data(), width, height, width * 4);
+
+    bool compress = false;
+    GLint last_texture;
+    unsigned m_image_texture{ 0 };
+    unsigned char* pixels = (unsigned char*)(&data[0]);
+
+    glsafe(::glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
+    glsafe(::glGenTextures(1, &m_image_texture));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, m_image_texture));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    glsafe(::glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
+    glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
+
+    // Store our identifier
+    texture_id = (ImTextureID)(intptr_t)m_image_texture;
+
+    // Restore state
+    glsafe(::glBindTexture(GL_TEXTURE_2D, last_texture));
+
+    nsvgDeleteRasterizer(rast);
+    nsvgDelete(image);
+
     return true;
 }
 

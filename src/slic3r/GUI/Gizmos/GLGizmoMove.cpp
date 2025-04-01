@@ -4,6 +4,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 //BBS: GUI refactor
 #include "slic3r/GUI/Plater.hpp"
+#include "slic3r/GUI/OpenGLManager.hpp"
 #include "libslic3r/AppConfig.hpp"
 
 
@@ -36,6 +37,7 @@ GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filenam
         float value                             = std::stof(wxGetApp().app_config->get("grabber_size_factor"));
         GLGizmoBase::Grabber::GrabberSizeFactor = value;
     } catch (const std::invalid_argument &e) {
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << e.what();
         GLGizmoBase::Grabber::GrabberSizeFactor = 1.0f;
     }
 }
@@ -59,6 +61,57 @@ std::string GLGizmoMove3D::get_tooltip() const
 void GLGizmoMove3D::data_changed(bool is_serializing)
 {
     change_cs_by_selection();
+}
+
+BoundingBoxf3 GLGizmoMove3D::get_bounding_box() const
+{
+    BoundingBoxf3 t_aabb;
+
+    Selection& selection = m_parent.get_selection();
+    // m_cone aabb
+    if (m_cone.is_initialized()) {
+        const auto& t_cone_aabb = m_cone.get_bounding_box();
+        const auto& [box, box_trafo] = selection.get_bounding_box_in_current_reference_system();
+        Transform3d model_matrix = box_trafo;
+
+        double size = get_grabber_size() * 0.75;//0.75 for arrow show
+        for (unsigned int i = 0; i < 3; ++i) {
+            if (m_grabbers[i].enabled) {
+                auto i_model_matrix = model_matrix * Geometry::assemble_transform(m_grabbers[i].center);
+
+                if (i == X)
+                    i_model_matrix = i_model_matrix * Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitY());
+                else if (i == Y)
+                    i_model_matrix = i_model_matrix * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitX());
+                i_model_matrix = i_model_matrix * Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), Vec3d(0.75 * size, 0.75 * size, 2.0 * size));
+
+                auto i_aabb = t_cone_aabb.transformed(i_model_matrix);
+                i_aabb.defined = true;
+                t_aabb.merge(i_aabb);
+                t_aabb.defined = true;
+            }
+        }
+    }
+    // end m_cone aabb
+
+    // m_cross_mark aabb
+    if (m_object_manipulation->is_instance_coordinates()) {
+        Geometry::Transformation cur_tran;
+        if (auto mi = m_parent.get_selection().get_selected_single_intance()) {
+            cur_tran = mi->get_transformation();
+        }
+        else {
+            cur_tran = selection.get_first_volume()->get_instance_transformation();
+        }
+
+        auto t_cross_mask_aabb = get_cross_mask_aabb(cur_tran.get_matrix(), Vec3f::Zero(), true);
+        t_cross_mask_aabb.defined = true;
+        t_aabb.merge(t_cross_mask_aabb);
+        t_aabb.defined = true;
+    }
+
+    // end m_cross_mark aabb
+    return t_aabb;
 }
 
 bool GLGizmoMove3D::on_init()
@@ -93,6 +146,7 @@ void GLGizmoMove3D::on_set_state() {
         m_last_selected_volume_idx = -1;
         change_cs_by_selection();
     }
+    GLGizmoBase::on_set_state();
 }
 
 void GLGizmoMove3D::on_start_dragging()
@@ -136,15 +190,26 @@ void GLGizmoMove3D::on_render()
         m_object_manipulation->cs_center = box_trafo.translation();
     }
     m_orient_matrix                 = box_trafo;
-    float space_size = 20.f *INV_ZOOM;
-    space_size *= GLGizmoBase::Grabber::GrabberSizeFactor;
+
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    if (!p_ogl_manager) {
+        return;
+    }
+
+    float space_size = 20.f * INV_ZOOM * GLGizmoBase::Grabber::GrabberSizeFactor;
+    modify_radius(space_size);
 #if ENABLE_FIXED_GRABBER
     // x axis
-    m_grabbers[0].center = {m_bounding_box.max.x() + space_size, 0, 0};
+    m_grabbers[0].center = {space_size, 0, 0};
     // y axis
-    m_grabbers[1].center = {0, m_bounding_box.max.y() + space_size,0};
+    m_grabbers[1].center = {0, space_size,0};
     // z axis
-    m_grabbers[2].center = {0,0, m_bounding_box.max.z() + space_size};
+    m_grabbers[2].center = {0,0, space_size};
+    if (!p_ogl_manager->is_gizmo_keep_screen_size_enabled()) {
+        m_grabbers[0].center.x() += m_bounding_box.max.x();
+        m_grabbers[1].center.y() += m_bounding_box.max.y();
+        m_grabbers[2].center.z() += m_bounding_box.max.z();
+    }
 
     for (int i = 0; i < 3; ++i) {
         m_grabbers[i].color       = AXES_COLOR[i];
@@ -164,9 +229,9 @@ void GLGizmoMove3D::on_render()
     m_grabbers[2].color = AXES_COLOR[2];
 #endif
 
-    glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
-    glsafe(::glPushMatrix());
-    glsafe(::glMultMatrixd(Geometry::Transformation(m_orient_matrix).get_matrix().data()));
+    p_ogl_manager->set_line_width((m_hover_id != -1) ? 2.0f : 1.5f);
+    const auto& gl_info = p_ogl_manager->get_gl_info();
+    const auto formated_gl_version = gl_info.get_formated_gl_version();
     // draw grabbers
     for (unsigned int i = 0; i < 3; ++i) {
         if (m_grabbers[i].enabled) render_grabber_extension((Axis) i, box, false);
@@ -174,23 +239,59 @@ void GLGizmoMove3D::on_render()
 
     // draw axes line
     // draw axes
-    for (unsigned int i = 0; i < 3; ++i) {
-        if (m_grabbers[i].enabled) {
-            glsafe(::glColor4fv(AXES_COLOR[i].data()));
-            glLineStipple(1, 0x0FFF);
-            glEnable(GL_LINE_STIPPLE);
-            ::glBegin(GL_LINES);
-            ::glVertex3dv(origin.data());
-            // use extension center
-            ::glVertex3dv(m_grabbers[i].center.data());
-            glsafe(::glEnd());
-            glDisable(GL_LINE_STIPPLE);
+    auto render_grabber_connection = [this, &formated_gl_version](unsigned int id) {
+        if (m_grabbers[id].enabled) {
+            m_grabber_connections[id].old_center = m_center;
+            m_grabber_connections[id].model.reset();
+
+            GLModel::Geometry init_data;
+            init_data.format = { GLModel::PrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
+            init_data.color = AXES_COLOR[id];
+            init_data.reserve_vertices(2);
+            init_data.reserve_indices(2);
+
+            // vertices
+            init_data.add_vertex((Vec3f)origin.cast<float>());
+            init_data.add_vertex((Vec3f)m_grabbers[id].center.cast<float>());
+
+            // indices
+            init_data.add_line(0, 1);
+
+            m_grabber_connections[id].model.init_from(std::move(init_data));
+            //}
+
+#ifdef __APPLE__
+            if (formated_gl_version < 30)
+#endif
+            {
+                glLineStipple(1, 0x0FFF);
+                glEnable(GL_LINE_STIPPLE);
+            }
+
+            m_grabber_connections[id].model.render_geometry();
+
+#ifdef __APPLE__
+            if (formated_gl_version < 30)
+#endif
+            {
+                glDisable(GL_LINE_STIPPLE);
+            }
         }
+    };
+
+    const auto& shader = wxGetApp().get_shader("flat");
+    if (shader) {
+        wxGetApp().bind_shader(shader);
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix() * m_orient_matrix);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        for (unsigned int i = 0; i < 3; ++i) {
+            render_grabber_connection(i);
+        }
+        wxGetApp().unbind_shader();
     }
-    glsafe(::glPopMatrix());
 
     if (m_object_manipulation->is_instance_coordinates()) {
-        glsafe(::glPushMatrix());
         Geometry::Transformation cur_tran;
         if (auto mi = m_parent.get_selection().get_selected_single_intance()) {
             cur_tran = mi->get_transformation();
@@ -198,9 +299,7 @@ void GLGizmoMove3D::on_render()
         else {
             cur_tran = selection.get_first_volume()->get_instance_transformation();
         }
-        glsafe(::glMultMatrixd(cur_tran.get_matrix().data()));
-        render_cross_mark(Vec3f::Zero(), true);
-        glsafe(::glPopMatrix());
+        render_cross_mark(cur_tran.get_matrix(), Vec3f::Zero(), true);
     }
 }
 
@@ -218,12 +317,10 @@ void GLGizmoMove3D::on_render_for_picking()
             m_grabbers[i].color        = color;
         }
     }
-    glsafe(::glPushMatrix());
-    glsafe(::glMultMatrixd(Geometry::Transformation(m_orient_matrix).get_matrix().data()));
+
     render_grabber_extension(X, m_bounding_box, true);
     render_grabber_extension(Y, m_bounding_box, true);
     render_grabber_extension(Z, m_bounding_box, true);
-    glsafe(::glPopMatrix());
 }
 
 //BBS: add input window for move
@@ -250,8 +347,10 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
         // vector from the starting position to the found intersection
         Vec3d inters_vec = inters - m_starting_drag_position;
 
-        // finds projection of the vector along the staring direction
-        projection = inters_vec.dot(starting_vec.normalized());
+        projection = inters_vec.norm();
+        const double sign = inters_vec.dot(starting_vec) > 1e-6f ? 1.0f : -1.0f;
+
+        projection = projection * sign;
     }
 
     if (wxGetKeyState(WXK_SHIFT))
@@ -263,7 +362,6 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking) const
 {
     double size = get_grabber_size() * 0.75;//0.75 for arrow show
-
     std::array<float, 4> color = m_grabbers[axis].color;
     if (!picking && m_hover_id != -1) {
         if (m_hover_id == axis) {
@@ -271,30 +369,31 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
         }
     }
 
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    const auto& shader = wxGetApp().get_shader(picking ? "flat" : "gouraud_light");
     if (shader == nullptr)
         return;
 
+    wxGetApp().bind_shader(shader);
     const_cast<GLModel*>(&m_vbo_cone)->set_color(-1, color);
+
+    const Camera& camera = picking ? wxGetApp().plater()->get_picking_camera() : wxGetApp().plater()->get_camera();
+    Transform3d view_model_matrix = camera.get_view_matrix() * m_orient_matrix * Geometry::assemble_transform(m_grabbers[axis].center);
+    if (axis == X)
+        view_model_matrix = view_model_matrix * Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitY());
+    else if (axis == Y)
+        view_model_matrix = view_model_matrix * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitX());
+    view_model_matrix = view_model_matrix * Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), Vec3d(0.75 * size, 0.75 * size, 2.0 * size));
+
+    shader->set_uniform("view_model_matrix", view_model_matrix);
+    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
     if (!picking) {
-        shader->start_using();
         shader->set_uniform("emission_factor", 0.1f);
+        shader->set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
     }
 
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(m_grabbers[axis].center.x(), m_grabbers[axis].center.y(), m_grabbers[axis].center.z()));
-    if (axis == X)
-        glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
-    else if (axis == Y)
-        glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
+    m_vbo_cone.render_geometry();
 
-    //glsafe(::glTranslated(0.0, 0.0, 2.0 * size));
-    glsafe(::glScaled(0.75 * size, 0.75 * size, 2.0 * size));
-    m_vbo_cone.render();
-    glsafe(::glPopMatrix());
-
-    if (! picking)
-        shader->stop_using();
+    wxGetApp().unbind_shader();
 }
 
 void GLGizmoMove3D::change_cs_by_selection() {
@@ -319,7 +418,6 @@ void GLGizmoMove3D::change_cs_by_selection() {
         m_object_manipulation->set_coordinates_type(ECoordinatesType::World);
     }
 }
-
 
 } // namespace GUI
 } // namespace Slic3r

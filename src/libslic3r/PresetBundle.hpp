@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <optional>
 #include <boost/filesystem/path.hpp>
 
 #define DEFAULT_USER_FOLDER_NAME "default"
@@ -19,6 +20,46 @@
 
 
 namespace Slic3r {
+
+struct AMSMapInfo
+{
+    /*for new ams mapping*/ // from struct FilamentInfo
+    std::string ams_id{""};
+    std::string slot_id{""};
+};
+struct AMSComboInfo
+{
+    std::vector<std::string>              ams_filament_colors;
+    std::vector<std::vector<std::string>> ams_multi_color_filment;
+    std::vector<std::string>              ams_filament_presets;
+    std::vector<std::string>              ams_names;
+    void  clear() {
+        ams_filament_colors.clear();
+        ams_multi_color_filment.clear();
+        ams_filament_presets.clear();
+        ams_names.clear();
+    }
+    bool empty() {
+        return ams_names.empty();
+    }
+};
+struct MergeFilamentInfo {
+    std::vector<std::vector<int>> merges;
+    bool  is_empty() { return merges.empty();}
+};
+
+
+struct FilamentBaseInfo
+{
+    std::string filament_name;
+    std::string filament_id;
+    std::string filament_type;
+    std::string vendor;
+    int nozzle_temp_range_low{ 220 };
+    int nozzle_temp_range_high{ 220 };
+    bool is_support{ false };
+    bool is_system{ true };
+};
 
 // Bundle of Print + Filament + Printer presets.
 class PresetBundle
@@ -45,7 +86,7 @@ public:
     // Load ini files of all types (print, filament, printer) from Slic3r::data_dir() / presets.
     // Load selections (current print, current filaments, current printer) from config.ini
     // select preferred presets, if any exist
-    PresetsConfigSubstitutions load_presets(AppConfig &config, ForwardCompatibilitySubstitutionRule rule,
+    std::pair<PresetsConfigSubstitutions, std::string> load_presets(AppConfig &config, ForwardCompatibilitySubstitutionRule rule,
                                             const PresetPreferences& preferred_selection = PresetPreferences());
 
     // Load selections (current print, current filaments, current printer) from config.ini
@@ -77,8 +118,11 @@ public:
     Preset* get_preset_differed_for_save(Preset& preset);
     int get_differed_values_to_update(Preset& preset, std::map<std::string, std::string>& key_values);
 
+
     //BBS: get vendor's current version
     Semver get_vendor_profile_version(std::string vendor_name);
+
+    std::optional<FilamentBaseInfo> get_filament_by_filament_id(const std::string& filament_id) const;
 
     //BBS: project embedded preset logic
     PresetsConfigSubstitutions load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule);
@@ -95,13 +139,21 @@ public:
 
     // BBS
     void            set_num_filaments(unsigned int n, std::string new_col = "");
-    unsigned int sync_ams_list(unsigned int & unknowns);
+    void         update_num_filaments(unsigned int to_del_flament_id);
+
+    void get_ams_cobox_infos(AMSComboInfo &combox_info);
+    unsigned int sync_ams_list(std::vector<std::pair<DynamicPrintConfig *,std::string>> &unknowns, bool use_map, std::map<int, AMSMapInfo> &maps,bool enable_append, MergeFilamentInfo& merge_info);
     //BBS: check whether this is the only edited filament
     bool is_the_only_edited_filament(unsigned int filament_index);
 
+    void reset_default_nozzle_volume_type();
+
+    std::vector<int> get_used_tpu_filaments(const std::vector<int> &used_filaments);
     void set_calibrate_printer(std::string name);
 
-    std::set<std::string> get_printer_names_by_printer_type_and_nozzle(const std::string &printer_type, std::string nozzle_diameter_str);
+    std::vector<std::vector<DynamicPrintConfig>> get_extruder_filament_info() const;
+
+    std::set<std::string> get_printer_names_by_printer_type_and_nozzle(const std::string &printer_type, std::string nozzle_diameter_str, bool system_only = true);
     bool                  check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(const std::string &printer_type,
                                                                                                std::string &      nozzle_diameter_str,
                                                                                                std::string &      setting_id,
@@ -109,6 +161,7 @@ public:
                                                                                                std::string &      nozzle_temp_min,
                                                                                                std::string &      nozzle_temp_max,
                                                                                                std::string &      preset_setting_id);
+    Preset *                    get_similar_printer_preset(std::string printer_model, std::string printer_variant);
 
     PresetCollection            prints;
     PresetCollection            sla_prints;
@@ -124,6 +177,9 @@ public:
     // BBS: ams
     std::map<int, DynamicPrintConfig> filament_ams_list;
     std::vector<std::vector<std::string>> ams_multi_color_filment;
+
+    std::vector<std::map<int, int>> extruder_ams_counts;
+
     // Calibrate
     Preset const * calibrate_printer = nullptr;
     std::set<Preset const *> calibrate_filaments;
@@ -149,14 +205,18 @@ public:
     bool                        has_defauls_only() const
         { return prints.has_defaults_only() && filaments.has_defaults_only() && printers.has_defaults_only(); }
 
-    DynamicPrintConfig          full_config() const;
+    DynamicPrintConfig          full_config(bool apply_extruder = true, std::optional<std::vector<int>>filament_maps = std::nullopt) const;
     // full_config() with the some "useless" config removed.
-    DynamicPrintConfig          full_config_secure() const;
+    DynamicPrintConfig          full_config_secure(std::optional<std::vector<int>>filament_maps = std::nullopt) const;
+
+    //BBS: add some functions for multiple extruders
+    int get_printer_extruder_count() const;
+    bool support_different_extruders();
 
     // Load user configuration and store it into the user profiles.
     // This method is called by the configuration wizard.
-    void                        load_config_from_wizard(const std::string &name, DynamicPrintConfig config, Semver file_version, bool is_custom_defined = false)
-        { this->load_config_file_config(name, false, std::move(config), file_version, true, is_custom_defined); }
+    void                        load_config_from_wizard(const std::string &name, DynamicPrintConfig config, Semver file_version)
+        { this->load_config_file_config(name, false, std::move(config), file_version, true); }
 
     // Load configuration that comes from a model file containing configuration, such as 3MF et al.
     // This method is called by the Plater.
@@ -211,7 +271,9 @@ public:
 
     // Read out the number of extruders from an active printer preset,
     // update size and content of filament_presets.
-    void                        update_multi_material_filament_presets();
+    void                        update_multi_material_filament_presets(size_t to_delete_filament_id = size_t(-1));
+
+    void                        on_extruders_count_changed(int extruder_count);
 
     // Update the is_compatible flag of all print and filament presets depending on whether they are marked
     // as compatible with the currently selected printer (and print in case of filament presets).
@@ -260,11 +322,11 @@ private:
     // Load print, filament & printer presets from a config. If it is an external config, then the name is extracted from the external path.
     // and the external config is just referenced, not stored into user profile directory.
     // If it is not an external config, then the config will be stored into the user profile directory.
-    void                        load_config_file_config(const std::string &name_or_path, bool is_external, DynamicPrintConfig &&config, Semver file_version = Semver(), bool selected = false, bool is_custom_defined = false);
+    void                        load_config_file_config(const std::string &name_or_path, bool is_external, DynamicPrintConfig &&config, Semver file_version = Semver(), bool selected = false);
     /*ConfigSubstitutions         load_config_file_config_bundle(
         const std::string &path, const boost::property_tree::ptree &tree, ForwardCompatibilitySubstitutionRule compatibility_rule);*/
 
-    DynamicPrintConfig          full_fff_config() const;
+    DynamicPrintConfig          full_fff_config(bool apply_extruder, std::optional<std::vector<int>> filament_maps=std::nullopt) const;
     DynamicPrintConfig          full_sla_config() const;
 };
 

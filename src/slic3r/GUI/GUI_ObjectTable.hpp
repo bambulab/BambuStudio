@@ -344,8 +344,8 @@ public:
         ConfigOptionBool            ori_enable_support;
         ConfigOptionEnum<BrimType>  brim_type;
         ConfigOptionEnum<BrimType>  ori_brim_type;
-        ConfigOptionFloat           speed_perimeter;
-        ConfigOptionFloat           ori_speed_perimeter;
+        ConfigOptionFloatsNullable  speed_perimeter;
+        ConfigOptionFloatsNullable  ori_speed_perimeter;
 
         ModelConfig*                config;
         ModelVolumeType             model_volume_type;
@@ -578,7 +578,7 @@ public:
 
     std::vector<wxString> m_filaments_name;
     std::vector<wxColour> m_filaments_colors;
-    int m_filaments_count{ 1 };
+    unsigned int m_filaments_count{ 1 };
     void set_default_filaments_and_colors()
     {
         m_filaments_count = 1;

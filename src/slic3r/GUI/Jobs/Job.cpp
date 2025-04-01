@@ -47,6 +47,7 @@ GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)
 
     Bind(wxEVT_THREAD, [this](const wxThreadEvent &evt) {
         if (m_finalizing)  return;
+        if (this->is_print_job() && evt.GetInt() >= 100) { update_percent_finish(); }
 
         auto msg = evt.GetString();
         if (!msg.empty() && !m_worker_error)

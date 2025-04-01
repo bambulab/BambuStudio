@@ -13,17 +13,13 @@ public:
     class Plane {
     public:
         enum PlaneIntersects { Intersects_Cross = 0, Intersects_Tangent = 1, Intersects_Front = 2, Intersects_Back = 3 };
-        void set(const Vec3f &n, const Vec3f &pt)
-        {
-            normal_ = n.normalized();
-            center_ = pt;
-            d_      = -normal_.dot(pt);
-        }
 
-        float distance(const Vec3f &pt) const { return normal_.dot(pt) + d_; }
+        void set_abcd(float a, float b, float c, float d);
+        const Vec4f& get_abcd() const;
 
-        inline const Vec3f &getNormal() const { return normal_; }
-        const Vec3f &       getCenter() const { return center_; }
+        void normailze();
+        float distance(const Vec3f& pt) const;
+
         Plane::PlaneIntersects intersects(const BoundingBoxf3 &box) const;
         //// check intersect with point (world space)
         Plane::PlaneIntersects intersects(const Vec3f &p0) const;
@@ -32,12 +28,10 @@ public:
         // check intersect with triangle (world space)
         Plane::PlaneIntersects intersects(const Vec3f &p0, const Vec3f &p1, const Vec3f &p2) const;
     private:
-        Vec3f normal_;
-        Vec3f center_;
-        float d_ = 0;
+        Vec4f m_abcd;
     };
 
-    bool intersects(const BoundingBoxf3 &box, bool is_perspective) const;
+    bool intersects(const BoundingBoxf3 &box) const;
     // check intersect with point (world space)
     bool intersects(const Vec3f &p0) const;
     // check intersect with line segment (world space)
@@ -46,18 +40,6 @@ public:
     bool intersects(const Vec3f &p0, const Vec3f &p1, const Vec3f &p2) const;
 
     Plane planes[6];
-    /* corners[0]: nearTopLeft;
-     * corners[1]: nearTopRight;
-     * corners[2]: nearBottomLeft;
-     * corners[3]: nearBottomRight;
-     * corners[4]: farTopLeft;
-     * corners[5]: farTopRight;
-     * corners[6]: farBottomLeft;
-     * corners[7]: farBottomRight;
-     */
-    Vec3f corners[8];
-
-    BoundingBoxf3 bbox;
 };
 
 enum FrustumClipMask {

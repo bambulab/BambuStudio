@@ -6,12 +6,12 @@
 
 
 namespace Slic3r {
-float CalibPressureAdvance::find_optimal_PA_speed(const DynamicPrintConfig &config, double line_width, double layer_height, int filament_idx)
+float CalibPressureAdvance::find_optimal_PA_speed(const DynamicPrintConfig &config, double line_width, double layer_height, int extruder_id, int filament_idx)
 {
     const double general_suggested_min_speed   = 100.0;
-    double       filament_max_volumetric_speed = config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(0);
-    Flow         pattern_line                  = Flow(line_width, layer_height, config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0));
-    auto         pa_speed                      = std::min(std::max(general_suggested_min_speed, config.option<ConfigOptionFloat>("outer_wall_speed")->value),
+    double       filament_max_volumetric_speed = config.option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed")->get_at(filament_idx);
+    Flow         pattern_line                  = Flow(line_width, layer_height, config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(extruder_id));
+    auto         pa_speed                      = std::min(std::max(general_suggested_min_speed, config.option<ConfigOptionFloatsNullable>("outer_wall_speed")->get_at(extruder_id)),
                              filament_max_volumetric_speed / pattern_line.mm3_per_mm());
 
     return std::floor(pa_speed);
@@ -206,9 +206,9 @@ double CalibPressureAdvance::get_distance(Vec2d from, Vec2d to) const { return s
 
 std::string CalibPressureAdvance::draw_line(GCodeWriter &writer, Vec2d to_pt, double line_width, double layer_height, double speed, const std::string &comment)
 {
-    const double e_per_mm = CalibPressureAdvance::e_per_mm(line_width, layer_height, m_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0),
+    const double e_per_mm = CalibPressureAdvance::e_per_mm(line_width, layer_height, m_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0),
                                                            m_config.option<ConfigOptionFloats>("filament_diameter")->get_at(0),
-                                                           m_config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0));
+                                                           m_config.option<ConfigOptionFloatsNullable>("filament_flow_ratio")->get_at(0));
 
     const double length = get_distance(Vec2d(m_last_pos.x(), m_last_pos.y()), to_pt);
     auto         dE     = e_per_mm * length;
@@ -553,7 +553,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfi
         if (i == 1) {
             gcode << m_writer.set_pressure_advance(m_params.start);
 
-            double number_e_per_mm = e_per_mm(line_width(), height_layer(), m_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0),
+            double number_e_per_mm = e_per_mm(line_width(), height_layer(), m_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0),
                                               m_config.option<ConfigOptionFloats>("filament_diameter")->get_at(0),
                                               m_config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0));
 

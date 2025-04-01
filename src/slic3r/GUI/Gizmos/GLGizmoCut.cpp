@@ -128,16 +128,16 @@ void GLGizmoCut::on_render()
     ::glVertex3dv(m_grabbers[0].center.data());
     glsafe(::glEnd());
 
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    const auto& shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr)
         return;
-    shader->start_using();
+    wxGetApp().bind_shader(shader);
     shader->set_uniform("emission_factor", 0.1f);
 
     m_grabbers[0].color = GrabberColor;
     m_grabbers[0].render(m_hover_id == 0, (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0));
 
-    shader->stop_using();
+    wxGetApp().unbind_shader();
 
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(m_cut_contours.shift.x(), m_cut_contours.shift.y(), m_cut_contours.shift.z()));

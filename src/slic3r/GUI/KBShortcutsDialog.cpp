@@ -207,9 +207,9 @@ void KBShortcutsDialog::fill_shortcuts()
             #endif
             //DEL
             #ifdef __APPLE__
-                {"fn+⌫", L("Delete selected")},
+                {"BackSpace", L("Delete selected")},
             #else
-                {L("Del"), L("Delete selected")},
+                {"Delete", L("Delete selected")},
             #endif
             // Help
 #ifdef __WINDOWS__
@@ -251,7 +251,7 @@ void KBShortcutsDialog::fill_shortcuts()
             {ctrl + "6", L("Camera Angle - Right side")},
 
             {ctrl + "A", L("Select all objects")},
-            {ctrl + "D", L("Delete all")},
+            {L("Shift+D"), L("Delete all")},
             {ctrl + "Z", L("Undo")},
             {ctrl + "Y", L("Redo")},
             { "M", L("Gizmo move") },
@@ -274,7 +274,11 @@ void KBShortcutsDialog::fill_shortcuts()
 
         Shortcuts object_list_shortcuts = {
             {"1-9", L("Set extruder number for the objects and parts") },
-            {L("Del"), L("Delete objects, parts, modifiers  ")},
+#ifdef __APPLE__
+            {"BackSpace", L("Delete objects, parts, modifiers  ")},
+#else
+            {"Delete", L("Delete objects, parts, modifiers  ")},
+#endif
             {"Esc", L("Deselect all")},
             {ctrl + "C", L("Copy to clipboard")},
             {ctrl + "V", L("Paste from clipboard")},
@@ -330,7 +334,13 @@ wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const ShortcutsItem& s
 
     for (int i = 0; i < items_count; ++i) {
         const auto &[shortcut, description] = shortcuts.second[i];
-        auto key                            = new wxStaticText(scrollable_panel, wxID_ANY, _(shortcut));
+        wxStaticText* key                    = nullptr;
+        if (shortcut == "Delete" || shortcut == "BackSpace") {
+            key = new wxStaticText(scrollable_panel, wxID_ANY, shortcut);
+        }
+        else {
+            key = new wxStaticText(scrollable_panel, wxID_ANY, _(shortcut));
+        }
         key->SetForegroundColour(wxColour(50, 58, 61));
         key->SetFont(bold_font);
         grid_sizer->Add(key, 0, wxALIGN_CENTRE_VERTICAL);

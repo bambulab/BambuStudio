@@ -61,6 +61,10 @@ public:
     bool is_valid() const { return this->points.size() >= 3; }
     void douglas_peucker(double tolerance);
 
+    // Point &center : out, the center of circle
+    // double &diameter: out, the diameter of circle
+    bool is_approx_circle(double max_deviation, double max_variance, Point &center, double &diameter) const;
+
     // Does an unoriented polygon contain a point?
     bool contains(const Point &point) const { return Slic3r::contains(*this, point, true); }
     // Approximate on boundary test.

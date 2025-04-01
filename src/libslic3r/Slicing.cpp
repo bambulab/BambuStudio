@@ -45,7 +45,7 @@ inline coordf_t max_layer_height_from_nozzle(const PrintConfig &print_config, in
 // Minimum layer height for the variable layer height algorithm.
 coordf_t Slicing::min_layer_height_from_nozzle(const DynamicPrintConfig &print_config, int idx_nozzle)
 {
-    coordf_t min_layer_height = print_config.opt_float("min_layer_height", idx_nozzle - 1);
+    coordf_t min_layer_height = print_config.opt_float_nullable("min_layer_height", idx_nozzle - 1);
     return (min_layer_height == 0.) ? MIN_LAYER_HEIGHT_DEFAULT : std::max(MIN_LAYER_HEIGHT, min_layer_height);
 }
 
@@ -54,8 +54,8 @@ coordf_t Slicing::min_layer_height_from_nozzle(const DynamicPrintConfig &print_c
 coordf_t Slicing::max_layer_height_from_nozzle(const DynamicPrintConfig &print_config, int idx_nozzle)
 {
     coordf_t min_layer_height = min_layer_height_from_nozzle(print_config, idx_nozzle);
-    coordf_t max_layer_height = print_config.opt_float("max_layer_height", idx_nozzle - 1);
-    coordf_t nozzle_dmr       = print_config.opt_float("nozzle_diameter", idx_nozzle - 1);
+    coordf_t max_layer_height = print_config.opt_float_nullable("max_layer_height", idx_nozzle - 1);
+    coordf_t nozzle_dmr       = print_config.opt_float_nullable("nozzle_diameter", idx_nozzle - 1);
     return std::max(min_layer_height, (max_layer_height == 0.) ? (0.75 * nozzle_dmr) : max_layer_height);
 }
 
@@ -110,19 +110,17 @@ SlicingParameters SlicingParameters::create_from_config(
     params.min_layer_height = std::min(params.min_layer_height, params.layer_height);
     params.max_layer_height = std::max(params.max_layer_height, params.layer_height);
 
-    if (! soluble_interface) {
-        params.gap_raft_object    = object_config.raft_contact_distance.value;
-        //BBS
-        params.gap_object_support = object_config.support_bottom_z_distance.value; 
-        params.gap_support_object = object_config.support_top_z_distance.value;
-        if (params.gap_object_support <= 0)
-            params.gap_object_support = params.gap_support_object;
+    params.gap_raft_object    = object_config.raft_contact_distance.value;
+    //BBS
+    params.gap_object_support = object_config.support_bottom_z_distance.value; 
+    params.gap_support_object = object_config.support_top_z_distance.value;
+    if (params.gap_object_support <= 0)
+        params.gap_object_support = params.gap_support_object;
 
-        if (!print_config.independent_support_layer_height) {
-            params.gap_raft_object = std::round(params.gap_raft_object / object_config.layer_height + EPSILON) * object_config.layer_height;
-            params.gap_object_support = std::round(params.gap_object_support / object_config.layer_height + EPSILON) * object_config.layer_height;
-            params.gap_support_object = std::round(params.gap_support_object / object_config.layer_height + EPSILON) * object_config.layer_height;
-        }
+    if (!print_config.independent_support_layer_height) {
+        params.gap_raft_object = std::round(params.gap_raft_object / object_config.layer_height + EPSILON) * object_config.layer_height;
+        params.gap_object_support = std::round(params.gap_object_support / object_config.layer_height + EPSILON) * object_config.layer_height;
+        params.gap_support_object = std::round(params.gap_support_object / object_config.layer_height + EPSILON) * object_config.layer_height;
     }
 
     if (params.base_raft_layers > 0) {

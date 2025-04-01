@@ -38,6 +38,9 @@ struct ThumbnailsParams
 	bool 			show_bed;
 	bool 			transparent_background;
     int             plate_id;
+    bool            use_plate_box{true};
+    bool            post_processing_enabled{ false };
+    Vec4f           background_color{ 0.0f, 0.0f, 0.0f, 0.0f };
 };
 
 typedef std::function<ThumbnailsList(const ThumbnailsParams&)> ThumbnailsGeneratorCallback;

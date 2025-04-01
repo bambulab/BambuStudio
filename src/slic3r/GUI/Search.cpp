@@ -94,7 +94,7 @@ void OptionsSearcher::append_options(DynamicPrintConfig *config, Preset::Type ty
 
         int cnt = 0;
 
-        if ((type == Preset::TYPE_SLA_MATERIAL || type == Preset::TYPE_PRINTER) && opt_key != "printable_area")
+        if ((type == Preset::TYPE_SLA_MATERIAL || type == Preset::TYPE_PRINTER || type == Preset::TYPE_PRINT) && opt_key != "printable_area")
             switch (config->option(opt_key)->type()) {
             case coInts: change_opt_key<ConfigOptionInts>(opt_key, config, cnt); break;
             case coBools: change_opt_key<ConfigOptionBools>(opt_key, config, cnt); break;
@@ -107,6 +107,9 @@ void OptionsSearcher::append_options(DynamicPrintConfig *config, Preset::Type ty
             default: break;
             }
 
+        if (type == Preset::TYPE_FILAMENT && filament_options_with_variant.find(opt_key) != filament_options_with_variant.end())
+            opt_key += "#0";
+
         wxString label = opt.full_label.empty() ? opt.label : opt.full_label;
 
         std::string key = get_key(opt_key, type);
@@ -116,6 +119,19 @@ void OptionsSearcher::append_options(DynamicPrintConfig *config, Preset::Type ty
             for (int i = 0; i < cnt; ++i)
                 // ! It's very important to use "#". opt_key#n is a real option key used in GroupAndCategory
                 emplace(key + "#" + std::to_string(i), label);
+    }
+}
+
+inline void OptionsSearcher::sort_options()
+{
+    std::sort(options.begin(), options.end(), [](const Option &o1, const Option &o2) { return o1.label < o2.label; });
+    Option * last = nullptr;
+    for (auto& opt : options) {
+        if (last && last->label == opt.label && last->group == opt.group && last->type == opt.type && last->category != opt.category) {
+            last->multi_category = true;
+            opt.multi_category = true;
+        }
+        last = &opt;
     }
 }
 
@@ -177,7 +193,7 @@ bool OptionsSearcher::search(const std::string &search, bool force /* = false*/,
         std::wstring out;
         if (marked) out += marker_by_type(opt.type, printer_technology);
         const std::wstring *prev = nullptr;
-        for (const std::wstring *const s : {view_params.category ? &opt.category_local : nullptr, &opt.group_local, &opt.label_local})
+        for (const std::wstring *const s : {view_params.category || opt.multi_category ? &opt.category_local : nullptr, &opt.group_local, &opt.label_local})
             if (s != nullptr && (prev == nullptr || *prev != *s)) {
                 if (out.size() > 2) out += sep;
                 out += *s;
@@ -190,7 +206,7 @@ bool OptionsSearcher::search(const std::string &search, bool force /* = false*/,
         std::wstring out;
         if (marked) out += marker_by_type(opt.type, printer_technology);
         const std::wstring *prev = nullptr;
-        for (const std::wstring *const s : {view_params.category ? &opt.category : nullptr, &opt.group, &opt.label})
+        for (const std::wstring *const s : {view_params.category || opt.multi_category ? &opt.category : nullptr, &opt.group, &opt.label})
             if (s != nullptr && (prev == nullptr || *prev != *s)) {
                 if (out.size() > 2) out += sep;
                 out += *s;
@@ -209,12 +225,12 @@ bool OptionsSearcher::search(const std::string &search, bool force /* = false*/,
         if (full_list) {
             std::string label = into_u8(get_label(opt));
             //all
-            if (type == Preset::TYPE_INVALID) { 
+            if (type == Preset::TYPE_INVALID) {
                 found.emplace_back(FoundOption{label, label, boost::nowide::narrow(get_tooltip(opt)), i, 0});
             } else if (type == opt.type){
                 found.emplace_back(FoundOption{label, label, boost::nowide::narrow(get_tooltip(opt)), i, 0});
             }
-            
+
             continue;
         }
 
@@ -257,7 +273,7 @@ bool OptionsSearcher::search(const std::string &search, bool force /* = false*/,
             } else if (type == opt.type) {
                 found.emplace_back(FoundOption{label_plain, label_u8, boost::nowide::narrow(get_tooltip(opt)), i, score});
             }
-            
+
         }
     }
 
@@ -301,12 +317,31 @@ const Option &OptionsSearcher::get_option(size_t pos_in_filter) const
     return options[found[pos_in_filter].option_idx];
 }
 
-const Option &OptionsSearcher::get_option(const std::string &opt_key, Preset::Type type) const
+const Option &OptionsSearcher::get_option(const std::string &opt_key, Preset::Type type, int &variant_index) const
 {
-    auto it = std::lower_bound(options.begin(), options.end(), Option({boost::nowide::widen(get_key(opt_key, type))}));
+    std::string opt_key2 = opt_key;
+    if (auto n = opt_key.find('#'); n != std::string::npos) {
+        variant_index = std::atoi(opt_key.c_str() + n + 1);
+        opt_key2 = opt_key.substr(0, n);
+    }
+    auto it = std::lower_bound(options.begin(), options.end(), Option({boost::nowide::widen(get_key(opt_key2, type))}));
     // BBS: return the 0th option when not found in searcher caused by mode difference
     // assert(it != options.end());
-    if (it == options.end()) return options[0];
+    if (it == options.end()) { variant_index = -2 ; return options[0]; }
+    if (it->opt_key() == opt_key2) {
+        variant_index = -1;
+    } else {
+        it = std::lower_bound(it, options.end(), Option({boost::nowide::widen(get_key(opt_key2 + "#", type))}));
+        if (it == options.end() || it->opt_key().compare(0, opt_key2.length(), opt_key2) != 0) {
+            variant_index = -2; // Not found
+            return options[0];
+        }
+        auto it2 = it;
+        ++it2;
+        if (it2 != options.end() && it2->opt_key().compare(0, opt_key2.length(), opt_key2) == 0
+                && printer_options_with_variant_1.find(opt_key2) == printer_options_with_variant_1.end())
+            variant_index = -2;
+    }
 
     return options[it - options.begin()];
 }
@@ -434,7 +469,7 @@ void SearchItem::OnPaint(wxPaintEvent &event)
     int       left = 20;
 
     auto bold_pair = std::vector<std::pair<int, int>>();
-    
+
     auto index     = 0;
 
     auto b_first_list  = std::vector<int>();
@@ -473,19 +508,19 @@ void SearchItem::OnPaint(wxPaintEvent &event)
         auto inset = false;
         auto pair_index = 0;
         for (auto o = 0; o < bold_pair.size(); o++) {
-            if (c >= bold_pair[o].first && c <= bold_pair[o].second) { 
+            if (c >= bold_pair[o].first && c <= bold_pair[o].second) {
                 pair_index = o;
                 inset = true;
                 break;
             }
         }
 
-        if (!inset) { 
+        if (!inset) {
             left += DrawTextString(dc, str, wxPoint(left, top), false).GetWidth();
         } else {
             //str = str.erase(bold_pair[pair_index].first, 3);
             //str = str.erase(bold_pair[pair_index].second, 4);
-            if (c - bold_pair[pair_index].first >= 3 && bold_pair[pair_index].second - c > 3) { 
+            if (c - bold_pair[pair_index].first >= 3 && bold_pair[pair_index].second - c > 3) {
                 left += DrawTextString(dc, str, wxPoint(left, top), true).GetWidth();
             }
         }
@@ -538,7 +573,7 @@ static const std::map<const char, int> icon_idxs = {
     {ImGui::PrintIconMarker, 0}, {ImGui::PrinterIconMarker, 1}, {ImGui::PrinterSlaIconMarker, 2}, {ImGui::FilamentIconMarker, 3}, {ImGui::MaterialIconMarker, 4},
 };
 
-SearchDialog::SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindow *parent, TextInput *input, wxWindow *search_btn) 
+SearchDialog::SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindow *parent, TextInput *input, wxWindow *search_btn)
     : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS), searcher(searcher)
 {
     m_event_tag       = parent;
@@ -566,11 +601,12 @@ SearchDialog::SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindo
     m_sizer_body   = new wxBoxSizer(wxVERTICAL);
 
     // border
-    m_border_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(POPUP_WIDTH * em, POPUP_HEIGHT * em), wxTAB_TRAVERSAL);
+    m_pop_width           = search_line->GetSize().GetX() + FromDIP(15);
+    m_border_panel        = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(m_pop_width, POPUP_HEIGHT * em), wxTAB_TRAVERSAL);
     m_border_panel->SetBackgroundColour(m_bg_colour);
 
     // client
-    m_client_panel = new wxPanel(m_border_panel, wxID_ANY, wxDefaultPosition, wxSize(POPUP_WIDTH * em, POPUP_HEIGHT * em), wxTAB_TRAVERSAL);
+    m_client_panel = new wxPanel(m_border_panel, wxID_ANY, wxDefaultPosition, wxSize(m_pop_width, POPUP_HEIGHT * em), wxTAB_TRAVERSAL);
     m_client_panel->SetBackgroundColour(m_bg_colour);
 
     // search line
@@ -589,7 +625,7 @@ SearchDialog::SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindo
     search_line2 = search_line->GetTextCtrl();
 
     // scroll window
-    m_scrolledWindow = new ScrolledWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(POPUP_WIDTH * em - (em + em /2), POPUP_HEIGHT * em), wxVSCROLL, 6, 6);
+    m_scrolledWindow = new ScrolledWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(m_pop_width - (em + em / 2), POPUP_HEIGHT * em), wxVSCROLL, 6, 6);
     m_scrolledWindow->SetMarginColor(m_bg_colour);
     m_scrolledWindow->SetScrollbarColor(m_thumb_color);
     m_scrolledWindow->SetBackgroundColour(m_bg_colour);
@@ -674,7 +710,7 @@ void SearchDialog::Dismiss()
     }
 }
 
-void SearchDialog::Die() 
+void SearchDialog::Die()
 {
     PopupWindow::Dismiss();
     wxCommandEvent event(wxCUSTOMEVT_EXIT_SEARCH);
@@ -758,7 +794,7 @@ void SearchDialog::update_list()
 #endif
     m_scrolledWindow->Destroy();
 
-    m_scrolledWindow = new ScrolledWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(POPUP_WIDTH * em - (em + em / 2), POPUP_HEIGHT * em - em), wxVSCROLL, 6, 6);
+    m_scrolledWindow = new ScrolledWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(m_pop_width - (em + em / 2), POPUP_HEIGHT * em - em), wxVSCROLL, 6, 6);
     m_scrolledWindow->SetMarginColor(StateColor::darkModeColorFor(m_bg_colour));
     m_scrolledWindow->SetScrollbarColor(StateColor::darkModeColorFor(m_thumb_color));
     m_scrolledWindow->SetBackgroundColour(StateColor::darkModeColorFor(m_bg_colour));
@@ -816,7 +852,7 @@ void SearchDialog::OnCheck(wxCommandEvent &event)
 void SearchDialog::OnMotion(wxMouseEvent &event)
 {
     wxDataViewItem    item;
-    wxDataViewColumn *col;
+    //wxDataViewColumn *col;
     wxWindow *        win = this;
 
     // search_list->HitTest(wxGetMousePosition() - win->GetScreenPosition(), item, col);

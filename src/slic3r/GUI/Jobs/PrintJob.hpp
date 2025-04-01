@@ -41,6 +41,7 @@ class PrintJob : public PlaterJob
     std::string         m_dev_id;
     bool                m_job_finished{ false };
     int                 m_print_job_completed_id = 0;
+    int                 m_print_stage = 0;
     wxString            m_completed_evt_data;
     std::function<void()> m_enter_ip_address_fun_fail{ nullptr };
     std::function<void()> m_enter_ip_address_fun_success{ nullptr };
@@ -54,6 +55,7 @@ protected:
     void on_exception(const std::exception_ptr &) override;
 public:
     PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater, std::string dev_id = "");
+    virtual bool is_print_job() const override { return true; }
 
     std::string m_project_name;
     std::string m_dev_ip;
@@ -61,7 +63,9 @@ public:
     std::string m_access_code;
     std::string task_bed_type;
     std::string task_ams_mapping;
+    std::string task_ams_mapping2;
     std::string task_ams_mapping_info;
+    std::string task_nozzles_info;
     std::string connection_type;
     std::string m_print_type;
     std::string m_dst_path;
@@ -69,7 +73,7 @@ public:
     bool m_is_calibration_task = false;
 
     int         m_print_from_sdc_plate_idx = 0;
-    
+
     bool        m_local_use_ssl_for_mqtt { true };
     bool        m_local_use_ssl_for_ftp { true };
     bool        task_bed_leveling;
@@ -81,7 +85,14 @@ public:
     bool        has_sdcard { false };
     bool        task_use_ams { true };
 
-    void set_print_config(std::string bed_type, bool bed_leveling, bool flow_cali, bool vabration_cali, bool record_timelapse, bool layer_inspect) 
+    int         auto_bed_leveling{0};
+    int         auto_flow_cali{0};
+    int         auto_offset_cali{0};
+
+    void set_print_config(std::string bed_type, bool bed_leveling, bool flow_cali, bool vabration_cali, bool record_timelapse, bool layer_inspect,
+        int auto_bed_levelingt,
+        int auto_flow_calit,
+        int auto_offset_calit)
     {
         task_bed_type       = bed_type;
         task_bed_leveling   = bed_leveling;
@@ -89,6 +100,10 @@ public:
         task_vibration_cali = vabration_cali;
         task_record_timelapse = record_timelapse;
         task_layer_inspect    = layer_inspect;
+
+        auto_bed_leveling = auto_bed_levelingt;
+        auto_flow_cali = auto_flow_calit;
+        auto_offset_cali = auto_offset_calit;
     }
 
     int  status_range() const override
@@ -97,6 +112,9 @@ public:
     }
 
     bool is_finished() { return m_job_finished;  }
+    int  get_print_stage() const { return m_print_stage;}
+    void reset_print_stage() { m_print_stage = 0; }
+
     void set_print_job_finished_event(int event_id, wxString evt_data = wxEmptyString) {
         m_print_job_completed_id = event_id;
         m_completed_evt_data = evt_data;

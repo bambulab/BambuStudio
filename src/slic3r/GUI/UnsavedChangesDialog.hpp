@@ -245,6 +245,12 @@ struct PresetItem
     wxString     new_value;
 };
 
+enum ForceOption {
+    fopTransfer,
+    fopSave,
+    fopDiscard,
+    fopNone
+};
 
 class UnsavedChangesDialog : public DPIDialog
 {
@@ -327,6 +333,7 @@ public:
     UnsavedChangesDialog(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset, bool no_transfer = false);
     // show unsaved changes for all another cases
     UnsavedChangesDialog(const wxString& caption, const wxString& header, const std::string& app_config_key, int act_buttons);
+    UnsavedChangesDialog(const wxString &caption, const wxString &header, DynamicConfig *config, int from, int to, bool left_to_right);
     ~UnsavedChangesDialog(){};
 
     int ShowModal();
@@ -336,6 +343,7 @@ public:
     void update_list();
     std::string subreplace(std::string resource_str, std::string sub_str, std::string new_str);
     void        update_tree(Preset::Type type, PresetCollection *presets);
+    void        update_tree(Preset::Type type, DynamicConfig *config, int from, int to);
     void show_info_line(Action action, std::string preset_name = "");
     void update_config(Action action);
     void close(Action action);

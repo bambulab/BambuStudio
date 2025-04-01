@@ -172,6 +172,8 @@ public:
         IC_TEXT_T,
         IC_TEXT_T_DARK,
         IC_NAME_COUNT,
+        IC_FIT_CAMERA,
+        IC_FIT_CAMERA_HOVER,
     };
 
     explicit GLGizmosManager(GLCanvas3D& parent);
@@ -339,6 +341,7 @@ public:
     float get_scaled_total_width() const;
     GizmoObjectManipulation& get_object_manipulation() { return m_object_manipulation; }
     bool get_uniform_scaling() const { return m_object_manipulation.get_uniform_scaling();}
+    BoundingBoxf3 get_bounding_box() const;
 
 private:
     void render_background(float left, float top, float right, float bottom, float border) const;
@@ -350,6 +353,7 @@ private:
     void update_on_off_state(const Vec2d& mouse_pos);
     std::string update_hover_state(const Vec2d& mouse_pos);
     bool grabber_contains_mouse() const;
+    bool is_svg_selected(int idx) const;
 
 private:
     bool m_object_located_outside_plate{false};

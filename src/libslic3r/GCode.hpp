@@ -9,7 +9,7 @@
 #include "PlaceholderParser.hpp"
 #include "PrintConfig.hpp"
 #include "GCode/AvoidCrossingPerimeters.hpp"
-#include "GCode/CoolingBuffer.hpp"
+#include "GCode/GCodeEditor.hpp"
 #include "GCode/RetractWhenCrossingPerimeters.hpp"
 #include "GCode/SpiralVase.hpp"
 #include "GCode/ToolOrdering.hpp"
@@ -77,7 +77,6 @@ public:
         m_right(float(/*print_config.wipe_tower_x.value +*/ print_config.prime_tower_width.value)),
         m_wipe_tower_pos(float(print_config.wipe_tower_x.get_at(plate_idx)), float(print_config.wipe_tower_y.get_at(plate_idx))),
         m_wipe_tower_rotation(float(print_config.wipe_tower_rotation_angle)),
-        m_extruder_offsets(print_config.extruder_offset.values),
         m_priming(priming),
         m_tool_changes(tool_changes),
         m_final_purge(final_purge),
@@ -86,8 +85,15 @@ public:
         m_plate_origin(plate_origin),
         m_single_extruder_multi_material(print_config.single_extruder_multi_material),
         m_enable_timelapse_print(print_config.timelapse_type.value == TimelapseType::tlSmooth),
-        m_is_first_print(true)
-    {}
+        m_is_first_print(true),
+        m_print_config(&print_config)
+    {
+        // initialize with the extruder offset of master extruder id
+        m_extruder_offsets.resize(print_config.filament_map.size(), print_config.extruder_offset.get_at(print_config.master_extruder_id.value - 1));
+        const auto& filament_map = print_config.filament_map.values; // 1 based idx
+        for (size_t idx = 0; idx < filament_map.size(); ++idx)
+            m_extruder_offsets[idx] = print_config.extruder_offset.get_at(filament_map[idx] - 1);
+    }
 
     std::string prime(GCode &gcodegen);
     void next_layer() { ++ m_layer_idx; m_tool_change_idx = 0; }
@@ -100,10 +106,14 @@ public:
     void set_is_first_print(bool is) { m_is_first_print = is; }
 
     bool enable_timelapse_print() const { return m_enable_timelapse_print; }
+    void set_wipe_tower_depth(float depth) { m_wipe_tower_depth = depth; }
+    void set_wipe_tower_bbx(const BoundingBoxf & bbx) { m_wipe_tower_bbx = bbx; }
+    void set_rib_offset(const Vec2f &rib_offset) { m_rib_offset = rib_offset; }
 
 private:
     WipeTowerIntegration& operator=(const WipeTowerIntegration&);
     std::string append_tcr(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id, double z = -1.) const;
+    Polyline generate_path_to_wipe_tower(const Point &start_pos, const Point &end_pos, const BoundingBox &avoid_polygon, const BoundingBox &printer_bbx) const;
 
     // Postprocesses gcode: rotates and moves G1 extrusions and returns result
     std::string post_process_wipe_tower_moves(const WipeTower::ToolChangeResult& tcr, const Vec2f& translation, float angle) const;
@@ -113,7 +123,7 @@ private:
     const float                                                  m_right;
     const Vec2f                                                  m_wipe_tower_pos;
     const float                                                  m_wipe_tower_rotation;
-    const std::vector<Vec2d>                                     m_extruder_offsets;
+    std::vector<Vec2d>                                           m_extruder_offsets;
 
     // Reference to cached values at the Printer class.
     const std::vector<WipeTower::ToolChangeResult>              &m_priming;
@@ -129,6 +139,10 @@ private:
     bool                                                         m_single_extruder_multi_material;
     bool                                                         m_enable_timelapse_print;
     bool                                                         m_is_first_print;
+    const PrintConfig *                                          m_print_config;
+    float                                                        m_wipe_tower_depth;
+    BoundingBoxf                                                 m_wipe_tower_bbx;
+    Vec2f                                                        m_rib_offset{Vec2f(0, 0)};
 };
 
 class ColorPrintColors
@@ -171,7 +185,7 @@ public:
     // throws std::runtime_exception on error,
     // throws CanceledException through print->throw_if_canceled().
     void            do_export(Print* print, const char* path, GCodeProcessorResult* result = nullptr, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
-
+    void            export_layer_filaments(GCodeProcessorResult* result);
     //BBS: set offset for gcode writer
     void set_gcode_offset(double x, double y) { m_writer.set_xy_offset(x, y); m_processor.set_xy_offset(x, y);}
 
@@ -207,7 +221,7 @@ public:
 
     // BBS: detect lift type in needs_retraction
     bool        needs_retraction(const Polyline &travel, ExtrusionRole role, LiftType &lift_type);
-    std::string retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::SpiralLift);
+    std::string retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::SpiralLift, bool apply_instantly = false);
     std::string unretract() { return m_writer.unlift() + m_writer.unretract(); }
     //BBS
     bool is_BBL_Printer();
@@ -295,6 +309,35 @@ private:
         bool        spiral_vase_enable { false };
         // Should the cooling buffer content be flushed at the end of this layer?
         bool        cooling_buffer_flush { false };
+        // the layer store pos of gcode
+        size_t      gcode_store_pos = 0;
+        //store each layer_time
+        float       layer_time = 0;
+        LayerResult() = default;
+        LayerResult(const std::string& gcode_, const size_t layer_id_, const bool spiral_vase_enable_, const bool cooling_buffer_flush_, const size_t gcode_store_pos_ = static_cast<size_t>(-1)) :
+            gcode(gcode_), layer_id(layer_id_), spiral_vase_enable(spiral_vase_enable_), cooling_buffer_flush(cooling_buffer_flush_), gcode_store_pos(gcode_store_pos_){}
+        LayerResult(const LayerResult& other) = default;
+        LayerResult& operator=(const LayerResult& other) = default;
+        LayerResult(LayerResult&& other) noexcept {
+            gcode = std::move(other.gcode);
+            layer_id = other.layer_id;
+            spiral_vase_enable = other.spiral_vase_enable;
+            cooling_buffer_flush = other.cooling_buffer_flush;
+            gcode_store_pos = other.gcode_store_pos;
+            layer_time = other.layer_time;
+        }
+
+        LayerResult& operator=(LayerResult&& other) noexcept {
+            if (this != &other) {
+                gcode = std::move(other.gcode);
+                layer_id = other.layer_id;
+                spiral_vase_enable = other.spiral_vase_enable;
+                cooling_buffer_flush = other.cooling_buffer_flush;
+                gcode_store_pos = other.gcode_store_pos;
+                layer_time = other.layer_time;
+            }
+            return *this;
+        }
     };
     LayerResult process_layer(
         const Print                     &print,
@@ -304,6 +347,8 @@ private:
         const bool                       last_layer,
 		// Pairs of PrintObject index and its instance index.
 		const std::vector<const PrintInstance*> *ordering,
+        // idientiy timelapse pos
+        const int                        most_used_extruder,
         // If set to size_t(-1), then print all copies of all objects.
         // Otherwise print a single copy of a single object.
         const size_t                     single_object_idx = size_t(-1),
@@ -332,6 +377,8 @@ private:
 
     //BBS
     void check_placeholder_parser_failed();
+    size_t cur_extruder_index() const;
+    size_t get_extruder_id(unsigned int filament_id) const;
 
     void            set_last_pos(const Point &pos) { m_last_pos = pos; m_last_pos_defined = true; }
     void            set_last_scarf_seam_flag(bool flag) { m_last_scarf_seam_flag = flag; }
@@ -366,7 +413,6 @@ private:
                 ExtrusionEntitiesPtr perimeters;
             	// Non-owned references to LayerRegion::fills::entities
                 ExtrusionEntitiesPtr infills;
-
                 std::vector<const WipingExtrusions::ExtruderPerCopy*> infills_overrides;
                 std::vector<const WipingExtrusions::ExtruderPerCopy*> perimeters_overrides;
 
@@ -480,7 +526,7 @@ private:
     Point                               m_last_pos;
     bool                                m_last_pos_defined;
     bool                                m_last_scarf_seam_flag;
-    std::unique_ptr<CoolingBuffer>      m_cooling_buffer;
+    std::unique_ptr<GCodeEditor>        m_gcode_editer;
     std::unique_ptr<SpiralVase>         m_spiral_vase;
 #ifdef HAS_PRESSURE_EQUALIZER
     std::unique_ptr<PressureEqualizer>  m_pressure_equalizer;
@@ -500,10 +546,15 @@ private:
     std::vector<size_t> m_label_objects_ids;
     std::string _encode_label_ids_to_base64(std::vector<size_t> ids);
 
+    // 1 << 0: A1 series cannot supprot traditional timelapse when printing by object (cannot turn on timelapse)
+    // 1 << 1: A1 series cannot supprot traditional timelapse with spiral vase mode   (cannot turn on timelapse)
+    // 1 << 2: Timelapse in smooth mode without wipe tower (turn on with prompt)
     int m_timelapse_warning_code = 0;
     bool m_support_traditional_timelapse = true;
 
     bool m_silent_time_estimator_enabled;
+
+    Print *m_print{nullptr};
 
     // Processor
     GCodeProcessor m_processor;
@@ -516,17 +567,19 @@ private:
     int m_start_gcode_filament = -1;
 
     std::set<unsigned int>                  m_initial_layer_extruders;
+    std::vector<std::vector<unsigned int>>  m_sorted_layer_filaments;
     // BBS
     int get_bed_temperature(const int extruder_id, const bool is_first_layer, const BedType bed_type) const;
+    int get_highest_bed_temperature(const bool is_first_layer,const Print &print) const;
 
-    std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1, bool is_first_slope = false);
+    std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1, bool set_holes_and_compensation_speed = false, bool is_first_slope = false);
     ExtrusionPaths set_speed_transition(ExtrusionPaths &paths);
     ExtrusionPaths split_and_mapping_speed(double &other_path_v, double &final_v, ExtrusionPath &this_path, double max_smooth_length, bool split_from_left = true);
     double get_path_speed(const ExtrusionPath &path);
     double get_overhang_degree_corr_speed(float speed, double path_degree);
     double mapping_speed(double dist);
     double get_speed_coor_x(double speed);
-    void print_machine_envelope(GCodeOutputStream &file, Print &print);
+    void print_machine_envelope(GCodeOutputStream& file, Print& print, int extruder_id);
     void _print_first_layer_bed_temperature(GCodeOutputStream &file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);
     void _print_first_layer_extruder_temperatures(GCodeOutputStream &file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);
     // On the first printing layer. This flag triggers first layer speeds.

@@ -118,6 +118,21 @@ bool MultiPoint::remove_duplicate_points()
     return false;
 }
 
+bool MultiPoint::remove_colinear_points() {
+    if (points.size() < 3) return false;
+    bool changed = false;
+    for (size_t i = 1; i < points.size() - 1; ) {
+        if (Line::distance_to_infinite_squared(points[i], points[i - 1], points[i+1]) < SCALED_EPSILON) {
+            points.erase(points.begin() + i);
+            changed = true;
+        } else {
+            ++ i;
+        }
+    }
+    if (points.size() < 3) points.clear();
+    return changed;
+}
+
 bool MultiPoint::intersection(const Line& line, Point* intersection) const
 {
     Lines lines = this->lines();
@@ -452,6 +467,13 @@ BoundingBox get_extents_rotated(const Points &points, double angle)
 BoundingBox get_extents_rotated(const MultiPoint &mp, double angle)
 {
     return get_extents_rotated(mp.points, angle);
+}
+
+void MultiPoint::symmetric_y(const coord_t &x_axis)
+{
+    for (Point &pt : points) {
+        pt(0) = 2 * x_axis - pt(0);
+    }
 }
 
 }

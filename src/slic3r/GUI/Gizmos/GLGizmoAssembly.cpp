@@ -27,6 +27,12 @@ GLGizmoAssembly::GLGizmoAssembly(GLCanvas3D& parent, const std::string& icon_fil
     m_measure_mode       = EMeasureMode::ONLY_ASSEMBLY;
 }
 
+bool GLGizmoAssembly::on_init() {
+    GLGizmoMeasure::on_init();
+    m_shortcut_key = WXK_CONTROL_Y;
+    return true;
+}
+
 std::string GLGizmoAssembly::on_get_name() const
 {
     if (!on_is_activable() && m_state == EState::Off) {

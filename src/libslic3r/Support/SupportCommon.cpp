@@ -1424,6 +1424,11 @@ void generate_support_toolpaths(
     if (config.support_base_pattern == smpRectilinearGrid)
         angles.push_back(support_params.interface_angle);
 
+    std::vector<float> interface_angles;
+    if (config.support_interface_pattern == smipRectilinearInterlaced)
+        interface_angles.push_back(support_params.base_angle);
+    interface_angles.push_back(support_params.interface_angle);
+
     BoundingBox bbox_object(Point(-scale_(1.), -scale_(1.0)), Point(scale_(1.), scale_(1.)));
 
 //    const coordf_t link_max_length_factor = 3.;
@@ -1542,7 +1547,7 @@ void generate_support_toolpaths(
 
     tbb::parallel_for(tbb::blocked_range<size_t>(n_raft_layers, support_layers.size()),
         [&config, &slicing_params, &support_params, &support_layers, &bottom_contacts, &top_contacts, &intermediate_layers, &interface_layers, &base_interface_layers, &layer_caches, &loop_interface_processor,
-            &bbox_object, &angles, n_raft_layers, link_max_length_factor]
+            &bbox_object, &angles, &interface_angles, n_raft_layers, link_max_length_factor]
             (const tbb::blocked_range<size_t>& range) {
         // Indices of the 1st layer in their respective container at the support layer height.
         size_t idx_layer_bottom_contact   = size_t(-1);
@@ -1577,8 +1582,6 @@ void generate_support_toolpaths(
         {
             SupportLayer &support_layer = *support_layers[support_layer_id];
             LayerCache   &layer_cache   = layer_caches[support_layer_id];
-            const float   support_interface_angle = (support_params.support_style == smsGrid || config.support_interface_pattern == smipRectilinear) ?
-                support_params.interface_angle : support_params.raft_interface_angle(support_layer.interface_id());
 
             // Find polygons with the same print_z.
             SupportGeneratorLayerExtruded &bottom_contact_layer = layer_cache.bottom_contact_layer;
@@ -1662,13 +1665,10 @@ void generate_support_toolpaths(
                         (raft_contact ? &support_params.raft_interface_flow :
                          interface_as_base ? &support_params.support_material_flow : &support_params.support_material_interface_flow)
                             ->with_height(float(layer_ex.layer->height));
-                    filler->angle = interface_as_base ?
-                            // If zero interface layers are configured, use the same angle as for the base layers.
-                            angles[support_layer_id % angles.size()] :
-                            // Use interface angle for the interface layers.
-                            raft_contact ?
-                                support_params.raft_interface_angle(support_layer.interface_id()) :
-                                support_interface_angle;
+                    // If zero interface layers are configured, use the same angle as for the base layers.
+                    filler->angle  = interface_as_base ? angles[support_layer_id % angles.size()] :
+                                     raft_contact      ? support_params.raft_interface_angle(support_layer.interface_id()) :
+                                                         interface_angles[support_layer_id % interface_angles.size()]; // Use interface angle for the interface layers.
                     double density = raft_contact ? support_params.raft_interface_density : interface_as_base ? support_params.support_density : support_params.interface_density;
                     filler->spacing = raft_contact ? support_params.raft_interface_flow.spacing() :
                         interface_as_base ? support_params.support_material_flow.spacing() : support_params.support_material_interface_flow.spacing();
@@ -1697,7 +1697,7 @@ void generate_support_toolpaths(
                 // the bridging flow does not quite apply. Reduce the flow to area of an ellipse? (A = pi * a * b)
                 assert(! base_interface_layer.layer->bridging);
                 Flow interface_flow = support_params.support_material_flow.with_height(float(base_interface_layer.layer->height));
-                filler->angle   = support_interface_angle;
+                filler->angle   = interface_angles[(support_layer_id + 1) % interface_angles.size()]; // need to be the same as the interface layer above
                 filler->spacing = support_params.support_material_interface_flow.spacing();
                 filler->link_max_length = coord_t(scale_(filler->spacing * link_max_length_factor / support_params.interface_density));
                 fill_expolygons_generate_paths(
@@ -1948,5 +1948,124 @@ sub clip_with_shape {
     }
 }
 */
+
+/*!
+ * \brief Unions two Polygons. Ensures that if the input is non empty that the output also will be non empty.
+ * \param first[in] The first Polygon.
+ * \param second[in] The second Polygon.
+ * \return The union of both Polygons
+ */
+[[nodiscard]] Polygons safe_union(const Polygons first, const Polygons second)
+{
+    // unionPolygons can slowly remove Polygons under certain circumstances, because of rounding issues (Polygons that have a thin area).
+    // This does not cause a problem when actually using it on large areas, but as influence areas (representing centerpoints) can be very thin, this does occur so this ugly
+    // workaround is needed Here is an example of a Polygons object that will loose vertices when unioning, and will be gone after a few times unionPolygons was called:
+    /*
+    Polygons example;
+    Polygon exampleInner;
+    exampleInner.add(Point(120410,83599));//A
+    exampleInner.add(Point(120384,83643));//B
+    exampleInner.add(Point(120399,83618));//C
+    exampleInner.add(Point(120414,83591));//D
+    exampleInner.add(Point(120423,83570));//E
+    exampleInner.add(Point(120419,83580));//F
+    example.add(exampleInner);
+    for(int i=0;i<10;i++){
+         log("Iteration %d Example area: %f\n",i,area(example));
+         example=example.unionPolygons();
+    }
+*/
+
+    Polygons result;
+    if (!first.empty() || !second.empty()) {
+        result = union_(first, second);
+        if (result.empty()) {
+            BOOST_LOG_TRIVIAL(debug) << "Caught an area destroying union, enlarging areas a bit.";
+            // just take the few lines we have, and offset them a tiny bit. Needs to be offsetPolylines, as offset may aleady have problems with the area.
+            result = union_(offset(to_polylines(first), scaled<float>(0.002), jtMiter, 1.2), offset(to_polylines(second), scaled<float>(0.002), jtMiter, 1.2));
+        }
+    }
+
+    return result;
+}
+[[nodiscard]] ExPolygons safe_union(const ExPolygons first, const ExPolygons second)
+{
+    ExPolygons result;
+    if (!first.empty() || !second.empty()) {
+        result = union_ex(first, second);
+        if (result.empty()) {
+            BOOST_LOG_TRIVIAL(debug) << "Caught an area destroying union, enlarging areas a bit.";
+            // just take the few lines we have, and offset them a tiny bit. Needs to be offsetPolylines, as offset may aleady have problems with the area.
+            Polygons result_polys = union_(offset(to_polylines(first), scaled<float>(0.002), jtMiter, 1.2), offset(to_polylines(second), scaled<float>(0.002), jtMiter, 1.2));
+            for (auto &poly : result_polys) result.emplace_back(ExPolygon(poly));
+        }
+    }
+
+    return result;
+}
+
+/*!
+ * \brief Offsets (increases the area of) a polygons object in multiple steps to ensure that it does not lag through over a given obstacle.
+ * \param me[in] Polygons object that has to be offset.
+ * \param distance[in] The distance by which me should be offset. Expects values >=0.
+ * \param collision[in] The area representing obstacles.
+ * \param last_step_offset_without_check[in] The most it is allowed to offset in one step.
+ * \param min_amount_offset[in] How many steps have to be done at least. As this uses round offset this increases the amount of vertices, which may be required if Polygons get
+ * very small. Required as arcTolerance is not exposed in offset, which should result with a similar result. \return The resulting Polygons object.
+ */
+[[nodiscard]] Polygons safe_offset_inc(
+    const Polygons &me, coord_t distance, const Polygons &collision, coord_t safe_step_size, coord_t last_step_offset_without_check, size_t min_amount_offset)
+{
+    bool     do_final_difference = last_step_offset_without_check == 0;
+    Polygons ret                 = safe_union(me); // ensure sane input
+
+    // Trim the collision polygons with the region of interest for diff() efficiency.
+    Polygons collision_trimmed_buffer;
+    auto     collision_trimmed = [&collision_trimmed_buffer, &collision, &ret, distance]() -> const Polygons     &{
+        if (collision_trimmed_buffer.empty() && !collision.empty())
+            collision_trimmed_buffer = ClipperUtils::clip_clipper_polygons_with_subject_bbox(collision, get_extents(ret).inflated(std::max(0, distance) + SCALED_EPSILON));
+        return collision_trimmed_buffer;
+    };
+
+    if (distance == 0) return do_final_difference ? diff(ret, collision_trimmed()) : union_(ret);
+    if (safe_step_size < 0 || last_step_offset_without_check < 0) {
+        BOOST_LOG_TRIVIAL(error) << "Offset increase got invalid parameter!";
+        return do_final_difference ? diff(ret, collision_trimmed()) : union_(ret);
+    }
+
+    coord_t step_size = safe_step_size;
+    int     steps     = distance > last_step_offset_without_check ? (distance - last_step_offset_without_check) / step_size : 0;
+    if (distance - steps * step_size > last_step_offset_without_check) {
+        if ((steps + 1) * step_size <= distance)
+            // This will be the case when last_step_offset_without_check >= safe_step_size
+            ++steps;
+        else
+            do_final_difference = true;
+    }
+    if (steps + (distance < last_step_offset_without_check || (distance % step_size) != 0) < int(min_amount_offset) && min_amount_offset > 1) {
+        // yes one can add a bool as the standard specifies that a result from compare operators has to be 0 or 1
+        // reduce the stepsize to ensure it is offset the required amount of times
+        step_size = distance / min_amount_offset;
+        if (step_size >= safe_step_size) {
+            // effectivly reduce last_step_offset_without_check
+            step_size = safe_step_size;
+            steps     = min_amount_offset;
+        } else
+            steps = distance / step_size;
+    }
+    // offset in steps
+    for (int i = 0; i < steps; ++i) {
+        ret = diff(offset(ret, step_size, ClipperLib::jtRound, scaled<float>(0.01)), collision_trimmed());
+        // ensure that if many offsets are done the performance does not suffer extremely by the new vertices of jtRound.
+        if (i % 10 == 7) ret = polygons_simplify(ret, scaled<double>(0.015));
+    }
+    // offset the remainder
+    float last_offset = distance - steps * step_size;
+    if (last_offset > SCALED_EPSILON) ret = offset(ret, distance - steps * step_size, ClipperLib::jtRound, scaled<float>(0.01));
+    ret = polygons_simplify(ret, scaled<double>(0.015));
+
+    if (do_final_difference) ret = diff(ret, collision_trimmed());
+    return union_(ret);
+}
 
 } // namespace Slic3r
