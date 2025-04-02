@@ -798,23 +798,26 @@ void MachineObject::_parse_tray_now(std::string tray_now)
     } else {
         try {
             int tray_now_int = atoi(tray_now.c_str());
-            if (tray_now_int == 255) {
+            if (tray_now_int == VIRTUAL_TRAY_MAIN_ID) {
                 m_ams_id = "0";
                 m_tray_id = "0";
                 m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id  = "";
                 m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id = "";
             }
+            else if (tray_now_int == VIRTUAL_TRAY_DEPUTY_ID) {
+                m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id  = std::to_string(VIRTUAL_TRAY_MAIN_ID);
+                m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id = "0";
+            }
             else {
-                if (tray_now_int == 254) {
-                    m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id  = std::to_string(VIRTUAL_TRAY_MAIN_ID);
-                    m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id = "0";
+                if (tray_now_int >= 0x80 &&  tray_now_int <= 0x87) {
+                    m_ams_id = std::to_string(tray_now_int);
+                } else {
+                    m_ams_id = std::to_string(tray_now_int >> 2);
                 }
-                else {
-                    m_ams_id  = std::to_string(tray_now_int >> 2);
-                    m_tray_id = std::to_string(tray_now_int & 0x3);
-                    m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id = m_ams_id;
-                    m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id = m_tray_id;
-                }
+
+                m_tray_id                                          = std::to_string(tray_now_int & 0x3);
+                m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id  = m_ams_id;
+                m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id = m_tray_id;
             }
         }
         catch(...) {
@@ -3745,7 +3748,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         }
 
                         /*the param is invalid in np for Yeshu*/
-                        if (!check_enable_np(jj) && jj.contains("hw_switch_state")) {
+                        if (jj.contains("hw_switch_state")) {
                             hw_switch_state = jj["hw_switch_state"].get<int>();
                             m_extder_data.extders[MAIN_NOZZLE_ID].ext_has_filament = hw_switch_state;
                         }
@@ -4517,21 +4520,6 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                     if (ams_it == amsList.end()) {
                                         Ams* new_ams    = new Ams(ams_id, nozzle_id, type_id);
                                         new_ams->info   = info;
-
-                                        try {
-                                            if (!ams_id.empty()) {
-                                                int ams_id_int = atoi(ams_id.c_str());
-
-                                                if (type_id < 4 ) {
-                                                    new_ams->is_exists = (ams_exist_bits & (1 << ams_id_int)) != 0 ? true : false;
-                                                } else {
-                                                    new_ams->is_exists = get_flag_bits(ams_exist_bits, 4 + (ams_id_int - 128));
-                                                }
-                                            }
-                                        }
-                                        catch (...) {
-                                            ;
-                                        }
                                         amsList.insert(std::make_pair(ams_id, new_ams));
                                         // new ams added event
                                         curr_ams = new_ams;
@@ -4544,6 +4532,25 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                         curr_ams = ams_it->second;
                                     }
                                     if (!curr_ams) continue;
+
+                                    /*set ams type flag*/
+                                    curr_ams->type = type_id;
+
+
+                                    /*set ams exist flag*/
+                                    try {
+                                        if (!ams_id.empty()) {
+                                            int ams_id_int = atoi(ams_id.c_str());
+
+                                            if (type_id < 4) {
+                                                curr_ams->is_exists = (ams_exist_bits & (1 << ams_id_int)) != 0 ? true : false;
+                                            } else {
+                                                curr_ams->is_exists = get_flag_bits(ams_exist_bits, 4 + (ams_id_int - 128));
+                                            }
+                                        }
+                                    } catch (...) {
+                                        ;
+                                    }
 
                                     if (it->contains("dry_time") && (*it)["dry_time"].is_number())
                                     {
