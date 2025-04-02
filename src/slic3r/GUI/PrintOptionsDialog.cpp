@@ -896,8 +896,8 @@ void PrinterPartsDialog::set_nozzle_data(wxCommandEvent& evt)
                 } else if (nozzle_flow == NozzleFlowType::H_FLOW) {
                     nozzle_data += "H";
                 } else {
-                    nozzle_data += "N";/*means normal*/
-                    BOOST_LOG_TRIVIAL(warning) << "warning: nozzle flow type is normal!";
+                    nozzle_data += "S";/*default to standard*/
+                    BOOST_LOG_TRIVIAL(warning) << "warning: nozzle flow type default to standard!";
                 }
 
                 if (nozzle_type == NozzleType::ntStainlessSteel) {
