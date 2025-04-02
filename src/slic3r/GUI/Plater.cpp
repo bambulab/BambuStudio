@@ -12586,7 +12586,7 @@ bool Plater::load_same_type_files(const wxArrayString &filenames) {
         std::string ext_str = ext.extension().string();
         boost::algorithm::to_lower(ext_str);
         if (ext_str == ".stp" || ext_str == ".step") {
-            ext.replace_extension(".step");
+            ext_str =".step";
         }
         return ext_str;
     };
