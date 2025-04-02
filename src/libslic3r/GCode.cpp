@@ -4852,7 +4852,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             //new_loop.target_speed = get_path_speed(new_loop.starts.back());
             //new_loop.slowdown_slope_speed();
             // BBS: smooth speed of discontinuity areas
-            if (m_config.detect_overhang_wall && m_config.smooth_speed_discontinuity_area && (loop.role() == erExternalPerimeter || loop.role() == erPerimeter))
+            if (m_config.detect_overhang_wall && m_config.smooth_speed_discontinuity_area && loop.is_set_speed_discontinuity_area())
                 smooth_speed_discontinuity_area(new_loop.paths);
             // Then extrude it
             for (const auto &p : new_loop.get_all_paths()) {
@@ -4877,7 +4877,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
     if (!enable_seam_slope || slope_has_overhang) {
         // BBS: smooth speed of discontinuity areas
-        if (m_config.detect_overhang_wall && m_config.smooth_speed_discontinuity_area && (loop.role() == erExternalPerimeter || loop.role() == erPerimeter))
+        if (m_config.detect_overhang_wall && m_config.smooth_speed_discontinuity_area && loop.is_set_speed_discontinuity_area())
             smooth_speed_discontinuity_area(paths);
 
         for (ExtrusionPaths::iterator path = paths.begin(); path != paths.end(); ++path) {
@@ -5372,7 +5372,7 @@ void GCode::split_and_mapping_speed(double other_path_v, double final_v, Extrusi
     }
 
     // set left path speed
-    if (final_v != this_path.front().smooth_speed)
+    if (!this_path.empty() && final_v != this_path.front().smooth_speed)
         for (ExtrusionPath &left : this_path)
             left.smooth_speed = final_v;
 
