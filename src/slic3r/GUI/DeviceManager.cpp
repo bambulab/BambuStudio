@@ -2221,17 +2221,28 @@ int MachineObject::command_ams_calibrate(int ams_id)
     return this->publish_gcode(gcode_cmd);
 }
 
-int MachineObject::command_ams_filament_settings(int ams_id, int tray_id, std::string filament_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max)
+int MachineObject::command_ams_filament_settings(int ams_id, int slot_id, std::string filament_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max)
 {
-    BOOST_LOG_TRIVIAL(info) << "command_ams_filament_settings, ams_id = " << ams_id << ", tray_id = " << tray_id << ", tray_color = " << tray_color
+    int tag_tray_id = 0;
+    int tag_ams_id  = ams_id;
+    int tag_slot_id = slot_id;
+
+    if (tag_ams_id == VIRTUAL_TRAY_MAIN_ID || tag_ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
+        tag_tray_id = VIRTUAL_TRAY_DEPUTY_ID;
+    } else {
+        tag_tray_id = tag_slot_id;
+    }
+
+
+    BOOST_LOG_TRIVIAL(info) << "command_ams_filament_settings, ams_id = " << tag_ams_id << ", slot_id = " << tag_slot_id << ", tray_id = " << tag_tray_id << ", tray_color = " << tray_color
                             << ", tray_type = " << tray_type << ", filament_id = " << filament_id
                             << ", setting_id = " << setting_id << ", temp_min: = " << nozzle_temp_min << ", temp_max: = " << nozzle_temp_max;
     json j;
     j["print"]["command"]       = "ams_filament_setting";
     j["print"]["sequence_id"]   = std::to_string(MachineObject::m_sequence_id++);
-    j["print"]["ams_id"]        = ams_id;
-    j["print"]["slot_id"]       = tray_id;
-    j["print"]["tray_id"]       = tray_id;
+    j["print"]["ams_id"]        = tag_ams_id;
+    j["print"]["slot_id"]       = tag_slot_id;
+    j["print"]["tray_id"]       = tag_tray_id;
     j["print"]["tray_info_idx"] = filament_id;
     j["print"]["setting_id"]    = setting_id;
     // format "FFFFFFFF"   RGBA
@@ -6557,6 +6568,7 @@ void MachineObject::check_ams_filament_valid()
         auto &filament_list = data.filament_list;
         auto &checked_filament = data.checked_filament;
         for (const auto &[slot_id, curr_tray] : ams->trayList) {
+
             if (curr_tray->setting_id.size() == 8 && curr_tray->setting_id[0] == 'P' && filament_list.find(curr_tray->setting_id) == filament_list.end()) {
                 if (checked_filament.find(curr_tray->setting_id) == checked_filament.end()) {
                     need_checked_filament_id[nozzle_diameter_str].insert(curr_tray->setting_id);
@@ -6566,7 +6578,8 @@ void MachineObject::check_ams_filament_valid()
                     try {
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " ams settings_id is not exist in filament_list and reset, ams_id: " << ams_id << " tray_id"
                                                 << slot_id << "filament_id: " << curr_tray->setting_id;
-                        this->command_ams_filament_settings(std::stoi(ams_id), std::stoi(slot_id), "", "", std::string(col_buf), "", 0, 0);
+
+                        command_ams_filament_settings(std::stoi(ams_id), std::stoi(slot_id), "", "", std::string(col_buf), "", 0, 0);
                         continue;
                     } catch (...) {
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " stoi error and ams_id: " << ams_id << " tray_id" << slot_id;
@@ -6585,6 +6598,8 @@ void MachineObject::check_ams_filament_valid()
                         if (!is_equation) {
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " ams filament is not match min max temp and reset, ams_id: " << ams_id << " tray_id"
                                                     << slot_id << "filament_id: " << curr_tray->setting_id;
+
+
                             command_ams_filament_settings(std::stoi(ams_id), std::stoi(slot_id), curr_tray->setting_id, preset_setting_id, curr_tray->color, curr_tray->type,
                                                           std::stoi(curr_tray->nozzle_temp_min), std::stoi(curr_tray->nozzle_temp_max));
                         }
@@ -6622,10 +6637,7 @@ void MachineObject::check_ams_filament_valid()
                 sprintf(col_buf, "%02X%02X%02XFF", (int) color.Red(), (int) color.Green(), (int) color.Blue());
                 try {
                     BOOST_LOG_TRIVIAL(info) << "vt_tray.setting_id is not exist in filament_list and reset vt_tray and the filament_id is: " << vt_tray.setting_id;
-                    if (is_enable_np)
-                        this->command_ams_filament_settings(vt_id, 0, "", "", std::string(col_buf), "", 0, 0);
-                    else
-                        this->command_ams_filament_settings(VIRTUAL_TRAY_MAIN_ID, VIRTUAL_TRAY_DEPUTY_ID, "", "", std::string(col_buf), "", 0, 0);
+                    command_ams_filament_settings(vt_id, 0, "", "", std::string(col_buf), "", 0, 0);
                     continue;
                 } catch (...) {
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " stoi error and tray_id" << vt_tray.id;
@@ -6649,13 +6661,9 @@ void MachineObject::check_ams_filament_valid()
                     if (!is_equation) {
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__
                                                 << " vt_tray filament is not match min max temp and reset, filament_id: " << vt_tray.setting_id;
-                        if (is_enable_np)
-                            command_ams_filament_settings(vt_id, 0, vt_tray.setting_id, preset_setting_id, vt_tray.color, vt_tray.type, std::stoi(vt_tray.nozzle_temp_min),
+                        command_ams_filament_settings(vt_id, 0, vt_tray.setting_id, preset_setting_id, vt_tray.color, vt_tray.type, std::stoi(vt_tray.nozzle_temp_min),
                                                           std::stoi(vt_tray.nozzle_temp_max));
-                        else
-                            command_ams_filament_settings(VIRTUAL_TRAY_MAIN_ID, VIRTUAL_TRAY_DEPUTY_ID, vt_tray.setting_id, preset_setting_id, vt_tray.color, vt_tray.type,
-                                                          std::stoi(vt_tray.nozzle_temp_min),
-                                                          std::stoi(vt_tray.nozzle_temp_max));
+
                     }
                 } catch (...) {
                     BOOST_LOG_TRIVIAL(info) << "check fail and vt_tray.id" << vt_tray.id;
