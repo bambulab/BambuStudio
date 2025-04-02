@@ -1828,7 +1828,7 @@ void TreeSupport::generate()
         generate_tree_support_3D(*m_object, this, this->throw_on_cancel);
         return;
     }
-
+    
     profiler.stage_start(STAGE_total);
 
     // Generate overhang areas
@@ -3181,7 +3181,7 @@ void TreeSupport::drop_nodes()
 #endif
                 coordf_t next_radius = calc_radius(node.dist_mm_to_top + height_next);
                 auto avoidance_next = get_avoidance(next_radius, obj_layer_nr_next);
-
+                
                 Point  to_outside         = projection_onto(avoidance_next, node.position);
                 Point  direction_to_outer = to_outside - node.position;
                 if (node.skin_direction != Point(0, 0) && node.dist_mm_to_top < 3) {
@@ -3928,6 +3928,22 @@ TreeSupportData::TreeSupportData(const PrintObject &object, coordf_t xy_distance
     m_max_move_distances.resize(object.layers().size(), 0);
     m_layer_outlines.resize(object.layers().size());
     m_layer_outlines_below.resize(object.layer_count());
+    ExPolygons machine_border;
+    ExPolygon  m_machine_border;
+
+    //cal m_machine_border twice, this may happen before TreeSupport builds
+    m_machine_border.contour = get_bed_shape_with_excluded_area(object.print()->config());
+    Vec3d plate_offset       = object.print()->get_plate_origin();
+    // align with the centered object in current plate (may not be the 1st plate, so need to add the plate offset)
+    m_machine_border.translate(Point(scale_(plate_offset(0)), scale_(plate_offset(1))) - object.instances().front().shift);
+
+    if (!m_machine_border.empty()) {
+        Polygon hole(m_machine_border.contour);
+        hole.reverse();
+        ExPolygon  machine_outline(offset(m_machine_border.contour, scale_(1000))[0], hole);
+        machine_border = machine_outline.split_expoly_with_holes(scale_(1.), {m_machine_border});
+    }
+
     for (std::size_t layer_nr = 0; layer_nr < object.layers().size(); ++layer_nr) {
         const Layer *layer             = object.get_layer(layer_nr);
         m_max_move_distances[layer_nr] = layer->height * branch_scale_factor;
@@ -3935,6 +3951,7 @@ TreeSupportData::TreeSupportData(const PrintObject &object, coordf_t xy_distance
         outline.clear();
         outline.reserve(layer->lslices.size());
         for (const ExPolygon &poly : layer->lslices) { append(outline, union_ex_2( poly.simplify_p(scale_(m_radius_sample_resolution)))); }
+        append(outline, machine_border);
 
         if (layer_nr == 0)
             m_layer_outlines_below[layer_nr] = outline;
