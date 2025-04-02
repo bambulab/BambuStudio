@@ -30,7 +30,7 @@
 #endif
 
 static const int average_filter_window_size = 5;
-static const float overhang_filter = 0.4f;
+static const float overhang_filter = 0.6f;
 static const float lensLimit = 1.0f;
 namespace Slic3r {
 
@@ -999,44 +999,46 @@ void SeamPlacer::calculate_overhangs_and_layer_embedding(const PrintObject *po)
                     perimeter_point.embedded_distance = current_layer_distancer->distance_from_perimeter(point) + 0.6f * perimeter_point.perimeter.flow_width;
                 }
 
-                if (perimeter_point.overhang_degree > 0.0f) {
+                size_t start_index = perimeter_point.perimeter.start_index;
+                size_t end_index   = perimeter_point.perimeter.end_index;
+                if (perimeter_point.overhang_degree > 0.0f && end_index - start_index > 1) {
                     // BBS. extend overhang range
                     float  dist        = 0.0f;
                     size_t idx         = i;
-                    size_t start_index = layers[layer_idx].points[i].perimeter.start_index;
-                    size_t end_index   = layers[layer_idx].points[i].perimeter.end_index;
-                    bool   flage       = true;
-                    perimeter_point.extra_overhang_point += perimeter_point.overhang_degree * gauss(0.0f, 0.0f, 4.0f, 20.0f);
-                    while (idx != i || flage) {
-                        if(layers[layer_idx].points[idx].extra_overhang_point  > 0)
-                            break;
-                        flage    = false;
+                    double gauss_value = gauss(0.0f, 0.0f, 4.0f, 10.0f);
+                    perimeter_point.extra_overhang_point = perimeter_point.overhang_degree * gauss_value;
+                    // check left
+                    while (true) {
                         int prev = idx;
                         idx      = idx == start_index ? end_index - 1 : idx - 1;
+                        if (idx == i)
+                            break;
                         dist += sqrt((layers[layer_idx].points[idx].position.head<2>() - layers[layer_idx].points[prev].position.head<2>()).squaredNorm());
                         if (dist > lensLimit)
                             break;
-                        else {
-                            layers[layer_idx].points[idx].extra_overhang_point += perimeter_point.overhang_degree * gauss(dist, 0.0f, 4.0f, 20.0f);
-                        }
+                        double gauss_value_dist = gauss(dist, 0.0f, 4.0f, 10.0f);
+
+                        if (layers[layer_idx].points[idx].extra_overhang_point > perimeter_point.overhang_degree * gauss_value_dist)
+                            continue;
+                        layers[layer_idx].points[idx].extra_overhang_point = perimeter_point.overhang_degree * gauss_value_dist;
                     }
 
-                    idx   = i;
+                    //check right
                     dist  = 0.0f;
-                    flage = true;
-
-                    while (idx != i || flage) {
-                        if(layers[layer_idx].points[idx].extra_overhang_point  > 0)
-                            break;
-                        flage    = false;
+                    idx  = i;
+                    while (true) {
                         int prev = idx;
-                        idx      = idx == end_index - 1 ? start_index : idx + 1;
+                        idx  = idx == end_index - 1 ? start_index : idx + 1;
+                        if (idx == i)
+                            break;
                         dist += sqrt((layers[layer_idx].points[idx].position.head<2>() - layers[layer_idx].points[prev].position.head<2>()).squaredNorm());
                         if (dist > lensLimit)
                             break;
-                        else {
-                            layers[layer_idx].points[idx].extra_overhang_point += perimeter_point.overhang_degree * gauss(dist, 0.0f, 4.0f, 20.0f);
-                        }
+                        double gauss_value_dist = gauss(dist, 0.0f, 4.0f, 10.0f);
+
+                        if (layers[layer_idx].points[idx].extra_overhang_point > perimeter_point.overhang_degree * gauss_value_dist)
+                            continue;
+                        layers[layer_idx].points[idx].extra_overhang_point = perimeter_point.overhang_degree * gauss_value_dist;
                     }
                 }
             }
