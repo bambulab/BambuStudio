@@ -24,6 +24,8 @@
 #include <wx/wrapsizer.h>
 #include <wx/srchctrl.h>
 
+#include <unordered_map>
+
 #include "boost/bimap/bimap.hpp"
 #include "AmsMappingPopup.hpp"
 #include "ReleaseNote.hpp"
@@ -252,14 +254,10 @@ public:
 
     std::string m_param;
     std::vector<POItem> m_ops;
-    Label*   m_label{nullptr};
     Label*   m_printoption_title{nullptr};
     PrintOptionItem* m_printoption_item{nullptr};
     void setValue(std::string value);
-    void update_options(std::vector<POItem> ops){
-        m_ops = ops;
-        m_printoption_item->update_options(ops);
-    };
+    void update_options(std::vector<POItem> ops, const wxString &tips);
     std::string getValue();
     int getValueInt();
 };
@@ -338,8 +336,10 @@ private:
     StateColor                          m_btn_bg_enable;
     Label* m_text_bed_type;
 
+    std::unordered_map<string, PrintOption*> m_checkbox_list;
+    std::list<PrintOption*>                  m_checkbox_list_order;
+
     std::shared_ptr<int>                m_token = std::make_shared<int>(0);
-    std::map<std::string, PrintOption*>   m_checkbox_list;
     wxString                             m_ams_tooltip;
     wxString                             m_ams_tooltip_ext;
     std::vector<wxString>               m_bedtype_list;
@@ -371,8 +371,7 @@ protected:
     MaterialHash                        m_materialList;
     Plater *                            m_plater{nullptr};
     wxPanel *                           m_options_other {nullptr};
-    wxBoxSizer*                         m_sizer_options_timelapse{ nullptr };
-    wxBoxSizer*                         m_sizer_options_other{ nullptr };
+    wxGridSizer*                        m_sizer_options{nullptr};
     wxBoxSizer*                         m_sizer_thumbnail{ nullptr };
 
     wxBoxSizer*                         m_basicl_sizer{ nullptr };
@@ -396,6 +395,9 @@ protected:
     wxPanel*                            m_panel_sending{nullptr};
     wxPanel*                            m_panel_prepare{nullptr};
     wxPanel*                            m_panel_finish{nullptr};
+
+    wxScrolledWindow*                   m_scroll_area{nullptr};
+
     wxPanel*                            m_line_top{ nullptr };
     Label*                              m_link_edit_nozzle{ nullptr };
     Label*                              m_st_txt_error_code{nullptr};
@@ -413,7 +415,6 @@ protected:
     Label*                              m_txt_change_filament_times{ nullptr };
     Label*                              m_text_printer_msg{ nullptr };
     Label*                              m_text_printer_msg_tips{ nullptr };
-    Label*                              m_advanced_options_title{ nullptr };
     wxStaticText*                       m_staticText_bed_title{ nullptr };
     wxStaticText*                       m_stext_sending{ nullptr };
     wxStaticText*                       m_statictext_finish{nullptr};
@@ -422,7 +423,6 @@ protected:
     std::shared_ptr<PrintJob>           m_print_job;
     wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
     wxHyperlinkCtrl*                    m_hyperlink{nullptr};
-    wxStaticBitmap *                    m_advanced_options_icon{nullptr};
     ScalableBitmap *                    rename_editable{nullptr};
     ScalableBitmap *                    rename_editable_light{nullptr};
     wxStaticBitmap *                    timeimg{nullptr};
@@ -507,7 +507,6 @@ public:
     void set_default_from_sdcard();
     void update_page_turn_state(bool show);
     void on_timer(wxTimerEvent& event);
-    void enable_advanced_option(bool en);
     void on_selection_changed(wxCommandEvent &event);
     void update_flow_cali_check(MachineObject* obj);
     void Enable_Refresh_Button(bool en);
@@ -523,7 +522,6 @@ public:
     void update_print_error_info(int code, std::string msg, std::string extra);
     void set_flow_calibration_state(bool state, bool show_tips = true);
     bool has_timelapse_warning();
-    void update_timelapse_enable_status();
     bool can_support_auto_cali();
     bool is_same_printer_model();
     bool is_blocking_printing(MachineObject* obj_);
@@ -553,6 +551,12 @@ public:
 
 private:
     void EnableEditing(bool enable);
+
+    /* update scroll area size*/
+    void update_scroll_area_size();
+
+    /* update option area*/
+    void update_options_layout();
 
     /*go check*/
     bool is_error(PrintDialogStatus status)            { return (PrintStatusErrorBegin < status)           && (PrintStatusErrorEnd > status); };
