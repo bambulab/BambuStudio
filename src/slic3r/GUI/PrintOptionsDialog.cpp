@@ -820,11 +820,6 @@ void PrinterPartsDialog::set_nozzle_data(wxCommandEvent& evt)
         nozzle_id = MAIN_NOZZLE_ID;
     }
 
-    /*filter invalid set*/
-    if (current_nozzle_type_combox && current_nozzle_type_combox->IsShown() && current_nozzle_type_combox->GetValue().IsEmpty()) { return; }
-    if (current_nozzle_diameter_combox && current_nozzle_diameter_combox->IsShown() && current_nozzle_diameter_combox->GetValue().IsEmpty()) { return; }
-    if (current_nozzle_flow_combox && current_nozzle_flow_combox->IsShown() && current_nozzle_flow_combox->GetValue().IsEmpty()) { return; }
-
     if (obj) {
         try {
             auto nozzle_type        = NozzleType::ntHardenedSteel;
@@ -886,6 +881,8 @@ void PrinterPartsDialog::set_nozzle_data(wxCommandEvent& evt)
             }
 
             if (!obj->is_enable_np) {
+                if (current_nozzle_type_combox && current_nozzle_type_combox->IsShown() && current_nozzle_type_combox->GetValue().IsEmpty()) { return; }
+                if (current_nozzle_diameter_combox && current_nozzle_diameter_combox->IsShown() && current_nozzle_diameter_combox->GetValue().IsEmpty()) { return; }
                 obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_diameter = nozzle_diameter;
                 obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_type     = nozzle_type;
                 obj->command_set_printer_nozzle(NozzleTypeEumnToStr[nozzle_type], nozzle_diameter);
@@ -909,6 +906,9 @@ void PrinterPartsDialog::set_nozzle_data(wxCommandEvent& evt)
                     return;
                 }
 
+                if (current_nozzle_type_combox && current_nozzle_type_combox->IsShown() && current_nozzle_type_combox->GetValue().IsEmpty()) { return; }
+                if (current_nozzle_diameter_combox && current_nozzle_diameter_combox->IsShown() && current_nozzle_diameter_combox->GetValue().IsEmpty()) { return; }
+                if (current_nozzle_flow_combox && current_nozzle_flow_combox->IsShown() && current_nozzle_flow_combox->GetValue().IsEmpty()) { return; }
                 obj->m_extder_data.extders[nozzle_id].current_nozzle_diameter   = nozzle_diameter;
                 obj->m_extder_data.extders[nozzle_id].current_nozzle_flow_type  = nozzle_flow;
                 obj->m_extder_data.extders[nozzle_id].current_nozzle_type       = nozzle_type;
