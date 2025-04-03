@@ -1484,6 +1484,9 @@ public:
     static bool is_virtual_slot(int ams_id);
     static std::string get_filament_name_from_ams(int ams_id, int slot_id);
 
+private:
+    void OnMachineBindStateChanged(MachineObject* obj, const std::string &new_state);
+    void OnSelectedMachineLost();
 };
 
 class DeviceManagerRefresher : public wxObject
