@@ -154,7 +154,7 @@ private:
     void on_set_color_timer(wxTimerEvent& evt);
 
     // key MENU_ICON_NAME, value = ImtextureID
-    std::map<int, void*> icon_list;
+    static std::map<int, void*> icon_list;
 
     bool m_is_dark = false;
 public:
@@ -174,6 +174,8 @@ public:
         IC_NAME_COUNT,
         IC_FIT_CAMERA,
         IC_FIT_CAMERA_HOVER,
+        IC_FIT_CAMERA_DARK,
+        IC_FIT_CAMERA_DARK_HOVER,
     };
 
     explicit GLGizmosManager(GLCanvas3D& parent);

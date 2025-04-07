@@ -8374,12 +8374,8 @@ void GLCanvas3D::_render_fit_camera_toolbar()
     imgui.begin(_L("Fit camera"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove |
                                            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse);//
 
-    ImTextureID normal_id = m_gizmos.get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA);
-    if (normal_id == 0) {
-        m_gizmos.init_icon_textures();
-    }
-    normal_id = m_gizmos.get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA);
-    ImTextureID hover_id  = m_gizmos.get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA_HOVER); // IC_FIT_CAMERA_HOVER
+    ImTextureID normal_id = m_gizmos.get_icon_texture_id(m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA_DARK : GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA);
+    ImTextureID hover_id  = m_gizmos.get_icon_texture_id(m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA_DARK_HOVER : GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA_HOVER);
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, 0});
