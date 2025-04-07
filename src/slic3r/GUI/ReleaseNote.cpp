@@ -2113,17 +2113,20 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
         return;
     }
 
-    if (detectData.bind_state == "occupied") {
-        post_update_test_msg(wxEmptyString, true);
-        post_update_test_msg(_L("The printer has already been bound."), false);
-        return;
+    if (detectData.connect_type != "farm") {
+        if (detectData.bind_state == "occupied") {
+            post_update_test_msg(wxEmptyString, true);
+            post_update_test_msg(_L("The printer has already been bound."), false);
+            return;
+        }
+
+        if (detectData.connect_type == "cloud") {
+            post_update_test_msg(wxEmptyString, true);
+            post_update_test_msg(_L("The printer mode is incorrect, please switch to LAN Only."), false);
+            return;
+        }
     }
 
-    if (detectData.connect_type == "cloud") {
-        post_update_test_msg(wxEmptyString, true);
-        post_update_test_msg(_L("The printer mode is incorrect, please switch to LAN Only."), false);
-        return;
-    }
 
     DeviceManager* dev = wxGetApp().getDeviceManager();
     m_obj = dev->insert_local_device(detectData.dev_name, detectData.dev_id, str_ip, detectData.connect_type, detectData.bind_state, detectData.version, str_access_code);
