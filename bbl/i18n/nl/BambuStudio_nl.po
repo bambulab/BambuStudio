@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-01 17:04+0800\n"
+"POT-Creation-Date: 2025-04-07 16:37+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3076,7 +3076,6 @@ msgstr ""
 "De nozzle kan geblokkeerd raken wanneer de temperatuur buiten het aanbevolen bereik ligt.\n"
 "Bevestig dit als u de temperatuur wilt gebruiken voor het afdrukken.\n"
 "\n"
-""
 
 #, c-format, boost-format
 msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"
@@ -3406,6 +3405,18 @@ msgstr "Verificatie mislukt."
 
 msgid "Update failed."
 msgstr "Updaten mislukt."
+
+msgid "Timelapse is not supported on this printer."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card does not exist."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card is unavailable."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card is readonly."
+msgstr ""
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "De huidige kamertemperatuur of de gewenste kamertemperatuur is hoger dan 45℃. Om verstopping van de extruder te voorkomen, is het niet toegestaan filament met een lage temperatuur (PLA/PETG/TPU) te laden."
@@ -4827,7 +4838,6 @@ msgid ""
 msgstr ""
 "Bestand: %s\n"
 "Titel: %s\n"
-""
 
 msgid "Download waiting..."
 msgstr "Download wacht..."
@@ -6941,9 +6951,6 @@ msgstr "Je methode voor het groeperen van filamenten in het gesneden bestand is 
 msgid "Click here if you can't connect to the printer"
 msgstr "Klik hier als je geen verbinding kunt maken met de printer"
 
-msgid "Advanced Options"
-msgstr "Geavanceerde opties"
-
 msgid "Auto Bed Leveling"
 msgstr "Automatisch bednivellering"
 
@@ -6982,6 +6989,12 @@ msgstr "versturen gelukt"
 
 msgid "Error code"
 msgstr "Foutcode"
+
+msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
+msgstr ""
+
+msgid "This process determines the dynamic flow values to improve overall print quality."
+msgstr ""
 
 msgid "High Flow"
 msgstr "Hoge stroom"
@@ -7332,7 +7345,6 @@ msgid ""
 msgstr ""
 "Laaghoogte is te klein.\n"
 "Het wordt ingesteld op min_layer_height\n"
-""
 
 msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
 msgstr "De laaghoogte overschrijdt de limiet in Printerinstellingen -> Extruder -> Laaghoogtelimieten, dit kan problemen met de afdrukkwaliteit veroorzaken."
@@ -8012,6 +8024,9 @@ msgstr "(Aanbevolen filament)"
 
 msgid "Right Extruder"
 msgstr "Rechter extruder"
+
+msgid "Advanced Options"
+msgstr "Geavanceerde opties"
 
 msgid ""
 "Check heatbed flatness. Leveling makes extruded height uniform.\n"
@@ -11260,6 +11275,9 @@ msgstr ""
 
 msgid "Loading of a model file failed."
 msgstr "Het laden van een modelbestand is mislukt."
+
+msgid "Meshing of a model file failed or no valid shape."
+msgstr ""
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "Het geleverde bestand kon niet worden gelezen omdat het leeg is"

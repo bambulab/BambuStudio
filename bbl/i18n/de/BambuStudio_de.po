@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-01 17:04+0800\n"
+"POT-Creation-Date: 2025-04-07 16:37+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3404,6 +3404,18 @@ msgstr "Authentifizierung fehlgeschlagen."
 msgid "Update failed."
 msgstr "Update fehlgeschlagen."
 
+msgid "Timelapse is not supported on this printer."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card does not exist."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card is unavailable."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card is readonly."
+msgstr ""
+
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "Die aktuelle Kammertemperatur oder die Zielkammertemperatur überschreitet 45℃. Um ein Verstopfen des Extruders zu vermeiden, darf kein Filament mit niedriger Temperatur (PLA/PETG/TPU) geladen werden."
 
@@ -4820,7 +4832,6 @@ msgid ""
 msgstr ""
 "Datei: %s\n"
 "Titel: %s\n"
-""
 
 msgid "Download waiting..."
 msgstr "Auf Download warten..."
@@ -6933,9 +6944,6 @@ msgstr "Ihre Methode zum Gruppieren von Filamenten in der Datei, die Sie geslice
 msgid "Click here if you can't connect to the printer"
 msgstr "Klicken Sie hier, wenn Sie keine Verbindung zum Drucker herstellen können"
 
-msgid "Advanced Options"
-msgstr "Erweiterte Optionen"
-
 msgid "Auto Bed Leveling"
 msgstr "Automatische Bettnivellierung"
 
@@ -6974,6 +6982,12 @@ msgstr "Senden abgeschlossen"
 
 msgid "Error code"
 msgstr "Fehlercode"
+
+msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
+msgstr ""
+
+msgid "This process determines the dynamic flow values to improve overall print quality."
+msgstr ""
 
 msgid "High Flow"
 msgstr "Hoher Durchfluss"
@@ -7324,7 +7338,6 @@ msgid ""
 msgstr ""
 "Die Schichthöhe ist zu klein.\n"
 "Sie wird auf min_layer_height gesetzt\n"
-""
 
 msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
 msgstr "Die Schichthöhe überschreitet den Grenzwert in den Druckereinstellungen -> Extruder -> Grenzwerte für die Schichthöhe. Dies kann zu Problemen mit der Druckqualität führen."
@@ -8002,6 +8015,9 @@ msgstr "(Empfohlenes Filament)"
 
 msgid "Right Extruder"
 msgstr "Rechter Extruder"
+
+msgid "Advanced Options"
+msgstr "Erweiterte Optionen"
 
 msgid ""
 "Check heatbed flatness. Leveling makes extruded height uniform.\n"
@@ -11250,6 +11266,9 @@ msgstr ""
 
 msgid "Loading of a model file failed."
 msgstr "Das Laden der Modelldatei ist fehlgeschlagen."
+
+msgid "Meshing of a model file failed or no valid shape."
+msgstr ""
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "Die angegebene Datei konnte nicht gelesen werden, weil sie leer ist."

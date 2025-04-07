@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.10.1 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-01 17:04+0800\n"
+"POT-Creation-Date: 2025-04-07 16:37+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -3446,6 +3446,18 @@ msgstr "Ошибка идентификации."
 
 msgid "Update failed."
 msgstr "Сбой обновления."
+
+msgid "Timelapse is not supported on this printer."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card does not exist."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card is unavailable."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card is readonly."
+msgstr ""
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "Текущая температура или целевая температура внутри термокамеры превышает 45℃. Чтобы избежать засорения экструдера, запрещается загрузка низкотемпературной печатной нити (PLA/PETG/TPU)."
@@ -7006,9 +7018,6 @@ msgstr ""
 msgid "Click here if you can't connect to the printer"
 msgstr "Не удаётся подключиться к принтеру?"
 
-msgid "Advanced Options"
-msgstr ""
-
 msgid "Auto Bed Leveling"
 msgstr ""
 
@@ -7043,6 +7052,12 @@ msgstr "отправка завершена"
 
 msgid "Error code"
 msgstr "Код ошибки"
+
+msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
+msgstr ""
+
+msgid "This process determines the dynamic flow values to improve overall print quality."
+msgstr ""
 
 msgid "High Flow"
 msgstr ""
@@ -8084,6 +8099,9 @@ msgid "(Recommended filament)"
 msgstr ""
 
 msgid "Right Extruder"
+msgstr ""
+
+msgid "Advanced Options"
 msgstr ""
 
 msgid ""
@@ -11373,6 +11391,9 @@ msgstr ""
 
 msgid "Loading of a model file failed."
 msgstr "Не удалось загрузить файл модели."
+
+msgid "Meshing of a model file failed or no valid shape."
+msgstr ""
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "Предоставленный файл не может быть прочитан, так как он пуст."

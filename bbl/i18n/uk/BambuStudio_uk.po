@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-01 17:04+0800\n"
+"POT-Creation-Date: 2025-04-07 16:37+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -3413,6 +3413,18 @@ msgstr "Перевірка не вдалася."
 
 msgid "Update failed."
 msgstr "Не вдалося оновити."
+
+msgid "Timelapse is not supported on this printer."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card does not exist."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card is unavailable."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card is readonly."
+msgstr ""
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "Поточна температура камери або цільова температура камери перевищує 45℃. Щоб уникнути забивання екструдера, не дозволяється завантажувати філаменти низької температури (PLA/PETG/TPU)."
@@ -6923,9 +6935,6 @@ msgstr ""
 msgid "Click here if you can't connect to the printer"
 msgstr "Клацніть тут, якщо ви не можете підключитися до принтера"
 
-msgid "Advanced Options"
-msgstr ""
-
 msgid "Auto Bed Leveling"
 msgstr ""
 
@@ -6958,6 +6967,12 @@ msgstr "відправлення завершено"
 
 msgid "Error code"
 msgstr "Код помилки"
+
+msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
+msgstr ""
+
+msgid "This process determines the dynamic flow values to improve overall print quality."
+msgstr ""
 
 msgid "High Flow"
 msgstr ""
@@ -7984,6 +7999,9 @@ msgid "(Recommended filament)"
 msgstr ""
 
 msgid "Right Extruder"
+msgstr ""
+
+msgid "Advanced Options"
 msgstr ""
 
 msgid ""
@@ -11237,6 +11255,9 @@ msgstr ""
 
 msgid "Loading of a model file failed."
 msgstr "Не вдалося завантажити файл моделі."
+
+msgid "Meshing of a model file failed or no valid shape."
+msgstr ""
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "Наданий файл не вдалося прочитати, оскільки він порожній"

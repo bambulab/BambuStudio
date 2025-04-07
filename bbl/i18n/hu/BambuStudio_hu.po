@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-01 17:04+0800\n"
+"POT-Creation-Date: 2025-04-07 16:37+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3406,6 +3406,18 @@ msgstr "Sikertelen ellenőrzés."
 msgid "Update failed."
 msgstr "A frissítés sikertelen."
 
+msgid "Timelapse is not supported on this printer."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card does not exist."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card is unavailable."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card is readonly."
+msgstr ""
+
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "A kamra aktuális hőmérséklete vagy a kamra célhőmérséklete meghaladja a 45 ℃-ot. Az extruder eltömődésének elkerülése érdekében ne tölts be alacsony hőmérsékletű filamentet (PLA/PETG/TPU)."
 
@@ -4824,7 +4836,6 @@ msgid ""
 msgstr ""
 "Fájl: %s\n"
 "Név: %s\n"
-""
 
 msgid "Download waiting..."
 msgstr "Várakozás letöltésre..."
@@ -6933,9 +6944,6 @@ msgstr "A szeletelt fájlban a filamentek csoportosítása nem optimális."
 msgid "Click here if you can't connect to the printer"
 msgstr "Kattints ide, ha nem tudsz csatlakozni a nyomtatóhoz"
 
-msgid "Advanced Options"
-msgstr "Haladó beállítások"
-
 msgid "Auto Bed Leveling"
 msgstr "Automatikus asztalszintezés"
 
@@ -6974,6 +6982,12 @@ msgstr "küldés befejezve"
 
 msgid "Error code"
 msgstr "Hibakód"
+
+msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
+msgstr ""
+
+msgid "This process determines the dynamic flow values to improve overall print quality."
+msgstr ""
 
 msgid "High Flow"
 msgstr "Nagy áramlás"
@@ -7324,7 +7338,6 @@ msgid ""
 msgstr ""
 "A rétegmagasság túl kicsi.\n"
 "min_layer_height értékre lesz állítva\n"
-""
 
 msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
 msgstr "A rétegmagasság meghaladja a Nyomtatóbeállítások -> Extruder -> Rétegmagasság limitek menüpontban megadott értéket, ez minőségbeli problémákat okozhat a nyomtatás során."
@@ -8002,6 +8015,9 @@ msgstr "(Ajánlott filament)"
 
 msgid "Right Extruder"
 msgstr "Jobb extruder"
+
+msgid "Advanced Options"
+msgstr "Haladó beállítások"
 
 msgid ""
 "Check heatbed flatness. Leveling makes extruded height uniform.\n"
@@ -11250,6 +11266,9 @@ msgstr ""
 
 msgid "Loading of a model file failed."
 msgstr "A modellfájl betöltése sikertelen."
+
+msgid "Meshing of a model file failed or no valid shape."
+msgstr ""
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "A megadott fájlt nem lehet beolvasni, mert üres"

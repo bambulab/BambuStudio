@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-01 17:04+0800\n"
+"POT-Creation-Date: 2025-04-07 16:37+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -14,13 +14,13 @@ msgstr ""
 "X-Generator: Poedit 3.4.2\n"
 
 msgid "The filament model is unknown. Still using the previous filament preset."
-msgstr ""
+msgstr "Modello filamento sconosciuto. Si utilizza ancora il preset filamento precedente."
 
 msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
-msgstr ""
+msgstr "Il filamento potrebbe non essere compatibile con le impostazioni correnti della macchina. Verranno utilizzati preset filamenti generici."
 
 msgid "The filament model is unknown. A random filament preset will be used."
-msgstr ""
+msgstr "Modello filamento sconosciuto. Verrà utilizzato un preset filamento a caso."
 
 msgid "Current AMS humidity"
 msgstr "Umidità attuale AMS"
@@ -1233,7 +1233,7 @@ msgid "Untitled"
 msgstr "Senza titolo"
 
 msgid "Downloading Bambu Network Plug-in"
-msgstr "Scaricando il plug-in Bambu Network"
+msgstr "Download Plug-in Bambu Network"
 
 msgid "Login information expired. Please login again."
 msgstr "Le informazioni di login sono scadute. Effettua nuovamente il login."
@@ -1254,6 +1254,9 @@ msgid ""
 "Please make sure Bambu Studio has permission to delete and write in this directory,\n"
 "and it is not being occupied by the system or other applications."
 msgstr ""
+"Impossibile installare i file preset su. %s\n"
+"Assicurati che Bambu Studio sia autorizzato a cancellare e scrivere in questa directory,\n"
+"e non sia occupato dal sistema o da altre applicazioni."
 
 #, c-format, boost-format
 msgid ""
@@ -1388,7 +1391,7 @@ msgid "Ongoing uploads"
 msgstr "Caricamenti in corso"
 
 msgid "Install presets failed"
-msgstr ""
+msgstr "Installazionepreset fallita"
 
 msgid "Select a G-code file:"
 msgstr "Seleziona file G-code:"
@@ -2523,7 +2526,7 @@ msgid "Attention!"
 msgstr "Attenzione!"
 
 msgid "Downloading"
-msgstr "Scaricando"
+msgstr "Download"
 
 msgid "Download failed"
 msgstr "Download non riuscito"
@@ -3406,6 +3409,18 @@ msgstr "Verifica fallita."
 msgid "Update failed."
 msgstr "Aggiornamento fallito"
 
+msgid "Timelapse is not supported on this printer."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card does not exist."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card is unavailable."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card is readonly."
+msgstr ""
+
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "La temperatura attuale della camera o la temperatura target supera i 45℃. Per evitare l'intasamento dell'estrusore, non è consentito caricare filamenti a bassa temperatura (PLA/PETG/TPU)."
 
@@ -3895,11 +3910,11 @@ msgstr "Allinea all'asse Y"
 
 msgctxt "Camera"
 msgid "Left"
-msgstr ""
+msgstr "Sinistra"
 
 msgctxt "Camera"
 msgid "Right"
-msgstr ""
+msgstr "Destra"
 
 msgid "Add"
 msgstr "Aggiungi"
@@ -4154,6 +4169,8 @@ msgid ""
 "This is your first time printing tpu filaments with the H2D machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
+"È la prima volta che stampi filamenti in TPU con la macchina H2D.\n"
+"Vuoi guardare un breve video tutorial?"
 
 msgid "Slice all"
 msgstr "Slice totale"
@@ -4818,7 +4835,6 @@ msgid ""
 msgstr ""
 "File: %s\n"
 "Titolo: %s\n"
-""
 
 msgid "Download waiting..."
 msgstr "Download in attesa..."
@@ -6928,9 +6944,6 @@ msgstr "Il metodo di raggruppamento del filamento nel file elaborato non è otti
 msgid "Click here if you can't connect to the printer"
 msgstr "Clicca qui se non riesci a connetterti alla stampante"
 
-msgid "Advanced Options"
-msgstr "Opzioni avanzate"
-
 msgid "Auto Bed Leveling"
 msgstr ""
 
@@ -6969,6 +6982,12 @@ msgstr "invio completato"
 
 msgid "Error code"
 msgstr "Codice di errore"
+
+msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
+msgstr "Questo controlla la planarità del piano. Il livellamento rende uniforme l'altezza dell'estruso."
+
+msgid "This process determines the dynamic flow values to improve overall print quality."
+msgstr "Questo processo determina i valori del flusso dinamico per migliorare la qualità complessiva di stampa."
 
 msgid "High Flow"
 msgstr "Flusso elevato"
@@ -7111,10 +7130,10 @@ msgstr "Il diametro del nozzle attuale (%.1f mm) non corrisponde a quello del fi
 
 #, c-format, boost-format
 msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
-msgstr ""
+msgstr "La stampa di materiale ad alta temperatura (%s) con %s nozzle può causare danni al nozzle, Controlla il tipo di nozzle"
 
 msgid "To map to AMS, enable 'Use AMS' in 'Advanced Options'."
-msgstr ""
+msgstr "Per eseguire la mappatura AMS, abilita \"Usa AMS\" in \"Opzioni avanzate\"."
 
 msgid "Cool"
 msgstr ""
@@ -7319,7 +7338,6 @@ msgid ""
 msgstr ""
 "L'altezza layer è troppo piccola.\n"
 "Verrà impostato su altezza_min_layer\n"
-""
 
 msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
 msgstr "L'altezza layer supera il limite riportato in Impostazioni stampante -> Estrusore -> Limite altezza layer, ciò può causare problemi di qualità di stampa."
@@ -8000,6 +8018,9 @@ msgstr "(Filamento consigliato)"
 msgid "Right Extruder"
 msgstr "Estrusore destro"
 
+msgid "Advanced Options"
+msgstr "Opzioni avanzate"
+
 msgid ""
 "Check heatbed flatness. Leveling makes extruded height uniform.\n"
 "*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
@@ -8427,7 +8448,7 @@ msgid "3. Please obtain the device SN from the printer side; it is usually found
 msgstr "3. Recupera il numero di serie (SN) dal lato della stampante; generalmente è presente nelle informazioni dispositivo sullo schermo della stampante."
 
 msgid "View wiki"
-msgstr ""
+msgstr "Visualizza wiki"
 
 msgid "Access Code"
 msgstr "Codice di accesso"
@@ -9231,10 +9252,10 @@ msgid "The acceleration of travel except initial layer"
 msgstr "L'accelerazione dei movimenti di spostamento, eccetto per il primo layer"
 
 msgid "Initial layer travel"
-msgstr ""
+msgstr "Spostamento layer iniziale"
 
 msgid "The acceleration of travel of initial layer"
-msgstr ""
+msgstr "Accelerazione spostamento layer iniziale"
 
 msgid "Default filament profile"
 msgstr "Profilo filamento predefinito"
@@ -9825,7 +9846,7 @@ msgid "Jerk of first layer"
 msgstr "Jerk primo layer"
 
 msgid "Jerk of travel"
-msgstr "Jerk di viaggio"
+msgstr "Jerk di spostamento"
 
 msgid "Line width of initial layer"
 msgstr "Larghezza linea del primo layer"
@@ -10900,16 +10921,16 @@ msgid "The number of top solid layers is increased when slicing if the thickness
 msgstr "Il numero di layers solidi superiori aumenta durante l'elaborazione se lo spessore calcolato dai layers superiori del guscio è più sottile di questo valore. Questo può evitare di avere un guscio troppo sottile quando l'altezza del layer è ridotta. 0 significa che questa impostazione è disabilitata e lo spessore del guscio superiore è determinato semplicemente dal numero di layers superiori del guscio."
 
 msgid "Top paint penetration layers"
-msgstr ""
+msgstr "Layer superiori di penetrazione della pittura"
 
 msgid "This is  the number of layers of top paint penetration."
-msgstr ""
+msgstr "Questo è il numero layer di penetrazione della pittura superiore. "
 
 msgid "Bottom paint penetration layers"
-msgstr ""
+msgstr "Layer penetrazione pittura inferiore"
 
 msgid "This is  the number of layers of top bottom penetration."
-msgstr ""
+msgstr "Questo è il numero layer di penetrazione superiore inferiore."
 
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "Velocità degli spostamenti senza estrusione"
@@ -10959,7 +10980,7 @@ msgid "User Customized Offset"
 msgstr "Offset personalizzato utente"
 
 msgid "If you want to have tighter or looser assemble, you can set this value. When it is positive, it indicates tightening, otherwise, it indicates loosening"
-msgstr ""
+msgstr "Se si desidera un assemblaggio più stretto o più largo, è possibile impostare questo valore. Quando è positivo, indica un serraggio, altrimenti indica un allentamento"
 
 msgid "Scarf Seam On Compensation Circles"
 msgstr "Compensazione Cerchi di Giunzione Scarf"
@@ -11248,6 +11269,9 @@ msgstr ""
 
 msgid "Loading of a model file failed."
 msgstr "Caricamento file del modello non riuscito."
+
+msgid "Meshing of a model file failed or no valid shape."
+msgstr "Creazione mesh di un file di modello fallito o nessuna forma valida."
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "Impossibile leggere il file fornito perché è vuoto."
@@ -11629,7 +11653,7 @@ msgid "Printer %s nozzle information has not been set. Please configure it befor
 msgstr "Le informazioni sul nozzle della stampante %s non sono state impostate. Configurale prima di procedere con la calibrazione."
 
 msgid "AMS and nozzle information are synced"
-msgstr ""
+msgstr "Informazioni AMS e nozzle sincronizzate"
 
 msgid "Nozzle Info"
 msgstr "Informazioni nozzle"
@@ -11698,7 +11722,7 @@ msgstr ""
 "poiché i risultati potrebbero essere instabili e influire sulla qualità di stampa."
 
 msgid "Sync AMS and nozzle information"
-msgstr ""
+msgstr "Sincronizzazione AMS e informazioni sui nozzle"
 
 msgid "Connecting to printer"
 msgstr "Connessione alla stampante"
