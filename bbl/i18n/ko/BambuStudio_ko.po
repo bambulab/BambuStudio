@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-01 17:04+0800\n"
+"POT-Creation-Date: 2025-04-07 16:37+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3071,7 +3071,6 @@ msgstr ""
 "온도가 권장 범위를 벗어나면 노즐이 막힐 수 있습니다.\n"
 "출력에 온도를 사용하려면 확인하시기 바랍니다.\n"
 "\n"
-""
 
 #, c-format, boost-format
 msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"
@@ -3401,6 +3400,18 @@ msgstr "인증 실패"
 
 msgid "Update failed."
 msgstr "업데이트 실패"
+
+msgid "Timelapse is not supported on this printer."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card does not exist."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card is unavailable."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card is readonly."
+msgstr ""
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "현재 챔버 온도 또는 목표 챔버 온도가 45℃를 초과합니다. 압출기 막힘을 방지하기 위해 저온 필라멘트(PLA/PETG/TPU)는 로드할 수 없습니다."
@@ -5297,7 +5308,7 @@ msgid "Go to"
 msgstr "이동"
 
 msgid "Later"
-msgstr "%s을(를) 활성화하는 중 오류가 발생했습니다. 나중에 다시 시도하세요."
+msgstr "나중에"
 
 #, c-format, boost-format
 msgid "%s error"
@@ -6929,9 +6940,6 @@ msgstr "슬라이스된 파일의 필라멘트 그룹화 방법이 최적이 아
 msgid "Click here if you can't connect to the printer"
 msgstr "프린터에 연결할 수 없는 경우 여기를 클릭하세요"
 
-msgid "Advanced Options"
-msgstr "고급 옵션"
-
 msgid "Auto Bed Leveling"
 msgstr "자동 베드 레벨링"
 
@@ -6970,6 +6978,12 @@ msgstr "전송 완료"
 
 msgid "Error code"
 msgstr "오류 코드"
+
+msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
+msgstr ""
+
+msgid "This process determines the dynamic flow values to improve overall print quality."
+msgstr ""
 
 msgid "High Flow"
 msgstr "높은 흐름"
@@ -7320,7 +7334,6 @@ msgid ""
 msgstr ""
 "레이어 높이가 너무 작습니다.\n"
 "최소 레이어 높이로 설정됩니다\n"
-""
 
 msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
 msgstr "레이어 높이가 프린터 설정 -> 압출기 -> 레이어 높이 제한의 제한을 초과하면 출력 품질 문제가 발생할 수 있습니다."
@@ -7995,6 +8008,9 @@ msgstr "(권장 필라멘트)"
 
 msgid "Right Extruder"
 msgstr "오른쪽 압출기의 커터가 멈췄습니다. 커터 핸들을 빼내십시오."
+
+msgid "Advanced Options"
+msgstr "고급 옵션"
 
 msgid ""
 "Check heatbed flatness. Leveling makes extruded height uniform.\n"
@@ -11243,6 +11259,9 @@ msgstr ""
 
 msgid "Loading of a model file failed."
 msgstr "모델 파일 로드에 실패했습니다."
+
+msgid "Meshing of a model file failed or no valid shape."
+msgstr "모델 파일의 메싱이 실패했거나 유효한 형태가 없습니다."
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "제공된 파일이 비어 있어 읽을 수 없습니다."

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-01 17:04+0800\n"
+"POT-Creation-Date: 2025-04-07 16:37+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3394,6 +3394,18 @@ msgstr "验证失败。"
 
 msgid "Update failed."
 msgstr "更新失败。"
+
+msgid "Timelapse is not supported on this printer."
+msgstr "此打印机不支持延时摄影"
+
+msgid "Timelapse is not supported while the SD card does not exist."
+msgstr "没有外置存储卡，故无法启用延时摄影"
+
+msgid "Timelapse is not supported while the SD card is unavailable."
+msgstr "外置存储卡不可用，故无法启用延时摄影"
+
+msgid "Timelapse is not supported while the SD card is readonly."
+msgstr "外置存储卡当前是只读的，故无法启用延时摄影"
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "当前腔温或目标腔温超过了45℃。为了避免挤出机堵塞，不允许加载低温度的打印材料（如PLA/PETG/TPU）"
@@ -6902,9 +6914,6 @@ msgstr "切片文件中的材料分组不是最优结果。"
 msgid "Click here if you can't connect to the printer"
 msgstr "如果您无法连接打印机，请点击这里"
 
-msgid "Advanced Options"
-msgstr "高级选项"
-
 msgid "Auto Bed Leveling"
 msgstr "自动热床调平"
 
@@ -6943,6 +6952,12 @@ msgstr "发送完成"
 
 msgid "Error code"
 msgstr "错误代码"
+
+msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
+msgstr "检测热床的平整度。调平可以使挤出的高度更均匀。"
+
+msgid "This process determines the dynamic flow values to improve overall print quality."
+msgstr "此过程确定动态流量校准的最佳系数，从而提升打印质量。"
 
 msgid "High Flow"
 msgstr "大流量"
@@ -7963,6 +7978,9 @@ msgstr "(推荐的材料)"
 
 msgid "Right Extruder"
 msgstr "右挤出机"
+
+msgid "Advanced Options"
+msgstr "高级选项"
 
 msgid ""
 "Check heatbed flatness. Leveling makes extruded height uniform.\n"
@@ -11211,6 +11229,9 @@ msgstr ""
 
 msgid "Loading of a model file failed."
 msgstr "加载模型文件失败。"
+
+msgid "Meshing of a model file failed or no valid shape."
+msgstr ""
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "无法读取提供的文件，因为该文件为空。"

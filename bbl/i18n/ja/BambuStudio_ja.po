@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-01 17:04+0800\n"
+"POT-Creation-Date: 2025-04-07 16:37+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3063,7 +3063,6 @@ msgstr ""
 "推奨範囲外の温度では、ノズルが詰まる可能性があります。  \n"
 "この温度で印刷を続行する場合は、確認してください。\n"
 "\n"
-""
 
 #, c-format, boost-format
 msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"
@@ -3393,6 +3392,18 @@ msgstr "認証失敗"
 
 msgid "Update failed."
 msgstr "更新が失敗しました。"
+
+msgid "Timelapse is not supported on this printer."
+msgstr "このプリンタではタイムラプスはサポートされていません。"
+
+msgid "Timelapse is not supported while the SD card does not exist."
+msgstr "SDカードが存在しない場合、タイムラプスはサポートされません。"
+
+msgid "Timelapse is not supported while the SD card is unavailable."
+msgstr "SDカードが利用できない場合、タイムラプスはサポートされません。"
+
+msgid "Timelapse is not supported while the SD card is readonly."
+msgstr "SDカードが読み取り専用の場合、タイムラプスはサポートされません。"
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "現在のチャンバー温度または目標チャンバー温度が45℃を超えています。押出機の目詰まりを避けるため、低温フィラメント（PLA/PETG/TPU）は装填できません。"
@@ -4801,7 +4812,6 @@ msgid ""
 msgstr ""
 "ファイル: %s \n"
 "タイトル: %s\n"
-""
 
 msgid "Download waiting..."
 msgstr "ダウンロード待ち"
@@ -5183,7 +5193,6 @@ msgid ""
 msgstr ""
 "画像のアップロード中に次の問題が発生しました。無視してもよろしいですか?\n"
 "\n"
-""
 
 msgid "info"
 msgstr "情報"
@@ -6901,9 +6910,6 @@ msgstr "スライスファイルでのフィラメントのグループ化の方
 msgid "Click here if you can't connect to the printer"
 msgstr "プリンタに接続できない場合は、ここをクリックしてください。"
 
-msgid "Advanced Options"
-msgstr "詳細設定"
-
 msgid "Auto Bed Leveling"
 msgstr "自動ベッドレベリング"
 
@@ -6942,6 +6948,12 @@ msgstr "送信完了"
 
 msgid "Error code"
 msgstr "エラーコード:"
+
+msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
+msgstr "これはヒートベッドの平坦度を確認します。レベリングを行うことで、フィラメントの押し出し高さが均一になります。"
+
+msgid "This process determines the dynamic flow values to improve overall print quality."
+msgstr "このプロセスでは、全体的な印刷品質を向上させるための動的流量値を決定します。"
 
 msgid "High Flow"
 msgstr "高流量"
@@ -7957,6 +7969,9 @@ msgstr "(推奨フィラメント）"
 msgid "Right Extruder"
 msgstr "右押出機"
 
+msgid "Advanced Options"
+msgstr "詳細設定"
+
 msgid ""
 "Check heatbed flatness. Leveling makes extruded height uniform.\n"
 "*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
@@ -8563,7 +8578,6 @@ msgid ""
 msgstr ""
 "無効なカスタム G-codeのため、 G-codeを生成できませんでした。\n"
 "\n"
-""
 
 msgid "Please check the custom G-code or use the default custom G-code.\n"
 msgstr "カスタムG-codeを確認するか、デフォルトのカスタムG-codeを使用してください。\n"
@@ -11203,6 +11217,9 @@ msgstr ""
 
 msgid "Loading of a model file failed."
 msgstr "モデルファイルの読み込みに失敗しました。"
+
+msgid "Meshing of a model file failed or no valid shape."
+msgstr "モデルファイルのメッシュ処理に失敗したか、有効な形状が見つかりませんでした。"
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "提供されたファイルは空であるため読み込めませんでした。"
