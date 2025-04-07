@@ -3127,7 +3127,7 @@ msgid ""
 "Too small ironing spacing.\n"
 "Reset to 0.1"
 msgstr ""
-"Занадто маленька відстань між розглажуванням.\n"
+"Занадто маленька відстань між розгладжуванням.\n"
 "Скинути на 0,1"
 
 msgid ""
@@ -10086,49 +10086,49 @@ msgid "The distance from the outside of a model where interlocking structures wi
 msgstr ""
 
 msgid "Ironing Type"
-msgstr "Тип глажения"
+msgstr "Тип згладжування"
 
 msgid "Ironing is using small flow to print on same height of surface again to make flat surface more smooth. This setting controls which layer being ironed"
-msgstr "При розглажуванні використовується невеликий потік для повторного друку на тій самійвисота поверхні, щоб зробити плоску поверхню більш гладкою. Цей параметр визначає, який шар гладити"
+msgstr "При згладжуванні використовується невеликий потік для повторного друку на тій самійвисота поверхні, щоб зробити плоску поверхню більш гладкою. Цей параметр визначає, який шар гладити"
 
 msgid "No ironing"
-msgstr "Немає Розглажування"
+msgstr "Без згладжування"
 
 msgid "All solid layer"
 msgstr "Весь суцільний шар"
 
 msgid "Ironing Pattern"
-msgstr "Зразок гладіння"
+msgstr "Шаблон згладжування"
 
 msgid "Ironing flow"
-msgstr "Плавний потік"
+msgstr "Потік згладжування"
 
 msgid "The amount of material to extrude during ironing. Relative to flow of normal layer height. Too high value results in overextrusion on the surface"
-msgstr "Кількість матеріалу, що видавлюється під час розглажування. Щодо потокунормальної висоти шару. Надто високе значення призводить до надмірноїекструзії на поверхню"
+msgstr "Кількість матеріалу, що видавлюється під час згладжування. Відносно до потоку нормальної висоти шару. Надто високе значення призводить до надмірної екструзії на поверхню"
 
 msgid "Ironing line spacing"
-msgstr "Крок лінії розглажування"
+msgstr "Крок лінії згладжування"
 
 msgid "The distance between the lines of ironing"
-msgstr "Відстань між лініями розглажування"
+msgstr "Відстань між лініями згладжування"
 
 msgid "Ironing inset"
-msgstr "Вставка прасування"
+msgstr "Вставка згладжування"
 
 msgid "The distance to keep the from the edges of ironing line. 0 means not apply."
-msgstr "Відстань, яку потрібно зберігати від країв лінії прасування. 0 означає, що не застосовувати."
+msgstr "Відстань, яку потрібно зберігати від країв лінії згладжування. 0 означає, що не застосовувати."
 
 msgid "Ironing speed"
-msgstr "Швидкість розглажування"
+msgstr "Швидкість згладжування"
 
 msgid "Print speed of ironing lines"
-msgstr "Швидкість друку прасувальних ліній"
+msgstr "Швидкість друку згладжувальних ліній"
 
 msgid "ironing direction"
-msgstr "напрямок глажіння"
+msgstr "напрямок згладжування"
 
 msgid "Angle for ironing, which controls the relative angle between the top surface and ironing"
-msgstr "Кут для глажіння, який контролює відносний кут між верхньою поверхнею та глажінням"
+msgstr "Кут для згладжування, який контролює відносний кут між верхньою поверхнею та згаджуванням"
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "Ця частина gcode вставляється при кожній зміні шару після підйому z"
