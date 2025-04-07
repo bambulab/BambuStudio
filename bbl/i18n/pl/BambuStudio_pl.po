@@ -4,7 +4,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-03-28 16:27+0800\n"
 "PO-Revision-Date: \n"
-"Last-Translator: \n"
+"Last-Translator: TyskiDzik\n"
 "Language-Team: \n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
@@ -14,31 +14,31 @@ msgstr ""
 "X-Generator: Poedit 3.4.2\n"
 
 msgid "The filament model is unknown. Still using the previous filament preset."
-msgstr ""
+msgstr "Nieznany model filamentu. Wciąż używane ustawienia poprzedniego filamentu"
 
 msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
-msgstr ""
+msgstr "Filament może nie być kompatybilny z biężącymi ustawieniami maszyny. Użyte zostaną generyczne ustawienia filamentu "
 
 msgid "The filament model is unknown. A random filament preset will be used."
-msgstr ""
+msgstr "Nieznany model filamentu. Zostaną użyte ustawienia losowego filamentu"
 
 msgid "Current AMS humidity"
-msgstr ""
+msgstr "Biężąca wilgoć AMS"
 
 msgid "Drying"
-msgstr ""
+msgstr "Suszenie"
 
 msgid "Idle"
 msgstr "Bezczynny"
 
 msgid "Humidity"
-msgstr ""
+msgstr "Wilgoć"
 
 msgid "Temperature"
 msgstr "Temperatura"
 
 msgid "Left Time"
-msgstr ""
+msgstr "Pozostały Czas"
 
 #, c-format, boost-format
 msgid "%.1f ℃"
@@ -158,7 +158,7 @@ msgid "Triangular facet"
 msgstr ""
 
 msgid "Warning: All triangle areas are too small,The current function is not working."
-msgstr ""
+msgstr "Uwaga: Powierzchnie wszystkich trójkątów są za małe, bieżąca funkcja nie działa"
 
 msgid "Lay on face"
 msgstr "Połóż na powierzchni"
@@ -292,7 +292,7 @@ msgid "mm"
 msgstr "mm"
 
 msgid "Part selection"
-msgstr ""
+msgstr "Wybór części"
 
 msgid "Fixed step drag"
 msgstr ""
@@ -334,7 +334,7 @@ msgid "Reset Rotation"
 msgstr "Resetuj obrót"
 
 msgid "Object coordinates"
-msgstr ""
+msgstr "Współrzędne obiektu"
 
 msgid "World coordinates"
 msgstr "Współrzędne"
@@ -355,7 +355,7 @@ msgid "Reset current rotation to real zeros."
 msgstr ""
 
 msgid "Part coordinates"
-msgstr ""
+msgstr "Współrzędne części"
 
 msgid "%"
 msgstr "%"
