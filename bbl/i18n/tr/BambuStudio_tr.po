@@ -16157,17 +16157,6 @@ msgstr ""
 #~ "Hizalama tek tablaya sığmayan aşağıdaki nesneler göz ardı edildi:\n"
 #~ "%s"
 
-#, boost-format
-#~ msgid "Copying of file %1% to %2% failed: %3%"
-#~ msgstr "%1% dosyasının %2% dosyasına kopyalanması başarısız oldu: %3%"
-
-#, boost-format
-#~ msgid "Copying directory %1% to %2% failed: %3%"
-#~ msgstr "%1% Dizininden %2% ve %3% dizinine kopyalama başarısız oldu"
-
-#~ msgid "External Spool"
-#~ msgstr "Harici Makara"
-
 #~ msgid "There are some unknown or uncompatible filaments mapped to generic preset. Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
 #~ msgstr "Genel ön ayara eşlenmiş bazı bilinmeyen veya uyumsuz filamentler var. Sistem ön ayarlarında bir güncelleme olup olmadığını kontrol etmek için lütfen Bambu Studio'yu güncelleyin veya Bambu Studio'yu yeniden başlatın."
 
