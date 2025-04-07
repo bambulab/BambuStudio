@@ -4795,6 +4795,7 @@ void GUI_App::check_update(bool show_tips, int by_user)
     auto curr_version = Semver::parse(SLIC3R_VERSION);
     auto remote_version = Semver::parse(version_info.version_str);
     if (curr_version && remote_version && (*remote_version > *curr_version)) {
+        wxGetApp().app_config->set("app", "cloud_version", version_info.version_str);
         if (version_info.force_upgrade) {
             wxGetApp().app_config->set_bool("force_upgrade", version_info.force_upgrade);
             wxGetApp().app_config->set("upgrade", "force_upgrade", true);
