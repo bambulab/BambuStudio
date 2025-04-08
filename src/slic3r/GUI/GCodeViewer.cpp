@@ -4263,7 +4263,7 @@ void GCodeViewer::render_shells()
     //BBS: reopen cul faces
     auto& camera = wxGetApp().plater()->get_camera();
     std::vector<std::array<float, 4>> colors            = wxGetApp().plater()->get_extruders_colors();
-    m_shells.volumes.render(GUI::ERenderPipelineStage::Normal, GLVolumeCollection::ERenderType::Transparent, false, camera, colors);
+    m_shells.volumes.render(GUI::ERenderPipelineStage::Normal, GLVolumeCollection::ERenderType::Transparent, false, camera, colors, wxGetApp().plater()->model());
     wxGetApp().unbind_shader();
 
     glsafe(::glDepthMask(GL_TRUE));
