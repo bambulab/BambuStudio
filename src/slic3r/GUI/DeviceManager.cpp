@@ -3457,6 +3457,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                 //nozzle temp range
                 if (jj.contains("nozzle_temp_range")) {
                     if (jj["nozzle_temp_range"].is_array()) {
+                        nozzle_temp_range.clear();
                         for (auto it = jj["nozzle_temp_range"].begin(); it != jj["nozzle_temp_range"].end(); it++) {
                             nozzle_temp_range.push_back(it.value().get<int>());
                         }
@@ -3466,6 +3467,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                 // bed temp range
                 if (jj.contains("bed_temp_range")) {
                     if (jj["bed_temp_range"].is_array()) {
+                        bed_temp_range.clear();
                         for (auto it = jj["bed_temp_range"].begin(); it != jj["bed_temp_range"].end(); it++) {
                             bed_temp_range.push_back(it.value().get<int>());
                         }
