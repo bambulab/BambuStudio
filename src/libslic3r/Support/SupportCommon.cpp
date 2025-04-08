@@ -145,9 +145,9 @@ std::pair<SupportGeneratorLayersPtr, SupportGeneratorLayersPtr> generate_interfa
                         if (support_params.num_top_base_interface_layers > 0)
                             // Some top base interface layers will be generated.
                             top_inteface_z = support_params.num_top_interface_layers_only() == 0 ?
-                                // Only base interface layers to generate.
+                                    // Only base interface layers to generate.
                                 - std::numeric_limits<coordf_t>::max() :
-                                intermediate_layers[std::min(num_intermediate - 1, idx_intermediate_layer + int(support_params.num_top_interface_layers_only()) - 1)]->print_z;
+                                    intermediate_layers[std::min(num_intermediate - 1, idx_intermediate_layer + int(support_params.num_top_interface_layers_only()) - 1)]->print_z;
                         // Move idx_top_contact_first up until above the current print_z.
                         idx_top_contact_first = idx_higher_or_equal(top_contacts, idx_top_contact_first, [&intermediate_layer](const SupportGeneratorLayer *layer){ return layer->print_z >= intermediate_layer.print_z; }); //  - EPSILON
                         // Collect the top contact areas above this intermediate layer, below top_z.
@@ -207,6 +207,17 @@ std::pair<SupportGeneratorLayersPtr, SupportGeneratorLayersPtr> generate_interfa
                             interface_layer ? &interface_layer->polygons : nullptr, sltBase);
                 }
             });
+
+        tbb::parallel_for(tbb::blocked_range<int>(1, int(base_interface_layers.size())), [&base_interface_layers](const tbb::blocked_range<int> &range) {
+            for (int layer_id = range.begin(); layer_id < range.end(); ++layer_id) {
+                auto &base_interface_layer = base_interface_layers[layer_id];
+                if (!base_interface_layer) return;
+                
+                auto &lower_layer = base_interface_layers[layer_id - 1];
+                if (!lower_layer) return;
+                if (base_interface_layer->polygons == lower_layer->polygons) base_interface_layer->up = true;
+            }
+        });
 
         // Compress contact_out, remove the nullptr items.
         // The parallel_for above may not have merged all the interface and base_interface layers
@@ -1697,7 +1708,8 @@ void generate_support_toolpaths(
                 // the bridging flow does not quite apply. Reduce the flow to area of an ellipse? (A = pi * a * b)
                 assert(! base_interface_layer.layer->bridging);
                 Flow interface_flow = support_params.support_material_flow.with_height(float(base_interface_layer.layer->height));
-                filler->angle   = interface_angles[(support_layer_id + 1) % interface_angles.size()]; // need to be the same as the interface layer above
+                filler->angle           = base_interface_layer.layer->up ? interface_angles[(support_layer_id + 1) % interface_angles.size()] + M_PI_2 :
+                                                                           (angles[(support_layer_id - 1) % angles.size()] + M_PI_2);
                 filler->spacing = support_params.support_material_interface_flow.spacing();
                 filler->link_max_length = coord_t(scale_(filler->spacing * link_max_length_factor / support_params.interface_density));
                 fill_expolygons_generate_paths(
@@ -1709,7 +1721,7 @@ void generate_support_toolpaths(
                     // Filler and its parameters
                     filler, float(support_params.interface_density),
                     // Extrusion parameters
-                    ExtrusionRole::erSupportMaterial, interface_flow);
+                    ExtrusionRole::erSupportTransition, interface_flow);
             }
 
             // Base support or flange.
