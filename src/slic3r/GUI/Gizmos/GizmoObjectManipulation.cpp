@@ -116,7 +116,7 @@ void GizmoObjectManipulation::update_settings_value(const Selection &selection)
         delete_negative_sign(m_new_absolute_rotation);
         if (is_world_coordinates()) {//for move and rotate
             m_new_size     = selection.get_bounding_box_in_current_reference_system().first.size();
-            m_unscale_size = selection.get_unscaled_instance_bounding_box().size();
+            m_unscale_size = selection.get_full_unscaled_instance_bounding_box().size();
             m_new_scale    = m_new_size.cwiseQuotient(m_unscale_size) * 100.0;
 		}
         else {//if (is_local_coordinates()) {//for scale
@@ -461,7 +461,7 @@ void GizmoObjectManipulation::do_scale(int axis, const Vec3d &scale) const
     Vec3d scaling_factor = m_uniform_scale ? scale(axis) * Vec3d::Ones() : scale;
     limit_scaling_ratio(scaling_factor);
 
-    selection.start_dragging();
+    selection.setup_cache();
     selection.scale(scaling_factor, transformation_type);
     m_glcanvas.do_scale(L("Set Scale"));
 }
