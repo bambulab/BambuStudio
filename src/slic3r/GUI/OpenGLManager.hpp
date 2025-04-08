@@ -49,7 +49,7 @@ struct FrameBufferParams
 {
     uint32_t m_width{ 0 };
     uint32_t m_height{ 0 };
-    EMSAAType m_msaa_type{ EMSAAType::Disabled };
+    uint32_t m_msaa{ 0 };
 };
 
 struct FrameBuffer
@@ -72,7 +72,7 @@ struct FrameBuffer
 
     uint32_t get_width() const;
 
-    EMSAAType get_msaa_type() const;
+    uint8_t get_msaa_type() const;
 
     bool is_format_equal(const FrameBufferParams& params) const;
 private:
@@ -92,7 +92,7 @@ private:
 private:
     uint32_t m_width{ 0 };
     uint32_t m_height{ 0 };
-    EMSAAType m_msaa_type{ EMSAAType::Disabled };
+    uint8_t m_msaa{ 0 };
     uint32_t m_msaa_back_buffer_rbos[2]{ UINT32_MAX, UINT32_MAX };
     uint32_t m_gl_id_for_back_fbo{ UINT32_MAX };
     uint32_t m_gl_id{ UINT32_MAX };
@@ -136,6 +136,7 @@ public:
         std::string m_glsl_version;
         std::string m_vendor;
         std::string m_renderer;
+        int8_t m_max_offscreen_msaa{ 0 };
 
     public:
         GLInfo() = default;
@@ -151,6 +152,8 @@ public:
 
         bool is_version_greater_or_equal_to(unsigned int major, unsigned int minor) const;
         bool is_glsl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const;
+
+        uint8_t get_max_offscreen_msaa() const;
 
         // If formatted for github, plaintext with OpenGL extensions enclosed into <details>.
         // Otherwise HTML formatted for the system info dialog.
@@ -256,7 +259,6 @@ public:
     bool is_legacy_framebuffer_enabled() const;
     void set_gizmo_keep_screen_size_enabled(bool is_enabled);
     bool is_gizmo_keep_screen_size_enabled() const;
-
     void set_msaa_type(const std::string& type);
     void set_msaa_type(EMSAAType type);
     EMSAAType get_msaa_type() const;
@@ -266,8 +268,7 @@ public:
     bool is_fxaa_enabled() const;
     void blit_framebuffer(const std::string& source, const std::string& target);
 
-    static bool init(bool prefer_to_use_dgpu = false);
-
+    static bool init();
     static bool are_compressed_textures_supported() { return s_compressed_textures_supported; }
     static bool can_multisample() { return s_multisample == EMultisampleState::Enabled; }
     static bool are_framebuffers_supported() { return (s_framebuffers_type != EFramebufferType::Unknown); }

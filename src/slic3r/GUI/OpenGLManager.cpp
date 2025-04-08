@@ -1,4 +1,4 @@
-#include "libslic3r/libslic3r.h"
+﻿#include "libslic3r/libslic3r.h"
 #include "OpenGLManager.hpp"
 
 #include "GUI.hpp"
@@ -23,178 +23,6 @@
 
 #include "../Utils/MacDarkMode.hpp"
 #endif // __APPLE__
-
-#ifdef __WIN32__
-
-#ifdef SLIC3R_GUI
-class OpenGLVersionCheck
-{
-public:
-    std::string version;
-    std::string glsl_version;
-    std::string vendor;
-    std::string renderer;
-
-    HINSTANCE   hOpenGL = nullptr;
-    bool success = false;
-
-    bool load_opengl_dll()
-    {
-        MSG      msg     = {0};
-        WNDCLASS wc      = {0};
-        wc.lpfnWndProc   = OpenGLVersionCheck::supports_opengl2_wndproc;
-        wc.hInstance     = (HINSTANCE)GetModuleHandle(nullptr);
-        wc.hbrBackground = (HBRUSH)(COLOR_BACKGROUND);
-        wc.lpszClassName = L"BambuStudio_opengl_version_check";
-        wc.style = CS_OWNDC;
-        if (RegisterClass(&wc)) {
-            HWND hwnd = CreateWindowW(wc.lpszClassName, L"BambuStudio_opengl_version_check", WS_OVERLAPPEDWINDOW, 0, 0, 640, 480, 0, 0, wc.hInstance, (LPVOID)this);
-            if (hwnd) {
-                message_pump_exit = false;
-                while (GetMessage(&msg, NULL, 0, 0 ) > 0 && ! message_pump_exit)
-                    DispatchMessage(&msg);
-            }
-        }
-        return this->success;
-    }
-
-    void unload_opengl_dll()
-    {
-        if (this->hOpenGL) {
-            BOOL released = FreeLibrary(this->hOpenGL);
-            if (released)
-                printf("System OpenGL library released\n");
-            else
-                printf("System OpenGL library NOT released\n");
-            this->hOpenGL = nullptr;
-        }
-    }
-
-    bool is_version_greater_or_equal_to(unsigned int major, unsigned int minor) const
-    {
-        // printf("is_version_greater_or_equal_to, version: %s\n", version.c_str());
-        std::vector<std::string> tokens;
-        boost::split(tokens, version, boost::is_any_of(" "), boost::token_compress_on);
-        if (tokens.empty())
-            return false;
-
-        std::vector<std::string> numbers;
-        boost::split(numbers, tokens[0], boost::is_any_of("."), boost::token_compress_on);
-
-        unsigned int gl_major = 0;
-        unsigned int gl_minor = 0;
-        if (numbers.size() > 0)
-            gl_major = ::atoi(numbers[0].c_str());
-        if (numbers.size() > 1)
-            gl_minor = ::atoi(numbers[1].c_str());
-        // printf("Major: %d, minor: %d\n", gl_major, gl_minor);
-        if (gl_major < major)
-            return false;
-        else if (gl_major > major)
-            return true;
-        else
-            return gl_minor >= minor;
-    }
-
-protected:
-    static bool message_pump_exit;
-
-    void check(HWND hWnd)
-    {
-        hOpenGL = LoadLibraryExW(L"opengl32.dll", nullptr, 0);
-        if (hOpenGL == nullptr) {
-            printf("Failed loading the system opengl32.dll\n");
-            return;
-        }
-
-        typedef HGLRC 		(WINAPI *Func_wglCreateContext)(HDC);
-        typedef BOOL 		(WINAPI *Func_wglMakeCurrent  )(HDC, HGLRC);
-        typedef BOOL     	(WINAPI *Func_wglDeleteContext)(HGLRC);
-        typedef GLubyte* 	(WINAPI *Func_glGetString     )(GLenum);
-
-        Func_wglCreateContext 	wglCreateContext = (Func_wglCreateContext)GetProcAddress(hOpenGL, "wglCreateContext");
-        Func_wglMakeCurrent 	wglMakeCurrent 	 = (Func_wglMakeCurrent)  GetProcAddress(hOpenGL, "wglMakeCurrent");
-        Func_wglDeleteContext 	wglDeleteContext = (Func_wglDeleteContext)GetProcAddress(hOpenGL, "wglDeleteContext");
-        Func_glGetString 		glGetString 	 = (Func_glGetString)	  GetProcAddress(hOpenGL, "glGetString");
-
-        if (wglCreateContext == nullptr || wglMakeCurrent == nullptr || wglDeleteContext == nullptr || glGetString == nullptr) {
-            printf("Failed loading the system opengl32.dll: The library is invalid.\n");
-            return;
-        }
-
-        PIXELFORMATDESCRIPTOR pfd =
-        {
-            sizeof(PIXELFORMATDESCRIPTOR),
-            1,
-            PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
-            PFD_TYPE_RGBA,            	// The kind of framebuffer. RGBA or palette.
-            32,                        	// Color depth of the framebuffer.
-            0, 0, 0, 0, 0, 0,
-            0,
-            0,
-            0,
-            0, 0, 0, 0,
-            24,                        	// Number of bits for the depthbuffer
-            8,                        	// Number of bits for the stencilbuffer
-            0,                        	// Number of Aux buffers in the framebuffer.
-            PFD_MAIN_PLANE,
-            0,
-            0, 0, 0
-        };
-
-        HDC ourWindowHandleToDeviceContext = ::GetDC(hWnd);
-        // Gdi32.dll
-        int letWindowsChooseThisPixelFormat = ::ChoosePixelFormat(ourWindowHandleToDeviceContext, &pfd);
-        // Gdi32.dll
-        SetPixelFormat(ourWindowHandleToDeviceContext, letWindowsChooseThisPixelFormat, &pfd);
-        // Opengl32.dll
-        HGLRC glcontext = wglCreateContext(ourWindowHandleToDeviceContext);
-        wglMakeCurrent(ourWindowHandleToDeviceContext, glcontext);
-        // Opengl32.dll
-        const char *data = (const char*)glGetString(GL_VERSION);
-        if (data != nullptr)
-            this->version = data;
-        // printf("check -version: %s\n", version.c_str());
-        data = (const char*)glGetString(0x8B8C); // GL_SHADING_LANGUAGE_VERSION
-        if (data != nullptr)
-            this->glsl_version = data;
-        data = (const char*)glGetString(GL_VENDOR);
-        if (data != nullptr)
-            this->vendor = data;
-        data = (const char*)glGetString(GL_RENDERER);
-        if (data != nullptr)
-            this->renderer = data;
-        // Opengl32.dll
-        wglDeleteContext(glcontext);
-        ::ReleaseDC(hWnd, ourWindowHandleToDeviceContext);
-        this->success = true;
-    }
-
-    static LRESULT CALLBACK supports_opengl2_wndproc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-    {
-        switch(message)
-        {
-        case WM_CREATE:
-        {
-            CREATESTRUCT *pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
-            OpenGLVersionCheck *ogl_data = reinterpret_cast<OpenGLVersionCheck*>(pCreate->lpCreateParams);
-            ogl_data->check(hWnd);
-            DestroyWindow(hWnd);
-            return 0;
-        }
-        case WM_NCDESTROY:
-            message_pump_exit = true;
-            return 0;
-        default:
-            return DefWindowProc(hWnd, message, wParam, lParam);
-        }
-    }
-};
-
-bool OpenGLVersionCheck::message_pump_exit = false;
-#endif /* SLIC3R_GUI */
-
-#endif // __WIN32__
 
 #define BBS_GL_EXTENSION_FUNC(_func) (OpenGLManager::get_framebuffers_type() == OpenGLManager::EFramebufferType::Ext ? _func ## EXT : _func)
 #define BBS_GL_EXTENSION_PARAMETER(_param) OpenGLManager::get_framebuffers_type() == OpenGLManager::EFramebufferType::Ext ? _param ## _EXT : _param
@@ -389,6 +217,10 @@ void OpenGLManager::GLInfo::detect() const
         float* max_anisotropy = const_cast<float*>(&m_max_anisotropy);
         glsafe(::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy));
     }
+    int max_offscreen_msaa = 0;
+    glsafe(::glGetIntegerv(GL_MAX_SAMPLES, &max_offscreen_msaa));
+    const_cast<OpenGLManager::GLInfo*>(this)->m_max_offscreen_msaa = max_offscreen_msaa;
+
     *const_cast<bool*>(&m_detected) = true;
 }
 
@@ -422,6 +254,13 @@ bool OpenGLManager::GLInfo::is_glsl_version_greater_or_equal_to(unsigned int maj
         detect();
 
     return version_greater_or_equal_to(m_glsl_version, major, minor);
+}
+
+uint8_t OpenGLManager::GLInfo::get_max_offscreen_msaa() const
+{
+    if (!m_detected)
+        detect();
+    return m_max_offscreen_msaa;
 }
 
 // If formatted for github, plaintext with OpenGL extensions enclosed into <details>.
@@ -506,57 +345,11 @@ OpenGLManager::~OpenGLManager()
 #endif //__APPLE__
 }
 
-bool OpenGLManager::init(bool prefer_to_use_dgpu)
+bool OpenGLManager::init()
 {
     if (s_b_initialized) {
         return true;
     }
-#ifdef __WIN32__
-    if (prefer_to_use_dgpu) {
-        HMODULE hModExe = nullptr;
-        hModExe         = GetModuleHandle(NULL);
-        if (hModExe) {
-            // BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl2: GetModuleHandle " << hModExe;
-            auto NvOptimusEnablement                  = (DWORD *) GetProcAddress(hModExe, "NvOptimusEnablement");
-            auto AmdPowerXpressRequestHighPerformance = (int *) GetProcAddress(hModExe, "AmdPowerXpressRequestHighPerformance");
-            if (NvOptimusEnablement) {
-                *NvOptimusEnablement = 0x00000001;
-            }
-            if (AmdPowerXpressRequestHighPerformance) {
-                // BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl2: AmdPowerXpressRequestHighPerformance " << *AmdPowerXpressRequestHighPerformance;
-                *AmdPowerXpressRequestHighPerformance = 1;
-            }
-        }
-    }
-
-#ifdef SLIC3R_GUI
-    bool force_mesa = false;
-
-    wchar_t path_to_exe[MAX_PATH + 1] = {0};
-    ::GetModuleFileNameW(nullptr, path_to_exe, MAX_PATH);
-    OpenGLVersionCheck opengl_version_check;
-    bool load_mesa =
-        force_mesa ||
-        // Try to load the default OpenGL driver and test its context version.
-        !opengl_version_check.load_opengl_dll() || !opengl_version_check.is_version_greater_or_equal_to(2, 0);
-    // https://wiki.qt.io/Cross_compiling_Mesa_for_Windows
-    // http://download.qt.io/development_releases/prebuilt/llvmpipe/windows/
-    if (load_mesa) {
-        opengl_version_check.unload_opengl_dll();
-        wchar_t path_to_mesa[MAX_PATH + 1] = {0};
-        wcscpy(path_to_mesa, path_to_exe);
-        wcscat(path_to_mesa, L"mesa\\opengl32.dll");
-        BOOST_LOG_TRIVIAL(info) << "Loading MESA OpenGL library: " << path_to_mesa;
-        HINSTANCE hInstance_OpenGL = LoadLibraryExW(path_to_mesa, nullptr, 0);
-        if (hInstance_OpenGL == nullptr) {
-            BOOST_LOG_TRIVIAL(error) << "MESA OpenGL library was not loaded";
-        } else
-            BOOST_LOG_TRIVIAL(info) << "MESA OpenGL library was loaded sucessfully";
-    }
-#endif /* SLIC3R_GUI */
-
-#endif // __WIN32__
-
     s_b_initialized = true;
     return s_b_initialized;
 }
@@ -739,10 +532,13 @@ void OpenGLManager::_bind_frame_buffer(const std::string& name, EMSAAType msaa_t
         height = 1;
     }
 
+    uint8_t num_samples = get_msaa_samples(msaa_type);
+    num_samples = std::min(s_gl_info.get_max_offscreen_msaa(), num_samples);
+
     FrameBufferParams t_fb_params;
     t_fb_params.m_width = width;
     t_fb_params.m_height = height;
-    t_fb_params.m_msaa_type = msaa_type;
+    t_fb_params.m_msaa = num_samples;
 
     const auto& iter = m_name_to_framebuffer.find(name);
     bool needs_to_recreate = false;
@@ -1073,7 +869,7 @@ void OpenGLManager::detect_multisample(int* attribList)
 FrameBuffer::FrameBuffer(const FrameBufferParams& params)
     : m_width(params.m_width)
     , m_height(params.m_height)
-    , m_msaa_type(params.m_msaa_type)
+    , m_msaa(params.m_msaa)
 {
 }
 
@@ -1120,7 +916,7 @@ void FrameBuffer::bind()
     }
     if (UINT32_MAX == m_gl_id)
     {
-        if (EMSAAType::Disabled == m_msaa_type)
+        if (0 == m_msaa)
         {
             create_no_msaa_fbo(true);
         }
@@ -1204,16 +1000,16 @@ uint32_t FrameBuffer::get_width() const
     return m_width;
 }
 
-EMSAAType FrameBuffer::get_msaa_type() const
+uint8_t FrameBuffer::get_msaa_type() const
 {
-    return m_msaa_type;
+    return m_msaa;
 }
 
 bool FrameBuffer::is_format_equal(const FrameBufferParams& params) const
 {
     const bool rt = m_width == params.m_width
         && m_height == params.m_height
-        && m_msaa_type == params.m_msaa_type;
+        && m_msaa == params.m_msaa;
     return rt;
 }
 
@@ -1261,15 +1057,14 @@ void FrameBuffer::create_msaa_fbo()
 
     glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), m_gl_id_for_back_fbo));
 
-    uint8_t num_samples = get_msaa_samples(m_msaa_type);
     // use renderbuffer instead of texture to avoid the need to use glTexImage2DMultisample which is available only since OpenGL 3.2
     glsafe(BBS_GL_EXTENSION_FUNC(::glGenRenderbuffers)(2, m_msaa_back_buffer_rbos));
 
     glsafe(BBS_GL_EXTENSION_FUNC(::glBindRenderbuffer)(BBS_GL_EXTENSION_PARAMETER(GL_RENDERBUFFER), m_msaa_back_buffer_rbos[0]));
-    glsafe(BBS_GL_EXTENSION_FUNC(::glRenderbufferStorageMultisample)(BBS_GL_EXTENSION_PARAMETER(GL_RENDERBUFFER), num_samples, GL_RGBA8, m_width, m_height));
+    glsafe(BBS_GL_EXTENSION_FUNC(::glRenderbufferStorageMultisample)(BBS_GL_EXTENSION_PARAMETER(GL_RENDERBUFFER), m_msaa, GL_RGBA8, m_width, m_height));
 
     glsafe(BBS_GL_EXTENSION_FUNC(::glBindRenderbuffer)(BBS_GL_EXTENSION_PARAMETER(GL_RENDERBUFFER), m_msaa_back_buffer_rbos[1]));
-    glsafe(::glRenderbufferStorageMultisample(BBS_GL_EXTENSION_PARAMETER(GL_RENDERBUFFER), num_samples, GL_DEPTH24_STENCIL8, m_width, m_height));
+    glsafe(::glRenderbufferStorageMultisample(BBS_GL_EXTENSION_PARAMETER(GL_RENDERBUFFER), m_msaa, GL_DEPTH24_STENCIL8, m_width, m_height));
 
     glsafe(BBS_GL_EXTENSION_FUNC(::glFramebufferRenderbuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), BBS_GL_EXTENSION_PARAMETER(GL_COLOR_ATTACHMENT0), BBS_GL_EXTENSION_PARAMETER(GL_RENDERBUFFER), m_msaa_back_buffer_rbos[0]));
 

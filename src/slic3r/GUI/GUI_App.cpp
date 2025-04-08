@@ -7172,12 +7172,8 @@ const std::shared_ptr<OpenGLManager>& GUI_App::get_opengl_manager() const
     if (m_p_opengl_mgr) {
         return m_p_opengl_mgr;
     }
-    bool prefer_to_use_dgpu = false;
-#ifdef __WIN32__
-    prefer_to_use_dgpu = app_config->get_bool("prefer_to_use_dgpu");
-#endif // __WIN32__
 
-    const bool rt = OpenGLManager::init(prefer_to_use_dgpu);
+    const bool rt = OpenGLManager::init();
     if (rt)
     {
         m_p_opengl_mgr = std::make_shared<OpenGLManager>();
