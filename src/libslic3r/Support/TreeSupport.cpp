@@ -3817,7 +3817,7 @@ void TreeSupport::generate_contact_points()
                 }
 
                 for (auto &overhang : overhangs_regular) {
-                    if (is_sharp_tail && overhang.area() < SQ(scale_(2.))) add_interface = false;
+                    if (is_sharp_tail && !m_support_params.soluble_interface && overhang.area() < SQ(scale_(2.))) add_interface = false;
                     BoundingBox overhang_bounds = get_extents(overhang);
                     double      radius          = std::clamp(unscale_(overhang_bounds.radius()), MIN_BRANCH_RADIUS, base_radius);
                     // add supports at corners for both auto and manual overhangs, github #2008
