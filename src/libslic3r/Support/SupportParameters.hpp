@@ -35,7 +35,7 @@ struct SupportParameters {
 	        this->has_bottom_contacts           = num_bottom_interface_layers > 0;
 	        if (this->soluble_interface_non_soluble_base) {
 	            // Try to support soluble dense interfaces with non-soluble dense interfaces.
-	            this->num_top_base_interface_layers    = size_t(std::min(int(num_top_interface_layers) / 2, 2));
+                this->num_top_base_interface_layers    = num_top_interface_layers > 0 ? 2 : 0;
 	            this->num_bottom_base_interface_layers = size_t(std::min(int(num_bottom_interface_layers) / 2, 2));
 	        } else {
                 // BBS: if support interface and support base do not use the same filament, add a base layer to improve their adhesion
@@ -43,7 +43,7 @@ struct SupportParameters {
                 // support_filament==0
                 bool differnt_support_interface_filament = object_config.support_interface_filament != 0 &&
                                                            object_config.support_interface_filament != object_config.support_filament;
-                this->num_top_base_interface_layers    = differnt_support_interface_filament ? 1 : 0;
+                this->num_top_base_interface_layers    = differnt_support_interface_filament ? 2 : 0;
                 this->num_bottom_base_interface_layers       = differnt_support_interface_filament ? 1 : 0;
 	        }
 	    }
