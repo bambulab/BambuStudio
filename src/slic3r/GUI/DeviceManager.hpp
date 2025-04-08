@@ -1310,6 +1310,7 @@ public:
 
     /*for more extruder*/
     bool                        is_enable_np{ false };
+    bool                        is_enable_ams_np{ false };
 
     ExtderData                  m_extder_data;
     NozzleData                  m_nozzle_data;

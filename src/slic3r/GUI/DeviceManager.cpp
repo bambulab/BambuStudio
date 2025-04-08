@@ -796,7 +796,7 @@ bool MachineObject::is_extrusion_cali_finished()
 
 void MachineObject::_parse_tray_now(std::string tray_now)
 {
-     m_tray_now = tray_now;
+    m_tray_now = tray_now;
     if (tray_now.empty()) {
         return;
     } else {
@@ -3779,6 +3779,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         if (jj.contains("flag3")) {
                             int flag3 = jj["flag3"].get<int>();
                             is_support_filament_setting_inprinting =  get_flag_bits(flag3, 3);
+                            is_enable_ams_np =  get_flag_bits(flag3, 9);
                         }
                     }
                     if (!key_field_only) {
@@ -4468,11 +4469,11 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                     if (jj["ams"]["version"].is_number())
                                         ams_version = jj["ams"]["version"].get<int>();
                                 }
-                                if (jj["ams"].contains("tray_now")) {
-                                    this->_parse_tray_now(jj["ams"]["tray_now"].get<std::string>());
-                                }
                                 if (jj["ams"].contains("tray_tar")) {
                                     m_tray_tar = jj["ams"]["tray_tar"].get<std::string>();
+                                }
+                                if (jj["ams"].contains("tray_now")) {
+                                    _parse_tray_now(jj["ams"]["tray_now"].get<std::string>());
                                 }
                                 if (jj["ams"].contains("ams_rfid_status"))
                                     ams_rfid_status = jj["ams"]["ams_rfid_status"].get<int>();
