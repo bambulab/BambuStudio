@@ -1001,9 +1001,11 @@ const std::pair<BoundingBoxf3, Transform3d> &Selection::get_bounding_box_in_curr
     assert(!is_empty());
 
     ECoordinatesType coordinates_type = wxGetApp().obj_manipul()->get_coordinates_type();
-    if (m_mode == Instance && coordinates_type == ECoordinatesType::Local) coordinates_type = ECoordinatesType::World;
+    if (m_mode == Instance && coordinates_type == ECoordinatesType::Local)
+        coordinates_type = ECoordinatesType::World;
 
-    if (last_coordinates_type != int(coordinates_type)) const_cast<std::optional<std::pair<BoundingBoxf3, Transform3d>> *>(&m_bounding_box_in_current_reference_system)->reset();
+    if (last_coordinates_type != int(coordinates_type))
+        const_cast<std::optional<std::pair<BoundingBoxf3, Transform3d>> *>(&m_bounding_box_in_current_reference_system)->reset();
 
     if (!m_bounding_box_in_current_reference_system.has_value()) {
         last_coordinates_type                                                                                            = int(coordinates_type);
