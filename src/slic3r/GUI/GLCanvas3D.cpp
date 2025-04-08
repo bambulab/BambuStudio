@@ -693,7 +693,7 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D & canvas, const 
         shader->set_uniform("view_model_matrix", view_model_matrix);
         shader->set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
 
-        glvolume->render(camera, colors);
+        glvolume->render(camera, colors, m_canvas.get_ref_model());
     }
     // Revert back to the previous shader.
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -1679,7 +1679,7 @@ ModelInstanceEPrintVolumeState GLCanvas3D::check_volumes_outside_state(ObjectFil
     //assert(m_initialized);
 
     ModelInstanceEPrintVolumeState state;
-    m_volumes.check_outside_state(m_bed.build_volume(), &state, object_results);
+    m_volumes.check_outside_state(m_bed.build_volume(), &state, object_results,*m_model);
 
     construct_error_string(*object_results, get_object_clashed_text());
     construct_extruder_unprintable_error(*object_results, get_left_extruder_unprintable_text(), get_right_extruder_unprintable_text());
@@ -3211,7 +3211,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         if (!m_volumes.empty()) {
             ModelInstanceEPrintVolumeState state;
             ObjectFilamentResults object_results;
-            const bool contained_min_one = m_volumes.check_outside_state(m_bed.build_volume(), &state, &object_results);
+            const bool contained_min_one = m_volumes.check_outside_state(m_bed.build_volume(), &state, &object_results, *m_model);
             const bool partlyOut = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Partly_Outside);
             const bool fullyOut = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Fully_Outside);
            // const bool objectLimited = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Limited);
@@ -7346,7 +7346,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
         }
         }
         if (m_requires_check_outside_state) {
-            m_volumes.check_outside_state(build_volume, nullptr, nullptr);
+            m_volumes.check_outside_state(build_volume, nullptr, nullptr, *m_model);
             m_requires_check_outside_state = false;
         }
     }
@@ -7397,7 +7397,8 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
             {
                 if (m_picking_enabled && m_layers_editing.is_enabled() && (m_layers_editing.last_object_id != -1) && (m_layers_editing.object_max_z() > 0.0f) && GUI::ERenderPipelineStage::Silhouette != render_pipeline_stage) {
                     int object_id = m_layers_editing.last_object_id;
-                    m_volumes.render(render_pipeline_stage, type, false, camera, colors, [object_id](const GLVolume &volume) {
+                    m_volumes.render(
+                        render_pipeline_stage, type, false, camera, colors, *m_model,[object_id](const GLVolume &volume) {
                         // Which volume to paint without the layer height profile shader?
                         return volume.is_active && (volume.is_modifier || volume.composite_id.object_id != object_id);
                         });
@@ -7413,8 +7414,8 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                     //BBS:add assemble view related logic
                     // do not cull backfaces to show broken geometry, if any
                     m_volumes.render(
-                        render_pipeline_stage, type, m_picking_enabled, camera,
-                        colors,[this, canvas_type](const GLVolume &volume) {
+                        render_pipeline_stage, type, m_picking_enabled, camera, colors,
+                        *m_model,[this, canvas_type](const GLVolume &volume) {
                         if (canvas_type == ECanvasType::CanvasAssembleView) {
                             return !volume.is_modifier && !volume.is_wipe_tower;
                         }
@@ -7449,7 +7450,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
             }*/
             //BBS:add assemble view related logic
             m_volumes.render(
-                render_pipeline_stage, type, false, camera, colors,
+                render_pipeline_stage, type, false, camera, colors,*m_model,
                 [this, canvas_type](const GLVolume &volume) {
                 if (canvas_type == ECanvasType::CanvasAssembleView) {
                     return !volume.is_modifier;
@@ -7846,7 +7847,7 @@ void GLCanvas3D::_render_volumes_for_picking() const
                 std::array<float, 4> t_color{ (GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255, (GLfloat)a * INV_255 };
                 shader->set_uniform("uniform_color", t_color);
                 volume.first->picking = true;
-                volume.first->render(camera, colors); // colors is no use here
+                volume.first->render(camera, colors, *m_model); // colors is no use here
                 volume.first->picking = false;
             }
     }

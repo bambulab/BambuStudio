@@ -354,10 +354,10 @@ protected:
 
     public:
         SinkingContours(GLVolume& volume) : m_parent(volume) {}
-        void render(const GUI::Camera &camera);
+        void render(const GUI::Camera &camera, Model &model);
 
     private:
-        void update();
+        void update(Model &model);
     };
 
     SinkingContours m_sinking_contours;
@@ -576,9 +576,9 @@ public:
     // caching variant
     const BoundingBoxf3& transformed_convex_hull_bounding_box() const;
     // non-caching variant
-    BoundingBoxf3        transformed_non_sinking_bounding_box(const Transform3d& trafo) const;
+    BoundingBoxf3 transformed_non_sinking_bounding_box(const Transform3d &trafo, Model &model) const;
     // caching variant
-    const BoundingBoxf3& transformed_non_sinking_bounding_box() const;
+    const BoundingBoxf3 &transformed_non_sinking_bounding_box(Model &model) const;
     // convex hull
     const TriangleMesh*  convex_hull() const { return m_convex_hull.get(); }
 
@@ -589,6 +589,7 @@ public:
     //BBS: add outline related logic and add virtual specifier
     virtual void render(const GUI::Camera &                       camera,
                         const std::vector<std::array<float, 4>>& colors,
+                        Model &            model,
                         bool               with_outline = false,
                         const std::array<float, 4> &body_color = {1.0f, 1.0f, 1.0f, 1.0f} ) const;
 
@@ -605,7 +606,7 @@ public:
 
     bool                is_sinking() const;
     bool                is_below_printbed() const;
-    void                render_sinking_contours(const GUI::Camera &camera);
+    void                render_sinking_contours(const GUI::Camera &camera,Model& model);
 
     // Return an estimate of the memory consumed by this class.
     size_t 				cpu_memory_used() const {
@@ -623,6 +624,7 @@ public:
     GLWipeTowerVolume(const std::vector<std::array<float, 4>>& colors);
     void render(const GUI::Camera &                      camera,
                 const std::vector<std::array<float, 4>> & colors,
+                Model &                                  model,
                 bool                        with_outline = false,
                 const std::array<float, 4> & body_color  = {1.0f, 1.0f, 1.0f, 1.0f}) const override;
 
@@ -739,6 +741,7 @@ public:
                 bool                                  disable_cullface,
                 const GUI::Camera &                      camera,
                 const std::vector<std::array<float, 4>>& colors,
+                Model &                                  model,
                 std::function<bool(const GLVolume &)> filter_func          = std::function<bool(const GLVolume &)>(),
                 bool                                  with_outline         = true,
                 const std::array<float, 4> &          body_color           = {1.0f, 1.0f, 1.0f, 1.0f},
@@ -783,7 +786,7 @@ public:
 
     // returns true if all the volumes are completely contained in the print volume
     // returns the containment state in the given out_state, if non-null
-    bool check_outside_state(const Slic3r::BuildVolume& build_volume, ModelInstanceEPrintVolumeState* out_state, ObjectFilamentResults* object_results) const;
+    bool check_outside_state(const Slic3r::BuildVolume& build_volume, ModelInstanceEPrintVolumeState* out_state, ObjectFilamentResults* object_results,Model& model) const;
     void reset_outside_state();
 
     void update_colors_by_extruder(const DynamicPrintConfig *config, bool is_update_alpha = true);

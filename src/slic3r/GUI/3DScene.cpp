@@ -355,7 +355,7 @@ void GLIndexedVertexArray::render(
 
 const float GLVolume::SinkingContours::HalfWidth = 0.25f;
 
-void GLVolume::SinkingContours::render(const GUI::Camera &camera)
+void GLVolume::SinkingContours::render(const GUI::Camera &camera, Model &model)
 {
     const auto& shader = GUI::wxGetApp().get_shader("flat");
     if (!shader) {
@@ -364,7 +364,7 @@ void GLVolume::SinkingContours::render(const GUI::Camera &camera)
 
     GUI::wxGetApp().bind_shader(shader);
 
-    update();
+    update(model);
     shader->set_uniform("view_model_matrix", camera.get_view_matrix() * Geometry::assemble_transform(m_shift));
     shader->set_uniform("projection_matrix", camera.get_projection_matrix());
     m_model.render_geometry();
@@ -372,11 +372,9 @@ void GLVolume::SinkingContours::render(const GUI::Camera &camera)
     GUI::wxGetApp().unbind_shader();
 }
 
-void GLVolume::SinkingContours::update()
+void GLVolume::SinkingContours::update(Model &model)
 {
     int object_idx = m_parent.object_idx();
-    Model& model = GUI::wxGetApp().plater()->model();
-
     if (0 <= object_idx && object_idx < (int)model.objects.size() && m_parent.is_sinking() && !m_parent.is_below_printbed()) {
         const BoundingBoxf3& box = m_parent.transformed_convex_hull_bounding_box();
         if (!m_old_box.size().isApprox(box.size()) || m_old_box.min.z() != box.min.z()) {
@@ -784,17 +782,20 @@ BoundingBoxf3 GLVolume::transformed_convex_hull_bounding_box(const Transform3d &
         bounding_box().transformed(trafo);
 }
 
-BoundingBoxf3 GLVolume::transformed_non_sinking_bounding_box(const Transform3d& trafo) const
+BoundingBoxf3 GLVolume::transformed_non_sinking_bounding_box(const Transform3d& trafo,Model& model) const
 {
-    return GUI::wxGetApp().plater()->model().objects[object_idx()]->volumes[volume_idx()]->mesh().transformed_bounding_box(trafo, 0.0);
+    if (object_idx() < model.objects.size())
+        return model.objects[object_idx()]->volumes[volume_idx()]->mesh().transformed_bounding_box(trafo, 0.0);
+    else
+        return {};
 }
 
-const BoundingBoxf3& GLVolume::transformed_non_sinking_bounding_box() const
+const BoundingBoxf3 &GLVolume::transformed_non_sinking_bounding_box(Model &model) const
 {
     if (!m_transformed_non_sinking_bounding_box.has_value()) {
         std::optional<BoundingBoxf3>* trans_box = const_cast<std::optional<BoundingBoxf3>*>(&m_transformed_non_sinking_bounding_box);
         const Transform3d& trafo = world_matrix();
-        *trans_box = transformed_non_sinking_bounding_box(trafo);
+        *trans_box                              = transformed_non_sinking_bounding_box(trafo, model);
     }
     return *m_transformed_non_sinking_bounding_box;
 }
@@ -836,7 +837,7 @@ void GLVolume::set_range(double min_z, double max_z)
 
 //BBS: add outline related logic
 //static unsigned char stencil_data[1284][2944];
-void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<float, 4>> &colors, bool with_outline, const std::array<float, 4> &body_color) const
+void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<float, 4>> &colors, Model &model, bool with_outline, const std::array<float, 4> &body_color) const
 {
     if (!is_active)
         return;
@@ -851,7 +852,7 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
     // BBS: add logic for mmu segmentation rendering
     auto render_body = [&]() {
         bool color_volume = false;
-        ModelObjectPtrs& model_objects = GUI::wxGetApp().model().objects;
+        ModelObjectPtrs &model_objects = model.objects;
         do {
             if ((!printable) || object_idx() >= model_objects.size())
                 break;
@@ -1214,8 +1215,8 @@ bool GLVolume::is_below_printbed() const
     return transformed_convex_hull_bounding_box().max.z() < 0.0;
 }
 
-void GLVolume::render_sinking_contours(const GUI::Camera &camera) {
-    m_sinking_contours.render(camera);
+void GLVolume::render_sinking_contours(const GUI::Camera &camera, Model &model) {
+    m_sinking_contours.render(camera, model);
 }
 
 GLWipeTowerVolume::GLWipeTowerVolume(const std::vector<std::array<float, 4>>& colors)
@@ -1226,6 +1227,7 @@ GLWipeTowerVolume::GLWipeTowerVolume(const std::vector<std::array<float, 4>>& co
 
 void GLWipeTowerVolume::render(const GUI::Camera &camera,
                                const std::vector<std::array<float, 4>> &extruder_colors,
+                               Model &model,
                                bool                                     with_outline,
                                const std::array<float, 4> &body_color) const
 {
@@ -1619,6 +1621,7 @@ void GLVolumeCollection::render(GUI::ERenderPipelineStage             render_pip
                                 bool                                  disable_cullface,
                                 const GUI::Camera &                      camera,
                                 const std::vector<std::array<float, 4>>& colors,
+                                Model& model,
                                 std::function<bool(const GLVolume &)> filter_func,
                                 bool                                  with_outline,
                                 const std::array<float, 4> &          body_color,
@@ -1673,7 +1676,7 @@ void GLVolumeCollection::render(GUI::ERenderPipelineStage             render_pip
                 if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
                     volume.first->hover == GLVolume::HS_None && !volume.first->force_sinking_contours) {
                     GUI::wxGetApp().unbind_shader();
-                    volume.first->render_sinking_contours(camera);
+                    volume.first->render_sinking_contours(camera, model);
                     GUI::wxGetApp().bind_shader(shader);
                 }
         }
@@ -1744,12 +1747,12 @@ void GLVolumeCollection::render(GUI::ERenderPipelineStage             render_pip
 
             //BBS: add outline related logic
             auto red_color = std::array<float, 4>({ 1.0f, 0.0f, 0.0f, 1.0f });//slice_error
-            volume.first->render(camera, colors,with_outline && volume.first->selected, volume.first->slice_error ? red_color : body_color);
+            volume.first->render(camera, colors,model,with_outline && volume.first->selected, volume.first->slice_error ? red_color : body_color);
         }
         else {
             if (volume.first->selected) {
                 shader->set_uniform("u_model_matrix", volume.first->world_matrix());
-                volume.first->render(camera, colors, false, body_color);
+                volume.first->render(camera, colors, model, false, body_color);
             }
         }
 
@@ -1770,7 +1773,7 @@ void GLVolumeCollection::render(GUI::ERenderPipelineStage             render_pip
                     (volume.first->hover != GLVolume::HS_None || volume.first->force_sinking_contours)) {
                     GUI::wxGetApp().unbind_shader();
                     glsafe(::glDepthFunc(GL_ALWAYS));
-                    volume.first->render_sinking_contours(camera);
+                    volume.first->render_sinking_contours(camera, model);
                     glsafe(::glDepthFunc(GL_LESS));
                     GUI::wxGetApp().bind_shader(shader);
                 }
@@ -1785,7 +1788,7 @@ void GLVolumeCollection::render(GUI::ERenderPipelineStage             render_pip
         glsafe(::glDisable(GL_BLEND));
 }
 
-bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, ModelInstanceEPrintVolumeState *out_state, ObjectFilamentResults* object_results) const
+bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, ModelInstanceEPrintVolumeState *out_state, ObjectFilamentResults *object_results, Model &model) const
 {
     if (GUI::wxGetApp().plater() == NULL)
     {
@@ -1794,15 +1797,15 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
         return false;
     }
 
-    const Model&        model              = GUI::wxGetApp().plater()->model();
     auto                volume_below       = [](GLVolume& volume) -> bool
         { return volume.object_idx() != -1 && volume.volume_idx() != -1 && volume.is_below_printbed(); };
     // Volume is partially below the print bed, thus a pre-calculated convex hull cannot be used.
     auto                volume_sinking     = [](GLVolume& volume) -> bool
         { return volume.object_idx() != -1 && volume.volume_idx() != -1 && volume.is_sinking(); };
     // Cached bounding box of a volume above the print bed.
-    auto                volume_bbox        = [volume_sinking](GLVolume& volume) -> BoundingBoxf3
-        { return volume_sinking(volume) ? volume.transformed_non_sinking_bounding_box() : volume.transformed_convex_hull_bounding_box(); };
+    auto                volume_bbox        = [volume_sinking ,&model](GLVolume& volume) -> BoundingBoxf3 {
+        return volume_sinking(volume) ? volume.transformed_non_sinking_bounding_box(model) : volume.transformed_convex_hull_bounding_box();
+    };
     // Cached 3D convex hull of a volume above the print bed.
     auto                volume_convex_mesh = [volume_sinking, &model](GLVolume& volume) -> const TriangleMesh&
         { return volume_sinking(volume) ? model.objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh() : *volume.convex_hull(); };

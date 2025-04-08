@@ -827,6 +827,7 @@ public:
     void set_process(BackgroundSlicingProcess* process);
     void set_model(Model* model);
     const Model* get_model() const { return m_model; }
+    Model&       get_ref_model() const { return *m_model; }
 
     const Selection& get_selection() const { return m_selection; }
     Selection& get_selection() { return m_selection; }

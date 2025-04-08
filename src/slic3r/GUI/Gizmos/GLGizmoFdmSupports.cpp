@@ -130,7 +130,7 @@ void GLGizmoFdmSupports::render_painter_gizmo() const
 
         const auto &                      camera = m_parent.get_active_camera();
         std::vector<std::array<float, 4>> colors = m_parent.get_active_colors();
-        m_support_volume->render(camera, colors);
+        m_support_volume->render(camera, colors, m_parent.get_ref_model());
     }
 
     m_c->object_clipper()->render_cut();
