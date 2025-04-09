@@ -3856,7 +3856,14 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
                 } else if (boost::iequals(it.key(), BBL_JSON_KEY_DEFAULT_BED_TYPE)) {
                     // get bed type
                     model.default_bed_type = it.value();
-                } else if (boost::iequals(it.key(), BBL_JSON_KEY_IMAGE_BED_TYPE)) {
+                } else if (boost::iequals(it.key(), BBL_JSON_KEY_BOTTOM_TEXTURE_END_NAME)) {
+                    model.bottom_texture_end_name = it.value();
+                } else if (boost::iequals(it.key(), BBL_JSON_KEY_BOTTOM_TEXTURE_RECT)) {
+                    model.bottom_texture_rect = it.value();
+                } else if (boost::iequals(it.key(), BBL_JSON_KEY_MIDDLE_TEXTURE_RECT)) {
+                    model.middle_texture_rect = it.value();
+                }
+                else if (boost::iequals(it.key(), BBL_JSON_KEY_IMAGE_BED_TYPE)) {
                     model.image_bed_type = it.value();
                 }
                 else if (boost::iequals(it.key(), BBL_JSON_KEY_BED_TEXTURE)) {
