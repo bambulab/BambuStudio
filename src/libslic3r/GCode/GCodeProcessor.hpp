@@ -608,6 +608,11 @@ namespace Slic3r {
 
             // accept the time block and total time
             using block_handler_t = std::function<void(const TimeBlock&, const float)>;
+            using AdditionalBufferBlock = std::pair<ExtrusionRole,float>;
+            using AdditionalBuffer = std::vector<AdditionalBufferBlock>;
+            AdditionalBuffer m_additional_time_buffer;
+
+            AdditionalBuffer merge_adjacent_addtional_time_blocks(const AdditionalBuffer& buffer);
 
             void reset();
 

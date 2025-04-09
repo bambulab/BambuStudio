@@ -317,6 +317,7 @@ void GCodeProcessor::TimeMachine::reset()
     std::fill(roles_time.begin(), roles_time.end(), 0.0f);
     layers_time = std::vector<float>();
     prepare_time = 0.0f;
+    m_additional_time_buffer.clear();
 }
 
 void GCodeProcessor::TimeMachine::simulate_st_synchronize(float additional_time, ExtrusionRole target_role, block_handler_t block_handler)
@@ -404,13 +405,43 @@ void GCodeProcessor::TimeMachine::handle_time_block(const TimeBlock& block, floa
     result.moves[block.move_id].time[activate_machine_idx] = time;
 }
 
+GCodeProcessor::TimeMachine::AdditionalBuffer GCodeProcessor::TimeMachine::merge_adjacent_addtional_time_blocks(const AdditionalBuffer& buffer)
+{
+    AdditionalBuffer merged;
+    if(buffer.empty())
+        return merged;
+
+    auto current_block = buffer.front();
+    for(size_t idx = 1; idx < buffer.size(); ++idx){
+        auto next_block = buffer[idx];
+        if(current_block.first == next_block.first){
+            current_block.second += next_block.second;
+        }else{
+            merged.push_back(current_block);
+            current_block = next_block;
+        }
+    }
+    merged.push_back(current_block);
+    return merged;
+}
+
+
 void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks, float additional_time, ExtrusionRole target_role, block_handler_t block_handler)
 {
-    if (!enabled || blocks.size() < 2)
+    if(!enabled)
         return;
+    if(blocks.size() < 2){
+        if (additional_time > 0)
+            m_additional_time_buffer.emplace_back(target_role, additional_time);
+        return ;
+    }
 
     assert(keep_last_n_blocks <= blocks.size());
 
+    AdditionalBuffer additional_buffer = m_additional_time_buffer;
+    if(additional_time > 0)
+        additional_buffer.emplace_back(target_role, additional_time);
+    additional_buffer = merge_adjacent_addtional_time_blocks(additional_buffer);
     // forward_pass
     for (size_t i = 0; i + 1 < blocks.size(); ++i) {
         planner_forward_pass_kernel(blocks[i], blocks[i + 1]);
@@ -423,15 +454,21 @@ void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks, floa
     recalculate_trapezoids(blocks);
 
     size_t n_blocks_process = blocks.size() - keep_last_n_blocks;
-    bool found_target_block = false;
+    size_t additional_buffer_idx = 0;
+
     for (size_t i = 0; i < n_blocks_process; ++i) {
         const TimeBlock& block = blocks[i];
         float block_time = block.time();
 
-        bool is_valid_block = target_role == ExtrusionRole::erNone || target_role == block.role || i == n_blocks_process - 1;
-        if (!found_target_block && is_valid_block) {
-            block_time += additional_time;
-            found_target_block = true;
+        if(additional_buffer_idx < additional_buffer.size()){
+            ExtrusionRole buf_role = additional_buffer[additional_buffer_idx].first;
+            float buf_time = additional_buffer[additional_buffer_idx].second;
+            bool is_valid_block = (buf_role == ExtrusionRole::erNone) ||
+                                  (buf_role == block.role);
+            if (is_valid_block){
+                block_time += buf_time;
+                additional_buffer_idx += 1;
+            }
         }
 
         time += block_time;
@@ -463,6 +500,10 @@ void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks, floa
         if (it_stop_time != stop_times.end() && it_stop_time->g1_line_id == block.g1_line_id)
             it_stop_time->elapsed_time = time;
     }
+
+    m_additional_time_buffer.clear();
+    if(additional_buffer_idx<additional_buffer.size())
+        m_additional_time_buffer.insert(m_additional_time_buffer.end(), additional_buffer.begin() + additional_buffer_idx, additional_buffer.end());
 
     if (keep_last_n_blocks)
         blocks.erase(blocks.begin(), blocks.begin() + n_blocks_process);
