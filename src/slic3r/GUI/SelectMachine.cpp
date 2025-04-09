@@ -3881,9 +3881,7 @@ void SelectMachineDialog::change_materialitem_tip(bool no_ams_only_ext)
         Material *item = iter->second;
         if (item) {
             if (no_ams_only_ext && (item->item->m_ams_name == "Ext") && (m_checkbox_list["use_ams"]->getValue() != "on")) {
-                if (item->item->GetToolTipText() != m_ams_tooltip_ext) {
-                    item->item->SetToolTip(m_ams_tooltip_ext);
-                }
+                item->item->SetToolTip(wxEmptyString);
             }
             else {
                 if (item->item->GetToolTipText() != m_ams_tooltip) {
@@ -3942,7 +3940,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
     m_materialList.clear();
     m_filaments.clear();
     m_ams_tooltip =_L("Upper half area:  Original\nLower half area:  Filament in AMS\nAnd you can click it to modify");
-    m_ams_tooltip_ext  = _L("To map to AMS, enable 'Use AMS' in 'Advanced Options'.");
+
     const auto& full_config = wxGetApp().preset_bundle->full_config();
     size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
 
