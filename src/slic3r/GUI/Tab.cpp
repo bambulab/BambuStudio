@@ -2264,14 +2264,14 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Prime tower"), L"param_tower");
         optgroup->append_single_option_line("enable_prime_tower","parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_skip_points", "parameter/prime-tower");
-        optgroup->append_single_option_line("prime_tower_enable_framework", "parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_enable_framework", "parameter/prime-tower#internal-ribs");
         optgroup->append_single_option_line("prime_tower_width","parameter/prime-tower");
-        optgroup->append_single_option_line("prime_tower_max_speed","parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_max_speed","parameter/prime-tower#max-speed");
         optgroup->append_single_option_line("prime_tower_brim_width","parameter/prime-tower");
-        optgroup->append_single_option_line("prime_tower_infill_gap","parameter/prime-tower");
-        optgroup->append_single_option_line("prime_tower_rib_wall", "parameter/prime-tower");
-        optgroup->append_single_option_line("prime_tower_extra_rib_length","parameter/prime-tower");
-        optgroup->append_single_option_line("prime_tower_rib_width","parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_infill_gap","parameter/prime-tower#infill-gap");
+        optgroup->append_single_option_line("prime_tower_rib_wall", "parameter/prime-tower#rib-wall");
+        optgroup->append_single_option_line("prime_tower_extra_rib_length","parameter/prime-tower#rib-wall");
+        optgroup->append_single_option_line("prime_tower_rib_width","parameter/prime-tower#rib-wall");
         optgroup->append_single_option_line("prime_tower_fillet_wall","parameter/prime-tower");
 
         optgroup = page->new_optgroup(L("Flush options"), L"param_flush");
@@ -3227,14 +3227,14 @@ void TabFilament::build()
         // BBS
         optgroup->append_single_option_line("filament_is_support");
         optgroup->append_single_option_line("impact_strength_z");
-        optgroup->append_single_option_line("filament_change_length");
+        optgroup->append_single_option_line("filament_change_length", "parameter/prime-tower#ramming");
 
-        optgroup->append_single_option_line("filament_prime_volume");
+        optgroup->append_single_option_line("filament_prime_volume", "parameter/prime-tower#primevolume");
         //optgroup->append_single_option_line("filament_colour");
         optgroup->append_single_option_line("required_nozzle_HRC");
         optgroup->append_single_option_line("default_filament_colour");
         optgroup->append_single_option_line("filament_diameter");
-        optgroup->append_single_option_line("filament_adhesiveness_category");
+        optgroup->append_single_option_line("filament_adhesiveness_category", "parameter/prime-tower#adhesiveness");
         optgroup->append_single_option_line("filament_flow_ratio", "", 0);
         optgroup->append_single_option_line("enable_pressure_advance");
         optgroup->append_single_option_line("pressure_advance");
@@ -3245,7 +3245,7 @@ void TabFilament::build()
         //BBS
         optgroup->append_single_option_line("temperature_vitrification");
         optgroup->append_single_option_line("filament_ramming_travel_time", "",0);
-        optgroup->append_single_option_line("filament_pre_cooling_temperature", "", 0);
+        optgroup->append_single_option_line("filament_pre_cooling_temperature", "parameter/prime-tower#precooling", 0);
         Line line = { L("Recommended nozzle temperature"), L("Recommended nozzle temperature range of this filament. 0 means no set") };
         line.append_option(optgroup->get_option("nozzle_temperature_range_low"));
         line.append_option(optgroup->get_option("nozzle_temperature_range_high"));
