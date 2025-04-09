@@ -5222,6 +5222,8 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
             std::vector<std::string> variant_options;
             for (auto &opt : cache_options) {
                 if (auto n = opt.find('#'); n != std::string::npos) {
+                    if (type == Preset::TYPE_FILAMENT && filament_options_with_variant.count(opt.substr(0, n)) == 0)
+                        continue;
                     variant_options.push_back(opt.substr(0, n));
                     opt.clear();
                 }
