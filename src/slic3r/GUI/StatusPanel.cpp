@@ -1572,6 +1572,7 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     m_tempCtrl_nozzle    = new TempInput(parent, nozzle_id, TEMP_BLANK_STR, TempInputType::TEMP_OF_NORMAL_TYPE, TEMP_BLANK_STR, wxString("monitor_nozzle_temp"),
                                       wxString("monitor_nozzle_temp_active"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
     m_tempCtrl_nozzle->SetMinSize(TEMP_CTRL_MIN_SIZE_ALIGN_TWO_ICON);
+    m_tempCtrl_nozzle->AddTemp(0); // zero is default temp
     m_tempCtrl_nozzle->SetMinTemp(20);
     m_tempCtrl_nozzle->SetMaxTemp(300);
     m_tempCtrl_nozzle->SetBorderWidth(FromDIP(2));
@@ -1586,6 +1587,7 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     m_tempCtrl_nozzle_deputy = new TempInput(parent, nozzle_id, TEMP_BLANK_STR, TempInputType::TEMP_OF_NORMAL_TYPE, TEMP_BLANK_STR, wxString("monitor_nozzle_temp"), wxString("monitor_nozzle_temp_active"),
         wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
     m_tempCtrl_nozzle_deputy->SetMinSize(TEMP_CTRL_MIN_SIZE_ALIGN_TWO_ICON);
+    m_tempCtrl_nozzle_deputy->AddTemp(0); // zero is default temp
     m_tempCtrl_nozzle_deputy->SetMinTemp(20);
     m_tempCtrl_nozzle_deputy->SetMaxTemp(300);
     m_tempCtrl_nozzle_deputy->SetBorderWidth(FromDIP(2));
@@ -1605,6 +1607,7 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     wxWindowID bed_id = wxWindow::NewControlId();
     m_tempCtrl_bed    = new TempInput(parent, bed_id, TEMP_BLANK_STR, TempInputType::TEMP_OF_NORMAL_TYPE, TEMP_BLANK_STR, wxString("monitor_bed_temp"),
         wxString("monitor_bed_temp_active"), wxDefaultPosition,wxDefaultSize, wxALIGN_CENTER);
+    m_tempCtrl_bed->AddTemp(0); // zero is default temp
     m_tempCtrl_bed->SetMinTemp(bed_temp_range[0]);
     m_tempCtrl_bed->SetMaxTemp(bed_temp_range[1]);
     m_tempCtrl_bed->SetMinSize(TEMP_CTRL_MIN_SIZE_ALIGN_ONE_ICON);
@@ -1620,6 +1623,7 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     wxWindowID frame_id = wxWindow::NewControlId();
     m_tempCtrl_chamber    = new TempInput(parent, frame_id, TEMP_BLANK_STR, TempInputType::TEMP_OF_NORMAL_TYPE, TEMP_BLANK_STR, wxString("monitor_frame_temp"),
         wxString("monitor_frame_temp_active"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
+    m_tempCtrl_chamber->AddTemp(0); // zero is default temp
     m_tempCtrl_chamber->SetReadOnly(true);
     m_tempCtrl_chamber->SetMinTemp(default_champer_temp_min);
     m_tempCtrl_chamber->SetMaxTemp(default_champer_temp_max);
@@ -2974,6 +2978,7 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
         m_tempCtrl_chamber->Enable();
         m_tempCtrl_chamber->SetMinTemp(obj->chamber_temp_edit_min);
         m_tempCtrl_chamber->SetMaxTemp(obj->chamber_temp_edit_max);
+        m_tempCtrl_chamber->AddTemp(0); // zero is default temp
         wxCursor cursor(wxCURSOR_IBEAM);
         m_tempCtrl_chamber->GetTextCtrl()->SetCursor(cursor);
 
