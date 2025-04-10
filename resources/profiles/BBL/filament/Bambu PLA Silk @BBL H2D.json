@@ -15,11 +15,11 @@
     "counter_coef_3": [
         "-0.01"
     ],
-    "counter_limit_max": [
-        "0.05"
-    ],
     "counter_limit_min": [
         "-0.05"
+    ],
+    "counter_limit_max": [
+        "0.05"
     ],
     "filament_deretraction_speed": [
         "nil",
@@ -36,6 +36,10 @@
     "filament_max_volumetric_speed": [
         "12",
         "12"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
     ],
     "filament_retract_before_wipe": [
         "nil",
@@ -85,10 +89,6 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
-    "filament_ramming_volumetric_speed": [
-        "-1",
-        "-1"
-    ],
     "filament_pre_cooling_temperature": [
         "0",
         "0"
@@ -110,6 +110,9 @@
     "nozzle_temperature_initial_layer": [
         "230",
         "230"
+    ],
+    "pre_start_fan_time": [
+        "2"
     ],
     "slow_down_layer_time": [
         "6"

@@ -21,6 +21,10 @@
         "21",
         "21"
     ],
+    "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
+    ],
     "filament_retract_before_wipe": [
         "nil",
         "nil"
@@ -69,10 +73,6 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
-    "filament_ramming_volumetric_speed": [
-        "-1",
-        "-1"
-    ],
     "filament_pre_cooling_temperature": [
         "0",
         "0"
@@ -88,6 +88,9 @@
     "nozzle_temperature_initial_layer": [
         "220",
         "220"
+    ],
+    "pre_start_fan_time": [
+        "2"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle",

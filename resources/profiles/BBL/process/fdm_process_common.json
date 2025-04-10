@@ -69,6 +69,9 @@
     "overhang_totally_speed": [
         "10"
     ],
+    "pre_start_fan_time": [
+        "0"
+    ],
     "prime_tower_width": "35",
     "print_sequence": "by layer",
     "print_settings_id": "",

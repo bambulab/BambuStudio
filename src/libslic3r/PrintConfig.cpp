@@ -931,7 +931,7 @@ void PrintConfigDef::init_fff_params()
     def->min      = 0.;
     def->max      = 5.;
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats{2.0});
+    def->set_default_value(new ConfigOptionFloats{0.0});
 
     def = this->add("overhang_fan_threshold", coEnums);
     def->label = L("Cooling overhang threshold");
