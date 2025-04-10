@@ -14,11 +14,11 @@
     "counter_coef_3": [
         "-0.32"
     ],
-    "counter_limit_max": [
-        "0.05"
-    ],
     "counter_limit_min": [
         "-0.4"
+    ],
+    "counter_limit_max": [
+        "0.05"
     ],
     "fan_max_speed": [
         "80"
@@ -41,6 +41,10 @@
     "filament_max_volumetric_speed": [
         "28",
         "48"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
     ],
     "filament_retract_before_wipe": [
         "nil",
@@ -90,10 +94,6 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
-    "filament_ramming_volumetric_speed": [
-        "-1",
-        "-1"
-    ],
     "filament_pre_cooling_temperature": [
         "0",
         "0"
@@ -115,6 +115,9 @@
     "nozzle_temperature_initial_layer": [
         "220",
         "220"
+    ],
+    "pre_start_fan_time": [
+        "2"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle",
