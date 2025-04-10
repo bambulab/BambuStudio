@@ -68,6 +68,7 @@
 		"printer_arch": "core_xy",
 		"printer_series": "series_o",
 		"has_cali_line": true,
-		"printer_is_enclosed": true
+		"printer_is_enclosed": true,
+		"enable_set_nozzle_info": false
 	}
 }
