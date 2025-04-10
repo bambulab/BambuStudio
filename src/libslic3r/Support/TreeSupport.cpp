@@ -2947,9 +2947,6 @@ void TreeSupport::drop_nodes()
                             }
                         }
                         if (p_node->valid && can_merge) {
-                            node.distance_to_top           = std::max(node.distance_to_top, neighbour_node->distance_to_top);
-                            node.support_roof_layers_below = std::max(node.support_roof_layers_below, neighbour_node->support_roof_layers_below);
-                            node.dist_mm_to_top            = std::max(node.dist_mm_to_top, neighbour_node->dist_mm_to_top);
                             node.merged_neighbours.push_front(neighbour_node);
                             node.merged_neighbours.insert(node.merged_neighbours.end(), neighbour_node->merged_neighbours.begin(), neighbour_node->merged_neighbours.end());
                             neighbour_node->valid = false;
