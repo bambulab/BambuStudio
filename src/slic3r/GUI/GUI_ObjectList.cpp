@@ -2410,7 +2410,7 @@ void GUI::ObjectList::add_new_model_object_from_old_object() {
     ModelObject *       new_object = model.add_object();
     new_object->name               = into_u8(_L("Sub-merged body"));
     new_object->add_instance(); // each object should have at least one instance
-    int min_extruder = (int) EnforcerBlockerType::ExtruderMax - 1;
+    int min_extruder = (int) EnforcerBlockerType::ExtruderMax;
     for (auto mv : sel_volumes) {
         new_object->add_volume(*mv, mv->type());
         auto option = mv->config.option("extruder");
@@ -2419,6 +2419,9 @@ void GUI::ObjectList::add_new_model_object_from_old_object() {
             if (min_extruder > volume_extruder_id) {
                 min_extruder = volume_extruder_id;
             }
+        } else {
+            auto opt = mo->config.option("extruder");
+            if (opt && min_extruder != opt->getInt()) { min_extruder = opt->getInt(); }
         }
     }
     new_object->sort_volumes(true);
