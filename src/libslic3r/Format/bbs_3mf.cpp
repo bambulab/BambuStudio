@@ -1760,8 +1760,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         if (m_bambuslicer_generator_version) {
             Semver app_version = *(Semver::parse(SLIC3R_VERSION));
             Semver file_version = *m_bambuslicer_generator_version;
-            if (file_version.maj() > app_version.maj())
-                dont_load_config = true;
+           /* if (file_version.maj() > app_version.maj())
+                dont_load_config = true;*/
         }
         else {
             m_bambuslicer_generator_version = Semver::parse("0.0.0.0");
