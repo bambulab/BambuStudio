@@ -796,17 +796,22 @@ bool MachineObject::is_extrusion_cali_finished()
 
 void MachineObject::_parse_tray_now(std::string tray_now)
 {
-    m_tray_now = tray_now;
     if (tray_now.empty()) {
         return;
     } else {
         try {
             int tray_now_int = atoi(tray_now.c_str());
+
             if (tray_now_int == VIRTUAL_TRAY_MAIN_ID) {
                 m_ams_id = "0";
                 m_tray_id = "0";
                 m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id  = "";
                 m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id = "";
+
+                if (m_tray_now == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
+                    m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id  = std::to_string(VIRTUAL_TRAY_MAIN_ID);
+                    m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id = "0";
+                }
             }
             else if (tray_now_int == VIRTUAL_TRAY_DEPUTY_ID) {
                 m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id  = std::to_string(VIRTUAL_TRAY_MAIN_ID);
@@ -827,6 +832,8 @@ void MachineObject::_parse_tray_now(std::string tray_now)
         catch(...) {
         }
     }
+
+    m_tray_now = tray_now;
 }
 
 Ams *MachineObject::get_curr_Ams()
