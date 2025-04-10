@@ -5255,7 +5255,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     }
                     else if (load_config && (file_version.maj() > app_version.maj())) {
                         // version mismatch, only load geometries
-                        load_config = false;
+                        //load_config = false;
                         if (!load_model) {
                             // only load config case, return directly
                             show_info(q, _L("The Config can not be loaded."), _L("Load 3mf"));
@@ -5264,20 +5264,20 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         }
                         load_old_project = true;
                         // select view to 3D
-                        q->select_view_3D("3D");
+                        //q->select_view_3D("3D");
                         // select plate 0 as default
-                        q->select_plate(0);
+                        //q->select_plate(0);
                         if (load_type != LoadType::LoadGeometry) {
                             if (en_3mf_file_type == En3mfType::From_BBS)
                                 show_info(q, _L("Due to the lower version of Bambu Studio, this 3mf file cannot be fully loaded. Please update Bambu Studio to the latest version"), _L("Load 3mf"));
                             else
                                 show_info(q, _L("The 3mf is not from Bambu Lab, load geometry data only."), _L("Load 3mf"));
                         }
-                        for (ModelObject *model_object : model.objects) {
-                            model_object->config.reset();
-                            // Is there any modifier or advanced config data?
-                            for (ModelVolume *model_volume : model_object->volumes) model_volume->config.reset();
-                        }
+                        //for (ModelObject *model_object : model.objects) {
+                        //    model_object->config.reset();
+                        //    // Is there any modifier or advanced config data?
+                        //    for (ModelVolume *model_volume : model_object->volumes) model_volume->config.reset();
+                        //}
                     }
                     else if (load_config && (file_version > app_version)) {
                         Semver cloud_ver;
