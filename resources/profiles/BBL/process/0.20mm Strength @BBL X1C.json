@@ -11,6 +11,8 @@
     ],
     "smooth_coefficient": "150",
     "sparse_infill_density": "25%",
+    "skeleton_infill_density": "25%",
+    "skin_infill_density": "25%",
     "wall_loops": "6",
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.4 nozzle",

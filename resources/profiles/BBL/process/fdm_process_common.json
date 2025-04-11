@@ -87,7 +87,13 @@
     "skirt_loops": "0",
     "smooth_coefficient": "80",
     "sparse_infill_density": "15%",
+    "skeleton_infill_density": "15%",
+    "skin_infill_density": "15%",
     "sparse_infill_line_width": "0.45",
+    "skin_infill_line_width": "0.45",
+    "infill_lock_depth": "1.0",
+    "skin_infill_depth": "2.0",
+    "skeleton_infill_line_width": "0.45",
     "sparse_infill_pattern": "grid",
     "sparse_infill_speed": [
         "50"

@@ -1452,6 +1452,22 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
+    if (opt_key == "sparse_infill_density") {
+        ConfigOptionPercent density  = *m_config->option<ConfigOptionPercent>("sparse_infill_density");
+        DynamicPrintConfig new_conf = *m_config;
+        new_conf.set_key_value("skeleton_infill_density", new ConfigOptionPercent(density));
+        new_conf.set_key_value("skin_infill_density", new ConfigOptionPercent(density));
+        m_config_manipulation.apply(m_config, &new_conf);
+    }
+
+    if (opt_key == "sparse_infill_line_width") {
+        ConfigOptionFloat  line_width  = *m_config->option<ConfigOptionFloat>("sparse_infill_line_width");
+        DynamicPrintConfig  new_conf = *m_config;
+        new_conf.set_key_value("skin_infill_line_width", new ConfigOptionFloat(line_width));
+        new_conf.set_key_value("skeleton_infill_line_width", new ConfigOptionFloat(line_width));
+        m_config_manipulation.apply(m_config, &new_conf);
+    }
+
     if (opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
         update_wiping_button_visibility();
 
@@ -2184,6 +2200,12 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Sparse infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density");
         optgroup->append_single_option_line("sparse_infill_pattern", "fill-patterns#infill types and their properties of sparse");
+        optgroup->append_single_option_line("skin_infill_density");
+        optgroup->append_single_option_line("skeleton_infill_density");
+        optgroup->append_single_option_line("infill_lock_depth");
+        optgroup->append_single_option_line("skin_infill_depth");
+        optgroup->append_single_option_line("skin_infill_line_width", "parameter/line-width");
+        optgroup->append_single_option_line("skeleton_infill_line_width", "parameter/line-width");
 
         optgroup->append_single_option_line("symmetric_infill_y_axis");
         optgroup->append_single_option_line("infill_shift_step");
