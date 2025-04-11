@@ -2505,6 +2505,19 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             return m_config.filament_vendor.values[idx] == "Bambu Lab";
             }));
 
+        float wipe_tower_center_pos_x= -1.f, wipe_tower_center_pos_y = -1.f;
+        bool wipe_tower_center_pos_valid = false;
+        if (has_wipe_tower) {
+            auto bbx                = print.wipe_tower_data().bbx;
+            bbx.translate(print.get_fake_wipe_tower().pos.cast<double>());
+            wipe_tower_center_pos_x = bbx.center().x();
+            wipe_tower_center_pos_y = bbx.center().y();
+            wipe_tower_center_pos_valid = true;
+        }
+        m_placeholder_parser.set("wipe_tower_center_pos_x", new ConfigOptionFloat(wipe_tower_center_pos_x));
+        m_placeholder_parser.set("wipe_tower_center_pos_y", new ConfigOptionFloat(wipe_tower_center_pos_y));
+        m_placeholder_parser.set("wipe_tower_center_pos_valid", new ConfigOptionBool(wipe_tower_center_pos_valid));
+
         //add during_print_exhaust_fan_speed
         std::vector<int> during_print_exhaust_fan_speed_num;
         during_print_exhaust_fan_speed_num.reserve(m_config.during_print_exhaust_fan_speed.size());
