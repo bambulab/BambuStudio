@@ -94,6 +94,9 @@
         "0",
         "0"
     ],
+    "filament_printable": [
+        "1"
+    ],
     "nozzle_temperature": [
         "320",
         "320"

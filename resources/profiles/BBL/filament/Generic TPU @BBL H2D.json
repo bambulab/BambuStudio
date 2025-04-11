@@ -86,6 +86,9 @@
         "20",
         "20"
     ],
+    "filament_printable": [
+        "2"
+    ],
     "nozzle_temperature": [
         "240",
         "240"
