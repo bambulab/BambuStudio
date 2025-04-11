@@ -1214,7 +1214,11 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
             continue;
         }
         auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
-        printer_tab->set_extruder_volume_type(index, NozzleVolumeType(obj->m_extder_data.extders[extruder_id].current_nozzle_flow_type - 1));
+        NozzleVolumeType target_type = NozzleVolumeType::nvtStandard;
+        // hack code, only use standard flow for 0.2
+        if (std::fabs(nozzle_diameters[extruder_id] - 0.2) > EPSILON)
+            target_type = NozzleVolumeType(obj->m_extder_data.extders[extruder_id].current_nozzle_flow_type - 1);
+        printer_tab->set_extruder_volume_type(index, target_type);
     }
 
     int deputy_4 = 0, main_4 = 0, deputy_1 = 0, main_1 = 0;
@@ -2291,21 +2295,26 @@ void Sidebar::update_presets(Preset::Type preset_type)
         auto extruders = printer_preset.config.option<ConfigOptionEnumsGeneric>("extruder_type");
         auto nozzle_volumes_def = wxGetApp().preset_bundle->project_config.def()->get("nozzle_volume_type");
         auto nozzle_volumes = wxGetApp().preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-        auto update_extruder_variant = [extruders_def, extruders, nozzle_volumes_def, nozzle_volumes, extruder_variants](ExtruderGroup & extruder, int index) {
+        auto diameters = wxGetApp().preset_bundle->printers.diameters_of_selected_printer();
+        auto diameter = printer_preset.config.opt_string("printer_variant");
+        auto update_extruder_variant = [extruders_def, extruders, nozzle_volumes_def, nozzle_volumes, extruder_variants,diameter](ExtruderGroup & extruder, int index) {
             extruder.combo_flow->Clear();
             auto type = extruders_def->enum_labels[extruders->values[index]];
             int select = -1;
             for (size_t i = 0; i < nozzle_volumes_def->enum_labels.size(); ++i) {
                 if (boost::algorithm::contains(extruder_variants->values[index], type + " " + nozzle_volumes_def->enum_labels[i])) {
+                    if (diameter == "0.2" && nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[i]) == NozzleVolumeType::nvtHighFlow)
+                        continue;
                     if (nozzle_volumes->values[index] == i)
                         select = extruder.combo_flow->GetCount();
                     extruder.combo_flow->Append(_L(nozzle_volumes_def->enum_labels[i]), {}, (void*)i);
                 }
             }
+            if (select == -1)
+                select = extruder.combo_flow->GetCount() - 1;
             extruder.combo_flow->SetSelection(select);
         };
-        auto diameters = wxGetApp().preset_bundle->printers.diameters_of_selected_printer();
-        auto diameter = printer_preset.config.opt_string("printer_variant");
+
         auto update_extruder_diameter = [&diameters, &diameter](ExtruderGroup & extruder) {
             extruder.combo_diameter->Clear();
             int select = -1;
