@@ -2192,6 +2192,8 @@ static void connect_monotonic_regions(std::vector<MonotonicRegion> &regions, con
 			    for (;;) {
 				    MapType key(rbegin, nullptr);
 				    auto it = std::lower_bound(map_intersection_to_region_start.begin(), map_intersection_to_region_start.end(), key);
+                    if (it == map_intersection_to_region_start.end() || it->first != key.first)
+                        break;
 				    assert(it != map_intersection_to_region_start.end() && it->first == key.first);
 				    it->second->left_neighbors.emplace_back(&region);
 				    SegmentIntersection *rnext = &vertical_run_top(vline_right, *rbegin);
