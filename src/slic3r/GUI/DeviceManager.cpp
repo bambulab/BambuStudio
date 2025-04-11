@@ -5137,40 +5137,60 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     BOOST_LOG_TRIVIAL(info) << "extrusion_cali_sel: " << str;
 #endif
                     int ams_id       = -1;
+                    int slot_id      = -1;
                     int tray_id      = -1;
-                    int curr_tray_id = -1;
-                    if (jj.contains("tray_id")) {
+
+                    if (jj.contains("ams_id")) {
                         try {
-                            curr_tray_id = jj["tray_id"].get<int>();
-                            if (curr_tray_id == VIRTUAL_TRAY_MAIN_ID)
-                                tray_id = curr_tray_id;
-                            else if (curr_tray_id >= 0 && curr_tray_id < 16) {
-                                ams_id  = curr_tray_id / 4;
-                                tray_id = curr_tray_id % 4;
-                            } else {
-                                BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_sel: unsupported tray_id = " << curr_tray_id;
-                            }
+                            ams_id  = jj["ams_id"].get<int>();
+                            slot_id = jj["slot_id"].get<int>();
                         } catch (...) {
                             ;
                         }
                     }
-                    if (tray_id == VIRTUAL_TRAY_MAIN_ID) {
-                        if (jj.contains("cali_idx")) {
-                            vt_slot[0].cali_idx = jj["cali_idx"].get<int>();
-                            vt_slot[0].set_hold_count();
+                    else {
+                        tray_id = jj["tray_id"].get<int>();
+                        if(tray_id >= 0 && tray_id < 16)
+                        {
+                            ams_id  = tray_id / 4;
+                            slot_id = tray_id % 4;
                         }
-                    } else {
-                        auto ams_item = this->amsList.find(std::to_string(ams_id));
-                        if (ams_item != this->amsList.end()) {
-                            auto tray_item = ams_item->second->trayList.find(std::to_string(tray_id));
-                            if (tray_item != ams_item->second->trayList.end()) {
-                                if (jj.contains("cali_idx")) {
+                        else if(tray_id == VIRTUAL_TRAY_MAIN_ID || tray_id == VIRTUAL_TRAY_DEPUTY_ID){
+                            ams_id  = tray_id;
+                            slot_id = 0;
+                        }
+                    }
+
+                    BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_sel: unsupported ams_id = " << ams_id << "slot_id = " << slot_id;
+
+                    if (jj.contains("cali_idx")) {
+                        if (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
+
+                            if (ams_id == VIRTUAL_TRAY_MAIN_ID && vt_slot.size() > 0) {
+
+                                vt_slot[MAIN_NOZZLE_ID].cali_idx = jj["cali_idx"].get<int>();
+                                vt_slot[MAIN_NOZZLE_ID].set_hold_count();
+
+                            } else if (ams_id == VIRTUAL_TRAY_DEPUTY_ID && vt_slot.size() > 1) {
+
+                                vt_slot[DEPUTY_NOZZLE_ID].cali_idx = jj["cali_idx"].get<int>();
+                                vt_slot[DEPUTY_NOZZLE_ID].set_hold_count();
+
+                            }
+
+                        }
+                        else {
+                            auto ams_item = this->amsList.find(std::to_string(ams_id));
+                            if (ams_item != this->amsList.end()) {
+                                auto tray_item = ams_item->second->trayList.find(std::to_string(slot_id));
+                                if (tray_item != ams_item->second->trayList.end()) {
                                     tray_item->second->cali_idx = jj["cali_idx"].get<int>();
                                     tray_item->second->set_hold_count();
                                 }
                             }
                         }
                     }
+
                 }
                 else if (jj["command"].get<std::string>() == "extrusion_cali_get") {
                     std::string str = jj.dump();
