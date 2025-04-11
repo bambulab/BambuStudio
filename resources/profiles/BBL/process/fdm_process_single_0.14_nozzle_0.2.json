@@ -22,6 +22,8 @@
     "outer_wall_line_width": "0.22",
     "ironing_inset": "0.11",
     "sparse_infill_line_width": "0.22",
+    "skin_infill_line_width": "0.22",
+    "skeleton_infill_line_width": "0.22",
     "sparse_infill_speed": [
         "100"
     ],

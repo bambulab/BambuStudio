@@ -54,7 +54,7 @@ enum AuthorizationType {
 enum InfillPattern : int {
     ipConcentric, ipRectilinear, ipGrid, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
     ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipSupportCubic, ipSupportBase, ipConcentricInternal,
-    ipLightning, ipCrossHatch, ipZigZag, ipCrossZag,ipFloatingConcentric,
+    ipLightning, ipCrossHatch, ipZigZag, ipCrossZag,ipFloatingConcentric, ipLockedZag,
     ipCount,
 };
 
@@ -909,7 +909,11 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool, symmetric_infill_y_axis))
     ((ConfigOptionFloat, infill_shift_step))
     ((ConfigOptionFloat, infill_rotate_step))
+    ((ConfigOptionPercent, skeleton_infill_density))
+    ((ConfigOptionPercent, skin_infill_density))
     ((ConfigOptionPercent, sparse_infill_density))
+    ((ConfigOptionFloat, infill_lock_depth))
+    ((ConfigOptionFloat, skin_infill_depth))
     ((ConfigOptionEnum<InfillPattern>, sparse_infill_pattern))
     ((ConfigOptionEnum<FuzzySkinType>, fuzzy_skin))
     ((ConfigOptionFloat, fuzzy_skin_thickness))
@@ -917,6 +921,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsNullable, gap_infill_speed))
     ((ConfigOptionInt, sparse_infill_filament))
     ((ConfigOptionFloat, sparse_infill_line_width))
+    ((ConfigOptionFloat, skin_infill_line_width))
+    ((ConfigOptionFloat, skeleton_infill_line_width))
     ((ConfigOptionPercent, infill_wall_overlap))
     ((ConfigOptionFloatsNullable, sparse_infill_speed))
     //BBS

@@ -29,6 +29,8 @@
         "5"
     ],
     "sparse_infill_line_width": "0.82",
+    "skin_infill_line_width": "0.82",
+    "skeleton_infill_line_width": "0.82",
     "sparse_infill_speed": [
         "100"
     ],

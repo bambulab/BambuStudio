@@ -11,6 +11,8 @@
     ],
     "elefant_foot_compensation": "0.075",
     "sparse_infill_density": "25%",
+    "skeleton_infill_density": "25%",
+    "skin_infill_density": "25%",
     "travel_speed": [
         "700"
     ],
