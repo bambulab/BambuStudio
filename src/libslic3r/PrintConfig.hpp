@@ -1031,6 +1031,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBools,               filament_soluble))
     ((ConfigOptionStrings,             filament_ids))
     ((ConfigOptionBools,               filament_is_support))
+    ((ConfigOptionInts,                filament_printable))
     ((ConfigOptionEnumsGeneric,        filament_scarf_seam_type))
     ((ConfigOptionFloatsOrPercents,    filament_scarf_height))
     ((ConfigOptionFloatsOrPercents,    filament_scarf_gap))
@@ -1134,8 +1135,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionPoints,             bed_exclude_area))
     ((ConfigOptionPoints,             head_wrap_detect_zone))
     // BBS
-    ((ConfigOptionStrings,            unprintable_filament_types))
-    ((ConfigOptionStrings,            printable_filament_types))
     ((ConfigOptionString,             bed_custom_texture))
     ((ConfigOptionString,             bed_custom_model))
     ((ConfigOptionEnum<BedType>,      curr_bed_type))

@@ -59,6 +59,7 @@ struct FilamentBaseInfo
     int nozzle_temp_range_high{ 220 };
     bool is_support{ false };
     bool is_system{ true };
+    int  filament_printable = 3;
 };
 
 // Bundle of Print + Filament + Printer presets.
@@ -122,7 +123,7 @@ public:
     //BBS: get vendor's current version
     Semver get_vendor_profile_version(std::string vendor_name);
 
-    std::optional<FilamentBaseInfo> get_filament_by_filament_id(const std::string& filament_id) const;
+    std::optional<FilamentBaseInfo> get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name = std::string()) const;
 
     //BBS: project embedded preset logic
     PresetsConfigSubstitutions load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule);
