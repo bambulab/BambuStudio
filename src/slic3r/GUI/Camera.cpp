@@ -87,6 +87,12 @@ void Camera::select_view(const std::string& direction)
 {
     if (direction == "iso")
         set_iso_orientation();
+    else if (direction == "iso_1")
+        set_iso_orientation(ViewAngleType::Iso_1);
+    else if (direction == "iso_2")
+        set_iso_orientation(ViewAngleType::Iso_2);
+    else if (direction == "iso_3")
+        set_iso_orientation(ViewAngleType::Iso_3);
     else if (direction == "left")
         look_at(m_target - m_distance * Vec3d::UnitX(), m_target, Vec3d::UnitZ());
     else if (direction == "right")
@@ -99,17 +105,26 @@ void Camera::select_view(const std::string& direction)
         look_at(m_target - m_distance * Vec3d::UnitY(), m_target, Vec3d::UnitZ());
     else if (direction == "rear")
         look_at(m_target + m_distance * Vec3d::UnitY(), m_target, Vec3d::UnitZ());
-    else if (direction == "topfront")
+    else if (direction == "topfront" || "plate")
         look_at(m_target - 0.707 * m_distance * Vec3d::UnitY() + 0.707 * m_distance * Vec3d::UnitZ(), m_target, Vec3d::UnitY() + Vec3d::UnitZ());
-    else if (direction == "plate") {
-        look_at(m_target - 0.707 * m_distance * Vec3d::UnitY() + 0.707 * m_distance * Vec3d::UnitZ(), m_target, Vec3d::UnitY() + Vec3d::UnitZ());
-    }
 }
 void Camera::select_view(ViewAngleType type)
 {
     switch (type) {
     case Slic3r::GUI::Camera::ViewAngleType::Iso: {
         select_view("iso");
+        break;
+    }
+    case Slic3r::GUI::Camera::ViewAngleType::Iso_1: {
+        select_view("iso_1");
+        break;
+    }
+    case Slic3r::GUI::Camera::ViewAngleType::Iso_2: {
+        select_view("iso_2");
+        break;
+    }
+    case Slic3r::GUI::Camera::ViewAngleType::Iso_3: {
+        select_view("iso_3");
         break;
     }
     case Slic3r::GUI::Camera::ViewAngleType::Top_Front: {
@@ -746,28 +761,30 @@ void Camera::look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up
 void Camera::set_default_orientation()
 {
     // BBS modify default orientation
-    look_at(m_target - 0.707 * m_distance * Vec3d::UnitY() + 0.707 * m_distance * Vec3d::UnitZ(), m_target, Vec3d::UnitY() + Vec3d::UnitZ());
-
-    /*m_zenit = 45.0f;
-    const double theta_rad = Geometry::deg2rad(-(double)m_zenit);
-    const double phi_rad = Geometry::deg2rad(45.0);
-    const double sin_theta = ::sin(theta_rad);
-    const Vec3d camera_pos = m_target + m_distance * Vec3d(sin_theta * ::sin(phi_rad), sin_theta * ::cos(phi_rad), ::cos(theta_rad));
-    m_view_rotation = Eigen::AngleAxisd(theta_rad, Vec3d::UnitX()) * Eigen::AngleAxisd(phi_rad, Vec3d::UnitZ());
-    m_view_rotation.normalize();
-    m_view_matrix.fromPositionOrientationScale(m_view_rotation * (-camera_pos), m_view_rotation, Vec3d::Ones());*/
+    select_view("topfront");
 }
 
-void Camera::set_iso_orientation()
+void Camera::set_iso_orientation(ViewAngleType va_type)
 {
-    m_zenit = 45.0f;
-    const double theta_rad = Geometry::deg2rad(-(double)m_zenit);
-    const double phi_rad = Geometry::deg2rad(45.0);
-    const double sin_theta = ::sin(theta_rad);
-    const Vec3d camera_pos = m_target + m_distance * Vec3d(sin_theta * ::sin(phi_rad), sin_theta * ::cos(phi_rad), ::cos(theta_rad));
-    m_view_rotation = Eigen::AngleAxisd(theta_rad, Vec3d::UnitX()) * Eigen::AngleAxisd(phi_rad, Vec3d::UnitZ());
+    if (!(va_type == ViewAngleType::Iso || va_type == ViewAngleType::Iso_1 || va_type == ViewAngleType::Iso_2 ||va_type == ViewAngleType::Iso_3)) {
+        return;
+    }
+    Vec3d dir = Vec3d(-0.5f, -0.5f, std::sqrt(2) / 2.f);
+    m_view_rotation = Eigen::AngleAxisd(Geometry::deg2rad(-45.0), Vec3d::UnitX()) * Eigen::AngleAxisd(Geometry::deg2rad(45.0), Vec3d::UnitZ());
+    if (va_type == ViewAngleType::Iso_1) {
+        dir             = Vec3d(-0.5f, 0.5f, std::sqrt(2) / 2.f);
+        m_view_rotation = Eigen::AngleAxisd(Geometry::deg2rad(-45.0), Vec3d::UnitX()) * Eigen::AngleAxisd(Geometry::deg2rad(135.0), Vec3d::UnitZ());
+    } else if (va_type == ViewAngleType::Iso_2) {
+        dir             = Vec3d(0.5f, 0.5f, std::sqrt(2) / 2.f);
+        m_view_rotation = Eigen::AngleAxisd(Geometry::deg2rad(-45.0), Vec3d::UnitX()) * Eigen::AngleAxisd(Geometry::deg2rad(225.0), Vec3d::UnitZ());
+    } else if (va_type == ViewAngleType::Iso_3) {
+        dir             = Vec3d(0.5f, -0.5f, std::sqrt(2) / 2.f);
+        m_view_rotation = Eigen::AngleAxisd(Geometry::deg2rad(-45.0), Vec3d::UnitX()) * Eigen::AngleAxisd(Geometry::deg2rad(315.0), Vec3d::UnitZ());
+    }
     m_view_rotation.normalize();
+    const Vec3d camera_pos = m_target + m_distance * dir;
     m_view_matrix.fromPositionOrientationScale(m_view_rotation * (-camera_pos), m_view_rotation, Vec3d::Ones());
+    update_zenit();
 }
 
 
@@ -788,7 +805,8 @@ Vec3d Camera::validate_target(const Vec3d& target) const
 
 void Camera::update_zenit()
 {
-    m_zenit = Geometry::rad2deg(0.5 * M_PI - std::acos(std::clamp(-get_dir_forward().dot(Vec3d::UnitZ()), -1.0, 1.0))); }
+    m_zenit = Geometry::rad2deg(0.5 * M_PI - std::acos(std::clamp(-get_dir_forward().dot(Vec3d::UnitZ()), -1.0, 1.0)));
+}
 
 void Camera::update_target() {
     Vec3d temptarget = get_position() + m_distance * get_dir_forward();
