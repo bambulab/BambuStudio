@@ -3659,7 +3659,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case '4': { select_view("rear"); break; }
         case '5': { select_view("left"); break; }
         case '6': { select_view("right"); break; }
-        case '7': { select_plate(); break; }
+        case '7': { select_view("iso");break; }
 #ifdef __APPLE__
         case 'k':
         case 'K':
@@ -4052,7 +4052,11 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                         }
                         case '7':
                         case WXK_NUMPAD7: //7 on numpad
-                            { select_plate(); break; }
+                        {
+                            select_view("iso");
+                            m_gizmos.update_paint_base_camera_rotate_rad();
+                            break;
+                        }
                         default: break;
                     }
                 }

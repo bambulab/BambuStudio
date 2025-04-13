@@ -247,8 +247,9 @@ void KBShortcutsDialog::fill_shortcuts()
             {ctrl + "2", L("Camera view - Bottom")},
             {ctrl + "3", L("Camera view - Front")},
             {ctrl + "4", L("Camera view - Behind")},
-            {ctrl + "5", L("Camera Angle - Left side")},
-            {ctrl + "6", L("Camera Angle - Right side")},
+            {ctrl + "5", L("Camera view - Left")},
+            {ctrl + "6", L("Camera view - Right")},
+            {ctrl + "7", L("Camera view - Isometric")},
 
             {ctrl + "A", L("Select all objects")},
             {ctrl + L("Shift+D"), L("Delete all")},

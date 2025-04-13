@@ -43,6 +43,9 @@ struct Camera
         Rear,
         Count_ViewAngleType,
         Top_Plate,//for 3mf and Skip parts
+        Iso_1,//clockwise rotate 90 degrees on the basis of Iso
+        Iso_2,//clockwise rotate 180 degrees on the basis of Iso
+        Iso_3,//clockwise rotate 270 degrees on the basis of Iso
     };
     bool requires_zoom_to_bed{ false };
     //BBS
@@ -178,7 +181,7 @@ private:
     void   set_distance(double distance);
 
     void set_default_orientation();
-    void set_iso_orientation();
+    void set_iso_orientation(ViewAngleType va_type = ViewAngleType::Iso);
     Vec3d validate_target(const Vec3d& target) const;
     void update_zenit();
     void update_target();
