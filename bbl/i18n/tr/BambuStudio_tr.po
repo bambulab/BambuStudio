@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-07 16:37+0800\n"
+"POT-Creation-Date: 2025-04-14 11:55+0800\n"
 "PO-Revision-Date: 2025-01-12 21:04+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -19,11 +19,17 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.5\n"
 
+msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
+msgstr "Filament mevcut makine ayarları ile uyumlu olmayabilir. Genel filament ön ayarları kullanılacaktır."
+
 msgid "The filament model is unknown. Still using the previous filament preset."
 msgstr "Filament modeli bilinmiyor. Hala önceki filament ön ayarını kullanıyor."
 
-msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
-msgstr "Filament mevcut makine ayarları ile uyumlu olmayabilir. Genel filament ön ayarları kullanılacaktır."
+msgid "The filament model is unknown. Generic filament presets will be used."
+msgstr ""
+
+msgid "The filament may not be compatible with the current machine settings. A random filament preset will be used."
+msgstr ""
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Filament modeli bilinmiyor. Rastgele bir filament ön ayarı kullanılacaktır."
@@ -5619,6 +5625,9 @@ msgstr "Yüksek akış"
 msgid "Nozzle Type"
 msgstr "Nozul tipi"
 
+msgid "Please change the nozzle settings on the printer."
+msgstr ""
+
 msgid "Nozzle Flow"
 msgstr "Nozul Akışı"
 
@@ -6176,6 +6185,9 @@ msgstr "%s dosyası yazıcının depolama alanına gönderildi ve yazıcıda gö
 msgid "The nozzle type is not set. Please set the nozzle and try again."
 msgstr "Nozul tipi ayarlanmamış. Lütfen nozulu ayarlayın ve tekrar deneyin."
 
+msgid "The nozzle type is not set. Please check."
+msgstr ""
+
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr "Model kafesleri üzerinde boolean işlemi gerçekleştirilemiyor. Kafesleri düzeltebilir ve tekrar deneyebilirsiniz."
 
@@ -6515,12 +6527,6 @@ msgstr "Oluşturma performansını lod ile iyileştirin"
 
 msgid "Improved rendering performance under the scene of multiple plates and many models."
 msgstr "Birden fazla plaka ve çok sayıda model sahnesi altında iyileştirilmiş işleme performansı."
-
-msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
-msgstr "Yüksek performanslı GPU kullanmayı tercih edin (Bambu Studio'yu manuel olarak yeniden başlattıktan sonra geçerlidir)"
-
-msgid "If enabled, this feature can improve rendering performance to some extent. However, it may cause flickering on multi-GPU systems, so it is recommended to disable it."
-msgstr "Etkinleştirilirse, bu özellik işleme performansını bir dereceye kadar artırabilir. Ancak, çoklu GPU sistemlerinde titremeye neden olabilir, bu nedenle devre dışı bırakılması önerilir."
 
 msgid "Grabber scale"
 msgstr "Kavrama ölçeği"
@@ -7008,12 +7014,6 @@ msgstr "gönderme tamamlandı"
 msgid "Error code"
 msgstr "Hata kodu"
 
-msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
-msgstr ""
-
-msgid "This process determines the dynamic flow values to improve overall print quality."
-msgstr ""
-
 msgid "High Flow"
 msgstr "Yüksek akış"
 
@@ -7123,6 +7123,12 @@ msgstr "Lütfen yukarıdaki hatayı düzeltin, aksi takdirde yazdırma işlemi d
 msgid "Please click the confirm button if you still want to proceed with printing."
 msgstr "Hala yazdırma işlemine devam etmek istiyorsanız lütfen onayla düğmesine tıklayın."
 
+msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
+msgstr ""
+
+msgid "This process determines the dynamic flow values to improve overall print quality."
+msgstr ""
+
 msgid "Connecting to the printer. Unable to cancel during the connection process."
 msgstr "Yazıcıya bağlanılıyor. Bağlantı işlemi sırasında iptal edilemiyor."
 
@@ -7156,9 +7162,6 @@ msgstr "Mevcut nozul çapı (%.1fmm) dilimleme dosyası (%.1fmm) ile eşleşmiyo
 #, c-format, boost-format
 msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
 msgstr "Yüksek sıcaklıktaki malzemenin (%s) %s nozul ile basılması nozul hasarına neden olabilir, lütfen nozul tipini kontrol edin"
-
-msgid "To map to AMS, enable 'Use AMS' in 'Advanced Options'."
-msgstr ""
 
 msgid "Cool"
 msgstr "Güzel"
@@ -7332,6 +7335,9 @@ msgstr "Tüm ayarları en son kaydedilen ön ayara sıfırlamak için tıklayın
 
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Sorunsuz timeplace için Prime kulesi gereklidir. Prime kulesi olmayan modelde kusurlar olabilir. Prime kulesi'ı devre dışı bırakmak istediğinizden emin misiniz?"
+
+msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
+msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Sorunsuz hızlandırılmış çekim için Prime Tower gereklidir. Prime kulesi olmayan modelde kusurlar olabilir. Prime kulesi'ı etkinleştirmek istiyor musunuz?"
@@ -7988,13 +7994,6 @@ msgid ""
 msgstr ""
 "Not: Renk seçildi, devam etmek için Tamam'ı seçebilirsiniz\n"
 " veya manuel olarak ayarlayabilirsiniz."
-
-msgid ""
-"Waring:The count of newly added and \n"
-" current extruders exceeds 16."
-msgstr ""
-"Uyarı: Yeni eklenen ve\n"
-" mevcut ekstrüderlerin sayısı 16'yı aşıyor."
 
 msgid "—> "
 msgstr "—> "
@@ -8852,8 +8851,17 @@ msgstr " başkalarına çok yakın olduğundan çarpışmalara neden olabilir.\n
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " dışlama alanına çok yakın ve çarpışmalara neden olacak.\n"
 
-msgid "Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing"
-msgstr "Birlikte büyük sıcaklık farkına sahip birden fazla filament basılamaz. Aksi takdirde baskı sırasında ekstruder ve nozul tıkanabilir veya hasar görebilir"
+msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
+
+msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
+msgstr ""
+
+msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
+
+msgid "Printing mid-temp and low-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
 
 msgid "No extrusions under current settings."
 msgstr "Mevcut ayarlarda ekstrüzyon yok."
@@ -11119,8 +11127,8 @@ msgstr "Prime kulesinin duvarı silme yolunun başlangıç noktalarını atlayac
 msgid "Rib wall"
 msgstr "İç takviye duvarı"
 
-msgid "The wall of prime tower will add four ribs"
-msgstr "Prime Tower'ın duvarına dört İç takviye eklenecek"
+msgid "The wall of prime tower will add four ribs and make its cross-section as close to a square as possible, so the width will be fixed."
+msgstr ""
 
 msgid "Fillet wall"
 msgstr "Fileto duvar"
@@ -11724,6 +11732,9 @@ msgstr "%s, %s ile uyumlu değil"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "Flow Dynamics Otomatik Kalibrasyonunda TPU desteklenmiyor."
+
+msgid "Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing"
+msgstr "Birlikte büyük sıcaklık farkına sahip birden fazla filament basılamaz. Aksi takdirde baskı sırasında ekstruder ve nozul tıkanabilir veya hasar görebilir"
 
 #, c-format, boost-format
 msgid ""
@@ -13285,6 +13296,22 @@ msgid ""
 msgstr ""
 "Eğilmeyi önleyin\n"
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını azaltabileceğini biliyor muydunuz."
+
+#~ msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
+#~ msgstr "Yüksek performanslı GPU kullanmayı tercih edin (Bambu Studio'yu manuel olarak yeniden başlattıktan sonra geçerlidir)"
+
+#~ msgid "If enabled, this feature can improve rendering performance to some extent. However, it may cause flickering on multi-GPU systems, so it is recommended to disable it."
+#~ msgstr "Etkinleştirilirse, bu özellik işleme performansını bir dereceye kadar artırabilir. Ancak, çoklu GPU sistemlerinde titremeye neden olabilir, bu nedenle devre dışı bırakılması önerilir."
+
+#~ msgid ""
+#~ "Waring:The count of newly added and \n"
+#~ " current extruders exceeds 16."
+#~ msgstr ""
+#~ "Uyarı: Yeni eklenen ve\n"
+#~ " mevcut ekstrüderlerin sayısı 16'yı aşıyor."
+
+#~ msgid "The wall of prime tower will add four ribs"
+#~ msgstr "Prime Tower'ın duvarına dört İç takviye eklenecek"
 
 #~ msgid "Currently only External Spool is available, color mapping is prohibited, and control pop-up drop-down boxes are also prohibited."
 #~ msgstr "Şu anda yalnızca Harici Biriktirme kullanılabilir, renk eşleme engellenmiştir ve kontrol açılır kutuları da engellenmiştir."

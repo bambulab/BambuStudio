@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-07 16:37+0800\n"
+"POT-Creation-Date: 2025-04-14 11:55+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -10,11 +10,17 @@ msgstr ""
 "X-Generator: Localazy (https://localazy.com)\n"
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
 
+msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
+msgstr "Filamentet kanske inte är kompatibelt med de aktuella maskin inställningarna. Generiska filament inställningar kommer att användas."
+
 msgid "The filament model is unknown. Still using the previous filament preset."
 msgstr "Filament typen är okänd. Använder fortfarande den tidigare filament inställningen."
 
-msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
-msgstr "Filamentet kanske inte är kompatibelt med de aktuella maskin inställningarna. Generiska filament inställningar kommer att användas."
+msgid "The filament model is unknown. Generic filament presets will be used."
+msgstr ""
+
+msgid "The filament may not be compatible with the current machine settings. A random filament preset will be used."
+msgstr ""
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Filament typen är okänd. En slumpmässig filament inställning kommer att användas."
@@ -5601,6 +5607,9 @@ msgstr "Högt flöde"
 msgid "Nozzle Type"
 msgstr "Nozzel typ"
 
+msgid "Please change the nozzle settings on the printer."
+msgstr ""
+
 msgid "Nozzle Flow"
 msgstr "Nozzle flöde"
 
@@ -6156,6 +6165,9 @@ msgstr "Filen %s har skickats till skrivarens lagringsutrymme och kan visas på 
 msgid "The nozzle type is not set. Please set the nozzle and try again."
 msgstr "Nozzle typ är inte inställt. Vänligen ställ in nozzle och försök igen."
 
+msgid "The nozzle type is not set. Please check."
+msgstr ""
+
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr "Det går inte att utföra booleansk åtgärd på modell meshen. Du kan fixa meshen och försöka igen."
 
@@ -6495,12 +6507,6 @@ msgstr "Förbättra renderingsprestandan med lod"
 
 msgid "Improved rendering performance under the scene of multiple plates and many models."
 msgstr "Förbättrad renderingsprestanda under scenen med flera plattor och många modeller."
-
-msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
-msgstr "Föredrar att använda högpresterande GPU (Effektiv efter manuell omstart av Bambu Studio)"
-
-msgid "If enabled, this feature can improve rendering performance to some extent. However, it may cause flickering on multi-GPU systems, so it is recommended to disable it."
-msgstr "Om den här funktionen aktiveras kan den i viss mån förbättra renderings prestandan. Den kan dock orsaka flimmer på system med flera GPU:er, så vi rekommenderar att du avaktiverar den."
 
 msgid "Grabber scale"
 msgstr "Grip skala"
@@ -6988,12 +6994,6 @@ msgstr "skicka slutförd"
 msgid "Error code"
 msgstr "Felkod"
 
-msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
-msgstr "Detta kontrollerar värmebäddens planhet. Utjämning gör den extruderade höjden enhetlig."
-
-msgid "This process determines the dynamic flow values to improve overall print quality."
-msgstr "Den här processen bestämmer de dynamiska flödesvärdena för att förbättra den övergripande utskriftskvaliteten."
-
 msgid "High Flow"
 msgstr "Högt flöde"
 
@@ -7103,6 +7103,12 @@ msgstr "Fixa felet ovan, annars kan utskriften inte fortsätta."
 msgid "Please click the confirm button if you still want to proceed with printing."
 msgstr "Klicka på knappen Bekräfta om du fortfarande vill fortsätta med utskriften."
 
+msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
+msgstr "Detta kontrollerar värmebäddens planhet. Utjämning gör den extruderade höjden enhetlig."
+
+msgid "This process determines the dynamic flow values to improve overall print quality."
+msgstr "Den här processen bestämmer de dynamiska flödesvärdena för att förbättra den övergripande utskriftskvaliteten."
+
 msgid "Connecting to the printer. Unable to cancel during the connection process."
 msgstr "Ansluter till skrivaren. Det går inte att avbryta under anslutnings processen."
 
@@ -7136,9 +7142,6 @@ msgstr "Det aktuella nozzle diametern (%.1fmm) stämmer inte överens med beredn
 #, c-format, boost-format
 msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
 msgstr "Utskrift av hög temperaturs material(%s) med %s nozzle kan orsaka nozzle skada, vänligen kontrollera nozzle typ"
-
-msgid "To map to AMS, enable 'Use AMS' in 'Advanced Options'."
-msgstr "För att mappa till AMS, aktivera \"Använd AMS\" i \"Avancerade alternativ\"."
 
 msgid "Cool"
 msgstr ""
@@ -7314,6 +7317,9 @@ msgstr "Klicka för att återställa alla inställningar till den senast sparade
 
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Prime tower krävs för smooth timelapse läge. Det kan bli fel på modellen utan ett prime tower. Är du säker på att du vill inaktivera prime tower?"
+
+msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
+msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Prime tower krävs för Smooth timelapse-läge. Det kan bli fel på modellen utan prime tower. Vill du aktivera prime tower?"
@@ -7970,13 +7976,6 @@ msgid ""
 msgstr ""
 "Färgen har valts; du kan välja OK \n"
 " för att fortsätta eller justera den manuellt."
-
-msgid ""
-"Waring:The count of newly added and \n"
-" current extruders exceeds 16."
-msgstr ""
-"Varning: Antalet nyligen tillagda och \n"
-" nuvarande extruders överstiger 16."
 
 msgid "—> "
 msgstr ""
@@ -8834,8 +8833,17 @@ msgstr "är för nära andra och kollisioner kan orsakas.\n"
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " är för nära uteslutningsområdet, och kollisioner kommer att orsakas.\n"
 
-msgid "Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing"
-msgstr "Multipla filament som har större temperatur skillnader kan inte skrivas ut tillsammans. Extruder och nozzel kan blockeras eller skadas under utskrift"
+msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
+
+msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
+msgstr ""
+
+msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
+
+msgid "Printing mid-temp and low-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
 
 msgid "No extrusions under current settings."
 msgstr "Nuvarande inställning har ingen extrudering."
@@ -11104,8 +11112,8 @@ msgstr "Väggen på prime tornet kommer att hoppa över startpunkterna för avst
 msgid "Rib wall"
 msgstr "Ribb vägg"
 
-msgid "The wall of prime tower will add four ribs"
-msgstr "Väggen på prime tornet kommer att lägga till fyra ribbor"
+msgid "The wall of prime tower will add four ribs and make its cross-section as close to a square as possible, so the width will be fixed."
+msgstr ""
 
 msgid "Fillet wall"
 msgstr "Vägg avrundning"
@@ -11711,6 +11719,9 @@ msgstr "%s är inte kompatibel med %s"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "TPU stöds inte för automatisk kalibrering av flödesdynamik."
+
+msgid "Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing"
+msgstr "Multipla filament som har större temperatur skillnader kan inte skrivas ut tillsammans. Extruder och nozzel kan blockeras eller skadas under utskrift"
 
 #, c-format, boost-format
 msgid ""
@@ -13270,6 +13281,25 @@ msgid ""
 msgstr ""
 "Undvik vridning\n"
 "Visste du att när du skriver ut material som är benägna att vrida, såsom ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten för vridning."
+
+#~ msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
+#~ msgstr "Föredrar att använda högpresterande GPU (Effektiv efter manuell omstart av Bambu Studio)"
+
+#~ msgid "If enabled, this feature can improve rendering performance to some extent. However, it may cause flickering on multi-GPU systems, so it is recommended to disable it."
+#~ msgstr "Om den här funktionen aktiveras kan den i viss mån förbättra renderings prestandan. Den kan dock orsaka flimmer på system med flera GPU:er, så vi rekommenderar att du avaktiverar den."
+
+#~ msgid "To map to AMS, enable 'Use AMS' in 'Advanced Options'."
+#~ msgstr "För att mappa till AMS, aktivera \"Använd AMS\" i \"Avancerade alternativ\"."
+
+#~ msgid ""
+#~ "Waring:The count of newly added and \n"
+#~ " current extruders exceeds 16."
+#~ msgstr ""
+#~ "Varning: Antalet nyligen tillagda och \n"
+#~ " nuvarande extruders överstiger 16."
+
+#~ msgid "The wall of prime tower will add four ribs"
+#~ msgstr "Väggen på prime tornet kommer att lägga till fyra ribbor"
 
 #, c-format, boost-format
 #~ msgid ""

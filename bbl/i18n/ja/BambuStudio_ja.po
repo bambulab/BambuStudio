@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-07 16:37+0800\n"
+"POT-Creation-Date: 2025-04-14 11:55+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -13,11 +13,17 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.5\n"
 
+msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
+msgstr "現在のマシン設定とフィラメントの互換性がない可能性があります。汎用フィラメントプリセットが使用されます。"
+
 msgid "The filament model is unknown. Still using the previous filament preset."
 msgstr "フィラメントの種類が不明です。前回使用したフィラメントのプリセットを引き続き使用します。"
 
-msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
-msgstr "現在のマシン設定とフィラメントの互換性がない可能性があります。汎用フィラメントプリセットが使用されます。"
+msgid "The filament model is unknown. Generic filament presets will be used."
+msgstr ""
+
+msgid "The filament may not be compatible with the current machine settings. A random filament preset will be used."
+msgstr ""
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "フィラメントモデルが不明です。ランダムなフィラメントプリセットが使用されます。"
@@ -5566,6 +5572,9 @@ msgstr "高流量"
 msgid "Nozzle Type"
 msgstr "ノズルタイプ"
 
+msgid "Please change the nozzle settings on the printer."
+msgstr ""
+
 msgid "Nozzle Flow"
 msgstr "ノズル流量"
 
@@ -6117,6 +6126,9 @@ msgstr "%sを送信しました、プリンターにて確認できます"
 msgid "The nozzle type is not set. Please set the nozzle and try again."
 msgstr "ノズルの種類が設定されていません。ノズルを設定し直してください。"
 
+msgid "The nozzle type is not set. Please check."
+msgstr ""
+
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr "モデルのメッシュに対してブーリアン演算を実行できません。メッシュを修正して再試行してください。"
 
@@ -6456,12 +6468,6 @@ msgstr "LODによってレンダリング性能を向上させる"
 
 msgid "Improved rendering performance under the scene of multiple plates and many models."
 msgstr "複数のプレートと多くのモデルがあるシーンでレンダリング性能が向上しました。"
-
-msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
-msgstr "高性能GPUを優先的に使用する（Bambu Studioを手動で再起動した後に有効）"
-
-msgid "If enabled, this feature can improve rendering performance to some extent. However, it may cause flickering on multi-GPU systems, so it is recommended to disable it."
-msgstr "これを有効にすると、レンダリング性能がある程度向上する可能性があります。ただし、マルチGPUシステムではフリッカーが発生する場合があるため、無効にすることをお勧めします。"
 
 msgid "Grabber scale"
 msgstr "掴む範囲"
@@ -6949,12 +6955,6 @@ msgstr "送信完了"
 msgid "Error code"
 msgstr "エラーコード:"
 
-msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
-msgstr "これはヒートベッドの平坦度を確認します。レベリングを行うことで、フィラメントの押し出し高さが均一になります。"
-
-msgid "This process determines the dynamic flow values to improve overall print quality."
-msgstr "このプロセスでは、全体的な印刷品質を向上させるための動的流量値を決定します。"
-
 msgid "High Flow"
 msgstr "高流量"
 
@@ -7064,6 +7064,12 @@ msgstr "上記のエラーを修正しないと、印刷を続行できません
 msgid "Please click the confirm button if you still want to proceed with printing."
 msgstr "印刷を続行する場合は、確認ボタンをクリックしてください。"
 
+msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
+msgstr "これはヒートベッドの平坦度を確認します。レベリングを行うことで、フィラメントの押し出し高さが均一になります。"
+
+msgid "This process determines the dynamic flow values to improve overall print quality."
+msgstr "このプロセスでは、全体的な印刷品質を向上させるための動的流量値を決定します。"
+
 msgid "Connecting to the printer. Unable to cancel during the connection process."
 msgstr "プリンタに接続しています。接続処理中はキャンセルできません。"
 
@@ -7097,9 +7103,6 @@ msgstr "現在のノズル径（%.1fmm）とスライスファイル（%.1fmm）
 #, c-format, boost-format
 msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
 msgstr "高温材料（%s）を %s ノズルで造形すると、ノズルが損傷する可能性があります。ノズルの種類を確認してください。"
-
-msgid "To map to AMS, enable 'Use AMS' in 'Advanced Options'."
-msgstr "AMS にマッピングするには、「詳細オプション」で「AMS を使用」を有効にしてください。"
 
 msgid "Cool"
 msgstr "クール"
@@ -7275,6 +7278,9 @@ msgstr "全ての変更をリセットします"
 
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "スムーズなタイムラプスにはプライムタワーが必要です。プライムタワーがない場合、モデルに欠陥が生じる可能性があります。プライムタワーを無効にしてもよろしいですか？"
+
+msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
+msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "タイムラプスをスムーズに行うにはプライムタワーが必要です。プライムタワーがない場合、モデルに欠陥がある可能性があります。プライムタワーを有効にしますか？"
@@ -7916,13 +7922,6 @@ msgid ""
 msgstr ""
 "色が選択されました。「OK」を選択して続行するか、\n"
 "手動で調整することができます。"
-
-msgid ""
-"Waring:The count of newly added and \n"
-" current extruders exceeds 16."
-msgstr ""
-"警告: 新規追加されたエクストルーダーと現在の\n"
-"エクストルーダーの合計数が16を超えています。"
 
 msgid "—> "
 msgstr ""
@@ -8780,8 +8779,17 @@ msgstr "他のオブジェクト に近すぎるので、衝突の可能性が�
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr "除外領域に近すぎます。衝突が発生します。\n"
 
-msgid "Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing"
-msgstr "温度差の大きい複数のフィラメントを一緒に造形することはできません。そうすると、造形中に押出機やノズルが詰まったり、破損したりする可能性があります。"
+msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
+
+msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
+msgstr ""
+
+msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
+
+msgid "Printing mid-temp and low-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
 
 msgid "No extrusions under current settings."
 msgstr "現在の設定では造形しません"
@@ -11047,8 +11055,8 @@ msgstr "プライムタワーの壁は、ワイプパスの開始点をスキッ
 msgid "Rib wall"
 msgstr "リブ壁"
 
-msgid "The wall of prime tower will add four ribs"
-msgstr "プライムタワーの壁に4本のリブが追加されます。"
+msgid "The wall of prime tower will add four ribs and make its cross-section as close to a square as possible, so the width will be fixed."
+msgstr ""
 
 msgid "Fillet wall"
 msgstr "丸み付き壁"
@@ -11653,6 +11661,9 @@ msgstr "%s は %s と互換性がありません"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "TPUは動的流量の自動キャリブレーションに対応していません。"
+
+msgid "Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing"
+msgstr "温度差の大きい複数のフィラメントを一緒に造形することはできません。そうすると、造形中に押出機やノズルが詰まったり、破損したりする可能性があります。"
 
 #, c-format, boost-format
 msgid ""
@@ -13200,6 +13211,25 @@ msgid ""
 msgstr ""
 "反り防止\n"
 "ABSなど反りやすい材料を印刷する場合、ヒートベッド温度を適切に上げることで反りの発生を抑えられることをご存知ですか？"
+
+#~ msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
+#~ msgstr "高性能GPUを優先的に使用する（Bambu Studioを手動で再起動した後に有効）"
+
+#~ msgid "If enabled, this feature can improve rendering performance to some extent. However, it may cause flickering on multi-GPU systems, so it is recommended to disable it."
+#~ msgstr "これを有効にすると、レンダリング性能がある程度向上する可能性があります。ただし、マルチGPUシステムではフリッカーが発生する場合があるため、無効にすることをお勧めします。"
+
+#~ msgid "To map to AMS, enable 'Use AMS' in 'Advanced Options'."
+#~ msgstr "AMS にマッピングするには、「詳細オプション」で「AMS を使用」を有効にしてください。"
+
+#~ msgid ""
+#~ "Waring:The count of newly added and \n"
+#~ " current extruders exceeds 16."
+#~ msgstr ""
+#~ "警告: 新規追加されたエクストルーダーと現在の\n"
+#~ "エクストルーダーの合計数が16を超えています。"
+
+#~ msgid "The wall of prime tower will add four ribs"
+#~ msgstr "プライムタワーの壁に4本のリブが追加されます。"
 
 #, c-format, boost-format
 #~ msgid ""

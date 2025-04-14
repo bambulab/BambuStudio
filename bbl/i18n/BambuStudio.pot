@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-07 16:37+0800\n"
+"POT-Creation-Date: 2025-04-14 11:55+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,10 +18,16 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
+msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
+msgstr ""
+
 msgid "The filament model is unknown. Still using the previous filament preset."
 msgstr ""
 
-msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
+msgid "The filament model is unknown. Generic filament presets will be used."
+msgstr ""
+
+msgid "The filament may not be compatible with the current machine settings. A random filament preset will be used."
 msgstr ""
 
 msgid "The filament model is unknown. A random filament preset will be used."
@@ -5466,6 +5472,9 @@ msgstr ""
 msgid "Nozzle Type"
 msgstr ""
 
+msgid "Please change the nozzle settings on the printer."
+msgstr ""
+
 msgid "Nozzle Flow"
 msgstr ""
 
@@ -5995,6 +6004,9 @@ msgstr ""
 msgid "The nozzle type is not set. Please set the nozzle and try again."
 msgstr ""
 
+msgid "The nozzle type is not set. Please check."
+msgstr ""
+
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr ""
 
@@ -6321,12 +6333,6 @@ msgid "Improve rendering performance by lod"
 msgstr ""
 
 msgid "Improved rendering performance under the scene of multiple plates and many models."
-msgstr ""
-
-msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
-msgstr ""
-
-msgid "If enabled, this feature can improve rendering performance to some extent. However, it may cause flickering on multi-GPU systems, so it is recommended to disable it."
 msgstr ""
 
 msgid "Grabber scale"
@@ -6809,12 +6815,6 @@ msgstr ""
 msgid "Error code"
 msgstr ""
 
-msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
-msgstr ""
-
-msgid "This process determines the dynamic flow values to improve overall print quality."
-msgstr ""
-
 msgid "High Flow"
 msgstr ""
 
@@ -6924,6 +6924,12 @@ msgstr ""
 msgid "Please click the confirm button if you still want to proceed with printing."
 msgstr ""
 
+msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
+msgstr ""
+
+msgid "This process determines the dynamic flow values to improve overall print quality."
+msgstr ""
+
 msgid "Connecting to the printer. Unable to cancel during the connection process."
 msgstr ""
 
@@ -6956,9 +6962,6 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
-msgstr ""
-
-msgid "To map to AMS, enable 'Use AMS' in 'Advanced Options'."
 msgstr ""
 
 msgid "Cool"
@@ -7132,6 +7135,9 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr ""
 
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
+msgstr ""
+
+msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
@@ -7758,11 +7764,6 @@ msgstr ""
 msgid ""
 "The color has been selected, you can choose OK \n"
 " to continue or manually adjust it."
-msgstr ""
-
-msgid ""
-"Waring:The count of newly added and \n"
-" current extruders exceeds 16."
 msgstr ""
 
 msgid "—> "
@@ -8609,7 +8610,16 @@ msgstr ""
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr ""
 
-msgid "Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing"
+msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
+
+msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
+msgstr ""
+
+msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
+
+msgid "Printing mid-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr ""
 
 msgid "No extrusions under current settings."
@@ -10870,7 +10880,7 @@ msgstr ""
 msgid "Rib wall"
 msgstr ""
 
-msgid "The wall of prime tower will add four ribs"
+msgid "The wall of prime tower will add four ribs and make its cross-section as close to a square as possible, so the width will be fixed."
 msgstr ""
 
 msgid "Fillet wall"
@@ -11433,6 +11443,9 @@ msgid "%s is not compatible with %s"
 msgstr ""
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
+msgstr ""
+
+msgid "Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
