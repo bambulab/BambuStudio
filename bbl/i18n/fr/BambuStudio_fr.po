@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-07 16:37+0800\n"
+"POT-Creation-Date: 2025-04-14 11:55+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -13,10 +13,16 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n==0 || n==1) ? 0 : 1;\n"
 "X-Generator: Poedit 3.4.2\n"
 
+msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
+msgstr ""
+
 msgid "The filament model is unknown. Still using the previous filament preset."
 msgstr ""
 
-msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
+msgid "The filament model is unknown. Generic filament presets will be used."
+msgstr ""
+
+msgid "The filament may not be compatible with the current machine settings. A random filament preset will be used."
 msgstr ""
 
 msgid "The filament model is unknown. A random filament preset will be used."
@@ -5583,6 +5589,9 @@ msgstr "Haut débit"
 msgid "Nozzle Type"
 msgstr "Type de Buse"
 
+msgid "Please change the nozzle settings on the printer."
+msgstr ""
+
 msgid "Nozzle Flow"
 msgstr "Débit de Buse"
 
@@ -6136,6 +6145,9 @@ msgstr "Le fichier %s a été envoyé vers l'espace de stockage de l'imprimante 
 msgid "The nozzle type is not set. Please set the nozzle and try again."
 msgstr "Le type de buse n'est pas réglé. Veuillez régler la buse et réessayer."
 
+msgid "The nozzle type is not set. Please check."
+msgstr ""
+
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr "Impossible d'effectuer une opération booléenne sur les mailles du modèle. Vous pouvez corriger les mailles et réessayer."
 
@@ -6473,12 +6485,6 @@ msgstr "Amélioration des performances de rendu par logement"
 
 msgid "Improved rendering performance under the scene of multiple plates and many models."
 msgstr "Amélioration des performances de rendu sous la scène de plusieurs plaques et de nombreux modèles."
-
-msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
-msgstr "Préférez l'utilisation d'un GPU haute performance (effectif après redémarrage manuel de Bambu Studio)"
-
-msgid "If enabled, this feature can improve rendering performance to some extent. However, it may cause flickering on multi-GPU systems, so it is recommended to disable it."
-msgstr "Si elle est activée, cette fonction peut améliorer les performances de rendu dans une certaine mesure. Cependant, elle peut provoquer des scintillements sur les systèmes multi-GPU, il est donc recommandé de la désactiver."
 
 msgid "Grabber scale"
 msgstr "Échelle de saisie"
@@ -6966,12 +6972,6 @@ msgstr "Envoi terminé"
 msgid "Error code"
 msgstr "Code erreur"
 
-msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
-msgstr ""
-
-msgid "This process determines the dynamic flow values to improve overall print quality."
-msgstr ""
-
 msgid "High Flow"
 msgstr "Débit Élevé"
 
@@ -7081,6 +7081,12 @@ msgstr "Veuillez corriger l'erreur ci-dessus, sinon l'impression ne pourra pas s
 msgid "Please click the confirm button if you still want to proceed with printing."
 msgstr "Cliquez sur le bouton de confirmation si vous souhaitez continuer à imprimer."
 
+msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
+msgstr ""
+
+msgid "This process determines the dynamic flow values to improve overall print quality."
+msgstr ""
+
 msgid "Connecting to the printer. Unable to cancel during the connection process."
 msgstr "Connexion à l'imprimante. Impossible d'annuler pendant le processus de connexion."
 
@@ -7113,9 +7119,6 @@ msgstr "Le diamètre actuel de la buse (%.1fmm) ne correspond pas au fichier de 
 
 #, c-format, boost-format
 msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
-msgstr ""
-
-msgid "To map to AMS, enable 'Use AMS' in 'Advanced Options'."
 msgstr ""
 
 msgid "Cool"
@@ -7292,6 +7295,9 @@ msgstr "Cliquez pour rétablir tous les paramètres au dernier préréglage enre
 
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Une tour de nettoyage est requise pour le mode Timeplase fluide. Il peut y avoir des défauts sur le modèle sans tour de nettoyage. Êtes-vous sûr de vouloir la désactiver ?"
+
+msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
+msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Une tour de nettoyage est requise pour un mode timelapse fluide. Il peut y avoir des défauts sur le modèle sans tour de nettoyage. Voulez-vous activer la désactiver?"
@@ -7944,13 +7950,6 @@ msgid ""
 msgstr ""
 "La couleur a été sélectionnée, vous pouvez choisir OK\n"
 " pour continuer ou l'ajuster manuellement."
-
-msgid ""
-"Waring:The count of newly added and \n"
-" current extruders exceeds 16."
-msgstr ""
-"Avertissement : Le nombre d'extrudeur rajoutés et \n"
-" actuel dépasse 16."
 
 msgid "—> "
 msgstr "->"
@@ -8806,8 +8805,17 @@ msgstr " est trop proche des autres. Des collisions risquent d'être provoquées
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " est trop proche d'une zone d'exclusion. Cela va entraîner des collisions.\n"
 
-msgid "Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing"
-msgstr "Impossible d'imprimer plusieurs filaments qui ont une grande différence de température ensemble. Sinon, l'extrudeuse et la buse peuvent être bloquées ou endommagées pendant l'impression"
+msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
+
+msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
+msgstr ""
+
+msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
+
+msgid "Printing mid-temp and low-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
 
 msgid "No extrusions under current settings."
 msgstr "Aucune extrusion dans les paramètres actuels."
@@ -11075,8 +11083,8 @@ msgstr "Le mur de prime tower sautera les points de départ de wipe path"
 msgid "Rib wall"
 msgstr "Mur de côtes"
 
-msgid "The wall of prime tower will add four ribs"
-msgstr "Le mur de la tour prime ajoutera quatre nervures"
+msgid "The wall of prime tower will add four ribs and make its cross-section as close to a square as possible, so the width will be fixed."
+msgstr ""
 
 msgid "Fillet wall"
 msgstr "Murs Arrondis"
@@ -11680,6 +11688,9 @@ msgstr "%s n'est pas compatible avec %s"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "Le TPU n'est pas compatible avec la Calibration automatique de Flux Dynamique."
+
+msgid "Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing"
+msgstr "Impossible d'imprimer plusieurs filaments qui ont une grande différence de température ensemble. Sinon, l'extrudeuse et la buse peuvent être bloquées ou endommagées pendant l'impression"
 
 #, c-format, boost-format
 msgid ""
@@ -13239,6 +13250,22 @@ msgid ""
 msgstr ""
 "Évitez le warping\n"
 "Saviez-vous que lors de l'impression de matériaux sujets au warping, tels que l'ABS, une augmentation appropriée de la température du plateau peut réduire le risque de déformation ?"
+
+#~ msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
+#~ msgstr "Préférez l'utilisation d'un GPU haute performance (effectif après redémarrage manuel de Bambu Studio)"
+
+#~ msgid "If enabled, this feature can improve rendering performance to some extent. However, it may cause flickering on multi-GPU systems, so it is recommended to disable it."
+#~ msgstr "Si elle est activée, cette fonction peut améliorer les performances de rendu dans une certaine mesure. Cependant, elle peut provoquer des scintillements sur les systèmes multi-GPU, il est donc recommandé de la désactiver."
+
+#~ msgid ""
+#~ "Waring:The count of newly added and \n"
+#~ " current extruders exceeds 16."
+#~ msgstr ""
+#~ "Avertissement : Le nombre d'extrudeur rajoutés et \n"
+#~ " actuel dépasse 16."
+
+#~ msgid "The wall of prime tower will add four ribs"
+#~ msgstr "Le mur de la tour prime ajoutera quatre nervures"
 
 #, c-format, boost-format
 #~ msgid ""

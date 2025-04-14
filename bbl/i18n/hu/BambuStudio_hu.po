@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-07 16:37+0800\n"
+"POT-Creation-Date: 2025-04-14 11:55+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -13,10 +13,16 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
 "X-Generator: Poedit 3.4.2\n"
 
+msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
+msgstr ""
+
 msgid "The filament model is unknown. Still using the previous filament preset."
 msgstr ""
 
-msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
+msgid "The filament model is unknown. Generic filament presets will be used."
+msgstr ""
+
+msgid "The filament may not be compatible with the current machine settings. A random filament preset will be used."
 msgstr ""
 
 msgid "The filament model is unknown. A random filament preset will be used."
@@ -5599,6 +5605,9 @@ msgstr "Nagy áramlás"
 msgid "Nozzle Type"
 msgstr "Fúvóka típusa"
 
+msgid "Please change the nozzle settings on the printer."
+msgstr ""
+
 msgid "Nozzle Flow"
 msgstr "Fúvóka áramlás"
 
@@ -6151,6 +6160,9 @@ msgstr "A(z) %s fájl elküldésre került a nyomtatóra, és megtekinthető a n
 msgid "The nozzle type is not set. Please set the nozzle and try again."
 msgstr "A fúvóka típusa nincs beállítva. Kérjük, állítsd be a fúvókát, és próbáld meg újra."
 
+msgid "The nozzle type is not set. Please check."
+msgstr ""
+
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr "Nem lehet logikai műveletet végrehajtani a modellhálókon. Megjavíthatod a hálókat, és megpróbálhatod újra."
 
@@ -6490,12 +6502,6 @@ msgstr "Renderelési teljesítmény javítása lod szerint"
 
 msgid "Improved rendering performance under the scene of multiple plates and many models."
 msgstr "Javított renderelési teljesítmény több tálca és modell esetén."
-
-msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
-msgstr "Nagy teljesítményű GPU használatának előnyben részesítése (Bambu Studio újraindítása után működik csak)"
-
-msgid "If enabled, this feature can improve rendering performance to some extent. However, it may cause flickering on multi-GPU systems, so it is recommended to disable it."
-msgstr "Ha engedélyezve van, ez a funkció bizonyos mértékig javíthatja a renderelési teljesítményt. Több GPU-s rendszereken azonban villódzást okozhat, ezért ajánlott kikapcsolni."
 
 msgid "Grabber scale"
 msgstr ""
@@ -6983,12 +6989,6 @@ msgstr "küldés befejezve"
 msgid "Error code"
 msgstr "Hibakód"
 
-msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
-msgstr ""
-
-msgid "This process determines the dynamic flow values to improve overall print quality."
-msgstr ""
-
 msgid "High Flow"
 msgstr "Nagy áramlás"
 
@@ -7098,6 +7098,12 @@ msgstr "Kérjük, hárítsd el a fenti hibát, különben a nyomtatás nem folyt
 msgid "Please click the confirm button if you still want to proceed with printing."
 msgstr "Kérjük, kattints a megerősítés gombra, ha továbbra is folytatni szeretnéd a nyomtatást."
 
+msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
+msgstr ""
+
+msgid "This process determines the dynamic flow values to improve overall print quality."
+msgstr ""
+
 msgid "Connecting to the printer. Unable to cancel during the connection process."
 msgstr "Csatlakozás a nyomtatóhoz. A csatlakozási folyamatot nem lehetett megszakítani."
 
@@ -7130,9 +7136,6 @@ msgstr "A jelenlegi fúvókaátmérő (%.1f mm) nem egyezik a szeletelt fájlban
 
 #, c-format, boost-format
 msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
-msgstr ""
-
-msgid "To map to AMS, enable 'Use AMS' in 'Advanced Options'."
 msgstr ""
 
 msgid "Cool"
@@ -7309,6 +7312,9 @@ msgstr "Kattints az összes beállítás utolsó mentett változatának visszaá
 
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "A sima timelapse miatt szükség van a törlőtoronyra. Nélküle előfordulhatnak hibák a nyomtatott tárgyon. Biztos, hogy kikapcsolod a törlőtornyot?"
+
+msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
+msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "A sima timelapse miatt szükség van a törlőtoronyra. Nélküle előfordulhatnak hibák a nyomtatott tárgyon. Engedélyezed a törlőtornyot?"
@@ -7963,13 +7969,6 @@ msgid ""
 msgstr ""
 "A szín kiválasztása megtörtént, az OK gombbal\n"
 "folytathatod vagy beállíthatod kézzel."
-
-msgid ""
-"Waring:The count of newly added and \n"
-" current extruders exceeds 16."
-msgstr ""
-"Figyelem: A most hozzáadott és a meglévő\n"
-"extruderek száma meghaladja a 16-ot."
 
 msgid "—> "
 msgstr ""
@@ -8827,8 +8826,17 @@ msgstr " túl közel van más tárgyakhoz, a nyomtatás során előfordulhatnak 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " túl közel van a tiltott területhez, a nyomtatás során előfordulhatnak ütközések.\n"
 
-msgid "Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing"
-msgstr "Nem nyomtathatsz több, nagy hőmérséklet-különbséggel rendelkező filamentet egyidőben. Ellenkező esetben az extruder és a fúvóka eltömődhet vagy megsérülhet nyomtatás közben"
+msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
+
+msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
+msgstr ""
+
+msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
+
+msgid "Printing mid-temp and low-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
 
 msgid "No extrusions under current settings."
 msgstr "A jelenlegi beállítások mellett nincsenek extrudálások."
@@ -11096,8 +11104,8 @@ msgstr "A törlőtorony fala kihagyja a törlési útvonal kezdőpontját"
 msgid "Rib wall"
 msgstr "Bordafal"
 
-msgid "The wall of prime tower will add four ribs"
-msgstr "A törlőtorony falához négy bordát ad hozzá."
+msgid "The wall of prime tower will add four ribs and make its cross-section as close to a square as possible, so the width will be fixed."
+msgstr ""
 
 msgid "Fillet wall"
 msgstr "Fal lekerekítése"
@@ -11701,6 +11709,9 @@ msgstr "%s nem kompatibilis ezzel: %s"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "Nem használhatsz TPU-t az áramlásdinamika kalibrálásához."
+
+msgid "Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing"
+msgstr "Nem nyomtathatsz több, nagy hőmérséklet-különbséggel rendelkező filamentet egyidőben. Ellenkező esetben az extruder és a fúvóka eltömődhet vagy megsérülhet nyomtatás közben"
 
 #, c-format, boost-format
 msgid ""
@@ -13257,6 +13268,22 @@ msgid ""
 msgstr ""
 "Vetemedés elkerülése\n"
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
+
+#~ msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
+#~ msgstr "Nagy teljesítményű GPU használatának előnyben részesítése (Bambu Studio újraindítása után működik csak)"
+
+#~ msgid "If enabled, this feature can improve rendering performance to some extent. However, it may cause flickering on multi-GPU systems, so it is recommended to disable it."
+#~ msgstr "Ha engedélyezve van, ez a funkció bizonyos mértékig javíthatja a renderelési teljesítményt. Több GPU-s rendszereken azonban villódzást okozhat, ezért ajánlott kikapcsolni."
+
+#~ msgid ""
+#~ "Waring:The count of newly added and \n"
+#~ " current extruders exceeds 16."
+#~ msgstr ""
+#~ "Figyelem: A most hozzáadott és a meglévő\n"
+#~ "extruderek száma meghaladja a 16-ot."
+
+#~ msgid "The wall of prime tower will add four ribs"
+#~ msgstr "A törlőtorony falához négy bordát ad hozzá."
 
 #, c-format, boost-format
 #~ msgid ""

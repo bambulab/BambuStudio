@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-07 16:37+0800\n"
+"POT-Creation-Date: 2025-04-14 11:55+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -13,11 +13,17 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
 "X-Generator: Poedit 3.4.2\n"
 
+msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
+msgstr "Het filament is mogelijk niet compatibel met de huidige machine-instellingen. Er worden algemene voorinstellingen voor het filament gebruikt."
+
 msgid "The filament model is unknown. Still using the previous filament preset."
 msgstr "Het gloeidraadmodel is onbekend. Ik gebruik nog steeds de vorige voorinstelling voor de gloeidraad."
 
-msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
-msgstr "Het filament is mogelijk niet compatibel met de huidige machine-instellingen. Er worden algemene voorinstellingen voor het filament gebruikt."
+msgid "The filament model is unknown. Generic filament presets will be used."
+msgstr ""
+
+msgid "The filament may not be compatible with the current machine settings. A random filament preset will be used."
+msgstr ""
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Het model van de gloeidraad is onbekend. Er wordt een willekeurige voorinstelling voor de gloeidraad gebruikt."
@@ -5601,6 +5607,9 @@ msgstr "Hoge flow"
 msgid "Nozzle Type"
 msgstr "Type nozzle"
 
+msgid "Please change the nozzle settings on the printer."
+msgstr ""
+
 msgid "Nozzle Flow"
 msgstr "Nozzle flow"
 
@@ -6158,6 +6167,9 @@ msgstr "Het bestand %s is naar de opslagruimte van de printer gestuurd en kan op
 msgid "The nozzle type is not set. Please set the nozzle and try again."
 msgstr "Het type sproeier is niet ingesteld. Stel de nozzle in en probeer het opnieuw."
 
+msgid "The nozzle type is not set. Please check."
+msgstr ""
+
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr "Booleaanse bewerking kan niet worden uitgevoerd op modelnetten. U kunt de mazen repareren en het opnieuw proberen."
 
@@ -6497,12 +6509,6 @@ msgstr "Verbeter de renderprestaties met LOD"
 
 msgid "Improved rendering performance under the scene of multiple plates and many models."
 msgstr "Verbeterde renderprestaties onder de scène van meerdere platen en veel modellen."
-
-msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
-msgstr "Gebruik bij voorkeur krachtige GPU (effectief na handmatig opnieuw opstarten van Bambu Studio)"
-
-msgid "If enabled, this feature can improve rendering performance to some extent. However, it may cause flickering on multi-GPU systems, so it is recommended to disable it."
-msgstr "Als deze functie is ingeschakeld, kan dit de renderprestaties tot op zekere hoogte verbeteren. Het kan echter flikkeren veroorzaken op multi-GPU systemen, dus het wordt aanbevolen om het uit te schakelen."
 
 msgid "Grabber scale"
 msgstr "De schaal van de grijper"
@@ -6990,12 +6996,6 @@ msgstr "versturen gelukt"
 msgid "Error code"
 msgstr "Foutcode"
 
-msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
-msgstr ""
-
-msgid "This process determines the dynamic flow values to improve overall print quality."
-msgstr ""
-
 msgid "High Flow"
 msgstr "Hoge stroom"
 
@@ -7105,6 +7105,12 @@ msgstr "Herstel bovenstaande fout, anders kan het afdrukken niet doorgaan."
 msgid "Please click the confirm button if you still want to proceed with printing."
 msgstr "Klik op de knop Bevestigen als je nog steeds wilt doorgaan met afdrukken."
 
+msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
+msgstr ""
+
+msgid "This process determines the dynamic flow values to improve overall print quality."
+msgstr ""
+
 msgid "Connecting to the printer. Unable to cancel during the connection process."
 msgstr "Aansluiten op de printer. Kan niet annuleren tijdens het verbindingsproces."
 
@@ -7138,9 +7144,6 @@ msgstr "De huidige nozzle diameter (%.1fmm) komt niet overeen met het snijbestan
 #, c-format, boost-format
 msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
 msgstr "Het afdrukken van materiaal met een hoge temperatuur (%s) met de %s nozzle kan schade aan de nozzle veroorzaken"
-
-msgid "To map to AMS, enable 'Use AMS' in 'Advanced Options'."
-msgstr ""
 
 msgid "Cool"
 msgstr "Koel"
@@ -7316,6 +7319,9 @@ msgstr "Klik om alle instellingen terug te zetten naar de laatst opgeslagen voor
 
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "De prime tower is nodig voor een soepele timeplase. Er kunnen fouten in het model zitten zonder prime tower. Weet je zeker dat je prime tower wilt uitschakelen?"
+
+msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
+msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "De prime tower is vereist voor een vloeiende timelapse. Zonder prime tower kunnen er fouten in het model zitten. Wil je prime tower inschakelen?"
@@ -7972,13 +7978,6 @@ msgid ""
 msgstr ""
 "De kleur is geselecteerd; u kunt OK kiezen \n"
 "om door te gaan of handmatig aan te passen."
-
-msgid ""
-"Waring:The count of newly added and \n"
-" current extruders exceeds 16."
-msgstr ""
-"Waarschuwing: Het aantal nieuw toegevoegde en \n"
-" huidige extruders is groter dan 16."
 
 msgid "—> "
 msgstr ""
@@ -8836,8 +8835,17 @@ msgstr "staat te dicht bij andere objecten en er kunnen botsingen worden veroorz
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " bevindt zich te dicht bij het uitsluitingsgebied en er zullen botsingen worden veroorzaakt.\n"
 
-msgid "Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing"
-msgstr "Het is niet mogelijk om met meerdere filamenten te printen die een groot temperatuurverschil hebben. Anders kunnen de extruder en de nozzle tijdens het afdrukken worden geblokkeerd of beschadigd."
+msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
+
+msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
+msgstr ""
+
+msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
+
+msgid "Printing mid-temp and low-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
 
 msgid "No extrusions under current settings."
 msgstr "Geen extrusion onder de huidige instellingen"
@@ -11105,8 +11113,8 @@ msgstr "De muur van prime tower slaat de startpunten van wipe path over"
 msgid "Rib wall"
 msgstr "Ribbenwand"
 
-msgid "The wall of prime tower will add four ribs"
-msgstr "De muur van prime tower zal vier ribben toevoegen"
+msgid "The wall of prime tower will add four ribs and make its cross-section as close to a square as possible, so the width will be fixed."
+msgstr ""
 
 msgid "Fillet wall"
 msgstr "Fileerwand"
@@ -11710,6 +11718,9 @@ msgstr "%s is niet compatibel met %s"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "TPU wordt niet ondersteund voor automatische Flow Dynamics-kalibratie."
+
+msgid "Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing"
+msgstr "Het is niet mogelijk om met meerdere filamenten te printen die een groot temperatuurverschil hebben. Anders kunnen de extruder en de nozzle tijdens het afdrukken worden geblokkeerd of beschadigd."
 
 #, c-format, boost-format
 msgid ""
@@ -13267,6 +13278,22 @@ msgid ""
 msgstr ""
 "Kromtrekken voorkomen\n"
 "Wist je dat bij het printen van materialen die gevoelig zijn voor kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het warmtebed de kans op kromtrekken kan verkleinen?"
+
+#~ msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
+#~ msgstr "Gebruik bij voorkeur krachtige GPU (effectief na handmatig opnieuw opstarten van Bambu Studio)"
+
+#~ msgid "If enabled, this feature can improve rendering performance to some extent. However, it may cause flickering on multi-GPU systems, so it is recommended to disable it."
+#~ msgstr "Als deze functie is ingeschakeld, kan dit de renderprestaties tot op zekere hoogte verbeteren. Het kan echter flikkeren veroorzaken op multi-GPU systemen, dus het wordt aanbevolen om het uit te schakelen."
+
+#~ msgid ""
+#~ "Waring:The count of newly added and \n"
+#~ " current extruders exceeds 16."
+#~ msgstr ""
+#~ "Waarschuwing: Het aantal nieuw toegevoegde en \n"
+#~ " huidige extruders is groter dan 16."
+
+#~ msgid "The wall of prime tower will add four ribs"
+#~ msgstr "De muur van prime tower zal vier ribben toevoegen"
 
 #, c-format, boost-format
 #~ msgid ""
