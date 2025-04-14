@@ -240,6 +240,13 @@ namespace Slic3r {
             std::vector<std::string> params;    // extra msg info
         };
 
+        struct FilamentUseInfo
+        {
+            int  filament_id = 0;
+            bool use_for_object{false};
+            bool use_for_support{false};
+        };
+
         std::string filename;
         unsigned int id;
         std::vector<MoveVertex> moves;
@@ -287,6 +294,8 @@ namespace Slic3r {
         std::unordered_map<SkipType, float> skippable_part_time;
 
         BedType bed_type = BedType::btCount;
+
+        std::vector<FilamentUseInfo> used_filaments;
 #if ENABLE_GCODE_VIEWER_STATISTICS
         int64_t time{ 0 };
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -329,6 +338,7 @@ namespace Slic3r {
             filament_change_sequence = other.filament_change_sequence;
             skippable_part_time = other.skippable_part_time;
             initial_layer_time = other.initial_layer_time;
+            used_filaments = other.used_filaments;
 #if ENABLE_GCODE_VIEWER_STATISTICS
             time = other.time;
 #endif

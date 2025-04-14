@@ -932,8 +932,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         if (need_travel_after_change_filament_gcode) {
             // After a filament change, the travel path leading to the wipe tower:
             // start_point inside the previous printed object,
-            // end_point at the towerâ€™s start_pos or at the starting point of the towerâ€™s detour path.
-            // In this case, disable â€œavoid crossing perimetersâ€ to prevent inserting additional path points inside the previous printed object.
+            // end_point at the tower¡¯s start_pos or at the starting point of the tower¡¯s detour path.
+            // In this case, disable ¡°avoid crossing perimeters¡± to prevent inserting additional path points inside the previous printed object.
             gcodegen.m_avoid_crossing_perimeters.disable_once();
 
             // move to start_pos for wiping after toolchange
@@ -4420,9 +4420,27 @@ GCode::LayerResult GCode::process_layer(
 
     bool has_insert_wrapping_detection_gcode = false;
 
+    auto& used_filaments = m_processor.result().used_filaments;
+
+    auto get_filament_by_id = [&used_filaments](int filament_id) -> GCodeProcessorResult::FilamentUseInfo& {
+        auto iter = std::find_if(used_filaments.begin(), used_filaments.end(), [&filament_id](const GCodeProcessorResult::FilamentUseInfo &item) {
+            return item.filament_id == filament_id;
+        });
+        if (iter != used_filaments.end()) {
+            return *iter;
+        }
+        else {
+            GCodeProcessorResult::FilamentUseInfo filament_info;
+            filament_info.filament_id = filament_id;
+            used_filaments.emplace_back(filament_info);
+            return used_filaments.back();
+        }
+    };
+
     // Extrude the skirt, brim, support, perimeters, infill ordered by the extruders.
     for (unsigned int extruder_id : layer_tools.extruders)
     {
+        auto& filament_info = get_filament_by_id(extruder_id);
         if (print.config().print_sequence == PrintSequence::ByLayer && m_enable_label_object && print.config().support_object_skip_flush.value) {
             std::vector<size_t> filament_instances_id;
             for (InstanceToPrint &instance : filament_to_print_instances[extruder_id]) filament_instances_id.emplace_back(instance.label_object_id);
@@ -4608,10 +4626,13 @@ GCode::LayerResult GCode::process_layer(
 
                     ExtrusionRole support_extrusion_role = instance_to_print.object_by_extruder.support_extrusion_role;
                     bool is_overridden = support_extrusion_role == erSupportMaterialInterface ? support_intf_overridden : support_overridden;
-                    if (is_overridden == (print_wipe_extrusions != 0))
+                    if (is_overridden == (print_wipe_extrusions != 0)) {
                         gcode += this->extrude_support(
                             // support_extrusion_role is erSupportMaterial, erSupportTransition, erSupportMaterialInterface or erMixed for all extrusion paths.
                             instance_to_print.object_by_extruder.support->chained_path_from(m_last_pos, support_extrusion_role));
+                        if (!filament_info.use_for_support)
+                            filament_info.use_for_support = true;
+                    }
 
                     m_layer = layer_to_print.layer();
                     m_object_layer_over_raft = object_layer_over_raft;
@@ -4697,6 +4718,8 @@ GCode::LayerResult GCode::process_layer(
                     }
                     // ironing
                     gcode += this->extrude_infill(print,by_region_specific, true);
+                    if (!filament_info.use_for_object)
+                        filament_info.use_for_object = true;
                 }
                 // Don't set m_gcode_label_objects_end if you don't had to write the m_gcode_label_objects_start.
                 if (!m_writer.empty_object_start_str()) {
