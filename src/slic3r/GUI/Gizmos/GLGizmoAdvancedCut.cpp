@@ -2856,7 +2856,7 @@ PartSelection::PartSelection(
 
         for (const Vec3f &v : volume->mesh().its.vertices) {
             double p = (v - pos).dot(norm);
-            if (std::abs(p) > EPSILON) {
+            if (std::abs(p) > 0.01) { // 0.01 mm is enough
                 m_cut_parts[i].is_up_part = p > 0.;
                 break;
             }
