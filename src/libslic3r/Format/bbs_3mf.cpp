@@ -213,6 +213,8 @@ static constexpr const char* FILAMENT_TYPE_TAG = "type";
 static constexpr const char *FILAMENT_COLOR_TAG = "color";
 static constexpr const char *FILAMENT_USED_M_TAG = "used_m";
 static constexpr const char *FILAMENT_USED_G_TAG = "used_g";
+static constexpr const char *FILAMENT_USED_FOR_SUPPORT     = "used_for_support";
+static constexpr const char *FILAMENT_USED_FOR_OBJECT      = "used_for_object";
 static constexpr const char *FILAMENT_TRAY_INFO_ID_TAG     = "tray_info_idx";
 static constexpr const char *LAYER_FILAMENT_LISTS_TAG      = "layer_filament_lists";
 static constexpr const char *LAYER_FILAMENT_LIST_TAG       = "layer_filament_list";
@@ -621,10 +623,20 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return ret;
     };
 
+    auto get_filament_info_by_id = [&result](int filament_id) -> GCodeProcessorResult::FilamentUseInfo* {
+        auto iter = std::find_if(result->used_filaments.begin(), result->used_filaments.end(), [&filament_id](const GCodeProcessorResult::FilamentUseInfo &item) {
+            return item.filament_id == filament_id;
+        });
+        if (iter != result->used_filaments.end()) {
+            return &(*iter);
+        }
+        return nullptr;
+    };
+
     for (auto it = ps.total_volumes_per_extruder.begin(); it != ps.total_volumes_per_extruder.end(); it++) {
         double volume                           = it->second;
         auto [used_filament_m, used_filament_g] = get_used_filament_from_volume(volume, it->first);
-
+        auto* filament_info = get_filament_info_by_id(it->first);
         FilamentInfo info;
         info.id = it->first;
         info.used_g = used_filament_g;
@@ -637,6 +649,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 info.group_id = nozzle_for_filament->group_id;
                 info.nozzle_volume_type = get_nozzle_volume_type_string(nozzle_for_filament->volume_type);
             }
+        }
+
+        if (filament_info) {
+            info.used_for_support = filament_info->use_for_support;
+            info.used_for_object  = filament_info->use_for_object;
         }
 
         slice_filaments_info.push_back(info);
@@ -8138,6 +8155,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         << FILAMENT_COLOR_TAG << "=\"" << it->color << "\" "
                         << FILAMENT_USED_M_TAG << "=\"" << it->used_m << "\" "
                         << FILAMENT_USED_G_TAG << "=\"" << it->used_g << "\" "
+                        << FILAMENT_USED_FOR_OBJECT << "=\"" << it->used_for_object << "\" "
+                        << FILAMENT_USED_FOR_SUPPORT << "=\"" << it->used_for_support << "\" "
                         << FILAMENT_NOZZLE_GROUP_ID_TAG << "=\"" << it->group_id << "\" "
                         << FILAMENT_NOZZLE_DIAMETER_TAG << "=\"" << it->nozzle_diameter << "\" "
                         << FILAMENT_NOZZLE_VOLUME_TYPE_TAG << "=\"" << it->nozzle_volume_type << "\"/>\n";
