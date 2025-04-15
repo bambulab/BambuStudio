@@ -142,6 +142,10 @@ GLGizmoMmuSegmentation::GLGizmoMmuSegmentation(GLCanvas3D& parent, const std::st
 {
 }
 
+void GLGizmoMmuSegmentation::data_changed(bool is_serializing) {
+    set_painter_gizmo_data(m_parent.get_selection());
+}
+
 void GLGizmoMmuSegmentation::render_painter_gizmo() const
 {
     const Selection& selection = m_parent.get_selection();

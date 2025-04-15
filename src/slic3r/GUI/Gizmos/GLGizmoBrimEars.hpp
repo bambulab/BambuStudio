@@ -75,7 +75,6 @@ public:
     GLGizmoBrimEars(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
     virtual ~GLGizmoBrimEars() = default;
     void data_changed(bool is_serializing) override;
-    void set_brim_data(ModelObject* model_object, const Selection& selection);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
     void delete_selected_points();
     void update_model_object();
@@ -88,6 +87,7 @@ public:
     std::string get_gizmo_leaving_text() const override { return "Leaving Brim Ears"; }
 
 private:
+    void set_brim_data();
     bool on_init() override;
     void on_update(const UpdateData& data) override;
     void on_render() override;

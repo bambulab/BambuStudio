@@ -58,18 +58,6 @@ bool GLGizmoBrimEars::on_init()
     return true;
 }
 
-void GLGizmoBrimEars::set_brim_data(ModelObject *model_object, const Selection &selection)
-{
-    if (!m_c->selection_info()) return;
-
-    ModelObject *mo = m_c->selection_info()->model_object();
-
-    if (m_state == On && mo && mo->id() != m_old_mo_id) {
-        reload_cache();
-        m_old_mo_id = mo->id();
-    }
-}
-
 void GLGizmoBrimEars::on_render()
 {
     ModelObject     *mo        = m_c->selection_info()->model_object();
@@ -285,6 +273,19 @@ void GLGizmoBrimEars::data_changed(bool is_serializing)
     if (mo) {
         reset_all_pick();
         register_single_mesh_pick();
+    }
+    set_brim_data();
+}
+
+void GLGizmoBrimEars::set_brim_data()
+{
+    if (!m_c->selection_info()) return;
+
+    ModelObject *mo = m_c->selection_info()->model_object();
+
+    if (m_state == On && mo && mo->id() != m_old_mo_id) {
+        reload_cache();
+        m_old_mo_id = mo->id();
     }
 }
 

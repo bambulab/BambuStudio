@@ -29,6 +29,10 @@ GLGizmoFdmSupports::GLGizmoFdmSupports(GLCanvas3D& parent, const std::string& ic
     m_cursor_type = TriangleSelector::CursorType::CIRCLE;
 }
 
+void GLGizmoFdmSupports::data_changed(bool is_serializing) {
+    set_painter_gizmo_data(m_parent.get_selection());
+}
+
 void GLGizmoFdmSupports::on_shutdown()
 {
     //BBS

@@ -214,7 +214,7 @@ public:
     bool on_key(const wxKeyEvent &evt) override;
 
     double get_movement() const { return m_movement; }
-    void finish_rotation();
+    void reset_rotation();
     std::string get_tooltip() const override;
 
     BoundingBoxf3 bounding_box() const;
