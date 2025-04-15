@@ -292,15 +292,6 @@ void GLGizmoFlatten::on_render_for_picking()
     glsafe(::glEnable(GL_CULL_FACE));
 }
 
-void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
-{
-    m_starting_center = Vec3d::Zero();
-    if (model_object != m_old_model_object) {
-        m_planes.clear();
-        m_planes_valid = false;
-    }
-}
-
 void GLGizmoFlatten::update_planes()
 {
     const ModelObject* mo = m_c->selection_info()->model_object();
@@ -532,7 +523,7 @@ void GLGizmoFlatten::update_planes()
     m_first_instance_scale = mo->instances.front()->get_scaling_factor();
     m_first_instance_mirror = mo->instances.front()->get_mirror();
     m_old_model_object = mo;
-
+    m_old_instance_id  = m_c->selection_info()->get_active_instance();
     // And finally create respective VBOs. The polygon is convex with
     // the vertices in order, so triangulation is trivial.
     for (auto& plane : m_planes) {
@@ -581,6 +572,22 @@ Vec3d GLGizmoFlatten::get_flattening_normal() const
     m_normal = Vec3d::Zero();
     m_starting_center = Vec3d::Zero();
     return out;
+}
+
+void GLGizmoFlatten::data_changed(bool is_serializing)
+{
+    const Selection &  selection    = m_parent.get_selection();
+    const ModelObject *model_object = nullptr;
+    int                instance_id  = -1;
+    if (selection.is_single_full_instance() || selection.is_from_single_object()) {
+        model_object = selection.get_model()->objects[selection.get_object_idx()];
+        instance_id  = selection.get_instance_idx();
+    }
+    m_starting_center = Vec3d::Zero();
+    if (model_object != m_old_model_object || instance_id != m_old_instance_id) {
+        m_planes.clear();
+        m_planes_valid = false;
+    }
 }
 
 } // namespace GUI

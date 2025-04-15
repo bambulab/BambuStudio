@@ -60,6 +60,7 @@ std::string GLGizmoMove3D::get_tooltip() const
 
 void GLGizmoMove3D::data_changed(bool is_serializing)
 {
+    enable_grabber(2, !m_parent.get_selection().is_wipe_tower());
     change_cs_by_selection();
 }
 

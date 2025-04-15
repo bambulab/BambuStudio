@@ -539,6 +539,7 @@ void GLGizmoAdvancedCut::on_save(cereal::BinaryOutputArchive &ar) const
 
 void GLGizmoAdvancedCut::data_changed(bool is_serializing)
 {
+    reset_rotation();
     if (m_hover_id < 0) { // BBL
         update_bb();
         if (auto oc = m_c->object_clipper()) {
@@ -1168,7 +1169,7 @@ Vec3d GLGizmoAdvancedCut::get_plane_center() const {
     return m_plane_center;
 }
 
-void GLGizmoAdvancedCut::finish_rotation()
+void GLGizmoAdvancedCut::reset_rotation()
 {
     for (int i = 0; i < 3; i++) {
         m_gizmos[i].set_angle(0.);
@@ -2013,7 +2014,6 @@ void GLGizmoAdvancedCut::update_bb()
         m_groove.flaps_angle = m_groove.flaps_angle_init = float(PI) / 3.f;
         m_groove.angle = m_groove.angle_init = 0.f;
         m_plane.reset();
-
         clear_selection();
         if (CommonGizmosDataObjects::SelectionInfo *selection = m_c->selection_info(); selection && selection->model_object())
             m_selected.resize(selection->model_object()->cut_connectors.size(), false);

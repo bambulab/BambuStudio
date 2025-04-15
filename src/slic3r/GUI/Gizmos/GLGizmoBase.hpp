@@ -221,6 +221,7 @@ public:
 
     void set_highlight_color(const std::array<float, 4>& color);
 
+    void enable_grabber(unsigned int id, bool enable);
     void enable_grabber(unsigned int id);
     void disable_grabber(unsigned int id);
 

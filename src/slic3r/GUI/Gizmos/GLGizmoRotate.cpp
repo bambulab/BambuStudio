@@ -689,6 +689,14 @@ void GLGizmoRotate3D::on_set_state()
 
 void GLGizmoRotate3D::data_changed(bool is_serializing) {
     const Selection &selection = m_parent.get_selection();
+    enable_grabber(0, !selection.is_wipe_tower());
+    enable_grabber(1, !selection.is_wipe_tower());
+    if (selection.is_wipe_tower()) {
+        DynamicPrintConfig &config                    = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+        set_rotation(Vec3d(0., 0., (M_PI / 180.) * dynamic_cast<const ConfigOptionFloat *>(config.option("wipe_tower_rotation_angle"))->value));
+    } else {
+        set_rotation(Vec3d::Zero());
+    }
     const GLVolume * volume    = selection.get_first_volume();
     if (volume == nullptr) {
         m_last_volume = nullptr;

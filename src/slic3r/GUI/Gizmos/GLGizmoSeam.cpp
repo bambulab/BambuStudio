@@ -55,6 +55,10 @@ GLGizmoSeam::GLGizmoSeam(GLCanvas3D& parent, const std::string& icon_filename, u
 
 }
 
+void GLGizmoSeam::data_changed(bool is_serializing) {
+    set_painter_gizmo_data(m_parent.get_selection());
+}
+
 
 std::string GLGizmoSeam::on_get_name() const
 {

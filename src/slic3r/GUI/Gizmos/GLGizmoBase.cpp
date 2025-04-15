@@ -368,6 +368,14 @@ void GLGizmoBase::set_highlight_color(const std::array<float, 4>& color)
     m_highlight_color = color;
 }
 
+void GLGizmoBase::enable_grabber(unsigned int id , bool enable) {
+    if (enable) {
+        enable_grabber(id);
+    } else {
+        disable_grabber(id);
+    }
+}
+
 void GLGizmoBase::enable_grabber(unsigned int id)
 {
     if (id < m_grabbers.size())
