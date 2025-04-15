@@ -393,8 +393,10 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
 
             if (strAction == "agree") {
                 m_PrivacyUse = "true";
+                wxGetApp().save_privacy_policy_history(true, "user_privacy_choice");
             } else {
                 m_PrivacyUse = "false";
+                wxGetApp().save_privacy_policy_history(false, "user_privacy_choice");
             }
 
             m_GuideFinish = true;
@@ -460,6 +462,11 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             }
         }
         else if (strCmd == "user_guide_finish") {
+            if (wxGetApp().app_config) {
+                std::string last = wxGetApp().app_config->get(std::string(m_SectionName.mb_str()), "privacyuse");
+                if (m_PrivacyUse != last)
+                    wxGetApp().save_privacy_policy_history(m_PrivacyUse == "true", "user_guide");
+            }
             SaveProfile();
 
             std::string oldregion = m_ProfileJson["region"];

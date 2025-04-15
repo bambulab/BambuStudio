@@ -4791,6 +4791,45 @@ void GUI_App::enable_user_preset_folder(bool enable)
     }
 }
 
+void GUI_App::save_privacy_policy_history(bool agree, std::string source)
+{
+    json j;
+    wxDateTime::TimeZone tz(wxDateTime::Local);
+    long offset = tz.GetOffset();
+    std::string timezone = get_timezone_utc_hm(offset);
+
+    std::time_t now = std::time(nullptr);
+    std::tm* utc_time = std::gmtime(&now);
+    std::ostringstream time_str;
+    time_str << std::put_time(utc_time, "%Y-%m-%d %H:%M:%S") << " " << timezone;
+    j["action"] = agree ? "agree" : "skip";
+    j["source"] = source;
+    if (app_config)
+        j["uuid"] = app_config->get("slicer_uuid");
+    j["time"] = time_str.str();
+    j["user_id"] = "default_user";
+    if (m_agent && agree) {
+        if (!m_agent->get_user_id().empty())
+            j["user_id"] = m_agent->get_user_id();
+        m_agent->track_event("privacy_policy", j.dump());
+    }
+    BOOST_LOG_TRIVIAL(info) << "privacy_policy: source = " << source << ", value = " << j.dump();
+
+    boost::filesystem::path dir = (boost::filesystem::path(Slic3r::data_dir()) / "track").make_preferred();
+    std::string dir_str = dir.string();
+    if (!fs::exists(dir_str)) {
+        fs::create_directory(dir_str);
+    }
+
+    std::string path = (boost::filesystem::path(Slic3r::data_dir()) / "track" / ("history.txt")).make_preferred().string();
+    boost::nowide::ofstream c;
+    c.open(path, std::ios::app);
+    if (c.is_open()) {
+        c << j.dump() << "\n";
+        c.close();
+    }
+}
+
 void GUI_App::on_set_selected_machine(wxCommandEvent &evt)
 {
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
