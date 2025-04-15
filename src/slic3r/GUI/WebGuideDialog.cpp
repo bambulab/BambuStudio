@@ -108,7 +108,10 @@ GuideFrame::GuideFrame(GUI_App *pGUI, long style)
     SetBackgroundColour(*wxWHITE);
     // INI
     m_SectionName = "firstguide";
-    PrivacyUse    = true;
+    m_PrivacyUse    = "";
+    m_PrivacyUse  = wxGetApp().app_config->get(std::string(m_SectionName.mb_str()), "privacyuse");
+    m_GuideFinish   = false;
+
     InstallNetplugin = false;
 
     m_MainPtr = pGUI;
@@ -389,10 +392,14 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             wxString strAction = j["data"]["action"];
 
             if (strAction == "agree") {
-                PrivacyUse = true;
+                m_PrivacyUse = "true";
+                wxGetApp().save_privacy_policy_history(true, "user_privacy_choice");
             } else {
-                PrivacyUse = false;
+                m_PrivacyUse = "false";
+                wxGetApp().save_privacy_policy_history(false, "user_privacy_choice");
             }
+
+            m_GuideFinish = true;
         }
         else if (strCmd == "request_userguide_profile") {
             json m_Res = json::object();
@@ -455,6 +462,11 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             }
         }
         else if (strCmd == "user_guide_finish") {
+            if (wxGetApp().app_config) {
+                std::string last = wxGetApp().app_config->get(std::string(m_SectionName.mb_str()), "privacyuse");
+                if (m_PrivacyUse != last)
+                    wxGetApp().save_privacy_policy_history(m_PrivacyUse == "true", "user_guide");
+            }
             SaveProfile();
 
             std::string oldregion = m_ProfileJson["region"];
@@ -627,14 +639,16 @@ bool GuideFrame::IsFirstUse()
 int GuideFrame::SaveProfile()
 {
     //privacy
-    if (PrivacyUse == true) {
+    if (m_PrivacyUse == "true") {
         m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", true);
-    } else
+    } 
+    else if (m_PrivacyUse == "false")
         m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", false);
 
     m_MainPtr->app_config->set("region", m_Region);
 
     //finish
+    if (m_GuideFinish)
     m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "finish", "1");
 
     m_MainPtr->app_config->save();

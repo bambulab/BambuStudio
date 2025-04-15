@@ -18,7 +18,7 @@
 			"support_prompt_sound": false,
 			"support_ams_humidity": true,
 			"support_auto_recovery_step_loss": true,
-			"support_auto_leveling": true,
+			"support_bed_leveling": 1,
 			"support_update_remain": true,
 			"support_timelapse": true,
 			"support_filament_backup": true,
@@ -46,11 +46,13 @@
 		"printer_thumbnail_image": "printer_thumbnail_p1p",
 		"printer_connect_help_image": "input_access_code_p1p",
 		"printer_use_ams_image": "ams_icon",
+		"printer_ext_image": ["ext_image_xp"],
 		"use_ams_type": "generic",
 		"printer_arch": "core_xy",
 		"printer_series": "series_p1p",
 		"has_cali_line": false,
-		"printer_is_enclosed": false
+		"printer_is_enclosed": false,
+		"enable_set_nozzle_info": true
 	},
 	"01.02.00.00": {
 		"print": {
@@ -86,6 +88,11 @@
 				}
 			},
 			"support_user_preset": true
+		}
+	},
+	"01.07.50.00": {
+		"print": {
+			"support_print_all": true
 		}
 	}
 }

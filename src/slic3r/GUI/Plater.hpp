@@ -122,13 +122,13 @@ class Sidebar : public wxPanel
     Button *         btn_sync{nullptr};
     ScalableButton *  ams_btn{nullptr};
     bool                                    m_last_slice_state = false;
-    std::shared_ptr<SyncNozzleAndAmsDialog> m_sna_dialog{nullptr};
-    std::shared_ptr<FinishSyncAmsDialog>    m_fna_dialog{nullptr};
+    SyncNozzleAndAmsDialog*                 m_sna_dialog{nullptr};
+    FinishSyncAmsDialog*                    m_fna_dialog{nullptr};
     std::vector<BedType>                    m_cur_combox_bed_types;
     std::string                             m_cur_image_bed_type;
     int                                     m_last_combo_bedtype_count{0};
     bool                                    m_begin_sync_printer_status{false};
-    std::shared_ptr<SyncAmsInfoDialog>      m_sync_dlg{nullptr};
+    SyncAmsInfoDialog*                      m_sync_dlg{nullptr};
 
     void update_sync_ams_btn_enable(wxUpdateUIEvent &e);
 
@@ -140,6 +140,8 @@ public:
     Sidebar &operator=(const Sidebar &) = delete;
     ~Sidebar();
 
+    void on_enter_image_printer_bed(wxMouseEvent &evt);
+    void on_leave_image_printer_bed(wxMouseEvent &evt);
     void on_change_color_mode(bool is_dark);
     void create_printer_preset();
     void init_filament_combo(PlaterPresetComboBox **combo, const int filament_idx);
@@ -336,7 +338,7 @@ public:
     void set_using_exported_file(bool exported_file) {
         m_exported_file = exported_file;
     }
-
+    bool is_empty_project();
     bool is_multi_extruder_ams_empty();
     // BBS
     wxString get_project_name();

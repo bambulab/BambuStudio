@@ -1524,6 +1524,8 @@ void ConfirmBeforeSendDialog::rescale()
     m_button_cancel->Rescale();
 }
 
+static void nop_deleter(InputIpAddressDialog*) {}
+
 InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe),
                 wxID_ANY,
@@ -1658,9 +1660,11 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     }
 
     m_input_sn_area->Add(m_tips_sn, 0, wxALIGN_CENTER, 0);
+    m_input_sn_area->Add(0, 0, 0, wxLEFT, FromDIP(20));
     m_input_sn_area->Add(m_tips_modelID, 0, wxALIGN_CENTER, 0);
 
     m_input_modelID_area->Add(m_input_sn, 0, wxALIGN_CENTER, 0);
+    m_input_modelID_area->Add(0, 0, 0, wxLEFT, FromDIP(20));
     m_input_modelID_area->Add(m_input_modelID, 0, wxALIGN_CENTER, 0);
 
     m_input_bot_sizer->Add(m_input_sn_area, 0,  wxEXPAND, 0);
@@ -1971,6 +1975,8 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
     Refresh();
     Layout();
     Fit();
+
+    token_.reset(this, nop_deleter);
     m_thread = new boost::thread(boost::bind(&InputIpAddressDialog::workerThreadFunc, this, str_ip, str_access_code, str_sn, str_model_id));
 }
 
@@ -2065,8 +2071,10 @@ void InputIpAddressDialog::update_test_msg_event(wxCommandEvent& evt)
     Fit();
 }
 
-void InputIpAddressDialog::post_update_test_msg(wxString text, bool beconnect)
+void InputIpAddressDialog::post_update_test_msg(std::weak_ptr<InputIpAddressDialog> w,wxString text, bool beconnect)
 {
+    if (w.expired()) return;
+
     wxCommandEvent event(EVT_UPDATE_TEXT_MSG);
     event.SetEventObject(this);
     event.SetString(text);
@@ -2076,7 +2084,9 @@ void InputIpAddressDialog::post_update_test_msg(wxString text, bool beconnect)
 
 void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_access_code, std::string sn, std::string model_id)
 {
-    post_update_test_msg(_L("connecting..."), true);
+    std::weak_ptr<InputIpAddressDialog> w = std::weak_ptr<InputIpAddressDialog>(token_);
+
+    post_update_test_msg(w, _L("connecting..."), true);
 
     detectResult detectData;
     auto result = -1;
@@ -2096,13 +2106,15 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
         detectData.connect_type = "free";
     }
 
+    if (w.expired()) return;
+  
     if (result < 0) {
-        post_update_test_msg(wxEmptyString, true);
+        post_update_test_msg(w, wxEmptyString, true);
         if (result == -1) {
-            post_update_test_msg(_L("Failed to connect to printer."), false);
+            post_update_test_msg(w, _L("Failed to connect to printer."), false);
         }
         else if (result == -2) {
-            post_update_test_msg(_L("Failed to publish login request."), false);
+            post_update_test_msg(w, _L("Failed to publish login request."), false);
         }
         else if (result == -3) {
             wxCommandEvent event(EVT_CHECK_IP_ADDRESS_LAYOUT);
@@ -2113,21 +2125,27 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
         return;
     }
 
-    if (detectData.bind_state == "occupied") {
-        post_update_test_msg(wxEmptyString, true);
-        post_update_test_msg(_L("The printer has already been bound."), false);
-        return;
-    }
+    if (detectData.connect_type != "farm") {
+        if (detectData.bind_state == "occupied") {
+            post_update_test_msg(w, wxEmptyString, true);
+            post_update_test_msg(w, _L("The printer has already been bound."), false);
+            return;
+        }
 
-    if (detectData.connect_type == "cloud") {
-        post_update_test_msg(wxEmptyString, true);
-        post_update_test_msg(_L("The printer mode is incorrect, please switch to LAN Only."), false);
-        return;
+        if (detectData.connect_type == "cloud") {
+            post_update_test_msg(w, wxEmptyString, true);
+            post_update_test_msg(w, _L("The printer mode is incorrect, please switch to LAN Only."), false);
+            return;
+        }
     }
+    if (w.expired()) return;
+
 
     DeviceManager* dev = wxGetApp().getDeviceManager();
     m_obj = dev->insert_local_device(detectData.dev_name, detectData.dev_id, str_ip, detectData.connect_type, detectData.bind_state, detectData.version, str_access_code);
 
+
+    if (w.expired()) return;
 
     if (m_obj) {
         m_obj->set_user_access_code(str_access_code);
@@ -2137,8 +2155,10 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
 
     closeCount = 1;
 
-    post_update_test_msg(wxEmptyString, true);
-    post_update_test_msg(wxString::Format(_L("Connecting to printer... The dialog will close later"), closeCount), true);
+    post_update_test_msg(w, wxEmptyString, true);
+    post_update_test_msg(w, wxString::Format(_L("Connecting to printer... The dialog will close later"), closeCount), true);
+
+    if (w.expired()) return;
 
 #ifdef __APPLE__
     wxCommandEvent event(EVT_CLOSE_IPADDRESS_DLG);
@@ -2233,7 +2253,6 @@ void InputIpAddressDialog::on_text(wxCommandEvent &evt)
 
 InputIpAddressDialog::~InputIpAddressDialog()
 {
-
 }
 
 void InputIpAddressDialog::on_dpi_changed(const wxRect& suggested_rect)

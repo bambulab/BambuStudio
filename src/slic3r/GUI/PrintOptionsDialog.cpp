@@ -614,7 +614,7 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     ID_NOZZLE_FLOW_CHECKBOX_LEFT = wxNewId();
     ID_NOZZLE_FLOW_CHECKBOX_RIGHT = wxNewId();
 
-    nozzle_type_checkbox = new ComboBox(single_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
+    nozzle_type_checkbox = new ComboBox(single_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(180), -1), 0, NULL, wxCB_READONLY);
     nozzle_type_checkbox->Append(nozzle_type_map[NozzleType::ntHardenedSteel]);
     nozzle_type_checkbox->Append(nozzle_type_map[NozzleType::ntStainlessSteel]);
     nozzle_type_checkbox->SetSelection(0);
@@ -634,18 +634,24 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     nozzle_diameter->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
     nozzle_diameter->Wrap(-1);
 
-    nozzle_diameter_checkbox = new ComboBox(single_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
+    nozzle_diameter_checkbox = new ComboBox(single_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(180), -1), 0, NULL, wxCB_READONLY);
 
     line_sizer_nozzle_diameter->Add(nozzle_diameter, 0, wxALIGN_CENTER, 5);
     line_sizer_nozzle_diameter->Add(0, 0, 1, wxEXPAND, 5);
     line_sizer_nozzle_diameter->Add(nozzle_diameter_checkbox, 0, wxALIGN_CENTER, 5);
 
+    change_nozzle_tips = new Label(single_panel, _L("Please change the nozzle settings on the printer."));
+    change_nozzle_tips->SetFont(Label::Body_13);
+    change_nozzle_tips->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+
     single_sizer->Add(m_line, 0, wxEXPAND, 0);
     single_sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
-    single_sizer->Add(line_sizer_nozzle_type, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(18));
-    single_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
-    single_sizer->Add(line_sizer_nozzle_diameter, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(18));
+    single_sizer->Add(line_sizer_nozzle_type, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(10));
     single_sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
+    single_sizer->Add(line_sizer_nozzle_diameter, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(10));
+    single_sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
+    single_sizer->Add(change_nozzle_tips, 0, wxLEFT, FromDIP(24));
+    single_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
 
     single_panel->SetSizer(single_sizer);
     single_panel->Layout();
@@ -662,7 +668,7 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     multiple_left_nozzle_type->SetFont(Label::Body_14);
     multiple_left_nozzle_type->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
 
-    multiple_left_nozzle_type_checkbox = new ComboBox(multiple_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
+    multiple_left_nozzle_type_checkbox = new ComboBox(multiple_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(180), -1), 0, NULL, wxCB_READONLY);
     multiple_left_nozzle_type_checkbox->Append(nozzle_type_map[NozzleType::ntHardenedSteel]);
     multiple_left_nozzle_type_checkbox->Append(nozzle_type_map[NozzleType::ntStainlessSteel]);
     multiple_left_nozzle_type_checkbox->SetSelection(0);
@@ -701,7 +707,7 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     multiple_right_nozzle_type->SetFont(Label::Body_14);
     multiple_right_nozzle_type->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
 
-    multiple_right_nozzle_type_checkbox = new ComboBox(multiple_panel, ID_NOZZLE_TYPE_CHECKBOX_RIGHT, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
+    multiple_right_nozzle_type_checkbox = new ComboBox(multiple_panel, ID_NOZZLE_TYPE_CHECKBOX_RIGHT, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(180), -1), 0, NULL, wxCB_READONLY);
     multiple_right_nozzle_type_checkbox->Append(nozzle_type_map[NozzleType::ntHardenedSteel]);
     multiple_right_nozzle_type_checkbox->Append(nozzle_type_map[NozzleType::ntStainlessSteel]);
     multiple_right_nozzle_type_checkbox->SetSelection(0);
@@ -730,13 +736,19 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     multiple_right_line_sizer->Add(0, 0, 1, wxLEFT, FromDIP(8));
     multiple_right_line_sizer->Add(multiple_right_nozzle_flow_checkbox, 0, wxALIGN_CENTER, 0);
 
+    multiple_change_nozzle_tips = new Label(multiple_panel, _L("Please change the nozzle settings on the printer."));
+    multiple_change_nozzle_tips->SetFont(Label::Body_13);
+    multiple_change_nozzle_tips->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+
     multiple_sizer->Add(0, 0, 0, wxTOP, FromDIP(40));
     multiple_sizer->Add(leftTitle, 0, wxLEFT, FromDIP(18));
     multiple_sizer->Add(multiple_left_line_sizer, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(18));
     multiple_sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
     multiple_sizer->Add(rightTitle, 0, wxLEFT, FromDIP(18));
     multiple_sizer->Add(multiple_right_line_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(18));
-    multiple_sizer->Add(0, 0, 0, wxTOP, FromDIP(40));
+    multiple_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
+    multiple_sizer->Add(multiple_change_nozzle_tips, 0, wxLEFT, FromDIP(18));
+    multiple_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
 
     multiple_panel->SetSizer(multiple_sizer);
     multiple_panel->Layout();
@@ -820,7 +832,6 @@ void PrinterPartsDialog::set_nozzle_data(wxCommandEvent& evt)
         nozzle_id = MAIN_NOZZLE_ID;
     }
 
-
     if (obj) {
         try {
             auto nozzle_type        = NozzleType::ntHardenedSteel;
@@ -882,6 +893,8 @@ void PrinterPartsDialog::set_nozzle_data(wxCommandEvent& evt)
             }
 
             if (!obj->is_enable_np) {
+                if (current_nozzle_type_combox && current_nozzle_type_combox->IsShown() && current_nozzle_type_combox->GetValue().IsEmpty()) { return; }
+                if (current_nozzle_diameter_combox && current_nozzle_diameter_combox->IsShown() && current_nozzle_diameter_combox->GetValue().IsEmpty()) { return; }
                 obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_diameter = nozzle_diameter;
                 obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_type     = nozzle_type;
                 obj->command_set_printer_nozzle(NozzleTypeEumnToStr[nozzle_type], nozzle_diameter);
@@ -891,14 +904,23 @@ void PrinterPartsDialog::set_nozzle_data(wxCommandEvent& evt)
                     nozzle_data += "S";
                 } else if (nozzle_flow == NozzleFlowType::H_FLOW) {
                     nozzle_data += "H";
+                } else {
+                    nozzle_data += "S";/*default to standard*/
+                    BOOST_LOG_TRIVIAL(warning) << "warning: nozzle flow type default to standard!";
                 }
 
                 if (nozzle_type == NozzleType::ntStainlessSteel) {
                     nozzle_data += "00";
                 } else if (nozzle_type == NozzleType::ntHardenedSteel) {
                     nozzle_data += "01";
+                } else {
+                    BOOST_LOG_TRIVIAL(warning) << "error: nozzle type is unknown!";
+                    return;
                 }
 
+                if (current_nozzle_type_combox && current_nozzle_type_combox->IsShown() && current_nozzle_type_combox->GetValue().IsEmpty()) { return; }
+                if (current_nozzle_diameter_combox && current_nozzle_diameter_combox->IsShown() && current_nozzle_diameter_combox->GetValue().IsEmpty()) { return; }
+                if (current_nozzle_flow_combox && current_nozzle_flow_combox->IsShown() && current_nozzle_flow_combox->GetValue().IsEmpty()) { return; }
                 obj->m_extder_data.extders[nozzle_id].current_nozzle_diameter   = nozzle_diameter;
                 obj->m_extder_data.extders[nozzle_id].current_nozzle_flow_type  = nozzle_flow;
                 obj->m_extder_data.extders[nozzle_id].current_nozzle_type       = nozzle_type;
@@ -940,6 +962,9 @@ bool PrinterPartsDialog::Show(bool show)
         wxGetApp().UpdateDlgDarkUI(this);
         CentreOnParent();
 
+        /*disable editing*/
+        EnableEditing(DeviceManager::get_printer_can_set_nozzle(obj->printer_type));
+
         if (obj->m_extder_data.extders.size() <= 1) {
             single_panel->Show();
             multiple_panel->Hide();
@@ -952,14 +977,7 @@ bool PrinterPartsDialog::Show(bool show)
             if (type ==  NozzleType::ntUndefine) {
                 nozzle_type_checkbox->SetValue(wxEmptyString);
                 nozzle_diameter_checkbox->SetValue(wxEmptyString);
-
-                nozzle_type_checkbox->Disable();
-                nozzle_diameter_checkbox->Disable();
-                return DPIDialog::Show(show);
             } else {
-                nozzle_type_checkbox->Enable();
-                nozzle_diameter_checkbox->Enable();
-
                 std::map<int, float> diameter_map;
                 if (type == NozzleType::ntHardenedSteel) {
                     diameter_map = nozzle_hard_diameter_map;
@@ -985,10 +1003,6 @@ bool PrinterPartsDialog::Show(bool show)
             auto type      = obj->m_extder_data.extders[DEPUTY_NOZZLE_ID].current_nozzle_type;
             auto diameter  = obj->m_extder_data.extders[DEPUTY_NOZZLE_ID].current_nozzle_diameter;
             auto flow_type = obj->m_extder_data.extders[DEPUTY_NOZZLE_ID].current_nozzle_flow_type;
-
-            multiple_left_nozzle_type_checkbox->Enable();
-            multiple_left_nozzle_diameter_checkbox->Enable();
-            multiple_left_nozzle_flow_checkbox->Enable();
 
             multiple_left_nozzle_diameter_checkbox->Clear();
 
@@ -1030,10 +1044,6 @@ bool PrinterPartsDialog::Show(bool show)
 
             multiple_right_nozzle_diameter_checkbox->Clear();
 
-            multiple_right_nozzle_type_checkbox->Enable();
-            multiple_right_nozzle_diameter_checkbox->Enable();
-            multiple_right_nozzle_flow_checkbox->Enable();
-
             if (type == NozzleType::ntUndefine)
             {
                 multiple_right_nozzle_type_checkbox->SetValue(wxEmptyString);
@@ -1072,4 +1082,20 @@ bool PrinterPartsDialog::Show(bool show)
     return DPIDialog::Show(show);
 }
 
+void PrinterPartsDialog::EnableEditing(bool enable) {
+
+    nozzle_type_checkbox->Enable(enable);
+    nozzle_diameter_checkbox->Enable(enable);
+
+    multiple_left_nozzle_type_checkbox->Enable(enable);
+    multiple_left_nozzle_diameter_checkbox->Enable(enable);
+    multiple_left_nozzle_flow_checkbox->Enable(enable);
+
+    multiple_right_nozzle_type_checkbox->Enable(enable);
+    multiple_right_nozzle_diameter_checkbox->Enable(enable);
+    multiple_right_nozzle_flow_checkbox->Enable(enable);
+
+    change_nozzle_tips->Show(!enable);
+    multiple_change_nozzle_tips->Show(!enable);
+}
 }} // namespace Slic3r::GUI

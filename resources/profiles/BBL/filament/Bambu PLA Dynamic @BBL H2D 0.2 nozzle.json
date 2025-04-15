@@ -21,6 +21,10 @@
         "2",
         "2"
     ],
+    "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
+    ],
     "filament_retract_before_wipe": [
         "nil",
         "nil"
@@ -69,10 +73,6 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
-    "filament_ramming_volumetric_speed": [
-        "-1",
-        "-1"
-    ],
     "filament_pre_cooling_temperature": [
         "0",
         "0"
@@ -89,11 +89,14 @@
         "220",
         "220"
     ],
+    "pre_start_fan_time": [
+        "2"
+    ],
     "compatible_printers": [
         "Bambu Lab H2D 0.2 nozzle"
     ],
     "filament_start_gcode": [
-        "; filament start gcode\nM145 P0 ; set airduct mode to cooling mode\nM142 P1 R35 S40 U0.3 V0.5 ; set chamber autocooling"
+        "; filament start gcode\n"
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"

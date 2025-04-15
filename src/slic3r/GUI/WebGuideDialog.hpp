@@ -114,7 +114,8 @@ private:
     boost::thread* m_load_task{ nullptr };
 
     // User Config
-    bool PrivacyUse;
+    bool m_GuideFinish;
+    std::string m_PrivacyUse;
     std::string m_Region;
 
     bool InstallNetplugin;

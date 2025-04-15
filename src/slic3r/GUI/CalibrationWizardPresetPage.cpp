@@ -1480,7 +1480,7 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
     int out_tray_id;
     get_tray_ams_and_slot_id(curr_obj, tray_id, ams_id, slot_id, out_tray_id);
 
-    if (!is_virtual_slot(ams_id) && wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
+    if (wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
         bool in_blacklist = false;
         std::string action;
         std::string info;
@@ -1562,7 +1562,7 @@ bool CalibrationPresetPage::is_filaments_compatiable(const std::map<int, Preset*
             return false;
     }
 
-    if (!Print::check_multi_filaments_compatibility(filament_types)) {
+    if (Print::check_multi_filaments_compatibility(filament_types) == FilamentCompatibilityType::HighLowMixed) {
         error_tips = _u8L("Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing");
         return false;
     }

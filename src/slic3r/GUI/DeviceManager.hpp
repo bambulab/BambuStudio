@@ -338,7 +338,7 @@ public:
     int             ctype = 0;
     float           k = 0.0f;       // k range: 0 ~ 0.5
     float           n = 0.0f;       // k range: 0.6 ~ 2.0
-    int             cali_idx = 0;
+    int             cali_idx = -1;  // - 1 means default
 
     wxColour        wx_color;
     bool            is_bbl;
@@ -374,6 +374,7 @@ public:
         type   = type_id;
     }
     std::string                      id;
+    std::string                      info;
     int                              left_dry_time       = 0;
     int                              humidity            = 5;
     int                              humidity_raw        = -1;                      // the percentage, -1 means invalid. eg. 100 means 100%
@@ -1055,7 +1056,7 @@ public:
     bool is_support_show_filament_backup{false};/*the filament is not supported shown in some previous hardware*/
     bool is_support_timelapse{false};
     bool is_support_update_remain{false};
-    bool is_support_auto_leveling{false};
+    int  is_support_bed_leveling = 0;/*0: false; 1; on/off 2: auto/on/off*/
     bool is_support_auto_recovery_step_loss{false};
     bool is_support_ams_humidity {false};
     bool is_support_prompt_sound{false};
@@ -1149,7 +1150,7 @@ public:
     bool is_studio_cmd(int seq);
 
     /* quick check*/
-    bool canEnableTimelapse() const;
+    bool canEnableTimelapse(wxString& error_message) const;
 
     /* command commands */
     int command_get_version(bool with_retry = true);
@@ -1198,7 +1199,7 @@ public:
     int command_ams_switch_filament(bool switch_filament);
     int command_ams_air_print_detect(bool air_print_detect);
     int command_ams_calibrate(int ams_id);
-    int command_ams_filament_settings(int ams_id, int tray_id, std::string filament_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max);
+    int command_ams_filament_settings(int ams_id, int slot_id, std::string filament_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max);
     int command_ams_select_tray(std::string tray_id);
     int command_ams_refresh_rfid(std::string tray_id);
     int command_ams_refresh_rfid2(int ams_id, int slot_id);
@@ -1309,6 +1310,7 @@ public:
 
     /*for more extruder*/
     bool                        is_enable_np{ false };
+    bool                        is_enable_ams_np{ false };
 
     ExtderData                  m_extder_data;
     NozzleData                  m_nozzle_data;
@@ -1458,7 +1460,7 @@ public:
             }
         }
         catch (...) {}
-        return "";
+        return T();
     }
 
     static std::string parse_printer_type(std::string type_str);
@@ -1468,9 +1470,11 @@ public:
     static std::string get_printer_series(std::string type_str);
     static std::string get_printer_diagram_img(std::string type_str);
     static std::string get_printer_ams_img(std::string type_str);
+    static std::string get_printer_ext_img(std::string type_str, int pos);
     static PrinterArch get_printer_arch(std::string type_str);
     static std::string get_ftp_folder(std::string type_str);
     static bool get_printer_is_enclosed(std::string type_str);
+    static bool get_printer_can_set_nozzle(std::string type_str);// can set nozzle from studio
     static bool load_filaments_blacklist_config();
     static std::vector<std::string> get_resolution_supported(std::string type_str);
     static std::vector<std::string> get_compatible_machine(std::string type_str);
@@ -1482,6 +1486,9 @@ public:
     static bool is_virtual_slot(int ams_id);
     static std::string get_filament_name_from_ams(int ams_id, int slot_id);
 
+private:
+    void OnMachineBindStateChanged(MachineObject* obj, const std::string &new_state);
+    void OnSelectedMachineLost();
 };
 
 class DeviceManagerRefresher : public wxObject

@@ -253,6 +253,7 @@ public:
     wxString     m_right_tip_text;
     wxBoxSizer* m_sizer_split_ams_left;
     wxBoxSizer* m_sizer_split_ams_right;
+    bool        m_mapping_from_multi_machines {false};
 
     void         set_sizer_title(wxBoxSizer *sizer, wxString text);
     wxBoxSizer*  create_split_sizer(wxWindow* parent, wxString text);
@@ -282,6 +283,7 @@ public:
     void  show_reset_button();
     void  set_material_index_str(std::string str) { m_material_index = str; }
     const std::string &get_material_index_str() { return m_material_index; }
+    void  set_only_show_ext_spool(bool flag);
 
 public:
     void msw_rescale();
@@ -289,6 +291,7 @@ public:
 private:
     ResetCallback m_reset_callback{nullptr};
     std::string m_material_index;
+    bool m_only_show_ext_spool{false};
 };
 
 class AmsMapingTipPopup : public PopupWindow

@@ -1447,7 +1447,8 @@ void TabPresetComboBox::update()
         assert(bmp);
 
         const wxString name = get_preset_name(preset);
-        preset_descriptions.emplace(name, _L(preset.description));
+        if (preset.is_system)
+            preset_descriptions.emplace(name, _L(preset.description));
 
         if (preset.is_default || preset.is_system) {
             //BBS: move system to the end
@@ -1661,6 +1662,16 @@ void GUI::CalibrateFilamentComboBox::load_tray(DynamicPrintConfig &config)
             bool is_compatible = m_preset_bundle->calibrate_filaments.find(&f) != m_preset_bundle->calibrate_filaments.end();
             return is_compatible && f.filament_id == m_filament_id;
             });
+
+        // Prioritize matching system presets. If there are no system presets, match all presets.
+        if (iter == filaments.end()) {
+            iter = std::find_if(filaments.begin(), filaments.end(), [this](auto &f) {
+                if (f.is_system) // Only match system preset
+                    return false;
+                bool is_compatible = m_preset_bundle->calibrate_filaments.find(&f) != m_preset_bundle->calibrate_filaments.end();
+                return is_compatible && f.filament_id == m_filament_id;
+            });
+        }
         //if (iter == filaments.end() && !m_filament_type.empty()) {
         //    auto filament_type = "Generic " + m_filament_type;
         //    iter               = std::find_if(filaments.begin(), filaments.end(),

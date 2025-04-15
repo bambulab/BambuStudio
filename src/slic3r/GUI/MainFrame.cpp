@@ -688,7 +688,13 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             evt.IsShown() ? manger->start_refresher() : manger->stop_refresher();
         }
     });
-
+    Bind(wxEVT_IDLE, ([this](wxIdleEvent &e) {
+             if (m_topbar && m_plater) {
+                 m_topbar->EnableSaveItem(can_save());
+                 m_topbar->EnableUndoItem(m_plater->can_undo());
+                 m_topbar->EnableRedoItem(m_plater->can_redo());
+             }
+         }));
 #ifdef _MSW_DARK_MODE
     wxGetApp().UpdateDarkUIWin(this);
 #endif // _MSW_DARK_MODE
@@ -1635,6 +1641,8 @@ wxBoxSizer* MainFrame::create_side_tools()
         m_filament_group_popup->tryPopup(m_plater, curr_plate, m_slice_select == eSliceAll);
         };
 
+#ifndef __linux__
+// in linux plateform, the pop up will taker over the mouse event and make the slice button cannot handle click event
     // this pannel is used to trigger hover when button is disabled
     slice_panel->Bind(wxEVT_ENTER_WINDOW, [this,try_hover_pop_up](auto& event) {
         if(!m_slice_option_pop_up || !m_slice_option_pop_up->IsShown())
@@ -1653,6 +1661,7 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_slice_btn->Bind(wxEVT_LEAVE_WINDOW, [this](auto& event) {
         m_filament_group_popup->tryClose();
         });
+#endif
 
     m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
@@ -1667,7 +1676,11 @@ wxBoxSizer* MainFrame::create_side_tools()
             bool slice = true;
 
             auto curr_plate = m_plater->get_partplate_list().get_curr_plate();
-            slice = try_pop_up_before_slice(m_slice_select == eSliceAll, m_plater, curr_plate);
+            #ifdef __linux__
+                slice = try_pop_up_before_slice(m_slice_select == eSliceAll, m_plater, curr_plate, true);
+            #else
+                slice = try_pop_up_before_slice(m_slice_select == eSliceAll, m_plater, curr_plate, false);
+            #endif
 
             if (slice) {
                 std::string printer_model = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
@@ -1900,19 +1913,6 @@ wxBoxSizer* MainFrame::create_side_tools()
                     p->Dismiss();
                     });
 
-#if !BBL_RELEASE_TO_PUBLIC
-                SideButton *send_to_multi_app_btn = new SideButton(p, _L("Send to Bambu Farm Manager Client"), "");
-                send_to_multi_app_btn->SetCornerRadius(0);
-                send_to_multi_app_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent &) {
-                    m_print_btn->SetLabel(_L("Send to BFMC"));
-                    m_print_select = eSendMultiApp;
-                    m_print_enable = get_enable_print_status();
-                    m_print_btn->Enable(m_print_enable);
-                    this->Layout();
-                    p->Dismiss();
-                });
- #endif
-
                 p->append_button(print_plate_btn);
                 p->append_button(print_all_btn);
                 p->append_button(send_to_printer_btn);
@@ -1920,9 +1920,23 @@ wxBoxSizer* MainFrame::create_side_tools()
                 p->append_button(export_sliced_file_btn);
                 p->append_button(export_all_sliced_file_btn);
 
-#if !BBL_RELEASE_TO_PUBLIC
-                p->append_button(send_to_multi_app_btn);
-#endif
+
+                if (check_bbl_farm_client_installed()) {
+                    SideButton *send_to_multi_app_btn = new SideButton(p, _L("Send to Bambu Farm Manager Client"), "");
+                    send_to_multi_app_btn->SetCornerRadius(0);
+                    p->append_button(send_to_multi_app_btn);
+
+                    send_to_multi_app_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent &) {
+                        m_print_btn->SetLabel(_L("Send to BFMC"));
+                        m_print_select = eSendMultiApp;
+                        m_print_enable = get_enable_print_status();
+                        m_print_btn->Enable(m_print_enable);
+                        this->Layout();
+                        p->Dismiss();
+                    });
+                }
+
+
                 if (enable_multi_machine) {
                     SideButton* print_multi_machine_btn = new SideButton(p, _L("Send to Multi-device"), "");
                     print_multi_machine_btn->SetCornerRadius(0);
@@ -2618,11 +2632,11 @@ void MainFrame::init_menubar_as_editor()
             _L("Paste clipboard"), [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); },
             "menu_paste", nullptr, [this](){return m_plater->can_paste_from_clipboard(); }, this);
         // BBS Delete selected
-        append_menu_item(editMenu, wxID_ANY, _L("Delete selected") + "\t" + _L("Del"),
+        append_menu_item(editMenu, wxID_ANY, _L("Delete selected") + "\tDelete",
             _L("Deletes the current selection"),[this](wxCommandEvent&) { m_plater->remove_selected(); },
             "menu_remove", nullptr, [this](){return can_delete(); }, this);
         //BBS: delete all
-        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + _L("Shift+") + "D",
+        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + _L("Shift+") + "D",
             _L("Deletes all objects"),[this](wxCommandEvent&) { m_plater->delete_all_objects_from_model(); },
             "menu_remove", nullptr, [this](){return can_delete_all(); }, this);
         editMenu->AppendSeparator();
@@ -2704,10 +2718,11 @@ void MainFrame::init_menubar_as_editor()
             "", nullptr, [this](){return can_delete(); }, this);
 #endif
         //BBS: delete all
-        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + _L("Shift+") + "D",
+        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + _L("Shift+") + "D",
             _L("Deletes all objects"),[this, handle_key_event](wxCommandEvent&) {
                 wxKeyEvent e;
                 e.SetEventType(wxEVT_KEY_DOWN);
+                e.SetShiftDown(true);
                 e.SetControlDown(true);
                 e.m_keyCode = 'D';
                 if (handle_key_event(e)) {
@@ -3987,6 +4002,27 @@ void MainFrame::show_sync_dialog()
 {
     SimpleEvent* evt = new SimpleEvent(EVT_SYNC_CLOUD_PRESET);
     wxQueueEvent(this, evt);
+}
+
+bool MainFrame::check_bbl_farm_client_installed()
+{
+#ifdef WIN32
+    HKEY hKey;
+    LONG result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\Bambulab\\Bambu Farm Manager Client"), 0, KEY_READ, &hKey);
+    LONG result_backup = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("HKEY_CLASSES_ROOT\\bambu-farm-client\\shell\\open\\command"), 0, KEY_READ, &hKey);
+
+    if (result == ERROR_SUCCESS || result_backup == ERROR_SUCCESS) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Bambu Farm Manager Client found.";
+        RegCloseKey(hKey);
+        return true;
+    } else {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Bambu Farm Manager Client Not found.";
+        return false;
+    }
+
+#else
+    return false;
+#endif
 }
 
 void MainFrame::update_side_preset_ui()

@@ -75,7 +75,6 @@ func_get_user_nickanme              NetworkAgent::get_user_nickanme_ptr = nullpt
 func_build_login_cmd                NetworkAgent::build_login_cmd_ptr = nullptr;
 func_build_logout_cmd               NetworkAgent::build_logout_cmd_ptr = nullptr;
 func_build_login_info               NetworkAgent::build_login_info_ptr = nullptr;
-func_get_model_id_from_desgin_id    NetworkAgent::get_model_id_from_desgin_id_ptr = nullptr;
 func_ping_bind                      NetworkAgent::ping_bind_ptr = nullptr;
 func_bind_detect                    NetworkAgent::bind_detect_ptr = nullptr;
 func_set_server_callback            NetworkAgent::set_server_callback_ptr = nullptr;
@@ -112,7 +111,6 @@ func_modify_printer_name            NetworkAgent::modify_printer_name_ptr = null
 func_get_camera_url                 NetworkAgent::get_camera_url_ptr = nullptr;
 func_get_design_staffpick           NetworkAgent::get_design_staffpick_ptr = nullptr;
 func_start_pubilsh                  NetworkAgent::start_publish_ptr = nullptr;
-func_get_profile_3mf                NetworkAgent::get_profile_3mf_ptr = nullptr;
 func_get_model_publish_url          NetworkAgent::get_model_publish_url_ptr = nullptr;
 func_get_model_mall_home_url        NetworkAgent::get_model_mall_home_url_ptr = nullptr;
 func_get_model_mall_detail_url      NetworkAgent::get_model_mall_detail_url_ptr = nullptr;
@@ -292,7 +290,6 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     ping_bind_ptr                     =  reinterpret_cast<func_ping_bind>(get_network_function("bambu_network_ping_bind"));
     bind_detect_ptr                   =  reinterpret_cast<func_bind_detect>(get_network_function("bambu_network_bind_detect"));
     set_server_callback_ptr           =  reinterpret_cast<func_set_server_callback>(get_network_function("bambu_network_set_server_callback"));
-    get_model_id_from_desgin_id_ptr   =  reinterpret_cast<func_get_model_id_from_desgin_id>(get_network_function("bambu_network_get_model_id_from_desgin_id"));
     bind_ptr                          =  reinterpret_cast<func_bind>(get_network_function("bambu_network_bind"));
     unbind_ptr                        =  reinterpret_cast<func_unbind>(get_network_function("bambu_network_unbind"));
     get_bambulab_host_ptr             =  reinterpret_cast<func_get_bambulab_host>(get_network_function("bambu_network_get_bambulab_host"));
@@ -326,7 +323,6 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     get_camera_url_ptr                =  reinterpret_cast<func_get_camera_url>(get_network_function("bambu_network_get_camera_url"));
     get_design_staffpick_ptr          =  reinterpret_cast<func_get_design_staffpick>(get_network_function("bambu_network_get_design_staffpick"));
     start_publish_ptr                 =  reinterpret_cast<func_start_pubilsh>(get_network_function("bambu_network_start_publish"));
-    get_profile_3mf_ptr               =  reinterpret_cast<func_get_profile_3mf>(get_network_function("bambu_network_get_profile_3mf"));
     get_model_publish_url_ptr         =  reinterpret_cast<func_get_model_publish_url>(get_network_function("bambu_network_get_model_publish_url"));
     get_subtask_ptr                   =  reinterpret_cast<func_get_subtask>(get_network_function("bambu_network_get_subtask"));
     get_model_mall_home_url_ptr       =  reinterpret_cast<func_get_model_mall_home_url>(get_network_function("bambu_network_get_model_mall_home_url"));
@@ -414,7 +410,6 @@ int NetworkAgent::unload_network_module()
     build_login_cmd_ptr               =  nullptr;
     build_logout_cmd_ptr              =  nullptr;
     build_login_info_ptr              =  nullptr;
-    get_model_id_from_desgin_id_ptr   =  nullptr;
     ping_bind_ptr                     =  nullptr;
     bind_ptr                          =  nullptr;
     unbind_ptr                        =  nullptr;
@@ -448,7 +443,6 @@ int NetworkAgent::unload_network_module()
     get_camera_url_ptr                =  nullptr;
     get_design_staffpick_ptr          =  nullptr;
     start_publish_ptr                 =  nullptr;
-    get_profile_3mf_ptr               =  nullptr;
     get_model_publish_url_ptr         =  nullptr;
     get_subtask_ptr                   =  nullptr;
     get_model_mall_home_url_ptr       =  nullptr;
@@ -1026,18 +1020,6 @@ std::string NetworkAgent::build_login_info()
     return ret;
 }
 
-int NetworkAgent::get_model_id_from_desgin_id(std::string& desgin_id, std::string& model_id)
-{
-    int ret = 0;
-    if (network_agent && get_model_id_from_desgin_id_ptr) {
-        ret = get_model_id_from_desgin_id_ptr(network_agent, desgin_id, model_id);
-        if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, pin code=%3%")
-            % network_agent % ret % desgin_id;
-    }
-    return ret;
-}
-
 int NetworkAgent::ping_bind(std::string ping_code)
 {
     int ret = 0;
@@ -1449,16 +1431,6 @@ int NetworkAgent::start_publish(PublishParams params, OnUpdateStatusFn update_fn
     return ret;
 }
 
-int NetworkAgent::get_profile_3mf(BBLProfile* profile)
-{
-    int ret = -1;
-    if (network_agent && get_profile_3mf_ptr) {
-        ret = get_profile_3mf_ptr(network_agent, profile);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") % network_agent % ret;
-    }
-    return ret;
-}
-
 int NetworkAgent::get_model_publish_url(std::string* url)
 {
     int ret = 0;
@@ -1540,6 +1512,9 @@ int NetworkAgent::track_remove_files()
 int NetworkAgent::track_event(std::string evt_key, std::string content)
 {
     if (!this->enable_track)
+        return 0;
+
+    if (!this->is_user_login())
         return 0;
 
     int ret = 0;

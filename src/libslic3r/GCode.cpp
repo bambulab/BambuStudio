@@ -4679,7 +4679,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         loop.split_at(last_pos, false);
 
     // BBS: not apply on fist layer, too small E has stick issue with hotend plate
-    int  filament_scarf_type = EXTRUDER_CONFIG(filament_scarf_seam_type);
+    int  filament_scarf_type = FILAMENT_CONFIG(filament_scarf_seam_type);
     bool enable_seam_slope   = ((filament_scarf_type == int(SeamScarfType::External) && !is_hole) ||
                                     filament_scarf_type == int(SeamScarfType::All)) &&
                                     !m_config.spiral_mode &&
@@ -4728,15 +4728,15 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     if (enable_seam_slope) {
         // Create seam slope
         double start_slope_ratio;
-        if (EXTRUDER_CONFIG(filament_scarf_height).percent)
-            start_slope_ratio = EXTRUDER_CONFIG(filament_scarf_height).value / 100;
+        if (FILAMENT_CONFIG(filament_scarf_height).percent)
+            start_slope_ratio = FILAMENT_CONFIG(filament_scarf_height).value / 100;
         else {
-            start_slope_ratio = EXTRUDER_CONFIG(filament_scarf_height).value / paths.front().height;
+            start_slope_ratio = FILAMENT_CONFIG(filament_scarf_height).value / paths.front().height;
         }
 
-        float slope_gap = EXTRUDER_CONFIG(filament_scarf_gap).get_abs_value(scale_(EXTRUDER_CONFIG(nozzle_diameter)));
+        float slope_gap = FILAMENT_CONFIG(filament_scarf_gap).get_abs_value(scale_(EXTRUDER_CONFIG(nozzle_diameter)));
 
-        double scarf_seam_length = EXTRUDER_CONFIG(filament_scarf_length);
+        double scarf_seam_length = FILAMENT_CONFIG(filament_scarf_length);
 
         double loop_length = 0.;
         for (const auto &path : paths) {

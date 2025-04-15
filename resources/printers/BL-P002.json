@@ -23,7 +23,7 @@
 			"support_prompt_sound": false,
 			"support_ams_humidity": false,
 			"support_auto_recovery_step_loss": false,
-			"support_auto_leveling": true,
+			"support_bed_leveling": 1,
 			"support_update_remain": false,
 			"support_timelapse": true,
 			"support_filament_backup": false,
@@ -50,11 +50,13 @@
 		"printer_thumbnail_image": "printer_thumbnail",
 		"printer_connect_help_image": "input_access_code_x1",
 		"printer_use_ams_image": "ams_icon",
+		"printer_ext_image": ["ext_image_xp"],
 		"use_ams_type": "generic",
 		"printer_arch": "core_xy",
 		"printer_series": "series_x1",
 		"has_cali_line": true,
-		"printer_is_enclosed": true
+		"printer_is_enclosed": true,
+		"enable_set_nozzle_info": true
 	},
 	"01.01.01.00": {
 		"print": {

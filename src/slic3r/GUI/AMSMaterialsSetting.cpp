@@ -487,24 +487,8 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
 
     if (obj) {
         if(m_is_third){
-            if (obj->is_enable_np) {
-                if (is_virtual_tray()) {
-                    obj->command_ams_filament_settings(ams_id, 0, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int,
-                                                       nozzle_temp_max_int);
-                } else {
-                    obj->command_ams_filament_settings(ams_id, slot_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int,
-                                                       nozzle_temp_max_int);
-                }
-
-            } else {
-                if (is_virtual_tray()) {
-                    obj->command_ams_filament_settings(VIRTUAL_TRAY_MAIN_ID, VIRTUAL_TRAY_DEPUTY_ID, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type,
-                                                       nozzle_temp_min_int, nozzle_temp_max_int);
-                } else {
-                    obj->command_ams_filament_settings(ams_id, slot_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int,
-                                                       nozzle_temp_max_int);
-                }
-            }
+            obj->command_ams_filament_settings(ams_id, slot_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int,
+                                               nozzle_temp_max_int);
         }
 
         // set k / n value
@@ -624,23 +608,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
 
     // set filament
     if (m_is_third) {
-        if (obj->is_enable_np) {
-            if (is_virtual_tray()) {
-                obj->command_ams_filament_settings(ams_id, 0, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
-            } else {
-                obj->command_ams_filament_settings(ams_id, slot_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int,
-                                                   nozzle_temp_max_int);
-            }
-
-        } else {
-            if (is_virtual_tray()) {
-                obj->command_ams_filament_settings(VIRTUAL_TRAY_MAIN_ID, VIRTUAL_TRAY_DEPUTY_ID, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type,
-                                                   nozzle_temp_min_int, nozzle_temp_max_int);
-            } else {
-                obj->command_ams_filament_settings(ams_id, slot_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int,
-                                                   nozzle_temp_max_int);
-            }
-        }
+        obj->command_ams_filament_settings(ams_id, slot_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
     }
 
     //reset param
@@ -680,7 +648,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
         if (obj->cali_version >= 0) {
             PACalibIndexInfo select_index_info;
             select_index_info.tray_id = vt_tray;
-            select_index_info.ams_id = vt_tray;
+            select_index_info.ams_id = ams_id;
             select_index_info.slot_id = 0;
             select_index_info.nozzle_diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
 

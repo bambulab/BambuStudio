@@ -1562,6 +1562,17 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
     fs::path tmp_path = target_file_path;
     tmp_path += format(".%1%%2%", get_current_pid(), ".tmp");
 
+#if defined(__WINDOWS__)
+    if (is_running_on_arm64()) {
+        //set to arm64 for plugins
+        std::map<std::string, std::string> current_headers = Slic3r::Http::get_extra_headers();
+        current_headers["X-BBL-OS-Type"] = "windows_arm";
+
+        Slic3r::Http::set_extra_headers(current_headers);
+        BOOST_LOG_TRIVIAL(info) << boost::format("download_plugin: set X-BBL-OS-Type to windows_arm");
+    }
+#endif
+
     // get_url
     std::string  url = get_plugin_url(name, app_config->get_country_code());
     std::string download_url;
@@ -1618,6 +1629,17 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
                 err_msg += "[download_plugin 1] on_error: " + error + ", body = " + body;
                 result = -1;
         }).perform_sync();
+
+#if defined(__WINDOWS__)
+    if (is_running_on_arm64()) {
+        //set back
+        std::map<std::string, std::string> current_headers = Slic3r::Http::get_extra_headers();
+        current_headers["X-BBL-OS-Type"] = "windows";
+
+        Slic3r::Http::set_extra_headers(current_headers);
+        BOOST_LOG_TRIVIAL(info) << boost::format("download_plugin: set X-BBL-OS-Type back to windows");
+    }
+#endif
 
     bool cancel = false;
     if (result < 0) {
@@ -1773,7 +1795,11 @@ int GUI_App::install_plugin(std::string name, std::string package_name, InstallP
                     if (S_ISLNK(stat.m_external_attr >> 16)) {
                         std::string link(stat.m_uncomp_size + 1, 0);
                         res = mz_zip_reader_extract_to_mem(&archive, stat.m_file_index, link.data(), stat.m_uncomp_size, 0);
-                        boost::filesystem::create_symlink(link, dest_path);
+                        try {
+                            boost::filesystem::create_symlink(link, dest_path);
+                        } catch (const std::exception &e) {
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " create_symlink:" << e.what();
+                        }
                     } else {
 #endif
                         res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
@@ -1792,26 +1818,6 @@ int GUI_App::install_plugin(std::string name, std::string package_name, InstallP
                             close_zip_reader(&archive);
                             if (pro_fn) { pro_fn(InstallStatusUnzipFailed, 0, cancel); }
                             return InstallStatusUnzipFailed;
-                        }
-                    }
-                    else {
-                        if (pro_fn) {
-                            pro_fn(InstallStatusNormal, 50 + i/num_entries, cancel);
-                        }
-                        try {
-                            auto backup_path = boost::filesystem::path(backup_folder.string() + "/" + dest_file);
-                            if (fs::exists(backup_path))
-                                fs::remove(backup_path);
-                            std::string error_message;
-                            CopyFileResult cfr = copy_file(dest_path.string(), backup_path.string(), error_message, false);
-                            if (cfr != CopyFileResult::SUCCESS) {
-                                BOOST_LOG_TRIVIAL(error) << "Copying to backup failed(" << cfr << "): " << error_message;
-                            }
-                        }
-                        catch (const std::exception& e)
-                        {
-                            BOOST_LOG_TRIVIAL(error) << "Copying to backup failed: " << e.what();
-                            //continue
                         }
                     }
                 }
@@ -1833,7 +1839,38 @@ int GUI_App::install_plugin(std::string name, std::string package_name, InstallP
     }
 
     close_zip_reader(&archive);
-
+    {
+        fs::path dir_path(plugin_folder);
+        if (fs::exists(dir_path) && fs::is_directory(dir_path)) {
+            int file_count = 0, file_index = 0;
+            for (fs::directory_iterator it(dir_path); it != fs::directory_iterator(); ++it) {
+                if (fs::is_regular_file(it->status())) { ++file_count; }
+            }
+            for (fs::directory_iterator it(dir_path); it != fs::directory_iterator(); ++it) {
+                BOOST_LOG_TRIVIAL(info) << " current path:" << it->path().string();
+                if (it->path().string() == backup_folder) {
+                    continue;
+                }
+                auto dest_path = backup_folder.string() + "/" + it->path().filename().string();
+                if (fs::is_regular_file(it->status())) {
+                    BOOST_LOG_TRIVIAL(info) << " copy file:" << it->path().string() << "," << it->path().filename();
+                    try {
+                        if (pro_fn) { pro_fn(InstallStatusNormal, 50 + file_index / file_count, cancel); }
+                        file_index++;
+                        if (fs::exists(dest_path)) { fs::remove(dest_path); }
+                        std::string    error_message;
+                        CopyFileResult cfr = copy_file(it->path().string(), dest_path, error_message, false);
+                        if (cfr != CopyFileResult::SUCCESS) { BOOST_LOG_TRIVIAL(error) << "Copying to backup failed(" << cfr << "): " << error_message; }
+                    } catch (const std::exception &e) {
+                        BOOST_LOG_TRIVIAL(error) << "Copying to backup failed: " << e.what();
+                    }
+                } else {
+                    BOOST_LOG_TRIVIAL(info) << " copy framework:" << it->path().string() << "," << it->path().filename();
+                    copy_framework(it->path().string(), dest_path);
+                }
+            }
+        }
+    }
     if (pro_fn)
         pro_fn(InstallStatusInstallCompleted, 100, cancel);
     if (name == "plugins")
@@ -2449,7 +2486,7 @@ std::map<std::string, std::string> GUI_App::get_extra_header()
 #ifdef _M_X64
     extra_headers.insert(std::make_pair("X-BBL-OS-Type", "windows"));
 #else
-    extra_headers.insert(std::make_pair("X-BBL-OS-Type", "win_arm64"));
+    extra_headers.insert(std::make_pair("X-BBL-OS-Type", "windows_arm"));
 #endif
 #elif defined(__APPLE__)
     extra_headers.insert(std::make_pair("X-BBL-OS-Type", "macos"));
@@ -2527,8 +2564,71 @@ void GUI_App::init_single_instance_checker(const std::string &name, const std::s
     m_single_instance_checker = std::make_unique<wxSingleInstanceChecker>(boost::nowide::widen(name), boost::nowide::widen(path));
 }
 
+
+#ifdef __APPLE__
+void GUI_App::MacPowerCallBack(void* refcon, io_service_t service, natural_t messageType, void * messageArgument)
+{
+    BOOST_LOG_TRIVIAL(info) << "MacPowerCallBack messageType:" << messageType;
+
+    DeviceManager* dev_manager = wxGetApp().getDeviceManager();
+
+    static std::string last_selected_machine;
+    if (messageType == kIOMessageSystemWillSleep)
+    {
+        if (dev_manager)
+        {
+            MachineObject* obj = dev_manager->get_selected_machine();
+            last_selected_machine = obj ? obj->dev_id : "";
+            BOOST_LOG_TRIVIAL(info) << "MacPowerCallBack save selected machine:" << last_selected_machine;
+        }
+
+        IOAllowPowerChange(service, (long) messageArgument);
+    }
+    else if(messageType == kIOMessageSystemHasPoweredOn)
+    {
+        if (dev_manager && !last_selected_machine.empty())
+        {
+            dev_manager->set_selected_machine(last_selected_machine, true);
+            BOOST_LOG_TRIVIAL(info) << "MacPowerCallBack restore selected machine:" << last_selected_machine;
+        }
+    };
+}
+
+
+void GUI_App::RegisterMacPowerCallBack()
+{
+    m_mac_io_service = IORegisterForSystemPower(m_mac_refcon, &m_mac_io_notify_port, MacPowerCallBack, &m_mac_io_obj);
+    if (m_mac_io_service == 0)
+    {
+        BOOST_LOG_TRIVIAL(error) << "RegisterMacPowerCallBack failed";
+        return;
+    }
+
+    CFRunLoopAddSource(CFRunLoopGetCurrent(), IONotificationPortGetRunLoopSource(m_mac_io_notify_port), kCFRunLoopCommonModes);
+    m_mac_powercallback_registered = true;
+    BOOST_LOG_TRIVIAL(error) << "RegisterMacPowerCallBack success";
+}
+
+void GUI_App::UnRegisterMacPowerCallBack()
+{
+    if (m_mac_powercallback_registered)
+    {
+        CFRunLoopRemoveSource(CFRunLoopGetCurrent(), IONotificationPortGetRunLoopSource(m_mac_io_notify_port), kCFRunLoopCommonModes);
+        IODeregisterForSystemPower(&m_mac_io_obj);
+        IOServiceClose(m_mac_io_service);
+        IONotificationPortDestroy(m_mac_io_notify_port);
+        m_mac_powercallback_registered = false;
+        BOOST_LOG_TRIVIAL(info) << "UnRegisterMacPowerCallBack";
+    }
+}
+#endif
+
 bool GUI_App::OnInit()
 {
+#ifdef __APPLE__
+    RegisterMacPowerCallBack();
+#endif
+
     try {
         return on_init_inner();
     } catch (const std::exception& e) {
@@ -2540,6 +2640,10 @@ bool GUI_App::OnInit()
 
 int GUI_App::OnExit()
 {
+#ifdef __APPLE__
+    UnRegisterMacPowerCallBack();
+#endif
+
     stop_sync_user_preset();
 
     if (m_device_manager) {
@@ -2666,6 +2770,25 @@ bool GUI_App::on_init_inner()
 
     BOOST_LOG_TRIVIAL(info) << boost::format("gui mode, Current BambuStudio Version %1%")%SLIC3R_VERSION;
     BOOST_LOG_TRIVIAL(info) << get_system_info();
+#if defined(__WINDOWS__)
+    USHORT processMachine = 0;
+    USHORT nativeMachine = 0;
+    if (IsWow64Process2(GetCurrentProcess(), &processMachine, &nativeMachine)) {
+        switch (nativeMachine) {
+            case IMAGE_FILE_MACHINE_ARM64:
+                m_is_arm64 = true;
+                break;
+            case IMAGE_FILE_MACHINE_AMD64:
+            default:
+                m_is_arm64 = false;
+                break;
+        }
+        BOOST_LOG_TRIVIAL(info) << boost::format("processMachine architecture %1%, nativeMachine %2% m_is_arm64 %3%")%(int)(processMachine) %(int) nativeMachine %m_is_arm64;
+    }
+    else {
+        BOOST_LOG_TRIVIAL(info) << boost::format("IsWow64Process2 failed, m_is_arm64 %1%") %m_is_arm64;
+    }
+#endif
     // Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
 //    wxSystemOptions::SetOption("msw.staticbox.optimized-paint", 0);
     // Enable this to disable Windows Vista themes for all wxNotebooks. The themes seem to lead to terrible
@@ -4502,7 +4625,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
         }
     }
     catch (...) {
-        BOOST_LOG_TRIVIAL(trace) << "parse json cmd failed " << cmd;
+        BOOST_LOG_TRIVIAL(warning) << "parse json cmd failed " << cmd;
         return "";
     }
     return "";
@@ -4668,6 +4791,45 @@ void GUI_App::enable_user_preset_folder(bool enable)
     }
 }
 
+void GUI_App::save_privacy_policy_history(bool agree, std::string source)
+{
+    json j;
+    wxDateTime::TimeZone tz(wxDateTime::Local);
+    long offset = tz.GetOffset();
+    std::string timezone = get_timezone_utc_hm(offset);
+
+    std::time_t now = std::time(nullptr);
+    std::tm* utc_time = std::gmtime(&now);
+    std::ostringstream time_str;
+    time_str << std::put_time(utc_time, "%Y-%m-%d %H:%M:%S") << " " << timezone;
+    j["action"] = agree ? "agree" : "skip";
+    j["source"] = source;
+    if (app_config)
+        j["uuid"] = app_config->get("slicer_uuid");
+    j["time"] = time_str.str();
+    j["user_id"] = "default_user";
+    if (m_agent && agree) {
+        if (!m_agent->get_user_id().empty() && m_agent->is_user_login())
+            j["user_id"] = m_agent->get_user_id();
+        m_agent->track_event("privacy_policy", j.dump());
+    }
+    BOOST_LOG_TRIVIAL(info) << "privacy_policy: source = " << source << ", value = " << j.dump();
+
+    boost::filesystem::path dir = (boost::filesystem::path(Slic3r::data_dir()) / "track").make_preferred();
+    std::string dir_str = dir.string();
+    if (!fs::exists(dir_str)) {
+        fs::create_directory(dir_str);
+    }
+
+    std::string path = (boost::filesystem::path(Slic3r::data_dir()) / "track" / ("history.txt")).make_preferred().string();
+    boost::nowide::ofstream c;
+    c.open(path, std::ios::app);
+    if (c.is_open()) {
+        c << j.dump() << "\n";
+        c.close();
+    }
+}
+
 void GUI_App::on_set_selected_machine(wxCommandEvent &evt)
 {
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -4780,6 +4942,7 @@ void GUI_App::check_update(bool show_tips, int by_user)
     auto curr_version = Semver::parse(SLIC3R_VERSION);
     auto remote_version = Semver::parse(version_info.version_str);
     if (curr_version && remote_version && (*remote_version > *curr_version)) {
+        wxGetApp().app_config->set("app", "cloud_version", version_info.version_str);
         if (version_info.force_upgrade) {
             wxGetApp().app_config->set_bool("force_upgrade", version_info.force_upgrade);
             wxGetApp().app_config->set("upgrade", "force_upgrade", true);
@@ -7142,12 +7305,8 @@ const std::shared_ptr<OpenGLManager>& GUI_App::get_opengl_manager() const
     if (m_p_opengl_mgr) {
         return m_p_opengl_mgr;
     }
-    bool prefer_to_use_dgpu = false;
-#ifdef __WIN32__
-    prefer_to_use_dgpu = app_config->get_bool("prefer_to_use_dgpu");
-#endif // __WIN32__
 
-    const bool rt = OpenGLManager::init(prefer_to_use_dgpu);
+    const bool rt = OpenGLManager::init();
     if (rt)
     {
         m_p_opengl_mgr = std::make_shared<OpenGLManager>();
@@ -7323,6 +7482,16 @@ void GUI_App::set_picking_effect(EPickingEffect effect)
 EPickingEffect GUI_App::get_picking_effect() const
 {
     return m_picking_effect;
+}
+
+void GUI_App::set_picking_color(const ColorRGB& color)
+{
+    m_picking_color = color;
+}
+
+const ColorRGB& GUI_App::get_picking_color() const
+{
+    return m_picking_color;
 }
 
 bool GUI_App::open_browser_with_warning_dialog(const wxString& url, int flags/* = 0*/)

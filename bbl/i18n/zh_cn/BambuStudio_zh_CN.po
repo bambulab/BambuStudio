@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-28 16:27+0800\n"
+"POT-Creation-Date: 2025-04-14 11:55+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -17,11 +17,17 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.5\n"
 
+msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
+msgstr "该材料与当前机器设置不兼容，将使用通用的材料预设。"
+
 msgid "The filament model is unknown. Still using the previous filament preset."
 msgstr "未知的材料型号，将使用之前的材料预设。"
 
-msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
-msgstr "改材料与当前机器设置不兼容，将使用通用的材料预设。"
+msgid "The filament model is unknown. Generic filament presets will be used."
+msgstr ""
+
+msgid "The filament may not be compatible with the current machine settings. A random filament preset will be used."
+msgstr "该材料与当前机器设置不兼容，将使用随机的材料预设。"
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "未知的材料型号，将使用随机的材料预设。"
@@ -2214,7 +2220,7 @@ msgid "Exhaust"
 msgstr "外排"
 
 msgid "Full Cooling"
-msgstr ""
+msgstr "强冷却模式"
 
 msgid "Num?"
 msgstr ""
@@ -2334,14 +2340,6 @@ msgstr "已完成自动摆放，但是有未被摆到盘内的项，可在减小
 
 msgid "Arranging done."
 msgstr "已完成自动摆放。"
-
-#, c-format, boost-format
-msgid ""
-"Arrangement ignored the following objects which can't fit into a single bed:\n"
-"%s"
-msgstr ""
-"自动摆放会忽略以下无法放入单盘的零件：\n"
-"%s"
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
@@ -3403,6 +3401,18 @@ msgstr "验证失败。"
 msgid "Update failed."
 msgstr "更新失败。"
 
+msgid "Timelapse is not supported on this printer."
+msgstr "此打印机不支持延时摄影"
+
+msgid "Timelapse is not supported while the SD card does not exist."
+msgstr "没有外置存储卡，故无法启用延时摄影"
+
+msgid "Timelapse is not supported while the SD card is unavailable."
+msgstr "外置存储卡不可用，故无法启用延时摄影"
+
+msgid "Timelapse is not supported while the SD card is readonly."
+msgstr "外置存储卡当前是只读的，故无法启用延时摄影"
+
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "当前腔温或目标腔温超过了45℃。为了避免挤出机堵塞，不允许加载低温度的打印材料（如PLA/PETG/TPU）"
 
@@ -3973,7 +3983,7 @@ msgstr "尺寸："
 
 #, c-format, boost-format
 msgid "Conflicts of gcode paths have been found at layer %d. Please separate the conflicted objects farther (%s <-> %s)."
-msgstr "发现gcode路径在层%d处的冲突。请将有冲突的对象分离得更远(%s <-> %s)。"
+msgstr "发现第%d层存在重叠的走线，这可能导致打印失败或打印出来的模型不可用。请将有冲突的对象分得更开。有冲突的对象为%s <-> %s。"
 
 msgid "An object is layed over the boundary of plate."
 msgstr "检测到有对象放在盘的边界上。"
@@ -5564,10 +5574,13 @@ msgid "Stainless Steel"
 msgstr "不锈钢"
 
 msgid "High flow"
-msgstr "大流量"
+msgstr "高流量"
 
 msgid "Nozzle Type"
 msgstr "喷嘴类型"
+
+msgid "Please change the nozzle settings on the printer."
+msgstr "如需修改喷嘴信息，请去打印机操作。"
 
 msgid "Nozzle Flow"
 msgstr "喷嘴流量"
@@ -6117,6 +6130,9 @@ msgstr "文件%s已经发送到打印机的存储空间，可以在打印机上�
 msgid "The nozzle type is not set. Please set the nozzle and try again."
 msgstr "未设置喷嘴类型。请先设置喷嘴，然后重试。"
 
+msgid "The nozzle type is not set. Please check."
+msgstr "未设置喷嘴类型。请检查喷嘴设置。"
+
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr "无法对模型网格执行布尔运算。您可以修复网格，然后重试。"
 
@@ -6456,12 +6472,6 @@ msgstr "通过lod提高渲染性能"
 
 msgid "Improved rendering performance under the scene of multiple plates and many models."
 msgstr "在多盘和多模型的场景下提高了渲染性能"
-
-msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
-msgstr "优先使用高性能显卡 （手动重启 Bambu Studio 后生效）"
-
-msgid "If enabled, this feature can improve rendering performance to some extent. However, it may cause flickering on multi-GPU systems, so it is recommended to disable it."
-msgstr "启用后，该功能可在一定程度上提升渲染性能。但在多显卡设备上可能会导致闪烁，则建议关闭。"
 
 msgid "Grabber scale"
 msgstr "抓手比例"
@@ -6910,9 +6920,6 @@ msgstr "切片文件中的材料分组不是最优结果。"
 msgid "Click here if you can't connect to the printer"
 msgstr "如果您无法连接打印机，请点击这里"
 
-msgid "Advanced Options"
-msgstr "高级选项"
-
 msgid "Auto Bed Leveling"
 msgstr "自动热床调平"
 
@@ -6953,7 +6960,7 @@ msgid "Error code"
 msgstr "错误代码"
 
 msgid "High Flow"
-msgstr "大流量"
+msgstr "高流量"
 
 #, c-format, boost-format
 msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
@@ -7061,6 +7068,12 @@ msgstr "请修复上述错误，否则打印无法继续。"
 msgid "Please click the confirm button if you still want to proceed with printing."
 msgstr "如果您仍然想继续打印，请单击“确定”按钮。"
 
+msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
+msgstr "检测热床的平整度。调平可以使挤出的高度更均匀。"
+
+msgid "This process determines the dynamic flow values to improve overall print quality."
+msgstr "此过程确定动态流量校准的最佳系数，从而提升打印质量。"
+
 msgid "Connecting to the printer. Unable to cancel during the connection process."
 msgstr "正在连接打印机。连接过程中无法取消。"
 
@@ -7094,9 +7107,6 @@ msgstr "当前喷嘴直径（%.1fmm）和切片文件（%.1fmm）不一致，无
 #, c-format, boost-format
 msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
 msgstr "高温材料（%s）若通过%s喷嘴打印，可能会导致喷嘴损坏。请检查喷嘴类型"
-
-msgid "To map to AMS, enable 'Use AMS' in 'Advanced Options'."
-msgstr "若要映射至AMS，请在'高级选项'开启'使用AMS'"
 
 msgid "Cool"
 msgstr ""
@@ -7270,6 +7280,9 @@ msgstr "点击以将所有设置还原到最后一次保存的版本。"
 
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "平滑模式的延时摄影需要擦料塔，否则打印件上可能会有瑕疵。您确定要关闭擦料塔吗？"
+
+msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
+msgstr "同时启用精准Z高度和料塔将可能导致擦拭塔的尺寸变大，是否仍要开启？"
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "平滑模式的延时摄影需要擦料塔，否则打印件上可能会有瑕疵。您想打开擦料塔吗？"
@@ -7922,13 +7935,6 @@ msgstr ""
 "颜色已经选好了，您可以选中确认 \n"
 " 继续或手动修改它。"
 
-msgid ""
-"Waring:The count of newly added and \n"
-" current extruders exceeds 16."
-msgstr ""
-"警告：新增追加耗材丝数量 \n"
-" 和已有耗材丝数量超过了16."
-
 msgid "—> "
 msgstr ""
 
@@ -7971,6 +7977,9 @@ msgstr "(推荐的材料)"
 
 msgid "Right Extruder"
 msgstr "右挤出机"
+
+msgid "Advanced Options"
+msgstr "高级选项"
 
 msgid ""
 "Check heatbed flatness. Leveling makes extruded height uniform.\n"
@@ -8396,7 +8405,7 @@ msgid "2. If the IP and Access Code below are different from the actual values o
 msgstr "2. 如果下面的IP和Access Code与你的打印机上的实际值不同，请更正。"
 
 msgid "3. Please obtain the device SN from the printer side; it is usually found in the device information on the printer screen."
-msgstr ""
+msgstr "3. 请从打印机端获取设备序列号，它通常位于打印机屏幕上的设备信息中。"
 
 msgid "View wiki"
 msgstr ""
@@ -8780,8 +8789,17 @@ msgstr "离其它对象太近，可能会发生碰撞。\n"
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr "离不可打印区域太近，会发生碰撞。\n"
 
-msgid "Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing"
-msgstr "不能将温度差异过大的材料一起打印。否则挤出机和喷嘴在打印中可能被堵塞或损坏"
+msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
+msgstr "同时打印高温和低温材料可能导致喷嘴堵塞或打印机损坏。"
+
+msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
+msgstr "同时打印高温和低温材料可能导致喷嘴堵塞或打印机损坏。若仍需打印，可在首选项中启用该选项。"
+
+msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
+msgstr "同时打印高温和中温材料可能导致喷嘴堵塞或打印机损坏。"
+
+msgid "Printing mid-temp and low-temp filaments together may cause nozzle clogging or printer damage."
+msgstr "同时打印中温和低温材料可能导致喷嘴堵塞或打印机损坏。"
 
 msgid "No extrusions under current settings."
 msgstr "根据当前设置，不会生成任何打印。"
@@ -11049,8 +11067,8 @@ msgstr "擦料塔的外墙跳过内部擦拭路径的起点"
 msgid "Rib wall"
 msgstr "斜肋外墙"
 
-msgid "The wall of prime tower will add four ribs"
-msgstr "擦料塔外墙增加4个斜肋"
+msgid "The wall of prime tower will add four ribs and make its cross-section as close to a square as possible, so the width will be fixed."
+msgstr "擦拭塔的外墙增加四个肋角，并使其横截面近似正方形，因此宽度不能修改。"
 
 msgid "Fillet wall"
 msgstr "外墙倒圆角"
@@ -11219,6 +11237,9 @@ msgstr ""
 
 msgid "Loading of a model file failed."
 msgstr "加载模型文件失败。"
+
+msgid "Meshing of a model file failed or no valid shape."
+msgstr ""
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "无法读取提供的文件，因为该文件为空。"
@@ -11645,6 +11666,9 @@ msgstr "%s 与 %s 不兼容"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "不支持TPU进行动态流量自动校准。"
+
+msgid "Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing"
+msgstr "不能将温度差异过大的材料一起打印。否则挤出机和喷嘴在打印中可能被堵塞或损坏"
 
 #, c-format, boost-format
 msgid ""
@@ -13191,6 +13215,33 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
+#~ msgstr "优先使用高性能显卡 （手动重启 Bambu Studio 后生效）"
+
+#~ msgid "If enabled, this feature can improve rendering performance to some extent. However, it may cause flickering on multi-GPU systems, so it is recommended to disable it."
+#~ msgstr "启用后，该功能可在一定程度上提升渲染性能。但在多显卡设备上可能会导致闪烁，则建议关闭。"
+
+#~ msgid "To map to AMS, enable 'Use AMS' in 'Advanced Options'."
+#~ msgstr "若要映射至AMS，请在'高级选项'开启'使用AMS'"
+
+#~ msgid ""
+#~ "Waring:The count of newly added and \n"
+#~ " current extruders exceeds 16."
+#~ msgstr ""
+#~ "警告：新增追加耗材丝数量 \n"
+#~ " 和已有耗材丝数量超过了16."
+
+#~ msgid "The wall of prime tower will add four ribs"
+#~ msgstr "擦料塔外墙增加4个斜肋"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Arrangement ignored the following objects which can't fit into a single bed:\n"
+#~ "%s"
+#~ msgstr ""
+#~ "自动摆放会忽略以下无法放入单盘的零件：\n"
+#~ "%s"
 
 #~ msgid "Currently only External Spool is available, color mapping is prohibited, and control pop-up drop-down boxes are also prohibited."
 #~ msgstr "目前仅有外挂料槽，颜色映射被禁止，并且控制弹出下拉框也被禁止"

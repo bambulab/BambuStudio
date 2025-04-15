@@ -931,7 +931,7 @@ void PrintConfigDef::init_fff_params()
     def->min      = 0.;
     def->max      = 5.;
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats{2.0});
+    def->set_default_value(new ConfigOptionFloats{0.0});
 
     def = this->add("overhang_fan_threshold", coEnums);
     def->label = L("Cooling overhang threshold");
@@ -4343,7 +4343,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("prime_tower_enable_framework", coBool);
     def->label = L("Internal ribs");
     def->tooltip = L("Enable internal ribs to increase the stability of the prime tower.");
-    def->mode = comSimple;
+    def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def          = this->add("enable_circle_compensation", coBool);
@@ -4552,8 +4552,9 @@ void PrintConfigDef::init_fff_params()
 
     def          = this->add("prime_tower_rib_wall", coBool);
     def->label   = L("Rib wall");
-    def->tooltip = L("The wall of prime tower will add four ribs");
-    def->mode    = comAdvanced;
+    def->tooltip = L("The wall of prime tower will add four ribs and make its "
+                     "cross-section as close to a square as possible, so the width will be fixed.");
+    def->mode    = comSimple;
     def->set_default_value(new ConfigOptionBool(true));
 
     def          = this->add("prime_tower_fillet_wall", coBool);
