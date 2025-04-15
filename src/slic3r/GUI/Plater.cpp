@@ -12174,6 +12174,7 @@ void Plater::load_gcode(const wxString& filename)
         set_project_filename(filename);
     }
 
+    p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false, true);//STUDIO-11512
 }
 
 void Plater::reload_gcode_from_disk()
