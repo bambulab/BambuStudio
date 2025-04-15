@@ -1538,8 +1538,6 @@ bool MachineObject::is_in_calibration()
     return false;
 }
 
-
-
 bool MachineObject::is_calibration_done()
 {
     return calibration_done;
@@ -5544,6 +5542,10 @@ BBLModelTask* MachineObject::get_modeltask()
 void MachineObject::set_modeltask(BBLModelTask* task)
 {
     model_task = task;
+}
+
+void MachineObject::set_slice_info(BBLSliceInfo *info) {
+    slice_info = info;
 }
 
 void MachineObject::update_model_task()
