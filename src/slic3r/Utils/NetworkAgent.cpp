@@ -1514,6 +1514,9 @@ int NetworkAgent::track_event(std::string evt_key, std::string content)
     if (!this->enable_track)
         return 0;
 
+    if (!this->is_user_login())
+        return 0;
+
     int ret = 0;
     if (network_agent && track_event_ptr) {
         ret = track_event_ptr(network_agent, evt_key, content);

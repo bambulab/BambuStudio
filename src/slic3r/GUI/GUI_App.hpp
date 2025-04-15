@@ -464,6 +464,7 @@ public:
     void            on_user_login(wxCommandEvent &evt);
     void            on_user_login_handle(wxCommandEvent& evt);
     void            enable_user_preset_folder(bool enable);
+    void            save_privacy_policy_history(bool agree, std::string source = "");
 
     // BBS
     bool            is_studio_active();
