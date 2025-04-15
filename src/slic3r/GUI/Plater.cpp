@@ -6786,7 +6786,7 @@ void Plater::priv::process_validation_warning(StringObjectException const &warni
         std::string text = warning.string;
         auto po = dynamic_cast<PrintObjectBase const *>(warning.object);
         auto mo = po ? po->model_object() : dynamic_cast<ModelObject const *>(warning.object);
-        auto action_fn = (mo || !warning.opt_key.empty()) ? [id = mo ? mo->id() : 0, opt = warning.opt_key](wxEvtHandler *) {
+        auto obj_call_fn= [id = mo ? mo->id() : 0, opt = warning.opt_key](wxEvtHandler *) {
 		    auto & objects = wxGetApp().model().objects;
 		    auto iter = id.id ? std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; }) : objects.end();
             if (iter != objects.end()) {
@@ -6799,10 +6799,28 @@ void Plater::priv::process_validation_warning(StringObjectException const &warni
                 wxGetApp().sidebar().jump_to_option(opt, Preset::TYPE_PRINT, L"");
 		    }
 		    return false;
-	    } : std::function<bool(wxEvtHandler *)>();
-        auto hypertext = (mo || !warning.opt_key.empty()) ? _u8L("Jump to") : "";
-        if (mo) hypertext += std::string(" [") + mo->name + "]";
-        if (!warning.opt_key.empty()) hypertext += std::string(" (") + warning.opt_key + ")";
+	    };
+        auto        action_fn = (mo || !warning.opt_key.empty()) ? obj_call_fn : std::function<bool(wxEvtHandler *)>();
+        std::string hypertext;
+        // hack code
+        if (warning.hypetext == "filament_mix_print") {
+            hypertext = _u8L("Click Wiki for help.");
+            action_fn = [](wxEvtHandler *)->bool {
+                bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
+                if (is_zh) {
+                    wxLaunchDefaultBrowser("https://wiki.bambulab.com/zh/filament-acc/filament/h2d-filament-config-limit");
+                } else {
+                    wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/filament-acc/filament/h2d-filament-config-limit");
+                }
+                return false;
+            };
+        } else if (!warning.hypetext.empty()) {
+            hypertext = warning.hypetext;
+        } else {
+            if (mo || !warning.opt_key.empty()) hypertext = _u8L("Jump to");
+            if (mo) hypertext += std::string(" [") + mo->name + "]";
+            if (!warning.opt_key.empty()) hypertext += std::string(" (") + warning.opt_key + ")";
+        }
 
         // BBS disable support enforcer
         //if (text == "_SUPPORTS_OFF") {

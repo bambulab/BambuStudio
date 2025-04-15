@@ -35,6 +35,7 @@ struct StringObjectException
     StringExceptionType         type;   // warning type for tips
     bool is_warning = false;
     std::vector<std::string>    params; // warning params for tips
+    std::string                         hypetext;
 };
 
 class CanceledException : public std::exception

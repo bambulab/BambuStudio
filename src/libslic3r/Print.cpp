@@ -1069,10 +1069,13 @@ StringObjectException Print::check_multi_filament_valid(const Print& print)
 
     StringObjectException ret;
 
+    std::string hypertext = "filament_mix_print";
+
     if(compatibility == FilamentCompatibilityType::HighLowMixed){
         if(enable_mix_printing){
             ret.string =L("Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage.");
             ret.is_warning = true;
+            ret.hypetext   = hypertext;
         }
         else{
             ret.string =L("Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences.");
@@ -1080,11 +1083,13 @@ StringObjectException Print::check_multi_filament_valid(const Print& print)
     }
     else if (compatibility == FilamentCompatibilityType::HighMidMixed) {
         ret.is_warning = true;
+        ret.hypetext = hypertext;
         ret.string =L("Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage.");
 
     }
     else if (compatibility == FilamentCompatibilityType::LowMidMixed) {
         ret.is_warning = true;
+        ret.hypetext = hypertext;
         ret.string = L("Printing mid-temp and low-temp filaments together may cause nozzle clogging or printer damage.");
     }
 
