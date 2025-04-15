@@ -31,6 +31,11 @@
 #include <mutex>
 #include <stack>
 
+#ifdef __APPLE__
+#include <IOKit/pwr_mgt/IOPMLib.h>
+#include <IOKit/IOMessage.h>
+#endif
+
 //#define BBL_HAS_FIRST_PAGE          1
 #define STUDIO_INACTIVE_TIMEOUT     15*60*1000
 #define LOG_FILES_MAX_NUM           30
@@ -237,6 +242,9 @@ private:
     bool            m_is_recreating_gui{ false };
 #ifdef __linux__
     bool            m_opengl_initialized{ false };
+#endif
+#if defined(__WINDOWS__)
+    bool            m_is_arm64{false};
 #endif
 
 //import model from mall
@@ -456,6 +464,7 @@ public:
     void            on_user_login(wxCommandEvent &evt);
     void            on_user_login_handle(wxCommandEvent& evt);
     void            enable_user_preset_folder(bool enable);
+    void            save_privacy_policy_history(bool agree, std::string source = "");
 
     // BBS
     bool            is_studio_active();
@@ -576,6 +585,12 @@ public:
     std::string     get_download_model_url() {return m_mall_model_download_url;}
     std::string     get_download_model_name() {return m_mall_model_download_name;}
 
+    std::string     get_remote_version_str() { return version_info.version_str; }
+#if defined(__WINDOWS__)
+    bool            is_running_on_arm64() { return m_is_arm64; }
+#endif
+
+
     void            load_url(wxString url);
     void            open_mall_page_dialog();
     void            open_publish_page_dialog();
@@ -668,6 +683,9 @@ public:
     void set_picking_effect(EPickingEffect effect);
     EPickingEffect get_picking_effect() const;
 
+    void set_picking_color(const ColorRGB& color);
+    const ColorRGB& get_picking_color() const;
+
 private:
     int             updating_bambu_networking();
     bool            on_init_inner();
@@ -697,6 +715,19 @@ private:
     boost::optional<Semver> m_last_config_version;
     std::string             m_open_method;
     EPickingEffect          m_picking_effect{ EPickingEffect::StencilOutline };
+    ColorRGB                m_picking_color{ 1.0f, 1.0f, 1.0f };
+
+#ifdef __APPLE__
+    void        RegisterMacPowerCallBack();
+    void        UnRegisterMacPowerCallBack();
+    static void MacPowerCallBack(void* refcon, io_service_t service, natural_t messageType, void * messageArgument);
+
+    bool                   m_mac_powercallback_registered = false;
+    void*                  m_mac_refcon;
+    IONotificationPortRef  m_mac_io_notify_port;
+    io_object_t            m_mac_io_obj;
+    io_service_t           m_mac_io_service;
+#endif
 };
 
 DECLARE_APP(GUI_App)

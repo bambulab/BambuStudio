@@ -24,6 +24,8 @@
 #include <wx/wrapsizer.h>
 #include <wx/srchctrl.h>
 
+#include <unordered_map>
+
 #include "boost/bimap/bimap.hpp"
 #include "AmsMappingPopup.hpp"
 #include "ReleaseNote.hpp"
@@ -205,63 +207,74 @@ static int get_brightness_value(wxImage image) {
 struct POItem
 {
     std::string key;
-    wxString value;
+    wxString    value; // the display value
+
+ public:
+    bool operator==(const POItem &other) const { return key == other.key && value == other.value; }
 };
 
-class PrintOptionItem : public wxPanel
+class PrintOptionItem : public ComboBox
 {
+    std::vector<POItem> m_ops;
+    std::string         selected_key;
+    std::string         m_param;
+
 public:
     PrintOptionItem(wxWindow *parent, std::vector<POItem> ops, std::string param = "");
-    ~PrintOptionItem(){};
-    void OnPaint(wxPaintEvent &event);
-    void render(wxDC &dc);
-    void on_left_down(wxMouseEvent &evt);
-    void doRender(wxDC &dc);
-
-    ScalableBitmap m_selected_bk;
-    std::vector<POItem> m_ops;
-    std::string selected_key;
-    std::string m_param;
-
-    void setValue(std::string value);
-    void update_options(std::vector<POItem> ops){
-        m_ops = ops;
-        selected_key = "";
-        auto width  = ops.size() * FromDIP(56) + FromDIP(8);
-        auto height = FromDIP(22) + FromDIP(8);
-        SetMinSize(wxSize(width, height));
-        SetMaxSize(wxSize(width, height));
-        Refresh();
-    };
-    std::string getValue();
+    ~PrintOptionItem() {};
 
 public:
-    void msw_rescale() { m_selected_bk.msw_rescale(); Refresh(); };
+    bool        Enable(bool enable) override {  return ComboBox::Enable(enable); }
+
+    void        setValue(std::string value);
+    std::string getValue() const { return selected_key; }
+
+    void        msw_rescale() { ComboBox::Rescale();};
+    void        update_options(std::vector<POItem> ops);
+
+    bool        CanBeFocused() const override { return false; }
+
+private:
+    void on_combobox_changed(wxCommandEvent &evt);
+
+    wxString    get_display_str(const std::string& key) const;
+    std::string get_key(const wxString &display_val) const;
 };
 
 class PrintOption : public wxPanel
 {
+private:
+    std::string         m_param;
+    std::vector<POItem> m_ops;
+    Label              *m_printoption_title{nullptr};
+    PrintOptionItem    *m_printoption_item{nullptr};
+
 public:
     PrintOption(wxWindow *parent, wxString title, wxString tips, std::vector<POItem> ops, std::string param = "");
     ~PrintOption(){};
+
+public:
+    void        enable(bool en) { m_printoption_item->Enable(en); }
+
+    void        setValue(std::string value);
+    std::string getValue();
+    int         getValueInt();
+
+    std::string getParam() const { return m_param; }
+
+    bool        contain_opt(const std::string& opt_str) const;
+    void        update_options(std::vector<POItem> ops, const wxString &tips);
+    void        update_tooltip(const wxString &tips);
+
+    void  msw_rescale() { m_printoption_item->msw_rescale(); };
+
+    // override funcs
+    bool  CanBeFocused() const override { return false; }
+
+private:
     void OnPaint(wxPaintEvent &event);
     void render(wxDC &dc);
     void doRender(wxDC &dc);
-    void msw_rescale() { m_printoption_item->msw_rescale(); };
-    void enable(bool en){m_printoption_item->Enable(en);};
-
-    std::string m_param;
-    std::vector<POItem> m_ops;
-    Label*   m_label{nullptr};
-    Label*   m_printoption_title{nullptr};
-    PrintOptionItem* m_printoption_item{nullptr};
-    void setValue(std::string value);
-    void update_options(std::vector<POItem> ops){
-        m_ops = ops;
-        m_printoption_item->update_options(ops);
-    };
-    std::string getValue();
-    int getValueInt();
 };
 
 class ThumbnailPanel : public wxPanel
@@ -338,10 +351,11 @@ private:
     StateColor                          m_btn_bg_enable;
     Label* m_text_bed_type;
 
+    std::unordered_map<string, PrintOption*> m_checkbox_list;
+    std::list<PrintOption*>                  m_checkbox_list_order;
+
     std::shared_ptr<int>                m_token = std::make_shared<int>(0);
-    std::map<std::string, PrintOption*>   m_checkbox_list;
     wxString                             m_ams_tooltip;
-    wxString                             m_ams_tooltip_ext;
     std::vector<wxString>               m_bedtype_list;
     std::vector<MachineObject*>         m_list;
     std::vector<FilamentInfo>           m_filaments;
@@ -371,8 +385,7 @@ protected:
     MaterialHash                        m_materialList;
     Plater *                            m_plater{nullptr};
     wxPanel *                           m_options_other {nullptr};
-    wxBoxSizer*                         m_sizer_options_timelapse{ nullptr };
-    wxBoxSizer*                         m_sizer_options_other{ nullptr };
+    wxGridSizer*                        m_sizer_options{nullptr};
     wxBoxSizer*                         m_sizer_thumbnail{ nullptr };
 
     wxBoxSizer*                         m_basicl_sizer{ nullptr };
@@ -396,6 +409,9 @@ protected:
     wxPanel*                            m_panel_sending{nullptr};
     wxPanel*                            m_panel_prepare{nullptr};
     wxPanel*                            m_panel_finish{nullptr};
+
+    wxScrolledWindow*                   m_scroll_area{nullptr};
+
     wxPanel*                            m_line_top{ nullptr };
     Label*                              m_link_edit_nozzle{ nullptr };
     Label*                              m_st_txt_error_code{nullptr};
@@ -413,7 +429,6 @@ protected:
     Label*                              m_txt_change_filament_times{ nullptr };
     Label*                              m_text_printer_msg{ nullptr };
     Label*                              m_text_printer_msg_tips{ nullptr };
-    Label*                              m_advanced_options_title{ nullptr };
     wxStaticText*                       m_staticText_bed_title{ nullptr };
     wxStaticText*                       m_stext_sending{ nullptr };
     wxStaticText*                       m_statictext_finish{nullptr};
@@ -422,7 +437,6 @@ protected:
     std::shared_ptr<PrintJob>           m_print_job;
     wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
     wxHyperlinkCtrl*                    m_hyperlink{nullptr};
-    wxStaticBitmap *                    m_advanced_options_icon{nullptr};
     ScalableBitmap *                    rename_editable{nullptr};
     ScalableBitmap *                    rename_editable_light{nullptr};
     wxStaticBitmap *                    timeimg{nullptr};
@@ -507,7 +521,6 @@ public:
     void set_default_from_sdcard();
     void update_page_turn_state(bool show);
     void on_timer(wxTimerEvent& event);
-    void enable_advanced_option(bool en);
     void on_selection_changed(wxCommandEvent &event);
     void update_flow_cali_check(MachineObject* obj);
     void Enable_Refresh_Button(bool en);
@@ -522,8 +535,8 @@ public:
     void update_print_status_msg(wxString msg, bool is_printer, bool can_send_print, bool can_refresh, const wxString& printer_msg_tips = wxEmptyString);
     void update_print_error_info(int code, std::string msg, std::string extra);
     void set_flow_calibration_state(bool state, bool show_tips = true);
-    bool has_timelapse_warning();
-    void update_timelapse_enable_status();
+    bool has_timelapse_warning(wxString& msg);
+    bool has_timelapse_warning() { wxString msg; return has_timelapse_warning(msg);};
     bool can_support_auto_cali();
     bool is_same_printer_model();
     bool is_blocking_printing(MachineObject* obj_);
@@ -535,7 +548,8 @@ public:
     int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
     void set_print_type(PrintFromType type) {m_print_type = type;};
     bool Show(bool show);
-    bool     do_ams_mapping(MachineObject *obj_);
+    void show_init();
+    bool do_ams_mapping(MachineObject *obj_,bool use_ams);
     bool get_ams_mapping_result(std::string& mapping_array_str, std::string& mapping_array_str2, std::string& ams_mapping_info);
     bool build_nozzles_info(std::string& nozzles_info);
     bool can_hybrid_mapping(ExtderData data);
@@ -552,6 +566,18 @@ public:
 
 private:
     void EnableEditing(bool enable);
+
+    /* update scroll area size*/
+    void update_scroll_area_size();
+
+    /* update option area*/
+    void update_option_opts(MachineObject *obj);
+    void update_options_layout();
+
+    // save and restore from config
+    void load_option_vals(MachineObject* obj);
+    void save_option_vals();
+    void save_option_vals(MachineObject *obj);
 
     /*go check*/
     bool is_error(PrintDialogStatus status)            { return (PrintStatusErrorBegin < status)           && (PrintStatusErrorEnd > status); };

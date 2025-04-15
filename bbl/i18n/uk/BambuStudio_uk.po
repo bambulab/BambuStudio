@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-28 16:27+0800\n"
+"POT-Creation-Date: 2025-04-14 11:55+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -13,10 +13,16 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
 "X-Generator: Poedit 3.5\n"
 
+msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
+msgstr ""
+
 msgid "The filament model is unknown. Still using the previous filament preset."
 msgstr ""
 
-msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
+msgid "The filament model is unknown. Generic filament presets will be used."
+msgstr ""
+
+msgid "The filament may not be compatible with the current machine settings. A random filament preset will be used."
 msgstr ""
 
 msgid "The filament model is unknown. A random filament preset will be used."
@@ -2337,15 +2343,6 @@ msgstr "Збірка завершена, але є невпаковані реч
 msgid "Arranging done."
 msgstr "Організація зроблена."
 
-#, c-format, boost-format
-msgid ""
-"Arrangement ignored the following objects which can't fit into a single bed:\n"
-"%s"
-msgstr ""
-"Аранжування ігнорувало такі об'єкти, які не можуть поміститися на один\n"
-"стіл:\n"
-"%s"
-
 msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-orient on these objects."
@@ -3422,6 +3419,18 @@ msgstr "Перевірка не вдалася."
 
 msgid "Update failed."
 msgstr "Не вдалося оновити."
+
+msgid "Timelapse is not supported on this printer."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card does not exist."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card is unavailable."
+msgstr ""
+
+msgid "Timelapse is not supported while the SD card is readonly."
+msgstr ""
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "Поточна температура камери або цільова температура камери перевищує 45℃. Щоб уникнути забивання екструдера, не дозволяється завантажувати філаменти низької температури (PLA/PETG/TPU)."
@@ -5597,6 +5606,9 @@ msgstr ""
 msgid "Nozzle Type"
 msgstr "Тип насадки"
 
+msgid "Please change the nozzle settings on the printer."
+msgstr ""
+
 msgid "Nozzle Flow"
 msgstr ""
 
@@ -6145,6 +6157,9 @@ msgstr "Файл %s надіслано до пам'яті принтера та 
 msgid "The nozzle type is not set. Please set the nozzle and try again."
 msgstr ""
 
+msgid "The nozzle type is not set. Please check."
+msgstr ""
+
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr ""
 
@@ -6478,12 +6493,6 @@ msgstr "Покращити продуктивність рендерингу з�
 
 msgid "Improved rendering performance under the scene of multiple plates and many models."
 msgstr "Покращена продуктивність рендерингу в умовах кількох пластин і багатьох моделей."
-
-msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
-msgstr ""
-
-msgid "If enabled, this feature can improve rendering performance to some extent. However, it may cause flickering on multi-GPU systems, so it is recommended to disable it."
-msgstr ""
 
 msgid "Grabber scale"
 msgstr "Масштаб захоплювача"
@@ -6932,9 +6941,6 @@ msgstr ""
 msgid "Click here if you can't connect to the printer"
 msgstr "Клацніть тут, якщо ви не можете підключитися до принтера"
 
-msgid "Advanced Options"
-msgstr ""
-
 msgid "Auto Bed Leveling"
 msgstr ""
 
@@ -7079,6 +7085,12 @@ msgstr "Будь ласка, виправте помилку вище, інак�
 msgid "Please click the confirm button if you still want to proceed with printing."
 msgstr "Натисніть кнопку підтвердження, якщо ви все ще хочете продовжити друк."
 
+msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
+msgstr ""
+
+msgid "This process determines the dynamic flow values to improve overall print quality."
+msgstr ""
+
 msgid "Connecting to the printer. Unable to cancel during the connection process."
 msgstr "З’єднання з принтером. Під час процесу підключення скасувати неможливо."
 
@@ -7111,9 +7123,6 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
-msgstr ""
-
-msgid "To map to AMS, enable 'Use AMS' in 'Advanced Options'."
 msgstr ""
 
 msgid "Cool"
@@ -7290,6 +7299,9 @@ msgstr "Натисніть, щоб скинути всі налаштуванн�
 
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Prime Tower потрібно для плавного таймлапсу. Можуть бути недоліки в моделібез головної вежі. Ви впевнені, що хочете вимкнути основну вежу?"
+
+msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
+msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Для плавного таймлапсу потрібно Prime Tower. Можуть бути недоліки в моделіБез головної вежі. Ви хочете включити головну вежу?"
@@ -7945,13 +7957,6 @@ msgid ""
 " to continue or manually adjust it."
 msgstr ""
 
-msgid ""
-"Waring:The count of newly added and \n"
-" current extruders exceeds 16."
-msgstr ""
-"Попередження: Кількість новостворених та \n"
-" поточних екструдерів перевищує 16."
-
 msgid "—> "
 msgstr ""
 
@@ -7993,6 +7998,9 @@ msgid "(Recommended filament)"
 msgstr ""
 
 msgid "Right Extruder"
+msgstr ""
+
+msgid "Advanced Options"
 msgstr ""
 
 msgid ""
@@ -8799,8 +8807,17 @@ msgstr " залишається близько до інших, що може п
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " знаходиться надто близько до зони відчуження, що призведе до зіткнень.\n"
 
-msgid "Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing"
-msgstr "Не можна друкувати кілька ниток, які мають значну різницю в температурі разом. В іншому випадку екструдер та сопло можуть бути заблоковані або пошкоджені під час друку"
+msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
+
+msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
+msgstr ""
+
+msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
+
+msgid "Printing mid-temp and low-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
 
 msgid "No extrusions under current settings."
 msgstr "Немає екструзій під час поточних налаштувань."
@@ -11076,7 +11093,7 @@ msgstr ""
 msgid "Rib wall"
 msgstr ""
 
-msgid "The wall of prime tower will add four ribs"
+msgid "The wall of prime tower will add four ribs and make its cross-section as close to a square as possible, so the width will be fixed."
 msgstr ""
 
 msgid "Fillet wall"
@@ -11246,6 +11263,9 @@ msgstr ""
 
 msgid "Loading of a model file failed."
 msgstr "Не вдалося завантажити файл моделі."
+
+msgid "Meshing of a model file failed or no valid shape."
+msgstr ""
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "Наданий файл не вдалося прочитати, оскільки він порожній"
@@ -11675,6 +11695,9 @@ msgstr "%s несумісний з %s"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "TPU не підтримується для автокалібрування Flow Dynamics."
+
+msgid "Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing"
+msgstr "Не можна друкувати кілька ниток, які мають значну різницю в температурі разом. В іншому випадку екструдер та сопло можуть бути заблоковані або пошкоджені під час друку"
 
 #, c-format, boost-format
 msgid ""
@@ -13225,6 +13248,22 @@ msgid ""
 msgstr ""
 "Уникнення деформації\n"
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як ABS, відповідне підвищення температури гарячого ліжка може зменшити ймовірність деформації."
+
+#~ msgid ""
+#~ "Waring:The count of newly added and \n"
+#~ " current extruders exceeds 16."
+#~ msgstr ""
+#~ "Попередження: Кількість новостворених та \n"
+#~ " поточних екструдерів перевищує 16."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Arrangement ignored the following objects which can't fit into a single bed:\n"
+#~ "%s"
+#~ msgstr ""
+#~ "Аранжування ігнорувало такі об'єкти, які не можуть поміститися на один\n"
+#~ "стіл:\n"
+#~ "%s"
 
 #, boost-format
 #~ msgid "Copying of file %1% to %2% failed: %3%"

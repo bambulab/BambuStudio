@@ -1130,6 +1130,7 @@ AMSRoadShowMode AMSControl::findFirstMode(AMSPanelPos pos) {
             }
         }
         if (item->second->get_ams_model() == AMSModel::EXT_AMS && item->second->get_ext_type() == AMSModelOriginType::LITE_EXT) return AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE;
+        if (item->second->get_ams_model() == AMSModel::N3S_AMS) return AMSRoadShowMode::AMS_ROAD_MODE_SINGLE_N3S;
         return AMSRoadShowMode::AMS_ROAD_MODE_SINGLE;
     }
 }
@@ -1400,6 +1401,10 @@ void AMSControl::SwitchAms(std::string ams_id)
                     }
                     else {
                         AMSRoadShowMode mode = AMSRoadShowMode::AMS_ROAD_MODE_SINGLE;
+
+                        if (item->get_ams_model() == AMSModel::N3S_AMS)
+                            mode = AMSRoadShowMode::AMS_ROAD_MODE_SINGLE_N3S;
+
                         for (auto it : pair_id) {
                             if (it.first == ams_id || it.second == ams_id) {
                                 mode = AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE;
@@ -1460,19 +1465,17 @@ bool AMSControl::Enable(bool enable)
     return wxWindow::Enable(enable);
 }
 
-void AMSControl::SetExtruder(bool on_off, std::string ams_id, std::string slot_id)
+void AMSControl::SetExtruder(bool on_off, int nozzle_id, std::string ams_id, std::string slot_id)
 {
     AmsItem *item = nullptr;
     if (m_ams_item_list.find(ams_id) != m_ams_item_list.end()) { item = m_ams_item_list[ams_id]; }
 
-    if (!item) {
-        return;
-    }
-    if (!on_off) {
-        m_extruder->OnAmsLoading(false, item->get_nozzle_id());
-    } else {
+    if (on_off && item) {
         auto col = item->GetTagColr(slot_id);
-        m_extruder->OnAmsLoading(true, item->get_nozzle_id(), col);
+        m_extruder->OnAmsLoading(true, nozzle_id, col);
+    }
+    else {
+        m_extruder->OnAmsLoading(false, nozzle_id);
     }
 }
 
@@ -1521,9 +1524,10 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     }
 
     //Set path length in different case
+    model  = ams->get_ams_model();
+
     if (ams->get_can_count() == GENERIC_AMS_SLOT_NUM) {
         length = left ? 129 : 145;
-        model  = ams->get_ams_model();
     } else if (ams->get_can_count() == 1) {
         for (auto it : pair_id){
             if (it.first == ams_id){
@@ -1537,8 +1541,12 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
                 break;
             }
         }
-        model = ams->get_ams_model();
+
+        if (!in_pair && model == N3S_AMS) {
+            length = left ? 129 : 232;
+        }
     }
+
     if (model == AMSModel::AMS_LITE){
         length = left ? 145 : 45;
     }

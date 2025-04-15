@@ -335,9 +335,9 @@ void ExtruderImage::doRender(wxDC& dc)
         left_pipe_bmp = m_pipe_filled_load;
         right_pipe_bmp = m_pipe_filled_load;
 
-        dc.DrawBitmap(left_pipe_bmp->bmp(), pot.x - left_nozzle_bmp->GetBmpWidth() / 2 - left_pipe_bmp->GetBmpWidth() / 2, pot.y);
+        dc.DrawBitmap(left_pipe_bmp->bmp(), pot.x - left_nozzle_bmp->GetBmpWidth() / 2 - left_pipe_bmp->GetBmpWidth() / 2 + left_pipe_bmp->GetBmpWidth() / 5, pot.y);
         dc.DrawBitmap(left_nozzle_bmp->bmp(), pot.x - left_nozzle_bmp->GetBmpWidth(), pot.y + left_pipe_bmp->GetBmpSize().y);
-        dc.DrawBitmap(right_pipe_bmp->bmp(), pot.x + right_nozzle_bmp->GetBmpWidth() / 2 - right_pipe_bmp->GetBmpWidth() / 2, pot.y);
+        dc.DrawBitmap(right_pipe_bmp->bmp(), pot.x + right_nozzle_bmp->GetBmpWidth() / 2 - right_pipe_bmp->GetBmpWidth() / 2 - right_pipe_bmp->GetBmpWidth() / 5, pot.y);
         dc.DrawBitmap(right_nozzle_bmp->bmp(), pot.x, pot.y + right_pipe_bmp->GetBmpSize().y);
     }
     else{
@@ -956,7 +956,9 @@ void PrintingTaskPanel::paint(wxPaintEvent&)
     }
     else
         dc.SetTextForeground(*wxBLACK);
-    dc.DrawBitmap(m_thumbnail_bmp_display, wxPoint(0, 0));
+    if (m_thumbnail_bmp_display.IsOk()) {
+        dc.DrawBitmap(m_thumbnail_bmp_display, wxPoint(0, 0));
+    }
     dc.SetFont(Label::Body_12);
 
     if (m_plate_index >= 0) {
@@ -1572,6 +1574,7 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     m_tempCtrl_nozzle    = new TempInput(parent, nozzle_id, TEMP_BLANK_STR, TempInputType::TEMP_OF_NORMAL_TYPE, TEMP_BLANK_STR, wxString("monitor_nozzle_temp"),
                                       wxString("monitor_nozzle_temp_active"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
     m_tempCtrl_nozzle->SetMinSize(TEMP_CTRL_MIN_SIZE_ALIGN_TWO_ICON);
+    m_tempCtrl_nozzle->AddTemp(0); // zero is default temp
     m_tempCtrl_nozzle->SetMinTemp(20);
     m_tempCtrl_nozzle->SetMaxTemp(300);
     m_tempCtrl_nozzle->SetBorderWidth(FromDIP(2));
@@ -1586,6 +1589,7 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     m_tempCtrl_nozzle_deputy = new TempInput(parent, nozzle_id, TEMP_BLANK_STR, TempInputType::TEMP_OF_NORMAL_TYPE, TEMP_BLANK_STR, wxString("monitor_nozzle_temp"), wxString("monitor_nozzle_temp_active"),
         wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
     m_tempCtrl_nozzle_deputy->SetMinSize(TEMP_CTRL_MIN_SIZE_ALIGN_TWO_ICON);
+    m_tempCtrl_nozzle_deputy->AddTemp(0); // zero is default temp
     m_tempCtrl_nozzle_deputy->SetMinTemp(20);
     m_tempCtrl_nozzle_deputy->SetMaxTemp(300);
     m_tempCtrl_nozzle_deputy->SetBorderWidth(FromDIP(2));
@@ -1605,6 +1609,7 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     wxWindowID bed_id = wxWindow::NewControlId();
     m_tempCtrl_bed    = new TempInput(parent, bed_id, TEMP_BLANK_STR, TempInputType::TEMP_OF_NORMAL_TYPE, TEMP_BLANK_STR, wxString("monitor_bed_temp"),
         wxString("monitor_bed_temp_active"), wxDefaultPosition,wxDefaultSize, wxALIGN_CENTER);
+    m_tempCtrl_bed->AddTemp(0); // zero is default temp
     m_tempCtrl_bed->SetMinTemp(bed_temp_range[0]);
     m_tempCtrl_bed->SetMaxTemp(bed_temp_range[1]);
     m_tempCtrl_bed->SetMinSize(TEMP_CTRL_MIN_SIZE_ALIGN_ONE_ICON);
@@ -1620,6 +1625,7 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     wxWindowID frame_id = wxWindow::NewControlId();
     m_tempCtrl_chamber    = new TempInput(parent, frame_id, TEMP_BLANK_STR, TempInputType::TEMP_OF_NORMAL_TYPE, TEMP_BLANK_STR, wxString("monitor_frame_temp"),
         wxString("monitor_frame_temp_active"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
+    m_tempCtrl_chamber->AddTemp(0); // zero is default temp
     m_tempCtrl_chamber->SetReadOnly(true);
     m_tempCtrl_chamber->SetMinTemp(default_champer_temp_min);
     m_tempCtrl_chamber->SetMaxTemp(default_champer_temp_max);
@@ -2974,6 +2980,7 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
         m_tempCtrl_chamber->Enable();
         m_tempCtrl_chamber->SetMinTemp(obj->chamber_temp_edit_min);
         m_tempCtrl_chamber->SetMaxTemp(obj->chamber_temp_edit_max);
+        m_tempCtrl_chamber->AddTemp(0); // zero is default temp
         wxCursor cursor(wxCURSOR_IBEAM);
         m_tempCtrl_chamber->GetTextCtrl()->SetCursor(cursor);
 
@@ -3283,7 +3290,7 @@ void StatusPanel::update_ams(MachineObject *obj)
             } else {
                 m_ams_control->SetAmsStep(ext.snow.ams_id, ext.snow.slot_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
             }
-            m_ams_control->SetExtruder(ext.ext_has_filament, ext.snow.ams_id, ext.snow.slot_id);
+            m_ams_control->SetExtruder(ext.ext_has_filament, MAIN_NOZZLE_ID, ext.snow.ams_id, ext.snow.slot_id);
         }
 
         /*left*/
@@ -3298,7 +3305,7 @@ void StatusPanel::update_ams(MachineObject *obj)
             } else {
                 m_ams_control->SetAmsStep(ext.snow.ams_id, ext.snow.slot_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
             }
-            m_ams_control->SetExtruder(ext.ext_has_filament, ext.snow.ams_id, ext.snow.slot_id);
+            m_ams_control->SetExtruder(ext.ext_has_filament, DEPUTY_NOZZLE_ID, ext.snow.ams_id, ext.snow.slot_id);
         }
     //}
 
@@ -4192,9 +4199,10 @@ void StatusPanel::on_ams_load_curr()
                 ;
             }
 
-            if (obj->is_enable_np) {
+            if (obj->is_enable_np || obj->is_enable_ams_np) {
                 try {
-                    if (!curr_ams_id.empty() && !curr_can_id.empty()) { obj->command_ams_change_filament(true, curr_ams_id, "0", old_temp, new_temp);
+                    if (!curr_ams_id.empty() && !curr_can_id.empty()) {
+                        obj->command_ams_change_filament(true, curr_ams_id, "0", old_temp, new_temp);
                     }
                 } catch (...) {}
             } else {
@@ -4257,6 +4265,8 @@ void StatusPanel::on_ams_load_vams(wxCommandEvent& event) {
 void StatusPanel::on_ams_switch(SimpleEvent &event)
 {
     if(obj){
+
+        /*right*/
         if (obj->m_extder_data.extders.size() > 0) {
             auto ext = obj->m_extder_data.extders[MAIN_NOZZLE_ID];
             if (ext.ext_has_filament) {
@@ -4268,7 +4278,7 @@ void StatusPanel::on_ams_switch(SimpleEvent &event)
             } else {
                 m_ams_control->SetAmsStep(ext.snow.ams_id, ext.snow.slot_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
             }
-            m_ams_control->SetExtruder(ext.ext_has_filament, ext.snow.ams_id, ext.snow.slot_id);
+            m_ams_control->SetExtruder(ext.ext_has_filament, MAIN_NOZZLE_ID, ext.snow.ams_id, ext.snow.slot_id);
         }
 
         /*left*/
@@ -4283,7 +4293,7 @@ void StatusPanel::on_ams_switch(SimpleEvent &event)
             } else {
                 m_ams_control->SetAmsStep(ext.snow.ams_id, ext.snow.slot_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
             }
-            m_ams_control->SetExtruder(ext.ext_has_filament, ext.snow.ams_id, ext.snow.slot_id);
+            m_ams_control->SetExtruder(ext.ext_has_filament, DEPUTY_NOZZLE_ID, ext.snow.ams_id, ext.snow.slot_id);
         }
     }
 }
@@ -4550,14 +4560,13 @@ void StatusPanel::on_ams_refresh_rfid(wxCommandEvent &event)
         auto has_filament_at_extruder = false;
         auto use_new_command = false;
 
-        if (obj->m_extder_data.total_extder_count <= 1 && !obj->is_enable_np) {
-            has_filament_at_extruder = obj->is_filament_at_extruder();
-        } else {
+        if (obj->is_enable_np || obj->is_enable_ams_np) {
             use_new_command = true;
-
             if (ams_it->second->nozzle < obj->m_extder_data.extders.size()) {
                 has_filament_at_extruder = obj->m_extder_data.extders[ams_it->second->nozzle].ext_has_filament;
             }
+        } else {
+            has_filament_at_extruder = obj->is_filament_at_extruder();
         }
 
         if (has_filament_at_extruder) {

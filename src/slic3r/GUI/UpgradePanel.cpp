@@ -880,6 +880,10 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
                                 }
                             }
                         }
+                        else if (!it->second.sw_new_ver.empty() && (it->second.sw_new_ver != it->second.sw_ver)) {
+                            amspanel->m_ams_new_version_img->Show();
+                            ams_ver = wxString::Format("%s->%s", it->second.sw_ver, it->second.sw_new_ver);
+                        }
                         else {
                             std::string ams_idx = (boost::format("ams/%1%") % ams_id).str();
                             auto        ver_item = obj->new_ver_list.find(ams_idx);
@@ -978,6 +982,31 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
         m_ext_panel->m_staticText_ext_ver_val->SetLabelText(ext_ver);
 
         show_ext(true);
+    }
+
+    // STUDIO-11572 Update image
+    bool contain_one_slot = false;
+    bool contain_four_slot = false;
+    auto ams_iter = obj->amsList.begin();
+    while (ams_iter != obj->amsList.end()) {
+        if (ams_iter->second->type == 4) {
+            contain_one_slot = true;
+        } else {
+            contain_four_slot = true;
+        }
+        ams_iter++;
+    }
+
+    if (contain_four_slot) {
+        if (m_img_monitor_ams.name() != "monitor_upgrade_ams") {
+            m_img_monitor_ams = ScalableBitmap(this, "monitor_upgrade_ams", 160);
+            m_ams_img->SetBitmap(m_img_monitor_ams.bmp());
+        }
+    } else if (contain_one_slot) {
+        if (m_img_monitor_ams.name() != "monitor_upgrade_n3s") {
+            m_img_monitor_ams = ScalableBitmap(this, "monitor_upgrade_n3s", 160);
+            m_ams_img->SetBitmap(m_img_monitor_ams.bmp());
+        }
     }
 
     this->Layout();

@@ -2162,6 +2162,18 @@ void GLCanvas3D::render(bool only_init)
     }
 
     wxGetApp().set_picking_effect(EPickingEffect::Silhouette);
+    ColorRGB picking_color;
+    if (m_canvas_type == ECanvasType::CanvasAssembleView) {
+        picking_color.set(0, 1.0f);
+        picking_color.set(1, 1.0f);
+        picking_color.set(2, 0.0f);
+    }
+    else {
+        picking_color.set(0, 1.0f);
+        picking_color.set(1, 1.0f);
+        picking_color.set(2, 1.0f);
+    }
+    wxGetApp().set_picking_color(picking_color);
 
     if (only_init)
         return;
@@ -3077,6 +3089,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
                 const Print* print = m_process->fff_print();
                 const Print* current_print = part_plate->fff_print();
+                if (current_print->config().timelapse_type.value != TimelapseType::tlSmooth && part_plate->get_extruders(true).size() < 2) continue;
+                if (part_plate->get_objects_on_this_plate().empty()) continue;
+
                 float brim_width = print->wipe_tower_data(filaments_count).brim_width;
                 const DynamicPrintConfig &print_cfg   = wxGetApp().preset_bundle->prints.get_edited_preset().config;
                 double wipe_vol = get_max_element(v);
@@ -3518,6 +3533,16 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         return;
 
     if ((evt.GetModifiers() & ctrlMask) != 0) {
+        if ((evt.GetModifiers() & shiftMask) != 0) {
+            switch (keyCode) {
+            case 'd':
+            case 'D':
+            case WXK_CONTROL_D: {
+                post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL));
+                return;
+            }
+            }
+        }
         // CTRL is pressed
         switch (keyCode) {
 #ifdef __APPLE__
@@ -3646,17 +3671,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         default:            evt.Skip();
         }
     } else {
-        if ((evt.GetModifiers() & shiftMask) != 0) {
-            switch (keyCode) {
-
-            case 'd':
-            case 'D':
-            case WXK_CONTROL_D:
-                post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL));
-                return;
-            }
-
-        }
         auto obj_list = wxGetApp().obj_list();
         switch (keyCode)
         {
@@ -7898,7 +7912,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
                     m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICE_FAILED;
             }
             else {
-                if (!plate_list.get_plate(i)->can_slice())
+                if (plate_list.get_plate(i)->has_printable_instances() && !plate_list.get_plate(i)->can_slice())
                     m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICE_FAILED;
                 else {
                     if (plate_list.get_plate(i)->get_slicing_percent() < 0.0f)
@@ -8363,12 +8377,8 @@ void GLCanvas3D::_render_fit_camera_toolbar()
     imgui.begin(_L("Fit camera"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove |
                                            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse);//
 
-    ImTextureID normal_id = m_gizmos.get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA);
-    if (normal_id == 0) {
-        m_gizmos.init_icon_textures();
-    }
-    normal_id = m_gizmos.get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA);
-    ImTextureID hover_id  = m_gizmos.get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA_HOVER); // IC_FIT_CAMERA_HOVER
+    ImTextureID normal_id = m_gizmos.get_icon_texture_id(m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA_DARK : GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA);
+    ImTextureID hover_id  = m_gizmos.get_icon_texture_id(m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA_DARK_HOVER : GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA_HOVER);
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, 0});
@@ -9850,19 +9860,7 @@ void GLCanvas3D::_render_silhouette_effect()
 
     wxGetApp().bind_shader(p_silhouette_shader);
 
-    std::array<float, 4> picking_color{ 1.0f, 0.36f, 0.0f, 1.0f };
-    if (m_canvas_type == ECanvasType::CanvasAssembleView) {
-        picking_color[0] = 1.0f;
-        picking_color[1] = 1.0f;
-        picking_color[2] = 0.0f;
-        picking_color[3] = 1.0f;
-    }
-    else {
-        picking_color[0] = 1.0f;
-        picking_color[1] = 1.0f;
-        picking_color[2] = 1.0f;
-        picking_color[3] = 1.0f;
-    }
+    const auto& picking_color = wxGetApp().get_picking_color();
     p_silhouette_shader->set_uniform("u_base_color", picking_color);
 
     const Camera& camera = wxGetApp().plater()->get_camera();
@@ -9980,22 +9978,27 @@ void GLCanvas3D::_composite_silhouette_effect()
     uint32_t viewport_width = 0;
     uint32_t viewport_height = 0;
     p_ogl_manager->get_viewport_size(viewport_width, viewport_height);
-    const std::array<float, 2> viewport_size{ static_cast<float>(viewport_width), static_cast<float>(viewport_height) };
-    p_silhouette_composite_shader->set_uniform("u_viewport_size", viewport_size);
 
+    const float alpha = 0.4f;
     Matrix3f convolution_matrix;
-    convolution_matrix.data()[3 * 0 + 0] = -0.4f;
-    convolution_matrix.data()[3 * 0 + 1] = -0.4f;
-    convolution_matrix.data()[3 * 0 + 2] = -0.4f;
+    convolution_matrix.data()[3 * 0 + 0] = -alpha;
+    convolution_matrix.data()[3 * 0 + 1] = -alpha;
+    convolution_matrix.data()[3 * 0 + 2] = -alpha;
 
-    convolution_matrix.data()[3 * 1 + 0] = -0.4f;
-    convolution_matrix.data()[3 * 1 + 1] = 3.6f;
-    convolution_matrix.data()[3 * 1 + 2] = -0.4f;
+    convolution_matrix.data()[3 * 1 + 0] = -alpha;
+    convolution_matrix.data()[3 * 1 + 1] = alpha * 9.0f;
+    convolution_matrix.data()[3 * 1 + 2] = -alpha;
 
-    convolution_matrix.data()[3 * 2 + 0] = -0.4f;
-    convolution_matrix.data()[3 * 2 + 1] = -0.4f;
-    convolution_matrix.data()[3 * 2 + 2] = -0.4f;
+    convolution_matrix.data()[3 * 2 + 0] = -alpha;
+    convolution_matrix.data()[3 * 2 + 1] = -alpha;
+    convolution_matrix.data()[3 * 2 + 2] = -alpha;
     p_silhouette_composite_shader->set_uniform("u_convolution_matrix", convolution_matrix);
+
+    const std::array<float, 3> viewport_size_alpha{ static_cast<float>(viewport_width), static_cast<float>(viewport_height), alpha };
+    p_silhouette_composite_shader->set_uniform("u_viewport_size_alpha", viewport_size_alpha);
+
+    const auto& picking_color = wxGetApp().get_picking_color();
+    p_silhouette_composite_shader->set_uniform("u_picking_color", picking_color);
 
     const int stage = 0;
     p_silhouette_composite_shader->set_uniform("u_sampler", stage);

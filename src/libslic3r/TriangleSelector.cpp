@@ -1680,9 +1680,9 @@ std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> TriangleSelector:
                 if (n >= 3) {
                     data.second.insert(data.second.end(), {true, true});
                     n -= 3;
-                    while (n >= 16) {
+                    while (n >= 15) {
                         data.second.insert(data.second.end(), {true, true, true, true});
-                        n -= 16;
+                        n -= 15;
                     }
 
                     for (size_t bit_idx = 0; bit_idx < 4; ++bit_idx)
@@ -1771,7 +1771,7 @@ void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, in
                         num++;
                         next_code = next_nibble();
                     }
-                    state = EnforcerBlockerType(next_code + 16 * num + (code >> 2));
+                    state = EnforcerBlockerType(next_code + 15 * num + 3);//old:next_nibble() + 3;
                 }
                 else {
                     state = EnforcerBlockerType(code >> 2);
@@ -1871,9 +1871,23 @@ bool TriangleSelector::has_facets(const std::pair<std::vector<std::pair<int, int
         auto num_children_or_state = [&next_nibble]() -> int {
             int code               = next_nibble();
             int num_of_split_sides = code & 0b11;
-            return num_of_split_sides == 0 ?
-                ((code & 0b1100) == 0b1100 ? next_nibble() + 3 : code >> 2) :
-                - num_of_split_sides - 1;
+            if (num_of_split_sides == 0) {
+                int state = 0;
+                if ((code & 0b1100) == 0b1100) {
+                    int next_code = next_nibble();
+                    int num       = 0;
+                    while (next_code == 0b1111) {
+                        num++;
+                        next_code = next_nibble();
+                    }
+                    state = next_code + 15 * num + 3; // old:next_nibble() + 3;
+                } else {
+                    state = code >> 2;
+                }
+                return state;
+            } else {
+                return -num_of_split_sides - 1;// < 0 -> negative of a number of children
+            }
         };
 
         int state = num_children_or_state();

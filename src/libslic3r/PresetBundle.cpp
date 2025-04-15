@@ -1917,6 +1917,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         bool is_map{false};
         std::string filament_color  = "";
         std::string filament_preset = "";
+        std::vector<std::string> mutli_filament_color;
     };
     auto is_double_extruder = get_printer_extruder_count() == 2;
     std::vector<AmsInfo> ams_infos;
@@ -1956,11 +1957,13 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
             ams_multi_color_filment.push_back(filament_multi_color);
             continue;
         }
-        auto iter = std::find_if(filaments.begin(), filaments.end(), [this, &filament_id](auto &f) {
+        bool has_type = false;
+        auto filament_type = ams.opt_string("filament_type", 0u);
+        auto iter = std::find_if(filaments.begin(), filaments.end(), [this, &filament_id, &has_type, filament_type](auto &f) {
+            has_type |= f.config.opt_string("filament_type", 0u) == filament_type;
             return f.is_compatible && filaments.get_preset_base(f) == &f && f.filament_id == filament_id; });
         if (iter == filaments.end()) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % filament_id;
-            auto filament_type = ams.opt_string("filament_type", 0u);
             if (!filament_type.empty()) {
                 filament_type = "Generic " + filament_type;
                 iter = std::find_if(filaments.begin(), filaments.end(), [&filament_type](auto &f) {
@@ -1974,7 +1977,8 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                     ams_filament_presets.push_back(this->filament_presets[ams_filament_presets.size()]);
                     ams_filament_colors.push_back(filament_color);
                     ams_multi_color_filment.push_back(filament_multi_color);
-                    unknowns.emplace_back(&ams, L("The filament model is unknown. Still using the previous filament preset."));
+                    unknowns.emplace_back(&ams, has_type ? L("The filament may not be compatible with the current machine settings. Generic filament presets will be used.") :
+                                                           L("The filament model is unknown. Still using the previous filament preset."));
                     continue;
                 }
                 iter = std::find_if(filaments.begin(), filaments.end(), [](auto &f) {
@@ -1983,9 +1987,11 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                 if (iter == filaments.end())
                     continue;
             }
-            unknowns.emplace_back(&ams, boost::algorithm::starts_with(iter->name, filament_type)
-                    ? L("The filament may not be compatible with the current machine settings. Generic filament presets will be used.")
-                    : L("The filament model is unknown. A random filament preset will be used."));
+            unknowns.emplace_back(&ams, boost::algorithm::starts_with(iter->name, filament_type) ?
+                                            (has_type ? L("The filament may not be compatible with the current machine settings. Generic filament presets will be used.") :
+                                                        L("The filament model is unknown. Generic filament presets will be used.")) :
+                                            (has_type ? L("The filament may not be compatible with the current machine settings. A random filament preset will be used.") :
+                                                        L("The filament model is unknown. A random filament preset will be used.")));
             filament_id = iter->filament_id;
         }
         ams_filament_presets.push_back(iter->name);
@@ -2033,12 +2039,18 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         std::vector<AmsInfo> need_append_colors;
         auto exist_colors = filament_color->values;
         auto exist_filament_presets = this->filament_presets;
+        std::vector<std::vector<std::string>> exist_multi_color_filment;
+        exist_multi_color_filment.resize(exist_colors.size());
+        for (int i = 0; i < exist_colors.size(); i++) {
+            exist_multi_color_filment[i] = {exist_colors[i]};
+        }
         for (size_t i = 0; i < exist_colors.size(); i++) {
             if (maps.find(i) != maps.end()) {//mapping exist
                 auto valid_index = get_map_index(ams_array_maps, maps[i]);
                 if (valid_index >= 0 && valid_index < ams_filament_presets.size()) {
                     exist_colors[i]           = ams_filament_colors[valid_index];
                     exist_filament_presets[i] = ams_filament_presets[valid_index];
+                    exist_multi_color_filment[i] = ams_multi_color_filment[valid_index];
                 } else {
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "check error: array bound (mapping exist)";
                 }
@@ -2051,12 +2063,18 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                     continue;
                 }
                 ams_infos[i].filament_preset = ams_filament_presets[i];
+                ams_infos[i].mutli_filament_color = ams_multi_color_filment[i];
                 if (!ams_infos[i].is_map) {
                     need_append_colors.emplace_back(ams_infos[i]);
                     ams_filament_colors[i]     = "";
                     ams_filament_presets[i]    = "";
                     ams_multi_color_filment[i] = std::vector<std::string>();
                 }
+            }
+            else {
+                ams_filament_colors[i]     = "";
+                ams_filament_presets[i]    = "";
+                ams_multi_color_filment[i] = std::vector<std::string>();
             }
         }
         //delete redundant color
@@ -2087,12 +2105,12 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                 }
                 exist_filament_presets.push_back(need_append_colors[i].filament_preset);
                 exist_colors.push_back(need_append_colors[i].filament_color);
-                std::vector<std::string> value = {need_append_colors[i].filament_color};
-                ams_multi_color_filment.push_back(value);
+                exist_multi_color_filment.push_back(need_append_colors[i].mutli_filament_color);
             }
         }
         filament_color->resize(exist_colors.size());
         filament_color->values = exist_colors;
+        ams_multi_color_filment = exist_multi_color_filment;
         this->filament_presets = exist_filament_presets;
         filament_map->values.resize(exist_filament_presets.size(), 1);
     }
@@ -2275,23 +2293,30 @@ Preset *PresetBundle::get_similar_printer_preset(std::string printer_model, std:
     if (printer_model.empty())
         printer_model = printers.get_selected_preset().config.opt_string("printer_model");
     auto printer_variant_old = printers.get_selected_preset().config.opt_string("printer_variant");
-    std::set<std::string> printer_names;
+    std::map<std::string, Preset*> printer_presets;
     for (auto &preset : printers.m_presets) {
         if (printer_variant.empty() && !preset.is_system)
             continue;
         if (preset.config.opt_string("printer_model") == printer_model)
-            printer_names.insert(preset.name);
+            printer_presets.insert({preset.name, &preset});
     }
-    if (printer_names.empty())
+    if (printer_presets.empty())
         return nullptr;
     auto prefer_printer = printers.get_selected_preset().name;
     if (!printer_variant.empty())
         boost::replace_all(prefer_printer, printer_variant_old, printer_variant);
     else if (auto n = prefer_printer.find(printer_variant_old); n != std::string::npos)
         prefer_printer = printer_model + " " + printer_variant_old + prefer_printer.substr(n + printer_variant_old.length());
-    if (printer_names.count(prefer_printer) == 0)
-        prefer_printer = *printer_names.begin();
-    return printers.find_preset(prefer_printer, false, true);
+    if (auto iter = printer_presets.find(prefer_printer); iter != printer_presets.end()) {
+        return iter->second;
+    }
+    if (printer_variant.empty())
+        printer_variant = printer_variant_old;
+    for (auto& preset : printer_presets) {
+        if (preset.second->config.opt_string("printer_variant") == printer_variant)
+            return preset.second;
+    }
+    return printer_presets.begin()->second;
 }
 
 //BBS: check whether this is the only edited filament

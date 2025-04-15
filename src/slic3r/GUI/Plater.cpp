@@ -1214,7 +1214,11 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
             continue;
         }
         auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
-        printer_tab->set_extruder_volume_type(index, NozzleVolumeType(obj->m_extder_data.extders[extruder_id].current_nozzle_flow_type - 1));
+        NozzleVolumeType target_type = NozzleVolumeType::nvtStandard;
+        // hack code, only use standard flow for 0.2
+        if (std::fabs(nozzle_diameters[extruder_id] - 0.2) > EPSILON)
+            target_type = NozzleVolumeType(obj->m_extder_data.extders[extruder_id].current_nozzle_flow_type - 1);
+        printer_tab->set_extruder_volume_type(index, target_type);
     }
 
     int deputy_4 = 0, main_4 = 0, deputy_1 = 0, main_1 = 0;
@@ -1603,6 +1607,10 @@ Sidebar::Sidebar(Plater *parent)
         ScalableBitmap bitmap_bed(p->panel_printer_bed, "printer_placeholder", 32);
         p->image_printer_bed = new wxStaticBitmap(p->panel_printer_bed, wxID_ANY, bitmap_bed.bmp(), wxDefaultPosition, wxDefaultSize, 0);
         p->image_printer_bed->Bind(wxEVT_LEFT_DOWN, [this](auto &evt) {
+            p->image_printer_bed->Unbind(wxEVT_LEAVE_WINDOW, &Sidebar::on_leave_image_printer_bed, this);
+            if (p->big_bed_image_popup) {
+                p->big_bed_image_popup->on_hide();
+            }
             p->combo_printer_bed->wxEvtHandler::ProcessEvent(evt);
         });
 
@@ -1620,21 +1628,12 @@ Sidebar::Sidebar(Plater *parent)
             }
             e.Skip(); // fix bug:Event spreads to sidebar
         });
-
-        p->image_printer_bed->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &evt) {
-            auto    pos  = p->image_printer_bed->GetScreenPosition();
-            auto    rect = p->image_printer_bed->GetRect();
-            wxPoint temp_pos(pos.x + rect.GetWidth(), pos.y);
-            if (p->big_bed_image_popup == nullptr) {
-                p->big_bed_image_popup = new ImageDPIFrame();
-                auto image_path        = get_cur_select_bed_image();
-                p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
+        p->combo_printer_bed->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &evt) {
+            if (p->big_bed_image_popup) {
+                p->big_bed_image_popup->on_hide();
             }
-            p->big_bed_image_popup->SetCanFocus(false);
-            p->big_bed_image_popup->SetPosition(temp_pos);
-            p->big_bed_image_popup->on_show();
         });
-        p->image_printer_bed->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &evt) { p->big_bed_image_popup->on_hide(); });
+        p->image_printer_bed->Bind(wxEVT_ENTER_WINDOW, &Sidebar::on_enter_image_printer_bed, this);
 
         wxBoxSizer *bed_type_vsizer = new wxBoxSizer(wxVERTICAL);
         bed_type_vsizer->AddStretchSpacer(1);
@@ -1964,6 +1963,29 @@ Sidebar::Sidebar(Plater *parent)
 
 Sidebar::~Sidebar() {}
 
+void Sidebar::on_enter_image_printer_bed(wxMouseEvent &evt) {
+    p->image_printer_bed->Bind(wxEVT_LEAVE_WINDOW, &Sidebar::on_leave_image_printer_bed, this);
+    auto    pos  = p->panel_printer_bed->GetScreenPosition();
+    auto    rect = p->panel_printer_bed->GetRect();
+    wxPoint temp_pos(pos.x + rect.GetWidth() +  FromDIP(3), pos.y);
+    if (p->big_bed_image_popup == nullptr) {
+        p->big_bed_image_popup = new ImageDPIFrame();
+        auto image_path        = get_cur_select_bed_image();
+        p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
+    }
+    p->big_bed_image_popup->SetCanFocus(false);
+    p->big_bed_image_popup->SetPosition(temp_pos);
+    p->big_bed_image_popup->on_show();
+}
+
+void Sidebar::on_leave_image_printer_bed(wxMouseEvent &evt) {
+    auto pos_x = evt.GetX();
+    auto pos_y = evt.GetY();
+    auto rect  = p->image_printer_bed->GetRect();
+    if ((pos_x <= 0 || pos_y <= 0 || pos_x >= rect.GetWidth()) && p->big_bed_image_popup) {
+        p->big_bed_image_popup->on_hide();
+    }
+}
 void Sidebar::on_change_color_mode(bool is_dark) {
     const ModelObjectPtrs &mos = wxGetApp().model().objects;
     for (int i = 0; i < mos.size(); i++) {
@@ -2273,21 +2295,26 @@ void Sidebar::update_presets(Preset::Type preset_type)
         auto extruders = printer_preset.config.option<ConfigOptionEnumsGeneric>("extruder_type");
         auto nozzle_volumes_def = wxGetApp().preset_bundle->project_config.def()->get("nozzle_volume_type");
         auto nozzle_volumes = wxGetApp().preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-        auto update_extruder_variant = [extruders_def, extruders, nozzle_volumes_def, nozzle_volumes, extruder_variants](ExtruderGroup & extruder, int index) {
+        auto diameters = wxGetApp().preset_bundle->printers.diameters_of_selected_printer();
+        auto diameter = printer_preset.config.opt_string("printer_variant");
+        auto update_extruder_variant = [extruders_def, extruders, nozzle_volumes_def, nozzle_volumes, extruder_variants,diameter](ExtruderGroup & extruder, int index) {
             extruder.combo_flow->Clear();
             auto type = extruders_def->enum_labels[extruders->values[index]];
             int select = -1;
             for (size_t i = 0; i < nozzle_volumes_def->enum_labels.size(); ++i) {
                 if (boost::algorithm::contains(extruder_variants->values[index], type + " " + nozzle_volumes_def->enum_labels[i])) {
+                    if (diameter == "0.2" && nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[i]) == NozzleVolumeType::nvtHighFlow)
+                        continue;
                     if (nozzle_volumes->values[index] == i)
                         select = extruder.combo_flow->GetCount();
                     extruder.combo_flow->Append(_L(nozzle_volumes_def->enum_labels[i]), {}, (void*)i);
                 }
             }
+            if (select == -1)
+                select = extruder.combo_flow->GetCount() - 1;
             extruder.combo_flow->SetSelection(select);
         };
-        auto diameters = wxGetApp().preset_bundle->printers.diameters_of_selected_printer();
-        auto diameter = printer_preset.config.opt_string("printer_variant");
+
         auto update_extruder_diameter = [&diameters, &diameter](ExtruderGroup & extruder) {
             extruder.combo_diameter->Clear();
             int select = -1;
@@ -3043,7 +3070,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     temp_info.use_dialog_pos = false;
     temp_info.cancel_text_to_later = is_from_big_sync_btn;
     if (m_sync_dlg == nullptr) {
-        m_sync_dlg = std::make_shared<SyncAmsInfoDialog>(this, temp_info);
+        m_sync_dlg = new SyncAmsInfoDialog(this, temp_info);
     } else {
         m_sync_dlg->set_info(temp_info);
     }
@@ -3317,7 +3344,7 @@ void Sidebar::pop_sync_nozzle_and_ams_dialog() {
             if (m_fna_dialog) { m_fna_dialog->on_hide(); }
             m_sna_dialog->update_info(temp_na_info);
         } else {
-            m_sna_dialog = std::make_shared<SyncNozzleAndAmsDialog>(temp_na_info);
+            m_sna_dialog = new SyncNozzleAndAmsDialog(temp_na_info);
         }
         m_sna_dialog->on_show();
     });
@@ -3339,7 +3366,7 @@ void Sidebar::pop_finsish_sync_ams_dialog()
             if (m_sna_dialog) { m_sna_dialog->on_hide(); }
             m_fna_dialog->update_info(temp_fsa_info);
         } else {
-            m_fna_dialog = std::make_shared<FinishSyncAmsDialog>(temp_fsa_info);
+            m_fna_dialog = new FinishSyncAmsDialog(temp_fsa_info);
         }
         m_fna_dialog->on_show();
     });
@@ -5157,12 +5184,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             if (type_3mf) {
                 DynamicPrintConfig config;
                 Semver             file_version;
+                En3mfType          en_3mf_file_type = En3mfType::From_BBS;
                 {
                     DynamicPrintConfig config_loaded;
 
                     // BBS: add part plate related logic
                     PlateDataPtrs             plate_data;
-                    En3mfType                 en_3mf_file_type = En3mfType::From_BBS;
                     ConfigSubstitutionContext config_substitutions{ForwardCompatibilitySubstitutionRule::Enable};
                     std::vector<Preset *>     project_presets;
                     // BBS: backup & restore
@@ -5255,36 +5282,48 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         Semver cloud_ver;
                         if (wxGetApp().app_config->has("app", "cloud_version")) {
                             std::string cloud_version = wxGetApp().app_config->get("app", "cloud_version");
-                            cloud_ver                 = *(Semver::parse(cloud_version));
+                            if (!cloud_version.empty())
+                                cloud_ver                 = *(Semver::parse(cloud_version));
+                            else
+                                cloud_ver = app_version;
                         } else {
                             cloud_ver = app_version;
                         }
-                        if (config_substitutions.unrecogized_keys.size() > 0) {
-                            // std::string context = into_u8(text);
-                            wxString context;
-                            if (wxGetApp().app_config->get("user_mode") == "develop") {
-                                context = _L("Found following keys unrecognized:\n");
-                                for (auto &key : config_substitutions.unrecogized_keys) {
-                                    context += "  -";
-                                    context += key;
-                                    context += ";\n";
+                        int file_version_cc = file_version.patch()/100;
+                        int app_version_cc = app_version.patch()/100;
+
+                        if ((file_version.min() != app_version.min()) || (file_version_cc != app_version_cc)) {
+                            if (config_substitutions.unrecogized_keys.size() > 0) {
+                                // std::string context = into_u8(text);
+                                wxString context;
+                                if (wxGetApp().app_config->get("user_mode") == "develop") {
+                                    context = _L("Found following keys unrecognized:\n");
+                                    for (auto& key : config_substitutions.unrecogized_keys) {
+                                        context += "  -";
+                                        context += key;
+                                        context += ";\n";
+                                    }
                                 }
+                                context += "\n\n";
+                                Newer3mfVersionDialog newer_dlg(q, &file_version, &cloud_ver, context);
+                                newer_dlg.ShowModal();
                             }
-                            context += "\n\n";
-                            Newer3mfVersionDialog newer_dlg(q, &file_version, &cloud_ver, context);
-                            newer_dlg.ShowModal();
-                        }
-                        else {
-                            //if the minor version is not matched
-                            if (file_version.min() != app_version.min()) {
-                                Newer3mfVersionDialog newer_dlg(q, &file_version, &cloud_ver, "");
-                                auto res = newer_dlg.ShowModal();
+                            else {
+                                //if the minor version is not matched
+                                //if (file_version.min() != app_version.min()) {
+                                    Newer3mfVersionDialog newer_dlg(q, &file_version, &cloud_ver, "");
+                                    auto res = newer_dlg.ShowModal();
+                                //}
                             }
                         }
                     }
                     else if (load_config && config_loaded.empty()) {
                         load_config = false;
-                        show_info(q, _L("The 3mf is generated by old Bambu Studio, load geometry data only."), _L("Load 3mf"));
+                        if (file_version.maj() == 0 && file_version.min() == 0 && file_version.patch() == 0) {
+                            show_info(q, _L("The 3mf is not from Bambu Lab, load geometry data only."), _L("Load 3mf"));
+                        } else {
+                            show_info(q, _L("The 3mf is generated by old Bambu Studio, load geometry data only."), _L("Load 3mf"));
+                        }
                     }
                     else if (!load_config) {
                         // reset config except color
@@ -5404,6 +5443,70 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (!config.empty()) {
                         Preset::normalize(config);
                         PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+
+                        {
+                            // BBS: modify the prime tower params for old version file
+                            Semver old_version3(2, 0, 0);
+                            if (en_3mf_file_type == En3mfType::From_BBS && file_version < old_version3) {
+                                double old_filament_prime_volume = 0.;
+                                int    filament_count            = 0;
+                                {
+                                    ConfigOptionFloats  *filament_prime_volume_option = config.option<ConfigOptionFloats>("filament_prime_volume");
+                                    ConfigOptionStrings *filament_colors_option       = config.option<ConfigOptionStrings>("filament_colour", true);
+                                    filament_count                                    = filament_colors_option->values.size();
+                                    if (filament_prime_volume_option) {
+                                        std::vector<double> &filament_prime_volume_values = filament_prime_volume_option->values;
+                                        if (!filament_prime_volume_values.empty()) {
+                                            old_filament_prime_volume = filament_prime_volume_values[0];
+                                            if (filament_count > 1) filament_prime_volume_values.resize(filament_count, old_filament_prime_volume);
+                                        }
+                                    }
+                                }
+                                ConfigOptionBool *prime_tower_rib_wall_option = config.option<ConfigOptionBool>("prime_tower_rib_wall", true);
+                                prime_tower_rib_wall_option->value            = false;
+
+                                ConfigOptionPercent *prime_tower_infill_gap_option = config.option<ConfigOptionPercent>("prime_tower_infill_gap", true);
+                                prime_tower_infill_gap_option->value               = 100;
+
+                                ConfigOptionInts *filament_adhesiveness_category_option = config.option<ConfigOptionInts>("filament_adhesiveness_category", true);
+                                std::vector<int> &filament_adhesiveness_category_values = filament_adhesiveness_category_option->values;
+                                filament_adhesiveness_category_values.resize(filament_count);
+                                for (int index = 0; index < filament_count; index++)
+                                    filament_adhesiveness_category_values[index] = 100;
+
+                                ConfigOptionFloats *filament_prime_volume_option = config.option<ConfigOptionFloats>("filament_prime_volume", true);
+
+                                std::vector<double> &filament_prime_volume_values = filament_prime_volume_option->values;
+                                filament_prime_volume_values.resize(filament_count);
+                                for (int index = 0; index < filament_count; index++) {
+                                    if (old_filament_prime_volume != 0.)
+                                        filament_prime_volume_values[index] = old_filament_prime_volume;
+                                    else
+                                        filament_prime_volume_values[index] = filament_prime_volume_values[0];
+                                }
+
+                                std::vector<std::string> &diff_settings = config.option<ConfigOptionStrings>("different_settings_to_system", true)->values;
+                                diff_settings.resize(filament_count + 2);
+
+                                std::vector<std::string> diff_process_keys;
+                                std::string              diff_process_settings = diff_settings[0];
+                                Slic3r::unescape_strings_cstyle(diff_process_settings, diff_process_keys);
+                                diff_process_keys.emplace_back("prime_tower_rib_wall");
+                                diff_process_keys.emplace_back("prime_tower_infill_gap");
+                                diff_process_settings = Slic3r::escape_strings_cstyle(diff_process_keys);
+                                diff_settings[0] = diff_process_settings;
+
+                                for (int index = 0; index < filament_count; index++) {
+                                    std::vector<std::string> diff_filament_keys;
+                                    std::string              diff_filament_settings = diff_settings[index + 1];
+                                    Slic3r::unescape_strings_cstyle(diff_filament_settings, diff_filament_keys);
+                                    diff_filament_keys.emplace_back("filament_prime_volume");
+                                    diff_filament_keys.emplace_back("filament_adhesiveness_category");
+                                    diff_filament_settings   = Slic3r::escape_strings_cstyle(diff_filament_keys);
+                                    diff_settings[index + 1] = diff_filament_settings;
+                                }
+                            }
+                        }
 
                         auto choise = wxGetApp().app_config->get("no_warn_when_modified_gcodes");
                         if (choise.empty() || choise != "true") {
@@ -6683,7 +6786,7 @@ void Plater::priv::process_validation_warning(StringObjectException const &warni
         std::string text = warning.string;
         auto po = dynamic_cast<PrintObjectBase const *>(warning.object);
         auto mo = po ? po->model_object() : dynamic_cast<ModelObject const *>(warning.object);
-        auto action_fn = (mo || !warning.opt_key.empty()) ? [id = mo ? mo->id() : 0, opt = warning.opt_key](wxEvtHandler *) {
+        auto obj_call_fn= [id = mo ? mo->id() : 0, opt = warning.opt_key](wxEvtHandler *) {
 		    auto & objects = wxGetApp().model().objects;
 		    auto iter = id.id ? std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; }) : objects.end();
             if (iter != objects.end()) {
@@ -6696,10 +6799,28 @@ void Plater::priv::process_validation_warning(StringObjectException const &warni
                 wxGetApp().sidebar().jump_to_option(opt, Preset::TYPE_PRINT, L"");
 		    }
 		    return false;
-	    } : std::function<bool(wxEvtHandler *)>();
-        auto hypertext = (mo || !warning.opt_key.empty()) ? _u8L("Jump to") : "";
-        if (mo) hypertext += std::string(" [") + mo->name + "]";
-        if (!warning.opt_key.empty()) hypertext += std::string(" (") + warning.opt_key + ")";
+	    };
+        auto        action_fn = (mo || !warning.opt_key.empty()) ? obj_call_fn : std::function<bool(wxEvtHandler *)>();
+        std::string hypertext;
+        // hack code
+        if (warning.hypetext == "filament_mix_print") {
+            hypertext = _u8L("Click Wiki for help.");
+            action_fn = [](wxEvtHandler *)->bool {
+                bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
+                if (is_zh) {
+                    wxLaunchDefaultBrowser("https://wiki.bambulab.com/zh/filament-acc/filament/h2d-filament-config-limit");
+                } else {
+                    wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/filament-acc/filament/h2d-filament-config-limit");
+                }
+                return false;
+            };
+        } else if (!warning.hypetext.empty()) {
+            hypertext = warning.hypetext;
+        } else {
+            if (mo || !warning.opt_key.empty()) hypertext = _u8L("Jump to");
+            if (mo) hypertext += std::string(" [") + mo->name + "]";
+            if (!warning.opt_key.empty()) hypertext += std::string(" (") + warning.opt_key + ")";
+        }
 
         // BBS disable support enforcer
         //if (text == "_SUPPORTS_OFF") {
@@ -8037,7 +8158,6 @@ void Plater::priv::on_combobox_select(wxCommandEvent &evt)
     if (combo && combo->is_drop_down()) {
         sidebar->update_soft_first_start_state();
     }
-    if (q->sidebar().is_new_project_in_gcode3mf()) { return; }
     PlaterPresetComboBox* preset_combo_box = dynamic_cast<PlaterPresetComboBox*>(evt.GetEventObject());
     if (preset_combo_box) {
         this->on_select_preset(evt);
@@ -12072,6 +12192,7 @@ void Plater::load_gcode(const wxString& filename)
         set_project_filename(filename);
     }
 
+    p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false, true);//STUDIO-11512
 }
 
 void Plater::reload_gcode_from_disk()
@@ -12578,7 +12699,7 @@ bool Plater::load_same_type_files(const wxArrayString &filenames) {
         std::string ext_str = ext.extension().string();
         boost::algorithm::to_lower(ext_str);
         if (ext_str == ".stp" || ext_str == ".step") {
-            ext.replace_extension(".step");
+            ext_str =".step";
         }
         return ext_str;
     };
@@ -13594,8 +13715,14 @@ bool Plater::check_printer_initialized(MachineObject *obj, bool only_warning)
 
     if (!has_been_initialized) {
         if (!only_warning) {
-            MessageDialog dlg(wxGetApp().plater(), _L("The nozzle type is not set. Please set the nozzle and try again."), _L("Warning"), wxOK | wxICON_WARNING);
-            dlg.ShowModal();
+
+            if (DeviceManager::get_printer_can_set_nozzle(obj->printer_type)) {
+                MessageDialog dlg(wxGetApp().plater(), _L("The nozzle type is not set. Please set the nozzle and try again."), _L("Warning"), wxOK | wxICON_WARNING);
+                dlg.ShowModal();
+            } else {
+                MessageDialog dlg(wxGetApp().plater(), _L("The nozzle type is not set. Please check."), _L("Warning"), wxOK | wxICON_WARNING);
+                dlg.ShowModal();
+            }
 
             PrinterPartsDialog *print_parts_dlg = new PrinterPartsDialog(nullptr);
             print_parts_dlg->update_machine_obj(obj);
@@ -14306,6 +14433,10 @@ void Plater::export_toolpaths_to_obj() const
 
     wxBusyCursor wait;
     p->preview->get_canvas3d()->export_toolpaths_to_obj(into_u8(path).c_str());
+}
+
+bool Plater::is_empty_project() {
+    return model().objects.empty();
 }
 
 bool Plater::is_multi_extruder_ams_empty()
