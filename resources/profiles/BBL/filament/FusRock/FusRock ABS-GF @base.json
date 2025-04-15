@@ -5,7 +5,7 @@
     "from": "system",
     "filament_id": "GFRB50",
     "instantiation": "true",
-    "description": "When printing this filament, there's a risk of nozzle clogging, oozing, warping and low layer adhesion strength. To get better results, please refer to this wiki: https://example.com/wiki/high-temp-printing-tips",
+    "description": "When printing this filament, there's a risk of nozzle clogging, oozing, warping and low layer adhesion strength. To get better results, please refer to this wiki: https://wiki.fusrock.com",
     "fan_cooling_layer_time": ["12"],
     "fan_max_speed": ["30"],
     "filament_cost": ["29.99"],
