@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-04-14 11:55+0800\n"
-"PO-Revision-Date: 2025-01-12 21:04+0300\n"
+"PO-Revision-Date: 2025-04-15 22:16+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -26,10 +26,10 @@ msgid "The filament model is unknown. Still using the previous filament preset."
 msgstr "Filament modeli bilinmiyor. Hala önceki filament ön ayarını kullanıyor."
 
 msgid "The filament model is unknown. Generic filament presets will be used."
-msgstr ""
+msgstr "Filament modeli bilinmiyor. Genel filament ön ayarları kullanılacaktır."
 
 msgid "The filament may not be compatible with the current machine settings. A random filament preset will be used."
-msgstr ""
+msgstr "Filament mevcut makine ayarları ile uyumlu olmayabilir. Rastgele bir filament ön ayarı kullanılacaktır."
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Filament modeli bilinmiyor. Rastgele bir filament ön ayarı kullanılacaktır."
@@ -1280,6 +1280,9 @@ msgid ""
 "Please make sure Bambu Studio has permission to delete and write in this directory,\n"
 "and it is not being occupied by the system or other applications."
 msgstr ""
+"Ön ayar dosyaları %s'ye yüklenemedi.\n"
+"Lütfen Bambu Studio'nun bu dizinde silme ve yazma iznine sahip olduğundan emin olun,\n"
+"ve sistem veya diğer uygulamalar tarafından kullanılmıyor."
 
 #, c-format, boost-format
 msgid ""
@@ -1414,7 +1417,7 @@ msgid "Ongoing uploads"
 msgstr "Devam eden yüklemeler"
 
 msgid "Install presets failed"
-msgstr ""
+msgstr "Ön ayarları yükleme başarısız oldu"
 
 msgid "Select a G-code file:"
 msgstr "G kodu dosyası seçin:"
@@ -3433,16 +3436,16 @@ msgid "Update failed."
 msgstr "Güncelleme başarısız."
 
 msgid "Timelapse is not supported on this printer."
-msgstr ""
+msgstr "Timelapse bu yazıcıda desteklenmez."
 
 msgid "Timelapse is not supported while the SD card does not exist."
-msgstr ""
+msgstr "SD kart mevcut değilken Timelapse desteklenmez."
 
 msgid "Timelapse is not supported while the SD card is unavailable."
-msgstr ""
+msgstr "SD kart yokken Timelapse desteklenmez."
 
 msgid "Timelapse is not supported while the SD card is readonly."
-msgstr ""
+msgstr "SD kart salt okunur durumdayken Timelapse desteklenmez."
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "Mevcut hazne sıcaklığı veya hedef hazne sıcaklığı 45 ° C'yi aşıyor Ekstruder tıkanmasını önlemek için düşük sıcaklıkta filament (PLA / PETG / TPU) yüklenmesine izin verilmez."
@@ -5626,7 +5629,7 @@ msgid "Nozzle Type"
 msgstr "Nozul tipi"
 
 msgid "Please change the nozzle settings on the printer."
-msgstr ""
+msgstr "Lütfen yazıcıdaki nozul ayarlarını değiştirin."
 
 msgid "Nozzle Flow"
 msgstr "Nozul Akışı"
@@ -6186,7 +6189,7 @@ msgid "The nozzle type is not set. Please set the nozzle and try again."
 msgstr "Nozul tipi ayarlanmamış. Lütfen nozulu ayarlayın ve tekrar deneyin."
 
 msgid "The nozzle type is not set. Please check."
-msgstr ""
+msgstr "Nozul tipi ayarlanmamış. Lütfen kontrol edin."
 
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr "Model kafesleri üzerinde boolean işlemi gerçekleştirilemiyor. Kafesleri düzeltebilir ve tekrar deneyebilirsiniz."
@@ -7124,10 +7127,10 @@ msgid "Please click the confirm button if you still want to proceed with printin
 msgstr "Hala yazdırma işlemine devam etmek istiyorsanız lütfen onayla düğmesine tıklayın."
 
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
-msgstr ""
+msgstr "Bu, ısı yatağının düzlüğünü kontrol eder. Tesviye, ekstrüzyon yüksekliğini tekdüze hale getirir."
 
 msgid "This process determines the dynamic flow values to improve overall print quality."
-msgstr ""
+msgstr "Bu işlem, genel baskı kalitesini iyileştirmek için dinamik akış değerlerini belirler."
 
 msgid "Connecting to the printer. Unable to cancel during the connection process."
 msgstr "Yazıcıya bağlanılıyor. Bağlantı işlemi sırasında iptal edilemiyor."
@@ -7337,7 +7340,7 @@ msgid "Prime tower is required for smooth timeplase. There may be flaws on the m
 msgstr "Sorunsuz timeplace için Prime kulesi gereklidir. Prime kulesi olmayan modelde kusurlar olabilir. Prime kulesi'ı devre dışı bırakmak istediğinizden emin misiniz?"
 
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
-msgstr ""
+msgstr "Hem hassas Z yüksekliğinin hem de prime kulesinin etkinleştirilmesi, prime kulenin boyutunun artmasına neden olabilir. Hala etkinleştirmek istiyor musunuz?"
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Sorunsuz hızlandırılmış çekim için Prime Tower gereklidir. Prime kulesi olmayan modelde kusurlar olabilir. Prime kulesi'ı etkinleştirmek istiyor musunuz?"
@@ -8852,16 +8855,16 @@ msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " dışlama alanına çok yakın ve çarpışmalara neden olacak.\n"
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
-msgstr ""
+msgstr "Yüksek sıcaklıklı ve düşük sıcaklıklı filamentlerin birlikte yazdırılması nozül tıkanmasına veya yazıcı hasarına neden olabilir."
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
-msgstr ""
+msgstr "Yüksek sıcaklıklı ve düşük sıcaklıklı filamentlerin birlikte yazdırılması nozül tıkanmasına veya yazıcı hasarına neden olabilir. Yine de yazdırmak istiyorsanız, Tercihler'de seçeneği etkinleştirebilirsiniz."
 
 msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
-msgstr ""
+msgstr "Yüksek sıcaklık ve orta sıcaklık filamentlerinin birlikte yazdırılması nozül tıkanmasına veya yazıcı hasarına neden olabilir."
 
 msgid "Printing mid-temp and low-temp filaments together may cause nozzle clogging or printer damage."
-msgstr ""
+msgstr "Orta sıcaklık ve düşük sıcaklık filamentlerinin birlikte yazdırılması nozül tıkanmasına veya yazıcı hasarına neden olabilir."
 
 msgid "No extrusions under current settings."
 msgstr "Mevcut ayarlarda ekstrüzyon yok."
@@ -11008,7 +11011,7 @@ msgid "User Customized Offset"
 msgstr "Kullanıcı Özelleştirilmiş Ofset"
 
 msgid "If you want to have tighter or looser assemble, you can set this value. When it is positive, it indicates tightening, otherwise, it indicates loosening"
-msgstr ""
+msgstr "Daha sıkı veya daha gevşek bir montaj istiyorsanız, bu değeri ayarlayabilirsiniz. Pozitif olduğunda, sıkılaştırmayı gösterir, aksi takdirde gevşetmeyi gösterir"
 
 msgid "Scarf Seam On Compensation Circles"
 msgstr "Kompanzasyon Çemberlerinde Eşarp Dikişi"
@@ -11128,7 +11131,7 @@ msgid "Rib wall"
 msgstr "İç takviye duvarı"
 
 msgid "The wall of prime tower will add four ribs and make its cross-section as close to a square as possible, so the width will be fixed."
-msgstr ""
+msgstr "Prime kulesinin duvarına dört çıkıntı eklenecek ve enine kesiti mümkün olduğunca kareye yakın hale getirilecek, böylece genişlik sabitlenecektir."
 
 msgid "Fillet wall"
 msgstr "Fileto duvar"
@@ -11299,7 +11302,7 @@ msgid "Loading of a model file failed."
 msgstr "Model dosyasının yüklenmesi başarısız oldu."
 
 msgid "Meshing of a model file failed or no valid shape."
-msgstr ""
+msgstr "Bir model dosyasının örgüleme işlemi başarısız oldu veya geçerli bir şekil yok."
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "Sağlanan dosya boş olduğundan okunamadı"
@@ -13207,8 +13210,7 @@ msgstr ""
 "Baskılarınızı plakalara ayırın\n"
 "Çok sayıda parçası olan bir modeli baskıya hazır ayrı kalıplara bölebileceğinizi biliyor muydunuz? Bu, tüm parçaları takip etme sürecini basitleştirecektir."
 
-#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
-#: Height]
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer Height]
 msgid ""
 "Speed up your print with Adaptive Layer Height\n"
 "Did you know that you can print a model even faster, by using the Adaptive Layer Height option? Check it out!"
@@ -13280,8 +13282,7 @@ msgstr ""
 "Gücü artırın\n"
 "Modelin gücünü artırmak için daha fazla duvar halkası ve daha yüksek seyrek dolgu yoğunluğu kullanabileceğinizi biliyor muydunuz?"
 
-#: resources/data/hints.ini: [hint:When need to print with the printer door
-#: opened]
+#: resources/data/hints.ini: [hint:When need to print with the printer door opened]
 msgid ""
 "When need to print with the printer door opened\n"
 "Did you know that opening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki."
