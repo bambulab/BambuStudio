@@ -12192,8 +12192,7 @@ void Plater::load_gcode(const wxString& filename)
     } else {
         set_project_filename(filename);
     }
-
-    p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false, true);//STUDIO-11512
+    p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false, false); //20250416 ban gcode to send print
 }
 
 void Plater::reload_gcode_from_disk()
