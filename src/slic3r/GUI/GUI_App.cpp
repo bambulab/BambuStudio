@@ -4809,7 +4809,7 @@ void GUI_App::save_privacy_policy_history(bool agree, std::string source)
     j["time"] = time_str.str();
     j["user_id"] = "default_user";
     if (m_agent && agree) {
-        if (!m_agent->get_user_id().empty())
+        if (!m_agent->get_user_id().empty() && m_agent->is_user_login())
             j["user_id"] = m_agent->get_user_id();
         m_agent->track_event("privacy_policy", j.dump());
     }

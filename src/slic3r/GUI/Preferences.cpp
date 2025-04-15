@@ -738,7 +738,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
                     agent->track_remove_files();
                 }
             }
-            wxGetApp().save_privacy_policy_history(!checkbox->GetValue(), "preferences");
+            wxGetApp().save_privacy_policy_history(checkbox->GetValue(), "preferences");
             app_config->save();
         }
         else if (param == "auto_stop_liveview") {
