@@ -2246,22 +2246,22 @@ msgid "Full Cooling"
 msgstr "Raffreddamento completo"
 
 msgid "Num?"
-msgstr ""
+msgstr "Num?"
 
 msgid "Init"
-msgstr ""
+msgstr "Init"
 
 msgid "Hotend"
-msgstr ""
+msgstr "Hotend"
 
 msgid "Parts"
-msgstr "Parte"
+msgstr "Parti"
 
 msgid "Aux"
 msgstr "Ausiliario"
 
 msgid "Nozzle1"
-msgstr ""
+msgstr "Nozzle1"
 
 msgid "MC Board"
 msgstr "Scheda MC"
@@ -2292,7 +2292,7 @@ msgid "Strong cooling mode is suitable for printing PLA/TPU materials. In this m
 msgstr "La modalità raffreddamento forte è adatta per la stampa di materiali PLA/TPU. In questa modalità, le stampe saranno completamente raffreddate."
 
 msgid "Num"
-msgstr ""
+msgstr "Num"
 
 msgid "Idling..."
 msgstr "Inattivo..."
@@ -2419,13 +2419,13 @@ msgid "Exception"
 msgstr "Eccezione"
 
 msgid "Logging in"
-msgstr "Accesso in corso..."
+msgstr "Accesso in corso"
 
 msgid "Login failed"
 msgstr "Login non riuscito"
 
 msgid "Please check the printer network connection."
-msgstr "Controlla la connessione rete della stampante."
+msgstr "Controlla la connessione di rete della stampante."
 
 msgid "Abnormal print file data. Please slice again."
 msgstr "Dati anomali del file di stampa. Per favore, esegui nuovamente l'elaborazione."
@@ -2521,7 +2521,7 @@ msgid "Import model only"
 msgstr "Importa solo modello"
 
 msgid "Accurate"
-msgstr "Accurato"
+msgstr "Preciso"
 
 msgid "Balanced"
 msgstr "Bilanciato"
@@ -2554,7 +2554,7 @@ msgid "Attention!"
 msgstr "Attenzione!"
 
 msgid "Downloading"
-msgstr "Download"
+msgstr "Download..."
 
 msgid "Download failed"
 msgstr "Download non riuscito"
@@ -2566,7 +2566,7 @@ msgid "Install successfully."
 msgstr "Installazione completata."
 
 msgid "Installing"
-msgstr "Installazione…"
+msgstr "Installazione..."
 
 msgid "Install failed"
 msgstr "Installazione non riuscita"
@@ -2817,7 +2817,7 @@ msgid "Nozzle"
 msgstr "Nozzle"
 
 msgid "Ext"
-msgstr ""
+msgstr "Esterno"
 
 msgid "Note: Only the AMS slots loaded with the same material type can be selected."
 msgstr "Nota: Sono selezionabili solo gli slot AMS caricati con lo stesso tipo di materiale."
@@ -2965,7 +2965,7 @@ msgid ") to locate the toolhead's position. This prevents device moving beyond t
 msgstr ") per individuare la posizione della testa dell'utensile. In questo modo si evita che il dispositivo si sposti oltre il limite stampabile, causando l'usura dell'apparecchiatura."
 
 msgid "Go Home"
-msgstr "Vai all'origine"
+msgstr "Vai in Home"
 
 msgid "An error occurred. Maybe memory of system is not enough or it's a bug of the program"
 msgstr "Si è verificato un errore. La memoria di sistema potrebbe non essere sufficiente o potrebbe trattarsi di un bug del programma."
@@ -3185,10 +3185,10 @@ msgid ""
 "YES - Keep Prime Tower\n"
 "NO  - Keep Adaptive Layer Height and Independent Support Layer Height"
 msgstr ""
-"Prime tower non funziona quando layer Adattativo o Altezza supporto Layer indipendente sono attivati.\n"
+"la Torre di Spurgo non funziona quando layer Adattativo o Altezza supporto Layer indipendente sono attivati.\n"
 "Quale vuoi tenere?\n"
-"SÌ - Mantieni Prime Tower\n"
-"NO - Mantieni layer Adattativo e Altezza supporto Layer indipendente"
+"SÌ - Mantieni la Torre di Spurgo\n"
+"NO - Mantieni layer Adattativo e Altezza supporto layer indipendente"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height is on.\n"
@@ -3196,10 +3196,10 @@ msgid ""
 "YES - Keep Prime Tower\n"
 "NO  - Keep Adaptive Layer Height"
 msgstr ""
-"Prime tower non funziona quando layer adattativo è attivo.\n"
+"la Torre di Spurgo non funziona quando layer adattativo è attivo.\n"
 "Quale vuoi tenere?\n"
-"SÌ - Mantieni Prime Tower\n"
-"NO - Mantieni l'ayer adattativo"
+"SÌ - Mantieni la Torre di Spurgo\n"
+"NO - Mantieni layer adattativo"
 
 msgid ""
 "Prime tower does not work when Independent Support Layer Height is on.\n"
@@ -3207,9 +3207,9 @@ msgid ""
 "YES - Keep Prime Tower\n"
 "NO  - Keep Independent Support Layer Height"
 msgstr ""
-"Prime tower non funziona quando Altezza Supporto Layer indipendente è attiva.\n"
+"la Torre di Spurgo non funziona quando Altezza Supporto Layer indipendente è attiva.\n"
 "Quale vuoi tenere?\n"
-"SÌ - Mantieni Prime Tower\n"
+"SÌ - Mantieni la Torre di Spurgo\n"
 "NO - Mantieni Altezza Supporto Layer indipendente"
 
 #, boost-format
@@ -3317,7 +3317,7 @@ msgid "Filament unloading"
 msgstr "Scarico filamento"
 
 msgid "Skip step pause"
-msgstr "Salta step pausa"
+msgstr "Salta la pausa"
 
 msgid "Filament loading"
 msgstr "Caricamento del filamento"
@@ -3335,7 +3335,7 @@ msgid "Paused due to chamber temperature control error"
 msgstr "In pausa per errore controllo temperatura camera"
 
 msgid "Cooling chamber"
-msgstr "Raffredda camera"
+msgstr "Raffreddamento camera"
 
 msgid "Paused by the Gcode inserted by user"
 msgstr "Messo in pausa dal G-code inserito dall'utente"
@@ -3344,13 +3344,13 @@ msgid "Motor noise showoff"
 msgstr "Dimostrazione rumore motore"
 
 msgid "Nozzle filament covered detected pause"
-msgstr "Pausa rilevata nozzle ricoperto dal filamento"
+msgstr "Pausa per rilevato nozzle ricoperto dal filamento"
 
 msgid "Cutter error pause"
-msgstr "Pausa errore taglierina"
+msgstr "Pausa per errore taglierina"
 
 msgid "First layer error pause"
-msgstr "Pausa errore primo layer"
+msgstr "Pausa per errore primo layer"
 
 msgid "Nozzle clog pause"
 msgstr "Pausa per intasamento nozzle"
@@ -3383,16 +3383,16 @@ msgid "Auto Check: Platform"
 msgstr "Controllo automatico: piattaforma"
 
 msgid "Confirming birdeye camera position"
-msgstr "Conferma posizione telecamera birdeye"
+msgstr "Conferma posizione telecamera dall'alto"
 
 msgid "Calibrating birdeye camera"
-msgstr "Calibrazione​•​​telecamera​•​birdeye"
+msgstr "Calibrazione​ telecamera​ dall'alto"
 
 msgid "Auto bed leveling -phase 1"
-msgstr "Auto bed leveling -fase 1"
+msgstr "Livellamento automatico del piatto -fase 1"
 
 msgid "Auto bed leveling -phase 2"
-msgstr "Auto bed leveling -fase 2"
+msgstr "Livellamento automatico del piatto -fase 2"
 
 msgid "Heating chamber"
 msgstr "Camera riscaldata"
@@ -3438,22 +3438,22 @@ msgid "Update failed."
 msgstr "Aggiornamento fallito"
 
 msgid "Timelapse is not supported on this printer."
-msgstr ""
+msgstr "Il timelapse non è supportato da questa stampante."
 
 msgid "Timelapse is not supported while the SD card does not exist."
-msgstr ""
+msgstr "Il timelapse non è supportato se la scheda SD non è inserita."
 
 msgid "Timelapse is not supported while the SD card is unavailable."
-msgstr ""
+msgstr "Il timelapse non è supportato quando la scheda SD non è disponibile."
 
 msgid "Timelapse is not supported while the SD card is readonly."
-msgstr ""
+msgstr "Il timelapse non è supportato quando la scheda SD è in sola lettura."
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "La temperatura attuale della camera o la temperatura target supera i 45℃. Per evitare l'intasamento dell'estrusore, non è consentito caricare filamenti a bassa temperatura (PLA/PETG/TPU)."
 
 msgid "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to avoid extruder clogging,it is not allowed to set the chamber temperature."
-msgstr "Il filamento a bassa temperatura (PLA/PETG/TPU) viene caricato nell'estrusore. Per evitare che l'estrusore clogghi , non è consentito impostare la temperatura della camera."
+msgstr "Il filamento a bassa temperatura (PLA/PETG/TPU) viene caricato nell'estrusore. Per evitare che l'estrusore si intasi, non è consentito impostare la temperatura della camera."
 
 msgid "When you set the chamber temperature below 40℃, the chamber temperature control will not be activated. And the target chamber temperature will automatically be set to 0℃."
 msgstr "Quando si imposta una temperatura della camera inferiore a 40℃, il controllo della temperatura della camera non si attiva. La temperatura target della camera sarà automaticamente impostata su 0℃."
@@ -3540,7 +3540,7 @@ msgid "Summary"
 msgstr "Sommario"
 
 msgid "Layer Height"
-msgstr "Altezza layer"
+msgstr "Altezza strato"
 
 msgid "Line Width"
 msgstr "Larghezza linea"
@@ -3555,28 +3555,28 @@ msgid "Tool"
 msgstr "Strumento"
 
 msgid "Layer Time"
-msgstr "Tempo layer"
+msgstr "Tempo dello strato"
 
 msgid "Height: "
-msgstr "Altezza:"
+msgstr "Altezza: "
 
 msgid "Width: "
-msgstr "Larghezza:"
+msgstr "Larghezza: "
 
 msgid "Speed: "
-msgstr "Velocità:"
+msgstr "Velocità: "
 
 msgid "Flow: "
 msgstr "Flusso: "
 
 msgid "Layer Time: "
-msgstr "Tempo layer:"
+msgstr "Tempo dello strato: "
 
 msgid "Fan Speed: "
-msgstr "Velocità ventola:"
+msgstr "Velocità ventola: "
 
 msgid "Temperature: "
-msgstr "Temperatura:"
+msgstr "Temperatura: "
 
 msgid "Loading G-codes"
 msgstr "Caricamento del G-code"
@@ -3597,7 +3597,7 @@ msgid "Flushed"
 msgstr "Spurgo"
 
 msgid "Tower"
-msgstr "Tower"
+msgstr "Torre"
 
 msgid "Total"
 msgstr "Totale"
@@ -3687,7 +3687,7 @@ msgid "Used filament"
 msgstr "Filamento usato"
 
 msgid "Layer Height (mm)"
-msgstr "Altezza layer (mm)"
+msgstr "Altezza strato (mm)"
 
 msgid "Line Width (mm)"
 msgstr "Larghezza linea (mm)"
@@ -3705,7 +3705,7 @@ msgid "Volumetric flow rate (mm³/s)"
 msgstr "Flusso volumetrico (mm³/s)"
 
 msgid "Layer Time (s)"
-msgstr "Layer Time (s)"
+msgstr "Tempo per lo Strato (s)"
 
 msgid "Travel"
 msgstr "Spostamento"
@@ -3804,7 +3804,7 @@ msgid "Quality / Speed"
 msgstr "Qualità / Velocità"
 
 msgid "Smooth"
-msgstr "Smooth"
+msgstr "Levigato"
 
 msgid "Radius"
 msgstr "Raggio"
@@ -3834,7 +3834,7 @@ msgid "Shift + Right mouse button:"
 msgstr "Shift + Tasto destro mouse:"
 
 msgid "Smoothing"
-msgstr "Lisciatura"
+msgstr "Levigatura"
 
 msgid "Mouse wheel:"
 msgstr "Rotella del mouse:"
@@ -3871,11 +3871,11 @@ msgstr "Nozzle destro"
 
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
-msgstr ""
+msgstr "La posizione o la dimensione di alcuni modelli supera l'intervallo stampabile di %s."
 
 #, c-format, boost-format
 msgid "The position or size of the model %s exceeds the %s's printable range."
-msgstr ""
+msgstr "La posizione o la dimensione del modello %s supera l'intervallo stampabile di %s."
 
 msgid " Please check and adjust the part's position or size to fit the printable range:\n"
 msgstr "Controlla e regola la posizione o le dimensioni del pezzo affinché rientri nel range di stampa:\n"
@@ -3916,10 +3916,10 @@ msgid "Arrange options"
 msgstr "Opzioni di disposizione"
 
 msgid "Spacing"
-msgstr "Spaziatura "
+msgstr "Distanziamento"
 
 msgid "0 means auto spacing."
-msgstr "0 indica la spaziatura automatica."
+msgstr "0 indica il distanziamento automatico."
 
 msgid "Save SVG"
 msgstr "Salva SVG"
@@ -3981,16 +3981,16 @@ msgid "Assembly Return"
 msgstr "Ritorna al montaggio"
 
 msgid "return"
-msgstr "Indietro"
+msgstr "indietro"
 
 msgid "Fit camera"
-msgstr "Adatta fotocamera"
+msgstr "Adatta alla camera"
 
 msgid "Fit camera to scene or selected object."
-msgstr "Adatta la telecamera alla scena o all'oggetto selezionato."
+msgstr "Adatta alla camera la scena o l'oggetto selezionato."
 
 msgid "Paint Toolbar"
-msgstr "Barra strumenti di pittura"
+msgstr "Barra degli strumenti di pittura"
 
 msgid "Explosion Ratio"
 msgstr "Rapporto di esplosione"
@@ -5819,7 +5819,7 @@ msgid "Enabling traditional timelapse photography may cause surface imperfection
 msgstr "L'attivazione fotografia timelapse tradizionale può causare imperfezioni sulla superficie. Ti consiglio di passare alla modalità liscia."
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
-msgstr "La modalità smooth per il timelapse è attivata, ma la prime tower è disattivata, il che potrebbe causare difetti di stampa. Abilita la prime tower, riesegui lo slicing e stampa di nuovo."
+msgstr "La modalità smooth per il timelapse è attivata, ma la Torre di Spurgo è disattivata, il che potrebbe causare difetti di stampa. Abilita la Torre di Spurgo, riesegui lo slicing e stampa di nuovo."
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -6266,7 +6266,7 @@ msgid "Plate Settings"
 msgstr "Impostazioni Piatto"
 
 msgid "Prime Tower:"
-msgstr ""
+msgstr "Torre di Spurgo"
 
 msgid "A cube printed during a filament change to purge old color and ensure smooth color transition."
 msgstr "Un cubo stampato durante un cambio di filamento per eliminare il vecchio colore e garantire una transizione cromatica uniforme."
@@ -7333,13 +7333,13 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr "Clicca per ripristinare tutte le impostazioni dell'ultimo preset salvato."
 
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
-msgstr "È necessaria una Prime Tower per la modalità timelapse fluida. Potrebbero esserci dei difetti sul modello senza Prime Tower. Sei sicuro di voler disabilitare la prime tower?"
+msgstr "È necessaria una Torre di Spurgo per la modalità timelapse fluida. Potrebbero esserci dei difetti sul modello senza la Torre di Spurgo. Sei sicuro di voler disabilitare la Torre di Spurgo?"
 
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
-msgstr "È necessaria una Prime Tower per la modalità timelapse fluida. Potrebbero esserci dei difetti sul modello senza Prime Tower. Vuoi abilitare la prime tower?"
+msgstr "È necessaria una Torre di Spurgo per la modalità timelapse fluida. Potrebbero esserci dei difetti sul modello senza la Torre di Spurgo. Vuoi abilitare la Torre di Spurgo?"
 
 msgid "Still print by object?"
 msgstr "Stampa ancora per oggetto?"
@@ -7450,7 +7450,7 @@ msgid "Tree Support"
 msgstr "Supporto ad albero"
 
 msgid "Prime tower"
-msgstr "Prime tower"
+msgstr "Torre di Spurgo"
 
 msgid "Special mode"
 msgstr "Modalità speciale"
@@ -8840,7 +8840,7 @@ msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr " è troppo vicino all'area di esclusione, potrebbero verificarsi collisioni durante la stampa."
 
 msgid "Prime Tower"
-msgstr "Prime Tower"
+msgstr "Torre di Spurgo"
 
 msgid " is too close to others, and collisions may be caused.\n"
 msgstr " è troppo vicino agli altri e possono verificarsi collisioni.\n"
@@ -8876,37 +8876,37 @@ msgid "Variable layer height is not supported with Organic supports."
 msgstr "L'altezza variabile del layer non è supportata dai supporti organici."
 
 msgid "Different nozzle diameters and different filament diameters is not allowed when prime tower is enabled."
-msgstr "Non sono consentiti diametri diversi di Nozzle e filamenti diversi quando è abilitata la prime tower."
+msgstr "Non sono consentiti diametri diversi di Nozzle e filamenti diversi quando è abilitata la Torre di Spurgo."
 
 msgid "The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
 msgstr "La Wipe Tower è attualmente supportata solo con il relativo indirizzamento dell'estrusore (use_relative_e_distances=1)."
 
 msgid "Ooze prevention is currently not supported with the prime tower enabled."
-msgstr "La prevenzione del gocciolamento non è supportata se si abilita la prime tower."
+msgstr "La prevenzione del gocciolamento non è supportata se si abilita la Torre di Spurgo."
 
 msgid "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, RepRapFirmware and Repetier G-code flavors."
-msgstr "La prime tower è attualmente supportata solo per le versioni Marlin, RepRap/Sprinter, RepRapFirmware e Repetier G-code."
+msgstr "La Torre di Spurgo è attualmente supportata solo per le versioni Marlin, RepRap/Sprinter, RepRapFirmware e Repetier G-code."
 
 msgid "The prime tower is not supported in \"By object\" print."
-msgstr "Una prime tower non è supportata nella stampa \"Per oggetto\"."
+msgstr "Una Torre di Spurgo non è supportata nella stampa \"Per oggetto\"."
 
 msgid "The prime tower is not supported when adaptive layer height is on. It requires that all objects have the same layer height."
-msgstr "Una prime tower non è supportata quando l'altezza del layer adattiva è attivata. Richiede che tutti gli oggetti abbiano la stessa altezza del layer."
+msgstr "Una Torre di Spurgo non è supportata quando l'altezza del layer adattiva è attivata. Richiede che tutti gli oggetti abbiano la stessa altezza del layer."
 
 msgid "The prime tower requires \"support gap\" to be multiple of layer height"
-msgstr "Una prime tower richiede che qualsiasi \"gap di supporto\" sia un multiplo dell'altezza del layer."
+msgstr "Una Torre di Spurgo richiede che qualsiasi \"gap di supporto\" sia un multiplo dell'altezza del layer."
 
 msgid "The prime tower requires that all objects have the same layer heights"
-msgstr "La prime tower richiede che tutti gli oggetti abbiano la stessa altezza layer."
+msgstr "La Torre di Spurgo richiede che tutti gli oggetti abbiano la stessa altezza layer."
 
 msgid "The prime tower requires that all objects are printed over the same number of raft layers"
-msgstr "Una prime tower richiede che tutti gli oggetti siano stampati sopra lo stesso numero di layer del raft."
+msgstr "Una Torre di Spurgo richiede che tutti gli oggetti siano stampati sopra lo stesso numero di layer del raft."
 
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
-msgstr "Una prime tower richiede che tutti gli oggetti siano elaborati con la stessa altezza del layer."
+msgstr "Una Torre di Spurgo richiede che tutti gli oggetti siano elaborati con la stessa altezza del layer."
 
 msgid "The prime tower is only supported if all objects have the same variable layer height"
-msgstr "La Prime Tower è supportata solo se tutti gli oggetti hanno la stessa altezza layer adattativi."
+msgstr "La Torre di Spurgo è supportata solo se tutti gli oggetti hanno la stessa altezza layer adattativi."
 
 msgid "Too small line width"
 msgstr "Larghezza linea troppo piccola"
@@ -8915,7 +8915,7 @@ msgid "Too large line width"
 msgstr "Larghezza linea troppo grande"
 
 msgid "The prime tower requires that support has the same layer height as object."
-msgstr "La prime tower richiede che i supporti abbiano la stessa altezza layer degli oggetti."
+msgstr "La Torre di Spurgo richiede che i supporti abbiano la stessa altezza layer degli oggetti."
 
 msgid "Support enforcers are used but support is not enabled. Please enable support."
 msgstr "Utilizzati supporti forzati ma i supporti non sono abilitati. Abilitare i supporti."
@@ -9728,7 +9728,7 @@ msgid "Filament prime volume"
 msgstr "Volume primario filamento"
 
 msgid "The volume of material to prime extruder on tower."
-msgstr "Volume di materiale da estrudere per la prime tower."
+msgstr "Volume di materiale da estrudere per la Torre di Spurgo."
 
 msgid "Softening temperature"
 msgstr "Temperatura di ammorbidimento"
@@ -10641,7 +10641,7 @@ msgid "Maximum distance to move points in XY to try to achieve a smooth spiralIf
 msgstr "Distanza massima per spostare i punti in XY per cercare di ottenere una spirale regolare. Se espressa in %, sarà calcolata sul diametro del nozzle."
 
 msgid "If smooth or traditional mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
-msgstr "Se è selezionata la modalità smooth o tradizionale, viene generato un video timelapse per ogni stampa. Dopo la stampa di ogni layer, viene scattata una foto. Al termine della stampa tutte le foto vengono unite per creare un video timelapse. Se si seleziona smooth, dopo la stampa del layer la testa di stampa si sposta sullo scivolo di spurgo posteriore e poi scatta una foto. Poiché durante la foto può uscire filamento dal nozzle, la modalità smooth ha bisogno che venga utilizzata la prime tower per pulire il nozzle."
+msgstr "Se è selezionata la modalità smooth o tradizionale, viene generato un video timelapse per ogni stampa. Dopo la stampa di ogni layer, viene scattata una foto. Al termine della stampa tutte le foto vengono unite per creare un video timelapse. Se si seleziona smooth, dopo la stampa del layer la testa di stampa si sposta sullo scivolo di spurgo posteriore e poi scatta una foto. Poiché durante la foto può uscire filamento dal nozzle, la modalità smooth ha bisogno che venga utilizzata la Torre di Spurgo per pulire il nozzle."
 
 msgid "Traditional"
 msgstr "Tradizionale"
@@ -10870,7 +10870,7 @@ msgid "Independent support layer height"
 msgstr "Altezza layer di supporto indipendente"
 
 msgid "Support layer uses layer height independent with object layer. This is to support customizing z-gap and save print time.This option will be invalid when the prime tower is enabled."
-msgstr "Il layer di supporto utilizza l'altezza layer indipendentemente dal layer dell'oggetto. Questo serve a supportare la personalizzazione di z-gap e ridurre il tempo di stampa. Questa opzione non puó essere utilizzata quando la Prime Tower è abilitata."
+msgstr "Il layer di supporto utilizza l'altezza layer indipendentemente dal layer dell'oggetto. Questo serve a supportare la personalizzazione di z-gap e ridurre il tempo di stampa. Questa opzione non puó essere utilizzata quando la Torre di Spurgo è abilitata."
 
 msgid "Threshold angle"
 msgstr "Angolo di soglia"
@@ -10996,7 +10996,7 @@ msgid "Internal ribs"
 msgstr "Nervature interne"
 
 msgid "Enable internal ribs to increase the stability of the prime tower."
-msgstr "Abilita le nervature interne per aumentare la stabilità della prime tower."
+msgstr "Abilita le nervature interne per aumentare la stabilità della Torre di Spurgo."
 
 msgid "Auto circle contour-hole compensation"
 msgstr "Compensazione automatica del contorno-foro"
@@ -11100,16 +11100,16 @@ msgid "The actual flushing volumes is equal to the flush multiplier multiplied b
 msgstr "I volumi di spurgo effettivi sono pari al moltiplicatore di spurgo moltiplicato per i volumi di spurgo indicati nella tabella."
 
 msgid "Width of prime tower"
-msgstr "Larghezza della Prime Tower."
+msgstr "Larghezza della Torre di Spurgo."
 
 msgid "Max speed"
 msgstr "Velocità massima"
 
 msgid "The maximum printing speed on the prime tower excluding ramming."
-msgstr "La velocità massima di stampa sulla prime tower, escluso il ramming."
+msgstr "La velocità massima di stampa sulla Torre di Spurgo, escluso il ramming."
 
 msgid "Brim width of prime tower, negative number means auto calculated width based on the height of prime tower."
-msgstr "Larghezza del brim della prime tower. Un valore negativo indica che la larghezza viene calcolata automaticamente in base all'altezza della prime tower."
+msgstr "Larghezza del brim della Torre di Spurgo. Un valore negativo indica che la larghezza viene calcolata automaticamente in base all'altezza della Torre di Spurgo."
 
 msgid "Extra rib length"
 msgstr "Lunghezza extra delle nervature"
@@ -11124,7 +11124,7 @@ msgid "Skip points"
 msgstr "Salta i punti"
 
 msgid "The wall of prime tower will skip the start points of wipe path"
-msgstr "La parete della prime tower salterà i punti di inizio del percorso di pulitura."
+msgstr "La parete della Torre di Spurgo salterà i punti di inizio del percorso di pulitura."
 
 msgid "Rib wall"
 msgstr "Parete di rinforzo"
@@ -11136,19 +11136,19 @@ msgid "Fillet wall"
 msgstr "Smusso parete"
 
 msgid "The wall of prime tower will fillet"
-msgstr "La parete della prime tower sarà raccordata."
+msgstr "La parete della Torre di Spurgo sarà raccordata."
 
 msgid "Infill gap"
 msgstr "Gap riempimento"
 
 msgid "Purging after filament change will be done inside objects' infills. This may lower the amount of waste and decrease the print time. If the walls are printed with transparent filament, the mixed color infill will be seen outside. It will not take effect, unless the prime tower is enabled."
-msgstr "Dopo il cambio filamento, lo spurgo sarà effettuato nel riempimento dell'oggetto. Ciò potrebbe ridurre la quantità di rifiuti e ridurre i tempi di stampa. Se le pareti sono stampate con un filamento trasparente, il riempimento di diversi colori sarà visibile. Non avrà effetto, a meno che la prime tower non sia abilitata."
+msgstr "Dopo il cambio filamento, lo spurgo sarà effettuato nel riempimento dell'oggetto. Ciò potrebbe ridurre la quantità di rifiuti e ridurre i tempi di stampa. Se le pareti sono stampate con un filamento trasparente, il riempimento di diversi colori sarà visibile. Non avrà effetto, a meno che la Torre di Spurgo non sia abilitata."
 
 msgid "Purging after filament change will be done inside objects' support. This may lower the amount of waste and decrease the print time. It will not take effect, unless the prime tower is enabled."
-msgstr "Lo spurgo dopo il cambio del filamento verrà eseguito all'interno del supporto degli oggetti. Ciò può ridurre la quantità di rifiuti e ridurre il tempo di stampa. Non avrà effetto a meno che non sia abilitata la Prime Tower."
+msgstr "Lo spurgo dopo il cambio del filamento verrà eseguito all'interno del supporto degli oggetti. Ciò può ridurre la quantità di rifiuti e ridurre il tempo di stampa. Non avrà effetto a meno che non sia abilitata la Torre di Spurgo."
 
 msgid "This object will be used to purge the nozzle after a filament change to save filament and decrease the print time. Colours of the objects will be mixed as a result. It will not take effect, unless the prime tower is enabled."
-msgstr "Questo oggetto verrà utilizzato per pulire il nozzle dopo un cambio filamento per risparmiare filamento e ridurre i tempi di stampa. Di conseguenza, i colori degli oggetti verranno mescolati. Non avrà effetto, a meno che la prime tower non sia abilitata."
+msgstr "Questo oggetto verrà utilizzato per pulire il nozzle dopo un cambio filamento per risparmiare filamento e ridurre i tempi di stampa. Di conseguenza, i colori degli oggetti verranno mescolati. Non avrà effetto, a meno che la Torre di Spurgo non sia abilitata."
 
 msgid "X-Y hole compensation"
 msgstr "Compensazione foro X-Y"
@@ -13312,7 +13312,7 @@ msgstr ""
 #~ " attuali supera i 16."
 
 #~ msgid "The wall of prime tower will add four ribs"
-#~ msgstr "La parete della prime tower aggiungerà quattro nervature."
+#~ msgstr "La parete della Torre di Spurgo aggiungerà quattro nervature."
 
 #, c-format, boost-format
 #~ msgid ""
@@ -14325,7 +14325,7 @@ msgstr ""
 #~ "Note that this option only takes effect if no prime tower is generated in current plate."
 #~ msgstr ""
 #~ "Abilitando questa opzione, l'altezza di ogni layer successivo al primo sarà calcolata automaticamente in base all'inclinazione della superficie del modello.\n"
-#~ "Si noti che questa opzione ha effetto solo se non è stata generata una prime tower sul piatto corrente."
+#~ "Si noti che questa opzione ha effetto solo se non è stata generata una Torre di Spurgo sul piatto corrente."
 
 #~ msgid "End of print"
 #~ msgstr "Stampa terminata"
@@ -14584,7 +14584,7 @@ msgstr ""
 #~ msgstr "Se si attiva questa impostazione, la ventola di raffreddamento non si arresterà mai del tutto, ma funzionerà almeno alla velocità minima per ridurre la frequenza di avvio e arresto."
 
 #~ msgid "If enabled, a timelapse video will be generated for each print. After each layer is printed, the toolhead will move to the excess chute, and then a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for nozzle priming."
-#~ msgstr "Se abilitato, verrà generato un video in timelapse per ogni stampa. Dopo la stampa di ogni layer, la testa di stampa si sposta sullo scivolo, quindi viene scattata un'istantanea con la fotocamera della camera. Tutte queste istantanee vengono composte in un video timelapse al termine della stampa. Poiché il filamento fuso può fuoriuscire dal nozzle durante il processo di acquisizione di un'istantanea, è necessaria una prime tower per la pulizia del nozzle."
+#~ msgstr "Se abilitato, verrà generato un video in timelapse per ogni stampa. Dopo la stampa di ogni layer, la testa di stampa si sposta sullo scivolo, quindi viene scattata un'istantanea con la fotocamera della camera. Tutte queste istantanee vengono composte in un video timelapse al termine della stampa. Poiché il filamento fuso può fuoriuscire dal nozzle durante il processo di acquisizione di un'istantanea, è necessaria una Torre di Spurgo per la pulizia del nozzle."
 
 #~ msgid "If enabled, auto-calculate everytime the color changed."
 #~ msgstr "Quando è abilitato, ad ogni cambio colore viene effettuato il calcolo automatico."
@@ -15025,13 +15025,13 @@ msgstr ""
 #~ msgstr "Modalità solo anteprima per il file G-code."
 
 #~ msgid "Prime tower is required by timelapse. Do you want to enable both of them?"
-#~ msgstr "Prime Tower è richiesta per il timelapse. Vuoi abilitarli entrambi?"
+#~ msgstr "La Torre di Spurgo è richiesta per il timelapse. Vuoi abilitarli entrambi?"
 
 #~ msgid "Prime tower is required by timeplase. Are you sure you want to disable both of them?"
-#~ msgstr "Prime Tower è richiesto da timeplase. Sei sicuro di volerli disabilitare entrambi?"
+#~ msgstr "La Torre di Spurgo è richiesto da timeplase. Sei sicuro di volerli disabilitare entrambi?"
 
 #~ msgid "Print a tower to prime material in nozzle after switching to a new material."
-#~ msgstr "Consente di stampare una Prime Tower per pulire il materiale nel nozzle dopo il passaggio a un nuovo materiale."
+#~ msgstr "Consente di stampare una Torre di Spurgo per pulire il materiale nel nozzle dopo il passaggio a un nuovo materiale."
 
 #~ msgid "Print file not found, please slice again"
 #~ msgstr "File di stampa non trovato; si prega di eseguire nuovamente lo slice"
@@ -15421,7 +15421,7 @@ msgstr ""
 #~ msgstr "Il numero di layers solidi inferiori aumenta durante l'elaborazione se lo spessore calcolato dei layers del guscio inferiore è più sottile di questo valore. Questo può evitare di avere un guscio troppo sottile quando l'altezza layer è ridotta. 0 significa che questa impostazione è disabilitata e lo spessore del guscio inferiore è determinato semplicemente dal numero di layers del guscio inferiore."
 
 #~ msgid "The prime tower requires that support has the same layer height with object."
-#~ msgstr "La prime tower richiede che il supporto abbia la stessa altezza layer dell'oggetto."
+#~ msgstr "La Torre di Spurgo richiede che il supporto abbia la stessa altezza layer dell'oggetto."
 
 #~ msgid "The print file exceeds the maximum allowable size (1GB). Please simplify the model and slice again"
 #~ msgstr "Il file di stampa supera la dimensione massima consentita (1 GB). Semplifica il modello ed elaboralo di nuovo"
