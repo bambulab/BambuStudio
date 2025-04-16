@@ -43,7 +43,7 @@ struct SupportParameters {
                 // support_filament==0
                 bool differnt_support_interface_filament = object_config.support_interface_filament != 0 &&
                                                            object_config.support_interface_filament != object_config.support_filament;
-                this->num_top_base_interface_layers    = differnt_support_interface_filament ? 2 : 0;
+                this->num_top_base_interface_layers    = differnt_support_interface_filament && num_top_interface_layers > 0 ? 2 : 0;
                 this->num_bottom_base_interface_layers       = differnt_support_interface_filament ? 1 : 0;
 	        }
 	    }
@@ -235,7 +235,7 @@ struct SupportParameters {
     bool                    has_contacts() const { return this->has_top_contacts || this->has_bottom_contacts; }
     bool                    has_interfaces() const { return this->num_top_interface_layers + this->num_bottom_interface_layers > 0; }
     bool                    has_base_interfaces() const { return this->num_top_base_interface_layers + this->num_bottom_base_interface_layers > 0; }
-    size_t                  num_top_interface_layers_only() const { return this->num_top_interface_layers - this->num_top_base_interface_layers; }
+    size_t                  num_top_interface_layers_only() const { return std::max(0, int(this->num_top_interface_layers) - int(this->num_top_base_interface_layers)); }
     size_t                  num_bottom_interface_layers_only() const { return this->num_bottom_interface_layers - this->num_bottom_base_interface_layers; }
     Flow 		first_layer_flow;
     Flow 		support_material_flow;
