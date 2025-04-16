@@ -1483,7 +1483,7 @@ msgid "Wipe options"
 msgstr "Opzioni pulitura"
 
 msgid "Bed adhension"
-msgstr "Adesione al piano"
+msgstr "Adesione al piatto"
 
 msgid "Advanced"
 msgstr "Avanzate"
@@ -1811,10 +1811,10 @@ msgid "Lock"
 msgstr "Blocca"
 
 msgid "Fill bed with copies"
-msgstr "Riempi il piano di copie"
+msgstr "Riempi il piatto di copie"
 
 msgid "Fill the remaining area of bed with copies of the selected object"
-msgstr "Riempi l'area rimanente del piano con copie dell'oggetto selezionato"
+msgstr "Riempi l'area rimanente del piatto con copie dell'oggetto selezionato"
 
 msgid "Edit Plate Name"
 msgstr "Modifica Nome Piatto"
@@ -2704,19 +2704,19 @@ msgid "Nozzle Diameter"
 msgstr "Diametro Nozzle"
 
 msgid "Bed Type"
-msgstr "Tipo di piano"
+msgstr "Tipo di piatto"
 
 msgid "Nozzle temperature"
 msgstr "Temperatura Nozzle"
 
 msgid "Bed Temperature"
-msgstr "Temperatura piano"
+msgstr "Temperatura piatto"
 
 msgid "Max volumetric speed"
 msgstr "Massima velocità volumetrica"
 
 msgid "Bed temperature"
-msgstr "Temperatura piano"
+msgstr "Temperatura piatto"
 
 msgid "Start calibration"
 msgstr "Avvia calibrazione"
@@ -3251,10 +3251,10 @@ msgid "Printing"
 msgstr "Stampa"
 
 msgid "Auto bed leveling"
-msgstr "Livellamento automatico piano"
+msgstr "Livellamento automatico piatto"
 
 msgid "Heatbed preheating"
-msgstr "Preriscaldamento del piano"
+msgstr "Preriscaldamento del piatto"
 
 msgid "Vibration compensation"
 msgstr "Compensazione vibrazioni"
@@ -3311,7 +3311,7 @@ msgid "Paused due to nozzle temperature malfunction"
 msgstr "Pausa per malfunzionamento temperatura nozzle"
 
 msgid "Paused due to heat bed temperature malfunction"
-msgstr "Pausa per malfunzionamento della temperatura piano termico"
+msgstr "Pausa per malfunzionamento della temperatura piatto termico"
 
 msgid "Filament unloading"
 msgstr "Scarico filamento"
@@ -3368,7 +3368,7 @@ msgid "Nozzle offset calibration"
 msgstr "Calibrazione offset nozzle"
 
 msgid "high temperature auto bed levelling"
-msgstr "livellamento automatico del piano ad alta temperatura"
+msgstr "livellamento automatico del piatto ad alta temperatura"
 
 msgid "Auto Check: Quick Release Lever"
 msgstr "Controllo automatico: leva di sgancio rapido"
@@ -3398,7 +3398,7 @@ msgid "Heating chamber"
 msgstr "Camera riscaldata"
 
 msgid "Heated bed cooling"
-msgstr "Raffreddamento del piano"
+msgstr "Raffreddamento del piatto"
 
 msgid "Printing calibration lines"
 msgstr "Stampa linee di calibrazione"
@@ -4074,10 +4074,10 @@ msgid "Micro lidar calibration"
 msgstr "Calibrazione micro lidar"
 
 msgid "Bed leveling"
-msgstr "Livellamento del piano"
+msgstr "Livellamento del piatto"
 
 msgid "High-temperature Heatbed Calibration"
-msgstr "Calibrazione del piano ad alta temperatura"
+msgstr "Calibrazione del piatto ad alta temperatura"
 
 msgid "Calibration program"
 msgstr "Programma calibrazione"
@@ -4443,7 +4443,7 @@ msgid "Show 3D Navigator"
 msgstr "Mostra Navigatore 3D"
 
 msgid "Show 3D navigator in Prepare and Preview scene"
-msgstr ""
+msgstr "Mostra il navigatore 3D nella fase Prepara e Anteprima"
 
 msgid "Show object labels in 3D scene"
 msgstr "Mostra etichette oggetti nella scena 3D"
@@ -4613,8 +4613,8 @@ msgstr "Scegliere una directory"
 #, c-format, boost-format
 msgid "There is %d config exported. (Only non-system configs)"
 msgid_plural "There are %d configs exported. (Only non-system configs)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "è stata esportata %d configurazione. (Solo configurazioni non di sistema)"
+msgstr[1] "Sono state esportate %d configurazioni. (Solo configurazioni non di sistema)"
 
 msgid "Export result"
 msgstr "Risultato Esportazione"
@@ -4625,8 +4625,8 @@ msgstr "Seleziona profilo da caricare:"
 #, c-format, boost-format
 msgid "There is %d config imported. (Only non-system and compatible configs)"
 msgid_plural "There are %d configs imported. (Only non-system and compatible configs)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "è stata importata %d configurazione. (Solo configurazioni non di sistema e compatibili)"
+msgstr[1] "Sono state importate %d configurazioni. (Solo configurazioni non di sistema e compatibili)"
 
 msgid "Import result"
 msgstr "Risultato dell'importazione"
@@ -4690,7 +4690,7 @@ msgid "Please enter the IP of printer to connect."
 msgstr "Inserisci l'IP stampante da connettere."
 
 msgid "Initializing..."
-msgstr "Inizializzazione ..."
+msgstr "Inizializzazione..."
 
 msgid "Connection Failed. Please check the network and try again"
 msgstr "Connessione fallita. Controlla la rete e riprova"
@@ -4827,8 +4827,8 @@ msgstr "La ricerca di file nella memoria non è supportata in modalità solo LAN
 #, c-format, boost-format
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
 msgid_plural "You are going to delete %u files from printer. Are you sure to continue?"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Si sta per eliminare il file %u dalla stampante. Siete sicuri di voler continuare?"
+msgstr[1] "Si sta per eliminare i file %u dalla stampante. Siete sicuri di voler continuare?"
 
 msgid "Delete files"
 msgstr "Elimina i file"
@@ -5108,7 +5108,7 @@ msgid "Lamp"
 msgstr "luce"
 
 msgid "Bed"
-msgstr "Piano"
+msgstr "Piatto"
 
 msgid "Debug Info"
 msgstr "Informazioni di debug"
@@ -5156,7 +5156,7 @@ msgid "Are you sure you want to trigger auto homing?"
 msgstr "Sei sicuro di voler attivare l'auto homing?"
 
 msgid "Homing"
-msgstr ""
+msgstr "Homing"
 
 msgid "Please heat the nozzle to above 170 degree before loading or unloading filament."
 msgstr "Riscalda il nozzle oltre i 170 gradi prima di caricare o scaricare il filamento."
@@ -5461,20 +5461,20 @@ msgstr "Rimuovi l'hardware in modo sicuro."
 #, c-format, boost-format
 msgid "%1$d Object has custom support."
 msgid_plural "%1$d Objects have custom support."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "L'oggetto %1$d ha un supporto personalizzato"
+msgstr[1] "Gli oggetti %1$d hanno un supporto personalizzato"
 
 #, c-format, boost-format
 msgid "%1$d Object has color painting."
 msgid_plural "%1$d Objects have color painting."
-msgstr[0] "%1$d L'oggetto ha una pittura a colori."
-msgstr[1] "%1$d Gli oggetti hanno una pittura a colori."
+msgstr[0] "L'oggetto %1$d ha una pittura a colori."
+msgstr[1] "Gli oggetti %1$d hanno una pittura a colori."
 
 #, c-format, boost-format
 msgid "%1$d object was loaded as a part of cut object."
 msgid_plural "%1$d objects were loaded as parts of cut object"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "L'oggetto %1$d è stato caricato come parte di un oggetto tagliato"
+msgstr[1] "Gli oggetti %1$d sono stati caricato come parte di un oggetto tagliato."
 
 msgid "ERROR"
 msgstr "ERRORE"
@@ -5571,7 +5571,7 @@ msgid "Build Plate Detection"
 msgstr "Rilevamento Piatto"
 
 msgid "Identifies the type and position of the build plate on the heatbed. Pausing printing if a mismatch is detected."
-msgstr "Identifica il tipo e la posizione del piatto sul piano, mettendo in pausa la stampa in caso di incompatibilità rilevata."
+msgstr "Identifica il tipo e la posizione del piatto, mettendo in pausa la stampa in caso di incompatibilità rilevata."
 
 msgid "Enable AI monitoring of printing"
 msgstr "Abilita monitoraggio AI della stampa"
@@ -5625,7 +5625,7 @@ msgid "Nozzle Type"
 msgstr "Tipo Nozzle"
 
 msgid "Please change the nozzle settings on the printer."
-msgstr ""
+msgstr "Modificare le impostazioni del nozzle sulla stampante."
 
 msgid "Nozzle Flow"
 msgstr "Flusso nozzle"
@@ -5694,10 +5694,10 @@ msgid "Set the number of AMS installed on the nozzle."
 msgstr "Imposta il numero di AMS installati sul nozzle."
 
 msgid "AMS(4 slots)"
-msgstr ""
+msgstr "AMS(4 slots)"
 
 msgid "AMS(1 slot)"
-msgstr ""
+msgstr "AMS(1 slots)"
 
 msgid "Not installed"
 msgstr "Non installato"
@@ -6183,7 +6183,7 @@ msgid "The nozzle type is not set. Please set the nozzle and try again."
 msgstr "Il tipo di nozzle non è impostato. Per favore, imposta il nozzle e riprova."
 
 msgid "The nozzle type is not set. Please check."
-msgstr ""
+msgstr "Il tipo di nozzle non è impostato. Controllare."
 
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr "Impossibile eseguire operazioni booleane sulle mesh del modello. È possibile correggere le mesh e riprovare."
@@ -6315,7 +6315,7 @@ msgstr "Per riparare il modello, per favore utilizza uno strumento di terze part
 
 #, c-format, boost-format
 msgid "Plate% d: %s is not suggested to be used to print filament %s(%s). If you still want to do this printing, please set this filament's bed temperature to non zero."
-msgstr "Piatto% d: %s non consigliato per l’uso del filamento %s(%s). Se vuoi continuare, imposta la temperatura del piano diversa da zero."
+msgstr "Piatto% d: %s non consigliato per l’uso del filamento %s(%s). Se vuoi continuare, imposta la temperatura del piatto diversa da zero."
 
 msgid "Currently, the object configuration form cannot be used with a multiple-extruder printer."
 msgstr "Attualmente, il modulo di configurazione dell'oggetto non può essere utilizzata con una stampante a estrusore multiplo."
@@ -6379,7 +6379,7 @@ msgid "Enable LOD"
 msgstr "Abilita LOD"
 
 msgid "Bed Temperature Difference Warning"
-msgstr "Avviso Differenza Temperatura Piano"
+msgstr "Avviso Differenza Temperatura Piatto"
 
 msgid ""
 "Using filaments with significantly different temperatures may cause:\n"
@@ -6952,7 +6952,7 @@ msgid "Bamabu Textured PEI Plate"
 msgstr "Bambu Textured PEI Plate"
 
 msgid "Bambu Cool Plate SuperTack"
-msgstr ""
+msgstr "Bambu Cool Plate SuperTack"
 
 msgid "Send print job"
 msgstr "Invia lavoro di stampa"
@@ -6973,13 +6973,13 @@ msgid "Click here if you can't connect to the printer"
 msgstr "Clicca qui se non riesci a connetterti alla stampante"
 
 msgid "Auto Bed Leveling"
-msgstr ""
+msgstr "Livellamento automatico del piatto"
 
 msgid ""
 "This checks the flatness of heatbed. Leveling makes extruded height uniform.\n"
 "*Automatic mode: Run a leveling check(about 10 seconds). Skip if surface is fine."
 msgstr ""
-"Questo controlla la planarità del piano. Il livellamento rende l'altezza estrusa uniforme.  \n"
+"Questo controlla la planarità del piatto. Il livellamento rende l'altezza estrusa uniforme.  \n"
 "*Modalità automatica: Esegui un controllo del livellamento (circa 10 secondi). Salta se la superficie è ottima."
 
 msgid "Flow Dynamics Calibration"
@@ -6993,7 +6993,7 @@ msgstr ""
 "*Modalità automatica: Salta se il filamento è stato calibrato di recente."
 
 msgid "Nozzle Offset Calibration"
-msgstr "Calibrazione offset nozzle"
+msgstr "Calibrazione compensazione nozzle"
 
 msgid ""
 "Calibrate nozzle offsets to enhance print quality.\n"
@@ -7121,7 +7121,7 @@ msgid "Please click the confirm button if you still want to proceed with printin
 msgstr "Fai clic sul pulsante di conferma se desideri continuare con la stampa."
 
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
-msgstr "Questo controlla la planarità del piano. Il livellamento rende uniforme l'altezza dell'estruso."
+msgstr "Questo controlla la planarità del piatto. Il livellamento rende uniforme l'altezza dell'estruso."
 
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Questo processo determina i valori del flusso dinamico per migliorare la qualità complessiva di stampa."
@@ -7161,16 +7161,16 @@ msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle da
 msgstr "La stampa di materiale ad alta temperatura (%s) con %s nozzle può causare danni al nozzle, Controlla il tipo di nozzle"
 
 msgid "Cool"
-msgstr ""
+msgstr "Cool"
 
 msgid "Engineering"
-msgstr ""
+msgstr "Engineering"
 
 msgid "High Temp"
 msgstr "Alta temperatura"
 
 msgid "Cool(Supertack)"
-msgstr ""
+msgstr "Cool(Supertack)"
 
 msgid "Send to Printer storage"
 msgstr "Invia alla memoria stampante"
@@ -7336,7 +7336,7 @@ msgid "Prime tower is required for smooth timeplase. There may be flaws on the m
 msgstr "È necessaria una Torre di Spurgo per la modalità timelapse fluida. Potrebbero esserci dei difetti sul modello senza la Torre di Spurgo. Sei sicuro di voler disabilitare la Torre di Spurgo?"
 
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
-msgstr ""
+msgstr "Abilitando sia la precisione sull'asse Z che la torre di spurgo, le dimensioni della torre potrebbero aumentare. Volete ancora abilitarle?"
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "È necessaria una Torre di Spurgo per la modalità timelapse fluida. Potrebbero esserci dei difetti sul modello senza la Torre di Spurgo. Vuoi abilitare la Torre di Spurgo?"
@@ -7506,31 +7506,31 @@ msgid "Print temperature"
 msgstr "Temperatura stampa"
 
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
-msgstr "Temperatura​•​del​•​piano​•​quando​•​è​•​installato il cool plate.​•​Il​•​valore​•​0​•​indica​•​che​•​il​•​filamento​•​non​•​supporta​•​la​•​stampa​•​su​•​Bambu​•​Cool​•​Plate​•​(SuperTack)."
+msgstr "Temperatura ​del​ piatto ​quando​ è installato il cool plate.​ Il​ ​valore​ ​0​ ​indica​ ​che​ ​il​ ​filamento​ non​ ​supporta​ la​ ​stampa​ ​su​ ​Bambu​ ​Cool​ ​Plate​ (SuperTack)."
 
 msgid "Cool Plate"
 msgstr "Cool Plate"
 
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate"
-msgstr "Temperatura del piano quando è installato il piatto Cool Plate. Il valore 0 significa che il filamento non supporta la stampa su piatto Cool Plate."
+msgstr "Temperatura del piatto quando è installato il Cool Plate. Il valore 0 significa che il filamento non supporta la stampa su piatto Cool Plate."
 
 msgid "Engineering Plate"
 msgstr "Engineering Plate"
 
 msgid "Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate"
-msgstr "Temperatura del piano quando è installato il piatto Engineering. Il valore 0 significa che il filamento non supporta la stampa su piatto Engineering."
+msgstr "Temperatura del piatto quando è installato il piatto Engineering. Il valore 0 significa che il filamento non supporta la stampa su piatto Engineering."
 
 msgid "Smooth PEI Plate / High Temp Plate"
 msgstr "Smooth PEI Plate / High Temp Plate"
 
 msgid "Bed temperature when Smooth PEI Plate/High temperature plate is installed. Value 0 means the filament does not support to print on the Smooth PEI Plate/High Temp Plate"
-msgstr "Temperatura del piano quando è usata la piastra Smooth PEI/High Temperature. Il valore 0 significa che il filamento non supporta la stampa sulla piastra Smooth PEI/High Temperature"
+msgstr "Temperatura del piatto quando è usata la piastra Smooth PEI/High Temperature. Il valore 0 significa che il filamento non supporta la stampa sulla piastra Smooth PEI/High Temperature"
 
 msgid "Textured PEI Plate"
 msgstr "Textured PEI Plate"
 
 msgid "Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate"
-msgstr "Temperatura del piano quando è installato il piatto Textured PEI. Il valore 0 significa che il filamento non è supportato sul piatto Textured PEI"
+msgstr "Temperatura del piatto quando è installato il piatto Textured PEI. Il valore 0 significa che il filamento non è supportato sul piatto Textured PEI"
 
 msgid "Nozzle temperature when printing"
 msgstr "Temperatura del nozzle durante la stampa"
@@ -7539,7 +7539,7 @@ msgid "Volumetric speed limitation"
 msgstr "Limitazione velocità volumetrica"
 
 msgid "Filament scarf seam settings"
-msgstr "Impostazioni​•​giunture​•​scarf​•del​•​filamento"
+msgstr "Impostazioni​ ​giunture​ scarf​ del​ filamento"
 
 msgid "Cooling for specific layer"
 msgstr "Raffreddamento per specifico layer"
@@ -7667,8 +7667,8 @@ msgstr "I preset ereditati da altri preset non possono essere eliminati!"
 
 msgid "The following presets inherit this preset."
 msgid_plural "The following preset inherits this preset."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Il seguente preset eredita questo preset."
+msgstr[1] "I seguenti preset ereditano questo preset."
 
 #. TRN  Remove/Delete
 #, boost-format
@@ -7995,7 +7995,7 @@ msgstr ""
 " per continuare o regolarlo manualmente."
 
 msgid "—> "
-msgstr ""
+msgstr "-> "
 
 msgid ""
 "Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
@@ -8046,7 +8046,7 @@ msgid ""
 "Check heatbed flatness. Leveling makes extruded height uniform.\n"
 "*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
 msgstr ""
-"Verifica la planarità del piano. Il livellamento rende uniforme l'altezza dell'estruso.\n"
+"Verifica la planarità del piatto. Il livellamento rende uniforme l'altezza dell'estruso.\n"
 "*Modalità automatica: primo layer (circa 10 secondi). Salta se la superficie è a posto."
 
 msgid ""
@@ -8126,7 +8126,7 @@ msgstr "Colori e tipo di filamento sincronizzati correttamente dalla stampante."
 
 msgctxt "FinishSyncAms"
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 msgstr "Studio ricalcola i volumi di spurgo ogni volta che il colore o il filamento cambia. Puoi disattivare il calcolo automatico in Bambu Studio > Preferenze"
@@ -8296,7 +8296,7 @@ msgid "Select all objects"
 msgstr "Seleziona tutti gli oggetti"
 
 msgid "Shift+D"
-msgstr ""
+msgstr "Shift+D"
 
 msgid "Gizmo move"
 msgstr "Muovi Gizmo"
@@ -8311,7 +8311,7 @@ msgid "Gizmo cut"
 msgstr "Taglia Gizmo"
 
 msgid "Gizmo Place face on bed"
-msgstr "Gizmo Posiziona faccia sul piano"
+msgstr "Gizmo Posiziona faccia sul piatto"
 
 msgid "Gizmo SLA support points"
 msgstr "Punti di supporto SLA Gizmo"
@@ -8320,7 +8320,7 @@ msgid "Gizmo FDM paint-on seam"
 msgstr "Gizmo FDM pittura giunzione"
 
 msgid "Plater"
-msgstr "Piano"
+msgstr "Piastra"
 
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Supporto/Pittura a colori: regolare il raggio della penna"
@@ -8448,7 +8448,7 @@ msgid "Problem Solved and Resume"
 msgstr "Problema risolto, riprendi"
 
 msgid "Stop Buzzer"
-msgstr ""
+msgstr "Avviso di Stop"
 
 msgid "Confirm and Update Nozzle"
 msgstr "Conferma e aggiorna Nozzle"
@@ -8528,10 +8528,10 @@ msgid "Air Pump"
 msgstr "Compressore Aria"
 
 msgid "Laser 10W"
-msgstr ""
+msgstr "Laser 10W"
 
 msgid "Laser 40W"
-msgstr ""
+msgstr "Laser 40W"
 
 msgid "Cutting Module"
 msgstr "Modulo Taglio"
@@ -8676,7 +8676,7 @@ msgid " can not be placed in the "
 msgstr " non può essere inserito nel "
 
 msgid " nozzle"
-msgstr ""
+msgstr " nozzle"
 
 msgid "TPU is incompatible with AMS and must be printed seperately in the "
 msgstr "Il TPU è incompatibile con AMS e deve essere stampato separatamente nel "
@@ -8849,16 +8849,16 @@ msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " è troppo vicino a un'area di esclusione e si verificheranno collisioni.\n"
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
-msgstr ""
+msgstr "La stampa di filamenti ad alta e bassa temperatura insieme può causare l'intasamento dell'ugello o danni alla stampante."
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
-msgstr ""
+msgstr "La stampa di filamenti ad alta e bassa temperatura insieme può causare l'intasamento dell'ugello o danni alla stampante. Se si desidera comunque stampare, è possibile attivare l'opzione nelle Preferenze."
 
 msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
-msgstr ""
+msgstr "La stampa di filamenti ad alta e media temperatura insieme può causare l'intasamento dell'ugello o danni alla stampante."
 
 msgid "Printing mid-temp and low-temp filaments together may cause nozzle clogging or printer damage."
-msgstr ""
+msgstr "La stampa di filamenti a temperatura media e bassa insieme può causare l'intasamento dell'ugello o danni alla stampante."
 
 msgid "No extrusions under current settings."
 msgstr "Nessuna estrusione con le impostazioni attuali."
@@ -8946,22 +8946,22 @@ msgid "Extruder printable area"
 msgstr "Area stampabile estrusore"
 
 msgid "Bed exclude area"
-msgstr "Area piano esclusa"
+msgstr "Area piatto esclusa"
 
 msgid "Unprintable area in XY plane. For example, X1 Series printers use the front left corner to cut filament during filament change. The area is expressed as polygon by points in following format: \"XxY, XxY, ...\""
 msgstr "Area non stampabile nel piano XY. Ad esempio, le stampanti della serie X1 utilizzano l'angolo anteriore sinistro per tagliare il filamento durante il cambio filamento. L'area è espressa come poligono di punti nel seguente formato: \"XxY, XxY, ...\""
 
 msgid "Bed custom texture"
-msgstr "Texture piano personalizzata"
+msgstr "Texture piatto personalizzata"
 
 msgid "Bed custom model"
-msgstr "Modello piano personalizzato"
+msgstr "Modello piatto personalizzato"
 
 msgid "Elephant foot compensation"
 msgstr "Compensazione zampa d'elefante"
 
 msgid "Shrink the initial layer on build plate to compensate for elephant foot effect"
-msgstr "Questo riduce le dimensioni del primo layer sul piano per compensare l'effetto elephant foot."
+msgstr "Questo riduce le dimensioni del primo layer sul piano per compensare l'effetto impronta di elefante."
 
 msgid "Slicing height for each layer. Smaller layer height means more accurate and more printing time"
 msgstr "Questa è l'altezza di ogni layer. Altezze di layer minori offrono maggiore precisione ma aumentano il tempo di stampa."
@@ -9060,37 +9060,37 @@ msgid "Other layers"
 msgstr "Altri layer"
 
 msgid "Bed temperature for layers except the initial one. Value 0 means the filament does not support to print on the Cool Plate"
-msgstr "Questa è la temperatura del piano per i layer (tranne il primo). Un valore pari a 0 indica che il filamento non supporta la stampa sul Cool Plate."
+msgstr "Questa è la temperatura del piatto per i layer (tranne il primo). Un valore pari a 0 indica che il filamento non supporta la stampa sul Cool Plate."
 
 msgid "Bed temperature for layers except the initial one. Value 0 means the filament does not support to print on the Engineering Plate"
-msgstr "Questa è la temperatura del piano per i layer (tranne il primo). Un valore pari a 0 indica che il filamento non supporta la stampa su piatto Engineering."
+msgstr "Questa è la temperatura del piatto per i layer (tranne il primo). Un valore pari a 0 indica che il filamento non supporta la stampa su piatto Engineering."
 
 msgid "Bed temperature for layers except the initial one. Value 0 means the filament does not support to print on the High Temp Plate"
-msgstr "Questa è la temperatura del piano per i layer (tranne il primo). Un valore pari a 0 indica che il filamento non supporta la stampa sul High Temp."
+msgstr "Questa è la temperatura del piatto per i layer (tranne il primo). Un valore pari a 0 indica che il filamento non supporta la stampa sul High Temp."
 
 msgid "Bed temperature for layers except the initial one. Value 0 means the filament does not support to print on the Textured PEI Plate"
-msgstr "Temperatura del piano dopo il primo layer. Il valore 0 significa che il filamento non supporta la stampa su piatto Textured PEI."
+msgstr "Temperatura del piatto dopo il primo layer. Il valore 0 significa che il filamento non supporta la stampa su piatto Textured PEI."
 
 msgid "Initial layer"
 msgstr "Primo layer"
 
 msgid "Initial layer bed temperature"
-msgstr "Temperatura piano per il primo layer"
+msgstr "Temperatura piatto per il primo layer"
 
 msgid "Bed temperature of the initial layer. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
-msgstr "Temperatura piano del layer iniziale. Un valore pari a 0 indica che il filamento non supporta la stampa su Bambu Cool Plate SuperTack."
+msgstr "Temperatura piatto del layer iniziale. Un valore pari a 0 indica che il filamento non supporta la stampa su Bambu Cool Plate SuperTack."
 
 msgid "Bed temperature of the initial layer. Value 0 means the filament does not support to print on the Cool Plate"
 msgstr "Questa è la temperatura del piatto del primo layer. Un valore pari a 0 indica che il filamento non supporta la stampa sul piatto Cool Plate."
 
 msgid "Bed temperature of the initial layer. Value 0 means the filament does not support to print on the Engineering Plate"
-msgstr "Temperatura del piano quando è installato il piatto Cool Plate. Il valore 0 significa che il filamento non supporta la stampa su piatto Engineering."
+msgstr "Temperatura del piatto quando è installato il piatto Cool Plate. Il valore 0 significa che il filamento non supporta la stampa su piatto Engineering."
 
 msgid "Bed temperature of the initial layer. Value 0 means the filament does not support to print on the High Temp Plate"
-msgstr "Questa è la temperatura del piano del primo layer. Un valore pari a 0 indica che il filamento non supporta la stampa sul piatto High Temp."
+msgstr "Questa è la temperatura del piatto del primo layer. Un valore pari a 0 indica che il filamento non supporta la stampa sul piatto High Temp."
 
 msgid "Bed temperature of the initial layer. Value 0 means the filament does not support to print on the Textured PEI Plate"
-msgstr "Temperatura piano del layer iniziale. Il valore 0 indica che il filamento non supporta la stampa sul piatto Textured PEI"
+msgstr "Temperatura piatto del layer iniziale. Il valore 0 indica che il filamento non supporta la stampa sul piatto Textured PEI"
 
 msgid "Bed types supported by the printer"
 msgstr "Tipi di piatti supportati dalla stampante"
@@ -9219,7 +9219,7 @@ msgstr "mm/s"
 
 #, c-format, boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
-msgstr ""
+msgstr "Velocità della parete a sbalzo al 100% che ha una sovrapposizione pari a 0 con lo strato inferiore."
 
 msgid "Speed of bridge and completely overhang wall"
 msgstr "Velocità del ponte e parete completamente a sbalzo"
@@ -9630,10 +9630,10 @@ msgid "Time to switch extruder. For statistics only"
 msgstr "È ora di cambiare estrusore. Solo per statistiche"
 
 msgid "Bed temperature type"
-msgstr "Tipo di temperatura del piano"
+msgstr "Tipo di temperatura del piatto"
 
 msgid "This option determines how the bed temperature is set during slicing: based on the temperature of the first filament or the highest temperature of the printed filaments."
-msgstr "Questa opzione determina come viene impostata la temperatura del piano durante lo slicing: in base alla temperatura del primo filamento o alla temperatura più alta tra i filamenti stampati."
+msgstr "Questa opzione determina come viene impostata la temperatura del piatto durante lo slicing: in base alla temperatura del primo filamento o alla temperatura più alta tra i filamenti stampati."
 
 msgid "By First filament"
 msgstr "Dal Primo Filamento"
@@ -9698,7 +9698,7 @@ msgid "This amount can be specified in millimeters or as a percentage of the cur
 msgstr "Questa quantità può essere specificata in millimetri o come percentuale dell'altezza del layer corrente."
 
 msgid "mm/%"
-msgstr ""
+msgstr "mm/%"
 
 msgid "Scarf slope gap"
 msgstr "Pendenza scarf"
@@ -9990,7 +9990,7 @@ msgid "Best object position"
 msgstr "Migliore posizione dell'oggetto"
 
 msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
-msgstr "Migliore disposizione automatica nell'intervallo [0,1] w.r.t. forma piano."
+msgstr "Migliore disposizione automatica nell'intervallo [0,1] w.r.t. forma piatto."
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "Abilitare questa opzione se la stampante dispone di una ventola di raffreddamento ausiliaria per gli oggetti"
@@ -10491,7 +10491,7 @@ msgid "Spiral"
 msgstr "Spirale"
 
 msgid "Direct Drive"
-msgstr ""
+msgstr "Trasmissione diretta"
 
 msgid "Bowden"
 msgstr "Bowden"
@@ -11130,7 +11130,7 @@ msgid "Rib wall"
 msgstr "Parete di rinforzo"
 
 msgid "The wall of prime tower will add four ribs and make its cross-section as close to a square as possible, so the width will be fixed."
-msgstr ""
+msgstr "La parete della torre di spurgo aggiungerà quattro nervature e renderà la sua sezione trasversale il più possibile simile a un quadrato, quindi la larghezza sarà fissa."
 
 msgid "Fillet wall"
 msgstr "Smusso parete"
@@ -11392,7 +11392,7 @@ msgid "Flow Dynamics"
 msgstr "Flusso Dinamico"
 
 msgid "Flow Rate"
-msgstr "Flow Rate"
+msgstr "Portata del flusso"
 
 msgid "Max Volumetric Speed"
 msgstr "Massima velocità volumetrica"
@@ -11703,7 +11703,7 @@ msgid ""
 "- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"
 msgstr ""
 "Suggerimenti per calibrazione materiale:\n"
-"- Materiali che possono condividere la stessa temperatura del piano\n"
+"- Materiali che possono condividere la stessa temperatura del piatto\n"
 "- Diverse marche e famiglie di filamenti (marca = Bambu, famiglia = base, opaca, ecc.)"
 
 msgid "Pattern"
@@ -11782,7 +11782,7 @@ msgid "To Volumetric Speed"
 msgstr "Alla velocità volumetrica"
 
 msgid "Are you sure to stop printing?"
-msgstr ""
+msgstr "Sei sicuro di voler interrompere la stampa?"
 
 msgid "Flow Dynamics Calibration Result"
 msgstr "Risultato Calibrazione Flusso Dinamico"
@@ -12405,7 +12405,7 @@ msgid ""
 "Please note that nozzle temperature, hot bed temperature, and maximum volumetric speed has a significant impact on printing quality. Please set them carefully."
 msgstr ""
 "Se necessario, vai alle impostazioni filamento per modificare i preset.\n"
-"Tieni presente che la temperatura del nozzle, la temperatura del piano e la massima velocità volumetrica hanno ciascuna un impatto significativo sulla qualità di stampa. Impostali con attenzione."
+"Tieni presente che la temperatura del nozzle, la temperatura del piatto e la massima velocità volumetrica hanno ciascuna un impatto significativo sulla qualità di stampa. Impostali con attenzione."
 
 msgid ""
 "Studio has detected that your user presets synchronization function is not enabled, which may result in unsuccessful Filament settings on the Device page. \n"
@@ -12518,8 +12518,8 @@ msgstr "I preset ereditati da altri preset non possono essere eliminati"
 
 msgid "The following presets inherits this preset."
 msgid_plural "The following preset inherits this preset."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Il preset successivo eredita questo preset."
+msgstr[1] "I preset successivi eredita questo preset."
 
 msgid "Delete Preset"
 msgstr "Elimina preset"
@@ -12930,7 +12930,7 @@ msgid "Printing Options"
 msgstr "Opzioni di stampa"
 
 msgid "Bed Leveling"
-msgstr "Livellamento piano"
+msgstr "Livellamento piatto"
 
 msgid "Send Options"
 msgstr "Opzioni d'invio"
@@ -13058,7 +13058,7 @@ msgid "Global settings"
 msgstr "Impostazioni globali"
 
 msgid "Video tutorial"
-msgstr ""
+msgstr "Video tutorial"
 
 msgid "Learn more"
 msgstr "Ulteriori informazioni"
@@ -13073,7 +13073,7 @@ msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "Suggerimenti: Puoi trascinare i filamenti per riassegnarli a diversi nozzle."
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
-msgstr "Il metodo di raggruppamento del filamento per il piano attuale è determinato dall'opzione a discesa nel pulsante del piano di slicing."
+msgstr "Il metodo di raggruppamento del filamento per il piatto attuale è determinato dall'opzione a discesa nel pulsante del piatto di slicing."
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -13244,7 +13244,7 @@ msgid ""
 "Did you know that when printing models have a small contact interface with the printing surface, it's recommended to use a brim?"
 msgstr ""
 "Brim per una migliore adesione\n"
-"Sapevi che quando i modelli hanno una piccola interfaccia di contatto con la superficie, si consiglia di utilizzare il brim?"
+"Sapevi che quando i modelli hanno una piccola superfice di contatto con la superficie, si consiglia di utilizzare il brim?"
 
 #: resources/data/hints.ini: [hint:Set parameters for multiple objects]
 msgid ""
@@ -13260,7 +13260,7 @@ msgid ""
 "Did you know that you can stack objects as a whole one?"
 msgstr ""
 "Impila oggetti\n"
-"Sapevi che puoi impilare oggetti interi?"
+"Sapevate che è possibile impilare gli oggetti come se fossero un tutt'uno?"
 
 #: resources/data/hints.ini: [hint:Flush into support/objects/infill]
 msgid ""
@@ -13293,7 +13293,7 @@ msgid ""
 "Did you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping."
 msgstr ""
 "Evita deformazioni\n"
-"Sapevi che quando si stampano materiali soggetti a deformazioni, come l'ABS, aumentare adeguatamente la temperatura del piano può ridurre la probabilità di deformazione."
+"Sapevi che quando si stampano materiali soggetti a deformazioni, come l'ABS, aumentare adeguatamente la temperatura del piatto può ridurre la probabilità di deformazione."
 
 #~ msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
 #~ msgstr "Preferisci utilizzo GPU ad alte prestazioni (effettivo dopo il riavvio manuale di Bambu Studio)."
@@ -13999,7 +13999,7 @@ msgstr ""
 #~ msgstr "Associa i file a Bambu Studio"
 
 #~ msgid "Auto Bed Type"
-#~ msgstr "Tipo piano automatico"
+#~ msgstr "Tipo piatto automatico"
 
 #~ msgid "Auto arrange"
 #~ msgstr "Disposizione automaticaarrange"
@@ -14037,13 +14037,13 @@ msgstr ""
 #~ msgstr "Il piano esclude l'area che non può essere utilizzata come area stampabile X-Y. Ad esempio, l'area in basso a sinistra utilizzata per tagliare il filamento nella X1 quando si stampa multicolore con un AMS. L'area è espressa come poligono da punti nel seguente formato: «xxY, xxY,...»"
 
 #~ msgid "Bed temperature difference"
-#~ msgstr "Differenza di temperatura del piano"
+#~ msgstr "Differenza di temperatura del piatto"
 
 #~ msgid ""
 #~ "Bed temperature is higher than vitrification temperature of this filament.\n"
 #~ "This may cause nozzle blocked and printing failure"
 #~ msgstr ""
-#~ "La temperatura del piano è superiore alla temperatura di vetrificazione di questo filamento.\n"
+#~ "La temperatura del piatto è superiore alla temperatura di vetrificazione di questo filamento.\n"
 #~ "Ciò può causare un blocco del nozzle o un errore di stampa"
 
 #~ msgid ""
@@ -14051,19 +14051,19 @@ msgstr ""
 #~ "This may cause nozzle blocked and printing failure\n"
 #~ "Please keep the printer open during the printing process to ensure air circulation or reduce the temperature of the hot bed"
 #~ msgstr ""
-#~ "La temperatura del piano è superiore alla temperatura di vetrificazione di questo filamento.\n"
+#~ "La temperatura del piatto è superiore alla temperatura di vetrificazione di questo filamento.\n"
 #~ "Ciò può causare il blocco del nozzle e il fallimento della stampa.\n"
-#~ "Si prega di tenere la stampante aperta durante il processo di stampa per garantire la circolazione dell'aria o ridurre la temperatura del piano."
+#~ "Si prega di tenere la stampante aperta durante il processo di stampa per garantire la circolazione dell'aria o ridurre la temperatura del piatto."
 
 #~ msgid ""
 #~ "Bed temperature of other layer is lower than bed temperature of initial layer for more than %d degree centigrade.\n"
 #~ "This may cause model broken free from build plate during printing"
 #~ msgstr ""
-#~ "La temperatura del piano degli altri layer è inferiore alla temperatura del piano del primo layer di oltre %d gradi centigradi.\n"
+#~ "La temperatura del piatto degli altri layer è inferiore alla temperatura del piatto del primo layer di oltre %d gradi centigradi.\n"
 #~ "Ciò può far sì che i modelli si stacchino dal piatto durante la stampa."
 
 #~ msgid "Bed temperature when high temperature plate is installed. Value 0 means the filament does not support to print on the High Temp Plate"
-#~ msgstr "Temperatura del piano quando è installato il piatto High Temperature. Il valore 0 significa che il filamento non supporta la stampa su piatto High Temperature."
+#~ msgstr "Temperatura del piatto quando è installato il piatto High Temperature. Il valore 0 significa che il filamento non supporta la stampa su piatto High Temperature."
 
 #~ msgid "Bottom Minimum Shell Thickness"
 #~ msgstr "Spessore minimo del guscio inferiore"
@@ -14234,10 +14234,10 @@ msgstr ""
 #~ msgstr "Visualizzare i triangoli dei modelli"
 
 #~ msgid "Do not recommand bed temperature of other layer to be lower than initial layer for more than this threshold. Too low bed temperature of other layer may cause the model broken free from build plate"
-#~ msgstr "Non è consigliabile che la temperatura del piano degli altri layer sia inferiore a quella del primo layer di oltre questa soglia. Una temperatura del piano troppo bassa può far sì che i modelli si stacchino dalla piatto."
+#~ msgstr "Non è consigliabile che la temperatura del piatto degli altri layer sia inferiore a quella del primo layer di oltre questa soglia. Una temperatura del piatto troppo bassa può far sì che i modelli si stacchino dalla piatto."
 
 #~ msgid "Do not recommend bed temperature of other layer to be lower than initial layer for more than this threshold. Too low bed temperature of other layer may cause the model broken free from build plate"
-#~ msgstr "Non è consigliabile che la temperatura del piano degli altri layer sia inferiore a quella del primo layer di oltre questa soglia. Una temperatura del piano troppo bassa degli altri layer può causare il distacco dell'oggetto dal piatto."
+#~ msgstr "Non è consigliabile che la temperatura del piatto degli altri layer sia inferiore a quella del primo layer di oltre questa soglia. Una temperatura del piatto troppo bassa degli altri layer può causare il distacco dell'oggetto dal piatto."
 
 #~ msgid ""
 #~ "Do you want to synchronize your personal data from Bambu Cloud? \n"
@@ -14494,7 +14494,7 @@ msgstr ""
 #~ msgstr "File inesistente."
 
 #~ msgid "Filling bed "
-#~ msgstr "Riempi piano"
+#~ msgstr "Riempi piatto"
 
 #~ msgid ""
 #~ "Fix Model\n"
@@ -14780,7 +14780,7 @@ msgstr ""
 #~ msgstr "Gestione"
 
 #~ msgid "Material becomes soft at this temperature. Thus the heatbed cannot be hotter than this tempature"
-#~ msgstr "Il materiale diventa morbido a questa temperatura. Pertanto, il piano non può essere più caldo di questa temperatura."
+#~ msgstr "Il materiale diventa morbido a questa temperatura. Pertanto, il piatto non può essere più caldo di questa temperatura."
 
 #~ msgid "Max travel detour distance"
 #~ msgstr "Distanza massima di spostamento"
@@ -14933,7 +14933,7 @@ msgstr ""
 #~ msgstr "Raffreddamento Oggetto"
 
 #~ msgid "Pause(heated bed temperature error)"
-#~ msgstr "Pausa (errore temperatura piano)"
+#~ msgstr "Pausa (errore temperatura piatto)"
 
 #~ msgid "Pause(hotend temperature error)"
 #~ msgstr "Pausa (errore temperatura hotend)"
@@ -14988,7 +14988,7 @@ msgstr ""
 #~ "Please note that nozzle temperature, hot bed temperature, and maximum volumetric speed have a significant impact on printing quality. Please set them carefully."
 #~ msgstr ""
 #~ "Se necessario, vai alle impostazioni del filamento per modificare i preset.\n"
-#~ "Si noti che la temperatura del nozzle, la temperatura del piano e la massima velocità volumetrica hanno un impatto significativo sulla qualità di stampa. Impostali con attenzione."
+#~ "Si noti che la temperatura del nozzle, la temperatura del piatto e la massima velocità volumetrica hanno un impatto significativo sulla qualità di stampa. Impostali con attenzione."
 
 #~ msgid "Please heat the nozzle to above 170 degree before loading filament."
 #~ msgstr "Riscaldare il nozzle a una temperatura superiore a 170 gradi prima di caricare il filamento."
@@ -15391,7 +15391,7 @@ msgstr ""
 #~ msgstr "La distanza media tra i punti casuali introdotti su ogni segmento di linea"
 
 #~ msgid "The bed temperature exceeds filament's vitrification temperature. Please open the front door of printer before printing to avoid nozzle clog."
-#~ msgstr "La temperatura del piano supera la temperatura di vetrificazione del filamento. Aprire lo sportello anteriore della stampante prima di stampare per evitare l'intasamento del nozzle."
+#~ msgstr "La temperatura del piatto supera la temperatura di vetrificazione del filamento. Aprire lo sportello anteriore della stampante prima di stampare per evitare l'intasamento del nozzle."
 
 #~ msgid "The configuration package is changed in previous Config Guide"
 #~ msgstr "Il pacchetto di configurazione è stato modificato nella precedente Guida alla configurazione"
@@ -15531,7 +15531,7 @@ msgstr ""
 #~ msgstr ""
 #~ "Il valore di compensazione del piede di elefante è troppo grande.\n"
 #~ "Se i problemi zampa d'elefante sono significativi, controllare altre impostazioni.\n"
-#~ "Ad esempio, la temperatura del piano potrebbe essere troppo alta.\n"
+#~ "Ad esempio, la temperatura del piatto potrebbe essere troppo alta.\n"
 #~ "\n"
 #~ "Il valore viene riportato a 0."
 
