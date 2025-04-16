@@ -432,8 +432,7 @@ msgid "Cut"
 msgstr "Taglia"
 
 msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
-msgstr ""
-"I bordi non-manifold sono causati dallo strumento di taglio, vuoi sistemarli ora?"
+msgstr "I bordi non-manifold sono causati dallo strumento di taglio, vuoi sistemarli ora?"
 
 msgid "Repairing model object"
 msgstr "Riparazione oggetto"
