@@ -20,10 +20,10 @@ msgid "The filament model is unknown. Still using the previous filament preset."
 msgstr "Modello filamento sconosciuto. Si utilizza ancora il preset filamento precedente."
 
 msgid "The filament model is unknown. Generic filament presets will be used."
-msgstr ""
+msgstr "Il modello di filamento è sconosciuto. Verranno utilizzate preimpostazioni di filamento generiche."
 
 msgid "The filament may not be compatible with the current machine settings. A random filament preset will be used."
-msgstr ""
+msgstr "Il filamento potrebbe non essere compatibile con le impostazioni correnti della macchina. Verrà utilizzata una preimpostazione di filamento casuale."
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Modello filamento sconosciuto. Verrà utilizzato un preset filamento a caso."
@@ -48,11 +48,11 @@ msgstr "Tempo residuo"
 
 #, c-format, boost-format
 msgid "%.1f ℃"
-msgstr ""
+msgstr "%.1f ℃"
 
 #, c-format, boost-format
 msgid "%d : %d"
-msgstr ""
+msgstr "%d : %d"
 
 msgid "Serial:"
 msgstr "Seriale:"
