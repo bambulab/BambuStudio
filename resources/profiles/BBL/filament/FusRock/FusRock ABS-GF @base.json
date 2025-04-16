@@ -3,41 +3,50 @@
     "name": "FusRock ABS-GF @base",
     "inherits": "fdm_filament_abs",
     "from": "system",
-    "filament_id": "GFR50",
+    "filament_id": "GFR00",
+    "setting_id": "GFSR00_FusRock_39",
     "instantiation": "false",
-    "description": "When printing this filament, there's a risk of nozzle clogging, oozing, warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials.",
-    "fan_cooling_layer_time": [
-        "12"
-    ],
-    "fan_max_speed": [
-        "30"
-    ],
-    "filament_cost": [
-        "29.99"
-    ],
-    "filament_density": [
-        "1.08"
-    ],
+    "description": "When printing this filament, there's a risk of nozzle clogging, oozing, warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials（https://wiki.fusrock.com）.",
     "filament_flow_ratio": [
         "0.95"
+    ],
+    "chamber_temperatures" : [
+        "0"
     ],
     "filament_max_volumetric_speed": [
         "12"
     ],
-    "filament_type": [
-        "ABS-GF"
+    "enable_pressure_advance": [
+        "1"
     ],
-    "filament_vendor": [
-        "FusRock"
+    "pressure_advance": [
+        "0.01"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "270"
+    ],
+    "nozzle_temperature": [
+        "270"
+    ],
+    "fan_max_speed": [
+        "20"
+    ],
+    "fan_min_speed": [
+        "20"
+    ],
+    "hot_plate_temp_initial_layer" : [
+        "100"
+    ],
+    "hot_plate_temp" : [
+        "100"
     ],
     "overhang_fan_speed": [
-        "30"
+        "80"
     ],
-    "overhang_fan_threshold": [
-        "10%"
+    "filament_density":[
+        "1.15"
     ],
     "slow_down_layer_time": [
-        "4"
-    ],
-    "impact_strength_z":["5.3"]
+        "8"
+    ]
 }

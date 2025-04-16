@@ -3,7 +3,7 @@
     "name": "FusRock ABS-GF @BBL A1",
     "inherits": "FusRock ABS-GF @base",
     "from": "system",
-    "setting_id": "GFSR50_0",
+    "setting_id": "GFSR00_FusRock_0",
     "instantiation": "true",
     "filament_long_retractions_when_cut": [
         "1"
