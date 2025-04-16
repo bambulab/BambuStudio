@@ -13338,14 +13338,14 @@ msgstr ""
 
 #, c-format, boost-format
 #~ msgid "Printing high temperature material(%s material) with %s may cause nozzle damage"
-#~ msgstr "Printing high temperature material(%s material) with %s may cause nozzle damage"
+#~ msgstr "La stampa di materiale ad alta temperatura (materiale %s) con %s può causare danni al nozzle"
 
 #, c-format, boost-format
 #~ msgid "The color count should be in range [%d, %d]."
-#~ msgstr "The color count should be in range [%d, %d]."
+#~ msgstr "Il conteggio dei colori deve essere compreso nell'intervallo [%d, %d]."
 
 #~ msgid "Add consumable extruder after existing extruders."
-#~ msgstr "Add consumable extruder after existing extruders."
+#~ msgstr "Aggiungere un estrusore consumabile dopo gli estrusori esistenti."
 
 #~ msgid "New Value"
 #~ msgstr "Nuovo valore"
@@ -13391,10 +13391,10 @@ msgstr ""
 #~ msgstr "Se abilitato, calcola automaticamente ogni volta che il colore viene cambiato."
 
 #~ msgid "Flushing volumes: Auto-calculate every time when the filament is changed."
-#~ msgstr "Flushing volumes: Auto-calculate every time the filament is changed."
+#~ msgstr "Volumi di spurgo: Calcolo automatico ogni volta che si cambia il filamento."
 
 #~ msgid "If enabled, auto-calculate every time when filament is changed"
-#~ msgstr "If enabled, auto-calculate every time filament is changed"
+#~ msgstr "Se abilitato, il calcolo automatico viene effettuato ogni volta che si cambia il filamento."
 
 #~ msgid "Clear my choice on the unsaved presets."
 #~ msgstr "Cancella la mia scelta sui preset non salvati."
@@ -13404,7 +13404,7 @@ msgstr ""
 #~ msgstr "nozzle memorizzato: %.1f %s"
 
 #~ msgid "Your nozzle diameter in sliced file is not consistent with memorized nozzle. If you changed your nozzle lately, please go to Device > Printer Parts to change settings."
-#~ msgstr "Your nozzle diameter in sliced file is not consistent with the saved nozzle. If you changed your nozzle lately, please go to Device > Printer Parts to change settings."
+#~ msgstr "Il diametro del nozzle nel file affettato non corrisponde all'ugello salvato. Se l'ugello è stato modificato di recente, andare su Dispositivo > Parti della stampante per modificare le impostazioni.."
 
 #~ msgid "Line pattern of support interface. Default pattern for non-soluble support interface is Rectilinear, while default pattern for soluble support interface is Concentric"
 #~ msgstr "Trama linee per interfacce di supporto. Il modello predefinito per l'interfaccia di supporto non solubile è rettilineo, mentre quello predefinito per l'interfaccia di supporto solubile è concentrico"
@@ -13448,34 +13448,34 @@ msgstr ""
 #~ msgstr "Invia stampa a"
 
 #~ msgid "Save Modified Value"
-#~ msgstr "Save Modified Value"
+#~ msgstr "Salva il valore modificato"
 
 #~ msgid "You have changed some settings of preset \"%1%\". "
-#~ msgstr "You have changed some settings of preset \"%1%\". "
+#~ msgstr "Sono state modificate alcune impostazioni di preset \"%1%\". "
 
 #~ msgid ""
 #~ "\n"
 #~ "You can save or discard the preset values you have modified."
 #~ msgstr ""
 #~ "\n"
-#~ "You can save or discard the preset values you have modified."
+#~ "È possibile salvare o scartare i valori preimpostati modificati.."
 
 #~ msgid ""
 #~ "\n"
 #~ "You can save or discard the preset values you have modified, or choose to continue using the values you have modified on the new preset."
 #~ msgstr ""
 #~ "\n"
-#~ "You can save or discard the preset values you have modified, or you can choose to continue using the values you have modified on the new preset."
+#~ "È possibile salvare o scartare i valori di preselezione modificati, oppure scegliere di continuare a utilizzare i valori modificati nella nuova preselezione.."
 
 #~ msgid "You have previously modified your settings."
-#~ msgstr "You have previously modified your settings."
+#~ msgstr "Le impostazioni sono state modificate in precedenza."
 
 #~ msgid ""
 #~ "\n"
 #~ "You can discard the preset values you have modified, or choose to continue using the modified values in the new project"
 #~ msgstr ""
 #~ "\n"
-#~ "You can discard the preset values you have modified or choose to continue using the modified values in the new project"
+#~ "È possibile scartare i valori preimpostati modificati o scegliere di continuare a utilizzare i valori modificati nel nuovo progetto."
 
 #~ msgid "Print with filaments in ams"
 #~ msgstr "Stampa con filamenti nell'AMS"
@@ -13521,16 +13521,16 @@ msgstr ""
 #~ msgstr "*Il %s materiale di stampa con %s può causare danni ai nozzle"
 
 #~ msgid "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to avoid extruder clogging,it is not allowed to set the chamber temperature above 45℃."
-#~ msgstr "Low temperature filament (PLA/PETG/TPU) is loaded in the extruder. In order to avoid extruder clogging, it is not allowed to set the chamber temperature above 45℃."
+#~ msgstr "Il filamento a bassa temperatura (PLA/PETG/TPU) viene caricato nell'estrusore. Per evitare l'intasamento dell'estrusore, non è consentito impostare la temperatura della camera al di sopra di 45℃."
 
 #~ msgid "Current filament colors:"
-#~ msgstr "Current filament colors:"
+#~ msgstr "Colori attuali dei filamenti:"
 
 #~ msgid "Quick set:"
-#~ msgstr "Quick set:"
+#~ msgstr "Impostazioni rapide:"
 
 #~ msgid "Cluster colors"
-#~ msgstr "Cluster colors"
+#~ msgstr "Colori del cluster"
 
 #~ msgid "Map Filament"
 #~ msgstr "Map Filament"
@@ -13539,8 +13539,8 @@ msgstr ""
 #~ "Note:The color has been selected, you can choose OK \n"
 #~ " to continue or manually adjust it."
 #~ msgstr ""
-#~ "Note:The color has been selected, you can choose OK \n"
-#~ " to continue or manually adjust it."
+#~ "Nota: Il colore è stato selezionato, è possibile scegliere OK. \n"
+#~ " per continuare o regolare manualmente."
 
 #~ msgid "An SD card needs to be inserted before printing via LAN."
 #~ msgstr "È necessario inserire una scheda microSD prima di stampare tramite LAN."
@@ -13549,7 +13549,7 @@ msgstr ""
 #~ msgstr "È necessario inserire una scheda microSD prima di inviarla alla stampante."
 
 #~ msgid "Browsing file in SD card is not supported in current firmware. Please update the printer firmware."
-#~ msgstr "Browsing file in SD card is not supported in current firmware. Please update the printer firmware."
+#~ msgstr "La ricerca di file nella scheda SD non è supportata dal firmware attuale. Aggiornare il firmware della stampante."
 
 #~ msgid ""
 #~ "Please check if the SD card is inserted into the printer.\n"
@@ -13559,7 +13559,7 @@ msgstr ""
 #~ "Se il problema di lettura persiste, prova a formattare la microSD."
 
 #~ msgid "Browsing file in SD card is not supported in LAN Only Mode."
-#~ msgstr "Browsing file in SD card is not supported in LAN Only Mode."
+#~ msgstr "L'esplorazione di file nella scheda SD non è supportata in modalità Solo LAN."
 
 #~ msgid "Can't start this without SD card."
 #~ msgstr "Impossibile avviare senza scheda SD."
@@ -13703,28 +13703,28 @@ msgstr ""
 #~ "Too small scarf start height.\n"
 #~ "Reset to 50%"
 #~ msgstr ""
-#~ "Too small scarf start height.\n"
-#~ "Reset to 50%"
+#~ "Altezza di partenza scarf troppo piccola.\n"
+#~ "Reimposta a 50%"
 
 #~ msgid ""
 #~ "Too big scarf start height.\n"
 #~ "Reset to 50%"
 #~ msgstr ""
-#~ "Too big scarf start height.\n"
-#~ "Reset to 50%"
+#~ "Altezza di partenza scarf troppo grande.\n"
+#~ "Reimposta a 50%"
 
 #~ msgid "Scarf joint seam (experimental)"
-#~ msgstr "Scarf joint seam (experimental)"
+#~ msgstr "Giunzione Scarf (sperimentale)"
 
 #~ msgid "Use scarf joint to minimize seam visibility and increase seam strength."
-#~ msgstr "Use scarf joint to minimize seam visibility and increase seam strength."
+#~ msgstr "Utilizzate una giunzione scarf per ridurre al minimo la visibilità delle cuciture e aumentarne la resistenza.."
 
 #~ msgid ""
 #~ "Start height of the scarf.\n"
 #~ "This amount can be specified in millimeters or as a percentage of the current layer height. The default value for this parameter is 0."
 #~ msgstr ""
-#~ "Start height of the scarf.\n"
-#~ "This amount can be specified in millimeters or as a percentage of the current layer height. The default value for this parameter is 0."
+#~ "Altezza iniziale della scarf.\n"
+#~ "Questa quantità può essere specificata in millimetri o come percentuale dell'altezza corrente del livello. Il valore predefinito per questo parametro è 0."
 
 #~ msgid "Set Position"
 #~ msgstr "Imposta posizione"
@@ -13773,7 +13773,7 @@ msgstr ""
 #~ msgstr "Alt + Maiusc + Invio"
 
 #~ msgid "Current Cabin humidity"
-#~ msgstr "Current Cabin humidity"
+#~ msgstr "Umidità attuale della cabina"
 
 #~ msgid "Move: press to snap by 1mm"
 #~ msgstr "Sposta: premi per muovere di 1 mm"
@@ -15228,7 +15228,7 @@ msgstr ""
 #~ msgstr "Dividi l'oggetto selezionato in più parti"
 
 #~ msgid "Start"
-#~ msgstr "Inizia"
+#~ msgstr "Avvio"
 
 #~ msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 #~ msgstr "Ferma la stampa quando viene rilevato un accumulo di spaghetti o un accumulo nello scarico."
