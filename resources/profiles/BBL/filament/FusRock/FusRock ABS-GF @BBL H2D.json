@@ -3,7 +3,7 @@
     "name": "FusRock ABS-GF @BBL H2D",
     "inherits": "FusRock ABS-GF @base",
     "from": "system",
-    "setting_id": "GFSC50_3",
+    "setting_id": "GFSR50_3",
     "instantiation": "true",
     "description": "When printing this filament, there's a risk of nozzle clogging, oozing, warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials.",
     "chamber_temperatures": [
