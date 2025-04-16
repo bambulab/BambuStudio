@@ -2033,7 +2033,7 @@ msgid "Outside"
 msgstr "Esterno"
 
 msgid " "
-msgstr ""
+msgstr " "
 
 msgid "Layer height"
 msgstr "Altezza layer"
@@ -2228,7 +2228,7 @@ msgid "Changed fan speed during pringing may affect print quality, please choose
 msgstr "La modifica della velocità della ventola durante la stampa può influire sulla qualità di stampa, scegli con attenzione."
 
 msgid "Off"
-msgstr "Spento"
+msgstr "Off"
 
 msgid "The selected material only supports the current fan mode, and it can't be changed during printing."
 msgstr "Il materiale selezionato supporta solo l'attuale modalità della ventola e non può essere cambiato durante la stampa."
@@ -6958,7 +6958,7 @@ msgid "Send print job"
 msgstr "Invia lavoro di stampa"
 
 msgid "On"
-msgstr ""
+msgstr "On"
 
 msgid "If the transparency of the mapping changes, this thumbnail is for reference only."
 msgstr "Se la trasparenza della mappatura cambia, questa miniatura è solo a scopo di riferimento."
