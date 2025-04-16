@@ -29,13 +29,13 @@ struct SupportParameters {
 
 	    {
 	        this->num_top_interface_layers    = std::max(0, object_config.support_interface_top_layers.value);
-	        this->num_bottom_interface_layers = object_config.support_interface_bottom_layers < 0 ? 
+	        this->num_bottom_interface_layers = object_config.support_interface_bottom_layers < 0 ?
 	            num_top_interface_layers : object_config.support_interface_bottom_layers;
 	        this->has_top_contacts              = num_top_interface_layers    > 0;
 	        this->has_bottom_contacts           = num_bottom_interface_layers > 0;
 	        if (this->soluble_interface_non_soluble_base) {
 	            // Try to support soluble dense interfaces with non-soluble dense interfaces.
-	            this->num_top_base_interface_layers    = size_t(std::min(int(num_top_interface_layers) / 2, 2));
+                this->num_top_base_interface_layers    = num_top_interface_layers > 0 ? 2 : 0;
 	            this->num_bottom_base_interface_layers = size_t(std::min(int(num_bottom_interface_layers) / 2, 2));
 	        } else {
                 // BBS: if support interface and support base do not use the same filament, add a base layer to improve their adhesion
@@ -43,7 +43,7 @@ struct SupportParameters {
                 // support_filament==0
                 bool differnt_support_interface_filament = object_config.support_interface_filament != 0 &&
                                                            object_config.support_interface_filament != object_config.support_filament;
-                this->num_top_base_interface_layers    = differnt_support_interface_filament ? 1 : 0;
+                this->num_top_base_interface_layers    = differnt_support_interface_filament ? 2 : 0;
                 this->num_bottom_base_interface_layers       = differnt_support_interface_filament ? 1 : 0;
 	        }
 	    }
@@ -107,24 +107,52 @@ struct SupportParameters {
             this->interface_density = this->support_density;
         }
 
-        SupportMaterialPattern  support_pattern = object_config.support_base_pattern;
+        support_style = object_config.support_style;
+        if (support_style != smsDefault) {
+            if ((support_style == smsSnug || support_style == smsGrid) && is_tree(object_config.support_type)) support_style = smsDefault;
+            if ((support_style == smsTreeSlim || support_style == smsTreeStrong || support_style == smsTreeHybrid || support_style == smsTreeOrganic) &&
+                !is_tree(object_config.support_type))
+                support_style = smsDefault;
+        }
+        if (support_style == smsDefault) {
+            if (is_tree(object_config.support_type)) {
+                // organic support doesn't work with variable layer heights (including adaptive layer height and height range modifier, see #4313)
+                if (!object.has_variable_layer_heights && !slicing_params.soluble_interface) {
+                    BOOST_LOG_TRIVIAL(warning) << "tree support default to organic support";
+                    support_style = smsTreeOrganic;
+                } else {
+                    BOOST_LOG_TRIVIAL(warning) << "tree support default to hybrid tree due to adaptive layer height";
+                    support_style = smsTreeHybrid;
+                }
+            } else {
+                support_style = smsGrid;
+            }
+        }
+
+        support_base_pattern = object_config.support_base_pattern;
+        if (support_base_pattern == smpDefault) {
+            if (is_tree(object_config.support_type))
+                support_base_pattern = support_style == smsTreeHybrid ? smpRectilinear : smpNone;
+            else
+                support_base_pattern = smpRectilinear;
+        }
+
         this->with_sheath = object_config.tree_support_wall_count > 0;
-        this->base_fill_pattern =
-            support_pattern == smpHoneycomb ? ipHoneycomb :
-            this->support_density > 0.95 || this->with_sheath ? ipRectilinear : ipSupportBase;
+        this->base_fill_pattern           = support_base_pattern == smpLightning              ? ipLightning :
+                                            support_base_pattern == smpHoneycomb              ? ipHoneycomb :
+                                            this->support_density > 0.95 || this->with_sheath ? ipRectilinear :
+                                                                                                ipSupportBase;
         this->interface_fill_pattern = (this->interface_density > 0.95 ? ipRectilinear : ipSupportBase);
 		this->raft_interface_fill_pattern = this->raft_interface_density > 0.95 ? ipRectilinear : ipSupportBase;
         if (object_config.support_interface_pattern == smipGrid)
             this->contact_fill_pattern = ipGrid;
-        else if (object_config.support_interface_pattern == smipRectilinearInterlaced)
+        else if (object_config.support_interface_pattern == smipRectilinearInterlaced || object_config.support_interface_pattern == smipAuto)
             this->contact_fill_pattern = ipRectilinear;
         else
-            this->contact_fill_pattern =
-            (object_config.support_interface_pattern == smipAuto && slicing_params.soluble_interface) ||
-            object_config.support_interface_pattern == smipConcentric ?
+            this->contact_fill_pattern = object_config.support_interface_pattern == smipConcentric ?
             ipConcentric :
             (this->interface_density > 0.95 ? ipRectilinear : ipSupportBase);
-		
+
 		this->raft_angle_1st_layer  = 0.f;
 	    this->raft_angle_base       = 0.f;
 	    this->raft_angle_interface  = 0.f;
@@ -163,34 +191,27 @@ struct SupportParameters {
             support_extrusion_width = Flow::auto_extrusion_width(FlowRole::frSupportMaterial, (float) nozzle_diameter);
         }
 
-        independent_layer_height = print_config.independent_support_layer_height;
-
-        // force double walls everywhere if wall count is larger than 1        
-        tree_branch_diameter_double_wall_area_scaled = object_config.tree_support_wall_count.value > 1  ? 0.1 :
-                                                       object_config.tree_support_wall_count.value == 0 ? 0.25 * sqr(scaled<double>(5.0)) * M_PI :
-                                                                                                          std::numeric_limits<double>::max();
-
-        support_style = object_config.support_style;
-        if (support_style != smsDefault) {
-            if ((support_style == smsSnug || support_style == smsGrid) && is_tree(object_config.support_type)) support_style = smsDefault;
-            if ((support_style == smsTreeSlim || support_style == smsTreeStrong || support_style == smsTreeHybrid || support_style == smsTreeOrganic) &&
-                !is_tree(object_config.support_type))
-                support_style = smsDefault;
-        }
-        if (support_style == smsDefault) {
-            if (is_tree(object_config.support_type)) {
-                // organic support doesn't work with variable layer heights (including adaptive layer height and height range modifier, see #4313)
-                if (!object.has_variable_layer_heights) {
-                    BOOST_LOG_TRIVIAL(warning) << "tree support default to organic support";
-                    support_style = smsTreeOrganic;
-                } else {
-                    BOOST_LOG_TRIVIAL(warning) << "tree support default to hybrid tree due to adaptive layer height";
-                    support_style = smsTreeHybrid;
-                }
-            } else {
-                support_style = smsGrid;
+        double tree_support_branch_diameter_double_wall = 3.0;
+        // get support filament strength and decide the thresh of double wall area
+        float support_filament_strength = print_config.impact_strength_z.get_at(object_config.support_filament-1);
+        if(object_config.support_filament==0){
+            // find the weakest filament
+            support_filament_strength = std::numeric_limits<float>::max();
+            for(auto extruder:object.object_extruders()){
+                float strength = print_config.impact_strength_z.get_at(extruder);
+                if(strength<support_filament_strength) support_filament_strength = strength;
             }
         }
+
+        if(object_config.tree_support_wall_count.value==0){
+            tree_support_branch_diameter_double_wall = support_filament_strength;
+            this->tree_branch_diameter_double_wall_area_scaled = 0.25*sqr(scaled<double>(tree_support_branch_diameter_double_wall))*M_PI;
+        }else{
+        // force double walls everywhere if wall count is larger than 1
+            this->tree_branch_diameter_double_wall_area_scaled = object_config.tree_support_wall_count.value>1? 0.1: std::numeric_limits<double>::max();
+        }
+
+        independent_layer_height = print_config.independent_support_layer_height;
     }
 	// Both top / bottom contacts and interfaces are soluble.
     bool                    soluble_interface;
@@ -242,6 +263,7 @@ struct SupportParameters {
     coordf_t 				support_spacing;
     coordf_t 				support_density;
     SupportMaterialStyle    support_style = smsDefault;
+    SupportMaterialPattern  support_base_pattern = smpDefault;
 
     InfillPattern           base_fill_pattern;
     InfillPattern           interface_fill_pattern;
@@ -257,10 +279,10 @@ struct SupportParameters {
     float 					raft_angle_interface;
 
     // Produce a raft interface angle for a given SupportLayer::interface_id()
-    float 					raft_interface_angle(size_t interface_id) const 
+    float 					raft_interface_angle(size_t interface_id) const
     	{ return this->raft_angle_interface + ((interface_id & 1) ? float(- M_PI / 4.) : float(+ M_PI / 4.)); }
-		
+
     bool independent_layer_height = false;
-    const double thresh_big_overhang = Slic3r::sqr(scale_(10));
+    const double thresh_big_overhang = /*Slic3r::sqr(scale_(10))*/scale_(10);
 };
 } // namespace Slic3r

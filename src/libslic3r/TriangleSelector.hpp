@@ -161,8 +161,7 @@ public:
     public:
         HeightRange() = delete;
         // BBS: set cursor_radius to 0.1 for high smooth edge
-        explicit HeightRange(float z_world_, const Vec3f& source_, float height_, const Transform3d& trafo_, const ClippingPlane& clipping_plane_)
-            : SinglePointCursor(Vec3f(0.f, 0.f, 0.f), source_, 1.f, trafo_, clipping_plane_), m_z_world(z_world_), m_height(height_) {}
+        explicit HeightRange(float z_world_, const Vec3f &source_, float height_, const Transform3d &trafo_, const ClippingPlane &clipping_plane_);
         ~HeightRange() override = default;
 
         bool is_pointer_in_triangle(const Vec3f& p1, const Vec3f& p2, const Vec3f& p3) const override;
@@ -276,7 +275,11 @@ public:
     std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> serialize() const;
 
     // Load serialized data. Assumes that correct mesh is loaded.
-    void deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>>& data, bool needs_reset = true, EnforcerBlockerType max_ebt = EnforcerBlockerType::ExtruderMax);
+    void deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data,
+                     bool                                                                  needs_reset = true,
+                     EnforcerBlockerType                                                   max_ebt     = EnforcerBlockerType::ExtruderMax,
+                     EnforcerBlockerType                                                   to_delete_filament = EnforcerBlockerType::NONE,
+                     EnforcerBlockerType                                                   replace_filament = EnforcerBlockerType::NONE);
 
     // For all triangles, remove the flag indicating that the triangle was selected by seed fill.
     void seed_fill_unselect_all_triangles();

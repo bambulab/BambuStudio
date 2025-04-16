@@ -80,8 +80,12 @@ enum class NotificationType
 	// Slicing warnings, issued by the slicing process.
 	// Slicing warnings are registered for a particular Print milestone or a PrintObject and its milestone.
 	SlicingWarning,
+	// BBL: general error
+	BBLGeneralError,
 	// Object partially outside the print volume. Cannot slice.
 	PlaterError,
+	LeftExtruderUnprintableError,
+	RightExtruderUnprintableError,
 	// Object fully outside the print volume, or extrusion outside the print volume. Slicing is not disabled.
 	PlaterWarning,
 	// Progress bar instead of text.
@@ -145,8 +149,11 @@ enum class NotificationType
 	BBLPreviewOnlyMode,
     BBLPrinterConfigUpdateAvailable,
 	BBLUserPresetExceedLimit,
+    BBLFilamentPrintableError,
     BBLSliceLimitError,
+    BBLSliceMultiExtruderHeightOutside,
 	BBLBedFilamentIncompatible,
+    BBLMixUsePLAAndPETG,
     NotificationTypeCount
 
 };
@@ -220,6 +227,9 @@ public:
 	// Release those slicing warnings, which refer to an ObjectID, which is not in the list.
 	// living_oids is expected to be sorted.
 	void remove_slicing_warnings_of_released_objects(const std::vector<ObjectID>& living_oids);
+	// general error message
+	void push_general_error_notification(const std::string& text);
+	void close_general_error_notification(const std::string& text);
 	// Object partially outside of the printer working space, cannot print. No fade out.
 	void push_plater_error_notification(const std::string& text);
 	// Object fully out of the printer working space and such. No fade out.
@@ -227,6 +237,10 @@ public:
 	// Closes error or warning of the same text
 	void close_plater_error_notification(const std::string& text);
 	void close_plater_warning_notification(const std::string& text);
+	// GCode exceeds the printing range of the extruder
+    void push_slicing_customize_error_notification(NotificationType type, NotificationLevel level, const std::string &text, const std::string &hypertext = "", std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>());
+    void close_slicing_customize_error_notification(NotificationType type, NotificationLevel level);
+
 	// Object warning with ObjectID, closes when object is deleted. ID used is of object not print like in slicing warning.
 	void push_simplify_suggestion_notification(const std::string& text, ObjectID object_id, const std::string& hypertext = "",
 		std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>());
@@ -339,6 +353,12 @@ public:
 	//BBS--bed filament match
 	void bbl_show_bed_filament_incompatible_notification(const std::string& text);
 	void bbl_close_bed_filament_incompatible_notification();
+
+	void bbl_show_filament_map_invalid_notification_before_slice(const NotificationType type, const std::string& text);
+	void bbl_close_filament_map_invalid_notification_before_slice(const NotificationType type);
+
+	void bbl_show_filament_map_invalid_notification_after_slice(const NotificationType type, const std::string& text);
+	void bbl_close_filament_map_invalid_notification_after_slice(const NotificationType type);
 
 	//BBS--sole notification
     void bbl_show_sole_text_notification(NotificationType sType,const std::string &text, bool bOverride, int level, bool autohide);

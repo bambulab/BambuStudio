@@ -727,114 +727,6 @@ static std::optional<std::pair<Point, size_t>> polyline_sample_next_point_at_dis
 #endif
 }
 
-/*!
- * \brief Unions two Polygons. Ensures that if the input is non empty that the output also will be non empty.
- * \param first[in] The first Polygon.
- * \param second[in] The second Polygon.
- * \return The union of both Polygons
- */
-[[nodiscard]] static Polygons safe_union(const Polygons first, const Polygons second = {})
-{
-    // unionPolygons can slowly remove Polygons under certain circumstances, because of rounding issues (Polygons that have a thin area).
-    // This does not cause a problem when actually using it on large areas, but as influence areas (representing centerpoints) can be very thin, this does occur so this ugly workaround is needed
-    // Here is an example of a Polygons object that will loose vertices when unioning, and will be gone after a few times unionPolygons was called:
-    /*
-    Polygons example;
-    Polygon exampleInner;
-    exampleInner.add(Point(120410,83599));//A
-    exampleInner.add(Point(120384,83643));//B
-    exampleInner.add(Point(120399,83618));//C
-    exampleInner.add(Point(120414,83591));//D
-    exampleInner.add(Point(120423,83570));//E
-    exampleInner.add(Point(120419,83580));//F
-    example.add(exampleInner);
-    for(int i=0;i<10;i++){
-         log("Iteration %d Example area: %f\n",i,area(example));
-         example=example.unionPolygons();
-    }
-*/
-
-    Polygons result;
-    if (! first.empty() || ! second.empty()) {
-        result = union_(first, second);
-        if (result.empty()) {
-            BOOST_LOG_TRIVIAL(debug) << "Caught an area destroying union, enlarging areas a bit.";
-            // just take the few lines we have, and offset them a tiny bit. Needs to be offsetPolylines, as offset may aleady have problems with the area.
-            result = union_(offset(to_polylines(first), scaled<float>(0.002), jtMiter, 1.2), offset(to_polylines(second), scaled<float>(0.002), jtMiter, 1.2));
-        }
-    }
-
-    return result;
-}
-
-/*!
- * \brief Offsets (increases the area of) a polygons object in multiple steps to ensure that it does not lag through over a given obstacle.
- * \param me[in] Polygons object that has to be offset.
- * \param distance[in] The distance by which me should be offset. Expects values >=0.
- * \param collision[in] The area representing obstacles.
- * \param last_step_offset_without_check[in] The most it is allowed to offset in one step.
- * \param min_amount_offset[in] How many steps have to be done at least. As this uses round offset this increases the amount of vertices, which may be required if Polygons get very small. Required as arcTolerance is not exposed in offset, which should result with a similar result.
- * \return The resulting Polygons object.
- */
-[[nodiscard]] static Polygons safe_offset_inc(const Polygons& me, coord_t distance, const Polygons& collision, coord_t safe_step_size, coord_t last_step_offset_without_check, size_t min_amount_offset)
-{
-    bool do_final_difference = last_step_offset_without_check == 0;
-    Polygons ret = safe_union(me); // ensure sane input
-
-    // Trim the collision polygons with the region of interest for diff() efficiency.
-    Polygons collision_trimmed_buffer;
-    auto collision_trimmed = [&collision_trimmed_buffer, &collision, &ret, distance]() -> const Polygons& {
-        if (collision_trimmed_buffer.empty() && ! collision.empty())
-            collision_trimmed_buffer = ClipperUtils::clip_clipper_polygons_with_subject_bbox(collision, get_extents(ret).inflated(std::max(0, distance) + SCALED_EPSILON));
-        return collision_trimmed_buffer;
-    };
-
-    if (distance == 0)
-        return do_final_difference ? diff(ret, collision_trimmed()) : union_(ret);
-    if (safe_step_size < 0 || last_step_offset_without_check < 0) {
-        BOOST_LOG_TRIVIAL(warning) << "Offset increase got invalid parameter!";
-        tree_supports_show_error("Negative offset distance... How did you manage this ?"sv, true);
-        return do_final_difference ? diff(ret, collision_trimmed()) : union_(ret);
-    }
-
-    coord_t step_size = safe_step_size;
-    int     steps = distance > last_step_offset_without_check ? (distance - last_step_offset_without_check) / step_size : 0;
-    if (distance - steps * step_size > last_step_offset_without_check) {
-        if ((steps + 1) * step_size <= distance)
-            // This will be the case when last_step_offset_without_check >= safe_step_size
-            ++ steps;
-        else
-            do_final_difference = true;
-    }
-    if (steps + (distance < last_step_offset_without_check || (distance % step_size) != 0) < int(min_amount_offset) && min_amount_offset > 1) {
-        // yes one can add a bool as the standard specifies that a result from compare operators has to be 0 or 1
-        // reduce the stepsize to ensure it is offset the required amount of times
-        step_size = distance / min_amount_offset;
-        if (step_size >= safe_step_size) {
-            // effectivly reduce last_step_offset_without_check
-            step_size = safe_step_size;
-            steps = min_amount_offset;
-        } else
-            steps = distance / step_size;
-    }
-    // offset in steps
-    for (int i = 0; i < steps; ++ i) {
-        ret = diff(offset(ret, step_size, ClipperLib::jtRound, scaled<float>(0.01)), collision_trimmed());
-        // ensure that if many offsets are done the performance does not suffer extremely by the new vertices of jtRound.
-        if (i % 10 == 7)
-            ret = polygons_simplify(ret, scaled<double>(0.015));
-    }
-    // offset the remainder
-    float last_offset = distance - steps * step_size;
-    if (last_offset > SCALED_EPSILON)
-        ret = offset(ret, distance - steps * step_size, ClipperLib::jtRound, scaled<float>(0.01));
-    ret = polygons_simplify(ret, scaled<double>(0.015));
-
-    if (do_final_difference)
-        ret = diff(ret, collision_trimmed());
-    return union_(ret);
-}
-
 class RichInterfacePlacer : public InterfacePlacer {
 public:
     RichInterfacePlacer(
@@ -4173,9 +4065,9 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         const int       num_layers = int(print_object.layer_count()) + num_raft_layers;
         overhangs.resize(num_layers);
         for (size_t i = 0; i < print_object.layer_count(); i++) {
-            for (ExPolygon& expoly : print_object.get_layer(i)->loverhangs) {
-                Polygons polys = to_polygons(expoly);
-                if (tree_support->overhang_types[&expoly] == TreeSupport::SharpTail) { polys = offset(polys, scale_(0.2));
+            for (auto& expoly_type : print_object.get_layer(i)->loverhangs_with_type) {
+                Polygons polys = to_polygons(expoly_type.first);
+                if (expoly_type.second & TreeSupport::SharpTail) { polys = offset(polys, scale_(0.2));
                 }
                 append(overhangs[i + num_raft_layers], polys);
             }
@@ -4214,7 +4106,6 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         // organic support default pattern is none.
         if (config.support_pattern == smpDefault) {
             config.support_pattern = smpNone;
-            support_params.support_density = 0;
         }
 
 
@@ -4342,7 +4233,7 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         print.set_status(69, _L("Generating support"));
         generate_support_toolpaths(print_object.support_layers(), print_object.config(), support_params, print_object.slicing_parameters(),
             raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
-        
+
         auto t_end = std::chrono::high_resolution_clock::now();
         BOOST_LOG_TRIVIAL(info) << "Total time of organic tree support: " << 0.001 * std::chrono::duration_cast<std::chrono::microseconds>(t_end - t_start).count() << " ms";
  #if 0
@@ -4818,7 +4709,7 @@ void generate_tree_support_3D(PrintObject &print_object, TreeSupport* tree_suppo
     Points bedpts = tree_support->m_machine_border.contour.points;
     Pointfs bedptsf;
     std::transform(bedpts.begin(), bedpts.end(), std::back_inserter(bedptsf), [](const Point &p) { return unscale(p); });
-    BuildVolume build_volume{ bedptsf, tree_support->m_print_config->printable_height };
+    BuildVolume build_volume{ bedptsf, tree_support->m_print_config->printable_height, {}, {} };
 
     TreeSupport3D::generate_support_areas(*print_object.print(), tree_support, build_volume, { idx }, throw_on_cancel);
 }

@@ -1,5 +1,5 @@
 {
-    "version": "1.0.0.3",
+    "version": "1.0.0.4",
     "high_temp_filament": [
         "ABS",
         "ASA",
@@ -15,7 +15,7 @@
         "PPA-CF",
         "PPA-GF",
         "ABS-GF",
-        "ASA-Aero"
+        "ASA-AERO"
     ],
     "low_temp_filament": [
         "PLA",
@@ -25,12 +25,12 @@
         "PLA-AERO",
         "PVA",
         "BVOH",
-        "PCTG"
+        "PCTG",
+        "PETG",
+        "PETG-CF"
     ],
     "high_low_compatible_filament":[
         "HIPS",
-        "PETG",
-        "PETG-CF",
         "PE",
         "PP",
         "EVA",

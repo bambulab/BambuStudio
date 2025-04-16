@@ -443,7 +443,7 @@ inline void offset(PolygonImpl& sh, bp2d::Coord distance)
 
 #ifndef DISABLE_BOOST_SERIALIZE
 template<> inline std::string serialize<libnest2d::Formats::SVG>(
-        const PolygonImpl& sh, double scale, std::string fill, std::string stroke, float stroke_width)
+        const PolygonImpl& sh, const std::string& name, double scale, std::string fill, std::string stroke, float stroke_width)
 {
     std::stringstream ss;
     std::string style = "fill: "+fill+"; stroke: "+stroke+"; stroke-width: "+std::to_string(stroke_width)+"px; ";
@@ -478,7 +478,14 @@ template<> inline std::string serialize<libnest2d::Formats::SVG>(
 
     ss << svg_data << std::endl;
 
-    return ss.str();
+    std::string svg_content = ss.str();
+    if (!name.empty()) {
+        size_t pos = svg_content.find_first_of("<g ");
+        if (pos != std::string::npos) { svg_content.insert(pos + 3, "id=\"" + name + "\" ");
+        }
+    }
+
+    return svg_content;
 }
 #endif
 

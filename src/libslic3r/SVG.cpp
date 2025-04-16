@@ -1,7 +1,9 @@
 #include "SVG.hpp"
+#include <fstream>
 #include <iostream>
-
+// #include "pugixml/pugixml.hpp"
 #include <boost/nowide/cstdio.hpp>
+#include "nlohmann/json.hpp"
 
 namespace Slic3r {
 
@@ -86,7 +88,7 @@ void SVG::draw(const Lines &lines, std::string stroke, coordf_t stroke_width)
 void SVG::draw(const ExPolygon &expolygon, std::string fill, const float fill_opacity)
 {
     this->fill = fill;
-    
+
     std::string d;
     for (const Polygon &p : to_polygons(expolygon))
         d += this->get_path_d(p, true) + " ";
@@ -201,7 +203,7 @@ void SVG::draw(const Point &point, std::string fill, coord_t iradius)
     svg << "   <circle cx=\"" << to_svg_x(point(0) - origin(0)) << "\" cy=\"" << to_svg_y(point(1) - origin(1))
         << "\" r=\"" << radius << "\" "
         << "style=\"stroke: none; fill: " << fill << "\" />";
-    
+
     fprintf(this->f, "%s\n", svg.str().c_str());
 }
 
@@ -247,7 +249,7 @@ void SVG::path(const std::string &d, bool fill, coordf_t stroke_width, const flo
         d.c_str(),
         fill ? this->fill.c_str() : "none",
         this->stroke.c_str(),
-        lineWidth, 
+        lineWidth,
         (this->arrows && !fill) ? " marker-end=\"url(#endArrow)\"" : "",
         fill_opacity
     );
@@ -331,6 +333,132 @@ void SVG::add_comment(const std::string comment)
     fprintf(this->f, "<!-- %s -->\n", comment.c_str());
 }
 
+// Function to parse the SVG path data
+Points ParseSVGPath(const std::string &pathData)
+{
+    Points points;
+    Vec2d              currentPoint = {0, 0};
+    char               command      = 0;
+    std::istringstream stream(pathData);
+
+    while (stream) {
+        // Read the command or continue with the previous command
+        if (!std::isdigit(stream.peek()) && stream.peek() != '-' && stream.peek() != '.') { stream >> command; }
+
+        if (command == 'M' || command == 'm') { // Move to
+            double x, y;
+            stream >> x;
+            stream.ignore(1, ','); // Skip the comma, if present
+            stream >> y;
+
+            if (command == 'm') { // Relative
+                currentPoint.x() += x;
+                currentPoint.y() += y;
+            } else { // Absolute
+                currentPoint.x() = x;
+                currentPoint.y() = y;
+            }
+            points.push_back(scaled<coord_t>(currentPoint));
+        } else if (command == 'L' || command == 'l') { // Line to
+            double x, y;
+            stream >> x;
+            stream.ignore(1, ','); // Skip the comma, if present
+            stream >> y;
+
+            if (command == 'l') { // Relative
+                currentPoint.x() += x;
+                currentPoint.y() += y;
+            } else { // Absolute
+                currentPoint.x() = x;
+                currentPoint.y() = y;
+            }
+            points.push_back(scaled<coord_t>(currentPoint));
+        } else if (command == 'Z' || command == 'z') { // Close path
+            if (!points.empty()) {
+                points.push_back(points.front()); // Close the polygon by returning to the start
+            }
+        } else if (command == 'H' || command == 'h') { // Horizontal line
+            double x;
+            stream >> x;
+
+            if (command == 'h') { // Relative
+                currentPoint.x() += x;
+            } else { // Absolute
+                currentPoint.x() = x;
+            }
+            points.push_back(scaled<coord_t>(currentPoint));
+        } else if (command == 'V' || command == 'v') { // Vertical line
+            double y;
+            stream >> y;
+
+            if (command == 'v') { // Relative
+                currentPoint.y() += y;
+            } else { // Absolute
+                currentPoint.y() = y;
+            }
+            points.push_back(scaled<coord_t>(currentPoint));
+        } else if (command == 'z') {
+            if (!points.empty()) {
+                points.push_back(points.front()); // Close path
+            }
+        } else {
+            stream.ignore(1); // Skip invalid commands or extra spaces
+        }
+    }
+
+    return points;
+}
+
+// Convert SVG path to ExPolygon
+ExPolygon ConvertToExPolygon(const std::vector<std::string> &svgPaths)
+{
+    ExPolygon exPolygon;
+
+    for (const auto &pathData : svgPaths) {
+        auto points = ParseSVGPath(pathData);
+        if (exPolygon.contour.empty()) {
+            exPolygon.contour.points = points; // First path is outer
+        } else {
+            exPolygon.holes.emplace_back(points); // Subsequent paths are holes
+        }
+    }
+
+    return exPolygon;
+}
+
+// Function to load SVG and convert paths to ExPolygons
+std::vector<ExPolygon> SVG::load(const std::string &svgFilePath)
+{
+    std::vector<ExPolygon> polygons;
+/*    pugi::xml_document     doc;
+    pugi::xml_parse_result result = doc.load_file(svgFilePath.c_str());
+    if (!result) {
+        std::cerr << "Failed to load SVG file: " << result.description() << "\n";
+        return polygons;
+    }
+
+
+    // Find the root <svg> element
+    pugi::xml_node svgNode = doc.child("svg");
+    if (!svgNode) {
+        std::cerr << "No <svg> element found in file.\n";
+        return polygons;
+    }
+
+    // Iterate over <path> elements
+    for (pugi::xml_node pathNode : svgNode.children("path")) {
+        const char *pathData = pathNode.attribute("d").value();
+        if (pathData) {
+            std::vector<std::string> paths     = {std::string(pathData)}; // For simplicity, assuming one path per element. You could extract more complex paths if necessary.
+            ExPolygon                exPolygon = ConvertToExPolygon(paths);
+            polygons.push_back(exPolygon);
+        }
+    }
+*/
+    return polygons;
+}
+
+
 void SVG::Close()
 {
     fprintf(this->f, "</svg>\n");
@@ -409,6 +537,236 @@ void SVG::export_expolygons(const char *path, const std::vector<std::pair<Slic3r
         }
     }
     svg.Close();
+}
+
+
+// JSON serialization for Point using compact format [x, y]
+void to_json(nlohmann::json &j, const Point &p) { j = nlohmann::json{p.x(), p.y()}; }
+
+void from_json(const nlohmann::json &j, Point &p)
+{
+    if (j.is_array() && j.size() == 2) {
+        p.x() = j[0].get<coord_t>();
+        p.y() = j[1].get<coord_t>();
+    } else {
+        throw std::runtime_error("Invalid Point JSON format. Expected [x, y].");
+    }
+}
+
+// Serialization for Polygon
+void to_json(nlohmann::json &j, const Polygon &polygon)
+{
+    j = nlohmann::json::array();
+    for (const auto &point : polygon.points) {
+        j.push_back(point); // Push each point (serialized as [x, y])
+    }
+}
+
+void from_json(const nlohmann::json &j, Polygon &polygon)
+{
+    if (j.is_array()) {
+        polygon.clear();
+        for (const auto &item : j) { polygon.append(item.get<Point>()); }
+    } else {
+        throw std::runtime_error("Invalid Polygon JSON format. Expected array of points.");
+    }
+}
+
+
+// Serialization for ExPolygon
+void to_json(nlohmann::json &j, const ExPolygon &exPolygon) {
+    j = nlohmann::json{{"contour", exPolygon.contour}, {"holes", exPolygon.holes}};
+}
+
+void from_json(const nlohmann::json &j, ExPolygon &exPolygon)
+{
+    if (j.contains("contour")) {
+        j.at("contour").get_to(exPolygon.contour);
+        if (j.contains("holes")) {
+            j.at("holes").get_to(exPolygon.holes);
+        }
+    } else {
+        throw std::runtime_error("Invalid ExPolygon JSON format. Missing 'contour' or 'holes'.");
+    }
+}
+
+// Serialization for ExPolygons
+void to_json(nlohmann::json &j, const std::vector<ExPolygon> &exPolygons)
+{
+    j = nlohmann::json::array();
+    for (const auto &exPolygon : exPolygons) {
+        j.push_back(exPolygon); // Serialize each ExPolygon
+    }
+}
+
+void from_json(const nlohmann::json& j, std::vector<ExPolygon>& exPolygons)
+{
+    if (j.is_array()) {
+        exPolygons.clear();
+        for (const auto& item : j) {
+            exPolygons.push_back(item.get<ExPolygon>());
+        }
+    }
+    else {
+        throw std::runtime_error("Invalid ExPolygons JSON format. Expected array of ExPolygons.");
+    }
+}
+
+// Function to dump ExPolygons to JSON
+void dumpExPolygonToJson(const ExPolygon &exPolygon, const std::string &filePath)
+{
+    nlohmann::json j = exPolygon;
+
+    // Write JSON to a file
+    std::ofstream file(filePath);
+    if (!file) {
+        std::cerr << "Error: Cannot open file for writing: " << filePath << "\n";
+        return;
+    }
+    file << j.dump(4); // Pretty print with 4 spaces of indentation
+    file.close();
+
+    std::cout << "ExPolygons dumped to " << filePath << "\n";
+}
+
+// Function to dump ExPolygons to JSON
+void dumpExPolygonsToJson(const std::vector<ExPolygon> &exPolygons, const std::string &filePath)
+{
+    nlohmann::json j = exPolygons;
+
+    // Write JSON to a file
+    std::ofstream file(filePath);
+    if (!file) {
+        std::cerr << "Error: Cannot open file for writing: " << filePath << "\n";
+        return;
+    }
+    file << j.dump(4); // Pretty print with 4 spaces of indentation
+    file.close();
+
+    std::cout << "ExPolygons dumped to " << filePath << "\n";
+}
+
+// Function to load ExPolygons from JSON
+std::vector<ExPolygon> loadExPolygonsFromJson(const std::string &filePath)
+{
+    std::vector<ExPolygon> exPolygons;
+
+    std::ifstream file(filePath);
+    if (!file) {
+        std::cerr << "Error: Cannot open file for reading: " << filePath << "\n";
+        return exPolygons;
+    }
+
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    std::string content = buffer.str(); // Read entire file into string
+    
+    nlohmann::json j;
+    try {
+        j = nlohmann::json::parse(content);
+        //file >> j; // Parse JSON from file
+    } catch (const nlohmann::json::parse_error &e) {
+        std::cerr << "JSON parsing error: " << e.what() << std::endl;
+        return exPolygons; // Return empty vector on failure
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << "\n";
+        file.close();
+        return exPolygons;
+    }
+    file.close();
+
+    // Deserialize JSON to std::vector<ExPolygon>
+    //exPolygons = j.get<std::vector<ExPolygon>>();
+    if (j.is_array()) {
+        for (const auto& item : j) {
+            exPolygons.push_back(item.get<ExPolygon>());
+        }
+    } else if (j.is_object()) {
+        exPolygons.push_back(j.get<ExPolygon>());
+    }
+    else {
+        throw std::runtime_error("Invalid ExPolygons JSON format. Expected array of ExPolygons.");
+    }
+
+    return exPolygons;
+}
+
+// Save ExPolygons to a file
+void dumpExPolygonsToTxt(const std::vector<ExPolygon> &exPolygons, const std::string &filePath)
+{
+    std::ofstream file(filePath);
+    if (!file) {
+        std::cerr << "Error: Cannot open file for writing: " << filePath << std::endl;
+        return;
+    }
+
+    for (size_t i = 0; i < exPolygons.size(); ++i) {
+        const auto &exPolygon = exPolygons[i];
+        file << "# ExPolygon " << i + 1 << "\n";
+
+        // Save the outer contour
+        file << "contour:";
+        for (const auto &point : exPolygon.contour) { file << " " << point.x() << " " << point.y(); }
+        file << "\n";
+
+        // Save the holes
+        for (const auto &hole : exPolygon.holes) {
+            file << "hole:";
+            for (const auto &point : hole) { file << " " << point.x() << " " << point.y(); }
+            file << "\n";
+        }
+    }
+
+    file.close();
+    std::cout << "ExPolygons saved to " << filePath << std::endl;
+}
+
+// Load ExPolygons from a file
+std::vector<ExPolygon> loadExPolygonsFromTxt(const std::string &filePath)
+{
+    std::vector<ExPolygon> exPolygons;
+
+    std::ifstream file(filePath);
+    if (!file) {
+        std::cerr << "Error: Cannot open file for reading: " << filePath << std::endl;
+        return exPolygons;
+    }
+
+    std::string line;
+    ExPolygon   currentPolygon;
+    while (std::getline(file, line)) {
+        if (line.empty() || line[0] == '#') {
+            // Start of a new polygon
+            if (!currentPolygon.contour.empty() || !currentPolygon.holes.empty()) {
+                exPolygons.push_back(currentPolygon);
+                currentPolygon = ExPolygon();
+            }
+            continue;
+        }
+
+        std::istringstream stream(line);
+        std::string        keyword;
+        stream >> keyword;
+
+        if (keyword == "contour:") {
+            currentPolygon.contour.clear();
+            coord_t x, y;
+            while (stream >> x >> y) { currentPolygon.contour.append({x, y}); }
+        } else if (keyword == "hole:") {
+            Polygon hole;
+            coord_t x, y;
+            while (stream >> x >> y) { hole.append({x, y}); }
+            currentPolygon.holes.push_back(hole);
+        }
+    }
+
+    // Add the last polygon if any
+    if (!currentPolygon.contour.empty() || !currentPolygon.holes.empty()) { exPolygons.push_back(currentPolygon); }
+
+    file.close();
+    std::cout << "Loaded " << exPolygons.size() << " ExPolygons from " << filePath << std::endl;
+    return exPolygons;
 }
 
 }

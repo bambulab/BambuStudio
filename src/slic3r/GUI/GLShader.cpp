@@ -4,6 +4,7 @@
 #include "3DScene.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/format.hpp"
+#include "libslic3r/Color.hpp"
 
 #include <boost/nowide/fstream.hpp>
 #include <GL/glew.h>
@@ -145,7 +146,8 @@ bool GLShaderProgram::init_from_texts(const std::string& name, const ShaderSourc
                 glsafe(::glGetShaderiv(id, GL_INFO_LOG_LENGTH, &params));
                 std::vector<char> msg(params);
                 glsafe(::glGetShaderInfoLog(id, params, &params, msg.data()));
-                BOOST_LOG_TRIVIAL(error) << "Unable to compile " << shader_type_as_string(type) << " shader of shader program '" << name << "':\n" << msg.data();
+                std::string error_info = msg.data();
+                BOOST_LOG_TRIVIAL(error) << "Unable to compile " << shader_type_as_string(type) << " shader of shader program '" << name << "':\n" << error_info;
 
                 // release shaders
                 release_shaders(shader_ids);
@@ -167,9 +169,6 @@ bool GLShaderProgram::init_from_texts(const std::string& name, const ShaderSourc
     for (size_t i = 0; i < static_cast<size_t>(EShaderType::Count); ++i) {
         if (shader_ids[i] > 0)
             glsafe(::glAttachShader(m_id, shader_ids[i]));
-    }
-    if (boost::ends_with(name,"_instance")) {
-        glBindAttribLocation(m_id, 3, "instanceMatrix");
     }
 
     glsafe(::glLinkProgram(m_id));
@@ -202,11 +201,6 @@ void GLShaderProgram::start_using() const
 {
     assert(m_id > 0);
     glsafe(::glUseProgram(m_id));
-}
-
-void GLShaderProgram::stop_using() const
-{
-    glsafe(::glUseProgram(0));
 }
 
 bool GLShaderProgram::set_uniform(const char* name, int value) const
@@ -344,6 +338,26 @@ bool GLShaderProgram::set_uniform(const char* name, const Matrix3f& value) const
     return false;
 }
 
+bool GLShaderProgram::set_uniform(const char *name, const Matrix3d &value) const
+{
+    return set_uniform(name, (Matrix3f) value.cast<float>());
+}
+
+bool GLShaderProgram::set_uniform(const char* name, const Matrix4f& value) const
+{
+    int id = get_uniform_location(name);
+    if (id >= 0) {
+        glsafe(::glUniformMatrix4fv(id, 1, GL_FALSE, static_cast<const GLfloat*>(value.data())));
+        return true;
+    }
+    return false;
+}
+
+bool GLShaderProgram::set_uniform(const char* name, const Matrix4d& value) const
+{
+    return set_uniform(name, (Matrix4f)value.cast<float>());
+}
+
 bool GLShaderProgram::set_uniform(const char* name, const Vec3f& value) const
 {
     int id = get_uniform_location(name);
@@ -359,6 +373,16 @@ bool GLShaderProgram::set_uniform(const char* name, const Vec3d& value) const
     return set_uniform(name, static_cast<Vec3f>(value.cast<float>()));
 }
 
+bool GLShaderProgram::set_uniform(const char* name, const ColorRGB& value) const
+{
+    int id = get_uniform_location(name);
+    if (id >= 0) {
+        glsafe(::glUniform3fv(id, 1, static_cast<const GLfloat*>(value.data())));
+        return true;
+    }
+    return false;
+}
+
 int GLShaderProgram::get_attrib_location(const char* name) const
 {
     assert(m_id > 0);
@@ -367,13 +391,13 @@ int GLShaderProgram::get_attrib_location(const char* name) const
         // Shader program not loaded. This should not happen.
         return -1;
 
-    //auto it = std::find_if(m_attrib_location_cache.begin(), m_attrib_location_cache.end(), [name](const auto& p) { return p.first == name; });
-    //if (it != m_attrib_location_cache.end())
-    //    // Attrib ID cached.
-    //    return it->second;
+    auto it = std::find_if(m_attrib_location_cache.begin(), m_attrib_location_cache.end(), [name](const auto& p) { return p.first == name; });
+    if (it != m_attrib_location_cache.end())
+        // Attrib ID cached.
+        return it->second;
 
     int id = ::glGetAttribLocation(m_id, name);
-    //const_cast<GLShaderProgram*>(this)->m_attrib_location_cache.push_back({ name, id });
+    const_cast<GLShaderProgram*>(this)->m_attrib_location_cache.push_back({ name, id });
     return id;
 }
 

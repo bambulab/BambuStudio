@@ -428,11 +428,11 @@ void CreateObjectJob::finalize(bool canceled, std::exception_ptr &eptr)
         ModelObject *new_object = model.add_object();
         new_object->name        = m_input.base->volume_name;
         new_object->add_instance(); // each object should have at list one instance
-
+        new_object->config.set_key_value("extruder", new ConfigOptionInt(1));
         if (!m_result.empty()) {
             ModelVolume *new_volume = new_object->add_volume(std::move(m_result));
             // set a default extruder value, since user can't add it manually
-            new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+            new_volume->config.set_key_value("extruder", new ConfigOptionInt(1));
             // write emboss data into volume
             m_input.base->write(*new_volume);
         } else if (!m_results.empty()) {
@@ -442,7 +442,7 @@ void CreateObjectJob::finalize(bool canceled, std::exception_ptr &eptr)
                     continue;
                 ModelVolume *new_volume = new_object->add_volume(std::move(m_results[index]));
                 // set a default extruder value, since user can't add it manually
-                new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+                new_volume->config.set_key_value("extruder", new ConfigOptionInt(1));
                 //donot write emboss data into volume
                 new_volume->name = new_object->name + "_" + std::to_string(index);
                 index++;
@@ -666,7 +666,8 @@ std::vector<TriangleMesh> create_meshs(DataBase &input)
 
     for (auto shape : input.shape.shapes_with_ids) {
         if (shape.expoly.empty()) continue;
-        meshs.emplace_back(TriangleMesh(polygons2model(shape.expoly, project)));
+        HealedExPolygons result = Slic3r::Emboss::union_with_delta(shape.expoly, UNION_DELTA, UNION_MAX_ITERATIN);
+        meshs.emplace_back(TriangleMesh(polygons2model(result.expolygons, project)));
     }
     return meshs;
 }

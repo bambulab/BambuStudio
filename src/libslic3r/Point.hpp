@@ -213,6 +213,14 @@ public:
             return this->x() < rhs.x() || this->y() < rhs.y();
         return false;
     }
+    bool any_comp(const coord_t val, const std::string &op)
+    {
+        if (op == ">")
+            return this->x() > val || this->y() > val;
+        else if (op == "<")
+            return this->x() < val || this->y() < val;
+        return false;
+    }
 
     void   rotate(double angle) { this->rotate(std::cos(angle), std::sin(angle)); }
     void   rotate(double cos_a, double sin_a) {
@@ -236,6 +244,7 @@ public:
     double ccw_angle(const Point &p1, const Point &p2) const;
     Point  projection_onto(const MultiPoint &poly) const;
     Point  projection_onto(const Line &line) const;
+    bool   is_in_lines(const Points &pts) const;
 };
 
 inline bool operator<(const Point &l, const Point &r)
@@ -398,7 +407,7 @@ public:
 			++ m_grid_log2;
 		m_grid_resolution = 1 << m_grid_log2;
 		assert(m_grid_resolution >= gridres);
-		assert(gridres > m_grid_resolution / 2);
+		assert(gridres >= m_grid_resolution / 2);
     }
 
     void insert(const ValueType &value) {
@@ -609,6 +618,34 @@ inline Point   align_to_grid(Point   coord, Point   spacing, Point   base)
         return false;
     }
 } // namespace Slic3r
+
+// requseted by ConfigOptionPointsGroups
+namespace std {
+    template<>
+    struct hash<Slic3r::Vec2ds> {
+        size_t operator()(const Slic3r::Vec2ds& vec) {
+            size_t seed = 0;
+            for (const auto& element : vec) {
+                seed ^= std::hash<double>()(element[0]) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+                seed ^= std::hash<double>()(element[1]) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            }
+            return seed;
+        }
+    };
+
+    template<>
+    struct hash<std::vector<int>>
+    {
+        size_t operator()(const std::vector<int> &vec)
+        {
+            size_t seed = 0;
+            for (const auto &element : vec) {
+                seed ^= std::hash<double>()(element) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            }
+            return seed;
+        }
+    };
+}
 
 // start Boost
 #include <boost/version.hpp>

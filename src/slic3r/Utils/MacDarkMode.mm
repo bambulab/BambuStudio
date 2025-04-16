@@ -152,6 +152,8 @@ void openFolderForFile(wxString const & file)
 {
     NSURL* url = [NSURL URLFromPasteboard:[info draggingPasteboard]];
     NSString * path = [url path];
+    if (path == nil)
+        return TRUE;
     url = [NSURL fileURLWithPath: path];
     [self loadFileURL:url allowingReadAccessToURL:url];
     return TRUE;
@@ -413,4 +415,13 @@ void initGestures(void * view,  wxEvtHandler * handler)
 }
 
 }
+}
+
+void StaticGroup_layoutBadge(void * group, void * badge)
+{
+    NSView * vg = (NSView *)group;
+    NSView * vb = (NSView *)badge;
+    vb.translatesAutoresizingMaskIntoConstraints = NO;
+    [vg addConstraint: [NSLayoutConstraint constraintWithItem:vb attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:vg attribute:NSLayoutAttributeTop multiplier:1.0 constant:15]];
+    [vg addConstraint: [NSLayoutConstraint constraintWithItem:vb attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationEqual toItem:vg attribute:NSLayoutAttributeRight multiplier:1.0 constant:-1]];
 }

@@ -10,6 +10,7 @@
 
 #include <libnest2d/geometry_traits.hpp>
 #define LARGE_COST_TO_REJECT 1e7
+#define COST_OF_NEW_PLATE 0.1
 
 namespace libnest2d {
 
@@ -75,8 +76,8 @@ class _Item {
 
 public:
     int itemid_{ 0 };
-    std::vector<int> extrude_ids;
-    int filament_temp_type = -1; // -1 means unset. otherwise should be {0,1,2}
+    std::map<int, std::string> extrude_id_filament_types; // extrude id to filament type
+    int filament_temp_type = -1; // -1 means unset. otherwise should be one of FilamentTempType ie {0,1,2}
     double height{ 0 };
     double print_temp{ 0 };
     double bed_temp{ 0 };
@@ -85,7 +86,9 @@ public:
     //BBS: virtual object to mark unprintable region on heatbed
     bool is_virt_object{ false };
     bool is_wipe_tower{ false };
-    bool has_tried_with_excluded{ false };
+    bool is_extrusion_cali_object{ false };
+    bool has_tried_without_extrusion_cali_obj{ false };
+    std::vector<double> allowed_rotations{0.};
 
     /// The type of the shape which was handed over as the template argument.
     using ShapeType = RawShape;

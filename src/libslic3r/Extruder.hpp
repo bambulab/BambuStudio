@@ -17,8 +17,8 @@ public:
     void   reset() {
         // BBS
         if (m_share_extruder) {
-            m_share_E = 0.;
-            m_share_retracted = 0.;
+            m_share_E = { 0.,0.};
+            m_share_retracted = { 0.,0. };
         } else {
             m_E             = 0;
             m_retracted     = 0;
@@ -30,11 +30,12 @@ public:
 
     unsigned int id() const { return m_id; }
 
+    unsigned int extruder_id() const;
     double extrude(double dE);
     double retract(double length, double restart_extra);
     double unretract();
-    double E() const { return m_share_extruder ? m_share_E : m_E; }
-    void   reset_E() { m_E = 0.; m_share_E = 0.; }
+    double E() const { return m_share_extruder ? m_share_E[extruder_id()] : m_E; }
+    void   reset_E() { m_E = 0.; m_share_E[extruder_id()] = 0.; }
     double e_per_mm(double mm3_per_mm) const { return mm3_per_mm * m_e_per_mm3; }
     double e_per_mm3() const { return m_e_per_mm3; }
     // Used filament volume in mm^3.
@@ -77,8 +78,8 @@ private:
     // BBS.
     // Create shared E and retraction data for single extruder multi-material machine
     bool          m_share_extruder;
-    static double m_share_E;
-    static double m_share_retracted;
+    static std::vector<double> m_share_E;
+    static std::vector<double> m_share_retracted;
 };
 
 // Sort Extruder objects by the extruder id by default.

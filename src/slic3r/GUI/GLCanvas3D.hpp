@@ -5,6 +5,8 @@
 #include <memory>
 #include <chrono>
 #include <cstdint>
+#include <stack>
+#include <vector>
 
 #include "GLToolbar.hpp"
 #include "Event.hpp"
@@ -19,6 +21,8 @@
 #include "IMToolbar.hpp"
 #include "slic3r/GUI/3DBed.hpp"
 #include "libslic3r/Slicing.hpp"
+#include "libslic3r/Point.hpp"
+#include "GLEnums.hpp"
 
 #include <float.h>
 
@@ -45,7 +49,7 @@ struct ThumbnailData;
 struct ThumbnailsParams;
 class ModelObject;
 class ModelInstance;
-class TextInfo;
+struct TextInfo;
 class PrintObject;
 class Print;
 class SLAPrint;
@@ -160,6 +164,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
 //BBS: add arrange and orient event
 wxDECLARE_EVENT(EVT_GLCANVAS_ARRANGE_PARTPLATE, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_ARRANGE_OUTPLATE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ORIENT, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ORIENT_PARTPLATE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_SELECT_CURR_PLATE_ALL, SimpleEvent);
@@ -260,6 +265,15 @@ class GLCanvas3D
         };
         LayersTexture   m_layers_texture;
 
+        mutable GLModel m_background;
+        mutable float m_cached_background_thickness{ 0.0f };
+        mutable Transform3d m_model_matrix_for_background{ Transform3d::Identity() };
+        mutable Matrix3d m_normal_matrix_for_background{ Matrix3d::Identity() };
+
+        mutable GLModel m_baseline;
+        mutable GLModel m_profile_curve;
+        mutable bool m_profile_dirty{ true };
+
     public:
         EState state{ Unknown };
         float band_width{ 2.0f };
@@ -306,7 +320,7 @@ class GLCanvas3D
         bool is_initialized() const;
         void generate_layer_height_texture();
 
-        void render_background_texture(const GLCanvas3D& canvas, const Rect& bar_rect);
+        void render_background_texture(const GLCanvas3D& canvas);
         void render_curve(const Rect& bar_rect);
 
         void update_slicing_parameters();
@@ -338,6 +352,8 @@ class GLCanvas3D
         Drag drag;
         bool ignore_left_up;
         bool ignore_right_up;
+        bool rotating{ false };
+        bool panning{ false };
 
         Mouse();
 
@@ -358,12 +374,12 @@ class GLCanvas3D
     {
         struct Triangles
         {
-            Pointf3s object;
-            Pointf3s supports;
+            GLModel object;
+            GLModel supports;
         };
-        typedef std::map<unsigned int, Triangles> ObjectIdToTrianglesMap;
+        typedef std::map<unsigned int, Triangles> ObjectIdToModelsMap;
         double z;
-        ObjectIdToTrianglesMap triangles;
+        ObjectIdToModelsMap triangles;
 
         SlaCap() { reset(); }
         void reset() { z = DBL_MAX; triangles.clear(); }
@@ -376,9 +392,17 @@ class GLCanvas3D
         SlaSupportsOutside,
         SomethingNotShown,
         ObjectClashed,
+        ObjectLimited,
         GCodeConflict,
         ToolHeightOutside,
-        FilamentUnPrintableOnFirstLayer
+        TPUPrintableError,
+        FilamentPrintableError,
+        LeftExtruderPrintableError, // before slice
+        RightExtruderPrintableError, // before slice
+        MultiExtruderPrintableError,      // after slice
+        MultiExtruderHeightOutside,       // after slice
+        FilamentUnPrintableOnFirstLayer,
+        MixUsePLAAndPETG
     };
 
     class RenderStats
@@ -467,6 +491,25 @@ class GLCanvas3D
         virtual void Notify() override;
     };
 
+    class RenderPipelineStageModifier
+    {
+    public:
+        explicit RenderPipelineStageModifier(GLCanvas3D& canvas, ERenderPipelineStage stage);
+        ~RenderPipelineStageModifier();
+
+    private:
+        // no copy
+        RenderPipelineStageModifier(const RenderPipelineStageModifier&) = delete;
+        RenderPipelineStageModifier(RenderPipelineStageModifier&&) = delete;
+
+        // no assign
+        RenderPipelineStageModifier& operator=(const RenderPipelineStageModifier&) = delete;
+        RenderPipelineStageModifier& operator=(RenderPipelineStageModifier&&) = delete;
+    private:
+        GLCanvas3D& m_canvas;
+        ERenderPipelineStage m_stage;
+    };
+
 public:
     enum ECursorType : unsigned char
     {
@@ -485,6 +528,18 @@ public:
         //BBS: add more arrangeSettings
         bool is_seq_print        = false;
         bool  align_to_y_axis    = false;
+        bool        save_svg            = false; // for debug
+        std::string postfix;
+        void        reset()
+        {
+            distance                            = 0.f;
+            accuracy                            = 0.65f;
+            enable_rotation                     = false;
+            allow_multi_materials_on_same_plate = true;
+            avoid_extrusion_cali_region         = true;
+            is_seq_print                        = false;
+            align_to_y_axis                     = false;
+        }
     };
 
     struct OrientSettings
@@ -509,6 +564,7 @@ private:
     bool m_is_dark = false;
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
+    bool m_dirty_context{ true };
     Bed3D &m_bed;
     std::map<std::string, wxString> m_assembly_view_desc;
 #if ENABLE_RETINA_GL
@@ -527,6 +583,8 @@ private:
     mutable IMToolbar m_sel_plate_toolbar;
     mutable GLToolbar m_assemble_view_toolbar;
     mutable IMReturnToolbar m_return_toolbar;
+    mutable Vec2i              m_fit_camrea_button_pos = {128, 5};
+    mutable float              m_sc{1};
     mutable float m_paint_toolbar_width;
 
     //BBS: add canvas type for assemble view usage
@@ -622,6 +680,16 @@ private:
     int custom_height_count = 0;
     int assembly_view_count = 0;
 
+    std::stack<ERenderPipelineStage> m_render_pipeline_stage_stack;
+    static GLModel s_full_screen_mesh;
+
+    using FrameCallback = std::function<void()>;
+    std::vector<FrameCallback> m_frame_callback_list;
+
+#if ENABLE_SHOW_CAMERA_TARGET
+    mutable GLModel m_camera_target_mark;
+#endif // ENABLE_SHOW_CAMERA_TARGET
+
 public:
     OrientSettings& get_orient_settings()
     {
@@ -656,10 +724,12 @@ public:
 
     public:
         //BBS: add the height logic
+        ~SequentialPrintClearance();
         void set_polygons(const Polygons& polygons, const std::vector<std::pair<Polygon, float>>& height_polygons);
         void set_render_fill(bool render_fill) { m_render_fill = render_fill; }
         void set_visible(bool visible) { m_visible = visible; }
         void render();
+        void reset();
 
         friend class GLCanvas3D;
     };
@@ -698,6 +768,10 @@ public:
 
     }
     m_gizmo_highlighter;
+    bool    m_can_show_navigator = true;
+
+    // for debug draw
+    GLModel m_unit_cube;
 
 public:
     explicit GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed);
@@ -705,8 +779,8 @@ public:
 
     bool is_initialized() const { return m_initialized; }
 
-    void set_context(wxGLContext* context) { m_context = context; }
-    void set_type(ECanvasType type) { m_canvas_type = type; }
+    void set_context(wxGLContext* context);
+    void set_type(ECanvasType type);
     ECanvasType get_canvas_type() { return m_canvas_type; }
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
@@ -725,7 +799,7 @@ public:
     unsigned int get_volumes_count() const;
     const GLVolumeCollection& get_volumes() const { return m_volumes; }
     void reset_volumes();
-    ModelInstanceEPrintVolumeState check_volumes_outside_state() const;
+    ModelInstanceEPrintVolumeState check_volumes_outside_state(ObjectFilamentResults* object_results = nullptr) const;
     bool is_all_plates_selected() { return m_sel_plate_toolbar.m_all_plates_stats_item && m_sel_plate_toolbar.m_all_plates_stats_item->selected; }
     const float get_scale() const;
 
@@ -781,7 +855,8 @@ public:
     void refresh_camera_scene_box();
 
     BoundingBoxf3 assembly_view_cur_bounding_box() const;
-    BoundingBoxf3 volumes_bounding_box() const;
+    BoundingBoxf3 volumes_bounding_box(bool limit_to_expand_plate) const;
+    bool          is_volumes_limit_to_expand_plate() const;
     BoundingBoxf3 scene_bounding_box() const;
     BoundingBoxf3 plate_scene_bounding_box(int plate_idx) const;
 
@@ -852,38 +927,29 @@ public:
     // parts_only == false -> render also sla support and pad
     void render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
                                  Camera::EType           camera_type,
-                                 bool                    use_top_view = false,
+                                 Camera::ViewAngleType   camera_view_angle_type = Camera::ViewAngleType::Iso,
                                  bool                    for_picking  = false,
                                  bool                    ban_light    = false);
-    void render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
+    void render_thumbnail(ThumbnailData &           thumbnail_data,
+                                 std::vector<std::array<float, 4>> &extruder_colors,
+                                 unsigned int              w,
+                                 unsigned int              h,
+                                 const ThumbnailsParams &  thumbnail_params,
+                                 ModelObjectPtrs &         model_objects,
                                  const GLVolumeCollection &volumes,
                                  Camera::EType             camera_type,
-                                 bool                      use_top_view = false,
+                                 Camera::ViewAngleType     camera_view_angle_type = Camera::ViewAngleType::Iso,
                                  bool                      for_picking  = false,
                                  bool                      ban_light    = false);
-    static void render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects,
-        const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
-                                          GLShaderProgram *                  shader,
-                                          Camera::EType                      camera_type,
-                                          bool                               use_top_view = false,
-                                          bool                               for_picking  = false,
-                                          bool                               ban_light    = false);
+
     // render thumbnail using an off-screen framebuffer
-    static void render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
+    static void render_thumbnail_framebuffer(const std::shared_ptr<OpenGLManager>& p_ogl_manager, ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
         PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
-                                             GLShaderProgram *                  shader,
+                                             const std::shared_ptr<GLShaderProgram>& shader,
                                              Camera::EType                      camera_type,
-                                             bool                               use_top_view = false,
+                                             Camera::ViewAngleType              camera_view_angle_type = Camera::ViewAngleType::Iso,
                                              bool                               for_picking  = false,
                                              bool                               ban_light    = false);
-    // render thumbnail using an off-screen framebuffer when GLEW_EXT_framebuffer_object is supported
-    static void render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
-        PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
-                                                 GLShaderProgram *                  shader,
-                                                 Camera::EType                      camera_type,
-                                                 bool                               use_top_view = false,
-                                                 bool                               for_picking  = false,
-                                                 bool                               ban_light    = false);
 
     //BBS use gcoder viewer render calibration thumbnails
     void render_calibration_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params);
@@ -1092,9 +1158,11 @@ public:
 
     // Convert the screen space coordinate to an object space coordinate.
     // If the Z screen space coordinate is not provided, a depth buffer value is substituted.
-    Vec3d _mouse_to_3d(const Point& mouse_pos, float* z = nullptr);
+    Vec3d _mouse_to_3d(const Camera& camera, const Point& mouse_pos, float* z = nullptr, const std::string& frame_name = "");
 
     bool make_current_for_postinit();
+
+    void mark_context_dirty();
 
 private:
     bool _is_shown_on_screen() const;
@@ -1111,11 +1179,11 @@ private:
     //bool _init_view_toolbar();
     bool _init_collapse_toolbar();
 
-    bool _set_current();
+    bool _set_current(bool force_update = false);
     void _resize(unsigned int w, unsigned int h);
 
     //BBS: add part plate related logic
-    BoundingBoxf3 _max_bounding_box(bool include_gizmos, bool include_bed_model, bool include_plates) const;
+    BoundingBoxf3 _max_bounding_box(bool include_gizmos, bool include_bed_model, bool include_plates, bool volumes_limit_to_expand_plate) const;
 
     void _zoom_to_box(const BoundingBoxf3& box, double margin_factor = DefaultCameraZoomToBoxMarginFactor);
     void _update_camera_zoom(double zoom);
@@ -1151,6 +1219,7 @@ private:
     void _render_imgui_select_plate_toolbar();
     void _render_assemble_view_toolbar() const;
     void _render_return_toolbar();
+    void _render_fit_camera_toolbar();
     void _render_separator_toolbar_right() const;
     void _render_separator_toolbar_left() const;
     void _render_collapse_toolbar() const;
@@ -1168,21 +1237,8 @@ private:
     //BBS: GUI refactor: adjust main toolbar position
     bool _render_orient_menu(float left, float right, float bottom, float top);
     bool _render_arrange_menu(float left, float right, float bottom, float top);
-    // render thumbnail using the default framebuffer
-    void render_thumbnail_legacy(ThumbnailData &                    thumbnail_data,
-                                 unsigned int                       w,
-                                 unsigned int                       h,
-                                 const ThumbnailsParams &           thumbnail_params,
-                                 PartPlateList &                    partplate_list,
-                                 ModelObjectPtrs &                  model_objects,
-                                 const GLVolumeCollection &         volumes,
-                                 std::vector<std::array<float, 4>> &extruder_colors,
-                                 GLShaderProgram *                  shader,
-                                 Camera::EType                      camera_type,
-                                 bool                               use_top_view = false,
-                                 bool                               for_picking  = false,
-                                 bool                               ban_light = false);
-
+    void _render_3d_navigator();
+    bool can_show_3d_navigator();
     void _update_volumes_hover_state();
 
     // Convert the screen space coordinate to world coordinate on the bed.
@@ -1229,6 +1285,33 @@ private:
     float get_overlay_window_width() { return 0; /*LayersEditing::get_overlay_window_width();*/ }
 
     static std::vector<std::array<float, 4>> _parse_colors(const std::vector<std::string>& colors);
+
+    void _push_render_stage(ERenderPipelineStage stage);
+    void _pop_render_stage();
+    ERenderPipelineStage _get_current_render_stage() const;
+
+    void _render_silhouette_effect();
+    void _composite_silhouette_effect();
+
+    void _debug_draw_camera(const Camera& t_camera);
+
+    void _debug_draw_aabb();
+
+    void _init_unit_cube();
+
+    void _append_to_frame_callback(const FrameCallback& cb);
+
+    static void _init_fullscreen_mesh();
+
+    static void _rebuild_postprocessing_pipeline(const std::shared_ptr<OpenGLManager>& p_ogl_manager, const std::string& input_framebuffer_name, std::string& output_framebuffer_name, uint32_t width, uint32_t height);
+
+    static void _render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects,
+        const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
+        const std::shared_ptr<GLShaderProgram>& shader,
+        Camera::EType                      camera_type,
+        Camera::ViewAngleType              camera_view_angle_type = Camera::ViewAngleType::Iso,
+        bool                               for_picking = false,
+        bool                               ban_light = false);
 };
 
 const ModelVolume *get_model_volume(const GLVolume &v, const Model &model);
@@ -1239,6 +1322,7 @@ ModelVolume *get_model_volume(const GLVolume &v, const ModelObject &object);
 GLVolume *get_first_hovered_gl_volume(const GLCanvas3D &canvas);
 GLVolume *get_selected_gl_volume(const GLCanvas3D &canvas);
 
+ModelObject *get_selected_model_object(GLCanvas3D &canvas);
 ModelObject *get_model_object(const GLVolume &gl_volume, const Model &model);
 ModelObject *get_model_object(const GLVolume &gl_volume, const ModelObjectPtrs &objects);
 

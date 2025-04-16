@@ -36,6 +36,7 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_PARSE_CONFIG_FAILED           -23
 #define BAMBU_NETWORK_ERR_NO_CORRESPONDING_BUCKET       -24
 #define BAMBU_NETWORK_ERR_GET_INSTANCE_ID_FAILED        -25
+#define BAMBU_NETWORK_SIGNED_ERROR                      -26
 
 //bind error
 #define BAMBU_NETWORK_ERR_BIND_CREATE_SOCKET_FAILED          -1010 //failed to create socket
@@ -96,8 +97,7 @@ namespace BBL {
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
 
-#define BAMBU_NETWORK_AGENT_VERSION         "01.10.02.06"
-
+#define BAMBU_NETWORK_AGENT_VERSION         "02.00.02.50"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -202,7 +202,9 @@ struct PrintParams {
     std::string     ftp_file;
     std::string     ftp_file_md5;
     std::string     ams_mapping;
+    std::string     ams_mapping2;
     std::string     ams_mapping_info;
+    std::string     nozzles_info;
     std::string     connection_type;
     std::string     comments;
     int             origin_profile_id = 0;
@@ -228,6 +230,9 @@ struct PrintParams {
     bool            task_use_ams;
     std::string     task_bed_type;
     std::string     extra_options;
+    int             auto_bed_leveling{ 0 };
+    int             auto_flow_cali{ 0 };
+    int             auto_offset_cali{ 0 };
 };
 
 struct TaskQueryParams

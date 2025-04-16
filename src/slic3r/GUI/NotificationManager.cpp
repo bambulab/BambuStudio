@@ -22,6 +22,7 @@
 #include <wx/glcanvas.h>
 
 #include "GUI_App.hpp"
+#include "FilamentMapDialog.hpp"
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -1725,10 +1726,41 @@ void NotificationManager::push_plater_error_notification(const std::string& text
 void NotificationManager::close_plater_error_notification(const std::string& text)
 {
 	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
-		if (notification->get_type() == NotificationType::PlaterError && notification->compare_text(_u8L("Error:") + "\n" + text)) {
+		if (notification->get_type() == NotificationType::PlaterError) {
 			notification->close();
 		}
 	}
+}
+
+void NotificationManager::push_general_error_notification(const std::string& text)
+{
+	push_notification_data({ NotificationType::BBLGeneralError, NotificationLevel::ErrorNotificationLevel, 0,  _u8L("Error:") + "\n" + text }, 0);
+}
+
+void NotificationManager::close_general_error_notification(const std::string& text)
+{
+	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
+		if (notification->get_type() == NotificationType::BBLGeneralError && notification->compare_text(_u8L("Error:") + "\n" + text)) {
+			notification->close();
+		}
+	}
+}
+
+void NotificationManager::push_slicing_customize_error_notification(NotificationType type, NotificationLevel level, const std::string &text, const std::string &hypertext, std::function<bool(wxEvtHandler *)> callback)
+{
+    set_all_slicing_errors_gray(false);
+    std::string prefix_msg = level == NotificationLevel::WarningNotificationLevel ? _u8L("Warning:") : _u8L("Error:");
+    push_notification_data({type, level, 0, prefix_msg + "\n" + text, hypertext, callback}, 0);
+    set_slicing_progress_hidden();
+}
+
+void NotificationManager::close_slicing_customize_error_notification(NotificationType type, NotificationLevel level)
+{
+    for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
+        if (notification->get_type() == type && notification->get_data().level == level) {
+            notification->close();
+        }
+    }
 }
 
 void NotificationManager::push_plater_warning_notification(const std::string& text)
@@ -1759,6 +1791,8 @@ void NotificationManager::close_plater_warning_notification(const std::string& t
 		}
 	}
 }
+
+
 void NotificationManager::set_all_slicing_errors_gray(bool g)
 {
 	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
@@ -2765,6 +2799,46 @@ void NotificationManager::bbl_show_bed_filament_incompatible_notification(const 
 void NotificationManager::bbl_close_bed_filament_incompatible_notification()
 {
 	close_notification_of_type(NotificationType::BBLBedFilamentIncompatible);
+}
+
+void NotificationManager::bbl_show_filament_map_invalid_notification_before_slice(const NotificationType type,const std::string& text)
+{
+    auto callback = [](wxEvtHandler*) {
+        auto plater = wxGetApp().plater();
+        auto partplate = plater->get_partplate_list().get_curr_plate();
+        try_pop_up_before_slice(false, plater, partplate, true); // ignore the return value
+        return false;
+    };
+
+    push_notification_data({ type,NotificationLevel::ErrorNotificationLevel,0,_u8L("Error:") + "\n" + text,_u8L("Click here to regroup"),callback }, 0);
+}
+
+void NotificationManager::bbl_close_filament_map_invalid_notification_before_slice(const NotificationType type)
+{
+    close_notification_of_type(type);
+}
+
+void NotificationManager::bbl_show_filament_map_invalid_notification_after_slice(const NotificationType type, const std::string& text)
+{
+    auto callback = [](wxEvtHandler*) {
+        auto plater = wxGetApp().plater();
+        wxCommandEvent evt(EVT_OPEN_FILAMENT_MAP_SETTINGS_DIALOG);
+        evt.SetEventObject(plater);
+        auto canvas_type = plater->canvas3D()->get_canvas_type();
+        if (canvas_type == GLCanvas3D::ECanvasType::CanvasPreview)
+            evt.SetInt(1); // 1 means from gcode viewer, should do slice right now
+        else
+            evt.SetInt(0);
+        wxPostEvent(plater, evt);
+        return false;
+    };
+
+    push_notification_data({ type,NotificationLevel::ErrorNotificationLevel,0,_u8L("Error:") + "\n" + text,_u8L("Click here to regroup"),callback }, 0);
+}
+
+void NotificationManager::bbl_close_filament_map_invalid_notification_after_slice(const NotificationType type)
+{
+    close_notification_of_type(type);
 }
 
 void NotificationManager::bbl_show_sole_text_notification(NotificationType sType, const std::string &text, bool bOverride, int level, bool autohide) {

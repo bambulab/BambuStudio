@@ -18,7 +18,7 @@ ExtrusionCalibration::ExtrusionCalibration(wxWindow *parent, wxWindowID id)
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
-void ExtrusionCalibration::init_bitmaps() 
+void ExtrusionCalibration::init_bitmaps()
 {
     auto lan = wxGetApp().app_config->get_language_code();
     if (lan == "zh-cn") {
@@ -211,7 +211,7 @@ void ExtrusionCalibration::create()
     cali_sizer->Add(m_button_cali, 0, wxRIGHT | wxALIGN_CENTRE_VERTICAL, FromDIP(10));
     cali_sizer->Add(m_cali_cancel, 0, wxRIGHT | wxALIGN_CENTRE_VERTICAL, FromDIP(10));
     cali_sizer->Add(m_button_next_step, 0, wxRIGHT | wxALIGN_CENTRE_VERTICAL, FromDIP(10));
-    
+
     step_1_sizer->Add(cali_sizer, 0, wxEXPAND);
     step_1_sizer->Add(0, EXTRUSION_CALIBRATION_WIDGET_GAP, 0, 0);
 
@@ -377,7 +377,7 @@ void ExtrusionCalibration::open_bitmap(wxMouseEvent& event) {
     return;
 }
 
-void ExtrusionCalibration::input_value_finish() 
+void ExtrusionCalibration::input_value_finish()
 {
     ;
 }
@@ -414,7 +414,7 @@ void ExtrusionCalibration::show_info(bool show, bool is_error, wxString text)
 void ExtrusionCalibration::update()
 {
     if (obj) {
-        if (obj->is_in_extrusion_cali()) {            
+        if (obj->is_in_extrusion_cali()) {
             show_info(true, false, wxString::Format(_L("Calibrating... %d%%"), obj->mc_print_percent));
             m_cali_cancel->Show();
             m_cali_cancel->Enable();
@@ -462,14 +462,14 @@ void ExtrusionCalibration::on_click_cali(wxCommandEvent& event)
                 if (filament_name.compare(m_comboBox_filament->GetValue()) == 0) {
                     try {
                         bed_temp = get_bed_temp(&it->config);
-                        const ConfigOptionInts* nozzle_temp_opt = it->config.option<ConfigOptionInts>("nozzle_temperature");
-                        const ConfigOptionFloats* speed_opt = it->config.option<ConfigOptionFloats>("filament_max_volumetric_speed");
+                        const ConfigOptionIntsNullable* nozzle_temp_opt = it->config.option<ConfigOptionIntsNullable>("nozzle_temperature");
+                        const ConfigOptionFloatsNullable* speed_opt = it->config.option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed");
                         if (nozzle_temp_opt && speed_opt) {
                             nozzle_temp = nozzle_temp_opt->get_at(0);
                             max_volumetric_speed = speed_opt->get_at(0);
                             if (bed_temp >= 0 && nozzle_temp >= 0 && max_volumetric_speed >= 0) {
                                 int curr_tray_id = ams_id * 4 + tray_id;
-                                if (tray_id == VIRTUAL_TRAY_ID)
+                                if (tray_id == VIRTUAL_TRAY_MAIN_ID)
                                     curr_tray_id = tray_id;
                                 obj->command_start_extrusion_cali(curr_tray_id, nozzle_temp, bed_temp, max_volumetric_speed, it->setting_id);
                                 return;
@@ -510,7 +510,7 @@ bool ExtrusionCalibration::check_k_validation(wxString k_text)
         ;
     }
 
-    if (k < MIN_PA_K_VALUE || k > MAX_PA_K_VALUE)
+    if (k <= MIN_PA_K_VALUE || k >= MAX_PA_K_VALUE)
         return false;
     return true;
 }
@@ -534,7 +534,7 @@ bool ExtrusionCalibration::check_k_n_validation(wxString k_text, wxString n_text
     catch (...) {
         ;
     }
-    if (k < MIN_PA_K_VALUE || k > MAX_PA_K_VALUE)
+    if (k <= MIN_PA_K_VALUE || k >= MAX_PA_K_VALUE)
         return false;
     if (n < 0.6 || n > 2.0)
         return false;
@@ -582,8 +582,8 @@ void ExtrusionCalibration::on_click_save(wxCommandEvent &event)
             if (filament_name.compare(m_comboBox_filament->GetValue()) == 0) {
                 if (obj) {
                     bed_temp    = get_bed_temp(&it->config);
-                    const ConfigOptionInts* nozzle_temp_opt = it->config.option<ConfigOptionInts>("nozzle_temperature");
-                    const ConfigOptionFloats* speed_opt = it->config.option<ConfigOptionFloats>("filament_max_volumetric_speed");
+                    const ConfigOptionIntsNullable* nozzle_temp_opt = it->config.option<ConfigOptionIntsNullable>("nozzle_temperature");
+                    const ConfigOptionFloatsNullable* speed_opt = it->config.option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed");
                     if (nozzle_temp_opt && speed_opt) {
                         nozzle_temp = nozzle_temp_opt->get_at(0);
                         max_volumetric_speed = speed_opt->get_at(0);
@@ -597,7 +597,7 @@ void ExtrusionCalibration::on_click_save(wxCommandEvent &event)
 
     // send command
     int curr_tray_id = ams_id * 4 + tray_id;
-    if (tray_id == VIRTUAL_TRAY_ID)
+    if (tray_id == VIRTUAL_TRAY_MAIN_ID)
         curr_tray_id = tray_id;
     obj->command_extrusion_cali_set(curr_tray_id, setting_id, name, k, n, bed_temp, nozzle_temp, max_volumetric_speed);
     Close();
@@ -613,13 +613,13 @@ void ExtrusionCalibration::on_click_next(wxCommandEvent& event)
     set_step(2);
 }
 
-bool ExtrusionCalibration::Show(bool show) 
-{ 
+bool ExtrusionCalibration::Show(bool show)
+{
     if (show) {
         m_k_val->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
         m_n_val->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
     }
-    return DPIDialog::Show(show); 
+    return DPIDialog::Show(show);
 }
 
 void ExtrusionCalibration::update_combobox_filaments()
@@ -799,7 +799,7 @@ void ExtrusionCalibration::update_filament_info()
                 // update nozzle temperature
                 ConfigOption* opt_nozzle_temp = filament_it->config.option("nozzle_temperature");
                 if (opt_nozzle_temp) {
-                    ConfigOptionInts* opt_min_ints = dynamic_cast<ConfigOptionInts*>(opt_nozzle_temp);
+                    ConfigOptionIntsNullable* opt_min_ints = dynamic_cast<ConfigOptionIntsNullable*>(opt_nozzle_temp);
                     if (opt_min_ints) {
                         wxString text_nozzle_temp = wxString::Format("%d", opt_min_ints->get_at(0));
                         m_nozzle_temp->GetTextCtrl()->SetValue(text_nozzle_temp);
@@ -809,11 +809,11 @@ void ExtrusionCalibration::update_filament_info()
                 bed_temp_int = get_bed_temp(&filament_it->config);
                 wxString bed_temp_text = wxString::Format("%d", bed_temp_int);
                 m_bed_temp->GetTextCtrl()->SetValue(bed_temp_text);
-                
+
                 // update max flow speed
                 ConfigOption* opt_flow_speed = filament_it->config.option("filament_max_volumetric_speed");
                 if (opt_flow_speed) {
-                    ConfigOptionFloats* opt_flow_floats = dynamic_cast<ConfigOptionFloats*>(opt_flow_speed);
+                    ConfigOptionFloatsNullable* opt_flow_floats = dynamic_cast<ConfigOptionFloatsNullable*>(opt_flow_speed);
                     if (opt_flow_floats) {
                         wxString flow_val_text = wxString::Format("%0.2f", opt_flow_floats->get_at(0));
                         m_max_flow_ratio->GetTextCtrl()->SetValue(flow_val_text);

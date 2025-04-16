@@ -146,7 +146,7 @@ void CalibrationPAStartPage::on_reset_page()
 
 void CalibrationPAStartPage::on_device_connected(MachineObject* obj)
 {
-     update(obj);
+    update(obj);
 }
 
 void CalibrationPAStartPage::msw_rescale()
@@ -166,7 +166,7 @@ void CalibrationPAStartPage::update(MachineObject *obj)
         return;
     curr_obj = obj;
 
-    //enable all button
+    // enable all button
     m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, true);
     m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, true);
     m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
@@ -187,9 +187,8 @@ void CalibrationPAStartPage::update(MachineObject *obj)
             m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
         }
 
-        // is support auto cali
-        bool is_support_pa_auto = (obj->home_flag >> 16 & 1) == 1;
-        if (!is_support_pa_auto) {
+
+        if (!obj->is_support_pa_calibration) {
             m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
         }
     }
@@ -324,7 +323,14 @@ void CalibrationFlowRateStartPage::update(MachineObject *obj)
     m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, true);
     m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
 
-    if (obj->get_printer_series() == PrinterSeries::SERIES_X1) {
+    if (obj->is_multi_extruders() || obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
+        m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, false);
+        m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
+        m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
+
+        m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, false);
+    }
+    else if (obj->get_printer_series() == PrinterSeries::SERIES_X1) {
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, false);
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, true);
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
@@ -337,17 +343,9 @@ void CalibrationFlowRateStartPage::update(MachineObject *obj)
             m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, false);
         }
     }
-    else if (obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
-        m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, false);
-        m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
-        m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
-
-        m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, false);
-    }
 
     //is support auto cali
-    bool is_support_flow_rate_auto = (obj->home_flag >> 15 & 1) == 1;
-    if (!is_support_flow_rate_auto) {
+    if (!obj->is_support_flow_calibration) {
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
     }
 }

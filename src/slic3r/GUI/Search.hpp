@@ -62,6 +62,7 @@ struct Option
     std::wstring group_local;
     std::wstring category;
     std::wstring category_local;
+    bool multi_category { false };
 
     std::string opt_key() const;
 };
@@ -100,10 +101,7 @@ class OptionsSearcher
 
     void append_options(DynamicPrintConfig *config, Preset::Type type, ConfigOptionMode mode);
 
-    void sort_options()
-    {
-        std::sort(options.begin(), options.end(), [](const Option &o1, const Option &o2) { return o1.label < o2.label; });
-    }
+    void sort_options();
     void sort_found()
     {
         std::sort(found.begin(), found.end(),
@@ -132,7 +130,7 @@ public:
 
     const FoundOption &operator[](const size_t pos) const noexcept { return found[pos]; }
     const Option &     get_option(size_t pos_in_filter) const;
-    const Option &     get_option(const std::string &opt_key, Preset::Type type) const;
+    const Option &     get_option(const std::string &opt_key, Preset::Type type, int &variant_index) const;
     Option             get_option(const std::string &opt_key, const wxString &label, Preset::Type type) const;
 
     const std::vector<FoundOption> &found_options() { return found; }
@@ -210,7 +208,7 @@ public:
     int       em;
     const int POPUP_WIDTH  = 38;
     const int POPUP_HEIGHT = 40;
-
+    int       m_pop_width  = 400;
     TextInput *  search_line{nullptr};
     wxTextCtrl *  search_line2{nullptr};
     Preset::Type     search_type = Preset::TYPE_INVALID;

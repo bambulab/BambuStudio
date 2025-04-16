@@ -180,8 +180,12 @@ private:
 
     GLModel m_plane; // old name:PickingModel
 
+    GLModel m_grabber_model;
+
     Vec3d m_cut_line_begin{Vec3d::Zero()};
     Vec3d m_cut_line_end{Vec3d::Zero()};
+
+    GLModel m_cut_line_model;
 
     Transform3d m_rotate_matrix{Transform3d::Identity()};
     Transform3d m_start_dragging_m{Transform3d::Identity()};
@@ -207,7 +211,7 @@ public:
     GLGizmoAdvancedCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
 
     bool gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_position, bool shift_down, bool alt_down, bool control_down);
-    bool on_key(wxKeyEvent &evt);
+    bool on_key(const wxKeyEvent &evt) override;
 
     double get_movement() const { return m_movement; }
     void finish_rotation();
@@ -221,6 +225,8 @@ public:
     bool unproject_on_cut_plane(const Vec2d &mouse_pos, Vec3d &pos, Vec3d &pos_world, bool respect_contours = true);
 
     virtual bool apply_clipping_plane() { return m_connectors_editing; }
+
+    BoundingBoxf3 get_bounding_box() const override;
 
 protected:
     virtual bool on_init();

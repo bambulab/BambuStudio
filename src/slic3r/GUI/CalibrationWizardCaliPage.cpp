@@ -104,10 +104,25 @@ void CalibrationCaliPage::set_cali_img()
             m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_manual", 400));
         }
         else if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
-            if (curr_obj && curr_obj->get_printer_arch() == PrinterArch::ARCH_I3)
-                m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto_i3", 400));
-            else
+            if (curr_obj) {
+                if (curr_obj->is_multi_extruders()) {
+                    if (m_cur_extruder_id == 0) {
+                        m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto_multi_extruders_right", 400));
+                    } else {
+                        assert(m_cur_extruder_id == 1);
+                        m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto_multi_extruders_left", 400));
+                    }
+                }
+                else if (curr_obj->get_printer_arch() == PrinterArch::ARCH_I3) {
+                    m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto_i3", 400));
+                }
+                else {
+                    m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto", 400));
+                }
+            }
+            else {
                 m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto", 400));
+            }
         }
     }
     else if (m_cali_mode == CalibMode::Calib_Flow_Rate) {
@@ -174,6 +189,11 @@ void CalibrationCaliPage::update(MachineObject* obj)
     // enable calibration when finished
     bool enable_cali = false;
     if (obj) {
+        if (obj->m_extder_data.current_extder_id != m_cur_extruder_id) {
+            m_cur_extruder_id = obj->m_extder_data.current_extder_id;
+            set_cali_img();
+        }
+
         if (obj->print_error > 0) {
             StatusPanel* status_panel = Slic3r::GUI::wxGetApp().mainframe->m_monitor->get_status_panel();
             status_panel->obj = obj;
@@ -500,8 +520,8 @@ float CalibrationCaliPage::get_selected_calibration_nozzle_dia(MachineObject* ob
         return obj->cali_selected_nozzle_dia;
 
     // return default nozzle if nozzle diameter is set
-    if (obj->nozzle_diameter > 1e-3 && obj->nozzle_diameter < 10.0f)
-        return obj->nozzle_diameter;
+    if (obj->m_extder_data.extders[0].current_nozzle_diameter > 1e-3 && obj->m_extder_data.extders[0].current_nozzle_diameter < 10.0f)
+        return obj->m_extder_data.extders[0].current_nozzle_diameter;
 
     // return 0.4 by default
     return 0.4;

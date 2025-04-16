@@ -222,6 +222,7 @@ public:
     void                create_objects_ctrl();
     // BBS
     void                update_objects_list_filament_column(size_t filaments_count);
+    void                update_objects_list_filament_column_when_delete_filament(size_t filament_id, size_t filaments_count, int replace_filament_id = -1);
     void                update_filament_colors();
     // show/hide "Extruder" column for Objects List
     void                set_filament_column_hidden(const bool hide) const;
@@ -238,6 +239,7 @@ public:
     void                update_name_in_model(const wxDataViewItem& item) const;
     void                update_name_in_list(int obj_idx, int vol_idx) const;
     void                update_filament_values_for_items(const size_t filaments_count);
+    void                update_filament_values_for_items_when_delete_filament(const size_t filament_id, const int replace_id = -1);
 
     //BBS: update plate
     void                update_plate_values_for_items();
@@ -419,7 +421,7 @@ public:
     void update_and_show_object_settings_item();
     void update_settings_item_and_selection(wxDataViewItem item, wxDataViewItemArray& selections);
     void update_object_list_by_printer_technology();
-    void update_info_items(size_t obj_idx, wxDataViewItemArray* selections = nullptr, bool added_object = false);
+    void update_info_items(size_t obj_idx, wxDataViewItemArray *selections = nullptr, bool added_object = false, bool color_mode_changed = false);
     void update_variable_layer_obj_num(ObjectDataViewModelNode* obj_node, size_t layer_data_count);
 
     void instances_to_separated_object(const int obj_idx, const std::set<int>& inst_idx);

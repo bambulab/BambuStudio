@@ -48,7 +48,7 @@ LimitedBeadingStrategy::Beading LimitedBeadingStrategy::compute(coord_t thicknes
             const coord_t innermost_toolpath_location = ret.toolpath_locations[max_bead_count / 2 - 1];
             const coord_t innermost_toolpath_width = ret.bead_widths[max_bead_count / 2 - 1];
             ret.toolpath_locations.insert(ret.toolpath_locations.begin() + max_bead_count / 2, innermost_toolpath_location + innermost_toolpath_width / 2);
-            ret.bead_widths.insert(ret.bead_widths.begin() + max_bead_count / 2, 0);
+            ret.bead_widths.insert(ret.bead_widths.begin() + max_bead_count / 2, WallContourMarkedWidth);
         }
         return ret;
     }
@@ -77,14 +77,14 @@ LimitedBeadingStrategy::Beading LimitedBeadingStrategy::compute(coord_t thicknes
     coord_t innermost_toolpath_location = ret.toolpath_locations[max_bead_count / 2 - 1];
     coord_t innermost_toolpath_width = ret.bead_widths[max_bead_count / 2 - 1];
     ret.toolpath_locations.insert(ret.toolpath_locations.begin() + max_bead_count / 2, innermost_toolpath_location + innermost_toolpath_width / 2);
-    ret.bead_widths.insert(ret.bead_widths.begin() + max_bead_count / 2, 0);
+    ret.bead_widths.insert(ret.bead_widths.begin() + max_bead_count / 2, WallContourMarkedWidth);
 
     //Symmetry on both sides. Symmetry is guaranteed since this code is stopped early if the bead_count <= max_bead_count, and never reaches this point then.
     const size_t opposite_bead = bead_count - (max_bead_count / 2 - 1);
     innermost_toolpath_location = ret.toolpath_locations[opposite_bead];
     innermost_toolpath_width = ret.bead_widths[opposite_bead];
     ret.toolpath_locations.insert(ret.toolpath_locations.begin() + opposite_bead, innermost_toolpath_location - innermost_toolpath_width / 2);
-    ret.bead_widths.insert(ret.bead_widths.begin() + opposite_bead, 0);
+    ret.bead_widths.insert(ret.bead_widths.begin() + opposite_bead, WallContourMarkedWidth);
 
     return ret;
 }

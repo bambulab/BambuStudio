@@ -131,7 +131,6 @@ public:
     void get_user_mw_4u_config(std::function<void(std::string)> callback);
     void get_4u_staffpick(int seed, int limit, std::function<void(std::string)> callback);
     void OpenModelDetail(std::string id, NetworkAgent *agent);
-    int  get_model_mall_detail_url(std::string *url, std::string id);
     void UpdateMakerworldLoginStatus();
     void SetMakerworldPageLoginStatus(bool login, wxString ticket = "");
 
@@ -149,12 +148,13 @@ public:
 
     //Common UI
     void SetWebviewShow(wxString name, bool show);
+    std::string GetStudioLanguage();
 
     //PrintHistory
     std::string m_TaskInfo;
     bool        m_printhistoryfirst; // print history first load
     wxString    m_print_history_LastUrl;
-    void ShowUserPrintTask(bool bShow);
+    void ShowUserPrintTask(bool bShow, bool bForce=false);
 
     //
     bool GetJumpUrl(bool login, wxString ticket, wxString targeturl, wxString &finalurl);

@@ -26,6 +26,7 @@
 #include <imgui/imgui_internal.h>
 
 #include "libslic3r/libslic3r.h"
+#include <libslic3r/ClipperUtils.hpp>
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Shape/TextShape.hpp"
 #include "3DScene.hpp"
@@ -133,6 +134,7 @@ static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::PrevArrowBtnIcon,             "notification_arrow_left"              },
     {ImGui::NextArrowBtnIcon,             "notification_arrow_right"             },
     {ImGui::CompleteIcon,                 "notification_slicing_complete"        },
+    {ImGui::FilamentGreen,                "filament_green"                       }
 };
 
 static const std::map<const wchar_t, std::string> font_icons_extra_large = {
@@ -376,6 +378,7 @@ void ImGuiWrapper::set_language(const std::string &language)
         0,
     };
     m_font_cjk = false;
+    m_is_korean = false;
     if (lang == "cs" || lang == "pl") {
         ranges = ranges_latin2;
     } else if (lang == "ru" || lang == "uk") {
@@ -508,8 +511,42 @@ void ImGuiWrapper::new_frame()
         init_font(true);
     }
 
+    ImGuiIO& io = ImGui::GetIO();
+
     ImGui::NewFrame();
     m_new_frame_open = true;
+
+    // BBL: we should render the new frame first, than reset keys' status
+    // BBL: copy & paste form prusa github repo (https://github.com/prusa3d/PrusaSlicer/blob/master/src/slic3r/GUI/ImGuiWrapper.cpp#L375C5-L402C6)
+    // synchronize key states
+    // when the application loses the focus it may happen that the key up event is not processed
+
+    // synchronize modifier keys
+    constexpr std::array<std::pair<ImGuiKeyModFlags_, wxKeyCode>, 3> imgui_mod_keys{
+        std::make_pair(ImGuiKeyModFlags_Ctrl, WXK_CONTROL),
+        std::make_pair(ImGuiKeyModFlags_Shift, WXK_SHIFT),
+        std::make_pair(ImGuiKeyModFlags_Alt, WXK_ALT) };
+    for (const std::pair<ImGuiKeyModFlags_, wxKeyCode>& key : imgui_mod_keys) {
+        if ((io.KeyMods & key.first) != 0 && !wxGetKeyState(key.second))
+            io.KeyMods &= ~key.first;
+    }
+
+    // Not sure if it is neccessary
+    // values from 33 to 126 are reserved for the standard ASCII characters
+    for (size_t i = 33; i <= 126; ++i) {
+        wxKeyCode keycode = static_cast<wxKeyCode>(i);
+        if (io.KeysDown[i] && keycode != WXK_NONE && !wxGetKeyState(keycode))
+            io.KeysDown[i] = false;
+    }
+
+    // special keys: delete, backspace, ...
+    for (int key : io.KeyMap) {
+        wxKeyCode keycode = static_cast<wxKeyCode>(key);
+        if (io.KeysDown[key] && keycode != WXK_NONE && !wxGetKeyState(keycode))
+            io.KeysDown[key] = false;
+    }
+
+    // BBL: end copy & paste
 }
 
 void ImGuiWrapper::render()
@@ -517,6 +554,28 @@ void ImGuiWrapper::render()
     ImGui::Render();
     render_draw_data(ImGui::GetDrawData());
     m_new_frame_open = false;
+}
+
+ImVec2 ImGuiWrapper::calc_text_size_new(std::string_view text, bool hide_text_after_double_hash, float wrap_width)
+{
+    return ImGui::CalcTextSize(text.data(), text.data() + text.length(), hide_text_after_double_hash, wrap_width);
+}
+
+ImVec2 ImGuiWrapper::calc_text_size_new(const std::string &text, bool hide_text_after_double_hash, float wrap_width)
+{
+    return ImGui::CalcTextSize(text.c_str(), NULL, hide_text_after_double_hash, wrap_width);
+}
+
+ImVec2 ImGuiWrapper::calc_text_size_new(const wxString &text, bool hide_text_after_double_hash, float wrap_width)
+{
+    auto   text_utf8 = into_u8(text);
+    ImVec2 size      = ImGui::CalcTextSize(text_utf8.c_str(), NULL, hide_text_after_double_hash, wrap_width);
+
+    /*#ifdef __linux__
+        size.x *= m_style_scaling;
+        size.y *= m_style_scaling;
+    #endif*/
+    return size;
 }
 
 ImVec2 ImGuiWrapper::calc_text_size(const wxString &text, float wrap_width)
@@ -590,9 +649,9 @@ bool ImGuiWrapper::bbl_combo_with_filter(const char* label, const std::string& p
         return false;
 
     static char pattern_buffer[256] = { 0 };
-    auto simple_match = [](const char* pattern, const char* str) {
-        wxString sub_str = wxString(pattern).Lower();
-        wxString main_str = wxString(str).Lower();
+    auto   simple_match    = [](const char *pattern, const char *str) {
+        wxString sub_str  = wxString::FromUTF8(pattern).Lower();
+        wxString main_str = wxString::FromUTF8(str).Lower();
         return main_str.Find(sub_str);
     };
 
@@ -663,18 +722,16 @@ bool ImGuiWrapper::bbl_combo_with_filter(const char* label, const std::string& p
         if (*pattern_buffer != '\0')
             is_filtering = true;
 
-        if (is_filtering)
-        {
-            std::vector<std::pair<int, int> > filtered_items_with_priority;// std::pair<index, priority>
-            for (int i = 0; i < all_items.size(); i++)
-            {
+        if (is_filtering) {
+            std::vector<std::pair<int, int>> filtered_items_with_priority; // std::pair<index, priority>
+            for (int i = 0; i < all_items.size(); i++) {
                 int priority = simple_match(pattern_buffer, all_items[i].c_str());
                 if (priority != wxNOT_FOUND)
-                    filtered_items_with_priority.push_back({ i, priority });
+                    filtered_items_with_priority.push_back({i, priority});
             }
-            std::sort(filtered_items_with_priority.begin(), filtered_items_with_priority.end(), [](const std::pair<int, int>& a, const std::pair<int, int>& b) {return (b.second > a.second); });
-            for (auto item : filtered_items_with_priority)
-            {
+            std::sort(filtered_items_with_priority.begin(), filtered_items_with_priority.end(),
+                      [](const std::pair<int, int> &a, const std::pair<int, int> &b) { return (b.second > a.second); });
+            for (auto item : filtered_items_with_priority) {
                 filtered_items_idx->push_back(item.first);
             }
         }
@@ -737,6 +794,7 @@ bool ImGuiWrapper::bbl_slider_float(const std::string& label, float* v, float v_
     bool ret = ImGui::BBLSliderFloat(str_label.c_str(), v, v_min, v_max, format, power);
 
     m_last_slider_status.hovered = ImGui::IsItemHovered();
+    m_last_slider_status.edited = ImGui::IsItemEdited();
     m_last_slider_status.clicked = ImGui::IsItemClicked();
     m_last_slider_status.deactivated_after_edit = ImGui::IsItemDeactivatedAfterEdit();
 
@@ -806,6 +864,17 @@ bool ImGuiWrapper::button(const wxString& label, float width, float height)
 {
     auto label_utf8 = into_u8(label);
     return ImGui::Button(label_utf8.c_str(), ImVec2(width, height));
+}
+
+bool ImGuiWrapper::button(const wxString &label, const ImVec2 &size, bool enable)
+{
+    disabled_begin(!enable);
+
+    auto label_utf8 = into_u8(label);
+    bool res        = ImGui::Button(label_utf8.c_str(), size);
+
+    disabled_end();
+    return (enable) ? res : false;
 }
 
 bool ImGuiWrapper::radio_button(const wxString &label, bool active)
@@ -1020,13 +1089,24 @@ void ImGuiWrapper::text_colored(const ImVec4& color, const char* label)
 
 void ImGuiWrapper::text_colored(const ImVec4& color, const std::string& label)
 {
-    this->text_colored(color, label.c_str());
+    ImGuiWrapper::text_colored(color, label.c_str());
 }
 
 void ImGuiWrapper::text_colored(const ImVec4& color, const wxString& label)
 {
     auto label_utf8 = into_u8(label);
-    this->text_colored(color, label_utf8.c_str());
+    ImGuiWrapper::text_colored(color, label_utf8.c_str());
+}
+
+void ImGuiWrapper::warning_text_wrapped(const char *all_text, float wrap_width) {
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::to_ImVec4(ColorRGB::WARNING()));
+    this->text_wrapped(all_text, wrap_width);
+    ImGui::PopStyleColor();
+}
+
+void ImGuiWrapper::warning_text_wrapped(const wxString &all_text, float wrap_width) {
+    auto label_utf8 = into_u8(all_text);
+    warning_text_wrapped(label_utf8.c_str(), wrap_width);
 }
 
 void ImGuiWrapper::text_wrapped(const char *label, float wrap_width)
@@ -2031,20 +2111,18 @@ std::string ImGuiWrapper::trunc(const std::string &text, float width, const char
     float allowed_width = width - tail_width;
 
     // guess approx count of letter
-    wxString temp{"n"};
-    float    average_letter_width = calc_text_size(temp).x; // average letter width
+    float    average_letter_width = calc_text_size_new(std::string_view("n")).x; // average letter width
     unsigned count_letter         = static_cast<unsigned>(allowed_width / average_letter_width);
 
-    //std::string_view text_       = text;
-    //std::string_view result_text = text_.substr(0, count_letter);
-    wxString result_text(text.substr(0, count_letter));
-    text_width                   = calc_text_size(result_text).x;
+    std::string_view text_       = text;
+    std::string_view result_text = text_.substr(0, count_letter);
+    text_width                   = calc_text_size_new(result_text).x; // calc_text_size
     if (text_width < allowed_width) {
         // increase letter count
         while (count_letter < text.length()) {
             ++count_letter;
-            wxString      act_text(text.substr(0, count_letter));
-            text_width = calc_text_size(act_text).x;
+            std::string_view act_text = text_.substr(0, count_letter);
+            text_width                = calc_text_size_new(act_text).x;
             if (text_width > allowed_width) break;
             result_text = act_text;
         }
@@ -2052,12 +2130,12 @@ std::string ImGuiWrapper::trunc(const std::string &text, float width, const char
         // decrease letter count
         while (count_letter > 1) {
             --count_letter;
-            result_text = text.substr(0, count_letter);
-            text_width  = calc_text_size(result_text).x;
+            result_text = text_.substr(0, count_letter);
+            text_width  = calc_text_size_new(result_text).x;
             if (text_width < allowed_width) break;
         }
     }
-    return result_text .ToStdString()+ tail;
+    return std::string(result_text) + tail;
 }
 
 void ImGuiWrapper::escape_double_hash(std::string &text)
@@ -2068,6 +2146,134 @@ void ImGuiWrapper::escape_double_hash(std::string &text)
     while ((pos = text.find(search, pos)) != std::string::npos) text.replace(pos, search.length(), replace);
 }
 
+ImVec2 ImGuiWrapper::suggest_location(const ImVec2 &dialog_size, const Slic3r::Polygon &interest, const ImVec2 &canvas_size)
+{
+    // IMPROVE 1: do not select place over menu
+    // BoundingBox top_menu;
+    // GLGizmosManager &gizmo_mng = canvas->get_gizmos_manager();
+    // BoundingBox      side_menu; // gizmo_mng.get_size();
+    // BoundingBox left_bottom_menu; // is permanent?
+    // NotificationManager *notify_mng = plater->get_notification_manager();
+    // BoundingBox          notifications; // notify_mng->get_size();
+    // m_window_width, m_window_height + position
+
+    // IMPROVE 2: use polygon of interest not only bounding box
+    BoundingBox bb(interest.points);
+    Point       center = bb.center(); // interest.centroid();
+
+    // area size
+    Point window_center(canvas_size.x / 2, canvas_size.y / 2);
+
+    // mov on side
+    Point bb_half_size = (bb.max - bb.min) / 2 + Point(1, 1);
+    Point diff_center  = window_center - center;
+    Vec2d diff_norm(diff_center.x() / (double) bb_half_size.x(), diff_center.y() / (double) bb_half_size.y());
+    if (diff_norm.x() > 1.) diff_norm.x() = 1.;
+    if (diff_norm.x() < -1.) diff_norm.x() = -1.;
+    if (diff_norm.y() > 1.) diff_norm.y() = 1.;
+    if (diff_norm.y() < -1.) diff_norm.y() = -1.;
+
+    Vec2d abs_diff(abs(diff_norm.x()), abs(diff_norm.y()));
+    if (abs_diff.x() < 1. && abs_diff.y() < 1.) {
+        if (abs_diff.x() > abs_diff.y())
+            diff_norm.x() = (diff_norm.x() < 0.) ? (-1.) : 1.;
+        else
+            diff_norm.y() = (diff_norm.y() < 0.) ? (-1.) : 1.;
+    }
+
+    Point half_dialog_size(dialog_size.x / 2., dialog_size.y / 2.);
+    Point move_size       = bb_half_size + half_dialog_size;
+    Point offseted_center = center - half_dialog_size;
+    Vec2d offset(offseted_center.x() + diff_norm.x() * move_size.x(), offseted_center.y() + diff_norm.y() * move_size.y());
+
+    // move offset close to center
+    Points window_polygon = {offset.cast<coord_t>(), Point(offset.x(), offset.y() + dialog_size.y), Point(offset.x() + dialog_size.x, offset.y() + dialog_size.y),
+                             Point(offset.x() + dialog_size.x, offset.y())};
+    // check that position by Bounding box is not intersecting
+    assert(Slic3r::intersection(interest, Polygon(window_polygon)).empty());
+
+    double allowed_space    = 10; // in px
+    double allowed_space_sq = allowed_space * allowed_space;
+    Vec2d  move_vec         = (center - (offset.cast<coord_t>() + half_dialog_size)).cast<double>();
+    Vec2d  result_move(0, 0);
+    do {
+        move_vec             = move_vec / 2.;
+        Point  move_point    = (move_vec + result_move).cast<coord_t>();
+        Points moved_polygon = window_polygon; // copy
+        for (Point &p : moved_polygon) p += move_point;
+        if (Slic3r::intersection(interest, Polygon(moved_polygon)).empty())
+            result_move += move_vec;
+
+    } while (move_vec.squaredNorm() >= allowed_space_sq);
+    offset += result_move;
+
+    return ImVec2(offset.x(), offset.y());
+}
+
+void ImGuiWrapper::draw(const Polygon &polygon,
+                        ImDrawList *   draw_list /* = ImGui::GetOverlayDrawList()*/,
+                        ImU32          color /* = ImGui::GetColorU32(COL_ORANGE_LIGHT)*/,
+                        float          thickness /* = 3.f*/)
+{
+    // minimal one line consist of 2 points
+    if (polygon.size() < 2) return;
+    // need a place to draw
+    if (draw_list == nullptr) return;
+
+    const Point *prev_point = &polygon.points.back();
+    for (const Point &point : polygon.points) {
+        ImVec2 p1(prev_point->x(), prev_point->y());
+        ImVec2 p2(point.x(), point.y());
+        draw_list->AddLine(p1, p2, color, thickness);
+        prev_point = &point;
+    }
+}
+
+void ImGuiWrapper::draw_cross_hair(const ImVec2 &position, float radius, ImU32 color, int num_segments, float thickness)
+{
+    auto draw_list = ImGui::GetOverlayDrawList();
+    draw_list->AddCircle(position, radius, color, num_segments, thickness);
+    auto dirs = {ImVec2{0, 1}, ImVec2{1, 0}, ImVec2{0, -1}, ImVec2{-1, 0}};
+    for (const ImVec2 &dir : dirs) {
+        ImVec2 start(position.x + dir.x * 0.5 * radius, position.y + dir.y * 0.5 * radius);
+        ImVec2 end(position.x + dir.x * 1.5 * radius, position.y + dir.y * 1.5 * radius);
+        draw_list->AddLine(start, end, color, thickness);
+    }
+}
+
+bool ImGuiWrapper::contain_all_glyphs(const ImFont *font, const std::string &text)
+{
+    if (font == nullptr) return false;
+    if (!font->IsLoaded()) return false;
+    const ImFontConfig *fc = font->ConfigData;
+    if (fc == nullptr) return false;
+    if (text.empty()) return true;
+    return is_chars_in_ranges(fc->GlyphRanges, text.c_str());
+}
+
+bool ImGuiWrapper::is_char_in_ranges(const ImWchar *ranges, unsigned int letter)
+{
+    for (const ImWchar *range = ranges; range[0] && range[1]; range += 2) {
+        ImWchar from = range[0];
+        ImWchar to   = range[1];
+        if (from <= letter && letter <= to) return true;
+        if (letter < to) return false; // ranges should be sorted
+    }
+    return false;
+};
+
+bool ImGuiWrapper::is_chars_in_ranges(const ImWchar *ranges, const char *chars_ptr)
+{
+    while (*chars_ptr) {
+        unsigned int c = 0;
+        // UTF-8 to 32-bit character need imgui_internal
+        int c_len = ImTextCharFromUtf8(&c, chars_ptr, NULL);
+        chars_ptr += c_len;
+        if (c_len == 0) break;
+        if (!is_char_in_ranges(ranges, c)) return false;
+    }
+    return true;
+}
 
 void ImGuiWrapper::disable_background_fadeout_animation()
 {
@@ -2683,100 +2889,131 @@ void ImGuiWrapper::init_style()
 
 void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
 {
+    if (draw_data == nullptr || draw_data->CmdListsCount == 0)
+        return;
+
+    const auto& shader = wxGetApp().get_shader("imgui");
+    if (shader == nullptr)
+        return;
+
     // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
     ImGuiIO& io = ImGui::GetIO();
-    int fb_width = (int)(draw_data->DisplaySize.x * io.DisplayFramebufferScale.x);
-    int fb_height = (int)(draw_data->DisplaySize.y * io.DisplayFramebufferScale.y);
+    const int fb_width = (int)(draw_data->DisplaySize.x * io.DisplayFramebufferScale.x);
+    const int fb_height = (int)(draw_data->DisplaySize.y * io.DisplayFramebufferScale.y);
     if (fb_width == 0 || fb_height == 0)
         return;
-    draw_data->ScaleClipRects(io.DisplayFramebufferScale);
 
-    // We are using the OpenGL fixed pipeline to make the example code simpler to read!
-    // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, vertex/texcoord/color pointers, polygon fill.
-    GLint last_texture; glsafe(::glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
-    GLint last_polygon_mode[2]; glsafe(::glGetIntegerv(GL_POLYGON_MODE, last_polygon_mode));
-    GLint last_viewport[4]; glsafe(::glGetIntegerv(GL_VIEWPORT, last_viewport));
-    GLint last_scissor_box[4]; glsafe(::glGetIntegerv(GL_SCISSOR_BOX, last_scissor_box));
-    glsafe(::glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_TRANSFORM_BIT));
+    const auto curr_shader = wxGetApp().get_current_shader();
+    if (curr_shader != nullptr)
+        wxGetApp().unbind_shader();
+
+    wxGetApp().bind_shader(shader);
+
+    GLboolean was_texture2d_enabled = GL_FALSE;
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    if (!p_ogl_manager) {
+        return;
+    }
+    const auto& gl_info = p_ogl_manager->get_gl_info();
+    const auto formated_gl_version = gl_info.get_formated_gl_version();
+    if (formated_gl_version < 30) {
+        was_texture2d_enabled = glIsEnabled(GL_TEXTURE_2D);
+    }
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     glsafe(::glDisable(GL_CULL_FACE));
     glsafe(::glDisable(GL_DEPTH_TEST));
-    glsafe(::glDisable(GL_LIGHTING));
-    glsafe(::glDisable(GL_COLOR_MATERIAL));
     glsafe(::glEnable(GL_SCISSOR_TEST));
-    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-    glsafe(::glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-    glsafe(::glEnableClientState(GL_COLOR_ARRAY));
-    glsafe(::glEnable(GL_TEXTURE_2D));
+    if (formated_gl_version < 30) {
+        glsafe(::glEnable(GL_TEXTURE_2D));
+    }
     glsafe(::glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
-    glsafe(::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE));
-    GLint texture_env_mode = GL_MODULATE;
-    glsafe(::glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, &texture_env_mode));
-    glsafe(::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE));
-    //glUseProgram(0); // You may want this if using this code in an OpenGL 3+ context where shaders may be bound
-
     // Setup viewport, orthographic projection matrix
-    // Our visible imgui space lies from draw_data->DisplayPps (top left) to draw_data->DisplayPos+data_data->DisplaySize (bottom right). DisplayMin is typically (0,0) for single viewport apps.
+    // Our visible imgui space lies from draw_data->DisplayPos (top left) to draw_data->DisplayPos+data_data->DisplaySize (bottom right). DisplayPos is (0,0) for single viewport apps.
     glsafe(::glViewport(0, 0, (GLsizei)fb_width, (GLsizei)fb_height));
-    glsafe(::glMatrixMode(GL_PROJECTION));
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-    glsafe(::glOrtho(draw_data->DisplayPos.x, draw_data->DisplayPos.x + draw_data->DisplaySize.x, draw_data->DisplayPos.y + draw_data->DisplaySize.y, draw_data->DisplayPos.y, -1.0f, +1.0f));
-    glsafe(::glMatrixMode(GL_MODELVIEW));
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-
+    const float L = draw_data->DisplayPos.x;
+    const float R = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
+    const float T = draw_data->DisplayPos.y;
+    const float B = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
+    Matrix4f ortho_projection;
+    ortho_projection <<
+        2.0f / (R - L), 0.0f, 0.0f, (R + L) / (L - R),
+        0.0f, 2.0f / (T - B), 0.0f, (T + B) / (B - T),
+        0.0f, 0.0f, -1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f;
+    shader->set_uniform("Texture", 0);
+    shader->set_uniform("ProjMtx", ortho_projection);
+    // Will project scissor/clipping rectangles into framebuffer space
+    const ImVec2 clip_off = draw_data->DisplayPos;       // (0,0) unless using multi-viewports
+    const ImVec2 clip_scale = draw_data->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
     // Render command lists
-    ImVec2 pos = draw_data->DisplayPos;
-    for (int n = 0; n < draw_data->CmdListsCount; n++)
-    {
+    for (int n = 0; n < draw_data->CmdListsCount; ++n) {
         const ImDrawList* cmd_list = draw_data->CmdLists[n];
         const ImDrawVert* vtx_buffer = cmd_list->VtxBuffer.Data;
         const ImDrawIdx* idx_buffer = cmd_list->IdxBuffer.Data;
-        glsafe(::glVertexPointer(2, GL_FLOAT, sizeof(ImDrawVert), (const GLvoid*)((const char*)vtx_buffer + IM_OFFSETOF(ImDrawVert, pos))));
-        glsafe(::glTexCoordPointer(2, GL_FLOAT, sizeof(ImDrawVert), (const GLvoid*)((const char*)vtx_buffer + IM_OFFSETOF(ImDrawVert, uv))));
-        glsafe(::glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(ImDrawVert), (const GLvoid*)((const char*)vtx_buffer + IM_OFFSETOF(ImDrawVert, col))));
-
-        for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
-        {
+        const GLsizeiptr vtx_buffer_size = (GLsizeiptr)cmd_list->VtxBuffer.Size * (int)sizeof(ImDrawVert);
+        const GLsizeiptr idx_buffer_size = (GLsizeiptr)cmd_list->IdxBuffer.Size * (int)sizeof(ImDrawIdx);
+        GLuint vbo_id;
+        glsafe(::glGenBuffers(1, &vbo_id));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, vbo_id));
+        glsafe(::glBufferData(GL_ARRAY_BUFFER, vtx_buffer_size, vtx_buffer, GL_STATIC_DRAW));
+        GLuint ibo_id;
+        glsafe(::glGenBuffers(1, &ibo_id));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_id));
+        glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, idx_buffer_size, idx_buffer, GL_STATIC_DRAW));
+        const int position_id = shader->get_attrib_location("Position");
+        if (position_id != -1) {
+            glsafe(::glVertexAttribPointer(position_id, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (const void*)IM_OFFSETOF(ImDrawVert, pos)));
+            glsafe(::glEnableVertexAttribArray(position_id));
+        }
+        const int uv_id = shader->get_attrib_location("UV");
+        if (uv_id != -1) {
+            glsafe(::glVertexAttribPointer(uv_id, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (const void*)IM_OFFSETOF(ImDrawVert, uv)));
+            glsafe(::glEnableVertexAttribArray(uv_id));
+        }
+        const int color_id = shader->get_attrib_location("Color");
+        if (color_id != -1) {
+            glsafe(::glVertexAttribPointer(color_id, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert), (const void*)IM_OFFSETOF(ImDrawVert, col)));
+            glsafe(::glEnableVertexAttribArray(color_id));
+        }
+        for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; ++cmd_i) {
             const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
             if (pcmd->UserCallback)
-            {
                 // User callback (registered via ImDrawList::AddCallback)
                 pcmd->UserCallback(cmd_list, pcmd);
+            else {
+                // Project scissor/clipping rectangles into framebuffer space
+                const ImVec2 clip_min((pcmd->ClipRect.x - clip_off.x) * clip_scale.x, (pcmd->ClipRect.y - clip_off.y) * clip_scale.y);
+                const ImVec2 clip_max((pcmd->ClipRect.z - clip_off.x) * clip_scale.x, (pcmd->ClipRect.w - clip_off.y) * clip_scale.y);
+                if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
+                    continue;
+                // Apply scissor/clipping rectangle (Y is inverted in OpenGL)
+                glsafe(::glScissor((int)clip_min.x, (int)(fb_height - clip_max.y), (int)(clip_max.x - clip_min.x), (int)(clip_max.y - clip_min.y)));
+                // Bind texture, Draw
+                glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->GetTexID()));
+                glsafe(::glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, (void*)(intptr_t)(pcmd->IdxOffset * sizeof(ImDrawIdx))));
             }
-            else
-            {
-                ImVec4 clip_rect = ImVec4(pcmd->ClipRect.x - pos.x, pcmd->ClipRect.y - pos.y, pcmd->ClipRect.z - pos.x, pcmd->ClipRect.w - pos.y);
-                if (clip_rect.x < fb_width && clip_rect.y < fb_height && clip_rect.z >= 0.0f && clip_rect.w >= 0.0f)
-                {
-                    // Apply scissor/clipping rectangle
-                    glsafe(::glScissor((int)clip_rect.x, (int)(fb_height - clip_rect.w), (int)(clip_rect.z - clip_rect.x), (int)(clip_rect.w - clip_rect.y)));
-
-                    // Bind texture, Draw
-                    glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId));
-                    glsafe(::glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, idx_buffer));
-                }
-            }
-            idx_buffer += pcmd->ElemCount;
         }
+        if (position_id != -1)
+            glsafe(::glDisableVertexAttribArray(position_id));
+        if (uv_id != -1)
+            glsafe(::glDisableVertexAttribArray(uv_id));
+        if (color_id != -1)
+            glsafe(::glDisableVertexAttribArray(color_id));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+        glsafe(::glDeleteBuffers(1, &ibo_id));
+        glsafe(::glDeleteBuffers(1, &vbo_id));
     }
 
-    // Restore modified state
-    glsafe(::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, texture_env_mode));
-    glsafe(::glDisableClientState(GL_COLOR_ARRAY));
-    glsafe(::glDisableClientState(GL_TEXTURE_COORD_ARRAY));
-    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-    glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)last_texture));
-    glsafe(::glMatrixMode(GL_MODELVIEW));
-    glsafe(::glPopMatrix());
-    glsafe(::glMatrixMode(GL_PROJECTION));
-    glsafe(::glPopMatrix());
-    glsafe(::glPopAttrib());
-    glsafe(::glPolygonMode(GL_FRONT, (GLenum)last_polygon_mode[0]); glPolygonMode(GL_BACK, (GLenum)last_polygon_mode[1]));
-    glsafe(::glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]));
-    glsafe(::glScissor(last_scissor_box[0], last_scissor_box[1], (GLsizei)last_scissor_box[2], (GLsizei)last_scissor_box[3]));
+    glsafe(::glDisable(GL_SCISSOR_TEST));
+    glsafe(::glEnable(GL_CULL_FACE));
+    glsafe(::glEnable(GL_DEPTH_TEST));
+
+    wxGetApp().unbind_shader();
+
+    if (curr_shader != nullptr)
+        wxGetApp().bind_shader(curr_shader);
 }
 
 bool ImGuiWrapper::display_initialized() const
@@ -2838,6 +3075,94 @@ void ImGuiWrapper::clipboard_set(void* /* user_data */, const char* text)
         wxTheClipboard->SetData(new wxTextDataObject(wxString::FromUTF8(text)));   // object owned by the clipboard
         wxTheClipboard->Close();
     }
+}
+
+std::tuple<ImVec2, bool>  ImGuiWrapper::calculate_filament_group_text_size(const std::string& filament_type)
+{
+    ImVec2             text_size = ImGui::CalcTextSize(filament_type.c_str());
+    float         four_word_width = ImGui::CalcTextSize("ABCD").x;
+
+    float wrap_width = four_word_width;
+    float line_height = ImGui::GetTextLineHeight();
+
+    bool is_multiline = text_size.x > wrap_width;
+    int line_count = std::ceil(text_size.x / wrap_width);
+    float text_height = line_count * line_height;
+
+    float final_width = is_multiline ? wrap_width : text_size.x;
+    float final_height = line_count * line_height;
+
+    return { { final_width,final_height },is_multiline };
+}
+
+void ImGuiWrapper::filament_group(const std::string& filament_type, const char* hex_color, unsigned char filament_id, float align_width)
+{
+    //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    std::string id = std::to_string(static_cast<unsigned int> (filament_id + 1));
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    static ImTextureID transparent;
+    ImVec2             text_size = ImGui::CalcTextSize(filament_type.c_str());
+    // BBS image sizing based on text width (DPI scaling)
+    float         img_width = ImGui::CalcTextSize("ABC").x;
+    ImVec2        img_size = { img_width, img_width };
+    ImVec2        id_text_size = this->calc_text_size(id);
+    unsigned char rgba[4];
+    rgba[3] = 0xff;
+    Slic3r::GUI::BitmapCache::parse_color4(hex_color, rgba);
+    std::string svg_path = "/images/outlined_rect.svg";
+    if (rgba[3] == 0x00) {
+        svg_path = "/images/outlined_rect_transparent.svg";
+    }
+    BitmapCache::load_from_svg_file_change_color(Slic3r::resources_dir() + svg_path, img_size.x, img_size.y, transparent, hex_color);
+    ImGui::BeginGroup();
+    {
+        ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
+        draw_list->AddImage(transparent, cursor_pos, { cursor_pos.x + img_size.x, cursor_pos.y + img_size.y }, { 0, 0 }, { 1, 1 }, ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 1.f)));
+        // image border test
+        // draw_list->AddRect(cursor_pos, {cursor_pos.x + img_size.x, cursor_pos.y + img_size.y}, IM_COL32(0, 0, 0, 255));
+        ImVec2 current_cursor = ImGui::GetCursorPos();
+        ImGui::SetCursorPos({ current_cursor.x + (img_size.x - id_text_size.x) * 0.5f, current_cursor.y + (img_size.y - id_text_size.y) * 0.5f });
+
+        float gray = 0.299 * rgba[0] + 0.587 * rgba[1] + 0.114 * rgba[2];
+        ImVec4 text_color = gray < 80 ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImVec4(0, 0, 0, 1.0f);
+        this->text_colored(text_color, id.c_str());
+
+        auto wrapped_text_info = calculate_filament_group_text_size(filament_type);
+        ImVec2 wrapped_text_size = std::get<0>(wrapped_text_info);
+        bool is_multiline = std::get<1>(wrapped_text_info);
+
+        float text_y_offset = 4.f;
+        float text_x_offset = is_multiline ? (img_size.x - wrapped_text_size.x) * 0.5f + 2.f : (img_size.x - wrapped_text_size.x) * 0.5f + 2.f;
+
+        auto cursor_x_before_text = ImGui::GetCursorPosX();
+        current_cursor = ImGui::GetCursorPos();
+        ImGui::SetCursorPos({
+            current_cursor.x + text_x_offset,
+            current_cursor.y + text_y_offset
+            });
+
+        if (is_multiline) {
+            ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + wrapped_text_size.x);
+        }
+        this->text(filament_type);
+        if (is_multiline) {
+            ImGui::PopTextWrapPos();
+        }
+        ImGui::Dummy(ImVec2(align_width, 0));
+        ImGui::EndGroup();
+    }
+    //ImGui::PopStyleVar(1);
+}
+
+void ImGuiWrapper::sub_title(const std::string &label)
+{
+    ImDrawList *draw_list = ImGui::GetWindowDrawList();
+    text_colored(ImVec4(1.0f, 1.0f, 1.0f, 0.5f), label);
+    ImGui::SameLine();
+    ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
+    float available_width = ImGui::GetContentRegionAvail().x;
+    draw_list->AddLine(ImVec2(cursor_pos.x, cursor_pos.y + 8.0f), ImVec2(cursor_pos.x + available_width, cursor_pos.y + 8.0f), IM_COL32(255, 255, 255, 100));
+    ImGui::NewLine();
 }
 
 bool IMTexture::load_from_svg_file(const std::string& filename, unsigned width, unsigned height, ImTextureID& texture_id)

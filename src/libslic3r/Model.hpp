@@ -728,7 +728,23 @@ enum class EnforcerBlockerType : int8_t {
     Extruder14,
     Extruder15,
     Extruder16,
-    ExtruderMax = Extruder16
+    Extruder17,
+    Extruder18,
+    Extruder19,
+    Extruder20,
+    Extruder21,
+    Extruder22,
+    Extruder23,
+    Extruder24,
+    Extruder25,
+    Extruder26,
+    Extruder27,
+    Extruder28,
+    Extruder29,
+    Extruder30,
+    Extruder31,
+    Extruder32,
+    ExtruderMax = Extruder32
 };
 
 enum class ConversionType : int {
@@ -754,7 +770,10 @@ public:
     indexed_triangle_set get_facets(const ModelVolume& mv, EnforcerBlockerType type) const;
     // BBS
     void get_facets(const ModelVolume& mv, std::vector<indexed_triangle_set>& facets_per_type) const;
-    void set_enforcer_block_type_limit(const ModelVolume& mv, EnforcerBlockerType max_type);
+    void                 set_enforcer_block_type_limit(const ModelVolume  &mv,
+                                                       EnforcerBlockerType max_type,
+                                                       EnforcerBlockerType to_delete_filament = EnforcerBlockerType::NONE,
+                                                       EnforcerBlockerType replace_filament = EnforcerBlockerType::NONE);
     indexed_triangle_set get_facets_strict(const ModelVolume& mv, EnforcerBlockerType type) const;
     bool has_facets(const ModelVolume& mv, EnforcerBlockerType type) const;
     bool empty() const { return m_data.first.empty(); }
@@ -958,6 +977,7 @@ public:
     // BBS
     std::vector<int>    get_extruders() const;
     void                update_extruder_count(size_t extruder_count);
+    void                update_extruder_count_when_delete_filament(size_t extruder_count, size_t filament_id, int replace_filament_id = -1);
 
     // Split this volume, append the result to the object owning this volume.
     // Return the number of volumes created from this one.
@@ -1011,7 +1031,6 @@ public:
     double get_rotation(Axis axis) const { return m_transformation.get_rotation(axis); }
 
     void set_rotation(const Vec3d& rotation) { m_transformation.set_rotation(rotation); }
-    void set_rotation(Axis axis, double rotation) { m_transformation.set_rotation(axis, rotation); }
 
     const Vec3d &get_scaling_factor() const { return m_transformation.get_scaling_factor(); }
     double get_scaling_factor(Axis axis) const { return m_transformation.get_scaling_factor(axis); }
@@ -1070,7 +1089,7 @@ private:
     std::shared_ptr<const TriangleMesh> m_convex_hull;
     //BBS: add convex hull 2d related logic
     mutable Polygon                     m_convex_hull_2d; //BBS, used for convex_hell_2d acceleration
-    mutable Transform3d                 m_cached_trans_matrix; //BBS, used for convex_hell_2d acceleration
+    mutable Transform3d                 m_cached_trans_matrix{Transform3d::Identity()}; // BBS, used for convex_hell_2d acceleration
     mutable Polygon                     m_cached_2d_polygon;   //BBS, used for convex_hell_2d acceleration
     Geometry::Transformation        	m_transformation;
 
@@ -1247,6 +1266,7 @@ inline const ModelVolume* model_volume_find_by_id(const ModelVolumePtrs &model_v
 enum ModelInstanceEPrintVolumeState : unsigned char
 {
     ModelInstancePVS_Inside,
+    ModelInstancePVS_Limited,
     ModelInstancePVS_Partly_Outside,
     ModelInstancePVS_Fully_Outside,
     ModelInstanceNum_BedStates
@@ -1314,19 +1334,9 @@ public:
     double get_rotation(Axis axis) const { return m_transformation.get_rotation(axis); }
 
     void set_rotation(const Vec3d& rotation) { m_transformation.set_rotation(rotation); }
-    void set_rotation(Axis axis, double rotation) { m_transformation.set_rotation(axis, rotation); }
 
     // BBS
-    void rotate(Matrix3d rotation_matrix) {
-        auto R = m_transformation.get_rotation_matrix();
-        auto R_new = rotation_matrix * R;
-        auto euler_angles = Geometry::extract_euler_angles(R_new);
-        //BOOST_LOG_TRIVIAL(debug) << "old R:\n"
-        //                         << R.matrix() << "\nnew R:\n"
-        //                         << R_new.matrix() << "\nold euler angles: " << m_transformation.get_rotation().transpose() << "\n"
-        //                         << "new euler angles: " << euler_angles.transpose();
-        set_rotation(euler_angles);
-    }
+    void rotate(Matrix3d rotation_matrix);
 
     const Vec3d& get_scaling_factor() const { return m_transformation.get_scaling_factor(); }
     double get_scaling_factor(Axis axis) const { return m_transformation.get_scaling_factor(axis); }
@@ -1369,14 +1379,7 @@ public:
     void get_arrange_polygon(void *arrange_polygon, const Slic3r::DynamicPrintConfig &config = Slic3r::DynamicPrintConfig()) const;
 
     // Apply the arrange result on the ModelInstance
-    void apply_arrange_result(const Vec2d& offs, double rotation)
-    {
-        // write the transformation data into the model instance
-        set_rotation(Z, rotation);
-        set_offset(X, unscale<double>(offs(X)));
-        set_offset(Y, unscale<double>(offs(Y)));
-        this->object->invalidate_bounding_box();
-    }
+    void apply_arrange_result(const Vec2d &offs, double rotation);
 
 protected:
     friend class Print;
@@ -1620,7 +1623,7 @@ public:
     static Polygon getBedPolygon() { return Model::printSpeedMap.bed_poly; }
     //BBS static functions that update extruder params and speed table
     static void setPrintSpeedTable(const DynamicPrintConfig& config, const PrintConfig& print_config);
-    static void setExtruderParams(const DynamicPrintConfig& config, int extruders_count);
+    static void setExtruderParams(const DynamicPrintConfig& config, int filament_count);
 
     // BBS: backup
     static Model read_from_archive(

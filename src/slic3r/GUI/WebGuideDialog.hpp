@@ -81,7 +81,7 @@ public:
 
 
     bool apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater, bool& apply_keeped_changes);
-    bool run();
+    bool run(bool& config_applied);
 
     void        StrReplace(std::string &strBase, std::string strSrc, std::string strDes);
     std::string w2s(wxString sSrc);
@@ -110,9 +110,12 @@ private:
 
     //First Load
     bool bFirstComplete{false};
+    bool m_destroy{false};
+    boost::thread* m_load_task{ nullptr };
 
     // User Config
-    bool PrivacyUse;
+    bool m_GuideFinish;
+    std::string m_PrivacyUse;
     std::string m_Region;
 
     bool InstallNetplugin;

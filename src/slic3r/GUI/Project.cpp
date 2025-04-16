@@ -89,7 +89,7 @@ void ProjectPanel::OnNewWindow(wxWebViewEvent &evt)
 
     if (evt.GetNavigationAction() == wxWEBVIEW_NAV_ACTION_USER) { flag = " (user)"; }
 
-    if (wxGetApp().get_mode() == comDevelop) 
+    if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("%s", "New window; url='" + evt.GetURL() + "'" + flag);
 
     // If we handle new window events then just load them in local browser
@@ -100,7 +100,7 @@ void ProjectPanel::OnNewWindow(wxWebViewEvent &evt)
         std::regex  pattern("%22http.+%22");
         std::smatch matches;
         std::string UrlTmp = tmpUrl.ToStdString();
-        if (std::regex_search(UrlTmp, matches, pattern)) { tmpUrl = trim(matches[0].str(), "%22"); }    
+        if (std::regex_search(UrlTmp, matches, pattern)) { tmpUrl = trim(matches[0].str(), "%22"); }
     }
 
     if (boost::starts_with(tmpUrl, "http://") || boost::starts_with(tmpUrl, "https://")) {
@@ -222,11 +222,15 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
 
         wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
 
+
+#ifdef __APPLE__
+        wxGetApp().CallAfter([this, strJS] { RunScript(strJS.ToStdString()); });
+#else
         if (m_web_init_completed) {
-            wxGetApp().CallAfter([this, strJS] {
-                RunScript(strJS.ToStdString());
-                });
+            wxGetApp().CallAfter([this, strJS] { RunScript(strJS.ToStdString()); });
         }
+#endif
+
     });
 }
 
@@ -258,7 +262,7 @@ std::string ProjectPanel::get_model_id(std::string desgin_id)
     return model_id;
 }
 
-void ProjectPanel::msw_rescale() 
+void ProjectPanel::msw_rescale()
 {
 }
 
@@ -320,7 +324,7 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
         }
 
     }
-    catch (std::exception& e) {
+    catch (std::exception& /*e*/) {
         // wxMessageBox(e.what(), "json Exception", MB_OK);
     }
 }
@@ -333,7 +337,7 @@ void ProjectPanel::update_model_data()
     //basics info
     if (model.model_info == nullptr)
         return;
-    
+
     auto event = wxCommandEvent(EVT_PROJECT_RELOAD);
     event.SetEventObject(this);
     wxPostEvent(this, event);
@@ -413,12 +417,12 @@ std::map<std::string, std::vector<json>> ProjectPanel::Reload(wxString aux_path)
             for (auto folder : s_default_folders) {
                 auto idx = file_path.find(folder.ToStdString());
                 if (idx != std::string::npos) {
-                    
+
                     wxStructStat strucStat;
                     wxString file_name = encode_path(file_path.c_str());
                     wxStat(file_name, &strucStat);
                     wxFileOffset filelen = strucStat.st_size;
-     
+
                     pfile_obj["filename"] = wxGetApp().url_encode(file_path_obj.filename().string().c_str());
                     pfile_obj["size"] = formatBytes((unsigned long)filelen);
 
@@ -460,7 +464,7 @@ std::string ProjectPanel::formatBytes(unsigned long bytes)
     return wxString::Format("%.2fMB", dValidData).ToStdString();
 }
 
-wxString ProjectPanel::to_base64(std::string file_path) 
+wxString ProjectPanel::to_base64(std::string file_path)
 {
 
     std::ifstream imageFile(encode_path(file_path.c_str()), std::ios::binary);
@@ -475,7 +479,7 @@ wxString ProjectPanel::to_base64(std::string file_path)
 
     std::string extension;
     size_t last_dot = file_path.find_last_of(".");
-   
+
     if (last_dot != std::string::npos) {
         extension = file_path.substr(last_dot + 1);
     }
@@ -496,10 +500,10 @@ void ProjectPanel::RunScript(std::string content)
     WebView::RunScript(m_browser, content);
 }
 
-bool ProjectPanel::Show(bool show) 
+bool ProjectPanel::Show(bool show)
 {
     if (show) update_model_data();
-    return wxPanel::Show(show); 
+    return wxPanel::Show(show);
 }
 
 }} // namespace Slic3r::GUI

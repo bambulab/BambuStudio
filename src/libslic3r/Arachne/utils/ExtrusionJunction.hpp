@@ -19,6 +19,10 @@ namespace Slic3r::Arachne
 struct ExtrusionJunction
 {
 	/*!
+	* whether the junction is generated from a hole that needs compensation
+	*/
+	bool hole_compensation_flag;
+	/*!
 	 * The position of the centreline of the path when it reaches this junction.
 	 * This is the position that should end up in the g-code eventually.
 	 */
@@ -37,7 +41,7 @@ struct ExtrusionJunction
 	 */
     size_t perimeter_index;
 
-    ExtrusionJunction(const Point p, const coord_t w, const coord_t perimeter_index);
+    ExtrusionJunction(const Point p, const coord_t w, const coord_t perimeter_index, const bool hole_compensation);
 
     bool operator==(const ExtrusionJunction& other) const;
 };

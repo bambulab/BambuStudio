@@ -6,9 +6,6 @@
 #include <Windows.h>
 #include <shellapi.h>
 #include <wchar.h>
-
-
-
 #ifdef SLIC3R_GUI
 extern "C"
 {
@@ -18,22 +15,16 @@ extern "C"
     __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 0;
 }
 #endif /* SLIC3R_GUI */
-
 #include <stdlib.h>
 #include <stdio.h>
-
 #ifdef SLIC3R_GUI
-    #include <GL/GL.h>
+#include <GL/GL.h>
 #endif /* SLIC3R_GUI */
-
 #include <string>
 #include <vector>
-
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
-
 #include <stdio.h>
-
 #ifdef SLIC3R_GUI
 class OpenGLVersionCheck
 {
@@ -42,16 +33,14 @@ public:
     std::string glsl_version;
     std::string vendor;
     std::string renderer;
-
     HINSTANCE   hOpenGL = nullptr;
     bool 		success = false;
-
     bool load_opengl_dll()
     {
-        MSG      msg     = {0};
-        WNDCLASS wc      = {0};
-        wc.lpfnWndProc   = OpenGLVersionCheck::supports_opengl2_wndproc;
-        wc.hInstance     = (HINSTANCE)GetModuleHandle(nullptr);
+        MSG      msg = { 0 };
+        WNDCLASS wc = { 0 };
+        wc.lpfnWndProc = OpenGLVersionCheck::supports_opengl2_wndproc;
+        wc.hInstance = (HINSTANCE)GetModuleHandle(nullptr);
         wc.hbrBackground = (HBRUSH)(COLOR_BACKGROUND);
         wc.lpszClassName = L"BambuStudio_opengl_version_check";
         wc.style = CS_OWNDC;
@@ -59,25 +48,30 @@ public:
             HWND hwnd = CreateWindowW(wc.lpszClassName, L"BambuStudio_opengl_version_check", WS_OVERLAPPEDWINDOW, 0, 0, 640, 480, 0, 0, wc.hInstance, (LPVOID)this);
             if (hwnd) {
                 message_pump_exit = false;
-                while (GetMessage(&msg, NULL, 0, 0 ) > 0 && ! message_pump_exit)
+                while (GetMessage(&msg, NULL, 0, 0) > 0 && !message_pump_exit)
                     DispatchMessage(&msg);
             }
         }
         return this->success;
     }
-
-    void unload_opengl_dll()
+    bool unload_opengl_dll()
     {
-        if (this->hOpenGL) {
-            BOOL released = FreeLibrary(this->hOpenGL);
-            if (released)
-                printf("System OpenGL library released\n");
+        if (this->hOpenGL != nullptr) {
+            if (::FreeLibrary(this->hOpenGL) != FALSE) {
+                if (::GetModuleHandle(L"opengl32.dll") == nullptr) {
+                    printf("System OpenGL library successfully released\n");
+                    this->hOpenGL = nullptr;
+                    return true;
+                }
+                else
+                    printf("System OpenGL library released but not removed\n");
+            }
             else
                 printf("System OpenGL library NOT released\n");
-            this->hOpenGL = nullptr;
+            return false;
         }
+        return true;
     }
-
     bool is_version_greater_or_equal_to(unsigned int major, unsigned int minor) const
     {
         // printf("is_version_greater_or_equal_to, version: %s\n", version.c_str());
@@ -85,10 +79,8 @@ public:
         boost::split(tokens, version, boost::is_any_of(" "), boost::token_compress_on);
         if (tokens.empty())
             return false;
-
         std::vector<std::string> numbers;
         boost::split(numbers, tokens[0], boost::is_any_of("."), boost::token_compress_on);
-
         unsigned int gl_major = 0;
         unsigned int gl_minor = 0;
         if (numbers.size() > 0)
@@ -103,10 +95,8 @@ public:
         else
             return gl_minor >= minor;
     }
-
 protected:
     static bool message_pump_exit;
-
     void check(HWND hWnd)
     {
         hOpenGL = LoadLibraryExW(L"opengl32.dll", nullptr, 0);
@@ -114,22 +104,18 @@ protected:
             printf("Failed loading the system opengl32.dll\n");
             return;
         }
-
-        typedef HGLRC 		(WINAPI *Func_wglCreateContext)(HDC);
-        typedef BOOL 		(WINAPI *Func_wglMakeCurrent  )(HDC, HGLRC);
-        typedef BOOL     	(WINAPI *Func_wglDeleteContext)(HGLRC);
-        typedef GLubyte* 	(WINAPI *Func_glGetString     )(GLenum);
-
+        typedef HGLRC(WINAPI* Func_wglCreateContext)(HDC);
+        typedef BOOL(WINAPI* Func_wglMakeCurrent)(HDC, HGLRC);
+        typedef BOOL(WINAPI* Func_wglDeleteContext)(HGLRC);
+        typedef GLubyte* (WINAPI* Func_glGetString)(GLenum);
         Func_wglCreateContext 	wglCreateContext = (Func_wglCreateContext)GetProcAddress(hOpenGL, "wglCreateContext");
-        Func_wglMakeCurrent 	wglMakeCurrent 	 = (Func_wglMakeCurrent)  GetProcAddress(hOpenGL, "wglMakeCurrent");
+        Func_wglMakeCurrent 	wglMakeCurrent = (Func_wglMakeCurrent)GetProcAddress(hOpenGL, "wglMakeCurrent");
         Func_wglDeleteContext 	wglDeleteContext = (Func_wglDeleteContext)GetProcAddress(hOpenGL, "wglDeleteContext");
-        Func_glGetString 		glGetString 	 = (Func_glGetString)	  GetProcAddress(hOpenGL, "glGetString");
-
+        Func_glGetString 		glGetString = (Func_glGetString)GetProcAddress(hOpenGL, "glGetString");
         if (wglCreateContext == nullptr || wglMakeCurrent == nullptr || wglDeleteContext == nullptr || glGetString == nullptr) {
             printf("Failed loading the system opengl32.dll: The library is invalid.\n");
             return;
         }
-
         PIXELFORMATDESCRIPTOR pfd =
         {
             sizeof(PIXELFORMATDESCRIPTOR),
@@ -149,7 +135,6 @@ protected:
             0,
             0, 0, 0
         };
-
         HDC ourWindowHandleToDeviceContext = ::GetDC(hWnd);
         // Gdi32.dll
         int letWindowsChooseThisPixelFormat = ::ChoosePixelFormat(ourWindowHandleToDeviceContext, &pfd);
@@ -159,7 +144,7 @@ protected:
         HGLRC glcontext = wglCreateContext(ourWindowHandleToDeviceContext);
         wglMakeCurrent(ourWindowHandleToDeviceContext, glcontext);
         // Opengl32.dll
-        const char *data = (const char*)glGetString(GL_VERSION);
+        const char* data = (const char*)glGetString(GL_VERSION);
         if (data != nullptr)
             this->version = data;
         // printf("check -version: %s\n", version.c_str());
@@ -177,15 +162,14 @@ protected:
         ::ReleaseDC(hWnd, ourWindowHandleToDeviceContext);
         this->success = true;
     }
-
     static LRESULT CALLBACK supports_opengl2_wndproc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
-        switch(message)
+        switch (message)
         {
         case WM_CREATE:
         {
-            CREATESTRUCT *pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
-            OpenGLVersionCheck *ogl_data = reinterpret_cast<OpenGLVersionCheck*>(pCreate->lpCreateParams);
+            CREATESTRUCT* pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
+            OpenGLVersionCheck* ogl_data = reinterpret_cast<OpenGLVersionCheck*>(pCreate->lpCreateParams);
             ogl_data->check(hWnd);
             DestroyWindow(hWnd);
             return 0;
@@ -198,113 +182,112 @@ protected:
         }
     }
 };
-
 bool OpenGLVersionCheck::message_pump_exit = false;
 #endif /* SLIC3R_GUI */
-
 extern "C" {
-    typedef int (__stdcall *Slic3rMainFunc)(int argc, wchar_t **argv);
+    typedef int(__stdcall* Slic3rMainFunc)(int argc, wchar_t** argv);
     Slic3rMainFunc bambustu_main = nullptr;
 }
-
 extern "C" {
 #ifdef SLIC3R_WRAPPER_NOCONSOLE
-int APIENTRY wWinMain(HINSTANCE /* hInstance */, HINSTANCE /* hPrevInstance */, PWSTR /* lpCmdLine */, int /* nCmdShow */)
-{
-    int 	  argc;
-    wchar_t **argv = ::CommandLineToArgvW(::GetCommandLineW(), &argc);
+    int APIENTRY wWinMain(HINSTANCE /* hInstance */, HINSTANCE /* hPrevInstance */, PWSTR /* lpCmdLine */, int /* nCmdShow */)
+    {
+        int 	  argc;
+        wchar_t** argv = ::CommandLineToArgvW(::GetCommandLineW(), &argc);
 #else
-int wmain(int argc, wchar_t **argv)
-{
+    int wmain(int argc, wchar_t** argv)
+    {
 #endif
-    // Allow the asserts to open message box, such message box allows to ignore the assert and continue with the application.
-    // Without this call, the seemingly same message box is being opened by the abort() function, but that is too late and
-    // the application will be killed even if "Ignore" button is pressed.
-    _set_error_mode(_OUT_TO_MSGBOX);
-
-    std::vector<wchar_t*> argv_extended;
-    argv_extended.emplace_back(argv[0]);
-
+        // Allow the asserts to open message box, such message box allows to ignore the assert and continue with the application.
+        // Without this call, the seemingly same message box is being opened by the abort() function, but that is too late and
+        // the application will be killed even if "Ignore" button is pressed.
+        _set_error_mode(_OUT_TO_MSGBOX);
+        std::vector<wchar_t*> argv_extended;
+        argv_extended.emplace_back(argv[0]);
 #ifdef SLIC3R_WRAPPER_GCODEVIEWER
-    wchar_t gcodeviewer_param[] = L"--gcodeviewer";
-    argv_extended.emplace_back(gcodeviewer_param);
+        wchar_t gcodeviewer_param[] = L"--gcodeviewer";
+        argv_extended.emplace_back(gcodeviewer_param);
 #endif /* SLIC3R_WRAPPER_GCODEVIEWER */
-
 #ifdef SLIC3R_GUI
-    // Here one may push some additional parameters based on the wrapper type.
-    bool force_mesa = false;
+        // Here one may push some additional parameters based on the wrapper type.
+        bool force_mesa = false;
+        bool force_hw = false;//for rempote desktop,
 #endif /* SLIC3R_GUI */
-    for (int i = 1; i < argc; ++ i) {
+        for (int i = 1; i < argc; ++i) {
 #ifdef SLIC3R_GUI
-        if (wcscmp(argv[i], L"--sw-renderer") == 0)
-            force_mesa = true;
-        else if (wcscmp(argv[i], L"--no-sw-renderer") == 0)
-            force_mesa = false;
+            if (wcscmp(argv[i], L"--sw-renderer") == 0)
+                force_mesa = true;
+            else if (wcscmp(argv[i], L"--no-sw-renderer") == 0)
+                force_hw = true;
 #endif /* SLIC3R_GUI */
-        argv_extended.emplace_back(argv[i]);
-    }
-    argv_extended.emplace_back(nullptr);
-
+            argv_extended.emplace_back(argv[i]);
+        }
+        argv_extended.emplace_back(nullptr);
 #ifdef SLIC3R_GUI
-    OpenGLVersionCheck opengl_version_check;
-    bool load_mesa =
-        // Forced from the command line.
-        force_mesa ||
-        // Try to load the default OpenGL driver and test its context version.
-        ! opengl_version_check.load_opengl_dll() || ! opengl_version_check.is_version_greater_or_equal_to(2, 0);
+        OpenGLVersionCheck opengl_version_check;
+        bool load_mesa =
+            // Forced from the command line.
+            force_mesa ||
+            // Running over a rempote desktop, and the RemoteFX is not enabled, therefore Windows will only provide SW OpenGL 1.1 context.
+            // In that case, use Mesa.
+            (::GetSystemMetrics(SM_REMOTESESSION) && !force_hw) ||
+            // Try to load the default OpenGL driver and test its context version.
+            !opengl_version_check.load_opengl_dll() || !opengl_version_check.is_version_greater_or_equal_to(3, 2);
 #endif /* SLIC3R_GUI */
-
-    wchar_t path_to_exe[MAX_PATH + 1] = { 0 };
-    ::GetModuleFileNameW(nullptr, path_to_exe, MAX_PATH);
-    wchar_t drive[_MAX_DRIVE];
-    wchar_t dir[_MAX_DIR];
-    wchar_t fname[_MAX_FNAME];
-    wchar_t ext[_MAX_EXT];
-    _wsplitpath(path_to_exe, drive, dir, fname, ext);
-    _wmakepath(path_to_exe, drive, dir, nullptr, nullptr);
-
+        wchar_t path_to_exe[MAX_PATH + 1] = { 0 };
+        ::GetModuleFileNameW(nullptr, path_to_exe, MAX_PATH);
+        wchar_t drive[_MAX_DRIVE];
+        wchar_t dir[_MAX_DIR];
+        wchar_t fname[_MAX_FNAME];
+        wchar_t ext[_MAX_EXT];
+        _wsplitpath(path_to_exe, drive, dir, fname, ext);
+        _wmakepath(path_to_exe, drive, dir, nullptr, nullptr);
 #ifdef SLIC3R_GUI
-// https://wiki.qt.io/Cross_compiling_Mesa_for_Windows
-// http://download.qt.io/development_releases/prebuilt/llvmpipe/windows/
-    if (load_mesa) {
-        opengl_version_check.unload_opengl_dll();
-        wchar_t path_to_mesa[MAX_PATH + 1] = { 0 };
-        wcscpy(path_to_mesa, path_to_exe);
-        wcscat(path_to_mesa, L"mesa\\opengl32.dll");
-        printf("Loading MESA OpenGL library: %S\n", path_to_mesa);
-        HINSTANCE hInstance_OpenGL = LoadLibraryExW(path_to_mesa, nullptr, 0);
-        if (hInstance_OpenGL == nullptr) {
-            printf("MESA OpenGL library was not loaded\n");
-        } else
-            printf("MESA OpenGL library was loaded sucessfully\n");
-    }
+        // https://wiki.qt.io/Cross_compiling_Mesa_for_Windows
+        // http://download.qt.io/development_releases/prebuilt/llvmpipe/windows/
+        if (load_mesa) {
+            bool res = opengl_version_check.unload_opengl_dll();
+            if (!res) {
+                MessageBox(nullptr, L"Error:BambuStudio was unable to automatically switch to MESA OpenGL library.",
+                    L"BambuStudio Error", MB_OK);
+                return -1;
+            }
+            else {
+                wchar_t path_to_mesa[MAX_PATH + 1] = { 0 };
+                wcscpy(path_to_mesa, path_to_exe);
+                wcscat(path_to_mesa, L"mesa\\opengl32.dll");
+                printf("Loading MESA OpenGL library: %S\n", path_to_mesa);
+                HINSTANCE hInstance_OpenGL = LoadLibraryExW(path_to_mesa, nullptr, 0);
+                if (hInstance_OpenGL == nullptr)
+                    printf("MESA OpenGL library was not loaded\n");
+                else
+                    printf("MESA OpenGL library was loaded sucessfully\n");
+            }
+        }
 #endif /* SLIC3R_GUI */
-
-
-    wchar_t path_to_slic3r[MAX_PATH + 1] = { 0 };
-    wcscpy(path_to_slic3r, path_to_exe);
-    wcscat(path_to_slic3r, L"BambuStudio.dll");
-//	printf("Loading Slic3r library: %S\n", path_to_slic3r);
-    HINSTANCE hInstance_Slic3r = LoadLibraryExW(path_to_slic3r, nullptr, 0);
-    if (hInstance_Slic3r == nullptr) {
-        printf("BambuStudio.dll was not loaded, error=%d\n", GetLastError());
-        return -1;
-    }
-
-    // resolve function address here
-    bambustu_main = (Slic3rMainFunc)GetProcAddress(hInstance_Slic3r,
+        wchar_t path_to_slic3r[MAX_PATH + 1] = { 0 };
+        wcscpy(path_to_slic3r, path_to_exe);
+        wcscat(path_to_slic3r, L"BambuStudio.dll");
+        //	printf("Loading Slic3r library: %S\n", path_to_slic3r);
+        HINSTANCE hInstance_Slic3r = LoadLibraryExW(path_to_slic3r, nullptr, 0);
+        if (hInstance_Slic3r == nullptr) {
+            printf("BambuStudio.dll was not loaded, error=%d\n", GetLastError());
+            return -1;
+        }
+        // resolve function address here
+        bambustu_main = (Slic3rMainFunc)GetProcAddress(hInstance_Slic3r,
 #ifdef _WIN64
-        // there is just a single calling conversion, therefore no mangling of the function name.
-        "bambustu_main"
+            // there is just a single calling conversion, therefore no mangling of the function name.
+            "bambustu_main"
 #else	// stdcall calling convention declaration
-        "_bambustu_main@8"
+            "_bambustu_main@8"
 #endif
         );
-    if (bambustu_main == nullptr) {
-        printf("could not locate the function bambustu_main in BambuStudio.dll\n");
-        return -1;
+        if (bambustu_main == nullptr) {
+            printf("could not locate the function bambustu_main in BambuStudio.dll\n");
+            return -1;
+        }
+        // argc minus the trailing nullptr of the argv
+        return bambustu_main((int)argv_extended.size() - 1, argv_extended.data());
     }
-    // argc minus the trailing nullptr of the argv
-    return bambustu_main((int)argv_extended.size() - 1, argv_extended.data());
-}
-}
+    }

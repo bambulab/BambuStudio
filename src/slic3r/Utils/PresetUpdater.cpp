@@ -54,55 +54,68 @@ static const char *TMP_EXTENSION = ".data";
 static const char *PRESET_SUBPATH = "presets";
 static const char *PLUGINS_SUBPATH = "plugins";
 
-void copy_file_fix(const fs::path &source, const fs::path &target)
+int copy_file_fix(const fs::path &source, const fs::path &target, std::string& error_message)
 {
 	BOOST_LOG_TRIVIAL(debug) << format("PresetUpdater: Copying %1% -> %2%", source, target);
-	std::string error_message;
+
 	//CopyFileResult cfr = Slic3r::GUI::copy_file_gui(source.string(), target.string(), error_message, false);
 	CopyFileResult cfr = copy_file(source.string(), target.string(), error_message, false);
 	if (cfr != CopyFileResult::SUCCESS) {
 		BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;
-		throw Slic3r::CriticalException(GUI::format(
-				_L("Copying of file %1% to %2% failed: %3%"),
-				source, target, error_message));
+		return -1;
 	}
 	// Permissions should be copied from the source file by copy_file(). We are not sure about the source
 	// permissions, let's rewrite them with 644.
 	static constexpr const auto perms = fs::owner_read | fs::owner_write | fs::group_read | fs::others_read;
 	fs::permissions(target, perms);
+
+    return 0;
 }
 
 //BBS: add directory copy
-void copy_directory_fix(const fs::path &source, const fs::path &target)
+int copy_directory_fix(const fs::path &source, const fs::path &target, std::string& error_message)
 {
+    int ret = 0;
     BOOST_LOG_TRIVIAL(debug) << format("PresetUpdater: Copying %1% -> %2%", source, target);
-    std::string error_message;
 
-    if (fs::exists(target))
-        fs::remove_all(target);
-    fs::create_directories(target);
+    if (fs::exists(target)) {
+        boost::system::error_code ec;
+        fs::remove_all(target, ec);
+        if (ec) {
+            error_message = ec.message();
+            BOOST_LOG_TRIVIAL(error) << "copy_directory_fix: Failed to remove existing target directory: " + error_message;
+            return -1;
+        }
+    }
+    boost::system::error_code ec;
+    fs::create_directories(target, ec);
+    if (ec) {
+        error_message = ec.message();
+        BOOST_LOG_TRIVIAL(error) << "copy_directory_fix: Failed to create target directory: " + error_message;
+        return -2;
+    }
     for (auto &dir_entry : fs::directory_iterator(source))
     {
-        std::string source_file = dir_entry.path().string();
+        fs::path source_file = dir_entry.path();
+        fs::path target_file = target / dir_entry.path().filename();
+
         std::string name = dir_entry.path().filename().string();
-        std::string target_file = target.string() + "/" + name;
 
         if (fs::is_directory(dir_entry)) {
-            const auto target_path = target / name;
-            copy_directory_fix(dir_entry, target_path);
+            ret = copy_directory_fix(source_file, target_file, error_message);
+            if (ret)
+                return ret;
         }
         else {
             //CopyFileResult cfr = Slic3r::GUI::copy_file_gui(source_file, target_file, error_message, false);
-            CopyFileResult cfr = copy_file(source_file, target_file, error_message, false);
+            CopyFileResult cfr = copy_file(source_file.string(), target_file.string(), error_message, false);
             if (cfr != CopyFileResult::SUCCESS) {
                 BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;
-                throw Slic3r::CriticalException(GUI::format(
-                    _L("Copying directory %1% to %2% failed: %3%"),
-                    source, target, error_message));
+                return -3;
             }
         }
     }
-    return;
+    return 0;
 }
 
 struct Update
@@ -134,16 +147,27 @@ struct Update
 		, is_directory(is_dir)
 	{}
 
-	//BBS: add directory support
-	void install() const
-	{
-	    if (is_directory) {
-            copy_directory_fix(source, target);
+    //BBS: add directory support
+    int install() const
+    {
+        int ret = 0;
+        std::string error_message;
+
+        if (is_directory) {
+            ret = copy_directory_fix(source, target, error_message);
         }
         else {
-            copy_file_fix(source, target);
+            ret = copy_file_fix(source, target, error_message);
         }
-	}
+
+        /*if (ret) {
+            throw Slic3r::CriticalException(GUI::format(
+                _L("Copying of file %1% to %2% failed: %3%"),
+                source, target, error_message));
+        }*/
+
+        return ret;
+    }
 
 	friend std::ostream& operator<<(std::ostream& os, const Update &self)
 	{
@@ -1144,6 +1168,16 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
         }
     }
 
+#if defined(__WINDOWS__)
+    if (GUI::wxGetApp().is_running_on_arm64()) {
+        //set to arm64 for plugins
+        std::map<std::string, std::string> current_headers = Slic3r::Http::get_extra_headers();
+        current_headers["X-BBL-OS-Type"] = "windows_arm";
+
+        Slic3r::Http::set_extra_headers(current_headers);
+        BOOST_LOG_TRIVIAL(info) << boost::format("set X-BBL-OS-Type to windows_arm");
+    }
+#endif
     try {
         std::map<std::string, Resource> resources
         {
@@ -1154,6 +1188,16 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
     catch (std::exception& e) {
         BOOST_LOG_TRIVIAL(warning) << format("[BBL Updater] sync_plugins: %1%", e.what());
     }
+#if defined(__WINDOWS__)
+    if (GUI::wxGetApp().is_running_on_arm64()) {
+        //set back
+        std::map<std::string, std::string> current_headers = Slic3r::Http::get_extra_headers();
+        current_headers["X-BBL-OS-Type"] = "windows";
+
+        Slic3r::Http::set_extra_headers(current_headers);
+        BOOST_LOG_TRIVIAL(info) << boost::format("set X-BBL-OS-Type back to windows");
+    }
+#endif
 
     bool result = get_cached_plugins_version(cached_version, force_upgrade);
     if (result) {
@@ -1246,26 +1290,48 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
 
 bool PresetUpdater::priv::install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot) const
 {
-	Updates updates;
+    Updates updates;
 
-	BOOST_LOG_TRIVIAL(info) << format("Installing %1% bundles from resources ...", bundles.size());
+    BOOST_LOG_TRIVIAL(info) << format("Installing %1% bundles from resources ...", bundles.size());
 
-	for (const auto &bundle : bundles) {
-		auto path_in_rsrc = (this->rsrc_path / bundle).replace_extension(".json");
-		auto path_in_vendors = (this->vendor_path / bundle).replace_extension(".json");
-		updates.updates.emplace_back(std::move(path_in_rsrc), std::move(path_in_vendors), Version(), bundle, "", "");
-
+    for (const auto &bundle : bundles) {
         //BBS: add directory support
         auto print_in_rsrc = this->rsrc_path / bundle;
-		auto print_in_vendors = this->vendor_path / bundle;
+        auto print_in_vendors = this->vendor_path / bundle;
         fs::path print_folder(print_in_vendors);
-        if (fs::exists(print_folder))
-            fs::remove_all(print_folder);
-        fs::create_directories(print_folder);
-		updates.updates.emplace_back(std::move(print_in_rsrc), std::move(print_in_vendors), Version(), bundle, "", "", false, true);
-	}
 
-	return perform_updates(std::move(updates), snapshot);
+        auto path_in_rsrc = (this->rsrc_path / bundle).replace_extension(".json");
+        auto path_in_vendors = (this->vendor_path / bundle).replace_extension(".json");
+
+        //delete the json at first
+        boost::system::error_code ec;
+        if (fs::exists(path_in_vendors)) {
+            fs::remove(path_in_vendors, ec);
+            if (ec) {
+                BOOST_LOG_TRIVIAL(error) << boost::format("install_bundles_rsrc: Failed to remove file %1%, error %2% ") % path_in_vendors.string() % ec.message();
+                return false;
+            }
+        }
+
+        if (fs::exists(print_folder)) {
+            fs::remove_all(print_folder, ec);
+            if (ec) {
+                BOOST_LOG_TRIVIAL(error) << boost::format("install_bundles_rsrc: Failed to remove directory %1%, error %2% ") % print_folder.string() % ec.message();
+                return false;
+            }
+        }
+        fs::create_directories(print_folder, ec);
+        if (ec) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("install_bundles_rsrc: Failed to create directory %1%, error %2% ")% print_folder.string() %ec.message();
+            return false;
+        }
+        updates.updates.emplace_back(std::move(print_in_rsrc), std::move(print_in_vendors), Version(), bundle, "", "", false, true);
+
+        //copy json at the last
+        updates.updates.emplace_back(std::move(path_in_rsrc), std::move(path_in_vendors), Version(), bundle, "", "");
+    }
+
+    return perform_updates(std::move(updates), snapshot);
 }
 
 
@@ -1290,7 +1356,7 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
             vendor_name.erase(vendor_name.size() - 5);
             if (enabled_config_update) {
                 if ( fs::exists(path_in_vendor)) {
-                    if (enabled_vendors.find(vendor_name) != enabled_vendors.end()) {
+                    if ((vendor_name == PresetBundle::BBL_BUNDLE) || (enabled_vendors.find(vendor_name) != enabled_vendors.end())) {
                         Semver resource_ver = get_version_from_json(file_path);
                         Semver vendor_ver = get_version_from_json(path_in_vendor.string());
 
@@ -1426,10 +1492,10 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
                             version.config_version = cached_semver;
                             //version.comment = description;
 
-                            updates.updates.emplace_back(std::move(file_path), std::move(path_in_vendor.string()), std::move(version), vendor_name, description, "", force_update, false);
-
                             //BBS: add directory support
                             updates.updates.emplace_back(cache_folder / vendor_name, vendor_path / vendor_name, Version(), vendor_name, "", "", force_update, true);
+
+                            updates.updates.emplace_back(std::move(file_path), std::move(path_in_vendor.string()), std::move(version), vendor_name, description, "", force_update, false);
                         }
                     }
                 }
@@ -1443,6 +1509,7 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
 //BBS: switch to new BBL.json configs
 bool PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) const
 {
+    int ret = 0;
     //std::string vendor_path;
     //std::string vendor_name;
     if (updates.incompats.size() > 0) {
@@ -1471,7 +1538,11 @@ bool PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
         for (const auto &update : updates.updates) {
             BOOST_LOG_TRIVIAL(info) << '\t' << update;
 
-            update.install();
+            ret = update.install();
+            if (ret) {
+                BOOST_LOG_TRIVIAL(error) << boost::format("[BBL Updater]:perform_updates to %1% failed, ret=%2%")% update.target.string() % ret;
+                break;
+            }
             //if (!update.is_directory) {
             //    vendor_path = update.source.parent_path().string();
             //    vendor_name = update.vendor;
@@ -1496,7 +1567,7 @@ bool PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
         //}
     }
 
-    return true;
+    return (ret == 0);
 }
 
 void PresetUpdater::priv::set_waiting_updates(Updates u)
@@ -1656,7 +1727,7 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
             ret = reload_configs_update_gui();
             if (!ret) {
                 BOOST_LOG_TRIVIAL(warning) << format("[BBL Updater]:reload_configs_update_gui failed");
-                return R_INCOMPAT_EXIT;
+                return R_ALL_CANCELED;
             }
             Semver cur_ver = GUI::wxGetApp().preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE);
 
@@ -1687,8 +1758,10 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
             const auto res = dlg.ShowModal();
             if (res == wxID_OK) {
                 BOOST_LOG_TRIVIAL(debug) << "[BBL Updater]:selected yes to update";
-                if (! p->perform_updates(std::move(updates)) ||
-                    ! reload_configs_update_gui())
+                if (!p->perform_updates(std::move(updates)))
+                    return R_INCOMPAT_EXIT;
+
+                if (!reload_configs_update_gui())
                     return R_ALL_CANCELED;
                 return R_UPDATE_INSTALLED;
             }

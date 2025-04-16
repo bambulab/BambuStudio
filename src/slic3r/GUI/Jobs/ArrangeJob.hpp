@@ -19,7 +19,6 @@ class ArrangeJob : public PlaterJob
 
     //BBS: add locked logic
     ArrangePolygons m_selected, m_unselected, m_unprintable, m_locked;
-    std::vector<ModelInstance*> m_unarranged;
     std::map<int, ArrangePolygons> m_selected_groups;   // groups of selected items for sequential printing
     std::vector<int> m_uncompatible_plates;  // plate indices with different printing sequence than global
 
@@ -42,9 +41,7 @@ class ArrangeJob : public PlaterJob
     // prepare the items which are selected and not on the current partplate
     void prepare_outside_plate();
 
-    void prepare_wipe_tower();
-
-    ArrangePolygon prepare_arrange_polygon(void* instance);
+    void prepare_wipe_tower(bool select = false);
 
 protected:
 
@@ -68,6 +65,8 @@ public:
     }
 
     void finalize() override;
+
+    static ArrangePolygon prepare_arrange_polygon(void *instance);
 };
 
 std::optional<arrangement::ArrangePolygon> get_wipe_tower_arrangepoly(const Plater &);

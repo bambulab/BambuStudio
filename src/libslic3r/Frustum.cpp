@@ -1,18 +1,76 @@
 #include "Frustum.hpp"
 #include <cmath>
 namespace Slic3r {
+
+void Frustum::Plane::set_abcd(float a, float b, float c, float d)
+{
+    m_abcd[0] = a;
+    m_abcd[1] = b;
+    m_abcd[2] = c;
+    m_abcd[3] = d;
+}
+
+const Vec4f& Frustum::Plane::get_abcd() const
+{
+    return m_abcd;
+}
+
+void Frustum::Plane::normailze()
+{
+    float mag;
+    mag = sqrt(m_abcd[0] * m_abcd[0] + m_abcd[1] * m_abcd[1] + m_abcd[2] * m_abcd[2]);
+    m_abcd[0] = m_abcd[0] / mag;
+    m_abcd[1] = m_abcd[1] / mag;
+    m_abcd[2] = m_abcd[2] / mag;
+    m_abcd[3] = m_abcd[3] / mag;
+}
+
+float Frustum::Plane::distance(const Vec3f& pt) const
+{
+    float result = 0.0f;
+    for (int i = 0; i < 3; ++i) {
+        result += pt[i] * m_abcd[i];
+    }
+
+    result += m_abcd[3];
+
+    return result;
+}
+
 Frustum::Plane::PlaneIntersects Frustum::Plane::intersects(const BoundingBoxf3 &box) const
 {
-    Vec3f center = ((box.min + box.max) * 0.5f).cast<float>();
-    Vec3f extent = ((box.max - box.min) * 0.5f).cast<float>();
-    float d      = distance(center);
-    float r      = fabsf(extent.x() * normal_.x()) + fabsf(extent.y() * normal_.y()) + fabsf(extent.z() * normal_.z());
-    if (d == r) {
-        return Plane::Intersects_Tangent;
-    } else if (std::abs(d) < r) {
-        return Plane::Intersects_Cross;
+    // see https://cgvr.cs.uni-bremen.de/teaching/cg_literatur/lighthouse3d_view_frustum_culling/index.html
+
+    Vec3d positive_v = box.min;
+    if (m_abcd[0] > 0.f)
+        positive_v[0] = box.max.x();
+    if (m_abcd[1] > 0.f)
+        positive_v[1] = box.max.y();
+    if (m_abcd[2] > 0.f)
+        positive_v[2] = box.max.z();
+
+    float dis_positive = distance(positive_v.cast<float>());
+    if (dis_positive < 0.f)
+    {
+        return Frustum::Plane::PlaneIntersects::Intersects_Back;
     }
-    return (d > 0.0f) ? Plane::Intersects_Front : Plane::Intersects_Back;
+
+    Vec3d negitive_v = box.max;
+    if (m_abcd[0] > 0.f)
+        negitive_v[0] = box.min.x();
+    if (m_abcd[1] > 0.f)
+        negitive_v[1] = box.min.y();
+    if (m_abcd[2] > 0.f)
+        negitive_v[2] = box.min.z();
+
+    float dis_negitive = distance(negitive_v.cast<float>());
+
+    if (dis_negitive < 0.f)
+    {
+        return Frustum::Plane::PlaneIntersects::Intersects_Cross;
+    }
+
+    return Frustum::Plane::PlaneIntersects::Intersects_Front;
 }
 Frustum::Plane::PlaneIntersects Frustum::Plane::intersects(const Vec3f &p0) const
 {
@@ -51,19 +109,15 @@ Frustum::Plane::PlaneIntersects Frustum::Plane::intersects(const Vec3f &p0, cons
     return Plane::Intersects_Tangent;
 }
 
-bool Frustum::intersects(const BoundingBoxf3 &box, bool is_perspective) const
+bool Frustum::intersects(const BoundingBoxf3 &box) const
 {
-    if (is_perspective) {
-        for (auto &plane : planes) {
-            if (plane.intersects(box) == Plane::Intersects_Back) {
-                return false;
-            }
+    for (auto& plane : planes) {
+        const auto rt = plane.intersects(box);
+        if (Frustum::Plane::Intersects_Back == rt) {
+            return false;
         }
     }
-    // check box intersects
-    if (!bbox.intersects(box)) {
-        return false;
-    }
+
     return true;
 }
 

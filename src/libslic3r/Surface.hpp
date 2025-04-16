@@ -15,6 +15,7 @@ enum SurfaceType {
     stBottomBridge,
     // Normal sparse infill.
     stInternal,
+    stFloatingVerticalShell,
     // Full infill, supporting the top surfaces and/or defining the verticall wall thickness.
     stInternalSolid,
     // 1st layer of dense infill over sparse infill, printed with a bridging extrusion flow.
@@ -37,6 +38,8 @@ public:
     unsigned short  thickness_layers;   // in layers
     double          bridge_angle;       // in radians, ccw, 0 = East, only 0+ (negative means undefined)
     unsigned short  extra_perimeters;
+    bool            counter_circle_compensation{false};
+    std::vector<int> holes_circle_compensation; // hole index
 
     Surface(SurfaceType _surface_type = stInternal)
         : surface_type(_surface_type),
@@ -104,7 +107,8 @@ public:
 	bool   is_bridge()   const { return this->surface_type == stBottomBridge || this->surface_type == stInternalBridge; }
 	bool   is_external() const { return this->is_top() || this->is_bottom(); }
 	bool   is_internal() const { return ! this->is_external(); }
-	bool   is_solid()    const { return this->is_external() || this->surface_type == stInternalSolid || this->surface_type == stInternalBridge; }
+    bool   is_floating_vertical_shell() const { return this->surface_type == stFloatingVerticalShell; }
+	bool   is_solid()    const { return this->is_external() || this->is_floating_vertical_shell() || this->surface_type == stInternalSolid || this->surface_type == stInternalBridge; }
 	bool   is_solid_infill() const { return this->surface_type == stInternalSolid; }
 };
 

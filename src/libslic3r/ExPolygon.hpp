@@ -56,7 +56,7 @@ public:
     bool on_boundary(const Point &point, double eps) const;
     // Projection of a point onto the polygon.
     Point point_projection(const Point &point) const;
-
+    void symmetric_y(const coord_t &y_axis);
     // Does this expolygon overlap another expolygon?
     // Either the ExPolygons intersect, or one is fully inside the other,
     // and it is not inside a hole of the other expolygon.
@@ -76,10 +76,14 @@ public:
         { Polylines out; this->medial_axis(min_width, max_width, &out); return out; }
     Lines lines() const;
 
+    bool remove_colinear_points();
+
     // Number of contours (outer contour with holes).
     size_t   		num_contours() const { return this->holes.size() + 1; }
     Polygon& 		contour_or_hole(size_t idx) 		{ return (idx == 0) ? this->contour : this->holes[idx - 1]; }
     const Polygon& 	contour_or_hole(size_t idx) const 	{ return (idx == 0) ? this->contour : this->holes[idx - 1]; }
+    //split expolygon-support with holes to help remove
+    ExPolygons split_expoly_with_holes(coord_t gap_width, const ExPolygons& collision) const;
 };
 
 inline bool operator==(const ExPolygon &lhs, const ExPolygon &rhs) { return lhs.contour == rhs.contour && lhs.holes == rhs.holes; }
@@ -451,6 +455,9 @@ inline ExPolygons expolygons_simplify(const ExPolygons &expolys, double toleranc
 		exp.simplify(tolerance, &out);
 	return out;
 }
+
+double get_expolygons_area(const ExPolygons& expolys);
+bool is_narrow_expolygon(const ExPolygon& expolygon, double min_width, double min_area = scale_(1) * scale_(1), double remain_area_ratio_thres = 0.1);
 
 // Do expolygons match? If they match, they must have the same topology,
 // however their contours may be rotated.

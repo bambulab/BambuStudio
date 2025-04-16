@@ -79,6 +79,11 @@ public:
             return strncmp(cmd, cmd_test, len) == 0 && GCodeReader::is_end_of_word(cmd[len]);
         }
 
+        static bool cmd_start_with(const std::string& gcode_line, const char* cmd_test) {
+            const char* cmd = GCodeReader::skip_whitespaces(gcode_line.c_str());
+            return strncmp(cmd, cmd_test, strlen(cmd_test)) == 0;
+        }
+
     private:
         std::string      m_raw;
         float            m_axis[NUM_AXES];
@@ -151,15 +156,6 @@ public:
     float& j()       { return m_position[J]; }
     float  j() const { return m_position[J]; }
 
-private:
-    template<typename ParseLineCallback, typename LineEndCallback>
-    bool        parse_file_raw_internal(const std::string &filename, ParseLineCallback parse_line_callback, LineEndCallback line_end_callback);
-    template<typename ParseLineCallback, typename LineEndCallback>
-    bool        parse_file_internal(const std::string &filename, ParseLineCallback parse_line_callback, LineEndCallback line_end_callback);
-
-    const char* parse_line_internal(const char *ptr, const char *end, GCodeLine &gline, std::pair<const char*, const char*> &command);
-    void        update_coordinates(GCodeLine &gline, std::pair<const char*, const char*> &command);
-
     static bool         is_whitespace(char c)           { return c == ' ' || c == '\t'; }
     static bool         is_end_of_line(char c)          { return c == '\r' || c == '\n' || c == 0; }
     static bool         is_end_of_gcode_line(char c)    { return c == ';' || is_end_of_line(c); }
@@ -174,6 +170,14 @@ private:
             ; // silence -Wempty-body
         return c;
     }
+private:
+    template<typename ParseLineCallback, typename LineEndCallback>
+    bool        parse_file_raw_internal(const std::string &filename, ParseLineCallback parse_line_callback, LineEndCallback line_end_callback);
+    template<typename ParseLineCallback, typename LineEndCallback>
+    bool        parse_file_internal(const std::string &filename, ParseLineCallback parse_line_callback, LineEndCallback line_end_callback);
+
+    const char* parse_line_internal(const char *ptr, const char *end, GCodeLine &gline, std::pair<const char*, const char*> &command);
+    void        update_coordinates(GCodeLine &gline, std::pair<const char*, const char*> &command);
 
     GCodeConfig m_config;
     float       m_position[NUM_AXES];

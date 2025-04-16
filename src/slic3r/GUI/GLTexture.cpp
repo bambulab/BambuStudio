@@ -30,6 +30,21 @@
 #include <boost/log/trivial.hpp>
 #include <wx/dcgraph.h>
 #include "FontUtils.hpp"
+namespace {
+    GLenum get_gl_texture_wrap_mode(Slic3r::GUI::GLTexture::ESamplerWrapMode mode) {
+        switch (mode) {
+        case Slic3r::GUI::GLTexture::ESamplerWrapMode::Repeat:
+            return GL_REPEAT;
+        case Slic3r::GUI::GLTexture::ESamplerWrapMode::MirrorRepeat:
+            return GL_MIRRORED_REPEAT;
+        case Slic3r::GUI::GLTexture::ESamplerWrapMode::Border:
+            return GL_CLAMP_TO_BORDER;
+        case Slic3r::GUI::GLTexture::ESamplerWrapMode::Clamp:
+        default:
+            return GL_CLAMP_TO_EDGE;
+        }
+    }
+}
 namespace Slic3r {
 namespace GUI {
 
@@ -473,7 +488,6 @@ void GLTexture::reset()
 
 bool GLTexture::generate_from_text_string(const std::string& text_str, wxFont &font, wxColor background, wxColor foreground)
 {
-    int w,h,hl;
     return generate_from_text(text_str, font, background, foreground);
 }
 
@@ -659,6 +673,31 @@ bool GLTexture::generate_texture_from_text(const std::string& text_str, wxFont& 
     return true;
 }
 
+void GLTexture::set_wrap_mode_u(ESamplerWrapMode mode)
+{
+    m_wrap_mode_u = mode;
+}
+
+void GLTexture::set_wrap_mode_v(ESamplerWrapMode mode)
+{
+    m_wrap_mode_v = mode;
+}
+
+void GLTexture::bind(uint8_t stage)
+{
+    glActiveTexture(GL_TEXTURE0 + stage);
+    glBindTexture(GL_TEXTURE_2D, m_id);
+
+    // set sampler state
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, get_gl_texture_wrap_mode(m_wrap_mode_u)));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, get_gl_texture_wrap_mode(m_wrap_mode_v)));
+}
+
+void GLTexture::unbind()
+{
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 void GLTexture::render_texture(unsigned int tex_id, float left, float right, float bottom, float top)
 {
     render_sub_texture(tex_id, left, right, bottom, top, FullTextureUVs);
@@ -666,25 +705,75 @@ void GLTexture::render_texture(unsigned int tex_id, float left, float right, flo
 
 void GLTexture::render_sub_texture(unsigned int tex_id, float left, float right, float bottom, float top, const GLTexture::Quad_UVs& uvs)
 {
+    const auto& p_flat_texture_shader = wxGetApp().get_shader("flat_texture");
+    if (!p_flat_texture_shader) {
+        return;
+    }
+
+    GLModel& model = init_model_for_render_image();
+
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    Transform3d view_matrix = camera.get_view_matrix_for_billboard();
+    const auto& projection_matrix = camera.get_projection_matrix();
+
+    const float center_x = (left + right) * 0.5f;
+    const float center_y = (bottom + top) * 0.5f;
+    const float scale_x = (right - left);
+    const float scale_y = (top - bottom);
+    Transform3d model_matrix{ Transform3d::Identity() };
+    model_matrix.data()[3 * 4 + 0] = center_x;
+    model_matrix.data()[3 * 4 + 1] = center_y;
+    model_matrix.data()[0 * 4 + 0] = scale_x;
+    model_matrix.data()[1 * 4 + 1] = scale_y;
+
+    Transform2d uv_matrix{ Transform2d::Identity() };
+
+    float center_u = (uvs.right_bottom.u + uvs.left_bottom.u) * 0.5f;
+    float center_v = (uvs.right_top.v + uvs.right_bottom.v) * 0.5f;
+    float scale_u = (uvs.right_bottom.u - uvs.left_bottom.u);
+    float scale_v = (uvs.right_bottom.v - uvs.right_top.v);
+
+    uv_matrix.data()[3 * 2 + 0] = center_u;
+    uv_matrix.data()[3 * 2 + 1] = center_v;
+    uv_matrix.data()[3 * 0 + 0] = scale_u;
+    uv_matrix.data()[3 * 1 + 1] = scale_v;
+
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-    glsafe(::glEnable(GL_TEXTURE_2D));
-    glsafe(::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE));
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    const auto& gl_info = p_ogl_manager->get_gl_info();
+    const auto formated_gl_version = gl_info.get_formated_gl_version();
+    if (formated_gl_version < 30)
+    {
+        glsafe(::glEnable(GL_TEXTURE_2D));
+    }
+    //glsafe(::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE));
 
     glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)tex_id));
-
-    ::glBegin(GL_QUADS);
-    ::glTexCoord2f(uvs.left_bottom.u, uvs.left_bottom.v); ::glVertex2f(left, bottom);
-    ::glTexCoord2f(uvs.right_bottom.u, uvs.right_bottom.v); ::glVertex2f(right, bottom);
-    ::glTexCoord2f(uvs.right_top.u, uvs.right_top.v); ::glVertex2f(right, top);
-    ::glTexCoord2f(uvs.left_top.u, uvs.left_top.v); ::glVertex2f(left, top);
-    glsafe(::glEnd());
+    const int stage = 0;
+    glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
+    wxGetApp().bind_shader(p_flat_texture_shader);
+    p_flat_texture_shader->set_uniform("u_texture", stage);
+    p_flat_texture_shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
+    p_flat_texture_shader->set_uniform("projection_matrix", projection_matrix);
+    p_flat_texture_shader->set_uniform("u_uvTransformMatrix", uv_matrix.matrix());
+    model.render_geometry();
+    wxGetApp().unbind_shader();
 
     glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
-    glsafe(::glDisable(GL_TEXTURE_2D));
     glsafe(::glDisable(GL_BLEND));
+
+    if (formated_gl_version < 30) {
+        glsafe(::glDisable(GL_TEXTURE_2D));
+    }
+}
+
+void GLTexture::shutdown()
+{
+    auto& model = get_model_for_render_image();
+    model.reset();
 }
 
 bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps, ECompressionType compression_type, bool apply_anisotropy)
@@ -953,6 +1042,36 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, boo
     nsvgDelete(image);
 
     return true;
+}
+
+GLModel& GLTexture::init_model_for_render_image()
+{
+    auto& model = get_model_for_render_image();
+    if (!model.is_initialized()) {
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::PrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3T2 };
+        init_data.reserve_vertices(4);
+        init_data.reserve_indices(6);
+
+        // vertices
+        init_data.add_vertex(Vec3f(-0.5f, -0.5f, 0.0f), Vec2f(-0.5f, 0.5f));
+        init_data.add_vertex(Vec3f(0.5f, -0.5f, 0.0f), Vec2f(0.5f, 0.5f));
+        init_data.add_vertex(Vec3f(0.5f, 0.5f, 0.0f), Vec2f(0.5f, -0.5f));
+        init_data.add_vertex(Vec3f(-0.5f, 0.5f, 0.0f), Vec2f(-0.5f, -0.5f));
+
+        // indices
+        init_data.add_triangle(0, 1, 2);
+        init_data.add_triangle(2, 3, 0);
+
+        model.init_from(std::move(init_data));
+    }
+    return model;
+}
+
+GLModel& GLTexture::get_model_for_render_image()
+{
+   static GLModel s_model_for_render_image;
+   return s_model_for_render_image;
 }
 
 } // namespace GUI

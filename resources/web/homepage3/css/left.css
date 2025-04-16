@@ -268,7 +268,7 @@ body
 	position: absolute;
 	height: 60px;
 	width: 12px;
-	right: 1px;
+	right: 0px;
 	top: calc(50% - 30px);
 	cursor: pointer;
 	background-repeat: no-repeat;
@@ -278,6 +278,7 @@ body
 	border-top: 1px solid rgba(238, 238, 238, 1);
 	border-bottom: 1px solid rgba(238, 238, 238, 1);
 	border-radius: 4px 0px 0px 4px;
+	z-index: 99;
 }
 
 #HideBtn:hover

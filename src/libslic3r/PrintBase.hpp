@@ -33,7 +33,9 @@ struct StringObjectException
     ObjectBase const *object = nullptr;
     std::string opt_key;
     StringExceptionType         type;   // warning type for tips
+    bool is_warning = false;
     std::vector<std::string>    params; // warning params for tips
+    std::string                         hypetext;
 };
 
 class CanceledException : public std::exception
@@ -406,7 +408,7 @@ public:
         // Some data was changed, which in turn invalidated already calculated steps.
         APPLY_STATUS_INVALIDATED,
     };
-    virtual ApplyStatus     apply(const Model &model, DynamicPrintConfig config) = 0;
+    virtual ApplyStatus     apply(const Model &model, DynamicPrintConfig config, bool extruder_applied = false) = 0;
     const Model&            model() const { return m_model; }
 
     struct TaskParams {
@@ -550,6 +552,7 @@ protected:
 
 	Model                                   m_model;
 	DynamicPrintConfig						m_full_print_config;
+    DynamicPrintConfig						m_ori_full_print_config;  //original full print config without extruder applied
     PlaceholderParser                       m_placeholder_parser;
 
     //BBS: add plate id into print base

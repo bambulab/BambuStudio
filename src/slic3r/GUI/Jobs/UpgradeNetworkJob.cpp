@@ -25,7 +25,7 @@ void UpgradeNetworkJob::on_exception(const std::exception_ptr &eptr)
     try {
         if (eptr)
             std::rethrow_exception(eptr);
-    } catch (std::exception &e) {
+    } catch (std::exception &/*e*/) {
         UpgradeNetworkJob::on_exception(eptr);
     }
 }
@@ -68,7 +68,7 @@ void UpgradeNetworkJob::process()
         return was_canceled();
     };
     int curr_percent = 0;
-    result = wxGetApp().download_plugin(name, package_name, 
+    result = wxGetApp().download_plugin(name, package_name,
         [this, &curr_percent](int state, int percent, bool &cancel) {
             if (state == InstallStatusNormal) {
                 update_status(percent, _L("Downloading"));
