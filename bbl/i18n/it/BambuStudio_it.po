@@ -1096,7 +1096,7 @@ msgid "Change file"
 msgstr "Cambia file"
 
 msgid "Change to another .svg file"
-msgstr "Passa​•​a​•​un​•​altro​•​file​•​.svg"
+msgstr "Passa​ a​d ​un​ ​altro​ ​file​ ​.svg"
 
 #. TRN: An menu option to convert the SVG into an unmodifiable model part.
 msgid "Bake to model"
@@ -1104,7 +1104,7 @@ msgstr "Converti in modello"
 
 #. TRN: Tooltip for the menu item.
 msgid "Bake into model as uneditable part"
-msgstr "Inserire​•​nel​•​modello​•​come​•​parte​•​non​•​modificabile"
+msgstr "Inserire​ ​nel ​modello​ ​come​ ​parte​ ​non​ ​modificabile"
 
 msgid "Save as"
 msgstr "Salva come"
@@ -1127,7 +1127,7 @@ msgid "set width and height keep ratio with width"
 msgstr "Imposta larghezza e altezza in modo da mantenere il rapporto con la larghezza."
 
 msgid "Width of SVG."
-msgstr "Larghezza SVG"
+msgstr "Larghezza dell'SVG"
 
 msgid "Height of SVG."
 msgstr "Altezza dell'SVG."
@@ -1192,7 +1192,7 @@ msgstr "Clicca per cambiare il tipo di parte in modificatore."
 
 #. TRN: This is the name of the action that shows in undo/redo stack (changing part type from SVG to something else).
 msgid "Change SVG Type"
-msgstr "Cambia​•​tipo​•​SVG"
+msgstr "Cambia​ ​tipo​ di ​SVG"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -1242,7 +1242,7 @@ msgid "Version"
 msgstr "Versione"
 
 msgid "BambuStudio will terminate because of running out of memory.It may be a bug. It will be appreciated if you report the issue to our team."
-msgstr "BambuStudio terminerà per esaurimento della memoria. Potrebbe trattarsi di un bug. Segnala il problema al nostro team."
+msgstr "BambuStudio si chiuderà per esaurimento della memoria. Potrebbe trattarsi di un bug. Segnala il problema al nostro team."
 
 msgid "Fatal error"
 msgstr "Errore irreversibile"
@@ -1261,7 +1261,7 @@ msgid "Untitled"
 msgstr "Senza titolo"
 
 msgid "Downloading Bambu Network Plug-in"
-msgstr "Download Plug-in Bambu Network"
+msgstr "Scarico il Plug-in Bambu Network"
 
 msgid "Login information expired. Please login again."
 msgstr "Le informazioni di login sono scadute. Effettua nuovamente il login."
@@ -1425,7 +1425,7 @@ msgid "Select a G-code file:"
 msgstr "Seleziona file G-code:"
 
 msgid "Import File"
-msgstr "Importa File…"
+msgstr "Importa File"
 
 msgid "Choose files"
 msgstr "Scegli file"
@@ -1534,7 +1534,7 @@ msgid "Delete the selected object"
 msgstr "Elimina l'oggetto selezionato"
 
 msgid "Delete all cutter"
-msgstr "Elimina tutto i tagli"
+msgstr "Elimina tutti i tagli"
 
 msgid "Del"
 msgstr "Del"
@@ -1573,10 +1573,10 @@ msgid "Rounded Rectangle"
 msgstr "Rettangolo arrotondato"
 
 msgid "Bambu Cube"
-msgstr "Bambu Cube"
+msgstr "Cubo Bambu"
 
 msgid "Bambu Cube V2"
-msgstr "Bambu Cube V2"
+msgstr "Cubo Bambu V2"
 
 msgid "3DBenchy"
 msgstr "3DBenchy"
@@ -1585,7 +1585,7 @@ msgid "ksr FDMTest"
 msgstr "test FDM ksr"
 
 msgid "SVG"
-msgstr ""
+msgstr "SVG"
 
 msgid "Height range Modifier"
 msgstr "Modifica intervallo di altezza"
@@ -1999,8 +1999,8 @@ msgstr[1] "I seguenti oggetti del modello sono stati riparati"
 
 msgid "Failed to repair the following model object"
 msgid_plural "Failed to repair the following model object"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Impossibile riparare il seguente modello di oggetto"
+msgstr[1] "Impossibile riparare i seguenti modelli di oggetti"
 
 msgid "Repairing was canceled"
 msgstr "La riparazione è stata annullata"
@@ -2051,7 +2051,7 @@ msgid "Auto"
 msgstr "Automatico"
 
 msgid "Painted"
-msgstr "Dipinto"
+msgstr "Colorato"
 
 msgid "Outer brim only"
 msgstr "Solo brim esterno"
@@ -2204,7 +2204,7 @@ msgid "Please check the network connection of the printer and Studio."
 msgstr "Controlla la connessione di rete della stampante e di Studio."
 
 msgid "Connecting..."
-msgstr "Connessione in corso…"
+msgstr "In connessione…"
 
 msgid "Auto-refill"
 msgstr "Ricarica automatica"
@@ -2219,13 +2219,13 @@ msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatica
 msgstr "Scegliere uno slot AMS, quindi premi il pulsante \"Carica\" o \"Scarica\" per caricare o scaricare automaticamente il filamento."
 
 msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
-msgstr "La modifica della velocità della ventola durante la stampa può influire sulla qualità di stampa. Scegli con attenzione."
+msgstr "Modificare la velocità della ventola durante la stampa può influire sulla qualità di stampa. Scegli con attenzione."
 
 msgid "Change Anyway"
 msgstr "Cambia Comunque"
 
 msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
-msgstr "La modifica della velocità della ventola durante la stampa può influire sulla qualità di stampa, scegli con attenzione."
+msgstr "Modificare la velocità della ventola durante la stampa può influire sulla qualità di stampa, scegli con attenzione."
 
 msgid "Off"
 msgstr "Off"
