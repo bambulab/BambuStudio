@@ -13622,7 +13622,7 @@ msgstr ""
 #~ msgstr "microSD anomala"
 
 #~ msgid "Unable to perform boolean operation on model meshes. Only positive parts will be kept. You may fix the meshes and try agian."
-#~ msgstr "Unable to perform boolean operation on model meshes. Only positive parts will be kept. You may fix the meshes and try agian."
+#~ msgstr "Impossibile eseguire operazioni booleane sulle mesh del modello. Verranno mantenute solo le parti positive. È possibile correggere le maglie e riprovare."
 
 #~ msgid "nozzle in preset: %s %s"
 #~ msgstr "nozzle preset: %s %s"
@@ -13631,16 +13631,16 @@ msgstr ""
 #~ msgstr "Attenzione all'uso! La calibrazione del flusso sul piatto texture PEI potrebbe fallire a causa della superficie."
 
 #~ msgid "Automatic flow calibration using Micro Lidar"
-#~ msgstr "Automatic flow calibration using Micro Lidar"
+#~ msgstr "Calibrazione automatica del flusso mediante micro-lidar"
 
 #~ msgid "Direct drive"
-#~ msgstr "Direct drive"
+#~ msgstr "Azionamento diretto"
 
 #~ msgid "Only one of the results with the same name will be saved. Are you sure you want to override the other results?"
 #~ msgstr "Verrà salvato solo uno dei risultati con lo stesso nome. Sei sicuro di voler sostituire gli altri risultati?"
 
 #~ msgid "Your nozzle diameter in preset is not consistent with memorized nozzle diameter. Did you change your nozzle lately?"
-#~ msgstr "Your nozzle diameter in preset is not consistent with the saved nozzle diameter. Have you changed your nozzle?"
+#~ msgstr "Il diametro del nozzle impostato non corrisponde al diametro dell'ugello salvato. Avete cambiato l'ugello?"
 
 #~ msgid "We would use Lidar to read the calibration result"
 #~ msgstr "Utilizzeremo il Lidar per leggere il risultato della calibrazione."
@@ -14174,7 +14174,7 @@ msgstr ""
 #~ msgstr "Debug"
 
 #~ msgid "Debug level"
-#~ msgstr "Livello di debug"
+#~ msgstr "Livello debug"
 
 #~ msgid "Decide whether support activating air filtration"
 #~ msgstr "Decidi se attivare la filtrazione dell'aria"
@@ -15517,7 +15517,7 @@ msgstr ""
 #~ msgstr "Questa versione del file slicer %s è più recente della versione di %s:"
 
 #~ msgid "Timelapse Wipe Tower"
-#~ msgstr "Timelapse Wipe Tower"
+#~ msgstr "Timelapse Torre di pulizia"
 
 #~ msgid "Timelapse without toolhead"
 #~ msgstr "Timelapse senza testa strumenti"
@@ -15569,7 +15569,7 @@ msgstr ""
 #~ msgstr "Impossibile eseguire operazioni booleane sulle mesh del modello. Verranno esportate solo le parti positive."
 
 #~ msgid "Unconnected device"
-#~ msgstr "Unconnected device"
+#~ msgstr "Dispositivo non collegato"
 
 #~ msgid "Unkown Error."
 #~ msgstr "Errore sconosciuto."
