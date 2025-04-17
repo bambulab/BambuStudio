@@ -59,6 +59,7 @@
 #define BBL_JSON_KEY_FAMILY                     "family"
 #define BBL_JSON_KEY_BED_MODEL                  "bed_model"
 #define BBL_JSON_KEY_BED_TEXTURE                "bed_texture"
+#define BBL_JSON_KEY_USE_RECT_GRID              "use_rect_grid"
 #define BBL_JSON_KEY_IMAGE_BED_TYPE             "image_bed_type"
 #define BBL_JSON_KEY_DEFAULT_BED_TYPE           "default_bed_type"
 #define BBL_JSON_KEY_BOTTOM_TEXTURE_END_NAME    "bottom_texture_end_name"
@@ -124,6 +125,7 @@ public:
         // Vendor & Printer Model specific print bed model & texture.
         std::string 			 	bed_model;
         std::string 				bed_texture;
+        std::string                 use_rect_grid;
         std::string                 image_bed_type;
         std::string                 default_bed_type;
         std::string                 bottom_texture_end_name;

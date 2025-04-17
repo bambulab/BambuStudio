@@ -19,6 +19,7 @@ struct PrintVolumeDetection
 uniform vec4 uniform_color;
 uniform float emission_factor;
 uniform PrintVolumeDetection print_volume;
+uniform vec4 full_print_volume;
 // x = diffuse, y = specular;
 varying vec2 intensity;
 varying vec4 world_pos;
@@ -30,12 +31,18 @@ void main()
     vec3 pv_check_min = ZERO;
     vec3 pv_check_max = ZERO;
     if (print_volume.type == 0) {// rectangle
-        pv_check_min = world_pos.xyz - vec3(print_volume.xy_data.x, print_volume.xy_data.y, print_volume.z_data.x);
-        pv_check_max = world_pos.xyz - vec3(print_volume.xy_data.z, print_volume.xy_data.w, print_volume.z_data.y);
-
+        pv_check_min = world_pos.xyz - vec3(full_print_volume.x, full_print_volume.y, print_volume.z_data.x);
+        pv_check_max = world_pos.xyz - vec3(full_print_volume.z, full_print_volume.w, print_volume.z_data.y);
         pv_check_min = pv_check_min * ONE_OVER_EPSILON;
         pv_check_max = pv_check_max * ONE_OVER_EPSILON;
-        color = (any(lessThan(pv_check_min, vec3(1.0))) || any(greaterThan(pv_check_max, vec3(1.0)))) ? mix(color, WHITE, 0.3333) : color;
+        if (all(greaterThan(pv_check_min, vec3(1.0))) && all(lessThan(pv_check_max, vec3(1.0)))) {
+            pv_check_min = world_pos.xyz - vec3(print_volume.xy_data.x, print_volume.xy_data.y, print_volume.z_data.x);
+            pv_check_max = world_pos.xyz - vec3(print_volume.xy_data.z, print_volume.xy_data.w, print_volume.z_data.y);
+
+            pv_check_min = pv_check_min * ONE_OVER_EPSILON;
+            pv_check_max = pv_check_max * ONE_OVER_EPSILON;
+            color = (any(lessThan(pv_check_min, vec3(1.0))) || any(greaterThan(pv_check_max, vec3(1.0)))) ? mix(color, WHITE, 0.3333) : color;
+        }
     }
     else if (print_volume.type == 1) {// circle
         float delta_radius = print_volume.xy_data.z - distance(world_pos.xy, print_volume.xy_data.xy);

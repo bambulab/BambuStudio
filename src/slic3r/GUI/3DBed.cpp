@@ -705,6 +705,9 @@ void Bed3D::render_model() const
             const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
             shader->set_uniform("view_normal_matrix", view_normal_matrix);
             if (m_build_volume.get_extruder_area_count() > 0) {
+                auto printable_area = m_build_volume.printable_area();
+                std::array<float, 4> full_print_volume = {(float)printable_area[0].x(), (float)printable_area[0].y(), (float)printable_area[2].x(), (float)printable_area[2].y()};
+                shader->set_uniform("full_print_volume", full_print_volume);
                 const BuildVolume::BuildSharedVolume& shared_volume = m_build_volume.get_shared_volume();
                 std::array<float, 4>       xy_data       = shared_volume.data;
                 shader->set_uniform("print_volume.type", shared_volume.type);
