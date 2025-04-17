@@ -2408,7 +2408,7 @@ void GUI::ObjectList::add_new_model_object_from_old_object() {
 
     std::vector<size_t> object_idxs;
     ModelObject *       new_object = model.add_object();
-    new_object->name               = into_u8("Sub merge");
+    new_object->name               = into_u8(_L("Sub-merged body"));
     new_object->add_instance(); // each object should have at least one instance
     int min_extruder = (int) EnforcerBlockerType::ExtruderMax - 1;
     for (auto mv : sel_volumes) {
