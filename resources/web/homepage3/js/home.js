@@ -431,18 +431,27 @@ function OnClickOpenProject()
 	SendWXMessage( JSON.stringify(tSend) );		
 }
 
+let RecentClick=true;
 function OnOpenRecentFile( strPath )
 {
 	if( RecentPage_Mode!=Recent_Normal )
 		return;
+
+	if(RecentClick)
+	{
+        RecentClick = false;
+        setTimeout(() => {
+            RecentClick = true;
+        }, 1000);		
+		
+		var tSend={};
+		tSend['sequence_id']=Math.round(new Date() / 1000);
+		tSend['command']="homepage_open_recentfile";
+		tSend['data']={};
+		tSend['data']['path']=decodeURI(strPath);
 	
-	var tSend={};
-	tSend['sequence_id']=Math.round(new Date() / 1000);
-	tSend['command']="homepage_open_recentfile";
-	tSend['data']={};
-	tSend['data']['path']=decodeURI(strPath);
-	
-	SendWXMessage( JSON.stringify(tSend) );	
+		SendWXMessage( JSON.stringify(tSend) );	
+	}
 }
 
 function OnDeleteRecentFile( )
