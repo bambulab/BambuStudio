@@ -3862,6 +3862,8 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
                     model.bottom_texture_rect = it.value();
                 } else if (boost::iequals(it.key(), BBL_JSON_KEY_MIDDLE_TEXTURE_RECT)) {
                     model.middle_texture_rect = it.value();
+                } else if (boost::iequals(it.key(), BBL_JSON_KEY_USE_RECT_GRID)) {
+                    model.use_rect_grid = it.value();
                 }
                 else if (boost::iequals(it.key(), BBL_JSON_KEY_IMAGE_BED_TYPE)) {
                     model.image_bed_type = it.value();

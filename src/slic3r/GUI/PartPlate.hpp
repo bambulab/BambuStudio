@@ -152,7 +152,6 @@ private:
 
     void init();
     bool valid_instance(int obj_id, int instance_id);
-    void generate_print_polygon(ExPolygon &print_polygon);
     void generate_exclude_polygon(ExPolygon &exclude_polygon);
     void generate_logo_polygon(ExPolygon &logo_polygon);
     void generate_logo_polygon(ExPolygon &logo_polygon,const BoundingBoxf3& box);

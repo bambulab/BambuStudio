@@ -2346,76 +2346,6 @@ void PartPlate::set_logo_box_by_bed(const BoundingBoxf3& box)
 	}
 }
 
-void PartPlate::generate_print_polygon(ExPolygon &print_polygon)
-{
-	auto compute_points = [&print_polygon](Vec2d& center, double radius, double start_angle, double stop_angle, int count)
-	{
-		double angle, angle_steps;
-		angle_steps = (stop_angle - start_angle) / (count - 1);
-		for(int j = 0; j < count; j++ )
-		{
-			double angle = start_angle + j * angle_steps;
-			double x = center(0) + ::cos(angle) * radius;
-			double y = center(1) + ::sin(angle) * radius;
-			print_polygon.contour.append({ scale_(x), scale_(y) });
-		}
-	};
-
-	int points_count = 8;
-	if (m_shape.size() == 4)
-	{
-			//rectangle case
-			for (int i = 0; i < 4; i++)
-			{
-				const Vec2d& p = m_shape[i];
-				Vec2d center;
-				double start_angle, stop_angle, angle_steps, radius_x, radius_y, radius;
-				switch (i) {
-					case 0:
-						radius = 5.f;
-						center(0) = p(0) + radius;
-						center(1) = p(1) + radius;
-						start_angle = PI;
-						stop_angle = 1.5 * PI;
-						compute_points(center, radius, start_angle, stop_angle, points_count);
-						break;
-					case 1:
-						print_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
-						break;
-					case 2:
-						radius_x = (int)(p(0)) % 10;
-                        radius_y = (int)(p(1)) % 10;
-						radius = (radius_x > radius_y)?radius_y: radius_x;
-						if (radius < 5.0)
-							radius = 5.f;
-						center(0) = p(0) - radius;
-						center(1) = p(1) - radius;
-						start_angle = 0;
-						stop_angle = 0.5 * PI;
-						compute_points(center, radius, start_angle, stop_angle, points_count);
-						break;
-					case 3:
-                        radius_x = (int)(p(0)) % 10;
-						radius_y = (int)(p(1)) % 10;
-						radius = (radius_x > radius_y)?radius_y: radius_x;
-						if (radius < 5.0)
-							radius = 5.f;
-						center(0) = p(0) + radius;
-						center(1) = p(1) - radius;
-						start_angle = 0.5 * PI;
-						stop_angle = PI;
-						compute_points(center, radius, start_angle, stop_angle, points_count);
-						break;
-				}
-			}
-	}
-	else {
-		for (const Vec2d& p : m_shape) {
-			print_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
-		}
-	}
-}
-
 void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 {
 	auto compute_exclude_points = [&exclude_polygon](Vec2d& center, double radius, double start_angle, double stop_angle, int count)
@@ -2442,7 +2372,7 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 				double start_angle, stop_angle, angle_steps, radius_x, radius_y, radius;
 				switch (i) {
 					case 0:
-						radius = 5.f;
+                        radius = 8.f;
 						center(0) = p(0) + radius;
 						center(1) = p(1) + radius;
 						start_angle = PI;
@@ -3241,9 +3171,13 @@ void PartPlateList::generate_print_polygon(ExPolygon &print_polygon)
             print_polygon.contour.append({scale_(x), scale_(y)});
         }
     };
-
+    bool use_rect_grid = false;
+    if (&wxGetApp() && wxGetApp().plater()) {
+        auto pm       = wxGetApp().plater()->get_curr_printer_model();
+        use_rect_grid = (pm && pm->use_rect_grid == "true") ? true : false;
+    }
     int points_count = 8;
-    if (m_shape.size() == 4) {
+    if (m_shape.size() == 4 && !use_rect_grid) {
         // rectangle case
         for (int i = 0; i < 4; i++) {
             const Vec2d &p = m_shape[i];
@@ -3251,7 +3185,7 @@ void PartPlateList::generate_print_polygon(ExPolygon &print_polygon)
             double       start_angle, stop_angle, radius_x, radius_y, radius;
             switch (i) {
             case 0:
-                radius      = 5.f;
+                radius      = 8.f;
                 center(0)   = p(0) + radius;
                 center(1)   = p(1) + radius;
                 start_angle = PI;
@@ -3312,7 +3246,7 @@ void PartPlateList::generate_exclude_polygon(ExPolygon &exclude_polygon)
             double       start_angle, stop_angle, radius;
             switch (i) {
             case 0:
-                radius      = 5.f;
+                radius      = 8.f;
                 center(0)   = p(0) + radius;
                 center(1)   = p(1) + radius;
                 start_angle = PI;
