@@ -46,23 +46,37 @@ void MeshClipper::set_limiting_plane(const ClippingPlane& plane)
     }
 }
 
-void MeshClipper::set_mesh(const TriangleMesh& mesh)
+void MeshClipper::set_mesh(const indexed_triangle_set &mesh)
 {
-    if (m_mesh != &mesh) {
+    if (m_mesh.get() != &mesh) {
         m_mesh = &mesh;
-        reset();
+        m_result.reset();
     }
 }
 
-void MeshClipper::set_negative_mesh(const TriangleMesh& mesh)
+void MeshClipper::set_mesh(AnyPtr<const indexed_triangle_set> &&ptr)
 {
-    if (m_negative_mesh != &mesh) {
-        m_negative_mesh = &mesh;
-        reset();
+    if (m_mesh.get() != ptr.get()) {
+        m_mesh = std::move(ptr);
+        m_result.reset();
     }
 }
 
+void MeshClipper::set_negative_mesh(const indexed_triangle_set &mesh)
+{
+    if (m_negative_mesh.get() != &mesh) {
+        m_negative_mesh = &mesh;
+        m_result.reset();
+    }
+}
 
+void MeshClipper::set_negative_mesh(AnyPtr<const indexed_triangle_set> &&ptr)
+{
+    if (m_negative_mesh.get() != ptr.get()) {
+        m_negative_mesh = std::move(ptr);
+        m_result.reset();
+    }
+}
 
 void MeshClipper::set_transformation(const Geometry::Transformation& trafo)
 {
@@ -208,10 +222,10 @@ void MeshClipper::recalculate_triangles()
 
     // if (m_csgmesh.empty()) {
     if (m_mesh) {
-        expolys = union_ex(slice_mesh(m_mesh->its, height_mesh, slicing_params));
+        expolys = union_ex(slice_mesh(*m_mesh, height_mesh, slicing_params));
     }
     if (m_negative_mesh && !m_negative_mesh->empty()) {
-        const ExPolygons neg_expolys = union_ex(slice_mesh(m_negative_mesh->its, height_mesh, slicing_params));
+        const ExPolygons neg_expolys = union_ex(slice_mesh(*m_negative_mesh, height_mesh, slicing_params));
         expolys                      = diff_ex(expolys, neg_expolys);
     }
 

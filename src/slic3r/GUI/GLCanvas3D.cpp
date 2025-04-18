@@ -2246,6 +2246,9 @@ void GLCanvas3D::render(bool only_init)
         if (!ogl_manager.are_framebuffers_supported()) {
             picking_effect = EPickingEffect::StencilOutline; // use stencil outline as framebuffer not supported yet.
         }
+        if (!m_gizmos.is_allow_show_volume_highlight_outline()) {
+            picking_effect = EPickingEffect::Disabled;
+        }
     }
 
     const bool off_screen_rendering_enabled = ogl_manager.is_fxaa_enabled();
@@ -4720,7 +4723,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
     }
     else if (evt.Dragging() && evt.LeftIsDown() && m_mouse.drag.move_volume_idx != -1 && m_layers_editing.state == LayersEditing::Unknown) {
-        if (m_canvas_type != ECanvasType::CanvasAssembleView) {
+        if (m_canvas_type != ECanvasType::CanvasAssembleView && m_gizmos.is_allow_drag_volume()) {
             if (!m_mouse.drag.move_requires_threshold) {
                 m_mouse.dragging = true;
                 Vec3d cur_pos = m_mouse.drag.start_position_3D;
