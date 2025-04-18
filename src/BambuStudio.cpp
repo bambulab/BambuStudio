@@ -1485,6 +1485,7 @@ int CLI::run(int argc, char **argv)
     bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false;
     bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false, current_is_multi_extruder = false, new_is_multi_extruder = false, allow_mix_temp = false;
     Semver file_version;
+    Slic3r::GUI::Camera::ViewAngleType camera_view = Slic3r::GUI::Camera::ViewAngleType::Iso;
     std::map<size_t, bool> orients_requirement;
     std::vector<Preset*> project_presets;
     std::string new_printer_name, current_printer_name, new_process_name, current_process_name, current_printer_system_name, current_process_system_name, new_process_system_name, new_printer_system_name, printer_model_id, current_printer_model, printer_model, new_default_process_name;
@@ -1548,6 +1549,10 @@ int CLI::run(int argc, char **argv)
     ConfigOptionBool* allow_mix_temp_option = m_config.option<ConfigOptionBool>("allow_mix_temp");
     if (allow_mix_temp_option)
         allow_mix_temp = allow_mix_temp_option->value;
+
+    ConfigOptionInt* camera_view_option = m_config.option<ConfigOptionInt>("camera_view");
+    if (camera_view_option)
+        camera_view = (Slic3r::GUI::Camera::ViewAngleType)(camera_view_option->value);
 
     ConfigOptionBool* avoid_extrusion_cali_region_option = m_config.option<ConfigOptionBool>("avoid_extrusion_cali_region");
     if (avoid_extrusion_cali_region_option)
@@ -5325,7 +5330,7 @@ int CLI::run(int argc, char **argv)
     std::string export_3mf_file, load_slice_data_dir, export_slice_data_dir, export_stls_dir;
     std::vector<ThumbnailData*> calibration_thumbnails;
     std::vector<int> plate_object_count(partplate_list.get_plate_count(), 0);
-    int max_slicing_time_per_plate = 0, max_triangle_count_per_plate = 0, sliced_plate = -1;
+    int max_slicing_time_per_plate = 0, max_triangle_count_per_plate = 0, sliced_plate = -1, export_png = -1;
     std::vector<bool> plate_has_skips(partplate_list.get_plate_count(), false);
     std::vector<std::vector<size_t>> plate_skipped_objects(partplate_list.get_plate_count());
 
@@ -5537,7 +5542,16 @@ int CLI::run(int argc, char **argv)
         } */else if (opt_key == "export_3mf") {
             export_to_3mf = true;
             export_3mf_file = m_config.opt_string(opt_key);
-        }else if(opt_key=="no_check"){
+        }
+        else if (opt_key == "export_png") {
+            export_png = m_config.option<ConfigOptionInt>("export_png")->value;
+            if (m_actions.size() > 1) {
+                BOOST_LOG_TRIVIAL(error) << "should not set export_png with other actions together." << std::endl;
+                record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+                flush_and_exit(CLI_INVALID_PARAMS);
+            }
+        }
+        else if(opt_key=="no_check"){
             no_check = m_config.opt_bool(opt_key);
         //} else if (opt_key == "export_gcode" || opt_key == "export_sla" || opt_key == "slice") {
         } else if (opt_key == "normative_check") {
@@ -7009,6 +7023,54 @@ int CLI::run(int argc, char **argv)
 
         for (int i = 0; i < plate_bboxes.size(); i++)
             delete plate_bboxes[i];
+    }
+    else if (export_png >= 0)
+    {
+        std::vector<ThumbnailData*> thumbnails;
+        PlateDataPtrs plate_data_list;
+        partplate_list.store_to_3mf_structure(plate_data_list);
+        if (!opengl_valid)
+            opengl_valid = init_opengl_and_colors(m_models[0], colors);
+
+        if (opengl_valid) {
+            Model& model = m_models[0];
+            p_opengl_mgr->bind_vao();
+            p_opengl_mgr->bind_shader(shader);
+            for (int i = 0; i < partplate_list.get_plate_count(); i++) {
+                Slic3r::GUI::PartPlate* part_plate = partplate_list.get_plate(i);
+                PlateData* plate_data = plate_data_list[i];
+                ThumbnailData* thumbnail_data = &plate_data->plate_thumbnail;
+
+                if ((export_png != 0) && (export_png != (i + 1))) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: export png, Skip plate %2%.") % __LINE__ % (i + 1);
+                }
+                else {
+                    unsigned int thumbnail_width = 512, thumbnail_height = 512;
+                    const ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i };
+
+                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s png, need to generate") % (i + 1);
+                    Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(p_opengl_mgr, *thumbnail_data,
+                        thumbnail_width, thumbnail_height, thumbnail_params,
+                        partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, camera_view);
+                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s png,finished rendering") % (i + 1);
+
+                    std::string pnf_file = "plate_" + std::to_string(i + 1) + "_" + std::to_string((int)camera_view)+".png";
+                    if (!outfile_dir.empty()) {
+                        pnf_file = outfile_dir + "/" + pnf_file;
+                    }
+                    bool write_result = Slic3r::png::write_gl_rgba_to_file(pnf_file.c_str(), thumbnail_width, thumbnail_height, (const uint8_t*)thumbnail_data->pixels.data());
+                    if (write_result)
+                        BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s png write to %2% success") % (i + 1) % pnf_file;
+                    else {
+                        BOOST_LOG_TRIVIAL(error) << boost::format("plate %1%'s png write to %2% failed") % (i + 1) % pnf_file;
+                        record_exit_reson(outfile_dir, CLI_EXPORT_3MF_ERROR, 0, cli_errors[CLI_EXPORT_3MF_ERROR], sliced_info);
+                        flush_and_exit(CLI_EXPORT_3MF_ERROR);
+                    }
+                }
+            }
+            p_opengl_mgr->unbind_shader();
+            p_opengl_mgr->unbind_vao();
+        }
     }
 
     if (plate_data_src.size() > 0)
