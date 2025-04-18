@@ -176,7 +176,7 @@ void InstancesHider::on_update()
             for (const TriangleMesh* mesh : meshes) {
                 m_clippers.emplace_back(new MeshClipper);
                 m_clippers.back()->set_plane(ClippingPlane(-Vec3d::UnitZ(), z_min));
-                m_clippers.back()->set_mesh(*mesh);
+                m_clippers.back()->set_mesh(mesh->its);
             }
             m_old_meshes = meshes;
         }
@@ -374,28 +374,23 @@ void ObjectClipper::on_update()
     // which mesh should be cut?
     std::vector<const TriangleMesh *>     meshes;
     std::vector<Geometry::Transformation> trafos;
-    bool                                  force_clipper_regeneration = false;
 
-    std::unique_ptr<MeshClipper> mc;
     Geometry::Transformation     mc_tr;
 
-    if (!mc && meshes.empty()) {
+    if (meshes.empty()) {
         for (const ModelVolume *mv : mo->volumes) {
             meshes.emplace_back(&mv->mesh());
             trafos.emplace_back(mv->get_transformation());
         }
     }
 
-    if (mc || force_clipper_regeneration || meshes != m_old_meshes) {
+    if (meshes != m_old_meshes) {
         m_clippers.clear();
         for (size_t i = 0; i < meshes.size(); ++i) {
             m_clippers.emplace_back(new MeshClipper, trafos[i]);
-            auto tri_mesh = new TriangleMesh(meshes[i]->its);
-            m_clippers.back().first->set_mesh(*tri_mesh);
+            m_clippers.back().first->set_mesh(meshes[i]->its);
         }
         m_old_meshes = std::move(meshes);
-
-        if (mc) { m_clippers.emplace_back(std::move(mc), mc_tr); }
 
         m_active_inst_bb_radius = mo->instance_bounding_box(get_pool()->selection_info()->get_active_instance()).radius();
     }
@@ -581,7 +576,7 @@ void SupportsClipper::on_update()
             // The timestamp has changed.
             m_clipper.reset(new MeshClipper);
             // The mesh should already have the shared vertices calculated.
-            m_clipper->set_mesh(print_object->support_mesh());
+            m_clipper->set_mesh(print_object->support_mesh().its);
             m_old_timestamp = timestamp;
         }
     }
@@ -737,7 +732,7 @@ void ModelObjectsClipper::on_update()
         m_clippers.clear();
         for (const TriangleMesh* mesh : meshes) {
             m_clippers.emplace_back(new MeshClipper);
-            m_clippers.back()->set_mesh(*mesh);
+            m_clippers.back()->set_mesh(mesh->its);
         }
         m_old_meshes = meshes;
 
