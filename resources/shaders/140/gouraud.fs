@@ -30,6 +30,10 @@ struct SlopeDetection
 };
 
 uniform vec4 uniform_color;
+uniform bool use_color_clip_plane;
+uniform vec4 uniform_color_clip_plane_1;
+uniform vec4 uniform_color_clip_plane_2;
+uniform vec4 color_clip_plane;
 uniform SlopeDetection slope;
 
 //BBS: add outline_color
@@ -61,6 +65,13 @@ void main()
         discard;
     vec3  color = uniform_color.rgb;
     float alpha = uniform_color.a;
+
+    if (use_color_clip_plane){
+        float color_clip_plane_dot = dot(world_pos, color_clip_plane);
+        vec4 full_color = (color_clip_plane_dot < EPSILON) ? uniform_color_clip_plane_1 : uniform_color_clip_plane_2;
+        color = full_color.rgb;
+        alpha = full_color.a;
+    }
 
     if (slope.actived) {
          if(world_pos.z<0.1&&world_pos.z>-0.1)

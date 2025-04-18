@@ -1731,8 +1731,12 @@ void GLVolumeCollection::render(GUI::ERenderPipelineStage             render_pip
         if (GUI::ERenderPipelineStage::Silhouette != render_pipeline_stage) {
             shader->set_uniform("is_text_shape", volume.first->is_text_shape);
             shader->set_uniform("uniform_color", volume.first->render_color);
-            shader->set_uniform("z_range", m_z_range, 2);
-            shader->set_uniform("clipping_plane", m_clipping_plane, 4);
+            shader->set_uniform("z_range", m_z_range);
+            shader->set_uniform("clipping_plane", m_clipping_plane);
+            shader->set_uniform("use_color_clip_plane", m_use_color_clip_plane);
+            shader->set_uniform("color_clip_plane", m_color_clip_plane);
+            shader->set_uniform("uniform_color_clip_plane_1", m_color_clip_plane_colors[0]);
+            shader->set_uniform("uniform_color_clip_plane_2", m_color_clip_plane_colors[1]);
             //BOOST_LOG_TRIVIAL(info) << boost::format("set uniform_color to {%1%, %2%, %3%, %4%}, with_outline=%5%, selected %6%")
             //    %volume.first->render_color[0]%volume.first->render_color[1]%volume.first->render_color[2]%volume.first->render_color[3]
             //    %with_outline%volume.first->selected;

@@ -669,10 +669,15 @@ private:
     PrintVolume m_render_volume;
 
     // z range for clipping in shaders
-    float m_z_range[2];
+    std::array<float, 2> m_z_range;
 
     // plane coeffs for clipping in shaders
-    float m_clipping_plane[4];
+    std::array<float, 4> m_clipping_plane;
+    // plane coeffs for render volumes with different colors in shaders
+    // used by cut gizmo
+    std::array<float, 4>    m_color_clip_plane;
+    bool                     m_use_color_clip_plane{false};
+    std::array<ColorRGBA, 2> m_color_clip_plane_colors{ColorRGBA::RED(), ColorRGBA::BLUE()};
 
     struct Slope
     {
@@ -783,6 +788,17 @@ public:
         m_clipping_plane[2] = coeffs[2];
         m_clipping_plane[3] = coeffs[3];
     }
+
+    const std::array<float, 2> & get_z_range() const { return m_z_range; }
+    const std::array<float, 4> &get_clipping_plane() const { return m_clipping_plane; }
+
+    void set_use_color_clip_plane(bool use) { m_use_color_clip_plane = use; }
+    void set_color_clip_plane(const Vec3d &cp_normal, double offset)
+    {
+        for (int i = 0; i < 3; ++i) m_color_clip_plane[i] = -cp_normal[i];
+        m_color_clip_plane[3] = offset;
+    }
+    void set_color_clip_plane_colors(const std::array<ColorRGBA, 2> &colors) { m_color_clip_plane_colors = colors; }
 
     bool is_slope_GlobalActive() const { return m_slope.isGlobalActive; }
     bool is_slope_active() const { return m_slope.active; }
