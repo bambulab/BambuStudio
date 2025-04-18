@@ -84,6 +84,7 @@ bool decode_colored_png(const ReadBuf &in_buf, ImageColorscale &out_img);
 
 
 
+bool write_gl_rgba_to_file(const char* file_name_utf8, size_t width, size_t height, const uint8_t* data_rgb);
 // Down to earth function to store a packed RGB image to file. Mostly useful for debugging purposes.
 bool write_rgb_to_file(const char *file_name_utf8, size_t width, size_t height, const uint8_t *data_rgb);
 bool write_rgb_to_file(const std::string &file_name_utf8, size_t width, size_t height, const uint8_t *data_rgb);

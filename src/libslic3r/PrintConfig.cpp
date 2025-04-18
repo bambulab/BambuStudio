@@ -7495,6 +7495,13 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->cli_params = "option";
     def->set_default_value(new ConfigOptionInt(0));
 
+    def = this->add("export_png", coInt);
+    def->label = "Export png of plate";
+    def->tooltip = "Export png of plate: 0-all plates, i-plate i, others-invalid";
+    def->cli = "export-png";
+    def->cli_params = "option";
+    def->set_default_value(new ConfigOptionInt(-1));
+
     def = this->add("help", coBool);
     def->label = "Help";
     def->tooltip = "Show command help.";
@@ -7887,6 +7894,12 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->tooltip = "Allow filaments with high/low temperature to be printed together";
     def->cli_params = "option";
     def->set_default_value(new  ConfigOptionBool(false));
+
+    def = this->add("camera_view", coInt);
+    def->label = "Camera view angle for exporting png";
+    def->tooltip = "Camera view angle for exporting png: 0-Iso, 1-Top_Front, 2-Left, 3-Right, 10-Iso_1, 11-Iso_2, 12-Iso_3";
+    def->cli_params = "angle";
+    def->set_default_value(new ConfigOptionInt(0));
 }
 
 const CLIActionsConfigDef    cli_actions_config_def;
