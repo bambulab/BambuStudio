@@ -368,7 +368,7 @@ void BBLTopbar::OnRedo(wxAuiToolBarEvent& event)
 
 void BBLTopbar::EnableSaveItem(bool enable)
 {
-    if (m_save_item) {
+    if (m_save_item && GetToolEnabled(m_save_item->GetId()) != enable) {
         this->EnableTool(m_save_item->GetId(), enable);
         Refresh();
     }
@@ -376,7 +376,7 @@ void BBLTopbar::EnableSaveItem(bool enable)
 
 void BBLTopbar::EnableUndoItem(bool enable)
 {
-    if (m_undo_item) {
+    if (m_undo_item && GetToolEnabled(m_undo_item->GetId()) != enable) {
         this->EnableTool(m_undo_item->GetId(), enable);
         Refresh();
     }
@@ -384,7 +384,7 @@ void BBLTopbar::EnableUndoItem(bool enable)
 
 void BBLTopbar::EnableRedoItem(bool enable)
 {
-    if (m_redo_item) {
+    if (m_redo_item && GetToolEnabled(m_redo_item->GetId()) != enable) {
         this->EnableTool(m_redo_item->GetId(), enable);
         Refresh();
     }
