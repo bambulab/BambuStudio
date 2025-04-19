@@ -1804,6 +1804,7 @@ void ModelObject::convert_units(ModelObjectPtrs& new_objects, ConversionType con
             vol->source.is_from_builtin_objects = volume->source.is_from_builtin_objects;
 
             vol->supported_facets.assign(volume->supported_facets);
+            vol->fuzzy_skin_facets.assign(volume->fuzzy_skin_facets);
             vol->seam_facets.assign(volume->seam_facets);
             vol->mmu_segmentation_facets.assign(volume->mmu_segmentation_facets);
 
@@ -2324,6 +2325,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
         const auto volume_matrix = volume->get_matrix();
 
         volume->supported_facets.reset();
+        volume->fuzzy_skin_facets.reset();
         volume->seam_facets.reset();
         volume->mmu_segmentation_facets.reset();
 
@@ -2414,6 +2416,7 @@ ModelObjectPtrs ModelObject::segment(size_t instance, unsigned int max_extruders
         const auto volume_matrix = volume->get_matrix();
 
         volume->supported_facets.reset();
+        volume->fuzzy_skin_facets.reset();
         volume->seam_facets.reset();
 
         if (!volume->is_model_part()) {
@@ -2991,6 +2994,7 @@ void ModelVolume::set_material_id(t_model_material_id material_id)
 
 void ModelVolume::reset_extra_facets() {
     this->supported_facets.reset();
+    this->fuzzy_skin_facets.reset();
     this->seam_facets.reset();
     this->mmu_segmentation_facets.reset();
 }
@@ -3318,6 +3322,7 @@ size_t ModelVolume::split(unsigned int max_extruders, float scale_det)
             this->mmu_segmentation_facets.reset();
             this->exterior_facets.reset();
             this->supported_facets.reset();
+            this->fuzzy_skin_facets.reset();
             this->seam_facets.reset();
             for (size_t i = 0; i < cur_face_count; i++) {
                 if (ships[idx].find(i) != ships[idx].end()) {
@@ -3394,6 +3399,7 @@ void ModelVolume::assign_new_unique_ids_recursive()
     ObjectBase::set_new_unique_id();
     config.set_new_unique_id();
     supported_facets.set_new_unique_id();
+    fuzzy_skin_facets.set_new_unique_id();
     seam_facets.set_new_unique_id();
     mmu_segmentation_facets.set_new_unique_id();
 }
@@ -4248,6 +4254,13 @@ bool model_custom_supports_data_changed(const ModelObject& mo, const ModelObject
     return model_property_changed(mo, mo_new,
         [](const ModelVolumeType t) { return t == ModelVolumeType::MODEL_PART; },
         [](const ModelVolume &mv_old, const ModelVolume &mv_new){ return mv_old.supported_facets.timestamp_matches(mv_new.supported_facets); });
+}
+
+bool model_custom_fuzzy_skin_data_changed(const ModelObject &mo, const ModelObject &mo_new)
+{
+    return model_property_changed(
+        mo, mo_new, [](const ModelVolumeType t) { return t == ModelVolumeType::MODEL_PART; },
+        [](const ModelVolume &mv_old, const ModelVolume &mv_new) { return mv_old.fuzzy_skin_facets.timestamp_matches(mv_new.fuzzy_skin_facets); });
 }
 
 bool model_custom_seam_data_changed(const ModelObject& mo, const ModelObject& mo_new)

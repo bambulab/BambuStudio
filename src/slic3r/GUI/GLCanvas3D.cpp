@@ -1797,10 +1797,8 @@ void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject
                     vol->force_native_color = false;
                     vol->force_neutral_color = false;
                 } else {
-                    const GLGizmosManager& gm = get_gizmos_manager();
-                    auto gizmo_type = gm.get_current_type();
-                    if (    (gizmo_type == GLGizmosManager::FdmSupports
-                          || gizmo_type == GLGizmosManager::Seam)
+                    auto  gizmo_type = m_gizmos.get_current_type();
+                    if (m_gizmos.is_paint_gizmo()
                         && ! vol->is_modifier)
                         vol->force_neutral_color = true;
                     else if (gizmo_type == GLGizmosManager::BrimEars)
@@ -2356,8 +2354,7 @@ void GLCanvas3D::render(bool only_init)
         else {
             only_current = true;
         }
-    }
-    else if ((gizmo_type == GLGizmosManager::FdmSupports) || (gizmo_type == GLGizmosManager::Seam) || (gizmo_type == GLGizmosManager::MmuSegmentation))
+    } else if (m_gizmos.is_paint_gizmo())
         no_partplate = true;
     else if (gizmo_type == GLGizmosManager::BrimEars && !camera.is_looking_downward())
         show_grid = false;
@@ -4738,9 +4735,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_selection.set_volume_selection_mode(evt.AltDown() ? Selection::Volume : Selection::Instance);
             if (evt.LeftDown() && evt.ShiftDown() && m_picking_enabled && m_layers_editing.state != LayersEditing::Editing) {
                 if (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports
-                    && m_gizmos.get_current_type() != GLGizmosManager::FdmSupports
-                    && m_gizmos.get_current_type() != GLGizmosManager::Seam
-                    && m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation) {
+                    && !m_gizmos.is_paint_gizmo()) {
                     m_rectangle_selection.start_dragging(m_mouse.position, evt.ShiftDown() ? GLSelectionRectangle::Select : GLSelectionRectangle::Deselect);
                     m_dirty = true;
                 }
@@ -4890,8 +4885,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // if dragging over blank area with left button, rotate
             if ((any_gizmo_active || m_hover_volume_idxs.empty()) && m_mouse.is_start_position_3D_defined()) {
                 const Vec3d rot = (Vec3d(pos.x(), pos.y(), 0.) - m_mouse.drag.start_position_3D) * (PI * TRACKBALLSIZE / 180.);
-                if (this->m_canvas_type == ECanvasType::CanvasAssembleView || m_gizmos.get_current_type() == GLGizmosManager::FdmSupports ||
-                    m_gizmos.get_current_type() == GLGizmosManager::Seam || m_gizmos.get_current_type() == GLGizmosManager::MmuSegmentation) {
+                if (this->m_canvas_type == ECanvasType::CanvasAssembleView || m_gizmos.is_paint_gizmo()) {
                     //BBS rotate around target
                     Camera& camera = get_active_camera();
                     Vec3d rotate_target = Vec3d::Zero();
@@ -4921,13 +4915,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
                         camera.recover_from_free_camera();
                         //BBS modify rotation
-                        //if (m_gizmos.get_current_type() == GLGizmosManager::FdmSupports
-                        //    || m_gizmos.get_current_type() == GLGizmosManager::Seam
-                        //    || m_gizmos.get_current_type() == GLGizmosManager::MmuSegmentation) {
-                        //    //camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
-                        //    //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, rotate_target);
-                        //}
-                        //else
                         if (evt.ControlDown() || evt.CmdDown()) {
                             if ((m_rotation_center.x() == 0.f) && (m_rotation_center.y() == 0.f) && (m_rotation_center.z() == 0.f)) {
                                 auto canvas_w = float(get_canvas_size().get_width());
@@ -7112,10 +7099,7 @@ void GLCanvas3D::_picking_pass()
         glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
         //BBS: only render plate in view 3D
-        bool is_paint_gizmo=(m_gizmos.get_current_type() == GLGizmosManager::EType::FdmSupports ||
-            m_gizmos.get_current_type() == GLGizmosManager::EType::MmuSegmentation ||
-             m_gizmos.get_current_type() == GLGizmosManager::EType::Seam);
-        if (m_canvas_type == ECanvasType::CanvasView3D && !is_paint_gizmo) {
+        if (m_canvas_type == ECanvasType::CanvasView3D && !m_gizmos.is_paint_gizmo()) {
             _render_plates_for_picking();
         }
 
@@ -7370,15 +7354,6 @@ void GLCanvas3D::_render_bed(bool bottom, bool show_axes)
 #if ENABLE_RETINA_GL
     scale_factor = m_retina_helper->get_scale_factor();
 #endif // ENABLE_RETINA_GL
-
-    /*
-    bool show_texture = ! bottom ||
-            (m_gizmos.get_current_type() != GLGizmosManager::FdmSupports
-          && m_gizmos.get_current_type() != GLGizmosManager::SlaSupports
-          && m_gizmos.get_current_type() != GLGizmosManager::Hollow
-          && m_gizmos.get_current_type() != GLGizmosManager::Seam
-          && m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation);
-    */
     //bool show_texture = true;
     //BBS set axes mode
     m_bed.set_axes_mode(m_main_toolbar.is_enabled() && !m_gizmos.is_show_only_active_plate());

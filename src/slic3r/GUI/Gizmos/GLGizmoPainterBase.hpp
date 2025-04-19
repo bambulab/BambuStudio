@@ -19,10 +19,10 @@ namespace Slic3r::GUI {
 enum class SLAGizmoEventType : unsigned char;
 class ClippingPlane;
 struct Camera;
-class GLGizmoMmuSegmentation;
 
 enum class PainterGizmoType {
     FDM_SUPPORTS,
+    FUZZY_SKIN,
     SEAM,
     MMU_SEGMENTATION
 };
@@ -336,6 +336,18 @@ protected:
     TriangleSelector::ClippingPlane get_clipping_plane_in_volume_coordinates(const Transform3d &trafo) const;
 
     void change_camera_view_angle(float front_view_radian);
+    // Following cache holds result of a raycast query. The queries are asked
+    // during rendering the sphere cursor and painting, this saves repeated
+    // raycasts when the mouse position is the same as before.
+    struct RaycastResult
+    {
+        Vec2d  mouse_position;
+        int    mesh_id;
+        Vec3f  hit;
+        size_t facet;
+    };
+    mutable GLGizmoPainterBase::RaycastResult m_rr;
+    mutable bool          m_lock_x_for_height_bottom{false};
  private:
     std::vector<std::vector<ProjectedMousePosition>> get_projected_mouse_positions(const Vec2d &mouse_position, double resolution, const std::vector<Transform3d> &trafo_matrices) const;
 
@@ -355,16 +367,7 @@ protected:
     Button m_button_down = Button::None;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
 
-    // Following cache holds result of a raycast query. The queries are asked
-    // during rendering the sphere cursor and painting, this saves repeated
-    // raycasts when the mouse position is the same as before.
-    struct RaycastResult {
-        Vec2d mouse_position;
-        int mesh_id;
-        Vec3f hit;
-        size_t facet;
-    };
-    mutable RaycastResult m_rr;
+
 
     // BBS
     struct CutContours
@@ -385,7 +388,6 @@ protected:
     mutable bool        m_is_set_height_start_z_by_imgui{false};
     mutable Vec2i       m_height_start_pos{0, 0};
     mutable float       m_x_for_height_input{-1};
-    mutable bool        m_lock_x_for_height_bottom{false};
     mutable Vec2f       m_height_range_input_all_size;
     mutable bool        m_is_cursor_in_imgui{false};
     BoundingBoxf3 bounding_box() const;
@@ -409,7 +411,6 @@ protected:
 
     virtual wxString handle_snapshot_action_name(bool shift_down, Button button_down) const = 0;
     bool             is_mouse_hit_in_imgui()const;
-    friend class ::Slic3r::GUI::GLGizmoMmuSegmentation;
     mutable Vec2i m_imgui_start_pos{0, 0};
     mutable Vec2i m_imgui_end_pos{0, 0};
 };

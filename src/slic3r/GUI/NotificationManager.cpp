@@ -1301,6 +1301,7 @@ void NotificationManager::UpdatedItemsInfoNotification::add_type(InfoItemType ty
 		// BBS
 		//case InfoItemType::CustomSeam:          text += format(("%1$d Object has custom seam.",			"%1$d Objects have custom seam.",			(*it).second), (*it).second) + "\n"; break;
 		case InfoItemType::MmuSegmentation:     text += format(_L_PLURAL("%1$d Object has color painting.",			"%1$d Objects have color painting.",(*it).second), (*it).second) + "\n"; break;
+        case InfoItemType::FuzzySkin:           text += format(_L_PLURAL("%1$d Object has fuzzy skin.", "%1$d Objects have fuzzy skin.", (*it).second), (*it).second) + "\n"; break;
 		// BBS
 		//case InfoItemType::Sinking:             text += format(("%1$d Object has partial sinking.",		"%1$d Objects have partial sinking.",		(*it).second), (*it).second) + "\n"; break;
 		case InfoItemType::CutConnectors:       text += format(_L_PLURAL("%1$d object was loaded as a part of cut object.",		"%1$d objects were loaded as parts of cut object", (*it).second), (*it).second) + "\n"; break;

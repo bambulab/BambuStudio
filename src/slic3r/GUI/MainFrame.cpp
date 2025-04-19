@@ -514,6 +514,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                 j["custom_seam"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::Seam));
                 j["text_shape"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::Text));
                 j["color_painting"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::MmuSegmentation));
+                j["fuzzy_skin"]   = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::FuzzySkin));
                 j["assembly_view"] = get_value("assembly_view");
 
                 agent->track_event("key_func", j.dump());

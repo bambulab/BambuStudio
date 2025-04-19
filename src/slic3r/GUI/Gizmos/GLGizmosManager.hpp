@@ -79,6 +79,7 @@ public:
         Text,
         Svg,
         MmuSegmentation,
+        FuzzySkin,
         Measure,
         Assembly,
         Simplify,

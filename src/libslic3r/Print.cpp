@@ -1719,6 +1719,8 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
                 return false;
             if (!model_volume1.supported_facets.equals(model_volume2.supported_facets))
                 return false;
+            if (!model_volume1.fuzzy_skin_facets.equals(model_volume2.fuzzy_skin_facets))
+                return false;
             if (!model_volume1.seam_facets.equals(model_volume2.seam_facets))
                 return false;
             if (!model_volume1.mmu_segmentation_facets.equals(model_volume2.mmu_segmentation_facets))

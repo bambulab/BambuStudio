@@ -75,6 +75,8 @@ static inline void model_volume_list_copy_configs(ModelObject &model_object_dst,
 		mv_dst.config.assign_config(mv_src.config);
         assert(mv_dst.supported_facets.id() == mv_src.supported_facets.id());
         mv_dst.supported_facets.assign(mv_src.supported_facets);
+        assert(mv_dst.fuzzy_skin_facets.id() == mv_src.fuzzy_skin_facets.id());
+        mv_dst.fuzzy_skin_facets.assign(mv_src.fuzzy_skin_facets);
         assert(mv_dst.seam_facets.id() == mv_src.seam_facets.id());
         mv_dst.seam_facets.assign(mv_src.seam_facets);
         assert(mv_dst.mmu_segmentation_facets.id() == mv_src.mmu_segmentation_facets.id());
@@ -1397,8 +1399,8 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         // Check whether a model part volume was added or removed, their transformations or order changed.
         // Only volume IDs, volume types, transformation matrices and their order are checked, configuration and other parameters are NOT checked.
         bool solid_or_modifier_differ   = model_volume_list_changed(model_object, model_object_new, solid_or_modifier_types) ||
-                                          model_mmu_segmentation_data_changed(model_object, model_object_new) ||
-                                          (model_object_new.is_mm_painted() && num_extruders_changed );
+                                          model_mmu_segmentation_data_changed(model_object, model_object_new) || (model_object_new.is_mm_painted() && num_extruders_changed) ||
+                                          model_custom_fuzzy_skin_data_changed(model_object, model_object_new);
         bool supports_differ            = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_BLOCKER) ||
                                           model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_ENFORCER);
         bool layer_height_ranges_differ = ! layer_height_ranges_equal(model_object.layer_config_ranges, model_object_new.layer_config_ranges, model_object_new.layer_height_profile.empty());

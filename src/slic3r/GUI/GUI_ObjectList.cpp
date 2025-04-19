@@ -376,6 +376,7 @@ void ObjectList::create_objects_ctrl()
     m_columns_width[colPrint] = 3;
     m_columns_width[colFilament] = 5;
     m_columns_width[colSupportPaint] = 3;
+    m_columns_width[colFuzzySkin]    = 3;
     m_columns_width[colSinking] = 3;
     m_columns_width[colColorPaint] = 3;
     m_columns_width[colEditing] = 3;
@@ -420,6 +421,7 @@ void ObjectList::create_objects_ctrl()
     // BBS
     AppendBitmapColumn(" ", colSupportPaint, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, m_columns_width[colSupportPaint] * em,
         wxALIGN_CENTER_HORIZONTAL, 0);
+    AppendBitmapColumn(" ", colFuzzySkin, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, m_columns_width[colFuzzySkin] * em, wxALIGN_CENTER_HORIZONTAL, 0);
     AppendBitmapColumn(" ", colColorPaint, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, m_columns_width[colColorPaint] * em,
         wxALIGN_CENTER_HORIZONTAL, 0);
     AppendBitmapColumn(" ", colSinking, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, m_columns_width[colSinking] * em,
@@ -600,6 +602,10 @@ void ObjectList::set_tooltip_for_item(const wxPoint& pt)
     else if (col->GetModelColumn() == (unsigned int)colSupportPaint) {
         if (node->HasSupportPainting())
             tooltip = _(L("Click the icon to edit support painting of the object"));
+
+    } else if (col->GetModelColumn() == (unsigned int) colFuzzySkin) {
+        if (node->HasFuzzySkinPainting())
+            tooltip = _(L("Click the icon to edit fuzzy skin painting of the object"));
 
     }
     else if (col->GetModelColumn() == (unsigned int)colColorPaint) {
@@ -1014,6 +1020,12 @@ void ObjectList::set_color_paint_hidden(const bool hide) const
 void ObjectList::set_support_paint_hidden(const bool hide) const
 {
     GetColumn(colSupportPaint)->SetHidden(hide);
+    update_name_column_width();
+}
+
+void GUI::ObjectList::set_fuzzy_skin_paint_hidden(const bool hide) const
+{
+    GetColumn(colFuzzySkin)->SetHidden(hide);
     update_name_column_width();
 }
 
@@ -1447,6 +1459,17 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
                     gizmos_mgr.open_gizmo(GLGizmosManager::EType::FdmSupports);
                 else
                     gizmos_mgr.reset_all_states();
+            }
+        } else if (col_num == colFuzzySkin) {
+            if (wxGetApp().plater()->get_current_canvas3D()->get_canvas_type() != GLCanvas3D::CanvasAssembleView) {
+                ObjectDataViewModelNode *node = (ObjectDataViewModelNode *) item.GetID();
+                if (node && node->HasFuzzySkinPainting()) {
+                    GLGizmosManager &gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
+                    if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::FuzzySkin)
+                        gizmos_mgr.open_gizmo(GLGizmosManager::EType::FuzzySkin);
+                    else
+                        gizmos_mgr.reset_all_states();
+                }
             }
         }
         else if (col_num == colColorPaint) {
@@ -2741,7 +2764,12 @@ void ObjectList::del_info_item(const int obj_idx, InfoItemType type)
         for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes)
             mv->supported_facets.reset();
         break;
-
+    case InfoItemType::FuzzySkin:
+        cnv->get_gizmos_manager().reset_all_states();
+        Plater::TakeSnapshot(plater, "Remove fuzzy skin painting");
+        for (ModelVolume *mv : (*m_objects)[obj_idx]->volumes)
+            mv->fuzzy_skin_facets.reset();
+        break;
     // BBS: remove CustomSeam
     case InfoItemType::MmuSegmentation:
         cnv->get_gizmos_manager().reset_all_states();
@@ -2749,7 +2777,6 @@ void ObjectList::del_info_item(const int obj_idx, InfoItemType type)
         for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes)
             mv->mmu_segmentation_facets.reset();
         break;
-
     case InfoItemType::CutConnectors:
         if (!del_from_cut_object(true)) {
             // there is no need to post EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS if nothing was changed
@@ -3711,24 +3738,25 @@ void ObjectList::part_selection_changed()
 
                 if (type == itInfo) {
                     InfoItemType info_type = m_objects_model->GetInfoItemType(item);
-                    switch (info_type)
-                    {
-                    case InfoItemType::CustomSupports:
-                    // BBS: remove CustomSeam
-                    //case InfoItemType::CustomSeam:
-                    case InfoItemType::MmuSegmentation:
-                    {
-                        GLGizmosManager::EType gizmo_type = info_type == InfoItemType::CustomSupports ? GLGizmosManager::EType::FdmSupports :
-                                                            /*info_type == InfoItemType::CustomSeam ? GLGizmosManager::EType::Seam :*/
-                                                            GLGizmosManager::EType::MmuSegmentation;
-                        GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
-                        if (gizmos_mgr.get_current_type() != gizmo_type)
-                            gizmos_mgr.open_gizmo(gizmo_type);
-                        break;
+                    GLGizmosManager::EType gizmo_type = GLGizmosManager::EType::Undefined;
+                    switch (info_type){
+                        case InfoItemType::CustomSupports: {
+                            gizmo_type = GLGizmosManager::EType::FdmSupports;
+                            break;
+                        }
+                        case InfoItemType::FuzzySkin: {
+                            gizmo_type = GLGizmosManager::EType::FuzzySkin;
+                            break;
+                        }
+                        case InfoItemType::MmuSegmentation:{
+                            gizmo_type = GLGizmosManager::EType::MmuSegmentation;
+                            break;
+                        }
+                        default: { break; }
                     }
-                    // BBS: remove Sinking
-                    //case InfoItemType::Sinking: { break; }
-                    default: { break; }
+                    GLGizmosManager &gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
+                    if (gizmos_mgr.get_current_type() != gizmo_type) {
+                        gizmos_mgr.open_gizmo(gizmo_type);
                     }
                 } else {
                     // BBS: select object to edit config
@@ -3994,7 +4022,19 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray *selectio
             m_objects_model->SetSupportPaintState(true, item_obj,true);
         }
     }
-
+    {
+        bool shows       = m_objects_model->IsFuzzySkinPainted(item_obj);
+        bool should_show = printer_technology() == ptFFF &&
+                           std::any_of(model_object->volumes.begin(), model_object->volumes.end(), [](const ModelVolume *mv) { return !mv->fuzzy_skin_facets.empty(); });
+        if (shows && !should_show) {
+            m_objects_model->SetFuzzySkinPaintState(false, item_obj);
+        } else if (!shows && should_show) {
+            m_objects_model->SetFuzzySkinPaintState(true, item_obj);
+        }
+        if (color_mode_changed && shows) {
+            m_objects_model->SetFuzzySkinPaintState(true, item_obj, true);
+        }
+    }
     {
         bool shows = m_objects_model->IsColorPainted(item_obj);
         bool should_show = printer_technology() == ptFFF
@@ -4049,7 +4089,26 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray *selectio
             this->set_support_paint_hidden(false);
         }
     }
+    {
+        bool shows       = this->GetColumn(colFuzzySkin)->IsShown();
+        bool should_show = false;
+        for (ModelObject *mo : *m_objects) {
+            for (ModelVolume *mv : mo->volumes) {
+                if (!mv->fuzzy_skin_facets.empty()) {
+                    should_show = true;
+                    break;
+                }
+            }
+            if (should_show)
+                break;
+        }
 
+        if (shows && !should_show) {
+            this->set_fuzzy_skin_paint_hidden(true);
+        } else if (!shows && should_show) {
+            this->set_fuzzy_skin_paint_hidden(false);
+        }
+    }
     {
         bool shows = this->GetColumn(colColorPaint)->IsShown();
         bool should_show = false;
@@ -5988,6 +6047,7 @@ void ObjectList::msw_rescale()
     GetColumn(colFilament)->SetWidth( 5 * em);
     // BBS
     GetColumn(colSupportPaint)->SetWidth(3 * em);
+    GetColumn(colFuzzySkin)->SetWidth(3 * em);
     GetColumn(colColorPaint)->SetWidth(3 * em);
     GetColumn(colSinking)->SetWidth(3 * em);
     GetColumn(colEditing )->SetWidth( 3 * em);
@@ -6054,6 +6114,16 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
             GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
             if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::FdmSupports)
                 gizmos_mgr.open_gizmo(GLGizmosManager::EType::FdmSupports);
+            else
+                gizmos_mgr.reset_all_states();
+        }
+        return;
+    } else if (col == colFuzzySkin) {
+        ObjectDataViewModelNode *node = (ObjectDataViewModelNode *) item.GetID();
+        if (node->HasColorPainting()) {
+            GLGizmosManager &gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
+            if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::FuzzySkin)
+                gizmos_mgr.open_gizmo(GLGizmosManager::EType::FuzzySkin);
             else
                 gizmos_mgr.reset_all_states();
         }
@@ -6441,11 +6511,6 @@ ModelObject* ObjectList::object(const int obj_idx) const
         return nullptr;
 
     return (*m_objects)[obj_idx];
-}
-
-bool ObjectList::has_paint_on_segmentation()
-{
-    return m_objects_model->HasInfoItem(InfoItemType::MmuSegmentation);
 }
 
 void ObjectList::apply_object_instance_transfrom_to_all_volumes(ModelObject *model_object, bool need_update_assemble_matrix)
