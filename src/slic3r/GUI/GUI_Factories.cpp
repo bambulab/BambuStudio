@@ -255,7 +255,7 @@ std::map<std::string, std::string> SettingsFactory::CATEGORY_ICON =
     { L("Shell")                , "blank_14"    },
     { L("Infill")               , "blank_14"    },
     { L("Ironing")              , "blank_14"    },
-    { L("Fuzzy Skin")           , "menu_fuzzy_skin"  },
+    { L("Fuzzy Skin")           , "fuzzy_skin"  },
     { L("Support")              , "support"     },
     { L("Speed")                , "blank_14"    },
     { L("Extruders")            , "blank_14"    },

@@ -63,6 +63,7 @@ struct InfoItemAtributes {
 const std::map<InfoItemType, InfoItemAtributes> INFO_ITEMS{
 //           info_item Type                         info_item Name              info_item BitmapName
             { InfoItemType::CustomSupports,      {L("Support painting"),       "toolbar_support" },     },
+            {InfoItemType::FuzzySkin,{L("Fuzzy skin"), "toolbar_fuzzyskin"},},
             //{ InfoItemType::CustomSeam,          {L("Paint-on seam"),           "seam_" },             },
             { InfoItemType::MmuSegmentation,     {L("Color painting"),          "mmu_segmentation"},  },
             //{ InfoItemType::Sinking,             {L("Sinking"),                 "objlist_sinking"}, },
@@ -247,6 +248,16 @@ void ObjectDataViewModelNode::set_support_icon(bool enable, bool force)
         m_support_icon = create_scaled_bitmap("dot");
 }
 
+void ObjectDataViewModelNode::set_fuzzyskin_icon(bool enable, bool force)
+{
+    if (!force && m_fuzzyskin_enable == enable) return;
+    m_fuzzyskin_enable = enable;
+    if ((m_type & itObject) && enable)
+        m_fuzzyskin_icon = create_scaled_bitmap("toolbar_fuzzyskin");
+    else
+        m_fuzzyskin_icon = create_scaled_bitmap("dot");
+}
+
 void ObjectDataViewModelNode::set_sinking_icon(bool enable, bool force)
 {
     if (!force && m_sink_enable == enable)
@@ -342,6 +353,9 @@ bool ObjectDataViewModelNode::SetValue(const wxVariant& variant, unsigned col)
     // BBS
     case colSupportPaint:
         m_support_icon << variant;
+        break;
+    case colFuzzySkin:
+        m_fuzzyskin_icon << variant;
         break;
     case colSinking:
         m_sinking_icon << variant;
@@ -1778,6 +1792,9 @@ void ObjectDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem &ite
     case colSupportPaint:
         variant << node->m_support_icon;
         break;
+    case colFuzzySkin:
+        variant << node->m_fuzzyskin_icon;
+        break;
     case colSinking:
         variant << node->m_sinking_icon;
         break;
@@ -2326,6 +2343,15 @@ bool ObjectDataViewModel::IsSupportPainted(wxDataViewItem& item) const
     return node->m_support_enable;
 }
 
+bool ObjectDataViewModel::IsFuzzySkinPainted(wxDataViewItem &item) const
+{
+    ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode *>(item.GetID());
+    if (!node)
+        return false;
+
+    return node->m_fuzzyskin_enable;
+}
+
 bool ObjectDataViewModel::IsSinked(wxDataViewItem &item) const
 {
     ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode *>(item.GetID());
@@ -2351,6 +2377,15 @@ void ObjectDataViewModel::SetSupportPaintState(const bool painted, wxDataViewIte
         return;
 
     node->set_support_icon(painted, force);
+    ItemChanged(obj_item);
+}
+
+void ObjectDataViewModel::SetFuzzySkinPaintState(const bool painted, wxDataViewItem obj_item, bool force)
+{
+    ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode *>(obj_item.GetID());
+    if (!node) return;
+
+    node->set_fuzzyskin_icon(painted, force);
     ItemChanged(obj_item);
 }
 

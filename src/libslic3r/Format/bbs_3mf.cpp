@@ -281,6 +281,7 @@ static constexpr const char* OFFSET_ATTR = "offset";
 static constexpr const char* PRINTABLE_ATTR = "printable";
 static constexpr const char* INSTANCESCOUNT_ATTR = "instances_count";
 static constexpr const char* CUSTOM_SUPPORTS_ATTR = "paint_supports";
+static constexpr const char *CUSTOM_FUZZY_SKIN_ATTR  = "paint_fuzzy_skin";
 static constexpr const char* CUSTOM_SEAM_ATTR = "paint_seam";
 static constexpr const char* MMU_SEGMENTATION_ATTR = "paint_color";
 // BBS
@@ -680,6 +681,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::vector<Vec3f> vertices;
             std::vector<Vec3i> triangles;
             std::vector<std::string> custom_supports;
+            std::vector<std::string> custom_fuzzy_skin;
             std::vector<std::string> custom_seam;
             std::vector<std::string> mmu_segmentation;
             // BBS
@@ -692,6 +694,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 std::swap(vertices, o.vertices);
                 std::swap(triangles, o.triangles);
                 std::swap(custom_supports, o.custom_supports);
+                std::swap(custom_fuzzy_skin, o.custom_fuzzy_skin);
                 std::swap(custom_seam, o.custom_seam);
             }
 
@@ -699,6 +702,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 vertices.clear();
                 triangles.clear();
                 custom_supports.clear();
+                custom_fuzzy_skin.clear();
                 custom_seam.clear();
                 mmu_segmentation.clear();
             }
@@ -3621,6 +3625,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 bbs_get_attribute_value_int(attributes, num_attributes, V3_ATTR));
 
             m_curr_object->geometry.custom_supports.push_back(bbs_get_attribute_value_string(attributes, num_attributes, CUSTOM_SUPPORTS_ATTR));
+            m_curr_object->geometry.custom_fuzzy_skin.push_back(bbs_get_attribute_value_string(attributes, num_attributes, CUSTOM_FUZZY_SKIN_ATTR));
             m_curr_object->geometry.custom_seam.push_back(bbs_get_attribute_value_string(attributes, num_attributes, CUSTOM_SEAM_ATTR));
             m_curr_object->geometry.mmu_segmentation.push_back(bbs_get_attribute_value_string(attributes, num_attributes, MMU_SEGMENTATION_ATTR));
             // BBS
@@ -4749,20 +4754,25 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             // recreate custom supports, seam and mmu segmentation from previously loaded attribute
             {
                 volume->supported_facets.reserve(triangles_count);
+                volume->fuzzy_skin_facets.reserve(triangles_count);
                 volume->seam_facets.reserve(triangles_count);
                 volume->mmu_segmentation_facets.reserve(triangles_count);
                 for (size_t i=0; i<triangles_count; ++i) {
                     assert(i < sub_object->geometry.custom_supports.size());
+                    assert(i < sub_object->geometry.custom_fuzzy_skin.size());
                     assert(i < sub_object->geometry.custom_seam.size());
                     assert(i < sub_object->geometry.mmu_segmentation.size());
                     if (! sub_object->geometry.custom_supports[i].empty())
                         volume->supported_facets.set_triangle_from_string(i, sub_object->geometry.custom_supports[i]);
+                    if (!sub_object->geometry.custom_fuzzy_skin[i].empty())
+                        volume->fuzzy_skin_facets.set_triangle_from_string(i, sub_object->geometry.custom_fuzzy_skin[i]);
                     if (! sub_object->geometry.custom_seam[i].empty())
                         volume->seam_facets.set_triangle_from_string(i, sub_object->geometry.custom_seam[i]);
                     if (! sub_object->geometry.mmu_segmentation[i].empty())
                         volume->mmu_segmentation_facets.set_triangle_from_string(i, sub_object->geometry.mmu_segmentation[i]);
                 }
                 volume->supported_facets.shrink_to_fit();
+                volume->fuzzy_skin_facets.shrink_to_fit();
                 volume->seam_facets.shrink_to_fit();
                 volume->mmu_segmentation_facets.shrink_to_fit();
                 volume->mmu_segmentation_facets.touch();
@@ -4904,21 +4914,26 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
             // recreate custom supports, seam and mmu segmentation from previously loaded attribute
             volume->supported_facets.reserve(triangles_count);
+            volume->fuzzy_skin_facets.reserve(triangles_count);
             volume->seam_facets.reserve(triangles_count);
             volume->mmu_segmentation_facets.reserve(triangles_count);
             for (size_t i=0; i<triangles_count; ++i) {
                 size_t index = volume_data.first_triangle_id + i;
                 assert(index < geometry.custom_supports.size());
+                assert(index < geometry.fuzzy_skin_facets.size());
                 assert(index < geometry.custom_seam.size());
                 assert(index < geometry.mmu_segmentation.size());
                 if (! geometry.custom_supports[index].empty())
                     volume->supported_facets.set_triangle_from_string(i, geometry.custom_supports[index]);
+                if (!geometry.custom_fuzzy_skin[index].empty())
+                    volume->fuzzy_skin_facets.set_triangle_from_string(i, geometry.custom_fuzzy_skin[index]);
                 if (! geometry.custom_seam[index].empty())
                     volume->seam_facets.set_triangle_from_string(i, geometry.custom_seam[index]);
                 if (! geometry.mmu_segmentation[index].empty())
                     volume->mmu_segmentation_facets.set_triangle_from_string(i, geometry.mmu_segmentation[index]);
             }
             volume->supported_facets.shrink_to_fit();
+            volume->fuzzy_skin_facets.shrink_to_fit();
             volume->seam_facets.shrink_to_fit();
             volume->mmu_segmentation_facets.shrink_to_fit();
 
@@ -5221,6 +5236,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 bbs_get_attribute_value_int(attributes, num_attributes, V3_ATTR));
 
             current_object->geometry.custom_supports.push_back(bbs_get_attribute_value_string(attributes, num_attributes, CUSTOM_SUPPORTS_ATTR));
+            current_object->geometry.custom_fuzzy_skin.push_back(bbs_get_attribute_value_string(attributes, num_attributes, CUSTOM_FUZZY_SKIN_ATTR));
             current_object->geometry.custom_seam.push_back(bbs_get_attribute_value_string(attributes, num_attributes, CUSTOM_SEAM_ATTR));
             current_object->geometry.mmu_segmentation.push_back(bbs_get_attribute_value_string(attributes, num_attributes, MMU_SEGMENTATION_ATTR));
             // BBS
@@ -6610,6 +6626,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                             {
                                 const ModelVolume* shared_volume = iter->second.second;
                                 if ((shared_volume->supported_facets.equals(volume->supported_facets))
+                                    && (shared_volume->fuzzy_skin_facets.equals(volume->fuzzy_skin_facets))
                                     && (shared_volume->seam_facets.equals(volume->seam_facets))
                                     && (shared_volume->mmu_segmentation_facets.equals(volume->mmu_segmentation_facets)))
                                 {
@@ -6991,6 +7008,15 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     output_buffer += CUSTOM_SUPPORTS_ATTR;
                     output_buffer += "=\"";
                     output_buffer += custom_supports_data_string;
+                    output_buffer += "\"";
+                }
+
+                std::string custom_fuzzy_skin_string = volume->fuzzy_skin_facets.get_triangle_as_string(i);
+                if (!custom_fuzzy_skin_string.empty()) {
+                    output_buffer += " ";
+                    output_buffer += CUSTOM_FUZZY_SKIN_ATTR;
+                    output_buffer += "=\"";
+                    output_buffer += custom_fuzzy_skin_string;
                     output_buffer += "\"";
                 }
 

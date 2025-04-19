@@ -231,6 +231,7 @@ public:
     // BBS
     void                set_color_paint_hidden(const bool hide) const;
     void                set_support_paint_hidden(const bool hide) const;
+    void                set_fuzzy_skin_paint_hidden(const bool hide) const;
     void                set_sinking_hidden(const bool hide) const;
 
     // update extruder in current config
@@ -455,8 +456,6 @@ public:
     void set_extruder_for_selected_items(const int extruder);
     wxDataViewItemArray reorder_volumes_and_get_selection(int obj_idx, std::function<bool(const ModelVolume*)> add_to_selection = nullptr);
     void apply_volumes_order();
-    bool has_paint_on_segmentation();
-
     // BBS
     void on_plate_added(PartPlate* part_plate);
     void on_plate_deleted(int plate_index);

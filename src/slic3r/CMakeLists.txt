@@ -144,6 +144,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoSimplify.hpp
     GUI/Gizmos/GLGizmoMmuSegmentation.cpp
     GUI/Gizmos/GLGizmoMmuSegmentation.hpp
+    GUI/Gizmos/GLGizmoFuzzySkin.cpp
+    GUI/Gizmos/GLGizmoFuzzySkin.hpp
     GUI/Gizmos/GLGizmoFaceDetector.cpp
     GUI/Gizmos/GLGizmoFaceDetector.hpp
     GUI/Gizmos/GLGizmoMeasure.cpp

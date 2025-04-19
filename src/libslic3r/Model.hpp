@@ -711,6 +711,7 @@ enum class EnforcerBlockerType : int8_t {
     NONE      = 0,
     ENFORCER  = 1,
     BLOCKER   = 2,
+    FUZZY_SKIN = ENFORCER,
     // Maximum is 15. The value is serialized in TriangleSelector into 6 bits using a 2 bit prefix code.
     Extruder1 = ENFORCER,
     Extruder2 = BLOCKER,
@@ -938,6 +939,8 @@ public:
     // List of mesh facets painted for MMU segmentation.
     FacetsAnnotation    mmu_segmentation_facets;
 
+     // List of fuzzy skin
+    FacetsAnnotation fuzzy_skin_facets;
     // BBS: quick access for volume extruders, 1 based
     mutable std::vector<int> mmuseg_extruders;
     mutable Timestamp        mmuseg_ts;
@@ -1055,6 +1058,7 @@ public:
         ObjectBase::set_new_unique_id();
         this->config.set_new_unique_id();
         this->supported_facets.set_new_unique_id();
+        this->fuzzy_skin_facets.set_new_unique_id();
         this->seam_facets.set_new_unique_id();
         this->mmu_segmentation_facets.set_new_unique_id();
     }
@@ -1147,9 +1151,12 @@ private:
     ModelVolume(ModelObject *object, const ModelVolume &other) :
         ObjectBase(other),
         name(other.name), source(other.source), m_mesh(other.m_mesh), m_convex_hull(other.m_convex_hull),
-        config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation),
-        supported_facets(other.supported_facets), seam_facets(other.seam_facets), mmu_segmentation_facets(other.mmu_segmentation_facets),
-        m_text_info(other.m_text_info), emboss_shape(other.emboss_shape)
+        config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
+        , supported_facets(other.supported_facets)
+        , fuzzy_skin_facets(other.fuzzy_skin_facets)
+        , seam_facets(other.seam_facets)
+        , mmu_segmentation_facets(other.mmu_segmentation_facets)
+        , m_text_info(other.m_text_info), emboss_shape(other.emboss_shape)
     {
 		assert(this->id().valid());
         assert(this->config.id().valid());
@@ -1203,7 +1210,8 @@ private:
 	friend class cereal::access;
 	friend class UndoRedo::StackImpl;
 	// Used for deserialization, therefore no IDs are allocated.
-	ModelVolume() : ObjectBase(-1), config(-1), supported_facets(-1), seam_facets(-1), mmu_segmentation_facets(-1), object(nullptr) {
+    ModelVolume() : ObjectBase(-1), config(-1), supported_facets(-1), fuzzy_skin_facets(-1), seam_facets(-1), mmu_segmentation_facets(-1), object(nullptr)
+    {
 		assert(this->id().invalid());
         assert(this->config.id().invalid());
         assert(this->supported_facets.id().invalid());
@@ -1220,6 +1228,9 @@ private:
         auto t = supported_facets.timestamp();
         cereal::load_by_value(ar, supported_facets);
         mesh_changed |= t != supported_facets.timestamp();
+        t = fuzzy_skin_facets.timestamp();
+        cereal::load_by_value(ar, fuzzy_skin_facets);
+        mesh_changed |= t != fuzzy_skin_facets.timestamp();
         t = seam_facets.timestamp();
         cereal::load_by_value(ar, seam_facets);
         mesh_changed |= t != seam_facets.timestamp();
@@ -1755,8 +1766,8 @@ bool model_volume_list_changed(const ModelObject &model_object_old, const ModelO
 // Test whether the now ModelObject has newer custom supports data than the old one.
 // The function assumes that volumes list is synchronized.
 bool model_custom_supports_data_changed(const ModelObject& mo, const ModelObject& mo_new);
-
-// Test whether the now ModelObject has newer custom seam data than the old one.
+bool model_custom_fuzzy_skin_data_changed(const ModelObject &mo, const ModelObject &mo_new);
+    // Test whether the now ModelObject has newer custom seam data than the old one.
 // The function assumes that volumes list is synchronized.
 bool model_custom_seam_data_changed(const ModelObject& mo, const ModelObject& mo_new);
 

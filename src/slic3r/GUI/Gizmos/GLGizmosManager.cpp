@@ -22,6 +22,7 @@
 #include "slic3r/GUI/Gizmos/GLGizmoHollow.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSeam.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoFuzzySkin.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSimplify.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoText.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSVG.hpp"
@@ -176,6 +177,8 @@ void GLGizmosManager::switch_gizmos_icon_filename()
         case(EType::FdmSupports):
             gizmo->set_icon_filename(m_is_dark ? "toolbar_support_dark.svg" : "toolbar_support.svg");
             break;
+        case(EType::FuzzySkin):
+            gizmo->set_icon_filename(m_is_dark ? "toolbar_fuzzyskin_dark.svg" : "toolbar_fuzzyskin.svg"); break;
         case(EType::Seam):
             gizmo->set_icon_filename(m_is_dark ? "toolbar_seam_dark.svg" : "toolbar_seam.svg");
             break;
@@ -232,6 +235,7 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoText(m_parent, m_is_dark ? "toolbar_text_dark.svg" : "toolbar_text.svg", EType::Text));
     m_gizmos.emplace_back(new GLGizmoSVG(m_parent, EType::Svg));
     m_gizmos.emplace_back(new GLGizmoMmuSegmentation(m_parent, m_is_dark ? "mmu_segmentation_dark.svg" : "mmu_segmentation.svg", EType::MmuSegmentation));
+    m_gizmos.emplace_back(new GLGizmoFuzzySkin(m_parent, m_is_dark ? "toolbar_fuzzyskin_dark.svg" : "toolbar_fuzzyskin.svg", EType::FuzzySkin));
     m_gizmos.emplace_back(new GLGizmoMeasure(m_parent, m_is_dark ? "toolbar_measure_dark.svg" : "toolbar_measure.svg", EType::Measure));
     m_gizmos.emplace_back(new GLGizmoAssembly(m_parent, m_is_dark ? "toolbar_assembly_dark.svg" : "toolbar_assembly.svg", EType::Assembly));
     m_gizmos.emplace_back(new GLGizmoSimplify(m_parent, "reduce_triangles.svg", EType::Simplify));
@@ -608,9 +612,7 @@ bool GLGizmosManager::is_gizmo_activable_when_single_full_instance() {
         get_current_type() == GLGizmosManager::EType::Cut ||
         get_current_type() == GLGizmosManager::EType::MeshBoolean ||
         get_current_type() == GLGizmosManager::EType::Text ||
-        get_current_type() == GLGizmosManager::EType::Seam ||
-        get_current_type() == GLGizmosManager::EType::FdmSupports ||
-        get_current_type() == GLGizmosManager::EType::MmuSegmentation ||
+        is_paint_gizmo() ||
         get_current_type() == GLGizmosManager::EType::Simplify
         ) {
         return true;
@@ -622,9 +624,7 @@ bool GLGizmosManager::is_gizmo_click_empty_not_exit()
 {
    if (get_current_type() == GLGizmosManager::EType::Cut ||
        get_current_type() == GLGizmosManager::EType::MeshBoolean ||
-       get_current_type() == GLGizmosManager::EType::Seam ||
-       get_current_type() == GLGizmosManager::EType::FdmSupports ||
-       get_current_type() == GLGizmosManager::EType::MmuSegmentation ||
+       is_paint_gizmo() ||
        get_current_type() == GLGizmosManager::EType::Measure ||
        get_current_type() == GLGizmosManager::EType::Assembly) {
         return true;
@@ -709,6 +709,8 @@ bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_p
         return dynamic_cast<GLGizmoSeam*>(m_gizmos[Seam].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == MmuSegmentation)
         return dynamic_cast<GLGizmoMmuSegmentation*>(m_gizmos[MmuSegmentation].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
+    else if (m_current == FuzzySkin)
+        return dynamic_cast<GLGizmoFuzzySkin *>(m_gizmos[FuzzySkin].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == Text)
         return dynamic_cast<GLGizmoText*>(m_gizmos[Text].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == Svg)
@@ -730,6 +732,7 @@ bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_p
 bool GLGizmosManager::is_paint_gizmo() const
 {
     return m_current == EType::FdmSupports ||
+           m_current == EType::FuzzySkin ||
            m_current == EType::MmuSegmentation ||
            m_current == EType::Seam;
 }
@@ -837,7 +840,7 @@ bool GLGizmosManager::on_mouse_wheel(wxMouseEvent& evt)
 {
     bool processed = false;
 
-    if (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation || m_current == BrimEars) {
+    if (m_current == SlaSupports || m_current == Hollow || is_paint_gizmo() || m_current == BrimEars) {
         float rot = (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta();
         if (gizmo_event((rot > 0.f ? SLAGizmoEventType::MouseWheelUp : SLAGizmoEventType::MouseWheelDown), Vec2d::Zero(), evt.ShiftDown(), evt.AltDown()
             // BBS
@@ -880,8 +883,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
     }
     else if (evt.Moving()) {
         m_tooltip = update_hover_state(mouse_pos);
-        if (m_current == MmuSegmentation || m_current == FdmSupports || m_current == Text || m_current == BrimEars || m_current == Svg)
-            // BBS
+        if (is_paint_gizmo() ||m_current == Text || m_current == BrimEars || m_current == Svg)
             gizmo_event(SLAGizmoEventType::Moving, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown());
     } else if (evt.LeftUp()) {
         if (m_mouse_capture.left) {
@@ -1043,8 +1045,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         m_tooltip.clear();
 
         if (evt.LeftDown() && (!control_down || grabber_contains_mouse())) {
-            if ((m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Svg ||
-                m_current == Seam || m_current == MmuSegmentation || m_current == Text || m_current == Cut || m_current == MeshBoolean || m_current == BrimEars)
+            if ((m_current == SlaSupports || m_current == Hollow ||  m_current == Svg || is_paint_gizmo() || m_current == Text || m_current == Cut || m_current == MeshBoolean ||
+                 m_current == BrimEars)
                 && gizmo_event(SLAGizmoEventType::LeftDown, mouse_pos, evt.ShiftDown(), evt.AltDown()))
                 // the gizmo got the event and took some action, there is no need to do anything more
                 processed = true;
@@ -1076,18 +1078,15 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             // event was taken care of by the SlaSupports gizmo
             processed = true;
         }
-        else if (evt.RightDown() && !control_down && selected_object_idx != -1
-            && (m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation || m_current == Cut)
+        else if (evt.RightDown() && !control_down && selected_object_idx != -1 && (is_paint_gizmo() || m_current == Cut)
             && gizmo_event(SLAGizmoEventType::RightDown, mouse_pos)) {
-            // event was taken care of by the FdmSupports / Seam / MMUPainting gizmo
+            // event was taken care of by the paint_gizmo
             processed = true;
         }
-        else if (evt.Dragging() && m_parent.get_move_volume_id() != -1
-            && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation || m_current == BrimEars))
+        else if (evt.Dragging() && m_parent.get_move_volume_id() != -1 && (m_current == SlaSupports || m_current == Hollow || is_paint_gizmo() || m_current == BrimEars))
             // don't allow dragging objects with the Sla gizmo on
             processed = true;
-        else if (evt.Dragging() && !control_down
-            && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam  || m_current == MmuSegmentation || m_current == Cut || m_current == BrimEars)
+        else if (evt.Dragging() && !control_down && (m_current == SlaSupports || m_current == Hollow || is_paint_gizmo() || m_current == Cut || m_current == BrimEars)
             && gizmo_event(SLAGizmoEventType::Dragging, mouse_pos, evt.ShiftDown(), evt.AltDown())) {
             // the gizmo got the event and took some action, no need to do anything more here
             m_parent.set_as_dirty();
@@ -1101,7 +1100,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
                 gizmo_event(SLAGizmoEventType::RightUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), true);
         }
         else if (evt.LeftUp()
-            && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation || m_current == Cut || m_current == BrimEars)
+            && (m_current == SlaSupports || m_current == Hollow || is_paint_gizmo() || m_current == Cut || m_current == BrimEars)
             && gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), control_down)
             && !m_parent.is_mouse_dragging()) {
             // in case SLA/FDM gizmo is selected, we just pass the LeftUp event and stop processing - neither
@@ -1219,24 +1218,6 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
             }
             break;
         }
-        //case WXK_RETURN:
-        //{
-        //    if ((m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::ApplyChanges))
-        //        processed = true;
-
-        //    break;
-        //}
-
-        //case 'r' :
-        //case 'R' :
-        //{
-            //if ((m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation) && gizmo_event(SLAGizmoEventType::ResetClippingPlane))
-            //    processed = true;
-
-            //break;
-        //}
-
-
         //case WXK_BACK:
         case WXK_DELETE: {
             if ((m_current == Cut || m_current == Measure || m_current == Assembly || m_current == BrimEars) && gizmo_event(SLAGizmoEventType::Delete))
@@ -1421,6 +1402,15 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
                         wxGetApp().imgui()->set_requires_extra_frame();
                     }
                 }
+            }
+        } else if (m_current == FuzzySkin) {
+            GLGizmoFuzzySkin *fuzzy_skin = dynamic_cast<GLGizmoFuzzySkin *>(get_current());
+            if (fuzzy_skin != nullptr && keyCode == 'F' || keyCode == 'S' || keyCode == 'C' || keyCode == 'T') {
+                processed = fuzzy_skin->on_key_down_select_tool_type(keyCode);
+            }
+            if (processed) {
+                // force extra frame to automatically update window size
+                wxGetApp().imgui()->set_requires_extra_frame();
             }
         }
         else if (m_current == FdmSupports) {
@@ -1943,6 +1933,8 @@ std::string get_name_from_gizmo_etype(GLGizmosManager::EType type)
         return "MeshBoolean";
     case GLGizmosManager::EType::FdmSupports:
         return "FdmSupports";
+    case GLGizmosManager::EType::FuzzySkin:
+        return "FuzzySkin";
     case GLGizmosManager::EType::Seam:
         return "Seam";
     case GLGizmosManager::EType::Text:
