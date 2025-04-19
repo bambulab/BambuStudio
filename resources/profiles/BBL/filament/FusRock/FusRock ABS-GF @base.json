@@ -22,6 +22,9 @@
     "pressure_advance": [
         "0.01"
     ],
+    "filament_vendor": [
+        "FusRock"
+    ],
     "nozzle_temperature_initial_layer": [
         "270"
     ],
