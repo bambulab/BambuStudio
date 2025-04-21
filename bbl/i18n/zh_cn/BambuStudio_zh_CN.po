@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 11:55+0800\n"
+"POT-Creation-Date: 2025-04-21 20:04+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2195,14 +2195,11 @@ msgstr "退料"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "选择1个AMS槽位，然后点击进料/退料按钮以自动进料/退料。"
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "在打印过程中改变风扇速度可能会影响打印质量，请谨慎选择。"
 
 msgid "Change Anyway"
 msgstr "仍然改动"
-
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
-msgstr "在打印过程中改变风扇速度可能会影响打印质量，请谨慎选择"
 
 msgid "Off"
 msgstr "关闭"
@@ -2791,6 +2788,14 @@ msgstr "喷嘴"
 
 msgid "Ext"
 msgstr ""
+
+#, c-format, boost-format
+msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr "提示: 此耗材类型(%s)与切片文件中的耗材类型(%s)不匹配。如果您想使用这个槽位，请安装%s耗材替换掉%s耗材，然后在''设备'页面设置槽位信息。"
+
+#, c-format, boost-format
+msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgstr "提示: 此槽位是空的或者未定义的。如果您想使用这个槽位，请安装%s，然后在''设备'页面设置槽位信息。"
 
 msgid "Note: Only the AMS slots loaded with the same material type can be selected."
 msgstr "仅允许选择相同材质类型的耗材"
@@ -3404,14 +3409,14 @@ msgstr "更新失败。"
 msgid "Timelapse is not supported on this printer."
 msgstr "此打印机不支持延时摄影"
 
-msgid "Timelapse is not supported while the SD card does not exist."
-msgstr "没有外置存储卡，故无法启用延时摄影"
+msgid "Timelapse is not supported while the storage does not exist."
+msgstr "没有存储介质，故无法启用延时摄影"
 
-msgid "Timelapse is not supported while the SD card is unavailable."
-msgstr "外置存储卡不可用，故无法启用延时摄影"
+msgid "Timelapse is not supported while the storage is unavailable."
+msgstr "存储介质不可用，故无法启用延时摄影"
 
-msgid "Timelapse is not supported while the SD card is readonly."
-msgstr "外置存储卡当前是只读的，故无法启用延时摄影"
+msgid "Timelapse is not supported while the storage is readonly."
+msgstr "存储介质当前是只读的，故无法启用延时摄影"
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "当前腔温或目标腔温超过了45℃。为了避免挤出机堵塞，不允许加载低温度的打印材料（如PLA/PETG/TPU）"
@@ -4266,6 +4271,34 @@ msgstr "左视图"
 
 msgid "Right View"
 msgstr "右视图"
+
+msgctxt "Camera"
+msgid "Isometric"
+msgstr ""
+
+msgid "Isometric View"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric 1"
+msgstr ""
+
+msgid "Isometric 1 View"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric 2"
+msgstr ""
+
+msgid "Isometric 2 View"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric 3"
+msgstr ""
+
+msgid "Isometric 3 View"
+msgstr ""
 
 msgid "Start a new window"
 msgstr "打开新窗口"
@@ -5128,7 +5161,7 @@ msgid "Still load"
 msgstr "继续进料"
 
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
-msgstr "如果腔室温度超过40℃, 系统将自动切换到加热模式。请确认是否切换。"
+msgstr "如果腔室温度超过40℃, 系统将自动切换到腔温保持模式。请确认是否切换。"
 
 msgid "Please select an AMS slot before calibration"
 msgstr "请先选择一个AMS槽位后进行校准"
@@ -5294,6 +5327,9 @@ msgstr "设备状态"
 
 msgid "Update"
 msgstr "固件更新"
+
+msgid "Assistant(HMS)"
+msgstr "助手(HMS)"
 
 msgid "Go to"
 msgstr "前往"
@@ -5567,15 +5603,6 @@ msgstr "裹头检测"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "检查喷嘴是否被耗材丝或其他异物裹住"
 
-msgid "Hardened Steel"
-msgstr "硬化钢"
-
-msgid "Stainless Steel"
-msgstr "不锈钢"
-
-msgid "High flow"
-msgstr "高流量"
-
 msgid "Nozzle Type"
 msgstr "喷嘴类型"
 
@@ -5585,9 +5612,17 @@ msgstr "如需修改喷嘴信息，请去打印机操作。"
 msgid "Nozzle Flow"
 msgstr "喷嘴流量"
 
-#, c-format, boost-format
-msgid "%.1f"
+msgid "Hardened Steel"
+msgstr "硬化钢"
+
+msgid "Stainless Steel"
+msgstr "不锈钢"
+
+msgid "Tungsten Carbide"
 msgstr ""
+
+msgid "High flow"
+msgstr "高流量"
 
 msgid "Global"
 msgstr "全局"
@@ -7093,6 +7128,9 @@ msgstr "名称长度超过限制。"
 msgid "Cost %dg filament and %d changes more than optimal grouping."
 msgstr "如果使用最优分组可多节省%dg耗材和%d次换料"
 
+msgid "nozzle"
+msgstr "喷嘴"
+
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr "注意: 如果你最近更换了喷嘴，请去“设备-打印机零件”更改设置"
 
@@ -7105,8 +7143,11 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "当前喷嘴直径（%.1fmm）和切片文件（%.1fmm）不一致，无法发起打印。请确保打印机上安装喷嘴直径和机器设置中一致，并在切片时设置对应的喷嘴直径。"
 
 #, c-format, boost-format
-msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
-msgstr "高温材料（%s）若通过%s喷嘴打印，可能会导致喷嘴损坏。请检查喷嘴类型"
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr "当前材料(%s) 的硬度 高于 %s(%s)的硬度，请确认喷嘴或材料属性后重试。"
+
+msgid "Unable to automatically match to suitable filament. Please click to manually match."
+msgstr "无法自动匹配到合适的材料，请点击进行手动匹配"
 
 msgid "Cool"
 msgstr ""
@@ -8225,11 +8266,14 @@ msgstr "摄像机视角 - 前面"
 msgid "Camera view - Behind"
 msgstr "摄像机视角 - 后面"
 
-msgid "Camera Angle - Left side"
-msgstr "摄像机视角 - 左面"
+msgid "Camera view - Left"
+msgstr ""
 
-msgid "Camera Angle - Right side"
-msgstr "摄像机视角 - 右面"
+msgid "Camera view - Right"
+msgstr ""
+
+msgid "Camera view - Isometric"
+msgstr ""
 
 msgid "Select all objects"
 msgstr "选择所有对象"
@@ -8388,6 +8432,9 @@ msgstr "问题已解决，继续"
 
 msgid "Stop Buzzer"
 msgstr "关闭蜂鸣器"
+
+msgid "Retry (problem solved)"
+msgstr ""
 
 msgid "Confirm and Update Nozzle"
 msgstr "确认并更新喷嘴"
@@ -9917,6 +9964,9 @@ msgstr "硬化钢"
 
 msgid "Stainless steel"
 msgstr "不锈钢"
+
+msgid "Tungsten carbide"
+msgstr ""
 
 msgid "Brass"
 msgstr "黄铜"
@@ -13215,6 +13265,31 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+#~ msgstr "在打印过程中改变风扇速度可能会影响打印质量，请谨慎选择。"
+
+#~ msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
+#~ msgstr "在打印过程中改变风扇速度可能会影响打印质量，请谨慎选择"
+
+#~ msgid "Timelapse is not supported while the SD card does not exist."
+#~ msgstr "没有外置存储卡，故无法启用延时摄影"
+
+#~ msgid "Timelapse is not supported while the SD card is unavailable."
+#~ msgstr "外置存储卡不可用，故无法启用延时摄影"
+
+#~ msgid "Timelapse is not supported while the SD card is readonly."
+#~ msgstr "外置存储卡当前是只读的，故无法启用延时摄影"
+
+#, c-format, boost-format
+#~ msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
+#~ msgstr "高温材料（%s）若通过%s喷嘴打印，可能会导致喷嘴损坏。请检查喷嘴类型"
+
+#~ msgid "Camera Angle - Left side"
+#~ msgstr "摄像机视角 - 左面"
+
+#~ msgid "Camera Angle - Right side"
+#~ msgstr "摄像机视角 - 右面"
 
 #~ msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
 #~ msgstr "优先使用高性能显卡 （手动重启 Bambu Studio 后生效）"
@@ -18105,9 +18180,6 @@ msgstr ""
 #~ "\n"
 #~ "The first layer height will be reset to 0.01."
 #~ msgstr "首层层高不能为0。将重置为0.01。"
-
-#~ msgid "nozzle"
-#~ msgstr "喷嘴"
 
 #~ msgid "Alternate nozzles:"
 #~ msgstr "备用喷嘴："

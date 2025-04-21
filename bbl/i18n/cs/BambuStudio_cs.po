@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 11:55+0800\n"
+"POT-Creation-Date: 2025-04-21 20:04+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -2184,13 +2184,10 @@ msgstr "Vysunout"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr ""
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr ""
 
 msgid "Change Anyway"
-msgstr ""
-
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
 msgstr ""
 
 msgid "Off"
@@ -2772,6 +2769,14 @@ msgid "Nozzle"
 msgstr "Tryska"
 
 msgid "Ext"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
 msgstr ""
 
 msgid "Note: Only the AMS slots loaded with the same material type can be selected."
@@ -3377,13 +3382,13 @@ msgstr "Aktualizace se nezdařila."
 msgid "Timelapse is not supported on this printer."
 msgstr ""
 
-msgid "Timelapse is not supported while the SD card does not exist."
+msgid "Timelapse is not supported while the storage does not exist."
 msgstr ""
 
-msgid "Timelapse is not supported while the SD card is unavailable."
+msgid "Timelapse is not supported while the storage is unavailable."
 msgstr ""
 
-msgid "Timelapse is not supported while the SD card is readonly."
+msgid "Timelapse is not supported while the storage is readonly."
 msgstr ""
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
@@ -4230,6 +4235,34 @@ msgstr "Pohled zleva"
 
 msgid "Right View"
 msgstr "Pohled zprava"
+
+msgctxt "Camera"
+msgid "Isometric"
+msgstr ""
+
+msgid "Isometric View"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric 1"
+msgstr ""
+
+msgid "Isometric 1 View"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric 2"
+msgstr ""
+
+msgid "Isometric 2 View"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric 3"
+msgstr ""
+
+msgid "Isometric 3 View"
+msgstr ""
 
 msgid "Start a new window"
 msgstr "Začít nové okno"
@@ -5253,6 +5286,9 @@ msgstr "Stav"
 msgid "Update"
 msgstr "Aktualizovat"
 
+msgid "Assistant(HMS)"
+msgstr ""
+
 msgid "Go to"
 msgstr ""
 
@@ -5533,15 +5569,6 @@ msgstr ""
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr ""
 
-msgid "Hardened Steel"
-msgstr ""
-
-msgid "Stainless Steel"
-msgstr ""
-
-msgid "High flow"
-msgstr ""
-
 msgid "Nozzle Type"
 msgstr ""
 
@@ -5551,8 +5578,16 @@ msgstr ""
 msgid "Nozzle Flow"
 msgstr ""
 
-#, c-format, boost-format
-msgid "%.1f"
+msgid "Hardened Steel"
+msgstr ""
+
+msgid "Stainless Steel"
+msgstr ""
+
+msgid "Tungsten Carbide"
+msgstr ""
+
+msgid "High flow"
 msgstr ""
 
 msgid "Global"
@@ -7034,6 +7069,9 @@ msgstr "Délka názvu překračuje limit."
 msgid "Cost %dg filament and %d changes more than optimal grouping."
 msgstr ""
 
+msgid "nozzle"
+msgstr ""
+
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr ""
 
@@ -7046,7 +7084,10 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr ""
 
 #, c-format, boost-format
-msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr ""
+
+msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr ""
 
 msgid "Cool"
@@ -8157,11 +8198,14 @@ msgstr "Pohled z kamery - Přední strana"
 msgid "Camera view - Behind"
 msgstr "Pohled z kamery - zezadu"
 
-msgid "Camera Angle - Left side"
-msgstr "Úhel kamery - levá strana"
+msgid "Camera view - Left"
+msgstr ""
 
-msgid "Camera Angle - Right side"
-msgstr "Úhel kamery - pravá strana"
+msgid "Camera view - Right"
+msgstr ""
+
+msgid "Camera view - Isometric"
+msgstr ""
 
 msgid "Select all objects"
 msgstr "Vybrat všechny objekty"
@@ -8319,6 +8363,9 @@ msgid "Problem Solved and Resume"
 msgstr ""
 
 msgid "Stop Buzzer"
+msgstr ""
+
+msgid "Retry (problem solved)"
 msgstr ""
 
 msgid "Confirm and Update Nozzle"
@@ -9845,6 +9892,9 @@ msgstr "Kalená ocel"
 
 msgid "Stainless steel"
 msgstr "Nerezová ocel"
+
+msgid "Tungsten carbide"
+msgstr ""
 
 msgid "Brass"
 msgstr "Mosaz"
@@ -13083,6 +13133,12 @@ msgid ""
 "Avoid warping\n"
 "Did you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping."
 msgstr ""
+
+#~ msgid "Camera Angle - Left side"
+#~ msgstr "Úhel kamery - levá strana"
+
+#~ msgid "Camera Angle - Right side"
+#~ msgstr "Úhel kamery - pravá strana"
 
 #, c-format, boost-format
 #~ msgid ""

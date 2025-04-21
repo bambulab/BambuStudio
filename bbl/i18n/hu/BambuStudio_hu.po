@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 11:55+0800\n"
+"POT-Creation-Date: 2025-04-21 20:04+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2193,14 +2193,11 @@ msgstr "Kitöltés"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Válassz ki egy AMS-helyet, majd nyomd meg a „Betöltés” vagy a „Kitöltés” gombot az filament automatikus betöltéséhez vagy eltávolításához."
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
-msgstr "A ventilátor sebességének megváltoztatása a nyomtatás során befolyásolhatja a nyomtatás minőségét, ezért kérjük, körültekintően válassz."
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
+msgstr ""
 
 msgid "Change Anyway"
 msgstr "Megváltoztatás"
-
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
-msgstr "A nyomtatás során megváltozott ventilátorsebesség befolyásolhatja a nyomtatás minőségét, ezért kérjük, körültekintően válassz."
 
 msgid "Off"
 msgstr "Ki"
@@ -2793,6 +2790,14 @@ msgstr "Fúvóka"
 
 msgid "Ext"
 msgstr "Kül"
+
+#, c-format, boost-format
+msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgstr ""
 
 msgid "Note: Only the AMS slots loaded with the same material type can be selected."
 msgstr "Megjegyzés: Csak az ugyanazzal az anyagtípussal feltöltött AMS helyek választhatók ki."
@@ -3415,13 +3420,13 @@ msgstr "A frissítés sikertelen."
 msgid "Timelapse is not supported on this printer."
 msgstr ""
 
-msgid "Timelapse is not supported while the SD card does not exist."
+msgid "Timelapse is not supported while the storage does not exist."
 msgstr ""
 
-msgid "Timelapse is not supported while the SD card is unavailable."
+msgid "Timelapse is not supported while the storage is unavailable."
 msgstr ""
 
-msgid "Timelapse is not supported while the SD card is readonly."
+msgid "Timelapse is not supported while the storage is readonly."
 msgstr ""
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
@@ -4276,6 +4281,34 @@ msgstr "Bal nézet"
 
 msgid "Right View"
 msgstr "Jobb nézet"
+
+msgctxt "Camera"
+msgid "Isometric"
+msgstr ""
+
+msgid "Isometric View"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric 1"
+msgstr ""
+
+msgid "Isometric 1 View"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric 2"
+msgstr ""
+
+msgid "Isometric 2 View"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric 3"
+msgstr ""
+
+msgid "Isometric 3 View"
+msgstr ""
 
 msgid "Start a new window"
 msgstr "Új ablak nyitása"
@@ -5316,6 +5349,9 @@ msgstr "Állapot"
 msgid "Update"
 msgstr "Frissítés"
 
+msgid "Assistant(HMS)"
+msgstr ""
+
 msgid "Go to"
 msgstr "Ugrás"
 
@@ -5593,15 +5629,6 @@ msgstr "Filament fúvókára való tapadásának észlelése"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "Ellenőrizd, hogy a fúvókára nem rakódott-e le filament vagy egyéb idegen anyag."
 
-msgid "Hardened Steel"
-msgstr "Edzett acél"
-
-msgid "Stainless Steel"
-msgstr "Rozsdamentes acél"
-
-msgid "High flow"
-msgstr "Nagy áramlás"
-
 msgid "Nozzle Type"
 msgstr "Fúvóka típusa"
 
@@ -5611,9 +5638,17 @@ msgstr ""
 msgid "Nozzle Flow"
 msgstr "Fúvóka áramlás"
 
-#, c-format, boost-format
-msgid "%.1f"
-msgstr "%.1f"
+msgid "Hardened Steel"
+msgstr "Edzett acél"
+
+msgid "Stainless Steel"
+msgstr "Rozsdamentes acél"
+
+msgid "Tungsten Carbide"
+msgstr ""
+
+msgid "High flow"
+msgstr "Nagy áramlás"
 
 msgid "Global"
 msgstr "Globális"
@@ -7123,6 +7158,9 @@ msgstr "A név túl hosszú."
 msgid "Cost %dg filament and %d changes more than optimal grouping."
 msgstr "%dg filament és %d váltás költsége több mint az optimális csoportosítás esetén."
 
+msgid "nozzle"
+msgstr ""
+
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr "Tipp: Kérjük, lépj be az 'Eszköz -> Nyomtató részei' menüpontba a fúvóka beállításának módosításához."
 
@@ -7135,7 +7173,10 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "A jelenlegi fúvókaátmérő (%.1f mm) nem egyezik a szeletelt fájlban megadott értékkel (%.1f mm). Kérjük, ellenőrizd, hogy a beszerelt fúvóka megfelel-e a nyomtató beállításainak, majd szeleteléskor használd a megfelelő nyomtatóbeállítást."
 
 #, c-format, boost-format
-msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr ""
+
+msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr ""
 
 msgid "Cool"
@@ -8262,11 +8303,14 @@ msgstr "Kameranézet - Elölről"
 msgid "Camera view - Behind"
 msgstr "Kameranézet - Hátulról"
 
-msgid "Camera Angle - Left side"
-msgstr "Kameranézet - Bal oldal"
+msgid "Camera view - Left"
+msgstr ""
 
-msgid "Camera Angle - Right side"
-msgstr "Kameranézet - Jobb oldal"
+msgid "Camera view - Right"
+msgstr ""
+
+msgid "Camera view - Isometric"
+msgstr ""
 
 msgid "Select all objects"
 msgstr "Összes objektum kijelölése"
@@ -8425,6 +8469,9 @@ msgstr "Probléma elhárítva és folytatás"
 
 msgid "Stop Buzzer"
 msgstr "Zümmer leállítása"
+
+msgid "Retry (problem solved)"
+msgstr ""
 
 msgid "Confirm and Update Nozzle"
 msgstr "Fúvóka lecserélésének megerősítése"
@@ -9954,6 +10001,9 @@ msgstr "Edzett acél"
 
 msgid "Stainless steel"
 msgstr "Rozsdamentes acél"
+
+msgid "Tungsten carbide"
+msgstr ""
 
 msgid "Brass"
 msgstr "Sárgaréz"
@@ -13268,6 +13318,22 @@ msgid ""
 msgstr ""
 "Vetemedés elkerülése\n"
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
+
+#~ msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+#~ msgstr "A ventilátor sebességének megváltoztatása a nyomtatás során befolyásolhatja a nyomtatás minőségét, ezért kérjük, körültekintően válassz."
+
+#~ msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
+#~ msgstr "A nyomtatás során megváltozott ventilátorsebesség befolyásolhatja a nyomtatás minőségét, ezért kérjük, körültekintően válassz."
+
+#, c-format, boost-format
+#~ msgid "%.1f"
+#~ msgstr "%.1f"
+
+#~ msgid "Camera Angle - Left side"
+#~ msgstr "Kameranézet - Bal oldal"
+
+#~ msgid "Camera Angle - Right side"
+#~ msgstr "Kameranézet - Jobb oldal"
 
 #~ msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
 #~ msgstr "Nagy teljesítményű GPU használatának előnyben részesítése (Bambu Studio újraindítása után működik csak)"

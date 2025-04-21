@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 11:55+0800\n"
+"POT-Creation-Date: 2025-04-21 20:04+0800\n"
 "PO-Revision-Date: 2025-04-15 22:16+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -2216,14 +2216,11 @@ msgstr "Çıkar"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Bir AMS yuvası seçin ve ardından filamentleri otomatik olarak yüklemek veya çıkartmak için \"Yükle\" veya \"Çıkart\" düğmesine basın."
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
-msgstr "Baskı sırasında fan hızının değiştirilmesi baskı kalitesini etkileyebilir, lütfen dikkatli seçim yapın."
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
+msgstr ""
 
 msgid "Change Anyway"
 msgstr "Yine de Değiştir"
-
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
-msgstr "Baskı sırasında fan hızının değiştirilmesi baskı kalitesini etkileyebilir, lütfen dikkatli seçin."
 
 msgid "Off"
 msgstr "Kapalı"
@@ -2816,6 +2813,14 @@ msgstr "Nozul"
 
 msgid "Ext"
 msgstr "Harici"
+
+#, c-format, boost-format
+msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgstr ""
 
 msgid "Note: Only the AMS slots loaded with the same material type can be selected."
 msgstr "Not: Yalnızca aynı malzeme türüne sahip AMS yuvaları seçilebilir."
@@ -3438,14 +3443,14 @@ msgstr "Güncelleme başarısız."
 msgid "Timelapse is not supported on this printer."
 msgstr "Timelapse bu yazıcıda desteklenmez."
 
-msgid "Timelapse is not supported while the SD card does not exist."
-msgstr "SD kart mevcut değilken Timelapse desteklenmez."
+msgid "Timelapse is not supported while the storage does not exist."
+msgstr ""
 
-msgid "Timelapse is not supported while the SD card is unavailable."
-msgstr "SD kart yokken Timelapse desteklenmez."
+msgid "Timelapse is not supported while the storage is unavailable."
+msgstr ""
 
-msgid "Timelapse is not supported while the SD card is readonly."
-msgstr "SD kart salt okunur durumdayken Timelapse desteklenmez."
+msgid "Timelapse is not supported while the storage is readonly."
+msgstr ""
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "Mevcut hazne sıcaklığı veya hedef hazne sıcaklığı 45 ° C'yi aşıyor Ekstruder tıkanmasını önlemek için düşük sıcaklıkta filament (PLA / PETG / TPU) yüklenmesine izin verilmez."
@@ -4301,6 +4306,34 @@ msgstr "Soldan Görünüm"
 
 msgid "Right View"
 msgstr "Sağdan Görünüm"
+
+msgctxt "Camera"
+msgid "Isometric"
+msgstr ""
+
+msgid "Isometric View"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric 1"
+msgstr ""
+
+msgid "Isometric 1 View"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric 2"
+msgstr ""
+
+msgid "Isometric 2 View"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric 3"
+msgstr ""
+
+msgid "Isometric 3 View"
+msgstr ""
 
 msgid "Start a new window"
 msgstr "Yeni pencere"
@@ -5339,6 +5372,9 @@ msgstr "Durum"
 msgid "Update"
 msgstr "Güncelle"
 
+msgid "Assistant(HMS)"
+msgstr ""
+
 msgid "Go to"
 msgstr "Git"
 
@@ -5616,15 +5652,6 @@ msgstr "Nozul Toplanması Tespiti"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "Nozulun filament veya diğer yabancı cisimler tarafından tıkanıp tıkanmadığını kontrol edin."
 
-msgid "Hardened Steel"
-msgstr "Güçlendirilmiş çelik"
-
-msgid "Stainless Steel"
-msgstr "Paslanmaz çelik"
-
-msgid "High flow"
-msgstr "Yüksek akış"
-
 msgid "Nozzle Type"
 msgstr "Nozul tipi"
 
@@ -5634,9 +5661,17 @@ msgstr "Lütfen yazıcıdaki nozul ayarlarını değiştirin."
 msgid "Nozzle Flow"
 msgstr "Nozul Akışı"
 
-#, c-format, boost-format
-msgid "%.1f"
-msgstr "%.1f"
+msgid "Hardened Steel"
+msgstr "Güçlendirilmiş çelik"
+
+msgid "Stainless Steel"
+msgstr "Paslanmaz çelik"
+
+msgid "Tungsten Carbide"
+msgstr ""
+
+msgid "High flow"
+msgstr "Yüksek akış"
 
 msgid "Global"
 msgstr "Genel"
@@ -7151,6 +7186,9 @@ msgstr "Ad uzunluğu sınırı aşıyor."
 msgid "Cost %dg filament and %d changes more than optimal grouping."
 msgstr "Maliyet %dg filament ve %d optimum gruplamadan daha fazla değişir."
 
+msgid "nozzle"
+msgstr ""
+
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr "İpuçları: Yazıcınızın nozülünü yakın zamanda değiştirdiyseniz, nozül ayarınızı değiştirmek için lütfen 'Cihaz -> Yazıcı parçaları' bölümüne gidin."
 
@@ -7163,8 +7201,11 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "Mevcut nozul çapı (%.1fmm) dilimleme dosyası (%.1fmm) ile eşleşmiyor. Lütfen takılı nozülün yazıcıdaki ayarlarla eşleştiğinden emin olun, ardından dilimleme sırasında ilgili yazıcı ön ayarını ayarlayın."
 
 #, c-format, boost-format
-msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
-msgstr "Yüksek sıcaklıktaki malzemenin (%s) %s nozul ile basılması nozul hasarına neden olabilir, lütfen nozul tipini kontrol edin"
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr ""
+
+msgid "Unable to automatically match to suitable filament. Please click to manually match."
+msgstr ""
 
 msgid "Cool"
 msgstr "Güzel"
@@ -8290,11 +8331,14 @@ msgstr "Kamera görünümü - Ön"
 msgid "Camera view - Behind"
 msgstr "Kamera görünümü - Arka"
 
-msgid "Camera Angle - Left side"
-msgstr "Kamera Açısı - Sol"
+msgid "Camera view - Left"
+msgstr ""
 
-msgid "Camera Angle - Right side"
-msgstr "Kamera Açısı - Sağ"
+msgid "Camera view - Right"
+msgstr ""
+
+msgid "Camera view - Isometric"
+msgstr ""
 
 msgid "Select all objects"
 msgstr "Tüm nesneleri seç"
@@ -8453,6 +8497,9 @@ msgstr "Sorun Çözüldü ve Devam"
 
 msgid "Stop Buzzer"
 msgstr "Uyarı Sesini Durdur"
+
+msgid "Retry (problem solved)"
+msgstr ""
 
 msgid "Confirm and Update Nozzle"
 msgstr "Nozulu Onaylayın ve Güncelleyin"
@@ -9982,6 +10029,9 @@ msgstr "Güçlendirilmiş çelik"
 
 msgid "Stainless steel"
 msgstr "Paslanmaz çelik"
+
+msgid "Tungsten carbide"
+msgstr ""
 
 msgid "Brass"
 msgstr "Pirinç"
@@ -13210,7 +13260,8 @@ msgstr ""
 "Baskılarınızı plakalara ayırın\n"
 "Çok sayıda parçası olan bir modeli baskıya hazır ayrı kalıplara bölebileceğinizi biliyor muydunuz? Bu, tüm parçaları takip etme sürecini basitleştirecektir."
 
-#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer Height]
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
+#: Height]
 msgid ""
 "Speed up your print with Adaptive Layer Height\n"
 "Did you know that you can print a model even faster, by using the Adaptive Layer Height option? Check it out!"
@@ -13282,7 +13333,8 @@ msgstr ""
 "Gücü artırın\n"
 "Modelin gücünü artırmak için daha fazla duvar halkası ve daha yüksek seyrek dolgu yoğunluğu kullanabileceğinizi biliyor muydunuz?"
 
-#: resources/data/hints.ini: [hint:When need to print with the printer door opened]
+#: resources/data/hints.ini: [hint:When need to print with the printer door
+#: opened]
 msgid ""
 "When need to print with the printer door opened\n"
 "Did you know that opening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki."
@@ -13297,6 +13349,35 @@ msgid ""
 msgstr ""
 "Eğilmeyi önleyin\n"
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını azaltabileceğini biliyor muydunuz."
+
+#~ msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+#~ msgstr "Baskı sırasında fan hızının değiştirilmesi baskı kalitesini etkileyebilir, lütfen dikkatli seçim yapın."
+
+#~ msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
+#~ msgstr "Baskı sırasında fan hızının değiştirilmesi baskı kalitesini etkileyebilir, lütfen dikkatli seçin."
+
+#~ msgid "Timelapse is not supported while the SD card does not exist."
+#~ msgstr "SD kart mevcut değilken Timelapse desteklenmez."
+
+#~ msgid "Timelapse is not supported while the SD card is unavailable."
+#~ msgstr "SD kart yokken Timelapse desteklenmez."
+
+#~ msgid "Timelapse is not supported while the SD card is readonly."
+#~ msgstr "SD kart salt okunur durumdayken Timelapse desteklenmez."
+
+#, c-format, boost-format
+#~ msgid "%.1f"
+#~ msgstr "%.1f"
+
+#, c-format, boost-format
+#~ msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
+#~ msgstr "Yüksek sıcaklıktaki malzemenin (%s) %s nozul ile basılması nozul hasarına neden olabilir, lütfen nozul tipini kontrol edin"
+
+#~ msgid "Camera Angle - Left side"
+#~ msgstr "Kamera Açısı - Sol"
+
+#~ msgid "Camera Angle - Right side"
+#~ msgstr "Kamera Açısı - Sağ"
 
 #~ msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
 #~ msgstr "Yüksek performanslı GPU kullanmayı tercih edin (Bambu Studio'yu manuel olarak yeniden başlattıktan sonra geçerlidir)"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 11:55+0800\n"
+"POT-Creation-Date: 2025-04-21 20:04+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2198,14 +2198,11 @@ msgstr "Rozładuj"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Wybierz gniazdo AMS, a następnie naciśnij przycisk „Ładuj” lub „Rozładuj”, aby automatycznie ładować lub wyładowywać filament."
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
-msgstr "Zmiana prędkości wentylatora podczas druku może wpłynąć na jakość druku. Wybierz ostrożnie."
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
+msgstr ""
 
 msgid "Change Anyway"
 msgstr "Zmień mimo to"
-
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
-msgstr "Zmiana prędkości wentylatora podczas druku może wpłynąć na jego jakość. Wybierz ostrożnie."
 
 msgid "Off"
 msgstr "Wył."
@@ -2797,6 +2794,14 @@ msgid "Nozzle"
 msgstr "Dysza"
 
 msgid "Ext"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
 msgstr ""
 
 msgid "Note: Only the AMS slots loaded with the same material type can be selected."
@@ -3421,13 +3426,13 @@ msgstr "Aktualizacja nie powiodła się."
 msgid "Timelapse is not supported on this printer."
 msgstr ""
 
-msgid "Timelapse is not supported while the SD card does not exist."
+msgid "Timelapse is not supported while the storage does not exist."
 msgstr ""
 
-msgid "Timelapse is not supported while the SD card is unavailable."
+msgid "Timelapse is not supported while the storage is unavailable."
 msgstr ""
 
-msgid "Timelapse is not supported while the SD card is readonly."
+msgid "Timelapse is not supported while the storage is readonly."
 msgstr ""
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
@@ -4284,6 +4289,34 @@ msgstr "Widok z lewej"
 
 msgid "Right View"
 msgstr "Widok z prawej"
+
+msgctxt "Camera"
+msgid "Isometric"
+msgstr ""
+
+msgid "Isometric View"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric 1"
+msgstr ""
+
+msgid "Isometric 1 View"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric 2"
+msgstr ""
+
+msgid "Isometric 2 View"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric 3"
+msgstr ""
+
+msgid "Isometric 3 View"
+msgstr ""
 
 msgid "Start a new window"
 msgstr "Uruchom nowe okno"
@@ -5327,6 +5360,9 @@ msgstr "Status"
 msgid "Update"
 msgstr "Aktualizuj"
 
+msgid "Assistant(HMS)"
+msgstr ""
+
 msgid "Go to"
 msgstr "Przejdź do"
 
@@ -5607,15 +5643,6 @@ msgstr "Wykrywanie \"zalepienia\" się dyszy"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "Sprawdź, czy dysza nie została zatkana filamentem lub innym obcym przedmiotem."
 
-msgid "Hardened Steel"
-msgstr "Stal Hartowana"
-
-msgid "Stainless Steel"
-msgstr "Stal nierdzewna"
-
-msgid "High flow"
-msgstr "Wysoki przepływ"
-
 msgid "Nozzle Type"
 msgstr "Typ dyszy"
 
@@ -5625,9 +5652,17 @@ msgstr ""
 msgid "Nozzle Flow"
 msgstr "Przepływ dyszy"
 
-#, c-format, boost-format
-msgid "%.1f"
-msgstr "%.1f"
+msgid "Hardened Steel"
+msgstr "Stal Hartowana"
+
+msgid "Stainless Steel"
+msgstr "Stal nierdzewna"
+
+msgid "Tungsten Carbide"
+msgstr ""
+
+msgid "High flow"
+msgstr "Wysoki przepływ"
 
 msgid "Global"
 msgstr "Globalne"
@@ -7142,6 +7177,9 @@ msgstr "Długość nazwy przekracza limit."
 msgid "Cost %dg filament and %d changes more than optimal grouping."
 msgstr "W porównaniu do optymalnego grupowania, zużycie filamentu wzrośnie o %dg, a liczba zmian materiału wzrośnie o %d."
 
+msgid "nozzle"
+msgstr ""
+
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr "Wskazówka: Jeśli ostatnio zmieniłeś dyszę , przejdź do opcji \"Urządzenie ->; Części drukarki\", aby zmienić ustawienia dyszy."
 
@@ -7154,8 +7192,11 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "Bieżąca średnica dyszy (%.1fmm) nie jest zgodna z plikiem cięcia (%.1fmm). Upewnij się, że zainstalowana dysza jest zgodna z ustawieniami drukarki, a następnie ustaw odpowiednie ustawienia drukarki podczas krojenia."
 
 #, c-format, boost-format
-msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
-msgstr "Drukowanie wysokotemperaturowych materiałów (%s) dyszą %s, może spowodować uszkodzenie dyszy, proszę sprawdzić typ dyszy"
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr ""
+
+msgid "Unable to automatically match to suitable filament. Please click to manually match."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -8288,11 +8329,14 @@ msgstr "Widok kamery - Z przodu"
 msgid "Camera view - Behind"
 msgstr "Widok kamery - Z tyłu"
 
-msgid "Camera Angle - Left side"
-msgstr "Kąt kamery - Lewa strona"
+msgid "Camera view - Left"
+msgstr ""
 
-msgid "Camera Angle - Right side"
-msgstr "Kąt kamery - Prawa strona"
+msgid "Camera view - Right"
+msgstr ""
+
+msgid "Camera view - Isometric"
+msgstr ""
 
 msgid "Select all objects"
 msgstr "Zaznacz wszystkie obiekty"
@@ -8450,6 +8494,9 @@ msgid "Problem Solved and Resume"
 msgstr "Problem rozwiązany. Wznów"
 
 msgid "Stop Buzzer"
+msgstr ""
+
+msgid "Retry (problem solved)"
 msgstr ""
 
 msgid "Confirm and Update Nozzle"
@@ -9980,6 +10027,9 @@ msgstr "Stal hartowana"
 
 msgid "Stainless steel"
 msgstr "Stal nierdzewna"
+
+msgid "Tungsten carbide"
+msgstr ""
 
 msgid "Brass"
 msgstr "Mosiądz"
@@ -13298,6 +13348,26 @@ msgid ""
 msgstr ""
 "Unikaj wypaczania\n"
 "Czy wiesz, że podczas drukowania materiałów podatnych na wypaczanie, takich jak ABS, odpowiednie zwiększenie temperatury stołu grzejnego może zmniejszyć prawdopodobieństwo wypaczania."
+
+#~ msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+#~ msgstr "Zmiana prędkości wentylatora podczas druku może wpłynąć na jakość druku. Wybierz ostrożnie."
+
+#~ msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
+#~ msgstr "Zmiana prędkości wentylatora podczas druku może wpłynąć na jego jakość. Wybierz ostrożnie."
+
+#, c-format, boost-format
+#~ msgid "%.1f"
+#~ msgstr "%.1f"
+
+#, c-format, boost-format
+#~ msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
+#~ msgstr "Drukowanie wysokotemperaturowych materiałów (%s) dyszą %s, może spowodować uszkodzenie dyszy, proszę sprawdzić typ dyszy"
+
+#~ msgid "Camera Angle - Left side"
+#~ msgstr "Kąt kamery - Lewa strona"
+
+#~ msgid "Camera Angle - Right side"
+#~ msgstr "Kąt kamery - Prawa strona"
 
 #~ msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
 #~ msgstr "Preferuj korzystanie z wysokowydajnego GPU (działa po ręcznym restarcie Bambu Studio)"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 11:55+0800\n"
+"POT-Creation-Date: 2025-04-21 20:04+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2188,14 +2188,11 @@ msgstr "언로드"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "AMS 슬롯을 선택한 다음 \"로드\" 또는 \"언로드\" 버튼을 누르면 필라멘트를 자동으로 로드하거나 언로드할 수 있습니다."
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
-msgstr "출력 중 팬 속도를 변경하면 출력 품질에 영향을 줄 수 있으므로 신중하게 선택하세요."
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
+msgstr ""
 
 msgid "Change Anyway"
 msgstr "어떻게든 변경"
-
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
-msgstr "출력 중 팬 속도를 변경하면 출력 품질에 영향을 줄 수 있으므로 신중하게 선택하세요."
 
 msgid "Off"
 msgstr "끄기"
@@ -2788,6 +2785,14 @@ msgstr "노즐"
 
 msgid "Ext"
 msgstr "내선"
+
+#, c-format, boost-format
+msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgstr ""
 
 msgid "Note: Only the AMS slots loaded with the same material type can be selected."
 msgstr "참고: 동일한 재료 타입 로드된 AMS 슬롯만 선택할 수 있습니다."
@@ -3410,13 +3415,13 @@ msgstr "업데이트 실패"
 msgid "Timelapse is not supported on this printer."
 msgstr ""
 
-msgid "Timelapse is not supported while the SD card does not exist."
+msgid "Timelapse is not supported while the storage does not exist."
 msgstr ""
 
-msgid "Timelapse is not supported while the SD card is unavailable."
+msgid "Timelapse is not supported while the storage is unavailable."
 msgstr ""
 
-msgid "Timelapse is not supported while the SD card is readonly."
+msgid "Timelapse is not supported while the storage is readonly."
 msgstr ""
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
@@ -4273,6 +4278,34 @@ msgstr "왼쪽 뷰"
 
 msgid "Right View"
 msgstr "오른쪽 뷰"
+
+msgctxt "Camera"
+msgid "Isometric"
+msgstr ""
+
+msgid "Isometric View"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric 1"
+msgstr ""
+
+msgid "Isometric 1 View"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric 2"
+msgstr ""
+
+msgid "Isometric 2 View"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric 3"
+msgstr ""
+
+msgid "Isometric 3 View"
+msgstr ""
 
 msgid "Start a new window"
 msgstr "새 창 시작"
@@ -5310,6 +5343,9 @@ msgstr "상태"
 msgid "Update"
 msgstr "업데이트"
 
+msgid "Assistant(HMS)"
+msgstr ""
+
 msgid "Go to"
 msgstr "이동"
 
@@ -5584,15 +5620,6 @@ msgstr "노즐 클럼핑(Clumping) 감지"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "필라멘트나 기타 이물질로 인해 노즐이 뭉치는지 확인합니다."
 
-msgid "Hardened Steel"
-msgstr "경화 스틸"
-
-msgid "Stainless Steel"
-msgstr "스테인리스 스틸"
-
-msgid "High flow"
-msgstr "높은 흐름"
-
 msgid "Nozzle Type"
 msgstr "노즐 유형"
 
@@ -5602,9 +5629,17 @@ msgstr ""
 msgid "Nozzle Flow"
 msgstr "노즐 흐름"
 
-#, c-format, boost-format
-msgid "%.1f"
-msgstr "%.1f"
+msgid "Hardened Steel"
+msgstr "경화 스틸"
+
+msgid "Stainless Steel"
+msgstr "스테인리스 스틸"
+
+msgid "Tungsten Carbide"
+msgstr ""
+
+msgid "High flow"
+msgstr "높은 흐름"
 
 msgid "Global"
 msgstr "글로벌"
@@ -7119,6 +7154,9 @@ msgstr "이름 길이가 제한을 초과합니다."
 msgid "Cost %dg filament and %d changes more than optimal grouping."
 msgstr "비용 %dg 필라멘트 및 %d 최적의 그룹화보다 더 많이 변경됩니다."
 
+msgid "nozzle"
+msgstr ""
+
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr "팁: 최근에 프린터의 노즐을 변경한 경우 '장치 -> 프린터 부품'으로 이동하여 노즐 설정을 변경하세요."
 
@@ -7131,8 +7169,11 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "현재 노즐 직경(%.1fmm)이 슬라이싱 파일(%.1fmm)과 일치하지 않습니다. 설치된 노즐이 프린터의 설정과 일치하는지 확인한 다음 슬라이싱할 때 해당 프린터 프리셋을 설정하세요."
 
 #, c-format, boost-format
-msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
-msgstr "고온 소재 (%s) 를 %s 노즐로 출력하면 노즐이 손상될 수 있으니 노즐 종류를 확인하십시오."
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr ""
+
+msgid "Unable to automatically match to suitable filament. Please click to manually match."
+msgstr ""
 
 msgid "Cool"
 msgstr "쿨한"
@@ -8255,11 +8296,14 @@ msgstr "카메라 뷰 - 전면"
 msgid "Camera view - Behind"
 msgstr "카메라 뷰 - 후면"
 
-msgid "Camera Angle - Left side"
-msgstr "카메라 각도 - 왼쪽"
+msgid "Camera view - Left"
+msgstr ""
 
-msgid "Camera Angle - Right side"
-msgstr "카메라 각도 - 오른쪽"
+msgid "Camera view - Right"
+msgstr ""
+
+msgid "Camera view - Isometric"
+msgstr ""
 
 msgid "Select all objects"
 msgstr "모든 객체 선택"
@@ -8418,6 +8462,9 @@ msgstr "문제 해결됨 재개하기"
 
 msgid "Stop Buzzer"
 msgstr "버저 중지"
+
+msgid "Retry (problem solved)"
+msgstr ""
 
 msgid "Confirm and Update Nozzle"
 msgstr "노즐 확인 및 업데이트"
@@ -9947,6 +9994,9 @@ msgstr "경화 스틸"
 
 msgid "Stainless steel"
 msgstr "스테인리스 스틸"
+
+msgid "Tungsten carbide"
+msgstr ""
 
 msgid "Brass"
 msgstr "황동"
@@ -13263,6 +13313,26 @@ msgid ""
 msgstr ""
 "뒤틀림 방지\n"
 "ABS와 같이 뒤틀리기 쉬운 소재를 출력할 때 열판 온도를 적절히 높이면 뒤틀릴 확률을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+#~ msgstr "출력 중 팬 속도를 변경하면 출력 품질에 영향을 줄 수 있으므로 신중하게 선택하세요."
+
+#~ msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
+#~ msgstr "출력 중 팬 속도를 변경하면 출력 품질에 영향을 줄 수 있으므로 신중하게 선택하세요."
+
+#, c-format, boost-format
+#~ msgid "%.1f"
+#~ msgstr "%.1f"
+
+#, c-format, boost-format
+#~ msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
+#~ msgstr "고온 소재 (%s) 를 %s 노즐로 출력하면 노즐이 손상될 수 있으니 노즐 종류를 확인하십시오."
+
+#~ msgid "Camera Angle - Left side"
+#~ msgstr "카메라 각도 - 왼쪽"
+
+#~ msgid "Camera Angle - Right side"
+#~ msgstr "카메라 각도 - 오른쪽"
 
 #~ msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
 #~ msgstr "고성능 GPU 사용 선호(Bambu Studio 수동 재시작 후 적용)"

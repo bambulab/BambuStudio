@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 11:55+0800\n"
+"POT-Creation-Date: 2025-04-21 20:04+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2193,14 +2193,11 @@ msgstr "Mata ut"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Välj ett AMS fack och tryck sedan på knappen \"Ladda\" eller \"Mata ut\" för att automatiskt ladda eller mata ut filament."
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
-msgstr "Att ändra fläkthastigheten under utskrift kan påverka utskriftskvaliteten, välj noggrant."
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
+msgstr ""
 
 msgid "Change Anyway"
 msgstr "Ändra ändå"
-
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
-msgstr "Ändrad fläkthastighet under utskrift kan påverka utskrifts kvaliteten, välj noggrant."
 
 msgid "Off"
 msgstr "Av"
@@ -2792,6 +2789,14 @@ msgid "Nozzle"
 msgstr "Nozzel"
 
 msgid "Ext"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
 msgstr ""
 
 msgid "Note: Only the AMS slots loaded with the same material type can be selected."
@@ -3415,14 +3420,14 @@ msgstr "Uppdatering misslyckades."
 msgid "Timelapse is not supported on this printer."
 msgstr "Timelapse stöds inte på den här printern."
 
-msgid "Timelapse is not supported while the SD card does not exist."
-msgstr "Timelapse stöds inte när SD kortet inte finns."
+msgid "Timelapse is not supported while the storage does not exist."
+msgstr ""
 
-msgid "Timelapse is not supported while the SD card is unavailable."
-msgstr "Timelapse stöds inte när SD kortet inte är tillgängligt."
+msgid "Timelapse is not supported while the storage is unavailable."
+msgstr ""
 
-msgid "Timelapse is not supported while the SD card is readonly."
-msgstr "Timelapse stöds inte när SD kortet är skrivskyddat."
+msgid "Timelapse is not supported while the storage is readonly."
+msgstr ""
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "Den aktuella kammar temperaturen eller den önskade kammar temperaturen överstiger 45 ℃. För att undvika igensättning av extrudern är det inte tillåtet att ladda filament med låg temperatur (PLA/PETG/TPU)."
@@ -4278,6 +4283,34 @@ msgstr "Vy Vänster"
 
 msgid "Right View"
 msgstr "Vy Höger"
+
+msgctxt "Camera"
+msgid "Isometric"
+msgstr ""
+
+msgid "Isometric View"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric 1"
+msgstr ""
+
+msgid "Isometric 1 View"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric 2"
+msgstr ""
+
+msgid "Isometric 2 View"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric 3"
+msgstr ""
+
+msgid "Isometric 3 View"
+msgstr ""
 
 msgid "Start a new window"
 msgstr "Starta ett nytt fönster"
@@ -5318,6 +5351,9 @@ msgstr "Status"
 msgid "Update"
 msgstr "Uppdatera"
 
+msgid "Assistant(HMS)"
+msgstr ""
+
 msgid "Go to"
 msgstr "Gå till"
 
@@ -5595,15 +5631,6 @@ msgstr "Detektering av nozzel klumpar"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "Kontrollera om nozzeln täpps igen av filament eller andra främmande föremål."
 
-msgid "Hardened Steel"
-msgstr "Härdat stål"
-
-msgid "Stainless Steel"
-msgstr "Rostfritt stål"
-
-msgid "High flow"
-msgstr "Högt flöde"
-
 msgid "Nozzle Type"
 msgstr "Nozzel typ"
 
@@ -5613,9 +5640,17 @@ msgstr ""
 msgid "Nozzle Flow"
 msgstr "Nozzle flöde"
 
-#, c-format, boost-format
-msgid "%.1f"
-msgstr "%.1f"
+msgid "Hardened Steel"
+msgstr "Härdat stål"
+
+msgid "Stainless Steel"
+msgstr "Rostfritt stål"
+
+msgid "Tungsten Carbide"
+msgstr ""
+
+msgid "High flow"
+msgstr "Högt flöde"
 
 msgid "Global"
 msgstr "Global"
@@ -7128,6 +7163,9 @@ msgstr "Namnlängden överskrider gränsen."
 msgid "Cost %dg filament and %d changes more than optimal grouping."
 msgstr "Kostnad %dg filament och %d ändrar mer än optimal gruppering."
 
+msgid "nozzle"
+msgstr ""
+
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr "Tips och råd: Om du har bytt ut din nozzle på din printer nyligen, gå till \"Enhet -> Printer delar\" för att byta din nozzle inställning."
 
@@ -7140,8 +7178,11 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "Det aktuella nozzle diametern (%.1fmm) stämmer inte överens med berednings filen (%.1fmm). Vänligen kontrollera att nozzle stämmer överens med inställningarna i printern och ställ sedan in motsvarande printer inställningar när du bereder."
 
 #, c-format, boost-format
-msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
-msgstr "Utskrift av hög temperaturs material(%s) med %s nozzle kan orsaka nozzle skada, vänligen kontrollera nozzle typ"
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr ""
+
+msgid "Unable to automatically match to suitable filament. Please click to manually match."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -8269,11 +8310,14 @@ msgstr "Kamera vy - Fram"
 msgid "Camera view - Behind"
 msgstr "Kamera vy - Bakom"
 
-msgid "Camera Angle - Left side"
-msgstr "Kamera vy - Vänster sida"
+msgid "Camera view - Left"
+msgstr ""
 
-msgid "Camera Angle - Right side"
-msgstr "Kamera vy - Höger sida"
+msgid "Camera view - Right"
+msgstr ""
+
+msgid "Camera view - Isometric"
+msgstr ""
 
 msgid "Select all objects"
 msgstr "Välj alla objekt"
@@ -8432,6 +8476,9 @@ msgstr "Problemet löst och återuppta"
 
 msgid "Stop Buzzer"
 msgstr "Stoppa summern"
+
+msgid "Retry (problem solved)"
+msgstr ""
 
 msgid "Confirm and Update Nozzle"
 msgstr "Bekräfta och uppdatera nozzeln"
@@ -9961,6 +10008,9 @@ msgstr "Härdat stål"
 
 msgid "Stainless steel"
 msgstr "Rostfritt stål"
+
+msgid "Tungsten carbide"
+msgstr ""
 
 msgid "Brass"
 msgstr "Mässing"
@@ -13281,6 +13331,35 @@ msgid ""
 msgstr ""
 "Undvik vridning\n"
 "Visste du att när du skriver ut material som är benägna att vrida, såsom ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten för vridning."
+
+#~ msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+#~ msgstr "Att ändra fläkthastigheten under utskrift kan påverka utskriftskvaliteten, välj noggrant."
+
+#~ msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
+#~ msgstr "Ändrad fläkthastighet under utskrift kan påverka utskrifts kvaliteten, välj noggrant."
+
+#~ msgid "Timelapse is not supported while the SD card does not exist."
+#~ msgstr "Timelapse stöds inte när SD kortet inte finns."
+
+#~ msgid "Timelapse is not supported while the SD card is unavailable."
+#~ msgstr "Timelapse stöds inte när SD kortet inte är tillgängligt."
+
+#~ msgid "Timelapse is not supported while the SD card is readonly."
+#~ msgstr "Timelapse stöds inte när SD kortet är skrivskyddat."
+
+#, c-format, boost-format
+#~ msgid "%.1f"
+#~ msgstr "%.1f"
+
+#, c-format, boost-format
+#~ msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
+#~ msgstr "Utskrift av hög temperaturs material(%s) med %s nozzle kan orsaka nozzle skada, vänligen kontrollera nozzle typ"
+
+#~ msgid "Camera Angle - Left side"
+#~ msgstr "Kamera vy - Vänster sida"
+
+#~ msgid "Camera Angle - Right side"
+#~ msgstr "Kamera vy - Höger sida"
 
 #~ msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
 #~ msgstr "Föredrar att använda högpresterande GPU (Effektiv efter manuell omstart av Bambu Studio)"
