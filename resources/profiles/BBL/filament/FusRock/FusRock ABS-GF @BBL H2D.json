@@ -21,8 +21,8 @@
         "nil"
     ],
     "filament_max_volumetric_speed": [
-        "20",
-        "20"
+        "18",
+        "18"
     ],
     "filament_retract_before_wipe": [
         "nil",
