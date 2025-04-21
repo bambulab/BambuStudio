@@ -2429,11 +2429,11 @@ static void add_common_view_menu_items(wxMenu* view_menu, MainFrame* mainFrame, 
     append_menu_item(view_menu, wxID_ANY, _CTX(L_CONTEXT("Isometric", "Camera"), "Camera") + "\t" + ctrl + "7", _L("Isometric View"), [mainFrame](wxCommandEvent &) { mainFrame->select_view("iso"); }, "",
         nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
 #if !BBL_RELEASE_TO_PUBLIC
-    append_menu_item(view_menu, wxID_ANY, _CTX(L_CONTEXT("Isometric 1", "Camera"), "Camera"), _L("Isometric 1 View"),
+    append_menu_item(view_menu, wxID_ANY, _CTX(L_CONTEXT("Isometric", "Camera"), "Camera") + " 1", _L("Isometric View") + " 1",
         [mainFrame](wxCommandEvent &) { mainFrame->select_view("iso_1"); }, "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
-    append_menu_item(view_menu, wxID_ANY, _CTX(L_CONTEXT("Isometric 2", "Camera"), "Camera"), _L("Isometric 2 View"),
-        [mainFrame](wxCommandEvent &) { mainFrame->select_view("iso_2"); }, "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
-    append_menu_item(view_menu, wxID_ANY, _CTX(L_CONTEXT("Isometric 3", "Camera"), "Camera"), _L("Isometric 3 View"),
+    append_menu_item(view_menu, wxID_ANY, _CTX(L_CONTEXT("Isometric", "Camera"), "Camera") + " 2", _L("Isometric View") + " 2",
+        [mainFrame](wxCommandEvent &) { mainFrame->select_view("iso_2"); },"", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
+    append_menu_item(view_menu, wxID_ANY, _CTX(L_CONTEXT("Isometric", "Camera"), "Camera") + " 3", _L("Isometric View") + " 3",
         [mainFrame](wxCommandEvent &) { mainFrame->select_view("iso_3"); }, "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
 #endif
 }

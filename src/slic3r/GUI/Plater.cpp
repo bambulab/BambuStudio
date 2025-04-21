@@ -17200,14 +17200,14 @@ SuppressBackgroundProcessingUpdate::~SuppressBackgroundProcessingUpdate()
 }
 wxString get_view_type_string(Camera::ViewAngleType type) {
     switch (type) {
-    case Slic3r::GUI::Camera::ViewAngleType::Iso: return _L("isometric");
-    case Slic3r::GUI::Camera::ViewAngleType::Top_Front: return _L("top_front");
-    case Slic3r::GUI::Camera::ViewAngleType::Left: return _L("left");
-    case Slic3r::GUI::Camera::ViewAngleType::Right: return _L("right");
-    case Slic3r::GUI::Camera::ViewAngleType::Top: return _L("top");
-    case Slic3r::GUI::Camera::ViewAngleType::Bottom: return _L("bottom");
-    case Slic3r::GUI::Camera::ViewAngleType::Front: return _L("front");
-    case Slic3r::GUI::Camera::ViewAngleType::Rear: return _L("rear");
+    case Slic3r::GUI::Camera::ViewAngleType::Iso: return _CTX(L_CONTEXT("Isometric", "Camera"), "Camera");
+    case Slic3r::GUI::Camera::ViewAngleType::Top_Front: return _L("Top front");
+    case Slic3r::GUI::Camera::ViewAngleType::Left: return _CTX(L_CONTEXT("Left", "Camera"), "Camera");
+    case Slic3r::GUI::Camera::ViewAngleType::Right: return _CTX(L_CONTEXT("Right", "Camera"), "Camera");
+    case Slic3r::GUI::Camera::ViewAngleType::Top: return _L("Top");
+    case Slic3r::GUI::Camera::ViewAngleType::Bottom: return _L("Bottom");
+    case Slic3r::GUI::Camera::ViewAngleType::Front: return _L("Front");
+    case Slic3r::GUI::Camera::ViewAngleType::Rear: return _L("Rear");
     default: return "";
     }
 }
