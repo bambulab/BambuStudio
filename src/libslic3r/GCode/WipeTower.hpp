@@ -511,7 +511,7 @@ private:
     std::vector<double>        m_printable_height;
     bool is_first_layer() const { return size_t(m_layer_info - m_plan.begin()) == m_first_layer_idx; }
     bool                       is_valid_last_layer(int tool) const;
-
+    bool                       m_flat_ironing=false;
 	// Calculates length of extrusion line to extrude given volume
 	float volume_to_length(float volume, float line_width, float layer_height) const {
 		return std::max(0.f, volume / (layer_height * (line_width - layer_height * (1.f - float(M_PI) / 4.f))));

@@ -16,7 +16,6 @@
 
 namespace Slic3r
 {
-bool                    flat_ironing                   = true; // Whether to enable flat ironing for the wipe tower
 float                   flat_iron_area                 = 4.f;
 constexpr float         flat_iron_speed                = 10.f * 60.f;
 static const double wipe_tower_wall_infill_overlap = 0.0;
@@ -1596,10 +1595,12 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_extra_spacing((float)config.prime_tower_infill_gap.value/100.f),
     m_tower_framework(config.prime_tower_enable_framework.value),
     m_max_speed((float)config.prime_tower_max_speed.value*60.f),
-    m_printable_height(config.extruder_printable_height.values),
     m_accel_to_decel_enable(config.accel_to_decel_enable.value),
-    m_accel_to_decel_factor(config.accel_to_decel_factor.value)
+    m_accel_to_decel_factor(config.accel_to_decel_factor.value),
+    m_printable_height(config.extruder_printable_height.values),
+    m_flat_ironing(config.prime_tower_flat_ironing.value)
 {
+    m_flat_ironing = (m_flat_ironing && m_use_gap_wall);
     m_normal_accels.clear();
     for (auto value : config.default_acceleration.values) {
         m_normal_accels.emplace_back((unsigned int) floor(value + 0.5));
@@ -1663,7 +1664,6 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_bed_bottom_left = m_bed_shape == RectangularBed
                   ? Vec2f(bed_points.front().x(), bed_points.front().y())
                   : Vec2f::Zero();
-    flat_ironing      = config.nozzle_diameter.values.size() > 1;//Only used for dual extrusion
     m_last_layer_id.resize(config.nozzle_diameter.size(), -1);
 }
 
@@ -3616,7 +3616,7 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
                 writer.extrude(writer.x() + ironing_length, writer.y(), wipe_speed);
                 writer.retract(retract_length, retract_speed);
                 writer.travel(writer.x() - 1.5 * ironing_length, writer.y(), 600.);
-                if (flat_ironing) {
+                if (m_flat_ironing) {
                     writer.travel(writer.x() + 0.5f * ironing_length, writer.y(), 240.);
                     Vec2f pos{writer.x() + 1.f * ironing_length, writer.y()};
                     writer.spiral_flat_ironing(writer.pos(), flat_iron_area, m_perimeter_width, flat_iron_speed);
@@ -3631,7 +3631,7 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
                 writer.extrude(writer.x() - ironing_length, writer.y(), wipe_speed);
                 writer.retract(retract_length, retract_speed);
                 writer.travel(writer.x() + 1.5 * ironing_length, writer.y(), 600.);
-                if (flat_ironing) {
+                if (m_flat_ironing) {
                     writer.travel(writer.x() - 0.5f * ironing_length, writer.y(), 240.);
                     Vec2f pos{writer.x() - 1.0f * ironing_length, writer.y()};
                     writer.spiral_flat_ironing(writer.pos(), flat_iron_area, m_perimeter_width, flat_iron_speed);
