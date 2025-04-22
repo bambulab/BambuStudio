@@ -25,6 +25,7 @@ static constexpr double WT_SIMPLIFY_TOLERANCE_SCALED   = 0.001 / SCALING_FACTOR;
 static constexpr int    arc_fit_size = 20;
 #define SCALED_WIPE_TOWER_RESOLUTION (WIPE_TOWER_RESOLUTION / SCALING_FACTOR)
 enum class LimitFlow { None, LimitPrintFlow, LimitRammingFlow };
+static const std::map<float, float> nozzle_diameter_to_nozzle_change_width{{0.2f, 0.5f}, {0.4f, 1.0f}, {0.6f, 1.2f}, {0.8f, 1.4f}};
 
 inline float align_round(float value, float base)
 {
@@ -1724,7 +1725,7 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
         m_filpar[idx].ramming_travel_time = float(config.filament_ramming_travel_time.get_at(idx));
 
     m_perimeter_width = nozzle_diameter * Width_To_Nozzle_Ratio; // all extruders are now assumed to have the same diameter
-    m_nozzle_change_perimeter_width = 2*m_perimeter_width;
+    m_nozzle_change_perimeter_width = nozzle_diameter_to_nozzle_change_width.at(nozzle_diameter);
     // BBS: remove useless config
 #if 0
     if (m_semm) {
