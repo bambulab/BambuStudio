@@ -1480,7 +1480,7 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
             action_msg += _L("\nDo you want to use the modified value in the new preset that you selected?");
         }
     } else {
-        action_msg = format_wxstr(_L("You have changed the preset. "));
+        action_msg = _L("You have changed the preset. ");
     }
     if (!m_transfer_btn)
         action_msg += _L("\nDo you want to save the modified values?");
