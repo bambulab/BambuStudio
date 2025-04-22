@@ -277,6 +277,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "prime_tower_lift_height"
             || opt_key == "prime_tower_brim_width"
             || opt_key == "prime_tower_skip_points"
+            || opt_key == "prime_tower_flat_ironing"
             || opt_key == "prime_tower_rib_wall"
             || opt_key == "prime_tower_extra_rib_length"
             || opt_key == "prime_tower_rib_width"
