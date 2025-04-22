@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "02.00.00.83",
+    "version": "02.00.00.84",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -1164,6 +1164,26 @@
         {
             "name": "Fiberon PA6-CF @base",
             "sub_path": "filament/Fiberon PA6-CF @base.json"
+        },
+        {
+            "name": "FusRock ABS-GF @base",
+            "sub_path": "filament/FusRock/FusRock ABS-GF @base.json"
+        },
+        {
+            "name": "FusRock ABS-GF @BBL P1P",
+            "sub_path": "filament/FusRock/FusRock ABS-GF @BBL P1P.json"
+        },
+        {
+            "name": "FusRock ABS-GF @BBL H2D",
+            "sub_path": "filament/FusRock/FusRock ABS-GF @BBL H2D.json"
+        },
+        {
+            "name": "FusRock ABS-GF @BBL A1",
+            "sub_path": "filament/FusRock/FusRock ABS-GF @BBL A1.json"
+        },
+        {
+            "name": "FusRock ABS-GF @BBL X1C",
+            "sub_path": "filament/FusRock/FusRock ABS-GF @BBL X1C.json"
         },
         {
             "name": "Fiberon PA6-GF @base",
