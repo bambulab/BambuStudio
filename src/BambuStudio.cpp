@@ -438,7 +438,6 @@ static PrinterTechnology get_printer_technology(const DynamicConfig &config)
 
 void record_exit_reson(std::string outputdir, int code, int plate_id, std::string error_message, sliced_info_t& sliced_info, std::map<std::string, std::string> key_values = std::map<std::string, std::string>())
 {
-#if defined(__linux__) || defined(__LINUX__)
     std::string result_file;
 
     if (!outputdir.empty())
@@ -460,6 +459,14 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
         j["error_string"] = error_message;
         j["prepare_time"] = sliced_info.prepare_time;
         j["export_time"] = sliced_info.export_time;
+
+        if (code != 0)
+        {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__
+                                    << boost::format(" Slicer_Info_Report: plate_id=%1%, return_code=%2%, error_message=%3%\n") % plate_id % code % error_message;
+
+        }
+
         for (size_t index = 0; index < sliced_info.sliced_plates.size(); index++)
         {
             json plate_json;
@@ -504,6 +511,7 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
             }
 
             //filament info
+            double filament_usage_g = 0.0;
             if (!sliced_plate_info.filaments.empty())
             {
                 for (size_t j = 0; j < sliced_plate_info.filaments.size(); j++)
@@ -515,13 +523,23 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
                     filament_json["filament_id"] = filament.filament_id;
                     filament_json["total_used_g"] = filament.total_used_g;
                     filament_json["main_used_g"] = filament.main_used_g;
-
+                    filament_usage_g += filament.total_used_g;
                     plate_json["filaments"].push_back(std::move(filament_json));
                 }
             }
 
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(" Slicer_Info_Report: plate_id=%1%, return_code=%2%, error_message=%3%, slice_time_s=%4%, pring_time_s=%5%, filament_usage_g=%6%\n")
+                % index
+                % code
+                % error_message
+                % (static_cast<double>(sliced_plate_info.sliced_time) / 1000.0)
+                % sliced_plate_info.total_predication
+                % filament_usage_g;
+
             j["sliced_plates"].push_back(std::move(plate_json));
         }
+
+ #if defined(__linux__) || defined(__LINUX__)
         for (auto& iter: key_values)
             j[iter.first] = iter.second;
 
@@ -529,11 +547,10 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
         c.open(result_file, std::ios::out | std::ios::trunc);
         c << std::setw(4) << j << std::endl;
         c.close();
-
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", saved config to %1%\n")%result_file;
+ #endif
     }
     catch (...) {}
-#endif
 }
 
 static int decode_png_to_thumbnail(std::string png_file, ThumbnailData& thumbnail_data)
