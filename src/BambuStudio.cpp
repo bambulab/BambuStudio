@@ -2138,6 +2138,7 @@ int CLI::run(int argc, char **argv)
             if (!is_bbl_3mf && config.option<ConfigOptionStrings>("different_settings_to_system")) {
                 std::vector<std::string> diff_settings = config.option<ConfigOptionStrings>("different_settings_to_system")->values;
                 different_process_setting = diff_settings[0];
+                config.erase("different_settings_to_system");
             }
             load_process_config = std::move(config);
             BOOST_LOG_TRIVIAL(info) << boost::format("loaded process config %1%, type %2%, name %3%, inherits %4%")%file %config_name %config_from % new_process_system_name;
@@ -2951,7 +2952,7 @@ int CLI::run(int argc, char **argv)
         }
         else {
             //todo: support system process preset
-            different_settings[0] = "";
+            different_settings[0] = different_process_setting;
             if (new_process_config_is_system)
                 inherits_group[0] = "";
             else
@@ -3092,7 +3093,17 @@ int CLI::run(int argc, char **argv)
                 config.erase("filament_settings_id");
 
                 //todo: update different settings of filaments
-                different_settings[filament_index] = "";
+                if (config.option("different_settings_to_system")) {
+                    std::vector<std::string> filament_different_settings = config.option<ConfigOptionStrings>("different_settings_to_system", true)->values;
+                    if (filament_different_settings.empty())
+                        different_settings[filament_index] = "";
+                    else
+                        different_settings[filament_index] = filament_different_settings[0];
+                    config.erase("different_settings_to_system");
+                }
+                else {
+                    different_settings[filament_index] = "";
+                }
                 inherits_group[filament_index] = load_filaments_inherit[index];
             }
             else {
