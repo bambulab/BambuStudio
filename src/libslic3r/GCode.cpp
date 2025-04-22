@@ -5169,11 +5169,13 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
                 smooth_speed_discontinuity_area(new_loop.paths);
             }
             // Then extrude it
+            set_scarf_seam_start_flag(true);
             for (const auto &p : new_loop.get_all_paths()) {
                 gcode += this->_extrude(*p, description, speed_for_path(*p), set_holes_and_compensation_speed);
+                set_scarf_seam_start_flag(false);
             }
             set_last_scarf_seam_flag(true);
-
+            set_scarf_seam_start_flag(false);
             // Fix path for wipe
             if (!new_loop.ends.empty()) {
                 paths.clear();
@@ -6461,7 +6463,6 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
 
     // if needed, write the gcode_label_objects_end then gcode_label_objects_start
     m_writer.add_object_change_labels(gcode);
-
     // use G1 because we rely on paths being straight (G0 may make round paths)
     if (travel.size() >= 2) {
         // Determine if we should use short travel acceleration
@@ -6497,6 +6498,11 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
                 // No extra movements emitted by avoid_crossing_perimeters, simply move to the end point with z change
                 const auto &dest2d = this->point_to_gcode(travel.points.back());
                 Vec3d       dest3d(dest2d(0), dest2d(1), z == DBL_MAX ? m_nominal_z : z);
+                // BBS: lift to normal z, then to start z
+                if(m_scarf_seam_start){
+                    Vec3d       first_dest(dest2d(0), dest2d(1), m_nominal_z);
+                    gcode += m_writer.travel_to_xyz(first_dest, comment, use_short_travel_accel);
+                }
                 gcode += m_writer.travel_to_xyz(dest3d, comment, use_short_travel_accel);
             } else {
                 // Extra movements emitted by avoid_crossing_perimeters, lift the z to normal height at the beginning, then apply the z
@@ -6511,6 +6517,10 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
                         // Apply z_ratio for the very last point
                         Vec2d dest2d = this->point_to_gcode(travel.points[i]);
                         Vec3d dest3d(dest2d(0), dest2d(1), z);
+                        // BBS: lift to normal z, then to start z
+                        if(m_scarf_seam_start){
+                            gcode += m_writer.travel_to_xy(dest2d, comment, use_short_travel_accel);
+                        }
                         gcode += m_writer.travel_to_xyz(dest3d, comment, use_short_travel_accel);
                     } else {
                         // For all points in between, no z change
