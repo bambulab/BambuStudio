@@ -2506,16 +2506,20 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             }));
 
         float wipe_tower_center_pos_x= -1.f, wipe_tower_center_pos_y = -1.f;
+        Vec2f stop_pos; // point of nozzle heating
         bool wipe_tower_center_pos_valid = false;
         if (has_wipe_tower) {
             auto bbx                = print.wipe_tower_data().bbx;
             bbx.translate(print.get_fake_wipe_tower().pos.cast<double>());
-            wipe_tower_center_pos_x = bbx.center().x();
-            wipe_tower_center_pos_y = bbx.center().y();
+            float printer_bed_mid_x = get_extents(m_config.printable_area.values).center().x();
+            if (bbx.center().x() < printer_bed_mid_x)
+                stop_pos = Vec2f(bbx.max.x()+2.f, bbx.center().y());
+            else
+                stop_pos = Vec2f(bbx.min.x()-2.f, bbx.center().y());
             wipe_tower_center_pos_valid = true;
         }
-        m_placeholder_parser.set("wipe_tower_center_pos_x", new ConfigOptionFloat(wipe_tower_center_pos_x));
-        m_placeholder_parser.set("wipe_tower_center_pos_y", new ConfigOptionFloat(wipe_tower_center_pos_y));
+        m_placeholder_parser.set("wipe_tower_center_pos_x", new ConfigOptionFloat(stop_pos.x()));
+        m_placeholder_parser.set("wipe_tower_center_pos_y", new ConfigOptionFloat(stop_pos.y()));
         m_placeholder_parser.set("wipe_tower_center_pos_valid", new ConfigOptionBool(wipe_tower_center_pos_valid));
 
         //add during_print_exhaust_fan_speed
