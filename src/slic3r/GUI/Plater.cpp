@@ -2169,7 +2169,6 @@ void Sidebar::update_all_preset_comboboxes()
     } else {
         p->btn_connect_printer->Show();
         p->m_bpButton_ams_filament->Hide();
-        reset_bed_type_combox_choices();
         p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::eSendGcode);
         auto cfg = preset_bundle.printers.get_edited_preset().config;
         wxString url;
@@ -15128,7 +15127,7 @@ std::vector<std::array<float, 4>> Plater::get_extruders_colors()
     return colors_out;
 }
 
-void Plater::on_bed_type_change(BedType bed_type, bool is_gcode_file) {
+    void Plater::on_bed_type_change(BedType bed_type, bool is_gcode_file) {
     sidebar().set_is_gcode_file(is_gcode_file);
     sidebar().on_bed_type_change(bed_type);
 }
