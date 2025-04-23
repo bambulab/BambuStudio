@@ -65,6 +65,7 @@
 #ifdef _WIN32
 #include <dbt.h>
 #include <shlobj.h>
+#include <shellapi.h>
 #endif // _WIN32
 #include <slic3r/GUI/CreatePresetsDialog.hpp>
 
@@ -704,6 +705,54 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 }
 
 #ifdef __WIN32__
+// Orca: Fix maximized window overlaps taskbar when taskbar auto hide is enabled (#8085)
+// Adopted from https://gist.github.com/MortenChristiansen/6463580
+static void AdjustWorkingAreaForAutoHide(const HWND hWnd, MINMAXINFO *mmi)
+{
+    const auto taskbarHwnd = FindWindowA("Shell_TrayWnd", nullptr);
+    if (!taskbarHwnd) { return; }
+    const auto monitorContainingApplication = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONULL);
+    const auto monitorWithTaskbarOnIt       = MonitorFromWindow(taskbarHwnd, MONITOR_DEFAULTTONULL);
+    if (monitorContainingApplication != monitorWithTaskbarOnIt) { return; }
+    APPBARDATA abd;
+    abd.cbSize = sizeof(APPBARDATA);
+    abd.hWnd   = taskbarHwnd;
+
+    // Find if task bar has auto-hide enabled
+    const auto uState = (UINT) SHAppBarMessage(ABM_GETSTATE, &abd);
+    if ((uState & ABS_AUTOHIDE) != ABS_AUTOHIDE) { return; }
+
+    RECT borderThickness;
+    SetRectEmpty(&borderThickness);
+    AdjustWindowRectEx(&borderThickness, GetWindowLongPtr(hWnd, GWL_STYLE) & ~WS_CAPTION, FALSE, 0);
+
+    // Determine taskbar position
+    SHAppBarMessage(ABM_GETTASKBARPOS, &abd);
+    const auto &rc = abd.rc;
+    if (rc.top == rc.left && rc.bottom > rc.right) {
+        // Left
+        const auto offset = borderThickness.left + 2;
+        mmi->ptMaxPosition.x += offset;
+        mmi->ptMaxTrackSize.x -= offset;
+        mmi->ptMaxSize.x -= offset;
+    } else if (rc.top == rc.left && rc.bottom < rc.right) {
+        // Top
+        const auto offset = borderThickness.top + 2;
+        mmi->ptMaxPosition.y += offset;
+        mmi->ptMaxTrackSize.y -= offset;
+        mmi->ptMaxSize.y -= offset;
+    } else if (rc.top > rc.left) {
+        // Bottom
+        const auto offset = borderThickness.bottom + 2;
+        mmi->ptMaxSize.y -= offset;
+        mmi->ptMaxTrackSize.y -= offset;
+    } else {
+        // Right
+        const auto offset = borderThickness.right + 2;
+        mmi->ptMaxSize.x -= offset;
+        mmi->ptMaxTrackSize.x -= offset;
+    }
+}
 
 WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
@@ -748,6 +797,15 @@ WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam
             }
         }
         break;
+    case WM_GETMINMAXINFO: {
+        if (lParam) {
+            HWND hWnd = GetHandle();
+            auto mmi = (MINMAXINFO *) lParam;
+            HandleGetMinMaxInfo(mmi);
+            AdjustWorkingAreaForAutoHide(hWnd, mmi);
+            return 0;
+        }
+      }
     }
     return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
 }
