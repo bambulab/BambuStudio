@@ -1143,6 +1143,8 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         std::vector<int> scarf_seam_type = new_full_config.option<ConfigOptionEnumsGeneric>("filament_scarf_seam_type")->values;
         auto check_object_scarf_seam_type = [](const std::vector<int> scarf_seam_type, const ModelObject *mo) {
             //get filament scarf seam type
+            if (!mo->printable)
+                return false;
             //check volumes
             for (ModelVolume *mv : mo->volumes) {
                std::vector<int> volume_extruders = mv->get_extruders();
