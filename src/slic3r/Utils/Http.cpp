@@ -253,15 +253,20 @@ int Http::priv::xfercb_legacy(void *userp, double dltotal, double dlnow, double 
 
 size_t Http::priv::form_file_read_cb(char *buffer, size_t size, size_t nitems, void *userp)
 {
-	auto stream = reinterpret_cast<fs::ifstream*>(userp);
-
 	try {
-		stream->read(buffer, size * nitems);
+		auto putFile = reinterpret_cast<std::unique_ptr<fs::ifstream>*>(userp);
+		if (!putFile) { throw std::runtime_error(std::string("The unique_ptr is nullptr! please check"));  return CURL_READFUNC_ABORT; }
+
+		fs::ifstream* fstream = putFile->get();
+		if (!fstream) { throw std::runtime_error(std::string("The fstream is nullptr! please check")); return CURL_READFUNC_ABORT; }
+
+		fstream->read(buffer, size * nitems);
+		return fstream->gcount();
 	} catch (const std::exception &) {
 		return CURL_READFUNC_ABORT;
 	}
 
-	return stream->gcount();
+	return CURL_READFUNC_ABORT;
 }
 
 size_t Http::priv::headers_cb(char *buffer, size_t size, size_t nitems, void *userp)
@@ -360,7 +365,7 @@ void Http::priv::set_put_body(const fs::path &path)
 	if (!ec) {
 		putFile = std::make_unique<fs::ifstream>(path, std::ios_base::binary |std::ios_base::in);
 		::curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
-		::curl_easy_setopt(curl, CURLOPT_READDATA, (void *) (putFile.get()));
+		::curl_easy_setopt(curl, CURLOPT_READDATA, (void *) &putFile);
 		::curl_easy_setopt(curl, CURLOPT_INFILESIZE, filesize);
 	}
 }
@@ -427,9 +432,6 @@ void Http::priv::http_perform()
 	}
 
 	CURLcode res = ::curl_easy_perform(curl);
-
-    putFile.reset();
-
 	if (res != CURLE_OK) {
 		if (res == CURLE_ABORTED_BY_CALLBACK) {
 			if (cancel) {
@@ -483,7 +485,11 @@ Http::Http(Http &&other) : p(std::move(other.p)) {}
 
 Http::~Http()
 {
-    assert(! p || ! p->putFile);
+	if (p && p->putFile)
+	{
+		p->putFile.reset();
+	}
+
 	if (p && p->io_thread.joinable()) {
 		p->io_thread.detach();
 	}
