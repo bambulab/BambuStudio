@@ -226,24 +226,24 @@ jobs:
 
   # Ubuntu
       - name: Install dependencies from BuildLinux.sh
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
+        if: inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04'
         shell: bash
         run: sudo ./BuildLinux.sh -ur
 
       - name: Fix permissions
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
+        if: inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04'
         shell: bash
         run: sudo chown $USER -R ./
 
       - name: Build slicer
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
+        if: inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04'
         shell: bash
         run: |
           ./BuildLinux.sh -isfr
           mv -n ./build/BambuStudio_ubu64.AppImage ./build/Bambu_Studio_${{inputs.os}}_${{ env.ver }}.AppImage
 
       # - name: Build orca_custom_preset_tests
-      #   if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04'
+      #   if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-22.04'
       #   working-directory: ${{ github.workspace }}/build/src
       #   shell: bash
       #   run: |
@@ -252,14 +252,14 @@ jobs:
       #     zip -r orca_custom_preset_tests.zip user/
 
       - name: Upload artifacts Ubuntu
-        if: ${{ ! env.ACT && (inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04') }}
+        if: ${{ ! env.ACT && (inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04') }}
         uses: actions/upload-artifact@v4
         with:
           name: BambuStudio_${{inputs.os}}_${{ env.ver }}
           path: './build/Bambu_Studio_${{inputs.os}}_${{ env.ver }}.AppImage'
 
       # - name: Deploy Ubuntu release
-      #   if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04' }}
+      #   if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-22.04' }}
       #   uses: WebFreak001/deploy-nightly@v3.1.0
       #   with:
       #     upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
@@ -270,7 +270,7 @@ jobs:
       #     max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
 
       # - name: Deploy orca_custom_preset_tests
-      #   if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04' }}
+      #   if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-22.04' }}
       #   uses: WebFreak001/deploy-nightly@v3.1.0
       #   with:
       #     upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
