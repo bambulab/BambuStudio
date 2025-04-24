@@ -2104,18 +2104,43 @@ void GLCanvas3D::update_volumes_colors_by_extruder()
         m_volumes.update_colors_by_extruder(m_config);
 }
 
-float GLCanvas3D::get_collapse_toolbar_width()
+int GLCanvas3D::get_main_toolbar_offset() const
 {
-    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+    const float cnv_width              = get_canvas_size().get_width();
+    const float collapse_toolbar_width = get_collapse_toolbar_width() * 2;
+    const float gizmo_width            = m_gizmos.get_scaled_total_width();
+    const float assemble_width         = m_assemble_view_toolbar.get_width();
+    const float separator_width        = m_separator_toolbar.get_width();
+    const float toolbar_total_width    = m_main_toolbar.get_width() + separator_width + gizmo_width + assemble_width + collapse_toolbar_width;
 
-    return collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0;
+    if (cnv_width < toolbar_total_width) {
+        return is_collapse_toolbar_on_left() ? collapse_toolbar_width : 0;
+    } else {
+        const float offset = (cnv_width - toolbar_total_width) / 2;
+        return is_collapse_toolbar_on_left() ? offset + collapse_toolbar_width : offset;
+    }
 }
 
-float GLCanvas3D::get_collapse_toolbar_height()
+bool GLCanvas3D::is_collapse_toolbar_on_left() const
 {
-    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+    auto state = wxGetApp().plater()->get_sidebar_docking_state();
+    return state == Sidebar::Left;
+}
 
-    return collapse_toolbar.is_enabled() ? collapse_toolbar.get_height() : 0;
+float GLCanvas3D::get_collapse_toolbar_width() const
+{
+    GLToolbar &collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+    const auto state            = wxGetApp().plater()->get_sidebar_docking_state();
+
+    return state != Sidebar::None ? collapse_toolbar.get_width() : 0;
+}
+
+float GLCanvas3D::get_collapse_toolbar_height() const
+{
+    GLToolbar &collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+    const auto state            = wxGetApp().plater()->get_sidebar_docking_state();
+
+    return state != Sidebar::None ? collapse_toolbar.get_height() : 0;
 }
 
 bool GLCanvas3D::make_current_for_postinit() {
@@ -3654,6 +3679,16 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case WXK_CONTROL_E:
 #endif /* __APPLE__ */
         { m_labels.show(!m_labels.is_shown()); m_dirty = true; break; }
+#ifdef __APPLE__
+        case 'W':
+        case 'w':
+#else  /* __APPLE__ */
+        case WXK_CONTROL_W:
+#endif /* __APPLE__ */
+        {
+            wxGetApp().plater()->reset_window_layout();
+            break;
+        }
         case '0': {
             select_view("plate");
             zoom_to_bed();
@@ -5563,11 +5598,6 @@ void GLCanvas3D::update_ui_from_settings()
         _refresh_if_shown_on_screen();
     }
 #endif // ENABLE_RETINA_GL
-
-#ifdef SUPPORT_COLLAPSE_BUTTON
-    if (wxGetApp().is_editor())
-        wxGetApp().plater()->enable_collapse_toolbar(wxGetApp().app_config->get("show_collapse_button") == "1");
-#endif
 }
 
 // BBS: add partplate logic
@@ -7592,8 +7622,10 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     m_main_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size * scale);
     m_assemble_view_toolbar.set_icons_size(size);
     m_separator_toolbar.set_icons_size(size);
-    collapse_toolbar.set_icons_size(size);
+    collapse_toolbar.set_icons_size(wxGetApp().plater()->get_collapse_toolbar_size());
 #endif // ENABLE_RETINA_GL
+    // Update collapse toolbar
+    collapse_toolbar.set_enabled(wxGetApp().plater()->get_sidebar_docking_state() != Sidebar::None);
 
     //BBS: GUI refactor: GLToolbar
 #if BBS_TOOLBAR_ON_TOP
@@ -7670,7 +7702,7 @@ void GLCanvas3D::_render_overlays()
     m_main_toolbar.set_icons_size(gizmo_size);
     m_assemble_view_toolbar.set_icons_size(gizmo_size);
     m_separator_toolbar.set_icons_size(gizmo_size);
-    wxGetApp().plater()->get_collapse_toolbar().set_icons_size(size);
+    wxGetApp().plater()->get_collapse_toolbar().set_icons_size(wxGetApp().plater()->get_collapse_toolbar_size());
     m_gizmos.set_overlay_icon_size(gizmo_size);
 #endif // ENABLE_RETINA_GL
 
@@ -7918,8 +7950,7 @@ void GLCanvas3D::_render_main_toolbar()
 #endif
     m_main_toolbar.set_position(top, left);
     m_main_toolbar.render(*this);
-    if (m_toolbar_highlighter.m_render_arrow)
-    {
+    if (m_toolbar_highlighter.m_render_arrow){
         m_main_toolbar.render_arrow(*this, m_toolbar_highlighter.m_toolbar_item);
     }
 }
@@ -8029,7 +8060,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     float margin_size = 4.0f * f_scale;
     float button_margin = frame_padding;
 
-    const float y_offset = 0; // is_collapse_toolbar_on_left() ? (get_collapse_toolbar_height() + 5) : 0;
+    const float y_offset = is_collapse_toolbar_on_left() ? (get_collapse_toolbar_height() + 5) : 0;
     // Make sure the window does not overlap the 3d navigator
     auto window_height_max = canvas_h - y_offset;
     if (wxGetApp().show_3d_navigator()) {
@@ -8320,7 +8351,7 @@ void GLCanvas3D::_render_return_toolbar()
     auto canvas_h = float(cnv_size.get_height());
     float window_width = real_size.x + button_icon_size.x + imgui.scaled(2.0f);
     float window_height = button_icon_size.y + imgui.scaled(2.0f);
-    float window_pos_x = 30.0f;
+    float window_pos_x  = 30.0f + (is_collapse_toolbar_on_left() ? (get_collapse_toolbar_width() + 5.f) : 0);
     float window_pos_y = 14.0f;
     {//solve ui overlap issue
         if (m_canvas_type == ECanvasType::CanvasView3D) {
