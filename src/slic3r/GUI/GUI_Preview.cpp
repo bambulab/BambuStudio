@@ -60,6 +60,11 @@ bool BaseView::Show(bool show)
     return rt;
 }
 
+const std::shared_ptr<Camera>& BaseView::get_override_camera() const
+{
+    return m_p_override_camera;
+}
+
 View3D::View3D(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
     : BaseView()
 {
@@ -811,12 +816,15 @@ AssembleView::AssembleView(wxWindow* parent, Bed3D& bed, Model* model, DynamicPr
     : BaseView()
 {
     init(parent, bed, model, config, process);
+    m_p_override_camera = std::make_shared<Camera>();
+    m_p_override_camera->enable_update_config_on_type_change(false);
 }
 
 AssembleView::~AssembleView()
 {
     delete m_canvas;
     delete m_canvas_widget;
+    m_p_override_camera = nullptr;
 }
 
 bool AssembleView::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)

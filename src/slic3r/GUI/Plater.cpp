@@ -3719,6 +3719,9 @@ public:
 // Plater / private
 struct Plater::priv
 {
+private:
+    Camera camera;
+public:
     // PIMPL back pointer ("Q-Pointer")
     Plater *q;
     Sidebar *  sidebar;
@@ -3753,7 +3756,6 @@ struct Plater::priv
     std::vector<wxPanel*> panels;
 
     Bed3D bed;
-    Camera camera;
     Camera picking_camera;
     //BBS: partplate related structure
     PartPlateList partplate_list;
@@ -3784,7 +3786,6 @@ struct Plater::priv
     GLToolbar collapse_toolbar;
     Preview *preview;
     AssembleView* assemble_view { nullptr };
-    bool first_enter_assemble{ true };
     std::unique_ptr<NotificationManager> notification_manager;
 
     ProjectDirtyStateManager dirty_state;
@@ -3963,6 +3964,7 @@ struct Plater::priv
     void reset_canvas_volumes();
     bool check_ams_status_impl(bool is_slice_all);  // Check whether the printer and ams status are consistent, for grouping algorithm
     bool get_machine_sync_status(); // check whether the printer is linked and the printer type is same as selected profile
+    Camera& get_current_camera();
 
     // BBS
     bool init_collapse_toolbar();
@@ -6742,6 +6744,13 @@ void Plater::priv::reset(bool apply_presets_change)
 
     view3D->get_canvas3d()->reset_sequential_print_clearance();
 
+    if (assemble_view) {
+        const auto& p_camera = assemble_view->get_override_camera();
+        if (p_camera) {
+            p_camera->requires_zoom_to_volumes = true;
+        }
+    }
+
     m_ui_jobs.cancel_all();
 
     //BBS: clear the partplate list's object before object cleared
@@ -8160,21 +8169,6 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
 
     update_sidebar(true);
 
-    if (wxGetApp().plater()) {
-        Camera& cam = wxGetApp().plater()->get_camera();
-        if (old_panel == preview || old_panel == view3D) {
-            view3D->get_canvas3d()->get_camera().load_camera_view(cam);
-        } else if (old_panel == assemble_view) {
-            assemble_view->get_canvas3d()->get_camera().load_camera_view(cam);
-        }
-        if (current_panel == view3D || current_panel == preview) {
-            cam.load_camera_view(view3D->get_canvas3d()->get_camera());
-        }
-        else if (current_panel == assemble_view) {
-            cam.load_camera_view(assemble_view->get_canvas3d()->get_camera());
-        }
-    }
-
     if (current_panel == view3D) {
         if (old_panel == preview)
             preview->get_canvas3d()->unbind_event_handlers();
@@ -8196,6 +8190,9 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
 
         view3D->get_canvas3d()->bind_event_handlers();
 
+        if (notification_manager != nullptr)
+            notification_manager->set_canvas_type(view3D->get_canvas3d()->get_canvas_type());
+
         if (view3D->is_reload_delayed()) {
             // Delayed loading of the 3D scene.
             if (printer_technology == ptSLA) {
@@ -8212,8 +8209,6 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
         view3D->get_canvas3d()->reset_old_size();
         // BBS
         //view_toolbar.select_item("3D");
-        if (notification_manager != nullptr)
-            notification_manager->set_in_preview(false);
     }
     else if (current_panel == preview) {
         q->invalid_all_plate_thumbnails();
@@ -8260,9 +8255,11 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
         // BBS
         //view_toolbar.select_item("Preview");
         if (notification_manager != nullptr)
-            notification_manager->set_in_preview(true);
+            notification_manager->set_canvas_type(preview->get_canvas3d()->get_canvas_type());
     }
     else if (current_panel == assemble_view) {
+        if (notification_manager != nullptr)
+            notification_manager->set_canvas_type(assemble_view->get_canvas3d()->get_canvas_type());
         if (old_panel == view3D) {
             view3D->get_canvas3d()->unbind_event_handlers();
         }
@@ -8284,12 +8281,6 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
                     assemble_selection.add(real_idx, false);
                 }
             }
-        }
-
-        // BBS set default view and zoom
-        if (first_enter_assemble) {
-            wxGetApp().plater()->get_camera().requires_zoom_to_volumes = true;
-            first_enter_assemble = false;
         }
 
         assemble_view->set_as_dirty();
@@ -10058,6 +10049,20 @@ bool Plater::priv::get_machine_sync_status()
     return preset_bundle && preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == obj->printer_type;
 }
 
+Camera& Plater::priv::get_current_camera()
+{
+    if (current_panel == assemble_view) {
+        if (assemble_view) {
+            const auto& p_camera = assemble_view->get_override_camera();
+            if (p_camera) {
+                p_camera->set_type(camera.get_type());
+                return *p_camera;
+            }
+        }
+    }
+    return camera;
+}
+
 bool Plater::priv::init_collapse_toolbar()
 {
     if (wxGetApp().is_gcode_viewer())
@@ -11134,7 +11139,7 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString &project_
     // BBS set default view and zoom
     p->select_view_3D("3D");
     p->select_view("topfront");
-    p->camera.requires_zoom_to_bed = true;
+    p->get_current_camera().requires_zoom_to_bed = true;
     enable_sidebar(!m_only_gcode);
 
     up_to_date(true, false);
@@ -11318,7 +11323,7 @@ int Plater::load_project(wxString const &filename2,
     //p->select_view_3D("3D");
     if (!m_exported_file) {
         p->select_view("topfront");
-        p->camera.requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
+        p->get_current_camera().requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
         wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
     }
     else {
@@ -16142,12 +16147,12 @@ bool Plater::init_collapse_toolbar()
 
 const Camera& Plater::get_camera() const
 {
-    return p->camera;
+    return p->get_current_camera();
 }
 
 Camera& Plater::get_camera()
 {
-    return p->camera;
+    return p->get_current_camera();
 }
 
 const Camera& Plater::get_picking_camera() const
@@ -16983,6 +16988,54 @@ void Plater::show_object_info()
     info_manifold = "<Error>" + info_manifold + "</Error>";
     info_text += into_u8(info_manifold);
     notify_manager->bbl_show_objectsinfo_notification(info_text, warning, !(p->current_panel == p->view3D), into_u8(hyper_text), callback);
+}
+
+void Plater::show_assembly_info()
+{
+    auto p_notification_manager = get_notification_manager();
+    if (!p_notification_manager) {
+        return;
+    }
+    if (!p->assemble_view) {
+        return;
+    }
+    const auto& p_canvas = p->assemble_view->get_canvas3d();
+    if (!p_canvas) {
+        return;
+    }
+
+    const Selection& t_selection = p_canvas->get_selection();
+    if (t_selection.is_empty()) {
+        p_notification_manager->close_assembly_info_notification();
+        return;
+    }
+    std::string info_text;
+    info_text += _u8L("Assembly Info");
+    info_text += "\n";
+
+    double size0 = t_selection.get_bounding_box().size()(0);
+    double size1 = t_selection.get_bounding_box().size()(1);
+    double size2 = t_selection.get_bounding_box().size()(2);
+
+    bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
+    double koef = imperial_units ? GizmoObjectManipulation::mm_to_in : 1.0f;
+    if (imperial_units) {
+        size0 *= koef;
+        size1 *= koef;
+        size2 *= koef;
+    }
+
+    if (imperial_units)
+        info_text += (boost::format(_utf8(L("Volume: %1% in³\n"))) % (size0 * size1 * size2)).str();
+    else
+        info_text += (boost::format(_utf8(L("Volume: %1% mm³\n"))) % (size0 * size1 * size2)).str();
+
+    if (imperial_units)
+        info_text += (boost::format(_utf8(L("Size: %1% x %2% x %3% in\n"))) % size0 % size1 % size2).str();
+    else
+        info_text += (boost::format(_utf8(L("Size: %1% x %2% x %3% mm\n"))) % size0 % size1 % size2).str();
+
+    p_notification_manager->show_assembly_info_notification(info_text);
 }
 
 bool Plater::show_publish_dialog(bool show)

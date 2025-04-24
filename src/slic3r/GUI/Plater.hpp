@@ -671,6 +671,7 @@ public:
     void update_slicing_context_to_current_partplate();
     //BBS: show object info
     void show_object_info();
+    void show_assembly_info();
     //BBS
     bool show_publish_dialog(bool show = true);
     //BBS: post process string object exception strings by warning types

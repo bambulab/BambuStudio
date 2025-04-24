@@ -164,9 +164,6 @@ public:
             look_at(get_position(), m_target, Vec3d::UnitZ());
     }
 
-    //BBS store and load camera view
-    void load_camera_view(Camera& cam);
-
     void look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up);
 
     double max_zoom() const { return 250.0; }
