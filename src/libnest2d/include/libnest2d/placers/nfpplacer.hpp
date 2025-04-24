@@ -693,7 +693,7 @@ private:
     // item won't overlap with virtual objects if it's inside or touches NFP
     // @return 1 if current item overlaps with virtual objects, 0 otherwise
     bool overlapWithVirtObject(const Item& item, const Box& binbb){
-        if (items_.empty()) return 0;
+        if (items_.empty()) return false;
         Shapes nfps   = calcnfp(item, binbb, Lvl<MaxNfpLevel::value>());
         auto v = item.referenceVertex();
         for (const RawShape &nfp : nfps) {
@@ -1262,9 +1262,9 @@ private:
 
         Vertex ci, cb;
         Box    bbin = sl::boundingBox(bin_);
-        Vertex shrink(10, 10);
-        bbin.maxCorner() -= shrink;
-        bbin.minCorner() += shrink;
+        //Vertex shrink(10, 10);
+        //bbin.maxCorner() -= shrink;
+        //bbin.minCorner() += shrink;
 
         switch(config_.starting_point) {
         case Config::Alignment::CENTER: {
