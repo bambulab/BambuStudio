@@ -1205,7 +1205,12 @@ void PerimeterGenerator::process_classic()
     m_ext_mm3_per_mm           		= this->ext_perimeter_flow.mm3_per_mm();
     coord_t ext_perimeter_width     = this->ext_perimeter_flow.scaled_width();
     coord_t ext_perimeter_spacing   = this->ext_perimeter_flow.scaled_spacing();
-    coord_t ext_perimeter_spacing2  = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.spacing() + this->perimeter_flow.spacing()));
+    coord_t ext_perimeter_spacing2;
+    // Orca: ignore precise_outer_wall if wall_sequence is not InnerOuter
+    if (config->precise_outer_wall)
+        ext_perimeter_spacing2 = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.width() + this->perimeter_flow.width()));
+    else
+        ext_perimeter_spacing2 = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.spacing() + this->perimeter_flow.spacing()));
 
     // overhang perimeters
     m_mm3_per_mm_overhang      		= this->overhang_flow.mm3_per_mm();
@@ -1843,12 +1848,15 @@ void PerimeterGenerator::process_arachne()
     // we need to process each island separately because we might have different
     // extra perimeters for each one
 
+    bool apply_precise_outer_wall = config->precise_outer_wall;
     for (const Surface& surface : this->slices->surfaces) {
         // detect how many perimeters must be generated for this island
         int loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
 
         bool apply_circle_compensation = true;
-        ExPolygons last = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution), -float(ext_perimeter_width / 2. - ext_perimeter_spacing / 2.));
+        // Orca: properly adjust offset for the outer wall if precise_outer_wall is enabled.
+        ExPolygons last  = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution),
+                           apply_precise_outer_wall ? -float(ext_perimeter_width - ext_perimeter_spacing) : - float(ext_perimeter_width / 2. - ext_perimeter_spacing / 2.));
         int new_size = std::accumulate(last.begin(), last.end(), 0, [](int prev, const ExPolygon& expoly) { return prev + expoly.num_contours(); });
         if (last.size() != 1 || new_size != surface.expolygon.num_contours())
             apply_circle_compensation = false;
@@ -1896,9 +1904,13 @@ void PerimeterGenerator::process_arachne()
             std::vector<Arachne::VariableWidthLines> first_perimeters;
             ExPolygons infill_contour_by_one_wall;
 
+            coord_t wall_0_inset = 0;
+            if (apply_precise_outer_wall)
+                wall_0_inset = -coord_t(ext_perimeter_width / 2 - ext_perimeter_spacing / 2);
+
             // do detail check whether to enable one wall
             if (seperate_wall_generation) {
-                Arachne::WallToolPaths one_wall_paths(last_p, ext_perimeter_spacing, perimeter_spacing, 1, 0, layer_height, input_params);
+                Arachne::WallToolPaths one_wall_paths(last_p, ext_perimeter_spacing, perimeter_spacing, 1, wall_0_inset, layer_height, input_params);
                 if (apply_circle_compensation)
                     one_wall_paths.EnableHoleCompensation(true, circle_poly_indices);
 
@@ -1932,7 +1944,7 @@ void PerimeterGenerator::process_arachne()
                 if (loop_number > 0) {
                     last = diff_ex(infill_contour_by_one_wall, top_expolys_by_one_wall);
                     last_p = to_polygons(last); // disable contour compensation in remaining walls
-                    Arachne::WallToolPaths paths_new(last_p, perimeter_spacing, perimeter_spacing, loop_number, 0, layer_height, input_params);
+                    Arachne::WallToolPaths paths_new(last_p, perimeter_spacing, perimeter_spacing, loop_number, wall_0_inset, layer_height, input_params);
                     auto new_perimeters = paths_new.getToolPaths();
                     for (auto& perimeters : new_perimeters) {
                         if (!perimeters.empty()) {
@@ -1949,7 +1961,7 @@ void PerimeterGenerator::process_arachne()
             else {
                 if (is_one_wall) {
                     // plan wall width as one wall
-                    Arachne::WallToolPaths one_wall_paths(last_p, ext_perimeter_spacing, perimeter_spacing, 1, 0, layer_height, input_params);
+                    Arachne::WallToolPaths one_wall_paths(last_p, ext_perimeter_spacing, perimeter_spacing, 1, wall_0_inset, layer_height, input_params);
                     if (apply_circle_compensation)
                         one_wall_paths.EnableHoleCompensation(true, circle_poly_indices);
                     total_perimeters = one_wall_paths.getToolPaths();
@@ -1957,7 +1969,7 @@ void PerimeterGenerator::process_arachne()
                 }
                 else {
                     // plan wall width as noraml
-                    Arachne::WallToolPaths normal_paths(last_p, ext_perimeter_spacing, perimeter_spacing, loop_number + 1, 0, layer_height, input_params);
+                    Arachne::WallToolPaths normal_paths(last_p, ext_perimeter_spacing, perimeter_spacing, loop_number + 1, wall_0_inset, layer_height, input_params);
                     if (apply_circle_compensation)
                         normal_paths.EnableHoleCompensation(true, circle_poly_indices);
                     total_perimeters = normal_paths.getToolPaths();
