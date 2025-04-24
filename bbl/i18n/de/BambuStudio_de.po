@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 11:55+0800\n"
+"POT-Creation-Date: 2025-04-24 10:10+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2790,6 +2790,14 @@ msgid "Nozzle"
 msgstr "Düse"
 
 msgid "Ext"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
 msgstr ""
 
 msgid "Note: Only the AMS slots loaded with the same material type can be selected."
@@ -7138,6 +7146,9 @@ msgstr "Der aktuelle Düsendurchmesser (%.1fmm) stimmt nicht mit der Slicing-Dat
 msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
 msgstr "Das Drucken von Hochtemperaturmaterial (%s) mit einer %s Düse kann zu Schäden an der Düse führen. Bitte überprüfen Sie den Düsentyp."
 
+msgid "Unable to automatically match to suitable filament. Please click to manually match."
+msgstr ""
+
 msgid "Cool"
 msgstr ""
 
@@ -8425,6 +8436,9 @@ msgstr "Problem gelöst und fortsetzen"
 
 msgid "Stop Buzzer"
 msgstr "Buzzer stoppen"
+
+msgid "Retry (problem solved)"
+msgstr ""
 
 msgid "Confirm and Update Nozzle"
 msgstr "Bestätigen und Düse aktualisieren"

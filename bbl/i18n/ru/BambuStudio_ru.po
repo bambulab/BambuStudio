@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 11:55+0800\n"
-"PO-Revision-Date: 2025-04-22 16:37+0700\n"
+"POT-Creation-Date: 2025-04-24 10:10+0800\n"
+"PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
 "Language: ru\n"
@@ -2885,6 +2885,14 @@ msgstr "Сопло"
 
 msgid "Ext"
 msgstr "Внеш."
+
+#, c-format, boost-format
+msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgstr ""
 
 # Примечание: выбор слотов ограничен одним типом материала.
 msgid "Note: Only the AMS slots loaded with the same material type can be selected."
@@ -7386,6 +7394,9 @@ msgstr "Текущий диаметр сопла (%.1f мм) не совпада
 msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
 msgstr "Печать высокотемпературным материалом (%s) соплом %s может привести к его повреждению, пожалуйста, проверьте тип сопла."
 
+msgid "Unable to automatically match to suitable filament. Please click to manually match."
+msgstr ""
+
 msgid "Cool"
 msgstr "Не нагреваемая"
 
@@ -8733,6 +8744,9 @@ msgstr "Проблема решена, Продолжить"
 # ??? сирену, сигнализацию
 msgid "Stop Buzzer"
 msgstr "Выключить зуммер"
+
+msgid "Retry (problem solved)"
+msgstr ""
 
 msgid "Confirm and Update Nozzle"
 msgstr "Подтвердить и обновить сопло"
