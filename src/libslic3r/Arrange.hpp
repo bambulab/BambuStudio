@@ -4,7 +4,7 @@
 #include "ExPolygon.hpp"
 #include "PrintConfig.hpp"
 
-#define BED_SHRINK_SEQ_PRINT 5
+#define BED_SHRINK_SEQ_PRINT 0
 
 namespace Slic3r {
 
