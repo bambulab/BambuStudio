@@ -1171,9 +1171,6 @@ void SendToPrinterDialog::update_show_status()
             if (agent->is_user_login()) {
                 show_status(PrintDialogStatus::PrintStatusInvalidPrinter);
             }
-            else {
-                show_status(PrintDialogStatus::PrintStatusNoUserLogin);
-            }
         }
         return;
     }
@@ -1437,12 +1434,6 @@ void SendToPrinterDialog::show_status(PrintDialogStatus status, std::vector<wxSt
 		Enable_Send_Button(false);
 		Enable_Refresh_Button(false);
 	}
-	else if (status == PrintDialogStatus::PrintStatusNoUserLogin) {
-		wxString msg_text = _L("No login account, only printers in LAN mode are displayed");
-		update_print_status_msg(msg_text, false, true);
-		Enable_Send_Button(false);
-		Enable_Refresh_Button(true);
-	}
 	else if (status == PrintDialogStatus::PrintStatusInvalidPrinter) {
 		update_print_status_msg(wxEmptyString, true, true);
 		Enable_Send_Button(false);
@@ -1600,8 +1591,6 @@ void SendToPrinterDialog::set_default()
     if (agent) {
         if (agent->is_user_login()) {
             show_status(PrintDialogStatus::PrintStatusInit);
-        } else {
-            show_status(PrintDialogStatus::PrintStatusNoUserLogin);
         }
     }
 
