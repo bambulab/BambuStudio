@@ -1777,7 +1777,7 @@ void CalibrationPresetPage::update_show_status()
         }
     }
 
-    if (wxGetApp().app_config && wxGetApp().app_config->get("internal_debug").empty()) {
+    if (wxGetApp().app_config) {
         if (obj_->upgrade_force_upgrade) {
             show_status(CaliPresetPageStatus::CaliPresetStatusNeedForceUpgrading);
             return;
