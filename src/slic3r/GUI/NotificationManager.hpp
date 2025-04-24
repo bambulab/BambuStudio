@@ -154,6 +154,8 @@ enum class NotificationType
     BBLSliceMultiExtruderHeightOutside,
 	BBLBedFilamentIncompatible,
     BBLMixUsePLAAndPETG,
+    AssemblyWarning,
+    AssemblyInfo,
     NotificationTypeCount
 
 };
@@ -241,6 +243,12 @@ public:
     void push_slicing_customize_error_notification(NotificationType type, NotificationLevel level, const std::string &text, const std::string &hypertext = "", std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>());
     void close_slicing_customize_error_notification(NotificationType type, NotificationLevel level);
 
+    void push_assembly_warning_notification(const std::string& text);
+    void close_assembly_warning_notification(const std::string& text);
+
+    void show_assembly_info_notification(const std::string& text);
+    void close_assembly_info_notification();
+
 	// Object warning with ObjectID, closes when object is deleted. ID used is of object not print like in slicing warning.
 	void push_simplify_suggestion_notification(const std::string& text, ObjectID object_id, const std::string& hypertext = "",
 		std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>());
@@ -299,9 +307,9 @@ public:
     void remove_notification_of_type(const NotificationType type);
     void clear_all();
 	// Hides warnings in G-code preview. Should be called from plater only when 3d view/ preview is changed
-    void set_in_preview(bool preview);
+    void set_canvas_type(GLCanvas3D::ECanvasType t_canvas_type);
 	// Calls set_in_preview to apply appearing or disappearing of some notificatons;
-	void apply_in_preview() { set_in_preview(m_in_preview); }
+	void apply_canvas_type() { set_canvas_type(m_canvas_type); }
 	// Move to left to avoid colision with variable layer height gizmo.
 	void set_move_from_overlay(bool move) { m_move_from_overlay = move; }
 	// perform update_state on each notification and ask for more frames if needed, return true for render needed
@@ -778,6 +786,15 @@ private:
 		std::vector<std::pair<InfoItemType, size_t>> m_types_and_counts;
 	};
 
+    class AssemblyWarningNotification : public PopNotification
+    {
+    public:
+        AssemblyWarningNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler) : PopNotification(n, id_provider, evt_handler) {}
+        void close() override;
+        void		 real_close() { m_state = EState::ClosePending; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0); }
+        void         show() { m_state = EState::Unknown; }
+    };
+
 	// in SlicingProgressNotification.hpp
 	class SlicingProgressNotification;
 
@@ -846,9 +863,7 @@ private:
 	std::vector<DelayedNotification> m_waiting_notifications;
 	//timestamps used for slicing finished - notification could be gone so it needs to be stored here
 	std::unordered_set<int>      m_used_timestamps;
-	// True if G-code preview is active. False if the Plater is active.
-	bool                         m_in_preview { false };
-	int                          m_in_view{ 0 };
+	GLCanvas3D::ECanvasType m_canvas_type { GLCanvas3D::ECanvasType::CanvasView3D };
 	// True if the layer editing is enabled in Plater, so that the notifications are shifted left of it.
 	bool                         m_move_from_overlay { false };
 	// Timestamp of last rendering

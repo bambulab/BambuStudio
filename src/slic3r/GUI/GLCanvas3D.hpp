@@ -405,7 +405,8 @@ class GLCanvas3D
         MultiExtruderPrintableError,      // after slice
         MultiExtruderHeightOutside,       // after slice
         FilamentUnPrintableOnFirstLayer,
-        MixUsePLAAndPETG
+        MixUsePLAAndPETG,
+        AsemblyInvalid // for asembly view only
     };
 
     class RenderStats
@@ -639,8 +640,6 @@ private:
     //BBS if explosion_ratio is changed, need to update volume bounding box
     mutable float m_explosion_ratio = 1.0;
     mutable Vec3d m_rotation_center{ 0.0, 0.0, 0.0};
-    //BBS store camera view
-    Camera camera;
 
     // Following variable is obsolete and it should be safe to remove it.
     // I just don't want to do it now before a release (Lukas Matena 24.3.2019)
@@ -839,9 +838,6 @@ public:
 
     //BBS: add part plate related logic
     void plates_count_changed();
-
-    //BBS get camera
-    Camera& get_camera();
 
     void set_clipping_plane(unsigned int id, const ClippingPlane& plane)
     {
