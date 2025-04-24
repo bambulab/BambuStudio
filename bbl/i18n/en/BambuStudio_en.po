@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 11:55+0800\n"
+"POT-Creation-Date: 2025-04-24 10:10+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2775,6 +2775,14 @@ msgid "Nozzle"
 msgstr "Nozzle"
 
 msgid "Ext"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
 msgstr ""
 
 msgid "Note: Only the AMS slots loaded with the same material type can be selected."
@@ -7078,6 +7086,9 @@ msgstr ""
 msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
 msgstr ""
 
+msgid "Unable to automatically match to suitable filament. Please click to manually match."
+msgstr ""
+
 msgid "Cool"
 msgstr ""
 
@@ -8352,6 +8363,9 @@ msgid "Problem Solved and Resume"
 msgstr ""
 
 msgid "Stop Buzzer"
+msgstr ""
+
+msgid "Retry (problem solved)"
 msgstr ""
 
 msgid "Confirm and Update Nozzle"
