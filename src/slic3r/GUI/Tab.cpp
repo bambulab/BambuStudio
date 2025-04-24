@@ -2090,7 +2090,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("circle_compensation_manual_offset");
 
         optgroup->append_single_option_line("elefant_foot_compensation", "parameter/elephant-foot");
-
+        optgroup->append_single_option_line("precise_outer_wall");
         optgroup->append_single_option_line("precise_z_height");
 
         optgroup = page->new_optgroup(L("Ironing"), L"param_ironing");

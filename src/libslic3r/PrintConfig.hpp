@@ -965,6 +965,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, top_solid_infill_flow_ratio))
     ((ConfigOptionFloat, initial_layer_flow_ratio))
     ((ConfigOptionFloat, filter_out_gap_fill))
+    ((ConfigOptionBool, precise_outer_wall))
     //calib
     ((ConfigOptionFloat, print_flow_ratio))
     // Orca: seam slopes
