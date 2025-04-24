@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 11:55+0800\n"
+"POT-Creation-Date: 2025-04-24 10:10+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2788,6 +2788,14 @@ msgstr "노즐"
 
 msgid "Ext"
 msgstr "내선"
+
+#, c-format, boost-format
+msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgstr ""
 
 msgid "Note: Only the AMS slots loaded with the same material type can be selected."
 msgstr "참고: 동일한 재료 타입 로드된 AMS 슬롯만 선택할 수 있습니다."
@@ -7134,6 +7142,9 @@ msgstr "현재 노즐 직경(%.1fmm)이 슬라이싱 파일(%.1fmm)과 일치하
 msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
 msgstr "고온 소재 (%s) 를 %s 노즐로 출력하면 노즐이 손상될 수 있으니 노즐 종류를 확인하십시오."
 
+msgid "Unable to automatically match to suitable filament. Please click to manually match."
+msgstr ""
+
 msgid "Cool"
 msgstr "쿨한"
 
@@ -8418,6 +8429,9 @@ msgstr "문제 해결됨 재개하기"
 
 msgid "Stop Buzzer"
 msgstr "버저 중지"
+
+msgid "Retry (problem solved)"
+msgstr ""
 
 msgid "Confirm and Update Nozzle"
 msgstr "노즐 확인 및 업데이트"

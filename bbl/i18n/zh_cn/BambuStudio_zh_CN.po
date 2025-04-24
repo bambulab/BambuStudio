@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 11:55+0800\n"
+"POT-Creation-Date: 2025-04-24 10:10+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2792,6 +2792,14 @@ msgstr "喷嘴"
 msgid "Ext"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr "提示: 此耗材类型(%s)与切片文件中的耗材类型(%s)不匹配。如果您想使用这个槽位，请安装%s耗材替换掉%s耗材，然后在''设备'页面设置槽位信息。"
+
+#, c-format, boost-format
+msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgstr "提示: 此槽位是空的或者未定义的。如果您想使用这个槽位，请安装%s，然后在''设备'页面设置槽位信息。"
+
 msgid "Note: Only the AMS slots loaded with the same material type can be selected."
 msgstr "仅允许选择相同材质类型的耗材"
 
@@ -5128,7 +5136,7 @@ msgid "Still load"
 msgstr "继续进料"
 
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
-msgstr "如果腔室温度超过40℃, 系统将自动切换到加热模式。请确认是否切换。"
+msgstr "如果腔室温度超过40℃, 系统将自动切换到腔温保持模式。请确认是否切换。"
 
 msgid "Please select an AMS slot before calibration"
 msgstr "请先选择一个AMS槽位后进行校准"
@@ -7108,6 +7116,9 @@ msgstr "当前喷嘴直径（%.1fmm）和切片文件（%.1fmm）不一致，无
 msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
 msgstr "高温材料（%s）若通过%s喷嘴打印，可能会导致喷嘴损坏。请检查喷嘴类型"
 
+msgid "Unable to automatically match to suitable filament. Please click to manually match."
+msgstr "无法自动匹配到合适的材料，请点击进行手动匹配"
+
 msgid "Cool"
 msgstr ""
 
@@ -8388,6 +8399,9 @@ msgstr "问题已解决，继续"
 
 msgid "Stop Buzzer"
 msgstr "关闭蜂鸣器"
+
+msgid "Retry (problem solved)"
+msgstr "重试 (问题已解决）"
 
 msgid "Confirm and Update Nozzle"
 msgstr "确认并更新喷嘴"

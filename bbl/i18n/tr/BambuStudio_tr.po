@@ -2817,6 +2817,14 @@ msgstr "Nozul"
 msgid "Ext"
 msgstr "Harici"
 
+#, c-format, boost-format
+msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgstr ""
+
 msgid "Note: Only the AMS slots loaded with the same material type can be selected."
 msgstr "Not: Yalnızca aynı malzeme türüne sahip AMS yuvaları seçilebilir."
 
@@ -7166,6 +7174,9 @@ msgstr "Mevcut nozul çapı (%.1fmm) dilimleme dosyası (%.1fmm) ile eşleşmiyo
 msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
 msgstr "Yüksek sıcaklıktaki malzemenin (%s) %s nozul ile basılması nozul hasarına neden olabilir, lütfen nozul tipini kontrol edin"
 
+msgid "Unable to automatically match to suitable filament. Please click to manually match."
+msgstr ""
+
 msgid "Cool"
 msgstr "Güzel"
 
@@ -8453,6 +8464,9 @@ msgstr "Sorun Çözüldü ve Devam"
 
 msgid "Stop Buzzer"
 msgstr "Uyarı Sesini Durdur"
+
+msgid "Retry (problem solved)"
+msgstr ""
 
 msgid "Confirm and Update Nozzle"
 msgstr "Nozulu Onaylayın ve Güncelleyin"
