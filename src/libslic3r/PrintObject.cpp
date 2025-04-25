@@ -423,6 +423,7 @@ void PrintObject::make_perimeters()
 #endif
 
     BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - start";
+#if 1
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, m_layers.size()),
         [this](const tbb::blocked_range<size_t>& range) {
@@ -432,6 +433,12 @@ void PrintObject::make_perimeters()
             }
         }
     );
+#else
+    for (size_t layer_idx = 0; layer_idx < m_layers.size(); ++ layer_idx) {
+        m_print->throw_if_canceled();
+        m_layers[layer_idx]->make_perimeters();
+    }
+#endif
     m_print->throw_if_canceled();
     BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - end";
 
