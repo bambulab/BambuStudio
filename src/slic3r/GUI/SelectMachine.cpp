@@ -2811,8 +2811,7 @@ void SelectMachineDialog::on_print_job_cancel(wxCommandEvent &evt)
     BOOST_LOG_TRIVIAL(info) << "print_job: canceled";
     if (m_print_job && m_print_job->get_print_stage() == PrintingStageFinished)
     {
-        MessageDialog dlg(this, _L("As the print job has been successfully sent, the cancellation will not bring the print job to a halt. If you need to terminate this job, please stop it in 'Device' page."), _L("Info"), wxYES);
-        dlg.ShowModal();
+        wxGetApp().show_dialog(_L("As the print job has been successfully sent, the cancellation will not bring the print job to a halt. If you need to terminate this job, please stop it in 'Device' page."));
     }
 
     EnableEditing(true);
