@@ -244,6 +244,8 @@ set(lisbslic3r_sources
     ParameterUtils.hpp
     PerimeterGenerator.cpp
     PerimeterGenerator.hpp
+    OverhangDetector.hpp
+    OverhangDetector.cpp
     PlaceholderParser.cpp
     PlaceholderParser.hpp
     Platform.cpp
