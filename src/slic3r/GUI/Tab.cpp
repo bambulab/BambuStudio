@@ -3508,6 +3508,11 @@ void TabFilament::build()
         optgroup->append_single_option_line(option);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key &opt_key, const boost::any &value) { validate_custom_note_cb(this, optgroup, opt_key, value); };
 
+
+    page = add_options_page(L("Multi Filament"), "advanced");
+        optgroup = page->new_optgroup(L("Multi Filament"));
+        optgroup->append_single_option_line("filament_flush_temp", "", 0);
+        optgroup->append_single_option_line("filament_flush_volumetric_speed", "", 0);
         //BBS
 #if 0
     //page = add_options_page(L("Dependencies"), "advanced");
@@ -4274,7 +4279,6 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             // do not display this params now
             optgroup->append_single_option_line("long_retractions_when_cut", "", extruder_idx);
             optgroup->append_single_option_line("retraction_distances_when_cut", "", extruder_idx);
-
 #if 0
             //optgroup = page->new_optgroup(L("Preview"), -1, true);
 
