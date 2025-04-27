@@ -357,7 +357,7 @@ protected:
     wxTimer*                            m_refresh_timer{ nullptr };
     std::shared_ptr<PrintJob>           m_print_job;
     wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
-    wxHyperlinkCtrl*                    m_hyperlink{nullptr};
+    Label*                              m_connect_printer_help_hyperlink{nullptr};
     ScalableBitmap *                    rename_editable{nullptr};
     ScalableBitmap *                    rename_editable_light{nullptr};
     wxStaticBitmap *                    timeimg{nullptr};
