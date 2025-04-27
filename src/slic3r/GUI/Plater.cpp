@@ -12246,6 +12246,7 @@ void Plater::calib_max_vol_speed(const Calib_Params &params)
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionInts{0});
 
     print_config->set_key_value("enable_overhang_speed", new ConfigOptionBoolsNullable{false});
+    print_config->set_key_value("enable_height_slowdown", new ConfigOptionBoolsNullable{ false });
     print_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
     print_config->set_key_value("wall_loops", new ConfigOptionInt(1));
     print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
@@ -12358,6 +12359,7 @@ void Plater::calib_VFA(const Calib_Params &params)
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionInts{0});
     filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloatsNullable{200});
     print_config->set_key_value("enable_overhang_speed", new ConfigOptionBoolsNullable{false});
+    print_config->set_key_value("enable_height_slowdown", new ConfigOptionBoolsNullable{ false });
     print_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
     print_config->set_key_value("wall_loops", new ConfigOptionInt(1));
     print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
