@@ -1065,6 +1065,7 @@ public:
     }
 
     bool is_fdm_support_painted() const { return !this->supported_facets.empty(); }
+    bool is_fuzzy_skin_facets_painted() const { return !this->fuzzy_skin_facets.empty(); }
     bool is_seam_painted() const { return !this->seam_facets.empty(); }
     bool is_mm_painted() const { return !this->mmu_segmentation_facets.empty(); }
 
@@ -1114,10 +1115,12 @@ private:
 		assert(this->id().valid());
         assert(this->config.id().valid());
         assert(this->supported_facets.id().valid());
+        assert(this->fuzzy_skin_facets.id().valid());
         assert(this->seam_facets.id().valid());
         assert(this->mmu_segmentation_facets.id().valid());
         assert(this->id() != this->config.id());
         assert(this->id() != this->supported_facets.id());
+        assert(this->id() != this->fuzzy_skin_facets.id());
         assert(this->id() != this->seam_facets.id());
         assert(this->id() != this->mmu_segmentation_facets.id());
         if (mesh.facets_count() > 1)
@@ -1128,10 +1131,12 @@ private:
 		assert(this->id().valid());
         assert(this->config.id().valid());
         assert(this->supported_facets.id().valid());
+        assert(this->fuzzy_skin_facets.id().valid());
         assert(this->seam_facets.id().valid());
         assert(this->mmu_segmentation_facets.id().valid());
         assert(this->id() != this->config.id());
         assert(this->id() != this->supported_facets.id());
+        assert(this->id() != this->fuzzy_skin_facets.id());
         assert(this->id() != this->seam_facets.id());
         assert(this->id() != this->mmu_segmentation_facets.id());
     }
@@ -1140,10 +1145,12 @@ private:
 		assert(this->id().valid());
         assert(this->config.id().valid());
         assert(this->supported_facets.id().valid());
+        assert(this->fuzzy_skin_facets.id().valid());
         assert(this->seam_facets.id().valid());
         assert(this->mmu_segmentation_facets.id().valid());
         assert(this->id() != this->config.id());
         assert(this->id() != this->supported_facets.id());
+        assert(this->id() != this->fuzzy_skin_facets.id());
         assert(this->id() != this->seam_facets.id());
         assert(this->id() != this->mmu_segmentation_facets.id());
 	}
@@ -1162,15 +1169,18 @@ private:
 		assert(this->id().valid());
         assert(this->config.id().valid());
         assert(this->supported_facets.id().valid());
+        assert(this->fuzzy_skin_facets.id().valid());
         assert(this->seam_facets.id().valid());
         assert(this->mmu_segmentation_facets.id().valid());
         assert(this->id() != this->config.id());
         assert(this->id() != this->supported_facets.id());
+        assert(this->id() != this->fuzzy_skin_facets.id());
         assert(this->id() != this->seam_facets.id());
         assert(this->id() != this->mmu_segmentation_facets.id());
 		assert(this->id() == other.id());
         assert(this->config.id() == other.config.id());
         assert(this->supported_facets.id() == other.supported_facets.id());
+        assert(this->fuzzy_skin_facets.id() == other.fuzzy_skin_facets.id());
         assert(this->seam_facets.id() == other.seam_facets.id());
         assert(this->mmu_segmentation_facets.id() == other.mmu_segmentation_facets.id());
         this->set_material_id(other.material_id());
@@ -1183,10 +1193,12 @@ private:
 		assert(this->id().valid());
         assert(this->config.id().valid());
         assert(this->supported_facets.id().valid());
+        assert(this->fuzzy_skin_facets.id().valid());
         assert(this->seam_facets.id().valid());
         assert(this->mmu_segmentation_facets.id().valid());
         assert(this->id() != this->config.id());
         assert(this->id() != this->supported_facets.id());
+        assert(this->id() != this->fuzzy_skin_facets.id());
         assert(this->id() != this->seam_facets.id());
         assert(this->id() != this->mmu_segmentation_facets.id());
 		assert(this->id() != other.id());
@@ -1198,10 +1210,12 @@ private:
 		assert(this->config.id().valid());
         assert(this->config.id() != other.config.id());
         assert(this->supported_facets.id() != other.supported_facets.id());
+        assert(this->fuzzy_skin_facets.id() != other.fuzzy_skin_facets.id());
         assert(this->seam_facets.id() != other.seam_facets.id());
         assert(this->mmu_segmentation_facets.id() != other.mmu_segmentation_facets.id());
         assert(this->id() != this->config.id());
         assert(this->supported_facets.empty());
+        assert(this->fuzzy_skin_facets.empty());
         assert(this->seam_facets.empty());
         assert(this->mmu_segmentation_facets.empty());
     }
@@ -1216,6 +1230,7 @@ private:
 		assert(this->id().invalid());
         assert(this->config.id().invalid());
         assert(this->supported_facets.id().invalid());
+        assert(this->fuzzy_skin_facets.id().invalid());
         assert(this->seam_facets.id().invalid());
         assert(this->mmu_segmentation_facets.id().invalid());
 	}
@@ -1255,6 +1270,7 @@ private:
 		bool has_convex_hull = m_convex_hull.get() != nullptr;
         ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info, cut_info);
         cereal::save_by_value(ar, supported_facets);
+        cereal::save_by_value(ar, fuzzy_skin_facets);
         cereal::save_by_value(ar, seam_facets);
         cereal::save_by_value(ar, mmu_segmentation_facets);
         cereal::save_by_value(ar, config);

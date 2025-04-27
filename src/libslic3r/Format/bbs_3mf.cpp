@@ -4923,7 +4923,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             for (size_t i=0; i<triangles_count; ++i) {
                 size_t index = volume_data.first_triangle_id + i;
                 assert(index < geometry.custom_supports.size());
-                assert(index < geometry.fuzzy_skin_facets.size());
+                assert(index < geometry.custom_fuzzy_skin.size());
                 assert(index < geometry.custom_seam.size());
                 assert(index < geometry.mmu_segmentation.size());
                 if (! geometry.custom_supports[index].empty())
