@@ -967,6 +967,13 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsNullable, overhang_2_4_speed))
     ((ConfigOptionFloatsNullable, overhang_3_4_speed))
     ((ConfigOptionFloatsNullable, overhang_4_4_speed))
+    ((ConfigOptionBoolsNullable, enable_height_slowdown))
+    ((ConfigOptionFloatsNullable, slowdown_start_height))
+    ((ConfigOptionFloatsNullable, slowdown_start_speed))
+    ((ConfigOptionFloatsNullable, slowdown_start_acc))
+    ((ConfigOptionFloatsNullable, slowdown_end_height))
+    ((ConfigOptionFloatsNullable, slowdown_end_speed))
+    ((ConfigOptionFloatsNullable, slowdown_end_acc))
     ((ConfigOptionFloatOrPercent, sparse_infill_anchor))
     ((ConfigOptionFloatOrPercent, sparse_infill_anchor_max))
     //OrcaSlicer

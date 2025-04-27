@@ -5531,6 +5531,52 @@ void GCode::smooth_speed_discontinuity_area(ExtrusionPaths &paths) {
     inter_paths = set_speed_transition(prepare_paths);
     paths = std::move(inter_paths);
 }
+bool GCode::slowDownByHeight(double& maxSpeed, double& maxAcc, const ExtrusionPath& path)
+{
+    double height1, height2, speed1, speed2, acc1, acc2, desiredMaxSpeed = 1000., desiredMaxAcc = 100000;
+    double currentHeight = this->m_layer->print_z;
+    bool do_slowdown_by_height = m_config.enable_height_slowdown.get_at(cur_extruder_index());
+
+    if (path.role() > erNone && path.role() <= erGapFill) {}
+    else do_slowdown_by_height = false;
+
+    if (do_slowdown_by_height) {
+        height1 = m_config.slowdown_start_height.get_at(cur_extruder_index());
+        height2 = m_config.slowdown_end_height.get_at(cur_extruder_index());
+        speed1 = m_config.slowdown_start_speed.get_at(cur_extruder_index());
+        speed2 = m_config.slowdown_end_speed.get_at(cur_extruder_index());
+        acc1 = m_config.slowdown_start_acc.get_at(cur_extruder_index());
+        acc2 = m_config.slowdown_end_acc.get_at(cur_extruder_index());
+
+        if (height1 >= height2 || currentHeight > height2 || currentHeight < height1) do_slowdown_by_height = false;
+        else {
+            // speed should be decreased linearly
+            desiredMaxSpeed = (currentHeight - height1) / (height2 - height1) * (speed2 - speed1) + speed1;
+            // acceleration should be decreased linearly
+            desiredMaxAcc = acc1 - (acc1 - acc2) / (height2 - height1) * (currentHeight - height1);
+
+            // modify travel speed and acceleration
+            for (auto& av : m_writer.config.travel_speed.values) {
+                if (!std::isnan(av)) {
+                    av = std::min(av, desiredMaxSpeed);
+                }
+            }
+            for (auto& bv : m_writer.config.travel_speed_z.values) {
+                if (!std::isnan(bv)) {
+                    bv = std::min(bv, desiredMaxSpeed);
+                }
+            }
+            for (auto& ta : m_writer.get_travel_acceleration()) {
+                ta = std::min(ta, (unsigned int)desiredMaxAcc);
+            }
+            if (!is_BBL_Printer())
+                m_config.travel_jerk.value = std::min(m_config.travel_jerk.value, desiredMaxSpeed);
+        }
+    }
+    maxSpeed = desiredMaxSpeed;
+    maxAcc = desiredMaxAcc;
+    return do_slowdown_by_height;
+}
 
 std::string GCode::_extrude(const ExtrusionPath &path, std::string description, double speed, bool use_seperate_speed, bool is_first_slope)
 {
@@ -5545,6 +5591,14 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         return lerp(m_nominal_z - height, m_nominal_z, z_ratio);
     };
 
+    auto temp_travel_speed = m_writer.config.travel_speed;
+    auto temp_travel_speed_z = m_writer.config.travel_speed_z;
+    auto temp_travel_jerk = m_config.travel_jerk;
+    auto temp_travel_acc = m_writer.get_travel_acceleration();
+    double desiredMaxSpeed, desiredMaxAcc;
+
+    bool do_slowdown_by_height = slowDownByHeight(desiredMaxSpeed, desiredMaxAcc, path);
+
     // go to first point of extrusion path
     //BBS: path.first_point is 2D point. But in lazy raise case, lift z is done in travel_to function.
     //Add m_need_change_layer_lift_z when change_layer in case of no lift if m_last_pos is equal to path.first_point() by chance
@@ -5556,6 +5610,15 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             sloped == nullptr ? DBL_MAX : get_sloped_z(sloped->slope_begin.z_ratio)
         );
         m_need_change_layer_lift_z = false;
+    }
+
+    // restore travel speed and acceleration
+    if (do_slowdown_by_height) {
+        m_writer.config.travel_speed = temp_travel_speed;
+        m_writer.config.travel_speed_z = temp_travel_speed_z;
+        m_writer.set_travel_acceleration(temp_travel_acc);
+        if (!is_BBL_Printer())
+            m_config.travel_jerk = temp_travel_jerk;
     }
 
     // if needed, write the gcode_label_objects_end then gcode_label_objects_start
@@ -5591,6 +5654,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         } else {
             acceleration = m_config.default_acceleration.get_at(cur_extruder_index());
         }
+        if (do_slowdown_by_height)
+            acceleration = std::min(acceleration, desiredMaxAcc);
         m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
     }
 
@@ -5607,6 +5672,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         else if (m_config.top_surface_jerk.value > 0 && is_top_surface(path.role()))
             jerk = m_config.top_surface_jerk.value;
 
+        if (do_slowdown_by_height)
+            jerk = std::min(jerk, desiredMaxSpeed);
         gcode += m_writer.set_jerk_xy(jerk);
     }
     // calculate extrusion length per distance unit
@@ -5712,6 +5779,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
         speed = std::min(speed, extrude_speed);
     }
+
+    if (do_slowdown_by_height)
+        speed = std::min(speed, desiredMaxSpeed);
     double F = speed * 60;  // convert mm/sec to mm/min
 
     // extrude arc or line

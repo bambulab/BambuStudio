@@ -396,6 +396,10 @@ private:
     //smooth speed function
     void            smooth_speed_discontinuity_area(ExtrusionPaths &paths);
     std::vector<ExtrusionPaths>  merge_same_speed_paths(const ExtrusionPaths &paths);
+
+    // slow down by height
+    bool slowDownByHeight(double& maxSpeed, double& maxAcc, const ExtrusionPath& path);
+
     // Extruding multiple objects with soluble / non-soluble / combined supports
     // on a multi-material printer, trying to minimize tool switches.
     // Following structures sort extrusions by the extruder ID, by an order of objects and object islands.
