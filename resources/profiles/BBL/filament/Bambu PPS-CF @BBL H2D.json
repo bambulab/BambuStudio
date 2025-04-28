@@ -5,7 +5,6 @@
     "from": "system",
     "setting_id": "GFST02_01",
     "instantiation": "true",
-    "description": "When printing this filament, there's a risk of nozzle clogging, oozing, warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials.",
     "chamber_temperatures": [
         "65"
     ],
@@ -26,6 +25,14 @@
         "0.96",
         "0.96"
     ],
+    "filament_flush_temp": [
+        "0",
+        "0"
+    ],
+    "filament_flush_volumetric_speed": [
+        "0",
+        "0"
+    ],
     "filament_long_retractions_when_cut": [
         "nil",
         "nil"
@@ -37,6 +44,9 @@
     "filament_ramming_volumetric_speed": [
         "-1",
         "-1"
+    ],
+    "filament_printable": [
+        "1"
     ],
     "filament_retract_before_wipe": [
         "nil",
@@ -94,7 +104,8 @@
         "0",
         "0"
     ],
-    "filament_printable": [
+    "long_retractions_when_ec": [
+        "1",
         "1"
     ],
     "nozzle_temperature": [
@@ -104,6 +115,10 @@
     "nozzle_temperature_initial_layer": [
         "320",
         "320"
+    ],
+    "retraction_distances_when_ec": [
+        "10",
+        "10"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle",
