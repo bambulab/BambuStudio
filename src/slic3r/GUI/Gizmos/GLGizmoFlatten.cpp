@@ -39,7 +39,7 @@ void GLGizmoFlatten::on_set_state()
 
 CommonGizmosDataID GLGizmoFlatten::on_get_requirements() const
 {
-    return CommonGizmosDataID(int(CommonGizmosDataID::SelectionInfo) | int(CommonGizmosDataID::InstancesHider) | int(CommonGizmosDataID::Raycaster) |
+    return CommonGizmosDataID(int(CommonGizmosDataID::SelectionInfo) | int(CommonGizmosDataID::Raycaster)|
                               int(CommonGizmosDataID::ObjectClipper));
 }
 
