@@ -4467,7 +4467,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         });
 
         // Hide sidebar initially, will re-show it after initialization when we got proper window size
-        sidebar.Hide();
+        //sidebar.Hide();
         m_aui_mgr.Update();
     }
 
@@ -5001,7 +5001,8 @@ void Plater::priv::select_next_view_3D()
 
 void Plater::priv::enable_sidebar(bool enabled)
 {
-    if (q->m_only_gcode) enabled = false;
+    if (q->m_only_gcode)
+        enabled = false;
 
     sidebar_layout.is_enabled = enabled;
     update_sidebar();
@@ -8093,11 +8094,12 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
 
             preview->set_as_dirty();
         };
-
-    //BBS: add the collapse logic
+    // Add sidebar and toolbar collapse logic
+    if (panel == view3D || panel == preview) {
+        this->enable_sidebar(!q->only_gcode_mode());
+    }
     if (panel == preview) {
         if (q->only_gcode_mode()) {
-            this->sidebar->collapse(true);
             preview->get_canvas3d()->enable_select_plate_toolbar(false);
         } else if (q->using_exported_file() && (q->m_valid_plates_count <= 1)) {
             preview->get_canvas3d()->enable_select_plate_toolbar(false);
@@ -8156,7 +8158,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             p->Hide();
     }
 
-    m_aui_mgr.Update();
+    update_sidebar(true);
 
     if (wxGetApp().plater()) {
         Camera& cam = wxGetApp().plater()->get_camera();

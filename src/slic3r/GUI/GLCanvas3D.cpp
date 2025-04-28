@@ -2116,9 +2116,13 @@ int GLCanvas3D::get_main_toolbar_offset() const
     if (cnv_width < toolbar_total_width) {
         return is_collapse_toolbar_on_left() ? collapse_toolbar_width : 0;
     } else {
-        const float offset = (cnv_width - toolbar_total_width) / 2;
+        const float offset = (cnv_width - toolbar_total_width) / 2.f;
         return is_collapse_toolbar_on_left() ? offset + collapse_toolbar_width : offset;
     }
+}
+
+float GLCanvas3D::get_main_toolbar_left(int cnv_width,float inv_zoom) const {
+    return (-0.5f * cnv_width + get_main_toolbar_offset()) * inv_zoom;
 }
 
 bool GLCanvas3D::is_collapse_toolbar_on_left() const
@@ -7932,13 +7936,8 @@ void GLCanvas3D::_render_main_toolbar()
     float inv_zoom = (float)get_active_camera().get_inv_zoom();
 
 #if BBS_TOOLBAR_ON_TOP
-    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
-    float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
-    float gizmo_width = m_gizmos.get_scaled_total_width();
-    float assemble_width = m_assemble_view_toolbar.get_width();
-    float separator_width = m_separator_toolbar.get_width();
     float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
-    float left = std::max(-0.5f * cnv_size.get_width(), -0.5f * (m_main_toolbar.get_width() + separator_width + gizmo_width + assemble_width - collapse_toolbar_width)) * inv_zoom;
+    float left = get_main_toolbar_left(cnv_size.get_width(),inv_zoom);
 #else
     float gizmo_height = m_gizmos.get_scaled_total_height();
     float space_height = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
@@ -8314,15 +8313,11 @@ void GLCanvas3D::_render_assemble_view_toolbar() const
     float inv_zoom = (float)get_active_camera().get_inv_zoom();
 
 #if BBS_TOOLBAR_ON_TOP
-    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
-    float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
+    const float separator_width   = m_separator_toolbar.get_width();
     float gizmo_width = m_gizmos.get_scaled_total_width();
-    float assemble_width = m_assemble_view_toolbar.get_width();
-    float separator_width = m_separator_toolbar.get_width();
     float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
-    float main_toolbar_left = std::max(-0.5f * cnv_size.get_width(), -0.5f * (m_main_toolbar.get_width() + gizmo_width + assemble_width - separator_width - collapse_toolbar_width)) * inv_zoom;
-    float left = main_toolbar_left + (m_main_toolbar.get_width() + gizmo_width) * inv_zoom;
-    //float left = 0.5f * (m_main_toolbar.get_width() + gizmo_width - m_assemble_view_toolbar.get_width() + collapse_toolbar_width) * inv_zoom;
+    float       main_toolbar_left = get_main_toolbar_left(cnv_size.get_width(), inv_zoom);
+    float       left              = main_toolbar_left + (m_main_toolbar.get_width() + gizmo_width + separator_width) * inv_zoom;
 #else
     float gizmo_height = m_gizmos.get_scaled_total_height();
     //float space_height = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
@@ -8494,8 +8489,8 @@ void GLCanvas3D::_render_separator_toolbar_right() const
     float assemble_width = m_assemble_view_toolbar.get_width();
     float separator_width = m_separator_toolbar.get_width();
     float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
-    float main_toolbar_left = std::max(-0.5f * cnv_size.get_width(), -0.5f * (m_main_toolbar.get_width() + gizmo_width + assemble_width - collapse_toolbar_width)) * inv_zoom;
-    float left = main_toolbar_left + (m_main_toolbar.get_width() + gizmo_width) * inv_zoom;
+    float main_toolbar_left = get_main_toolbar_left(cnv_size.get_width(), inv_zoom);
+    float      left                   = main_toolbar_left + (m_main_toolbar.get_width() + gizmo_width + 0.5 * separator_width) * inv_zoom;
 
     m_separator_toolbar.set_position(top, left);
     m_separator_toolbar.render(*this,GLToolbarItem::SeparatorLine);
@@ -8508,15 +8503,10 @@ void GLCanvas3D::_render_separator_toolbar_left() const
 
     Size cnv_size = get_canvas_size();
     float inv_zoom = (float)get_active_camera().get_inv_zoom();
-
-    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
-    float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
-    float gizmo_width = m_gizmos.get_scaled_total_width();
-    float assemble_width = m_assemble_view_toolbar.get_width();
-    float separator_width = m_separator_toolbar.get_width();
+    float separator_width   = m_separator_toolbar.get_width();
     float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
-    float main_toolbar_left = std::max(-0.5f * cnv_size.get_width(), -0.5f * (m_main_toolbar.get_width() + gizmo_width + assemble_width + separator_width - collapse_toolbar_width)) * inv_zoom;
-    float left = main_toolbar_left + (m_main_toolbar.get_width()) * inv_zoom;
+    float main_toolbar_left = get_main_toolbar_left(cnv_size.get_width(), inv_zoom);
+    float left              = main_toolbar_left + (m_main_toolbar.get_width()) * inv_zoom;
 
     m_separator_toolbar.set_position(top, left);
     m_separator_toolbar.render(*this,GLToolbarItem::SeparatorLine);
@@ -8524,6 +8514,11 @@ void GLCanvas3D::_render_separator_toolbar_left() const
 
 void GLCanvas3D::_render_collapse_toolbar() const
 {
+    auto &     plater              = *wxGetApp().plater();
+    const auto sidebar_docking_dir = plater.get_sidebar_docking_state();
+    if (sidebar_docking_dir == Sidebar::None) {
+        return;
+    }
     GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
 
     Size cnv_size = get_canvas_size();
