@@ -5633,7 +5633,7 @@ msgid "(Including its escape characters)"
 msgstr "(包括转义字符）"
 
 msgid "Sliced Info"
-msgstr "切片你信息"
+msgstr "切片信息"
 
 msgid "Used Filament (m)"
 msgstr "耗材丝消耗长度 (m)"
