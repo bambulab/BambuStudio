@@ -911,6 +911,7 @@ public:
     void select_plate();
     //BBS: GUI refactor: GLToolbar&&gizmo
     int   get_main_toolbar_offset() const;
+    float get_main_toolbar_left(int cnv_width,float inv_zoom) const;
     int   get_main_toolbar_height() const { return m_main_toolbar.get_height(); }
     int   get_main_toolbar_width() const { return m_main_toolbar.get_width(); }
     float get_assemble_view_toolbar_width() const { return m_assemble_view_toolbar.get_width(); }

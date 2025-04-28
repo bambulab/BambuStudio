@@ -1634,12 +1634,13 @@ void GLGizmosManager::do_render_overlay() const
         float main_toolbar_width = (float)m_parent.get_main_toolbar_width();
         float assemble_view_width = (float)m_parent.get_assemble_view_toolbar_width();
         float collapse_width = (float)m_parent.get_collapse_toolbar_width();
+        float separator_width     = m_parent.get_separator_toolbar_width();
         //float space_width = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
         //float zoomed_top_x = 0.5f *(cnv_w + main_toolbar_width - 2 * space_width - width) * inv_zoom;
 
-        float main_toolbar_left = std::max(-0.5f * cnv_w, -0.5f * (main_toolbar_width + get_scaled_total_width() + assemble_view_width - collapse_width)) * inv_zoom;
+        float main_toolbar_left = m_parent.get_main_toolbar_left(cnv_w, inv_zoom);
         //float zoomed_top_x = 0.5f *(main_toolbar_width + collapse_width - width - assemble_view_width) * inv_zoom;
-        zoomed_top_x = main_toolbar_left + (main_toolbar_width)*inv_zoom;
+        zoomed_top_x = main_toolbar_left + (main_toolbar_width + separator_width /2.f) * inv_zoom;
     }
     float zoomed_top_y = 0.5f * cnv_h * inv_zoom;
 #else
