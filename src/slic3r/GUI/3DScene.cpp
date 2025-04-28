@@ -460,10 +460,23 @@ Vec2f calc_pt_in_screen(const Vec3d &pt,  const Matrix4d &view_proj_mat, int win
 LOD_LEVEL calc_volume_box_in_screen_bigger_than_threshold(const BoundingBoxf3 &v_box_in_world,  const Matrix4d &view_proj_mat,
           int window_width, int window_height)
 {
-    auto s_min  = calc_pt_in_screen(v_box_in_world.min, view_proj_mat, window_width, window_height);
-    auto s_max  = calc_pt_in_screen(v_box_in_world.max, view_proj_mat, window_width, window_height);
-   auto size_x = abs(s_max.x() - s_min.x());
-   auto size_y = abs(s_max.y() - s_min.y());
+    auto & _min = v_box_in_world.min;
+    auto & _max = v_box_in_world.max;
+    std::array<Vec3d,8>  src_vertices;
+    src_vertices[0] = _min;
+    src_vertices[1] = Vec3d(_max.x(), _min.y(), _min.z());
+    src_vertices[2] = Vec3d(_max.x(), _max.y(), _min.z());
+    src_vertices[3] = Vec3d(_min.x(), _max.y(), _min.z());
+    src_vertices[4] = Vec3d(_min.x(), _min.y(), _max.z());
+    src_vertices[5] = Vec3d(_max.x(), _min.y(), _max.z());
+    src_vertices[6] = _max;
+    src_vertices[7] = Vec3d(_min.x(), _max.y(), _max.z());
+    BoundingBoxf box2d;
+    for (int i = 0; i < src_vertices.size(); i++) {
+        box2d.merge(calc_pt_in_screen(src_vertices[i], view_proj_mat, window_width, window_height).cast<double>());
+    }
+    auto size_x = box2d.size().x();
+    auto size_y = box2d.size().y();
    if (size_x >= LOD_SCREEN_MAX.x() || size_y >= LOD_SCREEN_MAX.y()) {
        return LOD_LEVEL::HIGH;
    }
@@ -951,7 +964,9 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
             if (abs(zoom - LAST_CAMERA_ZOOM_VALUE) > ZOOM_THRESHOLD || m_lod_update_index >= LOD_UPDATE_FREQUENCY){
                 m_lod_update_index     = 0;
                 LAST_CAMERA_ZOOM_VALUE = zoom;
-                m_cur_lod_level        = calc_volume_box_in_screen_bigger_than_threshold(transformed_bounding_box(), vier_proj_mat, viewport[2], viewport[3]);
+                if (!picking) {
+                    m_cur_lod_level = calc_volume_box_in_screen_bigger_than_threshold(transformed_bounding_box(), vier_proj_mat, viewport[2], viewport[3]);
+                }
             }
             if (m_cur_lod_level == LOD_LEVEL::SMALL && indexed_vertex_array_small) {
                 render_which(indexed_vertex_array_small, shader);
@@ -1078,7 +1093,9 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
             if (abs(zoom - LAST_CAMERA_ZOOM_VALUE) > ZOOM_THRESHOLD || m_lod_update_index >= LOD_UPDATE_FREQUENCY) {
                 m_lod_update_index     = 0;
                 LAST_CAMERA_ZOOM_VALUE = zoom;
-                m_cur_lod_level        = calc_volume_box_in_screen_bigger_than_threshold(transformed_bounding_box(), vier_proj_mat, viewport[2], viewport[3]);
+                if (!picking) {
+                    m_cur_lod_level = calc_volume_box_in_screen_bigger_than_threshold(transformed_bounding_box(), vier_proj_mat, viewport[2], viewport[3]);
+                }
             }
             if (m_cur_lod_level == LOD_LEVEL::SMALL && indexed_vertex_array_small && indexed_vertex_array_small->vertices_and_normals_interleaved_VBO_id > 0) {
                 this->indexed_vertex_array_small->render(shader, this->tverts_range_lod, this->qverts_range_lod);
