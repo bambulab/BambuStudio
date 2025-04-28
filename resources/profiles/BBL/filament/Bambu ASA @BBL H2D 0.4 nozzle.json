@@ -5,7 +5,6 @@
     "from": "system",
     "setting_id": "GFSB01_13",
     "instantiation": "true",
-    "description": "When printing this filament, there's a risk of warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials.",
     "chamber_temperatures": [
         "65"
     ],
@@ -25,6 +24,14 @@
     "filament_flow_ratio": [
         "0.95",
         "0.95"
+    ],
+    "filament_flush_temp": [
+        "0",
+        "0"
+    ],
+    "filament_flush_volumetric_speed": [
+        "0",
+        "0"
     ],
     "filament_long_retractions_when_cut": [
         "nil",
@@ -106,6 +113,10 @@
     "hole_limit_max": [
         "0.14"
     ],
+    "long_retractions_when_ec": [
+        "1",
+        "1"
+    ],
     "nozzle_temperature": [
         "270",
         "270"
@@ -113,6 +124,10 @@
     "nozzle_temperature_initial_layer": [
         "270",
         "270"
+    ],
+    "retraction_distances_when_ec": [
+        "10",
+        "10"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle"
