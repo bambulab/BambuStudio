@@ -4351,7 +4351,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     m_aui_mgr.SetDockSizeConstraint(1, 1);
     // m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_PANE_BORDER_SIZE, 0);
     // m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_SASH_SIZE, 2);
-    m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_CAPTION_SIZE, 8);
+    m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_CAPTION_SIZE, 0);
     m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_GRADIENT_TYPE, wxAUI_GRADIENT_NONE);
 
     this->q->SetFont(Slic3r::GUI::wxGetApp().normal_font());
@@ -4435,7 +4435,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
                                    .CloseButton(false)
                                    .TopDockable(false)
                                    .BottomDockable(false)
-                                   .Floatable(true)
+                                   //.Floatable(true)
                                    .Resizable(wxGetApp().app_config->get_bool("enable_sidebar_resizable"))
                                    .MinSize(wxSize(41 * wxGetApp().em_unit(), -1))
         .BestSize(wxSize(42 * wxGetApp().em_unit(), 90 * wxGetApp().em_unit())));

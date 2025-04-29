@@ -3683,16 +3683,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case WXK_CONTROL_E:
 #endif /* __APPLE__ */
         { m_labels.show(!m_labels.is_shown()); m_dirty = true; break; }
-#ifdef __APPLE__
-        case 'W':
-        case 'w':
-#else  /* __APPLE__ */
-        case WXK_CONTROL_W:
-#endif /* __APPLE__ */
-        {
-            wxGetApp().plater()->reset_window_layout();
-            break;
-        }
         case '0': {
             select_view("plate");
             zoom_to_bed();
