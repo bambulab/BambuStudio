@@ -1,11 +1,10 @@
 #ifndef OVERHANG_DETECTOR_HPP
 #define OVERHANG_DETECTOR_HPP
 
-#include "AABBTreeIndirect.hpp"
 #include "ExtrusionEntityCollection.hpp"
 #include "ClipperUtils.hpp"
 #include "Flow.hpp"
-
+#include "AABBTreeLines.hpp"
 using ZPoint = ClipperLib_Z::IntPoint;
 using ZPath = ClipperLib_Z::Path;
 using ZPaths = ClipperLib_Z::Paths;
@@ -22,12 +21,20 @@ namespace Slic3r {
     {
         std::vector<Linef>                lines;
         AABBTreeIndirect::Tree<2, double> tree;
-
     public:
-        OverhangDistancer(const Polygons layer_polygons);
+        OverhangDistancer(const Polygons& layer_polygons);
         float distance_from_perimeter(const Vec2f& point) const;
     };
 
+    class SignedOverhangDistancer
+    {
+        AABBTreeLines::LinesDistancer<Linef> distancer;
+
+    public:
+        SignedOverhangDistancer(const Polygons &layer_polygons);
+        double                            distance_from_perimeter(const Vec2d &point) const;
+        std::tuple<float, size_t, Vec2d> distance_from_perimeter_extra(const Vec2d &point) const;
+    };
 
     ZPaths clip_extrusion(const ZPath& subject, const ZPaths& clip, ClipperLib_Z::ClipType clipType);
 
