@@ -112,7 +112,7 @@ namespace Slic3r {
         ZPath sampled_path;
         if (path.empty())
             return sampled_path;
-
+        sampled_path.reserve(1.5 * path.size());
         for (size_t idx = 0; idx < path.size(); ++idx) {
             ZPoint curr_zp = path[idx];
             Point  curr_p = { curr_zp.x(), curr_zp.y() };
@@ -135,10 +135,17 @@ namespace Slic3r {
                 }
             }
         }
+        sampled_path.shrink_to_fit();
         return sampled_path;
     }
+    ZPaths add_sampling_points(const ZPaths &paths, double min_sampling_interval) {
+        ZPaths res;
+        res.resize(paths.size());
+        for (size_t i = 0; i < res.size(); i++) res[i] = add_sampling_points(paths[i], min_sampling_interval);
+        return res;
+    }
 
-    OverhangDistancer::OverhangDistancer(const Polygons layer_polygons)
+    OverhangDistancer::OverhangDistancer(const Polygons& layer_polygons)
     {
         for (const Polygon& island : layer_polygons) {
             for (const auto& line : island.lines()) { lines.emplace_back(line.a.cast<double>(), line.b.cast<double>()); }
@@ -165,17 +172,12 @@ namespace Slic3r {
         const ClipperLib_Z::Path& extrusion_path,
         const double nozzle_diameter)
     {
-        using ZPath = ClipperLib_Z::Path;
-        using ZPaths = ClipperLib_Z::Paths;
-        using ZPoint = ClipperLib_Z::IntPoint;
-
         ExtrusionPaths ret_paths;
+        ZPaths paths_in_range = clip_extrusion(extrusion_path, clip_paths, ClipperLib_Z::ctIntersection); //doing intersection first would be faster.
 
-        ZPath subject_path = add_sampling_points(extrusion_path, scale_(2));
+        paths_in_range = add_sampling_points(paths_in_range, scale_(2));// enough?
 
         //Polylines polylines = ZPath_to_polylines(subject_paths);
-
-        ZPaths    paths_in_range = clip_extrusion(subject_path, clip_paths, ClipperLib_Z::ctIntersection);
         //Polylines path_in_range_debug = ZPath_to_polylines(paths_in_range);
 
         for (auto& path : paths_in_range) {
@@ -228,7 +230,7 @@ namespace Slic3r {
             return ret;
             };
 
-        std::unique_ptr<OverhangDistancer> prev_layer_distancer = std::make_unique<OverhangDistancer>(lower_polys);
+        std::unique_ptr<SignedOverhangDistancer> prev_layer_distancer = std::make_unique<SignedOverhangDistancer>(lower_polys);
 
         coord_t offset_width = scale_(nozzle_diameter) / 2;
 
@@ -237,9 +239,9 @@ namespace Slic3r {
             if (path.empty()) continue;
             for (size_t idx = 0; idx < path.size(); ++idx) {
                 Point  p{ path[idx].x(), path[idx].y() };
-                float  overhang_dist = prev_layer_distancer->distance_from_perimeter(p.cast<float>());
+                double  overhang_dist = prev_layer_distancer->distance_from_perimeter(p.cast<double>());
                 float  width = path[idx].z();
-                double real_dist = offset_width - overhang_dist;
+                double real_dist = offset_width + overhang_dist;
 
                 double degree = 0;
 
@@ -302,5 +304,24 @@ namespace Slic3r {
             if (prev_line.size() > 1) { extrusion_paths_append(ret_paths, { prev_line }, role, flow, std::floor(prev_d)); }
         }
         return ret_paths;
+    }
+
+    SignedOverhangDistancer::SignedOverhangDistancer(const Polygons &layer_polygons)
+    {
+        std::vector<Linef> lines;
+        for (const Polygon &island : layer_polygons) {
+            for (const auto &line : island.lines()) { lines.emplace_back(line.a.cast<double>(), line.b.cast<double>()); }
+        }
+        distancer = AABBTreeLines::LinesDistancer<Linef>(lines);
+    }
+
+    double SignedOverhangDistancer::distance_from_perimeter(const Vec2d &point) const
+    {
+        return distancer.template distance_from_lines<true>(point);
+    }
+
+    std::tuple<float, size_t, Vec2d> SignedOverhangDistancer::distance_from_perimeter_extra(const Vec2d &point) const
+    {
+        return distancer.template distance_from_lines_extra<true>(point);
     }
 }
