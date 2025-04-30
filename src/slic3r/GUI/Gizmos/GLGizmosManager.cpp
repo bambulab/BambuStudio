@@ -93,9 +93,15 @@ size_t GLGizmosManager::get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const
     float width = get_scaled_total_width();
 #if BBS_TOOLBAR_ON_TOP
     //float space_width = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();;
-    float top_x = std::max(m_parent.get_main_toolbar_width() + border, 0.5f * (cnv_w - width + m_parent.get_main_toolbar_width() + m_parent.get_collapse_toolbar_width() - m_parent.get_assemble_view_toolbar_width()) + border);
-    if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView)
+    float top_x  = 0;
+    if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
         top_x = 0.5f * cnv_w + 0.5f * (m_parent.get_assembly_paint_toolbar_width());
+    } else {
+        const float separator_width = m_parent.get_separator_toolbar_width();
+
+        top_x = m_parent.get_main_toolbar_offset();
+        top_x += m_parent.get_main_toolbar_width() + separator_width / 2 + border;
+    }
     float top_y = 0;
     float stride_x = m_layout.scaled_stride_x();
 
