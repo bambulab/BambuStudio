@@ -139,27 +139,25 @@ std::pair<SupportGeneratorLayersPtr, SupportGeneratorLayersPtr> generate_interfa
                     Polygons polygons_bottom_contact_projected_interface;
                     Polygons polygons_bottom_contact_projected_base;
                     if (support_params.num_top_interface_layers > 0) {
-                        // Top Z coordinate of a slab, over which we are collecting the top / bottom contact surfaces
-                        coordf_t top_z              = intermediate_layers[std::min(num_intermediate - 1, idx_intermediate_layer + int(support_params.num_top_interface_layers) - 1)]->print_z;
-                        coordf_t top_inteface_z     = std::numeric_limits<coordf_t>::max();
-                        if (support_params.num_top_base_interface_layers > 0)
-                            // Some top base interface layers will be generated.
-                            top_inteface_z = support_params.num_top_interface_layers_only() == 0 ?
-                                    // Only base interface layers to generate.
-                                - std::numeric_limits<coordf_t>::max() :
-                                    intermediate_layers[std::min(num_intermediate - 1, idx_intermediate_layer + int(support_params.num_top_interface_layers_only()) - 1)]->print_z;
                         // Move idx_top_contact_first up until above the current print_z.
                         idx_top_contact_first = idx_higher_or_equal(top_contacts, idx_top_contact_first, [&intermediate_layer](const SupportGeneratorLayer *layer){ return layer->print_z >= intermediate_layer.print_z; }); //  - EPSILON
                         // Collect the top contact areas above this intermediate layer, below top_z.
                         for (int idx_top_contact = idx_top_contact_first; idx_top_contact < int(top_contacts.size()); ++ idx_top_contact) {
                             const SupportGeneratorLayer &top_contact_layer = *top_contacts[idx_top_contact];
-                            //FIXME maybe this adds one interface layer in excess?
-                            if (top_contact_layer.bottom_z - EPSILON > top_z)
-                                break;
-                            polygons_append(top_contact_layer.bottom_z - EPSILON > top_inteface_z ? polygons_top_contact_projected_base : polygons_top_contact_projected_interface,
-                                // For snug supports, project the overhang polygons covering the whole overhang, so that they will merge without a gap with support polygons of the other layers.
-                                // For grid supports, merging of support regions will be performed by the projection into grid.
-                                snug_supports ? *top_contact_layer.overhang_polygons : top_contact_layer.polygons);
+                            const bool is_top_contact = is_approx(top_contact_layer.bottom_z, intermediate_layers[num_intermediate - 1]->print_z);
+                            if (is_top_contact) {
+                                if (idx_intermediate_layer > num_intermediate - support_params.num_top_interface_layers)
+                                    polygons_append(polygons_top_contact_projected_interface, snug_supports ? *top_contact_layer.overhang_polygons : top_contact_layer.polygons);
+                                else if (idx_intermediate_layer > num_intermediate - support_params.num_top_interface_layers - support_params.num_top_base_interface_layers)
+                                    polygons_append(polygons_top_contact_projected_base, snug_supports ? *top_contact_layer.overhang_polygons : top_contact_layer.polygons);
+                            } else {
+                                if (top_contact_layer.print_z - EPSILON <
+                                    intermediate_layers[std::min(int(idx_intermediate_layer + support_params.num_top_interface_layers - 1), num_intermediate - 1)]->print_z)
+                                    polygons_append(polygons_top_contact_projected_interface, snug_supports ? *top_contact_layer.overhang_polygons : top_contact_layer.polygons);
+                                else if (top_contact_layer.print_z - EPSILON < intermediate_layers[std::min(int(idx_intermediate_layer + support_params.num_top_interface_layers -
+                                                                                                                1 + support_params.num_top_base_interface_layers),num_intermediate - 1)]->print_z)
+                                    polygons_append(polygons_top_contact_projected_base, snug_supports ? *top_contact_layer.overhang_polygons : top_contact_layer.polygons);
+                            }
                         }
                     }
                     if (support_params.num_bottom_interface_layers > 0) {
@@ -208,16 +206,22 @@ std::pair<SupportGeneratorLayersPtr, SupportGeneratorLayersPtr> generate_interfa
                 }
             });
 
-        tbb::parallel_for(tbb::blocked_range<int>(1, int(base_interface_layers.size())), [&base_interface_layers](const tbb::blocked_range<int> &range) {
-            for (int layer_id = range.begin(); layer_id < range.end(); ++layer_id) {
-                auto &base_interface_layer = base_interface_layers[layer_id];
-                if (!base_interface_layer) return;
-                
-                auto &lower_layer = base_interface_layers[layer_id - 1];
-                if (!lower_layer) return;
-                if (base_interface_layer->polygons == lower_layer->polygons) base_interface_layer->up = true;
-            }
-        });
+        if (support_params.num_top_base_interface_layers > 1)
+            tbb::parallel_for(tbb::blocked_range<int>(1, int(base_interface_layers.size())),
+                              [&base_interface_layers, &top_contacts, &support_params, &intermediate_layers](const tbb::blocked_range<int> &range) {
+                                  for (int layer_id = range.begin(); layer_id < range.end(); ++layer_id) {
+                                      auto &base_interface_layer = base_interface_layers[layer_id];
+                                      if (!base_interface_layer) return;
+
+                                      for (const auto &contact : top_contacts) {
+                                          if (is_approx(contact->bottom_z, intermediate_layers[layer_id - 1 + support_params.num_top_interface_layers]->print_z, 0.01) &&
+                                              overlaps(base_interface_layer->polygons, contact->polygons)) {
+                                              base_interface_layer->up = true;
+                                              break;
+                                          }
+                                      }
+                                  }
+                              });
 
         // Compress contact_out, remove the nullptr items.
         // The parallel_for above may not have merged all the interface and base_interface layers

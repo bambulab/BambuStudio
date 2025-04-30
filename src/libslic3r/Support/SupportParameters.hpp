@@ -43,7 +43,7 @@ struct SupportParameters {
                 // support_filament==0
                 bool differnt_support_interface_filament = object_config.support_interface_filament != 0 &&
                                                            object_config.support_interface_filament != object_config.support_filament;
-                this->num_top_base_interface_layers    = differnt_support_interface_filament && num_top_interface_layers > 0 ? 2 : 0;
+                this->num_top_base_interface_layers    = num_top_interface_layers > 0 ? differnt_support_interface_filament ? 2 : 1 : 0;
                 this->num_bottom_base_interface_layers       = differnt_support_interface_filament ? 1 : 0;
 	        }
 	    }
@@ -130,6 +130,7 @@ struct SupportParameters {
         }
 
         support_base_pattern = object_config.support_base_pattern;
+        if (support_base_pattern == smpLightning && !is_tree(object_config.support_type)) support_base_pattern = smpRectilinear;
         if (support_base_pattern == smpDefault) {
             if (is_tree(object_config.support_type))
                 support_base_pattern = support_style == smsTreeHybrid ? smpRectilinear : smpNone;
