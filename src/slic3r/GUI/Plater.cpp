@@ -2311,7 +2311,8 @@ void Sidebar::update_presets(Preset::Type preset_type)
         Preset& printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
 
         bool isBBL = printer_preset.is_bbl_vendor_preset(wxGetApp().preset_bundle);
-        wxGetApp().mainframe->show_calibration_button(!isBBL);
+        // Explicitly show calibration button for BBL printers
+        wxGetApp().mainframe->show_calibration_button(true);
 
         if (auto printer_structure_opt = printer_preset.config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure")) {
             wxGetApp().plater()->get_current_canvas3D()->get_arrange_settings().align_to_y_axis = (printer_structure_opt->value == PrinterStructure::psI3);
