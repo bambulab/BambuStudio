@@ -122,6 +122,7 @@ void GLGizmoBrimEars::render_points(const Selection &selection, bool picking) co
     const Camera& camera = picking ? wxGetApp().plater()->get_picking_camera() : wxGetApp().plater()->get_camera();
     const Transform3d& view_matrix = camera.get_view_matrix();
     const Transform3d& projection_matrix = camera.get_projection_matrix();
+    Transform3d volume_matrix = Transform3d::Identity();
 
     shader->set_uniform("projection_matrix", projection_matrix);
 
@@ -133,6 +134,9 @@ void GLGizmoBrimEars::render_points(const Selection &selection, bool picking) co
         const bool      &error          = editing_cache[i].is_error;
         if (!is_use_point(brim_point) && !hover)
             continue;
+        if (brim_point.volume_idx >= 0)
+            volume_matrix = selection.get_volume(brim_point.volume_idx)->get_volume_transformation().get_matrix();
+        
         // keep show brim ear
         // if (is_mesh_point_clipped(brim_point.pos.cast<double>()))
         //     continue;
@@ -163,7 +167,7 @@ void GLGizmoBrimEars::render_points(const Selection &selection, bool picking) co
         if (shader && !picking) shader->set_uniform("emission_factor", 0.5f);
 
         // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
-        const Transform3d brim_matrix = Geometry::assemble_transform(brim_point.pos.cast<double>()) * instance_scaling_matrix_inverse;
+        const Transform3d brim_matrix = Geometry::assemble_transform(brim_point.pos.cast<double>()) * instance_scaling_matrix_inverse * volume_matrix;
 
         if (vol->is_left_handed())
             glFrontFace(GL_CW);
@@ -309,7 +313,10 @@ bool GLGizmoBrimEars::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_p
         Transform3d             inverse_trsf = volume->get_instance_transformation().get_matrix(true).inverse();
         std::pair<Vec3f, Vec3f> pos_and_normal;
         if (unproject_on_mesh2(mouse_position, pos_and_normal)) {
-            render_hover_point = CacheEntry(BrimPoint(pos_and_normal.first, m_new_point_head_diameter / 2.f), false, (inverse_trsf * m_world_normal).cast<float>(), true);
+            int volume_idx = m_last_hit_volume->volume_idx();
+            Transform3d v_trsf = selection.get_volume(volume_idx)->get_volume_transformation().get_matrix();
+            Vec3d set_volume_trsf_pos = v_trsf.inverse() * pos_and_normal.first.cast<double>();
+            render_hover_point = CacheEntry(BrimPoint(set_volume_trsf_pos.cast<float>(), m_new_point_head_diameter / 2.f, volume_idx), false, (inverse_trsf * m_world_normal).cast<float>(), true);
         } else {
             render_hover_point.reset();
         }
@@ -338,17 +345,19 @@ bool GLGizmoBrimEars::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_p
             std::pair<Vec3f, Vec3f> pos_and_normal;
             if (unproject_on_mesh2(mouse_position, pos_and_normal)) {
                 // we got an intersection
+                int volume_idx = m_last_hit_volume->volume_idx();
                 const Selection &selection    = m_parent.get_selection();
                 const GLVolume  *volume       = selection.get_volume(*selection.get_volume_idxs().begin());
                 Transform3d      trsf         = volume->get_instance_transformation().get_matrix();
                 Transform3d      inverse_trsf = volume->get_instance_transformation().get_matrix(true).inverse();
+                Transform3d      v_trsf         = selection.get_volume(volume_idx)->get_volume_transformation().get_matrix();
                 // BBS brim ear postion is placed on the bottom side
                 Vec3d world_pos  = trsf * pos_and_normal.first.cast<double>();
                 world_pos[2]     = -0.0001;
-                Vec3d object_pos = trsf.inverse() * world_pos;
+                Vec3d object_pos = trsf.inverse() * v_trsf.inverse() * world_pos;
                 // brim ear always face up
                 Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Add brim ear");
-                add_point_to_cache(object_pos.cast<float>(), m_new_point_head_diameter / 2.f, false, (inverse_trsf * m_world_normal).cast<float>());
+                add_point_to_cache(object_pos.cast<float>(), m_new_point_head_diameter / 2.f, false, (inverse_trsf * m_world_normal).cast<float>(), volume_idx);
                 m_parent.set_as_dirty();
                 m_wait_for_up_event = true;
                 find_single();
@@ -982,9 +991,9 @@ void GLGizmoBrimEars::get_detection_radius_max()
     }
 }
 
-bool GLGizmoBrimEars::add_point_to_cache(Vec3f pos, float head_radius, bool selected, Vec3f normal)
+bool GLGizmoBrimEars::add_point_to_cache(Vec3f pos, float head_radius, bool selected, Vec3f normal, int volume_idx)
 {
-    BrimPoint point(pos, head_radius);
+    BrimPoint point(pos, head_radius, volume_idx);
     for (int i = 0; i < m_editing_cache.size(); i++) {
         if (m_editing_cache[i].brim_point == point) { return false; }
     }
@@ -1055,7 +1064,6 @@ void GLGizmoBrimEars::find_single()
     }
     const Selection         &selection = m_parent.get_selection();
     const GLVolume          *volume    = selection.get_volume(*selection.get_volume_idxs().begin());
-    Geometry::Transformation trsf      = volume->get_instance_transformation();
     ExPolygons               model_pl  = m_first_layer;
 
     m_single_brim.clear();
@@ -1071,6 +1079,13 @@ void GLGizmoBrimEars::find_single()
         }
         auto end = --m_single_brim.end();
         for (auto it = m_single_brim.begin(); it != m_single_brim.end(); ++it) {
+            int volume_idx = it->second.brim_point.volume_idx;
+            Geometry::Transformation trsf = volume->get_instance_transformation();
+            if (volume_idx >= 0){
+                const Geometry::Transformation v_trsf = selection.get_volume(volume_idx)->get_volume_transformation();
+                trsf = trsf * v_trsf;
+            }
+                
             ExPolygon point_pl = make_polygon(it->second.brim_point, trsf);
             if (overlaps(model_pl, point_pl)) {
                 model_pl.emplace_back(point_pl);
