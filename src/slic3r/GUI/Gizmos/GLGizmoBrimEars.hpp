@@ -164,7 +164,7 @@ protected:
     void register_single_mesh_pick();
     void update_single_mesh_pick(GLVolume* v);
     void reset_all_pick();
-    bool add_point_to_cache(Vec3f pos, float head_radius, bool selected, Vec3f normal);
+    bool add_point_to_cache(Vec3f pos, float head_radius, bool selected, Vec3f normal, int volume_idx=-1);
     float get_brim_default_radius() const;
     ExPolygon make_polygon(BrimPoint point, const Geometry::Transformation &trsf);
     void find_single();

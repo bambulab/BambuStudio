@@ -817,7 +817,10 @@ static ExPolygons make_brim_ears(const PrintObject* object, const double& flowWi
     const Point &center_offset = object->center_offset();
     model_trsf = model_trsf.pretranslate(Vec3d(- unscale<double>(center_offset.x()), - unscale<double>(center_offset.y()), 0));
     for (auto &pt : brim_ear_points) {
-        Vec3f world_pos = pt.transform(trsf.get_matrix());
+        Transform3d v_trsf = Transform3d::Identity();
+        if (pt.volume_idx > -1)
+            v_trsf = object->model_object()->volumes[pt.volume_idx]->get_matrix();
+        Vec3f world_pos = pt.transform(trsf.get_matrix() * v_trsf);
         if ( world_pos.z() > 0) continue;
         Polygon point_round;
         float brim_width = floor(scale_(pt.head_front_radius) / flowWidth / 2) * flowWidth * 2;
@@ -832,7 +835,7 @@ static ExPolygons make_brim_ears(const PrintObject* object, const double& flowWi
         }
         mouse_ears_ex.emplace_back();
         mouse_ears_ex.back().contour = point_round;
-        Vec3f pos = pt.transform(model_trsf);
+        Vec3f pos = pt.transform(model_trsf * v_trsf);
         int32_t pt_x = scale_(pos.x());
         int32_t pt_y = scale_(pos.y());
         mouse_ears_ex.back().contour.translate(Point(pt_x, pt_y));
