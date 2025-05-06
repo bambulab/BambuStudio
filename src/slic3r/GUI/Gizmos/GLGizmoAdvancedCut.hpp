@@ -235,7 +235,6 @@ protected:
     virtual void data_changed(bool is_serializing) override;
     virtual std::string on_get_name() const;
     virtual std::string on_get_name_str() override { return "Cut"; }
-    void    apply_color_clip_plane_colors();
     virtual void on_set_state();
     void         close();
     virtual bool on_is_activable() const;

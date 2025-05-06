@@ -469,7 +469,7 @@ void GLGizmosManager::update_data()
 {
     if (!m_enabled)
         return;
-    wxBusyCursor     wait;
+
     const Selection& selection = m_parent.get_selection();
     if (m_common_gizmos_data) {
         m_common_gizmos_data->update(get_current()
@@ -741,27 +741,6 @@ bool GLGizmosManager::is_allow_select_all() {
         return true;
     }
     return false;
-}
-
-bool GLGizmosManager::is_allow_show_volume_highlight_outline() const
-{
-    if (m_current == EType::Cut) {
-        return false;
-    }
-    return true;
-}
-
-bool GLGizmosManager::is_allow_drag_volume() const
-{
-    if (m_current == EType::Cut) { return false; }
-    return true;
-}
-
-bool GLGizmosManager::is_allow_mouse_drag_selected() const
-{
-    if (m_current == Measure || m_current == Assembly)
-        return false;
-    return true;
 }
 
 ClippingPlane GLGizmosManager::get_clipping_plane() const
@@ -1070,7 +1049,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
                 // the gizmo got the event and took some action, there is no need to do anything more
                 processed = true;
             else if (!selection.is_empty() && grabber_contains_mouse()) {
-                if (is_allow_mouse_drag_selected ()) {
+                if (!(m_current == Measure || m_current == Assembly)) {
 
                     selection.start_dragging();
                     start_dragging();

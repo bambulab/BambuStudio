@@ -383,16 +383,6 @@ bool GLShaderProgram::set_uniform(const char* name, const ColorRGB& value) const
     return false;
 }
 
-bool GLShaderProgram::set_uniform(const char *name, const ColorRGBA &value) const
-{
-    int id = get_uniform_location(name);
-    if (id >= 0) {
-        glsafe(::glUniform4fv(id, 1, static_cast<const GLfloat *>(value.data())));
-        return true;
-    }
-    return false;
-}
-
 int GLShaderProgram::get_attrib_location(const char* name) const
 {
     assert(m_id > 0);
