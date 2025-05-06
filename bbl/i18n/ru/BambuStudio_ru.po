@@ -13737,14 +13737,6 @@ msgstr "Значение в правом профиле"
 msgid "Default filament"
 msgstr "Пруток по умолчанию"
 
-#, c-format, boost-format
-msgid ""
-"Arrangement ignored the following objects which can't fit into a single bed:\n"
-"%s"
-msgstr ""
-"При расстановке были проигнорированы следующие модели, которые не помещаются на одном столе:\n"
-"%s"
-
 msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
 msgstr "Предпочитать высокопроизводительный ГП (вступает в силу после перезапуска программы)"
 
@@ -13754,21 +13746,8 @@ msgstr "Если включено, это может повысить скоро
 msgid "To map to AMS, enable 'Use AMS' in 'Advanced Options'."
 msgstr "Для сопоставления с АСПП, включите опцию «Исп. АСПП» в дополнительных параметрах."
 
-msgid ""
-"Waring:The count of newly added and \n"
-" current extruders exceeds 16."
-msgstr ""
-"Предупреждение: количество новых \n"
-" и текущих экструдеров превышает 16."
-
 msgid "Configuration file may be corrupted and is not able to be parsed.Please delete the file and try again."
 msgstr "Возможно, файл конфигурации повреждён и не может быть обработан. Пожалуйста, удалите файл и повторите попытку."
 
 msgid "Guide"
 msgstr "Инстр."
-
-msgid "From"
-msgstr "С"
-
-msgid "To"
-msgstr "На"
