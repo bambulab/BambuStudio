@@ -8538,7 +8538,7 @@ msgid "Beta version"
 msgstr "Betaversion"
 
 msgid "Updating"
-msgstr "Aktualiseren"
+msgstr "Aktualisieren"
 
 msgid "Updating failed"
 msgstr "Aktualisierung fehlgeschlagen"
