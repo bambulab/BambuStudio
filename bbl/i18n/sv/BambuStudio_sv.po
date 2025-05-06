@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-21 20:04+0800\n"
+"POT-Creation-Date: 2025-05-06 10:44+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1767,6 +1767,9 @@ msgstr "Förenkla modellen"
 msgid "Center"
 msgstr "Center"
 
+msgid "Sub merge"
+msgstr ""
+
 msgid "Edit Process Settings"
 msgstr "Redigera Process Inställningar"
 
@@ -1862,6 +1865,9 @@ msgstr "Lägg till Modifierare"
 
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr "Ändra till per objekt inställningsläge till redigerings inställningar."
+
+msgid "Sub-merged body"
+msgstr ""
 
 msgid "Switch to per-object setting mode to edit process settings of selected objects."
 msgstr "Växla till inställningsläge för varje objekt för att redigera process inställningar för valda objekt."
@@ -3845,6 +3851,22 @@ msgstr "Följande föremål läggs över plattans gräns eller överskrider höj
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "Lös problemet genom att flytta den helt på eller av plattan och bekräfta att höjden ligger inom byggvolymen.\n"
 
+#, boost-format
+msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+msgstr ""
+
+#, boost-format
+msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+msgstr ""
+
+#, boost-format
+msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+msgstr ""
+
+#, boost-format
+msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+msgstr ""
+
 msgid "left nozzle"
 msgstr "vänster nozzle"
 
@@ -4289,27 +4311,6 @@ msgid "Isometric"
 msgstr ""
 
 msgid "Isometric View"
-msgstr ""
-
-msgctxt "Camera"
-msgid "Isometric 1"
-msgstr ""
-
-msgid "Isometric 1 View"
-msgstr ""
-
-msgctxt "Camera"
-msgid "Isometric 2"
-msgstr ""
-
-msgid "Isometric 2 View"
-msgstr ""
-
-msgctxt "Camera"
-msgid "Isometric 3"
-msgstr ""
-
-msgid "Isometric 3 View"
 msgstr ""
 
 msgid "Start a new window"
@@ -5634,11 +5635,11 @@ msgstr "Kontrollera om nozzeln täpps igen av filament eller andra främmande f�
 msgid "Nozzle Type"
 msgstr "Nozzel typ"
 
-msgid "Please change the nozzle settings on the printer."
-msgstr ""
-
 msgid "Nozzle Flow"
 msgstr "Nozzle flöde"
+
+msgid "Please change the nozzle settings on the printer."
+msgstr ""
 
 msgid "Hardened Steel"
 msgstr "Härdat stål"
@@ -5836,6 +5837,12 @@ msgstr "Aktivering av traditionell timelapse fotografering kan orsaka ojämnhete
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "Smooth läget för timelapse är aktiverat, men prime tornet är avstängt, vilket kan orsaka utskriftsfel. Vänligen aktivera prime tornet, bered om och skriv ut igen."
+
+msgid "Expand sidebar"
+msgstr ""
+
+msgid "Collapse sidebar"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -6341,23 +6348,8 @@ msgstr "För närvarande kan formuläret för objekt konfiguration inte använda
 msgid "Not available"
 msgstr "Ej tillgänglig"
 
-msgid "isometric"
-msgstr "isometrisk"
-
-msgid "top_front"
-msgstr "topp_front"
-
-msgid "top"
-msgstr "topp"
-
-msgid "bottom"
-msgstr "botten"
-
-msgid "front"
+msgid "Top front"
 msgstr ""
-
-msgid "rear"
-msgstr "bakre"
 
 msgid "The current project has unsaved changes, save it before continuing?"
 msgstr "Det aktuella projektet har osparade ändringar; vill du spara innan du fortsätter?"
@@ -6987,8 +6979,8 @@ msgstr "Är du inte nöjd med grupperingen av filament? Gruppera om och bered ->
 msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr "Din metod för gruppering av filament i berednings filen är inte optimal."
 
-msgid "Click here if you can't connect to the printer"
-msgstr "Klicka här om du inte kan ansluta till printern"
+msgid "Click here if you can't connect to the printer ->"
+msgstr ""
 
 msgid "Auto Bed Leveling"
 msgstr "Automatisk bäddutjämning"
@@ -7020,9 +7012,6 @@ msgstr ""
 "Kalibrera nozzle offset för att förbättra utskriftskvaliteten.\n"
 "*Automatiskt läge: Kontrollera kalibreringen före utskrift. Hoppa över om det inte behövs."
 
-msgid "Use AMS"
-msgstr "Använd AMS"
-
 msgid "send completed"
 msgstr "skicka slutförd"
 
@@ -7036,43 +7025,6 @@ msgstr "Högt flöde"
 msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
 msgstr "Nozzle flödes inställning av %s(%s) stämmer inte överens med berednings fil(%s). Vänligen kontrollera att nozzle som installerats stämmer överens med inställningarna i printern och ställ sedan in motsvarande inställning i beredning."
 
-msgid "No login account, only printers in LAN mode are displayed"
-msgstr "Inget inloggningskonto, bara skrivare i LAN-läge visas"
-
-msgid "Connecting to server"
-msgstr "Ansluter till server"
-
-msgid "Synchronizing device information"
-msgstr "Synkroniserar enhetsinformation"
-
-msgid "Synchronizing device information time out"
-msgstr "Time-out för synkronisering av enhetsinformation"
-
-msgid "Cannot send the print job when the printer is not at FDM mode"
-msgstr "Det går inte att skicka utskriftsjobbet när printern inte är i FDM läge"
-
-msgid "Cannot send the print job when the printer is updating firmware"
-msgstr "Det går inte att skicka ett utskriftsjobb medan printern uppdaterar firmware"
-
-msgid "The printer is executing instructions. Please restart printing after it ends"
-msgstr "Skrivaren utför instruktioner. Vänligen starta utskriften igen när den är avslutad."
-
-msgid "AMS is setting up. Please try again later."
-msgstr "AMS håller på att installeras. Försök igen senare."
-
-#, c-format, boost-format
-msgid "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
-msgstr "Filament %s överskrider antalet AMS-fack. Uppdatera skrivarens programvara för att stödja tilldelning av AMS-fack."
-
-msgid "Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
-msgstr "Filament överskrider antalet AMS-fack. Uppdatera skrivarens programvara för att stödja tilldelning av AMS-fack."
-
-msgid "Please do not mix-use the Ext with AMS"
-msgstr "Blanda inte Ext med Ams"
-
-msgid "Invalid nozzle information, please refresh or manually set nozzle information."
-msgstr "Ogiltig nozzle information, uppdatera eller ställ in nozzle informationen manuellt."
-
 #, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
 msgstr "Filamentet %s matchar inte filamentet i AMS-facket %s. Uppdatera skrivarens programvara för att stödja tilldelning av AMS-fack."
@@ -7080,45 +7032,15 @@ msgstr "Filamentet %s matchar inte filamentet i AMS-facket %s. Uppdatera skrivar
 msgid "Filament does not match the filament in AMS slot. Please update the printer firmware to support AMS slot assignment."
 msgstr "Filamentet matchar inte filamentet i AMS-facket. Uppdatera skrivarens programvara för att stödja tilldelning av AMS-fack."
 
-msgid "Storage is not available or is in read-only mode."
-msgstr "Lagringen är inte tillgänglig eller är i skrivskyddat läge."
-
-msgid "The printer firmware only supports sequential mapping of filament => AMS slot."
-msgstr "Skrivarens firmware stöder endast sekventiell mappning av filament => AMS-fack plats."
-
-msgid "Storage needs to be inserted before printing."
-msgstr "Lagring måste sättas in före utskrift."
-
 #, c-format, boost-format
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
 msgstr "Den valda printern (%s) är inte kompatibel med konfigurationen av utskrifts filen (%s). Vänligen justera printer inställningen på sidan Förbered eller välj en kompatibel skrivare på den här sidan."
-
-msgid "Storage needs to be inserted to record timelapse."
-msgstr "Lagring måste sättas in för att spela in timelapse."
-
-msgid "Cannot send the print job to a printer whose firmware is required to get updated."
-msgstr "Det går inte att skicka utskriftsjobbet till en printer där programvaran måste uppdateras."
-
-msgid "Cannot send the print job for empty plate"
-msgstr "Det går inte att skicka ett utskriftsjobb för en tom platta."
-
-msgid "This printer does not support printing all plates"
-msgstr "Den här skrivaren stöder inte utskrift av alla byggplattor"
 
 msgid "When enable spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "When spiral vase mode is enabled, machines with I3 structure will not generate timelapse videos."
 
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
 msgstr "Den aktuella printern stöder inte timelapse i traditionellt läge vid Per Objekt utskrift."
-
-msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
-msgstr "Du har valt både externa och AMS filament för en extruder. Du måste manuellt byta externt filament under utskrift."
-
-msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
-msgstr "TPU 90A/TPU 85A är för mjuk och stöder inte automatiskt flödes dynamik kalibrering."
-
-msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
-msgstr "Ställ in dynamiskt flödes kalibrering till \"OFF\" för att aktivera anpassad dynamisk flödes värde."
 
 msgid "Errors"
 msgstr "Fel"
@@ -7196,11 +7118,71 @@ msgstr "Hög temp"
 msgid "Cool(Supertack)"
 msgstr ""
 
+msgid "No login account, only printers in LAN mode are displayed"
+msgstr "Inget inloggningskonto, bara skrivare i LAN-läge visas"
+
+msgid "Connecting to server"
+msgstr "Ansluter till server"
+
+msgid "Synchronizing device information"
+msgstr "Synkroniserar enhetsinformation"
+
+msgid "Synchronizing device information time out"
+msgstr "Time-out för synkronisering av enhetsinformation"
+
+msgid "Cannot send the print job when the printer is not at FDM mode"
+msgstr "Det går inte att skicka utskriftsjobbet när printern inte är i FDM läge"
+
+msgid "Cannot send the print job when the printer is updating firmware"
+msgstr "Det går inte att skicka ett utskriftsjobb medan printern uppdaterar firmware"
+
+msgid "The printer is executing instructions. Please restart printing after it ends"
+msgstr "Skrivaren utför instruktioner. Vänligen starta utskriften igen när den är avslutad."
+
+msgid "AMS is setting up. Please try again later."
+msgstr "AMS håller på att installeras. Försök igen senare."
+
+msgid "Please do not mix-use the Ext with AMS"
+msgstr "Blanda inte Ext med Ams"
+
+msgid "Invalid nozzle information, please refresh or manually set nozzle information."
+msgstr "Ogiltig nozzle information, uppdatera eller ställ in nozzle informationen manuellt."
+
+msgid "Storage is not available or is in read-only mode."
+msgstr "Lagringen är inte tillgänglig eller är i skrivskyddat läge."
+
+msgid "Storage needs to be inserted before printing."
+msgstr "Lagring måste sättas in före utskrift."
+
+msgid "Cannot send the print job to a printer whose firmware is required to get updated."
+msgstr "Det går inte att skicka utskriftsjobbet till en printer där programvaran måste uppdateras."
+
+msgid "Cannot send the print job for empty plate"
+msgstr "Det går inte att skicka ett utskriftsjobb för en tom platta."
+
+msgid "Storage needs to be inserted to record timelapse."
+msgstr "Lagring måste sättas in för att spela in timelapse."
+
+msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
+msgstr "Du har valt både externa och AMS filament för en extruder. Du måste manuellt byta externt filament under utskrift."
+
+msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
+msgstr "TPU 90A/TPU 85A är för mjuk och stöder inte automatiskt flödes dynamik kalibrering."
+
+msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
+msgstr "Ställ in dynamiskt flödes kalibrering till \"OFF\" för att aktivera anpassad dynamisk flödes värde."
+
+msgid "This printer does not support printing all plates"
+msgstr "Den här skrivaren stöder inte utskrift av alla byggplattor"
+
 msgid "Send to Printer storage"
 msgstr "Skicka till printerns lagring"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Timeout för uppladdning av fil: kontrollera om firmwareversionen stöder det."
+
+msgid "No available external storage was obtained. Please confirm and try again."
+msgstr ""
 
 msgid "Media capability acquisition timeout, please check if the firmware version supports it."
 msgstr "Timeout för förvärv av mediekapacitet, kontrollera om versionen av firmware stöder det."
@@ -8080,6 +8062,9 @@ msgstr ""
 "Kalibrera nozzle offset för att förbättra utskriftskvaliteten. \n"
 "*Automatiskt läge: Kontrollera efter kalibrering före utskrift; hoppa över om det är onödigt."
 
+msgid "Use AMS"
+msgstr "Använd AMS"
+
 msgid "Tip"
 msgstr "Tips"
 
@@ -8432,11 +8417,11 @@ msgstr "återuppta"
 msgid "Resume Printing"
 msgstr "Återuppta utskrift"
 
-msgid "Resume Printing(defects acceptable)"
-msgstr "Återuppta utskrift (acceptabla defekter)"
+msgid "Resume (defects acceptable)"
+msgstr ""
 
-msgid "Resume Printing(problem solved)"
-msgstr "Återuppta utskrift (problem löst)"
+msgid "Resume (problem solved)"
+msgstr ""
 
 msgid "Stop Printing"
 msgstr "Stoppa utskrift"
@@ -9960,6 +9945,12 @@ msgstr "Filtrera bort små luckor"
 
 msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 msgstr "Filtrera bort luckor som är mindre än det angivna tröskelvärdet. Denna inställning påverkar inte övre/undre lager."
+
+msgid "Precise wall"
+msgstr ""
+
+msgid "Improve shell precision by adjusting outer wall spacing. This also improves layer consistency."
+msgstr ""
 
 msgid "Speed of gap infill. Gap usually has irregular line width and should be printed more slowly"
 msgstr "Detta är hastigheten för fyllning av mellanrum. Mellanrum har vanligtvis oregelbunden linje bredd och bör skrivas ut långsammare."
@@ -13331,6 +13322,40 @@ msgid ""
 msgstr ""
 "Undvik vridning\n"
 "Visste du att när du skriver ut material som är benägna att vrida, såsom ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten för vridning."
+
+#~ msgid "isometric"
+#~ msgstr "isometrisk"
+
+#~ msgid "top_front"
+#~ msgstr "topp_front"
+
+#~ msgid "top"
+#~ msgstr "topp"
+
+#~ msgid "bottom"
+#~ msgstr "botten"
+
+#~ msgid "rear"
+#~ msgstr "bakre"
+
+#~ msgid "Click here if you can't connect to the printer"
+#~ msgstr "Klicka här om du inte kan ansluta till printern"
+
+#, c-format, boost-format
+#~ msgid "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
+#~ msgstr "Filament %s överskrider antalet AMS-fack. Uppdatera skrivarens programvara för att stödja tilldelning av AMS-fack."
+
+#~ msgid "Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
+#~ msgstr "Filament överskrider antalet AMS-fack. Uppdatera skrivarens programvara för att stödja tilldelning av AMS-fack."
+
+#~ msgid "The printer firmware only supports sequential mapping of filament => AMS slot."
+#~ msgstr "Skrivarens firmware stöder endast sekventiell mappning av filament => AMS-fack plats."
+
+#~ msgid "Resume Printing(defects acceptable)"
+#~ msgstr "Återuppta utskrift (acceptabla defekter)"
+
+#~ msgid "Resume Printing(problem solved)"
+#~ msgstr "Återuppta utskrift (problem löst)"
 
 #~ msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
 #~ msgstr "Att ändra fläkthastigheten under utskrift kan påverka utskriftskvaliteten, välj noggrant."

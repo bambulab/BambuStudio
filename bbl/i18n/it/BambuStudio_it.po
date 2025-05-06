@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-21 20:04+0800\n"
+"POT-Creation-Date: 2025-05-06 10:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1770,6 +1770,9 @@ msgstr "Semplifica Modello"
 msgid "Center"
 msgstr "Centro"
 
+msgid "Sub merge"
+msgstr ""
+
 msgid "Edit Process Settings"
 msgstr "Modifica le impostazioni del processo"
 
@@ -1865,6 +1868,9 @@ msgstr "Aggiungi modificatore"
 
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr "Passa alla modalità oggetto per modificare le impostazioni del modificatore."
+
+msgid "Sub-merged body"
+msgstr ""
 
 msgid "Switch to per-object setting mode to edit process settings of selected objects."
 msgstr "Passa alla modalità oggetto per modificare le impostazioni di processo degli oggetti selezionati."
@@ -3846,6 +3852,22 @@ msgstr "I seguenti oggetti sono posizionati oltre il limite del piatto o superan
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "Risolvi il problema spostandola completamente dentro o fuori dal piatto verificando che l'altezza rientri nel volume di costruzione.\n"
 
+#, boost-format
+msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+msgstr ""
+
+#, boost-format
+msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+msgstr ""
+
+#, boost-format
+msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+msgstr ""
+
+#, boost-format
+msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+msgstr ""
+
 msgid "left nozzle"
 msgstr "Nozzle Sinistro"
 
@@ -4286,27 +4308,6 @@ msgid "Isometric"
 msgstr ""
 
 msgid "Isometric View"
-msgstr ""
-
-msgctxt "Camera"
-msgid "Isometric 1"
-msgstr ""
-
-msgid "Isometric 1 View"
-msgstr ""
-
-msgctxt "Camera"
-msgid "Isometric 2"
-msgstr ""
-
-msgid "Isometric 2 View"
-msgstr ""
-
-msgctxt "Camera"
-msgid "Isometric 3"
-msgstr ""
-
-msgid "Isometric 3 View"
 msgstr ""
 
 msgid "Start a new window"
@@ -5629,11 +5630,11 @@ msgstr "Controllare se il nozzle è intasato dal filamento o altri oggetti estra
 msgid "Nozzle Type"
 msgstr "Tipo Nozzle"
 
-msgid "Please change the nozzle settings on the printer."
-msgstr ""
-
 msgid "Nozzle Flow"
 msgstr "Flusso nozzle"
+
+msgid "Please change the nozzle settings on the printer."
+msgstr ""
 
 msgid "Hardened Steel"
 msgstr "Acciaio temprato"
@@ -5833,6 +5834,12 @@ msgstr "L'attivazione fotografia timelapse tradizionale può causare imperfezion
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "La modalità smooth per il timelapse è attivata, ma la prime tower è disattivata, il che potrebbe causare difetti di stampa. Abilita la prime tower, riesegui lo slicing e stampa di nuovo."
+
+msgid "Expand sidebar"
+msgstr ""
+
+msgid "Collapse sidebar"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -6336,23 +6343,8 @@ msgstr "Attualmente, il modulo di configurazione dell'oggetto non può essere ut
 msgid "Not available"
 msgstr "Non disponibile"
 
-msgid "isometric"
-msgstr "isometrico"
-
-msgid "top_front"
-msgstr "frontale_superiore"
-
-msgid "top"
-msgstr "sopra"
-
-msgid "bottom"
-msgstr "fondo"
-
-msgid "front"
-msgstr "anteriore"
-
-msgid "rear"
-msgstr "posteriore"
+msgid "Top front"
+msgstr ""
 
 msgid "The current project has unsaved changes, save it before continuing?"
 msgstr "Il progetto corrente presenta modifiche non salvate; vuoi salvare prima di continuare?"
@@ -6982,8 +6974,8 @@ msgstr "Non sei soddisfatto del raggruppamento dei filamenti? Raggruppa nuovamen
 msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr "Il metodo di raggruppamento del filamento nel file elaborato non è ottimale."
 
-msgid "Click here if you can't connect to the printer"
-msgstr "Clicca qui se non riesci a connetterti alla stampante"
+msgid "Click here if you can't connect to the printer ->"
+msgstr ""
 
 msgid "Auto Bed Leveling"
 msgstr ""
@@ -7015,9 +7007,6 @@ msgstr ""
 "Calibra gli offset del nozzle per migliorare la qualità di stampa.  \n"
 "*Modalità automatica: Verifica la calibrazione prima della stampa. Salta il processo se non necessario."
 
-msgid "Use AMS"
-msgstr "Usa AMS"
-
 msgid "send completed"
 msgstr "invio completato"
 
@@ -7031,43 +7020,6 @@ msgstr "Flusso elevato"
 msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
 msgstr "L'impostazione del flusso del nozzle di %s (%s) non corrisponde a quella del file di slicing (%s). Per favore, assicurati che il nozzle installato corrisponda alle impostazioni della stampante, quindi imposta il preset della stampante corrispondente durante lo slicing."
 
-msgid "No login account, only printers in LAN mode are displayed"
-msgstr "Nessun account di login, vengono visualizzate solo le stampanti in modalità LAN"
-
-msgid "Connecting to server"
-msgstr "Connessione in corso al server"
-
-msgid "Synchronizing device information"
-msgstr "Sincronizzazione informazioni dispositivo"
-
-msgid "Synchronizing device information time out"
-msgstr "La sincronizzazione informazioni dispositivo è scaduta"
-
-msgid "Cannot send the print job when the printer is not at FDM mode"
-msgstr "Impossibile inviare il lavoro di stampa quando la stampante non è in modalità FDM."
-
-msgid "Cannot send the print job when the printer is updating firmware"
-msgstr "Non è possibile inviare un lavoro di stampa mentre la stampante sta aggiornando il firmware"
-
-msgid "The printer is executing instructions. Please restart printing after it ends"
-msgstr "La stampante sta eseguendo le istruzioni. Riavvia la stampa al termine"
-
-msgid "AMS is setting up. Please try again later."
-msgstr "AMS è in fase di configurazione. Riprova più tardi."
-
-#, c-format, boost-format
-msgid "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
-msgstr "Il filamento %s supera il numero di slot AMS. Aggiorna il firmware della stampante per supportare l'assegnazione degli slot AMS."
-
-msgid "Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
-msgstr "Il filamento supera il numero di slot AMS. Aggiorna il firmware della stampante per supportare l'assegnazione degli slot AMS."
-
-msgid "Please do not mix-use the Ext with AMS"
-msgstr "Non utilizzare contemporaneamente Ext con AMS."
-
-msgid "Invalid nozzle information, please refresh or manually set nozzle information."
-msgstr "Informazioni sul nozzle non valide, aggiorna o imposta manualmente le informazioni sul nozzle."
-
 #, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
 msgstr "Il filamento %s non corrisponde al filamento nello slot AMS %s. Aggiorna il firmware della stampante per supportare l'assegnazione degli slot AMS."
@@ -7075,45 +7027,15 @@ msgstr "Il filamento %s non corrisponde al filamento nello slot AMS %s. Aggiorna
 msgid "Filament does not match the filament in AMS slot. Please update the printer firmware to support AMS slot assignment."
 msgstr "Il filamento non corrisponde al filamento nello slot AMS. Aggiorna il firmware della stampante per supportare l'assegnazione degli slot AMS."
 
-msgid "Storage is not available or is in read-only mode."
-msgstr "La memoria non è disponibile o è in modalità di sola lettura."
-
-msgid "The printer firmware only supports sequential mapping of filament => AMS slot."
-msgstr "Il firmware della stampante supporta solo la mappatura sequenziale del filamento => slot AMS."
-
-msgid "Storage needs to be inserted before printing."
-msgstr "La memoria deve essere inserita prima della stampa."
-
 #, c-format, boost-format
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
 msgstr "La stampante selezionata (%s) è incompatibile con la configurazione del file di stampa (%s). Per favore, regola il preset della stampante nella pagina di preparazione o scegli una stampante compatibile in questa pagina."
-
-msgid "Storage needs to be inserted to record timelapse."
-msgstr "La memoria deve essere inserita per registrare il timelapse."
-
-msgid "Cannot send the print job to a printer whose firmware is required to get updated."
-msgstr "non è possibile inviare il lavoro di stampa a una stampante il cui firmware deve essere aggiornato."
-
-msgid "Cannot send the print job for empty plate"
-msgstr "Non è possibile inviare un lavoro con una piatto vuoto."
-
-msgid "This printer does not support printing all plates"
-msgstr "Questa stampante non supporta la stampa di piatti multipla"
 
 msgid "When enable spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "Quando si attiva la modalità vaso a spirale, le macchine con struttura I3 non genereranno video timelapse."
 
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
 msgstr "La stampante attuale non supporta il timelapse in Modalità Tradizionale durante la stampa per Oggetto."
-
-msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
-msgstr "Hai selezionato sia filamenti esterni che AMS per un estrusore. Dovrai cambiare manualmente il filamento esterno durante la stampa."
-
-msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
-msgstr "TPU 90A/TPU 85A è troppo morbido e non supporta la calibrazione automatica del Flow Dynamics."
-
-msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
-msgstr "Imposta la calibrazione del flow dinamico su 'OFF' per abilitare un valore personalizzato del flow dinamico."
 
 msgid "Errors"
 msgstr "Errori"
@@ -7191,11 +7113,71 @@ msgstr "Alta temperatura"
 msgid "Cool(Supertack)"
 msgstr ""
 
+msgid "No login account, only printers in LAN mode are displayed"
+msgstr "Nessun account di login, vengono visualizzate solo le stampanti in modalità LAN"
+
+msgid "Connecting to server"
+msgstr "Connessione in corso al server"
+
+msgid "Synchronizing device information"
+msgstr "Sincronizzazione informazioni dispositivo"
+
+msgid "Synchronizing device information time out"
+msgstr "La sincronizzazione informazioni dispositivo è scaduta"
+
+msgid "Cannot send the print job when the printer is not at FDM mode"
+msgstr "Impossibile inviare il lavoro di stampa quando la stampante non è in modalità FDM."
+
+msgid "Cannot send the print job when the printer is updating firmware"
+msgstr "Non è possibile inviare un lavoro di stampa mentre la stampante sta aggiornando il firmware"
+
+msgid "The printer is executing instructions. Please restart printing after it ends"
+msgstr "La stampante sta eseguendo le istruzioni. Riavvia la stampa al termine"
+
+msgid "AMS is setting up. Please try again later."
+msgstr "AMS è in fase di configurazione. Riprova più tardi."
+
+msgid "Please do not mix-use the Ext with AMS"
+msgstr "Non utilizzare contemporaneamente Ext con AMS."
+
+msgid "Invalid nozzle information, please refresh or manually set nozzle information."
+msgstr "Informazioni sul nozzle non valide, aggiorna o imposta manualmente le informazioni sul nozzle."
+
+msgid "Storage is not available or is in read-only mode."
+msgstr "La memoria non è disponibile o è in modalità di sola lettura."
+
+msgid "Storage needs to be inserted before printing."
+msgstr "La memoria deve essere inserita prima della stampa."
+
+msgid "Cannot send the print job to a printer whose firmware is required to get updated."
+msgstr "non è possibile inviare il lavoro di stampa a una stampante il cui firmware deve essere aggiornato."
+
+msgid "Cannot send the print job for empty plate"
+msgstr "Non è possibile inviare un lavoro con una piatto vuoto."
+
+msgid "Storage needs to be inserted to record timelapse."
+msgstr "La memoria deve essere inserita per registrare il timelapse."
+
+msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
+msgstr "Hai selezionato sia filamenti esterni che AMS per un estrusore. Dovrai cambiare manualmente il filamento esterno durante la stampa."
+
+msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
+msgstr "TPU 90A/TPU 85A è troppo morbido e non supporta la calibrazione automatica del Flow Dynamics."
+
+msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
+msgstr "Imposta la calibrazione del flow dinamico su 'OFF' per abilitare un valore personalizzato del flow dinamico."
+
+msgid "This printer does not support printing all plates"
+msgstr "Questa stampante non supporta la stampa di piatti multipla"
+
 msgid "Send to Printer storage"
 msgstr "Invia alla memoria stampante"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Timeout caricamento file: controlla se la versione del firmware lo supporta."
+
+msgid "No available external storage was obtained. Please confirm and try again."
+msgstr ""
 
 msgid "Media capability acquisition timeout, please check if the firmware version supports it."
 msgstr "Timeout di acquisizione della capacità multimediale, verifica se la versione del firmware lo supporta."
@@ -8075,6 +8057,9 @@ msgstr ""
 "Calibra gli offset dei nozzle per migliorare la qualità di stampa.\n"
 "*Modalità automatica: verifica la calibrazione prima della stampa; saltala se non necessaria."
 
+msgid "Use AMS"
+msgstr "Usa AMS"
+
 msgid "Tip"
 msgstr "Consiglio"
 
@@ -8427,11 +8412,11 @@ msgstr "riprendi"
 msgid "Resume Printing"
 msgstr "Riprendi Stampa"
 
-msgid "Resume Printing(defects acceptable)"
-msgstr "Riprendi stampa (difetti accettabili)"
+msgid "Resume (defects acceptable)"
+msgstr ""
 
-msgid "Resume Printing(problem solved)"
-msgstr "Riprendi stampa (problema risolto)"
+msgid "Resume (problem solved)"
+msgstr ""
 
 msgid "Stop Printing"
 msgstr "Interrompi Stampa"
@@ -9953,6 +9938,12 @@ msgstr "Filtra piccoli gap"
 
 msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 msgstr "Filtra i gap vuoti più piccoli della soglia specificata. Questa impostazione non influisce sui layers superiore/inferiore."
+
+msgid "Precise wall"
+msgstr ""
+
+msgid "Improve shell precision by adjusting outer wall spacing. This also improves layer consistency."
+msgstr ""
 
 msgid "Speed of gap infill. Gap usually has irregular line width and should be printed more slowly"
 msgstr "Questa è la velocità per il riempimento del gap. I gap di solito hanno una larghezza della linea irregolare e dovrebbero essere stampati più lentamente."
@@ -13322,6 +13313,43 @@ msgid ""
 msgstr ""
 "Evita deformazioni\n"
 "Sapevi che quando si stampano materiali soggetti a deformazioni, come l'ABS, aumentare adeguatamente la temperatura del piano può ridurre la probabilità di deformazione."
+
+#~ msgid "isometric"
+#~ msgstr "isometrico"
+
+#~ msgid "top_front"
+#~ msgstr "frontale_superiore"
+
+#~ msgid "top"
+#~ msgstr "sopra"
+
+#~ msgid "bottom"
+#~ msgstr "fondo"
+
+#~ msgid "front"
+#~ msgstr "anteriore"
+
+#~ msgid "rear"
+#~ msgstr "posteriore"
+
+#~ msgid "Click here if you can't connect to the printer"
+#~ msgstr "Clicca qui se non riesci a connetterti alla stampante"
+
+#, c-format, boost-format
+#~ msgid "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
+#~ msgstr "Il filamento %s supera il numero di slot AMS. Aggiorna il firmware della stampante per supportare l'assegnazione degli slot AMS."
+
+#~ msgid "Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
+#~ msgstr "Il filamento supera il numero di slot AMS. Aggiorna il firmware della stampante per supportare l'assegnazione degli slot AMS."
+
+#~ msgid "The printer firmware only supports sequential mapping of filament => AMS slot."
+#~ msgstr "Il firmware della stampante supporta solo la mappatura sequenziale del filamento => slot AMS."
+
+#~ msgid "Resume Printing(defects acceptable)"
+#~ msgstr "Riprendi stampa (difetti accettabili)"
+
+#~ msgid "Resume Printing(problem solved)"
+#~ msgstr "Riprendi stampa (problema risolto)"
 
 #~ msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
 #~ msgstr "La modifica della velocità della ventola durante la stampa può influire sulla qualità di stampa. Scegli con attenzione."

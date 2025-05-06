@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-21 20:04+0800\n"
+"POT-Creation-Date: 2025-05-06 10:44+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1761,6 +1761,9 @@ msgstr "Simplify Model"
 msgid "Center"
 msgstr "Center"
 
+msgid "Sub merge"
+msgstr ""
+
 msgid "Edit Process Settings"
 msgstr "Edit Process Settings"
 
@@ -1856,6 +1859,9 @@ msgstr "Add Modifier"
 
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr "Switch to per-object setting mode to edit modifier settings."
+
+msgid "Sub-merged body"
+msgstr ""
 
 msgid "Switch to per-object setting mode to edit process settings of selected objects."
 msgstr "Switch to per-object setting mode to edit process settings of selected objects."
@@ -3402,10 +3408,10 @@ msgid "Timelapse is not supported on this printer."
 msgstr ""
 
 msgid "Timelapse is not supported while the storage does not exist."
-msgstr "Timelapse is not supported when the storage is not inserted."
+msgstr "Timelapse is not supported when storage is not inserted."
 
 msgid "Timelapse is not supported while the storage is unavailable."
-msgstr ""
+msgstr "Timelapse is not supported when storage is unavailable."
 
 msgid "Timelapse is not supported while the storage is readonly."
 msgstr ""
@@ -3822,6 +3828,22 @@ msgid "Following objects are laid over the boundary of plate or exceeds the heig
 msgstr ""
 
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
+msgstr ""
+
+#, boost-format
+msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+msgstr ""
+
+#, boost-format
+msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+msgstr ""
+
+#, boost-format
+msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+msgstr ""
+
+#, boost-format
+msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
 msgstr ""
 
 msgid "left nozzle"
@@ -4260,27 +4282,6 @@ msgid "Isometric"
 msgstr ""
 
 msgid "Isometric View"
-msgstr ""
-
-msgctxt "Camera"
-msgid "Isometric 1"
-msgstr ""
-
-msgid "Isometric 1 View"
-msgstr ""
-
-msgctxt "Camera"
-msgid "Isometric 2"
-msgstr ""
-
-msgid "Isometric 2 View"
-msgstr ""
-
-msgctxt "Camera"
-msgid "Isometric 3"
-msgstr ""
-
-msgid "Isometric 3 View"
 msgstr ""
 
 msgid "Start a new window"
@@ -5599,10 +5600,10 @@ msgstr "Check if the nozzle is clumping by filament or other foreign objects."
 msgid "Nozzle Type"
 msgstr "Nozzle Type"
 
-msgid "Please change the nozzle settings on the printer."
+msgid "Nozzle Flow"
 msgstr ""
 
-msgid "Nozzle Flow"
+msgid "Please change the nozzle settings on the printer."
 msgstr ""
 
 msgid "Hardened Steel"
@@ -5795,6 +5796,12 @@ msgid "Enabling traditional timelapse photography may cause surface imperfection
 msgstr "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
+msgstr ""
+
+msgid "Expand sidebar"
+msgstr ""
+
+msgid "Collapse sidebar"
 msgstr ""
 
 #, c-format, boost-format
@@ -6290,22 +6297,7 @@ msgstr ""
 msgid "Not available"
 msgstr ""
 
-msgid "isometric"
-msgstr ""
-
-msgid "top_front"
-msgstr ""
-
-msgid "top"
-msgstr ""
-
-msgid "bottom"
-msgstr ""
-
-msgid "front"
-msgstr ""
-
-msgid "rear"
+msgid "Top front"
 msgstr ""
 
 msgid "The current project has unsaved changes, save it before continuing?"
@@ -6928,8 +6920,8 @@ msgstr ""
 msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr ""
 
-msgid "Click here if you can't connect to the printer"
-msgstr "Click here if you can't connect to the printer"
+msgid "Click here if you can't connect to the printer ->"
+msgstr ""
 
 msgid "Auto Bed Leveling"
 msgstr ""
@@ -6955,9 +6947,6 @@ msgid ""
 "*Automatic mode: Check for calibration before printing. Skip if unnecessary."
 msgstr ""
 
-msgid "Use AMS"
-msgstr "Use AMS"
-
 msgid "send completed"
 msgstr "send completed"
 
@@ -6971,43 +6960,6 @@ msgstr ""
 msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
 msgstr ""
 
-msgid "No login account, only printers in LAN mode are displayed"
-msgstr "No login account, only printers in LAN mode are displayed"
-
-msgid "Connecting to server"
-msgstr "Connecting to server"
-
-msgid "Synchronizing device information"
-msgstr "Synchronizing device information"
-
-msgid "Synchronizing device information time out"
-msgstr "Synchronizing device information timed out"
-
-msgid "Cannot send the print job when the printer is not at FDM mode"
-msgstr ""
-
-msgid "Cannot send the print job when the printer is updating firmware"
-msgstr "Cannot send the print job when the printer is updating firmware"
-
-msgid "The printer is executing instructions. Please restart printing after it ends"
-msgstr "The printer is executing instructions. Please restart printing after it ends"
-
-msgid "AMS is setting up. Please try again later."
-msgstr ""
-
-#, c-format, boost-format
-msgid "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
-msgstr "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
-
-msgid "Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
-msgstr "Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
-
-msgid "Please do not mix-use the Ext with AMS"
-msgstr ""
-
-msgid "Invalid nozzle information, please refresh or manually set nozzle information."
-msgstr ""
-
 #, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
 msgstr "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
@@ -7015,44 +6967,14 @@ msgstr "Filament %s does not match the filament in AMS slot %s. Please update th
 msgid "Filament does not match the filament in AMS slot. Please update the printer firmware to support AMS slot assignment."
 msgstr "Filament does not match the filament in AMS slot. Please update the printer firmware to support AMS slot assignment."
 
-msgid "Storage is not available or is in read-only mode."
-msgstr ""
-
-msgid "The printer firmware only supports sequential mapping of filament => AMS slot."
-msgstr "The printer firmware only supports sequential mapping of filament => AMS slot."
-
-msgid "Storage needs to be inserted before printing."
-msgstr ""
-
 #, c-format, boost-format
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
 msgstr ""
-
-msgid "Storage needs to be inserted to record timelapse."
-msgstr ""
-
-msgid "Cannot send the print job to a printer whose firmware is required to get updated."
-msgstr "Cannot send the print job to a printer whose firmware must be updated."
-
-msgid "Cannot send the print job for empty plate"
-msgstr "Cannot send the print job for empty plate"
-
-msgid "This printer does not support printing all plates"
-msgstr "This printer does not support printing all plates"
 
 msgid "When enable spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "When spiral vase mode is enabled, machines with I3 structure will not generate timelapse videos."
 
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
-msgstr ""
-
-msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
-msgstr ""
-
-msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
-msgstr ""
-
-msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
 msgstr ""
 
 msgid "Errors"
@@ -7131,11 +7053,71 @@ msgstr ""
 msgid "Cool(Supertack)"
 msgstr ""
 
+msgid "No login account, only printers in LAN mode are displayed"
+msgstr "No login account, only printers in LAN mode are displayed"
+
+msgid "Connecting to server"
+msgstr "Connecting to server"
+
+msgid "Synchronizing device information"
+msgstr "Synchronizing device information"
+
+msgid "Synchronizing device information time out"
+msgstr "Synchronizing device information timed out"
+
+msgid "Cannot send the print job when the printer is not at FDM mode"
+msgstr ""
+
+msgid "Cannot send the print job when the printer is updating firmware"
+msgstr "Cannot send the print job when the printer is updating firmware"
+
+msgid "The printer is executing instructions. Please restart printing after it ends"
+msgstr "The printer is executing instructions. Please restart printing after it ends"
+
+msgid "AMS is setting up. Please try again later."
+msgstr ""
+
+msgid "Please do not mix-use the Ext with AMS"
+msgstr ""
+
+msgid "Invalid nozzle information, please refresh or manually set nozzle information."
+msgstr ""
+
+msgid "Storage is not available or is in read-only mode."
+msgstr ""
+
+msgid "Storage needs to be inserted before printing."
+msgstr ""
+
+msgid "Cannot send the print job to a printer whose firmware is required to get updated."
+msgstr "Cannot send the print job to a printer whose firmware must be updated."
+
+msgid "Cannot send the print job for empty plate"
+msgstr "Cannot send the print job for empty plate"
+
+msgid "Storage needs to be inserted to record timelapse."
+msgstr ""
+
+msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
+msgstr ""
+
+msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
+msgstr ""
+
+msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
+msgstr ""
+
+msgid "This printer does not support printing all plates"
+msgstr "This printer does not support printing all plates"
+
 msgid "Send to Printer storage"
 msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr ""
+
+msgid "No available external storage was obtained. Please confirm and try again."
+msgstr "No available external storage was found. Please confirm and try again."
 
 msgid "Media capability acquisition timeout, please check if the firmware version supports it."
 msgstr ""
@@ -8001,6 +7983,9 @@ msgid ""
 "*Automatic mode: Check for calibration before printing; skip if unnecessary."
 msgstr ""
 
+msgid "Use AMS"
+msgstr "Use AMS"
+
 msgid "Tip"
 msgstr ""
 
@@ -8353,11 +8338,11 @@ msgstr "resume"
 msgid "Resume Printing"
 msgstr "Resume Printing"
 
-msgid "Resume Printing(defects acceptable)"
-msgstr "Resume Printing (defects acceptable)"
+msgid "Resume (defects acceptable)"
+msgstr ""
 
-msgid "Resume Printing(problem solved)"
-msgstr "Resume Printing (problem solved)"
+msgid "Resume (problem solved)"
+msgstr ""
 
 msgid "Stop Printing"
 msgstr "Stop Printing"
@@ -9877,6 +9862,12 @@ msgstr "Filter out tiny gaps"
 
 msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 msgstr "Filter out gaps smaller than the threshold specified. This setting won't affect top/bottom layers."
+
+msgid "Precise wall"
+msgstr ""
+
+msgid "Improve shell precision by adjusting outer wall spacing. This also improves layer consistency."
+msgstr ""
 
 msgid "Speed of gap infill. Gap usually has irregular line width and should be printed more slowly"
 msgstr "This is the speed for gap infill. Gaps usually have irregular line width and should be printed more slowly."
@@ -13218,6 +13209,25 @@ msgid ""
 msgstr ""
 "Avoid warping\n"
 "Did you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping?"
+
+#~ msgid "Click here if you can't connect to the printer"
+#~ msgstr "Click here if you can't connect to the printer"
+
+#, c-format, boost-format
+#~ msgid "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
+#~ msgstr "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
+
+#~ msgid "Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
+#~ msgstr "Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
+
+#~ msgid "The printer firmware only supports sequential mapping of filament => AMS slot."
+#~ msgstr "The printer firmware only supports sequential mapping of filament => AMS slot."
+
+#~ msgid "Resume Printing(defects acceptable)"
+#~ msgstr "Resume Printing (defects acceptable)"
+
+#~ msgid "Resume Printing(problem solved)"
+#~ msgstr "Resume Printing (problem solved)"
 
 #~ msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
 #~ msgstr "Changed fan speed during pringing may affect print quality, please choose carefully."

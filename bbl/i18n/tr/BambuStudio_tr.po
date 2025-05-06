@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-21 20:04+0800\n"
+"POT-Creation-Date: 2025-05-06 10:44+0800\n"
 "PO-Revision-Date: 2025-04-15 22:16+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -1790,6 +1790,9 @@ msgstr "Modeli Basitleştir"
 msgid "Center"
 msgstr "Merkez"
 
+msgid "Sub merge"
+msgstr ""
+
 msgid "Edit Process Settings"
 msgstr "İşlem Ayarlarını Düzenle"
 
@@ -1885,6 +1888,9 @@ msgstr "Değiştirici Ekle"
 
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr "Değiştirici ayarlarını düzenlemek için nesne başına ayar moduna geçin."
+
+msgid "Sub-merged body"
+msgstr ""
 
 msgid "Switch to per-object setting mode to edit process settings of selected objects."
 msgstr "Seçilen nesnelerin işlem ayarlarını düzenlemek için nesne başına ayar moduna geçin."
@@ -3868,6 +3874,22 @@ msgstr "Aşağıdaki nesneler plaka sınırının üzerine yerleştirilir veya y
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "Lütfen sorunu tamamen plakanın üzerine veya dışına hareket ettirerek ve yüksekliğin yapım hacmi dahilinde olduğunu doğrulayarak çözün.\n"
 
+#, boost-format
+msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+msgstr ""
+
+#, boost-format
+msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+msgstr ""
+
+#, boost-format
+msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+msgstr ""
+
+#, boost-format
+msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+msgstr ""
+
 msgid "left nozzle"
 msgstr "sol nozul"
 
@@ -4312,27 +4334,6 @@ msgid "Isometric"
 msgstr ""
 
 msgid "Isometric View"
-msgstr ""
-
-msgctxt "Camera"
-msgid "Isometric 1"
-msgstr ""
-
-msgid "Isometric 1 View"
-msgstr ""
-
-msgctxt "Camera"
-msgid "Isometric 2"
-msgstr ""
-
-msgid "Isometric 2 View"
-msgstr ""
-
-msgctxt "Camera"
-msgid "Isometric 3"
-msgstr ""
-
-msgid "Isometric 3 View"
 msgstr ""
 
 msgid "Start a new window"
@@ -5655,11 +5656,11 @@ msgstr "Nozulun filament veya diğer yabancı cisimler tarafından tıkanıp tı
 msgid "Nozzle Type"
 msgstr "Nozul tipi"
 
-msgid "Please change the nozzle settings on the printer."
-msgstr "Lütfen yazıcıdaki nozul ayarlarını değiştirin."
-
 msgid "Nozzle Flow"
 msgstr "Nozul Akışı"
+
+msgid "Please change the nozzle settings on the printer."
+msgstr "Lütfen yazıcıdaki nozul ayarlarını değiştirin."
 
 msgid "Hardened Steel"
 msgstr "Güçlendirilmiş çelik"
@@ -5859,6 +5860,12 @@ msgstr "Geleneksel timelapse etkinleştirilmesi yüzey kusurlarına neden olabil
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "Timelapse için pürüzsüz mod etkinleştirildi, ancak ana kule kapalı, bu da baskı hatalarına neden olabilir. Lütfen ana kuleyi etkinleştirin, yeniden dilimleyin ve tekrar yazdırın."
+
+msgid "Expand sidebar"
+msgstr ""
+
+msgid "Collapse sidebar"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -6364,23 +6371,8 @@ msgstr "Şu anda, nesne yapılandırma formu çoklu ekstrüder yazıcı ile kull
 msgid "Not available"
 msgstr "Mevcut değil"
 
-msgid "isometric"
-msgstr "izometrik"
-
-msgid "top_front"
-msgstr "üst_ön"
-
-msgid "top"
-msgstr "üst"
-
-msgid "bottom"
-msgstr "alt"
-
-msgid "front"
-msgstr "ön URL Öneki"
-
-msgid "rear"
-msgstr "arka"
+msgid "Top front"
+msgstr ""
 
 msgid "The current project has unsaved changes, save it before continuing?"
 msgstr "Mevcut projede kaydedilmemiş değişiklikler var, devam etmeden önce kaydedin mi?"
@@ -7010,8 +7002,8 @@ msgstr "Filamentlerin gruplandırılmasından memnun değil misiniz? Yeniden gru
 msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr "Dilimlenmiş dosyadaki filament gruplama yönteminiz ideal değil."
 
-msgid "Click here if you can't connect to the printer"
-msgstr "Yazıcıya bağlanamıyorsanız burayı tıklayın"
+msgid "Click here if you can't connect to the printer ->"
+msgstr ""
 
 msgid "Auto Bed Leveling"
 msgstr "Otomatik yatak tesviyesi"
@@ -7043,9 +7035,6 @@ msgstr ""
 "Baskı kalitesini artırmak için nozul ofsetlerini kalibre edin.\n"
 "*Otomatik mod: Yazdırmadan önce kalibrasyonu kontrol edin. Gereksizse atlayın."
 
-msgid "Use AMS"
-msgstr "AMS kullanın"
-
 msgid "send completed"
 msgstr "gönderme tamamlandı"
 
@@ -7059,43 +7048,6 @@ msgstr "Yüksek akış"
 msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
 msgstr "%s(%s) nozul akış ayarı dilimleme dosyası (%s) ile eşleşmiyor. Lütfen takılı nozülün yazıcıdaki ayarlarla eşleştiğinden emin olun, ardından dilimleme sırasında ilgili yazıcı ön ayarını ayarlayın."
 
-msgid "No login account, only printers in LAN mode are displayed"
-msgstr "Oturum açma hesabı yok, yalnızca LAN modundaki yazıcılar görüntüleniyor"
-
-msgid "Connecting to server"
-msgstr "Sunucuya baglanıyor"
-
-msgid "Synchronizing device information"
-msgstr "Cihaz bilgileri senkronize ediliyor"
-
-msgid "Synchronizing device information time out"
-msgstr "Cihaz bilgilerinin senkronize edilmesi zaman aşımı"
-
-msgid "Cannot send the print job when the printer is not at FDM mode"
-msgstr "Yazıcı FDM modunda değilken yazdırma işi gönderilemiyor"
-
-msgid "Cannot send the print job when the printer is updating firmware"
-msgstr "Yazıcı ürün yazılımını güncellerken yazdırma işi gönderilemiyor"
-
-msgid "The printer is executing instructions. Please restart printing after it ends"
-msgstr "Yazıcı talimatları yürütüyor. Lütfen bittikten sonra yazdırmayı yeniden başlatın"
-
-msgid "AMS is setting up. Please try again later."
-msgstr "AMS ayarlanıyor. Lütfen daha sonra tekrar deneyin."
-
-#, c-format, boost-format
-msgid "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
-msgstr "%s filamenti AMS yuvası sayısını aşıyor. AMS yuvası atamasını desteklemek için lütfen yazıcının ürün yazılımını güncelleyin."
-
-msgid "Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
-msgstr "Filament, AMS yuvalarının sayısını aşıyor. AMS yuvası atamasını desteklemek için lütfen yazıcının ürün yazılımını güncelleyin."
-
-msgid "Please do not mix-use the Ext with AMS"
-msgstr "Lütfen Ext'i AMS ile karıştırarak kullanmayın"
-
-msgid "Invalid nozzle information, please refresh or manually set nozzle information."
-msgstr "Geçersiz nozul bilgisi, lütfen nozul bilgisini yenileyin veya manuel olarak ayarlayın."
-
 #, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
 msgstr "%s filamenti, %s AMS yuvasındaki filamentle eşleşmiyor. AMS yuvası atamasını desteklemek için lütfen yazıcının ürün yazılımını güncelleyin."
@@ -7103,45 +7055,15 @@ msgstr "%s filamenti, %s AMS yuvasındaki filamentle eşleşmiyor. AMS yuvası a
 msgid "Filament does not match the filament in AMS slot. Please update the printer firmware to support AMS slot assignment."
 msgstr "Filament, AMS yuvasındaki filamentle eşleşmiyor. AMS yuvası atamasını desteklemek için lütfen yazıcının ürün yazılımını güncelleyin."
 
-msgid "Storage is not available or is in read-only mode."
-msgstr "Depolama alanı mevcut değil veya salt okunur modda."
-
-msgid "The printer firmware only supports sequential mapping of filament => AMS slot."
-msgstr "Yazıcı ürün yazılımı yalnızca filament => AMS yuvasının sıralı eşlemesini destekler."
-
-msgid "Storage needs to be inserted before printing."
-msgstr "Yazdırmadan önce deponun yerleştirilmesi gerekir."
-
 #, c-format, boost-format
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
 msgstr "Seçilen yazıcı (%s) yazdırma dosyası yapılandırması (%s) ile uyumlu değil. Lütfen hazırlık sayfasındaki yazıcı ön ayarını ayarlayın veya bu sayfada uyumlu bir yazıcı seçin."
-
-msgid "Storage needs to be inserted to record timelapse."
-msgstr "Zaman atlamalı kayıt için depolama biriminin takılması gerekir."
-
-msgid "Cannot send the print job to a printer whose firmware is required to get updated."
-msgstr "Yazdırma işi, ürün yazılımının güncellenmesi gereken bir yazıcıya gönderilemiyor."
-
-msgid "Cannot send the print job for empty plate"
-msgstr "Boş kalıp için yazdırma işi gönderilemiyor"
-
-msgid "This printer does not support printing all plates"
-msgstr "Bu yazıcı tüm kalıpların yazdırılmasını desteklemiyor"
 
 msgid "When enable spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "Spiral vazo modu etkinleştirildiğinde, I3 yapısına sahip makineler zaman atlamalı videolar oluşturmayacaktır."
 
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
 msgstr "Mevcut yazıcı, Geleneksel Modda Nesneye Göre yazdırırken zaman atlamasını desteklemez."
-
-msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
-msgstr "Bir ekstrüder için hem harici hem de AMS filamentleri seçtiniz. Baskı sırasında harici filamenti manuel olarak değiştirmeniz gerekecektir."
-
-msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
-msgstr "TPU 90A/TPU 85A çok yumuşaktır ve otomatik Akış Dinamiği kalibrasyonunu desteklemez."
-
-msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
-msgstr "Özel dinamik akış değerini etkinleştirmek için dinamik akış kalibrasyonunu 'KAPALI' olarak ayarlayın."
 
 msgid "Errors"
 msgstr "Hatalar"
@@ -7219,11 +7141,71 @@ msgstr "Yüksek Sıcaklık Plakası"
 msgid "Cool(Supertack)"
 msgstr "Soğuk (Supertack)"
 
+msgid "No login account, only printers in LAN mode are displayed"
+msgstr "Oturum açma hesabı yok, yalnızca LAN modundaki yazıcılar görüntüleniyor"
+
+msgid "Connecting to server"
+msgstr "Sunucuya baglanıyor"
+
+msgid "Synchronizing device information"
+msgstr "Cihaz bilgileri senkronize ediliyor"
+
+msgid "Synchronizing device information time out"
+msgstr "Cihaz bilgilerinin senkronize edilmesi zaman aşımı"
+
+msgid "Cannot send the print job when the printer is not at FDM mode"
+msgstr "Yazıcı FDM modunda değilken yazdırma işi gönderilemiyor"
+
+msgid "Cannot send the print job when the printer is updating firmware"
+msgstr "Yazıcı ürün yazılımını güncellerken yazdırma işi gönderilemiyor"
+
+msgid "The printer is executing instructions. Please restart printing after it ends"
+msgstr "Yazıcı talimatları yürütüyor. Lütfen bittikten sonra yazdırmayı yeniden başlatın"
+
+msgid "AMS is setting up. Please try again later."
+msgstr "AMS ayarlanıyor. Lütfen daha sonra tekrar deneyin."
+
+msgid "Please do not mix-use the Ext with AMS"
+msgstr "Lütfen Ext'i AMS ile karıştırarak kullanmayın"
+
+msgid "Invalid nozzle information, please refresh or manually set nozzle information."
+msgstr "Geçersiz nozul bilgisi, lütfen nozul bilgisini yenileyin veya manuel olarak ayarlayın."
+
+msgid "Storage is not available or is in read-only mode."
+msgstr "Depolama alanı mevcut değil veya salt okunur modda."
+
+msgid "Storage needs to be inserted before printing."
+msgstr "Yazdırmadan önce deponun yerleştirilmesi gerekir."
+
+msgid "Cannot send the print job to a printer whose firmware is required to get updated."
+msgstr "Yazdırma işi, ürün yazılımının güncellenmesi gereken bir yazıcıya gönderilemiyor."
+
+msgid "Cannot send the print job for empty plate"
+msgstr "Boş kalıp için yazdırma işi gönderilemiyor"
+
+msgid "Storage needs to be inserted to record timelapse."
+msgstr "Zaman atlamalı kayıt için depolama biriminin takılması gerekir."
+
+msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
+msgstr "Bir ekstrüder için hem harici hem de AMS filamentleri seçtiniz. Baskı sırasında harici filamenti manuel olarak değiştirmeniz gerekecektir."
+
+msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
+msgstr "TPU 90A/TPU 85A çok yumuşaktır ve otomatik Akış Dinamiği kalibrasyonunu desteklemez."
+
+msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
+msgstr "Özel dinamik akış değerini etkinleştirmek için dinamik akış kalibrasyonunu 'KAPALI' olarak ayarlayın."
+
+msgid "This printer does not support printing all plates"
+msgstr "Bu yazıcı tüm kalıpların yazdırılmasını desteklemiyor"
+
 msgid "Send to Printer storage"
 msgstr "Yazıcı depolama alanına gönder"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Dosya yükleme zaman aşımı, lütfen ürün yazılımı sürümünün bunu destekleyip desteklemediğini kontrol edin."
+
+msgid "No available external storage was obtained. Please confirm and try again."
+msgstr ""
 
 msgid "Media capability acquisition timeout, please check if the firmware version supports it."
 msgstr "Medya yeteneği edinme zaman aşımı, lütfen ürün yazılımı sürümünün bunu destekleyip desteklemediğini kontrol edin."
@@ -8101,6 +8083,9 @@ msgstr ""
 "Baskı kalitesini artırmak için nozul ofsetlerini kalibre edin.\n"
 "*Otomatik mod: Yazdırmadan önce kalibrasyonu kontrol edin; gerekmiyorsa atlayın."
 
+msgid "Use AMS"
+msgstr "AMS kullanın"
+
 msgid "Tip"
 msgstr "İpucu"
 
@@ -8453,11 +8438,11 @@ msgstr "devam"
 msgid "Resume Printing"
 msgstr "Baskıya Devam Et"
 
-msgid "Resume Printing(defects acceptable)"
-msgstr "Baskıya Devam Et (kabul edilebilir kusurlar)"
+msgid "Resume (defects acceptable)"
+msgstr ""
 
-msgid "Resume Printing(problem solved)"
-msgstr "Baskıya Devam Et (sorun çözüldü)"
+msgid "Resume (problem solved)"
+msgstr ""
 
 msgid "Stop Printing"
 msgstr "Baskıyı durdur"
@@ -9981,6 +9966,12 @@ msgstr "Küçük boşlukları filtrele"
 
 msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 msgstr "Belirtilen eşikten daha küçük boşlukları filtreleyin. Bu ayar üst/alt katmanları etkilemez"
+
+msgid "Precise wall"
+msgstr ""
+
+msgid "Improve shell precision by adjusting outer wall spacing. This also improves layer consistency."
+msgstr ""
 
 msgid "Speed of gap infill. Gap usually has irregular line width and should be printed more slowly"
 msgstr "Boşluk doldurma hızı. Boşluk genellikle düzensiz çizgi genişliğine sahiptir ve daha yavaş yazdırılmalıdır"
@@ -13349,6 +13340,43 @@ msgid ""
 msgstr ""
 "Eğilmeyi önleyin\n"
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını azaltabileceğini biliyor muydunuz."
+
+#~ msgid "isometric"
+#~ msgstr "izometrik"
+
+#~ msgid "top_front"
+#~ msgstr "üst_ön"
+
+#~ msgid "top"
+#~ msgstr "üst"
+
+#~ msgid "bottom"
+#~ msgstr "alt"
+
+#~ msgid "front"
+#~ msgstr "ön URL Öneki"
+
+#~ msgid "rear"
+#~ msgstr "arka"
+
+#~ msgid "Click here if you can't connect to the printer"
+#~ msgstr "Yazıcıya bağlanamıyorsanız burayı tıklayın"
+
+#, c-format, boost-format
+#~ msgid "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
+#~ msgstr "%s filamenti AMS yuvası sayısını aşıyor. AMS yuvası atamasını desteklemek için lütfen yazıcının ürün yazılımını güncelleyin."
+
+#~ msgid "Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
+#~ msgstr "Filament, AMS yuvalarının sayısını aşıyor. AMS yuvası atamasını desteklemek için lütfen yazıcının ürün yazılımını güncelleyin."
+
+#~ msgid "The printer firmware only supports sequential mapping of filament => AMS slot."
+#~ msgstr "Yazıcı ürün yazılımı yalnızca filament => AMS yuvasının sıralı eşlemesini destekler."
+
+#~ msgid "Resume Printing(defects acceptable)"
+#~ msgstr "Baskıya Devam Et (kabul edilebilir kusurlar)"
+
+#~ msgid "Resume Printing(problem solved)"
+#~ msgstr "Baskıya Devam Et (sorun çözüldü)"
 
 #~ msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
 #~ msgstr "Baskı sırasında fan hızının değiştirilmesi baskı kalitesini etkileyebilir, lütfen dikkatli seçim yapın."
