@@ -9,7 +9,7 @@
 
 namespace Slic3r {
 class ColorRGB;
-class ColorRGBA;
+
 class GLShaderProgram
 {
     friend class GLShadersManager;
@@ -63,7 +63,7 @@ public:
     bool set_uniform(const char* name, const Vec3f& value) const;
     bool set_uniform(const char* name, const Vec3d& value) const;
     bool set_uniform(const char* name, const ColorRGB& value) const;
-    bool set_uniform(const char *name, const ColorRGBA& value) const;
+
     // returns -1 if not found
     int get_attrib_location(const char* name) const;
     // returns -1 if not found

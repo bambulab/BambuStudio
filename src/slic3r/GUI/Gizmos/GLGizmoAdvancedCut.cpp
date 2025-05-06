@@ -171,11 +171,10 @@ bool GLGizmoAdvancedCut::gizmo_event(SLAGizmoEventType action, const Vec2d &mous
     else if (action == SLAGizmoEventType::RightDown) {
         if (!m_connectors_editing && m_cut_mode == CutMode::cutPlanar) { //&& control_down
             // Check the internal part raycasters.
-            if (m_part_selection && !m_part_selection->valid())
-                process_contours();
-            m_part_selection->toggle_selection(mouse_position);
-            check_and_update_connectors_state(); // after a contour is deactivated, its connectors are inside the object
-
+            if (m_part_selection && m_part_selection->valid()) {
+                m_part_selection->toggle_selection(mouse_position);
+                check_and_update_connectors_state(); // after a contour is deactivated, its connectors are inside the object
+            }
             return true;
         }
         if (m_hover_id < c_connectors_group_id)
@@ -490,14 +489,6 @@ std::string GLGizmoAdvancedCut::on_get_name() const
     }
 }
 
-void GLGizmoAdvancedCut::apply_color_clip_plane_colors()
-{
-    if (CutMode(m_cut_mode) == CutMode::cutTongueAndGroove)
-        m_parent.set_color_clip_plane_colors({CUT_PLANE_DEF_COLOR, CUT_PLANE_DEF_COLOR});
-    else
-        m_parent.set_color_clip_plane_colors({UPPER_PART_COLOR, LOWER_PART_COLOR});
-}
-
 void GLGizmoAdvancedCut::on_load(cereal::BinaryInputArchive &ar)
 {
     size_t mode;
@@ -553,6 +544,7 @@ void GLGizmoAdvancedCut::data_changed(bool is_serializing)
         update_bb();
         if (auto oc = m_c->object_clipper()) {
             oc->set_behaviour(m_connectors_editing, m_connectors_editing, double(m_contour_width));
+            reset_cut_by_contours();
         }
     }
 }
@@ -563,7 +555,6 @@ void GLGizmoAdvancedCut::on_set_state()
 
     // Reset m_cut_z on gizmo activation
     if (get_state() == On) {
-        m_parent.set_use_color_clip_plane(true);
         const Selection &selection = m_parent.get_selection();
         if (selection.is_empty()) {//check selection again
             close();
@@ -591,7 +582,6 @@ void GLGizmoAdvancedCut::on_set_state()
             oc->release();
         }
         m_selected.clear();
-        m_parent.set_use_color_clip_plane(false);
         m_c->selection_info()->set_use_shift(false);
 
         // Make sure that the part selection data are released when the gizmo is closed.
@@ -635,6 +625,7 @@ CommonGizmosDataID GLGizmoAdvancedCut::on_get_requirements() const
 {
     return CommonGizmosDataID(int(CommonGizmosDataID::SelectionInfo)
         | int(CommonGizmosDataID::InstancesHider)
+        | int(CommonGizmosDataID::Raycaster)
         | int(CommonGizmosDataID::ObjectClipper));
 }
 
@@ -780,9 +771,7 @@ void GLGizmoAdvancedCut::on_render()
 
     if (m_part_selection) {
         if (!m_connectors_editing) {
-            if (m_is_dragging == false) {
-                m_part_selection->part_render(nullptr,nullptr);
-            }
+            if (m_is_dragging == false) { m_part_selection->part_render(nullptr,nullptr); }
         } else {
             m_part_selection->part_render(&m_plane_center, &m_plane_normal);
         }
@@ -801,8 +790,8 @@ void GLGizmoAdvancedCut::on_render_for_picking()
     const Camera& camera = wxGetApp().plater()->get_picking_camera();
     const auto& view_matrix = camera.get_view_matrix();
     const auto& projection_matrix = camera.get_projection_matrix();
-    glsafe(::glDisable(GL_DEPTH_TEST));
     if (!m_connectors_editing) {
+        glsafe(::glDisable(GL_DEPTH_TEST));
         std::array<float, 4> color;
         // pick plane
         {
@@ -835,6 +824,7 @@ void GLGizmoAdvancedCut::on_render_for_picking()
         }
 
     } else {
+        glsafe(::glEnable(GL_DEPTH_TEST));
         auto inst_id = m_c->selection_info()->get_active_instance();
         if (inst_id < 0) return;
 
@@ -1226,7 +1216,6 @@ void GLGizmoAdvancedCut::update_clipper()
     double offset = normal.dot(m_plane_center);
     double dist   = normal.dot(beg);
 
-    m_parent.set_color_clip_plane(normal, offset);
     if (!is_looking_forward()) {
         // recalculate normal and offset for clipping plane, if camera is looking downward to cut plane
         normal = m_rotate_matrix * (-1. * Vec3d::UnitZ());
@@ -1804,7 +1793,6 @@ void GLGizmoAdvancedCut::switch_to_mode(CutMode new_mode) {
     if (m_cut_mode == CutMode::cutTongueAndGroove) {
         m_cut_to_parts = false;//into Groove function,cancel m_cut_to_parts
     }
-    apply_color_clip_plane_colors();
     if (auto oc = m_c->object_clipper()) {
         m_contour_width = m_cut_mode == CutMode::cutTongueAndGroove ? 0.f : 0.4f;
         oc->set_behaviour(m_connectors_editing, m_connectors_editing, double(m_contour_width)); // for debug
@@ -1869,13 +1857,6 @@ bool GLGizmoAdvancedCut::has_valid_groove() const
         return false;
 
     const Transform3d cp_matrix = Geometry::translation_transform(m_plane_center) * m_rotate_matrix;
-    if (!m_c->raycaster()) {
-        if (!m_c->selection_info()) {
-            m_c->update(get_requirements());
-        }
-        wxBusyCursor wait;
-        m_c->raycaster_ptr()->update();
-    }
 
     for (size_t id = 0; id < m_groove_vertices.size(); id += 2) {
         const Vec3d beg = cp_matrix * m_groove_vertices[id];
@@ -1914,7 +1895,7 @@ void GLGizmoAdvancedCut::reset_cut_by_contours()
             return;
         process_contours();
     } else {
-        toggle_model_objects_visibility();
+        process_contours();
     }
 }
 
@@ -2020,7 +2001,7 @@ void GLGizmoAdvancedCut::update_bb()
         else
             set_center_pos(m_bb_center);
         reset_cut_by_contours();
-        apply_color_clip_plane_colors();
+
         m_contour_width = m_cut_mode == CutMode::cutTongueAndGroove ? 0.f : 0.4f;
 
         m_radius                 = box.radius();

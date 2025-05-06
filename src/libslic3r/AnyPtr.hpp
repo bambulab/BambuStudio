@@ -15,19 +15,12 @@ namespace Slic3r {
 // The stored pointer is not checked for being null when dereferenced.
 //
 // This is a movable only object due to the fact that it can possibly hold
-// a unique_ptr which can only be moved.
-//
-// Drawbacks:
-// No custom deleters are supported when storing a unique_ptr, but overloading
-// std::default_delete for a particular type could be a workaround
-//
-// raw array types are problematic, since std::default_delete also does not
-// support them well.
-template<class T> class AnyPtr
-{
-    enum { RawPtr, UPtr, ShPtr };
+// a unique_ptr which a non-copy.
+template<class T>
+class AnyPtr {
+    enum { RawPtr, UPtr, ShPtr, WkPtr };
 
-    boost::variant<T *, std::unique_ptr<T>, std::shared_ptr<T>> ptr;
+    boost::variant<T*, std::unique_ptr<T>, std::shared_ptr<T>, std::weak_ptr<T>> ptr;
 
     template<class Self> static T *get_ptr(Self &&s)
     {
@@ -35,108 +28,101 @@ template<class T> class AnyPtr
         case RawPtr: return boost::get<T *>(s.ptr);
         case UPtr: return boost::get<std::unique_ptr<T>>(s.ptr).get();
         case ShPtr: return boost::get<std::shared_ptr<T>>(s.ptr).get();
+        case WkPtr: {
+            auto shptr = boost::get<std::weak_ptr<T>>(s.ptr).lock();
+            return shptr.get();
+        }
         }
 
         return nullptr;
     }
 
-    template<class TT> friend class AnyPtr;
-
-    template<class TT> using SimilarPtrOnly = std::enable_if_t<std::is_convertible_v<TT *, T *>>;
-
 public:
-    AnyPtr() noexcept = default;
+    template<class TT = T, class = std::enable_if_t<std::is_convertible_v<TT, T>>>
+    AnyPtr(TT *p = nullptr) : ptr{p}
+    {}
+    template<class TT, class = std::enable_if_t<std::is_convertible_v<TT, T>>>
+    AnyPtr(std::unique_ptr<TT> p) : ptr{std::unique_ptr<T>(std::move(p))}
+    {}
+    template<class TT, class = std::enable_if_t<std::is_convertible_v<TT, T>>>
+    AnyPtr(std::shared_ptr<TT> p) : ptr{std::shared_ptr<T>(std::move(p))}
+    {}
+    template<class TT, class = std::enable_if_t<std::is_convertible_v<TT, T>>>
+    AnyPtr(std::weak_ptr<TT> p) : ptr{std::weak_ptr<T>(std::move(p))}
+    {}
 
-    AnyPtr(T *p) noexcept : ptr{p} {}
-
-    AnyPtr(std::nullptr_t) noexcept {};
-
-    template<class TT, class = SimilarPtrOnly<TT>> AnyPtr(TT *p) noexcept : ptr{p} {}
-    template<class TT = T, class = SimilarPtrOnly<TT>> AnyPtr(std::unique_ptr<TT> p) noexcept : ptr{std::unique_ptr<T>(std::move(p))} {}
-    template<class TT = T, class = SimilarPtrOnly<TT>> AnyPtr(std::shared_ptr<TT> p) noexcept : ptr{std::shared_ptr<T>(std::move(p))} {}
+    ~AnyPtr() = default;
 
     AnyPtr(AnyPtr &&other) noexcept : ptr{std::move(other.ptr)} {}
-
-    template<class TT, class = SimilarPtrOnly<TT>> AnyPtr(AnyPtr<TT> &&other) noexcept { this->operator=(std::move(other)); }
-
     AnyPtr(const AnyPtr &other) = delete;
 
-    AnyPtr &operator=(AnyPtr &&other) noexcept
-    {
-        ptr = std::move(other.ptr);
-        return *this;
-    }
-
+    AnyPtr &operator=(AnyPtr &&other) noexcept { ptr = std::move(other.ptr); return *this; }
     AnyPtr &operator=(const AnyPtr &other) = delete;
 
-    template<class TT, class = SimilarPtrOnly<TT>> AnyPtr &operator=(AnyPtr<TT> &&other) noexcept
-    {
-        switch (other.ptr.which()) {
-        case RawPtr: *this = boost::get<TT *>(other.ptr); break;
-        case UPtr: *this = std::move(boost::get<std::unique_ptr<TT>>(other.ptr)); break;
-        case ShPtr: *this = std::move(boost::get<std::shared_ptr<TT>>(other.ptr)); break;
-        }
+    template<class TT, class = std::enable_if_t<std::is_convertible_v<TT, T>>>
+    AnyPtr &operator=(TT *p) { ptr = p; return *this; }
 
-        return *this;
-    }
+    template<class TT, class = std::enable_if_t<std::is_convertible_v<TT, T>>>
+    AnyPtr &operator=(std::unique_ptr<TT> p) { ptr = std::move(p); return *this; }
 
-    template<class TT, class = SimilarPtrOnly<TT>> AnyPtr &operator=(TT *p) noexcept
-    {
-        ptr = static_cast<T *>(p);
-        return *this;
-    }
+    template<class TT, class = std::enable_if_t<std::is_convertible_v<TT, T>>>
+    AnyPtr &operator=(std::shared_ptr<TT> p) { ptr = p; return *this; }
 
-    template<class TT, class = SimilarPtrOnly<TT>> AnyPtr &operator=(std::unique_ptr<TT> p) noexcept
-    {
-        ptr = std::unique_ptr<T>(std::move(p));
-        return *this;
-    }
+    template<class TT, class = std::enable_if_t<std::is_convertible_v<TT, T>>>
+    AnyPtr &operator=(std::weak_ptr<TT> p) { ptr = std::move(p); return *this; }
 
-    template<class TT, class = SimilarPtrOnly<TT>> AnyPtr &operator=(std::shared_ptr<TT> p) noexcept
-    {
-        ptr = std::shared_ptr<T>(std::move(p));
-        return *this;
-    }
+    const T &operator*() const { return *get_ptr(*this); }
+    T &operator*() { return *get_ptr(*this); }
 
-    const T &operator*() const noexcept { return *get_ptr(*this); }
-    T &      operator*() noexcept { return *get_ptr(*this); }
+    T *operator->() { return get_ptr(*this); }
+    const T *operator->() const { return get_ptr(*this); }
 
-    T *      operator->() noexcept { return get_ptr(*this); }
-    const T *operator->() const noexcept { return get_ptr(*this); }
+    T *get() { return get_ptr(*this); }
+    const T *get() const { return get_ptr(*this); }
 
-    T *      get() noexcept { return get_ptr(*this); }
-    const T *get() const noexcept { return get_ptr(*this); }
-
-    operator bool() const noexcept
+    operator bool() const
     {
         switch (ptr.which()) {
         case RawPtr: return bool(boost::get<T *>(ptr));
         case UPtr: return bool(boost::get<std::unique_ptr<T>>(ptr));
         case ShPtr: return bool(boost::get<std::shared_ptr<T>>(ptr));
+        case WkPtr: {
+            auto shptr = boost::get<std::weak_ptr<T>>(ptr).lock();
+            return bool(shptr);
+        }
         }
 
         return false;
     }
 
-    // If the stored pointer is a shared pointer, returns a reference
+    // If the stored pointer is a shared or weak pointer, returns a reference
     // counted copy. Empty shared pointer is returned otherwise.
-    std::shared_ptr<T> get_shared_cpy() const noexcept
+    std::shared_ptr<T> get_shared_cpy() const
     {
         std::shared_ptr<T> ret;
 
-        if (ptr.which() == ShPtr) ret = boost::get<std::shared_ptr<T>>(ptr);
+        switch (ptr.which()) {
+        case ShPtr: ret = boost::get<std::shared_ptr<T>>(ptr); break;
+        case WkPtr: ret = boost::get<std::weak_ptr<T>>(ptr).lock(); break;
+        default:
+            ;
+        }
 
         return ret;
     }
 
     // If the underlying pointer is unique, convert to shared pointer
-    void convert_unique_to_shared() noexcept
+    void convert_unique_to_shared()
     {
-        if (ptr.which() == UPtr) ptr = std::shared_ptr<T>{std::move(boost::get<std::unique_ptr<T>>(ptr))};
+        if (ptr.which() == UPtr)
+            ptr = std::shared_ptr<T>{std::move(boost::get<std::unique_ptr<T>>(ptr))};
     }
 
     // Returns true if the data is owned by this AnyPtr instance
-    bool is_owned() const noexcept { return ptr.which() == UPtr || ptr.which() == ShPtr; }
+    bool is_owned() const noexcept
+    {
+        return ptr.which() == UPtr || ptr.which() == ShPtr;
+    }
 };
 
 } // namespace Slic3r
