@@ -6301,6 +6301,7 @@ void MachineObject::parse_new_info(json print)
 
     if (!stat.empty()) {
         camera_recording = get_flag_bits(stat, 7);
+        m_lamp_close_recheck = (get_flag_bits(stat, 36) == 1);
     }
 
     /*device*/
