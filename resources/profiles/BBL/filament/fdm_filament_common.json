@@ -171,6 +171,9 @@
     "nozzle_temperature_initial_layer": [
         "200"
     ],
+    "long_retractions_when_ec": [
+        "0"
+    ],
     "overhang_fan_speed": [
         "100"
     ],
@@ -182,6 +185,9 @@
     ],
     "required_nozzle_HRC": [
         "3"
+    ],
+    "retraction_distances_when_ec": [
+        "0"
     ],
     "supertack_plate_temp": [
         "45"

@@ -3513,6 +3513,8 @@ void TabFilament::build()
         optgroup = page->new_optgroup(L("Multi Filament"));
         optgroup->append_single_option_line("filament_flush_temp", "", 0);
         optgroup->append_single_option_line("filament_flush_volumetric_speed", "", 0);
+        optgroup->append_single_option_line("long_retractions_when_ec", "" , 0);
+        optgroup->append_single_option_line("retraction_distances_when_ec", "" , 0);
         //BBS
 #if 0
     //page = add_options_page(L("Dependencies"), "advanced");
@@ -3617,6 +3619,11 @@ void TabFilament::toggle_options()
 
         for (auto el : {"supertack_plate_temp", "supertack_plate_temp_initial_layer", "cool_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp", "eng_plate_temp_initial_layer", "textured_plate_temp", "textured_plate_temp_initial_layer"})
             toggle_line(el, is_BBL_printer);
+    }
+
+    if(m_active_page->title() == "Multi Filament"){
+        const int extruder_idx = m_variant_combo->GetSelection();
+        toggle_line("retraction_distances_when_ec", m_config->opt_bool_nullable("long_retractions_when_ec", extruder_idx), 256 + extruder_idx);
     }
 
     if (m_active_page->title() == "Setting Overrides")
