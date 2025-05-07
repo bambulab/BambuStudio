@@ -1083,6 +1083,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                 enable_long_retraction_when_cut))
     ((ConfigOptionFloatsNullable,      retraction_distances_when_cut))
     ((ConfigOptionBoolsNullable,       long_retractions_when_cut))
+    ((ConfigOptionFloatsNullable,      retraction_distances_when_ec))
+    ((ConfigOptionBoolsNullable,       long_retractions_when_ec))
     ((ConfigOptionFloatsNullable,      z_hop))
     // BBS
     ((ConfigOptionEnumsGenericNullable,z_hop_types))
