@@ -271,20 +271,6 @@ static std::map<BedType, std::string> bed_type_thumbnails = {
     {BedType::btSuperTack, "bed_cool_supertack"}
 };
 
-// print_model_id
-static std::map<std::string, std::string> printer_thumbnails = {
-    {"N1", "printer_preview_N1"},
-    {"N2S", "printer_preview_N2S"},
-    {"C11", "printer_preview_C11"},
-    {"C12", "printer_preview_C12"},
-    {"C13", "printer_preview_C13"},
-    {"BL-P001", "printer_preview_BL-P001"},
-    {"BL-P002", "printer_preview_BL-P002"},
-    {"O1D", "printer_preview_O1D"},
-    {"O1E", "printer_preview_O1E"},
-    {"O1S", "printer_preview_O1S"}
-};
-
 enum SlicedInfoIdx
 {
     siFilament_m,
@@ -3581,10 +3567,12 @@ void Sidebar::update_printer_thumbnail()
     auto& preset_bundle = wxGetApp().preset_bundle;
     Preset & selected_preset = preset_bundle->printers.get_edited_preset();
     std::string printer_type    = selected_preset.get_current_printer_type(preset_bundle);
-    if (printer_thumbnails.find(printer_type) != printer_thumbnails.end())
-        p->image_printer->SetBitmap(create_scaled_bitmap(printer_thumbnails[printer_type], this, 48));
-    else
+    try {
+        p->image_printer->SetBitmap(create_scaled_bitmap("printer_preview_" + printer_type, this, 48));
+    }
+    catch (...) {
         p->image_printer->SetBitmap(create_scaled_bitmap("printer_placeholder", this, 48));
+    }
 }
 
 void Sidebar::auto_calc_flushing_volumes(const int filament_idx, const int extruder_id) {
@@ -9334,9 +9322,9 @@ void Plater::priv::on_helio_processing_complete(HelioCompletionEvent &a)
             }
         }
         catch (...){
-            BOOST_LOG_TRIVIAL(error) << "Helio Failed to rename file"; 
+            BOOST_LOG_TRIVIAL(error) << "Helio Failed to rename file";
         }
-        
+
 
         std::string copied;
         copy_file(a.simulated_path, a.tmp_path, copied);
