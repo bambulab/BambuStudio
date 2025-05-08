@@ -2854,7 +2854,7 @@ void TreeSupport::drop_nodes()
             }
             if (node.to_buildplate || parts.empty()) //It's outside, so make it go towards the build plate.
             {
-                if (nodes_per_part[0][node.position])
+                if (node.type ==eCircle && nodes_per_part[0][node.position])
                     p_node->position += Point(1, 1);
                 nodes_per_part[0][node.position] = p_node;
                 continue;
@@ -2890,7 +2890,7 @@ void TreeSupport::drop_nodes()
                 }
             }
             //Put it in the best one.
-            if (nodes_per_part[closest_part + 1][node.position])
+            if (node.type == eCircle && nodes_per_part[closest_part + 1][node.position])
                 p_node->position += Point(1, 1);
             nodes_per_part[closest_part + 1][node.position] = p_node; //Index + 1 because the 0th index is the outside part.
         }
