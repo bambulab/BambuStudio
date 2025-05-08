@@ -4419,6 +4419,10 @@ int CLI::run(int argc, char **argv)
             if (orients_requirement[o->id().id])
             {
                 BOOST_LOG_TRIVIAL(info) << "Before process command, Orient object, name=" << o->name <<",id="<<o->id().id<<std::endl;
+                if (!load_process_config.empty())
+                {
+                    o->config.assign_config(load_process_config);
+                }
                 orientation::orient(o);
                 oriented_or_arranged = true;
             }

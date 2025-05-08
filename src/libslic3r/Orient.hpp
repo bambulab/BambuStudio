@@ -102,7 +102,7 @@ struct OrientParams {
     float FIRST_LAY_H = 0.2f;//0.029;
     float VECTOR_TOL = -0.0011163303070972383f;
     float NEGL_FACE_SIZE = 0.1f;
-    float ASCENT= -0.5f;
+    float ASCENT= -0.86602540378f;
     float PLAFOND_ADV = 0.04079208948120519f;
     float CONTOUR_AMOUNT = 0.0101472219892684f;
     float OV_H = 1.0370178217794535f;
@@ -119,7 +119,7 @@ struct OrientParams {
     float BOTTOM_HULL_MAX = 2000;// max bottom hull area to clip //600
     float APPERANCE_FACE_SUPP=3; // penalty of generating supports on appearance face
 
-    float overhang_angle = 60.f;
+    float overhang_angle = 30.f;
     bool use_low_angle_face = true;
     bool min_volume = false;
     Eigen::Vector3f fun_dir;

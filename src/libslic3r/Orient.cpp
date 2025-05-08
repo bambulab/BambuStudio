@@ -519,6 +519,11 @@ void orient(ModelObject* obj)
 {
     auto m = obj->mesh();
     AutoOrienter orienter(&m);
+    if (obj->config.has("support_threshold_angle"))
+    {
+        orienter.params.overhang_angle = obj->config.opt_int("support_threshold_angle");
+        orienter.params.ASCENT = cos(PI - orienter.params.overhang_angle * PI / 180);
+    }
     Vec3d orientation = orienter.process();
     Vec3d axis;
     double angle;
