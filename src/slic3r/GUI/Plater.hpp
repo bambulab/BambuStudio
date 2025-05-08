@@ -601,7 +601,7 @@ public:
     //BBS:
     void edit_text();
     bool can_edit_text() const;
-
+    std::string get_3mf_filename() { return m_3mf_path; };
     bool can_delete() const;
     bool can_delete_all() const;
     bool can_add_model() const;
@@ -846,6 +846,7 @@ public:
     static bool has_illegal_filename_characters(const std::string& name);
     static void show_illegal_characters_warning(wxWindow* parent);
 
+
     std::string get_preview_only_filename() { return m_preview_only_filename; };
 
     bool last_arrange_job_is_finished()
@@ -859,7 +860,7 @@ public:
 private:
     struct priv;
     std::unique_ptr<priv> p;
-
+    std::string           m_3mf_path;
     // Set true during PopupMenu() tracking to suppress immediate error message boxes.
     // The error messages are collected to m_tracking_popup_menu_error_message instead and these error messages
     // are shown after the pop-up dialog closes.
