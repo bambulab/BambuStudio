@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-06 10:44+0800\n"
+"POT-Creation-Date: 2025-05-08 10:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -3407,6 +3407,10 @@ msgstr ""
 msgid "TPU is not supported by %s extruder for this printer."
 msgstr "TPU не підтримується екструдером %s для цього принтера."
 
+#, c-format, boost-format
+msgid "%s is not supported by %s extruder."
+msgstr ""
+
 msgid "Unknown"
 msgstr "Невідомий"
 
@@ -3469,10 +3473,6 @@ msgstr "Не вдалося створити Gcode для калібруванн
 
 msgid "Calibration error"
 msgstr "Помилка калібрування"
-
-#, c-format, boost-format
-msgid "%s is not supported by %s extruder."
-msgstr ""
 
 msgid "TPU is not supported by AMS."
 msgstr "TPU не підтримується AMS."
@@ -5203,6 +5203,15 @@ msgstr "Спортивний"
 msgid "Ludicrous"
 msgstr "Безглуздий"
 
+msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
+msgstr ""
+
+msgid "Turn it Off"
+msgstr ""
+
+msgid "Keep it On"
+msgstr ""
+
 msgid "Can't start this without storage."
 msgstr ""
 
@@ -6236,12 +6245,6 @@ msgstr ""
 msgid "Private protection"
 msgstr "Приватний захист"
 
-msgid "For PVA filaments, it is strongly recommended to use normal support to avoid print failures."
-msgstr "Для PVA філаментів настійно рекомендується використовувати нормальні підтримки щоб уникнути помилок друку."
-
-msgid "Change these settings automatically? \n"
-msgstr "Змінити ці налаштування автоматично? \n"
-
 msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
@@ -6766,6 +6769,9 @@ msgstr "Змінити попереднє встановлення"
 msgid "Project-inside presets"
 msgstr "Внутрішні пресети проєкту"
 
+msgid "Unsupported presets"
+msgstr ""
+
 msgid "Add/Remove filaments"
 msgstr "Додати/видалити філаменти"
 
@@ -6967,9 +6973,6 @@ msgstr ""
 msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr ""
 
-msgid "Click here if you can't connect to the printer ->"
-msgstr ""
-
 msgid "Auto Bed Leveling"
 msgstr ""
 
@@ -7100,6 +7103,9 @@ msgstr ""
 msgid "Cool(Supertack)"
 msgstr ""
 
+msgid "Click here if you can't connect to the printer"
+msgstr "Клацніть тут, якщо ви не можете підключитися до принтера"
+
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "Відсутні облікові записи для входу, відображаються лише принтери в режимі LAN"
 
@@ -7156,6 +7162,15 @@ msgstr ""
 
 msgid "This printer does not support printing all plates"
 msgstr "Цей принтер не підтримує друк всіх пластин"
+
+msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
+msgstr ""
+
+msgid "High chamber temperature is required. Please close the door."
+msgstr ""
+
+msgid "The filament on the extruder may soften. Please unload."
+msgstr ""
 
 msgid "Send to Printer storage"
 msgstr ""
@@ -7333,6 +7348,11 @@ msgid "Still print by object?"
 msgstr "Ви все ще друкуєте за об’єктом?"
 
 msgid ""
+"Non-soluble support materials are not recommended for support base. \n"
+"Are you sure to use them for support base? \n"
+msgstr ""
+
+msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
 "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
@@ -7347,6 +7367,12 @@ msgstr ""
 "Змінити ці налаштування автоматично? \n"
 "Так - Змінити ці налаштування автоматично\n"
 "Ні - Не змінювати ці настройки для мене"
+
+msgid ""
+"When using soluble material for the support interface, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+"and use soluble materials for both support interface and support base"
+msgstr ""
 
 msgid ""
 "Layer height is too small.\n"
@@ -8969,9 +8995,6 @@ msgstr "Висота друку екструдера"
 msgid "Maximum printable height of this extruder which is limited by mechanism of printer"
 msgstr "Максимальна висота друку цього екструдера, обмежена механізмом принтера"
 
-msgid "Unprintable filament type"
-msgstr "Недрукований тип філаменту"
-
 msgid "Printer preset names"
 msgstr "Імена налаштувань принтера"
 
@@ -9724,6 +9747,12 @@ msgstr "Матеріал підтримки"
 
 msgid "Support material is commonly used to print support and support interface"
 msgstr "Допоміжний матеріал зазвичай використовується для друку підтримки"
+
+msgid "Filament printable"
+msgstr ""
+
+msgid "The filament is printable in extruder"
+msgstr ""
 
 msgid "Filament prime volume"
 msgstr ""
@@ -13290,6 +13319,15 @@ msgstr ""
 "Уникнення деформації\n"
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як ABS, відповідне підвищення температури гарячого ліжка може зменшити ймовірність деформації."
 
+#~ msgid "For PVA filaments, it is strongly recommended to use normal support to avoid print failures."
+#~ msgstr "Для PVA філаментів настійно рекомендується використовувати нормальні підтримки щоб уникнути помилок друку."
+
+#~ msgid "Change these settings automatically? \n"
+#~ msgstr "Змінити ці налаштування автоматично? \n"
+
+#~ msgid "Unprintable filament type"
+#~ msgstr "Недрукований тип філаменту"
+
 #~ msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
 #~ msgstr "Зміна швидкості вентилятора під час друку може вплинути на якість, обирайте обережно."
 
@@ -13319,9 +13357,6 @@ msgstr ""
 
 #~ msgid "rear"
 #~ msgstr "зад"
-
-#~ msgid "Click here if you can't connect to the printer"
-#~ msgstr "Клацніть тут, якщо ви не можете підключитися до принтера"
 
 #, c-format, boost-format
 #~ msgid "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."

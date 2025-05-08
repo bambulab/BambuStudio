@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-06 10:44+0800\n"
+"POT-Creation-Date: 2025-05-08 10:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3399,6 +3399,10 @@ msgstr "jobb"
 msgid "TPU is not supported by %s extruder for this printer."
 msgstr "A TPU-t nem támogatja a(z) %s extruder ezen a nyomtatón."
 
+#, c-format, boost-format
+msgid "%s is not supported by %s extruder."
+msgstr "%s-t nem támogatja a(z) %s extruder."
+
 msgid "Unknown"
 msgstr "Ismeretlen"
 
@@ -3461,10 +3465,6 @@ msgstr "Nem sikerült létrehozni a kalibrációs G-kódot"
 
 msgid "Calibration error"
 msgstr "Kalibrációs hiba"
-
-#, c-format, boost-format
-msgid "%s is not supported by %s extruder."
-msgstr "%s-t nem támogatja a(z) %s extruder."
 
 msgid "TPU is not supported by AMS."
 msgstr "Az AMS nem támogatja a TPU-t."
@@ -5204,6 +5204,15 @@ msgstr "Sport"
 msgid "Ludicrous"
 msgstr "Őrült"
 
+msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
+msgstr ""
+
+msgid "Turn it Off"
+msgstr ""
+
+msgid "Keep it On"
+msgstr ""
+
 msgid "Can't start this without storage."
 msgstr "Nem indítható el tárhely nélkül."
 
@@ -6237,12 +6246,6 @@ msgstr ""
 msgid "Private protection"
 msgstr ""
 
-msgid "For PVA filaments, it is strongly recommended to use normal support to avoid print failures."
-msgstr "A PVA filamentek esetében a nyomtatási hibák elkerülése érdekében erősen ajánlott a normál támaszok használata."
-
-msgid "Change these settings automatically? \n"
-msgstr "Automatikusan megváltoztatod ezeket a beállításokat?\n"
-
 msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
@@ -6773,6 +6776,9 @@ msgstr "Beállítás módosítása"
 msgid "Project-inside presets"
 msgstr "Projekten belüli beállítások"
 
+msgid "Unsupported presets"
+msgstr ""
+
 msgid "Add/Remove filaments"
 msgstr "Filament hozzáadása/eltávolítása"
 
@@ -6974,9 +6980,6 @@ msgstr "Nem vagy elégedett a filamentek csoportosításával? Csoportosítás �
 msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr "A szeletelt fájlban a filamentek csoportosítása nem optimális."
 
-msgid "Click here if you can't connect to the printer ->"
-msgstr ""
-
 msgid "Auto Bed Leveling"
 msgstr "Automatikus asztalszintezés"
 
@@ -7113,6 +7116,9 @@ msgstr ""
 msgid "Cool(Supertack)"
 msgstr ""
 
+msgid "Click here if you can't connect to the printer"
+msgstr "Kattints ide, ha nem tudsz csatlakozni a nyomtatóhoz"
+
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "Nincs bejelentkezési fiók, csak a LAN módban lévő nyomtatók jelennek meg"
 
@@ -7169,6 +7175,15 @@ msgstr ""
 
 msgid "This printer does not support printing all plates"
 msgstr "Ez a nyomtató nem támogatja az összes tálcára való nyomtatást"
+
+msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
+msgstr ""
+
+msgid "High chamber temperature is required. Please close the door."
+msgstr ""
+
+msgid "The filament on the extruder may soften. Please unload."
+msgstr ""
 
 msgid "Send to Printer storage"
 msgstr "Küldés a nyomtató tárhelyére"
@@ -7346,6 +7361,11 @@ msgid "Still print by object?"
 msgstr "Továbbra is tárgyanként szeretnél nyomtatni?"
 
 msgid ""
+"Non-soluble support materials are not recommended for support base. \n"
+"Are you sure to use them for support base? \n"
+msgstr ""
+
+msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
 "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
@@ -7360,6 +7380,12 @@ msgstr ""
 "Automatikusan megváltoztatod ezeket a beállításokat?\n"
 "Igen - Módosítsa ezeket a beállításokat\n"
 "Nem  - Ne változtassa meg a beállításokat"
+
+msgid ""
+"When using soluble material for the support interface, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+"and use soluble materials for both support interface and support base"
+msgstr ""
 
 msgid ""
 "Layer height is too small.\n"
@@ -8988,9 +9014,6 @@ msgstr "Extruder nyomtatható magassága"
 msgid "Maximum printable height of this extruder which is limited by mechanism of printer"
 msgstr "Az extruder által nyomtatható maximális magasság, amelyet a nyomtató mechanikája korlátoz."
 
-msgid "Unprintable filament type"
-msgstr "Nem nyomtatható filament típus"
-
 msgid "Printer preset names"
 msgstr "Nyomtató beállítások neve"
 
@@ -9733,6 +9756,12 @@ msgstr "Támaszanyag"
 
 msgid "Support material is commonly used to print support and support interface"
 msgstr "A támaszanyag a támaszok és a támasz érintkező felületeinek nyomtatásához van használva."
+
+msgid "Filament printable"
+msgstr ""
+
+msgid "The filament is printable in extruder"
+msgstr ""
 
 msgid "Filament prime volume"
 msgstr "Filament öblítési térfogata"
@@ -13310,6 +13339,15 @@ msgstr ""
 "Vetemedés elkerülése\n"
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
 
+#~ msgid "For PVA filaments, it is strongly recommended to use normal support to avoid print failures."
+#~ msgstr "A PVA filamentek esetében a nyomtatási hibák elkerülése érdekében erősen ajánlott a normál támaszok használata."
+
+#~ msgid "Change these settings automatically? \n"
+#~ msgstr "Automatikusan megváltoztatod ezeket a beállításokat?\n"
+
+#~ msgid "Unprintable filament type"
+#~ msgstr "Nem nyomtatható filament típus"
+
 #~ msgid "isometric"
 #~ msgstr "izometrikus"
 
@@ -13324,9 +13362,6 @@ msgstr ""
 
 #~ msgid "rear"
 #~ msgstr "hátsó"
-
-#~ msgid "Click here if you can't connect to the printer"
-#~ msgstr "Kattints ide, ha nem tudsz csatlakozni a nyomtatóhoz"
 
 #, c-format, boost-format
 #~ msgid "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."

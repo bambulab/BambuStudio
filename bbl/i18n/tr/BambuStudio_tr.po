@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-06 10:44+0800\n"
+"POT-Creation-Date: 2025-05-08 10:21+0800\n"
 "PO-Revision-Date: 2025-04-15 22:16+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -3422,6 +3422,10 @@ msgstr "sağ"
 msgid "TPU is not supported by %s extruder for this printer."
 msgstr "TPU, bu yazıcı için %s ekstrüder tarafından desteklenmiyor."
 
+#, c-format, boost-format
+msgid "%s is not supported by %s extruder."
+msgstr "%s, %s ekstrüder tarafından desteklenmiyor."
+
 msgid "Unknown"
 msgstr "Bilinmeyen"
 
@@ -3484,10 +3488,6 @@ msgstr "Cali G-code oluşturma başarısız oldu"
 
 msgid "Calibration error"
 msgstr "Kalibrasyon hatası"
-
-#, c-format, boost-format
-msgid "%s is not supported by %s extruder."
-msgstr "%s, %s ekstrüder tarafından desteklenmiyor."
 
 msgid "TPU is not supported by AMS."
 msgstr "TPU, AMS tarafından desteklenmez."
@@ -5229,6 +5229,15 @@ msgstr "Spor"
 msgid "Ludicrous"
 msgstr "Absürt"
 
+msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
+msgstr ""
+
+msgid "Turn it Off"
+msgstr ""
+
+msgid "Keep it On"
+msgstr ""
+
 msgid "Can't start this without storage."
 msgstr "Depolama olmadan buna başlayamazsınız."
 
@@ -6265,12 +6274,6 @@ msgstr ""
 msgid "Private protection"
 msgstr "Özel koruma"
 
-msgid "For PVA filaments, it is strongly recommended to use normal support to avoid print failures."
-msgstr "PVA filamentlerinde, baskı hatalarını önlemek için normal destek kullanılması şiddetle tavsiye edilir."
-
-msgid "Change these settings automatically? \n"
-msgstr "Bu ayarlar otomatik olarak değiştirilsin mi?\n"
-
 msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
@@ -6801,6 +6804,9 @@ msgstr "Ön ayarı düzenle"
 msgid "Project-inside presets"
 msgstr "Proje içi ön ayarlar"
 
+msgid "Unsupported presets"
+msgstr ""
+
 msgid "Add/Remove filaments"
 msgstr "Filament Ekle/Kaldır"
 
@@ -7002,9 +7008,6 @@ msgstr "Filamentlerin gruplandırılmasından memnun değil misiniz? Yeniden gru
 msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr "Dilimlenmiş dosyadaki filament gruplama yönteminiz ideal değil."
 
-msgid "Click here if you can't connect to the printer ->"
-msgstr ""
-
 msgid "Auto Bed Leveling"
 msgstr "Otomatik yatak tesviyesi"
 
@@ -7141,6 +7144,9 @@ msgstr "Yüksek Sıcaklık Plakası"
 msgid "Cool(Supertack)"
 msgstr "Soğuk (Supertack)"
 
+msgid "Click here if you can't connect to the printer"
+msgstr "Yazıcıya bağlanamıyorsanız burayı tıklayın"
+
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "Oturum açma hesabı yok, yalnızca LAN modundaki yazıcılar görüntüleniyor"
 
@@ -7197,6 +7203,15 @@ msgstr "Özel dinamik akış değerini etkinleştirmek için dinamik akış kali
 
 msgid "This printer does not support printing all plates"
 msgstr "Bu yazıcı tüm kalıpların yazdırılmasını desteklemiyor"
+
+msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
+msgstr ""
+
+msgid "High chamber temperature is required. Please close the door."
+msgstr ""
+
+msgid "The filament on the extruder may soften. Please unload."
+msgstr ""
 
 msgid "Send to Printer storage"
 msgstr "Yazıcı depolama alanına gönder"
@@ -7372,6 +7387,11 @@ msgid "Still print by object?"
 msgstr "Hala nesneye göre yazdırıyor musunuz?"
 
 msgid ""
+"Non-soluble support materials are not recommended for support base. \n"
+"Are you sure to use them for support base? \n"
+msgstr ""
+
+msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
 "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
@@ -7386,6 +7406,12 @@ msgstr ""
 "Bu ayarlar otomatik olarak değiştirilsin mi?\n"
 "Evet - Bu ayarları otomatik olarak değiştir\n"
 "Hayır - Bu ayarları benim için değiştirme"
+
+msgid ""
+"When using soluble material for the support interface, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+"and use soluble materials for both support interface and support base"
+msgstr ""
 
 msgid ""
 "Layer height is too small.\n"
@@ -9016,9 +9042,6 @@ msgstr "Ekstrüder yazdırılabilir yükseklik"
 msgid "Maximum printable height of this extruder which is limited by mechanism of printer"
 msgstr "Bu ekstrüderin maksimum yazdırılabilir yüksekliği yazıcı mekanizması ile sınırlıdır"
 
-msgid "Unprintable filament type"
-msgstr "Yazdırılamayan filament tipi"
-
 msgid "Printer preset names"
 msgstr "Yazıcı ön ayar adları"
 
@@ -9761,6 +9784,12 @@ msgstr "Destek malzemesi"
 
 msgid "Support material is commonly used to print support and support interface"
 msgstr "Destek malzemesi yaygın olarak destek ve destek arayüzünü yazdırmak için kullanılır"
+
+msgid "Filament printable"
+msgstr ""
+
+msgid "The filament is printable in extruder"
+msgstr ""
 
 msgid "Filament prime volume"
 msgstr "Filament ana hacmi"
@@ -13341,6 +13370,15 @@ msgstr ""
 "Eğilmeyi önleyin\n"
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını azaltabileceğini biliyor muydunuz."
 
+#~ msgid "For PVA filaments, it is strongly recommended to use normal support to avoid print failures."
+#~ msgstr "PVA filamentlerinde, baskı hatalarını önlemek için normal destek kullanılması şiddetle tavsiye edilir."
+
+#~ msgid "Change these settings automatically? \n"
+#~ msgstr "Bu ayarlar otomatik olarak değiştirilsin mi?\n"
+
+#~ msgid "Unprintable filament type"
+#~ msgstr "Yazdırılamayan filament tipi"
+
 #~ msgid "isometric"
 #~ msgstr "izometrik"
 
@@ -13358,9 +13396,6 @@ msgstr ""
 
 #~ msgid "rear"
 #~ msgstr "arka"
-
-#~ msgid "Click here if you can't connect to the printer"
-#~ msgstr "Yazıcıya bağlanamıyorsanız burayı tıklayın"
 
 #, c-format, boost-format
 #~ msgid "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."

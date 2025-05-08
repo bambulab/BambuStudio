@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-06 10:44+0800\n"
+"POT-Creation-Date: 2025-05-08 10:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3405,6 +3405,10 @@ msgstr "prawo"
 msgid "TPU is not supported by %s extruder for this printer."
 msgstr "TPU nie jest obsługiwane przez ekstruder %s tej drukarki."
 
+#, c-format, boost-format
+msgid "%s is not supported by %s extruder."
+msgstr "%s nie jest obsługiwane przez ekstruder %s."
+
 msgid "Unknown"
 msgstr "Nieznane"
 
@@ -3467,10 +3471,6 @@ msgstr "Nie udało się wygenerować kodu kalibracji"
 
 msgid "Calibration error"
 msgstr "Błąd kalibracji"
-
-#, c-format, boost-format
-msgid "%s is not supported by %s extruder."
-msgstr "%s nie jest obsługiwane przez ekstruder %s."
 
 msgid "TPU is not supported by AMS."
 msgstr "TPU nie jest obsługiwane przez AMS."
@@ -5215,6 +5215,15 @@ msgstr "Sport"
 msgid "Ludicrous"
 msgstr "Szalony"
 
+msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
+msgstr ""
+
+msgid "Turn it Off"
+msgstr ""
+
+msgid "Keep it On"
+msgstr ""
+
 msgid "Can't start this without storage."
 msgstr "Nie można tego uruchomić bez nośnika pamięci."
 
@@ -6256,12 +6265,6 @@ msgstr ""
 msgid "Private protection"
 msgstr "Ochrona prywatności"
 
-msgid "For PVA filaments, it is strongly recommended to use normal support to avoid print failures."
-msgstr "W przypadku filamentów PVA zdecydowanie zaleca się stosowanie normalnej podpory, aby uniknąć błędów druku."
-
-msgid "Change these settings automatically? \n"
-msgstr "Czy chcesz automatycznie zmieniać te ustawienia?\n"
-
 msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
@@ -6792,6 +6795,9 @@ msgstr "Edytuj profil"
 msgid "Project-inside presets"
 msgstr "Profile wewnątrz projektu"
 
+msgid "Unsupported presets"
+msgstr ""
+
 msgid "Add/Remove filaments"
 msgstr "Dodaj/Usuń filamenty"
 
@@ -6993,9 +6999,6 @@ msgstr "Nie jesteś zadowolony z grupowania filamentów? Zmień grupowanie i prz
 msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr "Twoja metoda grupowania filamentów w pliku cięcia nie jest optymalna."
 
-msgid "Click here if you can't connect to the printer ->"
-msgstr ""
-
 msgid "Auto Bed Leveling"
 msgstr "Automatyczne poziomowanie stołu"
 
@@ -7132,6 +7135,9 @@ msgstr ""
 msgid "Cool(Supertack)"
 msgstr ""
 
+msgid "Click here if you can't connect to the printer"
+msgstr "Kliknij tutaj, jeśli nie możesz połączyć się z drukarką"
+
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "Brak konta logowania, wyświetlane są tylko drukarki w trybie LAN"
 
@@ -7188,6 +7194,15 @@ msgstr "Ustaw dynamiczną kalibrację flow na 'wyłączony' aby włączyć włas
 
 msgid "This printer does not support printing all plates"
 msgstr "Ta drukarka nie obsługuje drukowania wszystkich stołów"
+
+msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
+msgstr ""
+
+msgid "High chamber temperature is required. Please close the door."
+msgstr ""
+
+msgid "The filament on the extruder may soften. Please unload."
+msgstr ""
 
 msgid "Send to Printer storage"
 msgstr "Wyślij do pamięci drukarki"
@@ -7365,6 +7380,11 @@ msgid "Still print by object?"
 msgstr "Wciąż drukować według obiektu?"
 
 msgid ""
+"Non-soluble support materials are not recommended for support base. \n"
+"Are you sure to use them for support base? \n"
+msgstr ""
+
+msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
 "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
@@ -7379,6 +7399,12 @@ msgstr ""
 "Chcesz automatycznie zmieniać te ustawienia?\n"
 "Tak - Zmień te ustawienia automatycznie\n"
 "Nie  - Nie zmieniaj tych ustawień dla mnie"
+
+msgid ""
+"When using soluble material for the support interface, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+"and use soluble materials for both support interface and support base"
+msgstr ""
 
 msgid ""
 "Layer height is too small.\n"
@@ -9014,9 +9040,6 @@ msgstr "Wysokość druku ekstrudera"
 msgid "Maximum printable height of this extruder which is limited by mechanism of printer"
 msgstr "Maksymalna wysokość robocza tego ekstrudera, wynikająca z ograniczeń mechanizmu drukarki"
 
-msgid "Unprintable filament type"
-msgstr "Typ filamentu, który nie może być użyty do druku"
-
 msgid "Printer preset names"
 msgstr "Nazwy profili drukarki"
 
@@ -9759,6 +9782,12 @@ msgstr "Materiał podporowy"
 
 msgid "Support material is commonly used to print support and support interface"
 msgstr "Materiał podporowy jest powszechnie używany do drukowania podpór i warstw łączących podpory z modelem"
+
+msgid "Filament printable"
+msgstr ""
+
+msgid "The filament is printable in extruder"
+msgstr ""
 
 msgid "Filament prime volume"
 msgstr "Objętość głównego filamentu"
@@ -13340,6 +13369,15 @@ msgstr ""
 "Unikaj wypaczania\n"
 "Czy wiesz, że podczas drukowania materiałów podatnych na wypaczanie, takich jak ABS, odpowiednie zwiększenie temperatury stołu grzejnego może zmniejszyć prawdopodobieństwo wypaczania."
 
+#~ msgid "For PVA filaments, it is strongly recommended to use normal support to avoid print failures."
+#~ msgstr "W przypadku filamentów PVA zdecydowanie zaleca się stosowanie normalnej podpory, aby uniknąć błędów druku."
+
+#~ msgid "Change these settings automatically? \n"
+#~ msgstr "Czy chcesz automatycznie zmieniać te ustawienia?\n"
+
+#~ msgid "Unprintable filament type"
+#~ msgstr "Typ filamentu, który nie może być użyty do druku"
+
 #~ msgid "isometric"
 #~ msgstr "izometryczny"
 
@@ -13357,9 +13395,6 @@ msgstr ""
 
 #~ msgid "rear"
 #~ msgstr "tył"
-
-#~ msgid "Click here if you can't connect to the printer"
-#~ msgstr "Kliknij tutaj, jeśli nie możesz połączyć się z drukarką"
 
 #, c-format, boost-format
 #~ msgid "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
