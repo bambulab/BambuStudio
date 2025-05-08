@@ -5246,7 +5246,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     bool translate_old = false;
     int current_width, current_depth, current_height, project_filament_count = 1;
 
-    if (input_files.empty()) { return std::vector<size_t>(); }
+    if (input_files.empty())
+        return std::vector<size_t>();
+
+    if (!input_files.empty())
+        q->m_3mf_path = input_files[0].string();
 
     // BBS
     int filaments_cnt = config->opt<ConfigOptionStrings>("filament_colour")->values.size();
@@ -13794,6 +13798,7 @@ void Plater::export_gcode_3mf(bool export_all)
     default_output_file = into_path(get_export_gcode_filename(".gcode.3mf", false, export_all));
     if (default_output_file.empty()) {
         try {
+
             start_dir = appconfig.get_last_output_dir("", false);
             wxString filename = get_export_gcode_filename(".gcode.3mf", true, export_all);
             std::string full_filename = start_dir + "/" + filename.utf8_string();
@@ -14983,12 +14988,14 @@ int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
 {
     int result = 0;
     /* generate 3mf */
+
     if (plate_idx == PLATE_CURRENT_IDX) {
         p->m_print_job_data.plate_idx = get_partplate_list().get_curr_plate_index();
     }
     else {
         p->m_print_job_data.plate_idx = plate_idx;
     }
+
 
     PartPlate* plate = get_partplate_list().get_curr_plate();
     try {
