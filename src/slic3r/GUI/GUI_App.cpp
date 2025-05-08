@@ -1100,7 +1100,7 @@ void GUI_App::post_init()
 
             std::string download_url;
 #if BBL_RELEASE_TO_PUBLIC
-			USHORT ext_url_open_state = -1; // -1 not set, wxNO not open, wxYES open
+			short ext_url_open_state = -1; // -1 not set, wxNO not open, wxYES open
             for (auto input_str : input_str_arr) {
                 if (boost::starts_with(input_str, "http://makerworld") ||
                     boost::starts_with(input_str, "https://makerworld") ||
