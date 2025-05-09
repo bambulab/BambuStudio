@@ -8446,7 +8446,10 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
         Preset::remove_suffix_modified(wx_name.ToUTF8().data()));
 
     if (preset_type == Preset::TYPE_FILAMENT) {
+        std::string old_name = wxGetApp().preset_bundle->filaments.get_edited_preset().name;
         wxGetApp().preset_bundle->set_filament_preset(idx, preset_name);
+        if (!q->on_filament_change(idx))
+            wxGetApp().preset_bundle->set_filament_preset(idx, old_name);
         wxGetApp().plater()->update_project_dirty_from_presets();
         wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
         dynamic_filament_list.update();
@@ -8456,7 +8459,6 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
         }
         auto select_flag = combo->GetFlag(selection);
         combo->ShowBadge(select_flag == (int)PresetComboBox::FilamentAMSType::FROM_AMS);
-        q->on_filament_change(idx);
     }
     bool select_preset = !combo->selection_is_changed_according_to_physical_printers();
     // TODO: ?
@@ -15218,15 +15220,27 @@ bool Plater::search_string_getter(int idx, const char** label, const char** tool
     return false;
 }
 
-void Plater::on_filament_change(size_t filament_idx)
+bool Plater::on_filament_change(size_t filament_idx)
 {
     auto& filament_presets = wxGetApp().preset_bundle->filament_presets;
     if (filament_idx >= filament_presets.size())
-        return;
+        return false;
     Slic3r::Preset* filament = wxGetApp().preset_bundle->filaments.find_preset(filament_presets[filament_idx]);
     if (filament == nullptr)
-        return;
+        return false;
     std::string filament_type = filament->config.option<ConfigOptionStrings>("filament_type")->values[0];
+    if (filament_type == "PVA") {
+        auto  nozzle_diameters = p->config->option<ConfigOptionFloatsNullable>("nozzle_diameter")->values;
+        if (std::find(nozzle_diameters.begin(), nozzle_diameters.end(), 0.2) != nozzle_diameters.end()) {
+            wxString msg_text = _(L("It is not recommended to use PVA filaments with 0.2mm nozzles."));
+            msg_text += "\n" + _(L("Are you sure to use them? \n"));
+            MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
+            if (dialog.ShowModal() == wxID_NO) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 // BBS.

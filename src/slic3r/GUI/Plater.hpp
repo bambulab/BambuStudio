@@ -505,7 +505,7 @@ public:
     // BBS: return false if not changed
     bool leave_gizmos_stack();
 
-    void on_filament_change(size_t filament_idx);
+    bool on_filament_change(size_t filament_idx);
     void on_filament_count_change(size_t extruders_count);
     void on_filaments_delete(size_t extruders_count, size_t filament_id, int replace_filament_id = -1);
     std::vector<std::array<float, 4>> get_extruders_colors();
