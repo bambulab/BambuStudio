@@ -219,7 +219,7 @@ msgid "Shift + L"
 msgstr "Shift + L"
 
 msgid "Toggle non-manifold edges"
-msgstr "Attiva/disattiva i bordi non manifold"
+msgstr "Attiva/disattiva rilevamento dei bordi sbagliati (non-manifold)"
 
 msgid "Rotate horizontally"
 msgstr "Ruota orizzontalmente"
@@ -432,7 +432,7 @@ msgid "Cut"
 msgstr "Taglia"
 
 msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
-msgstr "I bordi non-manifold sono causati dallo strumento di taglio, vuoi sistemarli ora?"
+msgstr "I bordi sbagliati (non-manifold) sono causati dallo strumento di taglio, vuoi sistemarli ora?"
 
 msgid "Repairing model object"
 msgstr "Riparazione oggetto"
@@ -1833,8 +1833,8 @@ msgstr[1] "%1$d Errori riparati"
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold edge."
 msgid_plural "Error: %1$d non-manifold edges."
-msgstr[0] "Errore: %1$d spigolo non manifold."
-msgstr[1] "Errore: %1$d spigoli non-manifold."
+msgstr[0] "Errore: %1$d spigolo sbagliato (non manifold)."
+msgstr[1] "Errore: %1$d spigoli sbagliati (non-manifold)."
 
 msgid "Remaining errors"
 msgstr "Errori rimanenti"
@@ -1842,8 +1842,8 @@ msgstr "Errori rimanenti"
 #, c-format, boost-format
 msgid "%1$d non-manifold edge"
 msgid_plural "%1$d non-manifold edges"
-msgstr[0] "%1$d spigolo non-manifold"
-msgstr[1] "%1$d spigoli non-manifold"
+msgstr[0] "%1$d spigolo sbagliato (non-manifold)"
+msgstr[1] "%1$d spigoli sbagliati (non-manifold)"
 
 msgid "Right click the icon to fix model object"
 msgstr "Fai clic con il pulsante destro del mouse sull'icona per riparare l'oggetto"
@@ -15096,7 +15096,7 @@ msgstr ""
 #~ msgstr "Ripara"
 
 #~ msgid "Repair the model's meshes if it is non-manifold mesh"
-#~ msgstr "Ripara le mesh del modello se sono non-manifold."
+#~ msgstr "Ripara le mesh del modello dato che è sbagliata (non-manifold)."
 
 #~ msgid "Repetions count"
 #~ msgstr "Conteggio ripetizioni"
