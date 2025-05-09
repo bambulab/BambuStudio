@@ -539,6 +539,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/NetworkAgent.hpp
     Utils/MKS.hpp
     Utils/MKS.cpp
+    Utils/CpuMemory.cpp
+    Utils/CpuMemory.hpp
     Utils/Duet.cpp
     Utils/Duet.hpp
     Utils/FlashAir.cpp

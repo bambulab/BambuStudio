@@ -38,7 +38,7 @@
 #include "format.hpp"
 #include "DailyTips.hpp"
 #include "FilamentMapDialog.hpp"
-
+#include "../Utils/CpuMemory.hpp"
 #if ENABLE_RETINA_GL
 #include "slic3r/Utils/RetinaHelper.hpp"
 #endif
@@ -1363,7 +1363,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
 
 GLCanvas3D::~GLCanvas3D()
 {
-    reset_volumes();
+    reset_volumes(false);
 
     m_sel_plate_toolbar.del_all_item();
     m_sel_plate_toolbar.del_stats_item();
@@ -1529,7 +1529,7 @@ unsigned int GLCanvas3D::get_volumes_count() const
     return (unsigned int)m_volumes.volumes.size();
 }
 
-void GLCanvas3D::reset_volumes()
+void GLCanvas3D::reset_volumes(bool set_notice)
 {
     if (!m_initialized)
         return;
@@ -1542,8 +1542,7 @@ void GLCanvas3D::reset_volumes()
     m_selection.clear();
     m_volumes.clear();
     m_dirty = true;
-
-    _set_warning_notification(EWarning::ObjectOutside, false);
+    if (set_notice) { _set_warning_notification(EWarning::ObjectOutside, false); }
 }
 
 //BBS: get current plater's bounding box
@@ -2989,7 +2988,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         }
     }
     m_volumes.volumes = std::move(glvolumes_new);
-    bool enable_lod = GUI::wxGetApp().app_config->get("enable_lod") == "true";
+    bool enable_lod   = GUI::wxGetApp().app_config->get_bool("enable_lod") && CpuMemory::cur_free_memory_less_than_specify_size_gb(LOD_FREE_MEMORY_SIZE);
     for (unsigned int obj_idx = 0; obj_idx < (unsigned int)m_model->objects.size(); ++ obj_idx) {
         const ModelObject &model_object = *m_model->objects[obj_idx];
         for (int volume_idx = 0; volume_idx < (int)model_object.volumes.size(); ++ volume_idx) {
