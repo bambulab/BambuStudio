@@ -4797,7 +4797,7 @@ msgstr ""
 msgid "File renaming failed, please try again."
 msgstr ""
 
-msgid "File upload failed, please try again."
+msgid "File download failed, please try again."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
