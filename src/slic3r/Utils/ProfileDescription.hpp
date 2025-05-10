@@ -46,4 +46,15 @@ namespace ProfileDescrption {
     const std::string PROFILE_DESCRIPTION_38 = _L("This is a water-soluble support filament, and usually it is only for the support structure and not for the model body. Printing this filament is of many requirements, and to get better printing quality, please refer to this wiki: PVA Printing Guide.");
     const std::string PROFILE_DESCRIPTION_39 = _L("This is a non-water-soluble support filament, and usually it is only for the support structure and not for the model body. To get better printing quality, please refer to this wiki: Printing Tips for Support Filament and Support Function.");
     const std::string PROFILE_DESCRIPTION_40 = _L("The generic presets are conservatively tuned for compatibility with a wider range of filaments. For higher printing quality and speeds, please use Bambu filaments with Bambu presets.");
+    const std::string PROFILE_DESCRIPTION_41 = _L("High quality profile for 0.2mm nozzle, prioritizing print quality.");
+    const std::string PROFILE_DESCRIPTION_42 = _L("High quality profile for 0.16mm layer height, prioritizing print quality and strength.");
+    const std::string PROFILE_DESCRIPTION_43 = _L("Standard profile for 0.16mm layer height, prioritizing speed.");
+    const std::string PROFILE_DESCRIPTION_44 = _L("High quality profile for 0.2mm layer height, prioritizing strength and print quality.");
+    const std::string PROFILE_DESCRIPTION_45 = _L("Standard profile for 0.4mm nozzle, prioritizing speed.");
+    const std::string PROFILE_DESCRIPTION_46 = _L("High quality profile for 0.6mm nozzle, prioritizing print quality and strength.");
+    const std::string PROFILE_DESCRIPTION_47 = _L("Strength profile for 0.6mm nozzle, prioritizing strength.");
+    const std::string PROFILE_DESCRIPTION_48 = _L("Standard profile for 0.6mm nozzle, prioritizing speed.");
+    const std::string PROFILE_DESCRIPTION_49 = _L("High quality profile for 0.8mm nozzle, prioritizing print quality.");
+    const std::string PROFILE_DESCRIPTION_50 = _L("Strength profile for 0.8mm nozzle, prioritizing strength.");
+    const std::string PROFILE_DESCRIPTION_51 = _L("Standard profile for 0.8mm nozzle, prioritizing speed.");
 }
