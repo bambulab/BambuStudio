@@ -173,6 +173,7 @@ namespace Slic3r {
         const double nozzle_diameter)
     {
         ExtrusionPaths ret_paths;
+        std::list<ExtrusionPath> ret_path_list;
         ZPaths paths_in_range = clip_extrusion(extrusion_path, clip_paths, ClipperLib_Z::ctIntersection); //doing intersection first would be faster.
 
         paths_in_range = add_sampling_points(paths_in_range, scale_(2));// enough?
@@ -184,13 +185,15 @@ namespace Slic3r {
             for (auto& p : path) { assert(p.z() != 0); }
         }
 
-        auto in_same_degree_range = [](double a, double b) -> bool {
-            int ceil_a = std::ceil(a);
-            int floor_a = std::floor(a);
-            int ceil_b = std::ceil(b);
-            int floor_b = std::floor(b);
-            return ceil_a == ceil_b && floor_a == floor_b;
-            };
+        auto get_base_degree = [](double d){
+            return std::floor(d/min_degree_gap_arachne) * min_degree_gap_arachne;
+        };
+
+        auto in_same_degree_range = [&](double a, double b) -> bool {
+            double base_a = get_base_degree(a);
+            double base_b = get_base_degree(b);
+            return std::abs(base_a - base_b) < EPSILON;
+        };
 
         struct SplitPoint
         {
@@ -199,11 +202,10 @@ namespace Slic3r {
             double  degree;
         };
 
-        auto get_split_points = [](const Point& pa, const Point& pb, const coord_t wa, const coord_t wb, const double da, const double db) -> std::vector<SplitPoint> {
+        auto get_split_points = [&](const Point& pa, const Point& pb, const coord_t wa, const coord_t wb, const double da, const double db) -> std::vector<SplitPoint> {
             std::vector<SplitPoint> ret;
-
-            int start_d = (int)(std::ceil(std::min(da, db)));
-            int end_d = (int)(std::floor(std::max(da, db)));
+            double start_d = get_base_degree(std::min(da, db)) + min_degree_gap_arachne;
+            double end_d = get_base_degree(std::max(da, db));
 
             if (start_d > end_d) return ret;
 
@@ -211,7 +213,7 @@ namespace Slic3r {
             if (std::abs(delta_d) < 1e-6) return ret;
 
             if (da < db) {
-                for (int k = start_d; k <= end_d; ++k) {
+                for (double k = start_d; k <= end_d; k+=min_degree_gap_arachne) {
                     const double  t = (k - da) / delta_d;
                     const Point   pt = pa + (pb - pa) * t;
                     const coord_t w = wa + coord_t((wb - wa) * t);
@@ -219,14 +221,13 @@ namespace Slic3r {
                 }
             }
             else {
-                for (int k = end_d; k >= start_d; --k) {
+                for (double k = end_d; k >= start_d; k-=min_degree_gap_arachne) {
                     const double  t = (k - da) / delta_d;
                     const Point   pt = pa + (pb - pa) * t;
                     const coord_t w = wa + coord_t((wb - wa) * t);
                     ret.emplace_back(SplitPoint{ pt, w, (double)k });
                 }
             }
-
             return ret;
             };
 
@@ -287,11 +288,11 @@ namespace Slic3r {
                     for (auto& split_point : split_points) {
                         prev_line.push_back({ split_point.p.x(), split_point.p.y(), split_point.w });
                         double target_degree = 0;
-                        if (prev_d < curr_d)
-                            target_degree = split_point.degree - 1;
+                        if( prev_d < curr_d)
+                            target_degree = split_point.degree - min_degree_gap_arachne;
                         else
                             target_degree = split_point.degree;
-                        extrusion_paths_append(ret_paths, { prev_line }, role, flow, target_degree);
+                        extrusion_paths_append(ret_path_list , { prev_line }, role, flow, target_degree);
                         prev_line.clear();
                         prev_line.push_back({ split_point.p.x(), split_point.p.y(), split_point.w });
                     }
@@ -301,8 +302,12 @@ namespace Slic3r {
                     prev_line.push_back(path[idx]);
                 }
             }
-            if (prev_line.size() > 1) { extrusion_paths_append(ret_paths, { prev_line }, role, flow, std::floor(prev_d)); }
+            if (prev_line.size() > 1) { extrusion_paths_append(ret_path_list, { prev_line }, role, flow, get_base_degree(prev_d)); }
         }
+
+        ret_paths.reserve(ret_path_list.size());
+        ret_paths.insert(ret_paths.end(), std::make_move_iterator(ret_path_list.begin()), std::make_move_iterator(ret_path_list.end()));
+
         return ret_paths;
     }
 

@@ -243,14 +243,14 @@ static std::deque<PolylineWithDegree> split_polyline_by_degree(const Polyline &p
     size_t   poly_size = polyline_with_insert_points.size();
     // BBS: merge degree in limited range
     //find first degee base
-    double degree_base = int(points_overhang[points_overhang.size() - 1] / min_degree_gap) * min_degree_gap + min_degree_gap;
+    double degree_base = int(points_overhang[points_overhang.size() - 1] / min_degree_gap_classic) * min_degree_gap_classic + min_degree_gap_classic;
     degree_base = degree_base > max_overhang_degree ? max_overhang_degree : degree_base;
     double short_poly_len = 0;
     for (int point_idx = points_overhang.size() - 2; point_idx > 0; --point_idx) {
 
         double degree = points_overhang[point_idx];
 
-        if ( degree <= degree_base && degree >= degree_base - min_degree_gap )
+        if ( degree <= degree_base && degree >= degree_base - min_degree_gap_classic )
             continue;
 
         temp_copy.split_at_index(point_idx, &left, &right);
@@ -258,7 +258,7 @@ static std::deque<PolylineWithDegree> split_polyline_by_degree(const Polyline &p
         temp_copy = std::move(left);
         out.push_back(PolylineWithDegree(right, degree_base));
 
-        degree_base = int(degree / min_degree_gap) * min_degree_gap + min_degree_gap;
+        degree_base = int(degree / min_degree_gap_classic) * min_degree_gap_classic + min_degree_gap_classic;
         degree_base = degree_base > max_overhang_degree ? max_overhang_degree : degree_base;
     }
 
@@ -279,7 +279,7 @@ static void insert_point_to_line( double              left_point_degree,
 {
     Line   line_temp(left_point, right_point);
     double line_length = line_temp.length();
-    if (std::abs(left_point_degree - right_point_degree) <= 0.5 * min_degree_gap || line_length<scale_(1.5))
+    if (std::abs(left_point_degree - right_point_degree) <= 0.5 * min_degree_gap_classic || line_length<scale_(1.5))
         return;
 
     Point middle_pt((left_point + right_point) / 2);
