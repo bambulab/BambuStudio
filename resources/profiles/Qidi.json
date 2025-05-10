@@ -589,6 +589,186 @@
         {
             "name": "0.56mm Standard @Qidi XSmart3 0.8 nozzle",
             "sub_path": "process/0.56mm Standard @Qidi XSmart3 0.8 nozzle.json"
+        },
+        {
+            "name": "0.06mm High Quality @Qidi XMax3 0.2 nozzle",
+            "sub_path": "process/0.06mm High Quality @Qidi XMax3 0.2 nozzle.json"
+        },
+        {
+            "name": "0.08mm Extra Fine @Qidi XMax3",
+            "sub_path": "process/0.08mm Extra Fine @Qidi XMax3.json"
+        },
+        {
+            "name": "0.08mm High Quality @Qidi XMax3 0.2 nozzle",
+            "sub_path": "process/0.08mm High Quality @Qidi XMax3 0.2 nozzle.json"
+        },
+        {
+            "name": "0.08mm High Quality @Qidi XMax3",
+            "sub_path": "process/0.08mm High Quality @Qidi XMax3.json"
+        },
+        {
+            "name": "0.10mm High Quality @Qidi XMax3 0.2 nozzle",
+            "sub_path": "process/0.10mm High Quality @Qidi XMax3 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm High Quality @Qidi XMax3",
+            "sub_path": "process/0.12mm High Quality @Qidi XMax3.json"
+        },
+        {
+            "name": "0.16mm High Quality @Qidi XMax3",
+            "sub_path": "process/0.16mm High Quality @Qidi XMax3.json"
+        },
+        {
+            "name": "0.20mm Strength @Qidi XMax3",
+            "sub_path": "process/0.20mm Strength @Qidi XMax3.json"
+        },
+        {
+            "name": "0.30mm Strength @Qidi XMax3 0.6 nozzle",
+            "sub_path": "process/0.30mm Strength @Qidi XMax3 0.6 nozzle.json"
+        },
+        {
+            "name": "0.06mm High Quality @Qidi XPlus3 0.2 nozzle",
+            "sub_path": "process/0.06mm High Quality @Qidi XPlus3 0.2 nozzle.json"
+        },
+        {
+            "name": "0.08mm Extra Fine @Qidi XPlus3",
+            "sub_path": "process/0.08mm Extra Fine @Qidi XPlus3.json"
+        },
+        {
+            "name": "0.08mm High Quality @Qidi XPlus3 0.2 nozzle",
+            "sub_path": "process/0.08mm High Quality @Qidi XPlus3 0.2 nozzle.json"
+        },
+        {
+            "name": "0.08mm High Quality @Qidi XPlus3",
+            "sub_path": "process/0.08mm High Quality @Qidi XPlus3.json"
+        },
+        {
+            "name": "0.10mm High Quality @Qidi XPlus3 0.2 nozzle",
+            "sub_path": "process/0.10mm High Quality @Qidi XPlus3 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm High Quality @Qidi XPlus3",
+            "sub_path": "process/0.12mm High Quality @Qidi XPlus3.json"
+        },
+        {
+            "name": "0.16mm High Quality @Qidi XPlus3",
+            "sub_path": "process/0.16mm High Quality @Qidi XPlus3.json"
+        },
+        {
+            "name": "0.20mm Strength @Qidi XPlus3",
+            "sub_path": "process/0.20mm Strength @Qidi XPlus3.json"
+        },
+        {
+            "name": "0.30mm Strength @Qidi XPlus3 0.6 nozzle",
+            "sub_path": "process/0.30mm Strength @Qidi XPlus3 0.6 nozzle.json"
+        },
+        {
+            "name": "0.06mm High Quality @Qidi XSmart3 0.2 nozzle",
+            "sub_path": "process/0.06mm High Quality @Qidi XSmart3 0.2 nozzle.json"
+        },
+        {
+            "name": "0.08mm Extra Fine @Qidi XSmart3",
+            "sub_path": "process/0.08mm Extra Fine @Qidi XSmart3.json"
+        },
+        {
+            "name": "0.08mm High Quality @Qidi XSmart3 0.2 nozzle",
+            "sub_path": "process/0.08mm High Quality @Qidi XSmart3 0.2 nozzle.json"
+        },
+        {
+            "name": "0.08mm High Quality @Qidi XSmart3",
+            "sub_path": "process/0.08mm High Quality @Qidi XSmart3.json"
+        },
+        {
+            "name": "0.10mm High Quality @Qidi XSmart3 0.2 nozzle",
+            "sub_path": "process/0.10mm High Quality @Qidi XSmart3 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm High Quality @Qidi XSmart3",
+            "sub_path": "process/0.12mm High Quality @Qidi XSmart3.json"
+        },
+        {
+            "name": "0.16mm High Quality @Qidi XSmart3",
+            "sub_path": "process/0.16mm High Quality @Qidi XSmart3.json"
+        },
+        {
+            "name": "0.20mm Strength @Qidi XSmart3",
+            "sub_path": "process/0.20mm Strength @Qidi XSmart3.json"
+        },
+        {
+            "name": "0.30mm Strength @Qidi XSmart3 0.6 nozzle",
+            "sub_path": "process/0.30mm Strength @Qidi XSmart3 0.6 nozzle.json"
+        },
+        {
+            "name": "0.06mm High Quality @Qidi Q1 Pro 0.2 nozzle",
+            "sub_path": "process/0.06mm High Quality @Qidi Q1 Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "0.08mm Extra Fine @Qidi Q1 Pro",
+            "sub_path": "process/0.08mm Extra Fine @Qidi Q1 Pro.json"
+        },
+        {
+            "name": "0.08mm High Quality @Qidi Q1 Pro 0.2 nozzle",
+            "sub_path": "process/0.08mm High Quality @Qidi Q1 Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "0.08mm High Quality @Qidi Q1 Pro",
+            "sub_path": "process/0.08mm High Quality @Qidi Q1 Pro.json"
+        },
+        {
+            "name": "0.10mm High Quality @Qidi Q1 Pro 0.2 nozzle",
+            "sub_path": "process/0.10mm High Quality @Qidi Q1 Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm High Quality @Qidi Q1 Pro",
+            "sub_path": "process/0.12mm High Quality @Qidi Q1 Pro.json"
+        },
+        {
+            "name": "0.16mm High Quality @Qidi Q1 Pro",
+            "sub_path": "process/0.16mm High Quality @Qidi Q1 Pro.json"
+        },
+        {
+            "name": "0.20mm Strength @Qidi Q1 Pro",
+            "sub_path": "process/0.20mm Strength @Qidi Q1 Pro.json"
+        },
+        {
+            "name": "0.30mm Strength @Qidi Q1 Pro 0.6 nozzle",
+            "sub_path": "process/0.30mm Strength @Qidi Q1 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "0.06mm High Quality @Qidi XPlus4 0.2 nozzle",
+            "sub_path": "process/0.06mm High Quality @Qidi XPlus4 0.2 nozzle.json"
+        },
+        {
+            "name": "0.08mm Extra Fine @Qidi XPlus4",
+            "sub_path": "process/0.08mm Extra Fine @Qidi XPlus4.json"
+        },
+        {
+            "name": "0.08mm High Quality @Qidi XPlus4 0.2 nozzle",
+            "sub_path": "process/0.08mm High Quality @Qidi XPlus4 0.2 nozzle.json"
+        },
+        {
+            "name": "0.08mm High Quality @Qidi XPlus4",
+            "sub_path": "process/0.08mm High Quality @Qidi XPlus4.json"
+        },
+        {
+            "name": "0.10mm High Quality @Qidi XPlus4 0.2 nozzle",
+            "sub_path": "process/0.10mm High Quality @Qidi XPlus4 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm High Quality @Qidi XPlus4",
+            "sub_path": "process/0.12mm High Quality @Qidi XPlus4.json"
+        },
+        {
+            "name": "0.16mm High Quality @Qidi XPlus4",
+            "sub_path": "process/0.16mm High Quality @Qidi XPlus4.json"
+        },
+        {
+            "name": "0.20mm Strength @Qidi XPlus4",
+            "sub_path": "process/0.20mm Strength @Qidi XPlus4.json"
+        },
+        {
+            "name": "0.30mm Strength @Qidi XPlus4 0.6 nozzle",
+            "sub_path": "process/0.30mm Strength @Qidi XPlus4 0.6 nozzle.json"
         }
     ],
     "filament_list": [
@@ -1388,6 +1568,50 @@
             "name": "Generic PC @Qidi",
             "sub_path": "filament/Generic PC @Qidi.json"
         },
+        {
+            "name": "Generic PC @Qidi Q1 Pro 0.2 nozzle",
+            "sub_path": "filament/Generic PC @Qidi Q1 Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic PC @Qidi Q1 Pro 0.4 nozzle",
+            "sub_path": "filament/Generic PC @Qidi Q1 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "Generic PC @Qidi Q1 Pro 0.6 nozzle",
+            "sub_path": "filament/Generic PC @Qidi Q1 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "Generic PC @Qidi Q1 Pro 0.8 nozzle",
+            "sub_path": "filament/Generic PC @Qidi Q1 Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "Generic PC @Qidi 0.2 nozzle",
+            "sub_path": "filament/Generic PC @Qidi 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic PC @Qidi 0.6 nozzle",
+            "sub_path": "filament/Generic PC @Qidi 0.6 nozzle.json"
+        },
+        {
+            "name": "Generic PC @Qidi 0.8 nozzle",
+            "sub_path": "filament/Generic PC @Qidi 0.8 nozzle.json"
+        },
+        {
+            "name": "Generic PC @Qidi X-Plus 4 0.2 nozzle",
+            "sub_path": "filament/Generic PC @Qidi X-Plus 4 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic PC @Qidi X-Plus 4 0.4 nozzle",
+            "sub_path": "filament/Generic PC @Qidi X-Plus 4 0.4 nozzle.json"
+        },
+        {
+            "name": "Generic PC @Qidi X-Plus 4 0.6 nozzle",
+            "sub_path": "filament/Generic PC @Qidi X-Plus 4 0.6 nozzle.json"
+        },
+        {
+            "name": "Generic PC @Qidi X-Plus 4 0.8 nozzle",
+            "sub_path": "filament/Generic PC @Qidi X-Plus 4 0.8 nozzle.json"
+        },
 		{
             "name": "Generic PETG-CF @Qidi",
             "sub_path": "filament/Generic PETG-CF @Qidi.json"
@@ -1527,6 +1751,662 @@
         {
             "name": "QIDI PPS-CF @Qidi X-Plus 4 0.8 nozzle",
             "sub_path": "filament/QIDI PPS-CF @Qidi X-Plus 4 0.8 nozzle.json"
+        },
+        {
+            "name": "QIDI PAHT-GF @Qidi",
+            "sub_path": "filament/QIDI PAHT-GF @Qidi.json"
+        },
+        {
+            "name": "QIDI PAHT-GF @Qidi 0.6 nozzle",
+            "sub_path": "filament/QIDI PAHT-GF @Qidi 0.6 nozzle.json"
+        },
+        {
+            "name": "QIDI PAHT-GF @Qidi 0.8 nozzle",
+            "sub_path": "filament/QIDI PAHT-GF @Qidi 0.8 nozzle.json"
+        },
+        {
+            "name": "QIDI PAHT-GF @Qidi Q1 Pro 0.4 nozzle",
+            "sub_path": "filament/QIDI PAHT-GF @Qidi Q1 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "QIDI PAHT-GF @Qidi Q1 Pro 0.6 nozzle",
+            "sub_path": "filament/QIDI PAHT-GF @Qidi Q1 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "QIDI PAHT-GF @Qidi Q1 Pro 0.8 nozzle",
+            "sub_path": "filament/QIDI PAHT-GF @Qidi Q1 Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "QIDI PAHT-GF @Qidi X-Plus 4 0.4 nozzle",
+            "sub_path": "filament/QIDI PAHT-GF @Qidi X-Plus 4 0.4 nozzle.json"
+        },
+        {
+            "name": "QIDI PAHT-GF @Qidi X-Plus 4 0.6 nozzle",
+            "sub_path": "filament/QIDI PAHT-GF @Qidi X-Plus 4 0.6 nozzle.json"
+        },
+        {
+            "name": "QIDI PAHT-GF @Qidi X-Plus 4 0.8 nozzle",
+            "sub_path": "filament/QIDI PAHT-GF @Qidi X-Plus 4 0.8 nozzle.json"
+        },
+        {
+            "name": "QIDI WOOD Rapido @Qidi",
+            "sub_path": "filament/QIDI WOOD Rapido @Qidi.json"
+        },
+        {
+            "name": "QIDI WOOD Rapido @Qidi 0.6 nozzle",
+            "sub_path": "filament/QIDI WOOD Rapido @Qidi 0.6 nozzle.json"
+        },
+        {
+            "name": "QIDI WOOD Rapido @Qidi 0.8 nozzle",
+            "sub_path": "filament/QIDI WOOD Rapido @Qidi 0.8 nozzle.json"
+        },
+        {
+            "name": "QIDI WOOD Rapido @Qidi Q1 Pro 0.4 nozzle",
+            "sub_path": "filament/QIDI WOOD Rapido @Qidi Q1 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "QIDI WOOD Rapido @Qidi Q1 Pro 0.6 nozzle",
+            "sub_path": "filament/QIDI WOOD Rapido @Qidi Q1 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "QIDI WOOD Rapido @Qidi Q1 Pro 0.8 nozzle",
+            "sub_path": "filament/QIDI WOOD Rapido @Qidi Q1 Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "QIDI WOOD Rapido @Qidi X-Plus 4 0.4 nozzle",
+            "sub_path": "filament/QIDI WOOD Rapido @Qidi X-Plus 4 0.4 nozzle.json"
+        },
+        {
+            "name": "QIDI WOOD Rapido @Qidi X-Plus 4 0.6 nozzle",
+            "sub_path": "filament/QIDI WOOD Rapido @Qidi X-Plus 4 0.6 nozzle.json"
+        },
+        {
+            "name": "QIDI WOOD Rapido @Qidi X-Plus 4 0.8 nozzle",
+            "sub_path": "filament/QIDI WOOD Rapido @Qidi X-Plus 4 0.8 nozzle.json"
+        },
+        {
+            "name": "QIDI PET-GF @Qidi",
+            "sub_path": "filament/QIDI PET-GF @Qidi.json"
+        },
+        {
+            "name": "QIDI PET-GF @Qidi 0.6 nozzle",
+            "sub_path": "filament/QIDI PET-GF @Qidi 0.6 nozzle.json"
+        },
+        {
+            "name": "QIDI PET-GF @Qidi 0.8 nozzle",
+            "sub_path": "filament/QIDI PET-GF @Qidi 0.8 nozzle.json"
+        },
+        {
+            "name": "QIDI PET-GF @Qidi Q1 Pro 0.4 nozzle",
+            "sub_path": "filament/QIDI PET-GF @Qidi Q1 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "QIDI PET-GF @Qidi Q1 Pro 0.6 nozzle",
+            "sub_path": "filament/QIDI PET-GF @Qidi Q1 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "QIDI PET-GF @Qidi Q1 Pro 0.8 nozzle",
+            "sub_path": "filament/QIDI PET-GF @Qidi Q1 Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "QIDI PET-GF @Qidi X-Plus 4 0.4 nozzle",
+            "sub_path": "filament/QIDI PET-GF @Qidi X-Plus 4 0.4 nozzle.json"
+        },
+        {
+            "name": "QIDI PET-GF @Qidi X-Plus 4 0.6 nozzle",
+            "sub_path": "filament/QIDI PET-GF @Qidi X-Plus 4 0.6 nozzle.json"
+        },
+        {
+            "name": "QIDI PET-GF @Qidi X-Plus 4 0.8 nozzle",
+            "sub_path": "filament/QIDI PET-GF @Qidi X-Plus 4 0.8 nozzle.json"
+        },
+        {
+            "name": "QIDI UltraPA-CF25 @Qidi",
+            "sub_path": "filament/QIDI UltraPA-CF25 @Qidi.json"
+        },
+        {
+            "name": "QIDI UltraPA-CF25 @Qidi 0.6 nozzle",
+            "sub_path": "filament/QIDI UltraPA-CF25 @Qidi 0.6 nozzle.json"
+        },
+        {
+            "name": "QIDI UltraPA-CF25 @Qidi 0.8 nozzle",
+            "sub_path": "filament/QIDI UltraPA-CF25 @Qidi 0.8 nozzle.json"
+        },
+        {
+            "name": "QIDI UltraPA-CF25 @Qidi Q1 Pro 0.4 nozzle",
+            "sub_path": "filament/QIDI UltraPA-CF25 @Qidi Q1 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "QIDI UltraPA-CF25 @Qidi Q1 Pro 0.6 nozzle",
+            "sub_path": "filament/QIDI UltraPA-CF25 @Qidi Q1 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "QIDI UltraPA-CF25 @Qidi Q1 Pro 0.8 nozzle",
+            "sub_path": "filament/QIDI UltraPA-CF25 @Qidi Q1 Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "QIDI UltraPA-CF25 @Qidi X-Plus 4 0.4 nozzle",
+            "sub_path": "filament/QIDI UltraPA-CF25 @Qidi X-Plus 4 0.4 nozzle.json"
+        },
+        {
+            "name": "QIDI UltraPA-CF25 @Qidi X-Plus 4 0.6 nozzle",
+            "sub_path": "filament/QIDI UltraPA-CF25 @Qidi X-Plus 4 0.6 nozzle.json"
+        },
+        {
+            "name": "QIDI UltraPA-CF25 @Qidi X-Plus 4 0.8 nozzle",
+            "sub_path": "filament/QIDI UltraPA-CF25 @Qidi X-Plus 4 0.8 nozzle.json"
+        },
+        {
+            "name": "Generic PLA+ @Qidi",
+            "sub_path": "filament/Generic PLA+ @Qidi.json"
+        },
+        {
+            "name": "Generic PLA+ @Qidi Q1 Pro 0.2 nozzle",
+            "sub_path": "filament/Generic PLA+ @Qidi Q1 Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic PLA+ @Qidi Q1 Pro 0.4 nozzle",
+            "sub_path": "filament/Generic PLA+ @Qidi Q1 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "Generic PLA+ @Qidi Q1 Pro 0.6 nozzle",
+            "sub_path": "filament/Generic PLA+ @Qidi Q1 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "Generic PLA+ @Qidi Q1 Pro 0.8 nozzle",
+            "sub_path": "filament/Generic PLA+ @Qidi Q1 Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "Generic PLA+ @Qidi 0.2 nozzle",
+            "sub_path": "filament/Generic PLA+ @Qidi 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic PLA+ @Qidi 0.6 nozzle",
+            "sub_path": "filament/Generic PLA+ @Qidi 0.6 nozzle.json"
+        },
+        {
+            "name": "Generic PLA+ @Qidi 0.8 nozzle",
+            "sub_path": "filament/Generic PLA+ @Qidi 0.8 nozzle.json"
+        },
+        {
+            "name": "Generic PLA+ @Qidi X-Plus 4 0.2 nozzle",
+            "sub_path": "filament/Generic PLA+ @Qidi X-Plus 4 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic PLA+ @Qidi X-Plus 4 0.4 nozzle",
+            "sub_path": "filament/Generic PLA+ @Qidi X-Plus 4 0.4 nozzle.json"
+        },
+        {
+            "name": "Generic PLA+ @Qidi X-Plus 4 0.6 nozzle",
+            "sub_path": "filament/Generic PLA+ @Qidi X-Plus 4 0.6 nozzle.json"
+        },
+        {
+            "name": "Generic PLA+ @Qidi X-Plus 4 0.8 nozzle",
+            "sub_path": "filament/Generic PLA+ @Qidi X-Plus 4 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA @Qidi",
+            "sub_path": "filament/Bambu PLA @Qidi.json"
+        },
+        {
+            "name": "Bambu PLA @Qidi 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA @Qidi 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA @Qidi 0.6 nozzle",
+            "sub_path": "filament/Bambu PLA @Qidi 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA @Qidi 0.8 nozzle",
+            "sub_path": "filament/Bambu PLA @Qidi 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA @Qidi Q1 Pro 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA @Qidi Q1 Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA @Qidi Q1 Pro 0.4 nozzle",
+            "sub_path": "filament/Bambu PLA @Qidi Q1 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA @Qidi Q1 Pro 0.6 nozzle",
+            "sub_path": "filament/Bambu PLA @Qidi Q1 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA @Qidi Q1 Pro 0.8 nozzle",
+            "sub_path": "filament/Bambu PLA @Qidi Q1 Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA @Qidi X-Plus 4 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA @Qidi X-Plus 4 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA @Qidi X-Plus 4 0.4 nozzle",
+            "sub_path": "filament/Bambu PLA @Qidi X-Plus 4 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA @Qidi X-Plus 4 0.6 nozzle",
+            "sub_path": "filament/Bambu PLA @Qidi X-Plus 4 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA @Qidi X-Plus 4 0.8 nozzle",
+            "sub_path": "filament/Bambu PLA @Qidi X-Plus 4 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG @Qidi",
+            "sub_path": "filament/Bambu PETG @Qidi.json"
+        },
+        {
+            "name": "Bambu PETG @Qidi 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG @Qidi 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG @Qidi Q1 Pro 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG @Qidi Q1 Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG @Qidi Q1 Pro 0.4 nozzle",
+            "sub_path": "filament/Bambu PETG @Qidi Q1 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG @Qidi Q1 Pro 0.6 nozzle",
+            "sub_path": "filament/Bambu PETG @Qidi Q1 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG @Qidi Q1 Pro 0.8 nozzle",
+            "sub_path": "filament/Bambu PETG @Qidi Q1 Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG @Qidi X-Plus 4 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG @Qidi X-Plus 4 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG @Qidi X-Plus 4 0.4 nozzle",
+            "sub_path": "filament/Bambu PETG @Qidi X-Plus 4 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG @Qidi X-Plus 4 0.6 nozzle",
+            "sub_path": "filament/Bambu PETG @Qidi X-Plus 4 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG @Qidi X-Plus 4 0.8 nozzle",
+            "sub_path": "filament/Bambu PETG @Qidi X-Plus 4 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu ABS @Qidi",
+            "sub_path": "filament/Bambu ABS @Qidi.json"
+        },
+        {
+            "name": "Bambu ABS @Qidi Q1 Pro 0.2 nozzle",
+            "sub_path": "filament/Bambu ABS @Qidi Q1 Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu ABS @Qidi Q1 Pro 0.4 nozzle",
+            "sub_path": "filament/Bambu ABS @Qidi Q1 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu ABS @Qidi Q1 Pro 0.6 nozzle",
+            "sub_path": "filament/Bambu ABS @Qidi Q1 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu ABS @Qidi Q1 Pro 0.8 nozzle",
+            "sub_path": "filament/Bambu ABS @Qidi Q1 Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu ABS @Qidi X-Plus 4 0.2 nozzle",
+            "sub_path": "filament/Bambu ABS @Qidi X-Plus 4 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu ABS @Qidi X-Plus 4 0.4 nozzle",
+            "sub_path": "filament/Bambu ABS @Qidi X-Plus 4 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu ABS @Qidi X-Plus 4 0.6 nozzle",
+            "sub_path": "filament/Bambu ABS @Qidi X-Plus 4 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu ABS @Qidi X-Plus 4 0.8 nozzle",
+            "sub_path": "filament/Bambu ABS @Qidi X-Plus 4 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu ABS @Qidi 0.2 nozzle",
+            "sub_path": "filament/Bambu ABS @Qidi 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu ABS @Qidi 0.6 nozzle",
+            "sub_path": "filament/Bambu ABS @Qidi 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu ABS @Qidi 0.8 nozzle",
+            "sub_path": "filament/Bambu ABS @Qidi 0.8 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX PLA @Qidi",
+            "sub_path": "filament/HATCHBOX PLA @Qidi.json"
+        },
+        {
+            "name": "HATCHBOX PLA @Qidi 0.2 nozzle",
+            "sub_path": "filament/HATCHBOX PLA @Qidi 0.2 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX PLA @Qidi 0.6 nozzle",
+            "sub_path": "filament/HATCHBOX PLA @Qidi 0.6 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX PLA @Qidi 0.8 nozzle",
+            "sub_path": "filament/HATCHBOX PLA @Qidi 0.8 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX PLA @Qidi Q1 Pro 0.2 nozzle",
+            "sub_path": "filament/HATCHBOX PLA @Qidi Q1 Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX PLA @Qidi Q1 Pro 0.4 nozzle",
+            "sub_path": "filament/HATCHBOX PLA @Qidi Q1 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX PLA @Qidi Q1 Pro 0.6 nozzle",
+            "sub_path": "filament/HATCHBOX PLA @Qidi Q1 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX PLA @Qidi Q1 Pro 0.8 nozzle",
+            "sub_path": "filament/HATCHBOX PLA @Qidi Q1 Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX PLA @Qidi X-Plus 4 0.2 nozzle",
+            "sub_path": "filament/HATCHBOX PLA @Qidi X-Plus 4 0.2 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX PLA @Qidi X-Plus 4 0.4 nozzle",
+            "sub_path": "filament/HATCHBOX PLA @Qidi X-Plus 4 0.4 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX PLA @Qidi X-Plus 4 0.6 nozzle",
+            "sub_path": "filament/HATCHBOX PLA @Qidi X-Plus 4 0.6 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX PLA @Qidi X-Plus 4 0.8 nozzle",
+            "sub_path": "filament/HATCHBOX PLA @Qidi X-Plus 4 0.8 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX PETG @Qidi",
+            "sub_path": "filament/HATCHBOX PETG @Qidi.json"
+        },
+        {
+            "name": "HATCHBOX PETG @Qidi 0.2 nozzle",
+            "sub_path": "filament/HATCHBOX PETG @Qidi 0.2 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX PETG @Qidi Q1 Pro 0.2 nozzle",
+            "sub_path": "filament/HATCHBOX PETG @Qidi Q1 Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX PETG @Qidi Q1 Pro 0.4 nozzle",
+            "sub_path": "filament/HATCHBOX PETG @Qidi Q1 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX PETG @Qidi Q1 Pro 0.6 nozzle",
+            "sub_path": "filament/HATCHBOX PETG @Qidi Q1 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX PETG @Qidi Q1 Pro 0.8 nozzle",
+            "sub_path": "filament/HATCHBOX PETG @Qidi Q1 Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX PETG @Qidi X-Plus 4 0.2 nozzle",
+            "sub_path": "filament/HATCHBOX PETG @Qidi X-Plus 4 0.2 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX PETG @Qidi X-Plus 4 0.4 nozzle",
+            "sub_path": "filament/HATCHBOX PETG @Qidi X-Plus 4 0.4 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX PETG @Qidi X-Plus 4 0.6 nozzle",
+            "sub_path": "filament/HATCHBOX PETG @Qidi X-Plus 4 0.6 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX PETG @Qidi X-Plus 4 0.8 nozzle",
+            "sub_path": "filament/HATCHBOX PETG @Qidi X-Plus 4 0.8 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX ABS @Qidi",
+            "sub_path": "filament/HATCHBOX ABS @Qidi.json"
+        },
+        {
+            "name": "HATCHBOX ABS @Qidi Q1 Pro 0.2 nozzle",
+            "sub_path": "filament/HATCHBOX ABS @Qidi Q1 Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX ABS @Qidi Q1 Pro 0.4 nozzle",
+            "sub_path": "filament/HATCHBOX ABS @Qidi Q1 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX ABS @Qidi Q1 Pro 0.6 nozzle",
+            "sub_path": "filament/HATCHBOX ABS @Qidi Q1 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX ABS @Qidi Q1 Pro 0.8 nozzle",
+            "sub_path": "filament/HATCHBOX ABS @Qidi Q1 Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX ABS @Qidi X-Plus 4 0.2 nozzle",
+            "sub_path": "filament/HATCHBOX ABS @Qidi X-Plus 4 0.2 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX ABS @Qidi X-Plus 4 0.4 nozzle",
+            "sub_path": "filament/HATCHBOX ABS @Qidi X-Plus 4 0.4 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX ABS @Qidi X-Plus 4 0.6 nozzle",
+            "sub_path": "filament/HATCHBOX ABS @Qidi X-Plus 4 0.6 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX ABS @Qidi X-Plus 4 0.8 nozzle",
+            "sub_path": "filament/HATCHBOX ABS @Qidi X-Plus 4 0.8 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX ABS @Qidi 0.2 nozzle",
+            "sub_path": "filament/HATCHBOX ABS @Qidi 0.2 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX ABS @Qidi 0.6 nozzle",
+            "sub_path": "filament/HATCHBOX ABS @Qidi 0.6 nozzle.json"
+        },
+        {
+            "name": "HATCHBOX ABS @Qidi 0.8 nozzle",
+            "sub_path": "filament/HATCHBOX ABS @Qidi 0.8 nozzle.json"
+        },
+        {
+            "name": "PolyLite PLA @Qidi",
+            "sub_path": "filament/PolyLite PLA @Qidi.json"
+        },
+        {
+            "name": "PolyLite PLA @Qidi 0.2 nozzle",
+            "sub_path": "filament/PolyLite PLA @Qidi 0.2 nozzle.json"
+        },
+        {
+            "name": "PolyLite PLA @Qidi 0.6 nozzle",
+            "sub_path": "filament/PolyLite PLA @Qidi 0.6 nozzle.json"
+        },
+        {
+            "name": "PolyLite PLA @Qidi 0.8 nozzle",
+            "sub_path": "filament/PolyLite PLA @Qidi 0.8 nozzle.json"
+        },
+        {
+            "name": "PolyLite PLA @Qidi Q1 Pro 0.2 nozzle",
+            "sub_path": "filament/PolyLite PLA @Qidi Q1 Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "PolyLite PLA @Qidi Q1 Pro 0.4 nozzle",
+            "sub_path": "filament/PolyLite PLA @Qidi Q1 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "PolyLite PLA @Qidi Q1 Pro 0.6 nozzle",
+            "sub_path": "filament/PolyLite PLA @Qidi Q1 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "PolyLite PLA @Qidi Q1 Pro 0.8 nozzle",
+            "sub_path": "filament/PolyLite PLA @Qidi Q1 Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "PolyLite PLA @Qidi X-Plus 4 0.2 nozzle",
+            "sub_path": "filament/PolyLite PLA @Qidi X-Plus 4 0.2 nozzle.json"
+        },
+        {
+            "name": "PolyLite PLA @Qidi X-Plus 4 0.4 nozzle",
+            "sub_path": "filament/PolyLite PLA @Qidi X-Plus 4 0.4 nozzle.json"
+        },
+        {
+            "name": "PolyLite PLA @Qidi X-Plus 4 0.6 nozzle",
+            "sub_path": "filament/PolyLite PLA @Qidi X-Plus 4 0.6 nozzle.json"
+        },
+        {
+            "name": "PolyLite PLA @Qidi X-Plus 4 0.8 nozzle",
+            "sub_path": "filament/PolyLite PLA @Qidi X-Plus 4 0.8 nozzle.json"
+        },
+        {
+            "name": "PolyLite ABS @Qidi",
+            "sub_path": "filament/PolyLite ABS @Qidi.json"
+        },
+        {
+            "name": "PolyLite ABS @Qidi Q1 Pro 0.2 nozzle",
+            "sub_path": "filament/PolyLite ABS @Qidi Q1 Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "PolyLite ABS @Qidi Q1 Pro 0.4 nozzle",
+            "sub_path": "filament/PolyLite ABS @Qidi Q1 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "PolyLite ABS @Qidi Q1 Pro 0.6 nozzle",
+            "sub_path": "filament/PolyLite ABS @Qidi Q1 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "PolyLite ABS @Qidi Q1 Pro 0.8 nozzle",
+            "sub_path": "filament/PolyLite ABS @Qidi Q1 Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "PolyLite ABS @Qidi X-Plus 4 0.2 nozzle",
+            "sub_path": "filament/PolyLite ABS @Qidi X-Plus 4 0.2 nozzle.json"
+        },
+        {
+            "name": "PolyLite ABS @Qidi X-Plus 4 0.4 nozzle",
+            "sub_path": "filament/PolyLite ABS @Qidi X-Plus 4 0.4 nozzle.json"
+        },
+        {
+            "name": "PolyLite ABS @Qidi X-Plus 4 0.6 nozzle",
+            "sub_path": "filament/PolyLite ABS @Qidi X-Plus 4 0.6 nozzle.json"
+        },
+        {
+            "name": "PolyLite ABS @Qidi X-Plus 4 0.8 nozzle",
+            "sub_path": "filament/PolyLite ABS @Qidi X-Plus 4 0.8 nozzle.json"
+        },
+        {
+            "name": "PolyLite ABS @Qidi 0.2 nozzle",
+            "sub_path": "filament/PolyLite ABS @Qidi 0.2 nozzle.json"
+        },
+        {
+            "name": "PolyLite ABS @Qidi 0.6 nozzle",
+            "sub_path": "filament/PolyLite ABS @Qidi 0.6 nozzle.json"
+        },
+        {
+            "name": "PolyLite ABS @Qidi 0.8 nozzle",
+            "sub_path": "filament/PolyLite ABS @Qidi 0.8 nozzle.json"
+        },
+        {
+            "name": "Overture PLA @Qidi",
+            "sub_path": "filament/Overture PLA @Qidi.json"
+        },
+        {
+            "name": "Overture PLA @Qidi 0.2 nozzle",
+            "sub_path": "filament/Overture PLA @Qidi 0.2 nozzle.json"
+        },
+        {
+            "name": "Overture PLA @Qidi 0.6 nozzle",
+            "sub_path": "filament/Overture PLA @Qidi 0.6 nozzle.json"
+        },
+        {
+            "name": "Overture PLA @Qidi 0.8 nozzle",
+            "sub_path": "filament/Overture PLA @Qidi 0.8 nozzle.json"
+        },
+        {
+            "name": "Overture PLA @Qidi Q1 Pro 0.2 nozzle",
+            "sub_path": "filament/Overture PLA @Qidi Q1 Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "Overture PLA @Qidi Q1 Pro 0.4 nozzle",
+            "sub_path": "filament/Overture PLA @Qidi Q1 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "Overture PLA @Qidi Q1 Pro 0.6 nozzle",
+            "sub_path": "filament/Overture PLA @Qidi Q1 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "Overture PLA @Qidi Q1 Pro 0.8 nozzle",
+            "sub_path": "filament/Overture PLA @Qidi Q1 Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "Overture PLA @Qidi X-Plus 4 0.2 nozzle",
+            "sub_path": "filament/Overture PLA @Qidi X-Plus 4 0.2 nozzle.json"
+        },
+        {
+            "name": "Overture PLA @Qidi X-Plus 4 0.4 nozzle",
+            "sub_path": "filament/Overture PLA @Qidi X-Plus 4 0.4 nozzle.json"
+        },
+        {
+            "name": "Overture PLA @Qidi X-Plus 4 0.6 nozzle",
+            "sub_path": "filament/Overture PLA @Qidi X-Plus 4 0.6 nozzle.json"
+        },
+        {
+            "name": "Overture PLA @Qidi X-Plus 4 0.8 nozzle",
+            "sub_path": "filament/Overture PLA @Qidi X-Plus 4 0.8 nozzle.json"
+        },
+        {
+            "name": "Overture ABS @Qidi",
+            "sub_path": "filament/Overture ABS @Qidi.json"
+        },
+        {
+            "name": "Overture ABS @Qidi Q1 Pro 0.2 nozzle",
+            "sub_path": "filament/Overture ABS @Qidi Q1 Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "Overture ABS @Qidi Q1 Pro 0.4 nozzle",
+            "sub_path": "filament/Overture ABS @Qidi Q1 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "Overture ABS @Qidi Q1 Pro 0.6 nozzle",
+            "sub_path": "filament/Overture ABS @Qidi Q1 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "Overture ABS @Qidi Q1 Pro 0.8 nozzle",
+            "sub_path": "filament/Overture ABS @Qidi Q1 Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "Overture ABS @Qidi X-Plus 4 0.2 nozzle",
+            "sub_path": "filament/Overture ABS @Qidi X-Plus 4 0.2 nozzle.json"
+        },
+        {
+            "name": "Overture ABS @Qidi X-Plus 4 0.4 nozzle",
+            "sub_path": "filament/Overture ABS @Qidi X-Plus 4 0.4 nozzle.json"
+        },
+        {
+            "name": "Overture ABS @Qidi X-Plus 4 0.6 nozzle",
+            "sub_path": "filament/Overture ABS @Qidi X-Plus 4 0.6 nozzle.json"
+        },
+        {
+            "name": "Overture ABS @Qidi X-Plus 4 0.8 nozzle",
+            "sub_path": "filament/Overture ABS @Qidi X-Plus 4 0.8 nozzle.json"
+        },
+        {
+            "name": "Overture ABS @Qidi 0.2 nozzle",
+            "sub_path": "filament/Overture ABS @Qidi 0.2 nozzle.json"
+        },
+        {
+            "name": "Overture ABS @Qidi 0.6 nozzle",
+            "sub_path": "filament/Overture ABS @Qidi 0.6 nozzle.json"
+        },
+        {
+            "name": "Overture ABS @Qidi 0.8 nozzle",
+            "sub_path": "filament/Overture ABS @Qidi 0.8 nozzle.json"
         }
     ],
     "machine_list": [
