@@ -10,7 +10,8 @@ using ZPath = ClipperLib_Z::Path;
 using ZPaths = ClipperLib_Z::Paths;
 
 static const int overhang_sampling_number = 6;
-static const double min_degree_gap = 0.1;
+static const double min_degree_gap_classic = 0.1;
+static const double min_degree_gap_arachne = 0.25;
 static const int max_overhang_degree = overhang_sampling_number - 1;
 static const std::vector<double> non_uniform_degree_map = { 0, 10, 25, 50, 75, 100};
 static const int insert_point_count = 3;
