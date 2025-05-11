@@ -2216,13 +2216,13 @@ msgstr "Çıkar"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Bir AMS yuvası seçin ve ardından filamentleri otomatik olarak yüklemek veya çıkartmak için \"Yükle\" veya \"Çıkart\" düğmesine basın."
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "Baskı sırasında fan hızının değiştirilmesi baskı kalitesini etkileyebilir, lütfen dikkatli seçim yapın."
 
 msgid "Change Anyway"
 msgstr "Yine de Değiştir"
 
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changed fan speed during printing may affect print quality, please choose carefully."
 msgstr "Baskı sırasında fan hızının değiştirilmesi baskı kalitesini etkileyebilir, lütfen dikkatli seçin."
 
 msgid "Off"

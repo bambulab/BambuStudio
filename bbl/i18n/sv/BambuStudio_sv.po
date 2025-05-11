@@ -2193,13 +2193,13 @@ msgstr "Mata ut"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Välj ett AMS fack och tryck sedan på knappen \"Ladda\" eller \"Mata ut\" för att automatiskt ladda eller mata ut filament."
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "Att ändra fläkthastigheten under utskrift kan påverka utskriftskvaliteten, välj noggrant."
 
 msgid "Change Anyway"
 msgstr "Ändra ändå"
 
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changed fan speed during printing may affect print quality, please choose carefully."
 msgstr "Ändrad fläkthastighet under utskrift kan påverka utskrifts kvaliteten, välj noggrant."
 
 msgid "Off"

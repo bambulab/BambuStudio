@@ -2267,13 +2267,13 @@ msgstr "Втянуть"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Выберите слот АСПП, затем нажмите кнопку «Выдавить» или «Втянуть» для автоматической загрузки или выгрузки прутка."
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "Изменение скорости вращения вентилятора во время печати может повлиять на качество печати, поэтому тщательно подбирайте параметры."
 
 msgid "Change Anyway"
 msgstr "Всё равно изменить"
 
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changed fan speed during printing may affect print quality, please choose carefully."
 msgstr "Измененная скорость вращения вентилятора во время печати может повлиять на качество печати, поэтому тщательно подбирайте параметры."
 
 msgid "Off"

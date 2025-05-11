@@ -2195,13 +2195,13 @@ msgstr "退料"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "选择1个AMS槽位，然后点击进料/退料按钮以自动进料/退料。"
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "在打印过程中改变风扇速度可能会影响打印质量，请谨慎选择。"
 
 msgid "Change Anyway"
 msgstr "仍然改动"
 
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changed fan speed during printing may affect print quality, please choose carefully."
 msgstr "在打印过程中改变风扇速度可能会影响打印质量，请谨慎选择"
 
 msgid "Off"

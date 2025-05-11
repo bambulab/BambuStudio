@@ -2198,13 +2198,13 @@ msgstr "Rozładuj"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Wybierz gniazdo AMS, a następnie naciśnij przycisk „Ładuj” lub „Rozładuj”, aby automatycznie ładować lub wyładowywać filament."
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "Zmiana prędkości wentylatora podczas druku może wpłynąć na jakość druku. Wybierz ostrożnie."
 
 msgid "Change Anyway"
 msgstr "Zmień mimo to"
 
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changed fan speed during printing may affect print quality, please choose carefully."
 msgstr "Zmiana prędkości wentylatora podczas druku może wpłynąć na jego jakość. Wybierz ostrożnie."
 
 msgid "Off"
