@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-04-24 10:10+0800\n"
-"PO-Revision-Date: 2025-04-15 22:16+0300\n"
+"PO-Revision-Date: 2025-05-08 12:48+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -2819,11 +2819,11 @@ msgstr "Harici"
 
 #, c-format, boost-format
 msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
-msgstr ""
+msgstr "Not: filament tipi (%s) dilimleme dosyasındaki filament tipi (%s) ile eşleşmiyor. Bu yuvayı kullanmak istiyorsanız, %s yerine %s yükleyebilir ve 'Cihaz' sayfasındaki yuva bilgilerini değiştirebilirsiniz."
 
 #, c-format, boost-format
 msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
-msgstr ""
+msgstr "Not: yuva boş veya tanımlanmamış. Bu yuvayı kullanmak istiyorsanız, %s'yi yükleyebilir ve 'Cihaz' sayfasında yuva bilgilerini değiştirebilirsiniz."
 
 msgid "Note: Only the AMS slots loaded with the same material type can be selected."
 msgstr "Not: Yalnızca aynı malzeme türüne sahip AMS yuvaları seçilebilir."
@@ -7175,7 +7175,7 @@ msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle da
 msgstr "Yüksek sıcaklıktaki malzemenin (%s) %s nozul ile basılması nozul hasarına neden olabilir, lütfen nozul tipini kontrol edin"
 
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
-msgstr ""
+msgstr "Uygun filamentle otomatik olarak eşleştirilemiyor. Manuel olarak eşleştirmek için lütfen tıklayın."
 
 msgid "Cool"
 msgstr "Güzel"
@@ -8466,7 +8466,7 @@ msgid "Stop Buzzer"
 msgstr "Uyarı Sesini Durdur"
 
 msgid "Retry (problem solved)"
-msgstr ""
+msgstr "Yeniden deneyin (sorun çözüldü)"
 
 msgid "Confirm and Update Nozzle"
 msgstr "Nozulu Onaylayın ve Güncelleyin"
@@ -8860,7 +8860,7 @@ msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr " Hariç tutma alanına çok yakın olduğundan yazdırma sırasında çarpışmalar meydana gelebilir."
 
 msgid "Prime Tower"
-msgstr "Başbakan Kulesi"
+msgstr "Prime Kulesi"
 
 msgid " is too close to others, and collisions may be caused.\n"
 msgstr " başkalarına çok yakın olduğundan çarpışmalara neden olabilir.\n"

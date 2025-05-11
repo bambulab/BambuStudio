@@ -1100,6 +1100,7 @@ void GUI_App::post_init()
 
             std::string download_url;
 #if BBL_RELEASE_TO_PUBLIC
+			short ext_url_open_state = -1; // -1 not set, wxNO not open, wxYES open
             for (auto input_str : input_str_arr) {
                 if (boost::starts_with(input_str, "http://makerworld") ||
                     boost::starts_with(input_str, "https://makerworld") ||
@@ -1108,6 +1109,15 @@ void GUI_App::post_init()
                     boost::algorithm::contains(input_str, "amazonaws.com") ||
                     boost::algorithm::contains(input_str, "aliyuncs.com")) {
                     download_url = input_str;
+                }
+                else {
+                    if (ext_url_open_state == -1) {
+                        wxString askMsg = wxString::Format(_L("This file is not from a trusted site, do you want to open it anyway?"));
+                        ext_url_open_state = wxMessageBox(askMsg, "Bambu Studio", wxYES_NO | wxICON_EXCLAMATION);
+                    }
+                    if (ext_url_open_state == wxYES) {
+                        download_url = input_str;
+                    }
                 }
             }
 #else
