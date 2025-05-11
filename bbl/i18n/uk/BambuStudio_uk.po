@@ -2195,13 +2195,13 @@ msgstr "Вивантаження"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Виберіть слот AMS, а потім натисніть кнопку “Завантажити” або “Вивантажити”, щоб автоматично завантажити або вивантажити філаменти."
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "Зміна швидкості вентилятора під час друку може вплинути на якість, обирайте обережно."
 
 msgid "Change Anyway"
 msgstr "Змінити все одно"
 
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changed fan speed during printing may affect print quality, please choose carefully."
 msgstr "Змінена швидкість вентилятора під час друку може вплинути на якість, обирайте обережно."
 
 msgid "Off"
