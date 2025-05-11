@@ -2193,13 +2193,13 @@ msgstr "Descarga"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Elija una ranura AMS y pulse el botón \"Cargar\" o \"Descargar\" para cargar o descargar automáticamente el filamento."
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "Cambiar la velocidad del ventilador durante la impresión puede afectar a la calidad de impresión. Elija con cuidado."
 
 msgid "Change Anyway"
 msgstr "Cambia de todos modos"
 
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changed fan speed during printing may affect print quality, please choose carefully."
 msgstr "El cambio de velocidad del ventilador durante la impresión puede afectar a la calidad de impresión. Elija con cuidado."
 
 msgid "Off"
