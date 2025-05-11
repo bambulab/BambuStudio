@@ -2187,14 +2187,14 @@ msgstr "Unload"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filament."
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr ""
 
 msgid "Change Anyway"
 msgstr ""
 
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
-msgstr "Changed fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changed fan speed during printing may affect print quality, please choose carefully."
+msgstr "Changed fan speed during printing may affect print quality, please choose carefully."
 
 msgid "Off"
 msgstr ""
