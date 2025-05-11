@@ -2188,13 +2188,13 @@ msgstr "ｱﾝﾛｰﾄﾞ"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "AMSスロットを選択し、「ロード」または「アンロード」ボタンを押すと、フィラメントを自動で装填または取り外します。"
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "プリング中のファン速度の変更は、印刷品質に影響を与える可能性がありますので、慎重に選択してください。"
 
 msgid "Change Anyway"
 msgstr "変更を続行"
 
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changed fan speed during printing may affect print quality, please choose carefully."
 msgstr "プリング中のファン速度の変更は、印刷品質に影響を与える可能性がありますので、慎重に選択してください。"
 
 msgid "Off"
