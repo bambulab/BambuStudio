@@ -2193,13 +2193,13 @@ msgstr "Lossen"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Kies een AMS-sleuf en druk op de knop \"Laden\" of \"Lossen\" om automatisch filament te laden of te ontladen."
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "Het wijzigen van de ventilatorsnelheid tijdens het prikken kan de afdrukkwaliteit beïnvloeden."
 
 msgid "Change Anyway"
 msgstr "Toch veranderen"
 
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changed fan speed during printing may affect print quality, please choose carefully."
 msgstr "Een veranderde ventilatorsnelheid tijdens het prikken kan de afdrukkwaliteit beïnvloeden."
 
 msgid "Off"
