@@ -3520,7 +3520,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("In order to reduce the visibility of the seam in a closed loop extrusion, the loop is interrupted and shortened by a specified amount.\n" "This amount as a percentage of the current extruder diameter. The default value for this parameter is 15");
     def->sidetext = "%";
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercent(15));
 
     def          = this->add("seam_slope_conditional", coBool);
