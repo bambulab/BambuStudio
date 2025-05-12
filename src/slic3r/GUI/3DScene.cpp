@@ -1624,6 +1624,36 @@ GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCo
     return list;
 }
 
+GLVolumeWithIdAndZList volumes_to_render_for_sinking(const GLVolumePtrs &                  volumes,
+                                         GLVolumeCollection::ERenderType       type,
+                                         const Transform3d &                   view_matrix)
+{
+    GLVolumeWithIdAndZList list;
+    list.reserve(volumes.size());
+
+    for (unsigned int i = 0; i < (unsigned int) volumes.size(); ++i) {
+        GLVolume *volume                = volumes[i];
+        bool      is_transparent        = (volume->render_color[3] < 1.0f);
+        auto      tempGlwipeTowerVolume = dynamic_cast<GLWipeTowerVolume *>(volume);
+        if (tempGlwipeTowerVolume) {
+            continue;
+        }
+        if (!volume->selected)
+            continue;
+        list.emplace_back(std::make_pair(volume, std::make_pair(i, 0.0)));
+    }
+
+    if (type == GLVolumeCollection::ERenderType::Transparent && list.size() > 1) {
+        for (GLVolumeWithIdAndZ &volume : list) { volume.second.second = volume.first->bounding_box().transformed(view_matrix * volume.first->world_matrix()).max(2); }
+
+        std::sort(list.begin(), list.end(), [](const GLVolumeWithIdAndZ &v1, const GLVolumeWithIdAndZ &v2) -> bool { return v1.second.second < v2.second.second; });
+    } else if (type == GLVolumeCollection::ERenderType::Opaque && list.size() > 1) {
+        std::sort(list.begin(), list.end(), [](const GLVolumeWithIdAndZ &v1, const GLVolumeWithIdAndZ &v2) -> bool { return v1.first->selected && !v2.first->selected; });
+    }
+
+    return list;
+}
+
 int GLVolumeCollection::get_selection_support_threshold_angle(bool &enable_support) const
 {
     const DynamicPrintConfig& glb_cfg        = GUI::wxGetApp().preset_bundle->prints.get_edited_preset().config;
@@ -1788,6 +1818,55 @@ void GLVolumeCollection::render(GUI::ERenderPipelineStage             render_pip
                 // render sinking contours of hovered/displaced volumes
                 if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
                     (volume.first->hover != GLVolume::HS_None || volume.first->force_sinking_contours)) {
+                    GUI::wxGetApp().unbind_shader();
+                    glsafe(::glDepthFunc(GL_ALWAYS));
+                    volume.first->render_sinking_contours(camera, model);
+                    glsafe(::glDepthFunc(GL_LESS));
+                    GUI::wxGetApp().bind_shader(shader);
+                }
+            }
+        }
+    }
+
+    if (disable_cullface)
+        glsafe(::glEnable(GL_CULL_FACE));
+
+    if (type == ERenderType::Transparent)
+        glsafe(::glDisable(GL_BLEND));
+}
+
+void GLVolumeCollection::only_render_sinking(GUI::ERenderPipelineStage                render_pipeline_stage,
+                                             ERenderType                              type,
+                                             bool                                     disable_cullface,
+                                             const GUI::Camera &                      camera,
+                                             const std::vector<std::array<float, 4>> &colors,
+                                             Model &                                  model,
+                                             std::function<bool(const GLVolume &)>    filter_func,
+                                             bool                                     with_outline,
+                                             const std::array<float, 4> &             body_color,
+                                             bool                                     partly_inside_enable,
+                                             std::vector<double> *                    printable_heights)
+{
+    auto                   view_matrix       = camera.get_view_matrix();
+    auto                   projection_matrix = camera.get_projection_matrix();
+    GLVolumeWithIdAndZList to_render         = volumes_to_render_for_sinking(volumes, type, view_matrix);
+    if (to_render.empty())
+        return;
+
+    const auto shader = GUI::wxGetApp().get_current_shader();
+    if (shader == nullptr)
+        return;
+
+    if (type == ERenderType::Transparent) {
+        glsafe(::glEnable(GL_BLEND));
+        glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    }
+
+    glsafe(::glDisable(GL_CULL_FACE));
+    if (GUI::ERenderPipelineStage::Silhouette != render_pipeline_stage) {
+        if (m_show_sinking_contours) {
+            for (GLVolumeWithIdAndZ &volume : to_render) {
+                if (volume.first->is_sinking() && !volume.first->is_below_printbed()) {
                     GUI::wxGetApp().unbind_shader();
                     glsafe(::glDepthFunc(GL_ALWAYS));
                     volume.first->render_sinking_contours(camera, model);

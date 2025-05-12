@@ -807,6 +807,7 @@ public:
     void reset_volumes(bool set_notice = true);
     ModelInstanceEPrintVolumeState check_volumes_outside_state(ObjectFilamentResults* object_results = nullptr) const;
     bool is_all_plates_selected() { return m_sel_plate_toolbar.m_all_plates_stats_item && m_sel_plate_toolbar.m_all_plates_stats_item->selected; }
+    bool is_volumes_selected_and_sinking() const;
     const float get_scale() const;
 
     //BBS

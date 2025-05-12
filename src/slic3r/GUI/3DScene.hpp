@@ -747,7 +747,17 @@ public:
                 const std::array<float, 4> &          body_color           = {1.0f, 1.0f, 1.0f, 1.0f},
                 bool                                  partly_inside_enable = true,
                 std::vector<double> *                 printable_heights    = nullptr);
-
+    void only_render_sinking(GUI::ERenderPipelineStage   render_pipeline_stage,
+                ERenderType                              type,
+                bool                                     disable_cullface,
+                const GUI::Camera &                      camera,
+                const std::vector<std::array<float, 4>> &colors,
+                Model &                                  model,
+                std::function<bool(const GLVolume &)>    filter_func          = std::function<bool(const GLVolume &)>(),
+                bool                                     with_outline         = true,
+                const std::array<float, 4> &             body_color           = {1.0f, 1.0f, 1.0f, 1.0f},
+                bool                                     partly_inside_enable = true,
+                std::vector<double> *                    printable_heights    = nullptr);
     // Finalize the initialization of the geometry & indices,
     // upload the geometry and indices to OpenGL VBO objects
     // and shrink the allocated data, possibly relasing it if it has been loaded into the VBOs.

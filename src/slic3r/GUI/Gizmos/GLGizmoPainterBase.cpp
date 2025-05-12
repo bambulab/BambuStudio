@@ -65,7 +65,7 @@ GLGizmoPainterBase::ClippingPlaneDataWrapper GLGizmoPainterBase::get_clipping_pl
     // z_range is calculated in the same way as in GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
     if (m_c->get_canvas()->get_use_clipping_planes()) {
         const std::array<ClippingPlane, 2> &clps = m_c->get_canvas()->get_clipping_planes();
-        clp_data_out.z_range                     = {float(-clps[0].get_data()[3]), float(clps[1].get_data()[3])};
+        clp_data_out.z_range                     = {-FLT_MAX, float(clps[1].get_data()[3])};
     }
 
     return clp_data_out;
