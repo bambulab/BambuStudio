@@ -21,7 +21,7 @@ struct BrimPoint
     int   volume_idx;
 
     BrimPoint()
-        : pos(Vec3f::Zero()), head_front_radius(0.f)
+        : pos(Vec3f::Zero()), head_front_radius(0.f), volume_idx(-1)
     {}
 
     BrimPoint(float pos_x,

@@ -3053,8 +3053,20 @@ void ObjectList::merge(bool to_multipart_object)
             const Transform3d& transformation_matrix = transformation.get_matrix();
 
             // merge volumes
-            for (const ModelVolume* volume : object->volumes) {
+            for(int volume_idx = 0; volume_idx < object->volumes.size(); volume_idx++) {
+                const ModelVolume* volume = object->volumes[volume_idx];
                 ModelVolume* new_volume = new_object->add_volume(*volume);
+                int new_volume_idx = new_object->volumes.size() - 1;
+                // merge brim ears
+                for (auto p : object->brim_points) {
+                    if (p.volume_idx == volume_idx) {
+                        Transform3d v_matrix = Transform3d::Identity();
+                        v_matrix = object->volumes[p.volume_idx]->get_matrix();
+                        p.set_transform(transformation_matrix* v_matrix);
+                        p.volume_idx = new_volume_idx;
+                        new_object->brim_points.push_back(p);
+                    }
+                }
 
                 //BBS: keep volume's transform
                 const Transform3d& volume_matrix = new_volume->get_matrix();
@@ -3122,13 +3134,12 @@ void ObjectList::merge(bool to_multipart_object)
                 new_object->layer_config_ranges.emplace(range);
 
             // merge brim ears
-            BrimPoints temp_brim_points = object->brim_points;
-            for(auto& p : temp_brim_points) {
-                Transform3d v_matrix = Transform3d::Identity();
-                if (p.volume_idx >= 0)
-                    v_matrix = object->volumes[p.volume_idx]->get_matrix();
-                p.set_transform(transformation_matrix * v_matrix);
-                new_object->brim_points.push_back(p);
+            for(auto& p : object->brim_points) {
+                if (p.volume_idx < 0) {
+                    Transform3d v_matrix = Transform3d::Identity();
+                    p.set_transform(transformation_matrix * v_matrix);
+                    new_object->brim_points.push_back(p);
+                }
             }
         }
 
