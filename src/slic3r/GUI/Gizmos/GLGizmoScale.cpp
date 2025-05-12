@@ -84,10 +84,6 @@ std::string GLGizmoScale3D::get_tooltip() const
 
 void GLGizmoScale3D::data_changed(bool is_serializing)
 {
-    const Selection &selection        = m_parent.get_selection();
-    bool             enable_scale_xyz = selection.is_single_full_instance() || selection.is_single_volume_or_modifier();
-    for (unsigned int i = 0; i < 6; ++i)
-        m_grabbers[i].enabled = enable_scale_xyz;
     set_scale(Vec3d::Ones());
 
     change_cs_by_selection();
