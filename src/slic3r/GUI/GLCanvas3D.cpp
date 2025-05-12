@@ -1724,6 +1724,15 @@ ModelInstanceEPrintVolumeState GLCanvas3D::check_volumes_outside_state(ObjectFil
     return state;
 }
 
+bool GLCanvas3D::is_volumes_selected_and_sinking() const {
+    for (GLVolume *volume : m_volumes.volumes) {
+        if (volume->selected && volume->is_sinking() && !volume->is_below_printbed()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void GLCanvas3D::toggle_selected_volume_visibility(bool selected_visible)
 {
     m_render_sla_auxiliaries = !selected_visible;
@@ -7569,6 +7578,18 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                 wxGetApp().unbind_shader();
                 gm.render_painter_assemble_view();
                 wxGetApp().bind_shader(shader);
+            }
+            if (m_canvas_type == CanvasView3D && m_gizmos.is_paint_gizmo()) {
+                m_volumes.only_render_sinking(
+                    render_pipeline_stage, type, false, camera, colors, *m_model,
+                    [this, canvas_type](const GLVolume &volume) {
+                        if (canvas_type == ECanvasType::CanvasAssembleView) {
+                            return !volume.is_modifier;
+                        } else {
+                            return true;
+                        }
+                    },
+                    with_outline, body_color, partly_inside_enable, printable_height_option ? &printable_height_option->values : nullptr);
             }
             break;
         }

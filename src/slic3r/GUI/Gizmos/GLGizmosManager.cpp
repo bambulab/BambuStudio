@@ -727,7 +727,7 @@ bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_p
         return false;
 }
 
-bool GLGizmosManager::is_paint_gizmo()
+bool GLGizmosManager::is_paint_gizmo() const
 {
     return m_current == EType::FdmSupports ||
            m_current == EType::MmuSegmentation ||
@@ -1912,6 +1912,9 @@ bool GLGizmosManager::is_in_editing_mode(bool error_notification) const
 
 bool GLGizmosManager::is_hiding_instances() const
 {
+    if (is_paint_gizmo()) {
+        return false;
+    }
     return (m_common_gizmos_data
          && m_common_gizmos_data->instances_hider()
          && m_common_gizmos_data->instances_hider()->is_valid());
