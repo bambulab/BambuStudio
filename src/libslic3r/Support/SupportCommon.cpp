@@ -618,8 +618,9 @@ void tree_supports_generate_paths(
     for (ExPolygon& expoly : closing_ex(polygons, float(SCALED_EPSILON), float(SCALED_EPSILON + 0.5 * flow.scaled_width()))) {
         std::unique_ptr<ExtrusionEntityCollection> eec;
         ExPolygons                                 regions_to_draw_inner_wall{expoly};
+        double                                     area = expoly.area();
         if (support_params.tree_branch_diameter_double_wall_area_scaled > 0)
-            if (double area = expoly.area(); area > support_params.tree_branch_diameter_double_wall_area_scaled) {
+            if (area > support_params.tree_branch_diameter_double_wall_area_scaled) {
                 BOOST_LOG_TRIVIAL(debug)<< "TreeSupports: double wall area: " << area<< " > " << support_params.tree_branch_diameter_double_wall_area_scaled;
                 eec = std::make_unique<ExtrusionEntityCollection>();
                 // Don't reorder internal / external loops of the same island, always start with the internal loop.
@@ -690,12 +691,12 @@ void tree_supports_generate_paths(
                             }
                         }
                     }
-                if (d2min < sqr(flow.scaled_width() * 3.)) {
+                if (d2min < sqr(flow.scaled_width() * 3.) && Slic3r::area(regions_to_draw_inner_wall) + scale_(EPSILON) > area && !shrink_ex({expoly}, -2.*flow.scaled_width()).empty()) {
                     // Try to cut an anchor from the closest_contour.
                     // Both closest_contour and pl are CW oriented.
                     pl.points.emplace_back(closest_point.cast<coord_t>());
                     const ClipperLib_Z::Path &path             = *closest_contour;
-                    double                    remaining_length = anchor_length - (seam_pt - closest_point).norm();
+                    double                    remaining_length = std::min(anchor_length - (seam_pt - closest_point).norm(), pl.length() / 12.);
                     int                       i                = closest_point_idx;
                     int                       j                = next_idx_modulo(i, *closest_contour);
                     Vec2d                     pi(path[i].x(), path[i].y());
