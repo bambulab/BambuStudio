@@ -220,7 +220,7 @@ struct SupportParameters {
             }
         }
 
-        if(object_config.tree_support_wall_count.value==0){
+        if(object_config.tree_support_wall_count.value==-1){
             tree_support_branch_diameter_double_wall = support_filament_strength;
             this->tree_branch_diameter_double_wall_area_scaled = 0.25*sqr(scaled<double>(tree_support_branch_diameter_double_wall))*M_PI;
         }else{
