@@ -526,7 +526,6 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
             vsizer->Add(hsizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(8));
             vsizer->Add(combo_printer, 0, wxEXPAND | wxALL, FromDIP(4));
             panel_printer_preset->SetSizer(vsizer);
-            panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE_SMALL);
         } else {
             wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
             hsizer->Add(image_printer, 0, wxLEFT | wxALIGN_CENTER, FromDIP(4));
@@ -534,7 +533,6 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
             hsizer->Add(hsizer_printer_btn, 0, wxALIGN_TOP | wxTOP | wxRIGHT, FromDIP(4));
             hsizer->AddSpacer(FromDIP(10));
             panel_printer_preset->SetSizer(hsizer);
-            panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE_WIDEN);
         }
     }
 
@@ -1602,7 +1600,7 @@ Sidebar::Sidebar(Plater *parent)
         p->panel_printer_bed = new StaticBox(p->m_panel_printer_content);
         p->panel_printer_bed->SetCornerRadius(8);
         p->panel_printer_bed->SetBorderColor(panel_bd_col);
-        p->panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE_SMALL);
+        p->panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE_WIDEN);
         p->panel_printer_bed->Bind(wxEVT_LEFT_DOWN, [this](auto &evt) {
             p->combo_printer_bed->wxEvtHandler::ProcessEvent(evt);
         });
@@ -1636,7 +1634,7 @@ Sidebar::Sidebar(Plater *parent)
         p->combo_printer_bed->Bind(wxEVT_COMBOBOX, [this](auto &e) {
             bool isDual          = static_cast<wxBoxSizer *>(p->panel_printer_preset->GetSizer())->GetOrientation() == wxVERTICAL;
             auto image_path        = get_cur_select_bed_image();
-            p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, isDual ? 48 : 32));
+            p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
             if (p->big_bed_image_popup) {
                 p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
             }
@@ -2370,7 +2368,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
             update_extruder_variant(*p->single_extruder, 0);
             //if (!p->is_switching_diameter)
                 update_extruder_diameter(*p->single_extruder);
-            p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 32));
+            p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
         }
 
         if (GUI::wxGetApp().plater())
@@ -2568,7 +2566,7 @@ void Sidebar::msw_rescale()
     p->image_printer->SetSize(PRINTER_THUMBNAIL_SIZE);
     bool isDual     = static_cast<wxBoxSizer *>(p->panel_printer_preset->GetSizer())->GetOrientation() == wxVERTICAL;
     auto image_path = get_cur_select_bed_image();
-    p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, isDual ? 48 : 32));
+    p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
 
     p->m_filament_icon->msw_rescale();
     p->m_bpButton_add_filament->msw_rescale();
@@ -2586,7 +2584,7 @@ void Sidebar::msw_rescale()
     p->btn_sync_printer->SetPaddingSize({FromDIP(6), FromDIP(12)});
     p->btn_sync_printer->SetMinSize(PRINTER_PANEL_SIZE);
     p->btn_sync_printer->SetMaxSize(PRINTER_PANEL_SIZE);
-    p->panel_printer_bed->SetMinSize(isDual ? PRINTER_PANEL_SIZE : PRINTER_PANEL_SIZE_WIDEN);
+    p->panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE_WIDEN);
     p->btn_sync_printer->Rescale();
 #if 0
     if (p->mode_sizer)
