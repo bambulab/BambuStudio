@@ -380,6 +380,7 @@ public:
     const IndicesList& get_volume_idxs() const { return m_list; }
     const GLVolume* get_volume(unsigned int volume_idx) const;
     GLVolume*      get_volume(unsigned int volume_idx);
+    const GLVolume* get_volume_by_object_volumn_id(unsigned int volume_id) const;
     const GLVolume* get_first_volume() const { return get_volume(*m_list.begin()); }
     const ObjectIdxsToInstanceIdxsMap& get_content() const { return m_cache.content; }
 

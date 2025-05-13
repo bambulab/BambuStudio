@@ -885,6 +885,17 @@ GLVolume *Selection::get_volume(unsigned int volume_idx) {
     return (m_valid && (volume_idx < (unsigned int) m_volumes->size())) ? (*m_volumes)[volume_idx] : nullptr;
 }
 
+
+const GLVolume *Selection::get_volume_by_object_volumn_id(unsigned int volume_id) const
+{
+    if (!m_valid || m_volumes->size() <= 0)
+        return nullptr;
+    for (const GLVolume *v : *m_volumes) {
+        if (v->object_idx() == get_object_idx() && v->volume_idx() == volume_id)
+            return const_cast<GLVolume *>(v);
+    }
+    return nullptr;
+}
 const BoundingBoxf3& Selection::get_bounding_box() const
 {
     if (!m_bounding_box.has_value()) {
