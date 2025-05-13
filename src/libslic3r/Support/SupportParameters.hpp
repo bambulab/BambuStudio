@@ -33,19 +33,35 @@ struct SupportParameters {
 	            num_top_interface_layers : object_config.support_interface_bottom_layers;
 	        this->has_top_contacts              = num_top_interface_layers    > 0;
 	        this->has_bottom_contacts           = num_bottom_interface_layers > 0;
-	        if (this->soluble_interface_non_soluble_base) {
-	            // Try to support soluble dense interfaces with non-soluble dense interfaces.
-                this->num_top_base_interface_layers    = num_top_interface_layers > 0 ? 2 : 0;
-	            this->num_bottom_base_interface_layers = size_t(std::min(int(num_bottom_interface_layers) / 2, 2));
-	        } else {
-                // BBS: if support interface and support base do not use the same filament, add a base layer to improve their adhesion
-                // Note: support materials (such as Supp.W) can't be used as support base now, so support interface and base are still using different filaments even if
-                // support_filament==0
-                bool differnt_support_interface_filament = object_config.support_interface_filament != 0 &&
-                                                           object_config.support_interface_filament != object_config.support_filament;
-                this->num_top_base_interface_layers    = num_top_interface_layers > 0 ? differnt_support_interface_filament ? 2 : 1 : 0;
-                this->num_bottom_base_interface_layers       = differnt_support_interface_filament ? 1 : 0;
-	        }
+            if (is_tree(object_config.support_type)) {
+                if (this->soluble_interface_non_soluble_base) {
+                    // Try to support soluble dense interfaces with non-soluble dense interfaces.
+                    this->num_top_base_interface_layers    = size_t(std::min(int(num_top_interface_layers) / 2, 2));
+                    this->num_bottom_base_interface_layers = size_t(std::min(int(num_bottom_interface_layers) / 2, 2));
+                } else {
+                    // BBS: if support interface and support base do not use the same filament, add a base layer to improve their adhesion
+                    // Note: support materials (such as Supp.W) can't be used as support base now, so support interface and base are still using different filaments even if
+                    // support_filament==0
+                    bool differnt_support_interface_filament = object_config.support_interface_filament != 0 &&
+                                                               object_config.support_interface_filament != object_config.support_filament;
+                    this->num_top_base_interface_layers    = differnt_support_interface_filament ? 1 : 0;
+                    this->num_bottom_base_interface_layers = differnt_support_interface_filament ? 1 : 0;
+                }
+            } else {
+                if (this->soluble_interface_non_soluble_base) {
+                    // Try to support soluble dense interfaces with non-soluble dense interfaces.
+                    this->num_top_base_interface_layers    = num_top_interface_layers > 0 ? 2 : 0;
+                    this->num_bottom_base_interface_layers = size_t(std::min(int(num_bottom_interface_layers) / 2, 2));
+                } else {
+                    // BBS: if support interface and support base do not use the same filament, add a base layer to improve their adhesion
+                    // Note: support materials (such as Supp.W) can't be used as support base now, so support interface and base are still using different filaments even if
+                    // support_filament==0
+                    bool differnt_support_interface_filament = object_config.support_interface_filament != 0 &&
+                                                               object_config.support_interface_filament != object_config.support_filament;
+                    this->num_top_base_interface_layers    = num_top_interface_layers > 0 ? differnt_support_interface_filament ? 2 : 1 : 0;
+                    this->num_bottom_base_interface_layers = differnt_support_interface_filament ? 1 : 0;
+                }
+            }
 	    }
         this->first_layer_flow = Slic3r::support_material_1st_layer_flow(&object, float(slicing_params.first_print_layer_height));
         this->support_material_flow = Slic3r::support_material_flow(&object, float(slicing_params.layer_height));
