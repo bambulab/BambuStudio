@@ -60,7 +60,7 @@ struct BrimPoint
     bool operator!=(const BrimPoint &sp) const { return !(sp == (*this)); }
     template<class Archive> void serialize(Archive &ar)
     {
-        ar(pos, head_front_radius);
+        ar(pos, head_front_radius, volume_idx);
     }
 };
 
