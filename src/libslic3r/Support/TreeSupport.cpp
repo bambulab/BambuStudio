@@ -3087,6 +3087,9 @@ void TreeSupport::drop_nodes()
                         p_node->origin_area = node.overhang.area();
                         densify_polygon(p_node->overhang.contour, 2.);
                     }
+                    if (m_support_params.num_top_interface_layers > 0 && obj_layer_nr_next > 0 && node.support_roof_layers_below == 1 &&
+                        node.distance_to_top >= m_support_params.num_top_interface_layers)
+                        overhangs_next = safe_offset_inc(overhangs_next, scale_(max_move_distance), get_collision(0, obj_layer_nr_next), scale_(MIN_BRANCH_RADIUS * 1.75), 0, 1);
                     for(auto& overhang:overhangs_next) {
                         if (overhang.empty()) continue;
                         if (overhang.area() > node.origin_area / 2. && overhang.area() > SQ(scale_(10.))) {
@@ -3100,7 +3103,8 @@ void TreeSupport::drop_nodes()
                             }
                         }
                         // if the part would fall straight to th buildplate, shrink it a little
-                        if (overhang.area() > node.origin_area / 2. && overhang.area() > double(SQ(scale_(10.)))) {
+                        if (node.support_roof_layers_below<0 && overhang.area() > node.origin_area / 2. &&
+                            overhang.area() > double(SQ(scale_(10.)))) {
                             ExPolygons shrink_overhangs = union_ex(shrink_ex(safe_union({overhang}), double(scale_(max_move_distance / 2.))));
                             if (shrink_overhangs.size() == 1 && shrink_overhangs[0].area() > double(SQ(scale_(10.))) &&
                                 !overlaps({overhang}, m_ts_data->m_layer_outlines_below[obj_layer_nr_next])) {
