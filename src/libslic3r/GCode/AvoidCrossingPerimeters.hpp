@@ -62,6 +62,8 @@ private:
     EdgeGrid::Grid m_grid_lslice;
     // Store all needed data for travels inside object
     Boundary m_internal;
+    // Store all needed data for travels inside object without inner offset
+    Boundary m_lslice_internal;
     // Store all needed data for travels outside object
     Boundary m_external;
 };
