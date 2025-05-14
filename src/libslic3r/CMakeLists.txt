@@ -26,6 +26,8 @@ set(lisbslic3r_sources
     AABBTreeLines.hpp
     AABBMesh.hpp
     AABBMesh.cpp
+    Algorithm/LineSegmentation/LineSegmentation.cpp
+    Algorithm/LineSegmentation/LineSegmentation.hpp
     AnyPtr.hpp
     AStar.hpp
     BoundingBox.cpp
@@ -120,6 +122,8 @@ set(lisbslic3r_sources
     Frustum.hpp
     FlushVolCalc.cpp
     FlushVolCalc.hpp
+    FuzzySkin.cpp
+    FuzzySkin.hpp
     format.hpp
     Format/3mf.cpp
     Format/3mf.hpp

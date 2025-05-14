@@ -9,6 +9,25 @@
 #include "SurfaceCollection.hpp"
 
 namespace Slic3r {
+class LayerRegion;
+class PrintRegion;
+
+struct PerimeterRegion
+{
+    const PrintRegion *region;
+    ExPolygons         expolygons;
+    BoundingBox        bbox;
+
+    explicit PerimeterRegion(const LayerRegion &layer_region);
+
+    // If there is any incompatibility, we don't need to create separate LayerRegions.
+    // Because it is enough to split perimeters by PerimeterRegions.
+    static bool has_compatible_perimeter_regions(const PrintRegionConfig &config, const PrintRegionConfig &other_config);
+
+    static void merge_compatible_perimeter_regions(std::vector<PerimeterRegion> &perimeter_regions);
+};
+
+using PerimeterRegions = std::vector<PerimeterRegion>;
 
 class PerimeterGenerator {
 public:
@@ -25,6 +44,7 @@ public:
     const PrintRegionConfig     *config;
     const PrintObjectConfig     *object_config;
     const PrintConfig           *print_config;
+    const PerimeterRegions      *perimeter_regions;
     // Outputs:
     ExtrusionEntityCollection   *loops;
     ExtrusionEntityCollection   *gap_fill;
@@ -44,7 +64,7 @@ public:
 
     PerimeterGenerator(
         // Input:
-        const SurfaceCollection*    slices, 
+        const SurfaceCollection*    slices,
         double                      layer_height,
         Flow                        flow,
         const PrintRegionConfig*    config,
