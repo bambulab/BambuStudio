@@ -7,6 +7,7 @@
 #include "../format.hpp"
 #include "FillFloatingConcentric.hpp"
 #include <boost/log/trivial.hpp>
+#include <libslic3r/ShortestPath.hpp>
 
 namespace Slic3r {
 
@@ -855,6 +856,7 @@ FloatingThickPolylines FillFloatingConcentric::fill_surface_arachne_floating(con
 void FillFloatingConcentric::fill_surface_extrusion(const Surface* surface, const FillParams& params, ExtrusionEntitiesPtr& out)
 {
     FloatingThickPolylines floating_lines = this->fill_surface_arachne_floating(surface, params);
+    //reorder_by_shortest_traverse(floating_lines);
     if (floating_lines.empty())
         return;
     Flow new_flow = params.flow.with_spacing(this->spacing);
