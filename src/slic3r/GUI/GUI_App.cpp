@@ -1096,7 +1096,7 @@ void GUI_App::post_init()
 
             std::string download_params_url = url_decode(this->init_params->input_files.front());
             auto input_str_arr = split_str(download_params_url, "file=");
-
+            if (input_str_arr.size() > 1) {input_str_arr.erase(input_str_arr.begin());}
 
             std::string download_url;
 #if BBL_RELEASE_TO_PUBLIC
@@ -6839,6 +6839,7 @@ void GUI_App::MacOpenURL(const wxString& url)
 
     if (!url.empty() && boost::starts_with(url, "bambustudioopen://")) {
         auto input_str_arr = split_str(url.ToStdString(), "bambustudioopen://");
+        if (input_str_arr.size() > 1) {input_str_arr.erase(input_str_arr.begin());}
 
         std::string download_origin_url;
         for (auto input_str : input_str_arr) {
