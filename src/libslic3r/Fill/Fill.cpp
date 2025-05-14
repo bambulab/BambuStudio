@@ -135,6 +135,16 @@ struct SurfaceFill {
     ExPolygons          no_overlap_expolygons;
 };
 
+// BBS: used to judge whether the internal solid infill area is narrow
+static bool is_narrow_infill_area(const ExPolygon& expolygon)
+{
+	ExPolygons offsets = offset_ex(expolygon, -scale_(NARROW_INFILL_AREA_THRESHOLD));
+	if (offsets.empty())
+		return true;
+
+	return false;
+}
+
 std::vector<SurfaceFill> group_fills(const Layer &layer)
 {
 	std::vector<SurfaceFill> surface_fills;
@@ -384,7 +394,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 				auto bbox = get_extents(surface_fills[i].expolygons[j]);
 				auto clipped_internals = ClipperUtils::clip_clipper_polygons_with_subject_bbox(lower_internal_areas, bbox.inflated(scale_(2))); // expand a little
 				auto clipped_internal_bbox = get_extents(clipped_internals);
-				if (is_narrow_expolygon(surface_fills[i].expolygons[j], narrow_threshold)) {
+				if (is_narrow_infill_area(surface_fills[i].expolygons[j])) {
 					if (!clipped_internals.empty() && bbox.overlap(clipped_internal_bbox) && !intersection_ex(offset_ex(surface_fills[i].expolygons[j],SCALED_EPSILON), clipped_internals).empty()) {
 						narrow_floating_expoly_idx.emplace_back(j);
 					}
