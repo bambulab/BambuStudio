@@ -216,11 +216,13 @@ std::optional<LineRegionRange> create_line_region_range(ClipperLib_Z::Path &&int
 
     auto need_reverse = [&subject](const ClipperLib_Z::Path &intersection) -> bool {
         for (size_t curr_idx = 1; curr_idx < intersection.size(); ++curr_idx) {
+            Point pre_pos = Point(intersection[curr_idx - 1].x(), intersection[curr_idx - 1].y());
+            Point cur_pos = Point(intersection[curr_idx].x(), intersection[curr_idx].y());
             ZAttributes prev_z(intersection[curr_idx - 1]);
             ZAttributes curr_z(intersection[curr_idx]);
 
             if (!prev_z.is_clip_point && !curr_z.is_clip_point) {
-                if (prev_z.point_index > curr_z.point_index) {
+                if ((prev_z.point_index > curr_z.point_index) &&  (pre_pos != cur_pos)){
                     return true;
                 } else if (curr_z.point_index == prev_z.point_index) {
                     assert(curr_z.point_index < subject.size());
