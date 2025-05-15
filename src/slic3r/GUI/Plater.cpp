@@ -2159,33 +2159,34 @@ void Sidebar::update_all_preset_comboboxes()
         if (config) {
             m_update_3d_state = true;
             bool has_changed = reset_bed_type_combox_choices();
-            if (m_begin_sync_printer_status && !has_changed) {
-                return;
-            }
-            if (m_soft_first_start && !wxGetApp().get_app_conf_exists()) {
-                use_default_bed_type();
-            } else {
-                auto user_bed_type_flag = config->get("user_bed_type") == "true";
-                if (!user_bed_type_flag) { //bed_type not follow machine
-                    set_bed_by_curr_bed_type(config);
-                } else {//bed_type follow machine
-                    if (m_is_gcode_file) {//.gcode.3mf case
-                        m_is_gcode_file = false;
+            bool flag         = m_begin_sync_printer_status && !has_changed;
+            if (!(flag)) {
+                if (m_soft_first_start && !wxGetApp().get_app_conf_exists()) {
+                    use_default_bed_type();
+                } else {
+                    auto user_bed_type_flag = config->get("user_bed_type") == "true";
+                    if (!user_bed_type_flag) { // bed_type not follow machine
                         set_bed_by_curr_bed_type(config);
-                    }
-                    else if (user_bed_type_flag) {
-                        if (config->has_section("user_bed_type_list")) {
-                            auto user_bed_type_list = config->get_section("user_bed_type_list");
-                            if (user_bed_type_list.size() > 0 && user_bed_type_list[cur_preset_name].size() > 0) {
-                                set_bed_type(user_bed_type_list[cur_preset_name]);
+                    } else {                   // bed_type follow machine
+                        if (m_is_gcode_file) { //.gcode.3mf case
+                            m_is_gcode_file = false;
+                            set_bed_by_curr_bed_type(config);
+                        } else if (user_bed_type_flag) {
+                            if (config->has_section("user_bed_type_list")) {
+                                auto user_bed_type_list = config->get_section("user_bed_type_list");
+                                if (user_bed_type_list.size() > 0 && user_bed_type_list[cur_preset_name].size() > 0) {
+                                    set_bed_type(user_bed_type_list[cur_preset_name]);
+                                } else {
+                                    use_default_bed_type();
+                                }
                             } else {
                                 use_default_bed_type();
                             }
-                        } else {
-                            use_default_bed_type();
                         }
                     }
                 }
+            } else {
+                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":no need reset_bed_type_combox_choices";
             }
         } else {
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":error:AppConfig is nullptr";
