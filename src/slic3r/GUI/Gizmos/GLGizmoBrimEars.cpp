@@ -91,8 +91,16 @@ void GLGizmoBrimEars::on_render_for_picking()
 bool GLGizmoBrimEars::is_use_point(const BrimPoint &point) const
 {
     const Selection &selection = m_parent.get_selection();
-    const GLVolume  *volume    = selection.get_volume(*selection.get_volume_idxs().begin());
-    Transform3d      trsf      = volume->get_instance_transformation().get_matrix();
+    Transform3d      trsf;
+    if (point.volume_idx >= 0) {
+        const GLVolume* volume = selection.get_volume_by_object_volumn_id(point.volume_idx);
+        trsf = volume->world_matrix();
+    }else {
+        const Selection& selection = m_parent.get_selection();
+        const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+        trsf = volume->get_instance_transformation().get_matrix();
+    }
+    
     auto world_point = trsf * point.pos.cast<double>();
     if (world_point[2] > 0) return false;
     return true;
@@ -116,13 +124,10 @@ void GLGizmoBrimEars::render_points(const Selection &selection, bool picking) co
     wxGetApp().bind_shader(shader);
 
     const GLVolume    *vol                             = selection.get_volume(*selection.get_volume_idxs().begin());
-    const Transform3d &instance_scaling_matrix_inverse = vol->get_instance_transformation().get_matrix(true, true, false, true).inverse();
-    const Transform3d &instance_matrix                 = vol->get_instance_transformation().get_matrix();
 
     const Camera& camera = picking ? wxGetApp().plater()->get_picking_camera() : wxGetApp().plater()->get_camera();
     const Transform3d& view_matrix = camera.get_view_matrix();
     const Transform3d& projection_matrix = camera.get_projection_matrix();
-    Transform3d volume_matrix = Transform3d::Identity();
 
     shader->set_uniform("projection_matrix", projection_matrix);
 
@@ -132,11 +137,14 @@ void GLGizmoBrimEars::render_points(const Selection &selection, bool picking) co
         const bool      &point_selected = editing_cache[i].selected;
         const bool      &hover          = editing_cache[i].is_hover;
         const bool      &error          = editing_cache[i].is_error;
+        Transform3d     volume_matrix   = Transform3d::Identity();
         if (!is_use_point(brim_point) && !hover)
             continue;
         if (brim_point.volume_idx >= 0) {
             const GLVolume* v = selection.get_volume_by_object_volumn_id(brim_point.volume_idx);
-            volume_matrix = v->get_volume_transformation().get_matrix();
+            volume_matrix = v->world_matrix();
+        }else {
+            volume_matrix = vol->get_instance_transformation().get_matrix();
         }
         
         // keep show brim ear
@@ -169,7 +177,8 @@ void GLGizmoBrimEars::render_points(const Selection &selection, bool picking) co
         if (shader && !picking) shader->set_uniform("emission_factor", 0.5f);
 
         // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
-        const Transform3d brim_matrix = Geometry::assemble_transform(brim_point.pos.cast<double>()) * instance_scaling_matrix_inverse * volume_matrix;
+        double radius = (double)brim_point.head_front_radius * RenderPointScale;
+        const Transform3d brim_matrix = Geometry::assemble_transform(brim_point.pos.cast<double>());
 
         if (vol->is_left_handed())
             glFrontFace(GL_CW);
@@ -179,13 +188,8 @@ void GLGizmoBrimEars::render_points(const Selection &selection, bool picking) co
         if (editing_cache[i].normal == Vec3f::Zero())
             m_c->raycaster()->raycaster()->get_closest_point(editing_cache[i].brim_point.pos, &editing_cache[i].normal);
 
-        double radius = (double)brim_point.head_front_radius * RenderPointScale;
-
-        Eigen::Quaterniond q;
-        q.setFromTwoVectors(Vec3d{0., 0., 1.}, instance_scaling_matrix_inverse * editing_cache[i].normal.cast<double>());
-        Eigen::AngleAxisd aa(q);
-
-        const Transform3d view_model_matrix = view_matrix * instance_matrix * brim_matrix * Transform3d(aa.toRotationMatrix()) *
+        Geometry::Transformation volume_trans(volume_matrix);
+        const Transform3d view_model_matrix = view_matrix * volume_matrix * brim_matrix * volume_trans.get_matrix(true, false, false, true).inverse() *
             Geometry::assemble_transform(Vec3d(0.0, 0.0, 0.0),
                 Vec3d(PI, 0.0, 0.0), Vec3d(radius, radius, .2));
 
@@ -235,8 +239,7 @@ bool GLGizmoBrimEars::unproject_on_mesh2(const Vec2d &mouse_pos, std::pair<Vec3f
                 closest_hit_distance = hit_squared_distance;
                 mouse_on_object      = true;
                 m_last_hit_volume    = item.first;
-                auto volum_trsf      = m_last_hit_volume->get_volume_transformation().get_matrix();
-                position_on_model    = (m_last_hit_volume->get_volume_transformation().get_matrix() * hit.cast<double>()).cast<float>();
+                position_on_model    = hit;
                 normal_on_model      = normal;
             }
         }
@@ -254,7 +257,7 @@ bool GLGizmoBrimEars::unproject_on_mesh(const Vec2d &mouse_pos, std::pair<Vec3f,
     const Camera            &camera    = wxGetApp().plater()->get_camera();
     const Selection         &selection = m_parent.get_selection();
     const GLVolume          *volume    = selection.get_volume(*selection.get_volume_idxs().begin());
-    Geometry::Transformation trafo     = volume->get_instance_transformation();
+    const auto& trafo     = volume->world_matrix();
     // trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., m_c->selection_info()->get_sla_shift()));//sla shift看起来可以删掉
 
     double               clp_dist = m_c->object_clipper()->get_position();
@@ -263,7 +266,7 @@ bool GLGizmoBrimEars::unproject_on_mesh(const Vec2d &mouse_pos, std::pair<Vec3f,
     // The raycaster query
     Vec3f hit;
     Vec3f normal;
-    if (m_c->raycaster()->raycaster()->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, hit, normal, clp_dist != 0. ? clp : nullptr)) {
+    if (m_c->raycaster()->raycaster()->unproject_on_mesh(mouse_pos, trafo, camera, hit, normal, clp_dist != 0. ? clp : nullptr)) {
         pos_and_normal = std::make_pair(hit, normal);
         return true;
     }
@@ -316,8 +319,8 @@ bool GLGizmoBrimEars::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_p
         std::pair<Vec3f, Vec3f> pos_and_normal;
         if (unproject_on_mesh2(mouse_position, pos_and_normal)) {
             int volume_idx = m_last_hit_volume->volume_idx();
-            Transform3d v_trsf = selection.get_volume_by_object_volumn_id(volume_idx)->get_volume_transformation().get_matrix();
-            Vec3d set_volume_trsf_pos = v_trsf.inverse() * pos_and_normal.first.cast<double>();
+            Transform3d v_trsf = selection.get_volume_by_object_volumn_id(volume_idx)->world_matrix();
+            Vec3d set_volume_trsf_pos = pos_and_normal.first.cast<double>();
             render_hover_point = CacheEntry(BrimPoint(set_volume_trsf_pos.cast<float>(), m_new_point_head_diameter / 2.f, volume_idx), false, (inverse_trsf * m_world_normal).cast<float>(), true);
         } else {
             render_hover_point.reset();
@@ -349,14 +352,13 @@ bool GLGizmoBrimEars::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_p
                 // we got an intersection
                 int volume_idx = m_last_hit_volume->volume_idx();
                 const Selection &selection    = m_parent.get_selection();
-                const GLVolume  *volume       = selection.get_volume(*selection.get_volume_idxs().begin());
-                Transform3d      trsf         = volume->get_instance_transformation().get_matrix();
-                Transform3d      inverse_trsf = volume->get_instance_transformation().get_matrix(true).inverse();
-                Transform3d      v_trsf         = selection.get_volume_by_object_volumn_id(volume_idx)->get_volume_transformation().get_matrix();
+                const GLVolume  *volume       = selection.get_volume_by_object_volumn_id(volume_idx);
+                Transform3d      trsf         = volume->world_matrix();
+                Transform3d      inverse_trsf = trsf.inverse();
                 // BBS brim ear postion is placed on the bottom side
                 Vec3d world_pos  = trsf * pos_and_normal.first.cast<double>();
                 world_pos[2]     = -0.0001;
-                Vec3d object_pos = trsf.inverse() * v_trsf.inverse() * world_pos;
+                Vec3d object_pos = trsf.inverse() * world_pos;
                 // brim ear always face up
                 Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Add brim ear");
                 add_point_to_cache(object_pos.cast<float>(), m_new_point_head_diameter / 2.f, false, (inverse_trsf * m_world_normal).cast<float>(), volume_idx);
@@ -900,7 +902,7 @@ void GLGizmoBrimEars::first_layer_slicer()
         if (model_volume->type() == ModelVolumeType::MODEL_PART || model_volume->type() == ModelVolumeType::NEGATIVE_VOLUME) {
             indexed_triangle_set volume_its = model_volume->mesh().its;
             if (volume_its.indices.size() <= 0) continue;
-            Transform3d         trsf = volume->get_instance_transformation().get_matrix() * volume->get_volume_transformation().get_matrix();
+            Transform3d         trsf = volume->world_matrix();
             MeshSlicingParamsEx params_ex(params);
             params_ex.trafo = params_ex.trafo * trsf;
             if (params_ex.trafo.rotation().determinant() < 0.) its_flip_triangles(volume_its);
@@ -1013,13 +1015,13 @@ void GLGizmoBrimEars::register_single_mesh_pick()
             GLVolume *v          = const_cast<GLVolume *>(selection.get_volume(idx));
             const ModelVolume* mv = get_model_volume(*v, wxGetApp().model());
             if (!mv->is_model_part()) continue;
-            auto      world_tran = v->get_instance_transformation() * v->get_volume_transformation();
+            auto      world_tran = v->world_matrix();
             auto      mesh       = const_cast<TriangleMesh *>(v->ori_mesh);
             if (m_mesh_raycaster_map.find(v) != m_mesh_raycaster_map.end()) {
-                m_mesh_raycaster_map[v]->world_tran.set_from_transform(world_tran.get_matrix());
+                m_mesh_raycaster_map[v]->world_tran.set_from_transform(world_tran);
             } else {
                 m_mesh_raycaster_map[v] = std::make_shared<PickRaycaster>(mesh, -1);
-                m_mesh_raycaster_map[v]->world_tran.set_from_transform(world_tran.get_matrix());
+                m_mesh_raycaster_map[v]->world_tran.set_from_transform(world_tran);
             }
         }
     }
@@ -1028,8 +1030,8 @@ void GLGizmoBrimEars::register_single_mesh_pick()
 void GLGizmoBrimEars::update_single_mesh_pick(GLVolume *v)
 {
     if (m_mesh_raycaster_map.find(v) != m_mesh_raycaster_map.end()) {
-        auto world_tran = v->get_instance_transformation() * v->get_volume_transformation();
-        m_mesh_raycaster_map[v]->world_tran.set_from_transform(world_tran.get_matrix());
+        auto world_tran = v->world_matrix();
+        m_mesh_raycaster_map[v]->world_tran.set_from_transform(world_tran);
     }
 }
 
@@ -1041,11 +1043,11 @@ float GLGizmoBrimEars::get_brim_default_radius() const
     return pring_cfg.get_abs_value("initial_layer_line_width") * 16.0f;
 }
 
-ExPolygon GLGizmoBrimEars::make_polygon(BrimPoint point, const Geometry::Transformation &trsf)
+ExPolygon GLGizmoBrimEars::make_polygon(BrimPoint point, const Transform3d&trsf)
 {
     ExPolygon   point_round;
-    Transform3d model_trsf = trsf.get_matrix();
-    Vec3f       world_pos  = point.transform(trsf.get_matrix());
+    Transform3d model_trsf = trsf;
+    Vec3f       world_pos  = point.transform(model_trsf);
     coord_t     size_ear   = scale_(point.head_front_radius);
     for (size_t i = 0; i < POLY_SIDE_COUNT; i++) {
         double angle = (2.0 * PI * i) / POLY_SIDE_COUNT;
@@ -1082,12 +1084,10 @@ void GLGizmoBrimEars::find_single()
         auto end = --m_single_brim.end();
         for (auto it = m_single_brim.begin(); it != m_single_brim.end(); ++it) {
             int volume_idx = it->second.brim_point.volume_idx;
-            Geometry::Transformation trsf = volume->get_instance_transformation();
-            if (volume_idx >= 0){
-                const Geometry::Transformation v_trsf = selection.get_volume_by_object_volumn_id(volume_idx)->get_volume_transformation();
-                trsf = trsf * v_trsf;
+            auto trsf = volume->get_instance_transformation().get_matrix();
+            if (volume_idx >= 0) {
+                trsf = volume->world_matrix();
             }
-                
             ExPolygon point_pl = make_polygon(it->second.brim_point, trsf);
             if (overlaps(model_pl, point_pl)) {
                 model_pl.emplace_back(point_pl);

@@ -3118,9 +3118,9 @@ void ObjectList::merge(bool to_multipart_object)
                 // merge brim ears
                 for (auto p : object->brim_points) {
                     if (p.volume_idx == volume_idx) {
-                        Transform3d v_matrix = Transform3d::Identity();
-                        v_matrix = object->volumes[p.volume_idx]->get_matrix();
-                        p.set_transform(transformation_matrix* v_matrix);
+                        Transform3d v_matrix = object->volumes[p.volume_idx]->get_matrix();
+                        p.set_transform(v_matrix);
+                        p.set_transform(transformation_matrix);
                         p.volume_idx = new_volume_idx;
                         new_object->brim_points.push_back(p);
                     }
@@ -3215,7 +3215,8 @@ void ObjectList::merge(bool to_multipart_object)
             Transform3d v_matrix_inverse = Transform3d::Identity();
             if (p.volume_idx >= 0)
                 v_matrix_inverse = new_object->volumes[p.volume_idx]->get_matrix().inverse();
-            p.set_transform(new_object_inverse_matrix * v_matrix_inverse);
+            p.set_transform(new_object_inverse_matrix);
+            p.set_transform(v_matrix_inverse);
         }
         //BBS: notify it before remove
         notify_instance_updated(m_objects->size() - 1);
