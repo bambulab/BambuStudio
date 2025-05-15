@@ -166,7 +166,7 @@ protected:
     void reset_all_pick();
     bool add_point_to_cache(Vec3f pos, float head_radius, bool selected, Vec3f normal, int volume_idx=-1);
     float get_brim_default_radius() const;
-    ExPolygon make_polygon(BrimPoint point, const Geometry::Transformation &trsf);
+    ExPolygon make_polygon(BrimPoint point, const Transform3d& trsf);
     void find_single();
     bool is_use_point(const BrimPoint &point) const;
 };
