@@ -9826,8 +9826,14 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
 
     wxGetApp().obj_list()->update_object_list_by_printer_technology();
 
-    // BBS:Model reset by plate center
+    // set default wipe tower pos
     PartPlateList &cur_plate_list       = this->partplate_list;
+    for (size_t plate_id = 0; plate_id < cur_plate_list.get_plate_list().size(); ++plate_id) {
+        cur_plate_list.set_default_wipe_tower_pos_for_plate(plate_id);
+    }
+    update();
+
+    // BBS:Model reset by plate center
     PartPlate     *cur_plate            = cur_plate_list.get_curr_plate();
     Vec3d          cur_plate_pos        = cur_plate->get_center_origin();
     Vec3d          cur_plate_size       = cur_plate->get_bounding_box().size();

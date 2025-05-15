@@ -3188,11 +3188,12 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                     coordf_t plate_bbox_y_max_local_coord = plate_bbox_2d.max(1) - plate_origin(1);
 
                     if (!current_print->is_step_done(psWipeTower) || !current_print->wipe_tower_data().wipe_tower_mesh_data) {
+                        Vec2d min_wipe_tower_size(MIN_WIPE_TOWER_SIZE, MIN_WIPE_TOWER_SIZE);
                         // update for wipe tower position
                         {
                             bool     need_update                  = false;
-                            if (x + margin + wipe_tower_size(0) > plate_bbox_x_max_local_coord) {
-                                x           = plate_bbox_x_max_local_coord - wipe_tower_size(0) - margin;
+                            if (x + margin + min_wipe_tower_size(0) > plate_bbox_x_max_local_coord) {
+                                x           = plate_bbox_x_max_local_coord - min_wipe_tower_size(0) - margin;
                                 need_update = true;
                             } else if (x < margin + plate_bbox_x_min_local_coord) {
                                 x           = margin + plate_bbox_x_min_local_coord;
@@ -3204,8 +3205,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                                 need_update = false;
                             }
 
-                            if (y + margin + wipe_tower_size(1) > plate_bbox_y_max_local_coord) {
-                                y           = plate_bbox_y_max_local_coord - wipe_tower_size(1) - margin;
+                            if (y + margin + min_wipe_tower_size(1) > plate_bbox_y_max_local_coord) {
+                                y           = plate_bbox_y_max_local_coord - min_wipe_tower_size(1) - margin;
                                 need_update = true;
                             } else if (y < margin) {
                                 y           = margin;
@@ -3223,7 +3224,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                             if (volume_idx_wipe_tower_old != -1) map_glvolume_old_to_new[volume_idx_wipe_tower_old] = volume_idx_wipe_tower_new;
                         }
                     } else {
-                        const float margin                    = 2.f;
                         auto        tower_bottom = current_print->wipe_tower_data().wipe_tower_mesh_data->bottom;
                         tower_bottom.translate(scaled(Vec2d{x, y}));
                         tower_bottom.translate(scaled(Vec2d{plate_origin[0], plate_origin[1]}));

@@ -1213,13 +1213,14 @@ void Selection::translate(const Vec3d &displacement, TransformationType transfor
                 Vec3d         tower_size          = v.bounding_box().size();
                 Vec3d         tower_origin        = m_cache.volumes_data[i].get_volume_position();
                 Vec3d         actual_displacement = displacement;
-                const double margin = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx)->fff_print()->is_step_done(psWipeTower)?2.:WIPE_TOWER_MARGIN;
+                bool show_read_wipe_tower = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx)->fff_print()->is_step_done(psWipeTower);
+                const double  margin = WIPE_TOWER_MARGIN;
 
                 actual_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() *
                                         m_cache.volumes_data[i].get_instance_mirror_matrix())
                                             .inverse() *
                                         displacement;
-                BoundingBoxf3 tower_bbox = v.bounding_box();
+                BoundingBoxf3 tower_bbox = show_read_wipe_tower ? v.bounding_box() : BoundingBoxf3(Vec3d(0, 0, 0), Vec3d(MIN_WIPE_TOWER_SIZE, MIN_WIPE_TOWER_SIZE, MIN_WIPE_TOWER_SIZE));
                 tower_bbox.translate(actual_displacement + tower_origin);
                 BoundingBox   tower_bbox2d = BoundingBox(scaled(Vec2f(tower_bbox.min[0], tower_bbox.min[1])), scaled(Vec2f(tower_bbox.max[0], tower_bbox.max[1])));
                 Vec2f offset = WipeTower::move_box_inside_box(tower_bbox2d, plate_bbox2d,scaled(margin));
