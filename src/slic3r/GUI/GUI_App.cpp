@@ -1112,10 +1112,13 @@ void GUI_App::post_init()
                 }
                 else {
                     if (ext_url_open_state == -1) {
-                        wxString askMsg = wxString::Format(_L("This file is not from a trusted site, do you want to open it anyway?"));
-                        ext_url_open_state = wxMessageBox(askMsg, "Bambu Studio", wxYES_NO | wxICON_EXCLAMATION);
+
+                        MessageDialog msg_dlg(nullptr,
+                                              _L("This file is not from a trusted site, do you want to open it anyway?"), "",
+                                              wxAPPLY | wxYES_NO);
+                        ext_url_open_state   = msg_dlg.ShowModal();
                     }
-                    if (ext_url_open_state == wxYES) {
+                    if (ext_url_open_state == wxID_YES) {
                         download_url = input_str;
                     }
                 }
