@@ -1472,7 +1472,7 @@ void generate_support_toolpaths(
         angles.push_back(support_params.interface_angle);
 
     std::vector<float> interface_angles;
-    if (config.support_interface_pattern == smipRectilinearInterlaced)
+    if (config.support_interface_pattern == smipRectilinearInterlaced || config.support_interface_pattern == smipAuto)
         interface_angles.push_back(support_params.base_angle);
     interface_angles.push_back(support_params.interface_angle);
 
