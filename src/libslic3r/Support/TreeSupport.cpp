@@ -876,11 +876,23 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
     std::chrono::time_point<clock_> t0{ clock_::now() };
     // main part of overhang detection can be parallel
     tbb::concurrent_vector<ExPolygons> overhangs_all_layers(m_object->layer_count());
+
     auto enforcers = m_object->slice_support_enforcers();
     auto blockers  = m_object->slice_support_blockers();
     m_vertical_enforcer_points.clear();
     m_object->project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers);
     m_object->project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers, &m_vertical_enforcer_points);
+    auto trim_tail_empty = [](auto &vec) {
+        auto rit = std::find_if(vec.rbegin(), vec.rend(), [](const auto &e) { return !e.empty(); });
+        if (rit != vec.rend()) {
+            vec.erase(rit.base(), vec.end());
+        } else {
+            vec.clear();
+        }
+    };
+    trim_tail_empty(enforcers);
+    trim_tail_empty(blockers);
+
     tbb::parallel_for(tbb::blocked_range<size_t>(0, m_object->layer_count()),
         [&](const tbb::blocked_range<size_t>& range) {
             for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++) {
@@ -1132,6 +1144,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
 
 
     for (auto &cluster : overhangClusters) {
+        bool enforce_add = false;
         // remove small overhangs
         if (is_auto(stype) && config_remove_small_overhangs) {
             // 3. check whether the small overhang is sharp tail
@@ -1141,6 +1154,16 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                 if (overlaps(layer->sharp_tails, cluster.layer_overhangs[layer_id])) {
                     cluster.set_type(SharpTail, true);
                     break;
+                }
+            }
+            if (!enforcers.empty() && cluster.min_layer<enforcers.size()) {
+                for (size_t layer_id = cluster.min_layer; layer_id <= cluster.max_layer; layer_id++) {
+                    if (layer_id >= enforcers.size()) break;
+                    if (enforcers[layer_id].empty()) continue;
+                    if (overlaps(to_expolygons(enforcers[layer_id]), cluster.layer_overhangs[layer_id])) {
+                        enforce_add = true;
+                        break;
+                    }
                 }
             }
 
@@ -1158,11 +1181,15 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
 #endif
         }
 
-        if (!cluster.is_type(Small)) {
+        if (!cluster.is_type(Small) || enforce_add) {
             cluster.check_polygon_node(m_support_params.thresh_big_overhang, m_ts_data->m_layer_outlines_below[cluster.min_layer - 1]);
             for (auto it = cluster.layer_overhangs.begin(); it != cluster.layer_overhangs.end(); it++) {
                 int       layer_nr = it->first;
                 ExPolygons overhangs = it->second;
+                if (cluster.is_type(Small)) {
+                    if (layer_nr >= enforcers.size() || enforcers[layer_nr].empty() || !overlaps(to_expolygons(enforcers[layer_nr]), overhangs)) continue;
+                    overhangs = intersection_ex(overhangs, enforcers[layer_nr]);
+                }
                 for (const auto &overhang : overhangs) add_overhang(m_object->get_layer(layer_nr), overhang, cluster.type);
             }
         }
@@ -1181,42 +1208,47 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
             if (lower_layer == nullptr || enforcers.empty() || layer_nr >= enforcers.size() || enforcers[layer_nr].empty()) {
                 layer->loverhangs.clear();
                 layer->loverhangs_with_type.clear();
+                for (const auto &cantilever : layer->cantilevers) add_overhang(layer, cantilever, OverhangType::Cantilever);
             } else {
-                ExPolygons enforced_overhangs = intersection_ex(diff_ex(layer->lslices_extrudable, lower_layer->lslices_extrudable), enforcers[layer_nr]);
-                ExPolygons loverhangs_new;
+                ExPolygons                             enforced_overhangs = to_expolygons(enforcers[layer_nr]);
+                ExPolygons                             loverhangs_new;
                 std::vector<std::pair<ExPolygon, int>> loverhangs_with_type_new;
-                if (!enforced_overhangs.empty()) {
-                    for (auto &overhang_part : layer->loverhangs_with_type) {
-                        const auto &overhang = overhang_part.first;
-                        auto        type     = overhang_part.second;
-                        if (type & OverhangType::Cantilever || type & OverhangType::SharpTail) continue;
-                        if (!overlaps(enforced_overhangs, overhang)) continue;
-                        ExPolygons overhangs = intersection_ex(enforced_overhangs, overhang);
-                        if (!overhangs.empty()) {
+                ExPolygons                             bigflat;
+                for (auto &overhang_part : layer->loverhangs_with_type) {
+                    const auto &overhang = overhang_part.first;
+                    auto        type     = overhang_part.second;
+                    ExPolygons  overhangs;
+                    if (type & OverhangType::Cantilever || type & OverhangType::SharpTail)
+                        overhangs = {overhang};
+                    else if (overlaps(enforced_overhangs, overhang)) {
+                        overhangs = intersection_ex(enforced_overhangs, overhang);
+                    }
+                    if (!overhangs.empty()) {
+                        if (type & OverhangType::BigFlat)
+                            append(bigflat, overhangs);
+                        else
                             for (const auto &expoly : overhangs) {
                                 loverhangs_new.emplace_back(expoly);
                                 loverhangs_with_type_new.emplace_back(std::make_pair(expoly, type));
                             }
-                        }
                     }
                 }
-                layer->loverhangs = std::move(loverhangs_new);
+                for (const auto &expoly : union_ex(bigflat)) {
+                    loverhangs_new.emplace_back(expoly);
+                    loverhangs_with_type_new.emplace_back(std::make_pair(expoly, OverhangType::BigFlat));
+                }
+                layer->loverhangs           = std::move(loverhangs_new);
                 layer->loverhangs_with_type = std::move(loverhangs_with_type_new);
             }
-            for (auto &cantilever : layer->cantilevers) add_overhang(layer, cantilever, OverhangType::Cantilever);
         }
 
         // add support for every 1mm height for sharp tails
-        ExPolygons sharp_tail_overhangs;
-        if (lower_layer == nullptr)
-            sharp_tail_overhangs = layer->sharp_tails;
-        else {
+        if (lower_layer){
             ExPolygons lower_layer_expanded = offset_ex(lower_layer->lslices_extrudable, SCALED_RESOLUTION);
             for (size_t i = 0; i < layer->sharp_tails_height.size();i++) {
                 ExPolygons areas = diff_clipped({ layer->sharp_tails[i]}, lower_layer_expanded);
                 float accum_height = layer->sharp_tails_height[i];
                 if (!areas.empty() && int(accum_height * 10) % 5 == 0) {
-                    append(sharp_tail_overhangs, areas);
                     has_sharp_tails = true;
                     for (auto &area : areas)
                         add_overhang(layer, area, accum_height < EPSILON ? (OverhangType::SharpTail | OverhangType::SharpTailLowesst) : OverhangType::SharpTail);
@@ -1234,9 +1266,6 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
         }
 
 		int nDetected = layer->loverhangs.size();
-
-        //// add sharp tail overhangs
-        //append(layer->loverhangs, sharp_tail_overhangs);
 
         //// fill overhang_types
         //for (size_t i = 0; i < layer->loverhangs.size(); i++)
