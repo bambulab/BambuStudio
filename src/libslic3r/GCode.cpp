@@ -1187,12 +1187,12 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
 
             // raft contact distance should not trigger any warning
             if (last_extrusion_layer && last_extrusion_layer->support_layer) {
-                double raft_gap = object.config().raft_contact_distance.value;
+                double raft_gap = top_cd == 0 ? 0 : object.config().raft_contact_distance.value;
                 //if (!object.print()->config().independent_support_layer_height)
                 {
                     raft_gap = std::ceil(raft_gap / object.config().layer_height) * object.config().layer_height;
                 }
-                extra_gap = std::max(extra_gap, object.config().raft_contact_distance.value);
+                extra_gap = std::max(extra_gap, top_cd == 0 ? 0 :object.config().raft_contact_distance.value);
             }
             double maximal_print_z = (last_extrusion_layer ? last_extrusion_layer->print_z() : 0.)
                 + layer_to_print.layer()->height
