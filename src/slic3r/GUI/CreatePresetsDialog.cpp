@@ -36,9 +36,9 @@
 namespace Slic3r {
 namespace GUI {
 
-static const std::vector<std::string> filament_vendors = {"Polymaker", "OVERTURE", "Kexcelled", "HATCHBOX",  "eSUN",       "SUNLU",    "Prusament", "Creality", "Protopasta",
-                                                          "Anycubic",  "Basf",     "ELEGOO",    "INLAND",    "FLASHFORGE", "FusRock", "AMOLEN",   "MIKA3D",    "3DXTECH",
-                                                          "Duramic", "Priline",   "Eryone",   "3Dgunius",  "Novamaker", "Justmaker",  "Giantarm", "iProspect", "LDO"};
+static const std::vector<std::string> filament_vendors = {"Polymaker", "Overture", "Kexcelled", "Hatchbox",  "eSUN",       "Sunlu",    "Prusament", "Creality", "Protopasta",
+                                                          "Anycubic",  "Basf",     "Elegoo",    "Inland",    "Flashforge", "Amolen",   "Mika3D",    "3DXtech",  "Duramic",
+                                                          "Priline",   "Eryone",   "3Dgunius",  "Novamaker", "Justmaker",  "Giantarm", "iProspect", "CC3D"};
 
 static const std::vector<std::string> filament_types = {"PLA",    "PLA+",  "PLA Tough", "PETG",  "ABS",    "ASA",    "FLEX",        "HIPS",   "PA",     "PACF",
                                                         "NYLON",  "PVA",   "PC",        "PCABS", "PCTG",   "PCCF",   "PP",          "PEI",    "PET",    "PETG",
@@ -118,6 +118,16 @@ static bool str_is_all_digit(const std::string &str) {
     }
     return true;
 }
+
+// Custom comparator for case-insensitive sorting
+static bool caseInsensitiveCompare(const std::string& a, const std::string& b) {
+    std::string lowerA = a;
+    std::string lowerB = b;
+    std::transform(lowerA.begin(), lowerA.end(), lowerA.begin(), ::tolower);
+    std::transform(lowerB.begin(), lowerB.end(), lowerB.begin(), ::tolower);
+    return lowerA < lowerB;
+}
+
 
 static bool delete_filament_preset_by_name(std::string delete_preset_name, std::string &selected_preset_name)
 {
@@ -679,9 +689,19 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
     optionSizer->SetMinSize(OPTION_SIZE);
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
+
+    // Convert all std::any to std::string
+    std::vector<std::string> string_vendors;
+    for (const auto& vendor_any : filament_vendors) {
+        string_vendors.push_back(std::any_cast<std::string>(vendor_any));
+    }
+
+    // Sort the vendors alphabetically
+    std::sort(string_vendors.begin(), string_vendors.end(), caseInsensitiveCompare);
+
     wxArrayString choices;
-    for (const wxString &vendor : filament_vendors) {
-        choices.push_back(vendor);
+    for (const std::string &vendor : string_vendors) {
+        choices.push_back(wxString(vendor)); // Convert std::string to wxString before adding
     }
 
     wxBoxSizer *vendor_sizer   = new wxBoxSizer(wxHORIZONTAL);
@@ -693,6 +713,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
         m_filament_vendor_combobox->SetLabelColor(*wxBLACK);
         e.Skip();
     });
+
     vendor_sizer->Add(m_filament_vendor_combobox, 0, wxEXPAND | wxALL, 0);
     wxBoxSizer *textInputSizer = new wxBoxSizer(wxVERTICAL);
     m_filament_custom_vendor_input = new TextInput(this, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, wxTE_PROCESS_ENTER);
@@ -764,6 +785,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_type_item()
     for (const wxString &filament : m_system_filament_types_set) {
         filament_type.Add(filament);
     }
+    filament_type.Sort();
 
     wxBoxSizer *comboBoxSizer = new wxBoxSizer(wxVERTICAL);
     m_filament_type_combobox  = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
@@ -1170,6 +1192,7 @@ wxArrayString CreateFilamentPresetDialog::get_filament_preset_choices()
         }
     }
 
+    choices.Sort();
     return choices;
 }
 
@@ -5060,6 +5083,10 @@ wxBoxSizer *CreatePresetForPrinterDialog::create_selected_filament_preset_sizer(
                 filament_choice_to_filament_preset[filament_name] = filament_preset;
                 filament_choices.push_back(filament_name);
             }
+
+            // Sort the filament choices alphabetically
+            filament_choices.Sort();
+
             m_selected_filament->Set(filament_choices);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " count of compatible filament presets :" << filament_choices.size();
             if (filament_choices.size()) { m_selected_filament->SetSelection(0); }
