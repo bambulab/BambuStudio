@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-24 10:10+0800\n"
+"POT-Creation-Date: 2025-05-16 18:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -31,12 +31,6 @@ msgstr ""
 msgid "Current AMS humidity"
 msgstr "Humedad AMS actual"
 
-msgid "Drying"
-msgstr "Secado"
-
-msgid "Idle"
-msgstr "Inactivo"
-
 msgid "Humidity"
 msgstr "Humedad"
 
@@ -45,6 +39,12 @@ msgstr "Temperatura"
 
 msgid "Left Time"
 msgstr "Tiempo restante"
+
+msgid "Drying"
+msgstr "Secado"
+
+msgid "Idle"
+msgstr "Inactivo"
 
 #, c-format, boost-format
 msgid "%.1f ℃"
@@ -150,6 +150,15 @@ msgstr "Resalte las caras según el ángulo del voladizo."
 
 msgid "No auto support"
 msgstr "Sin soporte automático"
+
+msgid "Warning"
+msgstr "Peligro"
+
+msgid "Painting below the build plate is not allowed."
+msgstr ""
+
+msgid "The white outline indicates the position of the build plate at Z = 0."
+msgstr ""
 
 msgid "Support Generated"
 msgstr "Soporte generado"
@@ -552,9 +561,6 @@ msgstr "Confirmar conectores"
 
 msgid "Cancel"
 msgstr "Cancelar"
-
-msgid "Warning"
-msgstr "Peligro"
 
 msgid "Invalid connectors detected"
 msgstr "Conectores no válidos detectados"
@@ -1235,6 +1241,9 @@ msgstr "Error crítico"
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "BambuStudio recibió una notificación de excepción no controlada: %1%."
 
+msgid "This file is not from a trusted site, do you want to open it anyway?"
+msgstr ""
+
 msgid "Untitled"
 msgstr "Sin título"
 
@@ -1767,8 +1776,17 @@ msgstr "Simplificar el modelo"
 msgid "Center"
 msgstr "Centrar"
 
+msgid "Sub merge"
+msgstr ""
+
 msgid "Edit Process Settings"
 msgstr "Editar en tabla de parámetros"
+
+msgid "Copy Process Settings"
+msgstr ""
+
+msgid "Paste Process Settings"
+msgstr ""
 
 msgid "Edit print parameters for a single object"
 msgstr "Editar los parámetros de impresión de un solo objeto"
@@ -1862,6 +1880,9 @@ msgstr "Añadir modificador"
 
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr "Cambia al modo de ajuste por objeto para editar los ajustes de los modificadores."
+
+msgid "Sub-merged body"
+msgstr ""
 
 msgid "Switch to per-object setting mode to edit process settings of selected objects."
 msgstr "Cambie al modo de configuración por objeto para editar la configuración del proceso de los objetos seleccionados."
@@ -2193,14 +2214,14 @@ msgstr "Descarga"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Elija una ranura AMS y pulse el botón \"Cargar\" o \"Descargar\" para cargar o descargar automáticamente el filamento."
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
-msgstr "Cambiar la velocidad del ventilador durante la impresión puede afectar a la calidad de impresión. Elija con cuidado."
+msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
+msgstr ""
+
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
+msgstr ""
 
 msgid "Change Anyway"
 msgstr "Cambia de todos modos"
-
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
-msgstr "El cambio de velocidad del ventilador durante la impresión puede afectar a la calidad de impresión. Elija con cuidado."
 
 msgid "Off"
 msgstr "Apagado"
@@ -3396,6 +3417,10 @@ msgstr "derecha"
 msgid "TPU is not supported by %s extruder for this printer."
 msgstr "El TPU no es compatible con el %s del extrusor para esta impresora."
 
+#, c-format, boost-format
+msgid "%s is not supported by %s extruder."
+msgstr "%s no es compatible con el %s del extrusor."
+
 msgid "Unknown"
 msgstr "Desconocido"
 
@@ -3423,13 +3448,13 @@ msgstr "Actualización fallida."
 msgid "Timelapse is not supported on this printer."
 msgstr ""
 
-msgid "Timelapse is not supported while the SD card does not exist."
+msgid "Timelapse is not supported while the storage does not exist."
 msgstr ""
 
-msgid "Timelapse is not supported while the SD card is unavailable."
+msgid "Timelapse is not supported while the storage is unavailable."
 msgstr ""
 
-msgid "Timelapse is not supported while the SD card is readonly."
+msgid "Timelapse is not supported while the storage is readonly."
 msgstr ""
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
@@ -3458,10 +3483,6 @@ msgstr "Fallo al generar el código cali gcode"
 
 msgid "Calibration error"
 msgstr "Error de calibración"
-
-#, c-format, boost-format
-msgid "%s is not supported by %s extruder."
-msgstr "%s no es compatible con el %s del extrusor."
 
 msgid "TPU is not supported by AMS."
 msgstr "El AMS no admite TPU."
@@ -3847,6 +3868,22 @@ msgstr "Los siguientes objetos se encuentran sobre el límite de la placa o supe
 
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "Por favor, resuelva el problema moviéndolo totalmente dentro o fuera de la placa, y confirmando que la altura está dentro del volumen de construcción.\n"
+
+#, boost-format
+msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+msgstr ""
+
+#, boost-format
+msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+msgstr ""
+
+#, boost-format
+msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+msgstr ""
+
+#, boost-format
+msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+msgstr ""
 
 msgid "left nozzle"
 msgstr "Boquilla izquierda"
@@ -4285,6 +4322,13 @@ msgstr "Vista izquierda"
 msgid "Right View"
 msgstr "Vista derecha"
 
+msgctxt "Camera"
+msgid "Isometric"
+msgstr ""
+
+msgid "Isometric View"
+msgstr ""
+
 msgid "Start a new window"
 msgstr "Iniciar una nueva ventana"
 
@@ -4353,6 +4397,9 @@ msgstr "Exportar código G"
 
 msgid "Export current plate as G-code"
 msgstr "Exportar la placa actual como gcode"
+
+msgid "Export toolpaths as OBJ"
+msgstr "Exportar trayectorias de herramientas como OBJ"
 
 msgid "Export Preset Bundle"
 msgstr "Exportar Preset Bundle"
@@ -4551,9 +4598,6 @@ msgstr "Cargar la base del disco"
 
 msgid "Export &Toolpaths as OBJ"
 msgstr "Exportar &Movimientos como OBJ"
-
-msgid "Export toolpaths as OBJ"
-msgstr "Exportar trayectorias de herramientas como OBJ"
 
 msgid "Open &Studio"
 msgstr "Abrir & Studio"
@@ -5148,12 +5192,6 @@ msgstr ""
 msgid "Please heat the nozzle to above 170 degree before loading or unloading filament."
 msgstr "Caliente la boquilla a más de 170 grados antes de cargar o descargar el filamento."
 
-msgid "Still unload"
-msgstr "Todavía estoy descargando"
-
-msgid "Still load"
-msgstr "Todavía estoy cargando"
-
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr "Si la temperatura de la cámara supera los 40 ℃, el sistema cambiará automáticamente al modo de calefacción. Confirme si desea cambiar."
 
@@ -5177,6 +5215,15 @@ msgstr "Deportivo"
 
 msgid "Ludicrous"
 msgstr "Lúdico"
+
+msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
+msgstr ""
+
+msgid "Turn it Off"
+msgstr ""
+
+msgid "Keep it On"
+msgstr ""
 
 msgid "Can't start this without storage."
 msgstr "No se puede iniciar sin almacenamiento."
@@ -5323,6 +5370,9 @@ msgstr "Estado"
 
 msgid "Update"
 msgstr "Actualizar"
+
+msgid "Assistant(HMS)"
+msgstr ""
 
 msgid "Go to"
 msgstr "Ir a"
@@ -5601,27 +5651,26 @@ msgstr "Detección de acumulación en la boquilla."
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "Verifique si la boquilla está obstruida por filamento u otros objetos extraños."
 
+msgid "Nozzle Type"
+msgstr "Tipo de boquilla"
+
+msgid "Nozzle Flow"
+msgstr "Flujo de boquilla"
+
+msgid "Please change the nozzle settings on the printer."
+msgstr ""
+
 msgid "Hardened Steel"
 msgstr "Acero reforzado"
 
 msgid "Stainless Steel"
 msgstr "Acero inoxidable"
 
-msgid "High flow"
-msgstr "Flujo alto"
-
-msgid "Nozzle Type"
-msgstr "Tipo de boquilla"
-
-msgid "Please change the nozzle settings on the printer."
+msgid "Tungsten Carbide"
 msgstr ""
 
-msgid "Nozzle Flow"
-msgstr "Flujo de boquilla"
-
-#, c-format, boost-format
-msgid "%.1f"
-msgstr "%.1f"
+msgid "High flow"
+msgstr "Flujo alto"
 
 msgid "Global"
 msgstr "Global"
@@ -5807,6 +5856,12 @@ msgstr "Activar la fotografía timelapse tradicional puede causar imperfecciones
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "El modo suave para lapso de tiempo está habilitado, pero la torre principal está desactivada, lo que puede causar defectos de impresión. Habilite la torre principal, vuelva a cortar e imprima nuevamente."
+
+msgid "Expand sidebar"
+msgstr ""
+
+msgid "Collapse sidebar"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -6196,21 +6251,11 @@ msgstr "Motivo: %1% \"\" y otra parte no tienen intersección."
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Partes negativas detectadas. ¿Desea realizar una booleana de malla antes de exportar?"
 
-msgid ""
-"Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
-"If you hit 'NO', all SVGs in the project will not be editable any more."
+msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr ""
-"¿Está seguro de que desea almacenar los SVG originales con sus rutas locales en el archivo 3MF? \n"
-"Si selecciona &quot;NO&quot;, todos los SVG del proyecto ya no serán editables."
 
-msgid "Private protection"
-msgstr "Protección privada"
-
-msgid "For PVA filaments, it is strongly recommended to use normal support to avoid print failures."
-msgstr "Para los filamentos de PVA, se recomienda encarecidamente utilizar un soporte normal para evitar errores de impresión."
-
-msgid "Change these settings automatically? \n"
-msgstr "¿Cambiar estos ajustes automáticamente? \n"
+msgid "Are you sure to use them? \n"
+msgstr ""
 
 msgid ""
 "Print By Object: \n"
@@ -6314,23 +6359,8 @@ msgstr "Actualmente, el formulario de configuración de objetos no se puede util
 msgid "Not available"
 msgstr "No disponible"
 
-msgid "isometric"
-msgstr "isométrico"
-
-msgid "top_front"
-msgstr "parte superior y frontal"
-
-msgid "top"
-msgstr "parte superior"
-
-msgid "bottom"
-msgstr "parte inferior"
-
-msgid "front"
-msgstr "parte delantera"
-
-msgid "rear"
-msgstr "parte trasera"
+msgid "Top front"
+msgstr ""
 
 msgid "The current project has unsaved changes, save it before continuing?"
 msgstr "El proyecto actual tiene cambios no guardados; ¿Quiere guardar antes de continuar?"
@@ -6759,6 +6789,18 @@ msgstr "Editar ajuste preestablecido"
 msgid "Project-inside presets"
 msgstr "Preajustes internos del proyecto"
 
+msgid "User"
+msgstr "Usuario"
+
+msgid "System"
+msgstr ""
+
+msgid "Unsupported presets"
+msgstr ""
+
+msgid "Unsupported"
+msgstr ""
+
 msgid "Add/Remove filaments"
 msgstr "Añadir/quitar filamentos"
 
@@ -6792,6 +6834,9 @@ msgstr "Secuencia de filamentos de otra capa"
 msgid "Please input layer value (>= 2)."
 msgstr "Introduzca el valor de la capa (>= 2)."
 
+msgid "Same as Global Plate Type"
+msgstr "Igual que el tipo de cama global"
+
 msgid "Bed type"
 msgstr "Tipo de cama"
 
@@ -6815,9 +6860,6 @@ msgstr "Jarrón en espiral"
 
 msgid "First layer filament sequence"
 msgstr "Secuencia de filamentos de la primera capa"
-
-msgid "Same as Global Plate Type"
-msgstr "Igual que el tipo de cama global"
 
 msgid "Same as Global Bed Type"
 msgstr "Igual que el tipo de cama global"
@@ -6951,17 +6993,11 @@ msgstr "Enviar trabajo de impresión"
 msgid "On"
 msgstr "Activado"
 
-msgid "If the transparency of the mapping changes, this thumbnail is for reference only."
-msgstr "Si la transparencia del mapeo cambia, esta miniatura es solo de referencia."
-
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "¿No está satisfecho con la agrupación de filamentos? Reagrupe y corte ->"
 
 msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr "Su método de agrupamiento de filamentos en el archivo cortado no es óptimo."
-
-msgid "Click here if you can't connect to the printer"
-msgstr "Haga clic aquí si no puede conectarse a la impresora"
 
 msgid "Auto Bed Leveling"
 msgstr "Nivelación automática de la cama"
@@ -6993,9 +7029,6 @@ msgstr ""
 "Calibre los desplazamientos de las boquillas para mejorar la calidad de impresión.\n"
 "*Modo automático: compruebe la calibración antes de imprimir. Omita si no es necesario."
 
-msgid "Use AMS"
-msgstr "Usar AMS"
-
 msgid "send completed"
 msgstr "envío completo"
 
@@ -7009,43 +7042,6 @@ msgstr "Flujo alto"
 msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
 msgstr "El ajuste de flujo de la boquilla de %s (%s) no coincide con el archivo de corte (%s). Asegúrese de que la boquilla instalada coincide con la configuración de la impresora y, a continuación, configure el ajuste preestablecido de la impresora correspondiente mientras corta."
 
-msgid "No login account, only printers in LAN mode are displayed"
-msgstr "Sin cuenta de acceso, sólo se muestran las impresoras en modo LAN"
-
-msgid "Connecting to server"
-msgstr "Conectando al servidor"
-
-msgid "Synchronizing device information"
-msgstr "Sincronizando la información del dispositivo"
-
-msgid "Synchronizing device information time out"
-msgstr "Finalización del tiempo de sincronización de la información del dispositivo"
-
-msgid "Cannot send the print job when the printer is not at FDM mode"
-msgstr "No se puede enviar el trabajo de impresión cuando la impresora no está en modo FDM"
-
-msgid "Cannot send the print job when the printer is updating firmware"
-msgstr "No se puede enviar una impresión mientras la impresora está actualizando el firmware"
-
-msgid "The printer is executing instructions. Please restart printing after it ends"
-msgstr "La impresora está ejecutando instrucciones. Por favor, reinicie la impresión cuando termine"
-
-msgid "AMS is setting up. Please try again later."
-msgstr "AMS se está configurando. Vuelve a intentarlo más tarde."
-
-#, c-format, boost-format
-msgid "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
-msgstr "El filamento %s supera el número de ranuras AMS. Actualice el firmware de la impresora para admitir la asignación de ranuras AMS."
-
-msgid "Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
-msgstr "El filamento supera el número de ranuras AMS. Actualice el firmware de la impresora para admitir la asignación de ranuras AMS."
-
-msgid "Please do not mix-use the Ext with AMS"
-msgstr "Por favor, no mezcle Ext con Ams"
-
-msgid "Invalid nozzle information, please refresh or manually set nozzle information."
-msgstr "La información de la boquilla no es válida, actualice o configure manualmente la información de la boquilla."
-
 #, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
 msgstr "El filamento %s no coincide con el filamento de la ranura AMS %s. Actualice el firmware de la impresora para admitir la asignación de ranuras AMS."
@@ -7053,30 +7049,9 @@ msgstr "El filamento %s no coincide con el filamento de la ranura AMS %s. Actual
 msgid "Filament does not match the filament in AMS slot. Please update the printer firmware to support AMS slot assignment."
 msgstr "El filamento no coincide con el filamento de la ranura AMS. Actualice el firmware de la impresora para admitir la asignación de ranuras AMS."
 
-msgid "Storage is not available or is in read-only mode."
-msgstr "El almacenamiento no está disponible o está en modo de solo lectura."
-
-msgid "The printer firmware only supports sequential mapping of filament => AMS slot."
-msgstr "El firmware de la impresora solo admite el mapeo secuencial del filamento => ranura AMS."
-
-msgid "Storage needs to be inserted before printing."
-msgstr "El almacenamiento debe insertarse antes de imprimir."
-
 #, c-format, boost-format
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
 msgstr "La impresora seleccionada (%s) no es compatible con la configuración del archivo de impresión (%s). Ajuste el ajuste preestablecido de la impresora en la página de preparación o seleccione una impresora compatible en esta página."
-
-msgid "Storage needs to be inserted to record timelapse."
-msgstr "Es necesario insertar el almacenamiento para registrar el lapso de tiempo."
-
-msgid "Cannot send the print job to a printer whose firmware is required to get updated."
-msgstr "No se puede enviar la impresión a una impresora cuyo firmware deba actualizarse."
-
-msgid "Cannot send the print job for empty plate"
-msgstr "No se puede enviar el trabajo de impresión para la placa vacía"
-
-msgid "This printer does not support printing all plates"
-msgstr "Esta impresora no admite la impresión de todas las planchas"
 
 msgid "When enable spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "When spiral vase mode is enabled, machines with I3 structure will not generate timelapse videos."
@@ -7084,17 +7059,14 @@ msgstr "When spiral vase mode is enabled, machines with I3 structure will not ge
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
 msgstr ""
 
-msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
-msgstr "Ha seleccionado filamentos externos y AMS para una extrusora. Tendrá que cambiar manualmente el filamento externo durante la impresión."
-
-msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
-msgstr "TPU 90A/TPU 85A es demasiado blando y no admite la calibración automática de Flow Dynamics."
-
-msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
-msgstr ""
-
 msgid "Errors"
 msgstr "Errores"
+
+msgid "More than one filament types have been mapped to the same external spool, which may cause printing issues. The printer won't pause during printing."
+msgstr ""
+
+msgid "The filament type setting of external spool is different from the filament in the slicing file."
+msgstr ""
 
 msgid "The printer type selected when generating G-Code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing."
 msgstr "El tipo de impresora seleccionado al generar el código G no es coherente con la impresora actualmente seleccionada. Se recomienda utilizar el mismo tipo de impresora para procesar los archivos."
@@ -7136,6 +7108,21 @@ msgstr "La longitud del nombre supera el límite."
 msgid "Cost %dg filament and %d changes more than optimal grouping."
 msgstr "%dCuesta g del filamento y %d cambia más que la agrupación óptima."
 
+msgid "nozzle"
+msgstr ""
+
+msgid "extruder"
+msgstr ""
+
+msgid "both extruders"
+msgstr ""
+
+msgid "right extruder"
+msgstr ""
+
+msgid "left extruder"
+msgstr ""
+
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr "Consejos: Si has cambiado la boquilla de la impresora últimamente, ve a «Dispositivo -> Piezas de la impresora» para cambiar la configuración de la boquilla."
 
@@ -7148,7 +7135,15 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "El diámetro actual de la boquilla (%.1fmm) no coincide con el de la lima de corte (%.1fmm). Asegúrese de que la boquilla instalada coincida con los ajustes de la impresora y, a continuación, configure el ajuste preestablecido de la impresora correspondiente al cortar."
 
 #, c-format, boost-format
-msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament on %s may soften. Please unload."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr ""
 
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
@@ -7166,11 +7161,80 @@ msgstr "Temperatura alta"
 msgid "Cool(Supertack)"
 msgstr "Genial (Supertack)"
 
+msgid "Click here if you can't connect to the printer"
+msgstr "Haga clic aquí si no puede conectarse a la impresora"
+
+msgid "No login account, only printers in LAN mode are displayed"
+msgstr "Sin cuenta de acceso, sólo se muestran las impresoras en modo LAN"
+
+msgid "Connecting to server"
+msgstr "Conectando al servidor"
+
+msgid "Synchronizing device information"
+msgstr "Sincronizando la información del dispositivo"
+
+msgid "Synchronizing device information time out"
+msgstr "Finalización del tiempo de sincronización de la información del dispositivo"
+
+msgid "Cannot send the print job when the printer is not at FDM mode"
+msgstr "No se puede enviar el trabajo de impresión cuando la impresora no está en modo FDM"
+
+msgid "Cannot send the print job when the printer is updating firmware"
+msgstr "No se puede enviar una impresión mientras la impresora está actualizando el firmware"
+
+msgid "The printer is executing instructions. Please restart printing after it ends"
+msgstr "La impresora está ejecutando instrucciones. Por favor, reinicie la impresión cuando termine"
+
+msgid "AMS is setting up. Please try again later."
+msgstr "AMS se está configurando. Vuelve a intentarlo más tarde."
+
+msgid "Please do not mix-use the Ext with AMS"
+msgstr "Por favor, no mezcle Ext con Ams"
+
+msgid "Invalid nozzle information, please refresh or manually set nozzle information."
+msgstr "La información de la boquilla no es válida, actualice o configure manualmente la información de la boquilla."
+
+msgid "Storage is not available or is in read-only mode."
+msgstr "El almacenamiento no está disponible o está en modo de solo lectura."
+
+msgid "Storage needs to be inserted before printing."
+msgstr "El almacenamiento debe insertarse antes de imprimir."
+
+msgid "Cannot send the print job to a printer whose firmware is required to get updated."
+msgstr "No se puede enviar la impresión a una impresora cuyo firmware deba actualizarse."
+
+msgid "Cannot send the print job for empty plate"
+msgstr "No se puede enviar el trabajo de impresión para la placa vacía"
+
+msgid "Storage needs to be inserted to record timelapse."
+msgstr "Es necesario insertar el almacenamiento para registrar el lapso de tiempo."
+
+msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
+msgstr "Ha seleccionado filamentos externos y AMS para una extrusora. Tendrá que cambiar manualmente el filamento externo durante la impresión."
+
+msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
+msgstr "TPU 90A/TPU 85A es demasiado blando y no admite la calibración automática de Flow Dynamics."
+
+msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
+msgstr ""
+
+msgid "This printer does not support printing all plates"
+msgstr "Esta impresora no admite la impresión de todas las planchas"
+
+msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
+msgstr ""
+
+msgid "High chamber temperature is required. Please close the door."
+msgstr ""
+
 msgid "Send to Printer storage"
 msgstr "Enviar al almacenamiento de la impresora"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Tiempo de espera para cargar archivo: verifique si la versión del firmware lo admite."
+
+msgid "No available external storage was obtained. Please confirm and try again."
+msgstr ""
 
 msgid "Media capability acquisition timeout, please check if the firmware version supports it."
 msgstr "Tiempo de espera de adquisición de capacidad de medios, verifique si la versión del firmware lo admite."
@@ -7339,6 +7403,11 @@ msgid "Still print by object?"
 msgstr "¿Sigue imprimiendo por objetos?"
 
 msgid ""
+"Non-soluble support materials are not recommended for support base. \n"
+"Are you sure to use them for support base? \n"
+msgstr ""
+
+msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
 "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
@@ -7353,6 +7422,12 @@ msgstr ""
 "¿Cambiar esta configuración automáticamente? \n"
 "Sí- Cambia esta configuración automáticamente.\n"
 "No- No cambies la configuración por mí."
+
+msgid ""
+"When using soluble material for the support interface, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+"and use soluble materials for both support interface and support base"
+msgstr ""
 
 msgid ""
 "Layer height is too small.\n"
@@ -7570,6 +7645,9 @@ msgstr "Código G de inicio de filamento"
 
 msgid "Filament end G-code"
 msgstr "Final del Código G de filamento "
+
+msgid "Multi Filament"
+msgstr ""
 
 msgid "Printable space"
 msgstr "Espacio imprimible"
@@ -7933,8 +8011,8 @@ msgstr "Abrir Wiki para más información >"
 msgid "Obj file Import color"
 msgstr "Color de importación del archivo Obj"
 
-msgid "Some faces not define color."
-msgstr "Algunas caras no definen el color."
+msgid "Some faces don't have color defined."
+msgstr ""
 
 msgid "mtl file exist error,could not find the material:"
 msgstr "error de existencia del archivo mtl, no se pudo encontrar el material:"
@@ -8050,6 +8128,9 @@ msgstr ""
 "Calibre las compensaciones de las boquillas para mejorar la calidad de impresión. \n"
 "*Modo automático: verifique la calibración antes de imprimir; omítalo si no es necesario."
 
+msgid "Use AMS"
+msgstr "Usar AMS"
+
 msgid "Tip"
 msgstr "Propina"
 
@@ -8104,6 +8185,9 @@ msgstr "No se admite Timelapse porque Secuencia de impresión está configurada 
 
 msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
 msgstr "Ha seleccionado filamento externo y AMS al mismo tiempo en una extrusora; tendrá que cambiar manualmente el filamento externo."
+
+msgid "Successfully synchronized nozzle information."
+msgstr ""
 
 msgid "Successfully synchronized nozzle and AMS number information."
 msgstr "Se sincronizó correctamente la información de la boquilla y el número AMS."
@@ -8280,11 +8364,14 @@ msgstr "Vista de la cámara - Frontal"
 msgid "Camera view - Behind"
 msgstr "Vista de la cámara - Posterior"
 
-msgid "Camera Angle - Left side"
-msgstr "Ángulo de la cámara - Lado izquierdo"
+msgid "Camera view - Left"
+msgstr ""
 
-msgid "Camera Angle - Right side"
-msgstr "Ángulo de la cámara - Lado derecho"
+msgid "Camera view - Right"
+msgstr ""
+
+msgid "Camera view - Isometric"
+msgstr ""
 
 msgid "Select all objects"
 msgstr "Seleccionar todos los objetos"
@@ -8399,11 +8486,11 @@ msgstr "reanudar"
 msgid "Resume Printing"
 msgstr "Reanudar impresión"
 
-msgid "Resume Printing(defects acceptable)"
-msgstr "Reanudar la impresión (se admiten defectos)"
+msgid "Resume (defects acceptable)"
+msgstr ""
 
-msgid "Resume Printing(problem solved)"
-msgstr "Reanudar la impresión (problema resuelto)"
+msgid "Resume (problem solved)"
+msgstr ""
 
 msgid "Stop Printing"
 msgstr "Detener la impresión"
@@ -8977,9 +9064,6 @@ msgstr "Altura imprimible del extrusor"
 msgid "Maximum printable height of this extruder which is limited by mechanism of printer"
 msgstr "Altura máxima imprimible de esta extrusora que está limitada por el mecanismo de la impresora"
 
-msgid "Unprintable filament type"
-msgstr "Tipo de filamento no imprimible"
-
 msgid "Printer preset names"
 msgstr "Nombres de ajustes de la impresora"
 
@@ -9009,9 +9093,6 @@ msgstr "Archivo CA HTTPS"
 
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "Se puede especificar un archivo de certificado CA personalizado para las conexiones HTTPS OctoPrint, en formato crt/pem. Si se deja en blanco, se utiliza el repositorio de certificados CA del sistema operativo predeterminado."
-
-msgid "User"
-msgstr "Usuario"
 
 msgid "Password"
 msgstr "Contraseña"
@@ -9592,6 +9673,18 @@ msgstr "Automático para la coincidencia"
 msgid "Manual"
 msgstr "Manual"
 
+msgid "Flush temperature"
+msgstr ""
+
+msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgstr ""
+
+msgid "Flush volumetric speed"
+msgstr ""
+
+msgid "Volumetric speed when flushing filament. 0 indicates the max volumetric speed"
+msgstr ""
+
 msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
 msgstr "Este ajuste es el volumen de filamento que se puede fundir y extruir por segundo. La velocidad de impresión está limitada por la velocidad volumétrica máxima, en caso de un ajuste de velocidad demasiado alto e irrazonable. Este valor no puede ser cero."
 
@@ -9722,6 +9815,12 @@ msgstr "Material de soporte"
 
 msgid "Support material is commonly used to print support and support interface"
 msgstr "El material de soporte se utiliza habitualmente para imprimir el soporte y interficies de soporte"
+
+msgid "Filament printable"
+msgstr ""
+
+msgid "The filament is printable in extruder"
+msgstr ""
 
 msgid "Filament prime volume"
 msgstr "Volumen principal del filamento"
@@ -9928,6 +10027,12 @@ msgstr "Filtra los pequeños huecos"
 msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 msgstr "Filtra los huecos menores que el umbral especificado. Este ajuste no afectará a las capas superior/inferior."
 
+msgid "Precise wall"
+msgstr ""
+
+msgid "Improve shell precision by adjusting outer wall spacing. This also improves layer consistency."
+msgstr ""
+
 msgid "Speed of gap infill. Gap usually has irregular line width and should be printed more slowly"
 msgstr "Velocidad de relleno del hueco. El hueco suele tener una anchura de línea irregular y debe imprimirse más lentamente"
 
@@ -9975,6 +10080,9 @@ msgstr "Acero endurecido"
 
 msgid "Stainless steel"
 msgstr "Acero inoxidable"
+
+msgid "Tungsten carbide"
+msgstr ""
 
 msgid "Brass"
 msgstr "Latón"
@@ -10461,6 +10569,12 @@ msgstr "Distancia de retracción cuando se corta"
 
 msgid "Experimental feature.Retraction length before cutting off during filament change"
 msgstr "Función experimental. Longitud de retracción antes del corte durante el cambio de filamento"
+
+msgid "Long retraction when extruder change"
+msgstr ""
+
+msgid "Retraction distance when extruder change"
+msgstr ""
 
 msgid "Z hop when retract"
 msgstr "Salto en Z al replegarse"
@@ -13292,6 +13406,87 @@ msgid ""
 msgstr ""
 "Evite el alabeo\n"
 "¿Sabías que al imprimir materiales propensos al alabeo, como el ABS, aumentar adecuadamente la temperatura del lecho térmico puede reducir la probabilidad de alabeo?"
+
+#~ msgid "Still unload"
+#~ msgstr "Todavía estoy descargando"
+
+#~ msgid "Still load"
+#~ msgstr "Todavía estoy cargando"
+
+#~ msgid ""
+#~ "Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
+#~ "If you hit 'NO', all SVGs in the project will not be editable any more."
+#~ msgstr ""
+#~ "¿Está seguro de que desea almacenar los SVG originales con sus rutas locales en el archivo 3MF? \n"
+#~ "Si selecciona &quot;NO&quot;, todos los SVG del proyecto ya no serán editables."
+
+#~ msgid "Private protection"
+#~ msgstr "Protección privada"
+
+#~ msgid "If the transparency of the mapping changes, this thumbnail is for reference only."
+#~ msgstr "Si la transparencia del mapeo cambia, esta miniatura es solo de referencia."
+
+#~ msgid "Some faces not define color."
+#~ msgstr "Algunas caras no definen el color."
+
+#~ msgid "For PVA filaments, it is strongly recommended to use normal support to avoid print failures."
+#~ msgstr "Para los filamentos de PVA, se recomienda encarecidamente utilizar un soporte normal para evitar errores de impresión."
+
+#~ msgid "Change these settings automatically? \n"
+#~ msgstr "¿Cambiar estos ajustes automáticamente? \n"
+
+#~ msgid "Unprintable filament type"
+#~ msgstr "Tipo de filamento no imprimible"
+
+#~ msgid "isometric"
+#~ msgstr "isométrico"
+
+#~ msgid "top_front"
+#~ msgstr "parte superior y frontal"
+
+#~ msgid "top"
+#~ msgstr "parte superior"
+
+#~ msgid "bottom"
+#~ msgstr "parte inferior"
+
+#~ msgid "front"
+#~ msgstr "parte delantera"
+
+#~ msgid "rear"
+#~ msgstr "parte trasera"
+
+#, c-format, boost-format
+#~ msgid "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
+#~ msgstr "El filamento %s supera el número de ranuras AMS. Actualice el firmware de la impresora para admitir la asignación de ranuras AMS."
+
+#~ msgid "Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
+#~ msgstr "El filamento supera el número de ranuras AMS. Actualice el firmware de la impresora para admitir la asignación de ranuras AMS."
+
+#~ msgid "The printer firmware only supports sequential mapping of filament => AMS slot."
+#~ msgstr "El firmware de la impresora solo admite el mapeo secuencial del filamento => ranura AMS."
+
+#~ msgid "Resume Printing(defects acceptable)"
+#~ msgstr "Reanudar la impresión (se admiten defectos)"
+
+#~ msgid "Resume Printing(problem solved)"
+#~ msgstr "Reanudar la impresión (problema resuelto)"
+
+#~ msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+#~ msgstr "Cambiar la velocidad del ventilador durante la impresión puede afectar a la calidad de impresión. Elija con cuidado."
+
+#~ msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
+#~ msgstr "El cambio de velocidad del ventilador durante la impresión puede afectar a la calidad de impresión. Elija con cuidado."
+
+#, c-format, boost-format
+#~ msgid "%.1f"
+#~ msgstr "%.1f"
+
+#~ msgid "Camera Angle - Left side"
+#~ msgstr "Ángulo de la cámara - Lado izquierdo"
+
+#~ msgid "Camera Angle - Right side"
+#~ msgstr "Ángulo de la cámara - Lado derecho"
 
 #~ msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
 #~ msgstr "Prefiero usar una GPU de alto rendimiento (efectiva después del reinicio manual de Bambu Studio)"

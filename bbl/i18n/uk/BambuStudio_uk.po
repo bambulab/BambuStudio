@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-24 10:10+0800\n"
+"POT-Creation-Date: 2025-05-16 18:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -31,12 +31,6 @@ msgstr "Модель філамента невідома. Буде викори�
 msgid "Current AMS humidity"
 msgstr "Поточна вологість AMS"
 
-msgid "Drying"
-msgstr "Сушка"
-
-msgid "Idle"
-msgstr "Простій"
-
 msgid "Humidity"
 msgstr "Вологість"
 
@@ -45,6 +39,12 @@ msgstr "Температура"
 
 msgid "Left Time"
 msgstr "Часу залишилося"
+
+msgid "Drying"
+msgstr "Сушка"
+
+msgid "Idle"
+msgstr "Простій"
 
 #, c-format, boost-format
 msgid "%.1f ℃"
@@ -150,6 +150,15 @@ msgstr "Виділити межі з відповідним кутом вист�
 
 msgid "No auto support"
 msgstr "Немає автоматичної підтримки"
+
+msgid "Warning"
+msgstr "Попередження"
+
+msgid "Painting below the build plate is not allowed."
+msgstr ""
+
+msgid "The white outline indicates the position of the build plate at Z = 0."
+msgstr ""
 
 msgid "Support Generated"
 msgstr "Генерація підтримки"
@@ -552,9 +561,6 @@ msgstr "Підтвердити з'єднувачі"
 
 msgid "Cancel"
 msgstr "Скасувати"
-
-msgid "Warning"
-msgstr "Попередження"
 
 msgid "Invalid connectors detected"
 msgstr "Виявлено неприпустимі з'єднувачі"
@@ -1235,6 +1241,9 @@ msgstr "Критична помилка"
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "BambuStudio отримав необроблений виняток: %1%"
 
+msgid "This file is not from a trusted site, do you want to open it anyway?"
+msgstr ""
+
 msgid "Untitled"
 msgstr "Без назви"
 
@@ -1767,8 +1776,17 @@ msgstr "Спростити модель"
 msgid "Center"
 msgstr "Центр"
 
+msgid "Sub merge"
+msgstr ""
+
 msgid "Edit Process Settings"
 msgstr "Змінити параметри процесу"
+
+msgid "Copy Process Settings"
+msgstr ""
+
+msgid "Paste Process Settings"
+msgstr ""
 
 msgid "Edit print parameters for a single object"
 msgstr "Редагувати параметри друку для одного об'єкта"
@@ -1862,6 +1880,9 @@ msgstr "Додати модифікатор"
 
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr "Перемкніть режим налаштування для кожного об'єкта, щоб змінити Налаштування модифікатора."
+
+msgid "Sub-merged body"
+msgstr ""
 
 msgid "Switch to per-object setting mode to edit process settings of selected objects."
 msgstr "Перемкніть режим налаштування для кожного об'єкта, щоб змінити Параметри процесу для вибраних об'єктів."
@@ -2195,14 +2216,14 @@ msgstr "Вивантаження"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Виберіть слот AMS, а потім натисніть кнопку “Завантажити” або “Вивантажити”, щоб автоматично завантажити або вивантажити філаменти."
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
-msgstr "Зміна швидкості вентилятора під час друку може вплинути на якість, обирайте обережно."
+msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
+msgstr ""
+
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
+msgstr ""
 
 msgid "Change Anyway"
 msgstr "Змінити все одно"
-
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
-msgstr "Змінена швидкість вентилятора під час друку може вплинути на якість, обирайте обережно."
 
 msgid "Off"
 msgstr "Вимк."
@@ -3404,6 +3425,10 @@ msgstr ""
 msgid "TPU is not supported by %s extruder for this printer."
 msgstr "TPU не підтримується екструдером %s для цього принтера."
 
+#, c-format, boost-format
+msgid "%s is not supported by %s extruder."
+msgstr ""
+
 msgid "Unknown"
 msgstr "Невідомий"
 
@@ -3431,14 +3456,14 @@ msgstr "Не вдалося оновити."
 msgid "Timelapse is not supported on this printer."
 msgstr "Таймлапс не підтримується цим принтером."
 
-msgid "Timelapse is not supported while the SD card does not exist."
-msgstr "Таймлапс не підтримується без наявності SD картки."
+msgid "Timelapse is not supported while the storage does not exist."
+msgstr ""
 
-msgid "Timelapse is not supported while the SD card is unavailable."
-msgstr "Таймлапс не підтримується поки SD картка недоступна."
+msgid "Timelapse is not supported while the storage is unavailable."
+msgstr ""
 
-msgid "Timelapse is not supported while the SD card is readonly."
-msgstr "Таймлапс не підтримується поки SD картка доступна тільки для читання."
+msgid "Timelapse is not supported while the storage is readonly."
+msgstr ""
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "Поточна температура камери або цільова температура камери перевищує 45℃. Щоб уникнути забивання екструдера, не дозволяється завантажувати філаменти низької температури (PLA/PETG/TPU)."
@@ -3466,10 +3491,6 @@ msgstr "Не вдалося створити Gcode для калібруванн
 
 msgid "Calibration error"
 msgstr "Помилка калібрування"
-
-#, c-format, boost-format
-msgid "%s is not supported by %s extruder."
-msgstr ""
 
 msgid "TPU is not supported by AMS."
 msgstr "TPU не підтримується AMS."
@@ -3853,6 +3874,22 @@ msgstr "Наступні об'єкти перекривають межі пла�
 
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "Будь ласка, передвиньте це повністю на чи з пластини, та переконайтеся, що висота знаходиться у межах області друку.\n"
+
+#, boost-format
+msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+msgstr ""
+
+#, boost-format
+msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+msgstr ""
+
+#, boost-format
+msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+msgstr ""
+
+#, boost-format
+msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+msgstr ""
 
 msgid "left nozzle"
 msgstr "ліве сопло"
@@ -4285,6 +4322,13 @@ msgstr "Вигляд зліва"
 msgid "Right View"
 msgstr "Вигляд справа"
 
+msgctxt "Camera"
+msgid "Isometric"
+msgstr ""
+
+msgid "Isometric View"
+msgstr ""
+
 msgid "Start a new window"
 msgstr "Почати нове вікно"
 
@@ -4353,6 +4397,9 @@ msgstr "Експорт G-коду"
 
 msgid "Export current plate as G-code"
 msgstr "Експортувати поточну пластину як G-код"
+
+msgid "Export toolpaths as OBJ"
+msgstr "Експортувати траєкторії як OBJ"
 
 msgid "Export Preset Bundle"
 msgstr "Експортувати пакет пресетів"
@@ -4551,9 +4598,6 @@ msgstr "Перезавантажити планшет із диска"
 
 msgid "Export &Toolpaths as OBJ"
 msgstr "Експорт траєкторій як OBJ"
-
-msgid "Export toolpaths as OBJ"
-msgstr "Експортувати траєкторії як OBJ"
 
 msgid "Open &Studio"
 msgstr "Відкрити &студію"
@@ -5147,12 +5191,6 @@ msgstr "Хоумінг"
 msgid "Please heat the nozzle to above 170 degree before loading or unloading filament."
 msgstr "Будь ласка, нагрійте насадку до понад 170 градусів перед завантаженням або вивантаженням філаменту."
 
-msgid "Still unload"
-msgstr "Ще вивантажує"
-
-msgid "Still load"
-msgstr "Ще завантажує"
-
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr ""
 
@@ -5176,6 +5214,15 @@ msgstr "Спортивний"
 
 msgid "Ludicrous"
 msgstr "Безглуздий"
+
+msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
+msgstr ""
+
+msgid "Turn it Off"
+msgstr ""
+
+msgid "Keep it On"
+msgstr ""
 
 msgid "Can't start this without storage."
 msgstr ""
@@ -5322,6 +5369,9 @@ msgstr "Статус"
 
 msgid "Update"
 msgstr "Оновлення"
+
+msgid "Assistant(HMS)"
+msgstr ""
 
 msgid "Go to"
 msgstr ""
@@ -5602,27 +5652,26 @@ msgstr "Виявлення згортання сопла"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "Перевірте, чи сопло не затверділо від філаменту або інших чужорідних предметів."
 
+msgid "Nozzle Type"
+msgstr "Тип насадки"
+
+msgid "Nozzle Flow"
+msgstr ""
+
+msgid "Please change the nozzle settings on the printer."
+msgstr ""
+
 msgid "Hardened Steel"
 msgstr "Закалена сталь"
 
 msgid "Stainless Steel"
 msgstr "Нержавіюча сталь"
 
+msgid "Tungsten Carbide"
+msgstr ""
+
 msgid "High flow"
 msgstr ""
-
-msgid "Nozzle Type"
-msgstr "Тип насадки"
-
-msgid "Please change the nozzle settings on the printer."
-msgstr ""
-
-msgid "Nozzle Flow"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%.1f"
-msgstr "%.1f"
 
 msgid "Global"
 msgstr "Загальний"
@@ -5807,6 +5856,12 @@ msgid "Enabling traditional timelapse photography may cause surface imperfection
 msgstr "Включення традиційної фотографії таймлапсу може призвести до дефектів на поверхні. Рекомендується перейти в режим згладжування."
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
+msgstr ""
+
+msgid "Expand sidebar"
+msgstr ""
+
+msgid "Collapse sidebar"
 msgstr ""
 
 #, c-format, boost-format
@@ -6192,21 +6247,11 @@ msgstr "Причина: “%1%” та інша частина не мають �
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Виявлено від’ємні частини. Бажаєте виконати булеву операцію з сітками перед експортом?"
 
-msgid ""
-"Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
-"If you hit 'NO', all SVGs in the project will not be editable any more."
+msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr ""
-"Ви впевнені, що хочете зберегти оригінальні SVG з їхніми локальними шляхами у файл 3MF?\n"
-"Якщо натиснете “НІ”, всі SVG у проєкті більше не можна буде редагувати."
 
-msgid "Private protection"
-msgstr "Приватний захист"
-
-msgid "For PVA filaments, it is strongly recommended to use normal support to avoid print failures."
-msgstr "Для PVA філаментів настійно рекомендується використовувати нормальні підтримки щоб уникнути помилок друку."
-
-msgid "Change these settings automatically? \n"
-msgstr "Змінити ці налаштування автоматично? \n"
+msgid "Are you sure to use them? \n"
+msgstr ""
 
 msgid ""
 "Print By Object: \n"
@@ -6308,23 +6353,8 @@ msgstr ""
 msgid "Not available"
 msgstr "Недоступно"
 
-msgid "isometric"
-msgstr "ізометрично"
-
-msgid "top_front"
-msgstr "верх_перед"
-
-msgid "top"
-msgstr "верх"
-
-msgid "bottom"
-msgstr "низ"
-
-msgid "front"
-msgstr "перед"
-
-msgid "rear"
-msgstr "зад"
+msgid "Top front"
+msgstr ""
 
 msgid "The current project has unsaved changes, save it before continuing?"
 msgstr "У поточному проєкті є незбережені зміни. Зберегти їх перед продовженням?"
@@ -6747,6 +6777,18 @@ msgstr "Змінити попереднє встановлення"
 msgid "Project-inside presets"
 msgstr "Внутрішні пресети проєкту"
 
+msgid "User"
+msgstr "Користувач"
+
+msgid "System"
+msgstr ""
+
+msgid "Unsupported presets"
+msgstr ""
+
+msgid "Unsupported"
+msgstr ""
+
 msgid "Add/Remove filaments"
 msgstr "Додати/видалити філаменти"
 
@@ -6780,6 +6822,9 @@ msgstr "Послідовність філатури на інших шарах"
 msgid "Please input layer value (>= 2)."
 msgstr "Будь ласка, введіть значення шару (≥ 2)."
 
+msgid "Same as Global Plate Type"
+msgstr "Так само, як Глобальний Тип Пластини"
+
 msgid "Bed type"
 msgstr "Тип столу"
 
@@ -6803,9 +6848,6 @@ msgstr "Спіральна ваза"
 
 msgid "First layer filament sequence"
 msgstr "Послідовність філаменту першого шару"
-
-msgid "Same as Global Plate Type"
-msgstr "Так само, як Глобальний Тип Пластини"
 
 msgid "Same as Global Bed Type"
 msgstr "Так само, як Глобальний Тип Ліжка"
@@ -6939,17 +6981,11 @@ msgstr ""
 msgid "On"
 msgstr ""
 
-msgid "If the transparency of the mapping changes, this thumbnail is for reference only."
-msgstr ""
-
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr ""
 
 msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr ""
-
-msgid "Click here if you can't connect to the printer"
-msgstr "Клацніть тут, якщо ви не можете підключитися до принтера"
 
 msgid "Auto Bed Leveling"
 msgstr ""
@@ -6975,9 +7011,6 @@ msgid ""
 "*Automatic mode: Check for calibration before printing. Skip if unnecessary."
 msgstr ""
 
-msgid "Use AMS"
-msgstr "Використовуйте AMS"
-
 msgid "send completed"
 msgstr "відправлення завершено"
 
@@ -6991,45 +7024,6 @@ msgstr ""
 msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
 msgstr ""
 
-msgid "No login account, only printers in LAN mode are displayed"
-msgstr "Відсутні облікові записи для входу, відображаються лише принтери в режимі LAN"
-
-msgid "Connecting to server"
-msgstr "Підключення до сервера"
-
-msgid "Synchronizing device information"
-msgstr "Синхронізація інформації пристрою"
-
-msgid "Synchronizing device information time out"
-msgstr "Час очікування синхронізації інформації пристрою вийшов"
-
-msgid "Cannot send the print job when the printer is not at FDM mode"
-msgstr ""
-
-msgid "Cannot send the print job when the printer is updating firmware"
-msgstr "Не можна відправити завдання на друк, коли принтер оновлює прошивку"
-
-msgid "The printer is executing instructions. Please restart printing after it ends"
-msgstr "Принтер виконує вказівки. Будь ласка, перезапустіть друк після неїзакінчення"
-
-msgid "AMS is setting up. Please try again later."
-msgstr ""
-
-#, c-format, boost-format
-msgid "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
-msgstr "Філамент %s перевищує кількість слотів AMS. Будь ласка, оновіть прошивку принтер для підтримки призначення слотів AMS."
-
-msgid "Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
-msgstr ""
-"Філамент перевищує кількість слотів AMS. Будь ласка, оновіть прошивкупринтера\n"
-"для підтримки призначення слотів AMS."
-
-msgid "Please do not mix-use the Ext with AMS"
-msgstr ""
-
-msgid "Invalid nozzle information, please refresh or manually set nozzle information."
-msgstr ""
-
 #, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
 msgstr "Філамент %s не відповідає філаменту в слоті AMS %s. Будь ласка, оновіть Прошивка принтера для підтримки призначення слотів AMS."
@@ -7037,30 +7031,9 @@ msgstr "Філамент %s не відповідає філаменту в сл
 msgid "Filament does not match the filament in AMS slot. Please update the printer firmware to support AMS slot assignment."
 msgstr "Філамент не відповідає філаменту в слоті AMS. Будь ласка, оновіть Прошивка принтера для підтримки призначення слотів AMS."
 
-msgid "Storage is not available or is in read-only mode."
-msgstr ""
-
-msgid "The printer firmware only supports sequential mapping of filament => AMS slot."
-msgstr "Прошивка принтера підтримує лише послідовне зіставленняфіламенту => AMS слот."
-
-msgid "Storage needs to be inserted before printing."
-msgstr ""
-
 #, c-format, boost-format
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
 msgstr ""
-
-msgid "Storage needs to be inserted to record timelapse."
-msgstr ""
-
-msgid "Cannot send the print job to a printer whose firmware is required to get updated."
-msgstr "Неможливо відправити завдання на друк на принтер, фірмвар якого потребує оновлення."
-
-msgid "Cannot send the print job for empty plate"
-msgstr "Неможливо відправити завдання на друк для порожньої пластини"
-
-msgid "This printer does not support printing all plates"
-msgstr "Цей принтер не підтримує друк всіх пластин"
 
 msgid "When enable spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "При увімкненні режиму спіралі для вази машини з I3 структурою не будуть створювати відео в режимі таймлапсу."
@@ -7068,17 +7041,14 @@ msgstr "При увімкненні режиму спіралі для вази 
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
 msgstr ""
 
-msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
-msgstr ""
-
-msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
-msgstr ""
-
-msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
-msgstr ""
-
 msgid "Errors"
 msgstr "Помилки"
+
+msgid "More than one filament types have been mapped to the same external spool, which may cause printing issues. The printer won't pause during printing."
+msgstr ""
+
+msgid "The filament type setting of external spool is different from the filament in the slicing file."
+msgstr ""
 
 msgid "The printer type selected when generating G-Code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing."
 msgstr "Тип принтера, вибраний під час створення G-коду, не відповідає поточному Вибраному принтеру. Рекомендується використовувати той самий тип принтера для нарізки."
@@ -7120,6 +7090,21 @@ msgstr "Довжина імені перевищує обмеження."
 msgid "Cost %dg filament and %d changes more than optimal grouping."
 msgstr ""
 
+msgid "nozzle"
+msgstr ""
+
+msgid "extruder"
+msgstr ""
+
+msgid "both extruders"
+msgstr ""
+
+msgid "right extruder"
+msgstr ""
+
+msgid "left extruder"
+msgstr ""
+
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr ""
 
@@ -7132,7 +7117,15 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr ""
 
 #, c-format, boost-format
-msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament on %s may soften. Please unload."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr ""
 
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
@@ -7150,10 +7143,79 @@ msgstr ""
 msgid "Cool(Supertack)"
 msgstr ""
 
+msgid "Click here if you can't connect to the printer"
+msgstr "Клацніть тут, якщо ви не можете підключитися до принтера"
+
+msgid "No login account, only printers in LAN mode are displayed"
+msgstr "Відсутні облікові записи для входу, відображаються лише принтери в режимі LAN"
+
+msgid "Connecting to server"
+msgstr "Підключення до сервера"
+
+msgid "Synchronizing device information"
+msgstr "Синхронізація інформації пристрою"
+
+msgid "Synchronizing device information time out"
+msgstr "Час очікування синхронізації інформації пристрою вийшов"
+
+msgid "Cannot send the print job when the printer is not at FDM mode"
+msgstr ""
+
+msgid "Cannot send the print job when the printer is updating firmware"
+msgstr "Не можна відправити завдання на друк, коли принтер оновлює прошивку"
+
+msgid "The printer is executing instructions. Please restart printing after it ends"
+msgstr "Принтер виконує вказівки. Будь ласка, перезапустіть друк після неїзакінчення"
+
+msgid "AMS is setting up. Please try again later."
+msgstr ""
+
+msgid "Please do not mix-use the Ext with AMS"
+msgstr ""
+
+msgid "Invalid nozzle information, please refresh or manually set nozzle information."
+msgstr ""
+
+msgid "Storage is not available or is in read-only mode."
+msgstr ""
+
+msgid "Storage needs to be inserted before printing."
+msgstr ""
+
+msgid "Cannot send the print job to a printer whose firmware is required to get updated."
+msgstr "Неможливо відправити завдання на друк на принтер, фірмвар якого потребує оновлення."
+
+msgid "Cannot send the print job for empty plate"
+msgstr "Неможливо відправити завдання на друк для порожньої пластини"
+
+msgid "Storage needs to be inserted to record timelapse."
+msgstr ""
+
+msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
+msgstr ""
+
+msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
+msgstr ""
+
+msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
+msgstr ""
+
+msgid "This printer does not support printing all plates"
+msgstr "Цей принтер не підтримує друк всіх пластин"
+
+msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
+msgstr ""
+
+msgid "High chamber temperature is required. Please close the door."
+msgstr ""
+
 msgid "Send to Printer storage"
 msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
+msgstr ""
+
+msgid "No available external storage was obtained. Please confirm and try again."
 msgstr ""
 
 msgid "Media capability acquisition timeout, please check if the firmware version supports it."
@@ -7323,6 +7385,11 @@ msgid "Still print by object?"
 msgstr "Ви все ще друкуєте за об’єктом?"
 
 msgid ""
+"Non-soluble support materials are not recommended for support base. \n"
+"Are you sure to use them for support base? \n"
+msgstr ""
+
+msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
 "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
@@ -7337,6 +7404,12 @@ msgstr ""
 "Змінити ці налаштування автоматично? \n"
 "Так - Змінити ці налаштування автоматично\n"
 "Ні - Не змінювати ці настройки для мене"
+
+msgid ""
+"When using soluble material for the support interface, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+"and use soluble materials for both support interface and support base"
+msgstr ""
 
 msgid ""
 "Layer height is too small.\n"
@@ -7558,6 +7631,9 @@ msgstr "G-код початку Філаменту"
 
 msgid "Filament end G-code"
 msgstr "G-код кінця Філаменту"
+
+msgid "Multi Filament"
+msgstr ""
 
 msgid "Printable space"
 msgstr "Місце для друку"
@@ -7917,7 +7993,7 @@ msgstr ""
 msgid "Obj file Import color"
 msgstr "Імпорт кольору файлу OBJ"
 
-msgid "Some faces not define color."
+msgid "Some faces don't have color defined."
 msgstr ""
 
 msgid "mtl file exist error,could not find the material:"
@@ -8026,6 +8102,9 @@ msgid ""
 "*Automatic mode: Check for calibration before printing; skip if unnecessary."
 msgstr ""
 
+msgid "Use AMS"
+msgstr "Використовуйте AMS"
+
 msgid "Tip"
 msgstr ""
 
@@ -8079,6 +8158,9 @@ msgid "Timelapse is not supported because Print sequence is set to \"By object\"
 msgstr "Таймлапс не підтримується через те, що послідовність друку встановлена в “За об’єктом”."
 
 msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
+msgstr ""
+
+msgid "Successfully synchronized nozzle information."
 msgstr ""
 
 msgid "Successfully synchronized nozzle and AMS number information."
@@ -8256,11 +8338,14 @@ msgstr "Вигляд камери - спереду"
 msgid "Camera view - Behind"
 msgstr "Вигляд камери - ззаду"
 
-msgid "Camera Angle - Left side"
-msgstr "Кут камери – ліва сторона"
+msgid "Camera view - Left"
+msgstr ""
 
-msgid "Camera Angle - Right side"
-msgstr "Кут камери - правий бік"
+msgid "Camera view - Right"
+msgstr ""
+
+msgid "Camera view - Isometric"
+msgstr ""
 
 msgid "Select all objects"
 msgstr "Виділити всі об'єкти"
@@ -8375,11 +8460,11 @@ msgstr "продовжити"
 msgid "Resume Printing"
 msgstr "Відновити друк"
 
-msgid "Resume Printing(defects acceptable)"
-msgstr "Відновлення друку (прийнятно дефекти)"
+msgid "Resume (defects acceptable)"
+msgstr ""
 
-msgid "Resume Printing(problem solved)"
-msgstr "Відновлення друку (проблема вирішена)"
+msgid "Resume (problem solved)"
+msgstr ""
 
 msgid "Stop Printing"
 msgstr "Зупинити друк"
@@ -8953,9 +9038,6 @@ msgstr "Висота друку екструдера"
 msgid "Maximum printable height of this extruder which is limited by mechanism of printer"
 msgstr "Максимальна висота друку цього екструдера, обмежена механізмом принтера"
 
-msgid "Unprintable filament type"
-msgstr "Недрукований тип філаменту"
-
 msgid "Printer preset names"
 msgstr "Імена налаштувань принтера"
 
@@ -8989,9 +9071,6 @@ msgstr "Файл HTTPS CA"
 
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "Для HTTPS-з'єднань OctoPrint можна вказати файл сертифіката ЦС користувача, у форматі crt/pem. Якщо залишити порожнім, за замовчуванням використовуватиметься сховище сертифікатів ЦС ОС."
-
-msgid "User"
-msgstr "Користувач"
 
 msgid "Password"
 msgstr "Пароль"
@@ -9578,6 +9657,18 @@ msgstr ""
 msgid "Manual"
 msgstr "Manual"
 
+msgid "Flush temperature"
+msgstr ""
+
+msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgstr ""
+
+msgid "Flush volumetric speed"
+msgstr ""
+
+msgid "Volumetric speed when flushing filament. 0 indicates the max volumetric speed"
+msgstr ""
+
 msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
 msgstr "Це налаштування визначає, скільки обсягу нитки може бути розплавлено та екструдовано за секунду. Швидкість друку обмежена максимальною об'ємною швидкістю, у разі надто високого та необґрунтованого налаштування швидкості. Не може бути нулем"
 
@@ -9708,6 +9799,12 @@ msgstr "Матеріал підтримки"
 
 msgid "Support material is commonly used to print support and support interface"
 msgstr "Допоміжний матеріал зазвичай використовується для друку підтримки"
+
+msgid "Filament printable"
+msgstr ""
+
+msgid "The filament is printable in extruder"
+msgstr ""
 
 msgid "Filament prime volume"
 msgstr ""
@@ -9914,6 +10011,12 @@ msgstr "Відфільтрувати крихітні зазори"
 msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 msgstr "Фільтрувати виїмки, які менше порогу, вказаного в налаштуваннях. Це налаштування не впливає на верхні/нижні шари"
 
+msgid "Precise wall"
+msgstr ""
+
+msgid "Improve shell precision by adjusting outer wall spacing. This also improves layer consistency."
+msgstr ""
+
 msgid "Speed of gap infill. Gap usually has irregular line width and should be printed more slowly"
 msgstr "Швидкість заповнення зазору. Зазор зазвичай має неправильну ширину лінії та має друкуватися повільніше"
 
@@ -9961,6 +10064,9 @@ msgstr "Гартова сталь"
 
 msgid "Stainless steel"
 msgstr "Нержавіюча сталь"
+
+msgid "Tungsten carbide"
+msgstr ""
 
 msgid "Brass"
 msgstr "Латунь"
@@ -10447,6 +10553,12 @@ msgstr "Відстань відведення при вирізанні"
 
 msgid "Experimental feature.Retraction length before cutting off during filament change"
 msgstr "Експериментальна функція. Відстань відведення перед відрізанням під час зміни філаменту"
+
+msgid "Long retraction when extruder change"
+msgstr ""
+
+msgid "Retraction distance when extruder change"
+msgstr ""
 
 msgid "Z hop when retract"
 msgstr "Z-стрибок при відкаті"
@@ -13264,6 +13376,89 @@ msgid ""
 msgstr ""
 "Уникнення деформації\n"
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як ABS, відповідне підвищення температури гарячого ліжка може зменшити ймовірність деформації."
+
+#~ msgid "Still unload"
+#~ msgstr "Ще вивантажує"
+
+#~ msgid "Still load"
+#~ msgstr "Ще завантажує"
+
+#~ msgid ""
+#~ "Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
+#~ "If you hit 'NO', all SVGs in the project will not be editable any more."
+#~ msgstr ""
+#~ "Ви впевнені, що хочете зберегти оригінальні SVG з їхніми локальними шляхами у файл 3MF?\n"
+#~ "Якщо натиснете “НІ”, всі SVG у проєкті більше не можна буде редагувати."
+
+#~ msgid "Private protection"
+#~ msgstr "Приватний захист"
+
+#~ msgid "For PVA filaments, it is strongly recommended to use normal support to avoid print failures."
+#~ msgstr "Для PVA філаментів настійно рекомендується використовувати нормальні підтримки щоб уникнути помилок друку."
+
+#~ msgid "Change these settings automatically? \n"
+#~ msgstr "Змінити ці налаштування автоматично? \n"
+
+#~ msgid "Unprintable filament type"
+#~ msgstr "Недрукований тип філаменту"
+
+#~ msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+#~ msgstr "Зміна швидкості вентилятора під час друку може вплинути на якість, обирайте обережно."
+
+#~ msgid "Timelapse is not supported while the SD card does not exist."
+#~ msgstr "Таймлапс не підтримується без наявності SD картки."
+
+#~ msgid "Timelapse is not supported while the SD card is unavailable."
+#~ msgstr "Таймлапс не підтримується поки SD картка недоступна."
+
+#~ msgid "Timelapse is not supported while the SD card is readonly."
+#~ msgstr "Таймлапс не підтримується поки SD картка доступна тільки для читання."
+
+#~ msgid "isometric"
+#~ msgstr "ізометрично"
+
+#~ msgid "top_front"
+#~ msgstr "верх_перед"
+
+#~ msgid "top"
+#~ msgstr "верх"
+
+#~ msgid "bottom"
+#~ msgstr "низ"
+
+#~ msgid "front"
+#~ msgstr "перед"
+
+#~ msgid "rear"
+#~ msgstr "зад"
+
+#, c-format, boost-format
+#~ msgid "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
+#~ msgstr "Філамент %s перевищує кількість слотів AMS. Будь ласка, оновіть прошивку принтер для підтримки призначення слотів AMS."
+
+#~ msgid "Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
+#~ msgstr ""
+#~ "Філамент перевищує кількість слотів AMS. Будь ласка, оновіть прошивкупринтера\n"
+#~ "для підтримки призначення слотів AMS."
+
+#~ msgid "The printer firmware only supports sequential mapping of filament => AMS slot."
+#~ msgstr "Прошивка принтера підтримує лише послідовне зіставленняфіламенту => AMS слот."
+
+#~ msgid "Resume Printing(defects acceptable)"
+#~ msgstr "Відновлення друку (прийнятно дефекти)"
+
+#~ msgid "Resume Printing(problem solved)"
+#~ msgstr "Відновлення друку (проблема вирішена)"
+
+#, c-format, boost-format
+#~ msgid "%.1f"
+#~ msgstr "%.1f"
+
+#~ msgid "Camera Angle - Left side"
+#~ msgstr "Кут камери – ліва сторона"
+
+#~ msgid "Camera Angle - Right side"
+#~ msgstr "Кут камери - правий бік"
 
 #~ msgid ""
 #~ "Waring:The count of newly added and \n"

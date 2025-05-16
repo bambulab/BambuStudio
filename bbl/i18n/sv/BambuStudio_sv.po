@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-24 10:10+0800\n"
+"POT-Creation-Date: 2025-05-16 18:02+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -28,12 +28,6 @@ msgstr "Filament typen är okänd. En slumpmässig filament inställning kommer 
 msgid "Current AMS humidity"
 msgstr "Aktuell AMS fuktighet"
 
-msgid "Drying"
-msgstr "Torkning"
-
-msgid "Idle"
-msgstr "Inaktiv"
-
 msgid "Humidity"
 msgstr "Luftfuktighet"
 
@@ -42,6 +36,12 @@ msgstr "Temperatur"
 
 msgid "Left Time"
 msgstr "Tid kvar"
+
+msgid "Drying"
+msgstr "Torkning"
+
+msgid "Idle"
+msgstr "Inaktiv"
 
 #, c-format, boost-format
 msgid "%.1f ℃"
@@ -147,6 +147,15 @@ msgstr "Markera ytor enligt överhängs vinkeln."
 
 msgid "No auto support"
 msgstr "Ingen auto support"
+
+msgid "Warning"
+msgstr "Varning"
+
+msgid "Painting below the build plate is not allowed."
+msgstr ""
+
+msgid "The white outline indicates the position of the build plate at Z = 0."
+msgstr ""
 
 msgid "Support Generated"
 msgstr "Support skapat"
@@ -549,9 +558,6 @@ msgstr "Bekräfta kontakterna"
 
 msgid "Cancel"
 msgstr "Avbryt"
-
-msgid "Warning"
-msgstr "Varning"
 
 msgid "Invalid connectors detected"
 msgstr "Ogiltiga anslutningar upptäckta"
@@ -1232,6 +1238,9 @@ msgstr "Kritiskt fel"
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "Bambu Studio har ett ohanterat undantag: %1%"
 
+msgid "This file is not from a trusted site, do you want to open it anyway?"
+msgstr ""
+
 msgid "Untitled"
 msgstr "Ej namngiven"
 
@@ -1767,8 +1776,17 @@ msgstr "Förenkla modellen"
 msgid "Center"
 msgstr "Center"
 
+msgid "Sub merge"
+msgstr ""
+
 msgid "Edit Process Settings"
 msgstr "Redigera Process Inställningar"
+
+msgid "Copy Process Settings"
+msgstr ""
+
+msgid "Paste Process Settings"
+msgstr ""
 
 msgid "Edit print parameters for a single object"
 msgstr "Redigera utskriftsinställningar för ett enda objekt"
@@ -1862,6 +1880,9 @@ msgstr "Lägg till Modifierare"
 
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr "Ändra till per objekt inställningsläge till redigerings inställningar."
+
+msgid "Sub-merged body"
+msgstr ""
 
 msgid "Switch to per-object setting mode to edit process settings of selected objects."
 msgstr "Växla till inställningsläge för varje objekt för att redigera process inställningar för valda objekt."
@@ -2193,14 +2214,14 @@ msgstr "Mata ut"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Välj ett AMS fack och tryck sedan på knappen \"Ladda\" eller \"Mata ut\" för att automatiskt ladda eller mata ut filament."
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
-msgstr "Att ändra fläkthastigheten under utskrift kan påverka utskriftskvaliteten, välj noggrant."
+msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
+msgstr ""
+
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
+msgstr ""
 
 msgid "Change Anyway"
 msgstr "Ändra ändå"
-
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
-msgstr "Ändrad fläkthastighet under utskrift kan påverka utskrifts kvaliteten, välj noggrant."
 
 msgid "Off"
 msgstr "Av"
@@ -3396,6 +3417,10 @@ msgstr "höger"
 msgid "TPU is not supported by %s extruder for this printer."
 msgstr "TPU stöds ej av %s extruder för denna printer."
 
+#, c-format, boost-format
+msgid "%s is not supported by %s extruder."
+msgstr "%s stöds inte av %s extruder."
+
 msgid "Unknown"
 msgstr "Okänd"
 
@@ -3423,14 +3448,14 @@ msgstr "Uppdatering misslyckades."
 msgid "Timelapse is not supported on this printer."
 msgstr "Timelapse stöds inte på den här printern."
 
-msgid "Timelapse is not supported while the SD card does not exist."
-msgstr "Timelapse stöds inte när SD kortet inte finns."
+msgid "Timelapse is not supported while the storage does not exist."
+msgstr ""
 
-msgid "Timelapse is not supported while the SD card is unavailable."
-msgstr "Timelapse stöds inte när SD kortet inte är tillgängligt."
+msgid "Timelapse is not supported while the storage is unavailable."
+msgstr ""
 
-msgid "Timelapse is not supported while the SD card is readonly."
-msgstr "Timelapse stöds inte när SD kortet är skrivskyddat."
+msgid "Timelapse is not supported while the storage is readonly."
+msgstr ""
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "Den aktuella kammar temperaturen eller den önskade kammar temperaturen överstiger 45 ℃. För att undvika igensättning av extrudern är det inte tillåtet att ladda filament med låg temperatur (PLA/PETG/TPU)."
@@ -3458,10 +3483,6 @@ msgstr "Misslyckades med att generera cali G kod"
 
 msgid "Calibration error"
 msgstr "Fel vid kalibrering"
-
-#, c-format, boost-format
-msgid "%s is not supported by %s extruder."
-msgstr "%s stöds inte av %s extruder."
 
 msgid "TPU is not supported by AMS."
 msgstr "TPU stöds inte av AMS."
@@ -3847,6 +3868,22 @@ msgstr "Följande föremål läggs över plattans gräns eller överskrider höj
 
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "Lös problemet genom att flytta den helt på eller av plattan och bekräfta att höjden ligger inom byggvolymen.\n"
+
+#, boost-format
+msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+msgstr ""
+
+#, boost-format
+msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+msgstr ""
+
+#, boost-format
+msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+msgstr ""
+
+#, boost-format
+msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+msgstr ""
 
 msgid "left nozzle"
 msgstr "vänster nozzle"
@@ -4287,6 +4324,13 @@ msgstr "Vy Vänster"
 msgid "Right View"
 msgstr "Vy Höger"
 
+msgctxt "Camera"
+msgid "Isometric"
+msgstr ""
+
+msgid "Isometric View"
+msgstr ""
+
 msgid "Start a new window"
 msgstr "Starta ett nytt fönster"
 
@@ -4355,6 +4399,9 @@ msgstr "Exportera G-kod"
 
 msgid "Export current plate as G-code"
 msgstr "Exportera aktuell byggplatta som G-kod"
+
+msgid "Export toolpaths as OBJ"
+msgstr "Exportera toolpaths som OBJ"
 
 msgid "Export Preset Bundle"
 msgstr "Exportera Inställnings Bundle"
@@ -4553,9 +4600,6 @@ msgstr "Ladda om plattan från disken"
 
 msgid "Export &Toolpaths as OBJ"
 msgstr "Exportera &Toolpaths som OBJ"
-
-msgid "Export toolpaths as OBJ"
-msgstr "Exportera toolpaths som OBJ"
 
 msgid "Open &Studio"
 msgstr "Öppna &Studio"
@@ -5150,12 +5194,6 @@ msgstr ""
 msgid "Please heat the nozzle to above 170 degree before loading or unloading filament."
 msgstr "Värm nozzeln till över 170 grader innan du laddar eller matar ut filament."
 
-msgid "Still unload"
-msgstr "Matar ut fortfarande"
-
-msgid "Still load"
-msgstr "Laddar fortfarande"
-
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr "Om kammar temperaturen överstiger 40 °C växlar systemet automatiskt till värmeläge. Bekräfta om du vill byta."
 
@@ -5179,6 +5217,15 @@ msgstr "Sport"
 
 msgid "Ludicrous"
 msgstr "Galet"
+
+msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
+msgstr ""
+
+msgid "Turn it Off"
+msgstr ""
+
+msgid "Keep it On"
+msgstr ""
 
 msgid "Can't start this without storage."
 msgstr "Kan inte starta detta utan lagring."
@@ -5325,6 +5372,9 @@ msgstr "Status"
 
 msgid "Update"
 msgstr "Uppdatera"
+
+msgid "Assistant(HMS)"
+msgstr ""
 
 msgid "Go to"
 msgstr "Gå till"
@@ -5603,27 +5653,26 @@ msgstr "Detektering av nozzel klumpar"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "Kontrollera om nozzeln täpps igen av filament eller andra främmande föremål."
 
+msgid "Nozzle Type"
+msgstr "Nozzel typ"
+
+msgid "Nozzle Flow"
+msgstr "Nozzle flöde"
+
+msgid "Please change the nozzle settings on the printer."
+msgstr ""
+
 msgid "Hardened Steel"
 msgstr "Härdat stål"
 
 msgid "Stainless Steel"
 msgstr "Rostfritt stål"
 
-msgid "High flow"
-msgstr "Högt flöde"
-
-msgid "Nozzle Type"
-msgstr "Nozzel typ"
-
-msgid "Please change the nozzle settings on the printer."
+msgid "Tungsten Carbide"
 msgstr ""
 
-msgid "Nozzle Flow"
-msgstr "Nozzle flöde"
-
-#, c-format, boost-format
-msgid "%.1f"
-msgstr "%.1f"
+msgid "High flow"
+msgstr "Högt flöde"
 
 msgid "Global"
 msgstr "Global"
@@ -5809,6 +5858,12 @@ msgstr "Aktivering av traditionell timelapse fotografering kan orsaka ojämnhete
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "Smooth läget för timelapse är aktiverat, men prime tornet är avstängt, vilket kan orsaka utskriftsfel. Vänligen aktivera prime tornet, bered om och skriv ut igen."
+
+msgid "Expand sidebar"
+msgstr ""
+
+msgid "Collapse sidebar"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -6198,21 +6253,11 @@ msgstr "Orsak: \"%1%\" och en annan del har ingen korsning."
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Negativa delar upptäckta. Vill du utföra boolean av mesh före export?"
 
-msgid ""
-"Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
-"If you hit 'NO', all SVGs in the project will not be editable any more."
+msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr ""
-"Är du säker på att du vill lagra original SVG:er med sina lokala sökvägar i 3MF-filen?\n"
-"Om du väljer \"NEJ\" kommer alla SVG:er i projektet inte längre att vara redigerbara."
 
-msgid "Private protection"
-msgstr "Privat skydd"
-
-msgid "For PVA filaments, it is strongly recommended to use normal support to avoid print failures."
-msgstr "För PVA filament rekommenderas starkt att man använder normalt stöd för att undvika felaktiga utskrifter."
-
-msgid "Change these settings automatically? \n"
-msgstr "Ändra dessa inställningar automatiskt? \n"
+msgid "Are you sure to use them? \n"
+msgstr ""
 
 msgid ""
 "Print By Object: \n"
@@ -6314,23 +6359,8 @@ msgstr "För närvarande kan formuläret för objekt konfiguration inte använda
 msgid "Not available"
 msgstr "Ej tillgänglig"
 
-msgid "isometric"
-msgstr "isometrisk"
-
-msgid "top_front"
-msgstr "topp_front"
-
-msgid "top"
-msgstr "topp"
-
-msgid "bottom"
-msgstr "botten"
-
-msgid "front"
+msgid "Top front"
 msgstr ""
-
-msgid "rear"
-msgstr "bakre"
 
 msgid "The current project has unsaved changes, save it before continuing?"
 msgstr "Det aktuella projektet har osparade ändringar; vill du spara innan du fortsätter?"
@@ -6759,6 +6789,18 @@ msgstr "Redigera förinställningar"
 msgid "Project-inside presets"
 msgstr "Projekt förinställningar"
 
+msgid "User"
+msgstr "Användare"
+
+msgid "System"
+msgstr ""
+
+msgid "Unsupported presets"
+msgstr ""
+
+msgid "Unsupported"
+msgstr ""
+
 msgid "Add/Remove filaments"
 msgstr "Lägg till/Ta bort filament"
 
@@ -6792,6 +6834,9 @@ msgstr "Andra lagers filament sekvens"
 msgid "Please input layer value (>= 2)."
 msgstr "Ange lager värde (>= 2)."
 
+msgid "Same as Global Plate Type"
+msgstr "Samma som Global Bed Type"
+
 msgid "Bed type"
 msgstr "Typ av byggplatta"
 
@@ -6815,9 +6860,6 @@ msgstr "Spiral vas"
 
 msgid "First layer filament sequence"
 msgstr "Första lagrets filament sekvens"
-
-msgid "Same as Global Plate Type"
-msgstr "Samma som Global Bed Type"
 
 msgid "Same as Global Bed Type"
 msgstr "Samma som Global Bed Type"
@@ -6951,17 +6993,11 @@ msgstr "Skicka utskriftsjobb"
 msgid "On"
 msgstr "På"
 
-msgid "If the transparency of the mapping changes, this thumbnail is for reference only."
-msgstr "Om genomskinligheten för mappningen ändras är den här miniatyrbilden endast för referens."
-
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Är du inte nöjd med grupperingen av filament? Gruppera om och bered ->"
 
 msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr "Din metod för gruppering av filament i berednings filen är inte optimal."
-
-msgid "Click here if you can't connect to the printer"
-msgstr "Klicka här om du inte kan ansluta till printern"
 
 msgid "Auto Bed Leveling"
 msgstr "Automatisk bäddutjämning"
@@ -6993,9 +7029,6 @@ msgstr ""
 "Kalibrera nozzle offset för att förbättra utskriftskvaliteten.\n"
 "*Automatiskt läge: Kontrollera kalibreringen före utskrift. Hoppa över om det inte behövs."
 
-msgid "Use AMS"
-msgstr "Använd AMS"
-
 msgid "send completed"
 msgstr "skicka slutförd"
 
@@ -7009,43 +7042,6 @@ msgstr "Högt flöde"
 msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
 msgstr "Nozzle flödes inställning av %s(%s) stämmer inte överens med berednings fil(%s). Vänligen kontrollera att nozzle som installerats stämmer överens med inställningarna i printern och ställ sedan in motsvarande inställning i beredning."
 
-msgid "No login account, only printers in LAN mode are displayed"
-msgstr "Inget inloggningskonto, bara skrivare i LAN-läge visas"
-
-msgid "Connecting to server"
-msgstr "Ansluter till server"
-
-msgid "Synchronizing device information"
-msgstr "Synkroniserar enhetsinformation"
-
-msgid "Synchronizing device information time out"
-msgstr "Time-out för synkronisering av enhetsinformation"
-
-msgid "Cannot send the print job when the printer is not at FDM mode"
-msgstr "Det går inte att skicka utskriftsjobbet när printern inte är i FDM läge"
-
-msgid "Cannot send the print job when the printer is updating firmware"
-msgstr "Det går inte att skicka ett utskriftsjobb medan printern uppdaterar firmware"
-
-msgid "The printer is executing instructions. Please restart printing after it ends"
-msgstr "Skrivaren utför instruktioner. Vänligen starta utskriften igen när den är avslutad."
-
-msgid "AMS is setting up. Please try again later."
-msgstr "AMS håller på att installeras. Försök igen senare."
-
-#, c-format, boost-format
-msgid "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
-msgstr "Filament %s överskrider antalet AMS-fack. Uppdatera skrivarens programvara för att stödja tilldelning av AMS-fack."
-
-msgid "Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
-msgstr "Filament överskrider antalet AMS-fack. Uppdatera skrivarens programvara för att stödja tilldelning av AMS-fack."
-
-msgid "Please do not mix-use the Ext with AMS"
-msgstr "Blanda inte Ext med Ams"
-
-msgid "Invalid nozzle information, please refresh or manually set nozzle information."
-msgstr "Ogiltig nozzle information, uppdatera eller ställ in nozzle informationen manuellt."
-
 #, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
 msgstr "Filamentet %s matchar inte filamentet i AMS-facket %s. Uppdatera skrivarens programvara för att stödja tilldelning av AMS-fack."
@@ -7053,30 +7049,9 @@ msgstr "Filamentet %s matchar inte filamentet i AMS-facket %s. Uppdatera skrivar
 msgid "Filament does not match the filament in AMS slot. Please update the printer firmware to support AMS slot assignment."
 msgstr "Filamentet matchar inte filamentet i AMS-facket. Uppdatera skrivarens programvara för att stödja tilldelning av AMS-fack."
 
-msgid "Storage is not available or is in read-only mode."
-msgstr "Lagringen är inte tillgänglig eller är i skrivskyddat läge."
-
-msgid "The printer firmware only supports sequential mapping of filament => AMS slot."
-msgstr "Skrivarens firmware stöder endast sekventiell mappning av filament => AMS-fack plats."
-
-msgid "Storage needs to be inserted before printing."
-msgstr "Lagring måste sättas in före utskrift."
-
 #, c-format, boost-format
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
 msgstr "Den valda printern (%s) är inte kompatibel med konfigurationen av utskrifts filen (%s). Vänligen justera printer inställningen på sidan Förbered eller välj en kompatibel skrivare på den här sidan."
-
-msgid "Storage needs to be inserted to record timelapse."
-msgstr "Lagring måste sättas in för att spela in timelapse."
-
-msgid "Cannot send the print job to a printer whose firmware is required to get updated."
-msgstr "Det går inte att skicka utskriftsjobbet till en printer där programvaran måste uppdateras."
-
-msgid "Cannot send the print job for empty plate"
-msgstr "Det går inte att skicka ett utskriftsjobb för en tom platta."
-
-msgid "This printer does not support printing all plates"
-msgstr "Den här skrivaren stöder inte utskrift av alla byggplattor"
 
 msgid "When enable spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "When spiral vase mode is enabled, machines with I3 structure will not generate timelapse videos."
@@ -7084,17 +7059,14 @@ msgstr "When spiral vase mode is enabled, machines with I3 structure will not ge
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
 msgstr "Den aktuella printern stöder inte timelapse i traditionellt läge vid Per Objekt utskrift."
 
-msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
-msgstr "Du har valt både externa och AMS filament för en extruder. Du måste manuellt byta externt filament under utskrift."
-
-msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
-msgstr "TPU 90A/TPU 85A är för mjuk och stöder inte automatiskt flödes dynamik kalibrering."
-
-msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
-msgstr "Ställ in dynamiskt flödes kalibrering till \"OFF\" för att aktivera anpassad dynamisk flödes värde."
-
 msgid "Errors"
 msgstr "Fel"
+
+msgid "More than one filament types have been mapped to the same external spool, which may cause printing issues. The printer won't pause during printing."
+msgstr ""
+
+msgid "The filament type setting of external spool is different from the filament in the slicing file."
+msgstr ""
 
 msgid "The printer type selected when generating G-Code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing."
 msgstr "Den skrivar typ som valdes vid generering av G-kod överensstämmer inte med den för tillfället valda skrivaren. Vi rekommenderar att du använder samma skrivartyp för beredning."
@@ -7136,6 +7108,21 @@ msgstr "Namnlängden överskrider gränsen."
 msgid "Cost %dg filament and %d changes more than optimal grouping."
 msgstr "Kostnad %dg filament och %d ändrar mer än optimal gruppering."
 
+msgid "nozzle"
+msgstr ""
+
+msgid "extruder"
+msgstr ""
+
+msgid "both extruders"
+msgstr ""
+
+msgid "right extruder"
+msgstr ""
+
+msgid "left extruder"
+msgstr ""
+
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr "Tips och råd: Om du har bytt ut din nozzle på din printer nyligen, gå till \"Enhet -> Printer delar\" för att byta din nozzle inställning."
 
@@ -7148,8 +7135,16 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "Det aktuella nozzle diametern (%.1fmm) stämmer inte överens med berednings filen (%.1fmm). Vänligen kontrollera att nozzle stämmer överens med inställningarna i printern och ställ sedan in motsvarande printer inställningar när du bereder."
 
 #, c-format, boost-format
-msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
-msgstr "Utskrift av hög temperaturs material(%s) med %s nozzle kan orsaka nozzle skada, vänligen kontrollera nozzle typ"
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament on %s may soften. Please unload."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament on %s is unknown and may soften. Please set filament."
+msgstr ""
 
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr ""
@@ -7166,11 +7161,80 @@ msgstr "Hög temp"
 msgid "Cool(Supertack)"
 msgstr ""
 
+msgid "Click here if you can't connect to the printer"
+msgstr "Klicka här om du inte kan ansluta till printern"
+
+msgid "No login account, only printers in LAN mode are displayed"
+msgstr "Inget inloggningskonto, bara skrivare i LAN-läge visas"
+
+msgid "Connecting to server"
+msgstr "Ansluter till server"
+
+msgid "Synchronizing device information"
+msgstr "Synkroniserar enhetsinformation"
+
+msgid "Synchronizing device information time out"
+msgstr "Time-out för synkronisering av enhetsinformation"
+
+msgid "Cannot send the print job when the printer is not at FDM mode"
+msgstr "Det går inte att skicka utskriftsjobbet när printern inte är i FDM läge"
+
+msgid "Cannot send the print job when the printer is updating firmware"
+msgstr "Det går inte att skicka ett utskriftsjobb medan printern uppdaterar firmware"
+
+msgid "The printer is executing instructions. Please restart printing after it ends"
+msgstr "Skrivaren utför instruktioner. Vänligen starta utskriften igen när den är avslutad."
+
+msgid "AMS is setting up. Please try again later."
+msgstr "AMS håller på att installeras. Försök igen senare."
+
+msgid "Please do not mix-use the Ext with AMS"
+msgstr "Blanda inte Ext med Ams"
+
+msgid "Invalid nozzle information, please refresh or manually set nozzle information."
+msgstr "Ogiltig nozzle information, uppdatera eller ställ in nozzle informationen manuellt."
+
+msgid "Storage is not available or is in read-only mode."
+msgstr "Lagringen är inte tillgänglig eller är i skrivskyddat läge."
+
+msgid "Storage needs to be inserted before printing."
+msgstr "Lagring måste sättas in före utskrift."
+
+msgid "Cannot send the print job to a printer whose firmware is required to get updated."
+msgstr "Det går inte att skicka utskriftsjobbet till en printer där programvaran måste uppdateras."
+
+msgid "Cannot send the print job for empty plate"
+msgstr "Det går inte att skicka ett utskriftsjobb för en tom platta."
+
+msgid "Storage needs to be inserted to record timelapse."
+msgstr "Lagring måste sättas in för att spela in timelapse."
+
+msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
+msgstr "Du har valt både externa och AMS filament för en extruder. Du måste manuellt byta externt filament under utskrift."
+
+msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
+msgstr "TPU 90A/TPU 85A är för mjuk och stöder inte automatiskt flödes dynamik kalibrering."
+
+msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
+msgstr "Ställ in dynamiskt flödes kalibrering till \"OFF\" för att aktivera anpassad dynamisk flödes värde."
+
+msgid "This printer does not support printing all plates"
+msgstr "Den här skrivaren stöder inte utskrift av alla byggplattor"
+
+msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
+msgstr ""
+
+msgid "High chamber temperature is required. Please close the door."
+msgstr ""
+
 msgid "Send to Printer storage"
 msgstr "Skicka till printerns lagring"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Timeout för uppladdning av fil: kontrollera om firmwareversionen stöder det."
+
+msgid "No available external storage was obtained. Please confirm and try again."
+msgstr ""
 
 msgid "Media capability acquisition timeout, please check if the firmware version supports it."
 msgstr "Timeout för förvärv av mediekapacitet, kontrollera om versionen av firmware stöder det."
@@ -7339,6 +7403,11 @@ msgid "Still print by object?"
 msgstr "Fortfarande utskrift per objekt?"
 
 msgid ""
+"Non-soluble support materials are not recommended for support base. \n"
+"Are you sure to use them for support base? \n"
+msgstr ""
+
+msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
 "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
@@ -7353,6 +7422,12 @@ msgstr ""
 "Ändra dessa inställningar automatiskt?\n"
 "Ja -  Ändra dessa inställningar automatiskt\n"
 "Nej - Ändra inte dessa inställningar åt mig"
+
+msgid ""
+"When using soluble material for the support interface, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+"and use soluble materials for both support interface and support base"
+msgstr ""
 
 msgid ""
 "Layer height is too small.\n"
@@ -7570,6 +7645,9 @@ msgstr "Filament start G-kod"
 
 msgid "Filament end G-code"
 msgstr "Filament stop G-kod"
+
+msgid "Multi Filament"
+msgstr ""
 
 msgid "Printable space"
 msgstr "Utskriftsbar yta"
@@ -7933,8 +8011,8 @@ msgstr "Öppna Wiki för mer information >"
 msgid "Obj file Import color"
 msgstr "Obj fil Importera färg"
 
-msgid "Some faces not define color."
-msgstr "Några ytor ej definierad färg."
+msgid "Some faces don't have color defined."
+msgstr ""
 
 msgid "mtl file exist error,could not find the material:"
 msgstr "mtl filen existerar fel, kunde inte hitta materialet:"
@@ -8050,6 +8128,9 @@ msgstr ""
 "Kalibrera nozzle offset för att förbättra utskriftskvaliteten. \n"
 "*Automatiskt läge: Kontrollera efter kalibrering före utskrift; hoppa över om det är onödigt."
 
+msgid "Use AMS"
+msgstr "Använd AMS"
+
 msgid "Tip"
 msgstr "Tips"
 
@@ -8104,6 +8185,9 @@ msgstr "Timelapse stöds inte eftersom utskrifts sekvensen är inställd på \"P
 
 msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
 msgstr "Du valde externt och AMS filament samtidigt i en extruder; du måste manuellt byta externt filament."
+
+msgid "Successfully synchronized nozzle information."
+msgstr ""
 
 msgid "Successfully synchronized nozzle and AMS number information."
 msgstr "Framgångsrikt synkroniserad nozzle och AMS nummer information."
@@ -8280,11 +8364,14 @@ msgstr "Kamera vy - Fram"
 msgid "Camera view - Behind"
 msgstr "Kamera vy - Bakom"
 
-msgid "Camera Angle - Left side"
-msgstr "Kamera vy - Vänster sida"
+msgid "Camera view - Left"
+msgstr ""
 
-msgid "Camera Angle - Right side"
-msgstr "Kamera vy - Höger sida"
+msgid "Camera view - Right"
+msgstr ""
+
+msgid "Camera view - Isometric"
+msgstr ""
 
 msgid "Select all objects"
 msgstr "Välj alla objekt"
@@ -8399,11 +8486,11 @@ msgstr "återuppta"
 msgid "Resume Printing"
 msgstr "Återuppta utskrift"
 
-msgid "Resume Printing(defects acceptable)"
-msgstr "Återuppta utskrift (acceptabla defekter)"
+msgid "Resume (defects acceptable)"
+msgstr ""
 
-msgid "Resume Printing(problem solved)"
-msgstr "Återuppta utskrift (problem löst)"
+msgid "Resume (problem solved)"
+msgstr ""
 
 msgid "Stop Printing"
 msgstr "Stoppa utskrift"
@@ -8977,9 +9064,6 @@ msgstr "Extruder utskrivbar höjd"
 msgid "Maximum printable height of this extruder which is limited by mechanism of printer"
 msgstr "Maximal utskrivbar höjd för denna extruder som begränsas av printerns mekanism"
 
-msgid "Unprintable filament type"
-msgstr "Ej uskrivbar filament typ"
-
 msgid "Printer preset names"
 msgstr "Namn på förinställda skrivare"
 
@@ -9009,9 +9093,6 @@ msgstr "HTTPS CA fil"
 
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "Anpassad CA-certifikatfil kan anges för HTTPS OctoPrint-anslutningar, i crt/pem-format. Om den lämnas tom används standarddatabasen för OS CA-certifikat."
-
-msgid "User"
-msgstr "Användare"
 
 msgid "Password"
 msgstr "Lösenord"
@@ -9592,6 +9673,18 @@ msgstr "Auto för matchning"
 msgid "Manual"
 msgstr "Manuell"
 
+msgid "Flush temperature"
+msgstr ""
+
+msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgstr ""
+
+msgid "Flush volumetric speed"
+msgstr ""
+
+msgid "Volumetric speed when flushing filament. 0 indicates the max volumetric speed"
+msgstr ""
+
 msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
 msgstr "Den här inställningen är volymen filament som kan smältas och extruderas per sekund. Utskriftshastigheten begränsas av den maximala volymhastigheten om hastigheten är för hög och orimlig. Det här värdet kan inte vara noll."
 
@@ -9722,6 +9815,12 @@ msgstr "Support material"
 
 msgid "Support material is commonly used to print support and support interface"
 msgstr "Support material används ofta för att skriva ut support och stödja gränssnittet"
+
+msgid "Filament printable"
+msgstr ""
+
+msgid "The filament is printable in extruder"
+msgstr ""
 
 msgid "Filament prime volume"
 msgstr "Filament prime volym"
@@ -9928,6 +10027,12 @@ msgstr "Filtrera bort små luckor"
 msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 msgstr "Filtrera bort luckor som är mindre än det angivna tröskelvärdet. Denna inställning påverkar inte övre/undre lager."
 
+msgid "Precise wall"
+msgstr ""
+
+msgid "Improve shell precision by adjusting outer wall spacing. This also improves layer consistency."
+msgstr ""
+
 msgid "Speed of gap infill. Gap usually has irregular line width and should be printed more slowly"
 msgstr "Detta är hastigheten för fyllning av mellanrum. Mellanrum har vanligtvis oregelbunden linje bredd och bör skrivas ut långsammare."
 
@@ -9975,6 +10080,9 @@ msgstr "Härdat stål"
 
 msgid "Stainless steel"
 msgstr "Rostfritt stål"
+
+msgid "Tungsten carbide"
+msgstr ""
 
 msgid "Brass"
 msgstr "Mässing"
@@ -10461,6 +10569,12 @@ msgstr "Retraktions avstånd vid skärning"
 
 msgid "Experimental feature.Retraction length before cutting off during filament change"
 msgstr "Experimentell funktion. Indragningslängd före avskärning vid filamentbyte"
+
+msgid "Long retraction when extruder change"
+msgstr ""
+
+msgid "Retraction distance when extruder change"
+msgstr ""
 
 msgid "Z hop when retract"
 msgstr "Z hopp vid retraktion"
@@ -13295,6 +13409,97 @@ msgid ""
 msgstr ""
 "Undvik vridning\n"
 "Visste du att när du skriver ut material som är benägna att vrida, såsom ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten för vridning."
+
+#~ msgid "Still unload"
+#~ msgstr "Matar ut fortfarande"
+
+#~ msgid "Still load"
+#~ msgstr "Laddar fortfarande"
+
+#~ msgid ""
+#~ "Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
+#~ "If you hit 'NO', all SVGs in the project will not be editable any more."
+#~ msgstr ""
+#~ "Är du säker på att du vill lagra original SVG:er med sina lokala sökvägar i 3MF-filen?\n"
+#~ "Om du väljer \"NEJ\" kommer alla SVG:er i projektet inte längre att vara redigerbara."
+
+#~ msgid "Private protection"
+#~ msgstr "Privat skydd"
+
+#~ msgid "If the transparency of the mapping changes, this thumbnail is for reference only."
+#~ msgstr "Om genomskinligheten för mappningen ändras är den här miniatyrbilden endast för referens."
+
+#~ msgid "Some faces not define color."
+#~ msgstr "Några ytor ej definierad färg."
+
+#~ msgid "For PVA filaments, it is strongly recommended to use normal support to avoid print failures."
+#~ msgstr "För PVA filament rekommenderas starkt att man använder normalt stöd för att undvika felaktiga utskrifter."
+
+#~ msgid "Change these settings automatically? \n"
+#~ msgstr "Ändra dessa inställningar automatiskt? \n"
+
+#~ msgid "Unprintable filament type"
+#~ msgstr "Ej uskrivbar filament typ"
+
+#~ msgid "isometric"
+#~ msgstr "isometrisk"
+
+#~ msgid "top_front"
+#~ msgstr "topp_front"
+
+#~ msgid "top"
+#~ msgstr "topp"
+
+#~ msgid "bottom"
+#~ msgstr "botten"
+
+#~ msgid "rear"
+#~ msgstr "bakre"
+
+#, c-format, boost-format
+#~ msgid "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
+#~ msgstr "Filament %s överskrider antalet AMS-fack. Uppdatera skrivarens programvara för att stödja tilldelning av AMS-fack."
+
+#~ msgid "Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
+#~ msgstr "Filament överskrider antalet AMS-fack. Uppdatera skrivarens programvara för att stödja tilldelning av AMS-fack."
+
+#~ msgid "The printer firmware only supports sequential mapping of filament => AMS slot."
+#~ msgstr "Skrivarens firmware stöder endast sekventiell mappning av filament => AMS-fack plats."
+
+#~ msgid "Resume Printing(defects acceptable)"
+#~ msgstr "Återuppta utskrift (acceptabla defekter)"
+
+#~ msgid "Resume Printing(problem solved)"
+#~ msgstr "Återuppta utskrift (problem löst)"
+
+#~ msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+#~ msgstr "Att ändra fläkthastigheten under utskrift kan påverka utskriftskvaliteten, välj noggrant."
+
+#~ msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
+#~ msgstr "Ändrad fläkthastighet under utskrift kan påverka utskrifts kvaliteten, välj noggrant."
+
+#~ msgid "Timelapse is not supported while the SD card does not exist."
+#~ msgstr "Timelapse stöds inte när SD kortet inte finns."
+
+#~ msgid "Timelapse is not supported while the SD card is unavailable."
+#~ msgstr "Timelapse stöds inte när SD kortet inte är tillgängligt."
+
+#~ msgid "Timelapse is not supported while the SD card is readonly."
+#~ msgstr "Timelapse stöds inte när SD kortet är skrivskyddat."
+
+#, c-format, boost-format
+#~ msgid "%.1f"
+#~ msgstr "%.1f"
+
+#, c-format, boost-format
+#~ msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
+#~ msgstr "Utskrift av hög temperaturs material(%s) med %s nozzle kan orsaka nozzle skada, vänligen kontrollera nozzle typ"
+
+#~ msgid "Camera Angle - Left side"
+#~ msgstr "Kamera vy - Vänster sida"
+
+#~ msgid "Camera Angle - Right side"
+#~ msgstr "Kamera vy - Höger sida"
 
 #~ msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
 #~ msgstr "Föredrar att använda högpresterande GPU (Effektiv efter manuell omstart av Bambu Studio)"
