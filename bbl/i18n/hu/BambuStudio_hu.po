@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-08 10:21+0800\n"
+"POT-Creation-Date: 2025-05-16 18:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -31,12 +31,6 @@ msgstr ""
 msgid "Current AMS humidity"
 msgstr "Jelenlegi AMS-páratartalom"
 
-msgid "Drying"
-msgstr "Szárítás"
-
-msgid "Idle"
-msgstr "Tétlen"
-
 msgid "Humidity"
 msgstr "Páratartalom"
 
@@ -45,6 +39,12 @@ msgstr "Hőmérséklet"
 
 msgid "Left Time"
 msgstr ""
+
+msgid "Drying"
+msgstr "Szárítás"
+
+msgid "Idle"
+msgstr "Tétlen"
 
 #, c-format, boost-format
 msgid "%.1f ℃"
@@ -150,6 +150,15 @@ msgstr "Felületek kiemelése a túlnyúlási szögnek megfelelően."
 
 msgid "No auto support"
 msgstr "Nincs automatikus támasz"
+
+msgid "Warning"
+msgstr "Figyelmeztetés"
+
+msgid "Painting below the build plate is not allowed."
+msgstr ""
+
+msgid "The white outline indicates the position of the build plate at Z = 0."
+msgstr ""
 
 msgid "Support Generated"
 msgstr "Támasz legenerálva"
@@ -552,9 +561,6 @@ msgstr "Összekötők megerősítése"
 
 msgid "Cancel"
 msgstr "Mégse"
-
-msgid "Warning"
-msgstr "Figyelmeztetés"
 
 msgid "Invalid connectors detected"
 msgstr "Érvénytelen összekötőket észleltünk"
@@ -1235,6 +1241,9 @@ msgstr "Kritikus hiba"
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "A BambuStudio kezeletlen kivételbe ütközött: %1%"
 
+msgid "This file is not from a trusted site, do you want to open it anyway?"
+msgstr ""
+
 msgid "Untitled"
 msgstr "Névtelen"
 
@@ -1773,6 +1782,12 @@ msgstr ""
 msgid "Edit Process Settings"
 msgstr "Folyamatbeállítások szerkesztése"
 
+msgid "Copy Process Settings"
+msgstr ""
+
+msgid "Paste Process Settings"
+msgstr ""
+
 msgid "Edit print parameters for a single object"
 msgstr "Nyomtatási paraméterek szerkesztése egy objektumhoz"
 
@@ -2198,6 +2213,9 @@ msgstr "Kitöltés"
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Válassz ki egy AMS-helyet, majd nyomd meg a „Betöltés” vagy a „Kitöltés” gombot az filament automatikus betöltéséhez vagy eltávolításához."
+
+msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
+msgstr ""
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr ""
@@ -4380,6 +4398,9 @@ msgstr "G-kód exportálása"
 msgid "Export current plate as G-code"
 msgstr "Jelenlegi tálca exportálása G-kódként"
 
+msgid "Export toolpaths as OBJ"
+msgstr "Szerszámút exportálása OBJ-ként"
+
 msgid "Export Preset Bundle"
 msgstr "Beállításcsomag exportálása"
 
@@ -4576,9 +4597,6 @@ msgid "Reload the plater from disk"
 msgstr "Plater újratöltése a lemezről"
 
 msgid "Export &Toolpaths as OBJ"
-msgstr "Szerszámút exportálása OBJ-ként"
-
-msgid "Export toolpaths as OBJ"
 msgstr "Szerszámút exportálása OBJ-ként"
 
 msgid "Open &Studio"
@@ -5173,12 +5191,6 @@ msgstr ""
 
 msgid "Please heat the nozzle to above 170 degree before loading or unloading filament."
 msgstr "Kérjük, melegítsd a fúvókát 170 fok fölé a filament betöltése vagy kihúzása előtt."
-
-msgid "Still unload"
-msgstr "Még kitöltődik"
-
-msgid "Still load"
-msgstr "Még töltődik"
 
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr "Ha a kamra hőmérséklete meghaladja a 40 ℃-ot, a rendszer automatikusan fűtési üzemmódba kapcsol. Kérjük, erősítsd meg, hogy át kell-e kapcsolni."
@@ -6236,14 +6248,10 @@ msgstr "Ok: %1% és egy másik tárgy nem metszik egymást."
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Negatív tárgyakat észleltünk. Exportálás előtt szeretnéd végrehajtani a logikai műveletet a hálón?"
 
-msgid ""
-"Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
-"If you hit 'NO', all SVGs in the project will not be editable any more."
+msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr ""
-"Biztos benne, hogy az eredeti SVG-ket az elérési útvonalukkal együtt a 3MF fájlban szeretnéd tárolni?\n"
-"Ha a \"NEM\" gombra kattintasz, a projekt egyetlen SVG-je sem lesz szerkeszthető."
 
-msgid "Private protection"
+msgid "Are you sure to use them? \n"
 msgstr ""
 
 msgid ""
@@ -6776,7 +6784,16 @@ msgstr "Beállítás módosítása"
 msgid "Project-inside presets"
 msgstr "Projekten belüli beállítások"
 
+msgid "User"
+msgstr "Felhasználó"
+
+msgid "System"
+msgstr ""
+
 msgid "Unsupported presets"
+msgstr ""
+
+msgid "Unsupported"
 msgstr ""
 
 msgid "Add/Remove filaments"
@@ -6812,6 +6829,9 @@ msgstr "Többi réteg filament-sorrendje"
 msgid "Please input layer value (>= 2)."
 msgstr "Kérjük, adj meg egy rétegszámot (>= 2)."
 
+msgid "Same as Global Plate Type"
+msgstr "Ugyanaz, mint a globális tálca típusa"
+
 msgid "Bed type"
 msgstr "Tálcatípus"
 
@@ -6835,9 +6855,6 @@ msgstr "Spirál (váza)"
 
 msgid "First layer filament sequence"
 msgstr "Kezdőréteg filament sorrendje"
-
-msgid "Same as Global Plate Type"
-msgstr "Ugyanaz, mint a globális tálca típusa"
 
 msgid "Same as Global Bed Type"
 msgstr "Ugyanaz, mint a globális tálca típusa"
@@ -6971,9 +6988,6 @@ msgstr "Nyomtatási feladat küldése"
 msgid "On"
 msgstr "Be"
 
-msgid "If the transparency of the mapping changes, this thumbnail is for reference only."
-msgstr "Ez a kép csak referenciaként szolgál."
-
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Nem vagy elégedett a filamentek csoportosításával? Csoportosítás és szeletelés ->"
 
@@ -7043,6 +7057,12 @@ msgstr ""
 msgid "Errors"
 msgstr "Hibák"
 
+msgid "More than one filament types have been mapped to the same external spool, which may cause printing issues. The printer won't pause during printing."
+msgstr ""
+
+msgid "The filament type setting of external spool is different from the filament in the slicing file."
+msgstr ""
+
 msgid "The printer type selected when generating G-Code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing."
 msgstr "A G-kód létrehozásakor kiválasztott nyomtatótípus nem egyezik meg a kiválasztott nyomtatóval. Javasoljuk, hogy ugyanazt a nyomtatótípust használd a szeleteléshez."
 
@@ -7086,6 +7106,18 @@ msgstr "%dg filament és %d váltás költsége több mint az optimális csoport
 msgid "nozzle"
 msgstr ""
 
+msgid "extruder"
+msgstr ""
+
+msgid "both extruders"
+msgstr ""
+
+msgid "right extruder"
+msgstr ""
+
+msgid "left extruder"
+msgstr ""
+
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr "Tipp: Kérjük, lépj be az 'Eszköz -> Nyomtató részei' menüpontba a fúvóka beállításának módosításához."
 
@@ -7099,6 +7131,14 @@ msgstr "A jelenlegi fúvókaátmérő (%.1f mm) nem egyezik a szeletelt fájlban
 
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament on %s may soften. Please unload."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr ""
 
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
@@ -7180,9 +7220,6 @@ msgid "Please cold pull before printing TPU to avoid clogging. You may use cold 
 msgstr ""
 
 msgid "High chamber temperature is required. Please close the door."
-msgstr ""
-
-msgid "The filament on the extruder may soften. Please unload."
 msgstr ""
 
 msgid "Send to Printer storage"
@@ -7602,6 +7639,9 @@ msgstr "Filament kezdő G-kód"
 msgid "Filament end G-code"
 msgstr "Filament befejező G-kód"
 
+msgid "Multi Filament"
+msgstr ""
+
 msgid "Printable space"
 msgstr "Nyomtatási terület"
 
@@ -7964,7 +8004,7 @@ msgstr "Nyisd meg a Wikit további információkért >"
 msgid "Obj file Import color"
 msgstr "Obj fájl szín importálása"
 
-msgid "Some faces not define color."
+msgid "Some faces don't have color defined."
 msgstr ""
 
 msgid "mtl file exist error,could not find the material:"
@@ -8138,6 +8178,9 @@ msgstr "A timelapse nem támogatott ebben a módban, mert a nyomtatási sorrend 
 
 msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
 msgstr "Külső filament és az AMS használatát is kiválasztottad egy extruderhez, kézzel kell majd kicserélned a filamentet."
+
+msgid "Successfully synchronized nozzle information."
+msgstr ""
 
 msgid "Successfully synchronized nozzle and AMS number information."
 msgstr "Fúvókaadatok és AMS-ek száma sikeresen szinkronizálva."
@@ -9044,9 +9087,6 @@ msgstr "HTTPS CA fájl"
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "A HTTP-alapú OctoPrint kapcsolatokhoz megadható egy egyedi CA-tanúsítvány, crt/pem formátumban. Ha üresen hagyod, az alapértelmezett OS CA tanúsítvány lesz használva."
 
-msgid "User"
-msgstr "Felhasználó"
-
 msgid "Password"
 msgstr "Jelszó"
 
@@ -9625,6 +9665,18 @@ msgstr "Auto az egyeztetéshez"
 
 msgid "Manual"
 msgstr "Manuális"
+
+msgid "Flush temperature"
+msgstr ""
+
+msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgstr ""
+
+msgid "Flush volumetric speed"
+msgstr ""
+
+msgid "Volumetric speed when flushing filament. 0 indicates the max volumetric speed"
+msgstr ""
 
 msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
 msgstr "Ezzel a beállítással adhatod meg a másodpercenként megolvasztható és extrudálható maximális filamentmennyiséget. A nyomtatási sebességet a maximális térfogatsebesség korlátozhatja, túl magas és ésszerűtlen sebesség esetén. Ez az érték nem lehet 0."
@@ -10510,6 +10562,12 @@ msgstr "Visszahúzási távolság vágáskor"
 
 msgid "Experimental feature.Retraction length before cutting off during filament change"
 msgstr "Kísérleti funkció. Visszahúzási hossz a vágás előtt a filament cseréjekor"
+
+msgid "Long retraction when extruder change"
+msgstr ""
+
+msgid "Retraction distance when extruder change"
+msgstr ""
 
 msgid "Z hop when retract"
 msgstr "Z-emelés visszahúzáskor"
@@ -13338,6 +13396,22 @@ msgid ""
 msgstr ""
 "Vetemedés elkerülése\n"
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
+
+#~ msgid "Still unload"
+#~ msgstr "Még kitöltődik"
+
+#~ msgid "Still load"
+#~ msgstr "Még töltődik"
+
+#~ msgid ""
+#~ "Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
+#~ "If you hit 'NO', all SVGs in the project will not be editable any more."
+#~ msgstr ""
+#~ "Biztos benne, hogy az eredeti SVG-ket az elérési útvonalukkal együtt a 3MF fájlban szeretnéd tárolni?\n"
+#~ "Ha a \"NEM\" gombra kattintasz, a projekt egyetlen SVG-je sem lesz szerkeszthető."
+
+#~ msgid "If the transparency of the mapping changes, this thumbnail is for reference only."
+#~ msgstr "Ez a kép csak referenciaként szolgál."
 
 #~ msgid "For PVA filaments, it is strongly recommended to use normal support to avoid print failures."
 #~ msgstr "A PVA filamentek esetében a nyomtatási hibák elkerülése érdekében erősen ajánlott a normál támaszok használata."

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-08 10:21+0800\n"
+"POT-Creation-Date: 2025-05-16 18:02+0800\n"
 "PO-Revision-Date: 2025-05-08 12:48+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -37,12 +37,6 @@ msgstr "Filament modeli bilinmiyor. Rastgele bir filament ön ayarı kullanılac
 msgid "Current AMS humidity"
 msgstr "AMS mevcut nem oranı"
 
-msgid "Drying"
-msgstr "Kurutma"
-
-msgid "Idle"
-msgstr "Boşta"
-
 msgid "Humidity"
 msgstr "Nem"
 
@@ -51,6 +45,12 @@ msgstr "Sıcaklık"
 
 msgid "Left Time"
 msgstr "Kalan Zaman"
+
+msgid "Drying"
+msgstr "Kurutma"
+
+msgid "Idle"
+msgstr "Boşta"
 
 #, c-format, boost-format
 msgid "%.1f ℃"
@@ -156,6 +156,15 @@ msgstr "Yüzleri çıkıntı açısına göre vurgulayın."
 
 msgid "No auto support"
 msgstr "Otomatik destek yok"
+
+msgid "Warning"
+msgstr "Uyarı"
+
+msgid "Painting below the build plate is not allowed."
+msgstr ""
+
+msgid "The white outline indicates the position of the build plate at Z = 0."
+msgstr ""
 
 msgid "Support Generated"
 msgstr "Destek Oluşturuldu"
@@ -558,9 +567,6 @@ msgstr "Bağlayıcıları onayla"
 
 msgid "Cancel"
 msgstr "İptal"
-
-msgid "Warning"
-msgstr "Uyarı"
 
 msgid "Invalid connectors detected"
 msgstr "Geçersiz bağlayıcılar algılandı"
@@ -1255,6 +1261,9 @@ msgstr "Kritik hata"
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "BambuStudio'da işlenmeyen bir istisna oluştu: %1%"
 
+msgid "This file is not from a trusted site, do you want to open it anyway?"
+msgstr ""
+
 msgid "Untitled"
 msgstr "İsimsiz"
 
@@ -1796,6 +1805,12 @@ msgstr ""
 msgid "Edit Process Settings"
 msgstr "İşlem Ayarlarını Düzenle"
 
+msgid "Copy Process Settings"
+msgstr ""
+
+msgid "Paste Process Settings"
+msgstr ""
+
 msgid "Edit print parameters for a single object"
 msgstr "Tek bir nesne için yazdırma parametrelerini düzenleme"
 
@@ -2221,6 +2236,9 @@ msgstr "Çıkar"
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Bir AMS yuvası seçin ve ardından filamentleri otomatik olarak yüklemek veya çıkartmak için \"Yükle\" veya \"Çıkart\" düğmesine basın."
+
+msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
+msgstr ""
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr ""
@@ -4405,6 +4423,9 @@ msgstr "G-kodunu dışa aktar"
 msgid "Export current plate as G-code"
 msgstr "Geçerli plakayı G kodu olarak dışa aktar"
 
+msgid "Export toolpaths as OBJ"
+msgstr "Takımyollarını OBJ olarak dışa aktar"
+
 msgid "Export Preset Bundle"
 msgstr "Ön Ayar Paketini Dışa Aktar"
 
@@ -4602,9 +4623,6 @@ msgstr "Plakalayıcıyı diskten yeniden yükle"
 
 msgid "Export &Toolpaths as OBJ"
 msgstr "&Takımyollarını OBJ olarak dışa aktar"
-
-msgid "Export toolpaths as OBJ"
-msgstr "Takımyollarını OBJ olarak dışa aktar"
 
 msgid "Open &Studio"
 msgstr "&Stüdyo'yu aç"
@@ -5198,12 +5216,6 @@ msgstr "Eksenleri Sıfırla"
 
 msgid "Please heat the nozzle to above 170 degree before loading or unloading filament."
 msgstr "Filamenti yüklemeden veya çıkarmadan önce lütfen nozulu 170 derecenin üzerine ısıtın."
-
-msgid "Still unload"
-msgstr "Daha Fazla Çıkart"
-
-msgid "Still load"
-msgstr "Daha Fazla Yükle"
 
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr "Hazne sıcaklığı 40°C'yi aşarsa, sistem otomatik olarak ısıtma moduna geçecektir. Lütfen geçiş yapıp yapmayacağınızı onaylayın."
@@ -6264,15 +6276,11 @@ msgstr "Sebep: \"%1%\" ve başka bir parçanın kesişimi yoktur."
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Negatif parçalar tespit edildi. Dışa aktarmadan önce mesh boolean yapmak ister misiniz?"
 
-msgid ""
-"Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
-"If you hit 'NO', all SVGs in the project will not be editable any more."
+msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr ""
-"Orijinal SVG'leri yerel yollarıyla birlikte 3MF dosyasına depolamak istediğinizden emin misiniz?\n"
-"'HAYIR' tuşuna basarsanız projedeki tüm SVG'ler artık düzenlenemez."
 
-msgid "Private protection"
-msgstr "Özel koruma"
+msgid "Are you sure to use them? \n"
+msgstr ""
 
 msgid ""
 "Print By Object: \n"
@@ -6804,7 +6812,16 @@ msgstr "Ön ayarı düzenle"
 msgid "Project-inside presets"
 msgstr "Proje içi ön ayarlar"
 
+msgid "User"
+msgstr "Kullanıcı"
+
+msgid "System"
+msgstr ""
+
 msgid "Unsupported presets"
+msgstr ""
+
+msgid "Unsupported"
 msgstr ""
 
 msgid "Add/Remove filaments"
@@ -6840,6 +6857,9 @@ msgstr "Diğer katman filament yazdırma sırası"
 msgid "Please input layer value (>= 2)."
 msgstr "Lütfen katman değerini girin (>= 2)."
 
+msgid "Same as Global Plate Type"
+msgstr "Global Plaka Tipi ile aynı"
+
 msgid "Bed type"
 msgstr "Yatak türü"
 
@@ -6863,9 +6883,6 @@ msgstr "Spiral vazo"
 
 msgid "First layer filament sequence"
 msgstr "İlk katman filament yazdırma sırası"
-
-msgid "Same as Global Plate Type"
-msgstr "Global Plaka Tipi ile aynı"
 
 msgid "Same as Global Bed Type"
 msgstr "Global Yatak Tipi ile aynı"
@@ -6999,9 +7016,6 @@ msgstr "Yazdırma işini şuraya gönder"
 msgid "On"
 msgstr "Açık"
 
-msgid "If the transparency of the mapping changes, this thumbnail is for reference only."
-msgstr "Haritalamanın şeffaflığı değişirse, bu küçük resim yalnızca referans içindir."
-
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Filamentlerin gruplandırılmasından memnun değil misiniz? Yeniden gruplandırın ve dilimleyin ->"
 
@@ -7071,6 +7085,12 @@ msgstr "Mevcut yazıcı, Geleneksel Modda Nesneye Göre yazdırırken zaman atla
 msgid "Errors"
 msgstr "Hatalar"
 
+msgid "More than one filament types have been mapped to the same external spool, which may cause printing issues. The printer won't pause during printing."
+msgstr ""
+
+msgid "The filament type setting of external spool is different from the filament in the slicing file."
+msgstr ""
+
 msgid "The printer type selected when generating G-Code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing."
 msgstr "G-Code oluşturulurken seçilen yazıcı türü mevcut seçili yazıcıyla tutarlı değil. Dilimleme için aynı yazıcı tipini kullanmanız tavsiye edilir."
 
@@ -7114,6 +7134,18 @@ msgstr "Maliyet %dg filament ve %d optimum gruplamadan daha fazla değişir."
 msgid "nozzle"
 msgstr ""
 
+msgid "extruder"
+msgstr ""
+
+msgid "both extruders"
+msgstr ""
+
+msgid "right extruder"
+msgstr ""
+
+msgid "left extruder"
+msgstr ""
+
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr "İpuçları: Yazıcınızın nozülünü yakın zamanda değiştirdiyseniz, nozül ayarınızı değiştirmek için lütfen 'Cihaz -> Yazıcı parçaları' bölümüne gidin."
 
@@ -7127,6 +7159,14 @@ msgstr "Mevcut nozul çapı (%.1fmm) dilimleme dosyası (%.1fmm) ile eşleşmiyo
 
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament on %s may soften. Please unload."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr ""
 
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
@@ -7208,9 +7248,6 @@ msgid "Please cold pull before printing TPU to avoid clogging. You may use cold 
 msgstr ""
 
 msgid "High chamber temperature is required. Please close the door."
-msgstr ""
-
-msgid "The filament on the extruder may soften. Please unload."
 msgstr ""
 
 msgid "Send to Printer storage"
@@ -7630,6 +7667,9 @@ msgstr "Filament Başlangıç G Kodu"
 msgid "Filament end G-code"
 msgstr "Filament Bitiş G Kodu"
 
+msgid "Multi Filament"
+msgstr ""
+
 msgid "Printable space"
 msgstr "Tabla Ayarı"
 
@@ -7992,8 +8032,8 @@ msgstr "Daha fazla bilgi için wiki'yi açın >"
 msgid "Obj file Import color"
 msgstr "Obj dosyası renkli olarak içe aktar"
 
-msgid "Some faces not define color."
-msgstr "Bazı yüzler renk tanımlamaz."
+msgid "Some faces don't have color defined."
+msgstr ""
 
 msgid "mtl file exist error,could not find the material:"
 msgstr "mtl dosyasında hata var, malzeme bulunamadı:"
@@ -8166,6 +8206,9 @@ msgstr "Timelapse desteklenmiyor çünkü Baskı sıralaması \"Nesneye\" göre 
 
 msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
 msgstr "Bir ekstrüderde harici ve AMS filamenti aynı anda seçtiyseniz, harici filamenti manuel olarak değiştirmeniz gerekecektir."
+
+msgid "Successfully synchronized nozzle information."
+msgstr ""
 
 msgid "Successfully synchronized nozzle and AMS number information."
 msgstr "Nozul ve AMS numarası bilgileri başarıyla senkronize edildi."
@@ -9072,9 +9115,6 @@ msgstr "HTTPS CA Dosyası"
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "HTTPS OctoPrint bağlantıları için crt/pem formatında özel CA sertifika dosyası belirtilebilir. Boş bırakılırsa varsayılan OS CA sertifika deposu kullanılır."
 
-msgid "User"
-msgstr "Kullanıcı"
-
 msgid "Password"
 msgstr "Şifre"
 
@@ -9653,6 +9693,18 @@ msgstr "Eşleşme için Otomatik"
 
 msgid "Manual"
 msgstr "Manuel"
+
+msgid "Flush temperature"
+msgstr ""
+
+msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgstr ""
+
+msgid "Flush volumetric speed"
+msgstr ""
+
+msgid "Volumetric speed when flushing filament. 0 indicates the max volumetric speed"
+msgstr ""
 
 msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
 msgstr "Bu ayar, saniyede ne kadar miktarda filamentin eritilip ekstrude edilebileceğini gösterir. Çok yüksek ve makul olmayan hız ayarı durumunda, yazdırma hızı maksimum hacimsel hız ile sınırlanır. Sıfır olamaz"
@@ -10538,6 +10590,12 @@ msgstr "Kesildiğinde geri çekme mesafesi"
 
 msgid "Experimental feature.Retraction length before cutting off during filament change"
 msgstr "Deneysel özellik: Filament değişimi sırasında kesilmeden önceki geri çekme uzunluğu"
+
+msgid "Long retraction when extruder change"
+msgstr ""
+
+msgid "Retraction distance when extruder change"
+msgstr ""
 
 msgid "Z hop when retract"
 msgstr "Geri çekme esnasında Z sıçraması"
@@ -13369,6 +13427,28 @@ msgid ""
 msgstr ""
 "Eğilmeyi önleyin\n"
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını azaltabileceğini biliyor muydunuz."
+
+#~ msgid "Still unload"
+#~ msgstr "Daha Fazla Çıkart"
+
+#~ msgid "Still load"
+#~ msgstr "Daha Fazla Yükle"
+
+#~ msgid ""
+#~ "Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
+#~ "If you hit 'NO', all SVGs in the project will not be editable any more."
+#~ msgstr ""
+#~ "Orijinal SVG'leri yerel yollarıyla birlikte 3MF dosyasına depolamak istediğinizden emin misiniz?\n"
+#~ "'HAYIR' tuşuna basarsanız projedeki tüm SVG'ler artık düzenlenemez."
+
+#~ msgid "Private protection"
+#~ msgstr "Özel koruma"
+
+#~ msgid "If the transparency of the mapping changes, this thumbnail is for reference only."
+#~ msgstr "Haritalamanın şeffaflığı değişirse, bu küçük resim yalnızca referans içindir."
+
+#~ msgid "Some faces not define color."
+#~ msgstr "Bazı yüzler renk tanımlamaz."
 
 #~ msgid "For PVA filaments, it is strongly recommended to use normal support to avoid print failures."
 #~ msgstr "PVA filamentlerinde, baskı hatalarını önlemek için normal destek kullanılması şiddetle tavsiye edilir."

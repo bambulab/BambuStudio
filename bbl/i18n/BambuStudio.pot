@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-08 10:21+0800\n"
+"POT-Creation-Date: 2025-05-16 18:02+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -36,12 +36,6 @@ msgstr ""
 msgid "Current AMS humidity"
 msgstr ""
 
-msgid "Drying"
-msgstr ""
-
-msgid "Idle"
-msgstr ""
-
 msgid "Humidity"
 msgstr ""
 
@@ -49,6 +43,12 @@ msgid "Temperature"
 msgstr ""
 
 msgid "Left Time"
+msgstr ""
+
+msgid "Drying"
+msgstr ""
+
+msgid "Idle"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -154,6 +154,15 @@ msgid "Highlight faces according to overhang angle."
 msgstr ""
 
 msgid "No auto support"
+msgstr ""
+
+msgid "Warning"
+msgstr ""
+
+msgid "Painting below the build plate is not allowed."
+msgstr ""
+
+msgid "The white outline indicates the position of the build plate at Z = 0."
 msgstr ""
 
 msgid "Support Generated"
@@ -554,9 +563,6 @@ msgid "Confirm connectors"
 msgstr ""
 
 msgid "Cancel"
-msgstr ""
-
-msgid "Warning"
 msgstr ""
 
 msgid "Invalid connectors detected"
@@ -1225,6 +1231,9 @@ msgstr ""
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr ""
 
+msgid "This file is not from a trusted site, do you want to open it anyway?"
+msgstr ""
+
 msgid "Untitled"
 msgstr ""
 
@@ -1761,6 +1770,12 @@ msgstr ""
 msgid "Edit Process Settings"
 msgstr ""
 
+msgid "Copy Process Settings"
+msgstr ""
+
+msgid "Paste Process Settings"
+msgstr ""
+
 msgid "Edit print parameters for a single object"
 msgstr ""
 
@@ -2181,6 +2196,9 @@ msgid "Unload"
 msgstr ""
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
+msgstr ""
+
+msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
 msgstr ""
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
@@ -4279,6 +4297,9 @@ msgstr ""
 msgid "Export current plate as G-code"
 msgstr ""
 
+msgid "Export toolpaths as OBJ"
+msgstr ""
+
 msgid "Export Preset Bundle"
 msgstr ""
 
@@ -4475,9 +4496,6 @@ msgid "Reload the plater from disk"
 msgstr ""
 
 msgid "Export &Toolpaths as OBJ"
-msgstr ""
-
-msgid "Export toolpaths as OBJ"
 msgstr ""
 
 msgid "Open &Studio"
@@ -5051,12 +5069,6 @@ msgid "Homing"
 msgstr ""
 
 msgid "Please heat the nozzle to above 170 degree before loading or unloading filament."
-msgstr ""
-
-msgid "Still unload"
-msgstr ""
-
-msgid "Still load"
 msgstr ""
 
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
@@ -6080,12 +6092,10 @@ msgstr ""
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr ""
 
-msgid ""
-"Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
-"If you hit 'NO', all SVGs in the project will not be editable any more."
+msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr ""
 
-msgid "Private protection"
+msgid "Are you sure to use them? \n"
 msgstr ""
 
 msgid ""
@@ -6608,7 +6618,16 @@ msgstr ""
 msgid "Project-inside presets"
 msgstr ""
 
+msgid "User"
+msgstr ""
+
+msgid "System"
+msgstr ""
+
 msgid "Unsupported presets"
+msgstr ""
+
+msgid "Unsupported"
 msgstr ""
 
 msgid "Add/Remove filaments"
@@ -6644,6 +6663,9 @@ msgstr ""
 msgid "Please input layer value (>= 2)."
 msgstr ""
 
+msgid "Same as Global Plate Type"
+msgstr ""
+
 msgid "Bed type"
 msgstr ""
 
@@ -6666,9 +6688,6 @@ msgid "Spiral vase"
 msgstr ""
 
 msgid "First layer filament sequence"
-msgstr ""
-
-msgid "Same as Global Plate Type"
 msgstr ""
 
 msgid "Same as Global Bed Type"
@@ -6803,9 +6822,6 @@ msgstr ""
 msgid "On"
 msgstr ""
 
-msgid "If the transparency of the mapping changes, this thumbnail is for reference only."
-msgstr ""
-
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr ""
 
@@ -6869,6 +6885,12 @@ msgstr ""
 msgid "Errors"
 msgstr ""
 
+msgid "More than one filament types have been mapped to the same external spool, which may cause printing issues. The printer won't pause during printing."
+msgstr ""
+
+msgid "The filament type setting of external spool is different from the filament in the slicing file."
+msgstr ""
+
 msgid "The printer type selected when generating G-Code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing."
 msgstr ""
 
@@ -6912,6 +6934,18 @@ msgstr ""
 msgid "nozzle"
 msgstr ""
 
+msgid "extruder"
+msgstr ""
+
+msgid "both extruders"
+msgstr ""
+
+msgid "right extruder"
+msgstr ""
+
+msgid "left extruder"
+msgstr ""
+
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr ""
 
@@ -6925,6 +6959,14 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "The filament on %s may soften. Please unload."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr ""
 
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
@@ -7006,9 +7048,6 @@ msgid "Please cold pull before printing TPU to avoid clogging. You may use cold 
 msgstr ""
 
 msgid "High chamber temperature is required. Please close the door."
-msgstr ""
-
-msgid "The filament on the extruder may soften. Please unload."
 msgstr ""
 
 msgid "Send to Printer storage"
@@ -7415,6 +7454,9 @@ msgstr ""
 msgid "Filament end G-code"
 msgstr ""
 
+msgid "Multi Filament"
+msgstr ""
+
 msgid "Printable space"
 msgstr ""
 
@@ -7762,7 +7804,7 @@ msgstr ""
 msgid "Obj file Import color"
 msgstr ""
 
-msgid "Some faces not define color."
+msgid "Some faces don't have color defined."
 msgstr ""
 
 msgid "mtl file exist error,could not find the material:"
@@ -7927,6 +7969,9 @@ msgid "Timelapse is not supported because Print sequence is set to \"By object\"
 msgstr ""
 
 msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
+msgstr ""
+
+msgid "Successfully synchronized nozzle information."
 msgstr ""
 
 msgid "Successfully synchronized nozzle and AMS number information."
@@ -8828,9 +8873,6 @@ msgstr ""
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr ""
 
-msgid "User"
-msgstr ""
-
 msgid "Password"
 msgstr ""
 
@@ -9408,6 +9450,18 @@ msgid "Auto For Match"
 msgstr ""
 
 msgid "Manual"
+msgstr ""
+
+msgid "Flush temperature"
+msgstr ""
+
+msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgstr ""
+
+msgid "Flush volumetric speed"
+msgstr ""
+
+msgid "Volumetric speed when flushing filament. 0 indicates the max volumetric speed"
 msgstr ""
 
 msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
@@ -10291,6 +10345,12 @@ msgid "Retraction distance when cut"
 msgstr ""
 
 msgid "Experimental feature.Retraction length before cutting off during filament change"
+msgstr ""
+
+msgid "Long retraction when extruder change"
+msgstr ""
+
+msgid "Retraction distance when extruder change"
 msgstr ""
 
 msgid "Z hop when retract"

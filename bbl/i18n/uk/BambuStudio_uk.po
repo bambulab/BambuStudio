@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-08 10:21+0800\n"
+"POT-Creation-Date: 2025-05-16 18:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -31,12 +31,6 @@ msgstr "Модель філамента невідома. Буде викори�
 msgid "Current AMS humidity"
 msgstr "Поточна вологість AMS"
 
-msgid "Drying"
-msgstr "Сушка"
-
-msgid "Idle"
-msgstr "Простій"
-
 msgid "Humidity"
 msgstr "Вологість"
 
@@ -45,6 +39,12 @@ msgstr "Температура"
 
 msgid "Left Time"
 msgstr "Часу залишилося"
+
+msgid "Drying"
+msgstr "Сушка"
+
+msgid "Idle"
+msgstr "Простій"
 
 #, c-format, boost-format
 msgid "%.1f ℃"
@@ -150,6 +150,15 @@ msgstr "Виділити межі з відповідним кутом вист�
 
 msgid "No auto support"
 msgstr "Немає автоматичної підтримки"
+
+msgid "Warning"
+msgstr "Попередження"
+
+msgid "Painting below the build plate is not allowed."
+msgstr ""
+
+msgid "The white outline indicates the position of the build plate at Z = 0."
+msgstr ""
 
 msgid "Support Generated"
 msgstr "Генерація підтримки"
@@ -552,9 +561,6 @@ msgstr "Підтвердити з'єднувачі"
 
 msgid "Cancel"
 msgstr "Скасувати"
-
-msgid "Warning"
-msgstr "Попередження"
 
 msgid "Invalid connectors detected"
 msgstr "Виявлено неприпустимі з'єднувачі"
@@ -1235,6 +1241,9 @@ msgstr "Критична помилка"
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "BambuStudio отримав необроблений виняток: %1%"
 
+msgid "This file is not from a trusted site, do you want to open it anyway?"
+msgstr ""
+
 msgid "Untitled"
 msgstr "Без назви"
 
@@ -1773,6 +1782,12 @@ msgstr ""
 msgid "Edit Process Settings"
 msgstr "Змінити параметри процесу"
 
+msgid "Copy Process Settings"
+msgstr ""
+
+msgid "Paste Process Settings"
+msgstr ""
+
 msgid "Edit print parameters for a single object"
 msgstr "Редагувати параметри друку для одного об'єкта"
 
@@ -2200,6 +2215,9 @@ msgstr "Вивантаження"
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Виберіть слот AMS, а потім натисніть кнопку “Завантажити” або “Вивантажити”, щоб автоматично завантажити або вивантажити філаменти."
+
+msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
+msgstr ""
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr ""
@@ -4380,6 +4398,9 @@ msgstr "Експорт G-коду"
 msgid "Export current plate as G-code"
 msgstr "Експортувати поточну пластину як G-код"
 
+msgid "Export toolpaths as OBJ"
+msgstr "Експортувати траєкторії як OBJ"
+
 msgid "Export Preset Bundle"
 msgstr "Експортувати пакет пресетів"
 
@@ -4577,9 +4598,6 @@ msgstr "Перезавантажити планшет із диска"
 
 msgid "Export &Toolpaths as OBJ"
 msgstr "Експорт траєкторій як OBJ"
-
-msgid "Export toolpaths as OBJ"
-msgstr "Експортувати траєкторії як OBJ"
 
 msgid "Open &Studio"
 msgstr "Відкрити &студію"
@@ -5172,12 +5190,6 @@ msgstr "Хоумінг"
 
 msgid "Please heat the nozzle to above 170 degree before loading or unloading filament."
 msgstr "Будь ласка, нагрійте насадку до понад 170 градусів перед завантаженням або вивантаженням філаменту."
-
-msgid "Still unload"
-msgstr "Ще вивантажує"
-
-msgid "Still load"
-msgstr "Ще завантажує"
 
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr ""
@@ -6235,15 +6247,11 @@ msgstr "Причина: “%1%” та інша частина не мають �
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Виявлено від’ємні частини. Бажаєте виконати булеву операцію з сітками перед експортом?"
 
-msgid ""
-"Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
-"If you hit 'NO', all SVGs in the project will not be editable any more."
+msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr ""
-"Ви впевнені, що хочете зберегти оригінальні SVG з їхніми локальними шляхами у файл 3MF?\n"
-"Якщо натиснете “НІ”, всі SVG у проєкті більше не можна буде редагувати."
 
-msgid "Private protection"
-msgstr "Приватний захист"
+msgid "Are you sure to use them? \n"
+msgstr ""
 
 msgid ""
 "Print By Object: \n"
@@ -6769,7 +6777,16 @@ msgstr "Змінити попереднє встановлення"
 msgid "Project-inside presets"
 msgstr "Внутрішні пресети проєкту"
 
+msgid "User"
+msgstr "Користувач"
+
+msgid "System"
+msgstr ""
+
 msgid "Unsupported presets"
+msgstr ""
+
+msgid "Unsupported"
 msgstr ""
 
 msgid "Add/Remove filaments"
@@ -6805,6 +6822,9 @@ msgstr "Послідовність філатури на інших шарах"
 msgid "Please input layer value (>= 2)."
 msgstr "Будь ласка, введіть значення шару (≥ 2)."
 
+msgid "Same as Global Plate Type"
+msgstr "Так само, як Глобальний Тип Пластини"
+
 msgid "Bed type"
 msgstr "Тип столу"
 
@@ -6828,9 +6848,6 @@ msgstr "Спіральна ваза"
 
 msgid "First layer filament sequence"
 msgstr "Послідовність філаменту першого шару"
-
-msgid "Same as Global Plate Type"
-msgstr "Так само, як Глобальний Тип Пластини"
 
 msgid "Same as Global Bed Type"
 msgstr "Так само, як Глобальний Тип Ліжка"
@@ -6964,9 +6981,6 @@ msgstr ""
 msgid "On"
 msgstr ""
 
-msgid "If the transparency of the mapping changes, this thumbnail is for reference only."
-msgstr ""
-
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr ""
 
@@ -7030,6 +7044,12 @@ msgstr ""
 msgid "Errors"
 msgstr "Помилки"
 
+msgid "More than one filament types have been mapped to the same external spool, which may cause printing issues. The printer won't pause during printing."
+msgstr ""
+
+msgid "The filament type setting of external spool is different from the filament in the slicing file."
+msgstr ""
+
 msgid "The printer type selected when generating G-Code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing."
 msgstr "Тип принтера, вибраний під час створення G-коду, не відповідає поточному Вибраному принтеру. Рекомендується використовувати той самий тип принтера для нарізки."
 
@@ -7073,6 +7093,18 @@ msgstr ""
 msgid "nozzle"
 msgstr ""
 
+msgid "extruder"
+msgstr ""
+
+msgid "both extruders"
+msgstr ""
+
+msgid "right extruder"
+msgstr ""
+
+msgid "left extruder"
+msgstr ""
+
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr ""
 
@@ -7086,6 +7118,14 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament on %s may soften. Please unload."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr ""
 
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
@@ -7167,9 +7207,6 @@ msgid "Please cold pull before printing TPU to avoid clogging. You may use cold 
 msgstr ""
 
 msgid "High chamber temperature is required. Please close the door."
-msgstr ""
-
-msgid "The filament on the extruder may soften. Please unload."
 msgstr ""
 
 msgid "Send to Printer storage"
@@ -7595,6 +7632,9 @@ msgstr "G-код початку Філаменту"
 msgid "Filament end G-code"
 msgstr "G-код кінця Філаменту"
 
+msgid "Multi Filament"
+msgstr ""
+
 msgid "Printable space"
 msgstr "Місце для друку"
 
@@ -7953,7 +7993,7 @@ msgstr ""
 msgid "Obj file Import color"
 msgstr "Імпорт кольору файлу OBJ"
 
-msgid "Some faces not define color."
+msgid "Some faces don't have color defined."
 msgstr ""
 
 msgid "mtl file exist error,could not find the material:"
@@ -8118,6 +8158,9 @@ msgid "Timelapse is not supported because Print sequence is set to \"By object\"
 msgstr "Таймлапс не підтримується через те, що послідовність друку встановлена в “За об’єктом”."
 
 msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
+msgstr ""
+
+msgid "Successfully synchronized nozzle information."
 msgstr ""
 
 msgid "Successfully synchronized nozzle and AMS number information."
@@ -9029,9 +9072,6 @@ msgstr "Файл HTTPS CA"
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "Для HTTPS-з'єднань OctoPrint можна вказати файл сертифіката ЦС користувача, у форматі crt/pem. Якщо залишити порожнім, за замовчуванням використовуватиметься сховище сертифікатів ЦС ОС."
 
-msgid "User"
-msgstr "Користувач"
-
 msgid "Password"
 msgstr "Пароль"
 
@@ -9616,6 +9656,18 @@ msgstr ""
 
 msgid "Manual"
 msgstr "Manual"
+
+msgid "Flush temperature"
+msgstr ""
+
+msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgstr ""
+
+msgid "Flush volumetric speed"
+msgstr ""
+
+msgid "Volumetric speed when flushing filament. 0 indicates the max volumetric speed"
+msgstr ""
 
 msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
 msgstr "Це налаштування визначає, скільки обсягу нитки може бути розплавлено та екструдовано за секунду. Швидкість друку обмежена максимальною об'ємною швидкістю, у разі надто високого та необґрунтованого налаштування швидкості. Не може бути нулем"
@@ -10501,6 +10553,12 @@ msgstr "Відстань відведення при вирізанні"
 
 msgid "Experimental feature.Retraction length before cutting off during filament change"
 msgstr "Експериментальна функція. Відстань відведення перед відрізанням під час зміни філаменту"
+
+msgid "Long retraction when extruder change"
+msgstr ""
+
+msgid "Retraction distance when extruder change"
+msgstr ""
 
 msgid "Z hop when retract"
 msgstr "Z-стрибок при відкаті"
@@ -13318,6 +13376,22 @@ msgid ""
 msgstr ""
 "Уникнення деформації\n"
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як ABS, відповідне підвищення температури гарячого ліжка може зменшити ймовірність деформації."
+
+#~ msgid "Still unload"
+#~ msgstr "Ще вивантажує"
+
+#~ msgid "Still load"
+#~ msgstr "Ще завантажує"
+
+#~ msgid ""
+#~ "Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
+#~ "If you hit 'NO', all SVGs in the project will not be editable any more."
+#~ msgstr ""
+#~ "Ви впевнені, що хочете зберегти оригінальні SVG з їхніми локальними шляхами у файл 3MF?\n"
+#~ "Якщо натиснете “НІ”, всі SVG у проєкті більше не можна буде редагувати."
+
+#~ msgid "Private protection"
+#~ msgstr "Приватний захист"
 
 #~ msgid "For PVA filaments, it is strongly recommended to use normal support to avoid print failures."
 #~ msgstr "Для PVA філаментів настійно рекомендується використовувати нормальні підтримки щоб уникнути помилок друку."

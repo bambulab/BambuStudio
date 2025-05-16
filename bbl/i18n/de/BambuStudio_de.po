@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-08 10:21+0800\n"
+"POT-Creation-Date: 2025-05-16 18:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -31,12 +31,6 @@ msgstr ""
 msgid "Current AMS humidity"
 msgstr "Aktuelle AMS-Luftfeuchtigkeit"
 
-msgid "Drying"
-msgstr "Trocknung"
-
-msgid "Idle"
-msgstr "Inaktiv"
-
 msgid "Humidity"
 msgstr "Luftfeuchtigkeit"
 
@@ -45,6 +39,12 @@ msgstr "Temperatur"
 
 msgid "Left Time"
 msgstr "Verbleibende Zeit"
+
+msgid "Drying"
+msgstr "Trocknung"
+
+msgid "Idle"
+msgstr "Inaktiv"
 
 #, c-format, boost-format
 msgid "%.1f ℃"
@@ -150,6 +150,15 @@ msgstr "Hervorheben der Flächen entsprechend dem Überhangwinkel."
 
 msgid "No auto support"
 msgstr "Keine automatischen Stützstrukturen"
+
+msgid "Warning"
+msgstr "Warnung"
+
+msgid "Painting below the build plate is not allowed."
+msgstr ""
+
+msgid "The white outline indicates the position of the build plate at Z = 0."
+msgstr ""
 
 msgid "Support Generated"
 msgstr "Stützstrukturen generiert"
@@ -552,9 +561,6 @@ msgstr "Verbinder bestätigen"
 
 msgid "Cancel"
 msgstr "Abbrechen"
-
-msgid "Warning"
-msgstr "Warnung"
 
 msgid "Invalid connectors detected"
 msgstr "Ungültige Verbinder erkannt"
@@ -1235,6 +1241,9 @@ msgstr "Kritischer Fehler"
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "BambuStudio hat eine unbehandelte Ausnahme erhalten: %1%"
 
+msgid "This file is not from a trusted site, do you want to open it anyway?"
+msgstr ""
+
 msgid "Untitled"
 msgstr "Unbenannt"
 
@@ -1773,6 +1782,12 @@ msgstr ""
 msgid "Edit Process Settings"
 msgstr "Prozesseinstellungen bearbeiten"
 
+msgid "Copy Process Settings"
+msgstr ""
+
+msgid "Paste Process Settings"
+msgstr ""
+
 msgid "Edit print parameters for a single object"
 msgstr "Druckparameter für ein einzelnes Objekt bearbeiten"
 
@@ -2198,6 +2213,9 @@ msgstr "Entladen"
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Wählen Sie einen AMS-Slot und drücken Sie dann die Taste \"Laden\" oder \"Entladen\", um automatisch Filament zu laden oder zu entladen."
+
+msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
+msgstr ""
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr ""
@@ -4376,6 +4394,9 @@ msgstr "G-Code exportieren"
 msgid "Export current plate as G-code"
 msgstr "Aktuelle Druckplatte als G-Code exportieren"
 
+msgid "Export toolpaths as OBJ"
+msgstr "Werkzeugweg als OBJ exportieren"
+
 msgid "Export Preset Bundle"
 msgstr "Profilbündel exportieren"
 
@@ -4573,9 +4594,6 @@ msgstr "Druckplatte neu von der Festplatte laden"
 
 msgid "Export &Toolpaths as OBJ"
 msgstr "Werkzeugwege als OBJ exportieren"
-
-msgid "Export toolpaths as OBJ"
-msgstr "Werkzeugweg als OBJ exportieren"
 
 msgid "Open &Studio"
 msgstr "Öffnen &Studio"
@@ -5169,12 +5187,6 @@ msgstr ""
 
 msgid "Please heat the nozzle to above 170 degree before loading or unloading filament."
 msgstr "Bitte erhitzen Sie die Düse auf über 170 Grad, bevor Sie das Filament laden oder entladen."
-
-msgid "Still unload"
-msgstr "Immer noch entladen"
-
-msgid "Still load"
-msgstr "Immer noch laden"
 
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr "Wenn die Kammertemperatur 40 °C übersteigt, schaltet das System automatisch in den Heizmodus. Bitte bestätigen Sie, ob Sie umschalten möchten."
@@ -6236,15 +6248,11 @@ msgstr "Grund: \"%1%\" und ein anderes Teil haben keine Überschneidung."
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Negative Teile erkannt. Möchten Sie vor dem Exportieren eine Boolesche Analyse des Netzes durchführen?"
 
-msgid ""
-"Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
-"If you hit 'NO', all SVGs in the project will not be editable any more."
+msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr ""
-"Sind Sie sicher, dass Sie die Original-SVGs mit ihren lokalen Pfaden in der 3MF-Datei speichern möchten?\n"
-"Wenn Sie \"NEIN\" wählen, sind alle SVGs im Projekt nicht mehr bearbeitbar."
 
-msgid "Private protection"
-msgstr "Privatsphäre"
+msgid "Are you sure to use them? \n"
+msgstr ""
 
 msgid ""
 "Print By Object: \n"
@@ -6776,7 +6784,16 @@ msgstr "Profil bearbeiten"
 msgid "Project-inside presets"
 msgstr "Projektinternes Profil"
 
+msgid "User"
+msgstr "Benutzer"
+
+msgid "System"
+msgstr ""
+
 msgid "Unsupported presets"
+msgstr ""
+
+msgid "Unsupported"
 msgstr ""
 
 msgid "Add/Remove filaments"
@@ -6812,6 +6829,9 @@ msgstr "Filamentsequenz anderer Schichten"
 msgid "Please input layer value (>= 2)."
 msgstr "Bitte geben Sie den Schichtwert ein (>= 2)."
 
+msgid "Same as Global Plate Type"
+msgstr "Entspricht dem globalen Plattentyp"
+
 msgid "Bed type"
 msgstr "Druckbetttyp"
 
@@ -6835,9 +6855,6 @@ msgstr "Spiralvase"
 
 msgid "First layer filament sequence"
 msgstr "Filamentsequenz der ersten Schicht"
-
-msgid "Same as Global Plate Type"
-msgstr "Entspricht dem globalen Plattentyp"
 
 msgid "Same as Global Bed Type"
 msgstr "Entspricht dem allgemeinen Bettyp"
@@ -6971,9 +6988,6 @@ msgstr "Druckauftrag senden"
 msgid "On"
 msgstr "An"
 
-msgid "If the transparency of the mapping changes, this thumbnail is for reference only."
-msgstr "Wenn sich die Transparenz der Zuordnung ändert, dient diese Miniaturansicht nur als Referenz."
-
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Nicht zufrieden mit der Gruppierung der Filamente? Neu gruppieren und Slicen ->"
 
@@ -7043,6 +7057,12 @@ msgstr "Der aktuelle Drucker unterstützt keine Zeitraffer im traditionellen Mod
 msgid "Errors"
 msgstr "Fehler"
 
+msgid "More than one filament types have been mapped to the same external spool, which may cause printing issues. The printer won't pause during printing."
+msgstr ""
+
+msgid "The filament type setting of external spool is different from the filament in the slicing file."
+msgstr ""
+
 msgid "The printer type selected when generating G-Code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing."
 msgstr "Der beim Generieren des G-Codes ausgewählte Druckertyp stimmt nicht mit dem aktuell ausgewählten Drucker überein. Es wird empfohlen, für das Slicing denselben Druckertyp zu verwenden."
 
@@ -7086,6 +7106,18 @@ msgstr "Benötigt %dg Filament und %d Wechsel mehr als optimale Gruppierung."
 msgid "nozzle"
 msgstr ""
 
+msgid "extruder"
+msgstr ""
+
+msgid "both extruders"
+msgstr ""
+
+msgid "right extruder"
+msgstr ""
+
+msgid "left extruder"
+msgstr ""
+
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr "Tipps: Wenn Sie kürzlich die Düse Ihres Druckers gewechselt haben, gehen Sie bitte zu „Gerät -> Druckerteile“, um Ihre Düseneinstellung zu ändern."
 
@@ -7099,6 +7131,14 @@ msgstr "Der aktuelle Düsendurchmesser (%.1fmm) stimmt nicht mit der Slicing-Dat
 
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament on %s may soften. Please unload."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr ""
 
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
@@ -7180,9 +7220,6 @@ msgid "Please cold pull before printing TPU to avoid clogging. You may use cold 
 msgstr ""
 
 msgid "High chamber temperature is required. Please close the door."
-msgstr ""
-
-msgid "The filament on the extruder may soften. Please unload."
 msgstr ""
 
 msgid "Send to Printer storage"
@@ -7602,6 +7639,9 @@ msgstr "Filament Start G-Code"
 msgid "Filament end G-code"
 msgstr "Filament End G-Code"
 
+msgid "Multi Filament"
+msgstr ""
+
 msgid "Printable space"
 msgstr "Druckbarer Raum"
 
@@ -7964,8 +8004,8 @@ msgstr "Wiki öffnen für weitere Informationen >"
 msgid "Obj file Import color"
 msgstr "Obj-Datei Farbe importieren"
 
-msgid "Some faces not define color."
-msgstr "Einige Facetten definieren keine Farbe."
+msgid "Some faces don't have color defined."
+msgstr ""
 
 msgid "mtl file exist error,could not find the material:"
 msgstr "Fehler: mtl-Datei existiert nicht, Material nicht gefunden:"
@@ -8138,6 +8178,9 @@ msgstr "Zeitraffer wird nicht unterstützt, da die Druckreihenfolge auf „Nach 
 
 msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
 msgstr "Sie haben externes und AMS Filament gleichzeitig in einem Extruder ausgewählt. Sie müssen das externe Filament manuell wechseln."
+
+msgid "Successfully synchronized nozzle information."
+msgstr ""
 
 msgid "Successfully synchronized nozzle and AMS number information."
 msgstr "Düsen- und AMS-Nummerninformationen erfolgreich synchronisiert."
@@ -9044,9 +9087,6 @@ msgstr "HTTPS CA-Datei"
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "Für HTTPS OctoPrint-Verbindungen kann eine eigene CA-Zertifikatsdatei im crt/pem-Format hinterlegt werden. Wenn das Feld leer gelassen wird, wird das Standard CA-Zertifikat des Betriebssystems genutzt."
 
-msgid "User"
-msgstr "Benutzer"
-
 msgid "Password"
 msgstr "Passwort"
 
@@ -9625,6 +9665,18 @@ msgstr "Auto für Zuordnung"
 
 msgid "Manual"
 msgstr "Manuell"
+
+msgid "Flush temperature"
+msgstr ""
+
+msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgstr ""
+
+msgid "Flush volumetric speed"
+msgstr ""
+
+msgid "Volumetric speed when flushing filament. 0 indicates the max volumetric speed"
+msgstr ""
 
 msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
 msgstr "Diese Einstellung ist das Volumen des Filaments, das pro Sekunde geschmolzen und extrudiert werden kann. Die Druckgeschwindigkeit wird durch die maximale volumetrische Geschwindigkeit begrenzt, falls die Geschwindigkeit zu hoch und unangemessen eingestellt ist. Dieser Wert kann nicht 0 sein."
@@ -10510,6 +10562,12 @@ msgstr "Rückzugsdistanz beim Schneiden"
 
 msgid "Experimental feature.Retraction length before cutting off during filament change"
 msgstr "Experimentelle Funktion. Rückzugslänge vor dem Abschneiden beim Filamentwechsel"
+
+msgid "Long retraction when extruder change"
+msgstr ""
+
+msgid "Retraction distance when extruder change"
+msgstr ""
 
 msgid "Z hop when retract"
 msgstr "Z-Hop beim Rückzug"
@@ -13335,6 +13393,28 @@ msgid ""
 msgstr ""
 "Vermeiden Sie Verformungen\n"
 "Wussten Sie, dass beim Drucken von Materialien, die zu Verformungen neigen, wie z. B. ABS, die Wahrscheinlichkeit von Verformungen durch eine entsprechende Erhöhung der Heizbetttemperatur verringert werden kann?"
+
+#~ msgid "Still unload"
+#~ msgstr "Immer noch entladen"
+
+#~ msgid "Still load"
+#~ msgstr "Immer noch laden"
+
+#~ msgid ""
+#~ "Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
+#~ "If you hit 'NO', all SVGs in the project will not be editable any more."
+#~ msgstr ""
+#~ "Sind Sie sicher, dass Sie die Original-SVGs mit ihren lokalen Pfaden in der 3MF-Datei speichern möchten?\n"
+#~ "Wenn Sie \"NEIN\" wählen, sind alle SVGs im Projekt nicht mehr bearbeitbar."
+
+#~ msgid "Private protection"
+#~ msgstr "Privatsphäre"
+
+#~ msgid "If the transparency of the mapping changes, this thumbnail is for reference only."
+#~ msgstr "Wenn sich die Transparenz der Zuordnung ändert, dient diese Miniaturansicht nur als Referenz."
+
+#~ msgid "Some faces not define color."
+#~ msgstr "Einige Facetten definieren keine Farbe."
 
 #~ msgid "For PVA filaments, it is strongly recommended to use normal support to avoid print failures."
 #~ msgstr "Für PVA-Filamente wird dringend empfohlen, normale Stützen zu verwenden, um Druckfehler zu vermeiden."

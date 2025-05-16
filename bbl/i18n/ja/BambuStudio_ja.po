@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-08 10:21+0800\n"
+"POT-Creation-Date: 2025-05-16 18:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -31,12 +31,6 @@ msgstr "フィラメントモデルが不明です。ランダムなフィラメ
 msgid "Current AMS humidity"
 msgstr "現在のAMS湿度"
 
-msgid "Drying"
-msgstr "乾燥中"
-
-msgid "Idle"
-msgstr "待機中"
-
 msgid "Humidity"
 msgstr "湿度"
 
@@ -45,6 +39,12 @@ msgstr "温度"
 
 msgid "Left Time"
 msgstr "残り時間"
+
+msgid "Drying"
+msgstr "乾燥中"
+
+msgid "Idle"
+msgstr "待機中"
 
 #, c-format, boost-format
 msgid "%.1f ℃"
@@ -150,6 +150,15 @@ msgstr "オーバーハングの角度によりハイライト"
 
 msgid "No auto support"
 msgstr "自動サポート無し"
+
+msgid "Warning"
+msgstr "警告"
+
+msgid "Painting below the build plate is not allowed."
+msgstr ""
+
+msgid "The white outline indicates the position of the build plate at Z = 0."
+msgstr ""
 
 msgid "Support Generated"
 msgstr "サポートが生成済み"
@@ -552,9 +561,6 @@ msgstr "コネクタを確認"
 
 msgid "Cancel"
 msgstr "取消し"
-
-msgid "Warning"
-msgstr "警告"
 
 msgid "Invalid connectors detected"
 msgstr "無効なコネクタが検出されました"
@@ -1233,6 +1239,9 @@ msgstr "重大なエラー"
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "異常がありました: %1%"
 
+msgid "This file is not from a trusted site, do you want to open it anyway?"
+msgstr ""
+
 msgid "Untitled"
 msgstr "名称未設定"
 
@@ -1773,6 +1782,12 @@ msgstr ""
 msgid "Edit Process Settings"
 msgstr "プロセス設定を編集"
 
+msgid "Copy Process Settings"
+msgstr ""
+
+msgid "Paste Process Settings"
+msgstr ""
+
 msgid "Edit print parameters for a single object"
 msgstr "一つのオブジェクトのパラメータを編集"
 
@@ -2193,6 +2208,9 @@ msgstr "ｱﾝﾛｰﾄﾞ"
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "AMSスロットを選択し、「ロード」または「アンロード」ボタンを押すと、フィラメントを自動で装填または取り外します。"
+
+msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
+msgstr ""
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr ""
@@ -4362,6 +4380,9 @@ msgstr "G-codeをエクスポート"
 msgid "Export current plate as G-code"
 msgstr "現在のプレートをG-codeでエクスポート"
 
+msgid "Export toolpaths as OBJ"
+msgstr "Export toolpaths as OBJ"
+
 msgid "Export Preset Bundle"
 msgstr "プリセットバンドルをエクスポート"
 
@@ -4559,9 +4580,6 @@ msgstr "プレートを再読込み"
 
 msgid "Export &Toolpaths as OBJ"
 msgstr "Export &Toolpaths as OBJ"
-
-msgid "Export toolpaths as OBJ"
-msgstr "Export toolpaths as OBJ"
 
 msgid "Open &Studio"
 msgstr "Studioを開く"
@@ -5145,12 +5163,6 @@ msgstr ""
 
 msgid "Please heat the nozzle to above 170 degree before loading or unloading filament."
 msgstr "フィラメントを出し入れする前に、ノズルを170度以上に加熱してください。"
-
-msgid "Still unload"
-msgstr "アンロード"
-
-msgid "Still load"
-msgstr "ロード"
 
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr "チャンバー温度が40℃を超えると、システムは自動的に加熱モードに切り替わります。切り替えの確認をお願いします。"
@@ -6202,15 +6214,11 @@ msgstr "理由：「%1% 」と他のパーツには交差がありません。"
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "負のパーツが検出されました。エクスポート前にメッシュブール演算を実行しますか？"
 
-msgid ""
-"Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
-"If you hit 'NO', all SVGs in the project will not be editable any more."
+msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr ""
-"3MFファイルにローカルパス付きの元のSVGを保存しますか？\n"
-"「いいえ」を選択すると、プロジェクト内のすべてのSVGが編集できなくなります。"
 
-msgid "Private protection"
-msgstr "プライベート保護"
+msgid "Are you sure to use them? \n"
+msgstr ""
 
 msgid ""
 "Print By Object: \n"
@@ -6742,7 +6750,16 @@ msgstr "プリセットを編集"
 msgid "Project-inside presets"
 msgstr "プロジェクト プリセット"
 
+msgid "User"
+msgstr "ユーザ"
+
+msgid "System"
+msgstr ""
+
 msgid "Unsupported presets"
+msgstr ""
+
+msgid "Unsupported"
 msgstr ""
 
 msgid "Add/Remove filaments"
@@ -6778,6 +6795,9 @@ msgstr "他の層のフィラメント配列"
 msgid "Please input layer value (>= 2)."
 msgstr "層の番号を入力してください（>= 2）"
 
+msgid "Same as Global Plate Type"
+msgstr "グローバルプレートタイプと同じ"
+
 msgid "Bed type"
 msgstr "プレート"
 
@@ -6801,9 +6821,6 @@ msgstr "スパイラル"
 
 msgid "First layer filament sequence"
 msgstr "1層目のフィラメント順序"
-
-msgid "Same as Global Plate Type"
-msgstr "グローバルプレートタイプと同じ"
 
 msgid "Same as Global Bed Type"
 msgstr "全般設定の「ベッドタイプ」と同様"
@@ -6937,9 +6954,6 @@ msgstr "印刷ジョブを送信"
 msgid "On"
 msgstr "オン"
 
-msgid "If the transparency of the mapping changes, this thumbnail is for reference only."
-msgstr "マッピングの透明度が変更されると、このサムネイルは参考用のみとなります。"
-
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "フィラメントのグループ分けに満足していませんか？再グループ化してスライスしてください。->"
 
@@ -7009,6 +7023,12 @@ msgstr "現在のプリンタは、オブジェクト順で印刷する場合、
 msgid "Errors"
 msgstr "エラー"
 
+msgid "More than one filament types have been mapped to the same external spool, which may cause printing issues. The printer won't pause during printing."
+msgstr ""
+
+msgid "The filament type setting of external spool is different from the filament in the slicing file."
+msgstr ""
+
 msgid "The printer type selected when generating G-Code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing."
 msgstr "G-code生成時に選択されたプリンタのタイプが、現在選択されているプリンタと一致していません。スライスには同じプリンタタイプを使用することを推奨します。"
 
@@ -7052,6 +7072,18 @@ msgstr "最適なグルーピングと比較して、フィラメント使用量
 msgid "nozzle"
 msgstr ""
 
+msgid "extruder"
+msgstr ""
+
+msgid "both extruders"
+msgstr ""
+
+msgid "right extruder"
+msgstr ""
+
+msgid "left extruder"
+msgstr ""
+
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr "ヒント: 最近プリンタのノズルを変更した場合は、「デバイス -> プリンタ部品」でノズル設定を変更してください。"
 
@@ -7065,6 +7097,14 @@ msgstr "現在のノズル径（%.1fmm）とスライスファイル（%.1fmm）
 
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament on %s may soften. Please unload."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr ""
 
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
@@ -7146,9 +7186,6 @@ msgid "Please cold pull before printing TPU to avoid clogging. You may use cold 
 msgstr ""
 
 msgid "High chamber temperature is required. Please close the door."
-msgstr ""
-
-msgid "The filament on the extruder may soften. Please unload."
 msgstr ""
 
 msgid "Send to Printer storage"
@@ -7561,6 +7598,9 @@ msgstr "フィラメント開始G-code"
 msgid "Filament end G-code"
 msgstr "フィラメント終了G-code"
 
+msgid "Multi Filament"
+msgstr ""
+
 msgid "Printable space"
 msgstr "造形可能領域"
 
@@ -7917,8 +7957,8 @@ msgstr "詳しくはWikiを開く >"
 msgid "Obj file Import color"
 msgstr "Objファイル インポート色"
 
-msgid "Some faces not define color."
-msgstr "一部の面では色が定義されていません。"
+msgid "Some faces don't have color defined."
+msgstr ""
 
 msgid "mtl file exist error,could not find the material:"
 msgstr "MTLファイルにエラーがあります、材料が見つかりませんでした:"
@@ -8091,6 +8131,9 @@ msgstr "プリント順が『オブジェクト順』に設定されているた
 
 msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
 msgstr "押出機で外部フィラメントとAMSフィラメントを同時に選択しました。外部フィラメントを手動で交換する必要があります。"
+
+msgid "Successfully synchronized nozzle information."
+msgstr ""
 
 msgid "Successfully synchronized nozzle and AMS number information."
 msgstr "ノズルとAMS番号情報が正常に同期されました。"
@@ -8997,9 +9040,6 @@ msgstr "CA証書ファイル"
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "カスタムCA証書を指定できます（フォーマット:CRT/PEM）"
 
-msgid "User"
-msgstr "ユーザ"
-
 msgid "Password"
 msgstr "パスワード"
 
@@ -9578,6 +9618,18 @@ msgstr "自動マッチング"
 
 msgid "Manual"
 msgstr "手動"
+
+msgid "Flush temperature"
+msgstr ""
+
+msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgstr ""
+
+msgid "Flush volumetric speed"
+msgstr ""
+
+msgid "Volumetric speed when flushing filament. 0 indicates the max volumetric speed"
+msgstr ""
 
 msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
 msgstr "この設定は、1秒あたりに溶かして押し出せるフィラメントの体積を示します。印刷速度が高すぎたり、不適切な設定にならないように、最大体積速度によって制限されます。0には設定できません。"
@@ -10463,6 +10515,12 @@ msgstr "カット時の後退距離"
 
 msgid "Experimental feature.Retraction length before cutting off during filament change"
 msgstr "実験的機能: フィラメント交換時の切断前の引き込み長さ"
+
+msgid "Long retraction when extruder change"
+msgstr ""
+
+msgid "Retraction distance when extruder change"
+msgstr ""
 
 msgid "Z hop when retract"
 msgstr "リトラクト時のZホップ"
@@ -13281,6 +13339,28 @@ msgid ""
 msgstr ""
 "反り防止\n"
 "ABSなど反りやすい材料を印刷する場合、ヒートベッド温度を適切に上げることで反りの発生を抑えられることをご存知ですか？"
+
+#~ msgid "Still unload"
+#~ msgstr "アンロード"
+
+#~ msgid "Still load"
+#~ msgstr "ロード"
+
+#~ msgid ""
+#~ "Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
+#~ "If you hit 'NO', all SVGs in the project will not be editable any more."
+#~ msgstr ""
+#~ "3MFファイルにローカルパス付きの元のSVGを保存しますか？\n"
+#~ "「いいえ」を選択すると、プロジェクト内のすべてのSVGが編集できなくなります。"
+
+#~ msgid "Private protection"
+#~ msgstr "プライベート保護"
+
+#~ msgid "If the transparency of the mapping changes, this thumbnail is for reference only."
+#~ msgstr "マッピングの透明度が変更されると、このサムネイルは参考用のみとなります。"
+
+#~ msgid "Some faces not define color."
+#~ msgstr "一部の面では色が定義されていません。"
 
 #~ msgid "For PVA filaments, it is strongly recommended to use normal support to avoid print failures."
 #~ msgstr "PVAフィラメントの場合、印刷失敗を避けるために通常のサポートを使用することを強く推奨します。"
