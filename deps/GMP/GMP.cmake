@@ -72,7 +72,7 @@ else ()
         URL https://github.com/bambulab/gmp/archive/refs/tags/6.2.1.tar.gz
         URL_HASH SHA256=705ae57ee2014b2c6fc0f572c85ee43276b99b6b256ee16c1a9d3a8c4e3609d5
         DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/GMP
-        PATCH_COMMAND git apply --verbose ${CMAKE_CURRENT_LIST_DIR}/0001-GMP_GCC15.patch
+        PATCH_COMMAND git apply ${GMP_DIRECTORY_FLAG} --verbose ${CMAKE_CURRENT_LIST_DIR}/0001-GMP_GCC15.patch
         BUILD_IN_SOURCE ON
         CONFIGURE_COMMAND  env "CFLAGS=${_gmp_ccflags}" "CXXFLAGS=${_gmp_ccflags}" ./configure ${_cross_compile_arg} --enable-shared=no --enable-cxx=yes --enable-static=yes "--prefix=${DESTDIR}/usr/local" ${_gmp_build_tgt}
         BUILD_COMMAND     make -j
