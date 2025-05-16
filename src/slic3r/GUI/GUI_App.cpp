@@ -1096,11 +1096,12 @@ void GUI_App::post_init()
 
             std::string download_params_url = url_decode(this->init_params->input_files.front());
             auto input_str_arr = split_str(download_params_url, "file=");
-
-
+            // -1 not set, wxNO not open, wxYES open
+            short ext_url_open_state = -1;
             std::string download_url;
-#if BBL_RELEASE_TO_PUBLIC
-			short ext_url_open_state = -1; // -1 not set, wxNO not open, wxYES open
+            if (app_config->get("allow_external_model_sites") == "true") {
+                ext_url_open_state = wxYES
+            }
             for (auto input_str : input_str_arr) {
                 if (boost::starts_with(input_str, "http://makerworld") ||
                     boost::starts_with(input_str, "https://makerworld") ||
@@ -1120,11 +1121,6 @@ void GUI_App::post_init()
                     }
                 }
             }
-#else
-            for (auto input_str : input_str_arr) {
-                download_url = input_str;
-            }
-#endif
             try
             {
                 //filter relative directories

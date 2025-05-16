@@ -1244,6 +1244,8 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_modelmall = create_item_checkbox(_L("Show online staff-picked models on the home page"), page, _L("Show online staff-picked models on the home page"), 50, "staff_pick_switch");
 
     auto item_show_history = create_item_checkbox(_L("Show history on the home page"), page, _L("Show history on the home page"), 50, "show_print_history");
+    auto item_allow_external_model_sites = create_item_checkbox(_L("Open modeles from 3rd party without confirm"), page, _L("Open modeles from 3rd party without confirm"), 50, "allow_external_model_sites");
+
     auto title_project = create_item_title(_L("Project"), page, "");
     auto item_max_recent_count = create_item_input(_L("Maximum recent projects"), "", page, _L("Maximum count of recent projects"), "max_recent_count", [](wxString value) {
         long max = 0;
@@ -1322,6 +1324,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_title_modelmall   = sizer_page->Add(title_modelmall, 0, wxTOP | wxEXPAND, FromDIP(20));
     auto item_item_modelmall    = sizer_page->Add(item_modelmall, 0, wxTOP, FromDIP(3));
     auto item_item_show_history = sizer_page->Add(item_show_history, 0, wxTOP, FromDIP(3));
+    auto item_item_allow_external_model_sites = sizer_page->Add(item_allow_external_model_sites, 0, wxTOP, FromDIP(3));
 
     auto update_modelmall = [this, item_title_modelmall, item_item_modelmall, item_item_show_history](wxEvent &e) {
         bool has_model_mall = wxGetApp().has_model_mall();
