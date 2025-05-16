@@ -2,6 +2,10 @@
 set(_srcdir ${CMAKE_CURRENT_LIST_DIR}/gmp)
 set(_dstdir ${DESTDIR}/usr/local)
 
+if (IN_GIT_REPO)
+    set(GMP_DIRECTORY_FLAG --directory ${BINARY_DIR_REL}/dep_GMP-prefix/src/dep_GMP)
+endif ()
+
 if (MSVC)
     if ((CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$") OR (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))
         set(_gmpheader win_arm64/gmp.h)
