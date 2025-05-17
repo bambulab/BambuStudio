@@ -13,21 +13,25 @@ on:
       arch:
         required: false
         type: string
+      target_arch:
+        required: false
+        type: string
+        default: "all"
 
 jobs:
   build_bambu:
     name: Build BambuStudio
     runs-on: ${{ inputs.os }}
     env:
-      date:
-      ver:
-      ver_pure:
+      date: ""
+      ver: ""
+      ver_pure: ""
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          lfs: 'true'
+          lfs: "true"
 
       - name: load cached deps
         uses: actions/cache@v4
@@ -73,18 +77,25 @@ jobs:
           echo "date: ${{ env.date }} version: ${{ env.ver }}"
         shell: pwsh
 
-  #   Mac
+      #   Mac
       - name: Build slicer mac
-        if: inputs.os == 'macos-13'
+        if: startsWith(inputs.os, 'macos-')
         working-directory: ${{ github.workspace }}
         run: |
           brew install automake texinfo
           mkdir -p ${{ github.workspace }}/build_${{inputs.arch}}
           cd ${{ github.workspace }}/build_${{inputs.arch}}
-          cmake ..  -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="${{ github.workspace }}/deps/build_${{ inputs.arch }}/BambuStudio_dep_${{ inputs.arch }}/usr/local" -DCMAKE_INSTALL_PREFIX="../install_dir" -DCMAKE_BUILD_TYPE=Release -DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH="${{ github.workspace }}/deps/build_${{ inputs.arch }}/BambuStudio_dep_${{ inputs.arch }}/usr/local" -DCMAKE_MACOSX_BUNDLE=on
+          cmake ..  -DBBL_RELEASE_TO_PUBLIC=1 \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/deps/build_${{ inputs.arch }}/BambuStudio_dep_${{ inputs.arch }}/usr/local" \
+            -DCMAKE_INSTALL_PREFIX="../install_dir" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_MACOSX_RPATH=ON \
+            -DCMAKE_INSTALL_RPATH="${{ github.workspace }}/deps/build_${{ inputs.arch }}/BambuStudio_dep_${{ inputs.arch }}/usr/local" \
+            -DCMAKE_MACOSX_BUNDLE=on \
+            -DCMAKE_OSX_ARCHITECTURES=${{ inputs.arch }}
           cmake --build . --target install --config Release -j4
 
-  # Thanks to RaySajuuk, it's working now
+      # Thanks to RaySajuuk, it's working now
       # - name: Sign app and notary
       #   if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) && inputs.os == 'macos-13'
       #   working-directory: ${{ github.workspace }}
@@ -120,12 +131,12 @@ jobs:
       #     create-dmg --volname "Bambu Studio" --window-pos 200 120 --window-size 600 400 --icon-size 100 --icon "BambuStudio.app" 200 150 --app-drop-link 400 150 BambuStudio_Mac_${{inputs.arch}}_${{ env.ver }}.dmg ${{ github.workspace }}/install_dir/
 
       - name: pack mac app
-        if: github.ref != 'refs/heads/main' && inputs.os == 'macos-13'
+        if: github.ref != 'refs/heads/main' && startsWith(inputs.os, 'macos-')
         working-directory: ${{ github.workspace }}
         run: zip -r BambuStudio_Mac_${{inputs.arch}}_${{ env.ver }}.zip ${{ github.workspace }}/install_dir
 
       - name: Upload artifacts mac
-        if: inputs.os == 'macos-13'
+        if: startsWith(inputs.os, 'macos-')
         uses: actions/upload-artifact@v4
         with:
           name: BambuStudio_Mac_${{inputs.arch}}_${{ env.ver }}
@@ -142,7 +153,7 @@ jobs:
       #     asset_content_type: application/octet-stream
       #     max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
 
-  # Windows
+      # Windows
       - name: setup MSVC
         if: inputs.os == 'windows-latest'
         uses: microsoft/setup-msbuild@v2
@@ -224,7 +235,7 @@ jobs:
       #     asset_content_type: application/x-msdownload
       #     max_releases: 1
 
-  # Ubuntu
+      # Ubuntu
       - name: Install dependencies from BuildLinux.sh
         if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
         shell: bash
@@ -256,7 +267,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: BambuStudio_${{inputs.os}}_${{ env.ver }}
-          path: './build/Bambu_Studio_${{inputs.os}}_${{ env.ver }}.AppImage'
+          path: "./build/Bambu_Studio_${{inputs.os}}_${{ env.ver }}.AppImage"
 
       # - name: Deploy Ubuntu release
       #   if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04' }}
