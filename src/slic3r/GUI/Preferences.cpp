@@ -1244,7 +1244,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_modelmall = create_item_checkbox(_L("Show online staff-picked models on the home page"), page, _L("Show online staff-picked models on the home page"), 50, "staff_pick_switch");
 
     auto item_show_history = create_item_checkbox(_L("Show history on the home page"), page, _L("Show history on the home page"), 50, "show_print_history");
-    auto item_allow_external_model_sites = create_item_checkbox(_L("Open modeles from 3rd party without confirm"), page, _L("Open modeles from 3rd party without confirm"), 50, "allow_external_model_sites");
+    auto item_allow_external_model_sites = create_item_checkbox(_L("Open models from 3rd party without confirm"), page, _L("Open models from 3rd party without confirm"), 50, "allow_external_model_sites");
 
     auto title_project = create_item_title(_L("Project"), page, "");
     auto item_max_recent_count = create_item_input(_L("Maximum recent projects"), "", page, _L("Maximum count of recent projects"), "max_recent_count", [](wxString value) {

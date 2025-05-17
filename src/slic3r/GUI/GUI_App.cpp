@@ -1093,32 +1093,24 @@ void GUI_App::post_init()
 
         if (this->init_params->input_files.size() == 1 &&
             boost::starts_with(this->init_params->input_files.front(), "bambustudio://open")) {
-
+            // Defining the opening event
+            m_open_method = "makerworld";  
             std::string download_params_url = url_decode(this->init_params->input_files.front());
-            auto input_str_arr = split_str(download_params_url, "file=");
-            // -1 not set, wxNO not open, wxYES open
-            short ext_url_open_state = -1;
-            std::string download_url;
-            if (app_config->get("allow_external_model_sites") == "true") {
-                ext_url_open_state = wxYES
+            // Regex pattern to extract the GET file parameter only.
+            std::regex extraction_pattern("^bambustudio:\\/\\/open\\/\?file=(https?:\\/\\/.+)$");
+            std::smatch match;
+            if (!std::regex_search(download_params_url, match, extraction_pattern)) {
+                return;
             }
-            for (auto input_str : input_str_arr) {
-                if (boost::starts_with(input_str, "http://makerworld") ||
-                    boost::starts_with(input_str, "https://makerworld") ||
-                    boost::starts_with(input_str, "http://public-cdn.bblmw.com") ||
-                    boost::starts_with(input_str, "https://public-cdn.bblmw.com") ||
-                    boost::algorithm::contains(input_str, "amazonaws.com") ||
-                    boost::algorithm::contains(input_str, "aliyuncs.com")) {
-                    download_url = input_str;
-                }
-                else {
-                    if (ext_url_open_state == -1) {
-                        wxString askMsg = wxString::Format(_L("This file is not from a trusted site, do you want to open it anyway?"));
-                        ext_url_open_state = wxMessageBox(askMsg, "Bambu Studio", wxYES_NO | wxICON_EXCLAMATION);
-                    }
-                    if (ext_url_open_state == wxYES) {
-                        download_url = input_str;
-                    }
+            std::string download_url = match[1].str();
+            std::regex trusted_sites_pattern("(?:makerworld.+|public-cdn\\.bblmw\\.com|.+amazonaws\\.com|.+aliyuncs\\.com)");
+            // If the URL is not from a trusted site and the user has not allowed external model sites without confirmation,
+            // show a confirmation dialog.
+            if (!std::regex_search(download_url, trusted_sites_pattern) && !(app_config->get("allow_external_model_sites") == "true")) {
+                wxString askMsg = wxString::Format(_L("This file is not from a trusted site, do you want to open it anyway?"));
+                // If the user negates, set the download_url to an empty string.
+                if (wxMessageBox(askMsg, "Bambu Studio", wxYES_NO | wxICON_EXCLAMATION) == wxNO) {
+                    download_url = "";
                 }
             }
             try
@@ -1134,8 +1126,6 @@ void GUI_App::post_init()
             if (!download_url.empty()) {
                 m_download_file_url = from_u8(download_url);
             }
-
-            m_open_method = "makerworld";
         }
         else {
             switch_to_3d = true;
