@@ -45,6 +45,16 @@ enum class EPixelDataType : uint16_t
     Float
 };
 
+enum class EDrawPrimitiveType : uint8_t{
+    Points,
+    Triangles,
+    TriangleStrip,
+    TriangleFan,
+    Lines,
+    LineStrip,
+    LineLoop
+};
+
 struct FrameBufferParams
 {
     uint32_t m_width{ 0 };
@@ -232,6 +242,7 @@ private:
     static EFramebufferType s_framebuffers_type;
     static bool m_use_manually_generated_mipmaps;
     static ColorRGBA s_cut_plane_color;
+    static bool      s_cancle_glmultidraw;
 
 public:
     OpenGLManager();
@@ -279,6 +290,9 @@ public:
     static bool use_manually_generated_mipmaps() { return m_use_manually_generated_mipmaps; }
     static void       set_cut_plane_color(ColorRGBA);
     static const ColorRGBA &get_cut_plane_color();
+    static bool get_cancle_glmultidraw() { return s_cancle_glmultidraw; }
+    static void set_cancle_glmultidraw(bool flag) { s_cancle_glmultidraw = flag; }
+    static unsigned int get_draw_primitive_type(EDrawPrimitiveType type);
 
 private:
     static void detect_multisample(int* attribList);
