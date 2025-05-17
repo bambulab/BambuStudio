@@ -2925,6 +2925,9 @@ bool GUI_App::on_init_inner()
 
         const bool gizmo_keep_screen_size = app_config->get_bool("gizmo_keep_screen_size");
         p_ogl_manager->set_gizmo_keep_screen_size_enabled(gizmo_keep_screen_size);
+
+        const bool cancel_glmultidraw = app_config->get_bool("cancel_glmultidraw");
+        p_ogl_manager->set_cancle_glmultidraw(cancel_glmultidraw);
     }
 
     BBLSplashScreen * scrn = nullptr;
