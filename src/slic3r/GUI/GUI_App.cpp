@@ -1097,13 +1097,13 @@ void GUI_App::post_init()
             m_open_method = "makerworld";  
             std::string download_params_url = url_decode(this->init_params->input_files.front());
             // Regex pattern to extract the GET file parameter only.
-            std::regex extraction_pattern("^bambustudio:\\/\\/open\\/\?file=(https?:\\/\\/.+)$");
+            std::regex extraction_pattern(R"(bambustudio://open/\?file=(https?://.+))");
             std::smatch match;
             if (!std::regex_search(download_params_url, match, extraction_pattern)) {
                 return;
             }
             std::string download_url = match[1].str();
-            std::regex trusted_sites_pattern("(?:makerworld.+|public-cdn\\.bblmw\\.com|.+amazonaws\\.com|.+aliyuncs\\.com)");
+            std::regex trusted_sites_pattern(R"(//(?:makerworld.+|public-cdn\.bblmw\.com|.+amazonaws\.com|.+aliyuncs\.com))");
             // If the URL is not from a trusted site and the user has not allowed external model sites without confirmation,
             // show a confirmation dialog.
             if (!std::regex_search(download_url, trusted_sites_pattern) && !(app_config->get("allow_external_model_sites") == "true")) {
