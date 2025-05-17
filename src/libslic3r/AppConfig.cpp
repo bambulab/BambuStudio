@@ -366,6 +366,11 @@ void AppConfig::set_defaults()
         set_bool("staff_pick_switch", true);
     }
 
+    if (get("allow_external_model_sites").empty()) {
+        set_bool("allow_external_model_sites", false);
+    }
+
+
     if (get("sync_system_preset").empty()) {
         set_bool("sync_system_preset", true);
     }
