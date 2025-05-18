@@ -1107,10 +1107,14 @@ void GUI_App::post_init()
             // If the URL is not from a trusted site and the user has not allowed external model sites without confirmation,
             // show a confirmation dialog.
             if (!std::regex_search(download_url, trusted_sites_pattern) && !(app_config->get("allow_external_model_sites") == "true")) {
-                wxString askMsg = wxString::Format(_L("This file is not from a trusted site, do you want to open it anyway?"));
-                // If the user negates, set the download_url to an empty string.
-                if (wxMessageBox(askMsg, "Bambu Studio", wxYES_NO | wxICON_EXCLAMATION) == wxNO) {
+                RichMessageDialog dlg(nullptr, _L("This file is not from a trusted site, do you want to open it anyway?"), "Bambu Studio", wxICON_EXCLAMATION | wxYES_NO);
+                dlg.ShowCheckBox(_L("Always allow"));
+                if (dlg.ShowModal() == wxNO) {
                     download_url = "";
+                }
+                else {
+                    if (dlg.IsCheckBoxChecked()) 
+                        app_config->set("allow_external_model_sites", "true");
                 }
             }
             try
