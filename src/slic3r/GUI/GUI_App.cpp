@@ -1109,7 +1109,7 @@ void GUI_App::post_init()
             if (!std::regex_search(download_url, trusted_sites_pattern) && !(app_config->get("allow_external_model_sites") == "true")) {
                 RichMessageDialog dlg(nullptr, _L("This file is not from a trusted site, do you want to open it anyway?"), "Bambu Studio", wxICON_EXCLAMATION | wxYES_NO);
                 dlg.ShowCheckBox(_L("Always allow"));
-                if (dlg.ShowModal() == wxNO) {
+                if (dlg.ShowModal() == wxID_NO) {
                     download_url = "";
                 }
                 else {
