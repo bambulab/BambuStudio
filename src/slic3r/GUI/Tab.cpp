@@ -4002,6 +4002,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Accessory") /*, L"param_accessory"*/);
         optgroup->append_single_option_line("nozzle_type");
         optgroup->append_single_option_line("auxiliary_fan");
+        optgroup->append_single_option_line("fan_direction");
         optgroup->append_single_option_line("support_chamber_temp_control");
         optgroup->append_single_option_line("support_air_filtration");
 
@@ -4759,6 +4760,8 @@ void TabPrinter::toggle_options()
             for (int i = 0; i < max_field; ++ i)
 	            toggle_option(opt, !is_BBL_printer, i);
     }
+
+    toggle_line("fan_direction", m_config->opt_bool("auxiliary_fan"));
 }
 
 void TabPrinter::update()

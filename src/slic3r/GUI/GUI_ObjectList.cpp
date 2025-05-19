@@ -2514,6 +2514,12 @@ void ObjectList::load_shape_object(const std::string &type_name)
     // BBS: remove "Shape" prefix
     load_mesh_object(mesh, _(type_name));
     wxGetApp().mainframe->update_title();
+
+    // When importing internal 3D models, orient the faces with large overhangs toward the fan.
+    m_config->set_key_value("orient_cool_only", new ConfigOptionBool(true));
+    wxGetApp().plater()->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
+    wxGetApp().plater()->orient();
+    m_config->erase("orient_cool_only");
 }
 
 void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center)
