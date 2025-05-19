@@ -8,6 +8,7 @@
     "nozzle_diameter": [
         "0.4"
     ],
+    "fan_direction": "left",
     "printer_model": "Bambu Lab X1 Carbon",
     "printer_variant": "0.4",
     "bed_exclude_area": [
