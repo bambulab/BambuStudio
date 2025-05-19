@@ -2090,7 +2090,7 @@ int MachineObject::command_task_pause()
 
 int MachineObject::command_task_resume()
 {
-    if (jobState_ > 1) return 0;
+    if(check_resume_condition()) return 0;
 
     json j;
     j["print"]["command"] = "resume";
@@ -2102,7 +2102,7 @@ int MachineObject::command_task_resume()
 
 int MachineObject::command_hms_idle_ignore(const std::string &error_str, int type)
 {
-    if (jobState_ > 1) return 0;
+    if(check_resume_condition()) return 0;
 
     json j;
     j["print"]["command"]     = "idle_ignore";
@@ -2114,7 +2114,7 @@ int MachineObject::command_hms_idle_ignore(const std::string &error_str, int typ
 
 int MachineObject::command_hms_resume(const std::string& error_str, const std::string& job_id)
 {
-    if (jobState_ > 1) return 0;
+    if(check_resume_condition()) return 0;
 
     json j;
     j["print"]["command"] = "resume";
@@ -2128,7 +2128,7 @@ int MachineObject::command_hms_resume(const std::string& error_str, const std::s
 
 int MachineObject::command_hms_ignore(const std::string& error_str, const std::string& job_id)
 {
-    if (jobState_ > 1) return 0;
+    if(check_resume_condition()) return 0;
 
     json j;
     j["print"]["command"] = "ignore";
@@ -2215,39 +2215,14 @@ int MachineObject::command_set_chamber(int temp)
     return this->publish_json(j.dump(), 1);
 }
 
-//int MachineObject::command_ams_switch(int tray_index, int old_temp, int new_temp)
-//{
-//    assert(!is_enable_np);
-//
-//    BOOST_LOG_TRIVIAL(trace) << "ams_switch to " << tray_index << " with temp: " << old_temp << ", " << new_temp;
-//
-//    if (old_temp < 0) old_temp = FILAMENT_DEF_TEMP;
-//    if (new_temp < 0) new_temp = FILAMENT_DEF_TEMP;
-//    int result = 0;
-//
-//
-//    //command
-//    if (is_support_command_ams_switch) {
-//        command_ams_change_filament(tray_index, old_temp, new_temp);
-//    }
-//    //gcode
-//    else {
-//        std::string gcode = "";
-//        if (tray_index == 255) {
-//            gcode = DeviceManager::load_gcode(printer_type, "ams_unload.gcode");
-//        }
-//        else {
-//            // include VIRTUAL_TRAY_MAIN_ID
-//            gcode = DeviceManager::load_gcode(printer_type, "ams_load.gcode");
-//            boost::replace_all(gcode, "[next_extruder]", std::to_string(tray_index));
-//            boost::replace_all(gcode, "[new_filament_temp]", std::to_string(new_temp));
-//        }
-//
-//        result = this->publish_gcode(gcode);
-//    }
-//
-//    return result;
-//}
+int MachineObject::check_resume_condition()
+{
+    if (jobState_ > 1) {
+        GUI::wxGetApp().show_dialog(_L("To ensure your safety, certain processing tasks (such as laser) can only be resumed on printer."));
+        return 1;
+    }
+    return 0;
+}
 
 int MachineObject::command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp, int new_temp)
 {
@@ -2368,7 +2343,7 @@ int MachineObject::command_ams_select_tray(std::string tray_id)
 
 int MachineObject::command_ams_control(std::string action)
 {
-    if (action == "resume" && jobState_ > 1 ) return 0;
+    if (action == "resume" && check_resume_condition()) return 0;
 
     //valid actions
     if (action == "resume" || action == "reset" || action == "pause" || action == "done" || action == "abort") {
