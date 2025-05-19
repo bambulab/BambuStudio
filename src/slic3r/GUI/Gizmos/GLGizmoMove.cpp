@@ -105,7 +105,7 @@ BoundingBoxf3 GLGizmoMove3D::get_bounding_box() const
             cur_tran = selection.get_first_volume()->get_instance_transformation();
         }
 
-        auto t_cross_mask_aabb = get_cross_mask_aabb(cur_tran.get_matrix(), Vec3f::Zero(), true);
+        auto t_cross_mask_aabb = get_cross_mask_aabb(cur_tran.get_matrix(), Vec3f::Zero());
         t_cross_mask_aabb.defined = true;
         t_aabb.merge(t_cross_mask_aabb);
         t_aabb.defined = true;
@@ -300,7 +300,7 @@ void GLGizmoMove3D::on_render()
         else {
             cur_tran = selection.get_first_volume()->get_instance_transformation();
         }
-        render_cross_mark(cur_tran.get_matrix(), Vec3f::Zero(), true);
+        render_cross_mark(cur_tran.get_matrix(), Vec3f::Zero());
     }
 }
 

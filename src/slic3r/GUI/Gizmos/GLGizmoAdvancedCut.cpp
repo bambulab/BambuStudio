@@ -385,23 +385,9 @@ BoundingBoxf3 GLGizmoAdvancedCut::get_bounding_box() const
     t_aabb.reset();
 
     // rotate aabb
-    if (m_is_dragging) {
-        auto t_rotate_aabb = GLGizmoRotate3D::get_bounding_box();
-        if (t_rotate_aabb.defined) {
-            t_aabb.merge(t_rotate_aabb);
-            t_aabb.defined = true;
-        }
-    }
-    else {
-        const auto t_x_aabb = m_gizmos[X].get_bounding_box();
-        t_aabb.merge(t_x_aabb);
-
-        const auto t_y_aabb = m_gizmos[Y].get_bounding_box();
-        t_aabb.merge(t_y_aabb);
-
-        const auto t_z_aabb = m_gizmos[Z].get_bounding_box();
-        t_aabb.merge(t_z_aabb);
-
+    auto t_rotate_aabb = GLGizmoRotate3D::get_bounding_box();
+    if (t_rotate_aabb.defined) {
+        t_aabb.merge(t_rotate_aabb);
         t_aabb.defined = true;
     }
     // end rotate aabb
