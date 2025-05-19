@@ -406,6 +406,7 @@ class GLCanvas3D
         MultiExtruderHeightOutside,       // after slice
         FilamentUnPrintableOnFirstLayer,
         MixUsePLAAndPETG,
+        PrimeTowerOutside,
         AsemblyInvalid // for asembly view only
     };
 
