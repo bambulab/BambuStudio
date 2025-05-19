@@ -1205,17 +1205,19 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     for (size_t index = 0; index < extruder_nums; ++index) {
         int extruder_id = extruder_map[index];
         nozzle_diameters[extruder_id] = obj->m_extder_data.extders[index].current_nozzle_diameter;
-        if (obj->m_extder_data.extders[index].current_nozzle_flow_type == NozzleFlowType::NONE_FLOWTYPE) {
-            MessageDialog dlg(this->plater, _L("There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."),
-                              _L("Sync extruder infomation"), wxICON_WARNING | wxOK);
-            dlg.ShowModal();
-            continue;
-        }
-        auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
         NozzleVolumeType target_type = NozzleVolumeType::nvtStandard;
-        // hack code, only use standard flow for 0.2
-        if (std::fabs(nozzle_diameters[extruder_id] - 0.2) > EPSILON)
-            target_type = NozzleVolumeType(obj->m_extder_data.extders[extruder_id].current_nozzle_flow_type - 1);
+        auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
+        if (obj->is_nozzle_flow_type_supported()) {
+            if (obj->m_extder_data.extders[index].current_nozzle_flow_type == NozzleFlowType::NONE_FLOWTYPE) {
+                MessageDialog dlg(this->plater, _L("There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."),
+                                  _L("Sync extruder infomation"), wxICON_WARNING | wxOK);
+                dlg.ShowModal();
+                continue;
+            }
+            // hack code, only use standard flow for 0.2
+            if (std::fabs(nozzle_diameters[extruder_id] - 0.2) > EPSILON)
+                target_type = NozzleVolumeType(obj->m_extder_data.extders[extruder_id].current_nozzle_flow_type - 1);
+        }
         printer_tab->set_extruder_volume_type(index, target_type);
     }
 
