@@ -2836,7 +2836,7 @@ int CLI::run(int argc, char **argv)
         else {
             ret = update_full_config(m_print_config, load_machine_config, different_keys_set, true);
             BOOST_LOG_TRIVIAL(info) << boost::format("load a new printer, update all the keys, different_settings: %1%")%different_settings[filament_count+1];
-            if (new_printer_name != current_printer_name)
+            if (new_printer_name != current_printer_name && cli_safe_params)
             {
                 //printer safe check
                 BOOST_LOG_TRIVIAL(info) << boost::format("check printer cli safe params, current_printer_name %1%, new_printer_name %2%, printer_model %3%")%current_printer_name %new_printer_name %printer_model;
@@ -5320,7 +5320,7 @@ int CLI::run(int argc, char **argv)
     }
 
     // loop through action options
-    bool export_to_3mf = false, load_slicedata = false, export_slicedata = false, export_slicedata_error = false;
+    bool export_to_3mf = false, load_slicedata = false, export_slicedata = false, export_slicedata_error = false, cli_safe_params = true;
     bool no_check = false;
     std::string export_3mf_file, load_slice_data_dir, export_slice_data_dir, export_stls_dir;
     std::vector<ThumbnailData*> calibration_thumbnails;
@@ -5550,6 +5550,8 @@ int CLI::run(int argc, char **argv)
                 record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
                 flush_and_exit(CLI_INVALID_PARAMS);
             }
+	}else if(opt_key=="cli_safe_params"){
+            cli_safe_params = m_config.opt_bool(opt_key);
         } else if (opt_key == "slice") {
             //BBS: slice 0 means all plates, i means plate i;
             plate_to_slice = m_config.option<ConfigOptionInt>("slice")->value;
