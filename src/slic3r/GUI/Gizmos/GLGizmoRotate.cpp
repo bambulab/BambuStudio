@@ -459,6 +459,7 @@ Transform3d GLGizmoRotate::calculate_circle_model_matrix() const
 {
     auto radius = m_radius;
     modify_radius(radius);
+    radius *= 1.3;
     Transform3d redius_scale_matrix;
     Geometry::scale_transform(redius_scale_matrix, { radius, radius, radius });
     const Selection& selection = m_parent.get_selection();
@@ -574,35 +575,6 @@ BoundingBoxf3 GLGizmoRotate::get_bounding_box() const
         t_aabb.defined = true;
     }
     // end m_circle aabb
-
-    // m_grabber_connection aabb
-    if (m_grabber_connection.model.is_initialized()) {
-        BoundingBoxf3 t_grabber_connection_aabb = m_grabber_connection.model.get_bounding_box();
-        t_grabber_connection_aabb = t_grabber_connection_aabb.transformed(t_circle_model_matrix);
-        t_grabber_connection_aabb.defined = true;
-        t_aabb.merge(t_grabber_connection_aabb);
-        t_aabb.defined = true;
-    }
-
-
-    // m_grabbers aabb
-    if (m_grabbers.front().get_cube().is_initialized()) {
-        auto t_grabbers_aabb = m_grabbers.front().get_cube().get_bounding_box();
-        t_grabbers_aabb = t_grabbers_aabb.transformed(m_grabbers.front().m_matrix);
-        t_grabbers_aabb.defined = true;
-        t_aabb.merge(t_grabbers_aabb);
-        t_aabb.defined = true;
-    }
-    // end m_grabbers aabb
-
-    // m_cone aabb
-    if (m_cone.is_initialized()) {
-        auto t_cone_aabb = m_cone.get_bounding_box();
-        t_cone_aabb = t_cone_aabb.transformed(m_grabbers.front().m_matrix);
-        t_cone_aabb.defined = true;
-        t_aabb.merge(t_cone_aabb);
-        t_aabb.defined = true;
-    }
     return t_aabb;
 }
 
@@ -628,21 +600,18 @@ BoundingBoxf3 GLGizmoRotate3D::get_bounding_box() const
     BoundingBoxf3 t_aabb;
     t_aabb.reset();
 
-    if (m_hover_id == -1 || m_hover_id == 0)
     {
         const auto t_x_aabb = m_gizmos[X].get_bounding_box();
         t_aabb.merge(t_x_aabb);
         t_aabb.defined = true;
     }
 
-    if (m_hover_id == -1 || m_hover_id == 1)
     {
         const auto t_y_aabb = m_gizmos[Y].get_bounding_box();
         t_aabb.merge(t_y_aabb);
         t_aabb.defined = true;
     }
 
-    if (m_hover_id == -1 || m_hover_id == 2)
     {
         const auto t_z_aabb = m_gizmos[Z].get_bounding_box();
         t_aabb.merge(t_z_aabb);

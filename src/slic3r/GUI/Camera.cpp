@@ -549,7 +549,6 @@ std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBo
 {
     std::pair<double, double> ret;
     auto& [near_z, far_z] = ret;
-    m_scene_box_radius    = box.radius();
     // box in eye space
     const BoundingBoxf3 eye_box = box.transformed(m_view_matrix);
     near_z = -eye_box.max(2);
@@ -567,17 +566,12 @@ std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBo
         far_z = mid_z + half_size;
     }
 
-    if (near_z < FrustrumMinNearZ) {
+    if (near_z < FrustrumMinNearZ)
+    {
         const double delta = FrustrumMinNearZ - near_z;
         set_distance(m_distance + delta);
-        m_last_scene_box_radius = m_scene_box_radius;
         near_z += delta;
         far_z += delta;
-    } else {
-        if (abs(m_last_scene_box_radius - m_scene_box_radius) > 1) {
-            m_last_scene_box_radius = m_scene_box_radius;
-            set_distance(DefaultDistance);
-        }
     }
 
     return ret;

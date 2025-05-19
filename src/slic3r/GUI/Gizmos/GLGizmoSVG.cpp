@@ -613,7 +613,7 @@ void GLGizmoSVG::on_render()
         render_glmodel(m_move_grabber.get_cube(), render_color, view_matrix * cube_mat, projection_matrix);
     }
 #ifdef DEBUG_SVG
-    render_cross_mark(tran.get_matrix(), Vec3f::Zero(), true);
+    render_cross_mark(tran.get_matrix(), Vec3f::Zero());
 #endif
     if (is_rotate_by_grabbers || (!is_surface_dragging && !is_parent_dragging)) {
         if (m_hover_id == c_move_cube_id && m_dragging) {

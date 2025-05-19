@@ -657,10 +657,10 @@ void GLGizmoText::on_render()
         Geometry::Transformation tran(m_text_volume_tran);
         if (tran.get_offset().norm() > 1) {
             auto text_volume_tran_world = mi->get_transformation().get_matrix() * m_text_volume_tran;
-            render_cross_mark(text_volume_tran_world, Vec3f::Zero(), true);
+            render_cross_mark(text_volume_tran_world, Vec3f::Zero());
         }
 
-        render_cross_mark(m_text_tran_in_world, Vec3f::Zero(), true);
+        render_cross_mark(m_text_tran_in_world, Vec3f::Zero());
 
         glsafe(::glLineWidth(2.0f));
         ::glBegin(GL_LINES);

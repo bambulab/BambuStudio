@@ -70,8 +70,6 @@ private:
     std::pair<double, double> m_frustrum_zs;
 
     BoundingBoxf3 m_scene_box;
-    float         m_scene_box_radius{0};
-    float         m_last_scene_box_radius{0};
     Frustum       m_frustum;
     Vec3f         m_last_eye, m_last_center, m_last_up;
     float         m_last_near, m_last_far, m_last_aspect, m_last_fov,m_last_zoom;
