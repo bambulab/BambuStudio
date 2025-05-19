@@ -8,6 +8,7 @@
     "nozzle_diameter": [
         "0.4"
     ],
+    "fan_direction": "left",
     "printer_model": "Bambu Lab X1",
     "printer_variant": "0.4",
     "auxiliary_fan": "0",

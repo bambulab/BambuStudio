@@ -8,6 +8,7 @@
     "nozzle_diameter": [
         "0.4"
     ],
+    "fan_direction": "right",
     "printer_model": "Bambu Lab P2S",
     "printer_variant": "0.4",
     "bed_exclude_area": [],
