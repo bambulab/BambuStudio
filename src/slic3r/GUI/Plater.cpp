@@ -11251,9 +11251,9 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
         if (printer_preset.get_current_printer_type(preset_bundle) != printer_type || !is_approx((float)(preset_nozzle_diameter), machine_nozzle_diameter)) {
             wxString tips;
             if (printer_preset.get_current_printer_type(preset_bundle) != printer_type)
-                tips = from_u8((boost::format(_u8L("The currently connected printer, %s, is a %s model.\nTo use this printer for printing, please switch the printer model of project file to %s.")) % obj->dev_name % printer_model % printer_model).str());
+                tips = from_u8((boost::format(_u8L("The currently connected printer '%s', is a %s model.\nTo use this printer for printing, please switch the printer model of project file to %s.")) % obj->dev_name % printer_model % printer_model).str());
             else if (!is_approx((float) (preset_nozzle_diameter), machine_nozzle_diameter))
-                tips = from_u8((boost::format(_u8L("The currently connected printer, %s, is a %s model but not consistent with preset in project file.\n"
+                tips = from_u8((boost::format(_u8L("The currently connected printer '%s', is a %s model but not consistent with preset in project file.\n"
                     "To use this printer for printing, please switch the preset first.")) % obj->dev_name % printer_model).str());
 
             std::map<wxStandardID, wxString>option_map = {
