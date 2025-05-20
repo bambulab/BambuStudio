@@ -187,7 +187,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
                     auto close = wxGetApp().app_config->get("liveview", "auto_stop_liveview") == "true";
                     if (close || obj == nullptr || !obj->is_in_printing()) {
                         m_next_retry = wxDateTime();
-                        Stop(_L("Temporarily closed because there is no operating for a long time."));
+                        Stop(_L("Temporarily closed because there is no operation for a while."));
                         return;
                     }
                 }
