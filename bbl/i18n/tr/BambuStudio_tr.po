@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-16 18:02+0800\n"
+"POT-Creation-Date: 2025-05-20 16:17+0800\n"
 "PO-Revision-Date: 2025-05-08 12:48+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -3259,6 +3259,12 @@ msgstr ""
 "Nesne ile yazdırma sırasında ekstruder etekle çarpışabilir.\n"
 "Bu durumu önlemek için etek katmanını 1'e sıfırlayın."
 
+#, c-format, boost-format
+msgid ""
+"lock depth should smaller than skin depth.\n"
+"Reset to 50%% of skin depth"
+msgstr ""
+
 msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
 msgstr "Spiral modu yalnızca duvar döngüleri 1, destek devre dışı, üst kabuk katmanları 0, seyrek dolgu yoğunluğu 0, zaman atlamalı tip geleneksel ve z yönünde duvar hızını yumuşatma yanlış olduğunda çalışır."
 
@@ -4105,6 +4111,9 @@ msgstr "%s filamentleri bu plakanın yüzeyine doğrudan basılamaz."
 
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "Karışımda PLA ve PETG filamentleri tespit edildi. Baskı kalitesini sağlamak için parametreleri Wiki'ye göre ayarlayın."
+
+msgid "The prime tower extends beyond the plate boundary, which may cause part of the prime tower to lie outside the printable area after slicing."
+msgstr ""
 
 msgid "Click Wiki for help."
 msgstr "Yardım için Wiki'ye tıklayın."
@@ -7253,6 +7262,9 @@ msgstr ""
 msgid "Send to Printer storage"
 msgstr "Yazıcı depolama alanına gönder"
 
+msgid "Try to connect"
+msgstr ""
+
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Dosya yükleme zaman aşımı, lütfen ürün yazılımı sürümünün bunu destekleyip desteklemediğini kontrol edin."
 
@@ -7270,6 +7282,9 @@ msgstr "Dosya yükleme zaman aşımına uğradı. Lütfen ürün yazılımı sü
 
 msgid "Sending failed, please try again!"
 msgstr "Gönderme başarısız oldu, lütfen tekrar deneyin!"
+
+msgid "Connection failed. Click the icon to retry"
+msgstr ""
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "Yükseltme devam ederken yazdırma görevi gönderilemiyor"
@@ -8785,16 +8800,6 @@ msgstr " içerisine yerleştirilemez "
 msgid " nozzle"
 msgstr " nozul"
 
-msgid "TPU is incompatible with AMS and must be printed seperately in the "
-msgstr "TPU, AMS ile uyumlu değildir ve AMS'de ayrı olarak basılmalıdır. "
-
-msgid ""
-" nozzle.\n"
-"Please adjust the filament group accordingly."
-msgstr ""
-" nozul.\n"
-"Lütfen filament grubunu buna göre ayarlayın."
-
 msgid "Inner wall"
 msgstr "İç duvar"
 
@@ -9039,9 +9044,6 @@ msgstr "Etek ve kenar oluşturma"
 
 msgid "Generating G-code"
 msgstr "G kodu oluşturuluyor"
-
-msgid "Only supports up to one TPU filament."
-msgstr "Yalnızca bir TPU filamentine kadar destekler."
 
 msgid "Failed processing of the filename_format template."
 msgstr "Dosyaadı_format şablonunun işlenmesi başarısız oldu."
@@ -9943,6 +9945,9 @@ msgstr "Zig Zag"
 msgid "Cross Zag"
 msgstr "Çapraz Zig Zag"
 
+msgid "Locked Zag"
+msgstr ""
+
 msgid "Acceleration of top surface infill. Using a lower value may improve top surface quality"
 msgstr "Üst yüzey dolgusunun hızlandırılması. Daha düşük bir değerin kullanılması üst yüzey kalitesini iyileştirebilir"
 
@@ -10164,6 +10169,42 @@ msgstr "Dolgu döndürme adımı"
 
 msgid "This parameter adds a slight rotation to each layer of infill to create a cross texture."
 msgstr "Bu parametre, çapraz bir doku oluşturmak için her dolgu katmanına hafif bir döndürme ekler."
+
+msgid "Skeleton infill density"
+msgstr ""
+
+msgid "The remaining part of the model contour after removing a certain depth from the surface is called the skeleton. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skeleton densities, their skeleton areas will develop overlapping sections.default is as same as infill density."
+msgstr ""
+
+msgid "Skin infill density"
+msgstr ""
+
+msgid "The portion of the model's outer surface within a certain depth range is called the skin. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skin densities, This area will not be split into two separate regions.default is as same as infill density."
+msgstr ""
+
+msgid "Skin infill depth"
+msgstr ""
+
+msgid "The parameter sets the depth of skin."
+msgstr ""
+
+msgid "Infill lock depth"
+msgstr ""
+
+msgid "The parameter sets the overlapping depth between the interior and skin."
+msgstr ""
+
+msgid "Skin line width"
+msgstr ""
+
+msgid "Adjust the line width of the selected skin paths."
+msgstr ""
+
+msgid "Skeleton line width"
+msgstr ""
+
+msgid "Adjust the line width of the selected skeleton paths."
+msgstr ""
 
 msgid "Symmetric infill y axis"
 msgstr "Simetrik dolgu y ekseni"
@@ -13427,6 +13468,19 @@ msgid ""
 msgstr ""
 "Eğilmeyi önleyin\n"
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını azaltabileceğini biliyor muydunuz."
+
+#~ msgid "TPU is incompatible with AMS and must be printed seperately in the "
+#~ msgstr "TPU, AMS ile uyumlu değildir ve AMS'de ayrı olarak basılmalıdır. "
+
+#~ msgid ""
+#~ " nozzle.\n"
+#~ "Please adjust the filament group accordingly."
+#~ msgstr ""
+#~ " nozul.\n"
+#~ "Lütfen filament grubunu buna göre ayarlayın."
+
+#~ msgid "Only supports up to one TPU filament."
+#~ msgstr "Yalnızca bir TPU filamentine kadar destekler."
 
 #~ msgid "Still unload"
 #~ msgstr "Daha Fazla Çıkart"

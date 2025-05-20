@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-16 18:02+0800\n"
+"POT-Creation-Date: 2025-05-20 16:17+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3223,6 +3223,12 @@ msgstr ""
 "オブジェクト順で印刷する際、押出機がスカートと衝突する可能性があります。\n"
 "そのため、衝突を避けるためにスカート層を1にリセットしてください。"
 
+#, c-format, boost-format
+msgid ""
+"lock depth should smaller than skin depth.\n"
+"Reset to 50%% of skin depth"
+msgstr ""
+
 msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
 msgstr "スパイラルモードは、壁面ループが1、サポートが無効、トップ面層が0、スパースインフィル密度が0、タイムラプスタイプが従来型、Z軸方向の壁速度平滑化が無効の場合にのみ動作します。"
 
@@ -4068,6 +4074,9 @@ msgstr "フィラメント %s は、このプレートの表面に直接印刷�
 
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "混合物にPLAとPETGフィラメントが検出されました。印刷品質を確保するために、Wikiの指示に従ってパラメータを調整してください。"
+
+msgid "The prime tower extends beyond the plate boundary, which may cause part of the prime tower to lie outside the printable area after slicing."
+msgstr ""
 
 msgid "Click Wiki for help."
 msgstr "詳しくはWikiをクリックしてください。"
@@ -7191,6 +7200,9 @@ msgstr ""
 msgid "Send to Printer storage"
 msgstr "プリンタストレージに送信"
 
+msgid "Try to connect"
+msgstr ""
+
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "アップロードファイルのタイムアウト：ファームウェアのバージョンが対応しているか確認してください。"
 
@@ -7208,6 +7220,9 @@ msgstr "ファイルのアップロードがタイムアウトしました。フ
 
 msgid "Sending failed, please try again!"
 msgstr "送信できませんでした。もう一度試してください。"
+
+msgid "Connection failed. Click the icon to retry"
+msgstr ""
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "アップデート中では造形タスクを送信できません"
@@ -8710,16 +8725,6 @@ msgstr "に配置できません"
 msgid " nozzle"
 msgstr "ノズル"
 
-msgid "TPU is incompatible with AMS and must be printed seperately in the "
-msgstr "TPUはAMSと互換性がなく、単独で印刷する必要があります。"
-
-msgid ""
-" nozzle.\n"
-"Please adjust the filament group accordingly."
-msgstr ""
-"ノズル。\n"
-"それに応じてフィラメントグループを調整してください。"
-
 msgid "Inner wall"
 msgstr "内壁"
 
@@ -8964,9 +8969,6 @@ msgstr "スカートとブリムを生成"
 
 msgid "Generating G-code"
 msgstr "G-codeを生成"
-
-msgid "Only supports up to one TPU filament."
-msgstr "TPUフィラメントは1つまでしかサポートしません。"
 
 msgid "Failed processing of the filename_format template."
 msgstr "ファイル名フォーマットテンプレートの処理ができませんでした。"
@@ -9868,6 +9870,9 @@ msgstr "ジグザグ"
 msgid "Cross Zag"
 msgstr "クロスザグ"
 
+msgid "Locked Zag"
+msgstr ""
+
 msgid "Acceleration of top surface infill. Using a lower value may improve top surface quality"
 msgstr "トップ面のインフィル加速度です。遅くすると表面の仕上がりが向上させることができます"
 
@@ -10089,6 +10094,42 @@ msgstr "インフィル回転ステップ"
 
 msgid "This parameter adds a slight rotation to each layer of infill to create a cross texture."
 msgstr "このパラメータは、インフィルの各層にわずかな回転を加え、十字のテクスチャを作成します。"
+
+msgid "Skeleton infill density"
+msgstr ""
+
+msgid "The remaining part of the model contour after removing a certain depth from the surface is called the skeleton. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skeleton densities, their skeleton areas will develop overlapping sections.default is as same as infill density."
+msgstr ""
+
+msgid "Skin infill density"
+msgstr ""
+
+msgid "The portion of the model's outer surface within a certain depth range is called the skin. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skin densities, This area will not be split into two separate regions.default is as same as infill density."
+msgstr ""
+
+msgid "Skin infill depth"
+msgstr ""
+
+msgid "The parameter sets the depth of skin."
+msgstr ""
+
+msgid "Infill lock depth"
+msgstr ""
+
+msgid "The parameter sets the overlapping depth between the interior and skin."
+msgstr ""
+
+msgid "Skin line width"
+msgstr ""
+
+msgid "Adjust the line width of the selected skin paths."
+msgstr ""
+
+msgid "Skeleton line width"
+msgstr ""
+
+msgid "Adjust the line width of the selected skeleton paths."
+msgstr ""
 
 msgid "Symmetric infill y axis"
 msgstr "Y軸対称のインフィル"
@@ -13339,6 +13380,19 @@ msgid ""
 msgstr ""
 "反り防止\n"
 "ABSなど反りやすい材料を印刷する場合、ヒートベッド温度を適切に上げることで反りの発生を抑えられることをご存知ですか？"
+
+#~ msgid "TPU is incompatible with AMS and must be printed seperately in the "
+#~ msgstr "TPUはAMSと互換性がなく、単独で印刷する必要があります。"
+
+#~ msgid ""
+#~ " nozzle.\n"
+#~ "Please adjust the filament group accordingly."
+#~ msgstr ""
+#~ "ノズル。\n"
+#~ "それに応じてフィラメントグループを調整してください。"
+
+#~ msgid "Only supports up to one TPU filament."
+#~ msgstr "TPUフィラメントは1つまでしかサポートしません。"
 
 #~ msgid "Still unload"
 #~ msgstr "アンロード"

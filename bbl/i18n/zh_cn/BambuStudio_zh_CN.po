@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-16 18:02+0800\n"
+"POT-Creation-Date: 2025-05-20 16:17+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1791,10 +1791,10 @@ msgid "Edit Process Settings"
 msgstr "编辑工艺参数"
 
 msgid "Copy Process Settings"
-msgstr ""
+msgstr "复制工艺设置"
 
 msgid "Paste Process Settings"
-msgstr ""
+msgstr "粘贴工艺设置"
 
 msgid "Edit print parameters for a single object"
 msgstr "编辑单个对象的打印参数"
@@ -3225,6 +3225,12 @@ msgid ""
 "Thus, reset the skirt layer to 1 to avoid that."
 msgstr "逐件打印时，挤出机可能与裙边碰撞。因此将裙边的层数重置为1。"
 
+#, c-format, boost-format
+msgid ""
+"lock depth should smaller than skin depth.\n"
+"Reset to 50%% of skin depth"
+msgstr ""
+
 msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
 msgstr "花瓶模式仅在以下条件下可用：墙壁环数设置为 1，支撑禁用，顶壳层数为 0，稀疏填充密度为 0，延时摄影类型为传统，并且 Z 方向墙速度平滑不启用。"
 
@@ -4070,6 +4076,9 @@ msgstr "材料 %s 不能在直接在当前打印板上打印。"
 
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "检测到 PLA 和 PETG 同时打印，请根据 Wiki 中的建议调整打印参数来确保打印质量。"
+
+msgid "The prime tower extends beyond the plate boundary, which may cause part of the prime tower to lie outside the printable area after slicing."
+msgstr ""
 
 msgid "Click Wiki for help."
 msgstr "点击Wiki寻求帮助。"
@@ -5348,7 +5357,7 @@ msgid "Status"
 msgstr "设备状态"
 
 msgid "Update"
-msgstr "固件更新"
+msgstr "现在更新"
 
 msgid "Assistant(HMS)"
 msgstr "助手(HMS)"
@@ -5411,7 +5420,7 @@ msgid "Latest Version: "
 msgstr "最新版本："
 
 msgid "Not for now"
-msgstr "现在不行"
+msgstr "稍后更新"
 
 msgid "Server Exception"
 msgstr "服务器异常"
@@ -6359,10 +6368,11 @@ msgid ""
 "Enabled LOD requires application restart."
 msgstr ""
 "请注意，模型显示将在像素块较小的情况下发生一定变化。\n"
-"启用LOD需要重新启动应用程序。"
+"更改 LOD 设置需要重新启动应用程序。  \n"
+"是否继续？"
 
 msgid "Enable LOD"
-msgstr "启用LOD"
+msgstr "启用/关闭 LOD"
 
 msgid "Bed Temperature Difference Warning"
 msgstr "热床温差警告"
@@ -7195,6 +7205,9 @@ msgstr "需高腔温打印，请关门。"
 msgid "Send to Printer storage"
 msgstr "发送到打印机存储"
 
+msgid "Try to connect"
+msgstr ""
+
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "上传文件超时，请检查固件版本是否支持。"
 
@@ -7212,6 +7225,9 @@ msgstr "文件上传超时。请检查固件版本是否支持此操作操作或
 
 msgid "Sending failed, please try again!"
 msgstr "发送失败，请重试！"
+
+msgid "Connection failed. Click the icon to retry"
+msgstr ""
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "设备升级中，无法发送打印任务"
@@ -7371,7 +7387,6 @@ msgid ""
 msgstr ""
 "不建议将非可溶性支撑材料用作支撑主体。 \n"
 "你确定要用它们作为支撑主体吗？ \n"
-""
 
 msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
@@ -8149,7 +8164,7 @@ msgid "You selected external and AMS filament at the same time in an extruder, y
 msgstr "您在同一挤出机中同时选择了外部和AMS耗材，您需要手动更换外部耗材。"
 
 msgid "Successfully synchronized nozzle information."
-msgstr ""
+msgstr "喷嘴信息同步成功。"
 
 msgid "Successfully synchronized nozzle and AMS number information."
 msgstr "喷嘴信息和AMS数量同步成功。"
@@ -8726,16 +8741,6 @@ msgstr "不能放置在"
 msgid " nozzle"
 msgstr "喷嘴"
 
-msgid "TPU is incompatible with AMS and must be printed seperately in the "
-msgstr "TPU材料与AMS不兼容，必须单独分组且仅限"
-
-msgid ""
-" nozzle.\n"
-"Please adjust the filament group accordingly."
-msgstr ""
-"喷嘴打印。\n"
-"请重新分组。"
-
 msgid "Inner wall"
 msgstr "内墙"
 
@@ -8980,9 +8985,6 @@ msgstr "正在生成skirt和brim"
 
 msgid "Generating G-code"
 msgstr "正在生成G-code"
-
-msgid "Only supports up to one TPU filament."
-msgstr "最多仅支持1个TPU材料"
 
 msgid "Failed processing of the filename_format template."
 msgstr "处理文件名格式模板失败。"
@@ -9884,6 +9886,9 @@ msgstr ""
 msgid "Cross Zag"
 msgstr ""
 
+msgid "Locked Zag"
+msgstr ""
+
 msgid "Acceleration of top surface infill. Using a lower value may improve top surface quality"
 msgstr "顶面填充的加速度。使用较低值可能会改善顶面质量"
 
@@ -10105,6 +10110,42 @@ msgstr "填充旋转步长"
 
 msgid "This parameter adds a slight rotation to each layer of infill to create a cross texture."
 msgstr "这个参数给每层填充添加轻微旋转以塑造交错花纹。"
+
+msgid "Skeleton infill density"
+msgstr "骨架填充密度"
+
+msgid "The remaining part of the model contour after removing a certain depth from the surface is called the skeleton. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skeleton densities, their skeleton areas will develop overlapping sections.default is as same as infill density."
+msgstr "去除表面一定深度之后余留的部分被称作骨架。这个参数用于调整骨架部分的密度。两个有同样的稀疏填充密度但是不同骨架密度的区域走线会有重叠的部分。默认值和稀疏填充密度一致。"
+
+msgid "Skin infill density"
+msgstr "表皮填充密度"
+
+msgid "The portion of the model's outer surface within a certain depth range is called the skin. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skin densities, This area will not be split into two separate regions.default is as same as infill density."
+msgstr "整个模型轮廓往下去一定深度的区域被称作表皮。这个参数用户设置这个区域的密度。如果两个区域有同样的稀疏填充密度，但表皮密度不同，这个区域会被拆成两个表皮区域生成。默认参数和稀疏填充密度相同。"
+
+msgid "Skin infill depth"
+msgstr "表皮填充深度"
+
+msgid "The parameter sets the depth of skin."
+msgstr "这个参数设置表皮区域的深度"
+
+msgid "Infill lock depth"
+msgstr "填充互锁深度"
+
+msgid "The parameter sets the overlapping depth between the interior and skin."
+msgstr "这个参数设置表皮和骨架重叠区域的深度"
+
+msgid "Skin line width"
+msgstr "表皮线宽"
+
+msgid "Adjust the line width of the selected skin paths."
+msgstr ""
+
+msgid "Skeleton line width"
+msgstr "骨架线宽"
+
+msgid "Adjust the line width of the selected skeleton paths."
+msgstr "为选择的骨架走线设置线宽"
 
 msgid "Symmetric infill y axis"
 msgstr "填充关于y轴对称"
@@ -10621,7 +10662,7 @@ msgstr ""
 "这个长度是当前挤出器直径的百分比。该参数的默认值为15。"
 
 msgid "Smart scarf seam application"
-msgstr "智能斜拼接缝应用"
+msgstr "智能应用斜拼接缝"
 
 msgid "Apply scarf joints only to smooth perimeters where traditional seams do not conceal the seams at sharp corners effectively."
 msgstr "当墙壁没有合适的锐角以至于传统接缝无法有效隐藏的时候使用斜拼接缝。"
@@ -13349,6 +13390,19 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "TPU is incompatible with AMS and must be printed seperately in the "
+#~ msgstr "TPU材料与AMS不兼容，必须单独分组且仅限"
+
+#~ msgid ""
+#~ " nozzle.\n"
+#~ "Please adjust the filament group accordingly."
+#~ msgstr ""
+#~ "喷嘴打印。\n"
+#~ "请重新分组。"
+
+#~ msgid "Only supports up to one TPU filament."
+#~ msgstr "最多仅支持1个TPU材料"
 
 #~ msgid "Still unload"
 #~ msgstr "继续退料"

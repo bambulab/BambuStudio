@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-16 18:02+0800\n"
+"POT-Creation-Date: 2025-05-20 16:17+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3236,6 +3236,12 @@ msgstr ""
 "Tijdens het afdrukken met Object kan de extruder tegen de rok botsen.\n"
 "Zet de roklaag dus terug op 1 om dat te voorkomen."
 
+#, c-format, boost-format
+msgid ""
+"lock depth should smaller than skin depth.\n"
+"Reset to 50%% of skin depth"
+msgstr ""
+
 msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
 msgstr "De spiraalmodus werkt alleen als wandlussen op 1 staat, ondersteuning is uitgeschakeld, bovenste lagen van de schaal op 0 staat, de dichtheid van de dunne vulling op 0 staat, het timelapse-type op traditioneel staat en het afvlakken van de wandsnelheid in de z-richting op false staat."
 
@@ -4082,6 +4088,9 @@ msgstr "filamenten %s kunnen niet rechtstreeks op het oppervlak van deze plaat w
 
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "PLA- en PETG-filamenten gedetecteerd in het mengsel. Pas de parameters aan volgens Wiki om de afdrukkwaliteit te garanderen."
+
+msgid "The prime tower extends beyond the plate boundary, which may cause part of the prime tower to lie outside the printable area after slicing."
+msgstr ""
 
 msgid "Click Wiki for help."
 msgstr "Klik op Wiki voor hulp."
@@ -7232,6 +7241,9 @@ msgstr ""
 msgid "Send to Printer storage"
 msgstr "Verzenden naar printeropslag"
 
+msgid "Try to connect"
+msgstr ""
+
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Time-out voor uploadbestand: controleer of de firmwareversie dit ondersteunt."
 
@@ -7249,6 +7261,9 @@ msgstr "Bestand uploaden heeft vertraging. Controleer of de firmwareversie deze 
 
 msgid "Sending failed, please try again!"
 msgstr "Verzenden is mislukt, probeer het opnieuw!"
+
+msgid "Connection failed. Click the icon to retry"
+msgstr ""
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "Kan de printtaak niet verzenden wanneer de upgrade wordt uitgevoerd"
@@ -8766,16 +8781,6 @@ msgstr " kan niet worden geplaatst in de"
 msgid " nozzle"
 msgstr " sproeier"
 
-msgid "TPU is incompatible with AMS and must be printed seperately in the "
-msgstr "TPU is niet compatibel met AMS en moet apart worden afgedrukt in de"
-
-msgid ""
-" nozzle.\n"
-"Please adjust the filament group accordingly."
-msgstr ""
-" nozzle.\n"
-"Pas de filamentgroep hierop aan."
-
 msgid "Inner wall"
 msgstr "Binnenste wand"
 
@@ -9020,9 +9025,6 @@ msgstr "Skirt en brim worden gegenereerd"
 
 msgid "Generating G-code"
 msgstr "Genereer G-code"
-
-msgid "Only supports up to one TPU filament."
-msgstr "Ondersteunt slechts één TPU filament."
 
 msgid "Failed processing of the filename_format template."
 msgstr "Mislukte verwerking van de bestandsnaam_opmaak sjabloon."
@@ -9924,6 +9926,9 @@ msgstr ""
 msgid "Cross Zag"
 msgstr "Dwars Zag"
 
+msgid "Locked Zag"
+msgstr ""
+
 msgid "Acceleration of top surface infill. Using a lower value may improve top surface quality"
 msgstr "Versnelling van de topoppervlakte-invulling. Gebruik van een lagere waarde kan de kwaliteit van de bovenlaag verbeteren."
 
@@ -10145,6 +10150,42 @@ msgstr "Opvullen roteren stap"
 
 msgid "This parameter adds a slight rotation to each layer of infill to create a cross texture."
 msgstr "Deze parameter voegt een lichte rotatie toe aan elke laag infill om een kruisstructuur te creëren."
+
+msgid "Skeleton infill density"
+msgstr ""
+
+msgid "The remaining part of the model contour after removing a certain depth from the surface is called the skeleton. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skeleton densities, their skeleton areas will develop overlapping sections.default is as same as infill density."
+msgstr ""
+
+msgid "Skin infill density"
+msgstr ""
+
+msgid "The portion of the model's outer surface within a certain depth range is called the skin. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skin densities, This area will not be split into two separate regions.default is as same as infill density."
+msgstr ""
+
+msgid "Skin infill depth"
+msgstr ""
+
+msgid "The parameter sets the depth of skin."
+msgstr ""
+
+msgid "Infill lock depth"
+msgstr ""
+
+msgid "The parameter sets the overlapping depth between the interior and skin."
+msgstr ""
+
+msgid "Skin line width"
+msgstr ""
+
+msgid "Adjust the line width of the selected skin paths."
+msgstr ""
+
+msgid "Skeleton line width"
+msgstr ""
+
+msgid "Adjust the line width of the selected skeleton paths."
+msgstr ""
 
 msgid "Symmetric infill y axis"
 msgstr "Symmetrische invulling y-as"
@@ -13406,6 +13447,19 @@ msgid ""
 msgstr ""
 "Kromtrekken voorkomen\n"
 "Wist je dat bij het printen van materialen die gevoelig zijn voor kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het warmtebed de kans op kromtrekken kan verkleinen?"
+
+#~ msgid "TPU is incompatible with AMS and must be printed seperately in the "
+#~ msgstr "TPU is niet compatibel met AMS en moet apart worden afgedrukt in de"
+
+#~ msgid ""
+#~ " nozzle.\n"
+#~ "Please adjust the filament group accordingly."
+#~ msgstr ""
+#~ " nozzle.\n"
+#~ "Pas de filamentgroep hierop aan."
+
+#~ msgid "Only supports up to one TPU filament."
+#~ msgstr "Ondersteunt slechts één TPU filament."
 
 #~ msgid "Still unload"
 #~ msgstr "Nog steeds aan het ontladen"
