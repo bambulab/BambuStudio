@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-16 18:02+0800\n"
+"POT-Creation-Date: 2025-05-20 16:17+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3231,6 +3231,12 @@ msgstr ""
 "객체별로 출력하는 동안 압출기가 스커트와 충돌할 수 있습니다. \n"
 "따라서 충돌을 피하기 위해 스커트 레이어를 1로 재설정합니다."
 
+#, c-format, boost-format
+msgid ""
+"lock depth should smaller than skin depth.\n"
+"Reset to 50%% of skin depth"
+msgstr ""
+
 msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
 msgstr "나선형 모드는 월 루프가 1, 지원 비활성화, 상단 셸 레이어 0, 스파스 인필 밀도 0, 타임랩스 유형이 기존, z 방향의 월 속도 평활화가 거짓인 경우에만 작동합니다."
 
@@ -4077,6 +4083,9 @@ msgstr "필라멘트 %s는 이 플레이트 표면에 직접 출력할 수 없�
 
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "혼합물에서 PLA 및 PETG 필라멘트가 감지되었습니다. 위키에 따라 매개변수를 조정하여 출력 품질을 보장합니다."
+
+msgid "The prime tower extends beyond the plate boundary, which may cause part of the prime tower to lie outside the printable area after slicing."
+msgstr ""
 
 msgid "Click Wiki for help."
 msgstr "위키를 클릭하여 도움을 받습니다."
@@ -7221,6 +7230,9 @@ msgstr ""
 msgid "Send to Printer storage"
 msgstr "프린터 저장소로 보내기"
 
+msgid "Try to connect"
+msgstr ""
+
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "파일 업로드 시간 초과, 펌웨어 버전이 이를 지원하는지 확인하세요."
 
@@ -7238,6 +7250,9 @@ msgstr "파일 업로드 시간이 초과되었습니다. 펌웨어 버전이 �
 
 msgid "Sending failed, please try again!"
 msgstr "전송 실패. 다시 시도하십시오!"
+
+msgid "Connection failed. Click the icon to retry"
+msgstr ""
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "업데이트 진행 중에는 출력 작업을 보낼 수 없습니다."
@@ -8750,16 +8765,6 @@ msgstr " 에 배치할 수 없습니다"
 msgid " nozzle"
 msgstr "노즐"
 
-msgid "TPU is incompatible with AMS and must be printed seperately in the "
-msgstr "TPU는 AMS와 호환되지 않으므로 별도로 출력해야 합니다"
-
-msgid ""
-" nozzle.\n"
-"Please adjust the filament group accordingly."
-msgstr ""
-" 노즐.\n"
-"필라멘트 그룹을 적절히 조정하세요."
-
 msgid "Inner wall"
 msgstr "내벽"
 
@@ -9004,9 +9009,6 @@ msgstr "스커트 및 브림 생성"
 
 msgid "Generating G-code"
 msgstr "G 코드 생성"
-
-msgid "Only supports up to one TPU filament."
-msgstr "최대 하나의 TPU 필라멘트만 지원합니다."
 
 msgid "Failed processing of the filename_format template."
 msgstr "파일 이름 형식 템플릿 처리에 실패했습니다."
@@ -9908,6 +9910,9 @@ msgstr "지그재그"
 msgid "Cross Zag"
 msgstr "크로스 재그"
 
+msgid "Locked Zag"
+msgstr ""
+
 msgid "Acceleration of top surface infill. Using a lower value may improve top surface quality"
 msgstr "상단면 채우기 가속도입니다. 낮은 값을 사용하면 상단면 품질을 향상시킬 수 있습니다."
 
@@ -10129,6 +10134,42 @@ msgstr "채우기 회전 단계"
 
 msgid "This parameter adds a slight rotation to each layer of infill to create a cross texture."
 msgstr "이 파라미터는 각 인필 레이어에 약간의 회전을 추가하여 교차 텍스처를 만듭니다."
+
+msgid "Skeleton infill density"
+msgstr ""
+
+msgid "The remaining part of the model contour after removing a certain depth from the surface is called the skeleton. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skeleton densities, their skeleton areas will develop overlapping sections.default is as same as infill density."
+msgstr ""
+
+msgid "Skin infill density"
+msgstr ""
+
+msgid "The portion of the model's outer surface within a certain depth range is called the skin. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skin densities, This area will not be split into two separate regions.default is as same as infill density."
+msgstr ""
+
+msgid "Skin infill depth"
+msgstr ""
+
+msgid "The parameter sets the depth of skin."
+msgstr ""
+
+msgid "Infill lock depth"
+msgstr ""
+
+msgid "The parameter sets the overlapping depth between the interior and skin."
+msgstr ""
+
+msgid "Skin line width"
+msgstr ""
+
+msgid "Adjust the line width of the selected skin paths."
+msgstr ""
+
+msgid "Skeleton line width"
+msgstr ""
+
+msgid "Adjust the line width of the selected skeleton paths."
+msgstr ""
 
 msgid "Symmetric infill y axis"
 msgstr "대칭 채우기 y 축"
@@ -13391,6 +13432,19 @@ msgid ""
 msgstr ""
 "뒤틀림 방지\n"
 "ABS와 같이 뒤틀리기 쉬운 소재를 출력할 때 열판 온도를 적절히 높이면 뒤틀릴 확률을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid "TPU is incompatible with AMS and must be printed seperately in the "
+#~ msgstr "TPU는 AMS와 호환되지 않으므로 별도로 출력해야 합니다"
+
+#~ msgid ""
+#~ " nozzle.\n"
+#~ "Please adjust the filament group accordingly."
+#~ msgstr ""
+#~ " 노즐.\n"
+#~ "필라멘트 그룹을 적절히 조정하세요."
+
+#~ msgid "Only supports up to one TPU filament."
+#~ msgstr "최대 하나의 TPU 필라멘트만 지원합니다."
 
 #~ msgid "Still unload"
 #~ msgstr "언로드 중"

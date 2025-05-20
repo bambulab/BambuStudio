@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-16 18:02+0800\n"
+"POT-Creation-Date: 2025-05-20 16:17+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -3244,6 +3244,12 @@ msgstr ""
 "Під час друку об'єкта екструдер може зіткнутися зі спідницею.\n"
 "Таким чином, скиньте шар спідниці до 1, щоб уникнути цього."
 
+#, c-format, boost-format
+msgid ""
+"lock depth should smaller than skin depth.\n"
+"Reset to 50%% of skin depth"
+msgstr ""
+
 msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
 msgstr ""
 
@@ -4087,6 +4093,9 @@ msgid "filaments %s cannot be printed directly on the surface of this plate."
 msgstr "філаменти %s не можуть бути надруковані безпосередньо на поверхні цієї пластини."
 
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
+msgstr ""
+
+msgid "The prime tower extends beyond the plate boundary, which may cause part of the prime tower to lie outside the printable area after slicing."
 msgstr ""
 
 msgid "Click Wiki for help."
@@ -7212,6 +7221,9 @@ msgstr ""
 msgid "Send to Printer storage"
 msgstr ""
 
+msgid "Try to connect"
+msgstr ""
+
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr ""
 
@@ -7228,6 +7240,9 @@ msgid "File upload timed out. Please check if the firmware version supports this
 msgstr ""
 
 msgid "Sending failed, please try again!"
+msgstr ""
+
+msgid "Connection failed. Click the icon to retry"
 msgstr ""
 
 msgid "Cannot send the print task when the upgrade is in progress"
@@ -8740,14 +8755,6 @@ msgstr ""
 msgid " nozzle"
 msgstr ""
 
-msgid "TPU is incompatible with AMS and must be printed seperately in the "
-msgstr ""
-
-msgid ""
-" nozzle.\n"
-"Please adjust the filament group accordingly."
-msgstr ""
-
 msgid "Inner wall"
 msgstr "Периметри"
 
@@ -8992,9 +8999,6 @@ msgstr "Створення спідниці та кайми"
 
 msgid "Generating G-code"
 msgstr "Генерація G-code"
-
-msgid "Only supports up to one TPU filament."
-msgstr ""
 
 msgid "Failed processing of the filename_format template."
 msgstr "Не вдалося обробити шаблон filename_format."
@@ -9906,6 +9910,9 @@ msgstr ""
 msgid "Cross Zag"
 msgstr ""
 
+msgid "Locked Zag"
+msgstr ""
+
 msgid "Acceleration of top surface infill. Using a lower value may improve top surface quality"
 msgstr "Прискорення заповнення верхньої поверхні. Використання меншого значенняможе покращити якість верхньої поверхні"
 
@@ -10126,6 +10133,42 @@ msgid "Infill rotate step"
 msgstr ""
 
 msgid "This parameter adds a slight rotation to each layer of infill to create a cross texture."
+msgstr ""
+
+msgid "Skeleton infill density"
+msgstr ""
+
+msgid "The remaining part of the model contour after removing a certain depth from the surface is called the skeleton. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skeleton densities, their skeleton areas will develop overlapping sections.default is as same as infill density."
+msgstr ""
+
+msgid "Skin infill density"
+msgstr ""
+
+msgid "The portion of the model's outer surface within a certain depth range is called the skin. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skin densities, This area will not be split into two separate regions.default is as same as infill density."
+msgstr ""
+
+msgid "Skin infill depth"
+msgstr ""
+
+msgid "The parameter sets the depth of skin."
+msgstr ""
+
+msgid "Infill lock depth"
+msgstr ""
+
+msgid "The parameter sets the overlapping depth between the interior and skin."
+msgstr ""
+
+msgid "Skin line width"
+msgstr ""
+
+msgid "Adjust the line width of the selected skin paths."
+msgstr ""
+
+msgid "Skeleton line width"
+msgstr ""
+
+msgid "Adjust the line width of the selected skeleton paths."
 msgstr ""
 
 msgid "Symmetric infill y axis"

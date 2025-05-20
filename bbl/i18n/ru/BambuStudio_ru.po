@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-16 18:02+0800\n"
+"POT-Creation-Date: 2025-05-20 16:17+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -3333,6 +3333,12 @@ msgstr ""
 "При печати по очереди экструдер может столкнуться с юбкой.\n"
 "Чтобы избежать этого, сбросьте значение слоёв юбки до 1."
 
+#, c-format, boost-format
+msgid ""
+"lock depth should smaller than skin depth.\n"
+"Reset to 50%% of skin depth"
+msgstr ""
+
 msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
 msgstr ""
 "Для режима печати «Спиральная ваза» необходимо чтобы соблюдались следующие условия:\n"
@@ -4210,6 +4216,9 @@ msgstr "На поверхности этой пластины нельзя пе�
 
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "Вы собираетесь печатать PLA и PETG в одном проекте. Настройте параметры в соответствии с рекомендациями на вики-сайте, чтобы обеспечить качество печати."
+
+msgid "The prime tower extends beyond the plate boundary, which may cause part of the prime tower to lie outside the printable area after slicing."
+msgstr ""
 
 msgid "Click Wiki for help."
 msgstr "Подробнее на вики-сайте."
@@ -7463,6 +7472,9 @@ msgstr ""
 msgid "Send to Printer storage"
 msgstr "Отправить на накопитель принтера"
 
+msgid "Try to connect"
+msgstr ""
+
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Время ожидания загрузки файла истекло. Проверьте, поддерживается ли этот тип файла текущей версией прошивки."
 
@@ -7481,6 +7493,9 @@ msgstr "Время ожидания загрузки файла истекло. 
 
 msgid "Sending failed, please try again!"
 msgstr "Отправка не удалась, попробуйте ещё раз!"
+
+msgid "Connection failed. Click the icon to retry"
+msgstr ""
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "Во время обновления невозможно отправить задание на печать."
@@ -9050,16 +9065,6 @@ msgstr "нельзя разместить в "
 msgid " nozzle"
 msgstr " сопло"
 
-msgid "TPU is incompatible with AMS and must be printed seperately in the "
-msgstr "TPU несовместим с АСПП и должен печататься отдельным "
-
-msgid ""
-" nozzle.\n"
-"Please adjust the filament group accordingly."
-msgstr ""
-" соплом.\n"
-"Пожалуйста, перегруппируйте материалы соответствующим образом."
-
 msgid "Inner wall"
 msgstr "Внутренние периметры"
 
@@ -9305,9 +9310,6 @@ msgstr "Генерация юбки и каймы"
 
 msgid "Generating G-code"
 msgstr "Генерация G-кода"
-
-msgid "Only supports up to one TPU filament."
-msgstr "Поддерживается печать только одним TPU пруток."
 
 msgid "Failed processing of the filename_format template."
 msgstr "Ошибка обработки шаблона filename_format."
@@ -10245,6 +10247,9 @@ msgstr "Зигзаг"
 msgid "Cross Zag"
 msgstr "Перекрёстный зигзаг"
 
+msgid "Locked Zag"
+msgstr ""
+
 msgid "Acceleration of top surface infill. Using a lower value may improve top surface quality"
 msgstr "Ускорение на верхней поверхности. Использование меньшего значения может улучшить качество верхней поверхности."
 
@@ -10472,6 +10477,42 @@ msgstr "Поворот заполнения"
 
 msgid "This parameter adds a slight rotation to each layer of infill to create a cross texture."
 msgstr "Этот параметр заставляет каждый слой заполнения поворачиваться на заданный угол, создавая перекрестную текстуру."
+
+msgid "Skeleton infill density"
+msgstr ""
+
+msgid "The remaining part of the model contour after removing a certain depth from the surface is called the skeleton. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skeleton densities, their skeleton areas will develop overlapping sections.default is as same as infill density."
+msgstr ""
+
+msgid "Skin infill density"
+msgstr ""
+
+msgid "The portion of the model's outer surface within a certain depth range is called the skin. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skin densities, This area will not be split into two separate regions.default is as same as infill density."
+msgstr ""
+
+msgid "Skin infill depth"
+msgstr ""
+
+msgid "The parameter sets the depth of skin."
+msgstr ""
+
+msgid "Infill lock depth"
+msgstr ""
+
+msgid "The parameter sets the overlapping depth between the interior and skin."
+msgstr ""
+
+msgid "Skin line width"
+msgstr ""
+
+msgid "Adjust the line width of the selected skin paths."
+msgstr ""
+
+msgid "Skeleton line width"
+msgstr ""
+
+msgid "Adjust the line width of the selected skeleton paths."
+msgstr ""
 
 msgid "Symmetric infill y axis"
 msgstr "Симметричное заполнение по Y"
@@ -13816,6 +13857,19 @@ msgid ""
 msgstr ""
 "Предотвращение коробления материала\n"
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как ABS, повышение температуры подогреваемого стола может снизить эту вероятность?"
+
+#~ msgid "TPU is incompatible with AMS and must be printed seperately in the "
+#~ msgstr "TPU несовместим с АСПП и должен печататься отдельным "
+
+#~ msgid ""
+#~ " nozzle.\n"
+#~ "Please adjust the filament group accordingly."
+#~ msgstr ""
+#~ " соплом.\n"
+#~ "Пожалуйста, перегруппируйте материалы соответствующим образом."
+
+#~ msgid "Only supports up to one TPU filament."
+#~ msgstr "Поддерживается печать только одним TPU пруток."
 
 #~ msgid "Still unload"
 #~ msgstr "Ещё выгружается"
