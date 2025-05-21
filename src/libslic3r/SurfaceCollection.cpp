@@ -67,6 +67,22 @@ void SurfaceCollection::filter_by_type(SurfaceType type, Polygons* polygons)
             polygons_append(*polygons, to_polygons(surface.expolygon));
 }
 
+void SurfaceCollection::keep_type(SurfaceType type, ExPolygons &exps)
+{
+    size_t j = 0;
+    for (size_t i = 0; i < surfaces.size(); ++ i) {
+        if (surfaces[i].surface_type == type) {
+            if (j < i)
+                std::swap(surfaces[i], surfaces[j]);
+            ++ j;
+        }else{
+            exps.push_back(surfaces[i].expolygon);
+        }
+    }
+    if (j < surfaces.size())
+        surfaces.erase(surfaces.begin() + j, surfaces.end());
+}
+
 void SurfaceCollection::keep_type(const SurfaceType type)
 {
     size_t j = 0;

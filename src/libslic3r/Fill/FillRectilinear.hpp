@@ -175,6 +175,10 @@ public:
     void fill_surface_locked_zag(const Surface *                          surface,
                                   const FillParams &                       params,
                                   std::vector<std::pair<Polylines, Flow>> &multi_width_polyline);
+    void      get_skin_and_skeleton_area(ExPolygons &skin, ExPolygons &skeleton, const Surface &surface);
+    Polylines generate_skeleton_pattern(FillParams params, Surface surface, const ExPolygons &skeleton);
+    Polylines generate_skin_pattern(FillParams params, Surface surface, const ExPolygons &skin);
+
     void set_skin_and_skeleton_pattern(const InfillPattern &skin_pattern, const InfillPattern &skeleton_pattern){
         this->skin_pattern = skin_pattern;
         this->skeleton_pattern = skeleton_pattern;
