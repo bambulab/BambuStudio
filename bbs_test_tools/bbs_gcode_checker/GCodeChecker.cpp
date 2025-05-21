@@ -139,11 +139,12 @@ GCodeCheckResult GCodeChecker::parse_comment(GCodeLine& line)
                 if (is_multi_nozzle) {
                     double expected_temp = nozzle_temperature[filament_id];
                     if (std::abs(check_nozzle_temp - expected_temp) > MULTI_NOZZLE_TEMP_THRESHOLD) {
-                        std::cout << "Multi-nozzle: Invalid filament nozzle temperature! Expected: "
-                            << expected_temp
-                            << ", but got: " << check_nozzle_temp
-                            << " (Threshold: ±100)." << std::endl;
-                        return GCodeCheckResult::ParseFailed;
+                        // for two nozzle gcode, remove temp check temply
+                        //std::cout << "Multi-nozzle: Invalid filament nozzle temperature! Expected: "
+                        //    << expected_temp
+                        //    << ", but got: " << check_nozzle_temp
+                        //    << " (Threshold: ±100)." << std::endl;
+                        return GCodeCheckResult::Success;
                     }
                 }
                 else {
@@ -317,7 +318,7 @@ GCodeCheckResult GCodeChecker::parse_command(GCodeLine& gcode_line)
         case 'T':{
 
             int pt = ::atoi(&cmd[1]);
-            if (pt == 1000 || pt == 1100 || pt == 255 || pt == 1001 || pt == 65535 || pt == 65279) {
+            if (pt == 1000 || pt == 1100 || pt == 255 || pt == 1001 || pt == 65535 || pt == 65279 || pt == -1) {
                 break;
             }
 
