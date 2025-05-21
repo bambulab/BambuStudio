@@ -3789,6 +3789,11 @@ void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx, bool ini
     int nozzle_nums = wxGetApp().preset_bundle->get_printer_extruder_count();
     double wipe_vol = get_max_element(v);
     Vec3d wipe_tower_size = part_plate->estimate_wipe_tower_size(print_cfg, w, wipe_vol, nozzle_nums, init_pos ? 2 : 0);
+
+    if (!init_pos && (is_approx(wipe_tower_size(0), 0.0) || is_approx(wipe_tower_size(1), 0.0))) {
+        wipe_tower_size = part_plate->estimate_wipe_tower_size(print_cfg, w, wipe_vol, nozzle_nums, 2);
+    }
+
     // update for wipe tower position
     {
         bool need_update = false;
