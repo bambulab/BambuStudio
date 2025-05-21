@@ -16,7 +16,7 @@
 #include "GCode/ThumbnailData.hpp"
 #include "GCode/GCodeProcessor.hpp"
 #include "MultiMaterialSegmentation.hpp"
-
+#include <libslic3r/SurfaceCollection.hpp>
 #include "libslic3r.h"
 
 #include <Eigen/Geometry>
@@ -567,7 +567,8 @@ private:
     void clear_overhangs_for_lift();
 
     // Has any support (not counting the raft).
-    void detect_surfaces_type();
+    void detect_surfaces_type(std::vector<std::vector<SurfaceCollection>> &slice_surfaces_cpy);
+    void reset_slice_surfaces(const std::vector<std::vector<SurfaceCollection>> &slice_surfaces_cpy);
     void process_external_surfaces();
     void discover_vertical_shells();
     void discover_shell_for_perimeters();
