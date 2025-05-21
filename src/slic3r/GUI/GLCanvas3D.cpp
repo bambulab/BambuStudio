@@ -42,7 +42,9 @@
 #if ENABLE_RETINA_GL
 #include "slic3r/Utils/RetinaHelper.hpp"
 #endif
-
+#ifdef __APPLE__
+#include "libslic3r/MacUtils.hpp"
+#endif
 #include <GL/glew.h>
 
 #include <wx/glcanvas.h>
@@ -2997,7 +2999,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         }
     }
     m_volumes.volumes = std::move(glvolumes_new);
-    bool enable_lod   = GUI::wxGetApp().app_config->get_bool("enable_lod") && CpuMemory::cur_free_memory_less_than_specify_size_gb(LOD_FREE_MEMORY_SIZE);
+    bool enable_lod   = GUI::wxGetApp().app_config->get_bool("enable_lod") ;
     for (unsigned int obj_idx = 0; obj_idx < (unsigned int)m_model->objects.size(); ++ obj_idx) {
         const ModelObject &model_object = *m_model->objects[obj_idx];
         for (int volume_idx = 0; volume_idx < (int)model_object.volumes.size(); ++ volume_idx) {
@@ -3018,6 +3020,14 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                     // Note the index of the loaded volume, so that we can reload the main model GLVolume with the hollowed mesh
                     // later in this function.
                     it->volume_idx = m_volumes.volumes.size();
+                    if (enable_lod && CpuMemory::cur_free_memory_less_than_specify_size_gb(LOD_FREE_MEMORY_SIZE)) {
+                        enable_lod = false;
+                    }
+#ifdef __APPLE__
+                    if (Slic3r::is_mac_version_15()) {
+                        enable_lod = false;
+                    }
+#endif
                     m_volumes.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, m_color_by, m_initialized, m_canvas_type == ECanvasType::CanvasAssembleView, false, enable_lod);
                     m_volumes.volumes.back()->geometry_id = key.geometry_id;
                     update_object_list = true;

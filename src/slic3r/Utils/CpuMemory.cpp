@@ -63,11 +63,16 @@ bool CpuMemory::cur_free_memory_less_than_specify_size_gb(int size)
     unsigned long long free_mem = get_free_memory();
     auto cur_size = free_mem / (1024.0 * 1024.0 * 1024.0);
     static bool first_debug_free_memory = true;
+    static bool first_meet_size_gb      = true;
     if (first_debug_free_memory) {
         first_debug_free_memory = false;
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " cur_size = " << cur_size << "GB";
     }
-    if (cur_size > size) {
+    if (cur_size < size) {
+        if (first_meet_size_gb) {
+            first_meet_size_gb = false;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " cur_size = " << cur_size << "GB" << "first_meet_size_gb ";
+        }
         return true;
     }
     return false;
