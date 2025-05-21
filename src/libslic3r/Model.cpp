@@ -287,6 +287,9 @@ Model Model::read_from_file(const std::string&                                  
             ObjDialogInOut in_out;
             in_out.model = &model;
             in_out.lost_material_name = obj_info.lost_material_name;
+            in_out.ml_region          = obj_info.ml_region;
+            in_out.ml_name            = obj_info.ml_name;
+            in_out.ml_id              = obj_info.ml_id;
             if (obj_info.vertex_colors.size() > 0) {
                 if (objFn) { // 1.result is ok and pop up a dialog
                     in_out.input_colors      = std::move(obj_info.vertex_colors);
