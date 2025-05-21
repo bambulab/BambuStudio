@@ -2359,6 +2359,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_placeholder_parser.set("z_offset", new ConfigOptionFloat(0.0f));
         m_placeholder_parser.set("plate_name", new ConfigOptionString(print.get_plate_name()));
 
+        auto used_filaments = print.get_slice_used_filaments(false);
+        m_placeholder_parser.set("is_all_bbl_filament", std::all_of(used_filaments.begin(), used_filaments.end(), [&](auto idx) {
+            return m_config.filament_vendor.values[idx] == "Bambu Lab";
+            }));
+
         //add during_print_exhaust_fan_speed
         std::vector<int> during_print_exhaust_fan_speed_num;
         during_print_exhaust_fan_speed_num.reserve(m_config.during_print_exhaust_fan_speed.size());
