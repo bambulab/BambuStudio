@@ -61,7 +61,7 @@ struct TreeSupportMeshGroupSettings {
                 config.support_interface_top_layers.value) * this->layer_height :
             0;
         this->support_material_buildplate_only = config.support_on_build_plate_only;
-        this->support_xy_distance              = scaled<coord_t>(config.support_object_xy_distance.value);
+        this->support_xy_distance           = scaled<coord_t>(std::max(0.01, config.support_object_xy_distance.value));
         this->support_xy_distance_1st_layer = scaled<coord_t>(config.support_object_first_layer_gap.value);
         // Separation of interfaces, it is likely smaller than support_xy_distance.
         this->support_xy_distance_overhang = std::min(this->support_xy_distance, scaled<coord_t>(0.5 * external_perimeter_width));
