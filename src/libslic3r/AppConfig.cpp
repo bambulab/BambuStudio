@@ -1256,11 +1256,11 @@ std::string AppConfig::get_region()
     std::string sel = get("iot_environment");
     std::string region;
     if (sel == ENV_DEV_HOST)
-        region = "ENV_CN_DEV";
+        region = "NEW_ENV_DEV_HOST";
     else if (sel == ENV_QAT_HOST)
-        region = "ENV_CN_QA";
+        region = "NEW_ENV_QAT_HOST";
     else if (sel == ENV_PRE_HOST)
-        region = "ENV_CN_PRE";
+        region = "NEW_ENV_PRE_HOST";
     if (region.empty())
         return this->get("region");
     return region;
