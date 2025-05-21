@@ -28,6 +28,7 @@ public:
     }
     SurfacesPtr filter_by_type(const SurfaceType type);
     SurfacesPtr filter_by_types(std::initializer_list<SurfaceType> types);
+    void keep_type(const SurfaceType type, ExPolygons & exp);
     void keep_type(const SurfaceType type);
     void keep_types(std::initializer_list<SurfaceType> types);
     void remove_type(const SurfaceType type);

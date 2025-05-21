@@ -196,6 +196,7 @@ public:
     void                    recrod_cooling_node_for_each_extrusion();
     // Phony version of make_fills() without parameters for Perl integration only.
     void                    make_fills() { this->make_fills(nullptr, nullptr); }
+    void                    set_outlook_range(LockRegionParam &lock_param);
     void                    make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive::Octree* support_fill_octree, FillLightning::Generator* lightning_generator = nullptr);
     Polylines               generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Octree *adaptive_fill_octree,
         FillAdaptive::Octree *support_fill_octree,
