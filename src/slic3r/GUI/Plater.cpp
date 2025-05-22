@@ -1326,8 +1326,11 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         }
     };
 
-    auto is_same_nozzle_info = [](const ExtruderInfo &left, const ExtruderInfo &right) {
-        return abs(left.diameter - right.diameter) < EPSILON && left.nozzle_volue_type == right.nozzle_volue_type;
+    auto is_same_nozzle_info = [obj](const ExtruderInfo &left, const ExtruderInfo &right) {
+        bool is_same_nozzle_type = true;
+        if (obj->is_nozzle_flow_type_supported())
+            is_same_nozzle_type = left.nozzle_volue_type == right.nozzle_volue_type;
+        return abs(left.diameter - right.diameter) < EPSILON && is_same_nozzle_type;
     };
 
     // 2. update extruder status
