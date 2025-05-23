@@ -1485,7 +1485,7 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
     if (wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
         bool in_blacklist = false;
         std::string action;
-        std::string info;
+        wxString info;
         std::string filamnt_type;
         preset->get_filament_type(filamnt_type);
 
@@ -1496,7 +1496,7 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
         }
 
         if (in_blacklist) {
-            error_tips = info;
+            error_tips = info.ToUTF8().data();
             if (action == "prohibition") {
                 return false;
             }

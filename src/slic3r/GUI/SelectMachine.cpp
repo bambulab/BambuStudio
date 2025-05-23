@@ -354,7 +354,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     /*filament area*/
     /*1 extruder*/
     m_filament_panel = new StaticBox(m_scroll_area);
-    m_filament_panel->SetBackgroundColour(wxColour(0xF8F8F8));
+    m_filament_panel->SetBackgroundColour(wxColour("#F8F8F8"));
     m_filament_panel->SetBorderWidth(0);
     m_filament_panel->SetMinSize(wxSize(FromDIP(637), -1));
     m_filament_panel->SetMaxSize(wxSize(FromDIP(637), -1));
@@ -370,7 +370,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_filament_2extruder = new wxBoxSizer(wxHORIZONTAL);
 
     m_filament_left_panel = new StaticBox(m_scroll_area);
-    m_filament_left_panel->SetBackgroundColour(wxColour(0xF8F8F8));
+    m_filament_left_panel->SetBackgroundColour(wxColour("#F8F8F8"));
     m_filament_left_panel->SetBorderWidth(0);
     m_filament_left_panel->SetMinSize(wxSize(FromDIP(315), -1));
     m_filament_left_panel->SetMaxSize(wxSize(FromDIP(315), -1));
@@ -379,7 +379,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     auto left_recommend_title_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto left_recommend_title1 = new Label(m_filament_left_panel, _L("Left Nozzle"));
     left_recommend_title1->SetFont(::Label::Head_13);
-    left_recommend_title1->SetBackgroundColour(wxColour(0xF8F8F8));
+    left_recommend_title1->SetBackgroundColour(wxColour("#F8F8F8"));
     left_recommend_title_sizer->Add(left_recommend_title1, 0, wxALIGN_CENTER, 0);
 
     m_sizer_ams_mapping_left = new wxGridSizer(0, 5, FromDIP(7), FromDIP(7));
@@ -390,7 +390,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_filament_right_panel = new StaticBox(m_scroll_area);
     m_filament_right_panel->SetBorderWidth(0);
-    m_filament_right_panel->SetBackgroundColour(wxColour(0xf8f8f8));
+    m_filament_right_panel->SetBackgroundColour(wxColour("#F8F8F8"));
     m_filament_right_panel->SetMinSize(wxSize(FromDIP(315), -1));
     m_filament_right_panel->SetMaxSize(wxSize(FromDIP(315), -1));
 
@@ -398,7 +398,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     auto right_recommend_title_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto right_recommend_title1 = new Label(m_filament_right_panel, _L("Right Nozzle"));
     right_recommend_title1->SetFont(::Label::Head_13);
-    right_recommend_title1->SetBackgroundColour(wxColour(0xF8F8F8));
+    right_recommend_title1->SetBackgroundColour(wxColour("#F8F8F8"));
     right_recommend_title_sizer->Add(right_recommend_title1, 0, wxALIGN_CENTER, 0);
 
     m_sizer_ams_mapping_right = new wxGridSizer(0, 5, FromDIP(7), FromDIP(7));
@@ -2049,8 +2049,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
         bool in_blacklist = false;
         std::string action;
-        std::string info;
-
+        wxString info;
         DeviceManager::check_filaments_in_blacklist(obj_->printer_type, filament_brand, filament_type, m_ams_mapping_result[i].filament_id, ams_id, slot_id, "", in_blacklist,
                                                     action, info);
 
@@ -3500,8 +3499,7 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
 
         bool        in_blacklist = false;
         std::string action;
-        std::string info;
-
+        wxString info;
         DeviceManager::check_filaments_in_blacklist(obj_->printer_type, filament_brand, filament_type, m_ams_mapping_result[i].filament_id, ams_id, slot_id, "", in_blacklist,
                                                     action, info);
         if (in_blacklist) {
@@ -5249,7 +5247,7 @@ void PrinterInfoBox::Create()
     auto printer_staticbox = new StaticBox(this);
     printer_staticbox->SetMinSize(wxSize(FromDIP(338), FromDIP(68)));
     printer_staticbox->SetMaxSize(wxSize(FromDIP(338), FromDIP(68)));
-    printer_staticbox->SetBorderColor(wxColour(0xCECECE));
+    printer_staticbox->SetBorderColor(wxColour("#CECECE"));
 
     m_comboBox_printer = new ComboBox(printer_staticbox, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
     m_comboBox_printer->SetBorderWidth(0);
