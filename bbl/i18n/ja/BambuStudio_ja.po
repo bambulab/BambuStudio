@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-20 16:24+0800\n"
+"POT-Creation-Date: 2025-05-23 09:28+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6067,19 +6067,15 @@ msgstr "新規プロジェクトを作成"
 
 #, c-format, boost-format
 msgid ""
-"The currently connected printer, %s, is a %s model.\n"
+"The currently connected printer '%s', is a %s model.\n"
 "To use this printer for printing, please switch the printer model of project file to %s."
 msgstr ""
-"現在接続されているプリンタ%s は%s モデルです。\n"
-"このプリンタを印刷に使用するには、プロジェクトファイルのプリンタモデルを%s に切り替えてください。"
 
 #, c-format, boost-format
 msgid ""
-"The currently connected printer, %s, is a %s model but not consistent with preset in project file.\n"
+"The currently connected printer '%s', is a %s model but not consistent with preset in project file.\n"
 "To use this printer for printing, please switch the preset first."
 msgstr ""
-"現在接続されているプリンタ%s は%s モデルですが、プロジェクトファイルのプリセットと一致していません。\n"
-"このプリンタを印刷に使用するには、まずプリセットを切り替えてください。"
 
 msgid "Switch now"
 msgstr "今すぐ切り替える"
@@ -7197,10 +7193,16 @@ msgstr ""
 msgid "High chamber temperature is required. Please close the door."
 msgstr ""
 
+msgid "No labels are currently stored."
+msgstr ""
+
 msgid "Send to Printer storage"
 msgstr "プリンタストレージに送信"
 
 msgid "Try to connect"
+msgstr ""
+
+msgid "click to retry"
 msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
@@ -9633,11 +9635,11 @@ msgstr ""
 msgid "Volumetric speed when flushing filament. 0 indicates the max volumetric speed"
 msgstr ""
 
-msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
-msgstr "この設定は、1秒あたりに溶かして押し出せるフィラメントの体積を示します。印刷速度が高すぎたり、不適切な設定にならないように、最大体積速度によって制限されます。0には設定できません。"
-
 msgid "mm³/s"
 msgstr "mm³/s"
+
+msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
+msgstr "この設定は、1秒あたりに溶かして押し出せるフィラメントの体積を示します。印刷速度が高すぎたり、不適切な設定にならないように、最大体積速度によって制限されます。0には設定できません。"
 
 msgid "Ramming volumetric speed"
 msgstr "ラム体積速度"
@@ -12986,6 +12988,39 @@ msgstr "これは水溶性ではないサポートフィラメントで、通常
 msgid "The generic presets are conservatively tuned for compatibility with a wider range of filaments. For higher printing quality and speeds, please use Bambu filaments with Bambu presets."
 msgstr "ジェネリックプリセットは、幅広いフィラメントとの互換性を考慮し、控えめに調整されています。より高い印刷品質と速度を求める場合は、BambuフィラメントとBambuプリセットを使用してください。"
 
+msgid "High quality profile for 0.2mm nozzle, prioritizing print quality."
+msgstr ""
+
+msgid "High quality profile for 0.16mm layer height, prioritizing print quality and strength."
+msgstr ""
+
+msgid "Standard profile for 0.16mm layer height, prioritizing speed."
+msgstr ""
+
+msgid "High quality profile for 0.2mm layer height, prioritizing strength and print quality."
+msgstr ""
+
+msgid "Standard profile for 0.4mm nozzle, prioritizing speed."
+msgstr ""
+
+msgid "High quality profile for 0.6mm nozzle, prioritizing print quality and strength."
+msgstr ""
+
+msgid "Strength profile for 0.6mm nozzle, prioritizing strength."
+msgstr ""
+
+msgid "Standard profile for 0.6mm nozzle, prioritizing speed."
+msgstr ""
+
+msgid "High quality profile for 0.8mm nozzle, prioritizing print quality."
+msgstr ""
+
+msgid "Strength profile for 0.8mm nozzle, prioritizing strength."
+msgstr ""
+
+msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
+msgstr ""
+
 msgid "No AMS"
 msgstr "AMS無し"
 
@@ -13380,6 +13415,22 @@ msgid ""
 msgstr ""
 "反り防止\n"
 "ABSなど反りやすい材料を印刷する場合、ヒートベッド温度を適切に上げることで反りの発生を抑えられることをご存知ですか？"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The currently connected printer, %s, is a %s model.\n"
+#~ "To use this printer for printing, please switch the printer model of project file to %s."
+#~ msgstr ""
+#~ "現在接続されているプリンタ%s は%s モデルです。\n"
+#~ "このプリンタを印刷に使用するには、プロジェクトファイルのプリンタモデルを%s に切り替えてください。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The currently connected printer, %s, is a %s model but not consistent with preset in project file.\n"
+#~ "To use this printer for printing, please switch the preset first."
+#~ msgstr ""
+#~ "現在接続されているプリンタ%s は%s モデルですが、プロジェクトファイルのプリセットと一致していません。\n"
+#~ "このプリンタを印刷に使用するには、まずプリセットを切り替えてください。"
 
 #~ msgid "TPU is incompatible with AMS and must be printed seperately in the "
 #~ msgstr "TPUはAMSと互換性がなく、単独で印刷する必要があります。"
