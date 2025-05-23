@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "02.00.01.08",
+    "version": "02.00.01.09",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -986,6 +986,10 @@
             "sub_path": "filament/Bambu TPU 85A @base.json"
         },
         {
+            "name": "Generic TPU @base",
+            "sub_path": "filament/Generic TPU @base.json"
+        },
+        {
             "name": "Generic TPU",
             "sub_path": "filament/Generic TPU.json"
         },
@@ -1008,10 +1012,6 @@
         {
             "name": "Generic TPU @BBL H2D",
             "sub_path": "filament/Generic TPU @BBL H2D.json"
-        },
-        {
-            "name": "Generic TPU @base",
-            "sub_path": "filament/Generic TPU @base.json"
         },
         {
             "name": "SUNLU PETG @base",
@@ -1138,8 +1138,16 @@
             "sub_path": "filament/Bambu PA-CF @base.json"
         },
         {
+            "name": "Generic PA @base",
+            "sub_path": "filament/Generic PA @base.json"
+        },
+        {
             "name": "Generic PA",
             "sub_path": "filament/Generic PA.json"
+        },
+        {
+            "name": "Generic PA-CF @base",
+            "sub_path": "filament/Generic PA-CF @base.json"
         },
         {
             "name": "Generic PA-CF",
@@ -1188,14 +1196,6 @@
         {
             "name": "Generic PA @BBL H2D",
             "sub_path": "filament/Generic PA @BBL H2D.json"
-        },
-        {
-            "name": "Generic PA @base",
-            "sub_path": "filament/Generic PA @base.json"
-        },
-        {
-            "name": "Generic PA-CF @base",
-            "sub_path": "filament/Generic PA-CF @base.json"
         },
         {
             "name": "Generic HIPS @base",
