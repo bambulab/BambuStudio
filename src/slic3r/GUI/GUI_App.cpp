@@ -5049,6 +5049,8 @@ void GUI_App::check_new_version(bool show_tips, int by_user)
                                 version_info.url = j["software"]["url"].get<std::string>();
                                 version_info.version_str = j["software"]["version"].get<std::string>();
                                 version_info.description = j["software"]["description"].get<std::string>();
+
+                                wxGetApp().app_config->set_str("app", "cloud_software_url", version_info.url);
                             }
                             if (j["software"].contains("force_update")) {
                                 version_info.force_upgrade = j["software"]["force_update"].get<bool>();
