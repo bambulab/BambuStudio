@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-20 16:24+0800\n"
+"POT-Creation-Date: 2025-05-23 09:28+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6097,19 +6097,15 @@ msgstr "새 프로젝트 만들기"
 
 #, c-format, boost-format
 msgid ""
-"The currently connected printer, %s, is a %s model.\n"
+"The currently connected printer '%s', is a %s model.\n"
 "To use this printer for printing, please switch the printer model of project file to %s."
 msgstr ""
-"현재 연결된 프린터 %s은 %s 모델입니다.\n"
-"이 프린터를 출력에 사용하려면 프로젝트 파일의 프린터 모델을 %s로 전환하세요."
 
 #, c-format, boost-format
 msgid ""
-"The currently connected printer, %s, is a %s model but not consistent with preset in project file.\n"
+"The currently connected printer '%s', is a %s model but not consistent with preset in project file.\n"
 "To use this printer for printing, please switch the preset first."
 msgstr ""
-"현재 연결된 프린터 %s이 %s 모델이지만 프로젝트 파일의 사전 설정과 일치하지 않습니다.\n"
-"이 프린터를 출력에 사용하려면 먼저 프리셋을 전환하세요."
 
 msgid "Switch now"
 msgstr "지금 전환하기"
@@ -7227,10 +7223,16 @@ msgstr ""
 msgid "High chamber temperature is required. Please close the door."
 msgstr ""
 
+msgid "No labels are currently stored."
+msgstr ""
+
 msgid "Send to Printer storage"
 msgstr "프린터 저장소로 보내기"
 
 msgid "Try to connect"
+msgstr ""
+
+msgid "click to retry"
 msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
@@ -9673,11 +9675,11 @@ msgstr ""
 msgid "Volumetric speed when flushing filament. 0 indicates the max volumetric speed"
 msgstr ""
 
-msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
-msgstr "이 설정은 초당 녹이고 압출될 수 있는 필라멘트의 체적입니다. 너무 높고 불합리한 속도 설정의 경우 출력 속도는 최대 체적 속도에 의해 제한됩니다. 이 값은 0일 수 없습니다."
-
 msgid "mm³/s"
 msgstr "mm³/s"
+
+msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
+msgstr "이 설정은 초당 녹이고 압출될 수 있는 필라멘트의 체적입니다. 너무 높고 불합리한 속도 설정의 경우 출력 속도는 최대 체적 속도에 의해 제한됩니다. 이 값은 0일 수 없습니다."
 
 msgid "Ramming volumetric speed"
 msgstr "충돌 체적 속도"
@@ -13037,6 +13039,39 @@ msgstr "이것은 수용성이 아닌 서포트 필라멘트로, 일반적으로
 msgid "The generic presets are conservatively tuned for compatibility with a wider range of filaments. For higher printing quality and speeds, please use Bambu filaments with Bambu presets."
 msgstr "일반 사전 설정은 더 다양한 필라멘트와의 호환성을 위해 보수적으로 조정되었습니다. 출력 품질과 속도를 높이려면 Bambu 사전 설정과 함께 Bambu 필라멘트를 사용하세요."
 
+msgid "High quality profile for 0.2mm nozzle, prioritizing print quality."
+msgstr ""
+
+msgid "High quality profile for 0.16mm layer height, prioritizing print quality and strength."
+msgstr ""
+
+msgid "Standard profile for 0.16mm layer height, prioritizing speed."
+msgstr ""
+
+msgid "High quality profile for 0.2mm layer height, prioritizing strength and print quality."
+msgstr ""
+
+msgid "Standard profile for 0.4mm nozzle, prioritizing speed."
+msgstr ""
+
+msgid "High quality profile for 0.6mm nozzle, prioritizing print quality and strength."
+msgstr ""
+
+msgid "Strength profile for 0.6mm nozzle, prioritizing strength."
+msgstr ""
+
+msgid "Standard profile for 0.6mm nozzle, prioritizing speed."
+msgstr ""
+
+msgid "High quality profile for 0.8mm nozzle, prioritizing print quality."
+msgstr ""
+
+msgid "Strength profile for 0.8mm nozzle, prioritizing strength."
+msgstr ""
+
+msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
+msgstr ""
+
 msgid "No AMS"
 msgstr "AMS 초기화 프로세스 중에 AMS E 가 오프라인으로 감지되었습니다."
 
@@ -13432,6 +13467,22 @@ msgid ""
 msgstr ""
 "뒤틀림 방지\n"
 "ABS와 같이 뒤틀리기 쉬운 소재를 출력할 때 열판 온도를 적절히 높이면 뒤틀릴 확률을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The currently connected printer, %s, is a %s model.\n"
+#~ "To use this printer for printing, please switch the printer model of project file to %s."
+#~ msgstr ""
+#~ "현재 연결된 프린터 %s은 %s 모델입니다.\n"
+#~ "이 프린터를 출력에 사용하려면 프로젝트 파일의 프린터 모델을 %s로 전환하세요."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The currently connected printer, %s, is a %s model but not consistent with preset in project file.\n"
+#~ "To use this printer for printing, please switch the preset first."
+#~ msgstr ""
+#~ "현재 연결된 프린터 %s이 %s 모델이지만 프로젝트 파일의 사전 설정과 일치하지 않습니다.\n"
+#~ "이 프린터를 출력에 사용하려면 먼저 프리셋을 전환하세요."
 
 #~ msgid "TPU is incompatible with AMS and must be printed seperately in the "
 #~ msgstr "TPU는 AMS와 호환되지 않으므로 별도로 출력해야 합니다"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-20 16:24+0800\n"
+"POT-Creation-Date: 2025-05-23 09:28+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -6104,13 +6104,13 @@ msgstr "Створення нового проєкту"
 
 #, c-format, boost-format
 msgid ""
-"The currently connected printer, %s, is a %s model.\n"
+"The currently connected printer '%s', is a %s model.\n"
 "To use this printer for printing, please switch the printer model of project file to %s."
 msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The currently connected printer, %s, is a %s model but not consistent with preset in project file.\n"
+"The currently connected printer '%s', is a %s model but not consistent with preset in project file.\n"
 "To use this printer for printing, please switch the preset first."
 msgstr ""
 
@@ -7218,10 +7218,16 @@ msgstr ""
 msgid "High chamber temperature is required. Please close the door."
 msgstr ""
 
+msgid "No labels are currently stored."
+msgstr ""
+
 msgid "Send to Printer storage"
 msgstr ""
 
 msgid "Try to connect"
+msgstr ""
+
+msgid "click to retry"
 msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
@@ -9673,11 +9679,11 @@ msgstr ""
 msgid "Volumetric speed when flushing filament. 0 indicates the max volumetric speed"
 msgstr ""
 
-msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
-msgstr "Це налаштування визначає, скільки обсягу нитки може бути розплавлено та екструдовано за секунду. Швидкість друку обмежена максимальною об'ємною швидкістю, у разі надто високого та необґрунтованого налаштування швидкості. Не може бути нулем"
-
 msgid "mm³/s"
 msgstr "мм³/с"
+
+msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
+msgstr "Це налаштування визначає, скільки обсягу нитки може бути розплавлено та екструдовано за секунду. Швидкість друку обмежена максимальною об'ємною швидкістю, у разі надто високого та необґрунтованого налаштування швидкості. Не може бути нулем"
 
 msgid "Ramming volumetric speed"
 msgstr ""
@@ -13022,6 +13028,39 @@ msgstr "Це філамент для підтримки, що не розчин�
 
 msgid "The generic presets are conservatively tuned for compatibility with a wider range of filaments. For higher printing quality and speeds, please use Bambu filaments with Bambu presets."
 msgstr "Загальні пресети налаштовані консервативно для сумісності з більш широким спектром філаментів. Для досягнення вищої якості друку та швидкості, будь ласка, використовуйте філаменти Bambu з пресетами Bambu."
+
+msgid "High quality profile for 0.2mm nozzle, prioritizing print quality."
+msgstr ""
+
+msgid "High quality profile for 0.16mm layer height, prioritizing print quality and strength."
+msgstr ""
+
+msgid "Standard profile for 0.16mm layer height, prioritizing speed."
+msgstr ""
+
+msgid "High quality profile for 0.2mm layer height, prioritizing strength and print quality."
+msgstr ""
+
+msgid "Standard profile for 0.4mm nozzle, prioritizing speed."
+msgstr ""
+
+msgid "High quality profile for 0.6mm nozzle, prioritizing print quality and strength."
+msgstr ""
+
+msgid "Strength profile for 0.6mm nozzle, prioritizing strength."
+msgstr ""
+
+msgid "Standard profile for 0.6mm nozzle, prioritizing speed."
+msgstr ""
+
+msgid "High quality profile for 0.8mm nozzle, prioritizing print quality."
+msgstr ""
+
+msgid "Strength profile for 0.8mm nozzle, prioritizing strength."
+msgstr ""
+
+msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
+msgstr ""
 
 msgid "No AMS"
 msgstr "Немає AMS"

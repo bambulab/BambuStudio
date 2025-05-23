@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-20 16:24+0800\n"
+"POT-Creation-Date: 2025-05-23 09:28+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6120,19 +6120,15 @@ msgstr "Tworzenie nowego projektu"
 
 #, c-format, boost-format
 msgid ""
-"The currently connected printer, %s, is a %s model.\n"
+"The currently connected printer '%s', is a %s model.\n"
 "To use this printer for printing, please switch the printer model of project file to %s."
 msgstr ""
-"Aktualnie podłączona drukarka, %s, to model %s.\n"
-"Aby używać tej drukarki do druku, należy zmienić model drukarki w pliku projektu na %s."
 
 #, c-format, boost-format
 msgid ""
-"The currently connected printer, %s, is a %s model but not consistent with preset in project file.\n"
+"The currently connected printer '%s', is a %s model but not consistent with preset in project file.\n"
 "To use this printer for printing, please switch the preset first."
 msgstr ""
-"Aktualnie podłączona drukarka, %s, to model %s. Nie jest zgodna z profilem systemowym pliku projektu.\n"
-"Aby użyć tej drukarki do druku, należy najpierw zmienić profil systemowy."
 
 msgid "Switch now"
 msgstr "Przełącz teraz"
@@ -7250,10 +7246,16 @@ msgstr ""
 msgid "High chamber temperature is required. Please close the door."
 msgstr ""
 
+msgid "No labels are currently stored."
+msgstr ""
+
 msgid "Send to Printer storage"
 msgstr "Wyślij do pamięci drukarki"
 
 msgid "Try to connect"
+msgstr ""
+
+msgid "click to retry"
 msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
@@ -9706,11 +9708,11 @@ msgstr ""
 msgid "Volumetric speed when flushing filament. 0 indicates the max volumetric speed"
 msgstr ""
 
-msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
-msgstr "To ustawienie określa, ile objętości filamentu może być stopione i wyciśnięte na sekundę. Prędkość drukowania jest ograniczana przez maksymalną prędkość przepływu, jeśli prędkość jest zbyt wysoka i nieodpowiednio ustawiona. Nie może wynosić 0"
-
 msgid "mm³/s"
 msgstr "mm³/s"
+
+msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
+msgstr "To ustawienie określa, ile objętości filamentu może być stopione i wyciśnięte na sekundę. Prędkość drukowania jest ograniczana przez maksymalną prędkość przepływu, jeśli prędkość jest zbyt wysoka i nieodpowiednio ustawiona. Nie może wynosić 0"
 
 msgid "Ramming volumetric speed"
 msgstr "Prędkość wolumetryczna wyciskania"
@@ -13072,6 +13074,39 @@ msgstr "Jest to filament podporowy rozpuszczalny w wodzie, który zazwyczaj uży
 msgid "The generic presets are conservatively tuned for compatibility with a wider range of filaments. For higher printing quality and speeds, please use Bambu filaments with Bambu presets."
 msgstr "Profile ogólne zostały zoptymalizowane pod kątem kompatybilności z różnorodnymi filamentami. Aby uzyskać lepszą jakość druku i wyższe prędkości, prosimy używać filamentów Bambu z odpowiednimi profilami Bambu."
 
+msgid "High quality profile for 0.2mm nozzle, prioritizing print quality."
+msgstr ""
+
+msgid "High quality profile for 0.16mm layer height, prioritizing print quality and strength."
+msgstr ""
+
+msgid "Standard profile for 0.16mm layer height, prioritizing speed."
+msgstr ""
+
+msgid "High quality profile for 0.2mm layer height, prioritizing strength and print quality."
+msgstr ""
+
+msgid "Standard profile for 0.4mm nozzle, prioritizing speed."
+msgstr ""
+
+msgid "High quality profile for 0.6mm nozzle, prioritizing print quality and strength."
+msgstr ""
+
+msgid "Strength profile for 0.6mm nozzle, prioritizing strength."
+msgstr ""
+
+msgid "Standard profile for 0.6mm nozzle, prioritizing speed."
+msgstr ""
+
+msgid "High quality profile for 0.8mm nozzle, prioritizing print quality."
+msgstr ""
+
+msgid "Strength profile for 0.8mm nozzle, prioritizing strength."
+msgstr ""
+
+msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
+msgstr ""
+
 msgid "No AMS"
 msgstr "Brak AMS"
 
@@ -13467,6 +13502,22 @@ msgid ""
 msgstr ""
 "Unikaj wypaczania\n"
 "Czy wiesz, że podczas drukowania materiałów podatnych na wypaczanie, takich jak ABS, odpowiednie zwiększenie temperatury stołu grzejnego może zmniejszyć prawdopodobieństwo wypaczania."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The currently connected printer, %s, is a %s model.\n"
+#~ "To use this printer for printing, please switch the printer model of project file to %s."
+#~ msgstr ""
+#~ "Aktualnie podłączona drukarka, %s, to model %s.\n"
+#~ "Aby używać tej drukarki do druku, należy zmienić model drukarki w pliku projektu na %s."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The currently connected printer, %s, is a %s model but not consistent with preset in project file.\n"
+#~ "To use this printer for printing, please switch the preset first."
+#~ msgstr ""
+#~ "Aktualnie podłączona drukarka, %s, to model %s. Nie jest zgodna z profilem systemowym pliku projektu.\n"
+#~ "Aby użyć tej drukarki do druku, należy najpierw zmienić profil systemowy."
 
 #~ msgid "TPU is incompatible with AMS and must be printed seperately in the "
 #~ msgstr "TPU nie jest kompatybilny z systemem AMS i musi być drukowany osobno w "

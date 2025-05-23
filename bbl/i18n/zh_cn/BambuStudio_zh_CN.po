@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-20 16:24+0800\n"
+"POT-Creation-Date: 2025-05-23 09:28+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4080,7 +4080,7 @@ msgid "PLA and PETG filaments detected in the mixture. Adjust parameters accordi
 msgstr "检测到 PLA 和 PETG 同时打印，请根据 Wiki 中的建议调整打印参数来确保打印质量。"
 
 msgid "The prime tower extends beyond the plate boundary, which may cause part of the prime tower to lie outside the printable area after slicing."
-msgstr ""
+msgstr "料塔超出了打印板边界，可能导致切片后料塔部分位于可打印区域之外。"
 
 msgid "Click Wiki for help."
 msgstr "点击Wiki寻求帮助。"
@@ -6075,17 +6075,15 @@ msgstr "创建新项目"
 
 #, c-format, boost-format
 msgid ""
-"The currently connected printer, %s, is a %s model.\n"
+"The currently connected printer '%s', is a %s model.\n"
 "To use this printer for printing, please switch the printer model of project file to %s."
 msgstr ""
-"当前连接的打印机 %s 为 %s机型。\n"
-"如果使用该打印机打印，请将项目文件中的机型切换为 %s。"
 
 #, c-format, boost-format
 msgid ""
-"The currently connected printer, %s, is a %s model but not consistent with preset in project file.\n"
+"The currently connected printer '%s', is a %s model but not consistent with preset in project file.\n"
 "To use this printer for printing, please switch the preset first."
-msgstr "当前连接的打印机%s是%s型号，但与项目文件中的预设不一致。若要使用此打印机进行打印，请先切换预设。"
+msgstr ""
 
 msgid "Switch now"
 msgstr "现在切换"
@@ -7204,10 +7202,16 @@ msgstr "为了避免堵塞，打印TPU前请冷拔。您可使用打印机上的
 msgid "High chamber temperature is required. Please close the door."
 msgstr "需高腔温打印，请关门。"
 
+msgid "No labels are currently stored."
+msgstr ""
+
 msgid "Send to Printer storage"
 msgstr "发送到打印机存储"
 
 msgid "Try to connect"
+msgstr ""
+
+msgid "click to retry"
 msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
@@ -7630,7 +7634,7 @@ msgid "Filament end G-code"
 msgstr "耗材丝结束G-code"
 
 msgid "Multi Filament"
-msgstr ""
+msgstr "多材料"
 
 msgid "Printable space"
 msgstr "可打印区域"
@@ -9640,22 +9644,22 @@ msgid "Manual"
 msgstr "手动"
 
 msgid "Flush temperature"
-msgstr ""
+msgstr "冲刷温度"
 
 msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
-msgstr ""
+msgstr "耗材冲刷时的温度。0表示使用最大建议喷嘴温度。"
 
 msgid "Flush volumetric speed"
-msgstr ""
+msgstr "冲刷体积流量"
 
 msgid "Volumetric speed when flushing filament. 0 indicates the max volumetric speed"
-msgstr ""
-
-msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
-msgstr "这个设置表示在1秒内能够融化和挤出的耗材丝体积。打印速度会受到最大体积速度的限制，防止设置过高和不合理的速度。不允许设置为0。"
+msgstr "耗材冲刷时的体积速度。0表示使用耗材最大体积速度。"
 
 msgid "mm³/s"
 msgstr "mm³/s"
+
+msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
+msgstr "这个设置表示在1秒内能够融化和挤出的耗材丝体积。打印速度会受到最大体积速度的限制，防止设置过高和不合理的速度。不允许设置为0。"
 
 msgid "Ramming volumetric speed"
 msgstr "预冲刷体积速度"
@@ -10576,10 +10580,10 @@ msgid "Experimental feature.Retraction length before cutting off during filament
 msgstr "实验性选项。在更换耗材丝时，切断前的回抽长度"
 
 msgid "Long retraction when extruder change"
-msgstr "Long retraction when changing extruders"
+msgstr "切换喷嘴时回抽"
 
 msgid "Retraction distance when extruder change"
-msgstr "Retraction distance when changing extruders"
+msgstr "切换喷嘴回抽距离"
 
 msgid "Z hop when retract"
 msgstr "回抽时抬升Z"
@@ -12997,6 +13001,39 @@ msgstr "此为非水溶性支撑耗材，通常只能用于打印支撑结构，
 msgid "The generic presets are conservatively tuned for compatibility with a wider range of filaments. For higher printing quality and speeds, please use Bambu filaments with Bambu presets."
 msgstr "Generic 参数为了兼容更多种耗材而进行了较为保守的调校，使用拓竹原装耗材配合拓竹专用参数可获得更高的打印质量与更高的打印速度。"
 
+msgid "High quality profile for 0.2mm nozzle, prioritizing print quality."
+msgstr "0.2mm喷嘴的高质量打印参数，打印质量优先。"
+
+msgid "High quality profile for 0.16mm layer height, prioritizing print quality and strength."
+msgstr "0.16mm层高的高质量参数，打印质量和强度优先。"
+
+msgid "Standard profile for 0.16mm layer height, prioritizing speed."
+msgstr "0.16mm层高标准参数，速度优先。"
+
+msgid "High quality profile for 0.2mm layer height, prioritizing strength and print quality."
+msgstr "0.2mm层高的高质量参数，强度和打印质量优先。"
+
+msgid "Standard profile for 0.4mm nozzle, prioritizing speed."
+msgstr "0.4mm喷嘴默认参数，速度优先。"
+
+msgid "High quality profile for 0.6mm nozzle, prioritizing print quality and strength."
+msgstr "0.6mm喷嘴的高质量打印参数，打印质量优先。"
+
+msgid "Strength profile for 0.6mm nozzle, prioritizing strength."
+msgstr "0.6mm喷嘴的高强度打印参数，强度优先。"
+
+msgid "Standard profile for 0.6mm nozzle, prioritizing speed."
+msgstr "0.6mm喷嘴的默认参数，速度优先。"
+
+msgid "High quality profile for 0.8mm nozzle, prioritizing print quality."
+msgstr "0.8mm喷嘴的高质量打印参数，打印质量优先。"
+
+msgid "Strength profile for 0.8mm nozzle, prioritizing strength."
+msgstr "0.8mm喷嘴的高强度打印参数，强度优先。"
+
+msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
+msgstr "0.8mm喷嘴的默认参数，速度优先。"
+
 msgid "No AMS"
 msgstr "没有AMS"
 
@@ -13392,6 +13429,20 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The currently connected printer, %s, is a %s model.\n"
+#~ "To use this printer for printing, please switch the printer model of project file to %s."
+#~ msgstr ""
+#~ "当前连接的打印机 %s 为 %s机型。\n"
+#~ "如果使用该打印机打印，请将项目文件中的机型切换为 %s。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The currently connected printer, %s, is a %s model but not consistent with preset in project file.\n"
+#~ "To use this printer for printing, please switch the preset first."
+#~ msgstr "当前连接的打印机%s是%s型号，但与项目文件中的预设不一致。若要使用此打印机进行打印，请先切换预设。"
 
 #~ msgid "TPU is incompatible with AMS and must be printed seperately in the "
 #~ msgstr "TPU材料与AMS不兼容，必须单独分组且仅限"
