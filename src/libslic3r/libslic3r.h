@@ -75,7 +75,6 @@ static constexpr double INSET_OVERLAP_TOLERANCE = 0.4;
 static constexpr double EXTERNAL_INFILL_MARGIN = 3;
 static constexpr double BRIDGE_INFILL_MARGIN = 1;
 static constexpr double WIPE_TOWER_MARGIN = 0.2;
-static constexpr double MIN_WIPE_TOWER_SIZE = 5;
 //FIXME Better to use an inline function with an explicit return type.
 //inline coord_t scale_(coordf_t v) { return coord_t(floor(v / SCALING_FACTOR + 0.5f)); }
 #define scale_(val) ((val) / SCALING_FACTOR)
