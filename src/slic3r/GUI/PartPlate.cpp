@@ -3765,7 +3765,7 @@ void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx, bool ini
         y = I3_WIPE_TOWER_DEFAULT_Y_POS;
     }
 
-    const float margin     = 15;  // old  WIPE_TOWER_MARGIN, keep the same value
+    const float margin     = WIPE_TOWER_MARGIN;
     PartPlate* part_plate = get_plate(plate_idx);
     Vec3d plate_origin = part_plate->get_origin();
     BoundingBoxf3  plate_bbox = part_plate->get_bounding_box();
