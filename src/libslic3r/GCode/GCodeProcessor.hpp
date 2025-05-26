@@ -1100,7 +1100,7 @@ namespace Slic3r {
 
     public:
         GCodeProcessor();
-
+        void init_filament_maps_and_nozzle_type_when_import_only_gcode();
         // check whether the gcode path meets the filament_map grouping requirements
         bool check_multi_extruder_gcode_valid(const std::vector<Polygons> &unprintable_areas,
                                               const std::vector<double>   &printable_heights,
@@ -1296,7 +1296,6 @@ namespace Slic3r {
         void process_M1020(const GCodeReader::GCodeLine &line);
 
         void process_filament_change(int id);
-
         //BBS: different path_type is only used for arc move
         void store_move_vertex(EMoveType type, EMovePathType path_type = EMovePathType::Noop_move);
 
