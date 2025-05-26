@@ -854,10 +854,6 @@
             "sub_path": "filament/Bambu PLA Sparkle @base.json"
         },
         {
-            "name": "Bambu PLA Impact @base",
-            "sub_path": "filament/Bambu PLA Impact @base.json"
-        },
-        {
             "name": "Bambu PLA Metal @base",
             "sub_path": "filament/Bambu PLA Metal @base.json"
         },
