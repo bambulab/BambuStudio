@@ -101,6 +101,7 @@ protected:
 
     wxString handle_snapshot_action_name(bool shift_down, Button button_down) const override;
 
+    void        clear_parent_paint_outline_volumes() const;
     std::string get_gizmo_entering_text() const override { return "Entering color painting"; }
     std::string get_gizmo_leaving_text() const override { return "Leaving color painting"; }
     std::string get_action_snapshot_name() override { return "Color painting editing"; }
@@ -112,8 +113,6 @@ protected:
 
     // BBS
     wchar_t                           m_current_tool = 0;
-    bool                              m_detect_geometry_edge = true;
-
     static const constexpr float      CursorRadiusMin = 0.1f; // cannot be zero
 
 private:

@@ -564,6 +564,7 @@ public:
 
     int GetHoverId();
     void set_ignore_left_up() { m_mouse.ignore_left_up = true; }
+    GLVolumeCollection &get_paint_outline_volumes() { return m_paint_outline_volumes; }
 
 private:
     bool m_is_dark = false;
@@ -604,6 +605,7 @@ private:
     bool m_extra_frame_requested;
     bool m_event_handlers_bound{ false };
 
+    GLVolumeCollection m_paint_outline_volumes;
     GLVolumeCollection m_volumes;
     GCodeViewer m_gcode_viewer;
 
@@ -1214,7 +1216,7 @@ private:
     void _render_platelist(bool bottom, bool only_current, bool only_body = false, int hover_id = -1, bool render_cali = false, bool show_grid = true) const;
     void _render_plates_for_picking() const;
     //BBS: add outline drawing logic
-    void _render_objects(GLVolumeCollection::ERenderType type, bool with_outline = true);
+    void _render_objects(GLVolumeCollection& cur_volumes, GLVolumeCollection::ERenderType type, bool with_outline = true,bool in_paint_gizmo = false);
     //BBS: GUI refactor: add canvas size as parameters
     void _render_gcode(int canvas_width, int canvas_height);
     //BBS: render a plane for assemble

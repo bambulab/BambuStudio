@@ -104,6 +104,7 @@ bool GLGizmoMmuSegmentation::on_init()
     m_desc["erase"]                = _L("Erase");
     m_desc["shortcut_key_caption"] = _L("Key 1~9");
     m_desc["shortcut_key"]         = _L("Choose filament");
+    m_desc["same_color_connection"] = _L("Connected same color");
     m_desc["edge_detection"]       = _L("Edge detection");
     m_desc["gap_area_caption"]     = ctrl + _L("Mouse wheel");
     m_desc["gap_area"]             = _L("Gap area");
@@ -278,10 +279,66 @@ void GLGizmoMmuSegmentation::render_triangles(const Selection &selection) const
 
         shader->set_uniform("volume_world_matrix", trafo_matrix);
         shader->set_uniform("volume_mirrored", is_left_handed);
-        m_triangle_selectors[mesh_id]->render(m_imgui, trafo_matrix);
 
+        m_triangle_selectors[mesh_id]->render(m_imgui, trafo_matrix, m_tool_type != ToolType::BUCKET_FILL);
+        //add selected glvolume for BucketFillType::SameColor ,because no paint_contour
+        if (m_tool_type == ToolType::BUCKET_FILL) {
+            auto temp_patch = dynamic_cast<TriangleSelectorPatch *>(m_triangle_selectors[mesh_id].get());
+            int  state      = -1;
+            auto its        = m_triangle_selectors[mesh_id]->get_seed_fill_mesh(state);
+            TriangleMesh mesh(its);
+            if (m_rr.mesh_id == mesh_id && !(state == m_last_hit_state && m_last_hit_state_faces == mesh.facets_count() && (m_last_hit_its_center - mesh.bounding_box().center()).norm() > 0.01)) {
+                m_last_hit_state = state;
+                m_last_hit_state_faces = mesh.facets_count();
+                m_last_hit_its_center =mesh.bounding_box().center();
+                if (!m_parent.get_paint_outline_volumes().empty()) { m_parent.get_paint_outline_volumes().clear(); }
+                if (temp_patch && !m_triangle_selectors[mesh_id]->get_paint_contour_has_data()) {
+                    auto colors =temp_patch->get_ebt_colors();
+                    auto triangles = temp_patch->get_triangles();
+                    if (triangles.size() > 0 && state >= 0) {
+                        if (state < colors.size()) {
+                            auto color = colors[state];
+                            m_parent.get_paint_outline_volumes().volumes.emplace_back(new GLVolume(color));
+                            auto& v = m_parent.get_paint_outline_volumes().volumes.back();
+
+                            init_selected_glvolume(*v, mesh, Geometry::Transformation(trafo_matrix));
+                        }
+                    }
+                }
+            }
+        }
+        if (m_rr.mesh_id < 0 || m_tool_type != ToolType::BUCKET_FILL) {
+            clear_parent_paint_outline_volumes();
+        }
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CCW));
+    }
+    if (m_tool_type == ToolType::BUCKET_FILL) {
+        mesh_id = -1;
+        for (const ModelVolume *mv : mo->volumes) {
+            if (!mv->is_model_part()) continue;
+
+            ++mesh_id;
+            if (mesh_id != m_rr.mesh_id) { continue; }
+            Transform3d trafo_matrix;
+            if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
+                trafo_matrix = mo->instances[selection.get_instance_idx()]->get_assemble_transformation().get_matrix() * mv->get_matrix();
+                trafo_matrix.translate(mv->get_transformation().get_offset() * (GLVolume::explosion_ratio - 1.0) +
+                                       mo->instances[selection.get_instance_idx()]->get_offset_to_assembly() * (GLVolume::explosion_ratio - 1.0));
+            } else {
+                trafo_matrix = mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix() * mv->get_matrix();
+            }
+
+            bool is_left_handed = trafo_matrix.matrix().determinant() < 0.;
+            if (is_left_handed) glsafe(::glFrontFace(GL_CW));
+
+            const Camera &    camera = wxGetApp().plater()->get_camera();
+            const Transform3d matrix = camera.get_view_matrix() * trafo_matrix;
+
+            m_triangle_selectors[mesh_id]->render_paint_contour(trafo_matrix,true);
+
+            if (is_left_handed) glsafe(::glFrontFace(GL_CCW));
+        }
     }
 }
 
@@ -480,7 +537,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     window_width = std::max(window_width, total_text_max);
     window_width = std::max(window_width, buttons_width);
     window_width = std::max(window_width, max_filament_items_per_line * filament_item_width + m_imgui->scaled(0.5f));
-
+    window_width = std::max(window_width, m_imgui->calc_button_size(m_desc["same_color_connection"]).x + m_imgui->calc_button_size("edge_detection").x + m_imgui->scaled(2.5f));
     const float sliders_width = m_imgui->scaled(7.0f);
     const float drag_left_width = ImGui::GetStyle().WindowPadding.x + sliders_width - space_size;
 
@@ -492,7 +549,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     float color_button = ImGui::GetCursorPos().y;
 
-    float textbox_width       = 1.5 * slider_icon_width;
+    float             textbox_width       = 1.5 * slider_icon_width;
     SliderInputLayout slider_input_layout = {clipping_slider_left, sliders_width, drag_left_width + circle_max_width, textbox_width};
     if (wxGetApp().plater()->is_show_non_manifold_edges()) {
         m_imgui->text(_L("hit face") + ":" + std::to_string(m_rr.facet));
@@ -703,10 +760,25 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     } else if (m_current_tool == ImGui::FillButtonIcon) {
         m_cursor_type = TriangleSelector::CursorType::POINTER;
-        m_imgui->bbl_checkbox(m_desc["edge_detection"], m_detect_geometry_edge);
+        bool is_same_color = m_bucket_fill_mode == BucketFillType::SameColor;
+        ImGuiWrapper::push_radio_style();
+        if (ImGui::RadioButton(m_desc["same_color_connection"].c_str(), is_same_color)){
+            m_bucket_fill_mode = BucketFillType::SameColor;
+            m_smart_fill_angle = -1;// set to negative value to disable edge detection
+        }
+        ImGui::SameLine();
+        bool is_detect_geometry_edge = m_bucket_fill_mode == BucketFillType::EdgeDetect;
+        if (ImGui::RadioButton(m_desc["edge_detection"].c_str(), is_detect_geometry_edge)){
+            m_bucket_fill_mode = BucketFillType::EdgeDetect;
+            m_smart_fill_angle = m_last_edge_detection_smart_fill_angle;
+        }
+        ImGuiWrapper::pop_radio_style();
         m_tool_type = ToolType::BUCKET_FILL;
 
-        if (m_detect_geometry_edge) {
+        if (is_detect_geometry_edge) {
+            if (m_last_edge_detection_smart_fill_angle != m_smart_fill_angle) {
+                m_last_edge_detection_smart_fill_angle = m_smart_fill_angle;
+            }
             ImGui::AlignTextToFramePadding();
             m_imgui->text(m_desc["smart_fill_angle"]);
             std::string format_str = std::string("%.f") + I18N::translate_utf8("°", "Face angle threshold,"
@@ -721,9 +793,6 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             ImGui::SameLine(drag_left_width + sliders_left_width);
             ImGui::PushItemWidth(1.5 * slider_icon_width);
             ImGui::BBLDragFloat("##smart_fill_angle_input", &m_smart_fill_angle, 0.05f, 0.0f, 0.0f, "%.2f");
-        } else {
-            // set to negative value to disable edge detection
-            m_smart_fill_angle = -1.f;
         }
         ImGui::Separator();
         if (m_c->object_clipper()->get_position() == 0.f) {
@@ -1019,8 +1088,12 @@ void GLGizmoMmuSegmentation::on_set_state()
             m_selected_extruder_idx = 1;
         }
         m_non_manifold_edges_model.reset();
+        m_bucket_fill_mode = BucketFillType::SameColor;
+        m_smart_fill_angle = -1;
     }
     else if (get_state() == Off) {
+        clear_parent_paint_outline_volumes();
+
         ModelObject* mo = m_c->selection_info()->model_object();
         if (mo) Slic3r::save_object_mesh(*mo);
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_FORCE_UPDATE));
@@ -1039,6 +1112,16 @@ wxString GLGizmoMmuSegmentation::handle_snapshot_action_name(bool shift_down, GL
         action_name        = GUI::format(_L("Painted using: Filament %1%"), m_selected_extruder_idx);
     }
     return action_name;
+}
+
+void GLGizmoMmuSegmentation::clear_parent_paint_outline_volumes() const
+{
+    m_last_hit_state = -1;
+    m_last_hit_state_faces = -1;
+    m_last_hit_its_center  = Vec3d::Zero();
+    if (!m_parent.get_paint_outline_volumes().empty()) {
+        m_parent.get_paint_outline_volumes().clear();
+    }
 }
 
 void GLMmSegmentationGizmo3DScene::release_geometry() {

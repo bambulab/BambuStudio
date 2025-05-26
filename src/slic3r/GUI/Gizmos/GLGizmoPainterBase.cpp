@@ -127,6 +127,20 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection) const
     }
 }
 
+void GLGizmoPainterBase::init_selected_glvolume(GLVolume &v,const TriangleMesh &mesh, const Geometry::Transformation &world_transformation) const
+{
+    v.force_native_color = true;
+    v.selected           = true;
+    v.set_render_color();
+#if ENABLE_SMOOTH_NORMALS
+    v.indexed_vertex_array->load_mesh(mesh, true);
+#else
+    v.indexed_vertex_array->load_mesh(mesh);
+#endif // ENABLE_SMOOTH_NORMALS
+    v.indexed_vertex_array->finalize_geometry(true);
+    v.set_instance_transformation(world_transformation);
+    v.set_convex_hull(mesh.convex_hull_3d());
+}
 
 void GLGizmoPainterBase::render_cursor() const
 {
@@ -1271,7 +1285,7 @@ std::array<float, 4> TriangleSelectorGUI::get_seed_fill_color(const std::array<f
         1.f};
 }
 
-void TriangleSelectorGUI::render(ImGuiWrapper* imgui, const Transform3d& matrix)
+void TriangleSelectorGUI::render(ImGuiWrapper *imgui, const Transform3d &matrix,bool render_paint_contour_at_same_time)
 {
     if (m_update_render_data) {
         update_render_data();
@@ -1302,7 +1316,9 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui, const Transform3d& matrix)
     ScopeGuard guard_gouraud([shader]() { wxGetApp().bind_shader(shader); });
     wxGetApp().unbind_shader();
 
-    render_paint_contour(matrix);
+    if (render_paint_contour_at_same_time) {
+        render_paint_contour(matrix);
+    }
 
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
     if (imgui)
@@ -1391,20 +1407,23 @@ void TriangleSelectorGUI::update_paint_contour()
         init_data.add_line(vertices_count - 2, vertices_count - 1);
     }
 
-    if (!init_data.is_empty())
+    if (!init_data.is_empty()) {
         m_paint_contour.init_from(std::move(init_data));
+    }
 }
-void TriangleSelectorGUI::render_paint_contour(const Transform3d& matrix)
+
+void TriangleSelectorGUI::render_paint_contour(const Transform3d &matrix, bool clear_depth)
 {
     const auto& contour_shader = wxGetApp().get_shader("mm_contour");
-    if (contour_shader)
-    {
+    if (contour_shader && m_paint_contour.is_initialized()){
         wxGetApp().bind_shader(contour_shader);
 
         const Camera& camera = wxGetApp().plater()->get_camera();
         contour_shader->set_uniform("view_model_matrix", camera.get_view_matrix() * matrix);
         contour_shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-
+        if (clear_depth){
+            glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
+        }
         glsafe(::glDepthFunc(GL_LEQUAL));
         m_paint_contour.render_geometry();
         glsafe(::glDepthFunc(GL_LESS));
@@ -1422,7 +1441,12 @@ bool TrianglePatch::is_fragment() const
 float TriangleSelectorPatch::gap_area = TriangleSelectorPatch::GapAreaMin;
 bool  TriangleSelectorPatch::exist_gap_area = false;
 
-void TriangleSelectorPatch::render(ImGuiWrapper* imgui, const Transform3d& matrix)
+TriangleSelectorPatch::TriangleSelectorPatch(const TriangleMesh &mesh, const std::vector<std::array<float, 4>> ebt_colors, float edge_limit): TriangleSelectorGUI(mesh, edge_limit), m_ebt_colors(ebt_colors)
+{
+}
+
+
+void TriangleSelectorPatch::render(ImGuiWrapper *imgui, const Transform3d &matrix, bool render_paint_contour_at_same_time)
 {
     if (m_update_render_data)
         update_render_data();
@@ -1470,7 +1494,9 @@ void TriangleSelectorPatch::render(ImGuiWrapper* imgui, const Transform3d& matri
     ScopeGuard guard_mm_gouraud([shader]() { wxGetApp().bind_shader(shader); });
     wxGetApp().unbind_shader();
 
-    render_paint_contour(matrix);
+    if (render_paint_contour_at_same_time) {
+        render_paint_contour(matrix);
+    }
 
     m_update_render_data = false;
 }

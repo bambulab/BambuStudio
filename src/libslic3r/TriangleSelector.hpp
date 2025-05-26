@@ -257,7 +257,7 @@ public:
     indexed_triangle_set get_facets_strict(EnforcerBlockerType state) const;
     // Get edges around the selected area by seed fill.
     std::vector<Vec2i> get_seed_fill_contour() const;
-
+    indexed_triangle_set get_seed_fill_mesh(int& state) const;
     // BBS
     void get_facets(std::vector<indexed_triangle_set>& facets_per_type) const;
 
@@ -320,10 +320,10 @@ protected:
         EnforcerBlockerType get_state() const { assert(! is_split()); return state; }
 
         // Set if the triangle has been selected or unselected by seed fill.
-        void select_by_seed_fill() { assert(! is_split()); m_selected_by_seed_fill = true; }
-        void unselect_by_seed_fill() { assert(! is_split()); m_selected_by_seed_fill = false; }
+        void select_by_seed_fill();
+        void unselect_by_seed_fill();
         // Get if the triangle has been selected or not by seed fill.
-        bool is_selected_by_seed_fill() const { assert(! is_split()); return m_selected_by_seed_fill; }
+        bool is_selected_by_seed_fill() const;
 
         // Is this triangle valid or marked to be removed?
         bool valid() const noexcept { return m_valid; }
@@ -413,7 +413,7 @@ private:
 
     //void append_touching_subtriangles(int itriangle, int vertexi, int vertexj, std::vector<int> &touching_subtriangles_out) const;
     void append_touching_edges(int itriangle, int vertexi, int vertexj, std::vector<Vec2i> &touching_edges_out) const;
-
+    void append_touching_its(int itriangle, indexed_triangle_set &its) const;
 #ifndef NDEBUG
     //bool verify_triangle_neighbors(const Triangle& tr, const Vec3i& neighbors) const;
     bool verify_triangle_midpoints(const Triangle& tr) const;
@@ -426,6 +426,7 @@ private:
         std::vector<stl_triangle_vertex_indices>    &out_triangles) const;
     void get_facets_split_by_tjoints(const Vec3i &vertices, const Vec3i &neighbors, std::vector<stl_triangle_vertex_indices> &out_triangles) const;
 
+    void get_seed_fill_its_recursive(int facet_idx, const Vec3i &neighbors, const Vec3i &neighbors_propagated, std::set<int> &idx_set, indexed_triangle_set &its, int &state) const;
     void get_seed_fill_contour_recursive(int facet_idx, const Vec3i &neighbors, const Vec3i &neighbors_propagated, std::vector<Vec2i> &edges_out) const;
 
     int m_free_triangles_head { -1 };
