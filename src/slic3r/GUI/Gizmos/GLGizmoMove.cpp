@@ -336,22 +336,21 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 {
     double projection = 0.0;
 
-    Vec3d starting_vec = m_starting_drag_position - m_starting_box_center;
-    double len_starting_vec = starting_vec.norm();
-    if (len_starting_vec != 0.0) {
-        Vec3d mouse_dir = data.mouse_ray.unit_vector();
-        // finds the intersection of the mouse ray with the plane parallel to the camera viewport and passing throught the starting position
-        // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection algebric form
-        // in our case plane normal and ray direction are the same (orthogonal view)
-        // when moving to perspective camera the negative z unit axis of the camera needs to be transformed in world space and used as plane normal
-        Vec3d inters = data.mouse_ray.a + (m_starting_drag_position - data.mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
-        // vector from the starting position to the found intersection
-        Vec3d inters_vec = inters - m_starting_drag_position;
+    Vec3d mouse_dir = data.mouse_ray.unit_vector();
+    // finds the intersection of the mouse ray with the plane parallel to the camera viewport and passing throught the starting position
+    // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection algebric form
+    // in our case plane normal and ray direction are the same (orthogonal view)
+    // when moving to perspective camera the negative z unit axis of the camera needs to be transformed in world space and used as plane normal
+    Vec3d inters = data.mouse_ray.a + (m_starting_drag_position - data.mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
 
-        projection = inters_vec.norm();
-        const double sign = inters_vec.dot(starting_vec) > 1e-6f ? 1.0f : -1.0f;
-
-        projection = projection * sign;
+    if (m_hover_id == 0) {
+        projection = inters.x() - m_starting_drag_position.x();
+    }
+    else if (m_hover_id == 1) {
+        projection = inters.y() - m_starting_drag_position.y();
+    }
+    else if (m_hover_id == 2) {
+        projection = inters.z() - m_starting_drag_position.z();
     }
 
     if (wxGetKeyState(WXK_SHIFT))
