@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-23 09:28+0800\n"
+"POT-Creation-Date: 2025-05-26 21:31+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3407,10 +3407,6 @@ msgid "right"
 msgstr "右"
 
 #, c-format, boost-format
-msgid "TPU is not supported by %s extruder for this printer."
-msgstr "TPUは、このプリンタの%s 押出機ではサポートされていません。"
-
-#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "%s は %s 押出機ではサポートされていません。"
 
@@ -4075,7 +4071,7 @@ msgstr "フィラメント %s は、このプレートの表面に直接印刷�
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "混合物にPLAとPETGフィラメントが検出されました。印刷品質を確保するために、Wikiの指示に従ってパラメータを調整してください。"
 
-msgid "The prime tower extends beyond the plate boundary, which may cause part of the prime tower to lie outside the printable area after slicing."
+msgid "The prime tower extends beyond the plate boundary."
 msgstr ""
 
 msgid "Click Wiki for help."
@@ -5347,8 +5343,9 @@ msgstr "計算中です。しばらくお待ちください…"
 msgid "Status"
 msgstr "デバイス状態"
 
+msgctxt "Firmware"
 msgid "Update"
-msgstr "更新"
+msgstr ""
 
 msgid "Assistant(HMS)"
 msgstr ""
@@ -5409,6 +5406,10 @@ msgstr "現在のバージョン: "
 
 msgid "Latest Version: "
 msgstr "最新バージョン:"
+
+msgctxt "Software"
+msgid "Update"
+msgstr ""
 
 msgid "Not for now"
 msgstr "今はしない"
@@ -7386,11 +7387,10 @@ msgid ""
 msgstr ""
 
 msgid ""
-"When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+"and use soluble materials for both support interface and support base"
 msgstr ""
-"サポートインターフェースにサポート材料を使用する場合、以下の設定をお勧めします：\n"
-"0トップZ距離、0インターフェース間隔、交差直線パターン、および独立した積層ピッチを無効にする。"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -7400,6 +7400,13 @@ msgstr ""
 "これらの設定を自動的に変更しますか？ \n"
 "はい - これらの設定を自動的に変更します\n"
 "いいえ - これらの設定を変更しません"
+
+msgid ""
+"When using support material for the support interface, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+msgstr ""
+"サポートインターフェースにサポート材料を使用する場合、以下の設定をお勧めします：\n"
+"0トップZ距離、0インターフェース間隔、交差直線パターン、および独立した積層ピッチを無効にする。"
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
@@ -13415,6 +13422,13 @@ msgid ""
 msgstr ""
 "反り防止\n"
 "ABSなど反りやすい材料を印刷する場合、ヒートベッド温度を適切に上げることで反りの発生を抑えられることをご存知ですか？"
+
+#, c-format, boost-format
+#~ msgid "TPU is not supported by %s extruder for this printer."
+#~ msgstr "TPUは、このプリンタの%s 押出機ではサポートされていません。"
+
+#~ msgid "Update"
+#~ msgstr "更新"
 
 #, c-format, boost-format
 #~ msgid ""

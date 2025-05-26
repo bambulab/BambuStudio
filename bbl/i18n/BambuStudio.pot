@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-23 09:28+0800\n"
+"POT-Creation-Date: 2025-05-26 21:31+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3334,10 +3334,6 @@ msgid "right"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "TPU is not supported by %s extruder for this printer."
-msgstr ""
-
-#, possible-c-format, possible-boost-format
 msgid "%s is not supported by %s extruder."
 msgstr ""
 
@@ -3996,7 +3992,7 @@ msgstr ""
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr ""
 
-msgid "The prime tower extends beyond the plate boundary, which may cause part of the prime tower to lie outside the printable area after slicing."
+msgid "The prime tower extends beyond the plate boundary."
 msgstr ""
 
 msgid "Click Wiki for help."
@@ -5246,6 +5242,7 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
+msgctxt "Firmware"
 msgid "Update"
 msgstr ""
 
@@ -5307,6 +5304,10 @@ msgid "Current Version: "
 msgstr ""
 
 msgid "Latest Version: "
+msgstr ""
+
+msgctxt "Software"
+msgid "Update"
 msgstr ""
 
 msgid "Not for now"
@@ -7250,14 +7251,20 @@ msgid ""
 msgstr ""
 
 msgid ""
-"When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+"and use soluble materials for both support interface and support base"
 msgstr ""
 
 msgid ""
 "Change these settings automatically? \n"
 "Yes - Change these settings automatically\n"
 "No  - Do not change these settings for me"
+msgstr ""
+
+msgid ""
+"When using support material for the support interface, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
 
 msgid ""

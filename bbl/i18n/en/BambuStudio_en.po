@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-23 09:28+0800\n"
+"POT-Creation-Date: 2025-05-26 21:31+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3401,10 +3401,6 @@ msgid "right"
 msgstr ""
 
 #, c-format, boost-format
-msgid "TPU is not supported by %s extruder for this printer."
-msgstr ""
-
-#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr ""
 
@@ -4068,7 +4064,7 @@ msgstr ""
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr ""
 
-msgid "The prime tower extends beyond the plate boundary, which may cause part of the prime tower to lie outside the printable area after slicing."
+msgid "The prime tower extends beyond the plate boundary."
 msgstr ""
 
 msgid "Click Wiki for help."
@@ -5344,8 +5340,9 @@ msgstr ""
 msgid "Status"
 msgstr "Status"
 
+msgctxt "Firmware"
 msgid "Update"
-msgstr "Update"
+msgstr ""
 
 msgid "Assistant(HMS)"
 msgstr ""
@@ -5406,6 +5403,10 @@ msgstr "Current Version: "
 
 msgid "Latest Version: "
 msgstr "Latest Version: "
+
+msgctxt "Software"
+msgid "Update"
+msgstr "Update now"
 
 msgid "Not for now"
 msgstr "Not for now"
@@ -7370,11 +7371,10 @@ msgid ""
 msgstr ""
 
 msgid ""
-"When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+"and use soluble materials for both support interface and support base"
 msgstr ""
-"When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -7384,6 +7384,13 @@ msgstr ""
 "Change these settings automatically? \n"
 "Yes - Change these settings automatically.\n"
 "No  - Do not change these settings for me."
+
+msgid ""
+"When using support material for the support interface, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+msgstr ""
+"When using support material for the support interface, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
@@ -9060,7 +9067,7 @@ msgid "Smoothing wall speed along Z(experimental)"
 msgstr ""
 
 msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
-msgstr ""
+msgstr "Smoothing outer wall speed in z direction to get better surface quality: Print time will increase. This is not work in spiral vase mode."
 
 msgid "Avoid crossing wall - Max detour length"
 msgstr "Avoid crossing wall - Max detour length"
@@ -10084,13 +10091,13 @@ msgid "Skeleton infill density"
 msgstr ""
 
 msgid "The remaining part of the model contour after removing a certain depth from the surface is called the skeleton. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skeleton densities, their skeleton areas will develop overlapping sections.default is as same as infill density."
-msgstr ""
+msgstr "The remaining part of the model contour after removing a certain depth from the surface is called the skeleton. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skeleton densities, their skeleton areas will develop overlapping sections. Default is the same as infill density."
 
 msgid "Skin infill density"
 msgstr ""
 
 msgid "The portion of the model's outer surface within a certain depth range is called the skin. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skin densities, This area will not be split into two separate regions.default is as same as infill density."
-msgstr ""
+msgstr "The portion of the model's outer surface within a certain depth range is called the skin. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skin densities, This area will not be split into two separate regions. Default is the same as infill density."
 
 msgid "Skin infill depth"
 msgstr ""
@@ -13384,6 +13391,9 @@ msgid ""
 msgstr ""
 "Avoid warping\n"
 "Did you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping?"
+
+#~ msgid "Update"
+#~ msgstr "Update"
 
 #~ msgid "Still unload"
 #~ msgstr "Still unload"
