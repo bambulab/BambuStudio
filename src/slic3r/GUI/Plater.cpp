@@ -9173,6 +9173,7 @@ void Plater::priv::on_tab_selection_changing(wxBookCtrlEvent &e)
     const int new_sel   = e.GetSelection();
     sidebar_layout.show = new_sel == MainFrame::tp3DEditor || new_sel == MainFrame::tpPreview;
     update_sidebar();
+    e.Skip();
 }
 
 int Plater::priv::update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path)
