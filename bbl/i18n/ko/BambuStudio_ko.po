@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-23 09:28+0800\n"
+"POT-Creation-Date: 2025-05-26 21:31+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3415,10 +3415,6 @@ msgid "right"
 msgstr "오른쪽"
 
 #, c-format, boost-format
-msgid "TPU is not supported by %s extruder for this printer."
-msgstr "이 프린터의 %s 압출기에서는 TPU를 지원하지 않습니다."
-
-#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "%s은 %s 압출기에서 지원되지 않습니다."
 
@@ -4084,7 +4080,7 @@ msgstr "필라멘트 %s는 이 플레이트 표면에 직접 출력할 수 없�
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "혼합물에서 PLA 및 PETG 필라멘트가 감지되었습니다. 위키에 따라 매개변수를 조정하여 출력 품질을 보장합니다."
 
-msgid "The prime tower extends beyond the plate boundary, which may cause part of the prime tower to lie outside the printable area after slicing."
+msgid "The prime tower extends beyond the plate boundary."
 msgstr ""
 
 msgid "Click Wiki for help."
@@ -5371,8 +5367,9 @@ msgstr "계산 중, 잠시만 기다려주세요..."
 msgid "Status"
 msgstr "상태"
 
+msgctxt "Firmware"
 msgid "Update"
-msgstr "업데이트"
+msgstr ""
 
 msgid "Assistant(HMS)"
 msgstr ""
@@ -5433,6 +5430,10 @@ msgstr "현재 버전:"
 
 msgid "Latest Version: "
 msgstr "최신 버전: "
+
+msgctxt "Software"
+msgid "Update"
+msgstr ""
 
 msgid "Not for now"
 msgstr "지금 확인"
@@ -7416,11 +7417,10 @@ msgid ""
 msgstr ""
 
 msgid ""
-"When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+"and use soluble materials for both support interface and support base"
 msgstr ""
-"서포트 인터페이스에 서포트 자료를 사용하는 경우 다음 설정을 권장합니다:\n"
-"상단 z 거리 0, 인터페이스 간격 0, 인터레이스된 직선 패턴 및 독립 서포트 레이어 높이 비활성화"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -7430,6 +7430,13 @@ msgstr ""
 "이 설정을 자동으로 변경하시겠습니까?\n"
 "예 - 이 설정으로 자동으로 변경합니다.\n"
 "아니요 - 이 설정으로 변경하지 않습니다."
+
+msgid ""
+"When using support material for the support interface, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+msgstr ""
+"서포트 인터페이스에 서포트 자료를 사용하는 경우 다음 설정을 권장합니다:\n"
+"상단 z 거리 0, 인터페이스 간격 0, 인터레이스된 직선 패턴 및 독립 서포트 레이어 높이 비활성화"
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
@@ -13467,6 +13474,13 @@ msgid ""
 msgstr ""
 "뒤틀림 방지\n"
 "ABS와 같이 뒤틀리기 쉬운 소재를 출력할 때 열판 온도를 적절히 높이면 뒤틀릴 확률을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#, c-format, boost-format
+#~ msgid "TPU is not supported by %s extruder for this printer."
+#~ msgstr "이 프린터의 %s 압출기에서는 TPU를 지원하지 않습니다."
+
+#~ msgid "Update"
+#~ msgstr "업데이트"
 
 #, c-format, boost-format
 #~ msgid ""

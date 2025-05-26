@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-23 09:28+0800\n"
+"POT-Creation-Date: 2025-05-26 21:31+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -3428,10 +3428,6 @@ msgid "right"
 msgstr ""
 
 #, c-format, boost-format
-msgid "TPU is not supported by %s extruder for this printer."
-msgstr "TPU не підтримується екструдером %s для цього принтера."
-
-#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr ""
 
@@ -4095,7 +4091,7 @@ msgstr "філаменти %s не можуть бути надруковані 
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr ""
 
-msgid "The prime tower extends beyond the plate boundary, which may cause part of the prime tower to lie outside the printable area after slicing."
+msgid "The prime tower extends beyond the plate boundary."
 msgstr ""
 
 msgid "Click Wiki for help."
@@ -5376,8 +5372,9 @@ msgstr "Розрахунок, будь ласка, зачекайте…"
 msgid "Status"
 msgstr "Статус"
 
+msgctxt "Firmware"
 msgid "Update"
-msgstr "Оновлення"
+msgstr ""
 
 msgid "Assistant(HMS)"
 msgstr ""
@@ -5438,6 +5435,10 @@ msgstr "Поточна версія: "
 
 msgid "Latest Version: "
 msgstr "Остання версія: "
+
+msgctxt "Software"
+msgid "Update"
+msgstr ""
 
 msgid "Not for now"
 msgstr "Наразі не потрібно"
@@ -7411,11 +7412,10 @@ msgid ""
 msgstr ""
 
 msgid ""
-"When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+"and use soluble materials for both support interface and support base"
 msgstr ""
-"При використанні матеріалу підтримки для інтерфейсу підтримки ми рекомендуємо наступні налаштування:\n"
-"0 відстань верхнього шару Z, 0 відстань між інтерфейсами, перемежований прямокутний візерунок та вимкнена незалежна висота шару підтримки"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -7425,6 +7425,13 @@ msgstr ""
 "Змінити ці налаштування автоматично? \n"
 "Так - Змінити ці налаштування автоматично\n"
 "Ні - Не змінювати ці настройки для мене"
+
+msgid ""
+"When using support material for the support interface, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+msgstr ""
+"При використанні матеріалу підтримки для інтерфейсу підтримки ми рекомендуємо наступні налаштування:\n"
+"0 відстань верхнього шару Z, 0 відстань між інтерфейсами, перемежований прямокутний візерунок та вимкнена незалежна висота шару підтримки"
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
@@ -13458,6 +13465,13 @@ msgid ""
 msgstr ""
 "Уникнення деформації\n"
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як ABS, відповідне підвищення температури гарячого ліжка може зменшити ймовірність деформації."
+
+#, c-format, boost-format
+#~ msgid "TPU is not supported by %s extruder for this printer."
+#~ msgstr "TPU не підтримується екструдером %s для цього принтера."
+
+#~ msgid "Update"
+#~ msgstr "Оновлення"
 
 #~ msgid "Still unload"
 #~ msgstr "Ще вивантажує"

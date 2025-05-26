@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-23 09:28+0800\n"
+"POT-Creation-Date: 2025-05-26 21:31+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3411,10 +3411,6 @@ msgid "right"
 msgstr "右"
 
 #, c-format, boost-format
-msgid "TPU is not supported by %s extruder for this printer."
-msgstr "此打印机的 %s 挤出机不支持TPU。"
-
-#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "%s 不支持在 %s 挤出机打印。"
 
@@ -4079,8 +4075,8 @@ msgstr "材料 %s 不能在直接在当前打印板上打印。"
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "检测到 PLA 和 PETG 同时打印，请根据 Wiki 中的建议调整打印参数来确保打印质量。"
 
-msgid "The prime tower extends beyond the plate boundary, which may cause part of the prime tower to lie outside the printable area after slicing."
-msgstr "料塔超出了打印板边界，可能导致切片后料塔部分位于可打印区域之外。"
+msgid "The prime tower extends beyond the plate boundary."
+msgstr "料塔超出了打印版边界。"
 
 msgid "Click Wiki for help."
 msgstr "点击Wiki寻求帮助。"
@@ -5212,10 +5208,10 @@ msgid "Turning off the lights during the task will cause the failure of AI monit
 msgstr "任务过程中关灯可能导致炒面检测等AI监控失效, 请谨慎选择。"
 
 msgid "Turn it Off"
-msgstr ""
+msgstr "关闭"
 
 msgid "Keep it On"
-msgstr ""
+msgstr "仍要开启"
 
 msgid "Can't start this without storage."
 msgstr "没有外部存储就无法启动"
@@ -5358,8 +5354,9 @@ msgstr "计算中，请等待..."
 msgid "Status"
 msgstr "设备状态"
 
+msgctxt "Firmware"
 msgid "Update"
-msgstr "现在更新"
+msgstr "固件更新"
 
 msgid "Assistant(HMS)"
 msgstr "助手(HMS)"
@@ -5420,6 +5417,10 @@ msgstr "当前版本："
 
 msgid "Latest Version: "
 msgstr "最新版本："
+
+msgctxt "Software"
+msgid "Update"
+msgstr "现在更新"
 
 msgid "Not for now"
 msgstr "稍后更新"
@@ -5752,7 +5753,7 @@ msgid ""
 "The currently selected machine preset is inconsistent with the connected printer type.\n"
 "Are you sure to continue syncing?"
 msgstr ""
-"当前选择的机器预设与连接的不一致打印机类型。\n"
+"当前选择的打印机预设与连接的打印机预设类型不一致。\n"
 "您确定要继续同步吗？"
 
 msgid "There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."
@@ -6368,8 +6369,7 @@ msgid ""
 "Enabled LOD requires application restart."
 msgstr ""
 "请注意，模型显示将在像素块较小的情况下发生一定变化。\n"
-"更改 LOD 设置需要重新启动应用程序。  \n"
-"是否继续？"
+"更改 LOD 设置需要重新启动应用程序。  "
 
 msgid "Enable LOD"
 msgstr "启用/关闭 LOD"
@@ -7209,7 +7209,7 @@ msgid "Send to Printer storage"
 msgstr "发送到打印机存储"
 
 msgid "Try to connect"
-msgstr ""
+msgstr "尝试连接"
 
 msgid "click to retry"
 msgstr ""
@@ -7233,7 +7233,7 @@ msgid "Sending failed, please try again!"
 msgstr "发送失败，请重试！"
 
 msgid "Connection failed. Click the icon to retry"
-msgstr ""
+msgstr "连接失败，点击图标重试"
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "设备升级中，无法发送打印任务"
@@ -7395,11 +7395,10 @@ msgstr ""
 "你确定要用它们作为支撑主体吗？ \n"
 
 msgid ""
-"When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+"and use soluble materials for both support interface and support base"
 msgstr ""
-"当使用支撑界面的支撑材料时，我们推荐以下设置：\n"
-"0顶层z距离，0接触层间距，交叠直线图案，并且禁用独立支撑层高"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -7409,6 +7408,13 @@ msgstr ""
 "自动调整这些设置？\n"
 "是 - 自动调整这些设置\n"
 "否 - 不用为我调整这些设置"
+
+msgid ""
+"When using support material for the support interface, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+msgstr ""
+"当使用支撑界面的支撑材料时，我们推荐以下设置：\n"
+"0顶层z距离，0接触层间距，交叠直线图案，并且禁用独立支撑层高"
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
@@ -13429,6 +13435,16 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#, c-format, boost-format
+#~ msgid "TPU is not supported by %s extruder for this printer."
+#~ msgstr "此打印机的 %s 挤出机不支持TPU。"
+
+#~ msgid "The prime tower extends beyond the plate boundary, which may cause part of the prime tower to lie outside the printable area after slicing."
+#~ msgstr "料塔超出了打印板边界，可能导致切片后料塔部分位于可打印区域之外。"
+
+#~ msgid "Update"
+#~ msgstr "现在更新"
 
 #, c-format, boost-format
 #~ msgid ""

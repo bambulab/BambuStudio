@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-23 09:28+0800\n"
+"POT-Creation-Date: 2025-05-26 21:31+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3420,10 +3420,6 @@ msgid "right"
 msgstr "rechts"
 
 #, c-format, boost-format
-msgid "TPU is not supported by %s extruder for this printer."
-msgstr "TPU wordt niet ondersteund door extruder %s voor deze printer."
-
-#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "%s wordt niet ondersteund door %s extruder."
 
@@ -4089,7 +4085,7 @@ msgstr "filamenten %s kunnen niet rechtstreeks op het oppervlak van deze plaat w
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "PLA- en PETG-filamenten gedetecteerd in het mengsel. Pas de parameters aan volgens Wiki om de afdrukkwaliteit te garanderen."
 
-msgid "The prime tower extends beyond the plate boundary, which may cause part of the prime tower to lie outside the printable area after slicing."
+msgid "The prime tower extends beyond the plate boundary."
 msgstr ""
 
 msgid "Click Wiki for help."
@@ -5379,8 +5375,9 @@ msgstr "Berekenen; Een ogenblik geduld..."
 msgid "Status"
 msgstr "Status"
 
+msgctxt "Firmware"
 msgid "Update"
-msgstr "Updaten"
+msgstr ""
 
 msgid "Assistant(HMS)"
 msgstr ""
@@ -5441,6 +5438,10 @@ msgstr "Huidige versie: "
 
 msgid "Latest Version: "
 msgstr "Laatste versie:"
+
+msgctxt "Software"
+msgid "Update"
+msgstr ""
 
 msgid "Not for now"
 msgstr "Niet voor nu"
@@ -7427,11 +7428,10 @@ msgid ""
 msgstr ""
 
 msgid ""
-"When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+"and use soluble materials for both support interface and support base"
 msgstr ""
-"Bij gebruik van ondersteuningsmateriaal voor de ondersteuningsinterface raden we de volgende instellingen aan:\n"
-"0 bovenste z-afstand, 0 interfaceafstand, verweven rechtlijnig patroon en schakel onafhankelijke ondersteuningslaaghoogte uit"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -7441,6 +7441,13 @@ msgstr ""
 "Deze instellingen automatisch wijzigen?\n"
 "Ja - deze instellingen automatisch wijzigen\n"
 "Nee - deze instellingen niet voor mij wijzigen"
+
+msgid ""
+"When using support material for the support interface, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+msgstr ""
+"Bij gebruik van ondersteuningsmateriaal voor de ondersteuningsinterface raden we de volgende instellingen aan:\n"
+"0 bovenste z-afstand, 0 interfaceafstand, verweven rechtlijnig patroon en schakel onafhankelijke ondersteuningslaaghoogte uit"
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
@@ -13482,6 +13489,13 @@ msgid ""
 msgstr ""
 "Kromtrekken voorkomen\n"
 "Wist je dat bij het printen van materialen die gevoelig zijn voor kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het warmtebed de kans op kromtrekken kan verkleinen?"
+
+#, c-format, boost-format
+#~ msgid "TPU is not supported by %s extruder for this printer."
+#~ msgstr "TPU wordt niet ondersteund door extruder %s voor deze printer."
+
+#~ msgid "Update"
+#~ msgstr "Updaten"
 
 #, c-format, boost-format
 #~ msgid ""

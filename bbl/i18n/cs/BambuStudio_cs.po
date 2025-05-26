@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-23 09:28+0800\n"
+"POT-Creation-Date: 2025-05-26 21:31+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -3382,10 +3382,6 @@ msgid "right"
 msgstr ""
 
 #, c-format, boost-format
-msgid "TPU is not supported by %s extruder for this printer."
-msgstr ""
-
-#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr ""
 
@@ -4049,7 +4045,7 @@ msgstr ""
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr ""
 
-msgid "The prime tower extends beyond the plate boundary, which may cause part of the prime tower to lie outside the printable area after slicing."
+msgid "The prime tower extends beyond the plate boundary."
 msgstr ""
 
 msgid "Click Wiki for help."
@@ -5314,8 +5310,9 @@ msgstr ""
 msgid "Status"
 msgstr "Stav"
 
+msgctxt "Firmware"
 msgid "Update"
-msgstr "Aktualizovat"
+msgstr ""
 
 msgid "Assistant(HMS)"
 msgstr ""
@@ -5375,6 +5372,10 @@ msgid "Current Version: "
 msgstr ""
 
 msgid "Latest Version: "
+msgstr ""
+
+msgctxt "Software"
+msgid "Update"
 msgstr ""
 
 msgid "Not for now"
@@ -7335,8 +7336,9 @@ msgid ""
 msgstr ""
 
 msgid ""
-"When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+"and use soluble materials for both support interface and support base"
 msgstr ""
 
 msgid ""
@@ -7347,6 +7349,11 @@ msgstr ""
 "Změnit tato nastavení automaticky? \n"
 "Ano – tato nastavení změnit automaticky\n"
 "Ne - tato nastavení za mě neměňte"
+
+msgid ""
+"When using support material for the support interface, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+msgstr ""
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
@@ -13295,6 +13302,9 @@ msgid ""
 "Avoid warping\n"
 "Did you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping."
 msgstr ""
+
+#~ msgid "Update"
+#~ msgstr "Aktualizovat"
 
 #~ msgid "Still unload"
 #~ msgstr "Stále vysunovat"
