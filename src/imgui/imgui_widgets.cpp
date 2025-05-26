@@ -130,6 +130,9 @@ static bool             InputTextFilterCharacter(unsigned int* p_char, ImGuiInpu
 static int              InputTextCalcTextLenAndLineCount(const char* text_begin, const char** out_text_end);
 static ImVec2           InputTextCalcTextSizeW(const ImWchar* text_begin, const ImWchar* text_end, const ImWchar** remaining = NULL, ImVec2* out_offset = NULL, bool stop_on_new_line = false);
 
+const ImVec4 IMGUI_COL_BAMBUSTUDIO = {0.0f, 174.f / 255.0f, 66.0f / 255, 1.0f};
+const ImVec4 IMGUI_COL_WHITE       = {1.0f, 1.0f, 1.0f, 1.0f};
+
 //-------------------------------------------------------------------------
 // [SECTION] Widgets: Text, etc.
 //-------------------------------------------------------------------------
@@ -1508,29 +1511,27 @@ bool ImGui::CheckboxFlags(const char* label, ImU64* flags, ImU64 flags_value)
     return CheckboxFlagsT(label, flags, flags_value);
 }
 
-bool ImGui::RadioButton(const char* label, bool active)
+bool ImGui::RadioButton(const char *label, bool active)
 {
-    ImGuiWindow* window = GetCurrentWindow();
-    if (window->SkipItems)
-        return false;
+    ImGuiWindow *window = GetCurrentWindow();
+    if (!window || window->SkipItems) return false;
 
-    ImGuiContext& g = *GImGui;
-    const ImGuiStyle& style = g.Style;
-    const ImGuiID id = window->GetID(label);
-    const ImVec2 label_size = CalcTextSize(label, NULL, true);
+    ImGuiContext &    g          = *GImGui;
+    const ImGuiStyle &style      = g.Style;
+    const ImGuiID     id         = window->GetID(label);
+    const ImVec2      label_size = CalcTextSize(label, NULL, true);
 
-    const float square_sz = GetFrameHeight();
-    const ImVec2 pos = window->DC.CursorPos;
+    const float  square_sz = GetFrameHeight();
+    const ImVec2 pos       = window->DC.CursorPos;
     const ImRect check_bb(pos, pos + ImVec2(square_sz, square_sz));
     const ImRect total_bb(pos, pos + ImVec2(square_sz + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), label_size.y + style.FramePadding.y * 2.0f));
     ItemSize(total_bb, style.FramePadding.y);
-    if (!ItemAdd(total_bb, id))
-        return false;
+    if (!ItemAdd(total_bb, id)) return false;
 
-    ImVec2 center = check_bb.GetCenter();
-    center.x = IM_ROUND(center.x);
-    center.y = IM_ROUND(center.y);
-    const float radius = (square_sz - 1.0f) * 0.5f;
+    ImVec2 center      = check_bb.GetCenter();
+    center.x           = IM_ROUND(center.x);
+    center.y           = IM_ROUND(center.y);
+    const float radius = (square_sz - 1.0f) * 0.35f;
 
     bool hovered, held;
     bool pressed = ButtonBehavior(total_bb, id, &hovered, &held);
@@ -1538,17 +1539,33 @@ bool ImGui::RadioButton(const char* label, bool active)
         MarkItemEdited(id);
 
     RenderNavHighlight(total_bb, id);
-    window->DrawList->AddCircleFilled(center, radius, GetColorU32((held && hovered) ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg), 16);
-    if (active)
-    {
-        const float pad = ImMax(1.0f, IM_FLOOR(square_sz / 6.0f));
-        window->DrawList->AddCircleFilled(center, radius - pad, GetColorU32(ImGuiCol_CheckMark), 16);
+
+    float hover_scale = 1.0f;
+    if (held && hovered) {
+        window->DrawList->AddCircleFilled(center, radius, GetColorU32(IMGUI_COL_BAMBUSTUDIO), 16);
+    } else if (hovered) {
+        if (active) {
+            hover_scale = 1.1f;
+            window->DrawList->AddCircleFilled(center, radius * hover_scale, GetColorU32(IMGUI_COL_BAMBUSTUDIO), 16);
+        } else {
+            window->DrawList->AddCircleFilled(center, radius * hover_scale, GetColorU32(ImGuiCol_FrameBgHovered), 16);
+        }
+    } else {
+        window->DrawList->AddCircleFilled(center, radius, GetColorU32(ImGuiCol_FrameBg), 16);
+    }
+
+    if (active) { // selected
+        if (!hovered){
+            window->DrawList->AddCircleFilled(center, radius, GetColorU32(IMGUI_COL_BAMBUSTUDIO), 16);
+        }
+        const float pad = radius * 0.6f;
+        window->DrawList->AddCircleFilled(center, radius - pad, GetColorU32(IMGUI_COL_WHITE), 16);
     }
 
     if (style.FrameBorderSize > 0.0f)
     {
-        window->DrawList->AddCircle(center + ImVec2(1, 1), radius, GetColorU32(ImGuiCol_BorderShadow), 16, style.FrameBorderSize);
-        window->DrawList->AddCircle(center, radius, GetColorU32(ImGuiCol_Border), 16, style.FrameBorderSize);
+        window->DrawList->AddCircle(center + ImVec2(1, 1), radius * hover_scale, GetColorU32(ImGuiCol_BorderShadow), 16, style.FrameBorderSize);
+        window->DrawList->AddCircle(center, radius * hover_scale, GetColorU32(ImGuiCol_Border), 16, style.FrameBorderSize);
     }
 
     ImVec2 label_pos = ImVec2(check_bb.Max.x + style.ItemInnerSpacing.x, check_bb.Min.y + style.FramePadding.y);

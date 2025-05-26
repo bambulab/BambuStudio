@@ -2364,18 +2364,22 @@ void GLCanvas3D::render(bool only_init)
     bool b_with_stencil_outline = !m_gizmos.is_running() && (EPickingEffect::StencilOutline == picking_effect);
     if (m_canvas_type == ECanvasType::CanvasView3D) {
         //BBS: add outline logic
-        _render_objects(GLVolumeCollection::ERenderType::Opaque, b_with_stencil_outline);
+        _render_objects(m_volumes,GLVolumeCollection::ERenderType::Opaque, b_with_stencil_outline);
+        if (!m_paint_outline_volumes.empty()) {
+            _render_objects(m_paint_outline_volumes, GLVolumeCollection::ERenderType::Opaque, b_with_stencil_outline,true);
+        }
         _render_sla_slices();
         _render_selection();
         if (!no_partplate)
             _render_bed(!camera.is_looking_downward(), show_axes);
         if (!no_partplate) //BBS: add outline logic
             _render_platelist(!camera.is_looking_downward(), only_current, only_body, hover_id, true, show_grid);
-        _render_objects(GLVolumeCollection::ERenderType::Transparent, b_with_stencil_outline);
+        _render_objects(m_volumes, GLVolumeCollection::ERenderType::Transparent, b_with_stencil_outline);
+        _render_objects(m_paint_outline_volumes, GLVolumeCollection::ERenderType::Transparent, b_with_stencil_outline, true);
     }
     /* preview render */
     else if (m_canvas_type == ECanvasType::CanvasPreview && m_render_preview) {
-        _render_objects(GLVolumeCollection::ERenderType::Opaque, b_with_stencil_outline);
+        _render_objects(m_volumes, GLVolumeCollection::ERenderType::Opaque, b_with_stencil_outline);
         _render_sla_slices();
         _render_selection();
         _render_bed(!camera.is_looking_downward(), show_axes);
@@ -2389,13 +2393,13 @@ void GLCanvas3D::render(bool only_init)
         if (m_show_world_axes) {
             m_axes.render();
         }
-        _render_objects(GLVolumeCollection::ERenderType::Opaque, b_with_stencil_outline);
+        _render_objects(m_volumes, GLVolumeCollection::ERenderType::Opaque, b_with_stencil_outline);
         //_render_bed(!camera.is_looking_downward(), show_axes);
         _render_plane();
         //BBS: add outline logic insteadof selection under assemble view
         //_render_selection();
         // BBS: add outline logic
-        _render_objects(GLVolumeCollection::ERenderType::Transparent, b_with_stencil_outline);
+        _render_objects(m_volumes, GLVolumeCollection::ERenderType::Transparent, b_with_stencil_outline);
     }
 
      if (m_picking_enabled && EPickingEffect::Silhouette == picking_effect) {
@@ -7387,16 +7391,16 @@ void GLCanvas3D::_render_plane() const
 }
 
 //BBS: add outline drawing logic
-void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with_outline)
+void GLCanvas3D::_render_objects(GLVolumeCollection &cur_volumes, GLVolumeCollection::ERenderType type, bool with_outline, bool in_paint_gizmo)
 {
-    if (m_volumes.empty())
+    if (cur_volumes.empty())
         return;
 
     glsafe(::glEnable(GL_DEPTH_TEST));
 
     m_camera_clipping_plane = m_gizmos.get_clipping_plane();
 
-    if (m_picking_enabled)
+    if (m_picking_enabled && !in_paint_gizmo)
         // Update the layer editing selection to the first object selected, update the current object maximum Z.
         m_layers_editing.select_object(*m_model, this->is_layers_editing_enabled() ? m_selection.get_object_idx() : -1);
 
@@ -7404,13 +7408,13 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
         switch (build_volume.type()) {
         case BuildVolume::Type::Rectangle: {
             const BoundingBox3Base<Vec3d> bed_bb = build_volume.bounding_volume().inflated(BuildVolume::SceneEpsilon);
-            m_volumes.set_print_volume({ 0, // Rectangle
+            cur_volumes.set_print_volume({0, // Rectangle
                 { float(bed_bb.min.x()), float(bed_bb.min.y()), float(bed_bb.max.x()), float(bed_bb.max.y()) },
                 { 0.0f, float(build_volume.printable_height()) } });
             break;
         }
         case BuildVolume::Type::Circle: {
-            m_volumes.set_print_volume({ 1, // Circle
+            cur_volumes.set_print_volume({1, // Circle
                 { unscaled<float>(build_volume.circle().center.x()), unscaled<float>(build_volume.circle().center.y()), unscaled<float>(build_volume.circle().radius + BuildVolume::SceneEpsilon), 0.0f },
                 { 0.0f, float(build_volume.printable_height() + BuildVolume::SceneEpsilon) } });
             break;
@@ -7418,38 +7422,38 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
         default:
         case BuildVolume::Type::Convex:
         case BuildVolume::Type::Custom: {
-            m_volumes.set_print_volume({ static_cast<int>(type),
+            cur_volumes.set_print_volume({static_cast<int>(type),
                 { -FLT_MAX, -FLT_MAX, FLT_MAX, FLT_MAX },
                 { -FLT_MAX, FLT_MAX } }
             );
         }
         }
         if (m_requires_check_outside_state) {
-            m_volumes.check_outside_state(build_volume, nullptr, nullptr, *m_model);
+            cur_volumes.check_outside_state(build_volume, nullptr, nullptr, *m_model);
             m_requires_check_outside_state = false;
         }
     }
 
     if (m_use_clipping_planes)
-        m_volumes.set_z_range(-m_clipping_planes[0].get_data()[3], m_clipping_planes[1].get_data()[3]);
+        cur_volumes.set_z_range(-m_clipping_planes[0].get_data()[3], m_clipping_planes[1].get_data()[3]);
     else
-        m_volumes.set_z_range(-FLT_MAX, FLT_MAX);
+        cur_volumes.set_z_range(-FLT_MAX, FLT_MAX);
 
     GLGizmosManager& gm = get_gizmos_manager();
     GLGizmoBase* current_gizmo = gm.get_current();
     if (m_canvas_type == CanvasAssembleView) {
-        m_volumes.set_clipping_plane(m_gizmos.get_assemble_view_clipping_plane().get_data());
+        cur_volumes.set_clipping_plane(m_gizmos.get_assemble_view_clipping_plane().get_data());
     }
     else if (current_gizmo && !current_gizmo->apply_clipping_plane()) {
-        m_volumes.set_clipping_plane(ClippingPlane::ClipsNothing().get_data());
+        cur_volumes.set_clipping_plane(ClippingPlane::ClipsNothing().get_data());
     }
     else {
-        m_volumes.set_clipping_plane(m_camera_clipping_plane.get_data());
+        cur_volumes.set_clipping_plane(m_camera_clipping_plane.get_data());
     }
     if (m_canvas_type == CanvasAssembleView)
-        m_volumes.set_show_sinking_contours(false);
+        cur_volumes.set_show_sinking_contours(false);
     else
-        m_volumes.set_show_sinking_contours(!m_gizmos.is_hiding_instances());
+        cur_volumes.set_show_sinking_contours(!m_gizmos.is_hiding_instances());
 
     const auto& shader = wxGetApp().get_shader("gouraud");
     ECanvasType canvas_type = this->m_canvas_type;
@@ -7472,16 +7476,24 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
         case GLVolumeCollection::ERenderType::Opaque:
         {
             const GLGizmosManager& gm = get_gizmos_manager();
-            if (dynamic_cast<GLGizmoPainterBase*>(gm.get_current()) == nullptr)
-            {
-                if (m_picking_enabled && m_layers_editing.is_enabled() && (m_layers_editing.last_object_id != -1) && (m_layers_editing.object_max_z() > 0.0f) && GUI::ERenderPipelineStage::Silhouette != render_pipeline_stage) {
+            if (in_paint_gizmo) {
+                cur_volumes.render(
+                    render_pipeline_stage, type, m_picking_enabled, camera, colors, *m_model,
+                    [this](const GLVolume &volume) {
+                        return true;
+                    },
+                    with_outline, body_color, partly_inside_enable,  nullptr);
+            }
+            if (dynamic_cast<GLGizmoPainterBase*>(gm.get_current()) == nullptr){
+                if (m_picking_enabled && m_layers_editing.is_enabled() && (m_layers_editing.last_object_id != -1) && (m_layers_editing.object_max_z() > 0.0f) &&
+                    GUI::ERenderPipelineStage::Silhouette != render_pipeline_stage) {
                     int object_id = m_layers_editing.last_object_id;
-                    m_volumes.render(
+                    cur_volumes.render(
                         render_pipeline_stage, type, false, camera, colors, *m_model,[object_id](const GLVolume &volume) {
                         // Which volume to paint without the layer height profile shader?
                         return volume.is_active && (volume.is_modifier || volume.composite_id.object_id != object_id);
                         });
-                    m_layers_editing.render_volumes(*this, m_volumes);
+                    m_layers_editing.render_volumes(*this, cur_volumes);
                 }
                 else {
                     /*if (wxGetApp().plater()->is_wireframe_enabled()) {
@@ -7492,7 +7504,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                     }*/
                     //BBS:add assemble view related logic
                     // do not cull backfaces to show broken geometry, if any
-                    m_volumes.render(
+                    cur_volumes.render(
                         render_pipeline_stage, type, m_picking_enabled, camera, colors,
                         *m_model,[this, canvas_type](const GLVolume &volume) {
                         if (canvas_type == ECanvasType::CanvasAssembleView) {
@@ -7528,17 +7540,25 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                     shader->set_uniform("show_wireframe", false);
             }*/
             //BBS:add assemble view related logic
-            m_volumes.render(
-                render_pipeline_stage, type, false, camera, colors,*m_model,
-                [this, canvas_type](const GLVolume &volume) {
-                if (canvas_type == ECanvasType::CanvasAssembleView) {
-                    return !volume.is_modifier;
-                }
-                else {
-                    return true;
-                }
-                },
-                with_outline, body_color, partly_inside_enable, printable_height_option ? &printable_height_option->values : nullptr);
+            if (in_paint_gizmo) {
+                cur_volumes.render(
+                    render_pipeline_stage, type, false, camera, colors, *m_model,
+                    [this, canvas_type](const GLVolume &volume) {
+                        return true;
+                    },
+                    with_outline, body_color, partly_inside_enable, nullptr);
+            } else {
+                cur_volumes.render(
+                    render_pipeline_stage, type, false, camera, colors, *m_model,
+                    [this, canvas_type](const GLVolume &volume) {
+                        if (canvas_type == ECanvasType::CanvasAssembleView) {
+                            return !volume.is_modifier;
+                        } else {
+                            return true;
+                        }
+                    },
+                    with_outline, body_color, partly_inside_enable, printable_height_option ? &printable_height_option->values : nullptr);
+            }
             if (m_canvas_type == CanvasAssembleView && m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position() > 0 && GUI::ERenderPipelineStage::Silhouette != render_pipeline_stage) {
                 const GLGizmosManager& gm = get_gizmos_manager();
                 wxGetApp().unbind_shader();
@@ -7546,7 +7566,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                 wxGetApp().bind_shader(shader);
             }
             if (m_canvas_type == CanvasView3D && m_gizmos.is_paint_gizmo()) {
-                m_volumes.only_render_sinking(
+                cur_volumes.only_render_sinking(
                     render_pipeline_stage, type, false, camera, colors, *m_model,
                     [this, canvas_type](const GLVolume &volume) {
                         if (canvas_type == ECanvasType::CanvasAssembleView) {
@@ -9988,9 +10008,10 @@ void GLCanvas3D::_render_silhouette_effect()
     const Transform3d& projection_matrix = camera.get_projection_matrix();
     const Matrix4d view_proj = projection_matrix.matrix() * view_matrix.matrix();
     p_silhouette_shader->set_uniform("u_view_projection_matrix", view_proj);
-    _render_objects(GLVolumeCollection::ERenderType::Opaque, false);
-    _render_objects(GLVolumeCollection::ERenderType::Transparent, false);
-
+    _render_objects(m_volumes,GLVolumeCollection::ERenderType::Opaque, false);
+    _render_objects(m_volumes, GLVolumeCollection::ERenderType::Transparent, false);
+    _render_objects(m_paint_outline_volumes, GLVolumeCollection::ERenderType::Opaque, false,true);
+    _render_objects(m_paint_outline_volumes, GLVolumeCollection::ERenderType::Transparent, false, true);
     wxGetApp().unbind_shader();
 
     // BBS: end render silhouette
