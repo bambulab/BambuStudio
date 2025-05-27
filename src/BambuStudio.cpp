@@ -1394,7 +1394,7 @@ int CLI::run(int argc, char **argv)
     int current_printable_width, current_printable_depth, current_printable_height, shrink_to_new_bed = 0;
     int old_printable_height = 0, old_printable_width = 0, old_printable_depth = 0;
     Pointfs old_printable_area, old_exclude_area;
-    float old_max_radius = 0.f, old_height_to_rod = 0.f, old_height_to_lid = 0.f, old_filament_prime_volume = 0.f;
+    float old_max_radius = 0.f, old_height_to_rod = 0.f, old_height_to_lid = 0.f, old_filament_prime_volume = 0.f, old_distance_to_rod = 0.f;
     std::vector<double> old_max_layer_height, old_min_layer_height;
     std::string outfile_dir              =  m_config.opt_string("outputdir", true);
     const std::vector<std::string>              &load_configs               = m_config.option<ConfigOptionStrings>("load_settings", true)->values;
@@ -1858,12 +1858,14 @@ int CLI::run(int argc, char **argv)
                         old_height_to_lid = config.opt_float("extruder_clearance_height_to_lid");
                     if (config.option<ConfigOptionFloat>("extruder_clearance_max_radius"))
                         old_max_radius = config.opt_float("extruder_clearance_max_radius");
+                    if (config.option<ConfigOptionFloat>("extruder_clearance_dist_to_rod"))
+                        old_distance_to_rod = config.opt_float("extruder_clearance_dist_to_rod");
                     if (config.option<ConfigOptionFloatsNullable>("max_layer_height"))
                         old_max_layer_height = config.option<ConfigOptionFloatsNullable>("max_layer_height")->values;
                     if (config.option<ConfigOptionFloatsNullable>("min_layer_height"))
                         old_min_layer_height = config.option<ConfigOptionFloatsNullable>("min_layer_height")->values;
                     BOOST_LOG_TRIVIAL(info) << boost::format("old printable size from 3mf: {%1%, %2%, %3%}")%old_printable_width %old_printable_depth %old_printable_height;
-                    BOOST_LOG_TRIVIAL(info) << boost::format("old extruder_clearance_height_to_rod %1%, extruder_clearance_height_to_lid %2%, extruder_clearance_max_radius %3%}")%old_height_to_rod %old_height_to_lid %old_max_radius;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("old extruder_clearance_height_to_rod %1%, extruder_clearance_height_to_lid %2%, extruder_clearance_max_radius %3% extruder_clearance_dist_to_rod %4%}")%old_height_to_rod %old_height_to_lid %old_max_radius %old_distance_to_rod;
                 }
                 else
                 {
@@ -3796,6 +3798,7 @@ int CLI::run(int argc, char **argv)
     double height_to_lid = m_print_config.opt_float("extruder_clearance_height_to_lid");
     double height_to_rod = m_print_config.opt_float("extruder_clearance_height_to_rod");
     double cleareance_radius = m_print_config.opt_float("extruder_clearance_max_radius");
+    double distance_to_rod = m_print_config.opt_float("extruder_clearance_dist_to_rod");
     //double plate_stride;
     std::string bed_texture;
 
@@ -4210,6 +4213,9 @@ int CLI::run(int argc, char **argv)
 
             if (config.option<ConfigOptionFloat>("extruder_clearance_max_radius"))
                 printer_plate.cleareance_radius = config.opt_float("extruder_clearance_max_radius");
+
+            if (config.option<ConfigOptionFloat>("extruder_clearance_dist_to_rod"))
+                printer_plate.distance_to_rod = config.opt_float("extruder_clearance_dist_to_rod");
             downward_check_printers.push_back(std::move(printer_plate));
         }
     }
@@ -4245,13 +4251,14 @@ int CLI::run(int argc, char **argv)
                 printer_plate_info_t& plate_info = downward_check_printers[index2];
 
                 if (is_sequence) {
-                    if ((plate_info.cleareance_radius > 0.f) && (plate_info.height_to_rod > 0.f) && (plate_info.height_to_lid > 0.f)) {
+                    if ((plate_info.cleareance_radius > 0.f) && (plate_info.height_to_rod > 0.f) && (plate_info.height_to_lid > 0.f) && (plate_info.distance_to_rod > 0.f)) {
                         if ((cleareance_radius < plate_info.cleareance_radius)
                             || (height_to_rod > plate_info.height_to_rod)
-                            || (height_to_lid > plate_info.height_to_lid))
+                            || (height_to_lid > plate_info.height_to_lid)
+                            || (distance_to_rod < plate_info.distance_to_rod))
                         {
-                            BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, downward_check index %2%, name %3%, sequence print, original clearance{%4%, %5%, %6%} exceeds new {%7%, %8%, %9%}")
-                            %(index+1) %(index2+1) %plate_info.printer_name %cleareance_radius %height_to_rod %height_to_lid %plate_info.cleareance_radius %plate_info.height_to_rod %plate_info.height_to_lid;
+                            BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, downward_check index %2%, name %3%, sequence print, original clearance{%4%, %5%, %6% %7%} exceeds new {%8%, %9%, %10%, %11%}")
+                            %(index+1) %(index2+1) %plate_info.printer_name %cleareance_radius %height_to_rod %height_to_lid %distance_to_rod %plate_info.cleareance_radius %plate_info.height_to_rod %plate_info.height_to_lid %plate_info.distance_to_rod;
                             downward_check_status[index2] = true;
                             failed_count ++;
                             continue;
@@ -4700,12 +4707,13 @@ int CLI::run(int argc, char **argv)
     {
         if (((old_height_to_rod != 0.f) && (old_height_to_rod != height_to_rod))
             || ((old_height_to_lid != 0.f) && (old_height_to_lid != height_to_lid))
-            || ((old_max_radius != 0.f) && (old_max_radius != cleareance_radius)))
+            || ((old_max_radius != 0.f) && (old_max_radius != cleareance_radius))
+            || ((old_distance_to_rod != 0.f) && (old_distance_to_rod != distance_to_rod)))
         {
             if (is_seq_print_for_curr_plate) {
                 need_arrange = true;
-                BOOST_LOG_TRIVIAL(info) << boost::format("old_height_to_rod %1%, old_height_to_lid %2%,  old_max_radius %3%, current height_to_rod %4%, height_to_lid %5%, cleareance_radius %6%, need arrange!")
-                    %old_height_to_rod %old_height_to_lid %old_max_radius %height_to_rod %height_to_lid %cleareance_radius;
+                BOOST_LOG_TRIVIAL(info) << boost::format("old_height_to_rod %1%, old_height_to_lid %2%,  old_max_radius %3%, old_distance_to_rod %4%, current height_to_rod %5%, height_to_lid %6%, cleareance_radius %7%, distance_to_rod %8%, need arrange!")
+                    %old_height_to_rod %old_height_to_lid %old_max_radius %old_distance_to_rod %height_to_rod %height_to_lid %cleareance_radius %distance_to_rod;
             }
         }
     }
