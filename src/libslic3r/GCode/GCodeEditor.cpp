@@ -328,6 +328,10 @@ std::vector<PerExtruderAdjustments> GCodeEditor::parse_layer_gcode(  const      
             line.type = CoolingLine::TYPE_OBJECT_START;
         } else if (boost::starts_with(sline, "M625")) {
             line.type = CoolingLine::TYPE_OBJECT_END;
+        } else if (boost::contains(sline, ";set fan changing filament")) {
+            line.type = CoolingLine::TYPE_SET_FAN_CHANGING_FILAMENT;
+        } else if (boost::contains(sline, ";not set fan changing filament")) {
+            line.type = CoolingLine::TYPE_NOT_SET_FAN_CHANGING_FILAMENT;
         }
         if (line.type != 0)
             adjustment->lines.emplace_back(std::move(line));
@@ -436,7 +440,7 @@ std::string GCodeEditor::write_layer_gcode(
         //BBS
         if (additional_fan_speed_new != m_additional_fan_speed) {
             m_additional_fan_speed = additional_fan_speed_new;
-            if (type == SetFanType::sfImmediatelyApply && m_config.auxiliary_fan.value)
+            if (type == SetFanType::sfImmediatelyApply && m_set_fan_changing_filament_start && m_config.auxiliary_fan.value)
                 new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
             else if (type == SetFanType::sfChangingLayer && !not_set_additional_fan)
                 this->m_set_addition_fan_changing_layer = true;
@@ -483,7 +487,11 @@ std::string GCodeEditor::write_layer_gcode(
         const char *line_end    = gcode.c_str() + line->line_end;
         if (line_start > pos)
             new_gcode.append(pos, line_start - pos);
-        if (line->type & CoolingLine::TYPE_SET_TOOL) {
+        if(line->type & CoolingLine::TYPE_SET_FAN_CHANGING_FILAMENT)
+            m_set_fan_changing_filament_start = true;
+        else if(line->type & CoolingLine::TYPE_NOT_SET_FAN_CHANGING_FILAMENT){
+            m_set_fan_changing_filament_start = false;
+        }else if (line->type & CoolingLine::TYPE_SET_TOOL) {
             unsigned int new_extruder = (unsigned int)atoi(line_start + m_toolchange_prefix.size());
             if (new_extruder != m_current_extruder) {
                 m_current_extruder = new_extruder;
@@ -508,7 +516,7 @@ std::string GCodeEditor::write_layer_gcode(
             //BBS: force to write a fan speed command again
             if (m_current_fan_speed != -1)
                 new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_current_fan_speed);
-            if (m_additional_fan_speed != -1 && m_config.auxiliary_fan.value)
+            if (m_additional_fan_speed != -1 && m_set_fan_changing_filament_start && m_config.auxiliary_fan.value)
                 new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
         } else if (line->type & CoolingLine::TYPE_SET_FAN_CHANGING_LAYER) {
             //BBS: check whether fan speed need to changed when change layer
