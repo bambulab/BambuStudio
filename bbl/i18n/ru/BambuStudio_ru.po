@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 21:31+0800\n"
+"POT-Creation-Date: 2025-05-28 14:42+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -3571,6 +3571,9 @@ msgstr "Нельзя включить таймлапс, т.к. отсутств�
 
 msgid "Timelapse is not supported while the storage is readonly."
 msgstr "Нельзя включить таймлапс, т.к. SD-карта доступна только для чтения."
+
+msgid "To ensure your safety, certain processing tasks (such as laser) can only be resumed on printer."
+msgstr ""
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "Текущая температура или целевая температура внутри термокамеры превышает 45℃. Чтобы избежать засорения экструдера, запрещается загрузка низкотемпературной печатной нити (PLA/PETG/TPU)."
