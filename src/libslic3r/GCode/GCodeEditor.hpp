@@ -36,6 +36,9 @@ struct CoolingLine
         TYPE_SET_FAN_CHANGING_LAYER = 1 << 15,
         TYPE_OBJECT_START           = 1 << 16,
         TYPE_OBJECT_END             = 1 << 17,
+        TYPE_SET_FAN_CHANGING_FILAMENT = 1 << 18,
+        TYPE_NOT_SET_FAN_CHANGING_FILAMENT = 1 << 19,
+
     };
 
     CoolingLine(unsigned int type, size_t line_start, size_t line_end)
@@ -291,6 +294,7 @@ private :
     //BBS:
     bool                        m_set_fan_changing_layer = false;
     bool                        m_set_addition_fan_changing_layer = false;
+    bool                        m_set_fan_changing_filament_start = true;
 };
 
 }
