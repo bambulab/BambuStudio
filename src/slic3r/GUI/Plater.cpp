@@ -236,6 +236,21 @@ void Plater::show_illegal_characters_warning(wxWindow* parent)
     show_error(parent, _L("Invalid name, the following characters are not allowed:") + " <>:/\\|?*\"" +_L("(Including its escape characters)"));
 }
 
+void Plater::mark_plate_toolbar_image_dirty()
+{
+    m_b_plate_toolbar_image_dirty = true;
+}
+
+bool Plater::is_plate_toolbar_image_dirty() const
+{
+    return m_b_plate_toolbar_image_dirty;
+}
+
+void Plater::clear_plate_toolbar_image_dirty()
+{
+    m_b_plate_toolbar_image_dirty = false;
+}
+
 static std::map<BedType, std::string> bed_type_thumbnails = {
     {BedType::btPC, "bed_cool"},
     {BedType::btEP, "bed_engineering"},
@@ -4905,10 +4920,8 @@ void Plater::priv::update(unsigned int flags)
     // BBS assemble view
     this->assemble_view->reload_scene(false, flags);
 
-    if (current_panel && q->is_preview_shown()) {
-        q->force_update_all_plate_thumbnails();
-        //update_fff_scene_only_shells(true);
-    }
+    // todo: better to mark thumbnail dirty here
+    q->mark_plate_toolbar_image_dirty();
 
     if (force_background_processing_restart)
         this->restart_background_process(update_status);
@@ -8203,9 +8216,6 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
         } else {
             preview->get_canvas3d()->enable_select_plate_toolbar(true);
         }
-    }
-    else {
-        preview->get_canvas3d()->clear_select_plate_toolbar_render_flag();
     }
 
     if (current_panel == panel)
@@ -12511,6 +12521,7 @@ void Plater::update_all_plate_thumbnails(bool force_update)
             thumbnail_params.background_color = Vec4f(0.0f, 0.0f, 0.0f, 0.0f);
             thumbnail_params.post_processing_enabled = b_fxaa_enabled;
             get_view3D_canvas3D()->render_thumbnail(plate->thumbnail_data, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params, Camera::EType::Ortho);
+            mark_plate_toolbar_image_dirty();
         }
         if (force_update || !plate->no_light_thumbnail_data.is_valid()) {
             thumbnail_params.background_color = Vec4f(0.0f, 0.0f, 0.0f, 0.0f);
@@ -12554,8 +12565,6 @@ void Plater::force_update_all_plate_thumbnails()
         invalid_all_plate_thumbnails();
         update_all_plate_thumbnails(true);
     }
-    get_preview_canvas3D()->clear_select_plate_toolbar_render_flag();
-    get_preview_canvas3D()->update_plate_thumbnails();
 }
 
 // BBS: backup
