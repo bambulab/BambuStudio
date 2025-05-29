@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-28 14:42+0800\n"
+"POT-Creation-Date: 2025-05-29 15:44+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -7013,9 +7013,6 @@ msgstr "Изменить профиль"
 msgid "Project-inside presets"
 msgstr "Внутрипроектные профили"
 
-msgid "User"
-msgstr "Пользователь"
-
 msgid "System"
 msgstr ""
 
@@ -9394,6 +9391,9 @@ msgstr "Файл корневого сертификата HTTPS"
 
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "Для подключений по HTTPS к OctoPrint укажите пользовательский файл корневого сертификата в формате crt/pem. Если оставить поле пустым, будет использоваться хранилище сертификатов ОС по умолчанию."
+
+msgid "User"
+msgstr "Пользователь"
 
 msgid "Password"
 msgstr "Пароль"

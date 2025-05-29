@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-28 14:42+0800\n"
+"POT-Creation-Date: 2025-05-29 15:44+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3451,7 +3451,7 @@ msgid "Timelapse is not supported while the storage is readonly."
 msgstr "存储介质当前是只读的，故无法启用延时摄影"
 
 msgid "To ensure your safety, certain processing tasks (such as laser) can only be resumed on printer."
-msgstr ""
+msgstr "为确保您的安全，部分加工任务（如激光）只能在打印机上恢复加工。"
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "当前腔温或目标腔温超过了45℃。为了避免挤出机堵塞，不允许加载低温度的打印材料（如PLA/PETG/TPU）"
@@ -6771,17 +6771,14 @@ msgstr "编辑预设"
 msgid "Project-inside presets"
 msgstr "项目预设"
 
-msgid "User"
-msgstr "用户名"
-
 msgid "System"
 msgstr ""
 
 msgid "Unsupported presets"
-msgstr ""
+msgstr "不支持的预设"
 
 msgid "Unsupported"
-msgstr ""
+msgstr "不支持的"
 
 msgid "Add/Remove filaments"
 msgstr "添加/删除材料"
@@ -9079,6 +9076,9 @@ msgstr "HTTPS CA文件"
 
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "可以为HTTPS OctoPrint连接指定自定义CA证书文件，格式为crt/pem。如果留空，则使用默认的操作系统CA证书存储库。"
+
+msgid "User"
+msgstr "用户名"
 
 msgid "Password"
 msgstr "密码"
