@@ -1719,7 +1719,7 @@ void TreeSupport::generate_toolpaths()
                             filler_interface->angle = Geometry::deg2rad(object_config.support_angle.value);
                             fill_params.dont_sort = true;
                         }
-                        if (m_support_params.contact_fill_pattern = ipRectilinear) {
+                        if (m_support_params.contact_fill_pattern == ipRectilinear) {
                             bool bridge_found           = false;
                             for (size_t i = 0; i < m_support_params.num_top_interface_layers; i++) {
                                 auto cur_ts_layer = m_object->get_support_layer(layer_id + i);
