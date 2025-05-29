@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-28 14:42+0800\n"
+"POT-Creation-Date: 2025-05-29 15:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6793,9 +6793,6 @@ msgstr "Beállítás módosítása"
 msgid "Project-inside presets"
 msgstr "Projekten belüli beállítások"
 
-msgid "User"
-msgstr "Felhasználó"
-
 msgid "System"
 msgstr ""
 
@@ -9100,6 +9097,9 @@ msgstr "HTTPS CA fájl"
 
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "A HTTP-alapú OctoPrint kapcsolatokhoz megadható egy egyedi CA-tanúsítvány, crt/pem formátumban. Ha üresen hagyod, az alapértelmezett OS CA tanúsítvány lesz használva."
+
+msgid "User"
+msgstr "Felhasználó"
 
 msgid "Password"
 msgstr "Jelszó"

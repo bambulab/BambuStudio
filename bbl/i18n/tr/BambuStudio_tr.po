@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-28 14:42+0800\n"
+"POT-Creation-Date: 2025-05-29 15:44+0800\n"
 "PO-Revision-Date: 2025-05-08 12:48+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -6821,9 +6821,6 @@ msgstr "Ön ayarı düzenle"
 msgid "Project-inside presets"
 msgstr "Proje içi ön ayarlar"
 
-msgid "User"
-msgstr "Kullanıcı"
-
 msgid "System"
 msgstr ""
 
@@ -9128,6 +9125,9 @@ msgstr "HTTPS CA Dosyası"
 
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "HTTPS OctoPrint bağlantıları için crt/pem formatında özel CA sertifika dosyası belirtilebilir. Boş bırakılırsa varsayılan OS CA sertifika deposu kullanılır."
+
+msgid "User"
+msgstr "Kullanıcı"
 
 msgid "Password"
 msgstr "Şifre"

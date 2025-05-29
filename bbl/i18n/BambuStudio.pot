@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-28 14:42+0800\n"
+"POT-Creation-Date: 2025-05-29 15:44+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -6631,9 +6631,6 @@ msgstr ""
 msgid "Project-inside presets"
 msgstr ""
 
-msgid "User"
-msgstr ""
-
 msgid "System"
 msgstr ""
 
@@ -8891,6 +8888,9 @@ msgid "HTTPS CA File"
 msgstr ""
 
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
+msgstr ""
+
+msgid "User"
 msgstr ""
 
 msgid "Password"

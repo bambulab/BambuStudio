@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-28 14:42+0800\n"
+"POT-Creation-Date: 2025-05-29 15:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6800,9 +6800,6 @@ msgstr "Voorinstelling bewerken"
 msgid "Project-inside presets"
 msgstr "Voorinstellingen binnen project"
 
-msgid "User"
-msgstr "Gebruiker"
-
 msgid "System"
 msgstr ""
 
@@ -9109,6 +9106,9 @@ msgstr "HTTPS CA Bestand"
 
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "Een aangepast CA-certificaatbestand kan worden gespecificeerd voor HTTPS OctoPrint-verbindingen, in crt/pem-formaat. Indien leeg gelaten, wordt de standaard opslagplaats voor OS CA-certificaten gebruikt."
+
+msgid "User"
+msgstr "Gebruiker"
 
 msgid "Password"
 msgstr "Wachtwoord"

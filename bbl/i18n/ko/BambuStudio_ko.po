@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-28 14:42+0800\n"
+"POT-Creation-Date: 2025-05-29 15:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6789,9 +6789,6 @@ msgstr "프리셋 수정"
 msgid "Project-inside presets"
 msgstr "프로젝트 내부 프리셋"
 
-msgid "User"
-msgstr "사용자"
-
 msgid "System"
 msgstr ""
 
@@ -9093,6 +9090,9 @@ msgstr "HTTPS CA 파일"
 
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "HTTPS OctoPrint 연결에 crt/pem 형식으로 사용자 지정 CA 인증서 파일을 지정할 수 있습니다. 비워 두면 기본 OS CA 인증서 저장소가 사용됩니다."
+
+msgid "User"
+msgstr "사용자"
 
 msgid "Password"
 msgstr "비밀번호"
