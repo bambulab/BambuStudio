@@ -579,9 +579,6 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
 
             }
 
-            if (paths.empty())
-                continue;
-
             // get 100% overhang paths by checking what parts of this loop fall
             // outside the grown lower slices (thus where the distance between
             // the loop centerline and original lower slices is >= half nozzle diameter
@@ -607,6 +604,9 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                 }
 
             }
+
+            if (paths.empty())
+                continue;
 
             // Reapply the nearest point search for starting point.
             // We allow polyline reversal because Clipper may have randomly reversed polylines during clipping.
