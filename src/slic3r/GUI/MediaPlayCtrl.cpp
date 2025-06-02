@@ -850,7 +850,7 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
     file_url2 = wxURI(file_url2).BuildURI();
     try {
         std::string configs;
-        boost::filesystem::load_string_file(file_ff_cfg, configs);
+        load_string_file(file_ff_cfg, configs);
         std::vector<std::string> configss;
         boost::algorithm::split(configss, configs, boost::algorithm::is_any_of("\r\n"));
         configss.erase(std::remove(configss.begin(), configss.end(), std::string()), configss.end());
