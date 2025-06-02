@@ -82,24 +82,47 @@ jobs:
           find /usr/local/bin -lname '*/Library/Frameworks/Python.framework/*' -delete
           sudo rm -rf /Library/Frameworks/Python.framework/
           brew install --force python3 && brew unlink python3 && brew unlink python3 && brew link --overwrite python3
-        
+      
+      - name: Free disk space
+        if: inputs.os == 'macos-15'
+        run: |
+          df -h
+          sudo find /Applications -maxdepth 1 -type d -name "Xcode_*.app" ! -name "Xcode_15.4.app" -exec rm -rf {} +
+          sudo rm -rf ~/Library/Developer/CoreSimulator/Caches/*
+          df -h
+
       - name: Build on Mac ${{ inputs.arch }}
         if: inputs.os == 'macos-13'
         working-directory: ${{ github.workspace }}
         run: |
             brew install automake texinfo nasm yasm x264
             brew uninstall --ignore-dependencies zstd
-            mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}
-            mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}/BambuStudio_dep_${{ inputs.arch }}
-            cd ${{ github.workspace }}/deps/build_${{ inputs.arch }}
-            cmake ../ -DDESTDIR="${{ github.workspace }}/deps/build_${{ inputs.arch }}/BambuStudio_dep_${{ inputs.arch }}" -DOPENSSL_ARCH="darwin64-x86_64-cc"
-            make -j4
+            ./BuildMac.sh -d -x -a x86_64 -t 10.15 -1
+            for arch in x86_64; do
+                (cd "${{ github.workspace }}/deps/build/${arch}" && \
+                find . -mindepth 1 -maxdepth 1 ! -name 'BambuStudio_deps' -exec rm -rf {} +)
+            done
+            brew install zstd
+      
+      - name: Build on Mac ${{ inputs.arch }}
+        if: inputs.os == 'macos-15'
+        working-directory: ${{ github.workspace }}
+        run: |
+            brew install automake texinfo nasm yasm x264
+            brew uninstall --ignore-dependencies zstd
+            ./BuildMac.sh -d -x -a universal -t 10.15 -1
+            for arch in arm64 x86_64; do
+                (cd "${{ github.workspace }}/deps/build/${arch}" && \
+                find . -mindepth 1 -maxdepth 1 ! -name 'BambuStudio_deps' -exec rm -rf {} +)
+            done
             brew install zstd
 
       - name: pack deps on Macos
-        if: inputs.os == 'macos-13'
+        if: inputs.os == 'macos-13' || inputs.os == 'macos-15'
         working-directory: ${{ github.workspace }}
-        run: tar -zcvf "BambuStudio_dep_mac_${{ inputs.arch }}_$(date +"%Y%m%d").tar.gz" "${{ github.workspace }}/deps/build_${{ inputs.arch }}/BambuStudio_dep_${{ inputs.arch }}"
+        run: |
+          cd ${{ github.workspace }}/deps
+          tar -zcvf "BambuStudio_dep_mac_${{ inputs.arch }}_$(date +"%Y%m%d").tar.gz" build
 
 
       - name: Build on Ubuntu
@@ -112,14 +135,18 @@ jobs:
             cd deps/build
             tar -czvf BambuStudio_dep_${{ inputs.os }}_$(date +"%Y%m%d").tar.gz destdir
 
-
       # Upload Artifacts
       - name: Upload Mac ${{ inputs.arch }} artifacts
-        if: inputs.os == 'macos-13'
+        if: inputs.os == 'macos-13' || inputs.os == 'macos-15'
         uses: actions/upload-artifact@v4
         with:
           name: BambuStudio_dep_mac_${{ inputs.arch }}_${{ env.date }}
-          path: ${{ github.workspace }}/BambuStudio_dep_mac_${{ inputs.arch }}*.tar.gz
+          path: ${{ github.workspace }}/deps/BambuStudio_dep_mac_${{ inputs.arch }}*.tar.gz
+
+      - name: clean artifacts
+        if: inputs.os == 'macos-13' || inputs.os == 'macos-15'
+        working-directory: ${{ github.workspace }}
+        run: rm -rf ${{ github.workspace }}/deps/build/BambuStudio_dep_mac_${{ inputs.arch }}*.tar.gz
 
       - name: Upload Windows artifacts
         if: inputs.os == 'windows-latest'

@@ -788,6 +788,9 @@ inline std::string filter_characters(const std::string& str, const std::string& 
     return filteredStr;
 }
 
+void save_string_file(const boost::filesystem::path& p, const std::string& str);
+void load_string_file(const boost::filesystem::path& p, std::string& str);
+
 } // namespace Slic3r
 
 #if WIN32
