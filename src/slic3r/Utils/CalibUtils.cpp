@@ -1332,6 +1332,7 @@ bool CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
 
     Print *fff_print = dynamic_cast<Print *>(print);
     fff_print->set_calib_params(params);
+    fff_print->set_BBL_Printer(true);
 
     //StringObjectException warning;
     //auto err = print->validate(&warning);
