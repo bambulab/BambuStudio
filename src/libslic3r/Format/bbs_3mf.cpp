@@ -1856,6 +1856,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         add_error("Archive does not contain a valid model config");
                         return false;
                     }
+                } else if (_is_svg_shape_file(name)) {
+                    _extract_embossed_svg_shape_file(name, archive, stat);
                 }
                 else if (!dont_load_config && boost::algorithm::iequals(name, SLICE_INFO_CONFIG_FILE)) {
                     m_parsing_slice_info = true;
@@ -3064,7 +3066,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 if (!es.has_value()) continue;
                 std::optional<EmbossShape::SvgFile> &svg = es->svg_file;
                 if (!svg.has_value()) continue;
-                if (filename.compare(svg->path_in_3mf) == 0) svg->file_data = m_path_to_emboss_shape_files[filename];
+                if (filename.compare(svg->path_in_3mf) == 0)
+                    svg->file_data = m_path_to_emboss_shape_files[filename];
             }
     }
 

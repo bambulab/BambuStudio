@@ -1567,9 +1567,13 @@ void ObjectList::show_context_menu(const bool evt_context_menu)
                     get_selected_item_indexes(obj_idx, vol_idx, item);
                     if (obj_idx < 0 || vol_idx < 0) return;
                     const ModelVolume *volume = object(obj_idx)->volumes[vol_idx];
-
-                    menu = volume->is_svg() ? plater->svg_part_menu() : // ORCA fixes missing "Edit SVG" item for Add/Negative/Modifier SVG objects in object list
-                           plater->part_menu();
+                    if (volume->is_text()) {
+                        menu = plater->text_part_menu();
+                    } else if (volume->is_svg()) {
+                        menu = plater->svg_part_menu();
+                    } else {
+                        menu = plater->part_menu();
+                    }
                 }
                 else {
                     menu = type & itPlate    ? plater->plate_menu() :

@@ -501,15 +501,19 @@ void MenuFactory::append_menu_item_delete_all_cutter(wxMenu *menu)
 
 void MenuFactory::append_menu_item_edit_text(wxMenu *menu)
 {
-#ifdef __WINDOWS__
+    wxString name = _L("Edit Text");
+    if (menu != &m_text_part_menu) {
+        const int menu_item_id = menu->FindItem(name);
+        if (menu_item_id != wxNOT_FOUND)
+            menu->Destroy(menu_item_id);
+        if (plater() == nullptr)
+            return;
+        if (!plater()->can_edit_text())
+            return;
+    }
     append_menu_item(
         menu, wxID_ANY, _L("Edit Text"), "", [](wxCommandEvent &) { plater()->edit_text(); }, "", nullptr,
         []() { return plater()->can_edit_text(); }, m_parent);
-#else
-    append_menu_item(
-        menu, wxID_ANY, _L("Edit Text"), "", [](wxCommandEvent &) { plater()->edit_text(); }, "", nullptr,
-        []() { return plater()->can_edit_text(); }, m_parent);
-#endif
 }
 
 void MenuFactory::append_menu_item_edit_svg(wxMenu *menu)
@@ -528,7 +532,8 @@ void MenuFactory::append_menu_item_edit_svg(wxMenu *menu)
 
     if (menu != &m_svg_part_menu) {
         const int menu_item_id = menu->FindItem(name);
-        if (menu_item_id != wxNOT_FOUND) menu->Destroy(menu_item_id);
+        if (menu_item_id != wxNOT_FOUND)
+            menu->Destroy(menu_item_id);
         if (!can_edit_svg()) return;
     }
 
@@ -1498,6 +1503,7 @@ void MenuFactory::init(wxWindow* parent)
     //create_object_menu();
     create_sla_object_menu();
     //create_part_menu();
+    create_text_part_menu();
     create_svg_part_menu();
     create_bbl_object_menu();
     create_bbl_part_menu();

@@ -9542,6 +9542,8 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
                     if (model_volume != nullptr) {
                         if (model_volume->is_svg()) {
                             menu = menus.svg_part_menu();
+                        } else if (model_volume->is_text()) {
+                            menu = menus.text_part_menu();
                         } else if (model_volume->is_cut_connector()) {
                             menu = menus.cut_connector_menu();
                         } else {
@@ -17518,6 +17520,7 @@ bool Plater::PopupObjectTableBySelection()
 wxMenu* Plater::plate_menu()            { return p->menus.plate_menu();             }
 wxMenu* Plater::object_menu()           { return p->menus.object_menu();            }
 wxMenu *Plater::part_menu()             { return p->menus.part_menu();              }
+wxMenu *Plater::text_part_menu()        { return p->menus.text_part_menu(); }
 wxMenu *Plater::svg_part_menu()         { return p->menus.svg_part_menu();          }
 wxMenu* Plater::cut_connector_menu()    { return p->menus.cut_connector_menu(); }
 wxMenu* Plater::sla_object_menu()       { return p->menus.sla_object_menu();        }
