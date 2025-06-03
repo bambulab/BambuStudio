@@ -837,6 +837,7 @@ public:
     wxMenu* plate_menu();
     wxMenu* object_menu();
     wxMenu* part_menu();
+    wxMenu* text_part_menu();
     wxMenu* svg_part_menu();
     wxMenu* cut_connector_menu();
     wxMenu* sla_object_menu();

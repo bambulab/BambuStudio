@@ -1362,12 +1362,19 @@ void GLGizmoSVG::draw_preview()
         ImTextureID id = (void *) static_cast<intptr_t>(m_texture.id);
         unsigned    window_width = static_cast<unsigned>(ImGui::GetWindowSize().x - 2 * ImGui::GetStyle().WindowPadding.x);
 
-        if (m_texture.width > window_width && window_width > 0) {
-            m_texture.width = window_width;
+        if (window_width > 0) {
+            if (m_texture.width > window_width) {
+                float scale      = window_width / (float) m_texture.width;
+                m_texture.height = scale * m_texture.height;
+                m_texture.width  = window_width;
+            }
+            if (m_texture.height > window_width) {
+                float scale      = window_width / (float) m_texture.height;
+                m_texture.width  = scale * m_texture.width;
+                m_texture.height = window_width;
+            }
         }
-        if (m_texture.height > m_texture.width) {
-            m_texture.height = m_texture.width;
-        }
+
         ImVec2      s(m_texture.width, m_texture.height);
 
         //std::optional<float> spacing;
@@ -1410,7 +1417,7 @@ void GLGizmoSVG::draw_filename()
     const EmbossShape::SvgFile &svg = *es.svg_file;
     if (m_filename_preview.empty()) {
         // create filename preview
-        if (!svg.path.empty()) {
+        if (!svg.path.empty() && boost::filesystem::exists(svg.path)) {
             m_filename_preview = get_file_name(svg.path);
         } else if (!svg.path_in_3mf.empty()) {
             m_filename_preview = get_file_name(svg.path_in_3mf);
@@ -1448,7 +1455,7 @@ void GLGizmoSVG::draw_filename()
 
     is_hovered |= ImGui::IsItemHovered();
     if (is_hovered) {
-        wxString tooltip = GUI::format_wxstr(_L("SVG file path is \"%1%\""), svg.path);
+        wxString tooltip = GUI::format_wxstr(_L("SVG file path is \"%1%\""), boost::filesystem::exists(svg.path) ? svg.path : svg.path_in_3mf);
         m_imgui->tooltip(tooltip, m_gui_cfg->max_tooltip_width);
     }
 
