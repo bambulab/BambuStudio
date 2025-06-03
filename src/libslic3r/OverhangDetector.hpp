@@ -2,6 +2,7 @@
 #define OVERHANG_DETECTOR_HPP
 
 #include "ExtrusionEntityCollection.hpp"
+#include <clipper/clipper_z.hpp>
 #include "ClipperUtils.hpp"
 #include "Flow.hpp"
 #include "AABBTreeLines.hpp"
