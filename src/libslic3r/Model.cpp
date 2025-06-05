@@ -3352,6 +3352,9 @@ size_t ModelVolume::split(unsigned int max_extruders, float scale_det)
         this->object->volumes[ivolume]->config.set("extruder", this->extruder_id());
         //this->object->volumes[ivolume]->config.set("extruder", auto_extruder_id(max_extruders, extruder_counter));
         this->object->volumes[ivolume]->m_is_splittable = 0;
+        if (this->is_text()) {
+            this->object->volumes[ivolume]->clear_text_info();
+        }
         ++ idx;
         last_all_mesh_face_count += cur_face_count;
     }
