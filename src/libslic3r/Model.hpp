@@ -1051,6 +1051,7 @@ public:
     void convert_from_meters();
 
     void set_text_info(const TextInfo& text_info) { m_text_info = text_info; }
+    void  clear_text_info() { m_text_info.m_text = ""; }
     const TextInfo& get_text_info() const { return m_text_info; }
     bool  is_text() const { return !m_text_info.m_text.empty(); }
     const Transform3d &get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const;
