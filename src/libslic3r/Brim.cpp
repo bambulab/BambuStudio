@@ -1024,7 +1024,8 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                     expolygons_append(brim_area, brimAreaMap[object->id()]);
             }
 
-            if (!object->support_layers().empty() && !object->support_layers().front()->support_islands.empty()) 
+            if (!object->support_layers().empty() && object->support_layers().front()->print_z < print.config().initial_layer_print_height + EPSILON &&
+                !object->support_layers().front()->support_islands.empty())
                 brim_area_support = offset_ex(object->support_layers().front()->support_islands, brim_width);
 
             support_material_extruder = object->config().support_filament;
@@ -1143,6 +1144,8 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                 brim_area.push_back(tempAreas[index]);
             }
         }
+        if (supportBrimAreaMap.find(object->id()) != supportBrimAreaMap.end())
+            append(brim_area, supportBrimAreaMap[object->id()]);
     }
     return brim_area;
 }
