@@ -2310,6 +2310,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             m_placeholder_parser.set("in_head_wrap_detect_zone", !intersection_pl(project_polys, {head_wrap_detect_zone}).empty());
         }
 
+        {
+            coordf_t max_print_z = 0;
+            for (auto& obj : print.objects()) {
+                max_print_z = std::max(max_print_z, (*std::max_element(obj->layers().begin(), obj->layers().end(), [](Layer* a, Layer* b) { return a->print_z < b->print_z; }))->print_z);
+            }
+            m_placeholder_parser.set("max_print_z", new ConfigOptionInt(std::ceil(max_print_z)));
+        }
+
         // get center without wipe tower
         BoundingBoxf bbox_wo_wt;// bounding box without wipe tower
         for (auto& objPtr : print.objects()) {
