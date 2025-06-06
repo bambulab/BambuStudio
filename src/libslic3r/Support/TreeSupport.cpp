@@ -1747,16 +1747,8 @@ void TreeSupport::generate_toolpaths()
                                 filler_interface->layer_id = 0;
                         }
 
-                        ExtrusionEntityCollection *temp_support_fills = new ExtrusionEntityCollection();
-                        for (auto &single_poly : union_ex(polys))
-                            make_perimeter_and_infill(temp_support_fills->entities, single_poly, 1, interface_flow, erSupportMaterialInterface, filler_interface.get(),
-                                                      interface_density, false);
-                        temp_support_fills->no_sort = true; // make sure loops are first
-                        if (!temp_support_fills->entities.empty())
-                            ts_layer->support_fills.entities.push_back(temp_support_fills);
-                        else
-                            delete temp_support_fills;
-
+                        fill_expolygons_generate_paths(ts_layer->support_fills.entities, polys, filler_interface.get(), fill_params, erSupportMaterialInterface,
+                                                       interface_flow);
                     }
                     else {
                         // base_areas
@@ -3370,10 +3362,8 @@ void TreeSupport::drop_nodes()
                     }
                     if (i_node->child) {
                         i_node->child->parent = i_node->parent;
-                        auto it = std::find(i_node->child->parents.begin(), i_node->child->parents.end(), i_node);
-                        if (it != i_node->child->parents.end()) i_node->child->parents.erase(it);
-                        if (!i_node->parents.empty())
-                            append(i_node->child->parents, i_node->parents);
+                        i_node->child->parents.erase(std::find(i_node->child->parents.begin(), i_node->child->parents.end(), i_node));
+                        append(i_node->child->parents, i_node->parents);
                     }
                     i_node->is_processed = true;  // mark to be deleted later
 
