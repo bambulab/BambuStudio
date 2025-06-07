@@ -1787,7 +1787,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                 if (slice) {
                     if (m_slice_select == eSliceAll)
                         wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
-                    else
+                    else if (m_slice_select == eSlicePlate)
                         wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
                     this->m_tabpanel->SetSelection(tpPreview);
                 }
@@ -1843,6 +1843,7 @@ wxBoxSizer* MainFrame::create_side_tools()
             slice_plate_btn->SetCornerRadius(0);
 
             slice_all_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+                plater()->get_notification_manager()->close_notification_of_type(NotificationType::HelioSlicingError);
                 m_slice_btn->SetLabel(_L("Slice all"));
                 m_slice_select = eSliceAll;
                 m_slice_enable = get_enable_slice_status();
@@ -1853,6 +1854,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                 });
 
             slice_plate_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+                plater()->get_notification_manager()->close_notification_of_type(NotificationType::HelioSlicingError);
                 m_slice_btn->SetLabel(_L("Slice plate"));
                 m_slice_select = eSlicePlate;
                 m_slice_enable = get_enable_slice_status();
@@ -1861,6 +1863,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                 if(m_slice_option_pop_up)
                     m_slice_option_pop_up->Dismiss();
                 });
+
             m_slice_option_pop_up->append_button(slice_all_btn);
             m_slice_option_pop_up->append_button(slice_plate_btn);
             m_slice_option_pop_up->Popup(m_slice_btn);
@@ -2187,12 +2190,6 @@ void MainFrame::update_side_button_style()
     // BBS
     int em = em_unit();
 
-    /*m_slice_btn->SetLayoutStyle(1);
-    m_slice_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center, FromDIP(15));
-    m_slice_btn->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_slice_btn->SetCornerRadius(FromDIP(12));
-    m_slice_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(10)));
-    m_slice_btn->SetBottomColour(wxColour(#3B4446));*/
     StateColor m_btn_bg_enable = StateColor(
         std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(48, 221, 112), StateColor::Hovered),

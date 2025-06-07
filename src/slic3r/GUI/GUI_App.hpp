@@ -509,7 +509,12 @@ public:
 
     static bool     catch_error(std::function<void()> cb, const std::string& err);
 
-    void            persist_window_geometry(wxTopLevelWindow *window, bool default_maximized = false);
+    //for helio slice
+    static void     request_helio_pat(std::function<void(std::string)> func);
+    static void     request_helio_supported_data();
+	//static std::vector<Slic3r::HelioQuery::SupportedPrinters> get_helio_support_printer_model();
+
+    void                                               persist_window_geometry(wxTopLevelWindow *window, bool default_maximized = false);
     void            update_ui_from_settings();
 
     bool            switch_language();

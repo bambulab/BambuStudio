@@ -105,6 +105,7 @@
 #include "../Utils/UndoRedo.hpp"
 #include "../Utils/PresetUpdater.hpp"
 #include "../Utils/Process.hpp"
+#include "../Utils/HelioDragon.hpp"
 #include "RemovableDriveManager.hpp"
 #include "InstanceCheck.hpp"
 #include "NotificationManager.hpp"
@@ -197,6 +198,11 @@ wxDEFINE_EVENT(EVT_DEL_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 wxDEFINE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
+
+wxDEFINE_EVENT(EVT_HELIO_PROCESSING_COMPLETED, HelioCompletionEvent);
+wxDEFINE_EVENT(EVT_HELIO_PROCESSING_STARTED, SimpleEvent);
+wxDEFINE_EVENT(EVT_HELIO_INPUT_CHAMBER_TEMP, SimpleEvent);
+
 #define PRINTER_THUMBNAIL_SIZE (wxSize(FromDIP(48), FromDIP(48)))
 #define PRINTER_PANEL_SIZE (wxSize(FromDIP(96), FromDIP(68)))
 #define BTN_SYNC_SIZE (wxSize(FromDIP(96), FromDIP(98)))
@@ -3852,6 +3858,7 @@ public:
     ProjectDirtyStateManager dirty_state;
 
     BackgroundSlicingProcess    background_process;
+    HelioBackgroundProcess      helio_background_process;
     bool suppressed_backround_processing_update { false };
     // UIThreadWorker can be used as a replacement for BoostThreadWorker if
     // no additional worker threads are desired (useful for debugging or profiling)
@@ -4187,6 +4194,8 @@ public:
     void on_export_finished(wxCommandEvent&);
     void on_slicing_began();
 
+    int update_helio_background_process(std::string& printer_id, std::string& material_id);
+
     void clear_warnings();
     void add_warning(const Slic3r::PrintStateBase::Warning &warning, size_t oid);
     // Update notification manager with the current state of warnings produced by the background process (slicing).
@@ -4229,6 +4238,9 @@ public:
     void on_action_open_project(SimpleEvent&);
     void on_action_slice_plate(SimpleEvent&);
     void on_action_slice_all(SimpleEvent&);
+    void on_helio_processing_complete(HelioCompletionEvent &);
+    void on_helio_processing_start(SimpleEvent &);
+    void on_helio_input_chamber_temp(SimpleEvent &);
     void on_action_publish(wxCommandEvent &evt);
     void on_action_print_plate(SimpleEvent&);
     void on_action_print_all(SimpleEvent&);
@@ -4755,6 +4767,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_OPEN_PLATESETTINGSDIALOG, [q](wxCommandEvent& evt) { q->open_platesettings_dialog(evt);});
         q->Bind(EVT_OPEN_FILAMENT_MAP_SETTINGS_DIALOG, [q](wxCommandEvent &evt) { q->open_filament_map_setting_dialog(evt); });
         //q->Bind(EVT_GLVIEWTOOLBAR_ASSEMBLE, [q](SimpleEvent&) { q->select_view_3D("Assemble"); });
+
+        q->Bind(EVT_HELIO_PROCESSING_COMPLETED, &priv::on_helio_processing_complete, this);
+        q->Bind(EVT_HELIO_PROCESSING_STARTED, &priv::on_helio_processing_start, this);
+        q->Bind(EVT_HELIO_INPUT_CHAMBER_TEMP, &priv::on_helio_input_chamber_temp, this);
     }
 
     // Drop target:
@@ -7168,7 +7184,6 @@ void Plater::priv::process_validation_warning(StringObjectException const &warni
     }
 }
 
-
 // Update background processing thread from the current config and Model.
 // Returns a bitmask of UpdateBackgroundProcessReturnState.
 unsigned int Plater::priv::update_background_process(bool force_validation, bool postpone_error_messages, bool switch_print)
@@ -7502,13 +7517,15 @@ unsigned int Plater::priv::update_restart_background_process(bool force_update_s
         switch_print = false;
     }
     // bitmask of UpdateBackgroundProcessReturnState
-    unsigned int state = this->update_background_process(false, false, switch_print);
+    unsigned int state = update_background_process(false, false, switch_print);
+
     if (force_update_scene || (state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE) != 0)
         view3D->reload_scene(false);
 
     if (force_update_preview)
         this->preview->reload_print();
     this->restart_background_process(state);
+
     return state;
 }
 
@@ -9117,6 +9134,9 @@ void Plater::priv::on_action_open_project(SimpleEvent&)
 void Plater::priv::on_action_slice_plate(SimpleEvent&)
 {
     if (q != nullptr) {
+
+        helio_background_process.reset();
+
         if (!q->check_ams_status(false))
             return;
 
@@ -9135,10 +9155,169 @@ void Plater::priv::on_action_slice_plate(SimpleEvent&)
     }
 }
 
+
+int Plater::priv::update_helio_background_process(std::string& printer_id, std::string& material_id)
+{
+    notification_manager->close_notification_of_type(NotificationType::HelioSlicingError);
+    PresetBundle *           preset_bundle     = wxGetApp().preset_bundle;
+    std::string              preset_name       = preset_bundle->printers.get_edited_preset().get_printer_name(preset_bundle);
+    std::vector<std::string> preset_name_array = wxGetApp().split_str(preset_name, "Bambu Lab ");
+    std::string              preset_pure_name  = preset_name_array.size() >= 2 ? preset_name_array[1] : "";
+
+    /*invalid printer preset*/
+     if (preset_pure_name.empty()) {
+        GUI::MessageDialog msgdialog(nullptr, _L("Invalid printer preset. Unable to slice with Helio."), "", wxICON_WARNING | wxOK);
+        msgdialog.ShowModal();
+        return -1;
+    }
+
+     bool helio_support = false;
+     for (HelioQuery::SupportedData pdata : HelioQuery::global_supported_printers) {
+         if (!pdata.native_name.empty()) {
+             std::string native_name = pdata.native_name;
+             boost::algorithm::to_lower(native_name);
+             boost::algorithm::to_lower(preset_pure_name);
+             if (native_name.find(preset_pure_name) != std::string::npos) {
+                 helio_support = true;
+                 printer_id = pdata.id;
+                 break;
+             }
+         }
+    }
+
+    /*unsupported helio printers*/
+     if (!helio_support) {
+        GUI::MessageDialog msgdialog(nullptr, _L("The current printer preset cannot be sliced using Helio."), "", wxICON_WARNING | wxOK);
+        msgdialog.ShowModal();
+        return -1;
+    }
+
+    /*check total number of materials*/
+    auto extruders = q->get_partplate_list().get_curr_plate()->get_extruders();
+    if (extruders.size() <= 0) {
+        return -1;
+    }
+
+    /*Check the materials supported by helio*/
+    auto preset_filaments = q->get_current_filaments_preset_names();
+    if (extruders.front() > preset_filaments.size()) {
+        return -1;
+    }
+
+
+    if (extruders.size() > 1) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": The number of consumables used is > 1";
+        GUI::MessageDialog msgdialog(nullptr, _L("Helio slicing does not support using a number of materials greater than 1."), "", wxICON_WARNING | wxOK);
+        msgdialog.ShowModal();
+        return -1;
+    }
+
+    std::string used_filament = preset_filaments[extruders.front() - 1];
+    bool is_supported_by_helio = false;
+
+    for (HelioQuery::SupportedData pdata : HelioQuery::global_supported_materials) {
+        if (!pdata.native_name.empty()) {
+            std::string native_name = pdata.native_name;
+            boost::algorithm::to_lower(native_name);
+            boost::algorithm::to_lower(used_filament);
+            if (used_filament.find(native_name) != std::string::npos) {
+                is_supported_by_helio = true;
+                material_id = pdata.id;
+                break;
+            }
+        }
+    }
+
+    if (!is_supported_by_helio) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Helio does not support materials %1%") % used_filament;
+        GUI::MessageDialog msgdialog(nullptr, format(_L("Helio does not support materials %s"),  used_filament), "", wxICON_WARNING | wxOK);
+        msgdialog.ShowModal();
+        return -1;
+    }
+
+
+    //partplate_list.get_curr_plate()->update_helio_apply_result_invalid(false);
+    notification_manager->close_notification_of_type(NotificationType::HelioSlicingError);
+    return 0;
+}
+
+void Plater::priv::on_helio_processing_complete(HelioCompletionEvent &a)
+{
+    if (a.is_successful) {
+        this->reset_gcode_toolpaths();
+
+        int deleted = boost::nowide::remove(a.tmp_path.c_str());
+
+        if (deleted != 0) { BOOST_LOG_TRIVIAL(error) << boost::format("Failed to delete file %1%") % a.tmp_path; }
+
+        std::string copied;
+        copy_file(a.simulated_path, a.tmp_path, copied);
+
+        BOOST_LOG_TRIVIAL(debug) << boost::format("Failed to delete file %1%") % copied;
+
+        GCodeProcessorResult *res1 = partplate_list.get_curr_plate()->get_gcode_result();
+        res1->lines_ends           = helio_background_process.m_gcode_result->lines_ends;
+        res1->moves                = helio_background_process.m_gcode_result->moves;
+
+        GCodeProcessorResult *res2 = background_process.get_current_gcode_result();
+        res2->lines_ends           = helio_background_process.m_gcode_result->lines_ends;
+        res2->moves                = helio_background_process.m_gcode_result->moves;
+
+        this->update();
+    } else {
+        notification_manager->push_helio_error_notification(a.error_message);
+    }
+}
+
+void Plater::priv::on_helio_processing_start(SimpleEvent &a)
+{
+    notification_manager->close_notification_of_type(GUI::NotificationType::SignDetected);
+    notification_manager->close_notification_of_type(GUI::NotificationType::ExportFinished);
+    notification_manager->set_slicing_progress_began();
+    notification_manager->update_slicing_notif_dailytips(true);
+}
+
+//BBS: GUI refactor: slice with helio
+void Plater::priv::on_helio_input_chamber_temp(SimpleEvent &a)
+{
+    std::string printer_id;
+    std::string material_id;
+    if (update_helio_background_process(printer_id, material_id) > -1) {
+        HelioInputDialog dlg;
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            float chamber_temp = dlg.get_input_data();
+
+            if (chamber_temp >= -1) {
+                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":helio process called";
+                //on_action_slice_plate(a);
+
+                if (!(partplate_list.get_curr_plate()->empty())) {
+
+                    std:;string                      helio_api_url = Slic3r::HelioQuery::get_helio_api_url();
+                    std::string                      helio_api_key = Slic3r::HelioQuery::get_helio_pat();
+                    const Slic3r::DynamicPrintConfig config        = wxGetApp().preset_bundle->full_config();
+                    auto                             g_result      = background_process.get_current_gcode_result();
+
+                    //set user input
+                    HelioBackgroundProcess::SimulationInput data;
+                    data.chamber_temp = chamber_temp;
+                    helio_background_process.set_simulation_input_data(data);
+                    helio_background_process.init(helio_api_key, helio_api_url, printer_id, material_id, g_result, preview,
+                                                  [this]() {});
+
+                    helio_background_process.helio_thread_start(background_process.m_mutex, background_process.m_condition, background_process.m_state, notification_manager);
+                }
+            }
+        }
+    }
+}
+
 //BBS: GUI refactor: slice all
 void Plater::priv::on_action_slice_all(SimpleEvent&)
 {
     if (q != nullptr) {
+        helio_background_process.reset();
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice project event\n" ;
         //BBS update extruder params and speed table before slicing
         const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
@@ -9863,10 +10042,25 @@ void Plater::priv::init_notification_manager()
     notification_manager->init();
 
     auto cancel_callback = [this]() {
+        bool res1;
+        bool res2;
+
+        if (!this->helio_background_process.is_running())
+            res1 = false;
+
+        else {
+            this->helio_background_process.stop();
+            res1 = true;
+        }
+
         if (this->background_process.idle())
-            return false;
-        this->background_process.stop();
-        return true;
+            res2 = false;
+        else {
+            this->background_process.stop();
+            res2 = true;
+        }
+
+        return res1 || res2;
     };
     notification_manager->init_slicing_progress_notification(cancel_callback);
     notification_manager->set_fff(printer_technology == ptFFF);
@@ -17086,6 +17280,18 @@ bool Plater::is_background_process_slicing() const
     return p->m_is_slicing;
 }
 
+// returns the state enum. The header file could not be imported here so the return type is int.
+int Plater::get_helio_process_status() const
+{
+    int helio_state = p->helio_background_process.get_state();
+    return helio_state;
+}
+
+void Plater::update_helio_background_process(std::string& printer_id, std::string& material_id)
+{
+    p->update_helio_background_process(printer_id, material_id);
+}
+
 //BBS: update slicing context
 void Plater::update_slicing_context_to_current_partplate()
 {
@@ -17281,6 +17487,37 @@ void Plater::show_assembly_info()
 bool Plater::show_publish_dialog(bool show)
 {
     return p->show_publish_dlg(show);
+}
+
+std::vector<std::string> Plater::get_current_filaments_preset_names()
+{
+    std::vector<std::string> filaments_names;
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    for (auto filament_name : preset_bundle->filament_presets) {
+        for (int f_index = 0; f_index < preset_bundle->filaments.size(); f_index++) {
+            PresetCollection *filament_presets = &wxGetApp().preset_bundle->filaments;
+            Preset *          preset           = &filament_presets->preset(f_index);
+            int               size             = preset_bundle->filaments.size();
+            if (preset && filament_name.compare(preset->name) == 0) {
+                   // std::string display_filament_type;
+                   // std::string filament_type = preset->config.get_filament_type(display_filament_type);
+                   // std::string m_filament_id = preset->filament_id;
+
+                   // //display_materials.push_back(display_filament_type);
+                   // //materials.push_back(filament_type);
+                   //// m_filaments_id.push_back(m_filament_id);
+
+                   // std::string m_vendor_name = "";
+                   // auto        vendor        = dynamic_cast<ConfigOptionStrings *>(preset->config.option("filament_vendor"));
+                   // if (vendor && (vendor->values.size() > 0)) {
+                   //     std::string vendor_name = vendor->values[0];
+                   //     m_vendor_name           = vendor_name;
+                   // }
+                   filaments_names.push_back(filament_name);
+            }
+        }
+    }
+    return filaments_names;
 }
 
 void Plater::post_process_string_object_exception(StringObjectException &err)

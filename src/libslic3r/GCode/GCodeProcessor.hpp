@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <array>
 #include <vector>
+#include <regex>
 #include <mutex>
 #include <string>
 #include <string_view>
@@ -203,6 +204,9 @@ namespace Slic3r {
             float fan_speed{ 0.0f }; // percentage
             float temperature{ 0.0f }; // Celsius degrees
             float layer_duration{ 0.0f }; // s (layer id before finalize)
+            float thermal_index_min{0.0f};
+            float thermal_index_max{0.0f};
+            float thermal_index_mean{0.0f};
 
             std::array<float, 2>time{ 0.f,0.f }; // prefix sum of time, assigned during finalize()
 
@@ -457,10 +461,20 @@ namespace Slic3r {
         static const std::string Mm3_Per_Mm_Tag;
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
+        struct ThermalIndex
+        {
+            float max;
+            float min;
+            float mean;
+            bool  isNull;
+            ThermalIndex() : min(-200), max(-200), mean(-200), isNull(true) {}
+
+            ThermalIndex(float minVal, float maxVal, float meanVal) : min(minVal), max(maxVal), mean(meanVal), isNull(false) {}
+        };
     private:
-        using AxisCoords = std::array<double, 4>;
+        using AxisCoords     = std::array<double, 4>;
         using ExtruderColors = std::vector<unsigned char>;
-        using ExtruderTemps = std::vector<float>;
+        using ExtruderTemps  = std::vector<float>;
 
         enum class EUnits : unsigned char
         {
@@ -1053,6 +1067,7 @@ namespace Slic3r {
         unsigned char m_extruder_id;
         ExtruderColors m_extruder_colors;
         ExtruderTemps m_extruder_temps;
+        ThermalIndex m_thermal_index;
         int m_highest_bed_temp;
         float m_extruded_last_z;
         float m_first_layer_height; // mm
@@ -1150,12 +1165,34 @@ namespace Slic3r {
             m_detect_layer_based_on_tag = enabled;
         }
 
+        static ThermalIndex parse_helioadditive_comment(const std::string comment)
+        {
+            if (boost::algorithm::contains(comment, ";helioadditive=")) {
+                std::regex  regexPattern(R"(\bti\.max=(-?[0-9]*\.?[0-9]+),ti\.min=(-?[0-9]*\.?[0-9]+),ti\.mean=(-?[0-9]*\.?[0-9]+)\b)");
+                std::smatch match;
+                if (std::regex_search(comment, match, regexPattern)) {
+                    float maxVal  = std::stof(match[1].str()) * 100.0;
+                    float minVal  = std::stof(match[2].str()) * 100.0;
+                    float meanVal = std::stof(match[3].str()) * 100.0;
+
+                    return ThermalIndex(minVal, maxVal, meanVal);
+                } else {
+                    std::cerr << "Error: Unable to parse thermal index values from comment." << std::endl;
+                    return ThermalIndex();
+                }
+
+            } else {
+                return ThermalIndex();
+            }
+        };
+
     private:
         void register_commands();
         void apply_config(const DynamicPrintConfig& config);
         void apply_config_simplify3d(const std::string& filename);
         void apply_config_superslicer(const std::string& filename);
         void process_gcode_line(const GCodeReader::GCodeLine& line, bool producers_enabled);
+        void process_helioadditive_comment(const GCodeReader::GCodeLine& line);
 
         // Process tags embedded into comments
         void process_tags(const std::string_view comment, bool producers_enabled);

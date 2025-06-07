@@ -7385,6 +7385,157 @@ bool ImGui::BBLSelectable(const char *label, bool selected, ImGuiSelectableFlags
     return pressed;
 }
 
+bool ImGui::BBLSelectable_LeftImage(const char *label, bool selected, ImTextureID texture_id,ImGuiSelectableFlags flags, const ImVec2 &size_arg)
+{
+    ImGuiWindow *window = GetCurrentWindow();
+    if (window->SkipItems) return false;
+
+    ImGuiContext &    g     = *GImGui;
+    const ImGuiStyle &style = g.Style;
+
+    // Submit label or explicit size to ItemSize(), whereas ItemAdd() will submit a larger/spanning rectangle.
+    ImGuiID id         = window->GetID(label);
+    ImVec2  label_size = CalcTextSize(label, NULL, true);
+    ImVec2  size(size_arg.x != 0.0f ? size_arg.x : label_size.x, size_arg.y != 0.0f ? size_arg.y : label_size.y);
+    ImVec2  pos = window->DC.CursorPos;
+    pos.y += window->DC.CurrLineTextBaseOffset;
+    ItemSize(size, 0.0f);
+
+    // Fill horizontal space
+    // We don't support (size < 0.0f) in Selectable() because the ItemSpacing extension would make explicitly right-aligned sizes not visibly match other widgets.
+    const bool  span_all_columns = (flags & ImGuiSelectableFlags_SpanAllColumns) != 0;
+    const float min_x            = span_all_columns ? window->ParentWorkRect.Min.x : pos.x;
+    const float max_x            = span_all_columns ? window->ParentWorkRect.Max.x : window->WorkRect.Max.x;
+    if (size_arg.x == 0.0f || (flags & ImGuiSelectableFlags_SpanAvailWidth)) size.x = ImMax(label_size.x, max_x - min_x);
+
+    // Text stays at the submission position, but bounding box may be extended on both sides
+    const float  arrow_size = (flags & ImGuiComboFlags_NoArrowButton) ? 0.0f : GetFrameHeight();
+    const ImVec2 text_min   = ImVec2(pos.x + arrow_size, pos.y);
+    const ImVec2 text_max(min_x + size.x, pos.y + size.y);
+
+    // Selectables are meant to be tightly packed together with no click-gap, so we extend their box to cover spacing between selectable.
+    ImRect bb(min_x, pos.y, text_max.x, text_max.y);
+    if ((flags & ImGuiSelectableFlags_NoPadWithHalfSpacing) == 0) {
+        const float spacing_x = span_all_columns ? 0.0f : style.ItemSpacing.x;
+        const float spacing_y = style.ItemSpacing.y;
+        const float spacing_L = IM_FLOOR(spacing_x * 0.50f);
+        const float spacing_U = IM_FLOOR(spacing_y * 0.50f);
+        bb.Min.x -= spacing_L;
+        bb.Min.y -= spacing_U;
+        bb.Max.x += (spacing_x - spacing_L);
+        bb.Max.y += (spacing_y - spacing_U);
+    }
+    // if (g.IO.KeyCtrl) { GetForegroundDrawList()->AddRect(bb.Min, bb.Max, IM_COL32(0, 255, 0, 255)); }
+
+    // Modify ClipRect for the ItemAdd(), faster than doing a PushColumnsBackground/PushTableBackground for every Selectable..
+    const float backup_clip_rect_min_x = window->ClipRect.Min.x;
+    const float backup_clip_rect_max_x = window->ClipRect.Max.x;
+    if (span_all_columns) {
+        window->ClipRect.Min.x = window->ParentWorkRect.Min.x;
+        window->ClipRect.Max.x = window->ParentWorkRect.Max.x;
+    }
+
+    bool item_add;
+    if (flags & ImGuiSelectableFlags_Disabled) {
+        ImGuiItemFlags backup_item_flags = g.CurrentItemFlags;
+        g.CurrentItemFlags |= ImGuiItemFlags_Disabled | ImGuiItemFlags_NoNavDefaultFocus;
+        item_add           = ItemAdd(bb, id);
+        g.CurrentItemFlags = backup_item_flags;
+    } else {
+        item_add = ItemAdd(bb, id);
+    }
+
+    if (span_all_columns) {
+        window->ClipRect.Min.x = backup_clip_rect_min_x;
+        window->ClipRect.Max.x = backup_clip_rect_max_x;
+    }
+
+    if (!item_add)
+        return false;
+    // FIXME: We can standardize the behavior of those two, we could also keep the fast path of override ClipRect + full push on render only,
+    // which would be advantageous since most selectable are not selected.
+    if (span_all_columns && window->DC.CurrentColumns)
+        PushColumnsBackground();
+    else if (span_all_columns && g.CurrentTable)
+        TablePushBackgroundChannel();
+
+    // We use NoHoldingActiveID on menus so user can click and _hold_ on a menu then drag to browse child entries
+    ImGuiButtonFlags button_flags = 0;
+    if (flags & ImGuiSelectableFlags_NoHoldingActiveID) { button_flags |= ImGuiButtonFlags_NoHoldingActiveId; }
+    if (flags & ImGuiSelectableFlags_SelectOnClick) { button_flags |= ImGuiButtonFlags_PressedOnClick; }
+    if (flags & ImGuiSelectableFlags_SelectOnRelease) { button_flags |= ImGuiButtonFlags_PressedOnRelease; }
+    if (flags & ImGuiSelectableFlags_Disabled) { button_flags |= ImGuiButtonFlags_Disabled; }
+    if (flags & ImGuiSelectableFlags_AllowDoubleClick) { button_flags |= ImGuiButtonFlags_PressedOnClickRelease | ImGuiButtonFlags_PressedOnDoubleClick; }
+    if (flags & ImGuiSelectableFlags_AllowItemOverlap) { button_flags |= ImGuiButtonFlags_AllowItemOverlap; }
+
+    if (flags & ImGuiSelectableFlags_Disabled) selected = false;
+
+    const bool was_selected = selected;
+    bool       hovered, held;
+    bool       pressed = ButtonBehavior(bb, id, &hovered, &held, button_flags);
+    if (hovered || g.ActiveId == id) {
+        ImGui::PushStyleColor(ImGuiCol_Border, GetColorU32(ImGuiCol_BorderActive));
+        if (arrow_size == 0) {
+            RenderFrameBorder(bb.Min, ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), style.FrameRounding);
+        } else {
+            RenderFrameBorder(ImVec2(bb.Min.x + style.WindowPadding.x, bb.Min.y), ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), style.FrameRounding);
+        }
+        ImGui::PopStyleColor(1);
+    }
+    // Update NavId when clicking or when Hovering (this doesn't happen on most widgets), so navigation can be resumed with gamepad/keyboard
+    if (pressed || (hovered && (flags & ImGuiSelectableFlags_SetNavIdOnHover))) {
+        if (!g.NavDisableMouseHover && g.NavWindow == window && g.NavLayer == window->DC.NavLayerCurrent) {
+            SetNavID(id, window->DC.NavLayerCurrent, window->DC.NavFocusScopeIdCurrent, ImRect(bb.Min - window->Pos, bb.Max - window->Pos));
+            g.NavDisableHighlight = true;
+        }
+    }
+    if (pressed) MarkItemEdited(id);
+
+    if (flags & ImGuiSelectableFlags_AllowItemOverlap) SetItemAllowOverlap();
+
+    // In this branch, Selectable() cannot toggle the selection so this will never trigger.
+    if (selected != was_selected) //-V547
+        window->DC.LastItemStatusFlags |= ImGuiItemStatusFlags_ToggledSelection;
+
+    // Render
+    if (held && (flags & ImGuiSelectableFlags_DrawHoveredWhenHeld)) hovered = true;
+    if (hovered || selected) {
+        const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
+        if (arrow_size == 0) {
+            RenderFrame(bb.Min, ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), col, false, 0.0f);
+        } else {
+            RenderFrame(ImVec2(bb.Min.x + style.WindowPadding.x, bb.Min.y), ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), col, false, 0.0f);
+        }
+        RenderNavHighlight(bb, id, ImGuiNavHighlightFlags_TypeThin | ImGuiNavHighlightFlags_NoRounding);
+    }
+
+    if (span_all_columns && window->DC.CurrentColumns)
+        PopColumnsBackground();
+    else if (span_all_columns && g.CurrentTable)
+        TablePopBackgroundChannel();
+
+    if (flags & ImGuiSelectableFlags_Disabled) PushStyleColor(ImGuiCol_Text, style.Colors[ImGuiCol_TextDisabled]);
+    RenderTextClipped(text_min, text_max, label, NULL, &label_size, style.SelectableTextAlign, &bb);
+    if (flags & ImGuiSelectableFlags_Disabled) PopStyleColor();
+
+    // Automatically close popups
+    if (pressed && (window->Flags & ImGuiWindowFlags_Popup) && !(flags & ImGuiSelectableFlags_DontClosePopups) && !(g.CurrentItemFlags & ImGuiItemFlags_SelectableDontClosePopup))
+        CloseCurrentPopup();
+    if (texture_id) {
+        auto   line_height = ImGui::GetFrameHeight();
+        ImRect bb_image;
+        bb_image.Min = bb.Min;
+        bb_image.Min.x += std::min(10.f, line_height * 0.45f);
+        bb_image.Min.y += line_height * 0.2;
+        auto image_height = line_height * 0.6;
+        bb_image.Max.x    = bb_image.Min.x + image_height;
+        bb_image.Max.y    = bb_image.Min.y + image_height;
+        ImGui::GetWindowDrawList()->AddImage(texture_id, bb_image.Min, bb_image.Max);
+    }
+    IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.LastItemStatusFlags);
+    return pressed;
+}
+
 bool ImGui::Selectable(const char* label, bool* p_selected, ImGuiSelectableFlags flags, const ImVec2& size_arg)
 {
     if (Selectable(label, *p_selected, flags, size_arg))

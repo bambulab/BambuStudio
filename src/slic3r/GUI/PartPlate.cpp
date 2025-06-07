@@ -1819,6 +1819,12 @@ void PartPlate::get_print(PrintBase** print, GCodeResult** result, int* index)
 	return;
 }
 
+GCodeProcessorResult *PartPlate::get_gcode_result()
+{
+	return m_gcode_result;
+}
+
+
 //set the print object, result and it's index
 void PartPlate::set_print(PrintBase* print, GCodeResult* result, int index)
 {

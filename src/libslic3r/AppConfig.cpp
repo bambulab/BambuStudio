@@ -370,7 +370,11 @@ void AppConfig::set_defaults()
     }
 
     if (get("mouse_wheel").empty()) {
-        set("mouse_wheel", "0");
+        set("mouse_wheel", "0"); }
+
+    // helio options
+    if (get("helio_enable").empty()) {
+        set_bool("helio_enable", false);
     }
 
     if (get("max_recent_count").empty()) {
