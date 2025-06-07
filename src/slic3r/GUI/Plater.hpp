@@ -38,6 +38,7 @@ class Button;
 
 namespace Slic3r {
 class BackgroundSlicingProcess;
+class HelioBackgroundProcess;
 class BuildVolume;
 class Model;
 class ModelObject;
@@ -49,6 +50,7 @@ class SLAPrint;
 //BBS: add partplatelist and SlicingStatusEvent
 class PartPlateList;
 class SlicingStatusEvent;
+class HelioCompletionEvent;
 enum SLAPrintObjectStep : unsigned int;
 enum class ConversionType : int;
 class Ams;
@@ -115,6 +117,12 @@ wxDECLARE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
 wxDECLARE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
 using ColorEvent = Event<wxColour>;
 wxDECLARE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
+
+wxDECLARE_EVENT(EVT_HELIO_PROCESSING_COMPLETED, HelioCompletionEvent);
+wxDECLARE_EVENT(EVT_HELIO_PROCESSING_STARTED, SimpleEvent);
+wxDECLARE_EVENT(EVT_HELIO_INPUT_CHAMBER_TEMP, SimpleEvent);
+wxDECLARE_EVENT(EVT_GCODE_VIEWER_CHANGED, SimpleEvent);
+
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
 
 class Sidebar : public wxPanel
@@ -331,6 +339,10 @@ public:
     void calib_max_vol_speed(const Calib_Params &params);
     void calib_retraction(const Calib_Params &params);
     void calib_VFA(const Calib_Params &params);
+
+    // for helio slice
+    void update_helio_background_process(std::string& printer_id, std::string& material_id);
+    std::vector<std::string> get_current_filaments_preset_names();
 
     //BBS: add only gcode mode
     bool is_gcode_3mf() { return m_exported_file; }
@@ -681,6 +693,10 @@ public:
     //BBS: show object info
     void show_object_info();
     void show_assembly_info();
+
+    //BBS Helio slice
+    int  get_helio_process_status() const;
+
     //BBS
     bool show_publish_dialog(bool show = true);
     //BBS: post process string object exception strings by warning types

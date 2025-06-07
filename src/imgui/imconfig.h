@@ -172,6 +172,7 @@ namespace ImGui
     const wchar_t SphereButtonIcon         = 0x0816;
     const wchar_t GapFillIcon              = 0x0817;
     const wchar_t ConfirmIcon              = 0x0818;
+    const wchar_t HelioIcon                = 0x0819;
 
     const wchar_t MinimalizeDarkButton           = 0x081C;
     const wchar_t MinimalizeHoverDarkButton      = 0x081D;

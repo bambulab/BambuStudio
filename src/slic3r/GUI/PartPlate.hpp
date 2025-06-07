@@ -103,6 +103,7 @@ private:
     bool m_ready_for_slice;
     bool m_slice_result_valid;
     bool m_apply_invalid {false};
+    bool m_helio_apply_invalid {false};
     float m_slice_percent;
 
     Print *m_print; //Print reference, not own it, no need to serialize
@@ -282,6 +283,9 @@ public:
     //set the print object, result and it's index
     void set_print(PrintBase *print, GCodeResult* result = nullptr, int index = -1);
 
+    // get gcode result
+    GCodeProcessorResult* get_gcode_result();
+
     //get gcode filename
     std::string get_gcode_filename();
 
@@ -406,6 +410,11 @@ public:
     {
         return m_ready_for_slice && !m_apply_invalid;
     }
+
+    bool can_helio_slice() const {
+        return m_ready_for_slice && !m_apply_invalid && !m_helio_apply_invalid;
+    }
+
     void update_slice_ready_status(bool ready_slice)
     {
         m_ready_for_slice = ready_slice;
@@ -416,9 +425,16 @@ public:
     {
         return m_apply_invalid;
     }
+    bool is_helio_apply_result_invalid() const {
+        return m_helio_apply_invalid;
+    }
     void update_apply_result_invalid(bool invalid)
     {
         m_apply_invalid = invalid;
+    }
+
+    void update_helio_apply_result_invalid(bool invalid) {
+        m_helio_apply_invalid = invalid;
     }
 
     //is slice result valid or not

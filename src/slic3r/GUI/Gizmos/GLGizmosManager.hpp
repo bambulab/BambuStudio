@@ -138,6 +138,7 @@ public:
         IC_FIT_CAMERA_HOVER,
         IC_FIT_CAMERA_DARK,
         IC_FIT_CAMERA_DARK_HOVER,
+        IC_HELIO_ICON,
     };
 
     explicit GLGizmosManager(GLCanvas3D& parent);

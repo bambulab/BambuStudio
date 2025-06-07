@@ -765,6 +765,21 @@ std::string Preset::get_printer_type(PresetBundle *preset_bundle)
     return "";
 }
 
+std::string Preset::get_printer_name(PresetBundle *preset_bundle)
+{
+    if (preset_bundle) {
+        auto        config = &preset_bundle->printers.get_edited_preset().config;
+        std::string vendor_name;
+        for (auto vendor_profile : preset_bundle->vendors) {
+            for (auto vendor_model : vendor_profile.second.models)
+                if (vendor_model.name == config->opt_string("printer_model")) {
+                    return vendor_model.name;
+                }
+        }
+    }
+    return "";
+}
+
 std::string Preset::get_current_printer_type(PresetBundle *preset_bundle)
 {
     if (preset_bundle) {

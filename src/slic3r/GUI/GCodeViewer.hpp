@@ -41,7 +41,9 @@ class GCodeViewer
     static const std::vector<Color> Extrusion_Role_Colors;
     static const std::vector<Color> Options_Colors;
     static const std::vector<Color> Travel_Colors;
-    static const std::vector<Color> Range_Colors;
+    static const std::vector<ColorRGBA> Range_Colors;
+    static const std::vector<ColorRGBA> Default_Range_Colors;
+    static const std::vector<ColorRGBA> Thermal_Index_Range_Colors;
     static const Color              Wipe_Color;
     static const Color              Neutral_Color;
 
@@ -215,6 +217,9 @@ class GCodeViewer
         float feedrate{ 0.0f };
         float fan_speed{ 0.0f };
         float temperature{ 0.0f };
+        float thermal_index_min{0.0f};
+        float thermal_index_max{0.0f};
+        float thermal_index_mean{0.0f};
         float volumetric_rate{ 0.0f };
         float layer_time{ 0.0f };
         unsigned char extruder_id{ 0 };
@@ -386,28 +391,47 @@ class GCodeViewer
     {
         struct Range
         {
-            enum class EType : unsigned char {
-                Linear,
-                Logarithmic
-            };
             float min;
             float max;
+            bool  is_fixed_range;
             unsigned int count;
             bool log_scale;
+            std::vector<ColorRGBA> range_colors;
 
-            Range() { reset(); }
+            Range(std::vector<ColorRGBA> range_colors_a = Range_Colors) : is_fixed_range(false), range_colors(range_colors_a) { reset(); }
+
+            /*Sometimes we want min and max of the range to be fixed to have consistent color later*/
+            Range(float min_a, float max_a, std::vector<ColorRGBA> range_colors_a = Range_Colors)
+                : min(min_a), max(max_a), is_fixed_range(true), range_colors(range_colors_a)
+            {
+                reset();
+            }
+
             void update_from(const float value) {
                 if (value != max && value != min)
                     ++count;
-                min = std::min(min, value);
-                max = std::max(max, value);
+                if (!is_fixed_range) {
+                    min = std::min(min, value);
+                    max = std::max(max, value);
+                }
             }
-            void reset(bool log = false) { min = FLT_MAX; max = -FLT_MAX; count = 0; log_scale = log; }
+            void reset(bool log = false)
+            {
+                if (!is_fixed_range) {
+                    min       = FLT_MAX;
+                    max       = -FLT_MAX;
+                    count     = 0;
+                    log_scale = log;
+                } else {
+                    count     = 0;
+                    log_scale = log;
+                }
+            }
 
-            float step_size(EType type = EType::Linear) const;
-            Color get_color_at(float value, EType type = EType::Linear) const;
-            float get_value_at_step(int step) const;
-
+            float step_size() const;
+            ColorRGBA get_color_at(float value) const;
+            float     get_value_at_step(int step) const;
+            float     get_color_size() const;
         };
 
         struct Ranges
@@ -426,6 +450,12 @@ class GCodeViewer
             Range temperature;
             // Color mapping by layer time.
             Range layer_duration;
+            // Color mapping by thermal index min
+            Range thermal_index_min{-100.0f, 100.0f, Thermal_Index_Range_Colors};
+            // Color mapping by thermal index max
+            Range thermal_index_max{-100.0f, 100.0f, Thermal_Index_Range_Colors};
+            // Color mapping by thermal index mean
+            Range thermal_index_mean{-100.0f, 100.0f, Thermal_Index_Range_Colors};
             void reset() {
                 height.reset();
                 width.reset();
@@ -434,6 +464,9 @@ class GCodeViewer
                 volumetric_rate.reset();
                 temperature.reset();
                 layer_duration.reset(true);
+                thermal_index_min.reset();
+                thermal_index_max.reset();
+                thermal_index_mean.reset();
             }
         };
 
@@ -659,7 +692,8 @@ public:
             std::vector<Line> m_lines;
 
         public:
-            GCodeWindow() = default;
+            const SequentialView &m_sequential_view;
+            GCodeWindow(const SequentialView &outer_view) : m_sequential_view(outer_view) {}
             ~GCodeWindow() { stop_mapping_file(); }
             void load_gcode(const std::string& filename, const std::vector<size_t> &lines_ends);
             void reset() {
@@ -678,7 +712,14 @@ public:
             //void render(float top, float bottom, uint64_t curr_line_id) const;
             void render(float top, float bottom, float right, uint64_t curr_line_id) const;
             void on_change_color_mode(bool is_dark) { m_is_dark = is_dark; }
-
+            void render_thermal_index_windows(
+                std::vector<GCodeProcessor::ThermalIndex> thermal_indexes,
+                float                                     top,
+                float                                     right,
+                float                                     wnd_height,
+                float                                     f_lines_count,
+                uint64_t                                  start_id,
+                uint64_t                                  end_id) const;
             void stop_mapping_file();
         };
 
@@ -696,12 +737,14 @@ public:
         Vec3f current_position{ Vec3f::Zero() };
         Vec3f current_offset{ Vec3f::Zero() };
         Marker marker;
-        GCodeWindow gcode_window;
+        GCodeWindow               gcode_window{*this};
+        const GCodeViewer &       m_gcode_viewer;
         std::vector<unsigned int> gcode_ids;
         float m_scale = 1.0;
 
         //BBS: GUI refactor: add canvas size
         void render(float legend_height, int canvas_width, int canvas_height, int right_margin, const EViewType& view_type) const;
+        SequentialView(const GCodeViewer &outer_viewer);
     };
 
     struct ETools
@@ -727,6 +770,9 @@ public:
         Feedrate,
         FanSpeed,
         Temperature,
+        ThermalIndexMin,
+        ThermalIndexMax,
+        ThermalIndexMean,
         VolumetricRate,
         Tool,
         ColorPrint,
@@ -753,6 +799,7 @@ public:
 private:
     std::vector<int> m_plater_extruder;
     bool m_gl_data_initialized{ false };
+    int m_last_helio_process_status{0};
     unsigned int m_last_result_id{ 0 };
     size_t m_moves_count{ 0 };
     //BBS: save m_gcode_result as well
@@ -788,13 +835,19 @@ private:
     std::vector<float> m_filament_diameters;
     std::vector<float> m_filament_densities;
     Extrusions m_extrusions;
-    SequentialView m_sequential_view;
+    SequentialView m_sequential_view = SequentialView(*this);
     IMSlider* m_moves_slider;
     IMSlider* m_layers_slider;
 
     /*BBS GUI refactor, store displayed items in color scheme combobox */
     std::vector<EViewType> view_type_items;
-    std::vector<std::string> view_type_items_str;
+    struct ImageName
+    {
+        std::string option_name;
+        ImTextureID texture_id{nullptr};
+        ImTextureID texture_id_dark{nullptr};
+    };
+    std::vector<ImageName> view_type_image_names;
     int       m_view_type_sel = 0;
     EViewType m_view_type{ EViewType::FeatureType };
     std::vector<EMoveType> options_items;
@@ -823,7 +876,7 @@ public:
     void set_scale(float scale = 1.0);
     void init(ConfigOptionMode mode, Slic3r::PresetBundle* preset_bundle);
     void update_by_mode(ConfigOptionMode mode);
-
+    void update_thermal_options(bool add);
     // extract rendering data from the given parameters
     //BBS: add only gcode mode
     void load(const GCodeProcessorResult& gcode_result, const Print& print, const BuildVolume& build_volume,

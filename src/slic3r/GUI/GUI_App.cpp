@@ -76,6 +76,7 @@
 #include "../Utils/MacDarkMode.hpp"
 #include "../Utils/Http.hpp"
 #include "../Utils/UndoRedo.hpp"
+#include "../Utils/HelioDragon.hpp"
 #include "slic3r/Config/Snapshot.hpp"
 #include "Preferences.hpp"
 #include "Tab.hpp"
@@ -1084,6 +1085,29 @@ void GUI_App::post_init()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: true";
     } else {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: false";
+    }
+
+    /*request helio config*/
+    if (app_config->get("helio_enable") == "true") {
+        // BBS loading user preset
+        // Always async, not such startup step
+        // BOOST_LOG_TRIVIAL(info) << "Loading user presets...";
+        // scrn->SetText(_L("Loading user presets..."));
+        //if (m_agent) { request_helio_supported_data(); }
+
+        std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
+        if (helio_api_key.empty()) {
+            wxGetApp().request_helio_pat([](std::string pat) {
+                Slic3r::HelioQuery::set_helio_pat(pat);
+                wxGetApp().request_helio_supported_data();
+            });
+        } else {
+            wxGetApp().request_helio_supported_data();
+        }
+
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync helio config: true";
+    } else {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync helio config: false";
     }
 
     m_open_method = "double_click";
@@ -4061,6 +4085,22 @@ bool GUI_App::catch_error(std::function<void()> cb,
         return true;
     }
     return false;
+}
+
+void GUI_App::request_helio_pat(std::function<void(std::string)> func)
+{
+    Slic3r::HelioQuery::request_pat_token(func);
+}
+
+void GUI_App::request_helio_supported_data()
+{
+    std:;string helio_api_url = Slic3r::HelioQuery::get_helio_api_url();
+    std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
+
+    if (HelioQuery::global_supported_printers.size() <= 0 || HelioQuery::global_supported_materials.size() <= 0) {
+        Slic3r::HelioQuery::request_all_support_machine(helio_api_url, helio_api_key);
+        Slic3r::HelioQuery::request_all_support_materials(helio_api_url, helio_api_key);
+    }
 }
 
 // static method accepting a wxWindow object as first parameter
