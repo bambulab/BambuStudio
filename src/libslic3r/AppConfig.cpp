@@ -178,6 +178,8 @@ void AppConfig::set_defaults()
         set_bool("ams_sync_match_full_use_color_dist", false);
     if (get("enable_sidebar_resizable").empty())
         set_bool("enable_sidebar_resizable", false);
+    if (get("enable_sidebar_floatable").empty())
+        set_bool("enable_sidebar_floatable", false);
 
     if (get("zoom_to_mouse").empty())
         set_bool("zoom_to_mouse", false);
