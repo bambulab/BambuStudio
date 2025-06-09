@@ -662,6 +662,8 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
                 // mouse is inside an icon
                 do_action(GLToolbarItem::Left, item_id, parent, true);
                 parent.set_as_dirty();
+                evt.StopPropagation();
+                processed = true;
             }
         }
         else if (evt.MiddleDown()) {
@@ -677,6 +679,8 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
                 // mouse is inside an icon
                 do_action(GLToolbarItem::Right, item_id, parent, true);
                 parent.set_as_dirty();
+                evt.StopPropagation();
+                processed = true;
             }
         }
     }
