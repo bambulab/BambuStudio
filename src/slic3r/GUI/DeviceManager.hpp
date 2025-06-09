@@ -39,8 +39,8 @@
 #define HOLD_COUNT_MAX          3
 #define HOLD_COUNT_CAMERA       6
 
-#define HOLD_TIME_MAX           3 // 3 seconds
-#define HOLD_TIME_SWITCHING     6 // 6 seconds
+#define HOLD_TIME_3SEC     3 // 3 seconds
+#define HOLD_TIME_6SEC     6 // 6 seconds
 
 #define GET_VERSION_RETRYS      10
 #define RETRY_INTERNAL          2000
@@ -188,7 +188,7 @@ struct Nozzle
     int   id;
     NozzleToolType  tool_type;         // H nozzle or Cut
     NozzleFlowType  nozzle_flow;       // 0-common 1-high flow
-    NozzleType      nozzle_type;       // 0-stainless_steel 1-hardened_steel
+    NozzleType      nozzle_type;       // 0-stainless_steel 1-hardened_steel 5-tungsten_carbide
     float diameter = {0.4f}; // 0-0.2mm  1-0.4mm 2-0.6 mm3-0.8mm
     int   max_temp = 0;
     int   wear = 0;
@@ -265,7 +265,7 @@ struct AirParts
 struct AirDuctData
 {
     int curren_mode{ 0 };
-    std::vector<AirMode> modes;
+    std::unordered_map<int, AirMode> modes;
     std::vector<AirParts> parts;
 };
 
@@ -647,6 +647,7 @@ public:
     int         subscribe_counter{3};
     std::string dev_connection_type;    /* lan | cloud */
     std::string connection_type() { return dev_connection_type; }
+
     std::string dev_connection_name;    /* lan | eth */
     void set_dev_ip(std::string ip) {dev_ip = ip;}
     std::string get_ftp_folder();
@@ -658,6 +659,7 @@ public:
     void erase_user_access_code();
     std::string get_user_access_code();
     bool is_lan_mode_printer();
+    std::string convertToIp(long long ip);
 
     //PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
     std::string printer_type;       /* model_id */
@@ -762,6 +764,9 @@ public:
     Ams*     get_curr_Ams();
     AmsTray* get_curr_tray();
     AmsTray *get_ams_tray(std::string ams_id, std::string tray_id);
+
+    std::string  get_filament_id(std::string ams_id, std::string tray_id) const;
+
     // parse amsStatusMain and ams_status_sub
     void _parse_ams_status(int ams_status);
     bool has_ams() { return ams_exist_bits != 0; }
@@ -812,6 +817,7 @@ public:
 
     //new fan data
     AirDuctData m_air_duct_data;
+    bool        is_at_heating_mode() const { return m_air_duct_data.curren_mode == AIR_DUCT_HEATING_INTERNAL_FILT; };
     void converse_to_duct(bool is_suppt_part_fun, bool is_suppt_aux_fun, bool is_suppt_cham_fun); // Convert the data to duct type to make the newand old protocols consistent
 
     /* signals */
@@ -887,6 +893,7 @@ public:
     int     total_layers = 0;
     bool    is_support_layer_num { false };
     bool    nozzle_blob_detection_enabled{ false };
+    time_t  nozzle_blob_detection_hold_start = 0;
 
     int last_cali_version = -1;
     int cali_version = -1;
@@ -954,18 +961,22 @@ public:
     PrintingSpeedLevel _parse_printing_speed_lvl(int lvl);
     int get_bed_temperature_limit();
     bool is_filament_installed();
+
+    /*stat*/
+    bool  m_lamp_close_recheck = false;
+
     /* camera */
     bool has_ipcam { false };
     bool camera_recording { false };
     bool camera_recording_when_printing { false };
     bool camera_timelapse { false };
-    int  camera_recording_hold_count = 0;
+    time_t  camera_recording_ctl_start = 0;
     int  camera_timelapse_hold_count = 0;
     int  camera_resolution_hold_count = 0;
     std::string camera_resolution            = "";
     std::vector<std::string> camera_resolution_supported;
     bool xcam_first_layer_inspector { false };
-    int  xcam_first_layer_hold_count = 0;
+    time_t  xcam_first_layer_hold_start = 0;
     std::string local_rtsp_url;
     std::string tutk_state;
     enum LiveviewLocal {
@@ -1021,13 +1032,13 @@ public:
     time_t xcam_ai_monitoring_hold_start = 0;
     std::string xcam_ai_monitoring_sensitivity;
     bool xcam_buildplate_marker_detector{ false };
-    int  xcam_buildplate_marker_hold_count = 0;
+    time_t  xcam_buildplate_marker_hold_start = 0;
     bool xcam_auto_recovery_step_loss{ false };
     bool xcam_allow_prompt_sound{ false };
     bool xcam_filament_tangle_detect{ false };
-    int  xcam_auto_recovery_hold_count = 0;
-    int  xcam_prompt_sound_hold_count = 0;
-    int  xcam_filament_tangle_detect_count = 0;
+    time_t  xcam_auto_recovery_hold_start = 0;
+    time_t  xcam_prompt_sound_hold_start = 0;
+    time_t  xcam_filament_tangle_detect_hold_start = 0;
     int  nozzle_selected_count = 0;
     bool flag_update_nozzle = {true};
 
@@ -1039,7 +1050,7 @@ public:
     bool is_support_extrusion_cali{false};
     bool is_support_first_layer_inspect{false};
     bool is_support_ai_monitoring {false};
-    bool is_support_lidar_calibration {false};
+    bool is_support_lidar_calibration {false};// the lidar calibration for 3D Studio
 
     bool is_support_build_plate_marker_detect{false};
     PlateMakerDectect m_plate_maker_detect_type{ POS_CHECK };
@@ -1079,6 +1090,7 @@ public:
     bool is_support_filament_setting_inprinting{false};
     bool is_support_internal_timelapse { false };// fun[28], support timelapse without SD card
     bool is_support_command_homing { false };// fun[32]
+    bool is_support_brtc{false};                 // fun[31], support tcp and upload protocol
 
     bool installed_upgrade_kit{false};
     int  bed_temperature_limit = -1;
@@ -1097,7 +1109,7 @@ public:
     std::vector<HMSItem>    hms_list;
 
     /* machine mqtt apis */
-    int connect(bool is_anonymous = false, bool use_openssl = true);
+    int connect(bool use_openssl = true);
     int disconnect();
 
     json_diff print_json;
@@ -1112,6 +1124,9 @@ public:
     BBLSliceInfo* slice_info {nullptr};
     boost::thread* get_slice_info_thread { nullptr };
     boost::thread* get_model_task_thread { nullptr };
+
+    /* job attr */
+    int jobState_ = 0;
 
     /* key: sequence id, value: callback */
     std::map<std::string, CommandCallBack> m_callback_list;
@@ -1184,6 +1199,7 @@ public:
     int command_hms_idle_ignore(const std::string &error_str, int type);
     int command_hms_resume(const std::string& error_str, const std::string& job_id);
     int command_hms_ignore(const std::string& error_str, const std::string& job_id);
+    int command_hms_stop(const std::string &error_str, const std::string &job_id);
     /* buzzer*/
     int command_stop_buzzer();
 
@@ -1192,6 +1208,7 @@ public:
     int command_set_nozzle(int temp);
     int command_set_nozzle_new(int nozzle_id, int temp);
     int command_set_chamber(int temp);
+    int check_resume_condition();
     // ams controls
     //int command_ams_switch(int tray_index, int old_temp = 210, int new_temp = 210);
     int command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp = 210, int new_temp = 210);
@@ -1292,14 +1309,17 @@ public:
     int publish_json(std::string json_str, int qos = 0, int flag = 0);
     int cloud_publish_json(std::string json_str, int qos = 0, int flag = 0);
     int local_publish_json(std::string json_str, int qos = 0, int flag = 0);
-    int parse_json(std::string payload, bool key_filed_only = false);
+    int parse_json(std::string tunnel, std::string payload, bool key_filed_only = false);
     int publish_gcode(std::string gcode_str);
 
     std::string setting_id_to_type(std::string setting_id, std::string tray_type);
     BBLSubTask* get_subtask();
     BBLModelTask* get_modeltask();
     void set_modeltask(BBLModelTask* task);
+
     void update_model_task();
+
+    void free_slice_info();
     void update_slice_info(std::string project_id, std::string profile_id, std::string subtask_id, int plate_idx);
 
     bool m_firmware_valid { false };
@@ -1307,6 +1327,15 @@ public:
     void get_firmware_info();
     bool is_firmware_info_valid();
     std::string get_string_from_fantype(int type);
+
+    /*for local mqtt tunnel try*/
+    bool                        nt_try_local_tunnel { false };
+    bool                        nt_use_local_tunnel { false };
+    int                         nt_cloud_full_msg_count { 0 };
+    int                         nt_local_full_msg_count { 0 };
+    void nt_condition_local_tunnel();
+    void nt_restore_cloud_tunnel();
+    void nt_reset_data();
 
     /*for more extruder*/
     bool                        is_enable_np{ false };
@@ -1479,8 +1508,7 @@ public:
     static std::vector<std::string> get_resolution_supported(std::string type_str);
     static std::vector<std::string> get_compatible_machine(std::string type_str);
     static std::vector<std::string> get_unsupport_auto_cali_filaments(std::string type_str);
-    static void check_filaments_in_blacklist(std::string model_id, std::string tag_vendor, std::string tag_type, int ams_id, int slot_id, std::string tag_name, bool &in_blacklist, std::string &ac, std::string &info);
-    static bool check_filaments_printable(const std::string &tag_vendor, const std::string &tag_type, int ams_id, bool &in_blacklist, std::string &ac, std::string &info);
+    static void check_filaments_in_blacklist(std::string model_id, std::string tag_vendor, std::string tag_type, const std::string& filament_id, int ams_id, int slot_id, std::string tag_name, bool &in_blacklist, std::string &ac, wxString &info);
     static boost::bimaps::bimap<std::string, std::string> get_all_model_id_with_name();
     static std::string load_gcode(std::string type_str, std::string gcode_file);
     static bool is_virtual_slot(int ams_id);

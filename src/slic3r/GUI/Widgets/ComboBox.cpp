@@ -86,10 +86,17 @@ void ComboBox::SetSelection(int n)
         return;
     drop.SetSelection(n);
     SetLabel(drop.GetValue());
-    if (drop.selection >= 0 && drop.iconSize.y > 0 && items[drop.selection].icon.IsOk())
-        SetIcon(items[drop.selection].icon);
+    if (drop.selection >= 0 && drop.iconSize.y > 0 && items[drop.selection].icon_textctrl.IsOk())
+        SetIcon(items[drop.selection].icon_textctrl);
     else
         SetIcon("drop_down");
+
+    if (drop.selection >= 0) {
+        SetStaticTips(items[drop.selection].text_static_tips, wxNullBitmap);
+    } else {
+        SetStaticTips(wxEmptyString, wxNullBitmap);
+    }
+
 }
 void ComboBox::SelectAndNotify(int n) {
     SetSelection(n);
@@ -111,10 +118,16 @@ void ComboBox::SetValue(const wxString &value)
 {
     drop.SetValue(value);
     SetLabel(value);
-    if (drop.selection >= 0 && drop.iconSize.y > 0 && items[drop.selection].icon.IsOk())
-        SetIcon(items[drop.selection].icon);
+    if (drop.selection >= 0 && drop.iconSize.y > 0 && items[drop.selection].icon_textctrl.IsOk())
+        SetIcon(items[drop.selection].icon_textctrl);
     else
         SetIcon("drop_down");
+
+    if (drop.selection >= 0) {
+        SetStaticTips(items[drop.selection].text_static_tips, wxNullBitmap);
+    } else {
+        SetStaticTips(wxEmptyString, wxNullBitmap);
+    }
 }
 
 void ComboBox::SetLabel(const wxString &value)
@@ -175,23 +188,32 @@ bool ComboBox::SetFont(wxFont const& font)
         return TextInput::SetFont(font);
 }
 
-int ComboBox::Append(const wxString &item, const wxBitmap &bitmap)
+int ComboBox::Append(const wxString &item, const wxBitmap &bitmap, int style)
 {
-    return Append(item, bitmap, nullptr);
+    return Append(item, bitmap, nullptr, style);
 }
 
 int ComboBox::Append(const wxString &text,
                      const wxBitmap &bitmap,
-                     void *          clientData)
+                     void *          clientData,
+                     int style)
 {
-    return Append(text, bitmap, wxString{}, clientData);
+    return Append(text, bitmap, wxString{}, clientData, style);
 }
 
-int ComboBox::Append(const wxString &text, const wxBitmap &bitmap, const wxString &group, void *clientData)
+int ComboBox::Append(const wxString &text, const wxBitmap &bitmap, const wxString &group, void *clientData, int style)
 {
-    Item item{text, bitmap, clientData, group};
+    Item item{text, wxEmptyString, bitmap, bitmap, clientData, group };
+    item.style = style;
     items.push_back(item);
     SetClientDataType(wxClientData_Void);
+    drop.Invalidate();
+    return items.size() - 1;
+}
+
+int ComboBox::SetItems(const std::vector<DropDown::Item>& the_items)
+{
+    items = the_items;
     drop.Invalidate();
     return items.size() - 1;
 }
@@ -258,7 +280,7 @@ int ComboBox::DoInsertItems(const wxArrayStringsAdapter &items,
 {
     if (pos > this->items.size()) return -1;
     for (int i = 0; i < items.GetCount(); ++i) {
-        Item item { items[i], wxNullBitmap, clientData ? clientData[i] : NULL };
+        Item item { items[i], wxEmptyString, wxNullBitmap, wxNullBitmap, clientData ? clientData[i] : NULL };
         this->items.insert(this->items.begin() + pos, item);
         ++pos;
     }

@@ -385,23 +385,9 @@ BoundingBoxf3 GLGizmoAdvancedCut::get_bounding_box() const
     t_aabb.reset();
 
     // rotate aabb
-    if (m_is_dragging) {
-        auto t_rotate_aabb = GLGizmoRotate3D::get_bounding_box();
-        if (t_rotate_aabb.defined) {
-            t_aabb.merge(t_rotate_aabb);
-            t_aabb.defined = true;
-        }
-    }
-    else {
-        const auto t_x_aabb = m_gizmos[X].get_bounding_box();
-        t_aabb.merge(t_x_aabb);
-
-        const auto t_y_aabb = m_gizmos[Y].get_bounding_box();
-        t_aabb.merge(t_y_aabb);
-
-        const auto t_z_aabb = m_gizmos[Z].get_bounding_box();
-        t_aabb.merge(t_z_aabb);
-
+    auto t_rotate_aabb = GLGizmoRotate3D::get_bounding_box();
+    if (t_rotate_aabb.defined) {
+        t_aabb.merge(t_rotate_aabb);
         t_aabb.defined = true;
     }
     // end rotate aabb
@@ -539,6 +525,7 @@ void GLGizmoAdvancedCut::on_save(cereal::BinaryOutputArchive &ar) const
 
 void GLGizmoAdvancedCut::data_changed(bool is_serializing)
 {
+    reset_rotation();
     if (m_hover_id < 0) { // BBL
         update_bb();
         if (auto oc = m_c->object_clipper()) {
@@ -1046,7 +1033,7 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
                     if (its_num_open_edges(new_objects[i]->volumes[j]->mesh().its) > 0) {
                         if (!is_showed_dialog) {
                             is_showed_dialog = true;
-                            MessageDialog dlg(nullptr, _L("non-manifold edges be caused by cut tool, do you want to fix it now?"), "", wxYES | wxCANCEL);
+                            MessageDialog dlg(nullptr, _L("non-manifold edges be caused by cut tool, do you want to fix it now?"), "", wxYES | wxNO);
                             int           ret = dlg.ShowModal();
                             if (ret == wxID_YES) {
                                 user_fix_model = true;
@@ -1168,7 +1155,7 @@ Vec3d GLGizmoAdvancedCut::get_plane_center() const {
     return m_plane_center;
 }
 
-void GLGizmoAdvancedCut::finish_rotation()
+void GLGizmoAdvancedCut::reset_rotation()
 {
     for (int i = 0; i < 3; i++) {
         m_gizmos[i].set_angle(0.);
@@ -2013,7 +2000,6 @@ void GLGizmoAdvancedCut::update_bb()
         m_groove.flaps_angle = m_groove.flaps_angle_init = float(PI) / 3.f;
         m_groove.angle = m_groove.angle_init = 0.f;
         m_plane.reset();
-
         clear_selection();
         if (CommonGizmosDataObjects::SelectionInfo *selection = m_c->selection_info(); selection && selection->model_object())
             m_selected.resize(selection->model_object()->cut_connectors.size(), false);

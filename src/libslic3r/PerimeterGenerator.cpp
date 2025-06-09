@@ -13,13 +13,9 @@
 #include <random>
 #include <thread>
 #include <unordered_set>
-#include "libslic3r/AABBTreeLines.hpp"
-static const int overhang_sampling_number = 6;
+#include "OverhangDetector.hpp"
+
 static const double narrow_loop_length_threshold = 10;
-static const double min_degree_gap = 0.1;
-static const int max_overhang_degree = overhang_sampling_number - 1;
-static const std::vector<double> non_uniform_degree_map = { 0, 10, 25, 50, 75, 100};
-static const int insert_point_count = 3;
 //BBS: when the width of expolygon is smaller than
 //ext_perimeter_width + ext_perimeter_spacing  * (1 - SMALLER_EXT_INSET_OVERLAP_TOLERANCE),
 //we think it's small detail area and will generate smaller line width for it
@@ -247,14 +243,14 @@ static std::deque<PolylineWithDegree> split_polyline_by_degree(const Polyline &p
     size_t   poly_size = polyline_with_insert_points.size();
     // BBS: merge degree in limited range
     //find first degee base
-    double degree_base = int(points_overhang[points_overhang.size() - 1] / min_degree_gap) * min_degree_gap + min_degree_gap;
+    double degree_base = int(points_overhang[points_overhang.size() - 1] / min_degree_gap_classic) * min_degree_gap_classic + min_degree_gap_classic;
     degree_base = degree_base > max_overhang_degree ? max_overhang_degree : degree_base;
     double short_poly_len = 0;
     for (int point_idx = points_overhang.size() - 2; point_idx > 0; --point_idx) {
 
         double degree = points_overhang[point_idx];
 
-        if ( degree <= degree_base && degree >= degree_base - min_degree_gap )
+        if ( degree <= degree_base && degree >= degree_base - min_degree_gap_classic )
             continue;
 
         temp_copy.split_at_index(point_idx, &left, &right);
@@ -262,7 +258,7 @@ static std::deque<PolylineWithDegree> split_polyline_by_degree(const Polyline &p
         temp_copy = std::move(left);
         out.push_back(PolylineWithDegree(right, degree_base));
 
-        degree_base = int(degree / min_degree_gap) * min_degree_gap + min_degree_gap;
+        degree_base = int(degree / min_degree_gap_classic) * min_degree_gap_classic + min_degree_gap_classic;
         degree_base = degree_base > max_overhang_degree ? max_overhang_degree : degree_base;
     }
 
@@ -283,7 +279,7 @@ static void insert_point_to_line( double              left_point_degree,
 {
     Line   line_temp(left_point, right_point);
     double line_length = line_temp.length();
-    if (std::abs(left_point_degree - right_point_degree) <= 0.5 * min_degree_gap || line_length<scale_(1.5))
+    if (std::abs(left_point_degree - right_point_degree) <= 0.5 * min_degree_gap_classic || line_length<scale_(1.5))
         return;
 
     Point middle_pt((left_point + right_point) / 2);
@@ -310,35 +306,6 @@ static void insert_point_to_line( double              left_point_degree,
         points_overhang.insert(points_overhang.end(), std::make_move_iterator(right_points_overhang.begin()), std::make_move_iterator(right_points_overhang.end()));
     }
 }
-
-class OverhangDistancer
-{
-    std::vector<Linef>                lines;
-    AABBTreeIndirect::Tree<2, double> tree;
-
-public:
-    OverhangDistancer(const Polygons layer_polygons)
-    {
-        for (const Polygon &island : layer_polygons) {
-            for (const auto &line : island.lines()) {
-                lines.emplace_back(line.a.cast<double>(), line.b.cast<double>());
-            }
-        }
-        tree = AABBTreeLines::build_aabb_tree_over_indexed_lines(lines);
-    }
-
-    float distance_from_perimeter(const Vec2f &point) const
-    {
-        Vec2d  p = point.cast<double>();
-        size_t hit_idx_out{};
-        Vec2d  hit_point_out = Vec2d::Zero();
-        auto   distance      = AABBTreeLines::squared_distance_to_indexed_lines(lines, tree, p, hit_idx_out, hit_point_out);
-        if (distance < 0) { return std::numeric_limits<float>::max(); }
-
-        distance          = sqrt(distance);
-        return distance;
-    }
-};
 
 static void sampling_at_line_end(Polyline &poly, double mini_length, int insert_count)
 {
@@ -370,6 +337,7 @@ static void sampling_at_line_end(Polyline &poly, double mini_length, int insert_
     }
     poly.append(end_point);
 }
+
 
 static std::deque<PolylineWithDegree> detect_overahng_degree(Polygons        lower_polygons,
                                                              Polylines       middle_overhang_polyines,
@@ -728,99 +696,6 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
     return out;
 }
 
-static ClipperLib_Z::Paths clip_extrusion(const ClipperLib_Z::Path& subject, const ClipperLib_Z::Paths& clip, ClipperLib_Z::ClipType clipType)
-{
-    ClipperLib_Z::Clipper clipper;
-    clipper.ZFillFunction([](const ClipperLib_Z::IntPoint& e1bot, const ClipperLib_Z::IntPoint& e1top, const ClipperLib_Z::IntPoint& e2bot,
-        const ClipperLib_Z::IntPoint& e2top, ClipperLib_Z::IntPoint& pt) {
-            // The clipping contour may be simplified by clipping it with a bounding box of "subject" path.
-            // The clipping function used may produce self intersections outside of the "subject" bounding box. Such self intersections are
-            // harmless to the result of the clipping operation,
-            // Both ends of each edge belong to the same source: Either they are from subject or from clipping path.
-            assert(e1bot.z() >= 0 && e1top.z() >= 0);
-            assert(e2bot.z() >= 0 && e2top.z() >= 0);
-            assert((e1bot.z() == 0) == (e1top.z() == 0));
-            assert((e2bot.z() == 0) == (e2top.z() == 0));
-
-            // Start & end points of the clipped polyline (extrusion path with a non-zero width).
-            ClipperLib_Z::IntPoint start = e1bot;
-            ClipperLib_Z::IntPoint end = e1top;
-            if (start.z() <= 0 && end.z() <= 0) {
-                start = e2bot;
-                end = e2top;
-            }
-
-            if (start.z() <= 0 && end.z() <= 0) {
-                // Self intersection on the source contour.
-                assert(start.z() == 0 && end.z() == 0);
-                pt.z() = 0;
-            }
-            else {
-                // Interpolate extrusion line width.
-                assert(start.z() > 0 && end.z() > 0);
-
-                double length_sqr = (end - start).cast<double>().squaredNorm();
-                double dist_sqr = (pt - start).cast<double>().squaredNorm();
-                double t = std::sqrt(dist_sqr / length_sqr);
-
-                pt.z() = start.z() + coord_t((end.z() - start.z()) * t);
-            }
-        });
-
-    clipper.AddPath(subject, ClipperLib_Z::ptSubject, false);
-    clipper.AddPaths(clip, ClipperLib_Z::ptClip, true);
-
-    ClipperLib_Z::PolyTree clipped_polytree;
-    ClipperLib_Z::Paths    clipped_paths;
-    clipper.Execute(clipType, clipped_polytree, ClipperLib_Z::pftNonZero, ClipperLib_Z::pftNonZero);
-    ClipperLib_Z::PolyTreeToPaths(clipped_polytree, clipped_paths);
-
-    // Clipped path could contain vertices from the clip with a Z coordinate equal to zero.
-    // For those vertices, we must assign value based on the subject.
-    // This happens only in sporadic cases.
-    for (ClipperLib_Z::Path& path : clipped_paths)
-        for (ClipperLib_Z::IntPoint& c_pt : path)
-            if (c_pt.z() == 0) {
-                // Now we must find the corresponding line on with this point is located and compute line width (Z coordinate).
-                if (subject.size() <= 2)
-                    continue;
-
-                const Point pt(c_pt.x(), c_pt.y());
-                Point       projected_pt_min;
-                auto        it_min = subject.begin();
-                auto        dist_sqr_min = std::numeric_limits<double>::max();
-                Point       prev(subject.front().x(), subject.front().y());
-                for (auto it = std::next(subject.begin()); it != subject.end(); ++it) {
-                    Point curr(it->x(), it->y());
-                    Point projected_pt = pt.projection_onto(Line(prev, curr));
-                    if (double dist_sqr = (projected_pt - pt).cast<double>().squaredNorm(); dist_sqr < dist_sqr_min) {
-                        dist_sqr_min = dist_sqr;
-                        projected_pt_min = projected_pt;
-                        it_min = std::prev(it);
-                    }
-                    prev = curr;
-                }
-
-                assert(dist_sqr_min <= SCALED_EPSILON);
-                assert(std::next(it_min) != subject.end());
-
-                const Point  pt_a(it_min->x(), it_min->y());
-                const Point  pt_b(std::next(it_min)->x(), std::next(it_min)->y());
-                const double line_len = (pt_b - pt_a).cast<double>().norm();
-                const double dist = (projected_pt_min - pt_a).cast<double>().norm();
-                c_pt.z() = coord_t(double(it_min->z()) + (dist / line_len) * double(std::next(it_min)->z() - it_min->z()));
-            }
-
-    assert([&clipped_paths = std::as_const(clipped_paths)]() -> bool {
-        for (const ClipperLib_Z::Path& path : clipped_paths)
-            for (const ClipperLib_Z::IntPoint& pt : path)
-                if (pt.z() <= 0)
-                    return false;
-        return true;
-    }());
-
-    return clipped_paths;
-}
 
 struct PerimeterGeneratorArachneExtrusion
 {
@@ -941,6 +816,9 @@ static void detect_brigde_wall_arachne(const PerimeterGenerator &perimeter_gener
 
 static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& perimeter_generator, std::vector<PerimeterGeneratorArachneExtrusion>& pg_extrusions)
 {
+    using ZPath = ClipperLib_Z::Path;
+    using ZPaths = ClipperLib_Z::Paths;
+
     ExtrusionEntityCollection extrusion_coll;
     if (perimeter_generator.print_config->z_direction_outwall_speed_continuous)
          extrusion_coll.loop_node_range.first = perimeter_generator.loop_nodes->size();
@@ -975,94 +853,61 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
         ExtrusionPaths paths;
         // detect overhanging/bridging perimeters
         if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers) {
-            ClipperLib_Z::Path extrusion_path;
+                        ClipperLib_Z::Path extrusion_path;
             extrusion_path.reserve(extrusion->size());
+
+            double nozzle_diameter = perimeter_generator.print_config->nozzle_diameter.get_at(perimeter_generator.config->wall_filament - 1);
+            Polygons lower_layer_polys = perimeter_generator.lower_slices_polygons();
+
+            coord_t max_extrusion_width = 0;
             BoundingBox extrusion_path_bbox;
             for (const Arachne::ExtrusionJunction &ej : extrusion->junctions) {
                 extrusion_path.emplace_back(ej.p.x(), ej.p.y(), ej.w);
                 extrusion_path_bbox.merge(Point(ej.p.x(), ej.p.y()));
+                max_extrusion_width = std::max(max_extrusion_width, ej.w);
+            }
+            extrusion_path_bbox.inflated(max_extrusion_width+scale_(nozzle_diameter));
+
+            Polygons new_lower_polys;
+            for (size_t idx = 0; idx < lower_layer_polys.size(); ++idx) {
+                auto new_poly = ClipperUtils::clip_clipper_polygon_with_subject_bbox(lower_layer_polys[idx], extrusion_path_bbox,true);
+                if (!new_poly.empty())
+                    new_lower_polys.emplace_back(new_poly);
             }
 
-            ClipperLib_Z::Paths lower_slices_paths;
-            {
-                lower_slices_paths.reserve(perimeter_generator.lower_slices_polygons().size());
-                Points clipped;
-                extrusion_path_bbox.offset(SCALED_EPSILON);
-                for (const Polygon &poly : perimeter_generator.lower_slices_polygons()) {
-                    clipped.clear();
-                    ClipperUtils::clip_clipper_polygon_with_subject_bbox(poly.points, extrusion_path_bbox, clipped);
-                    if (!clipped.empty()) {
-                        lower_slices_paths.emplace_back();
-                        ClipperLib_Z::Path &out = lower_slices_paths.back();
-                        out.reserve(clipped.size());
-                        for (const Point &pt : clipped)
-                          out.emplace_back(pt.x(), pt.y(), 0);
-                    }
-                }
-            }
+            lower_layer_polys = new_lower_polys;
 
-            ExtrusionPaths temp_paths;
-            // get non-overhang paths by intersecting this loop with the grown lower slices
-            extrusion_paths_append(temp_paths, clip_extrusion(extrusion_path, lower_slices_paths, ClipperLib_Z::ctIntersection), role,
-                                   is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow);
+            ZPath subject_path;
+            for (auto& ej : extrusion->junctions)
+                subject_path.emplace_back(ej.p.x(), ej.p.y(), ej.w);
+
+            ZPaths clip_paths;
+            for (auto& poly : lower_layer_polys) {
+                clip_paths.emplace_back();
+                for (auto& p : poly)
+                    clip_paths.back().emplace_back(p.x(), p.y(), 0);
+            }
 
             if (perimeter_generator.config->enable_overhang_speed.get_at(get_extruder_index(*(perimeter_generator.print_config), perimeter_generator.config->wall_filament - 1))
                 && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None) {
-
+                bool is_external = extrusion->inset_idx == 0;
                 Flow flow = is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow;
-                std::map<double, std::vector<Polygons>> clipper_serise;
-
-                std::map<double,ExtrusionPaths> recognization_paths;
-                for (const ExtrusionPath &path : temp_paths) {
-                    if (recognization_paths.count(path.width))
-                        recognization_paths[path.width].emplace_back(std::move(path));
-                    else
-                        recognization_paths.insert(std::pair<double, ExtrusionPaths>(path.width, {std::move(path)}));
-                }
-
-                for (const auto &it : recognization_paths) {
-                    Polylines be_clipped;
-
-                    for (const ExtrusionPath &p : it.second) {
-                        be_clipped.emplace_back(std::move(p.polyline));
-                    }
-
-                    BoundingBox extrusion_bboxs = get_extents(be_clipped);
-                    //ExPolygons lower_slcier_chopped = *perimeter_generator.lower_slices;
-                    Polygons lower_slcier_chopped=ClipperUtils::clip_clipper_polygons_with_subject_bbox(*perimeter_generator.lower_slices, extrusion_bboxs, true);
-
-                    double start_pos = -it.first * 0.5;
-                    double end_pos   = 0.5 * it.first;
-
-                    Polylines             remain_polylines;
-                    std::vector<Polygons> degree_polygons;
-                    for (int j = 0; j < overhang_sampling_number; j++) {
-                        Polygons  limiton_polygons = offset(lower_slcier_chopped, float(scale_(start_pos + (j + 0.5) * (end_pos - start_pos) / (overhang_sampling_number - 1))));
-
-                        Polylines inside_polines = j == 0 ? intersection_pl_2(be_clipped, limiton_polygons) : intersection_pl_2(remain_polylines, limiton_polygons);
-
-                        remain_polylines = j == 0 ? diff_pl_2(be_clipped, limiton_polygons) : diff_pl_2(remain_polylines, limiton_polygons);
-
-                        extrusion_paths_append(paths, std::move(inside_polines), j, int(0), role, it.second.front().mm3_per_mm, it.second.front().width, it.second.front().height);
-
-                        if (remain_polylines.size() == 0) break;
-                    }
-
-                    if (remain_polylines.size() != 0) {
-                        extrusion_paths_append(paths, std::move(remain_polylines), overhang_sampling_number - 1, int(0), erOverhangPerimeter, it.second.front().mm3_per_mm, it.second.front().width, it.second.front().height);
-                    }
-                }
-
-            } else {
-                    paths = std::move(temp_paths);
-
+                ExtrusionRole role = is_external ? ExtrusionRole::erExternalPerimeter : ExtrusionRole::erPerimeter;
+                paths = detect_overhang_degree(flow, role, lower_layer_polys, clip_paths, subject_path, nozzle_diameter);
+            }
+            else {
+                ExtrusionPaths temp_paths;
+                ZPaths path_non_overhang =  clip_extrusion(subject_path, clip_paths, ClipperLib_Z::ctIntersection);
+                // get non-overhang paths by intersecting this loop with the grown lower slices
+                extrusion_paths_append(temp_paths, path_non_overhang, role,
+                    is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow);
+                paths = std::move(temp_paths);
             }
             // get overhang paths by checking what parts of this loop fall
             // outside the grown lower slices (thus where the distance between
             // the loop centerline and original lower slices is >= half nozzle diameter
             // detect if the overhang perimeter is bridge
-            ClipperLib_Z::Paths path_overhang = clip_extrusion(extrusion_path, lower_slices_paths, ClipperLib_Z::ctDifference);
-
+            ZPaths path_overhang = clip_extrusion(subject_path, clip_paths, ClipperLib_Z::ctDifference);
             bool zero_z_support = (perimeter_generator.object_config->enable_support || perimeter_generator.object_config->enforce_support_layers > 0) && perimeter_generator.object_config->support_top_z_distance.value == 0;
 
             if(zero_z_support)
@@ -1205,7 +1050,12 @@ void PerimeterGenerator::process_classic()
     m_ext_mm3_per_mm           		= this->ext_perimeter_flow.mm3_per_mm();
     coord_t ext_perimeter_width     = this->ext_perimeter_flow.scaled_width();
     coord_t ext_perimeter_spacing   = this->ext_perimeter_flow.scaled_spacing();
-    coord_t ext_perimeter_spacing2  = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.spacing() + this->perimeter_flow.spacing()));
+    coord_t ext_perimeter_spacing2;
+    // Orca: ignore precise_outer_wall if wall_sequence is not InnerOuter
+    if (config->precise_outer_wall)
+        ext_perimeter_spacing2 = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.width() + this->perimeter_flow.width()));
+    else
+        ext_perimeter_spacing2 = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.spacing() + this->perimeter_flow.spacing()));
 
     // overhang perimeters
     m_mm3_per_mm_overhang      		= this->overhang_flow.mm3_per_mm();
@@ -1843,12 +1693,15 @@ void PerimeterGenerator::process_arachne()
     // we need to process each island separately because we might have different
     // extra perimeters for each one
 
+    bool apply_precise_outer_wall = config->precise_outer_wall;
     for (const Surface& surface : this->slices->surfaces) {
         // detect how many perimeters must be generated for this island
         int loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
 
         bool apply_circle_compensation = true;
-        ExPolygons last = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution), -float(ext_perimeter_width / 2. - ext_perimeter_spacing / 2.));
+        // Orca: properly adjust offset for the outer wall if precise_outer_wall is enabled.
+        ExPolygons last  = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution),
+                           apply_precise_outer_wall ? -float(ext_perimeter_width - ext_perimeter_spacing) : - float(ext_perimeter_width / 2. - ext_perimeter_spacing / 2.));
         int new_size = std::accumulate(last.begin(), last.end(), 0, [](int prev, const ExPolygon& expoly) { return prev + expoly.num_contours(); });
         if (last.size() != 1 || new_size != surface.expolygon.num_contours())
             apply_circle_compensation = false;
@@ -1896,9 +1749,13 @@ void PerimeterGenerator::process_arachne()
             std::vector<Arachne::VariableWidthLines> first_perimeters;
             ExPolygons infill_contour_by_one_wall;
 
+            coord_t wall_0_inset = 0;
+            if (apply_precise_outer_wall)
+                wall_0_inset = -coord_t(ext_perimeter_width / 2 - ext_perimeter_spacing / 2);
+
             // do detail check whether to enable one wall
             if (seperate_wall_generation) {
-                Arachne::WallToolPaths one_wall_paths(last_p, ext_perimeter_spacing, perimeter_spacing, 1, 0, layer_height, input_params);
+                Arachne::WallToolPaths one_wall_paths(last_p, ext_perimeter_spacing, perimeter_spacing, 1, wall_0_inset, layer_height, input_params);
                 if (apply_circle_compensation)
                     one_wall_paths.EnableHoleCompensation(true, circle_poly_indices);
 
@@ -1932,7 +1789,7 @@ void PerimeterGenerator::process_arachne()
                 if (loop_number > 0) {
                     last = diff_ex(infill_contour_by_one_wall, top_expolys_by_one_wall);
                     last_p = to_polygons(last); // disable contour compensation in remaining walls
-                    Arachne::WallToolPaths paths_new(last_p, perimeter_spacing, perimeter_spacing, loop_number, 0, layer_height, input_params);
+                    Arachne::WallToolPaths paths_new(last_p, perimeter_spacing, perimeter_spacing, loop_number, wall_0_inset, layer_height, input_params);
                     auto new_perimeters = paths_new.getToolPaths();
                     for (auto& perimeters : new_perimeters) {
                         if (!perimeters.empty()) {
@@ -1949,7 +1806,7 @@ void PerimeterGenerator::process_arachne()
             else {
                 if (is_one_wall) {
                     // plan wall width as one wall
-                    Arachne::WallToolPaths one_wall_paths(last_p, ext_perimeter_spacing, perimeter_spacing, 1, 0, layer_height, input_params);
+                    Arachne::WallToolPaths one_wall_paths(last_p, ext_perimeter_spacing, perimeter_spacing, 1, wall_0_inset, layer_height, input_params);
                     if (apply_circle_compensation)
                         one_wall_paths.EnableHoleCompensation(true, circle_poly_indices);
                     total_perimeters = one_wall_paths.getToolPaths();
@@ -1957,7 +1814,7 @@ void PerimeterGenerator::process_arachne()
                 }
                 else {
                     // plan wall width as noraml
-                    Arachne::WallToolPaths normal_paths(last_p, ext_perimeter_spacing, perimeter_spacing, loop_number + 1, 0, layer_height, input_params);
+                    Arachne::WallToolPaths normal_paths(last_p, ext_perimeter_spacing, perimeter_spacing, loop_number + 1, wall_0_inset, layer_height, input_params);
                     if (apply_circle_compensation)
                         normal_paths.EnableHoleCompensation(true, circle_poly_indices);
                     total_perimeters = normal_paths.getToolPaths();

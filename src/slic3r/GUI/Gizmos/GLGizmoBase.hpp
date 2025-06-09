@@ -175,7 +175,7 @@ protected:
                                               DoubleShowType               show_type = DoubleShowType::Normal);
     bool render_combo(const std::string &label, const std::vector<std::string> &lines,
         size_t &selection_idx, float label_width, float item_width);
-    void render_cross_mark(const Transform3d& matrix, const Vec3f& target,bool is_single =false);
+    void render_cross_mark(const Transform3d& matrix, const Vec3f& target);
     static float get_grabber_size();
 
 public:
@@ -221,6 +221,7 @@ public:
 
     void set_highlight_color(const std::array<float, 4>& color);
 
+    void enable_grabber(unsigned int id, bool enable);
     void enable_grabber(unsigned int id);
     void disable_grabber(unsigned int id);
 
@@ -300,7 +301,7 @@ protected:
         if (value <= _min) { value = _min; }
     }
 
-    BoundingBoxf3 get_cross_mask_aabb(const Transform3d& matrix, const Vec3f& target, bool is_single = false) const;
+    BoundingBoxf3 get_cross_mask_aabb(const Transform3d& matrix, const Vec3f& target) const;
 
     void modify_radius(float& radius) const;
 
@@ -311,7 +312,7 @@ private:
         Y,
         Z
     };
-    Transform3d get_corss_mask_model_matrix(ECrossMaskType type, const Vec3f& target, bool is_single = false) const;
+    Transform3d get_corss_mask_model_matrix(ECrossMaskType type, const Vec3f& target) const;
 
 private:
     // Flag for dirty visible state of Gizmo

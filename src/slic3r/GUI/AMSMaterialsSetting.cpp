@@ -24,7 +24,7 @@ static std::string float_to_string_with_precision(float value, int precision = 3
 }
 
 AMSMaterialsSetting::AMSMaterialsSetting(wxWindow *parent, wxWindowID id)
-    : DPIDialog(parent, id, _L("AMS Materials Setting"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+    : DPIDialog(parent, id, _L("AMS Materials Setting"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_color_picker_popup(ColorPickerPopup(this))
 {
     create();
@@ -414,21 +414,23 @@ void AMSMaterialsSetting::update()
 {
     if (obj) {
         update_widgets();
-        if (obj->is_in_printing() || obj->can_resume()) {
-            enable_confirm_button(false);
-        } else {
-            enable_confirm_button(true);
-        }
+        update_filament_editing(obj->is_in_printing() || obj->can_resume());
     }
 }
 
-void AMSMaterialsSetting::enable_confirm_button(bool en)
+void AMSMaterialsSetting::update_filament_editing(bool is_printing)
 {
-    if (!en) {
+    if (is_printing) {
+        m_comboBox_filament->Enable(obj->is_support_filament_setting_inprinting);
+        m_comboBox_cali_result->Enable(obj->is_support_filament_setting_inprinting);
         m_button_confirm->Show(obj->is_support_filament_setting_inprinting);
+        m_button_reset->Show(obj->is_support_filament_setting_inprinting);
     }
     else {
-        m_button_confirm->Show(en);
+        m_comboBox_filament->Enable(true);
+        m_comboBox_cali_result->Enable(true);
+        m_button_reset->Show(true);
+        m_button_confirm->Show(true);
     }
 
     if (!m_is_third) {
@@ -447,7 +449,7 @@ void AMSMaterialsSetting::enable_confirm_button(bool en)
         }
 
         m_tip_readonly->Wrap(FromDIP(380));
-        m_tip_readonly->Show(!en);
+        m_tip_readonly->Show(is_printing);
     }
 }
 
@@ -553,7 +555,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
                 if (wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
                     bool in_blacklist = false;
                     std::string action;
-                    std::string info;
+                    wxString info;
                     std::string filamnt_type;
                     std::string filamnt_name;
                     it->get_filament_type(filamnt_type);
@@ -562,18 +564,18 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
 
                     if (vendor && (vendor->values.size() > 0)) {
                         std::string vendor_name = vendor->values[0];
-                        DeviceManager::check_filaments_in_blacklist(obj->printer_type, vendor_name, filamnt_type, ams_id, slot_id, it->name, in_blacklist, action, info);
+                        DeviceManager::check_filaments_in_blacklist(obj->printer_type, vendor_name, filamnt_type, it->filament_id, ams_id, slot_id, it->name, in_blacklist, action, info);
                     }
 
                     if (in_blacklist) {
                         if (action == "prohibition") {
-                            MessageDialog msg_wingow(nullptr, wxString::FromUTF8(info), _L("Error"), wxICON_WARNING | wxOK);
+                            MessageDialog msg_wingow(nullptr, info, _L("Error"), wxICON_WARNING | wxOK);
                             msg_wingow.ShowModal();
                             //m_comboBox_filament->SetSelection(m_filament_selection);
                             return;
                         }
                         else if (action == "warning") {
-                            MessageDialog msg_wingow(nullptr, wxString::FromUTF8(info), _L("Warning"), wxICON_INFORMATION | wxOK);
+                            MessageDialog msg_wingow(nullptr, info, _L("Warning"), wxICON_INFORMATION | wxOK);
                             msg_wingow.ShowModal();
                         }
                     }
@@ -820,7 +822,7 @@ bool AMSMaterialsSetting::Show(bool show)
         m_input_k_val->Show();
         Layout();
         Fit();
-        wxGetApp().UpdateDarkUI(this);
+        wxGetApp().UpdateDlgDarkUI(this);
     }
     return DPIDialog::Show(show);
 }
@@ -1453,7 +1455,7 @@ void ColorPicker::doRender(wxDC& dc)
     }
 
     if (m_show_full) {
-        dc.SetPen(wxPen(wxColour(0x6B6B6B)));
+        dc.SetPen(wxPen(wxColour("#6B6B6B")));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawCircle(size.x / 2, size.y / 2, radius);
 
@@ -1516,30 +1518,30 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
     :PopupWindow(parent, wxBORDER_NONE)
 {
     m_def_colors.clear();
-    m_def_colors.push_back(wxColour(0xFFFFFF));
-    m_def_colors.push_back(wxColour(0xfff144));
-    m_def_colors.push_back(wxColour(0xDCF478));
-    m_def_colors.push_back(wxColour(0x0ACC38));
-    m_def_colors.push_back(wxColour(0x057748));
-    m_def_colors.push_back(wxColour(0x0d6284));
-    m_def_colors.push_back(wxColour(0x0EE2A0));
-    m_def_colors.push_back(wxColour(0x76D9F4));
-    m_def_colors.push_back(wxColour(0x46a8f9));
-    m_def_colors.push_back(wxColour(0x2850E0));
-    m_def_colors.push_back(wxColour(0x443089));
-    m_def_colors.push_back(wxColour(0xA03CF7));
-    m_def_colors.push_back(wxColour(0xF330F9));
-    m_def_colors.push_back(wxColour(0xD4B1DD));
-    m_def_colors.push_back(wxColour(0xf95d73));
-    m_def_colors.push_back(wxColour(0xf72323));
-    m_def_colors.push_back(wxColour(0x7c4b00));
-    m_def_colors.push_back(wxColour(0xf98c36));
-    m_def_colors.push_back(wxColour(0xfcecd6));
-    m_def_colors.push_back(wxColour(0xD3C5A3));
-    m_def_colors.push_back(wxColour(0xAF7933));
-    m_def_colors.push_back(wxColour(0x898989));
-    m_def_colors.push_back(wxColour(0xBCBCBC));
-    m_def_colors.push_back(wxColour(0x161616));
+    m_def_colors.push_back(wxColour("#FFFFFF"));
+    m_def_colors.push_back(wxColour("#fff144"));
+    m_def_colors.push_back(wxColour("#DCF478"));
+    m_def_colors.push_back(wxColour("#0ACC38"));
+    m_def_colors.push_back(wxColour("#057748"));
+    m_def_colors.push_back(wxColour("#0d6284"));
+    m_def_colors.push_back(wxColour("#0EE2A0"));
+    m_def_colors.push_back(wxColour("#76D9F4"));
+    m_def_colors.push_back(wxColour("#46a8f9"));
+    m_def_colors.push_back(wxColour("#2850E0"));
+    m_def_colors.push_back(wxColour("#443089"));
+    m_def_colors.push_back(wxColour("#A03CF7"));
+    m_def_colors.push_back(wxColour("#F330F9"));
+    m_def_colors.push_back(wxColour("#D4B1DD"));
+    m_def_colors.push_back(wxColour("#f95d73"));
+    m_def_colors.push_back(wxColour("#f72323"));
+    m_def_colors.push_back(wxColour("#7c4b00"));
+    m_def_colors.push_back(wxColour("#f98c36"));
+    m_def_colors.push_back(wxColour("#fcecd6"));
+    m_def_colors.push_back(wxColour("#D3C5A3"));
+    m_def_colors.push_back(wxColour("#AF7933"));
+    m_def_colors.push_back(wxColour("#898989"));
+    m_def_colors.push_back(wxColour("#BCBCBC"));
+    m_def_colors.push_back(wxColour("#161616"));
 
 
     SetBackgroundColour(wxColour(*wxWHITE));
@@ -1554,7 +1556,7 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
     m_title_ams->SetBackgroundColour(wxColour(238, 238, 238));
     m_sizer_ams->Add(m_title_ams, 0, wxALL, 5);
     auto ams_line = new wxPanel(m_def_color_box, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
-    ams_line->SetBackgroundColour(wxColour(0xCECECE));
+    ams_line->SetBackgroundColour(wxColour("#CECECE"));
     ams_line->SetMinSize(wxSize(-1, 1));
     ams_line->SetMaxSize(wxSize(-1, 1));
     m_sizer_ams->Add(ams_line, 1, wxALIGN_CENTER, 0);
@@ -1601,7 +1603,7 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
     auto other_line = new wxPanel(m_def_color_box, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     other_line->SetMinSize(wxSize(-1, 1));
     other_line->SetMaxSize(wxSize(-1, 1));
-    other_line->SetBackgroundColour(wxColour(0xCECECE));
+    other_line->SetBackgroundColour(wxColour("#CECECE"));
     m_sizer_other->Add(other_line, 1, wxALIGN_CENTER, 0);
 
     //custom color
@@ -1610,7 +1612,7 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
     m_title_custom->SetFont(::Label::Body_14);
     m_title_custom->SetBackgroundColour(wxColour(238, 238, 238));
     auto custom_line = new wxPanel(m_def_color_box, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
-    custom_line->SetBackgroundColour(wxColour(0xCECECE));
+    custom_line->SetBackgroundColour(wxColour("#CECECE"));
     custom_line->SetMinSize(wxSize(-1, 1));
     custom_line->SetMaxSize(wxSize(-1, 1));
     m_sizer_custom->Add(m_title_custom, 0, wxALL, 5);

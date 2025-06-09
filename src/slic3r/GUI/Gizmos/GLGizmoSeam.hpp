@@ -9,7 +9,7 @@ class GLGizmoSeam : public GLGizmoPainterBase
 {
 public:
     GLGizmoSeam(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
-
+    void data_changed(bool is_serializing) override;
     void render_painter_gizmo() const override;
 
     //BBS

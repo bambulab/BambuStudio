@@ -29,6 +29,10 @@ GLGizmoFdmSupports::GLGizmoFdmSupports(GLCanvas3D& parent, const std::string& ic
     m_cursor_type = TriangleSelector::CursorType::CIRCLE;
 }
 
+void GLGizmoFdmSupports::data_changed(bool is_serializing) {
+    set_painter_gizmo_data(m_parent.get_selection());
+}
+
 void GLGizmoFdmSupports::on_shutdown()
 {
     //BBS
@@ -124,9 +128,9 @@ void GLGizmoFdmSupports::render_painter_gizmo() const
     {
         m_support_volume->set_render_color({ 0.f, 0.7f, 0.f, 0.7f });
 
-        const auto& camera = GUI::wxGetApp().plater()->get_camera();
-        const auto& view_matrix = camera.get_view_matrix();
-        m_support_volume->render(view_matrix);
+        const auto &                      camera = m_parent.get_active_camera();
+        std::vector<std::array<float, 4>> colors = m_parent.get_active_colors();
+        m_support_volume->render(camera, colors, m_parent.get_ref_model());
     }
 
     m_c->object_clipper()->render_cut();
@@ -279,7 +283,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     const float sliders_width = m_imgui->scaled(7.0f);
     const float drag_left_width = ImGui::GetStyle().WindowPadding.x + sliders_left_width + sliders_width - space_size;
-
+    float       window_width    = minimal_slider_width + sliders_left_width + slider_icon_width;
     float drag_pos_times     = 0.7;
 
     ImGui::AlignTextToFramePadding();
@@ -458,6 +462,11 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     }
 
     ImGui::Separator();
+    if (m_parent.is_volumes_selected_and_sinking()) {
+        m_imgui->warning_text_wrapped(_L("Warning") + ":" + _L("Painting below the build plate is not allowed.") +
+                                          _L("The white outline indicates the position of the build plate at Z = 0."),
+                                      window_width+ m_imgui->scaled(3));
+    }
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(caption_max, x, get_cur_y);

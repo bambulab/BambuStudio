@@ -35,6 +35,15 @@ public:
     InfillFailedException() : Slic3r::RuntimeError("Infill failed") {}
 };
 
+struct LockRegionParam
+{
+    LockRegionParam() {}
+    std::map<float, ExPolygons> skin_density_params;
+    std::map<float, ExPolygons> skeleton_density_params;
+    std::map<Flow, ExPolygons>  skin_flow_params;
+    std::map<Flow, ExPolygons>  skeleton_flow_params;
+};
+
 struct FillParams
 {
     bool        full_infill() const { return density > 0.9999f; }
@@ -80,6 +89,9 @@ struct FillParams
     float           horiz_move{0.0}; //move infill to get cross zag pattern
     bool            symmetric_infill_y_axis{false};
     coord_t         symmetric_y_axis{0};
+    bool            locked_zag{false};
+    float           infill_lock_depth{0.0};
+    float           skin_infill_depth{0.0};
 };
 static_assert(IsTriviallyCopyable<FillParams>::value, "FillParams class is not POD (and it should be - see constructor).");
 
@@ -135,10 +147,10 @@ public:
     // Perform the fill.
     virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
     virtual ThickPolylines fill_surface_arachne(const Surface* surface, const FillParams& params);
-
+    virtual void set_lock_region_param(const LockRegionParam &lock_param){};
     // BBS: this method is used to fill the ExtrusionEntityCollection.
     // It call fill_surface by default
-    virtual void fill_surface_extrusion(const Surface* surface, const FillParams& params, ExtrusionEntitiesPtr& out);
+    virtual void fill_surface_extrusion(const Surface *surface, const FillParams &params, ExtrusionEntitiesPtr &out);
 
 protected:
     Fill() :

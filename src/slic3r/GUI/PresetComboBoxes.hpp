@@ -123,7 +123,6 @@ protected:
 
     int m_last_selected;
     int m_em_unit;
-    bool m_suppress_change { true };
 
     // BBS: ams
     int  m_filament_idx       = -1;
@@ -157,11 +156,11 @@ protected:
     int  update_ams_color();
 
 #ifdef __linux__
-    static const char* separator_head() { return "------- "; }
-    static const char* separator_tail() { return " -------"; }
+    static const char* separator_head() { return "-- "; }
+    static const char* separator_tail() { return " --"; }
 #else // __linux__
-    static const char* separator_head() { return "------ "; }
-    static const char* separator_tail() { return " ------"; }
+    static const char* separator_head() { return "--"; }
+    static const char* separator_tail() { return " --"; }
 #endif // __linux__
     static wxString    separator(const std::string& label);
 

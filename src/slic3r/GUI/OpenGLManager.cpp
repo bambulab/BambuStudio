@@ -1,4 +1,4 @@
-﻿#include "libslic3r/libslic3r.h"
+#include "libslic3r/libslic3r.h"
 #include "OpenGLManager.hpp"
 
 #include "GUI.hpp"
@@ -316,6 +316,7 @@ OpenGLManager::EMultisampleState OpenGLManager::s_multisample = OpenGLManager::E
 OpenGLManager::EFramebufferType OpenGLManager::s_framebuffers_type = OpenGLManager::EFramebufferType::Unknown;
 bool OpenGLManager::s_b_initialized = false;
 ColorRGBA OpenGLManager::s_cut_plane_color = {1.0f, 0.37f, 0.0f, 1.0f};
+bool      OpenGLManager::s_cancle_glmultidraw             = false;
 #ifdef __APPLE__
 // Part of hack to remove crash when closing the application on OSX 10.9.5 when building against newer wxWidgets
 OpenGLManager::OSInfo OpenGLManager::s_os_info;
@@ -849,6 +850,34 @@ void OpenGLManager::set_cut_plane_color(ColorRGBA color) {
 
 const ColorRGBA &OpenGLManager::get_cut_plane_color(){
     return s_cut_plane_color;
+}
+
+unsigned int OpenGLManager::get_draw_primitive_type(EDrawPrimitiveType type)
+{
+    switch (type) {
+    case EDrawPrimitiveType::Points: {
+        return GL_POINTS;
+    }
+    default:
+    case EDrawPrimitiveType::Triangles: {
+        return GL_TRIANGLES;
+    }
+    case EDrawPrimitiveType::TriangleStrip: {
+        return GL_TRIANGLE_STRIP;
+    }
+    case EDrawPrimitiveType::TriangleFan: {
+        return GL_TRIANGLE_FAN;
+    }
+    case EDrawPrimitiveType::Lines: {
+        return GL_LINES;
+    }
+    case EDrawPrimitiveType::LineStrip: {
+        return GL_LINE_STRIP;
+    }
+    case EDrawPrimitiveType::LineLoop: {
+        return GL_LINE_LOOP;
+    }
+    }
 }
 
 void OpenGLManager::detect_multisample(int* attribList)

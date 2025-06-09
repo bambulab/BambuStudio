@@ -885,6 +885,17 @@ GLVolume *Selection::get_volume(unsigned int volume_idx) {
     return (m_valid && (volume_idx < (unsigned int) m_volumes->size())) ? (*m_volumes)[volume_idx] : nullptr;
 }
 
+
+const GLVolume *Selection::get_volume_by_object_volumn_id(unsigned int volume_id) const
+{
+    if (!m_valid || m_volumes->size() <= 0)
+        return nullptr;
+    for (const GLVolume *v : *m_volumes) {
+        if (v->object_idx() == get_object_idx() && v->volume_idx() == volume_id)
+            return const_cast<GLVolume *>(v);
+    }
+    return nullptr;
+}
 const BoundingBoxf3& Selection::get_bounding_box() const
 {
     if (!m_bounding_box.has_value()) {
@@ -1202,7 +1213,9 @@ void Selection::translate(const Vec3d &displacement, TransformationType transfor
                 Vec3d         tower_size          = v.bounding_box().size();
                 Vec3d         tower_origin        = m_cache.volumes_data[i].get_volume_position();
                 Vec3d         actual_displacement = displacement;
-                const double margin = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx)->fff_print()->is_step_done(psWipeTower)?2.:WIPE_TOWER_MARGIN;
+                bool show_read_wipe_tower = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx)->fff_print()->is_step_done(psWipeTower);
+
+                const double margin = show_read_wipe_tower ? WIPE_TOWER_MARGIN_AFTER_SLICING : WIPE_TOWER_MARGIN;
 
                 actual_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() *
                                         m_cache.volumes_data[i].get_instance_mirror_matrix())

@@ -34,7 +34,6 @@ namespace Slic3r { namespace GUI {
     wxDEFINE_EVENT(EVT_AMS_RETRY, wxCommandEvent);
     wxDEFINE_EVENT(EVT_AMS_SHOW_HUMIDITY_TIPS, wxCommandEvent);
     wxDEFINE_EVENT(EVT_AMS_UNSELETED_VAMS, wxCommandEvent);
-    wxDEFINE_EVENT(EVT_CLEAR_SPEED_CONTROL, wxCommandEvent);
     wxDEFINE_EVENT(EVT_AMS_SWITCH, SimpleEvent);
 
 
@@ -178,6 +177,21 @@ void AMSinfo::parse_ext_info(MachineObject* obj, AmsTray tray) {
     }
     this->cans.push_back(info);
 }
+
+Caninfo AMSinfo::get_caninfo(const std::string& can_id, bool& found) const
+{
+    found = false;
+    for (const auto& can_info : cans)
+    {
+        if (can_info.can_id == can_id)
+        {
+            found = true;
+            return can_info;
+        }
+    }
+
+    return Caninfo();
+};
 
 /*************************************************
 Description:AMSExtText
@@ -842,6 +856,7 @@ void AMSLib::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
     m_bitmap_readonly_light = ScalableBitmap(this, "ams_readonly_light", 14);
     m_bitmap_transparent    = ScalableBitmap(this, "transparent_ams_lib", 76);
     m_bitmap_transparent_def    = ScalableBitmap(this, "transparent_ams_lib", 76);
+    m_bitmap_transparent_lite = ScalableBitmap(this, "transparent_ams_lib", 56);
 
     m_bitmap_extra_tray_left    = ScalableBitmap(this, "extra_ams_tray_left", 72);
     m_bitmap_extra_tray_right    = ScalableBitmap(this, "extra_ams_tray_right", 72);
@@ -1239,6 +1254,12 @@ void AMSLib::render_lite_lib(wxDC& dc)
     if (tmp_lib_colour.Alpha() == 0) {
         temp_bitmap_third = m_bitmap_editable;
         temp_bitmap_brand = m_bitmap_readonly;
+
+        if (m_ams_model == AMSModel::EXT_AMS) {
+            dc.DrawBitmap(m_bitmap_transparent_lite.bmp(), FromDIP(8), (size.y - libsize.y) / 2 + FromDIP(8));
+        } else {
+            dc.DrawBitmap(m_bitmap_transparent_lite.bmp(), FromDIP(10), (size.y - libsize.y) / 2 + FromDIP(8));
+        }
     }
 
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
@@ -1638,6 +1659,8 @@ void AMSLib::msw_rescale()
 {
     //m_bitmap_transparent.msw_rescale();
     m_bitmap_transparent_def.msw_rescale();
+    m_bitmap_transparent_lite.msw_rescale();
+
     m_bitmap_editable = ScalableBitmap(this, "ams_editable", 14);
     m_bitmap_editable_light = ScalableBitmap(this, "ams_editable_light", 14);
     m_bitmap_readonly = ScalableBitmap(this, "ams_readonly", 14);
@@ -1715,12 +1738,6 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
                 mouse_pos.y > rect.y + GetSize().y - FromDIP(40)) {
                 wxCommandEvent show_event(EVT_AMS_SHOW_HUMIDITY_TIPS);
                 wxPostEvent(GetParent()->GetParent(), show_event);
-
-#ifdef __WXMSW__
-                wxCommandEvent close_event(EVT_CLEAR_SPEED_CONTROL);
-                wxPostEvent(GetParent()->GetParent(), close_event);
-#endif // __WXMSW__
-
             }
         }
     });
@@ -2791,6 +2808,10 @@ AMSHumidity::AMSHumidity(wxWindow* parent, wxWindowID id, AMSinfo info, const wx
 
     Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& e) {
         if (m_show_humidity) {
+            if (m_amsinfo.ams_type == AMSModel::GENERIC_AMS) {
+                return;/*STUDIO-12083*/
+            }
+
             auto mouse_pos = ClientToScreen(e.GetPosition());
             auto rect = ClientToScreen(wxPoint(0, 0));
 
@@ -2806,12 +2827,6 @@ AMSHumidity::AMSHumidity(wxWindow* parent, wxWindowID id, AMSinfo info, const wx
                 info->current_temperature = m_amsinfo.current_temperature;
                 show_event.SetClientData(info);
                 wxPostEvent(GetParent()->GetParent(), show_event);
-
-#ifdef __WXMSW__
-                wxCommandEvent close_event(EVT_CLEAR_SPEED_CONTROL);
-                wxPostEvent(GetParent()->GetParent(), close_event);
-#endif // __WXMSW__
-
             }
         }
         });

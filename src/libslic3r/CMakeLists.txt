@@ -169,6 +169,8 @@ set(lisbslic3r_sources
     GCode/Smoothing.hpp
     GCode/CoolingBuffer.cpp
     GCode/CoolingBuffer.hpp
+    GCode/TimelapsePosPicker.cpp
+    GCode/TimelapsePosPicker.hpp
     GCode.cpp
     GCode.hpp
     GCodeReader.cpp
@@ -242,6 +244,8 @@ set(lisbslic3r_sources
     ParameterUtils.hpp
     PerimeterGenerator.cpp
     PerimeterGenerator.hpp
+    OverhangDetector.hpp
+    OverhangDetector.cpp
     PlaceholderParser.cpp
     PlaceholderParser.hpp
     Platform.cpp

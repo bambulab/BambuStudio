@@ -848,8 +848,10 @@ static std::vector<std::string> s_Preset_print_options {
     "top_shell_layers", "top_shell_thickness", "bottom_shell_layers", "bottom_shell_thickness", "ensure_vertical_shell_thickness", "reduce_crossing_wall", "detect_thin_wall",
     "detect_overhang_wall", "top_color_penetration_layers", "bottom_color_penetration_layers",
     "smooth_speed_discontinuity_area","smooth_coefficient",
-    "seam_position", "wall_sequence", "is_infill_first", "sparse_infill_density", "sparse_infill_pattern", "sparse_infill_anchor", "sparse_infill_anchor_max",
-    "top_surface_pattern", "bottom_surface_pattern", "internal_solid_infill_pattern", "infill_direction", "bridge_angle","infill_shift_step", "infill_rotate_step", "symmetric_infill_y_axis",
+    "seam_position", "wall_sequence", "is_infill_first", "sparse_infill_density", "sparse_infill_pattern", "sparse_infill_anchor", "sparse_infill_anchor_max", "top_surface_pattern",
+    "bottom_surface_pattern", "internal_solid_infill_pattern", "infill_direction", "bridge_angle", "infill_shift_step", "skeleton_infill_density", "infill_lock_depth", "skin_infill_depth", "skin_infill_density",
+    "infill_rotate_step",
+    "symmetric_infill_y_axis",
     "minimum_sparse_infill_area", "reduce_infill_retraction", "ironing_pattern", "ironing_type",
     "ironing_flow", "ironing_speed", "ironing_spacing","ironing_direction", "ironing_inset",
     "max_travel_detour_distance",
@@ -875,13 +877,14 @@ static std::vector<std::string> s_Preset_print_options {
     "bridge_no_support", "thick_bridges", "max_bridge_length", "print_sequence",
     "filename_format", "wall_filament", "support_bottom_z_distance",
     "sparse_infill_filament", "solid_infill_filament", "support_filament", "support_interface_filament","support_interface_not_for_body",
-    "ooze_prevention", "standby_temperature_delta", "interface_shells", "line_width", "initial_layer_line_width",
-    "inner_wall_line_width", "outer_wall_line_width", "sparse_infill_line_width", "internal_solid_infill_line_width",
+    "ooze_prevention", "standby_temperature_delta", "interface_shells", "line_width", "initial_layer_line_width", "inner_wall_line_width",
+    "outer_wall_line_width", "sparse_infill_line_width", "internal_solid_infill_line_width",
+    "skin_infill_line_width","skeleton_infill_line_width",
     "top_surface_line_width", "support_line_width", "infill_wall_overlap", "bridge_flow",
     "elefant_foot_compensation", "xy_contour_compensation", "xy_hole_compensation", "resolution", "enable_prime_tower", "prime_tower_enable_framework",
     "prime_tower_width", "prime_tower_brim_width", "prime_tower_skip_points","prime_tower_max_speed",
     "prime_tower_rib_wall","prime_tower_extra_rib_length","prime_tower_rib_width","prime_tower_fillet_wall","prime_tower_infill_gap","prime_tower_lift_speed","prime_tower_lift_height",
-    "enable_circle_compensation", "circle_compensation_manual_offset", "apply_scarf_seam_on_circles",
+    "prime_tower_flat_ironing","enable_circle_compensation", "circle_compensation_manual_offset", "apply_scarf_seam_on_circles",
     "wipe_tower_no_sparse_layers", "compatible_printers", "compatible_printers_condition", "inherits",
     "flush_into_infill", "flush_into_objects", "flush_into_support","process_notes",
     // BBS
@@ -903,11 +906,12 @@ static std::vector<std::string> s_Preset_print_options {
     "print_flow_ratio",
     //Orca
     "exclude_object", /*"seam_slope_type",*/ "seam_slope_conditional", "scarf_angle_threshold", /*"seam_slope_start_height", */"seam_slope_entire_loop",/* "seam_slope_min_length",*/
-    "seam_slope_steps", "seam_slope_inner_walls", "role_base_wipe_speed"/*, "seam_slope_gap"*/,
+    "seam_slope_steps", "seam_slope_inner_walls", "role_base_wipe_speed" /*, "seam_slope_gap"*/, "precise_outer_wall",
     "interlocking_beam", "interlocking_orientation", "interlocking_beam_layer_count", "interlocking_depth", "interlocking_boundary_avoidance", "interlocking_beam_width"};
 
-static std::vector<std::string> s_Preset_filament_options {
-    /*"filament_colour", */ "default_filament_colour","required_nozzle_HRC","filament_diameter", "filament_type", "filament_soluble", "filament_is_support","filament_scarf_seam_type", "filament_scarf_height", "filament_scarf_gap","filament_scarf_length",
+static std::vector<std::string> s_Preset_filament_options {/*"filament_colour", */ "default_filament_colour", "required_nozzle_HRC", "filament_diameter", "filament_type",
+                                                          "filament_soluble", "filament_is_support", "filament_printable", "filament_scarf_seam_type", "filament_scarf_height",
+                                                          "filament_scarf_gap", "filament_scarf_length",
     "filament_max_volumetric_speed", "impact_strength_z", "filament_ramming_volumetric_speed",
     "filament_flow_ratio", "filament_density", "filament_adhesiveness_category", "filament_cost", "filament_minimal_purge_on_wipe_tower",
     "nozzle_temperature", "nozzle_temperature_initial_layer",
@@ -936,7 +940,8 @@ static std::vector<std::string> s_Preset_filament_options {
     "enable_pressure_advance", "pressure_advance", "chamber_temperatures","filament_notes",
     "filament_long_retractions_when_cut","filament_retraction_distances_when_cut","filament_shrink",
     //BBS filament change length while the extruder color
-    "filament_change_length","filament_prime_volume"
+    "filament_change_length","filament_prime_volume","filament_flush_volumetric_speed","filament_flush_temp",
+    "long_retractions_when_ec", "retraction_distances_when_ec"
 };
 
 static std::vector<std::string> s_Preset_machine_limits_options {
@@ -953,7 +958,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "single_extruder_multi_material", "machine_start_gcode", "machine_end_gcode","printing_by_object_gcode","before_layer_change_gcode", "layer_change_gcode", "time_lapse_gcode", "change_filament_gcode",
     "printer_model", "printer_variant", "printer_extruder_id", "printer_extruder_variant", "extruder_variant_list", "default_nozzle_volume_type",
     "printable_height", "extruder_printable_height", "extruder_clearance_dist_to_rod",  "extruder_clearance_max_radius","extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod",
-    "nozzle_height", "unprintable_filament_types", "master_extruder_id",
+    "nozzle_height", "master_extruder_id",
     "default_print_profile", "inherits",
     "silent_mode",
     // BBS

@@ -423,6 +423,7 @@ void PrintObject::make_perimeters()
 #endif
 
     BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - start";
+#if 1
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, m_layers.size()),
         [this](const tbb::blocked_range<size_t>& range) {
@@ -432,6 +433,12 @@ void PrintObject::make_perimeters()
             }
         }
     );
+#else
+    for (size_t layer_idx = 0; layer_idx < m_layers.size(); ++ layer_idx) {
+        m_print->throw_if_canceled();
+        m_layers[layer_idx]->make_perimeters();
+    }
+#endif
     m_print->throw_if_canceled();
     BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - end";
 
@@ -1078,6 +1085,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "sparse_infill_filament"
             || opt_key == "solid_infill_filament"
             || opt_key == "sparse_infill_line_width"
+            || opt_key == "skin_infill_line_width"
+            || opt_key == "skeleton_infill_line_width"
             || opt_key == "infill_direction"
             || opt_key == "ensure_vertical_shell_thickness"
             || opt_key == "bridge_angle"
@@ -1098,7 +1107,11 @@ bool PrintObject::invalidate_state_by_config_options(
         } else if (opt_key == "sparse_infill_pattern"
                    || opt_key == "symmetric_infill_y_axis"
                    || opt_key == "infill_shift_step"
-                   || opt_key == "infill_rotate_step") {
+                   || opt_key == "infill_rotate_step"
+                   || opt_key == "skeleton_infill_density"
+                   || opt_key == "skin_infill_density"
+                   || opt_key == "infill_lock_depth"
+                   || opt_key == "skin_infill_depth") {
             steps.emplace_back(posPrepareInfill);
         } else if (opt_key == "sparse_infill_density") {
             // One likely wants to reslice only when switching between zero infill to simulate boolean difference (subtracting volumes),
@@ -1124,7 +1137,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "detect_overhang_wall"
             //BBS
             || opt_key == "enable_overhang_speed"
-            || opt_key == "detect_thin_wall") {
+            || opt_key == "detect_thin_wall"
+            || opt_key == "precise_outer_wall") {
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posSupportMaterial);
         } else if (opt_key == "bridge_flow") {
@@ -2781,6 +2795,7 @@ void PrintObject::bridge_over_infill()
                 }
 
                 ExPolygons new_internal_solids = to_expolygons(internal_solids);
+                new_internal_solids.insert(new_internal_solids.end(), additional_ensuring.begin(), additional_ensuring.end());
                 new_internal_solids = diff_ex(new_internal_solids, cut_from_infill);
                 new_internal_solids = union_safety_offset_ex(new_internal_solids);
                 for (const ExPolygon &ep : new_internal_solids) {

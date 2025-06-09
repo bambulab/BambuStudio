@@ -1222,38 +1222,95 @@ void ObjectList::copy_settings_to_clipboard()
     if (m_objects_model->GetItemType(item) & itSettings)
         item = m_objects_model->GetParent(item);
 
-    m_clipboard.get_config_cache() = get_item_config(item).get();
+    wxDataViewItemArray items;
+    items.push_back(item);
+    while ((m_objects_model->GetItemType(items.back()) & itObject) == 0) {
+        if (m_objects_model->GetItemType(items.back()) & itLayerRoot)
+            items.back() = m_objects_model->GetParent(items.back());
+        else
+            items.push_back(m_objects_model->GetParent(items.back()));
+    }
+    auto &config = m_clipboard.get_config_cache();
+    config.clear();
+    while (!items.empty()) {
+        config.apply(get_item_config(items.back()).get());
+        items.pop_back();
+    }
+
+    m_clipboard.set_type(ItemType(m_objects_model->GetItemType(item) | itSettings));
+}
+
+bool GUI::ObjectList::can_paste_settings_into_list()
+{
+    wxDataViewItemArray sels;
+    GetSelections(sels);
+    if (sels.empty())
+        return false;
+    return m_clipboard.get_type() == (m_objects_model->GetItemType(sels.front()) | itSettings);
 }
 
 void ObjectList::paste_settings_into_list()
 {
-    wxDataViewItem item = GetSelection();
-    assert(item.IsOk());
-    if (m_objects_model->GetItemType(item) & itSettings)
-        item = m_objects_model->GetParent(item);
+    wxDataViewItemArray sels;
+    GetSelections(sels);
+    take_snapshot("Paste settings");
 
-    ItemType item_type = m_objects_model->GetItemType(item);
-    if(!(item_type & (itObject | itVolume |itLayer)))
-        return;
+    std::unique_ptr<t_config_option_keys> global_keys; // need copy from global
 
-    DynamicPrintConfig& config_cache = m_clipboard.get_config_cache();
-    assert(!config_cache.empty());
+    for (auto item : sels) {
 
-    auto keys = config_cache.keys();
-    auto part_options = SettingsFactory::get_options(true);
+        if (m_objects_model->GetItemType(item) & itSettings)
+            item = m_objects_model->GetParent(item);
 
-    for (const std::string& opt_key: keys) {
-        if (item_type & (itVolume | itLayer) &&
-            std::find(part_options.begin(), part_options.end(), opt_key) == part_options.end())
-            continue; // we can't to add object specific options for the part's(itVolume | itLayer) config
+        ItemType item_type = m_objects_model->GetItemType(item);
+        if(!(item_type & (itObject | itVolume |itLayer)))
+            return;
 
-        const ConfigOption* option = config_cache.option(opt_key);
-        if (option)
-            m_config->set_key_value(opt_key, option->clone());
+        DynamicPrintConfig& config_cache = m_clipboard.get_config_cache();
+        assert(!config_cache.empty());
+
+        auto keys = config_cache.keys();
+        auto part_options = SettingsFactory::get_options(true);
+        auto config       = &get_item_config(item);
+        auto extruder     = config->option("extruder") ? config->option("extruder")->clone() : nullptr;
+        config->reset();
+
+        if (item_type & (itVolume | itLayer)) {
+            if (global_keys == nullptr) {
+                auto object = m_objects_model->GetParent(item);
+                DynamicPrintConfig config;
+                config.apply_only(*wxGetApp().get_tab(Preset::TYPE_PRINT)->get_config(), keys);
+                config.apply_only(get_item_config(object).get(), keys);
+                auto equals = config.equal(config_cache);
+                global_keys.reset(new t_config_option_keys);
+                auto keys2 = get_item_config(object).keys();
+                std::copy_if(keys2.begin(), keys2.end(), std::back_inserter(*global_keys),
+                             [&equals](auto &e) { return std::find(equals.begin(), equals.end(), e) == equals.end(); });
+                keys.erase(std::remove_if(keys.begin(), keys.end(),
+                             [&equals](auto &e) { return std::find(equals.begin(), equals.end(), e) != equals.end(); }), keys.end());
+            }
+            config->apply_only(*wxGetApp().get_tab(Preset::TYPE_PRINT)->get_config(), *global_keys);
+        }
+
+        for (const std::string& opt_key: keys) {
+            if (item_type & (itVolume | itLayer) &&
+                std::find(part_options.begin(), part_options.end(), opt_key) == part_options.end())
+                continue; // we can't to add object specific options for the part's(itVolume | itLayer) config
+
+            const ConfigOption* option = config_cache.option(opt_key);
+            if (option)
+                config->set_key_value(opt_key, option->clone());
+        }
+        if (extruder)
+            config->set_key_value("extruder", extruder);
+        else
+            config->erase("extruder");
+
+        // Add settings item for object/sub-object and show them
+        add_settings_item(item, &config->get());
     }
 
-    // Add settings item for object/sub-object and show them
-    show_settings(add_settings_item(item, &m_config->get()));
+    part_selection_changed();
 }
 
 void ObjectList::paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& volumes)
@@ -1429,6 +1486,7 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
                 dynamic_cast<TabPrintLayer*>(wxGetApp().get_layer_tab())->reset_model_config();
             else
                 dynamic_cast<TabPrintModel*>(wxGetApp().get_model_tab(vol_idx >= 0))->reset_model_config();
+            wxGetApp().params_panel()->notify_object_config_changed();
         }
         else if (col_num == colName)
         {
@@ -1605,7 +1663,7 @@ bool ObjectList::paste_from_clipboard()
 
     if (m_clipboard.get_type() & itSettings)
         paste_settings_into_list();
-    if (m_clipboard.get_type() & (itLayer | itLayerRoot))
+    else if (m_clipboard.get_type() & (itLayer | itLayerRoot))
         paste_layers_into_list();
 
     return true;
@@ -2362,6 +2420,83 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     }
 }
 
+void GUI::ObjectList::add_new_model_object_from_old_object() {
+    const Selection &selection = scene_selection();
+    int instance_idx = *selection.get_instance_idxs().begin();
+    assert(instance_idx != -1);
+    if (instance_idx == -1)
+        return;
+    wxDataViewItemArray sels;
+    GetSelections(sels);
+    if (sels.IsEmpty()) return;
+    int obj_idx = -1;
+    std::vector<int> vol_idxs;
+    for (wxDataViewItem item : sels) {
+        const int temp_obj_idx = m_objects_model->GetObjectIdByItem(item);
+        if (temp_obj_idx < 0) //&& object(obj_idx)->is_cut()
+            return;
+        obj_idx           = temp_obj_idx;
+        const int vol_idx = m_objects_model->GetVolumeIdByItem(item);
+        vol_idxs.emplace_back(vol_idx);
+    }
+    if (vol_idxs.empty()) {
+        return;
+    }
+    take_snapshot("Add new model object");
+    wxBusyCursor cursor;
+    std::sort(vol_idxs.begin(), vol_idxs.end());
+    ModelVolumePtrs sel_volumes;
+    auto            mo = (*m_objects)[obj_idx];
+    for (int i = vol_idxs.size() - 1; i >= 0; i--) {
+        if (vol_idxs[i] > mo->volumes.size()) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "check error:array bound";
+            continue;
+        }
+        auto vol_idx = vol_idxs[i];
+        auto mv      = mo->volumes[vol_idx];
+        sel_volumes.emplace_back(mv);
+        mo->volumes.erase(mo->volumes.begin() + vol_idx);
+    }
+    for (int i = vol_idxs.size() - 1; i >= 0; i--) {
+        auto vol_idx = vol_idxs[i];
+        delete_volume_from_list(obj_idx, vol_idx);
+    }
+     // Add mesh to model as a new object
+    Model &model = wxGetApp().plater()->model();
+
+    std::vector<size_t> object_idxs;
+    ModelObject *       new_object = model.add_object();
+    new_object->name               = into_u8(_L("Sub-merged body"));
+    new_object->add_instance(); // each object should have at least one instance
+    int min_extruder = (int) EnforcerBlockerType::ExtruderMax;
+    for (auto mv : sel_volumes) {
+        new_object->add_volume(*mv, mv->type());
+        auto option = mv->config.option("extruder");
+        if (option) {
+            auto volume_extruder_id = (dynamic_cast<const ConfigOptionInt *>(option))->getInt();
+            if (min_extruder > volume_extruder_id) {
+                min_extruder = volume_extruder_id;
+            }
+        } else {
+            auto opt = mo->config.option("extruder");
+            if (opt && min_extruder != opt->getInt()) { min_extruder = opt->getInt(); }
+        }
+    }
+    new_object->sort_volumes(true);
+    // set a default extruder value, since user can't add it manually
+    new_object->config.set_key_value("extruder", new ConfigOptionInt(min_extruder));
+    new_object->invalidate_bounding_box();
+    new_object->instances[0]->set_transformation(mo->instances[0]->get_transformation());
+    // BBS: backup
+    Slic3r::save_object_mesh(*new_object);
+    new_object->ensure_on_bed();
+    // BBS init assmeble transformation
+    new_object->get_model()->set_assembly_pos(new_object);
+    object_idxs.push_back(model.objects.size() - 1);
+    paste_objects_into_list(object_idxs);
+    wxGetApp().mainframe->update_title();
+}
+
 void ObjectList::switch_to_object_process()
 {
     wxGetApp().params_panel()->switch_to_object(true);
@@ -2859,6 +2994,7 @@ void ObjectList::split()
 
 void ObjectList::merge(bool to_multipart_object)
 {
+    wxBusyCursor wait;
     // merge selected objects to the multipart object
     if (to_multipart_object) {
         auto get_object_idxs = [this](std::vector<int>& obj_idxs, wxDataViewItemArray& sels)
@@ -2975,8 +3111,20 @@ void ObjectList::merge(bool to_multipart_object)
             const Transform3d& transformation_matrix = transformation.get_matrix();
 
             // merge volumes
-            for (const ModelVolume* volume : object->volumes) {
+            for(int volume_idx = 0; volume_idx < object->volumes.size(); volume_idx++) {
+                const ModelVolume* volume = object->volumes[volume_idx];
                 ModelVolume* new_volume = new_object->add_volume(*volume);
+                int new_volume_idx = new_object->volumes.size() - 1;
+                // merge brim ears
+                for (auto p : object->brim_points) {
+                    if (p.volume_idx == volume_idx) {
+                        Transform3d v_matrix = object->volumes[p.volume_idx]->get_matrix();
+                        p.set_transform(v_matrix);
+                        p.set_transform(transformation_matrix);
+                        p.volume_idx = new_volume_idx;
+                        new_object->brim_points.push_back(p);
+                    }
+                }
 
                 //BBS: keep volume's transform
                 const Transform3d& volume_matrix = new_volume->get_matrix();
@@ -3003,11 +3151,14 @@ void ObjectList::merge(bool to_multipart_object)
                 //for volume config, it only has settings of PrintRegionConfig
                 //so we can not copy settings from object to volume
                 //but we can copy settings from volume to object
-                if (object->volumes.size() > 1)
-                {
+                if (object->volumes.size() > 1){
                     new_volume->config.assign_config(volume->config);
                 }
-
+                auto option = new_volume->config.option("extruder");
+                if (!option) {
+                    auto opt = object->config.option("extruder");
+                    if (opt) { new_volume->config.set_key_value("extruder", new ConfigOptionInt(opt->getInt())); }
+                }
                 new_volume->mmu_segmentation_facets.assign(std::move(volume->mmu_segmentation_facets));
             }
             new_object->sort_volumes(true);
@@ -3041,10 +3192,12 @@ void ObjectList::merge(bool to_multipart_object)
                 new_object->layer_config_ranges.emplace(range);
 
             // merge brim ears
-            BrimPoints temp_brim_points = object->brim_points;
-            for(auto& p : temp_brim_points) {
-                p.set_transform(transformation_matrix);
-                new_object->brim_points.push_back(p);
+            for(auto& p : object->brim_points) {
+                if (p.volume_idx < 0) {
+                    Transform3d v_matrix = Transform3d::Identity();
+                    p.set_transform(transformation_matrix * v_matrix);
+                    new_object->brim_points.push_back(p);
+                }
             }
         }
 
@@ -3056,10 +3209,14 @@ void ObjectList::merge(bool to_multipart_object)
         //BBS init asssmble transformation
         Geometry::Transformation new_object_trsf = new_object->instances[0]->get_transformation();
         new_object->instances[0]->set_assemble_transformation(new_object_trsf);
-
+        // merge brim ears
         const Transform3d& new_object_inverse_matrix = new_object_trsf.get_matrix().inverse();
         for (auto& p : new_object->brim_points) {
+            Transform3d v_matrix_inverse = Transform3d::Identity();
+            if (p.volume_idx >= 0)
+                v_matrix_inverse = new_object->volumes[p.volume_idx]->get_matrix().inverse();
             p.set_transform(new_object_inverse_matrix);
+            p.set_transform(v_matrix_inverse);
         }
         //BBS: notify it before remove
         notify_instance_updated(m_objects->size() - 1);
@@ -3683,6 +3840,7 @@ void ObjectList::part_selection_changed()
     wxGetApp().obj_settings()->UpdateAndShow(update_and_show_settings);
     wxGetApp().obj_layers()  ->UpdateAndShow(update_and_show_layers);
     wxGetApp().plater()->show_object_info();
+    wxGetApp().plater()->show_assembly_info();
 
     panel.Layout();
     panel.Thaw();

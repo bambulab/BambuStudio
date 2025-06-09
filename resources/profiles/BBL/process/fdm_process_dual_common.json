@@ -197,5 +197,6 @@
         "80%",
         "80%"
     ],
-    "z_direction_outwall_speed_continuous": "1"
+    "z_direction_outwall_speed_continuous": "1",
+    "prime_tower_flat_ironing":"1"
 }

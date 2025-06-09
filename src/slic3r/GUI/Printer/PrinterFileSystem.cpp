@@ -560,6 +560,7 @@ void PrinterFileSystem::Stop(bool quit)
 
 void PrinterFileSystem::SetUploadFile(const std::string &path, const std::string &name, const std::string &select_storage)
 {
+    boost::unique_lock l(m_mutex);
     if (!m_upload_file) {
         m_upload_file = std::make_unique<UploadFile>();
     }
@@ -1126,9 +1127,9 @@ void PrinterFileSystem::RequestUploadFile()
             if (result != SUCCESS && result != CONTINUE && result != FILE_EXIST) {
                 std::string error_msg = "";
                 if (result == ERROR_CANCEL) {
-                    error_msg = L("User cancels task.");
+                    error_msg = _L("User cancels task.").ToStdString();
                 } else if (result == FILE_READ_WRITE_ERR || result == FILE_OPEN_ERR) {
-                    error_msg = L("Failed to read file, please try again.");
+                    error_msg = _L("Failed to read file, please try again.").ToStdString();
                 }
                 wxLogWarning("PrinterFileSystem::UploadFile error: %d\n", result);
                 SendChangedEvent(EVT_UPLOAD_CHANGED, FF_UPLOADCANCEL, error_msg, result);
@@ -1527,7 +1528,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
     if (m_session.owner == nullptr)
         return;
     json r;
-    while (!m_callbacks.empty()) {
+    while(!m_callbacks.empty()) {
         auto c = m_callbacks.front();
         m_callbacks.pop_front();
         ++m_sequence;
@@ -1536,11 +1537,15 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
     m_messages.clear();
     if (result)
         m_cond.timed_wait(l, boost::posix_time::seconds(10));
+
+
     while (true) {
         while (m_stopped) {
             if (m_session.owner == nullptr)
                 return;
-            m_cond.wait(l);
+           m_status = Status::Reconnecting;
+           SendChangedEvent(EVT_STATUS_CHANGED, m_status);
+           m_cond.wait(l);
         }
         wxLogMessage("PrinterFileSystem::Reconnect Initializing");
         m_status = Status::Initializing;
@@ -1566,17 +1571,28 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
             Bambu_Tunnel tunnel = nullptr;
             int ret = Bambu_Create(&tunnel, url.c_str());
             if (ret == 0) {
+
                 Bambu_SetLogger(tunnel, DumpLog, this);
                 ret = Bambu_Open(tunnel);
             }
+
             if (ret == 0)
-                do {
-                    ret = Bambu_StartStreamEx
-                        ? Bambu_StartStreamEx(tunnel, CTRL_TYPE)
-                        : Bambu_StartStream(tunnel, false);
+            {
+                auto                             start_time = boost::posix_time::microsec_clock::universal_time();
+                boost::posix_time::time_duration timeout    = boost::posix_time::seconds(3);
+                do{
+                    ret = Bambu_StartStreamEx ? Bambu_StartStreamEx(tunnel, CTRL_TYPE) : Bambu_StartStream(tunnel, false);
                     if (ret == Bambu_would_block)
                         boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+
+                     auto now = boost::posix_time::microsec_clock::universal_time();
+                    if (now - start_time > timeout) {
+                        BOOST_LOG_TRIVIAL(warning) << "StartStream timeout after 5 seconds.";
+                        break;
+                    }
+
                 } while (ret == Bambu_would_block && !m_stopped);
+            }
             l.lock();
             if (ret == 0) {
                 m_session.tunnel = tunnel;
@@ -1594,6 +1610,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
         }
         wxLogMessage("PrinterFileSystem::Reconnect Failed");
         m_status = Status::Failed;
+
         SendChangedEvent(EVT_STATUS_CHANGED, m_status, "", url.size() < 2 ? 1 : m_last_error);
         m_cond.timed_wait(l, boost::posix_time::seconds(10));
     }

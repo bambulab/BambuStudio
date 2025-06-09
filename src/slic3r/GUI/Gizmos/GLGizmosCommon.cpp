@@ -154,8 +154,13 @@ void InstancesHider::on_update()
     double z_min;
     if (canvas->get_canvas_type() == GLCanvas3D::CanvasAssembleView)
         z_min = std::numeric_limits<double>::max();
-    else
-        z_min = -SINKING_Z_THRESHOLD;
+    else {
+        if (canvas->get_gizmos_manager().is_paint_gizmo()) {
+            z_min = -FLT_MAX;
+        } else {
+            z_min = -SINKING_Z_THRESHOLD;
+        }
+    }
 
     if (mo && active_inst != -1) {
         canvas->toggle_model_objects_visibility(false);
@@ -420,13 +425,22 @@ void CommonGizmosDataObjects::ObjectClipper::render_cut(const std::vector<size_t
     //consider normal view  or assemble view
     const ModelObject *      mo       = sel_info->model_object();
     Geometry::Transformation inst_trafo;
-    bool                     is_assem_cnv             = get_pool()->get_canvas()->get_canvas_type() == GLCanvas3D::CanvasAssembleView;
+    GLCanvas3D *             canvas                   = get_pool()->get_canvas();
+    bool                     is_assem_cnv             = canvas->get_canvas_type() == GLCanvas3D::CanvasAssembleView;
     inst_trafo                                        = is_assem_cnv ? mo->instances[sel_info->get_active_instance()]->get_assemble_transformation() :
                                                                        mo->instances[sel_info->get_active_instance()]->get_transformation();
     auto                           offset_to_assembly = mo->instances[0]->get_offset_to_assembly();
 
     auto                           debug             = sel_info->get_sla_shift();
     std::vector<size_t>            ignore_idxs_local = ignore_idxs ? *ignore_idxs : std::vector<size_t>();
+
+
+    double      z_min;
+    if (canvas->get_gizmos_manager().is_paint_gizmo()) {
+        z_min = -FLT_MAX;
+    } else {
+        z_min = -SINKING_Z_THRESHOLD;
+    }
 
     for (auto &clipper : m_clippers) {
         auto                     vol_trafo = clipper.second;
@@ -438,7 +452,7 @@ void CommonGizmosDataObjects::ObjectClipper::render_cut(const std::vector<size_t
         }
         clipper.first->set_plane(*m_clp);
         clipper.first->set_transformation(trafo);
-        clipper.first->set_limiting_plane(ClippingPlane(Vec3d::UnitZ(), -SINKING_Z_THRESHOLD));
+        clipper.first->set_limiting_plane(ClippingPlane(Vec3d::UnitZ(), z_min));
         clipper.first->render_cut(OpenGLManager::get_cut_plane_color(), &ignore_idxs_local);
         clipper.first->render_contour({1.f, 1.f, 1.f, 1.f}, &ignore_idxs_local);
 

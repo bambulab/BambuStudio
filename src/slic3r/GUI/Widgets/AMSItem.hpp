@@ -261,6 +261,7 @@ public:
     void parse_ext_info(MachineObject* obj, AmsTray tray);
 
     bool support_drying() const { return (ams_type == AMSModel::N3S_AMS) || (ams_type == AMSModel::N3F_AMS); };
+    Caninfo get_caninfo(const std::string& can_id, bool& found) const;
 };
 
 /*************************************************
@@ -476,6 +477,7 @@ protected:
     ScalableBitmap  m_bitmap_readonly_light;
     ScalableBitmap  m_bitmap_transparent;
     ScalableBitmap  m_bitmap_transparent_def;
+    ScalableBitmap  m_bitmap_transparent_lite;
 
     ScalableBitmap  m_bitmap_extra_tray_left;
     ScalableBitmap  m_bitmap_extra_tray_right;
@@ -845,7 +847,6 @@ wxDECLARE_EVENT(EVT_AMS_RETRY, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_SHOW_HUMIDITY_TIPS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_UNSELETED_VAMS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_UNSELETED_AMS, wxCommandEvent);
-wxDECLARE_EVENT(EVT_CLEAR_SPEED_CONTROL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_VAMS_ON_FILAMENT_EDIT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_SWITCH, SimpleEvent);
 

@@ -8,6 +8,8 @@ set(SLIC3R_GUI_SOURCES
     pchheader.hpp
     GUI/Printer/PrinterFileSystem.cpp
     GUI/Printer/PrinterFileSystem.h
+    GUI/Widgets/AnimaController.hpp
+    GUI/Widgets/AnimaController.cpp
     GUI/Widgets/AxisCtrlButton.cpp
     GUI/Widgets/AxisCtrlButton.hpp
     GUI/Widgets/Button.cpp
@@ -446,6 +448,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ModelMall.cpp
     GUI/SelectMachine.hpp
     GUI/SelectMachine.cpp
+    GUI/PrePrintChecker.hpp
+    GUI/PrePrintChecker.cpp
     GUI/SelectMachinePop.hpp
     GUI/SelectMachinePop.cpp
     GUI/SendToPrinter.hpp
@@ -535,6 +539,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/NetworkAgent.hpp
     Utils/MKS.hpp
     Utils/MKS.cpp
+    Utils/CpuMemory.cpp
+    Utils/CpuMemory.hpp
     Utils/Duet.cpp
     Utils/Duet.hpp
     Utils/FlashAir.cpp

@@ -8,7 +8,7 @@
 					"local": "local"
 				}
 			},
-			"nozzle_temp_range": [ 20, 300 ],
+			"nozzle_temp_range": [ 0, 300 ],
 			"support_motor_noise_cali": false,
 			"support_tunnel_mqtt": false,
 			"support_mqtt_alive": false,
@@ -52,7 +52,7 @@
 		"printer_series": "series_p1p",
 		"has_cali_line": false,
 		"printer_is_enclosed": true,
-		"enable_set_nozzle_info": true
+		"enable_set_nozzle_info": false
 	},
 	"01.02.99.10": {
 		"print": {

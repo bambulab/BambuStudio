@@ -288,6 +288,7 @@ public:
     //void                load_part(ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery = false);
     void                load_modifier(const wxArrayString& input_files, ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery = false);
     void                load_generic_subobject(const std::string& type_name, const ModelVolumeType type);
+    void                add_new_model_object_from_old_object();
     void                load_shape_object(const std::string &type_name);
     void                load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center = true);
     // BBS
@@ -436,6 +437,7 @@ public:
     void paste_layers_into_list();
     void copy_settings_to_clipboard();
     void paste_settings_into_list();
+    bool can_paste_settings_into_list();
     bool clipboard_is_empty() const { return m_clipboard.empty(); }
     void paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& volumes);
     void paste_objects_into_list(const std::vector<size_t>& object_idxs);

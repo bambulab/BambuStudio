@@ -142,6 +142,10 @@ GLGizmoMmuSegmentation::GLGizmoMmuSegmentation(GLCanvas3D& parent, const std::st
 {
 }
 
+void GLGizmoMmuSegmentation::data_changed(bool is_serializing) {
+    set_painter_gizmo_data(m_parent.get_selection());
+}
+
 void GLGizmoMmuSegmentation::render_painter_gizmo() const
 {
     const Selection& selection = m_parent.get_selection();
@@ -475,7 +479,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     window_width = std::max(window_width, total_text_max);
     window_width = std::max(window_width, buttons_width);
-    window_width = std::max(window_width, max_filament_items_per_line * filament_item_width + +m_imgui->scaled(0.5f));
+    window_width = std::max(window_width, max_filament_items_per_line * filament_item_width + m_imgui->scaled(0.5f));
 
     const float sliders_width = m_imgui->scaled(7.0f);
     const float drag_left_width = ImGui::GetStyle().WindowPadding.x + sliders_width - space_size;
@@ -836,7 +840,11 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         m_imgui->disabled_end();
         ImGui::Separator();
     }
-
+    if (m_parent.is_volumes_selected_and_sinking()) {
+        m_imgui->warning_text_wrapped(_L("Warning") + ":" + _L("Painting below the build plate is not allowed.") +
+                                          _L("The white outline indicates the position of the build plate at Z = 0."),
+                                      window_width + m_imgui->scaled(1));
+    }
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(caption_max, x, get_cur_y);

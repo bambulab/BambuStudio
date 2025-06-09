@@ -5,8 +5,10 @@
 #include "../Surface.hpp"
 #include "../VariableWidth.hpp"
 #include "../format.hpp"
+#include "../EdgeGrid.hpp"
 #include "FillFloatingConcentric.hpp"
 #include <boost/log/trivial.hpp>
+#include <libslic3r/ShortestPath.hpp>
 
 namespace Slic3r {
 
@@ -685,7 +687,19 @@ FloatingThickPolylines FillFloatingConcentric::resplit_order_loops(Point curr_po
         if (all_extrusions[idx]->empty())
             continue;
         ThickPolyline thick_polyline = Arachne::to_thick_polyline(*all_extrusions[idx]);
-        FloatingThickPolyline thick_line_with_floating = detect_floating_line(thick_polyline, floating_areas, default_width, !print_object_config->detect_floating_vertical_shell.value);
+        bool is_self_intersect = false;
+        if(print_object_config->detect_floating_vertical_shell.value)
+        {
+            Polyline polyline = thick_polyline;
+            auto bbox_line = get_extents(polyline);
+
+            EdgeGrid::Grid grid;
+            grid.set_bbox(bbox_line);
+            grid.create({ polyline.points }, scaled<coord_t>(10.), !all_extrusions[idx]->is_closed);
+            if (grid.has_intersecting_edges())
+                is_self_intersect = true;
+        }
+        FloatingThickPolyline thick_line_with_floating = detect_floating_line(thick_polyline, floating_areas, default_width, !print_object_config->detect_floating_vertical_shell.value || is_self_intersect);
         smooth_floating_line(thick_line_with_floating, scale_(2), scale_(2));
         int split_idx = 0;
         if (!floating_areas.empty() && all_extrusions[idx]->is_closed && thick_line_with_floating.points.front() == thick_line_with_floating.points.back()) {
@@ -789,6 +803,79 @@ void FillFloatingConcentric::_fill_surface_single(
 }
 #endif
 
+static std::vector<const Arachne::ExtrusionLine*>  toplogic_sort_extruisons(const std::vector<Arachne::ExtrusionLine*>& all_extrusions)
+{
+    std::vector<const Arachne::ExtrusionLine*> ordered_extrusions;
+    // Find topological order with constraints from extrusions_constrains.
+    std::vector<size_t>              blocked(all_extrusions.size(), 0); // Value indicating how many extrusions it is blocking (preceding extrusions) an extrusion.
+    std::vector<std::vector<size_t>> blocking(all_extrusions.size());   // Each extrusion contains a vector of extrusions that are blocked by this extrusion.
+    std::unordered_map<const Arachne::ExtrusionLine*, size_t> map_extrusion_to_idx;
+    for (size_t idx = 0; idx < all_extrusions.size(); idx++)
+        map_extrusion_to_idx.emplace(all_extrusions[idx], idx);
+
+    auto extrusions_constrains = Arachne::WallToolPaths::getRegionOrder(all_extrusions, true);
+    for (auto [before, after] : extrusions_constrains) {
+        auto after_it = map_extrusion_to_idx.find(after);
+        ++blocked[after_it->second];
+        blocking[map_extrusion_to_idx.find(before)->second].emplace_back(after_it->second);
+    }
+
+    std::vector<bool> processed(all_extrusions.size(), false);          // Indicate that the extrusion was already processed.
+    Point             current_position = all_extrusions.empty() ? Point::Zero() : all_extrusions.front()->junctions.front().p; // Some starting position.
+    while (ordered_extrusions.size() < all_extrusions.size()) {
+        size_t best_candidate = 0;
+        double best_distance_sqr = std::numeric_limits<double>::max();
+        bool   is_best_closed = false;
+
+        std::vector<size_t> available_candidates;
+        for (size_t candidate = 0; candidate < all_extrusions.size(); ++candidate) {
+            if (processed[candidate] || blocked[candidate])
+                continue; // Not a valid candidate.
+            available_candidates.push_back(candidate);
+        }
+
+        std::sort(available_candidates.begin(), available_candidates.end(), [&all_extrusions](const size_t a_idx, const size_t b_idx) -> bool {
+            return all_extrusions[a_idx]->is_closed < all_extrusions[b_idx]->is_closed;
+            });
+
+        for (const size_t candidate_path_idx : available_candidates) {
+            auto& path = all_extrusions[candidate_path_idx];
+
+            if (path->junctions.empty()) { // No vertices in the path. Can't find the start position then or really plan it in. Put that at the end.
+                if (best_distance_sqr == std::numeric_limits<double>::max()) {
+                    best_candidate = candidate_path_idx;
+                    is_best_closed = path->is_closed;
+                }
+                continue;
+            }
+
+            const Point candidate_position = path->junctions.front().p;
+            double      distance_sqr = (current_position - candidate_position).cast<double>().norm();
+            if (distance_sqr < best_distance_sqr) { // Closer than the best candidate so far.
+                if (path->is_closed || (!path->is_closed && best_distance_sqr != std::numeric_limits<double>::max()) || (!path->is_closed && !is_best_closed)) {
+                    best_candidate = candidate_path_idx;
+                    best_distance_sqr = distance_sqr;
+                    is_best_closed = path->is_closed;
+                }
+            }
+        }
+
+        auto& best_path = all_extrusions[best_candidate];
+        ordered_extrusions.push_back(best_path);
+        processed[best_candidate] = true;
+        for (size_t unlocked_idx : blocking[best_candidate])
+            blocked[unlocked_idx]--;
+
+        if (!best_path->junctions.empty()) { //If all paths were empty, the best path is still empty. We don't upate the current position then.
+            if (best_path->is_closed)
+                current_position = best_path->junctions[0].p; //We end where we started.
+            else
+                current_position = best_path->junctions.back().p; //Pick the other end from where we started.
+        }
+    }
+    return ordered_extrusions;
+}
+
 void FillFloatingConcentric::_fill_surface_single(const FillParams& params,
     unsigned int                   thickness_layers,
     const std::pair<float, Point>& direction,
@@ -813,17 +900,21 @@ void FillFloatingConcentric::_fill_surface_single(const FillParams& params,
     Arachne::WallToolPaths wallToolPaths(polygons, min_spacing, min_spacing, loops_count, 0, params.layer_height, input_params);
 
     std::vector<Arachne::VariableWidthLines>    loops = wallToolPaths.getToolPaths();
-    std::vector<const Arachne::ExtrusionLine*> all_extrusions;
-    for (Arachne::VariableWidthLines& loop : loops) {
-        if (loop.empty())
-            continue;
-        for (const Arachne::ExtrusionLine& wall : loop)
-            all_extrusions.emplace_back(&wall);
+    std::vector<const Arachne::ExtrusionLine*> ordered_extrusions;
+    {
+        std::vector<Arachne::ExtrusionLine*> all_extrusions;
+        for (Arachne::VariableWidthLines& loop : loops) {
+            if (loop.empty())
+                continue;
+            for (Arachne::ExtrusionLine& wall : loop)
+                all_extrusions.emplace_back(&wall);
+        }
+        ordered_extrusions = toplogic_sort_extruisons(all_extrusions);
     }
 
     // Split paths using a nearest neighbor search.
     size_t firts_poly_idx = thick_polylines_out.size();
-    auto thick_polylines = resplit_order_loops({ 0,0 }, all_extrusions, this->lower_layer_unsupport_areas, this->lower_sparse_polys,min_spacing);
+    auto thick_polylines = resplit_order_loops({ 0,0 }, ordered_extrusions, this->lower_layer_unsupport_areas, this->lower_sparse_polys,min_spacing);
     append(thick_polylines_out, thick_polylines);
 
 
@@ -855,6 +946,7 @@ FloatingThickPolylines FillFloatingConcentric::fill_surface_arachne_floating(con
 void FillFloatingConcentric::fill_surface_extrusion(const Surface* surface, const FillParams& params, ExtrusionEntitiesPtr& out)
 {
     FloatingThickPolylines floating_lines = this->fill_surface_arachne_floating(surface, params);
+    //reorder_by_shortest_traverse(floating_lines);
     if (floating_lines.empty())
         return;
     Flow new_flow = params.flow.with_spacing(this->spacing);

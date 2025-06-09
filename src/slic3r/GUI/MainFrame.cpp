@@ -65,6 +65,7 @@
 #ifdef _WIN32
 #include <dbt.h>
 #include <shlobj.h>
+#include <shellapi.h>
 #endif // _WIN32
 #include <slic3r/GUI/CreatePresetsDialog.hpp>
 
@@ -704,6 +705,54 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 }
 
 #ifdef __WIN32__
+// Orca: Fix maximized window overlaps taskbar when taskbar auto hide is enabled (#8085)
+// Adopted from https://gist.github.com/MortenChristiansen/6463580
+static void AdjustWorkingAreaForAutoHide(const HWND hWnd, MINMAXINFO *mmi)
+{
+    const auto taskbarHwnd = FindWindowA("Shell_TrayWnd", nullptr);
+    if (!taskbarHwnd) { return; }
+    const auto monitorContainingApplication = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONULL);
+    const auto monitorWithTaskbarOnIt       = MonitorFromWindow(taskbarHwnd, MONITOR_DEFAULTTONULL);
+    if (monitorContainingApplication != monitorWithTaskbarOnIt) { return; }
+    APPBARDATA abd;
+    abd.cbSize = sizeof(APPBARDATA);
+    abd.hWnd   = taskbarHwnd;
+
+    // Find if task bar has auto-hide enabled
+    const auto uState = (UINT) SHAppBarMessage(ABM_GETSTATE, &abd);
+    if ((uState & ABS_AUTOHIDE) != ABS_AUTOHIDE) { return; }
+
+    RECT borderThickness;
+    SetRectEmpty(&borderThickness);
+    AdjustWindowRectEx(&borderThickness, GetWindowLongPtr(hWnd, GWL_STYLE) & ~WS_CAPTION, FALSE, 0);
+
+    // Determine taskbar position
+    SHAppBarMessage(ABM_GETTASKBARPOS, &abd);
+    const auto &rc = abd.rc;
+    if (rc.top == rc.left && rc.bottom > rc.right) {
+        // Left
+        const auto offset = borderThickness.left + 2;
+        mmi->ptMaxPosition.x += offset;
+        mmi->ptMaxTrackSize.x -= offset;
+        mmi->ptMaxSize.x -= offset;
+    } else if (rc.top == rc.left && rc.bottom < rc.right) {
+        // Top
+        const auto offset = borderThickness.top + 2;
+        mmi->ptMaxPosition.y += offset;
+        mmi->ptMaxTrackSize.y -= offset;
+        mmi->ptMaxSize.y -= offset;
+    } else if (rc.top > rc.left) {
+        // Bottom
+        const auto offset = borderThickness.bottom + 2;
+        mmi->ptMaxSize.y -= offset;
+        mmi->ptMaxTrackSize.y -= offset;
+    } else {
+        // Right
+        const auto offset = borderThickness.right + 2;
+        mmi->ptMaxSize.x -= offset;
+        mmi->ptMaxTrackSize.x -= offset;
+    }
+}
 
 WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
@@ -748,6 +797,15 @@ WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam
             }
         }
         break;
+    case WM_GETMINMAXINFO: {
+        if (lParam) {
+            HWND hWnd = GetHandle();
+            auto mmi = (MINMAXINFO *) lParam;
+            HandleGetMinMaxInfo(mmi);
+            AdjustWorkingAreaForAutoHide(hWnd, mmi);
+            return 0;
+        }
+      }
     }
     return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
 }
@@ -863,7 +921,7 @@ void MainFrame::update_layout()
         //BBS: add bed exclude area
         m_plater->set_bed_shape({ { 0.0, 0.0 }, { 200.0, 0.0 }, { 200.0, 200.0 }, { 0.0, 200.0 } }, {}, 0.0, {}, {}, {}, {}, true);
         m_plater->get_collapse_toolbar().set_enabled(false);
-        m_plater->collapse_sidebar(true);
+        m_plater->enable_sidebar(false);
         m_plater->Show();
         break;
     }
@@ -1633,6 +1691,11 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_filament_group_popup = new FilamentGroupPopup(m_slice_btn);
 
     auto try_hover_pop_up = [this]() {
+#ifdef __APPLE__
+        if (!IsActive()) {
+            return;
+        }
+#endif
         wxPoint pos = m_slice_btn->ClientToScreen(wxPoint(0, 0));
         pos.y += m_slice_btn->GetRect().height * 1.25;
         pos.x -= (m_slice_option_btn->GetRect().width + FromDIP(380) * 0.6);
@@ -2426,6 +2489,16 @@ static void add_common_view_menu_items(wxMenu* view_menu, MainFrame* mainFrame, 
         "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
     append_menu_item(view_menu, wxID_ANY, _CTX(L_CONTEXT("Right", "Camera"), "Camera") + "\t" + ctrl + "6", _L("Right View"),[mainFrame](wxCommandEvent &) { mainFrame->select_view("right"); },
         "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
+    append_menu_item(view_menu, wxID_ANY, _CTX(L_CONTEXT("Isometric", "Camera"), "Camera") + "\t" + ctrl + "7", _L("Isometric View"), [mainFrame](wxCommandEvent &) { mainFrame->select_view("iso"); }, "",
+        nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
+#if !BBL_RELEASE_TO_PUBLIC
+    append_menu_item(view_menu, wxID_ANY, _CTX(L_CONTEXT("Isometric", "Camera"), "Camera") + " 1", _L("Isometric View") + " 1",
+        [mainFrame](wxCommandEvent &) { mainFrame->select_view("iso_1"); }, "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
+    append_menu_item(view_menu, wxID_ANY, _CTX(L_CONTEXT("Isometric", "Camera"), "Camera") + " 2", _L("Isometric View") + " 2",
+        [mainFrame](wxCommandEvent &) { mainFrame->select_view("iso_2"); },"", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
+    append_menu_item(view_menu, wxID_ANY, _CTX(L_CONTEXT("Isometric", "Camera"), "Camera") + " 3", _L("Isometric View") + " 3",
+        [mainFrame](wxCommandEvent &) { mainFrame->select_view("iso_3"); }, "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
+#endif
 }
 
 void MainFrame::init_menubar_as_editor()
@@ -2550,6 +2623,11 @@ void MainFrame::init_menubar_as_editor()
         append_menu_item(export_menu, wxID_ANY, _L("Export G-code") + dots/* + "\tCtrl+G"*/, _L("Export current plate as G-code"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(false); }, "menu_export_gcode", nullptr,
             [this]() {return can_export_gcode(); }, this);
+
+        append_menu_item(export_menu, wxID_ANY, _L("Export toolpaths as OBJ") + dots, _L("Export toolpaths as OBJ"),
+            [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->export_toolpaths_to_obj(); }, "", nullptr,
+            [this]() {return can_export_toolpaths(); }, this);
+
         append_menu_item(
             export_menu, wxID_ANY, _L("Export Preset Bundle") + dots /* + "\tCtrl+E"*/, _L("Export current configuration to files"),
             [this](wxCommandEvent &) { export_config(); },

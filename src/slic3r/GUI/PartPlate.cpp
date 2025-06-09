@@ -1232,7 +1232,7 @@ std::vector<int> PartPlate::get_extruders_under_cli(bool conside_custom_gcode, D
 bool PartPlate::check_objects_empty_and_gcode3mf(std::vector<int> &result) const
 {
     if (m_model->objects.empty()) {//objects is empty
-        if (wxGetApp().plater()->is_gcode_3mf()) { // if gcode.3mf file
+        if (wxGetApp().plater() && wxGetApp().plater()->is_gcode_3mf()) { // if gcode.3mf file
             for (int i = 0; i < slice_filaments_info.size(); i++) {
                 result.push_back(slice_filaments_info[i].id + 1);
             }
@@ -1341,17 +1341,12 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
         for (auto filament_idx : used_filaments) {
             int filament_id = filament_idx - 1;
             std::string filament_type = config.option<ConfigOptionStrings>("filament_type")->values.at(filament_id);
+            int filament_printable_status = config.option<ConfigOptionInts>("filament_printable")->values.at(filament_id);
             std::vector<int> filament_map  = get_real_filament_maps(config);
             int extruder_idx = filament_map[filament_id] - 1;
-            std::string filament_types_str;
-            auto unprintable_filament_types = config.option<ConfigOptionStrings>("unprintable_filament_types")->values;
-            if (extruder_idx < unprintable_filament_types.size())
-                filament_types_str = unprintable_filament_types.at(extruder_idx);
-            std::vector<string> filament_types = split_string(filament_types_str, ',');
-            auto iter = std::find(filament_types.begin(), filament_types.end(), filament_type);
-            if (iter != filament_types.end()) {
+            if (!(filament_printable_status >> extruder_idx & 1)) {
                 wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
-                error_message = wxString::Format(_L("The %s nozzle can not print %s."), extruder_name, filament_type);
+                error_message  = wxString::Format(_L("The %s nozzle can not print %s."), extruder_name, filament_type);
                 return false;
             }
         }
@@ -1361,10 +1356,8 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
 
 bool PartPlate::check_tpu_printable_status(const DynamicPrintConfig & config, const std::vector<int> &tpu_filaments)
 {
-    bool tpu_valid = true;
-
-    // only support at most 1 tpu
-    return tpu_filaments.size() <=1;
+	// do not limit the num of tpu filament in slicing
+	return true;
 }
 
 bool PartPlate::check_mixture_of_pla_and_petg(const DynamicPrintConfig &config)
@@ -3199,11 +3192,6 @@ void PartPlateList::init()
 	m_plate_cols = 1;
 	m_current_plate = 0;
 
-	if (m_plater) {
-        // In GUI mode
-        set_default_wipe_tower_pos_for_plate(0);
-    }
-
 	select_plate(0);
 	unprintable_plate.set_index(1);
 
@@ -3760,7 +3748,7 @@ void PartPlateList::release_icon_textures()
     }
 }
 
-void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx)
+void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx, bool init_pos)
 {
     DynamicConfig &     proj_cfg     = wxGetApp().preset_bundle->project_config;
     ConfigOptionFloats *wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
@@ -3770,12 +3758,61 @@ void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx)
 
     auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
     // set the default position, the same with print config(left top)
-    ConfigOptionFloat wt_x_opt(WIPE_TOWER_DEFAULT_X_POS);
-    ConfigOptionFloat wt_y_opt(WIPE_TOWER_DEFAULT_Y_POS);
+    float x = WIPE_TOWER_DEFAULT_X_POS;
+    float y = WIPE_TOWER_DEFAULT_Y_POS;
     if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
-        wt_x_opt = ConfigOptionFloat(I3_WIPE_TOWER_DEFAULT_X_POS);
-        wt_y_opt = ConfigOptionFloat(I3_WIPE_TOWER_DEFAULT_Y_POS);
+        x = I3_WIPE_TOWER_DEFAULT_X_POS;
+        y = I3_WIPE_TOWER_DEFAULT_Y_POS;
     }
+
+    const float margin     = WIPE_TOWER_MARGIN;
+    PartPlate* part_plate = get_plate(plate_idx);
+    Vec3d plate_origin = part_plate->get_origin();
+    BoundingBoxf3  plate_bbox = part_plate->get_bounding_box();
+    BoundingBoxf  plate_bbox_2d(Vec2d(plate_bbox.min(0), plate_bbox.min(1)), Vec2d(plate_bbox.max(0), plate_bbox.max(1)));
+    const std::vector<Pointfs> &extruder_areas = part_plate->get_extruder_areas();
+    for (Pointfs points : extruder_areas) {
+        BoundingBoxf bboxf(points);
+        plate_bbox_2d.min = plate_bbox_2d.min(0) >= bboxf.min(0) ? plate_bbox_2d.min : bboxf.min;
+        plate_bbox_2d.max = plate_bbox_2d.max(0) <= bboxf.max(0) ? plate_bbox_2d.max : bboxf.max;
+    }
+
+    coordf_t plate_bbox_x_min_local_coord = plate_bbox_2d.min(0) - plate_origin(0);
+    coordf_t plate_bbox_x_max_local_coord = plate_bbox_2d.max(0) - plate_origin(0);
+    coordf_t plate_bbox_y_max_local_coord = plate_bbox_2d.max(1) - plate_origin(1);
+
+    std::vector<int>   filament_maps = part_plate->get_real_filament_maps(proj_cfg);
+    DynamicPrintConfig full_config   = wxGetApp().preset_bundle->full_config(false, filament_maps);
+    const DynamicPrintConfig &print_cfg = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    float w = dynamic_cast<const ConfigOptionFloat*>(print_cfg.option("prime_tower_width"))->value;
+    std::vector<double> v = dynamic_cast<const ConfigOptionFloats*>(full_config.option("filament_prime_volume"))->values;
+    int nozzle_nums = wxGetApp().preset_bundle->get_printer_extruder_count();
+    double wipe_vol = get_max_element(v);
+    Vec3d wipe_tower_size = part_plate->estimate_wipe_tower_size(print_cfg, w, wipe_vol, nozzle_nums, init_pos ? 2 : 0);
+
+    if (!init_pos && (is_approx(wipe_tower_size(0), 0.0) || is_approx(wipe_tower_size(1), 0.0))) {
+        wipe_tower_size = part_plate->estimate_wipe_tower_size(print_cfg, w, wipe_vol, nozzle_nums, 2);
+    }
+
+    // update for wipe tower position
+    {
+        bool need_update = false;
+        if (x + margin + wipe_tower_size(0) > plate_bbox_x_max_local_coord) {
+            x = plate_bbox_x_max_local_coord - wipe_tower_size(0) - margin;
+        } else if (x < margin + plate_bbox_x_min_local_coord) {
+            x = margin + plate_bbox_x_min_local_coord;
+        }
+
+        if (y + margin + wipe_tower_size(1) > plate_bbox_y_max_local_coord) {
+            y = plate_bbox_y_max_local_coord - wipe_tower_size(1) - margin;
+        } else if (y < margin) {
+            y = margin;
+        }
+    }
+
+    ConfigOptionFloat wt_x_opt(x);
+    ConfigOptionFloat wt_y_opt(y);
+
     dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_x"))->set_at(&wt_x_opt, plate_idx, 0);
     dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_y"))->set_at(&wt_y_opt, plate_idx, 0);
 }
@@ -3886,6 +3923,11 @@ void PartPlateList::reinit()
 	//re-calc the bounding boxes
 	calc_bounding_boxes();
 
+    if (m_plater) {
+        // In GUI mode
+        set_default_wipe_tower_pos_for_plate(0, true);
+    }
+
 	return;
 }
 
@@ -3954,7 +3996,7 @@ int PartPlateList::create_plate(bool adjust_position)
 	// update wipe tower config
 	if (m_plater) {
 		// In GUI mode
-        set_default_wipe_tower_pos_for_plate(new_index);
+        set_default_wipe_tower_pos_for_plate(new_index, true);
 	}
 
 	unprintable_plate.set_index(new_index+1);
@@ -4137,6 +4179,32 @@ int PartPlateList::delete_plate(int index)
 void PartPlateList::delete_selected_plate()
 {
 	delete_plate(m_current_plate);
+}
+
+bool PartPlateList::check_all_plate_local_bed_type(const std::vector<BedType> &cur_bed_types)
+{
+    std::string bed_type_key = "curr_bed_type";
+    bool        is_ok        = true;
+    for (int i = 0; i < m_plate_list.size(); i++) {
+        PartPlate *plate = m_plate_list[i];
+        if (plate->config()  && plate->config()->has(bed_type_key)) {
+            BedType bed_type = plate->config()->opt_enum<BedType>(bed_type_key);
+            if (bed_type == BedType::btDefault)
+                continue;
+            bool    find     = false;
+            for (auto tmp_type : cur_bed_types) {
+                if (bed_type == tmp_type) {
+                    find = true;
+                    break;
+                }
+            }
+            if (!find) {
+                plate->set_bed_type(BedType::btDefault);
+                is_ok = false;
+            }
+        }
+    }
+    return is_ok;
 }
 
 //get a plate pointer by index
@@ -4322,11 +4390,6 @@ void PartPlateList::update_all_plates_pos_and_size(bool adjust_position, bool wi
 		//compute origin1 for PartPlate
 		origin1 = compute_origin(i, m_plate_cols);
 		plate->set_pos_and_size(origin1, m_plate_width, m_plate_depth, m_plate_height, adjust_position, do_clear);
-
-		// set default wipe pos when switch plate
-        if (switch_plate_type && m_plater/* && plate->get_used_extruders().size() <= 0*/) {
-			set_default_wipe_tower_pos_for_plate(i);
-		}
 	}
 
 	origin2 = compute_origin_for_unprintable();

@@ -118,9 +118,10 @@ std::pair<SupportGeneratorLayersPtr, SupportGeneratorLayersPtr> generate_interfa
             }
             return nullptr;
         };
+        const bool istree = is_tree(config.support_type);
         tbb::parallel_for(tbb::blocked_range<int>(0, int(intermediate_layers.size())),
             [&bottom_contacts, &top_contacts, &top_interface_layers, &top_base_interface_layers, &intermediate_layers, &insert_layer, &support_params,
-             snug_supports, &interface_layers, &base_interface_layers](const tbb::blocked_range<int>& range) {
+             snug_supports, &interface_layers, &base_interface_layers, &istree](const tbb::blocked_range<int>& range) {
                 // Gather the top / bottom contact layers intersecting with num_interface_layers resp. num_interface_layers_only intermediate layers above / below
                 // this intermediate layer.
                 // Index of the first top contact layer intersecting the current intermediate layer.
@@ -139,27 +140,55 @@ std::pair<SupportGeneratorLayersPtr, SupportGeneratorLayersPtr> generate_interfa
                     Polygons polygons_bottom_contact_projected_interface;
                     Polygons polygons_bottom_contact_projected_base;
                     if (support_params.num_top_interface_layers > 0) {
-                        // Top Z coordinate of a slab, over which we are collecting the top / bottom contact surfaces
-                        coordf_t top_z              = intermediate_layers[std::min(num_intermediate - 1, idx_intermediate_layer + int(support_params.num_top_interface_layers) - 1)]->print_z;
-                        coordf_t top_inteface_z     = std::numeric_limits<coordf_t>::max();
-                        if (support_params.num_top_base_interface_layers > 0)
-                            // Some top base interface layers will be generated.
-                            top_inteface_z = support_params.num_top_interface_layers_only() == 0 ?
-                                    // Only base interface layers to generate.
-                                - std::numeric_limits<coordf_t>::max() :
-                                    intermediate_layers[std::min(num_intermediate - 1, idx_intermediate_layer + int(support_params.num_top_interface_layers_only()) - 1)]->print_z;
-                        // Move idx_top_contact_first up until above the current print_z.
-                        idx_top_contact_first = idx_higher_or_equal(top_contacts, idx_top_contact_first, [&intermediate_layer](const SupportGeneratorLayer *layer){ return layer->print_z >= intermediate_layer.print_z; }); //  - EPSILON
-                        // Collect the top contact areas above this intermediate layer, below top_z.
-                        for (int idx_top_contact = idx_top_contact_first; idx_top_contact < int(top_contacts.size()); ++ idx_top_contact) {
-                            const SupportGeneratorLayer &top_contact_layer = *top_contacts[idx_top_contact];
-                            //FIXME maybe this adds one interface layer in excess?
-                            if (top_contact_layer.bottom_z - EPSILON > top_z)
-                                break;
-                            polygons_append(top_contact_layer.bottom_z - EPSILON > top_inteface_z ? polygons_top_contact_projected_base : polygons_top_contact_projected_interface,
-                                // For snug supports, project the overhang polygons covering the whole overhang, so that they will merge without a gap with support polygons of the other layers.
-                                // For grid supports, merging of support regions will be performed by the projection into grid.
-                                snug_supports ? *top_contact_layer.overhang_polygons : top_contact_layer.polygons);
+                        if (istree) {
+                            // Top Z coordinate of a slab, over which we are collecting the top / bottom contact surfaces
+                            coordf_t top_z = intermediate_layers[std::min(num_intermediate - 1, idx_intermediate_layer + int(support_params.num_top_interface_layers) - 1)]
+                                                 ->print_z;
+                            coordf_t top_inteface_z = std::numeric_limits<coordf_t>::max();
+                            if (support_params.num_top_base_interface_layers > 0)
+                                // Some top base interface layers will be generated.
+                                top_inteface_z =
+                                    support_params.num_top_interface_layers_only() == 0 ?
+                                        // Only base interface layers to generate.
+                                        -std::numeric_limits<coordf_t>::max() :
+                                        intermediate_layers[std::min(num_intermediate - 1, idx_intermediate_layer + int(support_params.num_top_interface_layers_only()) - 1)]
+                                            ->print_z;
+                            // Move idx_top_contact_first up until above the current print_z.
+                            idx_top_contact_first = idx_higher_or_equal(top_contacts, idx_top_contact_first, [&intermediate_layer](const SupportGeneratorLayer *layer) {
+                                return layer->print_z >= intermediate_layer.print_z;
+                            }); //  - EPSILON
+                            // Collect the top contact areas above this intermediate layer, below top_z.
+                            for (int idx_top_contact = idx_top_contact_first; idx_top_contact < int(top_contacts.size()); ++idx_top_contact) {
+                                const SupportGeneratorLayer &top_contact_layer = *top_contacts[idx_top_contact];
+                                // FIXME maybe this adds one interface layer in excess?
+                                if (top_contact_layer.bottom_z - EPSILON > top_z) break;
+                                polygons_append(top_contact_layer.bottom_z - EPSILON > top_inteface_z ? polygons_top_contact_projected_base :
+                                                                                                        polygons_top_contact_projected_interface,
+                                                // For snug supports, project the overhang polygons covering the whole overhang, so that they will merge without a gap with support
+                                                // polygons of the other layers. For grid supports, merging of support regions will be performed by the projection into grid.
+                                                snug_supports ? *top_contact_layer.overhang_polygons : top_contact_layer.polygons);
+                            }
+                        } else {
+                            // Move idx_top_contact_first up until above the current print_z.
+                            idx_top_contact_first = idx_higher_or_equal(top_contacts, idx_top_contact_first, [&intermediate_layer](const SupportGeneratorLayer *layer){ return layer->print_z >= intermediate_layer.print_z; }); //  - EPSILON
+                            // Collect the top contact areas above this intermediate layer, below top_z.
+                            for (int idx_top_contact = idx_top_contact_first; idx_top_contact < int(top_contacts.size()); ++ idx_top_contact) {
+                                const SupportGeneratorLayer &top_contact_layer = *top_contacts[idx_top_contact];
+                                const bool is_top_contact = is_approx(top_contact_layer.bottom_z, intermediate_layers[num_intermediate - 1]->print_z);
+                                if (is_top_contact) {
+                                    if (idx_intermediate_layer > num_intermediate - support_params.num_top_interface_layers)
+                                        polygons_append(polygons_top_contact_projected_interface, snug_supports ? *top_contact_layer.overhang_polygons : top_contact_layer.polygons);
+                                    else if (idx_intermediate_layer > num_intermediate - support_params.num_top_interface_layers - support_params.num_top_base_interface_layers)
+                                        polygons_append(polygons_top_contact_projected_base, snug_supports ? *top_contact_layer.overhang_polygons : top_contact_layer.polygons);
+                                } else {
+                                    if (top_contact_layer.print_z - EPSILON <
+                                        intermediate_layers[std::min(int(idx_intermediate_layer + support_params.num_top_interface_layers - 1), num_intermediate - 1)]->print_z)
+                                        polygons_append(polygons_top_contact_projected_interface, snug_supports ? *top_contact_layer.overhang_polygons : top_contact_layer.polygons);
+                                    else if (top_contact_layer.print_z - EPSILON < intermediate_layers[std::min(int(idx_intermediate_layer + support_params.num_top_interface_layers -
+                                                                                                                    1 + support_params.num_top_base_interface_layers),num_intermediate - 1)]->print_z)
+                                        polygons_append(polygons_top_contact_projected_base, snug_supports ? *top_contact_layer.overhang_polygons : top_contact_layer.polygons);
+                                }
+                            }
                         }
                     }
                     if (support_params.num_bottom_interface_layers > 0) {
@@ -208,16 +237,22 @@ std::pair<SupportGeneratorLayersPtr, SupportGeneratorLayersPtr> generate_interfa
                 }
             });
 
-        tbb::parallel_for(tbb::blocked_range<int>(1, int(base_interface_layers.size())), [&base_interface_layers](const tbb::blocked_range<int> &range) {
-            for (int layer_id = range.begin(); layer_id < range.end(); ++layer_id) {
-                auto &base_interface_layer = base_interface_layers[layer_id];
-                if (!base_interface_layer) return;
-                
-                auto &lower_layer = base_interface_layers[layer_id - 1];
-                if (!lower_layer) return;
-                if (base_interface_layer->polygons == lower_layer->polygons) base_interface_layer->up = true;
-            }
-        });
+        if (support_params.num_top_base_interface_layers > 1 && !istree)
+            tbb::parallel_for(tbb::blocked_range<int>(1, int(base_interface_layers.size())),
+                              [&base_interface_layers, &top_contacts, &support_params, &intermediate_layers](const tbb::blocked_range<int> &range) {
+                                  for (int layer_id = range.begin(); layer_id < range.end(); ++layer_id) {
+                                      auto &base_interface_layer = base_interface_layers[layer_id];
+                                      if (!base_interface_layer) return;
+
+                                      for (const auto &contact : top_contacts) {
+                                          if (is_approx(contact->bottom_z, intermediate_layers[layer_id - 1 + support_params.num_top_interface_layers]->print_z, 0.01) &&
+                                              overlaps(base_interface_layer->polygons, contact->polygons)) {
+                                              base_interface_layer->up = true;
+                                              break;
+                                          }
+                                      }
+                                  }
+                              });
 
         // Compress contact_out, remove the nullptr items.
         // The parallel_for above may not have merged all the interface and base_interface layers
@@ -583,8 +618,9 @@ void tree_supports_generate_paths(
     for (ExPolygon& expoly : closing_ex(polygons, float(SCALED_EPSILON), float(SCALED_EPSILON + 0.5 * flow.scaled_width()))) {
         std::unique_ptr<ExtrusionEntityCollection> eec;
         ExPolygons                                 regions_to_draw_inner_wall{expoly};
+        double                                     area = expoly.area();
         if (support_params.tree_branch_diameter_double_wall_area_scaled > 0)
-            if (double area = expoly.area(); area > support_params.tree_branch_diameter_double_wall_area_scaled) {
+            if (area > support_params.tree_branch_diameter_double_wall_area_scaled) {
                 BOOST_LOG_TRIVIAL(debug)<< "TreeSupports: double wall area: " << area<< " > " << support_params.tree_branch_diameter_double_wall_area_scaled;
                 eec = std::make_unique<ExtrusionEntityCollection>();
                 // Don't reorder internal / external loops of the same island, always start with the internal loop.
@@ -655,12 +691,12 @@ void tree_supports_generate_paths(
                             }
                         }
                     }
-                if (d2min < sqr(flow.scaled_width() * 3.)) {
+                if (d2min < sqr(flow.scaled_width() * 3.) && Slic3r::area(regions_to_draw_inner_wall) + scale_(EPSILON) > area && !shrink_ex({expoly}, -2.*flow.scaled_width()).empty()) {
                     // Try to cut an anchor from the closest_contour.
                     // Both closest_contour and pl are CW oriented.
                     pl.points.emplace_back(closest_point.cast<coord_t>());
                     const ClipperLib_Z::Path &path             = *closest_contour;
-                    double                    remaining_length = anchor_length - (seam_pt - closest_point).norm();
+                    double                    remaining_length = std::min(anchor_length - (seam_pt - closest_point).norm(), pl.length() / 12.);
                     int                       i                = closest_point_idx;
                     int                       j                = next_idx_modulo(i, *closest_contour);
                     Vec2d                     pi(path[i].x(), path[i].y());
@@ -1436,7 +1472,7 @@ void generate_support_toolpaths(
         angles.push_back(support_params.interface_angle);
 
     std::vector<float> interface_angles;
-    if (config.support_interface_pattern == smipRectilinearInterlaced)
+    if (config.support_interface_pattern == smipRectilinearInterlaced || config.support_interface_pattern == smipAuto)
         interface_angles.push_back(support_params.base_angle);
     interface_angles.push_back(support_params.interface_angle);
 

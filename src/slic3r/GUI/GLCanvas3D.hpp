@@ -282,7 +282,7 @@ class GLCanvas3D
         float last_z{ 0.0f };
         LayerHeightEditActionType last_action{ LAYER_HEIGHT_EDIT_ACTION_INCREASE };
 
-        LayersEditing() = default;
+        LayersEditing(GLCanvas3D &canvas) : m_canvas(canvas) {}
         ~LayersEditing();
 
         void init();
@@ -326,6 +326,9 @@ class GLCanvas3D
         void update_slicing_parameters();
 
         static float thickness_bar_width(const GLCanvas3D& canvas);
+
+    private:
+        GLCanvas3D &m_canvas;
     };
 
     struct Mouse
@@ -402,7 +405,9 @@ class GLCanvas3D
         MultiExtruderPrintableError,      // after slice
         MultiExtruderHeightOutside,       // after slice
         FilamentUnPrintableOnFirstLayer,
-        MixUsePLAAndPETG
+        MixUsePLAAndPETG,
+        PrimeTowerOutside,
+        AsemblyInvalid // for asembly view only
     };
 
     class RenderStats
@@ -636,8 +641,6 @@ private:
     //BBS if explosion_ratio is changed, need to update volume bounding box
     mutable float m_explosion_ratio = 1.0;
     mutable Vec3d m_rotation_center{ 0.0, 0.0, 0.0};
-    //BBS store camera view
-    Camera camera;
 
     // Following variable is obsolete and it should be safe to remove it.
     // I just don't want to do it now before a release (Lukas Matena 24.3.2019)
@@ -724,6 +727,7 @@ public:
 
     public:
         //BBS: add the height logic
+        SequentialPrintClearance(GLCanvas3D &m_canvas) : m_canvas(m_canvas) {}
         ~SequentialPrintClearance();
         void set_polygons(const Polygons& polygons, const std::vector<std::pair<Polygon, float>>& height_polygons);
         void set_render_fill(bool render_fill) { m_render_fill = render_fill; }
@@ -732,6 +736,9 @@ public:
         void reset();
 
         friend class GLCanvas3D;
+
+    private:
+        GLCanvas3D &m_canvas;
     };
 
     SequentialPrintClearance m_sequential_print_clearance;
@@ -798,9 +805,10 @@ public:
 
     unsigned int get_volumes_count() const;
     const GLVolumeCollection& get_volumes() const { return m_volumes; }
-    void reset_volumes();
+    void reset_volumes(bool set_notice = true);
     ModelInstanceEPrintVolumeState check_volumes_outside_state(ObjectFilamentResults* object_results = nullptr) const;
     bool is_all_plates_selected() { return m_sel_plate_toolbar.m_all_plates_stats_item && m_sel_plate_toolbar.m_all_plates_stats_item->selected; }
+    bool is_volumes_selected_and_sinking() const;
     const float get_scale() const;
 
     //BBS
@@ -820,6 +828,7 @@ public:
     void set_process(BackgroundSlicingProcess* process);
     void set_model(Model* model);
     const Model* get_model() const { return m_model; }
+    Model&       get_ref_model() const { return *m_model; }
 
     const Selection& get_selection() const { return m_selection; }
     Selection& get_selection() { return m_selection; }
@@ -831,9 +840,6 @@ public:
 
     //BBS: add part plate related logic
     void plates_count_changed();
-
-    //BBS get camera
-    Camera& get_camera();
 
     void set_clipping_plane(unsigned int id, const ClippingPlane& plane)
     {
@@ -899,15 +905,18 @@ public:
     //BBS: add part plate related logic
     void select_plate();
     //BBS: GUI refactor: GLToolbar&&gizmo
-    float get_main_toolbar_height() { return m_main_toolbar.get_height();}
-    float get_main_toolbar_width() { return m_main_toolbar.get_width();}
-    float get_assemble_view_toolbar_width() { return m_assemble_view_toolbar.get_width(); }
-    float get_assemble_view_toolbar_height() { return m_assemble_view_toolbar.get_height(); }
-    float get_assembly_paint_toolbar_width() { return m_paint_toolbar_width; }
-    float get_separator_toolbar_width() { return m_separator_toolbar.get_width(); }
-    float get_separator_toolbar_height() { return m_separator_toolbar.get_height(); }
-    float get_collapse_toolbar_width();
-    float get_collapse_toolbar_height();
+    int   get_main_toolbar_offset() const;
+    float get_main_toolbar_left(int cnv_width,float inv_zoom) const;
+    int   get_main_toolbar_height() const { return m_main_toolbar.get_height(); }
+    int   get_main_toolbar_width() const { return m_main_toolbar.get_width(); }
+    float get_assemble_view_toolbar_width() const { return m_assemble_view_toolbar.get_width(); }
+    float get_assemble_view_toolbar_height() const { return m_assemble_view_toolbar.get_height(); }
+    float get_assembly_paint_toolbar_width() const { return m_paint_toolbar_width; }
+    float get_separator_toolbar_width() const { return m_separator_toolbar.get_width(); }
+    float get_separator_toolbar_height() const { return m_separator_toolbar.get_height(); }
+    bool  is_collapse_toolbar_on_left() const;
+    float get_collapse_toolbar_width() const;
+    float get_collapse_toolbar_height() const;
 
     void update_volumes_colors_by_extruder();
 
@@ -1010,6 +1019,7 @@ public:
     void on_mouse(wxMouseEvent& evt);
     void on_gesture(wxGestureEvent& evt);
     void on_paint(wxPaintEvent& evt);
+    void on_kill_focus(wxFocusEvent &evt);
     void on_set_focus(wxFocusEvent& evt);
     void force_set_focus();
 
@@ -1164,8 +1174,14 @@ public:
 
     void mark_context_dirty();
 
+    Camera &                          get_active_camera();
+    const Camera &                    get_active_camera() const;
+    std::vector<std::array<float, 4>> get_active_colors();
+
 private:
     bool _is_shown_on_screen() const;
+
+    void _update_slice_error_status();
 
     void _switch_toolbars_icon_filename();
     bool _init_toolbars();
@@ -1187,7 +1203,6 @@ private:
 
     void _zoom_to_box(const BoundingBoxf3& box, double margin_factor = DefaultCameraZoomToBoxMarginFactor);
     void _update_camera_zoom(double zoom);
-
     void _refresh_if_shown_on_screen();
 
     void _picking_pass();
@@ -1300,7 +1315,7 @@ private:
     void _init_unit_cube();
 
     void _append_to_frame_callback(const FrameCallback& cb);
-
+    static bool is_volume_in_plate_boundingbox(const GLVolume &v, int plate_idx, const BoundingBoxf3 &plate_build_volume);
     static void _init_fullscreen_mesh();
 
     static void _rebuild_postprocessing_pipeline(const std::shared_ptr<OpenGLManager>& p_ogl_manager, const std::string& input_framebuffer_name, std::string& output_framebuffer_name, uint32_t width, uint32_t height);

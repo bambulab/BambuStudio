@@ -240,7 +240,6 @@ public:
     bool check_gizmos_closed_except(EType) const;
 
     void set_hover_id(int id);
-    void enable_grabber(EType type, unsigned int id, bool enable);
 
     void update(const Linef3& mouse_ray, const Point& mouse_pos);
     void update_data();
@@ -268,9 +267,6 @@ public:
     Vec3d get_rotation() const;
     void set_rotation(const Vec3d& rotation);
 
-    // BBS
-    void finish_cut_rotation();
-
     //BBS
     void* get_icon_texture_id(MENU_ICON_NAME icon) {
         if (icon_list.find((int)icon) != icon_list.end())
@@ -287,14 +283,6 @@ public:
     void  update_paint_base_camera_rotate_rad();
     Vec3d get_flattening_normal() const;
 
-    void set_flattening_data(const ModelObject* model_object);
-
-    void set_sla_support_data(ModelObject* model_object);
-
-    void set_brim_data(ModelObject* model_object);
-
-    void set_painter_gizmo_data();
-
     bool is_gizmo_activable_when_single_full_instance();
     bool is_gizmo_click_empty_not_exit();
     bool is_show_only_active_plate();
@@ -303,7 +291,7 @@ public:
     void check_object_located_outside_plate(bool change_plate =true);
     bool get_object_located_outside_plate() { return m_object_located_outside_plate; }
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false, bool alt_down = false, bool control_down = false);
-    bool is_paint_gizmo();
+    bool is_paint_gizmo()const;
     bool is_allow_select_all();
     ClippingPlane get_clipping_plane() const;
     ClippingPlane get_assemble_view_clipping_plane() const;

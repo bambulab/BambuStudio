@@ -606,7 +606,8 @@ protected:
     SecondaryCheckDialog* m_print_error_dlg_no_action = nullptr;
     SecondaryCheckDialog* abort_dlg = nullptr;
     SecondaryCheckDialog* con_load_dlg = nullptr;
-    SecondaryCheckDialog* ctrl_e_hint_dlg = nullptr;
+    MessageDialog *       ctrl_e_hint_dlg             = nullptr;
+
     SecondaryCheckDialog* sdcard_hint_dlg = nullptr;
     SecondaryCheckDialog* axis_go_home_dlg = nullptr;
 
@@ -634,7 +635,6 @@ protected:
     int speed_lvl = 1; // 0 - 3
     int speed_lvl_timeout {0};
     boost::posix_time::ptime speed_dismiss_time;
-    bool m_showing_speed_popup = false;
     bool m_show_mode_changed = false;
     std::map<wxString, wxImage> img_list; // key: url, value: wxBitmap png Image
     std::map<std::string, std::string> m_print_connect_types;

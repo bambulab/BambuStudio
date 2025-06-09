@@ -13,6 +13,9 @@ public:
     static bool RunScript(wxWebView * webView, wxString const & msg);
 
     static void RecreateAll();
+
+    /*Find a user data path*/
+    static wxString BuildEdgeUserDataPath();
 };
 
 #endif // !slic3r_GUI_WebView_hpp_

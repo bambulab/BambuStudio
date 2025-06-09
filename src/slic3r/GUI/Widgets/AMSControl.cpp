@@ -4,6 +4,7 @@
 #include "../I18N.hpp"
 #include "../GUI_App.hpp"
 
+#include "slic3r/GUI/MsgDialog.hpp"
 #include "slic3r/GUI/DeviceTab/uiAmsHumidityPopup.h"
 
 #include <wx/simplebook.h>
@@ -39,7 +40,6 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
     m_amswin                 = new wxWindow(this, wxID_ANY);
     m_amswin->SetBackgroundColour(*wxWHITE);
-    //m_amswin->SetBackgroundColour(wxColour(0x00CED1));
     m_amswin->SetSize(wxSize(FromDIP(578), -1));
     m_amswin->SetMinSize(wxSize(FromDIP(578), -1));
 
@@ -284,8 +284,8 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
                 wxPoint img_pos = ClientToScreen(wxPoint(0, 0));
                 wxPoint popup_pos(img_pos.x - m_percent_humidity_dry_popup->GetSize().GetWidth() + FromDIP(150), img_pos.y - FromDIP(80));
-                m_percent_humidity_dry_popup->Position(popup_pos, wxSize(0, 0));
-                m_percent_humidity_dry_popup->Popup();
+                m_percent_humidity_dry_popup->Move(popup_pos);
+                m_percent_humidity_dry_popup->ShowModal();
             }
             else
             {
@@ -1649,6 +1649,16 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
 
 void AMSControl::on_filament_load(wxCommandEvent &event)
 {
+    /*If the filament is unknown, show warning*/
+    const auto& filament_id = get_filament_id(m_current_ams, GetCurrentCan(m_current_ams));
+    if (filament_id.empty())
+    {
+        MessageDialog msg_dlg(nullptr, _L("Filament type is unknown which is required to perform this action. Please set target filament's informations."),
+                              wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    }
+
     m_button_extruder_back->Disable();
     for (auto i = 0; i < m_ams_info.size(); i++) {
         if (m_ams_info[i].ams_id == m_current_ams) { m_ams_info[i].current_action = AMSAction::AMS_ACTION_LOAD; }
@@ -1698,6 +1708,37 @@ void AMSControl::parse_object(MachineObject* obj) {
         info.parse_ams_info(obj, ams.second);
         m_ams_info.push_back(info);
     }
+}
+
+std::string AMSControl::get_filament_id(const std::string& ams_id, const std::string& can_id)
+{
+    for (const auto& ams_info : m_ams_info)
+    {
+        if (ams_info.ams_id == m_current_ams)
+        {
+            bool found = false;
+            const auto& can_info = ams_info.get_caninfo(this->GetCurrentCan(m_current_ams), found);
+            if (found)
+            {
+                return can_info.filament_id;
+            }
+        }
+    }
+
+    for (const auto& ext_info : m_ext_info)
+    {
+        if (ext_info.ams_id == m_current_ams)
+        {
+            bool found = false;
+            const auto& can_info = ext_info.get_caninfo(this->GetCurrentCan(m_current_ams), found);
+            if (found)
+            {
+                return can_info.filament_id;
+            }
+        }
+    }
+
+    return std::string();
 }
 
 void AMSControl::on_clibration_again_click(wxMouseEvent &event) { post_event(SimpleEvent(EVT_AMS_CLIBRATION_AGAIN)); }

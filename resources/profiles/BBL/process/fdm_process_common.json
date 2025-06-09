@@ -87,7 +87,13 @@
     "skirt_loops": "0",
     "smooth_coefficient": "80",
     "sparse_infill_density": "15%",
+    "skeleton_infill_density": "15%",
+    "skin_infill_density": "15%",
     "sparse_infill_line_width": "0.45",
+    "skin_infill_line_width": "0.45",
+    "infill_lock_depth": "1.0",
+    "skin_infill_depth": "2.0",
+    "skeleton_infill_line_width": "0.45",
     "sparse_infill_pattern": "grid",
     "sparse_infill_speed": [
         "50"
@@ -153,5 +159,6 @@
     "symmetric_infill_y_axis": "0",
     "prime_tower_lift_speed": "90",
     "prime_tower_lift_height": "-1",
-    "prime_tower_max_speed": "90"
+    "prime_tower_max_speed": "90",
+    "prime_tower_flat_ironing":"0"
 }

@@ -12,6 +12,7 @@
 #include <string>
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include <slic3r/GUI/GCodeViewer.hpp>
+#include <memory>
 
 class wxGLCanvas;
 class wxBoxSizer;
@@ -46,9 +47,11 @@ public:
     wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
     GLCanvas3D* get_canvas3d() { return m_canvas; }
     bool Show(bool show);
+    const std::shared_ptr<Camera>& get_override_camera() const;
 protected:
     wxGLCanvas* m_canvas_widget;
     GLCanvas3D* m_canvas;
+    std::shared_ptr<Camera> m_p_override_camera{ nullptr };
 };
 
 class View3D : public BaseView

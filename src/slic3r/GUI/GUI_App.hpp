@@ -484,7 +484,7 @@ public:
     static std::string format_display_version();
     std::string     format_IP(const std::string& ip);
     void            show_dialog(wxString msg);
-    void            push_notification(wxString msg, wxString title = wxEmptyString, UserNotificationStyle style = UserNotificationStyle::UNS_NORMAL);
+    void            push_notification(const MachineObject* obj, wxString msg, wxString title = wxEmptyString, UserNotificationStyle style = UserNotificationStyle::UNS_NORMAL);
     void            reload_settings();
     void            remove_user_presets();
     void            sync_preset(Preset* preset);
@@ -734,6 +734,9 @@ DECLARE_APP(GUI_App)
 wxDECLARE_EVENT(EVT_CONNECT_LAN_MODE_PRINT, wxCommandEvent);
 
 bool is_support_filament(int extruder_id);
+bool is_soluble_filament(int extruder_id);
+// check if the filament for model is in the list
+bool has_filaments(const std::vector<string>& model_filaments);
 } // namespace GUI
 } // Slic3r
 

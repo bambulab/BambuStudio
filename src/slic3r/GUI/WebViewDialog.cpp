@@ -13,6 +13,7 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/chrono.hpp>
 #include <boost/beast/core/detail/base64.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include <wx/sizer.h>
 #include <wx/toolbar.h>
@@ -1931,7 +1932,8 @@ void WebViewPanel::SetWebviewShow(wxString name, bool show)
 
 std::string WebViewPanel::GetStudioLanguage() 
 { 
-    std::string strLanguage=wxGetApp().app_config->get("language"); 
+    std::string strLanguage = wxGetApp().app_config->get("language");
+    boost::trim(strLanguage);
     if (strLanguage.empty()) strLanguage = "en";
 
     return strLanguage;

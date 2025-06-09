@@ -19,11 +19,11 @@ public:
     
     MultiPoint() {}
     MultiPoint(const MultiPoint &other) : points(other.points) {}
-    MultiPoint(MultiPoint &&other) : points(std::move(other.points)) {}
+    MultiPoint(MultiPoint &&other) noexcept : points(std::move(other.points)) {}
     MultiPoint(std::initializer_list<Point> list) : points(list) {}
     explicit MultiPoint(const Points &_points) : points(_points) {}
     MultiPoint& operator=(const MultiPoint &other) { points = other.points; return *this; }
-    MultiPoint& operator=(MultiPoint &&other) { points = std::move(other.points); return *this; }
+    MultiPoint& operator=(MultiPoint &&other) noexcept { points = std::move(other.points); return *this; }
     void scale(double factor);
     void scale(double factor_x, double factor_y);
     void translate(double x, double y) { this->translate(Point(coord_t(x), coord_t(y))); }

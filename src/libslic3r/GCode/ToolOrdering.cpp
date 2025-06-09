@@ -67,16 +67,12 @@ bool check_filament_printable_after_group(const std::vector<unsigned int> &used_
 {
     for (unsigned int filament_id : used_filaments) {
         std::string filament_type = print_config->filament_type.get_at(filament_id);
-        for (size_t idx = 0; idx < print_config->unprintable_filament_types.values.size(); ++idx) {
-            if (filament_maps[filament_id] == idx) {
-                std::vector<std::string> limit_types = split_string(print_config->unprintable_filament_types.get_at(idx), ',');
-                auto                     iter        = std::find(limit_types.begin(), limit_types.end(), filament_type);
-                if (iter != limit_types.end()) {
-                    std::string extruder_name = idx == 0 ? _L("left") : _L("right");
-                    std::string error_msg = _L("Grouping error: ") + filament_type + _L(" can not be placed in the ") + extruder_name + _L(" nozzle");
-                    throw Slic3r::RuntimeError(error_msg);
-                }
-            }
+        int printable_status = print_config->filament_printable.get_at(filament_id);
+        int extruder_idx = filament_maps[filament_id];
+        if (!(printable_status >> extruder_idx & 1)) {
+            std::string extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
+            std::string error_msg     = _L("Grouping error: ") + filament_type + _L(" can not be placed in the ") + extruder_name + _L(" nozzle");
+            throw Slic3r::RuntimeError(error_msg);
         }
     }
     return true;
@@ -679,32 +675,6 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
     }
 }
 
-bool ToolOrdering::check_tpu_group(const std::vector<unsigned int>&used_filaments,const std::vector<int>& filament_maps,const PrintConfig* config)
-{
-    int check_extruder_id = -1;
-    int master_extruder_id = config->master_extruder_id.value - 1; // transfer to 0 based idx
-    std::map<int, std::vector<int>> extruder_filament_nums;
-    for (unsigned int filament_id : used_filaments) {
-        int extruder_id = filament_maps[filament_id];
-        extruder_filament_nums[extruder_id].push_back(filament_id);
-
-        std::string filament_type = config->filament_type.get_at(filament_id);
-        if (filament_type == "TPU") {
-            // if we meet two TPU filaments, just return false
-            if(check_extruder_id==-1)
-                check_extruder_id = filament_maps[filament_id];
-            else
-                return false;
-        }
-    }
-
-    // TPU can only place in master extruder, and it should have no other filaments in the same extruder
-    if (check_extruder_id != -1 && (check_extruder_id != master_extruder_id || extruder_filament_nums[check_extruder_id].size() > 1)) {
-        return false;
-    }
-
-    return true;
-}
 
 void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z, coordf_t max_layer_height)
 {
@@ -873,9 +843,6 @@ bool ToolOrdering::cal_non_support_filaments(const PrintConfig &config,
     int find_first_filaments_count = 0;
     bool has_non_support = has_non_support_filament(config);
     for (const LayerTools &layer_tool : m_layer_tools) {
-        if (!layer_tool.has_object)
-            continue;
-
         for (const unsigned int &filament : layer_tool.extruders) {
             //check first filament
             if (!config.filament_map.values.empty() && initial_filaments[config.filament_map.values[filament] - 1] == -1) {
@@ -1163,13 +1130,6 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
         std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value - 1; });
 
         check_filament_printable_after_group(used_filaments, filament_maps, print_config);
-
-        if (nozzle_nums > 1 && !check_tpu_group(used_filaments, filament_maps, print_config)) {
-            int master_extruder_id = print_config->master_extruder_id.value - 1; // to 0 based
-            std::string nozzle_name = master_extruder_id == 0 ? _L("left") : _L("right");
-            std::string exception_str = _L("TPU is incompatible with AMS and must be printed seperately in the ") + nozzle_name + _L(" nozzle.\nPlease adjust the filament group accordingly.");
-            throw Slic3r::RuntimeError(exception_str);
-        }
     }
     else {
         // we just need to change the map to 0 based

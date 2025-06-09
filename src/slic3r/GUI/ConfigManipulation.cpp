@@ -521,6 +521,19 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
+
+    // layer_height shouldn't be equal to zero
+    float skin_depth = config->opt_float("skin_infill_depth");
+    if (config->opt_float("infill_lock_depth") > skin_depth) {
+        const wxString     msg_text = _(L("lock depth should smaller than skin depth.\nReset to 50%% of skin depth"));
+        MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist    = true;
+        dialog.ShowModal();
+        new_conf.set_key_value("infill_lock_depth", new ConfigOptionFloat(skin_depth / 2));
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
 }
 
 void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase *, ModelConfig *> const &configs)
@@ -565,11 +578,16 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
 
     //cross zag
     bool is_cross_zag = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipCrossZag;
-    toggle_line("infill_shift_step", is_cross_zag);
+    bool is_locked_zig = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipLockedZag;
+
+    toggle_line("infill_shift_step", is_cross_zag || is_locked_zig);
+    for (auto el : { "skeleton_infill_density", "skin_infill_density", "infill_lock_depth", "skin_infill_depth","skin_infill_line_width", "skeleton_infill_line_width" })
+        toggle_line(el, is_locked_zig);
+
     bool is_zig_zag = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipZigZag;
 
     toggle_line("infill_rotate_step", is_zig_zag);
-    toggle_line("symmetric_infill_y_axis", is_zig_zag || is_cross_zag);
+    toggle_line("symmetric_infill_y_axis", is_zig_zag || is_cross_zag || is_locked_zig);
 
     bool has_spiral_vase         = config->opt_bool("spiral_mode");
     toggle_line("spiral_mode_smooth", has_spiral_vase);
@@ -709,6 +727,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
         toggle_line(el, has_overhang_speed, variant_index);
 
     toggle_line("flush_into_objects", !is_global_config);
+    toggle_line("print_flow_ratio", !is_global_config);
 
     toggle_line("support_interface_not_for_body",config->opt_int("support_interface_filament")&&!config->opt_int("support_filament"));
 

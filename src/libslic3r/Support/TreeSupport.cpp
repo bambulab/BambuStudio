@@ -876,25 +876,48 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
     std::chrono::time_point<clock_> t0{ clock_::now() };
     // main part of overhang detection can be parallel
     tbb::concurrent_vector<ExPolygons> overhangs_all_layers(m_object->layer_count());
+
+    auto enforcers = m_object->slice_support_enforcers();
+    auto blockers  = m_object->slice_support_blockers();
+    m_vertical_enforcer_points.clear();
+    m_object->project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers);
+    m_object->project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers, &m_vertical_enforcer_points);
+    auto trim_tail_empty = [](auto &vec) {
+        auto rit = std::find_if(vec.rbegin(), vec.rend(), [](const auto &e) { return !e.empty(); });
+        if (rit != vec.rend()) {
+            vec.erase(rit.base(), vec.end());
+        } else {
+            vec.clear();
+        }
+    };
+    trim_tail_empty(enforcers);
+    trim_tail_empty(blockers);
+
     tbb::parallel_for(tbb::blocked_range<size_t>(0, m_object->layer_count()),
         [&](const tbb::blocked_range<size_t>& range) {
             for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++) {
                 if (m_object->print()->canceled())
                     break;
-
-                if (!is_auto(stype) && layer_nr > enforce_support_layers)
+                // FIXME the param enforce_support_layers is not set yet
+                if (!(is_auto(stype) || (enforce_support_layers > 0 && layer_nr >= enforce_support_layers) || (layer_nr < enforcers.size() && !enforcers[layer_nr].empty())))
                     continue;
 
                 Layer* layer = m_object->get_layer(layer_nr);
 
                 if (layer->lower_layer == nullptr) {
-                    for (auto& slice : layer->lslices_extrudable) {
+                    ExPolygons curr_polys = layer->lslices_extrudable;
+                    if (layer_nr < blockers.size() && !blockers[layer_nr].empty())
+                        curr_polys = diff_ex(curr_polys, offset_ex(union_(blockers[layer_nr]), scale_(radius_sample_resolution)));
+                    for (auto& slice : curr_polys) {
                         auto bbox_size = get_extents(slice).size();
                         if (!((bbox_size.x() > length_thresh_well_supported || bbox_size.y() > length_thresh_well_supported))
                             && g_config_support_sharp_tails) {
                             layer->sharp_tails.push_back(slice);
                             layer->sharp_tails_height.push_back(layer->height);
                         }
+#ifdef SUPPORT_TREE_DEBUG_TO_SVG
+                        SVG::export_expolygons(debug_out_path("sharp_tail_orig_%.02f.svg", layer->print_z), {slice});
+#endif
                     }
                     continue;
                 }
@@ -905,10 +928,32 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                 coordf_t support_offset_scaled = scale_(lower_layer_offset);
                 ExPolygons& curr_polys = layer->lslices_extrudable;
                 ExPolygons& lower_polys = lower_layer->lslices_extrudable;
+                ExPolygons  lower_layer_offseted  = offset_ex(lower_polys, support_offset_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS);
 
-                // normal overhang
-                ExPolygons lower_layer_offseted = offset_ex(lower_polys, support_offset_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS);
-                overhangs_all_layers[layer_nr] = std::move(diff_ex(curr_polys, lower_layer_offseted));
+                // add enforcer
+                ExPolygons enforced_overhangs;
+                ExPolygons blocker;
+                if (!enforcers.empty()) 
+                    enforced_overhangs = intersection_ex(diff_ex(layer->lslices_extrudable, lower_layer->lslices_extrudable), enforcers[layer_nr]);
+                if (is_auto(stype)) {
+                    // normal overhang
+                    overhangs_all_layers[layer_nr] = std::move(diff_ex(curr_polys, lower_layer_offseted));
+                    // if is auto, add blocker first
+                    if (layer_nr < blockers.size() && !blockers[layer_nr].empty()) {
+                        // Arthur: union_ is a must because after mirroring, the blocker polygons are in left-hand coordinates, ie clockwise,
+                        // which are not valid polygons, and will be removed by offset_ex. union_ can make these polygons right.
+                        blocker                        = offset_ex(union_(blockers[layer_nr]), scale_(radius_sample_resolution));
+                        if (!blocker.empty()) overhangs_all_layers[layer_nr] = diff_ex(overhangs_all_layers[layer_nr], blocker);
+                    }
+                    if (!enforced_overhangs.empty()) overhangs_all_layers[layer_nr] = union_ex(overhangs_all_layers[layer_nr], enforced_overhangs);
+                }
+                else if (layer_nr < enforcers.size() && lower_layer) {
+                    if (!enforced_overhangs.empty()) {
+                        // FIXME this is a hack to make enforcers work on steep overhangs. See STUDIO-7538.
+                        enforced_overhangs = diff_ex(offset_ex(enforced_overhangs, enforcer_overhang_offset), lower_layer->lslices_extrudable);
+                        overhangs_all_layers[layer_nr] = std::move(enforced_overhangs);
+                    }
+                }
 
                 double duration{ std::chrono::duration_cast<second_>(clock_::now() - t0).count() };
                 if (duration > 30 || overhangs_all_layers[layer_nr].size() > 100) {
@@ -919,8 +964,11 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                 }
                 if (is_auto(stype) && config_detect_sharp_tails)
                 {
+                    ExPolygons curr = curr_polys;
+                    if (!blocker.empty()) curr = diff_ex(curr, blocker);
+                    if (!enforced_overhangs.empty()) curr = union_ex(curr, enforced_overhangs);
                     // BBS detect sharp tail
-                    for (const ExPolygon& expoly : curr_polys) {
+                    for (const ExPolygon& expoly : curr) {
                         bool  is_sharp_tail = false;
                         // 1. nothing below
                         // this is a sharp tail region if it's floating and non-ignorable
@@ -1015,7 +1063,13 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
             // BBS detect sharp tail
             const ExPolygons& lower_layer_sharptails = lower_layer->sharp_tails;
             const auto& lower_layer_sharptails_height = lower_layer->sharp_tails_height;
-            for (ExPolygon& expoly : layer->lslices_extrudable) {
+            
+            ExPolygons curr_polys = layer->lslices_extrudable;
+            if (!blockers.empty() && layer_nr < blockers.size() && !blockers[layer_nr].empty())
+                curr_polys = diff_ex(curr_polys, offset_ex(union_(blockers[layer_nr]), scale_(radius_sample_resolution)));
+            if (!enforcers.empty() && layer_nr < enforcers.size() && !enforcers[layer_nr].empty()) 
+                curr_polys = union_ex(curr_polys, intersection_ex(diff_ex(layer->lslices_extrudable, lower_layer->lslices_extrudable), enforcers[layer_nr]));
+            for (ExPolygon& expoly : curr_polys) {
                 bool  is_sharp_tail = false;
                 float accum_height = layer->height;
                 do {
@@ -1088,14 +1142,9 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
         }
     }
 
-    auto enforcers = m_object->slice_support_enforcers();
-    auto blockers  = m_object->slice_support_blockers();
-    m_vertical_enforcer_points.clear();
-    m_object->project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers, &m_vertical_enforcer_points);
-    m_object->project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers);
-
 
     for (auto &cluster : overhangClusters) {
+        bool enforce_add = false;
         // remove small overhangs
         if (is_auto(stype) && config_remove_small_overhangs) {
             // 3. check whether the small overhang is sharp tail
@@ -1105,6 +1154,16 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                 if (overlaps(layer->sharp_tails, cluster.layer_overhangs[layer_id])) {
                     cluster.set_type(SharpTail, true);
                     break;
+                }
+            }
+            if (!enforcers.empty() && cluster.min_layer<enforcers.size()) {
+                for (size_t layer_id = cluster.min_layer; layer_id <= cluster.max_layer; layer_id++) {
+                    if (layer_id >= enforcers.size()) break;
+                    if (enforcers[layer_id].empty()) continue;
+                    if (overlaps(to_expolygons(enforcers[layer_id]), cluster.layer_overhangs[layer_id])) {
+                        enforce_add = true;
+                        break;
+                    }
                 }
             }
 
@@ -1122,11 +1181,15 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
 #endif
         }
 
-        if (!cluster.is_type(Small)) {
+        if (!cluster.is_type(Small) || enforce_add) {
             cluster.check_polygon_node(m_support_params.thresh_big_overhang, m_ts_data->m_layer_outlines_below[cluster.min_layer - 1]);
             for (auto it = cluster.layer_overhangs.begin(); it != cluster.layer_overhangs.end(); it++) {
                 int       layer_nr = it->first;
                 ExPolygons overhangs = it->second;
+                if (cluster.is_type(Small)) {
+                    if (layer_nr >= enforcers.size() || enforcers[layer_nr].empty() || !overlaps(to_expolygons(enforcers[layer_nr]), overhangs)) continue;
+                    overhangs = intersection_ex(overhangs, enforcers[layer_nr]);
+                }
                 for (const auto &overhang : overhangs) add_overhang(m_object->get_layer(layer_nr), overhang, cluster.type);
             }
         }
@@ -1142,22 +1205,50 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
         auto lower_layer = layer->lower_layer;
 
         if (support_critical_regions_only && is_auto(stype)) {
-            layer->loverhangs.clear(); // remove oridinary overhangs, only keep cantilevers and sharp tails (added later)
-            layer->loverhangs_with_type.clear();
-            for (auto &cantilever : layer->cantilevers) add_overhang(layer, cantilever, OverhangType::Cantilever);
+            if (lower_layer == nullptr || enforcers.empty() || layer_nr >= enforcers.size() || enforcers[layer_nr].empty()) {
+                layer->loverhangs.clear();
+                layer->loverhangs_with_type.clear();
+                for (const auto &cantilever : layer->cantilevers) add_overhang(layer, cantilever, OverhangType::Cantilever);
+            } else {
+                ExPolygons                             enforced_overhangs = to_expolygons(enforcers[layer_nr]);
+                ExPolygons                             loverhangs_new;
+                std::vector<std::pair<ExPolygon, int>> loverhangs_with_type_new;
+                ExPolygons                             bigflat;
+                for (auto &overhang_part : layer->loverhangs_with_type) {
+                    const auto &overhang = overhang_part.first;
+                    auto        type     = overhang_part.second;
+                    ExPolygons  overhangs;
+                    if (type & OverhangType::Cantilever || type & OverhangType::SharpTail)
+                        overhangs = {overhang};
+                    else if (overlaps(enforced_overhangs, overhang)) {
+                        overhangs = intersection_ex(enforced_overhangs, overhang);
+                    }
+                    if (!overhangs.empty()) {
+                        if (type & OverhangType::BigFlat)
+                            append(bigflat, overhangs);
+                        else
+                            for (const auto &expoly : overhangs) {
+                                loverhangs_new.emplace_back(expoly);
+                                loverhangs_with_type_new.emplace_back(std::make_pair(expoly, type));
+                            }
+                    }
+                }
+                for (const auto &expoly : union_ex(bigflat)) {
+                    loverhangs_new.emplace_back(expoly);
+                    loverhangs_with_type_new.emplace_back(std::make_pair(expoly, OverhangType::BigFlat));
+                }
+                layer->loverhangs           = std::move(loverhangs_new);
+                layer->loverhangs_with_type = std::move(loverhangs_with_type_new);
+            }
         }
 
         // add support for every 1mm height for sharp tails
-        ExPolygons sharp_tail_overhangs;
-        if (lower_layer == nullptr)
-            sharp_tail_overhangs = layer->sharp_tails;
-        else {
+        if (lower_layer){
             ExPolygons lower_layer_expanded = offset_ex(lower_layer->lslices_extrudable, SCALED_RESOLUTION);
             for (size_t i = 0; i < layer->sharp_tails_height.size();i++) {
                 ExPolygons areas = diff_clipped({ layer->sharp_tails[i]}, lower_layer_expanded);
                 float accum_height = layer->sharp_tails_height[i];
                 if (!areas.empty() && int(accum_height * 10) % 5 == 0) {
-                    append(sharp_tail_overhangs, areas);
                     has_sharp_tails = true;
                     for (auto &area : areas)
                         add_overhang(layer, area, accum_height < EPSILON ? (OverhangType::SharpTail | OverhangType::SharpTailLowesst) : OverhangType::SharpTail);
@@ -1168,19 +1259,6 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
             }
         }
 
-        if (layer_nr < blockers.size()) {
-            // Arthur: union_ is a must because after mirroring, the blocker polygons are in left-hand coordinates, ie clockwise,
-            // which are not valid polygons, and will be removed by offset_ex. union_ can make these polygons right.
-            ExPolygons blocker = offset_ex(union_(blockers[layer_nr]), scale_(radius_sample_resolution));
-            auto       old_overhangs_with_type = layer->loverhangs_with_type;
-            layer->loverhangs.clear();
-            layer->loverhangs_with_type.clear();
-            for (auto &poly : old_overhangs_with_type) {
-                ExPolygons polydiff = diff_ex(poly.first, blocker);
-                for (auto &diff : polydiff) add_overhang(layer, diff, OverhangType(poly.second));
-            }
-        }
-
         if (max_bridge_length > 0 && layer->loverhangs.size() > 0 && lower_layer) {
             // do not break bridge as the interface will be poor, see #4318
             bool break_bridge = false;
@@ -1188,19 +1266,6 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
         }
 
 		int nDetected = layer->loverhangs.size();
-        // enforcers now follow same logic as normal support. See STUDIO-3692
-        if (layer_nr < enforcers.size() && lower_layer) {
-            ExPolygons enforced_overhangs   = intersection_ex(diff_ex(layer->lslices_extrudable, lower_layer->lslices_extrudable), enforcers[layer_nr]);
-            if (!enforced_overhangs.empty()) {
-                // FIXME this is a hack to make enforcers work on steep overhangs. See STUDIO-7538.
-                enforced_overhangs = diff_ex(offset_ex(enforced_overhangs, enforcer_overhang_offset), lower_layer->lslices_extrudable);
-                for (auto &poly : enforced_overhangs) add_overhang(layer, poly, OverhangType::Normal);
-            }
-        }
-        int nEnforced = layer->loverhangs.size();
-
-        //// add sharp tail overhangs
-        //append(layer->loverhangs, sharp_tail_overhangs);
 
         //// fill overhang_types
         //for (size_t i = 0; i < layer->loverhangs.size(); i++)
@@ -1654,7 +1719,7 @@ void TreeSupport::generate_toolpaths()
                             filler_interface->angle = Geometry::deg2rad(object_config.support_angle.value);
                             fill_params.dont_sort = true;
                         }
-                        if (m_support_params.contact_fill_pattern = ipRectilinear) {
+                        if (m_support_params.contact_fill_pattern == ipRectilinear) {
                             bool bridge_found           = false;
                             for (size_t i = 0; i < m_support_params.num_top_interface_layers; i++) {
                                 auto cur_ts_layer = m_object->get_support_layer(layer_id + i);
@@ -2818,6 +2883,8 @@ void TreeSupport::drop_nodes()
             }
             if (node.to_buildplate || parts.empty()) //It's outside, so make it go towards the build plate.
             {
+                if (node.type ==eCircle && nodes_per_part[0][node.position])
+                    p_node->position += Point(1, 1);
                 nodes_per_part[0][node.position] = p_node;
                 continue;
             }
@@ -2852,6 +2919,8 @@ void TreeSupport::drop_nodes()
                 }
             }
             //Put it in the best one.
+            if (node.type == eCircle && nodes_per_part[closest_part + 1][node.position])
+                p_node->position += Point(1, 1);
             nodes_per_part[closest_part + 1][node.position] = p_node; //Index + 1 because the 0th index is the outside part.
         }
 
@@ -3047,6 +3116,9 @@ void TreeSupport::drop_nodes()
                         p_node->origin_area = node.overhang.area();
                         densify_polygon(p_node->overhang.contour, 2.);
                     }
+                    if (m_support_params.num_top_interface_layers > 0 && obj_layer_nr_next > 0 && node.support_roof_layers_below == 1 &&
+                        node.distance_to_top >= m_support_params.num_top_interface_layers)
+                        overhangs_next = safe_offset_inc(overhangs_next, scale_(max_move_distance), get_collision(0, obj_layer_nr_next), scale_(MIN_BRANCH_RADIUS * 1.75), 0, 1);
                     for(auto& overhang:overhangs_next) {
                         if (overhang.empty()) continue;
                         if (overhang.area() > node.origin_area / 2. && overhang.area() > SQ(scale_(10.))) {
@@ -3060,7 +3132,8 @@ void TreeSupport::drop_nodes()
                             }
                         }
                         // if the part would fall straight to th buildplate, shrink it a little
-                        if (overhang.area() > node.origin_area / 2. && overhang.area() > double(SQ(scale_(10.)))) {
+                        if (node.support_roof_layers_below<0 && overhang.area() > node.origin_area / 2. &&
+                            overhang.area() > double(SQ(scale_(10.)))) {
                             ExPolygons shrink_overhangs = union_ex(shrink_ex(safe_union({overhang}), double(scale_(max_move_distance / 2.))));
                             if (shrink_overhangs.size() == 1 && shrink_overhangs[0].area() > double(SQ(scale_(10.))) &&
                                 !overlaps({overhang}, m_ts_data->m_layer_outlines_below[obj_layer_nr_next])) {

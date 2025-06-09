@@ -171,6 +171,7 @@ private:
     void        append_menu_item_clone(wxMenu* menu);
     void        append_menu_item_simplify(wxMenu* menu);
     void        append_menu_item_center(wxMenu* menu);
+    void        append_menu_item_sub_merge(wxMenu *menu);
     void        append_menu_item_per_object_process(wxMenu* menu);
     void        append_menu_item_per_object_settings(wxMenu* menu);
     void        append_menu_item_change_filament(wxMenu* menu);

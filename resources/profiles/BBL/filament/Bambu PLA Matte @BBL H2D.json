@@ -14,11 +14,11 @@
     "counter_coef_3": [
         "-0.32"
     ],
-    "counter_limit_min": [
-        "-0.4"
-    ],
     "counter_limit_max": [
         "0.05"
+    ],
+    "counter_limit_min": [
+        "-0.4"
     ],
     "fan_max_speed": [
         "80"
@@ -30,17 +30,37 @@
         "nil",
         "nil"
     ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow"
+    ],
     "filament_flow_ratio": [
         "0.98",
         "0.98"
+    ],
+    "filament_flush_temp": [
+        "0",
+        "0"
+    ],
+    "filament_flush_volumetric_speed": [
+        "0",
+        "0"
     ],
     "filament_long_retractions_when_cut": [
         "nil",
         "nil"
     ],
     "filament_max_volumetric_speed": [
-        "28",
-        "48"
+        "25",
+        "35"
+    ],
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
     ],
     "filament_ramming_volumetric_speed": [
         "-1",
@@ -75,38 +95,30 @@
         "nil"
     ],
     "filament_wipe": [
-        "nil",
-        "nil"
+        "1",
+        "1"
     ],
     "filament_wipe_distance": [
-        "nil",
-        "nil"
+        "1",
+        "1"
     ],
     "filament_z_hop": [
         "nil",
         "nil"
     ],
     "filament_z_hop_types": [
-        "nil",
-        "nil"
-    ],
-    "filament_extruder_variant": [
-        "Direct Drive Standard",
-        "Direct Drive High Flow"
-    ],
-    "filament_pre_cooling_temperature": [
-        "0",
-        "0"
-    ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
+        "Spiral Lift",
+        "Spiral Lift"
     ],
     "hole_coef_2": [
         "-0.0081"
     ],
     "hole_coef_3": [
         "0.18"
+    ],
+    "long_retractions_when_ec": [
+        "1",
+        "1"
     ],
     "nozzle_temperature": [
         "220",
@@ -118,6 +130,10 @@
     ],
     "pre_start_fan_time": [
         "2"
+    ],
+    "retraction_distances_when_ec": [
+        "10",
+        "10"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle",

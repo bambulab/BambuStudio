@@ -603,8 +603,6 @@ class PartPlateList : public ObjectBase
     void generate_icon_textures();
     void release_icon_textures();
 
-    void set_default_wipe_tower_pos_for_plate(int plate_idx);
-
     friend class cereal::access;
     friend class UndoRedo::StackImpl;
     friend class PartPlate;
@@ -737,6 +735,7 @@ public:
     //int delete_plate(PartPlate* plate);
     void delete_selected_plate();
 
+    bool check_all_plate_local_bed_type(const std::vector<BedType>& cur_bed_types);
     //get a plate pointer by index
     PartPlate* get_plate(int index);
 
@@ -762,6 +761,7 @@ public:
     std::vector<PartPlate*> get_nonempty_plate_list();
 
     std::vector<const GCodeProcessorResult*> get_nonempty_plates_slice_results();
+    void set_default_wipe_tower_pos_for_plate(int plate_idx, bool init_pos = false);
 
     //compute the origin for printable plate with index i
     Vec3d get_current_plate_origin() { return compute_origin(m_current_plate, m_plate_cols); }

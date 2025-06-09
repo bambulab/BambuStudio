@@ -54,7 +54,7 @@ enum AuthorizationType {
 enum InfillPattern : int {
     ipConcentric, ipRectilinear, ipGrid, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
     ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipSupportCubic, ipSupportBase, ipConcentricInternal,
-    ipLightning, ipCrossHatch, ipZigZag, ipCrossZag,ipFloatingConcentric,
+    ipLightning, ipCrossHatch, ipZigZag, ipCrossZag,ipFloatingConcentric, ipLockedZag,
     ipCount,
 };
 
@@ -264,6 +264,7 @@ enum NozzleType {
     ntUndefine = 0,
     ntHardenedSteel,
     ntStainlessSteel,
+    ntTungstenCarbide,
     ntBrass,
     ntCount
 };
@@ -272,6 +273,7 @@ static std::unordered_map<NozzleType, std::string>NozzleTypeEumnToStr = {
     {NozzleType::ntUndefine,        "undefine"},
     {NozzleType::ntHardenedSteel,   "hardened_steel"},
     {NozzleType::ntStainlessSteel,  "stainless_steel"},
+    {NozzleType::ntTungstenCarbide, "tungsten_carbide"},
     {NozzleType::ntBrass,           "brass"}
 };
 
@@ -279,6 +281,7 @@ static std::unordered_map<std::string, NozzleType>NozzleTypeStrToEumn = {
     {"undefine", NozzleType::ntUndefine},
     {"hardened_steel", NozzleType::ntHardenedSteel},
     {"stainless_steel", NozzleType::ntStainlessSteel},
+    {"tungsten_carbide", NozzleType::ntTungstenCarbide},
     {"brass", NozzleType::ntBrass}
 };
 
@@ -906,7 +909,11 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool, symmetric_infill_y_axis))
     ((ConfigOptionFloat, infill_shift_step))
     ((ConfigOptionFloat, infill_rotate_step))
+    ((ConfigOptionPercent, skeleton_infill_density))
+    ((ConfigOptionPercent, skin_infill_density))
     ((ConfigOptionPercent, sparse_infill_density))
+    ((ConfigOptionFloat, infill_lock_depth))
+    ((ConfigOptionFloat, skin_infill_depth))
     ((ConfigOptionEnum<InfillPattern>, sparse_infill_pattern))
     ((ConfigOptionEnum<FuzzySkinType>, fuzzy_skin))
     ((ConfigOptionFloat, fuzzy_skin_thickness))
@@ -914,6 +921,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsNullable, gap_infill_speed))
     ((ConfigOptionInt, sparse_infill_filament))
     ((ConfigOptionFloat, sparse_infill_line_width))
+    ((ConfigOptionFloat, skin_infill_line_width))
+    ((ConfigOptionFloat, skeleton_infill_line_width))
     ((ConfigOptionPercent, infill_wall_overlap))
     ((ConfigOptionFloatsNullable, sparse_infill_speed))
     //BBS
@@ -962,6 +971,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, top_solid_infill_flow_ratio))
     ((ConfigOptionFloat, initial_layer_flow_ratio))
     ((ConfigOptionFloat, filter_out_gap_fill))
+    ((ConfigOptionBool, precise_outer_wall))
     //calib
     ((ConfigOptionFloat, print_flow_ratio))
     // Orca: seam slopes
@@ -1026,7 +1036,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionStrings,             filament_type))
     ((ConfigOptionBools,               filament_soluble))
     ((ConfigOptionStrings,             filament_ids))
+    ((ConfigOptionStrings,             filament_vendor))
     ((ConfigOptionBools,               filament_is_support))
+    ((ConfigOptionInts,                filament_printable))
     ((ConfigOptionEnumsGeneric,        filament_scarf_seam_type))
     ((ConfigOptionFloatsOrPercents,    filament_scarf_height))
     ((ConfigOptionFloatsOrPercents,    filament_scarf_gap))
@@ -1057,6 +1069,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsNullable,      hotend_cooling_rate))
     ((ConfigOptionFloatsNullable,      hotend_heating_rate))
     ((ConfigOptionFloats,              filament_minimal_purge_on_wipe_tower))
+    ((ConfigOptionFloatsNullable,      filament_flush_volumetric_speed))
+    ((ConfigOptionIntsNullable,        filament_flush_temp))
     // BBS
     ((ConfigOptionBool,                scan_first_layer))
     ((ConfigOptionPoints,              thumbnail_size))
@@ -1076,6 +1090,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                 enable_long_retraction_when_cut))
     ((ConfigOptionFloatsNullable,      retraction_distances_when_cut))
     ((ConfigOptionBoolsNullable,       long_retractions_when_cut))
+    ((ConfigOptionFloatsNullable,      retraction_distances_when_ec))
+    ((ConfigOptionBoolsNullable,       long_retractions_when_ec))
     ((ConfigOptionFloatsNullable,      z_hop))
     // BBS
     ((ConfigOptionEnumsGenericNullable,z_hop_types))
@@ -1130,7 +1146,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionPoints,             bed_exclude_area))
     ((ConfigOptionPoints,             head_wrap_detect_zone))
     // BBS
-    ((ConfigOptionStrings,            unprintable_filament_types))
     ((ConfigOptionString,             bed_custom_texture))
     ((ConfigOptionString,             bed_custom_model))
     ((ConfigOptionEnum<BedType>,      curr_bed_type))
@@ -1232,6 +1247,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              prime_tower_rib_width))
     ((ConfigOptionPercent,            prime_tower_infill_gap))
     ((ConfigOptionBool,               prime_tower_skip_points))
+    ((ConfigOptionBool,               prime_tower_flat_ironing))
     ((ConfigOptionBool,               prime_tower_rib_wall))
     ((ConfigOptionBool,               prime_tower_fillet_wall))
     //((ConfigOptionFloat,              wipe_tower_bridging))

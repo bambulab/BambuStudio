@@ -1911,7 +1911,7 @@ static inline void improve_ordering_by_two_exchanges_with_segment_flipping(Polyl
 	out.reserve(polylines.size());
 	for (const FlipEdge &edge : edges) {
 		Polyline &pl = polylines[edge.source_index];
-		out.emplace_back(std::move(pl));
+		out.emplace_back(pl);
 		if (edge.p2 == pl.first_point().cast<double>()) {
 			// Polyline is flipped.
 			out.back().reverse();

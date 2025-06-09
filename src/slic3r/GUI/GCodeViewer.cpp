@@ -926,11 +926,11 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
 
     // set to color print by default if use multi extruders
     if (m_nozzle_nums > 1) {
-        m_view_type_sel = (int)EViewType::Summary;
+        m_view_type_sel = std::distance(view_type_items.begin(),std::find(view_type_items.begin(), view_type_items.end(), EViewType::Summary));
         set_view_type(EViewType::Summary);
     } else {
-        m_view_type_sel = (int)EViewType::FeatureType;
-        set_view_type(EViewType::FeatureType);
+        m_view_type_sel = std::distance(view_type_items.begin(),std::find(view_type_items.begin(), view_type_items.end(), EViewType::ColorPrint));
+        set_view_type(EViewType::ColorPrint);
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished");
 }
@@ -1375,7 +1375,7 @@ static void debug_calibration_output_thumbnail(const ThumbnailData& thumbnail_da
     image.SaveFile("D:/calibrate.png", wxBITMAP_TYPE_PNG);
 }
 #endif
-
+const int MAX_DRAWS_PER_BATCH = 1024;
 void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, OpenGLManager& opengl_manager)
 {
     int plate_idx = thumbnail_params.plate_id;
@@ -1394,24 +1394,6 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
     camera.select_view("top");
     camera.zoom_to_box(plate_box, 1.0f);
     camera.apply_projection(plate_box);
-
-    auto render_as_triangles = [
-#if ENABLE_GCODE_VIEWER_STATISTICS
-        this
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-    ](TBuffer &buffer, std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
-        for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
-            const RenderPath& path = *it;
-            // Some OpenGL drivers crash on empty glMultiDrawElements, see GH #7415.
-            assert(!path.sizes.empty());
-            assert(!path.offsets.empty());
-            glsafe(::glUniform4fv(uniform_color, 1, static_cast<const GLfloat*>(path.color.data())));
-            glsafe(::glMultiDrawElements(GL_TRIANGLES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
-#if ENABLE_GCODE_VIEWER_STATISTICS
-            ++m_statistics.gl_multi_triangles_calls_count;
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-        }
-    };
 
     auto render_as_instanced_model = [
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -1564,7 +1546,7 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
                     switch (buffer.render_primitive_type)
                     {
                     case TBuffer::ERenderPrimitiveType::Triangle: {
-                        render_as_triangles(buffer, it_path, buffer.render_paths.end(), *shader, uniform_color);
+                        render_sub_paths(it_path, buffer.render_paths.end(), *shader, uniform_color, (unsigned int) EDrawPrimitiveType::Triangles);
                         break;
                     }
                     default: { break; }
@@ -3219,7 +3201,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
     // BBS: fix the issue that object_idx is not assigned as index of Model.objects array
     int object_count = 0;
     const ModelObjectPtrs& model_objs = wxGetApp().model().objects;
-    bool enable_lod = GUI::wxGetApp().app_config->get("enable_lod") == "true";
+    bool  enable_lod   = false;
     for (const PrintObject* obj : print.objects()) {
         const ModelObject* model_obj = obj->model_object();
 
@@ -3891,6 +3873,46 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
     statistics->refresh_paths_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 }
+template<typename Iterator>
+void GCodeViewer::render_sub_paths(Iterator it_path, Iterator it_end, GLShaderProgram &shader, int uniform_color, unsigned int draw_type)
+{
+    //std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end
+    if ((EDrawPrimitiveType) draw_type == EDrawPrimitiveType::Points) {
+        glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
+        glsafe(::glEnable(GL_POINT_SPRITE));
+    }
+    bool cancel_glmultidraw = wxGetApp().get_opengl_manager()->get_cancle_glmultidraw();
+    for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
+        const RenderPath &path = *it;
+        assert(!path.sizes.empty());
+        assert(!path.offsets.empty());
+        glsafe(::glUniform4fv(uniform_color, 1, static_cast<const GLfloat *>(path.color.data())));
+        if (cancel_glmultidraw) {
+            for (size_t i = 0; i < path.sizes.size(); ++i) {
+                GLsizei count = path.sizes[i];
+                glsafe(::glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_SHORT, (const void *) path.offsets[i]));
+            }
+        } else {
+            int total_draws = path.sizes.size();
+            int number      = path.sizes.size() / MAX_DRAWS_PER_BATCH + 1;
+            for (size_t batch = 0; batch < number; batch++) {
+                int start = batch * MAX_DRAWS_PER_BATCH;
+                int count = std::min(MAX_DRAWS_PER_BATCH, total_draws - start);
+                if (count == 0) { continue; }
+                glsafe(::glMultiDrawElements(OpenGLManager::get_draw_primitive_type((EDrawPrimitiveType)draw_type), (const GLsizei *) path.sizes.data() + start, GL_UNSIGNED_SHORT,
+                                             (const void *const *) (path.offsets.data() + start),
+                                             (GLsizei) count));
+            }
+        }
+#if ENABLE_GCODE_VIEWER_STATISTICS
+        ++m_statistics.gl_multi_triangles_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+    }
+    if ((EDrawPrimitiveType) draw_type == EDrawPrimitiveType::Points) {
+        glsafe(::glDisable(GL_POINT_SPRITE));
+        glsafe(::glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
+    }
+}
 
 void GCodeViewer::render_toolpaths()
 {
@@ -3919,68 +3941,10 @@ void GCodeViewer::render_toolpaths()
         shader.set_uniform("near_plane_height", near_plane_height);
     };
 
-    auto render_as_points = [
-#if ENABLE_GCODE_VIEWER_STATISTICS
-        this
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-    ](std::vector<RenderPath>::reverse_iterator it_path, std::vector<RenderPath>::reverse_iterator it_end, GLShaderProgram& shader, int uniform_color) {
-        glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
-        glsafe(::glEnable(GL_POINT_SPRITE));
-
-        for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
-            const RenderPath& path = *it;
-            // Some OpenGL drivers crash on empty glMultiDrawElements, see GH #7415.
-            assert(! path.sizes.empty());
-            assert(! path.offsets.empty());
-            glsafe(::glUniform4fv(uniform_color, 1, static_cast<const GLfloat*>(path.color.data())));
-            glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
-#if ENABLE_GCODE_VIEWER_STATISTICS
-            ++m_statistics.gl_multi_points_calls_count;
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-        }
-
-        glsafe(::glDisable(GL_POINT_SPRITE));
-        glsafe(::glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
-    };
-
     auto shader_init_as_lines = [light_intensity](GLShaderProgram &shader) {
         shader.set_uniform("light_intensity", light_intensity);
     };
-    auto render_as_lines = [
-#if ENABLE_GCODE_VIEWER_STATISTICS
-        this
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-    ](std::vector<RenderPath>::reverse_iterator it_path, std::vector<RenderPath>::reverse_iterator it_end, GLShaderProgram& shader, int uniform_color) {
-        for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
-            const RenderPath& path = *it;
-            // Some OpenGL drivers crash on empty glMultiDrawElements, see GH #7415.
-            assert(! path.sizes.empty());
-            assert(! path.offsets.empty());
-            glsafe(::glUniform4fv(uniform_color, 1, static_cast<const GLfloat*>(path.color.data())));
-            glsafe(::glMultiDrawElements(GL_LINES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
-#if ENABLE_GCODE_VIEWER_STATISTICS
-            ++m_statistics.gl_multi_lines_calls_count;
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-        }
-    };
 
-    auto render_as_triangles = [
-#if ENABLE_GCODE_VIEWER_STATISTICS
-        this
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-    ](std::vector<RenderPath>::reverse_iterator it_path, std::vector<RenderPath>::reverse_iterator it_end, GLShaderProgram& shader, int uniform_color) {
-        for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
-            const RenderPath& path = *it;
-            // Some OpenGL drivers crash on empty glMultiDrawElements, see GH #7415.
-            assert(! path.sizes.empty());
-            assert(! path.offsets.empty());
-            glsafe(::glUniform4fv(uniform_color, 1, static_cast<const GLfloat*>(path.color.data())));
-            glsafe(::glMultiDrawElements(GL_TRIANGLES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
-#if ENABLE_GCODE_VIEWER_STATISTICS
-            ++m_statistics.gl_multi_triangles_calls_count;
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-        }
-    };
 
     auto render_as_instanced_model = [
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -4151,16 +4115,16 @@ void GCodeViewer::render_toolpaths()
                     switch (buffer.render_primitive_type)
                     {
                     case TBuffer::ERenderPrimitiveType::Point: {
-                        render_as_points(it_path, buffer.render_paths.rend(), *shader, uniform_color);
+                        render_sub_paths(it_path, buffer.render_paths.rend(), *shader, uniform_color, (unsigned int) EDrawPrimitiveType::Points);
                         break;
                     }
                     case TBuffer::ERenderPrimitiveType::Line: {
                         p_ogl_manager->set_line_width(static_cast<float>(line_width(zoom)));
-                        render_as_lines(it_path, buffer.render_paths.rend(), *shader, uniform_color);
+                        render_sub_paths(it_path, buffer.render_paths.rend(), *shader, uniform_color, (unsigned int) EDrawPrimitiveType::Lines);
                         break;
                     }
                     case TBuffer::ERenderPrimitiveType::Triangle: {
-                        render_as_triangles(it_path, buffer.render_paths.rend(), *shader, uniform_color);
+                        render_sub_paths(it_path, buffer.render_paths.rend(), *shader, uniform_color, (unsigned int) EDrawPrimitiveType::Triangles);
                         break;
                     }
                     default: { break; }
@@ -4261,10 +4225,9 @@ void GCodeViewer::render_shells()
 
     wxGetApp().bind_shader(shader);
     //BBS: reopen cul faces
-    const auto& camera = wxGetApp().plater()->get_camera();
-    const auto& view_matrix = camera.get_view_matrix();
-    const auto& projection_matrix = camera.get_projection_matrix();
-    m_shells.volumes.render(GUI::ERenderPipelineStage::Normal, GLVolumeCollection::ERenderType::Transparent, false, view_matrix, projection_matrix);
+    auto& camera = wxGetApp().plater()->get_camera();
+    std::vector<std::array<float, 4>> colors            = wxGetApp().plater()->get_extruders_colors();
+    m_shells.volumes.render(GUI::ERenderPipelineStage::Normal, GLVolumeCollection::ERenderType::Transparent, false, camera, colors, wxGetApp().plater()->model());
     wxGetApp().unbind_shader();
 
     glsafe(::glDepthMask(GL_TRUE));

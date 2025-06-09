@@ -563,10 +563,12 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
     m_btn_sync = new Button(parent, "", "ams_nozzle_sync");
     m_btn_sync->SetToolTip(_L("Synchronize nozzle and AMS information"));
     m_btn_sync->SetCornerRadius(8);
-    StateColor btn_sync_bg_col(std::pair<wxColour, int>(wxColour(0xCECECE), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0xF8F8F8), StateColor::Hovered),
-                               std::pair<wxColour, int>(wxColour(0xF8F8F8), StateColor::Normal));
-    StateColor btn_sync_bd_col(std::pair<wxColour, int>(wxColour(0x00AE42), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0x00AE42), StateColor::Hovered),
-                               std::pair<wxColour, int>(wxColour(0xEEEEEE), StateColor::Normal));
+    StateColor btn_sync_bg_col(std::pair<wxColour, int>(wxColour("#CECECE"), StateColor::Pressed),
+                               std::pair<wxColour, int>(wxColour("#F8F8F8"), StateColor::Hovered),
+                               std::pair<wxColour, int>(wxColour("#F8F8F8"), StateColor::Normal));
+    StateColor btn_sync_bd_col(std::pair<wxColour, int>(wxColour("#00AE42"), StateColor::Pressed),
+                               std::pair<wxColour, int>(wxColour("#00AE42"), StateColor::Hovered),
+                               std::pair<wxColour, int>(wxColour("#EEEEEE"), StateColor::Normal));
     m_btn_sync->SetBackgroundColor(btn_sync_bg_col);
     m_btn_sync->SetBorderColor(btn_sync_bd_col);
     m_btn_sync->SetCanFocus(false);
@@ -1483,18 +1485,18 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
     if (wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
         bool in_blacklist = false;
         std::string action;
-        std::string info;
+        wxString info;
         std::string filamnt_type;
         preset->get_filament_type(filamnt_type);
 
         auto vendor = dynamic_cast<ConfigOptionStrings*> (preset->config.option("filament_vendor"));
         if (vendor && (vendor->values.size() > 0)) {
             std::string vendor_name = vendor->values[0];
-            DeviceManager::check_filaments_in_blacklist(curr_obj->printer_type, vendor_name, filamnt_type, ams_id, slot_id, "", in_blacklist, action, info);
+            DeviceManager::check_filaments_in_blacklist(curr_obj->printer_type, vendor_name, filamnt_type, preset->filament_id, ams_id, slot_id, "", in_blacklist, action, info);
         }
 
         if (in_blacklist) {
-            error_tips = info;
+            error_tips = info.ToUTF8().data();
             if (action == "prohibition") {
                 return false;
             }
@@ -1777,7 +1779,7 @@ void CalibrationPresetPage::update_show_status()
         }
     }
 
-    if (wxGetApp().app_config && wxGetApp().app_config->get("internal_debug").empty()) {
+    if (wxGetApp().app_config) {
         if (obj_->upgrade_force_upgrade) {
             show_status(CaliPresetPageStatus::CaliPresetStatusNeedForceUpgrading);
             return;

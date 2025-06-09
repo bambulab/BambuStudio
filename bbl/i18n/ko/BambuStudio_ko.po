@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 11:55+0800\n"
+"POT-Creation-Date: 2025-05-29 15:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -31,12 +31,6 @@ msgstr "미지의 필라멘트 모델. 무작위 필라멘트 사전 설정이 �
 msgid "Current AMS humidity"
 msgstr "현재 AMS 습도"
 
-msgid "Drying"
-msgstr "전력 제한으로 인해 출력 중에는 건조를 위해 장치의 전원을 사용할 수 없습니다. 건조를 중단해야 할까요?"
-
-msgid "Idle"
-msgstr "대기중"
-
 msgid "Humidity"
 msgstr "습도"
 
@@ -45,6 +39,12 @@ msgstr "온도"
 
 msgid "Left Time"
 msgstr "남은 시간: {time}"
+
+msgid "Drying"
+msgstr "전력 제한으로 인해 출력 중에는 건조를 위해 장치의 전원을 사용할 수 없습니다. 건조를 중단해야 할까요?"
+
+msgid "Idle"
+msgstr "대기중"
 
 #, c-format, boost-format
 msgid "%.1f ℃"
@@ -150,6 +150,15 @@ msgstr "오버행 각도에 따라 면을 강조표시한다."
 
 msgid "No auto support"
 msgstr "자동서포트 사용하지 않음"
+
+msgid "Warning"
+msgstr "경고"
+
+msgid "Painting below the build plate is not allowed."
+msgstr ""
+
+msgid "The white outline indicates the position of the build plate at Z = 0."
+msgstr ""
 
 msgid "Support Generated"
 msgstr "생성된 서포트"
@@ -552,9 +561,6 @@ msgstr "커넥터 확인"
 
 msgid "Cancel"
 msgstr "취소"
-
-msgid "Warning"
-msgstr "경고"
 
 msgid "Invalid connectors detected"
 msgstr "잘못된 커넥터가 감지됨"
@@ -1235,6 +1241,9 @@ msgstr "중대한 오류"
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "BambuStudio에 처리되지 않은 예외가 발생했습니다: %1%"
 
+msgid "This file is not from a trusted site, do you want to open it anyway?"
+msgstr ""
+
 msgid "Untitled"
 msgstr "제목 없음"
 
@@ -1767,8 +1776,17 @@ msgstr "모델 단순화"
 msgid "Center"
 msgstr "중앙"
 
+msgid "Sub merge"
+msgstr ""
+
 msgid "Edit Process Settings"
 msgstr "프로세스 설정 편집"
+
+msgid "Copy Process Settings"
+msgstr ""
+
+msgid "Paste Process Settings"
+msgstr ""
 
 msgid "Edit print parameters for a single object"
 msgstr "단일 객체에 대한 출력 설정값 편집"
@@ -1859,6 +1877,9 @@ msgstr "수정자 추가"
 
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr "수정자 설정을 편집하려면 객체별 설정 모드로 전환합니다."
+
+msgid "Sub-merged body"
+msgstr ""
 
 msgid "Switch to per-object setting mode to edit process settings of selected objects."
 msgstr "선택한 객체의 프로세스 설정을 편집하려면 객체별 설정 모드로 전환합니다."
@@ -2188,14 +2209,14 @@ msgstr "언로드"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "AMS 슬롯을 선택한 다음 \"로드\" 또는 \"언로드\" 버튼을 누르면 필라멘트를 자동으로 로드하거나 언로드할 수 있습니다."
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
-msgstr "출력 중 팬 속도를 변경하면 출력 품질에 영향을 줄 수 있으므로 신중하게 선택하세요."
+msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
+msgstr ""
+
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
+msgstr ""
 
 msgid "Change Anyway"
 msgstr "어떻게든 변경"
-
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
-msgstr "출력 중 팬 속도를 변경하면 출력 품질에 영향을 줄 수 있으므로 신중하게 선택하세요."
 
 msgid "Off"
 msgstr "끄기"
@@ -2789,6 +2810,14 @@ msgstr "노즐"
 msgid "Ext"
 msgstr "내선"
 
+#, c-format, boost-format
+msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgstr ""
+
 msgid "Note: Only the AMS slots loaded with the same material type can be selected."
 msgstr "참고: 동일한 재료 타입 로드된 AMS 슬롯만 선택할 수 있습니다."
 
@@ -3202,6 +3231,12 @@ msgstr ""
 "객체별로 출력하는 동안 압출기가 스커트와 충돌할 수 있습니다. \n"
 "따라서 충돌을 피하기 위해 스커트 레이어를 1로 재설정합니다."
 
+#, c-format, boost-format
+msgid ""
+"lock depth should smaller than skin depth.\n"
+"Reset to 50%% of skin depth"
+msgstr ""
+
 msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
 msgstr "나선형 모드는 월 루프가 1, 지원 비활성화, 상단 셸 레이어 0, 스파스 인필 밀도 0, 타임랩스 유형이 기존, z 방향의 월 속도 평활화가 거짓인 경우에만 작동합니다."
 
@@ -3380,8 +3415,8 @@ msgid "right"
 msgstr "오른쪽"
 
 #, c-format, boost-format
-msgid "TPU is not supported by %s extruder for this printer."
-msgstr "이 프린터의 %s 압출기에서는 TPU를 지원하지 않습니다."
+msgid "%s is not supported by %s extruder."
+msgstr "%s은 %s 압출기에서 지원되지 않습니다."
 
 msgid "Unknown"
 msgstr "알 수 없음"
@@ -3410,13 +3445,16 @@ msgstr "업데이트 실패"
 msgid "Timelapse is not supported on this printer."
 msgstr ""
 
-msgid "Timelapse is not supported while the SD card does not exist."
+msgid "Timelapse is not supported while the storage does not exist."
 msgstr ""
 
-msgid "Timelapse is not supported while the SD card is unavailable."
+msgid "Timelapse is not supported while the storage is unavailable."
 msgstr ""
 
-msgid "Timelapse is not supported while the SD card is readonly."
+msgid "Timelapse is not supported while the storage is readonly."
+msgstr ""
+
+msgid "To ensure your safety, certain processing tasks (such as laser) can only be resumed on printer."
 msgstr ""
 
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
@@ -3445,10 +3483,6 @@ msgstr "캘리 G코드 생성에 실패했습니다"
 
 msgid "Calibration error"
 msgstr "보정 오류"
-
-#, c-format, boost-format
-msgid "%s is not supported by %s extruder."
-msgstr "%s은 %s 압출기에서 지원되지 않습니다."
 
 msgid "TPU is not supported by AMS."
 msgstr "TPU는 AMS에서 지원되지 않습니다."
@@ -3835,6 +3869,22 @@ msgstr "다음 물체가 플레이트의 경계에 놓이거나 높이 제한을
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "플레이트 위 또는 아래로 완전히 움직여 높이가 빌드 볼륨 내에 있는지 확인하여 문제를 해결하세요.\n"
 
+#, boost-format
+msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+msgstr ""
+
+#, boost-format
+msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+msgstr ""
+
+#, boost-format
+msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+msgstr ""
+
+#, boost-format
+msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+msgstr ""
+
 msgid "left nozzle"
 msgstr "왼쪽 노즐"
 
@@ -4032,6 +4082,9 @@ msgstr "필라멘트 %s는 이 플레이트 표면에 직접 출력할 수 없�
 
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "혼합물에서 PLA 및 PETG 필라멘트가 감지되었습니다. 위키에 따라 매개변수를 조정하여 출력 품질을 보장합니다."
+
+msgid "The prime tower extends beyond the plate boundary."
+msgstr ""
 
 msgid "Click Wiki for help."
 msgstr "위키를 클릭하여 도움을 받습니다."
@@ -4274,6 +4327,13 @@ msgstr "왼쪽 뷰"
 msgid "Right View"
 msgstr "오른쪽 뷰"
 
+msgctxt "Camera"
+msgid "Isometric"
+msgstr ""
+
+msgid "Isometric View"
+msgstr ""
+
 msgid "Start a new window"
 msgstr "새 창 시작"
 
@@ -4342,6 +4402,9 @@ msgstr "G 코드 내보내기"
 
 msgid "Export current plate as G-code"
 msgstr "현재 플레이트를 G 코드로 내보내기"
+
+msgid "Export toolpaths as OBJ"
+msgstr "도구 경로를 OBJ로 내보내기"
 
 msgid "Export Preset Bundle"
 msgstr "프리셋 번들 내보내기"
@@ -4540,9 +4603,6 @@ msgstr "디스크에서 플래터 다시 불러오기"
 
 msgid "Export &Toolpaths as OBJ"
 msgstr "OBJ로 내보내기 및 도구 경로"
-
-msgid "Export toolpaths as OBJ"
-msgstr "도구 경로를 OBJ로 내보내기"
 
 msgid "Open &Studio"
 msgstr "오픈 &스튜디오"
@@ -5134,12 +5194,6 @@ msgstr ""
 msgid "Please heat the nozzle to above 170 degree before loading or unloading filament."
 msgstr "필라멘트를 넣거나 빼기 전에 노즐을 170도 이상으로 가열하세요."
 
-msgid "Still unload"
-msgstr "언로드 중"
-
-msgid "Still load"
-msgstr "로드 중"
-
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr "챔버 온도가 40℃를 초과하면 시스템이 자동으로 난방 모드로 전환됩니다. 전환 여부를 확인해 주세요."
 
@@ -5163,6 +5217,15 @@ msgstr "스포츠"
 
 msgid "Ludicrous"
 msgstr "루디크러스"
+
+msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
+msgstr ""
+
+msgid "Turn it Off"
+msgstr ""
+
+msgid "Keep it On"
+msgstr ""
 
 msgid "Can't start this without storage."
 msgstr "스토리지 없이는 시작할 수 없습니다."
@@ -5307,8 +5370,12 @@ msgstr "계산 중, 잠시만 기다려주세요..."
 msgid "Status"
 msgstr "상태"
 
+msgctxt "Firmware"
 msgid "Update"
-msgstr "업데이트"
+msgstr ""
+
+msgid "Assistant(HMS)"
+msgstr ""
 
 msgid "Go to"
 msgstr "이동"
@@ -5366,6 +5433,10 @@ msgstr "현재 버전:"
 
 msgid "Latest Version: "
 msgstr "최신 버전: "
+
+msgctxt "Software"
+msgid "Update"
+msgstr ""
 
 msgid "Not for now"
 msgstr "지금 확인"
@@ -5584,27 +5655,26 @@ msgstr "노즐 클럼핑(Clumping) 감지"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "필라멘트나 기타 이물질로 인해 노즐이 뭉치는지 확인합니다."
 
+msgid "Nozzle Type"
+msgstr "노즐 유형"
+
+msgid "Nozzle Flow"
+msgstr "노즐 흐름"
+
+msgid "Please change the nozzle settings on the printer."
+msgstr ""
+
 msgid "Hardened Steel"
 msgstr "경화 스틸"
 
 msgid "Stainless Steel"
 msgstr "스테인리스 스틸"
 
-msgid "High flow"
-msgstr "높은 흐름"
-
-msgid "Nozzle Type"
-msgstr "노즐 유형"
-
-msgid "Please change the nozzle settings on the printer."
+msgid "Tungsten Carbide"
 msgstr ""
 
-msgid "Nozzle Flow"
-msgstr "노즐 흐름"
-
-#, c-format, boost-format
-msgid "%.1f"
-msgstr "%.1f"
+msgid "High flow"
+msgstr "높은 흐름"
 
 msgid "Global"
 msgstr "글로벌"
@@ -5792,6 +5862,12 @@ msgstr "기존 타임랩스 사진을 활성화하면 표면 결함이 발생할
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "타임랩스용 스무드 모드가 활성화되어 있지만 프라임 타워가 꺼져 있어 출력 결함이 발생할 수 있습니다. 프라임 타워를 활성화하고 다시 슬라이스한 후 다시 출력하세요."
+
+msgid "Expand sidebar"
+msgstr ""
+
+msgid "Collapse sidebar"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -6025,19 +6101,15 @@ msgstr "새 프로젝트 만들기"
 
 #, c-format, boost-format
 msgid ""
-"The currently connected printer, %s, is a %s model.\n"
+"The currently connected printer '%s', is a %s model.\n"
 "To use this printer for printing, please switch the printer model of project file to %s."
 msgstr ""
-"현재 연결된 프린터 %s은 %s 모델입니다.\n"
-"이 프린터를 출력에 사용하려면 프로젝트 파일의 프린터 모델을 %s로 전환하세요."
 
 #, c-format, boost-format
 msgid ""
-"The currently connected printer, %s, is a %s model but not consistent with preset in project file.\n"
+"The currently connected printer '%s', is a %s model but not consistent with preset in project file.\n"
 "To use this printer for printing, please switch the preset first."
 msgstr ""
-"현재 연결된 프린터 %s이 %s 모델이지만 프로젝트 파일의 사전 설정과 일치하지 않습니다.\n"
-"이 프린터를 출력에 사용하려면 먼저 프리셋을 전환하세요."
 
 msgid "Switch now"
 msgstr "지금 전환하기"
@@ -6181,21 +6253,11 @@ msgstr "이유: \"%1%\"과 다른 부분은 교집합이 없습니다."
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "음량 부분이 감지되었습니다. 내보내기 전에 메시 비우기를 수행하시겠습니까?"
 
-msgid ""
-"Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
-"If you hit 'NO', all SVGs in the project will not be editable any more."
+msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr ""
-"로컬 경로가 있는 원본 SVG를 3MF 파일에 저장하시겠습니까?\n"
-"'아니요'를 누르면 프로젝트의 모든 SVG를 더 이상 편집할 수 없습니다."
 
-msgid "Private protection"
-msgstr "개인 정보 보호"
-
-msgid "For PVA filaments, it is strongly recommended to use normal support to avoid print failures."
-msgstr "PVA 필라멘트의 경우 출력 실패를 방지하기 위해 일반 서포트를 사용하는 것이 좋습니다."
-
-msgid "Change these settings automatically? \n"
-msgstr "이러한 설정을 자동으로 변경하시겠습니까?\n"
+msgid "Are you sure to use them? \n"
+msgstr ""
 
 msgid ""
 "Print By Object: \n"
@@ -6297,23 +6359,8 @@ msgstr "현재 개체 구성 양식은 다중 압출기 프린터와 함께 사�
 msgid "Not available"
 msgstr "사용 불가"
 
-msgid "isometric"
-msgstr "아이소메트릭"
-
-msgid "top_front"
+msgid "Top front"
 msgstr ""
-
-msgid "top"
-msgstr "상단"
-
-msgid "bottom"
-msgstr "하단"
-
-msgid "front"
-msgstr "앞"
-
-msgid "rear"
-msgstr "뒤"
 
 msgid "The current project has unsaved changes, save it before continuing?"
 msgstr "현재 프로젝트에 저장되지 않은 변경 내용이 있습니다. 계속하기 전에 저장하시겠습니까?"
@@ -6742,6 +6789,15 @@ msgstr "프리셋 수정"
 msgid "Project-inside presets"
 msgstr "프로젝트 내부 프리셋"
 
+msgid "System"
+msgstr ""
+
+msgid "Unsupported presets"
+msgstr ""
+
+msgid "Unsupported"
+msgstr ""
+
 msgid "Add/Remove filaments"
 msgstr "필라멘트 추가/제거"
 
@@ -6775,6 +6831,9 @@ msgstr "기타 레이어 필라멘트 시퀀스"
 msgid "Please input layer value (>= 2)."
 msgstr "레이어 값(>= 2)을 입력하세요."
 
+msgid "Same as Global Plate Type"
+msgstr "글로벌 플레이트 타입과 동일"
+
 msgid "Bed type"
 msgstr "플레이트 타입"
 
@@ -6798,9 +6857,6 @@ msgstr "나선형 꽃병모드"
 
 msgid "First layer filament sequence"
 msgstr "첫 레이어 필라멘트 순서"
-
-msgid "Same as Global Plate Type"
-msgstr "글로벌 플레이트 타입과 동일"
 
 msgid "Same as Global Bed Type"
 msgstr "글로벌 플레이트 타입과 동일"
@@ -6934,17 +6990,11 @@ msgstr "출력 작업 보내기"
 msgid "On"
 msgstr "켜기"
 
-msgid "If the transparency of the mapping changes, this thumbnail is for reference only."
-msgstr "매핑의 투명도가 변경되는 경우 이 미리보기 이미지는 참고용으로만 제공됩니다."
-
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "필라멘트 그룹화가 만족스럽지 않으신가요? 재그룹화 및 슬라이스 ->"
 
 msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr "슬라이스된 파일의 필라멘트 그룹화 방법이 최적이 아닙니다."
-
-msgid "Click here if you can't connect to the printer"
-msgstr "프린터에 연결할 수 없는 경우 여기를 클릭하세요"
 
 msgid "Auto Bed Leveling"
 msgstr "자동 베드 레벨링"
@@ -6976,9 +7026,6 @@ msgstr ""
 "노즐 오프셋을 보정하여 출력 품질을 향상시킵니다.\n"
 "*자동 모드: 출력하기 전에 보정 여부를 확인합니다. 불필요한 경우 건너뜁니다."
 
-msgid "Use AMS"
-msgstr "AMS 사용"
-
 msgid "send completed"
 msgstr "전송 완료"
 
@@ -6992,43 +7039,6 @@ msgstr "높은 흐름"
 msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
 msgstr "%s(%s)의 노즐 유량 설정이 슬라이싱 파일(%s)과 일치하지 않습니다. 설치된 노즐이 프린터의 설정과 일치하는지 확인한 다음 슬라이싱하는 동안 해당 프린터 프리셋을 설정하세요."
 
-msgid "No login account, only printers in LAN mode are displayed"
-msgstr "로그인 계정 없음, LAN 모드의 프린터만 표시됨"
-
-msgid "Connecting to server"
-msgstr "서버에 연결 중"
-
-msgid "Synchronizing device information"
-msgstr "장치 정보 동기화"
-
-msgid "Synchronizing device information time out"
-msgstr "장치 정보 동기화 시간이 초과되었습니다."
-
-msgid "Cannot send the print job when the printer is not at FDM mode"
-msgstr "프린터가 FDM 모드가 아닐 때 출력 작업을 보낼 수 없습니다."
-
-msgid "Cannot send the print job when the printer is updating firmware"
-msgstr "프린터가 펌웨어 업데이트하는 동안 출력 작업을 보낼 수 없습니다."
-
-msgid "The printer is executing instructions. Please restart printing after it ends"
-msgstr "프린터가 명령 실행중입니다. 종료 후 다시 출력을 시작하세요."
-
-msgid "AMS is setting up. Please try again later."
-msgstr "AMS를 설정하는 중입니다. 나중에 다시 시도하세요."
-
-#, c-format, boost-format
-msgid "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
-msgstr "필라멘트 %s가 AMS 슬롯 수를 초과합니다. AMS 슬롯 할당을 지원하도록 프린터 펌웨어를 업데이트하십시오."
-
-msgid "Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
-msgstr "필라멘트가 AMS 슬롯 수를 초과합니다. AMS 슬롯 할당을 지원하도록 프린터 펌웨어를 업데이트하십시오."
-
-msgid "Please do not mix-use the Ext with AMS"
-msgstr "Ext를 AMS와 혼용하지 마세요"
-
-msgid "Invalid nozzle information, please refresh or manually set nozzle information."
-msgstr "노즐 정보가 잘못되었습니다. 노즐 정보를 새로 고치거나 수동으로 설정하세요."
-
 #, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
 msgstr "필라멘트 %s가 AMS 슬롯 %s의 필라멘트와 일치하지 않습니다. AMS 슬롯 할당을 지원하도록 프린터 펌웨어를 업데이트하십시오."
@@ -7036,30 +7046,9 @@ msgstr "필라멘트 %s가 AMS 슬롯 %s의 필라멘트와 일치하지 않습�
 msgid "Filament does not match the filament in AMS slot. Please update the printer firmware to support AMS slot assignment."
 msgstr "필라멘트가 AMS 슬롯의 필라멘트와 일치하지 않습니다. AMS 슬롯 할당을 지원하도록 프린터 펌웨어를 업데이트하십시오."
 
-msgid "Storage is not available or is in read-only mode."
-msgstr "저장소를 사용할 수 없거나 읽기 전용 모드입니다."
-
-msgid "The printer firmware only supports sequential mapping of filament => AMS slot."
-msgstr "프린터 펌웨어는 필라멘트 => AMS 슬롯의 순차 매핑만 지원합니다."
-
-msgid "Storage needs to be inserted before printing."
-msgstr "출력하기 전에 저장소를 삽입해야 합니다."
-
 #, c-format, boost-format
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
 msgstr "선택한 프린터(%s)가 출력 파일 구성(%s)과 호환되지 않습니다. 준비 페이지에서 프린터 사전 설정을 조정하거나 이 페이지에서 호환되는 프린터를 선택하세요."
-
-msgid "Storage needs to be inserted to record timelapse."
-msgstr "타임랩스를 녹화하려면 스토리지를 삽입해야 합니다."
-
-msgid "Cannot send the print job to a printer whose firmware is required to get updated."
-msgstr "펌웨어 업데이트가 필요한 프린터로 출력 작업을 보낼 수 없습니다."
-
-msgid "Cannot send the print job for empty plate"
-msgstr "빈 플레이트에 대한 출력 작업을 보낼 수 없습니다."
-
-msgid "This printer does not support printing all plates"
-msgstr "이 프린터는 모든 플레이트 출력을 지원하지 않습니다."
 
 msgid "When enable spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "나선형 꽃병 모드가 활성화되면 I3 구조의 머신은 타임랩스 동영상을 생성하지 않습니다."
@@ -7067,17 +7056,14 @@ msgstr "나선형 꽃병 모드가 활성화되면 I3 구조의 머신은 타임
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
 msgstr "현재 프린터는 개체별 출력 시 기존 모드에서 타임랩스를 지원하지 않습니다."
 
-msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
-msgstr "압출기용 외부 필라멘트와 AMS 필라멘트를 모두 선택했습니다. 출력 중에 외부 필라멘트를 수동으로 전환해야 합니다."
-
-msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
-msgstr "TPU 90A/TPU 85A는 너무 부드러워서 자동 흐름 역학 보정을 지원하지 않습니다."
-
-msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
-msgstr "사용자 지정 동적 흐름 값을 사용하려면 동적 흐름 보정을 '꺼짐'으로 설정합니다."
-
 msgid "Errors"
 msgstr "오류"
+
+msgid "More than one filament types have been mapped to the same external spool, which may cause printing issues. The printer won't pause during printing."
+msgstr ""
+
+msgid "The filament type setting of external spool is different from the filament in the slicing file."
+msgstr ""
 
 msgid "The printer type selected when generating G-Code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing."
 msgstr "G-Code를 생성할 때 선택한 프린터 유형이 현재 선택한 프린터와 일치하지 않습니다. 슬라이싱에 동일한 프린터 유형을 사용하는 것이 좋습니다."
@@ -7119,6 +7105,21 @@ msgstr "이름 길이가 제한을 초과합니다."
 msgid "Cost %dg filament and %d changes more than optimal grouping."
 msgstr "비용 %dg 필라멘트 및 %d 최적의 그룹화보다 더 많이 변경됩니다."
 
+msgid "nozzle"
+msgstr ""
+
+msgid "extruder"
+msgstr ""
+
+msgid "both extruders"
+msgstr ""
+
+msgid "right extruder"
+msgstr ""
+
+msgid "left extruder"
+msgstr ""
+
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr "팁: 최근에 프린터의 노즐을 변경한 경우 '장치 -> 프린터 부품'으로 이동하여 노즐 설정을 변경하세요."
 
@@ -7131,8 +7132,19 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "현재 노즐 직경(%.1fmm)이 슬라이싱 파일(%.1fmm)과 일치하지 않습니다. 설치된 노즐이 프린터의 설정과 일치하는지 확인한 다음 슬라이싱할 때 해당 프린터 프리셋을 설정하세요."
 
 #, c-format, boost-format
-msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
-msgstr "고온 소재 (%s) 를 %s 노즐로 출력하면 노즐이 손상될 수 있으니 노즐 종류를 확인하십시오."
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament on %s may soften. Please unload."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament on %s is unknown and may soften. Please set filament."
+msgstr ""
+
+msgid "Unable to automatically match to suitable filament. Please click to manually match."
+msgstr ""
 
 msgid "Cool"
 msgstr "쿨한"
@@ -7146,11 +7158,89 @@ msgstr "고온"
 msgid "Cool(Supertack)"
 msgstr "쿨(슈퍼스택)"
 
+msgid "Click here if you can't connect to the printer"
+msgstr "프린터에 연결할 수 없는 경우 여기를 클릭하세요"
+
+msgid "No login account, only printers in LAN mode are displayed"
+msgstr "로그인 계정 없음, LAN 모드의 프린터만 표시됨"
+
+msgid "Connecting to server"
+msgstr "서버에 연결 중"
+
+msgid "Synchronizing device information"
+msgstr "장치 정보 동기화"
+
+msgid "Synchronizing device information time out"
+msgstr "장치 정보 동기화 시간이 초과되었습니다."
+
+msgid "Cannot send the print job when the printer is not at FDM mode"
+msgstr "프린터가 FDM 모드가 아닐 때 출력 작업을 보낼 수 없습니다."
+
+msgid "Cannot send the print job when the printer is updating firmware"
+msgstr "프린터가 펌웨어 업데이트하는 동안 출력 작업을 보낼 수 없습니다."
+
+msgid "The printer is executing instructions. Please restart printing after it ends"
+msgstr "프린터가 명령 실행중입니다. 종료 후 다시 출력을 시작하세요."
+
+msgid "AMS is setting up. Please try again later."
+msgstr "AMS를 설정하는 중입니다. 나중에 다시 시도하세요."
+
+msgid "Please do not mix-use the Ext with AMS"
+msgstr "Ext를 AMS와 혼용하지 마세요"
+
+msgid "Invalid nozzle information, please refresh or manually set nozzle information."
+msgstr "노즐 정보가 잘못되었습니다. 노즐 정보를 새로 고치거나 수동으로 설정하세요."
+
+msgid "Storage is not available or is in read-only mode."
+msgstr "저장소를 사용할 수 없거나 읽기 전용 모드입니다."
+
+msgid "Storage needs to be inserted before printing."
+msgstr "출력하기 전에 저장소를 삽입해야 합니다."
+
+msgid "Cannot send the print job to a printer whose firmware is required to get updated."
+msgstr "펌웨어 업데이트가 필요한 프린터로 출력 작업을 보낼 수 없습니다."
+
+msgid "Cannot send the print job for empty plate"
+msgstr "빈 플레이트에 대한 출력 작업을 보낼 수 없습니다."
+
+msgid "Storage needs to be inserted to record timelapse."
+msgstr "타임랩스를 녹화하려면 스토리지를 삽입해야 합니다."
+
+msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
+msgstr "압출기용 외부 필라멘트와 AMS 필라멘트를 모두 선택했습니다. 출력 중에 외부 필라멘트를 수동으로 전환해야 합니다."
+
+msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
+msgstr "TPU 90A/TPU 85A는 너무 부드러워서 자동 흐름 역학 보정을 지원하지 않습니다."
+
+msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
+msgstr "사용자 지정 동적 흐름 값을 사용하려면 동적 흐름 보정을 '꺼짐'으로 설정합니다."
+
+msgid "This printer does not support printing all plates"
+msgstr "이 프린터는 모든 플레이트 출력을 지원하지 않습니다."
+
+msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
+msgstr ""
+
+msgid "High chamber temperature is required. Please close the door."
+msgstr ""
+
+msgid "No labels are currently stored."
+msgstr ""
+
 msgid "Send to Printer storage"
 msgstr "프린터 저장소로 보내기"
 
+msgid "Try to connect"
+msgstr ""
+
+msgid "click to retry"
+msgstr ""
+
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "파일 업로드 시간 초과, 펌웨어 버전이 이를 지원하는지 확인하세요."
+
+msgid "No available external storage was obtained. Please confirm and try again."
+msgstr ""
 
 msgid "Media capability acquisition timeout, please check if the firmware version supports it."
 msgstr "미디어 기능 획득 시간 초과, 펌웨어 버전이 이를 지원하는지 확인하세요."
@@ -7163,6 +7253,9 @@ msgstr "파일 업로드 시간이 초과되었습니다. 펌웨어 버전이 �
 
 msgid "Sending failed, please try again!"
 msgstr "전송 실패. 다시 시도하십시오!"
+
+msgid "Connection failed. Click the icon to retry"
+msgstr ""
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "업데이트 진행 중에는 출력 작업을 보낼 수 없습니다."
@@ -7319,11 +7412,15 @@ msgid "Still print by object?"
 msgstr "여전히 개체별로 출력하시나요?"
 
 msgid ""
-"When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+"Non-soluble support materials are not recommended for support base. \n"
+"Are you sure to use them for support base? \n"
 msgstr ""
-"서포트 인터페이스에 서포트 자료를 사용하는 경우 다음 설정을 권장합니다:\n"
-"상단 z 거리 0, 인터페이스 간격 0, 인터레이스된 직선 패턴 및 독립 서포트 레이어 높이 비활성화"
+
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+"and use soluble materials for both support interface and support base"
+msgstr ""
 
 msgid ""
 "Change these settings automatically? \n"
@@ -7333,6 +7430,19 @@ msgstr ""
 "이 설정을 자동으로 변경하시겠습니까?\n"
 "예 - 이 설정으로 자동으로 변경합니다.\n"
 "아니요 - 이 설정으로 변경하지 않습니다."
+
+msgid ""
+"When using support material for the support interface, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+msgstr ""
+"서포트 인터페이스에 서포트 자료를 사용하는 경우 다음 설정을 권장합니다:\n"
+"상단 z 거리 0, 인터페이스 간격 0, 인터레이스된 직선 패턴 및 독립 서포트 레이어 높이 비활성화"
+
+msgid ""
+"When using soluble material for the support interface, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+"and use soluble materials for both support interface and support base"
+msgstr ""
 
 msgid ""
 "Layer height is too small.\n"
@@ -7547,6 +7657,9 @@ msgstr "필라멘트 시작 G 코드"
 
 msgid "Filament end G-code"
 msgstr "필라멘트 종료 G 코드"
+
+msgid "Multi Filament"
+msgstr ""
 
 msgid "Printable space"
 msgstr "출력 가능 공간"
@@ -7908,8 +8021,8 @@ msgstr "자세한 내용은 Wiki 열기 >"
 msgid "Obj file Import color"
 msgstr "오브젝트 파일 색상 가져오기"
 
-msgid "Some faces not define color."
-msgstr "어떤 얼굴은 색을 정의하지 않습니다."
+msgid "Some faces don't have color defined."
+msgstr ""
 
 msgid "mtl file exist error,could not find the material:"
 msgstr "mtl 파일 존재 오류, 자료를 찾을 수 없습니다:"
@@ -8025,6 +8138,9 @@ msgstr ""
 "노즐 오프셋을 보정하여 출력 품질을 향상시킵니다.\n"
 "*자동 모드: 출력하기 전에 보정 여부를 확인하고 불필요한 경우 건너뜁니다."
 
+msgid "Use AMS"
+msgstr "AMS 사용"
+
 msgid "Tip"
 msgstr "도움말"
 
@@ -8079,6 +8195,9 @@ msgstr "출력 순서가 \"개체별\"로 설정되어 있으므로 타임랩스
 
 msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
 msgstr "압출기에서 외부 필라멘트와 AMS 필라멘트를 동시에 선택한 경우 외부 필라멘트를 수동으로 변경해야 합니다."
+
+msgid "Successfully synchronized nozzle information."
+msgstr ""
 
 msgid "Successfully synchronized nozzle and AMS number information."
 msgstr "노즐 및 AMS 번호 정보를 성공적으로 동기화했습니다."
@@ -8255,11 +8374,14 @@ msgstr "카메라 뷰 - 전면"
 msgid "Camera view - Behind"
 msgstr "카메라 뷰 - 후면"
 
-msgid "Camera Angle - Left side"
-msgstr "카메라 각도 - 왼쪽"
+msgid "Camera view - Left"
+msgstr ""
 
-msgid "Camera Angle - Right side"
-msgstr "카메라 각도 - 오른쪽"
+msgid "Camera view - Right"
+msgstr ""
+
+msgid "Camera view - Isometric"
+msgstr ""
 
 msgid "Select all objects"
 msgstr "모든 객체 선택"
@@ -8374,11 +8496,11 @@ msgstr "압출기가 정상적으로 압출되지 않으니 도우미에게 문�
 msgid "Resume Printing"
 msgstr "출력 재개"
 
-msgid "Resume Printing(defects acceptable)"
-msgstr "출력 재개(결함 허용)"
+msgid "Resume (defects acceptable)"
+msgstr ""
 
-msgid "Resume Printing(problem solved)"
-msgstr "출력 재개(문제 해결)"
+msgid "Resume (problem solved)"
+msgstr ""
 
 msgid "Stop Printing"
 msgstr "출력 중지"
@@ -8418,6 +8540,9 @@ msgstr "문제 해결됨 재개하기"
 
 msgid "Stop Buzzer"
 msgstr "버저 중지"
+
+msgid "Retry (problem solved)"
+msgstr ""
 
 msgid "Confirm and Update Nozzle"
 msgstr "노즐 확인 및 업데이트"
@@ -8648,16 +8773,6 @@ msgstr " 에 배치할 수 없습니다"
 
 msgid " nozzle"
 msgstr "노즐"
-
-msgid "TPU is incompatible with AMS and must be printed seperately in the "
-msgstr "TPU는 AMS와 호환되지 않으므로 별도로 출력해야 합니다"
-
-msgid ""
-" nozzle.\n"
-"Please adjust the filament group accordingly."
-msgstr ""
-" 노즐.\n"
-"필라멘트 그룹을 적절히 조정하세요."
 
 msgid "Inner wall"
 msgstr "내벽"
@@ -8904,9 +9019,6 @@ msgstr "스커트 및 브림 생성"
 msgid "Generating G-code"
 msgstr "G 코드 생성"
 
-msgid "Only supports up to one TPU filament."
-msgstr "최대 하나의 TPU 필라멘트만 지원합니다."
-
 msgid "Failed processing of the filename_format template."
 msgstr "파일 이름 형식 템플릿 처리에 실패했습니다."
 
@@ -8948,9 +9060,6 @@ msgstr "압출기 출력 가능 높이"
 
 msgid "Maximum printable height of this extruder which is limited by mechanism of printer"
 msgstr "이 압출기의 최대 출력 가능 높이는 프린터의 메커니즘에 의해 제한됩니다"
-
-msgid "Unprintable filament type"
-msgstr "출력할 수 없는 필라멘트 유형"
 
 msgid "Printer preset names"
 msgstr "프린터 프리셋 이름"
@@ -9564,11 +9673,23 @@ msgstr "자동 경기"
 msgid "Manual"
 msgstr "수동"
 
-msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
-msgstr "이 설정은 초당 녹이고 압출될 수 있는 필라멘트의 체적입니다. 너무 높고 불합리한 속도 설정의 경우 출력 속도는 최대 체적 속도에 의해 제한됩니다. 이 값은 0일 수 없습니다."
+msgid "Flush temperature"
+msgstr ""
+
+msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgstr ""
+
+msgid "Flush volumetric speed"
+msgstr ""
+
+msgid "Volumetric speed when flushing filament. 0 indicates the max volumetric speed"
+msgstr ""
 
 msgid "mm³/s"
 msgstr "mm³/s"
+
+msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
+msgstr "이 설정은 초당 녹이고 압출될 수 있는 필라멘트의 체적입니다. 너무 높고 불합리한 속도 설정의 경우 출력 속도는 최대 체적 속도에 의해 제한됩니다. 이 값은 0일 수 없습니다."
 
 msgid "Ramming volumetric speed"
 msgstr "충돌 체적 속도"
@@ -9695,6 +9816,12 @@ msgstr "서포트 소재"
 msgid "Support material is commonly used to print support and support interface"
 msgstr "서포트 소재는 일반적으로 서포트 및 서포트 인터페이스를 출력하는 데 사용됩니다."
 
+msgid "Filament printable"
+msgstr ""
+
+msgid "The filament is printable in extruder"
+msgstr ""
+
 msgid "Filament prime volume"
 msgstr "필라멘트 프라임 볼륨"
 
@@ -9794,6 +9921,9 @@ msgstr "지그재그"
 
 msgid "Cross Zag"
 msgstr "크로스 재그"
+
+msgid "Locked Zag"
+msgstr ""
 
 msgid "Acceleration of top surface infill. Using a lower value may improve top surface quality"
 msgstr "상단면 채우기 가속도입니다. 낮은 값을 사용하면 상단면 품질을 향상시킬 수 있습니다."
@@ -9900,6 +10030,12 @@ msgstr "작은 틈을 걸러내세요"
 msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 msgstr "지정된 임계값보다 작은 간격을 필터링합니다. 이 설정은 상단/하단 레이어에 영향을 주지 않습니다."
 
+msgid "Precise wall"
+msgstr ""
+
+msgid "Improve shell precision by adjusting outer wall spacing. This also improves layer consistency."
+msgstr ""
+
 msgid "Speed of gap infill. Gap usually has irregular line width and should be printed more slowly"
 msgstr "간격 내부채움 속도. 갭은 일반적으로 라인 폭이 불규칙하므로 느리게 출력되어야 합니다."
 
@@ -9947,6 +10083,9 @@ msgstr "경화 스틸"
 
 msgid "Stainless steel"
 msgstr "스테인리스 스틸"
+
+msgid "Tungsten carbide"
+msgstr ""
 
 msgid "Brass"
 msgstr "황동"
@@ -10007,6 +10146,42 @@ msgstr "채우기 회전 단계"
 
 msgid "This parameter adds a slight rotation to each layer of infill to create a cross texture."
 msgstr "이 파라미터는 각 인필 레이어에 약간의 회전을 추가하여 교차 텍스처를 만듭니다."
+
+msgid "Skeleton infill density"
+msgstr ""
+
+msgid "The remaining part of the model contour after removing a certain depth from the surface is called the skeleton. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skeleton densities, their skeleton areas will develop overlapping sections.default is as same as infill density."
+msgstr ""
+
+msgid "Skin infill density"
+msgstr ""
+
+msgid "The portion of the model's outer surface within a certain depth range is called the skin. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skin densities, This area will not be split into two separate regions.default is as same as infill density."
+msgstr ""
+
+msgid "Skin infill depth"
+msgstr ""
+
+msgid "The parameter sets the depth of skin."
+msgstr ""
+
+msgid "Infill lock depth"
+msgstr ""
+
+msgid "The parameter sets the overlapping depth between the interior and skin."
+msgstr ""
+
+msgid "Skin line width"
+msgstr ""
+
+msgid "Adjust the line width of the selected skin paths."
+msgstr ""
+
+msgid "Skeleton line width"
+msgstr ""
+
+msgid "Adjust the line width of the selected skeleton paths."
+msgstr ""
 
 msgid "Symmetric infill y axis"
 msgstr "대칭 채우기 y 축"
@@ -10433,6 +10608,12 @@ msgstr "절단 시 후퇴 거리"
 
 msgid "Experimental feature.Retraction length before cutting off during filament change"
 msgstr "실험적 기능. 필라멘트 교체 시 절단 전 후퇴 길이"
+
+msgid "Long retraction when extruder change"
+msgstr ""
+
+msgid "Retraction distance when extruder change"
+msgstr ""
 
 msgid "Z hop when retract"
 msgstr "수축 시 Z 올리기"
@@ -12868,6 +13049,39 @@ msgstr "이것은 수용성이 아닌 서포트 필라멘트로, 일반적으로
 msgid "The generic presets are conservatively tuned for compatibility with a wider range of filaments. For higher printing quality and speeds, please use Bambu filaments with Bambu presets."
 msgstr "일반 사전 설정은 더 다양한 필라멘트와의 호환성을 위해 보수적으로 조정되었습니다. 출력 품질과 속도를 높이려면 Bambu 사전 설정과 함께 Bambu 필라멘트를 사용하세요."
 
+msgid "High quality profile for 0.2mm nozzle, prioritizing print quality."
+msgstr ""
+
+msgid "High quality profile for 0.16mm layer height, prioritizing print quality and strength."
+msgstr ""
+
+msgid "Standard profile for 0.16mm layer height, prioritizing speed."
+msgstr ""
+
+msgid "High quality profile for 0.2mm layer height, prioritizing strength and print quality."
+msgstr ""
+
+msgid "Standard profile for 0.4mm nozzle, prioritizing speed."
+msgstr ""
+
+msgid "High quality profile for 0.6mm nozzle, prioritizing print quality and strength."
+msgstr ""
+
+msgid "Strength profile for 0.6mm nozzle, prioritizing strength."
+msgstr ""
+
+msgid "Standard profile for 0.6mm nozzle, prioritizing speed."
+msgstr ""
+
+msgid "High quality profile for 0.8mm nozzle, prioritizing print quality."
+msgstr ""
+
+msgid "Strength profile for 0.8mm nozzle, prioritizing strength."
+msgstr ""
+
+msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
+msgstr ""
+
 msgid "No AMS"
 msgstr "AMS 초기화 프로세스 중에 AMS E 가 오프라인으로 감지되었습니다."
 
@@ -13263,6 +13477,124 @@ msgid ""
 msgstr ""
 "뒤틀림 방지\n"
 "ABS와 같이 뒤틀리기 쉬운 소재를 출력할 때 열판 온도를 적절히 높이면 뒤틀릴 확률을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#, c-format, boost-format
+#~ msgid "TPU is not supported by %s extruder for this printer."
+#~ msgstr "이 프린터의 %s 압출기에서는 TPU를 지원하지 않습니다."
+
+#~ msgid "Update"
+#~ msgstr "업데이트"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The currently connected printer, %s, is a %s model.\n"
+#~ "To use this printer for printing, please switch the printer model of project file to %s."
+#~ msgstr ""
+#~ "현재 연결된 프린터 %s은 %s 모델입니다.\n"
+#~ "이 프린터를 출력에 사용하려면 프로젝트 파일의 프린터 모델을 %s로 전환하세요."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The currently connected printer, %s, is a %s model but not consistent with preset in project file.\n"
+#~ "To use this printer for printing, please switch the preset first."
+#~ msgstr ""
+#~ "현재 연결된 프린터 %s이 %s 모델이지만 프로젝트 파일의 사전 설정과 일치하지 않습니다.\n"
+#~ "이 프린터를 출력에 사용하려면 먼저 프리셋을 전환하세요."
+
+#~ msgid "TPU is incompatible with AMS and must be printed seperately in the "
+#~ msgstr "TPU는 AMS와 호환되지 않으므로 별도로 출력해야 합니다"
+
+#~ msgid ""
+#~ " nozzle.\n"
+#~ "Please adjust the filament group accordingly."
+#~ msgstr ""
+#~ " 노즐.\n"
+#~ "필라멘트 그룹을 적절히 조정하세요."
+
+#~ msgid "Only supports up to one TPU filament."
+#~ msgstr "최대 하나의 TPU 필라멘트만 지원합니다."
+
+#~ msgid "Still unload"
+#~ msgstr "언로드 중"
+
+#~ msgid "Still load"
+#~ msgstr "로드 중"
+
+#~ msgid ""
+#~ "Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
+#~ "If you hit 'NO', all SVGs in the project will not be editable any more."
+#~ msgstr ""
+#~ "로컬 경로가 있는 원본 SVG를 3MF 파일에 저장하시겠습니까?\n"
+#~ "'아니요'를 누르면 프로젝트의 모든 SVG를 더 이상 편집할 수 없습니다."
+
+#~ msgid "Private protection"
+#~ msgstr "개인 정보 보호"
+
+#~ msgid "If the transparency of the mapping changes, this thumbnail is for reference only."
+#~ msgstr "매핑의 투명도가 변경되는 경우 이 미리보기 이미지는 참고용으로만 제공됩니다."
+
+#~ msgid "Some faces not define color."
+#~ msgstr "어떤 얼굴은 색을 정의하지 않습니다."
+
+#~ msgid "For PVA filaments, it is strongly recommended to use normal support to avoid print failures."
+#~ msgstr "PVA 필라멘트의 경우 출력 실패를 방지하기 위해 일반 서포트를 사용하는 것이 좋습니다."
+
+#~ msgid "Change these settings automatically? \n"
+#~ msgstr "이러한 설정을 자동으로 변경하시겠습니까?\n"
+
+#~ msgid "Unprintable filament type"
+#~ msgstr "출력할 수 없는 필라멘트 유형"
+
+#~ msgid "isometric"
+#~ msgstr "아이소메트릭"
+
+#~ msgid "top"
+#~ msgstr "상단"
+
+#~ msgid "bottom"
+#~ msgstr "하단"
+
+#~ msgid "front"
+#~ msgstr "앞"
+
+#~ msgid "rear"
+#~ msgstr "뒤"
+
+#, c-format, boost-format
+#~ msgid "Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
+#~ msgstr "필라멘트 %s가 AMS 슬롯 수를 초과합니다. AMS 슬롯 할당을 지원하도록 프린터 펌웨어를 업데이트하십시오."
+
+#~ msgid "Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."
+#~ msgstr "필라멘트가 AMS 슬롯 수를 초과합니다. AMS 슬롯 할당을 지원하도록 프린터 펌웨어를 업데이트하십시오."
+
+#~ msgid "The printer firmware only supports sequential mapping of filament => AMS slot."
+#~ msgstr "프린터 펌웨어는 필라멘트 => AMS 슬롯의 순차 매핑만 지원합니다."
+
+#~ msgid "Resume Printing(defects acceptable)"
+#~ msgstr "출력 재개(결함 허용)"
+
+#~ msgid "Resume Printing(problem solved)"
+#~ msgstr "출력 재개(문제 해결)"
+
+#~ msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+#~ msgstr "출력 중 팬 속도를 변경하면 출력 품질에 영향을 줄 수 있으므로 신중하게 선택하세요."
+
+#~ msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
+#~ msgstr "출력 중 팬 속도를 변경하면 출력 품질에 영향을 줄 수 있으므로 신중하게 선택하세요."
+
+#, c-format, boost-format
+#~ msgid "%.1f"
+#~ msgstr "%.1f"
+
+#, c-format, boost-format
+#~ msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
+#~ msgstr "고온 소재 (%s) 를 %s 노즐로 출력하면 노즐이 손상될 수 있으니 노즐 종류를 확인하십시오."
+
+#~ msgid "Camera Angle - Left side"
+#~ msgstr "카메라 각도 - 왼쪽"
+
+#~ msgid "Camera Angle - Right side"
+#~ msgstr "카메라 각도 - 오른쪽"
 
 #~ msgid "Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"
 #~ msgstr "고성능 GPU 사용 선호(Bambu Studio 수동 재시작 후 적용)"

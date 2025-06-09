@@ -314,7 +314,7 @@ void FanOperate::doRender(wxDC& dc)
 
     //txt
     dc.SetFont(::Label::Body_12);
-    dc.SetTextForeground(StateColor::darkModeColorFor(wxColour(0x898989)));
+    dc.SetTextForeground(StateColor::darkModeColorFor(wxColour("#898989")));
     wxString text = wxString::Format("%d%%", m_current_speeds * 10);
     wxSize text_size = dc.GetTextExtent(text);
     auto text_width = size.x - m_bitmap_decrease.GetBmpWidth() * 2;
@@ -375,7 +375,7 @@ FanControlNew::FanControlNew(wxWindow *parent, const AirDuctData &fan_data, int 
     sizer_control->Add(sizer_control_top, 0, wxEXPAND, 0);
 
     m_static_status_name = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END | wxALIGN_CENTER_HORIZONTAL);
-    m_static_status_name->SetForegroundColour(wxColour(0x00AE42));
+    m_static_status_name->SetForegroundColour(wxColour("#00AE42"));
     m_static_status_name->SetBackgroundColour(wxColour(248, 248, 248));
     m_static_status_name->SetFont(Label::Head_18);
     m_static_status_name->SetMinSize(wxSize(FromDIP(100), -1));
@@ -640,7 +640,7 @@ FanControlPopupNew::FanControlPopupNew(wxWindow* parent, MachineObject* obj, con
     m_mode_sizer->Add(m_radio_btn_sizer, 0, wxALIGN_CENTRE_VERTICAL, 0);
     m_mode_sizer->Add(m_button_refresh, 0, wxALIGN_CENTRE_VERTICAL, 0);
     m_button_refresh->Hide();
-    m_cooling_text = new wxStaticText(this, wxID_ANY, wxT(""));
+    m_cooling_text = new Label(this);
     m_cooling_text->SetBackgroundColour(*wxWHITE);
 
     //Control the show or hide of controls based on id
@@ -683,17 +683,18 @@ void FanControlPopupNew::CreateDuct()
     //fan or door
     UpdateParts(m_data.curren_mode);
 
-    if (m_data.modes.empty()) {
-        //m_button_refresh->Hide();
-        return;
-    }
-    size_t mode_size = m_data.modes.size();
-    for (auto i = 0; i < mode_size; i++) {
-        wxString text = wxString::Format("%s", radio_btn_name[AIR_DUCT(m_data.modes[i].id)]);
-        SendModeSwitchButton *radio_btn = new SendModeSwitchButton(this, text, m_data.curren_mode == m_data.modes[i].id);
+    auto iter = m_data.modes.begin();
+    while (iter != m_data.modes.end()) {
+
+        int mode_id = iter->second.id;
+        const wxString& text = wxString::Format("%s", radio_btn_name[AIR_DUCT(mode_id)]);
+        if (text.empty()) { BOOST_LOG_TRIVIAL(error) << "FanControlPopupNew::CreateDuct: radio_btn_name is empty";}
+
+        SendModeSwitchButton *radio_btn = new SendModeSwitchButton(this, text, m_data.curren_mode == mode_id);
         radio_btn->Bind(wxEVT_LEFT_DOWN, &FanControlPopupNew::on_mode_changed, this);
         m_mode_switch_btn_list.emplace_back(radio_btn);
         m_radio_btn_sizer->Add(radio_btn, wxALL, FromDIP(5));
+        iter++;
     }
 }
 
@@ -729,7 +730,7 @@ void FanControlPopupNew::UpdateTips(int model)
 {
     auto text = label_text[AIR_DUCT(model)];
     m_cooling_text->SetLabelText(text);
-    m_cooling_text->Wrap(FromDIP(400));
+    m_cooling_text->Wrap(FromDIP(360));
     Layout();
 }
 
@@ -937,17 +938,17 @@ void FanControlPopupNew::paintEvent(wxPaintEvent& evt)
 
 void FanControlPopupNew::on_mode_changed(const wxMouseEvent &event)
 {
-    if (m_obj && m_obj->is_in_printing()) {
-        MessageDialog msg_wingow(nullptr, _L("The selected material only supports the current fan mode, and it can't be changed during printing."), "", wxICON_WARNING | wxOK);
-        msg_wingow.ShowModal();
-        return;
-    }
-
     size_t btn_list_size = m_mode_switch_btn_list.size();
     for (size_t i = 0; i < btn_list_size; ++i) {
         if (m_mode_switch_btn_list[i]->GetId() == event.GetId()) {
-            if (m_mode_switch_btn_list[i]->isSelected())
+            if (m_mode_switch_btn_list[i]->isSelected()) { return;}
+
+            if (m_obj && m_obj->is_in_printing()) {
+                MessageDialog msg_wingow(nullptr, _L("The selected material only supports the current fan mode, and it can't be changed during printing."), "", wxICON_WARNING | wxOK);
+                msg_wingow.ShowModal();
                 return;
+            }
+
             m_mode_switch_btn_list[i]->setSelected(true);
             command_control_air_duct(i);
         } else {
@@ -987,7 +988,7 @@ void FanControlPopupNew::init_names() {
                                              "The system automatically adjusts the fan's switch and speed "
                                              "according to different printing materials.");
     label_text[AIR_DUCT::AIR_DUCT_COOLING_FILT] = _L("Cooling mode is suitable for printing PLA/PETG/TPU materials and filters the chamber air.");
-    label_text[AIR_DUCT::AIR_DUCT_HEATING_INTERNAL_FILT] = _L("Heating mode is suitable for printeing ABS/ASA/PC/PA materials and circulates filters the chamber air.");
+    label_text[AIR_DUCT::AIR_DUCT_HEATING_INTERNAL_FILT] = _L("Heating mode is suitable for printing ABS/ASA/PC/PA materials and circulates filters the chamber air.");
     label_text[AIR_DUCT::AIR_DUCT_EXHAUST] = _L("Exhaust");
     label_text[AIR_DUCT::AIR_DUCT_FULL_COOLING] = _L("Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printouts will be fully cooled.");
     label_text[AIR_DUCT::AIR_DUCT_NUM] = _L("Num");

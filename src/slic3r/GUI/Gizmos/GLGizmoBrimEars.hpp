@@ -75,7 +75,6 @@ public:
     GLGizmoBrimEars(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
     virtual ~GLGizmoBrimEars() = default;
     void data_changed(bool is_serializing) override;
-    void set_brim_data(ModelObject* model_object, const Selection& selection);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
     void delete_selected_points();
     void update_model_object();
@@ -88,6 +87,7 @@ public:
     std::string get_gizmo_leaving_text() const override { return "Leaving Brim Ears"; }
 
 private:
+    void set_brim_data();
     bool on_init() override;
     void on_update(const UpdateData& data) override;
     void on_render() override;
@@ -164,9 +164,9 @@ protected:
     void register_single_mesh_pick();
     void update_single_mesh_pick(GLVolume* v);
     void reset_all_pick();
-    bool add_point_to_cache(Vec3f pos, float head_radius, bool selected, Vec3f normal);
+    bool add_point_to_cache(Vec3f pos, float head_radius, bool selected, Vec3f normal, int volume_idx=-1);
     float get_brim_default_radius() const;
-    ExPolygon make_polygon(BrimPoint point, const Geometry::Transformation &trsf);
+    ExPolygon make_polygon(BrimPoint point, const Transform3d& trsf);
     void find_single();
     bool is_use_point(const BrimPoint &point) const;
 };

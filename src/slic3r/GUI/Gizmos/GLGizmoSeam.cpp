@@ -55,6 +55,10 @@ GLGizmoSeam::GLGizmoSeam(GLCanvas3D& parent, const std::string& icon_filename, u
 
 }
 
+void GLGizmoSeam::data_changed(bool is_serializing) {
+    set_painter_gizmo_data(m_parent.get_selection());
+}
+
 
 std::string GLGizmoSeam::on_get_name() const
 {
@@ -226,10 +230,10 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
 
     const float sliders_left_width = std::max(cursor_size_slider_left, clipping_slider_left);
     const float slider_icon_width  = m_imgui->get_slider_icon_size().x;
-
+    const float minimal_slider_width = m_imgui->scaled(4.f);
     const float sliders_width = m_imgui->scaled(7.0f);
     const float drag_left_width = ImGui::GetStyle().WindowPadding.x + sliders_left_width + sliders_width - space_size;
-
+    float       window_width      = minimal_slider_width + sliders_left_width + slider_icon_width;
     const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
 
     float             textbox_width       = 1.5 * slider_icon_width;
@@ -349,6 +353,11 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     }
     m_imgui->disabled_end();
     ImGui::Separator();
+    if (m_parent.is_volumes_selected_and_sinking()) {
+        m_imgui->warning_text_wrapped(_L("Warning") + ":" + _L("Painting below the build plate is not allowed.") +
+                                          _L("The white outline indicates the position of the build plate at Z = 0."),
+                                      window_width + m_imgui->scaled(3));
+    }
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(caption_max, x, get_cur_y);

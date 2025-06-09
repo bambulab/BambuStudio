@@ -5,7 +5,6 @@
     "from": "system",
     "setting_id": "GFSU02_04",
     "instantiation": "true",
-    "description": "If you are to print a kind of soft TPU, please don't slice with this profile, and it is only for TPU that has high enough hardness (not less than 55D) and is compatible with the AMS. To get better printing quality, please refer to this wiki: TPU printing guide.",
     "additional_cooling_fan_speed": [
         "100"
     ],
@@ -19,6 +18,14 @@
     "filament_flow_ratio": [
         "0.97",
         "0.97"
+    ],
+    "filament_flush_temp": [
+        "0",
+        "0"
+    ],
+    "filament_flush_volumetric_speed": [
+        "0",
+        "0"
     ],
     "filament_long_retractions_when_cut": [
         "nil",
@@ -88,6 +95,10 @@
         "20",
         "20"
     ],
+    "long_retractions_when_ec": [
+        "1",
+        "1"
+    ],
     "nozzle_temperature": [
         "230",
         "230"
@@ -95,6 +106,10 @@
     "nozzle_temperature_initial_layer": [
         "230",
         "230"
+    ],
+    "retraction_distances_when_ec": [
+        "0",
+        "0"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle",

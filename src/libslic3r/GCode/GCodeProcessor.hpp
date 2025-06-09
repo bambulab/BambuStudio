@@ -783,6 +783,7 @@ namespace Slic3r {
                 std::vector<GCodeProcessorResult::MoveVertex>& moves,
                 std::vector<ExtruderPreHeating::FilamentUsageBlock>& filament_blocks,
                 std::vector<ExtruderPreHeating::ExtruderUsageBlcok>& extruder_blocks,
+                std::vector<std::pair<unsigned int, unsigned int>>& skippable_blocks,
                 unsigned int& machine_start_gcode_end_line_id,
                 unsigned int& machine_end_gcode_start_line_id
             );
@@ -819,6 +820,7 @@ namespace Slic3r {
                 const std::vector<int> & pre_cooling_temp_,
                 const std::vector<double>& cooling_rate_,
                 const std::vector<double>& heating_rate_,
+                const std::vector<std::pair<unsigned int,unsigned int>>& skippable_blocks_,
                 unsigned int machine_start_gcode_end_id_,
                 unsigned int machine_end_gcode_start_id_
             ) :
@@ -832,6 +834,7 @@ namespace Slic3r {
                 filament_pre_cooling_temps(pre_cooling_temp_),
                 cooling_rate(cooling_rate_),
                 heating_rate(heating_rate_),
+                skippable_blocks(skippable_blocks_),
                 machine_start_gcode_end_id(machine_start_gcode_end_id_),
                 machine_end_gcode_start_id(machine_end_gcode_start_id_)
             {
@@ -849,7 +852,7 @@ namespace Slic3r {
             const std::vector<double>& cooling_rate;
             const std::vector<double>& heating_rate;
             const std::vector<int>& filament_pre_cooling_temps; // target cooling temp during post extrusion
-
+            const std::vector<std::pair<unsigned int, unsigned int>>& skippable_blocks;
             const unsigned int machine_start_gcode_end_id;
             const unsigned int machine_end_gcode_start_id;
 
@@ -1097,7 +1100,7 @@ namespace Slic3r {
 
     public:
         GCodeProcessor();
-
+        void init_filament_maps_and_nozzle_type_when_import_only_gcode();
         // check whether the gcode path meets the filament_map grouping requirements
         bool check_multi_extruder_gcode_valid(const std::vector<Polygons> &unprintable_areas,
                                               const std::vector<double>   &printable_heights,
@@ -1293,7 +1296,6 @@ namespace Slic3r {
         void process_M1020(const GCodeReader::GCodeLine &line);
 
         void process_filament_change(int id);
-
         //BBS: different path_type is only used for arc move
         void store_move_vertex(EMoveType type, EMovePathType path_type = EMovePathType::Noop_move);
 

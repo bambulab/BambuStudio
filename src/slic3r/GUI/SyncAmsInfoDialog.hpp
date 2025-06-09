@@ -175,8 +175,6 @@ public:
     void     on_cancel(wxCloseEvent &event);
     void     show_errors(wxString &info);
     void     Enable_Auto_Refill(bool enable);
-    void     connect_printer_mqtt();
-    void     clear_ip_address_config(wxCommandEvent &e);
     void     on_refresh(wxCommandEvent &event);
     void     on_set_finish_mapping(wxCommandEvent &evt);
     void     on_print_job_cancel(wxCommandEvent &evt);
@@ -207,7 +205,6 @@ public:
     bool     is_blocking_printing(MachineObject *obj_);
     bool     is_same_nozzle_diameters(NozzleType &tag_nozzle_type, float &nozzle_diameter);
     bool     is_same_nozzle_type(std::string &filament_type, NozzleType &tag_nozzle_type);
-    bool     has_tips(MachineObject *obj);
     bool     is_timeout();
     int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
     void set_print_type(PrintFromType type) { m_print_type = type; };
@@ -221,10 +218,7 @@ public:
     bool is_nozzle_type_match(ExtderData data, wxString &error_message) const;
     int  convert_filament_map_nozzle_id_to_task_nozzle_id(int nozzle_id);
 
-    std::string get_print_status_info(PrintDialogStatus status);
-
     PrintFromType            get_print_type() { return m_print_type; };
-    wxString                 format_steel_name(NozzleType type);
     wxString                 format_text(wxString &m_msg);
     PrintDialogStatus        get_status() { return m_print_status; }
     std::vector<std::string> sort_string(std::vector<std::string> strArray);
@@ -324,10 +318,10 @@ private:
     wxStaticBitmap * m_advanced_options_icon{nullptr};
     wxBoxSizer *     m_append_color_sizer = nullptr;
     ::CheckBox*      m_append_color_checkbox = nullptr;
-    wxStaticText *   m_append_color_text = nullptr;
+    Label *          m_append_color_text = nullptr;
     wxBoxSizer *     m_merge_color_sizer     = nullptr;
     ::CheckBox*      m_merge_color_checkbox = nullptr;
-    wxStaticText *   m_merge_color_text  = nullptr;
+    Label *          m_merge_color_text     = nullptr;
     bool m_is_empty_project = true;
 
     bool m_check_dirty_fialment  = true;

@@ -176,6 +176,8 @@ void AppConfig::set_defaults()
         set_bool("enable_merge_color_by_sync_ams", false);
     if (get("ams_sync_match_full_use_color_dist").empty())
         set_bool("ams_sync_match_full_use_color_dist", false);
+    if (get("enable_sidebar_resizable").empty())
+        set_bool("enable_sidebar_resizable", false);
 
     if (get("zoom_to_mouse").empty())
         set_bool("zoom_to_mouse", false);
@@ -193,6 +195,8 @@ void AppConfig::set_defaults()
         set_bool("user_bed_type", true);
     if (get("grabber_size_factor").empty())
         set("grabber_size_factor", "1.0");
+    if (get("cancel_glmultidraw").empty())
+        set_bool("cancel_glmultidraw", false);
 //#ifdef SUPPORT_SHOW_HINTS
     if (get("show_hints").empty())
         set_bool("show_hints", false);
@@ -1252,11 +1256,11 @@ std::string AppConfig::get_region()
     std::string sel = get("iot_environment");
     std::string region;
     if (sel == ENV_DEV_HOST)
-        region = "ENV_CN_DEV";
+        region = "NEW_ENV_DEV_HOST";
     else if (sel == ENV_QAT_HOST)
-        region = "ENV_CN_QA";
+        region = "NEW_ENV_QAT_HOST";
     else if (sel == ENV_PRE_HOST)
-        region = "ENV_CN_PRE";
+        region = "NEW_ENV_PRE_HOST";
     if (region.empty())
         return this->get("region");
     return region;

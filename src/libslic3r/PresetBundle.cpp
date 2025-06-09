@@ -330,7 +330,7 @@ Semver PresetBundle::get_vendor_profile_version(std::string vendor_name)
     return result_ver;
 }
 
-std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const std::string& filament_id) const
+std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name) const
 {
     if (filament_id.empty())
         return std::nullopt;
@@ -356,7 +356,20 @@ std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const 
                 info.nozzle_temp_range_high = config.option<ConfigOptionInts>("nozzle_temperature_range_high")->values[0];
             if (config.has("nozzle_temperature_range_low"))
                 info.nozzle_temp_range_low = config.option<ConfigOptionInts>("nozzle_temperature_range_low")->values[0];
-            return info;
+            if(config.has("temperature_vitrification"))
+                info.temperature_vitrification = config.option<ConfigOptionInts>("temperature_vitrification")->values[0];
+
+            if (!printer_name.empty()) {
+                std::vector<std::string> compatible_printers = config.option<ConfigOptionStrings>("compatible_printers")->values;
+                auto iter = std::find(compatible_printers.begin(), compatible_printers.end(), printer_name);
+                if (iter != compatible_printers.end() && config.has("filament_printable")) {
+                    info.filament_printable = config.option<ConfigOptionInts>("filament_printable")->values[0];
+                    return info;
+                }
+            }
+            else {
+                return info;
+            }
         }
     }
     return std::nullopt;
@@ -786,10 +799,10 @@ bool PresetBundle::import_json_presets(PresetsConfigSubstitutions &            s
         boost::optional<Semver>            version              = Semver::parse(version_str);
         if (!version) return false;
         Semver app_version = *(Semver::parse(SLIC3R_VERSION));
-        if (version->maj() > app_version.maj()) {
+        /*if (version->maj() > app_version.maj()) {
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Preset incompatibla, not loading: " << name;
             return false;
-        }
+        }*/
 
         PresetCollection *collection = nullptr;
         if (config.has("printer_settings_id"))

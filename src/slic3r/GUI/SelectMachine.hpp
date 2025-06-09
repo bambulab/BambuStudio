@@ -35,6 +35,7 @@
 #include "Plater.hpp"
 #include "BBLStatusBar.hpp"
 #include "BBLStatusBarPrint.hpp"
+#include "PrePrintChecker.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/CheckBox.hpp"
@@ -60,86 +61,6 @@ enum PrintPageMode {
     PrintPageModePrepare = 0,
     PrintPageModeSending,
     PrintPageModeFinish
-};
-
-enum PrintDialogStatus : unsigned int {
-    /*Errors*/
-    PrintStatusErrorBegin,
-
-    //Errors for printer, Block Print
-    PrintStatusPrinterErrorBegin,
-    PrintStatusInit,
-    PrintStatusNoUserLogin,
-    PrintStatusInvalidPrinter,
-    PrintStatusConnectingServer,
-    PrintStatusReadingTimeout,
-    PrintStatusReading,
-    PrintStatusInUpgrading,
-    PrintStatusModeNotFDM,
-    PrintStatusInSystemPrinting,
-    PrintStatusInPrinting,
-    PrintStatusNozzleMatchInvalid,
-    PrintStatusNozzleDataInvalid,
-    PrintStatusNozzleDiameterMismatch,
-    PrintStatusNozzleTypeMismatch,
-    PrintStatusRefreshingMachineList,
-    PrintStatusSending,
-    PrintStatusLanModeNoSdcard,
-    PrintStatusNoSdcard,
-    PrintStatusLanModeSDcardNotAvailable,
-    PrintStatusNeedForceUpgrading,
-    PrintStatusNeedConsistencyUpgrading,
-    PrintStatusNotSupportedPrintAll,
-    PrintStatusBlankPlate,
-    PrintStatusUnsupportedPrinter,
-    PrintStatusInvalidMapping,
-    PrintStatusPrinterErrorEnd,
-
-    //Errors for filament, Block Print
-    PrintStatusFilamentErrorBegin,
-    PrintStatusNeedUpgradingAms,
-    PrintStatusAmsOnSettingup,
-    PrintStatusAmsMappingInvalid,
-    PrintStatusAmsMappingU0Invalid,
-    PrintStatusAmsMappingMixInvalid,
-    PrintStatusTPUUnsupportAutoCali,
-    PrintStatusFilamentErrorEnd,
-
-    PrintStatusErrorEnd,
-
-    /*Warnings*/
-    PrintStatusWarningBegin,
-
-    //Warnings for printer
-    PrintStatusPrinterWarningBegin,
-    PrintStatusTimelapseNoSdcard,
-    PrintStatusTimelapseWarning,
-    PrintStatusMixAmsAndVtSlotWarning,
-    PrintStatusPrinterWarningEnd,
-
-    //Warnings for filament
-    PrintStatusFilamentWarningBegin,
-    PrintStatusAmsMappingByOrder,
-    PrintStatusWarningKvalueNotUsed,
-    PrintStatusFilamentWarningEnd,
-
-    PrintStatusWarningEnd,
-
-    /*Success*/
-    //printer
-    PrintStatusReadingFinished,
-    PrintStatusSendingCanceled,
-
-    //filament
-    PrintStatusDisableAms,
-    PrintStatusAmsMappingSuccess,
-    PrintStatusAmsMappingValid,
-
-    /*Other, SendToPrinterDialog*/
-    PrintStatusNotOnTheSameLAN,
-    PrintStatusNotSupportedSendToSDCard,
-    PrintStatusPublicInitFailed,
-    PrintStatusPublicUploadFiled,
 };
 
 class Material
@@ -213,32 +134,57 @@ struct POItem
     bool operator==(const POItem &other) const { return key == other.key && value == other.value; }
 };
 
-class PrintOptionItem : public ComboBox
+#define PRINT_OPT_WIDTH  FromDIP(44)
+class PrintOptionItem : public wxPanel
 {
-    std::vector<POItem> m_ops;
-    std::string         selected_key;
-    std::string         m_param;
-
 public:
-    PrintOptionItem(wxWindow *parent, std::vector<POItem> ops, std::string param = "");
+    PrintOptionItem(wxWindow* parent, std::vector<POItem> ops, std::string param = "");
     ~PrintOptionItem() {};
 
 public:
-    bool        Enable(bool enable) override {  return ComboBox::Enable(enable); }
-
     void        setValue(std::string value);
     std::string getValue() const { return selected_key; }
+    void        update_options(std::vector<POItem> ops) {
+        if (m_ops != ops)
+        {
+            m_ops = ops;
+            selected_key = "";
 
-    void        msw_rescale() { ComboBox::Rescale();};
-    void        update_options(std::vector<POItem> ops);
+            auto width = ops.size() * PRINT_OPT_WIDTH + FromDIP(8);
+            auto height = FromDIP(22) + FromDIP(8);
+            SetMinSize(wxSize(width, height));
+            SetMaxSize(wxSize(width, height));
+            Refresh();
+        }
+    };
 
-    bool        CanBeFocused() const override { return false; }
+    bool is_enabled() const { return m_enable; }
+    void enable(bool able) {
+        if (m_enable != able)
+        {
+            m_enable = able;
+            Refresh();
+        }
+    }
+
+    void msw_rescale() { m_selected_bk.msw_rescale(); Refresh(); };
 
 private:
-    void on_combobox_changed(wxCommandEvent &evt);
+    void OnPaint(wxPaintEvent& event);
+    void render(wxDC& dc);
+    void on_left_down(wxMouseEvent& evt);
+    void doRender(wxDC& dc);
 
-    wxString    get_display_str(const std::string& key) const;
-    std::string get_key(const wxString &display_val) const;
+private:
+    ScalableBitmap m_selected_bk;
+    ScalableBitmap m_selected_bk_dark;
+    ScalableBitmap m_selected_disabled_bk;
+    ScalableBitmap m_selected_disabled_bk_dark;
+    std::vector<POItem> m_ops;
+    std::string selected_key;
+    std::string m_param;
+
+    bool m_enable = true;
 };
 
 class PrintOption : public wxPanel
@@ -254,7 +200,7 @@ public:
     ~PrintOption(){};
 
 public:
-    void        enable(bool en) { m_printoption_item->Enable(en); }
+    void        enable(bool en);
 
     void        setValue(std::string value);
     std::string getValue();
@@ -324,6 +270,7 @@ private:
     ScalableBitmap m_img_unselected_tag;
 };
 
+class PrinterInfoBox;
 class SelectMachineDialog : public DPIDialog
 {
 private:
@@ -349,7 +296,6 @@ private:
     wxColour                            m_colour_def_color{wxColour(255, 255, 255)};
     wxColour                            m_colour_bold_color{wxColour(38, 46, 48)};
     StateColor                          m_btn_bg_enable;
-    Label* m_text_bed_type;
 
     std::unordered_map<string, PrintOption*> m_checkbox_list;
     std::list<PrintOption*>                  m_checkbox_list_order;
@@ -362,11 +308,6 @@ private:
     std::vector<FilamentInfo>           m_ams_mapping_result;
     std::vector<int>                    m_filaments_map;
     std::shared_ptr<BBLStatusBarPrint>  m_status_bar;
-
-    //SendModeSwitchButton*               m_mode_print {nullptr};
-    //SendModeSwitchButton*               m_mode_send {nullptr};
-    wxStaticBitmap*                     m_printer_image{nullptr};
-    wxStaticBitmap*                     m_bed_image{nullptr};
 
     Slic3r::DynamicPrintConfig          m_required_data_config;
     Slic3r::Model                       m_required_data_model;
@@ -394,10 +335,8 @@ protected:
     wxBoxSizer*                         m_sizer_autorefill{ nullptr };
     wxBoxSizer*                         m_mapping_sugs_sizer{ nullptr };
     wxBoxSizer*                         m_change_filament_times_sizer{ nullptr };
-    ScalableButton*                     m_button_refresh{ nullptr };
     Button*                             m_button_ensure{ nullptr };
     wxStaticBitmap *                    m_rename_button{nullptr};
-    ComboBox*                           m_comboBox_printer{ nullptr };
     wxStaticBitmap*                     m_staticbitmap{ nullptr };
     wxStaticBitmap*                     m_bitmap_last_plate{ nullptr };
     wxStaticBitmap*                     m_bitmap_next_plate{ nullptr };
@@ -422,12 +361,13 @@ protected:
     wxSimplebook*                       m_rename_switch_panel{nullptr};
     wxSimplebook*                       m_simplebook{nullptr};
     wxStaticText*                       m_rename_text{nullptr};
-    Label*                              m_stext_printer_title{nullptr};
     Label*                              m_stext_time{ nullptr };
     Label*                              m_stext_weight{ nullptr };
-    Label*                              m_statictext_ams_msg{ nullptr };
+    PrinterMsgPanel *                   m_statictext_ams_msg{nullptr};
     Label*                              m_txt_change_filament_times{ nullptr };
-    Label*                              m_text_printer_msg{ nullptr };
+
+    PrinterInfoBox*                     m_printer_box { nullptr};
+    PrinterMsgPanel *                   m_text_printer_msg{nullptr};
     Label*                              m_text_printer_msg_tips{ nullptr };
     wxStaticText*                       m_staticText_bed_title{ nullptr };
     wxStaticText*                       m_stext_sending{ nullptr };
@@ -436,7 +376,6 @@ protected:
     wxTimer*                            m_refresh_timer{ nullptr };
     std::shared_ptr<PrintJob>           m_print_job;
     wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
-    wxHyperlinkCtrl*                    m_hyperlink{nullptr};
     ScalableBitmap *                    rename_editable{nullptr};
     ScalableBitmap *                    rename_editable_light{nullptr};
     wxStaticBitmap *                    timeimg{nullptr};
@@ -465,6 +404,8 @@ protected:
     wxGridSizer*                        m_sizer_ams_mapping_left{ nullptr };
     wxGridSizer*                        m_sizer_ams_mapping_right{ nullptr };
 
+    PrePrintChecker                     m_pre_print_checker;
+
 public:
     static std::vector<wxString> MACHINE_BED_TYPE_STRING;
     static void                  init_machine_bed_types();
@@ -476,7 +417,6 @@ public:
 
     void init_bind();
     void init_timer();
-    void check_focus(wxWindow* window);
     void show_print_failed_info(bool show, int code = 0, wxString description = wxEmptyString, wxString extra = wxEmptyString);
     void check_fcous_state(wxWindow* window);
     void popup_filament_backup();
@@ -491,10 +431,10 @@ public:
     void reset_timeout();
     void update_user_printer();
     void reset_ams_material();
-    void update_show_status();
+    void update_show_status(MachineObject* obj_ = nullptr);
     void update_ams_check(MachineObject* obj);
     void update_filament_change_count();
-    void     on_rename_click(wxMouseEvent &event);
+    void on_rename_click(wxMouseEvent &event);
     void on_rename_enter();
     void update_printer_combobox(wxCommandEvent& event);
     void on_cancel(wxCloseEvent& event);
@@ -522,28 +462,23 @@ public:
     void update_page_turn_state(bool show);
     void on_timer(wxTimerEvent& event);
     void on_selection_changed(wxCommandEvent &event);
-    void update_flow_cali_check(MachineObject* obj);
     void Enable_Refresh_Button(bool en);
     void Enable_Send_Button(bool en);
     void on_dpi_changed(const wxRect& suggested_rect) override;
     void update_user_machine_list();
-    void update_lan_machine_list();
-    void stripWhiteSpace(std::string& str);
-    void update_ams_status_msg(wxString msg, bool can_send_print);
-    void update_priner_status_msg(wxString msg, bool can_send_print);
+    void     update_ams_status_msg(vector<wxString> msg, bool is_error, bool is_single);
+    void     update_priner_status_msg(vector<wxString> msg, bool is_error, bool is_single);
+    //void     update_priner_status_msg(vector<wxString> msg);
     void update_printer_status_msg_tips(const wxString& msg_tips);
-    void update_print_status_msg(wxString msg, bool is_printer, bool can_send_print, bool can_refresh, const wxString& printer_msg_tips = wxEmptyString);
+    void update_print_status_msg();
     void update_print_error_info(int code, std::string msg, std::string extra);
-    void set_flow_calibration_state(bool state, bool show_tips = true);
     bool has_timelapse_warning(wxString& msg);
     bool has_timelapse_warning() { wxString msg; return has_timelapse_warning(msg);};
     bool can_support_auto_cali();
     bool is_same_printer_model();
     bool is_blocking_printing(MachineObject* obj_);
-    bool is_nozzle_data_valid(const ExtderData& ext_data) const;
-    bool is_same_nozzle_diameters(float& tag_nozzle_diameter, int& mismatch_nozzle_id) const;
-    bool is_same_nozzle_type(const Extder& extruder, std::string& filament_type) const;
-    bool has_tips(MachineObject* obj);
+    bool is_nozzle_hrc_matched(const Extder& extruder, std::string& filament_type) const;
+    bool check_sdcard_for_timelpase(MachineObject* obj);
     bool is_timeout();
     int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
     void set_print_type(PrintFromType type) {m_print_type = type;};
@@ -557,10 +492,7 @@ public:
     bool is_nozzle_type_match(ExtderData data, wxString& error_message) const;
     int  convert_filament_map_nozzle_id_to_task_nozzle_id(int nozzle_id);
 
-    std::string get_print_status_info(PrintDialogStatus status);
-
     PrintFromType get_print_type() {return m_print_type;};
-    wxString    format_bed_name(std::string plate_name);
     wxString    format_steel_name(NozzleType type);
     PrintDialogStatus  get_status() { return m_print_status; }
 
@@ -578,14 +510,41 @@ private:
     void load_option_vals(MachineObject* obj);
     void save_option_vals();
     void save_option_vals(MachineObject *obj);
+};
 
-    /*go check*/
-    bool is_error(PrintDialogStatus status)            { return (PrintStatusErrorBegin < status)           && (PrintStatusErrorEnd > status); };
-    bool is_error_printer(PrintDialogStatus status)    { return (PrintStatusPrinterErrorBegin < status)    && (PrintStatusPrinterErrorEnd > status); };
-    bool is_error_filament(PrintDialogStatus status)   { return (PrintStatusFilamentErrorBegin < status)   && (PrintStatusFilamentErrorEnd > status); };
-    bool is_warning(PrintDialogStatus status)          { return (PrintStatusWarningBegin < status)         && (PrintStatusWarningEnd > status); };
-    bool is_warning_printer(PrintDialogStatus status)  { return (PrintStatusPrinterWarningBegin < status)  && (PrintStatusPrinterWarningEnd > status); };
-    bool is_warning_filament(PrintDialogStatus status) { return (PrintStatusFilamentWarningBegin < status) && (PrintStatusFilamentWarningEnd > status); };
+class PrinterInfoBox : public StaticBox
+{
+public:
+    PrinterInfoBox(wxWindow* parent, SelectMachineDialog* select_dialog);
+
+public:
+    void  UpdatePlate(const std::string& plate_name);
+
+    ComboBox* GetPrinterComboBox() const { return m_comboBox_printer; }
+    void      SetPrinterName(const wxString& printer_name) { m_comboBox_printer->SetValue(printer_name); };
+    void      SetPrinters(const std::vector<MachineObject*>& sorted_printers);
+
+    void  EnableEditing(bool enable);
+    void  EnableRefreshButton(bool enable);
+
+    void  SetDefault(bool from_sd);
+
+private:
+    void  Create();
+
+    void  OnBtnQuestionClicked(wxCommandEvent& event);
+
+private:
+    // owner
+    SelectMachineDialog* m_select_dialog;
+
+    Label*          m_stext_printer_title{ nullptr };
+    ComboBox*       m_comboBox_printer{ nullptr };
+    ScalableButton* m_button_refresh{ nullptr };
+    ScalableButton* m_button_question { nullptr };
+
+    wxStaticBitmap* m_bed_image{ nullptr };
+    Label*         m_text_bed_type;
 };
 
 

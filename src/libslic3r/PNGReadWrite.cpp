@@ -185,7 +185,7 @@ bool decode_colored_png(const ReadBuf &in_buf, ImageColorscale &out_img)
 // Based on https://www.lemoda.net/c/write-png/
 // png_color_type is PNG_COLOR_TYPE_RGB or PNG_COLOR_TYPE_GRAY
 //FIXME maybe better to use tdefl_write_image_to_png_file_in_memory() instead?
-static bool write_rgb_or_gray_to_file(const char *file_name_utf8, size_t width, size_t height, int png_color_type, const uint8_t *data)
+static bool write_rgb_or_gray_to_file(const char *file_name_utf8, size_t width, size_t height, int png_color_type, const uint8_t *data, bool flip = false)
 {
     bool         result       = false;
 
@@ -235,10 +235,12 @@ static bool write_rgb_or_gray_to_file(const char *file_name_utf8, size_t width, 
         int line_width = width;
         if (png_color_type == PNG_COLOR_TYPE_RGB)
             line_width *= 3;
+        else if (png_color_type == PNG_COLOR_TYPE_RGBA)
+            line_width *= 4;
         for (size_t y = 0; y < height; ++ y) {
             auto row = reinterpret_cast<png_byte*>(::png_malloc(png_ptr, line_width));
             row_pointers[y] = row;
-            memcpy(row, data + line_width * y, line_width);
+            memcpy(row, data + line_width * (flip ? (height - 1 - y) : y), line_width);
         }
     }
 
@@ -260,6 +262,11 @@ png_create_write_struct_failed:
     ::fclose(fp);
 fopen_failed:
     return result;
+}
+
+bool write_gl_rgba_to_file(const char* file_name_utf8, size_t width, size_t height, const uint8_t* data_rgb)
+{
+    return write_rgb_or_gray_to_file(file_name_utf8, width, height, PNG_COLOR_TYPE_RGBA, data_rgb, true);
 }
 
 bool write_rgb_to_file(const char *file_name_utf8, size_t width, size_t height, const uint8_t *data_rgb)
