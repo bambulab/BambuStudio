@@ -1088,28 +1088,29 @@ void PrintingTaskPanel::update_left_time(wxString time)
 
 void PrintingTaskPanel::update_finish_time(wxString finish_time)
 {
-    static wxString finish_day = "";
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << " finish time: " << finish_time << " finish day: " << finish_day;
     if (finish_time == "Finished") {
         m_staticText_finish_time->SetLabelText(_L("Finished"));
-        finish_day = "";
         if (m_staticText_finish_day->IsShown()) m_staticText_finish_day->Hide();
     }
     else {
         if (!finish_time.Contains('+')) {
-            finish_day = "";
             if (m_staticText_finish_day->IsShown()) m_staticText_finish_day->Hide();
         } else {
             int index = finish_time.find_last_of('+');
             wxString day   = finish_time.Mid(index);
             finish_time    = finish_time.Mid(0, index);
-            if (finish_day != day) {
+            if (m_staticText_finish_day->getText() != day) {
                 m_staticText_finish_day->setText(day);
-                finish_day = day;
                 if (!m_staticText_finish_day->IsShown()) m_staticText_finish_day->Show();
             }
         }
-        m_staticText_finish_time->SetLabelText(_L("Finish Time: ") + finish_time);
+
+        wxString finish_time_str = _L("Finish Time: ") + finish_time;
+        if (m_staticText_finish_time->GetLabelText() != finish_time_str)
+        {
+            m_staticText_finish_time->SetLabelText(finish_time_str);
+            BOOST_LOG_TRIVIAL(info) << "PrintingTaskPanel::update_finish_time: " << finish_time;
+        }
     }
 }
 
@@ -1131,6 +1132,13 @@ void PrintingTaskPanel::update_left_time(int mc_left_time)
     if (!left_time.empty()) left_time_text = wxString::Format("-%s", left_time);
     update_left_time(left_time_text);
     update_finish_time(right_time);
+
+    static int s_mc_left_time = 0;
+    if (s_mc_left_time != mc_left_time)
+    {
+        BOOST_LOG_TRIVIAL(info) << "PrintingTaskPanel::update_left_time: " << mc_left_time << ", " << left_time_text << ": " << right_time;
+        s_mc_left_time = mc_left_time;
+    }
 }
 
 void PrintingTaskPanel::update_layers_num(bool show, wxString num)

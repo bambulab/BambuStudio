@@ -255,6 +255,7 @@ public:
     RectTextPanel(wxWindow *parent);
 
     void setText(const wxString text);
+    wxString getText() const { return text; }
 
     void OnPaint(wxPaintEvent &event);
 private:
