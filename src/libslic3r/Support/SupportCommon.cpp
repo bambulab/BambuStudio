@@ -245,7 +245,9 @@ std::pair<SupportGeneratorLayersPtr, SupportGeneratorLayersPtr> generate_interfa
                                       if (!base_interface_layer) return;
 
                                       for (const auto &contact : top_contacts) {
-                                          if (is_approx(contact->bottom_z, intermediate_layers[layer_id - 1 + support_params.num_top_interface_layers]->print_z, 0.01) &&
+                                          if (is_approx(contact->bottom_z,
+                                                        intermediate_layers[std::min(layer_id - 1 + support_params.num_top_interface_layers, intermediate_layers.size() - 1)]
+                                                            ->print_z, 0.01) &&
                                               overlaps(base_interface_layer->polygons, contact->polygons)) {
                                               base_interface_layer->up = true;
                                               break;

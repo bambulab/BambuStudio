@@ -9,6 +9,10 @@
         "nil",
         "nil"
     ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow"
+    ],
     "filament_flow_ratio": [
         "0.98",
         "0.98"
@@ -28,6 +32,14 @@
     "filament_max_volumetric_speed": [
         "1.6",
         "1.6"
+    ],
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
     ],
     "filament_ramming_volumetric_speed": [
         "-1",
