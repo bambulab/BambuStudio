@@ -1788,6 +1788,25 @@ wxBoxSizer* MainFrame::create_side_tools()
                     }
                 }
 
+                if (printer_model == "Bambu Lab H2") {
+                    if ((wxGetApp().app_config->get("prompt_for_brittle_filaments") == "true") ) {
+                        auto used_filaments = curr_plate->get_extruders();
+                        std::transform(used_filaments.begin(), used_filaments.end(), used_filaments.begin(), [](auto i) {return i - 1; });
+                        auto full_config = wxGetApp().preset_bundle->full_config();
+                        auto filament_types = full_config.option<ConfigOptionStrings>("filament_type")->values;
+                        if (std::any_of(used_filaments.begin(), used_filaments.end(), [filament_types](int idx) { return filament_types[idx] == "PPA-CF" || filament_types[idx] == "PPS-CF"; })) {
+                            MessageDialog dlg(this, _L("PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "), _L("Tips"), wxYES_NO);
+                            auto  res = dlg.ShowModal();
+                            if (res == wxID_YES) {
+                                wxLaunchDefaultBrowser("https://e.bambulab.com/t?c=UC64kdlpHxN3Mb15");
+                                slice = false;
+                            }
+                            wxGetApp().app_config->set("prompt_for_brittle_filaments", "false");
+                        }
+                    }
+                }
+
+
                 if (slice) {
                     if (m_slice_select == eSliceAll)
                         wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
