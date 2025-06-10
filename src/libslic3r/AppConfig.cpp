@@ -465,6 +465,10 @@ void AppConfig::set_defaults()
         set_bool("show_wrapping_detect_dialog", true);
     }
 
+    if (get("prompt_for_brittle_filaments").empty()){
+        set_bool("prompt_for_brittle_filaments", true);
+    }
+
     // Remove legacy window positions/sizes
     erase("app", "main_frame_maximized");
     erase("app", "main_frame_pos");
