@@ -6001,7 +6001,7 @@ bool GUI_App::load_language(wxString language, bool initial)
         else {
             // Get the system language.
             const wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());
-            if (lang_system != wxLANGUAGE_UNKNOWN) {
+            if (std::find(s_supported_languages.begin(), s_supported_languages.end(), lang_system) != s_supported_languages.end()) {
                 m_language_info_system = wxLocale::GetLanguageInfo(lang_system);
 #ifdef __WXMSW__
                 WCHAR wszLanguagesBuffer[LOCALE_NAME_MAX_LENGTH];
