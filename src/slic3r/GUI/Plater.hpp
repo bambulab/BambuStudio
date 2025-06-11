@@ -353,6 +353,7 @@ public:
 
     const VendorProfile::PrinterModel * get_curr_printer_model();
     std::map<std::string, std::string> get_bed_texture_maps();
+    int                                get_right_icon_offset_bed();
 
     static wxColour get_next_color_for_filament();
     static wxString get_slice_warning_string(GCodeProcessorResult::SliceWarning& warning);

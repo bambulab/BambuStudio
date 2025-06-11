@@ -85,7 +85,7 @@ PresetBundle::PresetBundle()
         for(const std::string& opt_key : default_config.keys()){
             ConfigOption* opt = default_config.optptr(opt_key, false);
             bool is_override_key = std::find(filament_extruder_override_keys.begin(),filament_extruder_override_keys.end(), opt_key) != filament_extruder_override_keys.end();
-            if(!is_override_key || !opt->nullable()) 
+            if(!is_override_key || !opt->nullable())
                 continue;
             opt->deserialize("nil",ForwardCompatibilitySubstitutionRule::Disable);
         }
@@ -3856,6 +3856,8 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
                 } else if (boost::iequals(it.key(), BBL_JSON_KEY_DEFAULT_BED_TYPE)) {
                     // get bed type
                     model.default_bed_type = it.value();
+                } else if (boost::iequals(it.key(), BBL_JSON_KEY_RIGHT_ICON_OFFSET_BED)) {
+                    model.right_icon_offset_bed = it.value();
                 } else if (boost::iequals(it.key(), BBL_JSON_KEY_BOTTOM_TEXTURE_END_NAME)) {
                     model.bottom_texture_end_name = it.value();
                 } else if (boost::iequals(it.key(), BBL_JSON_KEY_BOTTOM_TEXTURE_RECT)) {

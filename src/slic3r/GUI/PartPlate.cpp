@@ -53,6 +53,7 @@ static const int PARTPLATE_ICON_SIZE = 16;
 static const int PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE = 12;
 static const int PARTPLATE_PLATE_NAME_FIX_HEIGHT_SIZE = 20;
 static const int PARTPLATE_ICON_GAP_TOP = 3;
+static const int PARTPLATE_NAME_EDIT_ICON_GAP_LEFT = 3;
 static const int PARTPLATE_ICON_GAP_LEFT = 3;
 static const int PARTPLATE_ICON_GAP_Y = 5;
 static const int PARTPLATE_TEXT_OFFSET_X1 = 3;
@@ -416,6 +417,15 @@ void PartPlate::calc_height_limit() {
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create height limit top lines\n";
 }
 
+int PartPlate::get_right_icon_offset_bed() {
+    if (&wxGetApp() && wxGetApp().plater()) {
+        auto offset = wxGetApp().plater()->get_right_icon_offset_bed();
+        return offset == 0 ? PARTPLATE_ICON_GAP_LEFT : offset;
+    } else {
+        return PARTPLATE_ICON_GAP_LEFT;
+    }
+}
+
 void PartPlate::calc_vertex_for_plate_name(GLTexture &texture, GLModel &gl_model)
 {
 	if (texture.get_width() > 0 && texture.get_height()) {
@@ -427,10 +437,10 @@ void PartPlate::calc_vertex_for_plate_name(GLTexture &texture, GLModel &gl_model
 		w                  = int(factor * (texture.get_width() * 16) / texture.get_height());
 		h                  = PARTPLATE_PLATE_NAME_FIX_HEIGHT_SIZE;
 		Vec2d p            = bed_ext[3] + Vec2d(0, PARTPLATE_PLATENAME_OFFSET_Y + h * texture.m_original_height / texture.get_height());
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) - h )});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w - offset_x), scale_(p(1) - h )});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w - offset_x), scale_(p(1) )});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) )});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + offset_x), scale_(p(1) - h)});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + w - offset_x), scale_(p(1) - h)});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + w - offset_x), scale_(p(1))});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + offset_x), scale_(p(1))});
 
 		auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
         gl_model.reset();
@@ -454,38 +464,23 @@ void PartPlate::calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int ind
 	if (texture && texture->get_width() > 0 && texture->get_height()) {
 		w    = int(factor * (texture->get_original_width() * 16) / texture->get_height()) + 1;
 
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w), scale_(p(1) - h )});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1) - h)});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1))});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w), scale_(p(1) )});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + w), scale_(p(1) - h)});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + w + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1) - h)});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + w + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1))});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + w), scale_(p(1))});
 
 		triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
 	} else {
 
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x ), scale_(p(1) - h )});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1) - h)});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1))});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) )});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + offset_x), scale_(p(1) - h)});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + offset_x + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1) - h)});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + offset_x + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1))});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + offset_x), scale_(p(1))});
 
 		triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
     }
     gl_model.reset();
     if (!gl_model.init_model_from_poly(triangles, GROUND_Z))
-		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
-}
-
-void PartPlate::calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer)
-{
-	ExPolygon poly;
-    Vec2d &   p = m_partplate_list->m_shape[2];
-
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT), scale_(p(1) - icon_count * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP) });
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE), scale_(p(1) - icon_count * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y)- PARTPLATE_ICON_GAP_TOP) });
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE), scale_(p(1) - PARTPLATE_ICON_GAP_TOP)});
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT), scale_(p(1) - PARTPLATE_ICON_GAP_TOP) });
-
-	auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
-	if (!buffer.set_from_triangles(triangles, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
 }
 
@@ -3351,11 +3346,11 @@ void PartPlateList::calc_vertex_for_number(int index, bool one_number, GLModel &
 #else // in the bottom
     Vec2d &p        = m_shape[1];
     float  offset_x = one_number ? PARTPLATE_TEXT_OFFSET_X1 : PARTPLATE_TEXT_OFFSET_X2;
-
-    poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) + PARTPLATE_TEXT_OFFSET_Y)});
-    poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE - offset_x), scale_(p(1) + PARTPLATE_TEXT_OFFSET_Y)});
-    poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE - offset_x), scale_(p(1) + PARTPLATE_ICON_SIZE - PARTPLATE_TEXT_OFFSET_Y)});
-    poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) + PARTPLATE_ICON_SIZE - PARTPLATE_TEXT_OFFSET_Y)});
+    auto   right_icon_offset_bed = m_plate_list.size() > 0 ? m_plate_list[0]->get_right_icon_offset_bed() : PARTPLATE_ICON_GAP_LEFT;
+    poly.contour.append({scale_(p(0) + right_icon_offset_bed + offset_x), scale_(p(1) + PARTPLATE_TEXT_OFFSET_Y)});
+    poly.contour.append({scale_(p(0) + right_icon_offset_bed + PARTPLATE_ICON_SIZE - offset_x), scale_(p(1) + PARTPLATE_TEXT_OFFSET_Y)});
+    poly.contour.append({scale_(p(0) + right_icon_offset_bed + PARTPLATE_ICON_SIZE - offset_x), scale_(p(1) + PARTPLATE_ICON_SIZE - PARTPLATE_TEXT_OFFSET_Y)});
+    poly.contour.append({scale_(p(0) + right_icon_offset_bed + offset_x), scale_(p(1) + PARTPLATE_ICON_SIZE - PARTPLATE_TEXT_OFFSET_Y)});
 #endif
     auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
     gl_model.reset();
@@ -3366,14 +3361,11 @@ void PartPlateList::calc_vertex_for_icons(int index, GLModel &gl_model)
 {
     ExPolygon poly;
     Vec2d &   p = m_shape[2];
-
-    poly.contour.append(
-        {scale_(p(0) + PARTPLATE_ICON_GAP_LEFT), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP - PARTPLATE_ICON_SIZE)});
-    poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE),
-                         scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP - PARTPLATE_ICON_SIZE)});
-    poly.contour.append(
-        {scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP)});
-    poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP)});
+    auto      right_icon_offset_bed = m_plate_list.size() > 0 ? m_plate_list[0]->get_right_icon_offset_bed() : PARTPLATE_ICON_GAP_LEFT;
+    poly.contour.append({scale_(p(0) + right_icon_offset_bed), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP - PARTPLATE_ICON_SIZE)});
+    poly.contour.append({scale_(p(0) + right_icon_offset_bed + PARTPLATE_ICON_SIZE), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP - PARTPLATE_ICON_SIZE)});
+    poly.contour.append({scale_(p(0) + right_icon_offset_bed + PARTPLATE_ICON_SIZE), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP)});
+    poly.contour.append({scale_(p(0) + right_icon_offset_bed), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP)});
 
     auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
     gl_model.reset();
