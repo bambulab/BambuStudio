@@ -158,9 +158,9 @@ private:
     void calc_bounding_boxes() const;
     void calc_height_limit();
 
+    int get_right_icon_offset_bed();
     void calc_vertex_for_plate_name(GLTexture &texture, GLModel &buffer);
     void calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int index, GLModel &buffer);
-    void calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer);
     bool calc_bed_3d_boundingbox(BoundingBoxf3 & box_in_plate_origin);
     void render_logo(bool bottom, bool render_cali = true);
     void render_logo_texture(GLTexture &logo_texture, GLModel &logo_buffer, bool bottom);

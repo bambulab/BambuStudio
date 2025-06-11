@@ -4992,6 +4992,15 @@ std::map<std::string, std::string> Plater::get_bed_texture_maps()
     return {};
 }
 
+int Plater::get_right_icon_offset_bed()
+{
+    auto pm = get_curr_printer_model();
+    if (pm && pm->right_icon_offset_bed.size() > 0) {
+        return std::stoi(pm->right_icon_offset_bed);
+    }
+    return 0;
+}
+
 wxColour Plater::get_next_color_for_filament()
 {
     static int curr_color_filamenet = 0;
