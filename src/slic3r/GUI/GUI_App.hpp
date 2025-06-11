@@ -27,6 +27,7 @@
 #include <wx/string.h>
 #include <wx/snglinst.h>
 #include <wx/msgdlg.h>
+#include <wx/language.h>
 
 #include <mutex>
 #include <stack>
@@ -737,6 +738,26 @@ bool is_support_filament(int extruder_id);
 bool is_soluble_filament(int extruder_id);
 // check if the filament for model is in the list
 bool has_filaments(const std::vector<string>& model_filaments);
+
+static std::vector<wxLanguage> s_supported_languages = {
+    wxLANGUAGE_ENGLISH,
+    wxLANGUAGE_CHINESE_SIMPLIFIED,
+    wxLANGUAGE_GERMAN,
+    wxLANGUAGE_FRENCH,
+    wxLANGUAGE_SPANISH,
+    wxLANGUAGE_SWEDISH,
+    wxLANGUAGE_DUTCH,
+    wxLANGUAGE_HUNGARIAN,
+    wxLANGUAGE_JAPANESE,
+    wxLANGUAGE_ITALIAN,
+    wxLANGUAGE_KOREAN,
+    wxLANGUAGE_RUSSIAN,
+    wxLANGUAGE_CZECH,
+    wxLANGUAGE_UKRAINIAN,
+    wxLANGUAGE_PORTUGUESE_BRAZILIAN,
+    wxLANGUAGE_TURKISH,
+    wxLANGUAGE_POLISH
+};
 } // namespace GUI
 } // Slic3r
 
