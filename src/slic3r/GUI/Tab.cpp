@@ -3629,6 +3629,7 @@ void TabFilament::toggle_options()
             m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(
                 m_preset_bundle);
     }
+    bool is_multi_extruder = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->size() > 1;
 
     if (m_active_page->title() == "Cooling")
     {
@@ -3667,9 +3668,10 @@ void TabFilament::toggle_options()
             toggle_line(el, is_BBL_printer);
     }
 
-    if(m_active_page->title() == "Multi Filament"){
+    if (m_active_page->title() == "Multi Filament") {
         const int extruder_idx = m_variant_combo->GetSelection();
-        toggle_line("retraction_distances_when_ec", m_config->opt_bool_nullable("long_retractions_when_ec", extruder_idx), 256 + extruder_idx);
+        toggle_line("long_retractions_when_ec", is_multi_extruder && is_BBL_printer, 256 + extruder_idx);
+        toggle_line("retraction_distances_when_ec", is_multi_extruder && is_BBL_printer && m_config->opt_bool_nullable("long_retractions_when_ec", extruder_idx), 256 + extruder_idx);
     }
 
     if (m_active_page->title() == "Setting Overrides")
