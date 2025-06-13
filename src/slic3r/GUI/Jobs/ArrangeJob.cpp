@@ -798,7 +798,7 @@ void ArrangeJob::finalize()
         // Move the unprintable items to the last virtual bed.
         // Note ap.apply() moves relatively according to bed_idx, so we need to subtract the orignal bed_idx
         for (ArrangePolygon& ap : m_unprintable) {
-            ap.bed_idx = beds + 1;
+            ap.bed_idx = -1;
             plate_list.postprocess_arrange_polygon(ap, true);
 
             ap.apply();

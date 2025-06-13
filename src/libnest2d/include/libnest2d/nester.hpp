@@ -11,10 +11,11 @@
 #include <libnest2d/geometry_traits.hpp>
 #define LARGE_COST_TO_REJECT 1e7
 #define COST_OF_NEW_PLATE 0.1
+#define MIN_SEPARATION scale_(0.5) // ensure minimal separation between items
 
 namespace libnest2d {
 
-    static const constexpr int BIN_ID_UNSET = -1;
+    static const constexpr int BIN_ID_UNSET = -2;
     static const constexpr int BIN_ID_UNFIT = -1;
 
 /**
@@ -88,7 +89,7 @@ public:
     bool is_wipe_tower{ false };
     bool is_extrusion_cali_object{ false };
     bool has_tried_without_extrusion_cali_obj{ false };
-    std::vector<double> allowed_rotations{0.};
+    std::vector<std::pair<double, Coord>> allowed_rotations{{0., 0.}}; // <rotation, inflation>
 
     /// The type of the shape which was handed over as the template argument.
     using ShapeType = RawShape;

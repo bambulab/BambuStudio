@@ -89,7 +89,9 @@ public:
             std::stringstream ss;
             ss << "initial order: " << it->get().name << ", p=" << it->get().priority() << ", bed_temp=" << it->get().bed_temp << ", height=" << it->get().height
                << ", area=" << it->get().area() << ", allowed_rotations=";
-            for(auto r: it->get().allowed_rotations) ss << r << ", ";
+            for (auto [r, i] : it->get().allowed_rotations)
+                ss << "<" << r << "," << i << ">"
+                   << ", ";
             if (this->unfitindicator_)
                 this->unfitindicator_(ss.str());
         }
@@ -102,7 +104,9 @@ public:
             for (auto it = fixed_bins[i].begin(); it != fixed_bins[i].end(); ++it) {
                 ss << it->get().name << ", p=" << it->get().priority() << ", bed_temp=" << it->get().bed_temp << ", height=" << it->get().height
                    << ", area=" << it->get().area() << ", allowed_rotations=";
-                for(auto r: it->get().allowed_rotations) ss << r << ", ";
+                for (auto [r, i] : it->get().allowed_rotations)
+                    ss << "<" << r << "," << i << ">"
+                       << ", ";
                 ss << ";   ";
             }
             if (this->unfitindicator_)

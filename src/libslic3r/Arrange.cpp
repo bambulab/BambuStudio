@@ -212,10 +212,10 @@ void fill_config(PConf& pcfg, const ArrangeParams &params) {
 static double fixed_overfit(const std::tuple<double, Box>& result, const Box &binbb)
 {
     double score = std::get<0>(result);
-    Box pilebb  = std::get<1>(result);
-    Box fullbb  = sl::boundingBox(pilebb, binbb);
-    auto diff = double(fullbb.area()) - binbb.area();
-    if(diff > 0) score += diff;
+    //Box pilebb  = std::get<1>(result);
+    //Box fullbb  = sl::boundingBox(pilebb, binbb);
+    //auto diff = double(fullbb.area()) - binbb.area();
+    //if(diff > 0) score += diff;
 
     return score;
 }
@@ -874,39 +874,65 @@ void _arrange(
     ArrangeParams mod_params    = params;
     mod_params.min_obj_distance = 0; // items are already inflated
 
-    // Use the minimum bounding box rotation as a starting point.
-    // TODO: This only works for convex hull. If we ever switch to concave
-    // polygon nesting, a convex hull needs to be calculated.
-    if (params.align_to_y_axis) {
-        for (auto &itm : shapes) {
-            itm.allowed_rotations = {0.0};
-            // only rotate the object if its long axis is significanly larger than its short axis (more than 10%)
-            try {
-                auto bbox = minAreaBoundingBox<ExPolygon, TCompute<ExPolygon>, boost::rational<LargeInt>>(itm.transformedShape());
-                auto w = bbox.width(), h = bbox.height();
-                if (w > h * 1.1 || h > w * 1.1) {
-                    itm.allowed_rotations = {bbox.angleToX() + PI / 2, 0.0};
-                }
-            } catch (const std::exception &e) {
-                // min_area_boundingbox_rotation may throw exception of dividing 0 if the object is already perfectly aligned to X
-                BOOST_LOG_TRIVIAL(error) << "arranging min_area_boundingbox_rotation fails, msg=" << e.what();
+    for (auto &itm : shapes) {
+        // If the item is too big, try to find a rotation that makes it fit
+        if constexpr (std::is_same_v<BinT, Box>) {
+            std::vector<double> allowed_angles{0.};
+            auto bb = itm.boundingBox();
+            auto pure_bin_width = bin.width() + scale_(params.bed_shrink_x) * 2;
+            auto pure_bin_height = bin.height() + scale_(params.bed_shrink_y) * 2;
+            auto                pure_item_width = bb.width() - itm.inflation() * 2;
+            auto                pure_item_height = bb.height() - itm.inflation() * 2;
+            if (pure_item_width >= pure_bin_width || pure_item_height >= pure_bin_height) {
+                auto angle = fit_into_box_rotation(itm.transformedShape(), bin);
+                BOOST_LOG_TRIVIAL(debug) << itm.name << " too big, rotate to fit_into_box_rotation=" << angle;
+                allowed_angles = {angle};
             }
-        }
-    } else if (params.allow_rotations) {
-        for (auto &itm : shapes) {
-            auto angle = min_area_boundingbox_rotation(itm.transformedShape());
-            BOOST_LOG_TRIVIAL(debug) << itm.name << " min_area_boundingbox_rotation=" << angle << ", original angle=" << itm.rotation();
-            itm.rotate(angle);
 
-            // If the item is too big, try to find a rotation that makes it fit
-            if constexpr (std::is_same_v<BinT, Box>) {
-                auto bb = itm.boundingBox();
-                if (bb.width() >= bin.width() || bb.height() >= bin.height()) {
-                    BOOST_LOG_TRIVIAL(debug) << itm.name << " too big, rotate to " << fit_into_box_rotation(itm.transformedShape(), bin);
-                    itm.rotate(fit_into_box_rotation(itm.transformedShape(), bin));
+            // Use the minimum bounding box rotation as a starting point.
+            // TODO: This only works for convex hull. If we ever switch to concave
+            // polygon nesting, a convex hull needs to be calculated.
+            else if (params.align_to_y_axis) {
+                // only rotate the object if its long axis is significanly larger than its short axis (more than 10%)
+                try {
+                    auto bbox = minAreaBoundingBox<ExPolygon, TCompute<ExPolygon>, boost::rational<LargeInt>>(itm.transformedShape());
+                    auto w = bbox.width(), h = bbox.height();
+                    if (w > h * 1.1 || h > w * 1.1) {
+                        if (fabs(bbox.angleToX() + PI / 2) > EPSILON)
+                            allowed_angles = {bbox.angleToX() + PI / 2, 0.0};
+                        else
+                            allowed_angles = {0.0};
+                    }
+                } catch (const std::exception &e) {
+                    // min_area_boundingbox_rotation may throw exception of dividing 0 if the object is already perfectly aligned to X
+                    BOOST_LOG_TRIVIAL(error) << "arranging min_area_boundingbox_rotation fails, msg=" << e.what();
+                }
+            } else if (params.allow_rotations) {
+                auto angle = min_area_boundingbox_rotation(itm.transformedShape());
+                BOOST_LOG_TRIVIAL(debug) << itm.name << " min_area_boundingbox_rotation=" << angle << ", original angle=" << itm.rotation();
+
+                if (fabs(angle) < EPSILON) {
+                    allowed_angles = {0., PI * 0.25, PI * 0.5, PI * 0.75};
+                } else {
+                    allowed_angles = {0., angle, angle + PI * 0.25, angle + PI * 0.5, angle + PI * 0.75};
                 }
             }
-            itm.allowed_rotations = {0., PI / 4., PI / 2, 3. * PI / 4.};
+
+            itm.allowed_rotations.clear();
+            itm.allowed_rotations.reserve(allowed_angles.size());
+            double original_angle = itm.rotation();
+            auto original_infl  = itm.inflation();
+            for (auto angle : allowed_angles) {
+                auto rotsh = itm.rawShape();
+                sl::rotate(rotsh, angle);
+                bb         = sl::boundingBox(rotsh);
+                bp2d::Coord infl = std::min(original_infl, (bp2d::Coord)(std::min(pure_bin_width - bb.width(), pure_bin_height - bb.height())) / 2);
+                if (infl >= 0/* && itm.height <= params.printable_height*/) {
+                    // if the bed is expanded, the item should also be expanded
+                    if (params.bed_shrink_x < 0) infl = std::max(infl,(bp2d::Coord) scale_(-params.bed_shrink_x));
+                    itm.allowed_rotations.push_back({angle, infl});
+                }
+            }
         }
     }
 
@@ -923,7 +949,7 @@ void _arrange(
 
     std::vector<std::reference_wrapper<Item>> inp;
     inp.reserve(shapes.size() + excludes.size());
-    for (auto &itm : shapes  ) inp.emplace_back(itm);
+    for (auto &itm : shapes) inp.emplace_back(itm);
     for (auto &itm : excludes) inp.emplace_back(itm);
 
 
