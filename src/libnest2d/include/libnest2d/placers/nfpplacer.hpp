@@ -573,6 +573,10 @@ public:
         if (r) {
             r.item_ptr_->translation(r.move_);
             r.item_ptr_->rotation(r.rot_);
+
+            if (r.item_ptr_->inflation() < MIN_SEPARATION) {
+                r.item_ptr_->inflation(MIN_SEPARATION);
+            }
             items_.emplace_back(*(r.item_ptr_));
             merged_pile_ = nfp::merge(merged_pile_, r.item_ptr_->transformedShape());
             score_ += r.score();
@@ -721,6 +725,7 @@ private:
         auto initial_rot = item.rotation();
         Vertex final_tr = {0, 0};
         Radians final_rot = initial_rot;
+        Coord   final_infl  = item.inflation();
         Shapes nfps;
 
         auto& bin = bin_;
@@ -775,53 +780,11 @@ private:
                                      .str());
         }
 
-        bool first_object = std::all_of(items_.begin(), items_.end(), [&](const Item &rawShape) { return rawShape.is_virt_object && !rawShape.is_wipe_tower; });
-
-        if (first_object) {
-            setInitialPosition(item);
-            auto best_tr = item.translation();
-            auto best_rot = item.rotation();
-            best_overfit = std::numeric_limits<double>::max();
-
-            // try normal inflation first, then 0 inflation if not fit. See STUDIO-5566.
-            // Note for by-object printing, bed is expanded by -config_.bed_shrink.x().
-            Coord inflation_back = item.inflation();
-            Coord inflations[2]={inflation_back, 0};
-            for (size_t i = 0; i < 2; i++) {
-                item.inflation(inflations[i]);
-                for (auto rot : item.allowed_rotations) {
-                    item.translation(initial_tr);
-                    item.rotation(initial_rot + rot);
-                    setInitialPosition(item);
-                    if (!overlapWithVirtObject(item, binbb)) {
-                        double of = overfit(item.transformedShape(), bin_);
-                        if (of < best_overfit) {
-                            best_overfit = of;
-                            best_tr      = item.translation();
-                            best_rot     = item.rotation();
-                            if (best_overfit <= 0) {
-                                config_.progressFunc("First object " + item.name + " can fit with rot=" + std::to_string(rot));
-                                break;
-                            }
-                        }
-                    }
-                }
-                can_pack = best_overfit <= 0;
-                if(can_pack) break;
-            }
-            item.inflation(inflation_back);
-
-            if (can_pack)
-                global_score = 0.2;
-            item.rotation(best_rot);
-            item.translation(best_tr);
-        }
-        if (can_pack == false) {
+        {
 
             Pile merged_pile = merged_pile_;
-
-            for(auto rot : item.allowed_rotations) {
-
+            for (auto [rot, infl] : item.allowed_rotations) {
+                item.inflation(infl);
                 item.translation(initial_tr);
                 item.rotation(initial_rot + rot);
                 item.boundingBox(); // fill the bb cache
@@ -829,9 +792,7 @@ private:
                 // place the new item outside of the print bed to make sure
                 // it is disjunct from the current merged pile
                 placeOutsideOfBin(item);
-
                 nfps = calcnfp(item, binbb, Lvl<MaxNfpLevel::value>());
-
 
                 auto iv = item.referenceVertex();
 
@@ -858,27 +819,6 @@ private:
                 {
                     return opt.hidx < 0? ecache[opt.nfpidx].coords(opt.relpos) :
                             ecache[opt.nfpidx].coords(opt.hidx, opt.relpos);
-                };
-
-                auto alignment = config_.alignment;
-
-                auto boundaryCheck = [alignment, &merged_pile, &getNfpPoint,
-                        &item, &bin, &iv, &startpos] (const Optimum& o)
-                {
-                    auto v = getNfpPoint(o);
-                    auto d = (v - iv) + startpos;
-                    item.translation(d);
-
-                    merged_pile.emplace_back(item.transformedShape());
-                    auto chull = sl::convexHull(merged_pile);
-                    merged_pile.pop_back();
-
-                    double miss = 0;
-                    if(alignment == Config::Alignment::DONT_ALIGN)
-                       miss = sl::isInside(chull, bin) ? -1.0 : 1.0;
-                    else miss = overfit(chull, bin);
-
-                    return miss;
                 };
 
                 Optimum optimum(0, 0);
@@ -929,23 +869,16 @@ private:
                         }
                     }, policy);
 
-                    auto resultcomp =
-                            []( const OptResult& r1, const OptResult& r2 ) {
+                    auto resultcomp = []( const OptResult& r1, const OptResult& r2 ) {
                         return r1.score < r2.score;
                     };
 
-                    auto mr = *std::min_element(results.begin(), results.end(),
-                                                resultcomp);
+                    auto mr = *std::min_element(results.begin(), results.end(), resultcomp);
 
                     if(mr.score < best_score) {
                         Optimum o(std::get<0>(mr.optimum), ch, -1);
-                        double miss = boundaryCheck(o);
-                        if(miss <= 0) {
-                            best_score = mr.score;
-                            optimum = o;
-                        } else {
-                            best_overfit = std::min(miss, best_overfit);
-                        }
+                        best_score = mr.score;
+                        optimum = o;
                     }
 
                     for(unsigned hidx = 0; hidx < cache.holeCount(); ++hidx) {
@@ -981,20 +914,12 @@ private:
                             }
                         }, policy);
 
-                        auto hmr = *std::min_element(results.begin(),
-                                                    results.end(),
-                                                    resultcomp);
+                        auto hmr = *std::min_element(results.begin(), results.end(), resultcomp);
 
                         if(hmr.score < best_score) {
-                            Optimum o(std::get<0>(hmr.optimum),
-                                      ch, hidx);
-                            double miss = boundaryCheck(o);
-                            if(miss <= 0.0) {
-                                best_score = hmr.score;
-                                optimum = o;
-                            } else {
-                                best_overfit = std::min(miss, best_overfit);
-                            }
+                            Optimum o(std::get<0>(hmr.optimum), ch, hidx);
+                            best_score = hmr.score;
+                            optimum = o;
                         }
                     }
                 }
@@ -1003,12 +928,14 @@ private:
                     auto d = (getNfpPoint(optimum) - iv) + startpos;
                     final_tr = d;
                     final_rot = initial_rot + rot;
+                    final_infl   = infl;
                     can_pack = true;
                     global_score = best_score;
                     break;
                 }
             }
 
+            item.inflation(final_infl);
             item.translation(final_tr);
             item.rotation(final_rot);
         }
@@ -1038,6 +965,7 @@ private:
         auto    initial_rot = item.rotation();
         Vertex  final_tr    = initial_tr;
         Radians final_rot   = initial_rot;
+        Coord   final_infl  = item.inflation();
         Shapes  nfps;
 
         auto   binbb  = sl::boundingBox(bin_);
@@ -1047,9 +975,10 @@ private:
                                   unscale_(it.get().translation()[1]) % plateID())
                                      .str());
         }
-       
+
         {
-            for (auto rot : item.allowed_rotations) {
+            for (auto [rot,infl] : item.allowed_rotations) {
+                item.inflation(infl);
                 item.translation(initial_tr);
                 item.rotation(initial_rot + rot);
 
@@ -1057,11 +986,13 @@ private:
                     can_pack     = true;
                     final_tr     = initial_tr;
                     final_rot    = initial_rot + rot;
+                    final_infl   = infl;
                     global_score = 0.3;
                     break;
                 }
             }
 
+            item.inflation(final_infl);
             item.translation(final_tr);
             item.rotation(final_rot);
         }
@@ -1096,9 +1027,9 @@ private:
         std::stringstream ss;
         ss.setf(std::ios::fixed | std::ios::showpoint);
         ss.precision(1);
-        ss << "t=" << round(item.translation().x() / 1e6) << ","
-           << round(item.translation().y() / 1e6)
-           //<< "-rot=" << round(item.rotation().toDegrees())
+        ss << "t=" << round(unscale_( item.translation().x() )) << ","
+           << round(unscale_(item.translation().y()))
+           << "-rot=" << round(item.rotation())
            << "-sco=" << round(global_score);
         svgwriter.draw_text(20, 20, ss.str(), "blue", 10);
         ss.str("");
