@@ -100,8 +100,8 @@ const double GLGizmoAdvancedCut::Margin = 20.0;
 const std::array<float, 4> GLGizmoAdvancedCut::GrabberColor      = { 1.0, 1.0, 0.0, 1.0 };
 const std::array<float, 4> GLGizmoAdvancedCut::GrabberHoverColor = { 0.7, 0.7, 0.0, 1.0};
 
-GLGizmoAdvancedCut::GLGizmoAdvancedCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-    : GLGizmoRotate3D(parent, icon_filename, sprite_id, nullptr)
+GLGizmoAdvancedCut::GLGizmoAdvancedCut(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoRotate3D(parent, sprite_id, nullptr)
     , m_movement(0.0)
     , m_buffered_movement(0.0)
     , m_keep_upper(true)
@@ -437,6 +437,11 @@ BoundingBoxf3 GLGizmoAdvancedCut::get_bounding_box() const
     // end m_plane aabb
 
     return t_aabb;
+}
+
+std::string GLGizmoAdvancedCut::get_icon_filename(bool b_dark_mode) const
+{
+    return b_dark_mode ? "toolbar_cut_dark.svg" : "toolbar_cut.svg";
 }
 
 bool GLGizmoAdvancedCut::on_init()
@@ -2181,8 +2186,17 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
         unit_size = vec_max + ImGui::GetStyle().FramePadding.x * 2.0f;
     }
 
-    CutConnectors &connectors     = m_c->selection_info()->model_object()->cut_connectors;
-    const bool     has_connectors = !connectors.empty();
+    bool has_connectors = false;
+    if (m_c) {
+        const auto& p_selection_info = m_c->selection_info();
+        if (p_selection_info) {
+            const auto& p_model_object = p_selection_info->model_object();
+            if (p_model_object) {
+                const auto& t_commectors = p_model_object->cut_connectors;
+                has_connectors = !t_commectors.empty();
+            }
+        }
+    }
 
     m_imgui->disabled_begin(has_connectors);
     if (render_cut_mode_combo(caption_size + 1 * space_size, 4 * unit_size + 0.5 * space_size)) {
@@ -2373,7 +2387,7 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(x, get_cur_y);
 
-    float f_scale = m_parent.get_gizmos_manager().get_layout_scale();
+    float f_scale = m_parent.get_main_toolbar_scale();
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale));
 
     ImGui::SameLine();
@@ -2391,7 +2405,19 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
 
 void GLGizmoAdvancedCut::init_connectors_input_window_data()
 {
-    CutConnectors &connectors = m_c->selection_info()->model_object()->cut_connectors;
+    if (!m_c) {
+        return;
+    }
+    const auto p_selection_info = m_c->selection_info();
+    if (!p_selection_info) {
+        return;
+    }
+    const auto& p_model_object = p_selection_info->model_object();
+    if (!p_model_object) {
+        return;
+    }
+
+    CutConnectors &connectors = p_model_object->cut_connectors;
 
     float connectors_cap    = m_imgui->calc_text_size(_L("Connectors")).x;
     float type_cap          = m_imgui->calc_text_size(_L("Type")).x;
@@ -2459,7 +2485,18 @@ void GLGizmoAdvancedCut::init_connectors_input_window_data()
 
 void GLGizmoAdvancedCut::render_connectors_input_window(float x, float y, float bottom_limit)
 {
-    CutConnectors &connectors = m_c->selection_info()->model_object()->cut_connectors;
+    if (!m_c) {
+        return;
+    }
+    const auto p_selection_info = m_c->selection_info();
+    if (!p_selection_info) {
+        return;
+    }
+    const auto& p_model_object = p_selection_info->model_object();
+    if (!p_model_object) {
+        return;
+    }
+    CutConnectors &connectors = p_model_object->cut_connectors;
 
     // update when change input window
     m_imgui->set_requires_extra_frame();
@@ -2546,7 +2583,7 @@ void GLGizmoAdvancedCut::render_connectors_input_window(float x, float y, float 
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(x, get_cur_y);
 
-    float f_scale = m_parent.get_gizmos_manager().get_layout_scale();
+    float f_scale = m_parent.get_main_toolbar_scale();
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale));
 
     ImGui::SameLine();

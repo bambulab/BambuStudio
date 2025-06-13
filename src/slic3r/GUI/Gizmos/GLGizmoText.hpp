@@ -120,15 +120,17 @@ private:
     const std::string move_snapshot_name = "Text move";
 
 public:
-    GLGizmoText(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    GLGizmoText(GLCanvas3D& parent, unsigned int sprite_id);
     ~GLGizmoText();
 
     void update_font_texture();
 
-    bool gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_position, bool shift_down, bool alt_down, bool control_down);
+    bool gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_position, bool shift_down, bool alt_down, bool control_down) override;
 
     bool is_mesh_point_clipped(const Vec3d &point, const Transform3d &trafo) const;
     BoundingBoxf3 bounding_box() const;
+
+    std::string get_icon_filename(bool b_dark_mode) const override;
 
 protected:
     virtual bool on_init() override;

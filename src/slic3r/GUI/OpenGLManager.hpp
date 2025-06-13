@@ -231,6 +231,7 @@ private:
     uint32_t m_vao{ 0 };
     bool m_b_legacy_framebuffer_enabled{ true };
     bool m_b_gizmo_keep_screen_size_enabled{ true };
+    uint8_t m_toolbar_rendering_style{ 0 };
     static GLInfo s_gl_info;
 #ifdef __APPLE__
     // Part of hack to remove crash when closing the application on OSX 10.9.5 when building against newer wxWidgets
@@ -278,6 +279,9 @@ public:
     void set_fxaa_enabled(bool is_enabled);
     bool is_fxaa_enabled() const;
     void blit_framebuffer(const std::string& source, const std::string& target);
+
+    void set_toolbar_rendering_style(uint8_t style);
+    uint8_t get_toolbar_rendering_style() const;
 
     static bool init();
     static bool are_compressed_textures_supported() { return s_compressed_textures_supported; }

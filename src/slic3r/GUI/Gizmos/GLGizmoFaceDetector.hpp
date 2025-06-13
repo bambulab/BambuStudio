@@ -11,9 +11,10 @@ namespace GUI {
 class GLGizmoFaceDetector : public GLGizmoBase
 {
 public:
-    GLGizmoFaceDetector(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-        : GLGizmoBase(parent, icon_filename, sprite_id) {}
+    GLGizmoFaceDetector(GLCanvas3D& parent, unsigned int sprite_id)
+        : GLGizmoBase(parent, sprite_id) {}
 
+    std::string get_icon_filename(bool is_dark_mode) const override;
 protected:
     void on_render() override;
     void on_render_for_picking() override {}

@@ -64,7 +64,7 @@ public:
 class GLGizmoMmuSegmentation : public GLGizmoPainterBase
 {
 public:
-    GLGizmoMmuSegmentation(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    GLGizmoMmuSegmentation(GLCanvas3D& parent, unsigned int sprite_id);
     ~GLGizmoMmuSegmentation() override = default;
     void data_changed(bool is_serializing) override;
     void render_painter_gizmo() const override;
@@ -82,6 +82,8 @@ public:
     // BBS
     bool on_number_key_down(int number);
     bool on_key_down_select_tool_type(int keyCode);
+
+    std::string get_icon_filename(bool is_dark_mode) const override;
 
 protected:
     // BBS

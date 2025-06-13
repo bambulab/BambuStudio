@@ -56,10 +56,8 @@ static ModelVolume* get_model_volume(const Selection& selection, Model& model)
     return obj->volumes[cid.volume_id];
 }
 
-GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D &       parent,
-                                 const std::string &icon_filename,
-                                 unsigned int       sprite_id)
-    : GLGizmoBase(parent, icon_filename, -1)
+GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D & parent, unsigned int sprite_id)
+    : GLGizmoBase(parent, -1)
     , m_volume(nullptr)
     , m_show_wireframe(false)
     , m_move_to_center(false)
@@ -135,6 +133,11 @@ void GLGizmoSimplify::add_simplify_suggestion_notification(
         manager.push_simplify_suggestion_notification(
             t, objects[object_id]->id(), hypertext, open_simplify);
     }
+}
+
+std::string GLGizmoSimplify::get_icon_filename(bool is_dark_mode) const
+{
+    return "reduce_triangles.svg";
 }
 
 std::string GLGizmoSimplify::on_get_name() const

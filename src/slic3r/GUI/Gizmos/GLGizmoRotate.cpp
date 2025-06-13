@@ -29,7 +29,7 @@ const float GLGizmoRotate::GrabberOffset = 0.15f; // in percent of radius
 
 
 GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
-    : GLGizmoBase(parent, "", -1)
+    : GLGizmoBase(parent, -1)
     , m_axis(axis)
     , m_angle(0.0)
     , m_center(0.0, 0.0, 0.0)
@@ -42,7 +42,7 @@ GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
 }
 
 GLGizmoRotate::GLGizmoRotate(const GLGizmoRotate& other)
-    : GLGizmoBase(other.m_parent, other.m_icon_filename, other.m_sprite_id)
+    : GLGizmoBase(other.m_parent, other.m_sprite_id)
     , m_axis(other.m_axis)
     , m_angle(other.m_angle)
     , m_center(other.m_center)
@@ -578,9 +578,14 @@ BoundingBoxf3 GLGizmoRotate::get_bounding_box() const
     return t_aabb;
 }
 
+std::string GLGizmoRotate::get_icon_filename(bool b_dark_mode) const
+{
+    return "";
+}
+
 //BBS: GUI refactor: add obj manipulation
-GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation)
-    : GLGizmoBase(parent, icon_filename, sprite_id)
+GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation)
+    : GLGizmoBase(parent, sprite_id)
     //BBS: GUI refactor: add obj manipulation
     , m_object_manipulation(obj_manipulation)
 {
@@ -618,6 +623,11 @@ BoundingBoxf3 GLGizmoRotate3D::get_bounding_box() const
         t_aabb.defined = true;
     }
     return t_aabb;
+}
+
+std::string GLGizmoRotate3D::get_icon_filename(bool b_dark_mode) const
+{
+    return b_dark_mode ? "toolbar_rotate_dark.svg" : "toolbar_rotate.svg";
 }
 
 bool GLGizmoRotate3D::on_init()

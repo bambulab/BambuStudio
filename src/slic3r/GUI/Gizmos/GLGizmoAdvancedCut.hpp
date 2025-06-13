@@ -208,9 +208,9 @@ private:
     //GLSelectionRectangle m_selection_rectangle;
 
 public:
-    GLGizmoAdvancedCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    GLGizmoAdvancedCut(GLCanvas3D& parent, unsigned int sprite_id);
 
-    bool gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_position, bool shift_down, bool alt_down, bool control_down);
+    bool gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_position, bool shift_down, bool alt_down, bool control_down) override;
     bool on_key(const wxKeyEvent &evt) override;
 
     double get_movement() const { return m_movement; }
@@ -227,6 +227,8 @@ public:
     virtual bool apply_clipping_plane() { return m_connectors_editing; }
 
     BoundingBoxf3 get_bounding_box() const override;
+
+    std::string get_icon_filename(bool b_dark_mode) const override;
 
 protected:
     virtual bool on_init();

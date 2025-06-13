@@ -22,8 +22,8 @@ const double GLGizmoMove3D::Offset = 10.0;
 #endif
 
 //BBS: GUI refactor: add obj manipulation
-GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation)
-    : GLGizmoBase(parent, icon_filename, sprite_id)
+GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation)
+    : GLGizmoBase(parent, sprite_id)
     , m_displacement(Vec3d::Zero())
     , m_snap_step(1.0)
     , m_starting_drag_position(Vec3d::Zero())
@@ -113,6 +113,11 @@ BoundingBoxf3 GLGizmoMove3D::get_bounding_box() const
 
     // end m_cross_mark aabb
     return t_aabb;
+}
+
+std::string GLGizmoMove3D::get_icon_filename(bool b_dark_mode) const
+{
+    return b_dark_mode ? "toolbar_move_dark.svg" : "toolbar_move.svg";
 }
 
 bool GLGizmoMove3D::on_init()

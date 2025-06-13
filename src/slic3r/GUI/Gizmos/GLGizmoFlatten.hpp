@@ -45,10 +45,11 @@ private:
     FlattenType m_faltten_type{FlattenType::Default};
 
 public:
-    GLGizmoFlatten(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    GLGizmoFlatten(GLCanvas3D& parent, unsigned int sprite_id);
 
     Vec3d get_flattening_normal() const;
     void  data_changed(bool is_serializing) override;
+    std::string get_icon_filename(bool b_dark_mode) const override;
 
 protected:
     virtual bool on_init() override;

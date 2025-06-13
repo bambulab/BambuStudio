@@ -192,8 +192,8 @@ bool get_utf8_sub_strings(char *data, int len, std::vector<std::string> &out_str
 
 ///////////////////////
 /// GLGizmoText start
-GLGizmoText::GLGizmoText(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-    : GLGizmoBase(parent, icon_filename, sprite_id)
+GLGizmoText::GLGizmoText(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoBase(parent, sprite_id)
 {
 }
 
@@ -501,6 +501,11 @@ void GLGizmoText::generate_text_tran_in_world(const Vec3d &text_normal_in_world,
     Geometry::Transformation rotate_trans;
     rotate_trans.set_rotation(Vec3d(0, 0, Geometry::deg2rad(rotate_degree))); // m_rotate_angle
     cur_tran.set_matrix(temp_tran.get_matrix() * rotate_trans.get_matrix());
+}
+
+std::string GLGizmoText::get_icon_filename(bool b_dark_mode) const
+{
+    return b_dark_mode ? "toolbar_text_dark.svg" : "toolbar_text.svg";
 }
 
 void GLGizmoText::use_fix_normal_position()
@@ -1159,7 +1164,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(x, get_cur_y);
 
-    float f_scale = m_parent.get_gizmos_manager().get_layout_scale();
+    float f_scale = m_parent.get_main_toolbar_scale();
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale));
 
     ImGui::SameLine(caption_size);

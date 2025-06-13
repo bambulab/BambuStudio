@@ -23,8 +23,8 @@
 namespace Slic3r::GUI {
 
 
-GLGizmoPainterBase::GLGizmoPainterBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-    : GLGizmoBase(parent, icon_filename, sprite_id)
+GLGizmoPainterBase::GLGizmoPainterBase(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoBase(parent, sprite_id)
 {
     // Make sphere and save it into a vertex buffer.
     m_vbo_sphere.load_its_flat_shading(its_make_sphere(1., (2*M_PI)/24.));

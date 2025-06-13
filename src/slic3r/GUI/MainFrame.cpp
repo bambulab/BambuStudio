@@ -1,5 +1,5 @@
 #include "MainFrame.hpp"
-
+#include "GLToolbar.hpp"
 #include <wx/panel.h>
 #include <wx/notebook.h>
 #include <wx/listbook.h>
@@ -505,17 +505,17 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                 j["split_to_objects"] = get_value("split_to_objects");
                 j["split_to_part"] = get_value("split_to_part");
                 j["custom_height"] = get_value("custom_height");
-                j["move"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::Move));
-                j["rotate"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::Rotate));
-                j["scale"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::Scale));
-                j["flatten"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::Flatten));
-                j["cut"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::Cut));
-                j["meshboolean"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::MeshBoolean));
-                j["custom_support"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::FdmSupports));
-                j["custom_seam"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::Seam));
-                j["text_shape"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::Text));
-                j["color_painting"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::MmuSegmentation));
-                j["fuzzy_skin"]   = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::FuzzySkin));
+                j["move"] = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Move));
+                j["rotate"] = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Rotate));
+                j["scale"] = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Scale));
+                j["flatten"] = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Flatten));
+                j["cut"] = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Cut));
+                j["meshboolean"] = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::MeshBoolean));
+                j["custom_support"] = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::FdmSupports));
+                j["custom_seam"] = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Seam));
+                j["text_shape"] = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Text));
+                j["color_painting"] = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::MmuSegmentation));
+                j["fuzzy_skin"]   = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::FuzzySkin));
                 j["assembly_view"] = get_value("assembly_view");
 
                 agent->track_event("key_func", j.dump());

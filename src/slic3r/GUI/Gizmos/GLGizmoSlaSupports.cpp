@@ -26,11 +26,16 @@
 namespace Slic3r {
 namespace GUI {
 
-GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-    : GLGizmoBase(parent, icon_filename, sprite_id)
+GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoBase(parent, sprite_id)
 {
 }
 
+
+std::string GLGizmoSlaSupports::get_icon_filename(bool is_dark_mode) const
+{
+    return "sla_supports.svg";
+}
 
 bool GLGizmoSlaSupports::on_init()
 {

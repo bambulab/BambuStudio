@@ -17,15 +17,17 @@ namespace GUI {
 class NotificationManager; // for simplify suggestion
 
 class GLGizmoSimplify: public GLGizmoBase
-{    
+{
 public:
-    GLGizmoSimplify(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    GLGizmoSimplify(GLCanvas3D& parent, unsigned int sprite_id);
     virtual ~GLGizmoSimplify();
     bool on_esc_key_down();
     static void add_simplify_suggestion_notification(
         const std::vector<size_t> &object_ids,
         const std::vector<ModelObject*> &    objects,
         NotificationManager &      manager);
+
+    std::string get_icon_filename(bool is_dark_mode) const override;
 
 protected:
     virtual std::string on_get_name() const override;

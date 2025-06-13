@@ -21,8 +21,8 @@ namespace GUI {
 static const std::string warning_text_common       = _u8L("Unable to perform boolean operation on selected parts");
 static const std::string warning_text_intersection = _u8L("Performed boolean intersection fails because the selected parts have no intersection");
 
-GLGizmoMeshBoolean::GLGizmoMeshBoolean(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-    : GLGizmoBase(parent, icon_filename, sprite_id)
+GLGizmoMeshBoolean::GLGizmoMeshBoolean(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoBase(parent, sprite_id)
 {
 }
 
@@ -111,6 +111,11 @@ bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         }
     }
     return true;
+}
+
+std::string GLGizmoMeshBoolean::get_icon_filename(bool b_dark_mode) const
+{
+    return b_dark_mode ? "toolbar_meshboolean_dark.svg" : "toolbar_meshboolean.svg";
 }
 
 bool GLGizmoMeshBoolean::on_init()

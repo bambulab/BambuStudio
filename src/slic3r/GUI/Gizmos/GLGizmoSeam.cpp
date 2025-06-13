@@ -49,8 +49,8 @@ bool GLGizmoSeam::on_init()
     return true;
 }
 
-GLGizmoSeam::GLGizmoSeam(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-    : GLGizmoPainterBase(parent, icon_filename, sprite_id), m_current_tool(ImGui::CircleButtonIcon)
+GLGizmoSeam::GLGizmoSeam(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoPainterBase(parent, sprite_id), m_current_tool(ImGui::CircleButtonIcon)
 {
 
 }
@@ -102,6 +102,11 @@ bool GLGizmoSeam::on_key_down_select_tool_type(int keyCode) {
         break;
     }
     return true;
+}
+
+std::string GLGizmoSeam::get_icon_filename(bool b_dark_mode) const
+{
+    return b_dark_mode ? "toolbar_seam_dark.svg" : "toolbar_seam.svg";
 }
 
 void GLGizmoSeam::render_triangles(const Selection& selection) const
@@ -191,7 +196,16 @@ void GLGizmoSeam::tool_changed(wchar_t old_tool, wchar_t new_tool)
 
 void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
 {
-    if (! m_c->selection_info()->model_object())
+    if (!m_c) {
+        return;
+    }
+    const auto& p_selection_info = m_c->selection_info();
+    if (!p_selection_info) {
+        return;
+    }
+    const auto& p_model_object = p_selection_info->model_object();
+
+    if (!p_model_object)
         return;
     m_imgui_start_pos[0] = x;
     m_imgui_start_pos[1] = y;
@@ -362,7 +376,7 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(caption_max, x, get_cur_y);
 
-    float f_scale =m_parent.get_gizmos_manager().get_layout_scale();
+    float f_scale = m_parent.get_main_toolbar_scale();
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale));
 
     ImGui::SameLine();
