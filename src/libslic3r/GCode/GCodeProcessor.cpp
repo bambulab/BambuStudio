@@ -1790,6 +1790,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_time_processor.filament_load_times = static_cast<float>(config.machine_load_filament_time.value);
     m_time_processor.filament_unload_times = static_cast<float>(config.machine_unload_filament_time.value);
     m_time_processor.extruder_change_times = static_cast<float>(config.machine_switch_extruder_time.value);
+    m_time_processor.prepare_compensation_time = static_cast<float>(config.machine_prepare_compensation_time.value);
 
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
         float max_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_extruding, i);
@@ -2052,6 +2053,10 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     const ConfigOptionFloat* machine_switch_extruder_time = config.option<ConfigOptionFloat>("machine_switch_extruder_time");
     if (machine_switch_extruder_time != nullptr)
         m_time_processor.extruder_change_times = static_cast<float>(machine_switch_extruder_time->value);
+
+    const ConfigOptionFloat* machine_prepare_compensation_time = config.option<ConfigOptionFloat>("machine_prepare_compensation_time");
+    if (machine_prepare_compensation_time != nullptr)
+        m_time_processor.prepare_compensation_time = static_cast<float>(machine_prepare_compensation_time->value);
 
     if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware || m_flavor == gcfKlipper) {
         const ConfigOptionFloatsNullable* machine_max_acceleration_x = config.option<ConfigOptionFloatsNullable>("machine_max_acceleration_x");
@@ -4873,15 +4878,12 @@ void GCodeProcessor::process_G4(const GCodeReader::GCodeLine& line)
 //BBS
 void GCodeProcessor::process_G29(const GCodeReader::GCodeLine& line)
 {
-    //BBS: hardcode 260 seconds for G29
-    //Todo: use a machine related setting when we have second kind of BBL printer
-    const float value_s = 260.0;
     if (s_IsBBLPrinter){
         if(m_measure_g29_time)
-            simulate_st_synchronize(value_s);
+            simulate_st_synchronize(m_time_processor.prepare_compensation_time);
     }
     else{
-        simulate_st_synchronize(value_s);
+        simulate_st_synchronize(m_time_processor.prepare_compensation_time);
     }
 }
 
