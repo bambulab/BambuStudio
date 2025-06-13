@@ -89,6 +89,7 @@
     "machine_min_travel_rate": [
         "0"
     ],
+    "machine_prepare_compensation_time": "260",
     "machine_switch_extruder_time": "0",
     "machine_unload_filament_time": "29",
     "master_extruder_id": "1",

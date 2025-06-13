@@ -769,6 +769,7 @@ namespace Slic3r {
             float filament_load_times;
             float filament_unload_times;
             float extruder_change_times;
+            float prepare_compensation_time;
 
             std::array<TimeMachine, static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count)> machines;
 
