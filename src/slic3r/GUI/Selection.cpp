@@ -812,6 +812,26 @@ bool Selection::is_sla_compliant() const
     return true;
 }
 
+bool Selection::has_emboss_shape() const
+{
+    if (!m_model) {
+        return false;
+    }
+
+    const int obj_idx = get_object_idx();
+    if (obj_idx < 0 || obj_idx >= m_model->objects.size()) {
+        return false;
+    }
+
+    const ModelVolumePtrs& obj_volumes = m_model->objects[obj_idx]->volumes;
+    for (size_t vol_idx = 0; vol_idx < obj_volumes.size(); vol_idx++) {
+        if (obj_volumes[vol_idx] && obj_volumes[vol_idx]->emboss_shape.has_value()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool Selection::contains_all_volumes(const std::vector<unsigned int>& volume_idxs) const
 {
     for (unsigned int i : volume_idxs) {

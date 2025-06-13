@@ -109,8 +109,6 @@ bool View3D::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig
     m_canvas->enable_return_toolbar(true);
     //BBS: GUI refactor: GLToolbar
     m_canvas->enable_select_plate_toolbar(false);
-    m_canvas->enable_assemble_view_toolbar(true);
-    m_canvas->enable_separator_toolbar(true);
     m_canvas->enable_labels(true);
     m_canvas->enable_slope(true);
 
@@ -303,7 +301,6 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Model* model)
     if (wxGetApp().is_editor()) {
         m_canvas->enable_select_plate_toolbar(true);
     }
-    m_canvas->enable_assemble_view_toolbar(false);
 
     // sizer, m_canvas_widget
     m_canvas_widget->Bind(wxEVT_KEY_DOWN, &Preview::update_layers_slider_from_canvas, this);
@@ -855,13 +852,11 @@ bool AssembleView::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrint
     m_canvas->set_config(config);
     m_canvas->enable_gizmos(true);
     m_canvas->enable_selection(true);
-    m_canvas->enable_main_toolbar(false);
+    m_canvas->enable_main_toolbar(true);
     m_canvas->enable_labels(false);
     m_canvas->enable_slope(false);
     //BBS: GUI refactor: GLToolbar
-    m_canvas->enable_assemble_view_toolbar(false);
     m_canvas->enable_return_toolbar(true);
-    m_canvas->enable_separator_toolbar(false);
     //m_canvas->set_show_world_axes(true);//wait for GitHub users to see if they have this requirement
     // BBS: set volume_selection_mode to Volume
     //same to 3d //m_canvas->get_selection().set_volume_selection_mode(Selection::Instance);

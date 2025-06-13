@@ -55,10 +55,10 @@ private:
     };
 
 public:
-    GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    GLGizmoSlaSupports(GLCanvas3D& parent, unsigned int sprite_id);
     virtual ~GLGizmoSlaSupports() = default;
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
-    bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
+    bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down) override;
     void delete_selected_points(bool force = false);
     //ClippingPlane get_sla_clipping_plane() const;
 
@@ -70,6 +70,8 @@ public:
     bool wants_enter_leave_snapshots() const override { return true; }
     std::string get_gizmo_entering_text() const override { return "Entering SLA support points"; }
     std::string get_gizmo_leaving_text() const override { return "Leaving SLA support points"; }
+
+    std::string get_icon_filename(bool is_dark_mode) const override;
 
 private:
     bool on_init() override;

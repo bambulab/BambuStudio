@@ -13,7 +13,7 @@ namespace Slic3r::GUI {
 class GLGizmoFdmSupports : public GLGizmoPainterBase
 {
 public:
-    GLGizmoFdmSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    GLGizmoFdmSupports(GLCanvas3D& parent, unsigned int sprite_id);
     void data_changed(bool is_serializing) override;
     void render_painter_gizmo() const override;
 
@@ -26,6 +26,8 @@ public:
 
     //BBS
     bool on_key_down_select_tool_type(int keyCode);
+
+    std::string get_icon_filename(bool b_dark_mode) const override;
 
 protected:
     void on_render_input_window(float x, float y, float bottom_limit) override;

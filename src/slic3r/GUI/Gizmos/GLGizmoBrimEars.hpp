@@ -72,10 +72,10 @@ private:
     };
 
 public:
-    GLGizmoBrimEars(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    GLGizmoBrimEars(GLCanvas3D& parent, unsigned int sprite_id);
     virtual ~GLGizmoBrimEars() = default;
     void data_changed(bool is_serializing) override;
-    bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
+    bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down) override;
     void delete_selected_points();
     void update_model_object();
     //ClippingPlane get_sla_clipping_plane() const;
@@ -85,6 +85,8 @@ public:
     bool wants_enter_leave_snapshots() const override { return true; }
     std::string get_gizmo_entering_text() const override { return "Entering Brim Ears"; }
     std::string get_gizmo_leaving_text() const override { return "Leaving Brim Ears"; }
+
+    std::string get_icon_filename(bool is_dark_mode) const override;
 
 private:
     void set_brim_data();

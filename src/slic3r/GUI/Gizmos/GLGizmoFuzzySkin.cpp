@@ -22,8 +22,8 @@
 
 namespace Slic3r::GUI {
 
-GLGizmoFuzzySkin::GLGizmoFuzzySkin(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-    : GLGizmoPainterBase(parent, icon_filename, sprite_id), m_current_tool(ImGui::CircleButtonIcon)
+GLGizmoFuzzySkin::GLGizmoFuzzySkin(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoPainterBase(parent, sprite_id), m_current_tool(ImGui::CircleButtonIcon)
 {
     m_tool_type = ToolType::BRUSH;
     m_cursor_type = TriangleSelector::CursorType::CIRCLE;
@@ -132,6 +132,11 @@ bool GLGizmoFuzzySkin::on_key_down_select_tool_type(int keyCode) {
     return true;
 }
 
+std::string GLGizmoFuzzySkin::get_icon_filename(bool is_dark_mode) const
+{
+    return is_dark_mode ? "toolbar_fuzzyskin_dark.svg" : "toolbar_fuzzyskin.svg";
+}
+
 // BBS
 void GLGizmoFuzzySkin::render_triangles(const Selection& selection) const
 {
@@ -197,8 +202,17 @@ void GLGizmoFuzzySkin::on_set_state()
 
 void GLGizmoFuzzySkin::on_render_input_window(float x, float y, float bottom_limit)
 {
-    if (! m_c->selection_info()->model_object())
+    if (!m_c) {
         return;
+    }
+    const auto& p_selection_info = m_c->selection_info();
+    if (!p_selection_info) {
+        return;
+    }
+    const auto& p_model_object = p_selection_info->model_object();
+    if (!p_model_object) {
+        return;
+    }
     m_imgui_start_pos[0] = x;
     m_imgui_start_pos[1] = y;
     // BBS
@@ -376,7 +390,7 @@ void GLGizmoFuzzySkin::on_render_input_window(float x, float y, float bottom_lim
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(caption_max, x, get_cur_y);
 
-    float f_scale =m_parent.get_gizmos_manager().get_layout_scale();
+    float f_scale = m_parent.get_main_toolbar_scale();
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale));
 
     ImGui::SameLine();

@@ -467,12 +467,16 @@ void CreateObjectJob::finalize(bool canceled, std::exception_ptr &eptr)
     // When cursor move and no one object is selected than
     // Manager::reset_all() So Gizmo could be closed before end of creation object
     GLCanvas3D *     canvas  = plater->get_view3D_canvas3D();
-    GLGizmosManager &manager = canvas->get_gizmos_manager();
-    if (manager.get_current_type() != m_input.gizmo_type) // GLGizmosManager::EType::svg
-        manager.open_gizmo(m_input.gizmo_type);
+    if (canvas) {
+        GLGizmosManager& manager = canvas->get_gizmos_manager();
+        if (manager.get_current_type() != m_input.gizmo_type) { // GLGizmosManager::EType::svg
+            const auto svg_item_name = GLGizmosManager::convert_gizmo_type_to_string(static_cast<GLGizmosManager::EType>(m_input.gizmo_type));
+            canvas->force_main_toolbar_left_action(canvas->get_main_toolbar_item_id(svg_item_name));
+        }
 
-    // redraw scene
-    canvas->reload_scene(true);
+        // redraw scene
+        canvas->reload_scene(true);
+    }
 }
 
 CreateSurfaceVolumeJob::CreateSurfaceVolumeJob(CreateSurfaceVolumeData &&input) : m_input(std::move(input)) {}

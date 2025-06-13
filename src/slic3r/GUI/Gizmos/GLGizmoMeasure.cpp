@@ -176,8 +176,8 @@ void TransformHelper::update(const std::array<int, 4> &viewport)
 
 TransformHelper::Cache TransformHelper::s_cache = { { 0, 0, 0, 0 }, Matrix4d::Identity(), Transform3d::Identity() };
 
-GLGizmoMeasure::GLGizmoMeasure(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-: GLGizmoBase(parent, icon_filename, sprite_id)
+GLGizmoMeasure::GLGizmoMeasure(GLCanvas3D& parent, unsigned int sprite_id)
+: GLGizmoBase(parent, sprite_id)
 {
     auto sphere_geometry = smooth_sphere(16, 7.5f);
     m_sphere             = std::make_shared<GLModel>();
@@ -442,6 +442,11 @@ bool GLGizmoMeasure::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_po
     return true;
 }
 
+std::string GLGizmoMeasure::get_icon_filename(bool is_dark_mode) const
+{
+    return is_dark_mode ? "toolbar_measure_dark.svg" : "toolbar_measure.svg";
+}
+
 bool GLGizmoMeasure::on_init()
 {
     m_shortcut_key = WXK_CONTROL_U;
@@ -679,8 +684,10 @@ void GLGizmoMeasure::on_render()
             }
             if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY) {
                 if (m_assembly_mode == AssemblyMode::FACE_FACE) {
-                    if (curr_feature->get_type() != Measure::SurfaceFeatureType::Plane) {
-                        curr_feature.reset();
+                    if (curr_feature.has_value()) {
+                        if (curr_feature->get_type() != Measure::SurfaceFeatureType::Plane) {
+                            curr_feature.reset();
+                        }
                     }
                 } else if (m_assembly_mode == AssemblyMode::POINT_POINT) {
                     if (!(curr_feature->get_type() == Measure::SurfaceFeatureType::Point ||

@@ -23,8 +23,8 @@ Vec3d GetIntersectionOfRayAndPlane(Vec3d ray_position, Vec3d ray_dir, Vec3d plan
 }
 
 //BBS: GUI refactor: add obj manipulation
-GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation)
-    : GLGizmoBase(parent, icon_filename, sprite_id)
+GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation)
+    : GLGizmoBase(parent, sprite_id)
     , m_scale(Vec3d::Ones())
     , m_offset(Vec3d::Zero())
     , m_snap_step(0.05)
@@ -139,6 +139,11 @@ bool GLGizmoScale3D::on_key(const wxKeyEvent& key_event)
         }
     }
     return b_processed;
+}
+
+std::string GLGizmoScale3D::get_icon_filename(bool b_dark_mode) const
+{
+    return b_dark_mode ? "toolbar_scale_dark.svg" : "toolbar_scale.svg";
 }
 
 bool GLGizmoScale3D::on_init()

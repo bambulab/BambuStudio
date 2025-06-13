@@ -31,7 +31,7 @@ static ModelVolume *get_model_volume(const Selection &selection, Model &model)
     return obj->volumes[cid.volume_id];
 }
 
-GLGizmoBrimEars::GLGizmoBrimEars(GLCanvas3D &parent, const std::string &icon_filename, unsigned int sprite_id) : GLGizmoBase(parent, icon_filename, sprite_id) {}
+GLGizmoBrimEars::GLGizmoBrimEars(GLCanvas3D &parent, unsigned int sprite_id) : GLGizmoBase(parent, sprite_id) {}
 
 bool GLGizmoBrimEars::on_init()
 {
@@ -286,6 +286,11 @@ void GLGizmoBrimEars::data_changed(bool is_serializing)
     set_brim_data();
 }
 
+std::string GLGizmoBrimEars::get_icon_filename(bool is_dark_mode) const
+{
+    return is_dark_mode ? "toolbar_brimears_dark.svg" : "toolbar_brimears.svg";
+}
+
 void GLGizmoBrimEars::set_brim_data()
 {
     if (!m_c->selection_info()) return;
@@ -531,7 +536,15 @@ void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limi
     static float last_y = 0.0f;
     static float last_h = 0.0f;
 
-    ModelObject *mo = m_c->selection_info()->model_object();
+    if (!m_c) {
+        return;
+    }
+    const auto& p_selection_info = m_c->selection_info();
+    if (!p_selection_info) {
+        return;
+    }
+
+    ModelObject *mo = p_selection_info->model_object();
 
     if (!mo) return;
 
@@ -640,7 +653,7 @@ void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limi
 
     // ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
 
-    float f_scale = m_parent.get_gizmos_manager().get_layout_scale();
+    float f_scale = m_parent.get_main_toolbar_scale();
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale));
     if (m_imgui->button(m_desc["auto_generate"])) { auto_generate(); }
 

@@ -210,7 +210,7 @@ std::string volume_name(const EmbossShape &shape)
 
 // BBS: GUI refactor: add obj manipulation
 GLGizmoSVG::GLGizmoSVG(GLCanvas3D& parent,  unsigned int sprite_id)
-    : GLGizmoBase(parent, "tool_bar_svg.svg", sprite_id) //"toolbar_cut.svg" no use
+    : GLGizmoBase(parent,  sprite_id)
     , m_gui_cfg(nullptr)
     , m_rotate_gizmo(parent, GLGizmoRotate::Axis::Z) // grab id = 2 (Z axis)
 {
@@ -476,6 +476,11 @@ bool GLGizmoSVG::is_svg(const ModelVolume &volume) {
     return volume.emboss_shape.has_value() && volume.emboss_shape->svg_file.has_value();
 }
 
+bool GLGizmoSVG::on_is_selectable() const
+{
+    return true;
+}
+
 bool GLGizmoSVG::on_init()
 {
     m_rotate_gizmo.init();
@@ -493,11 +498,18 @@ std::string GLGizmoSVG::on_get_name() const
 
 bool GLGizmoSVG::on_is_activable() const
 {
-    const Selection &selection = m_parent.get_selection();
-    if (selection.is_empty()) {
-        return true;
+    const Selection &t_selection = m_parent.get_selection();
+    if (t_selection.is_empty()) {
+        return false;
     }
-    return  !selection.is_any_connector();//maybe is negitive volume or modifier volume
+    if (t_selection.is_any_connector()) {
+        return false;//maybe is negitive volume or modifier volume
+    }
+
+    if (!t_selection.has_emboss_shape()) {
+        return false;
+    }
+    return true;
 }
 
 void GLGizmoSVG::on_set_state() {
@@ -2220,6 +2232,11 @@ BoundingBoxf3 GLGizmoSVG::get_bounding_box() const
     // end m_rotate_gizmo aabb
 
     return t_aabb;
+}
+
+std::string GLGizmoSVG::get_icon_filename(bool is_dark_mode) const
+{
+    return "tool_bar_svg.svg";
 }
 
 void GLGizmoSVG::update_single_mesh_pick(GLVolume *v)

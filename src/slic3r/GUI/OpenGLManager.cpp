@@ -1,4 +1,4 @@
-#include "libslic3r/libslic3r.h"
+﻿#include "libslic3r/libslic3r.h"
 #include "OpenGLManager.hpp"
 
 #include "GUI.hpp"
@@ -790,6 +790,16 @@ void OpenGLManager::set_gizmo_keep_screen_size_enabled(bool is_enabled)
 bool OpenGLManager::is_gizmo_keep_screen_size_enabled() const
 {
     return m_b_gizmo_keep_screen_size_enabled;
+}
+
+void OpenGLManager::set_toolbar_rendering_style(uint8_t style)
+{
+    m_toolbar_rendering_style = style;
+}
+
+uint8_t OpenGLManager::get_toolbar_rendering_style() const
+{
+    return m_toolbar_rendering_style;
 }
 
 std::string OpenGLManager::framebuffer_type_to_string(EFramebufferType type)

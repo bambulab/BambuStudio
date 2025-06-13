@@ -138,8 +138,8 @@ bool GLGizmoMmuSegmentation::on_init()
     return true;
 }
 
-GLGizmoMmuSegmentation::GLGizmoMmuSegmentation(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-    : GLGizmoPainterBase(parent, icon_filename, sprite_id), m_current_tool(ImGui::CircleButtonIcon)
+GLGizmoMmuSegmentation::GLGizmoMmuSegmentation(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoPainterBase(parent, sprite_id), m_current_tool(ImGui::CircleButtonIcon)
 {
 }
 
@@ -380,6 +380,11 @@ bool GLGizmoMmuSegmentation::on_key_down_select_tool_type(int keyCode) {
     return true;
 }
 
+std::string GLGizmoMmuSegmentation::get_icon_filename(bool is_dark_mode) const
+{
+    return is_dark_mode ? "mmu_segmentation_dark.svg" : "mmu_segmentation.svg";
+}
+
 static void render_extruders_combo(const std::string                       &label,
                                    const std::vector<std::string>          &extruders,
                                    const std::vector<std::array<float, 4>> &extruders_colors,
@@ -482,7 +487,17 @@ void GLGizmoMmuSegmentation::show_tooltip_information(float caption_max, float x
 
 void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bottom_limit)
 {
-    if (!m_c->selection_info()->model_object()) return;
+    if (!m_c) {
+        return;
+    }
+    const auto& p_selection_info = m_c->selection_info();
+    if (!p_selection_info) {
+        return;
+    }
+    const auto& p_model_object = p_selection_info->model_object();
+    if (!p_model_object) {
+        return;
+    }
 
     const float approx_height = m_imgui->scaled(22.0f);
     y = std::min(y, bottom_limit - approx_height);
@@ -918,7 +933,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(caption_max, x, get_cur_y);
 
-    float f_scale =m_parent.get_gizmos_manager().get_layout_scale();
+    float f_scale = m_parent.get_main_toolbar_scale();
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale));
 
     ImGui::SameLine();

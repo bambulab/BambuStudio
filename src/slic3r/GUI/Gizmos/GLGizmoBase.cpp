@@ -286,12 +286,11 @@ float GLGizmoBase::get_grabber_size()
     return grabber_size;
 }
 
-GLGizmoBase::GLGizmoBase(GLCanvas3D &parent, const std::string &icon_filename, unsigned int sprite_id)
+GLGizmoBase::GLGizmoBase(GLCanvas3D &parent, unsigned int sprite_id)
     : m_parent(parent)
     , m_group_id(-1)
     , m_state(Off)
     , m_shortcut_key(0)
-    , m_icon_filename(icon_filename)
     , m_sprite_id(sprite_id)
     , m_hover_id(-1)
     , m_dragging(false)
@@ -343,10 +342,6 @@ void GLGizmoBase::set_state(EState state)
     }
     m_state = state;
     on_set_state();
-}
-
-void GLGizmoBase::set_icon_filename(const std::string &filename) {
-    m_icon_filename = filename;
 }
 
 bool GLGizmoBase::on_key(const wxKeyEvent& key_event)
@@ -684,7 +679,12 @@ Transform3d GLGizmoBase::get_corss_mask_model_matrix(ECrossMaskType type, const 
 
 void GLGizmoBase::render_input_window(float x, float y, float bottom_limit)
 {
-    on_render_input_window(x, y, bottom_limit);
+    auto canvas_w = float(m_parent.get_canvas_size().get_width());
+    auto canvas_h = float(m_parent.get_canvas_size().get_height());
+    float zoom = (float)m_parent.get_active_camera().get_zoom();
+    const float final_x = 0.5 * canvas_w + x * zoom;
+
+    on_render_input_window(final_x, y, bottom_limit);
     if (m_first_input_window_render) {
         // for some reason, the imgui dialogs are not shown on screen in the 1st frame where they are rendered, but show up only with the 2nd rendered frame
         // so, we forces another frame rendering the first time the imgui window is shown
@@ -698,6 +698,11 @@ BoundingBoxf3 GLGizmoBase::get_bounding_box() const
     BoundingBoxf3 t_aabb;
     t_aabb.reset();
     return t_aabb;
+}
+
+bool GLGizmoBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down)
+{
+    return false;
 }
 
 void GLGizmoBase::render_glmodel(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, const Transform3d& projection_matrix, bool for_picking, float emission_factor)

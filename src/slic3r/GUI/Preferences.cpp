@@ -17,6 +17,7 @@
 #include <wx/listimpl.cpp>
 #include <map>
 #include "Gizmos/GLGizmoBase.hpp"
+#include "OpenGLManager.hpp"
 #ifdef __WINDOWS__
 #ifdef _MSW_DARK_MODE
 #include "dark_mode.hpp"
@@ -65,7 +66,7 @@ wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *paren
     return m_sizer_title;
 }
 
-wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, const std::vector<wxString>& label_list, const std::vector<std::string>& value_list)
+wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, const std::vector<wxString>& label_list, const std::vector<std::string>& value_list, std::function<void(int)> callback)
 {
     auto get_value_idx = [value_list](const std::string value) {
         size_t idx = 0;
@@ -94,14 +95,22 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *pa
         combobox->Append(label);
 
     auto old_value = app_config->get(param);
-    if (!old_value.empty()) { combobox->SetSelection(get_value_idx(old_value)); }
+    if (!old_value.empty()) {
+        combobox->SetSelection(get_value_idx(old_value));
+    }
+    else {
+        combobox->SetSelection(0);
+    }
 
     m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
 
     //// save config
-    combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param, value_list](wxCommandEvent &e) {
+    combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param, value_list, callback](wxCommandEvent &e) {
         app_config->set(param, value_list[e.GetSelection()]);
         app_config->save();
+        if (callback) {
+            callback(e.GetSelection());
+        }
         e.Skip();
     });
     return m_sizer_combox;
@@ -1190,6 +1199,12 @@ wxWindow* PreferencesDialog::create_general_page()
                                                          _L("Improved rendering performance under the scene of multiple plates and many models."), 50,
                                                          "enable_lod");
 
+    std::vector<wxString> toolbar_style = { _L("Collapsible"), _L("Uncollapsible") };
+    auto item_toolbar_style = create_item_combobox(_L("Toolbar Style"), page, _L("Toolbar Style"), "toolbar_style", toolbar_style, { "0","1" }, [](int idx)->void {
+        const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+        p_ogl_manager->set_toolbar_rendering_style(idx);
+    });
+
     float range_min = 1.0, range_max = 2.5;
     auto item_grabber_size_settings = create_item_range_input(_L("Grabber scale"), page,
                                                               _L("Set grabber size for move,rotate,scale tool.") + _L("Value range") + ":[" + std::to_string(range_min) + "," +
@@ -1287,6 +1302,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_gamma_correct_in_import_obj, 0, wxTOP, FromDIP(3));
 
     sizer_page->Add(enable_lod_settings, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_toolbar_style, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_grabber_size_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(title_presets, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_user_sync, 0, wxTOP, FromDIP(3));

@@ -1075,5 +1075,14 @@ GLModel& GLTexture::get_model_for_render_image()
    return s_model_for_render_image;
 }
 
+BackgroundTexture::Metadata::Metadata()
+    : filename("")
+    , left(0)
+    , right(0)
+    , top(0)
+    , bottom(0)
+{
+}
+
 } // namespace GUI
 } // namespace Slic3r

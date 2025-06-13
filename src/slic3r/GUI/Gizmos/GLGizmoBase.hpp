@@ -6,6 +6,7 @@
 
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/3DScene.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
 
 #include <cereal/archives/binary.hpp>
 
@@ -13,6 +14,7 @@
 #include <wx/timer.h>
 
 #include <chrono>
+#include <string>
 
 #define ENABLE_FIXED_GRABBER 1
 
@@ -119,7 +121,6 @@ protected:
     int m_group_id;
     EState m_state;
     int m_shortcut_key;
-    std::string m_icon_filename;
     unsigned int m_sprite_id;
     int m_hover_id;
     enum GripperType {
@@ -180,7 +181,6 @@ protected:
 
 public:
     GLGizmoBase(GLCanvas3D& parent,
-                const std::string& icon_filename,
                 unsigned int sprite_id);
     virtual ~GLGizmoBase() {}
 
@@ -198,9 +198,7 @@ public:
     void set_state(EState state);
     int get_shortcut_key() const { return m_shortcut_key; }
 
-    const std::string& get_icon_filename() const { return m_icon_filename; }
-
-    void set_icon_filename(const std::string& filename);
+    virtual std::string get_icon_filename(bool b_dark_mode) const = 0;
 
     bool is_activable() const { return on_is_activable(); }
     bool is_selectable() const { return on_is_selectable(); }
@@ -248,6 +246,8 @@ public:
     int get_count() { return ++count; }
 
     virtual BoundingBoxf3 get_bounding_box() const;
+
+    virtual bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
 
     static void  render_glmodel(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, const Transform3d& projection_matrix, bool for_picking = false, float emission_factor = 0.0f);
 protected:

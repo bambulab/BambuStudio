@@ -8,12 +8,14 @@ namespace Slic3r::GUI {
 class GLGizmoSeam : public GLGizmoPainterBase
 {
 public:
-    GLGizmoSeam(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    GLGizmoSeam(GLCanvas3D& parent, unsigned int sprite_id);
     void data_changed(bool is_serializing) override;
     void render_painter_gizmo() const override;
 
     //BBS
     bool on_key_down_select_tool_type(int keyCode);
+
+    std::string get_icon_filename(bool b_dark_mode) const override;
 
 protected:
     // BBS
