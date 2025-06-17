@@ -915,7 +915,11 @@ public:
     int     home_flag;
     int     hw_switch_state;
     bool    is_system_printing();
+
     int     print_error;
+    static std::string get_error_code_str(int error_code);
+    std::string get_print_error_str() const { return MachineObject::get_error_code_str(this->print_error); }
+
     int     curr_layer = 0;
     int     total_layers = 0;
     bool    is_support_layer_num { false };
@@ -1220,6 +1224,7 @@ public:
     int command_request_push_all(bool request_now = false);
     int command_pushing(std::string cmd);
     int command_clean_print_error(std::string task_id, int print_error);
+    int command_clean_print_error_uiop(int print_error);
     int command_set_printer_nozzle(std::string nozzle_type, float diameter);
     int command_set_printer_nozzle2(int id, std::string nozzle_type, float diameter);
     int command_get_access_code();
