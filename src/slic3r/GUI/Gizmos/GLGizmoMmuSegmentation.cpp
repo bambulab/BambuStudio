@@ -762,13 +762,13 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         m_cursor_type = TriangleSelector::CursorType::POINTER;
         bool is_same_color = m_bucket_fill_mode == BucketFillType::SameColor;
         ImGuiWrapper::push_radio_style();
-        if (ImGui::RadioButton(m_desc["same_color_connection"].c_str(), is_same_color)){
+        if (ImGui::RadioButton(m_desc["same_color_connection"].ToUTF8().data(), is_same_color)) {
             m_bucket_fill_mode = BucketFillType::SameColor;
             m_smart_fill_angle = -1;// set to negative value to disable edge detection
         }
         ImGui::SameLine();
         bool is_detect_geometry_edge = m_bucket_fill_mode == BucketFillType::EdgeDetect;
-        if (ImGui::RadioButton(m_desc["edge_detection"].c_str(), is_detect_geometry_edge)){
+        if (ImGui::RadioButton(m_desc["edge_detection"].ToUTF8().data(), is_detect_geometry_edge)) {
             m_bucket_fill_mode = BucketFillType::EdgeDetect;
             m_smart_fill_angle = m_last_edge_detection_smart_fill_angle;
         }
