@@ -165,7 +165,8 @@ public:
     Fill *clone() const override { return new FillLockedZag(*this); }
     ~FillLockedZag() override = default;
     LockRegionParam lock_param;
-
+    InfillPattern   skin_pattern     = InfillPattern(0);
+    InfillPattern   skeleton_pattern = InfillPattern(0);
     void fill_surface_extrusion(const Surface *surface, const FillParams &params, ExtrusionEntitiesPtr &out) override;
 
     bool has_consistent_pattern() const override { return true; }
@@ -173,6 +174,10 @@ public:
     void fill_surface_locked_zag(const Surface *                          surface,
                                   const FillParams &                       params,
                                   std::vector<std::pair<Polylines, Flow>> &multi_width_polyline);
+    void set_skin_and_skeleton_pattern(const InfillPattern &skin_pattern, const InfillPattern &skeleton_pattern){
+        this->skin_pattern = skin_pattern;
+        this->skeleton_pattern = skeleton_pattern;
+    };
 };
 
 Points sample_grid_pattern(const ExPolygon &expolygon, coord_t spacing, const BoundingBox &global_bounding_box);

@@ -3393,7 +3393,7 @@ void FillLockedZag::fill_surface_locked_zag (const Surface *                    
 
     bool       zig_get    = false;
     FillParams zig_params = params;
-    zig_params.horiz_move = 0;
+
     // generate skeleton for diff density
     auto generate_for_different_flow = [&multi_width_polyline](const std::map<Flow, ExPolygons> &flow_params, const Polylines &polylines) {
         auto it = flow_params.begin();
@@ -3406,6 +3406,10 @@ void FillLockedZag::fill_surface_locked_zag (const Surface *                    
         }
     };
 
+    std::unique_ptr<Fill> skeleton_f = std::unique_ptr<Fill>(Fill::new_from_type(this->skeleton_pattern));
+    skeleton_f->copy_fill_data(static_cast<Fill*>(this));
+    if (this->skeleton_pattern!= ipCrossZag)
+        zig_params.horiz_move = 0;
     auto it = this->lock_param.skeleton_density_params.begin();
     while (it != this->lock_param.skeleton_density_params.end()) {
         ExPolygons region_exp = union_safety_offset_ex(it->second);
@@ -3415,7 +3419,7 @@ void FillLockedZag::fill_surface_locked_zag (const Surface *                    
         for (ExPolygon &exp : exps) {
             zig_surface.expolygon = exp;
 
-            Polylines zig_polylines_out = this->fill_surface(&zig_surface, zig_params);
+            Polylines zig_polylines_out = skeleton_f->fill_surface(&zig_surface, zig_params);
             skeloton_lines.insert(skeloton_lines.end(), zig_polylines_out.begin(), zig_polylines_out.end());
         }
         it++;
@@ -3426,16 +3430,20 @@ void FillLockedZag::fill_surface_locked_zag (const Surface *                    
 
     // skin exps
     bool       cross_get      = false;
-    FillParams cross_params   = params;
-    cross_params.locked_zag = false;
+    FillParams skin_params   = params;
     auto skin_density         = this->lock_param.skin_density_params.begin();
+    std::unique_ptr<Fill> skin_f   = std::unique_ptr<Fill>(Fill::new_from_type(this->skin_pattern));
+    skin_params .locked_zag = false;
+    skin_f->copy_fill_data(static_cast<Fill *>(this));
+    if (this->skeleton_pattern != ipCrossZag)
+        zig_params.horiz_move = 0;
     while (skin_density != this->lock_param.skin_density_params.end()) {
         ExPolygons region_exp = union_safety_offset_ex(skin_density->second);
         ExPolygons exps       = intersection_ex(region_exp, cross_expas);
-        cross_params.density  = skin_density->first;
+        skin_params.density   = skin_density->first;
         for (ExPolygon &exp : exps) {
             cross_surface.expolygon       = exp;
-            Polylines cross_polylines_out = this->fill_surface(&cross_surface, cross_params);
+            Polylines cross_polylines_out = skin_f->fill_surface(&cross_surface, skin_params);
             skin_lines.insert(skin_lines.end(), cross_polylines_out.begin(), cross_polylines_out.end());
         }
         skin_density++;
