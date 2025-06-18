@@ -917,6 +917,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, infill_lock_depth))
     ((ConfigOptionFloat, skin_infill_depth))
     ((ConfigOptionEnum<InfillPattern>, sparse_infill_pattern))
+    ((ConfigOptionEnum<InfillPattern>, locked_skin_infill_pattern))
+    ((ConfigOptionEnum<InfillPattern>, locked_skeleton_infill_pattern))
     ((ConfigOptionEnum<FuzzySkinType>, fuzzy_skin))
     ((ConfigOptionFloat, fuzzy_skin_thickness))
     ((ConfigOptionFloat, fuzzy_skin_point_distance))

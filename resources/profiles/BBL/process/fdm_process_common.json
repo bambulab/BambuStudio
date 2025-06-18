@@ -95,6 +95,8 @@
     "skin_infill_depth": "2.0",
     "skeleton_infill_line_width": "0.45",
     "sparse_infill_pattern": "grid",
+    "locked_skin_infill_pattern": "crosszag",
+    "locked_skeleton_infill_pattern": "zigzag",
     "sparse_infill_speed": [
         "50"
     ],

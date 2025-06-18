@@ -2259,7 +2259,9 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Sparse infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density");
         optgroup->append_single_option_line("sparse_infill_pattern", "fill-patterns#infill types and their properties of sparse");
+        optgroup->append_single_option_line("locked_skin_infill_pattern", "fill-patterns#infill types and their properties of sparse");
         optgroup->append_single_option_line("skin_infill_density");
+        optgroup->append_single_option_line("locked_skeleton_infill_pattern", "fill-patterns#infill types and their properties of sparse");
         optgroup->append_single_option_line("skeleton_infill_density");
         optgroup->append_single_option_line("infill_lock_depth");
         optgroup->append_single_option_line("skin_infill_depth");
