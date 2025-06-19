@@ -221,6 +221,9 @@ ObjectList::ObjectList(wxWindow* parent) :
         entries[index++].Set(wxACCEL_CTRL, (int)'A', wxID_SELECTALL);
         entries[index++].Set(wxACCEL_CTRL, (int)'Z', wxID_UNDO);
         entries[index++].Set(wxACCEL_CTRL, (int)'Y', wxID_REDO);
+#ifdef __APPLE__
+        entries[index++].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int)'Z', wxID_REDO);
+#endif
         entries[index++].Set(wxACCEL_NORMAL, WXK_BACK, wxID_DELETE);
         //entries[index++].Set(wxACCEL_NORMAL, int('+'), wxID_ADD);
         //entries[index++].Set(wxACCEL_NORMAL, WXK_NUMPAD_ADD, wxID_ADD);
