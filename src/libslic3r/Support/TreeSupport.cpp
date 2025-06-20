@@ -946,7 +946,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                         if (!blocker.empty()) overhangs_all_layers[layer_nr] = diff_ex(overhangs_all_layers[layer_nr], blocker);
                     }
                     if (!enforced_overhangs.empty()) {
-                        enforced_overhangs             = offset_ex(enforced_overhangs, enforcer_overhang_offset);
+                        enforced_overhangs             = diff_ex(offset_ex(enforced_overhangs, enforcer_overhang_offset), lower_layer->lslices_extrudable);
                         overhangs_all_layers[layer_nr] = union_ex(overhangs_all_layers[layer_nr], enforced_overhangs);
                     }
                 }
@@ -1213,7 +1213,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                 layer->loverhangs_with_type.clear();
                 for (const auto &cantilever : layer->cantilevers) add_overhang(layer, cantilever, OverhangType::Cantilever);
             } else {
-                ExPolygons                             enforced_overhangs = to_expolygons(enforcers[layer_nr]);
+                ExPolygons                             enforced_overhangs = offset_ex(to_expolygons(enforcers[layer_nr]), enforcer_overhang_offset);
                 ExPolygons                             loverhangs_new;
                 std::vector<std::pair<ExPolygon, int>> loverhangs_with_type_new;
                 ExPolygons                             bigflat;
