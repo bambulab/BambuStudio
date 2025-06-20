@@ -28,3 +28,9 @@ doc/
 **/process_full/
 **/machine_full/
 **/filament_full/
+<<<<<<< HEAD   (ad709f NEW: Official filament color selection approved)
+=======
+test.js
+/.cache/
+.clangd
+>>>>>>> CHANGE (a6529d ENH: support parts skipping function)

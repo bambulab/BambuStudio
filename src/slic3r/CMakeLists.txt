@@ -454,6 +454,11 @@ set(SLIC3R_GUI_SOURCES
     GUI/BonjourDialog.hpp
     GUI/BindDialog.cpp
     GUI/BindDialog.hpp
+    GUI/PartSkipCommon.hpp
+    GUI/PartSkipDialog.cpp
+    GUI/PartSkipDialog.hpp
+    GUI/SkipPartCanvas.cpp
+    GUI/SkipPartCanvas.hpp
     GUI/ModelMall.hpp
     GUI/ModelMall.cpp
     GUI/SelectMachine.hpp
