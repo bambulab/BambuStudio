@@ -2055,6 +2055,17 @@ int MachineObject::command_control_air_duct(int mode_id, const CommandCallBack &
     return this->publish_json(j.dump());
 }
 
+int MachineObject::command_task_partskip(std::vector<int> part_ids)
+{
+    BOOST_LOG_TRIVIAL(trace) << "command_task_partskip: ";
+    json j;
+    j["print"]["command"] = "skip_objects";
+    j["print"]["obj_list"] = part_ids;
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+
+    return this->publish_json(j.dump(), 1); 
+}
+
 int MachineObject::command_task_abort()
 {
     BOOST_LOG_TRIVIAL(trace) << "command_task_abort: ";
@@ -3098,6 +3109,7 @@ void MachineObject::reset()
         }
     }
     subtask_ = nullptr;
+    m_partskip_ids.clear();
 }
 
 void MachineObject::nt_reset_data()
@@ -3344,7 +3356,19 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
 
                         print_json.diff2all_base_reset(j_pre);
                     }
+
+                    if (j_pre["print"].contains("s_obj")){
+                        if(j_pre["print"]["s_obj"].is_array()){
+                            m_partskip_ids.clear();
+                            for(auto it=j_pre["print"]["s_obj"].begin(); it!=j_pre["print"]["s_obj"].end(); it++){
+                                m_partskip_ids.push_back(it.value().get<int>());
+                            }
+                        }
+                    }
                 }
+            }
+            if (j_pre["print"].contains("plate_idx") && m_plate_index == -1){
+                m_plate_index = j_pre["print"]["plate_idx"].get<int>();
             }
         }
         if (j_pre.contains("system")) {

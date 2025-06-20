@@ -32,6 +32,7 @@
 #include "Widgets/FilamentLoad.hpp"
 #include "Widgets/FanControl.hpp"
 #include "HMS.hpp"
+#include "PartSkipDialog.hpp"
 
 class StepIndicator;
 
@@ -271,7 +272,7 @@ public:
 
 
 private:
-    MachineObject*  m_obj;
+    MachineObject*  m_obj{nullptr};
     ScalableBitmap  m_thumbnail_placeholder;
     wxBitmap        m_thumbnail_bmp_display;
     ScalableBitmap  m_bitmap_use_time;
@@ -303,6 +304,7 @@ private:
     wxStaticBitmap* m_bitmap_static_use_weight;
     ScalableButton* m_button_pause_resume;
     ScalableButton* m_button_abort;
+    Button*         m_button_partskip;
     Button*         m_button_market_scoring;
     Button*         m_button_clean;
     Button *                      m_button_market_retry;
@@ -328,6 +330,7 @@ public:
     void msw_rescale();
 
 public:
+    void enable_partskip_button(bool enable);
     void enable_pause_resume_button(bool enable, std::string type);
     void enable_abort_button(bool enable);
     void update_subtask_name(wxString name);
@@ -346,10 +349,12 @@ public:
     void market_scoring_show();
     bool is_market_scoring_show();
     void market_scoring_hide();
+    void update_machine_object(MachineObject* obj);
 
 public:
     ScalableButton* get_abort_button() {return m_button_abort;};
     ScalableButton* get_pause_resume_button() {return m_button_pause_resume;};
+    Button* get_partskip_button() { return m_button_partskip; };
     Button* get_market_scoring_button() {return m_button_market_scoring;};
     Button * get_market_retry_buttom() { return m_button_market_retry; };
     Button* get_clean_button() {return m_button_clean;};
@@ -441,6 +446,7 @@ protected:
     wxStaticText *  m_staticText_progress_left;
     wxStaticText *  m_staticText_layers;
     Button *        m_button_report;
+    Button *        m_button_partskip;
     ScalableButton *m_button_pause_resume;
     ScalableButton *m_button_abort;
     Button *        m_button_clean;
@@ -534,6 +540,7 @@ protected:
     StaticBox* m_filament_load_box;
 
     // Virtual event handlers, override them in your derived class
+    virtual void on_subtask_partskip(wxCommandEvent &event) { event.Skip(); }
     virtual void on_subtask_pause_resume(wxCommandEvent &event) { event.Skip(); }
     virtual void on_subtask_abort(wxCommandEvent &event) { event.Skip(); }
     virtual void on_lamp_switch(wxCommandEvent &event) { event.Skip(); }
@@ -615,6 +622,7 @@ protected:
     FanControlPopupNew* m_fan_control_popup{nullptr};
 
     ExtrusionCalibration *m_extrusion_cali_dlg{nullptr};
+    PartSkipDialog       *m_partskip_dlg{nullptr};
 
     wxString     m_request_url;
     bool         m_start_loading_thumbnail = false;
@@ -655,6 +663,7 @@ protected:
 
     void on_market_scoring(wxCommandEvent &event);
     void on_market_retry(wxCommandEvent &event);
+    void on_subtask_partskip(wxCommandEvent &event);
     void on_subtask_pause_resume(wxCommandEvent &event);
     void on_subtask_abort(wxCommandEvent &event);
     void on_print_error_clean(wxCommandEvent &event);
@@ -734,6 +743,7 @@ protected:
     void update_basic_print_data(bool def = false);
     void update_model_info();
     void update_subtask(MachineObject* obj);
+    void update_partskip_subtask(MachineObject *obj);
     void update_cloud_subtask(MachineObject *obj);
     void update_sdcard_subtask(MachineObject *obj);
     void update_temp_ctrl(MachineObject *obj);

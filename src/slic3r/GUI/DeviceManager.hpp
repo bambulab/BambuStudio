@@ -1043,6 +1043,9 @@ public:
     int  nozzle_selected_count = 0;
     bool flag_update_nozzle = {true};
 
+    // part skip
+    std::vector<int> m_partskip_ids;
+
     /*target from Studio-SwitchBoard, default to INVALID_NOZZLE_ID if no switching control from PC*/
     int targ_nozzle_id_from_pc = INVALID_NOZZLE_ID;
 
@@ -1194,6 +1197,7 @@ public:
     int command_control_air_duct(int mode_id, const CommandCallBack& cb);
     int command_task_abort();
     /* cancelled the job_id */
+    int command_task_partskip(std::vector<int> part_ids);
     int command_task_cancel(std::string job_id);
     int command_task_pause();
     int command_task_resume();
