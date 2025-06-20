@@ -434,6 +434,8 @@ wxBitmap create_menu_bitmap(const std::string& bmp_name)
     return create_scaled_bitmap(bmp_name, nullptr, 16, false, "", true);
 }
 
+static std::unordered_set<std::string> s_bmps_not_found;
+
 // win is used to get a correct em_unit value
 // It's important for bitmaps of dialogs.
 // if win == nullptr, em_unit value of MainFrame will be used
@@ -470,8 +472,14 @@ wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
     }
 
     if (bmp == nullptr) {
+
+        /*stacktrace is time-consuming, optimize it*/
+        if (s_bmps_not_found.count(bmp_name) == 0) {
+            BOOST_LOG_TRIVIAL(error) << "Could not load bitmap: " << boost::stacktrace::stacktrace();
+            s_bmps_not_found.emplace(bmp_name);
+        }
+
         // Neither SVG nor PNG has been found, raise error
-        BOOST_LOG_TRIVIAL(error) << "Could not load bitmap: " << boost::stacktrace::stacktrace();
         throw Slic3r::RuntimeError("Could not load bitmap: " + bmp_name);
     }
 
@@ -490,8 +498,12 @@ wxBitmap create_scaled_bitmap2(const std::string& bmp_name_in, Slic3r::GUI::Bitm
 
     wxBitmap* bmp = cache.load_svg2(bmp_name, width, height, grayscale, false, array_new_color, resize ? em_unit(win) * 0.1f : 0.f);
     if (bmp == nullptr) {
-        // No SVG found
-        BOOST_LOG_TRIVIAL(error) << "Could not load bitmap: " << boost::stacktrace::stacktrace();
+        /*stacktrace is time-consuming, optimize it*/
+        if (s_bmps_not_found.count(bmp_name) == 0) {
+            BOOST_LOG_TRIVIAL(error) << "Could not load bitmap: " << boost::stacktrace::stacktrace();
+            s_bmps_not_found.emplace(bmp_name);
+        }
+
         throw Slic3r::RuntimeError("Could not load bitmap: " + bmp_name);
     }
     return *bmp;
