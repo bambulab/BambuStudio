@@ -945,7 +945,10 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                         blocker                        = offset_ex(union_(blockers[layer_nr]), scale_(radius_sample_resolution));
                         if (!blocker.empty()) overhangs_all_layers[layer_nr] = diff_ex(overhangs_all_layers[layer_nr], blocker);
                     }
-                    if (!enforced_overhangs.empty()) overhangs_all_layers[layer_nr] = union_ex(overhangs_all_layers[layer_nr], enforced_overhangs);
+                    if (!enforced_overhangs.empty()) {
+                        enforced_overhangs             = offset_ex(enforced_overhangs, enforcer_overhang_offset);
+                        overhangs_all_layers[layer_nr] = union_ex(overhangs_all_layers[layer_nr], enforced_overhangs);
+                    }
                 }
                 else if (layer_nr < enforcers.size() && lower_layer) {
                     if (!enforced_overhangs.empty()) {
