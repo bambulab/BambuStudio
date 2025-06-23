@@ -26,6 +26,7 @@
 #include "ProgressStatusBar.hpp"
 #include "3DScene.hpp"
 #include "ParamsDialog.hpp"
+#include "UserPresetsDialog.hpp"
 #include "PrintHostDialogs.hpp"
 #include "wxExtensions.hpp"
 #include "GUI_ObjectList.hpp"
@@ -2657,6 +2658,14 @@ void MainFrame::init_menubar_as_editor()
             },
             "", nullptr,
             [this](){ return wxGetApp().has_model_mall(); }, this);
+
+        append_menu_item(
+            fileMenu, wxID_ANY, _L("Batch Preset Management"), wxString::Format(_L("Batch Preset Management")),
+            [this](wxCommandEvent &) {
+                UserPresetsDialog dlg(this);
+                dlg.ShowModal();
+            },
+            "", nullptr);
 
         fileMenu->AppendSeparator();
 

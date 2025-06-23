@@ -33,7 +33,7 @@ void StaticLine::SetLabel(const wxString& label)
 
 void StaticLine::SetIcon(const wxString &icon)
 {
-    this->icon = icon.IsEmpty() ? ScalableBitmap() 
+    this->icon = icon.IsEmpty() ? ScalableBitmap()
         : ScalableBitmap(this, icon.ToStdString(), 18);
     messureSize();
     Refresh();
@@ -73,9 +73,9 @@ void StaticLine::messureSize()
         if (szIcon.y > szContent.y) szContent.y = szIcon.y;
     }
     if (vertical)
-        szContent.y += 10;
+        szContent = {std::max(szContent.x, 1), szContent.y + 10};
     else
-        szContent.x += 10;
+        szContent = { szContent.x + 10, std::max(szContent.y, 1)};
     SetMinSize(szContent);
 }
 

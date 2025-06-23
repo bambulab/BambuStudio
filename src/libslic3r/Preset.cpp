@@ -2570,7 +2570,9 @@ bool PresetCollection::delete_preset(const std::string& name)
     }
     //BBS: add lock logic for sync preset in background
     lock();
-    m_presets.erase(it);
+    it = m_presets.erase(it);
+    if (std::distance(m_presets.begin(), it) < m_idx_selected)
+        --m_idx_selected;
     unlock();
 
     return true;

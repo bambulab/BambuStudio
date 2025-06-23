@@ -430,6 +430,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/NotificationManager.hpp
     GUI/UnsavedChangesDialog.cpp
     GUI/UnsavedChangesDialog.hpp
+    GUI/UserPresetsDialog.cpp
+    GUI/UserPresetsDialog.hpp
     GUI/ExtraRenderers.cpp
     GUI/ExtraRenderers.hpp
     GUI/ProjectDirtyStateManager.hpp
