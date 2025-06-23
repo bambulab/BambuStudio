@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-05-29 15:44+0800\n"
-"PO-Revision-Date: 2025-06-02 20:20+0300\n"
+"PO-Revision-Date: 2025-06-23 18:26+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -7080,7 +7080,7 @@ msgstr "Filament, AMS yuvasındaki filamentle eşleşmiyor. AMS yuvası ataması
 
 #, c-format, boost-format
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
-msgstr "Seçilen yazıcı (%s) yazdırma dosyası yapılandırması (%s) ile uyumlu değil. Lütfen hazırlık sayfasındaki yazıcı ön ayarını ayarlayın veya bu sayfada uyumlu bir yazıcı seçin."
+msgstr "Seçilen yazıcı (%s), baskı dosyası yapılandırmasıyla (%s) uyumlu değil. Lütfen hazırlık sayfasında yazıcı ön ayarını düzenleyin veya bu sayfada uyumlu bir yazıcı seçin."
 
 msgid "When enable spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "Spiral vazo modu etkinleştirildiğinde, I3 yapısına sahip makineler zaman atlamalı videolar oluşturmayacaktır."
@@ -8231,7 +8231,7 @@ msgstr "Lütfen cihazın nozul tipinin önceden ayarlanmış nozul tipiyle aynı
 
 #, c-format, boost-format
 msgid "The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."
-msgstr "Seçilen yazıcı (%s) dilimleyicide (%s) seçilen yazıcı profili ile uyumlu değil."
+msgstr "Seçilen yazıcı (%s), dilimleyicide seçilen yazıcı profiliyle (%s) uyumlu değil."
 
 msgid "Timelapse is not supported because Print sequence is set to \"By object\"."
 msgstr "Timelapse desteklenmiyor çünkü Baskı sıralaması \"Nesneye\" göre olarak ayarlandı."
