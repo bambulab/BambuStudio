@@ -52,10 +52,12 @@ public:
 
     void*    GetItemData(unsigned int item) const;
     void     SetItemData(unsigned int item, void *clientData);
-    
+
     void AssignImageList(wxImageList *imageList);
 
-    void SetItemTextColour(unsigned int item, const StateColor& col);
+    void SetItemPaddingSize(unsigned int item, const wxSize &size);
+
+    void SetItemTextColour(unsigned int item, const StateColor &col);
 
     /* fakes */
     int GetFirstVisibleItem() const;

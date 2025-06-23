@@ -177,6 +177,12 @@ void TabCtrl::AssignImageList(wxImageList* imageList)
     images = imageList;
 }
 
+void TabCtrl::SetItemPaddingSize(unsigned int item, const wxSize &size)
+{
+    if (item >= btns.size()) return;
+    btns[item]->SetPaddingSize(size);
+}
+
 void TabCtrl::SetItemTextColour(unsigned int item, const StateColor &col)
 {
     if (item >= btns.size()) return;
