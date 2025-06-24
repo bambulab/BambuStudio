@@ -302,6 +302,7 @@ protected:
 
     bool     m_triangle_splitting_enabled = true;
     ToolType m_tool_type                  = ToolType::BRUSH;
+    wchar_t       m_current_tool          = 0;
     mutable int m_last_hit_state             = -1;
     mutable int   m_last_hit_state_faces     = -1;
     mutable Vec3d m_last_hit_its_center      = Vec3d::Zero();
@@ -412,7 +413,7 @@ protected:
     bool on_is_activable() const override;
     bool on_is_selectable() const override;
     void on_load(cereal::BinaryInputArchive& ar) override;
-    void on_save(cereal::BinaryOutputArchive& ar) const override {}
+    void on_save(cereal::BinaryOutputArchive &ar) const override;
     CommonGizmosDataID on_get_requirements() const override;
     bool wants_enter_leave_snapshots() const override { return true; }
 
