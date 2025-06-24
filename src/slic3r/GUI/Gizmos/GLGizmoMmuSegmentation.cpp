@@ -62,6 +62,18 @@ bool GLGizmoMmuSegmentation::on_is_activable() const
     return !selection.is_empty() && (selection.is_single_full_instance() || selection.is_any_volume());
 }
 
+void GLGizmoMmuSegmentation::on_load(cereal::BinaryInputArchive &ar)
+{
+    GLGizmoPainterBase::on_load(ar);
+    ar(m_selected_extruder_idx);
+}
+
+void GLGizmoMmuSegmentation::on_save(cereal::BinaryOutputArchive &ar) const
+{
+    GLGizmoPainterBase::on_save(ar);
+    ar(m_selected_extruder_idx);
+}
+
 static std::vector<int> get_extruder_id_for_volumes(const ModelObject &model_object)
 {
     std::vector<int> extruders_idx;
@@ -139,8 +151,9 @@ bool GLGizmoMmuSegmentation::on_init()
 }
 
 GLGizmoMmuSegmentation::GLGizmoMmuSegmentation(GLCanvas3D& parent, unsigned int sprite_id)
-    : GLGizmoPainterBase(parent, sprite_id), m_current_tool(ImGui::CircleButtonIcon)
+    : GLGizmoPainterBase(parent, sprite_id)
 {
+    m_current_tool =ImGui::CircleButtonIcon;
 }
 
 void GLGizmoMmuSegmentation::data_changed(bool is_serializing) {

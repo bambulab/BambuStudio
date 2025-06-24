@@ -1238,14 +1238,22 @@ void GLGizmoPainterBase::on_set_state()
 
 
 
-void GLGizmoPainterBase::on_load(cereal::BinaryInputArchive&)
+void GLGizmoPainterBase::on_load(cereal::BinaryInputArchive &ar)
 {
     // We should update the gizmo from current ModelObject, but it is not
     // possible at this point. That would require having updated selection and
     // common gizmos data, which is not done at this point. Instead, save
     // a flag to do the update in set_painter_gizmo_data, which will be called
     // soon after.
+    ar(m_tool_type, m_current_tool, m_cursor_type, m_cursor_radius, m_cursor_height, m_lock_x_for_height_bottom, m_smart_fill_angle, m_bucket_fill_mode,
+       TriangleSelectorPatch::gap_area);
     m_schedule_update = true;
+}
+
+void GLGizmoPainterBase::on_save(cereal::BinaryOutputArchive &ar) const
+{
+    ar(m_tool_type, m_current_tool,m_cursor_type, m_cursor_radius, m_cursor_height, m_lock_x_for_height_bottom,
+        m_smart_fill_angle, m_bucket_fill_mode, TriangleSelectorPatch::gap_area);
 }
 
 TriangleSelector::ClippingPlane GLGizmoPainterBase::get_clipping_plane_in_volume_coordinates(const Transform3d &trafo) const {

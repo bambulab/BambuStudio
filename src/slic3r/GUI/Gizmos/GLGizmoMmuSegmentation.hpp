@@ -100,7 +100,8 @@ protected:
     void show_tooltip_information(float caption_max, float x, float y);
     bool on_is_selectable() const override;
     bool on_is_activable() const override;
-
+    void on_load(cereal::BinaryInputArchive &ar) override;
+    void on_save(cereal::BinaryOutputArchive &ar) const override;
     wxString handle_snapshot_action_name(bool shift_down, Button button_down) const override;
 
     void        clear_parent_paint_outline_volumes() const;
@@ -114,7 +115,6 @@ protected:
     std::vector<int>                  m_volumes_extruder_idxs;
 
     // BBS
-    wchar_t                           m_current_tool = 0;
     static const constexpr float      CursorRadiusMin = 0.1f; // cannot be zero
 
 private:
