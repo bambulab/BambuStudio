@@ -274,7 +274,12 @@ SideTools::SideTools(wxWindow *parent, wxWindowID id, const wxPoint &pos, const 
     wxBoxSizer* connection_sizer_V = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer* connection_sizer_H = new wxBoxSizer(wxHORIZONTAL);
 
-    m_hyperlink = new wxHyperlinkCtrl(m_connection_info, wxID_ANY, _L("Failed to connect to the server"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+
+    bool is_zh  = wxGetApp().app_config->get("language") == "zh_CN";
+    wxString hyperlink_url = is_zh ? wxT("https://wiki.bambulab.com/cn/software/bambu-studio/failed-to-connect-printer") :
+                             wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer");
+
+    m_hyperlink = new wxHyperlinkCtrl(m_connection_info, wxID_ANY, _L("Failed to connect to the server"), hyperlink_url, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
     m_hyperlink->SetBackgroundColour(wxColour(255, 111, 0));
 
     m_more_err_open = ScalableBitmap(this, "monitir_err_open", 16);
