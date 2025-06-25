@@ -92,6 +92,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Auxiliary.hpp
     GUI/DailyTips.cpp
     GUI/DailyTips.hpp
+    GUI/EncodedFilament.hpp
+    GUI/EncodedFilament.cpp
     GUI/Project.cpp
     GUI/Project.hpp
     GUI/BackgroundSlicingProcess.cpp
