@@ -1426,7 +1426,7 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
             }
         } else if (m_current == FuzzySkin) {
             GLGizmoFuzzySkin *fuzzy_skin = dynamic_cast<GLGizmoFuzzySkin *>(get_current());
-            if (fuzzy_skin != nullptr && keyCode == 'F' || keyCode == 'S' || keyCode == 'C' || keyCode == 'T') {
+            if (fuzzy_skin != nullptr && (keyCode == 'F' || keyCode == 'S' || keyCode == 'C' || keyCode == 'T')) {
                 processed = fuzzy_skin->on_key_down_select_tool_type(keyCode);
             }
             if (processed) {
@@ -1436,7 +1436,7 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
         }
         else if (m_current == FdmSupports) {
             GLGizmoFdmSupports* fdm_support = dynamic_cast<GLGizmoFdmSupports*>(get_current());
-            if (fdm_support != nullptr && keyCode == 'F' || keyCode == 'S' || keyCode == 'C' || keyCode == 'G') {
+            if (fdm_support != nullptr && (keyCode == 'F' || keyCode == 'S' || keyCode == 'C' || keyCode == 'G')) {
                 processed = fdm_support->on_key_down_select_tool_type(keyCode);
             }
             if (processed) {
@@ -1446,7 +1446,7 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
         }
         else if (m_current == Seam) {
             GLGizmoSeam* seam = dynamic_cast<GLGizmoSeam*>(get_current());
-            if (seam != nullptr && keyCode == 'S' || keyCode == 'C') {
+            if (seam != nullptr && (keyCode == 'S' || keyCode == 'C')) {
                 processed = seam->on_key_down_select_tool_type(keyCode);
             }
             if (processed) {

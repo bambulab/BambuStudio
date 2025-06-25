@@ -4495,8 +4495,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
                                    .BottomDockable(false)
                                    .Floatable(wxGetApp().app_config->get_bool("enable_sidebar_floatable"))
                                    .Resizable(wxGetApp().app_config->get_bool("enable_sidebar_resizable"))
-                                   .MinSize(wxSize(21 * wxGetApp().em_unit(), -1))
-        .BestSize(wxSize(42 * wxGetApp().em_unit(), 90 * wxGetApp().em_unit())));
+                                   .MinSize(wxSize(40 * wxGetApp().em_unit(), 90 * wxGetApp().em_unit()))
+                                   .BestSize(wxSize(42 * wxGetApp().em_unit(), 90 * wxGetApp().em_unit())));
 
     auto *panel_sizer = new wxBoxSizer(wxHORIZONTAL);
     panel_sizer->Add(view3D, 1, wxEXPAND | wxALL, 0);
