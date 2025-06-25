@@ -762,7 +762,8 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     penel_text->SetSizer(bSizer_text);
     penel_text->Layout();
 
-    m_staticText_finish_time = new wxStaticText(penel_finish_time, wxID_ANY, _L("Finish Time: N/A"));
+    m_staticText_finish_time = new Label(penel_finish_time);
+    m_staticText_finish_time->SetLabel(_L("Finish Time: N/A"));
     m_staticText_finish_time->Wrap(-1);
     m_staticText_finish_time->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
     m_staticText_finish_time->SetForegroundColour(wxColour(146, 146, 146));
@@ -771,10 +772,9 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     m_staticText_finish_day->SetMinSize(wxSize(20, 20));
     m_staticText_finish_day->Hide();
     bSizer_finish_time->Add(0, 0, 1, wxEXPAND, 0);
-    bSizer_finish_time->Add(0, 0, 0, wxLEFT, FromDIP(20));
-    bSizer_finish_time->Add(m_staticText_finish_time, 0, wxALIGN_CENTER | wxALL, 0);
-    bSizer_finish_time->Add(m_staticText_finish_day, 0,wxLEFT | wxRIGHT , FromDIP(10));
-    bSizer_finish_time->Add(0, 0, 0, wxLEFT, FromDIP(116));
+    bSizer_finish_time->Add(m_staticText_finish_time, 0, wxLEFT | wxEXPAND, 0);
+    bSizer_finish_time->Add(m_staticText_finish_day, 0, wxLEFT | wxEXPAND | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    bSizer_finish_time->Add(0, 0, 0, wxRIGHT, FromDIP(116));
     penel_finish_time->SetMaxSize(wxSize(FromDIP(720), -1));
     penel_finish_time->SetSizer(bSizer_finish_time);
     penel_finish_time->Layout();
@@ -1109,7 +1109,9 @@ void PrintingTaskPanel::update_finish_time(wxString finish_time)
         if (m_staticText_finish_time->GetLabelText() != finish_time_str)
         {
             m_staticText_finish_time->SetLabelText(finish_time_str);
+            m_staticText_finish_time->Wrap(-1);
             BOOST_LOG_TRIVIAL(info) << "PrintingTaskPanel::update_finish_time: " << finish_time;
+            Layout();
         }
     }
 }
