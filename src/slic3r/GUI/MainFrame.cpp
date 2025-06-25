@@ -1788,7 +1788,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                     }
                 }
 
-                if (printer_model == "Bambu Lab H2") {
+                if (printer_model == "Bambu Lab H2S") {
                     if ((wxGetApp().app_config->get("prompt_for_brittle_filaments") == "true") ) {
                         auto used_filaments = curr_plate->get_extruders();
                         std::transform(used_filaments.begin(), used_filaments.end(), used_filaments.begin(), [](auto i) {return i - 1; });
