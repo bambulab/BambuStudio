@@ -175,6 +175,11 @@ void GCodeWriter::set_travel_acceleration(const std::vector<unsigned int>& accel
     m_travel_accelerations = accelerations;
 }
 
+void GCodeWriter::reset_last_acceleration()
+{
+    m_last_acceleration = 0;
+}
+
 void GCodeWriter::set_first_layer_travel_acceleration(const std::vector<unsigned int> &travel_accelerations)
 {
     m_first_layer_travel_accelerations = travel_accelerations;

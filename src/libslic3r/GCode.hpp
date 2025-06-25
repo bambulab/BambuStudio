@@ -380,6 +380,7 @@ private:
     void check_placeholder_parser_failed();
     size_t cur_extruder_index() const;
     size_t get_extruder_id(unsigned int filament_id) const;
+    void set_extrude_acceleration(bool is_first_layer);
 
     void            set_last_pos(const Point &pos) { m_last_pos = pos; m_last_pos_defined = true; }
     void            set_last_scarf_seam_flag(bool flag) { m_last_scarf_seam_flag = flag; }
@@ -469,6 +470,8 @@ private:
     std::string     extrude_support(const ExtrusionEntityCollection &support_fills);
 
     std::string travel_to(const Point &point, ExtrusionRole role, std::string comment, double z = DBL_MAX);
+
+    void reset_last_acceleration();
     // BBS
     LiftType to_lift_type(ZHopType z_hop_types);
 

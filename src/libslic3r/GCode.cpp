@@ -643,6 +643,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
     std::string WipeTowerIntegration::append_tcr(GCode& gcodegen, const WipeTower::ToolChangeResult& tcr, int new_filament_id, double z) const
     {
+        gcodegen.reset_last_acceleration();
         if (new_filament_id != -1 && new_filament_id != tcr.new_tool)
             throw Slic3r::InvalidArgument("Error: WipeTowerIntegration::append_tcr was asked to do a toolchange it didn't expect.");
 
@@ -975,6 +976,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         if (!gcodegen.is_BBL_Printer() && gcodegen.config().enable_pressure_advance.get_at(new_filament_id))
             gcode += gcodegen.writer().set_pressure_advance(gcodegen.config().pressure_advance.get_at(new_filament_id));
 
+        gcodegen.set_extrude_acceleration(gcodegen.on_first_layer());
+
         // A phony move to the end position at the wipe tower.
         gcodegen.writer().travel_to_xy((end_pos + plate_origin_2d).cast<double>());
         gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, end_pos + plate_origin_2d));
@@ -994,6 +997,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
         // Let the planner know we are traveling between objects.
         gcodegen.m_avoid_crossing_perimeters.use_external_mp_once();
+        gcodegen.reset_last_acceleration();
         return gcode;
     }
 
@@ -2936,6 +2940,15 @@ size_t GCode::get_extruder_id(unsigned int filament_id) const
         return m_print->get_extruder_id(filament_id);
     }
     return 0;
+}
+
+void GCode::set_extrude_acceleration(bool is_first_layer)
+{
+    if (is_first_layer) {
+        m_writer.set_acceleration((unsigned int) floor(m_config.initial_layer_acceleration.get_at(cur_extruder_index()) + 0.5));
+    } else {
+        m_writer.set_acceleration((unsigned int) floor(m_config.default_acceleration.get_at(cur_extruder_index()) + 0.5));
+    }
 }
 
 // Process all layers of all objects (non-sequential mode) with a parallel pipeline:
@@ -6113,6 +6126,11 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     }
 
     return gcode;
+}
+
+void GCode::reset_last_acceleration()
+{
+    m_writer.reset_last_acceleration();
 }
 
 //BBS
