@@ -11,11 +11,7 @@
 #include "ReleaseNote.hpp"
 #include "OG_CustomCtrl.hpp"
 #include "wx/graphics.h"
-#include "Widgets/LinkLabel.hpp"
-#include "Widgets/CheckBox.hpp"
-#include "Widgets/ComboBox.hpp"
-#include "Widgets/RadioBox.hpp"
-#include "Widgets/TextInput.hpp"
+
 #include <wx/listimpl.cpp>
 #include <map>
 #include "Gizmos/GLGizmoBase.hpp"
@@ -32,7 +28,7 @@ namespace Slic3r { namespace GUI {
 WX_DEFINE_LIST(RadioSelectorList);
 wxDEFINE_EVENT(EVT_PREFERENCES_SELECT_TAB, wxCommandEvent);
 
-
+#define PreferenceBtnSize wxSize(FromDIP(58), FromDIP(22))
 class MyscrolledWindow : public wxScrolledWindow {
 public:
     MyscrolledWindow(wxWindow* parent,
@@ -91,6 +87,7 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *pa
     m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER | wxALL, 3);
 
     auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, combox_width == 0?DESIGN_LARGE_COMBOBOX_SIZE:wxSize(combox_width, -1), 0, nullptr, wxCB_READONLY);
+    m_combobox_list[m_combobox_list.size()] = combobox;
     combobox->SetFont(::Label::Body_13);
     combobox->GetDropDown().SetFont(::Label::Body_13);
 
@@ -135,6 +132,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
 
 
     auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_LARGE_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    m_combobox_list[m_combobox_list.size()] = combobox;
     combobox->SetFont(::Label::Body_13);
     combobox->GetDropDown().SetFont(::Label::Body_13);
     auto language = app_config->get(param);
@@ -295,6 +293,7 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
     m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER | wxALL, 3);
 
     auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_LARGE_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    m_combobox_list[m_combobox_list.size()] = combobox;
     combobox->SetFont(::Label::Body_13);
     combobox->GetDropDown().SetFont(::Label::Body_13);
     m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
@@ -374,6 +373,7 @@ wxBoxSizer *PreferencesDialog::create_item_loglevel_combobox(wxString title, wxW
     m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER | wxALL, 3);
 
     auto                            combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    m_combobox_list[m_combobox_list.size()] = combobox;
     combobox->SetFont(::Label::Body_13);
     combobox->GetDropDown().SetFont(::Label::Body_13);
 
@@ -416,6 +416,7 @@ wxBoxSizer *PreferencesDialog::create_item_multiple_combobox(
    m_sizer_tcombox->Add(combo_title, 0, wxALIGN_CENTER | wxALL, 3);
 
    auto combobox_left = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+   m_combobox_list[m_combobox_list.size()] = combobox_left;
    combobox_left->SetFont(::Label::Body_13);
    combobox_left->GetDropDown().SetFont(::Label::Body_13);
 
@@ -431,6 +432,7 @@ wxBoxSizer *PreferencesDialog::create_item_multiple_combobox(
    m_sizer_tcombox->Add(combo_title_add, 0, wxALIGN_CENTER | wxALL, 3);
 
    auto combobox_right = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+   m_combobox_list[m_combobox_list.size()] = combobox_right;
    combobox_right->SetFont(::Label::Body_13);
    combobox_right->GetDropDown().SetFont(::Label::Body_13);
 
@@ -662,6 +664,7 @@ wxBoxSizer* PreferencesDialog::create_item_darkmode_checkbox(wxString title, wxW
     m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
 
     auto checkbox = new ::CheckBox(parent);
+    m_checkbox_list[m_checkbox_list.size()] = checkbox;
     checkbox->SetValue((app_config->get(param) == "1") ? true : false);
     m_dark_mode_ckeckbox = checkbox;
 
@@ -719,6 +722,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
 
     auto checkbox = new ::CheckBox(parent);
+    m_checkbox_list[m_checkbox_list.size()] = checkbox;
     if (param == "privacyuse") {
         checkbox->SetValue((app_config->get("firstguide", param) == "true") ? true : false);
     } else if (param == "auto_stop_liveview") {
@@ -958,26 +962,31 @@ wxBoxSizer *PreferencesDialog::create_item_button(wxString title, wxString title
     m_staticTextPath->SetFont(::Label::Body_13);
     m_staticTextPath->Wrap(-1);
 
-    auto m_button_download = new Button(parent, title2);
 
+    auto temp_button = new Button(parent, title2);
+    m_button_list[m_button_list.size()] = temp_button;
     StateColor abort_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
                         std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
                         std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
-    m_button_download->SetBackgroundColor(abort_bg);
-    StateColor abort_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    m_button_download->SetBorderColor(abort_bd);
-    StateColor abort_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    m_button_download->SetTextColor(abort_text);
-    m_button_download->SetFont(Label::Body_10);
-    m_button_download->SetMinSize(wxSize(FromDIP(58), FromDIP(22)));
-    m_button_download->SetSize(wxSize(FromDIP(58), FromDIP(22)));
-    m_button_download->SetCornerRadius(FromDIP(12));
-    m_button_download->SetToolTip(tooltip);
 
-    m_button_download->Bind(wxEVT_BUTTON, [this, onclick](auto &e) { onclick(); });
+    temp_button->SetBackgroundColor(abort_bg);
+    StateColor abort_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+
+    temp_button->SetBorderColor(abort_bd);
+    StateColor abort_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+
+    temp_button->SetTextColor(abort_text);
+    temp_button->SetFont(Label::Body_10);
+    temp_button->SetMinSize(PreferenceBtnSize);
+    temp_button->SetSize(wxSize(FromDIP(58), FromDIP(22)));
+    temp_button->SetCornerRadius(FromDIP(12));
+    temp_button->SetToolTip(tooltip);
+
+
+    temp_button->Bind(wxEVT_BUTTON, [this, onclick](auto &e) { onclick(); });
 
     m_sizer_checkbox->Add(m_staticTextPath, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    m_sizer_checkbox->Add(m_button_download, 0, wxALL, FromDIP(5));
+    m_sizer_checkbox->Add(temp_button, 0, wxALL, FromDIP(5));
 
     return m_sizer_checkbox;
 }
@@ -997,7 +1006,7 @@ wxWindow* PreferencesDialog::create_item_downloads(wxWindow* parent, int padding
     m_staticTextPath->Wrap(-1);
 
     auto m_button_download = new Button(item_panel, _L("Browse"));
-
+    m_button_list[m_button_list.size()] = m_button_download;
     StateColor abort_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
     std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
     std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
@@ -1007,7 +1016,7 @@ wxWindow* PreferencesDialog::create_item_downloads(wxWindow* parent, int padding
     StateColor abort_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
     m_button_download->SetTextColor(abort_text);
     m_button_download->SetFont(Label::Body_10);
-    m_button_download->SetMinSize(wxSize(FromDIP(58), FromDIP(22)));
+    m_button_download->SetMinSize(PreferenceBtnSize);
     m_button_download->SetSize(wxSize(FromDIP(58), FromDIP(22)));
     m_button_download->SetCornerRadius(FromDIP(12));
 
@@ -1039,6 +1048,7 @@ wxWindow *PreferencesDialog ::create_item_radiobox(wxString title, wxWindow *par
     item->SetBackgroundColour(*wxWHITE);
 
     RadioBox *radiobox = new RadioBox(item);
+    m_radiobox_list[m_radiobox_list.size()] = radiobox;
     radiobox->SetPosition(wxPoint(padding_left, (item->GetSize().GetHeight() - radiobox->GetSize().GetHeight()) / 2));
     radiobox->Bind(wxEVT_LEFT_DOWN, &PreferencesDialog::OnSelectRadio, this);
 
@@ -1118,9 +1128,8 @@ void PreferencesDialog::create()
     SetSizer(main_sizer);
     Layout();
     Fit();
-    int screen_height = wxGetDisplaySize().GetY();
-    if (this->GetSize().GetY() > screen_height)
-        this->SetSize(this->GetSize().GetX() + FromDIP(40), screen_height * 4 / 5);
+    m_screen_height = wxGetDisplaySize().GetY();
+    this->SetSize(this->GetSize().GetX() + FromDIP(40), m_screen_height * 0.7);
 
     CenterOnParent();
     wxPoint start_pos = this->GetPosition();
@@ -1139,7 +1148,35 @@ PreferencesDialog::~PreferencesDialog()
     m_hash_selector.clear();
 }
 
-void PreferencesDialog::on_dpi_changed(const wxRect &suggested_rect) { this->Refresh(); }
+void PreferencesDialog::on_dpi_changed(const wxRect &suggested_rect) {
+    for (auto item : m_button_list) {
+        item.second->Rescale();
+        item.second->SetMinSize(PreferenceBtnSize);
+        item.second->SetCornerRadius(FromDIP(12));
+    }
+    for (auto item : m_checkbox_list) {
+        item.second->Rescale();
+    }
+    for (auto item : m_radiobox_list) {
+        item.second->Rescale();
+    }
+    for (auto item : m_combobox_list) {
+        item.second->Rescale();
+    }
+    this->Refresh();
+    Layout();
+    Fit();
+    int displayIndex = wxDisplay::GetFromWindow(this);
+    if (displayIndex != wxNOT_FOUND) {
+        wxDisplay display(displayIndex);
+        wxRect    screenRect = display.GetGeometry();
+        if (m_screen_height != screenRect.GetHeight()) {
+            m_screen_height = screenRect.GetHeight();
+            this->SetSize(this->GetSize().GetX() + FromDIP(40), m_screen_height * 0.7);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " The display screen has switched";
+        }
+    }
+}
 
 void PreferencesDialog::Split(const std::string &src, const std::string &separator, std::vector<wxString> &dest)
 {
@@ -1588,6 +1625,7 @@ wxWindow* PreferencesDialog::create_debug_page()
     StateColor btn_bd_white(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
 
     Button* debug_button = new Button(page, _L("debug save button"));
+    m_button_list[m_button_list.size()] = debug_button;
     debug_button->SetBackgroundColor(btn_bg_white);
     debug_button->SetBorderColor(btn_bd_white);
     debug_button->SetFont(Label::Body_13);
