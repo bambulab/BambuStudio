@@ -254,11 +254,8 @@ void KBShortcutsDialog::fill_shortcuts()
             {ctrl + "A", L("Select all objects")},
             {ctrl + L("Shift+D"), L("Delete all")},
             {ctrl + "Z", L("Undo")},
-#ifdef __APPLE__
             {ctrl + "Shift+Z", L("Redo")},
-#else
             {ctrl + "Y", L("Redo")},
-#endif
             { "M", L("Gizmo move") },
             { "S", L("Gizmo scale") },
             { "R", L("Gizmo rotate") },
@@ -291,11 +288,8 @@ void KBShortcutsDialog::fill_shortcuts()
             {ctrl + "A", L("Select all objects")},
             {ctrl + "K", L("Clone selected")},
             {ctrl + "Z", L("Undo")},
-#ifdef __APPLE__
             {ctrl + "Shift+Z", L("Redo")},
-#else
             {ctrl + "Y", L("Redo")},
-#endif
             {L("Space"), L("Select the object/part and press space to change the name")},
             {L("Mouse click"), L("Select the object/part and mouse click to change the name")},
         };

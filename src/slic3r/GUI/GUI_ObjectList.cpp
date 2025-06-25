@@ -212,7 +212,7 @@ ObjectList::ObjectList(wxWindow* parent) :
     {
         // Accelerators
         // 	wxAcceleratorEntry entries[25];
-        wxAcceleratorEntry entries[26];
+        wxAcceleratorEntry entries[27];
         int index = 0;
         entries[index++].Set(wxACCEL_CTRL, (int)'C', wxID_COPY);
         entries[index++].Set(wxACCEL_CTRL, (int)'X', wxID_CUT);
@@ -221,9 +221,7 @@ ObjectList::ObjectList(wxWindow* parent) :
         entries[index++].Set(wxACCEL_CTRL, (int)'A', wxID_SELECTALL);
         entries[index++].Set(wxACCEL_CTRL, (int)'Z', wxID_UNDO);
         entries[index++].Set(wxACCEL_CTRL, (int)'Y', wxID_REDO);
-#ifdef __APPLE__
         entries[index++].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int)'Z', wxID_REDO);
-#endif
         entries[index++].Set(wxACCEL_NORMAL, WXK_BACK, wxID_DELETE);
         //entries[index++].Set(wxACCEL_NORMAL, int('+'), wxID_ADD);
         //entries[index++].Set(wxACCEL_NORMAL, WXK_NUMPAD_ADD, wxID_ADD);
@@ -238,7 +236,7 @@ ObjectList::ObjectList(wxWindow* parent) :
             numbers_cnt++;
             // index++;
         }
-        wxAcceleratorTable accel(26, entries);
+        wxAcceleratorTable accel(27, entries);
         SetAcceleratorTable(accel);
 
         this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->copy();                      }, wxID_COPY);

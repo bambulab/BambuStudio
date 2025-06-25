@@ -3634,6 +3634,14 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL));
                 return;
             }
+            case 'z':
+            case 'Z':
+            case WXK_CONTROL_Z: {
+                if (m_canvas_type == CanvasView3D || m_canvas_type == CanvasAssembleView) {
+                    post_event(SimpleEvent(EVT_GLCANVAS_REDO));
+                }
+                return;
+            }
             }
         }
         // CTRL is pressed
