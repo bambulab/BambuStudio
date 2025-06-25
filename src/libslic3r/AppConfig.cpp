@@ -177,7 +177,7 @@ void AppConfig::set_defaults()
     if (get("ams_sync_match_full_use_color_dist").empty())
         set_bool("ams_sync_match_full_use_color_dist", false);
     if (get("enable_sidebar_resizable").empty())
-        set_bool("enable_sidebar_resizable", false);
+        set_bool("enable_sidebar_resizable", true);
     if (get("enable_sidebar_floatable").empty())
         set_bool("enable_sidebar_floatable", false);
 
