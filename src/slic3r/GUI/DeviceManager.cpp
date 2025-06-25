@@ -20,6 +20,8 @@
 #include <wx/dir.h>
 #include "fast_float/fast_float.h"
 
+#include "slic3r/Utils/BBLUtil.hpp"
+
 #define CALI_DEBUG
 #define MINUTE_30 1800000    //ms
 #define TIME_OUT  5000       //ms
@@ -1836,8 +1838,6 @@ bool MachineObject::canEnableTimelapse(wxString &error_message) const
 
 int MachineObject::command_select_extruder(int id)
 {
-    BOOST_LOG_TRIVIAL(info) << "select_extruder";
-
     json j;
     j["print"]["sequence_id"]    = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["command"]        = "select_extruder";
@@ -1853,7 +1853,6 @@ int MachineObject::command_select_extruder(int id)
 
 int MachineObject::command_get_version(bool with_retry)
 {
-    BOOST_LOG_TRIVIAL(info) << "command_get_version";
     json j;
     j["info"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["info"]["command"] = "get_version";
@@ -1863,7 +1862,6 @@ int MachineObject::command_get_version(bool with_retry)
 }
 
 int MachineObject::command_get_access_code() {
-    BOOST_LOG_TRIVIAL(info) << "command_get_access_code";
     json j;
     j["system"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["system"]["command"] = "get_access_code";
@@ -1879,15 +1877,15 @@ int MachineObject::command_request_push_all(bool request_now)
 
     if (diff.count() < REQUEST_PUSH_MIN_TIME) {
         if (request_now) {
-            BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all, dev_id=" << dev_id;
+            BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all, dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
             last_request_push = std::chrono::system_clock::now();
         }
         else {
-            BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all: send request too fast, dev_id=" << dev_id;
+            BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all: send request too fast, dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
             return -1;
         }
     } else {
-        BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all, dev_id=" << dev_id;
+        BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all, dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
         last_request_push = std::chrono::system_clock::now();
     }
 
@@ -1904,11 +1902,11 @@ int MachineObject::command_pushing(std::string cmd)
     auto curr_time = std::chrono::system_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_request_start);
     if (diff.count() < REQUEST_START_MIN_TIME) {
-        BOOST_LOG_TRIVIAL(trace) << "static: command_request_start: send request too fast, dev_id=" << dev_id;
+        BOOST_LOG_TRIVIAL(trace) << "static: command_request_start: send request too fast, dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
         return -1;
     }
     else {
-        BOOST_LOG_TRIVIAL(trace) << "static: command_request_start, dev_id=" << dev_id;
+        BOOST_LOG_TRIVIAL(trace) << "static: command_request_start, dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
         last_request_start = std::chrono::system_clock::now();
     }
 
@@ -1923,7 +1921,6 @@ int MachineObject::command_pushing(std::string cmd)
 
 int MachineObject::command_clean_print_error(std::string subtask_id, int print_error)
 {
-    BOOST_LOG_TRIVIAL(info) << "command_clean_print_error, id = " << subtask_id;
     json j;
     j["print"]["command"] = "clean_print_error";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -1935,7 +1932,6 @@ int MachineObject::command_clean_print_error(std::string subtask_id, int print_e
 
 int MachineObject::command_upgrade_confirm()
 {
-    BOOST_LOG_TRIVIAL(info) << "command_upgrade_confirm";
     json j;
     j["upgrade"]["command"] = "upgrade_confirm";
     j["upgrade"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -1945,7 +1941,6 @@ int MachineObject::command_upgrade_confirm()
 
 int MachineObject::command_consistency_upgrade_confirm()
 {
-    BOOST_LOG_TRIVIAL(info) << "command_consistency_upgrade_confirm";
     json j;
     j["upgrade"]["command"] = "consistency_confirm";
     j["upgrade"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -2005,7 +2000,6 @@ int MachineObject::command_go_home()
 
 int MachineObject::command_go_home2()
 {
-    BOOST_LOG_TRIVIAL(info) << "New protocol of command_go_home2";
     json j;
     j["print"]["command"]     = "back_to_center";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -2031,21 +2025,17 @@ int MachineObject::command_control_fan(int fan_type, int val)
 // New protocol
 int MachineObject::command_control_fan_new(int fan_id, int val, const CommandCallBack &cb)
 {
-    BOOST_LOG_TRIVIAL(info) << "New protocol of fan setting(set speed), fan_id = " << fan_id;
     m_callback_list[std::to_string(m_sequence_id)] = cb;
     json j;
     j["print"]["command"] = "set_fan";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["fan_index"] = fan_id;
-
     j["print"]["speed"] = val;
-    BOOST_LOG_TRIVIAL(info) << "MachineObject::command_control_fan_val, set the speed of fan, fan_id = " << fan_id;
     return this->publish_json(j.dump());
 }
 
 int MachineObject::command_control_air_duct(int mode_id, int submode, const CommandCallBack &cb)
 {
-    BOOST_LOG_TRIVIAL(info) << "MachineObject::command_control_air_duct, set air duct, d = " << mode_id;
     m_callback_list[std::to_string(m_sequence_id)] = cb;
     json j;
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -2058,7 +2048,6 @@ int MachineObject::command_control_air_duct(int mode_id, int submode, const Comm
 
 int MachineObject::command_task_partskip(std::vector<int> part_ids)
 {
-    BOOST_LOG_TRIVIAL(trace) << "command_task_partskip: ";
     json j;
     j["print"]["command"] = "skip_objects";
     j["print"]["obj_list"] = part_ids;
@@ -2069,7 +2058,6 @@ int MachineObject::command_task_partskip(std::vector<int> part_ids)
 
 int MachineObject::command_task_abort()
 {
-    BOOST_LOG_TRIVIAL(trace) << "command_task_abort: ";
     json j;
     j["print"]["command"] = "stop";
     j["print"]["param"] = "";
@@ -2080,7 +2068,6 @@ int MachineObject::command_task_abort()
 
 int MachineObject::command_task_cancel(std::string job_id)
 {
-    BOOST_LOG_TRIVIAL(trace) << "command_task_cancel: " << job_id;
     json j;
     j["print"]["command"] = "stop";
     j["print"]["param"] = "";
@@ -2215,8 +2202,6 @@ int MachineObject::command_set_nozzle(int temp)
 
 int MachineObject::command_set_nozzle_new(int nozzle_id, int temp)
 {
-    BOOST_LOG_TRIVIAL(info) << "set_nozzle_temp";
-
     json j;
     j["print"]["sequence_id"]    = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["command"]        = "set_nozzle_temp";
@@ -2316,10 +2301,6 @@ int MachineObject::command_ams_filament_settings(int ams_id, int slot_id, std::s
         tag_tray_id = tag_slot_id;
     }
 
-
-    BOOST_LOG_TRIVIAL(info) << "command_ams_filament_settings, ams_id = " << tag_ams_id << ", slot_id = " << tag_slot_id << ", tray_id = " << tag_tray_id << ", tray_color = " << tray_color
-                            << ", tray_type = " << tray_type << ", filament_id = " << filament_id
-                            << ", setting_id = " << setting_id << ", temp_min: = " << nozzle_temp_min << ", temp_max: = " << nozzle_temp_max;
     json j;
     j["print"]["command"]       = "ams_filament_setting";
     j["print"]["sequence_id"]   = std::to_string(MachineObject::m_sequence_id++);
@@ -2410,7 +2391,7 @@ int MachineObject::command_set_chamber_light2(LIGHT_EFFECT effect, int on_time /
 int MachineObject::command_set_printer_nozzle(std::string nozzle_type, float diameter)
 {
     nozzle_setting_hold_count = HOLD_COUNT_MAX * 2;
-    BOOST_LOG_TRIVIAL(info) << "command_set_printer_nozzle, nozzle_type = " << nozzle_type << " diameter = " << diameter;
+
     json j;
     j["system"]["command"] = "set_accessories";
     j["system"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -2423,7 +2404,7 @@ int MachineObject::command_set_printer_nozzle(std::string nozzle_type, float dia
 int MachineObject::command_set_printer_nozzle2(int id, std::string nozzle_type, float diameter)
 {
     nozzle_setting_hold_count = HOLD_COUNT_MAX * 2;
-    BOOST_LOG_TRIVIAL(info) << "command_set_printer_nozzle2, nozzle_type = " << nozzle_type << " diameter = " << diameter;
+
     json j;
     j["print"]["command"]         = "set_nozzle";
     j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
@@ -2452,9 +2433,6 @@ int MachineObject::command_set_work_light(LIGHT_EFFECT effect, int on_time, int 
 
 int MachineObject::command_start_extrusion_cali(int tray_index, int nozzle_temp, int bed_temp, float max_volumetric_speed, std::string setting_id)
 {
-    BOOST_LOG_TRIVIAL(trace) << "extrusion_cali: tray_id = " << tray_index << ", nozzle_temp = " << nozzle_temp << ", bed_temp = " << bed_temp
-                            << ", max_volumetric_speed = " << max_volumetric_speed;
-
     json j;
     j["print"]["command"] = "extrusion_cali";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -2467,7 +2445,6 @@ int MachineObject::command_start_extrusion_cali(int tray_index, int nozzle_temp,
 
     // enter extusion cali
     last_extrusion_cali_start_time = std::chrono::system_clock::now();
-    BOOST_LOG_TRIVIAL(trace) << "extrusion_cali: " << j.dump();
     return this->publish_json(j.dump());
 }
 
@@ -2482,8 +2459,6 @@ int MachineObject::command_stop_extrusion_cali()
 
 int MachineObject::command_extrusion_cali_set(int tray_index, std::string setting_id, std::string name, float k, float n, int bed_temp, int nozzle_temp, float max_volumetric_speed)
 {
-    BOOST_LOG_TRIVIAL(trace) << "extrusion_cali: tray_id = " << tray_index << ", setting_id = " << setting_id << ", k = " << k
-                            << ", n = " << n;
     json j;
     j["print"]["command"] = "extrusion_cali_set";
     j["print"]["sequence_id"]   = std::to_string(MachineObject::m_sequence_id++);
@@ -2561,7 +2536,6 @@ int MachineObject::command_ams_switch_filament(bool switch_filament)
     j["print"]["auto_switch_filament"] = switch_filament;
 
     ams_auto_switch_filament_flag = switch_filament;
-    BOOST_LOG_TRIVIAL(trace) << "command_ams_filament_settings:" << switch_filament;
     ams_switch_filament_start = time(nullptr);
 
     return this->publish_json(j.dump());
@@ -2575,7 +2549,6 @@ int MachineObject::command_ams_air_print_detect(bool air_print_detect)
     j["print"]["air_print_detect"] = air_print_detect;
 
     ams_air_print_status = air_print_detect;
-    BOOST_LOG_TRIVIAL(trace) << "command_ams_air_print_detect:" << air_print_detect;
 
     return this->publish_json(j.dump());
 }
@@ -2702,8 +2675,6 @@ int MachineObject::command_start_pa_calibration(const X1CCalibInfos &pa_data, in
         filament_ids += pa_data.calib_datas[i].filament_id;
     }
 
-    BOOST_LOG_TRIVIAL(info) << "extrusion_cali: " << j.dump();
-
     try {
         json js;
         js["cali_type"]       = "cali_pa_auto";
@@ -2748,7 +2719,6 @@ int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult> &
                 j["print"]["filaments"][i]["n_coef"]  = "0.0";
         }
 
-        BOOST_LOG_TRIVIAL(info) << "extrusion_cali_set: " << j.dump();
         return this->publish_json(j.dump());
     }
 
@@ -2766,7 +2736,6 @@ int MachineObject::command_delete_pa_calibration(const PACalibIndexInfo& pa_cali
     j["print"]["cali_idx"]        = pa_calib.cali_idx;
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_calib.nozzle_diameter);
 
-    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_del: " << j.dump();
     return this->publish_json(j.dump());
 }
 
@@ -2784,7 +2753,6 @@ int MachineObject::command_get_pa_calibration_tab(const PACalibExtruderInfo &cal
         j["print"]["nozzle_id"] = generate_nozzle_id(calib_info.nozzle_volume_type, to_string_nozzle_diameter(calib_info.nozzle_diameter)).ToStdString();
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(calib_info.nozzle_diameter);
 
-    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_get: " << j.dump();
     request_tab_from_bbs = true;
     return this->publish_json(j.dump());
 }
@@ -2796,7 +2764,6 @@ int MachineObject::command_get_pa_calibration_result(float nozzle_diameter)
     j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(nozzle_diameter);
 
-    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_get_result: " << j.dump();
     return this->publish_json(j.dump());
 }
 
@@ -2812,7 +2779,6 @@ int MachineObject::commnad_select_pa_calibration(const PACalibIndexInfo& pa_cali
     j["print"]["filament_id"]     = pa_calib_info.filament_id;
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_calib_info.nozzle_diameter);
 
-    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_sel: " << j.dump();
     return this->publish_json(j.dump());
 }
 
@@ -2855,7 +2821,6 @@ int MachineObject::command_start_flow_ratio_calibration(const X1CCalibInfos& cal
             if (agent) agent->track_event("cali", js.dump());
         } catch (...) {}
 
-        BOOST_LOG_TRIVIAL(info) << "flowrate_cali: " << j.dump();
         return this->publish_json(j.dump());
     }
     return -1;
@@ -2868,13 +2833,11 @@ int MachineObject::command_get_flow_ratio_calibration_result(float nozzle_diamet
     j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(nozzle_diameter);
 
-    BOOST_LOG_TRIVIAL(info) << "flowrate_get_result: " << j.dump();
     return this->publish_json(j.dump());
 }
 
 int MachineObject::command_ipcam_record(bool on_off)
 {
-    BOOST_LOG_TRIVIAL(info) << "command_ipcam_record = " << on_off;
     json j;
     j["camera"]["command"] = "ipcam_record_set";
     j["camera"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -2886,7 +2849,6 @@ int MachineObject::command_ipcam_record(bool on_off)
 
 int MachineObject::command_ipcam_timelapse(bool on_off)
 {
-    BOOST_LOG_TRIVIAL(info) << "command_ipcam_timelapse " << on_off;
     json j;
     j["camera"]["command"] = "ipcam_timelapse";
     j["camera"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -2898,7 +2860,6 @@ int MachineObject::command_ipcam_timelapse(bool on_off)
 
 int MachineObject::command_ipcam_resolution_set(std::string resolution)
 {
-    BOOST_LOG_TRIVIAL(info) << "command:ipcam_resolution_set" << ", resolution:" << resolution;
     json j;
     j["camera"]["command"] = "ipcam_resolution_set";
     j["camera"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -2922,10 +2883,6 @@ int MachineObject::command_xcam_control(std::string module_name, bool on_off, st
         j["xcam"]["halt_print_sensitivity"] = lvl;
     }
 
-   // int           cfg = 123;
-   // get_flag_bits(cfg, 11, 2);
-
-    BOOST_LOG_TRIVIAL(info) << "command:xcam_control_set" << ", module_name:" << module_name << ", control:" << on_off << ", halt_print_sensitivity:" << lvl;
     return this->publish_json(j.dump());
 }
 
@@ -3115,14 +3072,14 @@ bool MachineObject::is_core_xy()
 
 void MachineObject::reset_update_time()
 {
-    BOOST_LOG_TRIVIAL(trace) << "reset reset_update_time, dev_id =" << dev_id;
+    BOOST_LOG_TRIVIAL(trace) << "reset reset_update_time, dev_id =" << BBLCrossTalk::Crosstalk_DevId(dev_id);
     last_update_time = std::chrono::system_clock::now();
     subscribe_counter = SUBSCRIBE_RETRY_COUNT;
 }
 
 void MachineObject::reset()
 {
-    BOOST_LOG_TRIVIAL(trace) << "reset dev_id=" << dev_id;
+    BOOST_LOG_TRIVIAL(trace) << "reset dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
     last_update_time = std::chrono::system_clock::now();
     subscribe_counter = SUBSCRIBE_RETRY_COUNT;
     m_push_count = 0;
@@ -3205,7 +3162,7 @@ bool MachineObject::is_connected()
     std::chrono::system_clock::time_point curr_time = std::chrono::system_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_update_time);
     if (diff.count() > DISCONNECT_TIMEOUT) {
-        BOOST_LOG_TRIVIAL(trace) << "machine_object: dev_id=" << dev_id <<", diff count = " << diff.count();
+        BOOST_LOG_TRIVIAL(trace) << "machine_object: dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id) <<", diff count = " << diff.count();
         return false;
     }
 
@@ -3367,7 +3324,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                 if (j_pre["print"]["command"].get<std::string>() == "push_status") {
                     if (j_pre["print"].contains("msg")) {
                         if (j_pre["print"]["msg"].get<int>() == 0) {           //all message
-                            BOOST_LOG_TRIVIAL(trace) << "static: get push_all msg, dev_id=" << dev_id;
+                            BOOST_LOG_TRIVIAL(trace) << "static: get push_all msg, dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
                             m_push_count++;
                             m_full_msg_count++;
 
@@ -3514,17 +3471,15 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
             message_delay.push_back(std::make_tuple(message_type, t_utc, delay));
         }
         else
+        {
             last_utc_time = last_update_time;
-
-#if !BBL_RELEASE_TO_PUBLIC
-        BOOST_LOG_TRIVIAL(info) << "parse_json: dev_id=" << dev_id << ", tunnel is=" << tunnel << ", merged playload=" << j.dump();
-#else
-        if (Slic3r::get_logging_level() < level_string_to_boost("trace")) {
-            BOOST_LOG_TRIVIAL(info) << "parse_json: dev_id=" << dev_id << ", origin playload=" << j_pre.dump();
-        } else {
-            BOOST_LOG_TRIVIAL(trace) << "parse_json: dev_id=" << dev_id << ", tunnel is=" << tunnel << ", merged playload=" << j.dump();
         }
-#endif
+
+        if (Slic3r::get_logging_level() < level_string_to_boost("trace")) {
+            BOOST_LOG_TRIVIAL(info) << "parse_json: dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id) << ", origin playload=" << BBLCrossTalk::Crosstalk_JsonLog(j_pre);
+        } else {
+            BOOST_LOG_TRIVIAL(trace) << "parse_json: dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id) << ", tunnel is=" << tunnel << ", merged playload=" << BBLCrossTalk::Crosstalk_JsonLog(j);
+        }
 
         // Parse version info first, as if version arrive or change, 'print' need parse again with new compatible settings
         try {
@@ -5697,7 +5652,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
         }
     }
     catch (...) {
-        BOOST_LOG_TRIVIAL(trace) << "parse_json failed! dev_id=" << this->dev_id <<", payload = " << payload;
+        BOOST_LOG_TRIVIAL(trace) << "parse_json failed! dev_id=" << BBLCrossTalk::Crosstalk_DevId(this->dev_id) <<", payload = " << payload;
     }
 
     std::chrono::system_clock::time_point clock_stop = std::chrono::system_clock::now();
@@ -7275,7 +7230,10 @@ void DeviceManager::on_machine_alive(std::string json_str)
                 it->second->bind_sec_link       = sec_link;
                 it->second->dev_connection_type = connect_type;
                 it->second->bind_ssdp_version   = ssdp_version;
-                BOOST_LOG_TRIVIAL(trace) << "DeviceManager::SsdpDiscovery, update userMachineList json" << json_str;
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " UpdateUserMachineInfo, ip= " << BBLCrossTalk::Crosstalk_DevIP(dev_ip)
+                                        << ", printer_name= " << dev_name << ", printer_type= " << printer_type_str
+                                        << ", con_type= " << connect_type << ", signal= " << printer_signal
+                                        << ", bind_state= " << bind_state;
             }
         }
 
@@ -7288,12 +7246,12 @@ void DeviceManager::on_machine_alive(std::string json_str)
 
             if (obj->dev_ip.compare(dev_ip) != 0) {
                 if ( connection_name.empty() ) {
-                    BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << Slic3r::GUI::wxGetApp().format_IP(obj->dev_ip) << " to " << Slic3r::GUI::wxGetApp().format_IP(dev_ip);
+                    BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << BBLCrossTalk::Crosstalk_DevIP(obj->dev_ip) << " to " << BBLCrossTalk::Crosstalk_DevIP(dev_ip);
                     obj->dev_ip = dev_ip;
                 }
                 else {
                     if ( obj->dev_connection_name.empty() || obj->dev_connection_name.compare(connection_name) == 0) {
-                        BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << Slic3r::GUI::wxGetApp().format_IP(obj->dev_ip) << " to " << Slic3r::GUI::wxGetApp().format_IP(dev_ip) << " connection_name is " << connection_name;
+                        BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << BBLCrossTalk::Crosstalk_DevIP(obj->dev_ip) << " to " << BBLCrossTalk::Crosstalk_DevIP(dev_ip) << " connection_name is " << connection_name;
                         if(obj->dev_connection_name.empty()){obj->dev_connection_name = connection_name;}
                         obj->dev_ip = dev_ip;
                     }
@@ -7309,13 +7267,31 @@ void DeviceManager::on_machine_alive(std::string json_str)
                 obj->bind_ssdp_version != ssdp_version ||
                 obj->printer_type != MachineObject::parse_printer_type(printer_type_str))
             {
+                if (obj->dev_connection_type != connect_type ||
+                    obj->bind_state != bind_state ||
+                    obj->bind_sec_link != sec_link ||
+                    obj->bind_ssdp_version != ssdp_version ||
+                    obj->printer_type != MachineObject::parse_printer_type(printer_type_str))
+                {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " UpdateUserMachineInfo, ip= " << BBLCrossTalk::Crosstalk_DevIP(dev_ip)
+                        << ", printer_name= " << dev_name << ", printer_type= " << printer_type_str
+                        << ", con_type= " << connect_type << ", signal= " << printer_signal
+                        << ", bind_state= " << bind_state;
+                }
+                else
+                {
+                    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << " UpdateUserMachineInfo, ip= " << BBLCrossTalk::Crosstalk_DevIP(dev_ip)
+                        << ", printer_name= " << dev_name << ", printer_type= " << printer_type_str
+                        << ", con_type= " << connect_type << ", signal= " << printer_signal
+                        << ", bind_state= " << bind_state;
+                }
+
                 obj->wifi_signal         = printer_signal;
                 obj->dev_connection_type = connect_type;
                 obj->bind_state          = bind_state;
                 obj->bind_sec_link       = sec_link;
                 obj->bind_ssdp_version   = ssdp_version;
                 obj->printer_type        = MachineObject::parse_printer_type(printer_type_str);
-                BOOST_LOG_TRIVIAL(trace) << "DeviceManager::SsdpDiscovery, update localMachineList json" << json_str;
             }
 
             // U0 firmware
@@ -7355,7 +7331,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
                  Slic3r::GUI::wxGetApp().app_config->set_str("ip_address", obj->dev_id, obj->dev_ip);
                  Slic3r::GUI::wxGetApp().app_config->save();
              }*/
-            BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery::New Machine, ip= " << Slic3r::GUI::wxGetApp().format_IP(dev_ip) << ", printer_name= " << dev_name
+            BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery::New Machine, ip= " << BBLCrossTalk::Crosstalk_DevIP(dev_ip) << ", printer_name= " << dev_name
                                     << ", printer_type= " << printer_type_str << ", con_type= "
                                     << connect_type <<", signal= " << printer_signal << ", bind_state= " << bind_state;
         }
@@ -7510,7 +7486,7 @@ void DeviceManager::clean_user_info()
 
 bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnect)
 {
-    BOOST_LOG_TRIVIAL(info) << "set_selected_machine=" << dev_id;
+    BOOST_LOG_TRIVIAL(info) << "set_selected_machine=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
     auto my_machine_list = get_my_machine_list();
     auto it = my_machine_list.find(dev_id);
 
@@ -7558,7 +7534,7 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
                         it->second->nt_reset_data();
                     }
                     else {
-                        BOOST_LOG_TRIVIAL(info) << "static: set_selected_machine: same dev_id = " << dev_id;
+                        BOOST_LOG_TRIVIAL(info) << "static: set_selected_machine: same dev_id = " << BBLCrossTalk::Crosstalk_DevId(dev_id);
                         m_agent->set_user_selected_machine(dev_id);
                         it->second->reset();
                     }
@@ -7606,7 +7582,7 @@ void DeviceManager::add_user_subscribe()
     std::vector<std::string> dev_list;
     for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
         dev_list.push_back(it->first);
-        BOOST_LOG_TRIVIAL(trace) << "add_user_subscribe: " << it->first;
+        BOOST_LOG_TRIVIAL(trace) << "add_user_subscribe: " << BBLCrossTalk::Crosstalk_DevId(it->first);
     }
     m_agent->add_subscribe(dev_list);
 }
@@ -7617,7 +7593,7 @@ void DeviceManager::del_user_subscribe()
     std::vector<std::string> dev_list;
     for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
         dev_list.push_back(it->first);
-        BOOST_LOG_TRIVIAL(trace) << "del_user_subscribe: " << it->first;
+        BOOST_LOG_TRIVIAL(trace) << "del_user_subscribe: " << BBLCrossTalk::Crosstalk_DevId(it->first);
     }
     m_agent->del_subscribe(dev_list);
 }
@@ -7629,7 +7605,7 @@ void DeviceManager::subscribe_device_list(std::vector<std::string> dev_list)
     for (auto& it : subscribe_list_cache) {
         if (it != selected_machine) {
             unsub_list.push_back(it);
-            BOOST_LOG_TRIVIAL(trace) << "subscribe_device_list: unsub dev id = " << it;
+            BOOST_LOG_TRIVIAL(trace) << "subscribe_device_list: unsub dev id = " << BBLCrossTalk::Crosstalk_DevId(it);
         }
     }
     BOOST_LOG_TRIVIAL(trace) << "subscribe_device_list: unsub_list size = " << unsub_list.size();
@@ -7639,7 +7615,7 @@ void DeviceManager::subscribe_device_list(std::vector<std::string> dev_list)
     }
     for (auto& it : dev_list) {
         subscribe_list_cache.push_back(it);
-        BOOST_LOG_TRIVIAL(trace) << "subscribe_device_list: sub dev id = " << it;
+        BOOST_LOG_TRIVIAL(trace) << "subscribe_device_list: sub dev id = " << BBLCrossTalk::Crosstalk_DevId(it);
     }
     BOOST_LOG_TRIVIAL(trace) << "subscribe_device_list: sub_list size = " << subscribe_list_cache.size();
     if (!unsub_list.empty())
