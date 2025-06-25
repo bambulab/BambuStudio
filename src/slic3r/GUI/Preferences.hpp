@@ -13,7 +13,9 @@
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/TextInput.hpp"
-
+#include "Widgets/Button.hpp"
+#include "Widgets/RadioBox.hpp"
+#include "Widgets/LinkLabel.hpp"
 namespace Slic3r { namespace GUI {
 
 
@@ -86,7 +88,6 @@ public:
     wxString m_backup_interval_time;
 
     void      create();
-    wxWindow *create_tab_button(int id, wxString text);
 
     // debug mode
     ::CheckBox * m_developer_mode_ckeckbox   = {nullptr};
@@ -135,6 +136,12 @@ public:
 
     void Split(const std::string &src, const std::string &separator, std::vector<wxString> &dest);
     int m_current_language_selected = {0};
+
+    std::unordered_map<int, Button *> m_button_list;
+    std::unordered_map<int, ::CheckBox *> m_checkbox_list;
+    std::unordered_map<int, RadioBox *>   m_radiobox_list;
+    std::unordered_map<int, ::ComboBox *> m_combobox_list;
+    int                                   m_screen_height;
 
 protected:
     void OnSelectTabel(wxCommandEvent &event);
