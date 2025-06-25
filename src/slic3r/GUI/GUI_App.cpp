@@ -68,6 +68,7 @@
 #include "MainFrame.hpp"
 #include "Plater.hpp"
 #include "GLCanvas3D.hpp"
+#include "EncodedFilament.hpp"
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Utils/PrintHost.hpp"
@@ -7548,6 +7549,17 @@ const ColorRGB& GUI_App::get_picking_color() const
     return m_picking_color;
 }
 
+
+FilamentColorCodeQuery* GUI_App::get_filament_color_code_query()
+{
+    if (!m_filament_color_code_query)
+    {
+        m_filament_color_code_query = new FilamentColorCodeQuery();
+    }
+
+    return m_filament_color_code_query;
+}
+
 bool GUI_App::open_browser_with_warning_dialog(const wxString& url, int flags/* = 0*/)
 {
     return wxLaunchDefaultBrowser(url, flags);
@@ -7695,7 +7707,6 @@ void GUI_App::disassociate_files(std::wstring extend)
     if (is_new)
        ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
 }
-
 
 #endif // __WXMSW__
 
