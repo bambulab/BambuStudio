@@ -1003,8 +1003,25 @@ void PrintingTaskPanel::msw_rescale()
     //m_staticText_printing->SetMinSize(wxSize(PAGE_TITLE_TEXT_WIDTH, PAGE_TITLE_HEIGHT));
     m_gauge_progress->SetHeight(PROGRESSBAR_HEIGHT);
     m_gauge_progress->Rescale();
+    m_button_pause_resume->msw_rescale();
     m_button_abort->msw_rescale();
     m_bitmap_thumbnail->SetSize(TASK_THUMBNAIL_SIZE);
+
+    {
+        for (int i = 0; i < m_score_star.size(); ++i) {
+            if (i < m_star_count) {
+                ScalableBitmap light_star = ScalableBitmap(nullptr, "score_star_light", 26);
+                m_score_star[i]->SetBitmap(light_star.bmp());
+            } else {
+                ScalableBitmap dark_star = ScalableBitmap(nullptr, "score_star_dark", 26);
+                m_score_star[i]->SetBitmap(dark_star.bmp());
+            }
+        }
+
+        m_button_market_scoring->Rescale();
+        m_button_clean->Rescale();
+        m_button_market_retry->Rescale();
+    }
 }
 
 void PrintingTaskPanel::init_bitmaps()
@@ -1246,19 +1263,10 @@ void PrintingTaskPanel::set_plate_index(int plate_idx)
     m_plate_index = plate_idx;
 }
 
-void PrintingTaskPanel::market_scoring_show()
+void PrintingTaskPanel::market_scoring_show(bool show)
 {
-    m_score_staticline->Show();
-    m_score_subtask_info->Show();
-}
-
-bool PrintingTaskPanel::is_market_scoring_show() {
-    return m_score_staticline->IsShown() && m_score_subtask_info->IsShown(); }
-
-void PrintingTaskPanel::market_scoring_hide()
-{
-    m_score_staticline->Hide();
-    m_score_subtask_info->Hide();
+    m_score_staticline->Show(show);
+    m_score_subtask_info->Show(show);
 }
 
 void PrintingTaskPanel::set_star_count(int star_count)
@@ -3738,7 +3746,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
         update_partskip_subtask(obj);
 
         if (obj->is_in_prepare() || obj->print_status == "SLICING") {
-            m_project_task_panel->market_scoring_hide();
+            m_project_task_panel->market_scoring_show(false);
             m_project_task_panel->get_request_failed_panel()->Hide();
             m_project_task_panel->enable_partskip_button(false);
             m_project_task_panel->enable_abort_button(false);
@@ -3823,7 +3831,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
                             }
                         }
 
-                        m_project_task_panel->market_scoring_show();
+                        m_project_task_panel->market_scoring_show(true);
 
                     } else if (obj && obj->rating_info && !obj->rating_info->request_successful) {
                         BOOST_LOG_TRIVIAL(info) << "model mall result request failed";
@@ -3836,11 +3844,11 @@ void StatusPanel::update_subtask(MachineObject *obj)
                         }
                     }
                 } else {
-                    m_project_task_panel->market_scoring_hide();
+                    m_project_task_panel->market_scoring_show(false);
                 }
             } else { // model printing is not finished, hide scoring page
                 m_project_task_panel->enable_abort_button(true);
-                m_project_task_panel->market_scoring_hide();
+                m_project_task_panel->market_scoring_show(false);
                 m_project_task_panel->get_request_failed_panel()->Hide();
             }
         }
@@ -3945,7 +3953,7 @@ void StatusPanel::reset_printing_values()
     m_project_task_panel->update_stage_value(wxEmptyString, 0);
     m_project_task_panel->update_progress_percent(NA_STR, wxEmptyString);
 
-    m_project_task_panel->market_scoring_hide();
+    m_project_task_panel->market_scoring_show(false);
     m_project_task_panel->get_request_failed_panel()->Hide();
     update_basic_print_data(false);
     m_project_task_panel->update_left_time(NA_STR);
