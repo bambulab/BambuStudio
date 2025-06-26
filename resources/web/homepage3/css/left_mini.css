@@ -59,6 +59,11 @@
 	display: none!important;
 }
 
+.BtnIcon-Right
+{
+	display: none!important;
+}
+
 /*-----Hide Button-----*/
 #HideBtn
 {
