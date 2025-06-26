@@ -78,7 +78,7 @@ bool GLGizmoFuzzySkin::on_init()
     m_desc["clipping_of_view_caption"] = alt + _L("Mouse wheel");
     m_desc["clipping_of_view"]      = _L("Section view");
     m_desc["reset_direction"]       = _L("Reset direction");
-    m_desc["cursor_size_caption"]   = _L("Ctrl + Mouse wheel");
+    m_desc["cursor_size_caption"]      = ctrl + _L("Mouse wheel");
     m_desc["cursor_size"]           = _L("Pen size");
     m_desc["add_fuzzyskin_caption"] = _L("Left mouse button");
     m_desc["add_fuzzyskin"]         = _L("Add fuzzy skin");
@@ -228,7 +228,7 @@ void GLGizmoFuzzySkin::on_render_input_window(float x, float y, float bottom_lim
 
     float caption_max    = 0.f;
     float total_text_max = 0.f;
-    for (const auto &t : std::array<std::string, 5>{"add_fuzzyskin",  "remove", "cursor_size", "clipping_of_view"}) {
+    for (const auto &t : std::array<std::string, 5>{"add_fuzzyskin", "remove", "cursor_size", "clipping_of_view", "smart_fill_angle"}) {
         caption_max    = std::max(caption_max, m_imgui->calc_text_size(m_desc[t + "_caption"]).x);
         total_text_max = std::max(total_text_max, m_imgui->calc_text_size(m_desc[t]).x);
     }
@@ -451,7 +451,8 @@ void GLGizmoFuzzySkin::show_tooltip_information(float caption_max, float x, floa
             default:
                 break;
         }
-        for (const auto &t : tip_items) draw_text_with_caption(m_desc.at(t + "_caption") + ": ", m_desc.at(t));
+        for (const auto &t : tip_items)
+            draw_text_with_caption(m_desc.at(t + "_caption") + ": ", m_desc.at(t));
 
         ImGui::EndTooltip();
     }
