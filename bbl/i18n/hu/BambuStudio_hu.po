@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-29 15:44+0800\n"
+"POT-Creation-Date: 2025-06-26 11:05+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -47,11 +47,7 @@ msgid "Idle"
 msgstr "Tétlen"
 
 #, c-format, boost-format
-msgid "%.1f ℃"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d : %d"
+msgid "%d ℃"
 msgstr ""
 
 msgid "Serial:"
@@ -197,6 +193,9 @@ msgstr "Számgombok 1-9"
 msgid "Choose filament"
 msgstr "Válassz filamentet"
 
+msgid "Connected same color"
+msgstr ""
+
 msgid "Edge detection"
 msgstr "Élek felismerése"
 
@@ -263,6 +262,15 @@ msgstr "Festett szín eltávolítása"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "A következővel festve: %1% filament"
+
+msgid "Fuzzy skin Painting"
+msgstr ""
+
+msgid "Add fuzzy skin"
+msgstr ""
+
+msgid "Remove fuzzy skin"
+msgstr ""
 
 msgid "Move"
 msgstr "Mozgatás"
@@ -1857,6 +1865,9 @@ msgstr "Kattints az ikonra az objektum nyomtatható tulajdonságának módosít�
 msgid "Click the icon to edit support painting of the object"
 msgstr "Kattints az ikonra az objektum támasz festésének szerkesztéséhez"
 
+msgid "Click the icon to edit fuzzy skin painting of the object"
+msgstr ""
+
 msgid "Click the icon to edit color painting of the object"
 msgstr "Kattints az ikonra az objektum színfestésének szerkesztéséhez"
 
@@ -2281,8 +2292,8 @@ msgstr "A ventilátor szabályozza a hőmérsékletet nyomtatás közben a nyomt
 msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials and filters the chamber air."
 msgstr "A hűtési üzemmód PLA/PETG/TPU anyagok nyomtatásához alkalmas, és megszűri a kamra levegőjét."
 
-msgid "Heating mode is suitable for printeing ABS/ASA/PC/PA materials and circulates filters the chamber air."
-msgstr "A fűtési üzemmód ABS/ASA/PC/PA anyagok nyomtatására alkalmas, és keringeti és szűri a kamra levegőjét."
+msgid "Heating mode is suitable for printing ABS/ASA/PC/PA materials and circulates filters the chamber air."
+msgstr ""
 
 msgid "Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printouts will be fully cooled."
 msgstr "Az erős hűtési mód PLA/TPU anyagok nyomtatására alkalmas. Ebben az üzemmódban a nyomatok teljesen lehűlnek."
@@ -3462,6 +3473,14 @@ msgstr ""
 msgid "To ensure your safety, certain processing tasks (such as laser) can only be resumed on printer."
 msgstr ""
 
+#, c-format, boost-format
+msgid "The chamber temperature is too high, which may cause the filament to soften. Please wait until the chamber temperature drops below %d℃. You may open the front door or enable fans to cool down."
+msgstr ""
+
+#, c-format, boost-format
+msgid "AMS temperature is too high, which may cause the filament to soften. Please wait until the AMS temperature drops below %d℃."
+msgstr ""
+
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "A kamra aktuális hőmérséklete vagy a kamra célhőmérséklete meghaladja a 45 ℃-ot. Az extruder eltömődésének elkerülése érdekében ne tölts be alacsony hőmérsékletű filamentet (PLA/PETG/TPU)."
 
@@ -3492,17 +3511,20 @@ msgstr "Kalibrációs hiba"
 msgid "TPU is not supported by AMS."
 msgstr "Az AMS nem támogatja a TPU-t."
 
-msgid "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF is not supported by AMS."
-msgstr "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF az AMS nem támogatja."
-
 msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
 msgstr "A nedves PVA rugalmassá válik és elakadhat az AMS belsejében; kérjük, használat előtt alaposan szárítsd ki."
+
+msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+msgstr "A PLA Glow érdes felülete felgyorsíthatja az AMS rendszer kopását, különösen az AMS Lite belső alkatrészein."
 
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 msgstr "A CF/GF filament rideg és törékeny, ezért könnyen eltörhet vagy elakadhat az AMS-ben; kérjük, légy körültekintő a használatakor."
 
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr "A PLA Glow érdes felülete felgyorsíthatja az AMS rendszer kopását, különösen az AMS Lite belső alkatrészein."
+msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr ""
+
+msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr ""
 
 msgid "default"
 msgstr "alapértelmezett"
@@ -4421,6 +4443,9 @@ msgstr "Exportálás"
 msgid "Publish to MakerWorld"
 msgstr "Közzététel a MakerWorldben"
 
+msgid "Batch Preset Management"
+msgstr ""
+
 msgid "Quit"
 msgstr "Kilépés"
 
@@ -4485,6 +4510,12 @@ msgid "Show 3D Navigator"
 msgstr "3D navigátor megjelenítése"
 
 msgid "Show 3D navigator in Prepare and Preview scene"
+msgstr ""
+
+msgid "Reset Window Layout"
+msgstr ""
+
+msgid "Reset to default window layout"
 msgstr ""
 
 msgid "Show object labels in 3D scene"
@@ -4704,8 +4735,8 @@ msgstr "A lejátszó hibásan működik. Kérjük, telepítsd újra."
 msgid "The player is not loaded, please click \"play\" button to retry."
 msgstr "A lejátszó nem töltődött be; kérjük, kattints a „lejátszás” gombra az újra próbálkozáshoz."
 
-msgid "Temporarily closed because there is no operating for a long time."
-msgstr "Ideiglenesen bezárva, mert hosszú ideig nem volt használva."
+msgid "Temporarily closed because there is no operation for a while."
+msgstr ""
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "Ideiglenesen bezárva, mert egy ideje nem volt nyomtatás."
@@ -5523,6 +5554,12 @@ msgstr[0] "%1$d objektum színfestést tartalmaz."
 msgstr[1] "%1$d objektum színfestést tartalmaz."
 
 #, c-format, boost-format
+msgid "%1$d Object has fuzzy skin."
+msgid_plural "%1$d Objects have fuzzy skin."
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, boost-format
 msgid "%1$d object was loaded as a part of cut object."
 msgid_plural "%1$d objects were loaded as parts of cut object"
 msgstr[0] ""
@@ -5572,6 +5609,9 @@ msgstr "G-kód útvonal átfedés"
 
 msgid "Support painting"
 msgstr "Támasz festése"
+
+msgid "Fuzzy skin"
+msgstr ""
 
 msgid "Color painting"
 msgstr "Színfestés"
@@ -5673,6 +5713,9 @@ msgstr "Fúvóka áramlás"
 msgid "Please change the nozzle settings on the printer."
 msgstr ""
 
+msgid "View wiki"
+msgstr ""
+
 msgid "Hardened Steel"
 msgstr "Edzett acél"
 
@@ -5684,6 +5727,9 @@ msgstr ""
 
 msgid "High flow"
 msgstr "Nagy áramlás"
+
+msgid "No wiki link available for this printer."
+msgstr ""
 
 msgid "Global"
 msgstr "Globális"
@@ -6279,6 +6325,9 @@ msgstr "Nyomtatóra küldés"
 msgid "Custom supports and color painting were removed before repairing."
 msgstr "Az egyedi támaszok és a színfestés eltávolításra került a javítást előtt."
 
+msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
 msgstr "A nyomtató nincs csatlakoztatva. Kérjük, szinkronizálás előtt lépj az eszközoldalra, hogy csatlakoztass egy %s nyomtatót."
@@ -6781,9 +6830,6 @@ msgstr "Jobb oldali filamentek"
 msgid "Click to pick filament color"
 msgstr "Kattints a filament szín kiválasztásához"
 
-msgid "Please choose the filament colour"
-msgstr "Kérjük, válaszd ki a filament színét"
-
 msgid "Add/Remove presets"
 msgstr "Beállítások hozzáadása/eltávolítása"
 
@@ -6813,6 +6859,9 @@ msgstr "Nyomtatók kiválasztása/eltávolítása (rendszerbeállítások)"
 
 msgid "Create printer"
 msgstr "Nyomtató létrehozása"
+
+msgid "Please choose the filament colour"
+msgstr "Kérjük, válaszd ki a filament színét"
 
 msgid "Empty"
 msgstr "Üres"
@@ -7228,7 +7277,7 @@ msgstr ""
 msgid "High chamber temperature is required. Please close the door."
 msgstr ""
 
-msgid "No labels are currently stored."
+msgid "Please refer to Wiki before use->"
 msgstr ""
 
 msgid "Send to Printer storage"
@@ -7421,9 +7470,15 @@ msgid ""
 msgstr ""
 
 msgid ""
+"When using PLA to support TPU, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use PLA for both support interface and support base"
+msgstr ""
+
+msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
-"and use soluble materials for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 
 msgid ""
@@ -7444,8 +7499,8 @@ msgstr ""
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
-"and use soluble materials for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 
 msgid ""
@@ -8569,9 +8624,6 @@ msgstr "2. Ha az alábbi IP-cím és hozzáférési kód nem egyezik a nyomtató
 msgid "3. Please obtain the device SN from the printer side; it is usually found in the device information on the printer screen."
 msgstr "3. Keresd meg a nyomtató szériaszámát; általában a nyomtató képernyőjén található eszközinformációban található meg."
 
-msgid "View wiki"
-msgstr ""
-
 msgid "Access Code"
 msgstr "Hozzáférési kód"
 
@@ -8638,6 +8690,9 @@ msgstr "Lézer 40W"
 
 msgid "Cutting Module"
 msgstr "Vágómodul"
+
+msgid "Auto Fire Extinguishing System"
+msgstr ""
 
 msgid "Model:"
 msgstr "Modell:"
@@ -9306,6 +9361,39 @@ msgstr "mm/s"
 
 #, c-format, boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
+msgstr ""
+
+msgid "Slow down by height"
+msgstr ""
+
+msgid "Enable this option to slow printing down by height"
+msgstr ""
+
+msgid "Starting height"
+msgstr ""
+
+msgid "The height starts to slow down"
+msgstr ""
+
+msgid "Speed at starting height"
+msgstr ""
+
+msgid "Acceleration at starting height"
+msgstr ""
+
+msgid "mm/s²"
+msgstr "mm/s²"
+
+msgid "Ending height"
+msgstr ""
+
+msgid "The height finishes slowing down, Ending height should be larger than Starting height, or the slowing down will not work!"
+msgstr ""
+
+msgid "Speed at ending height"
+msgstr ""
+
+msgid "Acceleration at ending height"
 msgstr ""
 
 msgid "Speed of bridge and completely overhang wall"
@@ -10738,6 +10826,12 @@ msgstr "Scarf varrat a belső falakon"
 msgid "Use scarf joint for inner walls as well."
 msgstr "Scarf varrat használata a belső falakon is."
 
+msgid "Override filament scarf seam setting"
+msgstr ""
+
+msgid "Overrider filament scarf seam setting and could control settings by modifier."
+msgstr ""
+
 msgid "Wipe speed"
 msgstr "Törlés sebessége"
 
@@ -11063,8 +11157,8 @@ msgstr "Az ágak átmérőjének szöge, ahogy az ágak alulról fokozatosan meg
 msgid "Support wall loops"
 msgstr "Támaszfalak száma"
 
-msgid "This setting specifies the count of support walls in the range of [0,2]. 0 means auto."
-msgstr "Ez a beállítás a [0,2] tartományban határozza meg a támaszfalak számát. A 0 automatikus értéket jelent."
+msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
+msgstr ""
 
 msgid "Chamber temperature"
 msgstr "Kamra hőmérséklete"
@@ -11452,6 +11546,14 @@ msgid ""
 msgstr ""
 "Az objektum XY méretkompenzációja nem lesz használva, mert színfestést tartalmaz.\n"
 "Az XY méretkompenzáció nem kombinálható színfestéssel."
+
+msgid ""
+"An object has enabled XY Size compensation which will not be used because it is also fuzzy skin painted.\n"
+"XY Size compensation cannot be combined with fuzzy skin painting."
+msgstr ""
+
+msgid "Object name"
+msgstr ""
 
 msgid "Loading of a model file failed."
 msgstr "A modellfájl betöltése sikertelen."
@@ -13482,6 +13584,18 @@ msgid ""
 msgstr ""
 "Vetemedés elkerülése\n"
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
+
+#~ msgid "Heating mode is suitable for printeing ABS/ASA/PC/PA materials and circulates filters the chamber air."
+#~ msgstr "A fűtési üzemmód ABS/ASA/PC/PA anyagok nyomtatására alkalmas, és keringeti és szűri a kamra levegőjét."
+
+#~ msgid "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF is not supported by AMS."
+#~ msgstr "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF az AMS nem támogatja."
+
+#~ msgid "Temporarily closed because there is no operating for a long time."
+#~ msgstr "Ideiglenesen bezárva, mert hosszú ideig nem volt használva."
+
+#~ msgid "This setting specifies the count of support walls in the range of [0,2]. 0 means auto."
+#~ msgstr "Ez a beállítás a [0,2] tartományban határozza meg a támaszfalak számát. A 0 automatikus értéket jelent."
 
 #, c-format, boost-format
 #~ msgid "TPU is not supported by %s extruder for this printer."
@@ -16051,9 +16165,6 @@ msgstr ""
 
 #~ msgid "mm/mm"
 #~ msgstr "mm/mm"
-
-#~ msgid "mm/s²"
-#~ msgstr "mm/s²"
 
 #~ msgid "mm\\u00B3"
 #~ msgstr "mm\\u00B3"

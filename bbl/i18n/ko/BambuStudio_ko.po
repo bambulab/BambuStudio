@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-29 15:44+0800\n"
+"POT-Creation-Date: 2025-06-26 11:05+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -47,11 +47,7 @@ msgid "Idle"
 msgstr "대기중"
 
 #, c-format, boost-format
-msgid "%.1f ℃"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d : %d"
+msgid "%d ℃"
 msgstr ""
 
 msgid "Serial:"
@@ -197,6 +193,9 @@ msgstr "키 1~9"
 msgid "Choose filament"
 msgstr "필라멘트 선택"
 
+msgid "Connected same color"
+msgstr ""
+
 msgid "Edge detection"
 msgstr "엣지 감지"
 
@@ -263,6 +262,15 @@ msgstr "페인팅 제거"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "페인트 사용: 필라멘트 %1%"
+
+msgid "Fuzzy skin Painting"
+msgstr ""
+
+msgid "Add fuzzy skin"
+msgstr ""
+
+msgid "Remove fuzzy skin"
+msgstr ""
 
 msgid "Move"
 msgstr "이동"
@@ -1854,6 +1862,9 @@ msgstr "아이콘을 클릭하여 객체의 출력가능 속성을 전환합니�
 msgid "Click the icon to edit support painting of the object"
 msgstr "아이콘을 클릭하여 객체의 서포트 페인팅을 편집합니다."
 
+msgid "Click the icon to edit fuzzy skin painting of the object"
+msgstr ""
+
 msgid "Click the icon to edit color painting of the object"
 msgstr "객체의 컬러 페인팅을 수정하기 위해 아이콘을 클릭합니다."
 
@@ -2276,8 +2287,8 @@ msgstr "팬은 출력 중 온도를 제어하여 출력 품질을 향상시키�
 msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials and filters the chamber air."
 msgstr "냉각 모드는 PLA/PETG/TPU 재료 출력에 적합하며 챔버 공기를 필터링합니다."
 
-msgid "Heating mode is suitable for printeing ABS/ASA/PC/PA materials and circulates filters the chamber air."
-msgstr "가열 모드는 ABS/ASA/PC/PA 재료 출력에 적합하며 챔버 공기를 순환시켜 필터를 순환시킵니다."
+msgid "Heating mode is suitable for printing ABS/ASA/PC/PA materials and circulates filters the chamber air."
+msgstr ""
 
 msgid "Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printouts will be fully cooled."
 msgstr "강력한 냉각 모드는 PLA/TPU 소재를 출력하는 데 적합합니다. 이 모드에서는 출력물이 완전히 냉각됩니다."
@@ -3457,6 +3468,14 @@ msgstr ""
 msgid "To ensure your safety, certain processing tasks (such as laser) can only be resumed on printer."
 msgstr ""
 
+#, c-format, boost-format
+msgid "The chamber temperature is too high, which may cause the filament to soften. Please wait until the chamber temperature drops below %d℃. You may open the front door or enable fans to cool down."
+msgstr ""
+
+#, c-format, boost-format
+msgid "AMS temperature is too high, which may cause the filament to soften. Please wait until the AMS temperature drops below %d℃."
+msgstr ""
+
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "현재 챔버 온도 또는 목표 챔버 온도가 45℃를 초과합니다. 압출기 막힘을 방지하기 위해 저온 필라멘트(PLA/PETG/TPU)는 로드할 수 없습니다."
 
@@ -3487,17 +3506,20 @@ msgstr "보정 오류"
 msgid "TPU is not supported by AMS."
 msgstr "TPU는 AMS에서 지원되지 않습니다."
 
-msgid "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF is not supported by AMS."
-msgstr "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF는 AMS에서 지원되지 않습니다."
-
 msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
 msgstr "젖은 PVA는 유연해져 AMS 내부에 달라붙을 수 있으므로 사용하기 전에 건조에 주의하세요."
+
+msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+msgstr "PLA Glow의 거친 표면은 AMS 시스템, 특히 AMS Lite의 내부 구성 요소의 마모를 가속화할 수 있습니다."
 
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 msgstr "CF/GF 필라멘트는 단단하고 부서지기 쉬우며, 부러지거나 AMS에 끼기 쉬우므로 주의해서 사용하세요."
 
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr "PLA Glow의 거친 표면은 AMS 시스템, 특히 AMS Lite의 내부 구성 요소의 마모를 가속화할 수 있습니다."
+msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr ""
+
+msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr ""
 
 msgid "default"
 msgstr "기본값"
@@ -4418,6 +4440,9 @@ msgstr "내보내기"
 msgid "Publish to MakerWorld"
 msgstr "MakerWorld에 게시"
 
+msgid "Batch Preset Management"
+msgstr ""
+
 msgid "Quit"
 msgstr "종료"
 
@@ -4482,6 +4507,12 @@ msgid "Show 3D Navigator"
 msgstr "3D 내비게이터 표시"
 
 msgid "Show 3D navigator in Prepare and Preview scene"
+msgstr ""
+
+msgid "Reset Window Layout"
+msgstr ""
+
+msgid "Reset to default window layout"
 msgstr ""
 
 msgid "Show object labels in 3D scene"
@@ -4699,8 +4730,8 @@ msgstr "플레이어가 오작동합니다. 시스템 플레이어를 다시 설
 msgid "The player is not loaded, please click \"play\" button to retry."
 msgstr "플레이어가 로드되지 않았습니다. 다시 시도하려면 '재생' 버튼을 클릭하세요."
 
-msgid "Temporarily closed because there is no operating for a long time."
-msgstr "장시간 운영하지 않아 일시적으로 폐쇄되었습니다."
+msgid "Temporarily closed because there is no operation for a while."
+msgstr ""
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "한동안 출력가 되지 않아 일시적으로 폐쇄되었습니다."
@@ -5515,6 +5546,11 @@ msgid_plural "%1$d Objects have color painting."
 msgstr[0] "%1$d 객체에 컬러 페인팅이 있습니다."
 
 #, c-format, boost-format
+msgid "%1$d Object has fuzzy skin."
+msgid_plural "%1$d Objects have fuzzy skin."
+msgstr[0] ""
+
+#, c-format, boost-format
 msgid "%1$d object was loaded as a part of cut object."
 msgid_plural "%1$d objects were loaded as parts of cut object"
 msgstr[0] ""
@@ -5563,6 +5599,9 @@ msgstr "G-코드 경로 중첩"
 
 msgid "Support painting"
 msgstr "서포트 페인팅"
+
+msgid "Fuzzy skin"
+msgstr ""
 
 msgid "Color painting"
 msgstr "컬러 페인팅"
@@ -5664,6 +5703,9 @@ msgstr "노즐 흐름"
 msgid "Please change the nozzle settings on the printer."
 msgstr ""
 
+msgid "View wiki"
+msgstr "위키 보기"
+
 msgid "Hardened Steel"
 msgstr "경화 스틸"
 
@@ -5675,6 +5717,9 @@ msgstr ""
 
 msgid "High flow"
 msgstr "높은 흐름"
+
+msgid "No wiki link available for this printer."
+msgstr ""
 
 msgid "Global"
 msgstr "글로벌"
@@ -6275,6 +6320,9 @@ msgstr "프린터로 보내기"
 msgid "Custom supports and color painting were removed before repairing."
 msgstr "커스텀 서포트와 컬러 페인팅은 오류수정 전에 제거되었습니다."
 
+msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
 msgstr "프린터가 연결되지 않았습니다. 동기화하기 전에 장치 페이지로 이동하여 %s 프린터를 연결하세요."
@@ -6777,9 +6825,6 @@ msgstr "오른쪽 필라멘트"
 msgid "Click to pick filament color"
 msgstr "클릭하여 필라멘트 색상 선택"
 
-msgid "Please choose the filament colour"
-msgstr "필라멘트 색상을 선택하세요"
-
 msgid "Add/Remove presets"
 msgstr "프리셋 추가/제거"
 
@@ -6809,6 +6854,9 @@ msgstr "프린터 선택/제거(시스템 사전 설정)"
 
 msgid "Create printer"
 msgstr "프린터 만들기"
+
+msgid "Please choose the filament colour"
+msgstr "필라멘트 색상을 선택하세요"
 
 msgid "Empty"
 msgstr "비어 있음"
@@ -7224,7 +7272,7 @@ msgstr ""
 msgid "High chamber temperature is required. Please close the door."
 msgstr ""
 
-msgid "No labels are currently stored."
+msgid "Please refer to Wiki before use->"
 msgstr ""
 
 msgid "Send to Printer storage"
@@ -7417,9 +7465,15 @@ msgid ""
 msgstr ""
 
 msgid ""
+"When using PLA to support TPU, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use PLA for both support interface and support base"
+msgstr ""
+
+msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
-"and use soluble materials for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 
 msgid ""
@@ -7440,8 +7494,8 @@ msgstr ""
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
-"and use soluble materials for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 
 msgid ""
@@ -8562,9 +8616,6 @@ msgstr "2. 아래 IP 및 액세스 코드가 프린터의 실제 값과 다른 �
 msgid "3. Please obtain the device SN from the printer side; it is usually found in the device information on the printer screen."
 msgstr "3. 일반적으로 프린터 화면의 장치 정보에서 찾을 수 있는 장치 SN을 프린터 측에서 받으세요."
 
-msgid "View wiki"
-msgstr "위키 보기"
-
 msgid "Access Code"
 msgstr "액세스 코드"
 
@@ -8631,6 +8682,9 @@ msgstr "레이저 40W"
 
 msgid "Cutting Module"
 msgstr "커팅 모듈"
+
+msgid "Auto Fire Extinguishing System"
+msgstr ""
 
 msgid "Model:"
 msgstr "모델:"
@@ -9299,6 +9353,39 @@ msgstr "mm/s"
 
 #, c-format, boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
+msgstr ""
+
+msgid "Slow down by height"
+msgstr ""
+
+msgid "Enable this option to slow printing down by height"
+msgstr ""
+
+msgid "Starting height"
+msgstr ""
+
+msgid "The height starts to slow down"
+msgstr ""
+
+msgid "Speed at starting height"
+msgstr ""
+
+msgid "Acceleration at starting height"
+msgstr ""
+
+msgid "mm/s²"
+msgstr ""
+
+msgid "Ending height"
+msgstr ""
+
+msgid "The height finishes slowing down, Ending height should be larger than Starting height, or the slowing down will not work!"
+msgstr ""
+
+msgid "Speed at ending height"
+msgstr ""
+
+msgid "Acceleration at ending height"
 msgstr ""
 
 msgid "Speed of bridge and completely overhang wall"
@@ -10731,6 +10818,12 @@ msgstr "내벽용 스카프 조인트"
 msgid "Use scarf joint for inner walls as well."
 msgstr "내벽에도 스카프 조인트를 사용하세요."
 
+msgid "Override filament scarf seam setting"
+msgstr ""
+
+msgid "Overrider filament scarf seam setting and could control settings by modifier."
+msgstr ""
+
 msgid "Wipe speed"
 msgstr "삭제 속도"
 
@@ -11056,8 +11149,8 @@ msgstr "아래쪽으로 갈수록 점차 두꺼워지는 가지 지름의 각도
 msgid "Support wall loops"
 msgstr "서포트 벽 루프"
 
-msgid "This setting specifies the count of support walls in the range of [0,2]. 0 means auto."
-msgstr "이 설정은 [0,2] 범위에서 지지벽의 개수를 지정합니다. 0은 자동을 의미합니다."
+msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
+msgstr ""
 
 msgid "Chamber temperature"
 msgstr "챔버 온도"
@@ -11445,6 +11538,14 @@ msgid ""
 msgstr ""
 "개체의 XY 크기 보정은 색상으로 칠해져 있기 때문에 사용되지 않습니다.\n"
 "XY 크기 보정은 컬러 페인팅과 함께 사용할 수 없습니다."
+
+msgid ""
+"An object has enabled XY Size compensation which will not be used because it is also fuzzy skin painted.\n"
+"XY Size compensation cannot be combined with fuzzy skin painting."
+msgstr ""
+
+msgid "Object name"
+msgstr ""
 
 msgid "Loading of a model file failed."
 msgstr "모델 파일 로드에 실패했습니다."
@@ -13477,6 +13578,18 @@ msgid ""
 msgstr ""
 "뒤틀림 방지\n"
 "ABS와 같이 뒤틀리기 쉬운 소재를 출력할 때 열판 온도를 적절히 높이면 뒤틀릴 확률을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid "Heating mode is suitable for printeing ABS/ASA/PC/PA materials and circulates filters the chamber air."
+#~ msgstr "가열 모드는 ABS/ASA/PC/PA 재료 출력에 적합하며 챔버 공기를 순환시켜 필터를 순환시킵니다."
+
+#~ msgid "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF is not supported by AMS."
+#~ msgstr "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF는 AMS에서 지원되지 않습니다."
+
+#~ msgid "Temporarily closed because there is no operating for a long time."
+#~ msgstr "장시간 운영하지 않아 일시적으로 폐쇄되었습니다."
+
+#~ msgid "This setting specifies the count of support walls in the range of [0,2]. 0 means auto."
+#~ msgstr "이 설정은 [0,2] 범위에서 지지벽의 개수를 지정합니다. 0은 자동을 의미합니다."
 
 #, c-format, boost-format
 #~ msgid "TPU is not supported by %s extruder for this printer."

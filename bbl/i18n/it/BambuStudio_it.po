@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-29 15:44+0800\n"
+"POT-Creation-Date: 2025-06-26 11:05+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -47,11 +47,7 @@ msgid "Idle"
 msgstr "Inattivo"
 
 #, c-format, boost-format
-msgid "%.1f ℃"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d : %d"
+msgid "%d ℃"
 msgstr ""
 
 msgid "Serial:"
@@ -197,6 +193,9 @@ msgstr "Tasto 1~9"
 msgid "Choose filament"
 msgstr "Scegli filamento"
 
+msgid "Connected same color"
+msgstr ""
+
 msgid "Edge detection"
 msgstr "Rilevamento dei bordi"
 
@@ -263,6 +262,15 @@ msgstr "Rimuovi colore dipinto"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Pitturato utilizzando: Filamento %1%"
+
+msgid "Fuzzy skin Painting"
+msgstr ""
+
+msgid "Add fuzzy skin"
+msgstr ""
+
+msgid "Remove fuzzy skin"
+msgstr ""
 
 msgid "Move"
 msgstr "Sposta"
@@ -1860,6 +1868,9 @@ msgstr "Clicca sull'icona per attivare o disattivare le proprietà stampabili de
 msgid "Click the icon to edit support painting of the object"
 msgstr "Clicca sull'icona per modificare la pittura del supporto dell'oggetto"
 
+msgid "Click the icon to edit fuzzy skin painting of the object"
+msgstr ""
+
 msgid "Click the icon to edit color painting of the object"
 msgstr "Clicca sull'icona per modificare i colori dell'oggetto"
 
@@ -2284,8 +2295,8 @@ msgstr "La ventola controlla la temperatura durante la stampa per migliorare la 
 msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials and filters the chamber air."
 msgstr "La modalità raffreddamento è adatta per la stampa di materiali PLA/PETG/TPU e filtra l'aria della camera."
 
-msgid "Heating mode is suitable for printeing ABS/ASA/PC/PA materials and circulates filters the chamber air."
-msgstr "La modalità riscaldamento è adatta per la stampa di materiali ABS/ASA/PC/PA e fa circolare e filtrare l'aria della camera."
+msgid "Heating mode is suitable for printing ABS/ASA/PC/PA materials and circulates filters the chamber air."
+msgstr ""
 
 msgid "Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printouts will be fully cooled."
 msgstr "La modalità raffreddamento forte è adatta per la stampa di materiali PLA/TPU. In questa modalità, le stampe saranno completamente raffreddate."
@@ -3465,6 +3476,14 @@ msgstr ""
 msgid "To ensure your safety, certain processing tasks (such as laser) can only be resumed on printer."
 msgstr ""
 
+#, c-format, boost-format
+msgid "The chamber temperature is too high, which may cause the filament to soften. Please wait until the chamber temperature drops below %d℃. You may open the front door or enable fans to cool down."
+msgstr ""
+
+#, c-format, boost-format
+msgid "AMS temperature is too high, which may cause the filament to soften. Please wait until the AMS temperature drops below %d℃."
+msgstr ""
+
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "La temperatura attuale della camera o la temperatura target supera i 45℃. Per evitare l'intasamento dell'estrusore, non è consentito caricare filamenti a bassa temperatura (PLA/PETG/TPU)."
 
@@ -3495,17 +3514,20 @@ msgstr "Errore di Calibrazione"
 msgid "TPU is not supported by AMS."
 msgstr "Il TPU non è supportato dall'AMS."
 
-msgid "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF is not supported by AMS."
-msgstr "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF non è supportato da AMS."
-
 msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
 msgstr "Il PVA umido diventa flessibile e si blocca all'interno dell'AMS, quindi assicurati di asciugarlo prima dell'uso"
+
+msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+msgstr "La superficie ruvida del PLA Glow può accelerare l'usura del sistema AMS, in particolare sui componenti interni dell'AMS Lite."
 
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 msgstr "I filamenti CF/GF sono duri e fragili, è facile che si rompano o incastrino nell'AMS, si consiglia di usarli con attenzione."
 
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr "La superficie ruvida del PLA Glow può accelerare l'usura del sistema AMS, in particolare sui componenti interni dell'AMS Lite."
+msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr ""
+
+msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr ""
 
 msgid "default"
 msgstr "predefinito"
@@ -4420,6 +4442,9 @@ msgstr "Esporta"
 msgid "Publish to MakerWorld"
 msgstr "Pubblica su MakerWorld"
 
+msgid "Batch Preset Management"
+msgstr ""
+
 msgid "Quit"
 msgstr "Esci"
 
@@ -4484,6 +4509,12 @@ msgid "Show 3D Navigator"
 msgstr "Mostra Navigatore 3D"
 
 msgid "Show 3D navigator in Prepare and Preview scene"
+msgstr ""
+
+msgid "Reset Window Layout"
+msgstr ""
+
+msgid "Reset to default window layout"
 msgstr ""
 
 msgid "Show object labels in 3D scene"
@@ -4703,8 +4734,8 @@ msgstr "Lettore non funzionante correttamente. Reinstallare il lettore di sistem
 msgid "The player is not loaded, please click \"play\" button to retry."
 msgstr "Player non caricato; fai clic sul pulsante «play» per riprovare."
 
-msgid "Temporarily closed because there is no operating for a long time."
-msgstr "Chiuso temporaneamente perché non è operativo da molto tempo."
+msgid "Temporarily closed because there is no operation for a while."
+msgstr ""
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "Chiuso temporaneamente perché non si stampa da un po'."
@@ -5520,6 +5551,12 @@ msgstr[0] "%1$d L'oggetto ha una pittura a colori."
 msgstr[1] "%1$d Gli oggetti hanno una pittura a colori."
 
 #, c-format, boost-format
+msgid "%1$d Object has fuzzy skin."
+msgid_plural "%1$d Objects have fuzzy skin."
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, boost-format
 msgid "%1$d object was loaded as a part of cut object."
 msgid_plural "%1$d objects were loaded as parts of cut object"
 msgstr[0] ""
@@ -5569,6 +5606,9 @@ msgstr "Sovrapposizione percorso G-code"
 
 msgid "Support painting"
 msgstr "Pittura Supporti"
+
+msgid "Fuzzy skin"
+msgstr ""
 
 msgid "Color painting"
 msgstr "Pittura a colori"
@@ -5670,6 +5710,9 @@ msgstr "Flusso nozzle"
 msgid "Please change the nozzle settings on the printer."
 msgstr ""
 
+msgid "View wiki"
+msgstr "Visualizza wiki"
+
 msgid "Hardened Steel"
 msgstr "Acciaio temprato"
 
@@ -5681,6 +5724,9 @@ msgstr ""
 
 msgid "High flow"
 msgstr "Flusso elevato"
+
+msgid "No wiki link available for this printer."
+msgstr ""
 
 msgid "Global"
 msgstr "Globale"
@@ -6281,6 +6327,9 @@ msgstr "Manda alla stampante"
 msgid "Custom supports and color painting were removed before repairing."
 msgstr "I supporti personalizzati e la pittura a colori sono stati rimossi prima della riparazione."
 
+msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
 msgstr "Stampante non connessa. Vai alla pagina del dispositivo per connettere una stampante %s prima di sincronizzare."
@@ -6783,9 +6832,6 @@ msgstr "Filamento destro"
 msgid "Click to pick filament color"
 msgstr "Fai click per selezionare il colore del filamento"
 
-msgid "Please choose the filament colour"
-msgstr "Scegli il colore del filamento"
-
 msgid "Add/Remove presets"
 msgstr "Aggiungi/Rimuovi preset"
 
@@ -6815,6 +6861,9 @@ msgstr "Seleziona/rimuovi stampanti (preimpostazioni di sistema)"
 
 msgid "Create printer"
 msgstr "Crea stampante"
+
+msgid "Please choose the filament colour"
+msgstr "Scegli il colore del filamento"
 
 msgid "Empty"
 msgstr "Vuoto"
@@ -7230,7 +7279,7 @@ msgstr ""
 msgid "High chamber temperature is required. Please close the door."
 msgstr ""
 
-msgid "No labels are currently stored."
+msgid "Please refer to Wiki before use->"
 msgstr ""
 
 msgid "Send to Printer storage"
@@ -7423,9 +7472,15 @@ msgid ""
 msgstr ""
 
 msgid ""
+"When using PLA to support TPU, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use PLA for both support interface and support base"
+msgstr ""
+
+msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
-"and use soluble materials for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 
 msgid ""
@@ -7446,8 +7501,8 @@ msgstr ""
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
-"and use soluble materials for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 
 msgid ""
@@ -8573,9 +8628,6 @@ msgstr "2. Se l'indirizzo IP e il codice di accesso riportati di seguito sono di
 msgid "3. Please obtain the device SN from the printer side; it is usually found in the device information on the printer screen."
 msgstr "3. Recupera il numero di serie (SN) dal lato della stampante; generalmente è presente nelle informazioni dispositivo sullo schermo della stampante."
 
-msgid "View wiki"
-msgstr "Visualizza wiki"
-
 msgid "Access Code"
 msgstr "Codice di accesso"
 
@@ -8640,6 +8692,9 @@ msgstr ""
 
 msgid "Cutting Module"
 msgstr "Modulo Taglio"
+
+msgid "Auto Fire Extinguishing System"
+msgstr ""
 
 msgid "Model:"
 msgstr "Modello:"
@@ -9308,6 +9363,39 @@ msgstr "mm/s"
 
 #, c-format, boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
+msgstr ""
+
+msgid "Slow down by height"
+msgstr ""
+
+msgid "Enable this option to slow printing down by height"
+msgstr ""
+
+msgid "Starting height"
+msgstr ""
+
+msgid "The height starts to slow down"
+msgstr ""
+
+msgid "Speed at starting height"
+msgstr ""
+
+msgid "Acceleration at starting height"
+msgstr ""
+
+msgid "mm/s²"
+msgstr "mm/s²"
+
+msgid "Ending height"
+msgstr ""
+
+msgid "The height finishes slowing down, Ending height should be larger than Starting height, or the slowing down will not work!"
+msgstr ""
+
+msgid "Speed at ending height"
+msgstr ""
+
+msgid "Acceleration at ending height"
 msgstr ""
 
 msgid "Speed of bridge and completely overhang wall"
@@ -10738,6 +10826,12 @@ msgstr "Giunto scarf per pareti interne"
 msgid "Use scarf joint for inner walls as well."
 msgstr "Usa anche le giunture scarf per pareti interne."
 
+msgid "Override filament scarf seam setting"
+msgstr ""
+
+msgid "Overrider filament scarf seam setting and could control settings by modifier."
+msgstr ""
+
 msgid "Wipe speed"
 msgstr "Velocità pulizia"
 
@@ -11066,8 +11160,8 @@ msgstr "L'angolo diametro dei rami man mano che diventano gradualmente più spes
 msgid "Support wall loops"
 msgstr "Anelli di supporto a parete"
 
-msgid "This setting specifies the count of support walls in the range of [0,2]. 0 means auto."
-msgstr "Questa impostazione specifica il numero di pareti di supporto nell'intervallo [0,2]. 0 significa automatico."
+msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
+msgstr ""
 
 msgid "Chamber temperature"
 msgstr "Temperatura della camera"
@@ -11457,6 +11551,14 @@ msgid ""
 msgstr ""
 "La compensazione delle dimensioni XY di un oggetto non verrà utilizzata perché è anche dipinta a colori.\n"
 "La compensazione delle dimensioni XY non può essere combinata con la colorazione."
+
+msgid ""
+"An object has enabled XY Size compensation which will not be used because it is also fuzzy skin painted.\n"
+"XY Size compensation cannot be combined with fuzzy skin painting."
+msgstr ""
+
+msgid "Object name"
+msgstr ""
 
 msgid "Loading of a model file failed."
 msgstr "Caricamento file del modello non riuscito."
@@ -13488,6 +13590,18 @@ msgid ""
 msgstr ""
 "Evita deformazioni\n"
 "Sapevi che quando si stampano materiali soggetti a deformazioni, come l'ABS, aumentare adeguatamente la temperatura del piano può ridurre la probabilità di deformazione."
+
+#~ msgid "Heating mode is suitable for printeing ABS/ASA/PC/PA materials and circulates filters the chamber air."
+#~ msgstr "La modalità riscaldamento è adatta per la stampa di materiali ABS/ASA/PC/PA e fa circolare e filtrare l'aria della camera."
+
+#~ msgid "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF is not supported by AMS."
+#~ msgstr "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF non è supportato da AMS."
+
+#~ msgid "Temporarily closed because there is no operating for a long time."
+#~ msgstr "Chiuso temporaneamente perché non è operativo da molto tempo."
+
+#~ msgid "This setting specifies the count of support walls in the range of [0,2]. 0 means auto."
+#~ msgstr "Questa impostazione specifica il numero di pareti di supporto nell'intervallo [0,2]. 0 significa automatico."
 
 #, c-format, boost-format
 #~ msgid "TPU is not supported by %s extruder for this printer."
@@ -16069,9 +16183,6 @@ msgstr ""
 
 #~ msgid "mm/mm"
 #~ msgstr "mm/mm"
-
-#~ msgid "mm/s²"
-#~ msgstr "mm/s²"
 
 #~ msgid "mm\\u00B3"
 #~ msgstr "mm\\u00B3"

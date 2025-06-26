@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-29 15:44+0800\n"
+"POT-Creation-Date: 2025-06-26 11:05+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -51,11 +51,7 @@ msgid "Idle"
 msgstr "空闲"
 
 #, c-format, boost-format
-msgid "%.1f ℃"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d : %d"
+msgid "%d ℃"
 msgstr ""
 
 msgid "Serial:"
@@ -201,6 +197,9 @@ msgstr "按键 1~9"
 msgid "Choose filament"
 msgstr "选择耗材丝"
 
+msgid "Connected same color"
+msgstr "连接相同颜色"
+
 msgid "Edge detection"
 msgstr "边沿检测"
 
@@ -267,6 +266,15 @@ msgstr "移除已绘制的颜色"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "绘制使用：耗材丝%1%"
+
+msgid "Fuzzy skin Painting"
+msgstr "绒毛表面涂色"
+
+msgid "Add fuzzy skin"
+msgstr "添加绒毛表面"
+
+msgid "Remove fuzzy skin"
+msgstr "删除绒毛表面"
 
 msgid "Move"
 msgstr "移动"
@@ -1862,6 +1870,9 @@ msgstr "点击此图标可切换这个对象的可打印属性"
 msgid "Click the icon to edit support painting of the object"
 msgstr "点击此图标可编辑这个对象的支撑绘制"
 
+msgid "Click the icon to edit fuzzy skin painting of the object"
+msgstr "单击该图标可编辑对象的绒毛表面绘制"
+
 msgid "Click the icon to edit color painting of the object"
 msgstr "点击此图标可编辑这个对象的颜色绘制"
 
@@ -2283,7 +2294,7 @@ msgstr "风扇在打印中调控温度以提升打印质量，系统会根据不
 msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials and filters the chamber air."
 msgstr "冷却模式适合打印PLA/PETG/TPU材质，同时能够过滤腔内空气"
 
-msgid "Heating mode is suitable for printeing ABS/ASA/PC/PA materials and circulates filters the chamber air."
+msgid "Heating mode is suitable for printing ABS/ASA/PC/PA materials and circulates filters the chamber air."
 msgstr "腔温保持模式适合打印ABS/ASA/PC/PA材质，在机箱内部循环过滤腔内空气"
 
 msgid "Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printouts will be fully cooled."
@@ -3453,6 +3464,14 @@ msgstr "存储介质当前是只读的，故无法启用延时摄影"
 msgid "To ensure your safety, certain processing tasks (such as laser) can only be resumed on printer."
 msgstr "为确保您的安全，部分加工任务（如激光）只能在打印机上恢复加工。"
 
+#, c-format, boost-format
+msgid "The chamber temperature is too high, which may cause the filament to soften. Please wait until the chamber temperature drops below %d℃. You may open the front door or enable fans to cool down."
+msgstr "腔温过高，可能导致打印材料软化。请等待腔温降至%d℃。您可以打开前门或启用风扇进行降温。"
+
+#, c-format, boost-format
+msgid "AMS temperature is too high, which may cause the filament to soften. Please wait until the AMS temperature drops below %d℃."
+msgstr "AMS 温度过高，可能导致打印材料软化。请等待 AMS 温度降至%d℃ 以下。"
+
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "当前腔温或目标腔温超过了45℃。为了避免挤出机堵塞，不允许加载低温度的打印材料（如PLA/PETG/TPU）"
 
@@ -3483,17 +3502,20 @@ msgstr "校准错误"
 msgid "TPU is not supported by AMS."
 msgstr "AMS不支持TPU。"
 
-msgid "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF is not supported by AMS."
-msgstr "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF暂不支持在AMS中使用。"
-
 msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
 msgstr "潮湿的PVA会变得柔软并粘在AMS内，请在使用前注意干燥。"
+
+msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+msgstr "PLA Glow的粗糙表面可能加速AMS系统的磨损，尤其是AMS Lite的内部部件。"
 
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 msgstr "CF/GF耗材丝又硬又脆，在AMS中很容易断裂或卡住，请谨慎使用。"
 
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr "PLA Glow的粗糙表面可能加速AMS系统的磨损，尤其是AMS Lite的内部部件。"
+msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr "PPS-CF is brittle and could break in a bent PTFE tube above the Toolhead."
+
+msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr "PPA-CF is brittle and could break in a bent PTFE tube above the Toolhead."
 
 msgid "default"
 msgstr "缺省"
@@ -4413,6 +4435,9 @@ msgstr "导出"
 msgid "Publish to MakerWorld"
 msgstr "发布到MakerWorld"
 
+msgid "Batch Preset Management"
+msgstr ""
+
 msgid "Quit"
 msgstr "退出程序"
 
@@ -4478,6 +4503,12 @@ msgstr "显示3D导航"
 
 msgid "Show 3D navigator in Prepare and Preview scene"
 msgstr "在准备和预览场景中显示3D导航"
+
+msgid "Reset Window Layout"
+msgstr "重置窗口布局"
+
+msgid "Reset to default window layout"
+msgstr "重置为默认窗口布局"
 
 msgid "Show object labels in 3D scene"
 msgstr "在3D场景中显示对象名称"
@@ -4676,11 +4707,10 @@ msgid ""
 "2. The Filament presets\n"
 "3. The Printer presets"
 msgstr ""
-"想从Bambu云同步你的个人数据吗?\n"
-"包含如下信息:\n"
-"1. 工艺预设\n"
-"2. 耗材丝预设\n"
-"3. 打印机预设"
+"是否从Bambu云同步如下信息：\n"
+"1.工艺预设\n"
+"2.材料预设\n"
+"3.打印机预设"
 
 msgid "Synchronization"
 msgstr "同步"
@@ -4694,8 +4724,8 @@ msgstr "播放器异常，请重新安装系统播放器。"
 msgid "The player is not loaded, please click \"play\" button to retry."
 msgstr "未能加载播放器，请重新点击“播放”按钮。"
 
-msgid "Temporarily closed because there is no operating for a long time."
-msgstr "因长时间没有操作，暂时关闭。"
+msgid "Temporarily closed because there is no operation for a while."
+msgstr "Temporarily closed because there is no activity for a while."
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "因有一段时间未打印，暂时关闭。"
@@ -5214,7 +5244,7 @@ msgid "Turn it Off"
 msgstr "关闭"
 
 msgid "Keep it On"
-msgstr "仍要开启"
+msgstr "保持开启"
 
 msgid "Can't start this without storage."
 msgstr "没有外部存储就无法启动"
@@ -5502,6 +5532,11 @@ msgid_plural "%1$d Objects have color painting."
 msgstr[0] "%1$d对象有涂色。"
 
 #, c-format, boost-format
+msgid "%1$d Object has fuzzy skin."
+msgid_plural "%1$d Objects have fuzzy skin."
+msgstr[0] ""
+
+#, c-format, boost-format
 msgid "%1$d object was loaded as a part of cut object."
 msgid_plural "%1$d objects were loaded as parts of cut object"
 msgstr[0] "%1$d对象加载为一个切割对象的子部件。"
@@ -5550,6 +5585,9 @@ msgstr "Gcode路径有重叠"
 
 msgid "Support painting"
 msgstr "支撑绘制"
+
+msgid "Fuzzy skin"
+msgstr "绒毛表面"
 
 msgid "Color painting"
 msgstr "颜色绘制"
@@ -5649,6 +5687,9 @@ msgstr "喷嘴流量"
 msgid "Please change the nozzle settings on the printer."
 msgstr "如需修改喷嘴信息，请去打印机操作。"
 
+msgid "View wiki"
+msgstr ""
+
 msgid "Hardened Steel"
 msgstr "硬化钢"
 
@@ -5660,6 +5701,9 @@ msgstr ""
 
 msgid "High flow"
 msgstr "高流量"
+
+msgid "No wiki link available for this printer."
+msgstr ""
 
 msgid "Global"
 msgstr "全局"
@@ -6257,6 +6301,9 @@ msgstr "发送到打印机"
 msgid "Custom supports and color painting were removed before repairing."
 msgstr "自定义的支撑和涂色在模型修复之前将被清除。"
 
+msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
+msgstr "在修复之前，删除了支持、接缝和涂色信息,模型名字:"
+
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
 msgstr "未连接打印机，请前往设备页连接一台 %s 后再同步。"
@@ -6759,9 +6806,6 @@ msgstr "右侧耗材丝"
 msgid "Click to pick filament color"
 msgstr "点击设置材料颜色"
 
-msgid "Please choose the filament colour"
-msgstr "请选择材料颜色"
-
 msgid "Add/Remove presets"
 msgstr "添加/删除配置"
 
@@ -6791,6 +6835,9 @@ msgstr "选择/移除打印机（系统预设）"
 
 msgid "Create printer"
 msgstr "创建打印机"
+
+msgid "Please choose the filament colour"
+msgstr "请选择材料颜色"
 
 msgid "Empty"
 msgstr "空"
@@ -7206,7 +7253,7 @@ msgstr "为了避免堵塞，打印TPU前请冷拔。您可使用打印机上的
 msgid "High chamber temperature is required. Please close the door."
 msgstr "需高腔温打印，请关门。"
 
-msgid "No labels are currently stored."
+msgid "Please refer to Wiki before use->"
 msgstr ""
 
 msgid "Send to Printer storage"
@@ -7399,13 +7446,16 @@ msgstr ""
 "你确定要用它们作为支撑主体吗？ \n"
 
 msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
-"and use soluble materials for both support interface and support base"
+"When using PLA to support TPU, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use PLA for both support interface and support base"
 msgstr ""
-"当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
-"0顶层z距离，0接触层间距，交叠直线图案，禁用独立支撑层高\n"
-"并将可溶性材料同时用于支撑界面和支撑主体"
+
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
 
 msgid ""
 "Change these settings automatically? \n"
@@ -7420,17 +7470,14 @@ msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
 "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
-"当使用支撑界面的支撑材料时，我们推荐以下设置：\n"
+"当支撑界面使用支撑材料时，我们推荐以下设置：\n"
 "0顶层z距离，0接触层间距，交叠直线图案，并且禁用独立支撑层高"
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
-"and use soluble materials for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
-"当使用支撑界面的可溶性支撑材料时，我们推荐以下设置：\n"
-"0顶层z距离，0接触层间距，交叠直线图案，禁用独立支撑层高\n"
-"并将可溶性材料同时用于支撑界面和支撑主体"
 
 msgid ""
 "Layer height is too small.\n"
@@ -8548,9 +8595,6 @@ msgstr "2. 如果下面的IP和Access Code与你的打印机上的实际值不�
 msgid "3. Please obtain the device SN from the printer side; it is usually found in the device information on the printer screen."
 msgstr "3. 请从打印机端获取设备序列号，它通常位于打印机屏幕上的设备信息中。"
 
-msgid "View wiki"
-msgstr ""
-
 msgid "Access Code"
 msgstr "访问码"
 
@@ -8617,6 +8661,9 @@ msgstr "激光 40W"
 
 msgid "Cutting Module"
 msgstr "刀切模组"
+
+msgid "Auto Fire Extinguishing System"
+msgstr "自动灭火装置"
 
 msgid "Model:"
 msgstr "型号："
@@ -9285,6 +9332,39 @@ msgstr "mm/s"
 
 #, c-format, boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
+msgstr ""
+
+msgid "Slow down by height"
+msgstr ""
+
+msgid "Enable this option to slow printing down by height"
+msgstr ""
+
+msgid "Starting height"
+msgstr ""
+
+msgid "The height starts to slow down"
+msgstr ""
+
+msgid "Speed at starting height"
+msgstr ""
+
+msgid "Acceleration at starting height"
+msgstr ""
+
+msgid "mm/s²"
+msgstr "mm/s²"
+
+msgid "Ending height"
+msgstr ""
+
+msgid "The height finishes slowing down, Ending height should be larger than Starting height, or the slowing down will not work!"
+msgstr ""
+
+msgid "Speed at ending height"
+msgstr ""
+
+msgid "Acceleration at ending height"
 msgstr ""
 
 msgid "Speed of bridge and completely overhang wall"
@@ -10020,7 +10100,7 @@ msgid "Precise wall"
 msgstr "精准外墙尺寸"
 
 msgid "Improve shell precision by adjusting outer wall spacing. This also improves layer consistency."
-msgstr "通过调整外墙间隙以提高外墙打印进度，该优化也能减少层纹。"
+msgstr "通过调整外墙间隙以提高外墙打印精度，该优化也能减少层纹。"
 
 msgid "Speed of gap infill. Gap usually has irregular line width and should be printed more slowly"
 msgstr "填缝的速度。缝隙通常有不一致的线宽，应改用较慢速度打印。"
@@ -10717,6 +10797,12 @@ msgstr "应用斜拼于内墙"
 msgid "Use scarf joint for inner walls as well."
 msgstr "同时应用斜拼接缝于内墙"
 
+msgid "Override filament scarf seam setting"
+msgstr "覆盖材料的斜拼接缝参数"
+
+msgid "Overrider filament scarf seam setting and could control settings by modifier."
+msgstr ""
+
 msgid "Wipe speed"
 msgstr "擦拭速度"
 
@@ -11042,8 +11128,8 @@ msgstr "树枝向底部逐渐变粗时的直径角度。角度为 0 会使树枝
 msgid "Support wall loops"
 msgstr "支撑外墙层数"
 
-msgid "This setting specifies the count of support walls in the range of [0,2]. 0 means auto."
-msgstr "此设置指定[0,2]范围内的支撑墙层数。0表示自动。"
+msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
+msgstr "此设置指定 [-1,2] 范围内的支撑墙数量。-1表示自动，0表示允许足够厚的支撑区域使用仅填充模式。"
 
 msgid "Chamber temperature"
 msgstr "腔体温度"
@@ -11431,6 +11517,16 @@ msgid ""
 msgstr ""
 "对象的XY尺寸补偿不会生效，因为在此对象上做过涂色操作。\n"
 "XY尺寸补偿不能与涂色功能一起使用。"
+
+msgid ""
+"An object has enabled XY Size compensation which will not be used because it is also fuzzy skin painted.\n"
+"XY Size compensation cannot be combined with fuzzy skin painting."
+msgstr ""
+"物体启用了 XY 大小补偿，该补偿将不予使用，因为它也是绒毛表面绘制的。\n"
+"XY 尺寸补偿不能与绒毛表面绘制结合使用。"
+
+msgid "Object name"
+msgstr "对象名称"
 
 msgid "Loading of a model file failed."
 msgstr "加载模型文件失败。"
@@ -13446,6 +13542,36 @@ msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
+#~ msgid "Heating mode is suitable for printeing ABS/ASA/PC/PA materials and circulates filters the chamber air."
+#~ msgstr "腔温保持模式适合打印ABS/ASA/PC/PA材质，在机箱内部循环过滤腔内空气"
+
+#~ msgid "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF is not supported by AMS."
+#~ msgstr "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF暂不支持在AMS中使用。"
+
+#~ msgid "Temporarily closed because there is no operating for a long time."
+#~ msgstr "因长时间没有操作，暂时关闭。"
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+#~ "and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
+#~ "0顶层z距离，0接触层间距，交叠直线图案，禁用独立支撑层高\n"
+#~ "并将可溶性材料同时用于支撑界面和支撑主体"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+#~ "and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "当使用支撑界面的可溶性支撑材料时，我们推荐以下设置：\n"
+#~ "0顶层z距离，0接触层间距，交叠直线图案，禁用独立支撑层高\n"
+#~ "并将可溶性材料同时用于支撑界面和支撑主体"
+
+#~ msgid "This setting specifies the count of support walls in the range of [0,2]. 0 means auto."
+#~ msgstr "此设置指定[0,2]范围内的支撑墙层数。0表示自动。"
+
 #, c-format, boost-format
 #~ msgid "TPU is not supported by %s extruder for this printer."
 #~ msgstr "此打印机的 %s 挤出机不支持TPU。"
@@ -15384,9 +15510,6 @@ msgstr ""
 
 #~ msgid "°C"
 #~ msgstr "°C"
-
-#~ msgid "mm/s²"
-#~ msgstr "mm/s²"
 
 #~ msgid "The beginning of the vendor can not be a number. Please re-enter."
 #~ msgstr "自定义供应商的开头不能是数字。请重新输入。"
@@ -18136,9 +18259,6 @@ msgstr ""
 
 #~ msgid "Local coordinates"
 #~ msgstr "本地坐标"
-
-#~ msgid "Object name"
-#~ msgstr "对象名称"
 
 #~ msgid "Drop to bed"
 #~ msgstr "放到床上"
