@@ -346,10 +346,8 @@ public:
     void set_thumbnail_img(const wxBitmap& bmp);
     void set_brightness_value(int value) { m_brightness_value = value; }
     void set_plate_index(int plate_idx = -1);
-    void market_scoring_show();
-    bool is_market_scoring_show();
-    void market_scoring_hide();
     void update_machine_object(MachineObject* obj);
+    void market_scoring_show(bool show);
 
 public:
     ScalableButton* get_abort_button() {return m_button_abort;};
