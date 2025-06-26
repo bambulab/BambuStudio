@@ -6010,7 +6010,21 @@ bool GUI_App::load_language(wxString language, bool initial)
     	// There is a static list of lookup path prefixes in wxWidgets. Add ours.
 	    wxFileTranslationsLoader::AddCatalogLookupPathPrefix(from_u8(localization_dir()));
     	// Get the active language from PrusaSlicer.ini, or empty string if the key does not exist.
+
         language = app_config->get("language");
+
+        /* erase the unsupported language in config files*/
+        {
+            wxLanguage cur_lang = wxLANGUAGE_UNKNOWN;
+            auto cur_lang_info = wxLocale::FindLanguageInfo(language);
+            if (cur_lang_info) { cur_lang = static_cast<wxLanguage> (cur_lang_info->Language);}
+            if (std::find(s_supported_languages.begin(), s_supported_languages.end(), cur_lang) == s_supported_languages.end())
+            {
+                app_config->set("language", "");
+                language = app_config->get("language");
+            }
+        }
+
         if (! language.empty())
         	BOOST_LOG_TRIVIAL(info) << boost::format("language provided by BambuStudio.conf: %1%") % language;
         else {
