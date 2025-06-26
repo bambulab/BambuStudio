@@ -4555,9 +4555,23 @@ std::string GUI_App::handle_web_request(std::string cmd)
             }
             else if (command_str.compare("homepage_makerlab_open") == 0) {
                 if (root.get_child_optional("url") != boost::none) {
-                    std::string strUrl = root.get_optional<std::string>("url").value();
+                    if(wxGetApp().is_user_login()) {
+                        std::string strUrl = root.get_optional<std::string>("url").value();
 
-                    if (mainframe && mainframe->m_webview) { mainframe->m_webview->OpenOneMakerlab(strUrl); }
+                        if (mainframe && mainframe->m_webview) { mainframe->m_webview->OpenOneMakerlab(strUrl); }
+                    }else {
+                        //Check Plugin
+                        bool bValid = is_compatibility_version();
+                        if (!bValid) {
+                            CallAfter([this] { handle_web_request("{\"sequence_id\":1,\"command\":\"homepage_need_networkplugin\"}");
+                                });
+                            return "";
+                        }
+                        CallAfter([this] {
+                            this->request_login(true);
+                        });
+                    }
+                    
                 }
             }
             else if (command_str.compare("homepage_need_networkplugin") == 0) {

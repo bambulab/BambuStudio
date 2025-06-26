@@ -10,6 +10,11 @@ function OnInit()
 
 	SendMsg_GetLoginInfo();
 	GotoMenu( 'home' );
+	$("#Login2").hover(function() {
+		$("#DropdownWrapper").css("visibility", "visible");
+	}, function() {
+		$("#DropdownWrapper").css("visibility", "hidden");
+	});
 }
 
 function HandleStudio( pVal )
@@ -20,6 +25,7 @@ function HandleStudio( pVal )
 	if(strCmd=='studio_userlogin')
 	{
 		SetLoginInfo(pVal['data']['avatar'],pVal['data']['name']);
+		// $("#consoleinfo").text(JSON.stringify(pVal));
 	}
 	else if(strCmd=='studio_useroffline')
 	{
@@ -137,11 +143,13 @@ function SetLoginInfo( strAvatar, strName )
 	$("#Login1").hide();
 	
 	$("#UserName").text(strName);
+	$("#DropdownUserName").text(strName);
 	
-    let OriginAvatar=$("#UserAvatarIcon").prop("src");
-	if(strAvatar!=OriginAvatar)
+  let OriginAvatar=$("#UserAvatarIcon").prop("src");
+	if(strAvatar!=OriginAvatar) {
 		$("#UserAvatarIcon").prop("src",strAvatar);
-	else
+		$("#DropdownAvatar").css("background-image", "url('"+strAvatar+"')");
+	}else
 	{
 		//alert('Avatar is Same');
 	}
@@ -152,8 +160,10 @@ function SetLoginInfo( strAvatar, strName )
 
 function SetUserOffline()
 {
-	$("#UserAvatarIcon").prop("src","img/c.jpg");
+	$("#UserAvatarIcon").prop("src","img/left_home_account.svg");
+	$("#DropdownAvatar").css("background-image","../img/left_home_account.svg");
 	$("#UserName").text('');
+	$("#DropdownUserName").text('');
 	$("#Login2").hide();	
 	
 	$("#Login1").show();

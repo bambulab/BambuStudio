@@ -19,6 +19,19 @@ html,body
 	color:#F8F8F8;
 }
 
+.DropdownBG
+{
+	background: #3E3E45;
+}
+
+.DropdownHeaderBG
+{
+	background-color: #343436;
+}
+
+.DropdownFooter:hover {
+	background-color: #4a4a4d;
+}
 
 /*---字体----*/
 .ZScrol::-webkit-scrollbar-thumb {/*滚动条里面小方块*/
