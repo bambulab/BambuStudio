@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-29 15:44+0800\n"
+"POT-Creation-Date: 2025-06-26 11:05+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -53,12 +53,8 @@ msgid "Idle"
 msgstr "Простой"
 
 #, c-format, boost-format
-msgid "%.1f ℃"
-msgstr "%.1f ℃"
-
-#, c-format, boost-format
-msgid "%d : %d"
-msgstr "%d : %d"
+msgid "%d ℃"
+msgstr ""
 
 msgid "Serial:"
 msgstr "Серийный номер:"
@@ -206,6 +202,9 @@ msgstr "Клавиша 1~9"
 msgid "Choose filament"
 msgstr "Выберите пруток"
 
+msgid "Connected same color"
+msgstr ""
+
 msgid "Edge detection"
 msgstr "Обнаружение граней"
 
@@ -275,6 +274,15 @@ msgstr "Удаление окрашенного участка"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Окрашено с использованием прутка %1%"
+
+msgid "Fuzzy skin Painting"
+msgstr ""
+
+msgid "Add fuzzy skin"
+msgstr ""
+
+msgid "Remove fuzzy skin"
+msgstr ""
 
 msgid "Move"
 msgstr "Перемещение"
@@ -1922,6 +1930,9 @@ msgstr "Нажмите на значок, чтобы разрешить/запр
 msgid "Click the icon to edit support painting of the object"
 msgstr "Нажмите на значок, чтобы изменить зоны расположения поддержек для модели."
 
+msgid "Click the icon to edit fuzzy skin painting of the object"
+msgstr ""
+
 # ??? цветовую раскраску модели? открыть покраску, чтобы изменить раскраску модели
 msgid "Click the icon to edit color painting of the object"
 msgstr "Нажмите на значок, чтобы перераскрасить модель."
@@ -2361,8 +2372,8 @@ msgstr "Вентилятор помогает охлаждать материа�
 msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials and filters the chamber air."
 msgstr "Режим охлаждения рекомендуется для печати такими материалами, как PLA, PETG и TPU. В этом режиме выдуваемый воздух фильтруется."
 
-msgid "Heating mode is suitable for printeing ABS/ASA/PC/PA materials and circulates filters the chamber air."
-msgstr "Режим нагрева рекомендуется для печати такими материалами, как ABS/ASA/PC/PA. В этом режиме происходит циркуляция воздуха внутри термокамеры."
+msgid "Heating mode is suitable for printing ABS/ASA/PC/PA materials and circulates filters the chamber air."
+msgstr ""
 
 # ??? на полную мощь
 msgid "Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printouts will be fully cooled."
@@ -3575,6 +3586,14 @@ msgstr "Нельзя включить таймлапс, т.к. SD-карта д�
 msgid "To ensure your safety, certain processing tasks (such as laser) can only be resumed on printer."
 msgstr ""
 
+#, c-format, boost-format
+msgid "The chamber temperature is too high, which may cause the filament to soften. Please wait until the chamber temperature drops below %d℃. You may open the front door or enable fans to cool down."
+msgstr ""
+
+#, c-format, boost-format
+msgid "AMS temperature is too high, which may cause the filament to soften. Please wait until the AMS temperature drops below %d℃."
+msgstr ""
+
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "Текущая температура или целевая температура внутри термокамеры превышает 45℃. Чтобы избежать засорения экструдера, запрещается загрузка низкотемпературной печатной нити (PLA/PETG/TPU)."
 
@@ -3606,17 +3625,20 @@ msgstr "Ошибка калибровки"
 msgid "TPU is not supported by AMS."
 msgstr "Печать TPU с помощью АСПП не поддерживается."
 
-msgid "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF is not supported by AMS."
-msgstr "Не поддерживается печать через АСПП такими материалами как PET-CF/PA6-CF/PPA-CF/PPS-CF."
-
 msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
 msgstr "Влажный PVA становится гибким и застревает внутри АСПП, поэтому перед использованием его необходимо просушить."
+
+msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+msgstr "Шероховатая поверхность PLA Glow может ускорить износ внутренних компонентов АСПП, особенно это касается АСПП Lite."
 
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 msgstr "CF/GF пластиковые нити твердые и хрупкие, легко ломаются или застревают в АСПП, поэтому используйте их с осторожностью."
 
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr "Шероховатая поверхность PLA Glow может ускорить износ внутренних компонентов АСПП, особенно это касается АСПП Lite."
+msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr ""
+
+msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr ""
 
 # отображается в Моделях
 msgid "default"
@@ -4559,6 +4581,9 @@ msgstr "Экспорт"
 msgid "Publish to MakerWorld"
 msgstr "Опубликовать на MakerWorld"
 
+msgid "Batch Preset Management"
+msgstr ""
+
 msgid "Quit"
 msgstr "Выйти"
 
@@ -4624,6 +4649,12 @@ msgstr "Показать навигационный куб"
 
 msgid "Show 3D navigator in Prepare and Preview scene"
 msgstr "Показать навигационный куб в режиме подготовки и предварительного просмотра"
+
+msgid "Reset Window Layout"
+msgstr ""
+
+msgid "Reset to default window layout"
+msgstr ""
 
 msgid "Show object labels in 3D scene"
 msgstr "Показать имена моделей в 3D-сцене"
@@ -4844,11 +4875,8 @@ msgstr "Проигрыватель неисправен. Пожалуйста, �
 msgid "The player is not loaded, please click \"play\" button to retry."
 msgstr "Проигрыватель не загружается. Нажмите кнопку «Воспроизвести», чтобы повторить попытку."
 
-# ??? Поверить влезает ли теперь!
-# ??? было длинно - Трансляция с видеокамеры временно отключена из-за длительного периода бездействия компьютера.
-# ??? или еще короче можно - Видеотрансляция приостановлена из-за длительного бездействия ПК.
-msgid "Temporarily closed because there is no operating for a long time."
-msgstr "Видеотрансляция приостановлена из-за длительного бездействия ПК."
+msgid "Temporarily closed because there is no operation for a while."
+msgstr ""
 
 # ??? было Трансляция с видеокамеры временно отключена из-за длительного отсутствия печати.
 msgid "Temporarily closed because there is no printing for a while."
@@ -5686,6 +5714,13 @@ msgstr[1] "%1$d модели окрашены."
 msgstr[2] "%1$d моделей окрашено."
 
 #, c-format, boost-format
+msgid "%1$d Object has fuzzy skin."
+msgid_plural "%1$d Objects have fuzzy skin."
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#, c-format, boost-format
 msgid "%1$d object was loaded as a part of cut object."
 msgid_plural "%1$d objects were loaded as parts of cut object"
 msgstr[0] "Загружена %1$d деталь, являющаяся частью разрезанной модели."
@@ -5736,6 +5771,9 @@ msgstr "Перекрытие пути G-кода"
 
 msgid "Support painting"
 msgstr "Рисование поддержек"
+
+msgid "Fuzzy skin"
+msgstr ""
 
 msgid "Color painting"
 msgstr "Покраска"
@@ -5840,6 +5878,10 @@ msgstr "Поток сопла"
 msgid "Please change the nozzle settings on the printer."
 msgstr "Пожалуйста, измените настройки сопла принтера."
 
+# было Открытия Вики-сайт
+msgid "View wiki"
+msgstr "Открыть вики-сайт"
+
 msgid "Hardened Steel"
 msgstr "Закалённая сталь"
 
@@ -5851,6 +5893,9 @@ msgstr ""
 
 msgid "High flow"
 msgstr "Высокопроизв."
+
+msgid "No wiki link available for this printer."
+msgstr ""
 
 msgid "Global"
 msgstr "Общие"
@@ -6466,6 +6511,9 @@ msgstr "Отправить на принтер"
 msgid "Custom supports and color painting were removed before repairing."
 msgstr "Пользовательские поддержки и раскраска были удалены перед починкой."
 
+msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
 msgstr ""
@@ -7001,9 +7049,6 @@ msgstr "Прутки справа"
 msgid "Click to pick filament color"
 msgstr "Нажмите, чтобы выбрать цвет нити"
 
-msgid "Please choose the filament colour"
-msgstr "Пожалуйста, выберите цвет прутка"
-
 msgid "Add/Remove presets"
 msgstr "Добавить/удалить профиль"
 
@@ -7033,6 +7078,9 @@ msgstr "Выбор/удаление принтеров (системные пр�
 
 msgid "Create printer"
 msgstr "Создать принтер"
+
+msgid "Please choose the filament colour"
+msgstr "Пожалуйста, выберите цвет прутка"
 
 msgid "Empty"
 msgstr "Пусто"
@@ -7465,7 +7513,7 @@ msgstr ""
 msgid "High chamber temperature is required. Please close the door."
 msgstr ""
 
-msgid "No labels are currently stored."
+msgid "Please refer to Wiki before use->"
 msgstr ""
 
 # ??? хранилище
@@ -7659,9 +7707,15 @@ msgid ""
 msgstr ""
 
 msgid ""
+"When using PLA to support TPU, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use PLA for both support interface and support base"
+msgstr ""
+
+msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
-"and use soluble materials for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 
 msgid ""
@@ -7686,8 +7740,8 @@ msgstr ""
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
-"and use soluble materials for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 
 msgid ""
@@ -8861,10 +8915,6 @@ msgstr "2) Если указанные ниже IP-адрес и код дост
 msgid "3. Please obtain the device SN from the printer side; it is usually found in the device information on the printer screen."
 msgstr "3) Найдите и введите серийный номер принтера (его можно найти в информации об устройстве на экране принтера)."
 
-# было Открытия Вики-сайт
-msgid "View wiki"
-msgstr "Открыть вики-сайт"
-
 msgid "Access Code"
 msgstr "Код доступа"
 
@@ -8932,6 +8982,9 @@ msgstr "40Вт лазер"
 
 msgid "Cutting Module"
 msgstr "Режущий модуль"
+
+msgid "Auto Fire Extinguishing System"
+msgstr ""
 
 msgid "Model:"
 msgstr "Модель:"
@@ -9606,6 +9659,39 @@ msgstr "мм/с"
 #, fuzzy, c-format, boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
 msgstr "Скорость печати периметров с полным 100%-ным нависанием, т. е. тех, которые не имеют перекрытия с нижним слоем."
+
+msgid "Slow down by height"
+msgstr ""
+
+msgid "Enable this option to slow printing down by height"
+msgstr ""
+
+msgid "Starting height"
+msgstr ""
+
+msgid "The height starts to slow down"
+msgstr ""
+
+msgid "Speed at starting height"
+msgstr ""
+
+msgid "Acceleration at starting height"
+msgstr ""
+
+msgid "mm/s²"
+msgstr ""
+
+msgid "Ending height"
+msgstr ""
+
+msgid "The height finishes slowing down, Ending height should be larger than Starting height, or the slowing down will not work!"
+msgstr ""
+
+msgid "Speed at ending height"
+msgstr ""
+
+msgid "Acceleration at ending height"
+msgstr ""
 
 msgid "Speed of bridge and completely overhang wall"
 msgstr "Скорость печати мостов и периметров с полным нависанием."
@@ -11085,6 +11171,12 @@ msgstr "Клиновидный шов для внутренних перимет
 msgid "Use scarf joint for inner walls as well."
 msgstr "Использовать клиновидный шов и для внутренних периметров."
 
+msgid "Override filament scarf seam setting"
+msgstr ""
+
+msgid "Overrider filament scarf seam setting and could control settings by modifier."
+msgstr ""
+
 msgid "Wipe speed"
 msgstr "Скорость очистки"
 
@@ -11421,8 +11513,8 @@ msgstr "Угол изменения диаметра ветвей по мере 
 msgid "Support wall loops"
 msgstr "Периметров поддержки"
 
-msgid "This setting specifies the count of support walls in the range of [0,2]. 0 means auto."
-msgstr "Этот параметр задаёт количество периметров поддержки в диапазоне [0,2]. 0 - автоматический выбор."
+msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
+msgstr ""
 
 msgid "Chamber temperature"
 msgstr "Температура в термокамере"
@@ -11828,6 +11920,14 @@ msgid ""
 msgstr ""
 "Коррекция горизонтальных размеров модели не будет действовать, поскольку для этой модели была выполнена операция окрашивания.\n"
 "Коррекция горизонтальных размеров модели не может использоваться в сочетании с функцией раскрашивания."
+
+msgid ""
+"An object has enabled XY Size compensation which will not be used because it is also fuzzy skin painted.\n"
+"XY Size compensation cannot be combined with fuzzy skin painting."
+msgstr ""
+
+msgid "Object name"
+msgstr ""
 
 msgid "Loading of a model file failed."
 msgstr "Не удалось загрузить файл модели."
@@ -13902,6 +14002,29 @@ msgid ""
 msgstr ""
 "Предотвращение коробления материала\n"
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как ABS, повышение температуры подогреваемого стола может снизить эту вероятность?"
+
+#, c-format, boost-format
+#~ msgid "%.1f ℃"
+#~ msgstr "%.1f ℃"
+
+#, c-format, boost-format
+#~ msgid "%d : %d"
+#~ msgstr "%d : %d"
+
+#~ msgid "Heating mode is suitable for printeing ABS/ASA/PC/PA materials and circulates filters the chamber air."
+#~ msgstr "Режим нагрева рекомендуется для печати такими материалами, как ABS/ASA/PC/PA. В этом режиме происходит циркуляция воздуха внутри термокамеры."
+
+#~ msgid "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF is not supported by AMS."
+#~ msgstr "Не поддерживается печать через АСПП такими материалами как PET-CF/PA6-CF/PPA-CF/PPS-CF."
+
+# ??? Поверить влезает ли теперь!
+# ??? было длинно - Трансляция с видеокамеры временно отключена из-за длительного периода бездействия компьютера.
+# ??? или еще короче можно - Видеотрансляция приостановлена из-за длительного бездействия ПК.
+#~ msgid "Temporarily closed because there is no operating for a long time."
+#~ msgstr "Видеотрансляция приостановлена из-за длительного бездействия ПК."
+
+#~ msgid "This setting specifies the count of support walls in the range of [0,2]. 0 means auto."
+#~ msgstr "Этот параметр задаёт количество периметров поддержки в диапазоне [0,2]. 0 - автоматический выбор."
 
 #, c-format, boost-format
 #~ msgid "TPU is not supported by %s extruder for this printer."

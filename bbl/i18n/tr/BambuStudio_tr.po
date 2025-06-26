@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-29 15:44+0800\n"
+"POT-Creation-Date: 2025-06-26 11:05+0800\n"
 "PO-Revision-Date: 2025-06-23 18:26+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -47,12 +47,8 @@ msgid "Idle"
 msgstr "Boşta"
 
 #, c-format, boost-format
-msgid "%.1f ℃"
-msgstr "%.1f ℃"
-
-#, c-format, boost-format
-msgid "%d : %d"
-msgstr "%d : %d"
+msgid "%d ℃"
+msgstr ""
 
 msgid "Serial:"
 msgstr "Seri:"
@@ -197,6 +193,9 @@ msgstr "Tuş 1~9"
 msgid "Choose filament"
 msgstr "Filament seçin"
 
+msgid "Connected same color"
+msgstr ""
+
 msgid "Edge detection"
 msgstr "Kenar algılama"
 
@@ -263,6 +262,15 @@ msgstr "Boyalı rengi kaldır"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Şunlar kullanılarak boyanmıştır: Filament %1%"
+
+msgid "Fuzzy skin Painting"
+msgstr ""
+
+msgid "Add fuzzy skin"
+msgstr ""
+
+msgid "Remove fuzzy skin"
+msgstr ""
 
 msgid "Move"
 msgstr "Taşı"
@@ -1874,6 +1882,9 @@ msgstr "Nesnenin yazdırılabilir özelliğini değiştirmek için simgeyi tıkl
 msgid "Click the icon to edit support painting of the object"
 msgstr "Nesnenin destek resmini düzenlemek için simgeye tıklayın"
 
+msgid "Click the icon to edit fuzzy skin painting of the object"
+msgstr ""
+
 msgid "Click the icon to edit color painting of the object"
 msgstr "Nesnenin renk resmini düzenlemek için simgeye tıklayın"
 
@@ -2298,8 +2309,8 @@ msgstr "Fan, baskı kalitesini artırmak için baskı sırasında sıcaklığı 
 msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials and filters the chamber air."
 msgstr "Soğutma modu PLA/PETG/TPU malzemelerin baskısı için uygundur ve hazne havasını filtreler."
 
-msgid "Heating mode is suitable for printeing ABS/ASA/PC/PA materials and circulates filters the chamber air."
-msgstr "Isıtma modu ABS/ASA/PC/PA malzemelerin baskısı için uygundur ve hazne havasını filtreleyerek sirküle eder."
+msgid "Heating mode is suitable for printing ABS/ASA/PC/PA materials and circulates filters the chamber air."
+msgstr ""
 
 msgid "Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printouts will be fully cooled."
 msgstr "Güçlü soğutma modu PLA/TPU malzemelerin baskısı için uygundur. Bu modda, çıktılar tamamen soğutulacaktır."
@@ -3481,6 +3492,14 @@ msgstr "SD kart salt okunur durumdayken Timelapse desteklenmez."
 msgid "To ensure your safety, certain processing tasks (such as laser) can only be resumed on printer."
 msgstr "Güvenliğinizi sağlamak için, belirli işleme görevleri (lazer gibi) yalnızca yazıcıda devam ettirilebilir."
 
+#, c-format, boost-format
+msgid "The chamber temperature is too high, which may cause the filament to soften. Please wait until the chamber temperature drops below %d℃. You may open the front door or enable fans to cool down."
+msgstr ""
+
+#, c-format, boost-format
+msgid "AMS temperature is too high, which may cause the filament to soften. Please wait until the AMS temperature drops below %d℃."
+msgstr ""
+
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "Mevcut hazne sıcaklığı veya hedef hazne sıcaklığı 45 ° C'yi aşıyor Ekstruder tıkanmasını önlemek için düşük sıcaklıkta filament (PLA / PETG / TPU) yüklenmesine izin verilmez."
 
@@ -3511,17 +3530,20 @@ msgstr "Kalibrasyon hatası"
 msgid "TPU is not supported by AMS."
 msgstr "TPU, AMS tarafından desteklenmez."
 
-msgid "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF is not supported by AMS."
-msgstr "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF AMS tarafından desteklenmemektedir."
-
 msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
 msgstr "Nemli PVA esnekleşecek ve AMS'nin içine sıkışacaktır, lütfen kullanmadan önce kurutmaya dikkat edin."
+
+msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+msgstr "PLA Glow'un pürüzlü yüzeyi AMS sisteminde, özellikle de AMS Lite'ın iç bileşenlerinde aşınmayı hızlandırabilir."
 
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 msgstr "CF/GF filamentleri sert ve kırılgandır. AMS'de kırılması veya sıkışması kolaydır, lütfen dikkatli kullanın."
 
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr "PLA Glow'un pürüzlü yüzeyi AMS sisteminde, özellikle de AMS Lite'ın iç bileşenlerinde aşınmayı hızlandırabilir."
+msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr ""
+
+msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr ""
 
 msgid "default"
 msgstr "varsayılan"
@@ -4442,6 +4464,9 @@ msgstr "Dışa Aktar"
 msgid "Publish to MakerWorld"
 msgstr "MakerWorld'de yayınlayın"
 
+msgid "Batch Preset Management"
+msgstr ""
+
 msgid "Quit"
 msgstr "Çıkış"
 
@@ -4507,6 +4532,12 @@ msgstr "3D Gezgini Göster"
 
 msgid "Show 3D navigator in Prepare and Preview scene"
 msgstr "Hazırlama ve Önizleme sahnesinde 3D gezgini göster"
+
+msgid "Reset Window Layout"
+msgstr ""
+
+msgid "Reset to default window layout"
+msgstr ""
 
 msgid "Show object labels in 3D scene"
 msgstr "3B sahnede nesne etiketlerini göster"
@@ -4725,8 +4756,8 @@ msgstr "Oynatıcı arızalı. Lütfen sistem oynatıcısını yeniden yükleyin.
 msgid "The player is not loaded, please click \"play\" button to retry."
 msgstr "Oynatıcı yüklenmedi, yeniden denemek için lütfen \"oynat\" düğmesine tıklayın."
 
-msgid "Temporarily closed because there is no operating for a long time."
-msgstr "Uzun süredir faaliyet olmadığı için geçici olarak kapalıdır."
+msgid "Temporarily closed because there is no operation for a while."
+msgstr ""
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "Bir süre baskı yapılmayacağı için geçici olarak kapatılmıştır."
@@ -5542,6 +5573,12 @@ msgstr[0] "%1$d Nesnenin renkli resmi var."
 msgstr[1] "%1$d Nesnelerin renkli boyaması var."
 
 #, c-format, boost-format
+msgid "%1$d Object has fuzzy skin."
+msgid_plural "%1$d Objects have fuzzy skin."
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, boost-format
 msgid "%1$d object was loaded as a part of cut object."
 msgid_plural "%1$d objects were loaded as parts of cut object"
 msgstr[0] "%1$d nesne, kesme nesnesinin bir parçası olarak yüklendi."
@@ -5591,6 +5628,9 @@ msgstr "Gcode yolu çakışması"
 
 msgid "Support painting"
 msgstr "Destek boyama"
+
+msgid "Fuzzy skin"
+msgstr ""
 
 msgid "Color painting"
 msgstr "Renkli boyama"
@@ -5692,6 +5732,9 @@ msgstr "Nozul Akışı"
 msgid "Please change the nozzle settings on the printer."
 msgstr "Lütfen yazıcıdaki nozul ayarlarını değiştirin."
 
+msgid "View wiki"
+msgstr "Daha fazla bilgi için Wiki'yi görüntüleyin"
+
 msgid "Hardened Steel"
 msgstr "Güçlendirilmiş çelik"
 
@@ -5703,6 +5746,9 @@ msgstr "Tungsten Karbür"
 
 msgid "High flow"
 msgstr "Yüksek akış"
+
+msgid "No wiki link available for this printer."
+msgstr ""
 
 msgid "Global"
 msgstr "Genel"
@@ -6307,6 +6353,9 @@ msgstr "Yazıcıya gönder"
 msgid "Custom supports and color painting were removed before repairing."
 msgstr "Tamir edilmeden önce özel destekler ve renkli boyalar kaldırıldı."
 
+msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
 msgstr "Yazıcı bağlı değil. Senkronize etmeden önce %s yazıcıyı bağlamak için lütfen cihaz sayfasına gidin."
@@ -6809,9 +6858,6 @@ msgstr "Sağ filamentler"
 msgid "Click to pick filament color"
 msgstr "Filament rengini seçmek için tıklayın"
 
-msgid "Please choose the filament colour"
-msgstr "Lütfen filament rengini seçin"
-
 msgid "Add/Remove presets"
 msgstr "Ön ayarları ekle/kaldır"
 
@@ -6841,6 +6887,9 @@ msgstr "Yazıcıları Seç/Kaldır (sistem ön ayarları)"
 
 msgid "Create printer"
 msgstr "Yazıcı oluştur"
+
+msgid "Please choose the filament colour"
+msgstr "Lütfen filament rengini seçin"
 
 msgid "Empty"
 msgstr "Boş"
@@ -7256,8 +7305,8 @@ msgstr "Tıkanmayı önlemek için TPU'yu yazdırmadan önce lütfen filamenti s
 msgid "High chamber temperature is required. Please close the door."
 msgstr "Yüksek oda sıcaklığı gereklidir. Lütfen kapıyı kapatın."
 
-msgid "No labels are currently stored."
-msgstr "Şu anda kayıtlı bir etiket yok."
+msgid "Please refer to Wiki before use->"
+msgstr ""
 
 msgid "Send to Printer storage"
 msgstr "Yazıcı depolama alanına gönder"
@@ -7449,13 +7498,16 @@ msgstr ""
 "Bunları destek tabanı için kullanacağınızdan emin misiniz? \n"
 
 msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
-"and use soluble materials for both support interface and support base"
+"When using PLA to support TPU, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use PLA for both support interface and support base"
 msgstr ""
-"Destek için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
-"0 üst z mesafesi, 0 arayüz aralığı, geçmeli doğrusal desen, bağımsız destek katmanı yüksekliğini devre dışı bırakma \n"
-"ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
+
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
 
 msgid ""
 "Change these settings automatically? \n"
@@ -7475,12 +7527,9 @@ msgstr ""
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
-"and use soluble materials for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
-"Destek arayüzü için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
-"0 üst z mesafesi, 0 arayüz aralığı, geçmeli doğrusal desen, bağımsız destek katmanı yüksekliğini devre dışı bırakma \n"
-"ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
 
 msgid ""
 "Layer height is too small.\n"
@@ -8605,9 +8654,6 @@ msgstr "Adım 2, aşağıdaki IP ve Erişim Kodu yazıcınızdaki gerçek değer
 msgid "3. Please obtain the device SN from the printer side; it is usually found in the device information on the printer screen."
 msgstr "Adım 3. Lütfen yazıcı tarafından cihaz SN'sini edinin; genellikle yazıcı ekranındaki cihaz bilgilerinde bulunur."
 
-msgid "View wiki"
-msgstr "Daha fazla bilgi için Wiki'yi görüntüleyin"
-
 msgid "Access Code"
 msgstr "Giriş kodu"
 
@@ -8674,6 +8720,9 @@ msgstr "Laser 40W"
 
 msgid "Cutting Module"
 msgstr "Kesme Modülü"
+
+msgid "Auto Fire Extinguishing System"
+msgstr ""
 
 msgid "Model:"
 msgstr "Model:"
@@ -9343,6 +9392,39 @@ msgstr "mm/s"
 #, c-format, boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
 msgstr "Alt katmanla 0 örtüşmeye sahip 100% o çıkıntı duvarının hızı."
+
+msgid "Slow down by height"
+msgstr ""
+
+msgid "Enable this option to slow printing down by height"
+msgstr ""
+
+msgid "Starting height"
+msgstr ""
+
+msgid "The height starts to slow down"
+msgstr ""
+
+msgid "Speed at starting height"
+msgstr ""
+
+msgid "Acceleration at starting height"
+msgstr ""
+
+msgid "mm/s²"
+msgstr ""
+
+msgid "Ending height"
+msgstr ""
+
+msgid "The height finishes slowing down, Ending height should be larger than Starting height, or the slowing down will not work!"
+msgstr ""
+
+msgid "Speed at ending height"
+msgstr ""
+
+msgid "Acceleration at ending height"
+msgstr ""
 
 msgid "Speed of bridge and completely overhang wall"
 msgstr "Köprü hızı ve tamamen sarkan duvar"
@@ -10772,6 +10854,12 @@ msgstr "İç duvarlar için atkı birleşimi"
 msgid "Use scarf joint for inner walls as well."
 msgstr "İç duvarlar için de atkı birleşimini kullanın."
 
+msgid "Override filament scarf seam setting"
+msgstr ""
+
+msgid "Overrider filament scarf seam setting and could control settings by modifier."
+msgstr ""
+
 msgid "Wipe speed"
 msgstr "Temizleme hızı"
 
@@ -11097,8 +11185,8 @@ msgstr "Aşağıya doğru giderek kalınlaşan dalların, çapının açısı. A
 msgid "Support wall loops"
 msgstr "Destek duvarı döngüleri"
 
-msgid "This setting specifies the count of support walls in the range of [0,2]. 0 means auto."
-msgstr "Bu ayar [0,2] aralığındaki destek duvarlarının sayısını belirtir. 0 otomatik anlamına gelir."
+msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
+msgstr ""
 
 msgid "Chamber temperature"
 msgstr "Bölme sıcaklığı"
@@ -11486,6 +11574,14 @@ msgid ""
 msgstr ""
 "Bir nesnenin XY boyutu telafisi , aynı zamanda renkli boyalı olduğundan kullanılmayacaktır.\n"
 "XY Boyut telafisi  renkli boyamayla birleştirilemez."
+
+msgid ""
+"An object has enabled XY Size compensation which will not be used because it is also fuzzy skin painted.\n"
+"XY Size compensation cannot be combined with fuzzy skin painting."
+msgstr ""
+
+msgid "Object name"
+msgstr ""
 
 msgid "Loading of a model file failed."
 msgstr "Model dosyasının yüklenmesi başarısız oldu."
@@ -13432,7 +13528,8 @@ msgstr ""
 "Baskılarınızı plakalara ayırın\n"
 "Çok sayıda parçası olan bir modeli baskıya hazır ayrı kalıplara bölebileceğinizi biliyor muydunuz? Bu, tüm parçaları takip etme sürecini basitleştirecektir."
 
-#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer Height]
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
+#: Height]
 msgid ""
 "Speed up your print with Adaptive Layer Height\n"
 "Did you know that you can print a model even faster, by using the Adaptive Layer Height option? Check it out!"
@@ -13504,7 +13601,8 @@ msgstr ""
 "Gücü artırın\n"
 "Modelin gücünü artırmak için daha fazla duvar halkası ve daha yüksek seyrek dolgu yoğunluğu kullanabileceğinizi biliyor muydunuz?"
 
-#: resources/data/hints.ini: [hint:When need to print with the printer door opened]
+#: resources/data/hints.ini: [hint:When need to print with the printer door
+#: opened]
 msgid ""
 "When need to print with the printer door opened\n"
 "Did you know that opening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki."
@@ -13519,6 +13617,47 @@ msgid ""
 msgstr ""
 "Eğilmeyi önleyin\n"
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını azaltabileceğini biliyor muydunuz."
+
+#, c-format, boost-format
+#~ msgid "%.1f ℃"
+#~ msgstr "%.1f ℃"
+
+#, c-format, boost-format
+#~ msgid "%d : %d"
+#~ msgstr "%d : %d"
+
+#~ msgid "Heating mode is suitable for printeing ABS/ASA/PC/PA materials and circulates filters the chamber air."
+#~ msgstr "Isıtma modu ABS/ASA/PC/PA malzemelerin baskısı için uygundur ve hazne havasını filtreleyerek sirküle eder."
+
+#~ msgid "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF is not supported by AMS."
+#~ msgstr "Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF AMS tarafından desteklenmemektedir."
+
+#~ msgid "Temporarily closed because there is no operating for a long time."
+#~ msgstr "Uzun süredir faaliyet olmadığı için geçici olarak kapalıdır."
+
+#~ msgid "No labels are currently stored."
+#~ msgstr "Şu anda kayıtlı bir etiket yok."
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+#~ "and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "Destek için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
+#~ "0 üst z mesafesi, 0 arayüz aralığı, geçmeli doğrusal desen, bağımsız destek katmanı yüksekliğini devre dışı bırakma \n"
+#~ "ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+#~ "and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "Destek arayüzü için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
+#~ "0 üst z mesafesi, 0 arayüz aralığı, geçmeli doğrusal desen, bağımsız destek katmanı yüksekliğini devre dışı bırakma \n"
+#~ "ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
+
+#~ msgid "This setting specifies the count of support walls in the range of [0,2]. 0 means auto."
+#~ msgstr "Bu ayar [0,2] aralığındaki destek duvarlarının sayısını belirtir. 0 otomatik anlamına gelir."
 
 #, c-format, boost-format
 #~ msgid "TPU is not supported by %s extruder for this printer."
