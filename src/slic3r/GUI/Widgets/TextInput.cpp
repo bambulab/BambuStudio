@@ -181,7 +181,7 @@ void TextInput::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
     if (sizeFlags & wxSIZE_USE_EXISTING) return;
     wxSize size = GetSize();
-    wxPoint textPos = {5, 0};
+    wxPoint textPos = {std::max(5, int(radius)), 0};
     if (this->icon.bmp().IsOk()) {
         wxSize szIcon = this->icon.GetBmpSize();
         textPos.x += szIcon.x;
@@ -227,7 +227,7 @@ void TextInput::render(wxDC& dc)
     bool   align_center = GetWindowStyle() & wxALIGN_CENTER_HORIZONTAL;
     bool   align_right = GetWindowStyle() & wxALIGN_RIGHT;
     // start draw
-    wxPoint pt = {5, 0};
+    wxPoint pt = {std::max(5, int(radius)), 0};
     if (icon.bmp().IsOk()) {
         wxSize szIcon = icon.GetBmpSize();
         pt.y = (size.y - szIcon.y) / 2;

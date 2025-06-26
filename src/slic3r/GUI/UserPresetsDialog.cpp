@@ -29,7 +29,7 @@ UserPresetsDialog::UserPresetsDialog(wxWindow *parent)
     m_switch_button->SetLabels(" " + _L("Custom filaments") + " ", _L("Others"));
     m_switch_button->Bind(wxEVT_TOGGLEBUTTON, [this](auto &evt) { evt.Skip(); on_collection_changed(m_collection); });
 
-    m_search = new TextInput(this, "");
+    m_search = new TextInput(this, "", "", "im_text_search");
     m_search->SetSize({FromDIP(568), FromDIP(24)});
     m_search->SetCornerRadius(FromDIP(12));
     m_search->Bind(wxEVT_TEXT, [this](auto &evt) { on_search(evt.GetString()); });
@@ -252,11 +252,11 @@ void UserPresetsDialog::on_collection_changed(int collection)
     m_tab_ctrl->SetItemBold(m_collection, true);
     m_search->GetTextCtrl()->ChangeValue("");
     GetSizer()->Show(m_switch_button, m_collection == 1);
-    m_scrolled->Freeze();
+    Freeze();
     create_preset_list(m_scrolled);
     layout_preset_list(true);
     wxGetApp().UpdateDarkUIWin(m_scrolled);
-    m_scrolled->Thaw();
+    Thaw();
     update_checked();
     Layout();
 }
@@ -431,14 +431,17 @@ void UserPresetsDialog::delete_checked()
     if (!delete_presets(m_collection + 3, m_checked_presets)) // check only
         return;
 
-    // Collect checked sizer
+    // Collect checked sizer of presets (need m_checked_presets, so do it befor delete_presets)
     std::set<wxSizer*> checked_sizers;
     for (auto &preset : m_checked_presets) {
         auto iter = m_preset_sizers.find(preset);
         checked_sizers.insert(iter->second);
         m_preset_sizers.erase(iter);
     }
-    // Remove filaments
+
+    delete_presets(m_collection, m_checked_presets); // real delete
+
+    // Collect checked sizer of filaments
     if (is_filament_list()) {
         for (auto &filament : m_checked_filaments) {
             auto iter = m_filament_presets.find(filament.first);
@@ -453,8 +456,6 @@ void UserPresetsDialog::delete_checked()
         }
         m_checked_filaments.clear();
     }
-
-    delete_presets(m_collection, m_checked_presets); // real delete
 
     update_preset_counts();
     layout_preset_list();
