@@ -2259,14 +2259,14 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Sparse infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density");
         optgroup->append_single_option_line("sparse_infill_pattern", "fill-patterns#infill types and their properties of sparse");
-        optgroup->append_single_option_line("locked_skin_infill_pattern", "fill-patterns#infill types and their properties of sparse");
-        optgroup->append_single_option_line("skin_infill_density");
-        optgroup->append_single_option_line("locked_skeleton_infill_pattern", "fill-patterns#infill types and their properties of sparse");
-        optgroup->append_single_option_line("skeleton_infill_density");
-        optgroup->append_single_option_line("infill_lock_depth");
-        optgroup->append_single_option_line("skin_infill_depth");
-        optgroup->append_single_option_line("skin_infill_line_width", "parameter/line-width");
-        optgroup->append_single_option_line("skeleton_infill_line_width", "parameter/line-width");
+        optgroup->append_single_option_line("locked_skin_infill_pattern", "fill-patterns#infill types and their properties of sparse", -1, true);
+        optgroup->append_single_option_line("skin_infill_density", "", -1, true);
+        optgroup->append_single_option_line("locked_skeleton_infill_pattern", "fill-patterns#infill types and their properties of sparse", -1, true);
+        optgroup->append_single_option_line("skeleton_infill_density", "", -1, true);
+        optgroup->append_single_option_line("infill_lock_depth", "", -1, true);
+        optgroup->append_single_option_line("skin_infill_depth", "", -1, true);
+        optgroup->append_single_option_line("skin_infill_line_width", "parameter/line-width", -1, true);
+        optgroup->append_single_option_line("skeleton_infill_line_width", "parameter/line-width", -1, true);
 
         optgroup->append_single_option_line("symmetric_infill_y_axis");
         optgroup->append_single_option_line("infill_shift_step");
