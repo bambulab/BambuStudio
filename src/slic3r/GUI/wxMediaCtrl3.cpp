@@ -190,6 +190,11 @@ void wxMediaCtrl3::PlayThread()
     using namespace std::chrono_literals;
     std::shared_ptr<wxURI> url;
     std::unique_lock<std::mutex> lk(m_mutex);
+
+    //frame count
+    int                                                frameCount = 0;
+    std::chrono::time_point<std::chrono::system_clock> lastSecondTime;
+
     while (true) {
         m_cond.wait(lk, [this, &url] { return m_url != url; });
         url = m_url;
@@ -197,6 +202,11 @@ void wxMediaCtrl3::PlayThread()
             continue;
         if (!url->HasScheme())
             break;
+
+        //reset frame
+        frameCount     = 0;
+        lastSecondTime = std::chrono::system_clock::now();
+
         lk.unlock();
         Bambu_Tunnel tunnel = nullptr;
         int error = Bambu_Create(&tunnel, m_url->BuildURI().ToUTF8());
@@ -262,6 +272,17 @@ void wxMediaCtrl3::PlayThread()
                 }
                 if (bm.IsOk()) {
                     auto now = std::chrono::system_clock::now();
+
+                    frameCount++;
+                    auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastSecondTime).count();
+
+                    if (elapsedTime >= 10000) {
+                        int fps = static_cast<int>(frameCount * 1000 / elapsedTime); // 100 is from frameCount * 1000 / elapsedTime * 10 , becasue  calculate the average rate over 10s
+                        BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl3:Decode Real Rate: " << fps << " FPS";
+                        frameCount     = 0;
+                        lastSecondTime = now;
+                    }
+
                     if (m_last_PTS && (sample.decode_time - m_last_PTS) < 30000000ULL) { // 3s
                         auto next_PTS_expected = m_last_PTS_expected + std::chrono::milliseconds((sample.decode_time - m_last_PTS) / 10000ULL);
                         // The frame is late, catch up a little
@@ -300,7 +321,6 @@ void wxMediaCtrl3::PlayThread()
         m_video_size = wxDefaultSize;
         NotifyStopped();
     }
-
 }
 
 void wxMediaCtrl3::NotifyStopped()
