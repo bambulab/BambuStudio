@@ -392,7 +392,7 @@ void MachineInfoPanel::createExtinguishWidgets(wxBoxSizer* main_left_sizer)
     main_left_sizer->Add(m_extinguish_line_above, 0, wxEXPAND | wxLEFT, FromDIP(40));
 
     m_extinguish_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
-    //m_extinguish_img->SetBitmap(m_img_extinguish.bmp());
+    m_extinguish_img->SetBitmap(m_img_extinguish.bmp());
 
     wxBoxSizer* content_sizer = new wxBoxSizer(wxVERTICAL);
     m_extinguish_version = new uiDeviceUpdateVersion(this, wxID_ANY);
@@ -437,7 +437,7 @@ void MachineInfoPanel::init_bitmaps()
 
     m_img_laser          = ScalableBitmap(this, "laser", 160);
     m_img_cutting        = ScalableBitmap(this, "cut", 160);
-    m_img_extinguish     = ScalableBitmap(this, "extinguish", 160);//TODO
+    m_img_extinguish     = ScalableBitmap(this, "cut", 160);//TODO
 
     upgrade_green_icon   = ScalableBitmap(this, "monitor_upgrade_online", 5);
     upgrade_gray_icon    = ScalableBitmap(this, "monitor_upgrade_offline", 5);
