@@ -60,6 +60,7 @@ public:
     size_t		full_width {0};
 	wxColour*	full_Label_color {nullptr};
 	bool		blink	{false};
+    bool        subline {false};
     widget_t	widget {nullptr};
     std::function<wxWindow*(wxWindow*)>	near_label_widget{ nullptr };
 	wxWindow*	near_label_widget_win {nullptr};
@@ -147,8 +148,8 @@ public:
 	// delete all controls from the option group
 	void		clear(bool destroy_custom_ctrl = false);
 
-    Line		create_single_option_line(const Option& option, const std::string& path = std::string()) const;
-    void		append_single_option_line(const Option& option, const std::string& path = std::string()) { append_line(create_single_option_line(option, path)); }
+    Line		create_single_option_line(const Option& option, const std::string& path = std::string(), bool subline = false) const;
+    void		append_single_option_line(const Option& option, const std::string& path = std::string(), bool subline = false) { append_line(create_single_option_line(option, path, subline)); }
 	void		append_separator();
 
     // return a non-owning pointer reference
@@ -269,13 +270,13 @@ public:
 	Line		create_single_option_line(const Option& option, const std::string& path = std::string()) const {
 		return OptionsGroup::create_single_option_line(option, path);
 	}
-	void		append_single_option_line(const Option& option, const std::string& path = std::string())	{
-		OptionsGroup::append_single_option_line(option, path);
+	void		append_single_option_line(const Option& option, const std::string& path = std::string(), bool subline = false)	{
+		OptionsGroup::append_single_option_line(option, path, subline);
 	}
-	void		append_single_option_line(const std::string title, const std::string& path = std::string(), int idx = -1)
+	void		append_single_option_line(const std::string title, const std::string& path = std::string(), int idx = -1, bool subline = false)
 	{
 		Option option = get_option(title, idx);
-		append_single_option_line(option, path);
+		append_single_option_line(option, path, subline);
 	}
 
 	void		on_change_OG(const t_config_option_key& opt_id, const boost::any& value) override;
