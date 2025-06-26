@@ -3511,12 +3511,12 @@ void PrintConfigDef::init_fff_params()
     def = this->add("raft_first_layer_expansion", coFloat);
     def->label = L("Initial layer expansion");
     def->category = L("Support");
-    def->tooltip = L("Expand the first raft or support layer to improve bed plate adhesion");
+    def->tooltip = L("Expand the first raft or support layer to improve bed plate adhesion, -1 means auto");
     def->sidetext = L("mm");
-    def->min = 0;
+    def->min = -1;
     def->mode = comAdvanced;
     //BBS: change from 3.0 to 2.0
-    def->set_default_value(new ConfigOptionFloat(2.0));
+    def->set_default_value(new ConfigOptionFloat(-1));
 
     def = this->add("raft_layers", coInt);
     def->label = L("Raft layers");

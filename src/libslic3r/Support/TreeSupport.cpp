@@ -2338,7 +2338,6 @@ void TreeSupport::draw_circles()
                             append(area_poly, area);
                             if (node.need_extra_wall) append(extra_wall_area, area);
                         }
-                        if (tree_brim_width <= 0) brim_width = node.type == ePolygon ? 1 : 3;
                     }
                     else {
                         Polygon circle(branch_circle);
@@ -2363,10 +2362,10 @@ void TreeSupport::draw_circles()
                                 circle.points[i] = circle.points[i] * scale + node.position;
                             }
                         }
-                        brim_width = tree_brim_width > 0 ?
-                                         tree_brim_width :
-                                         std::max(MIN_BRANCH_RADIUS_FIRST_LAYER,
-                                                  std::min(node.radius + node.dist_mm_to_top / (scale * branch_radius) * 0.5, MAX_BRANCH_RADIUS_FIRST_LAYER) - node.radius);
+                        //brim_width = tree_brim_width > 0 ?
+                        //                 tree_brim_width :
+                        //                 std::max(MIN_BRANCH_RADIUS_FIRST_LAYER,
+                        //                          std::min(node.radius + node.dist_mm_to_top / (scale * branch_radius) * 0.5, MAX_BRANCH_RADIUS_FIRST_LAYER) - node.radius);
                         area = avoid_object_remove_extra_small_parts(ExPolygon(circle), get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
                         // area = diff_clipped({ ExPolygon(circle) }, get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
 
@@ -2387,8 +2386,14 @@ void TreeSupport::draw_circles()
                         }
                     }
 
-                    if (layer_nr == 0 && m_raft_layers == 0)
+                    if (layer_nr == 0 && m_raft_layers == 0) {
+                        if (tree_brim_width >= 0) brim_width = tree_brim_width;
+                        else {
+                            for (const auto &expoly : area)
+                                brim_width = std::max(brim_width, expoly.map_moment_to_expansion(m_object_config->support_speed.values[0], node.dist_mm_to_top));
+                        }
                         area = safe_offset_inc(area, scale_(brim_width), get_collision(false), scale_(MIN_BRANCH_RADIUS * 0.5), 0, 1);
+                    }
                     if (obj_layer_nr>0 && node.distance_to_top < 0)
                         append(roof_gap_areas, area);
                     else if (m_support_params.num_top_interface_layers > 0 && obj_layer_nr > 0 && (node.support_roof_layers_below == 0 || node.support_roof_layers_below == 1) &&
