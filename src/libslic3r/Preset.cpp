@@ -1331,7 +1331,7 @@ void PresetCollection::load_presets(
                     if ((!preset.setting_id.empty())&&(preset.setting_id == preset.base_id))
                         preset.setting_id.clear();
                     //BBS: add config related logs
-                    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", preset type %1%, name %2%, path %3%, is_system %4%, is_default %5% is_visible %6%")%Preset::get_type_string(m_type) %preset.name %preset.file %preset.is_system %preset.is_default %preset.is_visible;
+                    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << boost::format(", preset type %1%, name %2%, is_system %3%, is_default %4%, is_visible %5%")%Preset::get_type_string(m_type) %preset.name  %preset.is_system %preset.is_default %preset.is_visible;
                     // add alias for custom filament preset
                     set_custom_preset_alias(preset);
                 } catch (const std::ifstream::failure &err) {
@@ -2267,7 +2267,7 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
         this->get_edited_preset().is_external = true;
 
     //BBS: add config related logs
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", type %1% added a preset, name %2%, path %3%, is_system %4%, is_default %5% is_external %6%")%Preset::get_type_string(m_type) %preset.name %preset.file %preset.is_system %preset.is_default %preset.is_external;
+    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << boost::format(", type %1% added a preset, name %2%, is_system %3%, is_default %4%, is_external %5%")%Preset::get_type_string(m_type) %preset.name %preset.is_system %preset.is_default %preset.is_external;
     return std::make_pair(&preset, false);
 }
 
@@ -2294,7 +2294,7 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
         this->select_preset_by_name(name, true);
     unlock();
     //BBS: add config related logs
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", preset type %1%, name %2%, path %3%, is_system %4%, is_default %5% is_visible %6%")%Preset::get_type_string(m_type) %preset.name %preset.file %preset.is_system %preset.is_default %preset.is_visible;
+    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << boost::format(", preset type %1%, name %2%, is_system %3%, is_default %4%, is_visible %5%")%Preset::get_type_string(m_type) %preset.name %preset.is_system %preset.is_default %preset.is_visible;
     return preset;
 }
 

@@ -824,7 +824,7 @@ void WebViewPanel::OpenOneMakerlab(std::string url)
     NetworkAgent *agent    = GUI::wxGetApp().getAgent();
     if (!agent) return;
 
-    //if (!agent->is_user_login()) { 
+    //if (!agent->is_user_login()) {
     //    wxGetApp().CallAfter([this] { wxGetApp().handle_web_request("{\"sequence_id\":1,\"command\":\"homepage_login_or_register\"}"); });
     //}
 
@@ -848,8 +848,8 @@ bool WebViewPanel::SaveBase64ToLocal(std::string Base64Buf, std::string FileName
 {
     int   nSize  = wxBase64DecodedSize(Base64Buf.length());
     char *DstBuf = new char[nSize + 1];
-    if (!DstBuf) 
-    { 
+    if (!DstBuf)
+    {
         BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": New Failed. Memory Not Enough";
         return false;
     }
@@ -929,14 +929,14 @@ void WebViewPanel::SaveMakerlabStl(int SequenceID, std::string Base64Buf, std::s
 
     std::string strJS = JFile.dump(-1, ' ', false, json::error_handler_t::ignore);
 
-    wxGetApp().CallAfter([this, strJS] { 
+    wxGetApp().CallAfter([this, strJS] {
         if (!m_browserML) return;
 
         WebView::RunScript(m_browserML, strJS);
     });
 }
 
-void WebViewPanel::UpdateMakerlabStatus(  ) 
+void WebViewPanel::UpdateMakerlabStatus(  )
 {
     if (m_browserML == nullptr) return;
 
@@ -954,10 +954,10 @@ void WebViewPanel::UpdateMakerlabStatus(  )
     if (wxGetApp().is_user_login())
     {
         NetworkAgent *agent = GUI::wxGetApp().getAgent();
-        if (agent == nullptr) { 
+        if (agent == nullptr) {
             wxString UrlDisconnect = MakeDisconnectUrl("makerlab");
-            m_browserML->LoadURL(UrlDisconnect);            
-            return; 
+            m_browserML->LoadURL(UrlDisconnect);
+            return;
         }
 
         std::string newticket;
@@ -971,7 +971,7 @@ void WebViewPanel::UpdateMakerlabStatus(  )
         else {
             wxString UrlDisconnect = MakeDisconnectUrl("makerlab");
             m_browserML->LoadURL(UrlDisconnect);
-        }    
+        }
     }
     else
     {
@@ -1139,7 +1139,11 @@ void WebViewPanel::ShowUserPrintTask(bool bShow, bool bForce)
             task_query_params.limit  = 5;
             task_query_params.offset = 0;
             int result               = agent->get_user_tasks(task_query_params, &m_TaskInfo);
+
+#if !BBL_RELEASE_TO_PUBLIC
             BOOST_LOG_TRIVIAL(trace) << "task_manager: get_task_list task_info=" << m_TaskInfo;
+#endif
+
             if (result == 0) {
                 try {
                     json j = json::parse(m_TaskInfo);
@@ -1276,8 +1280,8 @@ void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
         }
     }
 
-    if (m_browser != nullptr && evt.GetId() == m_browser->GetId()) 
-    { 
+    if (m_browser != nullptr && evt.GetId() == m_browser->GetId())
+    {
         SwitchWebContent("home");
         SendDesignStaffpick(true);
         SendMakerlabList();
@@ -1712,7 +1716,7 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
 
     wxString strlang = GetStudioLanguage();
 
-    if (modelname.compare("makersupply") == 0) 
+    if (modelname.compare("makersupply") == 0)
     {
         std::string strRegion = wxGetApp().app_config->get_country_code();
         wxString    MakerSupplyUrl;
@@ -1732,7 +1736,7 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
             UpdateMakerlabStatus();
         }
         else {
-            if (m_MakerLab_LastUrl != "") m_browserML->LoadURL(m_MakerLab_LastUrl);        
+            if (m_MakerLab_LastUrl != "") m_browserML->LoadURL(m_MakerLab_LastUrl);
         }
 
         m_MakerLabFirst = true;
@@ -1930,8 +1934,8 @@ void WebViewPanel::SetWebviewShow(wxString name, bool show)
     }
 }
 
-std::string WebViewPanel::GetStudioLanguage() 
-{ 
+std::string WebViewPanel::GetStudioLanguage()
+{
     std::string strLanguage = wxGetApp().app_config->get("language");
     boost::trim(strLanguage);
     if (strLanguage.empty()) strLanguage = "en";

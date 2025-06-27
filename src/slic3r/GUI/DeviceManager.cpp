@@ -2053,7 +2053,7 @@ int MachineObject::command_task_partskip(std::vector<int> part_ids)
     j["print"]["obj_list"] = part_ids;
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-    return this->publish_json(j.dump(), 1); 
+    return this->publish_json(j.dump(), 1);
 }
 
 int MachineObject::command_task_abort()
@@ -5914,7 +5914,10 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
                                                 slice_info->filaments_info.push_back(f);
                                             }
                                         }
+
+                                        #if !BBL_RELEASE_TO_PUBLIC
                                         BOOST_LOG_TRIVIAL(trace) << "task_info: thumbnail url=" << slice_info->thumbnail_url;
+                                        #endif
                                     }
                                 }
                             }
