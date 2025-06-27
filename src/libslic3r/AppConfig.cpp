@@ -181,6 +181,9 @@ void AppConfig::set_defaults()
     if (get("enable_sidebar_floatable").empty())
         set_bool("enable_sidebar_floatable", false);
 
+    if (get("export_sources_full_pathnames").empty())
+        set_bool("export_sources_full_pathnames", false);
+
     if (get("zoom_to_mouse").empty())
         set_bool("zoom_to_mouse", false);
     if (get("show_shells_in_preview").empty())
