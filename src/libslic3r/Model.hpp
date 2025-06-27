@@ -862,8 +862,8 @@ struct TextInfo
 
     RaycastResult m_rr;
     template<typename Archive> void serialize(Archive &ar) {
-        ar(m_font_name, m_font_version, m_font_size, m_curr_font_idx, m_bold, m_italic, m_thickness, m_embeded_depth, m_rotate_angle, m_text_gap, m_surface_type,
-           m_text, m_rr);
+        ar(m_font_name, m_font_version, m_font_size, m_curr_font_idx, m_bold, m_italic, m_thickness, m_embeded_depth, m_rotate_angle, m_text_gap, m_surface_type, m_text,
+           m_rr,text_configuration);
     }
     TextConfiguration text_configuration;
 };

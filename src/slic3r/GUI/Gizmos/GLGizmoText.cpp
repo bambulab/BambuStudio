@@ -744,8 +744,17 @@ void GLGizmoText::load_old_font() {
     const StyleManager::Style &style          = m_style_manager.get_styles()[old_font_index];
     // create copy to be able do fix transformation only when successfully load style
     if (m_style_manager.load_style(old_font_index)) {
-        m_style_manager.get_font_prop().size_in_mm = m_font_size * 0.93;
-
+        if (m_italic && m_thickness) {
+            m_style_manager.get_font_prop().size_in_mm = m_font_size * 0.92;
+        }
+        else if (m_italic){
+            m_style_manager.get_font_prop().size_in_mm = m_font_size * 0.98;
+        }
+        else if (m_thickness) {
+            m_style_manager.get_font_prop().size_in_mm = m_font_size * 0.93;
+        } else {
+            m_style_manager.get_font_prop().size_in_mm = m_font_size * 1.0;
+        }
         wxString font_name(m_font_name);
         if (!select_facename(font_name, true)) {
             wxString font_name("Arial");
@@ -783,6 +792,7 @@ void GLGizmoText::draw_style_list(float caption_size)
     bool                       is_modified   = is_stored && is_changed;
     const float &max_style_name_width = m_gui_cfg->max_style_name_width;
     std::string &trunc_name           = m_style_manager.get_truncated_name();
+    m_style_name                      = m_style_manager.get_truncated_name();
     if (trunc_name.empty()) {
         // generate trunc name
         std::string current_name = current_style.name;
@@ -1211,6 +1221,27 @@ void GLGizmoText::draw_surround_type(int caption_width)
     ImGuiWrapper::pop_combo_style();
 }
 
+void GLGizmoText::update_style_angle(ModelVolume *text_volume, float init_angle_degree, float roate_angle)
+{
+    double angle_rad = Geometry::deg2rad(roate_angle);
+    Geometry::to_range_pi_pi(angle_rad);
+
+    if (text_volume) {
+        double diff_angle = angle_rad - Geometry::deg2rad(init_angle_degree);
+
+        do_local_z_rotate(m_parent.get_selection(), diff_angle);
+
+        const Selection &selection = m_parent.get_selection();
+        const GLVolume * gl_volume = get_selected_gl_volume(selection);
+        // m_text_tran_in_object.set_from_transform(gl_volume->get_volume_transformation().get_matrix());
+        // m_need_update_text = true;
+        // calc angle after rotation
+        m_style_manager.get_style().angle = calc_angle(m_parent.get_selection());
+    } else {
+        m_style_manager.get_style().angle = angle_rad;
+    }
+}
+
 void GLGizmoText::draw_rotation(int caption_size, int slider_width, int drag_left_width, int slider_icon_width)
 {
     auto text_volume = m_last_text_mv;
@@ -1239,36 +1270,21 @@ void GLGizmoText::draw_rotation(int caption_size, int slider_width, int drag_lef
     float angle_degree = get_angle_from_current_style();
     m_rotate_angle     = angle_degree;
     if (m_imgui->bbl_slider_float_style("##angle", &m_rotate_angle, -180, 180, "%.2f", 1.0f, true ,_L("Rotate the text counterclockwise."))) {
-        auto   angle_deg = m_rotate_angle;
-        double angle_rad = angle_deg * M_PI / 180.0;
-        Geometry::to_range_pi_pi(angle_rad);
-
-        if (text_volume) {
-            double diff_angle = angle_rad - Geometry::deg2rad(angle_degree);
-
-            do_local_z_rotate(m_parent.get_selection(), diff_angle);
-
-            const Selection &selection = m_parent.get_selection();
-            const GLVolume * gl_volume = get_selected_gl_volume(selection);
-            // m_text_tran_in_object.set_from_transform(gl_volume->get_volume_transformation().get_matrix());
-            // m_need_update_text = true;
-            // calc angle after rotation
-            m_style_manager.get_style().angle = calc_angle(m_parent.get_selection());
-        } else {
-            m_style_manager.get_style().angle = angle_rad;
-        }
+        update_style_angle(text_volume, angle_degree, m_rotate_angle);
     }
     ImGui::SameLine(drag_left_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
+    bool set_rotate_angle_flag = false;
     if (ImGui::BBLDragFloat("##angle_input", &m_rotate_angle, 0.05f, 0.0f, 0.0f, "%.2f")) {
-        m_need_update_text = true;
+        set_rotate_angle_flag = true;
+        update_style_angle(text_volume, angle_degree, m_rotate_angle);
     }
 
     bool is_stop_sliding = m_imgui->get_last_slider_status().deactivated_after_edit;
     if (text_volume) { // Apply rotation on model (backend)
-        if (is_stop_sliding || is_reseted) {
+        if (is_stop_sliding || is_reseted || set_rotate_angle_flag) {
             m_need_update_tran = true;
-            m_parent.do_rotate(rotation_snapshot_name);
+            m_parent.do_rotate("");
             const Selection &selection = m_parent.get_selection();
             const GLVolume * gl_volume = get_selected_gl_volume(selection);
             m_text_tran_in_object.set_from_transform(gl_volume->get_volume_transformation().get_matrix()); // on_stop_dragging//rotate//set m_text_tran_in_object
@@ -1496,7 +1512,7 @@ void GLGizmoText::use_fix_normal_position()
     m_text_position_in_world = m_fix_text_position_in_world;
 }
 
-void GLGizmoText::load_init_text(bool first_open_text)
+void GLGizmoText::load_init_text(bool first_open_text, bool is_serializing)
 {
     Plater *plater = wxGetApp().plater();
     Selection &selection = m_parent.get_selection();
@@ -1529,17 +1545,88 @@ void GLGizmoText::load_init_text(bool first_open_text)
         if (model_volume) {
             TextInfo text_info = model_volume->get_text_info();
             if (model_volume->is_text()) {
-                if (m_last_text_mv == model_volume) {
+                if (m_last_text_mv == model_volume && !is_serializing) {
                     return;
                 }
                 m_last_text_mv = model_volume;
-                if (plater) {
+                if (!is_serializing && plater && first_open_text) {
                     plater->take_snapshot("enter Text");
                 }
                 auto box = model_volume->get_mesh_shared_ptr()->bounding_box();
                 auto box_size = box.size();
                 auto valid_z = text_info.m_embeded_depth + text_info.m_thickness;
                 load_from_text_info(text_info);
+
+                auto text_volume_tran = model_volume->get_matrix();
+                m_text_tran_in_object.set_matrix(text_volume_tran); // load text
+                int                  temp_object_idx;
+                auto                 mo      = m_parent.get_selection().get_selected_single_object(temp_object_idx);
+                const ModelInstance *mi      = mo->instances[m_parent.get_selection().get_instance_idx()];
+                m_model_object_in_world_tran = mi->get_transformation();
+                auto world_tran              = m_model_object_in_world_tran.get_matrix() * text_volume_tran;
+                m_text_tran_in_world.set_matrix(world_tran);
+                m_text_position_in_world = m_text_tran_in_world.get_offset();
+                m_text_normal_in_world   = m_text_tran_in_world.get_matrix().linear().col(2).cast<float>();
+                m_cut_plane_dir_in_world = m_text_tran_in_world.get_matrix().linear().col(1); // for horizonal text
+                {//recovery style
+                    auto temp_angle = calc_angle(selection);
+                    calculate_scale();
+
+                    auto &                  tc             = text_info.text_configuration;
+                    const EmbossStyle &     style          = tc.style;
+                    std::optional<wxString> installed_name = get_installed_face_name(style.prop.face_name, *m_face_names);
+
+                    wxFont wx_font;
+                    // load wxFont from same OS when font name is installed
+                    if (style.type == WxFontUtils::get_current_type() && installed_name.has_value()) { wx_font = WxFontUtils::load_wxFont(style.path); }
+                    // Flag that is selected same font
+                    bool is_exact_font = true;
+                    // Different OS or try found on same OS
+                    if (!wx_font.IsOk()) {
+                        is_exact_font = false;
+                        // Try create similar wx font by FontFamily
+                        wx_font = WxFontUtils::create_wxFont(style);
+                        if (installed_name.has_value() && !installed_name->empty()) is_exact_font = wx_font.SetFaceName(*installed_name);
+                        // Have to use some wxFont
+                        if (!wx_font.IsOk()) wx_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+                    }
+
+                    const auto &        styles        = m_style_manager.get_styles();
+                    auto                has_same_name = [&name = style.name](const StyleManager::Style &style_item) { return style_item.name == name; };
+                    StyleManager::Style style_{style}; // copy
+                    style_.projection.depth         = m_thickness;
+                    style_.projection.embeded_depth = m_embeded_depth;
+                    style_.prop.char_gap            = m_text_gap;
+                    style_.prop.size_in_mm          = m_font_size;
+                    if (temp_angle.has_value()) { style_.angle = temp_angle; }
+                    if (auto it = std::find_if(styles.begin(), styles.end(), has_same_name); it == styles.end()) {
+                        // style was not found
+                        m_style_manager.load_style(style_, wx_font);
+                        if (m_style_manager.get_styles().size() >= 2) {
+                            auto default_style_index = 1; //
+                            m_style_manager.load_style(default_style_index);
+                        }
+                    } else {
+                        // style name is in styles list
+                        size_t style_index = it - styles.begin();
+                        if (!m_style_manager.load_style(style_index)) {
+                            // can`t load stored style
+                            m_style_manager.erase(style_index);
+                            m_style_manager.load_style(style_, wx_font);
+                        } else {
+                            // stored style is loaded, now set modification of style
+                            m_style_manager.get_style() = style_;
+                            m_style_manager.set_wx_font(wx_font);
+                        }
+                    }
+                }
+                if (is_serializing) { // undo redo
+                    m_style_manager.get_style().angle = calc_angle(selection);
+                    m_rotate_angle                    = get_angle_from_current_style();
+                    m_rr.normal =Vec3f::Zero();
+                    update_text_tran_in_model_object(true);
+                    return;
+                }
                 auto text_height          = get_text_height(text_info.m_text); // old text
                 if (is_only_text_case()) {
                     m_really_use_surface_calc = false;
@@ -1556,75 +1643,6 @@ void GLGizmoText::load_init_text(bool first_open_text)
                 }
                 if (abs(box.size()[1] - text_height) > 0.1) {
                     m_fix_old_tran_flag = true;
-                }
-
-                auto text_volume_tran = model_volume->get_matrix();
-                m_text_tran_in_object.set_matrix(text_volume_tran); // load text
-                int                  temp_object_idx;
-                auto                 mo         = m_parent.get_selection().get_selected_single_object(temp_object_idx);
-                const ModelInstance *mi         = mo->instances[m_parent.get_selection().get_instance_idx()];
-                m_model_object_in_world_tran    = mi->get_transformation();
-                auto world_tran                 = m_model_object_in_world_tran.get_matrix() * text_volume_tran;
-                m_text_tran_in_world.set_matrix(world_tran);
-                m_text_position_in_world = m_text_tran_in_world.get_offset();
-                m_text_normal_in_world   = m_text_tran_in_world.get_matrix().linear().col(2).cast<float>();
-                m_cut_plane_dir_in_world = m_text_tran_in_world.get_matrix().linear().col(1);//for horizonal text
-                {
-                    auto temp_angle     = calc_angle(selection);
-                    calculate_scale();
-
-                    auto &tc             = text_info.text_configuration;
-                    const EmbossStyle &      style          = tc.style;
-                    std::optional<wxString>  installed_name = get_installed_face_name(style.prop.face_name, *m_face_names);
-
-                    wxFont wx_font;
-                    // load wxFont from same OS when font name is installed
-                    if (style.type == WxFontUtils::get_current_type() && installed_name.has_value()) {
-                        wx_font = WxFontUtils::load_wxFont(style.path);
-                    }
-                    // Flag that is selected same font
-                    bool is_exact_font = true;
-                    // Different OS or try found on same OS
-                    if (!wx_font.IsOk()) {
-                        is_exact_font = false;
-                        // Try create similar wx font by FontFamily
-                        wx_font = WxFontUtils::create_wxFont(style);
-                        if (installed_name.has_value() && !installed_name->empty())
-                            is_exact_font = wx_font.SetFaceName(*installed_name);
-                        // Have to use some wxFont
-                        if (!wx_font.IsOk())
-                            wx_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-                    }
-
-                    const auto &  styles   = m_style_manager.get_styles();
-                    auto     has_same_name = [&name = style.name](const StyleManager::Style &style_item) { return style_item.name == name; };
-                    StyleManager::Style style_{style}; // copy
-                    style_.projection.depth = m_thickness;
-                    style_.projection.embeded_depth = m_embeded_depth;
-                    style_.prop.char_gap = m_text_gap;
-                    if (temp_angle.has_value()) {
-                        style_.angle = temp_angle;
-                    }
-                    if (auto it = std::find_if(styles.begin(), styles.end(), has_same_name); it == styles.end()) {
-                        // style was not found
-                        m_style_manager.load_style(style_, wx_font);
-                        if (m_style_manager.get_styles().size() >= 2) {
-                            auto                       default_style_index = 1;//
-                            m_style_manager.load_style(default_style_index);
-                        }
-                    } else {
-                        // style name is in styles list
-                        size_t style_index = it - styles.begin();
-                        if (!m_style_manager.load_style(style_index)) {
-                            // can`t load stored style
-                            m_style_manager.erase(style_index);
-                            m_style_manager.load_style(style_, wx_font);
-                        } else {
-                            // stored style is loaded, now set modification of style
-                            m_style_manager.get_style() = style_;
-                            m_style_manager.set_wx_font(wx_font);
-                        }
-                    }
                 }
                 if (first_open_text && !is_only_text_case()) {
                     auto  valid_mesh_id = 0;
@@ -1690,11 +1708,13 @@ void GLGizmoText::load_init_text(bool first_open_text)
             }
         }
     }
-    close();
+    if (!is_serializing && m_last_text_mv == nullptr) {
+        close();
+    }
 }
 
 void  GLGizmoText::data_changed(bool is_serializing) {
-    load_init_text();
+    load_init_text(false, is_serializing);
 }
 
 void GLGizmoText::on_set_hover_id()
@@ -1887,7 +1907,7 @@ void GLGizmoText::on_stop_dragging()
     m_draging_cube = false;
     m_need_update_tran = true;//dragging
     if (m_hover_id == m_move_cube_id) {
-        m_parent.do_move(move_snapshot_name);
+        m_parent.do_move("");//replace by wxGetApp() .plater()->take_snapshot("Modify Text"); in EmbossJob.cpp
         m_need_update_text = true;
         m_confirm_generate_text = true;
     } else {
@@ -1899,7 +1919,7 @@ void GLGizmoText::on_stop_dragging()
 
         // apply rotation
         // TRN This is an item label in the undo-redo stack.
-        m_parent.do_rotate(rotation_snapshot_name);
+        m_parent.do_rotate("");
 
         const Selection &selection = m_parent.get_selection();
         const GLVolume * gl_volume = get_selected_gl_volume(selection);
@@ -2214,7 +2234,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     m_imgui->text(_L("Text Gap"));
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(slider_width);
-    if (m_imgui->bbl_slider_float_style("##text_gap", &m_text_gap, -100, 100, "%.2f", 1.0f, true))
+    if (m_imgui->bbl_slider_float_style("##text_gap", &m_text_gap, -10.f, 100.f, "%.2f", 1.0f, true))
         m_need_update_text = true;
 
     ImGui::SameLine(drag_left_width);
@@ -2359,6 +2379,7 @@ void GLGizmoText::draw_text_input(int caption_width)
     bool allow_multi_line       = false;
     bool support_backup_fonts = GUI::wxGetApp().app_config->get_bool("support_backup_fonts");
     auto create_range_text_prep    = [&mng = m_style_manager, &text = m_text, &exist_unknown = m_text_contain_unknown_glyph, support_backup_fonts]() {
+        if (text.empty()) { return std::string(); }
         auto &ff = mng.get_font_file_with_cache();
         assert(ff.has_value());
         const auto & cn         = mng.get_font_prop().collection_number;
@@ -3231,8 +3252,8 @@ void GLGizmoText::load_from_text_info(const TextInfo &text_info)
     m_italic        = text_info.m_italic;
     m_thickness     = text_info.m_thickness;
     bool is_text_changed = m_text != text_info.m_text;
-    m_text = text_info.m_text;
-    m_rr.mesh_id    = text_info.m_rr.mesh_id;
+    m_text  = text_info.m_text;
+    m_rr.mesh_id         = text_info.m_rr.mesh_id;
     m_embeded_depth = text_info.m_embeded_depth;
     double limit_angle   = Geometry::deg2rad((double) text_info.m_rotate_angle);
     Geometry::to_range_pi_pi(limit_angle);

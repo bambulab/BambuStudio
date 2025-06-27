@@ -264,11 +264,12 @@ private:
     void switch_text_type(TextInfo::TextType type);
     float get_angle_from_current_style();
     void volume_transformation_changed();
+    void update_style_angle(ModelVolume *text_volume, float init_angle_degree, float roate_angle);
 
 private:
     void generate_text_tran_in_world(const Vec3d &text_normal_in_world, const Vec3d &text_position_in_world, float rotate_degree, Geometry::Transformation &tran);
     void use_fix_normal_position();
-    void load_init_text(bool first_open_text = false);
+    void load_init_text(bool first_open_text = false, bool is_serializing =false);
     void update_text_pos_normal();
     //void update_font_status();
     void reset_text_info();
