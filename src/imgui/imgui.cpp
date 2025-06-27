@@ -4860,7 +4860,7 @@ void ImGui::CaptureMouseFromApp(bool capture)
 bool ImGui::IsItemActive()
 {
     ImGuiContext& g = *GImGui;
-    if (g.ActiveId)
+    if (g.ActiveId && g.CurrentWindow)
     {
         ImGuiWindow* window = g.CurrentWindow;
         return g.ActiveId == window->DC.LastItemId;

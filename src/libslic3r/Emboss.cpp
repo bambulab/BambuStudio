@@ -1574,27 +1574,42 @@ bool Emboss::is_italic(const FontFile &font, unsigned int font_index)
     return false;
 }
 
+std::wstring remove_duplicates(const std::wstring &input)
+{
+    std::set<wchar_t> seen;
+    std::wstring      result;
+    for (wchar_t c : input) {
+        if (seen.find(c) == seen.end()) {
+            seen.insert(c);
+            result += c;
+        }
+    }
+    return result;
+}
+
 std::string Slic3r::Emboss::create_range_text(std::string &text, std::vector<std::shared_ptr<const FontFile>> fonts, unsigned int font_index, bool *exist_unknown)
 {
     if (fonts.empty()) { return ""; }
-    bool temp_exist_unknown = false;
+    *exist_unknown                              = false;
+    bool                     temp_exist_unknown = false;
+    std::wstring             not_dup_text       = remove_duplicates(boost::nowide::widen(text));
     std::vector<std::string> results;
     results.reserve(fonts.size());
     for (int i = 0; i < fonts.size(); i++) {
         auto temp_text = create_range_text(text, *fonts[i], font_index, &temp_exist_unknown);
         results.emplace_back(temp_text);
-        if (temp_text.size() == text.size()) {
-            break;
+        if (boost::nowide::widen(temp_text).size() == not_dup_text.size()) {
+            return results.back();
         }
     }
-    if (results.size() == 0) {
-        return "";
-    } else if (results.size() == 1) {
-        return results[0];
+    *exist_unknown = true;
+    for (int i = 0; i < results.size(); i++) {
+        if (boost::nowide::widen(results[i]).size() == not_dup_text.size()) {
+            *exist_unknown = false;
+            return results[i];
+        }
     }
-    auto gen_text  = results[1];
-    *exist_unknown = gen_text.size() != text.size(); // true
-    return gen_text;
+    return results[0];
 }
 
 std::string Emboss::create_range_text(const std::string &text, const FontFile &font, unsigned int font_index,bool *exist_unknown)
