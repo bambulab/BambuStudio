@@ -1762,11 +1762,11 @@ int GUI_App::install_plugin(std::string name, std::string package_name, InstallP
     //auto plugin_folder = boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins";
     auto backup_folder = plugin_folder/"backup";
     if (!boost::filesystem::exists(plugin_folder)) {
-        BOOST_LOG_TRIVIAL(info) << "[install_plugin] will create directory "<<plugin_folder.string();
+        BOOST_LOG_TRIVIAL(info) << "[install_plugin] will create directory plugin under data dir";
         boost::filesystem::create_directory(plugin_folder);
     }
     if (!boost::filesystem::exists(backup_folder)) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", will create directory %1%")%backup_folder.string();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", will create directory backup under plugin dir");
         boost::filesystem::create_directory(backup_folder);
     }
 
@@ -1868,13 +1868,13 @@ int GUI_App::install_plugin(std::string name, std::string package_name, InstallP
                 if (fs::is_regular_file(it->status())) { ++file_count; }
             }
             for (fs::directory_iterator it(dir_path); it != fs::directory_iterator(); ++it) {
-                BOOST_LOG_TRIVIAL(info) << " current path:" << it->path().string();
+                BOOST_LOG_TRIVIAL(trace) << " current path:" << it->path().string();
                 if (it->path().string() == backup_folder) {
                     continue;
                 }
                 auto dest_path = backup_folder.string() + "/" + it->path().filename().string();
                 if (fs::is_regular_file(it->status())) {
-                    BOOST_LOG_TRIVIAL(info) << " copy file:" << it->path().string() << "," << it->path().filename();
+                    BOOST_LOG_TRIVIAL(trace) << " copy file:" << it->path().string() << "," << it->path().filename();
                     try {
                         if (pro_fn) { pro_fn(InstallStatusNormal, 50 + file_index / file_count, cancel); }
                         file_index++;
@@ -1886,7 +1886,7 @@ int GUI_App::install_plugin(std::string name, std::string package_name, InstallP
                         BOOST_LOG_TRIVIAL(error) << "Copying to backup failed: " << e.what();
                     }
                 } else {
-                    BOOST_LOG_TRIVIAL(info) << " copy framework:" << it->path().string() << "," << it->path().filename();
+                    BOOST_LOG_TRIVIAL(trace) << " copy framework:" << it->path().string() << "," << it->path().filename();
                     copy_framework(it->path().string(), dest_path);
                 }
             }
@@ -3285,12 +3285,12 @@ void GUI_App::copy_network_if_available()
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": checking network_library from ota directory";
     if (!boost::filesystem::exists(plugin_folder)) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": create directory " << plugin_folder.string();
+        //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": create directory " << plugin_folder.string();
         boost::filesystem::create_directory(plugin_folder);
     }
 
     if (!boost::filesystem::exists(cache_folder)) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": can not found ota plugins directory " << cache_folder.string();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": can not found ota plugins directory ";
         app_config->set("update_network_plugin", "false");
         return;
     }
@@ -3313,7 +3313,7 @@ void GUI_App::copy_network_if_available()
 
                 static constexpr const auto perms = fs::owner_read | fs::owner_write | fs::group_read | fs::others_read;
                 fs::permissions(dest_path, perms);
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Copying network library from" << file_path << " to " << dest_path << " successfully.";
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Copying network library successfully.";
             }
         }
         if (boost::filesystem::exists(cache_folder))
@@ -4571,7 +4571,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
                             this->request_login(true);
                         });
                     }
-                    
+
                 }
             }
             else if (command_str.compare("homepage_need_networkplugin") == 0) {

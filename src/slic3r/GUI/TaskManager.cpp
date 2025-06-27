@@ -237,7 +237,7 @@ int TaskManager::schedule(TaskStateInfo* task)
                     task->set_state(TaskState::TS_SEND_CANCELED);
                 }
             }
-     
+
             /* remove from sending task list */
             m_scedule_mutex.lock();
             auto it = std::find(m_scedule_list.begin(), m_scedule_list.end(), task);
@@ -326,7 +326,11 @@ std::map<std::string, TaskStateInfo> TaskManager::get_task_list(int curr_page, i
         task_query_params.offset = curr_page * page_count;
         std::string task_info;
         int result = m_agent->get_user_tasks(task_query_params, &task_info);
+
+#if !BBL_RELEASE_TO_PUBLIC
         BOOST_LOG_TRIVIAL(trace) << "task_manager: get_task_list task_info=" << task_info;
+#endif
+
         if (result == 0) {
             try {
                 json j = json::parse(task_info);

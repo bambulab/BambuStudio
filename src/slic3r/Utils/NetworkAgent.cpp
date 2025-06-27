@@ -8,6 +8,7 @@
 
 #include <boost/log/trivial.hpp>
 #include "libslic3r/Utils.hpp"
+#include "slic3r/Utils/BBLUtil.hpp"
 #include "NetworkAgent.hpp"
 
 
@@ -135,7 +136,7 @@ NetworkAgent::NetworkAgent(std::string log_dir)
     if (create_agent_ptr) {
         network_agent = create_agent_ptr(log_dir);
     }
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", this %1%, network_agent=%2%, create_agent_ptr=%3%, log_dir=%4%")%this %network_agent %create_agent_ptr %log_dir;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", line %1%, network_agent=%2%, create_agent_ptr=%3%")%__LINE__ %network_agent %create_agent_ptr;
 }
 
 NetworkAgent::~NetworkAgent()
@@ -144,7 +145,7 @@ NetworkAgent::~NetworkAgent()
     if (network_agent && destroy_agent_ptr) {
         ret = destroy_agent_ptr(network_agent);
     }
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", this %1%, network_agent=%2%, destroy_agent_ptr=%3%, ret %4%")%this %network_agent %destroy_agent_ptr %ret;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", line %1%, network_agent=%2%, destroy_agent_ptr=%3%, ret %4%")%__LINE__ %network_agent %destroy_agent_ptr %ret;
 }
 
 std::string NetworkAgent::get_libpath_in_current_directory(std::string library_name)
@@ -154,7 +155,7 @@ std::string NetworkAgent::get_libpath_in_current_directory(std::string library_n
     wchar_t file_name[512];
     DWORD ret = GetModuleFileNameW(NULL, file_name, 512);
     if (!ret) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", GetModuleFileNameW return error, can not Load Library for %1%") % library_name;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", GetModuleFileNameW return error, can not Load Library for %1%") %library_name;
         return lib_path;
     }
     int size_needed = ::WideCharToMultiByte(0, 0, file_name, wcslen(file_name), nullptr, 0, nullptr, nullptr);
@@ -205,7 +206,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", can not get path in current directory for %1%") % BAMBU_NETWORK_LIBRARY;
             return -1;
         }
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", current path %1%")%library_path;
+        //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", current path %1%")%library_path;
         memset(lib_wstr, 0, sizeof(lib_wstr));
         ::MultiByteToWideChar(CP_UTF8, NULL, library_path.c_str(), strlen(library_path.c_str())+1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
         netwoking_module = LoadLibrary(lib_wstr);
@@ -216,7 +217,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     #else
     library = plugin_folder.string() + "/" + std::string("lib") + std::string(BAMBU_NETWORK_LIBRARY) + ".so";
     #endif
-    printf("loading network module at %s\n", library.c_str());
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", line %1%, loading network module, using_backup %2%\n")%__LINE__ %using_backup;
     netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
     if (!netwoking_module) {
         /*#if defined(__WXMAC__)
@@ -227,16 +228,16 @@ int NetworkAgent::initialize_network_module(bool using_backup)
         //netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
         char* dll_error = dlerror();
         printf("error, dlerror is %s\n", dll_error);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", error, dlerror is %1%")%dll_error;
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", error, dlerror is %1%")%dll_error;
     }
     printf("after dlopen, network_module is %p\n", netwoking_module);
 #endif
 
     if (!netwoking_module) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", can not Load Library for %1%")%library;
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", line %1%, can not Load Library, using_backup %2%\n")%__LINE__ %using_backup;
         return -1;
     }
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", successfully loaded library %1%, module %2%")%library %netwoking_module;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", line %1%,  successfully loaded library, using_backup %2%, module %3%")%__LINE__ %using_backup %netwoking_module;
 
     //load the functions
     check_debug_consistent_ptr        =  reinterpret_cast<func_check_debug_consistent>(get_network_function("bambu_network_check_debug_consistent"));
@@ -494,7 +495,7 @@ void* NetworkAgent::get_bambu_source_entry()
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", can not get path in current directory for %1%") % BAMBU_SOURCE_LIBRARY;
             return source_module;
         }
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", current path %1%")%library_path;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", line %1%")%__LINE__;
         memset(lib_wstr, 0, sizeof(lib_wstr));
         ::MultiByteToWideChar(CP_UTF8, NULL, library_path.c_str(), strlen(library_path.c_str()) + 1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
         source_module = LoadLibrary(lib_wstr);
@@ -807,7 +808,7 @@ int NetworkAgent::add_subscribe(std::vector<std::string> dev_list)
     if (network_agent && add_subscribe_ptr) {
         ret = add_subscribe_ptr(network_agent, dev_list);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") %network_agent %ret;
     }
     return ret;
 }
@@ -818,7 +819,7 @@ int NetworkAgent::del_subscribe(std::vector<std::string> dev_list)
     if (network_agent && del_subscribe_ptr) {
         ret = del_subscribe_ptr(network_agent, dev_list);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") %network_agent %ret;
     }
     return ret;
 }
@@ -836,7 +837,7 @@ int NetworkAgent::start_device_subscribe()
     if (network_agent && start_device_subscribe_ptr) {
         ret = start_device_subscribe_ptr(network_agent);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") %network_agent %ret;
     }
     return ret;
 }
@@ -847,7 +848,7 @@ int NetworkAgent::stop_device_subscribe()
     if (network_agent && stop_device_subscribe_ptr) {
         ret = stop_device_subscribe_ptr(network_agent);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") %network_agent %ret;
     }
     return ret;
 }
@@ -858,7 +859,8 @@ int NetworkAgent::send_message(std::string dev_id, std::string json_str, int qos
     if (network_agent && send_message_ptr) {
         ret = send_message_ptr(network_agent, dev_id, json_str, qos, flag);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_id=%3%, json_str=%4%, qos=%5%")%network_agent %ret %dev_id %json_str %qos;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ <<
+            boost::format(" error: network_agent=%1%, ret=%2%, dev_id=%3%, json_str=%4%, qos=%5%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(dev_id) %json_str %qos;
     }
     return ret;
 }
@@ -869,8 +871,8 @@ int NetworkAgent::connect_printer(std::string dev_id, std::string dev_ip, std::s
     if (network_agent && connect_printer_ptr) {
         ret = connect_printer_ptr(network_agent, dev_id, dev_ip, username, password, use_ssl);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << (boost::format(" error: network_agent=%1%, ret=%2%, dev_id=%3%, dev_ip=%4%, username=%5%, password=%6%")
-                % network_agent % ret % dev_id % dev_ip % username % password).str();
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ <<
+            (boost::format(" error: network_agent=%1%, ret=%2%, dev_id=%3%, dev_ip=%4%, username=%5%, password=%6%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(dev_id) %BBLCrossTalk::Crosstalk_DevIP(dev_ip) %username %password).str();
     }
     return ret;
 }
@@ -881,7 +883,7 @@ int NetworkAgent::disconnect_printer()
     if (network_agent && disconnect_printer_ptr) {
         ret = disconnect_printer_ptr(network_agent);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") %network_agent %ret;
     }
     return ret;
 }
@@ -892,8 +894,7 @@ int NetworkAgent::send_message_to_printer(std::string dev_id, std::string json_s
     if (network_agent && send_message_to_printer_ptr) {
         ret = send_message_to_printer_ptr(network_agent, dev_id, json_str, qos, flag);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_id=%3%, json_str=%4%, qos=%5%")
-                %network_agent %ret %dev_id %json_str %qos;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_id=%3%, json_str=%4%, qos=%5%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(dev_id) %json_str %qos;
     }
     return ret;
 }
@@ -904,7 +905,7 @@ int NetworkAgent::check_cert()
     if (network_agent && check_cert_ptr) {
         ret = check_cert_ptr(network_agent);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") %network_agent %ret;
     }
     return ret;
 }
@@ -932,7 +933,7 @@ int  NetworkAgent::change_user(std::string user_info)
     if (network_agent && change_user_ptr) {
         ret = change_user_ptr(network_agent, user_info);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, user_info=%3%")%network_agent %ret %user_info ;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") %network_agent %ret ;
     }
     return ret;
 }
@@ -952,7 +953,7 @@ int  NetworkAgent::user_logout(bool request)
     if (network_agent && user_logout_ptr) {
         ret = user_logout_ptr(network_agent, request);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") %network_agent %ret;
     }
     return ret;
 }
@@ -1026,8 +1027,8 @@ int NetworkAgent::ping_bind(std::string ping_code)
     if (network_agent && ping_bind_ptr) {
         ret = ping_bind_ptr(network_agent, ping_code);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, pin code=%3%")
-            % network_agent % ret % ping_code;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")
+            % network_agent % ret;
     }
     return ret;
 }
@@ -1038,8 +1039,7 @@ int NetworkAgent::bind_detect(std::string dev_ip, std::string sec_link, detectRe
     if (network_agent && bind_detect_ptr) {
         ret = bind_detect_ptr(network_agent, dev_ip, sec_link, detect);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_ip=%3%")
-            % network_agent % ret % dev_ip;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_ip=%3%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevIP(dev_ip);
     }
     return ret;
 }
@@ -1062,8 +1062,7 @@ int NetworkAgent::bind(std::string dev_ip, std::string dev_id, std::string sec_l
     if (network_agent && bind_ptr) {
         ret = bind_ptr(network_agent, dev_ip, dev_id, sec_link, timezone, improved, update_fn);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_ip=%3%, timezone=%4%")
-                %network_agent %ret %dev_ip %timezone;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_ip=%3%, timezone=%4%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevIP(dev_ip) %timezone;
     }
     return ret;
 }
@@ -1074,7 +1073,7 @@ int NetworkAgent::unbind(std::string dev_id)
     if (network_agent && unbind_ptr) {
         ret = unbind_ptr(network_agent, dev_id);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, user_info=%3%")%network_agent %ret %dev_id ;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") %network_agent %ret ;
     }
     return ret;
 }
@@ -1103,7 +1102,7 @@ int NetworkAgent::set_user_selected_machine(std::string dev_id)
     if (network_agent && set_user_selected_machine_ptr) {
         ret = set_user_selected_machine_ptr(network_agent, dev_id);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, user_info=%3%")%network_agent %ret %dev_id ;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, user_info=%3%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(dev_id);
     }
     return ret;
 }
@@ -1113,8 +1112,8 @@ int NetworkAgent::start_print(PrintParams params, OnUpdateStatusFn update_fn, Wa
     int ret = 0;
     if (network_agent && start_print_ptr) {
         ret = start_print_ptr(network_agent, params, update_fn, cancel_fn, wait_fn);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%")
-                %network_agent %ret %params.dev_id %params.task_name %params.project_name;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+                                << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(params.dev_id) %params.task_name %params.project_name;
     }
     return ret;
 }
@@ -1124,8 +1123,7 @@ int NetworkAgent::start_local_print_with_record(PrintParams params, OnUpdateStat
     int ret = 0;
     if (network_agent && start_local_print_with_record_ptr) {
         ret = start_local_print_with_record_ptr(network_agent, params, update_fn, cancel_fn, wait_fn);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%")
-                %network_agent %ret %params.dev_id %params.task_name %params.project_name;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(params.dev_id) %params.task_name %params.project_name;
     }
     return ret;
 }
@@ -1135,8 +1133,7 @@ int NetworkAgent::start_send_gcode_to_sdcard(PrintParams params, OnUpdateStatusF
     int ret = 0;
     if (network_agent && start_send_gcode_to_sdcard_ptr) {
         ret = start_send_gcode_to_sdcard_ptr(network_agent, params, update_fn, cancel_fn, wait_fn);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%")
-            % network_agent % ret % params.dev_id % params.task_name % params.project_name;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(params.dev_id) %params.task_name %params.project_name;
     }
     return ret;
 }
@@ -1146,8 +1143,7 @@ int NetworkAgent::start_local_print(PrintParams params, OnUpdateStatusFn update_
     int ret = 0;
     if (network_agent && start_local_print_ptr) {
         ret = start_local_print_ptr(network_agent, params, update_fn, cancel_fn);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%")
-                %network_agent %ret %params.dev_id %params.task_name %params.project_name;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(params.dev_id) %params.task_name %params.project_name;
     }
     return ret;
 }
@@ -1157,8 +1153,7 @@ int NetworkAgent::start_sdcard_print(PrintParams params, OnUpdateStatusFn update
     int ret = 0;
     if (network_agent && start_sdcard_print_ptr) {
         ret = start_sdcard_print_ptr(network_agent, params, update_fn, cancel_fn);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%")
-            % network_agent % ret % params.dev_id % params.task_name % params.project_name;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(params.dev_id) %params.task_name %params.project_name;
     }
     return ret;
 }
@@ -1274,7 +1269,7 @@ int NetworkAgent::get_user_print_info(unsigned int* http_code, std::string* http
     int ret = 0;
     if (network_agent && get_user_print_info_ptr) {
         ret = get_user_print_info_ptr(network_agent, http_code, http_body);
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, http_code=%3%, http_body=%4%")%network_agent %ret %(*http_code) %(*http_body);
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, http_code=%3%")%network_agent %ret %(*http_code);
     }
     return ret;
 }
@@ -1284,7 +1279,7 @@ int NetworkAgent::get_user_tasks(TaskQueryParams params, std::string* http_body)
     int ret = 0;
     if (network_agent && get_user_tasks_ptr) {
         ret = get_user_tasks_ptr(network_agent, params, http_body);
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, http_body=%3%") % network_agent % ret % (*http_body);
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") %network_agent %ret;
     }
     return ret;
 }
@@ -1294,8 +1289,7 @@ int NetworkAgent::get_printer_firmware(std::string dev_id, unsigned* http_code, 
     int ret = 0;
     if (network_agent && get_printer_firmware_ptr) {
         ret = get_printer_firmware_ptr(network_agent, dev_id, http_code, http_body);
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, http_code=%4%, http_body=%5%")
-                %network_agent %ret %dev_id %(*http_code) %(*http_body);
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(dev_id);
     }
     return ret;
 }
@@ -1361,8 +1355,7 @@ int NetworkAgent::query_bind_status(std::vector<std::string> query_list, unsigne
     if (network_agent && query_bind_status_ptr) {
         ret = query_bind_status_ptr(network_agent, query_list, http_code, http_body);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, http_code=%3%, http_body=%4%")
-                %network_agent %ret%(*http_code) %(*http_body);
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, http_code=%3%") %network_agent %ret %(*http_code);
     }
     return ret;
 }
@@ -1372,7 +1365,7 @@ int NetworkAgent::modify_printer_name(std::string dev_id, std::string dev_name)
     int ret = 0;
     if (network_agent && modify_printer_name_ptr) {
         ret = modify_printer_name_ptr(network_agent, dev_id, dev_name);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, dev_name=%4%")%network_agent %ret %dev_id %dev_name;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, dev_name=%4%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(dev_id) %dev_name;
     }
     return ret;
 }
@@ -1383,7 +1376,7 @@ int NetworkAgent::get_camera_url(std::string dev_id, std::function<void(std::str
     if (network_agent && get_camera_url_ptr) {
         ret = get_camera_url_ptr(network_agent, dev_id, callback);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_id=%3%")%network_agent %ret %dev_id;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_id=%3%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(dev_id);
     }
     return ret;
 }

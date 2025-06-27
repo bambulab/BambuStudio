@@ -1072,7 +1072,7 @@ void PrintingTaskPanel::enable_partskip_button(bool enable)
         m_button_partskip->SetIcon("print_control_partskip_disable");
     }else if(m_obj && m_obj->is_support_brtc){
         m_button_partskip->Enable(true);
-        m_button_partskip->SetIcon("print_control_partskip");   
+        m_button_partskip->SetIcon("print_control_partskip");
     }
 }
 
@@ -2508,7 +2508,7 @@ void StatusPanel::on_subtask_partskip(wxCommandEvent &event)
     if (m_partskip_dlg == nullptr) {
         m_partskip_dlg = new PartSkipDialog(this->GetParent());
     }
-    
+
     auto dm = GUI::wxGetApp().getDeviceManager();
     m_partskip_dlg->InitSchedule(dm->get_selected_machine());
     m_partskip_dlg->ShowModal();
@@ -3866,11 +3866,11 @@ void StatusPanel::update_partskip_subtask(MachineObject *obj){
     m_project_task_panel->update_machine_object(obj);
 
     auto partskip_button = m_project_task_panel->get_partskip_button();
-    if (partskip_button) { 
+    if (partskip_button) {
         int part_cnt = obj->m_partskip_ids.size();
         if (part_cnt > 0)
             partskip_button->SetLabel(wxString::Format(_L("(%d)"), part_cnt));
-        else 
+        else
             partskip_button->SetLabel("");
     }
 
@@ -3919,7 +3919,10 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
                     BOOST_LOG_TRIVIAL(trace) << "web_request: use cache image";
                 } else {
                     web_request = wxWebSession::GetDefault().CreateRequest(this, m_request_url);
+
+#if !BBL_RELEASE_TO_PUBLIC
                     BOOST_LOG_TRIVIAL(trace) << "monitor: start request thumbnail, url = " << m_request_url;
+#endif
                     web_request.Start();
                     m_start_loading_thumbnail = false;
                 }
