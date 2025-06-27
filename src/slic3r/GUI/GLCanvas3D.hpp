@@ -407,6 +407,7 @@ class GLCanvas3D
         FilamentUnPrintableOnFirstLayer,
         MixUsePLAAndPETG,
         PrimeTowerOutside,
+        NozzleFilamentIncompatible,
         AsemblyInvalid // for asembly view only
     };
 

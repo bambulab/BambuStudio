@@ -154,6 +154,7 @@ enum class NotificationType
     BBLSliceMultiExtruderHeightOutside,
 	BBLBedFilamentIncompatible,
     BBLMixUsePLAAndPETG,
+	BBLNozzleFilamentIncompatible,
     AssemblyWarning,
     AssemblyInfo,
     NotificationTypeCount
