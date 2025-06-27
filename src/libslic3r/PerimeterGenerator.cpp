@@ -583,8 +583,9 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             // outside the grown lower slices (thus where the distance between
             // the loop centerline and original lower slices is >= half nozzle diameter
             if (remain_polines.size() != 0) {
-                if (!((perimeter_generator.object_config->enable_support || perimeter_generator.object_config->enforce_support_layers > 0)
-                    && perimeter_generator.object_config->support_top_z_distance.value == 0)) {
+                if (!((perimeter_generator.object_config->enable_support || perimeter_generator.object_config->enforce_support_layers > 0) &&
+                      perimeter_generator.object_config->support_top_z_distance.value == 0) &&
+                    detect_overhang_degree) {
                     //detect if the overhang perimeter is bridge
                     detect_bridge_wall(perimeter_generator,
                                        paths,
