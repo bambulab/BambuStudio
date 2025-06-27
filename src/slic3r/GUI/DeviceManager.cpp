@@ -1842,7 +1842,7 @@ int MachineObject::command_select_extruder(int id)
     j["print"]["sequence_id"]    = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["command"]        = "select_extruder";
     j["print"]["extruder_index"] = id;
-    int rtn = this->publish_json(j.dump(), 1);
+    int rtn = this->publish_json(j, 1);
     if (rtn == 0)
     {
         targ_nozzle_id_from_pc = id;
@@ -1858,7 +1858,7 @@ int MachineObject::command_get_version(bool with_retry)
     j["info"]["command"] = "get_version";
     if (with_retry)
         get_version_retry = GET_VERSION_RETRYS;
-    return this->publish_json(j.dump(), 1);
+    return this->publish_json(j, 1);
 }
 
 int MachineObject::command_get_access_code() {
@@ -1866,7 +1866,7 @@ int MachineObject::command_get_access_code() {
     j["system"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["system"]["command"] = "get_access_code";
 
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 
@@ -1894,7 +1894,7 @@ int MachineObject::command_request_push_all(bool request_now)
     j["pushing"]["command"]     = "pushall";
     j["pushing"]["version"]     =  1;
     j["pushing"]["push_target"] =  1;
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_pushing(std::string cmd)
@@ -1914,7 +1914,7 @@ int MachineObject::command_pushing(std::string cmd)
         json j;
         j["pushing"]["command"] = cmd;
         j["pushing"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        return this->publish_json(j.dump());
+        return this->publish_json(j);
     }
     return -1;
 }
@@ -1927,7 +1927,7 @@ int MachineObject::command_clean_print_error(std::string subtask_id, int print_e
     j["print"]["subtask_id"] = subtask_id;
     j["print"]["print_error"] = print_error;
 
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_upgrade_confirm()
@@ -1936,7 +1936,7 @@ int MachineObject::command_upgrade_confirm()
     j["upgrade"]["command"] = "upgrade_confirm";
     j["upgrade"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["upgrade"]["src_id"] = 1; // 1 for slicer
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_consistency_upgrade_confirm()
@@ -1945,7 +1945,7 @@ int MachineObject::command_consistency_upgrade_confirm()
     j["upgrade"]["command"] = "consistency_confirm";
     j["upgrade"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["upgrade"]["src_id"] = 1; // 1 for slicer
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_upgrade_firmware(FirmwareInfo info)
@@ -1962,7 +1962,7 @@ int MachineObject::command_upgrade_firmware(FirmwareInfo info)
     j["upgrade"]["version"]     = info.version;
     j["upgrade"]["src_id"]      = 1;
 
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_upgrade_module(std::string url, std::string module_type, std::string version)
@@ -1975,7 +1975,7 @@ int MachineObject::command_upgrade_module(std::string url, std::string module_ty
     j["upgrade"]["version"] = version;
     j["upgrade"]["src_id"] = 1;
 
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_xyz_abs()
@@ -2003,7 +2003,7 @@ int MachineObject::command_go_home2()
     json j;
     j["print"]["command"]     = "back_to_center";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 // Old protocol
@@ -2031,7 +2031,7 @@ int MachineObject::command_control_fan_new(int fan_id, int val, const CommandCal
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["fan_index"] = fan_id;
     j["print"]["speed"] = val;
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_control_air_duct(int mode_id, int submode, const CommandCallBack &cb)
@@ -2043,7 +2043,7 @@ int MachineObject::command_control_air_duct(int mode_id, int submode, const Comm
     j["print"]["modeId"] = mode_id;
     j["print"]["submode"] = submode;
 
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_task_partskip(std::vector<int> part_ids)
@@ -2053,7 +2053,7 @@ int MachineObject::command_task_partskip(std::vector<int> part_ids)
     j["print"]["obj_list"] = part_ids;
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-    return this->publish_json(j.dump(), 1);
+    return this->publish_json(j, 1); 
 }
 
 int MachineObject::command_task_abort()
@@ -2063,7 +2063,7 @@ int MachineObject::command_task_abort()
     j["print"]["param"] = "";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-    return this->publish_json(j.dump(), 1);
+    return this->publish_json(j, 1);
 }
 
 int MachineObject::command_task_cancel(std::string job_id)
@@ -2074,7 +2074,7 @@ int MachineObject::command_task_cancel(std::string job_id)
     j["print"]["job_id"] = job_id;
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-    return this->publish_json(j.dump(), 1);
+    return this->publish_json(j, 1);
 }
 
 int MachineObject::command_task_pause()
@@ -2084,7 +2084,7 @@ int MachineObject::command_task_pause()
     j["print"]["param"] = "";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-    return this->publish_json(j.dump(), 1);
+    return this->publish_json(j, 1);
 }
 
 int MachineObject::command_task_resume()
@@ -2096,7 +2096,7 @@ int MachineObject::command_task_resume()
     j["print"]["param"] = "";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-    return this->publish_json(j.dump(), 1);
+    return this->publish_json(j, 1);
 }
 
 int MachineObject::command_hms_idle_ignore(const std::string &error_str, int type)
@@ -2108,7 +2108,7 @@ int MachineObject::command_hms_idle_ignore(const std::string &error_str, int typ
     j["print"]["err"]         = error_str;
     j["print"]["type"]        = type;
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    return this->publish_json(j.dump(), 1);
+    return this->publish_json(j, 1);
 }
 
 int MachineObject::command_hms_resume(const std::string& error_str, const std::string& job_id)
@@ -2122,7 +2122,7 @@ int MachineObject::command_hms_resume(const std::string& error_str, const std::s
     j["print"]["job_id"] = job_id;
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-    return this->publish_json(j.dump(), 1);
+    return this->publish_json(j, 1);
 }
 
 int MachineObject::command_hms_ignore(const std::string& error_str, const std::string& job_id)
@@ -2136,7 +2136,7 @@ int MachineObject::command_hms_ignore(const std::string& error_str, const std::s
     j["print"]["job_id"] = job_id;
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-    return this->publish_json(j.dump(), 1);
+    return this->publish_json(j, 1);
 }
 
 int MachineObject::command_hms_stop(const std::string &error_str, const std::string &job_id) {
@@ -2147,7 +2147,7 @@ int MachineObject::command_hms_stop(const std::string &error_str, const std::str
     j["print"]["job_id"]      = job_id;
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-    return this->publish_json(j.dump(), 1);
+    return this->publish_json(j, 1);
 }
 
 int MachineObject::command_stop_buzzer()
@@ -2157,7 +2157,7 @@ int MachineObject::command_stop_buzzer()
     j["print"]["mode"] = 0;
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-    return this->publish_json(j.dump(), 1);
+    return this->publish_json(j, 1);
 }
 
 int MachineObject::command_set_bed(int temp)
@@ -2168,7 +2168,7 @@ int MachineObject::command_set_bed(int temp)
         j["print"]["command"] = "set_bed_temp";
         j["print"]["temp"] = temp;
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        return this->publish_json(j.dump());
+        return this->publish_json(j);
     }
 
     std::string gcode_str = (boost::format("M140 S%1%\n") % temp).str();
@@ -2208,7 +2208,7 @@ int MachineObject::command_set_nozzle_new(int nozzle_id, int temp)
     j["print"]["extruder_index"] = nozzle_id;
     j["print"]["target_temp"]    = temp;
 
-    return this->publish_json(j.dump(), 1);
+    return this->publish_json(j, 1);
 }
 
 int MachineObject::command_set_chamber(int temp)
@@ -2218,7 +2218,7 @@ int MachineObject::command_set_chamber(int temp)
     j["print"]["command"] = "set_ctt";
     j["print"]["ctt_val"] = temp;
 
-    return this->publish_json(j.dump(), 1);
+    return this->publish_json(j, 1);
 }
 
 int MachineObject::check_resume_condition()
@@ -2260,8 +2260,8 @@ int MachineObject::command_ams_change_filament(bool load, std::string ams_id, st
             j["print"]["slot_id"] = atoi(slot_id.c_str());
         }
     } catch (const std::exception &) {}
-
-    return this->publish_json(j.dump());
+  
+    return this->publish_json(j);
 }
 
 int MachineObject::command_ams_user_settings(int ams_id, bool start_read_opt, bool tray_read_opt, bool remain_flag)
@@ -2279,7 +2279,7 @@ int MachineObject::command_ams_user_settings(int ams_id, bool start_read_opt, bo
     ams_calibrate_remain_flag = remain_flag;
     ams_user_setting_start = time(nullptr);
 
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_ams_calibrate(int ams_id)
@@ -2315,7 +2315,7 @@ int MachineObject::command_ams_filament_settings(int ams_id, int slot_id, std::s
     j["print"]["nozzle_temp_max"]   = nozzle_temp_max;
     j["print"]["tray_type"]         = tray_type;
 
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_ams_refresh_rfid(std::string tray_id)
@@ -2332,7 +2332,7 @@ int MachineObject::command_ams_refresh_rfid2(int ams_id,  int slot_id)
     j["print"]["sequence_id"]   = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["ams_id"]        = ams_id;
     j["print"]["slot_id"]       = slot_id;
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 
@@ -2353,11 +2353,10 @@ int MachineObject::command_ams_control(std::string action)
         j["print"]["command"] = "ams_control";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
         j["print"]["param"] = action;
-        return this->publish_json(j.dump());
+        return this->publish_json(j);
     }
     return -1;
 }
-
 
 int MachineObject::command_set_chamber_light(LIGHT_EFFECT effect, int on_time, int off_time, int loops, int interval)
 {
@@ -2370,7 +2369,7 @@ int MachineObject::command_set_chamber_light(LIGHT_EFFECT effect, int on_time, i
     j["system"]["led_off_time"] = off_time;
     j["system"]["loop_times"] = loops;
     j["system"]["interval_time"] = interval;
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 
@@ -2385,7 +2384,7 @@ int MachineObject::command_set_chamber_light2(LIGHT_EFFECT effect, int on_time /
     j["system"]["led_off_time"]  = off_time;
     j["system"]["loop_times"]    = loops;
     j["system"]["interval_time"] = interval;
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_set_printer_nozzle(std::string nozzle_type, float diameter)
@@ -2398,7 +2397,7 @@ int MachineObject::command_set_printer_nozzle(std::string nozzle_type, float dia
     j["system"]["accessory_type"] = "nozzle";
     j["system"]["nozzle_type"] = nozzle_type;
     j["system"]["nozzle_diameter"] = diameter;
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_set_printer_nozzle2(int id, std::string nozzle_type, float diameter)
@@ -2412,7 +2411,7 @@ int MachineObject::command_set_printer_nozzle2(int id, std::string nozzle_type, 
     j["print"]["type"]            = nozzle_type;
     j["print"]["diameter"]        = diameter;
     j["print"]["wear"]            = 0;
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 
@@ -2428,7 +2427,7 @@ int MachineObject::command_set_work_light(LIGHT_EFFECT effect, int on_time, int 
     j["system"]["loop_times"] = loops;
     j["system"]["interval_time"] = interval;
 
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_start_extrusion_cali(int tray_index, int nozzle_temp, int bed_temp, float max_volumetric_speed, std::string setting_id)
@@ -2445,7 +2444,7 @@ int MachineObject::command_start_extrusion_cali(int tray_index, int nozzle_temp,
 
     // enter extusion cali
     last_extrusion_cali_start_time = std::chrono::system_clock::now();
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_stop_extrusion_cali()
@@ -2473,7 +2472,7 @@ int MachineObject::command_extrusion_cali_set(int tray_index, std::string settin
         j["print"]["nozzle_temp"]   = nozzle_temp;
         j["print"]["max_volumetric_speed"] = max_volumetric_speed;
     }
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 
@@ -2484,7 +2483,7 @@ int MachineObject::command_set_printing_speed(PrintingSpeedLevel lvl)
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["param"] = std::to_string((int)lvl);
 
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_set_printing_option(bool auto_recovery)
@@ -2496,7 +2495,7 @@ int MachineObject::command_set_printing_option(bool auto_recovery)
     j["print"]["option"]        = print_option;
     j["print"]["auto_recovery"] = auto_recovery;
 
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_nozzle_blob_detect(bool nozzle_blob_detect)
@@ -2507,7 +2506,7 @@ int MachineObject::command_nozzle_blob_detect(bool nozzle_blob_detect)
     j["print"]["nozzle_blob_detect"] = nozzle_blob_detect;
     nozzle_blob_detection_enabled = nozzle_blob_detect;
     nozzle_blob_detection_hold_start = time(nullptr);
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_set_prompt_sound(bool prompt_sound){
@@ -2516,7 +2515,7 @@ int MachineObject::command_set_prompt_sound(bool prompt_sound){
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["sound_enable"] = prompt_sound;
 
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_set_filament_tangle_detect(bool filament_tangle_detect) {
@@ -2525,7 +2524,7 @@ int MachineObject::command_set_filament_tangle_detect(bool filament_tangle_detec
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["filament_tangle_detect"] = filament_tangle_detect;
 
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_ams_switch_filament(bool switch_filament)
@@ -2538,7 +2537,7 @@ int MachineObject::command_ams_switch_filament(bool switch_filament)
     ams_auto_switch_filament_flag = switch_filament;
     ams_switch_filament_start = time(nullptr);
 
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_ams_air_print_detect(bool air_print_detect)
@@ -2550,7 +2549,7 @@ int MachineObject::command_ams_air_print_detect(bool air_print_detect)
 
     ams_air_print_status = air_print_detect;
 
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 
@@ -2564,7 +2563,7 @@ int MachineObject::command_axis_control(std::string axis, double unit, double in
         j["print"]["dir"] = input_val > 0 ? 1 : -1;
         j["print"]["mode"] = (std::abs(input_val) >= 10) ? 1 : 0;
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        return this->publish_json(j.dump());
+        return this->publish_json(j);
     }
 
     double value = input_val;
@@ -2608,7 +2607,7 @@ int MachineObject::command_extruder_control(int nozzle_id, double val)
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["extruder_index"] = nozzle_id;
     j["print"]["length"] = (int)val;
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 bool MachineObject::is_support_command_calibration()
@@ -2631,7 +2630,7 @@ int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, 
         j["print"]["command"] = "gcode_file";
         j["print"]["param"] = "/usr/etc/print/auto_cali_for_user.gcode";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        return this->publish_json(j.dump());
+        return this->publish_json(j);
     } else {
         json j;
         j["print"]["command"] = "calibration";
@@ -2642,7 +2641,7 @@ int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, 
                                 +   (vibration    ? 1 << 2 : 0)
                                 +   (bed_leveling ? 1 << 1 : 0)
                                 +   (xcam_cali    ? 1 << 0 : 0);
-        return this->publish_json(j.dump());
+        return this->publish_json(j);
     }
 }
 
@@ -2685,7 +2684,7 @@ int MachineObject::command_start_pa_calibration(const X1CCalibInfos &pa_data, in
         if (agent) agent->track_event("cali", js.dump());
     } catch (...) {}
 
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult> &pa_calib_values, bool is_auto_cali)
@@ -2719,7 +2718,7 @@ int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult> &
                 j["print"]["filaments"][i]["n_coef"]  = "0.0";
         }
 
-        return this->publish_json(j.dump());
+        return this->publish_json(j);
     }
 
     return -1;
@@ -2736,7 +2735,7 @@ int MachineObject::command_delete_pa_calibration(const PACalibIndexInfo& pa_cali
     j["print"]["cali_idx"]        = pa_calib.cali_idx;
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_calib.nozzle_diameter);
 
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_get_pa_calibration_tab(const PACalibExtruderInfo &calib_info)
@@ -2754,7 +2753,7 @@ int MachineObject::command_get_pa_calibration_tab(const PACalibExtruderInfo &cal
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(calib_info.nozzle_diameter);
 
     request_tab_from_bbs = true;
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_get_pa_calibration_result(float nozzle_diameter)
@@ -2764,7 +2763,7 @@ int MachineObject::command_get_pa_calibration_result(float nozzle_diameter)
     j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(nozzle_diameter);
 
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::commnad_select_pa_calibration(const PACalibIndexInfo& pa_calib_info)
@@ -2779,7 +2778,7 @@ int MachineObject::commnad_select_pa_calibration(const PACalibIndexInfo& pa_cali
     j["print"]["filament_id"]     = pa_calib_info.filament_id;
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_calib_info.nozzle_diameter);
 
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_start_flow_ratio_calibration(const X1CCalibInfos& calib_data)
@@ -2821,7 +2820,7 @@ int MachineObject::command_start_flow_ratio_calibration(const X1CCalibInfos& cal
             if (agent) agent->track_event("cali", js.dump());
         } catch (...) {}
 
-        return this->publish_json(j.dump());
+        return this->publish_json(j);
     }
     return -1;
 }
@@ -2833,7 +2832,7 @@ int MachineObject::command_get_flow_ratio_calibration_result(float nozzle_diamet
     j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(nozzle_diameter);
 
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_ipcam_record(bool on_off)
@@ -2844,7 +2843,7 @@ int MachineObject::command_ipcam_record(bool on_off)
     j["camera"]["control"] = on_off ? "enable" : "disable";
     camera_recording_ctl_start          = time(nullptr);
     this->camera_recording_when_printing = on_off;
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_ipcam_timelapse(bool on_off)
@@ -2855,7 +2854,7 @@ int MachineObject::command_ipcam_timelapse(bool on_off)
     j["camera"]["control"] = on_off ? "enable" : "disable";
     camera_timelapse_hold_count = HOLD_COUNT_CAMERA;
     this->camera_timelapse = on_off;
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_ipcam_resolution_set(std::string resolution)
@@ -2867,7 +2866,7 @@ int MachineObject::command_ipcam_resolution_set(std::string resolution)
     camera_resolution_hold_count = HOLD_COUNT_CAMERA;
     camera_recording_ctl_start = time(nullptr);
     this->camera_resolution = resolution;
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_xcam_control(std::string module_name, bool on_off, std::string lvl)
@@ -2883,7 +2882,7 @@ int MachineObject::command_xcam_control(std::string module_name, bool on_off, st
         j["xcam"]["halt_print_sensitivity"] = lvl;
     }
 
-    return this->publish_json(j.dump());
+    return this->publish_json(j);
 }
 
 int MachineObject::command_xcam_control_ai_monitoring(bool on_off, std::string lvl)
@@ -3217,19 +3216,19 @@ bool MachineObject::is_camera_busy_off()
     return false;
 }
 
-int MachineObject::publish_json(std::string json_str, int qos, int flag)
+int MachineObject::publish_json(const json& json_item, int qos, int flag)
 {
     int rtn = 0;
     if (is_lan_mode_printer()) {
-        rtn = local_publish_json(json_str, qos, flag);
+        rtn = local_publish_json(json_item.dump(), qos, flag);
     } else {
-        rtn = cloud_publish_json(json_str, qos, flag);
+        rtn = cloud_publish_json(json_item.dump(), qos, flag);
     }
 
     if (rtn == 0) {
-        BOOST_LOG_TRIVIAL(info) << "publish_json: " << json_str << " code: " << rtn;
+        BOOST_LOG_TRIVIAL(info) << "publish_json: " << BBLCrossTalk::Crosstalk_JsonLog(json_item) << " code: " << rtn;
     } else {
-        BOOST_LOG_TRIVIAL(error) << "publish_json: " << json_str << " code: " << rtn;
+        BOOST_LOG_TRIVIAL(error) << "publish_json: " << BBLCrossTalk::Crosstalk_JsonLog(json_item) << " code: " << rtn;
     }
 
     return rtn;
@@ -5699,7 +5698,7 @@ int MachineObject::publish_gcode(std::string gcode_str)
         m_agent->track_event("cmd_gcode_line", t.dump());
     }
 
-    return publish_json(j.dump(), 0);
+    return publish_json(j);
 }
 
 BBLSubTask* MachineObject::get_subtask()
@@ -7022,7 +7021,7 @@ void MachineObject::command_set_door_open_check(DoorOpenCheckState state)
          default: assert(0); return;
     }
 
-    if (publish_json(j.dump()) == 0)
+    if (publish_json(j) == 0)
     {
         xcam_door_open_check = state;
         xcam_door_open_check_start_time = time(nullptr);
@@ -7039,7 +7038,7 @@ void MachineObject::command_set_save_remote_print_file_to_storage(bool save)
         j["system"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
         j["system"]["config"] = save ? true : false;
 
-        if (publish_json(j.dump()) == 0)
+        if (publish_json(j) == 0)
         {
             xcam__save_remote_print_file_to_storage = save;
             xcam__save_remote_print_file_to_storage_start_time = time(nullptr);
@@ -7191,7 +7190,6 @@ void DeviceManager::check_pushing()
 void DeviceManager::on_machine_alive(std::string json_str)
 {
     try {
-        //BOOST_LOG_TRIVIAL(trace) << "DeviceManager::SsdpDiscovery, json" << json_str;
         json j = json::parse(json_str);
         std::string dev_name        = j["dev_name"].get<std::string>();
         std::string dev_id          = j["dev_id"].get<std::string>();
@@ -7240,7 +7238,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
                 it->second->dev_connection_type = connect_type;
                 it->second->bind_ssdp_version   = ssdp_version;
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " UpdateUserMachineInfo, ip= " << BBLCrossTalk::Crosstalk_DevIP(dev_ip)
-                                        << ", printer_name= " << dev_name << ", printer_type= " << printer_type_str
+                                        << ", printer_name= " << BBLCrossTalk::Crosstalk_DevName(dev_name) << ", printer_type= " << printer_type_str
                                         << ", con_type= " << connect_type << ", signal= " << printer_signal
                                         << ", bind_state= " << bind_state;
             }
@@ -7283,14 +7281,14 @@ void DeviceManager::on_machine_alive(std::string json_str)
                     obj->printer_type != MachineObject::parse_printer_type(printer_type_str))
                 {
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " UpdateUserMachineInfo, ip= " << BBLCrossTalk::Crosstalk_DevIP(dev_ip)
-                        << ", printer_name= " << dev_name << ", printer_type= " << printer_type_str
+                        << ", printer_name= " << BBLCrossTalk::Crosstalk_DevName(dev_name) << ", printer_type= " << printer_type_str
                         << ", con_type= " << connect_type << ", signal= " << printer_signal
                         << ", bind_state= " << bind_state;
                 }
                 else
                 {
                     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << " UpdateUserMachineInfo, ip= " << BBLCrossTalk::Crosstalk_DevIP(dev_ip)
-                        << ", printer_name= " << dev_name << ", printer_type= " << printer_type_str
+                        << ", printer_name= " << BBLCrossTalk::Crosstalk_DevName(dev_name) << ", printer_type= " << printer_type_str
                         << ", con_type= " << connect_type << ", signal= " << printer_signal
                         << ", bind_state= " << bind_state;
                 }
@@ -7307,7 +7305,6 @@ void DeviceManager::on_machine_alive(std::string json_str)
             if (obj->dev_connection_type.empty() && obj->bind_state.empty())
                 obj->bind_state = "free";
 
-            //BOOST_LOG_TRIVIAL(debug) << "SsdpDiscovery:: Update Machine Info, printer_sn = " << dev_id << ", signal = " << printer_signal;
             obj->last_alive = Slic3r::Utils::get_current_time_utc();
             obj->m_is_online = true;
 
@@ -7340,7 +7337,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
                  Slic3r::GUI::wxGetApp().app_config->set_str("ip_address", obj->dev_id, obj->dev_ip);
                  Slic3r::GUI::wxGetApp().app_config->save();
              }*/
-            BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery::New Machine, ip= " << BBLCrossTalk::Crosstalk_DevIP(dev_ip) << ", printer_name= " << dev_name
+            BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery::New Machine, ip= " << BBLCrossTalk::Crosstalk_DevIP(dev_ip) << ", printer_name= " << BBLCrossTalk::Crosstalk_DevName(dev_name)
                                     << ", printer_type= " << printer_type_str << ", con_type= "
                                     << connect_type <<", signal= " << printer_signal << ", bind_state= " << bind_state;
         }
