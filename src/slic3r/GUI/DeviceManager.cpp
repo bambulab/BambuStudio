@@ -6210,6 +6210,12 @@ AmsTray MachineObject::parse_vt_tray(json vtray)
         else {
             vt_tray.color = "";
         }
+        if (vtray.contains("ctype")) {
+            vt_tray.ctype = vtray["ctype"].get<int>();
+        }
+        else {
+            vt_tray.ctype = 1;
+        }
         if (vtray.contains("nozzle_temp_max"))
             vt_tray.nozzle_temp_max = vtray["nozzle_temp_max"].get<std::string>();
         else
@@ -6233,8 +6239,8 @@ AmsTray MachineObject::parse_vt_tray(json vtray)
             vt_tray.cali_idx = -1;
         vt_tray.cols.clear();
         if (vtray.contains("cols")) {
-            if (vtray.is_array()) {
-                for (auto it = vtray.begin(); it != vtray.end(); it++) {
+            if (vtray["cols"].is_array()) {
+                for (auto it = vtray["cols"].begin(); it != vtray["cols"].end(); it++) {
                     vt_tray.cols.push_back(it.value().get<std::string>());
                 }
             }
