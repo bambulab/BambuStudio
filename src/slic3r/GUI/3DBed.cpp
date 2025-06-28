@@ -269,16 +269,7 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
     //BBS: add part plate logic
 
     //BBS add default bed
-#if 1
-    ExPolygon poly{ Polygon::new_scale(printable_area) };
-#else
-    ExPolygon poly;
-    for (const Vec2d& p : printable_area) {
-        poly.contour.append(Point(scale_(p(0) + m_position.x()), scale_(p(1) + m_position.y())));
-    }
-#endif
-
-    calc_triangles(poly);
+    m_triangles.reset();
 
     //no need gridline for 3dbed
     //const BoundingBox& bed_bbox = poly.contour.bounding_box();
