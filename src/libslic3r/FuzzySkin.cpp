@@ -125,8 +125,8 @@ bool should_fuzzify(const PrintRegionConfig &config, const size_t layer_idx, con
         return false;
     }
 
-    const bool fuzzify_contours = perimeter_idx == 0;
-    const bool fuzzify_holes    = fuzzify_contours && fuzzy_skin_type == FuzzySkinType::All;
+    const bool fuzzify_contours = perimeter_idx == 0 || fuzzy_skin_type == FuzzySkinType::AllWalls;
+    const bool fuzzify_holes    = fuzzify_contours && (fuzzy_skin_type == FuzzySkinType::All || fuzzy_skin_type == FuzzySkinType::AllWalls);
 
     return is_contour ? fuzzify_contours : fuzzify_holes;
 }
