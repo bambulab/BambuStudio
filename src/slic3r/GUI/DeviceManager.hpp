@@ -1134,6 +1134,7 @@ public:
     bool is_support_command_homing { false };// fun[32]
     bool is_support_brtc{false};                 // fun[31], support tcp and upload protocol
     bool is_support_ext_change_assist{false};
+    bool is_support_partskip{false};
 
       // refine printer function options
     bool is_support_spaghetti_detection{false};

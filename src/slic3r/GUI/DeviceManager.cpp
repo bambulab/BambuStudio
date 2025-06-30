@@ -6453,6 +6453,7 @@ void MachineObject::parse_new_info(json print)
 
         m_air_duct_data.m_support_cooling_filter = get_flag_bits(fun, 46);
         is_support_ext_change_assist = get_flag_bits(fun, 48);
+        is_support_partskip = get_flag_bits(fun, 49);
     }
 
     /*aux*/
