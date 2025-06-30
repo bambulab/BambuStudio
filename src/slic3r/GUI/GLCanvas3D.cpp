@@ -7766,9 +7766,8 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 
     const auto& p_main_toolbar = get_main_toolbar();
     if (p_main_toolbar) {
-        if (p_main_toolbar->get_rendering_mode() == GLToolbar::EToolbarRenderingMode::Auto) {
-            scale = wxGetApp().toolbar_icon_scale();
-        }
+        const bool auto_scale = p_main_toolbar->get_rendering_mode() == GLToolbar::EToolbarRenderingMode::Auto;
+        scale = wxGetApp().toolbar_icon_scale(auto_scale);
     }
     Size cnv_size = get_canvas_size();
 
