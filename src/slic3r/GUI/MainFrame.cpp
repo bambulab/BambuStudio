@@ -2185,7 +2185,7 @@ void MainFrame::update_side_button_style()
     m_slice_btn->SetMinSize(wxSize(-1, FromDIP(24)));
     m_slice_btn->SetCornerRadius(FromDIP(12));
     m_slice_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(10)));
-    m_slice_btn->SetBottomColour(wxColour(0x3B4446));*/
+    m_slice_btn->SetBottomColour(wxColour(#3B4446));*/
     StateColor m_btn_bg_enable = StateColor(
         std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(48, 221, 112), StateColor::Hovered),
@@ -3487,6 +3487,15 @@ void MainFrame::update_menubar()
         return;
 
     const bool is_fff = plater()->printer_technology() == ptFFF;
+}
+
+void MainFrame::update_calibration_button_status()
+{
+    Preset &printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
+    bool isBBL = printer_preset.is_bbl_vendor_preset(wxGetApp().preset_bundle);
+    // Show calibration Menu for BBL printers if Develop Mode is on.
+    bool show_calibration = !isBBL || wxGetApp().app_config->get("developer_mode") == "true";
+    wxGetApp().mainframe->show_calibration_button(show_calibration);
 }
 
 void MainFrame::reslice_now()
