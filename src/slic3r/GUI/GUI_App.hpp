@@ -426,7 +426,7 @@ public:
     int             em_unit() const         { return m_em_unit; }
     bool            tabs_as_menu() const;
     wxSize          get_min_size() const;
-    float           toolbar_icon_scale(const bool is_limited = false) const;
+    float           toolbar_icon_scale(bool auto_scale, const bool is_limited = false) const;
     void            set_auto_toolbar_icon_scale(float scale) const;
     void            check_printer_presets();
 

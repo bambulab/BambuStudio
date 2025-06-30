@@ -3831,7 +3831,7 @@ wxSize GUI_App::get_min_size() const
     return wxSize(std::max(1000, 76*m_em_unit), std::max(600, 49 * m_em_unit));
 }
 
-float GUI_App::toolbar_icon_scale(const bool is_limited/* = false*/) const
+float GUI_App::toolbar_icon_scale(bool auto_scale, const bool is_limited/* = false*/) const
 {
 #ifdef __APPLE__
     const float icon_sc = 1.0f; // for Retina display will be used its own scale
@@ -3839,7 +3839,9 @@ float GUI_App::toolbar_icon_scale(const bool is_limited/* = false*/) const
     const float icon_sc = m_em_unit * 0.1f;
 #endif // __APPLE__
 
-    //return icon_sc;
+    if (!auto_scale) {
+        return icon_sc;
+    }
 
     const std::string& auto_val = app_config->get("toolkit_size");
 
