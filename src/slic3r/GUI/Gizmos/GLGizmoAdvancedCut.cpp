@@ -1341,7 +1341,7 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
             m_grabber_model.render_geometry();
         }
 
-        m_move_x_grabber.center = m_plane_center + m_plane_x_direction * Offset;
+        m_move_x_grabber.center = m_plane_center + m_plane_x_direction * radius;
         if (is_render_x_grabber) {
 
             Transform3d model_matrix{ Transform3d::Identity() };
@@ -1357,16 +1357,20 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
         }
     }
 
-    bool                 hover = (m_hover_id == get_group_id());
-    std::array<float, 4> render_color;
-    if (hover) {
-        render_color = GrabberHoverColor;
-    } else
-        render_color = GrabberColor;
-
     // BBS set to fixed size grabber
     // float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
     GLModel &cube_z = m_move_z_grabber.get_cube();
+
+    const auto get_render_color = [this](unsigned int id)->std::array<float, 4> {
+        bool                 hover = (m_hover_id == id);
+        std::array<float, 4> render_color;
+        if (hover) {
+            render_color = GrabberHoverColor;
+        }
+        else
+            render_color = GrabberColor;
+        return render_color;
+    };
 
     if (is_render_z_grabber) {
         Vec3d t_z_dir = m_move_z_grabber.center - m_plane_center;
@@ -1374,6 +1378,7 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
         const Vec3d target_z = m_plane_center + scale_z * t_z_dir.normalized();
         Transform3d cube_mat_z = Geometry::translation_transform(target_z) * m_rotate_matrix * Geometry::scale_transform(fullsize); //
         m_move_z_grabber.m_matrix = cube_mat_z;
+        std::array<float, 4> render_color = get_render_color(c_cube_z_move_id);
         render_glmodel(cube_z, render_color, view_matrix * m_move_z_grabber.m_matrix, projection_matrix);
     }
 
@@ -1384,6 +1389,8 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
         const Vec3d target_x = m_plane_center + scale_x * t_x_dir.normalized();
         Transform3d cube_mat_x = Geometry::translation_transform(target_x) * m_rotate_matrix * Geometry::scale_transform(fullsize); //
         m_move_x_grabber.m_matrix = cube_mat_x;
+
+        std::array<float, 4> render_color = get_render_color(c_cube_x_move_id);
         render_glmodel(cube_x, render_color, view_matrix * m_move_x_grabber.m_matrix, projection_matrix);
     }
     // Should be placed at last, because GLGizmoRotate3D clears depth buffer
