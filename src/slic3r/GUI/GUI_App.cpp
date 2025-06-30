@@ -6260,6 +6260,7 @@ void GUI_App::update_mode()
     sidebar().update_mode();
 
     //BBS: GUI refactor
+    mainframe->update_calibration_button_status();
     if (mainframe->m_param_panel)
         mainframe->m_param_panel->update_mode();
     if (mainframe->m_param_dialog)

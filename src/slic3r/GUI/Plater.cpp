@@ -2322,10 +2322,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
         Preset& printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
 
-        bool isBBL = printer_preset.is_bbl_vendor_preset(wxGetApp().preset_bundle);
-       // Show calibration Menu for BBL printers if Develop Mode is on.
-       bool show_calibration = !isBBL || wxGetApp().app_config->get("developer_mode") == "true";
-       wxGetApp().mainframe->show_calibration_button(show_calibration);
+       wxGetApp().mainframe->update_calibration_button_status();
 
         if (auto printer_structure_opt = printer_preset.config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure")) {
             wxGetApp().plater()->get_current_canvas3D()->get_arrange_settings().align_to_y_axis = (printer_structure_opt->value == PrinterStructure::psI3);
@@ -2336,6 +2333,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
         // Update dual extrudes
         auto extruder_variants = printer_preset.config.option<ConfigOptionStrings>("extruder_variant_list");
 
+        bool isBBL = printer_preset.is_bbl_vendor_preset(wxGetApp().preset_bundle);
         bool is_dual_extruder = extruder_variants->size() == 2;
         p->layout_printer(isBBL, is_dual_extruder);
         auto extruders_def = printer_preset.config.def()->get("extruder_type");
