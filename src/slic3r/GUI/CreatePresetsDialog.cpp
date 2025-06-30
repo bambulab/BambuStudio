@@ -928,7 +928,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
     m_button_create = new Button(this, _L("Create"));
     m_button_create->SetBackgroundColor(btn_bg_green);
     m_button_create->SetBorderColor(*wxWHITE);
-    m_button_create->SetTextColor(wxColour(0xFFFFFE));
+    m_button_create->SetTextColor(wxColour("#FFFFFE"));
     m_button_create->SetFont(Label::Body_12);
     m_button_create->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_create->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
@@ -1362,9 +1362,9 @@ void CreateFilamentPresetDialog::update_dialog_size()
     m_filament_preset_panel->SetSizerAndFit(m_filament_presets_sizer);
     int width      = m_filament_preset_panel->GetSize().GetWidth();
     int height     = m_filament_preset_panel->GetSize().GetHeight();
-    m_scrolled_preset_panel->SetMinSize(wxSize(std::min(1400, width + FromDIP(26)), std::min(600, height + FromDIP(18))));
-    m_scrolled_preset_panel->SetMaxSize(wxSize(std::min(1400, width + FromDIP(26)), std::min(600, height + FromDIP(18))));
-    m_scrolled_preset_panel->SetSize(wxSize(std::min(1500, width + FromDIP(26)), std::min(600, height + FromDIP(18))));
+    m_scrolled_preset_panel->SetMinSize(wxSize(std::min(1400, width + FromDIP(26)), std::min(450, height + FromDIP(18))));
+    m_scrolled_preset_panel->SetMaxSize(wxSize(std::min(1400, width + FromDIP(26)), std::min(450, height + FromDIP(18))));
+    m_scrolled_preset_panel->SetSize(wxSize(std::min(1500, width + FromDIP(26)), std::min(450, height + FromDIP(18))));
     Layout();
     Fit();
     Refresh();
@@ -2001,7 +2001,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page1_btns_item(wxWindow *parent)
     m_button_OK = new Button(parent, _L("OK"));
     m_button_OK->SetBackgroundColor(btn_bg_green);
     m_button_OK->SetBorderColor(*wxWHITE);
-    m_button_OK->SetTextColor(wxColour(0xFFFFFE));
+    m_button_OK->SetTextColor(wxColour("#FFFFFE"));
     m_button_OK->SetFont(Label::Body_12);
     m_button_OK->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_OK->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
@@ -2686,7 +2686,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
     m_button_create = new Button(parent, _L("Create"));
     m_button_create->SetBackgroundColor(btn_bg_green);
     m_button_create->SetBorderColor(*wxWHITE);
-    m_button_create->SetTextColor(wxColour(0xFFFFFE));
+    m_button_create->SetTextColor(wxColour("#FFFFFE"));
     m_button_create->SetFont(Label::Body_12);
     m_button_create->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_create->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
@@ -4314,7 +4314,7 @@ wxBoxSizer *ExportConfigsDialog::create_button_item(wxWindow* parent)
     m_button_ok = new Button(this, _L("OK"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
     m_button_ok->SetBorderColor(*wxWHITE);
-    m_button_ok->SetTextColor(wxColour(0xFFFFFE));
+    m_button_ok->SetTextColor(wxColour("#FFFFFE"));
     m_button_ok->SetFont(Label::Body_12);
     m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
@@ -4868,7 +4868,7 @@ wxBoxSizer *EditFilamentPresetDialog::create_button_sizer()
     m_del_filament_btn = new Button(this, _L("Delete Filament"));
     m_del_filament_btn->SetBackgroundColor(*wxRED);
     m_del_filament_btn->SetBorderColor(*wxWHITE);
-    m_del_filament_btn->SetTextColor(wxColour(0xFFFFFE));
+    m_del_filament_btn->SetTextColor(wxColour("#FFFFFE"));
     m_del_filament_btn->SetFont(Label::Body_12);
     m_del_filament_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_del_filament_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
@@ -4883,7 +4883,7 @@ wxBoxSizer *EditFilamentPresetDialog::create_button_sizer()
     m_ok_btn = new Button(this, _L("OK"));
     m_ok_btn->SetBackgroundColor(btn_bg_green);
     m_ok_btn->SetBorderColor(*wxWHITE);
-    m_ok_btn->SetTextColor(wxColour(0xFFFFFE));
+    m_ok_btn->SetTextColor(wxColour("#FFFFFE"));
     m_ok_btn->SetFont(Label::Body_12);
     m_ok_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_ok_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
@@ -5083,7 +5083,7 @@ wxBoxSizer *CreatePresetForPrinterDialog::create_button_sizer()
     m_ok_btn = new Button(this, _L("OK"));
     m_ok_btn->SetBackgroundColor(btn_bg_green);
     m_ok_btn->SetBorderColor(*wxWHITE);
-    m_ok_btn->SetTextColor(wxColour(0xFFFFFE));
+    m_ok_btn->SetTextColor(wxColour("#FFFFFE"));
     m_ok_btn->SetFont(Label::Body_12);
     m_ok_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_ok_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
@@ -5248,7 +5248,7 @@ wxPanel *PresetTree::get_child_item(wxPanel *parent, std::shared_ptr<Preset> pre
     if (base_id_error) {
         del_preset_btn->SetBackgroundColor(btn_bg_green);
         del_preset_btn->SetBorderColor(btn_bg_green);
-        del_preset_btn->SetTextColor(wxColour(0xFFFFFE));
+        del_preset_btn->SetTextColor(wxColour("#FFFFFE"));
     } else {
         del_preset_btn->SetBackgroundColor(flush_bg_col);
         del_preset_btn->SetBorderColor(flush_bd_col);
