@@ -190,3 +190,7 @@ src/slic3r/GUI/MultiMachine.cpp
 src/slic3r/GUI/FilamentMapDialog.cpp
 src/slic3r/GUI/FilamentGroupPopup.cpp
 src/slic3r/GUI/FilamentMapPanel.cpp
+src/slic3r/GUI/PartSkipDialog.cpp
+src/slic3r/GUI/PartSkipDialog.hpp
+src/slic3r/GUI/SkipCanvas.cpp
+src/slic3r/GUI/SkipCanvas.cpp
