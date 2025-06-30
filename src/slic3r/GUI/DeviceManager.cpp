@@ -316,7 +316,7 @@ bool check_filaments_printable(const std::string &tag_vendor, const std::string 
    if (filament_info.has_value() && !(filament_info->filament_printable >> extruder_idx & 1)) {
        wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
        ac                     = "prohibition";
-       info                   = (wxString::Format(_L("%s is not supported by %s extruder."), tag_type, extruder_name)).ToUTF8().data();
+       info                   = wxString::Format(_L("%s is not supported by %s extruder."), tag_type, extruder_name);
        in_blacklist           = true;
        return false;
    }
@@ -2057,7 +2057,7 @@ int MachineObject::command_task_partskip(std::vector<int> part_ids)
     j["print"]["obj_list"] = part_ids;
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-    return this->publish_json(j, 1); 
+    return this->publish_json(j, 1);
 }
 
 int MachineObject::command_task_abort()
