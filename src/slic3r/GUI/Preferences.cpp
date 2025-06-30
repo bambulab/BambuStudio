@@ -867,7 +867,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
         if (param == "enable_high_low_temp_mixed_printing") {
             if (checkbox->GetValue()) {
                 const wxString warning_title = _L("Bed Temperature Difference Warning");
-                const wxString warning_message = 
+                const wxString warning_message =
                     _L("Using filaments with significantly different temperatures may cause:\n"
                         "• Extruder clogging\n"
                         "• Nozzle damage\n"
@@ -1182,6 +1182,9 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_restore_hide_pop_ups = create_item_button(_L("Clear my choice for synchronizing printer preset after loading the file."), _L("Clear"), page, _L("Clear my choice for synchronizing printer preset after loading the file."), []() {
         wxGetApp().app_config->erase("app", "sync_after_load_file_show_flag");
     });
+    auto  item_restore_hide_3mf_info = create_item_button(_L("Clear my choice for Load 3mf dialog settings."), _L("Clear"), page, _L("Show the warning dialog again when importing non-Bambu 3MF files"),[]() {
+        wxGetApp().app_config->erase("app", "skip_non_bambu_3mf_warning");
+    });
     auto _3d_settings    = create_item_title(_L("3D Settings"), page, _L("3D Settings"));
     auto item_mouse_zoom_settings  = create_item_checkbox(_L("Zoom to mouse position"), page,
                                                          _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50,
@@ -1295,6 +1298,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_auto_transfer_when_switch_preset, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_mix_print_high_low_temperature, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_restore_hide_pop_ups, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_restore_hide_3mf_info, 0, wxTOP, FromDIP(3));
     sizer_page->Add(_3d_settings, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_mouse_zoom_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_show_shells_in_preview_settings, 0, wxTOP, FromDIP(3));
