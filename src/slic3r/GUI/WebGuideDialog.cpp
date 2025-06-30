@@ -884,10 +884,15 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
                 variant = *model_it.second.begin();
                 if (model_it.second.size() > 1) {
                     if (printer_profile.models.size() > 0) {
-                        const VendorProfile::PrinterModel& printer_model = *std::find_if(printer_profile.models.begin(), printer_profile.models.end(),
-                            [id = model_it.first](auto& m) { return m.id == id; });
-                        for (auto& vt : printer_model.variants) {
-                            if (std::find(model_it.second.begin(), model_it.second.end(), vt.name) != model_it.second.end()) { variant = vt.name; break; }
+                        auto it = std::find_if(printer_profile.models.begin(), printer_profile.models.end(), [id = model_it.first](auto &m) { return m.id == id; });
+                        if (it != printer_profile.models.end()) {
+                            const VendorProfile::PrinterModel& printer_model = *it;
+                            for (auto &vt : printer_model.variants) {
+                                if (std::find(model_it.second.begin(), model_it.second.end(), vt.name) != model_it.second.end()) {
+                                    variant = vt.name;
+                                    break;
+                                }
+                            }
                         }
                     }
                     else if (variant != PresetBundle::BBL_DEFAULT_PRINTER_VARIANT){
