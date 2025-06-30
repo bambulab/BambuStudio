@@ -1141,8 +1141,8 @@ wxWindow* PreferencesDialog::create_general_page()
         const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(translations[i]);
 
         if (langinfo == nullptr) continue;
-        int language_num = sizeof(s_supported_languages) / sizeof(s_supported_languages[0]);
-        for (auto si = 0; si < language_num; si++) {
+
+        for (auto si = 0; si < s_supported_languages.size(); si++) {
             if (langinfo == wxLocale::GetLanguageInfo(s_supported_languages[si])) {
                 language_infos.emplace_back(langinfo);
             }
