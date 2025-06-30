@@ -1468,24 +1468,25 @@ std::string GLGizmosManager::on_hover(int idx)
 
 void GLGizmosManager::on_click(int idx)
 {
-    Selection& selection = m_parent.get_selection();
+    Selection &selection = m_parent.get_selection();
     if (selection.is_empty()) {
-        return;
-    }
-    update_on_off_state(idx);
-    update_data();
-    m_parent.set_as_dirty();
-    try {
-        if ((int)m_hover >= 0 && (int)m_hover < m_gizmos.size()) {
-            std::string name = convert_gizmo_type_to_string(m_hover);
-            int count = m_gizmos[m_hover]->get_count();
-            NetworkAgent* agent = GUI::wxGetApp().getAgent();
-            if (agent) {
-                agent->track_update_property(name, std::to_string(count));
-            }
+        if (is_text_first_clicked(idx)) { // open text gizmo
+            GLGizmoBase *gizmo_text = m_gizmos[EType::Text].get();
+            dynamic_cast<GLGizmoText *>(gizmo_text)->on_shortcut_key(); // direct create text on plate
         }
+    } else {
+        update_on_off_state(idx);
+        update_data();
+        m_parent.set_as_dirty();
     }
-    catch (...) {}
+    try {
+        if ((int) m_hover >= 0 && (int) m_hover < m_gizmos.size()) {
+            std::string   name  = convert_gizmo_type_to_string(m_hover);
+            int           count = m_gizmos[m_hover]->get_count();
+            NetworkAgent *agent = GUI::wxGetApp().getAgent();
+            if (agent) { agent->track_update_property(name, std::to_string(count)); }
+        }
+    } catch (...) {}
 }
 
 bool GLGizmosManager::is_in_editing_mode(bool error_notification) const
