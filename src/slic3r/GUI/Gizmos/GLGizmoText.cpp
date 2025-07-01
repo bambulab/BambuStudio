@@ -302,7 +302,7 @@ struct GLGizmoText::Facenames : public CurFacenames
 {};
 
 bool                    store(const CurFacenames &facenames);
-bool                    load(CurFacenames &facenames);
+bool                    load(CurFacenames &facenames,const std::vector<wxString>& delete_bad_font_list);
 void                    init_face_names(CurFacenames &face_names);
 void                    init_truncated_names(CurFacenames &face_names, float max_width);
 std::optional<wxString> get_installed_face_name(const std::optional<std::string> &face_name_opt, CurFacenames &face_names);
@@ -3323,7 +3323,7 @@ bool store(const CurFacenames &facenames)
     }
     return true;
 }
-bool load(CurFacenames &facenames)
+bool load(CurFacenames &facenames, const std::vector<wxString> &delete_bad_font_list)
 {
     boost::filesystem::path path     = get_fontlist_cache_path();
     std::string             path_str = path.string();
@@ -3347,7 +3347,13 @@ bool load(CurFacenames &facenames)
 
     facenames.hash = data.hash;
     facenames.faces.reserve(data.good.size());
-    for (const wxString &face : data.good) facenames.faces.push_back({face});
+    for (const wxString &face : data.good) {
+        bool is_find = std::find(delete_bad_font_list.begin(), delete_bad_font_list.end(), face) != delete_bad_font_list.end();
+        if (is_find) {
+            continue;
+        }
+        facenames.faces.push_back({face});
+    }
     facenames.bad = data.bad;
 
     return true;
@@ -3396,11 +3402,14 @@ void init_face_names(CurFacenames &face_names)
 
     // to reload fonts from system, when install new one
     wxFontEnumerator::InvalidateCache();
-
+    std::vector<wxString> delete_bad_font_list;//BBS
+#ifdef _WIN32
+    delete_bad_font_list = {"Symbol","Wingdings","Wingdings 2","Wingdings 3", "Webdings"};
+#endif
     // try load cache
     // Only not OS enumerated face has hash value 0
     if (face_names.hash == 0) {
-        load(face_names);
+        load(face_names, delete_bad_font_list);
         face_names.has_truncated_names = false;
     }
 
@@ -3444,7 +3453,13 @@ void init_face_names(CurFacenames &face_names)
     face_names.faces.reserve(facenames.size());
     face_names.faces_names.reserve(facenames.size());
     std::sort(facenames.begin(), facenames.end());
+
     for (const wxString& name : facenames) {
+        bool is_find = std::find(delete_bad_font_list.begin(), delete_bad_font_list.end(), name) != delete_bad_font_list.end();
+        if (is_find) {
+            face_names.bad.push_back(name);
+            continue;
+        }
         if (is_valid_font(name, face_names.encoding, face_names.bad)) {
             face_names.faces.push_back({name});
             face_names.faces_names.push_back(name.utf8_string());

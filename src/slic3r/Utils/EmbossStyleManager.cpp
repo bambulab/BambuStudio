@@ -475,7 +475,6 @@ ImFont *StyleManager::create_imgui_font(const std::string &text, double scale, b
 
     ImFontConfig font_config;
     // TODO: start using merge mode
-    //font_config.MergeMode = true;
     int unit_per_em = get_font_info(font_file, font_prop).unit_per_em;
     float coef = font_size / (double) unit_per_em;
     if (font_prop.char_gap.has_value())
@@ -485,26 +484,19 @@ ImFont *StyleManager::create_imgui_font(const std::string &text, double scale, b
 
     font_config.FontDataOwnedByAtlas = false;
     ImFont *font{nullptr};
+    const std::vector<unsigned char> &buffer = *font_file.data;
+    font = m_style_cache.atlas.AddFontFromMemoryTTF((void *) buffer.data(), buffer.size(), font_size, &font_config, m_style_cache.ranges.Data);
     if (support_backup_fonts) {
-        const std::vector<unsigned char> &firsr_buffer = *font_file.data;
-        std::vector<unsigned char> new_buffer;
-        new_buffer.resize(firsr_buffer.size());
-        memcpy(new_buffer.data(), firsr_buffer.data(), firsr_buffer.size() * sizeof(unsigned char));
+        font_config.MergeMode = true;
         for (int i = 0; i < Slic3r::GUI::BackupFonts::backup_fonts.size(); i++) {
             if (Slic3r::GUI::BackupFonts::backup_fonts[i].has_value()) {
                 auto &                            temp_ff        = Slic3r::GUI::BackupFonts::backup_fonts[i];
                 const FontFile &                  temp_font_file = *temp_ff.font_file;
                 const std::vector<unsigned char> &temp_buffer    = *temp_font_file.data;
-                new_buffer.resize(temp_buffer.size());
-                memcpy(new_buffer.data(), temp_buffer.data(), temp_buffer.size() * sizeof(unsigned char));
+                font = m_style_cache.atlas.AddFontFromMemoryTTF((void *) temp_buffer.data(), temp_buffer.size(), font_size, &font_config, m_style_cache.ranges.Data);
             }
         }
-        font = m_style_cache.atlas.AddFontFromMemoryTTF((void *) new_buffer.data(), new_buffer.size(), font_size, &font_config, m_style_cache.ranges.Data);
-    } else {
-        const std::vector<unsigned char> &buffer = *font_file.data;
-        font = m_style_cache.atlas.AddFontFromMemoryTTF((void *) buffer.data(), buffer.size(), font_size, &font_config, m_style_cache.ranges.Data);
     }
-
 
     unsigned char *pixels;
     int            width, height;

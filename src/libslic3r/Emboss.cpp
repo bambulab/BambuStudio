@@ -1593,12 +1593,14 @@ std::string Slic3r::Emboss::create_range_text(std::string &text, std::vector<std
     *exist_unknown                              = false;
     bool                     temp_exist_unknown = false;
     std::wstring             not_dup_text       = remove_duplicates(boost::nowide::widen(text));
+    std::sort(not_dup_text.begin(), not_dup_text.end());
     std::vector<std::string> results;
     results.reserve(fonts.size());
     for (int i = 0; i < fonts.size(); i++) {
         auto temp_text = create_range_text(text, *fonts[i], font_index, &temp_exist_unknown);
         results.emplace_back(temp_text);
-        if (boost::nowide::widen(temp_text).size() == not_dup_text.size()) {
+        auto valid_text = boost::nowide::widen(temp_text);
+        if (valid_text.size() == not_dup_text.size()) {
             return results.back();
         }
     }
