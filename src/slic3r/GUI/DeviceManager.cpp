@@ -6247,6 +6247,8 @@ AmsTray MachineObject::parse_vt_tray(json vtray)
                     vt_tray.cols.push_back(it.value().get<std::string>());
                 }
             }
+        } else {
+            vt_tray.cols.push_back(vt_tray.color);
         }
 
         if (vtray.contains("remain")) {
