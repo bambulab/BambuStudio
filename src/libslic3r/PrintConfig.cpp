@@ -1932,6 +1932,9 @@ void PrintConfigDef::init_fff_params()
     def = this->add("enable_pre_heating", coBool);
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("support_object_skip_flush", coBool);
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("bed_temperature_formula", coEnum);
     def->label = L("Bed temperature type");
     def->tooltip = L("This option determines how the bed temperature is set during slicing: based on the temperature of the first filament or the highest temperature of the printed filaments.");
