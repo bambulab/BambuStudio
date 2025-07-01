@@ -13,6 +13,7 @@
 #include <wx/scrolwin.h>
 #include <wx/spinctrl.h>
 #include <wx/artprov.h>
+#include <wx/colordlg.h>
 
 #include <vector>
 #include <functional>
@@ -77,6 +78,7 @@ std::vector<wxBitmap *> get_extruder_color_icons(bool thin_icon = false);
 wxBitmap * get_extruder_color_icon(std::string color, std::string label, int icon_width, int icon_height);
 wxBitmap * get_extruder_color_icon(std::vector<std::string> colors, bool is_gradient, std::string label, int icon_width, int icon_height);
 std::vector<std::vector<std::string>> read_color_pack(std::vector<std::string> color_pack);
+wxColourData show_sys_picker_dialog(wxWindow *parent, const wxColourData &clr_data);
 
 namespace Slic3r {
 namespace GUI {

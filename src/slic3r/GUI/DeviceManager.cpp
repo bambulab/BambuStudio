@@ -1941,7 +1941,7 @@ int MachineObject::command_clean_print_error_uiop(int print_error)
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["name"] = "print_error";
     j["print"]["action"] = "close";
-    j["print"]["source"] = 1;// 0-Mushu 1-Studio 
+    j["print"]["source"] = 1;// 0-Mushu 1-Studio
     j["print"]["type"] = "dialog";
 
     // the error to be cleaned
@@ -6248,6 +6248,8 @@ AmsTray MachineObject::parse_vt_tray(json vtray)
                     vt_tray.cols.push_back(it.value().get<std::string>());
                 }
             }
+        } else {
+            vt_tray.cols.push_back(vt_tray.color);
         }
 
         if (vtray.contains("remain")) {
