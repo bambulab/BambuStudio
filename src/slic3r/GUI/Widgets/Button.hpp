@@ -4,6 +4,7 @@
 #include "../wxExtensions.hpp"
 #include "StaticBox.hpp"
 
+class wxTipWindow;
 class Button : public StaticBox
 {
     wxRect textSize;
@@ -19,6 +20,8 @@ class Button : public StaticBox
     bool canFocus  = true;
     bool isCenter    = true;
     bool vertical    = false;
+
+    wxTipWindow* tipWindow = nullptr;
 
     static const int buttonWidth = 200;
     static const int buttonHeight = 50;
@@ -50,6 +53,7 @@ public:
     void SetSelected(bool selected = true) { m_selected = selected; }
 
     bool Enable(bool enable = true) override;
+    void EnableTooltipEvenDisabled();// The tip will be shown even if the button is disabled
 
     void SetCanFocus(bool canFocus) override;
 
@@ -83,7 +87,12 @@ private:
     void mouseCaptureLost(wxMouseCaptureLostEvent &event);
     void keyDownUp(wxKeyEvent &event);
 
+    // 
     void sendButtonEvent();
+
+    // parent motion
+    void OnParentMotion(wxMouseEvent& event);
+    void OnParentLeave(wxMouseEvent& event);
 
     DECLARE_EVENT_TABLE()
 };
