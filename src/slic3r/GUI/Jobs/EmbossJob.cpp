@@ -1916,6 +1916,7 @@ void CreateObjectTextJob::finalize(bool canceled, std::exception_ptr &eptr) {
         ModelObject *new_object = model.add_object();
         new_object->name        = _u8L("Text");
         new_object->add_instance(); // each object should have at list one instance
+        new_object->invalidate_bounding_box();
 
         ModelVolume *new_volume = new_object->add_volume(std::move(final_mesh), false);
         new_volume->name        = _u8L("Text");
@@ -1931,6 +1932,8 @@ void CreateObjectTextJob::finalize(bool canceled, std::exception_ptr &eptr) {
         new_object->instances.front()->set_transformation(tr);
         new_object->ensure_on_bed();
 
+        Slic3r::save_object_mesh(*new_object);
+        new_object->get_model()->set_assembly_pos(new_object);
         // Actualize right panel and set inside of selection
         app.obj_list()->paste_objects_into_list({model.objects.size() - 1});
     }
