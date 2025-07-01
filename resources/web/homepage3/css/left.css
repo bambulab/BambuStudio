@@ -74,7 +74,7 @@ body
 {
 	border-right-width: 1px;
 	border-right-style: solid;
-	width: 100%;
+	width: calc(100% - 1px);
 	height: 100%;
 }
 
@@ -103,9 +103,20 @@ body
 	cursor:pointer;
 }
 
+#LoginBtn
+{
+	display: flex;
+	align-items: center;
+	width: 120px;
+	word-wrap: break-word;
+	line-height: 1.2;
+	flex-wrap: wrap;
+	white-space: normal;
+}
+
 #Login1:hover #LoginBtn
 {
-	font-size:17px;
+	transform: scale(1.05);
 }
 
 
@@ -146,8 +157,8 @@ body
 	display: none;
 	align-items: center;
 	text-align: center;
-	width: 100%;
-	padding-left: 40px;
+	justify-content: center;
+	width: 95%;
 	cursor: pointer;
 }
 
@@ -158,11 +169,13 @@ body
 
 #UserName
 {
-	white-space: nowrap;
+	white-space: normal;
 	text-overflow: ellipsis;
-	text-align: center;
+	text-align: left;
 	overflow: hidden; 
 	margin-left: 12px;
+	word-wrap: break-word;
+  line-height: 1.2;
 }
 
 .PullBtn

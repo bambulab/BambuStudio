@@ -201,6 +201,7 @@ function OnLoginOrRegister()
 	}
 		
 	SendWXMessage( JSON.stringify(tSend) );	
+	GotoMenu('home');
 }
 
 function OnLogOut()

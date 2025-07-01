@@ -72,3 +72,7 @@
 	border-left: 0px solid rgba(238, 238, 238, 1);
 	border-right: 1px solid rgba(238, 238, 238, 1);
 }
+
+.auto-hide {
+    display: none!important;
+  }
