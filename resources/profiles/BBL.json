@@ -1046,6 +1046,14 @@
             "sub_path": "filament/Generic ABS @BBL H2D 0.2 nozzle.json"
         },
         {
+            "name": "Generic ABS @BBL H2S 0.2 nozzle",
+            "sub_path": "filament/Generic ABS @BBL H2S 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic ABS @BBL H2S 0.4 nozzle",
+            "sub_path": "filament/Generic ABS @BBL H2S 0.4 nozzle.json"
+        },
+        {
             "name": "Generic ABS @BBL P1P",
             "sub_path": "filament/P1P/Generic ABS @BBL P1P.json"
         },
@@ -1300,6 +1308,14 @@
         {
             "name": "Generic ASA @BBL H2D 0.2 nozzle",
             "sub_path": "filament/Generic ASA @BBL H2D 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic ASA @BBL H2S 0.2 nozzle",
+            "sub_path": "filament/Generic ASA @BBL H2S 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic ASA @BBL H2S 0.4 nozzle",
+            "sub_path": "filament/Generic ASA @BBL H2S 0.4 nozzle.json"
         },
         {
             "name": "Generic ASA @BBL P1P",
@@ -1718,6 +1734,10 @@
             "sub_path": "filament/Generic PA-CF @BBL X1E.json"
         },
         {
+            "name": "Generic PA-CF @BBL H2S 0.4 nozzle",
+            "sub_path": "filament/Generic PA-CF @BBL H2S 0.4 nozzle.json"
+        },
+        {
             "name": "Generic PA-CF @BBL P1P",
             "sub_path": "filament/P1P/Generic PA-CF @BBL P1P.json"
         },
@@ -1752,6 +1772,22 @@
         {
             "name": "Bambu PC @BBL H2D 0.8 nozzle",
             "sub_path": "filament/Bambu PC @BBL H2D 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PC @BBL H2S",
+            "sub_path": "filament/Bambu PC @BBL H2S.json"
+        },
+        {
+            "name": "Bambu PC @BBL H2S 0.2 nozzle",
+            "sub_path": "filament/Bambu PC @BBL H2S 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PC @BBL H2S 0.6 nozzle",
+            "sub_path": "filament/Bambu PC @BBL H2S 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu PC @BBL H2S 0.8 nozzle",
+            "sub_path": "filament/Bambu PC @BBL H2S 0.8 nozzle.json"
         },
         {
             "name": "Bambu PC @BBL P1P",
@@ -4696,6 +4732,10 @@
         {
             "name": "Generic PVA @BBL H2DP",
             "sub_path": "filament/Generic PVA @BBL H2DP.json"
+        },
+        {
+            "name": "Generic PVA @BBL H2S 0.4 nozzle",
+            "sub_path": "filament/Generic PVA @BBL H2S 0.4 nozzle.json"
         },
         {
             "name": "Generic PVA @BBL P1P",
