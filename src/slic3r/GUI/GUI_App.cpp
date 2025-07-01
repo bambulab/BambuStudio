@@ -2795,7 +2795,12 @@ bool GUI_App::on_init_inner()
     }
 #endif
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("gui mode, Current BambuStudio Version %1%")%SLIC3R_VERSION;
+    BOOST_LOG_TRIVIAL(info) << boost::format("gui mode, Current BambuStudio Version %1%")%SLIC3R_VERSION << ", BuildTime " << SLIC3R_BUILD_TIME;
+
+#if !BBL_RELEASE_TO_PUBLIC
+    BOOST_LOG_TRIVIAL(info) << boost::format("Build Version %1%")%SLIC3R_COMPILE_VERSION;
+#endif
+
     BOOST_LOG_TRIVIAL(info) << get_system_info();
 
 #if defined(__WINDOWS__)
