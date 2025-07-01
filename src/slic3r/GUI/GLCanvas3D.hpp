@@ -202,6 +202,13 @@ wxDECLARE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 wxDECLARE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
 
+struct ForceClickToolbarItemData
+{
+    int m_item{ -1 };
+    bool m_b_check_pressed{ false };
+};
+wxDECLARE_EVENT(EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, Event<ForceClickToolbarItemData>);
+
 class GLCanvas3D
 {
     static const double DefaultCameraZoomToBoxMarginFactor;
@@ -1020,6 +1027,7 @@ public:
     void on_paint(wxPaintEvent& evt);
     void on_kill_focus(wxFocusEvent &evt);
     void on_set_focus(wxFocusEvent& evt);
+    void on_force_click_toolbar_item(Event<ForceClickToolbarItemData>& evt);
     void force_set_focus();
 
     Size get_canvas_size() const;
@@ -1312,6 +1320,8 @@ private:
     void _render_toolbar();
 
     const std::shared_ptr<GLToolbar>& get_main_toolbar() const;
+
+    void do_force_click_toolbar_item(int type, bool check_pressed);
 
     static bool is_volume_in_plate_boundingbox(const GLVolume &v, int plate_idx, const BoundingBoxf3 &plate_build_volume);
     static void _init_fullscreen_mesh();

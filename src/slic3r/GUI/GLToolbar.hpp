@@ -70,7 +70,6 @@ public:
     typedef std::function<void(float, float, float, float, float)> RenderCallback;
     using OnHoverCallback = std::function<std::string()>;
     using IconFilenameCallback = std::function<std::string(bool is_dark_mode)>;
-    using PressedRecheckCallback = std::function<bool()>;
 
     enum EType : unsigned char
     {
@@ -146,7 +145,6 @@ public:
         EnablingCallback enabling_callback;
         OnHoverCallback on_hover = nullptr;
         IconFilenameCallback icon_filename_callback = nullptr;
-        PressedRecheckCallback pressed_recheck_callback = nullptr;
         bool b_toggle_disable_others{ true };
         bool b_toggle_affectable{ true };
         bool b_collapsible{ true };
@@ -173,7 +171,6 @@ public:
             image_height = data.image_height;
             on_hover = data.on_hover;
             icon_filename_callback = data.icon_filename_callback;
-            pressed_recheck_callback = data.pressed_recheck_callback;
             b_toggle_disable_others = data.b_toggle_disable_others;
             b_toggle_affectable = data.b_toggle_affectable;
             b_collapsible = data.b_collapsible;
@@ -471,8 +468,6 @@ private:
     bool update_items_visibility();
     // returns true if any item changed its state
     bool update_items_enabled_state();
-
-    bool update_items_pressed_state();
 
     void do_action(GLToolbarItem::EActionType type, int item_id, GLCanvas3D& parent, bool check_hover);
     void update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent);

@@ -164,7 +164,7 @@ public:
         // activate_gizmo call sets m_current and calls set_state for the gizmo
         // it does nothing in case the gizmo is already activated
         // it can safely be called for Undefined gizmo
-        activate_gizmo(new_current);
+        on_reload(new_current);
         if (m_current != Undefined)
             m_gizmos[m_current]->load(ar);
     }
@@ -292,6 +292,7 @@ private:
     bool is_svg_selected(int idx) const;
     std::string on_hover(int idx);
     void on_click(int idx);
+    void on_reload(EType type);
 
 private:
     bool m_object_located_outside_plate{false};

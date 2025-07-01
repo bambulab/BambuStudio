@@ -798,7 +798,10 @@ void create_volume(
 
     // Now is valid text volume selected open emboss gizmo
     GLGizmosManager &manager = canvas->get_gizmos_manager();
-    if (manager.get_current_type() != gizmo_type) manager.open_gizmo(gizmo_type);
+    if (manager.get_current_type() != gizmo_type) {
+        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(gizmo_type), false } };
+        canvas->post_event(std::move(evt));
+    }
 
     // update model and redraw scene
     // canvas->reload_scene(true);

@@ -138,7 +138,17 @@ void SelectionInfo::on_release()
 
 int SelectionInfo::get_active_instance() const
 {
-    const Selection& selection = get_pool()->get_canvas()->get_selection();
+    const auto& p_pool = get_pool();
+    if (!p_pool) {
+        return -1;
+    }
+
+    const auto& p_canvas = p_pool->get_canvas();
+    if (!p_canvas) {
+        return -1;
+    }
+
+    const Selection& selection = p_canvas->get_selection();
     return selection.get_instance_idx();
 }
 

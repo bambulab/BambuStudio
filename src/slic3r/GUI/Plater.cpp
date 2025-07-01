@@ -17399,8 +17399,11 @@ void Plater::show_status_message(std::string s)
 
 void Plater::edit_text()
 {
-    auto &manager = get_view3D_canvas3D()->get_gizmos_manager();
-    manager.open_gizmo(GLGizmosManager::Text);
+    const auto& p_canvas = get_view3D_canvas3D();
+    if (p_canvas) {
+        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(GLGizmosManager::EType::Text), true } };
+        p_canvas->on_force_click_toolbar_item(evt);
+    }
     update();
 }
 

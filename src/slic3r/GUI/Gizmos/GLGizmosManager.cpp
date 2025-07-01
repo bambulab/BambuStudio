@@ -1244,14 +1244,14 @@ void GLGizmosManager::add_toolbar_items(const std::shared_ptr<GLToolbar>& p_tool
         return;
 
     auto p_gizmo_manager = this;
-    for (size_t i = 0; i < selectable_idxs.size(); ++i)
+    for (size_t i = 0; i < m_gizmos.size(); ++i)
     {
-        const auto idx = selectable_idxs[i];
+        const auto idx = i;
         if (!m_gizmos[idx]) {
             continue;
         }
 
-        if (m_gizmos[i]->get_sprite_id() == (unsigned int)EType::Measure) {
+        if (m_gizmos[idx]->get_sprite_id() == (unsigned int)EType::Measure) {
             p_callback(sprite_id);
         }
 
@@ -1263,7 +1263,7 @@ void GLGizmosManager::add_toolbar_items(const std::shared_ptr<GLToolbar>& p_tool
         };
         item.tooltip = "";
         item.sprite_id = sprite_id++;
-        const auto t_type = m_gizmos[i]->get_sprite_id();
+        const auto t_type = m_gizmos[idx]->get_sprite_id();
         item.left.action_callback = [p_gizmo_manager, t_type]() {
             p_gizmo_manager->on_click(t_type);
         };
@@ -1280,20 +1280,17 @@ void GLGizmosManager::add_toolbar_items(const std::shared_ptr<GLToolbar>& p_tool
             float cnv_h = (float)p_gizmo_manager->m_parent.get_canvas_size().get_height();
             p_gizmo_manager->m_gizmos[idx]->render_input_window(left, toolbar_height, cnv_h);
         };
-        item.pressed_recheck_callback = [p_gizmo_manager, t_type]()->bool {
-            return p_gizmo_manager->m_current == t_type;
+        const bool b_is_selectable = (std::find(selectable_idxs.begin(), selectable_idxs.end(), idx) != selectable_idxs.end());
+        item.visibility_callback = [p_gizmo_manager, idx, b_is_selectable]()->bool {
+            bool rt = b_is_selectable;
+            if (idx == EType::Svg) {
+                rt = rt && (p_gizmo_manager->m_current == EType::Svg);
+            }
+            else if (idx == EType::Text) {
+                rt = rt && p_gizmo_manager->m_current != EType::Svg;
+            }
+            return rt;
         };
-        if (m_gizmos[i]->get_sprite_id() == (unsigned int)EType::Text) {
-            item.visibility_callback = [p_gizmo_manager]()->bool {
-                return p_gizmo_manager->m_current != EType::Svg;
-            };
-        }
-        else if (m_gizmos[i]->get_sprite_id() == (unsigned int)EType::Svg) {
-            item.visibility_callback = [p_gizmo_manager]()->bool {
-                const bool rt = p_gizmo_manager->m_current == EType::Svg;
-                return rt;
-            };
-        }
         p_toolbar->add_item(item);
     }
 }
@@ -1487,6 +1484,12 @@ void GLGizmosManager::on_click(int idx)
             if (agent) { agent->track_update_property(name, std::to_string(count)); }
         }
     } catch (...) {}
+}
+
+void GLGizmosManager::on_reload(EType type)
+{
+    Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(type), false}};
+    m_parent.post_event(std::move(evt));
 }
 
 bool GLGizmosManager::is_in_editing_mode(bool error_notification) const

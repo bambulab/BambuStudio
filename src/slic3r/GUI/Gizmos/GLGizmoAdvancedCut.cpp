@@ -600,8 +600,10 @@ void GLGizmoAdvancedCut::on_set_state()
 void GLGizmoAdvancedCut::close()
 {//close gizmo == open it again
     auto &mng = m_parent.get_gizmos_manager();
-    if (mng.get_current_type() == GLGizmosManager::Cut)
-        mng.open_gizmo(GLGizmosManager::Cut);
+    if (mng.get_current_type() == GLGizmosManager::Cut) {
+        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(GLGizmosManager::EType::Cut), false } };
+        m_parent.on_force_click_toolbar_item(evt);
+    }
 }
 
 bool GLGizmoAdvancedCut::on_is_activable() const
