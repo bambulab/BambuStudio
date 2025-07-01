@@ -1885,6 +1885,7 @@ void CreateObjectTextJob::finalize(bool canceled, std::exception_ptr &eptr) {
         new_object->add_instance(); // each object should have at list one instance
 
         ModelVolume *new_volume = new_object->add_volume(std::move(final_mesh), false);
+        new_volume->name        = _u8L("Text");
         // set a default extruder value, since user can't add it manually
         new_volume->config.set_key_value("extruder", new ConfigOptionInt(1));
         new_volume->set_text_info(m_input.text_info);
