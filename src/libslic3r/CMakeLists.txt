@@ -6,6 +6,16 @@ include(PrecompiledHeader)
 string(TIMESTAMP COMPILE_TIME %Y%m%d-%H%M%S)
 set(SLIC3R_BUILD_TIME ${COMPILE_TIME})
 
+if("${BBL_RELEASE_TO_PUBLIC}" STREQUAL "0")
+execute_process(
+    COMMAND git rev-parse HEAD
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_SHA1
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+set(SLIC3R_COMPILE_VERSION "${GIT_SHA1}")
+endif()
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libslic3r_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h @ONLY)
 
 if (MINGW)
