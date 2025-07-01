@@ -138,16 +138,6 @@ bool GLToolbarItem::is_collapsed() const
     return m_data.b_collapsed;
 }
 
-bool GLToolbarItem::recheck_pressed() const
-{
-    bool rt = false;
-    if (m_data.pressed_recheck_callback) {
-        const bool recheck_rt = m_data.pressed_recheck_callback();
-        rt = (is_pressed() != recheck_rt);
-    }
-    return rt;
-}
-
 GLToolbarItem::GLToolbarItem(GLToolbarItem::EType type, const GLToolbarItem::Data& data)
     : m_type(type)
     , m_state(Normal)
@@ -338,11 +328,13 @@ void GLToolbarItem::render(unsigned int tex_id, unsigned int tex_width, unsigned
     };
 
     float* t_render_rect = render_rect;
-    if (!is_collapsed()) {
-        GLTexture::render_sub_texture(tex_id, render_rect[0], render_rect[1], render_rect[2], render_rect[3], uvs(tex_width, tex_height, icon_size, b_flip_v));
-    }
-    else if (override_render_rect) {
-        t_render_rect = override_render_rect;
+    if (is_visible()) {
+        if (!is_collapsed()) {
+            GLTexture::render_sub_texture(tex_id, render_rect[0], render_rect[1], render_rect[2], render_rect[3], uvs(tex_width, tex_height, icon_size, b_flip_v));
+        }
+        else if (override_render_rect) {
+            t_render_rect = override_render_rect;
+        }
     }
 
     if (is_pressed())
@@ -359,7 +351,9 @@ void GLToolbarItem::render_image(unsigned int tex_id, float left, float right, f
     GLTexture::Quad_UVs image_uvs = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
     //GLTexture::Quad_UVs image_uvs = { { 0.0f, 1.0f }, { 1.0f, 1.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f } };
 
-    GLTexture::render_sub_texture(tex_id, left, right, bottom, top, image_uvs);
+    if (is_visible()) {
+        GLTexture::render_sub_texture(tex_id, left, right, bottom, top, image_uvs);
+    }
 
     if (is_pressed()) {
         if ((m_last_action_type == Left) && m_data.left.can_render())
@@ -967,34 +961,6 @@ bool GLToolbar::update_items_enabled_state()
     return ret;
 }
 
-bool GLToolbar::update_items_pressed_state()
-{
-    bool ret = false;
-
-    for (int i = 0; i < (int)m_items.size(); ++i)
-    {
-        const auto& item = m_items[i];
-        if (!item) {
-            continue;
-        }
-
-        if (!item->recheck_pressed()) {
-            continue;
-        }
-        ret = true;
-        if (item->is_pressed()) {
-            item->set_state(GLToolbarItem::EState::Normal);
-        }
-        else {
-            item->set_state(GLToolbarItem::EState::Pressed);
-            m_pressed_toggable_id = i;
-            set_collapsed();
-        }
-    }
-
-    return ret;
-}
-
 void GLToolbar::render(const Camera& t_camera)
 {
     if (!m_enabled || m_items.empty())
@@ -1013,7 +979,6 @@ bool GLToolbar::update_items_state()
     bool ret = false;
     ret |= update_items_visibility();
     ret |= update_items_enabled_state();
-    ret |= update_items_pressed_state();
     if (!is_any_item_pressed())
         m_pressed_toggable_id = -1;
 
@@ -1170,10 +1135,20 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
             m_mouse_capture.left = true;
             m_mouse_capture.parent = &parent;
             processed = true;
-            if (item_id != -2 && !m_items[item_id]->is_separator() && !m_items[item_id]->is_disabled() &&
+            bool rt = item_id != -2 && !m_items[item_id]->is_separator() && !m_items[item_id]->is_disabled() &&
                 (m_pressed_toggable_id == -1
-                    || m_items[item_id]->get_last_action_type() == GLToolbarItem::Left)
-                || !m_items[item_id]->toggle_affectable() || !m_items[m_pressed_toggable_id]->toggle_disable_others()) {
+                    || m_items[item_id]->get_last_action_type() == GLToolbarItem::Left);
+            if (!rt) {
+                if (item_id >= 0 && item_id < m_items.size()) {
+                    rt = !m_items[item_id]->toggle_affectable();
+                }
+            }
+            if (!rt) {
+                if (m_pressed_toggable_id >= 0 && m_pressed_toggable_id < m_items.size()) {
+                    rt = !m_items[m_pressed_toggable_id]->toggle_disable_others();
+                }
+            }
+            if (rt) {
                 // mouse is inside an icon
                 do_action(GLToolbarItem::Left, item_id, parent, true);
                 parent.set_as_dirty();
@@ -1909,8 +1884,8 @@ void ToolbarKeepSizeRenderer::render(const GLToolbar& t_toolbar, const Camera& t
         return;
 
     const auto& t_items = t_toolbar.get_items();
-    for (size_t i = 0; i < m_indices_to_draw.size(); ++i) {
-        const auto& current_item = t_items[m_indices_to_draw[i]];
+    for (size_t i = 0; i < t_items.size(); ++i) {
+        const auto& current_item = t_items[i];
         current_item->override_render_rect = m_p_override_render_rect;
         if (current_item->is_action() || current_item->get_type() == GLToolbarItem::EType::SeparatorLine) {
             const bool b_filp_v = !t_toolbar.is_collapsed() && current_item->is_collapse_button();

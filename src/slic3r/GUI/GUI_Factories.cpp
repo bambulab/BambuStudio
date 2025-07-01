@@ -541,9 +541,17 @@ void MenuFactory::append_menu_item_edit_svg(wxMenu *menu)
     wxString    description = _L("Change SVG source file, projection, size, ...");
     std::string icon        = "svg_part";
     auto        open_svg    = [](const wxCommandEvent &) {
-        GLGizmosManager &mng = plater()->get_view3D_canvas3D()->get_gizmos_manager();
-        if (mng.get_current_type() == GLGizmosManager::Svg) mng.open_gizmo(GLGizmosManager::Svg); // close() and reopen - move to be visible
-        mng.open_gizmo(GLGizmosManager::Svg);
+        const auto& p_plater = plater();
+        if (!p_plater) {
+            return;
+        }
+        const auto& p_canvas = p_plater->get_current_canvas3D();
+        if (!p_canvas) {
+            return;
+        }
+
+        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(GLGizmosManager::EType::Svg), true } };
+        p_canvas->post_event(std::move(evt));
     };
     append_menu_item(menu, wxID_ANY, name, description, open_svg, icon, nullptr, can_edit_svg, m_parent);
 }

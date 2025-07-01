@@ -1189,8 +1189,10 @@ void GLGizmoText::draw_model_type(int caption_width)
         // NOTE: on linux, function reorder_volumes_and_get_selection call GLCanvas3D::reload_scene(refresh_immediately = false)
         // which discard m_volume pointer and set it to nullptr also selection is cleared so gizmo is automaticaly closed
         auto &mng = m_parent.get_gizmos_manager();
-        if (mng.get_current_type() != GLGizmosManager::Text)
-            mng.open_gizmo(GLGizmosManager::Text);
+        if (mng.get_current_type() != GLGizmosManager::Text) {
+            Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(GLGizmosManager::EType::Text), false } };
+            m_parent.post_event(std::move(evt));
+        }
     }
 }
 
@@ -1425,11 +1427,11 @@ bool GLGizmoText::on_shortcut_key() {
     reset_text_info();
     Selection &selection = m_parent.get_selection();
     m_text     = "Text";
+    m_is_direct_create_text = selection.is_empty();
     auto mv              = get_selected_model_volume(m_parent);
     if (mv && mv->is_text()) {
         return false;
     }
-    m_is_direct_create_text = selection.is_empty();
     if (process(false, std::nullopt, false)) {
         CreateTextInput temp_input_info;
         DataBasePtr base = create_emboss_data_base(m_text, m_style_manager, selection,  ModelVolumeType::MODEL_PART, m_job_cancel);
@@ -1497,8 +1499,10 @@ bool GLGizmoText::is_only_text_case() {
 void GLGizmoText::close()
 {
     auto &mng = m_parent.get_gizmos_manager();
-    if (mng.get_current_type() == GLGizmosManager::Text)
-        mng.open_gizmo(GLGizmosManager::Text);
+    if (mng.get_current_type() == GLGizmosManager::Text) {
+        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(GLGizmosManager::EType::Text), false } };
+        m_parent.post_event(std::move(evt));
+    }
 }
 
 std::string GLGizmoText::get_icon_filename(bool b_dark_mode) const

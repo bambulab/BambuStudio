@@ -57,7 +57,7 @@ static ModelVolume* get_model_volume(const Selection& selection, Model& model)
 }
 
 GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D & parent, unsigned int sprite_id)
-    : GLGizmoBase(parent, -1)
+    : GLGizmoBase(parent, sprite_id)
     , m_volume(nullptr)
     , m_show_wireframe(false)
     , m_move_to_center(false)
@@ -123,7 +123,14 @@ void GLGizmoSimplify::add_simplify_suggestion_notification(
 
                 auto &manager = plater->get_view3D_canvas3D()->get_gizmos_manager();
                 bool  close_notification = true;
-                if(!manager.open_gizmo(GLGizmosManager::Simplify))
+                if (plater) {
+                    const auto& p_canvase = plater->get_view3D_canvas3D();
+                    if (p_canvase) {
+                        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(GLGizmosManager::EType::Simplify), true } };
+                        p_canvase->on_force_click_toolbar_item(evt);
+                    }
+                }
+                if(!manager.get_current_type() != GLGizmosManager::Simplify)
                     return close_notification;
                 GLGizmoSimplify* simplify = dynamic_cast<GLGizmoSimplify*>(manager.get_current());
                 if (simplify == nullptr) return close_notification;
@@ -409,9 +416,8 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
 
 void GLGizmoSimplify::close() {
-    // close gizmo == open it again
-    GLGizmosManager &gizmos_mgr = m_parent.get_gizmos_manager();
-    gizmos_mgr.open_gizmo(GLGizmosManager::EType::Simplify);
+    Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(GLGizmosManager::EType::Simplify), false } };
+    m_parent.on_force_click_toolbar_item(evt);
 }
 
 void GLGizmoSimplify::stop_worker_thread_request()
@@ -633,8 +639,15 @@ void GLGizmoSimplify::init_model(const indexed_triangle_set& its)
     m_glmodel.reset();
     m_glmodel.init_from(its);
     m_parent.toggle_model_objects_visibility(true); // selected volume may have changed
-    m_parent.toggle_model_objects_visibility(false, m_c->selection_info()->model_object(),
-        m_c->selection_info()->get_active_instance(), m_volume);
+    if (m_c) {
+        const auto& p_selection_info = m_c->selection_info();
+        if (p_selection_info) {
+            const auto& p_model_object = p_selection_info->model_object();
+            const auto& active_instance = p_selection_info->get_active_instance();
+            m_parent.toggle_model_objects_visibility(false, p_model_object,
+                active_instance, m_volume);
+        }
+    }
 
     if (const Selection&sel = m_parent.get_selection(); sel.get_volume_idxs().size() == 1)
         m_glmodel.set_color(-1, sel.get_volume(*sel.get_volume_idxs().begin())->color);
