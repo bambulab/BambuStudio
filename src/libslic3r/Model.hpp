@@ -1349,16 +1349,11 @@ public:
     void set_transformation(const Geometry::Transformation& transformation);
 
     const Geometry::Transformation& get_assemble_transformation() const;
-    void set_assemble_transformation(const Geometry::Transformation& transformation) {
-        m_assemble_initialized = true;
-        m_assemble_transformation = transformation;
-    }
-    void set_assemble_from_transform(const Transform3d& transform) {
-        m_assemble_initialized = true;
-        m_assemble_transformation.set_from_transform(transform);
-    }
+    void                            set_assemble_transformation(const Geometry::Transformation &transformation);
+    void                            set_assemble_from_transform(const Transform3d &transform);
     const Vec3d& get_assemble_offset() {return m_assemble_transformation.get_offset(); }
-    void         set_assemble_offset(const Vec3d &offset){ m_assemble_initialized = true;m_assemble_transformation.set_offset(offset);}
+    void                            set_assemble_offset(const Vec3d &offset);
+
     void set_assemble_rotation(const Vec3d &rotation) { m_assemble_transformation.set_rotation(rotation); }
     void rotate_assemble(double angle, const Vec3d& axis) {
         m_assemble_transformation.set_rotation(m_assemble_transformation.get_rotation() + Geometry::extract_euler_angles(Eigen::Quaterniond(Eigen::AngleAxisd(angle, axis)).toRotationMatrix()));

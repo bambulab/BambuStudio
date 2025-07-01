@@ -3525,6 +3525,24 @@ const Geometry::Transformation& ModelInstance::get_assemble_transformation() con
     return m_assemble_transformation;
 }
 
+void ModelInstance::set_assemble_transformation(const Geometry::Transformation &transformation)
+{
+    m_assemble_initialized    = true;
+    m_assemble_transformation = transformation;
+}
+
+void ModelInstance::set_assemble_from_transform(const Transform3d &transform)
+{
+    m_assemble_initialized = true;
+    m_assemble_transformation.set_from_transform(transform);
+}
+
+void ModelInstance::set_assemble_offset(const Vec3d &offset)
+{
+    m_assemble_initialized = true;
+    m_assemble_transformation.set_offset(offset);
+}
+
 void ModelInstance::set_scaling_factor(const Vec3d& scaling_factor)
 {
     m_transformation.set_scaling_factor(scaling_factor);
