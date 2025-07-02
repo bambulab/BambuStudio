@@ -15,6 +15,7 @@ function OnInit()
 	}, function() {
 		$("#DropdownWrapper").css("visibility", "hidden");
 	});
+	OnUpdatePluginInstalltip();
 }
 
 function HandleStudio( pVal )
@@ -209,6 +210,15 @@ function OnLogOut()
 	var tSend={};
 	tSend['sequence_id']=Math.round(new Date() / 1000);
 	tSend['command']="homepage_logout";
+	
+	SendWXMessage( JSON.stringify(tSend) );	
+}
+
+function OnUpdatePluginInstalltip()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="update_plugin_installtip";
 	
 	SendWXMessage( JSON.stringify(tSend) );	
 }

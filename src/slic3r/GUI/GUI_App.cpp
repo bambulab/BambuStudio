@@ -4576,6 +4576,11 @@ std::string GUI_App::handle_web_request(std::string cmd)
 
                 }
             }
+            else if (command_str.compare("update_plugin_installtip") == 0) {
+                if (mainframe) {
+                    mainframe->refresh_plugin_tips();
+                }
+            }
             else if (command_str.compare("homepage_need_networkplugin") == 0) {
                 bool post_login = true;
                 if (mainframe) {
