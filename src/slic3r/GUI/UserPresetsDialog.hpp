@@ -61,6 +61,7 @@ private:
     TabCtrl * m_tab_ctrl;
     SwitchButton * m_switch_button;
     TextInput * m_search;
+    wxPanel * m_empty_panel;
     wxScrolledWindow * m_scrolled;
     std::map<std::string, wxSizer *> m_preset_sizers;
     std::map<std::string, wxSizer *> m_filament_sizers;

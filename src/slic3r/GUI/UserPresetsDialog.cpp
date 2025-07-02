@@ -34,6 +34,22 @@ UserPresetsDialog::UserPresetsDialog(wxWindow *parent)
     m_search->SetCornerRadius(FromDIP(12));
     m_search->Bind(wxEVT_TEXT, [this](auto &evt) { on_search(evt.GetString()); });
 
+    m_empty_panel = new wxPanel(this);
+    m_empty_panel->SetMinSize({-1, FromDIP(360)});
+    m_empty_panel->SetMaxSize({-1, FromDIP(360)});
+    m_empty_panel->SetForegroundColour(wxColor("#A0A0A0"));
+    {
+        wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+        wxStaticBitmap *bitmap = new wxStaticBitmap(m_empty_panel, wxID_ANY, create_scaled_bitmap("preset_empty", this, 150));
+        sizer->Add(bitmap, 0, wxALIGN_CENTER | wxTOP, FromDIP(70));
+        Label *label = new Label(m_empty_panel, _L("No content"));
+        label->SetBackgroundColour(this->GetBackgroundColour());
+        label->SetForegroundColour(m_empty_panel->GetForegroundColour());
+        sizer->Add(label, 0, wxALIGN_CENTER);
+        m_empty_panel->SetSizer(sizer);
+        m_empty_panel->Hide();
+    }
+
     m_scrolled = new wxScrolledWindow(this);
     m_scrolled->SetBackgroundColour("#F8F8F8");
     m_scrolled->SetScrollbars(0, 100, 1, 2);
@@ -77,6 +93,7 @@ UserPresetsDialog::UserPresetsDialog(wxWindow *parent)
     sizer->Add(m_switch_button, 0, wxALIGN_CENTER | wxBOTTOM, FromDIP(10));
     sizer->Add(m_search, 0, wxALIGN_CENTER | wxBOTTOM, FromDIP(10));
     sizer->Add(m_scrolled, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+    sizer->Add(m_empty_panel, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
     sizer->Add(sizer_bottom, 0, wxEXPAND | wxALL, FromDIP(20));
 
     wxGetApp().UpdateDlgDarkUI(this);
@@ -217,7 +234,11 @@ void UserPresetsDialog::layout_preset_list(bool delete_old)
                 sizer = sizerRight;
         }
     }
+    bool is_empty = sizerLeft->IsEmpty() && sizerRight->IsEmpty();
+    m_scrolled->Show(!is_empty);
+    m_empty_panel->Show(is_empty);
     m_scrolled->Layout();
+    m_empty_panel->Layout();
 }
 
 void UserPresetsDialog::on_dpi_changed(const wxRect &suggested_rect)
@@ -259,6 +280,7 @@ void UserPresetsDialog::on_collection_changed(int collection)
     Thaw();
     update_checked();
     Layout();
+    Refresh();
 }
 
 void UserPresetsDialog::on_search(wxString const &keyword)
