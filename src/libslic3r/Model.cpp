@@ -3237,6 +3237,14 @@ const Polygon& ModelVolume::get_convex_hull_2d(const Transform3d &trafo_instance
     return m_convex_hull_2d;
 }
 
+void ModelVolume::set_transformation(const Geometry::Transformation &transformation) {
+    m_transformation = transformation;
+}
+
+void ModelVolume::set_transformation(const Transform3d &trafo) {
+    m_transformation.set_from_transform(trafo);
+}
+
 int ModelVolume::get_repaired_errors_count() const
 {
     const RepairedMeshErrors &stats = this->mesh().stats().repaired_errors;
