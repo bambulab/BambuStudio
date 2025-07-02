@@ -186,6 +186,7 @@ void recreate_model_volume(ModelObject *model_object, int volume_idx, const Tria
 
     ModelVolume *model_volume     = model_object->volumes[volume_idx];
     ModelVolume *new_model_volume = model_object->add_volume(mesh, false);
+    new_model_volume->calculate_convex_hull();
     new_model_volume->set_transformation(text_tran.get_matrix());
     new_model_volume->set_text_info(text_info);
     new_model_volume->name = model_volume->name;
@@ -202,6 +203,7 @@ void create_text_volume(Slic3r::ModelObject *model_object, const TriangleMesh &m
     wxGetApp().plater()->take_snapshot("create_text_volume");
 
     ModelVolume *new_model_volume = model_object->add_volume(mesh, false);
+    new_model_volume->calculate_convex_hull();
     new_model_volume->set_transformation(text_tran.get_matrix());
     new_model_volume->set_text_info(text_info);
     new_model_volume->config.set_key_value("extruder", new ConfigOptionInt(model_object->config.extruder()));
@@ -372,6 +374,7 @@ void UpdateJob::update_volume(ModelVolume *volume, TriangleMesh &&mesh, const Da
 
     // update volume
     volume->set_mesh(std::move(mesh));
+    volume->calculate_convex_hull();
     volume->set_new_unique_id();
     volume->calculate_convex_hull();
 
@@ -1321,10 +1324,11 @@ float get_single_char_width(const std::vector<TriangleMesh> &chars_mesh_result)
     return 0.f;
 }
 
-void calc_text_lengths(std::vector<double> &text_lengths, const std::vector<TriangleMesh> &chars_mesh_result)
+bool calc_text_lengths(std::vector<double> &text_lengths, const std::vector<TriangleMesh> &chars_mesh_result)
 {
     text_lengths.clear();
     auto single_char_width = get_single_char_width(chars_mesh_result);
+    if (single_char_width < 0.01) { return false; }
     for (int i = 0; i < chars_mesh_result.size(); ++i) {
         auto box           = chars_mesh_result[i].bounding_box();
         auto box_size      = box.size();
@@ -1335,6 +1339,7 @@ void calc_text_lengths(std::vector<double> &text_lengths, const std::vector<Tria
             text_lengths.emplace_back(half_x_length + 1);
         }
     }
+    return true;
 }
 
 void calc_position_points(std::vector<Vec3d> &position_points, std::vector<double> &text_lengths, float text_gap, const Vec3d &temp_pos_dir)
@@ -1387,6 +1392,14 @@ GenerateTextJob::GenerateTextJob(InputInfo &&input) : m_input(std::move(input)) 
 std::vector<Vec3d> GenerateTextJob::debug_cut_points_in_world;
 void GenerateTextJob::process(Ctl &ctl)
 {
+    create_all_char_mesh(*m_input.m_data_update.base, m_input.m_chars_mesh_result, m_input.m_text_shape);
+    if (m_input.m_chars_mesh_result.empty()) {
+        throw JobException("generate text mesh fail.");
+        return;
+    }
+    if (!update_text_positions(m_input)) {
+        throw JobException("update_text_positions fail.");
+    }
     if (!generate_text_points(m_input))
        throw JobException("generate_text_volume fail.");
     GenerateTextJob::debug_cut_points_in_world = m_input.m_cut_points_in_world;
@@ -1427,9 +1440,49 @@ void GenerateTextJob::finalize(bool canceled, std::exception_ptr &eptr)
     }
 }
 
+bool GenerateTextJob::update_text_positions(InputInfo &input_info)
+{
+    if (input_info.m_chars_mesh_result.size() == 0) {
+        input_info.m_position_points.clear();
+        return false;
+    }
+    std::vector<double> text_lengths;
+    if (!calc_text_lengths(text_lengths, input_info.m_chars_mesh_result)) {
+        return false;
+    }
+    int text_num = input_info.m_chars_mesh_result.size(); // FIX by BBS 20250109
+    input_info.m_position_points.clear();
+    input_info.m_normal_points.clear();
+    /*auto mouse_position_world = m_text_position_in_world.cast<double>();
+    auto mouse_normal_world   = m_text_normal_in_world.cast<double>();*/
+    input_info.m_position_points.resize(text_num);
+    input_info.m_normal_points.resize(text_num);
+
+    input_info.text_lengths   = text_lengths;
+    input_info.m_surface_type = GenerateTextJob::SurfaceType::None;
+    if (input_info.text_surface_type == TextInfo::TextType::HORIZONAL || (input_info.m_confirm_generate_text == false && !input_info.selection_is_text)) {
+        input_info.use_surface   = false;
+        Vec3d mouse_normal_world = input_info.m_text_normal_in_world.cast<double>();
+        Vec3d world_pos_dir      = input_info.m_cut_plane_dir_in_world.cross(mouse_normal_world);
+        auto  inv_               = (input_info.m_model_object_in_world_tran.get_matrix_no_offset() * input_info.m_text_tran_in_object.get_matrix_no_offset()).inverse();
+        auto  pos_dir            = inv_ * world_pos_dir;
+        auto  mouse_normal_local = inv_ * mouse_normal_world;
+        mouse_normal_local.normalize();
+
+        calc_position_points(input_info.m_position_points, text_lengths, input_info.m_text_gap, pos_dir);
+
+        for (int i = 0; i < text_num; ++i) {
+            input_info.m_normal_points[i] = mouse_normal_local;
+        }
+        return true;
+    }
+    input_info.m_surface_type = GenerateTextJob::SurfaceType::Surface;
+    return true;
+}
+
 bool GenerateTextJob::generate_text_points(InputInfo &input_info)
 {
-    if (input_info.m_sufface_type == GenerateTextJob::SurfaceType::None) {
+    if (input_info.m_surface_type == GenerateTextJob::SurfaceType::None) {
         return true;
     }
     auto &m_text_tran_in_object = input_info.m_text_tran_in_object;
@@ -1886,8 +1939,11 @@ void GenerateTextJob::generate_mesh_according_points(InputInfo &input_info)
 CreateObjectTextJob::CreateObjectTextJob(CreateTextInput &&input) : m_input(std::move(input)) {}
 
 void CreateObjectTextJob::process(Ctl &ctl) {
-    if (m_input.m_chars_mesh_result.empty())
-        return create_message("Can't create empty object.");
+    create_all_char_mesh(*m_input.base, m_input.m_chars_mesh_result, m_input.m_text_shape);
+    if (m_input.m_chars_mesh_result.empty()) {
+        throw JobException("generate text mesh fail.");
+        return;
+    }
     std::vector<double> text_lengths;
     calc_text_lengths(text_lengths, m_input.m_chars_mesh_result);
     calc_position_points(m_input.m_position_points, text_lengths, m_input.text_info.m_text_gap, Vec3d(1, 0, 0));
@@ -1919,6 +1975,7 @@ void CreateObjectTextJob::finalize(bool canceled, std::exception_ptr &eptr) {
         new_object->invalidate_bounding_box();
 
         ModelVolume *new_volume = new_object->add_volume(std::move(final_mesh), false);
+        new_volume->calculate_convex_hull();
         new_volume->name        = _u8L("Text");
         // set a default extruder value, since user can't add it manually
         new_volume->config.set_key_value("extruder", new ConfigOptionInt(1));

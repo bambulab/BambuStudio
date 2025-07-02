@@ -264,6 +264,7 @@ public:
 struct CreateTextInput
 {
     std::vector<TriangleMesh> m_chars_mesh_result;
+    EmbossShape               m_text_shape;
     TextInfo                  text_info;
     DataBasePtr               base;
 
@@ -282,7 +283,7 @@ public:
 const GLVolume *find_glvoloume_render_screen_cs(const Selection &selection, const Vec2d &screen_center, const Camera &camera, const ModelObjectPtrs &objects, Vec2d *closest_center);
 void            create_all_char_mesh(DataBase &input, std::vector<TriangleMesh> &result, EmbossShape &shape);
 float           get_single_char_width( const std::vector<TriangleMesh> &chars_mesh_result);
-void calc_text_lengths(std::vector<double> &text_lengths,const std::vector<TriangleMesh>& chars_mesh_result);
+bool calc_text_lengths(std::vector<double> &text_lengths,const std::vector<TriangleMesh>& chars_mesh_result);
 void calc_position_points(std::vector<Vec3d> &position_points, std::vector<double> &text_lengths, float text_gap, const Vec3d &temp_pos_dir);
 
 struct Texture
@@ -360,7 +361,8 @@ public:
         Vec3d       m_cut_plane_dir_in_world;
         float       m_thickness     = 2.f;
         float       m_embeded_depth = 0.f;
-        SurfaceType m_sufface_type  = SurfaceType::None;
+        SurfaceType m_surface_type  = SurfaceType::None;
+        TextInfo::TextType       text_surface_type;
 
         TriangleMesh m_final_text_mesh;
         Geometry::Transformation m_final_text_tran_in_object;
@@ -373,7 +375,12 @@ public:
         bool         is_outside  = true;//bool is_outside = (type == ModelVolumeType::MODEL_PART);
 
         bool         first_generate = false;
+        bool         selection_is_text = true;
+        bool         m_confirm_generate_text =false;
+        Emboss::DataUpdate m_data_update;
+
     };
+    static bool update_text_positions(InputInfo &input_info);
     static bool generate_text_points(InputInfo &input_info);
     static Geometry::Transformation get_sub_mesh_tran(const Vec3d &position, const Vec3d &normal, const Vec3d &text_up_dir, float embeded_depth);
     static void                     get_text_mesh(TriangleMesh &result_mesh, std::vector<TriangleMesh> &chars_mesh, int i, Geometry::Transformation& local_tran);

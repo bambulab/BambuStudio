@@ -753,7 +753,7 @@ std::optional<Glyph> get_glyph(const stbtt_fontinfo &font_info, int unicode_lett
 
 const Glyph* get_glyph(
     int              unicode,
-    const FontFile & font,
+    const FontFile & font_file,
     const FontProp & font_prop,
     Glyphs &         cache,
     fontinfo_opt &font_info_opt)
@@ -766,16 +766,16 @@ const Glyph* get_glyph(
     }
 
     unsigned int font_index = font_prop.collection_number.value_or(0);
-    if (!is_valid(font, font_index)) return nullptr;
+    if (!is_valid(font_file, font_index)) return nullptr;
 
     if (!font_info_opt.has_value()) {
 
-        font_info_opt  = load_font_info(font.data->data(), font_index);
+        font_info_opt = load_font_info(font_file.data->data(), font_index);
         // can load font info?
         if (!font_info_opt.has_value()) return nullptr;
     }
 
-    float flatness = font.infos[font_index].ascent * RESOLUTION / font_prop.size_in_mm;
+    float flatness = font_file.infos[font_index].ascent * RESOLUTION / font_prop.size_in_mm;
 
     // Fix for very small flatness because it create huge amount of points from curve
     if (flatness < RESOLUTION) flatness = RESOLUTION;
@@ -1279,7 +1279,6 @@ void letter2shapes(ExPolygons &       result,
         bool can_gen_from_back_font = false;
         if (bfc_fn) {
             auto         fn_result = bfc_fn();
-            fontinfo_opt cur_font_info_cache;
             for (auto temp_font : fn_result) {
                 if (!temp_font.has_value()) { continue; }
                 Glyphs &        cur_cache = *temp_font.cache;
@@ -1292,6 +1291,7 @@ void letter2shapes(ExPolygons &       result,
 
                 auto new_scale = get_text_shape_scale(font_prop, cur_font);
                 // Create glyph from font file and cache it
+                fontinfo_opt cur_font_info_cache;
                 glyph_ptr = get_glyph(unicode, cur_font, temp_font_prop, cur_cache, cur_font_info_cache);
                 if (glyph_ptr) {
                     real_use_font          = temp_font;
@@ -1601,13 +1601,15 @@ std::string Slic3r::Emboss::create_range_text(std::string &text, std::vector<std
         results.emplace_back(temp_text);
         auto valid_text = boost::nowide::widen(temp_text);
         if (valid_text.size() == not_dup_text.size()) {
+            if (i > 0) {
+                *exist_unknown = true;
+            }
             return results.back();
         }
     }
     *exist_unknown = true;
     for (int i = 0; i < results.size(); i++) {
         if (boost::nowide::widen(results[i]).size() == not_dup_text.size()) {
-            *exist_unknown = false;
             return results[i];
         }
     }

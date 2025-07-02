@@ -180,18 +180,18 @@ void Slic3r::GUI::BackupFonts::generate_backup_fonts() {
 #ifdef _WIN32
          font_names.emplace_back(wxString(L"宋体"));//chinese confirm
          font_names.emplace_back(wxString::FromUTF8("MS Gothic")); // Japanese
-         font_names.emplace_back(wxString::FromUTF8("Batang")); // Korean
-         font_names.emplace_back(wxString::FromUTF8("Arial Unicode MS")); // Arabic
+         font_names.emplace_back(wxString::FromUTF8("NanumGothic")); // Korean
+         font_names.emplace_back(wxString::FromUTF8("Arial")); // Arabic
 #endif
 #ifdef __APPLE__
          font_names.emplace_back(wxString::FromUTF8("Songti SC"));//chinese confirm
          font_names.emplace_back(wxString::FromUTF8("Hiragino Sans"));        // Japanese
-         font_names.emplace_back(wxString::FromUTF8("Nanum Gothic"));           // Korean
+         font_names.emplace_back(wxString::FromUTF8("NanumGothic"));           // Korean
          font_names.emplace_back(wxString::FromUTF8("Al Bayan")); // Arabic
 #endif
 #ifdef __linux__
          font_names.emplace_back(wxString::FromUTF8("Noto Serif CJK"));//include chinese Japanese Korean
-         font_names.emplace_back(wxString::FromUTF8(" Noto Naskh Arabic"));//Arabic
+         font_names.emplace_back(wxString::FromUTF8("Noto Naskh Arabic"));//Arabic
 #endif
          if (!custom_back_font_name.empty()) {
              font_names.emplace_back(wxString::FromUTF8(custom_back_font_name));

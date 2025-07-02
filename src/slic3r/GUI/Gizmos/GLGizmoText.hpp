@@ -30,7 +30,6 @@ class GLGizmoText : public GLGizmoBase
 private:
     bool  m_is_direct_create_text = false;
     bool  m_confirm_generate_text  = false;
-    Emboss::GenerateTextJob::InputInfo m_input_info;
     std::vector<Transform3d> m_trafo_matrices;
     int m_show_calc_meshtod = 0;//1 preview //2 draging
     std::vector<std::string> m_avail_font_names;
@@ -43,7 +42,6 @@ private:
     const float m_font_size_min = 3.f;
     const float m_font_size_max     = 1000.f;
     bool m_warning_font      = false;
-    bool m_warning_cur_font_not_support_part_text = false;
     bool m_bold = true;
     bool m_italic = false;
     float m_thickness = 2.f;
@@ -53,7 +51,7 @@ private:
     const float  m_embeded_depth_max = 1000.f;
     float m_rotate_angle = 0;
     float m_text_gap = 0.f;
-    TextConfiguration  m_text_configuration;
+    TextConfiguration  m_ui_text_configuration;
     TextInfo::TextType m_surface_type{TextInfo::TextType ::SURFACE};
     bool m_really_use_surface_calc = false;
     bool m_draging_cube            = false;
@@ -115,7 +113,6 @@ private:
     // True when m_text contain character unknown by selected font
     bool m_text_contain_unknown_glyph = false;
     std::string        m_style_new_name = "";
-    Emboss::DataUpdate m_data_update;
     // For text on scaled objects
     std::optional<float>     m_scale_height;
     std::optional<float>     m_scale_depth;
@@ -145,8 +142,6 @@ private:
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.
     std::map<std::string, wxString> m_desc;
     ModelVolume *                   m_last_text_mv{nullptr};
-    EmbossShape                     m_text_shape;
-    std::vector<TriangleMesh>       m_chars_mesh_result;//temp code
     // move gizmo
     Grabber m_move_grabber;
     const int m_move_cube_id = 1;
@@ -277,7 +272,7 @@ private:
     float get_text_height(const std::string &text);
     void close_warning_flag_after_close_or_drag();
     void update_text_normal_in_world();
-    bool update_text_positions();
+    //bool update_text_positions();
 
     bool update_raycast_cache(const Vec2d &mouse_position, const Camera &camera, const std::vector<Transform3d> &trafo_matrices, bool exclude_last = true);
     bool generate_text_volume();
