@@ -11918,6 +11918,8 @@ std::array<Vec3d, 4> get_cut_plane(const BoundingBoxf3 &bbox, const double &cut_
 
 void Plater::calib_pa(const Calib_Params &params)
 {
+    model().calib_pa_pattern.reset(nullptr);
+
     const auto calib_pa_name = wxString::Format(L"Pressure Advance Test");
     if (new_project(false, false, calib_pa_name) == wxID_CANCEL)
         return;
@@ -12005,6 +12007,14 @@ void Plater::_calib_pa_pattern(const Calib_Params &params)
     // start with pattern centered on plate
     center_selection();
     const Vec3d plate_center = get_partplate_list().get_curr_plate()->get_center_origin();
+
+    if ((plate_center.x() - (pa_pattern.print_size_x() / 2) < plate_origin.x()) ||
+        (plate_center.y() - (pa_pattern.print_size_y() / 2) - pa_pattern.handle_spacing() < plate_origin.y())) {
+        MessageDialog dlg(this, _L("The current settings produce a model that is too large. Please narrow the range or increase the step size. (Model size is proportional to (End - Start) / Step size.)"), _L("Warning"), wxOK | wxICON_WARNING);
+        dlg.ShowModal();
+        return;
+    }
+
     giz_obj_manip.on_change("position", 0, plate_center.x() - (pa_pattern.print_size_x() / 2));
     giz_obj_manip.on_change("position", 1, plate_center.y() - (pa_pattern.print_size_y() / 2) - pa_pattern.handle_spacing());
 
@@ -12050,6 +12060,9 @@ void Plater::_calib_pa_tower(const Calib_Params &params)
     if (new_height < obj_bb.size().z()) {
         std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, new_height);
         cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+    } else {
+        MessageDialog dlg(this, _L("The current settings produce a model that is too large. Please narrow the range or increase the step size. (Model size is proportional to (End - Start) / Step size.)"), _L("Warning"), wxOK | wxICON_WARNING);
+        dlg.ShowModal();
     }
 
     _calib_pa_select_added_objects();
@@ -12076,6 +12089,8 @@ void Plater::_calib_pa_select_added_objects()
 
 void Plater::calib_flowrate(int pass)
 {
+    model().calib_pa_pattern.reset(nullptr);
+
     if (pass != 1 && pass != 2) return;
     const auto calib_name = wxString::Format(L"Flowrate Test - Pass%d", pass);
     if (new_project(false, false, calib_name) == wxID_CANCEL)
@@ -12180,6 +12195,8 @@ void Plater::calib_flowrate(int pass)
 
 void Plater::calib_temp(const Calib_Params &params)
 {
+    model().calib_pa_pattern.reset(nullptr);
+
     try {
         json js;
         js["cali_type"] = "third_cali_temp";
@@ -12240,6 +12257,8 @@ void Plater::calib_temp(const Calib_Params &params)
 
 void Plater::calib_max_vol_speed(const Calib_Params &params)
 {
+    model().calib_pa_pattern.reset(nullptr);
+
     try {
         json js;
         js["cali_type"] = "third_cali_max_flowrate";
@@ -12309,6 +12328,9 @@ void Plater::calib_max_vol_speed(const Calib_Params &params)
     if (height < obj_bb.size().z()) {
         std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, height);
         cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+    } else {
+        MessageDialog dlg(this, _L("The current settings produce a model that is too large. Please narrow the range or increase the step size. (Model size is proportional to (End - Start) / Step size.)"), _L("Warning"), wxOK | wxICON_WARNING);
+        dlg.ShowModal();
     }
 
     auto new_params  = params;
@@ -12322,6 +12344,8 @@ void Plater::calib_max_vol_speed(const Calib_Params &params)
 
 void Plater::calib_retraction(const Calib_Params &params)
 {
+    model().calib_pa_pattern.reset(nullptr);
+
     try {
         json js;
         js["cali_type"] = "third_cali_retraction";
@@ -12365,6 +12389,9 @@ void Plater::calib_retraction(const Calib_Params &params)
     if (height < obj_bb.size().z()) {
         std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, height);
         cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+    } else {
+        MessageDialog dlg(this, _L("The current settings produce a model that is too large. Please narrow the range or increase the step size. (Model size is proportional to (End - Start) / Step size.)"), _L("Warning"), wxOK | wxICON_WARNING);
+        dlg.ShowModal();
     }
 
     p->background_process.fff_print()->set_calib_params(params);
@@ -12372,6 +12399,8 @@ void Plater::calib_retraction(const Calib_Params &params)
 
 void Plater::calib_VFA(const Calib_Params &params)
 {
+    model().calib_pa_pattern.reset(nullptr);
+
     try {
         json js;
         js["cali_type"] = "third_cali_VFA";
@@ -12417,6 +12446,9 @@ void Plater::calib_VFA(const Calib_Params &params)
     if (height < obj_bb.size().z()) {
         std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, height);
         cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+    } else {
+        MessageDialog dlg(this, _L("The current settings produce a model that is too large. Please narrow the range or increase the step size. (Model size is proportional to (End - Start) / Step size.)"), _L("Warning"), wxOK | wxICON_WARNING);
+        dlg.ShowModal();
     }
 
     p->background_process.fff_print()->set_calib_params(params);

@@ -199,11 +199,9 @@ void PA_Calibration_Dlg::on_start(wxCommandEvent& event) {
     read_double = m_tiStartPA->GetTextCtrl()->GetValue().ToDouble(&m_params.start);
     read_double = read_double && m_tiEndPA->GetTextCtrl()->GetValue().ToDouble(&m_params.end);
     read_double = read_double && m_tiPAStep->GetTextCtrl()->GetValue().ToDouble(&m_params.step);
-    if (!read_double || m_params.start < 0 || m_params.step < 10 * EPSILON || m_params.end < m_params.start + m_params.step) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nStart PA: >= 0.0\nEnd PA: > Start PA\nPA step: >= 0.001)"), wxEmptyString, wxICON_WARNING | wxOK);
-        msg_dlg.ShowModal();
+
+    if (!is_pa_params_valid(m_params))
         return;
-    }
 
     switch (m_rbMethod->GetSelection()) {
         case 1:
@@ -528,7 +526,7 @@ void MaxVolumetricSpeed_Test_Dlg::on_start(wxCommandEvent& event) {
     read_double = read_double && m_tiStep->GetTextCtrl()->GetValue().ToDouble(&m_params.step);
 
     if (!read_double || m_params.start <= 0 || m_params.step <= 0 || m_params.end < (m_params.start + m_params.step)) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nstart > 0 step >= 0\nend > start + step)"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nstart > 0 step >= 0\nend >= start + step)"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     }
@@ -635,7 +633,7 @@ void VFA_Test_Dlg::on_start(wxCommandEvent& event)
     read_double = read_double && m_tiStep->GetTextCtrl()->GetValue().ToDouble(&m_params.step);
 
     if (!read_double || m_params.start <= 10 || m_params.step <= 0 || m_params.end < (m_params.start + m_params.step)) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nstart > 10 step >= 0\nend > start + step)"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nstart > 10 step >= 0\nend >= start + step)"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     }
@@ -739,7 +737,7 @@ void Retraction_Test_Dlg::on_start(wxCommandEvent& event) {
     read_double = read_double && m_tiStep->GetTextCtrl()->GetValue().ToDouble(&m_params.step);
 
     if (!read_double || m_params.start < 0 || m_params.step <= 0 || m_params.end < (m_params.start + m_params.step)) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nstart > 0 step >= 0\nend > start + step)"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nstart > 0 step >= 0\nend >= start + step)"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     }
