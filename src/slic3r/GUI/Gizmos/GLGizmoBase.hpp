@@ -151,6 +151,7 @@ protected:
     mutable GLModel m_cylinder;
     GLModel m_sphere;
     GLModel m_cross_mark;
+    GLModel m_lines_mark;
 
     bool m_is_dark_mode = false;
 
@@ -176,7 +177,8 @@ protected:
                                               DoubleShowType               show_type = DoubleShowType::Normal);
     bool render_combo(const std::string &label, const std::vector<std::string> &lines,
         size_t &selection_idx, float label_width, float item_width);
-    void render_cross_mark(const Transform3d& matrix, const Vec3f& target);
+    void render_cross_mark(const Transform3d& matrix, const Vec3f& target,bool single =false);
+    void render_lines(const std::vector<Vec3d> &points);
     static float get_grabber_size();
 
 public:

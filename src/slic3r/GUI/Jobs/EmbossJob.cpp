@@ -26,7 +26,7 @@
 //#include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/Jobs/Worker.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
-
+#include <wx/regex.h>
 // #define EXECUTE_UPDATE_ON_MAIN_THREAD // debug execution on main thread
 using namespace Slic3r::Emboss;
 namespace Slic3r {
@@ -1275,9 +1275,20 @@ void create_all_char_mesh(DataBase &input, std::vector<TriangleMesh> &result, Em
     TextConfiguration text_configuration = input.get_text_configuration();
     bool              support_backup_fonts = std::any_of(shape.text_scales.begin(), shape.text_scales.end(), [](float x) { return x > 0; });
     const char *text     = input.get_text_configuration().text.c_str();
+    wxString          input_text           = wxString::FromUTF8(input.get_text_configuration().text);
+    wxRegEx           re("^ +$");
+    bool              is_all_space = re.Matches(input_text);
+    if (is_all_space) { return; }
+    if (input_text.size() != shape.shapes_with_ids.size()) {
+        BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< "error: input_text.size() != shape.shapes_with_ids.size()";
+    }
     for (int i = 0; i < shape.shapes_with_ids.size(); i++) {
         auto &temp_shape = shape.shapes_with_ids[i];
-        if (temp_shape.expoly.empty() && text[i] != ' ')
+        if (input_text[i] == ' ') {
+            result.emplace_back(TriangleMesh());
+            continue;
+        }
+        if (temp_shape.expoly.empty())
             continue;
         if (support_backup_fonts) {
             if (i < shape.text_scales.size() && shape.text_scales[i] > 0) {
@@ -1297,14 +1308,32 @@ void create_all_char_mesh(DataBase &input, std::vector<TriangleMesh> &result, Em
     }
 }
 
-void calc_text_lengths(std::vector<double> &text_lengths, const std::vector<TriangleMesh> &chars_mesh_result)
+float get_single_char_width(const std::vector<TriangleMesh> &chars_mesh_result)
 {
-    text_lengths.clear();
     for (int i = 0; i < chars_mesh_result.size(); ++i) {
         auto box           = chars_mesh_result[i].bounding_box();
         auto box_size      = box.size();
         auto half_x_length = box_size[0] / 2.0f;
-        text_lengths.emplace_back(half_x_length + 1); // default
+        if (half_x_length > 0.01) {
+            return half_x_length;
+        }
+    }
+    return 0.f;
+}
+
+void calc_text_lengths(std::vector<double> &text_lengths, const std::vector<TriangleMesh> &chars_mesh_result)
+{
+    text_lengths.clear();
+    auto single_char_width = get_single_char_width(chars_mesh_result);
+    for (int i = 0; i < chars_mesh_result.size(); ++i) {
+        auto box           = chars_mesh_result[i].bounding_box();
+        auto box_size      = box.size();
+        auto half_x_length = box_size[0] / 2.0f;
+        if (half_x_length < 0.01) {
+            text_lengths.emplace_back(single_char_width + 1);
+        } else {
+            text_lengths.emplace_back(half_x_length + 1);
+        }
     }
 }
 
@@ -1355,11 +1384,12 @@ void calc_position_points(std::vector<Vec3d> &position_points, std::vector<doubl
 }
 
 GenerateTextJob::GenerateTextJob(InputInfo &&input) : m_input(std::move(input)) {}
-
+std::vector<Vec3d> GenerateTextJob::debug_cut_points_in_world;
 void GenerateTextJob::process(Ctl &ctl)
 {
     if (!generate_text_points(m_input))
        throw JobException("generate_text_volume fail.");
+    GenerateTextJob::debug_cut_points_in_world = m_input.m_cut_points_in_world;
     if (m_input.use_surface) {
         if (m_input.m_text_shape.shapes_with_ids.empty())
             throw JobException(_u8L("Font doesn't have any shape for given text.").c_str());
