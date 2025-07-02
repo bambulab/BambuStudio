@@ -4140,7 +4140,7 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
             // Outputs
             layer_storage, top_contacts, interface_layers, base_interface_layers };
 
-
+        std::vector<ExPolygons> cooldown_areas(num_support_layers);
         if (has_support) {
             auto t_precalc = std::chrono::high_resolution_clock::now();
             // value is the area where support may be placed. As this is calculated in CreateLayerPathing it is saved and reused in draw_areas
@@ -4185,7 +4185,7 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
             // this new function give correct result when raft is also enabled
             organic_draw_branches(
                 *print.get_object(processing.second.front()), volumes, config, move_bounds,
-                bottom_contacts, top_contacts, interface_placer, intermediate_layers, layer_storage,
+                bottom_contacts, top_contacts, interface_placer, intermediate_layers, layer_storage, cooldown_areas,
                 throw_on_cancel);
 #endif
 
@@ -4232,7 +4232,7 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         // Don't fill in the tree supports, make them hollow with just a single sheath line.
         print.set_status(69, _L("Generating support"));
         generate_support_toolpaths(print_object.support_layers(), print_object.config(), support_params, print_object.slicing_parameters(),
-            raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
+            raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers, cooldown_areas);
 
         auto t_end = std::chrono::high_resolution_clock::now();
         BOOST_LOG_TRIVIAL(info) << "Total time of organic tree support: " << 0.001 * std::chrono::duration_cast<std::chrono::microseconds>(t_end - t_start).count() << " ms";
@@ -4287,6 +4287,7 @@ void organic_draw_branches(
     // Output:
     SupportGeneratorLayersPtr& intermediate_layers,
     SupportGeneratorLayerStorage& layer_storage,
+    std::vector<ExPolygons>& cooldown_areas,
 
     std::function<void()>            throw_on_cancel)
 {
@@ -4335,6 +4336,30 @@ void organic_draw_branches(
     throw_on_cancel();
 
     organic_smooth_branches_avoid_collisions(print_object, volumes, config, elements_with_link_down, linear_data_layers, throw_on_cancel);
+
+    //save the cooling area
+    for (LayerIndex layer_idx = 0; layer_idx + 1 < LayerIndex(move_bounds.size()); ++layer_idx) {
+        auto &layer_elements = move_bounds[layer_idx];
+        for (auto &elem : layer_elements) {
+            if (!elem.parents.empty()) {
+                SupportElements *layer_above = layer_idx + 1 < LayerIndex(move_bounds.size()) ? &move_bounds[layer_idx + 1] : nullptr;
+                if (!layer_above) break;
+                for (auto &parent_elem : elem.parents) {
+                    auto            &parent      = (*layer_above)[parent_elem];
+                    double overhang_degree = std::min(10.0, (parent.state.result_on_layer - elem.state.result_on_layer).cast<double>().norm() /
+                                                                config.support_line_width * 10);
+                    
+                    if (overhang_degree >= 2) {
+                        coord_t radius = support_element_radius(config, parent);
+                        Polygon circle = make_circle(radius, radius / 100);
+                        circle.translate(parent.state.result_on_layer);
+                        cooldown_areas[layer_idx + 1].emplace_back(ExPolygon(circle));
+                    }
+                }
+            }
+        }
+    }
+        
 
     // Reduce memory footprint. After this point only finalize_interface_and_support_areas() will use volumes and from that only collisions with zero radius will be used.
     volumes.clear_all_but_object_collision();

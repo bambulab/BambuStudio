@@ -125,6 +125,7 @@ struct SupportNode
     bool           is_sharp_tail   = false;
     bool           valid = true;
     bool           fading          = false;
+    double         overhang_degree = 0.0;  // overhang degree for cooling just like perimeter
     ExPolygon      overhang; // when type==ePolygon, set this value to get original overhang area
     coordf_t       origin_area;
 

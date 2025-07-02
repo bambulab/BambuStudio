@@ -318,6 +318,7 @@ void organic_draw_branches(
     // Output:
     SupportGeneratorLayersPtr& intermediate_layers,
     SupportGeneratorLayerStorage& layer_storage,
+    std::vector<ExPolygons>& cooldown_areas,
 
     std::function<void()> throw_on_cancel);
 

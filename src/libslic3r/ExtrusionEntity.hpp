@@ -126,6 +126,13 @@ inline bool is_bridge(ExtrusionRole role) {
         || role == erOverhangPerimeter;
 }
 
+
+inline bool is_support(ExtrusionRole role) {
+    return role == erSupportMaterial
+        || role == erSupportMaterialInterface
+        || role == erSupportTransition;
+}
+
 class ExtrusionEntity
 {
 public:
@@ -339,12 +346,12 @@ public:
     double total_volume() const override { return mm3_per_mm * unscale<double>(length()); }
 
     void set_overhang_degree(int overhang) {
-        if (is_perimeter(m_role))
+        if (is_perimeter(m_role) || is_support(m_role))
             overhang_degree = (overhang < 0)?0:(overhang > 10 ? 10 : overhang);
     };
     int get_overhang_degree() const {
         // only perimeter has overhang degree. Other return 0;
-        if (is_perimeter(m_role))
+        if (is_perimeter(m_role) || is_support(m_role))
             return (int)overhang_degree;
         return 0;
     };
