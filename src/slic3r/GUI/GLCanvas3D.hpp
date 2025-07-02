@@ -204,7 +204,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEve
 
 struct ForceClickToolbarItemData
 {
-    int m_item{ -1 };
+    std::string m_item_name{};
     bool m_b_check_pressed{ false };
 };
 wxDECLARE_EVENT(EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, Event<ForceClickToolbarItemData>);
@@ -1321,7 +1321,7 @@ private:
 
     const std::shared_ptr<GLToolbar>& get_main_toolbar() const;
 
-    void do_force_click_toolbar_item(int type, bool check_pressed);
+    void do_force_click_toolbar_item(const std::string& item_name, bool check_pressed);
 
     static bool is_volume_in_plate_boundingbox(const GLVolume &v, int plate_idx, const BoundingBoxf3 &plate_build_volume);
     static void _init_fullscreen_mesh();

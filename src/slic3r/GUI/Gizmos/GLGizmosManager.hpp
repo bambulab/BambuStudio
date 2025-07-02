@@ -98,6 +98,7 @@ private:
     bool m_enabled;
     std::vector<std::unique_ptr<GLGizmoBase>> m_gizmos;
     EType m_current;
+    EType m_cached_type{ EType::Undefined };
     EType m_hover;
     std::pair<EType, bool> m_highlight; // bool true = higlightedShown, false = highlightedHidden
 
@@ -161,12 +162,10 @@ public:
         EType new_current = m_current;
         m_current = old_current;
 
-        // activate_gizmo call sets m_current and calls set_state for the gizmo
-        // it does nothing in case the gizmo is already activated
-        // it can safely be called for Undefined gizmo
         on_reload(new_current);
-        if (m_current != Undefined)
-            m_gizmos[m_current]->load(ar);
+
+        if (new_current != Undefined)
+            m_gizmos[new_current]->load(ar);
     }
 
     template<class Archive>

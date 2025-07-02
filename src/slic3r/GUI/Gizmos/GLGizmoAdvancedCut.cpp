@@ -601,7 +601,8 @@ void GLGizmoAdvancedCut::close()
 {//close gizmo == open it again
     auto &mng = m_parent.get_gizmos_manager();
     if (mng.get_current_type() == GLGizmosManager::Cut) {
-        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(GLGizmosManager::EType::Cut), false } };
+        const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Cut);
+        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
         m_parent.on_force_click_toolbar_item(evt);
     }
 }

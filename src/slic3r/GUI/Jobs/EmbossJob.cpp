@@ -801,8 +801,10 @@ void create_volume(
 
     // Now is valid text volume selected open emboss gizmo
     GLGizmosManager &manager = canvas->get_gizmos_manager();
-    if (manager.get_current_type() != gizmo_type) {
-        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(gizmo_type), false } };
+    const auto t_gizmo_type = static_cast<GLGizmosManager::EType>(gizmo_type);
+    if (manager.get_current_type() != t_gizmo_type) {
+        const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(t_gizmo_type);
+        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
         canvas->post_event(std::move(evt));
     }
 

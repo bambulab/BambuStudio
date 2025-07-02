@@ -1189,7 +1189,8 @@ void GLGizmoText::draw_model_type(int caption_width)
         // which discard m_volume pointer and set it to nullptr also selection is cleared so gizmo is automaticaly closed
         auto &mng = m_parent.get_gizmos_manager();
         if (mng.get_current_type() != GLGizmosManager::Text) {
-            Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(GLGizmosManager::EType::Text), false } };
+            const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Text);
+            Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
             m_parent.post_event(std::move(evt));
         }
     }
@@ -1513,7 +1514,8 @@ void GLGizmoText::close()
 {
     auto &mng = m_parent.get_gizmos_manager();
     if (mng.get_current_type() == GLGizmosManager::Text) {
-        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(GLGizmosManager::EType::Text), false } };
+        const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Text);
+        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
         m_parent.post_event(std::move(evt));
     }
 }
@@ -1825,7 +1827,13 @@ void GLGizmoText::on_render()
     if (!plater) return;
     ModelObject *mo = nullptr;
     const Selection &selection = m_parent.get_selection();
-    mo = selection.get_model()->objects[m_object_idx];
+    const auto p_model = selection.get_model();
+    if (p_model) {
+        if (m_object_idx < p_model->objects.size()) {
+            mo = p_model->objects[m_object_idx];
+        }
+    }
+
     if (mo == nullptr) {
         BOOST_LOG_TRIVIAL(info) << boost::format("Text: selected object is null");
         return;

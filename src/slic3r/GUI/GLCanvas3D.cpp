@@ -2654,19 +2654,18 @@ void GLCanvas3D::deselect_all()
 {
     // BBS
     //wxGetApp().obj_manipul()->set_dirty();
-    const auto& t_current_type = m_gizmos.get_current_type();
-    if (t_current_type != GLGizmosManager::EType::Undefined) {
-        do_force_click_toolbar_item(static_cast<int>(t_current_type), false);
-    }
+    exit_gizmo();
     m_selection.remove_all();
     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
 }
 
 void GLCanvas3D::exit_gizmo() {
-    if (m_gizmos.get_current_type() != GLGizmosManager::Undefined) {
-        m_gizmos.reset_all_states();
-        m_gizmos.update_data();
+    const auto t_current = m_gizmos.get_current_type();
+    if (GLGizmosManager::Undefined == t_current) {
+        return;
     }
+    const auto& item_name = GLGizmosManager::convert_gizmo_type_to_string(t_current);
+    do_force_click_toolbar_item(item_name, false);
 }
 
 void GLCanvas3D::set_selected_visible(bool visible)
@@ -3410,7 +3409,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     if (m_gizmos.is_enabled() && m_selection.is_empty()) {
         // If no object is selected, deactivate the active gizmo, if any
         // Otherwise it may be shown after cleaning the scene (if it was active while the objects were deleted)
-        m_gizmos.reset_all_states();
+        exit_gizmo();
         // BBS
 #if 0
         // If no object is selected, reset the objects manipulator on the sidebar
@@ -5198,7 +5197,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             if (hover_volume->is_text()) {
                 m_selection.add_volumes(Selection::EMode::Volume, {(unsigned) hover_volume_id});
-                do_force_click_toolbar_item(static_cast<int>(GLGizmosManager::EType::Text), true);
+                const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Text);
+                do_force_click_toolbar_item(item_name, true);
                 return;
             }
            /* else if (hover_volume->text_configuration.has_value()) {
@@ -5210,7 +5210,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             else if(hover_volume->emboss_shape.has_value()){
                 m_selection.add_volumes(Selection::EMode::Volume, {(unsigned) hover_volume_id});
                 wxGetApp().obj_list()->update_selections();
-                do_force_click_toolbar_item(static_cast<int>(GLGizmosManager::EType::Svg), true);
+                const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Svg);
+                do_force_click_toolbar_item(item_name, true);
                 return;
             }
         }
@@ -5255,7 +5256,7 @@ void GLCanvas3D::on_set_focus(wxFocusEvent& evt)
 void GLCanvas3D::on_force_click_toolbar_item(Event<ForceClickToolbarItemData>& evt)
 {
     const auto& evt_data = evt.data;
-    do_force_click_toolbar_item(evt_data.m_item, evt_data.m_b_check_pressed);
+    do_force_click_toolbar_item(evt_data.m_item_name, evt_data.m_b_check_pressed);
 }
 
 Size GLCanvas3D::get_canvas_size() const
@@ -5703,7 +5704,7 @@ void GLCanvas3D::handle_sidebar_focus_event(const std::string& opt_key, bool foc
 void GLCanvas3D::handle_layers_data_focus_event(const t_layer_height_range range, const EditorType type)
 {
     std::string field = "layer_" + std::to_string(type) + "_" + std::to_string(range.first) + "_" + std::to_string(range.second);
-    m_gizmos.reset_all_states();
+    exit_gizmo();
     handle_sidebar_focus_event(field, true);
 }
 
@@ -6924,7 +6925,18 @@ bool GLCanvas3D::_init_main_toolbar()
             item.left.toggable = false;
             item.left.action_callback = [this]() {
                 if (m_canvas != nullptr) {
-                    wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_ASSEMBLE)); m_gizmos.reset_all_states(); wxGetApp().plater()->get_assmeble_canvas3D()->get_gizmos_manager().reset_all_states();
+                    exit_gizmo();
+
+                    const auto& p_plater = wxGetApp().plater();
+                    if (p_plater) {
+                        const auto& p_assmeble_canvas = p_plater->get_assmeble_canvas3D();
+                        if (p_assmeble_canvas) {
+                            p_assmeble_canvas->exit_gizmo();
+                        }
+                    }
+
+                    wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_ASSEMBLE));
+
                     NetworkAgent* agent = GUI::wxGetApp().getAgent();
                     if (agent) agent->track_update_property("assembly_view", std::to_string(++assembly_view_count));
                 }
@@ -8501,8 +8513,16 @@ void GLCanvas3D::_render_return_toolbar()
         } else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
             if (m_canvas != nullptr)
                 wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
-            const_cast<GLGizmosManager *>(&m_gizmos)->reset_all_states();
-            wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().reset_all_states();
+
+            exit_gizmo();
+
+            const auto& p_plater = wxGetApp().plater();
+            if (p_plater) {
+                const auto& p_view3d_canvas = p_plater->get_view3D_canvas3D();
+                if (p_view3d_canvas) {
+                    p_view3d_canvas->exit_gizmo();
+                }
+            }
             GLVolume::explosion_ratio  = 1.0;//in 3D view  GLVolume::explosion_ratio  = 1.0
             wxGetApp().plater()->get_view3D_canvas3D()->reload_scene(true);
             {
@@ -10457,13 +10477,12 @@ const std::shared_ptr<GLToolbar>& GLCanvas3D::get_main_toolbar() const
     return m_main_toolbar;
 }
 
-void GLCanvas3D::do_force_click_toolbar_item(int type, bool check_pressed)
+void GLCanvas3D::do_force_click_toolbar_item(const std::string& item_name, bool check_pressed)
 {
-    if (type < 0) {
+    if (item_name.empty()) {
         return;
     }
 
-    const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(static_cast<GLGizmosManager::EType>(type));
     const auto& p_main_toolbar = get_main_toolbar();
     if (!p_main_toolbar) {
         return;
