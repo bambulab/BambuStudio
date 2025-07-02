@@ -728,7 +728,6 @@ void GLGizmoText::on_set_state()
         m_reedit_text     = false;
         m_fix_old_tran_flag = false;
         m_warning_font      = false;
-        m_warning_cur_font_not_support_part_text = true;
         close_warning_flag_after_close_or_drag();
         reset_text_info();
 
@@ -1342,14 +1341,12 @@ std::unique_ptr<Emboss::DataBase> GLGizmoText::create_emboss_data_base(
     style.projection.depth = m_thickness; // BBS add
     style.projection.embeded_depth = m_embeded_depth; // BBS add
     base.is_outside   = is_outside;
-    m_input_info.is_outside                     = is_outside;
    // base.text_lines   = text_lines.get_lines();
     base.from_surface = style.distance;
 
     FontFileWithCache &font = style_manager.get_font_file_with_cache();
     TextConfiguration  tc{static_cast<EmbossStyle>(style), text};
     auto td_ptr = std::make_unique<TextDataBase>(std::move(base), font, std::move(tc), style.projection);
-    m_input_info.shape_scale  = td_ptr->shape.scale;
     return td_ptr;
 }
 
@@ -1366,12 +1363,6 @@ bool GLGizmoText::process(bool make_snapshot, std::optional<Transform3d> volume_
         return false;
     update_boldness();
     update_italic();
-    const Selection &selection = m_parent.get_selection();
-    DataBasePtr      base      = create_emboss_data_base(m_text, m_style_manager, selection, text_volume == nullptr ? ModelVolumeType::MODEL_PART : text_volume->type(),
-                                               m_job_cancel); // m_text_lines
-    m_data_update = {std::move(base), text_volume == nullptr ? -1 : text_volume->id(), make_snapshot};
-
-    create_all_char_mesh(*m_data_update.base, m_chars_mesh_result, m_text_shape);
     if (update_text) {
         m_need_update_text = true;
     }
@@ -1436,7 +1427,6 @@ bool GLGizmoText::on_shortcut_key() {
         CreateTextInput temp_input_info;
         DataBasePtr base = create_emboss_data_base(m_text, m_style_manager, selection,  ModelVolumeType::MODEL_PART, m_job_cancel);
         temp_input_info.base                = std::move(base);
-        temp_input_info.m_chars_mesh_result = m_chars_mesh_result;
         temp_input_info.text_info           = get_text_info();
         if (m_is_direct_create_text) {
             auto  job    = std::make_unique<CreateObjectTextJob>(std::move(temp_input_info));
@@ -1470,7 +1460,6 @@ bool GLGizmoText::on_shortcut_key() {
                         m_text_tran_in_object.set_from_transform(transform);
                         m_text_position_in_world    = hit_pos;
                         m_text_normal_in_world      = hit_normal.cast<float>();
-                        m_input_info.first_generate = true;
                         m_confirm_generate_text     = true;
                         m_is_modify                 = true;
                         m_need_update_text          = true;
@@ -1631,23 +1620,31 @@ void GLGizmoText::load_init_text(bool first_open_text, bool is_serializing)
                     update_text_tran_in_model_object(true);
                     return;
                 }
-                auto text_height          = get_text_height(text_info.m_text); // old text
-                if (is_only_text_case()) {
-                    m_really_use_surface_calc = false;
-                } else {
-                    m_really_use_surface_calc = true;
-                }
-                int index                 = -1;
-                for (size_t i = 0; i < 3; i++) {
-                    if (abs(box_size[i] - valid_z) < 0.1) {
+                float old_text_height =0;
+                int   old_index = -1;
+                if (is_old_text_info(text_info)) {
+                    try {
+                        old_text_height = get_text_height(text_info.m_text); // old text
+                    } catch (const std::exception &) {
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " error:get_text_height";
+                    }
+                    if (is_only_text_case()) {
                         m_really_use_surface_calc = false;
-                        index                     = i;
-                        break;
+                    } else {
+                        m_really_use_surface_calc = true;
+                    }
+                    for (size_t i = 0; i < 3; i++) {
+                        if (abs(box_size[i] - valid_z) < 0.1) {
+                            m_really_use_surface_calc = false;
+                            old_index                 = i;
+                            break;
+                        }
+                    }
+                    if (abs(box.size()[1] - old_text_height) > 0.1) {
+                        m_fix_old_tran_flag = true;
                     }
                 }
-                if (abs(box.size()[1] - text_height) > 0.1) {
-                    m_fix_old_tran_flag = true;
-                }
+
                 if (first_open_text && !is_only_text_case()) {
                     auto  valid_mesh_id = 0;
                     Vec3f closest_normal;
@@ -1682,25 +1679,26 @@ void GLGizmoText::load_init_text(bool first_open_text, bool is_serializing)
 
                     m_fix_text_position_in_world = m_model_object_in_world_tran.get_matrix() * closest_pt.cast<double>();
                     m_fix_text_normal_in_world   = (mi->get_transformation().get_matrix_no_offset().cast<float>() * closest_normal).normalized();
-
-                    int   face_id;
-                    Vec3f direction = m_text_tran_in_world.get_matrix().linear().col(2).cast<float>();
-                    if (index == 2 && abs(box_size[1] - text_height) < 0.1) {
-                        m_is_version1_9_xoz = true;
-                        m_fix_old_tran_flag = true;
-                    } else if (index == 2 && abs(box_size[0] - text_height) < 0.1) {
-                        m_is_version1_8_yoz = true;
-                        m_fix_old_tran_flag = true;
-                    } else if (index == 1 && abs(box_size[2] - text_height) < 0.1) { // for 1.10 version, xoy plane cut,just fix
-                        m_is_version1_10_xoy = true;
-                        m_fix_old_tran_flag  = true;
-                        direction            = m_text_tran_in_world.get_matrix().linear().col(1).cast<float>();
-                        if (!temp_ray_caster.get_closest_point_and_normal(local_center, direction, &closest_pt, &closest_normal, &face_id)) {
-                            m_show_warning_error_mesh = true;
-                        }
-                    } else if (!temp_ray_caster.get_closest_point_and_normal(local_center, -direction, &closest_pt, &closest_normal, &face_id)) {
-                        if (!temp_ray_caster.get_closest_point_and_normal(local_center, direction, &closest_pt, &closest_normal, &face_id)) {
-                            m_show_warning_error_mesh = true;
+                    if (is_old_text_info(text_info)) {
+                        int   face_id;
+                        Vec3f direction = m_text_tran_in_world.get_matrix().linear().col(2).cast<float>();
+                        if (old_index == 2 && abs(box_size[1] - old_text_height) < 0.1) {
+                            m_is_version1_9_xoz = true;
+                            m_fix_old_tran_flag = true;
+                        } else if (old_index == 2 && abs(box_size[0] - old_text_height) < 0.1) {
+                            m_is_version1_8_yoz = true;
+                            m_fix_old_tran_flag = true;
+                        } else if (old_index == 1 && abs(box_size[2] - old_text_height) < 0.1) { // for 1.10 version, xoy plane cut,just fix
+                            m_is_version1_10_xoy = true;
+                            m_fix_old_tran_flag  = true;
+                            direction            = m_text_tran_in_world.get_matrix().linear().col(1).cast<float>();
+                            if (!temp_ray_caster.get_closest_point_and_normal(local_center, direction, &closest_pt, &closest_normal, &face_id)) {
+                                m_show_warning_error_mesh = true;
+                            }
+                        } else if (!temp_ray_caster.get_closest_point_and_normal(local_center, -direction, &closest_pt, &closest_normal, &face_id)) {
+                            if (!temp_ray_caster.get_closest_point_and_normal(local_center, direction, &closest_pt, &closest_normal, &face_id)) {
+                                m_show_warning_error_mesh = true;
+                            }
                         }
                     }
                 }
@@ -2275,9 +2273,6 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
         m_imgui->warning_text_wrapped(_L("Warning:Due to font upgrades,previous font may not necessarily be replaced successfully, and recommend you to modify the font."), full_width);
         m_parent.request_extra_frame();
     }
-    if (m_warning_cur_font_not_support_part_text) {
-        m_imgui->warning_text(_L("Warning:cur font not support partial Text,please change font."));
-    }
     if (m_show_warning_text_create_fail) {
         m_imgui->warning_text(_L("Warning:create text fail."));
     }
@@ -2437,14 +2432,7 @@ void GLGizmoText::draw_text_input(int caption_width)
             append_warning(_u8L("Embossed text cannot contain only white spaces."));
         }
         if (m_text_contain_unknown_glyph) {
-            append_warning(_u8L("Text contains character glyph (represented by '?') unknown by font.Please modify font or input."));
-            m_warning_cur_font_not_support_part_text = true;
-            if (std::stof(m_font_version) < 2.0f) {
-                m_warning_font = true;
-            }
-        }
-        else {
-            m_warning_cur_font_not_support_part_text = false;
+            append_warning(_u8L("Unsupported characters automatically switched to fallback font."));
         }
         const FontProp &prop = m_style_manager.get_font_prop();
        /* if (prop.skew.has_value())//BBS modify
@@ -2476,6 +2464,9 @@ void GLGizmoText::draw_text_input(int caption_width)
             //    // Necesarry to initialize count by given number (differ from stored in volume at the moment)
             //    reinit_text_lines(count_lines);
         }
+        if (m_last_text_mv ==nullptr) {
+            m_need_update_tran = false;
+        }
         process();
         range_text = create_range_text_prep();
     }
@@ -2498,15 +2489,6 @@ void GLGizmoText::draw_text_input(int caption_width)
         }
         if (ImGui::IsItemHovered())
             m_imgui->tooltip(warning_tool_tip, m_gui_cfg->max_tooltip_width);
-
-        ImVec2        cursor  = ImGui::GetCursorPos();
-        float         width   = ImGui::GetContentRegionAvailWidth();
-        const ImVec2 &padding = style.FramePadding;
-        ImVec2        icon_pos(2 * m_gui_cfg->input_width, cursor.y - m_gui_cfg->icon_width - scrollbar_height - 2 * padding.y);// width - m_gui_cfg->icon_width - scrollbar_width + padding.x
-
-        ImGui::SetCursorPos(icon_pos);
-        draw(get_icon(m_icons, Text::IconType::warning, Text::IconState::hovered));
-        ImGui::SetCursorPos(cursor);
     }
 
     // NOTE: must be after ImGui::font_pop()
@@ -2935,9 +2917,6 @@ void GLGizmoText::update_text_normal_in_world()
 
 bool GLGizmoText::update_text_tran_in_model_object(bool rewrite_text_tran)
 {
-    if (m_chars_mesh_result.size() == 0) {
-        return false;
-    }
     if (m_rr.mesh_id == -1 && !is_only_text_case()) {
         BOOST_LOG_TRIVIAL(info) << boost::format("Text: mrr_mesh_id is -1");
         return false;
@@ -3012,7 +2991,6 @@ void GLGizmoText::switch_text_type(TextInfo::TextType type)
         update_text_normal_in_world();
     }
     m_surface_type           = type;
-    m_input_info.use_surface = m_surface_type == TextInfo::TextType::SURFACE_CHAR ? true : false;
     process();
 }
 
@@ -3059,48 +3037,7 @@ void GLGizmoText::volume_transformation_changed()
     calculate_scale();
 }
 
-bool GLGizmoText::update_text_positions()
-{
-    if (m_chars_mesh_result.size() == 0) {
-        m_position_points.clear();
-        return false;
-    }
-    std::vector<double> text_lengths;
-    calc_text_lengths(text_lengths, m_chars_mesh_result);
-    int text_num = m_chars_mesh_result.size();//FIX by BBS 20250109
-    m_position_points.clear();
-    m_normal_points.clear();
-    bool rewrite_text_tran = m_need_update_tran ? true :m_last_text_mv == nullptr;
-    if (!update_text_tran_in_model_object(rewrite_text_tran)) {
-        return false;
-    }
-    /*auto mouse_position_world = m_text_position_in_world.cast<double>();
-    auto mouse_normal_world   = m_text_normal_in_world.cast<double>();*/
-    m_position_points.resize(text_num);
-    m_normal_points.resize(text_num);
 
-    auto &input_info                 = m_input_info;
-    input_info.text_lengths          = text_lengths;
-    input_info.m_sufface_type        = GenerateTextJob::SurfaceType::None;
-    if (m_surface_type == TextInfo::TextType::HORIZONAL || (m_confirm_generate_text == false && !get_selection_is_text())) {
-        input_info.use_surface = false;
-        Vec3d mouse_normal_world = m_text_normal_in_world.cast<double>();
-        Vec3d world_pos_dir      = m_cut_plane_dir_in_world.cross(mouse_normal_world);
-        auto  inv_               = (m_model_object_in_world_tran.get_matrix_no_offset() * m_text_tran_in_object.get_matrix_no_offset()).inverse();
-        auto  pos_dir       = inv_ * world_pos_dir;
-        auto  mouse_normal_local = inv_ * mouse_normal_world;
-        mouse_normal_local.normalize();
-
-        calc_position_points(m_position_points, text_lengths, m_text_gap, pos_dir);
-
-        for (int i = 0; i < text_num; ++i) {
-            m_normal_points[i] = mouse_normal_local;
-        }
-        return true;
-    }
-    input_info.m_sufface_type = GenerateTextJob::SurfaceType::Surface;
-    return true;
-}
 
 bool GLGizmoText::update_raycast_cache(const Vec2d &mouse_position, const Camera &camera, const std::vector<Transform3d> &trafo_matrices, bool exclude_last)
 {
@@ -3142,15 +3079,15 @@ bool GLGizmoText::update_raycast_cache(const Vec2d &mouse_position, const Camera
 
 bool GLGizmoText::generate_text_volume()
 {
-    std::string text = std::string(m_text);
-    if (text.empty())
+
+    if (m_text.empty())
         return false;
     Plater *plater = wxGetApp().plater();
     if (!plater)
         return false;
     m_show_calc_meshtod = 0;
     if (m_rr.mesh_id == -1 && !is_only_text_case()) {
-        BOOST_LOG_TRIVIAL(info) << boost::format("Text: mrr_mesh_id is -1");
+        BOOST_LOG_TRIVIAL(info) << "error: mrr.mesh_id is -1";
         return false;
     }
     if (auto text_mv = get_text_is_dragging()) { // moving or dragging;
@@ -3164,16 +3101,36 @@ bool GLGizmoText::generate_text_volume()
         gl_v->set_volume_transformation(m_text_tran_in_object.get_matrix());
         return false;*/
     }
-    if (!update_text_positions()) { // update m_model_object_in_world_tran
+    bool rewrite_text_tran = m_need_update_tran ? true : m_last_text_mv == nullptr;
+    if (!update_text_tran_in_model_object(rewrite_text_tran)) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " fail:update_text_tran_in_model_object";
         return false;
     }
-    auto &input_info                 = m_input_info;
+    if (m_object_idx < 0) {
+        BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< "error:m_object_idx < 0";
+        return false;
+    }
+    const Selection &                  selection = m_parent.get_selection();
+    Emboss::GenerateTextJob::InputInfo input_info;
+    auto          text_volume      = m_last_text_mv;
+    DataBasePtr base               = create_emboss_data_base(m_text, m_style_manager, selection, text_volume == nullptr ? ModelVolumeType::MODEL_PART : text_volume->type(),
+                                               m_job_cancel); // m_text_lines
+    Emboss::DataUpdate data_update = {std::move(base), text_volume == nullptr ? -1 : text_volume->id(), false};
+    m_ui_text_configuration                 = data_update.base->get_text_configuration();
+    input_info.text_surface_type            = m_surface_type;
+    input_info.selection_is_text            = get_selection_is_text();
+    input_info.m_confirm_generate_text      = m_confirm_generate_text;
+    input_info.is_outside                   = data_update.base->is_outside;
+    input_info.shape_scale                  = data_update.base->shape.scale;
+    input_info.m_data_update                = std::move(data_update);
+
     input_info.m_text_tran_in_object = m_text_tran_in_object;
-    input_info.m_volume_idx                 = m_volume_idx;
+
+    input_info.m_volume_idx                 = m_volume_idx ;
+    input_info.first_generate        = m_volume_idx < 0 ? true : false;
     input_info.m_cut_points_in_world        = m_cut_points_in_world;
     input_info.m_text_tran_in_world         = m_text_tran_in_world;
-    input_info.m_chars_mesh_result          = m_chars_mesh_result;
-    input_info.m_text_shape                 = m_text_shape;
+
     input_info.m_text_position_in_world     = m_text_position_in_world;
     input_info.m_text_normal_in_world       = m_text_normal_in_world;
     input_info.m_text_gap                   = m_text_gap;
@@ -3183,35 +3140,25 @@ bool GLGizmoText::generate_text_volume()
     input_info.m_embeded_depth              = m_embeded_depth;
     input_info.m_thickness                  = m_thickness;
     input_info.m_cut_plane_dir_in_world     = m_cut_plane_dir_in_world;
-    if (m_input_info.m_chars_mesh_result.empty()) {
-        return false;
-    }
-    if (m_position_points.size() == 0)
-        return false;
 
+    input_info.use_surface                  = m_surface_type == TextInfo::TextType::SURFACE_CHAR ? true : false;
     TextInfo text_info = get_text_info();
 
-    const Selection &selection    = m_parent.get_selection();
+
     ModelObject *    model_object = selection.get_model()->objects[m_object_idx];
 
-    m_input_info.mo            = model_object;
+    input_info.mo            = model_object;
 
     m_show_warning_lost_rotate = false;
     if (m_is_modify && m_need_update_text) {
-        if (!m_input_info.first_generate &&(m_object_idx == -1 || m_volume_idx == -1)) {
-            BOOST_LOG_TRIVIAL(error) << boost::format("Text: selected object_idx = %1%, volume_idx = %2%") % m_object_idx % m_volume_idx;
-            return false;
-        }
         m_need_update_text = false;
-        m_input_info.text_info   = text_info;
-        m_input_info.m_final_text_tran_in_object   = m_text_tran_in_object;
-        GenerateTextJob::InputInfo temp_input_info = m_input_info;
-        auto                       job             = std::make_unique<GenerateTextJob>(std::move(temp_input_info));
+        input_info.text_info   = text_info;
+        input_info.m_final_text_tran_in_object   = m_text_tran_in_object;
+        auto  job                              = std::make_unique<GenerateTextJob>(std::move(input_info));
         auto &worker = wxGetApp().plater()->get_ui_job_worker();
         queue_job(worker, std::move(job));
         //recreate_model_volume(model_object, m_volume_idx, mesh, use_load_tran ? m_load_text_tran_in_object : m_text_tran_in_object, text_info);
         m_confirm_generate_text = false;
-        m_input_info.first_generate = false;
     }
     return true;
 }
@@ -3244,7 +3191,7 @@ TextInfo GLGizmoText::get_text_info()
     text_info.m_rotate_angle  = m_rotate_angle;
     text_info.m_text_gap      = m_text_gap;
     text_info.m_surface_type  = m_surface_type;
-    text_info.text_configuration = m_data_update.base->get_text_configuration();
+    text_info.text_configuration = m_ui_text_configuration;
     text_info.m_font_version     = CUR_FONT_VERSION;
     return text_info;
 }

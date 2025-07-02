@@ -17143,7 +17143,9 @@ void Plater::show_object_info()
         t = model_object->instances[inst_idx]->get_matrix() * vol->get_matrix();
         info_text += (boost::format(_utf8(L("Part name: %1%\n"))) % vol->name).str();
         face_count = static_cast<int>(vol->mesh().facets_count());
-        size = vol->get_convex_hull().transformed_bounding_box(t).size();
+        if (&vol->get_convex_hull()) {
+            size = vol->get_convex_hull().transformed_bounding_box(t).size();
+        }
     }
     else {
         //int obj_idx, vol_idx;
