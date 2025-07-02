@@ -78,6 +78,15 @@ const std::vector<std::string> filament_extruder_override_keys = {
     "filament_retraction_distances_when_cut"
 };
 
+const std::vector<std::string> filament_overhang_override_keys = {
+    "filament_enable_overhang_speed",
+    "filament_overhang_1_4_speed",
+    "filament_overhang_2_4_speed",
+    "filament_overhang_3_4_speed",
+    "filament_overhang_4_4_speed",
+    "filament_overhang_totally_speed"
+};
+
 size_t get_extruder_index(const GCodeConfig& config, unsigned int filament_id)
 {
     if (filament_id < config.filament_map.size()) {
@@ -5685,6 +5694,41 @@ void PrintConfigDef::init_fff_params()
         }
     }
 
+    for (auto& opt_key : filament_overhang_override_keys){
+        const std::string filament_prefix = "filament_";
+        std::string extruder_raw_key = opt_key.substr(opt_key.find(filament_prefix) + filament_prefix.length());
+        auto it_opt = options.find(extruder_raw_key);
+        assert(it_opt != options.end());
+        def = this->add_nullable(opt_key, it_opt->second.type);
+        def->label 		= it_opt->second.label;
+        def->full_label = it_opt->second.full_label;
+        def->tooltip 	= it_opt->second.tooltip;
+        def->sidetext   = it_opt->second.sidetext;
+        def->enum_keys_map = it_opt->second.enum_keys_map;
+        def->enum_labels   = it_opt->second.enum_labels;
+        def->enum_values   = it_opt->second.enum_values;
+        def->min        = it_opt->second.min;
+        def->max        = it_opt->second.max;
+        def->category   = it_opt->second.category;
+        def->nullable = it_opt->second.nullable;
+
+        def->mode = comAdvanced;
+        switch (def->type) {
+        case coFloats: def->set_default_value(new ConfigOptionFloatsNullable(static_cast<const ConfigOptionFloatsNullable*>(it_opt->second.default_value.get())->values)); break;
+        case coPercents: def->set_default_value(new ConfigOptionPercentsNullable(static_cast<const ConfigOptionPercentsNullable*>(it_opt->second.default_value.get())->values)); break;
+        case coBools: def->set_default_value(new ConfigOptionBoolsNullable(static_cast<const ConfigOptionBools*>(it_opt->second.default_value.get())->values)); break;
+        case coEnums: def->set_default_value(new ConfigOptionEnumsGenericNullable(static_cast<const ConfigOptionEnumsGenericNullable*>(it_opt->second.default_value.get())->values)); break;
+        default: assert(false);
+        }
+    }
+
+    def = this->add("override_process_overhang_speed",coBools);
+    def->mode = comAdvanced;
+    def->label  = "Override overhang speed";
+    def->tooltip = "Override the overhang speed in process page";
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionBoolsNullable({false}));
+
     def = this->add("detect_narrow_internal_solid_infill", coBool);
     def->label = L("Detect narrow internal solid infill");
     def->category = L("Strength");
@@ -6641,6 +6685,13 @@ std::set<std::string> filament_options_with_variant = {
     "nozzle_temperature",
     "filament_flush_volumetric_speed",
     "filament_flush_temp",
+    "filament_enable_overhang_speed",
+    "filament_overhang_1_4_speed",
+    "filament_overhang_2_4_speed",
+    "filament_overhang_3_4_speed",
+    "filament_overhang_4_4_speed",
+    "filament_overhang_totally_speed",
+    "override_process_overhang_speed",
     "volumetric_speed_coefficients",
     "filament_adaptive_volumetric_speed",
     "filament_cooling_before_tower"
