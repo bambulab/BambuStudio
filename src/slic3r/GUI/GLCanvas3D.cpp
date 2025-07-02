@@ -249,7 +249,6 @@ void GLCanvas3D::LayersEditing::set_enabled(bool enabled)
 }
 
 float GLCanvas3D::LayersEditing::s_overlay_window_width;
-
 void GLCanvas3D::LayersEditing::show_tooltip_information(const GLCanvas3D& canvas, std::map<wxString, wxString> captions_texts, float x, float y)
 {
     ImTextureID normal_id = canvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP);
