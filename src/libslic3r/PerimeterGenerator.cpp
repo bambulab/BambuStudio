@@ -266,6 +266,16 @@ static void detect_bridge_wall(const PerimeterGenerator &perimeter_generator, Ex
     }
 }
 
+static bool is_enable_overhang_speed(const PerimeterGenerator& perimeter_generator)
+{
+    int filament_idx = perimeter_generator.config->wall_filament - 1;
+    int extruder_id = get_extruder_index(*perimeter_generator.print_config, filament_idx);
+    bool use_filament_overhang_speed = perimeter_generator.print_config->override_process_overhang_speed.get_at(filament_idx);
+
+    return use_filament_overhang_speed ? perimeter_generator.print_config->filament_enable_overhang_speed.get_at(filament_idx) :
+        perimeter_generator.config->enable_overhang_speed.get_at(extruder_id);
+}
+
 
 static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perimeter_generator, const PerimeterGeneratorLoops &loops, ThickPolylines &thin_walls)
 {
@@ -346,8 +356,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
 
             remain_polines = diff_pl_2({to_polyline(polygon)}, lower_polygons_series_clipped);
 
-            bool detect_overhang_speed = perimeter_generator.config->enable_overhang_speed.get_at(get_extruder_index(*(perimeter_generator.print_config), perimeter_generator.config->wall_filament - 1))
-                && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None;
+            bool detect_overhang_speed = is_enable_overhang_speed(perimeter_generator) && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None;
 
             if (!detect_overhang_speed) {
                 if (!inside_polines.empty())
@@ -686,8 +695,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                     clip_paths.back().emplace_back(p.x(), p.y(), 0);
             }
 
-            if (perimeter_generator.config->enable_overhang_speed.get_at(get_extruder_index(*(perimeter_generator.print_config), perimeter_generator.config->wall_filament - 1))
-                && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None) {
+            if (is_enable_overhang_speed(perimeter_generator) && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None) {
                 bool is_external = extrusion->inset_idx == 0;
                 Flow flow = is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow;
                 ExtrusionRole role = is_external ? ExtrusionRole::erExternalPerimeter : ExtrusionRole::erPerimeter;
@@ -749,8 +757,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
 
                 chain_and_reorder_extrusion_paths(paths, &start_point);
 
-                if (perimeter_generator.config->enable_overhang_speed.get_at(get_extruder_index(*(perimeter_generator.print_config), perimeter_generator.config->wall_filament - 1))
-                    && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None) {
+                if (is_enable_overhang_speed(perimeter_generator) && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None) {
                     // BBS: filter the speed
                     smooth_overhang_level(paths);
                 }
@@ -1645,9 +1652,9 @@ void PerimeterGenerator::process_arachne()
 
         bool is_outer_wall_first =
             this->config->wall_sequence == WallSequence::OuterInner || this->config->wall_sequence == WallSequence::InnerOuterInner;
-        if (layer_id == 0) { 
+        if (layer_id == 0) {
             is_outer_wall_first = this->config->wall_sequence == WallSequence::OuterInner;
-        }       
+        }
         if (is_outer_wall_first) {
             start_perimeter = 0;
             end_perimeter = int(total_perimeters.size());
