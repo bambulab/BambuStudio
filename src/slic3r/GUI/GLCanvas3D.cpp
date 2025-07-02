@@ -1931,6 +1931,9 @@ BoundingBoxf3 GLCanvas3D::volumes_bounding_box(bool limit_to_expand_plate) const
             const auto v_bb     = volume->transformed_bounding_box();
             if (is_limit && !expand_part_plate_list_box.overlap(v_bb))
                 continue;
+            if (v_bb.max_size() > 100000) {//unit::mm more than 100m
+                continue;
+            }
             bb.merge(v_bb);
         }
     }
