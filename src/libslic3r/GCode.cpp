@@ -935,8 +935,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         if (need_travel_after_change_filament_gcode) {
             // After a filament change, the travel path leading to the wipe tower:
             // start_point inside the previous printed object,
-            // end_point at the tower°Øs start_pos or at the starting point of the tower°Øs detour path.
-            // In this case, disable °∞avoid crossing perimeters°± to prevent inserting additional path points inside the previous printed object.
+            // end_point at the tower‚Äôs start_pos or at the starting point of the tower‚Äôs detour path.
+            // In this case, disable ‚Äúavoid crossing perimeters‚Äù to prevent inserting additional path points inside the previous printed object.
             gcodegen.m_avoid_crossing_perimeters.disable_once();
 
             // move to start_pos for wiping after toolchange
@@ -4969,21 +4969,45 @@ static std::map<int, std::string> overhang_speed_key_map =
     {6, "bridge_speed"},
 };
 
+static std::map<int, std::string> filament_overhang_speed_key_map =
+{
+    {1, "filament_overhang_1_4_speed"},
+    {2, "filament_overhang_2_4_speed"},
+    {3, "filament_overhang_3_4_speed"},
+    {4, "filament_overhang_4_4_speed"},
+    {5, "filament_overhang_totally_speed"},
+    {6, "bridge_speed"}
+};
+
+bool GCode::is_enable_overhang_speed()
+{
+    bool use_filament_overhang_speed = false;
+    int filament_idx = 0;
+    if(m_writer.filament()){
+        filament_idx  = m_writer.filament()->id();
+        use_filament_overhang_speed = m_config.override_process_overhang_speed.values[filament_idx];
+    }
+    if(use_filament_overhang_speed)
+        return m_config.filament_enable_overhang_speed.values[filament_idx];
+    else
+        return m_config.enable_overhang_speed.get_at(cur_extruder_index());
+}
+
 double GCode::get_path_speed(const ExtrusionPath &path)
 {
     double min_speed = double(m_config.slow_down_min_speed.get_at(m_writer.filament()->id()));
     // set speed
     double speed = 0;
     if (path.role() == erPerimeter) {
-        speed = NOZZLE_CONFIG(inner_wall_speed);
-        if (NOZZLE_CONFIG(enable_overhang_speed)) {
+        speed = m_config.inner_wall_speed.get_at(cur_extruder_index());
+        if (is_enable_overhang_speed()) {
             double new_speed = 0;
             new_speed        = get_overhang_degree_corr_speed(speed, path.overhang_degree);
             speed            = new_speed == 0.0 ? speed : new_speed;
         }
     } else if (path.role() == erExternalPerimeter) {
-        speed = NOZZLE_CONFIG(outer_wall_speed);
-        if (NOZZLE_CONFIG(enable_overhang_speed)) {
+        speed = m_config.outer_wall_speed.get_at(cur_extruder_index());
+        if (is_enable_overhang_speed()) {
             double new_speed = 0;
             new_speed        = get_overhang_degree_corr_speed(speed, path.overhang_degree);
             speed            = new_speed == 0.0 ? speed : new_speed;
@@ -5511,20 +5535,31 @@ double GCode::get_speed_coor_x(double speed){
 }
 
 double GCode::get_overhang_degree_corr_speed(float normal_speed, double path_degree) {
+    // BBS: protection: overhang degree is float, make sure it not excess degree range
+    if (path_degree <= 0) return normal_speed;
 
-    //BBS: protection: overhang degree is float, make sure it not excess degree range
-    if (path_degree <= 0)
-        return normal_speed;
+    int filament_idx = 0;
+    bool use_filament_overhang_speed = false;
+    if (m_writer.filament()) {
+        filament_idx = m_writer.filament()->id();
+        use_filament_overhang_speed = m_config.override_process_overhang_speed.values[filament_idx];
+    }
 
     int lower_degree_bound = int(path_degree);
     // BBS: use lower speed of 75%-100% for better cooling
-    if (path_degree >= 4 || path_degree == lower_degree_bound)
-        return m_config.get_abs_value_at(overhang_speed_key_map[lower_degree_bound].c_str(), cur_extruder_index());
-
+    if (path_degree >= 4 || path_degree == lower_degree_bound) {
+        return use_filament_overhang_speed ? m_config.get_abs_value_at(filament_overhang_speed_key_map[lower_degree_bound].c_str(), filament_idx) :
+                                             m_config.get_abs_value_at(overhang_speed_key_map[lower_degree_bound].c_str(), cur_extruder_index());
+    }
     int upper_degree_bound = lower_degree_bound + 1;
 
-    double lower_speed_bound = lower_degree_bound == 0 ? normal_speed : m_config.get_abs_value_at(overhang_speed_key_map[lower_degree_bound].c_str(), cur_extruder_index());
-    double upper_speed_bound = upper_degree_bound == 0 ? normal_speed : m_config.get_abs_value_at(overhang_speed_key_map[upper_degree_bound].c_str(), cur_extruder_index());
+    double lower_speed_bound = lower_degree_bound == 0     ? normal_speed :
+                               use_filament_overhang_speed ? m_config.get_abs_value_at(filament_overhang_speed_key_map[lower_degree_bound].c_str(), filament_idx) :
+                                                             m_config.get_abs_value_at(overhang_speed_key_map[lower_degree_bound].c_str(), cur_extruder_index());
+
+    double upper_speed_bound = upper_degree_bound == 0     ? normal_speed :
+                               use_filament_overhang_speed ? m_config.get_abs_value_at(filament_overhang_speed_key_map[upper_degree_bound].c_str(), filament_idx) :
+                                                             m_config.get_abs_value_at(overhang_speed_key_map[upper_degree_bound].c_str(), cur_extruder_index());
 
     lower_speed_bound = lower_speed_bound == 0 ? normal_speed : lower_speed_bound;
     upper_speed_bound = upper_speed_bound == 0 ? normal_speed : upper_speed_bound;
@@ -6027,7 +6062,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 speed = NOZZLE_CONFIG(circle_compensation_speed);
             }else if (m_config.detect_overhang_wall && m_config.smooth_speed_discontinuity_area && path.smooth_speed != 0)
                 speed = path.smooth_speed;
-            else if (m_config.enable_overhang_speed.get_at(cur_extruder_index())) {
+            else if (is_enable_overhang_speed()) {
                 double new_speed = 0;
                 new_speed = get_overhang_degree_corr_speed(speed, path.overhang_degree);
                 speed = new_speed == 0.0 ? speed : new_speed;
@@ -6039,7 +6074,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 speed = NOZZLE_CONFIG(circle_compensation_speed);
             } else if (m_config.detect_overhang_wall && m_config.smooth_speed_discontinuity_area && path.smooth_speed != 0)
                 speed = path.smooth_speed;
-            else if (m_config.enable_overhang_speed.get_at(cur_extruder_index())) {
+            else if (is_enable_overhang_speed()) {
                 double new_speed = 0;
                 new_speed        = get_overhang_degree_corr_speed(speed, path.overhang_degree);
                 speed = new_speed == 0.0 ? speed : new_speed;

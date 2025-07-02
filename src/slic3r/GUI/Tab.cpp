@@ -3632,7 +3632,7 @@ void TabFilament::add_filament_overrides_page()
 {
     //BBS
     PageShp page = add_options_page(L("Setting Overrides"), "empty");
-    ConfigOptionsGroupShp optgroup = page->new_optgroup(L("Retraction"), L"param_retraction");
+    ConfigOptionsGroupShp optgroup = page->new_optgroup(L("Retraction"), L"param_retraction", 15);
 
     auto append_single_option_line = [optgroup, this](const std::string& opt_key, int opt_index)
     {
@@ -3681,6 +3681,28 @@ void TabFilament::add_filament_overrides_page()
                                         "filament_retraction_distances_when_cut"
                                      })
         append_single_option_line(opt_key, extruder_idx);
+
+    optgroup = page->new_optgroup(L("Speed"), L"param_speed", 15);
+    optgroup->append_single_option_line("override_process_overhang_speed", "", extruder_idx);
+    optgroup->append_single_option_line("filament_enable_overhang_speed", "", extruder_idx);
+
+#if 1
+    optgroup->append_single_option_line("filament_overhang_1_4_speed", "", extruder_idx);
+    optgroup->append_single_option_line("filament_overhang_2_4_speed", "", extruder_idx);
+    optgroup->append_single_option_line("filament_overhang_3_4_speed", "", extruder_idx);
+    optgroup->append_single_option_line("filament_overhang_4_4_speed", "", extruder_idx);
+    optgroup->append_single_option_line("filament_overhang_totally_speed", "", extruder_idx);
+#else
+    Line line = {L("Overhang speed"), L("This is the speed for various overhang degrees. Overhang degrees are expressed as a percentage of line width. 0 speed means no slowing "
+                                        "down for the overhang degree range and wall speed is used")};
+    line.label_path = "slow-down-for-overhang";
+    line.append_option(optgroup->get_option("filament_overhang_1_4_speed", extruder_idx));
+    line.append_option(optgroup->get_option("filament_overhang_2_4_speed", extruder_idx));
+    line.append_option(optgroup->get_option("filament_overhang_3_4_speed", extruder_idx));
+    line.append_option(optgroup->get_option("filament_overhang_4_4_speed", extruder_idx));
+    line.append_option(optgroup->get_option("filament_overhang_totally_speed", extruder_idx));
+    optgroup->append_line(line);
+#endif
 }
 
 void TabFilament::update_filament_overrides_page()
@@ -3749,6 +3771,20 @@ void TabFilament::update_filament_overrides_page()
             else
                 field->toggle(is_checked);
         }
+    }
+
+    bool overhang_override = m_config->opt_bool_nullable("override_process_overhang_speed", extruder_idx);
+    toggle_line("filament_enable_overhang_speed", overhang_override, extruder_idx + 256);
+    bool enable_overhang_speed = m_config->opt_bool_nullable("filament_enable_overhang_speed", extruder_idx);
+
+    for(auto key : {
+        "filament_overhang_1_4_speed",
+        "filament_overhang_2_4_speed",
+        "filament_overhang_3_4_speed",
+        "filament_overhang_4_4_speed",
+        "filament_overhang_totally_speed"
+    }){
+        toggle_line(key, enable_overhang_speed && overhang_override, extruder_idx + 256);
     }
 }
 
@@ -6929,7 +6965,7 @@ NozzleVolumeType Tab::get_actual_nozzle_volume_type(int extruder_id)
     int extruder_count = m_preset_bundle->get_printer_extruder_count();
     auto nozzle_volumes = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
     if (extruder_count == 1) {
-        if (extruder_id < 0) 
+        if (extruder_id < 0)
             return NozzleVolumeType::nvtStandard;
 
         return NozzleVolumeType(nozzle_volumes->values[extruder_id]);

@@ -597,6 +597,7 @@ private:
     std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1, bool set_holes_and_compensation_speed = false, bool is_first_slope = false);
     ExtrusionPaths set_speed_transition(std::vector<ExtrusionPaths> &paths);
     void split_and_mapping_speed(double other_path_v, double final_v, ExtrusionPaths &this_path, double max_smooth_length, ExtrusionPaths &interpolated_paths, bool split_from_left = true);
+    bool is_enable_overhang_speed();
     double get_path_speed(const ExtrusionPath &path);
     double get_overhang_degree_corr_speed(float speed, double path_degree);
     double mapping_speed(double dist);
