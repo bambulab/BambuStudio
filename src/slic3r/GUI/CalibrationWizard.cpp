@@ -16,7 +16,6 @@ wxDEFINE_EVENT(EVT_DEVICE_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CALIBRATION_JOB_FINISHED, wxCommandEvent);
 
 static const wxString NA_STR = _L("N/A");
-static const float MIN_PA_K_VALUE_STEP = 0.001;
 static const int MAX_PA_HISTORY_RESULTS_NUMS = 16;
 
 std::map<int, Preset*> get_cached_selected_filament(MachineObject* obj) {
@@ -60,23 +59,11 @@ std::map<int, TrayInfo> get_cached_selected_filament_for_multi_extruder(MachineO
     return selected_filament_map;
 }
 
-bool is_pa_params_valid(const Calib_Params& params)
-{
-    if (params.start < MIN_PA_K_VALUE || params.end > MAX_PA_K_VALUE || params.step < EPSILON || params.end < params.start + params.step) {
-        MessageDialog msg_dlg(nullptr,
-            wxString::Format(_L("Please input valid values:\nStart value: >= %.1f\nEnd value: <= %.1f\nEnd value: > Start value\nValue step: >= %.3f)"), MIN_PA_K_VALUE, MAX_PA_K_VALUE, MIN_PA_K_VALUE_STEP),
-            wxEmptyString, wxICON_WARNING | wxOK);
-        msg_dlg.ShowModal();
-        return false;
-    }
-    return true;
-}
-
 CalibrationWizard::CalibrationWizard(wxWindow* parent, CalibMode mode, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : wxPanel(parent, id, pos, size, style)
     , m_mode(mode)
 {
-    SetBackgroundColour(wxColour(0xEEEEEE));
+    SetBackgroundColour(wxColour("#EEEEEE"));
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
 
