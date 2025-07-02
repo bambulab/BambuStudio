@@ -226,7 +226,7 @@ bool GLGizmoBase::render_combo(const std::string &label, const std::vector<std::
     return is_changed;
 }
 
-void GLGizmoBase::render_cross_mark(const Transform3d& matrix, const Vec3f &target)
+void GLGizmoBase::render_cross_mark(const Transform3d &matrix, const Vec3f &target, bool single)
 {
     if (!m_cross_mark.is_initialized()) {
         GLModel::Geometry geo;
@@ -234,7 +234,11 @@ void GLGizmoBase::render_cross_mark(const Transform3d& matrix, const Vec3f &targ
         geo.format.vertex_layout = GLModel::Geometry::EVertexLayout::P3;
 
         // x
-        geo.add_vertex(Vec3f{  -0.5f, 0.0f, 0.0f });
+        if (single) {
+            geo.add_vertex(Vec3f{0.0f, 0.0f, 0.0f});
+        } else {
+            geo.add_vertex(Vec3f{-0.5f, 0.0f, 0.0f});
+        }
         geo.add_vertex(Vec3f{  0.5f, 0.0f, 0.0f });
 
         geo.add_line(0, 1);
@@ -273,7 +277,48 @@ void GLGizmoBase::render_cross_mark(const Transform3d& matrix, const Vec3f &targ
     p_flat_shader->set_uniform("view_model_matrix", view_model_matrix * model_matrix);
     m_cross_mark.set_color({ 0.0f, 0.0f, 1.0f, 1.0f });
     m_cross_mark.render_geometry();
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    wxGetApp().unbind_shader();
+}
 
+void GLGizmoBase::render_lines(const std::vector<Vec3d> &points)
+{
+    if (!m_lines_mark.is_initialized()) {
+        GLModel::Geometry geo;
+        geo.format.type          = GLModel::PrimitiveType::Lines;
+        geo.format.vertex_layout = GLModel::Geometry::EVertexLayout::P3;
+
+        for (int i = 1; i < points.size(); i++) {
+            Vec3f p0 = points[i - 1].cast<float>();
+            Vec3f p1 = points[i].cast<float>();
+            geo.add_vertex(p0);
+            geo.add_vertex(p1);
+            geo.add_line(i - 1, i);
+        }
+        m_lines_mark.init_from(std::move(geo));
+    }
+    const auto &p_flat_shader = wxGetApp().get_shader("flat");
+    if (!p_flat_shader) return;
+
+    wxGetApp().bind_shader(p_flat_shader);
+
+    const Camera &camera      = wxGetApp().plater()->get_camera();
+    const auto &  view_matrix = camera.get_view_matrix();
+    const auto &  proj_matrix = camera.get_projection_matrix();
+
+    const auto view_model_matrix = view_matrix;
+    glsafe(::glDisable(GL_DEPTH_TEST));
+
+    const auto &ogl_manager = wxGetApp().get_opengl_manager();
+    if (ogl_manager) { ogl_manager->set_line_width(2.0f); }
+
+    Transform3d model_matrix{Transform3d::Identity()};
+
+    p_flat_shader->set_uniform("view_model_matrix", view_model_matrix);
+    p_flat_shader->set_uniform("projection_matrix", proj_matrix);
+    m_lines_mark.set_color({1.0f, 1.0f, 0.0f, 1.0f});
+    m_lines_mark.render_geometry();
+    glsafe(::glEnable(GL_DEPTH_TEST));
     wxGetApp().unbind_shader();
 }
 

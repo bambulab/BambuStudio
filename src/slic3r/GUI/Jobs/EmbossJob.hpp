@@ -281,6 +281,7 @@ public:
 
 const GLVolume *find_glvoloume_render_screen_cs(const Selection &selection, const Vec2d &screen_center, const Camera &camera, const ModelObjectPtrs &objects, Vec2d *closest_center);
 void            create_all_char_mesh(DataBase &input, std::vector<TriangleMesh> &result, EmbossShape &shape);
+float           get_single_char_width( const std::vector<TriangleMesh> &chars_mesh_result);
 void calc_text_lengths(std::vector<double> &text_lengths,const std::vector<TriangleMesh>& chars_mesh_result);
 void calc_position_points(std::vector<Vec3d> &position_points, std::vector<double> &text_lengths, float text_gap, const Vec3d &temp_pos_dir);
 
@@ -386,6 +387,7 @@ public:
                                                   Geometry::Transformation &local_tran_to_object_cs,
                                                   TriangleMesh &            slice_mesh);
     static void generate_mesh_according_points(InputInfo& input_info);
+    static std::vector<Vec3d>       debug_cut_points_in_world;
 
 public:
     explicit GenerateTextJob(InputInfo &&input);

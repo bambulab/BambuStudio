@@ -1823,8 +1823,9 @@ void GLGizmoText::on_render()
             Geometry::Transformation tran(m_text_tran_in_object.get_matrix());
             if (tran.get_offset().norm() > 1) {
                 auto text_volume_tran_world = mi->get_transformation().get_matrix() * tran.get_matrix();
-                render_cross_mark(text_volume_tran_world, Vec3f::Zero());
+                render_cross_mark(text_volume_tran_world, Vec3f::Zero(),true);
             }
+            render_lines(GenerateTextJob::debug_cut_points_in_world);
         }
     }
     //if (is_rotate_by_grabbers || (!is_surface_dragging && !is_parent_dragging)) {
@@ -1864,6 +1865,9 @@ void GLGizmoText::on_render()
 
     if(generate_text_volume()) {//on_render
         plater->update();
+        if (wxGetApp().plater()->is_show_text_cs()) {
+            m_lines_mark.reset();
+        }
     }
 }
 
@@ -3066,7 +3070,7 @@ bool GLGizmoText::update_text_positions()
     int text_num = m_chars_mesh_result.size();//FIX by BBS 20250109
     m_position_points.clear();
     m_normal_points.clear();
-    bool rewrite_text_tran = m_last_text_mv == nullptr;
+    bool rewrite_text_tran = m_need_update_tran ? true :m_last_text_mv == nullptr;
     if (!update_text_tran_in_model_object(rewrite_text_tran)) {
         return false;
     }
