@@ -779,9 +779,11 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     penel_text->Layout();
 
     m_staticText_finish_time = new Label(penel_finish_time);
-    m_staticText_finish_time->SetLabel(_L("Finish Time: N/A"));
+
+    const wxString& finish_time_str = _L("Estimated finish time: ") + "N/A";
+    m_staticText_finish_time->SetLabel(finish_time_str);
     m_staticText_finish_time->Wrap(-1);
-    m_staticText_finish_time->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
+    m_staticText_finish_time->SetFont(Label::Body_14);
     m_staticText_finish_time->SetForegroundColour(wxColour(146, 146, 146));
     m_staticText_finish_time->SetToolTip(_L("The estimated printing time for \nmulti-color models may be inaccurate."));
     m_staticText_finish_day = new RectTextPanel(penel_finish_time);
@@ -1154,12 +1156,17 @@ void PrintingTaskPanel::update_finish_time(wxString finish_time)
             }
         }
 
-        wxString finish_time_str = _L("Finish Time: ") + finish_time;
+        wxString finish_time_str = _L("Estimated finish time: ") + finish_time;
+
+#ifdef _WIN32
+        finish_time_str += '\0'; /*github#5028 the problem occurs stable on BODY_13. Maybe this is a BUG of some fonts or windows OS. Add '0' will walk around it. FIXME*/
+#endif
+
         if (m_staticText_finish_time->GetLabelText() != finish_time_str)
         {
             m_staticText_finish_time->SetLabelText(finish_time_str);
             m_staticText_finish_time->Wrap(-1);
-            BOOST_LOG_TRIVIAL(info) << "PrintingTaskPanel::update_finish_time: " << finish_time;
+            BOOST_LOG_TRIVIAL(info) << "PrintingTaskPanel::update_finish_time: " << finish_time_str << " Result: " << m_staticText_finish_time->GetLabelText();
             Layout();
         }
     }
