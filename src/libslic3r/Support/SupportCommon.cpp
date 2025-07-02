@@ -1476,7 +1476,8 @@ void generate_support_toolpaths(
     const SupportGeneratorLayersPtr     &top_contacts,
     const SupportGeneratorLayersPtr     &intermediate_layers,
     const SupportGeneratorLayersPtr     &interface_layers,
-    const SupportGeneratorLayersPtr     &base_interface_layers)
+    const SupportGeneratorLayersPtr     &base_interface_layers,
+    const std::vector<ExPolygons>       &cooldown_areas)
 {
     // loop_interface_processor with a given circle radius.
     LoopInterfaceProcessor loop_interface_processor(1.5 * support_params.support_material_interface_flow.scaled_width());
@@ -1608,7 +1609,7 @@ void generate_support_toolpaths(
     std::vector<LayerCache>             layer_caches(support_layers.size());
 
     tbb::parallel_for(tbb::blocked_range<size_t>(n_raft_layers, support_layers.size()),
-        [&config, &slicing_params, &support_params, &support_layers, &bottom_contacts, &top_contacts, &intermediate_layers, &interface_layers, &base_interface_layers, &layer_caches, &loop_interface_processor,
+        [&config, &slicing_params, &support_params, &support_layers, &bottom_contacts, &top_contacts, &intermediate_layers, &interface_layers, &base_interface_layers, &cooldown_areas, &layer_caches, &loop_interface_processor,
             &bbox_object, &angles, &interface_angles, n_raft_layers, link_max_length_factor]
             (const tbb::blocked_range<size_t>& range) {
         // Indices of the 1st layer in their respective container at the support layer height.
@@ -1821,6 +1822,29 @@ void generate_support_toolpaths(
                         // Extrusion parameters
                         ExtrusionRole::erSupportMaterial, flow,
                         support_params, sheath, no_sort);
+            }
+
+            if (!cooldown_areas.empty() && !cooldown_areas[support_layer_id].empty()) {
+                std::function<void(ExtrusionEntitiesPtr &)> setOverhangDegreeImpl = [&](ExtrusionEntitiesPtr &entities) {
+                    for (auto entityPtr : entities) {
+                        if (overlaps(to_expolygons(entityPtr->polygons_covered_by_width()), cooldown_areas[support_layer_id])) {
+                            if (ExtrusionEntityCollection *collection = dynamic_cast<ExtrusionEntityCollection *>(entityPtr)) {
+                                setOverhangDegreeImpl(collection->entities);
+                            } else if (ExtrusionPath *path = dynamic_cast<ExtrusionPath *>(entityPtr)) {
+                                path->set_overhang_degree(10);
+                            } else if (ExtrusionMultiPath *multipath = dynamic_cast<ExtrusionMultiPath *>(entityPtr)) {
+                                for (ExtrusionPath &path : multipath->paths) { path.set_overhang_degree(10); }
+                            } else if (ExtrusionLoop *loop = dynamic_cast<ExtrusionLoop *>(entityPtr)) {
+                                for (ExtrusionPath &path : loop->paths) { path.set_overhang_degree(10); }
+                            }
+                        }
+                    }
+                };
+                setOverhangDegreeImpl(base_layer.extrusions);
+                setOverhangDegreeImpl(top_contact_layer.extrusions);
+                setOverhangDegreeImpl(bottom_contact_layer.extrusions);
+                setOverhangDegreeImpl(interface_layer.extrusions);
+                setOverhangDegreeImpl(base_interface_layer.extrusions);
             }
 
             // Merge base_interface_layers to base_layers to avoid unneccessary retractions

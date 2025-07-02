@@ -1795,6 +1795,24 @@ void TreeSupport::generate_toolpaths()
                                 tree_supports_generate_paths(ts_layer->support_fills.entities, loops, flow, support_params);
                             }
                         }
+
+                        if (area_group.need_cooling) 
+                        {
+                            std::function<void(ExtrusionEntityCollection *)> setOverhangDegreeImpl = [&](ExtrusionEntityCollection *entity) {
+                                for (auto entityPtr : entity->entities) {
+                                    if (ExtrusionEntityCollection *collection = dynamic_cast<ExtrusionEntityCollection *>(entityPtr)) {
+                                        setOverhangDegreeImpl(collection);
+                                    } else if (ExtrusionPath *path = dynamic_cast<ExtrusionPath *>(entityPtr)) {
+                                        path->set_overhang_degree(10);
+                                    } else if (ExtrusionMultiPath *multipath = dynamic_cast<ExtrusionMultiPath *>(entityPtr)) {
+                                        for (ExtrusionPath &path : multipath->paths) { path.set_overhang_degree(10); }
+                                    } else if (ExtrusionLoop *loop = dynamic_cast<ExtrusionLoop *>(entityPtr)) {
+                                        for (ExtrusionPath &path : loop->paths) { path.set_overhang_degree(10); }
+                                    }
+                                }
+                            };
+                            setOverhangDegreeImpl(&ts_layer->support_fills);
+                        }
                     }
                 }
                 if (m_support_params.base_fill_pattern == ipLightning)
@@ -2315,6 +2333,7 @@ void TreeSupport::draw_circles()
                 ts_layer->support_islands.reserve(curr_layer_nodes.size());
                 ExPolygons area_poly;  // the polygon node area which will be printed as normal support
                 ExPolygons extra_wall_area; //where nodes would have extra walls
+                ExPolygons cooldown_area;
                 for (const SupportNode* p_node : curr_layer_nodes)
                 {
                     if (print->canceled())
@@ -2371,6 +2390,7 @@ void TreeSupport::draw_circles()
 
                         if (!area.empty()) has_circle_node = true;
                         if (node.need_extra_wall) append(extra_wall_area, area);
+                        if (node.overhang_degree >= 2) append(cooldown_area, area);
 
                         // merge overhang to get a smoother interface surface
                         // Do not merge when buildplate_only is on, because some underneath nodes may have been deleted.
@@ -2384,6 +2404,7 @@ void TreeSupport::draw_circles()
                             }
                             append(area, overhang_expanded);
                         }
+
                     }
 
                     if (layer_nr == 0 && m_raft_layers == 0) {
@@ -2477,6 +2498,7 @@ void TreeSupport::draw_circles()
                     area_groups.back().need_infill = overlaps({ expoly }, area_poly);
                     bool need_extra_wall = overlaps({expoly},extra_wall_area);
                     area_groups.back().need_extra_wall = need_extra_wall && !area_groups.back().need_infill;
+                    area_groups.back().need_cooling = overlaps({ expoly }, cooldown_area);
                 }
                 for (auto& expoly : ts_layer->roof_areas) {
                     //if (area(expoly) < SQ(scale_(1))) continue;
@@ -3471,6 +3493,7 @@ void TreeSupport::smooth_nodes()
                             branch[i]->radius = radii1[i];
                             branch[i]->movement = (pts[i + 1] - pts[i - 1]) / 2;
                             branch[i]->is_processed = true;
+                            branch[i]->overhang_degree = std::min(10.0, unscale_((branch[i]->movement).cast<double>().norm()) / m_object_config->support_line_width * 10);
                             if (branch[i]->parents.size() > 1 || (branch[i]->movement.x() > max_move || branch[i]->movement.y() > max_move) ||
                                 (total_height > thresh_tall_branch && branch[i]->dist_mm_to_top < thresh_dist_to_top))
                                 branch[i]->need_extra_wall = true;
