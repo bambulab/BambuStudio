@@ -487,9 +487,21 @@ void CommonGizmosDataObjects::ObjectClipper::set_behaviour(bool hide_clipped, bo
 
 void ObjectClipper::set_position(double pos, bool keep_normal, bool vertical_normal)
 {
-    const ModelObject *mo          = get_pool()->selection_info()->model_object();
-    int                active_inst = get_pool()->selection_info()->get_active_instance();
-    double             z_shift     = get_pool()->selection_info()->get_sla_shift();
+    const auto p_pool = get_pool();
+    if (!p_pool) {
+        return;
+    }
+
+    const auto& p_selection_info = p_pool->selection_info();
+    if (!p_selection_info) {
+        return;
+    }
+    const ModelObject *mo          = p_selection_info->model_object();
+    if (!mo) {
+        return;
+    }
+    int                active_inst = p_selection_info->get_active_instance();
+    double             z_shift     = p_selection_info->get_sla_shift();
     if (active_inst < 0) {
         return;
     }
@@ -500,8 +512,8 @@ void ObjectClipper::set_position(double pos, bool keep_normal, bool vertical_nor
         normal = (keep_normal && m_clp) ? m_clp->get_normal() : -wxGetApp().plater()->get_camera().get_dir_forward();
     }
     Vec3d center;
-    if (get_pool()->get_canvas()->get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
-        const SelectionInfo *sel_info           = get_pool()->selection_info();
+    if (p_pool->get_canvas()->get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
+        const SelectionInfo *sel_info           = p_selection_info;
         auto                 trafo              = mo->instances[sel_info->get_active_instance()]->get_assemble_transformation();
         auto                 offset_to_assembly = mo->instances[0]->get_offset_to_assembly();
         center                                  = trafo.get_offset() + offset_to_assembly * (GLVolume::explosion_ratio - 1.0);

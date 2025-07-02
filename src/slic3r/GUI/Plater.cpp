@@ -17433,7 +17433,8 @@ void Plater::edit_text()
 {
     const auto& p_canvas = get_view3D_canvas3D();
     if (p_canvas) {
-        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(GLGizmosManager::EType::Text), true } };
+        const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Text);
+        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, true } };
         p_canvas->on_force_click_toolbar_item(evt);
     }
     update();

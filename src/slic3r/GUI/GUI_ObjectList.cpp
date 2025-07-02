@@ -1459,7 +1459,8 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
                 if (p_plater) {
                     const auto p_canvas = p_plater->get_view3D_canvas3D();
                     if (p_canvas) {
-                        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(GLGizmosManager::EType::FdmSupports), false } };
+                        const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::FdmSupports);
+                        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
                         p_canvas->post_event(std::move(evt));
                     }
                 }
@@ -1472,7 +1473,8 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
                     if (p_plater) {
                         const auto p_canvas = p_plater->get_view3D_canvas3D();
                         if (p_canvas) {
-                            Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(GLGizmosManager::EType::FuzzySkin), false } };
+                            const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::FuzzySkin);
+                            Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
                             p_canvas->post_event(std::move(evt));
                         }
                     }
@@ -1487,7 +1489,8 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
                     if (p_plater) {
                         const auto p_canvas = p_plater->get_view3D_canvas3D();
                         if (p_canvas) {
-                            Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(GLGizmosManager::EType::MmuSegmentation), false } };
+                            const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::MmuSegmentation);
+                            Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
                             p_canvas->post_event(std::move(evt));
                         }
                     }
@@ -3447,6 +3450,9 @@ bool ObjectList::get_volume_by_item(const wxDataViewItem& item, ModelVolume*& vo
     auto obj_idx = get_selected_obj_idx();
     if (!item || obj_idx < 0)
         return false;
+    if (m_objects->size() <= obj_idx) {
+        return false;
+    }
     const auto volume_id = m_objects_model->GetVolumeIdByItem(item);
     const bool split_part = m_objects_model->GetItemType(item) == itVolume;
 
@@ -3477,6 +3483,9 @@ bool ObjectList::is_splittable(bool to_objects)
             auto obj_idx = get_selected_obj_idx();
             if (obj_idx < 0)
                 return false;
+            if (m_objects->size() <= obj_idx) {
+                return false;
+            }
             if ((*m_objects)[obj_idx]->volumes.size() > 1)
                 return true;
             return (*m_objects)[obj_idx]->volumes[0]->is_splittable();
@@ -3772,7 +3781,8 @@ void ObjectList::part_selection_changed()
                     if (p_plater) {
                         const auto p_canvas = p_plater->get_view3D_canvas3D();
                         if (p_canvas) {
-                            Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(gizmo_type), false } };
+                            const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(gizmo_type);
+                            Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
                             p_canvas->post_event(std::move(evt));
                         }
                     }
@@ -6036,7 +6046,8 @@ void ObjectList::simplify()
 
     const auto p_canvas = plater->get_view3D_canvas3D();
     if (p_canvas) {
-        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(GLGizmosManager::EType::Simplify), true } };
+        const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Simplify);
+        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, true } };
         p_canvas->post_event(std::move(evt));
     }
 }
@@ -6129,7 +6140,11 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
     auto col = event.GetColumn();
     auto item = event.GetItem();
     const auto p_plater = wxGetApp().plater();
-    if (col == colPrint) {
+    if (col == colHeight) {
+        enable_layers_editing();
+        return;
+    }
+    else if (col == colPrint) {
         toggle_printable_state();
         return;
     } else if (col == colSupportPaint) {
@@ -6137,17 +6152,19 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
         if (node && node->HasSupportPainting()) {
             const auto p_canvas = p_plater->get_view3D_canvas3D();
             if (p_canvas) {
-                Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(GLGizmosManager::EType::FdmSupports), false } };
+                const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::FdmSupports);
+                Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
                 p_canvas->post_event(std::move(evt));
             }
         }
         return;
     } else if (col == colFuzzySkin) {
         ObjectDataViewModelNode *node = (ObjectDataViewModelNode *) item.GetID();
-        if (node && node->HasColorPainting()) {
+        if (node && node->HasFuzzySkinPainting()) {
             const auto p_canvas = p_plater->get_view3D_canvas3D();
             if (p_canvas) {
-                Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(GLGizmosManager::EType::FuzzySkin), false } };
+                const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::FuzzySkin);
+                Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
                 p_canvas->post_event(std::move(evt));
             }
         }
@@ -6158,7 +6175,8 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
         if (node && node->HasColorPainting()) {
             const auto p_canvas = p_plater->get_view3D_canvas3D();
             if (p_canvas) {
-                Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { static_cast<int>(GLGizmosManager::EType::MmuSegmentation), false } };
+                const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::MmuSegmentation);
+                Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
                 p_canvas->post_event(std::move(evt));
             }
         }
@@ -6525,7 +6543,9 @@ void ObjectList::enable_layers_editing()
 
     auto view3d = wxGetApp().plater()->get_view3D_canvas3D();
     if (view3d != nullptr && m_objects_model->IsVariableHeight(frst_item)){
-        view3d->enable_layers_editing(true);
+        const std::string item_name = "layersediting";
+        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
+        view3d->post_event(std::move(evt));
     }
 }
 
