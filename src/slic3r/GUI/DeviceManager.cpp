@@ -5619,15 +5619,6 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             upgrade_display_hold_count = HOLD_COUNT_MAX;
                             BOOST_LOG_TRIVIAL(info) << "ack of upgrade_confirm";
                         }
-
-                        if (j["upgrade"].contains("err_code")) {
-                            if (j["upgrade"]["err_code"].is_number()) {
-                                if (print_error != j["upgrade"]["err_code"].get<int>()) {
-                                    this->print_error = j["upgrade"]["err_code"].get<int>();
-                                    BOOST_LOG_TRIVIAL(error) << BBLCrossTalk::Crosstalk_DevId(this->dev_id) << ", new upgrade command err_code: " << this->print_error;
-                                }
-                            }
-                        }
                     }
                 }
             }
