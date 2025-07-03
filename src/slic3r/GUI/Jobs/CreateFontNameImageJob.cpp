@@ -185,13 +185,15 @@ void Slic3r::GUI::BackupFonts::generate_backup_fonts() {
 #endif
 #ifdef __APPLE__
          font_names.emplace_back(wxString::FromUTF8("Songti SC"));//chinese confirm
-         font_names.emplace_back(wxString::FromUTF8("Hiragino Sans"));        // Japanese
-         font_names.emplace_back(wxString::FromUTF8("NanumGothic"));           // Korean
-         font_names.emplace_back(wxString::FromUTF8("Al Bayan")); // Arabic
+         font_names.emplace_back(wxString::FromUTF8("SimSong"));        // Japanese//mac special
+         font_names.emplace_back(wxString::FromUTF8("Nanum Gothic"));           // Korean//mac need space
+         font_names.emplace_back(wxString::FromUTF8("Arial")); // Arabic
 #endif
 #ifdef __linux__
-         font_names.emplace_back(wxString::FromUTF8("Noto Serif CJK"));//include chinese Japanese Korean
-         font_names.emplace_back(wxString::FromUTF8("Noto Naskh Arabic"));//Arabic
+         font_names.emplace_back(wxString(L"宋体"));                 // chinese confirm
+         font_names.emplace_back(wxString::FromUTF8("MS Gothic"));   // Japanese
+         font_names.emplace_back(wxString::FromUTF8("NanumGothic")); // Korean
+         font_names.emplace_back(wxString::FromUTF8("Arial"));       // Arabic
 #endif
          if (!custom_back_font_name.empty()) {
              font_names.emplace_back(wxString::FromUTF8(custom_back_font_name));

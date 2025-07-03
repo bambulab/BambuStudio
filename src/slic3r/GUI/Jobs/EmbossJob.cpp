@@ -1979,6 +1979,7 @@ void CreateObjectTextJob::finalize(bool canceled, std::exception_ptr &eptr) {
         new_volume->name        = _u8L("Text");
         // set a default extruder value, since user can't add it manually
         new_volume->config.set_key_value("extruder", new ConfigOptionInt(1));
+        m_input.text_info.m_surface_type = TextInfo::TextType ::HORIZONAL;
         new_volume->set_text_info(m_input.text_info);
         // write emboss data into volume
         m_input.base->write(*new_volume);
