@@ -2528,7 +2528,6 @@ void StatusPanel::on_subtask_pause_resume(wxCommandEvent &event)
             BOOST_LOG_TRIVIAL(info) << "monitor: pause current print task dev_id =" << obj->dev_id;
             obj->command_task_pause();
         }
-
         if (m_print_error_dlg) {
             m_print_error_dlg->on_hide();
         }if (m_print_error_dlg_no_action) {
@@ -2835,7 +2834,10 @@ void StatusPanel::update_error_message()
         before_error_code = obj->print_error;
 
         if (wxGetApp().get_hms_query()) {
-            std::string print_error_str = obj->get_print_error_str();
+            char buf[32];
+            ::sprintf(buf, "%08X", obj->print_error);
+            std::string print_error_str = std::string(buf);
+            if (print_error_str.size() > 4) { print_error_str.insert(4, "-"); }
 
             wxString error_msg = wxGetApp().get_hms_query()->query_print_error_msg(obj, obj->print_error);
             if (wxGetApp().get_hms_query()->is_internal_error(obj, obj->print_error))
@@ -4824,7 +4826,6 @@ void StatusPanel::on_print_error_dlg_btn_clicked(wxCommandEvent& event)
             default: break;
         }
 
-        obj->command_clean_print_error_uiop(before_error_code);
         if (m_print_error_dlg) { m_print_error_dlg->on_hide(); }
         if (m_print_error_dlg_no_action) { m_print_error_dlg_no_action->on_hide();}
     }

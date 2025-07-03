@@ -1934,24 +1934,6 @@ int MachineObject::command_clean_print_error(std::string subtask_id, int print_e
     return this->publish_json(j);
 }
 
-int MachineObject::command_clean_print_error_uiop(int print_error)
-{
-    json j;
-    j["print"]["command"] = "uiop";
-    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    j["print"]["name"] = "print_error";
-    j["print"]["action"] = "close";
-    j["print"]["source"] = 1;// 0-Mushu 1-Studio
-    j["print"]["type"] = "dialog";
-
-    // the error to be cleaned
-    char buf[32];
-    ::sprintf(buf, "%08X", print_error);
-    j["print"]["err"] = std::string(buf);
-
-    return this->publish_json(j.dump());
-}
-
 int MachineObject::command_upgrade_confirm()
 {
     json j;
@@ -3856,22 +3838,6 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                         }
                     }
                 }
-
-                if (!key_field_only)
-                {
-                    if (jj.contains("command") && jj.contains("err_code") && jj.contains("result"))
-                    {
-                        if (jj["err_code"].is_number())
-                        {
-                            if (print_error != jj["err_code"].get<int>())
-                            {
-                                this->print_error = jj["err_code"].get<int>();
-                                BOOST_LOG_TRIVIAL(error) << BBLCrossTalk::Crosstalk_DevId(this->dev_id) << ", new command err_code: " << this->print_error;
-                            }
-                        }
-                    }
-                }
-
                 if (jj["command"].get<std::string>() == "push_status") {
                     m_push_count++;
                     last_push_time = last_update_time;
@@ -5139,6 +5105,16 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                         }
                     }
                 } else if (jj["command"].get<std::string>() == "ams_filament_setting" && !key_field_only) {
+                    if (jj.contains("result") && jj.contains("reason")) {
+                        if (jj["result"].get<std::string>() == "fail") {
+                            if (jj.contains("err_code")) {
+                                auto err_code = jj["err_code"].get<int>();
+                                print_error   = err_code;
+                            }
+                        }
+                    }
+
+
                     // BBS trigger ams UI update
                     ams_version = -1;
 
@@ -5280,6 +5256,14 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                         }
                     }
                 } else if (jj["command"].get<std::string>() == "extrusion_cali_set") {
+                    if (jj.contains("result") && jj.contains("reason")) {
+                        if (jj["result"].get<std::string>() == "fail") {
+                            if (jj.contains("err_code")) {
+                                auto err_code = jj["err_code"].get<int>();
+                                print_error   = err_code;
+                            }
+                        }
+                    }
 #ifdef CALI_DEBUG
                     std::string str = jj.dump();
                     BOOST_LOG_TRIVIAL(info) << "extrusion_cali_set: " << str;
@@ -5324,6 +5308,15 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     extrusion_cali_set_hold_start = std::chrono::system_clock::now();
                 }
                 else if (jj["command"].get<std::string>() == "extrusion_cali_sel") {
+                    if (jj.contains("result") && jj.contains("reason")) {
+                        if (jj["result"].get<std::string>() == "fail") {
+                            if (jj.contains("err_code")) {
+                                auto err_code = jj["err_code"].get<int>();
+                                print_error   = err_code;
+                            }
+                        }
+                    }
+
 #ifdef CALI_DEBUG
                     std::string str = jj.dump();
                     BOOST_LOG_TRIVIAL(info) << "extrusion_cali_sel: " << str;
@@ -5393,6 +5386,10 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                         bool is_succeed = true;
                         if (jj.contains("result") && jj.contains("reason")) {
                             if (jj["result"].get<std::string>() == "fail") {
+                                if (jj.contains("err_code")) {
+                                    auto err_code = jj["err_code"].get<int>();
+                                    print_error   = err_code;
+                                }
                                 is_succeed = false;
                             }
                         }
@@ -5463,6 +5460,8 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     if (jj.contains("result") && jj.contains("reason")) {
                         if (jj["result"].get<std::string>() == "fail") {
                             if (jj.contains("err_code")) {
+                                auto err_code = jj["err_code"].get<int>();
+                                print_error   = err_code;
                                 is_succeed    = false;
                             }
                         }
@@ -7070,17 +7069,6 @@ wxString MachineObject::get_nozzle_replace_url() const
     }/*retry with en*/
 
     return "https://wiki.bambulab.com/en/h2/maintenance/replace-hotend";
-}
-
-std::string MachineObject::get_error_code_str(int error_code)
-{
-    if (error_code < 0) { return std::string();}
-
-    char buf[32];
-    ::sprintf(buf, "%08X", error_code);
-    std::string print_error_str = std::string(buf);
-    if (print_error_str.size() > 4) { print_error_str.insert(4, "-"); }
-    return print_error_str;
 }
 
 bool DeviceManager::EnableMultiMachine = false;
