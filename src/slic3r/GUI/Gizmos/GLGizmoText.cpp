@@ -1197,23 +1197,25 @@ void GLGizmoText::draw_model_type(int caption_width)
 
 void GLGizmoText::draw_surround_type(int caption_width)
 {
+    if ((!m_last_text_mv) ||m_last_text_mv->is_the_only_one_part()) {
+        return;
+    }
     auto label_width = caption_width;
     float cur_cap      = m_imgui->calc_text_size(_L("Surround projection by char")).x;
     auto  item_width  = cur_cap * 1.2 + ImGui::GetStyle().FramePadding.x * 18.0f;
     ImGui::AlignTextToFramePadding();
     size_t                   selection_idx = int(m_surface_type);
     std::vector<std::string> modes         = {_u8L("Not surround") , _u8L("Surround surface"), _u8L("Surround") + "+" + _u8L("Horizonal")};
-    if (m_last_text_mv) {
-        if (m_last_text_mv->is_the_only_one_part()) {
-            modes.erase(modes.begin() + 2);
-            modes.erase(modes.begin() + 1);
-            m_surface_type = TextInfo::TextType ::HORIZONAL;
-            selection_idx = int(m_surface_type);
-        } else {
-            modes.push_back(_u8L("Surround projection by char"));
-        }
+    if (m_rr.mesh_id < 0) {
+        modes.erase(modes.begin() + 2);
+        modes.erase(modes.begin() + 1);
+        m_surface_type = TextInfo::TextType ::HORIZONAL;
+        selection_idx  = int(m_surface_type);
     }
-    bool                     is_changed    = false;
+    else {
+        modes.push_back(_u8L("Surround projection by char"));
+    }
+    bool is_changed    = false;
 
     ImGuiWrapper::push_combo_style(m_parent.get_scale());
     if (render_combo(_u8L("Mode"), modes, selection_idx, label_width, item_width)) {
@@ -1425,9 +1427,9 @@ bool GLGizmoText::on_shortcut_key() {
     }
     if (process(false, std::nullopt, false)) {
         CreateTextInput temp_input_info;
-        DataBasePtr base = create_emboss_data_base(m_text, m_style_manager, selection,  ModelVolumeType::MODEL_PART, m_job_cancel);
-        temp_input_info.base                = std::move(base);
-        temp_input_info.text_info           = get_text_info();
+        DataBasePtr     base      = create_emboss_data_base(m_text, m_style_manager, selection, ModelVolumeType::MODEL_PART, m_job_cancel);
+        temp_input_info.base      = std::move(base);
+        temp_input_info.text_info = get_text_info();
         if (m_is_direct_create_text) {
             auto  job    = std::make_unique<CreateObjectTextJob>(std::move(temp_input_info));
             auto &worker = wxGetApp().plater()->get_ui_job_worker();
@@ -1438,11 +1440,11 @@ bool GLGizmoText::on_shortcut_key() {
             Size                     s = m_parent.get_canvas_size();
             Vec2d                    screen_center(s.get_width() / 2., s.get_height() / 2.);
             const ModelObjectPtrs &  objects = selection.get_model()->objects;
+            m_object_idx                     = object_idx;
             Vec2d         coor;
             const Camera &camera = wxGetApp().plater()->get_camera();
             auto finde_gl_volume = find_glvoloume_render_screen_cs(selection, screen_center, camera, objects, &coor);
             if (finde_gl_volume != nullptr && object_idx >= 0) {
-                m_object_idx = object_idx;
                 update_trafo_matrices();
                 m_c->update(get_requirements());
                 if (m_trafo_matrices.size() > 0 && update_raycast_cache(coor, camera, m_trafo_matrices,false) && m_rr.mesh_id >= 0) {
@@ -1468,11 +1470,33 @@ bool GLGizmoText::on_shortcut_key() {
                             return true;
                         }
                     }
+                } else {
+                    ModelObject * mo = objects[object_idx];
+                    BoundingBoxf3 instance_bb;
+                    size_t        instance_index = selection.get_instance_idx();
+                    instance_bb                  = mo->instance_bounding_box(instance_index);
+                    // Vec3d volume_size            = volume->mesh().bounding_box().size();
+                    // Translate the new modifier to be pickable: move to the left front corner of the instance's bounding box, lift to print bed.
+                    Vec3d offset_tr(0, -instance_bb.size().y() / 2.f  - 2.f, -instance_bb.size().z() / 2.f); // lay on bed
+                    auto  mo_tran = mo->instances[instance_index]->get_transformation();
+
+                    m_text_tran_in_object.reset();
+                    m_text_tran_in_object.set_offset(offset_tr);
+                    m_text_position_in_world = mo_tran.get_matrix() * offset_tr;
+                    m_text_normal_in_world   = Vec3f::UnitZ();
+                    m_confirm_generate_text  = true;
+                    m_is_modify              = true;
+                    m_need_update_text       = true;
+                    m_volume_idx             = -1;
+                    m_surface_type           = TextInfo::TextType ::HORIZONAL;
+                    if (generate_text_volume()) { // first on surface
+                        return true;
+                    }
                 }
             }
             m_is_direct_create_text = true;
-            auto  job    = std::make_unique<CreateObjectTextJob>(std::move(temp_input_info));
-            auto &worker = wxGetApp().plater()->get_ui_job_worker();
+            auto  job               = std::make_unique<CreateObjectTextJob>(std::move(temp_input_info));
+            auto &worker            = wxGetApp().plater()->get_ui_job_worker();
             queue_job(worker, std::move(job));
         }
     } else {
@@ -1644,7 +1668,6 @@ void GLGizmoText::load_init_text(bool first_open_text, bool is_serializing)
                         m_fix_old_tran_flag = true;
                     }
                 }
-
                 if (first_open_text && !is_only_text_case()) {
                     auto  valid_mesh_id = 0;
                     Vec3f closest_normal;
@@ -1653,9 +1676,7 @@ void GLGizmoText::load_init_text(bool first_open_text, bool is_serializing)
                     Vec3f local_center = m_text_tran_in_object.get_offset().cast<float>(); //(m_text_tran_in_object.get_matrix() * box.center()).cast<float>();
                     for (int i = 0; i < mo->volumes.size(); i++) {
                         auto mv = mo->volumes[i];
-                        if (mv == model_volume || mv->is_text() || !mv->is_model_part()) {
-                            continue;
-                        }
+                        if (mv == model_volume || mv->is_text() || !mv->is_model_part()) { continue; }
                         TriangleMesh text_attach_mesh(mv->mesh());
                         text_attach_mesh.transform(mv->get_matrix());
                         MeshRaycaster temp_ray_caster(text_attach_mesh);
@@ -1669,37 +1690,41 @@ void GLGizmoText::load_init_text(bool first_open_text, bool is_serializing)
                             closest_normal = temp_normal;
                         }
                     }
-                    if (m_rr.mesh_id != valid_mesh_id) {
-                        m_rr.mesh_id = valid_mesh_id;
-                    }
-                    auto         mv = mo->volumes[m_rr.mesh_id];
-                    TriangleMesh text_attach_mesh(mv->mesh());
-                    text_attach_mesh.transform(mv->get_matrix());
-                    MeshRaycaster temp_ray_caster(text_attach_mesh);
+                    if (min_dist < 1.0f) {
+                        if (m_rr.mesh_id != valid_mesh_id) {
+                            m_rr.mesh_id = valid_mesh_id;
+                        }
+                        auto         mv = mo->volumes[m_rr.mesh_id];
+                        TriangleMesh text_attach_mesh(mv->mesh());
+                        text_attach_mesh.transform(mv->get_matrix());
+                        MeshRaycaster temp_ray_caster(text_attach_mesh);
 
-                    m_fix_text_position_in_world = m_model_object_in_world_tran.get_matrix() * closest_pt.cast<double>();
-                    m_fix_text_normal_in_world   = (mi->get_transformation().get_matrix_no_offset().cast<float>() * closest_normal).normalized();
-                    if (is_old_text_info(text_info)) {
-                        int   face_id;
-                        Vec3f direction = m_text_tran_in_world.get_matrix().linear().col(2).cast<float>();
-                        if (old_index == 2 && abs(box_size[1] - old_text_height) < 0.1) {
-                            m_is_version1_9_xoz = true;
-                            m_fix_old_tran_flag = true;
-                        } else if (old_index == 2 && abs(box_size[0] - old_text_height) < 0.1) {
-                            m_is_version1_8_yoz = true;
-                            m_fix_old_tran_flag = true;
-                        } else if (old_index == 1 && abs(box_size[2] - old_text_height) < 0.1) { // for 1.10 version, xoy plane cut,just fix
-                            m_is_version1_10_xoy = true;
-                            m_fix_old_tran_flag  = true;
-                            direction            = m_text_tran_in_world.get_matrix().linear().col(1).cast<float>();
-                            if (!temp_ray_caster.get_closest_point_and_normal(local_center, direction, &closest_pt, &closest_normal, &face_id)) {
-                                m_show_warning_error_mesh = true;
-                            }
-                        } else if (!temp_ray_caster.get_closest_point_and_normal(local_center, -direction, &closest_pt, &closest_normal, &face_id)) {
-                            if (!temp_ray_caster.get_closest_point_and_normal(local_center, direction, &closest_pt, &closest_normal, &face_id)) {
-                                m_show_warning_error_mesh = true;
+                        m_fix_text_position_in_world = m_model_object_in_world_tran.get_matrix() * closest_pt.cast<double>();
+                        m_fix_text_normal_in_world   = (mi->get_transformation().get_matrix_no_offset().cast<float>() * closest_normal).normalized();
+                        if (is_old_text_info(text_info)) {
+                            int   face_id;
+                            Vec3f direction = m_text_tran_in_world.get_matrix().linear().col(2).cast<float>();
+                            if (old_index == 2 && abs(box_size[1] - old_text_height) < 0.1) {
+                                m_is_version1_9_xoz = true;
+                                m_fix_old_tran_flag = true;
+                            } else if (old_index == 2 && abs(box_size[0] - old_text_height) < 0.1) {
+                                m_is_version1_8_yoz = true;
+                                m_fix_old_tran_flag = true;
+                            } else if (old_index == 1 && abs(box_size[2] - old_text_height) < 0.1) { // for 1.10 version, xoy plane cut,just fix
+                                m_is_version1_10_xoy = true;
+                                m_fix_old_tran_flag  = true;
+                                direction            = m_text_tran_in_world.get_matrix().linear().col(1).cast<float>();
+                                if (!temp_ray_caster.get_closest_point_and_normal(local_center, direction, &closest_pt, &closest_normal, &face_id)) {
+                                    m_show_warning_error_mesh = true;
+                                }
+                            } else if (!temp_ray_caster.get_closest_point_and_normal(local_center, -direction, &closest_pt, &closest_normal, &face_id)) {
+                                if (!temp_ray_caster.get_closest_point_and_normal(local_center, direction, &closest_pt, &closest_normal, &face_id)) {
+                                    m_show_warning_error_mesh = true;
+                                }
                             }
                         }
+                    } else {
+                        m_surface_type = TextInfo::TextType::HORIZONAL;
                     }
                 }
                 if (!m_font_name.empty()) {//font version 1.10 and before
@@ -1717,6 +1742,9 @@ void GLGizmoText::load_init_text(bool first_open_text, bool is_serializing)
 
 void  GLGizmoText::data_changed(bool is_serializing) {
     load_init_text(false, is_serializing);
+    if (wxGetApp().plater()->is_show_text_cs()) {
+        m_lines_mark.reset();
+    }
 }
 
 void GLGizmoText::on_set_hover_id()
@@ -1791,32 +1819,25 @@ bool GLGizmoText::on_is_activable() const
 
 void GLGizmoText::on_render()
 {
-    glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
-    glsafe(::glEnable(GL_DEPTH_TEST));
-
-    std::string text = std::string(m_text);
-    if (text.empty()) {
-        return;
-    }
+    if (m_text.empty()) { return; }
     if (m_object_idx < 0) { return; }
+    Plater *plater = wxGetApp().plater();
+    if (!plater) return;
     ModelObject *mo = nullptr;
     const Selection &selection = m_parent.get_selection();
     mo = selection.get_model()->objects[m_object_idx];
-
     if (mo == nullptr) {
         BOOST_LOG_TRIVIAL(info) << boost::format("Text: selected object is null");
         return;
     }
-
-    const Camera& camera = wxGetApp().plater()->get_camera();
+    const Camera &camera            = plater->get_camera();
     const auto& projection_matrix = camera.get_projection_matrix();
     const auto& view_matrix = camera.get_view_matrix();
     // First check that the mouse pointer is on an object.
     const ModelInstance *mi        = mo->instances[selection.get_instance_idx()];
-    Plater *plater = wxGetApp().plater();
-    if (!plater)
-        return;
-    if (wxGetApp().plater()->is_show_text_cs()){
+    glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    if (plater->is_show_text_cs()) {
         if (m_text_normal_in_world.norm() > 0.1) { // debug
             Geometry::Transformation tran(m_text_tran_in_object.get_matrix());
             if (tran.get_offset().norm() > 1) {
@@ -1826,10 +1847,17 @@ void GLGizmoText::on_render()
             render_lines(GenerateTextJob::debug_cut_points_in_world);
         }
     }
-    //if (is_rotate_by_grabbers || (!is_surface_dragging && !is_parent_dragging)) {
     if (m_last_text_mv) {
+        if (is_only_text_case()) {//drag in parent
+            if ((m_text_position_in_world - mi->get_transformation().get_offset()).norm() > 0.01) {
+                m_text_position_in_world = mi->get_transformation().get_offset();
+                m_need_update_tran       = true;
+                update_text_tran_in_model_object(false);
+            }
+        }
         if (m_draging_cube) {
         } else {
+            m_rotate_gizmo.set_custom_tran(m_text_tran_in_world.get_matrix());
             m_rotate_gizmo.render();
         }
     }
@@ -1858,15 +1886,10 @@ void GLGizmoText::on_render()
         render_glmodel(m_move_grabber.get_cube(), render_color, view_matrix * cube_mat, projection_matrix);
     }
 
-    if (m_is_modify && !m_need_update_text)
-        return;
-
-    if(generate_text_volume()) {//on_render
-        plater->update();
-        if (wxGetApp().plater()->is_show_text_cs()) {
-            m_lines_mark.reset();
+   if (!(m_is_modify && !m_need_update_text)) {
+        if (generate_text_volume()) {
         }
-    }
+   }
 }
 
 void GLGizmoText::on_render_for_picking()
@@ -1930,7 +1953,6 @@ void GLGizmoText::on_stop_dragging()
         const Selection &selection = m_parent.get_selection();
         const GLVolume * gl_volume = get_selected_gl_volume(selection);
         m_text_tran_in_object.set_from_transform(gl_volume->get_volume_transformation().get_matrix());//on_stop_dragging//rotate//set m_text_tran_in_object
-
         m_rotate_start_angle.reset();
         volume_transformation_changed();
     }
@@ -1972,7 +1994,10 @@ void GLGizmoText::on_update(const UpdateData &data)
         }
     }
 
-    if (closest_hit == Vec3f::Zero() && closest_normal == Vec3f::Zero()) return;
+    if (closest_hit == Vec3f::Zero() && closest_normal == Vec3f::Zero()) {
+        m_parent.set_as_dirty();
+        return;
+    }
 
     if (closest_hit_mesh_id != -1) {
         m_rr = {mouse_pos, closest_hit_mesh_id, closest_hit, closest_normal};//on drag
@@ -2096,8 +2121,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     GizmoImguiBegin("Text", ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 #if BBL_RELEASE_TO_PUBLIC == 0
     if (wxGetApp().plater()->is_show_text_cs()) {
-        std::string world_hit = "world hit x:" + formatFloat(m_text_position_in_world[0]) + " y:" + formatFloat(m_text_position_in_world[1]) +
-                                " z:" + formatFloat(m_text_position_in_world[2]);
+        std::string world_hit = "world hit x:" + formatFloat(m_text_position_in_world[0]) + " y:" + formatFloat(m_text_position_in_world[1]) +" z:" + formatFloat(m_text_position_in_world[2]);
         std::string hit     = "local hit x:" + formatFloat(m_rr.hit[0]) + " y:" + formatFloat(m_rr.hit[1]) + " z:" + formatFloat(m_rr.hit[2]);
         std::string normal  = "normal x:" + formatFloat(m_rr.normal[0]) + " y:" + formatFloat(m_rr.normal[1]) + " z:" + formatFloat(m_rr.normal[2]);
         auto        cut_dir = "cut_dir x:" + formatFloat(m_cut_plane_dir_in_world[0]) + " y:" + formatFloat(m_cut_plane_dir_in_world[1]) +
@@ -2107,8 +2131,10 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
         auto fix_normal_str = "fix normal:" + formatFloat(m_fix_text_normal_in_world[0]) + " y:" + formatFloat(m_fix_text_normal_in_world[1]) +
                               " z:" + formatFloat(m_fix_text_normal_in_world[2]);
         m_imgui->text(world_hit);
-        m_imgui->text(hit);
-        m_imgui->text(normal);
+        if (!is_only_text_case()) {
+            m_imgui->text(hit);
+            m_imgui->text(normal);
+        }
         m_imgui->text(cut_dir);
         m_imgui->text(fix_position_str);
         m_imgui->text(fix_normal_str);
@@ -2121,12 +2147,15 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
         auto tran_x_dir     = m_text_tran_in_object.get_matrix().linear().col(0);
         auto tran_y_dir     = m_text_tran_in_object.get_matrix().linear().col(1);
         auto tran_z_dir     = m_text_tran_in_object.get_matrix().linear().col(2);
+        auto tran_pos     = m_text_tran_in_object.get_matrix().linear().col(3);
         auto tran_x_dir_str = "text tran_x_dir:" + formatFloat(tran_x_dir[0]) + " y:" + formatFloat(tran_x_dir[1]) + " z:" + formatFloat(tran_x_dir[2]);
         m_imgui->text(tran_x_dir_str);
         auto tran_y_dir_str = "text tran_y_dir:" + formatFloat(tran_y_dir[0]) + " y:" + formatFloat(tran_y_dir[1]) + " z:" + formatFloat(tran_y_dir[2]);
         m_imgui->text(tran_y_dir_str);
         auto tran_z_dir_str = "text tran_z_dir:" + formatFloat(tran_z_dir[0]) + " y:" + formatFloat(tran_z_dir[1]) + " z:" + formatFloat(tran_z_dir[2]);
         m_imgui->text(tran_z_dir_str);
+        auto tran_pos_str = "text pos in_object:" + formatFloat(tran_pos[0]) + " y:" + formatFloat(tran_pos[1]) + " z:" + formatFloat(tran_pos[2]);
+        m_imgui->text(tran_pos_str);
     }
 #endif
     float space_size    = m_imgui->get_style_scaling() * 8;
@@ -2303,6 +2332,11 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
         m_imgui->warning_text_wrapped(
             _L("Warning:Due to functional upgrade, rotation information cannot be restored. Please drag or modify text,save it and reedit it will ok."),
                               full_width);
+        m_parent.request_extra_frame();
+    }
+    if (m_rr.mesh_id < 0 && !is_only_text_case()) {
+        m_imgui->warning_text_wrapped(_L("Warning") + ":"+ _L("Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."),
+                                      full_width);
         m_parent.request_extra_frame();
     }
 
@@ -2917,7 +2951,7 @@ void GLGizmoText::update_text_normal_in_world()
 
 bool GLGizmoText::update_text_tran_in_model_object(bool rewrite_text_tran)
 {
-    if (m_rr.mesh_id == -1 && !is_only_text_case()) {
+    if (m_object_idx < 0 && !is_only_text_case()) {
         BOOST_LOG_TRIVIAL(info) << boost::format("Text: mrr_mesh_id is -1");
         return false;
     }
@@ -3079,15 +3113,14 @@ bool GLGizmoText::update_raycast_cache(const Vec2d &mouse_position, const Camera
 
 bool GLGizmoText::generate_text_volume()
 {
-
     if (m_text.empty())
         return false;
     Plater *plater = wxGetApp().plater();
     if (!plater)
         return false;
     m_show_calc_meshtod = 0;
-    if (m_rr.mesh_id == -1 && !is_only_text_case()) {
-        BOOST_LOG_TRIVIAL(info) << "error: mrr.mesh_id is -1";
+    if (m_object_idx < 0) {//m_object_idx < 0 && !is_only_text_case()
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "error:m_object_idx < 0";
         return false;
     }
     if (auto text_mv = get_text_is_dragging()) { // moving or dragging;
@@ -3106,10 +3139,7 @@ bool GLGizmoText::generate_text_volume()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " fail:update_text_tran_in_model_object";
         return false;
     }
-    if (m_object_idx < 0) {
-        BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< "error:m_object_idx < 0";
-        return false;
-    }
+
     const Selection &                  selection = m_parent.get_selection();
     Emboss::GenerateTextJob::InputInfo input_info;
     auto          text_volume      = m_last_text_mv;
@@ -3140,14 +3170,11 @@ bool GLGizmoText::generate_text_volume()
     input_info.m_embeded_depth              = m_embeded_depth;
     input_info.m_thickness                  = m_thickness;
     input_info.m_cut_plane_dir_in_world     = m_cut_plane_dir_in_world;
-
     input_info.use_surface                  = m_surface_type == TextInfo::TextType::SURFACE_CHAR ? true : false;
     TextInfo text_info = get_text_info();
 
-
-    ModelObject *    model_object = selection.get_model()->objects[m_object_idx];
-
-    input_info.mo            = model_object;
+    ModelObject *model_object = selection.get_model()->objects[m_object_idx];
+    input_info.mo = model_object;
 
     m_show_warning_lost_rotate = false;
     if (m_is_modify && m_need_update_text) {

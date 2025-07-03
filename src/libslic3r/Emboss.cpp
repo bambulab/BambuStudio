@@ -1287,7 +1287,7 @@ void letter2shapes(ExPolygons &       result,
                 //update boldness
                 auto                  temp_font_prop = font_prop;
                 const FontFile::Info &font_info      = get_font_info(cur_font, temp_font_prop);
-                temp_font_prop.boldness              = font_info.ascent / 4.f;//from GLGizmoText::set_default_boldness(std::optional<float> &boldness)
+                temp_font_prop.boldness = font_prop.boldness > 0 ? font_info.ascent / 4.f : 0; // from GLGizmoText::set_default_boldness(std::optional<float> &boldness)
 
                 auto new_scale = get_text_shape_scale(font_prop, cur_font);
                 // Create glyph from font file and cache it
@@ -1405,24 +1405,32 @@ HealedExPolygons Slic3r::Emboss::text2shapes(EmbossShape &                emboss
     auto &vshapes = emboss_shape.shapes_with_ids;
     float delta   = static_cast<float>(1. / SHAPE_SCALE);
     if (bfc_fn && standard_scale > 0) {
-        int32_t     char_space = 0;
-        BoundingBox cur_box;
-        cur_box.merge(Point(0, 0));
+        int32_t char_space = 0, char_width = 0, offset = 0;
+        for (int i = 0; i < vshapes.size(); i++) {
+            if (!vshapes[i].expoly.empty()) {
+                auto box = get_extents(vshapes[i].expoly);
+                if (box.size()[0] > 0) {
+                    char_width = box.size()[0];
+                    break;
+                }
+            }
+        }
         for (int i = 0; i < vshapes.size(); i++) {
             if (emboss_shape.text_scales[i] > 0) {
                 double temp_scale = emboss_shape.text_scales[i] / standard_scale;
-                for (int j = 0; j < vshapes[i].expoly.size(); j++) {
-                    vshapes[i].expoly[j].scale(temp_scale);
+                for (int j = 0; j < vshapes[i].expoly.size(); j++) { vshapes[i].expoly[j].scale(temp_scale); }
+            }
+            BoundingBox temp_box;
+            if (!vshapes[i].expoly.empty()) {
+                temp_box = get_extents(vshapes[i].expoly);
+                if (char_space == 0) { char_space = temp_box.size().x() / 5; }
+                for (int j = 0; j < vshapes[i].expoly.size(); j++) { // son
+                    vshapes[i].expoly[j].translate(-temp_box.min + Point(offset, 0));
                 }
+                offset += (get_extents(vshapes[i].expoly).size()[0] + char_space);
+            } else {
+                offset += (char_width);
             }
-            auto temp_box = get_extents(vshapes[i].expoly);
-            if (char_space == 0) {
-                char_space = temp_box.size().x() / 5;
-            }
-            for (int j = 0; j < vshapes[i].expoly.size(); j++) {
-                vshapes[i].expoly[j].translate(-temp_box.min + Point(cur_box.max.x() + char_space, 0));
-            }
-            cur_box = get_extents(vshapes[i].expoly);
         }
     }
     return ::union_with_delta(vshapes, delta, MAX_HEAL_ITERATION_OF_TEXT);
