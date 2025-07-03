@@ -77,7 +77,7 @@ wxString get_nozzle_volume_type_name(NozzleVolumeType type)
 
 bool is_pa_params_valid(const Calib_Params &params)
 {
-    if (params.start < MIN_PA_K_VALUE || params.end > MAX_PA_K_VALUE || params.step < EPSILON || params.end < params.start + params.step) {
+    if (params.start < MIN_PA_K_VALUE || params.end > MAX_PA_K_VALUE || params.step < MIN_PA_K_VALUE_STEP || params.end < params.start + params.step) {
         MessageDialog msg_dlg(nullptr,
                               wxString::Format(_L("Please input valid values:\nStart value: >= %.1f\nEnd value: <= %.1f\nEnd value: > Start value\nValue step: >= %.3f)"),
                                                MIN_PA_K_VALUE, MAX_PA_K_VALUE, MIN_PA_K_VALUE_STEP),
