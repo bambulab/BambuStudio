@@ -30,7 +30,7 @@
 #endif
 
 static const int average_filter_window_size = 5;
-static const float overhang_filter = 0.6f;
+static const float overhang_filter = 0.0f;
 static const float lensLimit = 1.0f;
 namespace Slic3r {
 
@@ -966,7 +966,6 @@ void SeamPlacer::calculate_candidates_visibility(const PrintObject *po, const Se
 void SeamPlacer::calculate_overhangs_and_layer_embedding(const PrintObject *po)
 {
     using namespace SeamPlacerImpl;
-
     std::vector<PrintObjectSeamData::LayerSeams> &layers = m_seam_per_object[po].layers;
     tbb::parallel_for(tbb::blocked_range<size_t>(0, layers.size()), [po, &layers](tbb::blocked_range<size_t> r) {
         std::unique_ptr<PerimeterDistancer> prev_layer_distancer;
@@ -1001,11 +1000,11 @@ void SeamPlacer::calculate_overhangs_and_layer_embedding(const PrintObject *po)
 
                 size_t start_index = perimeter_point.perimeter.start_index;
                 size_t end_index   = perimeter_point.perimeter.end_index;
-                if (perimeter_point.overhang_degree > 0.0f && end_index - start_index > 1) {
+                if (po->config().seam_placement_away_from_overhangs.value && perimeter_point.overhang_degree > 0.0f && end_index - start_index > 1) {
                     // BBS. extend overhang range
                     float  dist        = 0.0f;
                     size_t idx         = i;
-                    double gauss_value = gauss(0.0f, 0.0f, 4.0f, 10.0f);
+                    double gauss_value = gauss(0.0f, 0.0f, 1.0f, 10.0f);
                     perimeter_point.extra_overhang_point = perimeter_point.overhang_degree * gauss_value;
                     // check left
                     while (true) {
@@ -1016,7 +1015,7 @@ void SeamPlacer::calculate_overhangs_and_layer_embedding(const PrintObject *po)
                         dist += sqrt((layers[layer_idx].points[idx].position.head<2>() - layers[layer_idx].points[prev].position.head<2>()).squaredNorm());
                         if (dist > lensLimit)
                             break;
-                        double gauss_value_dist = gauss(dist, 0.0f, 4.0f, 10.0f);
+                        double gauss_value_dist = gauss(dist, 0.0f, 1.0f, 10.0f);
 
                         if (layers[layer_idx].points[idx].extra_overhang_point > perimeter_point.overhang_degree * gauss_value_dist)
                             continue;
@@ -1034,7 +1033,7 @@ void SeamPlacer::calculate_overhangs_and_layer_embedding(const PrintObject *po)
                         dist += sqrt((layers[layer_idx].points[idx].position.head<2>() - layers[layer_idx].points[prev].position.head<2>()).squaredNorm());
                         if (dist > lensLimit)
                             break;
-                        double gauss_value_dist = gauss(dist, 0.0f, 4.0f, 10.0f);
+                        double gauss_value_dist = gauss(dist, 0.0f, 1.0f, 10.0f);
 
                         if (layers[layer_idx].points[idx].extra_overhang_point > perimeter_point.overhang_degree * gauss_value_dist)
                             continue;

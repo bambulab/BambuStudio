@@ -3811,6 +3811,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<SeamPosition>(spAligned));
 
+    def          = this->add("seam_placement_away_from_overhangs", coBool);
+    def->label   = L("Seam placement away from overhangs(experimental)");
+    def->tooltip = L("Ensure seam placement away from overhangs for alignment and backing modes.");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("seam_gap", coPercent);
     def->label = L("Seam gap");
     def->tooltip = L("In order to reduce the visibility of the seam in a closed loop extrusion, the loop is interrupted and shortened by a specified amount.\n" "This amount as a percentage of the current extruder diameter. The default value for this parameter is 15");

@@ -98,6 +98,7 @@
     "resolution": "0.012",
     "scarf_angle_threshold": "155",
     "seam_position": "aligned",
+    "seam_placement_away_from_overhangs": "0",
     "skirt_distance": "2",
     "skirt_height": "1",
     "skirt_loops": "0",
