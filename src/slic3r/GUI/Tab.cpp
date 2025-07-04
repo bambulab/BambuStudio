@@ -3322,7 +3322,7 @@ void TabFilament::add_filament_overrides_page()
                                         "filament_z_hop_types",
                                         "filament_retraction_speed",
                                         "filament_deretraction_speed",
-                                        //"filament_retract_restart_extra",
+                                        "filament_retract_restart_extra",
                                         "filament_retraction_minimum_travel",
                                         "filament_retract_when_changing_layer",
                                         "filament_wipe",
@@ -3356,7 +3356,7 @@ void TabFilament::update_filament_overrides_page()
                                             "filament_z_hop_types",
                                             "filament_retraction_speed",
                                             "filament_deretraction_speed",
-                                            //"filament_retract_restart_extra",
+                                            "filament_retract_restart_extra",
                                             "filament_retraction_minimum_travel",
                                             "filament_retract_when_changing_layer",
                                             "filament_wipe",
@@ -4428,7 +4428,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             optgroup->append_single_option_line("z_hop_types", "parameter/retraction#z-hop-type", extruder_idx);
             optgroup->append_single_option_line("retraction_speed", "parameter/retraction#retraction-speed", extruder_idx);
             optgroup->append_single_option_line("deretraction_speed", "parameter/retraction#deretraction-speed", extruder_idx);
-            //optgroup->append_single_option_line("retract_restart_extra", "", extruder_idx);
+            optgroup->append_single_option_line("retract_restart_extra", "", extruder_idx);
             optgroup->append_single_option_line("retraction_minimum_travel", "parameter/retraction#travel-distance-threshold", extruder_idx);
             optgroup->append_single_option_line("retract_when_changing_layer", "parameter/retraction#retract-on-layer-change", extruder_idx);
             optgroup->append_single_option_line("wipe", "parameter/retraction#wipe-while-retracting", extruder_idx);
