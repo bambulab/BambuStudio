@@ -1,6 +1,8 @@
 #include "BBLUtil.hpp"
 #include "libslic3r_version.h"
 
+#include <boost/log/trivial.hpp>
+
 using namespace std;
 
 #if BBL_RELEASE_TO_PUBLIC
@@ -89,47 +91,63 @@ std::string BBLCrossTalk::Crosstalk_JsonLog(const nlohmann::json& json)
     if (!s_enable_cross_talk) { return json.dump(1); }// Return the original JSON string if cross-talk is disabled 
 
     nlohmann::json copied_json = json;
-    std::vector<nlohmann::json*> to_traverse_jsons {&copied_json};
-    while (!to_traverse_jsons.empty())
+
+    try
     {
-        nlohmann::json* json = to_traverse_jsons.back();
-        to_traverse_jsons.pop_back();
-
-        auto iter = json->begin();
-        while (iter != json->end())
+        std::vector<nlohmann::json*> to_traverse_jsons {&copied_json};
+        while (!to_traverse_jsons.empty())
         {
-            const std::string& key_str = iter.key();
-            if (iter.value().is_string())
-            {
-                if (key_str.find("dev_id") != string::npos)
-                {
-                    iter.value() = Crosstalk_DevId(iter.value().get<std::string>());
-                }
-                else if (key_str.find("dev_name") != string::npos)
-                {
-                    iter.value() = Crosstalk_DevName(iter.value().get<std::string>());
-                }
-                else if (key_str.find("access_code")!= string::npos)
-                {
-                    iter.value() = "******";
-                }
-                else if (key_str.find("url") != string::npos)
-                {
-                    iter.value() = "******";
-                }
-                else if (key_str.find("channel_name") != string::npos)
-                {
-                    iter.value() = Crosstalk_ChannelName(iter.value().get<std::string>());
-                }
-            }
-            else if (iter.value().is_object())
-            {
-                to_traverse_jsons.push_back(&iter.value());
-            }
+            nlohmann::json* json = to_traverse_jsons.back();
+            to_traverse_jsons.pop_back();
 
-            iter++;
+            auto iter = json->begin();
+            while (iter != json->end())
+            {
+                const std::string& key_str = iter.key();
+                if (iter.value().is_string())
+                {
+                    if (key_str.find("dev_id") != string::npos)
+                    {
+                        iter.value() = Crosstalk_DevId(iter.value().get<std::string>());
+                    }
+                    else if (key_str.find("dev_name") != string::npos)
+                    {
+                        iter.value() = Crosstalk_DevName(iter.value().get<std::string>());
+                    }
+                    else if (key_str.find("access_code")!= string::npos)
+                    {
+                        iter.value() = "******";
+                    }
+                    else if (key_str.find("url") != string::npos)
+                    {
+                        iter.value() = "******";
+                    }
+                    else if (key_str.find("channel_name") != string::npos)
+                    {
+                        iter.value() = Crosstalk_ChannelName(iter.value().get<std::string>());
+                    }
+                }
+                else if (iter.value().is_object())
+                {
+                    to_traverse_jsons.push_back(&iter.value());
+                }
+
+                iter++;
+            }
         }
     }
+    catch (const nlohmann::json::exception& e)
+    {
+        // Handle JSON parsing exceptions if necessary
+        BOOST_LOG_TRIVIAL(info) << "Error processing JSON for cross-talk: " << e.what();
+        return std::string();
+    }
+    catch (const std::exception& e)
+    {
+        BOOST_LOG_TRIVIAL(info) << "Error processing JSON for cross-talk: " << e.what();
+        return std::string();
+    }
+
 
 #if BBL_RELEASE_TO_PUBLIC
     return copied_json.dump();
