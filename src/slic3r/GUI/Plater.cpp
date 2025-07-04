@@ -12604,7 +12604,6 @@ void Plater::update_all_plate_thumbnails(bool force_update)
             thumbnail_params.background_color = Vec4f(0.0f, 0.0f, 0.0f, 0.0f);
             thumbnail_params.post_processing_enabled = b_fxaa_enabled;
             get_view3D_canvas3D()->render_thumbnail(plate->thumbnail_data, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params, Camera::EType::Ortho);
-            mark_plate_toolbar_image_dirty();
         }
         if (force_update || !plate->no_light_thumbnail_data.is_valid()) {
             thumbnail_params.background_color = Vec4f(0.0f, 0.0f, 0.0f, 0.0f);
