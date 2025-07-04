@@ -210,17 +210,23 @@ void UserPresetsDialog::layout_preset_list(bool delete_old)
     }
     sizer = sizerLeft;
     if (is_filament_list()) {
-        size_t total = (std::accumulate(m_filament_presets.begin(), m_filament_presets.end(), size_t(1),
-                [](size_t t, auto &filament) { return t + filament.second.size() + 1; }) - m_hiden_sizers.size()) / 2;
+        size_t total = (std::accumulate(m_filament_presets.begin(), m_filament_presets.end(), 0,
+                [](size_t t, auto &filament) { return t + filament.second.size() + 1; }) - m_hiden_sizers.size());
         for (auto &filament : m_filament_presets) {
             auto sizer2 = m_filament_sizers[filament.first];
             if (m_hiden_sizers.count(sizer2) > 0)
                 continue;
+            size_t count = 1 + std::count_if(filament.second.begin(), filament.second.end(), [this](auto & preset) {
+                return m_hiden_sizers.count(m_preset_sizers[preset]) == 0;
+            });
+            if (sizer == sizerLeft) {
+                size_t diff = std::abs(int(total - count * 2));
+                if (diff > std::abs(int(total)))
+                    sizer = sizerRight;
+                else
+                    total -= count * 2;
+            }
             sizer->Add(sizer2, 0, wxEXPAND);
-            if (total <= filament.second.size() + 1)
-                sizer = sizerRight;
-            else
-                total -= filament.second.size() + 1;
         }
     } else {
         auto & presets = m_presets[m_collection];
@@ -414,7 +420,7 @@ void UserPresetsDialog::update_preset_counts()
     int capacities[] = {20, 100, 200};
     for (int i = 0; i < 3; ++i) {
         size_t n = i == 1 ? std::accumulate(m_filament_presets.begin(), m_filament_presets.end(), size_t(0),
-            [](size_t t, auto &filament) { return t + filament.second.size() + 1; }) : 0;
+            [](size_t t, auto &filament) { return t + filament.second.size(); }) : 0;
         if (m_preset_sizers.empty()) {
             m_tab_ctrl->SetItemTextColour(i, wxColour("#262E30"));
             m_tab_ctrl->SetItemPaddingSize(i, {FromDIP(20), FromDIP(4)});
@@ -467,13 +473,20 @@ void UserPresetsDialog::delete_checked()
     if (is_filament_list()) {
         for (auto &filament : m_checked_filaments) {
             auto iter = m_filament_presets.find(filament.first);
+            auto iter2 = m_filament_sizers.find(filament.first);
             if (iter == m_filament_presets.end()) {
                 // Collect checked sizer (filament removed)
-                auto iter2 = m_filament_sizers.find(filament.first);
                 checked_sizers.insert(iter2->second);
                 while (iter2->second->GetItemCount() > 1)
                     iter2->second->Detach(1);
                 m_filament_sizers.erase(iter2);
+            } else {
+                for (auto sizer : checked_sizers)
+                    iter2->second->Detach(sizer);
+                // Update check box
+                auto *cb = dynamic_cast<CheckBox *>(iter2->second->GetItem(size_t(0))->GetSizer()->GetItem(size_t(0))->GetWindow());
+                cb->SetValue(false);
+                cb->SetHalfChecked(false);
             }
         }
         m_checked_filaments.clear();
@@ -599,7 +612,7 @@ bool UserPresetsDialog::delete_presets(int collection, std::vector<std::string> 
         tab->select_preset("", true);
     else
         wxGetApp().plater()->sidebar().update_presets(collection2->type());
-
+    // Remove from preset/filament list
     if (!current.empty())
         presets.insert(iter, current);
     remove_both(m_presets[collection], presets);
