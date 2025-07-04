@@ -1146,10 +1146,8 @@ void PrintingTaskPanel::update_finish_time(wxString finish_time)
             int index = finish_time.find_last_of('+');
             wxString day   = finish_time.Mid(index);
             finish_time    = finish_time.Mid(0, index);
-            if (m_staticText_finish_day->getText() != day) {
-                m_staticText_finish_day->setText(day);
-                if (!m_staticText_finish_day->IsShown()) m_staticText_finish_day->Show();
-            }
+            m_staticText_finish_day->setText(day);
+            if (!day.empty()) { m_staticText_finish_day->Show();}
         }
 
         wxString finish_time_str = _L("Estimated finish time: ") + finish_time;
@@ -6074,8 +6072,11 @@ RectTextPanel::RectTextPanel(wxWindow *parent) : wxPanel(parent)
 
 void RectTextPanel::setText(const wxString text)
 {
-    this->text = text;
-    Refresh();
+    if (this->text != text)
+    {
+        this->text = text;
+        Refresh();
+    }
 }
 
 void RectTextPanel::OnPaint(wxPaintEvent &event) {
