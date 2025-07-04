@@ -375,8 +375,6 @@ public:
         bool         is_outside  = true;//bool is_outside = (type == ModelVolumeType::MODEL_PART);
 
         bool         first_generate = false;
-        bool         selection_is_text = true;
-        bool         m_confirm_generate_text =false;
         Emboss::DataUpdate m_data_update;
 
     };

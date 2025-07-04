@@ -247,8 +247,6 @@ std::optional<float> calc_angle(const Selection &selection)
 
     Transform3d to_world = gl_volume->world_matrix();
     const ModelVolume *volume = get_model_volume(*gl_volume, selection.get_model()->objects);
-    assert(volume != nullptr);
-    assert(volume->emboss_shape.has_value());
     if (volume == nullptr || !volume->emboss_shape.has_value() || !volume->emboss_shape->fix_3mf_tr)
         return Emboss::calc_up(to_world, UP_LIMIT);
 
