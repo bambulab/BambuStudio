@@ -29,7 +29,6 @@ class GLGizmoText : public GLGizmoBase
 {
 private:
     bool  m_is_direct_create_text = false;
-    bool  m_confirm_generate_text  = false;
     std::vector<Transform3d> m_trafo_matrices;
     int m_show_calc_meshtod = 0;//1 preview //2 draging
     std::vector<std::string> m_avail_font_names;
@@ -83,7 +82,6 @@ private:
     std::mutex m_mutex;
     std::thread m_thread;
 
-    bool m_is_modify = false;
     bool m_need_update_text = false;
     bool m_need_update_tran = false;
     bool m_reedit_text      = false;

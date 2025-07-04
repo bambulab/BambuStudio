@@ -46,8 +46,10 @@ public:
 
 bool was_canceled(const JobNew::Ctl &ctl, const DataBase &base)
 {
-    if (base.cancel->load()) return true;
-    return ctl.was_canceled();
+    if (base.cancel->load())
+        return true;
+    auto flag = ctl.was_canceled();
+    return flag;
 }
 
 bool _finalize(bool canceled, std::exception_ptr &eptr, const DataBase &input)
@@ -535,7 +537,7 @@ CreateVolumeJob::CreateVolumeJob(DataCreateVolume &&input) : m_input(std::move(i
 void CreateVolumeJob::process(Ctl &ctl)
 {
     if (!check(m_input))
-        throw std::runtime_error("Bad input data for EmbossCreateVolumeJob.");
+        throw JobException("Bad input data for EmbossCreateVolumeJob.");
     m_result = create_mesh(*m_input.base);
 }
 
@@ -1394,9 +1396,11 @@ GenerateTextJob::GenerateTextJob(InputInfo &&input) : m_input(std::move(input)) 
 std::vector<Vec3d> GenerateTextJob::debug_cut_points_in_world;
 void GenerateTextJob::process(Ctl &ctl)
 {
+    auto canceled = was_canceled(ctl, *m_input.m_data_update.base);
+    if (canceled)
+        return;
     create_all_char_mesh(*m_input.m_data_update.base, m_input.m_chars_mesh_result, m_input.m_text_shape);
     if (m_input.m_chars_mesh_result.empty()) {
-        throw JobException("generate text mesh fail.");
         return;
     }
     if (!update_text_positions(m_input)) {
@@ -1414,7 +1418,7 @@ void GenerateTextJob::process(Ctl &ctl)
 
 void GenerateTextJob::finalize(bool canceled, std::exception_ptr &eptr)
 {
-    if (eptr)
+    if (canceled || eptr)
         return;
     if (m_input.first_generate) {
         create_text_volume(m_input.mo,  m_input.m_final_text_mesh, m_input.m_final_text_tran_in_object, m_input.text_info);
@@ -1462,12 +1466,12 @@ bool GenerateTextJob::update_text_positions(InputInfo &input_info)
 
     input_info.text_lengths   = text_lengths;
     input_info.m_surface_type = GenerateTextJob::SurfaceType::None;
-    if (input_info.text_surface_type == TextInfo::TextType::HORIZONAL || (input_info.m_confirm_generate_text == false && !input_info.selection_is_text)) {
+    if (input_info.text_surface_type == TextInfo::TextType::HORIZONAL) {
         input_info.use_surface   = false;
         Vec3d mouse_normal_world = input_info.m_text_normal_in_world.cast<double>();
         Vec3d world_pos_dir      = input_info.m_cut_plane_dir_in_world.cross(mouse_normal_world);
         auto  inv_               = (input_info.m_model_object_in_world_tran.get_matrix_no_offset() * input_info.m_text_tran_in_object.get_matrix_no_offset()).inverse();
-        auto  pos_dir            = inv_ * world_pos_dir;
+        Vec3d pos_dir            =  Vec3d::UnitX();
         auto  mouse_normal_local = inv_ * mouse_normal_world;
         mouse_normal_local.normalize();
 
@@ -1943,7 +1947,6 @@ CreateObjectTextJob::CreateObjectTextJob(CreateTextInput &&input) : m_input(std:
 void CreateObjectTextJob::process(Ctl &ctl) {
     create_all_char_mesh(*m_input.base, m_input.m_chars_mesh_result, m_input.m_text_shape);
     if (m_input.m_chars_mesh_result.empty()) {
-        throw JobException("generate text mesh fail.");
         return;
     }
     std::vector<double> text_lengths;
@@ -1952,6 +1955,7 @@ void CreateObjectTextJob::process(Ctl &ctl) {
 }
 
 void CreateObjectTextJob::finalize(bool canceled, std::exception_ptr &eptr) {
+    if (canceled || eptr) return;
     if (m_input.m_position_points.empty())
         return create_message("Can't create empty object.");
 
