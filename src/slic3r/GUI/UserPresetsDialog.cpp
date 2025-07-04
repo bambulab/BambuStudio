@@ -40,7 +40,7 @@ UserPresetsDialog::UserPresetsDialog(wxWindow *parent)
     m_empty_panel->SetForegroundColour(wxColor("#A0A0A0"));
     {
         wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
-        wxStaticBitmap *bitmap = new wxStaticBitmap(m_empty_panel, wxID_ANY, create_scaled_bitmap("preset_empty", this, 150));
+        wxStaticBitmap *bitmap = new wxStaticBitmap(m_empty_panel, wxID_ANY, create_scaled_bitmap(wxGetApp().dark_mode() ? "preset_empty_dark" : "preset_empty", this, 150));
         sizer->Add(bitmap, 0, wxALIGN_CENTER | wxTOP, FromDIP(70));
         Label *label = new Label(m_empty_panel, _L("No content"));
         label->SetBackgroundColour(this->GetBackgroundColour());
