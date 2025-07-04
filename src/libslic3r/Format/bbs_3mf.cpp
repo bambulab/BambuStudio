@@ -7448,7 +7448,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         stream << BOLD_ATTR << "=\"" << (text_info.m_bold ? 1 : 0) << "\" ";
         stream << ITALIC_ATTR << "=\"" << (text_info.m_italic ? 1 : 0) << "\" ";
-        if (std::stof(text_info.m_font_version) < 2.0) {
+        float temp_version = text_info.m_font_version.empty() ? 0.f : float(std::atof(text_info.m_font_version.c_str()));
+        if (temp_version < 2.0f) {
             stream << SURFACE_TEXT_ATTR << "=\"" << (text_info.m_is_surface_text ? 1 : 0) << "\" ";
             stream << KEEP_HORIZONTAL_ATTR << "=\"" << (text_info.m_keep_horizontal ? 1 : 0) << "\" ";
         } else {
