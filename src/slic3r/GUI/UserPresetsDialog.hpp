@@ -53,6 +53,10 @@ private:
 
     bool delete_presets(int collection, std::vector<std::string> &presets);
 
+    bool delete_confirm(int collection, int preset_num);
+    
+    bool delete_confirm(int collection, int filament_preset_num, int print_preset_num);
+
     void on_dpi_changed(const wxRect &suggested_rect) override;
 
     bool is_filament_list() const;

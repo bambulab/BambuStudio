@@ -525,6 +525,25 @@ static void remove_both(std::vector<std::string> &l, std::vector<std::string> &r
     }
 }
 
+bool UserPresetsDialog::delete_confirm(int collection, int preset_num)
+{
+    std::string types[] = {"Printer", "Filament", "Print"};
+    DeleteConfirmDialog dlg(this, wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Delete"),
+                            wxString::Format(_L("%d %s Preset%s will be deleted."), preset_num, types[collection % 3], preset_num > 1 ? "s" : ""));
+    int res = dlg.ShowModal();
+    return res == wxID_OK;
+}
+
+bool UserPresetsDialog::delete_confirm(int collection, int filament_preset_num, int print_preset_num)
+{
+    DeleteConfirmDialog
+        dlg(this, wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Delete"),
+            wxString::Format(_L("%d Filament Preset and %d Process Preset is attached to this printer. Those presets would be deleted if the printer is deleted."),
+                             filament_preset_num, print_preset_num));
+    int res = dlg.ShowModal();
+    return res == wxID_OK;
+}
+
 bool UserPresetsDialog::delete_presets(int collection, std::vector<std::string> &presets)
 {
     Preset::Type types[] = {Preset::TYPE_PRINTER, Preset::TYPE_FILAMENT, Preset::TYPE_PRINT};
@@ -542,21 +561,19 @@ bool UserPresetsDialog::delete_presets(int collection, std::vector<std::string> 
             }
         }
         if (!filament_presets->empty() || !print_presets->empty()) {
-            DeleteConfirmDialog
-                dlg(this, wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Delete"),
-                    wxString::Format(_L("%d Filament Preset and %d Process Preset is attached to this printer. Those presets would be deleted if the printer is deleted."),
-                                     int(filament_presets->size()), int(print_presets->size())));
-            int res = dlg.ShowModal();
-            if (res != wxID_OK) return false;
+            if (!delete_confirm(collection, int(filament_presets->size()), int(print_presets->size()))) {
+                return false;
+            }
             CallAfter([this, filament_presets, print_presets] {
                 delete_presets(1, *filament_presets);
                 delete_presets(2, *print_presets);
                 update_preset_counts();
             });
+            return true;
         }
     }
     if (collection >= 3) {
-        return true;
+        return delete_confirm(collection, int(presets.size()));
     }
 
 
