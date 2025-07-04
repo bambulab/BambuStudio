@@ -194,3 +194,7 @@ src/slic3r/GUI/PartSkipDialog.cpp
 src/slic3r/GUI/PartSkipDialog.hpp
 src/slic3r/GUI/SkipCanvas.cpp
 src/slic3r/GUI/SkipCanvas.cpp
+src/slic3r/GUI/FilamentBitmapUtils.cpp
+src/slic3r/GUI/FilamentBitmapUtils.hpp
+src/slic3r/GUI/FilamentPickerDialog.cpp
+src/slic3r/GUI/FilamentPickerDialog.hpp
