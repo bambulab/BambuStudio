@@ -174,7 +174,7 @@ public:
 	// width		-- width of wipe tower in mm ( default 60 mm - leave as it is )
 	// wipe_area	-- space available for one toolchange in mm
 	// BBS: add partplate logic
-	WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origin, size_t initial_tool, const float wipe_tower_height);
+	WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origin, size_t initial_tool, const float wipe_tower_height, const std::vector<unsigned int>& slice_used_filaments);
 
 
 	// Set the extruder properties.
@@ -415,6 +415,9 @@ private:
         return m_filpar[0].filament_area; // all extruders are assumed to have the same filament diameter at this point
     }
 
+    int    m_slice_used_filaments      = 0;
+    int    m_wrapping_detection_layers = 0;
+    bool   m_enable_wrapping_detection = false;
 	bool   m_enable_timelapse_print = false;
 	bool   m_semm               = true; // Are we using a single extruder multimaterial printer?
     Vec2f  m_wipe_tower_pos; 			// Left front corner of the wipe tower in mm.
