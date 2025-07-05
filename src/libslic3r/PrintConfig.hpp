@@ -1088,6 +1088,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionIntsNullable,        filament_flush_temp))
     // BBS
     ((ConfigOptionBool,                scan_first_layer))
+    ((ConfigOptionBool,                enable_wrapping_detection))
+    ((ConfigOptionInt,                 wrapping_detection_layers))
+    ((ConfigOptionPoints,              wrapping_detection_path))
     ((ConfigOptionPoints,              thumbnail_size))
     // ((ConfigOptionBool,                spaghetti_detector))
     ((ConfigOptionBool,                gcode_add_line_number))
@@ -1095,6 +1098,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<GCodeFlavor>,   gcode_flavor))
     ((ConfigOptionString,              layer_change_gcode))
     ((ConfigOptionString,              time_lapse_gcode))
+    ((ConfigOptionString,              wrapping_detection_gcode))
 //#ifdef HAS_PRESSURE_EQUALIZER
 //    ((ConfigOptionFloat,               max_volumetric_extrusion_rate_slope_positive))
 //    ((ConfigOptionFloat,               max_volumetric_extrusion_rate_slope_negative))
