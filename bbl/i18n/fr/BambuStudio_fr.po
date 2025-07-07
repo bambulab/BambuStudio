@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-26 11:05+0800\n"
+"POT-Creation-Date: 2025-07-07 15:03+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -384,6 +384,8 @@ msgid "%"
 msgstr "%"
 
 #. TRN - Input label. Be short as possible
+#. Height of one text line - Font Ascent
+#. TRN - Input label. Be short as possible
 msgid "Size"
 msgstr "Taille"
 
@@ -473,6 +475,8 @@ msgid "Groove Angle"
 msgstr "Angle de Rainure"
 
 #. TRN - Input label. Be short as possible
+#. Angle between Y axis and text line direction.
+#. TRN - Input label. Be short as possible
 msgid "Rotation"
 msgstr "Rotation"
 
@@ -491,6 +495,8 @@ msgstr "Ajouter des connecteurs"
 msgid "Groove"
 msgstr "Rainure"
 
+#. TRN - Input label. Be short as possible
+#. Size in emboss direction
 #. TRN - Input label. Be short as possible
 msgid "Depth"
 msgstr "Profondeur"
@@ -863,15 +869,161 @@ msgstr "Peinture des jointures"
 msgid "Remove selection"
 msgstr "Supprimer la sélection"
 
-msgid "Shift + Mouse move up or down"
-msgstr "Maj + souris vers le haut ou vers le bas"
+msgid "Modern"
+msgstr ""
 
-msgid "Rotate text"
-msgstr "Faire pivoter le texte"
+msgid "Old"
+msgstr ""
+
+msgctxt "Text"
+msgid "Normal"
+msgstr ""
+
+msgctxt "Text"
+msgid "Small"
+msgstr ""
+
+msgid "Italic"
+msgstr ""
+
+msgid "First font"
+msgstr ""
+
+msgid "Default font"
+msgstr ""
+
+msgid "Save the parameters of the current text tool as a style for easy subsequent use."
+msgstr ""
+
+#, boost-format
+msgid "Modified style \"%1%\""
+msgstr ""
+
+#, boost-format
+msgid "Current style is \"%1%\""
+msgstr ""
+
+#, boost-format
+msgid ""
+"Changing style to \"%1%\" will discard current style modification.\n"
+"\n"
+"Would you like to continue anyway?"
+msgstr ""
+
+msgid "Not valid style."
+msgstr ""
+
+#, boost-format
+msgid "Style \"%1%\" can't be used and will be removed from a list."
+msgstr ""
+
+msgid "First Add style to list."
+msgstr ""
+
+#, boost-format
+msgid "Save %1% style"
+msgstr ""
+
+msgid "New name of style"
+msgstr ""
+
+msgid "Name can't be empty."
+msgstr ""
+
+msgid "Name has to be unique."
+msgstr ""
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Save as new style"
+msgstr ""
+
+msgid "The current style has been modified but not saved. Do you want to save it?"
+msgstr ""
+
+msgid "Save current style"
+msgstr ""
+
+msgid "Add new style"
+msgstr ""
+
+msgid "Only valid font can be added to style"
+msgstr ""
+
+msgid "Add style to my list"
+msgstr ""
+
+msgid "Remove style"
+msgstr ""
+
+msgid "Can't remove the last existing style."
+msgstr ""
+
+#, boost-format
+msgid "Are you sure you want to permanently remove the \"%1%\" style?"
+msgstr ""
+
+#, boost-format
+msgid "Delete \"%1%\" style."
+msgstr ""
+
+#, boost-format
+msgid "Can't delete \"%1%\". It is last style."
+msgstr ""
+
+#, boost-format
+msgid "Can't delete temporary style \"%1%\"."
+msgstr ""
+
+msgid "Operation"
+msgstr "Opération"
+
+msgid "Click to change text into object part."
+msgstr "Cliquez pour transformer le texte en partie d’objet."
+
+msgid "You can't change a type of the last solid part of the object."
+msgstr "Vous ne pouvez pas modifier le type de la dernière partie pleine de l’objet."
+
+msgctxt "EmbossOperation"
+msgid "Cut"
+msgstr "Couper"
+
+msgid "Click to change part type into negative volume."
+msgstr "Cliquez pour changer le type de pièce en volume négatif."
+
+msgid "Modifier"
+msgstr "Modificateur"
+
+msgid "Click to change part type into modifier."
+msgstr "Cliquez pour changer le type de pièce en modificateur."
+
+msgid "Surround projection by char"
+msgstr ""
+
+msgid "Not surround"
+msgstr ""
+
+msgid "Surround surface"
+msgstr ""
+
+msgid "Surround"
+msgstr ""
+
+msgid "Horizonal"
+msgstr ""
+
+msgid "Reset rotation"
+msgstr "Réinitialiser la rotation"
+
+msgid "Rotate the text counterclockwise."
+msgstr ""
 
 msgid "Text shape"
 msgstr "Forme du texte"
 
+#. TRN - Input label. Be short as possible
+#. Select look of letter shape
 msgid "Font"
 msgstr "Police"
 
@@ -881,20 +1033,16 @@ msgstr "Épaisseur"
 msgid "Input text"
 msgstr "Texte entré"
 
-msgid "Embeded"
-msgstr "Intégré"
+msgid "Embeded depth"
+msgstr ""
 
 msgid "Text Gap"
 msgstr "Espacement du texte"
 
-msgid ""
-"Embeded\r\n"
-"depth"
+msgid "Warning:There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr ""
-"Embedded\n"
-"depth"
 
-msgid "Warning:Input cannot be empty!"
+msgid "Warning:Due to font upgrades,previous font may not necessarily be replaced successfully, and recommend you to modify the font."
 msgstr ""
 
 msgid "Warning:create text fail."
@@ -906,38 +1054,96 @@ msgstr "Avertissement : le texte normal est une erreur."
 msgid "Warning:text normal has been reset."
 msgstr "Avertissement : le texte normal a été réinitialisé."
 
-msgid ""
-"Warning:Because current text does indeed use surround algorithm,\n"
-"if continue to edit, text has to regenerated according to new location."
+msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr ""
 
-msgid ""
-"Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. \n"
-"If you continue editing, it may not be correct. \n"
-"Please dragging text or cancel using current pose, \n"
-"save and reedit again."
+msgid "Error:Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes.Please drag text,save it then reedit it again."
 msgstr ""
 
-msgid ""
-"Error:Detecting an incorrect mesh id or an unknown error, \n"
-"regenerating text may result in incorrect outcomes.\n"
-"Please drag text,save it then reedit it again."
+msgid "Warning:Due to functional upgrade, rotation information cannot be restored. Please drag or modify text,save it and reedit it will ok."
 msgstr ""
 
-msgid ""
-"Warning:Due to functional upgrade, rotation information \n"
-"cannot be restored. Please drag or modify text,\n"
-" save it and reedit it will ok."
+msgid "Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."
 msgstr ""
 
-msgid "Use opened text pose"
+msgid "The text cannot be written using the selected font. Please try choosing a different font."
 msgstr ""
 
-msgid "Surface"
-msgstr "Surface"
+msgid "Embossed text cannot contain only white spaces."
+msgstr ""
 
-msgid "Horizontal text"
-msgstr "Texte horizontal"
+msgid "Unsupported characters automatically switched to fallback font."
+msgstr ""
+
+msgid "Text doesn't show current horizontal alignment."
+msgstr ""
+
+#, boost-format
+msgid "Font \"%1%\" can't be selected."
+msgstr ""
+
+msgid "Revert text size."
+msgstr ""
+
+msgid "No symbol"
+msgstr ""
+
+msgid "Loading"
+msgstr "Chargement"
+
+msgid "In queue"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+#. Copy surface of model on surface of the embossed text
+#. TRN - Input label. Be short as possible
+msgid "Use surface"
+msgstr "Utiliser la surface"
+
+#. TRN - Input label. Be short as possible
+#. Option to change projection on curved surface
+#. for each character(glyph) in text separately
+msgid "Per glyph"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+#. Align Top|Middle|Bottom and Left|Center|Right
+msgid "Alignment"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Text gap"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Line gap"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Boldness"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+#. Like Font italic
+msgid "Skew ratio"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+#. Distance from model surface to be able
+#. move text as part fully into not flat surface
+#. move text as modifier fully out of not flat surface
+#. TRN - Input label. Be short as possible
+msgid "From surface"
+msgstr "Depuis la surface"
+
+msgid "Style name"
+msgstr ""
+
+msgid "There is already a text style with the same name."
+msgstr ""
+
+msgid "There are spaces or illegal characters present."
+msgstr ""
 
 msgid "Head diameter"
 msgstr "Diamètre de la tête"
@@ -999,14 +1205,6 @@ msgstr "L’analyseur NanoSVG ne peut pas charger le fichier (%1%)."
 #, boost-format
 msgid "%1% contains some unsupported data. Please use third-party software to convert the SVG to path data before reimporting."
 msgstr "%1% contient des données non prises en charge. Veuillez utiliser un logiciel tiers pour convertir le SVG en données de traçage avant de le réimporter."
-
-#. TRN - Input label. Be short as possible
-msgid "Use surface"
-msgstr "Utiliser la surface"
-
-#. TRN - Input label. Be short as possible
-msgid "From surface"
-msgstr "Depuis la surface"
 
 #. TRN - Input label. Be short as possible
 msgid "Mirror"
@@ -1139,9 +1337,6 @@ msgstr "Réinitialiser la distance"
 msgid "Rotate text Clock-wise."
 msgstr "Rotation du texte dans le sens des aiguilles d’une montre."
 
-msgid "Reset rotation"
-msgstr "Réinitialiser la rotation"
-
 msgid "Lock/unlock rotation angle when dragging above the surface."
 msgstr "Verrouille/déverrouillez l'angle de rotation lorsque vous le faites glisser au-dessus de la surface."
 
@@ -1157,30 +1352,8 @@ msgstr "Définir la Symétrie"
 msgid "Face the camera"
 msgstr "Faire face à la caméra"
 
-msgid "Operation"
-msgstr "Opération"
-
 msgid "Join"
 msgstr "Joindre"
-
-msgid "Click to change text into object part."
-msgstr "Cliquez pour transformer le texte en partie d’objet."
-
-msgid "You can't change a type of the last solid part of the object."
-msgstr "Vous ne pouvez pas modifier le type de la dernière partie pleine de l’objet."
-
-msgctxt "EmbossOperation"
-msgid "Cut"
-msgstr "Couper"
-
-msgid "Click to change part type into negative volume."
-msgstr "Cliquez pour changer le type de pièce en volume négatif."
-
-msgid "Modifier"
-msgstr "Modificateur"
-
-msgid "Click to change part type into modifier."
-msgstr "Cliquez pour changer le type de pièce en modificateur."
 
 #. TRN: This is the name of the action that shows in undo/redo stack (changing part type from SVG to something else).
 msgid "Change SVG Type"
@@ -1382,9 +1555,6 @@ msgstr "Le nombre de préréglages utilisateur mis en cache dans le cloud a dép
 
 msgid "Sync user presets"
 msgstr "Synchroniser les préréglages utilisateur"
-
-msgid "Loading"
-msgstr "Chargement"
 
 msgid "Loading user preset"
 msgstr "Chargement du préréglage utilisateur"
@@ -2132,9 +2302,6 @@ msgstr "G-code personnalisé"
 msgid "Enter Custom G-code used on current layer:"
 msgstr "Entrez le G-code personnalisé a utiliser sur la couche actuelle :"
 
-msgid "OK"
-msgstr "OK"
-
 msgid "Jump to Layer"
 msgstr "Aller à la couche"
 
@@ -2237,6 +2404,15 @@ msgstr "Changer quand même"
 msgid "Off"
 msgstr "Arrêté"
 
+msgid "Filter"
+msgstr ""
+
+msgid "Enabling filtration redirects the right fan to filter gas, which may reduce cooling performance."
+msgstr ""
+
+msgid "Enabling filtration during printing may reduce cooling and affect print qulity. Please choose carefully"
+msgstr ""
+
 msgid "The selected material only supports the current fan mode, and it can't be changed during printing."
 msgstr "Le matériau sélectionné n'est compatible qu'avec le mode de ventilation actuel et ne peut pas être modifié en cours d'impression."
 
@@ -2251,9 +2427,6 @@ msgstr "Extraction"
 
 msgid "Full Cooling"
 msgstr "Refroidissement Maximal"
-
-msgid "Num?"
-msgstr ""
 
 msgid "Init"
 msgstr ""
@@ -2298,7 +2471,11 @@ msgstr ""
 msgid "Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printouts will be fully cooled."
 msgstr "Le mode de refroidissement puissant convient à l'impression de matériaux PLA/TPU. Dans ce mode, les impressions seront complètement refroidies."
 
-msgid "Num"
+msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
+msgstr ""
+
+msgctxt "air_duct"
+msgid "Right"
 msgstr ""
 
 msgid "Idling..."
@@ -2414,6 +2591,12 @@ msgstr "La police n'a aucune forme pour un texte donné."
 
 msgid "There is no valid surface for text projection."
 msgstr "Il n'existe aucune surface valide pour la projection de texte."
+
+msgid "Text mesh ie empty."
+msgstr ""
+
+msgid "Text"
+msgstr ""
 
 msgid "Error! Unable to create thread!"
 msgstr "Erreur! Impossible de créer le processus !"
@@ -4006,6 +4189,12 @@ msgstr "Scinder en pièces"
 msgid "And it is valid when importing an stl with at least two meshes."
 msgstr "Et elle est valable lors de l'importation d'un stl avec au moins deux maillages."
 
+msgid "Click to Extend"
+msgstr ""
+
+msgid "Click to Collapse"
+msgstr ""
+
 msgid "Assembly View"
 msgstr "Vue de l'assemblage"
 
@@ -5095,6 +5284,9 @@ msgstr "Échec de la commutation"
 msgid "Printing Progress"
 msgstr "Progression de l'impression"
 
+msgid "Parts Skip"
+msgstr ""
+
 msgid "Resume"
 msgstr "Résumer"
 
@@ -5104,8 +5296,8 @@ msgstr "Arrêt"
 msgid "Layer: N/A"
 msgstr "Couche : N/A"
 
-msgid "Finish Time: N/A"
-msgstr "Heure de fin : N/A"
+msgid "Estimated finish time: "
+msgstr ""
 
 msgid ""
 "The estimated printing time for \n"
@@ -5135,9 +5327,6 @@ msgstr "Note"
 
 msgid "Finished"
 msgstr "Terminé"
-
-msgid "Finish Time: "
-msgstr "Heure de fin : "
 
 msgid "Camera"
 msgstr "Caméra"
@@ -5187,6 +5376,18 @@ msgstr "Êtes-vous sûr de vouloir arrêter cette impression ?"
 msgid "Unknown error."
 msgstr "Erreur inconnue."
 
+msgid "The printer is busy on other print job"
+msgstr "L'imprimante est occupée par un autre travail d'impression."
+
+msgid "Current extruder is busy changing filament"
+msgstr ""
+
+msgid "Current slot has alread been loaded"
+msgstr ""
+
+msgid "The selected slot is empty."
+msgstr ""
+
 msgid "Downloading..."
 msgstr "Téléchargement…"
 
@@ -5204,6 +5405,10 @@ msgstr "Couche : %s"
 #, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr "Couche : %d/%d"
+
+#, c-format, boost-format
+msgid "(%d)"
+msgstr ""
 
 msgid "Auto homing"
 msgstr "Origine Auto"
@@ -5244,17 +5449,14 @@ msgstr "Insensé"
 msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
 msgstr ""
 
-msgid "Turn it Off"
+msgid "Keep it On"
 msgstr ""
 
-msgid "Keep it On"
+msgid "Turn it Off"
 msgstr ""
 
 msgid "Can't start this without storage."
 msgstr "Impossible de démarrer sans stockage."
-
-msgid "The printer is busy on other print job"
-msgstr "L'imprimante est occupée par un autre travail d'impression."
 
 msgid "Rate the Print Profile"
 msgstr "Évaluez le Profil d'Impression"
@@ -5649,11 +5851,35 @@ msgstr "Détection de Plaque d’Impression"
 msgid "Identifies the type and position of the build plate on the heatbed. Pausing printing if a mismatch is detected."
 msgstr "Identifie le type et la position de la plaque de construction sur le lit chauffant. Interrompt l'impression si une erreur est détectée."
 
+msgid "AI Detections"
+msgstr ""
+
+msgid "Printer will send assistant message or pause printing if any of the following problem is detected."
+msgstr ""
+
 msgid "Enable AI monitoring of printing"
 msgstr "Activer la surveillance de l'impression par l'IA"
 
-msgid "Sensitivity of pausing is"
-msgstr "La sensibilité de pause est "
+msgid "Pausing Sensitivity:"
+msgstr ""
+
+msgid "Spaghetti Detection"
+msgstr "Détection des Spaghettis"
+
+msgid "Detect spaghetti failure(scattered lose filament)."
+msgstr ""
+
+msgid "Purge Chute Pile-Up Detection"
+msgstr ""
+
+msgid "Monitor if the waste is piled up in the purge chute."
+msgstr ""
+
+msgid "Nozzle Clumping Detection"
+msgstr "Détection Encrassement Buse"
+
+msgid "Check if the nozzle is clumping by filaments or other foreign objects."
+msgstr ""
 
 msgid "First Layer Inspection"
 msgstr "Inspection de la Première Couche"
@@ -5681,9 +5907,6 @@ msgstr "Autoriser son d'alerte"
 
 msgid "Filament Tangle Detect"
 msgstr "Filament Tangle Detection"
-
-msgid "Nozzle Clumping Detection"
-msgstr "Détection Encrassement Buse"
 
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "Vérifiez si le filament ou d'autres corps étrangers s'amassent sur la buse."
@@ -5739,6 +5962,20 @@ msgstr "Paramètres de l'imprimante"
 #, c-format, boost-format
 msgid "The %s nozzle can not print %s."
 msgstr "La buse %s ne peut pas imprimer %s."
+
+msgid " nozzle"
+msgstr " buse"
+
+#, boost-format
+msgid "It is not recommended to print the following filament(s) with %1%: %2%\n"
+msgstr ""
+
+msgid "It is not recommended to use the following nozzle and filament combinations:\n"
+msgstr ""
+
+#, boost-format
+msgid "%1% with %2%\n"
+msgstr ""
 
 #, boost-format
 msgid " plate %1%: "
@@ -6187,6 +6424,9 @@ msgstr "Projet téléchargé à %d%%"
 msgid "Importing to Bambu Studio failed. Please download the file and manually import it."
 msgstr "L'importation vers Bambu Studio a échoué. Téléchargez le fichier et importez-le manuellement."
 
+msgid "The current settings produce a model that is too large. Please narrow the range or increase the step size. (Model size is proportional to (End - Start) / Step size.)"
+msgstr ""
+
 msgid "The selected file"
 msgstr "Le fichier sélectionné"
 
@@ -6549,6 +6789,12 @@ msgstr "Si cette option est activée, vous pouvez imprimer ensemble des matéria
 msgid "Clear my choice for synchronizing printer preset after loading the file."
 msgstr "Effacer mon choix pour la synchronisation des préréglages de l'imprimante après le chargement du fichier."
 
+msgid "Clear my choice for Load 3mf dialog settings."
+msgstr ""
+
+msgid "Show the warning dialog again when importing non-Bambu 3MF files"
+msgstr ""
+
 msgid "3D Settings"
 msgstr "Réglages 3D"
 
@@ -6581,6 +6827,15 @@ msgstr "Amélioration des performances de rendu par logement"
 
 msgid "Improved rendering performance under the scene of multiple plates and many models."
 msgstr "Amélioration des performances de rendu sous la scène de plusieurs plaques et de nombreux modèles."
+
+msgid "Collapsible"
+msgstr ""
+
+msgid "Uncollapsible"
+msgstr ""
+
+msgid "Toolbar Style"
+msgstr ""
 
 msgid "Grabber scale"
 msgstr "Échelle de saisie"
@@ -6843,9 +7098,6 @@ msgstr "Sélectionner/Retirer des imprimantes (préréglages du système)"
 msgid "Create printer"
 msgstr "Créer imprimante"
 
-msgid "Please choose the filament colour"
-msgstr "Veuillez choisir la couleur du filament"
-
 msgid "Empty"
 msgstr "Vide"
 
@@ -7023,11 +7275,14 @@ msgstr ""
 msgid "Send print job"
 msgstr "Envoyer un travail d'impression"
 
-msgid "On"
-msgstr "Activé"
-
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Vous n'êtes pas satisfait du regroupement des filaments ? Regroupez et coupez ->"
+
+msgid "Manually change external spool during printing for multi-color printing"
+msgstr ""
+
+msgid "Multi-color with external"
+msgstr ""
 
 msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr "Votre méthode de regroupement des filaments dans le fichier en tranches n'est pas optimale."
@@ -8288,6 +8543,9 @@ msgstr "Multiplicateur"
 msgid "Flushing volumes for filament change"
 msgstr "Volumes de rinçage pour le changement de filament"
 
+msgid "Please choose the filament colour"
+msgstr "Veuillez choisir la couleur du filament"
+
 msgid "Bambu Network plug-in not detected."
 msgstr "Le plug-in Bambu Network n'a pas été détecté."
 
@@ -8672,9 +8930,6 @@ msgstr ""
 msgid "Cutting Module"
 msgstr "Module de coupe"
 
-msgid "Auto Fire Extinguishing System"
-msgstr ""
-
 msgid "Model:"
 msgstr "Modèle :"
 
@@ -8811,9 +9066,6 @@ msgstr "Erreur de regroupement :"
 
 msgid " can not be placed in the "
 msgstr " ne peut pas être placé dans le"
-
-msgid " nozzle"
-msgstr " buse"
 
 msgid "Inner wall"
 msgstr "Mur intérieur"
@@ -9999,6 +10251,18 @@ msgstr "Croix Zag"
 msgid "Locked Zag"
 msgstr ""
 
+msgid "skin infill pattern"
+msgstr ""
+
+msgid "Line pattern for skin"
+msgstr ""
+
+msgid "skeleton infill pattern"
+msgstr ""
+
+msgid "Line pattern for skeleton"
+msgstr ""
+
 msgid "Acceleration of top surface infill. Using a lower value may improve top surface quality"
 msgstr "Il s'agit de l'accélération de la surface supérieure du remplissage. Utiliser une valeur plus petite pourrait améliorer la qualité de la surface supérieure."
 
@@ -10635,8 +10899,8 @@ msgstr "Densité du premier radeau ou couche de support"
 msgid "Initial layer expansion"
 msgstr "Expansion de la première couche"
 
-msgid "Expand the first raft or support layer to improve bed plate adhesion"
-msgstr "Étendre le premier radeau ou la première couche de support pour améliorer l'adhérence sur le plateau"
+msgid "Expand the first raft or support layer to improve bed plate adhesion, -1 means auto"
+msgstr ""
 
 msgid "Raft layers"
 msgstr "Couches du radeau"
@@ -10760,6 +11024,12 @@ msgstr "Arrière"
 
 msgid "Random"
 msgstr "Aléatoire"
+
+msgid "Seam placement away from overhangs(experimental)"
+msgstr ""
+
+msgid "Ensure seam placement away from overhangs for alignment and backing modes."
+msgstr ""
 
 msgid "Seam gap"
 msgstr "Écart de jointure"
@@ -11634,20 +11904,6 @@ msgstr "Débit"
 msgid "Max Volumetric Speed"
 msgstr "Vitesse volumétrique max"
 
-#, c-format, boost-format
-msgid ""
-"Please input valid values:\n"
-"Start value: >= %.1f\n"
-"End value: <= %.1f\n"
-"End value: > Start value\n"
-"Value step: >= %.3f)"
-msgstr ""
-"Veuillez saisir des valeurs valides :\n"
-"Valeur de départ : >= %.1f\n"
-"Valeur finale : <= %.1f\n"
-"Valeur finale : > Valeur initiale\n"
-"Pas de valeur : >=) %.3f"
-
 msgid "The name cannot be empty."
 msgstr "Le nom ne peut pas être vide."
 
@@ -12089,17 +12345,6 @@ msgstr "Pas de PA:"
 msgid "Print numbers"
 msgstr "Imprimer les nombres"
 
-msgid ""
-"Please input valid values:\n"
-"Start PA: >= 0.0\n"
-"End PA: > Start PA\n"
-"PA step: >= 0.001)"
-msgstr ""
-"Entrez des valeurs valides :\n"
-"PA de départ : >= 0.0\n"
-"Fin PA : > Démarrer PA\n"
-"Pas de PA : >= 0,001)"
-
 msgid "Temperature calibration"
 msgstr "Calibration de Température"
 
@@ -12122,12 +12367,8 @@ msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
 "End temp: >= 180\n"
-"Start temp > End temp + 5)"
+"Start temp >= End temp + 5)"
 msgstr ""
-"Entrez des valeurs valides :\n"
-"Température de départ : <= 350\n"
-"Température de fin : >= 180\n"
-"Température de début > Température de fin + 5)"
 
 msgid "Max volumetric speed test"
 msgstr "Test de vitesse volumétrique maximale"
@@ -12144,11 +12385,8 @@ msgstr "pas :"
 msgid ""
 "Please input valid values:\n"
 "start > 0 step >= 0\n"
-"end > start + step)"
+"end >= start + step)"
 msgstr ""
-"Veuillez saisir des valeurs valides :\n"
-"démarrer > 0 pas >= 0\n"
-"fin > début + pas)"
 
 msgid "VFA test"
 msgstr "Test VFA"
@@ -12162,11 +12400,8 @@ msgstr "Vitesse de fin : "
 msgid ""
 "Please input valid values:\n"
 "start > 10 step >= 0\n"
-"end > start + step)"
+"end >= start + step)"
 msgstr ""
-"Veuillez saisir des valeurs valides :\n"
-"démarrer > 10 pas >= 0\n"
-"fin > début + pas)"
 
 msgid "Start retraction length: "
 msgstr "Rétractation initiale :"
@@ -12811,6 +13046,20 @@ msgid "Daily Tips"
 msgstr "Astuces du Jour"
 
 #, c-format, boost-format
+msgid ""
+"Please input valid values:\n"
+"Start value: >= %.1f\n"
+"End value: <= %.1f\n"
+"End value: > Start value\n"
+"Value step: >= %.3f)"
+msgstr ""
+"Veuillez saisir des valeurs valides :\n"
+"Valeur de départ : >= %.1f\n"
+"Valeur finale : <= %.1f\n"
+"Valeur finale : > Valeur initiale\n"
+"Pas de valeur : >=) %.3f"
+
+#, c-format, boost-format
 msgid "nozzle size in preset: %d"
 msgstr "taille de la buse dans le préréglage : %d"
 
@@ -13347,6 +13596,70 @@ msgstr "Conseils : Vous pouvez faire glisser les filaments pour les réaffecter 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "La méthode de regroupement des filaments pour la plaque actuelle est déterminée par l'option déroulante du bouton de la plaque de tranchage."
 
+msgid "Skip Objects"
+msgstr "Ignorer les Objets"
+
+msgid "Zoom Out"
+msgstr ""
+
+msgid "100 %"
+msgstr ""
+
+msgid "Zoom In"
+msgstr ""
+
+msgid "Load skipping objects information failed. Please try again."
+msgstr ""
+
+msgid "Loading ..."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d%%"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d"
+msgstr ""
+
+#, c-format, boost-format
+msgid "/%d Selected"
+msgstr ""
+
+msgid "Skipping all objects."
+msgstr ""
+
+msgid "The printing job will be stopped. Continue?"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Skipping %d objects."
+msgstr ""
+
+msgid "This action cannot be undone. Continue?"
+msgstr ""
+
+msgid "Skipping objects."
+msgstr ""
+
+msgid "Continue"
+msgstr ""
+
+msgid "Select Filament"
+msgstr ""
+
+msgid "Null Color"
+msgstr ""
+
+msgid "Multiple Color"
+msgstr ""
+
+msgid "Official Filament"
+msgstr ""
+
+msgid "More Colors"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -13566,6 +13879,83 @@ msgid ""
 msgstr ""
 "Évitez le warping\n"
 "Saviez-vous que lors de l'impression de matériaux sujets au warping, tels que l'ABS, une augmentation appropriée de la température du plateau peut réduire le risque de déformation ?"
+
+#~ msgid "Shift + Mouse move up or down"
+#~ msgstr "Maj + souris vers le haut ou vers le bas"
+
+#~ msgid "Rotate text"
+#~ msgstr "Faire pivoter le texte"
+
+#~ msgid "Embeded"
+#~ msgstr "Intégré"
+
+#~ msgid ""
+#~ "Embeded\r\n"
+#~ "depth"
+#~ msgstr ""
+#~ "Embedded\n"
+#~ "depth"
+
+#~ msgid "Surface"
+#~ msgstr "Surface"
+
+#~ msgid "Horizontal text"
+#~ msgstr "Texte horizontal"
+
+#~ msgid "Finish Time: N/A"
+#~ msgstr "Heure de fin : N/A"
+
+#~ msgid "Finish Time: "
+#~ msgstr "Heure de fin : "
+
+#~ msgid "Sensitivity of pausing is"
+#~ msgstr "La sensibilité de pause est "
+
+#~ msgid "On"
+#~ msgstr "Activé"
+
+#~ msgid "Expand the first raft or support layer to improve bed plate adhesion"
+#~ msgstr "Étendre le premier radeau ou la première couche de support pour améliorer l'adhérence sur le plateau"
+
+#~ msgid ""
+#~ "Please input valid values:\n"
+#~ "Start PA: >= 0.0\n"
+#~ "End PA: > Start PA\n"
+#~ "PA step: >= 0.001)"
+#~ msgstr ""
+#~ "Entrez des valeurs valides :\n"
+#~ "PA de départ : >= 0.0\n"
+#~ "Fin PA : > Démarrer PA\n"
+#~ "Pas de PA : >= 0,001)"
+
+#~ msgid ""
+#~ "Please input valid values:\n"
+#~ "Start temp: <= 350\n"
+#~ "End temp: >= 180\n"
+#~ "Start temp > End temp + 5)"
+#~ msgstr ""
+#~ "Entrez des valeurs valides :\n"
+#~ "Température de départ : <= 350\n"
+#~ "Température de fin : >= 180\n"
+#~ "Température de début > Température de fin + 5)"
+
+#~ msgid ""
+#~ "Please input valid values:\n"
+#~ "start > 0 step >= 0\n"
+#~ "end > start + step)"
+#~ msgstr ""
+#~ "Veuillez saisir des valeurs valides :\n"
+#~ "démarrer > 0 pas >= 0\n"
+#~ "fin > début + pas)"
+
+#~ msgid ""
+#~ "Please input valid values:\n"
+#~ "start > 10 step >= 0\n"
+#~ "end > start + step)"
+#~ msgstr ""
+#~ "Veuillez saisir des valeurs valides :\n"
+#~ "démarrer > 10 pas >= 0\n"
+#~ "fin > début + pas)"
 
 #~ msgid "Heating mode is suitable for printeing ABS/ASA/PC/PA materials and circulates filters the chamber air."
 #~ msgstr "Le mode chauffage convient à l'impression de matériaux ABS/ASA/PC/PA et fait circuler et filtre l'air de la chambre."
@@ -15562,9 +15952,6 @@ msgstr ""
 #~ msgid "Show command help."
 #~ msgstr "Afficher l'aide de la commande."
 
-#~ msgid "Skip Objects"
-#~ msgstr "Ignorer les Objets"
-
 #~ msgid "Skip some objects in this print"
 #~ msgstr "Ignorer certains objets de cette impression"
 
@@ -15573,9 +15960,6 @@ msgstr ""
 
 #~ msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
 #~ msgstr "Trancher toutes les plaques : 0-toutes, i-plaque i, autres-invalides"
-
-#~ msgid "Spaghetti Detection"
-#~ msgstr "Détection des Spaghettis"
 
 #~ msgid "Spaghetti and Excess Chute Pileup Detection"
 #~ msgstr "Détection des Amas de goulotte d'évacuation et Spaghetti"
