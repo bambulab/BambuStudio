@@ -1436,7 +1436,6 @@ bool GLGizmoText::on_shortcut_key() {
             auto &worker = wxGetApp().plater()->get_ui_job_worker();
             queue_job(worker, std::move(job));
         } else {
-            const Selection &selection  = m_parent.get_selection();
             int              object_idx = selection.get_object_idx();
             Size                     s = m_parent.get_canvas_size();
             Vec2d                    screen_center(s.get_width() / 2., s.get_height() / 2.);
@@ -1446,6 +1445,8 @@ bool GLGizmoText::on_shortcut_key() {
             const Camera &camera = wxGetApp().plater()->get_camera();
             auto finde_gl_volume = find_glvoloume_render_screen_cs(selection, screen_center, camera, objects, &coor);
             if (finde_gl_volume != nullptr && object_idx >= 0) {
+                int  temp_object_idx;
+                auto mo = selection.get_selected_single_object(temp_object_idx);
                 update_trafo_matrices();
                 m_c->update(get_requirements());
                 if (m_trafo_matrices.size() > 0 && update_raycast_cache(coor, camera, m_trafo_matrices,false) && m_rr.mesh_id >= 0) {
@@ -1453,8 +1454,6 @@ bool GLGizmoText::on_shortcut_key() {
                     Geometry::Transformation tran(m_trafo_matrices[m_rr.mesh_id]);
                     auto        hit_normal    = (tran.get_matrix_no_offset() * m_rr.normal.cast<double>()).normalized();
                     Transform3d surface_trmat = create_transformation_onto_surface(hit_pos, hit_normal, UP_LIMIT);
-                    int                      temp_object_idx;
-                    auto                     mo = m_parent.get_selection().get_selected_single_object(temp_object_idx);
                     mv                          = mo->volumes[m_rr.mesh_id];
                     if (mv) {
                         auto        instance  = mo->instances[m_parent.get_selection().get_instance_idx()];

@@ -3202,7 +3202,9 @@ void ObjectList::merge(bool to_multipart_object)
                 auto option = new_volume->config.option("extruder");
                 if (!option) {
                     auto opt = object->config.option("extruder");
-                    if (opt) { new_volume->config.set_key_value("extruder", new ConfigOptionInt(opt->getInt())); }
+                    if (opt) {
+                        new_volume->config.set_key_value("extruder", new ConfigOptionInt(opt->getInt()));
+                    }
                 }
                 new_volume->mmu_segmentation_facets.assign(std::move(volume->mmu_segmentation_facets));
             }
