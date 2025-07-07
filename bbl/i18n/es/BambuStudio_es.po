@@ -5213,16 +5213,16 @@ msgid "This only takes effect during printing"
 msgstr "Esto solo tiene efecto durante la impresión"
 
 msgid "Silent"
-msgstr "Silencio"
+msgstr "Silenciosa"
 
 msgid "Standard"
 msgstr "Estándar"
 
 msgid "Sport"
-msgstr "Deportivo"
+msgstr "Deportiva"
 
 msgid "Ludicrous"
-msgstr "Lúdico"
+msgstr "Absurda"
 
 msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
 msgstr ""
