@@ -7,6 +7,7 @@
 #include "Tabbook.hpp"
 #include "CaliHistoryDialog.hpp"
 #include "CalibUtils.hpp"
+#include "BBLUtil.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -172,7 +173,7 @@ void CalibrationWizard::on_device_connected(MachineObject* obj)
     recover_preset_info(obj);
 
     BOOST_LOG_TRIVIAL(info) << "on_device_connected - machine object status:"
-                            << " dev_id = " << obj->dev_id
+                            << " dev_id = " << BBLCrossTalk::Crosstalk_DevId(obj->dev_id)
                             << ", print_type = " << obj->printer_type
                             << ", printer_status = " << obj->print_status
                             << ", cali_finished = " << obj->cali_finished
