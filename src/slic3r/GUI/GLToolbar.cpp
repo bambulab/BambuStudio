@@ -138,6 +138,16 @@ bool GLToolbarItem::is_collapsed() const
     return m_data.b_collapsed;
 }
 
+bool GLToolbarItem::recheck_pressed() const
+{
+    bool rt = false;
+    if (m_data.pressed_recheck_callback) {
+        const bool recheck_rt = m_data.pressed_recheck_callback();
+        rt = (is_pressed() != recheck_rt);
+    }
+    return rt;
+}
+
 GLToolbarItem::GLToolbarItem(GLToolbarItem::EType type, const GLToolbarItem::Data& data)
     : m_type(type)
     , m_state(Normal)
@@ -190,6 +200,11 @@ std::string GLToolbarItem::get_icon_filename(bool is_dark_mode) const
         return m_data.icon_filename_callback(is_dark_mode);
     }
     return "";
+}
+
+void GLToolbarItem::set_last_action_type(GLToolbarItem::EActionType type)
+{
+    m_last_action_type = type;
 }
 
 void GLToolbarItem::do_left_action()
@@ -961,6 +976,35 @@ bool GLToolbar::update_items_enabled_state()
     return ret;
 }
 
+bool GLToolbar::update_items_pressed_state()
+{
+    bool ret = false;
+
+    for (int i = 0; i < (int)m_items.size(); ++i)
+    {
+        const auto& item = m_items[i];
+        if (!item) {
+            continue;
+        }
+
+        if (!item->recheck_pressed()) {
+            continue;
+        }
+        ret = true;
+        if (item->is_pressed()) {
+            item->set_state(GLToolbarItem::EState::Normal);
+        }
+        else {
+            item->set_state(GLToolbarItem::EState::Pressed);
+            m_pressed_toggable_id = i;
+            item->set_last_action_type(GLToolbarItem::EActionType::Left);
+            set_collapsed();
+        }
+    }
+
+    return ret;
+}
+
 void GLToolbar::render(const Camera& t_camera)
 {
     if (!m_enabled || m_items.empty())
@@ -979,6 +1023,7 @@ bool GLToolbar::update_items_state()
     bool ret = false;
     ret |= update_items_visibility();
     ret |= update_items_enabled_state();
+    ret |= update_items_pressed_state();
     if (!is_any_item_pressed())
         m_pressed_toggable_id = -1;
 

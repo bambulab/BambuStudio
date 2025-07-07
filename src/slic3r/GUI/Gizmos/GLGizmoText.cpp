@@ -1188,11 +1188,8 @@ void GLGizmoText::draw_model_type(int caption_width)
         // NOTE: on linux, function reorder_volumes_and_get_selection call GLCanvas3D::reload_scene(refresh_immediately = false)
         // which discard m_volume pointer and set it to nullptr also selection is cleared so gizmo is automaticaly closed
         auto &mng = m_parent.get_gizmos_manager();
-        if (mng.get_current_type() != GLGizmosManager::Text) {
-            const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Text);
-            Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
-            m_parent.post_event(std::move(evt));
-        }
+        if (mng.get_current_type() != GLGizmosManager::Text)
+            mng.open_gizmo(GLGizmosManager::Text);
     }
 }
 
@@ -1508,11 +1505,8 @@ bool GLGizmoText::is_only_text_case() {
 void GLGizmoText::close()
 {
     auto &mng = m_parent.get_gizmos_manager();
-    if (mng.get_current_type() == GLGizmosManager::Text) {
-        const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Text);
-        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
-        m_parent.post_event(std::move(evt));
-    }
+    if (mng.get_current_type() == GLGizmosManager::Text)
+        mng.open_gizmo(GLGizmosManager::Text);
 }
 
 std::string GLGizmoText::get_icon_filename(bool b_dark_mode) const
@@ -1526,7 +1520,7 @@ void GLGizmoText::use_fix_normal_position()
     m_text_position_in_world = m_fix_text_position_in_world;
 }
 
-void GLGizmoText::load_init_text(bool first_open_text, bool is_serializing)
+void GLGizmoText::load_init_text(bool first_open_text)
 {
     Plater *plater = wxGetApp().plater();
     Selection &selection = m_parent.get_selection();
@@ -1558,11 +1552,11 @@ void GLGizmoText::load_init_text(bool first_open_text, bool is_serializing)
         if (model_volume) {
             TextInfo text_info = model_volume->get_text_info();
             if (model_volume->is_text()) {
-                if (m_last_text_mv == model_volume && !is_serializing) {
+                if (m_last_text_mv == model_volume && !m_is_serializing) {
                     return;
                 }
                 m_last_text_mv = model_volume;
-                if (!is_serializing && plater && first_open_text) {
+                if (!m_is_serializing && plater && first_open_text) {
                     plater->take_snapshot("enter Text");
                 }
                 auto box = model_volume->get_mesh_shared_ptr()->bounding_box();
@@ -1633,7 +1627,7 @@ void GLGizmoText::load_init_text(bool first_open_text, bool is_serializing)
                         }
                     }
                 }
-                if (is_serializing) { // undo redo
+                if (m_is_serializing) { // undo redo
                     m_style_manager.get_style().angle = calc_angle(selection);
                     m_rotate_angle                    = get_angle_from_current_style();
                     m_rr.normal =Vec3f::Zero();
@@ -1730,13 +1724,15 @@ void GLGizmoText::load_init_text(bool first_open_text, bool is_serializing)
             }
         }
     }
-    if (!is_serializing && m_last_text_mv == nullptr) {
+    if (!m_is_serializing && m_last_text_mv == nullptr) {
         close();
     }
 }
 
 void  GLGizmoText::data_changed(bool is_serializing) {
-    load_init_text(false, is_serializing);
+    m_is_serializing = is_serializing;
+    load_init_text(false);
+    m_is_serializing = false;
     if (wxGetApp().plater()->is_show_text_cs()) {
         m_lines_mark.reset();
     }

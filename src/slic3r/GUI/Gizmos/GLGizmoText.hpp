@@ -262,7 +262,7 @@ private:
 private:
     void generate_text_tran_in_world(const Vec3d &text_normal_in_world, const Vec3d &text_position_in_world, float rotate_degree, Geometry::Transformation &tran);
     void use_fix_normal_position();
-    void load_init_text(bool first_open_text = false, bool is_serializing =false);
+    void load_init_text(bool first_open_text = false);
     void update_text_pos_normal();
     //void update_font_status();
     void reset_text_info();

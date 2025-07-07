@@ -783,7 +783,10 @@ std::string GLGizmoBase::get_name(bool include_shortcut) const
     return out;
 }
 
-
+void GLGizmoBase::set_serializing(bool is_serializing)
+{
+    m_is_serializing = is_serializing;
+}
 
 // Produce an alpha channel checksum for the red green blue components. The alpha channel may then be used to verify, whether the rgb components
 // were not interpolated by alpha blending or multi sampling.

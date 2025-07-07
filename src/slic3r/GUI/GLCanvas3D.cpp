@@ -1231,7 +1231,6 @@ wxDEFINE_EVENT(EVT_CUSTOMEVT_TICKSCHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 wxDEFINE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
-wxDEFINE_EVENT(EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, Event<ForceClickToolbarItemData>);
 
 const double GLCanvas3D::DefaultCameraZoomToBoxMarginFactor = 1.25;
 const double GLCanvas3D::DefaultCameraZoomToBedMarginFactor = 2.00;
@@ -2652,20 +2651,19 @@ void GLCanvas3D::select_all()
 
 void GLCanvas3D::deselect_all()
 {
+    m_selection.remove_all();
     // BBS
     //wxGetApp().obj_manipul()->set_dirty();
-    exit_gizmo();
-    m_selection.remove_all();
+    m_gizmos.reset_all_states();
+    m_gizmos.update_data();
     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
 }
 
 void GLCanvas3D::exit_gizmo() {
-    const auto t_current = m_gizmos.get_current_type();
-    if (GLGizmosManager::Undefined == t_current) {
-        return;
+    if (m_gizmos.get_current_type() != GLGizmosManager::Undefined) {
+        m_gizmos.reset_all_states();
+        m_gizmos.update_data();
     }
-    const auto& item_name = GLGizmosManager::convert_gizmo_type_to_string(t_current);
-    do_force_click_toolbar_item(item_name, false);
 }
 
 void GLCanvas3D::set_selected_visible(bool visible)
@@ -3409,7 +3407,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     if (m_gizmos.is_enabled() && m_selection.is_empty()) {
         // If no object is selected, deactivate the active gizmo, if any
         // Otherwise it may be shown after cleaning the scene (if it was active while the objects were deleted)
-        exit_gizmo();
+        m_gizmos.reset_all_states();
         // BBS
 #if 0
         // If no object is selected, reset the objects manipulator on the sidebar
@@ -3548,7 +3546,6 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_GESTURE_ZOOM, &GLCanvas3D::on_gesture, this);
         m_canvas->Bind(wxEVT_GESTURE_ROTATE, &GLCanvas3D::on_gesture, this);
         m_canvas->EnableTouchEvents(wxTOUCH_ZOOM_GESTURE | wxTOUCH_ROTATE_GESTURE);
-        m_canvas->Bind(EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, &GLCanvas3D::on_force_click_toolbar_item, this);
 #if __WXOSX__
         initGestures(m_canvas->GetHandle(), m_canvas); // for UIPanGestureRecognizer allowedScrollTypesMask
 #endif
@@ -5197,8 +5194,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             if (hover_volume->is_text()) {
                 m_selection.add_volumes(Selection::EMode::Volume, {(unsigned) hover_volume_id});
-                const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Text);
-                do_force_click_toolbar_item(item_name, true);
+                if (type == GLGizmosManager::EType::Text)
+                    m_gizmos.open_gizmo(GLGizmosManager::EType::Text); // close text
+                wxGetApp().obj_list()->update_selections();
+                m_gizmos.open_gizmo(GLGizmosManager::EType::Text);
                 return;
             }
            /* else if (hover_volume->text_configuration.has_value()) {
@@ -5210,8 +5209,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             else if(hover_volume->emboss_shape.has_value()){
                 m_selection.add_volumes(Selection::EMode::Volume, {(unsigned) hover_volume_id});
                 wxGetApp().obj_list()->update_selections();
-                const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Svg);
-                do_force_click_toolbar_item(item_name, true);
+                if (m_main_toolbar) {
+                    const auto svg_item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Svg);
+                    if (!m_main_toolbar->is_item_pressed(svg_item_name)) {
+                        force_main_toolbar_left_action(get_main_toolbar_item_id(svg_item_name));
+                    }
+                }
                 return;
             }
         }
@@ -5251,12 +5254,6 @@ void GLCanvas3D::on_set_focus(wxFocusEvent& evt)
     m_tooltip_enabled = false;
     _refresh_if_shown_on_screen();
     m_tooltip_enabled = true;
-}
-
-void GLCanvas3D::on_force_click_toolbar_item(Event<ForceClickToolbarItemData>& evt)
-{
-    const auto& evt_data = evt.data;
-    do_force_click_toolbar_item(evt_data.m_item_name, evt_data.m_b_check_pressed);
 }
 
 Size GLCanvas3D::get_canvas_size() const
@@ -5704,7 +5701,7 @@ void GLCanvas3D::handle_sidebar_focus_event(const std::string& opt_key, bool foc
 void GLCanvas3D::handle_layers_data_focus_event(const t_layer_height_range range, const EditorType type)
 {
     std::string field = "layer_" + std::to_string(type) + "_" + std::to_string(range.first) + "_" + std::to_string(range.second);
-    exit_gizmo();
+    m_gizmos.reset_all_states();
     handle_sidebar_focus_event(field, true);
 }
 
@@ -6770,14 +6767,14 @@ bool GLCanvas3D::_init_main_toolbar()
         layers_editing_item.tooltip = _utf8(L("Variable layer height"));
         layers_editing_item.additional_tooltip = _u8L("Please select single object.");
         layers_editing_item.sprite_id = sprite_id++;
-        layers_editing_item.left.action_callback = [this]()->void {
+        layers_editing_item.left.action_callback = [this]()->void{
             if (m_canvas != nullptr) {
                 wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING));
                 NetworkAgent* agent = GUI::wxGetApp().getAgent();
                 if (agent) agent->track_update_property("custom_height", std::to_string(++custom_height_count));
             }
         };
-        layers_editing_item.right.action_callback = [this]()->void{
+        layers_editing_item.right.action_callback = [this]()->void {
             enable_layers_editing(false);
         };
         layers_editing_item.visibility_callback = [this, &p_main_toolbar]()->bool {
@@ -6925,18 +6922,7 @@ bool GLCanvas3D::_init_main_toolbar()
             item.left.toggable = false;
             item.left.action_callback = [this]() {
                 if (m_canvas != nullptr) {
-                    exit_gizmo();
-
-                    const auto& p_plater = wxGetApp().plater();
-                    if (p_plater) {
-                        const auto& p_assmeble_canvas = p_plater->get_assmeble_canvas3D();
-                        if (p_assmeble_canvas) {
-                            p_assmeble_canvas->exit_gizmo();
-                        }
-                    }
-
-                    wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_ASSEMBLE));
-
+                    wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_ASSEMBLE)); m_gizmos.reset_all_states(); wxGetApp().plater()->get_assmeble_canvas3D()->get_gizmos_manager().reset_all_states();
                     NetworkAgent* agent = GUI::wxGetApp().getAgent();
                     if (agent) agent->track_update_property("assembly_view", std::to_string(++assembly_view_count));
                 }
@@ -6953,6 +6939,7 @@ bool GLCanvas3D::_init_main_toolbar()
         }
     }
 
+    p_main_toolbar->update_items_state();
     return true;
 }
 
@@ -8513,16 +8500,8 @@ void GLCanvas3D::_render_return_toolbar()
         } else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
             if (m_canvas != nullptr)
                 wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
-
-            exit_gizmo();
-
-            const auto& p_plater = wxGetApp().plater();
-            if (p_plater) {
-                const auto& p_view3d_canvas = p_plater->get_view3D_canvas3D();
-                if (p_view3d_canvas) {
-                    p_view3d_canvas->exit_gizmo();
-                }
-            }
+            const_cast<GLGizmosManager *>(&m_gizmos)->reset_all_states();
+            wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().reset_all_states();
             GLVolume::explosion_ratio  = 1.0;//in 3D view  GLVolume::explosion_ratio  = 1.0
             wxGetApp().plater()->get_view3D_canvas3D()->reload_scene(true);
             {
@@ -10475,26 +10454,6 @@ const std::shared_ptr<GLToolbar>& GLCanvas3D::get_main_toolbar() const
         m_main_toolbar = std::make_shared<GLToolbar>(GLToolbar::EType::Normal, "Main");
     }
     return m_main_toolbar;
-}
-
-void GLCanvas3D::do_force_click_toolbar_item(const std::string& item_name, bool check_pressed)
-{
-    if (item_name.empty()) {
-        return;
-    }
-
-    const auto& p_main_toolbar = get_main_toolbar();
-    if (!p_main_toolbar) {
-        return;
-    }
-
-    const auto& item_id = get_main_toolbar_item_id(item_name);
-    if (check_pressed) {
-        if (p_main_toolbar->is_item_pressed(item_name)) {
-            force_main_toolbar_left_action(item_id);
-        }
-    }
-    force_main_toolbar_left_action(item_id);
 }
 
 void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params,

@@ -600,11 +600,8 @@ void GLGizmoAdvancedCut::on_set_state()
 void GLGizmoAdvancedCut::close()
 {//close gizmo == open it again
     auto &mng = m_parent.get_gizmos_manager();
-    if (mng.get_current_type() == GLGizmosManager::Cut) {
-        const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Cut);
-        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
-        m_parent.on_force_click_toolbar_item(evt);
-    }
+    if (mng.get_current_type() == GLGizmosManager::Cut)
+        mng.open_gizmo(GLGizmosManager::Cut);
 }
 
 bool GLGizmoAdvancedCut::on_is_activable() const
@@ -1975,6 +1972,9 @@ void GLGizmoAdvancedCut::toggle_model_objects_visibility(bool show_in_3d)
         const ModelObjectPtrs &model_objects = selection.get_model()->objects;
         const int idx = selection.get_object_idx();
         if (idx < 0) {
+            return;
+        }
+        if (idx >= model_objects.size()) {
             return;
         }
         m_parent.toggle_model_objects_visibility(true, model_objects[idx], selection.get_instance_idx());

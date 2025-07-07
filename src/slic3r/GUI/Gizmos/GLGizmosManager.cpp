@@ -342,18 +342,15 @@ bool GLGizmosManager::handle_shortcut(int key)
     if (it == m_gizmos.end())
         return false;
 
-    EType gizmo_type = EType(it - m_gizmos.begin());
-
-    if (gizmo_type != EType::Text) {
-        if (m_parent.get_selection().is_empty()) {
-            return false;
+    // allowe open shortcut even when selection is empty
+    if (Text == it - m_gizmos.begin()) {
+        if (dynamic_cast<GLGizmoText *>(m_gizmos[Text].get())->on_shortcut_key()) {
+            return true;
         }
     }
 
-    const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(gizmo_type);
-    Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
-    m_parent.on_force_click_toolbar_item(evt);
-    return m_current != EType::Undefined;
+    EType gizmo_type = EType(it - m_gizmos.begin());
+    return open_gizmo(gizmo_type);
 }
 
 bool GLGizmosManager::is_dragging() const
@@ -958,10 +955,8 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
             if (m_current != Undefined) {
                 if ((m_current == Measure || m_current == Assembly) && gizmo_event(SLAGizmoEventType::Escape)) {
                     // do nothing
-                }
-                else if ((m_current != SlaSupports && m_current != BrimEars) || !gizmo_event(SLAGizmoEventType::DiscardChanges)) {
-                    m_parent.exit_gizmo();
-                }
+                } else if ((m_current != SlaSupports && m_current != BrimEars) || !gizmo_event(SLAGizmoEventType::DiscardChanges))
+                    reset_all_states();
 
                 processed = true;
             }
@@ -1215,18 +1210,8 @@ void GLGizmosManager::on_set_color_timer(wxTimerEvent& evt)
 
 void GLGizmosManager::update_after_undo_redo(const UndoRedo::Snapshot& snapshot)
 {
-    GLGizmosManager::EType to_type = m_cached_type;
-    if (GLGizmosManager::EType::Undefined == to_type) {
-        to_type = m_current;
-    }
-    if (GLGizmosManager::EType::Undefined == to_type) {
-        return;
-    }
-    const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(to_type);
-    Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, true} };
-    m_parent.on_force_click_toolbar_item(evt);
+    update_data();
     m_serializing = false;
-    m_cached_type = GLGizmosManager::EType::Undefined;
     if (m_current == SlaSupports
      && snapshot.snapshot_data.flags & UndoRedo::SnapshotData::RECALCULATE_SLA_SUPPORTS)
         dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get())->reslice_SLA_supports(true);
@@ -1255,8 +1240,6 @@ void GLGizmosManager::add_toolbar_items(const std::shared_ptr<GLToolbar>& p_tool
     }
 
     std::vector<size_t> selectable_idxs = get_selectable_idxs();
-    if (selectable_idxs.empty())
-        return;
 
     auto p_gizmo_manager = this;
     for (size_t i = 0; i < m_gizmos.size(); ++i)
@@ -1292,8 +1275,14 @@ void GLGizmosManager::add_toolbar_items(const std::shared_ptr<GLToolbar>& p_tool
         item.b_toggle_disable_others = false;
         item.b_toggle_affectable = false;
         item.left.render_callback = [p_gizmo_manager, idx](float left, float right, float bottom, float top, float toolbar_height) {
+            if (p_gizmo_manager->get_current_type() != idx) {
+                return;
+            }
             float cnv_h = (float)p_gizmo_manager->m_parent.get_canvas_size().get_height();
             p_gizmo_manager->m_gizmos[idx]->render_input_window(left, toolbar_height, cnv_h);
+        };
+        item.pressed_recheck_callback = [p_gizmo_manager, t_type]()->bool {
+            return p_gizmo_manager->m_current == t_type;
         };
         const bool b_is_selectable = (std::find(selectable_idxs.begin(), selectable_idxs.end(), idx) != selectable_idxs.end());
         item.visibility_callback = [p_gizmo_manager, idx, b_is_selectable]()->bool {
@@ -1306,6 +1295,7 @@ void GLGizmosManager::add_toolbar_items(const std::shared_ptr<GLToolbar>& p_tool
             }
             return rt;
         };
+        item.visible = b_is_selectable;
         p_toolbar->add_item(item);
     }
 }
@@ -1384,7 +1374,7 @@ void GLGizmosManager::update_on_off_state(size_t idx)
 {
     if (!m_enabled)
         return;
-    if (!m_serializing && is_text_first_clicked(idx)) { // open text gizmo
+    if (is_text_first_clicked(idx)) { // open text gizmo
         GLGizmoBase *gizmo_text= m_gizmos[EType::Text].get();
         if (dynamic_cast<GLGizmoText *>(gizmo_text)->on_shortcut_key()) {//create text on mesh
             return;
@@ -1436,7 +1426,9 @@ bool GLGizmosManager::activate_gizmo(EType type)
         //if (m_current == Text) {
         //    wxGetApp().imgui()->load_fonts_texture();
         //}
+        new_gizmo->set_serializing(m_serializing);
         new_gizmo->set_state(GLGizmoBase::On);
+        new_gizmo->set_serializing(false);
         if (is_show_only_active_plate()) {
             check_object_located_outside_plate();
         }
@@ -1497,14 +1489,10 @@ void GLGizmosManager::on_click(int idx)
             return;
         }
     }
+
     update_on_off_state(idx);
     update_data();
     m_parent.set_as_dirty();
-}
-
-void GLGizmosManager::on_reload(EType type)
-{
-    m_cached_type = type;
 }
 
 bool GLGizmosManager::is_in_editing_mode(bool error_notification) const
