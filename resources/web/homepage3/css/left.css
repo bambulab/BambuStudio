@@ -220,7 +220,7 @@ body
 
 .BtnItem
 {
-  padding-left:30px;	
+  padding-left: 14px;	
 	padding-right: 14px;
 	height:50px;
 	line-height: 50px;
@@ -367,8 +367,8 @@ body
 }
 
 .LogoutIcon {
-	width: 11px;
-	height: 11px;
+	width: 15px;
+	height: 15px;
 	background-image: url('../img/left_logout_icon.svg');
 	background-size: cover;
 	background-position: center center;
@@ -377,7 +377,7 @@ body
 }
 .LogoutBtn
 {
-	font-size: 11px;
+	font-size: 13px;
 }
 
 
