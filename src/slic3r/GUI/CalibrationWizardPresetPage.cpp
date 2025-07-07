@@ -4,6 +4,7 @@
 #include "Widgets/Label.hpp"
 #include "MsgDialog.hpp"
 #include "libslic3r/Print.hpp"
+#include "BBLUtil.hpp"
 
 #define CALIBRATION_LABEL_SIZE wxSize(FromDIP(150), FromDIP(24))
 #define SYNC_BUTTON_SIZE (wxSize(FromDIP(50), FromDIP(50)))
@@ -583,7 +584,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
             return;
         }
         BOOST_LOG_TRIVIAL(info) << "CalibrationPresetPage: sync_nozzle_info - machine object status:"
-                                << " dev_id = " << curr_obj->dev_id
+                                << " dev_id = " << BBLCrossTalk::Crosstalk_DevId(curr_obj->dev_id)
                                 << ", print_type = " << curr_obj->printer_type
                                 << ", printer_status = " << curr_obj->print_status
                                 << ", cali_finished = " << curr_obj->cali_finished

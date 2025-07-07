@@ -8,6 +8,7 @@
 
 #include "libslic3r/Model.hpp"
 #include "../GUI/MsgDialog.hpp"
+#include "BBLUtil.hpp"
 
 
 namespace Slic3r {
@@ -1462,7 +1463,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
         j["print"]["print_numbers"]   = calib_info.params.print_numbers;
         j["print"]["flow_ratio_mode"] = flow_ratio_mode;
         j["print"]["tray_id"]         = calib_info.select_ams;
-        j["print"]["dev_id"]          = calib_info.dev_id;
+        j["print"]["dev_id"]          = BBLCrossTalk::Crosstalk_DevId(calib_info.dev_id);
         j["print"]["bed_type"]        = calib_info.bed_type;
         j["print"]["printer_prest"]   = calib_info.printer_prest ? calib_info.printer_prest->name : "";
         j["print"]["filament_prest"]  = calib_info.filament_prest ? calib_info.filament_prest->name : "";

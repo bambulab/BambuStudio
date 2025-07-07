@@ -2,6 +2,7 @@
 #include "MainFrame.hpp"
 #include "I18N.hpp"
 #include "Widgets/Label.hpp"
+#include "BBLUtil.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -169,7 +170,7 @@ void CalibrationCaliPage::update(MachineObject* obj)
         if (obj) {
             if (obj->print_status != "RUNNING") {
                 BOOST_LOG_TRIVIAL(info) << "on_show_cali_page - machine object status:"
-                                        << " dev_id = " << obj->dev_id
+                                        << " dev_id = " << BBLCrossTalk::Crosstalk_DevId(obj->dev_id)
                                         << ", print_type = " << obj->printer_type
                                         << ", printer_status = " << obj->print_status
                                         << ", is_connected = " << obj->is_connected()
