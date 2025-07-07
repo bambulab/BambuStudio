@@ -512,10 +512,14 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                 j["cut"] = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Cut));
                 j["meshboolean"] = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::MeshBoolean));
                 j["custom_support"] = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::FdmSupports));
+                j["custom_fuzzyskin"]      = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::FuzzySkin));
                 j["custom_seam"] = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Seam));
                 j["text_shape"] = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Text));
+                j["measure"]            = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Measure));
+                j["assembly"]               = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Assembly));
                 j["color_painting"] = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::MmuSegmentation));
                 j["fuzzy_skin"]   = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::FuzzySkin));
+                j["brimears"]            = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::BrimEars));
                 j["assembly_view"] = get_value("assembly_view");
 
                 agent->track_event("key_func", j.dump());
@@ -528,11 +532,15 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                 j["scale_duration"] = get_value("Scale_duration");
                 j["flatten_duration"] = get_value("Lay on face_duration");
                 j["cut_duration"] = get_value("Cut_duration");
+                j["brimears_duration"]         = get_value("Brimears_duration");
                 j["meshboolean_duration"] = get_value("Mesh Boolean_duration");
                 j["custom_support_duration"] = get_value("Supports Painting_duration");
                 j["custom_seam_duration"] = get_value("Seam painting_duration");
                 j["text_shape_duration"] = get_value("Text shape_duration");
                 j["color_painting_duration"] = get_value("Color Painting_duration");
+                j["fuzzyskin_painting_duration"] = get_value("FuzzySkin Painting_duration");
+                j["assembly_duration"]         = get_value("Assemble_duration");
+                j["measure_duration"]         = get_value("Measure_duration");
                 j["assembly_view_duration"] = get_value("assembly_view_duration");
 
                 agent->track_event("key_func_duration", j.dump());
