@@ -1455,29 +1455,21 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
         else if (col_num == colSupportPaint) {
             ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
             if (node && node->HasSupportPainting()) {
-                const auto p_plater = wxGetApp().plater();
-                if (p_plater) {
-                    const auto p_canvas = p_plater->get_view3D_canvas3D();
-                    if (p_canvas) {
-                        const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::FdmSupports);
-                        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
-                        p_canvas->post_event(std::move(evt));
-                    }
-                }
+                GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
+                if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::FdmSupports)
+                    gizmos_mgr.open_gizmo(GLGizmosManager::EType::FdmSupports);
+                else
+                    gizmos_mgr.reset_all_states();
             }
         } else if (col_num == colFuzzySkin) {
             if (wxGetApp().plater()->get_current_canvas3D()->get_canvas_type() != GLCanvas3D::CanvasAssembleView) {
                 ObjectDataViewModelNode *node = (ObjectDataViewModelNode *) item.GetID();
                 if (node && node->HasFuzzySkinPainting()) {
-                    const auto p_plater = wxGetApp().plater();
-                    if (p_plater) {
-                        const auto p_canvas = p_plater->get_view3D_canvas3D();
-                        if (p_canvas) {
-                            const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::FuzzySkin);
-                            Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
-                            p_canvas->post_event(std::move(evt));
-                        }
-                    }
+                    GLGizmosManager &gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
+                    if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::FuzzySkin)
+                        gizmos_mgr.open_gizmo(GLGizmosManager::EType::FuzzySkin);
+                    else
+                        gizmos_mgr.reset_all_states();
                 }
             }
         }
@@ -1485,15 +1477,11 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
             if (wxGetApp().plater()->get_current_canvas3D()->get_canvas_type() != GLCanvas3D::CanvasAssembleView) {
                 ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
                 if (node && node->HasColorPainting()) {
-                    const auto p_plater = wxGetApp().plater();
-                    if (p_plater) {
-                        const auto p_canvas = p_plater->get_view3D_canvas3D();
-                        if (p_canvas) {
-                            const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::MmuSegmentation);
-                            Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
-                            p_canvas->post_event(std::move(evt));
-                        }
-                    }
+                    GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
+                    if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::MmuSegmentation)
+                        gizmos_mgr.open_gizmo(GLGizmosManager::EType::MmuSegmentation);
+                    else
+                        gizmos_mgr.reset_all_states();
                 }
             }
         }
@@ -3779,16 +3767,10 @@ void ObjectList::part_selection_changed()
                         }
                         default: { break; }
                     }
-                    const auto p_plater = wxGetApp().plater();
-                    if (p_plater) {
-                        const auto p_canvas = p_plater->get_view3D_canvas3D();
-                        if (p_canvas) {
-                            const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(gizmo_type);
-                            Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
-                            p_canvas->post_event(std::move(evt));
-                        }
+                    GLGizmosManager &gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
+                    if (gizmos_mgr.get_current_type() != gizmo_type) {
+                        gizmos_mgr.open_gizmo(gizmo_type);
                     }
-
                 } else {
                     // BBS: select object to edit config
                     m_config = &(*m_objects)[obj_idx]->config;
@@ -6038,7 +6020,6 @@ void ObjectList::simplify()
     if (!plater) {
         return;
     }
-
     GLGizmosManager& gizmos_mgr = plater->get_view3D_canvas3D()->get_gizmos_manager();
 
     // Do not simplify when a gizmo is open. There might be issues with updates
@@ -6046,12 +6027,11 @@ void ObjectList::simplify()
     if (! gizmos_mgr.check_gizmos_closed_except(GLGizmosManager::EType::Simplify))
         return;
 
-    const auto p_canvas = plater->get_view3D_canvas3D();
-    if (p_canvas) {
-        const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Simplify);
-        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, true } };
-        p_canvas->post_event(std::move(evt));
+    if (gizmos_mgr.get_current_type() == GLGizmosManager::Simplify) {
+        // close first
+        gizmos_mgr.open_gizmo(GLGizmosManager::EType::Simplify);
     }
+    gizmos_mgr.open_gizmo(GLGizmosManager::EType::Simplify);
 }
 
 void ObjectList::update_item_error_icon(const int obj_idx, const int vol_idx) const
@@ -6152,35 +6132,32 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
     } else if (col == colSupportPaint) {
         ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
         if (node && node->HasSupportPainting()) {
-            const auto p_canvas = p_plater->get_view3D_canvas3D();
-            if (p_canvas) {
-                const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::FdmSupports);
-                Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
-                p_canvas->post_event(std::move(evt));
-            }
+            GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
+            if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::FdmSupports)
+                gizmos_mgr.open_gizmo(GLGizmosManager::EType::FdmSupports);
+            else
+                gizmos_mgr.reset_all_states();
         }
         return;
     } else if (col == colFuzzySkin) {
         ObjectDataViewModelNode *node = (ObjectDataViewModelNode *) item.GetID();
         if (node && node->HasFuzzySkinPainting()) {
-            const auto p_canvas = p_plater->get_view3D_canvas3D();
-            if (p_canvas) {
-                const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::FuzzySkin);
-                Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
-                p_canvas->post_event(std::move(evt));
-            }
+            GLGizmosManager &gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
+            if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::FuzzySkin)
+                gizmos_mgr.open_gizmo(GLGizmosManager::EType::FuzzySkin);
+            else
+                gizmos_mgr.reset_all_states();
         }
         return;
     }
     else if (col == colColorPaint) {
         ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
         if (node && node->HasColorPainting()) {
-            const auto p_canvas = p_plater->get_view3D_canvas3D();
-            if (p_canvas) {
-                const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::MmuSegmentation);
-                Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
-                p_canvas->post_event(std::move(evt));
-            }
+            GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
+            if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::MmuSegmentation)
+                gizmos_mgr.open_gizmo(GLGizmosManager::EType::MmuSegmentation);
+            else
+                gizmos_mgr.reset_all_states();
         }
         return;
     }
@@ -6545,9 +6522,7 @@ void ObjectList::enable_layers_editing()
 
     auto view3d = wxGetApp().plater()->get_view3D_canvas3D();
     if (view3d != nullptr && m_objects_model->IsVariableHeight(frst_item)){
-        const std::string item_name = "layersediting";
-        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
-        view3d->post_event(std::move(evt));
+        view3d->enable_layers_editing(true);
     }
 }
 

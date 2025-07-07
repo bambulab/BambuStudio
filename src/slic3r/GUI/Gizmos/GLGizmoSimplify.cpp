@@ -123,15 +123,7 @@ void GLGizmoSimplify::add_simplify_suggestion_notification(
 
                 auto &manager = plater->get_view3D_canvas3D()->get_gizmos_manager();
                 bool  close_notification = true;
-                if (plater) {
-                    const auto& p_canvase = plater->get_view3D_canvas3D();
-                    if (p_canvase) {
-                        const auto& item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Simplify);
-                        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, true } };
-                        p_canvase->on_force_click_toolbar_item(evt);
-                    }
-                }
-                if(manager.get_current_type() != GLGizmosManager::Simplify)
+                if(!manager.open_gizmo(GLGizmosManager::Simplify))
                     return close_notification;
                 GLGizmoSimplify* simplify = dynamic_cast<GLGizmoSimplify*>(manager.get_current());
                 if (simplify == nullptr) return close_notification;
@@ -417,9 +409,9 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
 
 void GLGizmoSimplify::close() {
-    const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Simplify);
-    Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
-    m_parent.on_force_click_toolbar_item(evt);
+    // close gizmo == open it again
+    GLGizmosManager &gizmos_mgr = m_parent.get_gizmos_manager();
+    gizmos_mgr.open_gizmo(GLGizmosManager::EType::Simplify);
 }
 
 void GLGizmoSimplify::stop_worker_thread_request()

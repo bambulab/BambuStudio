@@ -152,10 +152,6 @@ int SelectionInfo::get_active_instance() const
     return selection.get_instance_idx();
 }
 
-
-
-
-
 void InstancesHider::on_update()
 {
     const ModelObject* mo = get_pool()->selection_info()->model_object();
@@ -496,12 +492,12 @@ void ObjectClipper::set_position(double pos, bool keep_normal, bool vertical_nor
     if (!p_selection_info) {
         return;
     }
-    const ModelObject *mo          = p_selection_info->model_object();
+    const ModelObject* mo = p_selection_info->model_object();
     if (!mo) {
         return;
     }
     int                active_inst = p_selection_info->get_active_instance();
-    double             z_shift     = p_selection_info->get_sla_shift();
+    double             z_shift = p_selection_info->get_sla_shift();
     if (active_inst < 0) {
         return;
     }

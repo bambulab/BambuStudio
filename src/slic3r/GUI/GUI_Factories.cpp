@@ -549,10 +549,11 @@ void MenuFactory::append_menu_item_edit_svg(wxMenu *menu)
         if (!p_canvas) {
             return;
         }
-
-        const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Svg);
-        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, true } };
-        p_canvas->post_event(std::move(evt));
+        GLGizmosManager &mng = p_canvas->get_gizmos_manager();
+        if (mng.get_current_type() == GLGizmosManager::Svg) {
+            mng.open_gizmo(GLGizmosManager::Svg); // close() and reopen - move to be visible
+        }
+        mng.open_gizmo(GLGizmosManager::Svg);
     };
     append_menu_item(menu, wxID_ANY, name, description, open_svg, icon, nullptr, can_edit_svg, m_parent);
 }

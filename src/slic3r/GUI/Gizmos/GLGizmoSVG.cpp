@@ -1297,11 +1297,8 @@ bool GLGizmoSVG::process_job(bool make_snapshot)
 void GLGizmoSVG::close()
 { // close gizmo == open it again
     auto &mng = m_parent.get_gizmos_manager();
-    if (mng.get_current_type() == GLGizmosManager::Svg) {
-        const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Svg);
-        Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
-        m_parent.on_force_click_toolbar_item(evt);
-    }
+    if (mng.get_current_type() == GLGizmosManager::Svg)
+        mng.open_gizmo(GLGizmosManager::Svg);
     reset_volume();
 }
 
@@ -2059,11 +2056,8 @@ void GLGizmoSVG::draw_model_type()
         // NOTE: on linux, function reorder_volumes_and_get_selection call GLCanvas3D::reload_scene(refresh_immediately = false)
         // which discard m_volume pointer and set it to nullptr also selection is cleared so gizmo is automaticaly closed
         auto &mng = m_parent.get_gizmos_manager();
-        if (mng.get_current_type() != GLGizmosManager::Svg) {
-            const auto item_name = GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Svg);
-            Event<ForceClickToolbarItemData> evt{ EVT_GLCANVAS_FORCE_CLICK_TOOLBAR_ITEM, { item_name, false } };
-            m_parent.on_force_click_toolbar_item(evt);
-        }
+        if (mng.get_current_type() != GLGizmosManager::Svg)
+            mng.open_gizmo(GLGizmosManager::Svg);
         // TODO: select volume back - Ask @Sasa
     }
 }

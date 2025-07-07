@@ -154,6 +154,7 @@ protected:
     GLModel m_lines_mark;
 
     bool m_is_dark_mode = false;
+    bool m_is_serializing = false;
 
     std::chrono::system_clock::time_point start;
     enum DoubleShowType {
@@ -198,6 +199,7 @@ public:
 
     EState get_state() const { return m_state; }
     void set_state(EState state);
+    void set_serializing(bool is_serializing);
     int get_shortcut_key() const { return m_shortcut_key; }
 
     virtual std::string get_icon_filename(bool b_dark_mode) const = 0;

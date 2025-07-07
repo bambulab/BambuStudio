@@ -916,6 +916,7 @@ const GLVolume *Selection::get_volume_by_object_volumn_id(unsigned int volume_id
     }
     return nullptr;
 }
+
 const GLVolume* Selection::get_first_volume() const
 {
     if (!m_list.size()) {
@@ -923,6 +924,7 @@ const GLVolume* Selection::get_first_volume() const
     }
     return get_volume(*m_list.begin());
 }
+
 const BoundingBoxf3& Selection::get_bounding_box() const
 {
     if (!m_bounding_box.has_value()) {
