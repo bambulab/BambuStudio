@@ -1902,16 +1902,16 @@ void GLGizmoMeasure::show_distance_xyz_ui()
     if (m_measure_mode == EMeasureMode::ONLY_MEASURE) {
         m_imgui->text(_u8L("Measure"));
     }
-    auto add_measure_row_to_table = [this](const std::string &col_1, const ImVec4 &col_1_color, const std::string &col_2, const ImVec4 &col_2_color) {
+    auto add_measure_row_to_table = [this](const std::string &col_1, const ImVec4 &col_1_color, const std::string &col_2, const std::string &unit, const ImVec4 &col_2_color) {
         ImGui::TableNextRow();
         ImGui::TableSetColumnIndex(0);
         m_imgui->text_colored(col_1_color, col_1);
         ImGui::TableSetColumnIndex(1);
-        m_imgui->text_colored(col_2_color, col_2);
+        m_imgui->text_colored(col_2_color, col_2 + unit);
         ImGui::TableSetColumnIndex(2);
         if (m_imgui->image_button(m_is_dark_mode ? ImGui::ClipboardBtnDarkIcon : ImGui::ClipboardBtnIcon, _L("Copy to clipboard"))) {
             wxTheClipboard->Open();
-            wxTheClipboard->SetData(new wxTextDataObject(wxString((col_1 + ": " + col_2).c_str(), wxConvUTF8)));
+            wxTheClipboard->SetData(new wxTextDataObject(wxString(col_2.c_str(), wxConvUTF8)));
             wxTheClipboard->Close();
         }
     };
@@ -1968,7 +1968,7 @@ void GLGizmoMeasure::show_distance_xyz_ui()
             if (measure.angle.has_value() && m_measure_mode == EMeasureMode::ONLY_MEASURE)
                 {
                 ImGui::PushID("ClipboardAngle");
-                add_measure_row_to_table(_u8L("Angle"), ImGuiWrapper::COL_BAMBU, format_double(Geometry::rad2deg(measure.angle->angle)) + "°",
+                add_measure_row_to_table(_u8L("Angle"), ImGuiWrapper::COL_BAMBU, format_double(Geometry::rad2deg(measure.angle->angle)),"°",
                                             ImGui::GetStyleColorVec4(ImGuiCol_Text));
                 ++measure_row_count;
                 ImGui::PopID();
@@ -1981,7 +1981,7 @@ void GLGizmoMeasure::show_distance_xyz_ui()
                 double distance = measure.distance_infinite->dist;
                 if (m_use_inches) distance = GizmoObjectManipulation::mm_to_in * distance;
                 ImGui::PushID("ClipboardDistanceInfinite");
-                add_measure_row_to_table(show_strict ? _u8L("Perpendicular distance") : _u8L("Distance"), ImGuiWrapper::COL_BAMBU, format_double(distance) + m_units,
+                add_measure_row_to_table(show_strict ? _u8L("Perpendicular distance") : _u8L("Distance"), ImGuiWrapper::COL_BAMBU, format_double(distance), m_units,
                                             ImGui::GetStyleColorVec4(ImGuiCol_Text));
                 ++measure_row_count;
                 ImGui::PopID();
@@ -1994,7 +1994,7 @@ void GLGizmoMeasure::show_distance_xyz_ui()
                 if (m_use_inches)
                     distance = GizmoObjectManipulation::mm_to_in * distance;
                 ImGui::PushID("ClipboardDistanceStrict");
-                add_measure_row_to_table(_u8L("Direct distance"), ImGuiWrapper::COL_BAMBU, format_double(distance) + m_units, ImGui::GetStyleColorVec4(ImGuiCol_Text));
+                add_measure_row_to_table(_u8L("Direct distance"), ImGuiWrapper::COL_BAMBU, format_double(distance), m_units, ImGui::GetStyleColorVec4(ImGuiCol_Text));
                 ++measure_row_count;
                 ImGui::PopID();
             }
@@ -2003,7 +2003,7 @@ void GLGizmoMeasure::show_distance_xyz_ui()
                 if (m_use_inches) distance = GizmoObjectManipulation::mm_to_in * distance;
                 if (measure.distance_xyz->norm() > EPSILON) {
                     ImGui::PushID("ClipboardDistanceXYZ");
-                    add_measure_row_to_table(_u8L("Distance XYZ"), ImGuiWrapper::COL_BAMBU, format_vec3(distance), ImGui::GetStyleColorVec4(ImGuiCol_Text));
+                    add_measure_row_to_table(_u8L("Distance XYZ"), ImGuiWrapper::COL_BAMBU, format_vec3(distance), m_units, ImGui::GetStyleColorVec4(ImGuiCol_Text));
                     ++measure_row_count;
                     ImGui::PopID();
                 }
