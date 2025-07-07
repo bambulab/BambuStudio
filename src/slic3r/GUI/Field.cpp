@@ -1165,7 +1165,9 @@ void Choice::register_dynamic_list(std::string const &optname, DynamicList *list
 
 void DynamicList::update()
 {
-    for (auto c : m_choices) apply_on(c);
+    for (auto c : m_choices) {
+        apply_on(c);
+    }
 }
 
 void DynamicList::add_choice(Choice *choice)

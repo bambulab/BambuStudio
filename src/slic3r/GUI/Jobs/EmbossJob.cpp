@@ -208,7 +208,12 @@ void create_text_volume(Slic3r::ModelObject *model_object, const TriangleMesh &m
     new_model_volume->calculate_convex_hull();
     new_model_volume->set_transformation(text_tran.get_matrix());
     new_model_volume->set_text_info(text_info);
-    new_model_volume->config.set_key_value("extruder", new ConfigOptionInt(model_object->config.extruder()));
+    if (model_object->config.option("extruder")) {
+        new_model_volume->config.set_key_value("extruder", new ConfigOptionInt(model_object->config.extruder()));
+    } else {
+        new_model_volume->config.set_key_value("extruder", new ConfigOptionInt(1));
+        model_object->config.set_key_value("extruder", new ConfigOptionInt(1));
+    }
     new_model_volume->name = "text_shape";
 
     model_object->invalidate_bounding_box();

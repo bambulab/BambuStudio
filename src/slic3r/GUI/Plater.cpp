@@ -758,14 +758,20 @@ static struct DynamicFilamentList : DynamicList
 
     void apply_on(Choice *c) override
     {
+        if (!c) {
+            return;
+        }
         if (items.empty())
             update(true);
         auto cb = dynamic_cast<ComboBox *>(c->window);
+        if (!cb) {
+            return;
+        }
         int n  = cb->GetSelection();
         cb->Clear();
         cb->Append(_L("Default"));
         for (auto i : items) {
-            cb->Append(i.first, *i.second);
+            cb->Append(i.first, i.second ? wxNullBitmap : * i.second);
         }
         if ((unsigned int)n < cb->GetCount())
             cb->SetSelection(n);
