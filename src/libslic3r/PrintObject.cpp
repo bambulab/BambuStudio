@@ -2795,7 +2795,7 @@ void PrintObject::bridge_over_infill()
                                 Surface tmp{*surface, {}};
                                 tmp.surface_type = stInternalBridge;
                                 tmp.bridge_angle = cs.bridge_angle;
-                                for (const ExPolygon &ep : union_ex(cs.new_polys)) {
+                                for (const ExPolygon &ep : intersection_ex(union_ex(cs.new_polys),region->fill_expolygons)) {
                                     new_surfaces.emplace_back(tmp, ep);
                                 }
                                 break;
@@ -2825,7 +2825,7 @@ void PrintObject::bridge_over_infill()
                 region->fill_surfaces.append(new_surfaces);
             }
         }
-        });
+});
 
     BOOST_LOG_TRIVIAL(info) << "Bridge over infill - End" << log_memory_info();
 
