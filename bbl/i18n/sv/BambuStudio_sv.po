@@ -4343,7 +4343,7 @@ msgid "Start a new window"
 msgstr "Starta ett nytt fönster"
 
 msgid "New Project"
-msgstr "Nytt Pojekt"
+msgstr "Nytt Projekt"
 
 msgid "Start a new project"
 msgstr "Skapa nytt projekt"
