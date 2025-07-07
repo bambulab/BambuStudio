@@ -523,7 +523,7 @@ void ObjectClipper::set_position(double pos, bool keep_normal, bool vertical_nor
     float        dist   = normal.dot(center);
 
     if (pos < 0.)
-        pos = m_clp_ratio;
+        pos = 0.;
 
     m_clp_ratio = pos;
     m_clp.reset(new ClippingPlane(normal, (dist - (-m_active_inst_bb_radius) - m_clp_ratio * 2 * m_active_inst_bb_radius)));
