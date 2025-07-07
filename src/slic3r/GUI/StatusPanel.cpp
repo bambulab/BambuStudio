@@ -645,7 +645,8 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     StateColor white_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Pressed),
                           std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
                           std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
-    m_button_partskip = new Button(progress_lr_panel, "");
+
+    m_button_partskip = new Button(progress_lr_panel, wxEmptyString, "print_control_partskip_disable", 0, 20, wxID_ANY);
     m_button_partskip->Enable(false);
     m_button_partskip->Hide();
     m_button_partskip->SetBackgroundColor(white_bg);
@@ -654,7 +655,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     m_button_partskip->SetFont(Label::Body_12);
     m_button_partskip->SetCornerRadius(0);
     m_button_partskip->SetToolTip(_L("Parts Skip"));
-    m_button_partskip->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { m_button_partskip->SetIcon("print_control_partskip"); });
+    m_button_partskip->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { m_button_partskip->SetIcon("print_control_partskip_hover"); });
     m_button_partskip->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { m_button_partskip->SetIcon("print_control_partskip"); });
 
     m_button_pause_resume = new ScalableButton(progress_lr_panel, wxID_ANY, "print_control_pause", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER,true);
@@ -772,7 +773,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     auto progress_right_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     progress_left_sizer->Add(penel_text, 0, wxEXPAND | wxALL, 0);
-    progress_left_sizer->Add(m_gauge_progress, 0, wxEXPAND | wxALL, 0);
+    progress_left_sizer->Add(m_gauge_progress, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(10));
     progress_left_sizer->Add(penel_finish_time, 0, wxEXPAND |wxALL, 0);
     // progress_left_sizer->SetMaxSize(wxSize(FromDIP(600), -1));
 
@@ -1056,15 +1057,13 @@ void PrintingTaskPanel::update_machine_object(MachineObject* obj){
 
 void PrintingTaskPanel::enable_partskip_button(bool enable)
 {
-    if(m_obj){
-        if( m_obj->is_support_partskip ){
-            m_button_partskip->Show();
-        }else{
-            m_button_partskip->Hide();
-        }
+    int stage = 0;
+    bool in_calibration_mode = false;
+    if( m_obj && (m_obj->print_type == "system" || CalibUtils::get_calib_mode_by_name(m_obj->subtask_name, stage) != CalibMode::Calib_None)){
+        in_calibration_mode = true;
     }
 
-    if (!enable) {
+    if (!enable || in_calibration_mode) {
         m_button_partskip->Enable(false);
         m_button_partskip->SetLabel("");
         m_button_partskip->SetIcon("print_control_partskip_disable");
@@ -2504,6 +2503,19 @@ void StatusPanel::on_market_retry(wxCommandEvent &event)
     }
 }
 
+void StatusPanel::update_partskip_button(MachineObject *obj) {
+    if (!obj) return;
+
+    m_project_task_panel->update_machine_object(obj);
+    auto partskip_button = m_project_task_panel->get_partskip_button();
+    if( obj->is_support_partskip ){
+        partskip_button->Show();
+    }else{
+        partskip_button->Hide();
+    }
+    BOOST_LOG_TRIVIAL(info) << "part skip: is_support_partskip: "<< obj->is_support_partskip;
+}
+
 void StatusPanel::on_subtask_partskip(wxCommandEvent &event)
 {
     if (m_partskip_dlg == nullptr) {
@@ -2512,7 +2524,13 @@ void StatusPanel::on_subtask_partskip(wxCommandEvent &event)
 
     auto dm = GUI::wxGetApp().getDeviceManager();
     m_partskip_dlg->InitSchedule(dm->get_selected_machine());
-    m_partskip_dlg->ShowModal();
+    BOOST_LOG_TRIVIAL(info) << "part skip: initial part skip dialog.";
+    if(m_partskip_dlg->ShowModal() == wxID_OK){
+        int cnt = m_partskip_dlg->GetAllSkippedPartsNum();
+        m_project_task_panel->set_part_skipped_count(cnt);
+        m_project_task_panel->set_part_skipped_dirty(5);
+        BOOST_LOG_TRIVIAL(info) << "part skip: prepare to filter printer dirty data.";
+    }
 }
 
 void StatusPanel::on_subtask_pause_resume(wxCommandEvent &event)
@@ -3726,6 +3744,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
     m_project_task_panel->show_layers_num(obj->is_support_layer_num);
 
     update_model_info();
+    update_partskip_button(obj);
 
     if (obj->is_system_printing() || obj->is_in_calibration()) {
         reset_printing_values();
@@ -3868,11 +3887,17 @@ void StatusPanel::update_partskip_subtask(MachineObject *obj){
     if (!obj) return;
     if (!obj->subtask_) return;
 
-    m_project_task_panel->update_machine_object(obj);
-
     auto partskip_button = m_project_task_panel->get_partskip_button();
     if (partskip_button) {
-        int part_cnt = obj->m_partskip_ids.size();
+        int part_cnt = 0;
+        if(m_project_task_panel->get_part_skipped_dirty() > 0){
+            m_project_task_panel->set_part_skipped_dirty(m_project_task_panel->get_part_skipped_dirty() - 1);
+            part_cnt = m_project_task_panel->get_part_skipped_count();
+            BOOST_LOG_TRIVIAL(info) << "part skip: stop recv printer dirty data.";
+        }else{
+            part_cnt = obj->m_partskip_ids.size();
+            BOOST_LOG_TRIVIAL(info) << "part skip: recv printer normal data.";
+        }
         if (part_cnt > 0)
             partskip_button->SetLabel(wxString::Format(_L("(%d)"), part_cnt));
         else
