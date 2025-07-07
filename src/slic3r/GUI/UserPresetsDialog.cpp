@@ -562,7 +562,7 @@ bool UserPresetsDialog::delete_presets(int collection, std::vector<std::string> 
     Preset::Type types[] = {Preset::TYPE_PRINTER, Preset::TYPE_FILAMENT, Preset::TYPE_PRINT};
     Tab *tab = wxGetApp().get_tab(types[collection % 3]);
     auto collection2 = tab->get_presets();
-    // Find attached filaments & print for custom printers and delete together
+    // Find attached filaments & print presets for custom printers and delete together
     if (collection == 3) {
         auto filament_presets = std::make_shared<std::vector<std::string>>();
         auto print_presets = std::make_shared<std::vector<std::string>>();
@@ -574,8 +574,21 @@ bool UserPresetsDialog::delete_presets(int collection, std::vector<std::string> 
             }
         }
         if (!filament_presets->empty() || !print_presets->empty()) {
-            if (!delete_confirm(collection, int(filament_presets->size()), int(print_presets->size()))) {
+            if (!delete_confirm(collection, int(filament_presets->size()), int(print_presets->size())))
                 return false;
+            // Remove filaments & print presets attached to current custom printer
+            auto current = tab->get_presets()->get_edited_preset().name;
+            auto iter = std::lower_bound(presets.begin(), presets.end(), current);
+            if (iter != presets.end() && *iter == current) {
+                auto preset2 = collection2->find_preset(current);
+                if (!preset2->is_system && collection2->get_preset_base(*preset2) == preset2) {
+                    std::vector<std::string> filament_presets2;
+                    std::vector<std::string> print_presets2;
+                    find_compatible_user_presets(wxGetApp().preset_bundle->filaments, current, filament_presets2);
+                    find_compatible_user_presets(wxGetApp().preset_bundle->prints, current, print_presets2);
+                    remove_both(*filament_presets, filament_presets2);
+                    remove_both(*print_presets, print_presets2);
+                }
             }
             CallAfter([this, filament_presets, print_presets] {
                 delete_presets(1, *filament_presets);
@@ -589,7 +602,6 @@ bool UserPresetsDialog::delete_presets(int collection, std::vector<std::string> 
         return delete_confirm(collection, int(presets.size()));
     }
 
-
     // Delete current specially
     auto current = tab->get_presets()->get_edited_preset().name;
     auto iter    = std::lower_bound(presets.begin(), presets.end(), current);
@@ -597,6 +609,7 @@ bool UserPresetsDialog::delete_presets(int collection, std::vector<std::string> 
         iter = presets.erase(iter);
     else
         current.clear();
+
     // Delete all not current
     for (auto &preset : presets) {
         auto preset2 = collection2->find_preset(preset);
@@ -612,6 +625,7 @@ bool UserPresetsDialog::delete_presets(int collection, std::vector<std::string> 
         tab->select_preset("", true);
     else
         wxGetApp().plater()->sidebar().update_presets(collection2->type());
+
     // Remove from preset/filament list
     if (!current.empty())
         presets.insert(iter, current);
