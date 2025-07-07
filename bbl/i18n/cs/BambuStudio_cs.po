@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-26 11:05+0800\n"
+"POT-Creation-Date: 2025-07-07 15:03+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -389,6 +389,8 @@ msgid "%"
 msgstr "%"
 
 #. TRN - Input label. Be short as possible
+#. Height of one text line - Font Ascent
+#. TRN - Input label. Be short as possible
 msgid "Size"
 msgstr "Rozměr"
 
@@ -476,6 +478,8 @@ msgid "Groove Angle"
 msgstr ""
 
 #. TRN - Input label. Be short as possible
+#. Angle between Y axis and text line direction.
+#. TRN - Input label. Be short as possible
 msgid "Rotation"
 msgstr "Otáčení"
 
@@ -494,6 +498,8 @@ msgstr "Přidat spojky"
 msgid "Groove"
 msgstr ""
 
+#. TRN - Input label. Be short as possible
+#. Size in emboss direction
 #. TRN - Input label. Be short as possible
 msgid "Depth"
 msgstr ""
@@ -855,15 +861,161 @@ msgstr "Malování pozice švu"
 msgid "Remove selection"
 msgstr "Odebrat výběr"
 
-msgid "Shift + Mouse move up or down"
+msgid "Modern"
 msgstr ""
 
-msgid "Rotate text"
-msgstr "Otočit text"
+msgid "Old"
+msgstr ""
+
+msgctxt "Text"
+msgid "Normal"
+msgstr ""
+
+msgctxt "Text"
+msgid "Small"
+msgstr ""
+
+msgid "Italic"
+msgstr ""
+
+msgid "First font"
+msgstr ""
+
+msgid "Default font"
+msgstr ""
+
+msgid "Save the parameters of the current text tool as a style for easy subsequent use."
+msgstr ""
+
+#, boost-format
+msgid "Modified style \"%1%\""
+msgstr ""
+
+#, boost-format
+msgid "Current style is \"%1%\""
+msgstr ""
+
+#, boost-format
+msgid ""
+"Changing style to \"%1%\" will discard current style modification.\n"
+"\n"
+"Would you like to continue anyway?"
+msgstr ""
+
+msgid "Not valid style."
+msgstr ""
+
+#, boost-format
+msgid "Style \"%1%\" can't be used and will be removed from a list."
+msgstr ""
+
+msgid "First Add style to list."
+msgstr ""
+
+#, boost-format
+msgid "Save %1% style"
+msgstr ""
+
+msgid "New name of style"
+msgstr ""
+
+msgid "Name can't be empty."
+msgstr ""
+
+msgid "Name has to be unique."
+msgstr ""
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Save as new style"
+msgstr ""
+
+msgid "The current style has been modified but not saved. Do you want to save it?"
+msgstr ""
+
+msgid "Save current style"
+msgstr ""
+
+msgid "Add new style"
+msgstr ""
+
+msgid "Only valid font can be added to style"
+msgstr ""
+
+msgid "Add style to my list"
+msgstr ""
+
+msgid "Remove style"
+msgstr ""
+
+msgid "Can't remove the last existing style."
+msgstr ""
+
+#, boost-format
+msgid "Are you sure you want to permanently remove the \"%1%\" style?"
+msgstr ""
+
+#, boost-format
+msgid "Delete \"%1%\" style."
+msgstr ""
+
+#, boost-format
+msgid "Can't delete \"%1%\". It is last style."
+msgstr ""
+
+#, boost-format
+msgid "Can't delete temporary style \"%1%\"."
+msgstr ""
+
+msgid "Operation"
+msgstr ""
+
+msgid "Click to change text into object part."
+msgstr ""
+
+msgid "You can't change a type of the last solid part of the object."
+msgstr ""
+
+msgctxt "EmbossOperation"
+msgid "Cut"
+msgstr ""
+
+msgid "Click to change part type into negative volume."
+msgstr ""
+
+msgid "Modifier"
+msgstr "Modifikátor"
+
+msgid "Click to change part type into modifier."
+msgstr ""
+
+msgid "Surround projection by char"
+msgstr ""
+
+msgid "Not surround"
+msgstr ""
+
+msgid "Surround surface"
+msgstr ""
+
+msgid "Surround"
+msgstr ""
+
+msgid "Horizonal"
+msgstr ""
+
+msgid "Reset rotation"
+msgstr ""
+
+msgid "Rotate the text counterclockwise."
+msgstr ""
 
 msgid "Text shape"
 msgstr "Tvar textu"
 
+#. TRN - Input label. Be short as possible
+#. Select look of letter shape
 msgid "Font"
 msgstr "Písmo"
 
@@ -873,18 +1025,16 @@ msgstr "Tloušťka"
 msgid "Input text"
 msgstr "Vložit text"
 
-msgid "Embeded"
-msgstr "Vloženo"
+msgid "Embeded depth"
+msgstr ""
 
 msgid "Text Gap"
 msgstr "Mezera v textu"
 
-msgid ""
-"Embeded\r\n"
-"depth"
+msgid "Warning:There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr ""
 
-msgid "Warning:Input cannot be empty!"
+msgid "Warning:Due to font upgrades,previous font may not necessarily be replaced successfully, and recommend you to modify the font."
 msgstr ""
 
 msgid "Warning:create text fail."
@@ -896,38 +1046,96 @@ msgstr ""
 msgid "Warning:text normal has been reset."
 msgstr ""
 
-msgid ""
-"Warning:Because current text does indeed use surround algorithm,\n"
-"if continue to edit, text has to regenerated according to new location."
+msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr ""
 
-msgid ""
-"Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. \n"
-"If you continue editing, it may not be correct. \n"
-"Please dragging text or cancel using current pose, \n"
-"save and reedit again."
+msgid "Error:Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes.Please drag text,save it then reedit it again."
 msgstr ""
 
-msgid ""
-"Error:Detecting an incorrect mesh id or an unknown error, \n"
-"regenerating text may result in incorrect outcomes.\n"
-"Please drag text,save it then reedit it again."
+msgid "Warning:Due to functional upgrade, rotation information cannot be restored. Please drag or modify text,save it and reedit it will ok."
 msgstr ""
 
-msgid ""
-"Warning:Due to functional upgrade, rotation information \n"
-"cannot be restored. Please drag or modify text,\n"
-" save it and reedit it will ok."
+msgid "Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."
 msgstr ""
 
-msgid "Use opened text pose"
+msgid "The text cannot be written using the selected font. Please try choosing a different font."
 msgstr ""
 
-msgid "Surface"
-msgstr "Povrch"
+msgid "Embossed text cannot contain only white spaces."
+msgstr ""
 
-msgid "Horizontal text"
-msgstr "Vodorovný text"
+msgid "Unsupported characters automatically switched to fallback font."
+msgstr ""
+
+msgid "Text doesn't show current horizontal alignment."
+msgstr ""
+
+#, boost-format
+msgid "Font \"%1%\" can't be selected."
+msgstr ""
+
+msgid "Revert text size."
+msgstr ""
+
+msgid "No symbol"
+msgstr ""
+
+msgid "Loading"
+msgstr "Načítání"
+
+msgid "In queue"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+#. Copy surface of model on surface of the embossed text
+#. TRN - Input label. Be short as possible
+msgid "Use surface"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+#. Option to change projection on curved surface
+#. for each character(glyph) in text separately
+msgid "Per glyph"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+#. Align Top|Middle|Bottom and Left|Center|Right
+msgid "Alignment"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Text gap"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Line gap"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Boldness"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+#. Like Font italic
+msgid "Skew ratio"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+#. Distance from model surface to be able
+#. move text as part fully into not flat surface
+#. move text as modifier fully out of not flat surface
+#. TRN - Input label. Be short as possible
+msgid "From surface"
+msgstr ""
+
+msgid "Style name"
+msgstr ""
+
+msgid "There is already a text style with the same name."
+msgstr ""
+
+msgid "There are spaces or illegal characters present."
+msgstr ""
 
 msgid "Head diameter"
 msgstr ""
@@ -988,14 +1196,6 @@ msgstr ""
 
 #, boost-format
 msgid "%1% contains some unsupported data. Please use third-party software to convert the SVG to path data before reimporting."
-msgstr ""
-
-#. TRN - Input label. Be short as possible
-msgid "Use surface"
-msgstr ""
-
-#. TRN - Input label. Be short as possible
-msgid "From surface"
 msgstr ""
 
 #. TRN - Input label. Be short as possible
@@ -1129,9 +1329,6 @@ msgstr ""
 msgid "Rotate text Clock-wise."
 msgstr ""
 
-msgid "Reset rotation"
-msgstr ""
-
 msgid "Lock/unlock rotation angle when dragging above the surface."
 msgstr ""
 
@@ -1147,29 +1344,7 @@ msgstr ""
 msgid "Face the camera"
 msgstr ""
 
-msgid "Operation"
-msgstr ""
-
 msgid "Join"
-msgstr ""
-
-msgid "Click to change text into object part."
-msgstr ""
-
-msgid "You can't change a type of the last solid part of the object."
-msgstr ""
-
-msgctxt "EmbossOperation"
-msgid "Cut"
-msgstr ""
-
-msgid "Click to change part type into negative volume."
-msgstr ""
-
-msgid "Modifier"
-msgstr "Modifikátor"
-
-msgid "Click to change part type into modifier."
 msgstr ""
 
 #. TRN: This is the name of the action that shows in undo/redo stack (changing part type from SVG to something else).
@@ -1372,9 +1547,6 @@ msgstr ""
 
 msgid "Sync user presets"
 msgstr ""
-
-msgid "Loading"
-msgstr "Načítání"
 
 msgid "Loading user preset"
 msgstr "Načítání uživatelské předvolby"
@@ -2123,9 +2295,6 @@ msgstr "Vlastní G-kód"
 msgid "Enter Custom G-code used on current layer:"
 msgstr "Zadejte vlastní G-kód použitý na aktuální vrstvě:"
 
-msgid "OK"
-msgstr "OK"
-
 msgid "Jump to Layer"
 msgstr "Přejít na vrstvu"
 
@@ -2228,6 +2397,15 @@ msgstr ""
 msgid "Off"
 msgstr ""
 
+msgid "Filter"
+msgstr ""
+
+msgid "Enabling filtration redirects the right fan to filter gas, which may reduce cooling performance."
+msgstr ""
+
+msgid "Enabling filtration during printing may reduce cooling and affect print qulity. Please choose carefully"
+msgstr ""
+
 msgid "The selected material only supports the current fan mode, and it can't be changed during printing."
 msgstr ""
 
@@ -2241,9 +2419,6 @@ msgid "Exhaust"
 msgstr ""
 
 msgid "Full Cooling"
-msgstr ""
-
-msgid "Num?"
 msgstr ""
 
 msgid "Init"
@@ -2289,7 +2464,11 @@ msgstr ""
 msgid "Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printouts will be fully cooled."
 msgstr ""
 
-msgid "Num"
+msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
+msgstr ""
+
+msgctxt "air_duct"
+msgid "Right"
 msgstr ""
 
 msgid "Idling..."
@@ -2408,6 +2587,12 @@ msgid "Font doesn't have any shape for given text."
 msgstr ""
 
 msgid "There is no valid surface for text projection."
+msgstr ""
+
+msgid "Text mesh ie empty."
+msgstr ""
+
+msgid "Text"
 msgstr ""
 
 msgid "Error! Unable to create thread!"
@@ -3980,6 +4165,12 @@ msgstr "Rozdělit na části"
 msgid "And it is valid when importing an stl with at least two meshes."
 msgstr ""
 
+msgid "Click to Extend"
+msgstr ""
+
+msgid "Click to Collapse"
+msgstr ""
+
 msgid "Assembly View"
 msgstr "Zobrazení sestavy"
 
@@ -5060,6 +5251,9 @@ msgstr ""
 msgid "Printing Progress"
 msgstr "Průběh tisku"
 
+msgid "Parts Skip"
+msgstr ""
+
 msgid "Resume"
 msgstr "Pokračovat"
 
@@ -5069,7 +5263,7 @@ msgstr "Zastavit"
 msgid "Layer: N/A"
 msgstr "Vrstva: N/A"
 
-msgid "Finish Time: N/A"
+msgid "Estimated finish time: "
 msgstr ""
 
 msgid ""
@@ -5096,9 +5290,6 @@ msgstr ""
 
 msgid "Finished"
 msgstr "Dokončeno"
-
-msgid "Finish Time: "
-msgstr ""
 
 msgid "Camera"
 msgstr "Kamera"
@@ -5148,6 +5339,18 @@ msgstr ""
 msgid "Unknown error."
 msgstr ""
 
+msgid "The printer is busy on other print job"
+msgstr "Tiskárna je zaneprázdněna jinou tiskovou úlohou"
+
+msgid "Current extruder is busy changing filament"
+msgstr ""
+
+msgid "Current slot has alread been loaded"
+msgstr ""
+
+msgid "The selected slot is empty."
+msgstr ""
+
 msgid "Downloading..."
 msgstr "Stahuji..."
 
@@ -5165,6 +5368,10 @@ msgstr "Vrstva: %s"
 #, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr "Vrstva: %d/%d"
+
+#, c-format, boost-format
+msgid "(%d)"
+msgstr ""
 
 msgid "Auto homing"
 msgstr ""
@@ -5205,17 +5412,14 @@ msgstr "Směšné"
 msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
 msgstr ""
 
-msgid "Turn it Off"
+msgid "Keep it On"
 msgstr ""
 
-msgid "Keep it On"
+msgid "Turn it Off"
 msgstr ""
 
 msgid "Can't start this without storage."
 msgstr ""
-
-msgid "The printer is busy on other print job"
-msgstr "Tiskárna je zaneprázdněna jinou tiskovou úlohou"
 
 msgid "Rate the Print Profile"
 msgstr ""
@@ -5606,11 +5810,35 @@ msgstr ""
 msgid "Identifies the type and position of the build plate on the heatbed. Pausing printing if a mismatch is detected."
 msgstr ""
 
+msgid "AI Detections"
+msgstr ""
+
+msgid "Printer will send assistant message or pause printing if any of the following problem is detected."
+msgstr ""
+
 msgid "Enable AI monitoring of printing"
 msgstr "Povolit AI monitorování tisku"
 
-msgid "Sensitivity of pausing is"
-msgstr "Citlivost pauzy je"
+msgid "Pausing Sensitivity:"
+msgstr ""
+
+msgid "Spaghetti Detection"
+msgstr ""
+
+msgid "Detect spaghetti failure(scattered lose filament)."
+msgstr ""
+
+msgid "Purge Chute Pile-Up Detection"
+msgstr ""
+
+msgid "Monitor if the waste is piled up in the purge chute."
+msgstr ""
+
+msgid "Nozzle Clumping Detection"
+msgstr ""
+
+msgid "Check if the nozzle is clumping by filaments or other foreign objects."
+msgstr ""
 
 msgid "First Layer Inspection"
 msgstr "Kontrola první vrstvy"
@@ -5637,9 +5865,6 @@ msgid "Allow Prompt Sound"
 msgstr ""
 
 msgid "Filament Tangle Detect"
-msgstr ""
-
-msgid "Nozzle Clumping Detection"
 msgstr ""
 
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
@@ -5695,6 +5920,20 @@ msgstr "Nastavení tiskárny"
 
 #, c-format, boost-format
 msgid "The %s nozzle can not print %s."
+msgstr ""
+
+msgid " nozzle"
+msgstr ""
+
+#, boost-format
+msgid "It is not recommended to print the following filament(s) with %1%: %2%\n"
+msgstr ""
+
+msgid "It is not recommended to use the following nozzle and filament combinations:\n"
+msgstr ""
+
+#, boost-format
+msgid "%1% with %2%\n"
 msgstr ""
 
 #, boost-format
@@ -6134,6 +6373,9 @@ msgstr "Projekt stažen %d%%"
 msgid "Importing to Bambu Studio failed. Please download the file and manually import it."
 msgstr ""
 
+msgid "The current settings produce a model that is too large. Please narrow the range or increase the step size. (Model size is proportional to (End - Start) / Step size.)"
+msgstr ""
+
 msgid "The selected file"
 msgstr "Vybraný soubor"
 
@@ -6490,6 +6732,12 @@ msgstr ""
 msgid "Clear my choice for synchronizing printer preset after loading the file."
 msgstr ""
 
+msgid "Clear my choice for Load 3mf dialog settings."
+msgstr ""
+
+msgid "Show the warning dialog again when importing non-Bambu 3MF files"
+msgstr ""
+
 msgid "3D Settings"
 msgstr ""
 
@@ -6521,6 +6769,15 @@ msgid "Improve rendering performance by lod"
 msgstr ""
 
 msgid "Improved rendering performance under the scene of multiple plates and many models."
+msgstr ""
+
+msgid "Collapsible"
+msgstr ""
+
+msgid "Uncollapsible"
+msgstr ""
+
+msgid "Toolbar Style"
 msgstr ""
 
 msgid "Grabber scale"
@@ -6784,9 +7041,6 @@ msgstr ""
 msgid "Create printer"
 msgstr ""
 
-msgid "Please choose the filament colour"
-msgstr "Vyberte prosím barvu vlákna"
-
 msgid "Empty"
 msgstr "Prázdný"
 
@@ -6964,10 +7218,13 @@ msgstr ""
 msgid "Send print job"
 msgstr ""
 
-msgid "On"
+msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr ""
 
-msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
+msgid "Manually change external spool during printing for multi-color printing"
+msgstr ""
+
+msgid "Multi-color with external"
 msgstr ""
 
 msgid "Your filament grouping method in the sliced file is not optimal."
@@ -8209,6 +8466,9 @@ msgstr "Multiplikátor"
 msgid "Flushing volumes for filament change"
 msgstr "Čistící objemy pro výměnu filamentu"
 
+msgid "Please choose the filament colour"
+msgstr "Vyberte prosím barvu vlákna"
+
 msgid "Bambu Network plug-in not detected."
 msgstr ""
 
@@ -8591,9 +8851,6 @@ msgstr ""
 msgid "Cutting Module"
 msgstr ""
 
-msgid "Auto Fire Extinguishing System"
-msgstr ""
-
 msgid "Model:"
 msgstr "Model:"
 
@@ -8731,9 +8988,6 @@ msgid "Grouping error: "
 msgstr ""
 
 msgid " can not be placed in the "
-msgstr ""
-
-msgid " nozzle"
 msgstr ""
 
 msgid "Inner wall"
@@ -9920,6 +10174,18 @@ msgstr ""
 msgid "Locked Zag"
 msgstr ""
 
+msgid "skin infill pattern"
+msgstr ""
+
+msgid "Line pattern for skin"
+msgstr ""
+
+msgid "skeleton infill pattern"
+msgstr ""
+
+msgid "Line pattern for skeleton"
+msgstr ""
+
 msgid "Acceleration of top surface infill. Using a lower value may improve top surface quality"
 msgstr "Zrychlení výplně horního povrchu. Použití nižší hodnoty může zlepšit kvalitu povrchu"
 
@@ -10556,8 +10822,8 @@ msgstr "Hustota prvního vrstvy raftu nebo podpůrné vrstvy"
 msgid "Initial layer expansion"
 msgstr "Rozšíření první vrstvy"
 
-msgid "Expand the first raft or support layer to improve bed plate adhesion"
-msgstr "Rozšiřte první raft nebo podpůrnou vrstvu pro zlepšení přilnavosti k podložce"
+msgid "Expand the first raft or support layer to improve bed plate adhesion, -1 means auto"
+msgstr ""
 
 msgid "Raft layers"
 msgstr "Vrstev raftu"
@@ -10681,6 +10947,12 @@ msgstr "Zezadu"
 
 msgid "Random"
 msgstr "Náhodný"
+
+msgid "Seam placement away from overhangs(experimental)"
+msgstr ""
+
+msgid "Ensure seam placement away from overhangs for alignment and backing modes."
+msgstr ""
 
 msgid "Seam gap"
 msgstr "Mezera švu"
@@ -11551,15 +11823,6 @@ msgstr "Průtok"
 msgid "Max Volumetric Speed"
 msgstr "Maximální objemová rychlost"
 
-#, c-format, boost-format
-msgid ""
-"Please input valid values:\n"
-"Start value: >= %.1f\n"
-"End value: <= %.1f\n"
-"End value: > Start value\n"
-"Value step: >= %.3f)"
-msgstr ""
-
 msgid "The name cannot be empty."
 msgstr "Název nemůže být prázdný."
 
@@ -11982,17 +12245,6 @@ msgstr "PA Krok: "
 msgid "Print numbers"
 msgstr "Tisk čísel"
 
-msgid ""
-"Please input valid values:\n"
-"Start PA: >= 0.0\n"
-"End PA: > Start PA\n"
-"PA step: >= 0.001)"
-msgstr ""
-"Zadejte prosím platné hodnoty:\n"
-"Spustit PA: >= 0,0\n"
-"Ukončit PA: > Spustit PA\n"
-"PA krok: >= 0,001)"
-
 msgid "Temperature calibration"
 msgstr "Kalibrace teploty"
 
@@ -12015,12 +12267,8 @@ msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
 "End temp: >= 180\n"
-"Start temp > End temp + 5)"
+"Start temp >= End temp + 5)"
 msgstr ""
-"Zadejte prosím platné hodnoty:\n"
-"Počáteční teplota: <= 350\n"
-"Koncová teplota: >= 180\n"
-"Počáteční teplota > Koncová teplota + 5)"
 
 msgid "Max volumetric speed test"
 msgstr "Test maximální objemové rychlosti"
@@ -12037,11 +12285,8 @@ msgstr "krok: "
 msgid ""
 "Please input valid values:\n"
 "start > 0 step >= 0\n"
-"end > start + step)"
+"end >= start + step)"
 msgstr ""
-"Zadejte prosím platné hodnoty:\n"
-"start > 0 krok >= 0\n"
-"konec > začátek + krok)"
 
 msgid "VFA test"
 msgstr "VFA test"
@@ -12055,11 +12300,8 @@ msgstr "Koncová rychlost: "
 msgid ""
 "Please input valid values:\n"
 "start > 10 step >= 0\n"
-"end > start + step)"
+"end >= start + step)"
 msgstr ""
-"Zadejte prosím platné hodnoty:\n"
-"start > 10 kroků >= 0\n"
-"konec > začátek + krok)"
 
 msgid "Start retraction length: "
 msgstr "Délka retrakce na začátku: "
@@ -12675,6 +12917,15 @@ msgid "Daily Tips"
 msgstr ""
 
 #, c-format, boost-format
+msgid ""
+"Please input valid values:\n"
+"Start value: >= %.1f\n"
+"End value: <= %.1f\n"
+"End value: > Start value\n"
+"Value step: >= %.3f)"
+msgstr ""
+
+#, c-format, boost-format
 msgid "nozzle size in preset: %d"
 msgstr ""
 
@@ -13197,6 +13448,70 @@ msgstr ""
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr ""
 
+msgid "Skip Objects"
+msgstr "Přeskočit objekty"
+
+msgid "Zoom Out"
+msgstr ""
+
+msgid "100 %"
+msgstr ""
+
+msgid "Zoom In"
+msgstr ""
+
+msgid "Load skipping objects information failed. Please try again."
+msgstr ""
+
+msgid "Loading ..."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d%%"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d"
+msgstr ""
+
+#, c-format, boost-format
+msgid "/%d Selected"
+msgstr ""
+
+msgid "Skipping all objects."
+msgstr ""
+
+msgid "The printing job will be stopped. Continue?"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Skipping %d objects."
+msgstr ""
+
+msgid "This action cannot be undone. Continue?"
+msgstr ""
+
+msgid "Skipping objects."
+msgstr ""
+
+msgid "Continue"
+msgstr ""
+
+msgid "Select Filament"
+msgstr ""
+
+msgid "Null Color"
+msgstr ""
+
+msgid "Multiple Color"
+msgstr ""
+
+msgid "Official Filament"
+msgstr ""
+
+msgid "More Colors"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -13408,6 +13723,64 @@ msgid ""
 "Avoid warping\n"
 "Did you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping."
 msgstr ""
+
+#~ msgid "Rotate text"
+#~ msgstr "Otočit text"
+
+#~ msgid "Embeded"
+#~ msgstr "Vloženo"
+
+#~ msgid "Surface"
+#~ msgstr "Povrch"
+
+#~ msgid "Horizontal text"
+#~ msgstr "Vodorovný text"
+
+#~ msgid "Sensitivity of pausing is"
+#~ msgstr "Citlivost pauzy je"
+
+#~ msgid "Expand the first raft or support layer to improve bed plate adhesion"
+#~ msgstr "Rozšiřte první raft nebo podpůrnou vrstvu pro zlepšení přilnavosti k podložce"
+
+#~ msgid ""
+#~ "Please input valid values:\n"
+#~ "Start PA: >= 0.0\n"
+#~ "End PA: > Start PA\n"
+#~ "PA step: >= 0.001)"
+#~ msgstr ""
+#~ "Zadejte prosím platné hodnoty:\n"
+#~ "Spustit PA: >= 0,0\n"
+#~ "Ukončit PA: > Spustit PA\n"
+#~ "PA krok: >= 0,001)"
+
+#~ msgid ""
+#~ "Please input valid values:\n"
+#~ "Start temp: <= 350\n"
+#~ "End temp: >= 180\n"
+#~ "Start temp > End temp + 5)"
+#~ msgstr ""
+#~ "Zadejte prosím platné hodnoty:\n"
+#~ "Počáteční teplota: <= 350\n"
+#~ "Koncová teplota: >= 180\n"
+#~ "Počáteční teplota > Koncová teplota + 5)"
+
+#~ msgid ""
+#~ "Please input valid values:\n"
+#~ "start > 0 step >= 0\n"
+#~ "end > start + step)"
+#~ msgstr ""
+#~ "Zadejte prosím platné hodnoty:\n"
+#~ "start > 0 krok >= 0\n"
+#~ "konec > začátek + krok)"
+
+#~ msgid ""
+#~ "Please input valid values:\n"
+#~ "start > 10 step >= 0\n"
+#~ "end > start + step)"
+#~ msgstr ""
+#~ "Zadejte prosím platné hodnoty:\n"
+#~ "start > 10 kroků >= 0\n"
+#~ "konec > začátek + krok)"
 
 #~ msgid "Update"
 #~ msgstr "Aktualizovat"
@@ -14345,9 +14718,6 @@ msgstr ""
 
 #~ msgid "Load filament settings from the specified file list"
 #~ msgstr "Načíst nastavení filamentu ze zadaného seznamu souborů"
-
-#~ msgid "Skip Objects"
-#~ msgstr "Přeskočit objekty"
 
 #~ msgid "Skip some objects in this print"
 #~ msgstr "Přeskočit některé objekty při tisku"
