@@ -26,6 +26,8 @@ function HandleStudio( pVal )
 	if(strCmd=='studio_userlogin')
 	{
 		SetLoginInfo(pVal['data']['avatar'],pVal['data']['name']);
+		if($("#printhistory").css("display") == "none")
+			GotoMenu( 'home' );
 		// $("#consoleinfo").text(JSON.stringify(pVal));
 	}
 	else if(strCmd=='studio_useroffline')
@@ -202,7 +204,6 @@ function OnLoginOrRegister()
 	}
 		
 	SendWXMessage( JSON.stringify(tSend) );	
-	GotoMenu('home');
 }
 
 function OnLogOut()
