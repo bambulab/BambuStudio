@@ -2335,7 +2335,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
                               full_width);
         m_parent.request_extra_frame();
     }
-    if (m_rr.mesh_id < 0 && !is_only_text_case()) {
+    if (m_last_text_mv && m_rr.mesh_id < 0 && !is_only_text_case()) {
         m_imgui->warning_text_wrapped(_L("Warning") + ":"+ _L("Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."),
                                       full_width);
         m_parent.request_extra_frame();
