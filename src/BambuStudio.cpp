@@ -6209,7 +6209,7 @@ int CLI::run(int argc, char **argv)
                                     else {
                                         if (!opengl_valid)
                                             opengl_valid = init_opengl_and_colors(model, colors);
-                                        outfile = print_fff->export_gcode(outfile, gcode_result, cli_generate_thumbnails);
+                                        outfile = opengl_valid ? print_fff->export_gcode(outfile, gcode_result, cli_generate_thumbnails) : print_fff->export_gcode(outfile, gcode_result, nullptr);
                                     }
                                     slice_time[TIME_USING_CACHE] = slice_time[TIME_USING_CACHE] + ((long long)Slic3r::Utils::get_current_milliseconds_time_utc() - temp_time);
                                     BOOST_LOG_TRIVIAL(info) << "export_gcode finished: time_using_cache update to " << slice_time[TIME_USING_CACHE] << " secs.";
