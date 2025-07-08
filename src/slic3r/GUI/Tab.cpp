@@ -3732,6 +3732,7 @@ void TabFilament::update()
         return; // ys_FIXME
 
     m_config_manipulation.check_filament_max_volumetric_speed(m_config);
+    m_config_manipulation.check_filament_scarf_setting(m_config);
 
     m_update_cnt++;
 
