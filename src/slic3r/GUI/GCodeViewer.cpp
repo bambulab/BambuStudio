@@ -546,11 +546,11 @@ void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& fil
     try
     {
         m_file.open(boost::filesystem::path(m_filename));
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": mapping file " << m_filename;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": mapping file " << PathSanitizer::sanitize(m_filename);
     }
     catch (...)
     {
-        BOOST_LOG_TRIVIAL(error) << "Unable to map file " << m_filename << ". Cannot show G-code window.";
+        BOOST_LOG_TRIVIAL(error) << "Unable to map file " << PathSanitizer::sanitize(m_filename) << ". Cannot show G-code window.";
         reset();
     }
 }
@@ -631,7 +631,7 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
         }
         catch (...)
         {
-            BOOST_LOG_TRIVIAL(error) << "Error while loading from file " << m_filename << ". Cannot show G-code window.";
+            BOOST_LOG_TRIVIAL(error) << "Error while loading from file " << PathSanitizer::sanitize(m_filename) << ". Cannot show G-code window.";
             return;
         }
         *const_cast<uint64_t*>(&m_selected_line_id) = curr_line_id;
@@ -720,7 +720,7 @@ void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
     //BBS: add log to trace the gcode file issue
     if (m_file.is_open()) {
         m_file.close();
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": finished mapping file " << m_filename;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": finished mapping file " << PathSanitizer::sanitize(m_filename);
     }
 }
 //BBS: GUI refactor: move to the right
@@ -1006,7 +1006,9 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     }
 
     //BBS: add logs
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": gcode result %1%, new id %2%, gcode file %3% ") % (&gcode_result) % m_last_result_id % gcode_result.filename;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+                            << boost::format(": gcode result %1%, new id %2%, gcode file %3% ") % (&gcode_result) % m_last_result_id %
+                                   PathSanitizer::sanitize(gcode_result.filename);
 
     // release gpu memory, if used
     reset();
@@ -1959,7 +1961,7 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
 
     FILE* fp = boost::nowide::fopen(mat_filename.string().c_str(), "w");
     if (fp == nullptr) {
-        BOOST_LOG_TRIVIAL(error) << "GCodeViewer::export_toolpaths_to_obj: Couldn't open " << mat_filename.string().c_str() << " for writing";
+        BOOST_LOG_TRIVIAL(error) << "GCodeViewer::export_toolpaths_to_obj: Couldn't open " << PathSanitizer::sanitize(mat_filename) << " for writing";
         return;
     }
 
@@ -1979,7 +1981,7 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     // save geometry file
     fp = boost::nowide::fopen(filename, "w");
     if (fp == nullptr) {
-        BOOST_LOG_TRIVIAL(error) << "GCodeViewer::export_toolpaths_to_obj: Couldn't open " << filename << " for writing";
+        BOOST_LOG_TRIVIAL(error) << "GCodeViewer::export_toolpaths_to_obj: Couldn't open " << PathSanitizer::sanitize(filename) << " for writing";
         return;
     }
 

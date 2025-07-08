@@ -10,6 +10,7 @@
 
 #include <boost/system/error_code.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem/path.hpp>
 #include <openssl/md5.h>
 
 #include "libslic3r.h"
@@ -123,6 +124,100 @@ inline std::string convert_to_full_version(std::string short_version)
     }
     return result;
 }
+
+class PathSanitizer
+{
+public:
+    static std::string sanitize(const std::string &path) {
+        return sanitize_impl(path);
+    }
+
+    static std::string sanitize(std::string &&path) {
+        return sanitize_impl(path);
+    }
+
+    static std::string sanitize(const char *path) {
+        return path ? sanitize_impl(std::string(path)) : "";
+    }
+
+    static std::string sanitize(const boost::filesystem::path &path) {
+        return sanitize_impl(path.string());
+    }
+
+private:
+    inline static size_t start_pos = std::string::npos;
+    inline static size_t name_size = 0;
+
+    static bool init_usrname_range()
+    {
+        if (start_pos != std::string::npos) {
+            return true;
+        }
+#ifdef _WIN32
+        const char *env = std::getenv("USERPROFILE");
+#elif __APPLE__
+        const char *env = std::getenv("HOME");
+#elif __linux__
+        const char *env = std::getenv("HOME");
+#else
+        // Unsupported platform, return raw input
+        return false;
+#endif
+        if (!env) {
+            return false;
+        }
+        std::string full(env);
+        size_t sep_pos = full.find_last_of("\\/");
+        if (sep_pos == std::string::npos) {
+            return false;
+        }
+        start_pos = sep_pos + 1;
+        name_size = full.length() - start_pos;
+
+        if (name_size == 0) {
+            return false;
+        }
+        if (start_pos + name_size >= full.length()) {
+            return false;
+        }
+        return true;
+    }
+
+    static std::string sanitize_impl(const std::string &raw)
+    {
+        if (!init_usrname_range()) {
+            return raw;
+        }
+
+        if (raw.length() < start_pos + name_size) {
+            return raw;
+        }
+        if (raw[start_pos + name_size] != '\\' && raw[start_pos + name_size] != '/') {
+            return raw;
+        }
+
+        std::string sanitized = raw;
+        return sanitized.replace(start_pos, name_size, std::string(name_size, '*'));
+    }
+
+    static std::string sanitize_impl(std::string &&raw)
+    {
+        if (!init_usrname_range()) {
+            return raw;
+        }
+
+        if (raw.length() < start_pos + name_size) {
+            return raw;
+        }
+        if (raw[start_pos + name_size] != '\\' && raw[start_pos + name_size] != '/') {
+            return raw;
+        }
+
+        raw.replace(start_pos, name_size, std::string(name_size, '*'));
+        return std::move(raw);
+    }
+};
+
 template<typename DataType>
 inline DataType round_divide(DataType dividend, DataType divisor) //!< Return dividend divided by divisor rounded to the nearest integer
 {

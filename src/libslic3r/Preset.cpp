@@ -1209,7 +1209,7 @@ void PresetCollection::load_presets(
     }
 
     //BBS: add config related logs
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" enter, load presets from %1%, current type %2%")%dir %Preset::get_type_string(m_type);
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" enter, load presets from %1%, current type %2%") % PathSanitizer::sanitize(dir) % Preset::get_type_string(m_type);
     //BBS do not parse folder if not exists
     m_dir_path = dir.string();
     if (!fs::exists(dir)) {
@@ -1266,7 +1266,7 @@ void PresetCollection::load_presets(
                         file_path.replace_extension(".info");
                         if (fs::exists(file_path))
                             fs::remove(file_path);
-                        BOOST_LOG_TRIVIAL(error) << boost::format("parse config %1% failed")%preset.file;
+                        BOOST_LOG_TRIVIAL(error) << boost::format("parse config %1% failed") % PathSanitizer::sanitize(preset.file);
                         continue;
                     }
 
@@ -1309,7 +1309,7 @@ void PresetCollection::load_presets(
                     else {
                         auto inherits_config2 = dynamic_cast<ConfigOptionString *>(inherits_config);
                         if ((inherits_config2 && !inherits_config2->value.empty())) {
-                            BOOST_LOG_TRIVIAL(error) << boost::format("can not find parent %1% for config %2%!")%inherits_config2->value %preset.file;
+                            BOOST_LOG_TRIVIAL(error) << boost::format("can not find parent %1% for config %2%!") % inherits_config2->value % PathSanitizer::sanitize(preset.file);
                             continue;
                         }
                         // We support custom root preset now
@@ -1324,8 +1324,8 @@ void PresetCollection::load_presets(
                     // Report configuration fields, which are misplaced into a wrong group.
                     std::string incorrect_keys = Preset::remove_invalid_keys(preset.config, default_preset.config);
                     if (!incorrect_keys.empty())
-                        BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" <<
-                        preset.file << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
+                        BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" << PathSanitizer::sanitize(preset.file)
+                                                 << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
                     preset.loaded = true;
                     //BBS: add some workaround for previous incorrect settings
                     if ((!preset.setting_id.empty())&&(preset.setting_id == preset.base_id))
@@ -1335,7 +1335,7 @@ void PresetCollection::load_presets(
                     // add alias for custom filament preset
                     set_custom_preset_alias(preset);
                 } catch (const std::ifstream::failure &err) {
-                    BOOST_LOG_TRIVIAL(error) << boost::format("The user-config cannot be loaded: %1%. Reason: %2%")%preset.file %err.what();
+                    BOOST_LOG_TRIVIAL(error) << boost::format("The user-config cannot be loaded: %1%. Reason: %2%") % PathSanitizer::sanitize(preset.file) % err.what();
                     fs::path file_path(preset.file);
                     if (fs::exists(file_path))
                         fs::remove(file_path);
@@ -1344,7 +1344,7 @@ void PresetCollection::load_presets(
                         fs::remove(file_path);
                     //throw Slic3r::RuntimeError(std::string("The selected preset cannot be loaded: ") + preset.file + "\n\tReason: " + err.what());
                 } catch (const std::runtime_error &err) {
-                    BOOST_LOG_TRIVIAL(error) << boost::format("Failed loading the user-config file: %1%. Reason: %2%")%preset.file %err.what();
+                    BOOST_LOG_TRIVIAL(error) << boost::format("Failed loading the user-config file: %1%. Reason: %2%") % PathSanitizer::sanitize(preset.file) % err.what();
                     //throw Slic3r::RuntimeError(std::string("Failed loading the preset file: ") + preset.file + "\n\tReason: " + err.what());
                     fs::path file_path(preset.file);
                     if (fs::exists(file_path))
@@ -1365,7 +1365,8 @@ void PresetCollection::load_presets(
         m_presets.insert(m_presets.end(), std::make_move_iterator(presets_loaded.begin()), std::make_move_iterator(presets_loaded.end()));
     std::sort(m_presets.begin() + m_num_default_presets, m_presets.end());
     //BBS: add config related logs
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": loaded %1% presets from %2%, type %3%")%presets_loaded.size() %dir %Preset::get_type_string(m_type);
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+                            << boost::format(": loaded %1% presets from %2%, type %3%") % presets_loaded.size() % PathSanitizer::sanitize(dir) % Preset::get_type_string(m_type);
     //this->select_preset(first_visible_idx());
     if (! errors_cummulative.empty())
         throw Slic3r::RuntimeError(errors_cummulative);
