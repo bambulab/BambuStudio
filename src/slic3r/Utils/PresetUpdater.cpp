@@ -171,7 +171,7 @@ struct Update
 
 	friend std::ostream& operator<<(std::ostream& os, const Update &self)
 	{
-		os << "Update(" << self.source.string() << " -> " << self.target.string() << ')';
+        os << "Update(" << PathSanitizer::sanitize(self.source.string()) << " -> " << PathSanitizer::sanitize(self.target.string()) << ')';
 		return os;
 	}
 };

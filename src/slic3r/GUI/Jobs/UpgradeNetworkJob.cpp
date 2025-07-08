@@ -62,7 +62,7 @@ void UpgradeNetworkJob::process()
     auto path_str = tmp_path.string() + wxString::Format(".%d%s", get_current_pid(), ".tmp").ToStdString();
     tmp_path = fs::path(path_str);
 
-    BOOST_LOG_TRIVIAL(info) << "UpgradeNetworkJob: save netowrk_plugin to " << tmp_path.string();
+    BOOST_LOG_TRIVIAL(info) << "UpgradeNetworkJob: save network_plugin to " << PathSanitizer::sanitize(tmp_path);
 
     auto cancel_fn = [this]() {
         return was_canceled();

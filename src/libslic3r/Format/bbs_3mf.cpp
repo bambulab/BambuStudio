@@ -1553,8 +1553,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     return mz_zip_reader_extract_to_mem(&archive, stat.m_file_index, pixels.data(), pixels.size(), 0);
                 });
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", plate %1%, thumbnail_file=%2%, no_light_thumbnail_file=%3%")%it->first %plate->thumbnail_file %plate->no_light_thumbnail_file;
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", top_thumbnail_file=%1%, pick_thumbnail_file=%2%")%plate->top_file %plate->pick_file;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", plate %1%, thumbnail_file=%2%, no_light_thumbnail_file=%3%") % it->first % PathSanitizer::sanitize(plate->thumbnail_file) % PathSanitizer::sanitize(plate->no_light_thumbnail_file);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", top_thumbnail_file=%1%, pick_thumbnail_file=%2%") % PathSanitizer::sanitize(plate->top_file) % PathSanitizer::sanitize(plate->pick_file);
             it++;
         }
 
@@ -2155,7 +2155,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 //        model.adjust_min_z();
 
         //BBS progress point
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_LOADING_PLATES, m_plater_data size %1%, m_backup_path %2%\n")%m_plater_data.size() %m_backup_path;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_LOADING_PLATES, m_plater_data size %1%, m_backup_path %2%\n") % m_plater_data.size() % PathSanitizer::sanitize(m_backup_path);
         if (proFn) {
             proFn(IMPORT_STAGE_LOADING_PLATES, 0, 1, cb_cancel);
             if (cb_cancel)
@@ -2524,7 +2524,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::string dest_file = temp_path + std::string("/") + "_temp_3.config";;
             std::string dest_zip_file = encode_path(dest_file.c_str());
             mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % dest_file % stat.m_filename % res;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % PathSanitizer::sanitize(dest_file) % stat.m_filename % res;
             if (res == 0) {
                 add_error("Error while extract project config file to file");
                 return;
@@ -2536,7 +2536,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 add_error("Error load config from json:"+reason);
                 return;
             }
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", load project config file successfully from %1%\n") %dest_file;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", load project config file successfully from %1%\n") % PathSanitizer::sanitize(dest_file);
         }
     }
 
@@ -2687,7 +2687,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             boost::filesystem::path dest_path = boost::filesystem::path(m_backup_path + "/" + src_file);
             std::string dest_zip_file = encode_path(dest_path.string().c_str());
             mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % dest_path % stat.m_filename % res;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % PathSanitizer::sanitize(dest_path) % stat.m_filename % res;
             if (res == 0) {
                 add_error("Error while extract file to temp directory");
                 return;
@@ -6236,9 +6236,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 #endif
         if (!result) {
             add_error("Unable to add file " + src_file_path + " to archive");
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", Unable to add file %1% to archive %2%\n") % src_file_path % path_in_zip;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add file %1% to archive %2%\n") % PathSanitizer::sanitize(src_file_path) % path_in_zip;
         } else {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", add file %1% to archive %2%\n") % src_file_path % path_in_zip;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", add file %1% to archive %2%\n") % PathSanitizer::sanitize(src_file_path) % path_in_zip;
         }
         return result;
     }
@@ -6463,7 +6463,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool sub_model = !objects_data.empty();
         bool write_object = sub_model || !m_split_model;
 
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", filename %1%, m_split_model %2%,  sub_model %3%")%filename % m_split_model % sub_model;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", filename %1%, m_split_model %2%,  sub_model %3%") % PathSanitizer::sanitize(filename) % m_split_model % sub_model;
 
 #if WRITE_ZIP_LANGUAGE_ENCODING
         auto & zip_filename = filename;
@@ -8073,7 +8073,7 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
                     MZ_DEFAULT_COMPRESSION, nullptr, 0, nullptr, 0);
                 boost::filesystem::path src_gcode_path(src_gcode_file);
                 if (!boost::filesystem::exists(src_gcode_path)) {
-                    BOOST_LOG_TRIVIAL(error) << "Gcode is missing, filename = " << src_gcode_file;
+                    BOOST_LOG_TRIVIAL(error) << "Gcode is missing, filename = " << PathSanitizer::sanitize(src_gcode_file);
                     result = false;
                 }
                 boost::filesystem::ifstream ifs(src_gcode_file, std::ios::binary);
@@ -8094,7 +8094,7 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
                 mz_zip_writer_add_from_zip_reader(&root_archive, &archive, 0);
             }
             mz_zip_reader_end(&archive);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", store  %1% to 3mf %2%\n") % src_gcode_file % gcode_in_3mf;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", store  %1% to 3mf %2%\n") % PathSanitizer::sanitize(src_gcode_file) % PathSanitizer::sanitize(gcode_in_3mf);
         }
     });
     return result;
@@ -8291,8 +8291,7 @@ public:
     }
 
     void remove_backup(Model& model, bool removeAll) {
-        BOOST_LOG_TRIVIAL(info)
-            << "remove_backup " << model.get_backup_path() << ", " << removeAll;
+        BOOST_LOG_TRIVIAL(info) << "remove_backup " << PathSanitizer::sanitize(model.get_backup_path()) << ", " << removeAll;
         std::deque<Task>   canceled_tasks;
         boost::unique_lock lock(m_mutex);
         if (removeAll && model.is_need_backup()) {
@@ -8378,7 +8377,7 @@ private:
                                                   "Exit"};
             std::ostringstream os;
             os << "{ type:" << type_names[type] << ", id:" << id
-               << ", path:" << path
+               << ", path:" << PathSanitizer::sanitize(path)
                << ", object:" << (object ? object->id().id : 0) << ", extra:" << delay << "}";
             return os.str();
         }
@@ -8464,9 +8463,9 @@ private:
                     try {
                         boost::filesystem::remove(t.path + "/lock.txt");
                         boost::filesystem::remove_all(t.path);
-                        BOOST_LOG_TRIVIAL(info) << "process_ui_task: remove all of backup path " << t.path;
+                        BOOST_LOG_TRIVIAL(info) << "process_ui_task: remove all of backup path " << PathSanitizer::sanitize(t.path);
                     } catch (std::exception &ex) {
-                        BOOST_LOG_TRIVIAL(error) << "process_ui_task: failed to remove backup path" << t.path << ": " << ex.what();
+                        BOOST_LOG_TRIVIAL(error) << "process_ui_task: failed to remove backup path" << PathSanitizer::sanitize(t.path) << ": " << ex.what();
                     }
                 }
                 break;

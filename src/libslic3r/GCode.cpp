@@ -1507,7 +1507,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     if (print->is_step_done(psGCodeExport) && boost::filesystem::exists(boost::filesystem::path(path)))
         return;
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("Will export G-code to %1% soon")%path;
+    BOOST_LOG_TRIVIAL(info) << boost::format("Will export G-code to %1% soon") % PathSanitizer::sanitize(path);
 
     GCodeProcessor::s_IsBBLPrinter = print->is_BBL_Printer();
     m_writer.set_is_bbl_printer(print->is_BBL_Printer());
@@ -1538,7 +1538,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     fs::path folder = file_path.parent_path();
     if (!fs::exists(folder)) {
         fs::create_directory(folder);
-        BOOST_LOG_TRIVIAL(error) << "[WARNING]: the parent path " + folder.string() +" is not there, create it!" << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "[WARNING]: the parent path " + PathSanitizer::sanitize(folder) + " is not there, create it!" << std::endl;
     }
 
     std::string path_tmp(path);
@@ -1547,12 +1547,12 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     m_processor.initialize(path_tmp);
     GCodeOutputStream file(boost::nowide::fopen(path_tmp.c_str(), "wb"), m_processor);
     if (! file.is_open()) {
-        BOOST_LOG_TRIVIAL(error) << std::string("G-code export to ") + path + " failed.\nCannot open the file for writing.\n" << std::endl;
+        BOOST_LOG_TRIVIAL(error) << std::string("G-code export to ") + PathSanitizer::sanitize(path) + " failed.\nCannot open the file for writing.\n" << std::endl;
         if (!fs::exists(folder)) {
             //fs::create_directory(folder);
-            BOOST_LOG_TRIVIAL(error) << "the parent path " + folder.string() +" is not there!!!" << std::endl;
+            BOOST_LOG_TRIVIAL(error) << "the parent path " + PathSanitizer::sanitize(folder) + " is not there!!!" << std::endl;
         }
-        throw Slic3r::RuntimeError(std::string("G-code export to ") + path + " failed.\nCannot open the file for writing.\n");
+        throw Slic3r::RuntimeError(std::string("G-code export to ") + PathSanitizer::sanitize(path) + " failed.\nCannot open the file for writing.\n");
     }
 
     try {
@@ -1562,7 +1562,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
         if (file.is_error()) {
             file.close();
             boost::nowide::remove(path_tmp.c_str());
-            throw Slic3r::RuntimeError(std::string("G-code export to ") + path + " failed\nIs the disk full?\n");
+            throw Slic3r::RuntimeError(std::string("G-code export to ") + PathSanitizer::sanitize(path) + " failed\nIs the disk full?\n");
         }
     } catch (std::exception & /* ex */) {
         // Rethrow on any exception. std::runtime_exception and CanceledException are expected to be thrown.
@@ -1642,17 +1642,19 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
         result->filename = path;
     }
 
+    std::string path_safe = PathSanitizer::sanitize(path);
+    std::string path_tmp_safe = PathSanitizer::sanitize(path_tmp);
     //BBS: add some log for error output
-    BOOST_LOG_TRIVIAL(debug) << boost::format("Finished processing gcode to %1% ") % path_tmp;
+    BOOST_LOG_TRIVIAL(debug) << boost::format("Finished processing gcode to %1% ") % path_tmp_safe;
 
     std::error_code ret = rename_file(path_tmp, path);
     if (ret) {
         throw Slic3r::RuntimeError(
-            std::string("Failed to rename the output G-code file from ") + path_tmp + " to " + path + '\n' + "error code " + ret.message() + '\n' +
-            "Is " + path_tmp + " locked?" + '\n');
+            std::string("Failed to rename the output G-code file from ") + path_tmp_safe + " to " + path_safe + '\n' + "error code " + ret.message() + '\n' +
+            "Is " + path_tmp_safe + " locked?" + '\n');
     }
     else {
-        BOOST_LOG_TRIVIAL(info) << boost::format("rename_file from %1% to %2% successfully")% path_tmp % path;
+        BOOST_LOG_TRIVIAL(info) << boost::format("rename_file from %1% to %2% successfully")% path_tmp_safe % path_safe;
     }
 
     BOOST_LOG_TRIVIAL(info) << "Exporting G-code finished" << log_memory_info();

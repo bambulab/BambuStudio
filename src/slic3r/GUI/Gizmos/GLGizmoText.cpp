@@ -3296,7 +3296,7 @@ bool load(CurFacenames &facenames, const std::vector<wxString> &delete_bad_font_
     boost::filesystem::path path     = get_fontlist_cache_path();
     std::string             path_str = path.string();
     if (!boost::filesystem::exists(path)) {
-        BOOST_LOG_TRIVIAL(warning) << "Fontlist cache - '" << path_str << "' does not exists.";
+        BOOST_LOG_TRIVIAL(warning) << "Fontlist cache - '" << PathSanitizer::sanitize(path_str) << "' does not exists.";
         return false;
     }
     boost::nowide::ifstream      file(path_str, std::ios::binary);
@@ -3306,7 +3306,7 @@ bool load(CurFacenames &facenames, const std::vector<wxString> &delete_bad_font_
     try {
         archive(data);
     } catch (const std::exception &ex) {
-        BOOST_LOG_TRIVIAL(error) << "Failed to load fontlist cache - '" << path_str << "'. Exception: " << ex.what();
+        BOOST_LOG_TRIVIAL(error) << "Failed to load fontlist cache - '" << PathSanitizer::sanitize(path_str) << "'. Exception: " << ex.what();
         return false;
     }
 
@@ -3408,7 +3408,7 @@ void init_face_names(CurFacenames &face_names)
         }
         // no new installed font
         BOOST_LOG_TRIVIAL(info) << "Same FontNames hash, cache is used. "
-                                << "For clear cache delete file: " << get_fontlist_cache_path().string();
+                                << "For clear cache delete file: " << PathSanitizer::sanitize(get_fontlist_cache_path());
         return;
     }
 

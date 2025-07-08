@@ -535,7 +535,8 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     if (in.f == nullptr)
         throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nCannot open file for reading.\n"));
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  before process %1%") % filename.c_str();
+    std::string filename_safe = PathSanitizer::sanitize(filename);
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  before process %1%") % filename_safe;
     // temporary file to contain modified gcode
     std::string filename_in = filename;
     std::string filename_out = filename + ".postprocess";
@@ -1148,6 +1149,8 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
 
     filename_in = filename_out; // filename_out is opened in read|write mode. During second process ,we ues filename_out as input
     filename_out = filename + ".postprocessed";
+    std::string filename_in_safe = PathSanitizer::sanitize(filename_in);
+    std::string filename_out_safe = PathSanitizer::sanitize(filename_out);
 
     FilePtr new_out = boost::nowide::fopen(filename_out.c_str(), "wb");
     std::fseek(out.f, 0, SEEK_SET); // move to start of the file and start reading gcode as in
@@ -1161,17 +1164,17 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     in.close();
     out.close();
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  after process %1%") % filename.c_str();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  after process %1%") % filename_safe;
 
     if (boost::nowide::remove(filename_in.c_str()) != 0) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  Failed to remove the temporary G-code file %1%") % filename_in.c_str();
-        throw Slic3r::RuntimeError(std::string("Failed to remove the temporary G-code file ") + filename_in + '\n' +
-            "Is " + filename_in + " locked?" + '\n');
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  Failed to remove the temporary G-code file %1%") % filename_in_safe;
+        throw Slic3r::RuntimeError(std::string("Failed to remove the temporary G-code file ") + filename_in_safe + '\n' +
+            "Is " + filename_in_safe + " locked?" + '\n');
     }
     if (rename_file(filename_out, filename)) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  Failed to rename the output G-code file from %1% to %2%") % filename_out.c_str() % filename.c_str();
-        throw Slic3r::RuntimeError(std::string("Failed to rename the output G-code file from ") + filename_out + " to " + filename + '\n' +
-            "Is " + filename_out + " locked?" + '\n');
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  Failed to rename the output G-code file from %1% to %2%") % filename_out_safe % filename_safe;
+        throw Slic3r::RuntimeError(std::string("Failed to rename the output G-code file from ") + filename_out_safe + " to " + filename_safe + '\n' +
+            "Is " + filename_out_safe + " locked?" + '\n');
     }
 }
 

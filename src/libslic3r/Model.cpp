@@ -974,28 +974,30 @@ std::string Model::get_backup_path()
         buf << this->id().id;
 
         backup_path = parent_path.string() + buf.str();
-        BOOST_LOG_TRIVIAL(info) << boost::format("model %1%, id %2%, backup_path empty, set to %3%")%this%this->id().id%backup_path;
+        std::string backup_path_safe = PathSanitizer::sanitize(backup_path);
+        BOOST_LOG_TRIVIAL(info) << boost::format("model %1%, id %2%, backup_path empty, set to %3%")%this%this->id().id % backup_path_safe;
         boost::filesystem::path temp_path(backup_path);
         if (boost::filesystem::exists(temp_path))
         {
-            BOOST_LOG_TRIVIAL(info) << boost::format("model %1%, id %2%, remove previous %3%")%this%this->id().id%backup_path;
+            BOOST_LOG_TRIVIAL(info) << boost::format("model %1%, id %2%, remove previous %3%")%this%this->id().id % backup_path_safe;
             boost::filesystem::remove_all(temp_path);
         }
     }
     boost::filesystem::path temp_path(backup_path);
-    try {
+    std::string temp_path_safe = PathSanitizer::sanitize(temp_path);
+    try {    
         if (!boost::filesystem::exists(temp_path))
         {
-            BOOST_LOG_TRIVIAL(info) << "create /3D/Objects in " << temp_path;
+            BOOST_LOG_TRIVIAL(info) << "create /3D/Objects in " << temp_path_safe;
             boost::filesystem::create_directories(backup_path + "/3D/Objects");
-            BOOST_LOG_TRIVIAL(info) << "create /Metadata in " << temp_path;
+            BOOST_LOG_TRIVIAL(info) << "create /Metadata in " << temp_path_safe;
             boost::filesystem::create_directories(backup_path + "/Metadata");
-            BOOST_LOG_TRIVIAL(info) << "create /lock.txt in " << temp_path;
+            BOOST_LOG_TRIVIAL(info) << "create /lock.txt in " << temp_path_safe;
             boost::filesystem::save_string_file(backup_path + "/lock.txt",
                 boost::lexical_cast<std::string>(get_current_pid()));
         }
     } catch (std::exception &ex) {
-        BOOST_LOG_TRIVIAL(error) << "Failed to create backup path" << temp_path << ": " << ex.what();
+        BOOST_LOG_TRIVIAL(error) << "Failed to create backup path" << temp_path_safe << ": " << ex.what();
     }
 
     return backup_path;
@@ -1007,7 +1009,7 @@ void Model::remove_backup_path_if_exist()
         boost::filesystem::path temp_path(backup_path);
         if (boost::filesystem::exists(temp_path))
         {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("model %1%, id %2% remove backup_path %3%")%this%this->id().id%backup_path;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("model %1%, id %2% remove backup_path %3%") % this % this->id().id % PathSanitizer::sanitize(backup_path);
             boost::filesystem::remove_all(temp_path);
         }
 	backup_path.clear();
@@ -1019,11 +1021,11 @@ std::string Model::get_backup_path(const std::string &sub_path)
     auto path = get_backup_path() + "/" + sub_path;
     try {
         if (!boost::filesystem::exists(path)) {
-            BOOST_LOG_TRIVIAL(info) << "create missing sub_path" << path;
+            BOOST_LOG_TRIVIAL(info) << "create missing sub_path" << PathSanitizer::sanitize(path);
             boost::filesystem::create_directories(path);
         }
     } catch (std::exception &ex) {
-        BOOST_LOG_TRIVIAL(error) << "Failed to create missing sub_path" << path << ": " << ex.what();
+        BOOST_LOG_TRIVIAL(error) << "Failed to create missing sub_path" << PathSanitizer::sanitize(path) << ": " << ex.what();
     }
     return path;
 }
@@ -1037,11 +1039,11 @@ void Model::set_backup_path(std::string const& path)
         return;
     }
     if (!backup_path.empty()) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(", model %1%, id %2%, remove previous backup %3%")%this%this->id().id%backup_path;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", model %1%, id %2%, remove previous backup %3%") % this % this->id().id % PathSanitizer::sanitize(backup_path);
         Slic3r::remove_backup(*this, true);
     }
     backup_path = path;
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(", model %1%, id %2%, set backup to %3%")%this%this->id().id%backup_path;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", model %1%, id %2%, set backup to %3%") % this % this->id().id % PathSanitizer::sanitize(backup_path);
 }
 
 void Model::load_from(Model& model)
