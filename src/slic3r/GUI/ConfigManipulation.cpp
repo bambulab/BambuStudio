@@ -207,6 +207,28 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         is_msg_dlg_already_exist = false;
     }
 
+    //limit scarf start height
+    double seam_slope_start_height = config->option<ConfigOptionFloatOrPercent>("seam_slope_start_height")->get_abs_value(1);
+    bool   reset_slope_start_height = false;
+    if (config->option<ConfigOptionFloatOrPercent>("seam_slope_start_height")->percent) {
+        if (seam_slope_start_height >= 1)
+            reset_slope_start_height = true;
+    } else {
+        if (seam_slope_start_height >= config->opt_float("layer_height"))
+            reset_slope_start_height = true;
+    }
+
+    if (reset_slope_start_height) {
+        const wxString     msg_text = _(L("Should not large than layer height.\nReset to 10%"));
+        MessageDialog      dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist    = true;
+        dialog.ShowModal();
+        new_conf.set_key_value("seam_slope_start_height", new ConfigOptionFloatOrPercent{10, true});
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
+
     //BBS: top_area_threshold showed if the top one wall function be applyed
     bool top_one_wall_apply = config->opt_enum<TopOneWallType>("top_one_wall_type") == TopOneWallType::None;
     toggle_line("top_area_threshold", !top_one_wall_apply);
