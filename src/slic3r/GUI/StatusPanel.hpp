@@ -255,10 +255,15 @@ class RectTextPanel : public wxPanel
 public:
     RectTextPanel(wxWindow *parent);
 
+public:
     void setText(const wxString text);
     wxString getText() const { return text; }
 
+    void Rescale();
+
+protected:
     void OnPaint(wxPaintEvent &event);
+
 private:
     wxString text;
 };
