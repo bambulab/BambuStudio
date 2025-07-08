@@ -74,7 +74,6 @@ public:
     std::vector<Vec3f> face_normals_hull;
     OrientParams params;
     bool has_cooling_fan = false;
-    bool only_find_cool_dir = false;
 
     std::vector< Vec3f> orientations;  // Vec3f == stl_normal
     std::function<void(unsigned)> progressind = { };  // default empty indicator function
@@ -89,7 +88,6 @@ public:
         mesh = &orient_mesh->mesh;
         params = params_;
         has_cooling_fan = orient_mesh->has_cooling_fan;
-        only_find_cool_dir = orient_mesh->only_find_cool_dir;
         progressind = progressind_;
         params.ASCENT = cos(PI - orient_mesh->overhang_angle * PI / 180); // use per-object overhang angle
 
@@ -119,15 +117,12 @@ public:
     {
         orientations = { { 0,0,-1 } }; // original orientation
 
-        // only find cooling direction for internal models
-        if (!only_find_cool_dir)
-        {
-            area_cumulation_accurate(face_normals, normals_quantize, areas, 10);
+        area_cumulation_accurate(face_normals, normals_quantize, areas, 10);
 
-            area_cumulation_accurate(face_normals_hull, normals_hull_quantize, areas_hull, 14);
+        area_cumulation_accurate(face_normals_hull, normals_hull_quantize, areas_hull, 14);
 
-            add_supplements();
-        }
+        add_supplements();
+
         if(progressind)
             progressind(20);
 
@@ -495,6 +490,7 @@ public:
 
     Vec3d find_cooling_direction2(Vec3d euler_angles, const Eigen::VectorXf& areas_in, TriangleMesh& mesh)
     {
+        Vec3f machine_cool_dir = this->orient_mesh->cooling_direction.cast<float>();
         const size_t num_faces = areas.rows();
         Vec3f left_direction = { -1, 0, 0 };
         Vec3f right_direction = { 1, 0, 0 };
@@ -524,6 +520,8 @@ public:
         // 3. accumulate the weighted projected overhang area, find the max weighted project area direction
         std::vector<Vec3f> face_normals_copy = its_face_normals(mesh_copy.its);
         float overhang_projected_max = 0.f;
+        float overhang_projected_origin = 0.f;
+        //std::ofstream ofs("E:\\debug\\cool_debug.txt");
         for (auto cool_dir : cool_dirs)
         {
             float overhang_projected_tmp = 0.f;
@@ -536,13 +534,24 @@ public:
                     overhang_projected_tmp += areas_in[i] * cool_dir_projection;
                 }
             }
+            //ofs << "val: " << overhang_projected_tmp << "\n";
             if (overhang_projected_tmp > overhang_projected_max)
             {
                 overhang_projected_max = overhang_projected_tmp;
                 best_direction = cool_dir;
             }
+            if (cool_dir.dot(machine_cool_dir) > 0.999)
+            {
+                overhang_projected_origin = overhang_projected_tmp;
+            }
         }
 
+        // The symmetric model has similar overhang projection at all angles, so Z-axis rotation is unnecessary.
+        if (std::abs(overhang_projected_origin - overhang_projected_max) < 1.0f)
+        {
+            best_direction = machine_cool_dir;
+        }
+        //ofs << "best cooling dir = " << best_direction.transpose() << "\n";
         BOOST_LOG_TRIVIAL(info) << "best cooling dir = " << best_direction.transpose() << "\n";
         return best_direction.cast<double>();
     }
@@ -681,6 +690,99 @@ void orient(ModelInstance* instance)
     instance->rotate(rotation_matrix);
 }
 
+void orient_for_cooling(TriangleMesh& mesh, const FanDirection& fan_dir)
+{
+    Vec3f best_direction{ 0, 0, 0 };
+    Vec3f machine_cool_dir{ 0, 0, 0 };
+
+    if (fan_dir == FanDirection::fdUndefine)
+    {
+        machine_cool_dir = { 0, 0, 0 };   // no cooling fan, do not rotate along z axis
+    }
+    else if (fan_dir == FanDirection::fdRight)
+    {
+        machine_cool_dir = { 1, 0, 0 };   // the cooling fan is on the right side.
+    }
+    else
+    {
+        // the cooling fan is on the left side or both side has cooling fans
+        machine_cool_dir = { -1, 0, 0 };
+    }
+
+    // 1. filter the overhang_areas
+    int nfaces = mesh.facets_count();
+    auto face_normals = its_face_normals(mesh.its);
+
+    Eigen::VectorXf normal_projection(nfaces, 1);// = this->normals.dot(orientation);
+    for (auto i = 0; i < nfaces; i++)
+    {
+        normal_projection(i) = face_normals[i].dot(Vec3f(0, 0, 1));
+    }
+    float angle_thres_high = -0.6427f;
+    float angle_thres_low = -0.97f;
+    // 2. compute the weighted overhang faces area
+    auto overhang_area_condition = normal_projection.array() < angle_thres_high && normal_projection.array() > angle_thres_low;
+    Eigen::VectorXf weighted_areas = Eigen::VectorXf::Zero(nfaces);
+    for (int i = 0; i < nfaces; i++)
+    {
+        if (normal_projection(i) < angle_thres_high && normal_projection(i) > angle_thres_low)
+        {
+            weighted_areas(i) = mesh.its.facet_area(i) * (1.0f - normal_projection(i));
+        }
+    }
+
+    const size_t sample_nums = 180;
+    std::vector<Vec3f> cool_dirs;
+    for (size_t i = 0; i < sample_nums; i++)
+    {
+        float angle_deg = i * (360.0 / sample_nums);
+        float angle_rad = angle_deg * (PI / 180.0);
+        cool_dirs.push_back(Vec3f{ std::cos(angle_rad), std::sin(angle_rad), 0 });
+    }
+
+    // 3. accumulate the weighted projected overhang area, find the max weighted project area direction
+    float overhang_projected_max = 0.f;
+    float overhang_projected_origin = 0.f;
+    //std::ofstream ofs("E:\\debug\\only_cool.txt");
+    for (auto cool_dir : cool_dirs)
+    {
+        float overhang_projected_tmp = 0.f;
+        for (size_t i = 0; i < nfaces; i++)
+        {
+            float cool_dir_projection = face_normals[i].dot(cool_dir);
+            if (weighted_areas[i] > 0 && cool_dir_projection > 0)
+            {
+                overhang_projected_tmp += weighted_areas[i] * cool_dir_projection;
+            }
+        }
+        //ofs << "cool val = " << overhang_projected_tmp << "\n";
+        if (overhang_projected_tmp > overhang_projected_max)
+        {
+            overhang_projected_max = overhang_projected_tmp;
+            best_direction = cool_dir;
+        }
+        if (cool_dir.dot(machine_cool_dir) > 0.999)
+        {
+            overhang_projected_origin = overhang_projected_tmp;
+        }
+    }
+
+    // The symmetric model has similar overhang projection at all angles, so Z-axis rotation is unnecessary.
+    if (std::abs(overhang_projected_origin - overhang_projected_max) < 1.0f)
+    {
+        //ofs << "no rotation\n";
+        return;
+    }
+
+    // rotate the mesh
+    Vec3d axis;
+    double angle;
+    Matrix3d rotation_matrix;
+    Geometry::rotation_from_two_vectors(best_direction.cast<double>(), machine_cool_dir.cast<double>(), axis, angle, &rotation_matrix);
+    mesh.rotate(angle, axis);
+
+    return;
+}
 
 } // namespace arr
 } // namespace Slic3r
