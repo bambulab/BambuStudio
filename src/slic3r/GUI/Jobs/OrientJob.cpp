@@ -220,7 +220,7 @@ orientation::OrientMesh OrientJob::get_orient_mesh(ModelInstance* instance)
     OrientMesh om;
     auto obj = instance->get_object();
     om.name = obj->name;
-    om.mesh = obj->mesh(); // don't know the difference to obj->raw_mesh(). Both seem OK        
+    om.mesh = obj->mesh(); // don't know the difference to obj->raw_mesh(). Both seem OK
     const Slic3r::DynamicPrintConfig& full_config = wxGetApp().preset_bundle->full_config();
     if (obj->config.has("support_threshold_angle"))
         om.overhang_angle = obj->config.opt_int("support_threshold_angle");
@@ -228,12 +228,6 @@ orientation::OrientMesh OrientJob::get_orient_mesh(ModelInstance* instance)
         om.overhang_angle = full_config.opt_int("support_threshold_angle");
     }
 
-    if (obj->config.has("orient_cool_only"))
-    {
-        om.only_find_cool_dir = obj->config.get().opt_bool("orient_cool_only");
-        //BOOST_LOG_TRIVIAL(info) << "obj config orient cool = " << obj->config.get().opt_bool("orient_cool_only");
-    }
-    
     if (full_config.has("fan_direction") && full_config.has("auxiliary_fan"))
     {
         int fan_config_idx = full_config.option<ConfigOptionEnum<FanDirection>>("fan_direction")->value;
