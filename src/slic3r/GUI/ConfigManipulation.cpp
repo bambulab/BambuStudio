@@ -140,7 +140,36 @@ void ConfigManipulation::check_filament_max_volumetric_speed(DynamicPrintConfig 
     }
 
 }
+void ConfigManipulation::check_filament_scarf_setting(DynamicPrintConfig *config)
+{
+    bool post_warning = false;
+    float layer_height = wxGetApp().preset_bundle->prints.get_selected_preset().config.opt_float("layer_height");
+    DynamicPrintConfig new_conf = *config;
+    //std::vector<FloatOrPercent> new_data = config->option<ConfigOptionFloatsOrPercents>("filament_scarf_height")->values;
+    for (size_t i = 0; i < config->option<ConfigOptionFloatsOrPercents>("filament_scarf_height")->size(); i++) {
+        double value = config->option<ConfigOptionFloatsOrPercents>("filament_scarf_height")->values[i].get_abs_value(1);
+        bool   reset = false;
+        if (config->option<ConfigOptionFloatsOrPercents>("filament_scarf_height")->values[i].percent) {
+            if (value >= 1)
+                reset = true;
+        } else if (value > layer_height)
+            reset = true;
+        if (reset) {
+            post_warning = true;
+            new_conf.option<ConfigOptionFloatsOrPercents>("filament_scarf_height")->values[i] =
+                wxGetApp().preset_bundle->filaments.get_selected_preset().config.option<ConfigOptionFloatsOrPercents>("filament_scarf_height")->values[i];
+        }
 
+    }
+    if (post_warning) {
+        const wxString msg_text = _(L("Should not large than 100%.\nReset to defualt"));
+        MessageDialog  dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
+        is_msg_dlg_already_exist = true;
+        dialog.ShowModal();
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
+}
 void ConfigManipulation::check_chamber_temperature(DynamicPrintConfig* config)
 {
     const static std::map<std::string, int>recommend_temp_map = {
