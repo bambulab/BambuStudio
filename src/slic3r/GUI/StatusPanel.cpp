@@ -995,6 +995,7 @@ void PrintingTaskPanel::msw_rescale()
     //m_staticText_printing->SetMinSize(wxSize(PAGE_TITLE_TEXT_WIDTH, PAGE_TITLE_HEIGHT));
     m_gauge_progress->SetHeight(PROGRESSBAR_HEIGHT);
     m_gauge_progress->Rescale();
+    m_staticText_finish_day->Rescale();
     m_button_pause_resume->msw_rescale();
     m_button_abort->msw_rescale();
     m_bitmap_thumbnail->SetSize(TASK_THUMBNAIL_SIZE);
@@ -6093,6 +6094,7 @@ void ScoreDialog::set_cloud_bitmap(std::vector<std::string> cloud_bitmaps)
 
 RectTextPanel::RectTextPanel(wxWindow *parent) : wxPanel(parent)
 {
+    SetFont(::Label::Body_12);
     Bind(wxEVT_PAINT, &RectTextPanel::OnPaint, this);
 }
 
@@ -6101,22 +6103,31 @@ void RectTextPanel::setText(const wxString text)
     if (this->text != text)
     {
         this->text = text;
-        Refresh();
+        Rescale();
     }
 }
 
-void RectTextPanel::OnPaint(wxPaintEvent &event) {
-    wxPaintDC dc(this);
-    dc.SetFont(::Label::Body_12);
-    wxSize textSize = dc.GetTextExtent(text);
+void RectTextPanel::Rescale()
+{
+    wxSize contentSize = GetTextExtent(text);
+    contentSize.y += FromDIP(4);
+    contentSize.x += FromDIP(4);
+    SetMaxSize(contentSize);
+    SetMinSize(contentSize);
+    SetSize(contentSize);
+    Refresh();
+}
 
+void RectTextPanel::OnPaint(wxPaintEvent &event) {
+
+    const auto& size = GetSize();
+
+    wxPaintDC dc(this);
     dc.SetBrush(wxBrush(wxColour("#00AE42")));
     dc.SetPen(wxPen(wxColour("#00AE42")));
-    wxRect rect(0, 0, textSize.GetWidth() + 4, textSize.GetHeight() + 4);
-    SetSize(rect.GetSize());
-    dc.DrawRoundedRectangle(rect, 4);
+    dc.DrawRoundedRectangle(size, FromDIP(4));
     dc.SetTextForeground(wxColour(255, 255, 255));
-    dc.DrawText(text, wxPoint(2, 2));
+    dc.DrawText(text, wxPoint(FromDIP(2), FromDIP(2)));
 }
 
 } // namespace GUI
