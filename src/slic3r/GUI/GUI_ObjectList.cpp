@@ -26,6 +26,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <wx/progdlg.h>
+#include <libslic3r/Orient.hpp>
 #include <wx/listbook.h>
 #include <wx/numformatter.h>
 #include <wx/headerctrl.h>
@@ -2511,15 +2512,18 @@ void ObjectList::load_shape_object(const std::string &type_name)
     // Create mesh
     BoundingBoxf3 bb;
     TriangleMesh mesh = create_mesh(type_name, bb);
+    const Slic3r::DynamicPrintConfig& full_config = wxGetApp().preset_bundle->full_config();
+    // rotate the overhang faces to the machine cooling fan
+    if (full_config.has("fan_direction") && full_config.has("auxiliary_fan"))
+    {
+        int fan_config_idx = full_config.option<ConfigOptionEnum<FanDirection>>("fan_direction")->value;
+        FanDirection config_dir = static_cast<FanDirection>(fan_config_idx);
+        orientation::orient_for_cooling(mesh, config_dir);
+    }
+
     // BBS: remove "Shape" prefix
     load_mesh_object(mesh, _(type_name));
     wxGetApp().mainframe->update_title();
-
-    // When importing internal 3D models, orient the faces with large overhangs toward the fan.
-    m_config->set_key_value("orient_cool_only", new ConfigOptionBool(true));
-    wxGetApp().plater()->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
-    wxGetApp().plater()->orient();
-    m_config->erase("orient_cool_only");
 }
 
 void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center)

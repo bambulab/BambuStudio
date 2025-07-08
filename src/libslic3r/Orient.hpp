@@ -37,7 +37,6 @@ struct OrientMesh {
     Vec3d euler_angles_vertical = {0, 0, 0};
     Vec3d cooling_direction = {0, 0, 0};
     bool has_cooling_fan{false};
-    bool only_find_cool_dir{false};
 
     std::string name;
 
@@ -162,6 +161,9 @@ void orient(OrientMeshs &items, const OrientMeshs &excludes, const OrientParams 
 void orient(ModelObject* obj);
 
 void orient(ModelInstance* instance);
+
+// rotate z axis for cooling
+void orient_for_cooling(TriangleMesh& mesh, const FanDirection& fan_dir);
 
 }} // namespace Slic3r::orientment
 
