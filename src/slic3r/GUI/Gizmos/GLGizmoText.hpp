@@ -168,6 +168,9 @@ public:
     void                close();
 
     std::string get_icon_filename(bool b_dark_mode) const override;
+    virtual std::string get_gizmo_entering_text() const{return "Enter Text gizmo";}
+    virtual std::string get_gizmo_leaving_text() const{return "Leave Text gizmo";}
+    bool    wants_enter_leave_snapshots() const override { return true; }
 
 protected:
     virtual bool on_init() override;

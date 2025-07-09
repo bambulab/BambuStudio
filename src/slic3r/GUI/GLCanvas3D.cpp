@@ -2399,6 +2399,12 @@ void GLCanvas3D::render(bool only_init)
         else {
             only_current = true;
         }
+    } else if (m_gizmos.get_current_type() == GLGizmosManager::EType::Text) {
+        if (m_gizmos.is_only_text_volume()) {
+            only_current = false;
+        } else {
+            only_current = true;
+        }
     } else if (m_gizmos.is_paint_gizmo())
         no_partplate = true;
     else if (gizmo_type == GLGizmosManager::BrimEars && !camera.is_looking_downward())
@@ -5197,6 +5203,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 if (type == GLGizmosManager::EType::Text)
                     m_gizmos.open_gizmo(GLGizmosManager::EType::Text); // close text
                 wxGetApp().obj_list()->update_selections();
+                Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Edit existed text by double click");
                 m_gizmos.open_gizmo(GLGizmosManager::EType::Text);
                 return;
             }
