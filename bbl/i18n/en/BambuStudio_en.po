@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-09 09:20+0800\n"
+"POT-Creation-Date: 2025-07-09 16:21+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3315,6 +3315,11 @@ msgid ""
 msgstr ""
 "Layer height too large\n"
 "It has been reset to 0.2"
+
+msgid ""
+"Should not large than layer height.\n"
+"Reset to 10%"
+msgstr ""
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -7356,9 +7361,6 @@ msgstr ""
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr ""
 
-msgid "Connecting to the printer. Unable to cancel during the connection process."
-msgstr "Connecting to the printer. Unable to cancel during the connection process."
-
 msgid "Preparing print job"
 msgstr "Preparing print job"
 
@@ -9569,7 +9571,7 @@ msgid "Slow down by height"
 msgstr ""
 
 msgid "Enable this option to slow printing down by height"
-msgstr ""
+msgstr "Enable this option to set the upper bound of printing speed and acceleration. This upper bound is a function of printing height (z), e.g. the upper bound of printing speed at z is: \"starting speed\" when z is less than \"starting height\"; \"ending speed\" when z is larger than \"ending height\"; a linear interpolation between (\"starting height\", \"starting speed\")  and (\"ending height\", \"ending speed\" ) by z otherwisely."
 
 msgid "Starting height"
 msgstr ""
@@ -9590,7 +9592,7 @@ msgid "Ending height"
 msgstr ""
 
 msgid "The height finishes slowing down, Ending height should be larger than Starting height, or the slowing down will not work!"
-msgstr ""
+msgstr "“Ending height” should be larger than “Starting height”, or the slowing down will not work!"
 
 msgid "Speed at ending height"
 msgstr ""
@@ -13821,6 +13823,9 @@ msgid ""
 msgstr ""
 "Avoid warping\n"
 "Did you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping?"
+
+#~ msgid "Connecting to the printer. Unable to cancel during the connection process."
+#~ msgstr "Connecting to the printer. Unable to cancel during the connection process."
 
 #~ msgid "Note: Only the AMS slots loaded with the same material type can be selected."
 #~ msgstr "Note: Only the AMS slots loaded with the same material type can be selected."

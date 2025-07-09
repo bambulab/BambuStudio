@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-09 09:20+0800\n"
+"POT-Creation-Date: 2025-07-09 16:21+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3284,6 +3284,11 @@ msgstr ""
 msgid ""
 "Too large layer height.\n"
 "Reset to 0.2"
+msgstr ""
+
+msgid ""
+"Should not large than layer height.\n"
+"Reset to 10%"
 msgstr ""
 
 msgid ""
@@ -7232,9 +7237,6 @@ msgid "This checks the flatness of heatbed. Leveling makes extruded height unifo
 msgstr ""
 
 msgid "This process determines the dynamic flow values to improve overall print quality."
-msgstr ""
-
-msgid "Connecting to the printer. Unable to cancel during the connection process."
 msgstr ""
 
 msgid "Preparing print job"

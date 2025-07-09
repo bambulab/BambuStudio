@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-09 09:20+0800\n"
+"POT-Creation-Date: 2025-07-09 16:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -24,10 +24,10 @@ msgid "The filament model is unknown. Still using the previous filament preset."
 msgstr "O modelo do filamento é desconhecido. Ainda usando a predefinição de filamento anterior."
 
 msgid "The filament model is unknown. Generic filament presets will be used."
-msgstr ""
+msgstr "O modelo do filamento é desconhecido. Predefinições genéricas de filamento serão usadas."
 
 msgid "The filament may not be compatible with the current machine settings. A random filament preset will be used."
-msgstr ""
+msgstr "O filamento pode não ser compatível com as configurações atuais da máquina. Uma predefinição de filamento aleatório será usada."
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "O modelo do filamento é desconhecido. Uma predefinição de filamento aleatório será usada."
@@ -891,21 +891,21 @@ msgid "Italic"
 msgstr ""
 
 msgid "First font"
-msgstr ""
+msgstr "Primeira fonte"
 
 msgid "Default font"
-msgstr ""
+msgstr "Fonte padrão"
 
 msgid "Save the parameters of the current text tool as a style for easy subsequent use."
 msgstr ""
 
 #, boost-format
 msgid "Modified style \"%1%\""
-msgstr ""
+msgstr "Estilo modificado \"%1%\""
 
 #, boost-format
 msgid "Current style is \"%1%\""
-msgstr ""
+msgstr "O estilo atual é \"%1%\""
 
 #, boost-format
 msgid ""
@@ -913,35 +913,38 @@ msgid ""
 "\n"
 "Would you like to continue anyway?"
 msgstr ""
+"Alterar o estilo para \"%1%\" descartará a modificação do estilo atual.\n"
+"\n"
+"Você gostaria de continuar mesmo assim?"
 
 msgid "Not valid style."
-msgstr ""
+msgstr "Estilo inválido."
 
 #, boost-format
 msgid "Style \"%1%\" can't be used and will be removed from a list."
-msgstr ""
+msgstr "O estilo \"%1%\" não pode ser usado e será removido da lista."
 
 msgid "First Add style to list."
-msgstr ""
+msgstr "Primeiro adicione estilo à lista."
 
 #, boost-format
 msgid "Save %1% style"
-msgstr ""
+msgstr "Economize %1% estilo"
 
 msgid "New name of style"
-msgstr ""
+msgstr "Novo nome do estilo"
 
 msgid "Name can't be empty."
-msgstr ""
+msgstr "O nome não pode estar vazio."
 
 msgid "Name has to be unique."
-msgstr ""
+msgstr "O nome deve ser único."
 
 msgid "OK"
 msgstr "OK"
 
 msgid "Save as new style"
-msgstr ""
+msgstr "Salvar como novo estilo"
 
 msgid "The current style has been modified but not saved. Do you want to save it?"
 msgstr ""
@@ -959,26 +962,26 @@ msgid "Add style to my list"
 msgstr ""
 
 msgid "Remove style"
-msgstr ""
+msgstr "Remover estilo"
 
 msgid "Can't remove the last existing style."
-msgstr ""
+msgstr "Não é possível remover o último estilo existente."
 
 #, boost-format
 msgid "Are you sure you want to permanently remove the \"%1%\" style?"
-msgstr ""
+msgstr "Tem certeza de que deseja remover permanentemente o estilo \"%1%\"?"
 
 #, boost-format
 msgid "Delete \"%1%\" style."
-msgstr ""
+msgstr "Excluir esExcluir estilo \"%1%\".Excluir estilo \"%1%\".tilo \"%1%\"."
 
 #, boost-format
 msgid "Can't delete \"%1%\". It is last style."
-msgstr ""
+msgstr "Não é possível excluir \"%1%\". É o último estilo."
 
 #, boost-format
 msgid "Can't delete temporary style \"%1%\"."
-msgstr ""
+msgstr "Não é possível excluir o estilo temporário \"%1%\"."
 
 msgid "Operation"
 msgstr "Operação"
@@ -1003,25 +1006,25 @@ msgid "Click to change part type into modifier."
 msgstr "Clique para transformar o tipo de peça em modificador."
 
 msgid "Surround projection by char"
-msgstr ""
+msgstr "Projeção surround por caractere"
 
 msgid "Not surround"
-msgstr ""
+msgstr "Não cercar"
 
 msgid "Surround surface"
-msgstr ""
+msgstr "Superfície envolvente"
 
 msgid "Surround"
-msgstr ""
+msgstr "Envolva"
 
 msgid "Horizonal"
-msgstr ""
+msgstr "Horizontal"
 
 msgid "Reset rotation"
 msgstr "Redefinir rotação"
 
 msgid "Rotate the text counterclockwise."
-msgstr ""
+msgstr "Gire o texto no sentido anti-horário."
 
 msgid "Text shape"
 msgstr "Forma do texto"
@@ -1038,13 +1041,13 @@ msgid "Input text"
 msgstr "Entrada de Texto"
 
 msgid "Embeded depth"
-msgstr ""
+msgstr "Profundidade incorporada"
 
 msgid "Text Gap"
 msgstr "Lacuna de texto"
 
 msgid "Warning:There is a mirror in the text matrix, and dragging it will completely regenerate it."
-msgstr ""
+msgstr "Aviso: Há um espelho na matriz de texto e arrastá-lo o regenerará completamente."
 
 msgid "Warning:Due to font upgrades,previous font may not necessarily be replaced successfully, and recommend you to modify the font."
 msgstr ""
@@ -1062,32 +1065,32 @@ msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and r
 msgstr ""
 
 msgid "Error:Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes.Please drag text,save it then reedit it again."
-msgstr ""
+msgstr "Erro: Ao detectar uma ID de malha incorreta ou um erro desconhecido, a regeneração do texto pode resultar em resultados incorretos. Arraste o texto, salve-o e edite-o novamente."
 
 msgid "Warning:Due to functional upgrade, rotation information cannot be restored. Please drag or modify text,save it and reedit it will ok."
-msgstr ""
+msgstr "Aviso: Devido à atualização funcional, as informações de rotação não podem ser restauradas. Arraste ou modifique o texto, salve-o e reedite-o, tudo bem."
 
 msgid "Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."
 msgstr ""
 
 msgid "The text cannot be written using the selected font. Please try choosing a different font."
-msgstr ""
+msgstr "O texto não pode ser escrito usando a fonte selecionada. Por favor, tente escolher uma fonte diferente."
 
 msgid "Embossed text cannot contain only white spaces."
-msgstr ""
+msgstr "O texto em relevo não pode conter apenas espaços em branco."
 
 msgid "Unsupported characters automatically switched to fallback font."
 msgstr ""
 
 msgid "Text doesn't show current horizontal alignment."
-msgstr ""
+msgstr "O texto não mostra o alinhamento horizontal atual."
 
 #, boost-format
 msgid "Font \"%1%\" can't be selected."
-msgstr ""
+msgstr "A fonte \"%1%\" não pode ser selecionada."
 
 msgid "Revert text size."
-msgstr ""
+msgstr "Reverter tamanho do texto."
 
 msgid "No symbol"
 msgstr ""
@@ -1096,7 +1099,7 @@ msgid "Loading"
 msgstr "Carregando…"
 
 msgid "In queue"
-msgstr ""
+msgstr "Na fila"
 
 #. TRN - Input label. Be short as possible
 #. Copy surface of model on surface of the embossed text
@@ -1108,12 +1111,12 @@ msgstr "Use a superfície"
 #. Option to change projection on curved surface
 #. for each character(glyph) in text separately
 msgid "Per glyph"
-msgstr ""
+msgstr "Por glifo"
 
 #. TRN - Input label. Be short as possible
 #. Align Top|Middle|Bottom and Left|Center|Right
 msgid "Alignment"
-msgstr ""
+msgstr "Alinhamento"
 
 #. TRN - Input label. Be short as possible
 msgid "Text gap"
@@ -1121,16 +1124,16 @@ msgstr ""
 
 #. TRN - Input label. Be short as possible
 msgid "Line gap"
-msgstr ""
+msgstr "Lacuna de linha"
 
 #. TRN - Input label. Be short as possible
 msgid "Boldness"
-msgstr ""
+msgstr "Ousadia"
 
 #. TRN - Input label. Be short as possible
 #. Like Font italic
 msgid "Skew ratio"
-msgstr ""
+msgstr "Razão de inclinação"
 
 #. TRN - Input label. Be short as possible
 #. Distance from model surface to be able
@@ -1427,7 +1430,7 @@ msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "O BambuStudio tem uma exceção não tratada: %1%"
 
 msgid "This file is not from a trusted site, do you want to open it anyway?"
-msgstr ""
+msgstr "This file is not from a trusted site; do you want to open it anyway?"
 
 msgid "Untitled"
 msgstr "Sem título"
@@ -1962,7 +1965,7 @@ msgid "Center"
 msgstr "Centro"
 
 msgid "Sub merge"
-msgstr ""
+msgstr "Subfusão"
 
 msgid "Edit Process Settings"
 msgstr "Editar configurações do processo"
@@ -2604,10 +2607,10 @@ msgid "There is no valid surface for text projection."
 msgstr "Não há superfície válida para projeção de texto."
 
 msgid "Text mesh ie empty."
-msgstr ""
+msgstr "A malha de texto está vazia."
 
 msgid "Text"
-msgstr ""
+msgstr "Texto"
 
 msgid "Error! Unable to create thread!"
 msgstr "Erro! Não foi possível criar um tópico!"
@@ -3342,6 +3345,11 @@ msgstr ""
 "Foi redefinido para 0,2"
 
 msgid ""
+"Should not large than layer height.\n"
+"Reset to 10%"
+msgstr ""
+
+msgid ""
 "Too small ironing spacing.\n"
 "Reset to 0.1"
 msgstr ""
@@ -3441,6 +3449,8 @@ msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50%% of skin depth"
 msgstr ""
+"lock depth should smaller than skin depth.\n"
+"Reset to half of skin depth"
 
 msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
 msgstr "O modo espiral só funciona quando os loops de parede são 1, o suporte está desabilitado, as camadas de casca superior são 0, a densidade de preenchimento esparso é 0, o tipo de timelapse é tradicional e a velocidade de suavização da parede na direção z é falsa."
@@ -3651,10 +3661,10 @@ msgid "Timelapse is not supported on this printer."
 msgstr ""
 
 msgid "Timelapse is not supported while the storage does not exist."
-msgstr ""
+msgstr "Timelapse is not supported when storage is not inserted."
 
 msgid "Timelapse is not supported while the storage is unavailable."
-msgstr ""
+msgstr "Timelapse is not supported when storage is unavailable."
 
 msgid "Timelapse is not supported while the storage is readonly."
 msgstr ""
@@ -3710,10 +3720,10 @@ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in 
 msgstr "Os filamentos CF/GF são duros e quebradiços. É fácil quebrar ou ficar presos no AMS, use com cuidado."
 
 msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
-msgstr ""
+msgstr "PPS-CF is brittle and could break in a bent PTFE tube above the Toolhead."
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
-msgstr ""
+msgstr "PPA-CF is brittle and could break in a bent PTFE tube above the Toolhead."
 
 msgid "default"
 msgstr "padrão"
@@ -4933,7 +4943,7 @@ msgid "The player is not loaded, please click \"play\" button to retry."
 msgstr "O player não está carregado; clique no botão \"play\" para tentar novamente."
 
 msgid "Temporarily closed because there is no operation for a while."
-msgstr ""
+msgstr "Temporarily closed because there is no activity for a while."
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "Fechado temporariamente porque não há impressão há algum tempo."
@@ -5680,7 +5690,7 @@ msgstr "Última versão"
 
 msgctxt "Software"
 msgid "Update"
-msgstr ""
+msgstr "Update now"
 
 msgid "Not for now"
 msgstr "Por enquanto, não."
@@ -5900,7 +5910,7 @@ msgid "Nozzle Clumping Detection"
 msgstr "Detecção de aglomeração de bicos"
 
 msgid "Check if the nozzle is clumping by filaments or other foreign objects."
-msgstr ""
+msgstr "Check if the nozzle is clumped with filament or other foreign objects."
 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
 msgstr ""
@@ -6404,12 +6414,16 @@ msgid ""
 "The currently connected printer '%s', is a %s model.\n"
 "To use this printer for printing, please switch the printer model of project file to %s."
 msgstr ""
+"The currently connected printer '%s' is a %s model.\n"
+"To use this printer for printing, please switch the printer model of project file to %s."
 
 #, c-format, boost-format
 msgid ""
 "The currently connected printer '%s', is a %s model but not consistent with preset in project file.\n"
 "To use this printer for printing, please switch the preset first."
 msgstr ""
+"The currently connected printer '%s' is a %s model but not consistent with preset in project file.\n"
+"To use this printer for printing, please switch the preset first."
 
 msgid "Switch now"
 msgstr "Mude agora"
@@ -6579,7 +6593,7 @@ msgid "Custom supports and color painting were removed before repairing."
 msgstr "Suportes personalizados e pintura colorida foram removidos antes do reparo."
 
 msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
-msgstr ""
+msgstr "Suportes personalizados, seam_facets e pintura colorida foram removidos antes de reparar o nome do modelo:"
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
@@ -7388,6 +7402,8 @@ msgstr ""
 
 msgid "The filament type setting of external spool is different from the filament in the slicing file."
 msgstr ""
+"The filament type setting of external spool is different from the filament in the slicing file, \n"
+" which may cause printing issues. "
 
 msgid "The printer type selected when generating G-Code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing."
 msgstr "O tipo de impressora selecionado ao gerar o G-Code não é consistente com a impressora atualmente selecionada. É recomendável usar o mesmo tipo de impressora para fatiar."
@@ -7405,13 +7421,10 @@ msgid "Please click the confirm button if you still want to proceed with printin
 msgstr "Clique no botão confirmar se ainda quiser continuar com a impressão."
 
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
-msgstr ""
+msgstr "Isso verifica o nivelamento da mesa aquecida. O nivelamento torna a altura extrudada uniforme."
 
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr ""
-
-msgid "Connecting to the printer. Unable to cancel during the connection process."
-msgstr "Conectando à impressora. Não é possível cancelar durante o processo de conexão."
 
 msgid "Preparing print job"
 msgstr "Preparando o trabalho de impressão"
@@ -7566,7 +7579,7 @@ msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Tempo limite de upload do arquivo: verifique se a versão do firmware suporta isso."
 
 msgid "No available external storage was obtained. Please confirm and try again."
-msgstr ""
+msgstr "No available external storage was found. Please confirm and try again."
 
 msgid "Media capability acquisition timeout, please check if the firmware version supports it."
 msgstr "Tempo limite de aquisição de capacidade de mídia, verifique se a versão do firmware suporta isso."
@@ -9637,7 +9650,7 @@ msgid "Slow down by height"
 msgstr ""
 
 msgid "Enable this option to slow printing down by height"
-msgstr ""
+msgstr "Enable this option to set the upper bound of printing speed and acceleration. This upper bound is a function of printing height (z), e.g. the upper bound of printing speed at z is: \"starting speed\" when z is less than \"starting height\"; \"ending speed\" when z is larger than \"ending height\"; a linear interpolation between (\"starting height\", \"starting speed\")  and (\"ending height\", \"ending speed\" ) by z otherwisely."
 
 msgid "Starting height"
 msgstr ""
@@ -9658,7 +9671,7 @@ msgid "Ending height"
 msgstr ""
 
 msgid "The height finishes slowing down, Ending height should be larger than Starting height, or the slowing down will not work!"
-msgstr ""
+msgstr "“Ending height” should be larger than “Starting height”, or the slowing down will not work!"
 
 msgid "Speed at ending height"
 msgstr ""
@@ -10528,13 +10541,13 @@ msgid "Skeleton infill density"
 msgstr ""
 
 msgid "The remaining part of the model contour after removing a certain depth from the surface is called the skeleton. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skeleton densities, their skeleton areas will develop overlapping sections.default is as same as infill density."
-msgstr ""
+msgstr "The remaining part of the model contour after removing a certain depth from the surface is called the skeleton. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skeleton densities, their skeleton areas will develop overlapping sections. Default is the same as infill density."
 
 msgid "Skin infill density"
 msgstr ""
 
 msgid "The portion of the model's outer surface within a certain depth range is called the skin. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skin densities, This area will not be split into two separate regions.default is as same as infill density."
-msgstr ""
+msgstr "The portion of the model's outer surface within a certain depth range is called the skin. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skin densities, This area will not be split into two separate regions. Default is the same as infill density."
 
 msgid "Skin infill depth"
 msgstr ""
@@ -10939,7 +10952,7 @@ msgid "Initial layer expansion"
 msgstr "Expansão inicial da camada"
 
 msgid "Expand the first raft or support layer to improve bed plate adhesion, -1 means auto"
-msgstr ""
+msgstr "Expands the first raft or support layer to improve bed plate adhesion, -1 means auto"
 
 msgid "Raft layers"
 msgstr "Camadas de Raft"
@@ -10987,10 +11000,10 @@ msgid "Experimental feature.Retraction length before cutting off during filament
 msgstr "Característica experimental. Comprimento de retração antes do corte durante a troca do filamento"
 
 msgid "Long retraction when extruder change"
-msgstr ""
+msgstr "Long retraction when changing extruders"
 
 msgid "Retraction distance when extruder change"
-msgstr ""
+msgstr "Retraction distance when changing extruders"
 
 msgid "Z hop when retract"
 msgstr "Um salto quando se retrai"
@@ -11068,7 +11081,7 @@ msgid "Seam placement away from overhangs(experimental)"
 msgstr ""
 
 msgid "Ensure seam placement away from overhangs for alignment and backing modes."
-msgstr ""
+msgstr "Ensure seam placement away from overhangs for alignment modes."
 
 msgid "Seam gap"
 msgstr "Lacuna de costura"
@@ -11113,7 +11126,7 @@ msgid "Use scarf joint for inner walls as well."
 msgstr "Use também uma junta de costura para paredes internas."
 
 msgid "Override filament scarf seam setting"
-msgstr ""
+msgstr "Substituir configuração de costura de cachecol de filamento"
 
 msgid "Overrider filament scarf seam setting and could control settings by modifier."
 msgstr ""
@@ -13692,7 +13705,7 @@ msgid "Multiple Color"
 msgstr ""
 
 msgid "Official Filament"
-msgstr ""
+msgstr "Official Filaments"
 
 msgid "More Colors"
 msgstr ""
@@ -13916,6 +13929,9 @@ msgid ""
 msgstr ""
 "Evite deformar\n"
 "Você sabia que, ao imprimir materiais propensos a deformações, como o ABS, aumentar adequadamente a temperatura do leito térmico pode reduzir a probabilidade de deformação."
+
+#~ msgid "Connecting to the printer. Unable to cancel during the connection process."
+#~ msgstr "Conectando à impressora. Não é possível cancelar durante o processo de conexão."
 
 #~ msgid "Note: Only the AMS slots loaded with the same material type can be selected."
 #~ msgstr "Nota: Somente os slots AMS carregados com o mesmo tipo de material podem ser selecionados."
