@@ -518,7 +518,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                 j["measure"]            = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Measure));
                 j["assembly"]               = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::Assembly));
                 j["color_painting"] = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::MmuSegmentation));
-                j["fuzzy_skin"]   = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::FuzzySkin));
                 j["brimears"]            = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::BrimEars));
                 j["assembly_view"] = get_value("assembly_view");
 
