@@ -10787,7 +10787,8 @@ void Plater::priv::undo()
     auto it_current = std::lower_bound(snapshots.begin(), snapshots.end(), UndoRedo::Snapshot(this->undo_redo_stack().active_snapshot_time()));
     // BBS: undo-redo until modify record
     while (--it_current != snapshots.begin() && !snapshot_modifies_project(*it_current));
-    if (it_current == snapshots.begin()) return;
+    if (it_current == snapshots.begin())
+        return;
     if (get_current_canvas3D()->get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
         if (it_current->snapshot_data.snapshot_type != UndoRedo::SnapshotType::GizmoAction &&
             it_current->snapshot_data.snapshot_type != UndoRedo::SnapshotType::EnteringGizmo &&
@@ -17435,6 +17436,7 @@ void Plater::show_status_message(std::string s)
 void Plater::edit_text()
 {
     auto &manager = get_view3D_canvas3D()->get_gizmos_manager();
+    Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Edit existed text");
     manager.open_gizmo(GLGizmosManager::Text);
     update();
 }

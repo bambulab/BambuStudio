@@ -439,7 +439,8 @@ Vec3d GLGizmosManager::get_flattening_normal() const
     return dynamic_cast<GLGizmoFlatten*>(m_gizmos[Flatten].get())->get_flattening_normal();
 }
 
-bool GLGizmosManager::is_gizmo_activable_when_single_full_instance() {
+bool GLGizmosManager::is_gizmo_activable_when_single_full_instance()
+{
     if (get_current_type() == GLGizmosManager::EType::Flatten ||
         get_current_type() == GLGizmosManager::EType::Cut ||
         get_current_type() == GLGizmosManager::EType::MeshBoolean ||
@@ -464,10 +465,17 @@ bool GLGizmosManager::is_gizmo_click_empty_not_exit()
     return false;
 }
 
+bool GLGizmosManager::is_only_text_volume() const {
+    auto gizmo_text = dynamic_cast<GLGizmoText *>(get_current());
+    if (gizmo_text->is_only_text_case()) {
+        return true;
+    }
+    return false;
+}
+
 bool GLGizmosManager::is_show_only_active_plate() const
 {
-    if (get_current_type() == GLGizmosManager::EType::Cut ||
-        get_current_type() == GLGizmosManager::EType::Text) {
+    if (get_current_type() == GLGizmosManager::EType::Cut) {
         return true;
     }
     return false;
@@ -490,6 +498,13 @@ bool GLGizmosManager::get_gizmo_active_condition(GLGizmosManager::EType type) {
         return cur_gizmo->is_activable();
     }
     return false;
+}
+
+void GLGizmosManager::update_show_only_active_plate()
+{
+    if (is_show_only_active_plate()) {
+        check_object_located_outside_plate();
+    }
 }
 
 void GLGizmosManager::check_object_located_outside_plate(bool change_plate)
@@ -1429,9 +1444,7 @@ bool GLGizmosManager::activate_gizmo(EType type)
         new_gizmo->set_serializing(m_serializing);
         new_gizmo->set_state(GLGizmoBase::On);
         new_gizmo->set_serializing(false);
-        if (is_show_only_active_plate()) {
-            check_object_located_outside_plate();
-        }
+        update_show_only_active_plate();
 
         try {
             if ((int)m_hover >= 0 && (int)m_hover < m_gizmos.size()) {

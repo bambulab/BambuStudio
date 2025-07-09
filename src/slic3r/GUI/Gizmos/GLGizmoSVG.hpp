@@ -35,7 +35,7 @@ public:
     void        on_set_hover_id() override { m_rotate_gizmo.set_hover_id(m_hover_id); }
     void        on_enable_grabber(unsigned int id) override;
     void        on_disable_grabber(unsigned int id) override;
-
+    bool        wants_enter_leave_snapshots() const override { return true; }
      /// <summary>
     /// Create new text without given position
     /// </summary>

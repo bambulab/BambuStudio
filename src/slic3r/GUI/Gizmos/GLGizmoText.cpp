@@ -755,9 +755,10 @@ void GLGizmoText::load_old_font() {
             m_style_manager.get_font_prop().size_in_mm = m_font_size * 1.0;
         }
         wxString font_name(m_font_name);
-        if (!select_facename(font_name, true)) {
+        bool     update_text = !m_is_serializing ? true : false;
+        if (!select_facename(font_name, update_text)) {
             wxString font_name("Arial");
-            select_facename(font_name, true);
+            select_facename(font_name, update_text);
         }
     }
 }
@@ -1188,8 +1189,9 @@ void GLGizmoText::draw_model_type(int caption_width)
         // NOTE: on linux, function reorder_volumes_and_get_selection call GLCanvas3D::reload_scene(refresh_immediately = false)
         // which discard m_volume pointer and set it to nullptr also selection is cleared so gizmo is automaticaly closed
         auto &mng = m_parent.get_gizmos_manager();
-        if (mng.get_current_type() != GLGizmosManager::Text)
-            mng.open_gizmo(GLGizmosManager::Text);
+        if (mng.get_current_type() != GLGizmosManager::Text) {
+            mng.open_gizmo(GLGizmosManager::Text);//Operation like NEGATIVE_VOLUME
+        }
     }
 }
 
@@ -1420,7 +1422,8 @@ bool GLGizmoText::on_shortcut_key() {
     m_text     = "Text";
     m_is_direct_create_text = selection.is_empty();
     auto mv              = get_selected_model_volume(m_parent);
-    if (mv && mv->is_text()) {
+    if (mv && mv->is_text()) {//not need to generate text,to edit text
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Edit existed text");
         return false;
     }
     if (process(false, std::nullopt, false)) {
@@ -1556,7 +1559,7 @@ void GLGizmoText::load_init_text(bool first_open_text)
                     return;
                 }
                 m_last_text_mv = model_volume;
-                if (!m_is_serializing && plater && first_open_text) {
+                if (!m_is_serializing && plater && first_open_text && !is_old_text_info(model_volume->get_text_info())) {
                     plater->take_snapshot("enter Text");
                 }
                 auto box = model_volume->get_mesh_shared_ptr()->bounding_box();
@@ -1733,6 +1736,12 @@ void  GLGizmoText::data_changed(bool is_serializing) {
     m_is_serializing = is_serializing;
     load_init_text(false);
     m_is_serializing = false;
+    if (is_only_text_case()) {
+        m_parent.get_gizmos_manager().set_object_located_outside_plate(true);
+    } else {
+        m_parent.get_gizmos_manager().check_object_located_outside_plate();
+    }
+
     if (wxGetApp().plater()->is_show_text_cs()) {
         m_lines_mark.reset();
     }

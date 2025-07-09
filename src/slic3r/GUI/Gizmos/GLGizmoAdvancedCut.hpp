@@ -229,6 +229,7 @@ public:
     BoundingBoxf3 get_bounding_box() const override;
 
     std::string get_icon_filename(bool b_dark_mode) const override;
+    bool        wants_enter_leave_snapshots() const override { return true; }
 
 protected:
     virtual bool on_init();
