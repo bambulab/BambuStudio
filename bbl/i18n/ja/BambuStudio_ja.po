@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 15:03+0800\n"
+"POT-Creation-Date: 2025-07-09 09:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3006,8 +3006,8 @@ msgstr ""
 msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
 msgstr ""
 
-msgid "Note: Only the AMS slots loaded with the same material type can be selected."
-msgstr "注: 同じ素材がロードされた AMS スロットのみが選択できます。"
+msgid "Note: Only filament-loaded slots can be selected."
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "AMSを有効"
@@ -3807,6 +3807,9 @@ msgstr "合計"
 msgid "Total cost"
 msgstr "合計コスト"
 
+msgid "Time"
+msgstr "時間"
+
 msgid "Time Estimation"
 msgstr "予測時間"
 
@@ -3878,9 +3881,6 @@ msgstr "スライス結果"
 
 msgid "Color Scheme"
 msgstr "配色"
-
-msgid "Time"
-msgstr "時間"
 
 msgid "Percent"
 msgstr "％"
@@ -5865,6 +5865,9 @@ msgstr "ノズルブロブ検出"
 msgid "Check if the nozzle is clumping by filaments or other foreign objects."
 msgstr ""
 
+msgid "Detects air printing caused by nozzle clogging or filament grinding."
+msgstr ""
+
 msgid "First Layer Inspection"
 msgstr "1層目検査"
 
@@ -7258,6 +7261,9 @@ msgstr "BambuクールプレートSuperTack"
 
 msgid "Send print job"
 msgstr "印刷ジョブを送信"
+
+msgid "On"
+msgstr "オン"
 
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "フィラメントのグループ分けに満足していませんか？再グループ化してスライスしてください。->"
@@ -13842,6 +13848,9 @@ msgstr ""
 "反り防止\n"
 "ABSなど反りやすい材料を印刷する場合、ヒートベッド温度を適切に上げることで反りの発生を抑えられることをご存知ですか？"
 
+#~ msgid "Note: Only the AMS slots loaded with the same material type can be selected."
+#~ msgstr "注: 同じ素材がロードされた AMS スロットのみが選択できます。"
+
 #~ msgid "Shift + Mouse move up or down"
 #~ msgstr "Shift + マウス上下移動"
 
@@ -13876,9 +13885,6 @@ msgstr ""
 
 #~ msgid "Sensitivity of pausing is"
 #~ msgstr "感度"
-
-#~ msgid "On"
-#~ msgstr "オン"
 
 #~ msgid "Expand the first raft or support layer to improve bed plate adhesion"
 #~ msgstr "ベッドプレートの密着性を向上させるために、最初のラフトまたはサポートレイヤーを拡張します。"

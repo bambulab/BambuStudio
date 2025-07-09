@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 15:03+0800\n"
+"POT-Creation-Date: 2025-07-09 09:20+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3017,8 +3017,8 @@ msgstr ""
 msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
 msgstr ""
 
-msgid "Note: Only the AMS slots loaded with the same material type can be selected."
-msgstr "Observera: Endast de AMS-fack som är laddade med samma materialtyp kan väljas."
+msgid "Note: Only filament-loaded slots can be selected."
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "Aktivera AMS"
@@ -3819,6 +3819,9 @@ msgstr "Totalt"
 msgid "Total cost"
 msgstr "Total kostnad"
 
+msgid "Time"
+msgstr "Tid"
+
 msgid "Time Estimation"
 msgstr "Beräknad tid"
 
@@ -3890,9 +3893,6 @@ msgstr "Berednings resultat"
 
 msgid "Color Scheme"
 msgstr "Färgschema"
-
-msgid "Time"
-msgstr "Tid"
 
 msgid "Percent"
 msgstr "Procent"
@@ -5899,6 +5899,9 @@ msgstr "Detektering av nozzel klumpar"
 msgid "Check if the nozzle is clumping by filaments or other foreign objects."
 msgstr ""
 
+msgid "Detects air printing caused by nozzle clogging or filament grinding."
+msgstr ""
+
 msgid "First Layer Inspection"
 msgstr "Första Lager Inspektion"
 
@@ -7296,6 +7299,9 @@ msgstr "Bambu Cool Platta SuperTack"
 
 msgid "Send print job"
 msgstr "Skicka utskriftsjobb"
+
+msgid "On"
+msgstr "På"
 
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Är du inte nöjd med grupperingen av filament? Gruppera om och bered ->"
@@ -13911,6 +13917,9 @@ msgstr ""
 "Undvik vridning\n"
 "Visste du att när du skriver ut material som är benägna att vrida, såsom ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten för vridning."
 
+#~ msgid "Note: Only the AMS slots loaded with the same material type can be selected."
+#~ msgstr "Observera: Endast de AMS-fack som är laddade med samma materialtyp kan väljas."
+
 #~ msgid "Shift + Mouse move up or down"
 #~ msgstr "Shift + Mus flytta uppåt eller nedåt"
 
@@ -13947,9 +13956,6 @@ msgstr ""
 
 #~ msgid "Sensitivity of pausing is"
 #~ msgstr "Känsligheten för paus är"
-
-#~ msgid "On"
-#~ msgstr "På"
 
 #~ msgid "Expand the first raft or support layer to improve bed plate adhesion"
 #~ msgstr "Öka första raft eller support lager för att förbättra fäste emot byggplattan"

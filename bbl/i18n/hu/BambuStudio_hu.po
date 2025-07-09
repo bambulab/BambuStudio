@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 15:03+0800\n"
+"POT-Creation-Date: 2025-07-09 09:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3017,8 +3017,8 @@ msgstr ""
 msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
 msgstr ""
 
-msgid "Note: Only the AMS slots loaded with the same material type can be selected."
-msgstr "Megjegyzés: Csak az ugyanazzal az anyagtípussal feltöltött AMS helyek választhatók ki."
+msgid "Note: Only filament-loaded slots can be selected."
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "AMS engedélyezése"
@@ -3819,6 +3819,9 @@ msgstr "Összesen"
 msgid "Total cost"
 msgstr "Teljes költség"
 
+msgid "Time"
+msgstr "Idő"
+
 msgid "Time Estimation"
 msgstr "Időbecslés"
 
@@ -3890,9 +3893,6 @@ msgstr "Szeletelés eredménye"
 
 msgid "Color Scheme"
 msgstr "Színséma"
-
-msgid "Time"
-msgstr "Idő"
 
 msgid "Percent"
 msgstr "%"
@@ -5897,6 +5897,9 @@ msgstr "Filament fúvókára való tapadásának észlelése"
 msgid "Check if the nozzle is clumping by filaments or other foreign objects."
 msgstr ""
 
+msgid "Detects air printing caused by nozzle clogging or filament grinding."
+msgstr ""
+
 msgid "First Layer Inspection"
 msgstr "Kezdőréteg ellenőrzése"
 
@@ -7291,6 +7294,9 @@ msgstr ""
 
 msgid "Send print job"
 msgstr "Nyomtatási feladat küldése"
+
+msgid "On"
+msgstr "Be"
 
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Nem vagy elégedett a filamentek csoportosításával? Csoportosítás és szeletelés ->"
@@ -13898,6 +13904,9 @@ msgstr ""
 "Vetemedés elkerülése\n"
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
 
+#~ msgid "Note: Only the AMS slots loaded with the same material type can be selected."
+#~ msgstr "Megjegyzés: Csak az ugyanazzal az anyagtípussal feltöltött AMS helyek választhatók ki."
+
 #~ msgid "Shift + Mouse move up or down"
 #~ msgstr "Shift + egér mozgatása felfelé vagy lefelé"
 
@@ -13934,9 +13943,6 @@ msgstr ""
 
 #~ msgid "Sensitivity of pausing is"
 #~ msgstr "Szüneteltetés érzékenysége"
-
-#~ msgid "On"
-#~ msgstr "Be"
 
 #~ msgid "Expand the first raft or support layer to improve bed plate adhesion"
 #~ msgstr "Kiterjeszti az első tutaj- vagy támaszréteget, hogy javítsa az asztalhoz való tapadást"

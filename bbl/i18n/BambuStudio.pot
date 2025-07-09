@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 15:03+0800\n"
+"POT-Creation-Date: 2025-07-09 09:20+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2982,7 +2982,7 @@ msgstr ""
 msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
 msgstr ""
 
-msgid "Note: Only the AMS slots loaded with the same material type can be selected."
+msgid "Note: Only filament-loaded slots can be selected."
 msgstr ""
 
 msgid "Enable AMS"
@@ -3732,6 +3732,9 @@ msgstr ""
 msgid "Total cost"
 msgstr ""
 
+msgid "Time"
+msgstr ""
+
 msgid "Time Estimation"
 msgstr ""
 
@@ -3802,9 +3805,6 @@ msgid "Slicing Result"
 msgstr ""
 
 msgid "Color Scheme"
-msgstr ""
-
-msgid "Time"
 msgstr ""
 
 msgid "Percent"
@@ -5766,6 +5766,9 @@ msgstr ""
 msgid "Check if the nozzle is clumping by filaments or other foreign objects."
 msgstr ""
 
+msgid "Detects air printing caused by nozzle clogging or filament grinding."
+msgstr ""
+
 msgid "First Layer Inspection"
 msgstr ""
 
@@ -7130,6 +7133,9 @@ msgid "Bambu Cool Plate SuperTack"
 msgstr ""
 
 msgid "Send print job"
+msgstr ""
+
+msgid "On"
 msgstr ""
 
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"

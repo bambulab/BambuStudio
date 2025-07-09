@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 15:03+0800\n"
+"POT-Creation-Date: 2025-07-09 09:20+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -2999,8 +2999,8 @@ msgstr ""
 msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
 msgstr ""
 
-msgid "Note: Only the AMS slots loaded with the same material type can be selected."
-msgstr "Poznámka: Lze vybrat pouze sloty AMS se stejným typem materiálu."
+msgid "Note: Only filament-loaded slots can be selected."
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "Povolit AMS"
@@ -3783,6 +3783,9 @@ msgstr "Celkem"
 msgid "Total cost"
 msgstr ""
 
+msgid "Time"
+msgstr "Čas"
+
 msgid "Time Estimation"
 msgstr "Časový odhad"
 
@@ -3854,9 +3857,6 @@ msgstr ""
 
 msgid "Color Scheme"
 msgstr "Barevné schéma"
-
-msgid "Time"
-msgstr "Čas"
 
 msgid "Percent"
 msgstr "Procento"
@@ -5840,6 +5840,9 @@ msgstr ""
 msgid "Check if the nozzle is clumping by filaments or other foreign objects."
 msgstr ""
 
+msgid "Detects air printing caused by nozzle clogging or filament grinding."
+msgstr ""
+
 msgid "First Layer Inspection"
 msgstr "Kontrola první vrstvy"
 
@@ -7216,6 +7219,9 @@ msgid "Bambu Cool Plate SuperTack"
 msgstr ""
 
 msgid "Send print job"
+msgstr ""
+
+msgid "On"
 msgstr ""
 
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
@@ -13723,6 +13729,9 @@ msgid ""
 "Avoid warping\n"
 "Did you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping."
 msgstr ""
+
+#~ msgid "Note: Only the AMS slots loaded with the same material type can be selected."
+#~ msgstr "Poznámka: Lze vybrat pouze sloty AMS se stejným typem materiálu."
 
 #~ msgid "Rotate text"
 #~ msgstr "Otočit text"

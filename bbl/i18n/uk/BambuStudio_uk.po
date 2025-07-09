@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 15:03+0800\n"
+"POT-Creation-Date: 2025-07-09 09:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -3019,8 +3019,8 @@ msgstr ""
 msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
 msgstr ""
 
-msgid "Note: Only the AMS slots loaded with the same material type can be selected."
-msgstr "Примітка. Можна вибрати лише слоти AMS, завантажені одним і тим же типом матеріалу."
+msgid "Note: Only filament-loaded slots can be selected."
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "AMS"
@@ -3827,6 +3827,9 @@ msgstr "Загальний"
 msgid "Total cost"
 msgstr "Загальна вартість"
 
+msgid "Time"
+msgstr "Час"
+
 msgid "Time Estimation"
 msgstr "Оцінка часу"
 
@@ -3898,9 +3901,6 @@ msgstr ""
 
 msgid "Color Scheme"
 msgstr "Колірна схема"
-
-msgid "Time"
-msgstr "Час"
 
 msgid "Percent"
 msgstr "Відсоток"
@@ -5898,6 +5898,9 @@ msgstr "Виявлення згортання сопла"
 msgid "Check if the nozzle is clumping by filaments or other foreign objects."
 msgstr ""
 
+msgid "Detects air printing caused by nozzle clogging or filament grinding."
+msgstr ""
+
 msgid "First Layer Inspection"
 msgstr "Перевірка першого шару"
 
@@ -7287,6 +7290,9 @@ msgid "Bambu Cool Plate SuperTack"
 msgstr "Bambu Cool Plate SuperTack"
 
 msgid "Send print job"
+msgstr ""
+
+msgid "On"
 msgstr ""
 
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
@@ -13883,6 +13889,9 @@ msgid ""
 msgstr ""
 "Уникнення деформації\n"
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як ABS, відповідне підвищення температури гарячого ліжка може зменшити ймовірність деформації."
+
+#~ msgid "Note: Only the AMS slots loaded with the same material type can be selected."
+#~ msgstr "Примітка. Можна вибрати лише слоти AMS, завантажені одним і тим же типом матеріалу."
 
 #~ msgid "Shift + Mouse move up or down"
 #~ msgstr "Shift + переміщення миші вгору або вниз"

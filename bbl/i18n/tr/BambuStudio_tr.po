@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 15:03+0800\n"
+"POT-Creation-Date: 2025-07-09 09:20+0800\n"
 "PO-Revision-Date: 2025-06-23 18:26+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -3022,8 +3022,8 @@ msgstr "Not: filament tipi (%s) dilimleme dosyasındaki filament tipi (%s) ile e
 msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
 msgstr "Not: yuva boş veya tanımlanmamış. Bu yuvayı kullanmak istiyorsanız, %s'yi yükleyebilir ve 'Cihaz' sayfasında yuva bilgilerini değiştirebilirsiniz."
 
-msgid "Note: Only the AMS slots loaded with the same material type can be selected."
-msgstr "Not: Yalnızca aynı malzeme türüne sahip AMS yuvaları seçilebilir."
+msgid "Note: Only filament-loaded slots can be selected."
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "AMS'yi etkinleştir"
@@ -3826,6 +3826,9 @@ msgstr "Toplam"
 msgid "Total cost"
 msgstr "Toplam tutar"
 
+msgid "Time"
+msgstr "Zaman"
+
 msgid "Time Estimation"
 msgstr "Zaman Tahmini"
 
@@ -3897,9 +3900,6 @@ msgstr "Dilimleme Sonuçları"
 
 msgid "Color Scheme"
 msgstr "Renk Şeması"
-
-msgid "Time"
-msgstr "Zaman"
 
 msgid "Percent"
 msgstr "Yüzde"
@@ -5904,6 +5904,9 @@ msgstr "Nozul Toplanması Tespiti"
 msgid "Check if the nozzle is clumping by filaments or other foreign objects."
 msgstr ""
 
+msgid "Detects air printing caused by nozzle clogging or filament grinding."
+msgstr ""
+
 msgid "First Layer Inspection"
 msgstr "İlk Katman Kontrolü"
 
@@ -7307,6 +7310,9 @@ msgstr "Bambu Soğuk Plaka SuperTack"
 
 msgid "Send print job"
 msgstr "Yazdırma işini şuraya gönder"
+
+msgid "On"
+msgstr "Açık"
 
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Filamentlerin gruplandırılmasından memnun değil misiniz? Yeniden gruplandırın ve dilimleyin ->"
@@ -13919,6 +13925,9 @@ msgstr ""
 "Eğilmeyi önleyin\n"
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını azaltabileceğini biliyor muydunuz."
 
+#~ msgid "Note: Only the AMS slots loaded with the same material type can be selected."
+#~ msgstr "Not: Yalnızca aynı malzeme türüne sahip AMS yuvaları seçilebilir."
+
 #~ msgid "Shift + Mouse move up or down"
 #~ msgstr "Shift + Fare yukarı veya aşağı hareket ettirme"
 
@@ -13997,9 +14006,6 @@ msgstr ""
 
 #~ msgid "Sensitivity of pausing is"
 #~ msgstr "Duraklatma hassasiyeti"
-
-#~ msgid "On"
-#~ msgstr "Açık"
 
 #~ msgid "Expand the first raft or support layer to improve bed plate adhesion"
 #~ msgstr "Yatak plakası yapışmasını iyileştirmek için ilk raft veya destek katmanını genişletin"
