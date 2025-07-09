@@ -14,6 +14,7 @@
 #include <openssl/md5.h>
 
 #include "libslic3r.h"
+#include "libslic3r_version.h"
 
 //define CLI errors
 
@@ -146,6 +147,7 @@ public:
 
 private:
     inline static size_t start_pos = std::string::npos;
+    inline static size_t id_start_pos = std::string::npos;
     inline static size_t name_size = 0;
 
     static bool init_usrname_range()
@@ -155,10 +157,25 @@ private:
         }
 #ifdef _WIN32
         const char *env = std::getenv("USERPROFILE");
+    #if BBL_RELEASE_TO_PUBLIC
+        const size_t len = strlen("\\AppData\\Roaming\\BambuStudio\\user");
+    #else
+        const size_t len = BBL_INTERNAL_TESTING == 1 ? strlen("\\AppData\\Roaming\\BambuStudioInternal\\user") : strlen("\\AppData\\Roaming\\BambuStudioBeta\\user");
+    #endif
 #elif __APPLE__
         const char *env = std::getenv("HOME");
+    #if BBL_RELEASE_TO_PUBLIC
+        const size_t len = strlen("/Library/Application Support/BambuStudio/user");
+    #else
+        const size_t len = BBL_INTERNAL_TESTING == 1 ? strlen("/Library/Application Support/BambuStudioInternal/user") : strlen("/Library/Application Support/BambuStudioBeta/user");
+    #endif
 #elif __linux__
         const char *env = std::getenv("HOME");
+    #if BBL_RELEASE_TO_PUBLIC
+        const size_t len = strlen("/.config/BambuStudio/user");
+    #else
+        const size_t len = BBL_INTERNAL_TESTING == 1 ? strlen("/.config/BambuStudioInternal/user") : strlen("/.config/BambuStudioBeta/user");
+    #endif
 #else
         // Unsupported platform, return raw input
         return false;
@@ -173,6 +190,7 @@ private:
         }
         start_pos = sep_pos + 1;
         name_size = full.length() - start_pos;
+        id_start_pos = full.length() + len + 1;
 
         if (name_size == 0) {
             return false;
@@ -197,7 +215,19 @@ private:
         }
 
         std::string sanitized = raw;
-        return sanitized.replace(start_pos, name_size, std::string(name_size, '*'));
+        sanitized.replace(start_pos, name_size, std::string(name_size, '*'));
+        
+        if (id_start_pos != std::string::npos && id_start_pos < sanitized.length() && (sanitized[id_start_pos - 1] == '\\' || sanitized[id_start_pos - 1] == '/') &&
+            std::isdigit(sanitized[id_start_pos])) {
+            // If the ID part is present, sanitize it as well
+            size_t id_end_pos = sanitized.find_first_of("\\/", id_start_pos);
+            if (id_end_pos == std::string::npos) {
+                id_end_pos = sanitized.length();
+            }
+            sanitized.replace(id_start_pos, id_end_pos - id_start_pos, std::string(id_end_pos - id_start_pos, '*'));
+        }
+
+        return sanitized;
     }
 
     static std::string sanitize_impl(std::string &&raw)
@@ -214,6 +244,17 @@ private:
         }
 
         raw.replace(start_pos, name_size, std::string(name_size, '*'));
+
+        if (id_start_pos != std::string::npos && id_start_pos < raw.length() && (raw[id_start_pos - 1] == '\\' || raw[id_start_pos - 1] == '/') &&
+            std::isdigit(raw[id_start_pos])) {
+            // If the ID part is present, sanitize it as well
+            size_t id_end_pos = raw.find_first_of("\\/", id_start_pos);
+            if (id_end_pos == std::string::npos) {
+                id_end_pos = raw.length();
+            }
+            raw.replace(id_start_pos, id_end_pos - id_start_pos, std::string(id_end_pos - id_start_pos, '*'));
+        }
+
         return std::move(raw);
     }
 };
