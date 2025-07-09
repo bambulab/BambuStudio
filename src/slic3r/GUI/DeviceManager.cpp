@@ -3386,7 +3386,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     }
                 }
             }
-            if (j_pre["print"].contains("plate_idx") && m_plate_index == -1){
+            if (j_pre["print"].contains("plate_idx")){ // && m_plate_index == -1
                 m_plate_index = j_pre["print"]["plate_idx"].get<int>();
             }
         }
