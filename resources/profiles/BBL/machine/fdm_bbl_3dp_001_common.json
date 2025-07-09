@@ -120,7 +120,7 @@
     "nozzle_volume": [
         "107"
     ],
-    "physical_extruder_map" : [
+    "physical_extruder_map": [
         "0"
     ],
     "printable_area": [
