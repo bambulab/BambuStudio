@@ -21,6 +21,8 @@
 #include <algorithm>
 #include "BitmapCache.hpp"
 
+#include "slic3r/Utils/BBLUtil.hpp"
+
 
 namespace Slic3r {
 namespace GUI {
@@ -812,7 +814,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     }
     assert(obj_->dev_id == m_printer_last_select);
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", print_job: for send task, current printer id =  " << m_printer_last_select << std::endl;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", print_job: for send task, current printer id =  " <<  BBLCrossTalk::Crosstalk_DevId(m_printer_last_select) << std::endl;
     show_status(PrintDialogStatus::PrintStatusSending);
 
     m_status_bar->reset();
@@ -1182,7 +1184,7 @@ void SendToPrinterDialog::update_user_printer()
         m_comboBox_printer->SetTextLabel("");
     }
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  " << m_printer_last_select << std::endl;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  " << BBLCrossTalk::Crosstalk_DevId(m_printer_last_select) << std::endl;
 }
 
 void SendToPrinterDialog::update_printer_combobox(wxCommandEvent &event)
@@ -1216,7 +1218,7 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
         if (i == selection) {
             m_printer_last_select = m_list[i]->dev_id;
             obj = m_list[i];
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  " << m_printer_last_select << std::endl;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  " << BBLCrossTalk::Crosstalk_DevId(m_printer_last_select) << std::endl;
             break;
         }
     }

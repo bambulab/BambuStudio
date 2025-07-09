@@ -2634,10 +2634,10 @@ void StatusPanel::refresh_thumbnail_webrequest(wxMouseEvent& event)
         m_request_url = wxString(obj->slice_info->thumbnail_url);
         if (!m_request_url.IsEmpty()) {
             web_request = wxWebSession::GetDefault().CreateRequest(this, m_request_url);
-            BOOST_LOG_TRIVIAL(trace) << "monitor: create new webrequest, state = " << web_request.GetState() << ", url = " << m_request_url;
+            BOOST_LOG_TRIVIAL(trace) << "monitor: create new webrequest, state = " << web_request.GetState();
             if (web_request.GetState() == wxWebRequest::State_Idle)
                 web_request.Start();
-            BOOST_LOG_TRIVIAL(trace) << "monitor: start new webrequest, state = " << web_request.GetState() << ", url = " << m_request_url;
+            BOOST_LOG_TRIVIAL(trace) << "monitor: start new webrequest, state = " << web_request.GetState();
         }
     }
 }
@@ -3265,7 +3265,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         last_read_done_bits   = -1;
         last_reading_bits     = -1;
         last_ams_version      = -1;
-        BOOST_LOG_TRIVIAL(trace) << "machine object" << obj->dev_name << " was disconnected, set show_ams_group is false";
+        BOOST_LOG_TRIVIAL(trace) << "machine object" << BBLCrossTalk::Crosstalk_DevName(obj->dev_name) << " was disconnected, set show_ams_group is false";
 
         m_ams_control->SetAmsModel(AMSModel::EXT_AMS, ams_mode);
         show_ams_group(false);

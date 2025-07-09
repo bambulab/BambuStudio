@@ -76,7 +76,6 @@ int HMSQuery::download_hms_related(const std::string& hms_type, const std::strin
     bool to_save_local = false;
     json j;
 
-    BOOST_LOG_TRIVIAL(info) << "hms: download url = " << url;
     Slic3r::Http http = Slic3r::Http::get(url);
     http.on_complete([this, receive_json, hms_type, &to_save_local, &j, & local_version](std::string body, unsigned status) {
         try {

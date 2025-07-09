@@ -7354,7 +7354,8 @@ void DeviceManager::on_machine_alive(std::string json_str)
                  Slic3r::GUI::wxGetApp().app_config->set_str("ip_address", obj->dev_id, obj->dev_ip);
                  Slic3r::GUI::wxGetApp().app_config->save();
              }*/
-            BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery::New Machine, ip= " << BBLCrossTalk::Crosstalk_DevIP(dev_ip) << ", printer_name= " << BBLCrossTalk::Crosstalk_DevName(dev_name)
+            BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery::New Machine, id= " << BBLCrossTalk::Crosstalk_DevId(dev_id)
+                                    << ", ip = " << BBLCrossTalk::Crosstalk_DevIP(dev_ip) <<", printer_name = " << BBLCrossTalk::Crosstalk_DevName(dev_name)
                                     << ", printer_type= " << printer_type_str << ", con_type= "
                                     << connect_type <<", signal= " << printer_signal << ", bind_state= " << bind_state;
         }

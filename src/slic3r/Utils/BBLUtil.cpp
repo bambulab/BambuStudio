@@ -106,7 +106,7 @@ std::string BBLCrossTalk::Crosstalk_JsonLog(const nlohmann::json& json)
                 const std::string& key_str = iter.key();
                 if (iter.value().is_string())
                 {
-                    if (key_str.find("dev_id") != string::npos)
+                    if (key_str.find("dev_id") != string::npos || key_str.find("sn") != string::npos)
                     {
                         iter.value() = Crosstalk_DevId(iter.value().get<std::string>());
                     }
