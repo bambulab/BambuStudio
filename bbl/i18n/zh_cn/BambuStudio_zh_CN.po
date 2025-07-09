@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 15:03+0800\n"
+"POT-Creation-Date: 2025-07-09 09:20+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3007,8 +3007,8 @@ msgstr "提示: 此耗材类型(%s)与切片文件中的耗材类型(%s)不匹�
 msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
 msgstr "提示: 此槽位是空的或者未定义的。如果您想使用这个槽位，请安装%s，然后在''设备'页面设置槽位信息。"
 
-msgid "Note: Only the AMS slots loaded with the same material type can be selected."
-msgstr "仅允许选择相同材质类型的耗材"
+msgid "Note: Only filament-loaded slots can be selected."
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "启用AMS"
@@ -3802,6 +3802,9 @@ msgstr "总计"
 msgid "Total cost"
 msgstr "总成本"
 
+msgid "Time"
+msgstr "时间"
+
 msgid "Time Estimation"
 msgstr "时间预估"
 
@@ -3873,9 +3876,6 @@ msgstr "切片结果"
 
 msgid "Color Scheme"
 msgstr "颜色方案"
-
-msgid "Time"
-msgstr "时间"
 
 msgid "Percent"
 msgstr "百分比"
@@ -5834,34 +5834,37 @@ msgid "Identifies the type and position of the build plate on the heatbed. Pausi
 msgstr "检测打印板的类型与位置。若检测到打印板不匹配，则停止打印。"
 
 msgid "AI Detections"
-msgstr ""
+msgstr "AI检测"
 
 msgid "Printer will send assistant message or pause printing if any of the following problem is detected."
-msgstr ""
+msgstr "如果检测到以下任何问题，打印机将发送助手消息或暂停打印。"
 
 msgid "Enable AI monitoring of printing"
 msgstr "启用打印过程的AI监控"
 
 msgid "Pausing Sensitivity:"
-msgstr ""
+msgstr "暂停打印的灵敏度为："
 
 msgid "Spaghetti Detection"
 msgstr "炒面检测"
 
 msgid "Detect spaghetti failure(scattered lose filament)."
-msgstr ""
+msgstr "检测到炒面（散落的耗材丝）。"
 
 msgid "Purge Chute Pile-Up Detection"
 msgstr ""
 
 msgid "Monitor if the waste is piled up in the purge chute."
-msgstr ""
+msgstr "监控冲刷料是否在垃圾桶中发生堆积。"
 
 msgid "Nozzle Clumping Detection"
 msgstr "裹头检测"
 
 msgid "Check if the nozzle is clumping by filaments or other foreign objects."
-msgstr "Check if the nozzle is clumped with filament or other foreign objects."
+msgstr "检查喷嘴是否被耗材或其他异物堵塞。"
+
+msgid "Detects air printing caused by nozzle clogging or filament grinding."
+msgstr ""
 
 msgid "First Layer Inspection"
 msgstr "首层扫描"
@@ -6408,7 +6411,7 @@ msgid "Importing to Bambu Studio failed. Please download the file and manually i
 msgstr "导入到Bambu Studio失败。请下载文件并手动导入。"
 
 msgid "The current settings produce a model that is too large. Please narrow the range or increase the step size. (Model size is proportional to (End - Start) / Step size.)"
-msgstr ""
+msgstr "当前设置下的模型尺寸超出了内置模型的最大支持范围。请适当减小参数范围或增大步长，使模型尺寸符合要求。（模型尺寸与（结束值-起始值）/步长 的结果成正比）"
 
 msgid "The selected file"
 msgstr "已选择的文件"
@@ -7259,6 +7262,9 @@ msgstr "增稳低温打印板"
 
 msgid "Send print job"
 msgstr "发送打印任务"
+
+msgid "On"
+msgstr "打开"
 
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "对耗材左右分组不满意？重新分组并切片 ->"
@@ -13868,6 +13874,9 @@ msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
+#~ msgid "Note: Only the AMS slots loaded with the same material type can be selected."
+#~ msgstr "仅允许选择相同材质类型的耗材"
+
 #~ msgid "Shift + Mouse move up or down"
 #~ msgstr "Shift + 鼠标上移或下移"
 
@@ -13941,9 +13950,6 @@ msgstr ""
 
 #~ msgid "Sensitivity of pausing is"
 #~ msgstr "暂停的灵敏度为"
-
-#~ msgid "On"
-#~ msgstr "打开"
 
 #~ msgid "Auto Fire Extinguishing System"
 #~ msgstr "自动灭火装置"

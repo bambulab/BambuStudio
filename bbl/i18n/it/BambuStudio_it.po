@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 15:03+0800\n"
+"POT-Creation-Date: 2025-07-09 09:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3020,8 +3020,8 @@ msgstr ""
 msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
 msgstr ""
 
-msgid "Note: Only the AMS slots loaded with the same material type can be selected."
-msgstr "Nota: Sono selezionabili solo gli slot AMS caricati con lo stesso tipo di materiale."
+msgid "Note: Only filament-loaded slots can be selected."
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "Abilita AMS"
@@ -3822,6 +3822,9 @@ msgstr "Totale"
 msgid "Total cost"
 msgstr "Costo totale"
 
+msgid "Time"
+msgstr "Tempo"
+
 msgid "Time Estimation"
 msgstr "Tempo stimato"
 
@@ -3893,9 +3896,6 @@ msgstr "Risultato dello slicing"
 
 msgid "Color Scheme"
 msgstr "Schema Colore"
-
-msgid "Time"
-msgstr "Tempo"
 
 msgid "Percent"
 msgstr "Percentuale"
@@ -5894,6 +5894,9 @@ msgstr "Rilevamento clog sul nozzle"
 msgid "Check if the nozzle is clumping by filaments or other foreign objects."
 msgstr ""
 
+msgid "Detects air printing caused by nozzle clogging or filament grinding."
+msgstr ""
+
 msgid "First Layer Inspection"
 msgstr "Ispezione del primo layer"
 
@@ -7293,6 +7296,9 @@ msgstr ""
 
 msgid "Send print job"
 msgstr "Invia lavoro di stampa"
+
+msgid "On"
+msgstr ""
 
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Non sei soddisfatto del raggruppamento dei filamenti? Raggruppa nuovamente e riesegui lo slicing ->"
@@ -13903,6 +13909,9 @@ msgid ""
 msgstr ""
 "Evita deformazioni\n"
 "Sapevi che quando si stampano materiali soggetti a deformazioni, come l'ABS, aumentare adeguatamente la temperatura del piano può ridurre la probabilità di deformazione."
+
+#~ msgid "Note: Only the AMS slots loaded with the same material type can be selected."
+#~ msgstr "Nota: Sono selezionabili solo gli slot AMS caricati con lo stesso tipo di materiale."
 
 #~ msgid "Shift + Mouse move up or down"
 #~ msgstr "Maiusc + Mouse per spostarsi verso l'alto o il basso"

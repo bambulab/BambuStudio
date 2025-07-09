@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 15:03+0800\n"
+"POT-Creation-Date: 2025-07-09 09:20+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -3090,9 +3090,8 @@ msgstr ""
 msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
 msgstr ""
 
-# Примечание: выбор слотов ограничен одним типом материала.
-msgid "Note: Only the AMS slots loaded with the same material type can be selected."
-msgstr "Примечание: можно выбирать только слоты с одинаковым типом материала."
+msgid "Note: Only filament-loaded slots can be selected."
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "Включить АСПП"
@@ -3917,6 +3916,9 @@ msgstr "Всего"
 msgid "Total cost"
 msgstr "Общая стоимость"
 
+msgid "Time"
+msgstr "Время"
+
 msgid "Time Estimation"
 msgstr "Оценка времени"
 
@@ -3991,9 +3993,6 @@ msgstr "Результат нарезки"
 
 msgid "Color Scheme"
 msgstr "Цветовая схема"
-
-msgid "Time"
-msgstr "Время"
 
 msgid "Percent"
 msgstr "%"
@@ -6041,6 +6040,9 @@ msgstr "Обнаружение сгустков на сопле"
 msgid "Check if the nozzle is clumping by filaments or other foreign objects."
 msgstr ""
 
+msgid "Detects air printing caused by nozzle clogging or filament grinding."
+msgstr ""
+
 msgid "First Layer Inspection"
 msgstr "Проверка первого слоя"
 
@@ -7493,6 +7495,9 @@ msgstr "Не нагрев. пластина Bambu SuperTack"
 
 msgid "Send print job"
 msgstr "Отправка задания на печать"
+
+msgid "On"
+msgstr "Вкл."
 
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Не нравится, как сгруппированы материалы? Перегруппируйте и нарежьте ->"
@@ -14297,6 +14302,10 @@ msgstr ""
 "Предотвращение коробления материала\n"
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как ABS, повышение температуры подогреваемого стола может снизить эту вероятность?"
 
+# Примечание: выбор слотов ограничен одним типом материала.
+#~ msgid "Note: Only the AMS slots loaded with the same material type can be selected."
+#~ msgstr "Примечание: можно выбирать только слоты с одинаковым типом материала."
+
 #~ msgid "Shift + Mouse move up or down"
 #~ msgstr "Shift + Мышь вверх или вниз"
 
@@ -14378,9 +14387,6 @@ msgstr ""
 
 #~ msgid "Sensitivity of pausing is"
 #~ msgstr "Чувствительность"
-
-#~ msgid "On"
-#~ msgstr "Вкл."
 
 #~ msgid "Expand the first raft or support layer to improve bed plate adhesion"
 #~ msgstr "Расширение первого слоя подложки или поддержки в плоскости XY для улучшения адгезии при печати материалами, склонными к отлипанию и закручиванию."

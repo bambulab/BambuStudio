@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 15:03+0800\n"
+"POT-Creation-Date: 2025-07-09 09:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3012,8 +3012,8 @@ msgstr ""
 msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
 msgstr ""
 
-msgid "Note: Only the AMS slots loaded with the same material type can be selected."
-msgstr "참고: 동일한 재료 타입 로드된 AMS 슬롯만 선택할 수 있습니다."
+msgid "Note: Only filament-loaded slots can be selected."
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "AMS 활성화"
@@ -3814,6 +3814,9 @@ msgstr "합계"
 msgid "Total cost"
 msgstr "총 금액"
 
+msgid "Time"
+msgstr "시간"
+
 msgid "Time Estimation"
 msgstr "시간 예상"
 
@@ -3885,9 +3888,6 @@ msgstr "슬라이싱 결과"
 
 msgid "Color Scheme"
 msgstr "색상 구성표"
-
-msgid "Time"
-msgstr "시간"
 
 msgid "Percent"
 msgstr "퍼센트"
@@ -5887,6 +5887,9 @@ msgstr "노즐 클럼핑(Clumping) 감지"
 msgid "Check if the nozzle is clumping by filaments or other foreign objects."
 msgstr ""
 
+msgid "Detects air printing caused by nozzle clogging or filament grinding."
+msgstr ""
+
 msgid "First Layer Inspection"
 msgstr "첫 레이어 검사"
 
@@ -7286,6 +7289,9 @@ msgstr "Bambu 쿨 플레이트 슈퍼택"
 
 msgid "Send print job"
 msgstr "출력 작업 보내기"
+
+msgid "On"
+msgstr "켜기"
 
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "필라멘트 그룹화가 만족스럽지 않으신가요? 재그룹화 및 슬라이스 ->"
@@ -13892,6 +13898,9 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS와 같이 뒤틀리기 쉬운 소재를 출력할 때 열판 온도를 적절히 높이면 뒤틀릴 확률을 줄일 수 있다는 사실을 알고 계셨나요?"
 
+#~ msgid "Note: Only the AMS slots loaded with the same material type can be selected."
+#~ msgstr "참고: 동일한 재료 타입 로드된 AMS 슬롯만 선택할 수 있습니다."
+
 #~ msgid "Shift + Mouse move up or down"
 #~ msgstr "Shift + 마우스를 위 또는 아래로 이동"
 
@@ -13922,9 +13931,6 @@ msgstr ""
 
 #~ msgid "Sensitivity of pausing is"
 #~ msgstr "일시 중지의 감도는"
-
-#~ msgid "On"
-#~ msgstr "켜기"
 
 #~ msgid "Expand the first raft or support layer to improve bed plate adhesion"
 #~ msgstr "베드 접착력을 향상시키기 위해 첫 라프트와 지지대 레이어를 확장시킵니다."

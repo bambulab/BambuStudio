@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 15:03+0800\n"
+"POT-Creation-Date: 2025-07-09 09:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3011,8 +3011,8 @@ msgstr ""
 msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
 msgstr ""
 
-msgid "Note: Only the AMS slots loaded with the same material type can be selected."
-msgstr "Remarque : seuls les emplacements AMS chargés avec le même type de matériau peuvent être sélectionnés."
+msgid "Note: Only filament-loaded slots can be selected."
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "Activer l'AMS"
@@ -3807,6 +3807,9 @@ msgstr "Total"
 msgid "Total cost"
 msgstr "Coût total"
 
+msgid "Time"
+msgstr "Durée"
+
 msgid "Time Estimation"
 msgstr "Estimation de temps"
 
@@ -3878,9 +3881,6 @@ msgstr "Résultat du Tranchage"
 
 msgid "Color Scheme"
 msgstr "Jeu de Couleur"
-
-msgid "Time"
-msgstr "Durée"
 
 msgid "Percent"
 msgstr "Pour cent"
@@ -5881,6 +5881,9 @@ msgstr "Détection Encrassement Buse"
 msgid "Check if the nozzle is clumping by filaments or other foreign objects."
 msgstr ""
 
+msgid "Detects air printing caused by nozzle clogging or filament grinding."
+msgstr ""
+
 msgid "First Layer Inspection"
 msgstr "Inspection de la Première Couche"
 
@@ -7274,6 +7277,9 @@ msgstr ""
 
 msgid "Send print job"
 msgstr "Envoyer un travail d'impression"
+
+msgid "On"
+msgstr "Activé"
 
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Vous n'êtes pas satisfait du regroupement des filaments ? Regroupez et coupez ->"
@@ -13880,6 +13886,9 @@ msgstr ""
 "Évitez le warping\n"
 "Saviez-vous que lors de l'impression de matériaux sujets au warping, tels que l'ABS, une augmentation appropriée de la température du plateau peut réduire le risque de déformation ?"
 
+#~ msgid "Note: Only the AMS slots loaded with the same material type can be selected."
+#~ msgstr "Remarque : seuls les emplacements AMS chargés avec le même type de matériau peuvent être sélectionnés."
+
 #~ msgid "Shift + Mouse move up or down"
 #~ msgstr "Maj + souris vers le haut ou vers le bas"
 
@@ -13910,9 +13919,6 @@ msgstr ""
 
 #~ msgid "Sensitivity of pausing is"
 #~ msgstr "La sensibilité de pause est "
-
-#~ msgid "On"
-#~ msgstr "Activé"
 
 #~ msgid "Expand the first raft or support layer to improve bed plate adhesion"
 #~ msgstr "Étendre le premier radeau ou la première couche de support pour améliorer l'adhérence sur le plateau"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 15:03+0800\n"
+"POT-Creation-Date: 2025-07-09 09:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3017,8 +3017,8 @@ msgstr ""
 msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
 msgstr ""
 
-msgid "Note: Only the AMS slots loaded with the same material type can be selected."
-msgstr "Opmerking: Alleen de AMS-slots die met hetzelfde materiaaltype zijn geladen, kunnen worden geselecteerd."
+msgid "Note: Only filament-loaded slots can be selected."
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "AMS inschakelen"
@@ -3819,6 +3819,9 @@ msgstr "Totaal"
 msgid "Total cost"
 msgstr "Totale kosten"
 
+msgid "Time"
+msgstr "Tijd"
+
 msgid "Time Estimation"
 msgstr "Geschatte duur"
 
@@ -3890,9 +3893,6 @@ msgstr "Snijresultaat"
 
 msgid "Color Scheme"
 msgstr "Kleurschema"
-
-msgid "Time"
-msgstr "Tijd"
 
 msgid "Percent"
 msgstr "Procent"
@@ -5899,6 +5899,9 @@ msgstr "Detectie van klontvorming in nozzles"
 msgid "Check if the nozzle is clumping by filaments or other foreign objects."
 msgstr ""
 
+msgid "Detects air printing caused by nozzle clogging or filament grinding."
+msgstr ""
+
 msgid "First Layer Inspection"
 msgstr "Inspectie van de eerste laag"
 
@@ -7298,6 +7301,9 @@ msgstr "Bambu Koelplaat SuperTack"
 
 msgid "Send print job"
 msgstr "Afdruktaak verzenden"
+
+msgid "On"
+msgstr "Aan"
 
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Niet tevreden met de groepering van filamenten? Hergroepeer en snijd in plakjes ->"
@@ -13908,6 +13914,9 @@ msgstr ""
 "Kromtrekken voorkomen\n"
 "Wist je dat bij het printen van materialen die gevoelig zijn voor kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het warmtebed de kans op kromtrekken kan verkleinen?"
 
+#~ msgid "Note: Only the AMS slots loaded with the same material type can be selected."
+#~ msgstr "Opmerking: Alleen de AMS-slots die met hetzelfde materiaaltype zijn geladen, kunnen worden geselecteerd."
+
 #~ msgid "Shift + Mouse move up or down"
 #~ msgstr "Shift + Muis omhoog of omlaag bewegen"
 
@@ -13938,9 +13947,6 @@ msgstr ""
 
 #~ msgid "Sensitivity of pausing is"
 #~ msgstr "De gevoeligheid van het pauzeren is"
-
-#~ msgid "On"
-#~ msgstr "Aan"
 
 #~ msgid "Expand the first raft or support layer to improve bed plate adhesion"
 #~ msgstr "Het eerste raft of de eerste steunlaag uitbreiden om de hechting van de bedplaat te verbeteren"
