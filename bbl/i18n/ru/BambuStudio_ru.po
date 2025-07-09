@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-09 09:20+0800\n"
+"POT-Creation-Date: 2025-07-09 16:21+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -3411,6 +3411,11 @@ msgid ""
 msgstr ""
 "Слишком большая высота слоя.\n"
 "Значение будет сброшено на 0,2."
+
+msgid ""
+"Should not large than layer height.\n"
+"Reset to 10%"
+msgstr ""
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -7610,9 +7615,6 @@ msgstr "Этот процесс проверяет ровность поверх
 # ?????81
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Этот процесс определяет значение динамического потока для улучшения общего качества печати."
-
-msgid "Connecting to the printer. Unable to cancel during the connection process."
-msgstr "Подключение к принтеру. Невозможно отменить во время процесса подключения."
 
 msgid "Preparing print job"
 msgstr "Подготовка задания на печать"
@@ -14301,6 +14303,9 @@ msgid ""
 msgstr ""
 "Предотвращение коробления материала\n"
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как ABS, повышение температуры подогреваемого стола может снизить эту вероятность?"
+
+#~ msgid "Connecting to the printer. Unable to cancel during the connection process."
+#~ msgstr "Подключение к принтеру. Невозможно отменить во время процесса подключения."
 
 # Примечание: выбор слотов ограничен одним типом материала.
 #~ msgid "Note: Only the AMS slots loaded with the same material type can be selected."

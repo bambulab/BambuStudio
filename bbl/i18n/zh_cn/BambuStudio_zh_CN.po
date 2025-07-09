@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-09 09:20+0800\n"
+"POT-Creation-Date: 2025-07-09 16:21+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3320,6 +3320,11 @@ msgid ""
 "Too large layer height.\n"
 "Reset to 0.2"
 msgstr "层高过大。将重置为0.2"
+
+msgid ""
+"Should not large than layer height.\n"
+"Reset to 10%"
+msgstr ""
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -7368,9 +7373,6 @@ msgstr "检测热床的平整度。调平可以使挤出的高度更均匀。"
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "此过程确定动态流量校准的最佳系数，从而提升打印质量。"
 
-msgid "Connecting to the printer. Unable to cancel during the connection process."
-msgstr "正在连接打印机。连接过程中无法取消。"
-
 msgid "Preparing print job"
 msgstr "正在准备打印任务"
 
@@ -9594,37 +9596,37 @@ msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
 msgstr ""
 
 msgid "Slow down by height"
-msgstr ""
+msgstr "随高度降速"
 
 msgid "Enable this option to slow printing down by height"
-msgstr ""
+msgstr "启用此选项可以定义打印过程中速度和加速度的上限。此上限为打印高度z的函数，以打印速度为例：当z小于“起始高度”时，z处速度上限为“起始高度处速度”；当z大于“结束高度”时，z处速度上限为“结束高度处速度”；其余情况z处速度上限通过对“起始高度处速度”和“结束高度处速度”在区间[“起始高度”, “结束高度”]内按z进行线性插值得到。"
 
 msgid "Starting height"
-msgstr ""
+msgstr "起始高度"
 
 msgid "The height starts to slow down"
 msgstr ""
 
 msgid "Speed at starting height"
-msgstr ""
+msgstr "起始高度处速度"
 
 msgid "Acceleration at starting height"
-msgstr ""
+msgstr "起始高度处加速度"
 
 msgid "mm/s²"
 msgstr "mm/s²"
 
 msgid "Ending height"
-msgstr ""
+msgstr "结束高度"
 
 msgid "The height finishes slowing down, Ending height should be larger than Starting height, or the slowing down will not work!"
-msgstr ""
+msgstr "参数“结束高度”应大于“起始高度“，否则”随高度降速“功能将不起作用！"
 
 msgid "Speed at ending height"
-msgstr ""
+msgstr "结束高度处速度"
 
 msgid "Acceleration at ending height"
-msgstr ""
+msgstr "结束高度处加速度"
 
 msgid "Speed of bridge and completely overhang wall"
 msgstr "桥接和完全悬空的外墙的打印速度"
@@ -13621,10 +13623,10 @@ msgid "/%d Selected"
 msgstr "%d 已选择"
 
 msgid "Skipping all objects."
-msgstr ""
+msgstr "跳过所有零件。"
 
 msgid "The printing job will be stopped. Continue?"
-msgstr ""
+msgstr "打印任务将停止。是否继续？"
 
 #, c-format, boost-format
 msgid "Skipping %d objects."
@@ -13873,6 +13875,9 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Connecting to the printer. Unable to cancel during the connection process."
+#~ msgstr "正在连接打印机。连接过程中无法取消。"
 
 #~ msgid "Note: Only the AMS slots loaded with the same material type can be selected."
 #~ msgstr "仅允许选择相同材质类型的耗材"
