@@ -7566,7 +7566,6 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
 #else
                     it->second->connect(it->second->local_use_ssl_for_mqtt);
 #endif
-                    m_agent->set_user_selected_machine(dev_id);
                     it->second->set_lan_mode_connection_state(true);
                 }
             }
