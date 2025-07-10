@@ -319,8 +319,8 @@ bool PresetUpdater::priv::get_file(const std::string &url, const fs::path &targe
 
     BOOST_LOG_TRIVIAL(info) << format("[BBS Updater]download file `%1%`, stored to `%2%`, tmp path `%3%`",
         url,
-        target_path.string(),
-        tmp_path.string());
+        PathSanitizer::sanitize(target_path),
+        PathSanitizer::sanitize(tmp_path));
 
     Slic3r::Http::get(url)
         .on_progress([this](Slic3r::Http::Progress, bool &cancel_http) {
@@ -385,11 +385,11 @@ bool PresetUpdater::priv::extract_file(const fs::path &source_path, const fs::pa
             {
                 res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_file.c_str(), 0);
                 if (!res) {
-                    BOOST_LOG_TRIVIAL(error) << "[BBL Updater]extract file "<<stat.m_filename<<" to dest "<<dest_file<<" failed";
+                    BOOST_LOG_TRIVIAL(error) << "[BBL Updater]extract file " << stat.m_filename << " to dest " << PathSanitizer::sanitize(dest_file) << " failed";
                     close_zip_reader(&archive);
                     return res;
                 }
-                BOOST_LOG_TRIVIAL(info) << "[BBL Updater]successfully extract file " << stat.m_file_index << " to "<<dest_file;
+                BOOST_LOG_TRIVIAL(info) << "[BBL Updater]successfully extract file " << stat.m_file_index << " to " << PathSanitizer::sanitize(dest_file);
             }
             catch (const std::exception& e)
             {
@@ -641,13 +641,13 @@ bool PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
                 if (resource.sub_caches.empty()) {
                     if (fs::exists(cache_path)) {
                         fs::remove_all(cache_path);
-                        BOOST_LOG_TRIVIAL(info) << "[BBL Updater]remove cache path " << cache_path.string();
+                        BOOST_LOG_TRIVIAL(info) << "[BBL Updater]remove cache path " << PathSanitizer::sanitize(cache_path.string());
                     }
                 } else {
                     for (auto sub : resource.sub_caches) {
                         if (fs::exists(cache_path / sub)) {
                             fs::remove_all(cache_path / sub);
-                            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]remove cache path " << (cache_path / sub).string();
+                            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]remove cache path " << PathSanitizer::sanitize((cache_path / sub).string());
                         }
                     }
                 }
@@ -656,14 +656,14 @@ bool PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
                 remove_config_files(resource.vendor, PRESET_SUBPATH);
             }
             // extract the file downloaded
-            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]start to unzip the downloaded file " << cache_file_path << " to "<<cache_path;
+            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]start to unzip the downloaded file " << PathSanitizer::sanitize(cache_file_path) << " to "<< PathSanitizer::sanitize(cache_path);
             if (!fs::exists(cache_path))
                 fs::create_directories(cache_path);
             if (!extract_file(cache_file_path, cache_path)) {
-                BOOST_LOG_TRIVIAL(warning) << "[BBL Updater]extract resource " << resource_it.first << " failed, path: " << cache_file_path;
+                BOOST_LOG_TRIVIAL(warning) << "[BBL Updater]extract resource " << resource_it.first << " failed, path: " << PathSanitizer::sanitize(cache_file_path);
                 continue;
             }
-            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]finished unzip the downloaded file " << cache_file_path;
+            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]finished unzip the downloaded file " << PathSanitizer::sanitize(cache_file_path);
 
             // save the description to disk
             if (changelog_file.empty())

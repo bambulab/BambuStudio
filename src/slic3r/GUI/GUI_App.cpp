@@ -1869,13 +1869,13 @@ int GUI_App::install_plugin(std::string name, std::string package_name, InstallP
                 if (fs::is_regular_file(it->status())) { ++file_count; }
             }
             for (fs::directory_iterator it(dir_path); it != fs::directory_iterator(); ++it) {
-                BOOST_LOG_TRIVIAL(trace) << " current path:" << it->path().string();
+                BOOST_LOG_TRIVIAL(trace) << " current path:" << PathSanitizer::sanitize(it->path().string());
                 if (it->path().string() == backup_folder) {
                     continue;
                 }
                 auto dest_path = backup_folder.string() + "/" + it->path().filename().string();
                 if (fs::is_regular_file(it->status())) {
-                    BOOST_LOG_TRIVIAL(trace) << " copy file:" << it->path().string() << "," << it->path().filename();
+                    BOOST_LOG_TRIVIAL(trace) << " copy file:" << PathSanitizer::sanitize(it->path().string()) << "," << it->path().filename();
                     try {
                         if (pro_fn) { pro_fn(InstallStatusNormal, 50 + file_index / file_count, cancel); }
                         file_index++;
@@ -2587,7 +2587,7 @@ std::string GUI_App::get_local_models_path()
 
 void GUI_App::init_single_instance_checker(const std::string &name, const std::string &path)
 {
-    BOOST_LOG_TRIVIAL(debug) << "init wx instance checker " << name << " "<< path;
+    BOOST_LOG_TRIVIAL(debug) << "init wx instance checker " << name << " " << PathSanitizer::sanitize(path);
     m_single_instance_checker = std::make_unique<wxSingleInstanceChecker>(boost::nowide::widen(name), boost::nowide::widen(path));
 }
 

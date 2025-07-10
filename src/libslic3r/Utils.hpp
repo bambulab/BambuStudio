@@ -195,7 +195,7 @@ private:
         if (name_size == 0) {
             return false;
         }
-        if (start_pos + name_size >= full.length()) {
+        if (start_pos + name_size > full.length()) {
             return false;
         }
         return true;
