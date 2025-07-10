@@ -44,7 +44,7 @@ private:
     bool m_bold = true;
     bool m_italic = false;
     float m_thickness = 2.f;
-    const float  m_thickness_min     = 0.01f;
+    const float  m_thickness_min     = 0.1f;
     const float  m_thickness_max     = 1000.f;
     float m_embeded_depth = 0.f;
     const float  m_embeded_depth_max = 1000.f;
