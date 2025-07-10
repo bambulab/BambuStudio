@@ -133,6 +133,7 @@ public:
     void fill_surface_extrusion(const Surface *surface, const FillParams &params, ExtrusionEntitiesPtr &out) override;
     bool is_self_crossing() override { return false; }
 
+    bool apply_gap_compensation{ false };
 protected:
     Fill* clone() const override { return new FillMonotonicLineWGapFill(*this); };
     bool no_sort() const override { return true; }
