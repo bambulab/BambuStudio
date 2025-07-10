@@ -339,7 +339,7 @@ public:
     void msw_rescale();
 
 public:
-    void enable_partskip_button(bool enable);
+    void enable_partskip_button(MachineObject* obj, bool enable);
     void enable_pause_resume_button(bool enable, std::string type);
     void enable_abort_button(bool enable);
     void update_subtask_name(wxString name);
@@ -355,7 +355,6 @@ public:
     void set_thumbnail_img(const wxBitmap& bmp);
     void set_brightness_value(int value) { m_brightness_value = value; }
     void set_plate_index(int plate_idx = -1);
-    void update_machine_object(MachineObject* obj);
     void market_scoring_show(bool show);
 
 public:
