@@ -203,6 +203,7 @@ wxString WebView::BuildEdgeUserDataPath()
         static wxFile lockFile;
         if (lockFile.Exists(bambu_lock_file)) { DeleteFileW(bambu_lock_file.wc_str()); }/*try delete previous file so that we could lock it by wxFile::write_excl*/
 
+        wxLogNull suppress_log;
         if (lockFile.Open(bambu_lock_file, wxFile::write_excl)) {
             data_dir = bambu_dir;
             break;
