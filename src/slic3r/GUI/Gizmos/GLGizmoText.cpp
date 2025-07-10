@@ -2566,6 +2566,9 @@ void GLGizmoText::draw_font_list()
     ImGui::SetNextItemWidth(2 * m_gui_cfg->input_width);
     std::vector<int> filtered_items_idx;
     bool             is_filtered = false;
+    ImGuiStyle &     style              = ImGui::GetStyle();
+    float            old_scrollbar_size = style.ScrollbarSize;
+    style.ScrollbarSize                 = 16.f;
     if (m_imgui->bbl_combo_with_filter("##Combo_Font", selected, m_face_names->faces_names, &filtered_items_idx, &is_filtered, m_imgui->scaled(32.f / 15.f))) {
         bool set_selection_focus = false;
         if (!m_face_names->is_init) {
@@ -2616,7 +2619,6 @@ void GLGizmoText::draw_font_list()
                 ImGui::SetScrollHereY();
             draw_font_preview(face, m_text, *m_face_names, *m_gui_cfg, ImGui::IsItemVisible());
         }
-
         ImGui::PopStyleVar(3);
         ImGui::EndListBox();
         ImGui::EndPopup();
@@ -2631,7 +2633,7 @@ void GLGizmoText::draw_font_list()
         glsafe(::glDeleteTextures(1, &m_face_names->texture_id));
         m_face_names->texture_id = 0;
     }
-
+    style.ScrollbarSize = old_scrollbar_size;
     // delete unloadable face name when try to use
     if (del_index.has_value()) {
         auto                   face = m_face_names->faces.begin() + (*del_index);
