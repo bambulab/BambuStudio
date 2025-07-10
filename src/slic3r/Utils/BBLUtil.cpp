@@ -148,12 +148,7 @@ std::string BBLCrossTalk::Crosstalk_JsonLog(const nlohmann::json& json)
         return std::string();
     }
 
-
-#if BBL_RELEASE_TO_PUBLIC
-    return copied_json.dump();
-#else
     return copied_json.dump(1);
-#endif
 }
 
 }// End of namespace Slic3r
