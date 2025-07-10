@@ -416,7 +416,7 @@ void UserPresetsDialog::on_all_checked(bool checked, bool from_user)
 
 void UserPresetsDialog::update_preset_counts()
 {
-    wxString labels[] = {_L("Printer presets(%d/%d)"), _L("Filament presets(%d/%d)"), _L("Print presets(%d/%d)")};
+    wxString labels[] = {_L("Printer presets(%d/%d)"), _L("Filament presets(%d/%d)"), _L("Process presets(%d/%d)")};
     int capacities[] = {20, 100, 200};
     for (int i = 0; i < 3; ++i) {
         size_t n = i == 1 ? std::accumulate(m_filament_presets.begin(), m_filament_presets.end(), size_t(0),
@@ -540,7 +540,7 @@ static void remove_both(std::vector<std::string> &l, std::vector<std::string> &r
 
 bool UserPresetsDialog::delete_confirm(int collection, int preset_num)
 {
-    std::string types[] = {"Printer", "Filament", "Print"};
+    std::string types[] = {"Printer", "Filament", "Process"};
     DeleteConfirmDialog dlg(this, wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Delete"),
                             wxString::Format(_L("%d %s Preset%s will be deleted."), preset_num, types[collection % 3], preset_num > 1 ? "s" : ""));
     int res = dlg.ShowModal();
