@@ -3242,7 +3242,7 @@ void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, c
         extrusion_entities_append_paths_with_wipe(
                 coll_nosort->entities, std::move(polylines_rectilinear),
                 params.extrusion_role,
-                flow_mm3_per_mm, float(flow_width), params.flow.height(), params.flow.nozzle_diameter());
+                flow_mm3_per_mm, float(flow_width), params.flow.height(), params.flow.nozzle_diameter(), this->apply_gap_compensation);
         unextruded_areas = diff_ex(this->no_overlap_expolygons, union_ex(coll_nosort->polygons_covered_by_spacing(10)));
     }
     else

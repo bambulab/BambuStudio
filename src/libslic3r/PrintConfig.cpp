@@ -2638,6 +2638,10 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
     def->readonly=false;
 
+    def = this->add("apply_top_surface_compensation", coBool);
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def =this->add("support_air_filtration",coBool);
     def->label=L("Air filtration enhancement");
     def->tooltip=L("Enable this if printer support air filtration enhancement.");

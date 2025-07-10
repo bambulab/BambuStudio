@@ -666,9 +666,9 @@ inline void extrusion_entities_append_paths(ExtrusionEntitiesPtr &dst, Polylines
 }
 
 //BBS: a kind of special extrusion path has start and end wiping for half spacing
-inline void extrusion_entities_append_paths_with_wipe(ExtrusionEntitiesPtr &dst, Polylines &&polylines, ExtrusionRole role, double mm3_per_mm, float width, float height, float nozzle_diameter)
+inline void extrusion_entities_append_paths_with_wipe(ExtrusionEntitiesPtr &dst, Polylines &&polylines, ExtrusionRole role, double mm3_per_mm, float width, float height, float nozzle_diameter, bool apply_overlap_compensation)
 {
-    constexpr double overlap_rate = 0.5;
+    constexpr double overlap_rate = 0.45;
     dst.reserve(dst.size() + polylines.size());
     Point last_end_point;
     Vec2d last_direction;
@@ -682,20 +682,25 @@ inline void extrusion_entities_append_paths_with_wipe(ExtrusionEntitiesPtr &dst,
                 if (Vec2d(temp.x(), temp.y()).norm() <= 3 * scaled(width)) {
                     multi_path->paths.push_back(ExtrusionPath(role, mm3_per_mm, width, height, true));
 
-                    Polyline connect_line;
-                    Vec2d curr_direction  = (polyline.first_point()-polyline.last_point()).cast<double>().normalized();
-                    Vec2d offset_vector = last_direction * overlap_rate * sqrt(2) * scaled(nozzle_diameter);
-                    Point overlap_last_p = last_end_point + offset_vector.cast<coord_t>();
+                    if(apply_overlap_compensation){
+                        Polyline connect_line;
+                        Vec2d curr_direction  = (polyline.first_point()-polyline.last_point()).cast<double>().normalized();
+                        Vec2d offset_vector = last_direction * overlap_rate * scaled(nozzle_diameter);
+                        Point overlap_last_p = last_end_point + offset_vector.cast<coord_t>();
 
-                    offset_vector = curr_direction * overlap_rate * sqrt(2) * scaled(nozzle_diameter);
-                    Point overlap_curr_p = polyline.first_point() + offset_vector.cast<coord_t>();
+                        offset_vector = curr_direction * overlap_rate * scaled(nozzle_diameter);
+                        Point overlap_curr_p = polyline.first_point() + offset_vector.cast<coord_t>();
 
-                    connect_line.points.push_back(last_end_point);
-                    connect_line.points.push_back(overlap_last_p);
-                    connect_line.points.push_back(overlap_curr_p);
-                    connect_line.points.push_back(polyline.first_point());
+                        connect_line.points.push_back(last_end_point);
+                        connect_line.points.push_back(overlap_last_p);
+                        connect_line.points.push_back(overlap_curr_p);
+                        connect_line.points.push_back(polyline.first_point());
 
-                    multi_path->paths.back().polyline = std::move(connect_line);
+                        multi_path->paths.back().polyline = std::move(connect_line);
+                    }
+                    else{
+                        multi_path->paths.back().polyline = std::move(Polyline(last_end_point, polyline.first_point()));
+                    }
 
                 } else {
                     dst.push_back(multi_path);

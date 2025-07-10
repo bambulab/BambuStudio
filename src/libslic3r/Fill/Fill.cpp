@@ -587,6 +587,10 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         } else if (surface_fill.params.pattern == ipLightning){
             dynamic_cast<FillLightning::Filler*>(f.get())->generator = lightning_generator;
 		}
+		else if (surface_fill.params.pattern == ipMonotonicLine){
+			FillMonotonicLineWGapFill* fill_monoline = dynamic_cast<FillMonotonicLineWGapFill*>(f.get());
+			fill_monoline->apply_gap_compensation = this->object()->print()->config().apply_top_surface_compensation;
+		}
 		else if (surface_fill.params.pattern == ipFloatingConcentric) {
 			FillFloatingConcentric* fill_contour = dynamic_cast<FillFloatingConcentric*>(f.get());
 			assert(fill_contour != nullptr);
