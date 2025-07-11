@@ -2,6 +2,7 @@
 
 var m_HotModelList=null;
 var m_HasNetworkPlugin=true;
+var m_GetPrintHistoryStatus=false;
 
 function OnInit()
 {
@@ -21,28 +22,29 @@ function OnInit()
 function HandleStudio( pVal )
 {
 	let strCmd = pVal['command'];
-	
 
 	if(strCmd=='studio_userlogin')
 	{
+		let lastLoginInfo = pVal;
 		SetLoginInfo(pVal['data']['avatar'],pVal['data']['name']);
-		if($("#printhistory").css("display") == "none")
-			GotoMenu( 'home' );
-		// $("#consoleinfo").text(JSON.stringify(pVal));
+		if (!m_GetPrintHistoryStatus) {
+			SendMsg_GetPrintHistory();
+		}
 	}
 	else if(strCmd=='studio_useroffline')
 	{
 		SetUserOffline();
+		m_GetPrintHistoryStatus=false;
 	}
 	else if( strCmd=="network_plugin_installtip" )
 	{
 		let nShow=pVal["show"]*1;
-		
+
 	    if(nShow==1)
 		{
 			$("#NoPluginTip").show();
 			$("#NoPluginTip").css("display","flex");
-			
+
 			m_HasNetworkPlugin=false;
 		}
 		else
@@ -50,69 +52,73 @@ function HandleStudio( pVal )
 			$("#NoPluginTip").hide();
 			m_HasNetworkPlugin=true;
 		}
-	}	
+	}
 	else if(strCmd=='homepage_leftmenu_clicked')
-	{						
+	{
 		let NewMenu=pVal['menu'];
 		//alert('LeftMenu Clicked:'+strMenu );
-		
+
 		GotoMenu(NewMenu);
 	}
 	else if(strCmd=='homepage_leftmenu_newtag')
-	{		
+	{
 		let NewMenu=pVal['menu'];
 		let nShow=pVal['show'];
-		
+
 		ShowMenuNewTag(NewMenu,nShow);
-	}	
+	}
 	else if(strCmd=='homepage_leftmenu_show')
-	{		
+	{
 		let NewMenu=pVal['menu'];
 		let nShow=pVal['show'];
-		
+
 		ShowMenuBtn(NewMenu,nShow);
-	}	
+	}
+	else if(strCmd=='printhistory_task_show')
+	{
+		m_GetPrintHistoryStatus=true;
+	}
 }
 
 var NowMenu='';
 function GotoMenu( strMenu )
 {
 	ShowMenuNewTag(strMenu,0);
-	
+
 	if(NowMenu==strMenu && strMenu!='makersupply')
 		return;
-	
+
 	NowMenu=strMenu;
-	
+
 	let MenuList=$(".BtnItem");
 	let nAll=MenuList.length;
-	
+
 	for(let n=0;n<nAll;n++)
 	{
 		let OneBtn=MenuList[n];
-		
+
 		if( $(OneBtn).attr("menu")==strMenu )
 		{
 			if(strMenu!=='makersupply')
 			{
-				$(".BtnItem").removeClass("BtnItemSelected");						
+				$(".BtnItem").removeClass("BtnItemSelected");
 				$(OneBtn).addClass("BtnItemSelected");
 			}
-						
+
 			//SendWX
 			var tSend={};
 			tSend['sequence_id']=Math.round(new Date() / 1000);
 			tSend['command']="homepage_leftmenu_clicked";
 			tSend['menu']=strMenu;
 			tSend['refresh']=0;
-			
-			SendWXMessage( JSON.stringify(tSend) );	
+
+			SendWXMessage( JSON.stringify(tSend) );
 		}
 	}
 }
 
 function ShowMenuNewTag(MenuName,nStatus)
-{	
+{
 	//alert(MenuName+" - "+nStatus);
 	if(MenuName=='online')
 	{
@@ -127,13 +133,13 @@ function ShowMenuNewTag(MenuName,nStatus)
 			$('#MakerlabNewTag').show();
 		else
 			$('#MakerlabNewTag').hide();
-	}	
+	}
 }
 
 function ShowMenuBtn( MenuName,nShow)
 {
 	let sKey='div[menu="'+MenuName+'"]';
-	
+
 	if(nShow==1)
 		$(sKey).css('display','flex');
 	else
@@ -141,13 +147,13 @@ function ShowMenuBtn( MenuName,nShow)
 }
 
 
-function SetLoginInfo( strAvatar, strName ) 
+function SetLoginInfo( strAvatar, strName )
 {
 	$("#Login1").hide();
-	
+
 	$("#UserName").text(strName);
 	$("#DropdownUserName").text(strName);
-	
+
   let OriginAvatar=$("#UserAvatarIcon").prop("src");
 	if(strAvatar!=OriginAvatar) {
 		$("#UserAvatarIcon").prop("src",strAvatar);
@@ -156,7 +162,7 @@ function SetLoginInfo( strAvatar, strName )
 	{
 		//alert('Avatar is Same');
 	}
-	
+
 	$("#Login2").show();
 	$("#Login2").css("display","flex");
 }
@@ -167,8 +173,8 @@ function SetUserOffline()
 	$("#DropdownAvatar").css("background-image","../img/left_home_account.svg");
 	$("#UserName").text('');
 	$("#DropdownUserName").text('');
-	$("#Login2").hide();	
-	
+	$("#Login2").hide();
+
 	$("#Login1").show();
 	$("#Login1").css("display","flex");
 }
@@ -184,26 +190,26 @@ function SendMsg_GetLoginInfo()
 	var tSend={};
 	tSend['sequence_id']=Math.round(new Date() / 1000);
 	tSend['command']="get_login_info";
-	
-	SendWXMessage( JSON.stringify(tSend) );	
+
+	SendWXMessage( JSON.stringify(tSend) );
 }
 
 function OnLoginOrRegister()
 {
 	var tSend={};
-	
+
 	if( m_HasNetworkPlugin )
 	{
 		tSend['sequence_id']=Math.round(new Date() / 1000);
-		tSend['command']="homepage_login_or_register";		
+		tSend['command']="homepage_login_or_register";
 	}
 	else
 	{
 		tSend['sequence_id']=Math.round(new Date() / 1000);
 		tSend['command']="homepage_need_networkplugin";
 	}
-		
-	SendWXMessage( JSON.stringify(tSend) );	
+
+	SendWXMessage( JSON.stringify(tSend) );
 }
 
 function OnLogOut()
@@ -211,8 +217,8 @@ function OnLogOut()
 	var tSend={};
 	tSend['sequence_id']=Math.round(new Date() / 1000);
 	tSend['command']="homepage_logout";
-	
-	SendWXMessage( JSON.stringify(tSend) );	
+
+	SendWXMessage( JSON.stringify(tSend) );
 }
 
 function OnUpdatePluginInstalltip()
@@ -220,17 +226,17 @@ function OnUpdatePluginInstalltip()
 	var tSend={};
 	tSend['sequence_id']=Math.round(new Date() / 1000);
 	tSend['command']="update_plugin_installtip";
-	
-	SendWXMessage( JSON.stringify(tSend) );	
+
+	SendWXMessage( JSON.stringify(tSend) );
 }
 
 function SendMsg_CheckNewTag()
-{	
+{
 	var tSend={};
 	tSend['sequence_id']=Math.round(new Date() / 1000);
 	tSend['command']="homepage_leftmenu_newtag";
-	
-	SendWXMessage( JSON.stringify(tSend) );		
+
+	SendWXMessage( JSON.stringify(tSend) );
 }
 
 function BeginDownloadNetworkPlugin()
@@ -238,8 +244,17 @@ function BeginDownloadNetworkPlugin()
 	var tSend={};
 	tSend['sequence_id']=Math.round(new Date() / 1000);
 	tSend['command']="begin_network_plugin_download";
-	
-	SendWXMessage( JSON.stringify(tSend) );		
+
+	SendWXMessage( JSON.stringify(tSend) );
+}
+
+function SendMsg_GetPrintHistory()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="homepage_printhistory_get";
+
+	SendWXMessage( JSON.stringify(tSend) );
 }
 
 var WidthBoundary=168;
@@ -248,22 +263,22 @@ function ChangeLeftWidth()
 	var tSend={};
 	tSend['sequence_id']=Math.round(new Date() / 1000);
 	tSend['command']="homepage_leftmenu_change_width";
-	
+
 	let NowWidth=window.innerWidth;
 	if(NowWidth<=WidthBoundary)
 	{
 		tSend['width']=224;
-		
+
 		ShowLeftMenuTip( false );
 	}
 	else
 	{
 		tSend['width']=64;
-		
+
 		ShowLeftMenuTip( true );
 	}
 
-	SendWXMessage( JSON.stringify(tSend) );		
+	SendWXMessage( JSON.stringify(tSend) );
 }
 
 function ShowLeftMenuTip( bShow )
