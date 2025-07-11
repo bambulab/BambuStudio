@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-09 16:21+0800\n"
+"POT-Creation-Date: 2025-07-11 17:02+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1058,7 +1058,7 @@ msgid "Warning:Due to functional upgrade, rotation information cannot be restore
 msgstr ""
 
 msgid "Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."
-msgstr ""
+msgstr "Detected that text did not adhere to the mesh surface. Please manually drag the yellow square to mesh surface that the text needs to be adhered to."
 
 msgid "The text cannot be written using the selected font. Please try choosing a different font."
 msgstr ""
@@ -3001,7 +3001,7 @@ msgid "Note: the slot is empty or undefined. If you want to use this slot, you c
 msgstr ""
 
 msgid "Note: Only filament-loaded slots can be selected."
-msgstr ""
+msgstr "Note: Only slots with filament loaded can be selected."
 
 msgid "Enable AMS"
 msgstr "Enable AMS"
@@ -3320,6 +3320,8 @@ msgid ""
 "Should not large than layer height.\n"
 "Reset to 10%"
 msgstr ""
+"Should not be greater than layer height.\n"
+"Reset to 10%"
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -6051,6 +6053,9 @@ msgid "Connection"
 msgstr "Connection"
 
 msgid "Click to view the wiki of the current plate type"
+msgstr ""
+
+msgid "Sync info"
 msgstr ""
 
 msgid "Synchronize nozzle information and the number of AMS"
@@ -13492,6 +13497,38 @@ msgstr ""
 msgid "Removed"
 msgstr ""
 
+msgid "Management user presets"
+msgstr ""
+
+msgid "Custom filaments"
+msgstr ""
+
+msgid "No content"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Printer presets(%d/%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament presets(%d/%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Process presets(%d/%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%u Selected"
+msgstr ""
+
+msgid "Please select the preset to be deleted"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d %s Preset will be deleted."
+msgstr ""
+
 msgid "Filament grouping"
 msgstr ""
 
@@ -13574,7 +13611,7 @@ msgid "Skipping all objects."
 msgstr ""
 
 msgid "The printing job will be stopped. Continue?"
-msgstr ""
+msgstr "The print job will be stopped. Continue?"
 
 #, c-format, boost-format
 msgid "Skipping %d objects."

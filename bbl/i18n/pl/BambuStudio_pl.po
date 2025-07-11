@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-09 16:21+0800\n"
+"POT-Creation-Date: 2025-07-11 17:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6112,6 +6112,9 @@ msgstr "Połączenie"
 msgid "Click to view the wiki of the current plate type"
 msgstr "Kliknij, aby wyświetlić wiki dla bieżącego typu płyty."
 
+msgid "Sync info"
+msgstr ""
+
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Synchronizacja informacji o dyszach i liczbie AMS"
 
@@ -7767,7 +7770,6 @@ msgid ""
 msgstr ""
 "Nierozpuszczalne materiały podporowe nie są zalecane jako podstawa podpory. \n"
 "Czy na pewno użyjesz ich jako podstawy podpory? \n"
-""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
@@ -13641,6 +13643,38 @@ msgstr "Drukowanie nieudane"
 
 msgid "Removed"
 msgstr "Usunięto"
+
+msgid "Management user presets"
+msgstr ""
+
+msgid "Custom filaments"
+msgstr ""
+
+msgid "No content"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Printer presets(%d/%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament presets(%d/%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Process presets(%d/%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%u Selected"
+msgstr ""
+
+msgid "Please select the preset to be deleted"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d %s Preset will be deleted."
+msgstr ""
 
 msgid "Filament grouping"
 msgstr "Grupowanie filamentów"
