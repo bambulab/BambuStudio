@@ -171,6 +171,7 @@ private:
     //BBS add bbl menu item
     void        append_menu_item_clone(wxMenu* menu);
     void        append_menu_item_simplify(wxMenu* menu);
+    void        append_menu_item_smooth_mesh(wxMenu *menu);
     void        append_menu_item_center(wxMenu* menu);
     void        append_menu_item_sub_merge(wxMenu *menu);
     void        append_menu_item_per_object_process(wxMenu* menu);

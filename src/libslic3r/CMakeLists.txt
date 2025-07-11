@@ -340,6 +340,8 @@ set(lisbslic3r_sources
     Tesselate.hpp
     TriangleMesh.cpp
     TriangleMesh.hpp
+    TriangleMeshDeal.cpp
+    TriangleMeshDeal.hpp
     TriangleMeshSlicer.cpp
     TriangleMeshSlicer.hpp
     MeshSplitImpl.hpp
