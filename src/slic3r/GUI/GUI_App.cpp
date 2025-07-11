@@ -1953,11 +1953,11 @@ void GUI_App::remove_old_networking_plugins()
     auto plugin_folder = data_dir_path / "plugins";
     //auto plugin_folder = boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins";
     if (boost::filesystem::exists(plugin_folder)) {
-        BOOST_LOG_TRIVIAL(info) << "[remove_old_networking_plugins] remove the directory "<<plugin_folder.string();
+        BOOST_LOG_TRIVIAL(info) << "[remove_old_networking_plugins] remove the directory " << PathSanitizer::sanitize(plugin_folder);
         try {
             fs::remove_all(plugin_folder);
         } catch (...) {
-            BOOST_LOG_TRIVIAL(error) << "Failed  removing the plugins directory " << plugin_folder.string();
+            BOOST_LOG_TRIVIAL(error) << "Failed  removing the plugins directory " << PathSanitizer::sanitize(plugin_folder);
         }
     }
 }

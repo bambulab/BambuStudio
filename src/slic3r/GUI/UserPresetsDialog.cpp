@@ -542,7 +542,7 @@ bool UserPresetsDialog::delete_confirm(int collection, int preset_num)
 {
     std::string types[] = {"Printer", "Filament", "Process"};
     DeleteConfirmDialog dlg(this, wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Delete"),
-                            wxString::Format(_L("%d %s Preset%s will be deleted."), preset_num, types[collection % 3], preset_num > 1 ? "s" : ""));
+                            wxString::Format(_L("%d %s Preset will be deleted."), preset_num, types[collection % 3]));
     int res = dlg.ShowModal();
     return res == wxID_OK;
 }

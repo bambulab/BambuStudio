@@ -210,12 +210,15 @@ private:
         if (raw.length() < start_pos + name_size) {
             return raw;
         }
-        if (raw[start_pos + name_size] != '\\' && raw[start_pos + name_size] != '/') {
-            return raw;
-        }
 
         std::string sanitized = raw;
-        sanitized.replace(start_pos, name_size, std::string(name_size, '*'));
+        if (raw[start_pos + name_size] == '\\' || raw[start_pos + name_size] == '/') {
+            sanitized.replace(start_pos, name_size, std::string(name_size, '*'));
+        } else if (std::isupper(raw[start_pos])) {
+            sanitized.replace(start_pos, 12, std::string(12, '*'));
+        } else {
+            return raw;
+        }
         
         if (id_start_pos != std::string::npos && id_start_pos < sanitized.length() && (sanitized[id_start_pos - 1] == '\\' || sanitized[id_start_pos - 1] == '/') &&
             std::isdigit(sanitized[id_start_pos])) {
@@ -239,11 +242,14 @@ private:
         if (raw.length() < start_pos + name_size) {
             return raw;
         }
-        if (raw[start_pos + name_size] != '\\' && raw[start_pos + name_size] != '/') {
+
+        if (raw[start_pos + name_size] == '\\' || raw[start_pos + name_size] == '/') {
+            raw.replace(start_pos, name_size, std::string(name_size, '*'));
+        } else if (std::isupper(raw[start_pos])) {
+            raw.replace(start_pos, 12, std::string(12, '*'));
+        } else {
             return raw;
         }
-
-        raw.replace(start_pos, name_size, std::string(name_size, '*'));
 
         if (id_start_pos != std::string::npos && id_start_pos < raw.length() && (raw[id_start_pos - 1] == '\\' || raw[id_start_pos - 1] == '/') &&
             std::isdigit(raw[id_start_pos])) {

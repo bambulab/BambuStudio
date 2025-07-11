@@ -1153,11 +1153,11 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
         if (need_delete_cache) {
             if (fs::exists(cache_plugin_folder))
             {
-                BOOST_LOG_TRIVIAL(info) << "[remove_old_networking_plugins] remove the plugins directory "<<cache_plugin_folder.string();
+                BOOST_LOG_TRIVIAL(info) << "[remove_old_networking_plugins] remove the plugins directory " << PathSanitizer::sanitize(cache_plugin_folder);
                 try {
                     fs::remove_all(cache_plugin_folder);
                 } catch (...) {
-                    BOOST_LOG_TRIVIAL(error) << "Failed  removing the plugins file " << cache_plugin_folder.string();
+                    BOOST_LOG_TRIVIAL(error) << "Failed  removing the plugins file " << PathSanitizer::sanitize(cache_plugin_folder);
                 }
             }
             //create this directory again
