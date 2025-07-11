@@ -2179,16 +2179,16 @@ void TabPrint::build()
         optgroup->append_single_option_line("seam_position", "Seam");
         optgroup->append_single_option_line("seam_placement_away_from_overhangs", "Seam");
         optgroup->append_single_option_line("seam_gap", "Seam");
-        optgroup->append_single_option_line("seam_slope_conditional");
-        optgroup->append_single_option_line("scarf_angle_threshold");
-        optgroup->append_single_option_line("seam_slope_entire_loop");
-        optgroup->append_single_option_line("seam_slope_steps");
-        optgroup->append_single_option_line("seam_slope_inner_walls");
-        optgroup->append_single_option_line("override_filament_scarf_seam_setting");
-        optgroup->append_single_option_line("seam_slope_type");
-        optgroup->append_single_option_line("seam_slope_start_height");
-        optgroup->append_single_option_line("seam_slope_gap");
-        optgroup->append_single_option_line("seam_slope_min_length");
+        optgroup->append_single_option_line("seam_slope_conditional", "Seam");
+        optgroup->append_single_option_line("scarf_angle_threshold", "Seam");
+        optgroup->append_single_option_line("seam_slope_entire_loop", "Seam");
+        optgroup->append_single_option_line("seam_slope_steps", "Seam");
+        optgroup->append_single_option_line("seam_slope_inner_walls", "Seam");
+        optgroup->append_single_option_line("override_filament_scarf_seam_setting", "Seam");
+        optgroup->append_single_option_line("seam_slope_type", "Seam");
+        optgroup->append_single_option_line("seam_slope_start_height", "Seam");
+        optgroup->append_single_option_line("seam_slope_gap", "Seam");
+        optgroup->append_single_option_line("seam_slope_min_length", "Seam");
         optgroup->append_single_option_line("wipe_speed", "Seam");
         optgroup->append_single_option_line("role_base_wipe_speed", "Seam");
 
