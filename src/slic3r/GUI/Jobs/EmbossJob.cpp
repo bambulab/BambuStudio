@@ -1093,7 +1093,11 @@ const GLVolume *find_closest(const Selection &selection, const Vec2d &screen_cen
     double center_sq_distance = std::numeric_limits<double>::max();
     for (unsigned int id : indices) {
         const GLVolume *gl_volume = selection.get_volume(id);
-        if (const ModelVolume *volume = get_model_volume(*gl_volume, objects); volume == nullptr || !volume->is_model_part()) continue;
+        const ModelVolume *volume    = get_model_volume(*gl_volume, objects);
+        if (volume == nullptr || !volume->is_model_part()) continue;
+        if (volume->is_text()) {
+            continue;
+        }
         Slic3r::Polygon hull        = CameraUtils::create_hull2d(camera, *gl_volume);
         Vec2d           c           = hull.centroid().cast<double>();
         Vec2d           d           = c - screen_center;

@@ -30,6 +30,7 @@ class GLGizmoText : public GLGizmoBase
 private:
     bool  m_is_direct_create_text = false;
     std::vector<Transform3d> m_trafo_matrices;
+    ModelVolumePtrs          m_valid_volumes;
     int m_show_calc_meshtod = 0;//1 preview //2 draging
     std::vector<std::string> m_avail_font_names;
     std::string   m_text{""};
@@ -164,7 +165,7 @@ public:
     static EmbossStyles create_default_styles();
     bool                select_facename(const wxString &facename,bool update_text );
     bool                on_shortcut_key();
-    bool                is_only_text_case();
+    bool                is_only_text_case() const;
     void                close();
 
     std::string get_icon_filename(bool b_dark_mode) const override;
@@ -267,6 +268,7 @@ private:
     void use_fix_normal_position();
     void load_init_text(bool first_open_text = false);
     void update_text_pos_normal();
+    bool filter_model_volume(ModelVolume* mv);
     //void update_font_status();
     void reset_text_info();
 

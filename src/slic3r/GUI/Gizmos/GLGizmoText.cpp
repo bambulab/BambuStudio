@@ -655,6 +655,7 @@ void GLGizmoText::on_set_state()
 
         m_last_text_mv = nullptr;
         m_show_text_normal_reset_tip = false;
+        m_is_direct_create_text      = is_only_text_case();
         load_init_text(true);
         if (m_last_text_mv) {
             m_reedit_text = true;
@@ -724,6 +725,7 @@ void GLGizmoText::on_set_state()
         }
     }
     else if (m_state == EState::Off) {
+        m_valid_volumes.clear();
         ImGui::FocusWindow(nullptr);//exit cursor
         m_reedit_text     = false;
         m_fix_old_tran_flag = false;
@@ -1454,7 +1456,7 @@ bool GLGizmoText::on_shortcut_key() {
                     Geometry::Transformation tran(m_trafo_matrices[m_rr.mesh_id]);
                     auto        hit_normal    = (tran.get_matrix_no_offset() * m_rr.normal.cast<double>()).normalized();
                     Transform3d surface_trmat = create_transformation_onto_surface(hit_pos, hit_normal, UP_LIMIT);
-                    mv                          = mo->volumes[m_rr.mesh_id];
+                    mv                        = m_valid_volumes[m_rr.mesh_id];
                     if (mv) {
                         auto        instance  = mo->instances[m_parent.get_selection().get_instance_idx()];
                         Transform3d transform = instance->get_matrix().inverse() * surface_trmat;
@@ -1501,7 +1503,7 @@ bool GLGizmoText::on_shortcut_key() {
     return true;
 }
 
-bool GLGizmoText::is_only_text_case() {
+bool GLGizmoText::is_only_text_case() const {
     return m_last_text_mv && m_last_text_mv->is_the_only_one_part();
 }
 
@@ -1669,7 +1671,9 @@ void GLGizmoText::load_init_text(bool first_open_text)
                     Vec3f local_center = m_text_tran_in_object.get_offset().cast<float>(); //(m_text_tran_in_object.get_matrix() * box.center()).cast<float>();
                     for (int i = 0; i < mo->volumes.size(); i++) {
                         auto mv = mo->volumes[i];
-                        if (mv == model_volume || mv->is_text() || !mv->is_model_part()) { continue; }
+                        if (mv == model_volume || !filter_model_volume(mv)) {
+                            continue;
+                        }
                         TriangleMesh text_attach_mesh(mv->mesh());
                         text_attach_mesh.transform(mv->get_matrix());
                         MeshRaycaster temp_ray_caster(text_attach_mesh);
@@ -1687,7 +1691,10 @@ void GLGizmoText::load_init_text(bool first_open_text)
                         if (m_rr.mesh_id != valid_mesh_id) {
                             m_rr.mesh_id = valid_mesh_id;
                         }
-                        auto         mv = mo->volumes[m_rr.mesh_id];
+                        if (m_valid_volumes.empty()) {
+                            update_trafo_matrices();
+                        }
+                        auto         mv = m_valid_volumes[m_rr.mesh_id];
                         TriangleMesh text_attach_mesh(mv->mesh());
                         text_attach_mesh.transform(mv->get_matrix());
                         MeshRaycaster temp_ray_caster(text_attach_mesh);
@@ -1790,7 +1797,7 @@ bool GLGizmoText::on_mouse_for_rotation(const wxMouseEvent &mouse_event)
 
 CommonGizmosDataID GLGizmoText::on_get_requirements() const
 {
-    if (m_is_direct_create_text) {
+    if (is_only_text_case()) {
         return CommonGizmosDataID(0);
     }
     return CommonGizmosDataID(
@@ -1969,9 +1976,12 @@ void GLGizmoText::on_update(const UpdateData &data)
         m_rotate_gizmo.update(data);
         return;
     }
+    if (!m_c) { return; }
+    if (!m_c->raycaster()) {
+        m_c->update(get_requirements());
+    }
     Vec2d              mouse_pos = Vec2d(data.mouse_pos.x(), data.mouse_pos.y());
     const Camera &       camera    = wxGetApp().plater()->get_camera();
-
 
     Vec3f  normal                       = Vec3f::Zero();
     Vec3f  hit                          = Vec3f::Zero();
@@ -2880,8 +2890,8 @@ void GLGizmoText::update_text_pos_normal() {
 
     std::vector<Geometry::Transformation> w_matrices;
     std::vector<Geometry::Transformation> mv_trans;
-    for (const ModelVolume *mv : mo->volumes) {
-        if (mv->is_model_part()) {
+    for (ModelVolume *mv : mo->volumes) {
+        if (filter_model_volume(mv)) {
             w_matrices.emplace_back(Geometry::Transformation(mi->get_transformation().get_matrix() * mv->get_matrix()));
             mv_trans.emplace_back(Geometry::Transformation(mv->get_matrix()));
         }
@@ -2892,6 +2902,13 @@ void GLGizmoText::update_text_pos_normal() {
 #endif
     m_text_position_in_world  = w_matrices[m_rr.mesh_id].get_matrix() * m_rr.hit.cast<double>();
     m_text_normal_in_world    = (w_matrices[m_rr.mesh_id].get_matrix_no_offset().cast<float>() * m_rr.normal).normalized();
+}
+
+bool GLGizmoText::filter_model_volume(ModelVolume *mv) {
+    if (mv && mv->is_model_part() && !mv->is_text()) {
+        return true;
+    }
+    return false;
 }
 
 float GLGizmoText::get_text_height(const std::string &text)//todo
@@ -2942,8 +2959,8 @@ void GLGizmoText::update_text_normal_in_world()
     auto         mo = m_parent.get_selection().get_selected_single_object(temp_object_idx);
     if (mo && m_rr.mesh_id >= 0) {
         const ModelInstance *mi = mo->instances[m_parent.get_selection().get_instance_idx()];
-        TriangleMesh text_attach_mesh(mo->volumes[m_rr.mesh_id]->mesh());
-        text_attach_mesh.transform(mo->volumes[m_rr.mesh_id]->get_matrix());
+        TriangleMesh  text_attach_mesh(m_valid_volumes[m_rr.mesh_id]->mesh());
+        text_attach_mesh.transform(m_valid_volumes[m_rr.mesh_id]->get_matrix());
         MeshRaycaster temp_ray_caster(text_attach_mesh);
         Vec3f         local_center = m_text_tran_in_object.get_offset().cast<float>(); //(m_text_tran_in_object.get_matrix() * box.center()).cast<float>(); //
         Vec3f         temp_normal;
@@ -3004,15 +3021,17 @@ bool GLGizmoText::update_text_tran_in_model_object(bool rewrite_text_tran)
 void GLGizmoText::update_trafo_matrices()
 {
     m_trafo_matrices.clear();
+    m_valid_volumes.clear();
     const Selection &selection = m_parent.get_selection();
     auto mo                    = selection.get_model()->objects[m_object_idx];
     if (mo == nullptr)
         return;
     const ModelInstance *mi    = mo->instances[selection.get_instance_idx()];
 
-    for (const ModelVolume *mv : mo->volumes) {
-        if (mv->is_model_part()) {
+    for (ModelVolume *mv : mo->volumes) {
+        if (filter_model_volume(mv)) {
             m_trafo_matrices.emplace_back(mi->get_transformation().get_matrix() * mv->get_matrix());
+            m_valid_volumes.emplace_back(mv);
         }
     }
 }
