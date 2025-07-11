@@ -1194,6 +1194,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInts,               other_layers_print_sequence))
     ((ConfigOptionInt,                other_layers_print_sequence_nums))
     ((ConfigOptionBools,              slow_down_for_layer_cooling))
+    ((ConfigOptionBools,              no_slow_down_for_cooling_on_outwalls))
     ((ConfigOptionFloatsNullable,     default_acceleration))
     ((ConfigOptionFloatsNullable,     travel_acceleration))
     ((ConfigOptionFloatsNullable,     initial_layer_travel_acceleration))

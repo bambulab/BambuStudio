@@ -246,6 +246,9 @@
     "slow_down_for_layer_cooling": [
         "1"
     ],
+    "no_slow_down_for_cooling_on_outwalls": [
+        "0"
+    ],
     "slow_down_layer_time": [
         "8"
     ],

@@ -3584,6 +3584,7 @@ void TabFilament::build()
         optgroup->append_line(line);
         optgroup->append_single_option_line("reduce_fan_stop_start_freq", "auto-cooling");
         optgroup->append_single_option_line("slow_down_for_layer_cooling", "auto-cooling");
+        optgroup->append_single_option_line("no_slow_down_for_cooling_on_outwalls", "auto-cooling");
         optgroup->append_single_option_line("slow_down_min_speed","auto-cooling");
 
         optgroup->append_single_option_line("enable_overhang_bridge_fan", "auto-cooling");
@@ -3729,6 +3730,7 @@ void TabFilament::toggle_options()
     {
         bool cooling = m_config->opt_bool("slow_down_for_layer_cooling", 0);
         toggle_option("slow_down_min_speed", cooling);
+        toggle_option("no_slow_down_for_cooling_on_outwalls", cooling);
 
         bool has_enable_overhang_bridge_fan = m_config->opt_bool("enable_overhang_bridge_fan", 0);
         for (auto el : {"overhang_fan_speed", "pre_start_fan_time", "overhang_fan_threshold"})
