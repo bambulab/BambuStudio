@@ -1241,6 +1241,7 @@ void MenuFactory::create_bbl_object_menu()
     append_menu_item_fix_through_netfabb(&m_object_menu);
     // Object Simplify
     append_menu_item_simplify(&m_object_menu);
+    append_menu_item_smooth_mesh(&m_object_menu);
     // merge to single part
     append_menu_item_merge_parts_to_single_part(&m_object_menu);
     //scale_selection_to_fit_print_volume
@@ -1292,6 +1293,7 @@ void MenuFactory::create_bbl_assemble_object_menu()
     append_menu_item_fix_through_netfabb(&m_assemble_object_menu);
     // Object Simplify
     append_menu_item_simplify(&m_assemble_object_menu);
+    append_menu_item_smooth_mesh(&m_assemble_object_menu);
     m_assemble_object_menu.AppendSeparator();
 }
 
@@ -1375,6 +1377,7 @@ void MenuFactory::create_bbl_part_menu()
     append_menu_item_edit_text(menu);
     append_menu_item_fix_through_netfabb(menu);
     append_menu_item_simplify(menu);
+    append_menu_item_smooth_mesh(menu);
     append_menu_item_center(menu);
     append_menu_item_align_distribute(menu);
     append_menu_items_mirror(menu);
@@ -1405,6 +1408,7 @@ void MenuFactory::create_bbl_assemble_part_menu()
 
     append_menu_item_delete(menu);
     append_menu_item_simplify(menu);
+    append_menu_item_smooth_mesh(menu);
     menu->AppendSeparator();
 }
 
@@ -1876,6 +1880,13 @@ void MenuFactory::append_menu_item_simplify(wxMenu* menu)
     wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Simplify Model"), "",
         [](wxCommandEvent&) { obj_list()->simplify(); }, "", menu,
         []() {return plater()->can_simplify(); }, m_parent);
+}
+
+void MenuFactory::append_menu_item_smooth_mesh(wxMenu *menu)
+{
+    wxMenuItem *menu_item = append_menu_item(
+        menu, wxID_ANY, _L("Smooth mesh") + _L("(Lost color)"), "", [](wxCommandEvent &) { obj_list()->smooth_mesh(); }, "", menu, []() { return plater()->can_smooth_mesh(); },
+        m_parent);
 }
 
 void MenuFactory::append_menu_item_center(wxMenu* menu)
