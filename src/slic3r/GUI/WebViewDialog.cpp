@@ -1151,6 +1151,7 @@ void WebViewPanel::ShowUserPrintTask(bool bShow, bool bForce)
 
                     auto body2 = from_u8(m_TaskInfo);
                     body2.insert(1, "\"command\": \"printhistory_task_show\", ");
+                    WebView::RunScript(m_browserLeft, wxString::Format("window.postMessage(%s)", body2));
                     RunScript(wxString::Format("window.postMessage(%s)", body2));
 
                     SetLeftMenuShow("printhistory", 1);
