@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-09 16:21+0800\n"
+"POT-Creation-Date: 2025-07-11 17:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6061,6 +6061,9 @@ msgstr "接続"
 msgid "Click to view the wiki of the current plate type"
 msgstr "現在のプレートタイプのWikiを見るにはクリックしてください。"
 
+msgid "Sync info"
+msgstr ""
+
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "ノズル情報とAMSの数を同期させる"
 
@@ -7710,7 +7713,6 @@ msgid ""
 msgstr ""
 "非水溶性サポート材は、サポートベースとしての使用は推奨されません。\n"
 "本当にサポートベースに使用しますか？\n"
-""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
@@ -12392,9 +12394,9 @@ msgid ""
 "Start temp >= End temp + 5)"
 msgstr ""
 "有効な値を入力してください：\n"
-"	•	開始温度：350度以下\n"
-"	•	終了温度：180度 以上\n"
-"	•	開始温度は終了温度より5 度以上高くしてください"
+"\t•\t開始温度：350度以下\n"
+"\t•\t終了温度：180度 以上\n"
+"\t•\t開始温度は終了温度より5 度以上高くしてください"
 
 msgid "Max volumetric speed test"
 msgstr "最大体積速度テスト"
@@ -12414,9 +12416,9 @@ msgid ""
 "end >= start + step)"
 msgstr ""
 "有効な値を入力してください：\n"
-"	•	開始値（start） > 0\n"
-"	•	ステップサイズ（step） ≥ 0\n"
-"	•	終了値（end） ≥ 開始値 + ステップサイズ"
+"\t•\t開始値（start） > 0\n"
+"\t•\tステップサイズ（step） ≥ 0\n"
+"\t•\t終了値（end） ≥ 開始値 + ステップサイズ"
 
 msgid "VFA test"
 msgstr "VFA テスト"
@@ -12433,9 +12435,9 @@ msgid ""
 "end >= start + step)"
 msgstr ""
 "有効な値を入力してください：\n"
-"	•	開始値（start） > 10\n"
-"	•	ステップサイズ（step） ≥ 0\n"
-"	•	終了値（end） ≥ 開始値 + ステップサイズ"
+"\t•\t開始値（start） > 10\n"
+"\t•\tステップサイズ（step） ≥ 0\n"
+"\t•\t終了値（end） ≥ 開始値 + ステップサイズ"
 
 msgid "Start retraction length: "
 msgstr "引き込み開始の長さ： "
@@ -13572,6 +13574,38 @@ msgstr "印刷に失敗しました"
 
 msgid "Removed"
 msgstr "削除しました"
+
+msgid "Management user presets"
+msgstr ""
+
+msgid "Custom filaments"
+msgstr ""
+
+msgid "No content"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Printer presets(%d/%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament presets(%d/%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Process presets(%d/%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%u Selected"
+msgstr ""
+
+msgid "Please select the preset to be deleted"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d %s Preset will be deleted."
+msgstr ""
 
 msgid "Filament grouping"
 msgstr "フィラメントのグループ化"

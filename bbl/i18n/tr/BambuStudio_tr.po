@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-09 16:21+0800\n"
+"POT-Creation-Date: 2025-07-11 17:02+0800\n"
 "PO-Revision-Date: 2025-06-23 18:26+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -6095,6 +6095,9 @@ msgstr "Bağlantı"
 
 msgid "Click to view the wiki of the current plate type"
 msgstr "Geçerli plaka türünün wiki'sini görüntülemek için tıklayın"
+
+msgid "Sync info"
+msgstr ""
 
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Nozul bilgilerini ve AMS sayısını senkronize edin"
@@ -13594,6 +13597,38 @@ msgstr "Yazdırma Başarısız"
 
 msgid "Removed"
 msgstr "Kaldırıldı"
+
+msgid "Management user presets"
+msgstr ""
+
+msgid "Custom filaments"
+msgstr ""
+
+msgid "No content"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Printer presets(%d/%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament presets(%d/%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Process presets(%d/%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%u Selected"
+msgstr ""
+
+msgid "Please select the preset to be deleted"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d %s Preset will be deleted."
+msgstr ""
 
 msgid "Filament grouping"
 msgstr "Filament gruplama"

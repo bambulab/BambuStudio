@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-09 16:21+0800\n"
+"POT-Creation-Date: 2025-07-11 17:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6098,6 +6098,9 @@ msgstr "Conexão"
 
 msgid "Click to view the wiki of the current plate type"
 msgstr "Clique para ver o wiki do tipo de placa atual"
+
+msgid "Sync info"
+msgstr ""
 
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Sincronizar informações do bico e o número de AMS"
@@ -13597,6 +13600,38 @@ msgstr "Falha na impressão"
 
 msgid "Removed"
 msgstr "Removido"
+
+msgid "Management user presets"
+msgstr ""
+
+msgid "Custom filaments"
+msgstr ""
+
+msgid "No content"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Printer presets(%d/%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament presets(%d/%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Process presets(%d/%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%u Selected"
+msgstr ""
+
+msgid "Please select the preset to be deleted"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d %s Preset will be deleted."
+msgstr ""
 
 msgid "Filament grouping"
 msgstr "Agrupamento de filamentos"

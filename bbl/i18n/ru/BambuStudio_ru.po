@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-09 16:21+0800\n"
+"POT-Creation-Date: 2025-07-11 17:02+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -6235,6 +6235,9 @@ msgstr "Подключиться"
 
 msgid "Click to view the wiki of the current plate type"
 msgstr "Нажмите, чтобы открыть вики-страницу о текущей выбранной пластине."
+
+msgid "Sync info"
+msgstr ""
 
 # ???22 Синхронизация
 msgid "Synchronize nozzle information and the number of AMS"
@@ -13966,6 +13969,38 @@ msgstr "Ошибка печати"
 
 msgid "Removed"
 msgstr "Удалено"
+
+msgid "Management user presets"
+msgstr ""
+
+msgid "Custom filaments"
+msgstr ""
+
+msgid "No content"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Printer presets(%d/%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament presets(%d/%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Process presets(%d/%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%u Selected"
+msgstr ""
+
+msgid "Please select the preset to be deleted"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d %s Preset will be deleted."
+msgstr ""
 
 msgid "Filament grouping"
 msgstr "Группировка материала"

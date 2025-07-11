@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-09 16:21+0800\n"
+"POT-Creation-Date: 2025-07-11 17:02+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3008,7 +3008,7 @@ msgid "Note: the slot is empty or undefined. If you want to use this slot, you c
 msgstr "提示: 此槽位是空的或者未定义的。如果您想使用这个槽位，请安装%s，然后在''设备'页面设置槽位信息。"
 
 msgid "Note: Only filament-loaded slots can be selected."
-msgstr ""
+msgstr "提示：仅允许选择放置有耗材的槽位。"
 
 msgid "Enable AMS"
 msgstr "启用AMS"
@@ -3325,6 +3325,8 @@ msgid ""
 "Should not large than layer height.\n"
 "Reset to 10%"
 msgstr ""
+"Should not be greater than layer height.\n"
+"Reset to 10%"
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -5857,7 +5859,7 @@ msgid "Detect spaghetti failure(scattered lose filament)."
 msgstr "检测到炒面（散落的耗材丝）。"
 
 msgid "Purge Chute Pile-Up Detection"
-msgstr ""
+msgstr "堆料检测"
 
 msgid "Monitor if the waste is piled up in the purge chute."
 msgstr "监控冲刷料是否在垃圾桶中发生堆积。"
@@ -5958,14 +5960,14 @@ msgstr "喷嘴"
 
 #, boost-format
 msgid "It is not recommended to print the following filament(s) with %1%: %2%\n"
-msgstr ""
+msgstr "不推荐使用%1%打印材料：%2%\n"
 
 msgid "It is not recommended to use the following nozzle and filament combinations:\n"
-msgstr ""
+msgstr "不推荐喷嘴和材料这样搭配使用：\n"
 
 #, boost-format
 msgid "%1% with %2%\n"
-msgstr ""
+msgstr "%1%打印：%2%\n"
 
 #, boost-format
 msgid " plate %1%: "
@@ -6054,6 +6056,9 @@ msgstr "连接"
 
 msgid "Click to view the wiki of the current plate type"
 msgstr "点击查看当前热床类型的wiki"
+
+msgid "Sync info"
+msgstr ""
 
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "同步喷嘴信息和AMS编号"
@@ -13544,6 +13549,38 @@ msgstr "打印失败"
 msgid "Removed"
 msgstr "移除"
 
+msgid "Management user presets"
+msgstr ""
+
+msgid "Custom filaments"
+msgstr ""
+
+msgid "No content"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Printer presets(%d/%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament presets(%d/%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Process presets(%d/%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%u Selected"
+msgstr ""
+
+msgid "Please select the preset to be deleted"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d %s Preset will be deleted."
+msgstr ""
+
 msgid "Filament grouping"
 msgstr "耗材分组"
 
@@ -13605,7 +13642,7 @@ msgid "Zoom In"
 msgstr "放大"
 
 msgid "Load skipping objects information failed. Please try again."
-msgstr ""
+msgstr "加载跳过零件信息失败。请重试。"
 
 msgid "Loading ..."
 msgstr "加载中..."
@@ -13620,7 +13657,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "/%d Selected"
-msgstr "%d 已选择"
+msgstr "/%d 已选择"
 
 msgid "Skipping all objects."
 msgstr "跳过所有零件。"
