@@ -211,6 +211,8 @@ std::vector<PerExtruderAdjustments> GCodeEditor::parse_layer_gcode(  const      
 
             if (external_perimeter) {
                 line.type |= CoolingLine::TYPE_EXTERNAL_PERIMETER;
+                if (m_config.no_slow_down_for_cooling_on_outwalls.get_at(adjustment->extruder_id))
+                    line.type &= ~CoolingLine::TYPE_ADJUSTABLE; // Dont slowdown external perimeters for layer cooling flag
                 if (line.type & CoolingLine::TYPE_ADJUSTABLE && join_z_smooth && !spiral_vase) {
                     // BBS: collect outwall info
                     mark_node_pos(append_wall_ptr, line_idx, node_pos, object_label, cooling_node_id, object_id, adjustment);

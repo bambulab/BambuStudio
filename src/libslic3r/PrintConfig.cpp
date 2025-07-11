@@ -1334,6 +1334,16 @@ void PrintConfigDef::init_fff_params()
                      "This can improve the cooling quality for needle and small details");
     def->set_default_value(new ConfigOptionBools { true });
 
+    def = this->add("no_slow_down_for_cooling_on_outwalls", coBools);
+    def->label = L("Don't slow down outer walls");
+    def->tooltip = L("If enabled, this setting will ensure external perimeters are not slowed down to meet the minimum layer time. "
+                     "This is particularly helpful in the below scenarios:\n"
+                     "1. To avoid changes in shine when printing glossy filaments\n"
+                     "2. To avoid changes in external wall speed which may create slight wall artifacts that appear like Z banding\n"
+                     "3. To avoid printing at speeds which cause VFAs (fine artifacts) on the external walls");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionBools{false});
+
     def = this->add("default_acceleration", coFloats);
     def->label = L("Normal printing");
     def->tooltip = L("The default acceleration of both normal printing and travel except initial layer");
