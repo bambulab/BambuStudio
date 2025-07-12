@@ -29,8 +29,7 @@ class GLGizmoText : public GLGizmoBase
 {
 private:
     bool  m_is_direct_create_text = false;
-    std::vector<Transform3d> m_trafo_matrices;
-    ModelVolumePtrs          m_valid_volumes;
+    std::vector<Transform3d> m_trafo_matrices;//Need to correspond m_c->raycaster()->raycasters
     int m_show_calc_meshtod = 0;//1 preview //2 draging
     std::vector<std::string> m_avail_font_names;
     std::string   m_text{""};
