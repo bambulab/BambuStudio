@@ -218,7 +218,7 @@ public:
     std::string set_object_info(Print* print);
 
     // append full config to the given string
-    static void append_full_config(const Print& print, std::string& str);
+    static void append_full_config(const DynamicPrintConfig &cfg, std::string &str);
 
     // BBS: detect lift type in needs_retraction
     bool        needs_retraction(const Polyline &travel, ExtrusionRole role, LiftType &lift_type);
