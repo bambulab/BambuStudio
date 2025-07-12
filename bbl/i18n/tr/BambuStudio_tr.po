@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-05-29 15:44+0800\n"
-"PO-Revision-Date: 2025-06-23 18:26+0300\n"
+"PO-Revision-Date: 2025-07-12 22:45+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -11143,16 +11143,16 @@ msgid "The number of top solid layers is increased when slicing if the thickness
 msgstr "Üst kabuk katmanları tarafından hesaplanan kalınlık bu değerden daha ince ise dilimleme sırasında üst katı katmanların sayısı artırılır. Bu, katman yüksekliği küçük olduğunda kabuğun çok ince olmasını önleyebilir. 0, bu ayarın devre dışı olduğu ve üst kabuğun kalınlığının kesinlikle üst kabuk katmanları tarafından belirlendiği anlamına gelir"
 
 msgid "Top paint penetration layers"
-msgstr "Üst katmana nüfuz eden boya katmanları"
+msgstr "Üst yüzey deki kaplama katmanları"
 
 msgid "This is  the number of layers of top paint penetration."
-msgstr "Bu,   üst katmana nüfuz eden boya katmanlarının sayısıdır."
+msgstr "Bu,   üst yüzey deki kaplama katmanlarının sayısıdır."
 
 msgid "Bottom paint penetration layers"
-msgstr "Alt katmana nüfuz eden boya katmanları"
+msgstr "Alt yüzey deki kaplama katmanları"
 
 msgid "This is  the number of layers of top bottom penetration."
-msgstr "Bu,   alt katmana nüfuz eden boya katmanlarının sayısıdır."
+msgstr "Bu,   alt yüzey deki kaplama katmanlarının sayısıdır."
 
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "Daha hızlı ve ekstrüzyonsuz seyahat hızı"
