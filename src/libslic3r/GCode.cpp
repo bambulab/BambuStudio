@@ -2103,7 +2103,33 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     {
         file.write("; CONFIG_BLOCK_START\n");
         std::string full_config;
-        append_full_config(print, full_config);
+        DynamicPrintConfig print_cfg_temp = print.full_print_config();
+
+        {//correct the flush_volumes_matrix with flush_multiplier values
+            std::vector<double> temp_cfg_flush_multiplier   = print_cfg_temp.option<ConfigOptionFloats>("flush_multiplier")->values;
+            std::vector<double> temp_flush_volumes_matrix = print_cfg_temp.option<ConfigOptionFloats>("flush_volumes_matrix")->values;
+            auto                temp_filament_color         = print_cfg_temp.option<ConfigOptionStrings>("filament_colour")->values;
+            size_t              heads_count_tmp = temp_cfg_flush_multiplier.size(),
+                matrix_value_count = temp_flush_volumes_matrix.size() / temp_cfg_flush_multiplier.size(),
+                   filament_count_tmp = temp_filament_color.size();
+            if (filament_count_tmp * filament_count_tmp * heads_count_tmp == temp_flush_volumes_matrix.size()) {
+                for (size_t idx = 0; idx < heads_count_tmp; ++idx) {
+                    double temp_cfg_flush_multiplier_idx = temp_cfg_flush_multiplier[idx];
+                    size_t temp_begin_t = idx * matrix_value_count, temp_end_t = (idx + 1) * matrix_value_count;
+                    std::transform(temp_flush_volumes_matrix.begin() + temp_begin_t,
+                        temp_flush_volumes_matrix.begin() + temp_end_t,
+                                   temp_flush_volumes_matrix.begin() + temp_begin_t,
+                                   [temp_cfg_flush_multiplier_idx](double inputx) { return inputx * temp_cfg_flush_multiplier_idx; });
+                }
+                print_cfg_temp.option<ConfigOptionFloats>("flush_volumes_matrix")->values = temp_flush_volumes_matrix;
+            } else if (filament_count_tmp == 1) {
+            }// Not applicable to flush matrix situations
+            else
+            { // flush_volumes_matrix value count error?
+                throw Slic3r::SlicingError(_(L("Flush volumes matrix do not match to the correct size!")));
+            }
+        }
+        append_full_config(print_cfg_temp, full_config);
         if (!full_config.empty())
             file.write(full_config);
         file.write("; CONFIG_BLOCK_END\n\n");
@@ -4557,9 +4583,8 @@ void GCode::apply_print_config(const PrintConfig &print_config)
     m_scaled_resolution = scaled<double>(print_config.resolution.value);
 }
 
-void GCode::append_full_config(const Print &print, std::string &str)
+void GCode::append_full_config(const DynamicPrintConfig &cfg, std::string &str)
 {
-    const DynamicPrintConfig &cfg = print.full_print_config();
     // Sorted list of config keys, which shall not be stored into the G-code. Initializer list.
     static const std::set<std::string_view> banned_keys({
         "compatible_printers"sv,
