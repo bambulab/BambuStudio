@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-11 17:02+0800\n"
+"POT-Creation-Date: 2025-07-14 21:45+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4193,10 +4193,10 @@ msgid "And it is valid when importing an stl with at least two meshes."
 msgstr "并且当导入的一个stl中存在至少两个面网格，这个功能是有效的。"
 
 msgid "Click to Extend"
-msgstr ""
+msgstr "点击展开"
 
 msgid "Click to Collapse"
-msgstr ""
+msgstr "点击折叠"
 
 msgid "Assembly View"
 msgstr "装配体视图"
@@ -4624,7 +4624,7 @@ msgid "Publish to MakerWorld"
 msgstr "发布到MakerWorld"
 
 msgid "Batch Preset Management"
-msgstr ""
+msgstr "批量预设管理"
 
 msgid "Quit"
 msgstr "退出程序"
@@ -5871,7 +5871,7 @@ msgid "Check if the nozzle is clumping by filaments or other foreign objects."
 msgstr "检查喷嘴是否被耗材或其他异物堵塞。"
 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
-msgstr ""
+msgstr "检测由喷嘴堵塞引起的空打。"
 
 msgid "First Layer Inspection"
 msgstr "首层扫描"
@@ -6058,7 +6058,7 @@ msgid "Click to view the wiki of the current plate type"
 msgstr "点击查看当前热床类型的wiki"
 
 msgid "Sync info"
-msgstr ""
+msgstr "同步信息"
 
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "同步喷嘴信息和AMS编号"
@@ -6827,13 +6827,13 @@ msgid "Improved rendering performance under the scene of multiple plates and man
 msgstr "在多盘和多模型的场景下提高了渲染性能"
 
 msgid "Collapsible"
-msgstr ""
+msgstr "可折叠"
 
 msgid "Uncollapsible"
-msgstr ""
+msgstr "不可折叠"
 
 msgid "Toolbar Style"
-msgstr ""
+msgstr "工具栏风格"
 
 msgid "Grabber scale"
 msgstr "抓手比例"
@@ -9604,7 +9604,7 @@ msgid "Slow down by height"
 msgstr "随高度降速"
 
 msgid "Enable this option to slow printing down by height"
-msgstr "启用此选项可以定义打印过程中速度和加速度的上限。此上限为打印高度z的函数，以打印速度为例：当z小于“起始高度”时，z处速度上限为“起始高度处速度”；当z大于“结束高度”时，z处速度上限为“结束高度处速度”；其余情况z处速度上限通过对“起始高度处速度”和“结束高度处速度”在区间[“起始高度”, “结束高度”]内按z进行线性插值得到。"
+msgstr "启用此选项可以定义打印过程中当打印高度z处于区间[“起始高度”, “结束高度”]时，打印速度和加速度的上限, 此上限为z的函数。以打印速度为例，z处速度上限通过对“起始高度处速度”和“结束高度处速度”在区间[“起始高度”, “结束高度”]内按z进行线性插值得到。"
 
 msgid "Starting height"
 msgstr "起始高度"
@@ -10267,7 +10267,7 @@ msgid "skeleton infill pattern"
 msgstr "骨架填充图案"
 
 msgid "Line pattern for skeleton"
-msgstr ""
+msgstr "骨架填充的走线图案"
 
 msgid "Acceleration of top surface infill. Using a lower value may improve top surface quality"
 msgstr "顶面填充的加速度。使用较低值可能会改善顶面质量"
@@ -13550,25 +13550,25 @@ msgid "Removed"
 msgstr "移除"
 
 msgid "Management user presets"
-msgstr ""
+msgstr "管理用户预设"
 
 msgid "Custom filaments"
-msgstr ""
+msgstr "自定义材料"
 
 msgid "No content"
 msgstr ""
 
 #, c-format, boost-format
 msgid "Printer presets(%d/%d)"
-msgstr ""
+msgstr "打印机预设 (%d/%d)"
 
 #, c-format, boost-format
 msgid "Filament presets(%d/%d)"
-msgstr ""
+msgstr "材料预设 (%d/%d)"
 
 #, c-format, boost-format
 msgid "Process presets(%d/%d)"
-msgstr ""
+msgstr "工艺预设 (%d/%d)"
 
 #, c-format, boost-format
 msgid "%u Selected"
@@ -13579,7 +13579,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "%d %s Preset will be deleted."
-msgstr ""
+msgstr "%d个%s预设将被删除。"
 
 msgid "Filament grouping"
 msgstr "耗材分组"

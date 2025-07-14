@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-11 17:02+0800\n"
+"POT-Creation-Date: 2025-07-14 21:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1067,7 +1067,7 @@ msgid "Warning:Due to functional upgrade, rotation information cannot be restore
 msgstr "Advertencia: Debido a una actualización funcional, no se puede restaurar la información de rotación. Arrastre o modifique el texto, guárdelo y vuelva a editarlo."
 
 msgid "Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."
-msgstr ""
+msgstr "Se detectó que el texto no se adhería a la superficie de la malla. Arrastre manualmente el cuadrado amarillo hasta la superficie de malla a la que debe adherirse el texto."
 
 msgid "The text cannot be written using the selected font. Please try choosing a different font."
 msgstr "No es posible escribir el texto con la fuente seleccionada. Intente elegir una fuente diferente."
@@ -1076,7 +1076,7 @@ msgid "Embossed text cannot contain only white spaces."
 msgstr "El texto en relieve no puede contener solo espacios en blanco."
 
 msgid "Unsupported characters automatically switched to fallback font."
-msgstr ""
+msgstr "Los caracteres no compatibles cambian automáticamente a la fuente alternativa."
 
 msgid "Text doesn't show current horizontal alignment."
 msgstr "El texto no muestra la alineación horizontal actual."
@@ -3021,7 +3021,7 @@ msgid "Note: the slot is empty or undefined. If you want to use this slot, you c
 msgstr ""
 
 msgid "Note: Only filament-loaded slots can be selected."
-msgstr ""
+msgstr "Nota: Solo se pueden seleccionar ranuras con filamento cargado."
 
 msgid "Enable AMS"
 msgstr "Habilitar AMS"
@@ -3342,6 +3342,8 @@ msgid ""
 "Should not large than layer height.\n"
 "Reset to 10%"
 msgstr ""
+"No debe ser mayor que la altura de la capa.\n"
+"Restablecer al 10%"
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -5321,7 +5323,7 @@ msgid "Layer: N/A"
 msgstr "Capa: N/A"
 
 msgid "Estimated finish time: "
-msgstr ""
+msgstr "Tiempo estimado de finalización: "
 
 msgid ""
 "The estimated printing time for \n"
@@ -5908,7 +5910,7 @@ msgid "Check if the nozzle is clumping by filaments or other foreign objects."
 msgstr "Compruebe si la boquilla está llena de filamentos u otros objetos extraños."
 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
-msgstr ""
+msgstr "Detecta la impresión por aire causada por la obstrucción de las boquillas o la trituración de los filamentos."
 
 msgid "First Layer Inspection"
 msgstr "Inspección de la primera capa"
@@ -6095,7 +6097,7 @@ msgid "Click to view the wiki of the current plate type"
 msgstr "Haga clic para ver la wiki del tipo de placa actual"
 
 msgid "Sync info"
-msgstr ""
+msgstr "Sincronizar información"
 
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Sincronizar la información de la boquilla y el número de AMS"
@@ -6463,7 +6465,7 @@ msgid "Importing to Bambu Studio failed. Please download the file and manually i
 msgstr "La importación a Bambu Studio ha fallado. Descargue el archivo e impórtelo manualmente."
 
 msgid "The current settings produce a model that is too large. Please narrow the range or increase the step size. (Model size is proportional to (End - Start) / Step size.)"
-msgstr ""
+msgstr "La configuración actual produce un modelo demasiado grande. Por favor, reduzca el rango o aumente el tamaño del escalón. (El tamaño del modelo es proporcional al tamaño del escalón (final a inicio))."
 
 msgid "The selected file"
 msgstr "El archivo seleccionado"
@@ -7324,10 +7326,10 @@ msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "¿No está satisfecho con la agrupación de filamentos? Reagrupe y corte ->"
 
 msgid "Manually change external spool during printing for multi-color printing"
-msgstr ""
+msgstr "Cambie manualmente la bobina externa durante la impresión para una impresión multicolor"
 
 msgid "Multi-color with external"
-msgstr ""
+msgstr "Multicolor con exterior"
 
 msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr "Su método de agrupamiento de filamentos en el archivo cortado no es óptimo."
@@ -9659,7 +9661,7 @@ msgid "Slow down by height"
 msgstr ""
 
 msgid "Enable this option to slow printing down by height"
-msgstr "Enable this option to set the upper bound of printing speed and acceleration. This upper bound is a function of printing height (z), e.g. the upper bound of printing speed at z is: \"starting speed\" when z is less than \"starting height\"; \"ending speed\" when z is larger than \"ending height\"; a linear interpolation between (\"starting height\", \"starting speed\")  and (\"ending height\", \"ending speed\" ) by z otherwisely."
+msgstr "Enable this option to set the upper bound of printing speed and acceleration as functions of printing height (z) when z lies within the range [\"starting height\", \"ending height\"]. For example, the upper bound of the printing speed at z changes between \"starting speed\" and \"ending speed\" by z linearly."
 
 msgid "Starting height"
 msgstr ""
@@ -11087,10 +11089,10 @@ msgid "Random"
 msgstr "Aleatorio"
 
 msgid "Seam placement away from overhangs(experimental)"
-msgstr ""
+msgstr "Colocación de las juntas lejos de los voladizos (experimental)"
 
 msgid "Ensure seam placement away from overhangs for alignment and backing modes."
-msgstr "Ensure seam placement away from overhangs for alignment modes."
+msgstr "Asegúrese de colocar las juntas lejos de los voladizos para los modos de alineación."
 
 msgid "Seam gap"
 msgstr "Brecha de la capa"
@@ -12454,6 +12456,9 @@ msgid ""
 "start > 0 step >= 0\n"
 "end >= start + step)"
 msgstr ""
+"Por favor, introduzca valores válidos:\n"
+"inicio > 0 paso >= 0\n"
+"final >= inicio + paso)"
 
 msgid "VFA test"
 msgstr "Prueba VFA"
@@ -12469,6 +12474,9 @@ msgid ""
 "start > 10 step >= 0\n"
 "end >= start + step)"
 msgstr ""
+"Por favor, introduzca valores válidos:\n"
+"inicio > 10 pasos >= 0\n"
+"final >= inicio (+ paso)"
 
 msgid "Start retraction length: "
 msgstr "Longitud de retracción inicial:"
@@ -13699,19 +13707,19 @@ msgid "Skip Objects"
 msgstr "Omitir objetos"
 
 msgid "Zoom Out"
-msgstr ""
+msgstr "Alejar"
 
 msgid "100 %"
 msgstr ""
 
 msgid "Zoom In"
-msgstr ""
+msgstr "Ampliar"
 
 msgid "Load skipping objects information failed. Please try again."
-msgstr ""
+msgstr "No se pudo cargar la información de objetos que se saltan. Vuelva a intentarlo."
 
 msgid "Loading ..."
-msgstr ""
+msgstr "Cargando..."
 
 #, c-format, boost-format
 msgid "%d%%"
@@ -13723,41 +13731,41 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "/%d Selected"
-msgstr ""
+msgstr "/%dSeleccionado"
 
 msgid "Skipping all objects."
-msgstr ""
+msgstr "Omitir todos los objetos."
 
 msgid "The printing job will be stopped. Continue?"
-msgstr ""
+msgstr "Se detendrá el trabajo de impresión. ¿Desea continuar?"
 
 #, c-format, boost-format
 msgid "Skipping %d objects."
-msgstr ""
+msgstr "Omitir %d objetos."
 
 msgid "This action cannot be undone. Continue?"
-msgstr ""
+msgstr "Esta acción no se puede deshacer. ¿Desea continuar?"
 
 msgid "Skipping objects."
-msgstr ""
+msgstr "Omitir objetos."
 
 msgid "Continue"
-msgstr ""
+msgstr "Continuar"
 
 msgid "Select Filament"
-msgstr ""
+msgstr "Seleccione el filamento"
 
 msgid "Null Color"
-msgstr ""
+msgstr "Color nulo"
 
 msgid "Multiple Color"
-msgstr ""
+msgstr "Color múltiple"
 
 msgid "Official Filament"
-msgstr "Official Filaments"
+msgstr "Filamentos oficiales"
 
 msgid "More Colors"
-msgstr ""
+msgstr "Más colores"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""

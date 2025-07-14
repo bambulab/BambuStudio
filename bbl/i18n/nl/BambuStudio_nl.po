@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-11 17:02+0800\n"
+"POT-Creation-Date: 2025-07-14 21:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3021,7 +3021,7 @@ msgid "Note: the slot is empty or undefined. If you want to use this slot, you c
 msgstr ""
 
 msgid "Note: Only filament-loaded slots can be selected."
-msgstr ""
+msgstr "Opmerking: Alleen sleuven met geladen gloeidraad kunnen worden geselecteerd."
 
 msgid "Enable AMS"
 msgstr "AMS inschakelen"
@@ -3342,6 +3342,8 @@ msgid ""
 "Should not large than layer height.\n"
 "Reset to 10%"
 msgstr ""
+"Mag niet groter zijn dan de laaghoogte.\n"
+"Teruggezet naar 10%"
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -5910,7 +5912,7 @@ msgid "Check if the nozzle is clumping by filaments or other foreign objects."
 msgstr "Controleer of de nozzle is samengeklonterd met filament of andere vreemde objecten."
 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
-msgstr ""
+msgstr "Detecteert luchtdruk veroorzaakt door verstopping van de nozzle of het schuren van het filament."
 
 msgid "First Layer Inspection"
 msgstr "Inspectie van de eerste laag"
@@ -6097,7 +6099,7 @@ msgid "Click to view the wiki of the current plate type"
 msgstr "Klik om de wiki van het huidige plaattype te bekijken"
 
 msgid "Sync info"
-msgstr ""
+msgstr "Synchronisatie-info"
 
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Synchroniseer nozzle-informatie en het aantal AMS"
@@ -9659,7 +9661,7 @@ msgid "Slow down by height"
 msgstr ""
 
 msgid "Enable this option to slow printing down by height"
-msgstr "Enable this option to set the upper bound of printing speed and acceleration. This upper bound is a function of printing height (z), e.g. the upper bound of printing speed at z is: \"starting speed\" when z is less than \"starting height\"; \"ending speed\" when z is larger than \"ending height\"; a linear interpolation between (\"starting height\", \"starting speed\")  and (\"ending height\", \"ending speed\" ) by z otherwisely."
+msgstr "Enable this option to set the upper bound of printing speed and acceleration as functions of printing height (z) when z lies within the range [\"starting height\", \"ending height\"]. For example, the upper bound of the printing speed at z changes between \"starting speed\" and \"ending speed\" by z linearly."
 
 msgid "Starting height"
 msgstr ""
@@ -13710,7 +13712,7 @@ msgid "Zoom In"
 msgstr "Inzoomen"
 
 msgid "Load skipping objects information failed. Please try again."
-msgstr ""
+msgstr "Laden en informatie over het overslaan van objecten is mislukt. Probeer het opnieuw."
 
 msgid "Loading ..."
 msgstr "Bezig met laden..."
@@ -13728,10 +13730,10 @@ msgid "/%d Selected"
 msgstr "/%d Geselecteerd"
 
 msgid "Skipping all objects."
-msgstr ""
+msgstr "Alle objecten overslaan."
 
 msgid "The printing job will be stopped. Continue?"
-msgstr ""
+msgstr "De printopdracht wordt gestopt. Doorgaan?"
 
 #, c-format, boost-format
 msgid "Skipping %d objects."

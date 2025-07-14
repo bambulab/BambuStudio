@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-11 17:02+0800\n"
+"POT-Creation-Date: 2025-07-14 21:45+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3021,7 +3021,7 @@ msgid "Note: the slot is empty or undefined. If you want to use this slot, you c
 msgstr "Notera: facket är tomt eller odefinierat. Om du vill använda den här kortplatsen kan du installera %s och ändra kortplats informationen på sidan \"Enhet\"."
 
 msgid "Note: Only filament-loaded slots can be selected."
-msgstr ""
+msgstr "Obs: Endast filament laddade fack kan väljas."
 
 msgid "Enable AMS"
 msgstr "Aktivera AMS"
@@ -3342,6 +3342,8 @@ msgid ""
 "Should not large than layer height.\n"
 "Reset to 10%"
 msgstr ""
+"Bör inte vara större än lager höjd.\n"
+"Återställ till 10%"
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -5910,7 +5912,7 @@ msgid "Check if the nozzle is clumping by filaments or other foreign objects."
 msgstr "Kontrollera om nozzle täpps igen av filament eller andra främmande föremål."
 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
-msgstr ""
+msgstr "Detekterar utskrift i luften orsakad av nozzle stopp eller filament slirning."
 
 msgid "First Layer Inspection"
 msgstr "Första Lager Inspektion"
@@ -6097,7 +6099,7 @@ msgid "Click to view the wiki of the current plate type"
 msgstr "Klicka för att visa wiki för den aktuella plattypen"
 
 msgid "Sync info"
-msgstr ""
+msgstr "Synkroniserings information"
 
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Synkronisera nozzle information och antalet AMS"
@@ -13625,36 +13627,36 @@ msgid "Removed"
 msgstr "Borttagen"
 
 msgid "Management user presets"
-msgstr ""
+msgstr "Inställningar för hanterings användare"
 
 msgid "Custom filaments"
-msgstr ""
+msgstr "Anpassade filament"
 
 msgid "No content"
-msgstr ""
+msgstr "Inget innehåll"
 
 #, c-format, boost-format
 msgid "Printer presets(%d/%d)"
-msgstr ""
+msgstr "Inställningar för printer (%d/%d)"
 
 #, c-format, boost-format
 msgid "Filament presets(%d/%d)"
-msgstr ""
+msgstr "Filament inställningar (%d/%d)"
 
 #, c-format, boost-format
 msgid "Process presets(%d/%d)"
-msgstr ""
+msgstr "Process inställningar (%d/%d)"
 
 #, c-format, boost-format
 msgid "%u Selected"
-msgstr ""
+msgstr "%u Valda"
 
 msgid "Please select the preset to be deleted"
-msgstr ""
+msgstr "Välj den inställning som ska raderas"
 
 #, c-format, boost-format
 msgid "%d %s Preset will be deleted."
-msgstr ""
+msgstr "%d %s Inställningen kommer att raderas."
 
 msgid "Filament grouping"
 msgstr "Filament gruppering"
@@ -13717,7 +13719,7 @@ msgid "Zoom In"
 msgstr "Zooma in"
 
 msgid "Load skipping objects information failed. Please try again."
-msgstr ""
+msgstr "Det gick inte att läsa in information om ignorera objekt. Försök igen."
 
 msgid "Loading ..."
 msgstr "Laddar ..."
@@ -13735,10 +13737,10 @@ msgid "/%d Selected"
 msgstr "/%d Valda"
 
 msgid "Skipping all objects."
-msgstr ""
+msgstr "Hoppar över alla objekt."
 
 msgid "The printing job will be stopped. Continue?"
-msgstr ""
+msgstr "Utskriftsjobbet stoppas. Fortsätta?"
 
 #, c-format, boost-format
 msgid "Skipping %d objects."

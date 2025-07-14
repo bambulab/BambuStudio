@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-11 17:02+0800\n"
+"POT-Creation-Date: 2025-07-14 21:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1071,7 +1071,7 @@ msgid "Warning:Due to functional upgrade, rotation information cannot be restore
 msgstr "Aviso: Devido à atualização funcional, as informações de rotação não podem ser restauradas. Arraste ou modifique o texto, salve-o e reedite-o, tudo bem."
 
 msgid "Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."
-msgstr ""
+msgstr "Detected that text did not adhere to the mesh surface. Please manually drag the yellow square to mesh surface that the text needs to be adhered to."
 
 msgid "The text cannot be written using the selected font. Please try choosing a different font."
 msgstr "O texto não pode ser escrito usando a fonte selecionada. Por favor, tente escolher uma fonte diferente."
@@ -3028,7 +3028,7 @@ msgid "Note: the slot is empty or undefined. If you want to use this slot, you c
 msgstr ""
 
 msgid "Note: Only filament-loaded slots can be selected."
-msgstr ""
+msgstr "Observação: Somente os slots com filamento carregado podem ser selecionados."
 
 msgid "Enable AMS"
 msgstr "Ativar AMS"
@@ -3348,6 +3348,8 @@ msgid ""
 "Should not large than layer height.\n"
 "Reset to 10%"
 msgstr ""
+"Não deve ser maior que a altura da camada.\n"
+"Redefinir para 10%"
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -5913,7 +5915,7 @@ msgid "Check if the nozzle is clumping by filaments or other foreign objects."
 msgstr "Check if the nozzle is clumped with filament or other foreign objects."
 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
-msgstr ""
+msgstr "Detecta a impressão de ar causada por entupimento do bico ou moagem do filamento."
 
 msgid "First Layer Inspection"
 msgstr "Inspeção da primeira camada"
@@ -6100,7 +6102,7 @@ msgid "Click to view the wiki of the current plate type"
 msgstr "Clique para ver o wiki do tipo de placa atual"
 
 msgid "Sync info"
-msgstr ""
+msgstr "Sincronizar informações"
 
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Sincronizar informações do bico e o número de AMS"
@@ -9653,7 +9655,7 @@ msgid "Slow down by height"
 msgstr ""
 
 msgid "Enable this option to slow printing down by height"
-msgstr "Enable this option to set the upper bound of printing speed and acceleration. This upper bound is a function of printing height (z), e.g. the upper bound of printing speed at z is: \"starting speed\" when z is less than \"starting height\"; \"ending speed\" when z is larger than \"ending height\"; a linear interpolation between (\"starting height\", \"starting speed\")  and (\"ending height\", \"ending speed\" ) by z otherwisely."
+msgstr "Enable this option to set the upper bound of printing speed and acceleration as functions of printing height (z) when z lies within the range [\"starting height\", \"ending height\"]. For example, the upper bound of the printing speed at z changes between \"starting speed\" and \"ending speed\" by z linearly."
 
 msgid "Starting height"
 msgstr ""
@@ -13715,7 +13717,7 @@ msgid "Skipping all objects."
 msgstr ""
 
 msgid "The printing job will be stopped. Continue?"
-msgstr ""
+msgstr "The print job will be stopped. Continue?"
 
 #, c-format, boost-format
 msgid "Skipping %d objects."
