@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-11 17:02+0800\n"
+"POT-Creation-Date: 2025-07-14 21:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1067,7 +1067,7 @@ msgid "Warning:Due to functional upgrade, rotation information cannot be restore
 msgstr "Ostrzeżenie: Z powodu aktualizacji funkcji nie jest możliwe przywrócenie informacji o obrocie. Proszę przeciągnąć lub zmienić tekst, zapisać, a następnie ponownie edytować."
 
 msgid "Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."
-msgstr ""
+msgstr "Wykryto, że tekst nie został dopasowany do powierzchni siatki. Przeciągnij ręcznie żółty kwadrat na powierzchnię, do której ma przylegać."
 
 msgid "The text cannot be written using the selected font. Please try choosing a different font."
 msgstr "Nie można wprowadzić tekstu przy użyciu wybranej czcionki. Spróbuj wybrać inną czcionkę."
@@ -3029,7 +3029,7 @@ msgid "Note: the slot is empty or undefined. If you want to use this slot, you c
 msgstr "Uwaga: gniazdo jest puste lub nie zostało zdefiniowane. Jeśli chcesz korzystać z tego gniazda, możesz zainstalować %s i zmienić informacje o gnieździe na stronie \"Urządzenie\"."
 
 msgid "Note: Only filament-loaded slots can be selected."
-msgstr ""
+msgstr "Uwaga: Wybierane mogą być wyłącznie gniazda z filamentem."
 
 msgid "Enable AMS"
 msgstr "Włącz AMS"
@@ -3350,6 +3350,8 @@ msgid ""
 "Should not large than layer height.\n"
 "Reset to 10%"
 msgstr ""
+"Nie może być większe niż wysokość warstwy. \n"
+"Zresetuj do 10%."
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -5926,7 +5928,7 @@ msgid "Check if the nozzle is clumping by filaments or other foreign objects."
 msgstr "Sprawdź czy dysza nie jest zalepiona przez filament lub inne ciała obce."
 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
-msgstr ""
+msgstr "Wykrywa drukowanie w powietrzu spowodowane zatkaniem dyszy lub ścieraniem filamentu."
 
 msgid "First Layer Inspection"
 msgstr "Inspekcja pierwszej warstwy"
@@ -6113,7 +6115,7 @@ msgid "Click to view the wiki of the current plate type"
 msgstr "Kliknij, aby wyświetlić wiki dla bieżącego typu płyty."
 
 msgid "Sync info"
-msgstr ""
+msgstr "Synchronizacja informacji"
 
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Synchronizacja informacji o dyszach i liczbie AMS"
@@ -11113,7 +11115,7 @@ msgid "Seam placement away from overhangs(experimental)"
 msgstr "Umiejscowienie szwu z dala od nawisów (eksperymentalne)"
 
 msgid "Ensure seam placement away from overhangs for alignment and backing modes."
-msgstr "Ensure seam placement away from overhangs for alignment modes."
+msgstr "Upewnij się, że szew w trybach wyrównania jest umieszczony z dala od nawisów."
 
 msgid "Seam gap"
 msgstr "Szczelina szwu"
@@ -11160,7 +11162,7 @@ msgid "Use scarf joint for inner walls as well."
 msgstr "Użyj szwu Scarf również do ścian wewnętrznych."
 
 msgid "Override filament scarf seam setting"
-msgstr "Nadpisanie ustawień szwu scarf filamentu"
+msgstr "Zastąp ustawienie szwu scarf dla filamentu"
 
 msgid "Overrider filament scarf seam setting and could control settings by modifier."
 msgstr ""
@@ -11982,10 +11984,10 @@ msgid "Extra info"
 msgstr "Dodatkowe informacje"
 
 msgid "Flow Dynamics"
-msgstr "Dynamika Przepływu"
+msgstr "Dynamika przepływu"
 
 msgid "Flow Rate"
-msgstr "Natężenie Przepływu"
+msgstr "Natężenie przepływu"
 
 msgid "Max Volumetric Speed"
 msgstr "Maksymalna prędkość przepływu"
@@ -13728,19 +13730,19 @@ msgid "Skip Objects"
 msgstr "Pomiń obiekty"
 
 msgid "Zoom Out"
-msgstr ""
+msgstr "Pomniejsz"
 
 msgid "100 %"
 msgstr ""
 
 msgid "Zoom In"
-msgstr ""
+msgstr "Powiększ"
 
 msgid "Load skipping objects information failed. Please try again."
-msgstr ""
+msgstr "Nie udało się pobrać informacji o pomijanych obiektach. Proszę spróbować ponownie."
 
 msgid "Loading ..."
-msgstr ""
+msgstr "Ładowanie..."
 
 #, c-format, boost-format
 msgid "%d%%"
@@ -13752,41 +13754,41 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "/%d Selected"
-msgstr ""
+msgstr "/%d wybrano"
 
 msgid "Skipping all objects."
-msgstr ""
+msgstr "Pomiń wszystkie obiekty."
 
 msgid "The printing job will be stopped. Continue?"
-msgstr ""
+msgstr "Zadanie druku zostanie zatrzymane. Kontynuować?"
 
 #, c-format, boost-format
 msgid "Skipping %d objects."
-msgstr ""
+msgstr "%d obiekty będą pomijane."
 
 msgid "This action cannot be undone. Continue?"
-msgstr ""
+msgstr "Tego działania nie będzie można cofnąć. Kontynuować?"
 
 msgid "Skipping objects."
-msgstr ""
+msgstr "Pomijanie obiektów."
 
 msgid "Continue"
-msgstr ""
+msgstr "Kontynuuj"
 
 msgid "Select Filament"
-msgstr ""
+msgstr "Wybierz filament"
 
 msgid "Null Color"
-msgstr ""
+msgstr "Bez koloru"
 
 msgid "Multiple Color"
-msgstr ""
+msgstr "Wiele kolorów"
 
 msgid "Official Filament"
-msgstr "Official Filaments"
+msgstr "Oficjalne filamenty"
 
 msgid "More Colors"
-msgstr ""
+msgstr "Więcej kolorów"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""

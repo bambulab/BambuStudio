@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-11 17:02+0800\n"
+"POT-Creation-Date: 2025-07-14 21:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2384,7 +2384,7 @@ msgid "Connecting..."
 msgstr "Connexion…"
 
 msgid "Auto-refill"
-msgstr "Recharge auto"
+msgstr "Rech. Auto"
 
 msgid "Load"
 msgstr "Charger"
@@ -3015,7 +3015,7 @@ msgid "Note: the slot is empty or undefined. If you want to use this slot, you c
 msgstr ""
 
 msgid "Note: Only filament-loaded slots can be selected."
-msgstr ""
+msgstr "Remarque : Seuls les emplacements avec filament chargé peuvent être sélectionnés."
 
 msgid "Enable AMS"
 msgstr "Activer l'AMS"
@@ -3100,7 +3100,7 @@ msgid "AMS Settings"
 msgstr "Paramètres AMS"
 
 msgid "Insertion update"
-msgstr "Insertion de la mise à jour"
+msgstr "Lire à l'insertion"
 
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "L'AMS lit automatiquement les informations relatives au filament lors de l'insertion d'une nouvelle bobine de filament Bambu Lab. Cela prend environ 20 secondes."
@@ -3112,16 +3112,16 @@ msgid "When inserting a new filament, the AMS will not automatically read its in
 msgstr "Lors de l'insertion d'un nouveau filament, l'AMS ne lit pas automatiquement ses informations. Elles sont laissées vides pour que vous puissiez les saisir manuellement."
 
 msgid "Power on update"
-msgstr "Actualisation à la mise sous tension"
+msgstr "Lecture à l'allumage"
 
 msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
-msgstr "Au démarrage, l'AMS lit automatiquement les informations relatives au filament inséré. Cela prend environ 1 minute et ce processus fait tourner les bobines de filament."
+msgstr "Après l'allumage de l'imprimante, l'AMS fera tourner les bobines pour lire les informations du filament, cela prend environ 1min par bobine."
 
 msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
 msgstr "L'AMS ne lira pas automatiquement les informations du filament inséré pendant le démarrage et continuera à utiliser les informations enregistrées avant le dernier arrêt."
 
 msgid "Update remaining capacity"
-msgstr "Mettre à jour la capacité restante"
+msgstr "Actualiser la capacité restante"
 
 msgid "AMS will attempt to estimate the remaining capacity of the Bambu Lab filaments."
 msgstr "AMS tentera d'estimer la capacité restante des filaments de Bambu Lab."
@@ -3333,6 +3333,8 @@ msgid ""
 "Should not large than layer height.\n"
 "Reset to 10%"
 msgstr ""
+"Ne doit pas être supérieur à la hauteur de la couche.\n"
+"Réinitialiser à 10 %"
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -4395,7 +4397,7 @@ msgid "Logging"
 msgstr "Enregistrement"
 
 msgid "Prepare"
-msgstr "Préparer"
+msgstr "Préparation"
 
 msgid "Preview"
 msgstr "Aperçu"
@@ -4419,7 +4421,7 @@ msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "sera fermé avant de créer un nouveau modèle. Voulez-vous continuer ?"
 
 msgid "Slice plate"
-msgstr "Trancher le plateau"
+msgstr "Trancher plateau"
 
 msgid "Print plate"
 msgstr "Imprimer plateau"
@@ -5892,7 +5894,7 @@ msgid "Check if the nozzle is clumping by filaments or other foreign objects."
 msgstr "Vérifiez si la buse est recouverte de filament ou d'autres corps étrangers."
 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
-msgstr ""
+msgstr "Détecte l’impression dans l’air causée par un bouchage de la buse ou un filament rongé."
 
 msgid "First Layer Inspection"
 msgstr "Inspection de la Première Couche"
@@ -7113,7 +7115,7 @@ msgid "Add/Remove materials"
 msgstr "Ajouter/Supprimer des matériaux"
 
 msgid "Select/Remove printers(system presets)"
-msgstr "Sélectionner/Retirer des imprimantes (préréglages du système)"
+msgstr "Ajouter/Retirer des imprimantes (préréglages du système)"
 
 msgid "Create printer"
 msgstr "Créer imprimante"
@@ -8529,7 +8531,7 @@ msgid "Successfully synchronized nozzle information."
 msgstr "Information de buse synchronisées avec succès."
 
 msgid "Successfully synchronized nozzle and AMS number information."
-msgstr "Synchronisation réussie des informations sur les buses et les numéros AMS."
+msgstr "Type de buses et AMS synchronisés."
 
 msgid "Continue to sync filaments"
 msgstr "Poursuivre la synchronisation des filaments"
@@ -8539,7 +8541,7 @@ msgid "Cancel"
 msgstr "Annuler"
 
 msgid "Successfully synchronized color and type of filament from printer."
-msgstr "Synchronisation réussie de la couleur et du type de filament de l'imprimante."
+msgstr "Couleur et type de filament de l'imprimante synchronisé."
 
 msgctxt "FinishSyncAms"
 msgid "OK"
@@ -9629,7 +9631,7 @@ msgid "Slow down by height"
 msgstr ""
 
 msgid "Enable this option to slow printing down by height"
-msgstr "Enable this option to set the upper bound of printing speed and acceleration. This upper bound is a function of printing height (z), e.g. the upper bound of printing speed at z is: \"starting speed\" when z is less than \"starting height\"; \"ending speed\" when z is larger than \"ending height\"; a linear interpolation between (\"starting height\", \"starting speed\")  and (\"ending height\", \"ending speed\" ) by z otherwisely."
+msgstr "Enable this option to set the upper bound of printing speed and acceleration as functions of printing height (z) when z lies within the range [\"starting height\", \"ending height\"]. For example, the upper bound of the printing speed at z changes between \"starting speed\" and \"ending speed\" by z linearly."
 
 msgid "Starting height"
 msgstr ""
@@ -11060,7 +11062,7 @@ msgid "Seam placement away from overhangs(experimental)"
 msgstr "Coutures éloignées des surplombs (expérimental)"
 
 msgid "Ensure seam placement away from overhangs for alignment and backing modes."
-msgstr "S'assure de positionner les coutures à l'écart des surplombs pour les modes d'alignement et de renfort."
+msgstr "Veillez à ce que les coutures soient placées loin des surplombs pour les modes d'alignement."
 
 msgid "Seam gap"
 msgstr "Écart de jointure"
@@ -11119,7 +11121,7 @@ msgid "The wipe speed is determined by the speed setting specified in this confi
 msgstr "La vitesse d'essuyage est déterminée par le paramètre de vitesse spécifié dans ce paramètre. Si la valeur est exprimée en pourcentage (par exemple 80%), elle sera calculée sur la base du réglage de la vitesse de déplacement ci-dessus. La valeur par défaut de ce paramètre est 80%."
 
 msgid "Role-based wipe speed"
-msgstr "Vitesse d'effacement basée sur le rôle"
+msgstr "Vitesse d'essuyage automatique"
 
 msgid "The wipe speed is determined by speed of current extrusion role. e.g if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
 msgstr "La vitesse d'essuyage est déterminée par la vitesse du rôle d'extrusion en cours. Par exemple, si une action d'essuyage est exécutée immédiatement après une extrusion de la paroi extérieure, la vitesse de l'extrusion de la paroi extérieure sera utilisée pour l'action d'essuyage."
@@ -11242,7 +11244,7 @@ msgid "XY separation between an object and its support"
 msgstr "Distance de séparation entre un objet et ses supports sur le plan XY"
 
 msgid "Support/object first layer gap"
-msgstr "Support/obje écart de première couche"
+msgstr "Support/objet écart de première couche"
 
 msgid "XY separation between an object and its support at the first layer."
 msgstr "Séparation XY entre un objet et son support au niveau de la première couche."
@@ -12199,7 +12201,7 @@ msgid "Printing Parameters"
 msgstr "Paramètres d'impression"
 
 msgid "Synchronize nozzle and AMS information"
-msgstr "Synchroniser les informations relatives aux buses et à l'AMS"
+msgstr "Sync. buses & AMS"
 
 msgid "Please connect the printer first before synchronizing."
 msgstr "Veuillez d'abord connecter l'imprimante avant de procéder à la synchronisation."
@@ -13592,36 +13594,36 @@ msgid "Removed"
 msgstr "Supprimé"
 
 msgid "Management user presets"
-msgstr ""
+msgstr "Gestion des préréglages utilisateur"
 
 msgid "Custom filaments"
-msgstr ""
+msgstr "Filaments personnalisés"
 
 msgid "No content"
-msgstr ""
+msgstr "Aucun contenu"
 
 #, c-format, boost-format
 msgid "Printer presets(%d/%d)"
-msgstr ""
+msgstr "Préréglages d'imprimante (%d/%d)"
 
 #, c-format, boost-format
 msgid "Filament presets(%d/%d)"
-msgstr ""
+msgstr "Préréglages de filament (%d/%d)"
 
 #, c-format, boost-format
 msgid "Process presets(%d/%d)"
-msgstr ""
+msgstr "Préréglages de processus (%d/%d)"
 
 #, c-format, boost-format
 msgid "%u Selected"
-msgstr ""
+msgstr "%u Sélectionnés"
 
 msgid "Please select the preset to be deleted"
-msgstr ""
+msgstr "Sélectionnez le préréglage à supprimer"
 
 #, c-format, boost-format
 msgid "%d %s Preset will be deleted."
-msgstr ""
+msgstr "%d %s Le préréglage sera supprimé."
 
 msgid "Filament grouping"
 msgstr "Groupement de filaments"
@@ -13684,7 +13686,7 @@ msgid "Zoom In"
 msgstr "Zoomer"
 
 msgid "Load skipping objects information failed. Please try again."
-msgstr ""
+msgstr "Échec du chargement des informations sur les objets ignorés. Veuillez réessayer."
 
 msgid "Loading ..."
 msgstr "Chargement ..."
@@ -13702,10 +13704,10 @@ msgid "/%d Selected"
 msgstr "/%d Sélectionné"
 
 msgid "Skipping all objects."
-msgstr ""
+msgstr "Ignorer tous les objets."
 
 msgid "The printing job will be stopped. Continue?"
-msgstr ""
+msgstr "La tâche d'impression sera arrêtée. Continuer ?"
 
 #, c-format, boost-format
 msgid "Skipping %d objects."
