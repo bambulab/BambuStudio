@@ -1237,7 +1237,7 @@ void PerimeterGenerator::process_classic()
             // we continue inwards after having finished the brim
             // TODO: add test for perimeter order
             bool is_outer_wall_first =
-                this->object_config->wall_sequence == WallSequence::OuterInner;
+                this->config->wall_sequence == WallSequence::OuterInner;
             if (is_outer_wall_first ||
                 //BBS: always print outer wall first when there indeed has brim.
                 (this->layer_id == 0 &&
@@ -1245,7 +1245,7 @@ void PerimeterGenerator::process_classic()
                  this->object_config->brim_width.value > 0))
                 entities.reverse();
             //BBS. adjust wall generate seq
-            else if (this->object_config->wall_sequence == WallSequence::InnerOuterInner)
+            else if (this->config->wall_sequence == WallSequence::InnerOuterInner)
                 if (entities.entities.size() > 1){
                     int              second_wall = -1;
                     ExtrusionEntitiesPtr      entities_reorder;
@@ -1644,7 +1644,10 @@ void PerimeterGenerator::process_arachne()
         int direction = -1;
 
         bool is_outer_wall_first =
-            this->object_config->wall_sequence == WallSequence::OuterInner || this->object_config->wall_sequence == WallSequence::InnerOuterInner;
+            this->config->wall_sequence == WallSequence::OuterInner || this->config->wall_sequence == WallSequence::InnerOuterInner;
+        if (layer_id == 0) { 
+            is_outer_wall_first = this->config->wall_sequence == WallSequence::OuterInner;
+        }       
         if (is_outer_wall_first) {
             start_perimeter = 0;
             end_perimeter = int(total_perimeters.size());
@@ -1731,7 +1734,7 @@ void PerimeterGenerator::process_arachne()
         }
 
         // BBS. adjust wall generate seq
-        if (this->object_config->wall_sequence == WallSequence::InnerOuterInner) {
+        if (this->config->wall_sequence == WallSequence::InnerOuterInner) {
             if (ordered_extrusions.size() > 2) { // 3 walls minimum needed to do inner outer inner ordering
                 int position = 0; // index to run the re-ordering for multiple external perimeters in a single island.
                 int arr_i = 0;    // index to run through the walls
