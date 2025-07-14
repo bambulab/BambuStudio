@@ -126,6 +126,10 @@ std::string BBLCrossTalk::Crosstalk_JsonLog(const nlohmann::json& json)
                     {
                         iter.value() = Crosstalk_ChannelName(iter.value().get<std::string>());
                     }
+                    else if (key_str.find("ttcode_enc") != string::npos)
+                    {
+                        iter.value() = "******";
+                    }
                 }
                 else if (iter.value().is_object())
                 {
