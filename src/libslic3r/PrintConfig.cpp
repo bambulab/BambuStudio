@@ -3817,12 +3817,14 @@ void PrintConfigDef::init_fff_params()
 
     def          = this->add("seam_placement_away_from_overhangs", coBool);
     def->label   = L("Seam placement away from overhangs(experimental)");
+    def->category = L("Quality");
     def->tooltip = L("Ensure seam placement away from overhangs for alignment and backing modes.");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("seam_gap", coPercent);
     def->label = L("Seam gap");
+    def->category = L("Quality");
     def->tooltip = L("In order to reduce the visibility of the seam in a closed loop extrusion, the loop is interrupted and shortened by a specified amount.\n" "This amount as a percentage of the current extruder diameter. The default value for this parameter is 15");
     def->sidetext = "%";
     def->min = 0;
@@ -3831,12 +3833,14 @@ void PrintConfigDef::init_fff_params()
 
     def          = this->add("seam_slope_conditional", coBool);
     def->label   = L("Smart scarf seam application");
+    def->category = L("Quality");
     def->tooltip = L("Apply scarf joints only to smooth perimeters where traditional seams do not conceal the seams at sharp corners effectively.");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
     def           = this->add("scarf_angle_threshold", coInt);
     def->label    = L("Scarf application angle threshold");
+    def->category = L("Quality");
     def->tooltip  = L("This option sets the threshold angle for applying a conditional scarf joint seam.\nIf the seam angle within the perimeter loop " "exceeds this value (indicating the absence of sharp corners), a scarf joint seam will be used. The default value is 155°.");
     def->mode     = comAdvanced;
     def->sidetext = L("°");
@@ -3846,12 +3850,14 @@ void PrintConfigDef::init_fff_params()
 
     def          = this->add("seam_slope_entire_loop", coBool);
     def->label   = L("Scarf around entire wall");
+    def->category = L("Quality");
     def->tooltip = L("The scarf extends to the entire length of the wall.");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def          = this->add("seam_slope_steps", coInt);
     def->label   = L("Scarf steps");
+    def->category = L("Quality");
     def->tooltip = L("Minimum number of segments of each scarf.");
     def->min     = 1;
     def->mode    = comAdvanced;
@@ -3859,18 +3865,21 @@ void PrintConfigDef::init_fff_params()
 
     def          = this->add("seam_slope_inner_walls", coBool);
     def->label   = L("Scarf joint for inner walls");
+    def->category = L("Quality");
     def->tooltip = L("Use scarf joint for inner walls as well.");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
     def          = this->add("override_filament_scarf_seam_setting", coBool);
     def->label   = L("Override filament scarf seam setting");
+    def->category = L("Quality");
     def->tooltip = L("Overrider filament scarf seam setting and could control settings by modifier.");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def                = this->add("seam_slope_type", coEnum);
     def->label         = L("Scarf seam type");
+    def->category      = L("Quality");
     def->tooltip       = L("Set scarf seam type for this filament. This setting could minimize seam visibiliy.");
     def->enum_keys_map = &ConfigOptionEnum<SeamScarfType>::get_enum_values();
     def->enum_values.push_back("none");
@@ -3884,6 +3893,7 @@ void PrintConfigDef::init_fff_params()
 
     def          = this->add("seam_slope_start_height", coFloatOrPercent);
     def->label      = L("Scarf start height");
+    def->category   = L("Quality");
     def->tooltip    = L("This amount can be specified in millimeters or as a percentage of the current layer height.");
     def->min        = 0;
     def->ratio_over = "layer_height";
@@ -3893,6 +3903,7 @@ void PrintConfigDef::init_fff_params()
 
     def             = this->add("seam_slope_gap", coFloatOrPercent);
     def->label      = L("Scarf slope gap");
+    def->category   = L("Quality");
     def->tooltip    = L("In order to reduce the visiblity of the seam in closed loop, the inner wall and outer wall are shortened by a specified amount.");
     def->min        = 0;
     def->ratio_over = "nozzle_diameter";
@@ -3902,6 +3913,7 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("seam_slope_min_length", coFloat);
     def->label    = L("Scarf length");
+    def->category = L("Quality");
     def->tooltip  = L("Length of the scarf. Setting this parameter to zero effectively disables the scarf.");
     def->min      = 0;
     def->sidetext = "mm";
@@ -3910,6 +3922,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("wipe_speed", coPercent);
     def->label = L("Wipe speed");
+    def->category = L("Quality");
     def->tooltip = L("The wipe speed is determined by the speed setting specified in this configuration." "If the value is expressed as a percentage (e.g. 80%), it will be calculated based on the travel speed setting above." "The default value for this parameter is 80%");
     def->sidetext = "%";
     def->min = 0.01;
@@ -3918,6 +3931,7 @@ void PrintConfigDef::init_fff_params()
 
     def          = this->add("role_base_wipe_speed", coBool);
     def->label   = L("Role-based wipe speed");
+    def->category = L("Quality");
     def->tooltip = L("The wipe speed is determined by speed of current extrusion role. " "e.g if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action.");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
