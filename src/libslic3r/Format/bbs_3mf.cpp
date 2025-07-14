@@ -1794,7 +1794,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 std::string name(stat.m_filename);
                 std::replace(name.begin(), name.end(), '\\', '/');
 
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("extract %1%th file %2%, total=%3%")%(i+1)%name%num_entries;
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__
+                                        << boost::format("extract %1%th file %2%, total=%3%") % (i + 1) % PathSanitizer::sanitize(name) % num_entries;
 
                 if (name.find("/../") != std::string::npos) {
                     BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", find file path including /../, not valid, skip it\n");
@@ -2199,8 +2200,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->config = it->second->config;
 
             current_plate_data = plate_data_list[it->first - 1];
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", plate %1%, thumbnail_file=%2%, no_light_thumbnail_file=%3%")%it->first %plate_data_list[it->first-1]->thumbnail_file %plate_data_list[it->first-1]->no_light_thumbnail_file;
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", top_thumbnail_file=%1%, pick_thumbnail_file=%2%")%plate_data_list[it->first-1]->top_file %plate_data_list[it->first-1]->pick_file;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__
+                                    << boost::format(", plate %1%, thumbnail_file=%2%, no_light_thumbnail_file=%3%") % it->first %
+                                           PathSanitizer::sanitize(plate_data_list[it->first - 1]->thumbnail_file) %
+                                           PathSanitizer::sanitize(plate_data_list[it->first - 1]->no_light_thumbnail_file);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__
+                                    << boost::format(", top_thumbnail_file=%1%, pick_thumbnail_file=%2%") %
+                                           PathSanitizer::sanitize(plate_data_list[it->first - 1]->top_file) %
+                                           PathSanitizer::sanitize(plate_data_list[it->first - 1]->pick_file);
             it++;
 
             //update the arrange order
@@ -2669,7 +2676,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             dest_file = dir.string() + std::string("/") + dest_file;
             std::string dest_zip_file = encode_path(dest_file.c_str());
             mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % dest_file % stat.m_filename % res;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % PathSanitizer::sanitize(dest_file) % stat.m_filename % res;
             if (res == 0) {
                 add_error("Error while extract auxiliary file to file");
                 return;

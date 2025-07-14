@@ -9822,7 +9822,7 @@ void Plater::priv::set_project_filename(const wxString& filename)
     full_path.replace_extension("");
 
     m_project_folder = full_path.parent_path();
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << __LINE__ << " project folder is:" << m_project_folder.string();
+    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << __LINE__ << " project folder is:" << PathSanitizer::sanitize(m_project_folder);
 
     //BBS
     wxString project_name = from_u8(full_path.filename().string());
@@ -13038,11 +13038,11 @@ bool Plater::load_svg(const wxArrayString &filenames, bool from_toolbar_or_file_
     if (filenames.size() == 1) {
         const wxString &filename = filenames[0];
         if (boost::iends_with(filenames[0].ToStdString(), ".svg")) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "," << __FILE__ << filename;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "," << __FILE__ << PathSanitizer::sanitize(filename.mb_str());
             emboss_svg(filename, from_toolbar_or_file_menu);
             return true;
         } else {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "," << __FILE__ << ",fail:" << filename;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "," << __FILE__ << ",fail:" << PathSanitizer::sanitize(filename.mb_str());
         }
     }
     else {
