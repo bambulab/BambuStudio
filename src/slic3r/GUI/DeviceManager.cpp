@@ -5673,8 +5673,11 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
             parse_state_changed_event();
         }
     }
-    catch (...) {
-        BOOST_LOG_TRIVIAL(trace) << "parse_json failed! dev_id=" << BBLCrossTalk::Crosstalk_DevId(this->dev_id) <<", payload = " << payload;
+    catch (const nlohmann::json::exception& e) {
+        // Handle JSON parsing exceptions if necessary
+        BOOST_LOG_TRIVIAL(trace) << "parse_json failed! dev_id=" << BBLCrossTalk::Crosstalk_DevId(this->dev_id) <<", ewhat = " << e.what();
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(trace) << "parse_json failed! dev_id=" << BBLCrossTalk::Crosstalk_DevId(this->dev_id);
     }
 
     std::chrono::system_clock::time_point clock_stop = std::chrono::system_clock::now();
@@ -7265,8 +7268,10 @@ void DeviceManager::on_machine_alive(std::string json_str)
                 it->second->bind_sec_link       = sec_link;
                 it->second->dev_connection_type = connect_type;
                 it->second->bind_ssdp_version   = ssdp_version;
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " UpdateUserMachineInfo, ip= " << BBLCrossTalk::Crosstalk_DevIP(dev_ip)
-                                        << ", printer_name= " << BBLCrossTalk::Crosstalk_DevName(dev_name) << ", printer_type= " << printer_type_str
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " UpdateUserMachineInfo"
+                                        << ", dev_id= " << BBLCrossTalk::Crosstalk_DevId(obj->dev_id)
+                                        << ", ip = "  << BBLCrossTalk::Crosstalk_DevIP(dev_ip)
+                                        << ", printer_name= " << BBLCrossTalk::Crosstalk_DevName(dev_name)
                                         << ", con_type= " << connect_type << ", signal= " << printer_signal
                                         << ", bind_state= " << bind_state;
             }
@@ -7308,15 +7313,19 @@ void DeviceManager::on_machine_alive(std::string json_str)
                     obj->bind_ssdp_version != ssdp_version ||
                     obj->printer_type != MachineObject::parse_printer_type(printer_type_str))
                 {
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " UpdateUserMachineInfo, ip= " << BBLCrossTalk::Crosstalk_DevIP(dev_ip)
-                        << ", printer_name= " << BBLCrossTalk::Crosstalk_DevName(dev_name) << ", printer_type= " << printer_type_str
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " UpdateLocalMachineInfo"
+                        << ", dev_id= " << BBLCrossTalk::Crosstalk_DevId(obj->dev_id)
+                        << ", ip = "  << BBLCrossTalk::Crosstalk_DevIP(dev_ip)
+                        << ", printer_name= " << BBLCrossTalk::Crosstalk_DevName(dev_name)
                         << ", con_type= " << connect_type << ", signal= " << printer_signal
                         << ", bind_state= " << bind_state;
                 }
                 else
                 {
-                    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << " UpdateUserMachineInfo, ip= " << BBLCrossTalk::Crosstalk_DevIP(dev_ip)
-                        << ", printer_name= " << BBLCrossTalk::Crosstalk_DevName(dev_name) << ", printer_type= " << printer_type_str
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " UpdateLocalMachineInfo_WIFI"
+                        << ", dev_id= " << BBLCrossTalk::Crosstalk_DevId(obj->dev_id)
+                        << ", ip = "  << BBLCrossTalk::Crosstalk_DevIP(dev_ip)
+                        << ", printer_name= " << BBLCrossTalk::Crosstalk_DevName(dev_name)
                         << ", con_type= " << connect_type << ", signal= " << printer_signal
                         << ", bind_state= " << bind_state;
                 }
@@ -7365,10 +7374,9 @@ void DeviceManager::on_machine_alive(std::string json_str)
                  Slic3r::GUI::wxGetApp().app_config->set_str("ip_address", obj->dev_id, obj->dev_ip);
                  Slic3r::GUI::wxGetApp().app_config->save();
              }*/
-            BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery::New Machine, id= " << BBLCrossTalk::Crosstalk_DevId(dev_id)
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " New Machine, dev_id= " << BBLCrossTalk::Crosstalk_DevId(dev_id)
                                     << ", ip = " << BBLCrossTalk::Crosstalk_DevIP(dev_ip) <<", printer_name = " << BBLCrossTalk::Crosstalk_DevName(dev_name)
-                                    << ", printer_type= " << printer_type_str << ", con_type= "
-                                    << connect_type <<", signal= " << printer_signal << ", bind_state= " << bind_state;
+                                    << ", con_type= " << connect_type <<", signal= " << printer_signal << ", bind_state= " << bind_state;
         }
     }
     catch (...) {
