@@ -542,11 +542,8 @@ EmbossStyles GLGizmoText::create_default_styles()
     // https://docs.wxwidgets.org/3.0/classwx_font.html
     // Predefined objects/pointers: wxNullFont, wxNORMAL_FONT, wxSMALL_FONT, wxITALIC_FONT, wxSWISS_FONT
     EmbossStyles styles = {
-        WxFontUtils::create_emboss_style(wxFont(10, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD), _u8L("Modern")),//v2.0 version
-        WxFontUtils::create_emboss_style(wxFont(10, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD), _u8L("Old")),//for 1.10 and 1.9 and old version
-        WxFontUtils::create_emboss_style(wx_font_normal, _CTX_utf8(L_CONTEXT("Normal", "Text"),"Text")), // wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT)
-      WxFontUtils::create_emboss_style(*wxSMALL_FONT,_CTX_utf8(L_CONTEXT("Small", "Text"),"Text")), // A font using the wxFONTFAMILY_SWISS family and 2 points smaller than wxNORMAL_FONT.
-        WxFontUtils::create_emboss_style(*wxITALIC_FONT,_u8L("Italic") ), // A font using the wxFONTFAMILY_ROMAN family and wxFONTSTYLE_ITALIC style and of the same size of wxNORMAL_FONT.
+        WxFontUtils::create_emboss_style(wxFont(10, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD), _u8L("Recommend")),//v2.0 version
+        WxFontUtils::create_emboss_style(wxFont(10, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD), _u8L("Old version")),//for 1.10 and 1.9 and old version
     };
 
     // Not all predefined font for wx must be valid TTF, but at least one style must be loadable
