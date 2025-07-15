@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-14 21:45+0800\n"
+"POT-Creation-Date: 2025-07-15 15:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3022,7 +3022,7 @@ msgid "Note: the slot is empty or undefined. If you want to use this slot, you c
 msgstr "Hinweis: Der Slot ist leer oder nicht definiert. Wenn Sie diesen Slot verwenden möchten, können Sie %s verwenden und die Slot-Informationen auf der Seite „Geräte“ ändern."
 
 msgid "Note: Only filament-loaded slots can be selected."
-msgstr "Note: Only slots with filament loaded can be selected."
+msgstr "Hinweis: Es können nur Slots mit geladenem Filament ausgewählt werden."
 
 msgid "Enable AMS"
 msgstr "AMS aktivieren"
@@ -3343,8 +3343,8 @@ msgid ""
 "Should not large than layer height.\n"
 "Reset to 10%"
 msgstr ""
-"Should not be greater than layer height.\n"
-"Reset to 10%"
+"Sollte nicht größer sein als die Schichthöhe.\n"
+"Auf 10% zurücksetzen"
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -5911,7 +5911,7 @@ msgid "Check if the nozzle is clumping by filaments or other foreign objects."
 msgstr "Überprüft, ob die Düse durch Filamente oder andere Fremdkörper verklumpt ist."
 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
-msgstr ""
+msgstr "Erkennt Luftdruck, der durch verstopfte Düsen oder Filamentabrieb verursacht wird."
 
 msgid "First Layer Inspection"
 msgstr "Inspektion der ersten Schicht"
@@ -6098,7 +6098,7 @@ msgid "Click to view the wiki of the current plate type"
 msgstr "Klicken Sie hier, um das Wiki der aktuellen Platte anzuzeigen."
 
 msgid "Sync info"
-msgstr ""
+msgstr "Sync Infos"
 
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Synchronisierung von Düseninformationen und der Anzahl der AMS"
@@ -13616,36 +13616,36 @@ msgid "Removed"
 msgstr "Entfernt"
 
 msgid "Management user presets"
-msgstr ""
+msgstr "Verwaltung von Benutzerprofilen"
 
 msgid "Custom filaments"
-msgstr ""
+msgstr "Benutzerdefinierte Filamente"
 
 msgid "No content"
-msgstr ""
+msgstr "Kein Inhalt"
 
 #, c-format, boost-format
 msgid "Printer presets(%d/%d)"
-msgstr ""
+msgstr "Druckerprofile (%d/%d)"
 
 #, c-format, boost-format
 msgid "Filament presets(%d/%d)"
-msgstr ""
+msgstr "Filamentprofile (%d/%d)"
 
 #, c-format, boost-format
 msgid "Process presets(%d/%d)"
-msgstr ""
+msgstr "Prozessprofile (%d/%d)"
 
 #, c-format, boost-format
 msgid "%u Selected"
-msgstr ""
+msgstr "%u Ausgewählt"
 
 msgid "Please select the preset to be deleted"
-msgstr ""
+msgstr "Bitte wählen Sie das zu löschende Profil aus."
 
 #, c-format, boost-format
 msgid "%d %s Preset will be deleted."
-msgstr ""
+msgstr "%d %s Profil wird gelöscht."
 
 msgid "Filament grouping"
 msgstr "Filamentgruppierung"
