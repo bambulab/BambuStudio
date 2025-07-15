@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-14 21:45+0800\n"
+"POT-Creation-Date: 2025-07-15 15:02+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -907,7 +907,8 @@ msgid ""
 "Would you like to continue anyway?"
 msgstr ""
 "将样式更改为 “%1%” 将丢弃当前样式修改。\n"
-"无论如何你想继续吗？"
+"\n"
+"无论如何您想继续吗？"
 
 msgid "Not valid style."
 msgstr "样式无效。"
@@ -2905,7 +2906,7 @@ msgid "Next"
 msgstr "下一步"
 
 msgid "Calibration completed. Please find the most uniform extrusion line on your hot bed like the picture below, and fill the value on its left side into the factor K input box."
-msgstr "校准完成。请在你的热床上找到如下图所示的最均匀的挤出线，并将其左侧的数值填入因子K的输入框。"
+msgstr "校准完成。请在您的热床上找到如下图所示的最均匀的挤出线，并将其左侧的数值填入因子K的输入框。"
 
 msgid "Save"
 msgstr "保存"
@@ -3694,10 +3695,10 @@ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in 
 msgstr "CF/GF耗材丝又硬又脆，在AMS中很容易断裂或卡住，请谨慎使用。"
 
 msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
-msgstr "PPS-CF is brittle and could break in a bent PTFE tube above the Toolhead."
+msgstr "PPS-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。"
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
-msgstr "PPA-CF is brittle and could break in a bent PTFE tube above the Toolhead."
+msgstr "PPA-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。"
 
 msgid "default"
 msgstr "缺省"
@@ -4359,14 +4360,14 @@ msgid ""
 "You can find it in \"Settings > Network > Access code\"\n"
 "on the printer, as shown in the figure:"
 msgstr ""
-"你可以在打印机“设置->网络->访问码\"\n"
+"您可以在打印机“设置->网络->访问码\"\n"
 "查看，如下图所示："
 
 msgid ""
 "You can find it in \"Setting > Setting > LAN only > Access Code\"\n"
 "on the printer, as shown in the figure:"
 msgstr ""
-"你可以在打印机“设置->设置->仅局域网->访问码\"\n"
+"您可以在打印机“设置->设置->仅局域网->访问码\"\n"
 "查看，如下图所示："
 
 msgid "Invalid input."
@@ -4842,11 +4843,11 @@ msgstr "帮助"
 
 #, c-format, boost-format
 msgid "A file exists with the same name: %s, do you want to override it."
-msgstr "有一个同名的文件 %s。你想覆盖它吗？"
+msgstr "有一个同名的文件 %s。您想覆盖它吗？"
 
 #, c-format, boost-format
 msgid "A config exists with the same name: %s, do you want to override it."
-msgstr "有一个同名的配置 %s。你想覆盖它吗？"
+msgstr "有一个同名的配置 %s。您想覆盖它吗？"
 
 msgid "Overwrite file"
 msgstr "覆盖文件"
@@ -5079,7 +5080,7 @@ msgstr "删除文件"
 
 #, c-format, boost-format
 msgid "Do you want to delete the file '%s' from printer?"
-msgstr "你确定要从打印机中删除文件'%s'吗？"
+msgstr "您确定要从打印机中删除文件'%s'吗？"
 
 msgid "Delete file"
 msgstr "删除文件"
@@ -5779,7 +5780,7 @@ msgid "WARNING:"
 msgstr "警告："
 
 msgid "Your model needs support ! Please make support material enable."
-msgstr "你的模型需要支撑才能打印。请开启材料支撑选项。"
+msgstr "您的模型需要支撑才能打印。请开启材料支撑选项。"
 
 msgid "Gcode path overlap"
 msgstr "Gcode路径有重叠"
@@ -5922,7 +5923,7 @@ msgid "Stainless Steel"
 msgstr "不锈钢"
 
 msgid "Tungsten Carbide"
-msgstr ""
+msgstr "碳化钨"
 
 msgid "High flow"
 msgstr "高流量"
@@ -6528,7 +6529,7 @@ msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr "不建议使用0.2毫米喷嘴来打印PVA材料"
 
 msgid "Are you sure to use them? \n"
-msgstr "你确定要使用它吗？ \n"
+msgstr "您确定要使用它吗？ \n"
 
 msgid ""
 "Print By Object: \n"
@@ -6625,7 +6626,7 @@ msgstr "如需修复模型，请使用第三方工具处理后再导入 Bambu St
 
 #, c-format, boost-format
 msgid "Plate% d: %s is not suggested to be used to print filament %s(%s). If you still want to do this printing, please set this filament's bed temperature to non zero."
-msgstr "热床% d：%s不建议被用于打印%s（%s）材料。如果你依然想打印，请设置耗材对应的热床温度为非零值。"
+msgstr "热床% d：%s不建议被用于打印%s（%s）材料。如果您依然想打印，请设置耗材对应的热床温度为非零值。"
 
 msgid "Currently, the object configuration form cannot be used with a multiple-extruder printer."
 msgstr "多喷嘴打印机暂不支持对象配置表单功能。"
@@ -6905,7 +6906,7 @@ msgid "Auto-Backup"
 msgstr "自动备份"
 
 msgid "Backup your project periodically for restoring from the occasional crash."
-msgstr "定期备份你的项目，以便从偶尔的崩溃中恢复过来。"
+msgstr "定期备份您的项目，以便从偶尔的崩溃中恢复过来。"
 
 msgid "every"
 msgstr "每"
@@ -7410,7 +7411,7 @@ msgid "left extruder"
 msgstr "左挤出机"
 
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
-msgstr "注意: 如果你最近更换了喷嘴，请去“设备-打印机零件”更改设置"
+msgstr "注意: 如果您最近更换了喷嘴，请去“设备-打印机零件”更改设置"
 
 #, c-format, boost-format
 msgid "The %s diameter(%.1fmm) of current printer doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
@@ -7618,7 +7619,7 @@ msgid "Log in printer"
 msgstr "登录打印机"
 
 msgid "Would you like to log in this printer with current account?"
-msgstr "你想使用当前账号登录这台打印机吗?"
+msgstr "您想使用当前账号登录这台打印机吗?"
 
 msgid "Check the reason"
 msgstr "查看原因"
@@ -7658,7 +7659,7 @@ msgid "Log out printer"
 msgstr "登出打印机"
 
 msgid "Would you like to log out the printer?"
-msgstr "你想登出打印机吗?"
+msgstr "您想登出打印机吗?"
 
 msgid "Please log in first."
 msgstr "请先登录。"
@@ -7703,7 +7704,8 @@ msgid ""
 "Are you sure to use them for support base? \n"
 msgstr ""
 "不建议将非可溶性支撑材料用作支撑主体。 \n"
-"你确定要用它们作为支撑主体吗？ \n"
+"您确定要用它们作为支撑主体吗？ \n"
+""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
@@ -8519,7 +8521,7 @@ msgid "OK"
 msgstr "知道了"
 
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
-msgstr "Studio 将会在每一次更换耗材或颜色时重新计算你的冲刷体积，你可以在Bambu Studio > 偏好设置 中关闭自动计算"
+msgstr "Studio 将会在每一次更换耗材或颜色时重新计算您的冲刷体积，您可以在Bambu Studio > 偏好设置 中关闭自动计算"
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "在两个耗材丝间切换所需的冲刷量（mm³）"
@@ -8862,7 +8864,7 @@ msgid "1. Please confirm Bambu Studio and your printer are in the same LAN."
 msgstr "1. 请确认Bambu Studio和您的打印机在同一个局域网内。"
 
 msgid "2. If the IP and Access Code below are different from the actual values on your printer, please correct them."
-msgstr "2. 如果下面的IP和Access Code与你的打印机上的实际值不同，请更正。"
+msgstr "2. 如果下面的IP和Access Code与您的打印机上的实际值不同，请更正。"
 
 msgid "3. Please obtain the device SN from the printer side; it is usually found in the device information on the printer screen."
 msgstr "3. 请从打印机端获取设备序列号，它通常位于打印机屏幕上的设备信息中。"
@@ -8956,10 +8958,10 @@ msgid "Are you sure you want to update? This will take about 10 minutes. Do not 
 msgstr "确定要更新吗？更新需要大约10分钟，在此期间请勿关闭电源。"
 
 msgid "An important update was detected and needs to be run before printing can continue. Do you want to update now? You can also update later from 'Upgrade firmware'."
-msgstr "检测到重要更新，需要升级后才可进行打印。你想现在就开始升级吗？你也可以稍后点击‘升级固件’完成升级。"
+msgstr "检测到重要更新，需要升级后才可进行打印。您想现在就开始升级吗？您也可以稍后点击‘升级固件’完成升级。"
 
 msgid "The firmware version is abnormal. Repairing and updating are required before printing. Do you want to update now? You can also update later on printer or update next time starting the studio."
-msgstr "当前固件版本异常，需要进行修复升级，否则无法继续打印。你想现在就开始升级吗？你也可以稍后在打印机上升级，或者下一次启动studio再升级。"
+msgstr "当前固件版本异常，需要进行修复升级，否则无法继续打印。您想现在就开始升级吗？您也可以稍后在打印机上升级，或者下一次启动studio再升级。"
 
 msgid "Extension Board"
 msgstr "扩展板"
@@ -9949,19 +9951,19 @@ msgid "Filament notes"
 msgstr ""
 
 msgid "You can put your notes regarding the filament here."
-msgstr "你可以把材料的注释放在这里。"
+msgstr "您可以把材料的注释放在这里。"
 
 msgid "Process notes"
 msgstr ""
 
 msgid "You can put your notes regarding the process here."
-msgstr "你可以把工艺的注释放在这里。"
+msgstr "您可以把工艺的注释放在这里。"
 
 msgid "Printer notes"
 msgstr "打印机注意事项"
 
 msgid "You can put your notes regarding the printer here."
-msgstr "你可以把打印机的注释放在这里。"
+msgstr "您可以把打印机的注释放在这里。"
 
 msgid "Default line width if some line width is set to be zero"
 msgstr "当线宽设置为0时走线的默认线宽"
@@ -10429,7 +10431,7 @@ msgid "Stainless steel"
 msgstr "不锈钢"
 
 msgid "Tungsten carbide"
-msgstr ""
+msgstr "碳化钨"
 
 msgid "Brass"
 msgstr "黄铜"
@@ -10531,7 +10533,7 @@ msgid "Symmetric infill y axis"
 msgstr "填充关于y轴对称"
 
 msgid "If the model has two parts that are symmetric about the y-axis, and you want these parts to have symmetric textures, please click this option on one of the parts."
-msgstr "如果一个模型中有两个关于y轴对称的部件，并且你希望使得这两个部分的填充纹理关于y轴对称。请在其中一个部件上勾选上这个功能。"
+msgstr "如果一个模型中有两个关于y轴对称的部件，并且您希望使得这两个部分的填充纹理关于y轴对称。请在其中一个部件上勾选上这个功能。"
 
 msgid "Length of sparse infill anchor"
 msgstr "稀疏填充铆线长度"
@@ -10882,7 +10884,7 @@ msgid "Post-processing Scripts"
 msgstr "后处理脚本"
 
 msgid "If you want to process the output G-code through custom scripts, just list their absolute paths here. Separate multiple scripts with a semicolon. Scripts will be passed the absolute path to the G-code file as the first argument, and variables of settings also can be read"
-msgstr "如果你想通过自定义脚本来处理输出的G代码，只需在这里列出它们的绝对路径。用分号来分隔多个脚本。脚本将被传递给G代码文件的绝对路径作为第一个参数，设置的变量也可以被读取。"
+msgstr "如果您想通过自定义脚本来处理输出的G代码，只需在这里列出它们的绝对路径。用分号来分隔多个脚本。脚本将被传递给G代码文件的绝对路径作为第一个参数，设置的变量也可以被读取。"
 
 msgid "Raft contact Z distance"
 msgstr "筏层Z间距"
@@ -11515,7 +11517,7 @@ msgid "User Customized Offset"
 msgstr "用户自设定补偿"
 
 msgid "If you want to have tighter or looser assemble, you can set this value. When it is positive, it indicates tightening, otherwise, it indicates loosening"
-msgstr "如果你需要更近或者更松的装配，请调整这个参数。该参数为正时表示装配调松，反之调紧"
+msgstr "如果您需要更近或者更松的装配，请调整这个参数。该参数为正时表示装配调松，反之调紧"
 
 msgid "Scarf Seam On Compensation Circles"
 msgstr "在补偿的圆形上应用斜拼接缝"
@@ -12132,7 +12134,7 @@ msgid "Calibration2"
 msgstr "校准2"
 
 msgid "Please find the best object on your plate"
-msgstr "请在你的盘里找到最好的对象"
+msgstr "请在您的盘里找到最好的对象"
 
 msgid "Fill in the value above the block with smoothest top surface"
 msgstr "用最光滑的顶面填充块上方的值"
@@ -12711,7 +12713,7 @@ msgid ""
 "Do you want to rewrite it?"
 msgstr ""
 "\n"
-"你想重写预设吗"
+"您想重写预设吗"
 
 msgid ""
 "We would rename the presets as \"Vendor Type Serial @printer you selected\". \n"
@@ -12980,7 +12982,7 @@ msgid "Please select at least one printer or filament."
 msgstr "请至少选择一种打印机或耗材丝。"
 
 msgid "Please select a type you want to export"
-msgstr "请选择一个你想导出的类型"
+msgstr "请选择一个您想导出的类型"
 
 msgid "Failed to create temporary folder, please try Export Configs again."
 msgstr "无法创建临时文件夹，请再次尝试导出配置。"
@@ -13005,7 +13007,7 @@ msgid "Delete Preset"
 msgstr "删除预设"
 
 msgid "Are you sure to delete the selected preset?"
-msgstr "你确定要删除所选预设？"
+msgstr "您确定要删除所选预设？"
 
 msgid "Delete preset"
 msgstr "删除预设"
@@ -13076,7 +13078,7 @@ msgid "nozzle size memorized: %d"
 msgstr "存储的喷嘴尺寸：%d"
 
 msgid "The size of nozzle type in preset is not consistent with memorized nozzle.Did you change your nozzle lately ? "
-msgstr "预设的喷嘴类型尺寸与记忆中的喷嘴不一致。你最近换喷嘴了吗？"
+msgstr "预设的喷嘴类型尺寸与记忆中的喷嘴不一致。您最近换喷嘴了吗？"
 
 #, c-format, boost-format
 msgid "nozzle[%d] in preset: %.1f"
@@ -13878,7 +13880,7 @@ msgid ""
 "Did you know that you can stack objects as a whole one?"
 msgstr ""
 "组合物体\n"
-"您知道吗？你可以把多个对象组合为一个整体。"
+"您知道吗？您可以把多个对象组合为一个整体。"
 
 #: resources/data/hints.ini: [hint:Flush into support/objects/infill]
 msgid ""
@@ -13886,7 +13888,7 @@ msgid ""
 "Did you know that you can save the wasted filament by flushing them into support/objects/infill during filament change?"
 msgstr ""
 "冲刷到支持/对象/填充中\n"
-"您知道吗？你可以在换料时将它们冲入支撑/对象/填充，以节省浪费的料丝。"
+"您知道吗？您可以在换料时将它们冲入支撑/对象/填充，以节省浪费的料丝。"
 
 #: resources/data/hints.ini: [hint:Improve strength]
 msgid ""
@@ -13894,7 +13896,7 @@ msgid ""
 "Did you know that you can use more wall loops and higher sparse infill density to improve the strength of the model?"
 msgstr ""
 "提高强度\n"
-"您知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+"您知道吗？您可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
 
 #: resources/data/hints.ini: [hint:When need to print with the printer door
 #: opened]
