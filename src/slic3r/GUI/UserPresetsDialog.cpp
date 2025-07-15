@@ -416,7 +416,7 @@ void UserPresetsDialog::on_all_checked(bool checked, bool from_user)
 
 void UserPresetsDialog::update_preset_counts()
 {
-    wxString labels[] = {_L("Printer presets(%d/%d)"), _L("Filament presets(%d/%d)"), _L("Process presets(%d/%d)")};
+    wxString labels[] = {_L("Printer presets (%d/%d)"), _L("Filament presets (%d/%d)"), _L("Process presets (%d/%d)")};
     int capacities[] = {20, 100, 200};
     for (int i = 0; i < 3; ++i) {
         size_t n = i == 1 ? std::accumulate(m_filament_presets.begin(), m_filament_presets.end(), size_t(0),
