@@ -3977,8 +3977,9 @@ void MainFrame::open_recent_project(size_t file_id, wxString const & filename)
     }
     if (wxFileExists(filename)) {
         CallAfter([this, filename] {
-            if (wxGetApp().can_load_project())
+            if (wxGetApp().can_load_project()) {
                 m_plater->load_project(filename);
+            }
         });
     }
     else

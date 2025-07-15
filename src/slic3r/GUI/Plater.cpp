@@ -11731,6 +11731,7 @@ int Plater::load_project(wxString const &filename2,
             sidebar().pop_sync_nozzle_and_ams_dialog();
         }
     }
+    statistics_burial_data(filename.utf8_string());
     return wx_dlg_id;
 }
 
@@ -12002,6 +12003,7 @@ void Plater::import_model_id(wxString download_info)
         BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << PathSanitizer::sanitize(target_path);
         /* load project */
         auto result = this->load_project(target_path.wstring());
+        statistics_burial_data_form_mw();
         if (result == (int)wxID_CANCEL) {
             return;
         }
@@ -13321,6 +13323,7 @@ bool Plater::load_files(const wxArrayString& filenames)
         }
     }
     if (load_svg(filenames)) {
+        statistics_burial_data(filenames[0].utf8_string());
         return true;
     }
 
@@ -13347,6 +13350,7 @@ bool Plater::load_files(const wxArrayString& filenames)
             return false;
         }
         load_gcode(from_path(gcode_paths.front()));
+        statistics_burial_data(gcode_paths[0].string());
         return true;
     }
 
@@ -13410,12 +13414,16 @@ bool Plater::load_files(const wxArrayString& filenames)
 
     switch (loadfiles_type) {
     case LoadFilesType::Single3MF:
-        open_3mf_file(normal_paths[0]);
+        open_3mf_file(normal_paths[0]);//will call load_project
         break;
 
     case LoadFilesType::SingleOther: {
         Plater::TakeSnapshot snapshot(this, snapshot_label);
-        if (load_files(normal_paths, LoadStrategy::LoadModel, false).empty()) { res = false; }
+        if (load_files(normal_paths, LoadStrategy::LoadModel, false).empty()) {
+            res = false;
+        } else {
+            statistics_burial_data(normal_paths[0].string());
+        }
         break;
     }
     case LoadFilesType::Multiple3MF:
@@ -13425,15 +13433,22 @@ bool Plater::load_files(const wxArrayString& filenames)
         };
 
         open_3mf_file(first_file[0]);
-        if (load_files(other_file, LoadStrategy::LoadModel).empty()) {  res = false;  }
+        if (load_files(other_file, LoadStrategy::LoadModel).empty()) {
+            res = false;
+        } else {
+            statistics_burial_data(normal_paths[0].string());
+        }
         break;
 
     case LoadFilesType::MultipleOther: {
         Plater::TakeSnapshot snapshot(this, snapshot_label);
-        if (load_files(normal_paths, LoadStrategy::LoadModel, true).empty()) { res = false; }
+        if (load_files(normal_paths, LoadStrategy::LoadModel, true).empty()) {
+            res = false;
+        } else {
+            statistics_burial_data(normal_paths[0].string());
+        }
         break;
     }
-
     case LoadFilesType::Multiple3MFOther:
         for (const auto &path : normal_paths) {
             if (boost::iends_with(path.filename().string(), ".3mf")){
@@ -13447,8 +13462,16 @@ bool Plater::load_files(const wxArrayString& filenames)
         }
 
         open_3mf_file(first_file[0]);
-        if (load_files(tmf_file, LoadStrategy::LoadModel).empty()) {  res = false;  }
-        if (load_files(other_file, LoadStrategy::LoadModel, false).empty()) {  res = false;  }
+        if (load_files(tmf_file, LoadStrategy::LoadModel).empty()) {
+            res = false;
+        } else {
+            statistics_burial_data(normal_paths[0].string());
+        }
+        if (load_files(other_file, LoadStrategy::LoadModel, false).empty()) {
+            res = false;
+        } else {
+            statistics_burial_data(normal_paths[0].string());
+        }
         break;
     default: break;
     }
@@ -13456,6 +13479,49 @@ bool Plater::load_files(const wxArrayString& filenames)
     return res;
 }
 
+void Plater::statistics_burial_data_once(std::string name)
+{
+    NetworkAgent *agent = GUI::wxGetApp().getAgent();
+    if (agent) {
+        agent->track_event("import_file_type", name);
+    }
+}
+
+void Plater::statistics_burial_data(std::string file_path)
+{
+    json j;
+    std::string name;
+    if (boost::algorithm::iends_with(file_path, ".gcode")) {
+        name = "pure_gcode";
+    } else if (boost::algorithm::iends_with(file_path, ".gcode.3mf")) {
+        name = "gcode_3mf";
+    } else if (boost::algorithm::iends_with(file_path, ".3mf")) {
+        name = "3mf";
+    } else if (boost::algorithm::iends_with(file_path, ".amf")) {
+        name = "amf";
+    } else if (boost::algorithm::iends_with(file_path, ".stp") || boost::algorithm::iends_with(file_path, ".step")) {
+        name = "stp_step";
+    } else if (boost::algorithm::iends_with(file_path, ".oltp")) {
+        name = "oltp";
+    } else if (boost::algorithm::iends_with(file_path, ".stl")) {
+        name = "stl";
+    } else if (boost::algorithm::iends_with(file_path, ".svg")) {
+        name = "svg";
+    } else if (boost::algorithm::iends_with(file_path, ".obj")) {
+        name = "obj";
+    } else {
+        name = "other";
+    }
+    if (name.size() > 0) {
+        j["type"] = name;
+        statistics_burial_data_once(j.dump());
+    }
+}
+
+void Plater::statistics_burial_data_form_mw()
+{
+    statistics_burial_data("download_from_mw_and_open");
+}
 
 bool Plater::open_3mf_file(const fs::path &file_path)
 {
@@ -13557,35 +13623,40 @@ void Plater::add_file()
 
     switch (loadfiles_type)
     {
-    case LoadFilesType::Single3MF:
+    case LoadFilesType::Single3MF: {
         open_3mf_file(paths[0]);
-    	break;
-
+        statistics_burial_data(paths[0].string());
+        break;
+    }
     case LoadFilesType::SingleOther: {
         Plater::TakeSnapshot snapshot(this, snapshot_label);
         if (load_svg(input_files,true)) {
+            statistics_burial_data(input_files[0].utf8_string());
             return;
         }
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "," << __FILE__ << ","<< "LoadFilesType::SingleOther";
         if (!load_files(paths, LoadStrategy::LoadModel, false).empty()) {
             if (get_project_name() == _L("Untitled") && paths.size() > 0) {
                 p->set_project_filename(wxString::FromUTF8(paths[0].string()));
-
             }
             wxGetApp().mainframe->update_title();
+            statistics_burial_data(paths[0].string());
         }
         break;
     }
-    case LoadFilesType::Multiple3MF:
+    case LoadFilesType::Multiple3MF:{
         first_file = std::vector<fs::path>{paths[0]};
         for (auto i = 0; i < paths.size(); i++) {
             if (i > 0) { other_file.push_back(paths[i]); }
         };
 
         open_3mf_file(first_file[0]);
-        if (!load_files(other_file, LoadStrategy::LoadModel).empty()) { wxGetApp().mainframe->update_title(); }
+        if (!load_files(other_file, LoadStrategy::LoadModel).empty()) {
+            wxGetApp().mainframe->update_title();
+            statistics_burial_data(paths[0].string());
+        }
         break;
-
+    }
     case LoadFilesType::MultipleOther: {
         Plater::TakeSnapshot snapshot(this, snapshot_label);
         wxArrayString        filenames;
@@ -13599,6 +13670,7 @@ void Plater::add_file()
             }
         }
         if (boost::iends_with(paths[0].string(), ".svg")&& load_svg(filenames)) {
+            statistics_burial_data(paths[0].string());
             return;
         }
         if (!load_files(paths, LoadStrategy::LoadModel, true).empty()) {
@@ -13606,10 +13678,11 @@ void Plater::add_file()
                 p->set_project_filename(wxString::FromUTF8(paths[0].string()));
             }
             wxGetApp().mainframe->update_title();
+            statistics_burial_data(paths[0].string());
         }
         break;
     }
-    case LoadFilesType::Multiple3MFOther:
+    case LoadFilesType::Multiple3MFOther: {
         for (const auto &path : paths) {
             if (boost::iends_with(path.filename().string(), ".3mf")) {
                 if (first_file.size() <= 0)
@@ -13623,8 +13696,12 @@ void Plater::add_file()
 
         open_3mf_file(first_file[0]);
         load_files(tmf_file, LoadStrategy::LoadModel);
-        if (!load_files(other_file, LoadStrategy::LoadModel, false).empty()) { wxGetApp().mainframe->update_title();}
+        if (!load_files(other_file, LoadStrategy::LoadModel, false).empty()) {
+            wxGetApp().mainframe->update_title();
+            statistics_burial_data(paths[0].string());
+        }
         break;
+    }
     default:break;
     }
 }
