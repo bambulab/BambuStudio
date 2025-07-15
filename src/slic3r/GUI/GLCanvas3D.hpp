@@ -410,6 +410,7 @@ class GLCanvas3D
         MixUsePLAAndPETG,
         PrimeTowerOutside,
         NozzleFilamentIncompatible,
+        MixtureFilamentIncompatible,
         AsemblyInvalid // for asembly view only
     };
 
