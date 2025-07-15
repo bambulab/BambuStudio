@@ -7269,7 +7269,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
                 it->second->dev_connection_type = connect_type;
                 it->second->bind_ssdp_version   = ssdp_version;
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " UpdateUserMachineInfo"
-                                        << ", dev_id= " << BBLCrossTalk::Crosstalk_DevId(obj->dev_id)
+                                        << ", dev_id= " << BBLCrossTalk::Crosstalk_DevId(dev_id)
                                         << ", ip = "  << BBLCrossTalk::Crosstalk_DevIP(dev_ip)
                                         << ", printer_name= " << BBLCrossTalk::Crosstalk_DevName(dev_name)
                                         << ", con_type= " << connect_type << ", signal= " << printer_signal
@@ -7314,7 +7314,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
                     obj->printer_type != MachineObject::parse_printer_type(printer_type_str))
                 {
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " UpdateLocalMachineInfo"
-                        << ", dev_id= " << BBLCrossTalk::Crosstalk_DevId(obj->dev_id)
+                        << ", dev_id= " << BBLCrossTalk::Crosstalk_DevId(dev_id)
                         << ", ip = "  << BBLCrossTalk::Crosstalk_DevIP(dev_ip)
                         << ", printer_name= " << BBLCrossTalk::Crosstalk_DevName(dev_name)
                         << ", con_type= " << connect_type << ", signal= " << printer_signal
@@ -7323,7 +7323,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
                 else
                 {
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " UpdateLocalMachineInfo_WIFI"
-                        << ", dev_id= " << BBLCrossTalk::Crosstalk_DevId(obj->dev_id)
+                        << ", dev_id= " << BBLCrossTalk::Crosstalk_DevId(dev_id)
                         << ", ip = "  << BBLCrossTalk::Crosstalk_DevIP(dev_ip)
                         << ", printer_name= " << BBLCrossTalk::Crosstalk_DevName(dev_name)
                         << ", con_type= " << connect_type << ", signal= " << printer_signal
