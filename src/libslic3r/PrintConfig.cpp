@@ -2216,7 +2216,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCubic));
 
     def                = this->add("locked_skin_infill_pattern", coEnum);
-    def->label         = L("skin infill pattern");
+    def->label         = L("Skin infill pattern");
     def->category      = L("Strength");
     def->tooltip       = L("Line pattern for skin");
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
@@ -2257,7 +2257,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCrossZag));
 
     def                = this->add("locked_skeleton_infill_pattern", coEnum);
-    def->label         = L("skeleton infill pattern");
+    def->label         = L("Skeleton infill pattern");
     def->category      = L("Strength");
     def->tooltip       = L("Line pattern for skeleton");
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
