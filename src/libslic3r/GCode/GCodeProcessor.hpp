@@ -1110,6 +1110,7 @@ namespace Slic3r {
                                               const std::vector<std::set<int>>& unprintable_filament_types );
         void apply_config(const PrintConfig& config);
 
+        DynamicConfig export_config_for_render() const;
         void set_filaments(const std::vector<Extruder>&filament_lists) { m_filament_lists=filament_lists;}
 
         void enable_stealth_time_estimator(bool enabled);
