@@ -6223,10 +6223,8 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     // if a retraction would be needed, try to use reduce_crossing_wall to plan a
     // multi-hop travel path inside the configuration space
     // if (
-    if (m_config.reduce_crossing_wall
-        && !m_avoid_crossing_perimeters.disabled_once()
-        && m_writer.is_current_position_clear())
-        //BBS: don't generate detour travel paths when current position is unclea
+    if (m_config.reduce_crossing_wall && !m_avoid_crossing_perimeters.disabled_once())
+    // BBS: don't generate detour travel paths when current position is unclea
     {
         travel = m_avoid_crossing_perimeters.travel_to(*this, point, &could_be_wipe_disabled);
         // check again whether the new travel path still needs a retraction

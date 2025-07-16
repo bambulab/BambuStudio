@@ -93,6 +93,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "additional_cooling_fan_speed",
         "reduce_crossing_wall",
         "max_travel_detour_distance",
+        "avoid_crossing_wall_includes_support",
         "printable_area",
         //BBS: add bed_exclude_area
         "bed_exclude_area",
