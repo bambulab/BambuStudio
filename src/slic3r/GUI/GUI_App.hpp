@@ -291,7 +291,7 @@ private:
 	size_t m_instance_hash_int;
 
     //BBS
-    bool m_is_closing {false};
+    std::atomic<bool> m_is_closing {false};
     Slic3r::DeviceManager* m_device_manager { nullptr };
     Slic3r::UserManager* m_user_manager { nullptr };
     Slic3r::TaskManager* m_task_manager { nullptr };
@@ -352,6 +352,9 @@ public:
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
     bool is_recreating_gui() const { return m_is_recreating_gui; }
     std::string logo_name() const { return is_editor() ? "BambuStudio" : "BambuStudio-gcodeviewer"; }
+
+    bool is_closing() const { return m_is_closing.load(std::memory_order_acquire); }
+    void set_closing(bool closing) { m_is_closing.store(closing, std::memory_order_release); }
 
     bool     show_3d_navigator() const { return app_config->get_bool("show_3d_navigator"); }
     void     toggle_show_3d_navigator() const { app_config->set_bool("show_3d_navigator", !show_3d_navigator()); }
