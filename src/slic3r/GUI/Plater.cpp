@@ -5124,7 +5124,14 @@ void Plater::priv::collapse_sidebar(bool collapse)
 
     // Now update the tooltip in the toolbar.
     std::string new_tooltip = collapse ? _u8L("Expand sidebar") : _u8L("Collapse sidebar");
+
     new_tooltip += " [Shift+Tab]";
+  #ifdef __APPLE__
+    new_tooltip += "\n" + _u8L("Reset Window Layout") + "[command+W]";
+#else
+    new_tooltip += "\n" + _u8L("Reset Window Layout") + "[Ctrl+W]";
+#endif
+
     int id = collapse_toolbar.get_item_id("collapse_sidebar");
     collapse_toolbar.set_tooltip(id, new_tooltip);
 
