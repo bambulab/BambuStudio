@@ -542,8 +542,13 @@ EmbossStyles GLGizmoText::create_default_styles()
     // https://docs.wxwidgets.org/3.0/classwx_font.html
     // Predefined objects/pointers: wxNullFont, wxNORMAL_FONT, wxSMALL_FONT, wxITALIC_FONT, wxSWISS_FONT
     EmbossStyles styles = {
-        WxFontUtils::create_emboss_style(wxFont(10, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD), _u8L("Recommend")),//v2.0 version
-        WxFontUtils::create_emboss_style(wxFont(10, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD), _u8L("Old version")),//for 1.10 and 1.9 and old version
+#ifdef __APPLE__
+        WxFontUtils::create_emboss_style(wx_font_normal, _u8L("Recommend")),   // v2.0 version
+        WxFontUtils::create_emboss_style(wx_font_normal, _u8L("Old version")), // for 1.10 and 1.9 and old version
+#else
+        WxFontUtils::create_emboss_style(wxFont(10, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD), _u8L("Recommend")),   //v2.0 version
+        WxFontUtils::create_emboss_style(wxFont(10, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD), _u8L("Old version")), // for 1.10 and 1.9 and old version
+#endif
     };
 
     // Not all predefined font for wx must be valid TTF, but at least one style must be loadable
