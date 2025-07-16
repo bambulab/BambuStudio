@@ -1282,8 +1282,20 @@ void GLGizmoText::draw_rotation(int caption_size, int slider_width, int drag_lef
     ImGui::PushItemWidth(1.5 * slider_icon_width);
     bool set_rotate_angle_flag = false;
     if (ImGui::BBLDragFloat("##angle_input", &m_rotate_angle, 0.05f, -180.f, 180.f, "%.2f")) {
-        set_rotate_angle_flag = true;
-        update_style_angle(text_volume, angle_degree, m_rotate_angle);
+        bool need_deal = false;
+        if (abs(m_rotate_angle - 180.f) < 0.01f || abs(m_rotate_angle + 180) < 0.01f) {
+            if (abs(m_rotate_angle - m_rotate_angle_min_max) > 0.01f) {
+                m_rotate_angle_min_max = m_rotate_angle;
+                need_deal              = true;
+            }
+        } else {
+            need_deal              = true;
+            m_rotate_angle_min_max = 0.f;
+        }
+        if (need_deal) {
+            set_rotate_angle_flag = true;
+            update_style_angle(text_volume, angle_degree, m_rotate_angle);
+        }
     }
 
     bool is_stop_sliding = m_imgui->get_last_slider_status().deactivated_after_edit;
@@ -2306,8 +2318,21 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 
     ImGui::SameLine(drag_left_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
-    if (ImGui::BBLDragFloat("##text_gap_input", &m_text_gap, 0.05f, -10.f, 100.f, "%.2f"))
-        m_need_update_text = true;
+    if (ImGui::BBLDragFloat("##text_gap_input", &m_text_gap, 0.05f, -10.f, 100.f, "%.2f")) {
+        bool need_deal = false;
+        if (abs(m_text_gap_min_max - 100.f) < 0.01f || abs(m_text_gap_min_max + 10) < 0.01f) {
+            if (abs(m_text_gap - m_text_gap_min_max) > 0.01f) {
+                m_text_gap_min_max = m_text_gap;
+                need_deal          = true;
+            }
+        } else {
+            need_deal              = true;
+            m_text_gap_min_max = 0.f;
+        }
+        if (need_deal) {
+            m_need_update_text = true;
+        }
+    }
 
     draw_rotation(caption_size, slider_width, drag_left_width, slider_icon_width);
 #if BBL_RELEASE_TO_PUBLIC
