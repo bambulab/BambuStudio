@@ -749,6 +749,13 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
+    def           = this->add("avoid_crossing_wall_includes_support", coBool);
+    def->label    = L("Avoid crossing wall - Includes support");
+    def->category = L("Quality");
+    def->tooltip  = L("Including support while avoiding crossing wall.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     // BBS
     def             = this->add("supertack_plate_temp", coInts);
     def->label      = L("Other layers");
