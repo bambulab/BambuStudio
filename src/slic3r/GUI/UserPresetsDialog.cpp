@@ -540,7 +540,7 @@ static void remove_both(std::vector<std::string> &l, std::vector<std::string> &r
 
 bool UserPresetsDialog::delete_confirm(int collection, int preset_num)
 {
-    std::string types[] = {"Printer", "Filament", "Process"};
+    wxString types[] = {_L("Printer"), _L("Filament"), _L("Process")};
     DeleteConfirmDialog dlg(this, wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Delete"),
                             wxString::Format(_L("%d %s Preset will be deleted."), preset_num, types[collection % 3]));
     int res = dlg.ShowModal();
