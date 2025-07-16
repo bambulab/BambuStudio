@@ -1568,7 +1568,10 @@ void PrinterFileSystem::RecvMessageThread()
             auto & msg = m_messages.front();
             // OutputDebugStringA(msg.c_str());
             // OutputDebugStringA("\n");
+
+#if !BBL_RELEASE_TO_PUBLIC
             wxLogInfo("PrinterFileSystem::SendRequest >>>: \n%s\n", wxString::FromUTF8(msg));
+#endif
             l.unlock();
             int n = Bambu_SendMessage(m_session.tunnel, CTRL_TYPE, msg.c_str(), msg.length());
             l.lock();
@@ -1713,12 +1716,12 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
         std::string url = m_messages.front();
         m_messages.clear();
         if (url.size() < 2) {
-            wxLogMessage("PrinterFileSystem::Reconnect Initialize failed: %s", wxString::FromUTF8(url));
+            wxLogMessage("PrinterFileSystem::Reconnect Initialize failed: ");
             m_last_error = atoi(url.c_str());
             if (m_last_error == 0)
                 m_stopped = true;
         } else {
-            wxLogInfo("PrinterFileSystem::Reconnect Initialized: %s", wxString::FromUTF8(url));
+            wxLogInfo("PrinterFileSystem::Reconnect Initialized: ");
             l.unlock();
             m_status = Status::Connecting;
             wxLogMessage("PrinterFileSystem::Reconnect Connecting");
