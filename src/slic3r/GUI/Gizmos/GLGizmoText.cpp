@@ -1275,13 +1275,13 @@ void GLGizmoText::draw_rotation(int caption_size, int slider_width, int drag_lef
 
     float angle_degree = get_angle_from_current_style();
     m_rotate_angle     = angle_degree;
-    if (m_imgui->bbl_slider_float_style("##angle", &m_rotate_angle, -180, 180, "%.2f", 1.0f, true ,_L("Rotate the text counterclockwise."))) {
+    if (m_imgui->bbl_slider_float_style("##angle", &m_rotate_angle, -180.f, 180.f, "%.2f", 1.0f, true ,_L("Rotate the text counterclockwise."))) {
         update_style_angle(text_volume, angle_degree, m_rotate_angle);
     }
     ImGui::SameLine(drag_left_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
     bool set_rotate_angle_flag = false;
-    if (ImGui::BBLDragFloat("##angle_input", &m_rotate_angle, 0.05f, 0.0f, 0.0f, "%.2f")) {
+    if (ImGui::BBLDragFloat("##angle_input", &m_rotate_angle, 0.05f, -180.f, 180.f, "%.2f")) {
         set_rotate_angle_flag = true;
         update_style_angle(text_volume, angle_degree, m_rotate_angle);
     }
@@ -2297,7 +2297,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 
     ImGui::SameLine(drag_left_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
-    if (ImGui::BBLDragFloat("##text_gap_input", &m_text_gap, 0.05f, 0.0f, 0.0f, "%.2f"))
+    if (ImGui::BBLDragFloat("##text_gap_input", &m_text_gap, 0.05f, -10.f, 100.f, "%.2f"))
         m_need_update_text = true;
 
     draw_rotation(caption_size, slider_width, drag_left_width, slider_icon_width);
