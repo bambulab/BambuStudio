@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-15 15:02+0800\n"
+"POT-Creation-Date: 2025-07-17 11:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -869,22 +869,11 @@ msgstr "Malowanie szwu"
 msgid "Remove selection"
 msgstr "Usuń zaznaczenie"
 
-msgid "Modern"
-msgstr "Nowoczesny"
+msgid "Recommend"
+msgstr "Zalecane"
 
-msgid "Old"
-msgstr "Stary"
-
-msgctxt "Text"
-msgid "Normal"
-msgstr "Normalny"
-
-msgctxt "Text"
-msgid "Small"
-msgstr "Mały"
-
-msgid "Italic"
-msgstr "Kursywa"
+msgid "Old version"
+msgstr "Stara wersja"
 
 msgid "First font"
 msgstr "Pierwsza czcionka"
@@ -3490,14 +3479,14 @@ msgstr "Zmiana filamentu"
 msgid "M400 pause"
 msgstr "Pauza M400"
 
-msgid "Paused due to filament runout"
-msgstr "Pauza spowodowana końcem filamentu"
+msgid "Paused (filament ran out)"
+msgstr "Wstrzymano (skończył się filament)"
 
-msgid "Heating hotend"
-msgstr "Rozgrzewanie hotendu"
+msgid "Heating nozzle"
+msgstr "Nagrzewanie dyszy"
 
-msgid "Calibrating extrusion"
-msgstr "Kalibracja ekstruzji"
+msgid "Calibrating dynamic flow"
+msgstr "Kalibracja dynamiki przepływu"
 
 msgid "Scanning bed surface"
 msgstr "Skanowanie powierzchni stołu"
@@ -3520,29 +3509,29 @@ msgstr "Czyszczenie końcówki dyszy"
 msgid "Checking extruder temperature"
 msgstr "Sprawdzanie temperatury ekstrudera"
 
-msgid "Printing was paused by the user"
-msgstr "Druk został wstrzymany przez użytkownika"
+msgid "Paused by the user"
+msgstr "Wstrzymane przez użytkownika"
 
-msgid "Pause of front cover falling"
-msgstr "Pauza - osłona głowicy narzędziowej odpadła"
+msgid "Pause (front cover fall off)"
+msgstr "Wstrzymano (osłona głowicy odpadła)"
 
 msgid "Calibrating the micro lidar"
 msgstr "Kalibracja mikro lidaru"
 
-msgid "Calibrating extrusion flow"
-msgstr "Kalibracja przepływu ekstruzji"
+msgid "Calibrating flow ratio"
+msgstr "Kalibracja współczynnika przepływu"
 
-msgid "Paused due to nozzle temperature malfunction"
-msgstr "Pauza spowodowana awarią temperatury dyszy"
+msgid "Pause (nozzle temperature malfunction)"
+msgstr "Wstrzymano (problem z temperaturą dyszy)"
 
-msgid "Paused due to heat bed temperature malfunction"
-msgstr "Pauza spowodowana awarią temperatury stołu drukarki"
+msgid "Pause (heatbed temperature malfunction)"
+msgstr "Wstrzymano (problem z temperaturą podgrzewanego stołu)"
 
 msgid "Filament unloading"
 msgstr "Rozładunek filamentu"
 
-msgid "Skip step pause"
-msgstr "Pomiń pauzę"
+msgid "Pause (step loss)"
+msgstr "Wstrzymano (utrata kroku)"
 
 msgid "Filament loading"
 msgstr "Ładowanie filamentu"
@@ -3550,44 +3539,44 @@ msgstr "Ładowanie filamentu"
 msgid "Motor noise cancellation"
 msgstr "Redukcja hałasu silników"
 
-msgid "Paused due to AMS lost"
-msgstr "Wstrzymano z powodu utraty AMS"
+msgid "Pause (AMS offline)"
+msgstr "Wstrzymano (AMS offline)"
 
-msgid "Paused due to low speed of the heat break fan"
-msgstr "Pauza spowodowana niską prędkością wentylatora heat break"
+msgid "Pause (low speed of the heatbreak fan)"
+msgstr "Wstrzymano (niska prędkość wentylatora bloku grzejnego)"
 
-msgid "Paused due to chamber temperature control error"
-msgstr "Pauza spowodowana błędem kontroli temperatury komory"
+msgid "Pause (chamber temperature control problem)"
+msgstr "Wstrzymano (problem z kontrolą temperatury w komorze)"
 
 msgid "Cooling chamber"
 msgstr "Chłodzenie komory"
 
-msgid "Paused by the Gcode inserted by user"
-msgstr "Pauza spowodowana kodem G wstawionym przez użytkownika"
+msgid "Pause (Gcode inserted by user)"
+msgstr "Wstrzymano (G-Code dodany przez użytkownika)"
 
 msgid "Motor noise showoff"
 msgstr "Obejrzyj hałas silnika"
 
-msgid "Nozzle filament covered detected pause"
-msgstr "Dysza pokryta filamentem. Wstrzymano"
+msgid "Pause (nozzle clumping)"
+msgstr "Wstrzymano (zlepianie dyszy)"
 
-msgid "Cutter error pause"
-msgstr "Pauza spowodowana błędem przecinarki filamentu"
+msgid "Pause (cutter error)"
+msgstr "Wstrzymano (błąd obcinarki)"
 
-msgid "First layer error pause"
-msgstr "Pauza spowodowana błędem pierwszej warstwy"
+msgid "Pause (first layer error)"
+msgstr "Wstrzymano (błąd pierwszej warstwy)"
 
-msgid "Nozzle clog pause"
-msgstr "Pauza spowodowana zatkaną dyszą"
+msgid "Pause (nozzle clog)"
+msgstr "Wstrzymano (zatkanie dyszy)"
 
-msgid "Check printer absolute accuracy before calibration"
-msgstr "Przed kalibracją sprawdź dokładność bezwzględną drukarki"
+msgid "Measuring motion percision"
+msgstr "Pomiar precyzji ruchu"
 
-msgid "Absolute accuracy calibration"
-msgstr "Kalibracja dokładności bezwzględnej"
+msgid "Enhancing motion percision"
+msgstr "Poprawa percyzji ruchu"
 
-msgid "Check printer absolute accuracy after calibration"
-msgstr "Sprawdź dokładność bezwzględną drukarki po kalibracji"
+msgid "Measure motion accuracy"
+msgstr "Zmierz dokładność ruchu"
 
 msgid "Nozzle offset calibration"
 msgstr "Kalibracja offsetu dyszy"
@@ -3607,11 +3596,11 @@ msgstr "Kalibracja lasera"
 msgid "Auto Check: Platform"
 msgstr "Automatyczna kontrola: Platforma"
 
-msgid "Confirming birdeye camera position"
-msgstr "Potwierdzenie pozycji kamery Birdeye"
+msgid "Confirming BirdsEye Camera location"
+msgstr "Potwierdzenie pozycji kamery Birdseye"
 
-msgid "Calibrating birdeye camera"
-msgstr "Kalibracja kamery Birdeye"
+msgid "Calibrating BirdsEye Camera"
+msgstr "Kalibracja kamery BirdsEye"
 
 msgid "Auto bed leveling -phase 1"
 msgstr "Automatyczne poziomowanie stołu - faza 1"
@@ -3622,11 +3611,26 @@ msgstr "Automatyczne poziomowanie stołu - faza 2"
 msgid "Heating chamber"
 msgstr "Podgrzewanie komory"
 
-msgid "Heated bed cooling"
+msgid "Cooling heatbed"
 msgstr "Chłodzenie podgrzewanego stołu"
 
 msgid "Printing calibration lines"
 msgstr "Drukowanie linii kalibracyjnych"
+
+msgid "Auto Check: Material"
+msgstr "Automatyczna kontrola: Materiał"
+
+msgid "Live View Camera Calibration"
+msgstr "Kalibracja kamery Live View"
+
+msgid "Waiting for heatbed to reach target temperature"
+msgstr "Oczekiwanie na osiągnięcie przez podgrzewany stół docelowej temperatury"
+
+msgid "Auto Check: Material Position"
+msgstr "Automatyczna kontrola: Pozycja materiału"
+
+msgid "Cutting Module Offset Calibration"
+msgstr "Kalibracja offsetu modułu tnącego"
 
 msgid "left"
 msgstr "lewo"
@@ -9115,6 +9119,9 @@ msgstr "Obiekt: %1%"
 msgid "Maybe parts of the object at these height are too thin, or the object has faulty mesh"
 msgstr "Możliwe, że części obiektu na tej wysokości są zbyt cienkie, lub obiekt ma wadliwą siatkę."
 
+msgid "Flush volumes matrix do not match to the correct size!"
+msgstr ""
+
 msgid "No object can be printed. Maybe too small"
 msgstr "Nie można wydrukować żadnego obiektu. Być może jest zbyt mały"
 
@@ -10337,14 +10344,14 @@ msgstr "Wypełnienie krzyżowe"
 msgid "Locked Zag"
 msgstr "Blokada Zag"
 
-msgid "skin infill pattern"
-msgstr "wzór wypełnienia skóry"
+msgid "Skin infill pattern"
+msgstr "Wzór wypełnienia skóry"
 
 msgid "Line pattern for skin"
 msgstr "Wzór linii skóry"
 
-msgid "skeleton infill pattern"
-msgstr "wzór wypełnienia szkieletu"
+msgid "Skeleton infill pattern"
+msgstr "Wzór wypełnienia szkieletu"
 
 msgid "Line pattern for skeleton"
 msgstr "Wzór linii szkieletu"
@@ -13647,36 +13654,36 @@ msgid "Removed"
 msgstr "Usunięto"
 
 msgid "Management user presets"
-msgstr ""
+msgstr "Zarządzanie ustawieniami użytkownika"
 
 msgid "Custom filaments"
-msgstr ""
+msgstr "Filamenty użytkownika"
 
 msgid "No content"
-msgstr ""
+msgstr "Brak treści"
 
 #, c-format, boost-format
-msgid "Printer presets(%d/%d)"
-msgstr ""
+msgid "Printer presets (%d/%d)"
+msgstr "Ustawienia profili drukarki (%d/%d)"
 
 #, c-format, boost-format
-msgid "Filament presets(%d/%d)"
-msgstr ""
+msgid "Filament presets (%d/%d)"
+msgstr "Ustawienia profili filamentów (%d/%d)"
 
 #, c-format, boost-format
-msgid "Process presets(%d/%d)"
-msgstr ""
+msgid "Process presets (%d/%d)"
+msgstr "Ustawienia profili procesu (%d/%d)"
 
 #, c-format, boost-format
 msgid "%u Selected"
-msgstr ""
+msgstr "%u Wybrane"
 
 msgid "Please select the preset to be deleted"
-msgstr ""
+msgstr "Wybierz profil, który chcesz usunąć"
 
 #, c-format, boost-format
 msgid "%d %s Preset will be deleted."
-msgstr ""
+msgstr "%d %s Profil zostanie usunięty."
 
 msgid "Filament grouping"
 msgstr "Grupowanie filamentów"
@@ -13755,6 +13762,15 @@ msgstr ""
 #, c-format, boost-format
 msgid "/%d Selected"
 msgstr "/%d wybrano"
+
+msgid "Nothing selected"
+msgstr ""
+
+msgid "Over 64 objects in single plate"
+msgstr ""
+
+msgid "The current print job cannot be skipped"
+msgstr ""
 
 msgid "Skipping all objects."
 msgstr "Pomiń wszystkie obiekty."
@@ -14009,6 +14025,98 @@ msgid ""
 msgstr ""
 "Unikaj wypaczania\n"
 "Czy wiesz, że podczas drukowania materiałów podatnych na wypaczanie, takich jak ABS, odpowiednie zwiększenie temperatury stołu grzejnego może zmniejszyć prawdopodobieństwo wypaczania."
+
+#~ msgid "Modern"
+#~ msgstr "Nowoczesny"
+
+#~ msgid "Old"
+#~ msgstr "Stary"
+
+#~ msgctxt "Text"
+#~ msgid "Normal"
+#~ msgstr "Normalny"
+
+#~ msgctxt "Text"
+#~ msgid "Small"
+#~ msgstr "Mały"
+
+#~ msgid "Italic"
+#~ msgstr "Kursywa"
+
+#~ msgid "Paused due to filament runout"
+#~ msgstr "Pauza spowodowana końcem filamentu"
+
+#~ msgid "Heating hotend"
+#~ msgstr "Rozgrzewanie hotendu"
+
+#~ msgid "Calibrating extrusion"
+#~ msgstr "Kalibracja ekstruzji"
+
+#~ msgid "Printing was paused by the user"
+#~ msgstr "Druk został wstrzymany przez użytkownika"
+
+#~ msgid "Pause of front cover falling"
+#~ msgstr "Pauza - osłona głowicy narzędziowej odpadła"
+
+#~ msgid "Calibrating extrusion flow"
+#~ msgstr "Kalibracja przepływu ekstruzji"
+
+#~ msgid "Paused due to nozzle temperature malfunction"
+#~ msgstr "Pauza spowodowana awarią temperatury dyszy"
+
+#~ msgid "Paused due to heat bed temperature malfunction"
+#~ msgstr "Pauza spowodowana awarią temperatury stołu drukarki"
+
+#~ msgid "Skip step pause"
+#~ msgstr "Pomiń pauzę"
+
+#~ msgid "Paused due to AMS lost"
+#~ msgstr "Wstrzymano z powodu utraty AMS"
+
+#~ msgid "Paused due to low speed of the heat break fan"
+#~ msgstr "Pauza spowodowana niską prędkością wentylatora heat break"
+
+#~ msgid "Paused due to chamber temperature control error"
+#~ msgstr "Pauza spowodowana błędem kontroli temperatury komory"
+
+#~ msgid "Paused by the Gcode inserted by user"
+#~ msgstr "Pauza spowodowana kodem G wstawionym przez użytkownika"
+
+#~ msgid "Nozzle filament covered detected pause"
+#~ msgstr "Dysza pokryta filamentem. Wstrzymano"
+
+#~ msgid "Cutter error pause"
+#~ msgstr "Pauza spowodowana błędem przecinarki filamentu"
+
+#~ msgid "First layer error pause"
+#~ msgstr "Pauza spowodowana błędem pierwszej warstwy"
+
+#~ msgid "Nozzle clog pause"
+#~ msgstr "Pauza spowodowana zatkaną dyszą"
+
+#~ msgid "Check printer absolute accuracy before calibration"
+#~ msgstr "Przed kalibracją sprawdź dokładność bezwzględną drukarki"
+
+#~ msgid "Absolute accuracy calibration"
+#~ msgstr "Kalibracja dokładności bezwzględnej"
+
+#~ msgid "Check printer absolute accuracy after calibration"
+#~ msgstr "Sprawdź dokładność bezwzględną drukarki po kalibracji"
+
+#~ msgid "Confirming birdeye camera position"
+#~ msgstr "Potwierdzenie pozycji kamery Birdeye"
+
+#~ msgid "Calibrating birdeye camera"
+#~ msgstr "Kalibracja kamery Birdeye"
+
+#~ msgid "Heated bed cooling"
+#~ msgstr "Chłodzenie podgrzewanego stołu"
+
+#~ msgid "skin infill pattern"
+#~ msgstr "wzór wypełnienia skóry"
+
+#~ msgid "skeleton infill pattern"
+#~ msgstr "wzór wypełnienia szkieletu"
 
 #~ msgid "Connecting to the printer. Unable to cancel during the connection process."
 #~ msgstr "Łączenie z drukarką. Nie można anulować w trakcie procesu łączenia."

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-15 15:02+0800\n"
+"POT-Creation-Date: 2025-07-17 11:15+0800\n"
 "PO-Revision-Date: 2025-06-23 18:26+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -869,21 +869,10 @@ msgstr "Dikiş boyama"
 msgid "Remove selection"
 msgstr "Seçimi kaldır"
 
-msgid "Modern"
+msgid "Recommend"
 msgstr ""
 
-msgid "Old"
-msgstr ""
-
-msgctxt "Text"
-msgid "Normal"
-msgstr ""
-
-msgctxt "Text"
-msgid "Small"
-msgstr ""
-
-msgid "Italic"
+msgid "Old version"
 msgstr ""
 
 msgid "First font"
@@ -3481,14 +3470,14 @@ msgstr "Filament değişimi"
 msgid "M400 pause"
 msgstr "M400 duraklatma"
 
-msgid "Paused due to filament runout"
-msgstr "Filament bittiği için duraklatıldı"
+msgid "Paused (filament ran out)"
+msgstr ""
 
-msgid "Heating hotend"
-msgstr "Hotend ısıtılıyor"
+msgid "Heating nozzle"
+msgstr ""
 
-msgid "Calibrating extrusion"
-msgstr "Ekstrüzyon kalibre ediliyor"
+msgid "Calibrating dynamic flow"
+msgstr ""
 
 msgid "Scanning bed surface"
 msgstr "Yatak yüzeyi taranıyor"
@@ -3511,29 +3500,29 @@ msgstr "Nozul ucunun temizlenmesi"
 msgid "Checking extruder temperature"
 msgstr "Ekstrüder sıcaklığının kontrol ediliyor"
 
-msgid "Printing was paused by the user"
-msgstr "Yazdırma kullanıcı tarafından duraklatıldı"
+msgid "Paused by the user"
+msgstr ""
 
-msgid "Pause of front cover falling"
-msgstr "Ön kapağın düşmesinin duraklaması"
+msgid "Pause (front cover fall off)"
+msgstr ""
 
 msgid "Calibrating the micro lidar"
 msgstr "Mikro Lidar kalibre ediliyor"
 
-msgid "Calibrating extrusion flow"
-msgstr "Ekstrüzyon akışını kalibre etme"
+msgid "Calibrating flow ratio"
+msgstr ""
 
-msgid "Paused due to nozzle temperature malfunction"
-msgstr "Nozul sıcaklığı arızası nedeniyle duraklatıldı"
+msgid "Pause (nozzle temperature malfunction)"
+msgstr ""
 
-msgid "Paused due to heat bed temperature malfunction"
-msgstr "Isı yatağı sıcaklık arızası nedeniyle duraklatıldı"
+msgid "Pause (heatbed temperature malfunction)"
+msgstr ""
 
 msgid "Filament unloading"
 msgstr "Filament çıkartma"
 
-msgid "Skip step pause"
-msgstr "Adım duraklamasını atla"
+msgid "Pause (step loss)"
+msgstr ""
 
 msgid "Filament loading"
 msgstr "Filament yüklemesi"
@@ -3541,44 +3530,44 @@ msgstr "Filament yüklemesi"
 msgid "Motor noise cancellation"
 msgstr "Motor gürültüsü engelleme"
 
-msgid "Paused due to AMS lost"
-msgstr "AMS kaybı nedeniyle durduruldu"
+msgid "Pause (AMS offline)"
+msgstr ""
 
-msgid "Paused due to low speed of the heat break fan"
-msgstr "Isı kesme fanının düşük hızı nedeniyle duraklatıldı"
+msgid "Pause (low speed of the heatbreak fan)"
+msgstr ""
 
-msgid "Paused due to chamber temperature control error"
-msgstr "Oda sıcaklığı kontrol hatası nedeniyle duraklatıldı"
+msgid "Pause (chamber temperature control problem)"
+msgstr ""
 
 msgid "Cooling chamber"
 msgstr "Soğutma haznesi"
 
-msgid "Paused by the Gcode inserted by user"
-msgstr "Kullanıcı tarafından eklenen Gcode tarafından duraklatıldı"
+msgid "Pause (Gcode inserted by user)"
+msgstr ""
 
 msgid "Motor noise showoff"
 msgstr "Motor gürültü gösterimi"
 
-msgid "Nozzle filament covered detected pause"
-msgstr "Nozulda filament birikimi algılandı, duraklatıldı"
+msgid "Pause (nozzle clumping)"
+msgstr ""
 
-msgid "Cutter error pause"
-msgstr "Kesici hatası duraklatılıyor"
+msgid "Pause (cutter error)"
+msgstr ""
 
-msgid "First layer error pause"
-msgstr "İlk katman hatası duraklatılıyor"
+msgid "Pause (first layer error)"
+msgstr ""
 
-msgid "Nozzle clog pause"
-msgstr "Nozul tıkanıklığı, duraklatılıyor"
+msgid "Pause (nozzle clog)"
+msgstr ""
 
-msgid "Check printer absolute accuracy before calibration"
-msgstr "Kalibrasyondan önce yazıcının mutlak doğruluğunu kontrol edin"
+msgid "Measuring motion percision"
+msgstr ""
 
-msgid "Absolute accuracy calibration"
-msgstr "Mutlak doğruluk kalibrasyonu"
+msgid "Enhancing motion percision"
+msgstr ""
 
-msgid "Check printer absolute accuracy after calibration"
-msgstr "Kalibrasyondan sonra yazıcının mutlak doğruluğunu kontrol edin"
+msgid "Measure motion accuracy"
+msgstr ""
 
 msgid "Nozzle offset calibration"
 msgstr "Nozul ofset kalibrasyonu"
@@ -3598,11 +3587,11 @@ msgstr "Lazer Kalibrasyonu"
 msgid "Auto Check: Platform"
 msgstr "Auto Check: Platform"
 
-msgid "Confirming birdeye camera position"
-msgstr "Kamera konumunu onayla"
+msgid "Confirming BirdsEye Camera location"
+msgstr ""
 
-msgid "Calibrating birdeye camera"
-msgstr "Bird Eye kamerasının kalibrasyonu"
+msgid "Calibrating BirdsEye Camera"
+msgstr ""
 
 msgid "Auto bed leveling -phase 1"
 msgstr "Otomatik yatak seviyeleme -aşama 1"
@@ -3613,11 +3602,26 @@ msgstr "Otomatik yatak seviyeleme -aşama 2"
 msgid "Heating chamber"
 msgstr "Oda ısıtıcı"
 
-msgid "Heated bed cooling"
-msgstr "Isıtılmış yatak soğutma"
+msgid "Cooling heatbed"
+msgstr ""
 
 msgid "Printing calibration lines"
 msgstr "Kalibrasyon çizgilerini yazdır"
+
+msgid "Auto Check: Material"
+msgstr ""
+
+msgid "Live View Camera Calibration"
+msgstr ""
+
+msgid "Waiting for heatbed to reach target temperature"
+msgstr ""
+
+msgid "Auto Check: Material Position"
+msgstr ""
+
+msgid "Cutting Module Offset Calibration"
+msgstr ""
 
 msgid "left"
 msgstr "sol"
@@ -9079,6 +9083,9 @@ msgstr "Nesne: %1%"
 msgid "Maybe parts of the object at these height are too thin, or the object has faulty mesh"
 msgstr "Belki nesnenin bu yükseklikteki bazı kısımları çok incedir veya nesnenin ağı hatalı olabilir"
 
+msgid "Flush volumes matrix do not match to the correct size!"
+msgstr ""
+
 msgid "No object can be printed. Maybe too small"
 msgstr "Hiçbir nesne yazdırılamaz. Belki çok küçük"
 
@@ -10301,13 +10308,13 @@ msgstr "Çapraz Zig Zag"
 msgid "Locked Zag"
 msgstr "Kilitli Zigzak"
 
-msgid "skin infill pattern"
+msgid "Skin infill pattern"
 msgstr ""
 
 msgid "Line pattern for skin"
 msgstr ""
 
-msgid "skeleton infill pattern"
+msgid "Skeleton infill pattern"
 msgstr ""
 
 msgid "Line pattern for skeleton"
@@ -13608,15 +13615,15 @@ msgid "No content"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Printer presets(%d/%d)"
+msgid "Printer presets (%d/%d)"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament presets(%d/%d)"
+msgid "Filament presets (%d/%d)"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Process presets(%d/%d)"
+msgid "Process presets (%d/%d)"
 msgstr ""
 
 #, c-format, boost-format
@@ -13706,6 +13713,15 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "/%d Selected"
+msgstr ""
+
+msgid "Nothing selected"
+msgstr ""
+
+msgid "Over 64 objects in single plate"
+msgstr ""
+
+msgid "The current print job cannot be skipped"
 msgstr ""
 
 msgid "Skipping all objects."
@@ -13961,6 +13977,75 @@ msgid ""
 msgstr ""
 "Eğilmeyi önleyin\n"
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını azaltabileceğini biliyor muydunuz."
+
+#~ msgid "Paused due to filament runout"
+#~ msgstr "Filament bittiği için duraklatıldı"
+
+#~ msgid "Heating hotend"
+#~ msgstr "Hotend ısıtılıyor"
+
+#~ msgid "Calibrating extrusion"
+#~ msgstr "Ekstrüzyon kalibre ediliyor"
+
+#~ msgid "Printing was paused by the user"
+#~ msgstr "Yazdırma kullanıcı tarafından duraklatıldı"
+
+#~ msgid "Pause of front cover falling"
+#~ msgstr "Ön kapağın düşmesinin duraklaması"
+
+#~ msgid "Calibrating extrusion flow"
+#~ msgstr "Ekstrüzyon akışını kalibre etme"
+
+#~ msgid "Paused due to nozzle temperature malfunction"
+#~ msgstr "Nozul sıcaklığı arızası nedeniyle duraklatıldı"
+
+#~ msgid "Paused due to heat bed temperature malfunction"
+#~ msgstr "Isı yatağı sıcaklık arızası nedeniyle duraklatıldı"
+
+#~ msgid "Skip step pause"
+#~ msgstr "Adım duraklamasını atla"
+
+#~ msgid "Paused due to AMS lost"
+#~ msgstr "AMS kaybı nedeniyle durduruldu"
+
+#~ msgid "Paused due to low speed of the heat break fan"
+#~ msgstr "Isı kesme fanının düşük hızı nedeniyle duraklatıldı"
+
+#~ msgid "Paused due to chamber temperature control error"
+#~ msgstr "Oda sıcaklığı kontrol hatası nedeniyle duraklatıldı"
+
+#~ msgid "Paused by the Gcode inserted by user"
+#~ msgstr "Kullanıcı tarafından eklenen Gcode tarafından duraklatıldı"
+
+#~ msgid "Nozzle filament covered detected pause"
+#~ msgstr "Nozulda filament birikimi algılandı, duraklatıldı"
+
+#~ msgid "Cutter error pause"
+#~ msgstr "Kesici hatası duraklatılıyor"
+
+#~ msgid "First layer error pause"
+#~ msgstr "İlk katman hatası duraklatılıyor"
+
+#~ msgid "Nozzle clog pause"
+#~ msgstr "Nozul tıkanıklığı, duraklatılıyor"
+
+#~ msgid "Check printer absolute accuracy before calibration"
+#~ msgstr "Kalibrasyondan önce yazıcının mutlak doğruluğunu kontrol edin"
+
+#~ msgid "Absolute accuracy calibration"
+#~ msgstr "Mutlak doğruluk kalibrasyonu"
+
+#~ msgid "Check printer absolute accuracy after calibration"
+#~ msgstr "Kalibrasyondan sonra yazıcının mutlak doğruluğunu kontrol edin"
+
+#~ msgid "Confirming birdeye camera position"
+#~ msgstr "Kamera konumunu onayla"
+
+#~ msgid "Calibrating birdeye camera"
+#~ msgstr "Bird Eye kamerasının kalibrasyonu"
+
+#~ msgid "Heated bed cooling"
+#~ msgstr "Isıtılmış yatak soğutma"
 
 #~ msgid "Connecting to the printer. Unable to cancel during the connection process."
 #~ msgstr "Yazıcıya bağlanılıyor. Bağlantı işlemi sırasında iptal edilemiyor."

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-15 15:02+0800\n"
+"POT-Creation-Date: 2025-07-17 11:15+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -863,21 +863,10 @@ msgstr "Seam painting"
 msgid "Remove selection"
 msgstr "Remove selection"
 
-msgid "Modern"
+msgid "Recommend"
 msgstr ""
 
-msgid "Old"
-msgstr ""
-
-msgctxt "Text"
-msgid "Normal"
-msgstr ""
-
-msgctxt "Text"
-msgid "Small"
-msgstr ""
-
-msgid "Italic"
+msgid "Old version"
 msgstr ""
 
 msgid "First font"
@@ -3459,14 +3448,14 @@ msgstr "Changing filament"
 msgid "M400 pause"
 msgstr "M400 pause"
 
-msgid "Paused due to filament runout"
-msgstr "Paused due to filament runout"
+msgid "Paused (filament ran out)"
+msgstr ""
 
-msgid "Heating hotend"
-msgstr "Heating hotend"
+msgid "Heating nozzle"
+msgstr ""
 
-msgid "Calibrating extrusion"
-msgstr "Calibrating extrusion"
+msgid "Calibrating dynamic flow"
+msgstr ""
 
 msgid "Scanning bed surface"
 msgstr "Scanning bed surface"
@@ -3489,29 +3478,29 @@ msgstr "Cleaning nozzle tip"
 msgid "Checking extruder temperature"
 msgstr "Checking extruder temperature"
 
-msgid "Printing was paused by the user"
-msgstr "Printing was paused by the user"
+msgid "Paused by the user"
+msgstr ""
 
-msgid "Pause of front cover falling"
-msgstr "Pause of front cover falling"
+msgid "Pause (front cover fall off)"
+msgstr ""
 
 msgid "Calibrating the micro lidar"
 msgstr ""
 
-msgid "Calibrating extrusion flow"
-msgstr "Calibrating extrusion flow"
+msgid "Calibrating flow ratio"
+msgstr ""
 
-msgid "Paused due to nozzle temperature malfunction"
-msgstr "Paused due to nozzle temperature malfunction"
+msgid "Pause (nozzle temperature malfunction)"
+msgstr ""
 
-msgid "Paused due to heat bed temperature malfunction"
-msgstr "Paused due to heat bed temperature malfunction"
+msgid "Pause (heatbed temperature malfunction)"
+msgstr ""
 
 msgid "Filament unloading"
 msgstr "Filament unloading"
 
-msgid "Skip step pause"
-msgstr "Skip step pause"
+msgid "Pause (step loss)"
+msgstr ""
 
 msgid "Filament loading"
 msgstr "Filament loading"
@@ -3519,43 +3508,43 @@ msgstr "Filament loading"
 msgid "Motor noise cancellation"
 msgstr "Motor noise cancellation"
 
-msgid "Paused due to AMS lost"
-msgstr "Paused due to AMS lost"
+msgid "Pause (AMS offline)"
+msgstr ""
 
-msgid "Paused due to low speed of the heat break fan"
-msgstr "Paused due to low speed of the heat break fan"
+msgid "Pause (low speed of the heatbreak fan)"
+msgstr ""
 
-msgid "Paused due to chamber temperature control error"
-msgstr "Paused due to chamber temperature control error"
+msgid "Pause (chamber temperature control problem)"
+msgstr ""
 
 msgid "Cooling chamber"
 msgstr "Cooling chamber"
 
-msgid "Paused by the Gcode inserted by user"
-msgstr "Paused by the Gcode inserted by user"
+msgid "Pause (Gcode inserted by user)"
+msgstr ""
 
 msgid "Motor noise showoff"
 msgstr "Motor noise showoff"
 
-msgid "Nozzle filament covered detected pause"
-msgstr "Nozzle filament covered detected pause"
-
-msgid "Cutter error pause"
-msgstr "Cutter error pause"
-
-msgid "First layer error pause"
-msgstr "First layer error pause"
-
-msgid "Nozzle clog pause"
-msgstr "Nozzle clog pause"
-
-msgid "Check printer absolute accuracy before calibration"
+msgid "Pause (nozzle clumping)"
 msgstr ""
 
-msgid "Absolute accuracy calibration"
+msgid "Pause (cutter error)"
 msgstr ""
 
-msgid "Check printer absolute accuracy after calibration"
+msgid "Pause (first layer error)"
+msgstr ""
+
+msgid "Pause (nozzle clog)"
+msgstr ""
+
+msgid "Measuring motion percision"
+msgstr ""
+
+msgid "Enhancing motion percision"
+msgstr ""
+
+msgid "Measure motion accuracy"
 msgstr ""
 
 msgid "Nozzle offset calibration"
@@ -3576,10 +3565,10 @@ msgstr ""
 msgid "Auto Check: Platform"
 msgstr ""
 
-msgid "Confirming birdeye camera position"
+msgid "Confirming BirdsEye Camera location"
 msgstr ""
 
-msgid "Calibrating birdeye camera"
+msgid "Calibrating BirdsEye Camera"
 msgstr ""
 
 msgid "Auto bed leveling -phase 1"
@@ -3591,10 +3580,25 @@ msgstr ""
 msgid "Heating chamber"
 msgstr ""
 
-msgid "Heated bed cooling"
+msgid "Cooling heatbed"
 msgstr ""
 
 msgid "Printing calibration lines"
+msgstr ""
+
+msgid "Auto Check: Material"
+msgstr ""
+
+msgid "Live View Camera Calibration"
+msgstr ""
+
+msgid "Waiting for heatbed to reach target temperature"
+msgstr ""
+
+msgid "Auto Check: Material Position"
+msgstr ""
+
+msgid "Cutting Module Offset Calibration"
 msgstr ""
 
 msgid "left"
@@ -9007,6 +9011,9 @@ msgstr "Object: %1%"
 msgid "Maybe parts of the object at these height are too thin, or the object has faulty mesh"
 msgstr "Parts of the object at these heights may be too thin or the object may have a faulty mesh."
 
+msgid "Flush volumes matrix do not match to the correct size!"
+msgstr ""
+
 msgid "No object can be printed. Maybe too small"
 msgstr "No object can be printed. Maybe too small"
 
@@ -10227,13 +10234,13 @@ msgstr ""
 msgid "Locked Zag"
 msgstr ""
 
-msgid "skin infill pattern"
+msgid "Skin infill pattern"
 msgstr ""
 
 msgid "Line pattern for skin"
 msgstr ""
 
-msgid "skeleton infill pattern"
+msgid "Skeleton infill pattern"
 msgstr ""
 
 msgid "Line pattern for skeleton"
@@ -13507,15 +13514,15 @@ msgid "No content"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Printer presets(%d/%d)"
+msgid "Printer presets (%d/%d)"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament presets(%d/%d)"
+msgid "Filament presets (%d/%d)"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Process presets(%d/%d)"
+msgid "Process presets (%d/%d)"
 msgstr ""
 
 #, c-format, boost-format
@@ -13605,6 +13612,15 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "/%d Selected"
+msgstr ""
+
+msgid "Nothing selected"
+msgstr ""
+
+msgid "Over 64 objects in single plate"
+msgstr ""
+
+msgid "The current print job cannot be skipped"
 msgstr ""
 
 msgid "Skipping all objects."
@@ -13860,6 +13876,57 @@ msgid ""
 msgstr ""
 "Avoid warping\n"
 "Did you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping?"
+
+#~ msgid "Paused due to filament runout"
+#~ msgstr "Paused due to filament runout"
+
+#~ msgid "Heating hotend"
+#~ msgstr "Heating hotend"
+
+#~ msgid "Calibrating extrusion"
+#~ msgstr "Calibrating extrusion"
+
+#~ msgid "Printing was paused by the user"
+#~ msgstr "Printing was paused by the user"
+
+#~ msgid "Pause of front cover falling"
+#~ msgstr "Pause of front cover falling"
+
+#~ msgid "Calibrating extrusion flow"
+#~ msgstr "Calibrating extrusion flow"
+
+#~ msgid "Paused due to nozzle temperature malfunction"
+#~ msgstr "Paused due to nozzle temperature malfunction"
+
+#~ msgid "Paused due to heat bed temperature malfunction"
+#~ msgstr "Paused due to heat bed temperature malfunction"
+
+#~ msgid "Skip step pause"
+#~ msgstr "Skip step pause"
+
+#~ msgid "Paused due to AMS lost"
+#~ msgstr "Paused due to AMS lost"
+
+#~ msgid "Paused due to low speed of the heat break fan"
+#~ msgstr "Paused due to low speed of the heat break fan"
+
+#~ msgid "Paused due to chamber temperature control error"
+#~ msgstr "Paused due to chamber temperature control error"
+
+#~ msgid "Paused by the Gcode inserted by user"
+#~ msgstr "Paused by the Gcode inserted by user"
+
+#~ msgid "Nozzle filament covered detected pause"
+#~ msgstr "Nozzle filament covered detected pause"
+
+#~ msgid "Cutter error pause"
+#~ msgstr "Cutter error pause"
+
+#~ msgid "First layer error pause"
+#~ msgstr "First layer error pause"
+
+#~ msgid "Nozzle clog pause"
+#~ msgstr "Nozzle clog pause"
 
 #~ msgid "Connecting to the printer. Unable to cancel during the connection process."
 #~ msgstr "Connecting to the printer. Unable to cancel during the connection process."
