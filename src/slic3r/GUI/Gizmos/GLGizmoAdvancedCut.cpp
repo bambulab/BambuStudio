@@ -171,8 +171,9 @@ bool GLGizmoAdvancedCut::gizmo_event(SLAGizmoEventType action, const Vec2d &mous
     else if (action == SLAGizmoEventType::RightDown) {
         if (!m_connectors_editing && m_cut_mode == CutMode::cutPlanar) { //&& control_down
             // Check the internal part raycasters.
-            if (m_part_selection && !m_part_selection->valid())
+            if (m_part_selection && !m_part_selection->valid()) {
                 process_contours();
+            }
             m_part_selection->toggle_selection(mouse_position);
             check_and_update_connectors_state(); // after a contour is deactivated, its connectors are inside the object
 
@@ -2370,7 +2371,11 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     render_part_action_line( "A", "##upper", m_keep_upper, m_place_on_cut_upper, m_rotate_upper);
     render_part_action_line( "B", "##lower", m_keep_lower, m_place_on_cut_lower, m_rotate_lower);
 
-    m_imgui->disabled_begin(has_connectors || m_cut_mode == CutMode::cutTongueAndGroove);
+    if (m_part_selection && m_part_selection->has_modified_cut_parts()) {
+        m_cut_to_parts = false;
+    }
+    m_imgui->disabled_begin(has_connectors || (m_part_selection && m_part_selection->has_modified_cut_parts() && m_part_selection->valid()) ||
+                            m_cut_mode == CutMode::cutTongueAndGroove);
     m_imgui->bbl_checkbox(_L("Cut to parts"), m_cut_to_parts);
     if (m_cut_to_parts) {
         m_keep_upper = m_keep_lower = true;
