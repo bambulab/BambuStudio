@@ -3584,7 +3584,9 @@ void MainFrame::load_config_file()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " presets has been import,and size is" << cfiles.size();
         NetworkAgent* agent = wxGetApp().getAgent();
         if (agent) {
+#if !BBL_RELEASE_TO_PUBLIC
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " user is: " << agent->get_user_id();
+#endif
         }
     }
     wxGetApp().preset_bundle->update_compatible(PresetSelectCompatibleType::Always);
@@ -4023,7 +4025,7 @@ void MainFrame::remove_recent_project(size_t file_id, wxString const &filename)
 
 void MainFrame::load_url(wxString url)
 {
-    BOOST_LOG_TRIVIAL(trace) << "load_url:" << url;
+    BOOST_LOG_TRIVIAL(trace) << "load_url";
     auto evt = new wxCommandEvent(EVT_LOAD_URL, this->GetId());
     evt->SetString(url);
     wxQueueEvent(this, evt);
@@ -4031,7 +4033,7 @@ void MainFrame::load_url(wxString url)
 
 void MainFrame::load_printer_url(wxString url)
 {
-    BOOST_LOG_TRIVIAL(trace) << "load_printer_url:" << url;
+    BOOST_LOG_TRIVIAL(trace) << "load_printer_url";
     auto evt = new wxCommandEvent(EVT_LOAD_PRINTER_URL, this->GetId());
     evt->SetString(url);
     wxQueueEvent(this, evt);
