@@ -6908,7 +6908,9 @@ void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
 
 void GUI_App::MacOpenURL(const wxString& url)
 {
+#ifndef BBL_RELEASE_TO_PUBLIC
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << "get mac url " << url;
+#endif
 
     if (!url.empty() && boost::starts_with(url, "bambustudioopen://")) {
         auto input_str_arr = split_str(url.ToStdString(), "bambustudioopen://");
@@ -6920,7 +6922,11 @@ void GUI_App::MacOpenURL(const wxString& url)
         }
 
         std::string download_file_url = url_decode(download_origin_url);
+
+#ifndef BBL_RELEASE_TO_PUBLIC
         BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << download_file_url;
+#endif
+
         if (!download_file_url.empty() && (boost::starts_with(download_file_url, "http://") || boost::starts_with(download_file_url, "https://"))) {
 
             if (m_post_initialized) {

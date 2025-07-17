@@ -135,6 +135,16 @@ std::string BBLCrossTalk::Crosstalk_JsonLog(const nlohmann::json& json)
                 {
                     to_traverse_jsons.push_back(&iter.value());
                 }
+                else if (iter.value().is_array())
+                {
+                    for (auto& array_item : iter.value())
+                    {
+                        if (array_item.is_object() || array_item.is_array())
+                        {
+                            to_traverse_jsons.push_back(&array_item);
+                        }
+                    }
+                }
 
                 iter++;
             }
@@ -151,6 +161,10 @@ std::string BBLCrossTalk::Crosstalk_JsonLog(const nlohmann::json& json)
         BOOST_LOG_TRIVIAL(info) << "Error processing JSON for cross-talk: " << e.what();
         return std::string();
     }
+    catch (...)
+    {
+        BOOST_LOG_TRIVIAL(info) << "Error processing JSON for cross-talk";
+    };
 
     return copied_json.dump(1);
 }
