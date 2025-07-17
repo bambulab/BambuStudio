@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-15 15:02+0800\n"
+"POT-Creation-Date: 2025-07-17 11:15+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -861,21 +861,10 @@ msgstr "Malování pozice švu"
 msgid "Remove selection"
 msgstr "Odebrat výběr"
 
-msgid "Modern"
+msgid "Recommend"
 msgstr ""
 
-msgid "Old"
-msgstr ""
-
-msgctxt "Text"
-msgid "Normal"
-msgstr ""
-
-msgctxt "Text"
-msgid "Small"
-msgstr ""
-
-msgid "Italic"
+msgid "Old version"
 msgstr ""
 
 msgid "First font"
@@ -3438,14 +3427,14 @@ msgstr "Výměna filamentu"
 msgid "M400 pause"
 msgstr "M400 pauza"
 
-msgid "Paused due to filament runout"
-msgstr "Pozastaveno kvůli docházejícího filamentu"
+msgid "Paused (filament ran out)"
+msgstr ""
 
-msgid "Heating hotend"
-msgstr "Vytápění hotend"
+msgid "Heating nozzle"
+msgstr ""
 
-msgid "Calibrating extrusion"
-msgstr "Kalibrace extruze"
+msgid "Calibrating dynamic flow"
+msgstr ""
 
 msgid "Scanning bed surface"
 msgstr "Skenování povrchu podložky"
@@ -3468,28 +3457,28 @@ msgstr "Čištění špičky trysky"
 msgid "Checking extruder temperature"
 msgstr "Kontrola teploty extruderu"
 
-msgid "Printing was paused by the user"
-msgstr "Tisk byl pozastaven uživatelem"
+msgid "Paused by the user"
+msgstr ""
 
-msgid "Pause of front cover falling"
-msgstr "Pozastavení při pádu předního krytu"
+msgid "Pause (front cover fall off)"
+msgstr ""
 
 msgid "Calibrating the micro lidar"
 msgstr ""
 
-msgid "Calibrating extrusion flow"
-msgstr "Kalibrace extruze průtpku"
+msgid "Calibrating flow ratio"
+msgstr ""
 
-msgid "Paused due to nozzle temperature malfunction"
-msgstr "Pozastaveno kvůli poruše teploty trysky"
+msgid "Pause (nozzle temperature malfunction)"
+msgstr ""
 
-msgid "Paused due to heat bed temperature malfunction"
-msgstr "Pozastaveno kvůli poruše teploty topné podložky"
+msgid "Pause (heatbed temperature malfunction)"
+msgstr ""
 
 msgid "Filament unloading"
 msgstr ""
 
-msgid "Skip step pause"
+msgid "Pause (step loss)"
 msgstr ""
 
 msgid "Filament loading"
@@ -3498,43 +3487,43 @@ msgstr ""
 msgid "Motor noise cancellation"
 msgstr ""
 
-msgid "Paused due to AMS lost"
+msgid "Pause (AMS offline)"
 msgstr ""
 
-msgid "Paused due to low speed of the heat break fan"
+msgid "Pause (low speed of the heatbreak fan)"
 msgstr ""
 
-msgid "Paused due to chamber temperature control error"
+msgid "Pause (chamber temperature control problem)"
 msgstr ""
 
 msgid "Cooling chamber"
 msgstr ""
 
-msgid "Paused by the Gcode inserted by user"
+msgid "Pause (Gcode inserted by user)"
 msgstr ""
 
 msgid "Motor noise showoff"
 msgstr ""
 
-msgid "Nozzle filament covered detected pause"
+msgid "Pause (nozzle clumping)"
 msgstr ""
 
-msgid "Cutter error pause"
+msgid "Pause (cutter error)"
 msgstr ""
 
-msgid "First layer error pause"
+msgid "Pause (first layer error)"
 msgstr ""
 
-msgid "Nozzle clog pause"
+msgid "Pause (nozzle clog)"
 msgstr ""
 
-msgid "Check printer absolute accuracy before calibration"
+msgid "Measuring motion percision"
 msgstr ""
 
-msgid "Absolute accuracy calibration"
+msgid "Enhancing motion percision"
 msgstr ""
 
-msgid "Check printer absolute accuracy after calibration"
+msgid "Measure motion accuracy"
 msgstr ""
 
 msgid "Nozzle offset calibration"
@@ -3555,10 +3544,10 @@ msgstr ""
 msgid "Auto Check: Platform"
 msgstr ""
 
-msgid "Confirming birdeye camera position"
+msgid "Confirming BirdsEye Camera location"
 msgstr ""
 
-msgid "Calibrating birdeye camera"
+msgid "Calibrating BirdsEye Camera"
 msgstr ""
 
 msgid "Auto bed leveling -phase 1"
@@ -3570,10 +3559,25 @@ msgstr ""
 msgid "Heating chamber"
 msgstr ""
 
-msgid "Heated bed cooling"
+msgid "Cooling heatbed"
 msgstr ""
 
 msgid "Printing calibration lines"
+msgstr ""
+
+msgid "Auto Check: Material"
+msgstr ""
+
+msgid "Live View Camera Calibration"
+msgstr ""
+
+msgid "Waiting for heatbed to reach target temperature"
+msgstr ""
+
+msgid "Auto Check: Material Position"
+msgstr ""
+
+msgid "Cutting Module Offset Calibration"
 msgstr ""
 
 msgid "left"
@@ -8963,6 +8967,9 @@ msgstr "Objekt: %1%"
 msgid "Maybe parts of the object at these height are too thin, or the object has faulty mesh"
 msgstr "Části objektu v těchto výškách mohou být příliš tenké nebo objekt může mít chybnou síť"
 
+msgid "Flush volumes matrix do not match to the correct size!"
+msgstr ""
+
 msgid "No object can be printed. Maybe too small"
 msgstr "Nelze vytisknout žádný objekt. Možná je příliš malý"
 
@@ -10185,13 +10192,13 @@ msgstr ""
 msgid "Locked Zag"
 msgstr ""
 
-msgid "skin infill pattern"
+msgid "Skin infill pattern"
 msgstr ""
 
 msgid "Line pattern for skin"
 msgstr ""
 
-msgid "skeleton infill pattern"
+msgid "Skeleton infill pattern"
 msgstr ""
 
 msgid "Line pattern for skeleton"
@@ -13421,15 +13428,15 @@ msgid "No content"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Printer presets(%d/%d)"
+msgid "Printer presets (%d/%d)"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament presets(%d/%d)"
+msgid "Filament presets (%d/%d)"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Process presets(%d/%d)"
+msgid "Process presets (%d/%d)"
 msgstr ""
 
 #, c-format, boost-format
@@ -13519,6 +13526,15 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "/%d Selected"
+msgstr ""
+
+msgid "Nothing selected"
+msgstr ""
+
+msgid "Over 64 objects in single plate"
+msgstr ""
+
+msgid "The current print job cannot be skipped"
 msgstr ""
 
 msgid "Skipping all objects."
@@ -13766,6 +13782,30 @@ msgid ""
 "Avoid warping\n"
 "Did you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping."
 msgstr ""
+
+#~ msgid "Paused due to filament runout"
+#~ msgstr "Pozastaveno kvůli docházejícího filamentu"
+
+#~ msgid "Heating hotend"
+#~ msgstr "Vytápění hotend"
+
+#~ msgid "Calibrating extrusion"
+#~ msgstr "Kalibrace extruze"
+
+#~ msgid "Printing was paused by the user"
+#~ msgstr "Tisk byl pozastaven uživatelem"
+
+#~ msgid "Pause of front cover falling"
+#~ msgstr "Pozastavení při pádu předního krytu"
+
+#~ msgid "Calibrating extrusion flow"
+#~ msgstr "Kalibrace extruze průtpku"
+
+#~ msgid "Paused due to nozzle temperature malfunction"
+#~ msgstr "Pozastaveno kvůli poruše teploty trysky"
+
+#~ msgid "Paused due to heat bed temperature malfunction"
+#~ msgstr "Pozastaveno kvůli poruše teploty topné podložky"
 
 #~ msgid "Connecting to the printer. Unable to cancel during the connection process."
 #~ msgstr "Připojování k tiskárně. Nelze zrušit během procesu připojování."

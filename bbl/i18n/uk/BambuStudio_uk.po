@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-15 15:02+0800\n"
+"POT-Creation-Date: 2025-07-17 11:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -869,21 +869,10 @@ msgstr "Малювання шва"
 msgid "Remove selection"
 msgstr "Видалити виділення"
 
-msgid "Modern"
+msgid "Recommend"
 msgstr ""
 
-msgid "Old"
-msgstr ""
-
-msgctxt "Text"
-msgid "Normal"
-msgstr ""
-
-msgctxt "Text"
-msgid "Small"
-msgstr ""
-
-msgid "Italic"
+msgid "Old version"
 msgstr ""
 
 msgid "First font"
@@ -3482,14 +3471,14 @@ msgstr "Зміна філаменту"
 msgid "M400 pause"
 msgstr "M400 пауза"
 
-msgid "Paused due to filament runout"
-msgstr "Пуаза через датчик філаменту"
+msgid "Paused (filament ran out)"
+msgstr ""
 
-msgid "Heating hotend"
-msgstr "Нагрів хотенду"
+msgid "Heating nozzle"
+msgstr ""
 
-msgid "Calibrating extrusion"
-msgstr "Калібрування екструзії"
+msgid "Calibrating dynamic flow"
+msgstr ""
 
 msgid "Scanning bed surface"
 msgstr "Сканування поверхні столу"
@@ -3512,29 +3501,29 @@ msgstr "Очищення сопла"
 msgid "Checking extruder temperature"
 msgstr "Перевірка температури сопла"
 
-msgid "Printing was paused by the user"
-msgstr "Друк припинено користувачем"
+msgid "Paused by the user"
+msgstr ""
 
-msgid "Pause of front cover falling"
-msgstr "Пауза падіння передньої кришки"
+msgid "Pause (front cover fall off)"
+msgstr ""
 
 msgid "Calibrating the micro lidar"
 msgstr ""
 
-msgid "Calibrating extrusion flow"
-msgstr "Калібрування екструзійного потоку"
+msgid "Calibrating flow ratio"
+msgstr ""
 
-msgid "Paused due to nozzle temperature malfunction"
-msgstr "Припинено через збій температури сопла"
+msgid "Pause (nozzle temperature malfunction)"
+msgstr ""
 
-msgid "Paused due to heat bed temperature malfunction"
-msgstr "Припинено через несправність температури нагрівального шару"
+msgid "Pause (heatbed temperature malfunction)"
+msgstr ""
 
 msgid "Filament unloading"
 msgstr "Розвантаження філаменту"
 
-msgid "Skip step pause"
-msgstr "Пропустити паузу кроку"
+msgid "Pause (step loss)"
+msgstr ""
 
 msgid "Filament loading"
 msgstr "Завантаження філаменту"
@@ -3542,43 +3531,43 @@ msgstr "Завантаження філаменту"
 msgid "Motor noise cancellation"
 msgstr "Скасування шуму мотора"
 
-msgid "Paused due to AMS lost"
-msgstr "Пауза через втрату сигналу AMS"
+msgid "Pause (AMS offline)"
+msgstr ""
 
-msgid "Paused due to low speed of the heat break fan"
-msgstr "Пауза через низьку швидкість вентилятора теплового радіатора"
+msgid "Pause (low speed of the heatbreak fan)"
+msgstr ""
 
-msgid "Paused due to chamber temperature control error"
-msgstr "Пауза через помилку контролю температури камери"
+msgid "Pause (chamber temperature control problem)"
+msgstr ""
 
 msgid "Cooling chamber"
 msgstr "Охолодження камери"
 
-msgid "Paused by the Gcode inserted by user"
-msgstr "Пауза вставлена користувачем через Gcode"
+msgid "Pause (Gcode inserted by user)"
+msgstr ""
 
 msgid "Motor noise showoff"
 msgstr "Демонстрація шуму мотора"
 
-msgid "Nozzle filament covered detected pause"
-msgstr "Пауза через виявлене покриття філаментом сопла"
-
-msgid "Cutter error pause"
-msgstr "Пауза через помилку різака"
-
-msgid "First layer error pause"
-msgstr "Пауза через помилку першого шару"
-
-msgid "Nozzle clog pause"
-msgstr "Пауза через засмічення сопла"
-
-msgid "Check printer absolute accuracy before calibration"
+msgid "Pause (nozzle clumping)"
 msgstr ""
 
-msgid "Absolute accuracy calibration"
+msgid "Pause (cutter error)"
 msgstr ""
 
-msgid "Check printer absolute accuracy after calibration"
+msgid "Pause (first layer error)"
+msgstr ""
+
+msgid "Pause (nozzle clog)"
+msgstr ""
+
+msgid "Measuring motion percision"
+msgstr ""
+
+msgid "Enhancing motion percision"
+msgstr ""
+
+msgid "Measure motion accuracy"
 msgstr ""
 
 msgid "Nozzle offset calibration"
@@ -3599,10 +3588,10 @@ msgstr ""
 msgid "Auto Check: Platform"
 msgstr ""
 
-msgid "Confirming birdeye camera position"
+msgid "Confirming BirdsEye Camera location"
 msgstr ""
 
-msgid "Calibrating birdeye camera"
+msgid "Calibrating BirdsEye Camera"
 msgstr ""
 
 msgid "Auto bed leveling -phase 1"
@@ -3614,10 +3603,25 @@ msgstr ""
 msgid "Heating chamber"
 msgstr ""
 
-msgid "Heated bed cooling"
+msgid "Cooling heatbed"
 msgstr ""
 
 msgid "Printing calibration lines"
+msgstr ""
+
+msgid "Auto Check: Material"
+msgstr ""
+
+msgid "Live View Camera Calibration"
+msgstr ""
+
+msgid "Waiting for heatbed to reach target temperature"
+msgstr ""
+
+msgid "Auto Check: Material Position"
+msgstr ""
+
+msgid "Cutting Module Offset Calibration"
 msgstr ""
 
 msgid "left"
@@ -9048,6 +9052,9 @@ msgstr ""
 "Можливо, частини об'єкта на цій висоті надто тонкі, або об'єкт має \n"
 "несправна сітка"
 
+msgid "Flush volumes matrix do not match to the correct size!"
+msgstr ""
+
 msgid "No object can be printed. Maybe too small"
 msgstr "Жодний об'єкт не може бути надрукований. Можливо, занадто маленький"
 
@@ -10280,13 +10287,13 @@ msgstr ""
 msgid "Locked Zag"
 msgstr ""
 
-msgid "skin infill pattern"
+msgid "Skin infill pattern"
 msgstr ""
 
 msgid "Line pattern for skin"
 msgstr ""
 
-msgid "skeleton infill pattern"
+msgid "Skeleton infill pattern"
 msgstr ""
 
 msgid "Line pattern for skeleton"
@@ -13572,15 +13579,15 @@ msgid "No content"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Printer presets(%d/%d)"
+msgid "Printer presets (%d/%d)"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament presets(%d/%d)"
+msgid "Filament presets (%d/%d)"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Process presets(%d/%d)"
+msgid "Process presets (%d/%d)"
 msgstr ""
 
 #, c-format, boost-format
@@ -13670,6 +13677,15 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "/%d Selected"
+msgstr ""
+
+msgid "Nothing selected"
+msgstr ""
+
+msgid "Over 64 objects in single plate"
+msgstr ""
+
+msgid "The current print job cannot be skipped"
 msgstr ""
 
 msgid "Skipping all objects."
@@ -13926,6 +13942,57 @@ msgid ""
 msgstr ""
 "Уникнення деформації\n"
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як ABS, відповідне підвищення температури гарячого ліжка може зменшити ймовірність деформації."
+
+#~ msgid "Paused due to filament runout"
+#~ msgstr "Пуаза через датчик філаменту"
+
+#~ msgid "Heating hotend"
+#~ msgstr "Нагрів хотенду"
+
+#~ msgid "Calibrating extrusion"
+#~ msgstr "Калібрування екструзії"
+
+#~ msgid "Printing was paused by the user"
+#~ msgstr "Друк припинено користувачем"
+
+#~ msgid "Pause of front cover falling"
+#~ msgstr "Пауза падіння передньої кришки"
+
+#~ msgid "Calibrating extrusion flow"
+#~ msgstr "Калібрування екструзійного потоку"
+
+#~ msgid "Paused due to nozzle temperature malfunction"
+#~ msgstr "Припинено через збій температури сопла"
+
+#~ msgid "Paused due to heat bed temperature malfunction"
+#~ msgstr "Припинено через несправність температури нагрівального шару"
+
+#~ msgid "Skip step pause"
+#~ msgstr "Пропустити паузу кроку"
+
+#~ msgid "Paused due to AMS lost"
+#~ msgstr "Пауза через втрату сигналу AMS"
+
+#~ msgid "Paused due to low speed of the heat break fan"
+#~ msgstr "Пауза через низьку швидкість вентилятора теплового радіатора"
+
+#~ msgid "Paused due to chamber temperature control error"
+#~ msgstr "Пауза через помилку контролю температури камери"
+
+#~ msgid "Paused by the Gcode inserted by user"
+#~ msgstr "Пауза вставлена користувачем через Gcode"
+
+#~ msgid "Nozzle filament covered detected pause"
+#~ msgstr "Пауза через виявлене покриття філаментом сопла"
+
+#~ msgid "Cutter error pause"
+#~ msgstr "Пауза через помилку різака"
+
+#~ msgid "First layer error pause"
+#~ msgstr "Пауза через помилку першого шару"
+
+#~ msgid "Nozzle clog pause"
+#~ msgstr "Пауза через засмічення сопла"
 
 #~ msgid "Connecting to the printer. Unable to cancel during the connection process."
 #~ msgstr "З’єднання з принтером. Під час процесу підключення скасувати неможливо."

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-15 15:02+0800\n"
+"POT-Creation-Date: 2025-07-17 11:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -869,22 +869,11 @@ msgstr "継ぎ目ペイント"
 msgid "Remove selection"
 msgstr "選択を削除"
 
-msgid "Modern"
-msgstr "モダン"
+msgid "Recommend"
+msgstr "お勧め"
 
-msgid "Old"
-msgstr "古い"
-
-msgctxt "Text"
-msgid "Normal"
-msgstr "標準"
-
-msgctxt "Text"
-msgid "Small"
-msgstr "小"
-
-msgid "Italic"
-msgstr "斜体"
+msgid "Old version"
+msgstr "旧バージョン"
 
 msgid "First font"
 msgstr "第1フォント"
@@ -3469,14 +3458,14 @@ msgstr "フィラメントを交換"
 msgid "M400 pause"
 msgstr "M400一時停止"
 
-msgid "Paused due to filament runout"
-msgstr "フィラメント切れにより一時停止"
+msgid "Paused (filament ran out)"
+msgstr "一時停止中（フィラメント切れ）"
 
-msgid "Heating hotend"
-msgstr "ヘッドを加熱"
+msgid "Heating nozzle"
+msgstr "ノズルを加熱中"
 
-msgid "Calibrating extrusion"
-msgstr "押出キャリブレーション"
+msgid "Calibrating dynamic flow"
+msgstr "ダイナミックフローをキャリブレーション中"
 
 msgid "Scanning bed surface"
 msgstr "ベッド表面を検査"
@@ -3499,29 +3488,29 @@ msgstr "ノズル先端をクリーニング"
 msgid "Checking extruder temperature"
 msgstr "押出機温度を確認"
 
-msgid "Printing was paused by the user"
-msgstr "ユーザにより一時停止"
+msgid "Paused by the user"
+msgstr "ユーザーによる一時停止"
 
-msgid "Pause of front cover falling"
-msgstr "フロントカバーの脱落により一時停止"
+msgid "Pause (front cover fall off)"
+msgstr "一時停止（フロントカバー外れ）"
 
 msgid "Calibrating the micro lidar"
 msgstr "マイクロ ライダーのキャリブレーション"
 
-msgid "Calibrating extrusion flow"
-msgstr "押出流量キャリブレーション"
+msgid "Calibrating flow ratio"
+msgstr "フロー比をキャリブレーション中"
 
-msgid "Paused due to nozzle temperature malfunction"
-msgstr "ノズル温度異常により一時停止"
+msgid "Pause (nozzle temperature malfunction)"
+msgstr "一時停止（ノズル温度異常）"
 
-msgid "Paused due to heat bed temperature malfunction"
-msgstr "ベッド温度異常により一時停止"
+msgid "Pause (heatbed temperature malfunction)"
+msgstr "一時停止（ヒートベッドの温度異常）"
 
 msgid "Filament unloading"
 msgstr "フィラメントのアンロード"
 
-msgid "Skip step pause"
-msgstr "ステップ一時停止をスキップ"
+msgid "Pause (step loss)"
+msgstr "一時停止（ステップロス）"
 
 msgid "Filament loading"
 msgstr "フィラメントをロード中..."
@@ -3529,44 +3518,44 @@ msgstr "フィラメントをロード中..."
 msgid "Motor noise cancellation"
 msgstr "モーターノイズキャンセリング"
 
-msgid "Paused due to AMS lost"
-msgstr "AMS接続失敗により一時停止"
+msgid "Pause (AMS offline)"
+msgstr "一時停止（AMSオフライン）"
 
-msgid "Paused due to low speed of the heat break fan"
-msgstr "ヒートブレークファンの回転数が低いため休止"
+msgid "Pause (low speed of the heatbreak fan)"
+msgstr "一時停止（ヒートブレイクファンの低速運転）"
 
-msgid "Paused due to chamber temperature control error"
-msgstr "チャンバー温度制御エラーにより一時停止"
+msgid "Pause (chamber temperature control problem)"
+msgstr "一時停止（チャンバー温度制御の問題）"
 
 msgid "Cooling chamber"
 msgstr "冷却チャンバー"
 
-msgid "Paused by the Gcode inserted by user"
-msgstr "ユーザーが挿入した Gcode により一時停止されました"
+msgid "Pause (Gcode inserted by user)"
+msgstr "一時停止（ユーザー指定のGコード）"
 
 msgid "Motor noise showoff"
 msgstr "モーターノイズ確認"
 
-msgid "Nozzle filament covered detected pause"
-msgstr "ノズルがフィラメントで覆われているのが検出され、一時停止しました。"
+msgid "Pause (nozzle clumping)"
+msgstr "一時停止（ノズルの詰まり）"
 
-msgid "Cutter error pause"
-msgstr "カッターエラーにより一時停止"
+msgid "Pause (cutter error)"
+msgstr "一時停止 (カッターエラー)"
 
-msgid "First layer error pause"
-msgstr "1層目エラー時の一時停止"
+msgid "Pause (first layer error)"
+msgstr "一時停止（1層目のエラー）"
 
-msgid "Nozzle clog pause"
-msgstr "ノズル詰まりにより一時停止"
+msgid "Pause (nozzle clog)"
+msgstr "一時停止 (ノズル詰まり)"
 
-msgid "Check printer absolute accuracy before calibration"
-msgstr "キャリブレーション前にプリンタの絶対精度を確認してください"
+msgid "Measuring motion percision"
+msgstr "動作精度の測定"
 
-msgid "Absolute accuracy calibration"
-msgstr "絶対精度キャリブレーション"
+msgid "Enhancing motion percision"
+msgstr "動作精度の向上"
 
-msgid "Check printer absolute accuracy after calibration"
-msgstr "キャリブレーション後にプリンタの絶対精度を確認"
+msgid "Measure motion accuracy"
+msgstr "動作精度の測定"
 
 msgid "Nozzle offset calibration"
 msgstr "ノズルオフセットキャリブレーション"
@@ -3586,11 +3575,11 @@ msgstr "レーザーキャリブレーション"
 msgid "Auto Check: Platform"
 msgstr "自動チェック:プラットフォーム"
 
-msgid "Confirming birdeye camera position"
-msgstr "俯瞰カメラの位置を確認"
+msgid "Confirming BirdsEye Camera location"
+msgstr "俯瞰カメラの位置を確認中"
 
-msgid "Calibrating birdeye camera"
-msgstr "俯瞰カメラのキャリブレーション"
+msgid "Calibrating BirdsEye Camera"
+msgstr "俯瞰カメラをキャリブレーション中"
 
 msgid "Auto bed leveling -phase 1"
 msgstr "自動ベッドレベリング - フェーズ 1"
@@ -3601,11 +3590,26 @@ msgstr "自動ベッドレベリング - フェーズ 2"
 msgid "Heating chamber"
 msgstr "加熱チャンバー"
 
-msgid "Heated bed cooling"
-msgstr "加熱ベッド冷却"
+msgid "Cooling heatbed"
+msgstr "ヒートベッド冷却中"
 
 msgid "Printing calibration lines"
 msgstr "キャリブレーションラインを印刷中"
+
+msgid "Auto Check: Material"
+msgstr "自動チェック:材料"
+
+msgid "Live View Camera Calibration"
+msgstr "ライブビューカメラのキャリブレーション"
+
+msgid "Waiting for heatbed to reach target temperature"
+msgstr "ヒートベッドが目標温度に達するのを待機中"
+
+msgid "Auto Check: Material Position"
+msgstr "自動チェック：材料の位置"
+
+msgid "Cutting Module Offset Calibration"
+msgstr "カットモジュールオフセットキャリブレーション"
 
 msgid "left"
 msgstr "左"
@@ -9050,6 +9054,9 @@ msgstr "オブジェクト: %1%"
 msgid "Maybe parts of the object at these height are too thin, or the object has faulty mesh"
 msgstr "この高さのオブジェクトの一部が薄すぎるか、オブジェクトに欠陥のあるメッシュが含まれている可能性があります。"
 
+msgid "Flush volumes matrix do not match to the correct size!"
+msgstr "フラッシュボリュームマトリクスが基準サイズと一致していません。"
+
 msgid "No object can be printed. Maybe too small"
 msgstr "造形できるオブジェクトがありません。おそらくサイズが小さすぎます。"
 
@@ -10272,14 +10279,14 @@ msgstr "クロスザグ"
 msgid "Locked Zag"
 msgstr "ロックされたザグ"
 
-msgid "skin infill pattern"
+msgid "Skin infill pattern"
 msgstr "スキン充填パターン"
 
 msgid "Line pattern for skin"
 msgstr "ラインパターン"
 
-msgid "skeleton infill pattern"
-msgstr "スケルトン充填パターン"
+msgid "Skeleton infill pattern"
+msgstr "スケルトン充填パター"
 
 msgid "Line pattern for skeleton"
 msgstr "スケルトンのラインパターン"
@@ -13587,15 +13594,15 @@ msgid "No content"
 msgstr "コンテンツなし"
 
 #, c-format, boost-format
-msgid "Printer presets(%d/%d)"
+msgid "Printer presets (%d/%d)"
 msgstr "プリンタプリセット (%d/%d)"
 
 #, c-format, boost-format
-msgid "Filament presets(%d/%d)"
+msgid "Filament presets (%d/%d)"
 msgstr "フィラメントプリセット(%d/%d)"
 
 #, c-format, boost-format
-msgid "Process presets(%d/%d)"
+msgid "Process presets (%d/%d)"
 msgstr "プロセスプリセット (%d/%d)"
 
 #, c-format, boost-format
@@ -13686,6 +13693,15 @@ msgstr ""
 #, c-format, boost-format
 msgid "/%d Selected"
 msgstr "/%d選択済み"
+
+msgid "Nothing selected"
+msgstr "何も選択されていません"
+
+msgid "Over 64 objects in single plate"
+msgstr "1つのプレートに配置できるオブジェクト数は64個を超えています。"
+
+msgid "The current print job cannot be skipped"
+msgstr "現在の造形ジョブはスキップできません"
 
 msgid "Skipping all objects."
 msgstr "すべてのオブジェクトをスキップします。"
@@ -13939,6 +13955,110 @@ msgid ""
 msgstr ""
 "反り防止\n"
 "ABSなど反りやすい材料を印刷する場合、ヒートベッド温度を適切に上げることで反りの発生を抑えられることをご存知ですか？"
+
+#~ msgid "Modern"
+#~ msgstr "モダン"
+
+#~ msgid "Old"
+#~ msgstr "古い"
+
+#~ msgctxt "Text"
+#~ msgid "Normal"
+#~ msgstr "標準"
+
+#~ msgctxt "Text"
+#~ msgid "Small"
+#~ msgstr "小"
+
+#~ msgid "Italic"
+#~ msgstr "斜体"
+
+#~ msgid "Paused due to filament runout"
+#~ msgstr "フィラメント切れにより一時停止"
+
+#~ msgid "Heating hotend"
+#~ msgstr "ヘッドを加熱"
+
+#~ msgid "Calibrating extrusion"
+#~ msgstr "押出キャリブレーション"
+
+#~ msgid "Printing was paused by the user"
+#~ msgstr "ユーザにより一時停止"
+
+#~ msgid "Pause of front cover falling"
+#~ msgstr "フロントカバーの脱落により一時停止"
+
+#~ msgid "Calibrating extrusion flow"
+#~ msgstr "押出流量キャリブレーション"
+
+#~ msgid "Paused due to nozzle temperature malfunction"
+#~ msgstr "ノズル温度異常により一時停止"
+
+#~ msgid "Paused due to heat bed temperature malfunction"
+#~ msgstr "ベッド温度異常により一時停止"
+
+#~ msgid "Skip step pause"
+#~ msgstr "ステップ一時停止をスキップ"
+
+#~ msgid "Paused due to AMS lost"
+#~ msgstr "AMS接続失敗により一時停止"
+
+#~ msgid "Paused due to low speed of the heat break fan"
+#~ msgstr "ヒートブレークファンの回転数が低いため休止"
+
+#~ msgid "Paused due to chamber temperature control error"
+#~ msgstr "チャンバー温度制御エラーにより一時停止"
+
+#~ msgid "Paused by the Gcode inserted by user"
+#~ msgstr "ユーザーが挿入した Gcode により一時停止されました"
+
+#~ msgid "Nozzle filament covered detected pause"
+#~ msgstr "ノズルがフィラメントで覆われているのが検出され、一時停止しました。"
+
+#~ msgid "Cutter error pause"
+#~ msgstr "カッターエラーにより一時停止"
+
+#~ msgid "First layer error pause"
+#~ msgstr "1層目エラー時の一時停止"
+
+#~ msgid "Nozzle clog pause"
+#~ msgstr "ノズル詰まりにより一時停止"
+
+#~ msgid "Check printer absolute accuracy before calibration"
+#~ msgstr "キャリブレーション前にプリンタの絶対精度を確認してください"
+
+#~ msgid "Absolute accuracy calibration"
+#~ msgstr "絶対精度キャリブレーション"
+
+#~ msgid "Check printer absolute accuracy after calibration"
+#~ msgstr "キャリブレーション後にプリンタの絶対精度を確認"
+
+#~ msgid "Confirming birdeye camera position"
+#~ msgstr "俯瞰カメラの位置を確認"
+
+#~ msgid "Calibrating birdeye camera"
+#~ msgstr "俯瞰カメラのキャリブレーション"
+
+#~ msgid "Heated bed cooling"
+#~ msgstr "加熱ベッド冷却"
+
+#~ msgid "skin infill pattern"
+#~ msgstr "スキン充填パターン"
+
+#~ msgid "skeleton infill pattern"
+#~ msgstr "スケルトン充填パターン"
+
+#, c-format, boost-format
+#~ msgid "Printer presets(%d/%d)"
+#~ msgstr "プリンタプリセット (%d/%d)"
+
+#, c-format, boost-format
+#~ msgid "Filament presets(%d/%d)"
+#~ msgstr "フィラメントプリセット(%d/%d)"
+
+#, c-format, boost-format
+#~ msgid "Process presets(%d/%d)"
+#~ msgstr "プロセスプリセット (%d/%d)"
 
 #~ msgid "Connecting to the printer. Unable to cancel during the connection process."
 #~ msgstr "プリンタに接続しています。接続処理中はキャンセルできません。"

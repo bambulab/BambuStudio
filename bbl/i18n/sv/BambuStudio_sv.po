@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-15 15:02+0800\n"
+"POT-Creation-Date: 2025-07-17 11:15+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -866,22 +866,11 @@ msgstr "Målning av sömmar"
 msgid "Remove selection"
 msgstr "Ta bort val"
 
-msgid "Modern"
+msgid "Recommend"
 msgstr ""
 
-msgid "Old"
-msgstr "Gammal"
-
-msgctxt "Text"
-msgid "Normal"
+msgid "Old version"
 msgstr ""
-
-msgctxt "Text"
-msgid "Small"
-msgstr "Liten"
-
-msgid "Italic"
-msgstr "Kursiv"
 
 msgid "First font"
 msgstr "Första typsnitt"
@@ -3481,14 +3470,14 @@ msgstr "Byter filament"
 msgid "M400 pause"
 msgstr "M400 paus"
 
-msgid "Paused due to filament runout"
-msgstr "Pausad på grund av filament slut"
+msgid "Paused (filament ran out)"
+msgstr ""
 
-msgid "Heating hotend"
-msgstr "Värmer hotend"
+msgid "Heating nozzle"
+msgstr ""
 
-msgid "Calibrating extrusion"
-msgstr "Kalibrerar extrudering"
+msgid "Calibrating dynamic flow"
+msgstr ""
 
 msgid "Scanning bed surface"
 msgstr "Skannar byggplattan"
@@ -3511,29 +3500,29 @@ msgstr "Rengör nozzle spetsen"
 msgid "Checking extruder temperature"
 msgstr "Kontrollerar extruderings temperatur"
 
-msgid "Printing was paused by the user"
-msgstr "Utskriften pausades av användaren"
+msgid "Paused by the user"
+msgstr ""
 
-msgid "Pause of front cover falling"
-msgstr "Paus av front luckan faller"
+msgid "Pause (front cover fall off)"
+msgstr ""
 
 msgid "Calibrating the micro lidar"
 msgstr "Kalibrerar Micro Lidar"
 
-msgid "Calibrating extrusion flow"
-msgstr "Kalibrerar extruderings flödet"
+msgid "Calibrating flow ratio"
+msgstr ""
 
-msgid "Paused due to nozzle temperature malfunction"
-msgstr "Pausad på grund av fel i nozzle temperaturen"
+msgid "Pause (nozzle temperature malfunction)"
+msgstr ""
 
-msgid "Paused due to heat bed temperature malfunction"
-msgstr "Pausad på grund av fel i byggplattans temperatur"
+msgid "Pause (heatbed temperature malfunction)"
+msgstr ""
 
 msgid "Filament unloading"
 msgstr "Utmatar filament"
 
-msgid "Skip step pause"
-msgstr "Hoppa över steg paus"
+msgid "Pause (step loss)"
+msgstr ""
 
 msgid "Filament loading"
 msgstr "Laddning av filament"
@@ -3541,44 +3530,44 @@ msgstr "Laddning av filament"
 msgid "Motor noise cancellation"
 msgstr "Brusreducering av motorer"
 
-msgid "Paused due to AMS lost"
-msgstr "Pausad på grund av att AMS förlorats"
+msgid "Pause (AMS offline)"
+msgstr ""
 
-msgid "Paused due to low speed of the heat break fan"
-msgstr "Pausad på grund av låg hastighet på heat break fläkten"
+msgid "Pause (low speed of the heatbreak fan)"
+msgstr ""
 
-msgid "Paused due to chamber temperature control error"
-msgstr "Pausad på grund av fel i styrningen av kammar temperaturen"
+msgid "Pause (chamber temperature control problem)"
+msgstr ""
 
 msgid "Cooling chamber"
 msgstr "Kyler kammare"
 
-msgid "Paused by the Gcode inserted by user"
-msgstr "Pausad av G-koden som infogats av användaren"
+msgid "Pause (Gcode inserted by user)"
+msgstr ""
 
 msgid "Motor noise showoff"
 msgstr "Uppvisning av motorljud"
 
-msgid "Nozzle filament covered detected pause"
-msgstr "Filament på nozzel upptäckt paus"
+msgid "Pause (nozzle clumping)"
+msgstr ""
 
-msgid "Cutter error pause"
-msgstr "Fel på skärare paus"
+msgid "Pause (cutter error)"
+msgstr ""
 
-msgid "First layer error pause"
-msgstr "Fel på första lagret paus"
+msgid "Pause (first layer error)"
+msgstr ""
 
-msgid "Nozzle clog pause"
-msgstr "Stopp i nozzel paus"
+msgid "Pause (nozzle clog)"
+msgstr ""
 
-msgid "Check printer absolute accuracy before calibration"
-msgstr "Kontrollera skrivarens absoluta noggrannhet före kalibrering"
+msgid "Measuring motion percision"
+msgstr ""
 
-msgid "Absolute accuracy calibration"
-msgstr "Kalibrering med absolut noggrannhet"
+msgid "Enhancing motion percision"
+msgstr ""
 
-msgid "Check printer absolute accuracy after calibration"
-msgstr "Kontrollera skrivarens absoluta noggrannhet efter kalibrering"
+msgid "Measure motion accuracy"
+msgstr ""
 
 msgid "Nozzle offset calibration"
 msgstr "Kalibrering av nozzle offset"
@@ -3598,11 +3587,11 @@ msgstr "Laser kalibrering"
 msgid "Auto Check: Platform"
 msgstr "Automatisk kontroll: Plattform"
 
-msgid "Confirming birdeye camera position"
-msgstr "Bekräfta birdeye kamerans position"
+msgid "Confirming BirdsEye Camera location"
+msgstr ""
 
-msgid "Calibrating birdeye camera"
-msgstr "Kalibrerar birdeye kameran"
+msgid "Calibrating BirdsEye Camera"
+msgstr ""
 
 msgid "Auto bed leveling -phase 1"
 msgstr "Automatisk bädd utjämning - fas 1"
@@ -3613,11 +3602,26 @@ msgstr "Automatisk bädd utjämning - fas 2"
 msgid "Heating chamber"
 msgstr "Värmekammare"
 
-msgid "Heated bed cooling"
-msgstr "Kylning av uppvärmd bädd"
+msgid "Cooling heatbed"
+msgstr ""
 
 msgid "Printing calibration lines"
 msgstr "Utskrift av kalibreringslinjer"
+
+msgid "Auto Check: Material"
+msgstr ""
+
+msgid "Live View Camera Calibration"
+msgstr ""
+
+msgid "Waiting for heatbed to reach target temperature"
+msgstr ""
+
+msgid "Auto Check: Material Position"
+msgstr ""
+
+msgid "Cutting Module Offset Calibration"
+msgstr ""
 
 msgid "left"
 msgstr "vänster"
@@ -9092,6 +9096,9 @@ msgstr "Objekt: %1%"
 msgid "Maybe parts of the object at these height are too thin, or the object has faulty mesh"
 msgstr "Delar av objektet på dessa höjder är för tunna eller så har objektet en felaktig mesh."
 
+msgid "Flush volumes matrix do not match to the correct size!"
+msgstr ""
+
 msgid "No object can be printed. Maybe too small"
 msgstr "Inget objekt kan skrivas ut. Det kan vara för litet"
 
@@ -10314,14 +10321,14 @@ msgstr "Kors Zag"
 msgid "Locked Zag"
 msgstr "Låst Zag"
 
-msgid "skin infill pattern"
-msgstr "ytans infyllnings mönster"
+msgid "Skin infill pattern"
+msgstr ""
 
 msgid "Line pattern for skin"
 msgstr "Linjemönster för yta"
 
-msgid "skeleton infill pattern"
-msgstr "skelett infyllnads mönster"
+msgid "Skeleton infill pattern"
+msgstr ""
 
 msgid "Line pattern for skeleton"
 msgstr "Linjemönster för skelett"
@@ -13636,16 +13643,16 @@ msgid "No content"
 msgstr "Inget innehåll"
 
 #, c-format, boost-format
-msgid "Printer presets(%d/%d)"
-msgstr "Inställningar för printer (%d/%d)"
+msgid "Printer presets (%d/%d)"
+msgstr ""
 
 #, c-format, boost-format
-msgid "Filament presets(%d/%d)"
-msgstr "Filament inställningar (%d/%d)"
+msgid "Filament presets (%d/%d)"
+msgstr ""
 
 #, c-format, boost-format
-msgid "Process presets(%d/%d)"
-msgstr "Process inställningar (%d/%d)"
+msgid "Process presets (%d/%d)"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%u Selected"
@@ -13735,6 +13742,15 @@ msgstr ""
 #, c-format, boost-format
 msgid "/%d Selected"
 msgstr "/%d Valda"
+
+msgid "Nothing selected"
+msgstr ""
+
+msgid "Over 64 objects in single plate"
+msgstr ""
+
+msgid "The current print job cannot be skipped"
+msgstr ""
 
 msgid "Skipping all objects."
 msgstr "Hoppar över alla objekt."
@@ -13989,6 +14005,103 @@ msgid ""
 msgstr ""
 "Undvik vridning\n"
 "Visste du att när du skriver ut material som är benägna att vrida, såsom ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten för vridning."
+
+#~ msgid "Old"
+#~ msgstr "Gammal"
+
+#~ msgctxt "Text"
+#~ msgid "Small"
+#~ msgstr "Liten"
+
+#~ msgid "Italic"
+#~ msgstr "Kursiv"
+
+#~ msgid "Paused due to filament runout"
+#~ msgstr "Pausad på grund av filament slut"
+
+#~ msgid "Heating hotend"
+#~ msgstr "Värmer hotend"
+
+#~ msgid "Calibrating extrusion"
+#~ msgstr "Kalibrerar extrudering"
+
+#~ msgid "Printing was paused by the user"
+#~ msgstr "Utskriften pausades av användaren"
+
+#~ msgid "Pause of front cover falling"
+#~ msgstr "Paus av front luckan faller"
+
+#~ msgid "Calibrating extrusion flow"
+#~ msgstr "Kalibrerar extruderings flödet"
+
+#~ msgid "Paused due to nozzle temperature malfunction"
+#~ msgstr "Pausad på grund av fel i nozzle temperaturen"
+
+#~ msgid "Paused due to heat bed temperature malfunction"
+#~ msgstr "Pausad på grund av fel i byggplattans temperatur"
+
+#~ msgid "Skip step pause"
+#~ msgstr "Hoppa över steg paus"
+
+#~ msgid "Paused due to AMS lost"
+#~ msgstr "Pausad på grund av att AMS förlorats"
+
+#~ msgid "Paused due to low speed of the heat break fan"
+#~ msgstr "Pausad på grund av låg hastighet på heat break fläkten"
+
+#~ msgid "Paused due to chamber temperature control error"
+#~ msgstr "Pausad på grund av fel i styrningen av kammar temperaturen"
+
+#~ msgid "Paused by the Gcode inserted by user"
+#~ msgstr "Pausad av G-koden som infogats av användaren"
+
+#~ msgid "Nozzle filament covered detected pause"
+#~ msgstr "Filament på nozzel upptäckt paus"
+
+#~ msgid "Cutter error pause"
+#~ msgstr "Fel på skärare paus"
+
+#~ msgid "First layer error pause"
+#~ msgstr "Fel på första lagret paus"
+
+#~ msgid "Nozzle clog pause"
+#~ msgstr "Stopp i nozzel paus"
+
+#~ msgid "Check printer absolute accuracy before calibration"
+#~ msgstr "Kontrollera skrivarens absoluta noggrannhet före kalibrering"
+
+#~ msgid "Absolute accuracy calibration"
+#~ msgstr "Kalibrering med absolut noggrannhet"
+
+#~ msgid "Check printer absolute accuracy after calibration"
+#~ msgstr "Kontrollera skrivarens absoluta noggrannhet efter kalibrering"
+
+#~ msgid "Confirming birdeye camera position"
+#~ msgstr "Bekräfta birdeye kamerans position"
+
+#~ msgid "Calibrating birdeye camera"
+#~ msgstr "Kalibrerar birdeye kameran"
+
+#~ msgid "Heated bed cooling"
+#~ msgstr "Kylning av uppvärmd bädd"
+
+#~ msgid "skin infill pattern"
+#~ msgstr "ytans infyllnings mönster"
+
+#~ msgid "skeleton infill pattern"
+#~ msgstr "skelett infyllnads mönster"
+
+#, c-format, boost-format
+#~ msgid "Printer presets(%d/%d)"
+#~ msgstr "Inställningar för printer (%d/%d)"
+
+#, c-format, boost-format
+#~ msgid "Filament presets(%d/%d)"
+#~ msgstr "Filament inställningar (%d/%d)"
+
+#, c-format, boost-format
+#~ msgid "Process presets(%d/%d)"
+#~ msgstr "Process inställningar (%d/%d)"
 
 #~ msgid "Connecting to the printer. Unable to cancel during the connection process."
 #~ msgstr "Ansluter till skrivaren. Det går inte att avbryta under anslutnings processen."

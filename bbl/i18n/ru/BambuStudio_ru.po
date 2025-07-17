@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-15 15:02+0800\n"
+"POT-Creation-Date: 2025-07-17 11:15+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -894,21 +894,10 @@ msgstr "Рисование шва"
 msgid "Remove selection"
 msgstr "Удаление выделенного"
 
-msgid "Modern"
+msgid "Recommend"
 msgstr ""
 
-msgid "Old"
-msgstr ""
-
-msgctxt "Text"
-msgid "Normal"
-msgstr ""
-
-msgctxt "Text"
-msgid "Small"
-msgstr ""
-
-msgid "Italic"
+msgid "Old version"
 msgstr ""
 
 msgid "First font"
@@ -3559,14 +3548,14 @@ msgstr "Смена прутка"
 msgid "M400 pause"
 msgstr "M400 (пауза)"
 
-msgid "Paused due to filament runout"
-msgstr "Пауза при окончании прутка"
+msgid "Paused (filament ran out)"
+msgstr ""
 
-msgid "Heating hotend"
-msgstr "Нагрев хотэнда"
+msgid "Heating nozzle"
+msgstr ""
 
-msgid "Calibrating extrusion"
-msgstr "Калибровка экструзии"
+msgid "Calibrating dynamic flow"
+msgstr ""
 
 msgid "Scanning bed surface"
 msgstr "Сканирование поверхности стола"
@@ -3589,30 +3578,29 @@ msgstr "Очистка кончика сопла"
 msgid "Checking extruder temperature"
 msgstr "Проверка температуры экструдера"
 
-msgid "Printing was paused by the user"
-msgstr "Печать приостановлена пользователем"
+msgid "Paused by the user"
+msgstr ""
 
-msgid "Pause of front cover falling"
-msgstr "Пауза при падении передней крышки с головы"
+msgid "Pause (front cover fall off)"
+msgstr ""
 
 msgid "Calibrating the micro lidar"
 msgstr "Калибровка микролидаром"
 
-msgid "Calibrating extrusion flow"
-msgstr "Калибровка потока экструзии"
+msgid "Calibrating flow ratio"
+msgstr ""
 
-msgid "Paused due to nozzle temperature malfunction"
-msgstr "Пауза при неисправности температуры сопла"
+msgid "Pause (nozzle temperature malfunction)"
+msgstr ""
 
-msgid "Paused due to heat bed temperature malfunction"
-msgstr "Пауза при неисправности температуры стола"
+msgid "Pause (heatbed temperature malfunction)"
+msgstr ""
 
 msgid "Filament unloading"
 msgstr "Выгрузка прутка"
 
-# ???
-msgid "Skip step pause"
-msgstr "Пропуск команды паузы"
+msgid "Pause (step loss)"
+msgstr ""
 
 msgid "Filament loading"
 msgstr "Загрузка прутка"
@@ -3620,47 +3608,45 @@ msgstr "Загрузка прутка"
 msgid "Motor noise cancellation"
 msgstr "Шумоподавление двигателя"
 
-msgid "Paused due to AMS lost"
-msgstr "Печать приостановлена из-за потери связи с АСПП"
+msgid "Pause (AMS offline)"
+msgstr ""
 
-msgid "Paused due to low speed of the heat break fan"
-msgstr "Печать приостановлена из-за низкой скорости вентилятора обдува радиатора головы"
+msgid "Pause (low speed of the heatbreak fan)"
+msgstr ""
 
-msgid "Paused due to chamber temperature control error"
-msgstr "Печать приостановлена из-за ошибки контроля температуры внутри термокамеры"
+msgid "Pause (chamber temperature control problem)"
+msgstr ""
 
 msgid "Cooling chamber"
 msgstr "Охлаждение термокамеры"
 
-msgid "Paused by the Gcode inserted by user"
-msgstr "Печать приостановлена G-кодом, вставленным пользователем"
+msgid "Pause (Gcode inserted by user)"
+msgstr ""
 
 # ??? Демонстрация шума двигателя
 msgid "Motor noise showoff"
 msgstr "Результат калибровки шума двигателя"
 
-msgid "Nozzle filament covered detected pause"
-msgstr "Пауза при обнаружении протечки материала"
+msgid "Pause (nozzle clumping)"
+msgstr ""
 
-msgid "Cutter error pause"
-msgstr "Пауза при ошибке обрезки прутка"
+msgid "Pause (cutter error)"
+msgstr ""
 
-msgid "First layer error pause"
-msgstr "Пауза при ошибке на первом слое"
+msgid "Pause (first layer error)"
+msgstr ""
 
-msgid "Nozzle clog pause"
-msgstr "Пауза при засорении сопла"
+msgid "Pause (nozzle clog)"
+msgstr ""
 
-# ??? где отображается?.. Проверять, Проверить
-msgid "Check printer absolute accuracy before calibration"
-msgstr "Проверка абсолютной точности принтера перед калибровкой"
+msgid "Measuring motion percision"
+msgstr ""
 
-msgid "Absolute accuracy calibration"
-msgstr "Калибровка точности"
+msgid "Enhancing motion percision"
+msgstr ""
 
-# ??? где отображается?.. Проверять, Проверить
-msgid "Check printer absolute accuracy after calibration"
-msgstr "Проверка абсолютной точности принтера после калибровки"
+msgid "Measure motion accuracy"
+msgstr ""
 
 msgid "Nozzle offset calibration"
 msgstr "Калибровка смещения сопла"
@@ -3681,11 +3667,11 @@ msgstr "Калибровка лазера"
 msgid "Auto Check: Platform"
 msgstr "Автопроверка: печатная пластина"
 
-msgid "Confirming birdeye camera position"
-msgstr "Подтверждение положения камеры «рыбий глаз»"
+msgid "Confirming BirdsEye Camera location"
+msgstr ""
 
-msgid "Calibrating birdeye camera"
-msgstr "Калибровка камеры «рыбий глаз»"
+msgid "Calibrating BirdsEye Camera"
+msgstr ""
 
 msgid "Auto bed leveling -phase 1"
 msgstr "Автовыравнивание стола - этап 1"
@@ -3696,11 +3682,26 @@ msgstr "Автовыравнивание стола - этап 2"
 msgid "Heating chamber"
 msgstr "Нагрев термокамеры"
 
-msgid "Heated bed cooling"
-msgstr "Охлаждение стола"
+msgid "Cooling heatbed"
+msgstr ""
 
 msgid "Printing calibration lines"
 msgstr "Печать калибровочных линий"
+
+msgid "Auto Check: Material"
+msgstr ""
+
+msgid "Live View Camera Calibration"
+msgstr ""
+
+msgid "Waiting for heatbed to reach target temperature"
+msgstr ""
+
+msgid "Auto Check: Material Position"
+msgstr ""
+
+msgid "Cutting Module Offset Calibration"
+msgstr ""
 
 # import obj
 msgid "left"
@@ -9333,6 +9334,9 @@ msgstr "Модель: %1%"
 msgid "Maybe parts of the object at these height are too thin, or the object has faulty mesh"
 msgstr "Возможно, части модели на этой высоте слишком тонкие, или она имеет дефектную сетку."
 
+msgid "Flush volumes matrix do not match to the correct size!"
+msgstr ""
+
 msgid "No object can be printed. Maybe too small"
 msgstr "Печать моделей невозможна. Возможно, они слишком маленькие."
 
@@ -10591,13 +10595,13 @@ msgstr "Перекрёстный зигзаг"
 msgid "Locked Zag"
 msgstr ""
 
-msgid "skin infill pattern"
+msgid "Skin infill pattern"
 msgstr ""
 
 msgid "Line pattern for skin"
 msgstr ""
 
-msgid "skeleton infill pattern"
+msgid "Skeleton infill pattern"
 msgstr ""
 
 msgid "Line pattern for skeleton"
@@ -13980,15 +13984,15 @@ msgid "No content"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Printer presets(%d/%d)"
+msgid "Printer presets (%d/%d)"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament presets(%d/%d)"
+msgid "Filament presets (%d/%d)"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Process presets(%d/%d)"
+msgid "Process presets (%d/%d)"
 msgstr ""
 
 #, c-format, boost-format
@@ -14083,6 +14087,15 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "/%d Selected"
+msgstr ""
+
+msgid "Nothing selected"
+msgstr ""
+
+msgid "Over 64 objects in single plate"
+msgstr ""
+
+msgid "The current print job cannot be skipped"
 msgstr ""
 
 msgid "Skipping all objects."
@@ -14338,6 +14351,78 @@ msgid ""
 msgstr ""
 "Предотвращение коробления материала\n"
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как ABS, повышение температуры подогреваемого стола может снизить эту вероятность?"
+
+#~ msgid "Paused due to filament runout"
+#~ msgstr "Пауза при окончании прутка"
+
+#~ msgid "Heating hotend"
+#~ msgstr "Нагрев хотэнда"
+
+#~ msgid "Calibrating extrusion"
+#~ msgstr "Калибровка экструзии"
+
+#~ msgid "Printing was paused by the user"
+#~ msgstr "Печать приостановлена пользователем"
+
+#~ msgid "Pause of front cover falling"
+#~ msgstr "Пауза при падении передней крышки с головы"
+
+#~ msgid "Calibrating extrusion flow"
+#~ msgstr "Калибровка потока экструзии"
+
+#~ msgid "Paused due to nozzle temperature malfunction"
+#~ msgstr "Пауза при неисправности температуры сопла"
+
+#~ msgid "Paused due to heat bed temperature malfunction"
+#~ msgstr "Пауза при неисправности температуры стола"
+
+# ???
+#~ msgid "Skip step pause"
+#~ msgstr "Пропуск команды паузы"
+
+#~ msgid "Paused due to AMS lost"
+#~ msgstr "Печать приостановлена из-за потери связи с АСПП"
+
+#~ msgid "Paused due to low speed of the heat break fan"
+#~ msgstr "Печать приостановлена из-за низкой скорости вентилятора обдува радиатора головы"
+
+#~ msgid "Paused due to chamber temperature control error"
+#~ msgstr "Печать приостановлена из-за ошибки контроля температуры внутри термокамеры"
+
+#~ msgid "Paused by the Gcode inserted by user"
+#~ msgstr "Печать приостановлена G-кодом, вставленным пользователем"
+
+#~ msgid "Nozzle filament covered detected pause"
+#~ msgstr "Пауза при обнаружении протечки материала"
+
+#~ msgid "Cutter error pause"
+#~ msgstr "Пауза при ошибке обрезки прутка"
+
+#~ msgid "First layer error pause"
+#~ msgstr "Пауза при ошибке на первом слое"
+
+#~ msgid "Nozzle clog pause"
+#~ msgstr "Пауза при засорении сопла"
+
+# ??? где отображается?.. Проверять, Проверить
+#~ msgid "Check printer absolute accuracy before calibration"
+#~ msgstr "Проверка абсолютной точности принтера перед калибровкой"
+
+#~ msgid "Absolute accuracy calibration"
+#~ msgstr "Калибровка точности"
+
+# ??? где отображается?.. Проверять, Проверить
+#~ msgid "Check printer absolute accuracy after calibration"
+#~ msgstr "Проверка абсолютной точности принтера после калибровки"
+
+#~ msgid "Confirming birdeye camera position"
+#~ msgstr "Подтверждение положения камеры «рыбий глаз»"
+
+#~ msgid "Calibrating birdeye camera"
+#~ msgstr "Калибровка камеры «рыбий глаз»"
+
+#~ msgid "Heated bed cooling"
+#~ msgstr "Охлаждение стола"
 
 #~ msgid "Connecting to the printer. Unable to cancel during the connection process."
 #~ msgstr "Подключение к принтеру. Невозможно отменить во время процесса подключения."

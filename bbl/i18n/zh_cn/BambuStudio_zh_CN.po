@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-15 15:02+0800\n"
+"POT-Creation-Date: 2025-07-17 11:15+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -866,21 +866,10 @@ msgstr "Z缝绘制"
 msgid "Remove selection"
 msgstr "移除绘制"
 
-msgid "Modern"
+msgid "Recommend"
 msgstr ""
 
-msgid "Old"
-msgstr ""
-
-msgctxt "Text"
-msgid "Normal"
-msgstr ""
-
-msgctxt "Text"
-msgid "Small"
-msgstr ""
-
-msgid "Italic"
+msgid "Old version"
 msgstr ""
 
 msgid "First font"
@@ -3460,13 +3449,13 @@ msgstr "换料"
 msgid "M400 pause"
 msgstr "M400暂停"
 
-msgid "Paused due to filament runout"
-msgstr "断料暂停"
+msgid "Paused (filament ran out)"
+msgstr "暂停（耗材用尽）"
 
-msgid "Heating hotend"
-msgstr "加热热端"
+msgid "Heating nozzle"
+msgstr "加热喷嘴"
 
-msgid "Calibrating extrusion"
+msgid "Calibrating dynamic flow"
 msgstr "动态流量校准"
 
 msgid "Scanning bed surface"
@@ -3479,7 +3468,7 @@ msgid "Identifying build plate type"
 msgstr "识别打印板类型"
 
 msgid "Calibrating Micro Lidar"
-msgstr "校准轮廓仪外参"
+msgstr "雷达相机校准"
 
 msgid "Homing toolhead"
 msgstr "工具头回到起始点"
@@ -3490,29 +3479,29 @@ msgstr "清理喷嘴头"
 msgid "Checking extruder temperature"
 msgstr "检查挤出温度"
 
-msgid "Printing was paused by the user"
+msgid "Paused by the user"
 msgstr "用户暂停"
 
-msgid "Pause of front cover falling"
-msgstr "工具头前盖掉落暂停"
+msgid "Pause (front cover fall off)"
+msgstr "暂停（工具头前盖掉落）"
 
 msgid "Calibrating the micro lidar"
 msgstr "激光雷达校准"
 
-msgid "Calibrating extrusion flow"
-msgstr "挤出绝对流量校准"
+msgid "Calibrating flow ratio"
+msgstr "校准流量比例"
 
-msgid "Paused due to nozzle temperature malfunction"
-msgstr "热端温控异常暂停"
+msgid "Pause (nozzle temperature malfunction)"
+msgstr "暂停（喷嘴温控异常）"
 
-msgid "Paused due to heat bed temperature malfunction"
-msgstr "热床温控异常暂停"
+msgid "Pause (heatbed temperature malfunction)"
+msgstr "暂停（热床温控异常）"
 
 msgid "Filament unloading"
-msgstr "退料"
+msgstr "退料中"
 
-msgid "Skip step pause"
-msgstr "丟步暂停"
+msgid "Pause (step loss)"
+msgstr "暂停（丢步）"
 
 msgid "Filament loading"
 msgstr "进料"
@@ -3520,43 +3509,43 @@ msgstr "进料"
 msgid "Motor noise cancellation"
 msgstr "电机降噪"
 
-msgid "Paused due to AMS lost"
-msgstr "因为AMS连接丢失而暂停"
+msgid "Pause (AMS offline)"
+msgstr "暂停（AMS离线）"
 
-msgid "Paused due to low speed of the heat break fan"
-msgstr "因热断路风扇速度过低而暂停"
+msgid "Pause (low speed of the heatbreak fan)"
+msgstr "暂停（热阻风扇异常）"
 
-msgid "Paused due to chamber temperature control error"
-msgstr "因腔温错误而暂停"
+msgid "Pause (chamber temperature control problem)"
+msgstr "暂停（腔温控制异常）"
 
 msgid "Cooling chamber"
 msgstr "腔温冷却中"
 
-msgid "Paused by the Gcode inserted by user"
-msgstr "由用户插入的Gcode指令导致暂停"
+msgid "Pause (Gcode inserted by user)"
+msgstr "暂停（用户插入Gcode）"
 
 msgid "Motor noise showoff"
 msgstr "电机噪音标定结果展示"
 
-msgid "Nozzle filament covered detected pause"
-msgstr "裹头暂停"
+msgid "Pause (nozzle clumping)"
+msgstr "暂停（裹头）"
 
-msgid "Cutter error pause"
-msgstr "切刀异常暂停"
+msgid "Pause (cutter error)"
+msgstr "暂停（切刀异常）"
 
-msgid "First layer error pause"
-msgstr "首层扫描异常暂停"
+msgid "Pause (first layer error)"
+msgstr "暂停（首层扫描异常）"
 
-msgid "Nozzle clog pause"
-msgstr "堵头暂停"
+msgid "Pause (nozzle clog)"
+msgstr "暂停（堵头）"
 
-msgid "Check printer absolute accuracy before calibration"
-msgstr "校准前检测打印机绝对精度"
+msgid "Measuring motion percision"
+msgstr "检查运动精度"
 
-msgid "Absolute accuracy calibration"
-msgstr "校准前检测打印机绝对精度"
+msgid "Enhancing motion percision"
+msgstr "运动精度增强"
 
-msgid "Check printer absolute accuracy after calibration"
+msgid "Measure motion accuracy"
 msgstr "校准后检测打印机绝对精度"
 
 msgid "Nozzle offset calibration"
@@ -3577,11 +3566,11 @@ msgstr "激光组件校准"
 msgid "Auto Check: Platform"
 msgstr "自动检测：垫板"
 
-msgid "Confirming birdeye camera position"
-msgstr "俯视相机位置确认中"
+msgid "Confirming BirdsEye Camera location"
+msgstr "俯视摄像头位置确认"
 
-msgid "Calibrating birdeye camera"
-msgstr "俯视相机标定中"
+msgid "Calibrating BirdsEye Camera"
+msgstr "俯视摄像头校准"
 
 msgid "Auto bed leveling -phase 1"
 msgstr "自动热床调平 –阶段一"
@@ -3592,11 +3581,26 @@ msgstr "自动热床调平 –阶段二"
 msgid "Heating chamber"
 msgstr "腔体加热中 "
 
-msgid "Heated bed cooling"
+msgid "Cooling heatbed"
 msgstr "热床降温中"
 
 msgid "Printing calibration lines"
 msgstr "打印标定线"
+
+msgid "Auto Check: Material"
+msgstr "自动检测：材料"
+
+msgid "Live View Camera Calibration"
+msgstr "实况摄像头校准"
+
+msgid "Waiting for heatbed to reach target temperature"
+msgstr "等待热床温度到位"
+
+msgid "Auto Check: Material Position"
+msgstr "自动检测：材料位置"
+
+msgid "Cutting Module Offset Calibration"
+msgstr "刀切模组偏移校准"
 
 msgid "left"
 msgstr "左"
@@ -7705,7 +7709,6 @@ msgid ""
 msgstr ""
 "不建议将非可溶性支撑材料用作支撑主体。 \n"
 "您确定要用它们作为支撑主体吗？ \n"
-""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
@@ -9037,6 +9040,9 @@ msgstr "模型：%1%"
 msgid "Maybe parts of the object at these height are too thin, or the object has faulty mesh"
 msgstr "部分模型在这些高度可能过薄，或者模型存在面片错误"
 
+msgid "Flush volumes matrix do not match to the correct size!"
+msgstr ""
+
 msgid "No object can be printed. Maybe too small"
 msgstr "没有可打印的对象。可能是因为尺寸过小。"
 
@@ -10259,13 +10265,13 @@ msgstr ""
 msgid "Locked Zag"
 msgstr ""
 
-msgid "skin infill pattern"
+msgid "Skin infill pattern"
 msgstr "表皮填充图案"
 
 msgid "Line pattern for skin"
 msgstr "表皮填充的走线图案"
 
-msgid "skeleton infill pattern"
+msgid "Skeleton infill pattern"
 msgstr "骨架填充图案"
 
 msgid "Line pattern for skeleton"
@@ -13561,20 +13567,20 @@ msgid "No content"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Printer presets(%d/%d)"
+msgid "Printer presets (%d/%d)"
 msgstr "打印机预设 (%d/%d)"
 
 #, c-format, boost-format
-msgid "Filament presets(%d/%d)"
+msgid "Filament presets (%d/%d)"
 msgstr "材料预设 (%d/%d)"
 
 #, c-format, boost-format
-msgid "Process presets(%d/%d)"
+msgid "Process presets (%d/%d)"
 msgstr "工艺预设 (%d/%d)"
 
 #, c-format, boost-format
 msgid "%u Selected"
-msgstr ""
+msgstr "已选择 %u项"
 
 msgid "Please select the preset to be deleted"
 msgstr ""
@@ -13660,6 +13666,15 @@ msgstr ""
 #, c-format, boost-format
 msgid "/%d Selected"
 msgstr "/%d 已选择"
+
+msgid "Nothing selected"
+msgstr "未选中任何内容"
+
+msgid "Over 64 objects in single plate"
+msgstr "单盘中有超过64个物体"
+
+msgid "The current print job cannot be skipped"
+msgstr "当前打印任务不可跳过"
 
 msgid "Skipping all objects."
 msgstr "跳过所有零件。"
@@ -13914,6 +13929,93 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Paused due to filament runout"
+#~ msgstr "断料暂停"
+
+#~ msgid "Heating hotend"
+#~ msgstr "加热热端"
+
+#~ msgid "Calibrating extrusion"
+#~ msgstr "动态流量校准"
+
+#~ msgid "Printing was paused by the user"
+#~ msgstr "用户暂停"
+
+#~ msgid "Pause of front cover falling"
+#~ msgstr "工具头前盖掉落暂停"
+
+#~ msgid "Calibrating extrusion flow"
+#~ msgstr "挤出绝对流量校准"
+
+#~ msgid "Paused due to nozzle temperature malfunction"
+#~ msgstr "热端温控异常暂停"
+
+#~ msgid "Paused due to heat bed temperature malfunction"
+#~ msgstr "热床温控异常暂停"
+
+#~ msgid "Skip step pause"
+#~ msgstr "丟步暂停"
+
+#~ msgid "Paused due to AMS lost"
+#~ msgstr "因为AMS连接丢失而暂停"
+
+#~ msgid "Paused due to low speed of the heat break fan"
+#~ msgstr "因热断路风扇速度过低而暂停"
+
+#~ msgid "Paused due to chamber temperature control error"
+#~ msgstr "因腔温错误而暂停"
+
+#~ msgid "Paused by the Gcode inserted by user"
+#~ msgstr "由用户插入的Gcode指令导致暂停"
+
+#~ msgid "Nozzle filament covered detected pause"
+#~ msgstr "裹头暂停"
+
+#~ msgid "Cutter error pause"
+#~ msgstr "切刀异常暂停"
+
+#~ msgid "First layer error pause"
+#~ msgstr "首层扫描异常暂停"
+
+#~ msgid "Nozzle clog pause"
+#~ msgstr "堵头暂停"
+
+#~ msgid "Check printer absolute accuracy before calibration"
+#~ msgstr "校准前检测打印机绝对精度"
+
+#~ msgid "Absolute accuracy calibration"
+#~ msgstr "校准前检测打印机绝对精度"
+
+#~ msgid "Check printer absolute accuracy after calibration"
+#~ msgstr "校准后检测打印机绝对精度"
+
+#~ msgid "Confirming birdeye camera position"
+#~ msgstr "俯视相机位置确认中"
+
+#~ msgid "Calibrating birdeye camera"
+#~ msgstr "俯视相机标定中"
+
+#~ msgid "Heated bed cooling"
+#~ msgstr "热床降温中"
+
+#~ msgid "skin infill pattern"
+#~ msgstr "表皮填充图案"
+
+#~ msgid "skeleton infill pattern"
+#~ msgstr "骨架填充图案"
+
+#, c-format, boost-format
+#~ msgid "Printer presets(%d/%d)"
+#~ msgstr "打印机预设 (%d/%d)"
+
+#, c-format, boost-format
+#~ msgid "Filament presets(%d/%d)"
+#~ msgstr "材料预设 (%d/%d)"
+
+#, c-format, boost-format
+#~ msgid "Process presets(%d/%d)"
+#~ msgstr "工艺预设 (%d/%d)"
 
 #~ msgid "Connecting to the printer. Unable to cancel during the connection process."
 #~ msgstr "正在连接打印机。连接过程中无法取消。"

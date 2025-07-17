@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-15 15:02+0800\n"
+"POT-Creation-Date: 2025-07-17 11:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -869,22 +869,11 @@ msgstr "Varratfestés"
 msgid "Remove selection"
 msgstr "Kijelölés törlése"
 
-msgid "Modern"
-msgstr ""
+msgid "Recommend"
+msgstr "Ajánlom"
 
-msgid "Old"
-msgstr "Régi"
-
-msgctxt "Text"
-msgid "Normal"
-msgstr "Normál"
-
-msgctxt "Text"
-msgid "Small"
-msgstr "Kicsi"
-
-msgid "Italic"
-msgstr "Dőlt"
+msgid "Old version"
+msgstr "Régi verzió"
 
 msgid "First font"
 msgstr "Első betűtípus"
@@ -3481,14 +3470,14 @@ msgstr "Filament váltása"
 msgid "M400 pause"
 msgstr "M400 szünet"
 
-msgid "Paused due to filament runout"
-msgstr "Megállítva, mert kifogyott a filament"
+msgid "Paused (filament ran out)"
+msgstr "Szüneteltetve (elfogyott a filament)"
 
-msgid "Heating hotend"
-msgstr "Hotend fűtése"
+msgid "Heating nozzle"
+msgstr "Fúvóka fűtése"
 
-msgid "Calibrating extrusion"
-msgstr "Extrudálás kalibrálása"
+msgid "Calibrating dynamic flow"
+msgstr "Dinamikus áramlás kalibrálása"
 
 msgid "Scanning bed surface"
 msgstr "Asztalfelület szkennelése"
@@ -3511,29 +3500,29 @@ msgstr "Fúvóka hegyének tisztítása"
 msgid "Checking extruder temperature"
 msgstr "Extruder hőmérsékletének ellenőrzése"
 
-msgid "Printing was paused by the user"
-msgstr "Nyomtatás szüneteltetve a felhasználó által"
+msgid "Paused by the user"
+msgstr "Felhasználó által szüneteltetve"
 
-msgid "Pause of front cover falling"
-msgstr "Szünet az előlap leesése miatt"
+msgid "Pause (front cover fall off)"
+msgstr "Szüneteltetve (burkolat leesett)"
 
 msgid "Calibrating the micro lidar"
 msgstr "Micro Lidar kalibrálása"
 
-msgid "Calibrating extrusion flow"
-msgstr "Anyagáramlás kalibrálása"
+msgid "Calibrating flow ratio"
+msgstr "Áramlási arány kalibrálása"
 
-msgid "Paused due to nozzle temperature malfunction"
-msgstr "Szüneteltetve a fúvóka hőmérsékletének rendellenessége miatt"
+msgid "Pause (nozzle temperature malfunction)"
+msgstr "Szünet (fúvóka hőmérsékleti hiba)"
 
-msgid "Paused due to heat bed temperature malfunction"
-msgstr "Szüneteltetve a tárgyasztal hőmérsékletének rendellenessége miatt"
+msgid "Pause (heatbed temperature malfunction)"
+msgstr "Szünet (tárgyasztal hőmérsékleti hiba)"
 
 msgid "Filament unloading"
 msgstr "Filament kitöltése"
 
-msgid "Skip step pause"
-msgstr "Lépésvesztés miatti szünet"
+msgid "Pause (step loss)"
+msgstr "Szünet (lépésvesztés)"
 
 msgid "Filament loading"
 msgstr "Filament betöltése"
@@ -3541,44 +3530,44 @@ msgstr "Filament betöltése"
 msgid "Motor noise cancellation"
 msgstr "Motorzajszűrés"
 
-msgid "Paused due to AMS lost"
-msgstr "Szüneteltetve az AMS elvesztése miatt"
+msgid "Pause (AMS offline)"
+msgstr "Szünet (AMS offline)"
 
-msgid "Paused due to low speed of the heat break fan"
-msgstr "Szüneteltetve a heat break ventilátor alacsony fordulatszáma miatt"
+msgid "Pause (low speed of the heatbreak fan)"
+msgstr "Szünet (heatbreak ventilátor alacsony fordulatszám)"
 
-msgid "Paused due to chamber temperature control error"
-msgstr "Szüneteltetve a kamra hőmérséklet-szabályzó hibája miatt"
+msgid "Pause (chamber temperature control problem)"
+msgstr "Szünet (kamra hőmérséklet-szabályozási probléma)"
 
 msgid "Cooling chamber"
 msgstr "Kamra hűtése"
 
-msgid "Paused by the Gcode inserted by user"
-msgstr "Szüneteltetve a felhasználó által beillesztett G-kód miatt"
+msgid "Pause (Gcode inserted by user)"
+msgstr "Szünet (felhasználó által beszúrt G-kód)"
 
 msgid "Motor noise showoff"
 msgstr "Motorzaj bemutató"
 
-msgid "Nozzle filament covered detected pause"
-msgstr "Szüneteltetve a fúvókára került filament miatt"
+msgid "Pause (nozzle clumping)"
+msgstr "Szünet (fúvókára rakódott anyag)"
 
-msgid "Cutter error pause"
-msgstr "Szüneteltetve a filamentvágó meghibásodása miatt"
+msgid "Pause (cutter error)"
+msgstr "Szünet (vágóhiba)"
 
-msgid "First layer error pause"
-msgstr "Szüneteltetve a kezdőrétegen található hiba miatt"
+msgid "Pause (first layer error)"
+msgstr "Szünet (első réteg hibája)"
 
-msgid "Nozzle clog pause"
-msgstr "Szüneteltetve a fúvóka eltömődése miatt"
+msgid "Pause (nozzle clog)"
+msgstr "Szünet (fúvóka eltömődése)"
 
-msgid "Check printer absolute accuracy before calibration"
-msgstr "A nyomtató abszolút pontosságának ellenőrzése kalibrálás előtt"
+msgid "Measuring motion percision"
+msgstr "Mozgás pontosságának mérése"
 
-msgid "Absolute accuracy calibration"
-msgstr "Abszolút pontosság kalibrálása"
+msgid "Enhancing motion percision"
+msgstr "Mozgás pontosságának javítása"
 
-msgid "Check printer absolute accuracy after calibration"
-msgstr "A nyomtató abszolút pontosságának ellenőrzése kalibrálás után"
+msgid "Measure motion accuracy"
+msgstr "Mozgás pontosságának mérése"
 
 msgid "Nozzle offset calibration"
 msgstr "Fúvóka eltérés kalibrálás"
@@ -3598,10 +3587,10 @@ msgstr "Lézerkalibrálás"
 msgid "Auto Check: Platform"
 msgstr "Automatikus ellenőrzés: Platform"
 
-msgid "Confirming birdeye camera position"
-msgstr "BirdsEye kamera pozíciójának megerősítése"
+msgid "Confirming BirdsEye Camera location"
+msgstr "A BirdsEye kamera helyének megerősítése"
 
-msgid "Calibrating birdeye camera"
+msgid "Calibrating BirdsEye Camera"
 msgstr "BirdsEye kamera kalibrálása"
 
 msgid "Auto bed leveling -phase 1"
@@ -3613,11 +3602,26 @@ msgstr "Automatikus asztalyszintezés - 2. fázis"
 msgid "Heating chamber"
 msgstr "Kamra fűtése"
 
-msgid "Heated bed cooling"
+msgid "Cooling heatbed"
 msgstr "Tárgyasztal hűtése"
 
 msgid "Printing calibration lines"
 msgstr "Kalibrációs vonalak nyomtatása"
+
+msgid "Auto Check: Material"
+msgstr "Automatikus ellenőrzés: Anyag"
+
+msgid "Live View Camera Calibration"
+msgstr "Élőnézet kamera kalibrálása"
+
+msgid "Waiting for heatbed to reach target temperature"
+msgstr "Várakozás arra, hogy a tárgyasztal elérje a célhőmérsékletet"
+
+msgid "Auto Check: Material Position"
+msgstr "Automatikus ellenőrzés: Anyagpozíció"
+
+msgid "Cutting Module Offset Calibration"
+msgstr "Vágómodul eltolás kalibrálása"
 
 msgid "left"
 msgstr "bal"
@@ -9083,6 +9087,9 @@ msgstr "Objektum: %1%"
 msgid "Maybe parts of the object at these height are too thin, or the object has faulty mesh"
 msgstr "Az objektum ezen magasságban lévő részei túl vékonyak, vagy az objektum hibás hálóval rendelkezik."
 
+msgid "Flush volumes matrix do not match to the correct size!"
+msgstr ""
+
 msgid "No object can be printed. Maybe too small"
 msgstr "Az objektum nem nyomtatható ki. Lehet, hogy túl kicsi"
 
@@ -10305,14 +10312,14 @@ msgstr ""
 msgid "Locked Zag"
 msgstr "Zárt cakkozás"
 
-msgid "skin infill pattern"
-msgstr "bőr kitöltési mintája"
+msgid "Skin infill pattern"
+msgstr "Bőr kitöltési mintája"
 
 msgid "Line pattern for skin"
 msgstr "Vonalminta a bőrhöz"
 
-msgid "skeleton infill pattern"
-msgstr "csontváz kitöltési minta"
+msgid "Skeleton infill pattern"
+msgstr "Csontváz kitöltési minta"
 
 msgid "Line pattern for skeleton"
 msgstr "Vonalminta a csontvázhoz"
@@ -13620,15 +13627,15 @@ msgid "No content"
 msgstr "Nincs tartalom"
 
 #, c-format, boost-format
-msgid "Printer presets(%d/%d)"
-msgstr "Nyomtató beállítások(%d/%d)"
+msgid "Printer presets (%d/%d)"
+msgstr "Nyomtatóbeállítások(%d/%d)"
 
 #, c-format, boost-format
-msgid "Filament presets(%d/%d)"
+msgid "Filament presets (%d/%d)"
 msgstr "Filamentbeállítások(%d/%d)"
 
 #, c-format, boost-format
-msgid "Process presets(%d/%d)"
+msgid "Process presets (%d/%d)"
 msgstr "Folyamatbeállítások(%d/%d)"
 
 #, c-format, boost-format
@@ -13719,6 +13726,15 @@ msgstr ""
 #, c-format, boost-format
 msgid "/%d Selected"
 msgstr "/%d kiválasztva"
+
+msgid "Nothing selected"
+msgstr ""
+
+msgid "Over 64 objects in single plate"
+msgstr ""
+
+msgid "The current print job cannot be skipped"
+msgstr ""
 
 msgid "Skipping all objects."
 msgstr "Az összes objektum kihagyása."
@@ -13974,6 +13990,107 @@ msgid ""
 msgstr ""
 "Vetemedés elkerülése\n"
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
+
+#~ msgid "Old"
+#~ msgstr "Régi"
+
+#~ msgctxt "Text"
+#~ msgid "Normal"
+#~ msgstr "Normál"
+
+#~ msgctxt "Text"
+#~ msgid "Small"
+#~ msgstr "Kicsi"
+
+#~ msgid "Italic"
+#~ msgstr "Dőlt"
+
+#~ msgid "Paused due to filament runout"
+#~ msgstr "Megállítva, mert kifogyott a filament"
+
+#~ msgid "Heating hotend"
+#~ msgstr "Hotend fűtése"
+
+#~ msgid "Calibrating extrusion"
+#~ msgstr "Extrudálás kalibrálása"
+
+#~ msgid "Printing was paused by the user"
+#~ msgstr "Nyomtatás szüneteltetve a felhasználó által"
+
+#~ msgid "Pause of front cover falling"
+#~ msgstr "Szünet az előlap leesése miatt"
+
+#~ msgid "Calibrating extrusion flow"
+#~ msgstr "Anyagáramlás kalibrálása"
+
+#~ msgid "Paused due to nozzle temperature malfunction"
+#~ msgstr "Szüneteltetve a fúvóka hőmérsékletének rendellenessége miatt"
+
+#~ msgid "Paused due to heat bed temperature malfunction"
+#~ msgstr "Szüneteltetve a tárgyasztal hőmérsékletének rendellenessége miatt"
+
+#~ msgid "Skip step pause"
+#~ msgstr "Lépésvesztés miatti szünet"
+
+#~ msgid "Paused due to AMS lost"
+#~ msgstr "Szüneteltetve az AMS elvesztése miatt"
+
+#~ msgid "Paused due to low speed of the heat break fan"
+#~ msgstr "Szüneteltetve a heat break ventilátor alacsony fordulatszáma miatt"
+
+#~ msgid "Paused due to chamber temperature control error"
+#~ msgstr "Szüneteltetve a kamra hőmérséklet-szabályzó hibája miatt"
+
+#~ msgid "Paused by the Gcode inserted by user"
+#~ msgstr "Szüneteltetve a felhasználó által beillesztett G-kód miatt"
+
+#~ msgid "Nozzle filament covered detected pause"
+#~ msgstr "Szüneteltetve a fúvókára került filament miatt"
+
+#~ msgid "Cutter error pause"
+#~ msgstr "Szüneteltetve a filamentvágó meghibásodása miatt"
+
+#~ msgid "First layer error pause"
+#~ msgstr "Szüneteltetve a kezdőrétegen található hiba miatt"
+
+#~ msgid "Nozzle clog pause"
+#~ msgstr "Szüneteltetve a fúvóka eltömődése miatt"
+
+#~ msgid "Check printer absolute accuracy before calibration"
+#~ msgstr "A nyomtató abszolút pontosságának ellenőrzése kalibrálás előtt"
+
+#~ msgid "Absolute accuracy calibration"
+#~ msgstr "Abszolút pontosság kalibrálása"
+
+#~ msgid "Check printer absolute accuracy after calibration"
+#~ msgstr "A nyomtató abszolút pontosságának ellenőrzése kalibrálás után"
+
+#~ msgid "Confirming birdeye camera position"
+#~ msgstr "BirdsEye kamera pozíciójának megerősítése"
+
+#~ msgid "Calibrating birdeye camera"
+#~ msgstr "BirdsEye kamera kalibrálása"
+
+#~ msgid "Heated bed cooling"
+#~ msgstr "Tárgyasztal hűtése"
+
+#~ msgid "skin infill pattern"
+#~ msgstr "bőr kitöltési mintája"
+
+#~ msgid "skeleton infill pattern"
+#~ msgstr "csontváz kitöltési minta"
+
+#, c-format, boost-format
+#~ msgid "Printer presets(%d/%d)"
+#~ msgstr "Nyomtató beállítások(%d/%d)"
+
+#, c-format, boost-format
+#~ msgid "Filament presets(%d/%d)"
+#~ msgstr "Filamentbeállítások(%d/%d)"
+
+#, c-format, boost-format
+#~ msgid "Process presets(%d/%d)"
+#~ msgstr "Folyamatbeállítások(%d/%d)"
 
 #~ msgid "Connecting to the printer. Unable to cancel during the connection process."
 #~ msgstr "Csatlakozás a nyomtatóhoz. A csatlakozási folyamatot nem lehetett megszakítani."
