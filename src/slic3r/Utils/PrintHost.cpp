@@ -165,12 +165,6 @@ void PrintHostJobQueue::priv::bg_thread_main()
 
             source_to_remove = job.upload_data.source_path;
 
-            BOOST_LOG_TRIVIAL(debug) << boost::format("PrintHostJobQueue/bg_thread: Received job: [%1%]: `%2%` -> `%3%`, cancelled: %4%")
-                % job_id
-                % job.upload_data.upload_path
-                % job.printhost->get_host()
-                % job.cancelled;
-
             if (! job.cancelled) {
                 perform_job(std::move(job));
             }

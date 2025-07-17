@@ -268,7 +268,7 @@ wxBoxSizer* NetworkTestDialog::create_content_sizer(wxWindow* parent)
 	});
 
 	btn_network_plugin->Bind(wxEVT_BUTTON, [this](wxCommandEvent &evt) {
-		start_test_plugin_download_thread(); 
+		start_test_plugin_download_thread();
 	});
 
 	return sizer;
@@ -352,7 +352,7 @@ void NetworkTestDialog::start_all_job()
 {
 	start_test_bambulab_thread();
 	start_test_bing_thread();
-	
+
 	start_test_iot_thread();
 	start_test_oss_thread();
 	start_test_oss_upgrade_thread();
@@ -620,7 +620,7 @@ void NetworkTestDialog::start_test_oss_download()
 			try {
 				json j = json::parse(body);
 				std::string message = j["message"].get<std::string>();
-                
+
 				if (message == "success") {
 					json resource = j.at("resources");
 					if (resource.is_array()) {
@@ -686,7 +686,7 @@ void NetworkTestDialog::start_test_oss_download()
 	}
 
 	bool cancel = false;
-	BOOST_LOG_TRIVIAL(info) << "[test_storage_download] get_url = " << download_url;
+	//BOOST_LOG_TRIVIAL(info) << "[test_storage_download] get_url = " << download_url;
 
 	// download
 	Slic3r::Http http = Slic3r::Http::get(download_url);
@@ -737,7 +737,7 @@ void NetworkTestDialog::start_test_oss_download()
 
 void NetworkTestDialog::start_test_oss_upload()
 {
-	
+
 }
 
 void NetworkTestDialog:: start_test_plugin_download(){
@@ -809,7 +809,7 @@ void NetworkTestDialog:: start_test_plugin_download(){
             result = -1;
         })
         .perform_sync();
-     
+
 
     if (result < 0) {
         this->update_status(TEST_PLUGIN_JOB, "test plugin download failed");
@@ -830,7 +830,7 @@ void NetworkTestDialog:: start_test_plugin_download(){
     }
 
     bool cancel = false;
-    BOOST_LOG_TRIVIAL(info) << "[test_plugin_download] get_url = " << download_url;
+    //BOOST_LOG_TRIVIAL(info) << "[test_plugin_download] get_url = " << download_url;
 
     // download
     Slic3r::Http http             = Slic3r::Http::get(download_url);
@@ -936,8 +936,8 @@ void NetworkTestDialog::start_test_oss_upload_thread()
 
 void NetworkTestDialog:: start_test_plugin_download_thread(){
 
-	test_job[TEST_PLUGIN_JOB] = new boost::thread([this] { 
-		start_test_plugin_download(); 
+	test_job[TEST_PLUGIN_JOB] = new boost::thread([this] {
+		start_test_plugin_download();
 	});
 }
 
