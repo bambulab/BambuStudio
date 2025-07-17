@@ -3983,7 +3983,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                         online_rfid = false;
                                     }
                                 }
-                                std::string str = jj.dump();
+
                                 if (jj["online"].contains("version")) {
                                     online_version = jj["online"]["version"].get<int>();
                                 }
@@ -4632,14 +4632,13 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             int ams_status = jj["ams_status"].get<int>();
                             this->_parse_ams_status(ams_status);
                         }
-                        std::string str_j = jj.dump();
+
                         if (jj.contains("cali_version")) {
                             cali_version = jj["cali_version"].get<int>();
                         }
                         else {
                             cali_version = -1;
                         }
-                        std::string str = jj.dump();
                     }
                     catch (...) {
                         ;
@@ -5004,8 +5003,6 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                                 }
                                             }
 
-                                            std::string temp = tray_it->dump();
-
                                             if (tray_it->contains("cali_idx")) {
                                                 curr_tray->cali_idx = (*tray_it)["cali_idx"].get<int>();
                                             }
@@ -5098,8 +5095,6 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     } catch (...) {}
 #pragma endregion
                 } else if (jj["command"].get<std::string>() == "gcode_line") {
-                    //ack of gcode_line
-                    BOOST_LOG_TRIVIAL(debug) << "parse_json, ack of gcode_line = " << j.dump(4);
                     if (m_agent && is_studio_cmd(sequence_id)) {
                         json t;
                         t["dev_id"] = this->dev_id;
@@ -5108,8 +5103,6 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                         m_agent->track_event("ack_cmd_gcode_line", t.dump());
                     }
                 } else if (jj["command"].get<std::string>() == "project_prepare") {
-                    //ack of project file
-                    BOOST_LOG_TRIVIAL(info) << "parse_json, ack of project_prepare = " << j.dump(4);
                     if (m_agent) {
                         if (jj.contains("job_id")) {
                             this->job_id_ = JsonValParser::get_longlong_val(jj["job_id"]);
@@ -5117,8 +5110,6 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     }
 
                 } else if (jj["command"].get<std::string>() == "project_file") {
-                    //ack of project file
-                    BOOST_LOG_TRIVIAL(debug) << "parse_json, ack of project_file = " << j.dump(4);
                     if (m_agent) {
                         json t;
                         t["dev_id"] = this->dev_id;
@@ -5293,10 +5284,6 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             }
                         }
                     }
-#ifdef CALI_DEBUG
-                    std::string str = jj.dump();
-                    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_set: " << str;
-#endif
                     int ams_id = -1;
                     int tray_id = -1;
                     int curr_tray_id = -1;
@@ -5346,10 +5333,6 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                         }
                     }
 
-#ifdef CALI_DEBUG
-                    std::string str = jj.dump();
-                    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_sel: " << str;
-#endif
                     int ams_id       = -1;
                     int slot_id      = -1;
                     int tray_id      = -1;
@@ -5407,9 +5390,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
 
                 }
                 else if (jj["command"].get<std::string>() == "extrusion_cali_get") {
-                    std::string str = jj.dump();
                     if (request_tab_from_bbs) {
-                        BOOST_LOG_TRIVIAL(info) << "bbs extrusion_cali_get: " << str;
                         request_tab_from_bbs = false;
                         reset_pa_cali_history_result();
                         bool is_succeed = true;
@@ -5478,12 +5459,10 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                         }
                         // notify cali history to update
                     } else {
-                        BOOST_LOG_TRIVIAL(info) << "printer extrusion_cali_get: " << str;
+                        BOOST_LOG_TRIVIAL(info) << "printer extrusion_cali_get: ";
                     }
                 }
                 else if (jj["command"].get<std::string>() == "extrusion_cali_get_result") {
-                    std::string str = jj.dump();
-                    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_get_result: " << str;
                     reset_pa_cali_result();
                     bool is_succeed = true;
                     if (jj.contains("result") && jj.contains("reason")) {
@@ -5575,10 +5554,6 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     get_flow_calib_result = true;
                     if (jj.contains("filaments") && jj["filaments"].is_array()) {
                         try {
-#ifdef CALI_DEBUG
-                            std::string str = jj.dump();
-                            BOOST_LOG_TRIVIAL(info) << "flowrate_get_result: " << str;
-#endif
                             for (auto it = jj["filaments"].begin(); it != jj["filaments"].end(); it++) {
                                 FlowRatioCalibResult flow_ratio_calib_result;
                                 flow_ratio_calib_result.tray_id     = (*it)["tray_id"].get<int>();
@@ -8015,11 +7990,11 @@ bool DeviceManager::load_filaments_blacklist_config()
             return true;
         }
         else {
-            BOOST_LOG_TRIVIAL(error) << "load filaments blacklist config failed, file = " << config_file;
+            BOOST_LOG_TRIVIAL(error) << "load filaments blacklist config failed, file = filaments_blacklist.json";
         }
     }
     catch (...) {
-        BOOST_LOG_TRIVIAL(error) << "load filaments blacklist config failed, file = " << config_file;
+        BOOST_LOG_TRIVIAL(error) << "load filaments blacklist config failed, file = filaments_blacklist.json";
         return false;
     }
     return true;
@@ -8227,7 +8202,7 @@ std::string DeviceManager::load_gcode(std::string type_str, std::string gcode_fi
             return gcode_str.str();
         }
     } catch(...) {
-        BOOST_LOG_TRIVIAL(error) << "load gcode file failed, file = " << gcode_file << ", path = " << gcode_full_path;
+        BOOST_LOG_TRIVIAL(error) << "load gcode file failed, file = " << gcode_file;
     }
 
 
