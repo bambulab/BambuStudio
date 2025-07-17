@@ -4851,7 +4851,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
             std::string last_backup = last;
             std::string originfile;
             if (Slic3r::has_restore_data(last_backup, originfile)) {
-                auto result = MessageDialog(this->q, _L("Previous unsaved project detected, do you want to restore it?"), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Restore"), wxYES_NO | wxYES_DEFAULT | wxCENTRE).ShowModal();
+                BOOST_LOG_TRIVIAL(info) << "test101: Restoring project from: " << last_backup;
+                auto log_string = _L("It seems that you have projects that were not closed properly. Would you like to restore your last unsaved project?\nIf you have a currently opened project and click \"Restore\", the current project will be closed.");
+                MessageDialog dlg(this->q, log_string, wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Restore"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+                dlg.SetButtonLabel(wxID_YES, _L("Restore"));
+                dlg.SetButtonLabel(wxID_NO, _L("Cancel"));
+                auto result = dlg.ShowModal();
                 if (result == wxID_YES) {
                     this->q->load_project(from_path(last_backup), from_path(originfile));
                     Slic3r::backup_soon();
@@ -4863,9 +4868,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
                     boost::filesystem::remove_all(last);
             }
             catch (...) {}
-            int skip_confirm = e.GetInt();
-            this->q->new_project(skip_confirm, true);
-            });
+            if (!dirty_state.is_dirty()) {
+                int skip_confirm = e.GetInt();
+                this->q->new_project(skip_confirm, true);
+            }
+        });
         //wxPostEvent(this->q, wxCommandEvent{EVT_RESTORE_PROJECT});
     }
 
