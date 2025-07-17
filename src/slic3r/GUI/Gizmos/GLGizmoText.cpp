@@ -2001,7 +2001,7 @@ void GLGizmoText::on_update(const UpdateData &data)
         if (!filter_model_volume(mo->volumes[mesh_id])) {
             continue;
         }
-        if (m_c->raycaster()->raycasters()[mesh_id]->unproject_on_mesh(mouse_pos, trafo_matrices[mesh_id], camera, hit, normal,
+        if (mesh_id < m_c->raycaster()->raycasters().size() && m_c->raycaster()->raycasters()[mesh_id]->unproject_on_mesh(mouse_pos, trafo_matrices[mesh_id], camera, hit, normal,
             m_c->object_clipper()->get_clipping_plane(),&facet)) {
             // Is this hit the closest to the camera so far?
             double hit_squared_distance = (camera.get_position() - trafo_matrices[mesh_id] * hit.cast<double>()).squaredNorm();
@@ -3116,8 +3116,8 @@ bool GLGizmoText::update_raycast_cache(const Vec2d &mouse_position, const Camera
     for (int mesh_id = 0; mesh_id < int(trafo_matrices.size()); ++mesh_id) {
         if (exclude_last && mesh_id == int(trafo_matrices.size()) - 1)
             continue;
-
-        if (m_c->raycaster()->raycasters()[mesh_id]->unproject_on_mesh(mouse_position, trafo_matrices[mesh_id], camera, hit, normal, m_c->object_clipper()->get_clipping_plane(),
+        if (mesh_id < m_c->raycaster()->raycasters().size()&& m_c->raycaster()->raycasters()[mesh_id]->unproject_on_mesh(mouse_position, trafo_matrices[mesh_id], camera, hit, normal,
+                                                                                  m_c->object_clipper()->get_clipping_plane(),
                                                                        &facet)) {
             double hit_squared_distance = (camera.get_position() - trafo_matrices[mesh_id] * hit.cast<double>()).squaredNorm();
             if (hit_squared_distance < closest_hit_squared_distance) {
