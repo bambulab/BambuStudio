@@ -6908,7 +6908,7 @@ void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
 
 void GUI_App::MacOpenURL(const wxString& url)
 {
-#ifndef BBL_RELEASE_TO_PUBLIC
+#if !BBL_RELEASE_TO_PUBLIC
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << "get mac url " << url;
 #endif
 
@@ -6923,7 +6923,7 @@ void GUI_App::MacOpenURL(const wxString& url)
 
         std::string download_file_url = url_decode(download_origin_url);
 
-#ifndef BBL_RELEASE_TO_PUBLIC
+#if !BBL_RELEASE_TO_PUBLIC
         BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << download_file_url;
 #endif
 
