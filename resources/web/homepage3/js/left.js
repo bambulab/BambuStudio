@@ -11,9 +11,15 @@ function OnInit()
 
 	SendMsg_GetLoginInfo();
 	GotoMenu( 'home' );
-	$("#Login2").hover(function() {
+	$("#Login2").click(function() {
 		$("#DropdownWrapper").css("visibility", "visible");
-	}, function() {
+	});
+	$(document).on('click', function(e) {
+		if (!$(e.target).closest('#Login2').length) {
+			$("#DropdownWrapper").css("visibility", "hidden");
+		}
+	});
+	$('#Login2').on('blur', function() {
 		$("#DropdownWrapper").css("visibility", "hidden");
 	});
 	OnUpdatePluginInstalltip();
