@@ -1478,12 +1478,13 @@ bool GLGizmoText::on_shortcut_key() {
                     instance_bb                  = mo->instance_bounding_box(instance_index);
                     // Vec3d volume_size            = volume->mesh().bounding_box().size();
                     // Translate the new modifier to be pickable: move to the left front corner of the instance's bounding box, lift to print bed.
-                    Vec3d offset_tr(0, -instance_bb.size().y() / 2.f  - 2.f, -instance_bb.size().z() / 2.f); // lay on bed
+                    Vec3d       offset_tr(0, -instance_bb.size().y() / 2.f - 2.f, -instance_bb.size().z() / 2.f + 0.015f); // lay on bed// 0.015f is from SAFE_SURFACE_OFFSET
                     auto  mo_tran = mo->instances[instance_index]->get_transformation();
+                    Transform3d inv_tr      = mo_tran.get_matrix_no_offset().inverse();
 
                     m_text_tran_in_object.reset();
-                    m_text_tran_in_object.set_offset(offset_tr);
-                    m_text_position_in_world = mo_tran.get_matrix() * offset_tr;
+                    m_text_tran_in_object.set_offset(inv_tr * offset_tr);
+                    m_text_position_in_world = (mo_tran * m_text_tran_in_object).get_offset();
                     m_text_normal_in_world   = Vec3f::UnitZ();
                     m_need_update_text       = true;
                     m_volume_idx             = -1;
