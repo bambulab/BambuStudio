@@ -325,7 +325,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
                 json j;
                 j["code"] = err;
                 j["dev_id"] = m_machine;
-                j["dev_ip"] = m_lan_ip;
+                j["dev_ip"] = "";
                 NetworkAgent* agent = wxGetApp().getAgent();
                 if (status == PrinterFileSystem::Failed && err != 0) {
                     j["result"] = "failed";
@@ -356,7 +356,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
                 json j;
                 j["code"] = result;
                 j["dev_id"] = m_machine;
-                j["dev_ip"] = m_lan_ip;
+                j["dev_ip"] = "";
                 if (result > 1) {
                     // download failed
                     j["result"] = "failed";

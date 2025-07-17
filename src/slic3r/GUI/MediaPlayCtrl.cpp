@@ -453,7 +453,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
         json j;
         j["stage"]          = last_state;
         j["dev_id"]         = m_machine;
-        j["dev_ip"]         = m_lan_ip;
+        j["dev_ip"]         = "";
         j["result"]         = "failed";
         j["user_triggered"] = m_user_triggered;
         j["failed_retry"]   = m_failed_retry;
@@ -476,7 +476,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
     if (last_state == wxMEDIASTATE_PLAYING && m_stat.size() == 4) {
         json j;
         j["dev_id"]         = m_machine;
-        j["dev_ip"]         = m_lan_ip;
+        j["dev_ip"]         = "";
         j["result"]         = m_failed_code ? "failed" : "success";
         j["tunnel"]         = tunnel;
         j["code"]           = m_failed_code;
@@ -691,7 +691,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
             json j;
             j["stage"] =  std::to_string(m_last_state);
             j["dev_id"] = m_machine;
-            j["dev_ip"] = m_lan_ip;
+            j["dev_ip"] = "";
             j["result"] = "success";
             j["code"] = 0;
             auto tunnel = into_u8(wxURI(m_url).GetPath()).substr(1);
