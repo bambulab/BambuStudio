@@ -2310,6 +2310,10 @@ bool SelectMachineDialog::is_enable_external_change_assist(std::vector<FilamentI
 
 void SelectMachineDialog::load_option_vals(MachineObject *obj)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " start"
+                            << ", dev_id = " << (obj ? BBLCrossTalk::Crosstalk_DevId(obj->dev_id) : "NULL")
+                            << ", sending mode= " << m_is_in_sending_mode;
+
     if (m_is_in_sending_mode) { return;}
 
     AppConfig* config = wxGetApp().app_config;
@@ -2338,6 +2342,8 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
         m_checkbox_list["timelapse"]->setValue("off");
         m_checkbox_list["timelapse"]->update_tooltip(error_messgae);
     }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " end";
 }
 
 void SelectMachineDialog::save_option_vals()
@@ -4810,6 +4816,7 @@ void PrintOptionItem::render(wxDC& dc)
 
 void PrintOptionItem::on_left_down(wxMouseEvent& evt)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", enable status is " << m_enable;
     if (!m_enable)
     {
         return;
@@ -4830,6 +4837,25 @@ void PrintOptionItem::on_left_down(wxMouseEvent& evt)
             selected_key = entry.key;
         }
         i++;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", new select key= " << selected_key;
+    if (selected_key.empty()) /* make some log if not find*/
+    {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", pos.x=" << pos.x << ", rect.x=" << rect.x;
+
+        int i = 0;
+        for (const auto& entry : m_ops)
+        {
+            auto left_edge = rect.x + i * select_size;
+            auto right_edge = rect.x + (i + 1) * select_size;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", i= " << i
+                                    << ", entry.key= " << entry.key
+                                    << ", left_edge= " << left_edge
+                                    << ", right_edge= " << right_edge;
+
+            i++;
+        }
     }
 
     wxCommandEvent event(EVT_SWITCH_PRINT_OPTION);
