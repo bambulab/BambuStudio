@@ -388,10 +388,10 @@ void PrinterFileSystem::DownloadRamFile(int index, const std::string &local_path
             if (result == SUCCESS) {
                 if (std::filesystem::exists(download->local_path)) {
                     m_download_states.emplace_back(true);
-                    BOOST_LOG_TRIVIAL(info) <<"DownloadImageFromRam finished: " << download->local_path << "result = " << result;
+                    //BOOST_LOG_TRIVIAL(info) <<"DownloadImageFromRam finished: " << download->local_path << "result = " << result;
                 }else{
                     m_download_states.emplace_back(false);
-                    BOOST_LOG_TRIVIAL(warning) <<"DownloadImageFromRam finished, but file not exist: " << download->local_path << "result = " << result;
+                    //BOOST_LOG_TRIVIAL(warning) <<"DownloadImageFromRam finished, but file not exist: " << download->local_path << "result = " << result;
                 }
             } else if (result != CONTINUE) {
                 m_download_states.emplace_back(false);
@@ -1219,7 +1219,7 @@ void PrinterFileSystem::SendChangedEvent(wxEventType type, size_t index, std::st
 
 void PrinterFileSystem::DumpLog(void * thiz, int, tchar const *msg)
 {
-    BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem: " << wxString(msg).ToUTF8().data();
+    //BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem: " << wxString(msg).ToUTF8().data();
     static_cast<PrinterFileSystem*>(thiz)->Bambu_FreeLogMsg(msg);
 }
 

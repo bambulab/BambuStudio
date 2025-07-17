@@ -2624,7 +2624,7 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
     auto selection_data = evt.GetString();
     auto selection_data_arr = wxSplit(selection_data.ToStdString(), '|');
 
-    BOOST_LOG_TRIVIAL(info) << "The ams mapping selection result: data is " << selection_data;
+    //BOOST_LOG_TRIVIAL(info) << "The ams mapping selection result: data is " << selection_data;
 
     if (selection_data_arr.size() == 8) {
         auto ams_colour      = wxColour(wxAtoi(selection_data_arr[0]), wxAtoi(selection_data_arr[1]), wxAtoi(selection_data_arr[2]), wxAtoi(selection_data_arr[3]));

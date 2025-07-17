@@ -208,7 +208,7 @@ wxString WebView::BuildEdgeUserDataPath()
             data_dir = bambu_dir;
             break;
         }
-        
+
         if (!lockFile.Exists(bambu_lock_file)) { break; } /*maybe don't have access rights to create file, break*/
     }
 
@@ -237,7 +237,7 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
     url2.Replace("\\", "/");
 #endif
     if (!url2.empty()) { url2 = wxURI(url2).BuildURI(); }
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << url2.ToUTF8();
+    //BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << url2.ToUTF8();
 
 #ifdef __WIN32__
     wxWebView* webView = new WebViewEdge;
@@ -315,7 +315,7 @@ void WebView::LoadUrl(wxWebView * webView, wxString const &url)
     url2.Replace("\\", "/");
 #endif
     if (!url2.empty()) { url2 = wxURI(url2).BuildURI(); }
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << url2.ToUTF8();
+    //BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << url2.ToUTF8();
     webView->LoadURL(url2);
 }
 

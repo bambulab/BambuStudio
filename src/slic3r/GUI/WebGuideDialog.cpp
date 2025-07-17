@@ -641,7 +641,7 @@ int GuideFrame::SaveProfile()
     //privacy
     if (m_PrivacyUse == "true") {
         m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", true);
-    } 
+    }
     else if (m_PrivacyUse == "false")
         m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", false);
 
@@ -1035,7 +1035,7 @@ int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, 
 {
     std::string VendorDir_safe = PathSanitizer::sanitize(VendorDirectory);
     std::string filepath_safe = PathSanitizer::sanitize(filepath);
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " GetFilamentInfo:VendorDirectory - " << VendorDir_safe << ", Filepath - " << filepath_safe;
+    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " GetFilamentInfo:VendorDirectory - " << VendorDir_safe << ", Filepath - " << filepath_safe;
 
     try {
         boost::nowide::ifstream ifs(filepath);
