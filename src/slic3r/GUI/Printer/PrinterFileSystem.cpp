@@ -328,8 +328,8 @@ void PrinterFileSystem::DownloadRamFile(int index, const std::string &local_path
                 json        mem_dl_json = json::parse(json_str);
                 //  download->mem_dl_param_size = size;
                 if (!mem_dl_json.contains("result") || mem_dl_json["result"] == 1 ) {
-                        wxLogWarning("Download failed: result = 1");
-                    return ERROR_JSON;
+                      BOOST_LOG_TRIVIAL(info) << "Download failed: result = 1";
+                      return ERROR_JSON;
                     }
                 if(mem_dl_json.contains("size") && mem_dl_json["size"] == 0 )
                     return FILE_SIZE_ERR;
@@ -341,7 +341,7 @@ void PrinterFileSystem::DownloadRamFile(int index, const std::string &local_path
                 download->ofs.open(download->local_path, std::ios::binary);
                 if (!download->ofs) {
                     download->error = last_system_error();
-                    wxLogWarning("DownloadImageFromRam open error: %s\n", wxString::FromUTF8(download->error));
+                    BOOST_LOG_TRIVIAL(info) << "DownloadImageFromRam open error:" << wxString::FromUTF8(download->error);
                     return FILE_OPEN_ERR;
                 }
             }
@@ -349,7 +349,7 @@ void PrinterFileSystem::DownloadRamFile(int index, const std::string &local_path
             download->ofs.write(reinterpret_cast<const char *>(data), size);
             if (!download->ofs) {
                 download->error = last_system_error();
-                wxLogWarning("DownloadImageFromRam write error: %s\n", wxString::FromUTF8(download->error));
+                BOOST_LOG_TRIVIAL(info) << "DownloadImageFromRam write error: " << wxString::FromUTF8(download->error);
                 return FILE_READ_WRITE_ERR;
             }
 
@@ -372,7 +372,7 @@ void PrinterFileSystem::DownloadRamFile(int index, const std::string &local_path
             const auto  char_digest = reinterpret_cast<const char *>(&digest[0]);
             boost::algorithm::hex(char_digest, char_digest + sizeof(digest), std::back_inserter(str_md5));
             if (!boost::iequals(str_md5, md5)) {
-                wxLogWarning("DownloadImageFromRam checksum error: %s != %s\n", str_md5, md5);
+                BOOST_LOG_TRIVIAL(info) << "DownloadImageFromRam checksum error: " << str_md5 << " != " << md5;
                 boost::system::error_code ec;
                 boost::filesystem::rename(download->local_path, download->local_path + ".tmp", ec);
                 return FILE_CHECK_ERR;
@@ -834,18 +834,18 @@ void PrinterFileSystem::DownloadNextFile()
                 download->ofs.open(download->local_path, std::ios::binary);
                 if (!download->ofs) {
                     download->error = last_system_error();
-                    wxLogWarning("PrinterFileSystem::DownloadNextFile open error: %s\n", wxString::FromUTF8(download->error));
+                    BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::DownloadNextFile open error: " << wxString::FromUTF8(download->error);
                     return FILE_OPEN_ERR;
                 }
             }
             if (download->total && (download->size != prog.size || download->total != prog.total)) {
-                wxLogWarning("PrinterFileSystem::DownloadNextFile data error: %d != %d\n", download->size, prog.size);
+                BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::DownloadNextFile data error:" << download->size << "!=" << prog.size;
             }
             // receive data
             download->ofs.write((char const *) data, size);
             if (!download->ofs) {
                 download->error = last_system_error();
-                wxLogWarning("PrinterFileSystem::DownloadNextFile write error: %s\n", wxString::FromUTF8(download->error));
+                BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::DownloadNextFile write error: " << wxString::FromUTF8(download->error);
                 return FILE_READ_WRITE_ERR;
             }
             download->boost_md5.process_bytes(data, size);
@@ -865,7 +865,7 @@ void PrinterFileSystem::DownloadNextFile()
                 const auto  char_digest = reinterpret_cast<const char *>(&digest[0]);
                 boost::algorithm::hex(char_digest, char_digest + sizeof(digest), std::back_inserter(str_md5));
                 if (!boost::iequals(str_md5, md5)) {
-                    wxLogWarning("PrinterFileSystem::DownloadNextFile checksum error: %s != %s\n", str_md5, md5);
+                    BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::DownloadNextFile checksum error:  " << str_md5 << "!=" << md5;
                     boost::system::error_code ec;
                     boost::filesystem::rename(download->local_path, download->local_path + ".tmp", ec);
                     result = FILE_CHECK_ERR;
@@ -1219,7 +1219,11 @@ void PrinterFileSystem::SendChangedEvent(wxEventType type, size_t index, std::st
 
 void PrinterFileSystem::DumpLog(void * thiz, int, tchar const *msg)
 {
-    //BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem: " << wxString(msg).ToUTF8().data();
+
+#if !BBL_RELEASE_TO_PUBLIC
+    BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem: " << wxString(msg).ToUTF8().data();
+#endif
+
     static_cast<PrinterFileSystem*>(thiz)->Bambu_FreeLogMsg(msg);
 }
 
@@ -1279,7 +1283,7 @@ void PrinterFileSystem::RequestUploadFile()
                 } else if (result == FILE_READ_WRITE_ERR || result == FILE_OPEN_ERR) {
                     error_msg = _L("Failed to read file, please try again.").ToStdString();
                 }
-                wxLogWarning("PrinterFileSystem::UploadFile error: %d\n", result);
+                BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::UploadFile error: " << result;
                 SendChangedEvent(EVT_UPLOAD_CHANGED, FF_UPLOADCANCEL, error_msg, result);
             } else if (result == SUCCESS) {
                 SendChangedEvent(EVT_UPLOADING, 100);
@@ -1325,7 +1329,7 @@ int PrinterFileSystem::UploadFileTask(std::shared_ptr<UploadFile> upload_file, b
     if (!upload->ifs.is_open()) {
         upload->ifs.open(upload_file->path, std::ios::binary);
         if (!upload_file->upload->ifs) {
-            wxLogWarning("PrinterFileSystem::UploadFile open error: %s\n", wxString::FromUTF8(upload_file->path));
+            BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::UploadFile open error.";
             return FILE_OPEN_ERR;
         }
         MD5_Init(&upload->ctx);
@@ -1339,7 +1343,7 @@ int PrinterFileSystem::UploadFileTask(std::shared_ptr<UploadFile> upload_file, b
     boost::int32_t read_size = upload->ifs.gcount();
 
     if (read_size <= 0) {
-        wxLogWarning("PrinterFileSystem::Upload read error.\n");
+        BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::UploadFile open error.";
         upload->ifs.close();
 
         if (buffer) {
@@ -1506,7 +1510,7 @@ void PrinterFileSystem::CancelRequests2(std::vector<boost::uint32_t> const &seqs
     }
     l.unlock();
     for (auto &c : callbacks) {
-        wxLogInfo("PrinterFileSystem::CancelRequests2: %u\n", c.first);
+        BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::CancelRequests2:" << c.first;
         c.second(ERROR_CANCEL, json(), nullptr);
     }
 }
@@ -1570,7 +1574,7 @@ void PrinterFileSystem::RecvMessageThread()
             // OutputDebugStringA("\n");
 
 #if !BBL_RELEASE_TO_PUBLIC
-            wxLogInfo("PrinterFileSystem::SendRequest >>>: \n%s\n", wxString::FromUTF8(msg));
+            BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::SendRequest >>>:" << wxString::FromUTF8(msg);
 #endif
             l.unlock();
             int n = Bambu_SendMessage(m_session.tunnel, CTRL_TYPE, msg.c_str(), msg.length());
@@ -1611,7 +1615,11 @@ void PrinterFileSystem::HandleResponse(boost::unique_lock<boost::mutex> &l, Bamb
     json        root;
     // OutputDebugStringA(msg.c_str());
     // OutputDebugStringA("\n");
-    wxLogInfo("PrinterFileSystem::HandleResponse <<<: \n%s\n", wxString::FromUTF8(msg));
+
+#if !BBL_RELEASE_TO_PUBLIC
+    BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::HandleResponse <<<: \n" << wxString::FromUTF8(msg);
+#endif
+
     std::istringstream iss(msg);
     int                cmd    = 0;
     int                seq    = -1;
@@ -1677,7 +1685,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
     if (m_session.tunnel) {
         auto tunnel = m_session.tunnel;
         m_session.tunnel = nullptr;
-        wxLogMessage("PrinterFileSystem::Reconnect close %d", result);
+        BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::Reconnect close " << result;
         l.unlock();
         Bambu_Close(tunnel);
         Bambu_Destroy(tunnel);
@@ -1705,7 +1713,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
            SendChangedEvent(EVT_STATUS_CHANGED, m_status);
            m_cond.wait(l);
         }
-        wxLogMessage("PrinterFileSystem::Reconnect Initializing");
+        BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::Reconnect Initializing";
         m_status = Status::Initializing;
         m_last_error = 0;
         SendChangedEvent(EVT_STATUS_CHANGED, m_status);
@@ -1716,15 +1724,15 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
         std::string url = m_messages.front();
         m_messages.clear();
         if (url.size() < 2) {
-            wxLogMessage("PrinterFileSystem::Reconnect Initialize failed: ");
+            BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::Reconnect Initialize failed:";
             m_last_error = atoi(url.c_str());
             if (m_last_error == 0)
                 m_stopped = true;
         } else {
-            wxLogInfo("PrinterFileSystem::Reconnect Initialized: ");
+            BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::Reconnect Initialized:" ;
             l.unlock();
             m_status = Status::Connecting;
-            wxLogMessage("PrinterFileSystem::Reconnect Connecting");
+            BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::Reconnect Connecting";
             SendChangedEvent(EVT_STATUS_CHANGED, m_status);
             Bambu_Tunnel tunnel = nullptr;
             int ret = Bambu_Create(&tunnel, url.c_str());
@@ -1754,7 +1762,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
             l.lock();
             if (ret == 0) {
                 m_session.tunnel = tunnel;
-                wxLogMessage("PrinterFileSystem::Reconnect Connected");
+                BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::Reconnect Connected";
                 break;
             } else if (ret == 1) {
                 m_stopped = true;
@@ -1766,7 +1774,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
             }
             m_last_error = ret;
         }
-        wxLogMessage("PrinterFileSystem::Reconnect Failed");
+        BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::Reconnect Failed";
         m_status = Status::Failed;
 
         SendChangedEvent(EVT_STATUS_CHANGED, m_status, "", url.size() < 2 ? 1 : m_last_error);
