@@ -3491,9 +3491,8 @@ void MainFrame::update_calibration_button_status()
 {
     Preset &printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
     bool isBBL = printer_preset.is_bbl_vendor_preset(wxGetApp().preset_bundle);
-    bool is_multi_extruder = wxGetApp().preset_bundle->get_printer_extruder_count() > 1;
     // Show calibration Menu for BBL printers if Develop Mode is on.
-    bool show_calibration = (!isBBL || wxGetApp().app_config->get("developer_mode") == "true") && !is_multi_extruder;
+    bool show_calibration = (!isBBL || wxGetApp().app_config->get("developer_mode") == "true");
     wxGetApp().mainframe->show_calibration_button(show_calibration);
 }
 
