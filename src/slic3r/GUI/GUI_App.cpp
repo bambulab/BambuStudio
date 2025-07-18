@@ -2765,7 +2765,7 @@ bool GUI_App::on_init_inner()
 
 #ifdef WIN32
     //BBS set crash log folder
-    CBaseException::set_log_folder(data_dir());
+    //CBaseException::set_log_folder(data_dir());
 #endif
 
     wxGetApp().Bind(wxEVT_QUERY_END_SESSION, [this](auto & e) {

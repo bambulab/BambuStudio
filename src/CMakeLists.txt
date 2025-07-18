@@ -108,7 +108,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/msw/BambuStudio.rc.in ${CMAK
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/msw/BambuStudio.manifest.in ${CMAKE_CURRENT_BINARY_DIR}/BambuStudio.manifest @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/osx/Info.plist.in ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
 if (WIN32)
-    add_library(BambuStudio SHARED BambuStudio.cpp BambuStudio.hpp BaseException.cpp BaseException.h StackWalker.cpp StackWalker.h)
+    add_library(BambuStudio SHARED BambuStudio.cpp BambuStudio.hpp)
 else ()
     add_executable(BambuStudio BambuStudio.cpp BambuStudio.hpp)
 endif ()

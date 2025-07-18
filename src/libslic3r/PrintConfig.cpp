@@ -6099,7 +6099,6 @@ std::set<std::string> printer_options_with_variant_1 = {
     "retract_restart_extra_toolchange",
     "long_retractions_when_cut",
     "retraction_distances_when_cut",
-    "nozzle_volume",
     "nozzle_type",
     "printer_extruder_id",
     "printer_extruder_variant",
