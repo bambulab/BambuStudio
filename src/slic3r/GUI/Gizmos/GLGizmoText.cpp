@@ -1561,8 +1561,14 @@ void GLGizmoText::load_init_text(bool first_open_text)
                 if (m_last_text_mv == model_volume && !m_is_serializing) {
                     return;
                 }
+                if (m_last_text_mv != model_volume) {
+                    first_open_text = true;
+                }
                 m_last_text_mv = model_volume;
                 m_is_direct_create_text = is_only_text_case();
+                if (first_open_text) {
+                    m_c->update(get_requirements());
+                }
                 if (!m_is_serializing && plater && first_open_text && !is_old_text_info(model_volume->get_text_info())) {
                     plater->take_snapshot("enter Text");
                 }
@@ -1693,6 +1699,8 @@ void GLGizmoText::load_init_text(bool first_open_text)
                         if (m_rr.mesh_id != valid_mesh_id) {
                             m_rr.mesh_id = valid_mesh_id;
                         }
+                        m_rr.normal = closest_normal;
+                        m_rr.hit = closest_pt;
                         if (m_trafo_matrices.empty()) {
                             update_trafo_matrices();
                         }
