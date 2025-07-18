@@ -4,12 +4,14 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
+#include <boost/log/trivial.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <expat.h>
 #include <earcut/earcut.hpp>
 #include <libslic3r/Color.hpp>
 #include <filesystem>
+#include <map>
 
 wxDEFINE_EVENT(EVT_ZOOM_PERCENT, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CANVAS_PART, wxCommandEvent);
