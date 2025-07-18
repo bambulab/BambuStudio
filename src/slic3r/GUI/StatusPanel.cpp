@@ -764,7 +764,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     m_staticText_finish_day->Hide();
     bSizer_finish_time->Add(0, 0, 1, wxEXPAND, 0);
     bSizer_finish_time->Add(m_staticText_finish_time, 0, wxLEFT | wxEXPAND, 0);
-    bSizer_finish_time->Add(m_staticText_finish_day, 0, wxLEFT | wxEXPAND | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    bSizer_finish_time->Add(m_staticText_finish_day, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     // penel_finish_time->SetMaxSize(wxSize(FromDIP(600), -1));
     penel_finish_time->SetSizer(bSizer_finish_time);
     penel_finish_time->Layout();
