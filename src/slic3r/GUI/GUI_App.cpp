@@ -1138,7 +1138,7 @@ void GUI_App::post_init()
             }
             catch (...){}
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", download_url %1%") % download_url;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", download_url %1%") % PathSanitizer::sanitize(download_url);
 
             if (!download_url.empty()) {
                 m_download_file_url = from_u8(download_url);

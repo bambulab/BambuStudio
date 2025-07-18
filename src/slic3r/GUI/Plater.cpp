@@ -4851,7 +4851,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
             std::string last_backup = last;
             std::string originfile;
             if (Slic3r::has_restore_data(last_backup, originfile)) {
-                BOOST_LOG_TRIVIAL(info) << "test101: Restoring project from: " << last_backup;
+                BOOST_LOG_TRIVIAL(info) << "test101: Restoring project from: " << PathSanitizer::sanitize(last_backup);
                 auto log_string = _L("It seems that you have projects that were not closed properly. Would you like to restore your last unsaved project?\nIf you have a currently opened project and click \"Restore\", the current project will be closed.");
                 MessageDialog dlg(this->q, log_string, wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Restore"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
                 dlg.SetButtonLabel(wxID_YES, _L("Restore"));
@@ -6552,6 +6552,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 // BBS
 void Plater::priv::load_auxiliary_files()
 {
+    wxLogNull suppress_log;
     std::string auxiliary_path = encode_path(q->model().get_auxiliary_file_temp_path().c_str());
     //wxGetApp().mainframe->m_project->Reload(auxiliary_path);
 }
@@ -11802,7 +11803,7 @@ void Plater::import_model_id(wxString download_info)
 #endif
 
     if (download_ok) {
-        BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << target_path.string();
+        BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << PathSanitizer::sanitize(target_path);
         /* load project */
         auto result = this->load_project(target_path.wstring());
         if (result == (int)wxID_CANCEL) {
