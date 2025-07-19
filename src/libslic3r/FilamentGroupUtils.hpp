@@ -7,6 +7,7 @@
 #include <exception>
 
 #include "PrintConfig.hpp"
+#include "MultiNozzleUtils.hpp"
 
 namespace Slic3r
 {
@@ -38,7 +39,6 @@ namespace Slic3r
             bool is_extended;
             bool operator<(const MachineFilamentInfo& other) const;
         };
-
 
         class FilamentGroupException: public std::exception {
         public:
@@ -80,7 +80,16 @@ namespace Slic3r
         void extract_unprintable_limit_indices(const std::vector<std::set<int>>& unprintable_elems, const std::vector<unsigned int>& used_filaments, std::unordered_map<int, std::vector<int>>& unplaceable_limits);
 
         bool check_printable(const std::vector<std::set<int>>& groups, const std::map<int, int>& unprintable);
-    }
+
+        int get_estimate_extruder_change_count(const std::vector<std::vector<unsigned int>>& layer_filaments, const MultiNozzleUtils::MultiNozzleGroupResult& extruder_nozzle_info);
+
+        int get_estimate_nozzle_change_count(const std::vector<std::vector<unsigned int>>& layer_filaments, const MultiNozzleUtils::MultiNozzleGroupResult& extruder_nozzle_info);
+
+        std::vector<MultiNozzleUtils::NozzleInfo> build_nozzle_list(std::vector<MultiNozzleUtils::NozzleGroupInfo> info);
+
+        std::map<int, std::vector<int>> build_extruder_nozzle_list(const std::vector<MultiNozzleUtils::NozzleInfo>& nozzle_list);
+
+}
 
 
 }

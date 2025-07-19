@@ -1146,6 +1146,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                support_chamber_temp_control))
     ((ConfigOptionBool,                apply_top_surface_compensation))
     ((ConfigOptionBool,                support_air_filtration))
+    ((ConfigOptionBool,                has_multiple_nozzle))
     ((ConfigOptionBool,                accel_to_decel_enable))
     ((ConfigOptionPercent,             accel_to_decel_factor))
     ((ConfigOptionEnumsGeneric,        extruder_type))

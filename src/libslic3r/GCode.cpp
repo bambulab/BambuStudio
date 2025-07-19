@@ -1571,6 +1571,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     path_tmp += ".tmp";
 
     m_processor.initialize(path_tmp);
+    m_processor.initialize_from_context(print->get_nozzle_group_result());
     GCodeOutputStream file(boost::nowide::fopen(path_tmp.c_str(), "wb"), m_processor);
     if (! file.is_open()) {
         BOOST_LOG_TRIVIAL(error) << std::string("G-code export to ") + PathSanitizer::sanitize(path) + " failed.\nCannot open the file for writing.\n" << std::endl;
@@ -6613,15 +6614,22 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
 
         //During the filament change, the extruder will extrude an extra length of grab_length for the corresponding detection, so the purge can reduce this length.
         float grab_purge_volume = m_config.grab_length.get_at(new_extruder_id) * 2.4;
-        if (old_extruder_id != new_extruder_id) {
-            //calc flush volume between the same extruder id
-            int old_filament_id_in_new_extruder = m_writer.filament(new_extruder_id) != nullptr ? m_writer.filament(new_extruder_id)->id() : -1;
-            if (old_filament_id_in_new_extruder == -1)
+
+        auto switch_to_nozzle = [&](int filament_id, int nozzle_id){
+            float wipe_volume = 0;
+            if(m_processor.get_nozzle_status().is_nozzle_empty(nozzle_id))
                 wipe_volume = 0;
             else {
-                wipe_volume = flush_matrix[old_filament_id_in_new_extruder * number_of_extruders + new_filament_id];
+                int old_filament_id_in_nozzle = m_processor.get_nozzle_status().get_filament_in_nozzle(nozzle_id);
+                wipe_volume = flush_matrix[old_filament_id_in_nozzle * number_of_extruders + new_filament_id];
                 wipe_volume *= m_config.flush_multiplier.get_at(new_extruder_id);
             }
+            return wipe_volume;
+        };
+        int new_nozzle_id = m_print->get_nozzle_group_result().get_nozzle_for_filament(new_filament_id)->group_id;
+
+        if (old_extruder_id != new_extruder_id || !m_print->get_nozzle_group_result().are_filaments_same_nozzle(old_filament_id,new_filament_id)) {
+            wipe_volume = switch_to_nozzle(new_filament_id, new_nozzle_id);
         }
         else {
             wipe_volume = flush_matrix[old_filament_id * number_of_extruders + new_filament_id];

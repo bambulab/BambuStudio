@@ -1028,18 +1028,39 @@ float get_flush_volume(const std::vector<int> &filament_maps, const std::vector<
     return flush_volume;
 }
 
-std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<std::vector<unsigned int>>& layer_filaments, const Print* print,  const FilamentMapMode mode,const std::vector<std::set<int>>&physical_unprintables,const std::vector<std::set<int>>&geometric_unprintables)
+
+MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_maps(Print* print, const std::vector<std::vector<unsigned int>>& layer_filaments, const FilamentMapMode mode,const std::vector<std::set<int>>&physical_unprintables,const std::vector<std::set<int>>&geometric_unprintables)
 {
     using namespace FilamentGroupUtils;
+    using namespace MultiNozzleUtils;
+
     if (!print || layer_filaments.empty())
-        return std::vector<int>();
+        return MultiNozzleGroupResult();
 
     const auto& print_config = print->config();
     const unsigned int filament_nums = (unsigned int)(print_config.filament_colour.values.size() + EPSILON);
+    bool has_multiple_nozzle = print_config.has_multiple_nozzle;
 
     // get flush matrix
     std::vector<FlushMatrix> nozzle_flush_mtx;
     size_t extruder_nums = print_config.nozzle_diameter.values.size();
+
+    std::vector<MultiNozzleUtils::NozzleInfo> nozzle_list;
+    for(size_t idx =0; idx<extruder_nums;++idx){
+        NozzleInfo tmp;
+        tmp.diameter = print_config.nozzle_diameter.values[idx];
+        tmp.group_id = idx;
+        tmp.extruder_id = idx;
+        tmp.volume_type = NozzleVolumeType(print_config.nozzle_volume_type.values[idx]);
+        nozzle_list.emplace_back(std::move(tmp));
+    }
+
+    if (mode == FilamentMapMode::fmmManual && !has_multiple_nozzle){
+        auto manual_filament_map = print_config.filament_map.values;
+        std::transform(manual_filament_map.begin(), manual_filament_map.end(), manual_filament_map.begin(), [](int v) { return v - 1; });
+        return MultiNozzleGroupResult(manual_filament_map, nozzle_list);
+    }
+
     for (size_t nozzle_id = 0; nozzle_id < extruder_nums; ++nozzle_id) {
         std::vector<float>              flush_matrix(cast<float>(get_flush_volumes_matrix(print_config.flush_volumes_matrix.values, nozzle_id, extruder_nums)));
         std::vector<std::vector<float>> wipe_volumes;
@@ -1073,9 +1094,15 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
 
     int master_extruder_id = print_config.master_extruder_id.value -1; // switch to 0 based idx
     std::vector<int>ret(filament_nums, master_extruder_id);
-    bool ignore_ext_filament = false; // TODO: read from config
     // if mutli_extruder, calc group,otherwise set to 0
-    if (extruder_nums == 2) {
+    bool ignore_ext_filament = false; // TODO: read from config
+
+    std::vector<MultiNozzleUtils::NozzleGroupInfo> nozzle_groups;
+    nozzle_groups.emplace_back(0.4, NozzleVolumeType::nvtHighFlow, 0, 1);
+    nozzle_groups.emplace_back(0.4, NozzleVolumeType::nvtStandard, 1, 3);
+
+    if (extruder_nums == 2)
+    {
         std::vector<std::string> extruder_ams_count_str = print_config.extruder_ams_count.values;
         auto extruder_ams_counts = get_extruder_ams_count(extruder_ams_count_str);
         std::vector<int> group_size = calc_max_group_size(extruder_ams_counts, ignore_ext_filament);
@@ -1091,8 +1118,16 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
         auto tpu_filaments = get_filament_by_type(used_filaments, &print_config, "TPU");
         FGMode fg_mode = mode == FilamentMapMode::fmmAutoForMatch ? FGMode::MatchMode: FGMode::FlushMode;
 
-        std::vector<std::set<int>> ext_unprintable_filaments;
-        collect_unprintable_limits(physical_unprintables, geometric_unprintables, ext_unprintable_filaments);
+        std::vector<std::set<int>> ext_unprintable_filaments(2);
+        if(mode == FilamentMapMode::fmmManual){
+            // collect extruders that filaments must be placed in, and then do grouping between nozzles in extruder
+            auto manual_filament_map = print_config.filament_map.values;
+            std::transform(manual_filament_map.begin(), manual_filament_map.end(), manual_filament_map.begin(), [](int v) { return v - 1; });
+            for(size_t idx = 0; idx<used_filaments.size();++idx)
+                ext_unprintable_filaments[1 - manual_filament_map[used_filaments[idx]]].insert(used_filaments[idx]);
+        }
+        else
+            collect_unprintable_limits(physical_unprintables, geometric_unprintables, ext_unprintable_filaments);
 
         FilamentGroupContext context;
         {
@@ -1124,8 +1159,19 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
         }
 
 
-        if (!tpu_filaments.empty()) {
-            ret = calc_filament_group_for_tpu(tpu_filaments, context.group_info.total_filament_num, context.machine_info.master_extruder_id);
+        if (print_config.has_multiple_nozzle) {
+            context.nozzle_info.nozzle_list = build_nozzle_list(nozzle_groups);
+            context.nozzle_info.extruder_nozzle_list = build_extruder_nozzle_list(context.nozzle_info.nozzle_list);
+            FilamentGroupMultiNozzle fg(context);
+            ret = fg.calc_filament_group_by_pam();
+
+            MultiNozzleUtils::MultiNozzleGroupResult result(ret, context.nozzle_info.nozzle_list);
+            for (size_t idx = 0; idx < ret.size(); ++idx) {
+                int nozzle_id = ret[idx];
+                ret[idx] = context.nozzle_info.nozzle_list[nozzle_id].extruder_id;
+            }
+            result.filament_map = ret;
+            return result;
         }
         else {
             FilamentGroup fg(context);
@@ -1134,7 +1180,10 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
         }
     }
 
-    return ret;
+
+    MultiNozzleGroupResult result(ret,nozzle_list);
+    result.filament_map = ret;
+    return result;
 }
 
 FilamentChangeStats ToolOrdering::get_filament_change_stats(FilamentChangeMode mode)
@@ -1204,18 +1253,19 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
     map_mode = m_print->get_filament_map_mode();
     // only check and map in sequence mode, in by object mode, we check the map in print.cpp
     if (print_config->print_sequence != PrintSequence::ByObject || m_print->objects().size() == 1) {
-        if (map_mode < FilamentMapMode::fmmManual) {
+        {
             const PrintConfig* print_config = m_print_config_ptr;
             if (!print_config && m_print_object_ptr) {
                 print_config = &(m_print_object_ptr->print()->config());
             }
 
-            filament_maps = ToolOrdering::get_recommended_filament_maps(layer_filaments, m_print, map_mode, physical_unprintables, geometric_unprintables);
-
+            auto group_result = ToolOrdering::get_recommended_filament_maps(m_print,layer_filaments,map_mode,physical_unprintables,geometric_unprintables);
+            filament_maps = group_result.filament_map;
             if (filament_maps.empty())
                 return;
             std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value + 1; });
             m_print->update_filament_maps_to_config(filament_maps);
+            m_print->set_nozzle_group_result(group_result);
         }
         std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value - 1; });
 
@@ -1260,14 +1310,29 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
         return false;
         };
 
-    reorder_filaments_for_minimum_flush_volume(
-        filament_lists,
-        filament_maps,
-        layer_filaments,
-        nozzle_flush_mtx,
-        get_custom_seq,
-        &filament_sequences
-    );
+    bool support_multi_nozzle = true;
+
+    if(print_config->has_multiple_nozzle){
+        reorder_filaments_for_multi_nozzle_extruder(
+            filament_lists,
+            m_print->get_nozzle_group_result(),
+            layer_filaments,
+            nozzle_flush_mtx,
+            get_custom_seq,
+            &filament_sequences
+        );
+    }
+    else{
+        reorder_filaments_for_minimum_flush_volume(
+            filament_lists,
+            filament_maps,
+            layer_filaments,
+            nozzle_flush_mtx,
+            get_custom_seq,
+            &filament_sequences
+        );
+    }
+
 
     auto curr_flush_info = calc_filament_change_info_by_toolorder(print_config, filament_maps, nozzle_flush_mtx, filament_sequences);
     if (nozzle_nums <= 1)
@@ -1286,9 +1351,18 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
             auto maps_without_group = filament_maps;
             for (auto& item : maps_without_group)
                 item = 0;
-            reorder_filaments_for_minimum_flush_volume(
+
+            MultiNozzleUtils::NozzleInfo tmp;
+            tmp.diameter = print_config->nozzle_diameter.get_at(0);
+            tmp.group_id = 0;
+            tmp.extruder_id = 0;
+            tmp.volume_type = NozzleVolumeType::nvtStandard;
+
+            MultiNozzleUtils::MultiNozzleGroupResult result(maps_without_group, { tmp });
+
+            reorder_filaments_for_multi_nozzle_extruder(
                 filament_lists,
-                maps_without_group,
+                result,
                 layer_filaments,
                 nozzle_flush_mtx,
                 get_custom_seq,
@@ -1300,16 +1374,16 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
         if (map_mode != fmmAutoForFlush)
         {
             std::vector<std::vector<unsigned int>>filament_sequences_one_extruder;
-            std::vector<int>filament_maps_auto = get_recommended_filament_maps(layer_filaments, m_print, fmmAutoForFlush, physical_unprintables, geometric_unprintables);
-            reorder_filaments_for_minimum_flush_volume(
+            auto group_result_auto = get_recommended_filament_maps(m_print, layer_filaments, fmmAutoForFlush, physical_unprintables, geometric_unprintables);
+            reorder_filaments_for_multi_nozzle_extruder(
                 filament_lists,
-                filament_maps_auto,
+                group_result_auto,
                 layer_filaments,
                 nozzle_flush_mtx,
                 get_custom_seq,
                 &filament_sequences_one_extruder
             );
-            m_stats_by_multi_extruder_best = calc_filament_change_info_by_toolorder(print_config, filament_maps_auto, nozzle_flush_mtx, filament_sequences_one_extruder);
+            m_stats_by_multi_extruder_best = calc_filament_change_info_by_toolorder(print_config, group_result_auto.filament_map, nozzle_flush_mtx, filament_sequences_one_extruder);
         }
     }
 

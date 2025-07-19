@@ -602,6 +602,119 @@ namespace Slic3r
     }
 
 
+    // get best filament order of multiple nozzle
+    std::vector<std::vector<int>> get_extruders_order(const std::vector<std::vector<float>>& wipe_volumes,
+        const std::vector<int>& curr_layer_filaments,
+        const std::vector<int>& nozzle_state,
+        float* min_cost)
+    {
+        return solve_extruder_order_with_MCMF(wipe_volumes, curr_layer_filaments, nozzle_state, min_cost);
+    }
+
+    // TODO:  add cusotm sequence
+    static int reorder_filaments_for_minimum_flush_volume_base(const std::vector<unsigned int>& filament_lists,
+        const std::vector<std::vector<unsigned int>>& layer_filaments,
+        const FlushMatrix& flush_matrix,
+        const std::function<bool(int, std::vector<int>&)> get_custom_seq,
+        std::vector<std::vector<unsigned int>>* filament_sequences)
+    {
+        constexpr int max_n_with_forcast = 5;
+        using uint128_t = boost::multiprecision::uint128_t;
+
+        if (filament_sequences) {
+            filament_sequences->clear();
+            filament_sequences->reserve(layer_filaments.size());
+        }
+        auto          filament_list_to_hash_key = [](const std::vector<unsigned int>& curr_layer_filaments, const std::vector<unsigned int>& next_layer_filaments,
+            const std::optional<unsigned int>& prev_filament, bool use_forcast) -> uint128_t {
+                uint128_t hash_key = 0;
+                // 31-0 bit define current layer extruder,63-32 bit define next layer extruder,95~64 define prev extruder
+                if (prev_filament) hash_key |= (uint128_t(1) << (64 + *prev_filament));
+
+                if (use_forcast) {
+                    for (auto item : next_layer_filaments) { hash_key |= (uint128_t(1) << (32 + item)); }
+                }
+
+                for (auto item : curr_layer_filaments) { hash_key |= (uint128_t(1) << item); }
+                return hash_key;
+            };
+
+        int cost = 0;
+        std::map<size_t, std::vector<unsigned int>> custom_layer_sequence_map;
+        std::unordered_map<uint128_t, std::pair<float, std::vector<unsigned int>>> caches;
+        std::unordered_set<unsigned int> filament_sets(filament_lists.begin(), filament_lists.end());
+        std::optional<unsigned int>      curr_filament_id;
+
+        for (size_t layer = 0; layer < layer_filaments.size(); ++layer){
+            const auto& curr_lf = layer_filaments[layer];
+            std::vector<int> custom_filament_seq;
+            if (get_custom_seq && get_custom_seq(layer, custom_filament_seq) && !custom_filament_seq.empty()) {
+                std::vector<unsigned int> unsign_custom_extruder_seq;
+                for (int extruder : custom_filament_seq) {
+                    unsigned int unsign_extruder = static_cast<unsigned int>(extruder) - 1;
+                    auto it = std::find(layer_filaments[layer].begin(), layer_filaments[layer].end(), unsign_extruder);
+                    if (it != layer_filaments[layer].end())
+                        unsign_custom_extruder_seq.emplace_back(unsign_extruder);
+                }
+                assert(layer_filaments[layer].size() == unsign_custom_extruder_seq.size());
+
+                custom_layer_sequence_map[layer] = unsign_custom_extruder_seq;
+            }
+        }
+
+        for (size_t layer = 0; layer < layer_filaments.size(); ++layer) {
+            const auto& curr_lf = layer_filaments[layer];
+
+            if(auto iter = custom_layer_sequence_map.find(layer); iter != custom_layer_sequence_map.end()){
+                auto sequence_in_group = collect_filaments_in_groups<unsigned int>(std::unordered_set<unsigned int>(filament_lists.begin(),filament_lists.end()), iter->second);
+
+                std::optional<unsigned int> prev = curr_filament_id;
+                for (auto& f: sequence_in_group){
+                    if(prev)
+                        cost += flush_matrix[*prev][f];
+                    prev = f;
+                }
+
+                if(!sequence_in_group.empty()){
+                    curr_filament_id = sequence_in_group.back();
+                }
+
+                if(filament_sequences)
+                    filament_sequences->emplace_back(); // insert an empty array
+
+                continue;
+            }
+
+            std::vector<unsigned int> filament_used = collect_filaments_in_groups<unsigned int>(filament_sets, curr_lf);
+            std::vector<unsigned int> next_lf;
+            if (layer + 1 < layer_filaments.size()) next_lf = layer_filaments[layer + 1];
+            std::vector<unsigned int> filament_used_next_layer = collect_filaments_in_groups<unsigned int>(filament_sets, next_lf);
+
+            bool                      use_forcast = (filament_used.size() <= max_n_with_forcast && filament_used_next_layer.size() <= max_n_with_forcast);
+            float                     tmp_cost = 0;
+            std::vector<unsigned int> sequence;
+            uint128_t                 hash_key = filament_list_to_hash_key(filament_used, filament_used_next_layer, curr_filament_id, use_forcast);
+            if (auto iter = caches.find(hash_key); iter != caches.end()) {
+                tmp_cost = iter->second.first;
+                sequence = iter->second.second;
+            }
+            else {
+                sequence = get_extruders_order(flush_matrix, filament_used, filament_used_next_layer, curr_filament_id, use_forcast, &tmp_cost);
+                caches[hash_key] = { tmp_cost,sequence };
+            }
+
+            if (filament_sequences)
+                filament_sequences->emplace_back(sequence);
+
+            if (!sequence.empty())
+                curr_filament_id = sequence.back();
+
+            cost += tmp_cost;
+        }
+
+        return cost;
+    }
+
     int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int>& filament_lists,
         const std::vector<int>& filament_maps,
         const std::vector<std::vector<unsigned int>>& layer_filaments,
@@ -775,4 +888,263 @@ namespace Slic3r
 
         return cost;
     }
+
+
+    int reorder_filaments_for_multi_nozzle_extruder(const std::vector<unsigned int>& filament_lists,
+        const std::vector<int>& filament_maps,
+        const std::vector<std::vector<unsigned int>>& layer_filaments,
+        const std::vector<FlushMatrix>& flush_matrix,
+        std::optional<std::function<bool(int, std::vector<int>&)>> get_custom_seq,
+        int multi_nozzle_extruder_id,
+        int multi_nozzle_num,
+        std::vector<std::vector<unsigned int>>* layer_sequences,
+        std::vector<std::vector<std::vector<int>>>* nozzle_match_per_layer)
+    {
+        assert(0 <= multi_nozzle_extruder_id && multi_nozzle_extruder_id <= 1);
+
+        int fixed_nozzle_extruder_id = 1 - multi_nozzle_extruder_id;
+
+        std::vector<std::unordered_set<unsigned int>>groups(2); //save the grouped filaments
+        std::map<size_t, std::vector<unsigned int>>custom_layer_sequence_map;// save the filament sequences of custom layer
+
+        for (int i = 0; i < filament_maps.size(); ++i) {
+            if (filament_maps[i] == 0)
+                groups[0].insert(filament_lists[i]);
+            if (filament_maps[i] == 1)
+                groups[1].insert(filament_lists[i]);
+        }
+
+        // store custom layer sequence
+        for (size_t layer = 0; layer < layer_filaments.size(); ++layer) {
+            const auto& curr_lf = layer_filaments[layer];
+            std::vector<int>custom_filament_seq;
+            if (get_custom_seq && (*get_custom_seq)(layer, custom_filament_seq) && !custom_filament_seq.empty()) {
+                std::vector<unsigned int> unsign_custom_extruder_seq;
+                for (int extruder : custom_filament_seq) {
+                    unsigned int unsign_extruder = static_cast<unsigned int>(extruder) - 1;
+                    auto it = std::find(curr_lf.begin(), curr_lf.end(), unsign_extruder);
+                    if (it != curr_lf.end())
+                        unsign_custom_extruder_seq.emplace_back(unsign_extruder);
+                }
+                assert(curr_lf.size() == unsign_custom_extruder_seq.size());
+                custom_layer_sequence_map[layer] = unsign_custom_extruder_seq;
+            }
+        }
+
+        float cost = 0;
+        std::vector<std::vector<std::vector<int>>>nozzle_match_info;
+        std::vector<std::vector<std::vector<unsigned int>>>temp_layer_sequence(2);
+
+        // first deal with fixed nozzle
+        if (!groups[fixed_nozzle_extruder_id].empty())
+        {
+            int idx = fixed_nozzle_extruder_id;
+            std::vector<unsigned int> filament_used_in_group(groups[idx].begin(), groups[idx].end());
+            std::vector<int>filament_map_in_group(groups[idx].size(), idx);
+            cost += reorder_filaments_for_minimum_flush_volume(filament_used_in_group, filament_map_in_group, layer_filaments, flush_matrix, get_custom_seq, layer_sequences ? &temp_layer_sequence[idx] : nullptr);
+        }
+
+        //then deal with multiple nozzle
+        if (!groups[multi_nozzle_extruder_id].empty())
+        {
+            int idx = multi_nozzle_extruder_id;
+            if (layer_sequences)
+                temp_layer_sequence[idx].reserve(layer_filaments.size());
+            if (nozzle_match_per_layer)
+                nozzle_match_info.reserve(layer_filaments.size());
+
+            std::vector<int> nozzle_state(multi_nozzle_num, -1);
+
+            auto update_nozzle_state = [&nozzle_state](const std::vector<std::vector<int>>& match_info) {
+                for (size_t i = 0; i < match_info.size(); ++i) {
+                    for (size_t j = 0; j < match_info[i].size(); ++j)
+                        if (match_info[i][j] != -1)
+                            nozzle_state[j] = match_info[i][j];
+                }
+                };
+
+            for (size_t layer = 0; layer < layer_filaments.size(); ++layer) {
+                if (auto iter = custom_layer_sequence_map.find(layer); iter != custom_layer_sequence_map.end()) {
+                    const auto& sequence = iter->second;
+                    std::vector<unsigned int>sequence_in_group = collect_filaments_in_groups<unsigned int>(groups[idx], sequence);
+
+                    float tmp_cost = 0;
+                    auto nozzle_match = get_nozzle_match_in_given_order(flush_matrix[idx], sequence_in_group, nozzle_state, &tmp_cost);
+                    cost += tmp_cost;
+                    update_nozzle_state(nozzle_match);
+
+                    if (layer_sequences)
+                        temp_layer_sequence[idx].emplace_back(std::vector<unsigned int>()); // insert an empty array as placeholder
+                    if (nozzle_match_per_layer)
+                        nozzle_match_info.emplace_back(nozzle_match);
+                    continue;
+                }
+
+
+                const auto& curr_lf = layer_filaments[layer];
+                std::vector<int>filament_used_in_group = collect_filaments_in_groups<int>(groups[idx], curr_lf);
+
+                float tmp_cost = 0;
+                auto ret = solve_extruder_order_with_MCMF(flush_matrix[idx], filament_used_in_group, nozzle_state, &tmp_cost);
+                cost += tmp_cost;
+                update_nozzle_state(ret);
+
+                if (layer_sequences) {
+                    std::vector<unsigned int> flatten;
+                    for (size_t i = 0; i < ret.size(); ++i) {
+                        for (size_t j = 0; j < ret[i].size(); ++j)
+                            if (ret[i][j] != -1)
+                                flatten.emplace_back(ret[i][j]);
+                    }
+                    temp_layer_sequence[idx].emplace_back(flatten);
+                }
+                if (nozzle_match_per_layer)
+                    nozzle_match_info.emplace_back(ret);
+            }
+        }
+
+        // save the final sequence and match info if necessary
+        if (layer_sequences) {
+            layer_sequences->clear();
+            layer_sequences->resize(layer_filaments.size());
+            bool last_group = 0;
+            //if last_group == 0,print group 0 first ,else print group 1 first
+            for (size_t i = 0; i < layer_filaments.size(); ++i) {
+                auto& curr_layer_seq = (*layer_sequences)[i];
+                if (auto iter = custom_layer_sequence_map.find(i); iter != custom_layer_sequence_map.end()) {
+                    curr_layer_seq = iter->second;
+                    if (!curr_layer_seq.empty()) {
+                        last_group = groups[0].count(curr_layer_seq.back()) ? 0 : 1;
+                    }
+                    continue;
+                }
+                if (last_group) {
+                    curr_layer_seq.insert(curr_layer_seq.end(), temp_layer_sequence[1][i].begin(), temp_layer_sequence[1][i].end());
+                    curr_layer_seq.insert(curr_layer_seq.end(), temp_layer_sequence[0][i].begin(), temp_layer_sequence[0][i].end());
+                }
+                else {
+                    curr_layer_seq.insert(curr_layer_seq.end(), temp_layer_sequence[0][i].begin(), temp_layer_sequence[0][i].end());
+                    curr_layer_seq.insert(curr_layer_seq.end(), temp_layer_sequence[1][i].begin(), temp_layer_sequence[1][i].end());
+                }
+                last_group = !last_group;
+            }
+        }
+
+        if (nozzle_match_per_layer)
+            *nozzle_match_per_layer = nozzle_match_info;
+
+        return cost;
+    }
+
+    int reorder_filaments_for_multi_nozzle_extruder(const std::vector<unsigned int>& filament_lists,
+        const MultiNozzleUtils::MultiNozzleGroupResult& nozzle_group_result,
+        const std::vector<std::vector<unsigned int>>& layer_filaments,
+        const std::vector<FlushMatrix>& flush_matrix,
+        const std::function<bool(int, std::vector<int>&)> get_custom_seq,
+        std::vector<std::vector<unsigned int>>* filament_sequences)
+    {
+        std::map<int,std::set<unsigned int>> nozzle_filament_groups;
+        std::map<int,std::set<int>> extruder_to_nozzle;
+
+        for(auto filament_idx : filament_lists){
+            auto nozzle_info = nozzle_group_result.get_nozzle_for_filament(filament_idx);
+            if (!nozzle_info)
+                continue;
+            nozzle_filament_groups[nozzle_info->group_id].insert(filament_idx);
+            extruder_to_nozzle[nozzle_info->extruder_id].insert(nozzle_info->group_id);
+        }
+
+        std::map<size_t, std::vector<unsigned int>>custom_layer_sequence_map;// save the filament sequences of custom layer
+        for (size_t layer = 0; layer < layer_filaments.size(); ++layer){
+            const auto& curr_lf = layer_filaments[layer];
+            std::vector<int> custom_filament_seq;
+            if (get_custom_seq && get_custom_seq(layer, custom_filament_seq) && !custom_filament_seq.empty()) {
+                std::vector<unsigned int> unsign_custom_extruder_seq;
+                for (int extruder : custom_filament_seq) {
+                    unsigned int unsign_extruder = static_cast<unsigned int>(extruder) - 1;
+                    auto it = std::find(layer_filaments[layer].begin(), layer_filaments[layer].end(), unsign_extruder);
+                    if (it != layer_filaments[layer].end())
+                        unsign_custom_extruder_seq.emplace_back(unsign_extruder);
+                }
+                assert(layer_filaments[layer].size() == unsign_custom_extruder_seq.size());
+
+                custom_layer_sequence_map[layer] = unsign_custom_extruder_seq;
+            }
+        }
+
+
+        std::map<int, std::vector<std::vector<unsigned int>>> nozzle_filament_sequences;
+        bool store_sequence = filament_sequences != nullptr;
+
+        int cost = 0;
+        for(auto& group : nozzle_filament_groups){
+            int nozzle_id = group.first;
+            auto& filament_in_nozzle = group.second;
+
+            int extruder_id = 0;
+            for(auto& [ext, nozzle_set] : extruder_to_nozzle){
+                if(nozzle_set.count(nozzle_id)){
+                    extruder_id = ext;
+                    break;
+                }
+            }
+
+            if(filament_in_nozzle.empty())
+                continue;
+
+            std::vector<unsigned int> filament_vec_in_nozzle(filament_in_nozzle.begin(), filament_in_nozzle.end());
+
+            std::vector<std::vector<unsigned int>> filament_seq;
+            cost += reorder_filaments_for_minimum_flush_volume_base(filament_vec_in_nozzle, layer_filaments, flush_matrix[extruder_id], get_custom_seq, store_sequence ? &filament_seq : nullptr);
+            if(store_sequence)
+                nozzle_filament_sequences.emplace(nozzle_id, std::move(filament_seq));
+
+        }
+
+        if(!store_sequence)
+            return cost;
+
+        std::vector<int> extruders;
+        std::map<int, std::vector<int>> nozzles_per_extruder;
+        for (auto& [extruder_id, nozzle_set] : extruder_to_nozzle) {
+            extruders.push_back(extruder_id);
+            nozzles_per_extruder[extruder_id] = std::vector<int>(
+                nozzle_set.begin(), nozzle_set.end()
+            );
+        }
+
+        filament_sequences->clear();
+        filament_sequences->resize(layer_filaments.size());
+
+        for(size_t layer = 0; layer < layer_filaments.size(); ++layer){
+            auto& out_seq = (*filament_sequences)[layer];
+
+            if(custom_layer_sequence_map.find(layer) != custom_layer_sequence_map.end()){
+                out_seq = custom_layer_sequence_map[layer];
+                continue;
+            }
+
+            std::vector<int> extruders_rotated(extruders.size());
+            for(size_t i = 0; i<extruders.size(); ++i){
+                extruders_rotated[(i+layer) % extruders.size()] = extruders[i];
+            }
+
+            for(int ext_id : extruders_rotated){
+                auto& base_nozzles = nozzles_per_extruder[ext_id];
+                auto base_nozzles_rotated = nozzles_per_extruder[ext_id];
+                for(size_t j =0; j < base_nozzles.size(); ++j){
+                    base_nozzles_rotated[(j+layer) % base_nozzles.size()] = base_nozzles[j];
+                }
+                for(size_t j = 0; j < base_nozzles_rotated.size(); ++j){
+                    int nozzle_id = base_nozzles_rotated[j];
+                    const auto& frag = nozzle_filament_sequences[nozzle_id][layer];
+                    out_seq.insert(out_seq.end(), frag.begin(), frag.end());
+                }
+            }
+        }
+
+        return cost;
+
+    }
+
 }
