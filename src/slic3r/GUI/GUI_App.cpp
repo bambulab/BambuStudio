@@ -1290,7 +1290,7 @@ void GUI_App::post_init()
     }*/
 
     //BBS: check crash log
-    auto log_dir_path = boost::filesystem::path(data_dir()) / "log";
+    /*auto log_dir_path = boost::filesystem::path(data_dir()) / "log";
     if (boost::filesystem::exists(log_dir_path))
     {
         boost::filesystem::directory_iterator end_iter;
@@ -1320,7 +1320,7 @@ void GUI_App::post_init()
                 }
             }
         }
-    }
+    }*/
 
     if (m_networking_need_update) {
         //updating networking
