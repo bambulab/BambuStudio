@@ -624,6 +624,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         info.id = it->first;
         info.used_g = used_filament_g;
         info.used_m = used_filament_m;
+
+        auto nozzle_for_filament = result->nozzle_group_result.get_nozzle_for_filament(it->first);
+        if(nozzle_for_filament){
+            info.nozzle_diameter = nozzle_for_filament->diameter;
+            info.group_id = nozzle_for_filament->group_id;
+            info.nozzle_volume_type = get_nozzle_volume_type_string(nozzle_for_filament->volume_type);
+        }
+
         slice_filaments_info.push_back(info);
     }
 
@@ -8019,7 +8027,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                            << FILAMENT_TYPE_TAG << "=\"" << it->type << "\" "
                            << FILAMENT_COLOR_TAG << "=\"" << it->color << "\" "
                            << FILAMENT_USED_M_TAG << "=\"" << it->used_m << "\" "
-                           << FILAMENT_USED_G_TAG << "=\"" << it->used_g << "\" />\n";
+                           << FILAMENT_USED_G_TAG << "=\"" << it->used_g << "\" "
+                           << "group_id"<<"=\""<<it->group_id << "\" "
+                           << "nozzle_diameter" << "=\"" << it->nozzle_diameter << "\" "
+                           << "volume_type" << "=\"" << it->nozzle_volume_type << "\" "
                 }
 
                 for (auto it = plate_data->warnings.begin(); it != plate_data->warnings.end(); it++) {

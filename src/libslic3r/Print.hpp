@@ -17,6 +17,8 @@
 #include "GCode/GCodeProcessor.hpp"
 #include "MultiMaterialSegmentation.hpp"
 #include <libslic3r/SurfaceCollection.hpp>
+#include "MultiNozzleUtils.hpp"
+
 #include "libslic3r.h"
 
 #include <Eigen/Geometry>
@@ -941,6 +943,9 @@ public:
     void set_filament_print_time(const std::unordered_map<int, std::unordered_map<int,double>>& filament_print_time) { m_filament_print_time = filament_print_time; }
     std::unordered_map<int,std::unordered_map<int,double>> get_filament_print_time() const { return m_filament_print_time; }
 
+    void set_nozzle_group_result(const MultiNozzleUtils::MultiNozzleGroupResult& result) { m_nozzle_group_result = result; }
+    const MultiNozzleUtils::MultiNozzleGroupResult& get_nozzle_group_result() { return m_nozzle_group_result; }
+
     void set_slice_used_filaments(const std::vector<unsigned int> &first_layer_used_filaments, const std::vector<unsigned int> &used_filaments){
         m_slice_used_filaments_first_layer = first_layer_used_filaments;
         m_slice_used_filaments = used_filaments;
@@ -1081,6 +1086,8 @@ private:
     PrintStatistics                         m_print_statistics;
     bool                                    m_support_used {false};
     StatisticsByExtruderCount               m_statistics_by_extruder_count;
+
+    MultiNozzleUtils::MultiNozzleGroupResult m_nozzle_group_result;
 
     std::vector<unsigned int> m_slice_used_filaments;
     std::vector<unsigned int> m_slice_used_filaments_first_layer;

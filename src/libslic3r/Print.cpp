@@ -2094,10 +2094,12 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
             std::vector<int>filament_maps = this->get_filament_maps();
             auto map_mode = get_filament_map_mode();
             // get recommended filament map
-            if (map_mode < FilamentMapMode::fmmManual) {
-                filament_maps = ToolOrdering::get_recommended_filament_maps(all_filaments, this, map_mode, physical_unprintables, geometric_unprintables);
+            {
+                auto group_result = ToolOrdering::get_recommended_filament_maps(this,all_filaments,map_mode,physical_unprintables,geometric_unprintables);
+                filament_maps = group_result.filament_map;
                 std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value + 1; });
                 update_filament_maps_to_config(filament_maps);
+                this->set_nozzle_group_result(group_result);
             }
 
             //        print_object_instances_ordering = sort_object_instances_by_max_z(print);
@@ -2248,8 +2250,10 @@ std::string Print::export_gcode(const std::string& path_template, GCodeProcessor
     gcode.do_export(this, path.c_str(), result, thumbnail_cb);
     gcode.export_layer_filaments(result);
     //BBS
-    if (result != nullptr)
+    if (result != nullptr){
         result->conflict_result = m_conflict_result;
+        result->nozzle_group_result = this->get_nozzle_group_result();
+    }
     return path.c_str();
 }
 
@@ -2910,42 +2914,43 @@ void Print::_make_wipe_tower()
         }
 
         std::vector<int>filament_maps = get_filament_maps();
+        MultiNozzleUtils::NozzleStatusRecorder nozzle_recorder;
 
-        std::vector<unsigned int> nozzle_cur_filament_ids(nozzle_nums, -1);
-        unsigned int current_filament_id = m_wipe_tower_data.tool_ordering.first_extruder();
-        size_t cur_nozzle_id = filament_maps[current_filament_id] - 1;
-        nozzle_cur_filament_ids[cur_nozzle_id] = current_filament_id;
+        unsigned int old_filament_id = m_wipe_tower_data.tool_ordering.first_extruder();
+        nozzle_recorder.set_nozzle_status(m_nozzle_group_result.get_nozzle_for_filament(old_filament_id)->group_id, old_filament_id);
 
         for (auto& layer_tools : m_wipe_tower_data.tool_ordering.layer_tools()) { // for all layers
             if (!layer_tools.has_wipe_tower) continue;
             bool first_layer = &layer_tools == &m_wipe_tower_data.tool_ordering.front();
-            wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, current_filament_id, current_filament_id);
+            wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, old_filament_id, old_filament_id);
 
             used_filament_ids.insert(layer_tools.extruders.begin(), layer_tools.extruders.end());
 
             for (const auto filament_id : layer_tools.extruders) {
-                if (filament_id == current_filament_id)
+                if (filament_id == old_filament_id)
                     continue;
 
-                int          nozzle_id = filament_maps[filament_id] - 1;
-                unsigned int pre_filament_id = nozzle_cur_filament_ids[nozzle_id];
+                int extruder_id = filament_maps[filament_id] - 1;
+                int nozzle_id = m_nozzle_group_result.get_nozzle_for_filament(filament_id)->group_id;
+                int prev_nozzle_filament = nozzle_recorder.get_filament_in_nozzle(nozzle_id);
 
                 float volume_to_purge = 0;
-                if (pre_filament_id != (unsigned int)(-1) && pre_filament_id != filament_id) {
-                    volume_to_purge = multi_extruder_flush[nozzle_id][pre_filament_id][filament_id];
-                    volume_to_purge *= m_config.flush_multiplier.get_at(nozzle_id);
-                    volume_to_purge = pre_filament_id == -1 ? 0 :
-                        layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, current_filament_id, filament_id, volume_to_purge);
+
+                if(!nozzle_recorder.is_nozzle_empty(nozzle_id) && filament_id != prev_nozzle_filament){
+                    volume_to_purge = multi_extruder_flush[extruder_id][prev_nozzle_filament][filament_id];
+                    volume_to_purge *= m_config.flush_multiplier.get_at(extruder_id);
+                    volume_to_purge = layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, old_filament_id, filament_id, volume_to_purge);
                 }
 
                 //During the filament change, the extruder will extrude an extra length of grab_length for the corresponding detection, so the purge can reduce this length.
-                float grab_purge_volume = m_config.grab_length.get_at(nozzle_id) * 2.4; //(diameter/2)^2*PI=2.4
+                float grab_purge_volume = m_config.grab_length.get_at(extruder_id) * 2.4; //(diameter/2)^2*PI=2.4
                 volume_to_purge = std::max(0.f, volume_to_purge - grab_purge_volume);
 
-                wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, current_filament_id, filament_id,
+                wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, old_filament_id, filament_id,
                     m_config.filament_prime_volume.values[filament_id], volume_to_purge);
-                current_filament_id = filament_id;
-                nozzle_cur_filament_ids[nozzle_id] = filament_id;
+                old_filament_id = filament_id;
+
+                nozzle_recorder.set_nozzle_status(nozzle_id, filament_id);
             }
             layer_tools.wiping_extrusions().ensure_perimeters_infills_order(*this);
 

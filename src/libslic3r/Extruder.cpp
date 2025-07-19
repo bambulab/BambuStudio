@@ -12,7 +12,6 @@ Extruder::Extruder(unsigned int id, GCodeConfig *config, bool share_extruder) :
     m_share_extruder(share_extruder)
 {
     reset();
-
     // cache values that are going to be called often
     m_e_per_mm3 = this->filament_flow_ratio();
     m_e_per_mm3 /= this->filament_crossection();

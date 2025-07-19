@@ -951,6 +951,148 @@ namespace Slic3r
         return filament_labels_ret;
     }
 
+    std::vector<int> FilamentGroup::calc_min_flush_group_by_pam(const std::vector<unsigned int>& used_filaments, int* cost, int timeout_ms, int retry) {
+        // default put the elems in master extruder
+        std::vector<int>filament_labels_ret(ctx.group_info.total_filament_num, ctx.machine_info.master_extruder_id);
+
+        std::unordered_map<int, std::vector<int>>unplaceable_limits;
+        extract_unprintable_limit_indices(ctx.model_info.unprintable_filaments, used_filaments, unplaceable_limits);
+
+        auto distance_evaluator = std::make_shared<FlushDistanceEvaluator>(ctx.model_info.flush_matrix[0], used_filaments, ctx.model_info.layer_filaments);
+        KMediods PAM(2, used_filaments.size(), distance_evaluator, ctx.machine_info.master_extruder_id);
+        PAM.set_max_cluster_size(ctx.machine_info.max_group_size);
+        PAM.set_unplacable_limits(unplaceable_limits);
+        PAM.set_memory_threshold(ctx.group_info.max_gap_threshold);
+        PAM.do_clustering(timeout_ms, retry);
+
+        auto filament_labels = PAM.get_cluster_labels();
+
+        {
+            auto memoryed_groups = PAM.get_memoryed_groups();
+            change_memoryed_heaps_to_arrays(memoryed_groups, ctx.group_info.total_filament_num, used_filaments, m_memoryed_groups);
+        }
+
+        if (cost)
+            *cost = reorder_filaments_for_minimum_flush_volume(used_filaments, filament_labels, ctx.model_info.layer_filaments, ctx.model_info.flush_matrix, std::nullopt, nullptr);
+
+        for (int i = 0; i < filament_labels.size(); ++i)
+            filament_labels_ret[used_filaments[i]] = filament_labels[i];
+        return filament_labels_ret;
+    }
+
+    std::unordered_map<int, std::vector<int>> FilamentGroupMultiNozzle::rebuild_nozzle_unprintables(const std::unordered_map<int, std::vector<int>>& extruder_unprintables)
+    {
+        std::unordered_map<int, std::vector<int>> nozzle_unprintables;
+        for (auto& elem : extruder_unprintables) {
+            int filament_idx = elem.first;
+            std::vector<int> unprintable_extruders = elem.second;
+            std::vector<int> unprintable_nozzles;
+            for (auto eid : unprintable_extruders) {
+                std::vector<int> nozzles_for_extruder = m_context.nozzle_info.extruder_nozzle_list[eid];
+                append(unprintable_nozzles, nozzles_for_extruder);
+            }
+            nozzle_unprintables[filament_idx] = unprintable_nozzles;
+        }
+        return nozzle_unprintables;
+    }
+
+    std::vector<int> FilamentGroupMultiNozzle::calc_filament_group_by_mcmf()
+    {
+        std::vector<unsigned int> used_filaments = collect_sorted_used_filaments(m_context.model_info.layer_filaments);
+
+        std::map<int, int>unplaceable_limits;
+        extract_unprintable_limit_indices(m_context.model_info.unprintable_filaments, used_filaments, unplaceable_limits);
+
+        auto distance_evaluator = std::make_shared<FlushDistanceEvaluator>(m_context.model_info.flush_matrix[0], used_filaments, m_context.model_info.layer_filaments);
+        std::vector<std::set<int>>groups(2);
+
+        // first cluster
+        {
+            KMediods2 PAM((int)used_filaments.size(), distance_evaluator);
+            PAM.set_max_cluster_size({(int)m_context.nozzle_info.extruder_nozzle_list[0].size(),(int)m_context.nozzle_info.extruder_nozzle_list[1].size()});
+            PAM.set_unplaceable_limits(unplaceable_limits);
+            PAM.do_clustering(FGStrategy::BestFit);
+            auto first_clustered_labels = PAM.get_cluster_labels();
+            int total_nozzle_num = m_context.nozzle_info.nozzle_list.size();
+
+            if (total_nozzle_num > used_filaments.size()) {
+                std::vector<int>ret(m_context.group_info.total_filament_num);
+                for (size_t idx = 0; idx < first_clustered_labels.size(); ++idx) {
+                    ret[used_filaments[idx]] = first_clustered_labels[idx];
+                }
+                return ret;
+            }
+
+            // first place the elem if it follows the limit
+            for (size_t idx = 0; idx < first_clustered_labels.size(); ++idx) {
+                if (unplaceable_limits.count(idx) > 0)
+                    groups[first_clustered_labels[idx]].insert(idx);
+            }
+            // then fullfill the nozzle with other filaments
+            for (size_t idx = 0; idx < first_clustered_labels.size(); ++idx) {
+                // place the elem in first cluster if the elem follow the limit
+                int gidx = first_clustered_labels[idx];
+                if (groups[gidx].size() < m_context.nozzle_info.extruder_nozzle_list[gidx].size())
+                    groups[gidx].insert(idx);
+            }
+        }
+
+        std::vector<int>ret_map(m_context.group_info.total_filament_num);
+        // second cluster
+        {
+            std::map<int, int>unplaceable_limits;
+            for (size_t idx = 0; idx < groups.size(); ++idx) {
+                for (auto& f : groups[idx])
+                    unplaceable_limits.emplace(f, (int)(1 - idx));
+            }
+            KMediods2 PAM((int)used_filaments.size(), distance_evaluator);
+            PAM.set_max_cluster_size(m_context.machine_info.max_group_size);
+            PAM.set_unplaceable_limits(unplaceable_limits);
+            PAM.do_clustering(FGStrategy::BestFit);
+            auto labels = PAM.get_cluster_labels();
+
+            for (size_t idx = 0; idx < labels.size(); ++idx)
+                ret_map[used_filaments[idx]] = labels[idx];
+        }
+        return ret_map;
+    }
+
+    std::vector<int> FilamentGroupMultiNozzle::calc_filament_group_by_pam()
+    {
+        std::vector<unsigned int> used_filaments = collect_sorted_used_filaments(m_context.model_info.layer_filaments);
+
+        std::unordered_map<int, std::vector<int>>unplaceable_limits;
+        extract_unprintable_limit_indices(m_context.model_info.unprintable_filaments, used_filaments, unplaceable_limits); // turn filament idx to idx in used filaments
+        unplaceable_limits = rebuild_nozzle_unprintables(unplaceable_limits);
+
+        int k = m_context.nozzle_info.nozzle_list.size();
+        auto distance_evaluator = std::make_shared<FlushDistanceEvaluator>(m_context.model_info.flush_matrix[0], used_filaments, m_context.model_info.layer_filaments);
+
+        KMediods PAM(k, (int)used_filaments.size(), distance_evaluator);
+        PAM.set_unplacable_limits(unplaceable_limits);
+
+        std::vector<std::pair<std::set<int>, int>> cluster_size_limit;
+
+        //TODO: 全改成map
+        for (auto& extruder_nozzles : m_context.nozzle_info.extruder_nozzle_list) {
+            auto& extruder_id = extruder_nozzles.first;
+            auto& nozzles = extruder_nozzles.second;
+            std::pair<std::set<int>, int> clusters;
+            clusters.first = std::set<int>(nozzles.begin(), nozzles.end());
+            clusters.second = m_context.machine_info.max_group_size.at(extruder_id);
+            cluster_size_limit.emplace_back(clusters);
+        }
+
+        PAM.set_cluster_group_size(cluster_size_limit);
+        PAM.do_clustering(1500);
+        auto labels = PAM.get_cluster_labels();
+
+        std::vector<int>ret(m_context.group_info.total_filament_num, 0);
+        for (size_t idx = 0; idx < labels.size(); ++idx) {
+            ret[used_filaments[idx]] = labels[idx];
+        }
+        return ret;
+    }
 }
 
 

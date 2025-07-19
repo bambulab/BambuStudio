@@ -3213,6 +3213,10 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 
+    def = this->add("has_multiple_nozzle", coBool);
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("has_scarf_joint_seam", coBool);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
