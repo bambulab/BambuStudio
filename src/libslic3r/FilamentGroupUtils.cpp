@@ -274,5 +274,60 @@ namespace FilamentGroupUtils
         }
         return true;
     }
+    int get_estimate_extruder_change_count(const std::vector<std::vector<unsigned int>>& layer_filaments, const MultiNozzleUtils::MultiNozzleGroupResult& extruder_nozzle_info)
+    {
+        int ret = 0;
+        for (size_t layer_id = 0; layer_id < layer_filaments.size(); ++layer_id) {
+            auto& filament_list = layer_filaments[layer_id];
+            int extruder_count = extruder_nozzle_info.get_used_extruders(filament_list).size();
+            ret += (extruder_count - 1);
+        }
+        return ret;
+    }
+
+    int get_estimate_nozzle_change_count(const std::vector<std::vector<unsigned int>>& layer_filaments, const MultiNozzleUtils::MultiNozzleGroupResult& extruder_nozzle_info)
+    {
+        int ret = 0;
+        for (size_t layer_id = 0; layer_id < layer_filaments.size(); ++layer_id) {
+            auto& filament_list = layer_filaments[layer_id];
+            auto extruder_list = extruder_nozzle_info.get_extruder_list();
+            for (auto extruder_id : extruder_list) {
+                int nozzle_count = extruder_nozzle_info.get_used_nozzles(filament_list, extruder_id).size();
+                ret += (nozzle_count - 1);
+            }
+        }
+        return ret;
+    }
+
+
+    std::vector<MultiNozzleUtils::NozzleInfo> build_nozzle_list(std::vector<MultiNozzleUtils::NozzleGroupInfo> nozzle_groups)
+    {
+        std::vector<MultiNozzleUtils::NozzleInfo> ret;
+        std::sort(nozzle_groups.begin(), nozzle_groups.end());
+        int nozzle_id = 0;
+        for (auto& group : nozzle_groups) {
+            for (int i = 0; i < group.nozzle_count; ++i) {
+                MultiNozzleUtils::NozzleInfo tmp;
+                tmp.diameter = group.diameter;
+                tmp.extruder_id = group.extruder_id;
+                tmp.volume_type = group.volume_type;
+                tmp.group_id = nozzle_id++;
+                ret.emplace_back(std::move(tmp));
+            }
+        }
+        return ret;
+    }
+
+    std::map<int,std::vector<int>> build_extruder_nozzle_list(const std::vector<MultiNozzleUtils::NozzleInfo>& nozzle_list)
+    {
+        std::map<int, std::vector<int>> ret;
+        for (auto& nozzle : nozzle_list) {
+            ret[nozzle.extruder_id].emplace_back(nozzle.group_id);
+        }
+
+        for (auto& elem : ret)
+            std::sort(elem.second.begin(), elem.second.end());
+        return ret;
+    }
 }
 }
