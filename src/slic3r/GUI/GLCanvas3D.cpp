@@ -8189,8 +8189,6 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     auto canvas_w = float(cnv_size.get_width());
     auto canvas_h = float(cnv_size.get_height());
 
-    bool is_hovered = false;
-
     m_sel_plate_toolbar.set_icon_size(100.0f * f_scale, 100.0f * f_scale);
 
     float button_width = m_sel_plate_toolbar.icon_width;
@@ -8433,7 +8431,11 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     ImGui::PopStyleColor(8);
     ImGui::PopStyleVar(5);
 
-    if (ImGui::IsWindowHovered() || is_hovered) {
+    ImVec2 window_pos  = ImGui::GetWindowPos();
+    ImVec2 window_size = ImGui::GetWindowSize();
+    ImVec2 window_max  = ImVec2(window_pos.x + window_size.x + 25, window_pos.y + window_size.y);
+    ImRect window_rect(window_pos, window_max);
+    if (ImGui::IsWindowHovered() || window_rect.Contains(ImGui::GetMousePos())) {
         m_sel_plate_toolbar.is_display_scrollbar = true;
     } else {
         m_sel_plate_toolbar.is_display_scrollbar = false;
