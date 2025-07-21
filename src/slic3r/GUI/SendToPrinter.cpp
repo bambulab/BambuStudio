@@ -881,7 +881,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     if(!wxGetApp().plater()->using_exported_file() && !obj_->is_lan_mode_printer()) {
             result = m_plater->export_config_3mf(m_print_plate_idx);
             if (result < 0) {
-                BOOST_LOG_TRIVIAL(info) << "export_config_3mf failed, result = " << result;
+                 BOOST_LOG_TRIVIAL(info) << "export_config_3mf failed, result = " << result;
                 return;
             }
         }
@@ -1924,7 +1924,6 @@ void SendToPrinterDialog::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
 
 #if !BBL_RELEASE_TO_PUBLIC
                     BOOST_LOG_TRIVIAL(info) << "SendToPrinter::fetchUrl: camera_url: " << hide_passwd(url, {"?uid=", "authkey=", "passwd="});
-                    std::cout << "SendToPrinter::fetchUrl: camera_url: " << hide_passwd(url, {"?uid=", "authkey=", "passwd="});
 #endif
                     CallAfter([=] {
                         boost::shared_ptr fs(wfs.lock());
