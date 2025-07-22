@@ -875,6 +875,7 @@ public:
     float m_scale = 1.0;
     void set_scale(float scale = 1.0);
     void init(ConfigOptionMode mode, Slic3r::PresetBundle* preset_bundle);
+    void update_default_view_type();
     void update_by_mode(ConfigOptionMode mode);
     void update_thermal_options(bool add);
     // extract rendering data from the given parameters

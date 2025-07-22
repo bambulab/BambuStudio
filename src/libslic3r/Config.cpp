@@ -1362,18 +1362,19 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
         bool begin_found = false;
         bool end_found   = false;
         std::string line;
-        while (std::getline(ifs, line))
-            if (line == "; CONFIG_BLOCK_START") {
+        while (std::getline(ifs, line)) {
+            if ( boost::starts_with(line, "; CONFIG_BLOCK_START")) {
                 begin_found = true;
                 break;
             }
+        }
         if (!begin_found) {
             //BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << format("Configuration block closing tag \"; CONFIG_BLOCK_START\" not found when reading %1%", file);
             throw Slic3r::RuntimeError(format("Config tag \"; CONFIG_BLOCK_START\" not found"));
         }
         std::string key, value;
         while (std::getline(ifs, line)) {
-            if (line == "; CONFIG_BLOCK_END") {
+            if (boost::starts_with(line, "; CONFIG_BLOCK_END")) {
                 end_found = true;
                 break;
             }
