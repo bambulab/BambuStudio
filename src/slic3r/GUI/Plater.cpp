@@ -9311,7 +9311,7 @@ void Plater::priv::on_helio_processing_start(SimpleEvent &a)
 {
     notification_manager->close_notification_of_type(GUI::NotificationType::SignDetected);
     notification_manager->close_notification_of_type(GUI::NotificationType::ExportFinished);
-    notification_manager->set_slicing_progress_began();
+    notification_manager->set_slicing_progress_began(true);
     notification_manager->update_slicing_notif_dailytips(true);
 }
 
