@@ -264,13 +264,16 @@ BoundingBoxf3 GLGizmoAdvancedCut::transformed_bounding_box(const Vec3d &plane_ce
     const Selection &selection = m_parent.get_selection();
 
     const auto first_volume    = selection.get_first_volume();
+    BoundingBoxf3 ret;
+    if (!first_volume) {
+        return ret;
+    }
     Vec3d      instance_offset = first_volume->get_instance_offset();
     instance_offset[Z] += first_volume->get_sla_shift_z();
 
     const auto cut_matrix = Transform3d::Identity() * rotation_m.inverse() * Geometry::translation_transform(instance_offset - plane_center);
 
     const Selection::IndicesList &idxs = selection.get_volume_idxs();
-    BoundingBoxf3                 ret;
     for (unsigned int i : idxs) {
         const GLVolume *volume = selection.get_volume(i);
         // respect just to the solid parts for FFF and ignore pad and supports for SLA
