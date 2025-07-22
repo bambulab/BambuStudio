@@ -1120,17 +1120,22 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
         m_nozzle_nums = preset_bundle->get_printer_extruder_count();
 
     // set to color print by default if use multi extruders
-    if (m_nozzle_nums > 1) {
-        m_view_type_sel = std::distance(view_type_items.begin(),std::find(view_type_items.begin(), view_type_items.end(), EViewType::Summary));
-        set_view_type(EViewType::Summary);
-    } else {
-        m_view_type_sel = std::distance(view_type_items.begin(),std::find(view_type_items.begin(), view_type_items.end(), EViewType::ColorPrint));
-        set_view_type(EViewType::ColorPrint);
-    }
+    update_default_view_type();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished");
 }
 
-void GCodeViewer::on_change_color_mode(bool is_dark) {
+void GCodeViewer::update_default_view_type() {
+    if (m_nozzle_nums > 1) {
+        m_view_type_sel = std::distance(view_type_items.begin(), std::find(view_type_items.begin(), view_type_items.end(), EViewType::Summary));
+        set_view_type(EViewType::Summary);
+    } else {
+        m_view_type_sel = std::distance(view_type_items.begin(), std::find(view_type_items.begin(), view_type_items.end(), EViewType::ColorPrint));
+        set_view_type(EViewType::ColorPrint);
+    }
+}
+
+void GCodeViewer::on_change_color_mode(bool is_dark)
+{
     m_is_dark = is_dark;
     m_sequential_view.marker.on_change_color_mode(m_is_dark);
     m_sequential_view.gcode_window.on_change_color_mode(m_is_dark);
@@ -5217,7 +5222,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImVec2(pos_rect.x + ImGui::GetWindowWidth() + ImGui::GetFrameHeight(),pos_rect.y + ImGui::GetFrameHeight() + window_padding * 2.5),
         ImGui::GetColorU32(ImVec4(0,0,0,0.3)));
 
-    auto append_item = [icon_size, &imgui, imperial_units, &window_padding, &draw_list, this](
+    auto append_item = [icon_size, &imgui, imperial_units, &window_padding, &draw_list, &checkbox_offset,this](
         EItemType type,
         const Color& color,
         const std::vector<std::pair<std::string, float>>& columns_offsets,
@@ -5274,7 +5279,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             if (b_menu_item)
                 callback();
             if (checkbox) {
-                ImGui::SameLine(0.0f);
+                ImGui::SameLine(checkbox_offset);
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0, 0.0));
                 ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
                 ImGui::Checkbox(("##" + columns_offsets[0].first).c_str(), &visible);
@@ -5547,8 +5552,17 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         m_last_helio_process_status = wxGetApp().plater()->get_helio_process_status();
         if ((int) Slic3r::HelioBackgroundProcess::State::STATE_FINISHED == m_last_helio_process_status) {
             update_thermal_options(true);
-        } else {
+            for (int i = 0; i < view_type_items.size(); i++) {
+                if (view_type_items[i] == EViewType::ThermalIndexMean) {
+                    m_view_type_sel = i;
+                    break;
+                }
+            }
+            set_view_type(EViewType::ThermalIndexMean);
+            wxGetApp().plater()->get_notification_manager()->close_notification_of_type(NotificationType::HelioSlicingError);
+        } else if ((int) Slic3r::HelioBackgroundProcess::State::STATE_CANCELED == m_last_helio_process_status) {
             update_thermal_options(false);
+            update_default_view_type();
         }
     }
     push_combo_style();
