@@ -9,7 +9,7 @@ std::vector<double> Extruder::m_share_retracted = {0.,0.};
 Extruder::Extruder(unsigned int id, GCodeConfig *config, bool share_extruder) :
     m_id(id),
     m_config(config),
-    m_share_extruder(m_share_extruder)
+    m_share_extruder(share_extruder)
 {
     reset();
 
