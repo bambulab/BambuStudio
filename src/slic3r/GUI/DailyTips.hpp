@@ -29,6 +29,7 @@ public:
     void expand(bool expand = true);
     void collapse();
     bool is_expanded();
+    void set_is_helio(bool is_helio);
     void on_change_color_mode(bool is_dark);
     void set_fade_opacity(float opacity);
 
@@ -49,6 +50,7 @@ private:
     float m_content_height;
     float m_footer_height;
     int m_uid;
+    bool m_is_helio{ false };
     bool m_first_enter{ false };
     bool m_is_dark{ false };
     DailyTipsLayout m_layout{ DailyTipsLayout::Vertical };

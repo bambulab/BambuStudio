@@ -275,7 +275,7 @@ public:
 	// slicing progress
 	void init_slicing_progress_notification(std::function<bool()> cancel_callback);
 	void update_slicing_notif_dailytips(bool need_change);
-	void set_slicing_progress_began();
+	void set_slicing_progress_began(bool is_helio = false);
 	// percentage negative = canceled, <0-1) = progress, 1 = completed
 	void set_slicing_progress_percentage(const std::string& text, float percentage);
 	void set_slicing_progress_canceled(const std::string& text);
@@ -293,10 +293,6 @@ public:
 	void progress_indicator_set_progress(int pr);
 	void progress_indicator_set_status_text(const char*); // utf8 char array
 	int  progress_indicator_get_range() const;
-	// Hint (did you know) notification
-	void push_hint_notification(bool open_next);
-	bool is_hint_notification_open();
-	// Forces Hints to reload its content when next hint should be showed
 	void deactivate_loaded_hints();
 	// Adds counter to existing UpdatedItemsInfo notification or opens new one
 	void push_updated_item_info_notification(InfoItemType type);

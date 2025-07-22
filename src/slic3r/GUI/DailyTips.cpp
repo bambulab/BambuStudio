@@ -157,6 +157,8 @@ void DailyTipsDataRenderer::render_text(const ImVec2& start_pos, const ImVec2& s
         title_line = m_data.main_text.substr(0, end_pos);
         title_line = ImGui::ColorMarkerStart + title_line + ImGui::ColorMarkerEnd;
         content_lines = m_data.main_text.substr(end_pos + 1);
+    } else {
+        content_lines = m_data.main_text;
     }
 
     ImGui::SetCursorPos(start_pos);
@@ -164,8 +166,10 @@ void DailyTipsDataRenderer::render_text(const ImVec2& start_pos, const ImVec2& s
     
     bool is_zh = false;
     for (int i = 0; i < content_lines.size() - 1; i += 2) {
-        if ((content_lines[i] & 0x80) && (content_lines[i + 1] & 0x80))
+        if ((content_lines[i] & 0x80) && (content_lines[i + 1] & 0x80)) {
             is_zh = true;
+            break;
+        }
     }
     if (!is_zh) {
         // problem in Chinese with spaces
@@ -316,7 +320,7 @@ void DailyTipsPanel::render()
 
 void DailyTipsPanel::retrieve_data_from_hint_database(HintDataNavigation nav)
 {
-    HintData* hint_data = HintDatabase::get_instance().get_hint(nav);
+    HintData* hint_data = HintDatabase::get_instance().get_hint(nav, m_is_helio);
     if (hint_data != nullptr)
     {
         DailyTipsData data{ hint_data->text,
@@ -349,6 +353,11 @@ void DailyTipsPanel::collapse()
 bool DailyTipsPanel::is_expanded()
 {
     return m_is_expanded;
+}
+
+void DailyTipsPanel::set_is_helio(bool is_helio)
+{
+    m_is_helio = is_helio;
 }
 
 void DailyTipsPanel::on_change_color_mode(bool is_dark)
@@ -460,8 +469,8 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
         }
 
         // page index
-        m_page_index = HintDatabase::get_instance().get_index() + 1;
-        m_pages_count = HintDatabase::get_instance().get_count();
+        m_page_index = HintDatabase::get_instance().get_index(m_is_helio) + 1;
+        m_pages_count = HintDatabase::get_instance().get_count(m_is_helio);
         std::string text_str = std::to_string(m_page_index) + "/" + std::to_string(m_pages_count);
         float text_item_width = ImGui::CalcTextSize(text_str.c_str()).x;
         ImGui::PushItemWidth(text_item_width);
