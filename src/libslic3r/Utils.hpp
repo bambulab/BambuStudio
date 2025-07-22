@@ -149,6 +149,7 @@ private:
     inline static size_t start_pos = std::string::npos;
     inline static size_t id_start_pos = std::string::npos;
     inline static size_t name_size = 0;
+    inline static std::string full;
 
     static bool init_usrname_range()
     {
@@ -183,7 +184,7 @@ private:
         if (!env) {
             return false;
         }
-        std::string full(env);
+        full = std::string(env);
         size_t sep_pos = full.find_last_of("\\/");
         if (sep_pos == std::string::npos) {
             return false;
@@ -204,10 +205,14 @@ private:
     static std::string sanitize_impl(const std::string &raw)
     {
         if (!init_usrname_range()) {
+            return "************";
+        }
+
+        if (raw.length() < full.length() || raw.empty()) {
             return raw;
         }
 
-        if (raw.length() < start_pos + name_size) {
+        if (raw[0] != full[0] || raw[full.length() - 1] != full[full.length() - 1]) {
             return raw;
         }
 
@@ -217,7 +222,7 @@ private:
         } else if (std::isupper(raw[start_pos])) {
             sanitized.replace(start_pos, 12, std::string(12, '*'));
         } else {
-            return raw;
+            return "************";
         }
         
         if (id_start_pos != std::string::npos && id_start_pos < sanitized.length() && (sanitized[id_start_pos - 1] == '\\' || sanitized[id_start_pos - 1] == '/') &&
@@ -236,10 +241,14 @@ private:
     static std::string sanitize_impl(std::string &&raw)
     {
         if (!init_usrname_range()) {
-            return raw;
+            return "************";
         }
 
-        if (raw.length() < start_pos + name_size) {
+        if (raw.length() < full.length() || raw.empty()) {
+            return raw;
+        }
+        
+        if (raw[0] != full[0] || raw[full.length() - 1] != full[full.length() - 1]) {
             return raw;
         }
 
@@ -248,7 +257,7 @@ private:
         } else if (std::isupper(raw[start_pos])) {
             raw.replace(start_pos, 12, std::string(12, '*'));
         } else {
-            return raw;
+            return "************";
         }
 
         if (id_start_pos != std::string::npos && id_start_pos < raw.length() && (raw[id_start_pos - 1] == '\\' || raw[id_start_pos - 1] == '/') &&
