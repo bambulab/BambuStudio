@@ -8,13 +8,16 @@
 #include "PrintHost.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/PrintBase.hpp"
+#include "libslic3r/Print.hpp"
 #include <boost/log/trivial.hpp>
+#include "../GUI/PartPlate.hpp"
 #include "../GUI/GUI_App.hpp"
 #include "../GUI/Event.hpp"
 #include "../GUI/Plater.hpp"
 #include "../GUI/NotificationManager.hpp"
 #include "wx/app.h"
 #include "cstdio"
+
 
 namespace Slic3r {
 
@@ -763,6 +766,8 @@ void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string 
 
 void HelioBackgroundProcess::load_simulation_to_viwer(std::string simulated_file_path, std::string tmp_path)
 {
+    const Vec3d origin = GUI::wxGetApp().plater()->get_partplate_list().get_current_plate_origin();
+    m_gcode_processor.set_xy_offset(origin(0), origin(1));
     m_gcode_processor.process_file(simulated_file_path);
     auto res       = &m_gcode_processor.result();
     m_gcode_result = res;
