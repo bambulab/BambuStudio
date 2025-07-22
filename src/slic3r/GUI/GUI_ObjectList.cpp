@@ -2195,6 +2195,7 @@ void ObjectList::load_from_files(const wxArrayString &input_files, ModelObject &
             show_error(parent, msg);
             return;
         }
+        wxGetApp().plater()->statistics_burial_data(input_files[0].utf8_string());
         bool has_instance = false;
         bool has_origin_translation = model_object.origin_translation != Vec3d::Zero();
         if (from_galery)
