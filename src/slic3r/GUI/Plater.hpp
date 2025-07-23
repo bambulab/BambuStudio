@@ -379,7 +379,7 @@ public:
     bool load_svg(const wxArrayString &filenames, bool from_toolbar_or_file_menu = false);
     bool load_same_type_files(const wxArrayString &filenames);
     bool load_files(const wxArrayString& filenames);
-    void statistics_burial_data_once(std::string name);//Upload to the cloud immediately
+    void statistics_burial_data_once(std::string json_str);//Upload to the cloud immediately
     void statistics_burial_data(std::string file_path);
     void statistics_burial_data_form_mw();
     const wxString& get_last_loaded_gcode() const { return m_last_loaded_gcode; }
