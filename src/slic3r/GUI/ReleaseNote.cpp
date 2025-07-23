@@ -2331,7 +2331,7 @@ void SendFailedConfirm::on_dpi_changed(const wxRect &suggested_rect) {}
      StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
                              std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
 
-     m_button_confirm = new Button(this, _L("Confirm"));
+     m_button_confirm = new Button(this, _L("Agree"));
      m_button_confirm->SetBackgroundColor(btn_bg_green);
      m_button_confirm->SetBorderColor(*wxWHITE);
      m_button_confirm->SetTextColor(wxColour(255, 255, 254));
