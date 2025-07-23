@@ -40,6 +40,7 @@
 #include "DailyTips.hpp"
 #include "FilamentMapDialog.hpp"
 #include "../Utils/CpuMemory.hpp"
+#include "../Utils/HelioDragon.hpp"
 #if ENABLE_RETINA_GL
 #include "slic3r/Utils/RetinaHelper.hpp"
 #endif
@@ -8287,7 +8288,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
             text_clr = ImVec4(0, 174.0f / 255.0f, 66.0f / 255.0f, 1);
             btn_texture_id = (ImTextureID)(intptr_t)(all_plates_stats_item->image_texture.get_id());
         }
-
+        imgui.disabled_begin(wxGetApp().plater()->get_helio_process_status() == Slic3r::HelioBackgroundProcess::State::STATE_RUNNING);
         if (ImGui::ImageButton2(btn_texture_id, size, {0,0}, {1,1}, frame_padding, bg_col, tint_col, margin)) {
             if (all_plates_stats_item->slice_state != IMToolbarItem::SliceState::SLICE_FAILED) {
                 if (m_process && !m_process->running()) {
@@ -8301,6 +8302,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
                 }
             }
         }
+        imgui.disabled_end();
         if (!all_plates_stats_item->selected) {
             m_can_show_navigator = true;
         }
@@ -8378,6 +8380,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
                 ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(.0f, .0f, .0f, .0f));
             }
         }
+        imgui.disabled_begin(wxGetApp().plater()->get_helio_process_status() == Slic3r::HelioBackgroundProcess::State::STATE_RUNNING);
         if(ImGui::Button("##invisible_button", button_size)){
             if (m_process && !m_process->running()) {
                 all_plates_stats_item->selected = false;
@@ -8390,6 +8393,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
                 wxQueueEvent(wxGetApp().plater(), evt);
             }
         }
+        imgui.disabled_end();
         ImGui::PopStyleColor(4);
         ImGui::PopStyleVar();
 
