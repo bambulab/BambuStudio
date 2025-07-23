@@ -13479,11 +13479,12 @@ bool Plater::load_files(const wxArrayString& filenames)
     return res;
 }
 
-void Plater::statistics_burial_data_once(std::string name)
+void Plater::statistics_burial_data_once(std::string json_str)
 {
     NetworkAgent *agent = GUI::wxGetApp().getAgent();
     if (agent) {
-        agent->track_event("import_file_type", name);
+        agent->track_event("import_file_type", json_str);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " import_file_type:" << json_str;
     }
 }
 
@@ -13520,7 +13521,9 @@ void Plater::statistics_burial_data(std::string file_path)
 
 void Plater::statistics_burial_data_form_mw()
 {
-    statistics_burial_data("download_from_mw_and_open");
+    json j;
+    j["type"] = "download_from_mw_and_open";
+    statistics_burial_data_once(j.dump());
 }
 
 bool Plater::open_3mf_file(const fs::path &file_path)
