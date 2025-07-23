@@ -3,6 +3,7 @@
 #include <type_traits>
 #include <boost/log/trivial.hpp>
 //
+#include <libslic3r/ClipperUtils.hpp>
 #include <libslic3r/Line.hpp>
 #include <libslic3r/Model.hpp>
 #include <libslic3r/Format/OBJ.hpp> // load_obj for default mesh
