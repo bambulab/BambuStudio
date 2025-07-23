@@ -792,7 +792,7 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
     //imgui.set_next_window_pos(0.0f, top, ImGuiCond_Always, 0.0f, 0.0f);
     imgui.set_next_window_pos(right, top, ImGuiCond_Always, 1.0f, 0.0f);
     if (m_sequential_view.m_gcode_viewer.is_helio_option()) {
-        auto imgui_window_width = ImGui::CalcTextSize("10000 G1 X191.55 Y166.478 E.07946 ; helio").x;
+        auto imgui_window_width = ImGui::CalcTextSize("10000 G1 X191.55 Y166.478 E.07946; helio").x;
         imgui.set_next_window_size(imgui_window_width, wnd_height, ImGuiCond_Always);
     } else {
         imgui.set_next_window_size(0.0f, wnd_height, ImGuiCond_Always);
@@ -1137,6 +1137,7 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
     if (preset_bundle)
         m_nozzle_nums = preset_bundle->get_printer_extruder_count();
 
+    init_thermal_icons();
     // set to color print by default if use multi extruders
     update_default_view_type();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished");
@@ -1203,13 +1204,16 @@ void GCodeViewer::update_by_mode(ConfigOptionMode mode)
     options_items.push_back(EMoveType::Seam);
 }
 
-void GCodeViewer::update_thermal_options(bool add) {
-    static ImTextureID helio_icon_dark_texture{nullptr}, helio_icon_texture{nullptr};
-    if (!helio_icon_dark_texture) {
+void  GCodeViewer::init_thermal_icons() {
+    if (!m_helio_icon_dark_texture) {
         ImVec2 icon_size(16, 16);
-        IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/helio_icon_dark.svg", icon_size.x, icon_size.y, helio_icon_dark_texture);
-        IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/helio_icon.svg", icon_size.x, icon_size.y, helio_icon_texture);
+        IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/helio_icon_dark.svg", icon_size.x, icon_size.y, m_helio_icon_dark_texture);
+        IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/helio_icon.svg", icon_size.x, icon_size.y, m_helio_icon_texture);
     }
+}
+
+void GCodeViewer::update_thermal_options(bool add) {
+
     if (add) {
         for (int i = view_type_items.size() - 1; i >= 0; i--) {
             if (view_type_items[i] == EViewType::ThermalIndexMean) {
@@ -1223,7 +1227,7 @@ void GCodeViewer::update_thermal_options(bool add) {
         view_type_items.push_back(EViewType::ThermalIndexMax);
         view_type_items.push_back(EViewType::ThermalIndexMean);
         for (int i = index; i < view_type_items.size(); i++) {
-            ImageName temp = {get_view_type_string(view_type_items[i]), helio_icon_texture, helio_icon_dark_texture};
+            ImageName temp = {get_view_type_string(view_type_items[i]), m_helio_icon_texture, m_helio_icon_dark_texture};
             view_type_image_names.push_back(temp);
         }
         view_type_items.push_back(EViewType::FilamentId);
@@ -5488,13 +5492,16 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     std::string title           = _u8L("Slicing Result");
     imgui.bold_text(title);
     if (wxGetApp().app_config->get("helio_enable") == "true") {
+        auto  line_height         = ImGui::GetFrameHeight();
+        auto  image_height        = line_height * 0.6;
+
         float single_word_width   = imgui.calc_text_size("ABCD").x;
         float title_width         = imgui.calc_text_size(title).x;
         float spacing             = 18.0f * m_scale;
         float icon_spacing        = 20.0f * m_scale;
-        float icon_width          = imgui.calc_text_size(into_u8(ImGui::HelioIcon).c_str()).x;
+        float icon_width          = image_height;
         float text_width          = imgui.calc_text_size(_u8L("Helio Action").c_str()).x + imgui.calc_text_size("A").x;
-        float helio_button_width  = icon_width + text_width + icon_spacing + 30 * m_scale;
+        float helio_button_width  = icon_width + text_width  + 30 * m_scale;
         float helio_button_height = ImGui::GetFrameHeight();
         ImGui::SameLine(0, (single_word_width + spacing) * 8.0f - title_width - helio_button_width);
         ImVec2 button_pos          = ImGui::GetCursorScreenPos();
@@ -5513,12 +5520,18 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                                                   ImGui::GetStyle().FrameRounding);
         ImGui::GetWindowDrawList()->AddRect(button_min, button_max, ImGui::GetColorU32(ImGuiCol_Border), ImGui::GetStyle().FrameRounding);
         float content_height = button_max.y - button_min.y;
-        float icon_y         = button_min.y + (content_height - ImGui::GetTextLineHeight()) * 0.5f;
-        float text_y         = icon_y;
-        ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(button_min.x + ImGui::GetStyle().FramePadding.x + 10 * m_scale, icon_y), color_text,
-                                            into_u8(ImGui::HelioIcon).c_str());
+        float text_y         = button_min.y + (content_height - ImGui::GetTextLineHeight()) * 0.5f;
+
+        ImRect bb_image;
+        bb_image.Min = button_min;
+        bb_image.Min.x += std::min(10.f, line_height * 0.45f);
+        bb_image.Min.y += line_height * 0.2;
+        bb_image.Max.x    = bb_image.Min.x + image_height;
+        bb_image.Max.y    = bb_image.Min.y + image_height;
+        ImGui::GetWindowDrawList()->AddImage(m_helio_icon_dark_texture, bb_image.Min, bb_image.Max);
         ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(),
-                                            ImVec2(button_min.x + ImGui::GetStyle().FramePadding.x + icon_width + icon_spacing + 10 * m_scale, text_y), color_text,
+                                            ImVec2(button_min.x + ImGui::GetStyle().FramePadding.x + icon_width + 10 * m_scale, text_y),
+                                            color_text,
                                             _u8L("Helio Action").c_str());
         ImGui::PopStyleVar();
         if (button_clicked) {
