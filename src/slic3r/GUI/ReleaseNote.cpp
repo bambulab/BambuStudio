@@ -2294,8 +2294,18 @@ void SendFailedConfirm::on_dpi_changed(const wxRect &suggested_rect) {}
      m_description_line2->Wrap(FromDIP(680));
 
      auto helio_home_link = new LinkLabel(this, _L("https://www.helioadditive.com/"), "https://www.helioadditive.com/");
-     auto helio_privacy_link = new LinkLabel(this, _L("Helio Additive"), "https://www.helioadditive.com/privacy-policy");
-     auto helio_tou_link = new LinkLabel(this, _L("Helio Additive"), "https://www.helioadditive.com/terms-of-use");
+     LinkLabel* helio_privacy_link = nullptr;
+     LinkLabel* helio_tou_link = nullptr;
+
+     if (GUI::wxGetApp().app_config->get("region") == "China") {
+         helio_privacy_link = new LinkLabel(this, _L("Privacy Policy of Helio Additive"), "https://www.helioadditive.com/zh-cn/policies/privacy");
+         helio_tou_link     = new LinkLabel(this, _L("Terms of Use of Helio Additive"), "https://www.helioadditive.com/zh-cn/policies/terms");
+     }
+     else {
+         helio_privacy_link = new LinkLabel(this, _L("Privacy Policy of Helio Additive"), "https://www.helioadditive.com/en-us/policies/privacy");
+         helio_tou_link     = new LinkLabel(this, _L("Terms of Use of Helio Additive"), "https://www.helioadditive.com/en-us/policies/terms");
+     }
+
 
      helio_home_link->SeLinkLabelFColour(wxColour(0, 119, 250));
      helio_privacy_link->SeLinkLabelFColour(wxColour(0, 119, 250));
@@ -2358,7 +2368,9 @@ void SendFailedConfirm::on_dpi_changed(const wxRect &suggested_rect) {}
      main_sizer->Add(m_description_line2, 0, wxLEFT | wxRIGHT, FromDIP(50));
      main_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
      main_sizer->Add(helio_home_link, 0, wxLEFT | wxRIGHT, FromDIP(50));
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
      main_sizer->Add(helio_privacy_link, 0, wxLEFT | wxRIGHT, FromDIP(50));
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
      main_sizer->Add(helio_tou_link, 0, wxLEFT | wxRIGHT, FromDIP(50));
      main_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
      main_sizer->Add(m_description_line3, 0, wxLEFT | wxRIGHT, FromDIP(50));
