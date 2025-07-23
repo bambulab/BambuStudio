@@ -693,9 +693,12 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
     auto update_lines = [this](uint64_t start_id, uint64_t end_id) {
         std::vector<Line> ret;
         ret.reserve(end_id - start_id + 1);
+        size_t length_of_line = 40;
+        if (m_sequential_view.m_gcode_viewer.is_helio_option()) {
+            length_of_line = 90;
+        }
         for (uint64_t id = start_id; id <= end_id; ++id) {
             // read line from file
-            const size_t length_of_line = 40;
             const size_t start = id == 1 ? 0 : m_lines_ends[id - 2];
             const size_t original_len   = m_lines_ends[id - 1] - start;
             const size_t len            = std::min(original_len, (size_t) length_of_line);
@@ -788,11 +791,19 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
     //BBS: GUI refactor: move to right
     //imgui.set_next_window_pos(0.0f, top, ImGuiCond_Always, 0.0f, 0.0f);
     imgui.set_next_window_pos(right, top, ImGuiCond_Always, 1.0f, 0.0f);
-    imgui.set_next_window_size(0.0f, wnd_height, ImGuiCond_Always);
+    if (m_sequential_view.m_gcode_viewer.is_helio_option()) {
+        auto imgui_window_width = ImGui::CalcTextSize("10000 G1 X191.55 Y166.478 E.07946 ; helio").x;
+        imgui.set_next_window_size(imgui_window_width, wnd_height, ImGuiCond_Always);
+    } else {
+        imgui.set_next_window_size(0.0f, wnd_height, ImGuiCond_Always);
+    }
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::SetNextWindowBgAlpha(0.8f);
-    imgui.begin(std::string("G-code"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-
+    if (m_sequential_view.m_gcode_viewer.is_helio_option()) {
+        imgui.begin(std::string("G-code"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysHorizontalScrollbar);
+    } else {
+        imgui.begin(std::string("G-code"),ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+    }
     ImDrawList *draw_list     = ImGui::GetWindowDrawList();
     ImVec2      pos_rect      = ImGui::GetCursorScreenPos();
     ImVec2      windowPadding = ImGui::GetStyle().WindowPadding;
@@ -876,9 +887,7 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
     imgui.end();
     ImGui::PopStyleVar();
 
-    if (m_sequential_view.m_gcode_viewer.m_view_type == EViewType::ThermalIndexMin ||
-        m_sequential_view.m_gcode_viewer.m_view_type == EViewType::ThermalIndexMax ||
-        m_sequential_view.m_gcode_viewer.m_view_type == EViewType::ThermalIndexMean) {
+    if (m_sequential_view.m_gcode_viewer.is_helio_option()) {
         auto get_thermal_index = [this](uint64_t start_id, uint64_t end_id) {
             std::vector<GCodeProcessor::ThermalIndex> ret;
             ret.reserve(end_id - start_id + 1);
@@ -1026,6 +1035,15 @@ GCodeViewer::~GCodeViewer()
         delete m_layers_slider;
         m_layers_slider = nullptr;
     }
+}
+
+bool GCodeViewer::is_helio_option() const
+{
+    if (m_view_type == EViewType::ThermalIndexMin ||
+        m_view_type == EViewType::ThermalIndexMax ||
+        m_view_type == EViewType::ThermalIndexMean)
+        return true;
+    return false;
 }
 
 void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
@@ -1193,10 +1211,12 @@ void GCodeViewer::update_thermal_options(bool add) {
         IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/helio_icon.svg", icon_size.x, icon_size.y, helio_icon_texture);
     }
     if (add) {
-        if (view_type_items.back() == EViewType::ThermalIndexMean) {
-            return;
+        for (int i = view_type_items.size() - 1; i >= 0; i--) {
+            if (view_type_items[i] == EViewType::ThermalIndexMean) {
+                return;
+            }
         }
-        view_type_items.pop_back();
+        view_type_items.pop_back();//delete EViewType::FilamentId
         auto index = view_type_items.size();
 
         view_type_items.push_back(EViewType::ThermalIndexMin);
