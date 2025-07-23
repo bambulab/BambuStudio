@@ -883,7 +883,7 @@ bool PresetBundle::import_json_presets(PresetsConfigSubstitutions &            s
                                      << ", which were removed";
         if (!config_substitutions.empty())
             substitutions.push_back({name, collection->type(), PresetConfigSubstitutions::Source::UserFile, file, std::move(config_substitutions)});
-
+        collection->set_custom_preset_alias(preset);
         preset.save(inherit_preset ? &inherit_preset->config : nullptr);
         result.push_back(file);
     } catch (const std::ifstream::failure &err) {
