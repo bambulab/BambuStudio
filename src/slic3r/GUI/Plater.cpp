@@ -4886,7 +4886,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
                     boost::filesystem::remove_all(last);
             }
             catch (...) {}
-            if (!dirty_state.is_dirty()) {
+            if (this->q->get_project_filename().IsEmpty() && this->q->is_empty_project()) {
                 int skip_confirm = e.GetInt();
                 this->q->new_project(skip_confirm, true);
             }
