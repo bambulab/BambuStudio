@@ -26,7 +26,7 @@ UserPresetsDialog::UserPresetsDialog(wxWindow *parent)
     m_switch_button = new SwitchButton(this);
     m_switch_button->SetFont(Label::Body_13);
     m_switch_button->SetMaxSize({FromDIP(182), -1});
-    m_switch_button->SetLabels(" " + _L("Custom filaments") + " ", _L("Others"));
+    m_switch_button->SetLabels(" " + _L("Custom") + " ", _L("Others"));
     m_switch_button->Bind(wxEVT_TOGGLEBUTTON, [this](auto &evt) { evt.Skip(); on_collection_changed(m_collection); });
 
     m_search = new TextInput(this, "", "", "im_text_search");
