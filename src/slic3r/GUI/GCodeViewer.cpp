@@ -1046,6 +1046,25 @@ bool GCodeViewer::is_helio_option() const
     return false;
 }
 
+bool GCodeViewer::curr_plate_has_ok_helio_slice(int plate_idx) const
+{
+    if (m_helio_slice_map_oks.find(plate_idx) != m_helio_slice_map_oks.end() && m_helio_slice_map_oks.at(plate_idx)) {
+        return true;
+    }
+    return false;
+}
+
+void GCodeViewer::update_option_item_when_load_gcode()
+{
+    auto curr_plate_index = wxGetApp().plater()->get_partplate_list().get_curr_plate_index();
+    if (curr_plate_has_ok_helio_slice(curr_plate_index)) {
+        update_thermal_options(true);
+    } else {
+        update_thermal_options(false);
+        update_default_view_type();
+    }
+}
+
 void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
 {
     if (m_gl_data_initialized)
@@ -1239,6 +1258,18 @@ void GCodeViewer::update_thermal_options(bool add) {
             }
         }
     }
+}
+
+void GCodeViewer::reset_curr_plate_thermal_options() {
+    auto curr_plate_index = wxGetApp().plater()->get_partplate_list().get_curr_plate_index();
+    reset_curr_plate_thermal_options(curr_plate_index);
+}
+
+void GCodeViewer::reset_curr_plate_thermal_options(int plate_idx)
+{
+    update_thermal_options(false);
+    update_default_view_type();
+    m_helio_slice_map_oks[plate_idx] = false;
 }
 
 std::vector<int> GCodeViewer::get_plater_extruder() {
@@ -1503,6 +1534,8 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
     // update buffers' render paths
     refresh_render_paths();
     log_memory_used("Refreshed G-code extrusion paths, ");
+
+    update_option_item_when_load_gcode();
 }
 
 void GCodeViewer::refresh_render_paths()
@@ -2804,6 +2837,10 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
         }
 
         const unsigned char id = buffer_id(curr.type);
+        if (id >= m_buffers.size()) {//Add an array protection
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " m_buffers array bound";
+            continue;
+        }
         TBuffer& t_buffer = m_buffers[id];
         MultiVertexBuffer& v_multibuffer = vertices[id];
         InstanceBuffer& inst_buffer = instances[id];
@@ -5583,6 +5620,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::SameLine();
     if (wxGetApp().plater()->get_helio_process_status() != m_last_helio_process_status) {
         m_last_helio_process_status = wxGetApp().plater()->get_helio_process_status();
+        auto curr_plate_index       = wxGetApp().plater()->get_partplate_list().get_curr_plate_index();
         if ((int) Slic3r::HelioBackgroundProcess::State::STATE_FINISHED == m_last_helio_process_status) {
             update_thermal_options(true);
             for (int i = 0; i < view_type_items.size(); i++) {
@@ -5593,9 +5631,9 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             }
             set_view_type(EViewType::ThermalIndexMean);
             wxGetApp().plater()->get_notification_manager()->close_notification_of_type(NotificationType::HelioSlicingError);
+            m_helio_slice_map_oks[curr_plate_index] = true;
         } else if ((int) Slic3r::HelioBackgroundProcess::State::STATE_CANCELED == m_last_helio_process_status) {
-            update_thermal_options(false);
-            update_default_view_type();
+            reset_curr_plate_thermal_options(curr_plate_index);
         }
     }
     push_combo_style();

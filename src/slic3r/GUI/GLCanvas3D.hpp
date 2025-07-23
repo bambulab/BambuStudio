@@ -1020,6 +1020,7 @@ public:
     void on_paint(wxPaintEvent& evt);
     void on_kill_focus(wxFocusEvent &evt);
     void on_set_focus(wxFocusEvent& evt);
+    void on_back_slice_begin();
     void force_set_focus();
 
     Size get_canvas_size() const;

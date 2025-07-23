@@ -800,6 +800,8 @@ private:
     std::vector<int> m_plater_extruder;
     bool m_gl_data_initialized{ false };
     int m_last_helio_process_status{0};
+    std::map<int, bool> m_helio_slice_map_oks;
+    int                 m_last_back_process_status{0};
     unsigned int m_last_result_id{ 0 };
     size_t m_moves_count{ 0 };
     //BBS: save m_gcode_result as well
@@ -873,6 +875,8 @@ public:
     ~GCodeViewer();
 
     bool  is_helio_option() const;
+    bool  curr_plate_has_ok_helio_slice(int plate_idx) const;
+    void  update_option_item_when_load_gcode();
     void on_change_color_mode(bool is_dark);
     float m_scale = 1.0;
     void set_scale(float scale = 1.0);
@@ -880,6 +884,8 @@ public:
     void update_default_view_type();
     void update_by_mode(ConfigOptionMode mode);
     void update_thermal_options(bool add);
+    void reset_curr_plate_thermal_options();
+    void reset_curr_plate_thermal_options(int plate_idx);
     void init_thermal_icons();
     // extract rendering data from the given parameters
     //BBS: add only gcode mode

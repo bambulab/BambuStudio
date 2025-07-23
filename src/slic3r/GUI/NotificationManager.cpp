@@ -1695,7 +1695,7 @@ void NotificationManager::push_slicing_error_notification(const std::string &tex
 void NotificationManager::push_helio_error_notification(const std::string &text)
 {
     set_all_slicing_errors_gray(false);
-    push_notification_data({NotificationType::SlicingError, NotificationLevel::ErrorNotificationLevel, 0, _u8L("Error:") + "\n" + text, ""}, 0);
+    push_notification_data({NotificationType::HelioSlicingError, NotificationLevel::ErrorNotificationLevel, 0, _u8L("Error:") + "\n" + text, ""}, 0);
     set_slicing_progress_hidden();
 }
 

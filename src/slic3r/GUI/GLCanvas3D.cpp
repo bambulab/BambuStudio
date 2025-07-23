@@ -5264,6 +5264,10 @@ void GLCanvas3D::on_set_focus(wxFocusEvent& evt)
     m_tooltip_enabled = true;
 }
 
+void GLCanvas3D::on_back_slice_begin() {
+    m_gcode_viewer.reset_curr_plate_thermal_options();
+}
+
 Size GLCanvas3D::get_canvas_size() const
 {
     int w = 0;
@@ -6989,7 +6993,7 @@ bool GLCanvas3D::_update_imgui_select_plate_toolbar()
         return false;
     }
 
-    if (!p_plater->is_gcode_3mf()) { 
+    if (!p_plater->is_gcode_3mf()) {
         p_plater->update_all_plate_thumbnails(true);
     }
 
