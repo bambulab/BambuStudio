@@ -2779,6 +2779,8 @@ void StatusPanel::show_error_message(MachineObject *obj, bool is_exist, wxString
 
     if (is_exist && msg.IsEmpty()) {
         error_info_reset();
+        if (m_print_error_dlg) { m_print_error_dlg->Hide();}
+        if (m_print_error_dlg_no_action) { m_print_error_dlg_no_action->Hide(); }
     } else {
         if (msg.IsEmpty()) { msg = _L("Unknown error."); }
         m_project_task_panel->show_error_msg(msg);
