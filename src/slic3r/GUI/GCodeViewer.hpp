@@ -863,7 +863,8 @@ private:
     std::array<SequentialRangeCap, 2> m_sequential_range_caps;
 
     std::vector<CustomGCode::Item> m_custom_gcode_per_print_z;
-
+    ImTextureID                    m_helio_icon_dark_texture{nullptr};
+    ImTextureID                    m_helio_icon_texture{nullptr};
     bool m_contained_in_bed{ true };
     bool m_is_dark = false;
 
@@ -879,6 +880,7 @@ public:
     void update_default_view_type();
     void update_by_mode(ConfigOptionMode mode);
     void update_thermal_options(bool add);
+    void init_thermal_icons();
     // extract rendering data from the given parameters
     //BBS: add only gcode mode
     void load(const GCodeProcessorResult& gcode_result, const Print& print, const BuildVolume& build_volume,
