@@ -888,6 +888,10 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
                         wxGetApp().request_helio_supported_data();
                     }
                 }
+                else {
+                    wxGetApp().app_config->set_bool("helio_enable", false);
+                    checkbox->SetValue(false);
+                }
             }
         }
 
@@ -1273,11 +1277,25 @@ wxWindow* PreferencesDialog::create_general_page()
     helio_fun_panel->SetBackgroundColour(wxColour(248, 248, 248));
     wxBoxSizer *sizer_helio_fun = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *sizer_helio_fun_link = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *sizer_helio_title = new wxBoxSizer(wxHORIZONTAL);
+
+    auto helio_icon_helio = new wxStaticBitmap(helio_fun_panel, wxID_ANY, create_scaled_bitmap("helio_icon_dark", helio_fun_panel, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+
     auto helio_title_slice = create_item_title(_L("Helio Options"), helio_fun_panel, _L("Helio Options"));
     auto helio_item_switch_slice = create_item_checkbox(_L("Enable Helio slice"), helio_fun_panel, _L("Enable Helio slicing"), 50, "helio_enable");
+    auto helio_split_line = new wxPanel(helio_fun_panel, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    helio_split_line->SetMaxSize(wxSize(-1, 1));
+    helio_split_line->SetBackgroundColour(DESIGN_GRAY400_COLOR);
+
 
     auto helio_about_link = new LinkLabel(helio_fun_panel, _L("About Helio"), "https://www.helioadditive.com/");
-    auto helio_privacy_link = new LinkLabel(helio_fun_panel, _L("Helio Privacy Policy"), "https://www.helioadditive.com/");
+    LinkLabel* helio_privacy_link = nullptr;
+
+    if (GUI::wxGetApp().app_config->get("region") == "China") {
+        helio_privacy_link = new LinkLabel(helio_fun_panel, _L("Helio Privacy Policy"), "https://www.helioadditive.com/zh-cn/policies/privacy");
+    } else {
+        helio_privacy_link = new LinkLabel(helio_fun_panel, _L("Helio Privacy Policy"), "https://www.helioadditive.com/en-us/policies/privacy");
+    }
 
     helio_about_link->getLabel()->SetFont(::Label::Body_13);
     helio_privacy_link->getLabel()->SetFont(::Label::Body_13);
@@ -1296,8 +1314,14 @@ wxWindow* PreferencesDialog::create_general_page()
     helio_privacy_link->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_HAND); });
     helio_privacy_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_ARROW); });
 
+    sizer_helio_title->Add(0, 0, 0, wxLEFT, FromDIP(5));
+    sizer_helio_title->Add(helio_icon_helio, 0, wxALIGN_CENTER, FromDIP(0));
+    sizer_helio_title->Add(0, 0, 0, wxLEFT, FromDIP(3));
+    sizer_helio_title->Add(helio_title_slice, 0, wxALIGN_CENTER, FromDIP(0));
+    sizer_helio_title->Add(helio_split_line, 1, wxALIGN_CENTER, 0);
+
     sizer_helio_fun->Add(0, 0, 0, wxTOP, FromDIP(9));
-    sizer_helio_fun->Add(helio_title_slice, 0, wxTOP, FromDIP(0));
+    sizer_helio_fun->Add(sizer_helio_title, 0, wxEXPAND, FromDIP(0));
     sizer_helio_fun->Add(helio_item_switch_slice, 0, wxTOP, FromDIP(5));
     sizer_helio_fun->Add(sizer_helio_fun_link, 0, wxTOP, FromDIP(7));
     sizer_helio_fun->Add(0, 0, 0, wxTOP, FromDIP(9));
