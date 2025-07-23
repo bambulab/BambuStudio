@@ -102,6 +102,7 @@ void HelioQuery::request_support_material(const std::string helio_api_url, const
     http.timeout_connect(20)
         .timeout_max(100)
         .on_complete([url_copy, key_copy, page_copy](std::string body, unsigned status) {
+            BOOST_LOG_TRIVIAL(info) << "request_support_material" << body;
             nlohmann::json                         parsed_obj = nlohmann::json::parse(body);
             std::vector<HelioQuery::SupportedData> supported_materials;
 
@@ -113,15 +114,18 @@ void HelioQuery::request_support_material(const std::string helio_api_url, const
                             HelioQuery::SupportedData sp;
                             if (pobj.contains("id") && !pobj["id"].is_null()) { sp.id = pobj["id"].get<std::string>(); }
                             if (pobj.contains("name") && !pobj["id"].is_null()) { sp.name = pobj["name"].get<std::string>(); }
-
                             if (pobj.contains("alternativeNames") && pobj["alternativeNames"].is_object()) {
                                 auto alternativeNames = pobj["alternativeNames"];
 
+                                //bambu materials
                                 if (alternativeNames.contains("bambustudio") && !alternativeNames["bambustudio"].is_null()) {
                                     sp.native_name = alternativeNames["bambustudio"].get<std::string>();
                                 }
+                                //third party materials
+                                else {
+                                    if (pobj.contains("name") && !pobj["id"].is_null()) { sp.native_name = pobj["name"].get<std::string>(); }
+                                }
                             }
-
                             supported_materials.push_back(sp);
                         }
                     }
