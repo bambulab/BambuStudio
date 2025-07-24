@@ -303,22 +303,6 @@ bool PartPlate::get_spiral_vase_mode() const
 	return false;
 }
 
-std::vector<Vec2d> PartPlate::get_plate_wrapping_detection_area() const
-{
-    DynamicPrintConfig gconfig = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    ConfigOptionPoints *wrapping_path_opt        = gconfig.option<ConfigOptionPoints>("wrapping_detection_path");
-    ConfigOptionFloat *clearance_max_radius_opt = gconfig.option<ConfigOptionFloat>("extruder_clearance_max_radius");
-    if (wrapping_path_opt && clearance_max_radius_opt) {
-        std::vector<Vec2d> wrapping_area = get_wrapping_detection_area(wrapping_path_opt->values, clearance_max_radius_opt->value / 2);
-        for (Vec2d &pt : wrapping_area) {
-            pt += Vec2d(m_origin.x(), m_origin.y());
-        }
-        return wrapping_area;
-    }
-
-    return std::vector<Vec2d>();
-}
-
 void PartPlate::set_spiral_vase_mode(bool spiral_mode, bool as_global)
 {
 	std::string key = "spiral_mode";
@@ -3390,6 +3374,18 @@ void PartPlateList::calc_exclude_triangles(const ExPolygon &poly)
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create plate triangles\n";
 }
 
+void PartPlateList::calc_triangles_from_polygon(const ExPolygon &poly, GLModel &render_model){
+    if (poly.empty()) {
+        render_model.reset();
+        return;
+    }
+    auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
+    render_model.reset();
+    if (!render_model.init_model_from_poly(triangles, GROUND_Z)) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "calc_triangles_from_polygon fail";
+    }
+}
+
 void PartPlateList::calc_gridlines(const ExPolygon &poly, const BoundingBox &pp_bbox)
 {
     Polylines axes_lines, axes_lines_bolder;
@@ -4895,6 +4891,20 @@ int PartPlateList::construct_objects_list_for_new_plate(int plate_index)
 	return ret;
 }
 
+std::vector<Vec2d> PartPlateList::get_plate_wrapping_detection_area()
+{
+    DynamicPrintConfig  gconfig                  = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    ConfigOptionPoints *wrapping_path_opt        = gconfig.option<ConfigOptionPoints>("wrapping_detection_path");
+    ConfigOptionFloat * clearance_max_radius_opt = gconfig.option<ConfigOptionFloat>("extruder_clearance_max_radius");
+    if (wrapping_path_opt && clearance_max_radius_opt) {
+        std::vector<Vec2d> wrapping_area = get_wrapping_detection_area(wrapping_path_opt->values, clearance_max_radius_opt->value / 2);
+        auto origin = get_current_plate_origin();
+        for (Vec2d &pt : wrapping_area) { pt += Vec2d(origin.x(), origin.y()); }
+        return wrapping_area;
+    }
+
+    return std::vector<Vec2d>();
+}
 
 //compute the plate index
 int PartPlateList::compute_plate_index(arrangement::ArrangePolygon& arrange_polygon)
@@ -5214,6 +5224,23 @@ void PartPlateList::render_instance(bool bottom, bool only_current, bool only_bo
             shader->set_uniform("projection_matrix", proj_mat);
             if (!bottom) { // draw background
                 render_exclude_area(force_background_color); // for selected_plate
+                if(wxGetApp().plater()->get_enable_wrapping_detection()){
+                    if(!m_wrapping_detection_triangles.is_initialized()){
+                        auto points = get_plate_wrapping_detection_area();
+                        if (points.size() > 0) {//wrapping_detection_area
+                            ExPolygon temp_poly;
+                            for (const Vec2d &p : points) {
+                                temp_poly.contour.append({scale_(p(0)), scale_(p(1))});
+                            }
+                            auto      result = intersection(m_print_polygon, temp_poly);
+                            if (result.size() > 0) {
+                                ExPolygon wrapp_poly(result[0]);
+                                calc_triangles_from_polygon(wrapp_poly, m_wrapping_detection_triangles);
+                            }
+                        }
+                    }
+                    render_wrapping_detection_area(force_background_color);
+                }
             }
             if (show_grid)
                 render_grid(bottom); // for selected_plate
@@ -5337,6 +5364,15 @@ void PartPlateList::render_unselected_background(bool force_default_color)
     }
     m_triangles.set_color(color);
     m_triangles.render_geometry();
+}
+
+void PartPlateList::render_wrapping_detection_area(bool force_default_color)
+{
+    if (force_default_color || !m_wrapping_detection_triangles.is_initialized())
+        return;
+    ColorRGBA select_color{0.765f, 0.7686f, 0.7686f, 1.0f};
+    m_wrapping_detection_triangles.set_color(select_color);
+    m_wrapping_detection_triangles.render_geometry();
 }
 
 void PartPlateList::render_exclude_area(bool force_default_color)
@@ -5532,6 +5568,7 @@ bool PartPlateList::set_shapes(const Pointfs& shape, const Pointfs& exclude_area
     { // prepare render data
         ExPolygon poly;
         generate_print_polygon(poly);
+        m_print_polygon = poly;
         calc_triangles(poly);
 
 		ExPolygon exclude_poly;

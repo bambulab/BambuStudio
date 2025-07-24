@@ -247,8 +247,6 @@ public:
     bool get_spiral_vase_mode() const;
     void set_spiral_vase_mode(bool spiral_mode, bool as_global);
 
-    std::vector<Vec2d> get_plate_wrapping_detection_area() const;
-
     //static const int plate_x_offset = 20; //mm
     //static const double plate_x_gap = 0.2;
     ThumbnailData thumbnail_data;
@@ -631,6 +629,7 @@ private:
     void  calc_triangles(const ExPolygon &poly);
     void  calc_vertex_for_icons(int index, GLModel &gl_model);
     void  calc_exclude_triangles(const ExPolygon &poly);
+    void  calc_triangles_from_polygon(const ExPolygon &poly, GLModel& render_model);
     void  calc_gridlines(const ExPolygon &poly, const BoundingBox &pp_bbox);
     void  calc_vertex_for_number(int index, bool one_number, GLModel &gl_model);
 private:
@@ -644,9 +643,10 @@ private:
     std::vector<Geometry::Transformation> m_unselected_plate_trans;
     unsigned int                          m_unselected_plate_mats_vbo{0};
     bool                                  m_update_unselected_plate_mats_vbo{true};
-
+    ExPolygon                             m_print_polygon;
     GLModel                               m_triangles;
     GLModel                               m_exclude_triangles;
+    GLModel                               m_wrapping_detection_triangles;
     GLModel                               m_gridlines;
     GLModel                               m_gridlines_bolder;
     GLModel                               m_del_icon;
@@ -839,7 +839,7 @@ public:
 
     //reload objects for newly created plate
     int construct_objects_list_for_new_plate(int plate_index);
-
+    std::vector<Vec2d> get_plate_wrapping_detection_area();
     /* arrangement related functions */
     //compute the plate index
     int compute_plate_index(arrangement::ArrangePolygon& arrange_polygon);
@@ -869,6 +869,7 @@ public:
     void render_instance_background(bool force_default_color = false);
     void render_unselected_background(bool force_default_color);
     void render_grid(bool bottom);
+    void render_wrapping_detection_area(bool force_default_color);
     void render_exclude_area(bool force_default_color);
     void render_instance_exclude_area(bool force_default_color);
     void render_unselected_exclude_area(bool force_default_color);
