@@ -1689,14 +1689,14 @@ void GLGizmoText::load_init_text(bool first_open_text)
                     Vec3f closest_normal;
                     Vec3f closest_pt;
                     float min_dist     = 1e6;
-                    Vec3f local_center = m_text_tran_in_object.get_offset().cast<float>(); //(m_text_tran_in_object.get_matrix() * box.center()).cast<float>();
+                    Vec3f local_center = m_text_tran_in_world.get_offset().cast<float>(); //(m_text_tran_in_object.get_matrix() * box.center()).cast<float>();
                     for (int i = 0; i < mo->volumes.size(); i++) {
                         auto mv = mo->volumes[i];
                         if (mv == model_volume || !filter_model_volume(mv)) {
                             continue;
                         }
                         TriangleMesh text_attach_mesh(mv->mesh());
-                        text_attach_mesh.transform(mv->get_matrix());
+                        text_attach_mesh.transform(m_model_object_in_world_tran.get_matrix() * mv->get_matrix());
                         MeshRaycaster temp_ray_caster(text_attach_mesh);
                         Vec3f         temp_normal;
                         Vec3f         temp_closest_pt = temp_ray_caster.get_closest_point(local_center, &temp_normal);
@@ -1712,18 +1712,19 @@ void GLGizmoText::load_init_text(bool first_open_text)
                         if (m_rr.mesh_id != valid_mesh_id) {
                             m_rr.mesh_id = valid_mesh_id;
                         }
-                        m_rr.normal = closest_normal;
-                        m_rr.hit = closest_pt;
                         if (m_trafo_matrices.empty()) {
                             update_trafo_matrices();
                         }
+                        Geometry::Transformation temp__tran(m_trafo_matrices[m_rr.mesh_id]);
+                        m_rr.normal     = temp__tran.get_matrix_no_offset().cast<float>().inverse() * closest_normal;
+                        m_rr.hit        = temp__tran.get_matrix().cast<float>().inverse() * closest_pt;
                         auto         mv = mo->volumes[m_rr.mesh_id];
                         TriangleMesh text_attach_mesh(mv->mesh());
                         text_attach_mesh.transform(mv->get_matrix());
                         MeshRaycaster temp_ray_caster(text_attach_mesh);
 
-                        m_fix_text_position_in_world = m_model_object_in_world_tran.get_matrix() * closest_pt.cast<double>();
-                        m_fix_text_normal_in_world   = (mi->get_transformation().get_matrix_no_offset().cast<float>() * closest_normal).normalized();
+                        m_fix_text_position_in_world =  closest_pt.cast<double>();
+                        m_fix_text_normal_in_world   =  closest_normal;
                         if (is_old_text_info(text_info)) {
                             int   face_id;
                             Vec3f direction = m_text_tran_in_world.get_matrix().linear().col(2).cast<float>();
@@ -2922,26 +2923,14 @@ void GLGizmoText::reset_text_info()
 void GLGizmoText::update_text_pos_normal() {
     if (m_rr.mesh_id < 0) { return; }
     if (m_rr.normal.norm() < 0.1) { return; }
-    const Selection &selection = m_parent.get_selection();
-    auto mo                    = selection.get_model()->objects[m_object_idx];
-    if (mo == nullptr) {
-        BOOST_LOG_TRIVIAL(info) << boost::format("Text: selected object is null");
-        return;
-    }
-    const ModelInstance *mi        = mo->instances[selection.get_instance_idx()];
-
-    std::vector<Geometry::Transformation> w_matrices;
-    std::vector<Geometry::Transformation> mv_trans;
-    for (ModelVolume *mv : mo->volumes) {
-         w_matrices.emplace_back(Geometry::Transformation(mi->get_transformation().get_matrix() * mv->get_matrix()));
-         mv_trans.emplace_back(Geometry::Transformation(mv->get_matrix()));
-    }
+    if (m_rr.mesh_id >= m_trafo_matrices.size()) { return; }
 #ifdef DEBUG_TEXT_VALUE
     m_rr.hit    = Vec3f(-0.58, -1.70, -12.8);
     m_rr.normal = Vec3f(0,0,-1);//just rotate cube
 #endif
-    m_text_position_in_world  = w_matrices[m_rr.mesh_id].get_matrix() * m_rr.hit.cast<double>();
-    m_text_normal_in_world    = (w_matrices[m_rr.mesh_id].get_matrix_no_offset().cast<float>() * m_rr.normal).normalized();
+    Geometry::Transformation cur_tran(m_trafo_matrices[m_rr.mesh_id]);
+    m_text_position_in_world = cur_tran.get_matrix() * m_rr.hit.cast<double>();
+    m_text_normal_in_world   = (cur_tran.get_matrix_no_offset().cast<float>() * m_rr.normal).normalized();
 }
 
 bool GLGizmoText::filter_model_volume(ModelVolume *mv) {
@@ -3137,7 +3126,7 @@ bool GLGizmoText::update_raycast_cache(const Vec2d &mouse_position, const Camera
     if (m_rr.mouse_position == mouse_position) {
         return false;
     }
-
+    if (m_object_idx < 0) { return false; }
     Vec3f  normal                       = Vec3f::Zero();
     Vec3f  hit                          = Vec3f::Zero();
     size_t facet                        = 0;
@@ -3146,10 +3135,15 @@ bool GLGizmoText::update_raycast_cache(const Vec2d &mouse_position, const Camera
     double closest_hit_squared_distance = std::numeric_limits<double>::max();
     int    closest_hit_mesh_id          = -1;
 
+    const Selection &selection = m_parent.get_selection();
+    auto             mo        = selection.get_model()->objects[m_object_idx];
     // Cast a ray on all meshes, pick the closest hit and save it for the respective mesh
     for (int mesh_id = 0; mesh_id < int(trafo_matrices.size()); ++mesh_id) {
         if (exclude_last && mesh_id == int(trafo_matrices.size()) - 1)
             continue;
+        if (!filter_model_volume(mo->volumes[mesh_id])) {
+            continue;
+        }
         if (mesh_id < m_c->raycaster()->raycasters().size()&& m_c->raycaster()->raycasters()[mesh_id]->unproject_on_mesh(mouse_position, trafo_matrices[mesh_id], camera, hit, normal,
                                                                                   m_c->object_clipper()->get_clipping_plane(),
                                                                        &facet)) {
