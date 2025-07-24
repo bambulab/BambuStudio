@@ -799,6 +799,7 @@ public:
 private:
     std::vector<int> m_plater_extruder;
     bool m_gl_data_initialized{ false };
+    int m_last_non_helio_option_item{0};
     int m_last_helio_process_status{0};
     std::map<int, bool> m_helio_slice_map_oks;
     int                 m_last_back_process_status{0};
@@ -881,7 +882,7 @@ public:
     float m_scale = 1.0;
     void set_scale(float scale = 1.0);
     void init(ConfigOptionMode mode, Slic3r::PresetBundle* preset_bundle);
-    void update_default_view_type();
+    void update_default_view_type(int index =-1);
     void update_by_mode(ConfigOptionMode mode);
     void update_thermal_options(bool add);
     void reset_curr_plate_thermal_options();
@@ -938,14 +939,7 @@ public:
     bool is_only_gcode_in_preview() const { return m_only_gcode_in_preview; }
 
     EViewType get_view_type() const { return m_view_type; }
-    void set_view_type(EViewType type, bool reset_feature_type_visible = true) {
-        if (type == EViewType::Count)
-            type = EViewType::FeatureType;
-        m_view_type = (EViewType)type;
-        if (reset_feature_type_visible && type == EViewType::ColorPrint) {
-            reset_visible(EViewType::FeatureType);
-        }
-    }
+    void      set_view_type(EViewType type, bool reset_feature_type_visible = true);
     void reset_visible(EViewType type) {
         if (type == EViewType::FeatureType) {
             for (size_t i = 0; i < m_roles.size(); ++i) {
