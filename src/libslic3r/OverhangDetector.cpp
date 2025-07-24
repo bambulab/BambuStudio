@@ -334,4 +334,175 @@ namespace Slic3r {
     {
         return distancer.template distance_from_lines_extra<true>(point);
     }
+
+    double get_base_degree(double d, double degree_trace)
+    {
+        double degee_base = int(d / degree_trace) * degree_trace;
+        return degee_base >= max_overhang_degree ? max_overhang_degree : degee_base;
+    };
+
+    double get_mapped_degree(double overhang_dist, double lower_bound, double upper_bound)
+    {
+        // BBS : calculate overhang degree -- overhang length / width
+        double this_degree = (overhang_dist - lower_bound) / (upper_bound - lower_bound) * 100;
+        // BBS: covert to terraced overhang
+        double terraced_overhang = 0;
+        if (this_degree >= 100)
+            terraced_overhang = max_overhang_degree;
+        else if (this_degree > EPSILON * 100) {
+            int upper_bound_idx = std::upper_bound(non_uniform_degree_map.begin(), non_uniform_degree_map.end(), this_degree) - non_uniform_degree_map.begin();
+            int lower_bound_idx = upper_bound_idx - 1;
+
+            double t = (this_degree - non_uniform_degree_map[lower_bound_idx]) / (non_uniform_degree_map[upper_bound_idx] - non_uniform_degree_map[lower_bound_idx]);
+            terraced_overhang = (1.0 - t) * lower_bound_idx + t * upper_bound_idx;
+        }
+
+        return terraced_overhang;
+    }
+
+    void merged_with_degree(std::vector<SplitPoly> &in) {
+        std::vector<SplitPoly> out;
+
+        // standardization
+        Polyline merged_lines;
+        double   degree_base = -1;
+        for (size_t idx = 0; idx < in.size(); idx ++) {
+            double degree = get_base_degree(in[idx].degree, min_degree_gap_classic);
+
+            if (!merged_lines.empty() && degree_base != degree) {
+                out.emplace_back(SplitPoly(merged_lines, degree_base));
+                merged_lines.clear();
+            }
+            degree_base = degree;
+            merged_lines.append(in[idx].polyline);
+        }
+
+        if (!merged_lines.empty()) {
+             out.emplace_back(SplitPoly(merged_lines, degree_base));
+        }
+
+        in = std::move(out);
+    }
+
+    void smoothing_degrees(SplitLines &lines)
+    {
+        // too short
+        if (lines.start.empty() || lines.middle.empty())
+            return;
+
+        double d1 = lines.start.back().degree;
+        double d2 = lines.end.front().degree;
+
+        if (lines.middle.front().polyline.length() < 2 * cut_length || std::abs(d2 - d1) < min_degree_gap_classic) {
+            lines.middle.front().degree = (d2 + d1)/2;
+            return;
+        }
+
+        std::vector<SplitPoly> out;
+        //BBS: smoothing polyline by degree
+        // compare cut length and degree
+        double length = lines.middle.front().polyline.length();
+        int length_cut = length / cut_length;
+        int degree_cut = std::abs(d2 - d1) / min_degree_gap_classic / 0.6;
+        int count = std::min(length_cut, degree_cut);
+        double cut_gap    = length / count;
+        double degree_gap = (d2 - d1) / count;
+        //cut
+        Point dir   = lines.middle.front().polyline.back() - lines.middle.front().polyline.front();
+        Point start = lines.middle.front().polyline.front();
+        Point end;
+        for (size_t idx = 0; idx < count - 1; idx ++) {
+            double t = (idx + 1) * cut_gap / length;
+            end      = lines.middle.front().polyline.front() + dir * t;
+            double degree = d1 + (idx + 1) * degree_gap;
+            out.push_back(SplitPoly(Polyline(start, end), degree));
+            start = end;
+        }
+        out.push_back(SplitPoly(Polyline(start, lines.middle.front().polyline.back()), d1 + count * degree_gap));
+        lines.middle = out;
+    }
+
+    void check_degree( DegreePolylines &input, const std::unique_ptr<OverhangDistancer> &prev_layer_distancer, const double &lower_bound, const double &upper_bound, std::vector<SplitPoly> &out)
+    {
+        auto chek_overhang = [&](std::vector<SplitPoly> &lines) {
+            for (size_t i = 0; i < lines.size(); ++i) {
+                Point  mid           = (lines[i].polyline.front() + lines[i].polyline.back()) / 2;
+                double overhang_dist = prev_layer_distancer->distance_from_perimeter(mid.cast<float>());
+                lines[i].degree      = get_mapped_degree(overhang_dist, lower_bound, upper_bound);
+            }
+        };
+
+        for (size_t idx = 0; idx < input.size(); ++idx) {
+            // check each part's degree
+            if (input[idx].start.empty())
+                chek_overhang(input[idx].middle);
+            else {
+                chek_overhang(input[idx].start);
+                chek_overhang(input[idx].end);
+            }
+
+            // smoothing
+            smoothing_degrees(input[idx]);
+            out.insert(out.end(), input[idx].start.begin(), input[idx].start.end());
+            out.insert(out.end(), input[idx].middle.begin(), input[idx].middle.end());
+            out.insert(out.end(), input[idx].end.begin(), input[idx].end.end());
+        }
+    }
+
+    DegreePolylines prepare_split_polylines(Polyline polyline)
+    {
+        DegreePolylines out;
+        if(polyline.size() == 2)
+            out.emplace_back(SplitLines(polyline, true));
+        else {
+            for (size_t idx = 0; idx < polyline.size() - 1; idx++) {
+                out.emplace_back(SplitLines(Polyline(polyline[idx], polyline[idx + 1]), false));
+            }
+        }
+
+        return out;
+    }
+
+
+    void detect_overhang_degree(Polygons lower_polygons,
+                                const ExtrusionRole & role,
+                                double extrusion_mm3_per_mm,
+                                double extrusion_width,
+                                double layer_height,
+                                Polylines       middle_overhang_polyines,
+                                const double    &lower_bound,
+                                const double    &upper_bound,
+                                ExtrusionPaths   &paths)
+    {
+        // BBS: collect lower_polygons points
+        //Polylines;
+        Points lower_polygon_points;
+        std::vector<size_t> polygons_bound;
+
+        std::unique_ptr<OverhangDistancer> prev_layer_distancer;
+        prev_layer_distancer = std::make_unique<OverhangDistancer>(lower_polygons);
+        //BBS: get overhang degree and split path
+        for (size_t polyline_idx = 0; polyline_idx < middle_overhang_polyines.size(); ++polyline_idx) {
+            //filter too short polyline
+            std::vector<SplitPoly> out;
+
+            Polyline middle_poly = middle_overhang_polyines[polyline_idx];
+            DegreePolylines splited_lines = prepare_split_polylines(middle_poly);
+            check_degree(splited_lines, prev_layer_distancer, lower_bound, upper_bound, out);
+
+            merged_with_degree(out);
+            // merge path by degree
+            for (SplitPoly &polylines_collection : out)
+                extrusion_paths_append(paths,
+                                       std::move(polylines_collection.polyline),
+                                       polylines_collection.degree,
+                                       int(0),
+                                       role,
+                                       extrusion_mm3_per_mm,
+                                       extrusion_width,
+                                       layer_height);
+            out.clear();
+        }
+    }
+
 }
