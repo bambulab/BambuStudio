@@ -9,6 +9,7 @@
 #include "libslic3r/Model.hpp"
 #include "../GUI/MsgDialog.hpp"
 #include "BBLUtil.hpp"
+#include "../GUI/Plater.hpp"
 
 
 namespace Slic3r {
@@ -74,6 +75,16 @@ wxString get_nozzle_volume_type_name(NozzleVolumeType type)
         return _L("High Flow");
     }
     return wxString();
+}
+
+static int get_physical_extruder_idx(std::vector<int> physical_extruder_maps, int extruder_id)
+{
+    for (size_t index = 0; index < physical_extruder_maps.size(); ++index) {
+        if (physical_extruder_maps[index] == extruder_id) {
+            return index;
+        }
+    }
+    return extruder_id;
 }
 
 bool is_pa_params_valid(const Calib_Params &params)
@@ -1174,26 +1185,13 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
         return false;
     }
 
-    float cali_diameter = cali_infos.calib_datas[0].nozzle_diameter;
-    int   extruder_id   = cali_infos.calib_datas[0].extruder_id;
     for (const auto& cali_info : cali_infos.calib_datas) {
         if (cali_infos.cali_mode == CalibMode::Calib_PA_Line && !is_support_auto_pa_cali(cali_info.filament_id)) {
             error_message = _L("TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration.");
             return false;
         }
-
-        if (!is_approx(cali_diameter, cali_info.nozzle_diameter)) {
-            error_message = _L("Automatic calibration only supports cases where the left and right nozzle diameters are identical.");
-            return false;
-        }
     }
 
-    if (extruder_id >= obj->m_extder_data.extders.size()) {
-        error_message = _L("The number of printer extruders and the printer selected for calibration does not match.");
-        return false;
-    }
-
-    float diameter = obj->m_extder_data.extders[extruder_id].current_nozzle_diameter;
     bool  is_multi_extruder = obj->is_multi_extruders();
     std::vector<NozzleFlowType> nozzle_volume_types;
     if (is_multi_extruder) {
@@ -1202,11 +1200,23 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
         }
     }
 
+    Preset *printer_preset = get_printer_preset(obj);
+
     for (const auto &cali_info : cali_infos.calib_datas) {
         wxString name = _L("left");
         if (cali_info.extruder_id == 0) {
             name = _L("right");
         }
+
+        float cali_diameter = cali_info.nozzle_diameter;
+        int   extruder_id   = cali_info.extruder_id;
+
+        if (extruder_id >= obj->m_extder_data.extders.size()) {
+            error_message = _L("The number of printer extruders and the printer selected for calibration does not match.");
+            return false;
+        }
+
+        float diameter = obj->m_extder_data.extders[extruder_id].current_nozzle_diameter;
 
         if (!is_approx(cali_info.nozzle_diameter, diameter)) {
             if (is_multi_extruder)
