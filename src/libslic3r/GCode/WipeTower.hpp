@@ -349,17 +349,21 @@ public:
     std::vector<int> m_filament_categories;
     const MultiNozzleUtils::MultiNozzleGroupResult *m_multi_nozzle_group_result{nullptr};
 
+
+    enum class WipeTowerLayerType : unsigned char { Normal, Contact, Solid};// Contact layer should be solid and reduce feed
+
 	struct WipeTowerBlock
     {
         int              block_id{0};
         int              filament_adhesiveness_category{0};
         std::vector<float>      layer_depths;
-		std::vector<bool>       solid_infill;
+        //std::vector<bool>       solid_infill;
         std::vector<float>      finish_depth{0}; // the start pos of finish frame for every layer
+        std::vector<WipeTowerLayerType> layers_type;     // type of the layer, normal, Contact or Solid
         float            depth{0};
         float            start_depth{0};
         float            cur_depth{0};
-		int              last_filament_change_id{-1};
+        int              last_filament_change_id{-1};
         int              last_nozzle_change_id{-1};
 	};
 
@@ -386,7 +390,7 @@ public:
     void generate_new(std::vector<std::vector<WipeTower::ToolChangeResult>> &result);
 
 	void plan_tower_new();
-	void generate_wipe_tower_blocks();
+	void generate_wipe_tower_blocks(bool add_solid_flag);
     void update_all_layer_depth(float wipe_tower_depth);
     void set_nozzle_last_layer_id();
     void set_first_layer_flow_ratio(const float flow_ratio);
