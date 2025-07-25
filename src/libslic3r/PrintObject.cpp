@@ -315,6 +315,61 @@ std::vector<std::set<int>> PrintObject::detect_extruder_geometric_unprintables()
     return geometric_unprintables;
 }
 
+
+
+std::unordered_map<int, std::unordered_map<int,double>>  PrintObject::calc_estimated_filament_print_time() const
+{
+    auto get_limit_from_volumetric_speed = [&](int filament_idx, int extruder_idx, double width, double height) {
+        double max_volumetric_speed = print()->config().filament_max_volumetric_speed.values[extruder_idx];
+        double flow_ratio = print()->config().filament_flow_ratio.values[extruder_idx];
+
+        double mm3_per_mm = height * (width - height * (1 - PI / 4)) * flow_ratio;
+        return max_volumetric_speed / mm3_per_mm;
+        };
+
+    std::unordered_map<int, std::unordered_map<int,double>> filament_print_time;
+    // Iterate through all layers and regions to calculate the print area for each filament.
+    int extruder_num = this->print()->config().nozzle_diameter.size();
+    for (size_t idx = 0; idx < m_layers.size(); ++idx) {
+        auto layer = m_layers[idx];
+
+        for (auto layerm : layer->regions()) {
+            const auto& region = layerm->region();
+            double sparse_width = region.config().sparse_infill_line_width;
+            double solid_width = region.config().internal_solid_infill_line_width;
+            double wall_width = (region.config().outer_wall_line_width + region.config().inner_wall_line_width) / 2.f;
+
+            int wall_filament = region.config().wall_filament - 1;
+            int solid_infill_filament = region.config().solid_infill_filament - 1;
+            int sparse_infill_filament = region.config().sparse_infill_filament - 1;
+
+            auto sparse_infill_surfaces = layerm->fill_surfaces.filter_by_type(stInternal);
+            double sparse_area = unscale_(unscale_(std::accumulate(sparse_infill_surfaces.begin(), sparse_infill_surfaces.end(), 0.0, 
+                [](double val, const Surface* surface) { return val + surface->area(); })));
+            double full_area = unscale_(unscale_(get_expolygons_area(layerm->raw_slices)));
+            double infill_area = unscale_(unscale_(get_expolygons_area(layerm->fill_expolygons)));
+            double solid_area = infill_area - sparse_area;
+            double wall_area = full_area - infill_area;
+            sparse_area *= region.config().sparse_infill_density.value / 100.0;
+
+            for (int eidx = 0; eidx < extruder_num; ++eidx) {
+                double sparse_speed = std::min(region.config().sparse_infill_speed.values[eidx], get_limit_from_volumetric_speed(sparse_infill_filament, eidx, sparse_width, layer->height));
+                double solid_speed = std::min(region.config().internal_solid_infill_speed.values[eidx], get_limit_from_volumetric_speed(solid_infill_filament, eidx, solid_width, layer->height));
+                double wall_speed = std::min((region.config().inner_wall_speed.values[eidx] + region.config().outer_wall_speed.values[eidx]) / 2.0, get_limit_from_volumetric_speed(wall_filament, eidx, wall_width, layer->height));
+
+                double sparse_time = sparse_area / (sparse_speed * sparse_width);
+                double solid_time = solid_area / (solid_speed * solid_width);
+                double wall_time = wall_area / (wall_speed * wall_width);
+
+                filament_print_time[solid_infill_filament][eidx] += solid_time;
+                filament_print_time[sparse_infill_filament][eidx] += sparse_time;
+                filament_print_time[wall_filament][eidx] += wall_time;
+            }
+        }
+    }
+    return filament_print_time;
+}
+
 // 1) Merges typed region slices into stInternal type.
 // 2) Increases an "extra perimeters" counter at region slices where needed.
 // 3) Generates perimeters, gap fills and fill regions (fill regions of type stInternal).

@@ -559,6 +559,8 @@ private:
      */
     std::vector<std::set<int>> detect_extruder_geometric_unprintables() const;
 
+    std::unordered_map<int, std::unordered_map<int,double>> calc_estimated_filament_print_time() const;
+
     void slice_volumes();
     //BBS
     ExPolygons _shrink_contour_holes(double contour_delta, double hole_delta, const ExPolygons& polys) const;
@@ -936,6 +938,9 @@ public:
     void set_geometric_unprintable_filaments(const std::vector<std::set<int>> &unprintables_filament_ids) { m_geometric_unprintable_filaments = unprintables_filament_ids; }
     std::vector<std::set<int>> get_geometric_unprintable_filaments() const { return m_geometric_unprintable_filaments;}
 
+    void set_filament_print_time(const std::unordered_map<int, std::unordered_map<int,double>>& filament_print_time) { m_filament_print_time = filament_print_time; }
+    std::unordered_map<int,std::unordered_map<int,double>> get_filament_print_time() const { return m_filament_print_time; }
+
     void set_slice_used_filaments(const std::vector<unsigned int> &first_layer_used_filaments, const std::vector<unsigned int> &used_filaments){
         m_slice_used_filaments_first_layer = first_layer_used_filaments;
         m_slice_used_filaments = used_filaments;
@@ -1090,6 +1095,7 @@ private:
     bool              m_has_auto_filament_map_result{false};
 
     std::vector<std::set<int>> m_geometric_unprintable_filaments;
+    std::unordered_map<int, std::unordered_map<int, double>> m_filament_print_time;
 
     // OrcaSlicer: calibration
     Calib_Params m_calib_params;

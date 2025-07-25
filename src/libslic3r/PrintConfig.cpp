@@ -1943,6 +1943,9 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5));
 
+    def = this->add("group_algo_with_time", coBool);
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("machine_prepare_compensation_time", coFloat);
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloat(260));

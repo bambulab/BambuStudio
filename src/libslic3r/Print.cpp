@@ -2008,6 +2008,20 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
             this->set_geometric_unprintable_filaments(geometric_unprintables);
         }
 
+        {
+            std::unordered_map<int,std::unordered_map<int,double>> filament_print_time;
+            for(PrintObject* obj : m_objects){
+                auto obj_filament_print_time = obj->calc_estimated_filament_print_time();
+                for(auto [filament_idx,extruder_time] : obj_filament_print_time) {
+                    for (auto [extruder_idx, time] : extruder_time) {
+                        filament_print_time[filament_idx][extruder_idx] += time;
+                    }
+                }
+            }
+            this->set_filament_print_time(filament_print_time);
+        }
+
+
         m_wipe_tower_data.clear();
         m_tool_ordering.clear();
         if (this->has_wipe_tower()) {
@@ -2085,8 +2099,6 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
                 std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value + 1; });
                 update_filament_maps_to_config(filament_maps);
             }
-            // check map valid both in auto and mannual mode
-            std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) {return value - 1; });
 
             //        print_object_instances_ordering = sort_object_instances_by_max_z(print);
             print_object_instance_sequential_active = print_object_instances_ordering.begin();
