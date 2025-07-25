@@ -2093,13 +2093,6 @@ void GUI_App::init_networking_callbacks()
                         MachineObject *obj = dev->get_selected_machine();
                         if (!obj) return;
 
-                        if (obj->nt_try_local_tunnel && obj->connection_type() == "cloud") {
-                            if (obj->is_connected()) {
-                                obj->disconnect();
-                            }
-                            obj->nt_reset_data();
-                        }
-
                         /* resubscribe the cache dev list */
                         if (this->is_enable_multi_machine()) {
 
@@ -2177,7 +2170,7 @@ void GUI_App::init_networking_callbacks()
                                 GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
                             } else if (state == ConnectStatus::ConnectStatusFailed) {
                                 m_device_manager->localMachineList.erase(obj->dev_id);
-                                m_device_manager->set_selected_machine("", true);
+                                m_device_manager->set_selected_machine("");
                                 wxString text;
                                 if (msg == "5") {
                                     obj->set_access_code("");
@@ -2193,7 +2186,7 @@ void GUI_App::init_networking_callbacks()
                                 //obj->set_access_code("");
                                 //obj->erase_user_access_code();
                                 //m_device_manager->localMachineList.erase(obj->dev_id);
-                                m_device_manager->set_selected_machine("", true);
+                                m_device_manager->set_selected_machine("");
                                 event.SetInt(-1);
                                 BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = lost";
                             } else {
@@ -2639,7 +2632,7 @@ void GUI_App::MacPowerCallBack(void* refcon, io_service_t service, natural_t mes
     {
         if (dev_manager && !last_selected_machine.empty())
         {
-            dev_manager->set_selected_machine(last_selected_machine, true);
+            dev_manager->set_selected_machine(last_selected_machine);
             BOOST_LOG_TRIVIAL(info) << "MacPowerCallBack restore selected machine:" << last_selected_machine;
         }
     };
