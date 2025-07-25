@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-17 11:15+0800\n"
+"POT-Creation-Date: 2025-07-25 09:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -23,10 +23,10 @@ msgid "The filament model is unknown. Generic filament presets will be used."
 msgstr "Modello filamento sconosciuto. Verrà utilizzato un preset di filamento generico"
 
 msgid "The filament may not be compatible with the current machine settings. A random filament preset will be used."
-msgstr "Il filamento potrebbe non essere compatibile con le impostazioni correnti della macchina. Verrà utilizzato un preset filamento a caso."
+msgstr "Il filamento potrebbe non essere compatibile con le impostazioni correnti della macchina. Verrà utilizzato un preset filamento casuale."
 
 msgid "The filament model is unknown. A random filament preset will be used."
-msgstr "Modello filamento sconosciuto. Verrà utilizzato un preset filamento a caso."
+msgstr "Modello filamento sconosciuto. Verrà utilizzato un preset filamento casuale."
 
 msgid "Current AMS humidity"
 msgstr "Umidità attuale AMS"
@@ -3312,6 +3312,11 @@ msgstr ""
 "Massima velocità volumetrica troppo bassa.\n"
 "Ripristina a 0.5"
 
+msgid ""
+"Should not large than 100%.\n"
+"Reset to defualt"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"
 msgstr "Se la temperatura attuale della camera è superiore alla temperatura di sicurezza del materiale, potrebbe verificarsi un ammorbidimento e un intasamento del materiale. La temperatura massima di sicurezza per il materiale è %d"
@@ -3728,6 +3733,63 @@ msgstr "Il PPS-CF è fragile e potrebbe rompersi in un tubo PTFE piegato sopra l
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "Il PPA-CF è fragile e potrebbe rompersi in un tubo PTFE piegato sopra la testa di stampa."
 
+msgid "Resume Printing"
+msgstr "Riprendi Stampa"
+
+msgid "Resume (defects acceptable)"
+msgstr "Riprendi (difetti accettabili)"
+
+msgid "Resume (problem solved)"
+msgstr "Riprendi (problema risolto)"
+
+msgid "Stop Printing"
+msgstr "Interrompi Stampa"
+
+msgid "Check Assistant"
+msgstr "Assistente di controllo"
+
+msgid "Filament Extruded, Continue"
+msgstr "Filamento Estruso, Continua"
+
+msgid "Not Extruded Yet, Retry"
+msgstr "Non ancora estruso, riprova"
+
+msgid "Finished, Continue"
+msgstr "Finito, Continua"
+
+msgid "Load Filament"
+msgstr "Carica filamento"
+
+msgid "Filament Loaded, Resume"
+msgstr "Filamento Caricato, Riprendi"
+
+msgid "View Liveview"
+msgstr "Vista Liveview"
+
+msgid "No Reminder Next Time"
+msgstr "Nessun promemoria la prossima volta."
+
+msgid "Ignore. Don't Remind Next Time"
+msgstr "Ignora. Non ricordarlo la prossima volta."
+
+msgid "Ignore this and Resume"
+msgstr "Ignora e riprendi"
+
+msgid "Problem Solved and Resume"
+msgstr "Problema risolto, riprendi"
+
+msgid "Stop Buzzer"
+msgstr ""
+
+msgid "Retry (problem solved)"
+msgstr "Riprova (problema risolto)"
+
+msgid "Stop Drying"
+msgstr "Interrompi l'asciugatura"
+
+msgid "Unknown error."
+msgstr "Errore sconosciuto."
+
 msgid "default"
 msgstr "predefinito"
 
@@ -3781,6 +3843,15 @@ msgstr "Larghezza linea"
 msgid "Fan Speed"
 msgstr "Velocità ventola"
 
+msgid "Thermal Index (min)"
+msgstr ""
+
+msgid "Thermal Index (max)"
+msgstr ""
+
+msgid "Thermal Index (mean)"
+msgstr ""
+
 msgid "Flow"
 msgstr "Flusso"
 
@@ -3810,6 +3881,18 @@ msgstr "Velocità ventola:"
 
 msgid "Temperature: "
 msgstr "Temperatura:"
+
+msgid "Thermal Index"
+msgstr ""
+
+msgid "Min: "
+msgstr ""
+
+msgid "Max: "
+msgstr ""
+
+msgid "Mean: "
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "Caricamento del G-code"
@@ -3910,6 +3993,9 @@ msgstr "da"
 msgid "Slicing Result"
 msgstr "Risultato dello slicing"
 
+msgid "Helio Action"
+msgstr ""
+
 msgid "Color Scheme"
 msgstr "Schema Colore"
 
@@ -3936,9 +4022,6 @@ msgstr "Temperatura (°C)"
 
 msgid "Volumetric flow rate (mm³/s)"
 msgstr "Flusso volumetrico (mm³/s)"
-
-msgid "Layer Time (s)"
-msgstr "Layer Time (s)"
 
 msgid "Travel"
 msgstr "Spostamento"
@@ -5085,13 +5168,6 @@ msgstr "Caricamento non riuscito"
 msgid "Browsing file in storage is not supported in current firmware. Please update the printer firmware."
 msgstr "L'esplorazione dei file nella memoria non è supportata dal firmware corrente. Aggiorna il firmware della stampante."
 
-msgid ""
-"Please check if the storage is inserted into the printer.\n"
-"If it still cannot be read, you can try formatting the storage."
-msgstr ""
-"Verifica se la memoria è inserita nella stampante.\n"
-"Se ancora non può essere letto, puoi provare a formattare la memoria."
-
 msgid "LAN Connection Failed (Failed to view sdcard)"
 msgstr "Connessione LAN fallita (Impossibile visualizzare la sdcard)"
 
@@ -5177,6 +5253,13 @@ msgstr "Errore checksum del file. Riprova."
 
 msgid "Not supported on the current printer version."
 msgstr "Non supportato dalla versione attuale della stampante."
+
+msgid ""
+"Please check if the storage is inserted into the printer.\n"
+"If it still cannot be read, you can try formatting the storage."
+msgstr ""
+"Verifica se la memoria è inserita nella stampante.\n"
+"Se ancora non può essere letto, puoi provare a formattare la memoria."
 
 msgid "The firmware version of the printer is too low. Please update the firmware and try again."
 msgstr "La versione del firmware stampante è obsoleta. Aggiorna il firmware e riprova."
@@ -5402,9 +5485,6 @@ msgstr "Annulla la stampa"
 msgid "Are you sure you want to stop this print?"
 msgstr "Sei sicuro di voler interrompere questa stampa?"
 
-msgid "Unknown error."
-msgstr "Errore sconosciuto."
-
 msgid "The printer is busy on other print job"
 msgstr "La stampante è occupata con altro lavoro di stampa."
 
@@ -5475,8 +5555,8 @@ msgstr "Sport"
 msgid "Ludicrous"
 msgstr "Ludicrous"
 
-msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
-msgstr "Spegnere le luci durante l'attività causerà il fallimento del monitoraggio dell'IA, come il rilevamento degli spaghetti. Scegli con attenzione."
+msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti detection. Please choose carefully."
+msgstr "Spegnere le luci durante l'attività potrebbe ridurre l'efficacia del monitoraggio AI, come il rilevamento di spaghetti. Scegli con attenzione."
 
 msgid "Keep it On"
 msgstr "Tienilo acceso"
@@ -5919,8 +5999,8 @@ msgstr "Ispezione del primo layer"
 msgid "Auto-recovery from step loss"
 msgstr "Recupero automatico perdita passi"
 
-msgid "Open Door Dectection"
-msgstr "Rilevamento Apertura Porta"
+msgid "Open Door Detection"
+msgstr "Rilevamento porta aperta"
 
 msgid "Notification"
 msgstr "Notifica"
@@ -6156,8 +6236,10 @@ msgstr "Smontato con successo. Il dispositivo %s (%s) può ora essere rimosso da
 msgid "Ejecting of device %s(%s) has failed."
 msgstr "Espulsione del dispositivo %s (%s) non riuscita."
 
-msgid "Previous unsaved project detected, do you want to restore it?"
-msgstr "Rilevato un progetto precedente non salvato, vuoi ripristinarlo?"
+msgid ""
+"It seems that you have projects that were not closed properly. Would you like to restore your last unsaved project?\n"
+"If you have a currently opened project and click \"Restore\", the current project will be closed."
+msgstr ""
 
 msgid "Restore"
 msgstr "Ripristina"
@@ -6372,6 +6454,19 @@ msgstr "Slicing Annullato"
 #, c-format, boost-format
 msgid "Slicing Plate %d"
 msgstr "Slicing Piatto %d"
+
+msgid "Invalid printer preset. Unable to slice with Helio."
+msgstr ""
+
+msgid "The current printer preset cannot be sliced using Helio."
+msgstr ""
+
+msgid "Helio slicing does not support using a number of materials greater than 1."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Helio does not support materials %s"
+msgstr ""
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Risolvi gli errori di slicing e pubblica nuovamente."
@@ -6935,6 +7030,27 @@ msgstr "Mostra i modelli online selezionati dallo staff  nella home page"
 
 msgid "Show history on the home page"
 msgstr "Mostra cronologia sulla home page"
+
+msgid "Helio Options"
+msgstr ""
+
+msgid "Enable Helio slice"
+msgstr ""
+
+msgid "Enable Helio slicing"
+msgstr ""
+
+msgid "About Helio"
+msgstr ""
+
+msgid "Helio Privacy Policy"
+msgstr ""
+
+msgid "Reminder During Slicing"
+msgstr ""
+
+msgid "Automatic mode"
+msgstr ""
 
 msgid "Maximum recent projects"
 msgstr "Numero massimo di progetti recenti"
@@ -8854,57 +8970,6 @@ msgstr "Fine"
 msgid "resume"
 msgstr "riprendi"
 
-msgid "Resume Printing"
-msgstr "Riprendi Stampa"
-
-msgid "Resume (defects acceptable)"
-msgstr "Riprendi (difetti accettabili)"
-
-msgid "Resume (problem solved)"
-msgstr "Riprendi (problema risolto)"
-
-msgid "Stop Printing"
-msgstr "Interrompi Stampa"
-
-msgid "Check Assistant"
-msgstr "Assistente di controllo"
-
-msgid "Filament Extruded, Continue"
-msgstr "Filamento Estruso, Continua"
-
-msgid "Not Extruded Yet, Retry"
-msgstr "Non ancora estruso, riprova"
-
-msgid "Finished, Continue"
-msgstr "Finito, Continua"
-
-msgid "Load Filament"
-msgstr "Carica filamento"
-
-msgid "Filament Loaded, Resume"
-msgstr "Filamento Caricato, Riprendi"
-
-msgid "View Liveview"
-msgstr "Vista Liveview"
-
-msgid "No Reminder Next Time"
-msgstr "Nessun promemoria la prossima volta."
-
-msgid "Ignore. Don't Remind Next Time"
-msgstr "Ignora. Non ricordarlo la prossima volta."
-
-msgid "Ignore this and Resume"
-msgstr "Ignora e riprendi"
-
-msgid "Problem Solved and Resume"
-msgstr "Problema risolto, riprendi"
-
-msgid "Stop Buzzer"
-msgstr ""
-
-msgid "Retry (problem solved)"
-msgstr "Riprova (problema risolto)"
-
 msgid "Confirm and Update Nozzle"
 msgstr "Conferma e aggiorna Nozzle"
 
@@ -8975,6 +9040,42 @@ msgstr "Invio fallito. Fai clic su Riprova per tentare di inviare nuovamente. Se
 
 msgid "reconnect"
 msgstr "ricollega"
+
+msgid "Description of title content"
+msgstr ""
+
+msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
+msgstr ""
+
+msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, and maintained by Helio Additive. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
+msgstr ""
+
+msgid "https://www.helioadditive.com/"
+msgstr ""
+
+msgid "Privacy Policy of Helio Additive"
+msgstr ""
+
+msgid "Terms of Use of Helio Additive"
+msgstr ""
+
+msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
+msgstr ""
+
+msgid "Agree"
+msgstr "Accetto"
+
+msgid "Helio settings"
+msgstr ""
+
+msgid "Chamber temperature"
+msgstr "Temperatura della camera"
+
+msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
+msgstr ""
+
+msgid "How to use Helio"
+msgstr ""
 
 msgid "Air Pump"
 msgstr "Compressore Aria"
@@ -9654,8 +9755,8 @@ msgid "mm/s"
 msgstr "mm/s"
 
 #, c-format, boost-format
-msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
-msgstr ""
+msgid "Speed of 100%% overhang wall which has 0 overlap with the lower layer."
+msgstr "Velocità 100%% sporgenza della parete con 0 sovrapposizioni con il layer inferiore."
 
 msgid "Slow down by height"
 msgstr "Rallenta in base all'altezza"
@@ -11472,9 +11573,6 @@ msgstr "Anelli di supporto a parete"
 
 msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
 msgstr "Questa impostazione specifica il numero di pareti di supporto nel range [-1,2]. -1 significa automatico e 0 significa consentire la modalità di solo riempimento dove il supporto è sufficientemente spesso."
-
-msgid "Chamber temperature"
-msgstr "Temperatura della camera"
 
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr "Una temperatura della camera più elevata può aiutare a sopprimere o ridurre la deformazione e potenzialmente portare a una maggiore aderenza tra i layer per i materiali ad alta temperatura come ABS, ASA, PC, PA e così via. Allo stesso tempo, il filtraggio dell'aria di ABS e ASA peggiorerà. Mentre per PLA, PETG, TPU, PVA e altri materiali a bassa temperatura, la temperatura della camera non dovrebbe essere elevata per evitare intasamenti, quindi spegnerla (settando a 0) è fortemente raccomandato"
@@ -13996,6 +14094,18 @@ msgid ""
 msgstr ""
 "Evita deformazioni\n"
 "Sapevi che quando si stampano materiali soggetti a deformazioni, come l'ABS, aumentare adeguatamente la temperatura del piano può ridurre la probabilità di deformazione."
+
+#~ msgid "Layer Time (s)"
+#~ msgstr "Layer Time (s)"
+
+#~ msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
+#~ msgstr "Spegnere le luci durante l'attività causerà il fallimento del monitoraggio dell'IA, come il rilevamento degli spaghetti. Scegli con attenzione."
+
+#~ msgid "Open Door Dectection"
+#~ msgstr "Rilevamento Apertura Porta"
+
+#~ msgid "Previous unsaved project detected, do you want to restore it?"
+#~ msgstr "Rilevato un progetto precedente non salvato, vuoi ripristinarlo?"
 
 #~ msgid "Modern"
 #~ msgstr "Moderno"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-17 11:15+0800\n"
+"POT-Creation-Date: 2025-07-25 09:53+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -33,7 +33,7 @@ msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "未知的材料型号，将使用随机的材料预设。"
 
 msgid "Current AMS humidity"
-msgstr "当前AMS湿度"
+msgstr "舱内干燥程度"
 
 msgid "Humidity"
 msgstr "湿度"
@@ -3013,7 +3013,7 @@ msgid "Print with the filament mounted on the back of chassis"
 msgstr "使用机箱背后挂载的材料打印"
 
 msgid "Please change the desiccant when it is too wet. The indicator may not represent accurately in following cases : when the lid is open or the desiccant pack is changed. it take hours to absorb the moisture, low temperatures also slow down the process."
-msgstr "当干燥剂过于潮湿时,请及时更换。以下几种情况下,指示器可能无法准确反映情况:盖子打开或干燥剂包被替换时。干燥剂需要数小时吸收潮气,低温也会延缓该过程。"
+msgstr "*当干燥剂过于潮湿时，请及时更换。以下几种情况下, 指示器可能无法准确反映情况：盖子打开或干燥剂包被替换时，干燥剂需要数小时吸收潮气；低温也会延缓该过程。"
 
 msgid "Config which AMS slot should be used for a filament used in the print job"
 msgstr "配置当前打印任务应使用哪个AMS槽位"
@@ -3297,6 +3297,11 @@ msgstr ""
 "最大体积流量设置过小\n"
 "重置为0.5"
 
+msgid ""
+"Should not large than 100%.\n"
+"Reset to defualt"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"
 msgstr "当前腔体温度高于材料的安全温度，这可能导致材料软化和堵塞。该材料的最高安全温度为 %d。"
@@ -3504,7 +3509,7 @@ msgid "Pause (step loss)"
 msgstr "暂停（丢步）"
 
 msgid "Filament loading"
-msgstr "进料"
+msgstr "进料中"
 
 msgid "Motor noise cancellation"
 msgstr "电机降噪"
@@ -3525,7 +3530,7 @@ msgid "Pause (Gcode inserted by user)"
 msgstr "暂停（用户插入Gcode）"
 
 msgid "Motor noise showoff"
-msgstr "电机噪音标定结果展示"
+msgstr "电机噪声展示"
 
 msgid "Pause (nozzle clumping)"
 msgstr "暂停（裹头）"
@@ -3704,6 +3709,63 @@ msgstr "PPS-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。"
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。"
 
+msgid "Resume Printing"
+msgstr "继续打印"
+
+msgid "Resume (defects acceptable)"
+msgstr "继续 （缺陷可接受）"
+
+msgid "Resume (problem solved)"
+msgstr "继续（问题已解决）"
+
+msgid "Stop Printing"
+msgstr "停止打印"
+
+msgid "Check Assistant"
+msgstr "前往机器助手"
+
+msgid "Filament Extruded, Continue"
+msgstr "耗材已挤出，继续"
+
+msgid "Not Extruded Yet, Retry"
+msgstr "耗材未挤出，重试"
+
+msgid "Finished, Continue"
+msgstr "已完成，继续"
+
+msgid "Load Filament"
+msgstr "进料并前往进料页面"
+
+msgid "Filament Loaded, Resume"
+msgstr "耗材已加载，继续"
+
+msgid "View Liveview"
+msgstr "查看LiveView"
+
+msgid "No Reminder Next Time"
+msgstr "下次不再提醒"
+
+msgid "Ignore. Don't Remind Next Time"
+msgstr "忽略，下次不再提醒"
+
+msgid "Ignore this and Resume"
+msgstr "忽略此问题，继续"
+
+msgid "Problem Solved and Resume"
+msgstr "问题已解决，继续"
+
+msgid "Stop Buzzer"
+msgstr "关闭蜂鸣器"
+
+msgid "Retry (problem solved)"
+msgstr "重试 (问题已解决）"
+
+msgid "Stop Drying"
+msgstr "停止烘干"
+
+msgid "Unknown error."
+msgstr "未知错误。"
+
 msgid "default"
 msgstr "缺省"
 
@@ -3757,6 +3819,15 @@ msgstr "线宽"
 msgid "Fan Speed"
 msgstr "风扇速度"
 
+msgid "Thermal Index (min)"
+msgstr ""
+
+msgid "Thermal Index (max)"
+msgstr ""
+
+msgid "Thermal Index (mean)"
+msgstr ""
+
 msgid "Flow"
 msgstr "流量"
 
@@ -3786,6 +3857,18 @@ msgstr "风扇速度: "
 
 msgid "Temperature: "
 msgstr "温度: "
+
+msgid "Thermal Index"
+msgstr ""
+
+msgid "Min: "
+msgstr ""
+
+msgid "Max: "
+msgstr ""
+
+msgid "Mean: "
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "正在加载G-code"
@@ -3886,6 +3969,9 @@ msgstr "从"
 msgid "Slicing Result"
 msgstr "切片结果"
 
+msgid "Helio Action"
+msgstr ""
+
 msgid "Color Scheme"
 msgstr "颜色方案"
 
@@ -3912,9 +3998,6 @@ msgstr "温度（℃）"
 
 msgid "Volumetric flow rate (mm³/s)"
 msgstr "体积流量速度（mm³/s）"
-
-msgid "Layer Time (s)"
-msgstr "层时间（s）"
 
 msgid "Travel"
 msgstr "空驶"
@@ -4918,7 +5001,7 @@ msgid "The player is not loaded, please click \"play\" button to retry."
 msgstr "未能加载播放器，请重新点击“播放”按钮。"
 
 msgid "Temporarily closed because there is no operation for a while."
-msgstr "Temporarily closed because there is no activity for a while."
+msgstr "长时间无操作，监控已关闭。"
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "因有一段时间未打印，暂时关闭。"
@@ -5061,13 +5144,6 @@ msgstr "加载失败"
 msgid "Browsing file in storage is not supported in current firmware. Please update the printer firmware."
 msgstr "当前固件不支持浏览存储设备中的文件。请更新打印机固件。"
 
-msgid ""
-"Please check if the storage is inserted into the printer.\n"
-"If it still cannot be read, you can try formatting the storage."
-msgstr ""
-"请检查存储设备是否已插入打印机。\n"
-"如果仍无法读取，您可以尝试格式化存储设备。"
-
 msgid "LAN Connection Failed (Failed to view sdcard)"
 msgstr "局域网连接失败（无法查看SD卡）"
 
@@ -5152,6 +5228,13 @@ msgstr "文件校验和错误。请重试。"
 
 msgid "Not supported on the current printer version."
 msgstr "当前打印机的版本不支持。"
+
+msgid ""
+"Please check if the storage is inserted into the printer.\n"
+"If it still cannot be read, you can try formatting the storage."
+msgstr ""
+"请检查存储设备是否已插入打印机。\n"
+"如果仍无法读取，您可以尝试格式化存储设备。"
 
 msgid "The firmware version of the printer is too low. Please update the firmware and try again."
 msgstr "打印机的固件版本过低。请更新固件然后再试一次。"
@@ -5373,9 +5456,6 @@ msgstr "取消打印"
 msgid "Are you sure you want to stop this print?"
 msgstr "您确定要停止打印吗？"
 
-msgid "Unknown error."
-msgstr "未知错误。"
-
 msgid "The printer is busy on other print job"
 msgstr "打印机正在执行其他打印任务"
 
@@ -5446,8 +5526,8 @@ msgstr "运动"
 msgid "Ludicrous"
 msgstr "狂暴"
 
-msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
-msgstr "任务过程中关灯可能导致炒面检测等AI监控失效, 请谨慎选择。"
+msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti detection. Please choose carefully."
+msgstr "任务过程中关灯会导致炒面检测等AI监控失效，请谨慎选择。"
 
 msgid "Keep it On"
 msgstr "保持开启"
@@ -5884,7 +5964,7 @@ msgstr "首层扫描"
 msgid "Auto-recovery from step loss"
 msgstr "自动从丢步中恢复"
 
-msgid "Open Door Dectection"
+msgid "Open Door Detection"
 msgstr "开门检测"
 
 msgid "Notification"
@@ -6121,8 +6201,12 @@ msgstr "卸载成功。设备%s(%s)现在可能安全地从电脑移除。"
 msgid "Ejecting of device %s(%s) has failed."
 msgstr "弹出设备%s(%s)失败。"
 
-msgid "Previous unsaved project detected, do you want to restore it?"
-msgstr "检测到有未保存的项目，是否恢复此项目？"
+msgid ""
+"It seems that you have projects that were not closed properly. Would you like to restore your last unsaved project?\n"
+"If you have a currently opened project and click \"Restore\", the current project will be closed."
+msgstr ""
+"检测到您有一些项目未正确关闭。是否要恢复您最后一个未保存的项目？\n"
+"如果您当前有打开的项目并点击“恢复”，当前项目将被关闭。"
 
 msgid "Restore"
 msgstr "恢复"
@@ -6333,6 +6417,19 @@ msgstr "切片已取消"
 #, c-format, boost-format
 msgid "Slicing Plate %d"
 msgstr "正在切片盘%d"
+
+msgid "Invalid printer preset. Unable to slice with Helio."
+msgstr ""
+
+msgid "The current printer preset cannot be sliced using Helio."
+msgstr ""
+
+msgid "Helio slicing does not support using a number of materials greater than 1."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Helio does not support materials %s"
+msgstr ""
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "请解决切片错误后再重新发布。"
@@ -6893,6 +6990,27 @@ msgstr "在主页上显示工作人员挑选的在线模型"
 
 msgid "Show history on the home page"
 msgstr "在主页上显示历史"
+
+msgid "Helio Options"
+msgstr ""
+
+msgid "Enable Helio slice"
+msgstr ""
+
+msgid "Enable Helio slicing"
+msgstr ""
+
+msgid "About Helio"
+msgstr ""
+
+msgid "Helio Privacy Policy"
+msgstr ""
+
+msgid "Reminder During Slicing"
+msgstr ""
+
+msgid "Automatic mode"
+msgstr ""
 
 msgid "Maximum recent projects"
 msgstr "近期项目的最大数量"
@@ -8803,57 +8921,6 @@ msgstr "完成"
 msgid "resume"
 msgstr "继续"
 
-msgid "Resume Printing"
-msgstr "继续打印"
-
-msgid "Resume (defects acceptable)"
-msgstr "继续 （缺陷可接受）"
-
-msgid "Resume (problem solved)"
-msgstr "继续（问题已解决）"
-
-msgid "Stop Printing"
-msgstr "停止打印"
-
-msgid "Check Assistant"
-msgstr "前往机器助手"
-
-msgid "Filament Extruded, Continue"
-msgstr "耗材已挤出，继续"
-
-msgid "Not Extruded Yet, Retry"
-msgstr "耗材未挤出，重试"
-
-msgid "Finished, Continue"
-msgstr "已完成，继续"
-
-msgid "Load Filament"
-msgstr "进料并前往进料页面"
-
-msgid "Filament Loaded, Resume"
-msgstr "耗材已加载，继续"
-
-msgid "View Liveview"
-msgstr "查看LiveView"
-
-msgid "No Reminder Next Time"
-msgstr "下次不再提醒"
-
-msgid "Ignore. Don't Remind Next Time"
-msgstr "忽略，下次不再提醒"
-
-msgid "Ignore this and Resume"
-msgstr "忽略此问题，继续"
-
-msgid "Problem Solved and Resume"
-msgstr "问题已解决，继续"
-
-msgid "Stop Buzzer"
-msgstr "关闭蜂鸣器"
-
-msgid "Retry (problem solved)"
-msgstr "重试 (问题已解决）"
-
 msgid "Confirm and Update Nozzle"
 msgstr "确认并更新喷嘴"
 
@@ -8926,6 +8993,42 @@ msgstr "发送失败。您可以点击“重试”再次发送。如果重试无
 
 msgid "reconnect"
 msgstr "重新连接"
+
+msgid "Description of title content"
+msgstr ""
+
+msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
+msgstr ""
+
+msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, and maintained by Helio Additive. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
+msgstr ""
+
+msgid "https://www.helioadditive.com/"
+msgstr ""
+
+msgid "Privacy Policy of Helio Additive"
+msgstr ""
+
+msgid "Terms of Use of Helio Additive"
+msgstr ""
+
+msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
+msgstr ""
+
+msgid "Agree"
+msgstr "同意"
+
+msgid "Helio settings"
+msgstr ""
+
+msgid "Chamber temperature"
+msgstr "腔体温度"
+
+msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
+msgstr ""
+
+msgid "How to use Helio"
+msgstr ""
 
 msgid "Air Pump"
 msgstr "气泵"
@@ -9605,7 +9708,7 @@ msgid "mm/s"
 msgstr "mm/s"
 
 #, c-format, boost-format
-msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
+msgid "Speed of 100%% overhang wall which has 0 overlap with the lower layer."
 msgstr ""
 
 msgid "Slow down by height"
@@ -11422,9 +11525,6 @@ msgstr "支撑外墙层数"
 
 msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
 msgstr "此设置指定 [-1,2] 范围内的支撑墙数量。-1表示自动，0表示允许足够厚的支撑区域使用仅填充模式。"
-
-msgid "Chamber temperature"
-msgstr "腔体温度"
 
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr "更高的腔温可以帮助抑制或减少翘曲，同时可能会提高高温材料（如ABS、ASA、PC、PA等）的层间粘合强度。与此同时，ABS和ASA的空气过滤性能会变差。而对于PLA、PETG、TPU、PVA等低温材料，为了避免堵塞，实际的腔温不应该过高，因此强烈建议使用0（表示关闭）。"
@@ -13929,6 +14029,18 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Layer Time (s)"
+#~ msgstr "层时间（s）"
+
+#~ msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
+#~ msgstr "任务过程中关灯可能导致炒面检测等AI监控失效, 请谨慎选择。"
+
+#~ msgid "Open Door Dectection"
+#~ msgstr "开门检测"
+
+#~ msgid "Previous unsaved project detected, do you want to restore it?"
+#~ msgstr "检测到有未保存的项目，是否恢复此项目？"
 
 #~ msgid "Paused due to filament runout"
 #~ msgstr "断料暂停"
