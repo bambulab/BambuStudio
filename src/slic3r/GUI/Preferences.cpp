@@ -868,6 +868,10 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             }
         }
 
+        if (param == "enable_record_gcodeviewer_option_item"){
+            SimpleEvent evt(EVT_ENABLE_GCODE_OPTION_ITEM_CHANGED);
+            wxPostEvent(wxGetApp().plater(), evt);
+        }
         if (param == "helio_enable") {
 
             std::string url;
@@ -1229,6 +1233,9 @@ wxWindow* PreferencesDialog::create_general_page()
     auto  item_gamma_correct_in_import_obj = create_item_checkbox(_L("Enable gamma correction for the imported obj file"), page,
                                                                  _L("Perform gamma correction on color after importing the obj model."), 50,
                                                                  "gamma_correct_in_import_obj");
+    auto  item_enable_record_gcodeviewer_option_item = create_item_checkbox(_L("Remember last used color scheme"), page,
+                                                                 _L("When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup.."), 50,
+                                                                 "enable_record_gcodeviewer_option_item");
     auto  enable_lod_settings       = create_item_checkbox(_L("Improve rendering performance by lod"), page,
                                                          _L("Improved rendering performance under the scene of multiple plates and many models."), 50,
                                                          "enable_lod");
@@ -1396,6 +1403,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_show_shells_in_preview_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_import_single_svg_and_split, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_gamma_correct_in_import_obj, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_enable_record_gcodeviewer_option_item, 0, wxTOP, FromDIP(3));
 
     sizer_page->Add(enable_lod_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_toolbar_style, 0, wxTOP, FromDIP(3));

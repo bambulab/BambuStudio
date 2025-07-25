@@ -215,6 +215,8 @@ void AppConfig::set_defaults()
     if (get("enable_multi_machine").empty())
         set_bool("enable_multi_machine", false);
 
+    if (get("enable_record_gcodeviewer_option_item").empty())
+        set_bool("enable_record_gcodeviewer_option_item", false);
     if (get("prefer_to_use_dgpu").empty())
         set_bool("prefer_to_use_dgpu", false);
 
