@@ -1101,6 +1101,9 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
             context.model_info.layer_filaments = layer_filaments;
             context.model_info.filament_ids = filament_ids;
 
+            context.speed_info.filament_print_time = print->get_filament_print_time();
+            context.speed_info.group_with_time = print->config().group_algo_with_time;
+
             for (size_t idx = 0; idx < filament_types.size(); ++idx) {
                 FilamentGroupUtils::FilamentInfo info;
                 info.color = filament_colours[idx];

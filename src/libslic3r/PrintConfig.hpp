@@ -1081,6 +1081,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               machine_load_filament_time))
     ((ConfigOptionFloat,               machine_unload_filament_time))
     ((ConfigOptionFloat,               machine_switch_extruder_time))
+    ((ConfigOptionBool,                group_algo_with_time))
     ((ConfigOptionFloat,               machine_prepare_compensation_time))
     ((ConfigOptionBool,                enable_pre_heating))
     ((ConfigOptionBool,                support_object_skip_flush))

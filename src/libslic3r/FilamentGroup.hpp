@@ -13,7 +13,7 @@
 
 const static int DEFAULT_CLUSTER_SIZE = 16;
 
-const static int ABSOLUTE_FLUSH_GAP_TOLERANCE = 5;
+const static int ABSOLUTE_FLUSH_GAP_TOLERANCE = 0.05;
 
 namespace Slic3r
 {
@@ -91,6 +91,14 @@ namespace Slic3r
             std::vector<std::pair<std::set<int>, int>> extruder_group_size;
             int master_extruder_id;
         } machine_info;
+
+        struct SpeedInfo{
+            std::unordered_map<int,std::unordered_map<int,double>> filament_print_time;
+            double extruder_change_time;
+            double nozzle_change_time;
+            bool group_with_time;
+        } speed_info;
+
     };
 
     std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>>& map_lists,
@@ -114,6 +122,16 @@ namespace Slic3r
     private:
         std::vector<std::vector<float>>m_distance_matrix;
 
+    };
+
+
+    class TimeEvaluator
+    {
+    public:
+        TimeEvaluator(const FilamentGroupContext::SpeedInfo& speed_info) : m_speed_info(speed_info) {}
+        double get_estimated_time(const std::vector<int>& filament_map) const;
+    private:
+        FilamentGroupContext::SpeedInfo m_speed_info;
     };
 
     class FilamentGroup
