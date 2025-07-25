@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-17 11:15+0800\n"
+"POT-Creation-Date: 2025-07-25 09:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -3314,6 +3314,11 @@ msgstr ""
 "Надто маленька максимальна об'ємна швидкість.\n"
 "Скинути до 0,5"
 
+msgid ""
+"Should not large than 100%.\n"
+"Reset to defualt"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"
 msgstr "Поточна температура камери вища, ніж безпечна температура матеріалу, це може призвести до розм’якшення матеріалу та його забивання. Максимально безпечна температура для цього матеріалу становить %d"
@@ -3726,6 +3731,63 @@ msgstr ""
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr ""
 
+msgid "Resume Printing"
+msgstr "Відновити друк"
+
+msgid "Resume (defects acceptable)"
+msgstr ""
+
+msgid "Resume (problem solved)"
+msgstr ""
+
+msgid "Stop Printing"
+msgstr "Зупинити друк"
+
+msgid "Check Assistant"
+msgstr "Перевірка помічника"
+
+msgid "Filament Extruded, Continue"
+msgstr "Філамент витиснутий, Продовжити"
+
+msgid "Not Extruded Yet, Retry"
+msgstr "Ще не витиснуто філамент, Повторити"
+
+msgid "Finished, Continue"
+msgstr "Завершено, Продовжити"
+
+msgid "Load Filament"
+msgstr "Завантажити"
+
+msgid "Filament Loaded, Resume"
+msgstr "Філамент завантажений, Відновити"
+
+msgid "View Liveview"
+msgstr "Перегляд в реальному часі"
+
+msgid "No Reminder Next Time"
+msgstr ""
+
+msgid "Ignore. Don't Remind Next Time"
+msgstr ""
+
+msgid "Ignore this and Resume"
+msgstr ""
+
+msgid "Problem Solved and Resume"
+msgstr ""
+
+msgid "Stop Buzzer"
+msgstr ""
+
+msgid "Retry (problem solved)"
+msgstr ""
+
+msgid "Stop Drying"
+msgstr ""
+
+msgid "Unknown error."
+msgstr ""
+
 msgid "default"
 msgstr "за замовчуванням"
 
@@ -3779,6 +3841,15 @@ msgstr "Ширина лінії"
 msgid "Fan Speed"
 msgstr "Швидкість вентилятора"
 
+msgid "Thermal Index (min)"
+msgstr ""
+
+msgid "Thermal Index (max)"
+msgstr ""
+
+msgid "Thermal Index (mean)"
+msgstr ""
+
 msgid "Flow"
 msgstr "Потік"
 
@@ -3808,6 +3879,18 @@ msgstr "Швидкість вентилятора: "
 
 msgid "Temperature: "
 msgstr "Температура: "
+
+msgid "Thermal Index"
+msgstr ""
+
+msgid "Min: "
+msgstr ""
+
+msgid "Max: "
+msgstr ""
+
+msgid "Mean: "
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "Завантаження G-кодів"
@@ -3908,6 +3991,9 @@ msgstr "від"
 msgid "Slicing Result"
 msgstr ""
 
+msgid "Helio Action"
+msgstr ""
+
 msgid "Color Scheme"
 msgstr "Колірна схема"
 
@@ -3934,9 +4020,6 @@ msgstr "Температура (°С)"
 
 msgid "Volumetric flow rate (mm³/s)"
 msgstr "Об'ємна витрата (мм³/с)"
-
-msgid "Layer Time (s)"
-msgstr "Время слоя (c)"
 
 msgid "Travel"
 msgstr "Переміщення"
@@ -5080,11 +5163,6 @@ msgstr "Не вдалося завантажити"
 msgid "Browsing file in storage is not supported in current firmware. Please update the printer firmware."
 msgstr ""
 
-msgid ""
-"Please check if the storage is inserted into the printer.\n"
-"If it still cannot be read, you can try formatting the storage."
-msgstr ""
-
 msgid "LAN Connection Failed (Failed to view sdcard)"
 msgstr "Помилка підключення LAN (Не вдалося переглянути sd-карту)"
 
@@ -5170,6 +5248,11 @@ msgstr "Помилка контрольної суми файлу. Будь ла
 
 msgid "Not supported on the current printer version."
 msgstr "Не підтримується на поточній версії принтера."
+
+msgid ""
+"Please check if the storage is inserted into the printer.\n"
+"If it still cannot be read, you can try formatting the storage."
+msgstr ""
 
 msgid "The firmware version of the printer is too low. Please update the firmware and try again."
 msgstr ""
@@ -5395,9 +5478,6 @@ msgstr "Скасувати друк"
 msgid "Are you sure you want to stop this print?"
 msgstr ""
 
-msgid "Unknown error."
-msgstr ""
-
 msgid "The printer is busy on other print job"
 msgstr "Принтер зайнятий іншим завданням друку"
 
@@ -5468,7 +5548,7 @@ msgstr "Спортивний"
 msgid "Ludicrous"
 msgstr "Безглуздий"
 
-msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
+msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti detection. Please choose carefully."
 msgstr ""
 
 msgid "Keep it On"
@@ -5916,7 +5996,7 @@ msgstr "Перевірка першого шару"
 msgid "Auto-recovery from step loss"
 msgstr "Автоматичне відновлення після втрати кроку"
 
-msgid "Open Door Dectection"
+msgid "Open Door Detection"
 msgstr ""
 
 msgid "Notification"
@@ -6148,8 +6228,10 @@ msgstr "Успішно змонтовано. Тепер пристрій %s(%s) 
 msgid "Ejecting of device %s(%s) has failed."
 msgstr "Помилка виймання пристрою %s(%s)."
 
-msgid "Previous unsaved project detected, do you want to restore it?"
-msgstr "Виявлено попередній незбережений проєкт, відновити його?"
+msgid ""
+"It seems that you have projects that were not closed properly. Would you like to restore your last unsaved project?\n"
+"If you have a currently opened project and click \"Restore\", the current project will be closed."
+msgstr ""
 
 msgid "Restore"
 msgstr "Відновити"
@@ -6369,6 +6451,19 @@ msgstr "Нарізка скасована"
 #, c-format, boost-format
 msgid "Slicing Plate %d"
 msgstr "Пластина для нарізки %d"
+
+msgid "Invalid printer preset. Unable to slice with Helio."
+msgstr ""
+
+msgid "The current printer preset cannot be sliced using Helio."
+msgstr ""
+
+msgid "Helio slicing does not support using a number of materials greater than 1."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Helio does not support materials %s"
+msgstr ""
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Виправте помилки нарізки та опублікуйте знову."
@@ -6918,6 +7013,27 @@ msgid "Show online staff-picked models on the home page"
 msgstr "Показувати моделі, вибрані співробітниками, на домашній сторінці"
 
 msgid "Show history on the home page"
+msgstr ""
+
+msgid "Helio Options"
+msgstr ""
+
+msgid "Enable Helio slice"
+msgstr ""
+
+msgid "Enable Helio slicing"
+msgstr ""
+
+msgid "About Helio"
+msgstr ""
+
+msgid "Helio Privacy Policy"
+msgstr ""
+
+msgid "Reminder During Slicing"
+msgstr ""
+
+msgid "Automatic mode"
 msgstr ""
 
 msgid "Maximum recent projects"
@@ -8813,57 +8929,6 @@ msgstr "Виконано"
 msgid "resume"
 msgstr "продовжити"
 
-msgid "Resume Printing"
-msgstr "Відновити друк"
-
-msgid "Resume (defects acceptable)"
-msgstr ""
-
-msgid "Resume (problem solved)"
-msgstr ""
-
-msgid "Stop Printing"
-msgstr "Зупинити друк"
-
-msgid "Check Assistant"
-msgstr "Перевірка помічника"
-
-msgid "Filament Extruded, Continue"
-msgstr "Філамент витиснутий, Продовжити"
-
-msgid "Not Extruded Yet, Retry"
-msgstr "Ще не витиснуто філамент, Повторити"
-
-msgid "Finished, Continue"
-msgstr "Завершено, Продовжити"
-
-msgid "Load Filament"
-msgstr "Завантажити"
-
-msgid "Filament Loaded, Resume"
-msgstr "Філамент завантажений, Відновити"
-
-msgid "View Liveview"
-msgstr "Перегляд в реальному часі"
-
-msgid "No Reminder Next Time"
-msgstr ""
-
-msgid "Ignore. Don't Remind Next Time"
-msgstr ""
-
-msgid "Ignore this and Resume"
-msgstr ""
-
-msgid "Problem Solved and Resume"
-msgstr ""
-
-msgid "Stop Buzzer"
-msgstr ""
-
-msgid "Retry (problem solved)"
-msgstr ""
-
 msgid "Confirm and Update Nozzle"
 msgstr "Підтвердити і оновити сопло"
 
@@ -8935,6 +9000,42 @@ msgid "Failed to send. Click Retry to attempt sending again. If retrying does no
 msgstr ""
 
 msgid "reconnect"
+msgstr ""
+
+msgid "Description of title content"
+msgstr ""
+
+msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
+msgstr ""
+
+msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, and maintained by Helio Additive. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
+msgstr ""
+
+msgid "https://www.helioadditive.com/"
+msgstr ""
+
+msgid "Privacy Policy of Helio Additive"
+msgstr ""
+
+msgid "Terms of Use of Helio Additive"
+msgstr ""
+
+msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
+msgstr ""
+
+msgid "Agree"
+msgstr ""
+
+msgid "Helio settings"
+msgstr ""
+
+msgid "Chamber temperature"
+msgstr "Температура в камері"
+
+msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
+msgstr ""
+
+msgid "How to use Helio"
 msgstr ""
 
 msgid "Air Pump"
@@ -9627,7 +9728,7 @@ msgid "mm/s"
 msgstr "мм/с"
 
 #, c-format, boost-format
-msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
+msgid "Speed of 100%% overhang wall which has 0 overlap with the lower layer."
 msgstr ""
 
 msgid "Slow down by height"
@@ -11442,9 +11543,6 @@ msgstr "Опорні стінові петлі"
 
 msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
 msgstr ""
-
-msgid "Chamber temperature"
-msgstr "Температура в камері"
 
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr "Вища температура камери може допомогти стримувати або зменшувати деформацію та, можливо, підвищити міцність зв’язку між шарами для матеріалів високої температури, таких як ABS, ASA, PC, PA тощо. У той же час, повітряна фільтрація для ABS та ASA може стати гіршею. Однак для PLA, PETG, TPU, PVA та інших матеріалів низької температури фактична температура камери не повинна бути високою, щоб уникнути засмічення, тому рекомендується вимкнути температуру камери (0)"
@@ -13942,6 +14040,12 @@ msgid ""
 msgstr ""
 "Уникнення деформації\n"
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як ABS, відповідне підвищення температури гарячого ліжка може зменшити ймовірність деформації."
+
+#~ msgid "Layer Time (s)"
+#~ msgstr "Время слоя (c)"
+
+#~ msgid "Previous unsaved project detected, do you want to restore it?"
+#~ msgstr "Виявлено попередній незбережений проєкт, відновити його?"
 
 #~ msgid "Paused due to filament runout"
 #~ msgstr "Пуаза через датчик філаменту"
