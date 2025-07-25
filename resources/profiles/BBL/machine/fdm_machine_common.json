@@ -25,19 +25,21 @@
     ],
     "enable_long_retraction_when_cut": "0",
     "enable_pre_heating": "0",
-    "bed_temperature_formula": "by_first_filament",
+    "extruder_height_gap": "0",
+    "extruder_offset": [
+        "0x0"
+    ],
+    "fan_direction": "undefine",
+    "gcode_flavor": "marlin",
+    "grab_length": [
+        "0"
+    ],
+    "group_algo_with_time": "0",
     "hotend_cooling_rate": [
         "2"
     ],
     "hotend_heating_rate": [
         "2"
-    ],
-    "extruder_offset": [
-        "0x0"
-    ],
-    "gcode_flavor": "marlin",
-    "grab_length": [
-        "0"
     ],
     "long_retractions_when_cut": [
         "0"

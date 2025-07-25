@@ -320,6 +320,19 @@ namespace Slic3r
         return m_distance_matrix[idx_a][idx_b];
     }
 
+    double TimeEvaluator::get_estimated_time(const std::vector<int>& filament_map) const
+    {
+        double time = 0;
+        for(auto &elem : m_speed_info.filament_print_time){
+            int filament_idx = elem.first;
+            auto extruder_time = elem.second;
+            int filament_extruder_id = filament_map[filament_idx];
+            time += extruder_time[filament_extruder_id];
+        }
+        return time;
+    }
+
+
     std::vector<int> KMediods2::cluster_small_data(const std::map<int, int>& unplaceable_limits, const std::vector<int>& group_size)
     {
         std::vector<int>labels(m_elem_count, -1);
@@ -800,9 +813,16 @@ namespace Slic3r
         int used_filament_num = used_filaments.size();
         uint64_t max_group_num = (static_cast<uint64_t>(1) << used_filament_num);
 
-        int best_cost = std::numeric_limits<int>::max();
-        std::vector<int>best_label;
-        int best_prefer_level = 0;
+        struct CachedGroup{
+            std::vector<int> filament_map;
+            double flush{0};
+            double time{0};
+            int prefer_level {0};
+            double score{1};
+        };
+
+        CachedGroup best_group;
+        std::vector<CachedGroup> cached_groups;
 
         for (uint64_t i = 0; i < max_group_num; ++i) {
             std::vector<std::set<int>>groups(2);
@@ -839,29 +859,66 @@ namespace Slic3r
                 nullptr
             );
 
-            if (prefer_level > best_prefer_level || (prefer_level == best_prefer_level && total_cost < best_cost)) {
-                best_prefer_level = prefer_level;
-                best_cost = total_cost;
-                best_label = filament_maps;
-            }
+            CachedGroup curr_group;
+            curr_group.flush = total_cost;
+            curr_group.prefer_level = prefer_level;
+            curr_group.filament_map.resize(ctx.group_info.total_filament_num, 0);
+            for (size_t i = 0; i < filament_maps.size(); ++i)
+                curr_group.filament_map[used_filaments[i]] = filament_maps[i];
 
-            {
-                MemoryedGroup mg(filament_maps, total_cost, prefer_level);
-                update_memoryed_groups(mg, ctx.group_info.max_gap_threshold, memoryed_groups);
+            TimeEvaluator time_evaluator(ctx.speed_info);
+            curr_group.time = time_evaluator.get_estimated_time(curr_group.filament_map);
+            cached_groups.emplace_back(std::move(curr_group));
+        }
+
+        auto evaluate = [](double flush, double time, bool with_time = false) {
+            if(!with_time)
+                return flush;
+            double base = std::max(0.0, (flush - 10000) / 40000);
+            double k = std::min(std::pow(base,2), 10.0);
+            return k * flush + time;
+        };
+
+        // 如果归一化，没法处理边界情况
+        {
+            // double min_flush = std::min_element(cached_groups.begin(),cached_groups.end(),[](const CachedGroup& a, const CachedGroup& b) {return a.flush < b.flush;})->flush;
+            // double max_flush = std::max_element(cached_groups.begin(),cached_groups.end(),[](const CachedGroup& a, const CachedGroup& b) {return a.flush < b.flush;})->flush;
+            // double min_time = std::min_element(cached_groups.begin(),cached_groups.end(),[](const CachedGroup& a, const CachedGroup& b) {return a.time < b.time;})->time;
+            // double max_time = std::max_element(cached_groups.begin(),cached_groups.end(),[](const CachedGroup& a, const CachedGroup& b) {return a.time < b.time;})->time;
+
+            int count = 0;
+            for (CachedGroup& cached_group : cached_groups) {
+                //double norm_flush = (max_flush - min_flush == 0) ? 0 : (cached_group.flush - min_flush) / (max_flush - min_flush);
+                //double norm_time = (max_time - min_time == 0) ? 0 : (cached_group.time - min_time) / (max_time - min_time);
+                cached_group.score = evaluate(cached_group.flush, cached_group.time, ctx.speed_info.group_with_time);
+
+                if(cached_group.prefer_level > best_group.prefer_level || (cached_group.prefer_level == best_group.prefer_level && cached_group.score < best_group.score)){
+                    best_group = cached_group;
+                }
+
+                {
+                    MemoryedGroup mg(cached_group.filament_map, cached_group.score, cached_group.prefer_level);
+                    update_memoryed_groups(mg, ctx.group_info.max_gap_threshold, memoryed_groups);
+                }
+                BOOST_LOG_TRIVIAL(info) << "Filament group" << count++ << ", score : " << cached_group.score << " , flush : " << cached_group.flush << " , time : " << cached_group.time;
             }
         }
 
+
         if (cost)
-            *cost = best_cost;
+            *cost =best_group.flush;
 
-        std::vector<int> filament_labels(ctx.group_info.total_filament_num, 0);
-        for (size_t i = 0; i < best_label.size(); ++i)
-            filament_labels[used_filaments[i]] = best_label[i];
+        m_memoryed_groups.clear();
+        while(memoryed_groups.empty()){
+            auto top = memoryed_groups.top();
+            memoryed_groups.pop();
+            std::vector<int> maps_tmp(ctx.group_info.total_filament_num,0);
+            for(size_t idx =0; idx < top.group.size(); ++idx)
+                maps_tmp[used_filaments[idx]] = top.group[idx];
+            m_memoryed_groups.push_back(maps_tmp);
+        }
 
-
-        change_memoryed_heaps_to_arrays(memoryed_groups, ctx.group_info.total_filament_num, used_filaments, m_memoryed_groups);
-
-        return filament_labels;
+        return best_group.filament_map;
     }
 
     // sorted used_filaments
