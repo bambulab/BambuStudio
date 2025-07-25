@@ -1020,8 +1020,13 @@ GCodeViewer::GCodeViewer()
     m_layers_slider = new IMSlider(0, 0, 0, 100, wxSL_VERTICAL);
 
     m_extrusions.reset_role_visibility_flags();
-
-//    m_sequential_view.skip_invisible_moves = true;
+    if (GUI::wxGetApp().app_config->get_bool("enable_record_gcodeviewer_option_item")) {
+        auto back_gcodeviewer_option_item = wxGetApp().app_config->get("gcodeviewer_option_item");
+        if (!back_gcodeviewer_option_item.empty()) {
+            m_last_non_helio_option_item = std::atoi(back_gcodeviewer_option_item.c_str());
+        }
+    }
+    //    m_sequential_view.skip_invisible_moves = true;
 }
 
 GCodeViewer::~GCodeViewer()
@@ -1061,7 +1066,7 @@ void GCodeViewer::update_option_item_when_load_gcode()
         update_thermal_options(true);
     } else {
         update_thermal_options(false);
-        update_default_view_type(m_last_non_helio_option_item);
+        update_default_view_type();
     }
 }
 
@@ -1162,15 +1167,18 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished");
 }
 
-void GCodeViewer::update_default_view_type(int index)
+void GCodeViewer::update_default_view_type()
 {
+    if (view_type_items.empty()) { return; }
+    if (m_last_non_helio_option_item >= (int)view_type_items.size()) { return; }
     EViewType cur_type = m_nozzle_nums > 1 ? EViewType::Summary : EViewType::ColorPrint;
-    if (index >= 0 && index < view_type_items.size()) {
-        m_view_type_sel = m_last_non_helio_option_item;
-        cur_type = view_type_items[m_view_type_sel];
-    } else {
-        m_view_type_sel = std::distance(view_type_items.begin(), std::find(view_type_items.begin(), view_type_items.end(), cur_type));
+    if (m_last_non_helio_option_item < 0) {//not set
+        m_view_type_sel              = std::distance(view_type_items.begin(), std::find(view_type_items.begin(), view_type_items.end(), cur_type));
         m_last_non_helio_option_item = m_view_type_sel;
+        record_record_gcodeviewer_option_item();
+    } else {
+        m_view_type_sel = m_last_non_helio_option_item;
+        cur_type        = view_type_items[m_view_type_sel];
     }
     set_view_type(cur_type);
 }
@@ -1271,8 +1279,15 @@ void GCodeViewer::reset_curr_plate_thermal_options() {
 void GCodeViewer::reset_curr_plate_thermal_options(int plate_idx)
 {
     update_thermal_options(false);
-    update_default_view_type(m_last_non_helio_option_item);
+    update_default_view_type();
     m_helio_slice_map_oks[plate_idx] = false;
+}
+
+void GCodeViewer::record_record_gcodeviewer_option_item() {
+    if (GUI::wxGetApp().app_config->get_bool("enable_record_gcodeviewer_option_item")) {
+        wxGetApp().app_config->set("gcodeviewer_option_item", std::to_string(m_last_non_helio_option_item));
+        wxGetApp().app_config->save();
+    }
 }
 
 std::vector<int> GCodeViewer::get_plater_extruder() {
@@ -5661,6 +5676,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 m_view_type_sel = i;
                 if (!is_helio_option()) {
                     m_last_non_helio_option_item = i;
+                    record_record_gcodeviewer_option_item();
                 }
                 set_view_type(view_type_items[m_view_type_sel]);
                 reset_visible(view_type_items[m_view_type_sel]);

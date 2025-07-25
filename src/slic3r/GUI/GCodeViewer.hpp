@@ -799,7 +799,7 @@ public:
 private:
     std::vector<int> m_plater_extruder;
     bool m_gl_data_initialized{ false };
-    int m_last_non_helio_option_item{0};
+    int m_last_non_helio_option_item{-1};
     int m_last_helio_process_status{0};
     std::map<int, bool> m_helio_slice_map_oks;
     int                 m_last_back_process_status{0};
@@ -882,11 +882,12 @@ public:
     float m_scale = 1.0;
     void set_scale(float scale = 1.0);
     void init(ConfigOptionMode mode, Slic3r::PresetBundle* preset_bundle);
-    void update_default_view_type(int index =-1);
+    void update_default_view_type();
     void update_by_mode(ConfigOptionMode mode);
     void update_thermal_options(bool add);
     void reset_curr_plate_thermal_options();
     void reset_curr_plate_thermal_options(int plate_idx);
+    void record_record_gcodeviewer_option_item();
     void init_thermal_icons();
     // extract rendering data from the given parameters
     //BBS: add only gcode mode
