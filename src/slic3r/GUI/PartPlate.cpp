@@ -4898,8 +4898,6 @@ std::vector<Vec2d> PartPlateList::get_plate_wrapping_detection_area()
     ConfigOptionFloat * clearance_max_radius_opt = gconfig.option<ConfigOptionFloat>("extruder_clearance_max_radius");
     if (wrapping_path_opt && clearance_max_radius_opt) {
         std::vector<Vec2d> wrapping_area = get_wrapping_detection_area(wrapping_path_opt->values, clearance_max_radius_opt->value / 2);
-        auto origin = get_current_plate_origin();
-        for (Vec2d &pt : wrapping_area) { pt += Vec2d(origin.x(), origin.y()); }
         return wrapping_area;
     }
 
