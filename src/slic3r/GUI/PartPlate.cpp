@@ -5568,8 +5568,11 @@ bool PartPlateList::set_shapes(const Pointfs& shape, const Pointfs& exclude_area
     { // prepare render data
         ExPolygon poly;
         generate_print_polygon(poly);
-        m_print_polygon = poly;
         calc_triangles(poly);
+
+        // reset m_wrapping_detection_triangles when change printer
+        m_print_polygon = poly;
+        m_wrapping_detection_triangles.reset();
 
 		ExPolygon exclude_poly;
         generate_exclude_polygon(exclude_poly);
