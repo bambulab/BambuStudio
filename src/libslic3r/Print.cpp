@@ -1804,6 +1804,8 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         }
         //if (!object1->config().equals(object2->config()))
         //    return false;
+        if (model_obj1->layer_height_profile.get() != model_obj2->layer_height_profile.get())
+            return false;
         if (model_obj1->config.get() != model_obj2->config.get())
             return false;
         return true;
