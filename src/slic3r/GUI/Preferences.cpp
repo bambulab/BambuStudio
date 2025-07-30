@@ -1234,7 +1234,7 @@ wxWindow* PreferencesDialog::create_general_page()
                                                                  _L("Perform gamma correction on color after importing the obj model."), 50,
                                                                  "gamma_correct_in_import_obj");
     auto  item_enable_record_gcodeviewer_option_item = create_item_checkbox(_L("Remember last used color scheme"), page,
-                                                                 _L("When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup.."), 50,
+                                                                 _L("When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."), 50,
                                                                  "enable_record_gcodeviewer_option_item");
     auto  enable_lod_settings       = create_item_checkbox(_L("Improve rendering performance by lod"), page,
                                                          _L("Improved rendering performance under the scene of multiple plates and many models."), 50,
