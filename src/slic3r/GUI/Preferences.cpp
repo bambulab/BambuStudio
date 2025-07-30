@@ -1289,7 +1289,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto helio_icon_helio = new wxStaticBitmap(helio_fun_panel, wxID_ANY, create_scaled_bitmap("helio_icon_dark", helio_fun_panel, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
 
     auto helio_title_slice = create_item_title(_L("Helio Options"), helio_fun_panel, _L("Helio Options"));
-    auto helio_item_switch_slice = create_item_checkbox(_L("Enable Helio slice"), helio_fun_panel, _L("Enable Helio"), 50, "helio_enable");
+    auto helio_item_switch_slice = create_item_checkbox(_L("Enable Helio"), helio_fun_panel, _L("Enable Helio"), 50, "helio_enable");
     auto helio_split_line = new wxPanel(helio_fun_panel, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     helio_split_line->SetMaxSize(wxSize(-1, 1));
     helio_split_line->SetBackgroundColour(DESIGN_GRAY400_COLOR);

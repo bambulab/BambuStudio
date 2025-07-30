@@ -2263,7 +2263,7 @@ void SendFailedConfirm::on_dpi_changed(const wxRect &suggested_rect) {}
 
 
  HelioStatementDialog::HelioStatementDialog(wxWindow *parent /*= nullptr*/)
-    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Enable Helio slice"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Enable Helio"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
      SetBackgroundColour(*wxWHITE);
 
@@ -2274,7 +2274,7 @@ void SendFailedConfirm::on_dpi_changed(const wxRect &suggested_rect) {}
 
 
 
-     m_title = new Label(this, Label::Head_14, _L("Description of title content"));
+     m_title = new Label(this, Label::Head_14, _L("Terms of Service"));
      //m_title->SetForegroundColour(wxColour(0x26, 0x2E, 0x30));
 
 
@@ -2287,11 +2287,46 @@ void SendFailedConfirm::on_dpi_changed(const wxRect &suggested_rect) {}
      m_description_line1->Wrap(FromDIP(680));
 
      Label *m_description_line2 = new Label(this, Label::Body_13,
-                                            _L("Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, and maintained by Helio Additive. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."));
-     //m_description_line2->SetForegroundColour(wxColour(144, 144, 144));
+                                            _L("Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. The effectiveness and availability of this service will be managed by Helio Additive.These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."));
+
+     Label* m_description_line3 = new Label(this, Label::Body_13,
+         _L("Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."));
+
+     Label* m_description_line4 = new Label(this, Label::Body_13,
+         _L("You agree not to use this product and its related updates to engage in the following activities:"));
+
+     Label* m_description_line5 = new Label(this, Label::Body_13,
+         _L("1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."));
+
+     Label* m_description_line6 = new Label(this, Label::Body_13,
+         _L("2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."));
+
+     Label* m_description_line7 = new Label(this, Label::Body_13,
+         _L("3.Using this software and services for any improper or illegal activities."));
+
      m_description_line2->SetMinSize(wxSize(FromDIP(680), -1));
      m_description_line2->SetMaxSize(wxSize(FromDIP(680), -1));
      m_description_line2->Wrap(FromDIP(680));
+
+     m_description_line3->SetMinSize(wxSize(FromDIP(680), -1));
+     m_description_line3->SetMaxSize(wxSize(FromDIP(680), -1));
+     m_description_line3->Wrap(FromDIP(680));
+
+     m_description_line4->SetMinSize(wxSize(FromDIP(680), -1));
+     m_description_line4->SetMaxSize(wxSize(FromDIP(680), -1));
+     m_description_line4->Wrap(FromDIP(680));
+
+     m_description_line5->SetMinSize(wxSize(FromDIP(680), -1));
+     m_description_line5->SetMaxSize(wxSize(FromDIP(680), -1));
+     m_description_line5->Wrap(FromDIP(680));
+
+     m_description_line6->SetMinSize(wxSize(FromDIP(680), -1));
+     m_description_line6->SetMaxSize(wxSize(FromDIP(680), -1));
+     m_description_line6->Wrap(FromDIP(680));
+
+     m_description_line7->SetMinSize(wxSize(FromDIP(680), -1));
+     m_description_line7->SetMaxSize(wxSize(FromDIP(680), -1));
+     m_description_line7->Wrap(FromDIP(680));
 
      auto helio_home_link = new LinkLabel(this, _L("https://www.helioadditive.com/"), "https://www.helioadditive.com/");
      LinkLabel* helio_privacy_link = nullptr;
@@ -2315,13 +2350,14 @@ void SendFailedConfirm::on_dpi_changed(const wxRect &suggested_rect) {}
      helio_privacy_link->getLabel()->SetFont(::Label::Body_13);
      helio_tou_link->getLabel()->SetFont(::Label::Body_13);
 
-     Label *m_description_line3 =
+     Label *m_description_line8 =
          new Label(this, Label::Body_13,
                    _L("When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."));
-     //m_description_line2->SetForegroundColour(wxColour(144, 144, 144));
-     m_description_line3->SetMinSize(wxSize(FromDIP(680), -1));
-     m_description_line3->SetMaxSize(wxSize(FromDIP(680), -1));
-     m_description_line3->Wrap(FromDIP(680));
+     m_description_line8->SetMinSize(wxSize(FromDIP(680), -1));
+     m_description_line8->SetMaxSize(wxSize(FromDIP(680), -1));
+     m_description_line8->Wrap(FromDIP(680));
+
+
 
      wxBoxSizer *button_sizer;
 
@@ -2367,14 +2403,24 @@ void SendFailedConfirm::on_dpi_changed(const wxRect &suggested_rect) {}
      main_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
      main_sizer->Add(m_description_line2, 0, wxLEFT | wxRIGHT, FromDIP(50));
      main_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+     main_sizer->Add(m_description_line3, 0, wxLEFT | wxRIGHT, FromDIP(50));
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+     main_sizer->Add(m_description_line4, 0, wxLEFT | wxRIGHT, FromDIP(50));
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+     main_sizer->Add(m_description_line5, 0, wxLEFT | wxRIGHT, FromDIP(50));
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
+     main_sizer->Add(m_description_line6, 0, wxLEFT | wxRIGHT, FromDIP(50));
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
+     main_sizer->Add(m_description_line7, 0, wxLEFT | wxRIGHT, FromDIP(50));
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+     main_sizer->Add(m_description_line8, 0, wxLEFT | wxRIGHT, FromDIP(50));
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
      main_sizer->Add(helio_home_link, 0, wxLEFT | wxRIGHT, FromDIP(50));
      main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
      main_sizer->Add(helio_privacy_link, 0, wxLEFT | wxRIGHT, FromDIP(50));
      main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
      main_sizer->Add(helio_tou_link, 0, wxLEFT | wxRIGHT, FromDIP(50));
      main_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
-     main_sizer->Add(m_description_line3, 0, wxLEFT | wxRIGHT, FromDIP(50));
-     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
      main_sizer->Add(button_sizer, 0, wxEXPAND, 0);
      main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
 
