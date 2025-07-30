@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-30 15:22+0800\n"
+"POT-Creation-Date: 2025-07-30 19:48+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6466,8 +6466,8 @@ msgstr "Ungültiges Druckerprofil. Slicen mit Helio nicht möglich."
 msgid "The current printer preset cannot be sliced using Helio."
 msgstr "Das aktuelle Druckerprofil kann nicht mit Helio gesliced werden."
 
-msgid "Helio slicing does not support using a number of materials greater than 1."
-msgstr "Helio Slicen unterstützt nicht die Verwendung von mehr als einem Material."
+msgid "Helio does not support using a number of materials greater than 1."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
@@ -6970,7 +6970,7 @@ msgstr "Führen nach dem Import des OBJ-Modells eine Gammakorrektur der Farbe du
 msgid "Remember last used color scheme"
 msgstr ""
 
-msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup.."
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr ""
 
 msgid "Improve rendering performance by lod"
@@ -7045,11 +7045,8 @@ msgstr "Historie auf der Startseite anzeigen"
 msgid "Helio Options"
 msgstr "Helio Optionen"
 
-msgid "Enable Helio slice"
-msgstr "Helio-Slice aktivieren"
-
-msgid "Enable Helio slicing"
-msgstr "Helio-Slicen aktivieren"
+msgid "Enable Helio"
+msgstr ""
 
 msgid "About Helio"
 msgstr "Über Helio"
@@ -9063,14 +9060,29 @@ msgstr "Senden fehlgeschlagen. Klicken Sie auf „Erneut versuchen“, um den Se
 msgid "reconnect"
 msgstr "Erneut verbinden"
 
-msgid "Description of title content"
-msgstr "Beschreibung des Titelinhalts"
+msgid "Terms of Service"
+msgstr "Bedingungen der Dienstleistung"
 
 msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
 msgstr "Sie sind dabei, eine Drittanbieter-Softwarefunktion von Helio Additive zu aktivieren! Bevor Sie die Nutzung dieser Funktion bestätigen, lesen Sie bitte die folgenden Hinweise sorgfältig durch."
 
-msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, and maintained by Helio Additive. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
-msgstr "Sofern nicht anders angegeben, bietet Bambu Lab nur Support für die offiziell bereitgestellten Softwarefunktionen. Die Funktionen zum Slicen und zur Slicing-Optimierung, die auf dem Cloud-Dienst von Helio Additive in dieser Software basieren, werden von Helio Additive entwickelt, betrieben und gewartet. Diese Funktionen erfassen die erforderlichen Benutzerinformationen und Daten, um die entsprechenden Servicefunktionen zu erfüllen. Dies kann Abonnements und Zahlungen beinhalten. Bitte besuchen Sie Helio Additive und lesen Sie die Datenschutzvereinbarung von Helio Additive sowie die Nutzungsvereinbarung von Helio Additive für weitere Informationen."
+msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. The effectiveness and availability of this service will be managed by Helio Additive.These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
+msgstr ""
+
+msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
+msgstr ""
+
+msgid "You agree not to use this product and its related updates to engage in the following activities:"
+msgstr ""
+
+msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
+msgstr ""
+
+msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
+msgstr ""
+
+msgid "3.Using this software and services for any improper or illegal activities."
+msgstr ""
 
 msgid "https://www.helioadditive.com/"
 msgstr ""
@@ -14127,6 +14139,21 @@ msgid ""
 msgstr ""
 "Vermeiden Sie Verformungen\n"
 "Wussten Sie, dass beim Drucken von Materialien, die zu Verformungen neigen, wie z. B. ABS, die Wahrscheinlichkeit von Verformungen durch eine entsprechende Erhöhung der Heizbetttemperatur verringert werden kann?"
+
+#~ msgid "Helio slicing does not support using a number of materials greater than 1."
+#~ msgstr "Helio Slicen unterstützt nicht die Verwendung von mehr als einem Material."
+
+#~ msgid "Enable Helio slice"
+#~ msgstr "Helio-Slice aktivieren"
+
+#~ msgid "Enable Helio slicing"
+#~ msgstr "Helio-Slicen aktivieren"
+
+#~ msgid "Description of title content"
+#~ msgstr "Beschreibung des Titelinhalts"
+
+#~ msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, and maintained by Helio Additive. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
+#~ msgstr "Sofern nicht anders angegeben, bietet Bambu Lab nur Support für die offiziell bereitgestellten Softwarefunktionen. Die Funktionen zum Slicen und zur Slicing-Optimierung, die auf dem Cloud-Dienst von Helio Additive in dieser Software basieren, werden von Helio Additive entwickelt, betrieben und gewartet. Diese Funktionen erfassen die erforderlichen Benutzerinformationen und Daten, um die entsprechenden Servicefunktionen zu erfüllen. Dies kann Abonnements und Zahlungen beinhalten. Bitte besuchen Sie Helio Additive und lesen Sie die Datenschutzvereinbarung von Helio Additive sowie die Nutzungsvereinbarung von Helio Additive für weitere Informationen."
 
 #~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
 #~ msgstr "Die automatische Kalibrierung unterstützt nur Fälle, in denen der Durchmesser der linken und rechten Düse identisch ist."

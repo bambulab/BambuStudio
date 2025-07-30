@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-30 15:22+0800\n"
+"POT-Creation-Date: 2025-07-30 19:48+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6469,7 +6469,7 @@ msgstr ""
 msgid "The current printer preset cannot be sliced using Helio."
 msgstr ""
 
-msgid "Helio slicing does not support using a number of materials greater than 1."
+msgid "Helio does not support using a number of materials greater than 1."
 msgstr ""
 
 #, c-format, boost-format
@@ -6975,7 +6975,7 @@ msgstr "Realice la corrección gamma en el color después de importar el modelo 
 msgid "Remember last used color scheme"
 msgstr ""
 
-msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup.."
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr ""
 
 msgid "Improve rendering performance by lod"
@@ -7050,10 +7050,7 @@ msgstr "Mostrar historial en la página de inicio"
 msgid "Helio Options"
 msgstr ""
 
-msgid "Enable Helio slice"
-msgstr ""
-
-msgid "Enable Helio slicing"
+msgid "Enable Helio"
 msgstr ""
 
 msgid "About Helio"
@@ -9070,13 +9067,28 @@ msgstr "No se pudo enviar. Haz clic en Reintentar para volver a intentar el env�
 msgid "reconnect"
 msgstr "reconectar"
 
-msgid "Description of title content"
-msgstr ""
+msgid "Terms of Service"
+msgstr "Condiciones de uso"
 
 msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
 msgstr ""
 
-msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, and maintained by Helio Additive. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
+msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. The effectiveness and availability of this service will be managed by Helio Additive.These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
+msgstr ""
+
+msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
+msgstr ""
+
+msgid "You agree not to use this product and its related updates to engage in the following activities:"
+msgstr ""
+
+msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
+msgstr ""
+
+msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
+msgstr ""
+
+msgid "3.Using this software and services for any improper or illegal activities."
 msgstr ""
 
 msgid "https://www.helioadditive.com/"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-30 15:22+0800\n"
+"POT-Creation-Date: 2025-07-30 19:48+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6453,8 +6453,8 @@ msgstr "Préréglage d'imprimante non valide. Impossible de trancher avec Hélio
 msgid "The current printer preset cannot be sliced using Helio."
 msgstr "Le préréglage actuel de l'imprimante ne peut pas être tranché avec Helio."
 
-msgid "Helio slicing does not support using a number of materials greater than 1."
-msgstr "Le tranchage avec Helio n'est pas possible lors d'impressions avec plusieurs matériaux."
+msgid "Helio does not support using a number of materials greater than 1."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
@@ -6955,7 +6955,7 @@ msgstr "Effectuer la correction gamma sur la couleur après avoir importé le mo
 msgid "Remember last used color scheme"
 msgstr ""
 
-msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup.."
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr ""
 
 msgid "Improve rendering performance by lod"
@@ -7030,11 +7030,8 @@ msgstr "Afficher l'historique sur la page d'accueil"
 msgid "Helio Options"
 msgstr "Options Helio"
 
-msgid "Enable Helio slice"
-msgstr "Activer le tranchage Helio"
-
-msgid "Enable Helio slicing"
-msgstr "Activer le tranchage Helio"
+msgid "Enable Helio"
+msgstr ""
 
 msgid "About Helio"
 msgstr "À propos de Helio"
@@ -9046,14 +9043,29 @@ msgstr "L'envoi a échoué. Cliquez sur Réessayer pour tenter à nouveau l'envo
 msgid "reconnect"
 msgstr "se reconnecter"
 
-msgid "Description of title content"
-msgstr "Description du contenu du titre"
+msgid "Terms of Service"
+msgstr "Conditions d'utilisation"
 
 msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
 msgstr "Vous êtes sur le point d'activer une fonction de service logiciel de Helio Additive! Avant de confirmer l'utilisation de cette fonctionnalité, merci de lire attentivement les instructions suivantes."
 
-msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, and maintained by Helio Additive. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
-msgstr "Sauf indication contraire, Bambu Lab ne prend en charge que les caractéristiques du logiciel fournies officiellement. Les fonctionnalités d'évaluation et d'optimisation du tranchage basées sur le service cloud d'Helio Additive dans ce logiciel seront développées, exploitées et maintenues par Helio Additive. Ces fonctionnalités recueilleront les informations et les données nécessaires à la réalisation des fonctions pertinentes du service. Veuillez visiter Helio Additive et vous référer à la convention de confidentialité Helio Additive et à la convention sur l'utilisateur additif Helio pour obtenir des renseignements détaillés."
+msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. The effectiveness and availability of this service will be managed by Helio Additive.These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
+msgstr ""
+
+msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
+msgstr ""
+
+msgid "You agree not to use this product and its related updates to engage in the following activities:"
+msgstr ""
+
+msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
+msgstr ""
+
+msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
+msgstr ""
+
+msgid "3.Using this software and services for any improper or illegal activities."
+msgstr ""
 
 msgid "https://www.helioadditive.com/"
 msgstr ""
@@ -14116,6 +14128,21 @@ msgid ""
 msgstr ""
 "Évitez le warping\n"
 "Saviez-vous que lors de l'impression de matériaux sujets au warping, tels que l'ABS, une augmentation appropriée de la température du plateau peut réduire le risque de déformation ?"
+
+#~ msgid "Helio slicing does not support using a number of materials greater than 1."
+#~ msgstr "Le tranchage avec Helio n'est pas possible lors d'impressions avec plusieurs matériaux."
+
+#~ msgid "Enable Helio slice"
+#~ msgstr "Activer le tranchage Helio"
+
+#~ msgid "Enable Helio slicing"
+#~ msgstr "Activer le tranchage Helio"
+
+#~ msgid "Description of title content"
+#~ msgstr "Description du contenu du titre"
+
+#~ msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, and maintained by Helio Additive. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
+#~ msgstr "Sauf indication contraire, Bambu Lab ne prend en charge que les caractéristiques du logiciel fournies officiellement. Les fonctionnalités d'évaluation et d'optimisation du tranchage basées sur le service cloud d'Helio Additive dans ce logiciel seront développées, exploitées et maintenues par Helio Additive. Ces fonctionnalités recueilleront les informations et les données nécessaires à la réalisation des fonctions pertinentes du service. Veuillez visiter Helio Additive et vous référer à la convention de confidentialité Helio Additive et à la convention sur l'utilisateur additif Helio pour obtenir des renseignements détaillés."
 
 #~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
 #~ msgstr "L'étalonnage automatique ne prend en charge que les cas où les diamètres des buses gauche et droite sont identiques."
