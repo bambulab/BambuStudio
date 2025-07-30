@@ -176,7 +176,7 @@ namespace Slic3r {
         GCodeCheckResult  gcode_check_result;
         FilamentPrintableResult filament_printable_reuslt;
         float initial_layer_time;
-        MultiNozzleUtils::MultiNozzleGroupResult nozzle_group_result;
+        std::optional<MultiNozzleUtils::MultiNozzleGroupResult> nozzle_group_result;
 
         struct SettingsIds
         {

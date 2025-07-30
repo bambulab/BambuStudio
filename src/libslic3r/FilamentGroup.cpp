@@ -136,7 +136,7 @@ namespace Slic3r
      */
     std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>>& map_lists,
         const std::vector<unsigned int>& used_filaments,
-        const std::vector<FilamentInfo>& used_filament_info,
+        const std::vector<FilamentGroupUtils::FilamentInfo>& used_filament_info,
         const std::vector<std::vector<MachineFilamentInfo>>& machine_filament_info_,
         const double color_threshold)
     {
@@ -494,6 +494,269 @@ namespace Slic3r
         this->m_cluster_labels = best_labels;
     }
 
+    int KMediods::calc_cost(const std::vector<int>& cluster_labels, const std::vector<int>& cluster_centers,int cluster_id)
+    {
+        assert(m_evaluator);
+        int total_cost = 0;
+        for (int i = 0; i < m_elem_count; ++i) {
+            if ((cluster_id == -1 || cluster_labels[i] == cluster_id) && cluster_centers[cluster_labels[i]] != -1)
+                total_cost += m_evaluator->get_distance(i, cluster_centers[cluster_labels[i]]);
+        }
+        return total_cost;
+    }
+
+    bool KMediods::have_enough_size(const std::vector<int>& cluster_size, const std::vector<std::pair<std::set<int>, int>>& cluster_group_size,int elem_count)
+    {
+        bool have_enough_size = true;
+        std::optional<int>cluster_sum;
+        std::optional<int>cluster_group_sum;
+
+        if (!cluster_size.empty())
+            cluster_sum = std::accumulate(cluster_size.begin(), cluster_size.end(), 0);
+        if (!cluster_group_size.empty())
+            cluster_group_sum = std::accumulate(cluster_group_size.begin(), cluster_group_size.end(), 0, [](int a, const std::pair<std::set<int>, int>& p) {return a + p.second; });
+        if (cluster_sum.has_value())
+            have_enough_size &= (cluster_sum >= elem_count);
+        if (cluster_group_sum.has_value())
+            have_enough_size &= (cluster_group_sum >= elem_count);
+        return have_enough_size;
+    }
+
+    std::vector<int> KMediods::cluster_small_data(const std::unordered_map<int, std::vector<int>>& placeable_limits, const std::unordered_map<int, std::vector<int>>& unplaceable_limits,const std::vector<int>&cluster_size,const std::vector<std::pair<std::set<int>,int>>& cluster_group_size)
+    {
+        // max flow network
+        std::vector<int> l_nodes(m_elem_count); // represents the filaments idx
+        std::iota(l_nodes.begin(), l_nodes.end(), 0);
+        std::vector<int> r_nodes(m_k); // represent the groups idx
+        std::iota(r_nodes.begin(), r_nodes.end(), 0);
+
+        // only consider the size limit if the group can contain all of the filaments
+        std::vector<int> i_cluster_size = {};
+        std::vector<std::pair<std::set<int>, int>> i_cluster_group_size = {};
+        if (have_enough_size(cluster_size, cluster_group_size,m_elem_count)) {
+            i_cluster_size = cluster_size;
+            i_cluster_group_size = cluster_group_size;
+        }
+        else{
+            // TODO: xcr：throw exception here?
+        }
+
+        MaxFlowSolver M(l_nodes, r_nodes, placeable_limits, unplaceable_limits, {}, i_cluster_size, i_cluster_group_size);
+        auto ret = M.solve();
+
+        // if still has -1，it means there has some filaments that cannot be placed under the limit. We put it in the default group_id
+        for (size_t idx = 0; idx < ret.size(); ++idx) {
+            if (ret[idx] == -1) {
+                ret[idx] = m_default_group_id;
+            }
+        }
+
+        return ret;
+    }
+
+    // make sure each cluster at least have one elements
+    std::vector<int> KMediods::init_cluster_center(const std::unordered_map<int, std::vector<int>>& placeable_limits, const std::unordered_map<int, std::vector<int>>& unplaceable_limits,const std::vector<int>& cluster_size,const std::vector<std::pair<std::set<int>,int>>& cluster_group_size)
+    {
+        // max flow network
+        std::vector<int> l_nodes(m_elem_count); // represent the filament idx, to be shuffled
+        std::vector<int> r_nodes(m_k); // represent the group idx
+        std::iota(l_nodes.begin(), l_nodes.end(), 0);
+        std::iota(r_nodes.begin(), r_nodes.end(), 0);
+
+        std::unordered_map<int, std::vector<int>> shuffled_placeable_limits;
+        std::unordered_map<int, std::vector<int>> shuffled_unplaceable_limits;
+        // shuffle the filaments and transfer placeable,unplaceable limits
+        {
+            std::random_device dev;
+            std::mt19937 rng(dev());
+            std::shuffle(l_nodes.begin(), l_nodes.end(), rng);
+
+            std::unordered_map<int, int>idx_transfer;
+            for (size_t idx = 0; idx < l_nodes.size(); ++idx)
+                idx_transfer[l_nodes[idx]] = idx;
+
+            for (auto& elem : placeable_limits)
+                shuffled_placeable_limits[idx_transfer[elem.first]] = elem.second;
+            for (auto& elem : unplaceable_limits)
+                shuffled_unplaceable_limits[idx_transfer[elem.first]] = elem.second;
+        }
+
+
+        // only consider the size limit if the group can contain all of the filaments
+        std::vector<int> i_cluster_size = {};
+        std::vector<std::pair<std::set<int>, int>> i_cluster_group_size = {};
+        if (have_enough_size(cluster_size, cluster_group_size,m_elem_count)) {
+            i_cluster_size = cluster_size;
+            i_cluster_group_size = cluster_group_size;
+        }
+        else {
+            // TODO: xcr：throw exception here?
+        }
+
+        MaxFlowSolver M(l_nodes, r_nodes, shuffled_placeable_limits, shuffled_unplaceable_limits, {}, i_cluster_size, i_cluster_group_size);
+        auto ret = M.solve();
+
+        // if still has -1，it means there has some filaments that cannot be placed under the limit. We neglect the -1 here since we
+        // are deciding the cluster center, -1 can be handled in later steps
+        std::vector<int> cluster_center(m_k, -1);
+        for (size_t idx = 0; idx < ret.size(); ++idx) {
+            if (ret[idx] != -1) {
+                cluster_center[ret[idx]] = l_nodes[idx];
+            }
+        }
+
+        return cluster_center;
+    }
+
+    std::vector<int> KMediods::assign_cluster_label(const std::vector<int>& center, const std::unordered_map<int, std::vector<int>>& placeable_limits, const std::unordered_map<int, std::vector<int>>& unplaceable_limits, const std::vector<int>& cluster_size, const std::vector<std::pair<std::set<int>, int>>& cluster_group_size)
+    {
+        std::vector<int> labels(m_elem_count, -1);
+        std::vector<int> l_nodes(m_elem_count);
+        std::vector<int> r_nodes(m_k);
+        std::iota(l_nodes.begin(), l_nodes.end(), 0);
+        std::iota(r_nodes.begin(), r_nodes.end(), 0);
+
+        std::vector<std::vector<float>> distance_matrix(m_elem_count, std::vector<float>(m_k));
+        for (int i = 0; i < m_elem_count; ++i) {
+            for (int j = 0; j < m_k; ++j) {
+                if (center[j] == -1)
+                    distance_matrix[i][j] = 0;
+                else
+                    distance_matrix[i][j] = m_evaluator->get_distance(i, center[j]);
+            }
+        }
+
+        // only consider the size limit if the group can contain all of the filaments
+        std::vector<int> r_nodes_capacity = {};
+        std::vector<std::pair<std::set<int>, int>> r_nodes_group_capacity = {};
+        if (have_enough_size(cluster_size, cluster_group_size, m_elem_count)) {
+            r_nodes_capacity = cluster_size;
+            r_nodes_group_capacity = cluster_group_size;
+        }
+        else {
+            // TODO: xcr：throw exception here?
+            // adjust group size to elem count if the group cannot contain all of the filamnts
+            r_nodes_capacity = std::vector<int>(m_k, m_elem_count);
+        }
+        std::vector<int> l_nodes_capacity(l_nodes.size(),1);
+        //for (size_t idx = 0; idx < center.size(); ++idx)
+        //    if (center[idx] != -1)
+        //        l_nodes_capacity[center[idx]] = 0;
+
+
+        // Each group can receive up to m_elem_count materials at most, so the flow from r_nodes to sink is adjusted to m_elem_count.
+        MinFlushFlowSolver M(distance_matrix, l_nodes, r_nodes, placeable_limits, unplaceable_limits, l_nodes_capacity, r_nodes_capacity, r_nodes_group_capacity);
+        auto ret = M.solve();
+
+        for (size_t idx = 0; idx < ret.size(); ++idx) {
+            if (ret[idx] != MaxFlowGraph::INVALID_ID) {
+                labels[l_nodes[idx]] = r_nodes[ret[idx]];
+            }
+        }
+
+        for (size_t idx = 0; idx < center.size(); ++idx)
+            if (center[idx] != -1)
+                assert(labels[center[idx]] == idx);
+
+        //for (size_t idx = 0; idx < center.size(); ++idx) {
+        //    if (center[idx] != -1) {
+        //        labels[center[idx]] = idx;
+        //    }
+        //}
+
+        // If there are materials that have not been grouped in the last step, assign them to the default group.
+        for (size_t idx = 0; idx < labels.size(); ++idx) {
+            if (labels[idx] == -1) {
+                labels[idx] = m_default_group_id;
+            }
+        }
+
+        return labels;
+    }
+
+    /*
+    1.Select initial medoids randomly
+    2.Iterate while the cost decreases:
+      2.1 In each cluster, make the point that minimizes the sum of distances within the cluster the medoid
+      2.2 Reassign each point to the cluster defined by the closest medoid determined in the previous step
+    */
+    void KMediods::do_clustering(int timeout_ms, int retry)
+    {
+        FlushTimeMachine T;
+        T.time_machine_start();
+
+        if (m_elem_count < m_k) {
+            m_cluster_labels = cluster_small_data(m_placeable_limits, m_unplaceable_limits, m_max_cluster_size, m_cluster_group_size);
+            {
+                std::vector<int> cluster_center(m_k, -1);
+                for (size_t idx = 0; idx < m_cluster_labels.size(); ++idx) {
+                    if (cluster_center[m_cluster_labels[idx]] == -1) cluster_center[m_cluster_labels[idx]] = idx;
+                }
+                // in non enum mode, we use the same prefer level
+                MemoryedGroup g(m_cluster_labels, calc_cost(m_cluster_labels, cluster_center), 1);
+                update_memoryed_groups(g, memory_threshold, memoryed_groups);
+            }
+            return;
+        }
+
+        std::vector<int> best_cluster_centers = std::vector<int>(m_k, 0);
+        std::vector<int> best_cluster_labels  = std::vector<int>(m_elem_count, m_default_group_id);
+        int              best_cluster_cost    = std::numeric_limits<int>::max();
+        int              retry_count          = 0;
+
+        while (retry_count < retry && T.time_machine_end() < timeout_ms) {
+            std::vector<int> curr_cluster_centers = init_cluster_center(m_placeable_limits, m_unplaceable_limits, m_max_cluster_size, m_cluster_group_size);
+            std::vector<int> curr_cluster_labels = assign_cluster_label(curr_cluster_centers, m_placeable_limits, m_unplaceable_limits, m_max_cluster_size, m_cluster_group_size);
+            int              curr_cluster_cost   = calc_cost(curr_cluster_labels, curr_cluster_centers);
+
+            bool mediods_changed = true;
+            while (mediods_changed && T.time_machine_end() < timeout_ms) {
+                mediods_changed       = false;
+                int best_swap_cost    = curr_cluster_cost;
+                int best_swap_cluster = -1;
+                int best_swap_elem    = -1;
+
+                for (size_t cluster_id = 0; cluster_id < m_k; ++cluster_id) {
+                    if (curr_cluster_centers[cluster_id] == -1) continue; // skip the empty cluster
+                    for (int elem = 0; elem < m_elem_count; ++elem) {
+                        if (curr_cluster_centers[cluster_id] == elem ||
+                            std::find(m_unplaceable_limits[cluster_id].begin(), m_unplaceable_limits[cluster_id].end(), elem) != m_unplaceable_limits[cluster_id].end())
+                            continue;
+                        std::vector<int> tmp_centers = curr_cluster_centers;
+                        tmp_centers[cluster_id]      = elem; // swap the mediod
+                        std::vector<int> tmp_labels  = assign_cluster_label(tmp_centers, m_placeable_limits, m_unplaceable_limits, m_max_cluster_size, m_cluster_group_size);
+                        int              tmp_cost    = calc_cost(tmp_labels, tmp_centers);
+
+                        if (tmp_cost < best_swap_cost) {
+                            best_swap_cost    = tmp_cost;
+                            best_swap_cluster = cluster_id;
+                            best_swap_elem    = elem;
+                            mediods_changed   = true;
+                        }
+                    }
+                }
+
+                if (mediods_changed) {
+                    curr_cluster_centers[best_swap_cluster] = best_swap_elem;
+                    curr_cluster_labels = assign_cluster_label(curr_cluster_centers, m_placeable_limits, m_unplaceable_limits, m_max_cluster_size, m_cluster_group_size);
+                    curr_cluster_cost   = calc_cost(curr_cluster_labels, curr_cluster_centers);
+
+                    MemoryedGroup g(curr_cluster_labels, curr_cluster_cost, 1); // in non enum mode, we use the same prefer level
+                    update_memoryed_groups(g, memory_threshold, memoryed_groups);
+                }
+            }
+
+            if (curr_cluster_cost < best_cluster_cost) {
+                best_cluster_centers = curr_cluster_centers;
+                best_cluster_cost    = curr_cluster_cost;
+                best_cluster_labels  = curr_cluster_labels;
+            }
+
+            retry_count += 1;
+        }
+        m_cluster_labels = best_cluster_labels;
+    }
+
     std::vector<int> FilamentGroup::calc_min_flush_group(int* cost)
     {
         auto used_filaments = collect_sorted_used_filaments(ctx.model_info.layer_filaments);
@@ -608,7 +871,7 @@ namespace Slic3r
         using namespace FlushPredict;
 
         auto used_filaments = collect_sorted_used_filaments(ctx.model_info.layer_filaments);
-        std::vector<FilamentInfo> used_filament_list;
+        std::vector<FilamentGroupUtils::FilamentInfo> used_filament_list;
         for (auto f : used_filaments)
             used_filament_list.emplace_back(ctx.model_info.filament_info[f]);
 
@@ -1093,6 +1356,34 @@ namespace Slic3r
         }
         return ret;
     }
+
+
+    std::vector<int> calc_filament_group_for_match_multi_nozzle(const FilamentGroupContext& ctx)
+    {
+        FilamentGroup fg1(ctx);
+        auto filament_extruder_map = fg1.calc_filament_group_for_match();
+
+        FilamentGroupContext new_ctx = ctx;
+        auto used_filaments = collect_sorted_used_filaments(ctx.model_info.layer_filaments);
+        for(size_t idx = 0; idx < used_filaments.size(); ++idx)
+            new_ctx.model_info.unprintable_filaments[1 - filament_extruder_map[used_filaments[idx]]].insert(used_filaments[idx]);
+
+        FilamentGroupMultiNozzle fg(new_ctx);
+        return fg.calc_filament_group_by_pam();
+    }
+
+    std::vector<int> calc_filament_group_for_manual_multi_nozzle(const std::vector<int>& filament_map_manual, const FilamentGroupContext& ctx)
+    {
+        FilamentGroupContext new_ctx = ctx;
+        auto used_filaments = collect_sorted_used_filaments(ctx.model_info.layer_filaments);
+        for(size_t idx = 0; idx < used_filaments.size(); ++idx)
+            new_ctx.model_info.unprintable_filaments[1 - filament_map_manual[used_filaments[idx]]].insert(used_filaments[idx]);
+
+        FilamentGroupMultiNozzle fg(new_ctx);
+        return fg.calc_filament_group_by_pam();
+    }
+
+
 }
 
 

@@ -889,7 +889,7 @@ namespace Slic3r
         return cost;
     }
 
-
+#if DEBUG_MULTI_NOZZLE_MCMF
     int reorder_filaments_for_multi_nozzle_extruder(const std::vector<unsigned int>& filament_lists,
         const std::vector<int>& filament_maps,
         const std::vector<std::vector<unsigned int>>& layer_filaments,
@@ -1035,6 +1035,7 @@ namespace Slic3r
 
         return cost;
     }
+#endif
 
     int reorder_filaments_for_multi_nozzle_extruder(const std::vector<unsigned int>& filament_lists,
         const MultiNozzleUtils::MultiNozzleGroupResult& nozzle_group_result,

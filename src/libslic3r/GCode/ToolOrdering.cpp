@@ -1119,15 +1119,7 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
         FGMode fg_mode = mode == FilamentMapMode::fmmAutoForMatch ? FGMode::MatchMode: FGMode::FlushMode;
 
         std::vector<std::set<int>> ext_unprintable_filaments(2);
-        if(mode == FilamentMapMode::fmmManual){
-            // collect extruders that filaments must be placed in, and then do grouping between nozzles in extruder
-            auto manual_filament_map = print_config.filament_map.values;
-            std::transform(manual_filament_map.begin(), manual_filament_map.end(), manual_filament_map.begin(), [](int v) { return v - 1; });
-            for(size_t idx = 0; idx<used_filaments.size();++idx)
-                ext_unprintable_filaments[1 - manual_filament_map[used_filaments[idx]]].insert(used_filaments[idx]);
-        }
-        else
-            collect_unprintable_limits(physical_unprintables, geometric_unprintables, ext_unprintable_filaments);
+        collect_unprintable_limits(physical_unprintables, geometric_unprintables, ext_unprintable_filaments);
 
         FilamentGroupContext context;
         {
@@ -1162,9 +1154,18 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
         if (print_config.has_multiple_nozzle) {
             context.nozzle_info.nozzle_list = build_nozzle_list(nozzle_groups);
             context.nozzle_info.extruder_nozzle_list = build_extruder_nozzle_list(context.nozzle_info.nozzle_list);
-            FilamentGroupMultiNozzle fg(context);
-            ret = fg.calc_filament_group_by_pam();
-
+            if(mode == FilamentMapMode::fmmManual){
+                auto manual_filament_map = print_config.filament_map.values;
+                std::transform(manual_filament_map.begin(), manual_filament_map.end(), manual_filament_map.begin(), [](int v) { return v - 1; });
+                ret = calc_filament_group_for_manual_multi_nozzle(manual_filament_map,context);
+            }
+            else if(mode == FilamentMapMode::fmmAutoForMatch){
+                ret = calc_filament_group_for_match_multi_nozzle(context);
+            }
+            else{
+                FilamentGroupMultiNozzle fg(context);
+                ret = fg.calc_filament_group_by_pam();
+            }
             MultiNozzleUtils::MultiNozzleGroupResult result(ret, context.nozzle_info.nozzle_list);
             for (size_t idx = 0; idx < ret.size(); ++idx) {
                 int nozzle_id = ret[idx];
@@ -1259,13 +1260,18 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
                 print_config = &(m_print_object_ptr->print()->config());
             }
 
-            auto group_result = ToolOrdering::get_recommended_filament_maps(m_print,layer_filaments,map_mode,physical_unprintables,geometric_unprintables);
-            filament_maps = group_result.filament_map;
+            if(m_print->get_nozzle_group_result().has_value()){
+                filament_maps =m_print->get_nozzle_group_result()->filament_map;
+            }
+            else{
+                auto group_result = ToolOrdering::get_recommended_filament_maps(m_print,layer_filaments,map_mode,physical_unprintables,geometric_unprintables);
+                m_print->set_nozzle_group_result(group_result);
+                filament_maps = group_result.filament_map;
+            }
             if (filament_maps.empty())
-                return;
+                    return;
             std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value + 1; });
             m_print->update_filament_maps_to_config(filament_maps);
-            m_print->set_nozzle_group_result(group_result);
         }
         std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value - 1; });
 
@@ -1312,10 +1318,10 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
 
     bool support_multi_nozzle = true;
 
-    if(print_config->has_multiple_nozzle){
+    if(print_config->has_multiple_nozzle && m_print->get_nozzle_group_result().has_value()){
         reorder_filaments_for_multi_nozzle_extruder(
             filament_lists,
-            m_print->get_nozzle_group_result(),
+            m_print->get_nozzle_group_result().value(),
             layer_filaments,
             nozzle_flush_mtx,
             get_custom_seq,
