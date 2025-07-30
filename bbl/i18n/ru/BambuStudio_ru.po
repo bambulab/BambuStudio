@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-25 09:53+0800\n"
+"POT-Creation-Date: 2025-07-30 10:22+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -7141,6 +7141,12 @@ msgstr "Включить гамма-коррекцию для импортиро
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "Выполнять гамма-коррекцию цвета после импорта obj модели."
 
+msgid "Remember last used color scheme"
+msgstr ""
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup.."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr "Повысить производительность рендеринга с помощью LOD"
 
@@ -8058,8 +8064,14 @@ msgstr "Нажмите, чтобы сбросить все настройки к
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Для плавного таймлапса требуется черновая башня. На модели без использования черновой башни могут быть дефекты. Вы уверены, что хотите отключить черновую башню?"
 
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
+msgstr ""
+
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr "Включение опции «Точная высота по Z» вместе с черновой башней может привести к увеличению её размера. Вы уверены, что хотите включить эту опцию?"
+
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
+msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Для плавного таймлапса требуется черновая башня. На модели без использования черновой башни могут быть дефекты. Вы хотите включить черновую башню?"
@@ -8364,6 +8376,9 @@ msgstr "G-код после смены слоя"
 
 msgid "Time lapse G-code"
 msgstr "G-код таймлапса"
+
+msgid "Clumping Detection G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "G-код смены прутка"
@@ -9627,6 +9642,9 @@ msgstr "Модель «%1%» слишком высокая, что может п
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr " находится слишком близко к области исключения, что может привести к столкновению при печати."
 
+msgid " is too close to clumping detection area, there may be collisions when printing."
+msgstr ""
+
 msgid "Prime Tower"
 msgstr "Черновая башня"
 
@@ -9635,6 +9653,9 @@ msgstr " находится слишком близко к другим моде
 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " находится слишком близко к области исключения, что может привести к столкновению.\n"
+
+msgid " is too close to clumping detection area, and collisions will be caused.\n"
+msgstr ""
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "Совместная печать высокотемпературными и низкотемпературными материалами может привести к засорению сопла или повреждению принтера."
@@ -9653,6 +9674,9 @@ msgstr "При текущих настройках экструзия отсут
 
 msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is enabled."
 msgstr "Плавный режим таймлапса не поддерживается, когда включена последовательность печати моделей по очереди."
+
+msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
+msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Выберите последовательность печати «По очереди», для поддержки печати несколько моделей в режиме спиральной вазы."
@@ -10849,6 +10873,15 @@ msgstr "Проверка первого слоя"
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "При включении, камера принтера будет проверять качество печати первого слоя."
 
+msgid "Enable clumping detection"
+msgstr ""
+
+msgid "Clumping detection layers"
+msgstr ""
+
+msgid "Clumping detection layers."
+msgstr ""
+
 msgid "Thumbnail size"
 msgstr "Размер эскизов"
 
@@ -11119,6 +11152,9 @@ msgstr "Выбор угла разглаживания поверхности."
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "Команды в G-коде, которые выполняются каждый раз после смены слоя, то есть после поднятия оси Z."
+
+msgid "Clumping detection G-code"
+msgstr ""
 
 msgid "Supports silent mode"
 msgstr "Поддержка тихого режима"
@@ -13608,10 +13644,6 @@ msgstr "Нужно выбрать принтер"
 msgid "The start, end or step is not valid value."
 msgstr "Недопустимое значение: начальное, конечное или шаг."
 
-# ??? Автокалибровка работает только тогда, когда диаметры левого и правого сопел одинаковые.
-msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "Автокалибровка работает только при одинаковых диаметрах левого и правого сопел."
-
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr "Количество экструдеров у принтера не соответствует выбранному для калибровки принтеру."
 
@@ -14449,6 +14481,10 @@ msgid ""
 msgstr ""
 "Предотвращение коробления материала\n"
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как ABS, повышение температуры подогреваемого стола может снизить эту вероятность?"
+
+# ??? Автокалибровка работает только тогда, когда диаметры левого и правого сопел одинаковые.
+#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "Автокалибровка работает только при одинаковых диаметрах левого и правого сопел."
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "Время печати слоя (с)"

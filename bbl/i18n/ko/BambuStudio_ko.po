@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-25 09:53+0800\n"
+"POT-Creation-Date: 2025-07-30 10:22+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6958,6 +6958,12 @@ msgstr "가져온 obj 파일에 감마 보정 활성화."
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "obj 모델을 가져온 후 색상에 대한 감마 보정을 수행합니다."
 
+msgid "Remember last used color scheme"
+msgstr ""
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup.."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr "로드별 렌더링 성능 향상"
 
@@ -7852,8 +7858,14 @@ msgstr "모든 설정을 마지막으로 저장한 프리셋으로 재설정하�
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "smooth 타임랩스 모드를 위해서는 프라임 타워가 필요합니다. 프라임 타워가 없는 모델에는 결함이 있을 수 있습니다. 프라임 타워를 비활성화하시겠습니까?"
 
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
+msgstr ""
+
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr "정밀 Z 높이와 프라임 타워를 모두 활성화하면 프라임 타워의 크기가 커질 수 있습니다. 그래도 활성화하시겠습니까?"
+
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
+msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "smooth 타임랩스 모드를 위해서는 프라임 타워가 필요합니다. 프라임 타워가 없는 모델에는 결함이 있을 수 있습니다. 프라임 타워를 활성화하시겠습니까?"
@@ -8157,6 +8169,9 @@ msgstr "레이어 변경 G-코드"
 
 msgid "Time lapse G-code"
 msgstr "타임랩스 G-코드"
+
+msgid "Clumping Detection G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "필라멘트 변경 G 코드"
@@ -9377,6 +9392,9 @@ msgstr "%1%는 너무 높아 충돌이 발생합니다."
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr "출력배제영역에 너무 가까워 출력시 충돌이 발생할 수 있습니다."
 
+msgid " is too close to clumping detection area, there may be collisions when printing."
+msgstr ""
+
 msgid "Prime Tower"
 msgstr "프라임 타워"
 
@@ -9385,6 +9403,9 @@ msgstr "다른 것들과 너무 가까워 충돌이 발생할 수 있습니다.\
 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr "출력배제영역에 너무 가까워 출력시 충돌이 발생할 수 있습니다. \n"
+
+msgid " is too close to clumping detection area, and collisions will be caused.\n"
+msgstr ""
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "고온 필라멘트와 저온 필라멘트를 함께 출력하면 노즐이 막히거나 프린터가 손상될 수 있습니다."
@@ -9403,6 +9424,9 @@ msgstr "현재 설정에서는 압출이 안됩니다."
 
 msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is enabled."
 msgstr "“객체별” 시퀀스가 활성화된 경우 smooth 타임랩스 모드가 지원되지 않습니다."
+
+msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
+msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "나선형 꽃병 모드에서 여러 객체를 출력하려면 “객체별” 출력 순서를 선택하십시오."
@@ -10560,6 +10584,15 @@ msgstr "첫레이어 스캔"
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "이 기능을 활성화하면 프린터 카메라가 첫 레이어의 품질을 확인할 수 있습니다."
 
+msgid "Enable clumping detection"
+msgstr ""
+
+msgid "Clumping detection layers"
+msgstr ""
+
+msgid "Clumping detection layers."
+msgstr ""
+
 msgid "Thumbnail size"
 msgstr "썸네일 크기"
 
@@ -10823,6 +10856,9 @@ msgstr "윗면과 다림질 사이의 상대적인 각도를 조절하는 다림
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "이 G-코드는 z 리프트 이후 모든 레이어 변경 시 삽입됩니다."
+
+msgid "Clumping detection G-code"
+msgstr ""
 
 msgid "Supports silent mode"
 msgstr "무음 모드 지원"
@@ -13258,9 +13294,6 @@ msgstr "프린터 선택 필요"
 msgid "The start, end or step is not valid value."
 msgstr "시작, 끝 또는 단계가 유효하지 않은 값입니다."
 
-msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "자동 보정은 왼쪽과 오른쪽 노즐 직경이 동일한 경우에만 지원됩니다."
-
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr "프린터 압출기 수와 보정을 위해 선택한 프린터가 일치하지 않습니다."
 
@@ -14087,6 +14120,9 @@ msgid ""
 msgstr ""
 "뒤틀림 방지\n"
 "ABS와 같이 뒤틀리기 쉬운 소재를 출력할 때 열판 온도를 적절히 높이면 뒤틀릴 확률을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "자동 보정은 왼쪽과 오른쪽 노즐 직경이 동일한 경우에만 지원됩니다."
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "레이어 시간 (s)"

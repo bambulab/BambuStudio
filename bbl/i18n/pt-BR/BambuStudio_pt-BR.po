@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-25 09:53+0800\n"
+"POT-Creation-Date: 2025-07-30 10:22+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6973,6 +6973,12 @@ msgstr "Habilitar a correção de gama para o arquivo obj importado"
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "Execute a correção de gama na cor após importar o modelo obj."
 
+msgid "Remember last used color scheme"
+msgstr ""
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup.."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr "Melhore o desempenho de renderização por meio de carregamento"
 
@@ -7867,8 +7873,14 @@ msgstr "Clique para redefinir todas as configurações para a última predefini�
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "A torre principal é necessária para um cronograma tranquilo. Pode haver falhas no modelo sem torre principal. Tem certeza de que deseja desativar a torre principal?"
 
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
+msgstr ""
+
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr "Habilitar a altura Z precisa e a torre principal pode fazer com que o tamanho da torre principal aumente. Você ainda deseja habilitar?"
+
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
+msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "A torre principal é necessária para um lapso de tempo suave. Pode haver falhas no modelo sem torre principal. Você quer habilitar a torre principal?"
@@ -7882,7 +7894,6 @@ msgid ""
 msgstr ""
 "Materiais de suporte não solúveis não são recomendados para a base de suporte. \n"
 "Você tem certeza de usá-los como base de suporte? \n"
-""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
@@ -8176,6 +8187,9 @@ msgstr "G-code de mudança de camada"
 
 msgid "Time lapse G-code"
 msgstr "Código G de lapso de tempo"
+
+msgid "Clumping Detection G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "G-code de troca de filamento"
@@ -9218,7 +9232,6 @@ msgid ""
 msgstr ""
 "Falha ao gerar o G-code devido a G-code personalizado inválido.\n"
 "\n"
-""
 
 msgid "Please check the custom G-code or use the default custom G-code.\n"
 msgstr "Verifique o g-code personalizado ou use o g-code personalizado padrão.\n"
@@ -9399,6 +9412,9 @@ msgstr "%1% é muito alto, e haverá colisões."
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr " está muito perto da área de exclusão, pode haver colisões durante a impressão."
 
+msgid " is too close to clumping detection area, there may be collisions when printing."
+msgstr ""
+
 msgid "Prime Tower"
 msgstr "Torre de purga"
 
@@ -9407,6 +9423,9 @@ msgstr " está muito próximo dos outros e podem ocorrer colisões.\n"
 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " está muito perto de uma área de exclusão e as colisões serão causadas.\n"
+
+msgid " is too close to clumping detection area, and collisions will be caused.\n"
+msgstr ""
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "Imprimir filamentos de alta e baixa temperatura juntos pode causar entupimento dos bicos ou danos à impressora."
@@ -9425,6 +9444,9 @@ msgstr "Sem extrusões nas configurações atuais."
 
 msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is enabled."
 msgstr "O modo suave de lapso de tempo não é suportado quando a sequência “por objeto” está ativada."
+
+msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
+msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Selecione a sequência de impressão “Por objeto” para imprimir vários objetos no modo vaso em espiral."
@@ -10582,6 +10604,15 @@ msgstr "Digitalizar a primeira camada"
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "Ative isso para permitir que a câmera da impressora verifique a qualidade da primeira camada"
 
+msgid "Enable clumping detection"
+msgstr ""
+
+msgid "Clumping detection layers"
+msgstr ""
+
+msgid "Clumping detection layers."
+msgstr ""
+
 msgid "Thumbnail size"
 msgstr "Tamanho da miniatura"
 
@@ -10845,6 +10876,9 @@ msgstr "Ângulo para passar a ferro, que controla o ângulo relativo entre a sup
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "Esta parte do g-code é inserida a cada mudança de camada após a elevação z"
+
+msgid "Clumping detection G-code"
+msgstr ""
 
 msgid "Supports silent mode"
 msgstr "Suporta o modo silencioso"
@@ -13279,9 +13313,6 @@ msgstr "Precisa selecionar impressora"
 msgid "The start, end or step is not valid value."
 msgstr "O início, o fim ou a etapa não são valores válidos."
 
-msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "A calibração automática só oferece suporte a casos em que os diâmetros dos bicos esquerdo e direito são idênticos."
-
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr "O número de extrusoras da impressora e a impressora selecionada para calibração não correspondem."
 
@@ -14108,6 +14139,9 @@ msgid ""
 msgstr ""
 "Evite deformar\n"
 "Você sabia que, ao imprimir materiais propensos a deformações, como o ABS, aumentar adequadamente a temperatura do leito térmico pode reduzir a probabilidade de deformação."
+
+#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "A calibração automática só oferece suporte a casos em que os diâmetros dos bicos esquerdo e direito são idênticos."
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "Tempo (s) da camada"

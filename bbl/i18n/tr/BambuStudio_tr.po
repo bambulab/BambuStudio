@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-25 09:53+0800\n"
+"POT-Creation-Date: 2025-07-30 10:22+0800\n"
 "PO-Revision-Date: 2025-07-17 21:56+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -6970,6 +6970,12 @@ msgstr "İçe aktarılan obj dosyası için gama düzeltmesini etkinleştir"
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "Obj modelini içe aktardıktan sonra renk üzerinde gama düzeltmesi yapın."
 
+msgid "Remember last used color scheme"
+msgstr ""
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup.."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr "Oluşturma performansını lod ile iyileştirin"
 
@@ -7860,8 +7866,14 @@ msgstr "Tüm ayarları en son kaydedilen ön ayara sıfırlamak için tıklayın
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Sorunsuz timeplace için Prime kulesi gereklidir. Prime kulesi olmayan modelde kusurlar olabilir. Prime kulesi'ı devre dışı bırakmak istediğinizden emin misiniz?"
 
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
+msgstr ""
+
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr "Hem hassas Z yüksekliğinin hem de prime kulesinin etkinleştirilmesi, prime kulenin boyutunun artmasına neden olabilir. Hala etkinleştirmek istiyor musunuz?"
+
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
+msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Sorunsuz hızlandırılmış çekim için Prime Tower gereklidir. Prime kulesi olmayan modelde kusurlar olabilir. Prime kulesi'ı etkinleştirmek istiyor musunuz?"
@@ -8168,6 +8180,9 @@ msgstr "Katman Değişimi G-kod"
 
 msgid "Time lapse G-code"
 msgstr "Time Lapse G-code"
+
+msgid "Clumping Detection G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "Filament Değişimi G-kod"
@@ -9390,6 +9405,9 @@ msgstr "%1% çok uzun ve çarpışmalara neden olacak."
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr " Hariç tutma alanına çok yakın olduğundan yazdırma sırasında çarpışmalar meydana gelebilir."
 
+msgid " is too close to clumping detection area, there may be collisions when printing."
+msgstr ""
+
 msgid "Prime Tower"
 msgstr "Prime Kulesi"
 
@@ -9398,6 +9416,9 @@ msgstr " başkalarına çok yakın olduğundan çarpışmalara neden olabilir.\n
 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " dışlama alanına çok yakın ve çarpışmalara neden olacak.\n"
+
+msgid " is too close to clumping detection area, and collisions will be caused.\n"
+msgstr ""
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "Yüksek sıcaklıklı ve düşük sıcaklıklı filamentlerin birlikte yazdırılması nozül tıkanmasına veya yazıcı hasarına neden olabilir."
@@ -9416,6 +9437,9 @@ msgstr "Mevcut ayarlarda ekstrüzyon yok."
 
 msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is enabled."
 msgstr "\"Nesneye göre\" dizisi etkinleştirildiğinde, hızlandırılmış çekimin yumuşak modu desteklenmez."
+
+msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
+msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Birden fazla nesneyi spiral vazo modunda yazdırmak için lütfen \"Nesneye göre\" yazdırma sırasını seçin."
@@ -10573,6 +10597,15 @@ msgstr "İlk katmanı tara"
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "Yazıcıdaki kameranın ilk katmanın kalitesini kontrol etmesini sağlamak için bunu etkinleştirin"
 
+msgid "Enable clumping detection"
+msgstr ""
+
+msgid "Clumping detection layers"
+msgstr ""
+
+msgid "Clumping detection layers."
+msgstr ""
+
 msgid "Thumbnail size"
 msgstr "Küçük resim boyutu"
 
@@ -10836,6 +10869,9 @@ msgstr "Üst yüzey ile ütüleme arasındaki göreceli açıyı kontrol eden ü
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "Bu gcode kısmı, z kaldırma işleminden sonra her katman değişikliğinde eklenir"
+
+msgid "Clumping detection G-code"
+msgstr ""
 
 msgid "Supports silent mode"
 msgstr "Sessiz modu destekler"
@@ -13272,9 +13308,6 @@ msgstr "Yazıcı seçmeniz gerekiyor"
 msgid "The start, end or step is not valid value."
 msgstr "Başlangıç, bitiş veya adım geçerli bir değer değildir."
 
-msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "Otomatik kalibrasyon yalnızca sol ve sağ nozul çaplarının aynı olduğu durumları destekler."
-
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr "Yazıcı ekstrüderlerinin sayısı ve kalibrasyon için seçilen yazıcı eşleşmiyor."
 
@@ -14101,6 +14134,9 @@ msgid ""
 msgstr ""
 "Eğilmeyi önleyin\n"
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını azaltabileceğini biliyor muydunuz."
+
+#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "Otomatik kalibrasyon yalnızca sol ve sağ nozul çaplarının aynı olduğu durumları destekler."
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "Katman Süresi (s)"

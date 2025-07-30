@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-25 09:53+0800\n"
+"POT-Creation-Date: 2025-07-30 10:22+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -6875,6 +6875,12 @@ msgstr ""
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr ""
 
+msgid "Remember last used color scheme"
+msgstr ""
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup.."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr ""
 
@@ -7759,7 +7765,13 @@ msgstr "Kliknutím obnovíte všechna nastavení na poslední uloženou předvol
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Pro hladký průběh časové roviny je vyžadována čistící věž. Mohou být chyby na model bez čistící věže. Opravdu chcete hlavní věž deaktivovat?"
 
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
+msgstr ""
+
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
+msgstr ""
+
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
 msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
@@ -8054,6 +8066,9 @@ msgid "Layer change G-code"
 msgstr "G-kód Změna vrstvy"
 
 msgid "Time lapse G-code"
+msgstr ""
+
+msgid "Clumping Detection G-code"
 msgstr ""
 
 msgid "Change filament G-code"
@@ -9260,6 +9275,9 @@ msgstr "%1% je příliš vysoké a budou způsobeny kolize."
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr " je příliš blízko oblasti vyloučení, při tisku může docházet ke kolizím."
 
+msgid " is too close to clumping detection area, there may be collisions when printing."
+msgstr ""
+
 msgid "Prime Tower"
 msgstr "Čistící Věž"
 
@@ -9268,6 +9286,9 @@ msgstr " je příliš blízko ostatním a může dojít ke kolizím.\n"
 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " je příliš blízko oblasti vyloučení a dojde ke kolizi.\n"
+
+msgid " is too close to clumping detection area, and collisions will be caused.\n"
+msgstr ""
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr ""
@@ -9286,6 +9307,9 @@ msgstr "Žádné extruze pod aktuálním nastavením."
 
 msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is enabled."
 msgstr "Plynulý režim časosběru není podporován, když \"podle objektu\" sekvence je povoleno."
+
+msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
+msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Vyberte prosím \"Podle objektu\" tiskovou sekvenci pro tisk více objektů v režimu spirálové vázy."
@@ -10443,6 +10467,15 @@ msgstr "Skenovat první vrstvu"
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "Povolením této možnosti umožníte Kameře na tiskárně kontrolovat kvalitu první vrstvy"
 
+msgid "Enable clumping detection"
+msgstr ""
+
+msgid "Clumping detection layers"
+msgstr ""
+
+msgid "Clumping detection layers."
+msgstr ""
+
 msgid "Thumbnail size"
 msgstr ""
 
@@ -10706,6 +10739,9 @@ msgstr ""
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "Tato část gcode je vložena při každé změně vrstvy po zvednutí z"
+
+msgid "Clumping detection G-code"
+msgstr ""
 
 msgid "Supports silent mode"
 msgstr "Podporuje tichý režim"
@@ -13071,9 +13107,6 @@ msgid "Need select printer"
 msgstr ""
 
 msgid "The start, end or step is not valid value."
-msgstr ""
-
-msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
 msgstr ""
 
 msgid "The number of printer extruders and the printer selected for calibration does not match."

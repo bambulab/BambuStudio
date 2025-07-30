@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-25 09:53+0800\n"
+"POT-Creation-Date: 2025-07-30 10:22+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6983,6 +6983,12 @@ msgstr "Włącz korekcje gammy dla zaimportowanego pliku obj"
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "Wykonaj korekcję gammy na wybrany kolorze po zaimportowaniu modelu obj."
 
+msgid "Remember last used color scheme"
+msgstr ""
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup.."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr "Poprawa wydajności renderowania przy pomocy LOD"
 
@@ -7877,8 +7883,14 @@ msgstr "Kliknij, aby zresetować wszystkie ustawienia do ostatnich zapisanych us
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Wieża czyszcząca jest wymagana dla płynnego timelapse'u. Możliwe są wady na modelu bez wieży czyszczącej. Czy na pewno chcesz ją wyłączyć?"
 
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
+msgstr ""
+
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr "Włączenie zarówno precyzyjnej wysokości Z, jak i głównej wieży może spowodować zwiększenie rozmiaru głównej wieży. Czy nadal chcesz włączyć?"
+
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
+msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Wieża czyszcząca jest wymagana dla płynnego timelapse'u. Możliwe są wady na modelu bez wieży czyszczącej. Czy chcesz włączyć wieżę czyszczącą?"
@@ -8188,6 +8200,9 @@ msgstr "G-code zmiany warstwy"
 
 msgid "Time lapse G-code"
 msgstr "G-code timelapse"
+
+msgid "Clumping Detection G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "G-code zmiany filamentu"
@@ -9412,6 +9427,9 @@ msgstr "%1% jest zbyt wysoki, mogą wystąpić kolizje."
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr " jest zbyt blisko obszaru wykluczenia, mogą wystąpić kolizje podczas drukowania."
 
+msgid " is too close to clumping detection area, there may be collisions when printing."
+msgstr ""
+
 msgid "Prime Tower"
 msgstr "Wieża czyszcząca"
 
@@ -9420,6 +9438,9 @@ msgstr " jest zbyt blisko innych, mogą wystąpić kolizje.\n"
 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " jest zbyt blisko obszaru wykluczenia, mogą wystąpić kolizje.\n"
+
+msgid " is too close to clumping detection area, and collisions will be caused.\n"
+msgstr ""
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "Jednoczesne drukowanie filamentami wysokotemperaturowymi i niskotemperaturowymi może powodować zatykanie się dyszy lub uszkodzenie drukarki."
@@ -9438,6 +9459,9 @@ msgstr "Brak ekstruzji przy obecnych ustawieniach."
 
 msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is enabled."
 msgstr "Timelapse nie jest obsługiwany, ponieważ sekwencja druku jest ustawiona na \"Według obiektu\"."
+
+msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
+msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Proszę wybrać sekwencję druku \"Według obiektu\", aby drukować wiele obiektów w trybie wazy."
@@ -10595,6 +10619,15 @@ msgstr "Skanuj pierwszą warstwę"
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "Włącz to, aby umożliwić kamerze w drukarce sprawdzenie jakości pierwszej warstwy."
 
+msgid "Enable clumping detection"
+msgstr ""
+
+msgid "Clumping detection layers"
+msgstr ""
+
+msgid "Clumping detection layers."
+msgstr ""
+
 msgid "Thumbnail size"
 msgstr "Rozmiar miniatury"
 
@@ -10858,6 +10891,9 @@ msgstr "Kąt prasowania, który kontroluje względny kąt między górną powier
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "Ten fragment gcode jest wstawiany przy każdej zmianie warstwy po podniesieniu osi Z"
+
+msgid "Clumping detection G-code"
+msgstr ""
 
 msgid "Supports silent mode"
 msgstr "Obsługuje tryb cichy"
@@ -13294,9 +13330,6 @@ msgstr "Konieczny jest wybór drukarki"
 msgid "The start, end or step is not valid value."
 msgstr "Wartość początkowa, końcowa lub krokowa jest nieprawidłowa."
 
-msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "Automatyczna kalibracja jest możliwa tylko, kiedy średnica dyszy lewej i prawej jest identyczna."
-
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr "Liczba ekstruderów i wybrana drukarka do kalibracji nie są zgodne."
 
@@ -14123,6 +14156,9 @@ msgid ""
 msgstr ""
 "Unikaj wypaczania\n"
 "Czy wiesz, że podczas drukowania materiałów podatnych na wypaczanie, takich jak ABS, odpowiednie zwiększenie temperatury stołu grzejnego może zmniejszyć prawdopodobieństwo wypaczania."
+
+#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "Automatyczna kalibracja jest możliwa tylko, kiedy średnica dyszy lewej i prawej jest identyczna."
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "Czas warstwy (s)"
