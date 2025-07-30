@@ -3968,7 +3968,7 @@ void TabPrinter::build_fff()
 
         optgroup->append_single_option_line("scan_first_layer");
         optgroup->append_single_option_line("enable_wrapping_detection");
-        optgroup->append_single_option_line("wrapping_detection_layers");
+        //optgroup->append_single_option_line("wrapping_detection_layers");
         //optgroup->append_single_option_line("wrapping_detection_path");
         optgroup->append_single_option_line("use_relative_e_distances");
         optgroup->append_single_option_line("use_firmware_retraction");
