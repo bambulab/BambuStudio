@@ -9221,7 +9221,7 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
 
     if (extruders.size() > 1) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": The number of consumables used is > 1";
-        GUI::MessageDialog msgdialog(nullptr, _L("Helio slicing does not support using a number of materials greater than 1."), "", wxICON_WARNING | wxOK);
+        GUI::MessageDialog msgdialog(nullptr, _L("Helio does not support using a number of materials greater than 1."), "", wxICON_WARNING | wxOK);
         msgdialog.ShowModal();
         return -1;
     }
