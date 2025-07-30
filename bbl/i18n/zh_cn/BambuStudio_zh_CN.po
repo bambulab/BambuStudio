@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-30 10:22+0800\n"
+"POT-Creation-Date: 2025-07-30 12:06+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -7819,13 +7819,13 @@ msgid "Prime tower is required for smooth timeplase. There may be flaws on the m
 msgstr "平滑模式的延时摄影需要擦料塔，否则打印件上可能会有瑕疵。您确定要关闭擦料塔吗？"
 
 msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
-msgstr ""
+msgstr "裹头检测需要擦拭塔，否则打印件上可能会有瑕疵。您确定关闭料塔吗？"
 
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr "同时启用精准Z高度和料塔将可能导致擦拭塔的尺寸变大，是否仍要开启？"
 
 msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
-msgstr ""
+msgstr "裹头检测需要擦拭塔，否则打印件上可能会有瑕疵。您确定开启裹头检测吗？"
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "平滑模式的延时摄影需要擦料塔，否则打印件上可能会有瑕疵。您想打开擦料塔吗？"
@@ -8131,7 +8131,7 @@ msgid "Time lapse G-code"
 msgstr "延时摄影G-code"
 
 msgid "Clumping Detection G-code"
-msgstr ""
+msgstr "裹头检测G-code"
 
 msgid "Change filament G-code"
 msgstr "耗材丝更换G-code"
@@ -9351,7 +9351,7 @@ msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr "太靠近屏蔽区域，打印时可能会发生碰撞。"
 
 msgid " is too close to clumping detection area, there may be collisions when printing."
-msgstr ""
+msgstr "太靠近裹头检测区域，打印时可能发生碰撞。"
 
 msgid "Prime Tower"
 msgstr "擦拭塔"
@@ -9363,7 +9363,7 @@ msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr "离不可打印区域太近，会发生碰撞。\n"
 
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
-msgstr ""
+msgstr " 太靠近裹头检测区域，会发生碰撞。\n"
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "同时打印高温和低温材料可能导致喷嘴堵塞或打印机损坏。"
@@ -9384,7 +9384,7 @@ msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is 
 msgstr "平滑模式的延时摄影不支持在逐件打印模式下使用。"
 
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
-msgstr ""
+msgstr "裹头检测不支持在逐件打印模式下使用。"
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "请选择逐件打印以支持在旋转花瓶模式下打印多个对象。"
@@ -10543,13 +10543,13 @@ msgid "Enable this to enable the camera on printer to check the quality of first
 msgstr "开启这个设置将打开打印机上的摄像头用于检查首层打印质量。"
 
 msgid "Enable clumping detection"
-msgstr ""
+msgstr "开启裹头检测"
 
 msgid "Clumping detection layers"
-msgstr ""
+msgstr "裹头检测层数"
 
 msgid "Clumping detection layers."
-msgstr ""
+msgstr "裹头检测层数。"
 
 msgid "Thumbnail size"
 msgstr "缩略图大小"
@@ -10816,7 +10816,7 @@ msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "在每次换层抬升Z高度之后插入这段G-code。"
 
 msgid "Clumping detection G-code"
-msgstr ""
+msgstr "裹头检测G-code"
 
 msgid "Supports silent mode"
 msgstr "支持静音模式"
