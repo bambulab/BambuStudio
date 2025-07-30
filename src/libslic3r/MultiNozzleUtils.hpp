@@ -7,7 +7,9 @@
 #include <set>
 #include "PrintConfig.hpp"
 
-namespace Slic3r { namespace MultiNozzleUtils {
+namespace Slic3r {
+struct FilamentInfo;
+namespace MultiNozzleUtils {
 // 存储单个喷嘴的信息
 struct NozzleInfo
 {
@@ -47,15 +49,17 @@ private:
 public:
     MultiNozzleGroupResult() = default;
     MultiNozzleGroupResult(const std::vector<int> &filament_nozzle_map, const std::vector<NozzleInfo> &nozzle_list);
-    bool are_filaments_same_extruder(int filament_id1, int filament_id2) const; // 判断两个材料是否处于同一个挤出机
-    bool are_filaments_same_nozzle(int filament_id1, int filament_id2) const;   // 判断两个材料是否处于同一个喷嘴
-    int  get_extruder_count() const;                                            // 获取挤出机数量
+    static std::optional<MultiNozzleGroupResult> init_from_slice_filament(const std::vector<int>          &filament_map,
+                                                                          const std::vector<FilamentInfo> &filament_info); // 1 based filament_map
+    bool                                         are_filaments_same_extruder(int filament_id1, int filament_id2) const;    // 判断两个材料是否处于同一个挤出机
+    bool                                         are_filaments_same_nozzle(int filament_id1, int filament_id2) const;      // 判断两个材料是否处于同一个喷嘴
+    int                                          get_extruder_count() const;                                               // 获取挤出机数量
 
     std::vector<NozzleInfo> get_used_nozzles(const std::vector<unsigned int> &filament_list, int target_extruder_id = -1) const; // 获取给定材料列表下指定挤出机使用的喷嘴
     std::vector<int>        get_used_extruders(const std::vector<unsigned int> &filament_list) const;                            // 获取使用的挤出机列表
     std::vector<int>        get_extruder_list() const;
 
-    std::vector<int>    filament_map;
+    std::vector<int> filament_map;
 
 public:
     int                       get_extruder_id(int filament_id) const;       // 根据材料id取逻辑挤出机id
@@ -67,6 +71,7 @@ class NozzleStatusRecorder
 {
 private:
     std::unordered_map<int, int> nozzle_filament_status;
+
 public:
     NozzleStatusRecorder() = default;
     bool is_nozzle_empty(int nozzle_id) const;
@@ -76,6 +81,7 @@ public:
     void set_nozzle_status(int nozzle_id, int filament_id);
 };
 
-}} // namespace Slic3r::MultiNozzleUtils
+} // namespace MultiNozzleUtils
+} // namespace Slic3r
 
 #endif

@@ -9,6 +9,7 @@
 #include <unordered_set>
 #include "../MultiNozzleUtils.hpp"
 
+#define DEBUG_MULTI_NOZZLE_MCMF 0
 namespace Slic3r {
 
 using FlushMatrix = std::vector<std::vector<float>>;
@@ -111,6 +112,7 @@ int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int> &
                                                std::optional<std::function<bool(int, std::vector<int> &)>> get_custom_seq,
                                                std::vector<std::vector<unsigned int>> *filament_sequences);
 
+#if DEBUG_MULTI_NOZZLE_MCMF
 int reorder_filaments_for_multi_nozzle_extruder(const std::vector<unsigned int>& filament_lists,
                                                 const std::vector<int>& filament_maps,
                                                 const std::vector<std::vector<unsigned int>>& layer_filaments,
@@ -120,6 +122,7 @@ int reorder_filaments_for_multi_nozzle_extruder(const std::vector<unsigned int>&
                                                 int multi_nozzle_num,
                                                 std::vector<std::vector<unsigned int>> * layer_sequences = nullptr,
                                                 std::vector<std::vector<std::vector<int>>>* nozzle_match_per_layer = nullptr);
+#endif
 
 
 int reorder_filaments_for_multi_nozzle_extruder(const std::vector<unsigned int>& filament_lists,

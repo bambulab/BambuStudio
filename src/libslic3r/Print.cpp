@@ -66,6 +66,7 @@ void Print::clear()
     m_print_regions.clear();
     m_model.clear_objects();
     m_statistics_by_extruder_count.clear();
+    m_nozzle_group_result.reset();
 }
 
 bool Print::has_tpu_filament() const
@@ -2021,7 +2022,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
             this->set_filament_print_time(filament_print_time);
         }
 
-
+        m_nozzle_group_result.reset();
         m_wipe_tower_data.clear();
         m_tool_ordering.clear();
         if (this->has_wipe_tower()) {
@@ -2095,11 +2096,16 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
             auto map_mode = get_filament_map_mode();
             // get recommended filament map
             {
-                auto group_result = ToolOrdering::get_recommended_filament_maps(this,all_filaments,map_mode,physical_unprintables,geometric_unprintables);
-                filament_maps = group_result.filament_map;
+                if(m_nozzle_group_result.has_value()){
+                    filament_maps = m_nozzle_group_result->filament_map;
+                }
+                else{
+                    auto group_result = ToolOrdering::get_recommended_filament_maps(this,all_filaments,map_mode,physical_unprintables,geometric_unprintables);
+                    filament_maps = group_result.filament_map;
+                    set_nozzle_group_result(group_result);
+                }
                 std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value + 1; });
                 update_filament_maps_to_config(filament_maps);
-                this->set_nozzle_group_result(group_result);
             }
 
             //        print_object_instances_ordering = sort_object_instances_by_max_z(print);
@@ -2916,8 +2922,9 @@ void Print::_make_wipe_tower()
         std::vector<int>filament_maps = get_filament_maps();
         MultiNozzleUtils::NozzleStatusRecorder nozzle_recorder;
 
+        assert(m_nozzle_group_result.has_value());
         unsigned int old_filament_id = m_wipe_tower_data.tool_ordering.first_extruder();
-        nozzle_recorder.set_nozzle_status(m_nozzle_group_result.get_nozzle_for_filament(old_filament_id)->group_id, old_filament_id);
+        nozzle_recorder.set_nozzle_status(m_nozzle_group_result->get_nozzle_for_filament(old_filament_id)->group_id, old_filament_id);
 
         for (auto& layer_tools : m_wipe_tower_data.tool_ordering.layer_tools()) { // for all layers
             if (!layer_tools.has_wipe_tower) continue;
@@ -2931,7 +2938,7 @@ void Print::_make_wipe_tower()
                     continue;
 
                 int extruder_id = filament_maps[filament_id] - 1;
-                int nozzle_id = m_nozzle_group_result.get_nozzle_for_filament(filament_id)->group_id;
+                int nozzle_id = m_nozzle_group_result->get_nozzle_for_filament(filament_id)->group_id;
                 int prev_nozzle_filament = nozzle_recorder.get_filament_in_nozzle(nozzle_id);
 
                 float volume_to_purge = 0;
@@ -3045,6 +3052,8 @@ void Print::export_gcode_from_previous_file(const std::string& file, GCodeProces
 {
     try {
         GCodeProcessor processor;
+        if (result && result->nozzle_group_result)
+            processor.initialize_from_context(*result->nozzle_group_result);
         const Vec3d origin = this->get_plate_origin();
         processor.set_xy_offset(origin(0), origin(1));
         //processor.enable_producers(true);
