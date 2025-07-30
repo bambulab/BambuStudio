@@ -215,6 +215,9 @@ static constexpr const char *FILAMENT_USED_G_TAG = "used_g";
 static constexpr const char *FILAMENT_TRAY_INFO_ID_TAG     = "tray_info_idx";
 static constexpr const char *LAYER_FILAMENT_LISTS_TAG      = "layer_filament_lists";
 static constexpr const char *LAYER_FILAMENT_LIST_TAG       = "layer_filament_list";
+static constexpr const char *FILAMENT_NOZZLE_GROUP_ID_TAG    = "group_id";
+static constexpr const char *FILAMENT_NOZZLE_DIAMETER_TAG    = "nozzle_diameter";
+static constexpr const char *FILAMENT_NOZZLE_VOLUME_TYPE_TAG = "volume_type";
 
 
 static constexpr const char* CONFIG_TAG = "config";
@@ -625,11 +628,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         info.used_g = used_filament_g;
         info.used_m = used_filament_m;
 
-        auto nozzle_for_filament = result->nozzle_group_result.get_nozzle_for_filament(it->first);
-        if(nozzle_for_filament){
-            info.nozzle_diameter = nozzle_for_filament->diameter;
-            info.group_id = nozzle_for_filament->group_id;
-            info.nozzle_volume_type = get_nozzle_volume_type_string(nozzle_for_filament->volume_type);
+        if (result && result->nozzle_group_result) {
+            auto nozzle_for_filament = result->nozzle_group_result->get_nozzle_for_filament(it->first);
+            if (nozzle_for_filament) {
+                info.nozzle_diameter = nozzle_for_filament->diameter;
+                info.group_id = nozzle_for_filament->group_id;
+                info.nozzle_volume_type = get_nozzle_volume_type_string(nozzle_for_filament->volume_type);
+            }
         }
 
         slice_filaments_info.push_back(info);
@@ -1544,6 +1549,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate->nozzle_diameters = it->second->nozzle_diameters;
             plate->warnings = it->second->warnings;
             plate->thumbnail_file = it->second->thumbnail_file;
+            plate->filament_maps = it->second->filament_maps;
             if (plate->thumbnail_file.empty()) {
                 plate->thumbnail_file = plate->gcode_file;
                 boost::algorithm::replace_all(plate->thumbnail_file, ".gcode", ".png");
@@ -2209,6 +2215,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->pick_file = (m_load_restore || it->second->pick_file.empty()) ? it->second->pick_file : m_backup_path + "/" + it->second->pick_file;
             plate_data_list[it->first-1]->pattern_bbox_file = (m_load_restore || it->second->pattern_bbox_file.empty()) ? it->second->pattern_bbox_file : m_backup_path + "/" + it->second->pattern_bbox_file;
             plate_data_list[it->first-1]->config = it->second->config;
+            plate_data_list[it->first-1]->filament_maps = it->second->filament_maps;
 
             current_plate_data = plate_data_list[it->first - 1];
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__
@@ -4228,6 +4235,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         }
                     }
                     m_curr_plater->config.set_key_value("filament_map", new ConfigOptionInts(filament_map));
+                    m_curr_plater->filament_maps = filament_map;
                 }
             }
             else if (key == GCODE_FILE_ATTR)
@@ -4348,6 +4356,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::string used_m = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_USED_M_TAG);
             std::string used_g = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_USED_G_TAG);
             std::string filament_id = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_TRAY_INFO_ID_TAG);
+            std::string group_id = bbs_get_attribute_value_string(attributes,num_attributes, FILAMENT_NOZZLE_GROUP_ID_TAG);
+            std::string nozzle_diameter = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_NOZZLE_DIAMETER_TAG);
+            std::string volume_type = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_NOZZLE_VOLUME_TYPE_TAG);
             FilamentInfo filament_info;
             filament_info.id = atoi(id.c_str()) - 1;
             filament_info.type = type;
@@ -4355,6 +4366,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             filament_info.used_m = atof(used_m.c_str());
             filament_info.used_g = atof(used_g.c_str());
             filament_info.filament_id = filament_id;
+            filament_info.group_id = atoi(group_id.c_str());
+            filament_info.nozzle_diameter = atof(nozzle_diameter.c_str());
+            filament_info.nozzle_volume_type = volume_type;
             m_curr_plater->slice_filaments_info.push_back(filament_info);
         }
         return true;
@@ -8028,9 +8042,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                            << FILAMENT_COLOR_TAG << "=\"" << it->color << "\" "
                            << FILAMENT_USED_M_TAG << "=\"" << it->used_m << "\" "
                            << FILAMENT_USED_G_TAG << "=\"" << it->used_g << "\" "
-                           << "group_id"<<"=\""<<it->group_id << "\" "
-                           << "nozzle_diameter" << "=\"" << it->nozzle_diameter << "\" "
-                           << "volume_type" << "=\"" << it->nozzle_volume_type << "\" "
+                           << FILAMENT_NOZZLE_GROUP_ID_TAG << "=\"" << it->group_id << "\" "
+                           << FILAMENT_NOZZLE_DIAMETER_TAG << "=\"" << it->nozzle_diameter << "\" "
+                           << FILAMENT_NOZZLE_VOLUME_TYPE_TAG << "=\"" << it->nozzle_volume_type << "\" "
                 }
 
                 for (auto it = plate_data->warnings.begin(); it != plate_data->warnings.end(); it++) {

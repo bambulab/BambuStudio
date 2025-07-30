@@ -1571,7 +1571,8 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     path_tmp += ".tmp";
 
     m_processor.initialize(path_tmp);
-    m_processor.initialize_from_context(print->get_nozzle_group_result());
+    if(print->get_nozzle_group_result().has_value())
+        m_processor.initialize_from_context(print->get_nozzle_group_result().value());
     GCodeOutputStream file(boost::nowide::fopen(path_tmp.c_str(), "wb"), m_processor);
     if (! file.is_open()) {
         BOOST_LOG_TRIVIAL(error) << std::string("G-code export to ") + PathSanitizer::sanitize(path) + " failed.\nCannot open the file for writing.\n" << std::endl;
@@ -6626,9 +6627,12 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
             }
             return wipe_volume;
         };
-        int new_nozzle_id = m_print->get_nozzle_group_result().get_nozzle_for_filament(new_filament_id)->group_id;
 
-        if (old_extruder_id != new_extruder_id || !m_print->get_nozzle_group_result().are_filaments_same_nozzle(old_filament_id,new_filament_id)) {
+        assert(m_print->get_nozzle_group_result().has_value());
+
+        int new_nozzle_id = m_print->get_nozzle_group_result()->get_nozzle_for_filament(new_filament_id)->group_id;
+
+        if (old_extruder_id != new_extruder_id || !m_print->get_nozzle_group_result()->are_filaments_same_nozzle(old_filament_id,new_filament_id)) {
             wipe_volume = switch_to_nozzle(new_filament_id, new_nozzle_id);
         }
         else {

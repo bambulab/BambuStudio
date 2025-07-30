@@ -172,6 +172,7 @@ namespace Slic3r
     {
     public:
         FilamentGroupMultiNozzle(const FilamentGroupContext& context) :m_context(context) {}
+    public:
         std::vector<int> calc_filament_group_by_mcmf();
         std::vector<int> calc_filament_group_by_pam();
 
@@ -180,6 +181,10 @@ namespace Slic3r
     private:
         FilamentGroupContext m_context;
     };
+
+    std::vector<int> calc_filament_group_for_manual_multi_nozzle(const std::vector<int>& filament_map_manual, const FilamentGroupContext& ctx);
+
+    std::vector<int> calc_filament_group_for_match_multi_nozzle(const FilamentGroupContext& ctx);
 
     class KMediods2
     {

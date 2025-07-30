@@ -1087,7 +1087,7 @@ private:
     bool                                    m_support_used {false};
     StatisticsByExtruderCount               m_statistics_by_extruder_count;
 
-    MultiNozzleUtils::MultiNozzleGroupResult m_nozzle_group_result;
+    std::optional<MultiNozzleUtils::MultiNozzleGroupResult> m_nozzle_group_result;
 
     std::vector<unsigned int> m_slice_used_filaments;
     std::vector<unsigned int> m_slice_used_filaments_first_layer;
