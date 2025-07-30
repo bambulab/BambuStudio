@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-25 09:53+0800\n"
+"POT-Creation-Date: 2025-07-30 10:22+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6962,6 +6962,12 @@ msgstr "Abilita la correzione gamma per il file OBJ importato"
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "Esegui la correzione gamma sul colore dopo l'importazione del modello obj."
 
+msgid "Remember last used color scheme"
+msgstr ""
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup.."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr "Migliora le prestazioni di rendering in base al livello"
 
@@ -7854,8 +7860,14 @@ msgstr "Clicca per ripristinare tutte le impostazioni dell'ultimo preset salvato
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "È necessaria una Prime Tower per la modalità timelapse fluida. Potrebbero esserci dei difetti sul modello senza Prime Tower. Sei sicuro di voler disabilitare la prime tower?"
 
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
+msgstr ""
+
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr "L'abilitazione sia dell'altezza Z precisa che della prime tower può far aumentare le dimensioni della prime tower. Vuoi ancora abilitarla?"
+
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
+msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "È necessaria una Prime Tower per la modalità timelapse fluida. Potrebbero esserci dei difetti sul modello senza Prime Tower. Vuoi abilitare la prime tower?"
@@ -8162,6 +8174,9 @@ msgstr "G-code cambio layer"
 
 msgid "Time lapse G-code"
 msgstr "Time laps G-code"
+
+msgid "Clumping Detection G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "G-code cambio filamento"
@@ -9382,6 +9397,9 @@ msgstr "%1% è troppo alto e si verificheranno collisioni."
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr " è troppo vicino all'area di esclusione, potrebbero verificarsi collisioni durante la stampa."
 
+msgid " is too close to clumping detection area, there may be collisions when printing."
+msgstr ""
+
 msgid "Prime Tower"
 msgstr "Prime Tower"
 
@@ -9390,6 +9408,9 @@ msgstr " è troppo vicino agli altri e possono verificarsi collisioni.\n"
 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " è troppo vicino a un'area di esclusione e si verificheranno collisioni.\n"
+
+msgid " is too close to clumping detection area, and collisions will be caused.\n"
+msgstr ""
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "La stampa di filamenti ad alta e bassa temperatura insieme può causare l'intasamento dei nozzle o danni alla stampante."
@@ -9408,6 +9429,9 @@ msgstr "Nessuna estrusione con le impostazioni attuali."
 
 msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is enabled."
 msgstr "Modalità fluida timelapse non supportata quando è abilitata la sequenza \"per oggetto\"."
+
+msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
+msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Seleziona la sequenza di stampa \"Per oggetto\" per stampare più oggetti in modalità vaso a spirale."
@@ -10565,6 +10589,15 @@ msgstr "Scansiona Primo layer"
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "Abilita questa opzione per consentire alla telecamera della stampante di controllare la qualità del layer iniziale."
 
+msgid "Enable clumping detection"
+msgstr ""
+
+msgid "Clumping detection layers"
+msgstr ""
+
+msgid "Clumping detection layers."
+msgstr ""
+
 msgid "Thumbnail size"
 msgstr "Dimensione anteprima"
 
@@ -10828,6 +10861,9 @@ msgstr "Angolo di stiratura, controlla l'angolo relativo tra la superficie super
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "Questo G-code viene inserito a ogni cambio di layer dopo il sollevamento di z"
+
+msgid "Clumping detection G-code"
+msgstr ""
 
 msgid "Supports silent mode"
 msgstr "Supporta la modalità silenziosa"
@@ -13267,9 +13303,6 @@ msgstr "È necessario che sia selezionata una strampante"
 msgid "The start, end or step is not valid value."
 msgstr "L'inizio, la fine o la fase non sono valori validi."
 
-msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "La calibrazione automatica supporta solo i casi in cui i diametri dei nozzle destro e sinistro sono identici."
-
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr "Il numero di estrusori per stampanti e la stampante selezionata per la calibrazione non corrispondono."
 
@@ -14094,6 +14127,9 @@ msgid ""
 msgstr ""
 "Evita deformazioni\n"
 "Sapevi che quando si stampano materiali soggetti a deformazioni, come l'ABS, aumentare adeguatamente la temperatura del piano può ridurre la probabilità di deformazione."
+
+#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "La calibrazione automatica supporta solo i casi in cui i diametri dei nozzle destro e sinistro sono identici."
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "Layer Time (s)"

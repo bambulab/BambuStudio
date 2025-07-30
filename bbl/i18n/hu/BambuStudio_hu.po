@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-25 09:53+0800\n"
+"POT-Creation-Date: 2025-07-30 10:22+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6967,6 +6967,12 @@ msgstr "Gamma korrekció engedélyezése az importált obj fájlon"
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "Gammakorrekció elvégzése a színeken az obj modell importálása után."
 
+msgid "Remember last used color scheme"
+msgstr ""
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup.."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr "Renderelési teljesítmény javítása lod szerint"
 
@@ -7861,8 +7867,14 @@ msgstr "Kattints az összes beállítás utolsó mentett változatának visszaá
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "A sima timelapse miatt szükség van a törlőtoronyra. Nélküle előfordulhatnak hibák a nyomtatott tárgyon. Biztos, hogy kikapcsolod a törlőtornyot?"
 
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
+msgstr ""
+
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr "A pontos Z-magasság és a törlőtorony engedélyezése a törlőtorony méretének növekedését okozhatja. Biztos, hogy engedélyezed?"
+
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
+msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "A sima timelapse miatt szükség van a törlőtoronyra. Nélküle előfordulhatnak hibák a nyomtatott tárgyon. Engedélyezed a törlőtornyot?"
@@ -7876,7 +7888,6 @@ msgid ""
 msgstr ""
 "Nem ajánlott nem oldható támaszanyagot használni a támasz alapjához. \n"
 "Biztosan folytatod? \n"
-""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
@@ -8168,6 +8179,9 @@ msgstr "Rétegváltás G-kód"
 
 msgid "Time lapse G-code"
 msgstr "Timelapse G-kód"
+
+msgid "Clumping Detection G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "Filament csere G-kód"
@@ -9390,6 +9404,9 @@ msgstr "%1% túl magas, a nyomtatás során előfordulhatnak ütközések."
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr "túl közel van a tiltott területhez, a nyomtatás során előfordulhatnak ütközések."
 
+msgid " is too close to clumping detection area, there may be collisions when printing."
+msgstr ""
+
 msgid "Prime Tower"
 msgstr "Törlőtorony"
 
@@ -9398,6 +9415,9 @@ msgstr " túl közel van más tárgyakhoz, a nyomtatás során előfordulhatnak 
 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " túl közel van a tiltott területhez, a nyomtatás során előfordulhatnak ütközések.\n"
+
+msgid " is too close to clumping detection area, and collisions will be caused.\n"
+msgstr ""
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "A magas és alacsony hőmérsékletű filamentek egyidejű nyomtatása a fúvóka eltömődését vagy a nyomtató károsodását okozhatja."
@@ -9416,6 +9436,9 @@ msgstr "A jelenlegi beállítások mellett nincsenek extrudálások."
 
 msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is enabled."
 msgstr "A sima timelapse funkció nem használható, ha a nyomtatás „Tárgyanként“ sorrendre van állítva."
+
+msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
+msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Kérjük, válaszd a \"Tárgyanként\" nyomtatási sorrendet több tárgy spirálváza módban történő nyomtatásához."
@@ -10573,6 +10596,15 @@ msgstr "Az első réteg szkennelése"
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "Engedélyezd ezt az opciót, hogy a nyomtató kamerája ellenőrizze a kezdőréteg minőségét."
 
+msgid "Enable clumping detection"
+msgstr ""
+
+msgid "Clumping detection layers"
+msgstr ""
+
+msgid "Clumping detection layers."
+msgstr ""
+
 msgid "Thumbnail size"
 msgstr "Bélyegkép mérete"
 
@@ -10836,6 +10868,9 @@ msgstr "A felső felület és a vasalás közötti szög"
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "Ez a G-kód minden rétegváltásnál beillesztésre kerül a Z-tengely emelése után"
+
+msgid "Clumping detection G-code"
+msgstr ""
 
 msgid "Supports silent mode"
 msgstr "Támogatott csendes mód"
@@ -13268,9 +13303,6 @@ msgstr "Ki kell választanod a nyomtatót"
 msgid "The start, end or step is not valid value."
 msgstr "A kezdő-, vég- vagy lépésérték nem érvényes."
 
-msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "Az automatikus kalibrálás csak azokat az eseteket támogatja, amikor a bal és a jobb fúvóka átmérője azonos."
-
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr "A nyomtató extrudereinek száma és a kalibráláshoz kiválasztott nyomtató nem egyezik."
 
@@ -14098,6 +14130,9 @@ msgid ""
 msgstr ""
 "Vetemedés elkerülése\n"
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
+
+#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "Az automatikus kalibrálás csak azokat az eseteket támogatja, amikor a bal és a jobb fúvóka átmérője azonos."
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "Rétegidő (mp)"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-25 09:53+0800\n"
+"POT-Creation-Date: 2025-07-30 10:22+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6930,6 +6930,12 @@ msgstr "インポートしたOBJファイルにガンマ補正を適用する"
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "OBJモデルのインポート後に、色にガンマ補正を適用します。"
 
+msgid "Remember last used color scheme"
+msgstr ""
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup.."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr "LODによってレンダリング性能を向上させる"
 
@@ -7822,8 +7828,14 @@ msgstr "全ての変更をリセットします"
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "スムーズなタイムラプスにはプライムタワーが必要です。プライムタワーがない場合、モデルに欠陥が生じる可能性があります。プライムタワーを無効にしてもよろしいですか？"
 
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
+msgstr ""
+
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr "「精密Z高さ」機能と「プライムタワー」を同時に有効にすると、プライムタワーのサイズが拡大する可能性があります。それでも続行しますか？"
+
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
+msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "タイムラプスをスムーズに行うにはプライムタワーが必要です。プライムタワーがない場合、モデルに欠陥がある可能性があります。プライムタワーを有効にしますか？"
@@ -8133,6 +8145,9 @@ msgstr "積層変更時のG-code"
 
 msgid "Time lapse G-code"
 msgstr "タイムラプスG-code"
+
+msgid "Clumping Detection G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "フィラメント変更G-code"
@@ -9349,6 +9364,9 @@ msgstr "%1% は高すぎます、衝突の可能性があります。"
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr "が除外領域に近すぎます。衝突の可能性があります。"
 
+msgid " is too close to clumping detection area, there may be collisions when printing."
+msgstr ""
+
 msgid "Prime Tower"
 msgstr "プライムタワー"
 
@@ -9357,6 +9375,9 @@ msgstr "他のオブジェクト に近すぎるので、衝突の可能性が�
 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr "除外領域に近すぎます。衝突が発生します。\n"
+
+msgid " is too close to clumping detection area, and collisions will be caused.\n"
+msgstr ""
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "高温対応と低温対応のフィラメントを同時に使用すると、ノズルの詰まりやプリンターの損傷につながる恐れがあります。"
@@ -9375,6 +9396,9 @@ msgstr "現在の設定では造形しません"
 
 msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is enabled."
 msgstr "オブジェクト順で造形するでは、この機能を使用できません。"
+
+msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
+msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "スパイラルモードでは、[オブジェクト順]で複数のオブジェクトを造形してください"
@@ -10532,6 +10556,15 @@ msgstr "1層目を検査"
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "これを有効にすると、プリンタのカメラを使用してファ1層目の品質を確認できます。"
 
+msgid "Enable clumping detection"
+msgstr ""
+
+msgid "Clumping detection layers"
+msgstr ""
+
+msgid "Clumping detection layers."
+msgstr ""
+
 msgid "Thumbnail size"
 msgstr "サムネイルサイズ"
 
@@ -10799,6 +10832,9 @@ msgstr "アイロン処理の角度：トップ面とアイロン処理の間の
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "このG-codeは、Zリフト後の各層の変更時に挿入されます。"
+
+msgid "Clumping detection G-code"
+msgstr ""
 
 msgid "Supports silent mode"
 msgstr "サイレントモード対応"
@@ -13227,9 +13263,6 @@ msgstr "プリンターを選択する必要があります"
 msgid "The start, end or step is not valid value."
 msgstr "開始、終了、またはステップの値が無効です。"
 
-msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "自動キャリブレーションは、左右のノズル径が同じ場合にのみ対応します。"
-
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr "プリンタの押出機の数と、キャリブレーション対象として選択されたプリンタの数が一致しません。"
 
@@ -14055,6 +14088,9 @@ msgid ""
 msgstr ""
 "反り防止\n"
 "ABSなど反りやすい材料を印刷する場合、ヒートベッド温度を適切に上げることで反りの発生を抑えられることをご存知ですか？"
+
+#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "自動キャリブレーションは、左右のノズル径が同じ場合にのみ対応します。"
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "レイヤー時間 (s)"

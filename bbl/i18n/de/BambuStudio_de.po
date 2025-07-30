@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-25 09:53+0800\n"
+"POT-Creation-Date: 2025-07-30 10:22+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3314,6 +3314,8 @@ msgid ""
 "Should not large than 100%.\n"
 "Reset to defualt"
 msgstr ""
+"Sollte nicht größer als 100 % sein.\n"
+"Auf Standard zurücksetzen"
 
 #, c-format, boost-format
 msgid "Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"
@@ -3842,13 +3844,13 @@ msgid "Fan Speed"
 msgstr "Lüftergeschwindigkeit"
 
 msgid "Thermal Index (min)"
-msgstr ""
+msgstr "Thermalindex (min)"
 
 msgid "Thermal Index (max)"
-msgstr ""
+msgstr "Thermalindex (max)"
 
 msgid "Thermal Index (mean)"
-msgstr ""
+msgstr "Thermalindex (Mittelwert)"
 
 msgid "Flow"
 msgstr "Fluss"
@@ -3860,28 +3862,28 @@ msgid "Layer Time"
 msgstr "Schichtdauer"
 
 msgid "Height: "
-msgstr "Höhe:"
+msgstr "Höhe: "
 
 msgid "Width: "
-msgstr "Breite:"
+msgstr "Breite: "
 
 msgid "Speed: "
-msgstr "Geschwindigkeit:"
+msgstr "Geschwindigkeit: "
 
 msgid "Flow: "
 msgstr "Fluss: "
 
 msgid "Layer Time: "
-msgstr "Schichtdauer:"
+msgstr "Schichtdauer: "
 
 msgid "Fan Speed: "
 msgstr "Lüftergeschwindigkeit: "
 
 msgid "Temperature: "
-msgstr "Temperatur:"
+msgstr "Temperatur: "
 
 msgid "Thermal Index"
-msgstr ""
+msgstr "Thermalindex"
 
 msgid "Min: "
 msgstr ""
@@ -3890,10 +3892,10 @@ msgid "Max: "
 msgstr ""
 
 msgid "Mean: "
-msgstr ""
+msgstr "Mittelwert: "
 
 msgid "Loading G-codes"
-msgstr "Laden von G-Codes"
+msgstr "G-Codes laden"
 
 msgid "Generating geometry vertex data"
 msgstr "Generieren von Geometrie-Eckpunktdaten"
@@ -3926,7 +3928,7 @@ msgid "Time Estimation"
 msgstr "Geschätzte Zeit"
 
 msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "Automatisches Re-Slicen gemäß der optimalen Gruppierung der Filamente. Die Gruppierungsergebnisse werden nach dem Slicen angezeigt."
+msgstr "Automatisches erneutes Slicen entsprechend der optimalen Filamentgruppierung, wobei die Gruppierungsergebnisse nach dem Slicen angezeigt werden."
 
 msgid "Filament Grouping"
 msgstr "Filamentgruppierung"
@@ -3941,13 +3943,13 @@ msgid "Right nozzle"
 msgstr "Rechte Düse"
 
 msgid "Please place filaments on the printer based on grouping result."
-msgstr "Bitte legen Sie die Filamente entsprechend dem Gruppierungsergebnis in den Drucker ein."
+msgstr "Bitte legen Sie die Filamente entsprechend der Gruppierung in den Drucker ein."
 
 msgid "Tips:"
 msgstr "Tipps:"
 
 msgid "Current grouping of slice result is not optimal."
-msgstr "Die aktuelle Gruppierung der Ergebnisse des Slicens sind nicht optimal."
+msgstr "Die aktuelle Gruppierung der Slicing-Ergebnisse ist nicht optimal."
 
 #, boost-format
 msgid "Increase %1%g filament and %2% changes compared to optimal grouping."
@@ -4043,7 +4045,7 @@ msgid "Options"
 msgstr "Optionen"
 
 msgid "travel"
-msgstr "Bewegung"
+msgstr "Eilgang"
 
 msgid "Extruder"
 msgstr "Extruder"
@@ -4055,7 +4057,7 @@ msgid "Total time"
 msgstr "Gesamtzeit"
 
 msgid "Filament change times"
-msgstr "Filamentwechselzeiten"
+msgstr "Filamentwechsel"
 
 msgid "Color change"
 msgstr "Farbwechsel"
@@ -4088,7 +4090,7 @@ msgid "Prepare time"
 msgstr "Vorbereitungszeit"
 
 msgid "Model printing time"
-msgstr "Druckzeit des Modell"
+msgstr "Modelldruckzeit"
 
 msgid "Switch to silent mode"
 msgstr "Zum Leise-Modus wechseln"
@@ -4203,11 +4205,11 @@ msgstr "Rechte Düse"
 
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
-msgstr ""
+msgstr "Die Position oder Größe einiger Modelle überschreitet den druckbaren Bereich des %s."
 
 #, c-format, boost-format
 msgid "The position or size of the model %s exceeds the %s's printable range."
-msgstr ""
+msgstr "Die Position oder Größe des Modells %s überschreitet den druckbaren Bereich von %s."
 
 msgid " Please check and adjust the part's position or size to fit the printable range:\n"
 msgstr " Bitte überprüfen Sie die Position oder Größe des Teils und passen Sie es an den druckbaren Bereich an:\n"
@@ -4799,7 +4801,7 @@ msgid "Show 3D Navigator"
 msgstr "3D-Navigator anzeigen"
 
 msgid "Show 3D navigator in Prepare and Preview scene"
-msgstr ""
+msgstr "3D-Navigator in der Szene „Vorbereiten und Vorschau“ anzeigen"
 
 msgid "Reset Window Layout"
 msgstr "Fensterlayout zurücksetzen"
@@ -6459,17 +6461,17 @@ msgid "Slicing Plate %d"
 msgstr "Slicen der Druckplatte %d"
 
 msgid "Invalid printer preset. Unable to slice with Helio."
-msgstr ""
+msgstr "Ungültiges Druckerprofil. Slicen mit Helio nicht möglich."
 
 msgid "The current printer preset cannot be sliced using Helio."
-msgstr ""
+msgstr "Das aktuelle Druckerprofil kann nicht mit Helio gesliced werden."
 
 msgid "Helio slicing does not support using a number of materials greater than 1."
-msgstr ""
+msgstr "Helio Slicen unterstützt nicht die Verwendung von mehr als einem Material."
 
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
-msgstr ""
+msgstr "Helio unterstützt keine Materialien %s"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Bitte beheben Sie die Slicing-Fehler und veröffentlichen Sie es erneut."
@@ -6965,6 +6967,12 @@ msgstr "Aktivieren Sie die Gammakorrektur für die importierte OBJ-Datei"
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "Führen nach dem Import des OBJ-Modells eine Gammakorrektur der Farbe durch."
 
+msgid "Remember last used color scheme"
+msgstr ""
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup.."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr "Verbessern der Rendering-Leistung durch LOD"
 
@@ -7035,25 +7043,25 @@ msgid "Show history on the home page"
 msgstr "Historie auf der Startseite anzeigen"
 
 msgid "Helio Options"
-msgstr ""
+msgstr "Helio Optionen"
 
 msgid "Enable Helio slice"
-msgstr ""
+msgstr "Helio-Slice aktivieren"
 
 msgid "Enable Helio slicing"
-msgstr ""
+msgstr "Helio-Slicen aktivieren"
 
 msgid "About Helio"
-msgstr ""
+msgstr "Über Helio"
 
 msgid "Helio Privacy Policy"
-msgstr ""
+msgstr "Helio Datenschutzerklärung"
 
 msgid "Reminder During Slicing"
-msgstr ""
+msgstr "Erinnerung beim Slicen"
 
 msgid "Automatic mode"
-msgstr ""
+msgstr "Automatischer Modus"
 
 msgid "Maximum recent projects"
 msgstr "Maximale Anzahl aktueller Projekte"
@@ -7311,7 +7319,7 @@ msgid "First layer filament sequence"
 msgstr "Filamentsequenz der ersten Schicht"
 
 msgid "Same as Global Bed Type"
-msgstr "Entspricht dem allgemeinen Bettyp"
+msgstr "Wie globaler Betttyp"
 
 msgid "By Layer"
 msgstr "Nach Schicht"
@@ -7859,8 +7867,14 @@ msgstr "Klicken Sie hier, um alle Einstellungen auf die zuletzt gespeicherten Pa
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Ein Reinigungsturm ist für den gewählten Zeitraffer-Modus erforderlich. Ohne Reinigungsturm kann es zu Fehlern am Modell kommen. Sind Sie sicher, dass Sie den Reinigungsturm deaktivieren möchten?"
 
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
+msgstr ""
+
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr "Wenn sowohl die präzise Z-Höhe als auch der Reinigungsturm aktiviert werden, kann sich die Höhe des Reinigungsturms erhöhen. Möchten Sie die Aktivierung dennoch vornehmen?"
+
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
+msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Für den gewählten Zeitraffermodus ist ein Reinigungsturm erforderlich. Ohne Reinigungsturm kann es zu Fehlern am Modell kommen. Möchten Sie den Reinigungsturm aktivieren?"
@@ -8165,6 +8179,9 @@ msgstr "Schichtwechsel G-Code"
 
 msgid "Time lapse G-code"
 msgstr "Zeitraffer G-Code"
+
+msgid "Clumping Detection G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "Filamentwechsel G-Code"
@@ -9047,40 +9064,40 @@ msgid "reconnect"
 msgstr "Erneut verbinden"
 
 msgid "Description of title content"
-msgstr ""
+msgstr "Beschreibung des Titelinhalts"
 
 msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
-msgstr ""
+msgstr "Sie sind dabei, eine Drittanbieter-Softwarefunktion von Helio Additive zu aktivieren! Bevor Sie die Nutzung dieser Funktion bestätigen, lesen Sie bitte die folgenden Hinweise sorgfältig durch."
 
 msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, and maintained by Helio Additive. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
-msgstr ""
+msgstr "Sofern nicht anders angegeben, bietet Bambu Lab nur Support für die offiziell bereitgestellten Softwarefunktionen. Die Funktionen zum Slicen und zur Slicing-Optimierung, die auf dem Cloud-Dienst von Helio Additive in dieser Software basieren, werden von Helio Additive entwickelt, betrieben und gewartet. Diese Funktionen erfassen die erforderlichen Benutzerinformationen und Daten, um die entsprechenden Servicefunktionen zu erfüllen. Dies kann Abonnements und Zahlungen beinhalten. Bitte besuchen Sie Helio Additive und lesen Sie die Datenschutzvereinbarung von Helio Additive sowie die Nutzungsvereinbarung von Helio Additive für weitere Informationen."
 
 msgid "https://www.helioadditive.com/"
 msgstr ""
 
 msgid "Privacy Policy of Helio Additive"
-msgstr ""
+msgstr "Datenschutzerklärung von Helio Additive"
 
 msgid "Terms of Use of Helio Additive"
-msgstr ""
+msgstr "Nutzungsbedingungen von Helio Additive"
 
 msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
-msgstr ""
+msgstr "Wenn Sie die Aktivierung dieser Funktion bestätigen, bedeutet dies, dass Sie die oben genannten Erklärungen gelesen und akzeptiert haben."
 
 msgid "Agree"
 msgstr "Zustimmen"
 
 msgid "Helio settings"
-msgstr ""
+msgstr "Helio-Einstellungen"
 
 msgid "Chamber temperature"
 msgstr "Kammertemperatur"
 
 msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
-msgstr ""
+msgstr "Hinweis: Bitte stellen Sie die oben genannte Temperatur entsprechend der tatsächlichen Situation ein. Je genauer die Daten sind, desto präziser sind die Analyseergebnisse."
 
 msgid "How to use Helio"
-msgstr ""
+msgstr "So verwenden Sie Helio"
 
 msgid "Air Pump"
 msgstr "Luftpumpe"
@@ -9387,6 +9404,9 @@ msgstr "%1% ist zu hoch und es kommt zu Kollisionen."
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr " befindet sich zu nahe an einem Sperrbereich. Beim Drucken kann es zu Kollisionen kommen."
 
+msgid " is too close to clumping detection area, there may be collisions when printing."
+msgstr ""
+
 msgid "Prime Tower"
 msgstr "Reinigungsturm"
 
@@ -9395,6 +9415,9 @@ msgstr " ist zu nah an anderen und es können Kollisionen verursacht werden.\n"
 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " ist zu nahe am Sperrbereich und es werden Kollisionen verursacht.\n"
+
+msgid " is too close to clumping detection area, and collisions will be caused.\n"
+msgstr ""
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "Das gemeinsame Drucken von Filamenten für hohe und niedrige Temperaturen kann zu Verstopfungen der Düse oder zu Schäden am Drucker führen."
@@ -9413,6 +9436,9 @@ msgstr "Keine Extrusion unter den aktuellen Einstellungen."
 
 msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is enabled."
 msgstr "Der gewählte Zeitraffermodus wird nicht unterstützt, wenn die Sequenz \"nach Objekt\" aktiviert ist."
+
+msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
+msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Bitte wählen Sie die Druckreihenfolge \"Nach Objekt\", um mehrere Objekte im Spiralvasenmodus zu drucken."
@@ -9761,7 +9787,7 @@ msgstr "mm/s"
 
 #, c-format, boost-format
 msgid "Speed of 100%% overhang wall which has 0 overlap with the lower layer."
-msgstr "Geschwindigkeit einer 100%%-igen Überhangwand, die keine Überlappung mit der unteren Schicht aufweist."
+msgstr "Geschwindigkeit bei einer 100%% Überhangwand, die sich nicht mit der unteren Schicht überlappt."
 
 msgid "Slow down by height"
 msgstr "Verlangsamung nach Höhe"
@@ -10570,6 +10596,15 @@ msgstr "Erste Schicht scannen"
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "Aktivieren Sie diese Option, damit die Kamera des Druckers die Qualität der ersten Schicht überprüft."
 
+msgid "Enable clumping detection"
+msgstr ""
+
+msgid "Clumping detection layers"
+msgstr ""
+
+msgid "Clumping detection layers."
+msgstr ""
+
 msgid "Thumbnail size"
 msgstr "Titelbildgröße"
 
@@ -10622,7 +10657,7 @@ msgid "Air filtration enhancement"
 msgstr "Verbesserung der Luftfilterung"
 
 msgid "Enable this if printer support air filtration enhancement."
-msgstr "Enable this if printer support air filtration enhancement."
+msgstr "Aktivieren Sie diese Option, wenn der Drucker eine erweiterte Luftfilterung unterstützt."
 
 msgid "G-code flavor"
 msgstr "G-Code Typ"
@@ -10833,6 +10868,9 @@ msgstr "Winkel zum Bügeln, der den relativen Winkel zwischen der Oberseite und 
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "Dieser G-Code wird bei jedem Schichtwechsel nach dem anheben von Z eingefügt."
+
+msgid "Clumping detection G-code"
+msgstr ""
 
 msgid "Supports silent mode"
 msgstr "Unterstützt den Leise-Modus"
@@ -11248,7 +11286,7 @@ msgid "Override filament scarf seam setting"
 msgstr "Filament Schrägnaht Einstellung überschreiben"
 
 msgid "Overrider filament scarf seam setting and could control settings by modifier."
-msgstr ""
+msgstr "Übersteuerung der Schrägnaht-Einstellung für Filamente und Steuerung der Einstellungen über Modifikatoren."
 
 msgid "Wipe speed"
 msgstr "Wischgeschwindigkeit"
@@ -12443,7 +12481,7 @@ msgid "To Volumetric Speed"
 msgstr "Bis Volumengeschwindigkeit"
 
 msgid "Are you sure to stop printing?"
-msgstr ""
+msgstr "Möchten Sie den Druckvorgang wirklich beenden?"
 
 msgid "Flow Dynamics Calibration Result"
 msgstr "Ergebnis der Flussdynamik-Kalibrierung"
@@ -13262,9 +13300,6 @@ msgstr "Sie müssen einen Drucker auswählen"
 
 msgid "The start, end or step is not valid value."
 msgstr "Der Start, das Ende oder der Schritt sind kein gültiger Wert."
-
-msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "Die automatische Kalibrierung unterstützt nur Fälle, in denen der Durchmesser der linken und rechten Düse identisch ist."
 
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr "Die Anzahl der Druckerextruder und der für die Kalibrierung ausgewählte Drucker stimmen nicht überein."
@@ -14092,6 +14127,9 @@ msgid ""
 msgstr ""
 "Vermeiden Sie Verformungen\n"
 "Wussten Sie, dass beim Drucken von Materialien, die zu Verformungen neigen, wie z. B. ABS, die Wahrscheinlichkeit von Verformungen durch eine entsprechende Erhöhung der Heizbetttemperatur verringert werden kann?"
+
+#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "Die automatische Kalibrierung unterstützt nur Fälle, in denen der Durchmesser der linken und rechten Düse identisch ist."
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "Schichtzeit (s)"

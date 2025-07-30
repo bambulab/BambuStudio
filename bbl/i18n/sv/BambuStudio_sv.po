@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-25 09:53+0800\n"
+"POT-Creation-Date: 2025-07-30 10:22+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3297,7 +3297,6 @@ msgstr ""
 "Nozzle kan blockeras om temperaturen ligger utanför det rekommenderade intervallet.\n"
 "Vänligen bekräfta för att kunna använda temperaturen för utskrift.\n"
 "\n"
-""
 
 #, c-format, boost-format
 msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"
@@ -6968,6 +6967,12 @@ msgstr "Aktivera gamma korrigering för den importerade obj filen"
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "Utför gamma korrigering på färg efter import av obj modellen."
 
+msgid "Remember last used color scheme"
+msgstr ""
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup.."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr "Förbättra renderingsprestandan med lod"
 
@@ -7862,8 +7867,14 @@ msgstr "Klicka för att återställa alla inställningar till den senast sparade
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Prime tower krävs för smooth timelapse läge. Det kan bli fel på modellen utan ett prime tower. Är du säker på att du vill inaktivera prime tower?"
 
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
+msgstr ""
+
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr "Om du aktiverar både exakt Z-höjd och prime tower kan det leda till att storleken på prime tower ökar. Vill du fortfarande aktivera?"
+
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
+msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Prime tower krävs för Smooth timelapse-läge. Det kan bli fel på modellen utan prime tower. Vill du aktivera prime tower?"
@@ -8170,6 +8181,9 @@ msgstr "Lagerskifte G-kod"
 
 msgid "Time lapse G-code"
 msgstr "Time lapse G-kod"
+
+msgid "Clumping Detection G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "Byta filament G-kod"
@@ -9392,6 +9406,9 @@ msgstr "%1% är för hög, och kollisioner kommer att uppstå."
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr " är för nära undantagsområdet, det kan förekomma kollisioner vid utskrift."
 
+msgid " is too close to clumping detection area, there may be collisions when printing."
+msgstr ""
+
 msgid "Prime Tower"
 msgstr "Prime Torn"
 
@@ -9400,6 +9417,9 @@ msgstr "är för nära andra och kollisioner kan orsakas.\n"
 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " är för nära uteslutningsområdet, och kollisioner kommer att orsakas.\n"
+
+msgid " is too close to clumping detection area, and collisions will be caused.\n"
+msgstr ""
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "Om du skriver ut högtemperaturs- och lågtemperatursfilament tillsammans kan det orsaka igensättning av nozzle eller skada på printern."
@@ -9418,6 +9438,9 @@ msgstr "Nuvarande inställning har ingen extrudering."
 
 msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is enabled."
 msgstr "Smooth läge för timelapse stöds inte när ”per objekt” -sekvens är aktiverad."
+
+msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
+msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Kontrollera \"Per objekt\" utskrifts sekvens för att skriva ut multipla objekt i Vase läge."
@@ -10575,6 +10598,15 @@ msgstr "Skanna första lager"
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "Aktivera detta för att låta kameran i printern kontrollera kvaliteten på första lager."
 
+msgid "Enable clumping detection"
+msgstr ""
+
+msgid "Clumping detection layers"
+msgstr ""
+
+msgid "Clumping detection layers."
+msgstr ""
+
 msgid "Thumbnail size"
 msgstr "Miniatyr storlek"
 
@@ -10838,6 +10870,9 @@ msgstr "Vinkel för strykning, som styr den relativa vinkeln mellan den övre yt
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "Denna G-kod infogas vid varje lagerbyte efter lyft av Z axel"
+
+msgid "Clumping detection G-code"
+msgstr ""
 
 msgid "Supports silent mode"
 msgstr "Stöder tyst läge"
@@ -13277,9 +13312,6 @@ msgstr "Välj printer"
 msgid "The start, end or step is not valid value."
 msgstr "Start, slut eller steg är inte giltigt värde."
 
-msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "Automatisk kalibrering stöder endast fall där vänster och höger nozzle diameter är identiska."
-
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr "Antalet extruders och den printern som valts för kalibrering stämmer inte överens."
 
@@ -14106,6 +14138,9 @@ msgid ""
 msgstr ""
 "Undvik vridning\n"
 "Visste du att när du skriver ut material som är benägna att vrida, såsom ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten för vridning."
+
+#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "Automatisk kalibrering stöder endast fall där vänster och höger nozzle diameter är identiska."
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "Lagertid (s)"

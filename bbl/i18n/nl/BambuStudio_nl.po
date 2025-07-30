@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-25 09:53+0800\n"
+"POT-Creation-Date: 2025-07-30 10:22+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3316,6 +3316,8 @@ msgid ""
 "Should not large than 100%.\n"
 "Reset to defualt"
 msgstr ""
+"Mag niet groter zijn dan 100%.\n"
+"Teruggezet naar standaard"
 
 #, c-format, boost-format
 msgid "Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"
@@ -3844,13 +3846,13 @@ msgid "Fan Speed"
 msgstr "Ventilator snelheid"
 
 msgid "Thermal Index (min)"
-msgstr ""
+msgstr "Thermische index (min)"
 
 msgid "Thermal Index (max)"
-msgstr ""
+msgstr "Thermische Index (max)"
 
 msgid "Thermal Index (mean)"
-msgstr ""
+msgstr "Thermische index (gemiddeld)"
 
 msgid "Flow"
 msgstr "Flow"
@@ -3883,16 +3885,16 @@ msgid "Temperature: "
 msgstr "Temperatuur:"
 
 msgid "Thermal Index"
-msgstr ""
+msgstr "Thermische index"
 
 msgid "Min: "
-msgstr ""
+msgstr "Minimaal: "
 
 msgid "Max: "
-msgstr ""
+msgstr "Maximum: "
 
 msgid "Mean: "
-msgstr ""
+msgstr "Gemiddelde: "
 
 msgid "Loading G-codes"
 msgstr "G-codes worden geladen"
@@ -3994,7 +3996,7 @@ msgid "Slicing Result"
 msgstr "Snijresultaat"
 
 msgid "Helio Action"
-msgstr ""
+msgstr "Helio actie"
 
 msgid "Color Scheme"
 msgstr "Kleurschema"
@@ -4205,11 +4207,11 @@ msgstr "rechter nozzle"
 
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
-msgstr ""
+msgstr "De positie of grootte van sommige modellen overschrijdt het printbereik van %s."
 
 #, c-format, boost-format
 msgid "The position or size of the model %s exceeds the %s's printable range."
-msgstr ""
+msgstr "De positie of grootte van het model %s overschrijdt het afdrukbare bereik van %s."
 
 msgid " Please check and adjust the part's position or size to fit the printable range:\n"
 msgstr " Controleer en pas de positie of grootte van het onderdeel aan zodat het past in het afdrukbereik:\n"
@@ -4803,7 +4805,7 @@ msgid "Show 3D Navigator"
 msgstr "3D Navigator weergeven"
 
 msgid "Show 3D navigator in Prepare and Preview scene"
-msgstr ""
+msgstr "3D-navigator tonen in Prepare- en Preview-scène"
 
 msgid "Reset Window Layout"
 msgstr "Vensterindeling resetten"
@@ -6464,17 +6466,17 @@ msgid "Slicing Plate %d"
 msgstr "Slicing printbed %d"
 
 msgid "Invalid printer preset. Unable to slice with Helio."
-msgstr ""
+msgstr "Ongeldige printerpreset. Kan niet slicen met Helio."
 
 msgid "The current printer preset cannot be sliced using Helio."
-msgstr ""
+msgstr "De huidige printerpreset kan niet worden gesliced met Helio."
 
 msgid "Helio slicing does not support using a number of materials greater than 1."
-msgstr ""
+msgstr "Helio slicen ondersteunt het gebruik van meer dan 1 materiaal niet."
 
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
-msgstr ""
+msgstr "Helio ondersteunt materialen %s niet"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Los aub de slicing fouten op en publiceer opnieuw."
@@ -6970,6 +6972,12 @@ msgstr "Gammacorrectie inschakelen voor het geïmporteerde obj-bestand"
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "Voer een gammacorrectie uit op kleur na het importeren van het obj-model."
 
+msgid "Remember last used color scheme"
+msgstr ""
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup.."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr "Verbeter de renderprestaties met LOD"
 
@@ -7040,25 +7048,25 @@ msgid "Show history on the home page"
 msgstr "Geschiedenis weergeven op de startpagina"
 
 msgid "Helio Options"
-msgstr ""
+msgstr "Helio Opties"
 
 msgid "Enable Helio slice"
-msgstr ""
+msgstr "Zet Helio slice aan"
 
 msgid "Enable Helio slicing"
-msgstr ""
+msgstr "Schakel Helio-slicen in"
 
 msgid "About Helio"
-msgstr ""
+msgstr "Over Helio"
 
 msgid "Helio Privacy Policy"
-msgstr ""
+msgstr "Helio Privacybeleid"
 
 msgid "Reminder During Slicing"
-msgstr ""
+msgstr "Herinnering tijdens het slicen"
 
 msgid "Automatic mode"
-msgstr ""
+msgstr "Automatische modus"
 
 msgid "Maximum recent projects"
 msgstr "Maximale recente projecten"
@@ -7864,8 +7872,14 @@ msgstr "Klik om alle instellingen terug te zetten naar de laatst opgeslagen voor
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "De prime tower is nodig voor een soepele timeplase. Er kunnen fouten in het model zitten zonder prime tower. Weet je zeker dat je prime tower wilt uitschakelen?"
 
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
+msgstr ""
+
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr "Als u zowel de precieze Z-hoogte als de prime-toren inschakelt, kan de grootte van de prime-toren toenemen. Wil je toch inschakelen?"
+
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
+msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "De prime tower is vereist voor een vloeiende timelapse. Zonder prime tower kunnen er fouten in het model zitten. Wil je prime tower inschakelen?"
@@ -7879,7 +7893,6 @@ msgid ""
 msgstr ""
 "Niet-oplosbaar ondersteunend materiaal wordt niet aanbevolen voor een steunbasis. \n"
 "Weet je zeker dat je ze gaat gebruiken als draagvlak? \n"
-""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
@@ -8173,6 +8186,9 @@ msgstr "G-code laag wijzigen"
 
 msgid "Time lapse G-code"
 msgstr "Time-lapse G-code"
+
+msgid "Clumping Detection G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "Filament G-code aanpassen"
@@ -9055,40 +9071,40 @@ msgid "reconnect"
 msgstr "sluit opnieuw aan"
 
 msgid "Description of title content"
-msgstr ""
+msgstr "Beschrijving van titelinhoud"
 
 msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
-msgstr ""
+msgstr "U staat op het punt een derde partij softwaredienstfunctie van Helio Additive in te schakelen! Lees vóór het bevestigen van het gebruik van deze functie de volgende verklaringen aandachtig door."
 
 msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, and maintained by Helio Additive. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
-msgstr ""
+msgstr "Tenzij anders vermeld, biedt Bambu Lab alleen ondersteuning voor de softwarefuncties die officieel worden geleverd. De functuelementen voor slicen-evaluatie en slicen-optimalisatie, gebaseerd op de cloudservice van Helio Additive in deze software, worden ontwikkeld, beheerd en onderhouden door Helio Additive. Deze functies verzamelen noodzakelijke gebruikersinformatie en gegevens om relevante servicefuncties te realiseren. Abonnementen en betalingen kunnen van toepassing zijn. Bezoek Helio Additive en raadpleeg de Helio Additive Privacyverklaring en de Helio Additive Gebruikersovereenkomst voor gedetailleerde informatie."
 
 msgid "https://www.helioadditive.com/"
 msgstr ""
 
 msgid "Privacy Policy of Helio Additive"
-msgstr ""
+msgstr "Privacybeleid van Helio Additive"
 
 msgid "Terms of Use of Helio Additive"
-msgstr ""
+msgstr "Gebruiksvoorwaarden van Helio Additive"
 
 msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
-msgstr ""
+msgstr "Wanneer u bevestigt deze functie in te schakelen, betekent dit dat u de bovenstaande verklaringen hebt bevestigd en ermee akkoord gaat."
 
 msgid "Agree"
 msgstr "Akkoord"
 
 msgid "Helio settings"
-msgstr ""
+msgstr "Helio instellingen"
 
 msgid "Chamber temperature"
 msgstr "Kamertemperatuur"
 
 msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
-msgstr ""
+msgstr "Opmerking: Stel de bovenstaande temperatuur in volgens de werkelijke situatie. Hoe nauwkeuriger de gegevens zijn, hoe preciezer de analyseresultaten zullen zijn."
 
 msgid "How to use Helio"
-msgstr ""
+msgstr "Hoe Helio te gebruiken"
 
 msgid "Air Pump"
 msgstr "Luchtpomp"
@@ -9395,6 +9411,9 @@ msgstr "%1% is te hoog en er kunnen botsingen ontstaan."
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr "is te dicht bij het uitsluitingsgebied, er botsingen optreden tijdens het printen."
 
+msgid " is too close to clumping detection area, there may be collisions when printing."
+msgstr ""
+
 msgid "Prime Tower"
 msgstr "Prime toren"
 
@@ -9403,6 +9422,9 @@ msgstr "staat te dicht bij andere objecten en er kunnen botsingen worden veroorz
 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " bevindt zich te dicht bij het uitsluitingsgebied en er zullen botsingen worden veroorzaakt.\n"
+
+msgid " is too close to clumping detection area, and collisions will be caused.\n"
+msgstr ""
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "Het samen printen van filamenten met een hoge en lage temperatuur kan verstopping van de nozzles of schade aan de printer veroorzaken."
@@ -9421,6 +9443,9 @@ msgstr "Geen extrusion onder de huidige instellingen"
 
 msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is enabled."
 msgstr "Vloeiende modus van timelapse wordt niet ondersteund wanneer \"per object\" sequentie is ingeschakeld."
+
+msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
+msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Selecteer de afdrukvolgorde \"per object\" om meerdere objecten in spiraalvaasmodus af te drukken."
@@ -10578,6 +10603,15 @@ msgstr "Eerste laag scannen"
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "Schakel dit in om de camera op de printer in te schakelen om de kwaliteit van de eerste laag te controleren."
 
+msgid "Enable clumping detection"
+msgstr ""
+
+msgid "Clumping detection layers"
+msgstr ""
+
+msgid "Clumping detection layers."
+msgstr ""
+
 msgid "Thumbnail size"
 msgstr "Miniatuurgrootte"
 
@@ -10841,6 +10875,9 @@ msgstr "Strijkhoek, die de relatieve hoek tussen het bovenoppervlak en het strij
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "Dit gcodegedeelte wordt ingevoegd bij elke laagwissel na lift z"
+
+msgid "Clumping detection G-code"
+msgstr ""
 
 msgid "Supports silent mode"
 msgstr "Ondersteunt stille modus"
@@ -11256,7 +11293,7 @@ msgid "Override filament scarf seam setting"
 msgstr "Instelling voor filament-sjaalnaad overschrijven"
 
 msgid "Overrider filament scarf seam setting and could control settings by modifier."
-msgstr ""
+msgstr "Overschrijft de instelling voor de draadnaad van het filament en kan instellingen aanpassen met een modificator."
 
 msgid "Wipe speed"
 msgstr "Veegsnelheid"
@@ -12447,7 +12484,7 @@ msgid "To Volumetric Speed"
 msgstr "Naar volumetrische snelheid"
 
 msgid "Are you sure to stop printing?"
-msgstr ""
+msgstr "Weet u zeker dat u wilt stoppen met printen?"
 
 msgid "Flow Dynamics Calibration Result"
 msgstr "Kalibratieresultaat van Flow Dynamics"
@@ -13272,9 +13309,6 @@ msgstr "Printer selecteren"
 
 msgid "The start, end or step is not valid value."
 msgstr "Het begin, einde of stap is geen geldige waarde."
-
-msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "Automatische kalibratie ondersteunt alleen gevallen waarbij de linker en rechter spuitdiameter identiek zijn."
 
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr "Het aantal printerextruders en de printer die voor kalibratie is geselecteerd, komen niet overeen."
@@ -14102,6 +14136,9 @@ msgid ""
 msgstr ""
 "Kromtrekken voorkomen\n"
 "Wist je dat bij het printen van materialen die gevoelig zijn voor kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het warmtebed de kans op kromtrekken kan verkleinen?"
+
+#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "Automatische kalibratie ondersteunt alleen gevallen waarbij de linker en rechter spuitdiameter identiek zijn."
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "Laagtijd(en)"

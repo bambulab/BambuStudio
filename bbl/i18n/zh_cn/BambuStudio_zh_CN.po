@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-25 09:53+0800\n"
+"POT-Creation-Date: 2025-07-30 10:22+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2335,7 +2335,7 @@ msgid "No printer"
 msgstr "无打印机"
 
 msgid "..."
-msgstr ""
+msgstr "……"
 
 msgid "Failed to connect to the server"
 msgstr "无法连接服务器"
@@ -2460,7 +2460,7 @@ msgstr ""
 
 msgctxt "air_duct"
 msgid "Right"
-msgstr ""
+msgstr "右边"
 
 msgid "Idling..."
 msgstr "空闲中"
@@ -6922,6 +6922,12 @@ msgstr "为导入的obj文件启用gamma校正"
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "导入obj模型后，对颜色进行伽玛校正。"
 
+msgid "Remember last used color scheme"
+msgstr ""
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup.."
+msgstr "启用后，将在下次启动Studio后切片自动应用上次切片时使用的颜色方案（如走线类型、速度）。"
+
 msgid "Improve rendering performance by lod"
 msgstr "通过lod提高渲染性能"
 
@@ -7812,8 +7818,14 @@ msgstr "点击以将所有设置还原到最后一次保存的版本。"
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "平滑模式的延时摄影需要擦料塔，否则打印件上可能会有瑕疵。您确定要关闭擦料塔吗？"
 
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
+msgstr ""
+
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr "同时启用精准Z高度和料塔将可能导致擦拭塔的尺寸变大，是否仍要开启？"
+
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
+msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "平滑模式的延时摄影需要擦料塔，否则打印件上可能会有瑕疵。您想打开擦料塔吗？"
@@ -8117,6 +8129,9 @@ msgstr "换层G-code"
 
 msgid "Time lapse G-code"
 msgstr "延时摄影G-code"
+
+msgid "Clumping Detection G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "耗材丝更换G-code"
@@ -9335,6 +9350,9 @@ msgstr "%1%太高，会发生碰撞。"
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr "太靠近屏蔽区域，打印时可能会发生碰撞。"
 
+msgid " is too close to clumping detection area, there may be collisions when printing."
+msgstr ""
+
 msgid "Prime Tower"
 msgstr "擦拭塔"
 
@@ -9343,6 +9361,9 @@ msgstr "离其它对象太近，可能会发生碰撞。\n"
 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr "离不可打印区域太近，会发生碰撞。\n"
+
+msgid " is too close to clumping detection area, and collisions will be caused.\n"
+msgstr ""
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "同时打印高温和低温材料可能导致喷嘴堵塞或打印机损坏。"
@@ -9361,6 +9382,9 @@ msgstr "根据当前设置，不会生成任何打印。"
 
 msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is enabled."
 msgstr "平滑模式的延时摄影不支持在逐件打印模式下使用。"
+
+msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
+msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "请选择逐件打印以支持在旋转花瓶模式下打印多个对象。"
@@ -10518,6 +10542,15 @@ msgstr "首层扫描"
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "开启这个设置将打开打印机上的摄像头用于检查首层打印质量。"
 
+msgid "Enable clumping detection"
+msgstr ""
+
+msgid "Clumping detection layers"
+msgstr ""
+
+msgid "Clumping detection layers."
+msgstr ""
+
 msgid "Thumbnail size"
 msgstr "缩略图大小"
 
@@ -10781,6 +10814,9 @@ msgstr "熨烫的角度，控制顶部表面和熨烫之间的相对角度"
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "在每次换层抬升Z高度之后插入这段G-code。"
+
+msgid "Clumping detection G-code"
+msgstr ""
 
 msgid "Supports silent mode"
 msgstr "支持静音模式"
@@ -12630,7 +12666,7 @@ msgid "Union"
 msgstr "并集"
 
 msgid "Difference"
-msgstr "差集"
+msgstr "相减"
 
 msgid "Intersection"
 msgstr "交集"
@@ -13206,9 +13242,6 @@ msgstr "需要选择打印机"
 
 msgid "The start, end or step is not valid value."
 msgstr "起始、结束或者步长输入值无效。"
-
-msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "自动标定仅支持左右喷嘴直径完全相同的情况。"
 
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr ""
@@ -14029,6 +14062,9 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "自动标定仅支持左右喷嘴直径完全相同的情况。"
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "层时间（s）"
