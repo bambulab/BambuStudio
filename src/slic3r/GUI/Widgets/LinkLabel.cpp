@@ -1,3 +1,4 @@
+#include <wx/sizer.h>
 #include "LinkLabel.hpp"
 
 LinkLabel::LinkLabel(wxWindow *parent, wxString const &text, std::string url, long style, wxSize size)
