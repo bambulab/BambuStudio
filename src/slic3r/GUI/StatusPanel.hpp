@@ -775,6 +775,9 @@ protected:
     // partskip button
     void update_partskip_button(MachineObject* obj);
 
+    // printer parts options
+    void update_printer_parts_options(MachineObject* obj);
+
 public:
     void update_error_message();
 

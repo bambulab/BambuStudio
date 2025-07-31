@@ -3660,6 +3660,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
 
     update_model_info();
     update_partskip_button(obj);
+    update_printer_parts_options(obj);
 
     if (obj->is_system_printing() || obj->is_in_calibration()) {
         reset_printing_values();
@@ -4937,6 +4938,16 @@ void StatusPanel::on_show_parts_options(wxCommandEvent &event)
         else {
             print_parts_dlg->update_machine_obj(obj);
             print_parts_dlg->ShowModal();
+        }
+    }
+}
+
+void StatusPanel::update_printer_parts_options(MachineObject* obj_)
+{
+    if(obj_){
+        if(print_parts_dlg && print_parts_dlg->IsShown()){
+            print_parts_dlg->update_machine_obj(obj_);
+            print_parts_dlg->UpdateNozzleInfo();
         }
     }
 }
