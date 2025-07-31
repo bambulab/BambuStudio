@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-31 16:41+0800\n"
+"POT-Creation-Date: 2025-07-31 18:21+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -6467,7 +6467,7 @@ msgid "The current printer preset cannot be sliced using Helio."
 msgstr "Den aktuella printern kan inte beredas med Helio."
 
 msgid "Helio does not support using a number of materials greater than 1."
-msgstr ""
+msgstr "Helio stöder inte användning av ett antal material större än 1."
 
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
@@ -6968,10 +6968,10 @@ msgid "Perform gamma correction on color after importing the obj model."
 msgstr "Utför gamma korrigering på färg efter import av obj modellen."
 
 msgid "Remember last used color scheme"
-msgstr ""
+msgstr "Kom ihåg det senast använda färgschemat"
 
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
-msgstr ""
+msgstr "När aktiverad, kommer den senast använda färgschemat (t.ex., linjetyp, hastighet) att tillämpas automatiskt vid nästa start."
 
 msgid "Improve rendering performance by lod"
 msgstr "Förbättra renderingsprestandan med lod"
@@ -7046,7 +7046,7 @@ msgid "Helio Options"
 msgstr "Helio alternativ"
 
 msgid "Enable Helio"
-msgstr ""
+msgstr "Aktivera Helio"
 
 msgid "About Helio"
 msgstr "Om Helio"
@@ -7865,13 +7865,13 @@ msgid "Prime tower is required for smooth timeplase. There may be flaws on the m
 msgstr "Prime tower krävs för smooth timelapse läge. Det kan bli fel på modellen utan ett prime tower. Är du säker på att du vill inaktivera prime tower?"
 
 msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
-msgstr ""
+msgstr "Prime Tower krävs för klumpbildnings detektering. Det kan finnas brister på modellen utan Prime Tower. Är du säker på att du vill inaktivera Prime Tower?"
 
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr "Om du aktiverar både exakt Z-höjd och prime tower kan det leda till att storleken på prime tower ökar. Vill du fortfarande aktivera?"
 
 msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
-msgstr ""
+msgstr "Prime Tower krävs för klumpnings detektering. Det kan finnas defekter på modellen utan Prime Tower. Vill du fortfarande aktivera klumpnings detektering?"
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Prime tower krävs för Smooth timelapse-läge. Det kan bli fel på modellen utan prime tower. Vill du aktivera prime tower?"
@@ -8180,7 +8180,7 @@ msgid "Time lapse G-code"
 msgstr "Time lapse G-kod"
 
 msgid "Clumping Detection G-code"
-msgstr ""
+msgstr "G-kod för klump detektering"
 
 msgid "Change filament G-code"
 msgstr "Byta filament G-kod"
@@ -9063,28 +9063,28 @@ msgid "reconnect"
 msgstr "återanslut"
 
 msgid "Terms of Service"
-msgstr ""
+msgstr "Användarvillkor"
 
 msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
 msgstr "Du håller på att aktivera en tredje parts programvara från Helio Additive! Innan du bekräftar användningen av denna funktion, vänligen noggrant läsa följande uttalanden."
 
 msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
-msgstr ""
+msgstr "Om inget annat anges ger Bambu Lab endast support för programvarufunktionerna som officiellt tillhandahålls. Utvärderings- och berednings optimerings funktioner baserade på Helio Additive's molntjänst i denna programvara kommer att utvecklas, drivs, tillhandahålls och underhålls av Helio Additive. Helio Additive ansvarar för effektiviteten och tillgängligheten av denna tjänst. Optimerings funktionen i denna tjänst kan ändra standardkommandon för utskrift, vilket innebär en risk för printer skador. Dessa funktioner kommer att samla in nödvändig användarinformation och data för att uppnå relevanta servicefunktioner. Prenumerationer och betalningar kan vara involverade. Besök Helio Additive och hänvisa till Helios Additive Privacy Agreement och Helios Additive User Agreement för detaljerad information."
 
 msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
-msgstr ""
+msgstr "Samtidigt förstår du att denna produkt tillhandahålls till dig \"i befintligt skick\" baserat på Helio Additive's tjänster, och Bambu lämnar inga uttryckliga eller underförstådda garantier av något slag, och kan inte heller kontrollera tjänstekostnaderna. I den utsträckning det är tillåtet enligt tillämplig lag tillhandahåller Bambu eller dess licensgivare/dotterbolag inga uttryckliga eller underförstådda utfästelser eller garantier, inklusive men inte begränsat till garantier om säljbarhet, tillfredsställande kvalitet, lämplighet för ett visst ändamål, exakthet, sekretess och icke kränkning av tredje parts rättigheter. På grund av nätverkstjänsternas karaktär kan Bambu inte garantera att tjänsten kommer att finnas tillgänglig hela tiden, och Bambu förbehåller sig rätten att avsluta tjänsten baserat på relevanta omständigheter."
 
 msgid "You agree not to use this product and its related updates to engage in the following activities:"
-msgstr ""
+msgstr "Du samtycker till att inte använda denna produkt och dess relaterade uppdateringar för att engagera sig i följande aktiviteter:"
 
 msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
-msgstr ""
+msgstr "1.Kopiera eller använd någon del av denna produkt utanför den auktoriserade omfattningen av Helio Additive och Bambu."
 
 msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
-msgstr ""
+msgstr "2. Försök att störa, kringgå, ändra, ogiltigförklara eller undgå något Digitala Rättigheter Management system relaterade till och/eller en integrerad del av denna produkt."
 
 msgid "3.Using this software and services for any improper or illegal activities."
-msgstr ""
+msgstr "3.Använda denna programvara och tjänster för eventuella olämpliga eller olagliga aktiviteter."
 
 msgid "https://www.helioadditive.com/"
 msgstr ""
@@ -9419,7 +9419,7 @@ msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr " är för nära undantagsområdet, det kan förekomma kollisioner vid utskrift."
 
 msgid " is too close to clumping detection area, there may be collisions when printing."
-msgstr ""
+msgstr " är för nära klumpar detekterings området, det kan finnas kollisioner vid utskrift."
 
 msgid "Prime Tower"
 msgstr "Prime Torn"
@@ -9431,7 +9431,7 @@ msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " är för nära uteslutningsområdet, och kollisioner kommer att orsakas.\n"
 
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
-msgstr ""
+msgstr " är för nära klumpar detekterings området, och kollisioner kommer att orsakas.\n"
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "Om du skriver ut högtemperaturs- och lågtemperatursfilament tillsammans kan det orsaka igensättning av nozzle eller skada på printern."
@@ -9452,7 +9452,7 @@ msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is 
 msgstr "Smooth läge för timelapse stöds inte när ”per objekt” -sekvens är aktiverad."
 
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
-msgstr ""
+msgstr "Klump detektering stöds inte när \"per objekt\" sekvens är aktiverad."
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Kontrollera \"Per objekt\" utskrifts sekvens för att skriva ut multipla objekt i Vase läge."
@@ -10611,13 +10611,13 @@ msgid "Enable this to enable the camera on printer to check the quality of first
 msgstr "Aktivera detta för att låta kameran i printern kontrollera kvaliteten på första lager."
 
 msgid "Enable clumping detection"
-msgstr ""
+msgstr "Aktivera klump detektering"
 
 msgid "Clumping detection layers"
-msgstr ""
+msgstr "Klump detekterings lager"
 
 msgid "Clumping detection layers."
-msgstr ""
+msgstr "Klump detekterings lager."
 
 msgid "Thumbnail size"
 msgstr "Miniatyr storlek"
@@ -10884,7 +10884,7 @@ msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "Denna G-kod infogas vid varje lagerbyte efter lyft av Z axel"
 
 msgid "Clumping detection G-code"
-msgstr ""
+msgstr "Klump detekterings G kod"
 
 msgid "Supports silent mode"
 msgstr "Stöder tyst läge"
