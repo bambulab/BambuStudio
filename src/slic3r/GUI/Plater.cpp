@@ -9244,7 +9244,7 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
 
     if (!is_supported_by_helio) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Helio does not support materials %1%") % used_filament;
-        GUI::MessageDialog msgdialog(nullptr, format(_L("Helio does not support materials %s"),  used_filament), "", wxICON_WARNING | wxOK);
+        GUI::MessageDialog msgdialog(nullptr, wxString::Format(_L("Helio does not support materials %s"),  used_filament), "", wxICON_WARNING | wxOK);
         msgdialog.ShowModal();
         return -1;
     }
