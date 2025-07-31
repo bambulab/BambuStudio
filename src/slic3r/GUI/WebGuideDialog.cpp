@@ -724,9 +724,9 @@ int GuideFrame::SaveProfile()
         CopyDir(rsrc_vendor_dir,vendor_dir);
     }*/
 
-    std::string strAll = m_ProfileJson.dump(-1, ' ', false, json::error_handler_t::ignore);
+    /*std::string strAll = m_ProfileJson.dump(-1, ' ', false, json::error_handler_t::ignore);
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "before save to app_config: "<< std::endl<<strAll;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "before save to app_config: "<< std::endl<<strAll;*/
 
     //set filaments to app_config
     const std::string &section_name = AppConfig::SECTION_FILAMENTS;

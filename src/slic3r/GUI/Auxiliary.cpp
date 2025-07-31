@@ -996,7 +996,7 @@ void AuxiliaryPanel::Reload(wxString aux_path)
     try {
         fs::remove_all(fs::path(m_root_dir.ToStdWstring()));
     } catch (...) {
-        BOOST_LOG_TRIVIAL(error) << "Failed  removing the auxiliary directory " << PathSanitizer::sanitize(m_root_dir.mb_str());
+        BOOST_LOG_TRIVIAL(error) << "Failed  removing the auxiliary directory " << PathSanitizer::sanitize(m_root_dir.ToUTF8().data());
     }
 
     m_root_dir = aux_path;
