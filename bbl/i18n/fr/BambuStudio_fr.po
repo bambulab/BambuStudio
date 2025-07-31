@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-30 19:48+0800\n"
+"POT-Creation-Date: 2025-07-31 16:41+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6510,8 +6510,8 @@ msgid ""
 "The currently connected printer '%s', is a %s model but not consistent with preset in project file.\n"
 "To use this printer for printing, please switch the preset first."
 msgstr ""
-"L'imprimante '%s' actuellement connectée est un modèle %s mais ne correspond pas aux paramètres prédéfinis dans le fichier de projet.\n"
-"Pour utiliser cette imprimante pour imprimer, veuillez d'abord changer de préréglage."
+"L'imprimante connectée '%s' est un modèle %s mais n'est pas cohérente avec la configuration dans le fichier de projet.\n"
+"Pour utiliser cette imprimante pour l'impression, veuillez d'abord changer la configuration."
 
 msgid "Switch now"
 msgstr "Changez maintenant"
@@ -6687,7 +6687,7 @@ msgstr "Imprimante non connectée. Veuillez consulter la page de l'appareil pour
 
 #, c-format, boost-format
 msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-msgstr "L'imprimante actuellement connectée sur la page de l'appareil n'est pas une %s. Veuillez passer à une imprimante %s avant de procéder à la synchronisation."
+msgstr "L'imprimante actuellement connectée sur la page Périphérique n'est pas une %s. Veuillez basculer vers une %s avant de procéder à la synchronisation."
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "Il n'y a pas de filaments dans l'imprimante. Veuillez d'abord charger les filaments sur l'imprimante."
@@ -9049,7 +9049,7 @@ msgstr "Conditions d'utilisation"
 msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
 msgstr "Vous êtes sur le point d'activer une fonction de service logiciel de Helio Additive! Avant de confirmer l'utilisation de cette fonctionnalité, merci de lire attentivement les instructions suivantes."
 
-msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. The effectiveness and availability of this service will be managed by Helio Additive.These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
+msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
 msgstr ""
 
 msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
