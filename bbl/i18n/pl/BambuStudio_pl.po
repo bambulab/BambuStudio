@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-31 16:41+0800\n"
+"POT-Creation-Date: 2025-07-31 18:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -13630,7 +13630,7 @@ msgid "This is a water-soluble support filament, and usually it is only for the 
 msgstr "Jest to filament podporowy rozpuszczalny w wodzie, który zazwyczaj używa się tylko do struktury podpory, a nie do samego modelu. Istnieje kilka wymagań dotyczących druku z tym materiałem, a aby uzyskać lepszą jakość druku, zapoznaj się z tym wiki: Przewodnik po druku PVA."
 
 msgid "This is a non-water-soluble support filament, and usually it is only for the support structure and not for the model body. To get better printing quality, please refer to this wiki: Printing Tips for Support Filament and Support Function."
-msgstr "Jest to filament podporowy rozpuszczalny w wodzie, który zazwyczaj używa się tylko do struktury podpory, a nie do samego modelu. Aby uzyskać lepszą jakość druku, zapoznaj się z tym wiki: Wskazówki dotyczące drukowania z filamentu podporowego i funkcji podpory."
+msgstr "Jest to filament podporowy nierozpuszczalny w wodzie, który zazwyczaj używa się tylko do struktury podpory, a nie do samego modelu. Aby uzyskać lepszą jakość druku, zapoznaj się z tym wiki: Wskazówki dotyczące drukowania z filamentu podporowego i funkcji podpory."
 
 msgid "The generic presets are conservatively tuned for compatibility with a wider range of filaments. For higher printing quality and speeds, please use Bambu filaments with Bambu presets."
 msgstr "Profile ogólne zostały zoptymalizowane pod kątem kompatybilności z różnorodnymi filamentami. Aby uzyskać lepszą jakość druku i wyższe prędkości, prosimy używać filamentów Bambu z odpowiednimi profilami Bambu."
