@@ -5047,8 +5047,8 @@ int Plater::get_right_icon_offset_bed()
 
 bool Plater::get_enable_wrapping_detection()
 {
-   const DynamicPrintConfig & printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    const ConfigOptionBool *  wrapping_detection = printer_config.option<ConfigOptionBool>("enable_wrapping_detection");
+   const DynamicPrintConfig & print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+   const ConfigOptionBool *  wrapping_detection = print_config.option<ConfigOptionBool>("enable_wrapping_detection");
    return  (wrapping_detection != nullptr) && wrapping_detection->value;
 }
 
@@ -12236,6 +12236,8 @@ void Plater::_calib_pa_pattern(const Calib_Params &params)
     print_config.set_key_value(SuggestedConfigCalibPAPattern().brim_pair.first,
         new ConfigOptionEnum<BrimType>(SuggestedConfigCalibPAPattern().brim_pair.second));
 
+    print_config.set_key_value("enable_wrapping_detection", new ConfigOptionBool(false));
+
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
 
@@ -12280,6 +12282,7 @@ void Plater::_calib_pa_tower(const Calib_Params &params)
 
     const float nozzle_diameter = printer_config->option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0);
 
+    print_config->set_key_value("enable_wrapping_detection", new ConfigOptionBool(false));
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionInts{1});
     //print_config->set_key_value("default_jerk", new ConfigOptionFloat(1.0f));
     //print_config->set_key_value("outer_wall_jerk", new ConfigOptionFloat(1.0f));
@@ -12412,6 +12415,7 @@ void Plater::calib_flowrate(int pass)
     print_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
     print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(first_layer_height));
     print_config->set_key_value("reduce_crossing_wall", new ConfigOptionBool(true));
+    print_config->set_key_value("enable_wrapping_detection", new ConfigOptionBool(false));
     // filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{ 9. });
 
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
@@ -12469,6 +12473,9 @@ void Plater::calib_temp(const Calib_Params &params)
     model().objects[0]->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterOnly));
     model().objects[0]->config.set_key_value("brim_width", new ConfigOptionFloat(5.0));
     model().objects[0]->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
+
+    auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    print_config->set_key_value("enable_wrapping_detection", new ConfigOptionBool(false));
 
     changed_objects({0});
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
@@ -12557,6 +12564,7 @@ void Plater::calib_max_vol_speed(const Calib_Params &params)
     print_config->set_key_value("outer_wall_line_width", new ConfigOptionFloat(line_width));
     print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(layer_height));
     print_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
+    print_config->set_key_value("enable_wrapping_detection", new ConfigOptionBool(false));
     obj->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterAndInner));
     obj->config.set_key_value("brim_width", new ConfigOptionFloat(3.0));
     obj->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
@@ -12615,6 +12623,8 @@ void Plater::calib_retraction(const Calib_Params &params)
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     auto printer_config  = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     auto obj             = model().objects[0];
+
+    print_config->set_key_value("enable_wrapping_detection", new ConfigOptionBool(false));
 
     double layer_height = 0.2;
 
@@ -12677,6 +12687,7 @@ void Plater::calib_VFA(const Calib_Params &params)
     print_config->set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
     print_config->set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
     print_config->set_key_value("spiral_mode", new ConfigOptionBool(true));
+    print_config->set_key_value("enable_wrapping_detection", new ConfigOptionBool(false));
     model().objects[0]->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterOnly));
     model().objects[0]->config.set_key_value("brim_width", new ConfigOptionFloat(3.0));
     model().objects[0]->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));

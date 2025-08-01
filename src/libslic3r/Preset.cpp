@@ -963,7 +963,7 @@ static std::vector<std::string> s_Preset_print_options {
     "default_jerk", "outer_wall_jerk", "inner_wall_jerk", "infill_jerk", "top_surface_jerk", "initial_layer_jerk", "travel_jerk",
     "filter_out_gap_fill", "mmu_segmented_region_max_width", "mmu_segmented_region_interlocking_depth",
     "small_perimeter_speed", "small_perimeter_threshold", "z_direction_outwall_speed_continuous",
-    "vertical_shell_speed","detect_floating_vertical_shell",
+    "vertical_shell_speed","detect_floating_vertical_shell", "enable_wrapping_detection",
      // calib
     "print_flow_ratio",
     //Orca
@@ -1024,7 +1024,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "default_print_profile", "inherits",
     "silent_mode",
     // BBS
-    "scan_first_layer", "enable_wrapping_detection", "wrapping_detection_layers", "wrapping_detection_path", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode", "template_custom_gcode",
+    "scan_first_layer", "enable_wrapping_detection", "wrapping_detection_layers", "wrapping_exclude_area", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode", "template_custom_gcode",
     "nozzle_type","auxiliary_fan", "nozzle_volume","upward_compatible_machine", "z_hop_types","support_chamber_temp_control","support_air_filtration","printer_structure","thumbnail_size",
     "best_object_pos", "head_wrap_detect_zone","printer_notes",
     "enable_long_retraction_when_cut","long_retractions_when_cut","retraction_distances_when_cut",
@@ -2901,7 +2901,7 @@ inline t_config_option_keys deep_diff(const ConfigBase &config_this, const Confi
         if (this_opt != nullptr && other_opt != nullptr && *this_opt != *other_opt)
         {
             //BBS: add bed_exclude_area
-            if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "compatible_prints" || opt_key == "compatible_printers"|| opt_key == "thumbnail_size") {
+            if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "compatible_prints" || opt_key == "compatible_printers"|| opt_key == "thumbnail_size" ||  opt_key == "wrapping_exclude_area") {
                 // Scalar variable, or a vector variable, which is independent from number of extruders,
                 // thus the vector is presented to the user as a single input.
                 diff.emplace_back(opt_key);
