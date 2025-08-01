@@ -133,7 +133,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "top_surface_acceleration",
         "accel_to_decel_enable",
         "accel_to_decel_factor",
-        "enable_wrapping_detection",
         // BBS
         "supertack_plate_temp_initial_layer",
         "cool_plate_temp_initial_layer",
@@ -276,6 +275,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "hot_plate_temp"
             || opt_key == "textured_plate_temp"
             || opt_key == "enable_prime_tower"
+            || opt_key == "enable_wrapping_detection"
             || opt_key == "prime_tower_enable_framework"
             || opt_key == "prime_tower_width"
             || opt_key == "prime_tower_max_speed"
@@ -912,7 +912,7 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
         }
     }
 
-    Pointfs wrapping_detection_area = get_wrapping_detection_area(print_config.wrapping_detection_path.values, print_config.extruder_clearance_max_radius.value / 2);
+    Pointfs wrapping_detection_area = print_config.wrapping_exclude_area.values;
     Polygon wrapping_poly;
     for (size_t i = 0; i < wrapping_detection_area.size(); ++i) {
         auto pt = wrapping_detection_area[i];

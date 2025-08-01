@@ -370,6 +370,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
             new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
             new_conf.set_key_value("z_direction_outwall_speed_continuous", new ConfigOptionBool(false));
+            new_conf.set_key_value("enable_wrapping_detection", new ConfigOptionBool(false));
             sparse_infill_density = 0;
             timelapse_type = TimelapseType::tlTraditional;
             support = false;
@@ -917,7 +918,7 @@ void ConfigManipulation::toggle_print_sla_options(DynamicPrintConfig* config)
 
 int ConfigManipulation::show_spiral_mode_settings_dialog(bool is_object_config)
 {
-    wxString msg_text = _(L("Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."));
+    wxString msg_text = _(L("Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."));
     auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
     if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
         msg_text += _(L(" But machines with I3 structure will not generate timelapse videos."));

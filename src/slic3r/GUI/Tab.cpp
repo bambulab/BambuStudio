@@ -928,8 +928,7 @@ void Tab::init_options_list()
 
     for (const std::string& opt_key : m_config->keys())
     {
-        if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "compatible_prints" || opt_key == "compatible_printers" || opt_key == "thumbnail_size"
-            || opt_key == "wrapping_detection_path") {
+        if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "compatible_prints" || opt_key == "compatible_printers" || opt_key == "thumbnail_size" || opt_key == "wrapping_exclude_area") {
             m_options_list.emplace(opt_key, m_opt_status_value);
             continue;
         }
@@ -1491,7 +1490,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                     set_enable_prime_tower = true;
                 }
             }
-            bool enable_wrapping = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("enable_wrapping_detection")->value;
+            bool enable_wrapping = m_config->option<ConfigOptionBool>("enable_wrapping_detection")->value;
             if (enable_wrapping && !set_enable_prime_tower) {
                 MessageDialog dlg(wxGetApp().plater(),
                         _L("Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"),
@@ -1520,7 +1519,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     }
 
     if (opt_key == "enable_wrapping_detection") {
-        bool wipe_tower_enabled = m_preset_bundle->prints.get_edited_preset().config.option<ConfigOptionBool>("enable_prime_tower")->value;
+        bool wipe_tower_enabled = m_config->option<ConfigOptionBool>("enable_prime_tower")->value;
         if (boost::any_cast<bool>(value) && !wipe_tower_enabled) {
             MessageDialog dlg(wxGetApp().plater(),
                               _L("Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"),
@@ -2483,6 +2482,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("fuzzy_skin_thickness");
 
         optgroup = page->new_optgroup(L("Advanced"), L"advanced");
+        optgroup->append_single_option_line("enable_wrapping_detection");
         optgroup->append_single_option_line("interlocking_beam");
         // optgroup->append_single_option_line("mmu_segmented_region_max_width");
         optgroup->append_single_option_line("mmu_segmented_region_interlocking_depth");
@@ -3970,8 +3970,9 @@ void TabPrinter::build_fff()
 
         optgroup->append_single_option_line("scan_first_layer");
         optgroup->append_single_option_line("enable_wrapping_detection");
-        //optgroup->append_single_option_line("wrapping_detection_layers");
-        //optgroup->append_single_option_line("wrapping_detection_path");
+        option  = optgroup->get_option("wrapping_exclude_area");
+        option.opt.full_width = true;
+        optgroup->append_single_option_line(option);
         optgroup->append_single_option_line("use_relative_e_distances");
         optgroup->append_single_option_line("use_firmware_retraction");
         optgroup->append_single_option_line("bed_temperature_formula");
@@ -4642,10 +4643,6 @@ void TabPrinter::toggle_options()
         //BBS: extruder clearance of BBL printer can't be edited.
         for (auto el : {"extruder_clearance_max_radius", "extruder_clearance_dist_to_rod", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid"})
             toggle_option(el, !is_BBL_printer);
-
-        PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-        std::string printer_type = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
-        toggle_line("enable_wrapping_detection", DevPrinterConfigUtil::support_wrapping_detection(printer_type));
     }
 
     if (m_active_page->title() == "Machine gcode") {

@@ -4894,11 +4894,9 @@ int PartPlateList::construct_objects_list_for_new_plate(int plate_index)
 std::vector<Vec2d> PartPlateList::get_plate_wrapping_detection_area()
 {
     DynamicPrintConfig  gconfig                  = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    ConfigOptionPoints *wrapping_path_opt        = gconfig.option<ConfigOptionPoints>("wrapping_detection_path");
-    ConfigOptionFloat * clearance_max_radius_opt = gconfig.option<ConfigOptionFloat>("extruder_clearance_max_radius");
-    if (wrapping_path_opt && clearance_max_radius_opt) {
-        std::vector<Vec2d> wrapping_area = get_wrapping_detection_area(wrapping_path_opt->values, clearance_max_radius_opt->value / 2);
-        return wrapping_area;
+    ConfigOptionPoints *wrapping_exclude_area_opt = gconfig.option<ConfigOptionPoints>("wrapping_exclude_area");
+    if (wrapping_exclude_area_opt) {
+        return wrapping_exclude_area_opt->values;
     }
 
     return std::vector<Vec2d>();
