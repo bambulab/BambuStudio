@@ -593,6 +593,7 @@ set(SLIC3R_GUI_SOURCES
 	Utils/HelioDragon.hpp
 )
 
+add_subdirectory(GUI/DeviceCore)
 add_subdirectory(GUI/DeviceTab)
 
 if (WIN32)

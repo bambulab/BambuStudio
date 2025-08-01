@@ -53,7 +53,7 @@ class SlicingStatusEvent;
 class HelioCompletionEvent;
 enum SLAPrintObjectStep : unsigned int;
 enum class ConversionType : int;
-class Ams;
+class DevAms;
 namespace csg {
 enum class BooleanFailReason;
 }

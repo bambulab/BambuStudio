@@ -151,6 +151,9 @@
 #include "StepMeshDialog.hpp"
 #include "FilamentMapDialog.hpp"
 
+#include "DeviceCore/DevFilaSystem.h"
+#include "DeviceCore/DevManager.h"
+
 using boost::optional;
 namespace fs = boost::filesystem;
 using Slic3r::_3DScene;
@@ -405,7 +408,7 @@ struct ExtruderGroup : StaticGroup
 
     void update_ams();
 
-    void sync_ams(MachineObject const *obj, std::vector<Ams *> const &ams4, std::vector<Ams *> const &ams1);
+    void sync_ams(MachineObject const *obj, std::vector<DevAms *> const &ams4, std::vector<DevAms *> const &ams1);
 
     void Rescale()
     {
@@ -1114,16 +1117,16 @@ void ExtruderGroup::update_ams()
     sizer->Layout();
 }
 
-void ExtruderGroup::sync_ams(MachineObject const *obj, std::vector<Ams *> const &ams4, std::vector<Ams *> const &ams1)
+void ExtruderGroup::sync_ams(MachineObject const *obj, std::vector<DevAms *> const &ams4, std::vector<DevAms *> const &ams1)
 {
     if (ams_4.empty() && ams4.empty()
             && ams_1.empty() && ams1.empty())
         return;
-    auto sync = [obj](std::vector<AMSinfo> &infos, std::vector<Ams *> const &ams) -> bool {
+    auto sync = [obj](std::vector<AMSinfo> &infos, std::vector<DevAms *> const &ams) -> bool {
         std::vector<AMSinfo> infos2;
         for (auto a : ams) {
             AMSinfo ams_info;
-            ams_info.parse_ams_info(const_cast<MachineObject*>(obj), a, obj->ams_calibrate_remain_flag, obj->is_support_ams_humidity);
+            ams_info.parse_ams_info(const_cast<MachineObject*>(obj), a, obj->GetFilaSystem()->IsDetectRemainEnabled(), obj->is_support_ams_humidity);
             infos2.push_back(ams_info);
         }
         if (infos == infos2)
@@ -1183,7 +1186,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
         plater->pop_warning_and_go_to_device_page(printer_name, Plater::PrinterWarningType::NOT_CONNECTED, _L("Sync printer information"));
         return false;
     }
-    //if (obj->m_extder_data.extders.size() != 2) {//wxString(obj->get_preset_printer_model_name(machine_print_name))
+    //if (obj->get_extder_system()->extders.size() != 2) {//wxString(obj->get_preset_printer_model_name(machine_print_name))
     //    plater->pop_warning_and_go_to_device_page(printer_name, Plater::PrinterWarningType::INCONSISTENT, _L("Sync printer information"));
     //    return false;
     //}
@@ -1226,17 +1229,17 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
         assert(physical_extruder_map->values.size() == extruder_nums);
         extruder_map = physical_extruder_map->values;
     }
-    assert(obj->m_extder_data.extders.size() == extruder_nums);
+    assert(obj->GetExtderSystem()->GetTotalExtderCount() == extruder_nums);
 
     std::vector<float> nozzle_diameters;
     nozzle_diameters.resize(extruder_nums);
     for (size_t index = 0; index < extruder_nums; ++index) {
         int extruder_id = extruder_map[index];
-        nozzle_diameters[extruder_id] = obj->m_extder_data.extders[index].current_nozzle_diameter;
+        nozzle_diameters[extruder_id] = obj->GetExtderSystem()->GetNozzleDiameter(index);
         NozzleVolumeType target_type = NozzleVolumeType::nvtStandard;
         auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
         if (obj->is_nozzle_flow_type_supported()) {
-            if (obj->m_extder_data.extders[index].current_nozzle_flow_type == NozzleFlowType::NONE_FLOWTYPE) {
+            if (obj->GetExtderSystem()->GetNozzleFlowType(index) == NozzleFlowType::NONE_FLOWTYPE) {
                 MessageDialog dlg(this->plater, _L("There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."),
                                   _L("Sync extruder infomation"), wxICON_WARNING | wxOK);
                 dlg.ShowModal();
@@ -1244,30 +1247,27 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
             }
             // hack code, only use standard flow for 0.2
             if (std::fabs(nozzle_diameters[extruder_id] - 0.2) > EPSILON)
-                target_type = NozzleVolumeType(obj->m_extder_data.extders[extruder_id].current_nozzle_flow_type - 1);
+                target_type = NozzleVolumeType(obj->GetExtderSystem()->GetNozzleFlowType(extruder_id) - 1);
         }
         printer_tab->set_extruder_volume_type(index, target_type);
     }
 
     int deputy_4 = 0, main_4 = 0, deputy_1 = 0, main_1 = 0;
-    for (auto ams : obj->amsList) {
+    for (auto ams : obj->GetFilaSystem()->GetAmsList()) {
         // Main (first) extruder at right
-        if (ams.second->nozzle == 0) {
-            if (ams.second->type == 4) // N3S
+        if (ams.second->GetExtruderId() == 0) {
+            if (ams.second->GetAmsType() == DevAms::N3S) // N3S
                 ++main_1;
             else
                 ++main_4;
-        } else if (ams.second->nozzle == 1) {
-            if (ams.second->type == 4) // N3S
+        } else if (ams.second->GetExtruderId() == 1) {
+            if (ams.second->GetAmsType() == DevAms::N3S) // N3S
                 ++deputy_1;
             else
                 ++deputy_4;
         }
     }
-    only_external_material = false;
-    if (obj->amsList.size() == 0) {
-        only_external_material = true;
-    }
+    only_external_material = !obj->GetFilaSystem()->HasAms();
     int main_index = obj->is_main_extruder_on_left() ? 0 : 1;
     int deputy_index = obj->is_main_extruder_on_left() ? 1 : 0;
 
@@ -1345,8 +1345,8 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         int   nozzle_volue_type{0};
         int   ams_4{0};
         int   ams_1{0};
-        std::vector<Ams *> ams_v4;
-        std::vector<Ams *> ams_v1;
+        std::vector<DevAms *> ams_v4;
+        std::vector<DevAms *> ams_v1;
 
         bool operator==(const ExtruderInfo &other) const
         {
@@ -1366,7 +1366,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
 
     // 2. update extruder status
     int extruder_nums = preset_bundle->get_printer_extruder_count();
-    if (extruder_nums != obj->m_extder_data.extders.size())
+    if (extruder_nums != obj->GetExtderSystem()->GetTotalExtderCount())
         return;
 
     std::vector<ExtruderInfo> extruder_infos(extruder_nums);
@@ -1402,21 +1402,24 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         extruder_infos[1].diameter = float(value);
     }
 
-    std::vector<ExtruderInfo> machine_extruder_infos(obj->m_extder_data.extders.size());
-    for (const Extder &extruder : obj->m_extder_data.extders) {
-        machine_extruder_infos[extruder.id].nozzle_volue_type = int(extruder.current_nozzle_flow_type) - 1;
-        machine_extruder_infos[extruder.id].diameter          = extruder.current_nozzle_diameter;
+    std::vector<ExtruderInfo> machine_extruder_infos(obj->GetExtderSystem()->GetTotalExtderCount());
+
+    const auto& extruders = obj->GetExtderSystem()->GetExtruders();
+    for (const DevExtder &extruder : extruders) {
+        machine_extruder_infos[extruder.GetExtId()].nozzle_volue_type = int(extruder.GetNozzleFlowType()) - 1;
+        machine_extruder_infos[extruder.GetExtId()].diameter          = extruder.GetNozzleDiameter();
     }
-    for (auto &item : obj->amsList) {
-        if (item.second->nozzle >= machine_extruder_infos.size())
+    for (auto &item : obj->GetFilaSystem()->GetAmsList()) {
+        if (item.second->GetExtruderId() >= machine_extruder_infos.size())
             continue;
 
-        if (item.second->type == 4) { // N3S
-            machine_extruder_infos[item.second->nozzle].ams_1++;
-            machine_extruder_infos[item.second->nozzle].ams_v1.push_back(item.second);
+        if (item.second->GetAmsType() == DevAms::N3S)
+        { // N3S
+            machine_extruder_infos[item.second->GetExtruderId()].ams_1++;
+            machine_extruder_infos[item.second->GetExtruderId()].ams_v1.push_back(item.second);
         } else {
-            machine_extruder_infos[item.second->nozzle].ams_4++;
-            machine_extruder_infos[item.second->nozzle].ams_v4.push_back(item.second);
+            machine_extruder_infos[item.second->GetExtruderId()].ams_4++;
+            machine_extruder_infos[item.second->GetExtruderId()].ams_v4.push_back(item.second);
         }
     }
 
@@ -2950,7 +2953,7 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
     std::map<int, DynamicPrintConfig> filament_ams_list;
     if (!obj) return filament_ams_list;
 
-    auto build_tray_config = [](AmsTray const &tray, std::string const &name, std::string ams_id, std::string slot_id) {
+    auto build_tray_config = [](DevAmsTray const &tray, std::string const &name, std::string ams_id, std::string slot_id) {
         BOOST_LOG_TRIVIAL(info) << boost::format("build_filament_ams_list: name %1% setting_id %2% type %3% color %4%")
                     % name % tray.setting_id % tray.type % tray.color;
         DynamicPrintConfig tray_config;
@@ -2995,11 +2998,11 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
         return std::string();
     };
 
-    auto list = obj->amsList;
+    auto list = obj->GetFilaSystem()->GetAmsList();
     for (auto ams : list) {
         int ams_id   = std::stoi(ams.first);
-        int extruder = ams.second->nozzle ? 0 : 0x10000; // Main (first) extruder at right
-        for (auto tray : ams.second->trayList) {
+        int extruder = ams.second->GetExtruderId() ? 0 : 0x10000; // Main (first) extruder at right
+        for (auto tray : ams.second->GetTrays()) {
             int  slot_id = std::stoi(tray.first);
             filament_ams_list.emplace(extruder + (ams_id * 4 + slot_id),
                                       build_tray_config(*tray.second, get_ams_name(ams_id, slot_id), std::to_string(ams_id), std::to_string(slot_id)));
@@ -3076,8 +3079,10 @@ void Sidebar::load_ams_list(std::string const &device, MachineObject* obj)
         device_change      = true;
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": %1% items") % filament_ams_list.size();
-    if (wxGetApp().preset_bundle->filament_ams_list == filament_ams_list)
+    if (wxGetApp().preset_bundle->filament_ams_list == filament_ams_list && !device_change)
+    {
         return;
+    }
     wxGetApp().preset_bundle->filament_ams_list = filament_ams_list;
 
     for (auto c : p->combos_filament){
@@ -3096,7 +3101,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     // Force load ams list
     auto obj = wxGetApp().getDeviceManager()->get_selected_machine();
     if (obj)
-        GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
+        GUI::wxGetApp().sidebar().load_ams_list(obj->get_dev_id(), obj);
 
     auto & list = wxGetApp().preset_bundle->filament_ams_list;
     if (list.empty() || obj == nullptr || !obj->is_online()) {
@@ -8651,8 +8656,10 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
                     if (cur_preset.get_printer_type(preset_bundle) == obj->get_show_printer_type()) {
                         double preset_nozzle_diameter = cur_preset.config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values[0];
                         bool   same_nozzle_diameter   = true;
-                        for (const Extder &extruder : obj->m_extder_data.extders) {
-                            if (!is_approx(extruder.current_nozzle_diameter, float(preset_nozzle_diameter))) {
+
+                        const auto& extruders = obj->GetExtderSystem()->GetExtruders();
+                        for (const DevExtder &extruder : extruders) {
+                            if (!is_approx(extruder.GetNozzleDiameter(), float(preset_nozzle_diameter))) {
                                 same_nozzle_diameter = false;
                             }
                         }
@@ -10349,10 +10356,10 @@ bool Plater::priv::check_ams_status_impl(bool is_slice_all)
     if (preset_bundle && preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == obj->get_show_printer_type()) {
         bool is_same_as_printer = true;
         auto nozzle_volumes_values = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
-        assert(obj->m_extder_data.extders.size() == 2 && nozzle_volumes_values.size() == 2);
-        if (obj->m_extder_data.extders.size() == 2 && nozzle_volumes_values.size() == 2) {
-            NozzleVolumeType right_nozzle_type = NozzleVolumeType(obj->m_extder_data.extders[0].current_nozzle_flow_type - 1);
-            NozzleVolumeType left_nozzle_type = NozzleVolumeType(obj->m_extder_data.extders[1].current_nozzle_flow_type - 1);
+        assert(obj->GetExtderSystem()->GetTotalExtderCount() == 2 && nozzle_volumes_values.size() == 2);
+        if (obj->GetExtderSystem()->GetTotalExtderCount() == 2 && nozzle_volumes_values.size() == 2) {
+            NozzleVolumeType right_nozzle_type = NozzleVolumeType(obj->GetExtderSystem()->GetNozzleFlowType(0) - 1);
+            NozzleVolumeType left_nozzle_type = NozzleVolumeType(obj->GetExtderSystem()->GetNozzleFlowType(1) - 1);
             NozzleVolumeType preset_left_type  = NozzleVolumeType(nozzle_volumes_values[0]);
             NozzleVolumeType preset_right_type  = NozzleVolumeType(nozzle_volumes_values[1]);
             is_same_as_printer = (left_nozzle_type == preset_left_type && right_nozzle_type == preset_right_type);
@@ -10361,15 +10368,15 @@ bool Plater::priv::check_ams_status_impl(bool is_slice_all)
         std::vector<std::map<int, int>> ams_count_info;
         ams_count_info.resize(2);
         int deputy_4 = 0, main_4 = 0, deputy_1 = 0, main_1 = 0;
-        for (auto ams : obj->amsList) {
+        for (auto ams : obj->GetFilaSystem()->GetAmsList()) {
             // Main (first) extruder at right
-            if (ams.second->nozzle == 0) {
-                if (ams.second->type == 4) // N3S
+            if (ams.second->GetExtruderId() == 0) {
+                if (ams.second->GetAmsType() == DevAms::N3S) // N3S
                     ++main_1;
                 else
                     ++main_4;
-            } else if (ams.second->nozzle == 1) {
-                if (ams.second->type == 4) // N3S
+            } else if (ams.second->GetExtruderId() == 1) {
+                if (ams.second->GetAmsType() == DevAms::N3S) // N3S
                     ++deputy_1;
                 else
                     ++deputy_4;
@@ -11545,7 +11552,7 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
         return false;
 
     MachineObject* obj = dev->get_selected_machine();
-    if (!obj || !obj->is_info_ready() || obj->m_extder_data.extders.size() <= 0) {
+    if (!obj || !obj->is_info_ready() || obj->GetExtderSystem()->GetTotalExtderCount() <= 0) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " obj may empty";
         return false;
     }
@@ -11561,7 +11568,7 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
     if (auto opt = printer_preset.config.option("nozzle_diameter"); opt) {
         preset_nozzle_diameter = static_cast<const ConfigOptionFloatsNullable*>(opt)->values[0];
     }
-    float machine_nozzle_diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
+    float machine_nozzle_diameter = obj->GetExtderSystem()->GetNozzleDiameter(0);
 
     std::string printer_type = obj->get_show_printer_type();
 
@@ -11580,10 +11587,10 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
         if (printer_preset.get_current_printer_type(preset_bundle) != printer_type || !is_approx((float)(preset_nozzle_diameter), machine_nozzle_diameter)) {
             wxString tips;
             if (printer_preset.get_current_printer_type(preset_bundle) != printer_type)
-                tips = from_u8((boost::format(_u8L("The currently connected printer '%s', is a %s model.\nTo use this printer for printing, please switch the printer model of project file to %s.")) % obj->dev_name % printer_model % printer_model).str());
+                tips = from_u8((boost::format(_u8L("The currently connected printer '%s', is a %s model.\nTo use this printer for printing, please switch the printer model of project file to %s.")) % obj->get_dev_name() % printer_model % printer_model).str());
             else if (!is_approx((float) (preset_nozzle_diameter), machine_nozzle_diameter))
                 tips = from_u8((boost::format(_u8L("The currently connected printer '%s', is a %s model but not consistent with preset in project file.\n"
-                    "To use this printer for printing, please switch the preset first.")) % obj->dev_name % printer_model).str());
+                    "To use this printer for printing, please switch the preset first.")) % obj->get_dev_name() % printer_model).str());
 
             std::map<wxStandardID, wxString>option_map = {
                 {wxID_YES,_L("Switch now")},
@@ -14360,7 +14367,7 @@ Preset *get_printer_preset(const MachineObject *obj)
         return nullptr;
 
     Preset       *printer_preset = nullptr;
-    float machine_nozzle_diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
+    float machine_nozzle_diameter = obj->GetExtderSystem()->GetNozzleDiameter(0);
     PresetBundle *preset_bundle  = wxGetApp().preset_bundle;
     for (auto printer_it = preset_bundle->printers.begin(); printer_it != preset_bundle->printers.end(); printer_it++) {
         // only use system printer preset
@@ -14386,14 +14393,16 @@ bool Plater::check_printer_initialized(MachineObject *obj, bool only_warning, bo
         return false;
 
     bool has_been_initialized = true;
-    for (const Extder& extruder : obj->m_extder_data.extders) {
+
+    const auto& extruders = obj->GetExtderSystem()->GetExtruders();
+    for (const DevExtder& extruder : extruders) {
         if (obj->is_multi_extruders()) {
-            if (extruder.current_nozzle_flow_type == NozzleFlowType::NONE_FLOWTYPE) {
+            if (extruder.GetNozzleFlowType() == NozzleFlowType::NONE_FLOWTYPE) {
                 has_been_initialized = false;
                 break;
             }
         }
-        if (extruder.current_nozzle_type == NozzleType::ntUndefine) {
+        if (extruder.GetNozzleFlowType() == NozzleType::ntUndefine) {
             has_been_initialized = false;
             break;
         }
@@ -14402,7 +14411,7 @@ bool Plater::check_printer_initialized(MachineObject *obj, bool only_warning, bo
     if (!has_been_initialized) {
         if (popup_warning) {
             if (!only_warning) {
-                if (DeviceManager::get_printer_can_set_nozzle(obj->get_show_printer_type())) {
+                if (DevPrinterConfigUtil::get_printer_can_set_nozzle(obj->get_show_printer_type())) {
                     MessageDialog dlg(wxGetApp().plater(), _L("The nozzle type is not set. Please set the nozzle and try again."), _L("Warning"), wxOK | wxICON_WARNING);
                     dlg.ShowModal();
                 } else {
