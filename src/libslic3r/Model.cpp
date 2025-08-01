@@ -788,6 +788,7 @@ void Model::convert_multipart_object(unsigned int max_extruders)
     ModelObject* object = new ModelObject(this);
     object->input_file = this->objects.front()->input_file;
     object->name = boost::filesystem::path(this->objects.front()->input_file).stem().string();
+    object->origin_translation = this->objects.front()->origin_translation;
     //FIXME copy the config etc?
 
     unsigned int extruder_counter = 0;

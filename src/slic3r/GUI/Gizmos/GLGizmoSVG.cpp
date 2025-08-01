@@ -1335,7 +1335,7 @@ void GLGizmoSVG::draw_window()
     if (m_volume == nullptr)
         return;
     ImGui::Separator();
-
+    ImGui::Indent(m_gui_cfg->icon_width);
     draw_depth();
     draw_size();
 

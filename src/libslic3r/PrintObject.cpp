@@ -676,6 +676,8 @@ void PrintObject::clear_overhangs_for_lift()
 
 static const float g_min_overhang_percent_for_lift = 0.3f;
 
+#define REGISTER_SUPPORTS_FOR_LIFT
+
 void PrintObject::detect_overhangs_for_lift()
 {
     if (this->set_started(posDetectOverhangsForLift)) {
@@ -688,18 +690,32 @@ void PrintObject::detect_overhangs_for_lift()
         this->clear_overhangs_for_lift();
 
         tbb::spin_mutex layer_storage_mutex;
-        tbb::parallel_for(tbb::blocked_range<size_t>(num_raft_layers + 1, num_layers),
-            [this, min_overlap](const tbb::blocked_range<size_t>& range)
-            {
-                for (size_t layer_id = range.begin(); layer_id < range.end(); ++layer_id) {
-                    Layer& layer = *m_layers[layer_id];
-                    Layer& lower_layer = *layer.lower_layer;
+        tbb::parallel_for(tbb::blocked_range<size_t>(num_raft_layers + 1, num_layers), [this, min_overlap](const tbb::blocked_range<size_t> &range) {
+            for (size_t layer_id = range.begin(); layer_id < range.end(); ++layer_id) {
+                Layer &layer       = *m_layers[layer_id];
+                Layer &lower_layer = *layer.lower_layer;
 
-                    ExPolygons overhangs = diff_ex(layer.lslices, offset_ex(lower_layer.lslices, scale_(min_overlap)));
-                    layer.loverhangs = std::move(offset2_ex(overhangs, -0.1f * scale_(m_config.line_width), 0.1f * scale_(m_config.line_width)));
-                    layer.loverhangs_bbox = get_extents(layer.loverhangs);
+                ExPolygons overhangs = diff_ex(layer.lslices, offset_ex(lower_layer.lslices, scale_(min_overlap)));
+                layer.loverhangs     = std::move(offset2_ex(overhangs, -0.1f * scale_(m_config.line_width), 0.1f * scale_(m_config.line_width)));
+
+#ifdef REGISTER_SUPPORTS_FOR_LIFT
+                // register all supports to avoidance region for lift
+                if (layer_id < m_support_layers.size()) {
+                    auto &support_layer = m_support_layers[layer_id];
+                    if (support_layer) {
+                        if (!support_layer->support_islands.empty()) {
+                            append(layer.loverhangs,
+                                   std::move(offset2_ex(support_layer->support_islands, -0.1f * scale_(m_config.line_width), 0.1f * scale_(m_config.line_width))));
+                        } else {
+                            ExPolygons support_infill_polygons = union_ex(support_layer->support_fills.polygons_covered_by_spacing(double(coord_t(SCALED_EPSILON))));
+                            append(layer.loverhangs, std::move(offset2_ex(support_infill_polygons, -0.1f * scale_(m_config.line_width), 0.1f * scale_(m_config.line_width))));
+                        }
+                    }
                 }
-            });
+#endif
+                layer.loverhangs_bbox = get_extents(layer.loverhangs);
+            }
+        });
         this->set_done(posDetectOverhangsForLift);
     }
 }
@@ -709,26 +725,25 @@ void PrintObject::generate_support_material()
     if (this->set_started(posSupportMaterial)) {
         this->clear_support_layers();
 
-        if(!has_support() && !m_print->get_no_check_flag()) {
+        if (!has_support() && !m_print->get_no_check_flag()) {
             // BBS: pop a warning if objects have significant amount of overhangs but support material is not enabled
             // Note: we also need to pop warning if support is disabled and only raft is enabled
             m_print->set_status(50, L("Checking support necessity"));
-            typedef std::chrono::high_resolution_clock clock_;
-            typedef std::chrono::duration<double, std::ratio<1> > second_;
-            std::chrono::time_point<clock_> t0{ clock_::now() };
+            typedef std::chrono::high_resolution_clock           clock_;
+            typedef std::chrono::duration<double, std::ratio<1>> second_;
+            std::chrono::time_point<clock_>                      t0{clock_::now()};
 
             SupportNecessaryType sntype = this->is_support_necessary();
 
-            double duration{ std::chrono::duration_cast<second_>(clock_::now() - t0).count() };
+            double duration{std::chrono::duration_cast<second_>(clock_::now() - t0).count()};
             BOOST_LOG_TRIVIAL(info) << std::fixed << std::setprecision(0) << "is_support_necessary takes " << duration << " secs.";
 
             if (sntype != NoNeedSupp) {
-                std::map<SupportNecessaryType, std::string> reasons = {
-                    {SharpTail,L("floating regions")},
-                    {Cantilever,L("floating cantilever")},
-                    {LargeOverhang,L("large overhangs")} };
-                std::string warning_message = Slic3r::format(L("It seems object %s has %s. Please re-orient the object or enable support generation."),
-                    this->model_object()->name, reasons[sntype]);
+                std::map<SupportNecessaryType, std::string> reasons = {{SharpTail, L("floating regions")},
+                                                                       {Cantilever, L("floating cantilever")},
+                                                                       {LargeOverhang, L("large overhangs")}};
+                std::string warning_message                         = Slic3r::format(L("It seems object %s has %s. Please re-orient the object or enable support generation."),
+                                                                                     this->model_object()->name, reasons[sntype]);
                 this->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL, warning_message, PrintStateBase::SlicingNeedSupportOn);
             }
 

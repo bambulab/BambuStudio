@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-17 11:15+0800\n"
+"POT-Creation-Date: 2025-07-31 18:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -3314,6 +3314,11 @@ msgstr ""
 "Надто маленька максимальна об'ємна швидкість.\n"
 "Скинути до 0,5"
 
+msgid ""
+"Should not large than 100%.\n"
+"Reset to defualt"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"
 msgstr "Поточна температура камери вища, ніж безпечна температура матеріалу, це може призвести до розм’якшення матеріалу та його забивання. Максимально безпечна температура для цього матеріалу становить %d"
@@ -3726,6 +3731,63 @@ msgstr ""
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr ""
 
+msgid "Resume Printing"
+msgstr "Відновити друк"
+
+msgid "Resume (defects acceptable)"
+msgstr ""
+
+msgid "Resume (problem solved)"
+msgstr ""
+
+msgid "Stop Printing"
+msgstr "Зупинити друк"
+
+msgid "Check Assistant"
+msgstr "Перевірка помічника"
+
+msgid "Filament Extruded, Continue"
+msgstr "Філамент витиснутий, Продовжити"
+
+msgid "Not Extruded Yet, Retry"
+msgstr "Ще не витиснуто філамент, Повторити"
+
+msgid "Finished, Continue"
+msgstr "Завершено, Продовжити"
+
+msgid "Load Filament"
+msgstr "Завантажити"
+
+msgid "Filament Loaded, Resume"
+msgstr "Філамент завантажений, Відновити"
+
+msgid "View Liveview"
+msgstr "Перегляд в реальному часі"
+
+msgid "No Reminder Next Time"
+msgstr ""
+
+msgid "Ignore. Don't Remind Next Time"
+msgstr ""
+
+msgid "Ignore this and Resume"
+msgstr ""
+
+msgid "Problem Solved and Resume"
+msgstr ""
+
+msgid "Stop Buzzer"
+msgstr ""
+
+msgid "Retry (problem solved)"
+msgstr ""
+
+msgid "Stop Drying"
+msgstr ""
+
+msgid "Unknown error."
+msgstr ""
+
 msgid "default"
 msgstr "за замовчуванням"
 
@@ -3779,6 +3841,15 @@ msgstr "Ширина лінії"
 msgid "Fan Speed"
 msgstr "Швидкість вентилятора"
 
+msgid "Thermal Index (min)"
+msgstr ""
+
+msgid "Thermal Index (max)"
+msgstr ""
+
+msgid "Thermal Index (mean)"
+msgstr ""
+
 msgid "Flow"
 msgstr "Потік"
 
@@ -3808,6 +3879,18 @@ msgstr "Швидкість вентилятора: "
 
 msgid "Temperature: "
 msgstr "Температура: "
+
+msgid "Thermal Index"
+msgstr ""
+
+msgid "Min: "
+msgstr ""
+
+msgid "Max: "
+msgstr ""
+
+msgid "Mean: "
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "Завантаження G-кодів"
@@ -3908,6 +3991,9 @@ msgstr "від"
 msgid "Slicing Result"
 msgstr ""
 
+msgid "Helio Action"
+msgstr ""
+
 msgid "Color Scheme"
 msgstr "Колірна схема"
 
@@ -3934,9 +4020,6 @@ msgstr "Температура (°С)"
 
 msgid "Volumetric flow rate (mm³/s)"
 msgstr "Об'ємна витрата (мм³/с)"
-
-msgid "Layer Time (s)"
-msgstr "Время слоя (c)"
 
 msgid "Travel"
 msgstr "Переміщення"
@@ -5080,11 +5163,6 @@ msgstr "Не вдалося завантажити"
 msgid "Browsing file in storage is not supported in current firmware. Please update the printer firmware."
 msgstr ""
 
-msgid ""
-"Please check if the storage is inserted into the printer.\n"
-"If it still cannot be read, you can try formatting the storage."
-msgstr ""
-
 msgid "LAN Connection Failed (Failed to view sdcard)"
 msgstr "Помилка підключення LAN (Не вдалося переглянути sd-карту)"
 
@@ -5170,6 +5248,11 @@ msgstr "Помилка контрольної суми файлу. Будь ла
 
 msgid "Not supported on the current printer version."
 msgstr "Не підтримується на поточній версії принтера."
+
+msgid ""
+"Please check if the storage is inserted into the printer.\n"
+"If it still cannot be read, you can try formatting the storage."
+msgstr ""
 
 msgid "The firmware version of the printer is too low. Please update the firmware and try again."
 msgstr ""
@@ -5395,9 +5478,6 @@ msgstr "Скасувати друк"
 msgid "Are you sure you want to stop this print?"
 msgstr ""
 
-msgid "Unknown error."
-msgstr ""
-
 msgid "The printer is busy on other print job"
 msgstr "Принтер зайнятий іншим завданням друку"
 
@@ -5468,7 +5548,7 @@ msgstr "Спортивний"
 msgid "Ludicrous"
 msgstr "Безглуздий"
 
-msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
+msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti detection. Please choose carefully."
 msgstr ""
 
 msgid "Keep it On"
@@ -5916,7 +5996,7 @@ msgstr "Перевірка першого шару"
 msgid "Auto-recovery from step loss"
 msgstr "Автоматичне відновлення після втрати кроку"
 
-msgid "Open Door Dectection"
+msgid "Open Door Detection"
 msgstr ""
 
 msgid "Notification"
@@ -6148,8 +6228,10 @@ msgstr "Успішно змонтовано. Тепер пристрій %s(%s) 
 msgid "Ejecting of device %s(%s) has failed."
 msgstr "Помилка виймання пристрою %s(%s)."
 
-msgid "Previous unsaved project detected, do you want to restore it?"
-msgstr "Виявлено попередній незбережений проєкт, відновити його?"
+msgid ""
+"It seems that you have projects that were not closed properly. Would you like to restore your last unsaved project?\n"
+"If you have a currently opened project and click \"Restore\", the current project will be closed."
+msgstr ""
 
 msgid "Restore"
 msgstr "Відновити"
@@ -6369,6 +6451,19 @@ msgstr "Нарізка скасована"
 #, c-format, boost-format
 msgid "Slicing Plate %d"
 msgstr "Пластина для нарізки %d"
+
+msgid "Invalid printer preset. Unable to slice with Helio."
+msgstr ""
+
+msgid "The current printer preset cannot be sliced using Helio."
+msgstr ""
+
+msgid "Helio does not support using a number of materials greater than 1."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Helio does not support materials %s"
+msgstr ""
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Виправте помилки нарізки та опублікуйте знову."
@@ -6851,6 +6946,12 @@ msgstr ""
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr ""
 
+msgid "Remember last used color scheme"
+msgstr ""
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr "Покращити продуктивність рендерингу за допомогою LOD"
 
@@ -6918,6 +7019,24 @@ msgid "Show online staff-picked models on the home page"
 msgstr "Показувати моделі, вибрані співробітниками, на домашній сторінці"
 
 msgid "Show history on the home page"
+msgstr ""
+
+msgid "Helio Options"
+msgstr ""
+
+msgid "Enable Helio"
+msgstr ""
+
+msgid "About Helio"
+msgstr ""
+
+msgid "Helio Privacy Policy"
+msgstr ""
+
+msgid "Reminder During Slicing"
+msgstr ""
+
+msgid "Automatic mode"
 msgstr ""
 
 msgid "Maximum recent projects"
@@ -7716,7 +7835,13 @@ msgstr "Натисніть, щоб скинути всі налаштуванн�
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Prime Tower потрібно для плавного таймлапсу. Можуть бути недоліки в моделібез головної вежі. Ви впевнені, що хочете вимкнути основну вежу?"
 
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
+msgstr ""
+
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
+msgstr ""
+
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
 msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
@@ -8017,6 +8142,9 @@ msgstr "G-код зміни шару"
 
 msgid "Time lapse G-code"
 msgstr "G-код для часової зйомки"
+
+msgid "Clumping Detection G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "G-code Зміни філаменту"
@@ -8813,57 +8941,6 @@ msgstr "Виконано"
 msgid "resume"
 msgstr "продовжити"
 
-msgid "Resume Printing"
-msgstr "Відновити друк"
-
-msgid "Resume (defects acceptable)"
-msgstr ""
-
-msgid "Resume (problem solved)"
-msgstr ""
-
-msgid "Stop Printing"
-msgstr "Зупинити друк"
-
-msgid "Check Assistant"
-msgstr "Перевірка помічника"
-
-msgid "Filament Extruded, Continue"
-msgstr "Філамент витиснутий, Продовжити"
-
-msgid "Not Extruded Yet, Retry"
-msgstr "Ще не витиснуто філамент, Повторити"
-
-msgid "Finished, Continue"
-msgstr "Завершено, Продовжити"
-
-msgid "Load Filament"
-msgstr "Завантажити"
-
-msgid "Filament Loaded, Resume"
-msgstr "Філамент завантажений, Відновити"
-
-msgid "View Liveview"
-msgstr "Перегляд в реальному часі"
-
-msgid "No Reminder Next Time"
-msgstr ""
-
-msgid "Ignore. Don't Remind Next Time"
-msgstr ""
-
-msgid "Ignore this and Resume"
-msgstr ""
-
-msgid "Problem Solved and Resume"
-msgstr ""
-
-msgid "Stop Buzzer"
-msgstr ""
-
-msgid "Retry (problem solved)"
-msgstr ""
-
 msgid "Confirm and Update Nozzle"
 msgstr "Підтвердити і оновити сопло"
 
@@ -8935,6 +9012,57 @@ msgid "Failed to send. Click Retry to attempt sending again. If retrying does no
 msgstr ""
 
 msgid "reconnect"
+msgstr ""
+
+msgid "Terms of Service"
+msgstr ""
+
+msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
+msgstr ""
+
+msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
+msgstr ""
+
+msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
+msgstr ""
+
+msgid "You agree not to use this product and its related updates to engage in the following activities:"
+msgstr ""
+
+msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
+msgstr ""
+
+msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
+msgstr ""
+
+msgid "3.Using this software and services for any improper or illegal activities."
+msgstr ""
+
+msgid "https://www.helioadditive.com/"
+msgstr ""
+
+msgid "Privacy Policy of Helio Additive"
+msgstr ""
+
+msgid "Terms of Use of Helio Additive"
+msgstr ""
+
+msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
+msgstr ""
+
+msgid "Agree"
+msgstr ""
+
+msgid "Helio settings"
+msgstr ""
+
+msgid "Chamber temperature"
+msgstr "Температура в камері"
+
+msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
+msgstr ""
+
+msgid "How to use Helio"
 msgstr ""
 
 msgid "Air Pump"
@@ -9244,6 +9372,9 @@ msgstr "%1% занадто високий, і можуть виникнути з
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr " знаходиться надто близько до зони відчуження, при друку можуть виникати колізії."
 
+msgid " is too close to clumping detection area, there may be collisions when printing."
+msgstr ""
+
 msgid "Prime Tower"
 msgstr "Вежа підготовки філаменту"
 
@@ -9252,6 +9383,9 @@ msgstr " залишається близько до інших, що може п
 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " знаходиться надто близько до зони відчуження, що призведе до зіткнень.\n"
+
+msgid " is too close to clumping detection area, and collisions will be caused.\n"
+msgstr ""
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr ""
@@ -9270,6 +9404,9 @@ msgstr "Немає екструзій під час поточних налаш�
 
 msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is enabled."
 msgstr "Плавний режим таймлапсу не підтримується, коли послідовність \"по об'єкт\" увімкнено."
+
+msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
+msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Будь ласка, виберіть послідовність друку \"По об'єкту\" для друку кілька об'єктів у режим спіральної вази."
@@ -9627,7 +9764,7 @@ msgid "mm/s"
 msgstr "мм/с"
 
 #, c-format, boost-format
-msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
+msgid "Speed of 100%% overhang wall which has 0 overlap with the lower layer."
 msgstr ""
 
 msgid "Slow down by height"
@@ -10437,6 +10574,15 @@ msgstr "Сканувати перший шар"
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "Увімкнення цього параметра дозволяє камері на принтері перевіряти якістьпершого шару"
 
+msgid "Enable clumping detection"
+msgstr ""
+
+msgid "Clumping detection layers"
+msgstr ""
+
+msgid "Clumping detection layers."
+msgstr ""
+
 msgid "Thumbnail size"
 msgstr "Розмір мініатюри"
 
@@ -10700,6 +10846,9 @@ msgstr "Кут для згладжування, який контролює ві
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "Ця частина gcode вставляється при кожній зміні шару після підйому z"
+
+msgid "Clumping detection G-code"
+msgstr ""
 
 msgid "Supports silent mode"
 msgstr "Підтримує безшумний режим"
@@ -11442,9 +11591,6 @@ msgstr "Опорні стінові петлі"
 
 msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
 msgstr ""
-
-msgid "Chamber temperature"
-msgstr "Температура в камері"
 
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr "Вища температура камери може допомогти стримувати або зменшувати деформацію та, можливо, підвищити міцність зв’язку між шарами для матеріалів високої температури, таких як ABS, ASA, PC, PA тощо. У той же час, повітряна фільтрація для ABS та ASA може стати гіршею. Однак для PLA, PETG, TPU, PVA та інших матеріалів низької температури фактична температура камери не повинна бути високою, щоб уникнути засмічення, тому рекомендується вимкнути температуру камери (0)"
@@ -13118,9 +13264,6 @@ msgstr "Потрібно вибрати принтер"
 msgid "The start, end or step is not valid value."
 msgstr "Початок, кінець або крок не є дійсним значенням."
 
-msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "Автоматичне калібрування тільки "
-
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr "Кількість екструдерів не підходить для принтера, що було обрано для калібрування."
 
@@ -13942,6 +14085,15 @@ msgid ""
 msgstr ""
 "Уникнення деформації\n"
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як ABS, відповідне підвищення температури гарячого ліжка може зменшити ймовірність деформації."
+
+#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "Автоматичне калібрування тільки "
+
+#~ msgid "Layer Time (s)"
+#~ msgstr "Время слоя (c)"
+
+#~ msgid "Previous unsaved project detected, do you want to restore it?"
+#~ msgstr "Виявлено попередній незбережений проєкт, відновити його?"
 
 #~ msgid "Paused due to filament runout"
 #~ msgstr "Пуаза через датчик філаменту"

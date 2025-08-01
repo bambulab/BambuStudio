@@ -765,6 +765,21 @@ std::string Preset::get_printer_type(PresetBundle *preset_bundle)
     return "";
 }
 
+std::string Preset::get_printer_name(PresetBundle *preset_bundle)
+{
+    if (preset_bundle) {
+        auto        config = &preset_bundle->printers.get_edited_preset().config;
+        std::string vendor_name;
+        for (auto vendor_profile : preset_bundle->vendors) {
+            for (auto vendor_model : vendor_profile.second.models)
+                if (vendor_model.name == config->opt_string("printer_model")) {
+                    return vendor_model.name;
+                }
+        }
+    }
+    return "";
+}
+
 std::string Preset::get_current_printer_type(PresetBundle *preset_bundle)
 {
     if (preset_bundle) {
@@ -1002,14 +1017,14 @@ static std::vector<std::string> s_Preset_machine_limits_options {
 static std::vector<std::string> s_Preset_printer_options {
     "printer_technology",
     "printable_area", "extruder_printable_area", "bed_exclude_area","bed_custom_texture", "bed_custom_model", "gcode_flavor",
-    "single_extruder_multi_material", "machine_start_gcode", "machine_end_gcode","printing_by_object_gcode","before_layer_change_gcode", "layer_change_gcode", "time_lapse_gcode", "change_filament_gcode",
+    "single_extruder_multi_material", "machine_start_gcode", "machine_end_gcode","printing_by_object_gcode","before_layer_change_gcode", "layer_change_gcode", "time_lapse_gcode", "wrapping_detection_gcode", "change_filament_gcode",
     "printer_model", "printer_variant", "printer_extruder_id", "printer_extruder_variant", "extruder_variant_list", "default_nozzle_volume_type",
     "printable_height", "extruder_printable_height", "extruder_clearance_dist_to_rod",  "extruder_clearance_max_radius","extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod",
     "nozzle_height", "master_extruder_id",
     "default_print_profile", "inherits",
     "silent_mode",
     // BBS
-    "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode", "template_custom_gcode",
+    "scan_first_layer", "enable_wrapping_detection", "wrapping_detection_layers", "wrapping_detection_path", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode", "template_custom_gcode",
     "nozzle_type","auxiliary_fan", "nozzle_volume","upward_compatible_machine", "z_hop_types","support_chamber_temp_control","support_air_filtration","printer_structure","thumbnail_size",
     "best_object_pos", "head_wrap_detect_zone","printer_notes",
     "enable_long_retraction_when_cut","long_retractions_when_cut","retraction_distances_when_cut",

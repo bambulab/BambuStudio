@@ -171,8 +171,9 @@ bool GLGizmoAdvancedCut::gizmo_event(SLAGizmoEventType action, const Vec2d &mous
     else if (action == SLAGizmoEventType::RightDown) {
         if (!m_connectors_editing && m_cut_mode == CutMode::cutPlanar) { //&& control_down
             // Check the internal part raycasters.
-            if (m_part_selection && !m_part_selection->valid())
+            if (m_part_selection && !m_part_selection->valid()) {
                 process_contours();
+            }
             m_part_selection->toggle_selection(mouse_position);
             check_and_update_connectors_state(); // after a contour is deactivated, its connectors are inside the object
 
@@ -263,13 +264,16 @@ BoundingBoxf3 GLGizmoAdvancedCut::transformed_bounding_box(const Vec3d &plane_ce
     const Selection &selection = m_parent.get_selection();
 
     const auto first_volume    = selection.get_first_volume();
+    BoundingBoxf3 ret;
+    if (!first_volume) {
+        return ret;
+    }
     Vec3d      instance_offset = first_volume->get_instance_offset();
     instance_offset[Z] += first_volume->get_sla_shift_z();
 
     const auto cut_matrix = Transform3d::Identity() * rotation_m.inverse() * Geometry::translation_transform(instance_offset - plane_center);
 
     const Selection::IndicesList &idxs = selection.get_volume_idxs();
-    BoundingBoxf3                 ret;
     for (unsigned int i : idxs) {
         const GLVolume *volume = selection.get_volume(i);
         // respect just to the solid parts for FFF and ignore pad and supports for SLA
@@ -2370,7 +2374,11 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     render_part_action_line( "A", "##upper", m_keep_upper, m_place_on_cut_upper, m_rotate_upper);
     render_part_action_line( "B", "##lower", m_keep_lower, m_place_on_cut_lower, m_rotate_lower);
 
-    m_imgui->disabled_begin(has_connectors || m_cut_mode == CutMode::cutTongueAndGroove);
+    if (m_part_selection && m_part_selection->has_modified_cut_parts()) {
+        m_cut_to_parts = false;
+    }
+    m_imgui->disabled_begin(has_connectors || (m_part_selection && m_part_selection->has_modified_cut_parts() && m_part_selection->valid()) ||
+                            m_cut_mode == CutMode::cutTongueAndGroove);
     m_imgui->bbl_checkbox(_L("Cut to parts"), m_cut_to_parts);
     if (m_cut_to_parts) {
         m_keep_upper = m_keep_lower = true;

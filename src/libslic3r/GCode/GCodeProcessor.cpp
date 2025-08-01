@@ -2237,6 +2237,7 @@ void GCodeProcessor::reset()
     m_enable_pre_heating = false;
     m_hotend_cooling_rate = m_hotend_heating_rate = { 2.f };
 
+    m_thermal_index    = ThermalIndex(0.0, 0.0, 0.0);
     m_highest_bed_temp = 0;
 
     m_extruded_last_z = 0.0f;
@@ -2690,6 +2691,13 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line, bool
             }
         }
     }
+}
+
+// Processes the gcode comments added by the helio processing server and stores them
+void GCodeProcessor::process_helioadditive_comment(const GCodeReader::GCodeLine &line)
+{
+    const std::string &comment = line.raw();
+    m_thermal_index            = parse_helioadditive_comment(comment);
 }
 
 #if __has_include(<charconv>)
@@ -3632,6 +3640,8 @@ void GCodeProcessor::process_G0(const GCodeReader::GCodeLine& line)
 
 void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 {
+    process_helioadditive_comment(line);
+
     int filament_id = get_filament_id();
     int last_filament_id = get_last_filament_id();
     float filament_diameter = (static_cast<size_t>(filament_id) < m_result.filament_diameters.size()) ? m_result.filament_diameters[filament_id] : m_result.filament_diameters.back();
@@ -4413,6 +4423,8 @@ void GCodeProcessor::process_VG1(const GCodeReader::GCodeLine& line)
 // BBS: this function is absolutely new for G2 and G3 gcode
 void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
 {
+    process_helioadditive_comment(line);
+
     int filament_id = get_filament_id();
     float filament_diameter = (static_cast<size_t>(filament_id) < m_result.filament_diameters.size()) ? m_result.filament_diameters[filament_id] : m_result.filament_diameters.back();
     float filament_radius = 0.5f * filament_diameter;
@@ -5546,6 +5558,9 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         m_fan_speed,
         m_extruder_temps[filament_id],
         static_cast<float>(m_layer_id), //layer_duration: set later
+        m_thermal_index.min,
+        m_thermal_index.max,
+        m_thermal_index.mean,
         {0.f,0.f}, // prefix sum of move time to this move : set later
         //BBS: add plate's offset to the rendering vertices
         Vec3f(m_end_position[X] + m_x_offset, m_end_position[Y] + m_y_offset, m_processing_start_custom_gcode ? m_first_layer_height : m_end_position[Z]) + m_extruder_offsets[filament_id],

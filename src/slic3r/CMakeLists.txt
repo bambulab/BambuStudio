@@ -34,6 +34,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/PopupWindow.hpp
     GUI/Widgets/Label.cpp
     GUI/Widgets/Label.hpp
+    GUI/Widgets/LinkLabel.cpp
+    GUI/Widgets/LinkLabel.hpp
     GUI/Widgets/Scrollbar.cpp
     GUI/Widgets/Scrollbar.hpp
     GUI/Widgets/ScrolledWindow.cpp
@@ -344,6 +346,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ImGuiWrapper.cpp
     GUI/DeviceManager.hpp
     GUI/DeviceManager.cpp
+    GUI/DeviceErrorDialog.hpp
+    GUI/DeviceErrorDialog.cpp
     GUI/UserManager.hpp
     GUI/UserManager.cpp
     GUI/HttpServer.hpp
@@ -585,6 +589,8 @@ set(SLIC3R_GUI_SOURCES
 	Utils/FontUtils.hpp
     Utils/WxFontUtils.hpp
     Utils/WxFontUtils.cpp
+    Utils/HelioDragon.cpp
+	Utils/HelioDragon.hpp
 )
 
 add_subdirectory(GUI/DeviceTab)

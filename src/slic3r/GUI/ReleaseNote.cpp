@@ -12,12 +12,14 @@
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/StaticBox.hpp"
 #include "Widgets/WebView.hpp"
+#include "Widgets/LinkLabel.hpp"
 
 #include <wx/regex.h>
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
 #include <wx/dcgraph.h>
 #include <miniz.h>
+#include <wx/valnum.h>
 #include <algorithm>
 #include "Plater.hpp"
 #include "BitmapCache.hpp"
@@ -1114,6 +1116,7 @@ void PrintErrorDialog::init_button_list()
     init_button(PROBLEM_SOLVED_RESUME, _L("Problem Solved and Resume"));
     init_button(STOP_BUZZER, _L("Stop Buzzer"));
     init_button(RETRY_PROBLEM_SOLVED, _L("Retry (problem solved)"));
+    init_button(STOP_DRYING, _L("Stop Drying"));
 }
 
 PrintErrorDialog::~PrintErrorDialog()
@@ -2257,5 +2260,320 @@ void InputIpAddressDialog::on_dpi_changed(const wxRect& suggested_rect)
  }
 
 void SendFailedConfirm::on_dpi_changed(const wxRect &suggested_rect) {}
+
+
+ HelioStatementDialog::HelioStatementDialog(wxWindow *parent /*= nullptr*/)
+    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Enable Helio"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+{
+     SetBackgroundColour(*wxWHITE);
+
+     wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
+
+     wxPanel* line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+     line->SetBackgroundColour(wxColour(166, 169, 170));
+
+
+
+     m_title = new Label(this, Label::Head_14, _L("Terms of Service"));
+     //m_title->SetForegroundColour(wxColour(0x26, 0x2E, 0x30));
+
+
+
+     Label* m_description_line1 = new Label(this, Label::Body_13,
+                               _L("You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."));
+     //m_description_line1->SetForegroundColour(wxColour(144, 144, 144));
+     m_description_line1->SetMinSize(wxSize(FromDIP(680), -1));
+     m_description_line1->SetMaxSize(wxSize(FromDIP(680), -1));
+     m_description_line1->Wrap(FromDIP(680));
+
+     Label *m_description_line2 = new Label(this, Label::Body_13,
+                                            _L("Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."));
+
+     Label* m_description_line3 = new Label(this, Label::Body_13,
+         _L("Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."));
+
+     Label* m_description_line4 = new Label(this, Label::Body_13,
+         _L("You agree not to use this product and its related updates to engage in the following activities:"));
+
+     Label* m_description_line5 = new Label(this, Label::Body_13,
+         _L("1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."));
+
+     Label* m_description_line6 = new Label(this, Label::Body_13,
+         _L("2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."));
+
+     Label* m_description_line7 = new Label(this, Label::Body_13,
+         _L("3.Using this software and services for any improper or illegal activities."));
+
+     m_description_line2->SetMinSize(wxSize(FromDIP(680), -1));
+     m_description_line2->SetMaxSize(wxSize(FromDIP(680), -1));
+     m_description_line2->Wrap(FromDIP(680));
+
+     m_description_line3->SetMinSize(wxSize(FromDIP(680), -1));
+     m_description_line3->SetMaxSize(wxSize(FromDIP(680), -1));
+     m_description_line3->Wrap(FromDIP(680));
+
+     m_description_line4->SetMinSize(wxSize(FromDIP(680), -1));
+     m_description_line4->SetMaxSize(wxSize(FromDIP(680), -1));
+     m_description_line4->Wrap(FromDIP(680));
+
+     m_description_line5->SetMinSize(wxSize(FromDIP(680), -1));
+     m_description_line5->SetMaxSize(wxSize(FromDIP(680), -1));
+     m_description_line5->Wrap(FromDIP(680));
+
+     m_description_line6->SetMinSize(wxSize(FromDIP(680), -1));
+     m_description_line6->SetMaxSize(wxSize(FromDIP(680), -1));
+     m_description_line6->Wrap(FromDIP(680));
+
+     m_description_line7->SetMinSize(wxSize(FromDIP(680), -1));
+     m_description_line7->SetMaxSize(wxSize(FromDIP(680), -1));
+     m_description_line7->Wrap(FromDIP(680));
+
+     auto helio_home_link = new LinkLabel(this, _L("https://www.helioadditive.com/"), "https://www.helioadditive.com/");
+     LinkLabel* helio_privacy_link = nullptr;
+     LinkLabel* helio_tou_link = nullptr;
+
+     if (GUI::wxGetApp().app_config->get("region") == "China") {
+         helio_privacy_link = new LinkLabel(this, _L("Privacy Policy of Helio Additive"), "https://www.helioadditive.com/zh-cn/policies/privacy");
+         helio_tou_link     = new LinkLabel(this, _L("Terms of Use of Helio Additive"), "https://www.helioadditive.com/zh-cn/policies/terms");
+     }
+     else {
+         helio_privacy_link = new LinkLabel(this, _L("Privacy Policy of Helio Additive"), "https://www.helioadditive.com/en-us/policies/privacy");
+         helio_tou_link     = new LinkLabel(this, _L("Terms of Use of Helio Additive"), "https://www.helioadditive.com/en-us/policies/terms");
+     }
+
+
+     helio_home_link->SeLinkLabelFColour(wxColour(0, 119, 250));
+     helio_privacy_link->SeLinkLabelFColour(wxColour(0, 119, 250));
+     helio_tou_link->SeLinkLabelFColour(wxColour(0, 119, 250));
+
+     helio_home_link->getLabel()->SetFont(::Label::Body_13);
+     helio_privacy_link->getLabel()->SetFont(::Label::Body_13);
+     helio_tou_link->getLabel()->SetFont(::Label::Body_13);
+
+     Label *m_description_line8 =
+         new Label(this, Label::Body_13,
+                   _L("When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."));
+     m_description_line8->SetMinSize(wxSize(FromDIP(680), -1));
+     m_description_line8->SetMaxSize(wxSize(FromDIP(680), -1));
+     m_description_line8->Wrap(FromDIP(680));
+
+
+
+     wxBoxSizer *button_sizer;
+
+     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                               std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+
+     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                             std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+
+     m_button_confirm = new Button(this, _L("Agree"));
+     m_button_confirm->SetBackgroundColor(btn_bg_green);
+     m_button_confirm->SetBorderColor(*wxWHITE);
+     m_button_confirm->SetTextColor(wxColour(255, 255, 254));
+     m_button_confirm->SetFont(Label::Body_12);
+     m_button_confirm->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+     m_button_confirm->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+     m_button_confirm->SetCornerRadius(FromDIP(12));
+     m_button_confirm->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_OK); });
+
+     m_button_cancel = new Button(this, _L("Cancel"));
+     m_button_cancel->SetBackgroundColor(btn_bg_white);
+     m_button_cancel->SetBorderColor(*wxWHITE);
+     m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
+     m_button_cancel->SetFont(Label::Body_12);
+     m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+     m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+     m_button_cancel->SetCornerRadius(FromDIP(12));
+     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_NO); });
+
+
+     button_sizer = new wxBoxSizer(wxHORIZONTAL);
+     button_sizer->Add(0, 0, 1, wxEXPAND, 0);
+     button_sizer->Add(m_button_confirm, 0, 0, 0);
+     button_sizer->Add(0, 0, 0, wxLEFT, FromDIP(20));
+     button_sizer->Add(m_button_cancel, 0, 0, 0);
+     button_sizer->Add(0, 0, 0, wxRIGHT, FromDIP(50));
+
+     main_sizer->Add(line, 0, wxEXPAND, 0);
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+     main_sizer->Add(m_title, 0, wxALIGN_CENTER, 0);
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(14));
+     main_sizer->Add(m_description_line1, 0, wxLEFT | wxRIGHT, FromDIP(50));
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+     main_sizer->Add(m_description_line2, 0, wxLEFT | wxRIGHT, FromDIP(50));
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+     main_sizer->Add(m_description_line3, 0, wxLEFT | wxRIGHT, FromDIP(50));
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+     main_sizer->Add(m_description_line4, 0, wxLEFT | wxRIGHT, FromDIP(50));
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+     main_sizer->Add(m_description_line5, 0, wxLEFT | wxRIGHT, FromDIP(50));
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
+     main_sizer->Add(m_description_line6, 0, wxLEFT | wxRIGHT, FromDIP(50));
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
+     main_sizer->Add(m_description_line7, 0, wxLEFT | wxRIGHT, FromDIP(50));
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+     main_sizer->Add(m_description_line8, 0, wxLEFT | wxRIGHT, FromDIP(50));
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+     main_sizer->Add(helio_home_link, 0, wxLEFT | wxRIGHT, FromDIP(50));
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
+     main_sizer->Add(helio_privacy_link, 0, wxLEFT | wxRIGHT, FromDIP(50));
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
+     main_sizer->Add(helio_tou_link, 0, wxLEFT | wxRIGHT, FromDIP(50));
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+     main_sizer->Add(button_sizer, 0, wxEXPAND, 0);
+     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+
+     SetSizer(main_sizer);
+     Layout();
+     Fit();
+
+     CentreOnParent();
+     wxGetApp().UpdateDlgDarkUI(this);
+ }
+
+void HelioStatementDialog::on_dpi_changed(const wxRect &suggested_rect)
+{
+}
+
+ HelioInputDialog::HelioInputDialog(wxWindow *parent /*= nullptr*/)
+    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Helio settings"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+{
+    SetBackgroundColour(*wxWHITE);
+
+    wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *item_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    wxPanel *line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    line->SetBackgroundColour(wxColour(166, 169, 170));
+
+    Label* inout_title = new Label(this, Label::Body_13, _L("Chamber temperature"));
+    inout_title->SetFont(::Label::Head_14);
+    Label *temp_icon = new Label(this, Label::Body_13, wxT("\u00B0C"));
+    temp_icon->SetFont(::Label::Body_14);
+
+    m_input_item = new ::TextInput(this, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(120), -1), wxTE_PROCESS_ENTER);
+    StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
+    m_input_item->SetBackgroundColor(input_bg);
+    wxTextValidator validator(wxFILTER_NUMERIC);
+    m_input_item->GetTextCtrl()->SetValidator(validator);
+    m_input_item->GetTextCtrl()->SetHint(wxT("5-70"));
+    m_input_item->GetTextCtrl()->SetMaxLength(10);
+    m_input_item->GetTextCtrl()->SetWindowStyle(wxTE_RIGHT);
+
+    item_sizer->Add(inout_title, 0, wxCENTER, 0);
+    item_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    item_sizer->Add(m_input_item, 0, wxCENTER, 0);
+    item_sizer->Add(temp_icon, 0, wxCENTER, 0);
+
+    Label *sub = new Label(this, _L("Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."));
+    sub->SetForegroundColour(wxColour(144, 144, 144));
+    sub->SetMinSize(wxSize(FromDIP(420), -1));
+    sub->SetMinSize(wxSize(FromDIP(420), -1));
+    sub->Wrap(FromDIP(420));
+
+    auto helio_wiki_link = new LinkLabel(this, _L("How to use Helio"), "https://wiki.helioadditive.com/");
+    helio_wiki_link->SeLinkLabelFColour(wxColour(0, 174, 66));
+
+    helio_wiki_link->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_HAND); });
+    helio_wiki_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_ARROW); });
+
+    wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+
+
+    m_button_confirm = new Button(this, _L("Confirm"));
+    m_button_confirm->SetBackgroundColor(btn_bg_green);
+    m_button_confirm->SetBorderColor(*wxWHITE);
+    m_button_confirm->SetTextColor(wxColour(255, 255, 254));
+    m_button_confirm->SetFont(Label::Body_12);
+    m_button_confirm->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_confirm->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_confirm->SetCornerRadius(FromDIP(12));
+    m_button_confirm->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+        wxString s   = m_input_item->GetTextCtrl()->GetValue();
+        double   val = 0.0;
+        if (s.ToDouble(&val)) {
+
+            double clamped = val;
+            if (val < 5.0) clamped = 5.0;
+            if (val > 70.0) clamped = 70.0;
+
+            if (clamped != val) {
+                m_isAdjusting = true;
+                m_input_item->GetTextCtrl()->SetValue(wxString::Format("%.2f", clamped));
+                m_input_item->GetTextCtrl()->SetInsertionPointEnd();
+            }
+        }
+        EndModal(wxID_OK);
+    });
+
+    button_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    button_sizer->Add(m_button_confirm, 0, 0, 0);
+    button_sizer->Add(0, 0, 0, wxLEFT, FromDIP(40));
+
+    main_sizer->Add(line, 0, wxEXPAND, 0);
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+    main_sizer->Add(item_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+    main_sizer->Add(sub, 0, wxLEFT | wxRIGHT, FromDIP(30));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
+    main_sizer->Add(helio_wiki_link, 0, wxLEFT | wxRIGHT, FromDIP(30));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+    main_sizer->Add(button_sizer, 0, wxEXPAND, 0);
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+
+    SetSizer(main_sizer);
+    Layout();
+    Fit();
+
+    CentreOnParent();
+    wxGetApp().UpdateDlgDarkUI(this);
+}
+
+bool HelioInputDialog::IsValidFloat(const wxString &text)
+{
+    if (text.IsEmpty()) return true;
+    if (text.Length() == 1 && wxIsdigit(text[0])) {
+        int digit = text[0] - '0';
+        return digit >= 5 && digit <= 9;
+    }
+
+    if (text == ".") return true;
+    double value;
+    if (!text.ToDouble(&value)) return false;
+    return value >= 5.0 && value <= 70.0;
+}
+
+double HelioInputDialog::get_input_data()
+{
+    wxString value = m_input_item->GetTextCtrl()->GetValue();
+
+    if (value == "-" || value.IsEmpty()) {
+        return -1;
+    }
+
+    double temp = 0;
+    if (is_number_regex(value, temp)) {
+        return temp;
+    }
+
+    return -1;
+}
+
+bool HelioInputDialog::is_number_regex(const wxString &str, double &value)
+{
+    std::string s = str.ToStdString();
+    std::regex  pattern("^[-+]?[0-9]*\\.?[0-9]+$");
+
+    if (std::regex_match(s, pattern)) {
+        return str.ToDouble(&value);
+    }
+
+    return false;
+}
+
+void HelioInputDialog::on_dpi_changed(const wxRect &suggested_rect) {}
 
  }} // namespace Slic3r::GUI

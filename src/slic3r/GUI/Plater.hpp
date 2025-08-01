@@ -38,6 +38,7 @@ class Button;
 
 namespace Slic3r {
 class BackgroundSlicingProcess;
+class HelioBackgroundProcess;
 class BuildVolume;
 class Model;
 class ModelObject;
@@ -49,6 +50,7 @@ class SLAPrint;
 //BBS: add partplatelist and SlicingStatusEvent
 class PartPlateList;
 class SlicingStatusEvent;
+class HelioCompletionEvent;
 enum SLAPrintObjectStep : unsigned int;
 enum class ConversionType : int;
 class Ams;
@@ -106,6 +108,7 @@ wxDECLARE_EVENT(EVT_INSTALL_PLUGIN_HINT,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_UPDATE_PLUGINS_WHEN_LAUNCH,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_PREVIEW_ONLY_MODE_HINT,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_COLOR_MODE_CHANGED,   SimpleEvent);
+wxDECLARE_EVENT(EVT_ENABLE_GCODE_OPTION_ITEM_CHANGED, SimpleEvent);
 wxDECLARE_EVENT(EVT_PRINT_FROM_SDCARD_VIEW,   SimpleEvent);
 wxDECLARE_EVENT(EVT_CREATE_FILAMENT, SimpleEvent);
 wxDECLARE_EVENT(EVT_MODIFY_FILAMENT, SimpleEvent);
@@ -115,6 +118,12 @@ wxDECLARE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
 wxDECLARE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
 using ColorEvent = Event<wxColour>;
 wxDECLARE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
+
+wxDECLARE_EVENT(EVT_HELIO_PROCESSING_COMPLETED, HelioCompletionEvent);
+wxDECLARE_EVENT(EVT_HELIO_PROCESSING_STARTED, SimpleEvent);
+wxDECLARE_EVENT(EVT_HELIO_INPUT_CHAMBER_TEMP, SimpleEvent);
+wxDECLARE_EVENT(EVT_GCODE_VIEWER_CHANGED, SimpleEvent);
+
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
 
 class Sidebar : public wxPanel
@@ -332,6 +341,10 @@ public:
     void calib_retraction(const Calib_Params &params);
     void calib_VFA(const Calib_Params &params);
 
+    // for helio slice
+    void update_helio_background_process(std::string& printer_id, std::string& material_id);
+    std::vector<std::string> get_current_filaments_preset_names();
+
     //BBS: add only gcode mode
     bool is_gcode_3mf() { return m_exported_file; }
     bool only_gcode_mode() { return m_only_gcode; }
@@ -354,6 +367,7 @@ public:
     const VendorProfile::PrinterModel * get_curr_printer_model();
     std::map<std::string, std::string> get_bed_texture_maps();
     int                                get_right_icon_offset_bed();
+    bool                               get_enable_wrapping_detection();
 
     static wxColour get_next_color_for_filament();
     static wxString get_slice_warning_string(GCodeProcessorResult::SliceWarning& warning);
@@ -367,6 +381,9 @@ public:
     bool load_svg(const wxArrayString &filenames, bool from_toolbar_or_file_menu = false);
     bool load_same_type_files(const wxArrayString &filenames);
     bool load_files(const wxArrayString& filenames);
+    void statistics_burial_data_once(std::string json_str);//Upload to the cloud immediately
+    void statistics_burial_data(std::string file_path);
+    void statistics_burial_data_form_mw();
     const wxString& get_last_loaded_gcode() const { return m_last_loaded_gcode; }
 
     void update(bool conside_update_flag = false, bool force_background_processing_update = false);
@@ -681,6 +698,10 @@ public:
     //BBS: show object info
     void show_object_info();
     void show_assembly_info();
+
+    //BBS Helio slice
+    int  get_helio_process_status() const;
+
     //BBS
     bool show_publish_dialog(bool show = true);
     //BBS: post process string object exception strings by warning types
@@ -922,7 +943,7 @@ private:
 std::vector<int> get_min_flush_volumes(const DynamicPrintConfig &full_config, size_t nozzle_id);
 std::string      check_boolean_possible(const std::vector<const ModelVolume *> &volumes, csg::BooleanFailReason& fail_reason);
 
-Preset *get_printer_preset(MachineObject *obj);
+Preset *get_printer_preset(const MachineObject *obj);
 wxArrayString get_all_camera_view_type();
 
 

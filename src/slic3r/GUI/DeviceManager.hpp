@@ -7,6 +7,7 @@
 #include <string>
 #include <memory>
 #include <chrono>
+#include <unordered_set>
 #include <boost/thread.hpp>
 #include <boost/nowide/fstream.hpp>
 #include "nlohmann/json.hpp"
@@ -72,6 +73,10 @@ wxString get_stage_string(int stage);
 using namespace nlohmann;
 
 namespace Slic3r {
+
+namespace GUI {
+    class DeviceErrorDialog; // Previous definitions
+}
 
 class SecondaryCheckDialog;
 enum PrinterArch {
@@ -917,6 +922,12 @@ public:
     int     hw_switch_state;
     bool    is_system_printing();
     int     print_error;
+    static std::string get_error_code_str(int error_code);
+    std::string get_print_error_str() const { return MachineObject::get_error_code_str(this->print_error); }
+
+    std::unordered_set<GUI::DeviceErrorDialog*> m_command_error_code_dlgs;
+    void  add_command_error_code_dlg(int command_err);
+
     int     curr_layer = 0;
     int     total_layers = 0;
     bool    is_support_layer_num { false };
@@ -1223,6 +1234,7 @@ public:
     int command_request_push_all(bool request_now = false);
     int command_pushing(std::string cmd);
     int command_clean_print_error(std::string task_id, int print_error);
+    int command_clean_print_error_uiop(int print_error);
     int command_set_printer_nozzle(std::string nozzle_type, float diameter);
     int command_set_printer_nozzle2(int id, std::string nozzle_type, float diameter);
     int command_get_access_code();
@@ -1275,6 +1287,9 @@ public:
     int command_ams_refresh_rfid(std::string tray_id);
     int command_ams_refresh_rfid2(int ams_id, int slot_id);
     int command_ams_control(std::string action);
+
+    int command_ams_drying_stop();
+
     int command_set_chamber_light(LIGHT_EFFECT effect, int on_time = 500, int off_time = 500, int loops = 1, int interval = 1000);
     int command_set_chamber_light2(LIGHT_EFFECT effect, int on_time = 500, int off_time = 500, int loops = 1, int interval = 1000);
     int command_set_work_light(LIGHT_EFFECT effect, int on_time = 500, int off_time = 500, int loops = 1, int interval = 1000);
@@ -1592,6 +1607,7 @@ public:
     static bool get_printer_is_enclosed(std::string type_str);
     static bool get_printer_can_set_nozzle(std::string type_str);// can set nozzle from studio
     static bool load_filaments_blacklist_config();
+    static bool support_wrapping_detection(const std::string& type_str);
 
     static string get_fan_text(const std::string& type_str, const std::string& key);
 

@@ -1500,7 +1500,7 @@ bool PartPlate::check_compatible_of_nozzle_and_filament(const DynamicPrintConfig
     return wipe_tower_size;
 }*/
 
-Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int extruder_count, int plate_extruder_size, bool use_global_objects) const
+Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int extruder_count, int plate_extruder_size, bool use_global_objects, bool enable_wrapping_detection) const
 {
     Vec3d wipe_tower_size;
     double layer_height = 0.08f; // hard code layer height
@@ -1530,7 +1530,7 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
     wipe_tower_size(2) = max_height;
     //const DynamicPrintConfig &dconfig = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto timelapse_type    = config.option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
-    bool timelapse_enabled = timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false;
+    bool need_wipe_tower = (timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false) | enable_wrapping_detection;
     double extra_spacing     = config.option("prime_tower_infill_gap")->getFloat() / 100.;
     const ConfigOptionBool* use_rib_wall_opt = config.option<ConfigOptionBool>("prime_tower_rib_wall");
     bool use_rib_wall = use_rib_wall_opt ? use_rib_wall_opt->value: true;
@@ -1553,7 +1553,7 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
     if (extruder_count == 2) volume += filament_change_volume * (int) (plate_extruder_size / 2);
     if (use_rib_wall) {
         depth = std::sqrt(volume / layer_height * extra_spacing);
-        if (timelapse_enabled || plate_extruder_size > 1) {
+        if (need_wipe_tower || plate_extruder_size > 1) {
             float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
             depth = std::max((double) min_wipe_tower_depth, depth);
             depth += rib_width / std::sqrt(2) + m_print->config().prime_tower_extra_rib_length.value;
@@ -1562,7 +1562,7 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
     }
     else {
         depth  =  volume/ (layer_height * w) *extra_spacing;
-        if (timelapse_enabled || depth > EPSILON) {
+        if (need_wipe_tower || depth > EPSILON) {
             float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
             depth = std::max((double)min_wipe_tower_depth, depth);
         }
@@ -1580,7 +1580,9 @@ arrangement::ArrangePolygon PartPlate::estimate_wipe_tower_polygon(const Dynamic
 	float w = dynamic_cast<const ConfigOptionFloat*>(config.option("prime_tower_width"))->value;
 	//float a = dynamic_cast<const ConfigOptionFloat*>(config.option("wipe_tower_rotation_angle"))->value;
 	std::vector<double> v = dynamic_cast<const ConfigOptionFloats*>(config.option("filament_prime_volume"))->values;
-	wt_size = estimate_wipe_tower_size(config, w, get_max_element(v), extruder_count, plate_extruder_size, use_global_objects);
+    const ConfigOptionBool * wrapping_opt = dynamic_cast<const ConfigOptionBool *>(config.option("enable_wrapping_detection"));
+	bool enable_wrapping = (wrapping_opt != nullptr) && wrapping_opt->value;
+	wt_size = estimate_wipe_tower_size(config, w, get_max_element(v), extruder_count, plate_extruder_size, use_global_objects, enable_wrapping);
 	int plate_width=m_width, plate_depth=m_depth;
 	float depth = wt_size(1);
 	float margin = WIPE_TOWER_MARGIN, wp_brim_width = 0.f;
@@ -1818,6 +1820,12 @@ void PartPlate::get_print(PrintBase** print, GCodeResult** result, int* index)
 
 	return;
 }
+
+GCodeProcessorResult *PartPlate::get_gcode_result()
+{
+	return m_gcode_result;
+}
+
 
 //set the print object, result and it's index
 void PartPlate::set_print(PrintBase* print, GCodeResult* result, int index)
@@ -3366,6 +3374,18 @@ void PartPlateList::calc_exclude_triangles(const ExPolygon &poly)
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create plate triangles\n";
 }
 
+void PartPlateList::calc_triangles_from_polygon(const ExPolygon &poly, GLModel &render_model){
+    if (poly.empty()) {
+        render_model.reset();
+        return;
+    }
+    auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
+    render_model.reset();
+    if (!render_model.init_model_from_poly(triangles, GROUND_Z)) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "calc_triangles_from_polygon fail";
+    }
+}
+
 void PartPlateList::calc_gridlines(const ExPolygon &poly, const BoundingBox &pp_bbox)
 {
     Polylines axes_lines, axes_lines_bolder;
@@ -3791,12 +3811,13 @@ void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx, bool ini
     const DynamicPrintConfig &print_cfg = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     float w = dynamic_cast<const ConfigOptionFloat*>(print_cfg.option("prime_tower_width"))->value;
     std::vector<double> v = dynamic_cast<const ConfigOptionFloats*>(full_config.option("filament_prime_volume"))->values;
+    bool enable_wrapping = dynamic_cast<const ConfigOptionBool*>(full_config.option("enable_wrapping_detection"))->value;
     int nozzle_nums = wxGetApp().preset_bundle->get_printer_extruder_count();
     double wipe_vol = get_max_element(v);
-    Vec3d wipe_tower_size = part_plate->estimate_wipe_tower_size(print_cfg, w, wipe_vol, nozzle_nums, init_pos ? 2 : 0);
+    Vec3d wipe_tower_size = part_plate->estimate_wipe_tower_size(print_cfg, w, wipe_vol, nozzle_nums, init_pos ? 2 : 0, false, enable_wrapping);
 
     if (!init_pos && (is_approx(wipe_tower_size(0), 0.0) || is_approx(wipe_tower_size(1), 0.0))) {
-        wipe_tower_size = part_plate->estimate_wipe_tower_size(print_cfg, w, wipe_vol, nozzle_nums, 2);
+        wipe_tower_size = part_plate->estimate_wipe_tower_size(print_cfg, w, wipe_vol, nozzle_nums, 2, false, enable_wrapping);
     }
 
     // update for wipe tower position
@@ -4870,6 +4891,18 @@ int PartPlateList::construct_objects_list_for_new_plate(int plate_index)
 	return ret;
 }
 
+std::vector<Vec2d> PartPlateList::get_plate_wrapping_detection_area()
+{
+    DynamicPrintConfig  gconfig                  = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    ConfigOptionPoints *wrapping_path_opt        = gconfig.option<ConfigOptionPoints>("wrapping_detection_path");
+    ConfigOptionFloat * clearance_max_radius_opt = gconfig.option<ConfigOptionFloat>("extruder_clearance_max_radius");
+    if (wrapping_path_opt && clearance_max_radius_opt) {
+        std::vector<Vec2d> wrapping_area = get_wrapping_detection_area(wrapping_path_opt->values, clearance_max_radius_opt->value / 2);
+        return wrapping_area;
+    }
+
+    return std::vector<Vec2d>();
+}
 
 //compute the plate index
 int PartPlateList::compute_plate_index(arrangement::ArrangePolygon& arrange_polygon)
@@ -5189,6 +5222,23 @@ void PartPlateList::render_instance(bool bottom, bool only_current, bool only_bo
             shader->set_uniform("projection_matrix", proj_mat);
             if (!bottom) { // draw background
                 render_exclude_area(force_background_color); // for selected_plate
+                if(wxGetApp().plater()->get_enable_wrapping_detection()){
+                    if(!m_wrapping_detection_triangles.is_initialized()){
+                        auto points = get_plate_wrapping_detection_area();
+                        if (points.size() > 0) {//wrapping_detection_area
+                            ExPolygon temp_poly;
+                            for (const Vec2d &p : points) {
+                                temp_poly.contour.append({scale_(p(0)), scale_(p(1))});
+                            }
+                            auto      result = intersection(m_print_polygon, temp_poly);
+                            if (result.size() > 0) {
+                                ExPolygon wrapp_poly(result[0]);
+                                calc_triangles_from_polygon(wrapp_poly, m_wrapping_detection_triangles);
+                            }
+                        }
+                    }
+                    render_wrapping_detection_area(force_background_color);
+                }
             }
             if (show_grid)
                 render_grid(bottom); // for selected_plate
@@ -5312,6 +5362,15 @@ void PartPlateList::render_unselected_background(bool force_default_color)
     }
     m_triangles.set_color(color);
     m_triangles.render_geometry();
+}
+
+void PartPlateList::render_wrapping_detection_area(bool force_default_color)
+{
+    if (force_default_color || !m_wrapping_detection_triangles.is_initialized())
+        return;
+    ColorRGBA select_color{0.765f, 0.7686f, 0.7686f, 1.0f};
+    m_wrapping_detection_triangles.set_color(select_color);
+    m_wrapping_detection_triangles.render_geometry();
 }
 
 void PartPlateList::render_exclude_area(bool force_default_color)
@@ -5508,6 +5567,10 @@ bool PartPlateList::set_shapes(const Pointfs& shape, const Pointfs& exclude_area
         ExPolygon poly;
         generate_print_polygon(poly);
         calc_triangles(poly);
+
+        // reset m_wrapping_detection_triangles when change printer
+        m_print_polygon = poly;
+        m_wrapping_detection_triangles.reset();
 
 		ExPolygon exclude_poly;
         generate_exclude_polygon(exclude_poly);

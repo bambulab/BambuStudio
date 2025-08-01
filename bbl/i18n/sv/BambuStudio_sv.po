@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-17 11:15+0800\n"
+"POT-Creation-Date: 2025-07-31 18:21+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2880,7 +2880,7 @@ msgid "Dynamic flow calibration"
 msgstr "Dynamisk flödeskalibrering"
 
 msgid "The nozzle temp and max volumetric speed will affect the calibration results. Please fill in the same values as the actual printing. They can be auto-filled by selecting a filament preset."
-msgstr "Nozzelns temperatur och högsta volymhastighet påverkar kalibreringsresultaten. Fyll i samma värden som vid den faktiska utskriften. De kan fyllas i automatiskt genom att välja en filament inställning."
+msgstr "Nozzle temperatur och högsta volymhastighet påverkar kalibreringsresultaten. Fyll i samma värden som vid den faktiska utskriften. De kan fyllas i automatiskt genom att välja en filament inställning."
 
 msgid "Nozzle Diameter"
 msgstr "Nozzel diameter"
@@ -3294,7 +3294,7 @@ msgid ""
 "Please confirm whether to use the temperature for printing.\n"
 "\n"
 msgstr ""
-"Nozzeln kan blockeras om temperaturen ligger utanför det rekommenderade intervallet.\n"
+"Nozzle kan blockeras om temperaturen ligger utanför det rekommenderade intervallet.\n"
 "Vänligen bekräfta för att kunna använda temperaturen för utskrift.\n"
 "\n"
 
@@ -3309,9 +3309,16 @@ msgstr ""
 "För liten max volymhastighet.\n"
 "Återställ till 0.5"
 
+msgid ""
+"Should not large than 100%.\n"
+"Reset to defualt"
+msgstr ""
+"Borde inte vara större än 100%.\n"
+"Återställ till standard"
+
 #, c-format, boost-format
 msgid "Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"
-msgstr "Current chamber temperature is higher than the material's safe temperature; this may result in material softening and nozzle clogs.The maximum safe temperature for the material is %d"
+msgstr "Nuvarande kammar temperatur är högre än materialets säkra temperatur, det kan resultera i material mjukgörande och igensättning. Den maximala säkra temperaturen för materialet är %d"
 
 msgid ""
 "Too small layer height.\n"
@@ -3477,7 +3484,7 @@ msgid "Heating nozzle"
 msgstr ""
 
 msgid "Calibrating dynamic flow"
-msgstr ""
+msgstr "Kalibrerar dynamiskt flöde"
 
 msgid "Scanning bed surface"
 msgstr "Skannar byggplattan"
@@ -3501,28 +3508,28 @@ msgid "Checking extruder temperature"
 msgstr "Kontrollerar extruderings temperatur"
 
 msgid "Paused by the user"
-msgstr ""
+msgstr "Pausad av användaren"
 
 msgid "Pause (front cover fall off)"
-msgstr ""
+msgstr "Paus (frontluckan är av)"
 
 msgid "Calibrating the micro lidar"
 msgstr "Kalibrerar Micro Lidar"
 
 msgid "Calibrating flow ratio"
-msgstr ""
+msgstr "Kalibrerar flöde"
 
 msgid "Pause (nozzle temperature malfunction)"
-msgstr ""
+msgstr "Paus (fel på nozzle temperatur)"
 
 msgid "Pause (heatbed temperature malfunction)"
-msgstr ""
+msgstr "Paus (fel på värmebäddens temperatur)"
 
 msgid "Filament unloading"
 msgstr "Utmatar filament"
 
 msgid "Pause (step loss)"
-msgstr ""
+msgstr "Paus (stegförlust)"
 
 msgid "Filament loading"
 msgstr "Laddning av filament"
@@ -3531,43 +3538,43 @@ msgid "Motor noise cancellation"
 msgstr "Brusreducering av motorer"
 
 msgid "Pause (AMS offline)"
-msgstr ""
+msgstr "Paus (AMS offline)"
 
 msgid "Pause (low speed of the heatbreak fan)"
-msgstr ""
+msgstr "Paus (låg hastighet på heatbreak fläkten)"
 
 msgid "Pause (chamber temperature control problem)"
-msgstr ""
+msgstr "Paus (problem med temperaturkontroll i kammaren)"
 
 msgid "Cooling chamber"
 msgstr "Kyler kammare"
 
 msgid "Pause (Gcode inserted by user)"
-msgstr ""
+msgstr "Paus (G kod infogad av användaren)"
 
 msgid "Motor noise showoff"
 msgstr "Uppvisning av motorljud"
 
 msgid "Pause (nozzle clumping)"
-msgstr ""
+msgstr "Paus (klumpbildning i nozzle)"
 
 msgid "Pause (cutter error)"
-msgstr ""
+msgstr "Paus (fel på skäraren)"
 
 msgid "Pause (first layer error)"
-msgstr ""
+msgstr "Paus (fel på första lagret)"
 
 msgid "Pause (nozzle clog)"
-msgstr ""
+msgstr "Paus (igensatt nozzle)"
 
 msgid "Measuring motion percision"
-msgstr ""
+msgstr "Mäter rörelse precision"
 
 msgid "Enhancing motion percision"
-msgstr ""
+msgstr "Förbättra rörelseprecisionen"
 
 msgid "Measure motion accuracy"
-msgstr ""
+msgstr "Mät rörelsens noggrannhet"
 
 msgid "Nozzle offset calibration"
 msgstr "Kalibrering av nozzle offset"
@@ -3588,10 +3595,10 @@ msgid "Auto Check: Platform"
 msgstr "Automatisk kontroll: Plattform"
 
 msgid "Confirming BirdsEye Camera location"
-msgstr ""
+msgstr "Bekräftar BirdsEye kamerans plats"
 
 msgid "Calibrating BirdsEye Camera"
-msgstr ""
+msgstr "Kalibrerar BirdsEye kamera"
 
 msgid "Auto bed leveling -phase 1"
 msgstr "Automatisk bädd utjämning - fas 1"
@@ -3603,25 +3610,25 @@ msgid "Heating chamber"
 msgstr "Värmekammare"
 
 msgid "Cooling heatbed"
-msgstr ""
+msgstr "Kyler värmebädd"
 
 msgid "Printing calibration lines"
 msgstr "Utskrift av kalibreringslinjer"
 
 msgid "Auto Check: Material"
-msgstr ""
+msgstr "Automatisk kontroll: Material"
 
 msgid "Live View Camera Calibration"
 msgstr ""
 
 msgid "Waiting for heatbed to reach target temperature"
-msgstr ""
+msgstr "Väntar på att värmebädden ska nå måltemperaturen"
 
 msgid "Auto Check: Material Position"
-msgstr ""
+msgstr "Automatisk kontroll: Material position"
 
 msgid "Cutting Module Offset Calibration"
-msgstr ""
+msgstr "Kalibrering av skärmodulens offset"
 
 msgid "left"
 msgstr "vänster"
@@ -3725,6 +3732,63 @@ msgstr "PPS-CF är sprött och kan gå sönder i en böjd PTFE slang ovanför ve
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF är sprött och kan gå sönder i en böjd PTFE slang ovanför verktygshuvudet."
 
+msgid "Resume Printing"
+msgstr "Återuppta utskrift"
+
+msgid "Resume (defects acceptable)"
+msgstr "Återuppta (defekter acceptabla)"
+
+msgid "Resume (problem solved)"
+msgstr "Återuppta (problemet löst)"
+
+msgid "Stop Printing"
+msgstr "Stoppa utskrift"
+
+msgid "Check Assistant"
+msgstr "Kontroll assistenten"
+
+msgid "Filament Extruded, Continue"
+msgstr "Filament extruderat, fortsätt"
+
+msgid "Not Extruded Yet, Retry"
+msgstr "Inte extruderat ännu, försök igen"
+
+msgid "Finished, Continue"
+msgstr "Färdig, Fortsätt"
+
+msgid "Load Filament"
+msgstr "Ladda filament"
+
+msgid "Filament Loaded, Resume"
+msgstr "Filament laddat, återuppta"
+
+msgid "View Liveview"
+msgstr "Visa Liveview"
+
+msgid "No Reminder Next Time"
+msgstr "Ingen påminnelse nästa gång"
+
+msgid "Ignore. Don't Remind Next Time"
+msgstr "Ignorera. Påminn inte nästa gång"
+
+msgid "Ignore this and Resume"
+msgstr "Ignorera detta och återuppta"
+
+msgid "Problem Solved and Resume"
+msgstr "Problemet löst och återuppta"
+
+msgid "Stop Buzzer"
+msgstr "Stoppa summern"
+
+msgid "Retry (problem solved)"
+msgstr "Försök igen (problemet löst)"
+
+msgid "Stop Drying"
+msgstr "Sluta torka"
+
+msgid "Unknown error."
+msgstr "Okänt fel."
+
 msgid "default"
 msgstr "standard"
 
@@ -3778,6 +3842,15 @@ msgstr "Linjebredd"
 msgid "Fan Speed"
 msgstr "Fläkt Hastighet"
 
+msgid "Thermal Index (min)"
+msgstr "Termiskt index (min)"
+
+msgid "Thermal Index (max)"
+msgstr "Termiska index (max)"
+
+msgid "Thermal Index (mean)"
+msgstr "Termiskt index (medel)"
+
 msgid "Flow"
 msgstr "Flöde"
 
@@ -3807,6 +3880,18 @@ msgstr "Fläkthastighet: "
 
 msgid "Temperature: "
 msgstr "Temperatur: "
+
+msgid "Thermal Index"
+msgstr "Termiskt index"
+
+msgid "Min: "
+msgstr ""
+
+msgid "Max: "
+msgstr "Max "
+
+msgid "Mean: "
+msgstr "Medel: "
 
 msgid "Loading G-codes"
 msgstr "Laddar G-koder"
@@ -3907,6 +3992,9 @@ msgstr "från"
 msgid "Slicing Result"
 msgstr "Berednings resultat"
 
+msgid "Helio Action"
+msgstr "Helio Åtgärd"
+
 msgid "Color Scheme"
 msgstr "Färgschema"
 
@@ -3934,9 +4022,6 @@ msgstr "Temperatur (°C)"
 msgid "Volumetric flow rate (mm³/s)"
 msgstr "Volymetrisk flödeshastighet (mm³/s)"
 
-msgid "Layer Time (s)"
-msgstr "Lagertid (s)"
-
 msgid "Travel"
 msgstr "Flytta"
 
@@ -3956,7 +4041,7 @@ msgid "Wipe"
 msgstr "Torka"
 
 msgid "Options"
-msgstr "Val"
+msgstr "Alternativ"
 
 msgid "travel"
 msgstr "flytta"
@@ -4119,11 +4204,11 @@ msgstr "höger nozzle"
 
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
-msgstr ""
+msgstr "Positionen eller storleken på vissa modeller överskrider %s's utskrivbara område."
 
 #, c-format, boost-format
 msgid "The position or size of the model %s exceeds the %s's printable range."
-msgstr ""
+msgstr "Positionen eller storleken på modellen %s överskrider %s's utskrivbara område."
 
 msgid " Please check and adjust the part's position or size to fit the printable range:\n"
 msgstr " Kontrollera och justera delens position eller storlek så att den passar det utskrivbara området:\n"
@@ -4570,7 +4655,7 @@ msgid "Start a new window"
 msgstr "Starta ett nytt fönster"
 
 msgid "New Project"
-msgstr "Nytt Pojekt"
+msgstr "Nytt Projekt"
 
 msgid "Start a new project"
 msgstr "Skapa nytt projekt"
@@ -4717,7 +4802,7 @@ msgid "Show 3D Navigator"
 msgstr "Visa 3D Navigator"
 
 msgid "Show 3D navigator in Prepare and Preview scene"
-msgstr ""
+msgstr "Visa 3D navigator i förberedd och förhandsgranska scen"
 
 msgid "Reset Window Layout"
 msgstr "Återställ fönster layout"
@@ -5088,13 +5173,6 @@ msgstr "Laddningen misslyckades"
 msgid "Browsing file in storage is not supported in current firmware. Please update the printer firmware."
 msgstr "Bläddra bland filer i lagringsutrymmet stöds inte i den aktuella firmware. Uppdatera printerns programvara."
 
-msgid ""
-"Please check if the storage is inserted into the printer.\n"
-"If it still cannot be read, you can try formatting the storage."
-msgstr ""
-"Kontrollera att lagringsmediet är isatt i printern.\n"
-"Om det fortfarande inte går att läsa, kan du försöka formatera lagringsenheten."
-
 msgid "LAN Connection Failed (Failed to view sdcard)"
 msgstr "LAN-anslutning misslyckades (kunde inte visa sd kort)"
 
@@ -5180,6 +5258,13 @@ msgstr "Fel på filens kontrollsumma. Vänligen försök igen."
 
 msgid "Not supported on the current printer version."
 msgstr "Stöds inte av den aktuella skrivarversionen."
+
+msgid ""
+"Please check if the storage is inserted into the printer.\n"
+"If it still cannot be read, you can try formatting the storage."
+msgstr ""
+"Kontrollera att lagringsmediet är isatt i printern.\n"
+"Om det fortfarande inte går att läsa, kan du försöka formatera lagringsenheten."
 
 msgid "The firmware version of the printer is too low. Please update the firmware and try again."
 msgstr "Skrivarens firmware version är för låg. Uppdatera firmware och försök igen."
@@ -5405,9 +5490,6 @@ msgstr "Avbryt utskrift"
 msgid "Are you sure you want to stop this print?"
 msgstr "Är du säker på att du vill stoppa utskriften?"
 
-msgid "Unknown error."
-msgstr "Okänt fel."
-
 msgid "The printer is busy on other print job"
 msgstr "Skrivaren är upptagen med ett annat utskriftsjobb."
 
@@ -5478,8 +5560,8 @@ msgstr "Sport"
 msgid "Ludicrous"
 msgstr "Galet"
 
-msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
-msgstr "Att släcka lamporna under uppgiften kommer att orsaka att AI-övervakningen misslyckas, som spaghettidetektering. Välj noggrant."
+msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti detection. Please choose carefully."
+msgstr "Att stänga av lamporna under uppgiften kan minska AI övervaknings prestanda, som spaghettidetektering. Välj noga."
 
 msgid "Keep it On"
 msgstr "Behåll den på"
@@ -5924,7 +6006,7 @@ msgstr "Första Lager Inspektion"
 msgid "Auto-recovery from step loss"
 msgstr "Automatisk återhämtning vid stegförlust"
 
-msgid "Open Door Dectection"
+msgid "Open Door Detection"
 msgstr "Detektering av öppen dörr"
 
 msgid "Notification"
@@ -6159,8 +6241,10 @@ msgstr "Avinstallationen lyckades. Enheten %s(%s) kan nu tas bort från datorn p
 msgid "Ejecting of device %s(%s) has failed."
 msgstr "Utmatning av enheten %s(%s) misslyckades."
 
-msgid "Previous unsaved project detected, do you want to restore it?"
-msgstr "Tidigare osparat projekt upptäcktes, vill du återställa det?"
+msgid ""
+"It seems that you have projects that were not closed properly. Would you like to restore your last unsaved project?\n"
+"If you have a currently opened project and click \"Restore\", the current project will be closed."
+msgstr ""
 
 msgid "Restore"
 msgstr "Återställ"
@@ -6375,6 +6459,19 @@ msgstr "Beredning avbruten"
 #, c-format, boost-format
 msgid "Slicing Plate %d"
 msgstr "Bereder plattan %d"
+
+msgid "Invalid printer preset. Unable to slice with Helio."
+msgstr "Ogiltig printer inställning. Det går inte att bereda med Helio."
+
+msgid "The current printer preset cannot be sliced using Helio."
+msgstr "Den aktuella printern kan inte beredas med Helio."
+
+msgid "Helio does not support using a number of materials greater than 1."
+msgstr "Helio stöder inte användning av ett antal material större än 1."
+
+#, c-format, boost-format
+msgid "Helio does not support materials %s"
+msgstr "Helio stöder inte material %s"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Lös berednings felen och publicera igen."
@@ -6870,6 +6967,12 @@ msgstr "Aktivera gamma korrigering för den importerade obj filen"
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "Utför gamma korrigering på färg efter import av obj modellen."
 
+msgid "Remember last used color scheme"
+msgstr "Kom ihåg det senast använda färgschemat"
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
+msgstr "När aktiverad, kommer den senast använda färgschemat (t.ex., linjetyp, hastighet) att tillämpas automatiskt vid nästa start."
+
 msgid "Improve rendering performance by lod"
 msgstr "Förbättra renderingsprestandan med lod"
 
@@ -6938,6 +7041,24 @@ msgstr "Visa personalens utvalda modeller online på startsidan"
 
 msgid "Show history on the home page"
 msgstr "Visa historik på startsidan"
+
+msgid "Helio Options"
+msgstr "Helio alternativ"
+
+msgid "Enable Helio"
+msgstr "Aktivera Helio"
+
+msgid "About Helio"
+msgstr "Om Helio"
+
+msgid "Helio Privacy Policy"
+msgstr "Helios integritets policy"
+
+msgid "Reminder During Slicing"
+msgstr "Påminnelse under beredning"
+
+msgid "Automatic mode"
+msgstr "Automatiskt läge"
 
 msgid "Maximum recent projects"
 msgstr "Maximalt antal nyligen genomförda projekt"
@@ -7743,8 +7864,14 @@ msgstr "Klicka för att återställa alla inställningar till den senast sparade
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Prime tower krävs för smooth timelapse läge. Det kan bli fel på modellen utan ett prime tower. Är du säker på att du vill inaktivera prime tower?"
 
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
+msgstr "Prime Tower krävs för klumpbildnings detektering. Det kan finnas brister på modellen utan Prime Tower. Är du säker på att du vill inaktivera Prime Tower?"
+
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr "Om du aktiverar både exakt Z-höjd och prime tower kan det leda till att storleken på prime tower ökar. Vill du fortfarande aktivera?"
+
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
+msgstr "Prime Tower krävs för klumpnings detektering. Det kan finnas defekter på modellen utan Prime Tower. Vill du fortfarande aktivera klumpnings detektering?"
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Prime tower krävs för Smooth timelapse-läge. Det kan bli fel på modellen utan prime tower. Vill du aktivera prime tower?"
@@ -8051,6 +8178,9 @@ msgstr "Lagerskifte G-kod"
 
 msgid "Time lapse G-code"
 msgstr "Time lapse G-kod"
+
+msgid "Clumping Detection G-code"
+msgstr "G-kod för klump detektering"
 
 msgid "Change filament G-code"
 msgstr "Byta filament G-kod"
@@ -8859,57 +8989,6 @@ msgstr "Klar"
 msgid "resume"
 msgstr "återuppta"
 
-msgid "Resume Printing"
-msgstr "Återuppta utskrift"
-
-msgid "Resume (defects acceptable)"
-msgstr "Återuppta (defekter acceptabla)"
-
-msgid "Resume (problem solved)"
-msgstr "Återuppta (problemet löst)"
-
-msgid "Stop Printing"
-msgstr "Stoppa utskrift"
-
-msgid "Check Assistant"
-msgstr "Kontroll assistenten"
-
-msgid "Filament Extruded, Continue"
-msgstr "Filament extruderat, fortsätt"
-
-msgid "Not Extruded Yet, Retry"
-msgstr "Inte extruderat ännu, försök igen"
-
-msgid "Finished, Continue"
-msgstr "Färdig, Fortsätt"
-
-msgid "Load Filament"
-msgstr "Ladda filament"
-
-msgid "Filament Loaded, Resume"
-msgstr "Filament laddat, återuppta"
-
-msgid "View Liveview"
-msgstr "Visa Liveview"
-
-msgid "No Reminder Next Time"
-msgstr "Ingen påminnelse nästa gång"
-
-msgid "Ignore. Don't Remind Next Time"
-msgstr "Ignorera. Påminn inte nästa gång"
-
-msgid "Ignore this and Resume"
-msgstr "Ignorera detta och återuppta"
-
-msgid "Problem Solved and Resume"
-msgstr "Problemet löst och återuppta"
-
-msgid "Stop Buzzer"
-msgstr "Stoppa summern"
-
-msgid "Retry (problem solved)"
-msgstr "Försök igen (problemet löst)"
-
 msgid "Confirm and Update Nozzle"
 msgstr "Bekräfta och uppdatera nozzeln"
 
@@ -8982,6 +9061,57 @@ msgstr "Det gick inte att skicka. Klicka på Försök igen för att försöka sk
 
 msgid "reconnect"
 msgstr "återanslut"
+
+msgid "Terms of Service"
+msgstr "Användarvillkor"
+
+msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
+msgstr "Du håller på att aktivera en tredje parts programvara från Helio Additive! Innan du bekräftar användningen av denna funktion, vänligen noggrant läsa följande uttalanden."
+
+msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
+msgstr "Om inget annat anges ger Bambu Lab endast support för programvarufunktionerna som officiellt tillhandahålls. Utvärderings- och berednings optimerings funktioner baserade på Helio Additive's molntjänst i denna programvara kommer att utvecklas, drivs, tillhandahålls och underhålls av Helio Additive. Helio Additive ansvarar för effektiviteten och tillgängligheten av denna tjänst. Optimerings funktionen i denna tjänst kan ändra standardkommandon för utskrift, vilket innebär en risk för printer skador. Dessa funktioner kommer att samla in nödvändig användarinformation och data för att uppnå relevanta servicefunktioner. Prenumerationer och betalningar kan vara involverade. Besök Helio Additive och hänvisa till Helios Additive Privacy Agreement och Helios Additive User Agreement för detaljerad information."
+
+msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
+msgstr "Samtidigt förstår du att denna produkt tillhandahålls till dig \"i befintligt skick\" baserat på Helio Additive's tjänster, och Bambu lämnar inga uttryckliga eller underförstådda garantier av något slag, och kan inte heller kontrollera tjänstekostnaderna. I den utsträckning det är tillåtet enligt tillämplig lag tillhandahåller Bambu eller dess licensgivare/dotterbolag inga uttryckliga eller underförstådda utfästelser eller garantier, inklusive men inte begränsat till garantier om säljbarhet, tillfredsställande kvalitet, lämplighet för ett visst ändamål, exakthet, sekretess och icke kränkning av tredje parts rättigheter. På grund av nätverkstjänsternas karaktär kan Bambu inte garantera att tjänsten kommer att finnas tillgänglig hela tiden, och Bambu förbehåller sig rätten att avsluta tjänsten baserat på relevanta omständigheter."
+
+msgid "You agree not to use this product and its related updates to engage in the following activities:"
+msgstr "Du samtycker till att inte använda denna produkt och dess relaterade uppdateringar för att engagera sig i följande aktiviteter:"
+
+msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
+msgstr "1.Kopiera eller använd någon del av denna produkt utanför den auktoriserade omfattningen av Helio Additive och Bambu."
+
+msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
+msgstr "2. Försök att störa, kringgå, ändra, ogiltigförklara eller undgå något Digitala Rättigheter Management system relaterade till och/eller en integrerad del av denna produkt."
+
+msgid "3.Using this software and services for any improper or illegal activities."
+msgstr "3.Använda denna programvara och tjänster för eventuella olämpliga eller olagliga aktiviteter."
+
+msgid "https://www.helioadditive.com/"
+msgstr ""
+
+msgid "Privacy Policy of Helio Additive"
+msgstr "Integritets policy för Helio Additive"
+
+msgid "Terms of Use of Helio Additive"
+msgstr "Villkor för användning av Helio Additive"
+
+msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
+msgstr "När du bekräftar att aktivera denna funktion innebär det att du har bekräftat och godkänt ovanstående uttalanden."
+
+msgid "Agree"
+msgstr "Godkänn"
+
+msgid "Helio settings"
+msgstr "Helio inställningar"
+
+msgid "Chamber temperature"
+msgstr "Kammarens temperatur"
+
+msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
+msgstr "Obs: Ställ in ovanstående temperatur enligt den faktiska situationen. Ju mer exakt data är, desto mer exakt kommer analysresultaten att bli."
+
+msgid "How to use Helio"
+msgstr "Hur du använder Helio"
 
 msgid "Air Pump"
 msgstr "Luftpump"
@@ -9288,6 +9418,9 @@ msgstr "%1% är för hög, och kollisioner kommer att uppstå."
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr " är för nära undantagsområdet, det kan förekomma kollisioner vid utskrift."
 
+msgid " is too close to clumping detection area, there may be collisions when printing."
+msgstr " är för nära klumpar detekterings området, det kan finnas kollisioner vid utskrift."
+
 msgid "Prime Tower"
 msgstr "Prime Torn"
 
@@ -9296,6 +9429,9 @@ msgstr "är för nära andra och kollisioner kan orsakas.\n"
 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " är för nära uteslutningsområdet, och kollisioner kommer att orsakas.\n"
+
+msgid " is too close to clumping detection area, and collisions will be caused.\n"
+msgstr " är för nära klumpar detekterings området, och kollisioner kommer att orsakas.\n"
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "Om du skriver ut högtemperaturs- och lågtemperatursfilament tillsammans kan det orsaka igensättning av nozzle eller skada på printern."
@@ -9314,6 +9450,9 @@ msgstr "Nuvarande inställning har ingen extrudering."
 
 msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is enabled."
 msgstr "Smooth läge för timelapse stöds inte när ”per objekt” -sekvens är aktiverad."
+
+msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
+msgstr "Klump detektering stöds inte när \"per objekt\" sekvens är aktiverad."
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Kontrollera \"Per objekt\" utskrifts sekvens för att skriva ut multipla objekt i Vase läge."
@@ -9661,8 +9800,8 @@ msgid "mm/s"
 msgstr "mm/s"
 
 #, c-format, boost-format
-msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
-msgstr ""
+msgid "Speed of 100%% overhang wall which has 0 overlap with the lower layer."
+msgstr "Hastighet på 100%% överhängande vägg som har 0 överlappning med det undre lagret."
 
 msgid "Slow down by height"
 msgstr "Sakta ner i höjdled"
@@ -10471,6 +10610,15 @@ msgstr "Skanna första lager"
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "Aktivera detta för att låta kameran i printern kontrollera kvaliteten på första lager."
 
+msgid "Enable clumping detection"
+msgstr "Aktivera klump detektering"
+
+msgid "Clumping detection layers"
+msgstr "Klump detekterings lager"
+
+msgid "Clumping detection layers."
+msgstr "Klump detekterings lager."
+
 msgid "Thumbnail size"
 msgstr "Miniatyr storlek"
 
@@ -10734,6 +10882,9 @@ msgstr "Vinkel för strykning, som styr den relativa vinkeln mellan den övre yt
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "Denna G-kod infogas vid varje lagerbyte efter lyft av Z axel"
+
+msgid "Clumping detection G-code"
+msgstr "Klump detekterings G kod"
 
 msgid "Supports silent mode"
 msgstr "Stöder tyst läge"
@@ -11149,7 +11300,7 @@ msgid "Override filament scarf seam setting"
 msgstr "Åsidosätt inställningen av filament scarf sömmen"
 
 msgid "Overrider filament scarf seam setting and could control settings by modifier."
-msgstr ""
+msgstr "Ignorera filament scarf söm inställning och kan styra inställningar genom modifiering."
 
 msgid "Wipe speed"
 msgstr "Hastighet för avtorkning"
@@ -11479,9 +11630,6 @@ msgstr "Vägg support"
 
 msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
 msgstr "Den här inställningen anger antalet stödväggar i intervallet [-1,2]. -1 betyder auto och 0 betyder att endast tillåta fyllningsläge där stödet är tillräckligt tjockt."
-
-msgid "Chamber temperature"
-msgstr "Kammarens temperatur"
 
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on. At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials, the actual chamber temperature should not be high to avoid clogs, so 0 (turned off) is highly recommended."
@@ -12350,7 +12498,7 @@ msgid "To Volumetric Speed"
 msgstr "Till volymetrisk hastighet"
 
 msgid "Are you sure to stop printing?"
-msgstr ""
+msgstr "Är du säker på att du vill sluta skriva ut?"
 
 msgid "Flow Dynamics Calibration Result"
 msgstr "Resultat för kalibrering av flödesdynamik"
@@ -13175,9 +13323,6 @@ msgstr "Välj printer"
 
 msgid "The start, end or step is not valid value."
 msgstr "Start, slut eller steg är inte giltigt värde."
-
-msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "Automatisk kalibrering stöder endast fall där vänster och höger nozzle diameter är identiska."
 
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr "Antalet extruders och den printern som valts för kalibrering stämmer inte överens."
@@ -14005,6 +14150,36 @@ msgid ""
 msgstr ""
 "Undvik vridning\n"
 "Visste du att när du skriver ut material som är benägna att vrida, såsom ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten för vridning."
+
+#~ msgid "Helio slicing does not support using a number of materials greater than 1."
+#~ msgstr "Helio beredning stöder inte användning av ett antal material större än 1."
+
+#~ msgid "Enable Helio slice"
+#~ msgstr "Aktivera Helio beredning"
+
+#~ msgid "Enable Helio slicing"
+#~ msgstr "Aktivera Helio beredning"
+
+#~ msgid "Description of title content"
+#~ msgstr "Beskrivning av titelns innehåll"
+
+#~ msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, and maintained by Helio Additive. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
+#~ msgstr "Om inget annat anges ger Bambu Lab endast stöd för programvaru funktionerna officiellt tillhandahålls. Utvärderings- och berednings optimerings funktioner baserade på Helio Additives molntjänst i denna programvara kommer att utvecklas, drivas och underhållas av Helio Additive. Dessa funktioner kommer att samla in nödvändig användarinformation och data för att uppnå relevanta tjänstefunktioner. Prenumerationer och betalningar kan vara inblandade. Besök Helio Additive och hänvisa till Helios Additive Privacy Agreement och Helios Additive User Agreement för detaljerad information."
+
+#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "Automatisk kalibrering stöder endast fall där vänster och höger nozzle diameter är identiska."
+
+#~ msgid "Layer Time (s)"
+#~ msgstr "Lagertid (s)"
+
+#~ msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
+#~ msgstr "Att släcka lamporna under uppgiften kommer att orsaka att AI-övervakningen misslyckas, som spaghettidetektering. Välj noggrant."
+
+#~ msgid "Open Door Dectection"
+#~ msgstr "Detektering av öppen dörr"
+
+#~ msgid "Previous unsaved project detected, do you want to restore it?"
+#~ msgstr "Tidigare osparat projekt upptäcktes, vill du återställa det?"
 
 #~ msgid "Old"
 #~ msgstr "Gammal"

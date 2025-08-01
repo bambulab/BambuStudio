@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-17 11:15+0800\n"
+"POT-Creation-Date: 2025-07-31 18:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3297,6 +3297,13 @@ msgstr ""
 "最大体積速度が小さすぎます。\n"
 "0.5 にリセットされます。"
 
+msgid ""
+"Should not large than 100%.\n"
+"Reset to defualt"
+msgstr ""
+"100%を超えてはいけません。\n"
+"デフォルト値にリセットします。"
+
 #, c-format, boost-format
 msgid "Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"
 msgstr "現在のチャンバー温度は材料の安全温度を超えています。これにより、材料が軟化し、ノズルが詰まる可能性があります。この材料の最大安全温度は %d です。"
@@ -3713,6 +3720,63 @@ msgstr "PPS-CF は脆いため、ツールヘッド上部で曲がったPTFEチ�
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CFは脆いため、ツールヘッド上部で曲がったPTFEチューブ内で破損する可能性があります。"
 
+msgid "Resume Printing"
+msgstr "造形を再開"
+
+msgid "Resume (defects acceptable)"
+msgstr "再開（多少の不具合は許容）"
+
+msgid "Resume (problem solved)"
+msgstr "再開 (問題は解決済)"
+
+msgid "Stop Printing"
+msgstr "造形を停止"
+
+msgid "Check Assistant"
+msgstr "アシスタントを確認"
+
+msgid "Filament Extruded, Continue"
+msgstr "フィラメント押出し完了、続行"
+
+msgid "Not Extruded Yet, Retry"
+msgstr "未押出、再試行"
+
+msgid "Finished, Continue"
+msgstr "完了、続行"
+
+msgid "Load Filament"
+msgstr "ロード"
+
+msgid "Filament Loaded, Resume"
+msgstr "フィラメントロード完了、再開"
+
+msgid "View Liveview"
+msgstr "ライブビューを見る"
+
+msgid "No Reminder Next Time"
+msgstr "次回は通知しない"
+
+msgid "Ignore. Don't Remind Next Time"
+msgstr "無視する。次回は通知しない。"
+
+msgid "Ignore this and Resume"
+msgstr "これを無視して再開"
+
+msgid "Problem Solved and Resume"
+msgstr "問題解決、再開"
+
+msgid "Stop Buzzer"
+msgstr "ブザー停止"
+
+msgid "Retry (problem solved)"
+msgstr "再試行 (問題は解決済み)"
+
+msgid "Stop Drying"
+msgstr "乾燥を中止"
+
+msgid "Unknown error."
+msgstr "不明なエラーです。"
+
 msgid "default"
 msgstr "デフォルト"
 
@@ -3765,6 +3829,15 @@ msgstr "線幅"
 msgid "Fan Speed"
 msgstr "ファン回転速度"
 
+msgid "Thermal Index (min)"
+msgstr ""
+
+msgid "Thermal Index (max)"
+msgstr ""
+
+msgid "Thermal Index (mean)"
+msgstr ""
+
 msgid "Flow"
 msgstr "流量"
 
@@ -3794,6 +3867,18 @@ msgstr "ファン回転速度"
 
 msgid "Temperature: "
 msgstr "温度"
+
+msgid "Thermal Index"
+msgstr ""
+
+msgid "Min: "
+msgstr ""
+
+msgid "Max: "
+msgstr ""
+
+msgid "Mean: "
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "G-codeの読み込み"
@@ -3894,6 +3979,9 @@ msgstr "から"
 msgid "Slicing Result"
 msgstr "スライス結果"
 
+msgid "Helio Action"
+msgstr ""
+
 msgid "Color Scheme"
 msgstr "配色"
 
@@ -3920,9 +4008,6 @@ msgstr "温度 (°C)"
 
 msgid "Volumetric flow rate (mm³/s)"
 msgstr "流量 (mm³/s)"
-
-msgid "Layer Time (s)"
-msgstr "レイヤー時間 (s)"
 
 msgid "Travel"
 msgstr "移動"
@@ -5064,13 +5149,6 @@ msgstr "ロード失敗"
 msgid "Browsing file in storage is not supported in current firmware. Please update the printer firmware."
 msgstr "ストレージ内のファイル閲覧は、現在のファームウェアでは対応していません。プリンタのファームウェアを更新してください。"
 
-msgid ""
-"Please check if the storage is inserted into the printer.\n"
-"If it still cannot be read, you can try formatting the storage."
-msgstr ""
-"ストレージがプリンタに挿入されているか確認してください。\n"
-"それでも読み取れない場合は、ストレージをフォーマットしてみてください。"
-
 msgid "LAN Connection Failed (Failed to view sdcard)"
 msgstr "LAN接続に失敗しました（SDカードの表示に失敗）"
 
@@ -5155,6 +5233,13 @@ msgstr "ファイルのチェックサムエラーが発生しました。再試
 
 msgid "Not supported on the current printer version."
 msgstr "現在のプリンターバージョンではサポートされていません。"
+
+msgid ""
+"Please check if the storage is inserted into the printer.\n"
+"If it still cannot be read, you can try formatting the storage."
+msgstr ""
+"ストレージがプリンタに挿入されているか確認してください。\n"
+"それでも読み取れない場合は、ストレージをフォーマットしてみてください。"
 
 msgid "The firmware version of the printer is too low. Please update the firmware and try again."
 msgstr "プリンタのファームウェアのバージョンが低すぎます。ファームウェアを更新して、もう一度試してください。"
@@ -5376,9 +5461,6 @@ msgstr "造形を取消し"
 msgid "Are you sure you want to stop this print?"
 msgstr "この印刷を停止してもよろしいですか?"
 
-msgid "Unknown error."
-msgstr "不明なエラーです。"
-
 msgid "The printer is busy on other print job"
 msgstr "プリンタは別の印刷ジョブでビジー状態です。"
 
@@ -5449,8 +5531,8 @@ msgstr "スポーツ"
 msgid "Ludicrous"
 msgstr "超高速"
 
-msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
-msgstr "タスク中にライトをオフにすると、スパゲッティ検出などのAI監視機能が正常に動作しなくなる可能性があります。ご注意のうえ、ご選択ください。"
+msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti detection. Please choose carefully."
+msgstr "タスク実行中にライトをオフにすると、スパゲッティ検出などのAI監視機能の精度が低下する可能性があります。慎重に選択してください。"
 
 msgid "Keep it On"
 msgstr "オンのままにする"
@@ -5889,7 +5971,7 @@ msgstr "1層目検査"
 msgid "Auto-recovery from step loss"
 msgstr "ステップロスから自動回復"
 
-msgid "Open Door Dectection"
+msgid "Open Door Detection"
 msgstr "ドア開閉検出"
 
 msgid "Notification"
@@ -6126,8 +6208,10 @@ msgstr "デバイス %s(%s)をお取出しできます"
 msgid "Ejecting of device %s(%s) has failed."
 msgstr "デバイス %s(%s) の取出しが失敗しました"
 
-msgid "Previous unsaved project detected, do you want to restore it?"
-msgstr "前回の未保存のプロジェクトが検出されました。復元しますか？"
+msgid ""
+"It seems that you have projects that were not closed properly. Would you like to restore your last unsaved project?\n"
+"If you have a currently opened project and click \"Restore\", the current project will be closed."
+msgstr ""
 
 msgid "Restore"
 msgstr "復元"
@@ -6336,6 +6420,19 @@ msgstr "スライスを取消しました"
 #, c-format, boost-format
 msgid "Slicing Plate %d"
 msgstr "プレート%dをスライス"
+
+msgid "Invalid printer preset. Unable to slice with Helio."
+msgstr ""
+
+msgid "The current printer preset cannot be sliced using Helio."
+msgstr ""
+
+msgid "Helio does not support using a number of materials greater than 1."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Helio does not support materials %s"
+msgstr ""
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "スライシングエラーを解決して、もう一度公開していください"
@@ -6833,6 +6930,12 @@ msgstr "インポートしたOBJファイルにガンマ補正を適用する"
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "OBJモデルのインポート後に、色にガンマ補正を適用します。"
 
+msgid "Remember last used color scheme"
+msgstr ""
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr "LODによってレンダリング性能を向上させる"
 
@@ -6901,6 +7004,24 @@ msgstr "ホームページにスタッフお勧めのオンラインモデルを
 
 msgid "Show history on the home page"
 msgstr "ホームページに履歴を表示"
+
+msgid "Helio Options"
+msgstr ""
+
+msgid "Enable Helio"
+msgstr ""
+
+msgid "About Helio"
+msgstr ""
+
+msgid "Helio Privacy Policy"
+msgstr ""
+
+msgid "Reminder During Slicing"
+msgstr ""
+
+msgid "Automatic mode"
+msgstr ""
 
 msgid "Maximum recent projects"
 msgstr "最大最近のプロジェクト数"
@@ -7704,8 +7825,14 @@ msgstr "全ての変更をリセットします"
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "スムーズなタイムラプスにはプライムタワーが必要です。プライムタワーがない場合、モデルに欠陥が生じる可能性があります。プライムタワーを無効にしてもよろしいですか？"
 
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
+msgstr ""
+
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr "「精密Z高さ」機能と「プライムタワー」を同時に有効にすると、プライムタワーのサイズが拡大する可能性があります。それでも続行しますか？"
+
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
+msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "タイムラプスをスムーズに行うにはプライムタワーが必要です。プライムタワーがない場合、モデルに欠陥がある可能性があります。プライムタワーを有効にしますか？"
@@ -8015,6 +8142,9 @@ msgstr "積層変更時のG-code"
 
 msgid "Time lapse G-code"
 msgstr "タイムラプスG-code"
+
+msgid "Clumping Detection G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "フィラメント変更G-code"
@@ -8817,57 +8947,6 @@ msgstr "完了"
 msgid "resume"
 msgstr "再開"
 
-msgid "Resume Printing"
-msgstr "造形を再開"
-
-msgid "Resume (defects acceptable)"
-msgstr "再開（多少の不具合は許容）"
-
-msgid "Resume (problem solved)"
-msgstr "再開 (問題は解決済)"
-
-msgid "Stop Printing"
-msgstr "造形を停止"
-
-msgid "Check Assistant"
-msgstr "アシスタントを確認"
-
-msgid "Filament Extruded, Continue"
-msgstr "フィラメント押出し完了、続行"
-
-msgid "Not Extruded Yet, Retry"
-msgstr "未押出、再試行"
-
-msgid "Finished, Continue"
-msgstr "完了、続行"
-
-msgid "Load Filament"
-msgstr "ロード"
-
-msgid "Filament Loaded, Resume"
-msgstr "フィラメントロード完了、再開"
-
-msgid "View Liveview"
-msgstr "ライブビューを見る"
-
-msgid "No Reminder Next Time"
-msgstr "次回は通知しない"
-
-msgid "Ignore. Don't Remind Next Time"
-msgstr "無視する。次回は通知しない。"
-
-msgid "Ignore this and Resume"
-msgstr "これを無視して再開"
-
-msgid "Problem Solved and Resume"
-msgstr "問題解決、再開"
-
-msgid "Stop Buzzer"
-msgstr "ブザー停止"
-
-msgid "Retry (problem solved)"
-msgstr "再試行 (問題は解決済み)"
-
 msgid "Confirm and Update Nozzle"
 msgstr "ノズルの確認と更新"
 
@@ -8940,6 +9019,57 @@ msgstr "送信に失敗しました。「再試行」をクリックして、再
 
 msgid "reconnect"
 msgstr "再接続"
+
+msgid "Terms of Service"
+msgstr ""
+
+msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
+msgstr ""
+
+msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
+msgstr ""
+
+msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
+msgstr ""
+
+msgid "You agree not to use this product and its related updates to engage in the following activities:"
+msgstr ""
+
+msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
+msgstr ""
+
+msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
+msgstr ""
+
+msgid "3.Using this software and services for any improper or illegal activities."
+msgstr ""
+
+msgid "https://www.helioadditive.com/"
+msgstr ""
+
+msgid "Privacy Policy of Helio Additive"
+msgstr ""
+
+msgid "Terms of Use of Helio Additive"
+msgstr ""
+
+msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
+msgstr ""
+
+msgid "Agree"
+msgstr "同意"
+
+msgid "Helio settings"
+msgstr ""
+
+msgid "Chamber temperature"
+msgstr "チャンバー温度"
+
+msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
+msgstr ""
+
+msgid "How to use Helio"
+msgstr ""
 
 msgid "Air Pump"
 msgstr "エアポンプ"
@@ -9246,6 +9376,9 @@ msgstr "%1% は高すぎます、衝突の可能性があります。"
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr "が除外領域に近すぎます。衝突の可能性があります。"
 
+msgid " is too close to clumping detection area, there may be collisions when printing."
+msgstr ""
+
 msgid "Prime Tower"
 msgstr "プライムタワー"
 
@@ -9254,6 +9387,9 @@ msgstr "他のオブジェクト に近すぎるので、衝突の可能性が�
 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr "除外領域に近すぎます。衝突が発生します。\n"
+
+msgid " is too close to clumping detection area, and collisions will be caused.\n"
+msgstr ""
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "高温対応と低温対応のフィラメントを同時に使用すると、ノズルの詰まりやプリンターの損傷につながる恐れがあります。"
@@ -9272,6 +9408,9 @@ msgstr "現在の設定では造形しません"
 
 msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is enabled."
 msgstr "オブジェクト順で造形するでは、この機能を使用できません。"
+
+msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
+msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "スパイラルモードでは、[オブジェクト順]で複数のオブジェクトを造形してください"
@@ -9618,9 +9757,9 @@ msgstr "このオプションを有効にすると、オーバーハング部分
 msgid "mm/s"
 msgstr "mm/s"
 
-#, fuzzy, c-format, boost-format
-msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
-msgstr "オーバーハングの角度が線幅100%%を超えるウォール（ブリッジ壁を除く）のライン速度を設定します。"
+#, c-format, boost-format
+msgid "Speed of 100%% overhang wall which has 0 overlap with the lower layer."
+msgstr "下層と重ならない100%%オーバーハング壁面の造形速度"
 
 msgid "Slow down by height"
 msgstr "高さに応じて減速"
@@ -10429,6 +10568,15 @@ msgstr "1層目を検査"
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "これを有効にすると、プリンタのカメラを使用してファ1層目の品質を確認できます。"
 
+msgid "Enable clumping detection"
+msgstr ""
+
+msgid "Clumping detection layers"
+msgstr ""
+
+msgid "Clumping detection layers."
+msgstr ""
+
 msgid "Thumbnail size"
 msgstr "サムネイルサイズ"
 
@@ -10696,6 +10844,9 @@ msgstr "アイロン処理の角度：トップ面とアイロン処理の間の
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "このG-codeは、Zリフト後の各層の変更時に挿入されます。"
+
+msgid "Clumping detection G-code"
+msgstr ""
 
 msgid "Supports silent mode"
 msgstr "サイレントモード対応"
@@ -11440,9 +11591,6 @@ msgid "This setting specifies the count of support walls in the range of [-1,2].
 msgstr ""
 "この設定では、サポートウォールの数を[-1～2]の範囲で指定します。\n"
 "-1は自動設定、0はサポートが十分に厚ければインフィルのみのモードを許可することを意味します。"
-
-msgid "Chamber temperature"
-msgstr "チャンバー温度"
 
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr "高いチャンバー温度は、ABS、ASA、PC、PA などの高温材料において反りを抑制したり、層間接着強度を向上させるのに役立ちます。ただし、その一方で、ABS や ASA の空気ろ過性能が悪化する可能性があります。PLA、PETG、TPU、PVA などの低温材料においては、実際のチャンバー温度が高すぎるとノズルの詰まりを引き起こす可能性があるため、温度は高く設定しない方が良いです。そのため、0（オフ）に設定することを強くお勧めします。"
@@ -13127,9 +13275,6 @@ msgstr "プリンターを選択する必要があります"
 msgid "The start, end or step is not valid value."
 msgstr "開始、終了、またはステップの値が無効です。"
 
-msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "自動キャリブレーションは、左右のノズル径が同じ場合にのみ対応します。"
-
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr "プリンタの押出機の数と、キャリブレーション対象として選択されたプリンタの数が一致しません。"
 
@@ -13955,6 +14100,25 @@ msgid ""
 msgstr ""
 "反り防止\n"
 "ABSなど反りやすい材料を印刷する場合、ヒートベッド温度を適切に上げることで反りの発生を抑えられることをご存知ですか？"
+
+#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "自動キャリブレーションは、左右のノズル径が同じ場合にのみ対応します。"
+
+#~ msgid "Layer Time (s)"
+#~ msgstr "レイヤー時間 (s)"
+
+#~ msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
+#~ msgstr "タスク中にライトをオフにすると、スパゲッティ検出などのAI監視機能が正常に動作しなくなる可能性があります。ご注意のうえ、ご選択ください。"
+
+#~ msgid "Open Door Dectection"
+#~ msgstr "ドア開閉検出"
+
+#~ msgid "Previous unsaved project detected, do you want to restore it?"
+#~ msgstr "前回の未保存のプロジェクトが検出されました。復元しますか？"
+
+#, fuzzy, c-format, boost-format
+#~ msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
+#~ msgstr "オーバーハングの角度が線幅100%%を超えるウォール（ブリッジ壁を除く）のライン速度を設定します。"
 
 #~ msgid "Modern"
 #~ msgstr "モダン"

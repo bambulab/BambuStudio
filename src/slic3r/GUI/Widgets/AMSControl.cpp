@@ -100,7 +100,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_panel_down_road->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
 
     m_down_road = new AMSRoadDownPart(m_panel_down_road, wxID_ANY, wxDefaultPosition, AMS_DOWN_ROAD_SIZE);
-    m_sizer_down_road->Add(m_panel_down_road, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, 0);
+    m_sizer_down_road->Add(m_panel_down_road, 0, wxTOP, 0);
 
     // ams mode
     //
@@ -228,11 +228,11 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_panel_option_left->Layout();
     m_panel_option_right->Layout();
 
-    m_sizer_ams_option->Add(m_panel_option_left, 0, wxALIGN_LEFT, 0);
+    m_sizer_ams_option->Add(m_panel_option_left, 0, wxALIGN_TOP, 0);
     m_sizer_ams_option->Add( 0, 0, 1, wxEXPAND, 0);
-    m_sizer_ams_option->Add(m_sizer_option_mid, 0, wxALIGN_RIGHT, 0);
+    m_sizer_ams_option->Add(m_sizer_option_mid, 0, wxALIGN_TOP, 0);
     m_sizer_ams_option->Add( 0, 0, 1, wxEXPAND, 0);
-    m_sizer_ams_option->Add(m_panel_option_right, 0, wxALIGN_RIGHT, 0);
+    m_sizer_ams_option->Add(m_panel_option_right, 0, wxALIGN_TOP, 0);
 
 
     m_sizer_ams_body->Add(m_sizer_ams_area_left, wxALIGN_CENTER, 0);
@@ -280,16 +280,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
         uiAmsHumidityInfo *info    = (uiAmsHumidityInfo *) evt.GetClientData();
         if (info)
         {
-            if (info->humidity_percent >= 0)
-            {
-                m_percent_humidity_dry_popup->Update(info);
-
-                wxPoint img_pos = ClientToScreen(wxPoint(0, 0));
-                wxPoint popup_pos(img_pos.x - m_percent_humidity_dry_popup->GetSize().GetWidth() + FromDIP(150), img_pos.y - FromDIP(80));
-                m_percent_humidity_dry_popup->Move(popup_pos);
-                m_percent_humidity_dry_popup->ShowModal();
-            }
-            else
+            if (info->ams_type == AMSModel::GENERIC_AMS)
             {
                 wxPoint img_pos = ClientToScreen(wxPoint(0, 0));
                 wxPoint popup_pos(img_pos.x - m_Humidity_tip_popup.GetSize().GetWidth() + FromDIP(150), img_pos.y - FromDIP(80));
@@ -298,6 +289,15 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
                 int humidity_value = info->humidity_level;
                 if (humidity_value > 0 && humidity_value <= 5) { m_Humidity_tip_popup.set_humidity_level(humidity_value); }
                 m_Humidity_tip_popup.Popup();
+            }
+            else
+            {
+                m_percent_humidity_dry_popup->Update(info);
+
+                wxPoint img_pos = ClientToScreen(wxPoint(0, 0));
+                wxPoint popup_pos(img_pos.x - m_percent_humidity_dry_popup->GetSize().GetWidth() + FromDIP(150), img_pos.y - FromDIP(80));
+                m_percent_humidity_dry_popup->Move(popup_pos);
+                m_percent_humidity_dry_popup->ShowModal();
             }
         }
 
@@ -531,6 +531,8 @@ void AMSControl::msw_rescale()
     if (m_percent_humidity_dry_popup){
         m_percent_humidity_dry_popup->msw_rescale();
     }
+
+    m_Humidity_tip_popup.msw_rescale();
 
     Layout();
     Refresh();

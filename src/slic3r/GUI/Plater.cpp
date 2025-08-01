@@ -105,6 +105,7 @@
 #include "../Utils/UndoRedo.hpp"
 #include "../Utils/PresetUpdater.hpp"
 #include "../Utils/Process.hpp"
+#include "../Utils/HelioDragon.hpp"
 #include "RemovableDriveManager.hpp"
 #include "InstanceCheck.hpp"
 #include "NotificationManager.hpp"
@@ -187,6 +188,7 @@ wxDEFINE_EVENT(EVT_INSTALL_PLUGIN_HINT,             wxCommandEvent);
 wxDEFINE_EVENT(EVT_PREVIEW_ONLY_MODE_HINT,          wxCommandEvent);
 //BBS: change light/dark mode
 wxDEFINE_EVENT(EVT_GLCANVAS_COLOR_MODE_CHANGED,     SimpleEvent);
+wxDEFINE_EVENT(EVT_ENABLE_GCODE_OPTION_ITEM_CHANGED, SimpleEvent);
 //BBS: print
 wxDEFINE_EVENT(EVT_PRINT_FROM_SDCARD_VIEW,          SimpleEvent);
 
@@ -197,6 +199,11 @@ wxDEFINE_EVENT(EVT_DEL_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 wxDEFINE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
+
+wxDEFINE_EVENT(EVT_HELIO_PROCESSING_COMPLETED, HelioCompletionEvent);
+wxDEFINE_EVENT(EVT_HELIO_PROCESSING_STARTED, SimpleEvent);
+wxDEFINE_EVENT(EVT_HELIO_INPUT_CHAMBER_TEMP, SimpleEvent);
+
 #define PRINTER_THUMBNAIL_SIZE (wxSize(FromDIP(48), FromDIP(48)))
 #define PRINTER_PANEL_SIZE (wxSize(FromDIP(96), FromDIP(68)))
 #define BTN_SYNC_SIZE (wxSize(FromDIP(96), FromDIP(98)))
@@ -3852,6 +3859,7 @@ public:
     ProjectDirtyStateManager dirty_state;
 
     BackgroundSlicingProcess    background_process;
+    HelioBackgroundProcess      helio_background_process;
     bool suppressed_backround_processing_update { false };
     // UIThreadWorker can be used as a replacement for BoostThreadWorker if
     // no additional worker threads are desired (useful for debugging or profiling)
@@ -4187,6 +4195,8 @@ public:
     void on_export_finished(wxCommandEvent&);
     void on_slicing_began();
 
+    int update_helio_background_process(std::string& printer_id, std::string& material_id);
+
     void clear_warnings();
     void add_warning(const Slic3r::PrintStateBase::Warning &warning, size_t oid);
     // Update notification manager with the current state of warnings produced by the background process (slicing).
@@ -4229,6 +4239,9 @@ public:
     void on_action_open_project(SimpleEvent&);
     void on_action_slice_plate(SimpleEvent&);
     void on_action_slice_all(SimpleEvent&);
+    void on_helio_processing_complete(HelioCompletionEvent &);
+    void on_helio_processing_start(SimpleEvent &);
+    void on_helio_input_chamber_temp(SimpleEvent &);
     void on_action_publish(wxCommandEvent &evt);
     void on_action_print_plate(SimpleEvent&);
     void on_action_print_all(SimpleEvent&);
@@ -4454,11 +4467,17 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->q->Bind(EVT_INSTALL_PLUGIN_HINT, &priv::show_install_plugin_hint, this);
     this->q->Bind(EVT_UPDATE_PLUGINS_WHEN_LAUNCH, &priv::update_plugin_when_launch, this);
     this->q->Bind(EVT_PREVIEW_ONLY_MODE_HINT, &priv::show_preview_only_hint, this);
+    this->q->Bind(EVT_ENABLE_GCODE_OPTION_ITEM_CHANGED, [this](SimpleEvent &) {
+        if (preview) {
+            preview->get_canvas3d()->get_gcode_viewer().record_record_gcodeviewer_option_item();
+        }});
     this->q->Bind(EVT_GLCANVAS_COLOR_MODE_CHANGED, &priv::on_change_color_mode, this);
     this->q->Bind(wxEVT_SYS_COLOUR_CHANGED, &priv::on_apple_change_color_mode, this);
     this->q->Bind(EVT_CREATE_FILAMENT, &priv::on_create_filament, this);
     this->q->Bind(EVT_MODIFY_FILAMENT, &priv::on_modify_filament, this);
+#ifndef __linux__
     this->q->Bind(EVT_NOTICE_CHILDE_SIZE_CHANGED, &Sidebar::on_size, sidebar);
+#endif
     this->q->Bind(EVT_NOTICE_FULL_SCREEN_CHANGED, &Sidebar::on_full_screen, sidebar);
     this->q->Bind(EVT_ADD_FILAMENT, &priv::on_add_filament, this);
     this->q->Bind(EVT_DEL_FILAMENT, &priv::on_delete_filament, this);
@@ -4681,7 +4700,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
             preview->get_canvas3d()->set_as_dirty();
         });
     if (wxGetApp().is_editor()) {
-        preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
+        preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent &) { select_next_view_3D(); });
         preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_COLLAPSE_SIDEBAR, [this](SimpleEvent&) { this->q->collapse_sidebar(!this->q->is_sidebar_collapsed());  });
         preview->get_wxglcanvas()->Bind(EVT_CUSTOMEVT_TICKSCHANGED, [this](wxCommandEvent& event) {
             Type tick_event_type = (Type)event.GetInt();
@@ -4755,6 +4774,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_OPEN_PLATESETTINGSDIALOG, [q](wxCommandEvent& evt) { q->open_platesettings_dialog(evt);});
         q->Bind(EVT_OPEN_FILAMENT_MAP_SETTINGS_DIALOG, [q](wxCommandEvent &evt) { q->open_filament_map_setting_dialog(evt); });
         //q->Bind(EVT_GLVIEWTOOLBAR_ASSEMBLE, [q](SimpleEvent&) { q->select_view_3D("Assemble"); });
+
+        q->Bind(EVT_HELIO_PROCESSING_COMPLETED, &priv::on_helio_processing_complete, this);
+        q->Bind(EVT_HELIO_PROCESSING_STARTED, &priv::on_helio_processing_start, this);
+        q->Bind(EVT_HELIO_INPUT_CHAMBER_TEMP, &priv::on_helio_input_chamber_temp, this);
     }
 
     // Drop target:
@@ -4851,7 +4874,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
             std::string last_backup = last;
             std::string originfile;
             if (Slic3r::has_restore_data(last_backup, originfile)) {
-                auto result = MessageDialog(this->q, _L("Previous unsaved project detected, do you want to restore it?"), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Restore"), wxYES_NO | wxYES_DEFAULT | wxCENTRE).ShowModal();
+                BOOST_LOG_TRIVIAL(info) << "test101: Restoring project from: " << PathSanitizer::sanitize(last_backup);
+                auto log_string = _L("It seems that you have projects that were not closed properly. Would you like to restore your last unsaved project?\nIf you have a currently opened project and click \"Restore\", the current project will be closed.");
+                MessageDialog dlg(this->q, log_string, wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Restore"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+                dlg.SetButtonLabel(wxID_YES, _L("Restore"));
+                dlg.SetButtonLabel(wxID_NO, _L("Cancel"));
+                auto result = dlg.ShowModal();
                 if (result == wxID_YES) {
                     this->q->load_project(from_path(last_backup), from_path(originfile));
                     Slic3r::backup_soon();
@@ -4863,9 +4891,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
                     boost::filesystem::remove_all(last);
             }
             catch (...) {}
-            int skip_confirm = e.GetInt();
-            this->q->new_project(skip_confirm, true);
-            });
+            if (this->q->get_project_filename().IsEmpty() && this->q->is_empty_project()) {
+                int skip_confirm = e.GetInt();
+                this->q->new_project(skip_confirm, true);
+            }
+        });
         //wxPostEvent(this->q, wxCommandEvent{EVT_RESTORE_PROJECT});
     }
 
@@ -5000,6 +5030,13 @@ int Plater::get_right_icon_offset_bed()
         return std::stoi(pm->right_icon_offset_bed);
     }
     return 0;
+}
+
+bool Plater::get_enable_wrapping_detection()
+{
+   const DynamicPrintConfig & printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    const ConfigOptionBool *  wrapping_detection = printer_config.option<ConfigOptionBool>("enable_wrapping_detection");
+   return  (wrapping_detection != nullptr) && wrapping_detection->value;
 }
 
 wxColour Plater::get_next_color_for_filament()
@@ -5639,6 +5676,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             this->preview->update_gcode_result(partplate_list.get_current_slice_result());
                             release_PlateData_list(plate_data);
                             sidebar->obj_list()->reload_all_plates();
+                            q->suppress_background_process(true);
                         } else {
                             partplate_list.reload_all_objects();
                         }
@@ -6386,6 +6424,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             is_mw = "true";
         }
     }
+    q->schedule_background_process(true);
     return obj_idxs;
 }
 
@@ -6545,6 +6584,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 // BBS
 void Plater::priv::load_auxiliary_files()
 {
+    wxLogNull suppress_log;
     std::string auxiliary_path = encode_path(q->model().get_auxiliary_file_temp_path().c_str());
     //wxGetApp().mainframe->m_project->Reload(auxiliary_path);
 }
@@ -7158,7 +7198,6 @@ void Plater::priv::process_validation_warning(StringObjectException const &warni
     }
 }
 
-
 // Update background processing thread from the current config and Model.
 // Returns a bitmask of UpdateBackgroundProcessReturnState.
 unsigned int Plater::priv::update_background_process(bool force_validation, bool postpone_error_messages, bool switch_print)
@@ -7492,13 +7531,15 @@ unsigned int Plater::priv::update_restart_background_process(bool force_update_s
         switch_print = false;
     }
     // bitmask of UpdateBackgroundProcessReturnState
-    unsigned int state = this->update_background_process(false, false, switch_print);
+    unsigned int state = update_background_process(false, false, switch_print);
+
     if (force_update_scene || (state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE) != 0)
         view3D->reload_scene(false);
 
     if (force_update_preview)
         this->preview->reload_print();
     this->restart_background_process(state);
+
     return state;
 }
 
@@ -9107,6 +9148,9 @@ void Plater::priv::on_action_open_project(SimpleEvent&)
 void Plater::priv::on_action_slice_plate(SimpleEvent&)
 {
     if (q != nullptr) {
+
+        helio_background_process.reset();
+
         if (!q->check_ams_status(false))
             return;
 
@@ -9125,10 +9169,169 @@ void Plater::priv::on_action_slice_plate(SimpleEvent&)
     }
 }
 
+
+int Plater::priv::update_helio_background_process(std::string& printer_id, std::string& material_id)
+{
+    notification_manager->close_notification_of_type(NotificationType::HelioSlicingError);
+    PresetBundle *           preset_bundle     = wxGetApp().preset_bundle;
+    std::string              preset_name       = preset_bundle->printers.get_edited_preset().get_printer_name(preset_bundle);
+    std::vector<std::string> preset_name_array = wxGetApp().split_str(preset_name, "Bambu Lab ");
+    std::string              preset_pure_name  = preset_name_array.size() >= 2 ? preset_name_array[1] : "";
+
+    /*invalid printer preset*/
+     if (preset_pure_name.empty()) {
+        GUI::MessageDialog msgdialog(nullptr, _L("Invalid printer preset. Unable to slice with Helio."), "", wxICON_WARNING | wxOK);
+        msgdialog.ShowModal();
+        return -1;
+    }
+
+     bool helio_support = false;
+     for (HelioQuery::SupportedData pdata : HelioQuery::global_supported_printers) {
+         if (!pdata.native_name.empty()) {
+             std::string native_name = pdata.native_name;
+             boost::algorithm::to_lower(native_name);
+             boost::algorithm::to_lower(preset_pure_name);
+             if (native_name.find(preset_pure_name) != std::string::npos) {
+                 helio_support = true;
+                 printer_id = pdata.id;
+                 break;
+             }
+         }
+    }
+
+    /*unsupported helio printers*/
+     if (!helio_support) {
+        GUI::MessageDialog msgdialog(nullptr, _L("The current printer preset cannot be sliced using Helio."), "", wxICON_WARNING | wxOK);
+        msgdialog.ShowModal();
+        return -1;
+    }
+
+    /*check total number of materials*/
+    auto extruders = q->get_partplate_list().get_curr_plate()->get_extruders();
+    if (extruders.size() <= 0) {
+        return -1;
+    }
+
+    /*Check the materials supported by helio*/
+    auto preset_filaments = q->get_current_filaments_preset_names();
+    if (extruders.front() > preset_filaments.size()) {
+        return -1;
+    }
+
+
+    if (extruders.size() > 1) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": The number of consumables used is > 1";
+        GUI::MessageDialog msgdialog(nullptr, _L("Helio does not support using a number of materials greater than 1."), "", wxICON_WARNING | wxOK);
+        msgdialog.ShowModal();
+        return -1;
+    }
+
+    std::string used_filament = preset_filaments[extruders.front() - 1];
+    bool is_supported_by_helio = false;
+
+    for (HelioQuery::SupportedData pdata : HelioQuery::global_supported_materials) {
+        if (!pdata.native_name.empty()) {
+            std::string native_name = pdata.native_name;
+            boost::algorithm::to_lower(native_name);
+            boost::algorithm::to_lower(used_filament);
+            if (used_filament.find(native_name) != std::string::npos) {
+                is_supported_by_helio = true;
+                material_id = pdata.id;
+                break;
+            }
+        }
+    }
+
+    if (!is_supported_by_helio) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Helio does not support materials %1%") % used_filament;
+        GUI::MessageDialog msgdialog(nullptr, wxString::Format(_L("Helio does not support materials %s"),  used_filament), "", wxICON_WARNING | wxOK);
+        msgdialog.ShowModal();
+        return -1;
+    }
+
+
+    //partplate_list.get_curr_plate()->update_helio_apply_result_invalid(false);
+    notification_manager->close_notification_of_type(NotificationType::HelioSlicingError);
+    return 0;
+}
+
+void Plater::priv::on_helio_processing_complete(HelioCompletionEvent &a)
+{
+    if (a.is_successful) {
+        this->reset_gcode_toolpaths();
+
+        int deleted = boost::nowide::remove(a.tmp_path.c_str());
+
+        if (deleted != 0) { BOOST_LOG_TRIVIAL(error) << boost::format("Failed to delete file %1%") % a.tmp_path; }
+
+        std::string copied;
+        copy_file(a.simulated_path, a.tmp_path, copied);
+
+        BOOST_LOG_TRIVIAL(debug) << boost::format("Failed to delete file %1%") % copied;
+
+        GCodeProcessorResult *res1 = partplate_list.get_curr_plate()->get_gcode_result();
+        res1->lines_ends           = helio_background_process.m_gcode_result->lines_ends;
+        res1->moves                = helio_background_process.m_gcode_result->moves;
+
+        GCodeProcessorResult *res2 = background_process.get_current_gcode_result();
+        res2->lines_ends           = helio_background_process.m_gcode_result->lines_ends;
+        res2->moves                = helio_background_process.m_gcode_result->moves;
+
+        this->update();
+    } else {
+        notification_manager->push_helio_error_notification(a.error_message);
+    }
+}
+
+void Plater::priv::on_helio_processing_start(SimpleEvent &a)
+{
+    notification_manager->close_notification_of_type(GUI::NotificationType::SignDetected);
+    notification_manager->close_notification_of_type(GUI::NotificationType::ExportFinished);
+    notification_manager->set_slicing_progress_began();
+    notification_manager->update_slicing_notif_dailytips(true);
+}
+
+//BBS: GUI refactor: slice with helio
+void Plater::priv::on_helio_input_chamber_temp(SimpleEvent &a)
+{
+    std::string printer_id;
+    std::string material_id;
+    if (update_helio_background_process(printer_id, material_id) > -1) {
+        HelioInputDialog dlg;
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            float chamber_temp = dlg.get_input_data();
+
+            if (chamber_temp >= -1) {
+                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":helio process called";
+                //on_action_slice_plate(a);
+
+                if (!(partplate_list.get_curr_plate()->empty())) {
+
+                    std:;string                      helio_api_url = Slic3r::HelioQuery::get_helio_api_url();
+                    std::string                      helio_api_key = Slic3r::HelioQuery::get_helio_pat();
+                    const Slic3r::DynamicPrintConfig config        = wxGetApp().preset_bundle->full_config();
+                    auto                             g_result      = background_process.get_current_gcode_result();
+
+                    //set user input
+                    HelioBackgroundProcess::SimulationInput data;
+                    data.chamber_temp = chamber_temp;
+                    helio_background_process.set_simulation_input_data(data);
+                    helio_background_process.init(helio_api_key, helio_api_url, printer_id, material_id, g_result, preview,
+                                                  [this]() {});
+
+                    helio_background_process.helio_thread_start(background_process.m_mutex, background_process.m_condition, background_process.m_state, notification_manager);
+                }
+            }
+        }
+    }
+}
+
 //BBS: GUI refactor: slice all
 void Plater::priv::on_action_slice_all(SimpleEvent&)
 {
     if (q != nullptr) {
+        helio_background_process.reset();
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice project event\n" ;
         //BBS update extruder params and speed table before slicing
         const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
@@ -9853,10 +10056,25 @@ void Plater::priv::init_notification_manager()
     notification_manager->init();
 
     auto cancel_callback = [this]() {
+        bool res1;
+        bool res2;
+
+        if (!this->helio_background_process.is_running())
+            res1 = false;
+
+        else {
+            this->helio_background_process.stop();
+            res1 = true;
+        }
+
         if (this->background_process.idle())
-            return false;
-        this->background_process.stop();
-        return true;
+            res2 = false;
+        else {
+            this->background_process.stop();
+            res2 = true;
+        }
+
+        return res1 || res2;
     };
     notification_manager->init_slicing_progress_notification(cancel_callback);
     notification_manager->set_fff(printer_technology == ptFFF);
@@ -11527,6 +11745,7 @@ int Plater::load_project(wxString const &filename2,
             sidebar().pop_sync_nozzle_and_ams_dialog();
         }
     }
+    statistics_burial_data(filename.utf8_string());
     return wx_dlg_id;
 }
 
@@ -11795,9 +12014,10 @@ void Plater::import_model_id(wxString download_info)
 #endif
 
     if (download_ok) {
-        BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << target_path.string();
+        BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << PathSanitizer::sanitize(target_path);
         /* load project */
         auto result = this->load_project(target_path.wstring());
+        statistics_burial_data_form_mw();
         if (result == (int)wxID_CANCEL) {
             return;
         }
@@ -13117,6 +13337,7 @@ bool Plater::load_files(const wxArrayString& filenames)
         }
     }
     if (load_svg(filenames)) {
+        statistics_burial_data(filenames[0].utf8_string());
         return true;
     }
 
@@ -13143,6 +13364,7 @@ bool Plater::load_files(const wxArrayString& filenames)
             return false;
         }
         load_gcode(from_path(gcode_paths.front()));
+        statistics_burial_data(gcode_paths[0].string());
         return true;
     }
 
@@ -13206,12 +13428,16 @@ bool Plater::load_files(const wxArrayString& filenames)
 
     switch (loadfiles_type) {
     case LoadFilesType::Single3MF:
-        open_3mf_file(normal_paths[0]);
+        open_3mf_file(normal_paths[0]);//will call load_project
         break;
 
     case LoadFilesType::SingleOther: {
         Plater::TakeSnapshot snapshot(this, snapshot_label);
-        if (load_files(normal_paths, LoadStrategy::LoadModel, false).empty()) { res = false; }
+        if (load_files(normal_paths, LoadStrategy::LoadModel, false).empty()) {
+            res = false;
+        } else {
+            statistics_burial_data(normal_paths[0].string());
+        }
         break;
     }
     case LoadFilesType::Multiple3MF:
@@ -13221,15 +13447,22 @@ bool Plater::load_files(const wxArrayString& filenames)
         };
 
         open_3mf_file(first_file[0]);
-        if (load_files(other_file, LoadStrategy::LoadModel).empty()) {  res = false;  }
+        if (load_files(other_file, LoadStrategy::LoadModel).empty()) {
+            res = false;
+        } else {
+            statistics_burial_data(normal_paths[0].string());
+        }
         break;
 
     case LoadFilesType::MultipleOther: {
         Plater::TakeSnapshot snapshot(this, snapshot_label);
-        if (load_files(normal_paths, LoadStrategy::LoadModel, true).empty()) { res = false; }
+        if (load_files(normal_paths, LoadStrategy::LoadModel, true).empty()) {
+            res = false;
+        } else {
+            statistics_burial_data(normal_paths[0].string());
+        }
         break;
     }
-
     case LoadFilesType::Multiple3MFOther:
         for (const auto &path : normal_paths) {
             if (boost::iends_with(path.filename().string(), ".3mf")){
@@ -13243,8 +13476,16 @@ bool Plater::load_files(const wxArrayString& filenames)
         }
 
         open_3mf_file(first_file[0]);
-        if (load_files(tmf_file, LoadStrategy::LoadModel).empty()) {  res = false;  }
-        if (load_files(other_file, LoadStrategy::LoadModel, false).empty()) {  res = false;  }
+        if (load_files(tmf_file, LoadStrategy::LoadModel).empty()) {
+            res = false;
+        } else {
+            statistics_burial_data(normal_paths[0].string());
+        }
+        if (load_files(other_file, LoadStrategy::LoadModel, false).empty()) {
+            res = false;
+        } else {
+            statistics_burial_data(normal_paths[0].string());
+        }
         break;
     default: break;
     }
@@ -13252,6 +13493,52 @@ bool Plater::load_files(const wxArrayString& filenames)
     return res;
 }
 
+void Plater::statistics_burial_data_once(std::string json_str)
+{
+    NetworkAgent *agent = GUI::wxGetApp().getAgent();
+    if (agent) {
+        agent->track_event("import_file_type", json_str);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " import_file_type:" << json_str;
+    }
+}
+
+void Plater::statistics_burial_data(std::string file_path)
+{
+    json j;
+    std::string name;
+    if (boost::algorithm::iends_with(file_path, ".gcode")) {
+        name = "pure_gcode";
+    } else if (boost::algorithm::iends_with(file_path, ".gcode.3mf")) {
+        name = "gcode_3mf";
+    } else if (boost::algorithm::iends_with(file_path, ".3mf")) {
+        name = "3mf";
+    } else if (boost::algorithm::iends_with(file_path, ".amf")) {
+        name = "amf";
+    } else if (boost::algorithm::iends_with(file_path, ".stp") || boost::algorithm::iends_with(file_path, ".step")) {
+        name = "stp_step";
+    } else if (boost::algorithm::iends_with(file_path, ".oltp")) {
+        name = "oltp";
+    } else if (boost::algorithm::iends_with(file_path, ".stl")) {
+        name = "stl";
+    } else if (boost::algorithm::iends_with(file_path, ".svg")) {
+        name = "svg";
+    } else if (boost::algorithm::iends_with(file_path, ".obj")) {
+        name = "obj";
+    } else {
+        name = "other";
+    }
+    if (name.size() > 0) {
+        j["type"] = name;
+        statistics_burial_data_once(j.dump());
+    }
+}
+
+void Plater::statistics_burial_data_form_mw()
+{
+    json j;
+    j["type"] = "download_from_mw_and_open";
+    statistics_burial_data_once(j.dump());
+}
 
 bool Plater::open_3mf_file(const fs::path &file_path)
 {
@@ -13353,35 +13640,40 @@ void Plater::add_file()
 
     switch (loadfiles_type)
     {
-    case LoadFilesType::Single3MF:
+    case LoadFilesType::Single3MF: {
         open_3mf_file(paths[0]);
-    	break;
-
+        statistics_burial_data(paths[0].string());
+        break;
+    }
     case LoadFilesType::SingleOther: {
         Plater::TakeSnapshot snapshot(this, snapshot_label);
         if (load_svg(input_files,true)) {
+            statistics_burial_data(input_files[0].utf8_string());
             return;
         }
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "," << __FILE__ << ","<< "LoadFilesType::SingleOther";
         if (!load_files(paths, LoadStrategy::LoadModel, false).empty()) {
             if (get_project_name() == _L("Untitled") && paths.size() > 0) {
                 p->set_project_filename(wxString::FromUTF8(paths[0].string()));
-
             }
             wxGetApp().mainframe->update_title();
+            statistics_burial_data(paths[0].string());
         }
         break;
     }
-    case LoadFilesType::Multiple3MF:
+    case LoadFilesType::Multiple3MF:{
         first_file = std::vector<fs::path>{paths[0]};
         for (auto i = 0; i < paths.size(); i++) {
             if (i > 0) { other_file.push_back(paths[i]); }
         };
 
         open_3mf_file(first_file[0]);
-        if (!load_files(other_file, LoadStrategy::LoadModel).empty()) { wxGetApp().mainframe->update_title(); }
+        if (!load_files(other_file, LoadStrategy::LoadModel).empty()) {
+            wxGetApp().mainframe->update_title();
+            statistics_burial_data(paths[0].string());
+        }
         break;
-
+    }
     case LoadFilesType::MultipleOther: {
         Plater::TakeSnapshot snapshot(this, snapshot_label);
         wxArrayString        filenames;
@@ -13395,6 +13687,7 @@ void Plater::add_file()
             }
         }
         if (boost::iends_with(paths[0].string(), ".svg")&& load_svg(filenames)) {
+            statistics_burial_data(paths[0].string());
             return;
         }
         if (!load_files(paths, LoadStrategy::LoadModel, true).empty()) {
@@ -13402,10 +13695,11 @@ void Plater::add_file()
                 p->set_project_filename(wxString::FromUTF8(paths[0].string()));
             }
             wxGetApp().mainframe->update_title();
+            statistics_burial_data(paths[0].string());
         }
         break;
     }
-    case LoadFilesType::Multiple3MFOther:
+    case LoadFilesType::Multiple3MFOther: {
         for (const auto &path : paths) {
             if (boost::iends_with(path.filename().string(), ".3mf")) {
                 if (first_file.size() <= 0)
@@ -13419,8 +13713,12 @@ void Plater::add_file()
 
         open_3mf_file(first_file[0]);
         load_files(tmf_file, LoadStrategy::LoadModel);
-        if (!load_files(other_file, LoadStrategy::LoadModel, false).empty()) { wxGetApp().mainframe->update_title();}
+        if (!load_files(other_file, LoadStrategy::LoadModel, false).empty()) {
+            wxGetApp().mainframe->update_title();
+            statistics_burial_data(paths[0].string());
+        }
         break;
+    }
     default:break;
     }
 }
@@ -14055,7 +14353,7 @@ void Plater::export_core_3mf()
     export_3mf(path_u8, SaveStrategy::Silence);
 }
 
-Preset *get_printer_preset(MachineObject *obj)
+Preset *get_printer_preset(const MachineObject *obj)
 {
     if (!obj)
         return nullptr;
@@ -14876,6 +15174,7 @@ void Plater::reslice()
     // Only restarts if the state is valid.
     //BBS: jusdge the result
     bool result = this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
+    p->preview->get_canvas3d()->on_back_slice_begin();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: restart background,state=%2%, result=%3%")%__LINE__%state %result;
     if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
     {
@@ -17076,6 +17375,18 @@ bool Plater::is_background_process_slicing() const
     return p->m_is_slicing;
 }
 
+// returns the state enum. The header file could not be imported here so the return type is int.
+int Plater::get_helio_process_status() const
+{
+    int helio_state = p->helio_background_process.get_state();
+    return helio_state;
+}
+
+void Plater::update_helio_background_process(std::string& printer_id, std::string& material_id)
+{
+    p->update_helio_background_process(printer_id, material_id);
+}
+
 //BBS: update slicing context
 void Plater::update_slicing_context_to_current_partplate()
 {
@@ -17271,6 +17582,37 @@ void Plater::show_assembly_info()
 bool Plater::show_publish_dialog(bool show)
 {
     return p->show_publish_dlg(show);
+}
+
+std::vector<std::string> Plater::get_current_filaments_preset_names()
+{
+    std::vector<std::string> filaments_names;
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    for (auto filament_name : preset_bundle->filament_presets) {
+        for (int f_index = 0; f_index < preset_bundle->filaments.size(); f_index++) {
+            PresetCollection *filament_presets = &wxGetApp().preset_bundle->filaments;
+            Preset *          preset           = &filament_presets->preset(f_index);
+            int               size             = preset_bundle->filaments.size();
+            if (preset && filament_name.compare(preset->name) == 0) {
+                   // std::string display_filament_type;
+                   // std::string filament_type = preset->config.get_filament_type(display_filament_type);
+                   // std::string m_filament_id = preset->filament_id;
+
+                   // //display_materials.push_back(display_filament_type);
+                   // //materials.push_back(filament_type);
+                   //// m_filaments_id.push_back(m_filament_id);
+
+                   // std::string m_vendor_name = "";
+                   // auto        vendor        = dynamic_cast<ConfigOptionStrings *>(preset->config.option("filament_vendor"));
+                   // if (vendor && (vendor->values.size() > 0)) {
+                   //     std::string vendor_name = vendor->values[0];
+                   //     m_vendor_name           = vendor_name;
+                   // }
+                   filaments_names.push_back(filament_name);
+            }
+        }
+    }
+    return filaments_names;
 }
 
 void Plater::post_process_string_object_exception(StringObjectException &err)

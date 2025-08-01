@@ -13,6 +13,7 @@
 #include "libslic3r/Geometry/ConvexHull.hpp"
 
 #include "slic3r/GUI/OpenGLManager.hpp"
+#include "../Utils/HelioDragon.hpp"
 
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
@@ -34,6 +35,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/nowide/cstdio.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <wx/progdlg.h>
 #include <wx/numformatter.h>
@@ -74,6 +76,12 @@ static std::string get_view_type_string(GCodeViewer::EViewType view_type)
         return _u8L("Fan Speed");
     else if (view_type == GCodeViewer::EViewType::Temperature)
         return _u8L("Temperature");
+    else if (view_type == GCodeViewer::EViewType::ThermalIndexMin)
+        return _u8L("Thermal Index (min)");
+    else if (view_type == GCodeViewer::EViewType::ThermalIndexMax)
+        return _u8L("Thermal Index (max)");
+    else if (view_type == GCodeViewer::EViewType::ThermalIndexMean)
+        return _u8L("Thermal Index (mean)");
     else if (view_type == GCodeViewer::EViewType::VolumetricRate)
         return _u8L("Flow");
     else if (view_type == GCodeViewer::EViewType::Tool)
@@ -85,13 +93,9 @@ static std::string get_view_type_string(GCodeViewer::EViewType view_type)
     return "";
 }
 
-static unsigned char buffer_id(EMoveType type) {
-    return static_cast<unsigned char>(type) - static_cast<unsigned char>(EMoveType::Retract);
-}
+static unsigned char buffer_id(EMoveType type) { return static_cast<unsigned char>(type) - static_cast<unsigned char>(EMoveType::Retract); }
 
-static EMoveType buffer_type(unsigned char id) {
-    return static_cast<EMoveType>(static_cast<unsigned char>(EMoveType::Retract) + id);
-}
+static EMoveType buffer_type(unsigned char id) { return static_cast<EMoveType>(static_cast<unsigned char>(EMoveType::Retract) + id); }
 
 static std::array<float, 4> decode_color(const std::string& color) {
     static const float INV_255 = 1.0f / 255.0f;
@@ -121,11 +125,10 @@ static std::array<float, 4> decode_color(const std::string& color) {
     return ret;
 }
 
-static std::vector<std::array<float, 4>> decode_colors(const std::vector<std::string>& colors) {
-    std::vector<std::array<float, 4>> output(colors.size(), { 0.0f, 0.0f, 0.0f, 1.0f });
-    for (size_t i = 0; i < colors.size(); ++i) {
-        output[i] = decode_color(colors[i]);
-    }
+static std::vector<std::array<float, 4>> decode_colors(const std::vector<std::string> &colors)
+{
+    std::vector<std::array<float, 4>> output(colors.size(), {0.0f, 0.0f, 0.0f, 1.0f});
+    for (size_t i = 0; i < colors.size(); ++i) { output[i] = decode_color(colors[i]); }
     return output;
 }
 
@@ -133,10 +136,10 @@ static std::vector<std::array<float, 4>> decode_colors(const std::vector<std::st
 // Equivalent to conversion to string with sprintf(buf, "%.2g", value) and conversion back to float, but faster.
 static float round_to_bin(const float value)
 {
-//    assert(value > 0);
-    constexpr float const scale    [5] = { 100.f,  1000.f,  10000.f,  100000.f,  1000000.f };
-    constexpr float const invscale [5] = { 0.01f,  0.001f,  0.0001f,  0.00001f,  0.000001f };
-    constexpr float const threshold[5] = { 0.095f, 0.0095f, 0.00095f, 0.000095f, 0.0000095f };
+    //    assert(value > 0);
+    constexpr float const scale[5]     = {100.f, 1000.f, 10000.f, 100000.f, 1000000.f};
+    constexpr float const invscale[5]  = {0.01f, 0.001f, 0.0001f, 0.00001f, 0.000001f};
+    constexpr float const threshold[5] = {0.095f, 0.0095f, 0.00095f, 0.000095f, 0.0000095f};
     // Scaling factor, pointer to the tables above.
     int                   i            = 0;
     // While the scaling factor is not yet large enough to get two integer digits after scaling and rounding:
@@ -209,14 +212,11 @@ void GCodeViewer::IBuffer::reset()
     count = 0;
 }
 
-bool GCodeViewer::Path::matches(const GCodeProcessorResult::MoveVertex& move) const
+bool GCodeViewer::Path::matches(const GCodeProcessorResult::MoveVertex &move) const
 {
-    auto matches_percent = [](float value1, float value2, float max_percent) {
-        return std::abs(value2 - value1) / value1 <= max_percent;
-    };
+    auto matches_percent = [](float value1, float value2, float max_percent) { return std::abs(value2 - value1) / value1 <= max_percent; };
 
-    switch (move.type)
-    {
+    switch (move.type) {
     case EMoveType::Tool_change:
     case EMoveType::Color_change:
     case EMoveType::Pause_Print:
@@ -227,9 +227,8 @@ bool GCodeViewer::Path::matches(const GCodeProcessorResult::MoveVertex& move) co
     case EMoveType::Extrude: {
         // use rounding to reduce the number of generated paths
         return type == move.type && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id && role == move.extrusion_role &&
-            move.position.z() <= sub_paths.front().first.position.z() && feedrate == move.feedrate && fan_speed == move.fan_speed &&
-            height == round_to_bin(move.height) && width == round_to_bin(move.width) &&
-            matches_percent(volumetric_rate, move.volumetric_rate(), 0.05f) && layer_time == move.layer_duration;
+               move.position.z() <= sub_paths.front().first.position.z() && feedrate == move.feedrate && fan_speed == move.fan_speed && height == round_to_bin(move.height) &&
+               width == round_to_bin(move.width) && matches_percent(volumetric_rate, move.volumetric_rate(), 0.05f) && layer_time == move.layer_duration;
     }
     case EMoveType::Travel: {
         return type == move.type && feedrate == move.feedrate && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id;
@@ -256,71 +255,80 @@ void GCodeViewer::TBuffer::reset()
     model.reset();
 }
 
-void GCodeViewer::TBuffer::add_path(const GCodeProcessorResult::MoveVertex& move, unsigned int b_id, size_t i_id, size_t s_id)
+void GCodeViewer::TBuffer::add_path(const GCodeProcessorResult::MoveVertex &move, unsigned int b_id, size_t i_id, size_t s_id)
 {
-    Path::Endpoint endpoint = { b_id, i_id, s_id, move.position };
+    Path::Endpoint endpoint = {b_id, i_id, s_id, move.position};
     // use rounding to reduce the number of generated paths
-    paths.push_back({ move.type, move.extrusion_role, move.delta_extruder,
-        round_to_bin(move.height), round_to_bin(move.width),
-        move.feedrate, move.fan_speed, move.temperature,
-        move.volumetric_rate(), move.layer_duration, move.extruder_id, move.cp_color_id, { { endpoint, endpoint } } });
+    paths.push_back({move.type,
+                     move.extrusion_role,
+                     move.delta_extruder,
+                     round_to_bin(move.height),
+                     round_to_bin(move.width),
+                     move.feedrate,
+                     move.fan_speed,
+                     move.temperature,
+                     move.thermal_index_min,
+                     move.thermal_index_max,
+                     move.thermal_index_mean,
+                     move.volumetric_rate(),
+                     move.layer_duration,
+                     move.extruder_id,
+                     move.cp_color_id,
+                     {{endpoint, endpoint}}});
 }
 
-GCodeViewer::Color GCodeViewer::Extrusions::Range::get_color_at(float value, EType type) const
+ColorRGBA GCodeViewer::Extrusions::Range::get_color_at(float value) const
 {
-    float       global_t = 0.0f;
-    const float step     = step_size(type);
-    if (step > 0.0f) {
-        switch (type) {
-        default:
-        case EType::Linear: {
-            global_t = (value > min) ? (value - min) / step : 0.0f;
-            break;
-        }
-        case EType::Logarithmic: {
-            global_t = (value > min && min > 0.0f) ? ::log(value / min) / step : 0.0f;
-            break;
-        }
-        }
+    // Input value scaled to the colors range
+    const float step = step_size();
+    float       _min = min;
+    if (log_scale) {
+        value = std::log(value);
+        _min  = std::log(min);
     }
-    const size_t color_max_idx = Range_Colors.size() - 1;
+    if (value > max) { return range_colors[range_colors.size() -1]; }
+    if (value < _min) { return range_colors[0];}
+    const float global_t = (step != 0.0f) ? std::max(0.0f, value - _min) / step : 0.0f; // lower limit of 0.0f
+
+    const size_t color_max_idx = range_colors.size() - 1;
 
     // Compute the two colors just below (low) and above (high) the input value
     const size_t color_low_idx  = std::clamp<size_t>(static_cast<size_t>(global_t), 0, color_max_idx);
     const size_t color_high_idx = std::clamp<size_t>(color_low_idx + 1, 0, color_max_idx);
-
     // Compute how far the value is between the low and high colors so that they can be interpolated
     const float local_t = std::clamp(global_t - static_cast<float>(color_low_idx), 0.0f, 1.0f);
     // Interpolate between the low and high colors to find exactly which color the input value should get
-    auto color = lerp(ColorRGBA(Range_Colors[color_low_idx]), ColorRGBA(Range_Colors[color_high_idx]), local_t);
-    return color.get_data();
+    return lerp(range_colors[color_low_idx], range_colors[color_high_idx], local_t);
 }
 
-float GCodeViewer::Extrusions::Range::step_size(EType type) const {
-    switch (type) {
-    default:
-    case EType::Linear: {
-        return (max > min) ? (max - min) / (static_cast<float>(Range_Colors.size()) - 1.0f) : 0.0f;
-    }
-    case EType::Logarithmic: {
-        return (max > min && min > 0.0f) ? ::log(max / min) / (static_cast<float>(Range_Colors.size()) - 1.0f) : 0.0f;
-    }
+float GCodeViewer::Extrusions::Range::step_size() const
+{
+    if (log_scale) {
+        float min_range = min;
+        if (min_range == 0) min_range = 0.001f;
+        return std::log(max / min_range) / get_color_size();
+    } else {
+        return (max - min) / get_color_size();
     }
 }
 
 float GCodeViewer::Extrusions::Range::get_value_at_step(int step) const {
     if (!log_scale)
         return min + static_cast<float>(step) * step_size();
-    else
-    // calculate log-average
+    else// calculate log-average
     {
         float min_range = min;
         if (min_range == 0)
             min_range = 0.0001f;
-        float step_size = std::log(max / min_range) / (static_cast<float>(Range_Colors.size()) - 1.0f);
+        float step_size = std::log(max / min_range) / get_color_size();
         return std::exp(std::log(min) + static_cast<float>(step) * step_size);
     }
 }
+
+float GCodeViewer::Extrusions::Range::get_color_size() const {
+    return (static_cast<float>(range_colors.size()) - 1.0f);
+}
+
 GCodeViewer::SequentialRangeCap::~SequentialRangeCap() {
     if (ibo > 0)
         glsafe(::glDeleteBuffers(1, &ibo));
@@ -414,6 +422,10 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     std::string layer_time = ImGui::ColorMarkerStart + _u8L("Layer Time: ") + ImGui::ColorMarkerEnd;
     std::string fanspeed = ImGui::ColorMarkerStart + _u8L("Fan Speed: ") + ImGui::ColorMarkerEnd;
     std::string temperature = ImGui::ColorMarkerStart + _u8L("Temperature: ") + ImGui::ColorMarkerEnd;
+    std::string    thermal_index  = ImGui::ColorMarkerStart + _u8L("Thermal Index") + ImGui::ColorMarkerEnd;
+    std::string    min            = ImGui::ColorMarkerStart + _u8L("Min: ") + ImGui::ColorMarkerEnd;
+    std::string    max            = ImGui::ColorMarkerStart + _u8L("Max: ") + ImGui::ColorMarkerEnd;
+    std::string    mean           = ImGui::ColorMarkerStart + _u8L("Mean: ") + ImGui::ColorMarkerEnd;
     const float item_size = imgui.calc_text_size("X: 000.000  ").x;
     const float item_spacing = imgui.get_item_spacing().x;
     const float window_padding = ImGui::GetStyle().WindowPadding.x;
@@ -427,8 +439,12 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     // Feedrate and LayerTime shall always show extra text
     else if (view_type == EViewType::Feedrate || view_type == EViewType::LayerTime)
         show_extra_text = true;
+
     if (show_extra_text)
     {
+        float startx2 = window_padding + item_size + item_spacing;
+        float startx3 = window_padding + 2 * (item_size + item_spacing);
+
         sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
         ImGui::PushItemWidth(item_size);
         imgui.text(buf);
@@ -441,6 +457,16 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         sprintf(buf, "%s%.3f", z.c_str(), position.z());
         ImGui::PushItemWidth(item_size);
         imgui.text(buf);
+
+        if (view_type != EViewType::ThermalIndexMin && view_type != EViewType::ThermalIndexMax && view_type != EViewType::ThermalIndexMean) {
+            sprintf(buf, "%s%.0f", speed.c_str(), m_curr_move.feedrate);
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+        } else {
+            sprintf(buf, "%s", thermal_index.c_str());
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+        }
 
         switch (view_type) {
         case EViewType::Height: {
@@ -481,6 +507,37 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         case EViewType::Temperature: {
             ImGui::SameLine(window_padding + item_size + item_spacing);
             sprintf(buf, "%s%.0f", temperature.c_str(), m_curr_move.temperature);
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+            break;
+        }
+        case EViewType::ThermalIndexMin:
+        case EViewType::ThermalIndexMax:
+        case EViewType::ThermalIndexMean:
+        {
+            if (m_curr_move.thermal_index_min < -100)
+                sprintf(buf, "%snull", min.c_str());
+            else
+                sprintf(buf, "%s%.1f", min.c_str(), m_curr_move.thermal_index_min);
+
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            ImGui::SameLine(startx2);
+
+            if (m_curr_move.thermal_index_max < -100)
+                sprintf(buf, "%snull", max.c_str());
+            else
+                sprintf(buf, "%s%.1f", max.c_str(), m_curr_move.thermal_index_max);
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            ImGui::SameLine(startx3);
+
+            if (m_curr_move.thermal_index_mean < -100)
+                sprintf(buf, "%snull", mean.c_str());
+            else
+                sprintf(buf, "%s%.1f", mean.c_str(), m_curr_move.thermal_index_mean);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
@@ -555,6 +612,80 @@ void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& fil
     }
 }
 
+void GCodeViewer::SequentialView::GCodeWindow::render_thermal_index_windows(
+    std::vector<GCodeProcessor::ThermalIndex> thermal_indexes, float top, float right, float wnd_height, float f_lines_count, uint64_t start_id, uint64_t end_id) const
+{
+    const float         text_height       = ImGui::CalcTextSize("0").y;
+    static const ImVec4 LINE_NUMBER_COLOR = ImGuiWrapper::COL_ORANGE_LIGHT;
+
+    float previousWindowWidth = right;
+
+    auto place_window = [text_height, thermal_indexes, top, wnd_height, f_lines_count, start_id, end_id](std::string heading, size_t index_id, float right) {
+        ImGuiWrapper &    imgui = *wxGetApp().imgui();
+        const ImGuiStyle &style = ImGui::GetStyle();
+        imgui.set_next_window_pos(right - 0.4f, top, ImGuiCond_Always, 1.0f, 0.0f);
+        imgui.set_next_window_size(0.0f, wnd_height, ImGuiCond_Always);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::SetNextWindowBgAlpha(0.8f);
+        imgui.begin(std::string("Thermal-Index-" + heading), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+
+        ImDrawList *draw_list     = ImGui::GetWindowDrawList();
+        ImVec2      pos_rect      = ImGui::GetCursorScreenPos();
+        ImVec2      windowPadding = ImGui::GetStyle().WindowPadding;
+        ImVec2      framePadding  = ImGui::GetStyle().FramePadding;
+
+        float textHeight = ImGui::GetTextLineHeight() + 4.0f;
+
+        ImVec2 rectMin = ImVec2(pos_rect.x - windowPadding.x - framePadding.x, pos_rect.y - windowPadding.y - framePadding.y);
+
+        ImVec2 rectMax = ImVec2(pos_rect.x + ImGui::GetContentRegionAvail().x, pos_rect.y + textHeight);
+
+        draw_list->AddRectFilled(rectMin, rectMax, ImGui::GetColorU32(ImVec4(0, 0, 0, 0.3)));
+        ImGui::SetCursorPosY(0.5f * (wnd_height - f_lines_count * text_height - (f_lines_count - 1.0f) * style.ItemSpacing.y));
+
+        const float item_size    = imgui.calc_text_size_new(std::string_view{"X: 000.000  "}).x;
+        const float item_spacing = imgui.get_item_spacing().x;
+
+        ImGui::SameLine(0.0f, 0.0f);
+
+        // render text lines
+        imgui.bold_text(" " + heading);
+
+        char buf[1024];
+        for (uint64_t id = start_id; id <= end_id; ++id) {
+            auto thermal_index = thermal_indexes[id - start_id];
+
+            ImGui::PushStyleColor(ImGuiCol_Text, LINE_NUMBER_COLOR);
+
+            float ti_value;
+
+            switch (index_id) {
+            case 0: ti_value = thermal_index.min; break;
+            case 1: ti_value = thermal_index.max; break;
+            case 2: ti_value = thermal_index.mean; break;
+            };
+
+            if (thermal_index.isNull)
+                sprintf(buf, "%s  ", "  null  ");
+            else
+                sprintf(buf, "%8.2f  ", ti_value);
+
+            imgui.text(buf);
+            ImGui::PopStyleColor();
+        }
+
+        float previousWindowWidth = ImGui::GetCurrentWindow()->Pos.x;
+        imgui.end();
+        ImGui::PopStyleVar();
+
+        return previousWindowWidth;
+    };
+
+    previousWindowWidth = place_window("Mean", 2, previousWindowWidth);
+    previousWindowWidth = place_window("Max", 1, previousWindowWidth);
+    previousWindowWidth = place_window("Min", 0, previousWindowWidth);
+}
+
 //BBS: GUI refactor: move to right
 void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, float right, uint64_t curr_line_id) const
 //void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, uint64_t curr_line_id) const
@@ -562,15 +693,24 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
     auto update_lines = [this](uint64_t start_id, uint64_t end_id) {
         std::vector<Line> ret;
         ret.reserve(end_id - start_id + 1);
+        size_t length_of_line = 40;
+        if (m_sequential_view.m_gcode_viewer.is_helio_option()) {
+            length_of_line = 90;
+        }
         for (uint64_t id = start_id; id <= end_id; ++id) {
             // read line from file
             const size_t start = id == 1 ? 0 : m_lines_ends[id - 2];
-            const size_t len   = m_lines_ends[id - 1] - start;
+            const size_t original_len   = m_lines_ends[id - 1] - start;
+            const size_t len            = std::min(original_len, (size_t) length_of_line);
             std::string gline(m_file.data() + start, len);
 
             std::string command;
             std::string parameters;
             std::string comment;
+
+            // If original line is longer than 55 characters, truncate and append "..."
+            if (original_len > length_of_line)
+                gline = gline.substr(0, length_of_line - 3) + "...";
 
             // extract comment
             std::vector<std::string> tokens;
@@ -589,6 +729,11 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
                     }
                 }
             }
+
+            boost::trim(command);
+            boost::trim(parameters);
+            boost::trim(comment);
+
             ret.push_back({ command, parameters, comment });
         }
         return ret;
@@ -646,16 +791,42 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
     //BBS: GUI refactor: move to right
     //imgui.set_next_window_pos(0.0f, top, ImGuiCond_Always, 0.0f, 0.0f);
     imgui.set_next_window_pos(right, top, ImGuiCond_Always, 1.0f, 0.0f);
-    imgui.set_next_window_size(0.0f, wnd_height, ImGuiCond_Always);
+    if (m_sequential_view.m_gcode_viewer.is_helio_option()) {
+        auto imgui_window_width = ImGui::CalcTextSize("10000 G1 X191.55 Y166.478 E.07946; helio").x;
+        imgui.set_next_window_size(imgui_window_width, wnd_height, ImGuiCond_Always);
+    } else {
+        imgui.set_next_window_size(0.0f, wnd_height, ImGuiCond_Always);
+    }
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::SetNextWindowBgAlpha(0.8f);
-    imgui.begin(std::string("G-code"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+    if (m_sequential_view.m_gcode_viewer.is_helio_option()) {
+        imgui.begin(std::string("G-code"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysHorizontalScrollbar);
+    } else {
+        imgui.begin(std::string("G-code"),ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+    }
+    ImDrawList *draw_list     = ImGui::GetWindowDrawList();
+    ImVec2      pos_rect      = ImGui::GetCursorScreenPos();
+    ImVec2      windowPadding = ImGui::GetStyle().WindowPadding;
+    ImVec2      framePadding  = ImGui::GetStyle().FramePadding;
+
+    float textHeight = ImGui::GetTextLineHeight() + 4.0f;
+
+    ImVec2 rectMin = ImVec2(pos_rect.x - windowPadding.x - framePadding.x, pos_rect.y - windowPadding.y - framePadding.y);
+
+    ImVec2 rectMax = ImVec2(pos_rect.x + ImGui::GetContentRegionAvail().x, pos_rect.y + textHeight);
+
+    draw_list->AddRectFilled(rectMin, rectMax, ImGui::GetColorU32(ImVec4(0, 0, 0, 0.3)));
 
     // center the text in the window by pushing down the first line
     const float f_lines_count = static_cast<float>(lines_count);
     ImGui::SetCursorPosY(0.5f * (wnd_height - f_lines_count * text_height - (f_lines_count - 1.0f) * style.ItemSpacing.y));
 
+    const float window_padding = ImGui::GetStyle().WindowPadding.x;
+
+    ImGui::SameLine(0.0f, 0.0f);
+
     // render text lines
+    imgui.text("GCode");
     for (uint64_t id = start_id; id <= end_id; ++id) {
         const Line& line = m_lines[id - start_id];
 
@@ -711,8 +882,37 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
         }
     }
 
+    float gcodeWindowWidth = ImGui::GetCurrentWindow() -> Pos.x;
+
     imgui.end();
     ImGui::PopStyleVar();
+
+    if (m_sequential_view.m_gcode_viewer.is_helio_option()) {
+        auto get_thermal_index = [this](uint64_t start_id, uint64_t end_id) {
+            std::vector<GCodeProcessor::ThermalIndex> ret;
+            ret.reserve(end_id - start_id + 1);
+            for (uint64_t id = start_id; id <= end_id; ++id) {
+                // read line from file
+                const size_t start = id == 1 ? 0 : m_lines_ends[id - 2];
+                const size_t len   = m_lines_ends[id - 1] - start;
+                std::string  gline(m_file.data() + start, len);
+
+                std::string command, comment;
+                // extract comment
+                std::vector<std::string> tokens;
+                boost::split(tokens, gline, boost::is_any_of(";"), boost::token_compress_on);
+                command = tokens.front();
+                if (tokens.size() > 1) comment = ";" + tokens.back();
+
+                ret.push_back(GCodeProcessor::parse_helioadditive_comment(comment));
+            }
+            return ret;
+        };
+
+        std::vector<GCodeProcessor::ThermalIndex> thermal_indexes = get_thermal_index(start_id, end_id);
+
+        render_thermal_index_windows(thermal_indexes, top, gcodeWindowWidth, wnd_height, f_lines_count, start_id, end_id);
+    }
 }
 
 void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
@@ -736,6 +936,10 @@ void GCodeViewer::SequentialView::render(float legend_height, int canvas_width, 
 #endif
     //gcode_window.render(legend_height, bottom, static_cast<uint64_t>(gcode_ids[current.last]));
     gcode_window.render(legend_height, (float)canvas_height, (float)canvas_width - (float)right_margin, static_cast<uint64_t>(gcode_ids[current.last]));
+}
+
+Slic3r::GUI::GCodeViewer::SequentialView::SequentialView(const GCodeViewer &outer_viewer) : m_gcode_viewer(outer_viewer) {
+
 }
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
@@ -779,7 +983,7 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Travel_Colors {{
 
 // Normal ranges
 // blue to red
-const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors{{
+const std::vector<ColorRGBA> GCodeViewer::Range_Colors{{
     decode_color_to_float_array("#FF00FF"),  // bluish
     decode_color_to_float_array("#FF55A9"),
     decode_color_to_float_array("#FE8778"),
@@ -792,19 +996,19 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors{{
     decode_color_to_float_array("#00FF00")    // reddish
 }};
 
-//const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors {{
-//    {0.043f, 0.173f, 0.478f, 1.0f}, // bluish
-//    {0.075f, 0.349f, 0.522f, 1.0f},
-//    {0.110f, 0.533f, 0.569f, 1.0f},
-//    {0.016f, 0.839f, 0.059f, 1.0f},
-//    {0.667f, 0.949f, 0.000f, 1.0f},
-//    {0.988f, 0.975f, 0.012f, 1.0f},
-//    {0.961f, 0.808f, 0.039f, 1.0f},
-//    //{0.890f, 0.533f, 0.125f, 1.0f},
-//    {0.820f, 0.408f, 0.188f, 1.0f},
-//    {0.761f, 0.322f, 0.235f, 1.0f},
-//    {0.581f, 0.149f, 0.087f, 1.0f} // reddish
-//}};
+const std::vector<ColorRGBA> GCodeViewer::Thermal_Index_Range_Colors{{
+    decode_color_to_float_array("#0b2c7a"), // bluish
+    decode_color_to_float_array("#005478"),
+    decode_color_to_float_array("#006f86"),
+    decode_color_to_float_array("#008e8f"),
+    decode_color_to_float_array("#00b27c"),
+    decode_color_to_float_array("#04d70f"),
+    decode_color_to_float_array("#75b400"),
+    decode_color_to_float_array("#949100"),
+    decode_color_to_float_array("#a16c00"),
+    decode_color_to_float_array("#a04800"),
+    decode_color_to_float_array("#922616") // reddish
+}};
 
 
 const GCodeViewer::Color GCodeViewer::Wipe_Color = { 1.0f, 1.0f, 0.0f, 1.0f };
@@ -816,8 +1020,13 @@ GCodeViewer::GCodeViewer()
     m_layers_slider = new IMSlider(0, 0, 0, 100, wxSL_VERTICAL);
 
     m_extrusions.reset_role_visibility_flags();
-
-//    m_sequential_view.skip_invisible_moves = true;
+    if (GUI::wxGetApp().app_config->get_bool("enable_record_gcodeviewer_option_item")) {
+        auto back_gcodeviewer_option_item = wxGetApp().app_config->get("gcodeviewer_option_item");
+        if (!back_gcodeviewer_option_item.empty()) {
+            m_last_non_helio_option_item = std::atoi(back_gcodeviewer_option_item.c_str());
+        }
+    }
+    //    m_sequential_view.skip_invisible_moves = true;
 }
 
 GCodeViewer::~GCodeViewer()
@@ -830,6 +1039,34 @@ GCodeViewer::~GCodeViewer()
     if (m_layers_slider) {
         delete m_layers_slider;
         m_layers_slider = nullptr;
+    }
+}
+
+bool GCodeViewer::is_helio_option() const
+{
+    if (m_view_type == EViewType::ThermalIndexMin ||
+        m_view_type == EViewType::ThermalIndexMax ||
+        m_view_type == EViewType::ThermalIndexMean)
+        return true;
+    return false;
+}
+
+bool GCodeViewer::curr_plate_has_ok_helio_slice(int plate_idx) const
+{
+    if (m_helio_slice_map_oks.find(plate_idx) != m_helio_slice_map_oks.end() && m_helio_slice_map_oks.at(plate_idx)) {
+        return true;
+    }
+    return false;
+}
+
+void GCodeViewer::update_option_item_when_load_gcode()
+{
+    auto curr_plate_index = wxGetApp().plater()->get_partplate_list().get_curr_plate_index();
+    if (curr_plate_has_ok_helio_slice(curr_plate_index)) {
+        update_thermal_options(true);
+    } else {
+        update_thermal_options(false);
+        update_default_view_type();
     }
 }
 
@@ -924,18 +1161,30 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
     if (preset_bundle)
         m_nozzle_nums = preset_bundle->get_printer_extruder_count();
 
+    init_thermal_icons();
     // set to color print by default if use multi extruders
-    if (m_nozzle_nums > 1) {
-        m_view_type_sel = std::distance(view_type_items.begin(),std::find(view_type_items.begin(), view_type_items.end(), EViewType::Summary));
-        set_view_type(EViewType::Summary);
-    } else {
-        m_view_type_sel = std::distance(view_type_items.begin(),std::find(view_type_items.begin(), view_type_items.end(), EViewType::ColorPrint));
-        set_view_type(EViewType::ColorPrint);
-    }
+    update_default_view_type();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished");
 }
 
-void GCodeViewer::on_change_color_mode(bool is_dark) {
+void GCodeViewer::update_default_view_type()
+{
+    if (view_type_items.empty()) { return; }
+    if (m_last_non_helio_option_item >= (int)view_type_items.size()) { return; }
+    EViewType cur_type = m_nozzle_nums > 1 ? EViewType::Summary : EViewType::ColorPrint;
+    if (m_last_non_helio_option_item < 0) {//not set
+        m_view_type_sel              = std::distance(view_type_items.begin(), std::find(view_type_items.begin(), view_type_items.end(), cur_type));
+        m_last_non_helio_option_item = m_view_type_sel;
+        record_record_gcodeviewer_option_item();
+    } else {
+        m_view_type_sel = m_last_non_helio_option_item;
+        cur_type        = view_type_items[m_view_type_sel];
+    }
+    set_view_type(cur_type);
+}
+
+void GCodeViewer::on_change_color_mode(bool is_dark)
+{
     m_is_dark = is_dark;
     m_sequential_view.marker.on_change_color_mode(m_is_dark);
     m_sequential_view.gcode_window.on_change_color_mode(m_is_dark);
@@ -953,9 +1202,8 @@ void GCodeViewer::set_scale(float scale)
 void GCodeViewer::update_by_mode(ConfigOptionMode mode)
 {
     view_type_items.clear();
-    view_type_items_str.clear();
+    view_type_image_names.clear();
     options_items.clear();
-
     // BBS initialzed view_type items
     view_type_items.push_back(EViewType::Summary);
     view_type_items.push_back(EViewType::FeatureType);
@@ -967,17 +1215,14 @@ void GCodeViewer::update_by_mode(ConfigOptionMode mode)
     view_type_items.push_back(EViewType::LayerTime);
     view_type_items.push_back(EViewType::FanSpeed);
     view_type_items.push_back(EViewType::Temperature);
-    //if (mode == ConfigOptionMode::comDevelop) {
-    //    view_type_items.push_back(EViewType::Tool);
-    //}
-
     for (int i = 0; i < view_type_items.size(); i++) {
-        view_type_items_str.push_back(get_view_type_string(view_type_items[i]));
+        if (view_type_items[i] == EViewType::FilamentId) {
+            continue;
+        }
+        ImageName temp = {get_view_type_string(view_type_items[i]), nullptr, nullptr};
+        view_type_image_names.push_back(temp);
     }
-
-    // BBS for first layer inspection
-    view_type_items.push_back(EViewType::FilamentId);
-
+    view_type_items.push_back(EViewType::FilamentId); // BBS for first layer inspection
     options_items.push_back(EMoveType::Travel);
     options_items.push_back(EMoveType::Retract);
     options_items.push_back(EMoveType::Unretract);
@@ -989,8 +1234,63 @@ void GCodeViewer::update_by_mode(ConfigOptionMode mode)
     options_items.push_back(EMoveType::Seam);
 }
 
-std::vector<int> GCodeViewer::get_plater_extruder()
+void  GCodeViewer::init_thermal_icons() {
+    if (!m_helio_icon_dark_texture) {
+        ImVec2 icon_size(16, 16);
+        IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/helio_icon_dark.svg", icon_size.x, icon_size.y, m_helio_icon_dark_texture);
+        IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/helio_icon.svg", icon_size.x, icon_size.y, m_helio_icon_texture);
+    }
+}
+
+void GCodeViewer::update_thermal_options(bool add) {
+
+    if (add) {
+        for (int i = view_type_items.size() - 1; i >= 0; i--) {
+            if (view_type_items[i] == EViewType::ThermalIndexMean) {
+                return;
+            }
+        }
+        view_type_items.pop_back();//delete EViewType::FilamentId
+        auto index = view_type_items.size();
+
+        view_type_items.push_back(EViewType::ThermalIndexMin);
+        view_type_items.push_back(EViewType::ThermalIndexMax);
+        view_type_items.push_back(EViewType::ThermalIndexMean);
+        for (int i = index; i < view_type_items.size(); i++) {
+            ImageName temp = {get_view_type_string(view_type_items[i]), m_helio_icon_texture, m_helio_icon_dark_texture};
+            view_type_image_names.push_back(temp);
+        }
+        view_type_items.push_back(EViewType::FilamentId);
+    } else {
+        for (int i = view_type_items.size() - 1; i >= 0; i--) {
+            if (view_type_items[i] == EViewType::ThermalIndexMean || view_type_items[i] == EViewType::ThermalIndexMin|| view_type_items[i] == EViewType::ThermalIndexMax) {
+                view_type_items.erase(view_type_items.begin() + i);
+                view_type_image_names.erase(view_type_image_names.begin() + i);
+            }
+        }
+    }
+}
+
+void GCodeViewer::reset_curr_plate_thermal_options() {
+    auto curr_plate_index = wxGetApp().plater()->get_partplate_list().get_curr_plate_index();
+    reset_curr_plate_thermal_options(curr_plate_index);
+}
+
+void GCodeViewer::reset_curr_plate_thermal_options(int plate_idx)
 {
+    update_thermal_options(false);
+    update_default_view_type();
+    m_helio_slice_map_oks[plate_idx] = false;
+}
+
+void GCodeViewer::record_record_gcodeviewer_option_item() {
+    if (GUI::wxGetApp().app_config->get_bool("enable_record_gcodeviewer_option_item")) {
+        wxGetApp().app_config->set("gcodeviewer_option_item", std::to_string(m_last_non_helio_option_item));
+        wxGetApp().app_config->save();
+    }
+}
+
+std::vector<int> GCodeViewer::get_plater_extruder() {
     return m_plater_extruder;
 }
 
@@ -1252,6 +1552,8 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
     // update buffers' render paths
     refresh_render_paths();
     log_memory_used("Refreshed G-code extrusion paths, ");
+
+    update_option_item_when_load_gcode();
 }
 
 void GCodeViewer::refresh_render_paths()
@@ -1861,6 +2163,16 @@ void GCodeViewer::update_marker_curr_move() {
             });
         if (it != m_gcode_result->moves.end())
             m_sequential_view.marker.update_curr_move(*it);
+    }
+}
+
+void GCodeViewer::set_view_type(EViewType type, bool reset_feature_type_visible )
+{
+    if (type == EViewType::Count)
+        type = EViewType::FeatureType;
+    m_view_type = (EViewType) type;
+    if (reset_feature_type_visible && type == EViewType::ColorPrint) {
+        reset_visible(EViewType::FeatureType);
     }
 }
 
@@ -2553,6 +2865,10 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
         }
 
         const unsigned char id = buffer_id(curr.type);
+        if (id >= m_buffers.size()) {//Add an array protection
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " m_buffers array bound";
+            continue;
+        }
         TBuffer& t_buffer = m_buffers[id];
         MultiVertexBuffer& v_multibuffer = vertices[id];
         InstanceBuffer& inst_buffer = instances[id];
@@ -3327,25 +3643,28 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": enter, m_buffers size %1%!")%m_buffers.size();
     auto extrusion_color = [this](const Path& path) {
-        Color color;
+        ColorRGBA color;
         switch (m_view_type)
         {
-        case EViewType::FeatureType:    { color = Extrusion_Role_Colors[static_cast<unsigned int>(path.role)]; break; }
-        case EViewType::Height:         { color = m_extrusions.ranges.height.get_color_at(path.height); break; }
-        case EViewType::Width:          { color = m_extrusions.ranges.width.get_color_at(path.width); break; }
-        case EViewType::Feedrate:       { color = m_extrusions.ranges.feedrate.get_color_at(path.feedrate); break; }
-        case EViewType::FanSpeed:       { color = m_extrusions.ranges.fan_speed.get_color_at(path.fan_speed); break; }
-        case EViewType::Temperature:    { color = m_extrusions.ranges.temperature.get_color_at(path.temperature); break; }
-        case EViewType::LayerTime:      { color = m_extrusions.ranges.layer_duration.get_color_at(path.layer_time, Extrusions::Range::EType::Logarithmic); break; }
-        case EViewType::VolumetricRate: { color = m_extrusions.ranges.volumetric_rate.get_color_at(path.volumetric_rate); break; }
-        case EViewType::Tool:           { color = m_tools.m_tool_colors[path.extruder_id]; break; }
+        case EViewType::FeatureType: {color = Extrusion_Role_Colors[static_cast<unsigned int>(path.role)];break;}
+        case EViewType::Height: {color = m_extrusions.ranges.height.get_color_at(path.height);break;}
+        case EViewType::Width: {color = m_extrusions.ranges.width.get_color_at(path.width);break;}
+        case EViewType::Feedrate: {color = m_extrusions.ranges.feedrate.get_color_at(path.feedrate);break;}
+        case EViewType::FanSpeed: {color = m_extrusions.ranges.fan_speed.get_color_at(path.fan_speed);break;}
+        case EViewType::Temperature: {color = m_extrusions.ranges.temperature.get_color_at(path.temperature);break;}
+        case EViewType::ThermalIndexMin: {color = m_extrusions.ranges.thermal_index_min.get_color_at(path.thermal_index_min);break;}
+        case EViewType::ThermalIndexMax: {color = m_extrusions.ranges.thermal_index_max.get_color_at(path.thermal_index_max);break;}
+        case EViewType::ThermalIndexMean: {color = m_extrusions.ranges.thermal_index_mean.get_color_at(path.thermal_index_mean);break;}
+        case EViewType::LayerTime: {color = m_extrusions.ranges.layer_duration.get_color_at(path.layer_time);break;}
+        case EViewType::VolumetricRate: {color = m_extrusions.ranges.volumetric_rate.get_color_at(path.volumetric_rate);break;}
+        case EViewType::Tool: {color = m_tools.m_tool_colors[path.extruder_id];break;}
         case EViewType::Summary:
         case EViewType::ColorPrint:     {
             if (path.cp_color_id >= static_cast<unsigned char>(m_tools.m_tool_colors.size()))
                 color = { 0.5f, 0.5f, 0.5f, 1.0f };
             else {
                 color = m_tools.m_tool_colors[path.cp_color_id];
-                color = adjust_color_for_rendering(color);
+                color = adjust_color_for_rendering(color.get_data());
             }
             break;
         }
@@ -3586,7 +3905,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         if (m_sequential_view.current.last < sub_path.first.s_id || sub_path.last.s_id < m_sequential_view.current.first)
             continue;
 
-        Color color;
+        ColorRGBA color;
         switch (path.type)
         {
         case EMoveType::Tool_change:
@@ -3618,7 +3937,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         default: { color = { 0.0f, 0.0f, 0.0f, 1.0f }; break; }
         }
 
-        RenderPath key{ tbuffer_id, color, static_cast<unsigned int>(ibuffer_id), path_id };
+        RenderPath key{ tbuffer_id, color.get_data(), static_cast<unsigned int>(ibuffer_id), path_id };
         if (render_path == nullptr || !RenderPathPropertyEqual()(*render_path, key)) {
             buffer.render_paths.emplace_back(key);
             render_path = const_cast<RenderPath*>(&buffer.render_paths.back());
@@ -4992,7 +5311,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImVec2(pos_rect.x + ImGui::GetWindowWidth() + ImGui::GetFrameHeight(),pos_rect.y + ImGui::GetFrameHeight() + window_padding * 2.5),
         ImGui::GetColorU32(ImVec4(0,0,0,0.3)));
 
-    auto append_item = [icon_size, &imgui, imperial_units, &window_padding, &draw_list, &checkbox_offset, this](
+    auto append_item = [icon_size, &imgui, imperial_units, &window_padding, &draw_list, &checkbox_offset,this](
         EItemType type,
         const Color& color,
         const std::vector<std::pair<std::string, float>>& columns_offsets,
@@ -5079,22 +5398,22 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     };
 
     auto append_range = [append_item](const Extrusions::Range& range, unsigned int decimals) {
-        auto append_range_item = [append_item](int i, float value, unsigned int decimals) {
+        auto append_range_item = [append_item, range](int i, float value, unsigned int decimals) {
             char buf[1024];
             ::sprintf(buf, "%.*f", decimals, value);
-            append_item(EItemType::Rect, Range_Colors[i], { { buf , 0} });
+            append_item(EItemType::Rect, range.range_colors[i].get_data(), {{buf, 0}});
         };
 
         if (range.count == 1)
             // single item use case
             append_range_item(0, range.min, decimals);
         else if (range.count == 2) {
-            append_range_item(static_cast<int>(Range_Colors.size()) - 1, range.max, decimals);
+            append_range_item(static_cast<int>(range.range_colors.size()) - 1, range.max, decimals);
             append_range_item(0, range.min, decimals);
         }
         else {
             const float step_size = range.step_size();
-            for (int i = static_cast<int>(Range_Colors.size()) - 1; i >= 0; --i) {
+            for (int i = static_cast<int>(range.range_colors.size()) - 1; i >= 0; --i) {
                 append_range_item(i, range.get_value_at_step(i), decimals);
             }
         }
@@ -5229,17 +5548,74 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         return ret;
     };
 
-    //BBS Slicing Result title
-    ImGui::Dummy({ window_padding, window_padding });
-    ImGui::Dummy({ window_padding, window_padding });
+
+    // BBS Slicing Result title
+    ImGui::Dummy({window_padding, window_padding});
+    ImGui::Dummy({window_padding, window_padding});
     ImGui::SameLine();
-    std::string title = _u8L("Slicing Result");
+    ImVec2      title_start_pos = ImGui::GetCursorPos();
+    std::string title           = _u8L("Slicing Result");
     imgui.bold_text(title);
-    // BBS Set the width of the 8 "ABCD" words minus the "sliced result" to the spacing between the buttons and the title
-    float single_word_width = imgui.calc_text_size("ABCD").x;
-    float title_width       = imgui.calc_text_size(title).x;
-    float spacing           = 18.0f * m_scale;
-    ImGui::SameLine(0, (single_word_width + spacing) * 8.0f - title_width);
+    if (wxGetApp().app_config->get("helio_enable") == "true") {
+        auto  line_height         = ImGui::GetFrameHeight();
+        auto  image_height        = line_height * 0.6;
+
+        float single_word_width   = imgui.calc_text_size("ABCD").x;
+        float title_width         = imgui.calc_text_size(title).x;
+        float spacing             = 18.0f * m_scale;
+        float icon_spacing        = 20.0f * m_scale;
+        float icon_width          = image_height;
+        float text_width          = imgui.calc_text_size(_u8L("Helio Action").c_str()).x + imgui.calc_text_size("A").x;
+        float helio_button_width  = icon_width + text_width  + 30 * m_scale;
+        float helio_button_height = ImGui::GetFrameHeight();
+        ImGui::SameLine(0, (single_word_width + spacing) * 8.0f - title_width - helio_button_width);
+        ImVec2 button_pos          = ImGui::GetCursorScreenPos();
+        ImVec2 original_cursor_pos = ImGui::GetCursorPos();
+        float  vertical_offset     = (ImGui::GetStyle().WindowPadding.y + ImGui::GetFrameHeight() + window_padding * 2.5 - helio_button_height) / 2.f;
+        ImGui::SetCursorPosY(vertical_offset);
+        bool   button_clicked = ImGui::InvisibleButton("HelioButton", ImVec2(helio_button_width, helio_button_height));
+        ImVec2 button_min     = ImGui::GetItemRectMin();
+        ImVec2 button_max     = ImGui::GetItemRectMax();
+        ImU32  color_default  = ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+        ImU32  color_hovered  = ImGui::GetColorU32(ImVec4(0.808f, 0.808f, 0.808f, 1.0f));
+        ImU32  color_active   = ImGui::GetColorU32(ImVec4(0.808f, 0.808f, 0.808f, 1.0f));
+        ImU32  color_text     = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 12.0f * m_scale);
+        ImGui::GetWindowDrawList()->AddRectFilled(button_min, button_max, ImGui::IsItemHovered() ? (ImGui::IsItemActive() ? color_active : color_hovered) : color_default,
+                                                  ImGui::GetStyle().FrameRounding);
+        ImGui::GetWindowDrawList()->AddRect(button_min, button_max, ImGui::GetColorU32(ImGuiCol_Border), ImGui::GetStyle().FrameRounding);
+        float content_height = button_max.y - button_min.y;
+        float text_y         = button_min.y + (content_height - ImGui::GetTextLineHeight()) * 0.5f;
+
+        ImRect bb_image;
+        bb_image.Min = button_min;
+        bb_image.Min.x += std::min(10.f, line_height * 0.45f);
+        bb_image.Min.y += line_height * 0.2;
+        bb_image.Max.x    = bb_image.Min.x + image_height;
+        bb_image.Max.y    = bb_image.Min.y + image_height;
+        ImGui::GetWindowDrawList()->AddImage(m_helio_icon_dark_texture, bb_image.Min, bb_image.Max);
+        ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(),
+                                            ImVec2(button_min.x + ImGui::GetStyle().FramePadding.x + icon_width + 10 * m_scale, text_y),
+                                            color_text,
+                                            _u8L("Helio Action").c_str());
+        ImGui::PopStyleVar();
+        if (button_clicked) {
+            BOOST_LOG_TRIVIAL(info) << "Helio button clicked";
+            Plater *       plater = wxGetApp().plater();
+            wxCommandEvent evt(EVT_HELIO_INPUT_CHAMBER_TEMP);
+            evt.SetEventObject(plater);
+            wxPostEvent(plater, evt);
+        }
+        ImGui::SameLine();
+    } else {
+        // BBS Set the width of the 8 "ABCD" words minus the "sliced result" to the spacing between the buttons and the title
+        float single_word_width = imgui.calc_text_size("ABCD").x;
+        float title_width       = imgui.calc_text_size(title).x;
+        float spacing           = 18.0f * m_scale;
+        ImGui::SameLine(0, (single_word_width + spacing) * 8.0f - title_width);
+    }
+    // BBS support helio
+
     std::wstring btn_name;
     if (m_fold)
         btn_name = ImGui::UnfoldButtonIcon + boost::nowide::widen(std::string(""));
@@ -5250,9 +5626,9 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.68f, 0.26f, 0.78f));
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
     float button_width = ImGui::CalcTextSize(into_u8(btn_name).c_str()).x;
-    if (ImGui::Button(into_u8(btn_name).c_str(), ImVec2(button_width, 0))) {
-        m_fold = !m_fold;
-    }
+    ImGui::SetCursorPosY(8.f);
+    if (ImGui::Button(into_u8(btn_name).c_str(), ImVec2(button_width, 0))) { m_fold = !m_fold; }
+
     ImGui::PopStyleColor(3);
     ImGui::PopStyleVar(1);
 
@@ -5269,18 +5645,39 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::Dummy({ window_padding, window_padding });
     ImGui::SameLine();
     imgui.bold_text(_u8L("Color Scheme"));
-    push_combo_style();
-
     ImGui::SameLine();
-    const char* view_type_value = view_type_items_str[m_view_type_sel].c_str();
+    if (wxGetApp().plater()->get_helio_process_status() != m_last_helio_process_status) {
+        m_last_helio_process_status = wxGetApp().plater()->get_helio_process_status();
+        auto curr_plate_index       = wxGetApp().plater()->get_partplate_list().get_curr_plate_index();
+        if ((int) Slic3r::HelioBackgroundProcess::State::STATE_FINISHED == m_last_helio_process_status) {
+            update_thermal_options(true);
+            for (int i = 0; i < view_type_items.size(); i++) {
+                if (view_type_items[i] == EViewType::ThermalIndexMean) {
+                    m_view_type_sel = i;
+                    break;
+                }
+            }
+            set_view_type(EViewType::ThermalIndexMean);
+            wxGetApp().plater()->get_notification_manager()->close_notification_of_type(NotificationType::HelioSlicingError);
+            m_helio_slice_map_oks[curr_plate_index] = true;
+        } else if ((int) Slic3r::HelioBackgroundProcess::State::STATE_CANCELED == m_last_helio_process_status) {
+            reset_curr_plate_thermal_options(curr_plate_index);
+        }
+    }
+    push_combo_style();
     ImGuiComboFlags flags = 0;
+    const char *view_type_value = view_type_image_names[m_view_type_sel].option_name.c_str();
     if (ImGui::BBLBeginCombo("", view_type_value, flags)) {
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
-        for (int i = 0; i < view_type_items_str.size(); i++) {
+        for (int i = 0; i < view_type_image_names.size(); i++) {
             const bool is_selected = (m_view_type_sel == i);
-            if (ImGui::BBLSelectable(view_type_items_str[i].c_str(), is_selected)) {
+            if (ImGui::BBLSelectable_LeftImage(view_type_image_names[i].option_name.c_str(), is_selected, view_type_image_names[i].texture_id)) {
                 m_fold = false;
                 m_view_type_sel = i;
+                if (!is_helio_option()) {
+                    m_last_non_helio_option_item = i;
+                    record_record_gcodeviewer_option_item();
+                }
                 set_view_type(view_type_items[m_view_type_sel]);
                 reset_visible(view_type_items[m_view_type_sel]);
                 // update buffers' render paths
@@ -5451,19 +5848,16 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     }
     case EViewType::Height:         { imgui.title(_u8L("Layer Height (mm)")); break; }
     case EViewType::Width:          { imgui.title(_u8L("Line Width (mm)")); break; }
-    case EViewType::Feedrate:
-    {
-        imgui.title(_u8L("Speed (mm/s)"));
-        break;
-    }
-
-    case EViewType::FanSpeed:       { imgui.title(_u8L("Fan Speed (%)")); break; }
-    case EViewType::Temperature:    { imgui.title(_u8L("Temperature (°C)")); break; }
-    case EViewType::VolumetricRate: { imgui.title(_u8L("Volumetric flow rate (mm³/s)")); break; }
-    case EViewType::LayerTime:      { imgui.title(_u8L("Layer Time (s)")); break; }
-
+    case EViewType::Feedrate:{imgui.title(_u8L("Speed (mm/s)"));break;}
+    case EViewType::FanSpeed: {imgui.title(_u8L("Fan Speed (%)"));break;}
+    case EViewType::Temperature: {imgui.title(_u8L("Temperature (°C)"));break;}
+    case EViewType::ThermalIndexMin: {imgui.title(_u8L("Thermal Index (min)"));break;}
+    case EViewType::ThermalIndexMax: {imgui.title(_u8L("Thermal Index (max)"));break;}
+    case EViewType::ThermalIndexMean: {imgui.title(_u8L("Thermal Index (mean)"));break;}
+    case EViewType::VolumetricRate: {imgui.title(_u8L("Volumetric flow rate (mm³/s)"));break;}
+    case EViewType::LayerTime: {imgui.title(_u8L("Layer Time"));break;}
     case EViewType::Tool:
-    {
+{
         // calculate used filaments data
         for (size_t extruder_id : m_extruder_ids) {
             if (m_print_statistics.model_volumes_per_extruder.find(extruder_id) == m_print_statistics.model_volumes_per_extruder.end())
@@ -5612,10 +6006,13 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::PopStyleVar(1);
         break;
     }
-    case EViewType::FanSpeed:       { append_range(m_extrusions.ranges.fan_speed, 0); break; }
-    case EViewType::Temperature:    { append_range(m_extrusions.ranges.temperature, 0); break; }
-    case EViewType::LayerTime:      { append_range(m_extrusions.ranges.layer_duration, 1); break; }
-    case EViewType::VolumetricRate: { append_range(m_extrusions.ranges.volumetric_rate, 2); break; }
+    case EViewType::FanSpeed: {append_range(m_extrusions.ranges.fan_speed, 0);break;}
+    case EViewType::Temperature: {append_range(m_extrusions.ranges.temperature, 0);break;}
+    case EViewType::ThermalIndexMin: {append_range(m_extrusions.ranges.thermal_index_min, 0);break;}
+    case EViewType::ThermalIndexMax: {append_range(m_extrusions.ranges.thermal_index_max, 0);break;}
+    case EViewType::ThermalIndexMean: {append_range(m_extrusions.ranges.thermal_index_mean, 0);break;}
+    case EViewType::LayerTime: {append_range(m_extrusions.ranges.layer_duration, 1);break;}
+    case EViewType::VolumetricRate: {append_range(m_extrusions.ranges.volumetric_rate, 2);break;}
     case EViewType::Tool:
     {
         // shows only extruders actually used

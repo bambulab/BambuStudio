@@ -187,6 +187,7 @@ public:
         STOP_BUZZER = 29,
 
         RETRY_PROBLEM_SOLVED = 34,
+        STOP_DRYING = 35,
 
         ERROR_BUTTON_COUNT
     };
@@ -358,6 +359,41 @@ public:
     ~SendFailedConfirm(){};
 
     //void on_ok(wxMouseEvent &evt);
+    void on_dpi_changed(const wxRect &suggested_rect) override;
+};
+
+class HelioStatementDialog : public DPIDialog
+{
+private:
+    Label *m_title{nullptr};
+    Button *m_button_confirm{nullptr};
+    Button *m_button_cancel{nullptr};
+
+
+public:
+    HelioStatementDialog(wxWindow *parent = nullptr);
+    ~HelioStatementDialog(){};
+
+    // void on_ok(wxMouseEvent &evt);
+    void on_dpi_changed(const wxRect &suggested_rect) override;
+};
+
+class HelioInputDialog : public DPIDialog
+{
+private:
+    TextInput *m_input_item{nullptr};
+    Button *m_button_confirm{nullptr};
+    bool m_isAdjusting = false;
+    wxString m_lastValidValue = wxEmptyString;
+
+public:
+    HelioInputDialog(wxWindow *parent = nullptr);
+    ~HelioInputDialog(){};
+
+    // void on_ok(wxMouseEvent &evt);
+    bool   IsValidFloat(const wxString &text);
+    double get_input_data();
+    bool is_number_regex(const wxString &str, double &value);
     void on_dpi_changed(const wxRect &suggested_rect) override;
 };
 

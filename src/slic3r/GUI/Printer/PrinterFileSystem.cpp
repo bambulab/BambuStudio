@@ -388,10 +388,8 @@ void PrinterFileSystem::DownloadRamFile(int index, const std::string &local_path
             if (result == SUCCESS) {
                 if (std::filesystem::exists(download->local_path)) {
                     m_download_states.emplace_back(true);
-                    //BOOST_LOG_TRIVIAL(info) <<"DownloadImageFromRam finished: " << download->local_path << "result = " << result;
                 }else{
                     m_download_states.emplace_back(false);
-                    //BOOST_LOG_TRIVIAL(warning) <<"DownloadImageFromRam finished, but file not exist: " << download->local_path << "result = " << result;
                 }
             } else if (result != CONTINUE) {
                 m_download_states.emplace_back(false);
@@ -704,6 +702,7 @@ void PrinterFileSystem::Stop(bool quit)
     }
     m_stopped = true;
     m_cond.notify_all();
+
 }
 
 void PrinterFileSystem::SetUploadFile(const std::string &path, const std::string &name, const std::string &select_storage)
@@ -865,7 +864,7 @@ void PrinterFileSystem::DownloadNextFile()
                 const auto  char_digest = reinterpret_cast<const char *>(&digest[0]);
                 boost::algorithm::hex(char_digest, char_digest + sizeof(digest), std::back_inserter(str_md5));
                 if (!boost::iequals(str_md5, md5)) {
-                    BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::DownloadNextFile checksum error:  " << str_md5 << "!=" << md5;
+                    BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::DownloadNextFile checksum error:  str_md5 !=  md5" ;
                     boost::system::error_code ec;
                     boost::filesystem::rename(download->local_path, download->local_path + ".tmp", ec);
                     result = FILE_CHECK_ERR;
@@ -1219,11 +1218,7 @@ void PrinterFileSystem::SendChangedEvent(wxEventType type, size_t index, std::st
 
 void PrinterFileSystem::DumpLog(void * thiz, int, tchar const *msg)
 {
-
-#if !BBL_RELEASE_TO_PUBLIC
     BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem: " << wxString(msg).ToUTF8().data();
-#endif
-
     static_cast<PrinterFileSystem*>(thiz)->Bambu_FreeLogMsg(msg);
 }
 
@@ -1329,7 +1324,7 @@ int PrinterFileSystem::UploadFileTask(std::shared_ptr<UploadFile> upload_file, b
     if (!upload->ifs.is_open()) {
         upload->ifs.open(upload_file->path, std::ios::binary);
         if (!upload_file->upload->ifs) {
-            BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::UploadFile open error.";
+            BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::UploadFile open error1.";
             return FILE_OPEN_ERR;
         }
         MD5_Init(&upload->ctx);
@@ -1343,7 +1338,7 @@ int PrinterFileSystem::UploadFileTask(std::shared_ptr<UploadFile> upload_file, b
     boost::int32_t read_size = upload->ifs.gcount();
 
     if (read_size <= 0) {
-        BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::UploadFile open error.";
+        BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::UploadFile open error2.";
         upload->ifs.close();
 
         if (buffer) {
@@ -1510,7 +1505,9 @@ void PrinterFileSystem::CancelRequests2(std::vector<boost::uint32_t> const &seqs
     }
     l.unlock();
     for (auto &c : callbacks) {
+#if !BBL_RELEASE_TO_PUBLIC
         BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::CancelRequests2:" << c.first;
+#endif
         c.second(ERROR_CANCEL, json(), nullptr);
     }
 }
@@ -1820,7 +1817,9 @@ static void* get_function(const char* name)
 #endif
 
     if (!function) {
+#if !BBL_RELEASE_TO_PUBLIC
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", can not find function %1%") % name;
+#endif
     }
     return function;
 }

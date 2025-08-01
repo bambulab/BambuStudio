@@ -696,12 +696,10 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     wxBoxSizer *bSizer_buttons = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *bSizer_text = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *bSizer_finish_time = new wxBoxSizer(wxHORIZONTAL);
-    wxPanel* penel_bottons = new wxPanel(parent);
     wxPanel* penel_text = new wxPanel(progress_lr_panel);
     wxPanel* penel_finish_time = new wxPanel(progress_lr_panel);
 
     penel_text->SetBackgroundColour(*wxWHITE);
-    penel_bottons->SetBackgroundColour(*wxWHITE);
     penel_finish_time->SetBackgroundColour(*wxWHITE);
 
     wxBoxSizer *sizer_percent = new wxBoxSizer(wxVERTICAL);
@@ -764,7 +762,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     m_staticText_finish_day->Hide();
     bSizer_finish_time->Add(0, 0, 1, wxEXPAND, 0);
     bSizer_finish_time->Add(m_staticText_finish_time, 0, wxLEFT | wxEXPAND, 0);
-    bSizer_finish_time->Add(m_staticText_finish_day, 0, wxLEFT | wxEXPAND | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    bSizer_finish_time->Add(m_staticText_finish_day, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     // penel_finish_time->SetMaxSize(wxSize(FromDIP(600), -1));
     penel_finish_time->SetSizer(bSizer_finish_time);
     penel_finish_time->Layout();
@@ -2779,6 +2777,12 @@ void StatusPanel::show_error_message(MachineObject *obj, bool is_exist, wxString
             m_print_error_dlg = new PrintErrorDialog(this->GetParent(), wxID_ANY, _L("Error"));
             m_print_error_dlg->update_title_style(_L("Error"), used_button, this);
             m_print_error_dlg->update_text_image(msg, print_error_str, image_url);
+            m_print_error_dlg->Bind(wxEVT_CLOSE_WINDOW, [this, dev_id](wxCloseEvent& e)
+                {
+                    MachineObject *the_obj = wxGetApp().getDeviceManager()->get_my_machine(dev_id);
+                    if (the_obj) { the_obj->command_clean_print_error_uiop(the_obj->print_error); }
+                    e.Skip();
+                });
             m_print_error_dlg->on_show();
         }
         else {
@@ -2817,7 +2821,17 @@ void StatusPanel::show_error_message(MachineObject *obj, bool is_exist, wxString
             m_print_error_dlg_no_action->update_text(error_code_msg);
             m_print_error_dlg_no_action->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, dev_id](wxCommandEvent &e) {
                 MachineObject *the_obj = wxGetApp().getDeviceManager()->get_my_machine(dev_id);
-                if (the_obj) { the_obj->command_clean_print_error(the_obj->subtask_id_, the_obj->print_error); }
+                if (the_obj) {
+                    the_obj->command_clean_print_error(the_obj->subtask_id_, the_obj->print_error);
+                    the_obj->command_clean_print_error_uiop(the_obj->print_error);
+                }
+            });
+
+            m_print_error_dlg_no_action->Bind(wxEVT_CLOSE_WINDOW, [this, dev_id](wxCloseEvent& e)
+            {
+                MachineObject *the_obj = wxGetApp().getDeviceManager()->get_my_machine(dev_id);
+                if (the_obj) { the_obj->command_clean_print_error_uiop(the_obj->print_error); }
+                e.Skip();
             });
 
             m_print_error_dlg_no_action->Bind(EVT_SECONDARY_CHECK_RETRY, [this](wxCommandEvent& e) {
@@ -4783,7 +4797,7 @@ void StatusPanel::on_print_error_dlg_btn_clicked(wxCommandEvent& event)
                 break;
             }
             case Slic3r::GUI::PrintErrorDialog::CHECK_ASSISTANT: {
-                wxGetApp().mainframe->m_monitor->jump_to_HMS(event); // go to assistant page
+                wxGetApp().mainframe->m_monitor->jump_to_HMS(); // go to assistant page
                 break;
             }
             case Slic3r::GUI::PrintErrorDialog::FILAMENT_EXTRUDED: {
@@ -4837,6 +4851,10 @@ void StatusPanel::on_print_error_dlg_btn_clicked(wxCommandEvent& event)
             }
             case Slic3r::GUI::PrintErrorDialog::RETRY_PROBLEM_SOLVED: {
                 obj->command_ams_control("resume");
+                break;
+            }
+            case Slic3r::GUI::PrintErrorDialog::STOP_DRYING: {
+                obj->command_ams_drying_stop();
                 break;
             }
             case Slic3r::GUI::PrintErrorDialog::ERROR_BUTTON_COUNT: break;

@@ -1,0 +1,19 @@
+ARG VERSION="studio_dep_22"
+FROM ${VERSION}:1.0 AS builder
+
+COPY ./ /BambuStudio
+
+WORKDIR /BambuStudio
+
+RUN mkdir -p /BambuStudio/deps/build
+
+RUN mv /destdir /BambuStudio/deps/build/
+
+RUN ./BuildLinux.sh -s
+
+ENV container=podman
+RUN ./BuildLinux.sh -i
+
+FROM scratch AS export-stage
+
+COPY --from=builder /BambuStudio/build/BambuStudio_ubu64.AppImage /

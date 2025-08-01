@@ -1260,8 +1260,9 @@ static size_t get_id_from_opt_key(std::string opt_key)
 static wxString get_full_label(std::string opt_key, const DynamicPrintConfig& config)
 {
     opt_key = get_pure_opt_key(opt_key);
+    auto option = config.option(opt_key);
 
-    if (config.option(opt_key)->is_nil())
+    if (!option || option->is_nil())
         return _L("N/A");
 
     const ConfigOptionDef* opt = config.def()->get(opt_key);
@@ -1281,6 +1282,9 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
     opt_idx = orig_opt_idx >= 0 ? orig_opt_idx : 0;
     opt_key = get_pure_opt_key(opt_key);
     auto option = config.option(opt_key);
+    if (!option) {
+        return _L("N/A");
+    }
     auto opt_vector = dynamic_cast<const ConfigOptionVectorBase *>(option);
 
     if (option->is_scalar() && config.option(opt_key)->is_nil() ||
@@ -1425,6 +1429,9 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
             return get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
         }
         else if (opt_key == "head_wrap_detect_zone") {
+            return get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
+        }
+        else if (opt_key == "wrapping_detection_path") {
             return get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
         }
         Vec2d val = config.opt<ConfigOptionPoints>(opt_key)->get_at(opt_idx);

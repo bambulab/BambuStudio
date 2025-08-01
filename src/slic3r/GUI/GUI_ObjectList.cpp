@@ -2123,12 +2123,7 @@ void ObjectList::load_subobject(ModelVolumeType type, bool from_galery/* = false
     take_snapshot((type == ModelVolumeType::MODEL_PART) ? "Load Part" : "Load Modifier");
 
     std::vector<ModelVolume*> volumes;
-    // ! ysFIXME - delete commented code after testing and rename "load_modifier" to something common
-    /*
-    if (type == ModelVolumeType::MODEL_PART)
-        load_part(*(*m_objects)[obj_idx], volumes, type, from_galery);
-    else*/
-        load_modifier(input_files, *(*m_objects)[obj_idx], volumes, type, from_galery);
+    load_from_files(input_files, *(*m_objects)[obj_idx], volumes, type, from_galery);
 
     if (volumes.empty())
         return;
@@ -2151,73 +2146,9 @@ void ObjectList::load_subobject(ModelVolumeType type, bool from_galery/* = false
     //BBS: notify partplate the modify
     notify_instance_updated(obj_idx);
 }
-/*
-void ObjectList::load_part(ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery = false)
+
+void ObjectList::load_from_files(const wxArrayString &input_files, ModelObject &model_object, std::vector<ModelVolume *> &added_volumes, ModelVolumeType type, bool from_galery)
 {
-    if (type != ModelVolumeType::MODEL_PART)
-        return;
-
-    wxWindow* parent = wxGetApp().tab_panel()->GetPage(0);
-
-    wxArrayString input_files;
-
-    if (from_galery) {
-        GalleryDialog dlg(this);
-        if (dlg.ShowModal() == wxID_CLOSE)
-            return;
-        dlg.get_input_files(input_files);
-        if (input_files.IsEmpty())
-            return;
-    }
-    else
-        wxGetApp().import_model(parent, input_files);
-
-    ProgressDialog dlg(_L("Loading") + dots, "", 100, wxGetApp().mainframe wxPD_AUTO_HIDE);
-    wxBusyCursor busy;
-
-    for (size_t i = 0; i < input_files.size(); ++i) {
-        std::string input_file = input_files.Item(i).ToUTF8().data();
-
-        dlg.Update(static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(input_files.size())),
-            _L("Loading file") + ": " + from_path(boost::filesystem::path(input_file).filename()));
-        dlg.Fit();
-
-        Model model;
-        try {
-            model = Model::read_from_file(input_file);
-        }
-        catch (std::exception &e) {
-            auto msg = _L("Error!") + " " + input_file + " : " + e.what() + ".";
-            show_error(parent, msg);
-            exit(1);
-        }
-
-        for (auto object : model.objects) {
-            Vec3d delta = Vec3d::Zero();
-            if (model_object.origin_translation != Vec3d::Zero()) {
-                object->center_around_origin();
-                delta = model_object.origin_translation - object->origin_translation;
-            }
-            for (auto volume : object->volumes) {
-                volume->translate(delta);
-                auto new_volume = model_object.add_volume(*volume, type);
-                new_volume->name = boost::filesystem::path(input_file).filename().string();
-                // set a default extruder value, since user can't add it manually
-                // BBS
-                new_volume->config.set_key_value("extruder", new ConfigOptionInt(1));
-
-                added_volumes.push_back(new_volume);
-            }
-        }
-    }
-}
-*/
-void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery)
-{
-    // ! ysFIXME - delete commented code after testing and rename "load_modifier" to something common
-    //if (type == ModelVolumeType::MODEL_PART)
-    //    return;
-
     wxWindow* parent = wxGetApp().tab_panel()->GetPage(0);
 
     ProgressDialog dlg(_L("Loading") + dots, "", 100, wxGetApp().mainframe, wxPD_AUTO_HIDE);
@@ -2264,14 +2195,25 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
             show_error(parent, msg);
             return;
         }
-
+        wxGetApp().plater()->statistics_burial_data(input_files[0].utf8_string());
+        bool has_instance = false;
+        bool has_origin_translation = model_object.origin_translation != Vec3d::Zero();
         if (from_galery)
             model.center_instances_around_point(Vec2d::Zero());
         else {
             for (auto object : model.objects) {
-                if (model_object.origin_translation != Vec3d::Zero()) {
+                if (object->instances.size() > 0) {
+                    has_instance = true;
+                }
+                if (has_origin_translation) {
                     object->center_around_origin();
-                    const Vec3d delta = model_object.origin_translation - object->origin_translation;
+                    Vec3d delta ;
+                    if (model_object.volumes.size() == 1) {
+                        delta = model_object.origin_translation - object->origin_translation;
+                    } else {
+                        auto _plate_origin = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_origin();
+                        delta              = instance_offset - _plate_origin - object->origin_translation;
+                    }
                     for (auto volume : object->volumes) {
                         volume->translate(delta);
                     }
@@ -2280,7 +2222,7 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
         }
 
         model.add_default_instances();
-        TriangleMesh mesh = model.mesh();
+        TriangleMesh mesh = model.mesh();//world mesh
         // Mesh will be centered when loading.
         ModelVolume* new_volume = model_object.add_volume(std::move(mesh), type);
         new_volume->name = boost::filesystem::path(input_file).filename().string();
@@ -2295,20 +2237,32 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
         new_volume->source.input_file = input_file;
         new_volume->source.object_idx = obj_idx;
         new_volume->source.volume_idx = int(model_object.volumes.size()) - 1;
-        if (model.objects.size() == 1 && model.objects.front()->volumes.size() == 1)
+        if (model.objects.size() == 1 && model.objects.front()->volumes.size() == 1) {
             new_volume->source.mesh_offset = model.objects.front()->volumes.front()->source.mesh_offset;
-
-        if (from_galery) {
-            // Transform the new modifier to be aligned with the print bed.
-            const BoundingBoxf3 mesh_bb = new_volume->mesh().bounding_box();
-            new_volume->set_transformation(Geometry::Transformation::volume_to_bed_transformation(inst_transform, mesh_bb));
-            // Set the modifier position.
-            // Translate the new modifier to be pickable: move to the left front corner of the instance's bounding box, lift to print bed.
-            const Vec3d offset = Vec3d(instance_bb.max.x(), instance_bb.min.y(), instance_bb.min.z()) + 0.5 * mesh_bb.size() - instance_offset;
-            new_volume->set_offset(inv_inst_transform * offset);
         }
-        else
-            new_volume->set_offset(new_volume->source.mesh_offset - model_object.volumes.front()->source.mesh_offset);
+
+        auto update_new_volume_tran_ignore_scale = [](ModelVolume *new_volume, const BoundingBoxf3 &mesh_bb, const BoundingBoxf3 &instance_bb,
+                                                      const Geometry::Transformation& inst_transform, Vec3d instance_offset) {
+            new_volume->set_transformation(Geometry::Transformation::volume_to_bed_transformation(inst_transform, mesh_bb));
+            const Vec3d offset = Vec3d(instance_bb.max.x(), instance_bb.min.y(), instance_bb.min.z()) + 0.5 * mesh_bb.size() - instance_offset;
+            new_volume->set_offset(inst_transform.get_matrix_no_offset().inverse() * offset);
+        };
+        const BoundingBoxf3 mesh_bb = new_volume->mesh().bounding_box();
+        if (from_galery) {
+            update_new_volume_tran_ignore_scale(new_volume, mesh_bb, instance_bb, inst_transform, instance_offset);
+        }
+        else {
+            if (has_instance || has_origin_translation == false) { //1. load 3mf //2. one 3mf load stl
+                update_new_volume_tran_ignore_scale(new_volume, mesh_bb, instance_bb, inst_transform, instance_offset);
+            } else {
+                Vec3d offset = Vec3d::Zero();
+                offset       = new_volume->source.mesh_offset - model_object.volumes.front()->source.mesh_offset;
+                if (model_object.volumes.size() > 1) {
+                    offset += model_object.volumes.front()->get_offset();
+                }
+                new_volume->set_offset(offset);
+            }
+        }
 
         added_volumes.push_back(new_volume);
     }

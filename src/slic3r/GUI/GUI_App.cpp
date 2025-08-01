@@ -76,6 +76,7 @@
 #include "../Utils/MacDarkMode.hpp"
 #include "../Utils/Http.hpp"
 #include "../Utils/UndoRedo.hpp"
+#include "../Utils/HelioDragon.hpp"
 #include "slic3r/Config/Snapshot.hpp"
 #include "Preferences.hpp"
 #include "Tab.hpp"
@@ -1086,6 +1087,29 @@ void GUI_App::post_init()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: false";
     }
 
+    /*request helio config*/
+    if (app_config->get("helio_enable") == "true") {
+        // BBS loading user preset
+        // Always async, not such startup step
+        // BOOST_LOG_TRIVIAL(info) << "Loading user presets...";
+        // scrn->SetText(_L("Loading user presets..."));
+        //if (m_agent) { request_helio_supported_data(); }
+
+        std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
+        if (helio_api_key.empty()) {
+            wxGetApp().request_helio_pat([](std::string pat) {
+                Slic3r::HelioQuery::set_helio_pat(pat);
+                wxGetApp().request_helio_supported_data();
+            });
+        } else {
+            wxGetApp().request_helio_supported_data();
+        }
+
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync helio config: true";
+    } else {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync helio config: false";
+    }
+
     m_open_method = "double_click";
     bool switch_to_3d = false;
     if (!this->init_params->input_files.empty()) {
@@ -1138,7 +1162,7 @@ void GUI_App::post_init()
             }
             catch (...){}
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", download_url %1%") % download_url;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", download_url %1%") % PathSanitizer::sanitize(download_url);
 
             if (!download_url.empty()) {
                 m_download_file_url = from_u8(download_url);
@@ -1266,7 +1290,7 @@ void GUI_App::post_init()
     }*/
 
     //BBS: check crash log
-    auto log_dir_path = boost::filesystem::path(data_dir()) / "log";
+    /*auto log_dir_path = boost::filesystem::path(data_dir()) / "log";
     if (boost::filesystem::exists(log_dir_path))
     {
         boost::filesystem::directory_iterator end_iter;
@@ -1296,7 +1320,7 @@ void GUI_App::post_init()
                 }
             }
         }
-    }
+    }*/
 
     if (m_networking_need_update) {
         //updating networking
@@ -2765,7 +2789,7 @@ bool GUI_App::on_init_inner()
 
 #ifdef WIN32
     //BBS set crash log folder
-    CBaseException::set_log_folder(data_dir());
+    //CBaseException::set_log_folder(data_dir());
 #endif
 
     wxGetApp().Bind(wxEVT_QUERY_END_SESSION, [this](auto & e) {
@@ -2803,6 +2827,11 @@ bool GUI_App::on_init_inner()
 
     BOOST_LOG_TRIVIAL(info) << get_system_info();
 
+// initialize label colors and fonts
+    init_label_colours();
+    init_fonts();
+    wxGetApp().Update_dark_mode_flag();
+    
 #if defined(__WINDOWS__)
     HMODULE hKernel32 = GetModuleHandleW(L"kernel32.dll");
     m_is_arm64 = false;
@@ -2877,10 +2906,6 @@ bool GUI_App::on_init_inner()
 #endif // __WINDOWS__
 
 #endif
-    // initialize label colors and fonts
-    init_label_colours();
-    init_fonts();
-    wxGetApp().Update_dark_mode_flag();
 
 
 #ifdef _MSW_DARK_MODE
@@ -4063,6 +4088,22 @@ bool GUI_App::catch_error(std::function<void()> cb,
     return false;
 }
 
+void GUI_App::request_helio_pat(std::function<void(std::string)> func)
+{
+    Slic3r::HelioQuery::request_pat_token(func);
+}
+
+void GUI_App::request_helio_supported_data()
+{
+    std:;string helio_api_url = Slic3r::HelioQuery::get_helio_api_url();
+    std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
+
+    if (HelioQuery::global_supported_printers.size() <= 0 || HelioQuery::global_supported_materials.size() <= 0) {
+        Slic3r::HelioQuery::request_all_support_machine(helio_api_url, helio_api_key);
+        Slic3r::HelioQuery::request_all_support_materials(helio_api_url, helio_api_key);
+    }
+}
+
 // static method accepting a wxWindow object as first parameter
 void fatal_error(wxWindow* parent)
 {
@@ -4217,24 +4258,17 @@ wxString GUI_App::transition_tridid(int trid_id) const
         int id_index = trid_id / 4;
         return wxString::Format("%s", maping_dict[id_index]);
     }
-    else {
-        int id_index = ceil(trid_id / 4);
-        int id_suffix = trid_id % 4 + 1;
-        return wxString::Format("%s%d", maping_dict[id_index], id_suffix);
-    }
-}
-
-wxString GUI_App::transition_tridid(int trid_id, bool is_n3s) const
-{
-    if (is_n3s)
-    {
+    else if (trid_id >= 0x80 && trid_id <= 0x87) { // n3s
         const char base = 'A' + (trid_id - 128);
         wxString prefix("HT-");
         prefix.append(base);
         return prefix;
     }
-
-    return transition_tridid(trid_id);
+    else {
+        int id_index = std::clamp((int)ceil(trid_id / 4), 0, 25);
+        int id_suffix = trid_id % 4 + 1;
+        return wxString::Format("%s%d", maping_dict[id_index], id_suffix);
+    }
 }
 
 //BBS
@@ -7796,7 +7830,7 @@ bool has_filaments(const std::vector<string>& model_filaments) {
     return false;
 }
 
-bool is_support_filament(int extruder_id)
+bool is_support_filament(int extruder_id, bool strict_check)
 {
     auto &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
     auto &filaments        = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
@@ -7810,7 +7844,7 @@ bool is_support_filament(int extruder_id)
 
     Slic3r::ConfigOptionBools *support_option = dynamic_cast<Slic3r::ConfigOptionBools *>(filament->config.option("filament_is_support"));
 
-    if (filament_type == "PETG" || filament_type == "PLA") {
+    if(!strict_check &&(filament_type == "PETG" || filament_type == "PLA")) {
         std::vector<string> model_filaments;
         if (filament_type == "PETG")
             model_filaments.emplace_back("PLA");

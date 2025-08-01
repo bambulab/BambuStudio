@@ -879,7 +879,10 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
         process_source.detach();
         process_ffmpeg.detach();
     } catch (std::exception &e) {
+#if !BBL_RELEASE_TO_PUBLIC
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl failed to start camera stream: " << decode_path(e.what());
+#endif
+
         return false;
     }
     return true;

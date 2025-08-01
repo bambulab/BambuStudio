@@ -1,0 +1,39 @@
+FROM docker.io/ubuntu:22.04
+
+# Disable interactive package configuration
+RUN apt-get update && \
+    echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+
+RUN apt-get update && apt-get install  -y \
+    autoconf \
+    build-essential \
+    cmake \
+    curl \
+    xvfb \
+    extra-cmake-modules \
+    file \
+    git \
+    locales \
+    locales-all \
+    m4 \
+    pkgconf \
+    sudo \
+    wayland-protocols \
+    libwebkit2gtk-4.0-dev \
+    wget 
+
+COPY ./ /BambuStudio
+
+WORKDIR /BambuStudio
+
+# Allow password-less sudo for ALL users
+RUN echo "ALL ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/999-passwordless
+RUN chmod 440 /etc/sudoers.d/999-passwordless
+
+RUN ./BuildLinux.sh -u
+
+RUN ./BuildLinux.sh -dfr
+
+RUN cp -r deps/build/destdir /
+
+RUN rm -rf /BambuStudio

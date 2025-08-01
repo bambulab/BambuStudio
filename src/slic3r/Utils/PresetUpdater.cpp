@@ -747,10 +747,11 @@ void PresetUpdater::priv::parse_ota_files(std::string ota_json, std::string& ver
             if (j.contains("description"))
                 description = j["description"];
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": ota_json %1%, version %2%, force %3%, description %4%")%ota_json %version %force_upgrade %description;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+                                    << boost::format(": ota_json %1%, version %2%, force %3%, description %4%") % PathSanitizer::sanitize(ota_json) % version % force_upgrade % description;
         }
         catch(nlohmann::detail::parse_error &err) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<ota_json<<" got a nlohmann::detail::parse_error, reason = " << err.what();
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << PathSanitizer::sanitize(ota_json) << " got a nlohmann::detail::parse_error, reason = " << err.what();
         }
     }
     return;

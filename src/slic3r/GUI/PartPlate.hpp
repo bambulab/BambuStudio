@@ -103,6 +103,7 @@ private:
     bool m_ready_for_slice;
     bool m_slice_result_valid;
     bool m_apply_invalid {false};
+    bool m_helio_apply_invalid {false};
     float m_slice_percent;
 
     Print *m_print; //Print reference, not own it, no need to serialize
@@ -282,6 +283,9 @@ public:
     //set the print object, result and it's index
     void set_print(PrintBase *print, GCodeResult* result = nullptr, int index = -1);
 
+    // get gcode result
+    GCodeProcessorResult* get_gcode_result();
+
     //get gcode filename
     std::string get_gcode_filename();
 
@@ -304,7 +308,7 @@ public:
 
     Vec3d get_origin() { return m_origin; }
     //Vec3d calculate_wipe_tower_size(const DynamicPrintConfig &config, const double w, const double wipe_volume, int plate_extruder_size = 0, bool use_global_objects = false) const;
-    Vec3d estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int extruder_count = 1, int plate_extruder_size = 0, bool use_global_objects = false) const;
+    Vec3d estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int extruder_count = 1, int plate_extruder_size = 0, bool use_global_objects = false, bool enable_wrapping_detection = false) const;
     arrangement::ArrangePolygon estimate_wipe_tower_polygon(const DynamicPrintConfig & config, int plate_index, Vec3d& wt_pos, Vec3d& wt_size, int extruder_count = 1, int plate_extruder_size = 0, bool use_global_objects = false) const;
     bool check_objects_empty_and_gcode3mf(std::vector<int> &result) const;
     // get used filaments from config, 1 based idx
@@ -406,6 +410,11 @@ public:
     {
         return m_ready_for_slice && !m_apply_invalid;
     }
+
+    bool can_helio_slice() const {
+        return m_ready_for_slice && !m_apply_invalid && !m_helio_apply_invalid;
+    }
+
     void update_slice_ready_status(bool ready_slice)
     {
         m_ready_for_slice = ready_slice;
@@ -416,9 +425,16 @@ public:
     {
         return m_apply_invalid;
     }
+    bool is_helio_apply_result_invalid() const {
+        return m_helio_apply_invalid;
+    }
     void update_apply_result_invalid(bool invalid)
     {
         m_apply_invalid = invalid;
+    }
+
+    void update_helio_apply_result_invalid(bool invalid) {
+        m_helio_apply_invalid = invalid;
     }
 
     //is slice result valid or not
@@ -613,6 +629,7 @@ private:
     void  calc_triangles(const ExPolygon &poly);
     void  calc_vertex_for_icons(int index, GLModel &gl_model);
     void  calc_exclude_triangles(const ExPolygon &poly);
+    void  calc_triangles_from_polygon(const ExPolygon &poly, GLModel& render_model);
     void  calc_gridlines(const ExPolygon &poly, const BoundingBox &pp_bbox);
     void  calc_vertex_for_number(int index, bool one_number, GLModel &gl_model);
 private:
@@ -626,9 +643,10 @@ private:
     std::vector<Geometry::Transformation> m_unselected_plate_trans;
     unsigned int                          m_unselected_plate_mats_vbo{0};
     bool                                  m_update_unselected_plate_mats_vbo{true};
-
+    ExPolygon                             m_print_polygon;
     GLModel                               m_triangles;
     GLModel                               m_exclude_triangles;
+    GLModel                               m_wrapping_detection_triangles;
     GLModel                               m_gridlines;
     GLModel                               m_gridlines_bolder;
     GLModel                               m_del_icon;
@@ -821,7 +839,7 @@ public:
 
     //reload objects for newly created plate
     int construct_objects_list_for_new_plate(int plate_index);
-
+    std::vector<Vec2d> get_plate_wrapping_detection_area();
     /* arrangement related functions */
     //compute the plate index
     int compute_plate_index(arrangement::ArrangePolygon& arrange_polygon);
@@ -851,6 +869,7 @@ public:
     void render_instance_background(bool force_default_color = false);
     void render_unselected_background(bool force_default_color);
     void render_grid(bool bottom);
+    void render_wrapping_detection_area(bool force_default_color);
     void render_exclude_area(bool force_default_color);
     void render_instance_exclude_area(bool force_default_color);
     void render_unselected_exclude_area(bool force_default_color);

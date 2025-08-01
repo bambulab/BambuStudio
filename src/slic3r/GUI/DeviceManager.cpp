@@ -6,6 +6,7 @@
 
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
+#include "DeviceErrorDialog.hpp"
 #include "Plater.hpp"
 #include "GUI_App.hpp"
 #include "ReleaseNote.hpp"
@@ -21,6 +22,7 @@
 #include "fast_float/fast_float.h"
 
 #include "slic3r/Utils/BBLUtil.hpp"
+#include "Widgets/AMSItem.hpp"
 
 #define CALI_DEBUG
 #define MINUTE_30 1800000    //ms
@@ -779,6 +781,10 @@ MachineObject::~MachineObject()
         it->second->trayList.clear();
     }
     amsList.clear();
+
+    while (!m_command_error_code_dlgs.empty()) {
+        delete *m_command_error_code_dlgs.begin();/*element will auto remove from m_command_error_code_dlgs on deleted*/
+    }
 }
 
 bool MachineObject::check_valid_ip()
@@ -1034,11 +1040,17 @@ int MachineObject::ams_filament_mapping(
     std::map<int, FilamentInfo> tray_filaments; // tray_index : tray_color
     bool  left_nozzle_has_ams = false, right_nozzle_has_ams = false;
     for (auto ams = amsList.begin(); ams != amsList.end(); ams++) {
-        std::string ams_id = ams->second->id;
+        std::string ams_id   = ams->second->id;
+        int         ams_type = ams->second->type;
         for (auto tray = ams->second->trayList.begin(); tray != ams->second->trayList.end(); tray++) {
             int ams_id = atoi(ams->first.c_str());
             int tray_id = atoi(tray->first.c_str());
-            int tray_index = ams_id * 4 + tray_id;
+            int tray_index = 0;
+            if (ams_type == GUI::AMSModel::GENERIC_AMS || ams_type == GUI::AMSModel::AMS_LITE || ams_type == GUI::AMSModel::N3F_AMS) {
+                tray_index = ams_id * 4 + tray_id;
+            } else if (ams_type == GUI::AMSModel::N3S_AMS) {
+                tray_index = ams_id + tray_id;
+            }
             // skip exclude id
             for (int i = 0; i < exclude_id.size(); i++) {
                 if (tray_index == exclude_id[i])
@@ -1990,6 +2002,24 @@ int MachineObject::command_clean_print_error(std::string subtask_id, int print_e
     return this->publish_json(j);
 }
 
+int MachineObject::command_clean_print_error_uiop(int print_error)
+{
+    json j;
+    j["system"]["command"] = "uiop";
+    j["system"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["system"]["name"] = "print_error";
+    j["system"]["action"] = "close";
+    j["system"]["source"] = 1;// 0-Mushu 1-Studio
+    j["system"]["type"] = "dialog";
+
+    // the error to be cleaned
+    char buf[32];
+    ::sprintf(buf, "%08X", print_error);
+    j["system"]["err"] = std::string(buf);
+
+    return this->publish_json(j);
+}
+
 int MachineObject::command_upgrade_confirm()
 {
     json j;
@@ -2416,6 +2446,14 @@ int MachineObject::command_ams_control(std::string action)
         return this->publish_json(j);
     }
     return -1;
+}
+
+int MachineObject::command_ams_drying_stop()
+{
+    json j;
+    j["print"]["command"] = "auto_stop_ams_dry";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    return this->publish_json(j);
 }
 
 int MachineObject::command_set_chamber_light(LIGHT_EFFECT effect, int on_time, int off_time, int loops, int interval)
@@ -3905,6 +3943,15 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                         }
                     }
                 }
+
+                if (!key_field_only)
+                {
+                    if (jj.contains("command") && jj.contains("err_code") && jj.contains("result"))
+                    {
+                        if (jj["err_code"].is_number()) { add_command_error_code_dlg(jj["err_code"].get<int>());}
+                    }
+                }
+
                 if (jj["command"].get<std::string>() == "push_status") {
                     m_push_count++;
                     last_push_time = last_update_time;
@@ -5660,6 +5707,12 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             upgrade_display_hold_count = HOLD_COUNT_MAX;
                             BOOST_LOG_TRIVIAL(info) << "ack of upgrade_confirm";
                         }
+
+                        if (j["upgrade"].contains("err_code")) {
+                            if (j["upgrade"]["err_code"].is_number()) {
+                                add_command_error_code_dlg(j["upgrade"]["err_code"].get<int>());
+                            }
+                        }
                     }
                 }
             }
@@ -6865,7 +6918,7 @@ void MachineObject::update_filament_list()
             }
         }
 
-        for (auto it = m_filament_list.begin(); it != m_filament_list.end(); it++) { m_checked_filament.erase(it->first); }
+        for (auto it = m_filament_list.begin(); it != m_filament_list.end(); it++) { m_checked_filament.insert(it->first); }
 
         m_filament_list = filament_list;
     }
@@ -6933,7 +6986,7 @@ void MachineObject::check_ams_filament_valid()
         for (const auto &[slot_id, curr_tray] : ams->trayList) {
 
             if (curr_tray->setting_id.size() == 8 && curr_tray->setting_id[0] == 'P' && filament_list.find(curr_tray->setting_id) == filament_list.end()) {
-                if (checked_filament.find(curr_tray->setting_id) == checked_filament.end()) {
+                if (checked_filament.find(curr_tray->setting_id) != checked_filament.end()) {
                     need_checked_filament_id[nozzle_diameter_str].insert(curr_tray->setting_id);
                     wxColour color = *wxWHITE;
                     char     col_buf[10];
@@ -6950,7 +7003,7 @@ void MachineObject::check_ams_filament_valid()
                 }
             }
             if (curr_tray->setting_id.size() == 8 && curr_tray->setting_id[0] == 'P' && curr_tray->nozzle_temp_min != "" && curr_tray->nozzle_temp_max != "") {
-                if (checked_filament.find(curr_tray->setting_id) == checked_filament.end()) {
+                if (checked_filament.find(curr_tray->setting_id) != checked_filament.end()) {
                     need_checked_filament_id[nozzle_diameter_str].insert(curr_tray->setting_id);
                     try {
                         std::string preset_setting_id;
@@ -6993,7 +7046,7 @@ void MachineObject::check_ams_filament_valid()
         auto &checked_filament = data.checked_filament;
         auto &filament_list    = data.filament_list;
         if (vt_tray.setting_id.size() == 8 && vt_tray.setting_id[0] == 'P' && filament_list.find(vt_tray.setting_id) == filament_list.end()) {
-            if (checked_filament.find(vt_tray.setting_id) == checked_filament.end()) {
+            if (checked_filament.find(vt_tray.setting_id) != checked_filament.end()) {
                 need_checked_filament_id[nozzle_diameter_str].insert(vt_tray.setting_id);
                 wxColour color = *wxWHITE;
                 char     col_buf[10];
@@ -7008,7 +7061,7 @@ void MachineObject::check_ams_filament_valid()
             }
         }
         if (vt_tray.setting_id.size() == 8 && vt_tray.setting_id[0] == 'P' && vt_tray.nozzle_temp_min != "" && vt_tray.nozzle_temp_max != "") {
-            if (checked_filament.find(vt_tray.setting_id) == checked_filament.end()) {
+            if (checked_filament.find(vt_tray.setting_id) != checked_filament.end()) {
                 need_checked_filament_id[nozzle_diameter_str].insert(vt_tray.setting_id);
                 try {
                     std::string        preset_setting_id;
@@ -7039,7 +7092,7 @@ void MachineObject::check_ams_filament_valid()
         auto &diameter = diameter_pair.first;
         auto &data     = diameter_pair.second;
         for (auto &filament_id : need_checked_filament_id[diameter]) {
-            data.checked_filament.insert(filament_id);
+            data.checked_filament.erase(filament_id);
         }
     }
 }
@@ -7115,6 +7168,37 @@ wxString MachineObject::get_nozzle_replace_url() const
     }/*retry with en*/
 
     return "https://wiki.bambulab.com/en/h2/maintenance/replace-hotend";
+}
+
+std::string MachineObject::get_error_code_str(int error_code)
+{
+    if (error_code < 0) { return std::string();}
+
+    char buf[32];
+    ::sprintf(buf, "%08X", error_code);
+    std::string print_error_str = std::string(buf);
+    if (print_error_str.size() > 4) { print_error_str.insert(4, "-"); }
+    return print_error_str;
+}
+
+void MachineObject::add_command_error_code_dlg(int command_err)
+{
+    if (command_err > 0 && !Slic3r::GUI::wxGetApp().get_hms_query()->is_internal_error(this, command_err))
+    {
+        GUI::wxGetApp().CallAfter([this, command_err, token = std::weak_ptr<int>(m_token)]
+        {
+            if (token.expired()) { return;}
+            GUI::DeviceErrorDialog* device_error_dialog = new GUI::DeviceErrorDialog(this, (wxWindow*)GUI::wxGetApp().mainframe);
+            device_error_dialog->Bind(wxEVT_DESTROY, [this, token = std::weak_ptr<int>(m_token)](auto& event)
+                {
+                    if (!token.expired()) { m_command_error_code_dlgs.erase((GUI::DeviceErrorDialog*)event.GetEventObject());}
+                    event.Skip();
+                });
+
+            device_error_dialog->show_error_code(command_err);
+            m_command_error_code_dlgs.insert(device_error_dialog);
+        });
+    };
 }
 
 bool DeviceManager::EnableMultiMachine = false;
@@ -7895,6 +7979,11 @@ std::string DeviceManager::get_printer_ext_img(std::string type_str, int pos) {
     const auto& vec = get_value_from_config<std::vector<std::string>>(type_str, "printer_ext_image");
     if (vec.size() > pos) { return vec[pos];}
     return std::string();
+}
+
+bool DeviceManager::support_wrapping_detection(const std::string &type_str)
+{
+    return get_value_from_config<bool>(type_str, "support_wrapping_deteciton");
 }
 
 bool DeviceManager::get_printer_is_enclosed(std::string type_str) {

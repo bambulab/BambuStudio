@@ -706,15 +706,19 @@ wxBitmap *get_extruder_color_icon(std::string color, std::string label, int icon
         // there is no neede to scale created solid bitmap
         wxColor clr(color);
         bitmap = bmp_cache.insert(bitmap_key, wxBitmap(icon_width, icon_height));
-#ifndef __WXMSW__
-        wxMemoryDC dc;
-#else
+#ifdef __WXOSX__
+        bitmap->UseAlpha();
+        wxMemoryDC dc(*bitmap);
+#elif defined(__WXMSW__)
         wxClientDC cdc((wxWindow *) Slic3r::GUI::wxGetApp().mainframe);
         wxMemoryDC dc(&cdc);
+        dc.SelectObject(*bitmap);
+#else
+        wxMemoryDC dc;
+        dc.SelectObject(*bitmap);
 #endif
         dc.SetFont(::Label::Body_12);
         Slic3r::GUI::WxFontUtils::get_suitable_font_size(icon_height - 2, dc);
-        dc.SelectObject(*bitmap);
         if (clr.Alpha() == 0) {
             int             size        = icon_height * 2;
             static wxBitmap transparent = *Slic3r::GUI::BitmapCache().load_svg("transparent", size, size);
@@ -1057,6 +1061,8 @@ wxSize ScalableBitmap::GetBmpSize(const wxBitmap &bmp)
 
 int ScalableBitmap::GetBmpWidth() const
 {
+    if (!m_bmp.IsOk())
+        return 0;
 #ifdef __APPLE__
     return m_bmp.GetScaledWidth();
 #else
@@ -1066,6 +1072,8 @@ int ScalableBitmap::GetBmpWidth() const
 
 int ScalableBitmap::GetBmpHeight() const
 {
+    if (!m_bmp.IsOk())
+        return 0;
 #ifdef __APPLE__
     return m_bmp.GetScaledHeight();
 #else

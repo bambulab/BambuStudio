@@ -35,6 +35,7 @@
 #include "nlohmann/json.hpp"
 
 #include "GCode/ConflictChecker.hpp"
+#include "ParameterUtils.hpp"
 
 #include <codecvt>
 
@@ -132,6 +133,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "top_surface_acceleration",
         "accel_to_decel_enable",
         "accel_to_decel_factor",
+        "enable_wrapping_detection",
         // BBS
         "supertack_plate_temp_initial_layer",
         "cool_plate_temp_initial_layer",
@@ -141,6 +143,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "gcode_add_line_number",
         "layer_change_gcode",
         "time_lapse_gcode",
+        "wrapping_detection_gcode",
         "fan_min_speed",
         "fan_max_speed",
         "printable_height",
@@ -909,6 +912,13 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
         }
     }
 
+    Pointfs wrapping_detection_area = get_wrapping_detection_area(print_config.wrapping_detection_path.values, print_config.extruder_clearance_max_radius.value / 2);
+    Polygon wrapping_poly;
+    for (size_t i = 0; i < wrapping_detection_area.size(); ++i) {
+        auto pt = wrapping_detection_area[i];
+        wrapping_poly.points.emplace_back(scale_(pt.x() + print_origin.x()), scale_(pt.y() + print_origin.y()));
+    }
+
     std::map<const PrintInstance*, Polygon> map_model_object_to_convex_hull;
     // sequential_print_horizontal_clearance_valid
     Polygons convex_hulls_other;
@@ -949,6 +959,11 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
                 warning->object = inst->model_instance->get_object();
             }*/
         }
+
+        if (print_config.enable_wrapping_detection.value && !intersection(wrapping_poly, convex_hull).empty()) {
+            return {inst->model_instance->get_object()->name + L(" is too close to clumping detection area, there may be collisions when printing.") + "\n",
+                inst->model_instance->get_object()};
+        }
         convex_hulls_other.emplace_back(convex_hull);
     }
 
@@ -981,7 +996,9 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
             convex_hulls_temp.push_back(wipe_tower_convex_hull);
         } else {
             //here, wipe_tower_polygon is not always convex.
-            Polygon wipe_tower_polygon = print.wipe_tower_data().wipe_tower_mesh_data->bottom;
+            Polygon wipe_tower_polygon;
+            if (print.wipe_tower_data().wipe_tower_mesh_data)
+                wipe_tower_polygon = print.wipe_tower_data().wipe_tower_mesh_data->bottom;
             wipe_tower_polygon.translate(Point(scale_(x), scale_(y)));
             convex_hulls_temp.push_back(wipe_tower_polygon);
         }
@@ -997,7 +1014,9 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
         }*/
         return {L("Prime Tower") + L(" is too close to exclusion area, and collisions will be caused.\n")};
     }
-
+    if (print_config.enable_wrapping_detection.value && !intersection({wrapping_poly}, convex_hulls_temp).empty()) {
+        return {L("Prime Tower") + L(" is too close to clumping detection area, and collisions will be caused.\n")};
+    }
     return {};
 }
 
@@ -1131,9 +1150,12 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         }
     }
 
-    if (m_config.print_sequence == PrintSequence::ByObject) {
+    if (m_config.print_sequence == PrintSequence::ByObject && m_objects.size() > 1) {
         if (m_config.timelapse_type == TimelapseType::tlSmooth)
             return {L("Smooth mode of timelapse is not supported when \"by object\" sequence is enabled.")};
+
+        if (m_config.enable_wrapping_detection)
+            return {L("Clumping detection is not supported when \"by object\" sequence is enabled.")};
 
         //BBS: refine seq-print validation logic
         auto ret = sequential_print_clearance_valid(*this, collison_polygons, height_polygons);
@@ -2650,6 +2672,9 @@ size_t Print::get_extruder_id(unsigned int filament_id) const
 bool Print::has_wipe_tower() const
 {
     if (m_config.enable_prime_tower.value == true) {
+        if (m_config.enable_wrapping_detection.value)
+            return true;
+
         if (enable_timelapse_print())
             return true;
 
@@ -2761,7 +2786,7 @@ void Print::_make_wipe_tower()
     // Initialize the wipe tower.
     // BBS: in BBL machine, wipe tower is only use to prime extruder. So just use a global wipe volume.
     WipeTower wipe_tower(m_config, m_plate_index, m_origin, m_wipe_tower_data.tool_ordering.first_extruder(),
-        m_wipe_tower_data.tool_ordering.empty() ? 0.f : m_wipe_tower_data.tool_ordering.back().print_z);
+                         m_wipe_tower_data.tool_ordering.empty() ? 0.f : m_wipe_tower_data.tool_ordering.back().print_z, m_wipe_tower_data.tool_ordering.all_extruders());
     wipe_tower.set_has_tpu_filament(this->has_tpu_filament());
     wipe_tower.set_filament_map(this->get_filament_maps());
     // Set the extruder & material properties at the wipe tower object.
@@ -2832,7 +2857,7 @@ void Print::_make_wipe_tower()
             layer_tools.wiping_extrusions().ensure_perimeters_infills_order(*this);
 
             // if enable timelapse, slice all layer
-            if (enable_timelapse_print()) {
+            if (m_config.enable_wrapping_detection || enable_timelapse_print()) {
                 if (layer_tools.wipe_tower_partitions == 0) wipe_tower.set_last_layer_extruder_fill(false);
                 continue;
             }

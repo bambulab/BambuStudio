@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-17 11:15+0800\n"
+"POT-Creation-Date: 2025-07-31 18:21+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3005,7 +3005,7 @@ msgid "Print with the filament mounted on the back of chassis"
 msgstr "Print with the filament mounted on the back of chassis"
 
 msgid "Please change the desiccant when it is too wet. The indicator may not represent accurately in following cases : when the lid is open or the desiccant pack is changed. it take hours to absorb the moisture, low temperatures also slow down the process."
-msgstr "Please change the desiccant when it is too wet. The indicator may not represent accurately in following cases: when the lid is open or the desiccant pack is changed. It takes a few hours to absorb the moisture, and low temperatures also slow down the process."
+msgstr "*Please change the desiccant when it is too wet. The indicator may not represent accurately in following cases：when the lid is open or the desiccant pack is changed, it take hours to absorb the moisture; low temperatures also slow down the process. "
 
 msgid "Config which AMS slot should be used for a filament used in the print job"
 msgstr "Configure which AMS slot should be used for a filament used in the print job."
@@ -3286,6 +3286,11 @@ msgid ""
 msgstr ""
 "Too small max volumetric speed.\n"
 "Value was reset to 0.5"
+
+msgid ""
+"Should not large than 100%.\n"
+"Reset to defualt"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"
@@ -3703,6 +3708,63 @@ msgstr "PPS-CF is brittle and could break in a bent PTFE tube above the Toolhead
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF is brittle and could break in a bent PTFE tube above the Toolhead."
 
+msgid "Resume Printing"
+msgstr "Resume Printing"
+
+msgid "Resume (defects acceptable)"
+msgstr ""
+
+msgid "Resume (problem solved)"
+msgstr ""
+
+msgid "Stop Printing"
+msgstr "Stop Printing"
+
+msgid "Check Assistant"
+msgstr "Check Assistant"
+
+msgid "Filament Extruded, Continue"
+msgstr "Filament Extruded, Continue"
+
+msgid "Not Extruded Yet, Retry"
+msgstr "Not Extruded Yet, Retry"
+
+msgid "Finished, Continue"
+msgstr "Finished, Continue"
+
+msgid "Load Filament"
+msgstr "Load Filament"
+
+msgid "Filament Loaded, Resume"
+msgstr "Filament Loaded, Resume"
+
+msgid "View Liveview"
+msgstr "View Liveview"
+
+msgid "No Reminder Next Time"
+msgstr ""
+
+msgid "Ignore. Don't Remind Next Time"
+msgstr ""
+
+msgid "Ignore this and Resume"
+msgstr ""
+
+msgid "Problem Solved and Resume"
+msgstr ""
+
+msgid "Stop Buzzer"
+msgstr ""
+
+msgid "Retry (problem solved)"
+msgstr ""
+
+msgid "Stop Drying"
+msgstr ""
+
+msgid "Unknown error."
+msgstr ""
+
 msgid "default"
 msgstr "default"
 
@@ -3756,6 +3818,15 @@ msgstr "Line Width"
 msgid "Fan Speed"
 msgstr "Fan Speed"
 
+msgid "Thermal Index (min)"
+msgstr ""
+
+msgid "Thermal Index (max)"
+msgstr ""
+
+msgid "Thermal Index (mean)"
+msgstr ""
+
 msgid "Flow"
 msgstr "Flow"
 
@@ -3785,6 +3856,18 @@ msgstr "Fan Speed: "
 
 msgid "Temperature: "
 msgstr "Temperature: "
+
+msgid "Thermal Index"
+msgstr ""
+
+msgid "Min: "
+msgstr ""
+
+msgid "Max: "
+msgstr ""
+
+msgid "Mean: "
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "Loading G-code"
@@ -3885,6 +3968,9 @@ msgstr "from"
 msgid "Slicing Result"
 msgstr ""
 
+msgid "Helio Action"
+msgstr ""
+
 msgid "Color Scheme"
 msgstr "Color Scheme"
 
@@ -3911,9 +3997,6 @@ msgstr "Temperature (°C)"
 
 msgid "Volumetric flow rate (mm³/s)"
 msgstr "Volumetric flow rate (mm³/s)"
-
-msgid "Layer Time (s)"
-msgstr "Layer Time (s)"
 
 msgid "Travel"
 msgstr "Travel"
@@ -5056,11 +5139,6 @@ msgstr "Load failed"
 msgid "Browsing file in storage is not supported in current firmware. Please update the printer firmware."
 msgstr ""
 
-msgid ""
-"Please check if the storage is inserted into the printer.\n"
-"If it still cannot be read, you can try formatting the storage."
-msgstr ""
-
 msgid "LAN Connection Failed (Failed to view sdcard)"
 msgstr "LAN Connection Failed (Failed to view sdcard)"
 
@@ -5146,6 +5224,11 @@ msgstr "File checksum error. Please retry."
 
 msgid "Not supported on the current printer version."
 msgstr "Not supported on the current printer version."
+
+msgid ""
+"Please check if the storage is inserted into the printer.\n"
+"If it still cannot be read, you can try formatting the storage."
+msgstr ""
 
 msgid "The firmware version of the printer is too low. Please update the firmware and try again."
 msgstr ""
@@ -5367,9 +5450,6 @@ msgstr "Cancel print"
 msgid "Are you sure you want to stop this print?"
 msgstr ""
 
-msgid "Unknown error."
-msgstr ""
-
 msgid "The printer is busy on other print job"
 msgstr "The printer is busy with another print job."
 
@@ -5440,8 +5520,8 @@ msgstr "Sport"
 msgid "Ludicrous"
 msgstr "Ludicrous"
 
-msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."
-msgstr ""
+msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti detection. Please choose carefully."
+msgstr "Turning the lights off during a task will cause the failure of AI monitoring such as spaghetti detection. Please choose carefully."
 
 msgid "Keep it On"
 msgstr ""
@@ -5886,7 +5966,7 @@ msgstr "First Layer Inspection"
 msgid "Auto-recovery from step loss"
 msgstr "Auto-recover from step loss"
 
-msgid "Open Door Dectection"
+msgid "Open Door Detection"
 msgstr ""
 
 msgid "Notification"
@@ -6116,8 +6196,10 @@ msgstr "Successfully unmounted. The device %s(%s) can now be safely removed from
 msgid "Ejecting of device %s(%s) has failed."
 msgstr "Ejecting of device %s(%s) has failed."
 
-msgid "Previous unsaved project detected, do you want to restore it?"
-msgstr "Previously unsaved items have been detected. Do you want to restore them?"
+msgid ""
+"It seems that you have projects that were not closed properly. Would you like to restore your last unsaved project?\n"
+"If you have a currently opened project and click \"Restore\", the current project will be closed."
+msgstr ""
 
 msgid "Restore"
 msgstr "Restore"
@@ -6332,6 +6414,19 @@ msgstr "Slicing Canceled"
 #, c-format, boost-format
 msgid "Slicing Plate %d"
 msgstr "Slicing Plate %d"
+
+msgid "Invalid printer preset. Unable to slice with Helio."
+msgstr ""
+
+msgid "The current printer preset cannot be sliced using Helio."
+msgstr ""
+
+msgid "Helio does not support using a number of materials greater than 1."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Helio does not support materials %s"
+msgstr ""
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Please resolve the slicing errors and publish again."
@@ -6816,6 +6911,12 @@ msgstr ""
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr ""
 
+msgid "Remember last used color scheme"
+msgstr ""
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr ""
 
@@ -6883,6 +6984,24 @@ msgid "Show online staff-picked models on the home page"
 msgstr "Show online staff-picked models on the home page"
 
 msgid "Show history on the home page"
+msgstr ""
+
+msgid "Helio Options"
+msgstr ""
+
+msgid "Enable Helio"
+msgstr ""
+
+msgid "About Helio"
+msgstr ""
+
+msgid "Helio Privacy Policy"
+msgstr ""
+
+msgid "Reminder During Slicing"
+msgstr ""
+
+msgid "Automatic mode"
 msgstr ""
 
 msgid "Maximum recent projects"
@@ -7683,8 +7802,14 @@ msgstr "Click to reset all settings to the last saved preset."
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "A Prime tower is required for smooth timeplase mode. There may be flaws on the model without a prime tower. Are you sure you want to disable the prime tower?"
 
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
+msgstr "Prime tower is required for clumping detection by probing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
+
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr ""
+
+msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
+msgstr "Prime tower is required for clumping detection by probing. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "A prime tower is required for smooth timelapse mode. There may be flaws on the model without prime tower. Do you want to enable the prime tower?"
@@ -7978,6 +8103,9 @@ msgstr "Layer change G-code"
 
 msgid "Time lapse G-code"
 msgstr "Time lapse G-code"
+
+msgid "Clumping Detection G-code"
+msgstr "G-code of clumping detection by probing"
 
 msgid "Change filament G-code"
 msgstr "Change filament G-code"
@@ -8774,57 +8902,6 @@ msgstr "Done"
 msgid "resume"
 msgstr "resume"
 
-msgid "Resume Printing"
-msgstr "Resume Printing"
-
-msgid "Resume (defects acceptable)"
-msgstr ""
-
-msgid "Resume (problem solved)"
-msgstr ""
-
-msgid "Stop Printing"
-msgstr "Stop Printing"
-
-msgid "Check Assistant"
-msgstr "Check Assistant"
-
-msgid "Filament Extruded, Continue"
-msgstr "Filament Extruded, Continue"
-
-msgid "Not Extruded Yet, Retry"
-msgstr "Not Extruded Yet, Retry"
-
-msgid "Finished, Continue"
-msgstr "Finished, Continue"
-
-msgid "Load Filament"
-msgstr "Load Filament"
-
-msgid "Filament Loaded, Resume"
-msgstr "Filament Loaded, Resume"
-
-msgid "View Liveview"
-msgstr "View Liveview"
-
-msgid "No Reminder Next Time"
-msgstr ""
-
-msgid "Ignore. Don't Remind Next Time"
-msgstr ""
-
-msgid "Ignore this and Resume"
-msgstr ""
-
-msgid "Problem Solved and Resume"
-msgstr ""
-
-msgid "Stop Buzzer"
-msgstr ""
-
-msgid "Retry (problem solved)"
-msgstr ""
-
 msgid "Confirm and Update Nozzle"
 msgstr "Confirm and Update Nozzle"
 
@@ -8896,6 +8973,57 @@ msgid "Failed to send. Click Retry to attempt sending again. If retrying does no
 msgstr "Failed to send. Click 'Retry' to try again. If it still doesn’t work, please check the failure reason."
 
 msgid "reconnect"
+msgstr ""
+
+msgid "Terms of Service"
+msgstr ""
+
+msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
+msgstr ""
+
+msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
+msgstr ""
+
+msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
+msgstr ""
+
+msgid "You agree not to use this product and its related updates to engage in the following activities:"
+msgstr ""
+
+msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
+msgstr ""
+
+msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
+msgstr ""
+
+msgid "3.Using this software and services for any improper or illegal activities."
+msgstr ""
+
+msgid "https://www.helioadditive.com/"
+msgstr ""
+
+msgid "Privacy Policy of Helio Additive"
+msgstr ""
+
+msgid "Terms of Use of Helio Additive"
+msgstr ""
+
+msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
+msgstr ""
+
+msgid "Agree"
+msgstr ""
+
+msgid "Helio settings"
+msgstr ""
+
+msgid "Chamber temperature"
+msgstr "Chamber temperature"
+
+msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
+msgstr ""
+
+msgid "How to use Helio"
 msgstr ""
 
 msgid "Air Pump"
@@ -9203,6 +9331,9 @@ msgstr "%1% is too tall, and collisions will be caused."
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr " is too close to exclusion area, there may be collisions when printing."
 
+msgid " is too close to clumping detection area, there may be collisions when printing."
+msgstr " is too close to probing area of clumping detection, there may be collisions when printing."
+
 msgid "Prime Tower"
 msgstr "Prime Tower"
 
@@ -9211,6 +9342,9 @@ msgstr " is too close to others, and collisions may be caused.\n"
 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " is too close to an exclusion area, and collisions will be caused.\n"
+
+msgid " is too close to clumping detection area, and collisions will be caused.\n"
+msgstr " is too close to probing area of clumping detection, and collisions will be caused.\n"
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr ""
@@ -9229,6 +9363,9 @@ msgstr "No extrusions under current settings."
 
 msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is enabled."
 msgstr "Smooth mode of timelapse is not supported when \"by object\" sequence is enabled."
+
+msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
+msgstr "Clumping detection by probing is not supported when \"by object\" sequence is enabled."
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
@@ -9576,7 +9713,7 @@ msgid "mm/s"
 msgstr "mm/s"
 
 #, c-format, boost-format
-msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
+msgid "Speed of 100%% overhang wall which has 0 overlap with the lower layer."
 msgstr ""
 
 msgid "Slow down by height"
@@ -10384,6 +10521,15 @@ msgstr "Scan first layer"
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "Enable this to allow the camera on the printer to check the quality of the first layer."
 
+msgid "Enable clumping detection"
+msgstr "Enable clumping detection by probing"
+
+msgid "Clumping detection layers"
+msgstr "Layers of clumping detection by probing"
+
+msgid "Clumping detection layers."
+msgstr "Layers of clumping detection by probing."
+
 msgid "Thumbnail size"
 msgstr "Thumbnail size"
 
@@ -10647,6 +10793,9 @@ msgstr "Angle for ironing, which controls the relative angle between the top sur
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "This gcode part is inserted at every layer change after lift z"
+
+msgid "Clumping detection G-code"
+msgstr "G-code of clumping detection by probing"
 
 msgid "Supports silent mode"
 msgstr "Supports silent mode"
@@ -11389,9 +11538,6 @@ msgstr "Support wall loops"
 
 msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
 msgstr ""
-
-msgid "Chamber temperature"
-msgstr "Chamber temperature"
 
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on. At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials, the actual chamber temperature should not be high to avoid clogs, so 0 (turned off) is highly recommended."
@@ -13053,9 +13199,6 @@ msgstr "Need select printer"
 msgid "The start, end or step is not valid value."
 msgstr "The start, end or step is not valid value."
 
-msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr ""
-
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr ""
 
@@ -13876,6 +14019,12 @@ msgid ""
 msgstr ""
 "Avoid warping\n"
 "Did you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping?"
+
+#~ msgid "Layer Time (s)"
+#~ msgstr "Layer Time (s)"
+
+#~ msgid "Previous unsaved project detected, do you want to restore it?"
+#~ msgstr "Previously unsaved items have been detected. Do you want to restore them?"
 
 #~ msgid "Paused due to filament runout"
 #~ msgstr "Paused due to filament runout"

@@ -1121,7 +1121,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("100%");
     def->category = L("Speed");
     def->full_label = "100%";
-    def->tooltip    = L("Speed of 100% overhang wall which has 0 overlap with the lower layer.");
+    def->tooltip    = L("Speed of 100%% overhang wall which has 0 overlap with the lower layer.");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
@@ -2569,6 +2569,26 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     // BBS
+    def          = this->add("enable_wrapping_detection", coBool);
+    def->label   = L("Enable clumping detection");
+    def->tooltip = L("Enable clumping detection");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def           = this->add("wrapping_detection_layers", coInt);
+    def->label    = L("Clumping detection layers");
+    def->tooltip  = L("Clumping detection layers.");
+    def->min      = 0;
+    def->mode     = comDevelop;
+    def->set_default_value(new ConfigOptionInt(20));
+
+    def          = this->add("wrapping_detection_path", coPoints);
+    //def->label   = L("Clumping detection position");
+    //def->tooltip = L("Clumping detection position.");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionPoints{Vec2d(197.5, 326), Vec2d(207.5, 326)});
+
+    // BBS
     def = this->add("thumbnail_size", coPoints);
     def->label = L("Thumbnail size");
     def->tooltip = L("Decides the size of thumbnail stored in gcode files");
@@ -3071,6 +3091,14 @@ void PrintConfigDef::init_fff_params()
     def->full_width = true;
     def->height =5;
     def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+
+    def             = this->add("wrapping_detection_gcode", coString);
+    def->label      = L("Clumping detection G-code");
+    def->multiline  = true;
+    def->full_width = true;
+    def->height     = 5;
+    def->mode       = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("silent_mode", coBool);
@@ -6099,7 +6127,6 @@ std::set<std::string> printer_options_with_variant_1 = {
     "retract_restart_extra_toolchange",
     "long_retractions_when_cut",
     "retraction_distances_when_cut",
-    "nozzle_volume",
     "nozzle_type",
     "printer_extruder_id",
     "printer_extruder_variant",
@@ -6301,7 +6328,11 @@ t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int num_objects, int us
 
         ConfigOptionEnum<TimelapseType>* timelapse_opt = this->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
         bool is_smooth_timelapse = timelapse_opt != nullptr && timelapse_opt->value == TimelapseType::tlSmooth;
-        if (!is_smooth_timelapse && (used_filaments == 1 || (ps_opt->value == PrintSequence::ByObject && num_objects > 1))) {
+
+        ConfigOptionBool *enable_wrapping_opt = this->option<ConfigOptionBool>("enable_wrapping_detection");
+        bool enable_wrapping = enable_wrapping_opt != nullptr && enable_wrapping_opt->value;
+
+        if (!is_smooth_timelapse && !enable_wrapping && (used_filaments == 1 || (ps_opt->value == PrintSequence::ByObject && num_objects > 1))) {
             if (ept_opt->value) {
                 ept_opt->value = false;
                 changed_keys.push_back("enable_prime_tower");
@@ -7047,7 +7078,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
                 if (variant_index[e_index] < 0) {
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, extruder_index %4%")
                         %__LINE__ %s_keys_names_ExtruderType[extruder_type] % s_keys_names_NozzleVolumeType[nozzle_volume_type] % (e_index+1);
-                    assert(false);
+                    //assert(false);
                     //for some updates happens in a invalid state(caused by popup window)
                     //we need to avoid crash
                     variant_index[e_index] = 0;

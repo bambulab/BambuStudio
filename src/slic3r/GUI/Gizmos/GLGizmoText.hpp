@@ -151,6 +151,9 @@ private:
     const std::string move_snapshot_name = "Text move";
     const std::string rotation_snapshot_name = "Text rotate";
 
+    float m_rotate_angle_min_max = 0.f;
+    float m_text_gap_min_max     = 0.f;
+
 public:
     GLGizmoText(GLCanvas3D& parent, unsigned int sprite_id);
     ~GLGizmoText();
