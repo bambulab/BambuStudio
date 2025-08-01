@@ -1747,7 +1747,7 @@ void GLVolumeCollection::render(GUI::ERenderPipelineStage             render_pip
             //shader->set_uniform("print_volume.z_data", m_render_volume.zs);
             if (printable_heights) {
                 std::array<float, 3> extruder_printable_heights;
-                if ((*printable_heights).size() > 0) {
+                if ((*printable_heights).size() > 1) {
                     extruder_printable_heights[0] = 2.0f;
                     extruder_printable_heights[1] = (*printable_heights)[0];
                     extruder_printable_heights[2] = (*printable_heights)[1];
