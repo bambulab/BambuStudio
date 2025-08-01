@@ -44,6 +44,8 @@
 #include "FilamentPickerDialog.hpp"
 #include "wxExtensions.hpp"
 
+#include "DeviceCore/DevManager.h"
+
 // A workaround for a set of issues related to text fitting into gtk widgets:
 #if defined(__WXGTK20__) || defined(__WXGTK3__)
     #include <glib-2.0/glib-object.h>
@@ -450,7 +452,7 @@ void PresetComboBox::add_connected_printers(std::string selected, bool alias_nam
     }
 
     std::sort(user_machine_list.begin(), user_machine_list.end(), [&](auto &a, auto &b) {
-        if (a.second && b.second) { return a.second->dev_name.compare(b.second->dev_name) < 0; }
+        if (a.second && b.second) { return a.second->get_dev_name().compare(b.second->get_dev_name()) < 0; }
         return false;
     });
 
@@ -466,7 +468,7 @@ void PresetComboBox::add_connected_printers(std::string selected, bool alias_nam
         printer_preset->is_visible = true;
         auto printer_model = printer_preset->config.opt_string("printer_model");
         boost::replace_all(printer_model, "Bambu Lab ", "");
-        auto text = iter->second->dev_name + " (" + printer_model + ")";
+        auto text = iter->second->get_dev_name() + " (" + printer_model + ")";
         int item_id = Append(from_u8(text), wxNullBitmap, &m_first_printer_idx + std::distance(user_machine_list.begin(), iter));
         validate_selection(m_selected_dev_id == iter->first);
     }

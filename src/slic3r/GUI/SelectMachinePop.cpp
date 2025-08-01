@@ -28,6 +28,8 @@
 #include "BitmapCache.hpp"
 #include "BindDialog.hpp"
 
+#include "DeviceCore/DevManager.h"
+
 namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_UPDATE_WINDOWS_POSITION, wxCommandEvent);
@@ -169,7 +171,7 @@ void MachineObjectPanel::doRender(wxDC &dc)
     dc.SetTextForeground(StateColor::darkModeColorFor(SELECT_MACHINE_GREY900));
     wxString dev_name = "";
     if (m_info) {
-        dev_name = from_u8(m_info->dev_name);
+        dev_name = from_u8(m_info->get_dev_name());
 
          if (m_state == PrinterState::IN_LAN) {
              dev_name += _L("(LAN)");
@@ -270,7 +272,7 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
                 GetEventHandler()->ProcessEvent(event);
             } else {
                 if (m_info) {
-                    wxGetApp().mainframe->jump_to_monitor(m_info->dev_id);
+                    wxGetApp().mainframe->jump_to_monitor(m_info->get_dev_id());
                 }
                 //wxGetApp().mainframe->SetFocus();
                 wxCommandEvent event(EVT_DISSMISS_MACHINE_LIST);
@@ -281,14 +283,14 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
         }
         if (m_info && m_info->is_lan_mode_printer()) {
             if (m_info->has_access_right() && m_info->is_avaliable()) {
-                wxGetApp().mainframe->jump_to_monitor(m_info->dev_id);
+                wxGetApp().mainframe->jump_to_monitor(m_info->get_dev_id());
             } else {
                 wxCommandEvent event(EVT_CONNECT_LAN_PRINT);
                 event.SetEventObject(this);
                 wxPostEvent(this, event);
             }
         } else {
-            wxGetApp().mainframe->jump_to_monitor(m_info->dev_id);
+            wxGetApp().mainframe->jump_to_monitor(m_info->get_dev_id());
         }
     } else {
         if (m_info && m_info->is_lan_mode_printer()) {
@@ -498,7 +500,7 @@ void SelectMachinePopup::update_other_devices()
 {
     DeviceManager* dev = wxGetApp().getDeviceManager();
     if (!dev) return;
-    m_free_machine_list = dev->get_local_machine_list();
+    m_free_machine_list = dev->get_local_machinelist();
 
     BOOST_LOG_TRIVIAL(trace) << "SelectMachinePopup update_other_devices start";
     this->Freeze();
@@ -514,7 +516,7 @@ void SelectMachinePopup::update_other_devices()
             continue;
 
         /* do not show printer in my list */
-        auto it = m_bind_machine_list.find(mobj->dev_id);
+        auto it = m_bind_machine_list.find(mobj->get_dev_id());
         if (it != m_bind_machine_list.end())
             continue;
 
@@ -566,7 +568,7 @@ void SelectMachinePopup::update_other_devices()
                     ConnectPrinterDialog dlg(wxGetApp().mainframe, wxID_ANY, _L("Input access code"));
                     dlg.set_machine_object(mobj);
                     if (dlg.ShowModal() == wxID_OK) {
-                        wxGetApp().mainframe->jump_to_monitor(mobj->dev_id);
+                        wxGetApp().mainframe->jump_to_monitor(mobj->get_dev_id());
                     }
                 }
             }
@@ -577,7 +579,7 @@ void SelectMachinePopup::update_other_devices()
             dlg.update_machine_info(mobj);
             int dlg_result = wxID_CANCEL;
             dlg_result     = dlg.ShowModal();
-            if (dlg_result == wxID_OK) { wxGetApp().mainframe->jump_to_monitor(mobj->dev_id); }
+            if (dlg_result == wxID_OK) { wxGetApp().mainframe->jump_to_monitor(mobj->get_dev_id()); }
         });
     }
 
@@ -640,7 +642,7 @@ void SelectMachinePopup::update_user_devices()
 
     std::sort(user_machine_list.begin(), user_machine_list.end(), [&](auto& a, auto&b) {
             if (a.second && b.second) {
-                return a.second->dev_name.compare(b.second->dev_name) < 0;
+                return a.second->get_dev_name().compare(b.second->get_dev_name()) < 0;
             }
             return false;
         });
@@ -740,7 +742,7 @@ void SelectMachinePopup::update_user_devices()
                     ConnectPrinterDialog dlg(wxGetApp().mainframe, wxID_ANY, _L("Input access code"));
                     dlg.set_machine_object(mobj);
                     if (dlg.ShowModal() == wxID_OK) {
-                        wxGetApp().mainframe->jump_to_monitor(mobj->dev_id);
+                        wxGetApp().mainframe->jump_to_monitor(mobj->get_dev_id());
                     }
                 }
             }
@@ -777,14 +779,14 @@ bool SelectMachinePopup::search_for_printer(MachineObject* obj)
 		return true;
 	}
 
-	const auto& name = wxString::FromUTF8(obj->dev_name).ToStdString();
+	const auto& name = wxString::FromUTF8(obj->get_dev_name()).ToStdString();
     const auto& name_it = name.find(search_text);
     if (name_it != std::string::npos) {
         return true;
     }
 
 #if !BBL_RELEASE_TO_PUBLIC
-    const auto& ip_it = obj->dev_ip.find(search_text);
+    const auto& ip_it = obj->get_dev_ip().find(search_text);
     if (ip_it != std::string::npos) {
         return true;
     }
@@ -912,7 +914,7 @@ void EditDevNameDialog::set_machine_obj(MachineObject *obj)
 {
     m_info = obj;
     if (m_info)
-        m_textCtr->GetTextCtrl()->SetValue(from_u8(m_info->dev_name));
+        m_textCtr->GetTextCtrl()->SetValue(from_u8(m_info->get_dev_name()));
 }
 
 void EditDevNameDialog::on_dpi_changed(const wxRect &suggested_rect)
@@ -978,7 +980,7 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
             auto           utf8_str = new_dev_name.ToUTF8();
             auto           name     = std::string(utf8_str.data(), utf8_str.length());
             if (m_info)
-                dev->modify_device_name(m_info->dev_id, name);
+                dev->modify_device_name(m_info->get_dev_id(), name);
         }
         DPIDialog::EndModal(wxID_CLOSE);
     }
