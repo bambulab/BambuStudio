@@ -1004,6 +1004,7 @@ void MachineObject::get_ams_colors(std::vector<wxColour> &ams_colors) {
 void MachineObject::parse_tray_info(int ams_id, int slot_id, AmsTray tray, FilamentInfo& result) {
     result.color = tray.color;
     result.type = tray.get_filament_type();
+    result.brand = tray.sub_brands;  // Add brand information
     result.filament_id = tray.setting_id;
     result.ctype = tray.ctype;
     result.colors = tray.cols;
@@ -1107,13 +1108,50 @@ int MachineObject::ams_filament_mapping(
             wxColour c = wxColour(filaments[i].color);
             wxColour tray_c = AmsTray::decode_color(tray->second.color);
             val.distance = GUI::calc_color_distance(c, tray_c);
-            if (filaments[i].type != tray->second.type) {
-                val.distance = 999999;
-                val.is_type_match = false;
-            } else {
-                if (c.Alpha() != tray_c.Alpha())
+            // Check if multi-slot refill is enabled for exact matching
+            bool multi_slot_enabled = wxGetApp().app_config->get_bool("enable_ams_multi_slot_auto_refill");
+            if (multi_slot_enabled) {
+                // Exact match: same brand, type, and color
+                // Handle empty brand strings - if either is empty, consider as no match
+                bool brand_match = !filaments[i].brand.empty() && !tray->second.brand.empty() && 
+                                   filaments[i].brand == tray->second.brand;
+                bool type_match = filaments[i].type == tray->second.type;
+                bool color_match = filaments[i].color == tray->second.color;
+                
+                if (!type_match || !brand_match || !color_match) {
                     val.distance = 999999;
-                val.is_type_match = true;
+                    val.is_type_match = false;
+                    val.is_same_color = false;
+                    BOOST_LOG_TRIVIAL(debug) << "ams_mapping: exact match failed - "
+                                             << "type=" << type_match 
+                                             << ", brand=" << brand_match 
+                                             << ", color=" << color_match
+                                             << " (F" << filaments[i].id << ": " 
+                                             << filaments[i].brand << "/" << filaments[i].type << "/" << filaments[i].color
+                                             << " vs AMS" << tray->second.id << ": "
+                                             << tray->second.brand << "/" << tray->second.type << "/" << tray->second.color << ")";
+                } else {
+                    val.is_type_match = true;
+                    val.is_same_color = true;
+                    // Keep the calculated color distance for better sorting
+                    // val.distance already has the correct value from calc_color_distance
+                    BOOST_LOG_TRIVIAL(debug) << "ams_mapping: exact match found - "
+                                             << "F" << filaments[i].id << " matches AMS" << tray->second.id
+                                             << " (" << filaments[i].brand << "/" << filaments[i].type << "/" << filaments[i].color << ")"
+                                             << " distance=" << val.distance;
+                }
+            } else {
+                // Original logic: only check type
+                if (filaments[i].type != tray->second.type) {
+                    val.distance = 999999;
+                    val.is_type_match = false;
+                } else {
+                    if (c.Alpha() != tray_c.Alpha())
+                        val.distance = 999999;
+                    val.is_type_match = true;
+                }
+                // For compatibility with existing logic
+                val.is_same_color = (val.distance < 0.0001);
             }
             ::sprintf(buffer, "  %6.0f", val.distance);
             line += std::string(buffer);

@@ -3,6 +3,7 @@
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Thread.hpp"
+#include <boost/algorithm/string.hpp>
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_Preview.hpp"
@@ -855,6 +856,7 @@ void SelectMachineDialog::popup_filament_backup()
         m_replace_material_popup->ShowModal();
     }
 }
+
 
 void SelectMachineDialog::update_select_layout(MachineObject *obj)
 {

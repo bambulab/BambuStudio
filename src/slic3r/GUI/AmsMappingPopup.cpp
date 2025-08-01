@@ -2395,6 +2395,16 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
     {
         label_txt->SetLabel(_L("When the current material runs out, the printer would use identical filament to continue printing."));
         label_txt->Wrap(FromDIP(380));
+        
+        // Check if multi-slot refill is enabled
+        bool multi_slot_enabled = wxGetApp().app_config->get_bool("enable_ams_multi_slot_auto_refill");
+        if (multi_slot_enabled) {
+            identical_filament->SetLabel(_L("Identical filament: same brand, type and color"));
+            identical_filament->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#008B00")));
+        } else {
+            identical_filament->SetLabel(_L("Identical filament: same type only"));
+            identical_filament->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#FF6F00")));
+        }
         identical_filament->Show();
     }
     else

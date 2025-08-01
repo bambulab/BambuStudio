@@ -1283,12 +1283,18 @@ wxWindow* PreferencesDialog::create_general_page()
     auto title_develop_mode = create_item_title(_L("Develop Mode"), page, _L("Develop Mode"));
     auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), page, _L("Develop mode"), 50, "developer_mode");
     auto item_skip_ams_blacklist_check  = create_item_checkbox(_L("Skip AMS blacklist check"), page, _L("Skip AMS blacklist check"), 50, "skip_ams_blacklist_check");
+    
+    // AMS multi-slot auto refill
+    auto item_ams_multi_slot_refill = create_item_checkbox(_L("Enable AMS multi-slot auto refill"), page, 
+        _L("When enabled, AMS will automatically switch to another slot with the same material (same brand, type and color) when the current slot runs out"), 
+        50, "enable_ams_multi_slot_auto_refill");
 
     sizer_page->Add(title_general_settings, 0, wxEXPAND, 0);
     sizer_page->Add(item_language, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_region, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_currency, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_auto_flush, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_ams_multi_slot_refill, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_single_instance, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_bed_type_follow_preset, 0, wxTOP, FromDIP(3));
     //sizer_page->Add(item_hints, 0, wxTOP, FromDIP(3));

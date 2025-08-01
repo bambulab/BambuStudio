@@ -297,6 +297,10 @@ void AppConfig::set_defaults()
         set("auto_calculate_flush","all");
     }
 
+    if (get("enable_ams_multi_slot_auto_refill").empty()) {
+        set_bool("enable_ams_multi_slot_auto_refill", true);
+    }
+
     if (get("enable_high_low_temp_mixed_printing").empty()){
         set_bool("enable_high_low_temp_mixed_printing", false);
     }
