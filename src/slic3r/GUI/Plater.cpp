@@ -782,7 +782,7 @@ static struct DynamicFilamentList : DynamicList
         cb->Clear();
         cb->Append(_L("Default"));
         for (auto i : items) {
-            cb->Append(i.first, i.second ? wxNullBitmap : * i.second);
+            cb->Append(i.first, i.second ? *i.second : wxNullBitmap);
         }
         if ((unsigned int)n < cb->GetCount())
             cb->SetSelection(n);
