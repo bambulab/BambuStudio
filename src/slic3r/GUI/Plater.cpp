@@ -778,14 +778,21 @@ static struct DynamicFilamentList : DynamicList
         if (!cb) {
             return;
         }
-        int n  = cb->GetSelection();
+        wxString old_selection = cb->GetStringSelection();
+        int old_index  = cb->GetSelection();
         cb->Clear();
         cb->Append(_L("Default"));
         for (auto i : items) {
             cb->Append(i.first, i.second ? *i.second : wxNullBitmap);
         }
-        if ((unsigned int)n < cb->GetCount())
-            cb->SetSelection(n);
+        int new_index = cb->FindString(old_selection);
+        if (new_index != wxNOT_FOUND) {
+            cb->SetSelection(new_index);
+        } else if ((unsigned int) old_index < cb->GetCount()) {
+            cb->SetSelection(old_index);
+        } else {
+            cb->SetSelection(0);
+        }
     }
     wxString get_value(int index) override
     {
