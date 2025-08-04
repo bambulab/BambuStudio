@@ -1110,7 +1110,7 @@ int MachineObject::ams_filament_mapping(
     }
     BOOST_LOG_TRIVIAL(info) << "ams_mapping_distance:" << line;// Print the collected filaments
 
-    for (int i = 0; i < filaments.size(); i++) {
+    for (size_t i = 0; i < filaments.size(); ++i) {
         std::vector<DisValue> rol;
         ::sprintf(buffer, "F(%02d)", filaments[i].id+1);
         line = std::string(buffer);
@@ -1121,7 +1121,7 @@ int MachineObject::ams_filament_mapping(
             wxColour tray_c = AmsTray::decode_color(tray->second.color);
             val.distance = GUI::calc_color_distance(c, tray_c);
             // Check if multi-slot refill is enabled for exact matching
-            bool multi_slot_enabled = wxGetApp().app_config->get_bool("enable_ams_multi_slot_auto_refill");
+            bool multi_slot_enabled = Slic3r::GUI::wxGetApp().app_config->get_bool("enable_ams_multi_slot_auto_refill");
             if (multi_slot_enabled) {
                 // Exact match: same brand, type, and color
                 // Handle empty brand strings - if either is empty, consider as no match
@@ -1177,7 +1177,7 @@ int MachineObject::ams_filament_mapping(
     // Step 3: do mapping algorithm
 
     // setup the mapping result
-    for (int i = 0; i < filaments.size(); i++) {
+    for (size_t i = 0; i < filaments.size(); ++i) {
         FilamentInfo info;
         info.id          = filaments[i].id;
         info.tray_id     = -1;
@@ -1189,23 +1189,23 @@ int MachineObject::ams_filament_mapping(
     // traverse the mapping
     std::set<int> picked_src;
     std::set<int> picked_tar;
-    for (int k = 0; k < distance_map.size(); k++) {
+    for (size_t k = 0; k < distance_map.size(); ++k) {
         float min_val = INT_MAX;
         int picked_src_idx = -1;
         int picked_tar_idx = -1;
-        for (int i = 0; i < distance_map.size(); i++) {
-            if (picked_src.find(i) != picked_src.end())
+        for (size_t i = 0; i < distance_map.size(); ++i) {
+            if (picked_src.find(static_cast<int>(i)) != picked_src.end())
                 continue;
 
             // try to mapping to different tray
-            for (int j = 0; j < distance_map[i].size(); j++) {
-                if (picked_tar.find(j) != picked_tar.end()){
+            for (size_t j = 0; j < distance_map[i].size(); ++j) {
+                if (picked_tar.find(static_cast<int>(j)) != picked_tar.end()){
                     if (distance_map[i][j].is_same_color
                         && distance_map[i][j].is_type_match
                         && distance_map[i][j].distance < (float)0.0001) {
                         min_val = distance_map[i][j].distance;
-                        picked_src_idx = i;
-                        picked_tar_idx = j;
+                        picked_src_idx = static_cast<int>(i);
+                        picked_tar_idx = static_cast<int>(j);
                         tray_filaments[picked_tar_idx].distance = min_val;
                     }
                     continue;
@@ -1216,30 +1216,30 @@ int MachineObject::ams_filament_mapping(
                     if (min_val > distance_map[i][j].distance) {
 
                         min_val = distance_map[i][j].distance;
-                        picked_src_idx = i;
-                        picked_tar_idx = j;
+                        picked_src_idx = static_cast<int>(i);
+                        picked_tar_idx = static_cast<int>(j);
                         tray_filaments[picked_tar_idx].distance = min_val;
                     }
                     else if (min_val == distance_map[i][j].distance&& filaments[picked_src_idx].filament_id!= tray_filaments[picked_tar_idx].filament_id && filaments[i].filament_id == tray_filaments[j].filament_id) {
 
-                        picked_src_idx = i;
-                        picked_tar_idx = j;
+                        picked_src_idx = static_cast<int>(i);
+                        picked_tar_idx = static_cast<int>(j);
                     }
                 }
             }
 
             // take a retry to mapping to used tray
             if (picked_src_idx < 0 || picked_tar_idx < 0) {
-                for (int j = 0; j < distance_map[i].size(); j++) {
+                for (size_t j = 0; j < distance_map[i].size(); ++j) {
                     if (distance_map[i][j].is_same_color && distance_map[i][j].is_type_match) {
                         if (min_val > distance_map[i][j].distance) {
                             min_val = distance_map[i][j].distance;
-                            picked_src_idx = i;
-                            picked_tar_idx = j;
+                            picked_src_idx = static_cast<int>(i);
+                            picked_tar_idx = static_cast<int>(j);
                             tray_filaments[picked_tar_idx].distance = min_val;
                         } else if (min_val == distance_map[i][j].distance && filaments[picked_src_idx].filament_id != tray_filaments[picked_tar_idx].filament_id && filaments[i].filament_id == tray_filaments[j].filament_id) {
-                            picked_src_idx = i;
-                            picked_tar_idx = j;
+                            picked_src_idx = static_cast<int>(i);
+                            picked_tar_idx = static_cast<int>(j);
                         }
                     }
                 }
@@ -1290,7 +1290,7 @@ bool MachineObject::is_valid_mapping_result(std::vector<FilamentInfo>& result, b
     bool valid_ams_mapping_result = true;
     if (result.empty()) return false;
 
-    for (int i = 0; i < result.size(); i++) {
+    for (size_t i = 0; i < result.size(); ++i) {
         // invalid mapping result
         if (result[i].tray_id < 0) {
             if (result[i].ams_id.empty() && result[i].slot_id.empty()) {
@@ -1327,7 +1327,7 @@ bool MachineObject::is_valid_mapping_result(std::vector<FilamentInfo>& result, b
 bool MachineObject::is_mapping_exceed_filament(std::vector<FilamentInfo> & result, int &exceed_index)
 {
     bool is_exceed = false;
-    for (int i = 0; i < result.size(); i++) {
+    for (size_t i = 0; i < result.size(); ++i) {
         int ams_id = result[i].tray_id / 4;
         if (amsList.find(std::to_string(ams_id)) == amsList.end()) {
             exceed_index = result[i].tray_id;
@@ -1346,7 +1346,7 @@ bool MachineObject::is_mapping_exceed_filament(std::vector<FilamentInfo> & resul
 
 void MachineObject::reset_mapping_result(std::vector<FilamentInfo>& result)
 {
-    for (int i = 0; i < result.size(); i++) {
+    for (size_t i = 0; i < result.size(); ++i) {
         result[i].tray_id = -1;
         result[i].distance = 99999;
         result[i].mapping_result = 0;
