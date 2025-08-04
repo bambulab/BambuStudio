@@ -1433,6 +1433,10 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_staticText_timelapse->Hide();
     bSizer_monitoring_title->Add(m_staticText_timelapse, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
+    m_mqtt_source = new wxStaticText(m_panel_monitoring_title, wxID_ANY, _L("MqttSource"), wxDefaultPosition, wxDefaultSize, 0);
+    m_mqtt_source->Wrap(-1);
+    bSizer_monitoring_title->Add(m_mqtt_source, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+
     m_bmToggleBtn_timelapse = new SwitchButton(m_panel_monitoring_title);
     m_bmToggleBtn_timelapse->SetMinSize(SWITCH_BUTTON_SIZE);
     m_bmToggleBtn_timelapse->Hide();
@@ -2693,6 +2697,11 @@ void StatusPanel::update(MachineObject *obj)
     m_bmToggleBtn_timelapse->SetValue(obj->is_tunnel_mqtt);
 #endif
 
+    if (obj->HasRecentCloudMessage() && obj->HasRecentLanMessage()) m_mqtt_source->SetLabel("Cloud+Lan");
+    else if (obj->HasRecentCloudMessage()) m_mqtt_source->SetLabel("Cloud");
+    else if (obj->HasRecentLanMessage()) m_mqtt_source->SetLabel("Lan");
+    else m_mqtt_source->SetLabel("None");
+
     //m_machine_ctrl_panel->Freeze();
     if (obj->is_in_printing() && !obj->can_resume()) {
         show_printing_status(false, true);
@@ -3039,7 +3048,7 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
         if (!nozzle_temp_input) {
             auto main_extder = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID);
             if (main_extder)
-            { 
+            {
                 m_tempCtrl_nozzle->SetCurrTemp((int)main_extder->GetCurrentTemp());
                 if (main_extder->GetTargetTemp() - main_extder->GetCurrentTemp() > TEMP_THRESHOLD_VAL)
                 {
@@ -3060,7 +3069,7 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
         if (!nozzle_temp_input && nozzle_num >= 2) {
             auto deputy_extder = obj->GetExtderSystem()->GetExtderById(DEPUTY_EXTRUDER_ID);
             if (deputy_extder)
-            { 
+            {
                 m_tempCtrl_nozzle_deputy->SetCurrTemp((int)deputy_extder->GetCurrentTemp());
                 if (deputy_extder->GetTargetTemp() - deputy_extder->GetCurrentTemp() > TEMP_THRESHOLD_VAL)
                 {
