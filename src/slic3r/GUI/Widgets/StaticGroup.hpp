@@ -5,6 +5,8 @@
 
 #include <wx/statbox.h>
 
+class HoverLabel;
+
 class StaticGroup : public wxStaticBox
 {
 public:
@@ -13,6 +15,8 @@ public:
 public:
     void ShowBadge(bool show);
     void SetBorderColor(const wxColour &color);
+    void SetHoverEnabledCallback(std::function<bool()> cb);
+    void SetOnHoverClick(std::function<void()> on_click);
 private:
 #ifdef __WXMSW__
     void OnPaint(wxPaintEvent &evt);
@@ -27,6 +31,7 @@ private:
     ScalableButton * badge { nullptr };
 #endif
     wxColour       borderColor_;
+    HoverLabel*    hoverLabel_;
 };
 
 #endif // !slic3r_GUI_StaticGroup_hpp_

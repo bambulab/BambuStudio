@@ -498,6 +498,30 @@ std::vector<std::map<int, int>> get_extruder_ams_count(const std::vector<std::st
     return extruder_ams_counts;
 }
 
+std::vector<std::map<NozzleVolumeType,int>> get_extruder_nozzle_count(const std::vector<std::string>& strs)
+{
+    std::vector<std::map<NozzleVolumeType,int>> extruder_nozzle_counts;
+    for (const std::string& str : strs) {
+        std::map<NozzleVolumeType,int> nozzle_count_map;
+        if(str.empty()){
+            extruder_nozzle_counts.emplace_back(nozzle_count_map);
+            continue;
+        }
+        std::vector<std::string> nozzle_infos;
+        boost::algorithm::split(nozzle_infos, str, boost::is_any_of("|"));
+        for (auto& nozzle_info : nozzle_infos) {
+            std::vector<std::string> attr;
+            boost::algorithm::split(attr, nozzle_info, boost::is_any_of("#"));
+            NozzleVolumeType volume_type = NozzleVolumeType(s_keys_map_NozzleVolumeType.at(attr[0]));
+            int nozzle_count = std::atoi(attr[1].c_str());
+            nozzle_count_map[volume_type] = nozzle_count;
+        }
+        extruder_nozzle_counts.emplace_back(nozzle_count_map);
+    }
+    return extruder_nozzle_counts;
+}
+
+
 std::vector<std::string> save_extruder_ams_count_to_string(const std::vector<std::map<int, int>> &extruder_ams_count)
 {
     std::vector<std::string> extruder_ams_count_str;
@@ -514,6 +538,23 @@ std::vector<std::string> save_extruder_ams_count_to_string(const std::vector<std
     }
     return extruder_ams_count_str;
 }
+
+std::vector<std::string> save_extruder_nozzle_count_to_string(const std::vector<std::map<NozzleVolumeType,int>>& extruder_nozzle_count)
+{
+    std::vector<std::string> extruder_nozzle_count_str;
+    for (size_t idx = 0; idx < extruder_nozzle_count.size(); ++idx) {
+        std::ostringstream oss;
+        const auto& item = extruder_nozzle_count[idx];
+        for (auto it = item.begin(); it != item.end(); ++it) {
+            oss << get_nozzle_volume_type_string(it->first) << "#" << it->second;
+            if (std::next(it) != item.end())
+                oss << "|";
+        }
+        extruder_nozzle_count_str.emplace_back(oss.str());
+    }
+    return extruder_nozzle_count_str;
+}
+
 
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
@@ -3213,9 +3254,10 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 
-    def = this->add("has_multiple_nozzle", coBool);
+    def = this->add("has_multiple_nozzle", coBools);
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionBoolsNullable{ false });
 
     def = this->add("has_scarf_joint_seam", coBool);
     def->mode = comAdvanced;
@@ -3838,6 +3880,9 @@ void PrintConfigDef::init_fff_params()
     def = this->add("extruder_ams_count", coStrings);
     def->label = "Extruder ams count";
     def->tooltip = "Ams counts of per extruder";
+    def->set_default_value(new ConfigOptionStrings { });
+
+    def = this->add("extruder_nozzle_count", coStrings);
     def->set_default_value(new ConfigOptionStrings { });
 
     def = this->add("printer_extruder_id", coInts);
@@ -6211,7 +6256,8 @@ std::set<std::string> printer_extruder_options = {
     "extruder_printable_area",
     "extruder_printable_height",
     "min_layer_height",
-    "max_layer_height"
+    "max_layer_height",
+    "has_multiple_nozzle"
 };
 
 std::set<std::string> printer_options_with_variant_1 = {

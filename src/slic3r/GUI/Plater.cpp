@@ -129,6 +129,7 @@
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/StaticGroup.hpp"
+#include "Widgets/MultiNozzleSync.hpp"
 
 #include "GUI_ObjectTable.hpp"
 #include "libslic3r/Thread.hpp"
@@ -1787,9 +1788,24 @@ Sidebar::Sidebar(Plater *parent)
         });
         p->btn_sync_printer = btn_sync;
 
-        p->left_extruder  = new ExtruderGroup(p->m_panel_printer_content, 0, _L("Left Nozzle"));
+        auto extruder_hover_enabled_cb = [](int extruder_id) {
+            if (!wxGetApp().preset_bundle)
+                return false;
+            auto full_config = wxGetApp().preset_bundle->full_config();
+            ConfigOptionBoolsNullable* has_multiple_nozzle = full_config.option<ConfigOptionBoolsNullable>("has_multiple_nozzle");
+            if (!has_multiple_nozzle || extruder_id >= has_multiple_nozzle->size())
+                return false;
+            return bool(has_multiple_nozzle->values[extruder_id]);
+            };
+
+        p->left_extruder = new ExtruderGroup(p->m_panel_printer_content, 0, _L("Left Nozzle"));
         p->right_extruder = new ExtruderGroup(p->m_panel_printer_content, 1, _L("Right Nozzle"));
         p->single_extruder = new ExtruderGroup(p->m_panel_printer_content, -1, _L("Nozzle"));
+
+        p->left_extruder->SetHoverEnabledCallback([extruder_hover_enabled_cb]() { return extruder_hover_enabled_cb(0); });
+        p->right_extruder->SetHoverEnabledCallback([extruder_hover_enabled_cb]() { return extruder_hover_enabled_cb(1); });
+        p->left_extruder->SetOnHoverClick([]() {manuallySetNozzleCount(0); wxGetApp().plater()->update(); });
+        p->right_extruder->SetOnHoverClick([]() {manuallySetNozzleCount(1); wxGetApp().plater()->update(); });
 
         auto switch_diameter = [this](wxCommandEvent & evt) {
             auto extruder = dynamic_cast<ExtruderGroup *>(dynamic_cast<ComboBox *>(evt.GetEventObject())->GetParent());

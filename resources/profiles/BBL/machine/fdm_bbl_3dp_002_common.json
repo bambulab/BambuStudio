@@ -61,6 +61,10 @@
         "0",
         "0"
     ],
+    "has_multiple_nozzle": [
+        "0",
+        "0"
+    ],
     "head_wrap_detect_zone": [],
     "hotend_cooling_rate": [
         "2",

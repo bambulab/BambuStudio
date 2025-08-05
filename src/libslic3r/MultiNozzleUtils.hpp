@@ -38,6 +38,9 @@ struct NozzleGroupInfo
         if (volume_type != rhs.volume_type) return volume_type < rhs.volume_type;
         return nozzle_count < rhs.nozzle_count;
     }
+
+    std::string serialize() const;
+    static std::optional<NozzleGroupInfo> deserialize(const std::string& str);
 };
 
 // 分组后的结果，GCodeProcessor，发起打印页面需要
