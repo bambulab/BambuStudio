@@ -98,7 +98,9 @@ private:
     /*TODO*/
 public:
     // to remove
-    MachineObject* insert_local_device(std::string dev_name, std::string dev_id, std::string dev_ip, std::string connection_type, std::string bind_state, std::string version, std::string access_code);
+    MachineObject* insert_local_device(std::string dev_name, std::string dev_id, std::string dev_ip,
+        std::string connection_type, std::string bind_state, std::string version,
+        std::string access_code, std::string printer_type);
 };
 
 class DeviceManagerRefresher : public wxObject
