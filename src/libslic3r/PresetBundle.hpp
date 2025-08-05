@@ -187,6 +187,7 @@ public:
     std::vector<std::vector<std::string>> ams_multi_color_filment;
 
     std::vector<std::map<int, int>> extruder_ams_counts;
+    std::vector<std::map<NozzleVolumeType,int>> extruder_nozzle_counts;
 
     // Calibrate
     Preset const * calibrate_printer = nullptr;

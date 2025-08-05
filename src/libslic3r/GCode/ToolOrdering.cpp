@@ -1039,7 +1039,7 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
 
     const auto& print_config = print->config();
     const unsigned int filament_nums = (unsigned int)(print_config.filament_colour.values.size() + EPSILON);
-    bool has_multiple_nozzle = print_config.has_multiple_nozzle;
+    bool has_multiple_nozzle = std::any_of(print_config.has_multiple_nozzle.values.begin(), print_config.has_multiple_nozzle.values.end(), [](bool v) { return v; });
 
     // get flush matrix
     std::vector<FlushMatrix> nozzle_flush_mtx;
@@ -1098,8 +1098,18 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
     bool ignore_ext_filament = false; // TODO: read from config
 
     std::vector<MultiNozzleUtils::NozzleGroupInfo> nozzle_groups;
-    nozzle_groups.emplace_back(0.4, NozzleVolumeType::nvtHighFlow, 0, 1);
-    nozzle_groups.emplace_back(0.4, NozzleVolumeType::nvtStandard, 1, 3);
+    auto extruder_nozzle_counts = get_extruder_nozzle_count(print_config.extruder_nozzle_count.values);
+    for(size_t idx = 0; idx < extruder_nums; ++idx){
+        if (idx >= extruder_nozzle_counts.size() || extruder_nozzle_counts[idx].empty()) {
+            nozzle_groups.emplace_back(print_config.nozzle_diameter.values[idx], NozzleVolumeType(print_config.nozzle_volume_type.values[idx]), idx, 1);
+        }
+        else{
+            for(auto [volume_type,count] : extruder_nozzle_counts[idx]){
+                nozzle_groups.emplace_back(print_config.nozzle_diameter.values[idx], volume_type, idx, count);
+            }
+        }
+    }
+
 
     if (extruder_nums == 2)
     {
@@ -1151,7 +1161,7 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
         }
 
 
-        if (print_config.has_multiple_nozzle) {
+        if (has_multiple_nozzle) {
             context.nozzle_info.nozzle_list = build_nozzle_list(nozzle_groups);
             context.nozzle_info.extruder_nozzle_list = build_extruder_nozzle_list(context.nozzle_info.nozzle_list);
             if(mode == FilamentMapMode::fmmManual){
@@ -1316,9 +1326,9 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
         return false;
         };
 
-    bool support_multi_nozzle = true;
+    bool support_multi_nozzle = std::any_of(print_config->has_multiple_nozzle.values.begin(), print_config->has_multiple_nozzle.values.end(), [](auto v) {return v; });
 
-    if(print_config->has_multiple_nozzle && m_print->get_nozzle_group_result().has_value()){
+    if(support_multi_nozzle && m_print->get_nozzle_group_result().has_value()){
         reorder_filaments_for_multi_nozzle_extruder(
             filament_lists,
             m_print->get_nozzle_group_result().value(),

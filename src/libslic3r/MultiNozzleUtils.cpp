@@ -188,5 +188,36 @@ void NozzleStatusRecorder::clear_nozzle_status(int nozzle_id)
     nozzle_filament_status.erase(iter);
 }
 
+std::string NozzleGroupInfo::serialize() const
+{
+    std::ostringstream oss;
+    oss << extruder_id << "-"
+        << std::setprecision(2) << diameter << "-"
+        << get_nozzle_volume_type_string(volume_type)<<"-"
+        << nozzle_count;
+    return oss.str();
+}
+
+std::optional<NozzleGroupInfo> NozzleGroupInfo::deserialize(const std::string &str)
+{
+    std::istringstream       iss(str);
+    std::string              token;
+    std::vector<std::string> tokens;
+
+    while (std::getline(iss, token, '-')) { tokens.push_back(token); }
+
+    if (tokens.size() != 4) { return std::nullopt; }
+
+    try {
+        int              extruder_id  = std::stoi(tokens[0]);
+        double           diameter     = std::stod(tokens[1]);
+        NozzleVolumeType volume_type = NozzleVolumeType(ConfigOptionEnum<NozzleVolumeType>::get_enum_values().at(tokens[2]));
+        int              nozzle_count = std::stoi(tokens[3]);
+
+        return NozzleGroupInfo(diameter, volume_type, extruder_id, nozzle_count);
+    } catch (const std::exception &) {
+        return std::nullopt;
+    }
+}
 
 }} // namespace Slic3r::MultiNozzleUtils
