@@ -257,10 +257,15 @@ namespace Slic3r {
                 // map overhang speed to a range
                 {
                     auto   it = std::upper_bound(non_uniform_degree_map.begin(), non_uniform_degree_map.end(), degree);
-                    int    high_idx = it - non_uniform_degree_map.begin();
-                    int    low_idx = high_idx - 1;
-                    double t = (degree - non_uniform_degree_map[low_idx]) / (non_uniform_degree_map[high_idx] - non_uniform_degree_map[low_idx]);
-                    mapped_degree = low_idx * (1 - t) + t * high_idx;
+                    if (it == non_uniform_degree_map.end()) {
+                        mapped_degree = non_uniform_degree_map.size() - 1;
+                    }
+                    else {
+                        int    high_idx = it - non_uniform_degree_map.begin();
+                        int    low_idx = high_idx - 1;
+                        double t = (degree - non_uniform_degree_map[low_idx]) / (non_uniform_degree_map[high_idx] - non_uniform_degree_map[low_idx]);
+                        mapped_degree = low_idx * (1 - t) + t * high_idx;
+                    }
                 }
                 overhang_degree_arr.emplace_back(mapped_degree);
             }
