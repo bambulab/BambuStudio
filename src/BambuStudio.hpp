@@ -88,6 +88,11 @@ typedef struct _printer_plate_info {
     int                 exclude_x{0};
     int                 exclude_y{0};
 
+    int                 wrapping_width{0};
+    int                 wrapping_depth{0};
+    int                 wrapping_x{0};
+    int                 wrapping_y{0};
+
     float               height_to_lid{0.f};
     float               height_to_rod{0.f};
     float               cleareance_radius{0.f};
