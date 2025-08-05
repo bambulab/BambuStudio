@@ -2587,7 +2587,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Probing exclude area of clumping.");
     def->mode = comAdvanced;
     def->gui_type = ConfigOptionDef::GUIType::one_string;
-    def->set_default_value(new ConfigOptionPoints{Vec2d(145, 326), Vec2d(145, 310), Vec2d(256, 310), Vec2d(256, 326)});
+    def->set_default_value(new ConfigOptionPoints());
 
     // BBS
     def = this->add("thumbnail_size", coPoints);
