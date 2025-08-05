@@ -2663,8 +2663,12 @@ void GLCanvas3D::render(bool only_init)
 
     set_tooltip(tooltip);
 
-    if (m_tooltip_enabled)
-        m_tooltip.render(m_mouse.position, *this);
+    if (m_tooltip_enabled) {
+        float offset_x = std::atof(wxGetApp().app_config->get("3d_middle_tooltip_offset_x").c_str());
+        float offset_y = std::atof(wxGetApp().app_config->get("3d_middle_tooltip_offset_y").c_str());
+        Vec2d position = m_mouse.position + Vec2d(offset_x,offset_y);
+        m_tooltip.render(position, *this);
+    }
 
     wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog(*this);
 
