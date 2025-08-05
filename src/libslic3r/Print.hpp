@@ -943,8 +943,8 @@ public:
     void set_filament_print_time(const std::unordered_map<int, std::unordered_map<int,double>>& filament_print_time) { m_filament_print_time = filament_print_time; }
     std::unordered_map<int,std::unordered_map<int,double>> get_filament_print_time() const { return m_filament_print_time; }
 
-    void set_nozzle_group_result(const MultiNozzleUtils::MultiNozzleGroupResult& result) { m_nozzle_group_result = result; }
-    const MultiNozzleUtils::MultiNozzleGroupResult& get_nozzle_group_result() { return m_nozzle_group_result; }
+    void set_nozzle_group_result(const std::optional<MultiNozzleUtils::MultiNozzleGroupResult>& result) { m_nozzle_group_result = result; }
+    const std::optional<MultiNozzleUtils::MultiNozzleGroupResult>& get_nozzle_group_result() { return m_nozzle_group_result; }
 
     void set_slice_used_filaments(const std::vector<unsigned int> &first_layer_used_filaments, const std::vector<unsigned int> &used_filaments){
         m_slice_used_filaments_first_layer = first_layer_used_filaments;

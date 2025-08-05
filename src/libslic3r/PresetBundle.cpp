@@ -1889,6 +1889,12 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     }
     this->extruder_ams_counts = get_extruder_ams_count(extruder_ams_count_str);
 
+    std::vector<std::string> extruder_nozzle_count_str;
+    if (config.has("presets", "extruder_nozzle_count")){
+        boost::algorithm::split(extruder_nozzle_count_str, config.get("presets", "extruder_nozzle_count"), boost::algorithm::is_any_of(","));
+    }
+    this->extruder_nozzle_counts = get_extruder_nozzle_count(extruder_nozzle_count_str);
+
     std::vector<std::string> matrix;
     if (config.has("presets", "flush_volumes_matrix")) {
         boost::algorithm::split(matrix, config.get("presets", "flush_volumes_matrix"), boost::algorithm::is_any_of("|"));
@@ -2961,6 +2967,7 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     add_if_some_non_empty(std::move(different_settings),            "different_settings_to_system");
     add_if_some_non_empty(std::move(print_compatible_printers),     "print_compatible_printers");
     out.option<ConfigOptionStrings>("extruder_ams_count", true)->values   = save_extruder_ams_count_to_string(this->extruder_ams_counts);
+    out.option<ConfigOptionStrings>("extruder_nozzle_count", true)->values = save_extruder_nozzle_count_to_string(this->extruder_nozzle_counts);
 
 	out.option<ConfigOptionEnumGeneric>("printer_technology", true)->value = ptFFF;
     return out;
@@ -3219,6 +3226,10 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     if (this->extruder_ams_counts.empty())
         this->extruder_ams_counts = get_extruder_ams_count(extruder_ams_count);
 
+    std::vector<std::string> extruder_nozzle_count = std::move(config.option<ConfigOptionStrings>("extruder_nozzle_count", true)->values);
+    config.erase("extruder_nozzle_count");
+    if (this->extruder_nozzle_counts.empty())
+        this->extruder_nozzle_counts = get_extruder_nozzle_count(extruder_nozzle_count);
 
     // 1) Create a name from the file name.
     // Keep the suffix (.ini, .gcode, .amf, .3mf etc) to differentiate it from the normal profiles.
@@ -4535,6 +4546,7 @@ void PresetBundle::on_extruders_count_changed(int extruders_count)
     update_multi_material_filament_presets();
     reset_default_nozzle_volume_type();
     extruder_ams_counts.resize(extruders_count);
+    extruder_nozzle_counts.resize(extruders_count);
 }
 
 void PresetBundle::update_multi_material_filament_presets(size_t to_delete_filament_id)

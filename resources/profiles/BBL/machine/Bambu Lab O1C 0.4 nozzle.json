@@ -28,7 +28,10 @@
         "25x0,330x0,330x320,25x320"
     ],
     "fan_direction": "left",
-    "has_multiple_nozzle": "1",
+    "has_multiple_nozzle": [
+        "0",
+        "1"
+    ],
     "hotend_cooling_rate": [
         "2",
         "2",

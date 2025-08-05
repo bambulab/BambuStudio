@@ -399,6 +399,8 @@ extern const std::vector<std::string> filament_extruder_override_keys;
 // for parse extruder_ams_count
 extern std::vector<std::map<int, int>> get_extruder_ams_count(const std::vector<std::string> &strs);
 extern std::vector<std::string> save_extruder_ams_count_to_string(const std::vector<std::map<int, int>> &extruder_ams_count);
+extern std::vector<std::map<NozzleVolumeType, int>> get_extruder_nozzle_count(const std::vector<std::string> & strs);
+extern std::vector<std::string> save_extruder_nozzle_count_to_string(const std::vector<std::map<NozzleVolumeType, int>> &extruder_nozzle_count);
 
 #define CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(NAME) \
     template<> const t_config_enum_names& ConfigOptionEnum<NAME>::get_enum_names(); \
@@ -1146,12 +1148,13 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                support_chamber_temp_control))
     ((ConfigOptionBool,                apply_top_surface_compensation))
     ((ConfigOptionBool,                support_air_filtration))
-    ((ConfigOptionBool,                has_multiple_nozzle))
+    ((ConfigOptionBoolsNullable,       has_multiple_nozzle))
     ((ConfigOptionBool,                accel_to_decel_enable))
     ((ConfigOptionPercent,             accel_to_decel_factor))
     ((ConfigOptionEnumsGeneric,        extruder_type))
     ((ConfigOptionEnumsGeneric,        nozzle_volume_type))
     ((ConfigOptionStrings,             extruder_ams_count))
+    ((ConfigOptionStrings,             extruder_nozzle_count))
     ((ConfigOptionInts,                printer_extruder_id))
     ((ConfigOptionInt,                 master_extruder_id))
     ((ConfigOptionStrings,             printer_extruder_variant))
