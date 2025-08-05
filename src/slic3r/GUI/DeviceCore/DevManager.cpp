@@ -270,11 +270,16 @@ namespace Slic3r
         }
     }
 
-    MachineObject* DeviceManager::insert_local_device(std::string dev_name, std::string dev_id, std::string dev_ip, std::string connection_type, std::string bind_state, std::string version, std::string access_code)
+    MachineObject* DeviceManager::insert_local_device(std::string dev_name, std::string dev_id,
+        std::string dev_ip, std::string connection_type, std::string bind_state,
+        std::string version, std::string access_code, std::string printer_type)
     {
         MachineObject* obj;
         obj = new MachineObject(this, m_agent, dev_name, dev_id, dev_ip);
-        obj->printer_type = _parse_printer_type("C11");
+        if (printer_type.empty())
+            obj->printer_type = _parse_printer_type("C11");
+        else
+            obj->printer_type = _parse_printer_type(printer_type);
         obj->dev_connection_type = connection_type == "farm" ? "lan":connection_type;
         obj->bind_state          = connection_type == "farm" ? "free":bind_state;
         obj->bind_sec_link = "secure";

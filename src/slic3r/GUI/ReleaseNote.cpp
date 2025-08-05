@@ -2079,7 +2079,9 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
 
 
     DeviceManager* dev = wxGetApp().getDeviceManager();
-    m_obj = dev->insert_local_device(detectData.dev_name, detectData.dev_id, str_ip, detectData.connect_type, detectData.bind_state, detectData.version, str_access_code);
+    m_obj = dev->insert_local_device(detectData.dev_name, detectData.dev_id, str_ip,
+        detectData.connect_type, detectData.bind_state, detectData.version,
+        str_access_code, detectData.model_id);
 
 
     if (w.expired()) return;
