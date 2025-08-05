@@ -462,11 +462,7 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         ImGui::PushItemWidth(item_size);
         imgui.text(buf);
 
-        if (view_type != EViewType::ThermalIndexMin && view_type != EViewType::ThermalIndexMax && view_type != EViewType::ThermalIndexMean) {
-            sprintf(buf, "%s%.0f", speed.c_str(), m_curr_move.feedrate);
-            ImGui::PushItemWidth(item_size);
-            imgui.text(buf);
-        } else {
+        if (view_type == EViewType::ThermalIndexMin || view_type == EViewType::ThermalIndexMax || view_type == EViewType::ThermalIndexMean) {
             sprintf(buf, "%s", thermal_index.c_str());
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
@@ -720,8 +716,15 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
             std::vector<std::string> tokens;
             boost::split(tokens, gline, boost::is_any_of(";"), boost::token_compress_on);
             command = tokens.front();
-            if (tokens.size() > 1)
-                comment = ";" + tokens.back();
+            if (tokens.size() > 1) {
+                if (Slic3r::HelioBackgroundProcess::State::STATE_FINISHED == m_sequential_view.m_gcode_viewer.m_last_helio_process_status &&
+                    !m_sequential_view.m_gcode_viewer.is_helio_option() &&
+                    boost::contains(tokens.back(), "helio")) {
+                    comment = "";
+                } else {
+                    comment = ";" + tokens.back();
+                }
+            }
 
             // extract gcode command and parameters
             if (!command.empty()) {
@@ -737,7 +740,6 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
             boost::trim(command);
             boost::trim(parameters);
             boost::trim(comment);
-
             ret.push_back({ command, parameters, comment });
         }
         return ret;
