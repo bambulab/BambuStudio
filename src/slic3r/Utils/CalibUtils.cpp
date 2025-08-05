@@ -8,6 +8,7 @@
 
 #include "libslic3r/Model.hpp"
 #include "../GUI/MsgDialog.hpp"
+#include "BBLUtil.hpp"
 
 #include "../GUI/DeviceCore/DevConfig.h"
 #include "../GUI/DeviceCore/DevExtruderSystem.h"
