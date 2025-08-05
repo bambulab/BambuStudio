@@ -1284,7 +1284,10 @@ void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
     if (m_browser != nullptr && evt.GetId() == m_browser->GetId())
     {
         SwitchWebContent("home");
-        SendDesignStaffpick(true);
+        if (wxGetApp().app_config->get("staff_pick_switch") == "true")
+            SendDesignStaffpick(true);
+        else
+            SendDesignStaffpick(false);
         SendMakerlabList();
     }
 
