@@ -176,9 +176,9 @@ std::pair<SupportGeneratorLayersPtr, SupportGeneratorLayersPtr> generate_interfa
                                 const SupportGeneratorLayer &top_contact_layer = *top_contacts[idx_top_contact];
                                 const bool is_top_contact = is_approx(top_contact_layer.bottom_z, intermediate_layers[num_intermediate - 1]->print_z);
                                 if (is_top_contact) {
-                                    if (idx_intermediate_layer > num_intermediate - support_params.num_top_interface_layers)
+                                    if (idx_intermediate_layer > num_intermediate - int(support_params.num_top_interface_layers))
                                         polygons_append(polygons_top_contact_projected_interface, snug_supports ? *top_contact_layer.overhang_polygons : top_contact_layer.polygons);
-                                    else if (idx_intermediate_layer > num_intermediate - support_params.num_top_interface_layers - support_params.num_top_base_interface_layers)
+                                    else if (idx_intermediate_layer > num_intermediate - int(support_params.num_top_interface_layers) - int(support_params.num_top_base_interface_layers))
                                         polygons_append(polygons_top_contact_projected_base, snug_supports ? *top_contact_layer.overhang_polygons : top_contact_layer.polygons);
                                 } else {
                                     if (top_contact_layer.print_z - EPSILON <
