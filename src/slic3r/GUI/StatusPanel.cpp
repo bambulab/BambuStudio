@@ -28,11 +28,14 @@
 #include "DeviceCore/DevFan.h"
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevLamp.h"
+#include "DeviceCore/DevNozzleSystem.h"
 #include "DeviceCore/DevStorage.h"
 
 #include "DeviceCore/DevConfig.h"
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevPrintTaskInfo.h"
+
+#include "DeviceTab/wgtDeviceNozzleRack.h"
 
 
 
@@ -1655,13 +1658,26 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
     wxBoxSizer *bSizer_control = new wxBoxSizer(wxVERTICAL);
 
     auto temp_axis_ctrl_sizer = create_temp_axis_group(parent);
-    auto m_ams_ctrl_sizer = create_ams_group(parent);
     auto m_filament_load_sizer = create_filament_group(parent);
+
+    /* ams or rack*/
+    wxSizer* ams_rack_sizer = new wxBoxSizer(wxHORIZONTAL);
+    ams_rack_sizer->Add(create_ams_group(parent), 0, wxEXPAND | wxLEFT);
+
+    m_panel_nozzle_rack = new wgtDeviceNozzleRack(parent);
+    m_panel_nozzle_rack->Show(false);
+    ams_rack_sizer->Add(m_panel_nozzle_rack, 0, wxEXPAND | wxLEFT);
+
+    m_ams_rack_switch = new SwitchBoard(parent, _L("Filament"), _L("Hotends"), wxSize(FromDIP(126), FromDIP(26)));
+    m_ams_rack_switch->updateState("left");
+    m_ams_rack_switch->Hide();
+    m_ams_rack_switch->Bind(wxCUSTOMEVT_SWITCH_POS, &StatusBasePanel::on_ams_rack_switch, this);
 
     bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(8));
     bSizer_control->Add(temp_axis_ctrl_sizer,   0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(8));
+    bSizer_control->Add(m_ams_rack_switch, 0, wxALIGN_CENTRE | wxTOP, FromDIP(6));
     bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(6));
-    bSizer_control->Add(m_ams_ctrl_sizer,       0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(8));
+    bSizer_control->Add(ams_rack_sizer, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(8));
     bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(6));
     bSizer_control->Add(m_filament_load_sizer,  0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(8));
     bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(4));
@@ -1706,13 +1722,7 @@ wxBoxSizer *StatusBasePanel::create_temp_axis_group(wxWindow *parent)
 
     content_sizer->Add(m_temp_ctrl, 0, wxEXPAND | wxALL, FromDIP(5));
     content_sizer->Add(m_temp_temp_line, 0, wxEXPAND, 1);
-    //content_sizer->Add(FromDIP(9), 0, 0, wxEXPAND, 1);
-    /*content_sizer->Add(0, 0, 0, wxLEFT, FromDIP(18));
-    content_sizer->Add(m_axis_sizer, 0, wxALIGN_CENTER_VERTICAL | wxALL, 0);
-    content_sizer->Add(0, 0, 0, wxLEFT, FromDIP(18));
-    content_sizer->Add(bed_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, FromDIP(12));*/
     content_sizer->Add(axis_and_bed_control_sizer, 1, wxALIGN_CENTER, 0);
-    //content_sizer->Add(0, 0, 0, wxLEFT, FromDIP(18));
 
     m_temp_extruder_line = new wxPanel(box);
     m_temp_extruder_line->SetMaxSize(wxSize(FromDIP(1), -1));
@@ -2063,39 +2073,30 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
     return sizer;
 }
 
-wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
+StaticBox* StatusBasePanel::create_ams_group(wxWindow *parent)
 {
-    auto sizer     = new wxBoxSizer(wxVERTICAL);
-    auto sizer_box = new wxBoxSizer(wxVERTICAL);
-
-    m_ams_control_box = new StaticBox(parent);
-
     StateColor box_colour(std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
     StateColor box_border_colour(std::pair<wxColour, int>(STATUS_PANEL_BG, StateColor::Normal));
 
+    m_ams_control_box = new StaticBox(parent);
     m_ams_control_box->SetBackgroundColor(box_colour);
     m_ams_control_box->SetBorderColor(box_border_colour);
     m_ams_control_box->SetCornerRadius(5);
 
     m_ams_control_box->SetMinSize(wxSize(FromDIP(586), -1));
     m_ams_control_box->SetBackgroundColour(*wxWHITE);
-#if !BBL_RELEASE_TO_PUBLIC
-    m_ams_debug = new wxStaticText(m_ams_control_box, wxID_ANY, _L("Debug Info"), wxDefaultPosition, wxDefaultSize, 0);
-    sizer_box->Add(m_ams_debug, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-    m_ams_debug->Hide();
-#endif
 
     m_ams_control = new AMSControl(m_ams_control_box, wxID_ANY);
-    //m_ams_control->SetMinSize(wxSize(FromDIP(510), FromDIP(286)));
     m_ams_control->SetDoubleBuffered(true);
+
+    auto sizer_box = new wxBoxSizer(wxVERTICAL);
     sizer_box->Add(m_ams_control, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, FromDIP(3));
 
     m_ams_control_box->SetBackgroundColour(*wxWHITE);
     m_ams_control_box->SetSizer(sizer_box);
     m_ams_control_box->Layout();
     m_ams_control_box->Fit();
-    sizer->Add(m_ams_control_box, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, FromDIP(0));
-    return sizer;
+    return m_ams_control_box;
 }
 
 wxBoxSizer* StatusBasePanel::create_filament_group(wxWindow* parent)
@@ -2256,6 +2257,11 @@ void StatusBasePanel::show_ams_group(bool show)
         wxGetApp().mainframe->m_monitor->Layout();
     }
 
+    if (show && m_ams_rack_switch->IsShown() && (m_ams_rack_switch->switch_left != true))
+    {
+        return;
+    }
+
     if (m_ams_control_box->IsShown() != show) {
         m_ams_control_box->Show(show);
         m_ams_control->Layout();
@@ -2289,6 +2295,24 @@ void StatusBasePanel::show_filament_load_group(bool show)
         wxGetApp().mainframe->m_monitor->get_status_panel()->Layout();
         wxGetApp().mainframe->m_monitor->Layout();
     }
+}
+
+void StatusBasePanel::on_ams_rack_switch(wxCommandEvent& e)
+{
+    if (!m_ams_control_box->IsShown() && e.GetInt() == 1)
+    {
+        m_ams_control_box->Show(e.GetInt() == 1);
+        m_panel_nozzle_rack->Show(e.GetInt() == 0);
+        Layout();
+    }
+    else if (!m_panel_nozzle_rack->IsShown() && e.GetInt() == 0)
+    {
+        m_ams_control_box->Show(e.GetInt() == 1);
+        m_panel_nozzle_rack->Show(e.GetInt() == 0);
+        Layout();
+    }
+
+    e.Skip();
 }
 
 void StatusPanel::update_camera_state(MachineObject* obj)
@@ -2839,6 +2863,8 @@ void StatusPanel::update(MachineObject *obj)
     update_ams(obj);
     update_cali(obj);
 
+    update_rack(obj);
+
     if (obj) {
         //nozzle ui
         //m_button_left_of_extruder->SetSelected();
@@ -2920,7 +2946,11 @@ void StatusPanel::update(MachineObject *obj)
 void StatusPanel::show_recenter_dialog() {
     RecenterDialog dlg(this);
     if (dlg.ShowModal() == wxID_OK)
-        obj->command_go_home();
+    {
+        if (obj) {
+            obj->command_go_home();
+        }
+    }
 }
 
 
@@ -5068,7 +5098,6 @@ void StatusPanel::set_default()
     m_switch_nozzle_fan_timeout = 0;
     m_switch_printing_fan_timeout = 0;
     m_switch_cham_fan_timeout = 0;
-    m_show_ams_group = false;
     m_show_filament_group = false;
     reset_printing_values();
 
@@ -5092,6 +5121,9 @@ void StatusPanel::set_default()
     m_ams_control->Hide();
     m_ams_control_box->Hide();
     m_ams_control->Reset();
+    m_ams_rack_switch->updateState("left");
+    m_ams_rack_switch->Hide();
+    m_panel_nozzle_rack->Hide();
     m_scale_panel->Hide();
     m_filament_load_box->Hide();
     m_filament_step->Hide();
@@ -5269,6 +5301,7 @@ void StatusPanel::msw_rescale()
     m_extruder_switching_status->msw_rescale();
 
     m_ams_control->msw_rescale();
+    m_panel_nozzle_rack->Rescale();
     // m_filament_step->Rescale();
 
 
@@ -5407,6 +5440,20 @@ void StatusPanel::update_filament_loading_panel(MachineObject* obj)
     }
 
     show_filament_load_group(ams_loading_state);
+}
+
+void StatusPanel::update_rack(MachineObject* obj)
+{
+    if (obj && obj->GetNozzleSystem()->GetNozzleRack()->IsSupported())
+    {
+        m_ams_rack_switch->Show();
+        m_panel_nozzle_rack->UpdateRackInfo(obj->GetNozzleSystem()->GetNozzleRack());
+    }
+    else
+    {
+        m_ams_rack_switch->Show(false);
+        m_panel_nozzle_rack->Show(false);
+    }
 }
 
 ScoreDialog::ScoreDialog(wxWindow *parent, int design_id, std::string model_id, int profile_id, int rating_id, bool success_printed, int star_count)

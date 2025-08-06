@@ -187,3 +187,11 @@ bool StateColor::setColorForStates(wxColour const &color, int states)
 }
 
 void StateColor::setTakeFocusedAsHovered(bool set) { takeFocusedAsHovered_ = set; }
+
+StateColor StateColor::createButtonStyleGray()
+{
+    return StateColor(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+        std::pair<wxColour, int>(*wxWHITE, StateColor::Focused),
+        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+        std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+}
