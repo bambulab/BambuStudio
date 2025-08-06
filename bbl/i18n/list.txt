@@ -40,6 +40,9 @@ src/slic3r/GUI/DeviceCore/DevManager.h
 src/slic3r/GUI/DeviceCore/DevManager.cpp
 src/slic3r/GUI/DeviceCore/DevMapping.h
 src/slic3r/GUI/DeviceCore/DevMapping.cpp
+src/slic3r/GUI/DeviceCore/DevNozzleRack.h
+src/slic3r/GUI/DeviceCore/DevNozzleRack.cpp
+src/slic3r/GUI/DeviceCore/DevNozzleRackCtrl.cpp
 src/slic3r/GUI/DeviceCore/DevNozzleSystem.h
 src/slic3r/GUI/DeviceCore/DevNozzleSystem.cpp
 src/slic3r/GUI/DeviceCore/DevUtil.h
@@ -48,6 +51,10 @@ src/slic3r/GUI/DeviceTab/uiAmsHumidityPopup.h
 src/slic3r/GUI/DeviceTab/uiAmsHumidityPopup.cpp
 src/slic3r/GUI/DeviceTab/uiDeviceUpdateVersion.h
 src/slic3r/GUI/DeviceTab/uiDeviceUpdateVersion.cpp
+src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRack.h
+src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRack.cpp
+src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRackUpdate.h
+src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRackUpdate.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFlatten.cpp
 src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp

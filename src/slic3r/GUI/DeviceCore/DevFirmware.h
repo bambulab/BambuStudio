@@ -1,4 +1,7 @@
 #pragma once
+#include "DevFirmware.h"
+#include "slic3r/Utils/json_diff.hpp"
+
 #include <nlohmann/json.hpp>
 #include <wx/string.h>
 #include "slic3r/Utils/json_diff.hpp"
@@ -40,10 +43,13 @@ public:
 
 public:
     bool isValid() const { return !sn.empty(); }
+
+    /*type check*/
     bool isAirPump() const { return product_name.Contains("Air Pump"); }
     bool isLaszer() const { return product_name.Contains("Laser"); }
     bool isCuttingModule() const { return product_name.Contains("Cutting Module"); }
-    bool isExtinguishSystem() const { return product_name.Contains("Extinguishing System"); }
+    bool isExtinguishSystem() const { return product_name.Contains("Extinguishing System"); }// Auto Fire Extinguishing System
+    bool isWTM() const { return name.find("wtm") != string::npos; } // nozzle
 };
 
 
