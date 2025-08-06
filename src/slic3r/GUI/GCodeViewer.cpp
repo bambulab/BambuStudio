@@ -290,7 +290,11 @@ ColorRGBA GCodeViewer::Extrusions::Range::get_color_at(float value) const
         return range_colors[range_colors.size() -1];
     }
     if (value < _min) {
-        return ColorRGBA::GRAY();//for helio
+        if (value < _min - 0.01f) {
+            return ColorRGBA::GRAY(); // for helio
+        } else {
+            return range_colors[0];
+        }
     }
     const float global_t = (step != 0.0f) ? std::max(0.0f, value - _min) / step : 0.0f; // lower limit of 0.0f
 
