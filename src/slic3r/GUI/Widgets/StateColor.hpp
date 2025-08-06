@@ -5,6 +5,12 @@
 
 #include <map>
 
+#define WXCOLOUR_GREY700 wxColour(107, 107, 107)
+#define WXCOLOUR_GREY500 wxColour(158, 158, 158)
+#define WXCOLOUR_GREY400 wxColour("#CECECE")
+#define WXCOLOUR_GREY300 wxColour(238, 238, 238)
+#define WXCOLOUR_GREY200 wxColour(248, 248, 248)
+
 class StateColor
 {
 public:
@@ -28,6 +34,9 @@ public:
     static std::map<wxColour, wxColour> const & GetDarkMap();
     static wxColour darkModeColorFor(wxColour const &color);
     static wxColour lightModeColorFor(wxColour const &color);
+
+    // Button style
+    static StateColor createButtonStyleGray();
 
 public:
     template<typename ...Colors>

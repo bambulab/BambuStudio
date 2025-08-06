@@ -837,6 +837,7 @@ void MachineObject::clear_version_info()
     cutting_module_version_info = DevFirmwareVersionInfo();
     extinguish_version_info = DevFirmwareVersionInfo();
     module_vers.clear();
+    m_nozzle_system->ClearFirmwareInfoWTM();
 }
 
 void MachineObject::store_version_info(const DevFirmwareVersionInfo& info)
@@ -849,6 +850,8 @@ void MachineObject::store_version_info(const DevFirmwareVersionInfo& info)
         cutting_module_version_info = info;
     } else if (info.isExtinguishSystem()) {
         extinguish_version_info = info;
+    }else if (info.isWTM()) {
+        m_nozzle_system->AddFirmwareInfoWTM(info);
     }
 
     module_vers.emplace(info.name, info);
@@ -5022,6 +5025,7 @@ void MachineObject::parse_new_info(json print)
         is_support_ext_change_assist = get_flag_bits(fun, 48);
         is_support_partskip = get_flag_bits(fun, 49);
         is_support_idelheadingprotect_detection = get_flag_bits(fun, 62);
+        m_nozzle_system->SetSupportNozzleRack(get_flag_bits(fun, 60));
     }
 
     /*fun2*/
@@ -5067,9 +5071,9 @@ void MachineObject::parse_new_info(json print)
             m_device_mode = (DeviceMode)device["type"].get<int>();// FDM:1<<0 Laser:1<< Cut:1<<2
         }
 
-        DevBed::ParseV2_0(device,m_bed);
+        DevBed::ParseV2_0(device, m_bed);
+        DevNozzleSystemParser::ParseV2_0(device, m_nozzle_system);
 
-        if (device.contains("nozzle")) {  DevNozzleSystemParser::ParseV2_0(device["nozzle"], m_nozzle_system); }
         if (device.contains("extruder")) { ExtderSystemParser::ParseV2_0(device["extruder"], m_extder_system);}
         if (device.contains("ext_tool")) { DevExtensionToolParser::ParseV2_0(device["ext_tool"], m_extension_tool); }
 

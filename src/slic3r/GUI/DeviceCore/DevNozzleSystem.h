@@ -1,4 +1,7 @@
 #pragma once
+#include "DevDefs.h"
+#include "DevFirmware.h"
+
 #include "libslic3r/CommonDefs.hpp"
 #include "slic3r/Utils/json_diff.hpp"
 
@@ -9,6 +12,7 @@ namespace Slic3r
 {
     // Previous definitions
    class MachineObject;
+   class DevNozzleRack;
 
    struct DevNozzle
    {
@@ -22,13 +26,37 @@ namespace Slic3r
        NozzleFlowType     GetNozzleFlowType() const { return m_nozzle_flow; }
        static std::string   GetNozzleFlowTypeString(NozzleFlowType type);
        static std::string   GetNozzleTypeString(NozzleType type);
+   public:
+       /**/
+       int      GetNozzleId() const { return m_nozzle_id; }
+       NozzleType GetNozzleType() const { return m_nozzle_type; }
+
+       // display
+       wxString GetDisplayId() const;
+       wxString GetNozzleDiameterStr() const {  return wxString::Format("%.1f mm", m_diameter);}
+       wxString GetNozzleFlowTypeStr() const;
+       wxString GetNozzleTypeStr() const;
+
+       /* holder nozzle*/
+       bool IsOnRack() const { return m_on_rack; }
+       bool IsInfoReliable() const;
+
+       bool IsEmpty() const { return m_nozzle_id < 0; }
+       bool IsNormal() const;
+       bool IsAbnormal() const;
+       bool IsUnknown() const;
+
+       void SetOnRack(bool on_rack) { m_on_rack = on_rack; };
+       void SetStatus(int stat) { m_stat = stat; }
+
+   private:
+       int m_stat = 0;
+       bool m_on_rack = false;
    };
 
    class DevNozzleSystem
    {
        friend class DevNozzleSystemParser;
-   public:
-       DevNozzleSystem(MachineObject* owner) : m_owner(owner) {}
    private:
        enum Status : int
        {
@@ -37,27 +65,58 @@ namespace Slic3r
        };
 
    public:
-       bool                            ContainsNozzle(int id) const { return m_nozzles.find(id) != m_nozzles.end(); }
+       DevNozzleSystem(MachineObject* owner);
+       virtual ~DevNozzleSystem() {};
+
+   public:
+       MachineObject* GetOwner() const { return m_owner; }
+
+       bool                            ContainsNozzle(int id) const { return m_ext_nozzles.find(id) != m_ext_nozzles.end(); }
        DevNozzle                       GetNozzle(int id) const;
-       const std::map<int, DevNozzle>& GetNozzles() const { return m_nozzles;}
-       bool                            IsRefreshing() const { return m_state == 1; }
+       const std::map<int, DevNozzle>& GetNozzles() const { return m_ext_nozzles;}
+
+       bool  IsIdle() const { return m_state_0_4 == NOZZLE_SYSTEM_IDLE; }
+       bool  IsRefreshing() const { return m_state_0_4 == NOZZLE_SYSTEM_REFRESHING; }
+
+       /* reading*/
+       int GetReadingIdx() const { return m_reading_idx; };
+       int GetReadingCount() const { return m_reading_count; };
+
+       /* rack*/
+       void  SetSupportNozzleRack(bool supported);
+       std::shared_ptr<DevNozzleRack>  GetNozzleRack() const { return m_nozzle_rack;}
+
+       /* firmware*/
+       void AddFirmwareInfoWTM(const DevFirmwareVersionInfo& info);
+       void ClearFirmwareInfoWTM();
+       DevFirmwareVersionInfo GetExtruderNozzleFirmware() const { return m_ext_nozzle_firmware_info; }
 
    private:
        void Reset();
+       void ClearNozzles();
 
    private:
        MachineObject* m_owner = nullptr;
 
-       int                          m_extder_exist = 0;  //0- none exist 1-exist, unused
-       int                          m_state = 0; //0-idle 1-checking, unused
-       std::map<int, DevNozzle> m_nozzles;
+       int m_extder_exist = 0;  //0- none exist 1-exist, unused
+       int m_state_0_4 = 0;
 
+       /* refreshing */
+       int m_reading_idx = 0;
+       int m_reading_count = 0;
+
+       // nozzles on extruder
+       std::map<int, DevNozzle> m_ext_nozzles;
+       DevFirmwareVersionInfo m_ext_nozzle_firmware_info;
+
+       // nozzles on rack
+       std::shared_ptr<DevNozzleRack> m_nozzle_rack;
    };
 
    class DevNozzleSystemParser
    {
    public:
        static void  ParseV1_0(const nlohmann::json& nozzletype_json, const nlohmann::json& diameter_json, DevNozzleSystem* system, std::optional<int> flag_e3d);
-       static void  ParseV2_0(const json& nozzle_json, DevNozzleSystem* system);
+       static void  ParseV2_0(const json& device_json, DevNozzleSystem* system);
    };
 };

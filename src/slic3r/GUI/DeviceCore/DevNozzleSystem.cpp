@@ -1,17 +1,78 @@
 #include "DevExtruderSystem.h"
+
+#include "DevNozzleRack.h"
 #include "DevNozzleSystem.h"
 #include "DevUtil.h"
 
 #include "slic3r/GUI/DeviceManager.hpp"
 
+#include "slic3r/GUI/I18N.hpp"
+
 namespace Slic3r
 {
 
+wxString DevNozzle::GetNozzleFlowTypeStr() const
+{
+    switch (m_nozzle_flow)
+    {
+        case NozzleFlowType::H_FLOW: return _L("High Flow");
+        case NozzleFlowType::S_FLOW: return _L("Standard Flow");
+        default: break;
+    }
+
+    return _L("Unknown");
+}
+
+bool DevNozzle::IsInfoReliable() const
+{
+    if (IsEmpty()) { return false;}
+    return DevUtil::get_flag_bits(m_stat, 0, 1) == 0;
+}
+
+bool DevNozzle::IsNormal() const
+{
+    if (IsEmpty()) { return false;}
+    return DevUtil::get_flag_bits(m_stat, 1, 2) == 0;
+}
+
+bool DevNozzle::IsAbnormal() const
+{
+    return DevUtil::get_flag_bits(m_stat, 1, 2) == (1 << 0);
+}
+
+bool DevNozzle::IsUnknown() const
+{
+    return DevUtil::get_flag_bits(m_stat, 1, 2) == (1 << 1);
+}
+
+wxString DevNozzle::GetDisplayId() const
+{
+    return wxString::Format("%d", m_nozzle_id + 1);
+}
+
+wxString DevNozzle::GetNozzleTypeStr() const
+{
+    switch (m_nozzle_type)
+    {
+    case Slic3r::ntHardenedSteel:  return _L("Hardened Steel");
+    case Slic3r::ntStainlessSteel: return _L("Stainless Steel");
+    case Slic3r::ntTungstenCarbide: return _L("Tungsten Carbide");
+    default: break;
+    }
+
+    return _L("Unknown");
+}
+
+DevNozzleSystem::DevNozzleSystem(MachineObject* owner)
+    : m_owner(owner), m_nozzle_rack(std::make_shared<DevNozzleRack> (this))
+{
+}
+
 DevNozzle DevNozzleSystem::GetNozzle(int id) const
 {
-    if (m_nozzles.find(id) != m_nozzles.end())
+    if (m_ext_nozzles.find(id) != m_ext_nozzles.end())
     {
-        return m_nozzles.at(id);
+        return m_ext_nozzles.at(id);
     }
 
     return DevNozzle();
@@ -39,11 +100,55 @@ std::string DevNozzle::GetNozzleTypeString(NozzleType type)
 
 void DevNozzleSystem::Reset()
 {
-    m_nozzles.clear();
+    m_ext_nozzles.clear();
     m_extder_exist = 0;
-    m_state = 0; // idle state
+    m_state_0_4 = 0;
+    m_reading_idx = 0;
+    m_reading_count = 0;
+
+    m_nozzle_rack->Reset();
 }
 
+void DevNozzleSystem::ClearNozzles()
+{
+    m_ext_nozzles.clear();
+    m_nozzle_rack->ClearRackNozzles();
+}
+
+void DevNozzleSystem::AddFirmwareInfoWTM(const DevFirmwareVersionInfo& info)
+{
+    static const std::string s_wtm_prefix = "wtm/";
+    auto pos = info.name.find(s_wtm_prefix);
+    if (pos == string::npos)
+    {
+        m_ext_nozzle_firmware_info = info;
+    }
+    else
+    {
+        try
+        {
+            auto str = info.name.substr(s_wtm_prefix.size()); // remove "wtm/" prefix
+            int rack_nozzle_id = std::stoi(str) - 0x10; // rack nozzle IDs start from 0x10
+            m_nozzle_rack->AddNozzleFirmwareInfo(rack_nozzle_id, info);
+        }
+        catch (const std::exception& e)
+        {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Invalid nozzle ID in firmware name:  "
+                                     << info.name << ", error: " << e.what();
+        }
+    }
+}
+
+void DevNozzleSystem::ClearFirmwareInfoWTM()
+{
+    m_ext_nozzle_firmware_info = DevFirmwareVersionInfo();
+    m_nozzle_rack->ClearNozzleFirmwareInfo();
+}
+
+void DevNozzleSystem::SetSupportNozzleRack(bool supported)
+{
+    m_nozzle_rack->SetSupported(supported);
+}
 
 static unordered_map<string, NozzleFlowType> _str2_nozzle_flow_type = {
     {"S", NozzleFlowType::S_FLOW},
@@ -77,6 +182,11 @@ static void s_parse_nozzle_type(const std::string& nozzle_type_str, DevNozzle& n
         {
             nozzle.m_nozzle_type = _str2_nozzle_type[type_str];
         }
+    }
+    else if (nozzle_type_str == "N/A")
+    {
+        nozzle.m_nozzle_type = NozzleType::ntUndefine;
+        nozzle.m_nozzle_flow = NozzleFlowType::NONE_FLOWTYPE;
     }
 }
 
@@ -131,32 +241,56 @@ void DevNozzleSystemParser::ParseV1_0(const nlohmann::json& nozzletype_json,
         }
     }
 
-    system->m_nozzles[nozzle.m_nozzle_id] = nozzle;
+    system->m_ext_nozzles[nozzle.m_nozzle_id] = nozzle;
 }
 
 
-void DevNozzleSystemParser::ParseV2_0(const json& nozzle_json, DevNozzleSystem* system)
+void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* system)
 {
-    system->Reset();
-
-    if (nozzle_json.contains("exist"))
+    if (device_json.contains("nozzle"))
     {
-        system->m_extder_exist = DevUtil::get_flag_bits(nozzle_json["exist"].get<int>(), 0, 16);
+        const json& nozzle_json = device_json["nozzle"];
+        if (nozzle_json.contains("exist"))
+        {
+            system->m_extder_exist = DevUtil::get_flag_bits(nozzle_json["exist"].get<int>(), 0, 16);
+        }
+
+        if (nozzle_json.contains("state"))
+        {
+            int val = nozzle_json["state"].get<int>();
+            system->m_state_0_4 = DevUtil::get_flag_bits(nozzle_json["state"].get<int>(), 0, 4);
+            system->m_reading_count = DevUtil::get_flag_bits(nozzle_json["state"].get<int>(), 4, 4);
+            system->m_reading_idx = DevUtil::get_flag_bits(nozzle_json["state"].get<int>(), 8, 4);
+        }
+
+        system->ClearNozzles();
+        for (auto it = nozzle_json["info"].begin(); it != nozzle_json["info"].end(); it++)
+        {
+            DevNozzle nozzle_obj;
+            const auto& njon = it.value();
+            nozzle_obj.m_nozzle_id = DevUtil::get_hex_bits(njon["id"].get<int>(), 0);
+            nozzle_obj.m_diameter = njon["diameter"].get<float>();
+            s_parse_nozzle_type(njon["type"].get<std::string>(), nozzle_obj);
+            if (njon.contains("stat"))/*maybe not contains*/
+            {
+                nozzle_obj.SetStatus(njon["stat"].get<int>());
+            }
+
+            if (DevUtil::get_hex_bits(njon["id"].get<int>(), 1) == 1)
+            {
+                system->m_nozzle_rack->AddRackNozzle(nozzle_obj);
+            }
+            else
+            {
+                system->m_ext_nozzles[nozzle_obj.m_nozzle_id] = nozzle_obj;
+            }
+        }
     }
 
-    if (nozzle_json.contains("state"))
+    if (device_json.contains("holder"))
     {
-        system->m_state = DevUtil::get_flag_bits(nozzle_json["state"].get<int>(), 0, 4);
-    }
-
-    for (auto it = nozzle_json["info"].begin(); it != nozzle_json["info"].end(); it++)
-    {
-        DevNozzle nozzle_obj;
-        const auto& njon = it.value();
-        nozzle_obj.m_nozzle_id = njon["id"].get<int>();
-        nozzle_obj.m_diameter = njon["diameter"].get<float>();
-        s_parse_nozzle_type(njon["type"].get<std::string>(), nozzle_obj);
-        system->m_nozzles[nozzle_obj.m_nozzle_id] = nozzle_obj;
+        system->m_nozzle_rack->ParseRackInfo(device_json["holder"]);
     }
 }
-}
+
+};
