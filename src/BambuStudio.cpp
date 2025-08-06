@@ -6258,7 +6258,12 @@ int CLI::run(int argc, char **argv)
 
                                     if (gcode_result && gcode_result->gcode_check_result.error_code) {
                                         //found gcode error
-                                        BOOST_LOG_TRIVIAL(error) << "plate " << index + 1 << ": found gcode in unprintable area of multi extruder printers!" << std::endl;
+                                        if ((gcode_result->gcode_check_result.error_code & 0b11100)>0)
+                                            BOOST_LOG_TRIVIAL(error) << "plate " << index + 1 << ": found gcode in unprintable area of the printers! gcode_result->gcode_check_result.error_code = "
+                                                << gcode_result->gcode_check_result.error_code << std::endl;
+                                        else
+                                            BOOST_LOG_TRIVIAL(error) << "plate " << index + 1 << ": found gcode in unprintable area of multi extruder printers! gcode_result->gcode_check_result.error_code = "
+                                                << gcode_result->gcode_check_result.error_code << std::endl;
                                         record_exit_reson(outfile_dir, CLI_GCODE_PATH_IN_UNPRINTABLE_AREA, index + 1, cli_errors[CLI_GCODE_PATH_IN_UNPRINTABLE_AREA], sliced_info);
                                         flush_and_exit(CLI_GCODE_PATH_IN_UNPRINTABLE_AREA);
                                     }
