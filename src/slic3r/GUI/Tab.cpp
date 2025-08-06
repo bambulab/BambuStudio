@@ -3969,10 +3969,9 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line(option);
 
         optgroup->append_single_option_line("scan_first_layer");
-        optgroup->append_single_option_line("enable_wrapping_detection");
-        option  = optgroup->get_option("wrapping_exclude_area");
-        option.opt.full_width = true;
-        optgroup->append_single_option_line(option);
+        //option  = optgroup->get_option("wrapping_exclude_area");
+        //option.opt.full_width = true;
+        //optgroup->append_single_option_line(option);
         optgroup->append_single_option_line("use_relative_e_distances");
         optgroup->append_single_option_line("use_firmware_retraction");
         optgroup->append_single_option_line("bed_temperature_formula");
