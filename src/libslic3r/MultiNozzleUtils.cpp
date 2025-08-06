@@ -18,6 +18,9 @@ std::optional<MultiNozzleGroupResult> MultiNozzleGroupResult::init_from_slice_fi
     std::map<int, NozzleInfo> nozzle_list_map;
     std::vector<NozzleInfo>   nozzle_list_vec;
 
+    if (filament_map.empty())
+        return std::nullopt;
+
     std::vector<int> filament_nozzle_map = filament_map;
 
     for (size_t idx = 0; idx < filament_info.size(); ++idx) {
