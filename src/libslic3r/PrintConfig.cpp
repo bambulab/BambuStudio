@@ -1946,6 +1946,10 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionFloats { 1.75 });
 
+    def        = this->add("volumetric_speed_coefficients", coStrings);
+    def->label = L("Max volumetric speed multinomial coefficients");
+    def->set_default_value(new ConfigOptionStrings{""});
+
     def = this->add("filament_shrink", coPercents);
     def->label = L("Shrinkage");
     // xgettext:no-c-format, no-boost-format
@@ -5200,7 +5204,7 @@ void PrintConfigDef::init_extruder_option_keys()
 void PrintConfigDef::init_filament_option_keys()
 {
     m_filament_option_keys = {
-        "filament_diameter", "min_layer_height", "max_layer_height",
+        "filament_diameter", "min_layer_height", "max_layer_height","volumetric_speed_coefficients",
         "retraction_length", "z_hop", "z_hop_types", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "filament_colour",
@@ -6105,7 +6109,8 @@ std::set<std::string> filament_options_with_variant = {
     "nozzle_temperature_initial_layer",
     "nozzle_temperature",
     "filament_flush_volumetric_speed",
-    "filament_flush_temp"
+    "filament_flush_temp",
+    "volumetric_speed_coefficients"
 };
 
 // Parameters that are the same as the number of extruders
