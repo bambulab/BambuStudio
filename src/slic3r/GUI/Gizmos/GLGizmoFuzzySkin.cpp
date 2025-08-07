@@ -304,14 +304,13 @@ void GLGizmoFuzzySkin::on_render_input_window(float x, float y, float bottom_lim
         }
     }
 
-    ImGui::Separator();
-
     if (m_current_tool != old_tool)
         this->tool_changed(old_tool, m_current_tool);
 
     ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
 
     if (m_current_tool == ImGui::CircleButtonIcon) {
+        ImGui::Separator();
         m_cursor_type = TriangleSelector::CursorType::CIRCLE;
         m_tool_type = ToolType::BRUSH;
 
@@ -324,6 +323,7 @@ void GLGizmoFuzzySkin::on_render_input_window(float x, float y, float bottom_lim
         ImGui::PushItemWidth(1.5 * slider_icon_width);
         ImGui::BBLDragFloat("##cursor_radius_input", &m_cursor_radius, 0.05f, 0.0f, 0.0f, "%.2f");
     } else if (m_current_tool == ImGui::SphereButtonIcon) {
+        ImGui::Separator();
         m_cursor_type = TriangleSelector::CursorType::SPHERE;
         m_tool_type = ToolType::BRUSH;
 
@@ -336,6 +336,7 @@ void GLGizmoFuzzySkin::on_render_input_window(float x, float y, float bottom_lim
         ImGui::PushItemWidth(1.5 * slider_icon_width);
         ImGui::BBLDragFloat("##cursor_radius_input", &m_cursor_radius, 0.05f, 0.0f, 0.0f, "%.2f");
     } else if (m_current_tool == ImGui::FillButtonIcon) {
+        ImGui::Separator();
         m_cursor_type = TriangleSelector::CursorType::POINTER;
         m_tool_type = ToolType::SMART_FILL;
 
@@ -385,7 +386,6 @@ void GLGizmoFuzzySkin::on_render_input_window(float x, float y, float bottom_lim
         if (b_bbl_slider_float || b_drag_input) m_c->object_clipper()->set_position(clp_dist, true);
     }
 
-    ImGui::Separator();
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(caption_max, x, get_cur_y);
