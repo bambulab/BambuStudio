@@ -2482,7 +2482,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("fuzzy_skin_thickness");
 
         optgroup = page->new_optgroup(L("Advanced"), L"advanced");
-        optgroup->append_single_option_line("enable_wrapping_detection");
+        optgroup->append_single_option_line("enable_wrapping_detection", "nozzle-clumping-detection-by-probing");
         optgroup->append_single_option_line("interlocking_beam");
         // optgroup->append_single_option_line("mmu_segmented_region_max_width");
         optgroup->append_single_option_line("mmu_segmented_region_interlocking_depth");
