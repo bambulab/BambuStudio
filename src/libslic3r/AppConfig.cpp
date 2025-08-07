@@ -1,5 +1,6 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/MultiNozzleUtils.hpp"
 #include "AppConfig.hpp"
 //BBS
 #include "Preset.hpp"
@@ -1411,6 +1412,71 @@ std::string AppConfig::get_nozzle_volume_types_from_config(const std::string& pr
     }
 
     return nozzle_volume_types;
+}
+
+void AppConfig::save_nozzle_count_to_config(int extruder_id, const std::vector<MultiNozzleUtils::NozzleGroupInfo>& nozzle_info)
+{
+    for (auto& info : nozzle_info) {
+        if (info.extruder_id != extruder_id)
+            throw "set nozzle count with different extruder id";
+    }
+
+    std::vector<MultiNozzleUtils::NozzleGroupInfo> full_nozzle_info = nozzle_info;
+
+    auto exist_nozzles = get_full_nozzle_count_from_config();
+    for (auto& nozzle : exist_nozzles) {
+        if (nozzle.extruder_id != extruder_id)
+            full_nozzle_info.emplace_back(nozzle);
+    }
+
+    std::vector<std::string> nozzle_count_str;
+
+    for (auto& info : full_nozzle_info) {
+        if (info.extruder_id != extruder_id)
+            throw "set nozzle count with different extruder id";
+        nozzle_count_str.emplace_back(info.serialize());
+    }
+
+    std::string extruder_nozzle_str = boost::algorithm::join(nozzle_count_str, ",");
+    this->set("presets", "extruder_nozzle_count", extruder_nozzle_str);
+}
+
+std::vector<MultiNozzleUtils::NozzleGroupInfo> AppConfig::get_full_nozzle_count_from_config()
+{
+    return {};
+    std::string extruder_nozzle_str = this->get("presets", "extruder_nozzle_count");
+    std::vector<std::string> extruder_nozzle_count;
+    boost::algorithm::split(extruder_nozzle_count, extruder_nozzle_str, boost::is_any_of(","));
+    std::vector<MultiNozzleUtils::NozzleGroupInfo> nozzle_group;
+    for (auto& str : extruder_nozzle_count) {
+        auto nozzle_info = MultiNozzleUtils::NozzleGroupInfo::deserialize(str);
+        if (nozzle_info)
+            nozzle_group.emplace_back(*nozzle_info);
+    }
+
+    return nozzle_group;
+}
+
+int AppConfig::get_nozzle_count_from_config(const DynamicConfig& config, int extruder_id, double nozzle_diameter, NozzleVolumeType type)
+{
+    static const int MaxNozzleCount = 6;
+    auto extruder_max_nozzle_count = config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    if (!extruder_max_nozzle_count ||extruder_id >= extruder_max_nozzle_count->values.size() || extruder_max_nozzle_count->values[extruder_id] <= 1)
+        return 1;
+
+    auto nozzle_info = get_full_nozzle_count_from_config();
+    std::optional<MultiNozzleUtils::NozzleGroupInfo> target_nozzle;
+    for (size_t idx = 0; idx < nozzle_info.size(); ++idx) {
+        if (std::fabs(nozzle_diameter - nozzle_info[idx].diameter) < EPSILON &&
+            extruder_id == nozzle_info[idx].extruder_id &&
+            type == nozzle_info[idx].volume_type) {
+            target_nozzle = nozzle_info[idx];
+        }
+    }
+    if (target_nozzle)
+        return target_nozzle->nozzle_count;
+
+    return extruder_max_nozzle_count->values[extruder_id];
 }
 
 void AppConfig::reset_selections()

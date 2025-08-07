@@ -24,6 +24,9 @@ using namespace nlohmann;
 
 namespace Slic3r {
 
+namespace MultiNozzleUtils{
+	struct NozzleGroupInfo;
+}
 class AppConfig
 {
 public:
@@ -206,6 +209,11 @@ public:
 
     void save_nozzle_volume_types_to_config(const std::string& printer_name, const std::string& nozzle_volume_types);
     std::string get_nozzle_volume_types_from_config(const std::string& printer_name);
+
+
+    void save_nozzle_count_to_config(int extruder_id, const std::vector<MultiNozzleUtils::NozzleGroupInfo>& nozzle_info);
+    std::vector<MultiNozzleUtils::NozzleGroupInfo> get_full_nozzle_count_from_config();
+    int  get_nozzle_count_from_config(const DynamicConfig& config, int extruder_id, double nozzle_diameter, NozzleVolumeType type);
 
 	// reset the current print / filament / printer selections, so that
 	// the  PresetBundle::load_selections(const AppConfig &config) call will select

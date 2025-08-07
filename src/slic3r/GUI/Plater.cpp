@@ -1792,10 +1792,10 @@ Sidebar::Sidebar(Plater *parent)
             if (!wxGetApp().preset_bundle)
                 return false;
             auto full_config = wxGetApp().preset_bundle->full_config();
-            ConfigOptionBoolsNullable* has_multiple_nozzle = full_config.option<ConfigOptionBoolsNullable>("has_multiple_nozzle");
-            if (!has_multiple_nozzle || extruder_id >= has_multiple_nozzle->size())
+            ConfigOptionIntsNullable* extruder_max_nozzle_count = full_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+            if (!extruder_max_nozzle_count || extruder_id >= extruder_max_nozzle_count->size())
                 return false;
-            return bool(has_multiple_nozzle->values[extruder_id]);
+            return bool(extruder_max_nozzle_count->values[extruder_id] > 1);
             };
 
         p->left_extruder = new ExtruderGroup(p->m_panel_printer_content, 0, _L("Left Nozzle"));
