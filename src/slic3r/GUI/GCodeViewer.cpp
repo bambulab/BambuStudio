@@ -5677,7 +5677,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             wxGetApp().plater()->get_notification_manager()->close_notification_of_type(NotificationType::HelioSlicingError);
             m_helio_slice_map_oks[curr_plate_index] = true;
         } else if ((int) Slic3r::HelioBackgroundProcess::State::STATE_CANCELED == m_last_helio_process_status ||
-                   (m_gcode_result->update_imgui_flag && !m_gcode_result->is_helio_gcode)) {
+                   (m_gcode_result->update_imgui_flag && !m_gcode_result->is_helio_gcode && curr_plate_has_ok_helio_slice(curr_plate_index))) {
             reset_curr_plate_thermal_options(curr_plate_index);
         }
         const_cast<GCodeProcessorResult *>(m_gcode_result)->update_imgui_flag = false;
