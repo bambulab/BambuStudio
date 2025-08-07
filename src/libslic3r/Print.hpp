@@ -968,7 +968,7 @@ public:
     std::vector<double> get_extruder_printable_height() const;
     std::vector<Polygons> get_extruder_printable_polygons() const;
     std::vector<Polygons> get_extruder_unprintable_polygons() const;
-
+    Polygons              get_extruder_shared_printable_polygon() const;
     bool                        enable_timelapse_print() const;
 
 	std::string                 output_filename(const std::string &filename_base = std::string()) const override;

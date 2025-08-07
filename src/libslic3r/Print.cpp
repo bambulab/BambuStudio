@@ -2738,6 +2738,18 @@ std::vector<Polygons> Print::get_extruder_unprintable_polygons() const
     return std::move(extruder_unprintable_polys);
 }
 
+Polygons Print::get_extruder_shared_printable_polygon() const
+{
+    std::vector<std::vector<Vec2d>> extruder_printable_areas = m_config.extruder_printable_area.values;
+    Polygons shared_printable_polys = {Polygon::new_scale(extruder_printable_areas.front())};
+
+    for (int i = 1; i < extruder_printable_areas.size();i++) {
+        Polygons polys = {Polygon::new_scale(extruder_printable_areas[i])};
+        shared_printable_polys = intersection(shared_printable_polys, polys);
+    }
+    return shared_printable_polys;
+}
+
 size_t Print::get_extruder_id(unsigned int filament_id) const
 {
     std::vector<int> filament_map = get_filament_maps();
@@ -2893,6 +2905,7 @@ void Print::_make_wipe_tower()
                          m_wipe_tower_data.tool_ordering.empty() ? 0.f : m_wipe_tower_data.tool_ordering.back().print_z, m_wipe_tower_data.tool_ordering.all_extruders());
     wipe_tower.set_has_tpu_filament(this->has_tpu_filament());
     wipe_tower.set_filament_map(this->get_filament_maps());
+    wipe_tower.set_nozzle_group_result(m_nozzle_group_result.value());
     // Set the extruder & material properties at the wipe tower object.
     for (size_t i = 0; i < number_of_extruders; ++ i)
         wipe_tower.set_extruder(i, m_config);
@@ -2972,7 +2985,6 @@ void Print::_make_wipe_tower()
                 break;
         }
     }
-
     wipe_tower.set_used_filament_ids(std::vector<int>(used_filament_ids.begin(), used_filament_ids.end()));
 
     std::vector<int> categories;
@@ -2980,7 +2992,6 @@ void Print::_make_wipe_tower()
         categories.push_back(m_config.filament_adhesiveness_category.get_at(i));
     }
     wipe_tower.set_filament_categories(categories);
-
     // Generate the wipe tower layers.
     m_wipe_tower_data.tool_changes.reserve(m_wipe_tower_data.tool_ordering.layer_tools().size());
     wipe_tower.generate_new(m_wipe_tower_data.tool_changes);
