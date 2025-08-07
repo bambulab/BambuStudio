@@ -137,7 +137,7 @@ namespace Slic3r {
 
     struct GCodeCheckResult
     {
-        int error_code = 0;   // 0 means succeed, 0b 0001 multi extruder printable area error, 0b 0010 multi extruder printable height error, 
+        int error_code = 0;   // 0 means succeed, 0b 0001 multi extruder printable area error, 0b 0010 multi extruder printable height error,
         // 0b 0100 plate printable area error, 0b 1000 plate printable height error, 0b 10000 wrapping detection area error
         std::map<int, std::vector<std::pair<int, int>>> print_area_error_infos;   // printable_area  extruder_id to <filament_id - object_label_id> which cannot printed in this extruder
         std::map<int, std::vector<std::pair<int, int>>> print_height_error_infos;   // printable_height extruder_id to <filament_id - object_label_id> which cannot printed in this extruder
@@ -253,6 +253,7 @@ namespace Slic3r {
         bool long_retraction_when_cut {0};
         int timelapse_warning_code {0};
         bool support_traditional_timelapse{true};
+        bool update_imgui_flag{false};
         bool is_helio_gcode{false};
         float printable_height;
         SettingsIds settings_ids;
@@ -297,6 +298,7 @@ namespace Slic3r {
             wrapping_exclude_area = other.wrapping_exclude_area;
             toolpath_outside = other.toolpath_outside;
             label_object_enabled = other.label_object_enabled;
+            update_imgui_flag         = other.update_imgui_flag;
             is_helio_gcode            = other.is_helio_gcode;
             long_retraction_when_cut = other.long_retraction_when_cut;
             timelapse_warning_code = other.timelapse_warning_code;
