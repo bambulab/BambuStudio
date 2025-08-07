@@ -913,8 +913,8 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
                 boost::split(tokens, gline, boost::is_any_of(";"), boost::token_compress_on);
                 command = tokens.front();
                 if (tokens.size() > 1) comment = ";" + tokens.back();
-
-                ret.push_back(GCodeProcessor::parse_helioadditive_comment(comment));
+                bool is_helio_gcode{false};
+                ret.push_back(GCodeProcessor::parse_helioadditive_comment(comment, is_helio_gcode));
             }
             return ret;
         };
@@ -5662,10 +5662,10 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::SameLine();
     imgui.bold_text(_u8L("Color Scheme"));
     ImGui::SameLine();
-    if (wxGetApp().plater()->get_helio_process_status() != m_last_helio_process_status) {
+    auto curr_plate_index = wxGetApp().plater()->get_partplate_list().get_curr_plate_index();
+    if (wxGetApp().plater()->get_helio_process_status() != m_last_helio_process_status || m_gcode_result->is_helio_gcode) {
         m_last_helio_process_status = wxGetApp().plater()->get_helio_process_status();
-        auto curr_plate_index       = wxGetApp().plater()->get_partplate_list().get_curr_plate_index();
-        if ((int) Slic3r::HelioBackgroundProcess::State::STATE_FINISHED == m_last_helio_process_status) {
+        if ((int) Slic3r::HelioBackgroundProcess::State::STATE_FINISHED == m_last_helio_process_status || m_gcode_result->is_helio_gcode) {
             update_thermal_options(true);
             for (int i = 0; i < view_type_items.size(); i++) {
                 if (view_type_items[i] == EViewType::ThermalIndexMean) {
@@ -5679,6 +5679,9 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         } else if ((int) Slic3r::HelioBackgroundProcess::State::STATE_CANCELED == m_last_helio_process_status) {
             reset_curr_plate_thermal_options(curr_plate_index);
         }
+    }
+    if (!m_gcode_result->is_helio_gcode) {
+        reset_curr_plate_thermal_options(curr_plate_index);
     }
     push_combo_style();
     ImGuiComboFlags flags = 0;

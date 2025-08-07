@@ -253,6 +253,7 @@ namespace Slic3r {
         bool long_retraction_when_cut {0};
         int timelapse_warning_code {0};
         bool support_traditional_timelapse{true};
+        bool is_helio_gcode{false};
         float printable_height;
         SettingsIds settings_ids;
         size_t filaments_count;
@@ -296,6 +297,7 @@ namespace Slic3r {
             wrapping_exclude_area = other.wrapping_exclude_area;
             toolpath_outside = other.toolpath_outside;
             label_object_enabled = other.label_object_enabled;
+            is_helio_gcode            = other.is_helio_gcode;
             long_retraction_when_cut = other.long_retraction_when_cut;
             timelapse_warning_code = other.timelapse_warning_code;
             printable_height = other.printable_height;
@@ -474,6 +476,7 @@ namespace Slic3r {
 
             ThermalIndex(float minVal, float maxVal, float meanVal) : min(minVal), max(maxVal), mean(meanVal), isNull(false) {}
         };
+        bool is_helio_gcode() { return m_is_helio_gcode; }
     private:
         using AxisCoords     = std::array<double, 4>;
         using ExtruderColors = std::vector<unsigned char>;
@@ -1071,6 +1074,7 @@ namespace Slic3r {
         ExtruderColors m_extruder_colors;
         ExtruderTemps m_extruder_temps;
         ThermalIndex m_thermal_index;
+        bool m_is_helio_gcode{false};
         int m_highest_bed_temp;
         float m_extruded_last_z;
         float m_first_layer_height; // mm
@@ -1172,7 +1176,7 @@ namespace Slic3r {
             m_detect_layer_based_on_tag = enabled;
         }
 
-        static ThermalIndex parse_helioadditive_comment(const std::string comment)
+        static ThermalIndex parse_helioadditive_comment(const std::string comment,bool& is_helio)
         {
             if (boost::algorithm::contains(comment, ";helioadditive=")) {
                 std::regex  regexPattern(R"(\bti\.max=(-?[0-9]*\.?[0-9]+),ti\.min=(-?[0-9]*\.?[0-9]+),ti\.mean=(-?[0-9]*\.?[0-9]+)\b)");
@@ -1181,7 +1185,7 @@ namespace Slic3r {
                     float maxVal  = std::stof(match[1].str()) * 100.0;
                     float minVal  = std::stof(match[2].str()) * 100.0;
                     float meanVal = std::stof(match[3].str()) * 100.0;
-
+                    is_helio      = true;
                     return ThermalIndex(minVal, maxVal, meanVal);
                 } else {
                     std::cerr << "Error: Unable to parse thermal index values from comment." << std::endl;
