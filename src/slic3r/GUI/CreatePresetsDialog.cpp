@@ -1362,9 +1362,9 @@ void CreateFilamentPresetDialog::update_dialog_size()
     m_filament_preset_panel->SetSizerAndFit(m_filament_presets_sizer);
     int width      = m_filament_preset_panel->GetSize().GetWidth();
     int height     = m_filament_preset_panel->GetSize().GetHeight();
-    m_scrolled_preset_panel->SetMinSize(wxSize(std::min(1400, width + FromDIP(26)), std::min(450, height + FromDIP(18))));
-    m_scrolled_preset_panel->SetMaxSize(wxSize(std::min(1400, width + FromDIP(26)), std::min(450, height + FromDIP(18))));
-    m_scrolled_preset_panel->SetSize(wxSize(std::min(1500, width + FromDIP(26)), std::min(450, height + FromDIP(18))));
+    m_scrolled_preset_panel->SetMinSize(wxSize(std::min(1400, width + FromDIP(26)), std::min(100, height + FromDIP(18))));
+    m_scrolled_preset_panel->SetMaxSize(wxSize(std::min(1400, width + FromDIP(26)), std::min(100, height + FromDIP(18))));
+    m_scrolled_preset_panel->SetSize(wxSize(std::min(1500, width + FromDIP(26)), std::min(100, height + FromDIP(18))));
     Layout();
     Fit();
     Refresh();
