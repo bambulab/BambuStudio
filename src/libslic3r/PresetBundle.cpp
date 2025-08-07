@@ -1889,11 +1889,13 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     }
     this->extruder_ams_counts = get_extruder_ams_count(extruder_ams_count_str);
 
+#if 0
     std::vector<std::string> extruder_nozzle_count_str;
     if (config.has("presets", "extruder_nozzle_count")){
         boost::algorithm::split(extruder_nozzle_count_str, config.get("presets", "extruder_nozzle_count"), boost::algorithm::is_any_of(","));
     }
     this->extruder_nozzle_counts = get_extruder_nozzle_count(extruder_nozzle_count_str);
+#endif
 
     std::vector<std::string> matrix;
     if (config.has("presets", "flush_volumes_matrix")) {
@@ -4546,7 +4548,15 @@ void PresetBundle::on_extruders_count_changed(int extruders_count)
     update_multi_material_filament_presets();
     reset_default_nozzle_volume_type();
     extruder_ams_counts.resize(extruders_count);
+    auto config = printers.get_edited_preset().config;
     extruder_nozzle_counts.resize(extruders_count);
+    auto extruder_max_nozzle_count = config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    auto nozzle_volume_type = config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    if (extruder_max_nozzle_count && nozzle_volume_type) {
+        for (size_t idx = 0; idx < extruders_count; ++idx) {
+            extruder_nozzle_counts[idx][NozzleVolumeType(nozzle_volume_type->values[idx])] = extruder_max_nozzle_count->values[idx];
+        }
+    }
 }
 
 void PresetBundle::update_multi_material_filament_presets(size_t to_delete_filament_id)

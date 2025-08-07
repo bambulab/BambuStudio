@@ -11,7 +11,7 @@ namespace Slic3r {
 class ManualNozzleCountDialog : public GUI::DPIDialog
 {
 public:
-    ManualNozzleCountDialog(wxWindow *parent, int default_selection);
+    ManualNozzleCountDialog(wxWindow *parent, int default_selection,int max_nozzle_count);
     ~ManualNozzleCountDialog() {};
     virtual void on_dpi_changed(const wxRect& suggested_rect) {};
     int GetNozzleCount() const;
@@ -21,10 +21,6 @@ private:
 };
 
 void manuallySetNozzleCount(int extruder_id);
-
-void setNozzleCountToAppConf(int extruder_id,const std::vector<MultiNozzleUtils::NozzleGroupInfo> &nozzle_info);
-
-int getNozzleCountFromAppConf(const DynamicConfig &config, int extruder_id, double nozzle_diameter, NozzleVolumeType type);
 
 } // namespace Slic3r
 

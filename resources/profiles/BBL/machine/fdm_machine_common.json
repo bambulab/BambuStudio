@@ -35,8 +35,8 @@
         "0"
     ],
     "group_algo_with_time": "0",
-    "has_multiple_nozzle": [
-        "0"
+    "extruder_max_nozzle_count": [
+        "1"
     ],
     "hotend_cooling_rate": [
         "2"

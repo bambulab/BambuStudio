@@ -1046,7 +1046,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "use_relative_e_distances", "extruder_type","use_firmware_retraction",
     "grab_length","machine_switch_extruder_time","hotend_cooling_rate","hotend_heating_rate","enable_pre_heating", "support_object_skip_flush","physical_extruder_map",
     "bed_temperature_formula","machine_prepare_compensation_time", "nozzle_flush_dataset","apply_top_surface_compensation",
-    "group_algo_with_time","has_multiple_nozzle"
+    "group_algo_with_time","extruder_max_nozzle_count"
 };
 
 static std::vector<std::string> s_Preset_sla_print_options {
