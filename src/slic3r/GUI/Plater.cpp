@@ -4255,7 +4255,8 @@ public:
     void on_action_slice_all(SimpleEvent&);
     void on_helio_processing_complete(HelioCompletionEvent &);
     void on_helio_processing_start(SimpleEvent &);
-    void on_helio_input_chamber_temp(SimpleEvent &);
+    void on_helio_input_dlg(SimpleEvent &);
+    void on_helio_process();
     void on_action_publish(wxCommandEvent &evt);
     void on_action_print_plate(SimpleEvent&);
     void on_action_print_all(SimpleEvent&);
@@ -4799,7 +4800,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
         q->Bind(EVT_HELIO_PROCESSING_COMPLETED, &priv::on_helio_processing_complete, this);
         q->Bind(EVT_HELIO_PROCESSING_STARTED, &priv::on_helio_processing_start, this);
-        q->Bind(EVT_HELIO_INPUT_CHAMBER_TEMP, &priv::on_helio_input_chamber_temp, this);
+        q->Bind(EVT_HELIO_INPUT_CHAMBER_TEMP, &priv::on_helio_input_dlg, this);
     }
 
     // Drop target:
@@ -9316,7 +9317,8 @@ void Plater::priv::on_helio_processing_start(SimpleEvent &a)
 }
 
 //BBS: GUI refactor: slice with helio
-void Plater::priv::on_helio_input_chamber_temp(SimpleEvent &a)
+
+void Plater::priv::on_helio_process()
 {
     std::string printer_id;
     std::string material_id;
@@ -9332,22 +9334,59 @@ void Plater::priv::on_helio_input_chamber_temp(SimpleEvent &a)
 
                 if (!(partplate_list.get_curr_plate()->empty())) {
 
-                    std:;string                      helio_api_url = Slic3r::HelioQuery::get_helio_api_url();
+                std:; string                      helio_api_url = Slic3r::HelioQuery::get_helio_api_url();
                     std::string                      helio_api_key = Slic3r::HelioQuery::get_helio_pat();
-                    const Slic3r::DynamicPrintConfig config        = wxGetApp().preset_bundle->full_config();
-                    auto                             g_result      = background_process.get_current_gcode_result();
+                    const Slic3r::DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
+                    auto                             g_result = background_process.get_current_gcode_result();
 
                     //set user input
                     HelioBackgroundProcess::SimulationInput data;
                     data.chamber_temp = chamber_temp;
                     helio_background_process.set_simulation_input_data(data);
                     helio_background_process.init(helio_api_key, helio_api_url, printer_id, material_id, g_result, preview,
-                                                  [this]() {});
+                        [this]() {});
 
                     helio_background_process.helio_thread_start(background_process.m_mutex, background_process.m_condition, background_process.m_state, notification_manager);
                 }
             }
         }
+    }
+}
+
+void Plater::priv::on_helio_input_dlg(SimpleEvent& a)
+{
+    std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
+
+    if (helio_api_key.empty()) {
+        auto dlg = MessageDialog(nullptr, _L("No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \nPlease request a new Helio-PAT."),
+            _L("Execution Blocked"), wxYES_NO | wxICON_WARNING | wxCENTRE);
+        dlg.SetButtonLabel(wxID_YES, _L("Regenerate PAT"));
+        auto result = dlg.ShowModal();
+        if (result == wxID_YES) {
+            wxGetApp().request_helio_pat([this](std::string pat) {
+                if (pat == "not_enough") {
+                    HelioPatNotEnoughDialog dlg;
+                    dlg.ShowModal();
+                }
+                else if (pat == "error") {
+                    MessageDialog dlg(nullptr, _L("Failed to obtain Helio PAT, Click Refresh to obtain it again."), wxString("Helio Additive"), wxYES | wxICON_WARNING);
+                    dlg.ShowModal();
+                }
+                else {
+                    Slic3r::HelioQuery::set_helio_pat(pat);
+                    on_helio_process();
+                }
+                });
+        }
+        else {
+            return;
+        }
+    }
+    else {
+        if (!Slic3r::HelioQuery::get_helio_api_url().empty() && !Slic3r::HelioQuery::get_helio_pat().empty()) {
+            wxGetApp().request_helio_supported_data();
+        }
+        on_helio_process();
     }
 }
 

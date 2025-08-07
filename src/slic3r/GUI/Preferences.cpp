@@ -344,17 +344,21 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
         if (config->get("helio_enable") == "true") {
             std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
             if (helio_api_key.empty()) {
-                wxGetApp().request_helio_pat([](std::string pat) {
-                    Slic3r::HelioQuery::set_helio_pat(pat);
-                    wxGetApp().request_helio_supported_data();
-                });
-            } else {
-                wxGetApp().request_helio_supported_data();
-            }
-        }
+                wxGetApp().request_helio_pat([this](std::string pat) {
+                    if (pat != "not_enough" && pat != "error") {
+                        Slic3r::HelioQuery::set_helio_pat(pat);
+                        helio_input_pat->SetLabel(Slic3r::HelioQuery::get_helio_pat());
 
+                        if (!Slic3r::HelioQuery::get_helio_api_url().empty() && !Slic3r::HelioQuery::get_helio_pat().empty()) {
+                            wxGetApp().request_helio_supported_data();
+                        }
+                    }
+                    });
+            }
+            helio_input_pat->SetLabel(Slic3r::HelioQuery::get_helio_pat());
+        }
         wxGetApp().update_publish_status();
-        e.Skip();
+        //e.Skip();
     });
 
     return m_sizer_combox;
@@ -876,24 +880,33 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             SimpleEvent evt(EVT_ENABLE_GCODE_OPTION_ITEM_CHANGED);
             wxPostEvent(wxGetApp().plater(), evt);
         }
+
         if (param == "helio_enable") {
-
-            std::string url;
             if (checkbox->GetValue()) {
-
                 HelioStatementDialog dlg;
                 auto        res = dlg.ShowModal();
 
                 if (res == wxID_OK) {
                     std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
                     if (helio_api_key.empty()) {
-                        wxGetApp().request_helio_pat([](std::string pat) {
-                            Slic3r::HelioQuery::set_helio_pat(pat);
-                            wxGetApp().request_helio_supported_data();
-                        });
-                    }
-                    else {
-                        wxGetApp().request_helio_supported_data();
+                        wxGetApp().request_helio_pat([this](std::string pat) {
+                            if (pat == "not_enough") {
+                                HelioPatNotEnoughDialog dlg;
+                                dlg.ShowModal();
+                            }
+                            else if (pat == "error") {
+                                MessageDialog dlg(nullptr, _L("Failed to obtain Helio PAT, Click Refresh to obtain it again."), wxString("Helio Additive"), wxYES | wxICON_WARNING);
+                                dlg.ShowModal();
+                            }
+                            else {
+                                Slic3r::HelioQuery::set_helio_pat(pat);
+                                helio_input_pat->SetLabel(Slic3r::HelioQuery::get_helio_pat());
+
+                                if (!Slic3r::HelioQuery::get_helio_api_url().empty() && !Slic3r::HelioQuery::get_helio_pat().empty()) {
+                                    wxGetApp().request_helio_supported_data();
+                                }
+                            }
+                            });
                     }
                 }
                 else {
@@ -901,6 +914,14 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
                     checkbox->SetValue(false);
                 }
             }
+
+            if (GUI::wxGetApp().app_config->get("helio_enable") == "true") { helio_pat_panel->Show(); }
+            else { helio_pat_panel->Hide(); }
+
+            helio_fun_panel->Layout();
+            helio_fun_panel->Fit();
+            m_scrolledWindow->Layout();
+            m_scrolledWindow->FitInside();
         }
 
         if (param == "enable_high_low_temp_mixed_printing") {
@@ -1317,11 +1338,12 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_show_history = create_item_checkbox(_L("Show history on the home page"), page, _L("Show history on the home page"), 50, "show_print_history");
 
     // helio options
-    wxPanel* helio_fun_panel = new wxPanel(page);
+    helio_fun_panel = new wxPanel(page);
     helio_fun_panel->SetBackgroundColour(wxColour(248, 248, 248));
     wxBoxSizer *sizer_helio_fun = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *sizer_helio_fun_link = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *sizer_helio_title = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *sizer_helio_pat = new wxBoxSizer(wxHORIZONTAL);
 
     auto helio_icon_helio = new wxStaticBitmap(helio_fun_panel, wxID_ANY, create_scaled_bitmap("helio_icon_dark", helio_fun_panel, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
 
@@ -1331,6 +1353,54 @@ wxWindow* PreferencesDialog::create_general_page()
     helio_split_line->SetMaxSize(wxSize(-1, 1));
     helio_split_line->SetBackgroundColour(DESIGN_GRAY400_COLOR);
 
+    helio_pat_panel = new wxPanel(helio_fun_panel);
+    helio_pat_panel->SetBackgroundColour(helio_fun_panel->GetBackgroundColour());
+    auto helio_title_pat = new Label(helio_pat_panel, _L("Helio-PAT"));
+    helio_input_pat = new ::TextInput(helio_pat_panel, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
+    helio_input_pat->SetFont(Label::Body_13);
+    helio_input_pat->SetMinSize(wxSize(FromDIP(410), FromDIP(22)));
+    helio_input_pat->SetMaxSize(wxSize(FromDIP(410), FromDIP(22)));
+    helio_input_pat->Disable();
+    helio_input_pat->SetLabel(Slic3r::HelioQuery::get_helio_pat());
+
+    helio_pat_refresh = new wxStaticBitmap(helio_pat_panel, wxID_ANY, create_scaled_bitmap("ams_refresh_selected", helio_fun_panel, 20), wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), 0);
+    helio_pat_refresh->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    helio_pat_refresh->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+    helio_pat_refresh->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
+        if (!helio_api_key.empty()) {
+            return;
+        }
+        wxGetApp().request_helio_pat([this](std::string pat) {
+            if (pat == "not_enough") {
+                HelioPatNotEnoughDialog dlg;
+                dlg.ShowModal();
+            }
+            else if (pat == "error") {
+                MessageDialog dlg(nullptr, _L("Failed to obtain Helio PAT, Click Refresh to obtain it again."), wxString("Helio Additive"), wxYES | wxICON_WARNING);
+                dlg.ShowModal();
+            }
+            else {
+                Slic3r::HelioQuery::set_helio_pat(pat);
+                helio_input_pat->SetLabel(Slic3r::HelioQuery::get_helio_pat());
+
+                if (!Slic3r::HelioQuery::get_helio_api_url().empty() && !Slic3r::HelioQuery::get_helio_pat().empty()) {
+                    wxGetApp().request_helio_supported_data();
+                }
+            }
+            });
+        });
+
+    sizer_helio_pat->Add(0, 0, 0, wxLEFT, FromDIP(50));
+    sizer_helio_pat->Add(helio_title_pat, 0, wxALIGN_CENTER, 0);
+    sizer_helio_pat->Add(0, 0, 0, wxLEFT, FromDIP(10));
+    sizer_helio_pat->Add(helio_input_pat, 0, wxALIGN_CENTER, 0);
+    sizer_helio_pat->Add(0, 0, 0, wxLEFT, FromDIP(4));
+    sizer_helio_pat->Add(helio_pat_refresh, 0, wxALIGN_CENTER, 0);
+    helio_pat_panel->SetSizer(sizer_helio_pat);
+
+    if (GUI::wxGetApp().app_config->get("helio_enable") == "true") { helio_pat_panel->Show(); }
+    else { helio_pat_panel->Hide(); }
 
     auto helio_about_link = new LinkLabel(helio_fun_panel, _L("About Helio"), "https://www.helioadditive.com/");
     LinkLabel* helio_privacy_link = nullptr;
@@ -1367,6 +1437,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_helio_fun->Add(0, 0, 0, wxTOP, FromDIP(9));
     sizer_helio_fun->Add(sizer_helio_title, 0, wxEXPAND, FromDIP(0));
     sizer_helio_fun->Add(helio_item_switch_slice, 0, wxTOP, FromDIP(5));
+    sizer_helio_fun->Add(helio_pat_panel, 0, wxTOP, FromDIP(7));
     sizer_helio_fun->Add(sizer_helio_fun_link, 0, wxTOP, FromDIP(7));
     sizer_helio_fun->Add(0, 0, 0, wxTOP, FromDIP(9));
     helio_fun_panel->SetSizer(sizer_helio_fun);

@@ -379,6 +379,14 @@ void AppConfig::set_defaults()
         set_bool("helio_enable", false);
     }
 
+    if (get("helio_api_china").empty()) {
+        set("helio_api_china", "https://api.helioam.cn/graphql");
+    }
+
+    if (get("helio_api_other").empty()) {
+        set("helio_api_other", "https://api.helioadditive.com/graphql");
+    }
+
     if (get("max_recent_count").empty()) {
         set("max_recent_count", "18");
     }
