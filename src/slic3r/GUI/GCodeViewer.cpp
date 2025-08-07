@@ -5663,9 +5663,9 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     imgui.bold_text(_u8L("Color Scheme"));
     ImGui::SameLine();
     auto curr_plate_index = wxGetApp().plater()->get_partplate_list().get_curr_plate_index();
-    if (wxGetApp().plater()->get_helio_process_status() != m_last_helio_process_status || m_gcode_result->is_helio_gcode) {
+    if (wxGetApp().plater()->get_helio_process_status() != m_last_helio_process_status || m_gcode_result->update_imgui_flag) {
         m_last_helio_process_status = wxGetApp().plater()->get_helio_process_status();
-        if ((int) Slic3r::HelioBackgroundProcess::State::STATE_FINISHED == m_last_helio_process_status || m_gcode_result->is_helio_gcode) {
+        if ((int) Slic3r::HelioBackgroundProcess::State::STATE_FINISHED == m_last_helio_process_status || (m_gcode_result->update_imgui_flag &&m_gcode_result->is_helio_gcode)) {
             update_thermal_options(true);
             for (int i = 0; i < view_type_items.size(); i++) {
                 if (view_type_items[i] == EViewType::ThermalIndexMean) {
@@ -5676,13 +5676,13 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             set_view_type(EViewType::ThermalIndexMean);
             wxGetApp().plater()->get_notification_manager()->close_notification_of_type(NotificationType::HelioSlicingError);
             m_helio_slice_map_oks[curr_plate_index] = true;
-        } else if ((int) Slic3r::HelioBackgroundProcess::State::STATE_CANCELED == m_last_helio_process_status) {
+        } else if ((int) Slic3r::HelioBackgroundProcess::State::STATE_CANCELED == m_last_helio_process_status ||
+                   (m_gcode_result->update_imgui_flag && !m_gcode_result->is_helio_gcode)) {
             reset_curr_plate_thermal_options(curr_plate_index);
         }
+        const_cast<GCodeProcessorResult *>(m_gcode_result)->update_imgui_flag = false;
     }
-    if (!m_gcode_result->is_helio_gcode) {
-        reset_curr_plate_thermal_options(curr_plate_index);
-    }
+
     push_combo_style();
     ImGuiComboFlags flags = 0;
     const char *view_type_value = view_type_image_names[m_view_type_sel].option_name.c_str();

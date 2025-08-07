@@ -2428,6 +2428,7 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
         }
         this->process_gcode_line(line, true);
     }, m_result.lines_ends);
+    m_result.update_imgui_flag = true;
     m_result.is_helio_gcode = m_is_helio_gcode;
     // Don't post-process the G-code to update time stamps.
     this->finalize(false);
