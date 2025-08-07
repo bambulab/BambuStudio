@@ -181,7 +181,8 @@ void HelioQuery::request_pat_token(std::function<void(std::string)> func)
 
     if (GUI::wxGetApp().app_config->get("region") == "China") {
         url_copy = "https://api.helioam.cn/rest/auth/anonymous_token/bambustudio";
-    } else {
+    }
+    else {
         url_copy = "https://api.helioadditive.com/rest/auth/anonymous_token/bambustudio";
     }
 
@@ -189,23 +190,36 @@ void HelioQuery::request_pat_token(std::function<void(std::string)> func)
     http.timeout_connect(20)
         .timeout_max(100)
         .on_complete([url_copy, func](std::string body, unsigned status) {
+        //success
+        if (status == 200) {
             nlohmann::json parsed_obj = nlohmann::json::parse(body);
             try {
                 if (parsed_obj.contains("pat") && parsed_obj["pat"].is_string()) {
                     func(parsed_obj["pat"].get<std::string>());
                 }
                 else {
-                    func("");
+                    func("error");
                 }
 
-            } catch (...) {}
-        })
+            }
+            catch (...) {}
+        }
+        else if (status == 429) {
+            func("not_enough");
+        }
+            })
         .on_error([func](std::string body, std::string error, unsigned status) {
-            func("");
-            // BOOST_LOG_TRIVIAL(info) << (boost::format("error: %1%, message: %2%") % error % body).str()
-        })
+        if (status == 429) {
+            func("not_enough");
+        }
+        else {
+            func("error");
+        }
+        //BOOST_LOG_TRIVIAL(info) << (boost::format("request pat token error: %1%, message: %2%") % error % body).str());
+            })
         .perform();
 }
+
 
 HelioQuery::PresignedURLResult HelioQuery::create_presigned_url(const std::string helio_api_url, const std::string helio_api_key)
 {

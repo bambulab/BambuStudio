@@ -1079,10 +1079,6 @@ void GUI_App::post_init()
         throw Slic3r::RuntimeError("Calling post_init() while not yet initialized");
 
     if (app_config->get("sync_user_preset") == "true") {
-        // BBS loading user preset
-        // Always async, not such startup step
-        // BOOST_LOG_TRIVIAL(info) << "Loading user presets...";
-        // scrn->SetText(_L("Loading user presets..."));
         if (m_agent) { start_sync_user_preset(); }
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: true";
     } else {
@@ -1091,19 +1087,7 @@ void GUI_App::post_init()
 
     /*request helio config*/
     if (app_config->get("helio_enable") == "true") {
-        // BBS loading user preset
-        // Always async, not such startup step
-        // BOOST_LOG_TRIVIAL(info) << "Loading user presets...";
-        // scrn->SetText(_L("Loading user presets..."));
-        //if (m_agent) { request_helio_supported_data(); }
-
-        std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
-        if (helio_api_key.empty()) {
-            wxGetApp().request_helio_pat([](std::string pat) {
-                Slic3r::HelioQuery::set_helio_pat(pat);
-                wxGetApp().request_helio_supported_data();
-            });
-        } else {
+        if (!Slic3r::HelioQuery::get_helio_api_url().empty() && !Slic3r::HelioQuery::get_helio_pat().empty()) {
             wxGetApp().request_helio_supported_data();
         }
 
