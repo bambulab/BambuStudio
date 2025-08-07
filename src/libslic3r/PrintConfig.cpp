@@ -3254,10 +3254,10 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 
-    def = this->add("has_multiple_nozzle", coBools);
+    def = this->add("extruder_max_nozzle_count", coInts);
     def->mode = comDevelop;
     def->nullable = true;
-    def->set_default_value(new ConfigOptionBoolsNullable{ false });
+    def->set_default_value(new ConfigOptionIntsNullable{ 1 });
 
     def = this->add("has_scarf_joint_seam", coBool);
     def->mode = comAdvanced;
@@ -6257,7 +6257,7 @@ std::set<std::string> printer_extruder_options = {
     "extruder_printable_height",
     "min_layer_height",
     "max_layer_height",
-    "has_multiple_nozzle"
+    "extruder_max_nozzle_count"
 };
 
 std::set<std::string> printer_options_with_variant_1 = {
