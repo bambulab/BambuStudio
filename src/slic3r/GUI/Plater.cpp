@@ -17478,6 +17478,10 @@ int Plater::get_helio_process_status() const
     return helio_state;
 }
 
+void Plater::clear_helio_process_status() const {
+    p->helio_background_process.stop();
+}
+
 void Plater::update_helio_background_process(std::string& printer_id, std::string& material_id)
 {
     p->update_helio_background_process(printer_id, material_id);

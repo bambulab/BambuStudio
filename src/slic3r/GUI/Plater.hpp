@@ -701,6 +701,7 @@ public:
 
     //BBS Helio slice
     int  get_helio_process_status() const;
+    void clear_helio_process_status() const;
 
     //BBS
     bool show_publish_dialog(bool show = true);
