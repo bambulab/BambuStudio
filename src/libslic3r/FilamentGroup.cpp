@@ -1367,7 +1367,7 @@ namespace Slic3r
         auto used_filaments = collect_sorted_used_filaments(ctx.model_info.layer_filaments);
         for(size_t idx = 0; idx < used_filaments.size(); ++idx)
             new_ctx.model_info.unprintable_filaments[1 - filament_extruder_map[used_filaments[idx]]].insert(used_filaments[idx]);
-
+        new_ctx.machine_info.max_group_size.assign(new_ctx.machine_info.max_group_size.size(), std::numeric_limits<int>::max());
         FilamentGroupMultiNozzle fg(new_ctx);
         return fg.calc_filament_group_by_pam();
     }
@@ -1379,6 +1379,7 @@ namespace Slic3r
         for(size_t idx = 0; idx < used_filaments.size(); ++idx)
             new_ctx.model_info.unprintable_filaments[1 - filament_map_manual[used_filaments[idx]]].insert(used_filaments[idx]);
 
+        new_ctx.machine_info.max_group_size.assign(new_ctx.machine_info.max_group_size.size(), std::numeric_limits<int>::max());
         FilamentGroupMultiNozzle fg(new_ctx);
         return fg.calc_filament_group_by_pam();
     }
