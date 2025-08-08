@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-31 18:21+0800\n"
+"POT-Creation-Date: 2025-08-08 10:03+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -27,6 +27,46 @@ msgstr "Le filament peut ne pas être compatible avec les réglages actuels de l
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Le modèle de filament est inconnu. Un préréglage aléatoire du filament sera utilisé."
+
+msgid "right"
+msgstr "droite"
+
+msgid "left"
+msgstr "gauche"
+
+msgid "right extruder"
+msgstr "extrudeur droit"
+
+msgid "left extruder"
+msgstr "extrudeur gauche"
+
+msgid "extruder"
+msgstr "extrudeur"
+
+msgid "TPU is not supported by AMS."
+msgstr "Le TPU n'est pas pris en charge par l'AMS."
+
+msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
+msgstr "Le PVA humide deviendra souple et se coincera dans l'AMS, veillez à bien le sécher avant de l'utiliser."
+
+msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
+msgstr "Le PVA humide est flexible et peut se coincer dans l'extrudeur. Séchez-le avant utilisation."
+
+msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+msgstr "La surface rugueuse du PLA Glow peut accélérer l'usure du système AMS, en particulier des composants internes de l'AMS Lite."
+
+msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+msgstr "Les filaments CF/GF sont durs et fragiles, ils peuvent donc facilement se casser ou se coincer dans un AMS, veuillez les utiliser avec prudence."
+
+msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr "Le PPS-CF est fragile et pourrait se briser dans un tube en PTFE plié au-dessus de la tête d'outil."
+
+msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr "Le PPA-CF est fragile et pourrait se briser dans un tube en PTFE plié au-dessus de la tête d'outil."
+
+#, c-format, boost-format
+msgid "%s is not supported by %s extruder."
+msgstr "%s n'est pas pris en charge par l'extrudeur %s."
 
 msgid "Current AMS humidity"
 msgstr "Humidité AMS actuelle"
@@ -1637,7 +1677,7 @@ msgid "Extrusion Width"
 msgstr "Largeur d'Extrusion"
 
 msgid "Wipe options"
-msgstr "Options de nettoyage"
+msgstr "Options d'essuyage"
 
 msgid "Bed adhension"
 msgstr "Adhérence au lit"
@@ -1809,13 +1849,13 @@ msgid "Flush Options"
 msgstr "Options de Rinçage"
 
 msgid "Flush into objects' infill"
-msgstr "Purger dans le remplissage d'objet"
+msgstr "Rincer dans le remplissage d'objet"
 
 msgid "Flush into this object"
-msgstr "Purger dans cet objet"
+msgstr "Rincer dans cet objet"
 
 msgid "Flush into objects' support"
-msgstr "Purger dans les supports de l'objet"
+msgstr "Rincer dans les supports de l'objet"
 
 msgid "Edit in Parameter Table"
 msgstr "Modifier dans la Table des Paramètres"
@@ -2257,18 +2297,6 @@ msgstr "Impression multicolore"
 
 msgid "Line Type"
 msgstr "Type de ligne"
-
-msgid "More"
-msgstr "Plus"
-
-msgid "Open Preferences."
-msgstr "Ouvrir Préférences."
-
-msgid "Open next tip."
-msgstr "Ouvrir l’astuce suivante"
-
-msgid "Open Documentation in web browser."
-msgstr "Ouvrir la Documentation dans un navigateur Web"
 
 msgid "Color"
 msgstr "Couleur"
@@ -3383,9 +3411,9 @@ msgid ""
 "YES - Keep Prime Tower\n"
 "NO  - Keep Adaptive Layer Height and Independent Support Layer Height"
 msgstr ""
-"La tour de nettoyage ne fonctionne pas lorsque la hauteur de couche adaptative ou la hauteur de couche de support indépendante est activée. \n"
+"La tour d'amorçage  ne fonctionne pas lorsque la hauteur de couche adaptative ou la hauteur de couche de support indépendante est activée. \n"
 "Que souhaitez-vous conserver ? \n"
-"OUI - Conserver la tour de nettoyage \n"
+"OUI - Conserver la tour d'amorçage \n"
 "NON - Conserver la hauteur de la couche adaptative et la hauteur de la couche de support indépendante"
 
 msgid ""
@@ -3394,9 +3422,9 @@ msgid ""
 "YES - Keep Prime Tower\n"
 "NO  - Keep Adaptive Layer Height"
 msgstr ""
-"La tour de nettoyage ne fonctionne pas lorsque la hauteur de couche adaptative est activée. \n"
+"La tour d'amorçage ne fonctionne pas lorsque la hauteur de couche adaptative est activée. \n"
 "Que souhaitez-vous conserver ? \n"
-"OUI - Conserver la tour de nettoyage \n"
+"OUI - Conserver la tour d'amorçage\n"
 "NON - Conserver la hauteur de la couche adaptative"
 
 msgid ""
@@ -3405,9 +3433,9 @@ msgid ""
 "YES - Keep Prime Tower\n"
 "NO  - Keep Independent Support Layer Height"
 msgstr ""
-"La tour de nettoyage ne fonctionne pas lorsque la hauteur de la couche de support indépendante est activée.\n"
+"La tour d'amorçage ne fonctionne pas lorsque la hauteur de la couche de support indépendante est activée.\n"
 "Que souhaitez-vous conserver ?\n"
-"OUI - Garder la tour de nettoyage\n"
+"OUI - Garder la tour d'amorçage\n"
 "NON - Gardez la hauteur de la couche de support indépendante"
 
 #, boost-format
@@ -3438,8 +3466,8 @@ msgstr ""
 "la profondeur du verrouillage doit être inférieure à la profondeur de la peau.\n"
 "Réinitialiser à 50%% de la profondeur de la peau"
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
-msgstr "Le mode spirale ne fonctionne que lorsque les boucles de mur sont à 1, que le support est désactivé, que les couches de coque supérieures sont à 0, que la densité de remplissage éparse est à 0, que le type de timelapse est traditionnel et que le lissage de la vitesse du mur dans la direction z est faux."
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
+msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Mais les machines avec une structure I3 ne généreront pas de vidéos timelapse."
@@ -3550,7 +3578,7 @@ msgid "Motor noise showoff"
 msgstr "Démonstration de bruit moteur"
 
 msgid "Pause (nozzle clumping)"
-msgstr "Pause (amas sur la buse)"
+msgstr "Pause (encrassement buse)"
 
 msgid "Pause (cutter error)"
 msgstr "Pause (erreur cutter)"
@@ -3624,27 +3652,8 @@ msgstr "Vérif Auto: Position Matériau"
 msgid "Cutting Module Offset Calibration"
 msgstr "Étalonnage du décalage du Module de Coupe"
 
-msgid "left"
-msgstr "gauche"
-
-msgid "right"
-msgstr "droite"
-
-#, c-format, boost-format
-msgid "%s is not supported by %s extruder."
-msgstr "%s n'est pas pris en charge par l'extrudeur %s."
-
 msgid "Unknown"
 msgstr "Inconnu"
-
-msgid "Fatal"
-msgstr "Mortel"
-
-msgid "Serious"
-msgstr "Sérieux"
-
-msgid "Common"
-msgstr "Commun"
 
 msgid "Update successful."
 msgstr "Mise à jour réussie."
@@ -3708,24 +3717,6 @@ msgstr "Impossible de générer le G-code de calibration"
 msgid "Calibration error"
 msgstr "Erreur de calibration"
 
-msgid "TPU is not supported by AMS."
-msgstr "Le TPU n'est pas pris en charge par l'AMS."
-
-msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
-msgstr "Le PVA humide deviendra souple et se coincera dans l'AMS, veillez à bien le sécher avant de l'utiliser."
-
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr "La surface rugueuse du PLA Glow peut accélérer l'usure du système AMS, en particulier des composants internes de l'AMS Lite."
-
-msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr "Les filaments CF/GF sont durs et fragiles, ils peuvent donc facilement se casser ou se coincer dans un AMS, veuillez les utiliser avec prudence."
-
-msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
-msgstr "Le PPS-CF est fragile et pourrait se briser dans un tube en PTFE plié au-dessus de la tête d'outil."
-
-msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
-msgstr "Le PPA-CF est fragile et pourrait se briser dans un tube en PTFE plié au-dessus de la tête d'outil."
-
 msgid "Resume Printing"
 msgstr "Reprendre Impression"
 
@@ -3771,8 +3762,8 @@ msgstr "Ignorer cela et reprendre"
 msgid "Problem Solved and Resume"
 msgstr "Problème résolu, Reprendre"
 
-msgid "Stop Buzzer"
-msgstr "Buzzer d'arrêt"
+msgid "Got it, Turn off the Fire Alarm."
+msgstr ""
 
 msgid "Retry (problem solved)"
 msgstr "Réessayer (problème résolu)"
@@ -4029,7 +4020,7 @@ msgid "Filament Changes"
 msgstr "Changements Filaments"
 
 msgid "Wipe"
-msgstr "Nettoyer"
+msgstr "Essuyer"
 
 msgid "Options"
 msgstr "Choix"
@@ -4390,7 +4381,7 @@ msgid "PLA and PETG filaments detected in the mixture. Adjust parameters accordi
 msgstr "Filaments PLA et PETG détectés dans le mélange. Ajuster les paramètres en fonction du Wiki pour assurer la qualité de l'impression."
 
 msgid "The prime tower extends beyond the plate boundary."
-msgstr "La tour de purge s'étend au-delà de la limite de la plaque."
+msgstr "La tour d'amorçage s'étend au-delà de la limite de la plaque."
 
 msgid "Click Wiki for help."
 msgstr "Cliquez sur Wiki pour obtenir de l'aide."
@@ -5437,6 +5428,9 @@ msgstr "Terminé"
 msgid "Camera"
 msgstr "Caméra"
 
+msgid "MqttSource"
+msgstr ""
+
 msgid "Storage"
 msgstr "Stockage"
 
@@ -5826,6 +5820,9 @@ msgstr "Actualisation Disponible"
 msgid "Goto download page."
 msgstr "Allez au téléchargement."
 
+msgid "More"
+msgstr "Plus"
+
 msgid "Open Folder."
 msgstr "Ouvrir un répertoire."
 
@@ -5982,7 +5979,7 @@ msgid "Nozzle Clumping Detection"
 msgstr "Détection Encrassement Buse"
 
 msgid "Check if the nozzle is clumping by filaments or other foreign objects."
-msgstr "Vérifiez si la buse est recouverte de filament ou d'autres corps étrangers."
+msgstr "Veuillez vérifier si la buse est encrassée par du filament ou des corps étrangers."
 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
 msgstr "Détecte l’impression dans l’air causée par un bouchage de la buse ou un filament rongé."
@@ -6015,7 +6012,7 @@ msgid "Filament Tangle Detect"
 msgstr "Filament Tangle Detection"
 
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
-msgstr "Vérifiez si le filament ou d'autres corps étrangers s'amassent sur la buse."
+msgstr "Veuillez vérifier si la buse est encrassée par du filament ou des corps étrangers."
 
 msgid "Nozzle Type"
 msgstr "Type"
@@ -6181,7 +6178,7 @@ msgid "Project Filaments"
 msgstr "Filaments de projet"
 
 msgid "Flushing volumes"
-msgstr "Volumes de rinçage"
+msgstr "Volumes de purge"
 
 msgid "Add one filament"
 msgstr "Ajouter un filament"
@@ -6454,11 +6451,25 @@ msgid "The current printer preset cannot be sliced using Helio."
 msgstr "Le préréglage actuel de l'imprimante ne peut pas être tranché avec Helio."
 
 msgid "Helio does not support using a number of materials greater than 1."
-msgstr ""
+msgstr "Helio n'est pas possible lors d'impressions avec plusieurs matériaux."
 
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
 msgstr "Helio ne prend pas en charge les matériaux %s"
+
+msgid ""
+"No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
+"Please request a new Helio-PAT."
+msgstr ""
+
+msgid "Execution Blocked"
+msgstr ""
+
+msgid "Regenerate PAT"
+msgstr ""
+
+msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
+msgstr ""
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Veuillez résoudre les erreurs de découpage et republier."
@@ -6682,12 +6693,12 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "Les supports personnalisés, les surfaces de jointure et la peinture de couleur ont été retirés avant la réparation, nom du modèle :"
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
-msgstr "Imprimante non connectée. Veuillez consulter la page de l'appareil pour connecter une imprimante %s avant de procéder à la synchronisation."
+msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
+msgstr ""
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-msgstr "L'imprimante actuellement connectée sur la page Périphérique n'est pas une %s. Veuillez basculer vers une %s avant de procéder à la synchronisation."
+msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
+msgstr ""
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "Il n'y a pas de filaments dans l'imprimante. Veuillez d'abord charger les filaments sur l'imprimante."
@@ -6696,7 +6707,7 @@ msgid "The filaments on the printer are all unknown types. Please go to the prin
 msgstr "Les filaments de l'imprimante sont tous de type inconnu. Veuillez vous rendre sur l'écran de l'imprimante ou sur la page du périphérique logiciel pour définir le type de filament."
 
 msgid "Device Page"
-msgstr "Page Appareil"
+msgstr "Page Périphérique"
 
 msgid "Synchronize AMS Filament Information"
 msgstr "Synchroniser les informations sur les filaments AMS"
@@ -6708,7 +6719,7 @@ msgid "Plate Settings"
 msgstr "Paramètres de la plaque"
 
 msgid "Prime Tower:"
-msgstr "Tour de contrôle :"
+msgstr "Tour d'Amorçage :"
 
 msgid "A cube printed during a filament change to purge old color and ensure smooth color transition."
 msgstr "Cube imprimé lors d'un changement de filament afin de purger les anciennes couleurs et d'assurer une transition harmonieuse des couleurs."
@@ -6953,10 +6964,10 @@ msgid "Perform gamma correction on color after importing the obj model."
 msgstr "Effectuer la correction gamma sur la couleur après avoir importé le modèle obj."
 
 msgid "Remember last used color scheme"
-msgstr ""
+msgstr "Se souvenir du dernier Mode d'Affichage utilisé"
 
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
-msgstr ""
+msgstr "Une fois activé, le dernier Mode d'Affichage utilisé (par exemple, Type de ligne, Vitesse) sera automatiquement appliqué au prochain démarrage."
 
 msgid "Improve rendering performance by lod"
 msgstr "Amélioration des performances de rendu par logement"
@@ -7031,6 +7042,9 @@ msgid "Helio Options"
 msgstr "Options Helio"
 
 msgid "Enable Helio"
+msgstr "Activer Helio"
+
+msgid "Helio-PAT"
 msgstr ""
 
 msgid "About Helio"
@@ -7555,17 +7569,8 @@ msgstr "Le coût du filament de %dg et de %d change plus que le regroupement opt
 msgid "nozzle"
 msgstr "buse"
 
-msgid "extruder"
-msgstr "extrudeur"
-
 msgid "both extruders"
 msgstr "les deux extrudeurs"
-
-msgid "right extruder"
-msgstr "extrudeur droit"
-
-msgid "left extruder"
-msgstr "extrudeur gauche"
 
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr "Conseils : Si vous avez changé la buse de votre imprimante récemment, veuillez aller dans 'Device -> Printer parts' pour changer le réglage de la buse."
@@ -7847,19 +7852,19 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr "Cliquez pour rétablir tous les paramètres au dernier préréglage enregistré."
 
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
-msgstr "Une tour de nettoyage est requise pour le mode Timeplase fluide. Il peut y avoir des défauts sur le modèle sans tour de nettoyage. Êtes-vous sûr de vouloir la désactiver ?"
+msgstr "Une tour d'amorçage est requise pour le mode Timeplase fluide. Il peut y avoir des défauts sur le modèle sans cette tour. Êtes-vous sûr de vouloir la désactiver ?"
 
 msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
-msgstr ""
+msgstr "Une tour d'amorçage est requise pour la détection d'encrassement. Il peut y avoir des défauts sur le modèle sans cette tour. Êtes-vous sûr de vouloir la désactiver ?"
 
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
-msgstr "Activer à la fois la hauteur de Z précise et la tour principale peut augmenter la taille de la tour principale. Voulez-vous toujours activer ?"
+msgstr "Activer à la fois la hauteur de Z précise et la tour d'amorçage peut augmenter la taille de celle-ci. Voulez-vous toujours activer ?"
 
 msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
-msgstr ""
+msgstr "Une tour d'amorçage est requise pour la détection d'encrassement. Il peut y avoir des défauts sur le modèle sans cette tour. Êtes-vous sûr de vouloir activer la détection d'encrassement ?"
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
-msgstr "Une tour de nettoyage est requise pour un mode timelapse fluide. Il peut y avoir des défauts sur le modèle sans tour de nettoyage. Voulez-vous activer la désactiver?"
+msgstr "Une tour d'amorçage est requise pour un mode timelapse fluide. Il peut y avoir des défauts sur le modèle sans cette tour. Voulez-vous activer la désactiver?"
 
 msgid "Still print by object?"
 msgstr "Vous imprimez toujours par objet ?"
@@ -7934,17 +7939,17 @@ msgid "Ignore"
 msgstr "Ignorer"
 
 msgid "Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush.Although it can notably reduce flush,  it may also elevate the risk of nozzle clogs or other printing complications."
-msgstr "Fonctionnalité expérimentale : Rétracter et couper plus prêt de sa pointe lors des changements de filament afin de minimiser la purge. Bien que ce procédé permette de réduire sensiblement la purge, il augmente le risque de bouchage des buses ou d'autres complications liées à l'impression."
+msgstr "Fonctionnalité expérimentale : Rétracter et couper plus prêt de sa pointe lors des changements de filament afin de minimiser le rinçage. Bien que ce procédé permette de réduire sensiblement le rinçage, il augmente le risque de bouchage des buses ou d'autres complications liées à l'impression."
 
 msgid "Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush.Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications.Please use with the latest printer firmware."
-msgstr "Fonctionnalité expérimentale : Rétracter et couper plus prêt de sa pointe lors des changements de filament afin de minimiser la purge. Bien que ce procédé permette de réduire sensiblement la purge, il augmente le risque de bouchage des buses ou d'autres complications liées à l'impression. Veuillez l'utiliser avec le dernier firmware en date."
+msgstr "Fonctionnalité expérimentale : Rétracter et couper plus prêt de sa pointe lors des changements de filament afin de minimiser le rinçage. Bien que ce procédé permette de réduire sensiblement le rinçage, il augmente le risque de bouchage des buses ou d'autres complications liées à l'impression. Veuillez l'utiliser avec le dernier firmware en date."
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a \"Timelapse Wipe Tower\" \n"
 "by right-click the empty position of build plate and choose \"Add Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
-"Lorsque vous enregistrez un timelapse sans tête d’outil, il est recommandé d’ajouter une \"Tour de nettoyage timelapse\".\n"
-"en faisant un clic droit sur un emplacement vide sur le plateau et en choisissant \"Ajouter Primitive\"-> \"Tour de nettoyage Timelapse\"."
+"Lorsque vous enregistrez un timelapse sans tête d’outil, il est recommandé d’ajouter une \"Tour d'Essuyage Timelapse\".\n"
+"En faisant un clic droit sur un endroit vide sur le plateau et en choisissant \"Ajouter Primitive\"-> \"Tour d'Essuyage Timelapse\"."
 
 msgid "Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters."
 msgstr "Le fait de passer à une imprimante avec des types ou des numéros d'extrudeuse différents annulera ou réinitialisera les modifications apportées aux paramètres relatifs à l'extrudeuse ou aux buses multiples."
@@ -8165,7 +8170,7 @@ msgid "Time lapse G-code"
 msgstr "G-cde Timelapse"
 
 msgid "Clumping Detection G-code"
-msgstr ""
+msgstr "G-code de Détection d'Encrassement"
 
 msgid "Change filament G-code"
 msgstr "Changer le G-code du filament"
@@ -8208,9 +8213,9 @@ msgid ""
 "\n"
 "Shall I disable it in order to enable Firmware Retraction?"
 msgstr ""
-"The Wipe option is not available when using the Firmware Retraction mode.\n"
+"L'option d'Essuyage n'est pas disponible lors de l'utilisation du mode de Rétraction du Firmware.\n"
 "\n"
-"Disable it in order to enable Firmware Retraction?"
+"Dois-je le désactiver pour activer la rétraction du micrologiciel ?"
 
 msgid "Firmware Retraction"
 msgstr "Rétraction Firmware"
@@ -8691,14 +8696,14 @@ msgid "OK"
 msgstr ""
 
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
-msgstr "Studio recalcule vos volumes de rinçage à chaque changement de filament ou de couleur. Vous pouvez désactiver le calcul automatique dans Bambu Studio > Préférences"
+msgstr "Studio recalcule vos volumes de rinçage à chaque changement de couleur ou de filament. Vous pouvez désactiver le calcul automatique dans Bambu Studio > Préférences"
 
 msgid "Flushing volume (mm³) for each filament pair."
-msgstr "Volume de rinçage (mm³) pour chaque duo de filaments."
+msgstr "Volume de rinçage (mm³) pour chaque paire de filaments."
 
 #, c-format, boost-format
 msgid "Suggestion: Flushing Volume in range [%d, %d]"
-msgstr "Suggestion : Volume de rinçage dans la plage [%d, %d]."
+msgstr "Conseil : Volume de rinçage entre [%d, %d]"
 
 #, c-format, boost-format
 msgid "The multiplier should be in range [%.2f, %.2f]."
@@ -9044,28 +9049,28 @@ msgid "reconnect"
 msgstr "se reconnecter"
 
 msgid "Terms of Service"
-msgstr "Conditions d'utilisation"
+msgstr "Conditions d'Utilisation"
 
 msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
 msgstr "Vous êtes sur le point d'activer une fonction de service logiciel de Helio Additive! Avant de confirmer l'utilisation de cette fonctionnalité, merci de lire attentivement les instructions suivantes."
 
 msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
-msgstr ""
+msgstr "Sauf indication contraire, Bambu Lab ne prend en charge que les fonctionnalités officiellement fournies du logiciel. Les fonctions d’évaluation et d’optimisation du tranchage basées sur le service cloud de Helio Additive dans ce logiciel seront développées, exploitées, fournies et maintenues par Helio Additive. Helio Additive est responsable de l’efficacité et de la disponibilité de ce service. La fonction d’optimisation de ce service peut modifier les commandes d’impression par défaut, ce qui comporte un risque d’endommagement de l’imprimante. Ces fonctionnalités collecteront les informations et données utilisateur nécessaires pour réaliser les fonctions de service pertinentes. Des abonnements et paiements peuvent être impliqués. Veuillez consulter Helio Additive et vous référer à l’Accord de confidentialité et à l’Accord utilisateur de Helio Additive pour plus de détails."
 
 msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
-msgstr ""
+msgstr "Vous reconnaissez par ailleurs que ce produit vous est fourni \"en l'état\" sur la base des services de Helio Additive, et que Bambu ne donne aucune garantie expresse ou implicite, ni ne peut contrôler les effets du service. Dans les limites maximales autorisées par la loi applicable, Bambu ou ses concédants/affiliés ne fournissent aucune déclaration ou garantie expresse ou implicite, y compris mais sans s'y limiter, les garanties concernant la valeur marchande, la qualité satisfaisante, l'adéquation à un usage particulier, la précision, la confidentialité et la non-violation des droits de tiers. En raison de la nature des services en réseau, Bambu ne peut garantir la disponibilité permanente du service et se réserve le droit de mettre fin au service selon les circonstances pertinentes."
 
 msgid "You agree not to use this product and its related updates to engage in the following activities:"
-msgstr ""
+msgstr "Vous acceptez de ne pas utiliser ce produit et ses mises à jour pour vous engager dans les activités suivantes :"
 
 msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
-msgstr ""
+msgstr "1. Copier ou utiliser toute partie de ce produit en dehors du cadre autorisé par Helio Additive et Bambu."
 
 msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
-msgstr ""
+msgstr "2. Tenter de perturber, contourner, modifier, invalider ou échapper à tout système de gestion des droits numériques lié et/ou faisant partie intégrante de ce produit."
 
 msgid "3.Using this software and services for any improper or illegal activities."
-msgstr ""
+msgstr "3. Utiliser ce logiciel et ses services à des fins inappropriées ou illégales."
 
 msgid "https://www.helioadditive.com/"
 msgstr ""
@@ -9082,8 +9087,8 @@ msgstr "En confirmant l'activation de cette fonctionnalité, vous confirmez et a
 msgid "Agree"
 msgstr "Accepter"
 
-msgid "Helio settings"
-msgstr "Paramètres Helio"
+msgid "Helio Additive"
+msgstr ""
 
 msgid "Chamber temperature"
 msgstr "Température de la chambre"
@@ -9093,6 +9098,12 @@ msgstr "Remarque : Veuillez régler la température ci-dessus en fonction de la
 
 msgid "How to use Helio"
 msgstr "Comment utiliser Helio"
+
+msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
+msgstr ""
+
+msgid "Click for more details"
+msgstr ""
 
 msgid "Air Pump"
 msgstr "Pompe à Air"
@@ -9208,7 +9219,7 @@ msgid "Maybe parts of the object at these height are too thin, or the object has
 msgstr "Des parties de l'objet situées à ces hauteurs sont peut-être trop fines, ou le maillage de l'objet est défectueux."
 
 msgid "Flush volumes matrix do not match to the correct size!"
-msgstr "La matrice des volumes de purge ne correspond pas à la taille correcte !"
+msgstr "La matrice des volumes de rinçage ne correspond pas à la taille correcte !"
 
 msgid "No object can be printed. Maybe too small"
 msgstr "Aucun objet ne peut être imprimé. Il est possible qu'ils soient trop petits"
@@ -9400,10 +9411,10 @@ msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr " est trop proche d'une zone d'exclusion, il peut y avoir des collisions lors de l'impression."
 
 msgid " is too close to clumping detection area, there may be collisions when printing."
-msgstr ""
+msgstr " est trop proche de la zone de détection d'encrassement, des collisions peuvent survenir lors de l'impression."
 
 msgid "Prime Tower"
-msgstr "Tour de nettoyage"
+msgstr "Tour d'Amorçage"
 
 msgid " is too close to others, and collisions may be caused.\n"
 msgstr " est trop proche des autres. Des collisions risquent d'être provoquées.\n"
@@ -9412,13 +9423,16 @@ msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " est trop proche d'une zone d'exclusion. Cela va entraîner des collisions.\n"
 
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
-msgstr ""
+msgstr " est trop proche de la zone de détection d'encrassement, ce qui provoquera des collisions.\n"
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "L'impression simultanée de filaments haute et basse température peut provoquer un bouchage de la buse ou endommager l'imprimante."
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
 msgstr "L'impression simultanée de filaments haute température et basse température peut provoquer un bouchage de la buse ou endommager l'imprimante. Si vous souhaitez quand même imprimer, vous pouvez activer cette option dans les Préférences."
+
+msgid "Printing different-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
 
 msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "L'impression simultanée de filaments haute et moyenne température peut provoquer un bouchage de la buse ou endommager l'imprimante."
@@ -9433,7 +9447,7 @@ msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is 
 msgstr "Le mode fluide du timelapse n'est pas pris en charge lorsque le mode d'impression « par objet » est activé."
 
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
-msgstr ""
+msgstr "La détection d'encrassement n'est pas prise en charge lorsque la séquence \"par objet\" est activée."
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Veuillez sélectionner la séquence d'impression \"Par objet\" pour imprimer plusieurs objets en mode vase en spirale."
@@ -9445,37 +9459,37 @@ msgid "Variable layer height is not supported with Organic supports."
 msgstr "La hauteur de couche variable n'est pas prise en charge avec les supports Organiques."
 
 msgid "Different nozzle diameters and different filament diameters is not allowed when prime tower is enabled."
-msgstr "L'utilisation de diamètres de buses et de filaments différents n'est pas autorisée lorsque la Tour de Nettoyage est activée."
+msgstr "L'utilisation de diamètres de buses et de filaments différents n'est pas autorisée lorsque la Tour d'Amorçage est activée."
 
 msgid "The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
-msgstr "La Tour de Nettoyage n'est actuellement pris en charge qu'avec l'adressage relatif de l'extrudeur (use_relative_e_distances=1)."
+msgstr "La Tour d'Essuyage n'est actuellement pris en charge qu'avec l'adressage relatif de l'extrudeur (use_relative_e_distances=1)."
 
 msgid "Ooze prevention is currently not supported with the prime tower enabled."
-msgstr "La prévention du suintement n'est actuellement pas prise en charge lorsque la Tour de Nettoyage est activée."
+msgstr "La prévention du suintement n'est actuellement pas prise en charge lorsque la Tour d'Amorçage est activée."
 
 msgid "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, RepRapFirmware and Repetier G-code flavors."
-msgstr "La tour de nettoyage n'est actuellement prise en charge que pour les version du G-code de Marlin, Klipper, RepRap/Sprinter, RepRapFirmware et Repetier."
+msgstr "La tour d'amorçage n'est actuellement prise en charge que pour les versions du G-code de Marlin, Klipper, RepRap/Sprinter, RepRapFirmware et Repetier."
 
 msgid "The prime tower is not supported in \"By object\" print."
-msgstr "La tour principale n'est pas prise en charge lors d'impression « Par objet »."
+msgstr "La tour d'amorçage n'est pas prise en charge lors d'impression « Par objet »."
 
 msgid "The prime tower is not supported when adaptive layer height is on. It requires that all objects have the same layer height."
-msgstr "La tour de nettoyage n'est pas prise en charge lorsque la hauteur de couche adaptative est activée. Il faut que tous les objets aient la même hauteur de couche."
+msgstr "La tour d'amorçage n'est pas prise en charge lorsque la hauteur de couche adaptative est activée. Il faut que tous les objets aient la même hauteur de couche."
 
 msgid "The prime tower requires \"support gap\" to be multiple of layer height"
-msgstr "Une tour de premier ordre exige que tout \"espace de soutien\" soit un multiple de la hauteur de la couche."
+msgstr "La tour d'amorçage nécessite que « l'espace de support » soit un multiple de la hauteur de la couche"
 
 msgid "The prime tower requires that all objects have the same layer heights"
-msgstr "La tour de nettoyage exige que tous les objets aient la même hauteur de couche"
+msgstr "La tour d'amorçage exige que tous les objets aient la même hauteur de couche"
 
 msgid "The prime tower requires that all objects are printed over the same number of raft layers"
-msgstr "Une tour de premier choix exige que tous les objets soient imprimés sur le même nombre de couches de supports."
+msgstr "Une tour d'amorçage exige que tous les objets soient imprimés sur le même nombre de couches de supports"
 
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
-msgstr "La tour de nettoyage exige que tous les objets soient tranchés avec les mêmes hauteurs de couche."
+msgstr "La tour d'amorçage exige que tous les objets soient tranchés avec les mêmes hauteurs de couche."
 
 msgid "The prime tower is only supported if all objects have the same variable layer height"
-msgstr "La tour de nettoyage n'est prise en charge que si tous les objets ont la même hauteur de couche variable"
+msgstr "La tour d'amorçage n'est prise en charge que si tous les objets ont la même hauteur de couche variable"
 
 msgid "Too small line width"
 msgstr "Largeur d'extrusion trop petite"
@@ -9484,7 +9498,7 @@ msgid "Too large line width"
 msgstr "Largeur d'extrusion trop grande"
 
 msgid "The prime tower requires that support has the same layer height as object."
-msgstr "La tour de nettoyage nécessite que les supports aient la même hauteur de couche que les objets."
+msgstr "La tour d'amorçage nécessite que les supports aient la même hauteur de couche que les objets."
 
 msgid "Support enforcers are used but support is not enabled. Please enable support."
 msgstr "Les forceurs de support sont utilisés mais le support n'est pas activé. Veuillez activer les supports."
@@ -10039,8 +10053,8 @@ msgstr "Périmètres courts"
 msgid "This setting will affect the speed of perimeters having radius <= small perimeter threshold(usually holes). If expressed as percentage (for example: 80%) it will be calculated onthe outer wall speed setting above. Set to zero for auto."
 msgstr "Ce réglage affectera la vitesse des périmètres dont le rayon <= au seuil (ce sont généralement des trous). Si elle est exprimée en pourcentage (par exemple : 80 %), elle sera calculée sur la base du réglage de vitesse de la paroi extérieure ci-dessus. Réglez sur zéro pour le mode automatique."
 
-msgid "Small perimter threshold"
-msgstr "Seuil périmètre court"
+msgid "Small perimeter threshold"
+msgstr ""
 
 msgid "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr "Cela définit le seuil pour une petite longueur de périmètre. Le seuil par défaut est de 0 mm"
@@ -10208,13 +10222,13 @@ msgid "This setting stands for how much volume of filament can be melted and ext
 msgstr "Ce paramètre correspond au volume de filament qui peut être fondu et extrudé par seconde. La vitesse d'impression sera limitée par la vitesse volumétrique maximale en cas de réglage de vitesse déraisonnablement trop élevé. Cette valeur ne peut pas être nulle."
 
 msgid "Ramming volumetric speed"
-msgstr "Vitesse volumétrique de pilonnage"
+msgstr "Vitesse volumétrique d'éperonnage"
 
 msgid "The maximum volumetric speed for ramming, where -1 means using the maximum volumetric speed."
-msgstr "La vitesse volumétrique maximale pour le pilonnage, où -1 signifie utiliser la vitesse volumétrique maximale."
+msgstr "La vitesse volumétrique maximale pour l'éperonnage, où -1 signifie utiliser la vitesse volumétrique maximale."
 
 msgid "Minimal purge on wipe tower"
-msgstr "Purge minimale sur la tour de nettoyage"
+msgstr "Purge minimale sur la tour d'essuyage"
 
 msgid "mm³"
 msgstr "mm³"
@@ -10321,7 +10335,7 @@ msgid "Length of the scarf. Setting this parameter to zero effectively disables 
 msgstr "Longueur de l'écharpe La mise à zéro de ce paramètre désactive la jointure en écharpe."
 
 msgid "Filament ramming length"
-msgstr "Longueur d'éjection du filament"
+msgstr "Longueur d'éperonnage du filament"
 
 msgid "When changing the extruder, it is recommended to extrude a certain length of filament from the original extruder. This helps minimize nozzle oozing."
 msgstr "Lors du changement d'extrudeuse, il est recommandé d'extruder une certaine longueur de filament à partir de l'extrudeuse d'origine. Cela permet de minimiser le suintement de la buse."
@@ -10342,7 +10356,7 @@ msgid "Filament prime volume"
 msgstr "Volume d'amorçage du filament"
 
 msgid "The volume of material to prime extruder on tower."
-msgstr "Le volume de matériau à purger sur la tour."
+msgstr "Le volume de matériau à amorcer sur la tour."
 
 msgid "Softening temperature"
 msgstr "T°C de ramollissement"
@@ -10351,16 +10365,16 @@ msgid "The material softens at this temperature, so when the bed temperature is 
 msgstr "The material softens at this temperature, so when the bed temperature is equal to or greater than this, it's highly recommended to open the front door and/or remove the upper glass to avoid clogs."
 
 msgid "Travel time after ramming"
-msgstr "Temps de déplacement après le pilonnage"
+msgstr "Temps de déplacement après l'éperonnage"
 
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
-msgstr "Pour éviter le suintement, la buse effectue un mouvement inverse pendant un certain temps après la fin du pilonnage. Le réglage définit le temps de déplacement."
+msgstr "Pour éviter le suintement, la buse effectue un mouvement inverse pendant un certain temps après la fin de l'éperonnage. Le réglage définit le temps de déplacement."
 
 msgid "Precooling target temperature"
 msgstr "Température cible de préchauffage"
 
 msgid "To prevent oozing, the nozzle temperature will be cooled during ramming. Therefore, the ramming time must be greater than the cooldown time. 0 means disabled."
-msgstr "Pour éviter tout suintement, la température de la buse sera réduite pendant le pilonnage. Par conséquent, le temps de pilonnage doit être supérieur au temps de refroidissement. 0 signifie désactivé."
+msgstr "Pour éviter tout suintement, la température de la buse sera réduite pendant l'éperonnage. Par conséquent, le temps d'éperonnage doit être supérieur au temps de refroidissement. 0 signifie désactivé."
 
 msgid "Price"
 msgstr "Prix"
@@ -10592,12 +10606,18 @@ msgid "Enable this to enable the camera on printer to check the quality of first
 msgstr "Activez cette option pour permettre à la caméra de l'imprimante de vérifier la qualité de la première couche."
 
 msgid "Enable clumping detection"
-msgstr ""
+msgstr "Activer la détection d'encrassement"
 
 msgid "Clumping detection layers"
-msgstr ""
+msgstr "Couches de détection d'encrassement"
 
 msgid "Clumping detection layers."
+msgstr "Couches de détection d'encrassement."
+
+msgid "Probing exclude area of clumping"
+msgstr ""
+
+msgid "Probing exclude area of clumping."
 msgstr ""
 
 msgid "Thumbnail size"
@@ -10865,7 +10885,7 @@ msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "Ce G-code est insérée à chaque changement de couche après la levée Z"
 
 msgid "Clumping detection G-code"
-msgstr ""
+msgstr "G-code de détection d'encrassement"
 
 msgid "Supports silent mode"
 msgstr "Supporte le mode silencieux"
@@ -11141,7 +11161,7 @@ msgid "Long retraction when cut(experimental)"
 msgstr "Rétraction longue lors de la coupe (expérimental)"
 
 msgid "Experimental feature.Retracting and cutting off the filament at a longer distance during changes to minimize purge.While this reduces flush significantly, it may also raise the risk of nozzle clogs or other printing problems."
-msgstr "Fonctionnalité expérimentale : Rétracter et couper plus prêt de sa pointe lors des changements de filament afin de minimiser la purge. Bien que ce procédé permette de réduire sensiblement la purge, il augmente le risque de bouchage des buses ou d'autres complications liées à l'impression."
+msgstr "Fonctionnalité expérimentale : Rétracter et couper plus prêt de sa pointe lors des changements de filament afin de minimiser la purge. Bien que ce procédé permette de réduire sensiblement le rinçage, il augmente le risque de bouchage des buses ou d'autres complications liées à l'impression."
 
 msgid "Retraction distance when cut"
 msgstr "Distance de rétraction pour la coupe"
@@ -11290,7 +11310,7 @@ msgid "The wipe speed is determined by the speed setting specified in this confi
 msgstr "La vitesse d'essuyage est déterminée par le paramètre de vitesse spécifié dans ce paramètre. Si la valeur est exprimée en pourcentage (par exemple 80%), elle sera calculée sur la base du réglage de la vitesse de déplacement ci-dessus. La valeur par défaut de ce paramètre est 80%."
 
 msgid "Role-based wipe speed"
-msgstr "Vitesse d'effacement basée sur le rôle"
+msgstr "Vitesse d'essuyage automatique"
 
 msgid "The wipe speed is determined by speed of current extrusion role. e.g if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
 msgstr "La vitesse d'essuyage est déterminée par la vitesse du rôle d'extrusion en cours. Par exemple, si une action d'essuyage est exécutée immédiatement après une extrusion de la paroi extérieure, la vitesse de l'extrusion de la paroi extérieure sera utilisée pour l'action d'essuyage."
@@ -11347,7 +11367,7 @@ msgid "Maximum distance to move points in XY to try to achieve a smooth spiralIf
 msgstr "Distance maximale de déplacement des points dans l'axe XY pour tenter d'obtenir une spirale régulière. Si elle est exprimée en %, elle sera calculée sur le diamètre de la buse"
 
 msgid "If smooth or traditional mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
-msgstr "Si le mode fluide ou traditionnel est sélectionné, une vidéo en timelapse sera générée pour chaque impression. À chaque couche imprimée, un instantané est pris avec la caméra intégrée. Tous ces instantanés seront assemblés dans une vidéo timelapse une fois l'impression terminée. Si le mode lisse est sélectionné, l'extrudeur se déplace vers la goulotte d'évacuation à chaque couche imprimée, puis prend un cliché. Étant donné que le filament fondu peut s'échapper de la buse pendant la prise de vue, une tour de nettoyage est requise en mode lisse pour essuyer la buse."
+msgstr "Si le mode fluide ou traditionnel est sélectionné, une vidéo en timelapse sera générée pour chaque impression. À chaque couche imprimée, un instantané est pris avec la caméra intégrée. Tous ces instantanés seront assemblés dans une vidéo timelapse une fois l'impression terminée. Si le mode lisse est sélectionné, l'extrudeur se déplace vers la goulotte d'évacuation à chaque couche imprimée, puis prend un cliché. Étant donné que le filament fondu peut s'échapper de la buse pendant la prise de vue, une tour d'amorçage est requise en mode lisse pour essuyer la buse."
 
 msgid "Traditional"
 msgstr "Traditionnel"
@@ -11452,7 +11472,7 @@ msgid "Bottom Z distance"
 msgstr "Distance Z inférieure"
 
 msgid "The z gap between the bottom support interface and object"
-msgstr "L'écart Z entre l'interface du support inférieur et l'objet"
+msgstr "L'espace Z entre l'interface du support inférieur et l'objet"
 
 msgid "Support/raft base"
 msgstr "Support/base du radeau"
@@ -11573,7 +11593,7 @@ msgid "Independent support layer height"
 msgstr "Hauteur de la couche de support indépendante"
 
 msgid "Support layer uses layer height independent with object layer. This is to support customizing z-gap and save print time.This option will be invalid when the prime tower is enabled."
-msgstr "La couche de support utilise la hauteur de la couche indépendamment de la couche objet. Cela permet de personnaliser l'espace Z et de gagner du temps d'impression. Cette option ne sera pas valide lorsque la tour de purge sera activée."
+msgstr "La couche de support utilise la hauteur de la couche indépendamment de la couche objet. Cela permet de personnaliser l'espace Z et de gagner du temps d'impression. Cette option ne sera pas valide lorsque la tour d'amorçage sera activée."
 
 msgid "Threshold angle"
 msgstr "Angle de seuil"
@@ -11678,13 +11698,13 @@ msgid "Convert the retraction moves to G10 and G11 gcode"
 msgstr "Convertir la rétraction en G-code G10 et G11"
 
 msgid "Wipe while retracting"
-msgstr "Nettoyer lors des rétractions"
+msgstr "Essuyer lors des rétractions"
 
 msgid "Move nozzle along the last extrusion path when retracting to clean leaked material on nozzle. This can minimize blob when printing new part after travel"
 msgstr "Déplacez la buse le long de la dernière trajectoire d'extrusion lors de la rétraction pour nettoyer le matériau qui fuit sur la buse. Cela permet de minimiser les taches lors de l'impression de nouvelles pièces après un voyage."
 
 msgid "Wipe Distance"
-msgstr "Distance d'essuyage"
+msgstr "Distance d'Essuyage"
 
 msgid "Describe how long the nozzle will move along the last path when retracting"
 msgstr "Décrivez la durée pendant laquelle la buse se déplacera le long de la dernière trajectoire lors de la rétraction"
@@ -11795,19 +11815,19 @@ msgid "Flush multiplier"
 msgstr "Multiplicateur de purge"
 
 msgid "The actual flushing volumes is equal to the flush multiplier multiplied by the flushing volumes in the table."
-msgstr "Les volumes de rinçage actuels sont égaux à la valeur du multiplicateur de rinçage multiplié par les volumes de rinçage dans le tableau."
+msgstr "Le volume de rinçage final est égal au produit du multiplicateur par le volume de rinçage du tableau."
 
 msgid "Width of prime tower"
-msgstr "Largeur de la tour de nettoyage."
+msgstr "Largeur de la tour d'amorçage"
 
 msgid "Max speed"
 msgstr "Vitesse max"
 
 msgid "The maximum printing speed on the prime tower excluding ramming."
-msgstr "Vitesse d'impression maximale sur la tour d'impression, hors purge."
+msgstr "Vitesse d'impression maximale sur la tour d'amorçage, hors éperonnage."
 
 msgid "Brim width of prime tower, negative number means auto calculated width based on the height of prime tower."
-msgstr "Largeur du bord de la tour principale, un nombre négatif signifie que la largeur est calculée automatiquement sur la base de la hauteur de la tour principale."
+msgstr "Largeur du bord de la tour d'amorçage, un nombre négatif signifie que la largeur est calculée automatiquement sur la base de la hauteur de la tour."
 
 msgid "Extra rib length"
 msgstr "Longueur de côte supplémentaire"
@@ -11822,31 +11842,31 @@ msgid "Skip points"
 msgstr "Sauter des points"
 
 msgid "The wall of prime tower will skip the start points of wipe path"
-msgstr "Le mur de la tour principale sautera les points de départ du mouvement de nettoyage"
+msgstr "Le mur de la tour d'amorçage sautera les points de départ du mouvement d'essuyage"
 
 msgid "Rib wall"
 msgstr "Paroi nervurée"
 
 msgid "The wall of prime tower will add four ribs and make its cross-section as close to a square as possible, so the width will be fixed."
-msgstr "Le mur de la tour de purge ajoutera quatre côtes et rendra sa section aussi proche que possible d'un carré de sorte que sa largeur sera fixée."
+msgstr "Le mur de la tour d'amorçage ajoutera quatre côtes et rendra sa section aussi proche que possible d'un carré de sorte que sa largeur sera fixée."
 
 msgid "Fillet wall"
 msgstr "Murs Arrondis"
 
 msgid "The wall of prime tower will fillet"
-msgstr "Le mur de la tour de premier rang s'enlèvera"
+msgstr "Le mur de la tour d'amorçage aura des filets"
 
 msgid "Infill gap"
 msgstr "Remplissage trou"
 
 msgid "Purging after filament change will be done inside objects' infills. This may lower the amount of waste and decrease the print time. If the walls are printed with transparent filament, the mixed color infill will be seen outside. It will not take effect, unless the prime tower is enabled."
-msgstr "La purge après le changement de filament sera effectuée à l'intérieur des matériaux de remplissage des objets. Cela peut réduire la quantité de déchets et le temps d'impression. Si les murs sont imprimés avec un filament transparent, le remplissage de couleurs mélangées sera visible. Cela ne prendra effet que si la tour de nettoyage est activée."
+msgstr "La purge après le changement de filament sera effectuée à l'intérieur des matériaux de remplissage des objets. Cela peut réduire la quantité de déchets et le temps d'impression. Si les murs sont imprimés avec un filament transparent, le remplissage de couleurs mélangées sera visible. Cela ne prendra effet que si la tour d'amorçage est activée."
 
 msgid "Purging after filament change will be done inside objects' support. This may lower the amount of waste and decrease the print time. It will not take effect, unless the prime tower is enabled."
-msgstr "La purge après le changement de filament se fera à l'intérieur du support des objets. Cela peut réduire la quantité de déchets et le temps d'impression. Cela ne prendra effet que si une tour de nettoyage est activée."
+msgstr "La purge après le changement de filament se fera à l'intérieur du support des objets. Cela peut réduire la quantité de déchets et le temps d'impression. Cela ne prendra effet que si une tour d'amorçage est activée."
 
 msgid "This object will be used to purge the nozzle after a filament change to save filament and decrease the print time. Colours of the objects will be mixed as a result. It will not take effect, unless the prime tower is enabled."
-msgstr "Cet objet sera utilisé pour purger la buse après un changement de filament afin d'économiser du filament et de réduire le temps d'impression. Les couleurs des objets seront mélangées en conséquence. Cela ne prendra effet que si la tour de nettoyage est activée."
+msgstr "Cet objet sera utilisé pour purger la buse après un changement de filament afin d'économiser du filament et de réduire le temps d'impression. Les couleurs des objets seront mélangées en conséquence. Cela ne prendra effet que si la tour d'amorçage est activée."
 
 msgid "X-Y hole compensation"
 msgstr "Compensation de trou X-Y"
@@ -14128,6 +14148,44 @@ msgid ""
 msgstr ""
 "Évitez le warping\n"
 "Saviez-vous que lors de l'impression de matériaux sujets au warping, tels que l'ABS, une augmentation appropriée de la température du plateau peut réduire le risque de déformation ?"
+
+#~ msgid "Open Preferences."
+#~ msgstr "Ouvrir Préférences."
+
+#~ msgid "Open next tip."
+#~ msgstr "Ouvrir l’astuce suivante"
+
+#~ msgid "Open Documentation in web browser."
+#~ msgstr "Ouvrir la Documentation dans un navigateur Web"
+
+#~ msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
+#~ msgstr "Le mode spirale ne fonctionne que lorsque les boucles de mur sont à 1, que le support est désactivé, que les couches de coque supérieures sont à 0, que la densité de remplissage éparse est à 0, que le type de timelapse est traditionnel et que le lissage de la vitesse du mur dans la direction z est faux."
+
+#~ msgid "Fatal"
+#~ msgstr "Mortel"
+
+#~ msgid "Serious"
+#~ msgstr "Sérieux"
+
+#~ msgid "Common"
+#~ msgstr "Commun"
+
+#~ msgid "Stop Buzzer"
+#~ msgstr "Buzzer d'arrêt"
+
+#, c-format, boost-format
+#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+#~ msgstr "Imprimante non connectée. Veuillez consulter la page de l'appareil pour connecter une imprimante %s avant de procéder à la synchronisation."
+
+#, c-format, boost-format
+#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+#~ msgstr "L'imprimante actuellement connectée sur la page Périphérique n'est pas une %s. Veuillez basculer vers une %s avant de procéder à la synchronisation."
+
+#~ msgid "Helio settings"
+#~ msgstr "Paramètres Helio"
+
+#~ msgid "Small perimter threshold"
+#~ msgstr "Seuil périmètre court"
 
 #~ msgid "Helio slicing does not support using a number of materials greater than 1."
 #~ msgstr "Le tranchage avec Helio n'est pas possible lors d'impressions avec plusieurs matériaux."

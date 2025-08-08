@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-31 18:21+0800\n"
+"POT-Creation-Date: 2025-08-08 10:03+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -27,6 +27,46 @@ msgstr "필라멘트가 현재 기기 설정과 호환되지 않을 수 있습�
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "미지의 필라멘트 모델. 무작위 필라멘트 사전 설정이 사용됩니다."
+
+msgid "right"
+msgstr "오른쪽"
+
+msgid "left"
+msgstr "왼쪽"
+
+msgid "right extruder"
+msgstr "오른쪽 압출기"
+
+msgid "left extruder"
+msgstr "왼쪽 압출기"
+
+msgid "extruder"
+msgstr "압출기"
+
+msgid "TPU is not supported by AMS."
+msgstr "TPU는 AMS에서 지원되지 않습니다."
+
+msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
+msgstr "젖은 PVA는 유연해져 AMS 내부에 달라붙을 수 있으므로 사용하기 전에 건조에 주의하세요."
+
+msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
+msgstr "습기가 많은 PVA는 유연하며 압출기에 걸릴 수 있습니다. 사용하기 전에 건조시키세요."
+
+msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+msgstr "PLA Glow의 거친 표면은 AMS 시스템, 특히 AMS Lite의 내부 구성 요소의 마모를 가속화할 수 있습니다."
+
+msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+msgstr "CF/GF 필라멘트는 단단하고 부서지기 쉬우며, 부러지거나 AMS에 끼기 쉬우므로 주의해서 사용하세요."
+
+msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr "PPS-CF는 취성이 강하여 툴헤드 위의 구부러진 PTFE 튜브에서 파손될 수 있습니다."
+
+msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr "PPA-CF는 취성이 강하여 툴헤드 위의 구부러진 PTFE 튜브에서 파손될 수 있습니다."
+
+#, c-format, boost-format
+msgid "%s is not supported by %s extruder."
+msgstr "%s은 %s 압출기에서 지원되지 않습니다."
 
 msgid "Current AMS humidity"
 msgstr "현재 AMS 습도"
@@ -2253,18 +2293,6 @@ msgstr "멀티컬러 출력"
 msgid "Line Type"
 msgstr "라인 유형"
 
-msgid "More"
-msgstr "더 보기"
-
-msgid "Open Preferences."
-msgstr "기본 설정 열기."
-
-msgid "Open next tip."
-msgstr "다음 팁 열기"
-
-msgid "Open Documentation in web browser."
-msgstr "웹 브라우저에서 문서 열기"
-
 msgid "Color"
 msgstr "색상"
 
@@ -3311,6 +3339,8 @@ msgid ""
 "Should not large than 100%.\n"
 "Reset to defualt"
 msgstr ""
+"100%를 초과할 수 없습니다.\n"
+"기본값으로 재설정"
 
 #, c-format, boost-format
 msgid "Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"
@@ -3440,8 +3470,8 @@ msgstr ""
 "잠금 깊이는 표면 깊이보다 작아야 합니다.\n"
 "표면 깊이의 50%%으로 재설정"
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
-msgstr "나선형 모드는 월 루프가 1, 지원 비활성화, 상단 셸 레이어 0, 스파스 인필 밀도 0, 타임랩스 유형이 기존, z 방향의 월 속도 평활화가 거짓인 경우에만 작동합니다."
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
+msgstr "나선형 모드는 벽 루프가 1 이고, 지원이 비활성화되어 있고, 프로빙을 통한 뭉침 감지가 비활성화되어 있고, 상단 셸 레이어가 0 이고, 드믄 채우기 밀도가 0 이고, 타임랩스 유형이 기존이고 z 방향의 벽 속도 평활화가 아니인 경우에만 작동합니다."
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " 하지만 I3 구조의 기기는 타임랩스 영상을 생성할 수 없습니다."
@@ -3626,27 +3656,8 @@ msgstr "자동 확인: 재료 위치"
 msgid "Cutting Module Offset Calibration"
 msgstr "커팅 모듈 오프셋 보정"
 
-msgid "left"
-msgstr "왼쪽"
-
-msgid "right"
-msgstr "오른쪽"
-
-#, c-format, boost-format
-msgid "%s is not supported by %s extruder."
-msgstr "%s은 %s 압출기에서 지원되지 않습니다."
-
 msgid "Unknown"
 msgstr "알 수 없음"
-
-msgid "Fatal"
-msgstr "치명적"
-
-msgid "Serious"
-msgstr "심각한"
-
-msgid "Common"
-msgstr "공통"
 
 msgid "Update successful."
 msgstr "업데이트 성공"
@@ -3710,24 +3721,6 @@ msgstr "캘리 G코드 생성에 실패했습니다"
 msgid "Calibration error"
 msgstr "보정 오류"
 
-msgid "TPU is not supported by AMS."
-msgstr "TPU는 AMS에서 지원되지 않습니다."
-
-msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
-msgstr "젖은 PVA는 유연해져 AMS 내부에 달라붙을 수 있으므로 사용하기 전에 건조에 주의하세요."
-
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr "PLA Glow의 거친 표면은 AMS 시스템, 특히 AMS Lite의 내부 구성 요소의 마모를 가속화할 수 있습니다."
-
-msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr "CF/GF 필라멘트는 단단하고 부서지기 쉬우며, 부러지거나 AMS에 끼기 쉬우므로 주의해서 사용하세요."
-
-msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
-msgstr "PPS-CF는 취성이 강하여 툴헤드 위의 구부러진 PTFE 튜브에서 파손될 수 있습니다."
-
-msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
-msgstr "PPA-CF는 취성이 강하여 툴헤드 위의 구부러진 PTFE 튜브에서 파손될 수 있습니다."
-
 msgid "Resume Printing"
 msgstr "출력 재개"
 
@@ -3773,8 +3766,8 @@ msgstr "무시하고 재개하기"
 msgid "Problem Solved and Resume"
 msgstr "문제 해결됨 재개하기"
 
-msgid "Stop Buzzer"
-msgstr "버저 중지"
+msgid "Got it, Turn off the Fire Alarm."
+msgstr "알겠습니다, 화재 경보기 끄기."
 
 msgid "Retry (problem solved)"
 msgstr "재시도 (문제 해결됨)"
@@ -3839,13 +3832,13 @@ msgid "Fan Speed"
 msgstr "팬 속도"
 
 msgid "Thermal Index (min)"
-msgstr ""
+msgstr "열 지수(최소)"
 
 msgid "Thermal Index (max)"
-msgstr ""
+msgstr "열 지수(최대)"
 
 msgid "Thermal Index (mean)"
-msgstr ""
+msgstr "열 지수(평균)"
 
 msgid "Flow"
 msgstr "유량"
@@ -3878,16 +3871,16 @@ msgid "Temperature: "
 msgstr "온도: "
 
 msgid "Thermal Index"
-msgstr ""
+msgstr "열 지수"
 
 msgid "Min: "
-msgstr ""
+msgstr "최소: "
 
 msgid "Max: "
-msgstr ""
+msgstr "최대: "
 
 msgid "Mean: "
-msgstr ""
+msgstr "평균: "
 
 msgid "Loading G-codes"
 msgstr "G 코드 불러오기"
@@ -3974,7 +3967,7 @@ msgid "Set to Optimal"
 msgstr "최적 설정"
 
 msgid "Regroup filament"
-msgstr "필라멘트 다시 그룹화"
+msgstr "필라멘트 재그룹"
 
 msgid "up to"
 msgstr "최대"
@@ -3989,7 +3982,7 @@ msgid "Slicing Result"
 msgstr "슬라이싱 결과"
 
 msgid "Helio Action"
-msgstr ""
+msgstr "Helio 액션"
 
 msgid "Color Scheme"
 msgstr "색상 구성표"
@@ -4004,7 +3997,7 @@ msgid "Layer Height (mm)"
 msgstr "레이어 높이 (mm)"
 
 msgid "Line Width (mm)"
-msgstr "라인 폭 (mm)"
+msgstr "선 폭(mm)"
 
 msgid "Speed (mm/s)"
 msgstr "속도 (mm/s)"
@@ -4022,19 +4015,19 @@ msgid "Travel"
 msgstr "이동"
 
 msgid "Seams"
-msgstr "재봉선"
+msgstr "솔기"
 
 msgid "Retract"
-msgstr "리트랙션"
+msgstr "수축"
 
 msgid "Unretract"
-msgstr "리트랙션 복귀"
+msgstr "수축 복귀"
 
 msgid "Filament Changes"
-msgstr "필라멘트 변경"
+msgstr "필라멘트 교체"
 
 msgid "Wipe"
-msgstr "닦아내기"
+msgstr "닦기"
 
 msgid "Options"
 msgstr "옵션"
@@ -4067,7 +4060,7 @@ msgid "Print settings"
 msgstr "출력 설정"
 
 msgid "Total Estimation"
-msgstr "총 추정치"
+msgstr "총 예상"
 
 msgid "Normal mode"
 msgstr "일반 모드"
@@ -4200,11 +4193,11 @@ msgstr "오른쪽 노즐"
 
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
-msgstr ""
+msgstr "일부 모델의 위치 또는 크기가 %s의 출력 가능 범위를 초과합니다."
 
 #, c-format, boost-format
 msgid "The position or size of the model %s exceeds the %s's printable range."
-msgstr ""
+msgstr "모델 %s의 위치 또는 크기가 %s의 출력 가능 범위를 초과합니다."
 
 msgid " Please check and adjust the part's position or size to fit the printable range:\n"
 msgstr " 부품의 위치 또는 크기를 확인하여 출력 가능한 범위에 맞게 조정하세요:\n"
@@ -4798,7 +4791,7 @@ msgid "Show 3D Navigator"
 msgstr "3D 내비게이터 표시"
 
 msgid "Show 3D navigator in Prepare and Preview scene"
-msgstr ""
+msgstr "준비 및 미리 보기 장면에 3D 탐색기 표시"
 
 msgid "Reset Window Layout"
 msgstr "창 레이아웃 재설정"
@@ -5441,6 +5434,9 @@ msgstr "완료됨"
 msgid "Camera"
 msgstr "카메라"
 
+msgid "MqttSource"
+msgstr "Mqtt소스"
+
 msgid "Storage"
 msgstr "저장고"
 
@@ -5829,6 +5825,9 @@ msgstr "새 버전의 소프트웨어가 있습니다."
 
 msgid "Goto download page."
 msgstr "다운로드 페이지로 이동"
+
+msgid "More"
+msgstr "더 보기"
 
 msgid "Open Folder."
 msgstr "폴더 열기."
@@ -6452,16 +6451,30 @@ msgid "Slicing Plate %d"
 msgstr "슬라이싱 플레이트 %d"
 
 msgid "Invalid printer preset. Unable to slice with Helio."
-msgstr ""
+msgstr "유효하지 않은 프린터 사전 설정입니다. Helio로 슬라이스할 수 없습니다."
 
 msgid "The current printer preset cannot be sliced using Helio."
-msgstr ""
+msgstr "현재 프린터 사전 설정은 Helio를 사용하여 슬라이스할 수 없습니다."
 
 msgid "Helio does not support using a number of materials greater than 1."
-msgstr ""
+msgstr "Helio는 1개 이상의 재료 사용을 지원하지 않습니다."
 
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
+msgstr "Helio는 소재 %s을(를) 지원하지 않습니다"
+
+msgid ""
+"No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
+"Please request a new Helio-PAT."
+msgstr ""
+
+msgid "Execution Blocked"
+msgstr ""
+
+msgid "Regenerate PAT"
+msgstr ""
+
+msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
 msgstr ""
 
 msgid "Please resolve the slicing errors and publish again."
@@ -6688,11 +6701,11 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "사용자 지정 지원, 심_면 및 색상 페인팅이 수리하기 전에 제거되었습니다, 모델 이름:"
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
 msgstr "프린터가 연결되지 않았습니다. 동기화하기 전에 장치 페이지로 이동하여 %s 프린터를 연결하세요."
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
 msgstr "장치 페이지의 현재 연결된 프린터가 %s이 아닙니다. 동기화하기 전에 %s로 전환하세요."
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
@@ -6959,10 +6972,10 @@ msgid "Perform gamma correction on color after importing the obj model."
 msgstr "obj 모델을 가져온 후 색상에 대한 감마 보정을 수행합니다."
 
 msgid "Remember last used color scheme"
-msgstr ""
+msgstr "마지막으로 사용한 색상 구성 기억하기"
 
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
-msgstr ""
+msgstr "활성화하면 마지막으로 사용한 색상 구성(예: Line Type, 속도)이 다음 시작 시 자동으로 적용됩니다."
 
 msgid "Improve rendering performance by lod"
 msgstr "로드별 렌더링 성능 향상"
@@ -7034,22 +7047,25 @@ msgid "Show history on the home page"
 msgstr "홈 페이지에 기록 표시"
 
 msgid "Helio Options"
-msgstr ""
+msgstr "Helio 옵션"
 
 msgid "Enable Helio"
+msgstr "Helio 활성화"
+
+msgid "Helio-PAT"
 msgstr ""
 
 msgid "About Helio"
-msgstr ""
+msgstr "Helio 소개"
 
 msgid "Helio Privacy Policy"
-msgstr ""
+msgstr "Helio 개인정보 정책"
 
 msgid "Reminder During Slicing"
-msgstr ""
+msgstr "슬라이싱 중 알림"
 
 msgid "Automatic mode"
-msgstr ""
+msgstr "자동 모드"
 
 msgid "Maximum recent projects"
 msgstr "최대 최근 프로젝트 수"
@@ -7561,17 +7577,8 @@ msgstr "비용 %dg 필라멘트 및 %d 최적의 그룹화보다 더 많이 변�
 msgid "nozzle"
 msgstr "노즐"
 
-msgid "extruder"
-msgstr "압출기"
-
 msgid "both extruders"
 msgstr "두 압출기"
-
-msgid "right extruder"
-msgstr "오른쪽 압출기"
-
-msgid "left extruder"
-msgstr "왼쪽 압출기"
 
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr "팁: 최근에 프린터의 노즐을 변경한 경우 '장치 -> 프린터 부품'으로 이동하여 노즐 설정을 변경하세요."
@@ -7856,13 +7863,13 @@ msgid "Prime tower is required for smooth timeplase. There may be flaws on the m
 msgstr "smooth 타임랩스 모드를 위해서는 프라임 타워가 필요합니다. 프라임 타워가 없는 모델에는 결함이 있을 수 있습니다. 프라임 타워를 비활성화하시겠습니까?"
 
 msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
-msgstr ""
+msgstr "뭉침 감지를 위해 프라임 타워가 필요합니다. 프라임 타워가 없는 모델에는 결함이 있을 수 있습니다. 프라임 타워를 비활성화하시겠습니까?"
 
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr "정밀 Z 높이와 프라임 타워를 모두 활성화하면 프라임 타워의 크기가 커질 수 있습니다. 그래도 활성화하시겠습니까?"
 
 msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
-msgstr ""
+msgstr "뭉침 감지를 위해 프라임 타워가 필요합니다. 프라임 타워가 없는 모델에는 결함이 있을 수 있습니다. 그래도 클럼핑 감지를 활성화하시겠습니까?"
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "smooth 타임랩스 모드를 위해서는 프라임 타워가 필요합니다. 프라임 타워가 없는 모델에는 결함이 있을 수 있습니다. 프라임 타워를 활성화하시겠습니까?"
@@ -8168,7 +8175,7 @@ msgid "Time lapse G-code"
 msgstr "타임랩스 G-코드"
 
 msgid "Clumping Detection G-code"
-msgstr ""
+msgstr "뭉침 감지 G-code"
 
 msgid "Change filament G-code"
 msgstr "필라멘트 변경 G 코드"
@@ -9052,51 +9059,57 @@ msgid "Terms of Service"
 msgstr "서비스 약관"
 
 msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
-msgstr ""
+msgstr "Helio Additive의 타사 소프트웨어 서비스 기능을 활성화하려고 합니다! 이 기능 사용을 시작하기 전에 다음 내용을 주의 깊게 읽어 주십시오."
 
 msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
-msgstr ""
+msgstr "별도의 명시가 없는 한, Bambu Lab은 공식적으로 제공되는 소프트웨어 기능에 대해서만 지원을 제공합니다. 이 소프트웨어 내 Helio Additive의 클라우드 서비스를 기반으로 한 슬라이싱 평가 및 슬라이싱 최적화 기능은 Helio Additive에서 개발, 운영, 제공 및 유지 관리합니다. 이 서비스의 효과 및 가용성에 대한 책임은 Helio Additive에 있습니다. 이 서비스의 최적화 기능은 기본 프린트 명령을 변경할 수 있어 프린터 손상의 위험이 있습니다. 해당 기능은 관련 서비스 기능을 달성하기 위해 필요한 사용자 정보와 데이터를 수집합니다. 구독 및 결제가 포함될 수 있습니다. 자세한 내용은 Helio Additive의 개인정보취급방침 및 이용약관을 참조하십시오."
 
 msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
-msgstr ""
+msgstr "한편, 이 제품은 Helio Additive의 서비스를 기반으로 \"있는 그대로\" 제공되며, Bambu는 어떠한 명시적 또는 묵시적 보증도 하지 않으며, 서비스 효과를 통제할 수 없습니다. 관련 법률이 허용하는 최대 범위 내에서, Bambu 또는 그 라이선스 제공자/계열사는 상품성, 만족스러운 품질, 특정 목적에의 적합성, 정확성, 기밀성 및 제3자의 권리 침해 방지에 관한 보증을 포함하되 이에 국한되지 않는 어떠한 명시적 또는 묵시적 진술이나 보증도 제공하지 않습니다. 네트워크 서비스의 특성상, Bambu는 서비스가 항상 이용 가능할 것을 보장할 수 없으며, 관련 상황에 따라 서비스를 종료할 권리를 보유합니다."
 
 msgid "You agree not to use this product and its related updates to engage in the following activities:"
-msgstr ""
+msgstr "귀하는 본 제품 및 관련 업데이트를 다음 활동에 사용하지 않기로 동의합니다:"
 
 msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
-msgstr ""
+msgstr "1. Helio Additive 및 Bambu의 허가된 범위를 벗어나 이 제품의 어떤 부분도 복사하거나 사용해서는 안 됩니다."
 
 msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
-msgstr ""
+msgstr "2. 이 제품과 관련되거나 그 일부인 모든 디지털 권리 관리 시스템을 방해, 우회, 변경, 무효화 또는 회피하려는 시도."
 
 msgid "3.Using this software and services for any improper or illegal activities."
-msgstr ""
+msgstr "3. 이 소프트웨어 및 서비스를 부적절하거나 불법적인 활동에 사용하는 행위."
 
 msgid "https://www.helioadditive.com/"
 msgstr ""
 
 msgid "Privacy Policy of Helio Additive"
-msgstr ""
+msgstr "Helio Additive의 개인정보 보호정책"
 
 msgid "Terms of Use of Helio Additive"
-msgstr ""
+msgstr "Helio Additive 이용 약관"
 
 msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
-msgstr ""
+msgstr "이 기능을 활성화하기로 확인하면 위의 내용에 대해 확인 및 동의한 것으로 간주됩니다."
 
 msgid "Agree"
 msgstr "동의"
 
-msgid "Helio settings"
+msgid "Helio Additive"
 msgstr ""
 
 msgid "Chamber temperature"
 msgstr "챔버 온도"
 
 msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
-msgstr ""
+msgstr "참고: 위 온도는 실제 상황에 맞게 설정해 주세요. 데이터가 정확할수록 분석 결과도 더 정밀해집니다."
 
 msgid "How to use Helio"
+msgstr "Helio 사용 방법"
+
+msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
+msgstr ""
+
+msgid "Click for more details"
 msgstr ""
 
 msgid "Air Pump"
@@ -9405,7 +9418,7 @@ msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr "출력배제영역에 너무 가까워 출력시 충돌이 발생할 수 있습니다."
 
 msgid " is too close to clumping detection area, there may be collisions when printing."
-msgstr ""
+msgstr " 뭉침 감지 영역에 너무 가까워 출력 시 충돌이 발생할 수 있습니다."
 
 msgid "Prime Tower"
 msgstr "프라임 타워"
@@ -9417,13 +9430,16 @@ msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr "출력배제영역에 너무 가까워 출력시 충돌이 발생할 수 있습니다. \n"
 
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
-msgstr ""
+msgstr " 뭉침 감지 영역에 너무 가까워 충돌이 발생할 수 있습니다.\n"
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "고온 필라멘트와 저온 필라멘트를 함께 출력하면 노즐이 막히거나 프린터가 손상될 수 있습니다."
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
 msgstr "고온 및 저온 필라멘트를 함께 출력하면 노즐 막힘이나 프린터 손상이 발생할 수 있습니다. 그래도 출력하려면 환경 설정에서 해당 옵션을 활성화하세요."
+
+msgid "Printing different-temp filaments together may cause nozzle clogging or printer damage."
+msgstr "온도가 다른 필라멘트를 함께 출력하면 노즐 막힘 또는 프린터 손상이 발생할 수 있습니다."
 
 msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "고온 및 중온 필라멘트를 함께 출력하면 노즐이 막히거나 프린터가 손상될 수 있습니다."
@@ -9438,7 +9454,7 @@ msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is 
 msgstr "“객체별” 시퀀스가 활성화된 경우 smooth 타임랩스 모드가 지원되지 않습니다."
 
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
-msgstr ""
+msgstr "\"객체별\" 시퀀스가 활성화된 경우 뭉침 감지가 지원되지 않습니다."
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "나선형 꽃병 모드에서 여러 객체를 출력하려면 “객체별” 출력 순서를 선택하십시오."
@@ -10044,8 +10060,8 @@ msgstr "작은 둘레"
 msgid "This setting will affect the speed of perimeters having radius <= small perimeter threshold(usually holes). If expressed as percentage (for example: 80%) it will be calculated onthe outer wall speed setting above. Set to zero for auto."
 msgstr "이 설정은 반경이 <= 작은 경계 임계값(일반적으로 구멍)을 가진 외곽의 속도에 영향을 줍니다. 백분율로 표시되는 경우(예: 80%) 위의 외벽 속도 설정에 따라 계산됩니다. 자동의 경우 0으로 설정합니다."
 
-msgid "Small perimter threshold"
-msgstr "작은 경계 임계값"
+msgid "Small perimeter threshold"
+msgstr ""
 
 msgid "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr "작은 둘레 길이에 대한 임계값을 설정합니다. 기본 임계값은 0mm입니다"
@@ -10597,13 +10613,19 @@ msgid "Enable this to enable the camera on printer to check the quality of first
 msgstr "이 기능을 활성화하면 프린터 카메라가 첫 레이어의 품질을 확인할 수 있습니다."
 
 msgid "Enable clumping detection"
-msgstr ""
+msgstr "뭉침 감지 활성화"
 
 msgid "Clumping detection layers"
-msgstr ""
+msgstr "뭉침 감지 레이어"
 
 msgid "Clumping detection layers."
-msgstr ""
+msgstr "뭉침 감지 레이어."
+
+msgid "Probing exclude area of clumping"
+msgstr "뭉침 영역 프로빙 제외"
+
+msgid "Probing exclude area of clumping."
+msgstr "뭉침 감지 제외 영역."
 
 msgid "Thumbnail size"
 msgstr "썸네일 크기"
@@ -10657,7 +10679,7 @@ msgid "Air filtration enhancement"
 msgstr "공기 여과 기능 향상"
 
 msgid "Enable this if printer support air filtration enhancement."
-msgstr "Enable this if printer support air filtration enhancement."
+msgstr "프린터가 공기 정화 향상 기능을 지원하는 경우 활성화하십시오."
 
 msgid "G-code flavor"
 msgstr "G-코드 형식"
@@ -10870,7 +10892,7 @@ msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "이 G-코드는 z 리프트 이후 모든 레이어 변경 시 삽입됩니다."
 
 msgid "Clumping detection G-code"
-msgstr ""
+msgstr "뭉침 감지 G-code"
 
 msgid "Supports silent mode"
 msgstr "무음 모드 지원"
@@ -11286,7 +11308,7 @@ msgid "Override filament scarf seam setting"
 msgstr "필라멘트 스카프 솔기 설정 덮어쓰기"
 
 msgid "Overrider filament scarf seam setting and could control settings by modifier."
-msgstr ""
+msgstr "오버라이더 필라멘트 스카프 솔기 설정을 변경하고 수정자로 설정을 제어할 수 있습니다."
 
 msgid "Wipe speed"
 msgstr "삭제 속도"
@@ -12481,7 +12503,7 @@ msgid "To Volumetric Speed"
 msgstr "볼류메트릭 속도에"
 
 msgid "Are you sure to stop printing?"
-msgstr ""
+msgstr "출력을 중지하시겠습니까?"
 
 msgid "Flow Dynamics Calibration Result"
 msgstr "유량 역학 캘리브레이션 결과"
@@ -14132,6 +14154,41 @@ msgid ""
 msgstr ""
 "뒤틀림 방지\n"
 "ABS와 같이 뒤틀리기 쉬운 소재를 출력할 때 열판 온도를 적절히 높이면 뒤틀릴 확률을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid "Open Preferences."
+#~ msgstr "기본 설정 열기."
+
+#~ msgid "Open next tip."
+#~ msgstr "다음 팁 열기"
+
+#~ msgid "Open Documentation in web browser."
+#~ msgstr "웹 브라우저에서 문서 열기"
+
+#~ msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
+#~ msgstr "나선형 모드는 월 루프가 1, 지원 비활성화, 상단 셸 레이어 0, 스파스 인필 밀도 0, 타임랩스 유형이 기존, z 방향의 월 속도 평활화가 거짓인 경우에만 작동합니다."
+
+#~ msgid "Fatal"
+#~ msgstr "치명적"
+
+#~ msgid "Serious"
+#~ msgstr "심각한"
+
+#~ msgid "Common"
+#~ msgstr "공통"
+
+#~ msgid "Stop Buzzer"
+#~ msgstr "버저 중지"
+
+#, c-format, boost-format
+#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+#~ msgstr "프린터가 연결되지 않았습니다. 동기화하기 전에 장치 페이지로 이동하여 %s 프린터를 연결하세요."
+
+#, c-format, boost-format
+#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+#~ msgstr "장치 페이지의 현재 연결된 프린터가 %s이 아닙니다. 동기화하기 전에 %s로 전환하세요."
+
+#~ msgid "Small perimter threshold"
+#~ msgstr "작은 경계 임계값"
 
 #~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
 #~ msgstr "자동 보정은 왼쪽과 오른쪽 노즐 직경이 동일한 경우에만 지원됩니다."

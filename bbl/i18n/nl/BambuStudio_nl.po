@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-31 18:21+0800\n"
+"POT-Creation-Date: 2025-08-08 10:03+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -27,6 +27,46 @@ msgstr "Het filament is mogelijk niet compatibel met de huidige machine-instelli
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Het model van de gloeidraad is onbekend. Er wordt een willekeurige voorinstelling voor de gloeidraad gebruikt."
+
+msgid "right"
+msgstr "rechts"
+
+msgid "left"
+msgstr "links"
+
+msgid "right extruder"
+msgstr "rechter extruder"
+
+msgid "left extruder"
+msgstr "linker extruder"
+
+msgid "extruder"
+msgstr ""
+
+msgid "TPU is not supported by AMS."
+msgstr "TPU wordt niet ondersteund door AMS."
+
+msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
+msgstr "Vochtige PVA zal flexibel worden en vast komen te zitten in de AMS, zorg er dus voor dat je het droogt voor gebruik."
+
+msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
+msgstr "Vochtige PVA is flexibel en kan vastlopen in de extruder. Droog het voor gebruik."
+
+msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+msgstr "Het ruwe oppervlak van PLA Glow kan de slijtage van het AMS-systeem versnellen, vooral op de interne onderdelen van het AMS Lite."
+
+msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+msgstr "CF/GF-filamenten zijn hard en bros. Ze kunnen gemakkelijk breken of vast komen te zitten in AMS."
+
+msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr "PPS-CF is bros en kan breken in een gebogen PTFE-buis boven de toolhead."
+
+msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr "PPA-CF is bros en kan breken in een gebogen PTFE-buis boven de toolhead."
+
+#, c-format, boost-format
+msgid "%s is not supported by %s extruder."
+msgstr "%s wordt niet ondersteund door %s extruder."
 
 msgid "Current AMS humidity"
 msgstr "Huidige AMS-luchtvochtigheid"
@@ -2258,18 +2298,6 @@ msgstr "Print met meerdere kleuren"
 msgid "Line Type"
 msgstr "Lijn type"
 
-msgid "More"
-msgstr "Meer"
-
-msgid "Open Preferences."
-msgstr "Open voorkeuren."
-
-msgid "Open next tip."
-msgstr "Volgende tip openen."
-
-msgid "Open Documentation in web browser."
-msgstr "Open documentatie in webbrowser."
-
 msgid "Color"
 msgstr "Kleur"
 
@@ -3447,8 +3475,8 @@ msgstr ""
 "de overlapdiepte moet kleiner zijn dan de huiddiepte.\n"
 "Reset naar 50%% van huiddiepte"
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
-msgstr "De spiraalmodus werkt alleen als wandlussen op 1 staat, ondersteuning is uitgeschakeld, bovenste lagen van de schaal op 0 staat, de dichtheid van de dunne vulling op 0 staat, het timelapse-type op traditioneel staat en het afvlakken van de wandsnelheid in de z-richting op false staat."
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
+msgstr "De spiraalmodus werkt alleen als wanden op 1 staat, support is uitgeschakeld, klonteringdetectie via peilen is uitgeschakeld, bovenste lagen van de schaal op 0 staat, de dichtheid van de dunne vulling op 0 staat, het timelapse-type op traditioneel staat en het afvlakken van de wandsnelheid in de z-richting op false staat."
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Maar machines met een I3-structuur genereren geen timelapsevideo's."
@@ -3633,27 +3661,8 @@ msgstr ""
 msgid "Cutting Module Offset Calibration"
 msgstr ""
 
-msgid "left"
-msgstr "links"
-
-msgid "right"
-msgstr "rechts"
-
-#, c-format, boost-format
-msgid "%s is not supported by %s extruder."
-msgstr "%s wordt niet ondersteund door %s extruder."
-
 msgid "Unknown"
 msgstr "Onbekend"
-
-msgid "Fatal"
-msgstr "Fatale"
-
-msgid "Serious"
-msgstr "Serieuze"
-
-msgid "Common"
-msgstr "Standaard"
 
 msgid "Update successful."
 msgstr "Update gelukt."
@@ -3717,24 +3726,6 @@ msgstr "Cali gcode niet gegenereerd"
 msgid "Calibration error"
 msgstr "Kalibratiefout"
 
-msgid "TPU is not supported by AMS."
-msgstr "TPU wordt niet ondersteund door AMS."
-
-msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
-msgstr "Vochtige PVA zal flexibel worden en vast komen te zitten in de AMS, zorg er dus voor dat je het droogt voor gebruik."
-
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr "Het ruwe oppervlak van PLA Glow kan de slijtage van het AMS-systeem versnellen, vooral op de interne onderdelen van het AMS Lite."
-
-msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr "CF/GF-filamenten zijn hard en bros. Ze kunnen gemakkelijk breken of vast komen te zitten in AMS."
-
-msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
-msgstr "PPS-CF is bros en kan breken in een gebogen PTFE-buis boven de toolhead."
-
-msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
-msgstr "PPA-CF is bros en kan breken in een gebogen PTFE-buis boven de toolhead."
-
 msgid "Resume Printing"
 msgstr "Afdrukken hervatten"
 
@@ -3780,8 +3771,8 @@ msgstr "Negeer dit en ga verder"
 msgid "Problem Solved and Resume"
 msgstr "Probleem opgelost en cv"
 
-msgid "Stop Buzzer"
-msgstr "Stop zoemer"
+msgid "Got it, Turn off the Fire Alarm."
+msgstr "Begrepen, zet het brandalarm uit."
 
 msgid "Retry (problem solved)"
 msgstr "Opnieuw proberen (probleem opgelost)"
@@ -5451,6 +5442,9 @@ msgstr "Voltooid"
 msgid "Camera"
 msgstr "Camera"
 
+msgid "MqttSource"
+msgstr "MqtSource"
+
 msgid "Storage"
 msgstr "Opslag"
 
@@ -5839,6 +5833,9 @@ msgstr "De software heeft een nieuwe versie."
 
 msgid "Goto download page."
 msgstr "Ga naar de download pagina."
+
+msgid "More"
+msgstr "Meer"
 
 msgid "Open Folder."
 msgstr "Open bestandsmap."
@@ -6472,11 +6469,25 @@ msgid "The current printer preset cannot be sliced using Helio."
 msgstr "De huidige printerpreset kan niet worden gesliced met Helio."
 
 msgid "Helio does not support using a number of materials greater than 1."
-msgstr ""
+msgstr "Helio slicen ondersteunt het gebruik van meer dan 1 materiaal niet."
 
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
 msgstr "Helio ondersteunt materialen %s niet"
+
+msgid ""
+"No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
+"Please request a new Helio-PAT."
+msgstr ""
+
+msgid "Execution Blocked"
+msgstr ""
+
+msgid "Regenerate PAT"
+msgstr ""
+
+msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
+msgstr ""
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Los aub de slicing fouten op en publiceer opnieuw."
@@ -6702,12 +6713,12 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "Aangepaste steunen, seam_facets en kleurverf zijn verwijderd voordat de modelnaam werd gerepareerd:"
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
 msgstr "Printer niet aangesloten. Ga naar de apparaatpagina om een %s printer aan te sluiten voordat u gaat synchroniseren."
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-msgstr "De momenteel aangesloten printer op de apparaatpagina is geen %s. Schakel over naar een %s voordat u gaat synchroniseren."
+msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
+msgstr "De momenteel aangesloten printer op de apparaatpagina is geen %s. Schakel over naar %s voordat u gaat synchroniseren."
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "Er zitten geen filamenten in de printer. Laad eerst de filamenten in de printer."
@@ -6973,10 +6984,10 @@ msgid "Perform gamma correction on color after importing the obj model."
 msgstr "Voer een gammacorrectie uit op kleur na het importeren van het obj-model."
 
 msgid "Remember last used color scheme"
-msgstr ""
+msgstr "Laat laatste gebruikte kleurenschema onthouden"
 
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
-msgstr ""
+msgstr "Wanneer ingeschakeld, wordt het laatst gebruikte kleurenschema (bijv. Lijntype, Snelheid) automatisch toegepast bij de volgende opstart."
 
 msgid "Improve rendering performance by lod"
 msgstr "Verbeter de renderprestaties met LOD"
@@ -7051,6 +7062,9 @@ msgid "Helio Options"
 msgstr "Helio Opties"
 
 msgid "Enable Helio"
+msgstr "Zet Helio aan"
+
+msgid "Helio-PAT"
 msgstr ""
 
 msgid "About Helio"
@@ -7575,17 +7589,8 @@ msgstr "Kosten %dg filament en %d verandert meer dan optimale groepering."
 msgid "nozzle"
 msgstr ""
 
-msgid "extruder"
-msgstr ""
-
 msgid "both extruders"
 msgstr "beide extruders"
-
-msgid "right extruder"
-msgstr "rechter extruder"
-
-msgid "left extruder"
-msgstr "linker extruder"
 
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr "Tips: Als je de nozzle van je printer onlangs hebt gewijzigd, ga dan naar 'Apparaat -> Printeronderdelen' om de instelling van de nozzle te wijzigen."
@@ -7870,13 +7875,13 @@ msgid "Prime tower is required for smooth timeplase. There may be flaws on the m
 msgstr "De prime tower is nodig voor een soepele timeplase. Er kunnen fouten in het model zitten zonder prime tower. Weet je zeker dat je prime tower wilt uitschakelen?"
 
 msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
-msgstr ""
+msgstr "De prime tower is vereist voor het detecteren van samendrukking. Er kunnen fouten in het model zitten zonder prime tower. Weet je zeker dat je prime tower wilt uitschakelen?"
 
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr "Als u zowel de precieze Z-hoogte als de prime-toren inschakelt, kan de grootte van de prime-toren toenemen. Wil je toch inschakelen?"
 
 msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
-msgstr ""
+msgstr "De prime tower is vereist voor het detecteren van klontering. Zonder prime tower kunnen er fouten in het model zitten. Wil je detectie van klontering toch inschakelen?"
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "De prime tower is vereist voor een vloeiende timelapse. Zonder prime tower kunnen er fouten in het model zitten. Wil je prime tower inschakelen?"
@@ -8185,7 +8190,7 @@ msgid "Time lapse G-code"
 msgstr "Time-lapse G-code"
 
 msgid "Clumping Detection G-code"
-msgstr ""
+msgstr "G-code voor klonteringdetectie"
 
 msgid "Change filament G-code"
 msgstr "Filament G-code aanpassen"
@@ -9074,22 +9079,22 @@ msgid "You are about to enable a third-party software service feature from Helio
 msgstr "U staat op het punt een derde partij softwaredienstfunctie van Helio Additive in te schakelen! Lees vóór het bevestigen van het gebruik van deze functie de volgende verklaringen aandachtig door."
 
 msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
-msgstr ""
+msgstr "Tenzij anders vermeld, biedt Bambu Lab alleen ondersteuning voor de officieel geleverde softwarefuncties. De functies voor evaluatie van het slicen en optimalisatie van het slicen, gebaseerd op de cloudservice van Helio Additive binnen deze software, worden ontwikkeld, beheerd, geleverd en onderhouden door Helio Additive. Helio Additive is verantwoordelijk voor de effectiviteit en beschikbaarheid van deze service. De optimalisatiefunctie van deze service kan de standaard printcommando's wijzigen, wat een risico op schade aan de printer met zich meebrengt. Deze functies verzamelen noodzakelijke gebruikersinformatie en gegevens om relevante servicefuncties te realiseren. Abonnementen en betalingen kunnen van toepassing zijn. Bezoek Helio Additive en raadpleeg de Helio Additive Privacyverklaring en de Helio Additive Gebruikersovereenkomst voor gedetailleerde informatie."
 
 msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
-msgstr ""
+msgstr "Ondertussen begrijpt u dat dit product \"zoals het is\" aan u wordt geleverd op basis van de diensten van Helio Additive, en Bambu geeft geen expliciete of impliciete garanties en kan de uitkomsten van de dienst niet controleren. Voor zover toegestaan door de toepasselijke wetgeving, geven Bambu of haar licentiegevers/gelieerde ondernemingen geen enkele uitdrukkelijke of impliciete verklaring of garantie, inclusief maar niet beperkt tot garanties met betrekking tot verkoopbaarheid, bevredigende kwaliteit, geschiktheid voor een bepaald doel, nauwkeurigheid, vertrouwelijkheid en het niet-inbreukmaken op rechten van derden. Vanwege de aard van netwerksdiensten kan Bambu niet garanderen dat de dienst te allen tijde beschikbaar is, en Bambu behoudt zich het recht voor de dienst te beëindigen op basis van relevante omstandigheden."
 
 msgid "You agree not to use this product and its related updates to engage in the following activities:"
-msgstr ""
+msgstr "U stemt ermee in dit product en de bijbehorende updates niet te gebruiken voor de volgende activiteiten:"
 
 msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
-msgstr ""
+msgstr "1.Kopieer of gebruik geen enkel onderdeel van dit product buiten het geautoriseerde toepassingsgebied van Helio Additive en Bambu."
 
 msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
-msgstr ""
+msgstr "2.Probeer geen enkel Digital Rights Management-systeem dat verband houdt met en/of een integraal onderdeel is van dit product te verstoren, te omzeilen, te wijzigen, ongeldig te maken of te ontlopen."
 
 msgid "3.Using this software and services for any improper or illegal activities."
-msgstr ""
+msgstr "3. Het gebruik van deze software en diensten voor onjuiste of illegale activiteiten."
 
 msgid "https://www.helioadditive.com/"
 msgstr ""
@@ -9106,8 +9111,8 @@ msgstr "Wanneer u bevestigt deze functie in te schakelen, betekent dit dat u de 
 msgid "Agree"
 msgstr "Akkoord"
 
-msgid "Helio settings"
-msgstr "Helio instellingen"
+msgid "Helio Additive"
+msgstr ""
 
 msgid "Chamber temperature"
 msgstr "Kamertemperatuur"
@@ -9117,6 +9122,12 @@ msgstr "Opmerking: Stel de bovenstaande temperatuur in volgens de werkelijke sit
 
 msgid "How to use Helio"
 msgstr "Hoe Helio te gebruiken"
+
+msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
+msgstr ""
+
+msgid "Click for more details"
+msgstr ""
 
 msgid "Air Pump"
 msgstr "Luchtpomp"
@@ -9424,7 +9435,7 @@ msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr "is te dicht bij het uitsluitingsgebied, er botsingen optreden tijdens het printen."
 
 msgid " is too close to clumping detection area, there may be collisions when printing."
-msgstr ""
+msgstr " te dicht bij het klonteringsdetectiegebied, er kunnen botsingen optreden bij het printen."
 
 msgid "Prime Tower"
 msgstr "Prime toren"
@@ -9436,13 +9447,16 @@ msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " bevindt zich te dicht bij het uitsluitingsgebied en er zullen botsingen worden veroorzaakt.\n"
 
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
-msgstr ""
+msgstr " te dicht bij het klonteringsdetectiegebied, er gaan botsingen optreden bij het printen.\n"
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "Het samen printen van filamenten met een hoge en lage temperatuur kan verstopping van de nozzles of schade aan de printer veroorzaken."
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
 msgstr "Het samen printen van filamenten met een hoge en lage temperatuur kan verstopping van de nozzles of schade aan de printer veroorzaken. Als u toch wilt afdrukken, kunt u de optie inschakelen in Voorkeuren."
+
+msgid "Printing different-temp filaments together may cause nozzle clogging or printer damage."
+msgstr "Het samen printen van filamenten met verschillende temperaturen kan een verstopping van de nozzle of schade aan de printer veroorzaken."
 
 msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "Het samen printen van filamenten bij hoge en gemiddelde temperatuur kan verstopping van de nozzles of printerschade veroorzaken."
@@ -9457,7 +9471,7 @@ msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is 
 msgstr "Vloeiende modus van timelapse wordt niet ondersteund wanneer \"per object\" sequentie is ingeschakeld."
 
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
-msgstr ""
+msgstr "Detectie van samenklontering wordt niet ondersteund wanneer de \"per object\"-sequentie is ingeschakeld."
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Selecteer de afdrukvolgorde \"per object\" om meerdere objecten in spiraalvaasmodus af te drukken."
@@ -10063,8 +10077,8 @@ msgstr "Kleine omtrek"
 msgid "This setting will affect the speed of perimeters having radius <= small perimeter threshold(usually holes). If expressed as percentage (for example: 80%) it will be calculated onthe outer wall speed setting above. Set to zero for auto."
 msgstr "Deze instelling beïnvloedt de snelheid van omtrekken met een straal &lt;= kleine omtrekdrempel (meestal gaten). Als het wordt uitgedrukt als percentage (bijvoorbeeld: 80%), wordt het berekend op de bovenstaande instelling voor de snelheid van de buitenmuur. Stel in op nul voor automatisch."
 
-msgid "Small perimter threshold"
-msgstr "Kleine perimter drempel"
+msgid "Small perimeter threshold"
+msgstr ""
 
 msgid "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr "Dit stelt de drempel voor kleine omtreklengte in. De standaarddrempel is 0 mm"
@@ -10616,13 +10630,19 @@ msgid "Enable this to enable the camera on printer to check the quality of first
 msgstr "Schakel dit in om de camera op de printer in te schakelen om de kwaliteit van de eerste laag te controleren."
 
 msgid "Enable clumping detection"
-msgstr ""
+msgstr "Schakel detectie van klontvorming in"
 
 msgid "Clumping detection layers"
-msgstr ""
+msgstr "Lagen voor klonteringdetectie"
 
 msgid "Clumping detection layers."
-msgstr ""
+msgstr "Lagen voor klonterdetectie."
+
+msgid "Probing exclude area of clumping"
+msgstr "Proberen gebied van klontering uitsluiten"
+
+msgid "Probing exclude area of clumping."
+msgstr "Uitsluitingsgebied van ophoping aan het onderzoeken."
 
 msgid "Thumbnail size"
 msgstr "Miniatuurgrootte"
@@ -10889,7 +10909,7 @@ msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "Dit gcodegedeelte wordt ingevoegd bij elke laagwissel na lift z"
 
 msgid "Clumping detection G-code"
-msgstr ""
+msgstr "G-code voor klonteringdetectie"
 
 msgid "Supports silent mode"
 msgstr "Ondersteunt stille modus"
@@ -14148,6 +14168,44 @@ msgid ""
 msgstr ""
 "Kromtrekken voorkomen\n"
 "Wist je dat bij het printen van materialen die gevoelig zijn voor kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het warmtebed de kans op kromtrekken kan verkleinen?"
+
+#~ msgid "Open Preferences."
+#~ msgstr "Open voorkeuren."
+
+#~ msgid "Open next tip."
+#~ msgstr "Volgende tip openen."
+
+#~ msgid "Open Documentation in web browser."
+#~ msgstr "Open documentatie in webbrowser."
+
+#~ msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
+#~ msgstr "De spiraalmodus werkt alleen als wandlussen op 1 staat, ondersteuning is uitgeschakeld, bovenste lagen van de schaal op 0 staat, de dichtheid van de dunne vulling op 0 staat, het timelapse-type op traditioneel staat en het afvlakken van de wandsnelheid in de z-richting op false staat."
+
+#~ msgid "Fatal"
+#~ msgstr "Fatale"
+
+#~ msgid "Serious"
+#~ msgstr "Serieuze"
+
+#~ msgid "Common"
+#~ msgstr "Standaard"
+
+#~ msgid "Stop Buzzer"
+#~ msgstr "Stop zoemer"
+
+#, c-format, boost-format
+#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+#~ msgstr "Printer niet aangesloten. Ga naar de apparaatpagina om een %s printer aan te sluiten voordat u gaat synchroniseren."
+
+#, c-format, boost-format
+#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+#~ msgstr "De momenteel aangesloten printer op de apparaatpagina is geen %s. Schakel over naar een %s voordat u gaat synchroniseren."
+
+#~ msgid "Helio settings"
+#~ msgstr "Helio instellingen"
+
+#~ msgid "Small perimter threshold"
+#~ msgstr "Kleine perimter drempel"
 
 #~ msgid "Helio slicing does not support using a number of materials greater than 1."
 #~ msgstr "Helio slicen ondersteunt het gebruik van meer dan 1 materiaal niet."
