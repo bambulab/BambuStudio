@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-31 18:21+0800\n"
+"POT-Creation-Date: 2025-08-08 10:03+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -27,6 +27,46 @@ msgstr "Es posible que el filamento no sea compatible con la configuración actu
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Se desconoce el modelo de filamento. Se utilizará un filamento preestablecido aleatorio."
+
+msgid "right"
+msgstr "derecha"
+
+msgid "left"
+msgstr "izquierda"
+
+msgid "right extruder"
+msgstr "extrusor derecho"
+
+msgid "left extruder"
+msgstr "extruder izquierdo"
+
+msgid "extruder"
+msgstr "extrusor"
+
+msgid "TPU is not supported by AMS."
+msgstr "El AMS no admite TPU."
+
+msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
+msgstr "El PVA húmedo se volverá flexible y se atascará dentro del AMS; asegúrate de secarlo bien antes de usarlo."
+
+msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
+msgstr ""
+
+msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+msgstr "La superficie rugosa de PLA Glow puede acelerar el desgaste del sistema AMS, especialmente de los componentes internos del AMS Lite."
+
+msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+msgstr "Los filamentos CF/GF son duros y quebradizos, por lo que pueden romperse o atascarse fácilmente en un AMS; utilícelos con precaución."
+
+msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr "El PPS-CF es quebradizo y podría romperse en un tubo de PTFE doblado por encima del cabezal."
+
+msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr "El PPA-CF es quebradizo y podría romperse en un tubo de PTFE doblado por encima del cabezal."
+
+#, c-format, boost-format
+msgid "%s is not supported by %s extruder."
+msgstr "%s no es compatible con el %s del extrusor."
 
 msgid "Current AMS humidity"
 msgstr "Humedad AMS actual"
@@ -303,7 +343,7 @@ msgid "Tool-Rotate"
 msgstr "Herramienta-rotar"
 
 msgid "Tool-Lay on Face"
-msgstr "Herramienta-colocar sobre la cara"
+msgstr "Herramienta - Alinear sobre una cara"
 
 msgid "Bottom:"
 msgstr "Abajo:"
@@ -2258,18 +2298,6 @@ msgstr "Impresión multicolor"
 msgid "Line Type"
 msgstr "Tipo de línea"
 
-msgid "More"
-msgstr "Más"
-
-msgid "Open Preferences."
-msgstr "Abrir preferencias"
-
-msgid "Open next tip."
-msgstr "Abrir siguiente sugerencia"
-
-msgid "Open Documentation in web browser."
-msgstr "Abrir documentación en el navegador"
-
 msgid "Color"
 msgstr "Color"
 
@@ -3316,6 +3344,8 @@ msgid ""
 "Should not large than 100%.\n"
 "Reset to defualt"
 msgstr ""
+"No debe ser mayor que el 100%.\n"
+"Restablecer al valor predeterminado"
 
 #, c-format, boost-format
 msgid "Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"
@@ -3445,8 +3475,8 @@ msgstr ""
 "la profundidad de la cerradura debe ser menor que la profundidad de la piel.\n"
 "Restablecer a la mitad de la profundidad de la piel"
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
-msgstr "El modo espiral solo funciona cuando los bucles de pared son 1, el soporte está desactivado, las capas superiores de la capa superior son 0, la densidad de relleno dispersa es 0, el tipo de lapso de tiempo es tradicional y la velocidad de suavizado de la pared en la dirección z es falsa."
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
+msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Pero las máquinas con estructura I3 no generarán vídeos timelapse."
@@ -3631,27 +3661,8 @@ msgstr ""
 msgid "Cutting Module Offset Calibration"
 msgstr ""
 
-msgid "left"
-msgstr "izquierda"
-
-msgid "right"
-msgstr "derecha"
-
-#, c-format, boost-format
-msgid "%s is not supported by %s extruder."
-msgstr "%s no es compatible con el %s del extrusor."
-
 msgid "Unknown"
 msgstr "Desconocido"
-
-msgid "Fatal"
-msgstr "Fatal"
-
-msgid "Serious"
-msgstr "En serio"
-
-msgid "Common"
-msgstr "Común"
 
 msgid "Update successful."
 msgstr "Actualización exitosa."
@@ -3715,24 +3726,6 @@ msgstr "Fallo al generar el código cali gcode"
 msgid "Calibration error"
 msgstr "Error de calibración"
 
-msgid "TPU is not supported by AMS."
-msgstr "El AMS no admite TPU."
-
-msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
-msgstr "El PVA húmedo se volverá flexible y se atascará dentro del AMS; asegúrate de secarlo bien antes de usarlo."
-
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr "La superficie rugosa de PLA Glow puede acelerar el desgaste del sistema AMS, especialmente de los componentes internos del AMS Lite."
-
-msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr "Los filamentos CF/GF son duros y quebradizos, por lo que pueden romperse o atascarse fácilmente en un AMS; utilícelos con precaución."
-
-msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
-msgstr "El PPS-CF es quebradizo y podría romperse en un tubo de PTFE doblado por encima del cabezal."
-
-msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
-msgstr "El PPA-CF es quebradizo y podría romperse en un tubo de PTFE doblado por encima del cabezal."
-
 msgid "Resume Printing"
 msgstr "Reanudar impresión"
 
@@ -3778,8 +3771,8 @@ msgstr "Ignorar esto y reanudar"
 msgid "Problem Solved and Resume"
 msgstr "Problema resuelto y reanudar"
 
-msgid "Stop Buzzer"
-msgstr "Detener el timbre"
+msgid "Got it, Turn off the Fire Alarm."
+msgstr "Entendido, apague la alarma de incendios."
 
 msgid "Retry (problem solved)"
 msgstr "Reintentar (problema resuelto)"
@@ -3844,13 +3837,13 @@ msgid "Fan Speed"
 msgstr "Velocidad del ventilador"
 
 msgid "Thermal Index (min)"
-msgstr ""
+msgstr "Índice Térmico (mín)"
 
 msgid "Thermal Index (max)"
-msgstr ""
+msgstr "Índice térmico (máx)"
 
 msgid "Thermal Index (mean)"
-msgstr ""
+msgstr "Índice Térmico (media)"
 
 msgid "Flow"
 msgstr "Flujo"
@@ -3883,16 +3876,16 @@ msgid "Temperature: "
 msgstr "Temperatura:"
 
 msgid "Thermal Index"
-msgstr ""
+msgstr "Índice Térmico"
 
 msgid "Min: "
 msgstr ""
 
 msgid "Max: "
-msgstr ""
+msgstr "Máx: "
 
 msgid "Mean: "
-msgstr ""
+msgstr "Media: "
 
 msgid "Loading G-codes"
 msgstr "Carga de códigos G"
@@ -3994,7 +3987,7 @@ msgid "Slicing Result"
 msgstr "Resultado del corte"
 
 msgid "Helio Action"
-msgstr ""
+msgstr "Acción Helio"
 
 msgid "Color Scheme"
 msgstr "Esquema de colores"
@@ -4205,11 +4198,11 @@ msgstr "Boquilla derecha"
 
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
-msgstr ""
+msgstr "La posición o el tamaño de algunos modelos superan el rango imprimible del %s."
 
 #, c-format, boost-format
 msgid "The position or size of the model %s exceeds the %s's printable range."
-msgstr ""
+msgstr "La posición o el tamaño del modelo %s superan el rango imprimible %s del modelo."
 
 msgid " Please check and adjust the part's position or size to fit the printable range:\n"
 msgstr " Por favor, compruebe y ajuste la posición o el tamaño de la pieza para que se ajuste a la gama imprimible:\n"
@@ -4803,7 +4796,7 @@ msgid "Show 3D Navigator"
 msgstr "Mostrar navegador 3D"
 
 msgid "Show 3D navigator in Prepare and Preview scene"
-msgstr ""
+msgstr "Mostrar navegador 3D en la escena Preparar y Vista previa"
 
 msgid "Reset Window Layout"
 msgstr "Restablecer el diseño de la ventana"
@@ -5449,6 +5442,9 @@ msgstr "Terminado"
 msgid "Camera"
 msgstr "Cámara"
 
+msgid "MqttSource"
+msgstr ""
+
 msgid "Storage"
 msgstr "Almacenamiento"
 
@@ -5837,6 +5833,9 @@ msgstr "El software tiene una nueva versión."
 
 msgid "Goto download page."
 msgstr "Ir a la página de descargas."
+
+msgid "More"
+msgstr "Más"
 
 msgid "Open Folder."
 msgstr "Abrir Carpeta."
@@ -6464,16 +6463,30 @@ msgid "Slicing Plate %d"
 msgstr "Placa de corte %d"
 
 msgid "Invalid printer preset. Unable to slice with Helio."
-msgstr ""
+msgstr "Preajuste de impresora no válido. No se puede realizar el corte con Helio."
 
 msgid "The current printer preset cannot be sliced using Helio."
-msgstr ""
+msgstr "El ajuste preestablecido actual de la impresora no puede ser cortado utilizando Helio."
 
 msgid "Helio does not support using a number of materials greater than 1."
-msgstr ""
+msgstr "Helio no admite el uso de una cantidad de materiales mayor que 1."
 
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
+msgstr "Helio no admite materiales %s"
+
+msgid ""
+"No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
+"Please request a new Helio-PAT."
+msgstr ""
+
+msgid "Execution Blocked"
+msgstr ""
+
+msgid "Regenerate PAT"
+msgstr ""
+
+msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
 msgstr ""
 
 msgid "Please resolve the slicing errors and publish again."
@@ -6700,12 +6713,12 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "Se eliminaron los soportes personalizados, las caras de costura y la pintura de color antes de reparar el nombre del modelo:"
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
-msgstr "La impresora no está conectada. Ve a la página del dispositivo para conectar una %s impresora antes de realizar la sincronización."
+msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
+msgstr ""
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-msgstr "La impresora actualmente conectada en la página del dispositivo no es una%s. Cambie a una %s antes de la sincronización."
+msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
+msgstr ""
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "No hay filamentos en la impresora. Cargue primero los filamentos en la impresora."
@@ -6973,10 +6986,10 @@ msgid "Perform gamma correction on color after importing the obj model."
 msgstr "Realice la corrección gamma en el color después de importar el modelo obj."
 
 msgid "Remember last used color scheme"
-msgstr ""
+msgstr "Recordar el último esquema de colores utilizado"
 
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
-msgstr ""
+msgstr "Cuando está habilitado, el último esquema de color utilizado (por ejemplo, Tipo de línea, Velocidad) se aplicará automáticamente en el próximo inicio."
 
 msgid "Improve rendering performance by lod"
 msgstr "Mejora del rendimiento de renderizado por lod"
@@ -7048,22 +7061,25 @@ msgid "Show history on the home page"
 msgstr "Mostrar historial en la página de inicio"
 
 msgid "Helio Options"
-msgstr ""
+msgstr "Opciones Helio"
 
 msgid "Enable Helio"
+msgstr "Activar Helio"
+
+msgid "Helio-PAT"
 msgstr ""
 
 msgid "About Helio"
-msgstr ""
+msgstr "Acerca de Helio"
 
 msgid "Helio Privacy Policy"
-msgstr ""
+msgstr "Política de privacidad de Helio"
 
 msgid "Reminder During Slicing"
-msgstr ""
+msgstr "Recordatorio Durante el Corte"
 
 msgid "Automatic mode"
-msgstr ""
+msgstr "Modo automático"
 
 msgid "Maximum recent projects"
 msgstr "Número máximo de proyectos recientes"
@@ -7575,17 +7591,8 @@ msgstr "%dCuesta g del filamento y %d cambia más que la agrupación óptima."
 msgid "nozzle"
 msgstr "Boquilla"
 
-msgid "extruder"
-msgstr "extrusor"
-
 msgid "both extruders"
 msgstr "ambos extrusores"
-
-msgid "right extruder"
-msgstr "extrusor derecho"
-
-msgid "left extruder"
-msgstr "extruder izquierdo"
 
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr "Consejos: Si has cambiado la boquilla de la impresora últimamente, ve a «Dispositivo -> Piezas de la impresora» para cambiar la configuración de la boquilla."
@@ -7870,13 +7877,13 @@ msgid "Prime tower is required for smooth timeplase. There may be flaws on the m
 msgstr "Se requiere una torre de purga para el modo timeplase suave. Sin ella puede haber fallos en el modelo. ¿Está seguro de que desea desactivarla?"
 
 msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
-msgstr ""
+msgstr "Se requiere una torre de purga para la detección de agrupamientos. Sin ella puede haber fallos en el modelo. ¿Está seguro de que desea desactivarla?"
 
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr "Habilitar tanto la altura Z precisa como la torre principal puede provocar un aumento del tamaño de la torre principal. ¿Aún quiere activarla?"
 
 msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
-msgstr ""
+msgstr "Se requiere una torre de purga para la detección de aglomeraciones. Sin la torre de purga, puede haber fallos en el modelo. ¿Quiere seguir habilitando la detección de aglomeraciones?"
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Se requiere una torre de purga para el modo timeplase suave. Sin ella puede haber fallos en el modelo. ¿Quieres activarla?"
@@ -8185,7 +8192,7 @@ msgid "Time lapse G-code"
 msgstr "Lapso de tiempo Código G"
 
 msgid "Clumping Detection G-code"
-msgstr ""
+msgstr "Detección de G-code de aglomeración"
 
 msgid "Change filament G-code"
 msgstr "Cambiar el código G del filamento"
@@ -9071,51 +9078,57 @@ msgid "Terms of Service"
 msgstr "Condiciones de uso"
 
 msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
-msgstr ""
+msgstr "¡Está a punto de activar una función de servicio de software de terceros de Helio Additive! Antes de confirmar el uso de esta función, por favor lea atentamente las siguientes declaraciones."
 
 msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
-msgstr ""
+msgstr "A menos que se especifique lo contrario, Bambu Lab solo proporciona soporte para las funciones de software oficialmente incluidas. Las funciones de evaluación y optimización de corte basadas en el servicio en la nube de Helio Additive en este software serán desarrolladas, operadas, proporcionadas y mantenidas por Helio Additive. Helio Additive es responsable de la efectividad y disponibilidad de este servicio. La función de optimización de este servicio puede modificar los comandos de impresión predeterminados, lo que implica un riesgo de daños en la impresora. Estas funciones recopilarán la información y datos de usuario necesarios para lograr las funciones relevantes del servicio. Pueden implicar suscripciones y pagos. Por favor, visite Helio Additive y consulte el Acuerdo de Privacidad de Helio Additive y el Acuerdo de Usuario de Helio Additive para obtener información detallada."
 
 msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
-msgstr ""
+msgstr "Mientras tanto, comprende que este producto se le proporciona \"tal cual\" basado en los servicios de Helio Additive, y Bambu no ofrece garantías expresas ni implícitas de ningún tipo, ni puede controlar los efectos del servicio. En la máxima medida permitida por la ley aplicable, Bambu o sus licenciantes/afiliados no otorgan ninguna representación o garantía expresa o implícita, incluidas, entre otras, garantías sobre comerciabilidad, calidad satisfactoria, idoneidad para un propósito particular, precisión, confidencialidad y no infracción de derechos de terceros. Debido a la naturaleza de los servicios de red, Bambu no puede garantizar que el servicio esté disponible en todo momento, y se reserva el derecho de terminar el servicio según las circunstancias relevantes."
 
 msgid "You agree not to use this product and its related updates to engage in the following activities:"
-msgstr ""
+msgstr "Usted acepta no utilizar este producto ni sus actualizaciones relacionadas para participar en las siguientes actividades:"
 
 msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
-msgstr ""
+msgstr "1. Copie o utilice cualquier parte de este producto fuera del alcance autorizado de Helio Additive y Bambu."
 
 msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
-msgstr ""
+msgstr "2. Intentar, evitar, alterar, invalidar o evadir cualquier sistema de Gestión de Derechos Digitales relacionado con este producto y/o que forme parte integral del mismo."
 
 msgid "3.Using this software and services for any improper or illegal activities."
-msgstr ""
+msgstr "3. Utilizar este software y servicios para cualquier actividad indebida o ilegal."
 
 msgid "https://www.helioadditive.com/"
 msgstr ""
 
 msgid "Privacy Policy of Helio Additive"
-msgstr ""
+msgstr "Política de privacidad de Helio Additive"
 
 msgid "Terms of Use of Helio Additive"
-msgstr ""
+msgstr "Términos de uso de Helio Additive"
 
 msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
-msgstr ""
+msgstr "Al confirmar la activación de esta función, indica que ha leído y aceptado las declaraciones anteriores."
 
 msgid "Agree"
 msgstr "Aceptar"
 
-msgid "Helio settings"
+msgid "Helio Additive"
 msgstr ""
 
 msgid "Chamber temperature"
 msgstr "Temperatura de la cámara"
 
 msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
-msgstr ""
+msgstr "Nota: Por favor, establezca la temperatura superior de acuerdo a la situación actual. Cuanto más precisos sean los datos, más precisos serán los resultados del análisis."
 
 msgid "How to use Helio"
+msgstr "Cómo utilizar Helio"
+
+msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
+msgstr ""
+
+msgid "Click for more details"
 msgstr ""
 
 msgid "Air Pump"
@@ -9424,7 +9437,7 @@ msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr " está demasiado cerca del área de purga, pueden producirse colisiones al imprimir."
 
 msgid " is too close to clumping detection area, there may be collisions when printing."
-msgstr ""
+msgstr " está demasiado cerca del área de detección de aglomeración, pueden producirse colisiones al imprimir."
 
 msgid "Prime Tower"
 msgstr "Torre principal"
@@ -9436,13 +9449,16 @@ msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " está demasiado cerca del área de exclusión, y se producirán colisiones.\n"
 
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
-msgstr ""
+msgstr " está demasiado cerca del área de detección de aglomeración, y se producirán colisiones.\n"
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "La impresión conjunta de filamentos de alta y baja temperatura puede obstruir la boquilla o dañar la impresora."
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
 msgstr "Imprimir filamentos de alta y baja temperatura juntos puede obstruir la boquilla o dañar la impresora. Si aún desea imprimir, puede activar la opción en Preferencias."
+
+msgid "Printing different-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
 
 msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "La impresión conjunta de filamentos de alta y media temperatura puede obstruir la boquilla o dañar la impresora."
@@ -9457,7 +9473,7 @@ msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is 
 msgstr "El modo suave de timelapse no se admite cuando el modo de impresión seuencial de objetos esta habilitado."
 
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
-msgstr ""
+msgstr "La detección de agrupamiento no está incluida cuando la secuencia \"por objeto\" está habilitada."
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Seleccione la secuencia de impresión \"Por objeto\" para imprimir varios objetos en el modo de jarrón espiral."
@@ -10063,8 +10079,8 @@ msgstr "Perímetros pequeños"
 msgid "This setting will affect the speed of perimeters having radius <= small perimeter threshold(usually holes). If expressed as percentage (for example: 80%) it will be calculated onthe outer wall speed setting above. Set to zero for auto."
 msgstr "Este ajuste afectará a la velocidad de los perímetros que tengan un radio &lt;= umbral de perímetro pequeño (normalmente agujeros). Si se expresa en porcentaje (por ejemplo: 80%) se calculará sobre la velocidad de la pared exterior. Ajuste a cero para auto."
 
-msgid "Small perimter threshold"
-msgstr "Umbral perimétrico pequeño"
+msgid "Small perimeter threshold"
+msgstr ""
 
 msgid "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr "Establece el umbral para la longitud del perímetro pequeño. El umbral por defecto es 0mm"
@@ -10616,12 +10632,18 @@ msgid "Enable this to enable the camera on printer to check the quality of first
 msgstr "Active esta opción para que la cámara de la impresora pueda comprobar la calidad de la primera capa"
 
 msgid "Enable clumping detection"
-msgstr ""
+msgstr "Habilitar detección de aglomeración"
 
 msgid "Clumping detection layers"
-msgstr ""
+msgstr "Capas de detección de aglomeración"
 
 msgid "Clumping detection layers."
+msgstr "Capas de detección de aglomeración."
+
+msgid "Probing exclude area of clumping"
+msgstr ""
+
+msgid "Probing exclude area of clumping."
 msgstr ""
 
 msgid "Thumbnail size"
@@ -10889,7 +10911,7 @@ msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "Esta parte de gcode se inserta en cada cambio de capa después de levantar z"
 
 msgid "Clumping detection G-code"
-msgstr ""
+msgstr "G-code de detección de agrupamiento"
 
 msgid "Supports silent mode"
 msgstr "Soporta el modo silencioso"
@@ -11305,7 +11327,7 @@ msgid "Override filament scarf seam setting"
 msgstr "Anular el ajuste de costura de filamento para bufanda"
 
 msgid "Overrider filament scarf seam setting and could control settings by modifier."
-msgstr ""
+msgstr "Anule la configuración de la costura de la bufanda del filamento y puede controlar las configuraciones mediante un modificador."
 
 msgid "Wipe speed"
 msgstr "Velocidad de limpieza"
@@ -12500,7 +12522,7 @@ msgid "To Volumetric Speed"
 msgstr "A velocidad volumétrica"
 
 msgid "Are you sure to stop printing?"
-msgstr ""
+msgstr "¿Estás seguro de que quieres pausar la impresión?"
 
 msgid "Flow Dynamics Calibration Result"
 msgstr "Resultado de la calibración de la dinámica del flujo"
@@ -14152,6 +14174,41 @@ msgid ""
 msgstr ""
 "Evite el alabeo\n"
 "¿Sabías que al imprimir materiales propensos al alabeo, como el ABS, aumentar adecuadamente la temperatura del lecho térmico puede reducir la probabilidad de alabeo?"
+
+#~ msgid "Open Preferences."
+#~ msgstr "Abrir preferencias"
+
+#~ msgid "Open next tip."
+#~ msgstr "Abrir siguiente sugerencia"
+
+#~ msgid "Open Documentation in web browser."
+#~ msgstr "Abrir documentación en el navegador"
+
+#~ msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
+#~ msgstr "El modo espiral solo funciona cuando los bucles de pared son 1, el soporte está desactivado, las capas superiores de la capa superior son 0, la densidad de relleno dispersa es 0, el tipo de lapso de tiempo es tradicional y la velocidad de suavizado de la pared en la dirección z es falsa."
+
+#~ msgid "Fatal"
+#~ msgstr "Fatal"
+
+#~ msgid "Serious"
+#~ msgstr "En serio"
+
+#~ msgid "Common"
+#~ msgstr "Común"
+
+#~ msgid "Stop Buzzer"
+#~ msgstr "Detener el timbre"
+
+#, c-format, boost-format
+#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+#~ msgstr "La impresora no está conectada. Ve a la página del dispositivo para conectar una %s impresora antes de realizar la sincronización."
+
+#, c-format, boost-format
+#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+#~ msgstr "La impresora actualmente conectada en la página del dispositivo no es una%s. Cambie a una %s antes de la sincronización."
+
+#~ msgid "Small perimter threshold"
+#~ msgstr "Umbral perimétrico pequeño"
 
 #~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
 #~ msgstr "La calibración automática solo es compatible con los casos en los que los diámetros de la boquilla izquierda y derecha son idénticos."

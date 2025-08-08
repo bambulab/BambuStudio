@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-31 18:21+0800\n"
+"POT-Creation-Date: 2025-08-08 10:03+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -33,6 +33,49 @@ msgstr "Материал несовместим с текущими настро
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Неизвестный тип материала. Будет использован случайный профиль прутка."
+
+# import obj
+msgid "right"
+msgstr "Справа"
+
+# import obj
+msgid "left"
+msgstr "Слева"
+
+msgid "right extruder"
+msgstr ""
+
+msgid "left extruder"
+msgstr ""
+
+msgid "extruder"
+msgstr ""
+
+msgid "TPU is not supported by AMS."
+msgstr "Печать TPU с помощью АСПП не поддерживается."
+
+msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
+msgstr "Влажный PVA становится гибким и застревает внутри АСПП, поэтому перед использованием его необходимо просушить."
+
+msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
+msgstr ""
+
+msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+msgstr "Шероховатая поверхность PLA Glow может ускорить износ внутренних компонентов АСПП, особенно это касается АСПП Lite."
+
+msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+msgstr "CF/GF пластиковые нити твердые и хрупкие, легко ломаются или застревают в АСПП, поэтому используйте их с осторожностью."
+
+msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr ""
+
+msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr ""
+
+# ???
+#, c-format, boost-format
+msgid "%s is not supported by %s extruder."
+msgstr "%s не поддерживается экструдером %s."
 
 msgid "Current AMS humidity"
 msgstr "Текущая влажность внутри АСПП"
@@ -2307,18 +2350,6 @@ msgstr "Многоцветная печать"
 msgid "Line Type"
 msgstr "Тип линии"
 
-msgid "More"
-msgstr "Подробнее"
-
-msgid "Open Preferences."
-msgstr "Открыть настройки приложения."
-
-msgid "Open next tip."
-msgstr "Следующий совет."
-
-msgid "Open Documentation in web browser."
-msgstr "Открыть документацию в браузере."
-
 msgid "Color"
 msgstr "Цвет"
 
@@ -3512,16 +3543,8 @@ msgid ""
 "Reset to 50%% of skin depth"
 msgstr ""
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
 msgstr ""
-"Для режима печати «Спиральная ваза» необходимо чтобы соблюдались следующие условия:\n"
-"- одностеночный периметр\n"
-"- отсутствие поддержки\n"
-"- отсутствие верхних сплошных слоёв\n"
-"- плотность заполнения 0%\n"
-"- отключено «Обнаружение тонких стенок»\n"
-"- Режим записи таймлапсов - обычный режим\n"
-"- Сглаживание скорости печати стенки по оси Z отключено"
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Но принтеры с кинематикой I3 не будут писать таймлапс."
@@ -3708,30 +3731,8 @@ msgstr ""
 msgid "Cutting Module Offset Calibration"
 msgstr ""
 
-# import obj
-msgid "left"
-msgstr "Слева"
-
-# import obj
-msgid "right"
-msgstr "Справа"
-
-# ???
-#, c-format, boost-format
-msgid "%s is not supported by %s extruder."
-msgstr "%s не поддерживается экструдером %s."
-
 msgid "Unknown"
 msgstr "Неизвестно"
-
-msgid "Fatal"
-msgstr "Критическая ошибка"
-
-msgid "Serious"
-msgstr "Серьёзный"
-
-msgid "Common"
-msgstr "Обычный"
 
 msgid "Update successful."
 msgstr "Обновление успешно выполнено."
@@ -3796,24 +3797,6 @@ msgstr "Не удалось сгенерировать калибровочны�
 msgid "Calibration error"
 msgstr "Ошибка калибровки"
 
-msgid "TPU is not supported by AMS."
-msgstr "Печать TPU с помощью АСПП не поддерживается."
-
-msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
-msgstr "Влажный PVA становится гибким и застревает внутри АСПП, поэтому перед использованием его необходимо просушить."
-
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr "Шероховатая поверхность PLA Glow может ускорить износ внутренних компонентов АСПП, особенно это касается АСПП Lite."
-
-msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr "CF/GF пластиковые нити твердые и хрупкие, легко ломаются или застревают в АСПП, поэтому используйте их с осторожностью."
-
-msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
-msgstr ""
-
-msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
-msgstr ""
-
 msgid "Resume Printing"
 msgstr "Возобновить печать"
 
@@ -3861,9 +3844,8 @@ msgstr "Игнорировать это, Продолжить"
 msgid "Problem Solved and Resume"
 msgstr "Проблема решена, Продолжить"
 
-# ??? сирену, сигнализацию
-msgid "Stop Buzzer"
-msgstr "Выключить зуммер"
+msgid "Got it, Turn off the Fire Alarm."
+msgstr ""
 
 msgid "Retry (problem solved)"
 msgstr ""
@@ -5571,6 +5553,9 @@ msgstr "Завершено"
 msgid "Camera"
 msgstr "Камера"
 
+msgid "MqttSource"
+msgstr ""
+
 msgid "Storage"
 msgstr "Хранилище"
 
@@ -5963,6 +5948,9 @@ msgstr "Доступна новая версия приложения."
 
 msgid "Goto download page."
 msgstr "Перейти на страницу загрузки."
+
+msgid "More"
+msgstr "Подробнее"
 
 msgid "Open Folder."
 msgstr "Открыть папку."
@@ -6618,6 +6606,20 @@ msgstr ""
 msgid "Helio does not support materials %s"
 msgstr ""
 
+msgid ""
+"No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
+"Please request a new Helio-PAT."
+msgstr ""
+
+msgid "Execution Blocked"
+msgstr ""
+
+msgid "Regenerate PAT"
+msgstr ""
+
+msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
+msgstr ""
+
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Пожалуйста, устраните ошибки нарезки и попробуйте опубликовать снова."
 
@@ -6845,14 +6847,12 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr ""
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
 msgstr ""
-"Принтер не подключен. Перейдите на страницу устройства, \n"
-"чтобы подключить принтер %s перед синхронизацией."
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-msgstr "Сейчас вы подключены не к %s. Пожалуйста, переключитесь на %s перед синхронизацией."
+msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
+msgstr ""
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "В принтере отсутствует материал. Пожалуйста, сначала загрузите материал в принтер."
@@ -7221,6 +7221,9 @@ msgid "Helio Options"
 msgstr ""
 
 msgid "Enable Helio"
+msgstr ""
+
+msgid "Helio-PAT"
 msgstr ""
 
 msgid "About Helio"
@@ -7762,16 +7765,7 @@ msgstr "Потребуется на %d г материала больше и н�
 msgid "nozzle"
 msgstr ""
 
-msgid "extruder"
-msgstr ""
-
 msgid "both extruders"
-msgstr ""
-
-msgid "right extruder"
-msgstr ""
-
-msgid "left extruder"
 msgstr ""
 
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
@@ -9337,7 +9331,7 @@ msgstr ""
 msgid "Agree"
 msgstr ""
 
-msgid "Helio settings"
+msgid "Helio Additive"
 msgstr ""
 
 msgid "Chamber temperature"
@@ -9347,6 +9341,12 @@ msgid "Note: Please set the above temperature according to the actual situation.
 msgstr ""
 
 msgid "How to use Helio"
+msgstr ""
+
+msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
+msgstr ""
+
+msgid "Click for more details"
 msgstr ""
 
 msgid "Air Pump"
@@ -9674,6 +9674,9 @@ msgstr "Совместная печать высокотемпературным
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
 msgstr "Совместная печать высокотемпературными и низкотемпературными материалами может привести к засорению сопла или повреждению принтера. Если вы всё еще хотите этого, вы можете включить эту опцию в настройках."
+
+msgid "Printing different-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
 
 msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "Совместная печать высокотемпературными и среднетемпературными материалами может привести к засорению сопла или повреждению принтера."
@@ -10305,8 +10308,8 @@ msgstr "Маленькие периметры"
 msgid "This setting will affect the speed of perimeters having radius <= small perimeter threshold(usually holes). If expressed as percentage (for example: 80%) it will be calculated onthe outer wall speed setting above. Set to zero for auto."
 msgstr "Этот параметр влияет на скорость печати периметров, имеющих радиус <= значению порога маленьких периметров (обычно это отверстия). Если задано в процентах, параметр вычисляется относительно скорости печати внешнего периметра указанного выше. Установите 0 для автонастройки."
 
-msgid "Small perimter threshold"
-msgstr "Порог маленьких периметров"
+msgid "Small perimeter threshold"
+msgstr ""
 
 msgid "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr "Пороговое значение длины маленьких периметров. Значение по умолчанию - 0 мм."
@@ -10892,6 +10895,12 @@ msgid "Clumping detection layers"
 msgstr ""
 
 msgid "Clumping detection layers."
+msgstr ""
+
+msgid "Probing exclude area of clumping"
+msgstr ""
+
+msgid "Probing exclude area of clumping."
 msgstr ""
 
 msgid "Thumbnail size"
@@ -14493,6 +14502,52 @@ msgid ""
 msgstr ""
 "Предотвращение коробления материала\n"
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как ABS, повышение температуры подогреваемого стола может снизить эту вероятность?"
+
+#~ msgid "Open Preferences."
+#~ msgstr "Открыть настройки приложения."
+
+#~ msgid "Open next tip."
+#~ msgstr "Следующий совет."
+
+#~ msgid "Open Documentation in web browser."
+#~ msgstr "Открыть документацию в браузере."
+
+#~ msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
+#~ msgstr ""
+#~ "Для режима печати «Спиральная ваза» необходимо чтобы соблюдались следующие условия:\n"
+#~ "- одностеночный периметр\n"
+#~ "- отсутствие поддержки\n"
+#~ "- отсутствие верхних сплошных слоёв\n"
+#~ "- плотность заполнения 0%\n"
+#~ "- отключено «Обнаружение тонких стенок»\n"
+#~ "- Режим записи таймлапсов - обычный режим\n"
+#~ "- Сглаживание скорости печати стенки по оси Z отключено"
+
+#~ msgid "Fatal"
+#~ msgstr "Критическая ошибка"
+
+#~ msgid "Serious"
+#~ msgstr "Серьёзный"
+
+#~ msgid "Common"
+#~ msgstr "Обычный"
+
+# ??? сирену, сигнализацию
+#~ msgid "Stop Buzzer"
+#~ msgstr "Выключить зуммер"
+
+#, c-format, boost-format
+#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+#~ msgstr ""
+#~ "Принтер не подключен. Перейдите на страницу устройства, \n"
+#~ "чтобы подключить принтер %s перед синхронизацией."
+
+#, c-format, boost-format
+#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+#~ msgstr "Сейчас вы подключены не к %s. Пожалуйста, переключитесь на %s перед синхронизацией."
+
+#~ msgid "Small perimter threshold"
+#~ msgstr "Порог маленьких периметров"
 
 # ??? Автокалибровка работает только тогда, когда диаметры левого и правого сопел одинаковые.
 #~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."

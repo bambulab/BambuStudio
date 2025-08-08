@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-31 18:21+0800\n"
+"POT-Creation-Date: 2025-08-08 10:03+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -27,6 +27,46 @@ msgstr "Filament może być niezgodny z bieżącymi ustawieniami urządzenia. U�
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Model filamentu jest nieznany. Losowy profil filamentu zostanie użyty"
+
+msgid "right"
+msgstr "prawo"
+
+msgid "left"
+msgstr "lewo"
+
+msgid "right extruder"
+msgstr "prawy ekstruder"
+
+msgid "left extruder"
+msgstr "lewy ekstruder"
+
+msgid "extruder"
+msgstr "ekstruder"
+
+msgid "TPU is not supported by AMS."
+msgstr "TPU nie jest obsługiwane przez AMS."
+
+msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
+msgstr "Mokre PVA stanie się elastyczne i zatnie się wewnątrz AMS, prosimy o ostrożność i wysuszenie przed użyciem."
+
+msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
+msgstr ""
+
+msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+msgstr "Chropowata powierzchnia PLA Glow może przyspieszyć zużycie systemu AMS, w szczególności wewnętrznych elementów AMS Lite."
+
+msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+msgstr "Filamenty CF/GF są twarde i kruche. Łatwo się łamią lub zacinają w AMS, prosimy o ostrożne korzystanie z nich."
+
+msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr "PPS-CF jest kruchy i może pęknąć w wygiętym fragmencie rurki PTFE nad głowicą."
+
+msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr "PPA-CF jest kruchy i może pęknąć w wygiętym fragmencie rurki PTFE nad głowicą."
+
+#, c-format, boost-format
+msgid "%s is not supported by %s extruder."
+msgstr "%s nie jest obsługiwane przez ekstruder %s."
 
 msgid "Current AMS humidity"
 msgstr "Aktualna wilgotność AMS"
@@ -2263,18 +2303,6 @@ msgstr "Druk wielobarwny"
 msgid "Line Type"
 msgstr "Rodzaj ekstruzji"
 
-msgid "More"
-msgstr "Więcej"
-
-msgid "Open Preferences."
-msgstr "Otwórz preferencje."
-
-msgid "Open next tip."
-msgstr "Otwórz kolejny poradnik."
-
-msgid "Open Documentation in web browser."
-msgstr "Otwórz dokumentację w przeglądarce internetowej."
-
 msgid "Color"
 msgstr "Kolor"
 
@@ -3451,8 +3479,8 @@ msgstr ""
 "głębokość blokady powinna być mniejsza niż głębokość skóry.\n"
 "Przywróć do 50%% głębokości skóry"
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
-msgstr "Tryb wazy działa tylko wtedy, gdy liczba pętli ściany wynosi 1, podpory są wyłączone, liczba górnych warstw powłoki wynosi 0, gęstość wypełnienia wynosi 0, tryb timelapse to Tradycyjny, a wygładzanie ścian w kierunku Z jest wyłączone."
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
+msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Maszyny o budowie I3 nie są jednak zdolne do tworzenia filmów timelapse."
@@ -3637,27 +3665,8 @@ msgstr "Automatyczna kontrola: Pozycja materiału"
 msgid "Cutting Module Offset Calibration"
 msgstr "Kalibracja offsetu modułu tnącego"
 
-msgid "left"
-msgstr "lewo"
-
-msgid "right"
-msgstr "prawo"
-
-#, c-format, boost-format
-msgid "%s is not supported by %s extruder."
-msgstr "%s nie jest obsługiwane przez ekstruder %s."
-
 msgid "Unknown"
 msgstr "Nieznane"
-
-msgid "Fatal"
-msgstr "Fatalny"
-
-msgid "Serious"
-msgstr "Poważny"
-
-msgid "Common"
-msgstr "Wspórny"
 
 msgid "Update successful."
 msgstr "Aktualizacja zakończona sukcesem."
@@ -3721,24 +3730,6 @@ msgstr "Nie udało się wygenerować kodu kalibracji"
 msgid "Calibration error"
 msgstr "Błąd kalibracji"
 
-msgid "TPU is not supported by AMS."
-msgstr "TPU nie jest obsługiwane przez AMS."
-
-msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
-msgstr "Mokre PVA stanie się elastyczne i zatnie się wewnątrz AMS, prosimy o ostrożność i wysuszenie przed użyciem."
-
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr "Chropowata powierzchnia PLA Glow może przyspieszyć zużycie systemu AMS, w szczególności wewnętrznych elementów AMS Lite."
-
-msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr "Filamenty CF/GF są twarde i kruche. Łatwo się łamią lub zacinają w AMS, prosimy o ostrożne korzystanie z nich."
-
-msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
-msgstr "PPS-CF jest kruchy i może pęknąć w wygiętym fragmencie rurki PTFE nad głowicą."
-
-msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
-msgstr "PPA-CF jest kruchy i może pęknąć w wygiętym fragmencie rurki PTFE nad głowicą."
-
 msgid "Resume Printing"
 msgstr "Wznów zadanie drukowania"
 
@@ -3784,8 +3775,8 @@ msgstr "Ignoruj i Wznów"
 msgid "Problem Solved and Resume"
 msgstr "Problem rozwiązany. Wznów"
 
-msgid "Stop Buzzer"
-msgstr ""
+msgid "Got it, Turn off the Fire Alarm."
+msgstr "Rozumiem, wyłącz alarm przeciwpożarowy."
 
 msgid "Retry (problem solved)"
 msgstr "Ponów próbę (problem rozwiązany)"
@@ -5458,6 +5449,9 @@ msgstr "Zakończ"
 msgid "Camera"
 msgstr "Kamera"
 
+msgid "MqttSource"
+msgstr ""
+
 msgid "Storage"
 msgstr "Pamięć"
 
@@ -5846,6 +5840,9 @@ msgstr "Oprogramowanie ma nową wersję."
 
 msgid "Goto download page."
 msgstr "Przejdź do strony pobierania."
+
+msgid "More"
+msgstr "Więcej"
 
 msgid "Open Folder."
 msgstr "Otwórz folder."
@@ -6489,6 +6486,20 @@ msgstr ""
 msgid "Helio does not support materials %s"
 msgstr ""
 
+msgid ""
+"No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
+"Please request a new Helio-PAT."
+msgstr ""
+
+msgid "Execution Blocked"
+msgstr ""
+
+msgid "Regenerate PAT"
+msgstr ""
+
+msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
+msgstr ""
+
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Rozwiąż błędy cięcia i opublikuj ponownie."
 
@@ -6713,12 +6724,12 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "Przed naprawą nazwy modelu usunięto niestandardowe podpory, fasety szwu i malowanie kolorem:"
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
-msgstr "Drukarka nie jest podłączona. Przejdź do strony urządzenia, aby podłączyć drukarkę %s przed synchronizacją."
+msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
+msgstr ""
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-msgstr "Drukarka która jest aktualnie podłączona na stronie urządzenia to nie jest drukarka %s. Przed synchronizacją przełącz na drukarkę %s."
+msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
+msgstr ""
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "Brak filamentu w drukarce. Najpierw załaduj filament do drukarki."
@@ -7062,6 +7073,9 @@ msgid "Helio Options"
 msgstr ""
 
 msgid "Enable Helio"
+msgstr ""
+
+msgid "Helio-PAT"
 msgstr ""
 
 msgid "About Helio"
@@ -7586,17 +7600,8 @@ msgstr "Zużycie filamentu wzrośnie o %dg, a liczba zmian o %d w porównaniu do
 msgid "nozzle"
 msgstr "dysza"
 
-msgid "extruder"
-msgstr "ekstruder"
-
 msgid "both extruders"
 msgstr "oba ekstrudery"
-
-msgid "right extruder"
-msgstr "prawy ekstruder"
-
-msgid "left extruder"
-msgstr "lewy ekstruder"
 
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr "Wskazówka: Jeśli ostatnio zmieniłeś dyszę , przejdź do opcji \"Urządzenie ->; Części drukarki\", aby zmienić ustawienia dyszy."
@@ -9122,7 +9127,7 @@ msgstr ""
 msgid "Agree"
 msgstr "Zgadzam się"
 
-msgid "Helio settings"
+msgid "Helio Additive"
 msgstr ""
 
 msgid "Chamber temperature"
@@ -9132,6 +9137,12 @@ msgid "Note: Please set the above temperature according to the actual situation.
 msgstr ""
 
 msgid "How to use Helio"
+msgstr ""
+
+msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
+msgstr ""
+
+msgid "Click for more details"
 msgstr ""
 
 msgid "Air Pump"
@@ -9459,6 +9470,9 @@ msgstr "Jednoczesne drukowanie filamentami wysokotemperaturowymi i niskotemperat
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
 msgstr "Jednoczesne drukowanie filamentami wysokotemperaturowymi i niskotemperaturowymi może powodować zatykanie się dyszy lub uszkodzenie drukarki. Jeśli nadal chcesz drukować, możesz włączyć tę opcję w preferencjach."
+
+msgid "Printing different-temp filaments together may cause nozzle clogging or printer damage."
+msgstr ""
 
 msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "Jednoczesne drukowanie filamentami wysokotemperaturowymi i średniotemperaturowymi może powodować zatykanie się dyszy lub uszkodzenie drukarki."
@@ -10079,8 +10093,8 @@ msgstr "Małe obrysy"
 msgid "This setting will affect the speed of perimeters having radius <= small perimeter threshold(usually holes). If expressed as percentage (for example: 80%) it will be calculated onthe outer wall speed setting above. Set to zero for auto."
 msgstr "To ustawienie wpłynie na prędkość obrysów o promieniu <= próg małego obrysu (zazwyczaj otwory). Jeśli jest wyrażone jako procent (na przykład: 80%), będzie obliczone na podstawie ustawienia prędkości zewnętrznej ściany powyżej. Ustaw na zero dla trybu automatycznego."
 
-msgid "Small perimter threshold"
-msgstr "Próg małego obrysu"
+msgid "Small perimeter threshold"
+msgstr ""
 
 msgid "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr "To ustawia próg długości małego obrysu. Domyślny próg wynosi 0 mm"
@@ -10638,6 +10652,12 @@ msgid "Clumping detection layers"
 msgstr ""
 
 msgid "Clumping detection layers."
+msgstr ""
+
+msgid "Probing exclude area of clumping"
+msgstr ""
+
+msgid "Probing exclude area of clumping."
 msgstr ""
 
 msgid "Thumbnail size"
@@ -14168,6 +14188,38 @@ msgid ""
 msgstr ""
 "Unikaj wypaczania\n"
 "Czy wiesz, że podczas drukowania materiałów podatnych na wypaczanie, takich jak ABS, odpowiednie zwiększenie temperatury stołu grzejnego może zmniejszyć prawdopodobieństwo wypaczania."
+
+#~ msgid "Open Preferences."
+#~ msgstr "Otwórz preferencje."
+
+#~ msgid "Open next tip."
+#~ msgstr "Otwórz kolejny poradnik."
+
+#~ msgid "Open Documentation in web browser."
+#~ msgstr "Otwórz dokumentację w przeglądarce internetowej."
+
+#~ msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
+#~ msgstr "Tryb wazy działa tylko wtedy, gdy liczba pętli ściany wynosi 1, podpory są wyłączone, liczba górnych warstw powłoki wynosi 0, gęstość wypełnienia wynosi 0, tryb timelapse to Tradycyjny, a wygładzanie ścian w kierunku Z jest wyłączone."
+
+#~ msgid "Fatal"
+#~ msgstr "Fatalny"
+
+#~ msgid "Serious"
+#~ msgstr "Poważny"
+
+#~ msgid "Common"
+#~ msgstr "Wspórny"
+
+#, c-format, boost-format
+#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+#~ msgstr "Drukarka nie jest podłączona. Przejdź do strony urządzenia, aby podłączyć drukarkę %s przed synchronizacją."
+
+#, c-format, boost-format
+#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+#~ msgstr "Drukarka która jest aktualnie podłączona na stronie urządzenia to nie jest drukarka %s. Przed synchronizacją przełącz na drukarkę %s."
+
+#~ msgid "Small perimter threshold"
+#~ msgstr "Próg małego obrysu"
 
 #~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
 #~ msgstr "Automatyczna kalibracja jest możliwa tylko, kiedy średnica dyszy lewej i prawej jest identyczna."

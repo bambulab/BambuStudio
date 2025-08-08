@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-31 18:21+0800\n"
+"POT-Creation-Date: 2025-08-08 10:03+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -23,6 +23,46 @@ msgid "The filament may not be compatible with the current machine settings. A r
 msgstr ""
 
 msgid "The filament model is unknown. A random filament preset will be used."
+msgstr ""
+
+msgid "right"
+msgstr ""
+
+msgid "left"
+msgstr ""
+
+msgid "right extruder"
+msgstr ""
+
+msgid "left extruder"
+msgstr ""
+
+msgid "extruder"
+msgstr ""
+
+msgid "TPU is not supported by AMS."
+msgstr "TPU is not supported by AMS."
+
+msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
+msgstr "Damp PVA will become flexible and get stuck inside the AMS; please take care to dry it well before use."
+
+msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
+msgstr ""
+
+msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+msgstr ""
+
+msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+msgstr "CF/GF filaments are hard and brittle, so they can easily break or get stuck in an AMS; please use with caution."
+
+msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr "PPS-CF is brittle and could break in a bent PTFE tube above the Toolhead."
+
+msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr "PPA-CF is brittle and could break in a bent PTFE tube above the Toolhead."
+
+#, c-format, boost-format
+msgid "%s is not supported by %s extruder."
 msgstr ""
 
 msgid "Current AMS humidity"
@@ -2246,18 +2286,6 @@ msgstr "Multicolor Print"
 msgid "Line Type"
 msgstr "Line Type"
 
-msgid "More"
-msgstr "More"
-
-msgid "Open Preferences."
-msgstr "Open Preferences."
-
-msgid "Open next tip."
-msgstr "Open next tip."
-
-msgid "Open Documentation in web browser."
-msgstr "Open Documentation in web browser."
-
 msgid "Color"
 msgstr "Color"
 
@@ -3420,7 +3448,7 @@ msgstr ""
 "lock depth should smaller than skin depth.\n"
 "Reset to half of skin depth"
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
 msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
@@ -3606,27 +3634,8 @@ msgstr ""
 msgid "Cutting Module Offset Calibration"
 msgstr ""
 
-msgid "left"
-msgstr ""
-
-msgid "right"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%s is not supported by %s extruder."
-msgstr ""
-
 msgid "Unknown"
 msgstr "Unknown"
-
-msgid "Fatal"
-msgstr "Fatal"
-
-msgid "Serious"
-msgstr "Serious"
-
-msgid "Common"
-msgstr "Common"
 
 msgid "Update successful."
 msgstr "Update successful."
@@ -3690,24 +3699,6 @@ msgstr "Failed to generate cali gcode"
 msgid "Calibration error"
 msgstr "Calibration error"
 
-msgid "TPU is not supported by AMS."
-msgstr "TPU is not supported by AMS."
-
-msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
-msgstr "Damp PVA will become flexible and get stuck inside the AMS; please take care to dry it well before use."
-
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr ""
-
-msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr "CF/GF filaments are hard and brittle, so they can easily break or get stuck in an AMS; please use with caution."
-
-msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
-msgstr "PPS-CF is brittle and could break in a bent PTFE tube above the Toolhead."
-
-msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
-msgstr "PPA-CF is brittle and could break in a bent PTFE tube above the Toolhead."
-
 msgid "Resume Printing"
 msgstr "Resume Printing"
 
@@ -3753,7 +3744,7 @@ msgstr ""
 msgid "Problem Solved and Resume"
 msgstr ""
 
-msgid "Stop Buzzer"
+msgid "Got it, Turn off the Fire Alarm."
 msgstr ""
 
 msgid "Retry (problem solved)"
@@ -5408,6 +5399,9 @@ msgstr "Finished"
 msgid "Camera"
 msgstr "Camera"
 
+msgid "MqttSource"
+msgstr ""
+
 msgid "Storage"
 msgstr ""
 
@@ -5796,6 +5790,9 @@ msgstr "Software has New version."
 
 msgid "Goto download page."
 msgstr "Goto download page."
+
+msgid "More"
+msgstr "More"
 
 msgid "Open Folder."
 msgstr "Open Folder."
@@ -6428,6 +6425,20 @@ msgstr ""
 msgid "Helio does not support materials %s"
 msgstr ""
 
+msgid ""
+"No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
+"Please request a new Helio-PAT."
+msgstr ""
+
+msgid "Execution Blocked"
+msgstr ""
+
+msgid "Regenerate PAT"
+msgstr ""
+
+msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
+msgstr ""
+
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Please resolve the slicing errors and publish again."
 
@@ -6647,11 +6658,11 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr ""
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
 msgstr ""
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
 msgstr ""
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
@@ -6990,6 +7001,9 @@ msgid "Helio Options"
 msgstr ""
 
 msgid "Enable Helio"
+msgstr ""
+
+msgid "Helio-PAT"
 msgstr ""
 
 msgid "About Helio"
@@ -7508,16 +7522,7 @@ msgstr ""
 msgid "nozzle"
 msgstr ""
 
-msgid "extruder"
-msgstr ""
-
 msgid "both extruders"
-msgstr ""
-
-msgid "right extruder"
-msgstr ""
-
-msgid "left extruder"
 msgstr ""
 
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
@@ -9014,7 +9019,7 @@ msgstr ""
 msgid "Agree"
 msgstr ""
 
-msgid "Helio settings"
+msgid "Helio Additive"
 msgstr ""
 
 msgid "Chamber temperature"
@@ -9024,6 +9029,12 @@ msgid "Note: Please set the above temperature according to the actual situation.
 msgstr ""
 
 msgid "How to use Helio"
+msgstr ""
+
+msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
+msgstr ""
+
+msgid "Click for more details"
 msgstr ""
 
 msgid "Air Pump"
@@ -9350,6 +9361,9 @@ msgid "Printing high-temp and low-temp filaments together may cause nozzle clogg
 msgstr ""
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
+msgstr ""
+
+msgid "Printing different-temp filaments together may cause nozzle clogging or printer damage."
 msgstr ""
 
 msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
@@ -9971,8 +9985,8 @@ msgstr "Small perimeters"
 msgid "This setting will affect the speed of perimeters having radius <= small perimeter threshold(usually holes). If expressed as percentage (for example: 80%) it will be calculated onthe outer wall speed setting above. Set to zero for auto."
 msgstr "This setting will affect the speed of perimeters having radius <= small perimeter threshold(usually holes). If expressed as percentage (for example: 80%) it will be calculated onthe outer wall speed setting above. Set to zero for auto."
 
-msgid "Small perimter threshold"
-msgstr "Small perimter threshold"
+msgid "Small perimeter threshold"
+msgstr ""
 
 msgid "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr "This sets the threshold for small perimeter length. Default threshold is 0mm"
@@ -10529,6 +10543,12 @@ msgstr "Layers of clumping detection by probing"
 
 msgid "Clumping detection layers."
 msgstr "Layers of clumping detection by probing."
+
+msgid "Probing exclude area of clumping"
+msgstr ""
+
+msgid "Probing exclude area of clumping."
+msgstr ""
 
 msgid "Thumbnail size"
 msgstr "Thumbnail size"
@@ -12616,7 +12636,7 @@ msgid "Union"
 msgstr "Union"
 
 msgid "Difference"
-msgstr "Difference"
+msgstr "Subtraction"
 
 msgid "Intersection"
 msgstr "Intersection"
@@ -14019,6 +14039,27 @@ msgid ""
 msgstr ""
 "Avoid warping\n"
 "Did you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping?"
+
+#~ msgid "Open Preferences."
+#~ msgstr "Open Preferences."
+
+#~ msgid "Open next tip."
+#~ msgstr "Open next tip."
+
+#~ msgid "Open Documentation in web browser."
+#~ msgstr "Open Documentation in web browser."
+
+#~ msgid "Fatal"
+#~ msgstr "Fatal"
+
+#~ msgid "Serious"
+#~ msgstr "Serious"
+
+#~ msgid "Common"
+#~ msgstr "Common"
+
+#~ msgid "Small perimter threshold"
+#~ msgstr "Small perimter threshold"
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "Layer Time (s)"
