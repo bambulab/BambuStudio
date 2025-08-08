@@ -5,11 +5,14 @@ namespace Slic3r { namespace MultiNozzleUtils {
 
 MultiNozzleGroupResult::MultiNozzleGroupResult(const std::vector<int> &filament_nozzle_map, const std::vector<NozzleInfo> &nozzle_list)
 {
+    filament_map = filament_nozzle_map;
+
     for (size_t filament_idx = 0; filament_idx < filament_nozzle_map.size(); ++filament_idx) {
         int               nozzle_id                             = filament_nozzle_map[filament_idx];
         const NozzleInfo &nozzle                                = nozzle_list[nozzle_id];
         int               extruder_id                           = nozzle.extruder_id;
         extruder_to_filament_nozzles[extruder_id][filament_idx] = nozzle;
+        filament_map[filament_idx] = extruder_id;
     }
 }
 

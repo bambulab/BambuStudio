@@ -1177,11 +1177,6 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
                 ret = fg.calc_filament_group_by_pam();
             }
             MultiNozzleUtils::MultiNozzleGroupResult result(ret, context.nozzle_info.nozzle_list);
-            for (size_t idx = 0; idx < ret.size(); ++idx) {
-                int nozzle_id = ret[idx];
-                ret[idx] = context.nozzle_info.nozzle_list[nozzle_id].extruder_id;
-            }
-            result.filament_map = ret;
             return result;
         }
         else {
@@ -1193,7 +1188,6 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
 
 
     MultiNozzleGroupResult result(ret,nozzle_list);
-    result.filament_map = ret;
     return result;
 }
 
