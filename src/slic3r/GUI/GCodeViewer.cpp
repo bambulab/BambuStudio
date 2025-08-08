@@ -5575,7 +5575,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     if (wxGetApp().app_config->get("helio_enable") == "true") {
         auto  line_height         = ImGui::GetFrameHeight();
         auto  image_height        = line_height * 0.6;
-
+        imgui.disabled_begin(!wxGetApp().is_helio_enable());
         float single_word_width   = imgui.calc_text_size("ABCD").x;
         float title_width         = imgui.calc_text_size(title).x;
         float spacing             = 18.0f * m_scale;
@@ -5622,6 +5622,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             evt.SetEventObject(plater);
             wxPostEvent(plater, evt);
         }
+        imgui.disabled_end();
         ImGui::SameLine();
     } else {
         // BBS Set the width of the 8 "ABCD" words minus the "sliced result" to the spacing between the buttons and the title

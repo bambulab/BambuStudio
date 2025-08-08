@@ -348,6 +348,9 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
                     if (pat != "not_enough" && pat != "error") {
                         Slic3r::HelioQuery::set_helio_pat(pat);
                         helio_input_pat->SetLabel(Slic3r::HelioQuery::get_helio_pat());
+                        if (!Slic3r::HelioQuery::get_helio_pat().empty()) { helio_pat_refresh->Hide(); }
+                        else { helio_pat_refresh->Show(); }
+
 
                         if (!Slic3r::HelioQuery::get_helio_api_url().empty() && !Slic3r::HelioQuery::get_helio_pat().empty()) {
                             wxGetApp().request_helio_supported_data();
@@ -356,6 +359,9 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
                     });
             }
             helio_input_pat->SetLabel(Slic3r::HelioQuery::get_helio_pat());
+            if (!Slic3r::HelioQuery::get_helio_pat().empty()) { helio_pat_refresh->Hide(); }
+            else { helio_pat_refresh->Show(); }
+
         }
         wxGetApp().update_publish_status();
         //e.Skip();
@@ -901,6 +907,9 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
                             else {
                                 Slic3r::HelioQuery::set_helio_pat(pat);
                                 helio_input_pat->SetLabel(Slic3r::HelioQuery::get_helio_pat());
+                                if (!Slic3r::HelioQuery::get_helio_pat().empty()) { helio_pat_refresh->Hide(); }
+                                else { helio_pat_refresh->Show(); }
+
 
                                 if (!Slic3r::HelioQuery::get_helio_api_url().empty() && !Slic3r::HelioQuery::get_helio_pat().empty()) {
                                     wxGetApp().request_helio_supported_data();
@@ -1383,6 +1392,9 @@ wxWindow* PreferencesDialog::create_general_page()
             else {
                 Slic3r::HelioQuery::set_helio_pat(pat);
                 helio_input_pat->SetLabel(Slic3r::HelioQuery::get_helio_pat());
+                if (!Slic3r::HelioQuery::get_helio_pat().empty()) { helio_pat_refresh->Hide(); }
+                else { helio_pat_refresh->Show(); }
+
 
                 if (!Slic3r::HelioQuery::get_helio_api_url().empty() && !Slic3r::HelioQuery::get_helio_pat().empty()) {
                     wxGetApp().request_helio_supported_data();
@@ -1390,6 +1402,9 @@ wxWindow* PreferencesDialog::create_general_page()
             }
             });
         });
+
+    if (!Slic3r::HelioQuery::get_helio_pat().empty()) { helio_pat_refresh->Hide(); }
+    else { helio_pat_refresh->Show(); }
 
     sizer_helio_pat->Add(0, 0, 0, wxLEFT, FromDIP(50));
     sizer_helio_pat->Add(helio_title_pat, 0, wxALIGN_CENTER, 0);
