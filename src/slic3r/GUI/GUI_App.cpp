@@ -4069,6 +4069,25 @@ bool GUI_App::catch_error(std::function<void()> cb,
     return false;
 }
 
+bool GUI_App::is_helio_enable()
+{
+    if (!plater_) return false;
+    auto cfg = plater_->get_partplate_list().get_curr_plate()->config();
+    PrintSequence print_sequence = PrintSequence::ByLayer;
+    if (cfg->has("print_sequence")) {
+        print_sequence = cfg->option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value;
+    }
+    else {
+        print_sequence = wxGetApp().global_print_sequence();
+    }
+
+    if (print_sequence == PrintSequence::ByObject) {
+        return false;
+    }
+
+    return true;
+}
+
 void GUI_App::request_helio_pat(std::function<void(std::string)> func)
 {
     Slic3r::HelioQuery::request_pat_token(func);
