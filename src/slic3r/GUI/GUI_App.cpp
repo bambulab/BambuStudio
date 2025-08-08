@@ -2813,7 +2813,7 @@ bool GUI_App::on_init_inner()
     init_label_colours();
     init_fonts();
     wxGetApp().Update_dark_mode_flag();
-    
+
 #if defined(__WINDOWS__)
     HMODULE hKernel32 = GetModuleHandleW(L"kernel32.dll");
     m_is_arm64 = false;
@@ -4783,8 +4783,10 @@ void GUI_App::request_open_project(std::string project_id)
         return;
     }
 
-    if (project_id == "<new>")
+    if (project_id == "<new>") {
+        plater()->show_wrapping_detect_dialog_if_necessary();
         plater()->new_project();
+    }
     else if (project_id.empty())
         plater()->load_project();
     else if (std::find_if_not(project_id.begin(), project_id.end(),

@@ -714,6 +714,8 @@ public:
 
     void update_machine_sync_status();
 
+    void show_wrapping_detect_dialog_if_necessary();
+
 #if ENABLE_ENVIRONMENT_MAP
     void init_environment_texture();
     unsigned int get_environment_texture_id() const;
