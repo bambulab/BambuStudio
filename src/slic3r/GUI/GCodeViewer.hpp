@@ -854,6 +854,7 @@ private:
     int       m_view_type_sel = 0;
     EViewType m_view_type{ EViewType::FeatureType };
     std::vector<EMoveType> options_items;
+    mutable bool           m_show_horizontal_slider{false};
 
     bool m_legend_enabled{ true };
     float m_legend_height;
@@ -875,6 +876,8 @@ public:
     GCodeViewer();
     ~GCodeViewer();
 
+    bool  is_show_horizontal_slider() const;
+    void  set_show_horizontal_slider(bool flag)const { m_show_horizontal_slider = flag; }
     bool  is_helio_option() const;
     bool  curr_plate_has_ok_helio_slice(int plate_idx) const;
     void  update_option_item_when_load_gcode();
