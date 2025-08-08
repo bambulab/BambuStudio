@@ -355,7 +355,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             config->opt_enum<EnsureVerticalThicknessLevel>("ensure_vertical_shell_thickness") == EnsureVerticalThicknessLevel::evtEnabled &&
             !config->opt_bool("detect_thin_wall") &&
             config->opt_enum<TimelapseType>("timelapse_type") == TimelapseType::tlTraditional &&
-            !config->opt_bool("z_direction_outwall_speed_continuous")))
+            !config->opt_bool("z_direction_outwall_speed_continuous") &&
+            !config->opt_bool("enable_wrapping_detection")))
     {
         DynamicPrintConfig new_conf = *config;
         auto answer = show_spiral_mode_settings_dialog(is_object_config);
