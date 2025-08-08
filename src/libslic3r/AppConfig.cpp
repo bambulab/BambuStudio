@@ -461,6 +461,9 @@ void AppConfig::set_defaults()
     if (get("play_tpu_printing_video").empty()) {
         set_bool("play_tpu_printing_video", true);
     }
+    if (get("show_wrapping_detect_dialog").empty()) {
+        set_bool("show_wrapping_detect_dialog", true);
+    }
 
     // Remove legacy window positions/sizes
     erase("app", "main_frame_maximized");

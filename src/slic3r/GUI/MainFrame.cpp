@@ -912,6 +912,8 @@ void MainFrame::update_layout()
 
                 m_plater->update(true);
 
+                m_plater->show_wrapping_detect_dialog_if_necessary();
+
                 if (!preview_only_hint())
                     return;
             }
