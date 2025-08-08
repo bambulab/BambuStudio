@@ -92,6 +92,9 @@
         "0",
         "0"
     ],
+    "fan_max_speed": [
+        "60"
+    ],
     "long_retractions_when_ec": [
         "1",
         "1"
@@ -107,6 +110,9 @@
     "retraction_distances_when_ec": [
         "10",
         "10"
+    ],
+    "slow_down_layer_time": [
+        "12"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle"
