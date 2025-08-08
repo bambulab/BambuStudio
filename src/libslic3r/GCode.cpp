@@ -1956,6 +1956,7 @@ namespace DoExport {
 		PrintStatistics 		    &print_statistics)
     {
 		std::string filament_stats_string_out;
+        print_statistics.layer_used_weight = 0.0;
 
 	    print_statistics.clear();
         print_statistics.total_toolchanges = std::max(0, wipe_tower_data.number_of_toolchanges);
@@ -1987,6 +1988,7 @@ namespace DoExport {
 	            //append(out_filament_used_cm3, "%.2lf", extruded_volume * 0.001);
 	            if (filament_weight > 0.) {
 	                print_statistics.total_weight = print_statistics.total_weight + filament_weight;
+                    print_statistics.layer_used_weight = print_statistics.layer_used_weight + filament_weight;
 	                //append(out_filament_used_g, "%.2lf", filament_weight);
 	                if (filament_cost > 0.) {
 	                    print_statistics.total_cost = print_statistics.total_cost + filament_cost;
@@ -2737,6 +2739,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         }
         bool hold_chamber_temp_for_flat_print = (max_hight_temp > 0) && (max_hight_temp < pring_hight_threshold) && ( area_sum_temp > (print_area_sum_threshold * 1.0e10 - 1) );
         m_placeholder_parser.set("hold_chamber_temp_for_flat_print", new ConfigOptionBool(hold_chamber_temp_for_flat_print));
+        m_placeholder_parser.set("first_layer_area_sum", new ConfigOptionFloat(area_sum_temp * 1e-10));
     }
 
 
@@ -4170,6 +4173,14 @@ GCode::LayerResult GCode::process_layer(
     bool has_insert_timelapse_gcode = false;
     bool has_wipe_tower             = (layer_tools.has_wipe_tower && m_wipe_tower);
 
+    //estmate the acceleration limit and output printed mass
+    PrintStatistics curr_print_statistics;
+    DoExport::update_print_stats_and_format_filament_stats(
+        has_wipe_tower, print.wipe_tower_data(), m_writer.extruders(),// Const inputs
+        curr_print_statistics); // Modifies
+    double curr_y_acceleration_limit = -1, curr_accumulated_mass = -1, curr_layer_mass = -1;
+    mass_load_limited_machine_acceleration(curr_print_statistics, print,// Const inputs
+        curr_y_acceleration_limit, curr_accumulated_mass, curr_layer_mass);// Modifies
 
     ZHopType z_hope_type = ZHopType(FILAMENT_CONFIG(z_hop_types));
     LiftType auto_lift_type = LiftType::NormalLift;
@@ -4186,11 +4197,14 @@ GCode::LayerResult GCode::process_layer(
         DynamicConfig config;
         config.set_key_value("most_used_physical_extruder_id", new ConfigOptionInt(m_config.physical_extruder_map.get_at(most_used_extruder)));
         config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
-        config.set_key_value("layer_z",   new ConfigOptionFloat(print_z));
+        config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
+        config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
+        config.set_key_value("curr_y_acceleration_limit", new ConfigOptionFloat(curr_y_acceleration_limit));
+        config.set_key_value("curr_accumulated_mass", new ConfigOptionFloat(curr_accumulated_mass));
+        config.set_key_value("curr_layer_mass", new ConfigOptionFloat(curr_layer_mass));
         gcode += this->placeholder_parser_process("layer_change_gcode",
             print.config().layer_change_gcode.value, m_writer.filament()->id(), &config)
             + "\n";
-        config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
     }
     //BBS: set layer time fan speed after layer change gcode
     gcode += ";_SET_FAN_SPEED_CHANGING_LAYER\n";
@@ -5512,7 +5526,36 @@ std::string GCode::change_layer(coordf_t print_z)
     return gcode;
 }
 
-
+// in some printers, the y motor will only provide limited acceleration when the printed parts was heavy,
+// it is necessary to limit the acceleration when the mass accumulated
+// limite in by layer mode
+void GCode::mass_load_limited_machine_acceleration(
+    const PrintStatistics curr_print_statistics,
+    const Print &print,// input
+    double &y_acceleration_limit_res,//output
+    double &accumulated_mass_res,
+    double &layer_mass_res)
+{
+    double curr_acceleration_y_config = 1e10;
+    auto  &machine_max_acceleration_y = print.config().machine_max_acceleration_y.values;
+    for (auto &temp : machine_max_acceleration_y)
+        if (curr_acceleration_y_config > temp) curr_acceleration_y_config = temp;
+    accumulated_mass_res = curr_print_statistics.total_weight;
+    layer_mass_res       = curr_print_statistics.layer_used_weight;
+    // mass in g, acceleration in mm/s2
+    double machine_max_force_Y = print.config().machine_max_force_Y.getFloat(),
+        machine_bed_mass_Y = print.config().machine_bed_mass_Y.getFloat();
+    if (machine_max_force_Y > EPSILON && machine_bed_mass_Y > EPSILON) {
+        // This item is not applicable to this printer  FIXME-other printers need acceleration limit?
+        double virtual_force_g_mms2 = machine_max_force_Y * 1e6,  // x N =x * 1e6 g*mm/s2
+            curr_acceleration_temp  = curr_acceleration_y_config; // temps
+        if (accumulated_mass_res > EPSILON) {
+            curr_acceleration_temp = virtual_force_g_mms2 / (machine_bed_mass_Y + accumulated_mass_res);
+            y_acceleration_limit_res = std::min(curr_acceleration_temp, curr_acceleration_y_config);
+        } else
+            BOOST_LOG_TRIVIAL(info) << "mass_load_limited_machine_acceleration: Printed mass not detected";
+    }
+}
 
 static std::unique_ptr<EdgeGrid::Grid> calculate_layer_edge_grid(const Layer& layer)
 {

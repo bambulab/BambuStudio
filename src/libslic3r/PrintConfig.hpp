@@ -1165,7 +1165,10 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsNullable,       machine_min_travel_rate))
     // M205 S... [mm/sec]
     ((ConfigOptionFloatsNullable,       machine_min_extruding_rate))
-)
+    // Y axis max force (N) and bed mass (g)
+    ((ConfigOptionFloat, machine_max_force_Y))
+    ((ConfigOptionFloat, machine_bed_mass_Y))
+    )
 
 // This object is mapped to Perl as Slic3r::Config::GCode.
 PRINT_CONFIG_CLASS_DEFINE(

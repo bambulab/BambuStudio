@@ -769,6 +769,7 @@ struct PrintStatistics
     double                          total_wipe_tower_filament;
     unsigned int                    initial_tool;
     std::map<size_t, double>        filament_stats;
+    double                          layer_used_weight;
 
     // Config with the filled in print statistics.
     DynamicConfig           config() const;
@@ -787,6 +788,7 @@ struct PrintStatistics
         total_wipe_tower_filament = 0.;
         initial_tool = 0;
         filament_stats.clear();
+        layer_used_weight = 0.;
     }
 };
 

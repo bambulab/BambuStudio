@@ -413,6 +413,13 @@ private:
     // slow down by height
     bool slowDownByHeight(double& maxSpeed, double& maxAcc, const ExtrusionPath& path);
 
+    // limit machine acceleration calculations
+    void mass_load_limited_machine_acceleration(const PrintStatistics curr_print_statistics,
+                                                const Print          &print,
+                                                double               &y_acceleration_limit_res,
+                                                double               &accumulated_mass_res,
+                                                double               &layer_mass_res);
+
     // Extruding multiple objects with soluble / non-soluble / combined supports
     // on a multi-material printer, trying to minimize tool switches.
     // Following structures sort extrusions by the extruder ID, by an order of objects and object islands.

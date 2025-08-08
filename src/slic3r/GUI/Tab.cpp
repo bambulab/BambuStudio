@@ -5242,6 +5242,8 @@ PageShp TabPrinter::build_kinematics_page()
         if (gcf == gcfMarlinFirmware || gcf == gcfMarlinLegacy || gcf == gcfKlipper) {
             append_option_line(optgroup, "machine_max_acceleration_travel");
         }
+        append_option_line(optgroup, "machine_max_force_Y");
+        append_option_line(optgroup, "machine_bed_mass_Y");
 
     optgroup = page->new_optgroup(L("Jerk limitation"));
         for (const std::string &axis : axes)	{
