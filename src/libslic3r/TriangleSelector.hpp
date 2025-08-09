@@ -317,7 +317,7 @@ protected:
 
         // Get/set current state.
         void set_state(EnforcerBlockerType type) { assert(!is_split()); state = type; }
-        EnforcerBlockerType get_state() const { assert(! is_split()); return state; }
+        EnforcerBlockerType get_state() const { return state; }
 
         // Set if the triangle has been selected or unselected by seed fill.
         void select_by_seed_fill();

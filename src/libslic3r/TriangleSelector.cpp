@@ -1674,7 +1674,7 @@ void TriangleSelector::get_seed_fill_its_recursive(
             idx_set.insert(facet_idx);
             append_touching_its(facet_idx, its);
             for (int i = 0; i < 3; i++) {
-                if (select_state == m_triangles[neighbors(i)].get_state()) {
+                if (neighbors(i) >= 0 && neighbors(i) < m_triangles.size() && select_state == m_triangles[neighbors(i)].get_state()) {
                     if (idx_set.find(neighbors(i)) == idx_set.end()) {
                         idx_set.insert(neighbors(i));
                         append_touching_its(neighbors(i), its);
