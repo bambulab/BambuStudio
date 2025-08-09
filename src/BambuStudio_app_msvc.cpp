@@ -190,8 +190,7 @@ extern "C" {
 }
 extern "C" {
 #ifdef SLIC3R_WRAPPER_NOCONSOLE
-    int APIENTRY wWinMain(HINSTANCE /* hInstance */, HINSTANCE /* hPrevInstance */, PWSTR /* lpCmdLine */, int /* nCmdShow */)
-    {
+    int APIENTRY wWinMain(HINSTANCE /* hInstance */, HINSTANCE /* hPrevInstance */, PWSTR /* lpCmdLine */, int /* nCmdShow */)    {
         int 	  argc;
         wchar_t** argv = ::CommandLineToArgvW(::GetCommandLineW(), &argc);
 #else
