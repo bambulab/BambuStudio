@@ -1349,6 +1349,8 @@ wxWindow* PreferencesDialog::create_general_page()
     // helio options
     helio_fun_panel = new wxPanel(page);
     helio_fun_panel->SetBackgroundColour(wxColour(248, 248, 248));
+    helio_fun_panel->SetMinSize(wxSize(FromDIP(568), -1));
+    //helio_fun_panel->SetMaxSize(wxSize(FromDIP(568), -1));
     wxBoxSizer *sizer_helio_fun = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *sizer_helio_fun_link = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *sizer_helio_title = new wxBoxSizer(wxHORIZONTAL);
@@ -1557,7 +1559,8 @@ wxWindow* PreferencesDialog::create_general_page()
     item_region->GetItem(size_t(2))->GetWindow()->Bind(wxEVT_COMBOBOX, update_modelmall);
 
 
-    sizer_page->Add(helio_fun_panel, 0, wxTOP | wxEXPAND, FromDIP(20));
+    sizer_page->Add(0, 0, 0, wxTOP, FromDIP(20));
+    sizer_page->Add(helio_fun_panel, 0, wxEXPAND, 0);
     //sizer_page->Add(helio_item_switch_slice, 0, wxTOP, FromDIP(3));
 
     sizer_page->Add(title_project, 0, wxTOP| wxEXPAND, FromDIP(20));
