@@ -81,7 +81,7 @@ public:
     };
 
     /*copied from AmsTray::get_display_filament_type()*/
-    std::string get_display_filament_type()
+    std::string get_display_filament_type() const
     {
         if (type == "PLA-S")
             return "Sup.PLA";
