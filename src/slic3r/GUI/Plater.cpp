@@ -9364,19 +9364,21 @@ void Plater::priv::on_helio_input_dlg(SimpleEvent& a)
         auto result = dlg.ShowModal();
         if (result == wxID_YES) {
             wxGetApp().request_helio_pat([this](std::string pat) {
-                if (pat == "not_enough") {
-                    HelioPatNotEnoughDialog dlg;
-                    dlg.ShowModal();
-                }
-                else if (pat == "error") {
-                    MessageDialog dlg(nullptr, _L("Failed to obtain Helio PAT, Click Refresh to obtain it again."), wxString("Helio Additive"), wxYES | wxICON_WARNING);
-                    dlg.ShowModal();
-                }
-                else {
-                    Slic3r::HelioQuery::set_helio_pat(pat);
-                    on_helio_process();
-                }
+                wxTheApp->CallAfter([=]() {
+                    if (pat == "not_enough") {
+                        HelioPatNotEnoughDialog dlg;
+                        dlg.ShowModal();
+                    }
+                    else if (pat == "error") {
+                        MessageDialog dlg(nullptr, _L("Failed to obtain Helio PAT, Click Refresh to obtain it again."), wxString("Helio Additive"), wxYES | wxICON_WARNING);
+                        dlg.ShowModal();
+                    }
+                    else {
+                        Slic3r::HelioQuery::set_helio_pat(pat);
+                        on_helio_process();
+                    }
                 });
+            });
         }
         else {
             return;
