@@ -73,6 +73,17 @@ TreeModelVolumes::TreeModelVolumes(
         hole.reverse();
         ExPolygon  machine_outline(offset(m_bed_area, scale_(1000))[0], hole);
         ExPolygons outlines = machine_outline.split_expoly_with_holes(scale_(1.), {});
+
+        if (print_object.print()->config().enable_wrapping_detection.value) {
+            Pointfs wrapping_detection_area = print_object.print()->config().wrapping_exclude_area.values;
+            Polygon wrapping_poly;
+            for (size_t i = 0; i < wrapping_detection_area.size(); ++i) {
+                auto pt = wrapping_detection_area[i];
+                wrapping_poly.points.emplace_back(Point(scale_(pt.x()), scale_(pt.y())) - print_object.instances().front().shift);
+            }
+            outlines = union_ex(outlines, {wrapping_poly});
+        }
+
         for (const auto &outline : outlines) machine_borders.emplace_back(outline.contour);
     }
 #if 0
