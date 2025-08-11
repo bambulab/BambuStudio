@@ -533,6 +533,9 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, cons
 }
 
 void GLGizmoRotate::init_data_from_selection(const Selection &selection) {
+    if (selection.is_empty()) {
+        return;
+    }
     const auto [box, box_trafo]           = m_force_local_coordinate ? selection.get_bounding_box_in_reference_system(ECoordinatesType::Local) :
                                                                        selection.get_bounding_box_in_current_reference_system();
     m_bounding_box                        = box;
