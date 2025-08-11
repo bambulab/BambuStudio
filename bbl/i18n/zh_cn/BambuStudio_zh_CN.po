@@ -14154,6 +14154,119 @@ msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
+#: resources/data/helio_hints.ini: [hint: Single-Material Only]
+msgid ""
+"Single-Material Only\n"
+"Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
+msgstr "仅支持单一材料\n"
+"Helio 当前每个作业只支持一种材料和一个喷嘴。多材料或多喷头的 G-code 会加入长时间暂停，打断热连续性，从而导致模拟结果不准确。"
+
+#: resources/data/helio_hints.ini: [hint: One Plate per Job]
+msgid ""
+"One Plate per Job\n"
+"Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
+msgstr "每个作业只支持一个构建板\n"
+"请上传只包含一个构建板的 G-code。多构建板的项目当前尚不支持，因此只会模拟第一个构建板。"
+
+#: resources/data/helio_hints.ini: [hint: What is the Thermal Quality Index?]
+msgid ""
+"What is the Thermal Quality Index?\n"
+"The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
+msgstr "什么是热质量指数？\n"
+"热质量指数（范围为 –100 到 +100）表示每个区域的打印温度是偏热还是偏冷。绿色（约等于 0）表示“刚刚好”的区域，可获得强度高、无翘曲的零件。将大部分区域保持在绿色有助于获得最佳效果。"
+
+#: resources/data/helio_hints.ini: [hint: Voxel-Level Accuracy]
+msgid ""
+"Voxel-Level Accuracy\n"
+"We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
+msgstr "体素级精度\n"
+"我们在每一个时间步都预测每个体素的温度，对于标准作业，预测误差通常在 ±5–10 °C 之间。有暂停、自定义固件或异常冷却设置时，这一误差可能会扩大。"
+
+#: resources/data/helio_hints.ini: [hint: Fan & Airflow Model]
+msgid ""
+"Fan & Airflow Model\n"
+"A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
+msgstr "风扇与气流模型\n"
+"一个简化的风扇与室内气流模型可以展示冷却设置如何影响零件温度，而无需复杂的 CFD 计算——适合日常调优。目前尚未模拟腔体内的涡流，以保证运行速度。"
+
+#: resources/data/helio_hints.ini: [hint: TQI Limits Explained]
+msgid ""
+"TQI Limits Explained\n"
+"-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
+msgstr "热质量指数极限说明\n"
+"-100 → 太冷：拉伸强度约比理想值 0 的零件低 50%（根据 ASTM D638 骨型测试）。+100 → 太热：层之间保持熔融状态，可能下垂或坍塌。将区域保持在接近 0 的值，可获得最佳强度与精度。"
+
+#: resources/data/helio_hints.ini: [hint: What Drives Runtime?]
+msgid ""
+"What Drives Runtime?\n"
+"Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
+msgstr "哪些因素影响运行时间？\n"
+"额外的层、密集填充、大量小弧线（即细小网格元素）或非常慢的打印速度都会增加模拟时间，因为求解器需要处理更多时间步。多核 CPU 或 CUDA GPU 可加快模拟速度。"
+
+#: resources/data/helio_hints.ini: [hint: Nozzle Temp Range]
+msgid ""
+"Nozzle Temp Range\n"
+"Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
+msgstr "喷嘴温度范围\n"
+"支持的喷嘴设定温度范围为 190 – 320 °C；超出范围的值将被限制，以确保物理模拟真实可靠。"
+
+#: resources/data/helio_hints.ini: [hint: Debugging Flowchart]
+msgid ""
+"Debugging Flowchart\n"
+"Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
+msgstr "调试流程图\n"
+"不确定结果为何异常？只需几分钟，按照我们的逐步调试流程图检查设置、G-code 和材料问题。"
+
+#: resources/data/helio_hints.ini: [hint: Why Cooling Varies]
+msgid ""
+"Why Cooling Varies\n"
+"Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
+msgstr "为什么冷却效果不同\n"
+"外壁和桥接区域冷却速度最快，而厚实的内部结构则保持更高温度——几何结构、气流和路径都会影响冷却效果，模拟可视化会呈现这些差异。"
+
+#: resources/data/helio_hints.ini: [hint: Extrusion Temp Model]
+msgid ""
+"Extrusion Temp Model\n"
+"Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
+msgstr "挤出温度模型\n"
+"材料属性决定熔化曲线，而打印机结构决定材料实际吸收的热量，因此该模型既与材料相关，也需针对打印机进行校准。"
+
+#: resources/data/helio_hints.ini: [hint: Nozzle setting of 190 °C vs 320
+#: °C?]
+msgid ""
+"Nozzle setting of 190 °C vs 320 °C?\n"
+"A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
+msgstr "喷嘴设定为 190 °C 与 320 °C 有何区别？\n"
+"喷嘴温度变化 100 °C 对热指数的影响较小，因为挤出温度、流速和沉积后的冷却过程才是决定零件热历史的主要因素。"
+
+#: resources/data/helio_hints.ini: [hint: Bed Temperature influence]
+msgid ""
+"Bed Temperature influence\n"
+"Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
+msgstr "热床温度的影响\n"
+"目前模型只考虑第一层的热床温度；后续层的床温变化尚未纳入模拟。"
+
+#: resources/data/helio_hints.ini: [hint: Actual Tool-Path]
+msgid ""
+"Actual Tool-Path\n"
+"Yes—your exact G-code path, speeds and fan commands are simulated."
+msgstr "实际工具路径\n"
+"是的——我们会模拟您的完整 G-code 路径、打印速度和风扇指令。"
+
+#: resources/data/helio_hints.ini: [hint: Mesh Resolution]
+msgid ""
+"Mesh Resolution\n"
+"The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
+msgstr "网格分辨率\n"
+"体素网格的分辨率比 G-code 的线间距更高，能够逐层捕捉细节，同时不会浪费计算资源。"
+
+#: resources/data/helio_hints.ini: [hint: Shrinkage, Warping & Stress]
+msgid ""
+"Shrinkage, Warping & Stress\n"
+"By controlling the thermal index you can remove the heat-driven causes of warp and stress."
+msgstr "收缩、翘曲与应力\n"
+"通过控制热指数，可以消除由热引起的翘曲和应力根源。"
+
 #~ msgid "Helio Action"
 #~ msgstr "Helio功能"
 
