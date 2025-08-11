@@ -4863,7 +4863,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     const double clip_length = m_enable_loop_clipping && !enable_seam_slope ? seam_gap : 0;
      // get paths
     ExtrusionPaths paths;
-    bool set_holes_and_compensation_speed = loop.get_customize_flag() && !loop.has_overhang_paths();
+    bool set_holes_and_compensation_speed = loop.get_customize_flag() == CustomizeFlag::cfCircleCompensation && !loop.has_overhang_paths();
     if (set_holes_and_compensation_speed && m_config.apply_scarf_seam_on_circles.value) {
         enable_seam_slope = true;
     }
