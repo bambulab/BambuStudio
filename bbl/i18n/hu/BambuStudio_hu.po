@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-08 11:32+0800\n"
+"POT-Creation-Date: 2025-08-11 14:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3661,6 +3661,12 @@ msgstr "Automatikus ellenőrzés: Anyagpozíció"
 msgid "Cutting Module Offset Calibration"
 msgstr "Vágómodul eltolás kalibrálása"
 
+msgid "Measuring Surface"
+msgstr "Felület mérése"
+
+msgid "Thermal Preconditioning for first layer optimization"
+msgstr "Előkondicionálás a jobb kezdőréteg érdekében"
+
 msgid "Unknown"
 msgstr "Ismeretlen"
 
@@ -3986,8 +3992,8 @@ msgstr "ettől"
 msgid "Slicing Result"
 msgstr "Szeletelés eredménye"
 
-msgid "Helio Action"
-msgstr "Helio műveletek"
+msgid "Helio Simulation"
+msgstr ""
 
 msgid "Color Scheme"
 msgstr "Színséma"
@@ -5442,9 +5448,6 @@ msgstr "Kész"
 msgid "Camera"
 msgstr "Kamera"
 
-msgid "MqttSource"
-msgstr ""
-
 msgid "Storage"
 msgstr "Tárhely"
 
@@ -6786,6 +6789,15 @@ msgstr "A modell javításához használj külső szoftvert, mielőtt importáln
 #, c-format, boost-format
 msgid "Plate% d: %s is not suggested to be used to print filament %s(%s). If you still want to do this printing, please set this filament's bed temperature to non zero."
 msgstr "A(z) % d: %s nem javasolt a(z) %s(%s) filament használatához. Ha folytatni szeretnéd a nyomtatást, kérjük állíts be 0-nál magasabb asztalhőmérsékletet a filamenthez."
+
+msgid "Parameter recommendation: In the process preset, under Others-Advanced, check Enable clumping detection by probing. This feature generates a small wipe tower and performs probing detection to identify clumping issues early in the print and stop printing, preventing print failures or printer damage.\n"
+msgstr ""
+
+msgid "Parameter recommendation"
+msgstr ""
+
+msgid "Click Wiki for details."
+msgstr ""
 
 msgid "Currently, the object configuration form cannot be used with a multiple-extruder printer."
 msgstr "Jelenleg az objektumkonfigurációs lap nem használható több extruderrel rendelkező nyomtatóval."
@@ -9467,6 +9479,15 @@ msgstr "A sima timelapse funkció nem használható, ha a nyomtatás „Tárgyan
 
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "A feltapadás érzékelése funkció nem használható, ha a nyomtatás „Tárgyanként“ sorrendre van állítva."
+
+msgid "enable_wrapping_detection"
+msgstr ""
+
+msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
+msgstr ""
+
+msgid "enable_prime_tower"
+msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Kérjük, válaszd a \"Tárgyanként\" nyomtatási sorrendet több tárgy spirálváza módban történő nyomtatásához."
@@ -13663,6 +13684,42 @@ msgstr "Profil a 0,8 mm-es fúvókához, az erősséget előtérbe helyezve."
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Standard profil 0,8 mm-es fúvókához, a sebességet előtérbe helyezve."
 
+msgid "Helio: Process Started"
+msgstr ""
+
+msgid "Helio API endpoint is empty, please check the configuration."
+msgstr ""
+
+msgid "Personal assecc token is empty, please fill in the correct token."
+msgstr ""
+
+msgid "Helio: Presigned URL Created"
+msgstr ""
+
+msgid "Helio: file succesfully uploaded"
+msgstr ""
+
+msgid "Helio: file upload failed"
+msgstr ""
+
+msgid "Please make sure you have the corrent API key set in preferences."
+msgstr ""
+
+msgid "Helio: GCode created successfully"
+msgstr ""
+
+msgid "Helio: simulation successfully created"
+msgstr ""
+
+msgid "Helio: simulation working"
+msgstr ""
+
+msgid "Helio: simulation failed"
+msgstr ""
+
+msgid "Helio: GCode downloaded successfully"
+msgstr ""
+
 msgid "No AMS"
 msgstr "Nincs AMS"
 
@@ -14164,6 +14221,9 @@ msgid ""
 msgstr ""
 "Vetemedés elkerülése\n"
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
+
+#~ msgid "Helio Action"
+#~ msgstr "Helio műveletek"
 
 #~ msgid "Open Preferences."
 #~ msgstr "Beállítások megnyitása."

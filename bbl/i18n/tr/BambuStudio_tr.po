@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-08 11:32+0800\n"
+"POT-Creation-Date: 2025-08-11 14:25+0800\n"
 "PO-Revision-Date: 2025-07-17 21:56+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -3661,6 +3661,12 @@ msgstr "Otomatik Kontrol: Malzeme Konumu"
 msgid "Cutting Module Offset Calibration"
 msgstr "Kesim Modülü Ofset Kalibrasyonu"
 
+msgid "Measuring Surface"
+msgstr ""
+
+msgid "Thermal Preconditioning for first layer optimization"
+msgstr ""
+
 msgid "Unknown"
 msgstr "Bilinmeyen"
 
@@ -3986,7 +3992,7 @@ msgstr "itibaren"
 msgid "Slicing Result"
 msgstr "Dilimleme Sonuçları"
 
-msgid "Helio Action"
+msgid "Helio Simulation"
 msgstr ""
 
 msgid "Color Scheme"
@@ -5442,9 +5448,6 @@ msgstr "Bitti"
 msgid "Camera"
 msgstr "Kamera"
 
-msgid "MqttSource"
-msgstr ""
-
 msgid "Storage"
 msgstr "Depolama"
 
@@ -6787,6 +6790,15 @@ msgstr "Modeli onarmak için, lütfen Bambu Studio'ya aktarmadan önce üçünc�
 #, c-format, boost-format
 msgid "Plate% d: %s is not suggested to be used to print filament %s(%s). If you still want to do this printing, please set this filament's bed temperature to non zero."
 msgstr "Plaka% d: %s'nin %s(%s) filamentinı yazdırmak için kullanılması önerilmez. Eğer yine de bu baskıyı yapmak istiyorsanız, lütfen bu filamentin yatak sıcaklığını sıfır olmayan bir değere ayarlayın."
+
+msgid "Parameter recommendation: In the process preset, under Others-Advanced, check Enable clumping detection by probing. This feature generates a small wipe tower and performs probing detection to identify clumping issues early in the print and stop printing, preventing print failures or printer damage.\n"
+msgstr ""
+
+msgid "Parameter recommendation"
+msgstr ""
+
+msgid "Click Wiki for details."
+msgstr ""
 
 msgid "Currently, the object configuration form cannot be used with a multiple-extruder printer."
 msgstr "Şu anda, nesne yapılandırma formu çoklu ekstrüder yazıcı ile kullanılamaz."
@@ -9465,6 +9477,15 @@ msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is 
 msgstr "\"Nesneye göre\" dizisi etkinleştirildiğinde, hızlandırılmış çekimin yumuşak modu desteklenmez."
 
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
+msgstr ""
+
+msgid "enable_wrapping_detection"
+msgstr ""
+
+msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
+msgstr ""
+
+msgid "enable_prime_tower"
 msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
@@ -13665,6 +13686,42 @@ msgstr "Mukavemete öncelik veren 0,8 mm nozul için mukavemet profili."
 
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Hıza öncelik veren 0,8 mm nozul için standart profil."
+
+msgid "Helio: Process Started"
+msgstr ""
+
+msgid "Helio API endpoint is empty, please check the configuration."
+msgstr ""
+
+msgid "Personal assecc token is empty, please fill in the correct token."
+msgstr ""
+
+msgid "Helio: Presigned URL Created"
+msgstr ""
+
+msgid "Helio: file succesfully uploaded"
+msgstr ""
+
+msgid "Helio: file upload failed"
+msgstr ""
+
+msgid "Please make sure you have the corrent API key set in preferences."
+msgstr ""
+
+msgid "Helio: GCode created successfully"
+msgstr ""
+
+msgid "Helio: simulation successfully created"
+msgstr ""
+
+msgid "Helio: simulation working"
+msgstr ""
+
+msgid "Helio: simulation failed"
+msgstr ""
+
+msgid "Helio: GCode downloaded successfully"
+msgstr ""
 
 msgid "No AMS"
 msgstr "AMS Yok"

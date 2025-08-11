@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-08 11:32+0800\n"
+"POT-Creation-Date: 2025-08-11 14:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3646,6 +3646,12 @@ msgstr "自動チェック：材料の位置"
 msgid "Cutting Module Offset Calibration"
 msgstr "カットモジュールオフセットキャリブレーション"
 
+msgid "Measuring Surface"
+msgstr "表面を測定"
+
+msgid "Thermal Preconditioning for first layer optimization"
+msgstr "一層目の最適化のための熱前処理"
+
 msgid "Unknown"
 msgstr "不明"
 
@@ -3970,8 +3976,8 @@ msgstr "から"
 msgid "Slicing Result"
 msgstr "スライス結果"
 
-msgid "Helio Action"
-msgstr "Helioアクション"
+msgid "Helio Simulation"
+msgstr ""
 
 msgid "Color Scheme"
 msgstr "配色"
@@ -5410,9 +5416,6 @@ msgstr "完了"
 msgid "Camera"
 msgstr "カメラ"
 
-msgid "MqttSource"
-msgstr ""
-
 msgid "Storage"
 msgstr "ストレージ"
 
@@ -6747,6 +6750,15 @@ msgstr "モデルを修復するには、Bambu Studioにインポートする前
 #, c-format, boost-format
 msgid "Plate% d: %s is not suggested to be used to print filament %s(%s). If you still want to do this printing, please set this filament's bed temperature to non zero."
 msgstr "プレート %d: %s はフィラメント %s(%s) の印刷には推奨されません。この印刷を実行する場合は、このフィラメントのベッド温度をゼロ以外の数値に設定してください。"
+
+msgid "Parameter recommendation: In the process preset, under Others-Advanced, check Enable clumping detection by probing. This feature generates a small wipe tower and performs probing detection to identify clumping issues early in the print and stop printing, preventing print failures or printer damage.\n"
+msgstr ""
+
+msgid "Parameter recommendation"
+msgstr ""
+
+msgid "Click Wiki for details."
+msgstr ""
 
 msgid "Currently, the object configuration form cannot be used with a multiple-extruder printer."
 msgstr "現在、複数の押出機を備えたプリンタでは、オブジェクト設定フォームを使用できません。"
@@ -9425,6 +9437,15 @@ msgstr "オブジェクト順で造形するでは、この機能を使用でき
 
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "「オブジェクト単位」のシーケンスが有効な場合、クラミング検出は使用できません。"
+
+msgid "enable_wrapping_detection"
+msgstr ""
+
+msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
+msgstr ""
+
+msgid "enable_prime_tower"
+msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "スパイラルモードでは、[オブジェクト順]で複数のオブジェクトを造形してください"
@@ -12571,9 +12592,9 @@ msgid ""
 "Start temp >= End temp + 5)"
 msgstr ""
 "有効な値を入力してください：\n"
-"\t•\t開始温度：350度以下\n"
-"\t•\t終了温度：180度 以上\n"
-"\t•\t開始温度は終了温度より5 度以上高くしてください"
+"	•	開始温度：350度以下\n"
+"	•	終了温度：180度 以上\n"
+"	•	開始温度は終了温度より5 度以上高くしてください"
 
 msgid "Max volumetric speed test"
 msgstr "最大体積速度テスト"
@@ -12593,9 +12614,9 @@ msgid ""
 "end >= start + step)"
 msgstr ""
 "有効な値を入力してください：\n"
-"\t•\t開始値（start） > 0\n"
-"\t•\tステップサイズ（step） ≥ 0\n"
-"\t•\t終了値（end） ≥ 開始値 + ステップサイズ"
+"	•	開始値（start） > 0\n"
+"	•	ステップサイズ（step） ≥ 0\n"
+"	•	終了値（end） ≥ 開始値 + ステップサイズ"
 
 msgid "VFA test"
 msgstr "VFA テスト"
@@ -12612,9 +12633,9 @@ msgid ""
 "end >= start + step)"
 msgstr ""
 "有効な値を入力してください：\n"
-"\t•\t開始値（start） > 10\n"
-"\t•\tステップサイズ（step） ≥ 0\n"
-"\t•\t終了値（end） ≥ 開始値 + ステップサイズ"
+"	•	開始値（start） > 10\n"
+"	•	ステップサイズ（step） ≥ 0\n"
+"	•	終了値（end） ≥ 開始値 + ステップサイズ"
 
 msgid "Start retraction length: "
 msgstr "引き込み開始の長さ： "
@@ -13621,6 +13642,42 @@ msgstr "強度を重視した、0.8mmノズル用の強化プロファイルで�
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "造形速度を重視した、0.8mmノズル用の標準プロファイルです。"
 
+msgid "Helio: Process Started"
+msgstr ""
+
+msgid "Helio API endpoint is empty, please check the configuration."
+msgstr ""
+
+msgid "Personal assecc token is empty, please fill in the correct token."
+msgstr ""
+
+msgid "Helio: Presigned URL Created"
+msgstr ""
+
+msgid "Helio: file succesfully uploaded"
+msgstr ""
+
+msgid "Helio: file upload failed"
+msgstr ""
+
+msgid "Please make sure you have the corrent API key set in preferences."
+msgstr ""
+
+msgid "Helio: GCode created successfully"
+msgstr ""
+
+msgid "Helio: simulation successfully created"
+msgstr ""
+
+msgid "Helio: simulation working"
+msgstr ""
+
+msgid "Helio: simulation failed"
+msgstr ""
+
+msgid "Helio: GCode downloaded successfully"
+msgstr ""
+
 msgid "No AMS"
 msgstr "AMS無し"
 
@@ -14120,6 +14177,9 @@ msgid ""
 msgstr ""
 "反り防止\n"
 "ABSなど反りやすい材料を印刷する場合、ヒートベッド温度を適切に上げることで反りの発生を抑えられることをご存知ですか？"
+
+#~ msgid "Helio Action"
+#~ msgstr "Helioアクション"
 
 #~ msgid "Open Preferences."
 #~ msgstr "環境設定を開く"

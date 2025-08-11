@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-08 11:32+0800\n"
+"POT-Creation-Date: 2025-08-11 14:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3656,6 +3656,12 @@ msgstr "자동 확인: 재료 위치"
 msgid "Cutting Module Offset Calibration"
 msgstr "커팅 모듈 오프셋 보정"
 
+msgid "Measuring Surface"
+msgstr "표면 측정"
+
+msgid "Thermal Preconditioning for first layer optimization"
+msgstr "첫 레이어 최적화를 위한 열 사전 조절"
+
 msgid "Unknown"
 msgstr "알 수 없음"
 
@@ -3981,8 +3987,8 @@ msgstr "부터"
 msgid "Slicing Result"
 msgstr "슬라이싱 결과"
 
-msgid "Helio Action"
-msgstr "Helio 액션"
+msgid "Helio Simulation"
+msgstr ""
 
 msgid "Color Scheme"
 msgstr "색상 구성표"
@@ -5434,9 +5440,6 @@ msgstr "완료됨"
 msgid "Camera"
 msgstr "카메라"
 
-msgid "MqttSource"
-msgstr "Mqtt소스"
-
 msgid "Storage"
 msgstr "저장고"
 
@@ -6777,6 +6780,15 @@ msgstr "모델을 복구하려면 다음과 같은 타사 도구를 사용하여
 #, c-format, boost-format
 msgid "Plate% d: %s is not suggested to be used to print filament %s(%s). If you still want to do this printing, please set this filament's bed temperature to non zero."
 msgstr "플레이트% d: %s는 필라멘트 %s (%s) 를 출력하는 데 사용하지 않는 것이 좋습니다. 그래도 이 출력을 진행하려면 이 필라멘트의 베드 온도를 0이 아닌 숫자로 설정하십시오."
+
+msgid "Parameter recommendation: In the process preset, under Others-Advanced, check Enable clumping detection by probing. This feature generates a small wipe tower and performs probing detection to identify clumping issues early in the print and stop printing, preventing print failures or printer damage.\n"
+msgstr ""
+
+msgid "Parameter recommendation"
+msgstr ""
+
+msgid "Click Wiki for details."
+msgstr ""
 
 msgid "Currently, the object configuration form cannot be used with a multiple-extruder printer."
 msgstr "현재 개체 구성 양식은 다중 압출기 프린터와 함께 사용할 수 없습니다."
@@ -9455,6 +9467,15 @@ msgstr "“객체별” 시퀀스가 활성화된 경우 smooth 타임랩스 모
 
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "\"객체별\" 시퀀스가 활성화된 경우 뭉침 감지가 지원되지 않습니다."
+
+msgid "enable_wrapping_detection"
+msgstr ""
+
+msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
+msgstr ""
+
+msgid "enable_prime_tower"
+msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "나선형 꽃병 모드에서 여러 객체를 출력하려면 “객체별” 출력 순서를 선택하십시오."
@@ -13654,6 +13675,42 @@ msgstr "강도를 우선시하는 0.8mm 노즐의 강도 프로필."
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "속도를 우선시하는 0.8mm 노즐의 표준 프로필."
 
+msgid "Helio: Process Started"
+msgstr ""
+
+msgid "Helio API endpoint is empty, please check the configuration."
+msgstr ""
+
+msgid "Personal assecc token is empty, please fill in the correct token."
+msgstr ""
+
+msgid "Helio: Presigned URL Created"
+msgstr ""
+
+msgid "Helio: file succesfully uploaded"
+msgstr ""
+
+msgid "Helio: file upload failed"
+msgstr ""
+
+msgid "Please make sure you have the corrent API key set in preferences."
+msgstr ""
+
+msgid "Helio: GCode created successfully"
+msgstr ""
+
+msgid "Helio: simulation successfully created"
+msgstr ""
+
+msgid "Helio: simulation working"
+msgstr ""
+
+msgid "Helio: simulation failed"
+msgstr ""
+
+msgid "Helio: GCode downloaded successfully"
+msgstr ""
+
 msgid "No AMS"
 msgstr "AMS 초기화 프로세스 중에 AMS E 가 오프라인으로 감지되었습니다."
 
@@ -14154,6 +14211,12 @@ msgid ""
 msgstr ""
 "뒤틀림 방지\n"
 "ABS와 같이 뒤틀리기 쉬운 소재를 출력할 때 열판 온도를 적절히 높이면 뒤틀릴 확률을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid "Helio Action"
+#~ msgstr "Helio 액션"
+
+#~ msgid "MqttSource"
+#~ msgstr "Mqtt소스"
 
 #~ msgid "Open Preferences."
 #~ msgstr "기본 설정 열기."

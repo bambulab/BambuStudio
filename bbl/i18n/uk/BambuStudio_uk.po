@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-08 11:32+0800\n"
+"POT-Creation-Date: 2025-08-11 14:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -3657,6 +3657,12 @@ msgstr ""
 msgid "Cutting Module Offset Calibration"
 msgstr ""
 
+msgid "Measuring Surface"
+msgstr ""
+
+msgid "Thermal Preconditioning for first layer optimization"
+msgstr ""
+
 msgid "Unknown"
 msgstr "Невідомий"
 
@@ -3982,7 +3988,7 @@ msgstr "від"
 msgid "Slicing Result"
 msgstr ""
 
-msgid "Helio Action"
+msgid "Helio Simulation"
 msgstr ""
 
 msgid "Color Scheme"
@@ -5427,9 +5433,6 @@ msgstr "Завершено"
 msgid "Camera"
 msgstr "Камера"
 
-msgid "MqttSource"
-msgstr ""
-
 msgid "Storage"
 msgstr ""
 
@@ -6769,6 +6772,15 @@ msgstr ""
 #, c-format, boost-format
 msgid "Plate% d: %s is not suggested to be used to print filament %s(%s). If you still want to do this printing, please set this filament's bed temperature to non zero."
 msgstr "Plate% d: %s не рекомендується використовувати для друку на нитках %s(%s). Якщо ви все ще хочете зробити цей друк, будь ласка, встановіть температуру шару цієї нитки до ненульового."
+
+msgid "Parameter recommendation: In the process preset, under Others-Advanced, check Enable clumping detection by probing. This feature generates a small wipe tower and performs probing detection to identify clumping issues early in the print and stop printing, preventing print failures or printer damage.\n"
+msgstr ""
+
+msgid "Parameter recommendation"
+msgstr ""
+
+msgid "Click Wiki for details."
+msgstr ""
 
 msgid "Currently, the object configuration form cannot be used with a multiple-extruder printer."
 msgstr ""
@@ -9420,6 +9432,15 @@ msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is 
 msgstr "Плавний режим таймлапсу не підтримується, коли послідовність \"по об'єкт\" увімкнено."
 
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
+msgstr ""
+
+msgid "enable_wrapping_detection"
+msgstr ""
+
+msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
+msgstr ""
+
+msgid "enable_prime_tower"
 msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
@@ -13602,6 +13623,42 @@ msgid "Strength profile for 0.8mm nozzle, prioritizing strength."
 msgstr ""
 
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
+msgstr ""
+
+msgid "Helio: Process Started"
+msgstr ""
+
+msgid "Helio API endpoint is empty, please check the configuration."
+msgstr ""
+
+msgid "Personal assecc token is empty, please fill in the correct token."
+msgstr ""
+
+msgid "Helio: Presigned URL Created"
+msgstr ""
+
+msgid "Helio: file succesfully uploaded"
+msgstr ""
+
+msgid "Helio: file upload failed"
+msgstr ""
+
+msgid "Please make sure you have the corrent API key set in preferences."
+msgstr ""
+
+msgid "Helio: GCode created successfully"
+msgstr ""
+
+msgid "Helio: simulation successfully created"
+msgstr ""
+
+msgid "Helio: simulation working"
+msgstr ""
+
+msgid "Helio: simulation failed"
+msgstr ""
+
+msgid "Helio: GCode downloaded successfully"
 msgstr ""
 
 msgid "No AMS"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-08 11:32+0800\n"
+"POT-Creation-Date: 2025-08-11 14:25+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3473,7 +3473,7 @@ msgstr ""
 "Återställ till 50%% ytdjup"
 
 msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
-msgstr ""
+msgstr "Spiral läge fungerar bara när väggslingor är 1, support är inaktiverat, klump detektering genom probe är inaktiverad, övre skalet lager är 0, gles utfyllnad densitet är 0, timelapse typ är traditionell och utjämning vägghastighet i z riktning är falsk."
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Maskiner med I3-struktur kan dock inte generera timelapse videor."
@@ -3657,6 +3657,12 @@ msgstr "Automatisk kontroll: Material position"
 
 msgid "Cutting Module Offset Calibration"
 msgstr "Kalibrering av skärmodulens offset"
+
+msgid "Measuring Surface"
+msgstr "Mäter ytan"
+
+msgid "Thermal Preconditioning for first layer optimization"
+msgstr "Termisk konditionering för optimering av första lagret"
 
 msgid "Unknown"
 msgstr "Okänd"
@@ -3983,8 +3989,8 @@ msgstr "från"
 msgid "Slicing Result"
 msgstr "Berednings resultat"
 
-msgid "Helio Action"
-msgstr "Helio Åtgärd"
+msgid "Helio Simulation"
+msgstr ""
 
 msgid "Color Scheme"
 msgstr "Färgschema"
@@ -5439,9 +5445,6 @@ msgstr "Färdig"
 msgid "Camera"
 msgstr "Kamera"
 
-msgid "MqttSource"
-msgstr "Mqtt Källa"
-
 msgid "Storage"
 msgstr "Lagring"
 
@@ -6474,15 +6477,17 @@ msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
 "Please request a new Helio-PAT."
 msgstr ""
+"Ingen giltig Helio-PAT upptäckt. Helio simulering och optimering kan inte fortsätta. \n"
+"Begär en ny Helio-PAT."
 
 msgid "Execution Blocked"
-msgstr ""
+msgstr "Utförandet blockerat"
 
 msgid "Regenerate PAT"
-msgstr ""
+msgstr "Regenerera PAT"
 
 msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
-msgstr ""
+msgstr "Det gick inte att få Helio PAT, Klicka på Uppdatera för att få det igen."
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Lös berednings felen och publicera igen."
@@ -6784,6 +6789,15 @@ msgstr "För att reparera modellen, använd ett tredjepartsverktyg innan du impo
 #, c-format, boost-format
 msgid "Plate% d: %s is not suggested to be used to print filament %s(%s). If you still want to do this printing, please set this filament's bed temperature to non zero."
 msgstr "Platta% d: %s rekommenderas inte för användning av filament %s(%s). Om du fortfarande vill göra detta utskriftsjobb, ändra detta filaments byggplattas temperatur till ett tal som inte är noll."
+
+msgid "Parameter recommendation: In the process preset, under Others-Advanced, check Enable clumping detection by probing. This feature generates a small wipe tower and performs probing detection to identify clumping issues early in the print and stop printing, preventing print failures or printer damage.\n"
+msgstr ""
+
+msgid "Parameter recommendation"
+msgstr ""
+
+msgid "Click Wiki for details."
+msgstr ""
 
 msgid "Currently, the object configuration form cannot be used with a multiple-extruder printer."
 msgstr "För närvarande kan formuläret för objekt konfiguration inte användas med en printer med flera extruders."
@@ -9107,7 +9121,7 @@ msgid "Agree"
 msgstr "Godkänn"
 
 msgid "Helio Additive"
-msgstr ""
+msgstr "Helio Additiv"
 
 msgid "Chamber temperature"
 msgstr "Kammarens temperatur"
@@ -9119,10 +9133,10 @@ msgid "How to use Helio"
 msgstr "Hur du använder Helio"
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
-msgstr ""
+msgstr "Det gick inte att få Helio PAT. Antalet utfärdade PATs har nått den övre gränsen. Var uppmärksam på informationen på Helio officiella hemsida. Klicka Uppdatera för att få den igen när den är tillgänglig."
 
 msgid "Click for more details"
-msgstr ""
+msgstr "Klicka för mer info"
 
 msgid "Air Pump"
 msgstr "Luftpump"
@@ -9467,6 +9481,15 @@ msgstr "Smooth läge för timelapse stöds inte när ”per objekt” -sekvens �
 
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "Klump detektering stöds inte när \"per objekt\" sekvens är aktiverad."
+
+msgid "enable_wrapping_detection"
+msgstr ""
+
+msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
+msgstr ""
+
+msgid "enable_prime_tower"
+msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Kontrollera \"Per objekt\" utskrifts sekvens för att skriva ut multipla objekt i Vase läge."
@@ -10073,7 +10096,7 @@ msgid "This setting will affect the speed of perimeters having radius <= small p
 msgstr "Denna inställning påverkar hastigheten för omkretsar med radie <= tröskelvärde för liten omkrets(vanligtvis hål). Om den uttrycks i procent (till exempel: 80%) kommer den att beräknas för ytterväggshastighet ovan. Ställ in på noll för auto."
 
 msgid "Small perimeter threshold"
-msgstr ""
+msgstr "Gränsvärde för liten omkrets"
 
 msgid "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr "Detta ställer in tröskelvärdet för liten perimeterlängd. Standardgränsen är 0mm"
@@ -10634,10 +10657,10 @@ msgid "Clumping detection layers."
 msgstr "Klump detekterings lager."
 
 msgid "Probing exclude area of clumping"
-msgstr ""
+msgstr "Probing uteslutet område för klumpar"
 
 msgid "Probing exclude area of clumping."
-msgstr ""
+msgstr "Probing uteslutet område för klumpar."
 
 msgid "Thumbnail size"
 msgstr "Miniatyr storlek"
@@ -13670,6 +13693,42 @@ msgstr "Styrkeprofil för 0.8 mm nozzle, prioritering av styrka."
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Standardprofil för 0.8 mm nozzle, prioriterar hastighet."
 
+msgid "Helio: Process Started"
+msgstr ""
+
+msgid "Helio API endpoint is empty, please check the configuration."
+msgstr ""
+
+msgid "Personal assecc token is empty, please fill in the correct token."
+msgstr ""
+
+msgid "Helio: Presigned URL Created"
+msgstr ""
+
+msgid "Helio: file succesfully uploaded"
+msgstr ""
+
+msgid "Helio: file upload failed"
+msgstr ""
+
+msgid "Please make sure you have the corrent API key set in preferences."
+msgstr ""
+
+msgid "Helio: GCode created successfully"
+msgstr ""
+
+msgid "Helio: simulation successfully created"
+msgstr ""
+
+msgid "Helio: simulation working"
+msgstr ""
+
+msgid "Helio: simulation failed"
+msgstr ""
+
+msgid "Helio: GCode downloaded successfully"
+msgstr ""
+
 msgid "No AMS"
 msgstr "Ingen AMS"
 
@@ -14170,6 +14229,12 @@ msgid ""
 msgstr ""
 "Undvik vridning\n"
 "Visste du att när du skriver ut material som är benägna att vrida, såsom ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten för vridning."
+
+#~ msgid "Helio Action"
+#~ msgstr "Helio Åtgärd"
+
+#~ msgid "MqttSource"
+#~ msgstr "Mqtt Källa"
 
 #~ msgid "Open Preferences."
 #~ msgstr "Öppna inställningar."
