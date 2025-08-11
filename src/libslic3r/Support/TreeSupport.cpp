@@ -4066,6 +4066,16 @@ TreeSupportData::TreeSupportData(const PrintObject &object, coordf_t xy_distance
         machine_border = machine_outline.split_expoly_with_holes(scale_(1.), {m_machine_border});
     }
 
+    if (object.print()->config().enable_wrapping_detection.value) {
+        Pointfs wrapping_detection_area = object.print()->config().wrapping_exclude_area.values;
+        Polygon wrapping_poly;
+        for (size_t i = 0; i < wrapping_detection_area.size(); ++i) {
+            auto pt = wrapping_detection_area[i];
+            wrapping_poly.points.emplace_back(Point(scale_(pt.x() + plate_offset(0)), scale_(pt.y() + plate_offset(1))) - object.instances().front().shift);
+        }
+        machine_border = union_ex(machine_border, {wrapping_poly});
+    }
+
     for (std::size_t layer_nr = 0; layer_nr < object.layers().size(); ++layer_nr) {
         const Layer *layer             = object.get_layer(layer_nr);
         m_max_move_distances[layer_nr] = layer->height * branch_scale_factor;
