@@ -345,18 +345,20 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
             std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
             if (helio_api_key.empty()) {
                 wxGetApp().request_helio_pat([this](std::string pat) {
-                    if (pat != "not_enough" && pat != "error") {
-                        Slic3r::HelioQuery::set_helio_pat(pat);
-                        helio_input_pat->SetLabel(Slic3r::HelioQuery::get_helio_pat());
-                        if (!Slic3r::HelioQuery::get_helio_pat().empty()) { helio_pat_refresh->Hide(); }
-                        else { helio_pat_refresh->Show(); }
+                    CallAfter([=]() {
+                        if (pat != "not_enough" && pat != "error") {
+                            Slic3r::HelioQuery::set_helio_pat(pat);
+                            helio_input_pat->SetLabel(Slic3r::HelioQuery::get_helio_pat());
+                            if (!Slic3r::HelioQuery::get_helio_pat().empty()) { helio_pat_refresh->Hide(); }
+                            else { helio_pat_refresh->Show(); }
 
 
-                        if (!Slic3r::HelioQuery::get_helio_api_url().empty() && !Slic3r::HelioQuery::get_helio_pat().empty()) {
-                            wxGetApp().request_helio_supported_data();
+                            if (!Slic3r::HelioQuery::get_helio_api_url().empty() && !Slic3r::HelioQuery::get_helio_pat().empty()) {
+                                wxGetApp().request_helio_supported_data();
+                            }
                         }
-                    }
                     });
+                 });
             }
             helio_input_pat->SetLabel(Slic3r::HelioQuery::get_helio_pat());
             if (!Slic3r::HelioQuery::get_helio_pat().empty()) { helio_pat_refresh->Hide(); }
@@ -896,26 +898,26 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
                     std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
                     if (helio_api_key.empty()) {
                         wxGetApp().request_helio_pat([this](std::string pat) {
-                            if (pat == "not_enough") {
-                                HelioPatNotEnoughDialog dlg;
-                                dlg.ShowModal();
-                            }
-                            else if (pat == "error") {
-                                MessageDialog dlg(nullptr, _L("Failed to obtain Helio PAT, Click Refresh to obtain it again."), wxString("Helio Additive"), wxYES | wxICON_WARNING);
-                                dlg.ShowModal();
-                            }
-                            else {
-                                Slic3r::HelioQuery::set_helio_pat(pat);
-                                helio_input_pat->SetLabel(Slic3r::HelioQuery::get_helio_pat());
-                                if (!Slic3r::HelioQuery::get_helio_pat().empty()) { helio_pat_refresh->Hide(); }
-                                else { helio_pat_refresh->Show(); }
-
-
-                                if (!Slic3r::HelioQuery::get_helio_api_url().empty() && !Slic3r::HelioQuery::get_helio_pat().empty()) {
-                                    wxGetApp().request_helio_supported_data();
+                            CallAfter([=]() {
+                                if (pat == "not_enough") {
+                                    HelioPatNotEnoughDialog dlg;
+                                    dlg.ShowModal();
                                 }
-                            }
+                                else if (pat == "error") {
+                                    MessageDialog dlg(nullptr, _L("Failed to obtain Helio PAT, Click Refresh to obtain it again."), wxString("Helio Additive"), wxYES | wxICON_WARNING);
+                                    dlg.ShowModal();
+                                }
+                                else {
+                                    Slic3r::HelioQuery::set_helio_pat(pat);
+                                    helio_input_pat->SetLabel(Slic3r::HelioQuery::get_helio_pat());
+                                    if (!Slic3r::HelioQuery::get_helio_pat().empty()) { helio_pat_refresh->Hide(); }
+                                    else { helio_pat_refresh->Show(); }
+                                    if (!Slic3r::HelioQuery::get_helio_api_url().empty() && !Slic3r::HelioQuery::get_helio_pat().empty()) {
+                                        wxGetApp().request_helio_supported_data();
+                                    }
+                                }
                             });
+                        });
                     }
                 }
                 else {
@@ -1367,7 +1369,7 @@ wxWindow* PreferencesDialog::create_general_page()
     helio_pat_panel = new wxPanel(helio_fun_panel);
     helio_pat_panel->SetBackgroundColour(helio_fun_panel->GetBackgroundColour());
     auto helio_title_pat = new Label(helio_pat_panel, _L("Helio-PAT"));
-    helio_input_pat = new ::TextInput(helio_pat_panel, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
+    helio_input_pat = new ::TextInput(helio_pat_panel, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER|wxTE_RIGHT);
     helio_input_pat->SetFont(Label::Body_13);
     helio_input_pat->SetMinSize(wxSize(FromDIP(410), FromDIP(22)));
     helio_input_pat->SetMaxSize(wxSize(FromDIP(410), FromDIP(22)));
@@ -1383,27 +1385,29 @@ wxWindow* PreferencesDialog::create_general_page()
             return;
         }
         wxGetApp().request_helio_pat([this](std::string pat) {
-            if (pat == "not_enough") {
-                HelioPatNotEnoughDialog dlg;
-                dlg.ShowModal();
-            }
-            else if (pat == "error") {
-                MessageDialog dlg(nullptr, _L("Failed to obtain Helio PAT, Click Refresh to obtain it again."), wxString("Helio Additive"), wxYES | wxICON_WARNING);
-                dlg.ShowModal();
-            }
-            else {
-                Slic3r::HelioQuery::set_helio_pat(pat);
-                helio_input_pat->SetLabel(Slic3r::HelioQuery::get_helio_pat());
-                if (!Slic3r::HelioQuery::get_helio_pat().empty()) { helio_pat_refresh->Hide(); }
-                else { helio_pat_refresh->Show(); }
-
-
-                if (!Slic3r::HelioQuery::get_helio_api_url().empty() && !Slic3r::HelioQuery::get_helio_pat().empty()) {
-                    wxGetApp().request_helio_supported_data();
+            CallAfter([=]() {
+                if (pat == "not_enough") {
+                    HelioPatNotEnoughDialog dlg;
+                    dlg.ShowModal();
                 }
-            }
+                else if (pat == "error") {
+                    MessageDialog dlg(nullptr, _L("Failed to obtain Helio PAT, Click Refresh to obtain it again."), wxString("Helio Additive"), wxYES | wxICON_WARNING);
+                    dlg.ShowModal();
+                }
+                else {
+                    Slic3r::HelioQuery::set_helio_pat(pat);
+                    helio_input_pat->SetLabel(Slic3r::HelioQuery::get_helio_pat());
+                    if (!Slic3r::HelioQuery::get_helio_pat().empty()) { helio_pat_refresh->Hide(); }
+                    else { helio_pat_refresh->Show(); }
+
+
+                    if (!Slic3r::HelioQuery::get_helio_api_url().empty() && !Slic3r::HelioQuery::get_helio_pat().empty()) {
+                        wxGetApp().request_helio_supported_data();
+                    }
+                }
             });
         });
+    });
 
     if (!Slic3r::HelioQuery::get_helio_pat().empty()) { helio_pat_refresh->Hide(); }
     else { helio_pat_refresh->Show(); }
