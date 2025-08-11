@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-08 11:32+0800\n"
+"POT-Creation-Date: 2025-08-11 14:25+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3328,7 +3328,7 @@ msgstr ""
 msgid ""
 "Should not large than 100%.\n"
 "Reset to defualt"
-msgstr ""
+msgstr "起始高度不应大于100%。将重置为默认值"
 
 #, c-format, boost-format
 msgid "Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"
@@ -3634,6 +3634,12 @@ msgstr "自动检测：材料位置"
 
 msgid "Cutting Module Offset Calibration"
 msgstr "刀切模组偏移校准"
+
+msgid "Measuring Surface"
+msgstr "曲面测量中"
+
+msgid "Thermal Preconditioning for first layer optimization"
+msgstr "首层优化保温准备"
 
 msgid "Unknown"
 msgstr "未定义"
@@ -3960,8 +3966,8 @@ msgstr "从"
 msgid "Slicing Result"
 msgstr "切片结果"
 
-msgid "Helio Action"
-msgstr "Helio功能"
+msgid "Helio Simulation"
+msgstr "Helio 仿真"
 
 msgid "Color Scheme"
 msgstr "颜色方案"
@@ -5405,9 +5411,6 @@ msgstr "完成"
 msgid "Camera"
 msgstr "摄像机"
 
-msgid "MqttSource"
-msgstr ""
-
 msgid "Storage"
 msgstr "存储介质"
 
@@ -6666,11 +6669,11 @@ msgstr "在修复之前，删除了支持、接缝和涂色信息,模型名字:"
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
-msgstr ""
+msgstr "未连接打印机，请前往设备页连接一台 %s 打印机后再同步。"
 
 #, c-format, boost-format
 msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
-msgstr ""
+msgstr "设备页当前连接的打印机不是 %s ，无法同步，请切换成 %s 后再同步。"
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "打印机上没有任何耗材，请先去机器上放置耗材。"
@@ -6741,6 +6744,15 @@ msgstr "如需修复模型，请使用第三方工具处理后再导入 Bambu St
 #, c-format, boost-format
 msgid "Plate% d: %s is not suggested to be used to print filament %s(%s). If you still want to do this printing, please set this filament's bed temperature to non zero."
 msgstr "热床% d：%s不建议被用于打印%s（%s）材料。如果您依然想打印，请设置耗材对应的热床温度为非零值。"
+
+msgid "Parameter recommendation: In the process preset, under Others-Advanced, check Enable clumping detection by probing. This feature generates a small wipe tower and performs probing detection to identify clumping issues early in the print and stop printing, preventing print failures or printer damage.\n"
+msgstr "在工艺预设的【其他-高级】中勾选“启用触碰裹头检测”选项。该功能将通过生成小型料塔和触碰检测，可在打印早期发现裹头问题并终止打印，避免打印失败或打印机损伤。\n"
+
+msgid "Parameter recommendation"
+msgstr ""
+
+msgid "Click Wiki for details."
+msgstr ""
 
 msgid "Currently, the object configuration form cannot be used with a multiple-extruder printer."
 msgstr "多喷嘴打印机暂不支持对象配置表单功能。"
@@ -9397,7 +9409,7 @@ msgid "Printing high-temp and low-temp filaments together may cause nozzle clogg
 msgstr "同时打印高温和低温材料可能导致喷嘴堵塞或打印机损坏。若仍需打印，可在首选项中启用该选项。"
 
 msgid "Printing different-temp filaments together may cause nozzle clogging or printer damage."
-msgstr ""
+msgstr "同时打印不同温度的耗材可能导致喷嘴堵塞或打印机损坏。"
 
 msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "同时打印高温和中温材料可能导致喷嘴堵塞或打印机损坏。"
@@ -9413,6 +9425,15 @@ msgstr "平滑模式的延时摄影不支持在逐件打印模式下使用。"
 
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "触碰裹头检测不支持在逐件打印模式下使用。"
+
+msgid "enable_wrapping_detection"
+msgstr "启用触碰裹头检测"
+
+msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
+msgstr "触碰裹头检测需要擦拭塔，否则打印件上可能会有瑕疵。"
+
+msgid "enable_prime_tower"
+msgstr "启用擦拭塔"
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "请选择逐件打印以支持在旋转花瓶模式下打印多个对象。"
@@ -13596,6 +13617,42 @@ msgstr "0.8mm喷嘴的高强度打印参数，强度优先。"
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "0.8mm喷嘴的默认参数，速度优先。"
 
+msgid "Helio: Process Started"
+msgstr "Helio：处理已开始"
+
+msgid "Helio API endpoint is empty, please check the configuration."
+msgstr "Helio API 端点为空，请检查配置。"
+
+msgid "Personal assecc token is empty, please fill in the correct token."
+msgstr ""
+
+msgid "Helio: Presigned URL Created"
+msgstr "Helio：预签名URL已创建"
+
+msgid "Helio: file succesfully uploaded"
+msgstr "Helio：文件已成功上传"
+
+msgid "Helio: file upload failed"
+msgstr "Helio：文件上传失败"
+
+msgid "Please make sure you have the corrent API key set in preferences."
+msgstr ""
+
+msgid "Helio: GCode created successfully"
+msgstr "Helio：G代码已成功创建"
+
+msgid "Helio: simulation successfully created"
+msgstr "Helio：仿真创建成功"
+
+msgid "Helio: simulation working"
+msgstr "Helio：仿真运行中"
+
+msgid "Helio: simulation failed"
+msgstr "Helio：仿真失败"
+
+msgid "Helio: GCode downloaded successfully"
+msgstr "Helio：G代码下载成功"
+
 msgid "No AMS"
 msgstr "没有AMS"
 
@@ -14096,6 +14153,9 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Helio Action"
+#~ msgstr "Helio功能"
 
 #~ msgid "Open Preferences."
 #~ msgstr "打开首选项"
