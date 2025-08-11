@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "02.01.00.26",
+    "version": "02.01.00.27",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -4506,10 +4506,6 @@
             "sub_path": "filament/Bambu PVA @BBL H2DP.json"
         },
         {
-            "name": "Bambu PVA @BBL H2DP 0.2 nozzle",
-            "sub_path": "filament/Bambu PVA @BBL H2DP 0.2 nozzle.json"
-        },
-        {
             "name": "Bambu PVA @BBL P1P",
             "sub_path": "filament/Bambu PVA @BBL P1P.json"
         },
@@ -4560,10 +4556,6 @@
         {
             "name": "Generic PVA @BBL H2DP",
             "sub_path": "filament/Generic PVA @BBL H2DP.json"
-        },
-        {
-            "name": "Generic PVA @BBL H2DP 0.2 nozzle",
-            "sub_path": "filament/Generic PVA @BBL H2DP 0.2 nozzle.json"
         },
         {
             "name": "Generic PVA @BBL P1P",
