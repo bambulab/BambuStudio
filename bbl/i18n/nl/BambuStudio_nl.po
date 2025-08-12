@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 14:40+0800\n"
+"POT-Creation-Date: 2025-08-12 19:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6716,12 +6716,12 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "Aangepaste steunen, seam_facets en kleurverf zijn verwijderd voordat de modelnaam werd gerepareerd:"
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
+msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
 msgstr "Printer niet aangesloten. Ga naar de apparaatpagina om een %s printer aan te sluiten voordat u gaat synchroniseren."
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
-msgstr "De momenteel aangesloten printer op de apparaatpagina is geen %s. Schakel over naar %s voordat u gaat synchroniseren."
+msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+msgstr "De momenteel aangesloten printer op de apparaatpagina is geen %s. Schakel over naar een %s voordat u gaat synchroniseren."
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "Er zitten geen filamenten in de printer. Laad eerst de filamenten in de printer."
@@ -14223,6 +14223,14 @@ msgstr ""
 "Kromtrekken voorkomen\n"
 "Wist je dat bij het printen van materialen die gevoelig zijn voor kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het warmtebed de kans op kromtrekken kan verkleinen?"
 
+#, c-format, boost-format
+#~ msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
+#~ msgstr "Printer niet aangesloten. Ga naar de apparaatpagina om een %s printer aan te sluiten voordat u gaat synchroniseren."
+
+#, c-format, boost-format
+#~ msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
+#~ msgstr "De momenteel aangesloten printer op de apparaatpagina is geen %s. Schakel over naar %s voordat u gaat synchroniseren."
+
 #~ msgid "Helio Action"
 #~ msgstr "Helio actie"
 
@@ -14252,14 +14260,6 @@ msgstr ""
 
 #~ msgid "Stop Buzzer"
 #~ msgstr "Stop zoemer"
-
-#, c-format, boost-format
-#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
-#~ msgstr "Printer niet aangesloten. Ga naar de apparaatpagina om een %s printer aan te sluiten voordat u gaat synchroniseren."
-
-#, c-format, boost-format
-#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-#~ msgstr "De momenteel aangesloten printer op de apparaatpagina is geen %s. Schakel over naar een %s voordat u gaat synchroniseren."
 
 #~ msgid "Helio settings"
 #~ msgstr "Helio instellingen"

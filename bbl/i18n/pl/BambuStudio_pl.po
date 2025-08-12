@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 14:40+0800\n"
+"POT-Creation-Date: 2025-08-12 19:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6727,12 +6727,12 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "Przed naprawą nazwy modelu usunięto niestandardowe podpory, fasety szwu i malowanie kolorem:"
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
-msgstr ""
+msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+msgstr "Drukarka nie jest podłączona. Przejdź do strony urządzenia, aby podłączyć drukarkę %s przed synchronizacją."
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
-msgstr ""
+msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+msgstr "Drukarka która jest aktualnie podłączona na stronie urządzenia to nie jest drukarka %s. Przed synchronizacją przełącz na drukarkę %s."
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "Brak filamentu w drukarce. Najpierw załaduj filament do drukarki."
@@ -14263,14 +14263,6 @@ msgstr ""
 
 #~ msgid "Common"
 #~ msgstr "Wspórny"
-
-#, c-format, boost-format
-#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
-#~ msgstr "Drukarka nie jest podłączona. Przejdź do strony urządzenia, aby podłączyć drukarkę %s przed synchronizacją."
-
-#, c-format, boost-format
-#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-#~ msgstr "Drukarka która jest aktualnie podłączona na stronie urządzenia to nie jest drukarka %s. Przed synchronizacją przełącz na drukarkę %s."
 
 #~ msgid "Small perimter threshold"
 #~ msgstr "Próg małego obrysu"

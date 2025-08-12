@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 14:40+0800\n"
+"POT-Creation-Date: 2025-08-12 19:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6704,11 +6704,11 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "사용자 지정 지원, 심_면 및 색상 페인팅이 수리하기 전에 제거되었습니다, 모델 이름:"
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
+msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
 msgstr "프린터가 연결되지 않았습니다. 동기화하기 전에 장치 페이지로 이동하여 %s 프린터를 연결하세요."
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
+msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
 msgstr "장치 페이지의 현재 연결된 프린터가 %s이 아닙니다. 동기화하기 전에 %s로 전환하세요."
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
@@ -14209,6 +14209,14 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS와 같이 뒤틀리기 쉬운 소재를 출력할 때 열판 온도를 적절히 높이면 뒤틀릴 확률을 줄일 수 있다는 사실을 알고 계셨나요?"
 
+#, c-format, boost-format
+#~ msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
+#~ msgstr "프린터가 연결되지 않았습니다. 동기화하기 전에 장치 페이지로 이동하여 %s 프린터를 연결하세요."
+
+#, c-format, boost-format
+#~ msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
+#~ msgstr "장치 페이지의 현재 연결된 프린터가 %s이 아닙니다. 동기화하기 전에 %s로 전환하세요."
+
 #~ msgid "Helio Action"
 #~ msgstr "Helio 액션"
 
@@ -14238,14 +14246,6 @@ msgstr ""
 
 #~ msgid "Stop Buzzer"
 #~ msgstr "버저 중지"
-
-#, c-format, boost-format
-#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
-#~ msgstr "프린터가 연결되지 않았습니다. 동기화하기 전에 장치 페이지로 이동하여 %s 프린터를 연결하세요."
-
-#, c-format, boost-format
-#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-#~ msgstr "장치 페이지의 현재 연결된 프린터가 %s이 아닙니다. 동기화하기 전에 %s로 전환하세요."
 
 #~ msgid "Small perimter threshold"
 #~ msgstr "작은 경계 임계값"

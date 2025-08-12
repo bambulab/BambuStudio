@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 14:40+0800\n"
+"POT-Creation-Date: 2025-08-12 19:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6699,12 +6699,12 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "Les supports personnalisés, les surfaces de jointure et la peinture de couleur ont été retirés avant la réparation, nom du modèle :"
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
-msgstr ""
+msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+msgstr "Imprimante non connectée. Veuillez consulter la page de l'appareil pour connecter une imprimante %s avant de procéder à la synchronisation."
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
-msgstr ""
+msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+msgstr "L'imprimante actuellement connectée sur la page Périphérique n'est pas une %s. Veuillez basculer vers une %s avant de procéder à la synchronisation."
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "Il n'y a pas de filaments dans l'imprimante. Veuillez d'abord charger les filaments sur l'imprimante."
@@ -14229,14 +14229,6 @@ msgstr ""
 
 #~ msgid "Stop Buzzer"
 #~ msgstr "Buzzer d'arrêt"
-
-#, c-format, boost-format
-#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
-#~ msgstr "Imprimante non connectée. Veuillez consulter la page de l'appareil pour connecter une imprimante %s avant de procéder à la synchronisation."
-
-#, c-format, boost-format
-#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-#~ msgstr "L'imprimante actuellement connectée sur la page Périphérique n'est pas une %s. Veuillez basculer vers une %s avant de procéder à la synchronisation."
 
 #~ msgid "Helio settings"
 #~ msgstr "Paramètres Helio"

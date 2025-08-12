@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 14:40+0800\n"
+"POT-Creation-Date: 2025-08-12 19:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6719,12 +6719,12 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "Suportes personalizados, seam_facets e pintura colorida foram removidos antes de reparar o nome do modelo:"
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
-msgstr ""
+msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+msgstr "Impressora não conectada. Vá para a página do dispositivo para conectar uma impressora %s antes de sincronizar."
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
-msgstr ""
+msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+msgstr "A impressora conectada atualmente na página do dispositivo não é uma %s. Por favor, troque para uma %s antes de sincronizar."
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "Não há filamentos na impressora. Carregue os filamentos na impressora primeiro."
@@ -14254,14 +14254,6 @@ msgstr ""
 
 #~ msgid "Stop Buzzer"
 #~ msgstr "Parar Buzzer"
-
-#, c-format, boost-format
-#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
-#~ msgstr "Impressora não conectada. Vá para a página do dispositivo para conectar uma impressora %s antes de sincronizar."
-
-#, c-format, boost-format
-#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-#~ msgstr "A impressora conectada atualmente na página do dispositivo não é uma %s. Por favor, troque para uma %s antes de sincronizar."
 
 #~ msgid "Small perimter threshold"
 #~ msgstr "Limite de perímetro pequeno"
