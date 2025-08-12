@@ -344,6 +344,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/PlateSettingsDialog.hpp
     GUI/ImGuiWrapper.hpp
     GUI/ImGuiWrapper.cpp
+    GUI/ImageMessageDialog.hpp
+    GUI/ImageMessageDialog.cpp
     GUI/DeviceManager.hpp
     GUI/DeviceManager.cpp
     GUI/DeviceErrorDialog.hpp

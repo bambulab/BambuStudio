@@ -153,6 +153,7 @@
 
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevManager.h"
+#include "ImageMessageDialog.hpp"
 
 using boost::optional;
 namespace fs = boost::filesystem;
@@ -17789,17 +17790,9 @@ void Plater::show_wrapping_detect_dialog_if_necessary()
     if ((wxGetApp().app_config->get("show_wrapping_detect_dialog") == "true")) {
         std::string printer_type = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
         if (DevPrinterConfigUtil::support_wrapping_detection(printer_type)) {
-            MessageDialog
-                 dlg(this, _L("Parameter recommendation: In the process preset, under Others-Advanced, check Enable clumping detection by probing. This feature generates a small wipe "
-                         "tower and performs probing detection to identify clumping issues early in the print and stop printing, preventing print failures or printer damage.\n"),
-                     _L("Parameter recommendation"), wxOK, wxEmptyString, _L("Click Wiki for details."), [](const wxString) {
-                        std::string language = wxGetApp().app_config->get("language");
-                        wxString    region   = L"en";
-                        if (language.find("zh") == 0) region = L"zh";
-                        const wxString wiki_link = wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/nozzle-clumping-detection-by-probing", region);
-                        wxGetApp().open_browser_with_warning_dialog(wiki_link);
-                    });
-            auto res = dlg.ShowModal();
+            ImageMessageDialog dlg(this, wxID_ANY, _L("Parameter recommendation"), _L("In the process preset, under \"Others-Advanced\", check \"Enable clumping detection by probing\". This feature generates a small wipe "
+                "tower and performs probing detection to identify clumping issues early in the print and stop printing, preventing print failures or printer damage.\n"));
+            dlg.ShowModal();
             wxGetApp().app_config->set("show_wrapping_detect_dialog", "false");
         }
     }
