@@ -190,7 +190,8 @@ void Slic3r::GUI::BackupFonts::generate_backup_fonts() {
          font_names.emplace_back(wxString::FromUTF8("Arial")); // Arabic
 #endif
 #ifdef __linux__
-         font_names.emplace_back(wxString(L"宋体"));                 // chinese confirm
+         font_names.emplace_back(wxString(L"宋体"));         // chinese confirm
+         font_names.emplace_back(wxString("AR PL UMing CN"));// chinese confirm
          font_names.emplace_back(wxString::FromUTF8("MS Gothic"));   // Japanese
          font_names.emplace_back(wxString::FromUTF8("NanumGothic")); // Korean
          font_names.emplace_back(wxString::FromUTF8("Arial"));       // Arabic
