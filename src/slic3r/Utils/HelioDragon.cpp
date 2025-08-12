@@ -44,10 +44,10 @@ void HelioQuery::request_support_machine(const std::string helio_api_url, const 
     http.timeout_connect(20)
         .timeout_max(100)
         .on_complete([url_copy, key_copy, page_copy](std::string body, unsigned status) {
-            nlohmann::json                         parsed_obj = nlohmann::json::parse(body);
-            std::vector<HelioQuery::SupportedData> supported_printers;
-
+            BOOST_LOG_TRIVIAL(info) << "request_support_machine" << body;
             try {
+                nlohmann::json parsed_obj = nlohmann::json::parse(body);
+                std::vector<HelioQuery::SupportedData> supported_printers;
                 if (parsed_obj.contains("data") && parsed_obj["data"].contains("printers")) {
                     auto materials = parsed_obj["data"]["printers"];
                     if (materials.contains("objects") && materials["objects"].is_array()) {
@@ -103,10 +103,10 @@ void HelioQuery::request_support_material(const std::string helio_api_url, const
         .timeout_max(100)
         .on_complete([url_copy, key_copy, page_copy](std::string body, unsigned status) {
             BOOST_LOG_TRIVIAL(info) << "request_support_material" << body;
-            nlohmann::json                         parsed_obj = nlohmann::json::parse(body);
-            std::vector<HelioQuery::SupportedData> supported_materials;
-
             try {
+                nlohmann::json parsed_obj = nlohmann::json::parse(body);
+                std::vector<HelioQuery::SupportedData> supported_materials;
+
                 if (parsed_obj.contains("data") && parsed_obj["data"].contains("materials")) {
                     auto materials = parsed_obj["data"]["materials"];
                     if (materials.contains("objects") && materials["objects"].is_array()) {
@@ -192,8 +192,8 @@ void HelioQuery::request_pat_token(std::function<void(std::string)> func)
         .on_complete([url_copy, func](std::string body, unsigned status) {
         //success
         if (status == 200) {
-            nlohmann::json parsed_obj = nlohmann::json::parse(body);
             try {
+                nlohmann::json parsed_obj = nlohmann::json::parse(body);
                 if (parsed_obj.contains("pat") && parsed_obj["pat"].is_string()) {
                     func(parsed_obj["pat"].get<std::string>());
                 }
@@ -238,15 +238,19 @@ HelioQuery::PresignedURLResult HelioQuery::create_presigned_url(const std::strin
     http.timeout_connect(20)
         .timeout_max(100)
         .on_complete([&res](std::string body, unsigned status) {
-            nlohmann::json parsed_obj = nlohmann::json::parse(body);
-            res.status                = status;
-            if (parsed_obj.contains("error")) {
-                res.error = parsed_obj["error"];
-            } else {
-                res.key      = parsed_obj["data"]["getPresignedUrl"]["key"];
-                res.mimeType = parsed_obj["data"]["getPresignedUrl"]["mimeType"];
-                res.url      = parsed_obj["data"]["getPresignedUrl"]["url"];
+            try{
+                nlohmann::json parsed_obj = nlohmann::json::parse(body);
+                res.status = status;
+                if (parsed_obj.contains("error")) {
+                    res.error = parsed_obj["error"];
+                }
+                else {
+                    res.key = parsed_obj["data"]["getPresignedUrl"]["key"];
+                    res.mimeType = parsed_obj["data"]["getPresignedUrl"]["mimeType"];
+                    res.url = parsed_obj["data"]["getPresignedUrl"]["url"];
+                }
             }
+            catch (...){}
         })
         .on_error([&res](std::string body, std::string error, unsigned status) {
             res.error  = (boost::format("error: %1%, message: %2%") % error % body).str();
@@ -315,43 +319,48 @@ HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
     http.timeout_connect(20)
         .timeout_max(100)
         .on_complete([&res](std::string body, unsigned status) {
-            nlohmann::json parsed_obj = nlohmann::json::parse(body);
-            res.status                = status;
-            if (parsed_obj.contains("errors")) {
-                res.error   = parsed_obj["errors"].dump();
-                res.success = false;
-            } else {
 
-                if (!parsed_obj["data"]["createGcode"]["gcode"].is_null()) {
-                    res.success = true;
-                    res.id      = parsed_obj["data"]["createGcode"]["gcode"]["id"];
-                    res.name    = parsed_obj["data"]["createGcode"]["gcode"]["name"];
-                } else {
+            try{
+                nlohmann::json parsed_obj = nlohmann::json::parse(body);
+                res.status = status;
+                if (parsed_obj.contains("errors")) {
+                    res.error = parsed_obj["errors"].dump();
                     res.success = false;
-                    res.error   = "";
-                    for (const auto& err : parsed_obj["data"]["createGcode"]["criticalErrors"]) {
-                        std::string error_msg = err.get<std::string>();
-                        res.error_flags.push_back(error_msg);
+                }
+                else {
 
-                        res.error += " ";
-                        res.error += error_msg;
+                    if (!parsed_obj["data"]["createGcode"]["gcode"].is_null()) {
+                        res.success = true;
+                        res.id = parsed_obj["data"]["createGcode"]["gcode"]["id"];
+                        res.name = parsed_obj["data"]["createGcode"]["gcode"]["name"];
+                    }
+                    else {
+                        res.success = false;
+                        res.error = "";
+                        for (const auto& err : parsed_obj["data"]["createGcode"]["criticalErrors"]) {
+                            std::string error_msg = err.get<std::string>();
+                            res.error_flags.push_back(error_msg);
+
+                            res.error += " ";
+                            res.error += error_msg;
+                        }
+
+                        for (const auto& err : parsed_obj["data"]["createGcode"]["criticalErrors"]) {
+                            std::string error_msg = err.get<std::string>();
+                            res.error_flags.push_back(error_msg);
+
+                            res.error += " ";
+                            res.error += error_msg;
+                        }
                     }
 
-                    for (const auto& err : parsed_obj["data"]["createGcode"]["criticalErrors"]) {
+                    for (const auto& err : parsed_obj["data"]["createGcode"]["warnings"]) {
                         std::string error_msg = err.get<std::string>();
-                        res.error_flags.push_back(error_msg);
-
-                        res.error += " ";
-                        res.error += error_msg;
+                        res.warning_flags.push_back(error_msg);
                     }
                 }
-
-				for (const auto& err : parsed_obj["data"]["createGcode"]["warnings"]) {
-					std::string error_msg = err.get<std::string>();
-					res.warning_flags.push_back(error_msg);
-				}
-
             }
+            catch (...){}
         })
         .on_error([&res](std::string body, std::string error, unsigned status) {
             res.success = false;
@@ -437,16 +446,21 @@ HelioQuery::CreateSimulationResult HelioQuery::create_simulation(const std::stri
     http.timeout_connect(20)
         .timeout_max(100)
         .on_complete([&res](std::string body, unsigned status) {
-            nlohmann::json parsed_obj = nlohmann::json::parse(body);
-            res.status                = status;
-            if (parsed_obj.contains("errors")) {
-                res.error   = parsed_obj["errors"].dump();
-                res.success = false;
-            } else {
-                res.success = true;
-                res.id      = parsed_obj["data"]["createSimulation"]["id"];
-                res.name    = parsed_obj["data"]["createSimulation"]["name"];
+            
+            try{
+                nlohmann::json parsed_obj = nlohmann::json::parse(body);
+                res.status = status;
+                if (parsed_obj.contains("errors")) {
+                    res.error = parsed_obj["errors"].dump();
+                    res.success = false;
+                }
+                else {
+                    res.success = true;
+                    res.id = parsed_obj["data"]["createSimulation"]["id"];
+                    res.name = parsed_obj["data"]["createSimulation"]["name"];
+                }
             }
+            catch (...){}
         })
         .on_error([&res](std::string body, std::string error, unsigned status) {
             res.success = false;
@@ -479,18 +493,22 @@ HelioQuery::CheckSimulationProgressResult HelioQuery::check_simulation_progress(
     http.timeout_connect(20)
         .timeout_max(100)
         .on_complete([&res](std::string body, unsigned status) {
-            nlohmann::json parsed_obj = nlohmann::json::parse(body);
-            res.status                = status;
-            if (parsed_obj.contains("errors")) {
-                res.error = parsed_obj["errors"].dump();
-            } else {
-                res.id          = parsed_obj["data"]["simulation"]["id"];
-                res.name        = parsed_obj["data"]["simulation"]["name"];
-                res.progress    = parsed_obj["data"]["simulation"]["progress"];
-                res.is_finished = parsed_obj["data"]["simulation"]["status"] == "FINISHED";
-                if (res.is_finished)
-                    res.url = parsed_obj["data"]["simulation"]["thermalIndexGcodeUrl"];
+            try{
+                nlohmann::json parsed_obj = nlohmann::json::parse(body);
+                res.status = status;
+                if (parsed_obj.contains("errors")) {
+                    res.error = parsed_obj["errors"].dump();
+                }
+                else {
+                    res.id = parsed_obj["data"]["simulation"]["id"];
+                    res.name = parsed_obj["data"]["simulation"]["name"];
+                    res.progress = parsed_obj["data"]["simulation"]["progress"];
+                    res.is_finished = parsed_obj["data"]["simulation"]["status"] == "FINISHED";
+                    if (res.is_finished)
+                        res.url = parsed_obj["data"]["simulation"]["thermalIndexGcodeUrl"];
+                }
             }
+            catch (...){}
         })
         .on_error([&res](std::string body, std::string error, unsigned status) {
             res.error  = error;
@@ -765,7 +783,7 @@ void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string 
     }
 
     if (response_error.empty() && !was_canceled()) {
-        FILE* file = fopen(simulated_gcode_path.c_str(), "w");
+        FILE* file = fopen(simulated_gcode_path.c_str(), "wb");
         fwrite(downloaded_gcode.c_str(), 1, downloaded_gcode.size(), file);
         fclose(file);
 
