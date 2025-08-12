@@ -43,7 +43,7 @@ ImageMessageDialog::ImageMessageDialog(wxWindow *parent, wxWindowID id, const wx
 
     m_scroll_area->SetSizer(text_sizer);
 
-    Button *msg_button = new Button(this, L("Click Wiki for details"));
+    Button *msg_button = new Button(this, _L("Click Wiki for details"));
     msg_button->SetBackgroundColor(btn_bg_white);
     msg_button->SetBorderColor(wxColour(38, 46, 48));
     msg_button->SetFont(Label::Body_14);
