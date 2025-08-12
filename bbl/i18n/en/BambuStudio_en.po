@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 14:40+0800\n"
+"POT-Creation-Date: 2025-08-12 19:21+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -6661,11 +6661,11 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr ""
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
+msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
 msgstr ""
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
+msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
 msgstr ""
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."

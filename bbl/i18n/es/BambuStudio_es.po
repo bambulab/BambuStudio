@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 14:40+0800\n"
+"POT-Creation-Date: 2025-08-12 19:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6716,12 +6716,12 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "Se eliminaron los soportes personalizados, las caras de costura y la pintura de color antes de reparar el nombre del modelo:"
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
-msgstr ""
+msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+msgstr "La impresora no está conectada. Ve a la página del dispositivo para conectar una %s impresora antes de realizar la sincronización."
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
-msgstr ""
+msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+msgstr "La impresora actualmente conectada en la página del dispositivo no es una%s. Cambie a una %s antes de la sincronización."
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "No hay filamentos en la impresora. Cargue primero los filamentos en la impresora."
@@ -14255,14 +14255,6 @@ msgstr ""
 
 #~ msgid "Stop Buzzer"
 #~ msgstr "Detener el timbre"
-
-#, c-format, boost-format
-#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
-#~ msgstr "La impresora no está conectada. Ve a la página del dispositivo para conectar una %s impresora antes de realizar la sincronización."
-
-#, c-format, boost-format
-#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-#~ msgstr "La impresora actualmente conectada en la página del dispositivo no es una%s. Cambie a una %s antes de la sincronización."
 
 #~ msgid "Small perimter threshold"
 #~ msgstr "Umbral perimétrico pequeño"

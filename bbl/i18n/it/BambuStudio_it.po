@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 14:40+0800\n"
+"POT-Creation-Date: 2025-08-12 19:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6708,12 +6708,12 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "I supporti personalizzati, le facce di giuntura e la pittura a colori sono stati rimossi prima di riparare il nome del modello:"
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
-msgstr ""
+msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+msgstr "Stampante non connessa. Vai alla pagina del dispositivo per connettere una stampante %s prima di sincronizzare."
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
-msgstr ""
+msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+msgstr "La stampante attualmente collegata nella pagina del dispositivo non è un %s. Per favore, passa a un %s prima di sincronizzare."
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "Non ci sono filamenti sulla stampante. Per favore, carica prima i filamenti sulla stampante."
@@ -14241,14 +14241,6 @@ msgstr ""
 
 #~ msgid "Common"
 #~ msgstr "Comune"
-
-#, c-format, boost-format
-#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
-#~ msgstr "Stampante non connessa. Vai alla pagina del dispositivo per connettere una stampante %s prima di sincronizzare."
-
-#, c-format, boost-format
-#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-#~ msgstr "La stampante attualmente collegata nella pagina del dispositivo non è un %s. Per favore, passa a un %s prima di sincronizzare."
 
 #~ msgid "Small perimter threshold"
 #~ msgstr "Soglia piccoli perimetri"
