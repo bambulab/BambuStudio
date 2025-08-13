@@ -2740,9 +2740,9 @@ std::vector<Polygons> Print::get_extruder_unprintable_polygons() const
 
 Polygons Print::get_extruder_shared_printable_polygon() const
 {
+    if (m_config.nozzle_diameter.size() < 2) return {Polygon::new_scale(m_config.printable_area.values)};
     std::vector<std::vector<Vec2d>> extruder_printable_areas = m_config.extruder_printable_area.values;
     Polygons shared_printable_polys = {Polygon::new_scale(extruder_printable_areas.front())};
-
     for (int i = 1; i < extruder_printable_areas.size();i++) {
         Polygons polys = {Polygon::new_scale(extruder_printable_areas[i])};
         shared_printable_polys = intersection(shared_printable_polys, polys);
