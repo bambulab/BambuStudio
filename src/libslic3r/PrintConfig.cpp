@@ -1959,6 +1959,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercents{ 100 });
 
+    def           = this->add("filament_velocity_adaptation_factor", coFloats);
+    def->label    = L("Velocity Adaptation Factor");
+    def->min      = 0;
+    def->tooltip = L("This parameter reflects the speed at which a material transitions from one state to another. "
+                     "It, along with the smooth coefficient, determines the final length of the transition zone. "
+                     "A larger value: requires a shorter transition zone. "
+                     "A smaller value: requires a longer transition zone to avoid flow instability.");
+    def->set_default_value(new ConfigOptionFloats{1.0});
+
     def           = this->add("filament_adhesiveness_category", coInts);
     def->label    = L("Adhesiveness Category");
     def->tooltip  = L("Filament category");

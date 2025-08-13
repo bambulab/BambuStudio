@@ -205,7 +205,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "bed_temperature_formula",
         "filament_notes",
         "process_notes",
-        "printer_notes"
+        "printer_notes",
+        "filament_velocity_adaptation_factor"
     };
 
     static std::unordered_set<std::string> steps_ignore;

@@ -1286,6 +1286,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,               exclude_object))
     ((ConfigOptionPercents,            filament_shrink))
     ((ConfigOptionFloats,             grab_length))
+    ((ConfigOptionFloats,             filament_velocity_adaptation_factor))
     //BBS
     ((ConfigOptionFloats,             circle_compensation_speed))
     ((ConfigOptionFloats,             diameter_limit))
