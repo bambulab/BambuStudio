@@ -306,7 +306,7 @@ namespace Slic3r
                     //TODO: check m_flush_matrix
                     float max_val = std::max(flush_matrix[used_filaments[i]][used_filaments[j]], flush_matrix[used_filaments[j]][used_filaments[i]]);
                     float min_val = std::min(flush_matrix[used_filaments[i]][used_filaments[j]], flush_matrix[used_filaments[j]][used_filaments[i]]);
-                    m_distance_matrix[i][j] = (max_val * p + min_val * (1 - p)) * count_matrix[i][j];
+                    m_distance_matrix[i][j] = (max_val * p + min_val * (1 - p)) * (std::max(count_matrix[i][j], 1));
                 }
             }
         }
@@ -499,8 +499,15 @@ namespace Slic3r
         assert(m_evaluator);
         int total_cost = 0;
         for (int i = 0; i < m_elem_count; ++i) {
-            if ((cluster_id == -1 || cluster_labels[i] == cluster_id) && cluster_centers[cluster_labels[i]] != -1)
-                total_cost += m_evaluator->get_distance(i, cluster_centers[cluster_labels[i]]);
+            if (cluster_id != -1 && cluster_labels[i] != cluster_id) 
+                continue;
+            if (cluster_centers[cluster_labels[i]] == -1)
+                continue;
+            for (int j = i + 1; j < m_elem_count; ++j) {
+                if (cluster_labels[i] == cluster_labels[j]) {
+                    total_cost += m_evaluator->get_distance(i, j);
+                }
+            }
         }
         return total_cost;
     }
@@ -530,20 +537,39 @@ namespace Slic3r
         std::vector<int> r_nodes(m_k); // represent the groups idx
         std::iota(r_nodes.begin(), r_nodes.end(), 0);
 
-        // only consider the size limit if the group can contain all of the filaments
-        std::vector<int> i_cluster_size = {};
-        std::vector<std::pair<std::set<int>, int>> i_cluster_group_size = {};
-        if (have_enough_size(cluster_size, cluster_group_size,m_elem_count)) {
-            i_cluster_size = cluster_size;
-            i_cluster_group_size = cluster_group_size;
-        }
-        else{
-            // TODO: xcr：throw exception here?
+        MaxFlowSolver M(l_nodes, r_nodes, placeable_limits, unplaceable_limits);
+        auto          ret = M.solve();
+        if (std::all_of(ret.begin(), ret.end(), [](int i) { return i != -1; })) return ret;
+
+        std::vector<int> center(m_k, -1);
+        for (int i = 0; i < ret.size(); ++i) {
+            if (ret[i] != -1) center[ret[i]] = i;
         }
 
-        MaxFlowSolver M(l_nodes, r_nodes, placeable_limits, unplaceable_limits, {}, i_cluster_size, i_cluster_group_size);
-        auto ret = M.solve();
+        std::vector<std::vector<float>> distance_matrix(m_elem_count, std::vector<float>(m_k));
+        for (int i = 0; i < m_elem_count; ++i) {
+            for (int j = 0; j < m_k; ++j) {
+                if (center[j] == -1)
+                    distance_matrix[i][j] = 0;
+                else
+                    distance_matrix[i][j] = m_evaluator->get_distance(i, center[j]);
+            }
+        }
 
+        std::vector<int>                           r_nodes_capacity       = {};
+        std::vector<std::pair<std::set<int>, int>> r_nodes_group_capacity = {};
+        if (have_enough_size(cluster_size, cluster_group_size, m_elem_count)) {
+            r_nodes_capacity       = cluster_size;
+            r_nodes_group_capacity = cluster_group_size;
+        } else {
+            // adjust group size to elem count if the group cannot contain all of the filamnts
+            r_nodes_capacity = std::vector<int>(m_k, m_elem_count);
+        }
+
+        std::vector<int> l_nodes_capacity(l_nodes.size(), 1);
+
+        MinFlushFlowSolver MF(distance_matrix, l_nodes, r_nodes, placeable_limits, unplaceable_limits, l_nodes_capacity, r_nodes_capacity, r_nodes_group_capacity);
+        ret = MF.solve();
         // if still has -1，it means there has some filaments that cannot be placed under the limit. We put it in the default group_id
         for (size_t idx = 0; idx < ret.size(); ++idx) {
             if (ret[idx] == -1) {
@@ -719,7 +745,7 @@ namespace Slic3r
                 for (size_t cluster_id = 0; cluster_id < m_k; ++cluster_id) {
                     if (curr_cluster_centers[cluster_id] == -1) continue; // skip the empty cluster
                     for (int elem = 0; elem < m_elem_count; ++elem) {
-                        if (curr_cluster_centers[cluster_id] == elem ||
+                        if (std::find(curr_cluster_centers.begin(), curr_cluster_centers.end(), elem) != curr_cluster_centers.end() ||
                             std::find(m_unplaceable_limits[cluster_id].begin(), m_unplaceable_limits[cluster_id].end(), elem) != m_unplaceable_limits[cluster_id].end())
                             continue;
                         std::vector<int> tmp_centers = curr_cluster_centers;
@@ -1323,7 +1349,6 @@ namespace Slic3r
     std::vector<int> FilamentGroupMultiNozzle::calc_filament_group_by_pam()
     {
         std::vector<unsigned int> used_filaments = collect_sorted_used_filaments(m_context.model_info.layer_filaments);
-
         std::unordered_map<int, std::vector<int>>unplaceable_limits;
         extract_unprintable_limit_indices(m_context.model_info.unprintable_filaments, used_filaments, unplaceable_limits); // turn filament idx to idx in used filaments
         unplaceable_limits = rebuild_nozzle_unprintables(unplaceable_limits);
@@ -1331,7 +1356,7 @@ namespace Slic3r
         int k = m_context.nozzle_info.nozzle_list.size();
         auto distance_evaluator = std::make_shared<FlushDistanceEvaluator>(m_context.model_info.flush_matrix[0], used_filaments, m_context.model_info.layer_filaments);
 
-        KMediods PAM(k, (int)used_filaments.size(), distance_evaluator);
+         KMediods PAM(k, (int)used_filaments.size(), distance_evaluator);
         PAM.set_unplacable_limits(unplaceable_limits);
 
         std::vector<std::pair<std::set<int>, int>> cluster_size_limit;
