@@ -5627,6 +5627,7 @@ void GCodeProcessor::process_filament_change(int id)
         }
         if (is_nozzle_change) {
             process_filaments(CustomGCode::ToolChange);
+            m_result.print_statistics.total_nozzle_changes++;
         }
         if(is_filament_change){
             process_filaments(CustomGCode::ToolChange);

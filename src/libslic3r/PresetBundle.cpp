@@ -1889,14 +1889,6 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     }
     this->extruder_ams_counts = get_extruder_ams_count(extruder_ams_count_str);
 
-#if 0
-    std::vector<std::string> extruder_nozzle_count_str;
-    if (config.has("presets", "extruder_nozzle_count")){
-        boost::algorithm::split(extruder_nozzle_count_str, config.get("presets", "extruder_nozzle_count"), boost::algorithm::is_any_of(","));
-    }
-    this->extruder_nozzle_counts = get_extruder_nozzle_count(extruder_nozzle_count_str);
-#endif
-
     std::vector<std::string> matrix;
     if (config.has("presets", "flush_volumes_matrix")) {
         boost::algorithm::split(matrix, config.get("presets", "flush_volumes_matrix"), boost::algorithm::is_any_of("|"));

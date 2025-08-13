@@ -100,6 +100,7 @@ namespace Slic3r {
         std::array<Mode, static_cast<size_t>(ETimeMode::Count)> modes;
         unsigned int                                        total_filament_changes;
         unsigned int                                        total_extruder_changes;
+        unsigned int                                        total_nozzle_changes;
 
         PrintEstimatedStatistics() { reset(); }
 
@@ -117,6 +118,7 @@ namespace Slic3r {
             used_filaments_per_role.clear();
             total_filament_changes = 0;
             total_extruder_changes = 0;
+            total_nozzle_changes   = 0;
         }
     };
 
