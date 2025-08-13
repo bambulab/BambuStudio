@@ -182,7 +182,8 @@ public:
         m_last_obj_copy(nullptr, Point(std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::max())),
         // BBS
         m_toolchange_count(0),
-        m_nominal_z(0.)
+        m_nominal_z(0.),
+        m_smooth_coefficient(0.)
         {}
     ~GCode() = default;
 
@@ -231,7 +232,7 @@ public:
     bool is_BBL_Printer();
 
     BoundingBoxf first_layer_projection(const Print& print) const;
-
+    void set_smooth_coff(float filamet_melting) { m_smooth_coefficient = filamet_melting * m_config.smooth_coefficient; }
     // Object and support extrusions of the same PrintObject at the same print_z.
     // public, so that it could be accessed by free helper functions from GCode.cpp
     struct LayerToPrint
@@ -557,6 +558,7 @@ private:
     bool m_enable_label_object;
     std::vector<size_t> m_label_objects_ids;
     std::string _encode_label_ids_to_base64(std::vector<size_t> ids);
+    float               m_smooth_coefficient{0.0f};
 
     // 1 << 0: A1 series cannot supprot traditional timelapse when printing by object (cannot turn on timelapse)
     // 1 << 1: A1 series cannot supprot traditional timelapse with spiral vase mode   (cannot turn on timelapse)
