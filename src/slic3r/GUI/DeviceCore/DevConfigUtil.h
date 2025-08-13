@@ -108,7 +108,7 @@ public:
                 }
             }
         }
-        catch (...) { assert(0 && "get_value_from_config failed"); BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " failed"; }// there are file errors 
+        catch (...) { assert(0 && "get_value_from_config failed"); BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " failed"; }// there are file errors
         return T();
     };
 
@@ -160,7 +160,7 @@ public:
                 }
             }
         }
-        catch (...) { assert(0 && "get_json_from_config failed"); BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " failed"; }// there are file errors 
+        catch (...) { assert(0 && "get_json_from_config failed"); BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " failed"; }// there are file errors
         return nlohmann::json();
     }
 

@@ -273,6 +273,9 @@ void AppConfig::set_defaults()
     if (get("internal_developer_mode").empty())
         set_bool("internal_developer_mode", false);
 
+    if (get("disable_auto_flow_cali_tips").empty())
+        set_bool("disable_auto_flow_cali_tips", false);
+
     // BBS
     if (get("preset_folder").empty())
         set("preset_folder", "");

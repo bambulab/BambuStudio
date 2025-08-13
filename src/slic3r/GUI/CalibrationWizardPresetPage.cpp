@@ -2453,6 +2453,7 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
         m_deputy_ams_preview_panel->SetSizer(create_ams_items_sizer(obj, m_deputy_ams_preview_panel, m_deputy_ams_preview_list, deputy_ams_info, DEPUTY_EXTRUDER_ID));
     }
 
+    disable_bowden_extuder_auto_dyn_cali(m_main_filament_cali_panel);
     /* display nozzle combobox */
     {
         auto has_rack = obj->GetNozzleSystem()->GetNozzleRack()->IsSupported();
@@ -2471,6 +2472,20 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
 
 
     Layout();
+}
+
+void CalibrationPresetPage::disable_bowden_extuder_auto_dyn_cali(wxWindow* cali_panel){
+    // only support one extruder is bowden
+    if ((m_cali_method == CalibrationMethod::CALI_METHOD_AUTO || m_cali_method == CalibrationMethod::CALI_METHOD_NEW_AUTO) && get_extruder_type(MAIN_EXTRUDER_ID) == ExtruderType::etBowden) {
+        m_filament_list_tips->SetLabel(_L("Tips for calibration material: \n- Materials that can share same hot bed temperature\n- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)\n- Right Nozzle (Aux) does not support automatic flow calibration."));
+        cali_panel->Disable();
+    } else if ((m_cali_method == CalibrationMethod::CALI_METHOD_AUTO || m_cali_method == CalibrationMethod::CALI_METHOD_NEW_AUTO) && get_extruder_type(DEPUTY_EXTRUDER_ID) == ExtruderType::etBowden) {
+        m_filament_list_tips->SetLabel(_L("Tips for calibration material: \n- Materials that can share same hot bed temperature\n- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)\n- Left Nozzle (Aux) does not support automatic flow calibration."));
+        cali_panel->Disable();
+    } else {
+        m_filament_list_tips->SetLabel(_L("Tips for calibration material: \n- Materials that can share same hot bed temperature\n- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"));
+        cali_panel->Enable();
+    }
 }
 
 void CalibrationPresetPage::update_nozzle_id_combox()

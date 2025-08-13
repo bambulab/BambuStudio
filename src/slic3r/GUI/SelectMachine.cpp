@@ -572,18 +572,63 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     );
     option_nozzle_offset_cali_cali->Bind(EVT_SWITCH_PRINT_OPTION, &SelectMachineDialog::on_nozzle_offset_option_changed, this);
 
-    m_sizer_options = new wxGridSizer(0, 2, FromDIP(5), FromDIP(10));
+    auto options_sizer = new wxBoxSizer(wxVERTICAL);
+    m_sizer_options = new wxGridSizer(0, 2, FromDIP(5), FromDIP(28));
     m_sizer_options->Add(option_timelapse, 0, wxEXPAND);
     m_sizer_options->Add(option_auto_bed_level, 0, wxEXPAND);
     m_sizer_options->Add(option_flow_dynamics_cali, 0, wxEXPAND);
     m_sizer_options->Add(option_nozzle_offset_cali_cali, 0, wxEXPAND);
+
+    m_options_line_panel = new wxPanel(m_options_other, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_options_line_panel->SetBackgroundColour(*wxWHITE);
+
+    wxSizer* m_options_line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxSizer* m_options_line_right_sizer = new wxBoxSizer(wxVERTICAL);
+    m_options_line_bmp = new wxStaticBitmap(m_options_line_panel, wxID_ANY, create_scaled_bitmap("warning", m_options_line_panel, 25), wxDefaultPosition, wxSize(FromDIP(25), FromDIP(25)), 0);
+    m_options_line_label = new Label(m_options_line_panel, _L("If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."));
+    m_options_line_label->SetBackgroundColour(*wxWHITE);
+    m_options_line_label->SetForegroundColour(wxColour(255, 111, 0));
+    m_options_line_label->SetFont(Label::Body_14);
+    m_options_line_label->Wrap(FromDIP(630));
+
+    m_options_line_close = new Label(m_options_line_panel, _L("Don't show again"));
+    m_options_line_close->SetBackgroundColour(*wxWHITE);
+    m_options_line_close->SetForegroundColour(wxColour(0, 177, 66));
+    m_options_line_close->SetFont(Label::Body_14);
+    wxFont font = m_options_line_close->GetFont();
+    font.SetUnderlined(true);
+    m_options_line_close->SetFont(font);
+    m_options_line_close->Bind(wxEVT_LEFT_DOWN, [this](auto &e) {
+        if(wxGetApp().app_config){
+            wxGetApp().app_config->set("disable_auto_flow_cali_tips", "true");
+        }
+        m_options_line_panel->Hide();
+        m_options_other->Layout();
+        m_options_other->Fit();
+    });
+
+    m_options_line_right_sizer->Add(m_options_line_label, 0, wxEXPAND, 0);
+    m_options_line_right_sizer->Add(m_options_line_close, 0, wxEXPAND, 0);
+
+    m_options_line_sizer->Add(m_options_line_bmp, 0,   wxTOP, 0);
+    m_options_line_sizer->Add(0, 0, 0, wxLEFT, FromDIP(2));
+    m_options_line_sizer->Add(m_options_line_right_sizer, 0,   wxEXPAND, 0);
+
+    m_options_line_panel->Hide();
+    m_options_line_panel->SetSizer(m_options_line_sizer);
+    m_options_line_panel->Layout();
+    m_options_line_panel->Fit();
+
+    options_sizer->Add(m_sizer_options, 0, wxEXPAND, 0);
+    options_sizer->Add(0, 0, 1, wxTOP, FromDIP(12));
+    options_sizer->Add(m_options_line_panel, 0, wxEXPAND, 0);
 
     m_checkbox_list_order.push_back(option_timelapse);
     m_checkbox_list_order.push_back(option_auto_bed_level);
     m_checkbox_list_order.push_back(option_flow_dynamics_cali);
     m_checkbox_list_order.push_back(option_nozzle_offset_cali_cali);
 
-    m_options_other->SetSizer(m_sizer_options);
+    m_options_other->SetSizer(options_sizer);
     m_options_other->Layout();
     m_options_other->Fit();
 
@@ -1400,6 +1445,96 @@ void SelectMachineDialog::auto_supply_with_ext(std::vector<DevAmsTray> slots) {
             m_ams_mapping_result[i].slot_id = "0";
         }
     }
+}
+
+bool SelectMachineDialog::has_bowden_extuder(MachineObject *obj) {
+    if(!obj) return false;
+
+    Preset * preset = get_printer_preset(obj);
+
+    if (!preset) return false;
+
+    auto exrtuder_type_opt = dynamic_cast<const ConfigOptionEnumsGeneric *>(preset->config.option("extruder_type"));
+
+    for(int i=0; i<exrtuder_type_opt->values.size(); i++){
+        ExtruderType extruder_type = (ExtruderType) exrtuder_type_opt->values[i];
+        if(extruder_type == ExtruderType::etBowden)
+            return true;
+    }
+
+    return false;
+}
+
+bool SelectMachineDialog::is_nozzle_type_match(DevExtderSystem data, wxString& error_message) const {
+    if (data.GetTotalExtderCount() <= 1 || !wxGetApp().preset_bundle)
+        return false;
+
+    const auto& project_config = wxGetApp().preset_bundle->project_config;
+    //check nozzle used
+    auto used_filaments = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_filaments(); // 1 based
+    auto filament_maps  = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_real_filament_maps(project_config);  // 1 based
+    std::map<int, std::string> used_extruders_flow;
+    std::vector<int> used_extruders; // 0 based
+    for (auto f : used_filaments) {
+        int filament_extruder = filament_maps[f - 1] - 1;
+        if (std::find(used_extruders.begin(), used_extruders.end(), filament_extruder) == used_extruders.end()) used_extruders.emplace_back(filament_extruder);
+    }
+
+    std::sort(used_extruders.begin(), used_extruders.end());
+
+    auto nozzle_volume_type_opt = dynamic_cast<const ConfigOptionEnumsGeneric *>(wxGetApp().preset_bundle->project_config.option("nozzle_volume_type"));
+    for (auto i = 0; i < used_extruders.size(); i++) {
+        if (nozzle_volume_type_opt) {
+            NozzleVolumeType nozzle_volume_type = (NozzleVolumeType) (nozzle_volume_type_opt->get_at(used_extruders[i]));
+            if (nozzle_volume_type == NozzleVolumeType::nvtStandard) { used_extruders_flow[used_extruders[i]] = "Standard";}
+            else {used_extruders_flow[used_extruders[i]] = "High Flow";}
+        }
+    }
+
+    vector<int> map_extruders = {1, 0};
+
+
+    // The default two extruders are left, right, but the order of the extruders on the machine is right, left.
+    std::vector<std::string> flow_type_of_machine;
+    for (const auto& it : data.GetExtruders())
+    {
+        if (it.GetNozzleFlowType() == NozzleFlowType::H_FLOW)
+        {
+            flow_type_of_machine.push_back(L("High Flow"));
+        }
+        else if (it.GetNozzleFlowType() == NozzleFlowType::S_FLOW)
+        {
+            flow_type_of_machine.push_back(L("Standard"));
+        }
+    }
+
+    //Only when all preset nozzle types and machine nozzle types are exactly the same, return true.
+    for (std::map<int, std::string>::iterator it = used_extruders_flow.begin(); it!= used_extruders_flow.end(); it++) {
+        int target_machine_nozzle_id = map_extruders[it->first];
+
+        if (target_machine_nozzle_id < flow_type_of_machine.size()) {
+            if (flow_type_of_machine[target_machine_nozzle_id] != used_extruders_flow[it->first]) {
+
+                wxString pos;
+                if (target_machine_nozzle_id == DEPUTY_EXTRUDER_ID)
+                {
+                    pos = _L("left nozzle");
+                }
+                else if(target_machine_nozzle_id == MAIN_EXTRUDER_ID)
+                {
+                    pos = _L("right nozzle");
+                }
+
+                error_message = wxString::Format(_L("The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). "
+                                                    "Please make sure the nozzle installed matches with settings in printer, "
+                                                    "then set the corresponding printer preset while slicing."), pos,
+                                                    _L(flow_type_of_machine[target_machine_nozzle_id]),
+                                                    _L(used_extruders_flow[it->first]));
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 int SelectMachineDialog::convert_filament_map_nozzle_id_to_task_nozzle_id(int nozzle_id)
@@ -2256,6 +2391,29 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
     bool options_line_ignore = false;
     if(wxGetApp().app_config){
         options_line_ignore = wxGetApp().app_config->get("disable_auto_flow_cali_tips") == "true";
+    }
+
+    if (m_checkbox_list["flow_cali"]->IsShown() && has_bowden_extuder(obj)) {
+        m_checkbox_list["flow_cali"]->update_tooltip(
+            _L("Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value.\n") +
+            _L("On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value.\n") +
+            _L("Off: Prioritize using the value from your manual flow calibration."));
+
+        if (m_checkbox_list["flow_cali"]->getValue() == "auto") {
+            m_options_line_label->SetLabel(_L("If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder "
+                                              "will use the system default value."));
+            m_options_line_label->Wrap(FromDIP(630));
+            m_options_line_panel->Show(!options_line_ignore);
+        } else if (m_checkbox_list["flow_cali"]->getValue() == "on") {
+            m_options_line_label->SetLabel(_L("Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."));
+            m_options_line_label->Wrap(FromDIP(630));
+            m_options_line_panel->Show(!options_line_ignore);
+        } else {
+            m_options_line_panel->Hide();
+        }
+    } else {
+        m_checkbox_list["flow_cali"]->update_tooltip(_L("This process determines the dynamic flow values to improve overall print quality.\n*Automatic mode: Skip if the filament was calibrated recently."));
+        m_options_line_panel->Hide();
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " end";
@@ -3580,6 +3738,7 @@ void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
 
     m_mapping_popup.msw_rescale();
 
+    m_options_line_bmp->SetBitmap(create_scaled_bitmap("warning", m_options_line_panel, 25));
 
     m_statictext_ams_msg->Rescale();
     m_text_printer_msg->Rescale();
