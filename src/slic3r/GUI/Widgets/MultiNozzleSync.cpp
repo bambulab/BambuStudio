@@ -81,18 +81,17 @@ void manuallySetNozzleCount(int extruder_id)
     if (extruder_id < nozzle_count_map.size() && nozzle_count_map[extruder_id].find(volume_type) != nozzle_count_map[extruder_id].end())
         default_nozzle_count = nozzle_count_map[extruder_id][volume_type];
     else
-        default_nozzle_count = GUI::wxGetApp().app_config->get_nozzle_count_from_config(full_config, extruder_id, nozzle_diameter, volume_type);
+        default_nozzle_count = extruder_max_nozzle_count->values[extruder_id];
 
     ManualNozzleCountDialog dialog(GUI::wxGetApp().plater(), default_nozzle_count, extruder_max_nozzle_count->values[extruder_id]);
 
     if (dialog.ShowModal() == wxID_OK) {
         int nozzle_count = dialog.GetNozzleCount();
         MultiNozzleUtils::NozzleGroupInfo info(nozzle_diameter, volume_type, extruder_id, nozzle_count);
-        GUI::wxGetApp().app_config->save_nozzle_count_to_config(extruder_id, { info });// write to app config
-
         // write to preset bundle config
         if (extruder_id >= preset_bundle->extruder_nozzle_counts.size())
             preset_bundle->extruder_nozzle_counts.resize(extruder_id + 1);
+        preset_bundle->extruder_nozzle_counts[extruder_id].clear(); // currently we do not support multiple volume types
         preset_bundle->extruder_nozzle_counts[extruder_id][volume_type] = nozzle_count;
     }
 }
