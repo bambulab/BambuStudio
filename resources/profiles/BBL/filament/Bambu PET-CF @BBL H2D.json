@@ -98,6 +98,9 @@
         "0",
         "0"
     ],
+    "filament_printable": [
+        "1"
+    ],
     "hole_coef_2": [
         "-0.012"
     ],
@@ -133,8 +136,5 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
-    ],
-    "filament_printable": [
-        "1"
     ]
 }
