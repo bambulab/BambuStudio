@@ -4923,17 +4923,20 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             slope_has_overhang = has_overhang_path_on_slope(loop.paths, slope_min_length);
         if (!slope_has_overhang) {
             // Calculate the sloped loop
-            //BBS: should has smaller e at start to get better seam
+            // BBS: should has smaller e at start to get better seam
             ExtrusionLoopSloped new_loop(paths, seam_gap, slope_min_length, slope_max_segment_length, start_slope_ratio, loop.loop_role());
 
-            //BBS: clip end and start to get better seam
+            // BBS: clip end and start to get better seam
             new_loop.clip_slope(slope_gap);
             // BBS: slowdown speed to improve seam, to be fix, cooling need to be apply correctly
-            //new_loop.target_speed = get_path_speed(new_loop.starts.back());
-            //new_loop.slowdown_slope_speed();
+            // new_loop.target_speed = get_path_speed(new_loop.starts.back());
+            // new_loop.slowdown_slope_speed();
             // BBS: smooth speed of discontinuity areas
-            if (m_config.detect_overhang_wall && m_config.smooth_speed_discontinuity_area && loop.is_set_speed_discontinuity_area())
+            if (m_config.detect_overhang_wall && m_config.smooth_speed_discontinuity_area && loop.is_set_speed_discontinuity_area()) {
+                // set smoothing_cof
+                set_smooth_coff(FILAMENT_CONFIG(filament_velocity_adaptation_factor));
                 smooth_speed_discontinuity_area(new_loop.paths);
+            }
             // Then extrude it
             for (const auto &p : new_loop.get_all_paths()) {
                 gcode += this->_extrude(*p, description, speed_for_path(*p), set_holes_and_compensation_speed);
@@ -4957,8 +4960,11 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
     if (!enable_seam_slope || slope_has_overhang) {
         // BBS: smooth speed of discontinuity areas
-        if (m_config.detect_overhang_wall && m_config.smooth_speed_discontinuity_area && loop.is_set_speed_discontinuity_area())
+        if (m_config.detect_overhang_wall && m_config.smooth_speed_discontinuity_area && loop.is_set_speed_discontinuity_area()){
+            // set smoothing_cof
+            set_smooth_coff(FILAMENT_CONFIG(filament_velocity_adaptation_factor));
             smooth_speed_discontinuity_area(paths);
+        }
 
         for (ExtrusionPaths::iterator path = paths.begin(); path != paths.end(); ++path) {
             gcode += this->_extrude(*path, description, speed_for_path(*path), set_holes_and_compensation_speed);
@@ -5271,12 +5277,12 @@ double GCode::mapping_speed(double dist)
 {
     if (dist <= 0)
         return 0;
-    return this->config().smooth_coefficient * pow(dist, 2);
+    return m_smooth_coefficient * pow(dist, 2);
 }
 
 double GCode::get_speed_coor_x(double speed){
 
-    double temp = speed / this->config().smooth_coefficient;
+    double temp = speed / m_smooth_coefficient;
     return sqrt(temp);
 }
 
@@ -5599,7 +5605,7 @@ ExtrusionPaths GCode::set_speed_transition(std::vector<ExtrusionPaths> &paths)
 
 void GCode::smooth_speed_discontinuity_area(ExtrusionPaths &paths) {
 
-    if (paths.size() <= 1 || this->config().smooth_coefficient == 0)
+    if (paths.size() <= 1 || m_smooth_coefficient == 0)
         return;
 
     //step 1 merge same speed path
