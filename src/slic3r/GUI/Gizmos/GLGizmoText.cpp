@@ -1187,7 +1187,8 @@ void GLGizmoText::draw_model_type(int caption_width)
         ObjectList *        obj_list = app.obj_list();
         wxDataViewItemArray sel      = obj_list->reorder_volumes_and_get_selection(obj_list->get_selected_obj_idx(),
                                                                               [volume = text_volume](const ModelVolume *vol) { return vol == volume; });
-        if (!sel.IsEmpty()) obj_list->select_item(sel.front());
+        if (!sel.IsEmpty())
+            obj_list->select_item(sel.front());
 
         // NOTE: on linux, function reorder_volumes_and_get_selection call GLCanvas3D::reload_scene(refresh_immediately = false)
         // which discard m_volume pointer and set it to nullptr also selection is cleared so gizmo is automaticaly closed
