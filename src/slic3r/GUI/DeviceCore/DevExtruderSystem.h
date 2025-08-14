@@ -62,7 +62,7 @@ public:
 
     // filament
     bool             HasFilamentInExt() const { return m_ext_has_filament; }
-    bool             HasFilamentInBuffer() const = delete; //{ return m_buffer_has_filament; }  
+    bool             HasFilamentInBuffer() const = delete; //{ return m_buffer_has_filament; }
     bool             HasFilamBackup() const { return !m_filam_bak.empty(); }
     std::vector<int> GetFilamBackup() const { return m_filam_bak; }
 
@@ -70,6 +70,9 @@ public:
     const DevAmsSlotInfo& GetSlotPre() const { return m_spre; }
     const DevAmsSlotInfo& GetSlotNow() const { return m_snow; }
     const DevAmsSlotInfo& GetSlotTarget() const { return m_star; }
+
+    // extuder type
+    bool             IsBowdenExtuder() const;
 
 private:
     void SetExtId(int val) { m_ext_id = val; }
@@ -104,9 +107,9 @@ private:
 };
 
 // ExtderSystem is the extruder management system for the device.
-// It consists of multiple extruders (Extder) and nozzles. 
-// Each extruder can be associated with different nozzles, and the number of extruders 
-// does not necessarily equal the number of nozzles. 
+// It consists of multiple extruders (Extder) and nozzles.
+// Each extruder can be associated with different nozzles, and the number of extruders
+// does not necessarily equal the number of nozzles.
 // Note: The IDs of extruders and nozzles may not match or correspond one-to-one.
 class DevExtderSystem
 {

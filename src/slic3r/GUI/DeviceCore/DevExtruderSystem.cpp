@@ -5,6 +5,7 @@
 // TODO: remove this include
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/Plater.hpp"
 
 #include "DevUtil.h"
 
@@ -65,6 +66,23 @@ namespace Slic3r
     {
         return system->Owner()->GetNozzleSystem()->GetExtNozzle(m_current_nozzle_id).GetNozzleDiameterType();
     }
+
+    bool  DevExtder::IsBowdenExtuder() const
+    {
+        Preset * preset = GUI::get_printer_preset(system->Owner());
+
+        if (!preset) return false;
+
+        auto exrtuder_type_opt = dynamic_cast<const ConfigOptionEnumsGeneric *>(preset->config.option("extruder_type"));
+
+        if (!exrtuder_type_opt) return false;
+
+        // reverse the order of preset extuder id to match the real extruder id
+        ExtruderType extruder_type = (ExtruderType)exrtuder_type_opt->values[exrtuder_type_opt->values.size() - 1 - GetExtId()];
+
+        return extruder_type == ExtruderType::etBowden;
+    }
+
 
     DevExtderSystem::DevExtderSystem(MachineObject* obj)
         : m_owner(obj)

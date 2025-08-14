@@ -3889,14 +3889,22 @@ void StatusPanel::on_axis_ctrl_e_up_10(wxCommandEvent& event)
 {
     if (obj) {
         auto ext = obj->GetExtderSystem()->GetCurrentExtder();
-        if (ext && ext->GetCurrentTemp() >= TEMP_THRESHOLD_ALLOW_E_CTRL) {
+        if (ext->IsBowdenExtuder() && !ext->HasFilamentInExt()) {
             if (obj->is_enable_np) {
                 obj->command_extruder_control(ext->GetExtId(), -10.0f);
             } else {
                 obj->GetAxis()->Ctrl_Axis("E", 1.0, -10.0f, 900);
             }
         } else {
-            axis_ctrl_e_hint(true);
+            if (ext && ext->GetCurrentTemp() >= TEMP_THRESHOLD_ALLOW_E_CTRL) {
+                if (obj->is_enable_np) {
+                    obj->command_extruder_control(ext->GetExtId(), -10.0f);
+                } else {
+                    obj->GetAxis()->Ctrl_Axis("E", 1.0, -10.0f, 900);
+                }
+            } else {
+                axis_ctrl_e_hint(true);
+            }
         }
     }
 }
@@ -3905,7 +3913,7 @@ void StatusPanel::on_axis_ctrl_e_down_10(wxCommandEvent& event)
 {
     if (obj) {
         auto ext = obj->GetExtderSystem()->GetCurrentExtder();
-        if (ext && ext->GetCurrentTemp() >= TEMP_THRESHOLD_ALLOW_E_CTRL)
+        if (ext->IsBowdenExtuder() && !ext->HasFilamentInExt()) {
         {
             if (obj->is_enable_np) {
                 obj->command_extruder_control(ext->GetExtId(), 10.0f);
@@ -3913,7 +3921,15 @@ void StatusPanel::on_axis_ctrl_e_down_10(wxCommandEvent& event)
                 obj->GetAxis()->Ctrl_Axis("E", 1.0, 10.0f, 900);
             } 
         } else {
-            axis_ctrl_e_hint(false);
+            if (ext && ext->GetCurrentTemp() >= TEMP_THRESHOLD_ALLOW_E_CTRL) {
+                if (obj->is_enable_np) {
+                    obj->command_extruder_control(ext->GetExtId(), 10.0f);
+                } else {
+                    obj->GetAxis()->Ctrl_Axis("E", 1.0, 10.0f, 900);
+                }
+            } else {
+                axis_ctrl_e_hint(false);
+            }
         }
     }
 }
