@@ -46,13 +46,13 @@ public:
      * Generate an interlocking structure between each two adjacent meshes.
      */
     static void generate_interlocking_structure(PrintObject* print_object);
-
+    static void generate_embedding_wall(PrintObject* print_object);
 private:
     /*!
      * Generate an interlocking structure between two meshes
      */
     void generateInterlockingStructure() const;
-
+    void generateInterlockingwall(Layer* layer) const;
     /*!
      * Private class for storing some variables used in the computation of the interlocking structure between two meshes.
      * \param region_a_index The first region
@@ -114,7 +114,7 @@ private:
      * \return The shell voxels for mesh a and those for mesh b
      */
     std::vector<std::unordered_set<GridPoint3>> getShellVoxels(const DilationKernel& kernel) const;
-
+    std::vector<std::unordered_set<GridPoint3>> getLayerShellVoxels(const DilationKernel& kernel, Layer* layer) const;
     /*!
      * Compute the voxels overlapping with the shell of some layers.
      * This includes the walls, but also top/bottom skin.
@@ -124,6 +124,7 @@ private:
      * \param[out] cells The output cells which elong to the shell
      */
     void addBoundaryCells(const std::vector<ExPolygons>& layers, const DilationKernel& kernel, std::unordered_set<GridPoint3>& cells) const;
+    void addLayerBoundaryCells(const ExPolygons& layers,const int &layer_cnt, const DilationKernel& kernel, std::unordered_set<GridPoint3>& cells) const;
 
     /*!
      * Compute the regions occupied by both models.
@@ -138,6 +139,7 @@ private:
      * \return cell_area_per_mesh_per_layer The output polygons for each beam
      */
     std::vector<std::vector<ExPolygons>> generateMicrostructure() const;
+    ExPolygons generateLayerMicrostructure() const;
 
     /*!
      * Change the outlines of the meshes with the computed interlocking structure.
@@ -146,7 +148,7 @@ private:
      * \param layer_regions The total volume of the two meshes combined (and small gaps closed)
      */
     void applyMicrostructureToOutlines(const std::unordered_set<GridPoint3>& cells, const std::vector<ExPolygons>& layer_regions) const;
-
+    void applyEmbeddingToOutlines(const std::unordered_set<GridPoint3>& cells, const ExPolygons& layer_regions, Layer *layer, const int& idx) const;
     static const coord_t ignored_gap_ = 100u; //!< Distance between models to be considered next to each other so that an interlocking structure will be generated there
 
     PrintObject&  print_object;
