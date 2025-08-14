@@ -358,7 +358,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "seam_slope_type"
             || opt_key == "seam_slope_start_height"
             || opt_key == "seam_slope_gap"
-            || opt_key == "seam_slope_min_length") {
+            || opt_key == "seam_slope_min_length"
+            || opt_key == "embedding_wall_into_infill") {
             osteps.emplace_back(posPerimeters);
             osteps.emplace_back(posInfill);
             osteps.emplace_back(posSupportMaterial);
