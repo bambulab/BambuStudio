@@ -175,5 +175,6 @@
     "sparse_infill_filament": "0",
     "wall_filament": "0",
     "solid_infill_filament": "0",
+    "embedding_wall_into_infill": "0",
     "first_x_layer_fan_speed": "0"
 }
