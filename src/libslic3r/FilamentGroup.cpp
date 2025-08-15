@@ -598,9 +598,10 @@ namespace Slic3r
             std::shuffle(l_nodes.begin(), l_nodes.end(), rng);
 
             std::unordered_map<int, int>idx_transfer;
-            for (size_t idx = 0; idx < l_nodes.size(); ++idx)
-                idx_transfer[l_nodes[idx]] = idx;
-
+            for (size_t idx = 0; idx < l_nodes.size(); ++idx){
+                int new_idx = std::find(l_nodes.begin(),l_nodes.end(), idx) - l_nodes.begin();
+                idx_transfer[idx] = new_idx;
+            }
             for (auto& elem : placeable_limits)
                 shuffled_placeable_limits[idx_transfer[elem.first]] = elem.second;
             for (auto& elem : unplaceable_limits)
@@ -608,18 +609,7 @@ namespace Slic3r
         }
 
 
-        // only consider the size limit if the group can contain all of the filaments
-        std::vector<int> i_cluster_size = {};
-        std::vector<std::pair<std::set<int>, int>> i_cluster_group_size = {};
-        if (have_enough_size(cluster_size, cluster_group_size,m_elem_count)) {
-            i_cluster_size = cluster_size;
-            i_cluster_group_size = cluster_group_size;
-        }
-        else {
-            // TODO: xcr：throw exception here?
-        }
-
-        MaxFlowSolver M(l_nodes, r_nodes, shuffled_placeable_limits, shuffled_unplaceable_limits, {}, i_cluster_size, i_cluster_group_size);
+        MaxFlowSolver M(l_nodes, r_nodes, shuffled_placeable_limits, shuffled_unplaceable_limits);
         auto ret = M.solve();
 
         // if still has -1，it means there has some filaments that cannot be placed under the limit. We neglect the -1 here since we
