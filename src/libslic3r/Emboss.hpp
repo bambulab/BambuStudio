@@ -80,16 +80,17 @@ namespace Emboss
         FontFileWithCache &  font_with_cache,
         const char *text,
         const FontProp &font_prop,
+        double                       standard_scale,
         const std::function<bool()> &was_canceled = []() { return false; },
-        BackFontCacheFn              bfc_fn                    = nullptr,
-        double                       standard_scale            = -1);
+        BackFontCacheFn              bfc_fn                    = nullptr);
     void text2vshapes(
         EmbossShape &                emboss_shape,
         FontFileWithCache &          font_with_cache,
         const std::wstring &         text,
         const FontProp &             font_prop,
+        double                       standard_scale,
         const std::function<bool()> &was_canceled = []() { return false; },
-        BackFontCacheFn              bfc_fn                    = nullptr);
+        BackFontCacheFn              bfc_fn       = nullptr);
     HealedExPolygons union_with_delta(ExPolygons expoly, float delta, unsigned max_heal_iteration);
 
     const unsigned ENTER_UNICODE = static_cast<unsigned>('\n');
