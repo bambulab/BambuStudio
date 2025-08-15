@@ -2369,6 +2369,10 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     if (m_show_text_normal_reset_tip) {
         m_imgui->warning_text(_L("Warning:text normal has been reset."));
     }
+    if (m_font_version == NEW_FONT_BEGIN_VERSION) {
+        m_imgui->warning_text_wrapped(_L("Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated.")
+                                          ,full_width);
+    }
    /* if (m_show_warning_regenerated && m_font_version != CUR_FONT_VERSION) {
         m_imgui->warning_text_wrapped(_L("Warning:Because current text does indeed use surround algorithm,if continue to edit, text has to regenerated according to new location."),
                               full_width);
@@ -3767,9 +3771,9 @@ EmbossShape &TextDataBase::create_shape()
     };
     bool support_backup_fonts = GUI::wxGetApp().app_config->get_bool("support_backup_fonts");
     if (support_backup_fonts) {
-        text2vshapes(shape, m_font_file, text_w, fp, was_canceled, ft_fn);
+        text2vshapes(shape, m_font_file, text_w, fp, shape.scale, was_canceled, ft_fn);
     } else {
-        text2vshapes(shape, m_font_file, text_w, fp, was_canceled);
+        text2vshapes(shape, m_font_file, text_w, fp, shape.scale, was_canceled);
     }
     return shape;
 }

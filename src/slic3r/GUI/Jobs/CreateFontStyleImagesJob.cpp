@@ -42,8 +42,8 @@ void CreateFontStyleImagesJob::process(Ctl &ctl)
         EmbossShape emboss_shape;
         auto &      ff             = *item.font.font_file;
         double      standard_scale = get_text_shape_scale(item.prop, ff);
-        shapes                     = support_backup_fonts ? text2shapes(emboss_shape, item.font, m_input.text.c_str(), item.prop, was_canceled, ft_fn, standard_scale)
-                                           :text2shapes(emboss_shape, item.font, m_input.text.c_str(), item.prop, was_canceled);
+        shapes                     = support_backup_fonts ? text2shapes(emboss_shape, item.font, m_input.text.c_str(), item.prop, standard_scale, was_canceled, ft_fn) :
+                                                            text2shapes(emboss_shape, item.font, m_input.text.c_str(), item.prop, standard_scale, was_canceled);
         // create image description
         StyleManager::StyleImage &image = m_images[index];
         BoundingBox &bounding_box = image.bounding_box;
