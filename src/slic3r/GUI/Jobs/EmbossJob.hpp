@@ -264,6 +264,7 @@ public:
 struct CreateTextInput
 {
     std::vector<TriangleMesh> m_chars_mesh_result;
+    std::vector<float> m_text_cursors;
     EmbossShape               m_text_shape;
     TextInfo                  text_info;
     DataBasePtr               base;
@@ -281,9 +282,9 @@ public:
 };
 
 const GLVolume *find_glvoloume_render_screen_cs(const Selection &selection, const Vec2d &screen_center, const Camera &camera, const ModelObjectPtrs &objects, Vec2d *closest_center);
-void            create_all_char_mesh(DataBase &input, std::vector<TriangleMesh> &result, EmbossShape &shape);
+void            create_all_char_mesh(DataBase &input, std::vector<TriangleMesh> &result,std::vector<float>& text_cursors, EmbossShape &shape);
 float           get_single_char_width( const std::vector<TriangleMesh> &chars_mesh_result);
-bool calc_text_lengths(std::vector<double> &text_lengths,const std::vector<TriangleMesh>& chars_mesh_result);
+bool            calc_text_lengths(std::vector<double> &text_lengths, const std::vector<float> & text_cursors);
 void calc_position_points(std::vector<Vec3d> &position_points, std::vector<double> &text_lengths, float text_gap, const Vec3d &temp_pos_dir);
 
 struct Texture
@@ -353,6 +354,7 @@ public:
         Geometry::Transformation  m_text_tran_in_world; // Transform3d               m_text_cs_to_world_tran;
         //Transform3d               m_object_cs_to_world_tran;
         std::vector<TriangleMesh> m_chars_mesh_result;
+        std::vector<float>        m_text_cursors;
         Vec3d                     m_text_position_in_world;
         Vec3f                     m_text_normal_in_world;
         float                     m_text_gap;

@@ -24,7 +24,9 @@ enum class SLAGizmoEventType : unsigned char;
 //1.0 mean v1.10 bambu version
 //1.1 mean v2.0 v2.1 bambu version(202505)
 //2.0 mean v2.2 bambu version(202507)
-const std::string CUR_FONT_VERSION  = "2.0";
+//2.2 mean v2.2 bambu version(20250815)
+const std::string NEW_FONT_BEGIN_VERSION  = "2.0";
+const std::string CUR_FONT_VERSION = "2.2";
 class GLGizmoText : public GLGizmoBase
 {
 private:
