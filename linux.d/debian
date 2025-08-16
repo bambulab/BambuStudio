@@ -12,7 +12,6 @@ REQUIRED_DEV_PACKAGES=(
     wget
     libgstreamerd-3-dev
     libsecret-1-dev
-    libosmesa6-dev
     libssl-dev
     eglexternalplatform-dev
     libcurl4-openssl-dev
