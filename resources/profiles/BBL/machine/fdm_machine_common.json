@@ -99,6 +99,7 @@
     "machine_prepare_compensation_time": "260",
     "machine_switch_extruder_time": "0",
     "machine_unload_filament_time": "29",
+    "machine_hotend_change_time": "0",
     "master_extruder_id": "1",
     "max_layer_height": [
         "0.28"
