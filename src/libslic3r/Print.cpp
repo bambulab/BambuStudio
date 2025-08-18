@@ -270,11 +270,14 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "filament_max_volumetric_speed"
             || opt_key == "filament_adaptive_volumetric_speed"
             || opt_key == "filament_ramming_volumetric_speed"
+            || opt_key == "filament_ramming_volumetric_speed_nc"
             || opt_key == "gcode_flavor"
             || opt_key == "single_extruder_multi_material"
             || opt_key == "nozzle_temperature"
             || opt_key == "filament_pre_cooling_temperature"
+            || opt_key == "filament_pre_cooling_temperature_nc"
             || opt_key == "filament_ramming_travel_time"
+            || opt_key == "filament_ramming_travel_time_nc"
             // BBS
             || opt_key == "supertack_plate_temp"
             || opt_key == "cool_plate_temp"
@@ -329,7 +332,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
                 || opt_key == "filament_scarf_length"
                 || opt_key == "filament_change_length"
                 || opt_key == "independent_support_layer_height" 
-                || opt_key == "top_z_overrides_xy_distance") {
+                || opt_key == "top_z_overrides_xy_distance"
+                || opt_key == "filament_change_length_nc") {
             steps.emplace_back(psWipeTower);
             // Soluble support interface / non-soluble base interface produces non-soluble interface layers below soluble interface layers.
             // Thus switching between soluble / non-soluble interface layer material may require recalculation of supports.
@@ -2909,7 +2913,6 @@ void Print::_make_wipe_tower()
     // Set the extruder & material properties at the wipe tower object.
     for (size_t i = 0; i < number_of_extruders; ++ i)
         wipe_tower.set_extruder(i, m_config);
-    wipe_tower.set_need_reverse_travel(m_wipe_tower_data.tool_ordering.all_extruders());
     // BBS: remove priming logic
     //m_wipe_tower_data.priming = Slic3r::make_unique<std::vector<WipeTower::ToolChangeResult>>(
     //    wipe_tower.prime((float)this->skirt_first_layer_height(), m_wipe_tower_data.tool_ordering.all_extruders(), false));

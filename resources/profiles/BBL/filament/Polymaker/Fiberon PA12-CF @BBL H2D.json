@@ -5,6 +5,7 @@
     "from": "system",
     "setting_id": "GFL52_10",
     "instantiation": "true",
+    "description": "When printing this filament, there's a risk of warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials.",
     "filament_deretraction_speed": [
         "nil",
         "nil"
@@ -30,6 +31,10 @@
         "14"
     ],
     "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
+    ],
+    "filament_ramming_volumetric_speed_nc": [
         "-1",
         "-1"
     ],
@@ -82,6 +87,10 @@
         "Direct Drive High Flow"
     ],
     "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_pre_cooling_temperature_nc": [
         "0",
         "0"
     ],

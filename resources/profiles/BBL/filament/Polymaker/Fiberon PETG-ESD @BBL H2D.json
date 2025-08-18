@@ -36,6 +36,10 @@
         "-1",
         "-1"
     ],
+    "filament_ramming_volumetric_speed_nc": [
+        "-1",
+        "-1"
+    ],
     "filament_retract_before_wipe": [
         "nil",
         "nil"
@@ -85,6 +89,10 @@
         "Direct Drive High Flow"
     ],
     "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_pre_cooling_temperature_nc": [
         "0",
         "0"
     ],

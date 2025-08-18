@@ -1064,6 +1064,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsOrPercents,    filament_scarf_gap))
     ((ConfigOptionFloats,              filament_scarf_length))
     ((ConfigOptionFloats,              filament_change_length))
+    ((ConfigOptionFloats,              filament_change_length_nc))
     ((ConfigOptionFloats,              filament_cost))
     ((ConfigOptionFloats,              impact_strength_z))
     ((ConfigOptionString,              filament_notes))
@@ -1072,7 +1073,11 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsNullable,      filament_ramming_travel_time))  //BBS
     ((ConfigOptionIntsNullable,        filament_pre_cooling_temperature))// BBS
     ((ConfigOptionFloatsNullable,      filament_max_volumetric_speed))
-    ((ConfigOptionFloatsNullable,      filament_ramming_volumetric_speed))
+    ((ConfigOptionFloatsNullable,      filament_ramming_volumetric_speed))//extruder change
+    ((ConfigOptionFloatsNullable,      filament_ramming_travel_time_nc))//nc:nozzle change
+    ((ConfigOptionIntsNullable,        filament_pre_cooling_temperature_nc))
+    ((ConfigOptionFloatsNullable,      filament_max_volumetric_speed_nc))
+    ((ConfigOptionFloatsNullable,      filament_ramming_volumetric_speed_nc))
     ((ConfigOptionFloat,               prime_tower_lift_speed))
     ((ConfigOptionFloat,               prime_tower_lift_height))
     ((ConfigOptionInts,                required_nozzle_HRC))
@@ -1083,6 +1088,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               machine_load_filament_time))
     ((ConfigOptionFloat,               machine_unload_filament_time))
     ((ConfigOptionFloat,               machine_switch_extruder_time))
+    ((ConfigOptionFloat,               machine_hotend_change_time))
     ((ConfigOptionBool,                group_algo_with_time))
     ((ConfigOptionFloat,               machine_prepare_compensation_time))
     ((ConfigOptionBool,                enable_pre_heating))

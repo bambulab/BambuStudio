@@ -306,15 +306,7 @@ public:
 	void set_filament_map(const std::vector<int> &filament_map) { m_filament_map = filament_map; }
 
 	void set_has_tpu_filament(bool has_tpu) { m_has_tpu_filament = has_tpu; }
-    void set_need_reverse_travel(const std::vector<unsigned int> & used_extruders)
-    {
-        for (unsigned int filament_id : used_extruders) {
-            if (m_filpar[filament_id].ramming_travel_time > EPSILON && m_filaments_change_length[filament_id]>EPSILON) {
-                m_need_reverse_travel = true;
-                return;
-            }
-        }
-    }
+
     bool has_tpu_filament() const { return m_has_tpu_filament; }
     struct FilamentParameters {
         std::string 	    material = "PLA";
@@ -342,11 +334,11 @@ public:
         float               retract_length;
         float               retract_speed;
         float               wipe_dist;
-        float               max_e_ramming_speed = 0.f;
-        float               ramming_travel_time=0.f; //Travel time after ramming
-        std::vector<float>  precool_t;//Pre-cooling time, set to 0 to ensure the ramming speed is controlled solely by ramming volumetric speed.
-        std::vector<float>  precool_t_first_layer;
-        int                 precool_target_temp = 0;
+        std::pair<float,float>  max_e_ramming_speed;//[0]extruder change [1]nozzle change
+        std::pair<float, float> ramming_travel_time; // Travel time after ramming
+        std::pair<std::vector<float>,std::vector<float>>  precool_t;//Pre-cooling time, set to 0 to ensure the ramming speed is controlled solely by ramming volumetric speed.
+        std::pair<std::vector<float>, std::vector<float>> precool_t_first_layer;
+        std::pair<int,int>    precool_target_temp;
     };
 
 
@@ -406,6 +398,7 @@ public:
     void toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinates &cleaning_box, float wipe_length,bool solid_toolchange=false);
     Vec2f              get_rib_offset() const { return m_rib_offset; }
     bool               is_need_ramming(int filament_id_1, int filament_id_2);
+    bool               is_same_extruder(int filament_id_1, int filament_id_2);
 
 private:
 	enum wipe_shape // A fill-in direction
@@ -443,7 +436,7 @@ private:
     float  m_first_layer_speed  = 0.f;
     size_t m_first_layer_idx    = size_t(-1);
     std::vector<int>    m_last_layer_id;
-    std::vector<double> m_filaments_change_length;
+    std::pair<std::vector<double>,std::vector<double>> m_filaments_change_length;//[0]extruder change [1]nozzle change
     size_t       m_cur_layer_id;
     NozzleChangeResult m_nozzle_change_result;
     std::vector<int>   m_filament_map;
@@ -542,7 +535,7 @@ private:
     void save_on_last_wipe();
 
 	bool is_tpu_filament(int filament_id) const;
-    bool is_need_reverse_travel(int filament) const;
+    bool is_need_reverse_travel(int filament, bool extruder_change) const;
 	// BBS
 	box_coordinates align_perimeter(const box_coordinates& perimeter_box);
 
