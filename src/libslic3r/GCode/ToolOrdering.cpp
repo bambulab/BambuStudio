@@ -1175,7 +1175,9 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
         auto extruder_ams_counts = get_extruder_ams_count(extruder_ams_count_str);
         std::vector<int> group_size = calc_max_group_size(extruder_ams_counts, ignore_ext_filament);
 
-        std::vector<bool> prefer_non_model_filament(extruder_nums,false);
+        std::vector<bool> prefer_non_model_filament(extruder_nums);
+        for (size_t idx = 0; idx < extruder_nums; ++idx)
+            prefer_non_model_filament[idx] = (print_config.extruder_type.values[idx] == ExtruderType::etBowden);
 
         auto machine_filament_info = build_machine_filaments(print->get_extruder_filament_info(), extruder_ams_counts, ignore_ext_filament);
 
