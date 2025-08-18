@@ -70,6 +70,8 @@
 #define CLI_GCODE_PATH_CONFLICTS           -101
 #define CLI_GCODE_PATH_IN_UNPRINTABLE_AREA -102
 #define CLI_FILAMENT_UNPRINTABLE_ON_FIRST_LAYER -103
+#define CLI_GCODE_PATH_OUTSIDE             -104
+#define CLI_GCODE_IN_WRAPPING_DETECT_AREA  -105
 
 
 namespace boost { namespace filesystem { class directory_entry; }}
@@ -232,7 +234,7 @@ private:
         } else {
             return file_name(raw);
         }
-        
+
         if (id_start_pos != std::string::npos && id_start_pos < sanitized.length() && (sanitized[id_start_pos - 1] == '\\' || sanitized[id_start_pos - 1] == '/') &&
             std::isdigit(sanitized[id_start_pos])) {
             // If the ID part is present, sanitize it as well
@@ -255,7 +257,7 @@ private:
         if (raw.length() < full.length() || raw.empty()) {
             return std::move(file_name(raw));
         }
-        
+
         if (raw[0] != full[0] || raw[full.length() - 1] != full[full.length() - 1]) {
             if (std::isupper(raw[start_pos]) && std::tolower(raw[start_pos]) == full[start_pos]) {
                 raw.replace(start_pos, 12, std::string(12, '*'));

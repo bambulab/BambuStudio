@@ -150,7 +150,9 @@ std::map<int, std::string> cli_errors = {
     {CLI_SLICING_ERROR, "Failed slicing the model. Please verify the slicing of all plates on Bambu Studio before uploading."},
     {CLI_GCODE_PATH_CONFLICTS, " G-code conflicts detected after slicing. Please make sure the 3mf file can be successfully sliced in the latest Bambu Studio."},
     {CLI_GCODE_PATH_IN_UNPRINTABLE_AREA, "Found G-code in unprintable area of multi-extruder printers after slicing. Please make sure the 3mf file can be successfully sliced in the latest Bambu Studio."},
-    {CLI_FILAMENT_UNPRINTABLE_ON_FIRST_LAYER, "Found some filament unprintable at first layer on current Plate. Please make sure the 3mf file can be successfully sliced with the same Plate type in the latest Bambu Studio."}
+    {CLI_FILAMENT_UNPRINTABLE_ON_FIRST_LAYER, "Found some filament unprintable at first layer on current Plate. Please make sure the 3mf file can be successfully sliced with the same Plate type in the latest Bambu Studio."},
+    {CLI_GCODE_PATH_OUTSIDE, "Found G-code outside of the printable area. The issue may be caused by support, wipe tower, brim, or skirt. If the file slices normally in Bambu Studio, try moving the wipe tower further inside the build plate, as we use more conservative parameters for it during upload."},
+    {CLI_GCODE_IN_WRAPPING_DETECT_AREA, "Found G-code in the wrapping detect area. Please make sure the 3mf file can be successfully sliced in the latest Bambu Studio."}
 };
 
 typedef struct  _object_info{
@@ -1353,7 +1355,7 @@ int CLI::run(int argc, char **argv)
         return CLI_ENVIRONMENT_ERROR;
     }
 
-   /*BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
+    /*BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
      for (int index = 0; index < argc; index++)
          BOOST_LOG_TRIVIAL(info) << "index=" << index << ", arg is " << argv[index] << std::endl;
      int debug_argc = 7;
@@ -6173,6 +6175,16 @@ int CLI::run(int argc, char **argv)
                         //BOOST_LOG_TRIVIAL(info) << boost::format("print_volume {%1%,%2%,%3%}->{%4%, %5%, %6%}, has %7% printables") % print_volume.min(0) % print_volume.min(1)
                         //    % print_volume.min(2) % print_volume.max(0) % print_volume.max(1) % print_volume.max(2) % count << std::endl;
 #endif
+                        if (is_bbl_3mf && !no_check && load_filament_count == 0)
+                        {
+                            //set filament_prime_volume to 45 when uploading
+                            ConfigOptionFloats *filament_prime_volume_option = m_print_config.option<ConfigOptionFloats>("filament_prime_volume");
+                            int temp_count = filament_prime_volume_option->values.size();
+                            for (int temp_index = 0; temp_index < temp_count; temp_index++)
+                            {
+                                filament_prime_volume_option->values[temp_index] = 45.f;
+                            }
+                        }
                         DynamicPrintConfig new_print_config = m_print_config;
                         new_print_config.apply(*part_plate->config());
                         new_print_config.apply(m_extra_config, true);
@@ -6229,6 +6241,7 @@ int CLI::run(int argc, char **argv)
                             ConfigOptionEnumsGeneric* final_nozzle_volume_type_opt = new_print_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type", true);
                             final_nozzle_volume_type_opt->values.resize(new_extruder_count, nvtStandard);
                         }
+
                         print->apply(model, new_print_config);
                         BOOST_LOG_TRIVIAL(info) << boost::format("set no_check to %1%:")%no_check;
                         print->set_no_check_flag(no_check);//BBS
@@ -6433,15 +6446,21 @@ int CLI::run(int argc, char **argv)
                                     BOOST_LOG_TRIVIAL(info) << "export_gcode finished: time_using_cache update to " << slice_time[TIME_USING_CACHE] << " secs.";
 
                                     if (gcode_result && gcode_result->gcode_check_result.error_code) {
+                                        BOOST_LOG_TRIVIAL(error) << "plate " << index + 1 << ": found gcode unprintable! gcode_result->gcode_check_result.error_code = "
+                                                << gcode_result->gcode_check_result.error_code << std::endl;
                                         //found gcode error
-                                        if ((gcode_result->gcode_check_result.error_code & 0b11100)>0)
-                                            BOOST_LOG_TRIVIAL(error) << "plate " << index + 1 << ": found gcode in unprintable area of the printers! gcode_result->gcode_check_result.error_code = "
-                                                << gcode_result->gcode_check_result.error_code << std::endl;
-                                        else
-                                            BOOST_LOG_TRIVIAL(error) << "plate " << index + 1 << ": found gcode in unprintable area of multi extruder printers! gcode_result->gcode_check_result.error_code = "
-                                                << gcode_result->gcode_check_result.error_code << std::endl;
-                                        record_exit_reson(outfile_dir, CLI_GCODE_PATH_IN_UNPRINTABLE_AREA, index + 1, cli_errors[CLI_GCODE_PATH_IN_UNPRINTABLE_AREA], sliced_info);
-                                        flush_and_exit(CLI_GCODE_PATH_IN_UNPRINTABLE_AREA);
+                                        if (gcode_result->gcode_check_result.error_code & 0b1100) {
+                                            record_exit_reson(outfile_dir, CLI_GCODE_PATH_OUTSIDE, index + 1, cli_errors[CLI_GCODE_PATH_OUTSIDE], sliced_info);
+                                            flush_and_exit(CLI_GCODE_PATH_OUTSIDE);
+                                        }
+                                        else if (gcode_result->gcode_check_result.error_code & 0b10000) {
+                                            record_exit_reson(outfile_dir, CLI_GCODE_IN_WRAPPING_DETECT_AREA, index + 1, cli_errors[CLI_GCODE_IN_WRAPPING_DETECT_AREA], sliced_info);
+                                            flush_and_exit(CLI_GCODE_IN_WRAPPING_DETECT_AREA);
+                                        }
+                                        else if (gcode_result->gcode_check_result.error_code & 0b00011) {
+                                            record_exit_reson(outfile_dir, CLI_GCODE_PATH_IN_UNPRINTABLE_AREA, index + 1, cli_errors[CLI_GCODE_PATH_IN_UNPRINTABLE_AREA], sliced_info);
+                                            flush_and_exit(CLI_GCODE_PATH_IN_UNPRINTABLE_AREA);
+                                        }
                                     }
 
                                     if (gcode_result && gcode_result->filament_printable_reuslt.has_value()) {

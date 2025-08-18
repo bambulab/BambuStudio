@@ -522,7 +522,9 @@ public:
             std::vector<T> backup_values = this->values;
 
             if (this->values.size() < start) {
-                throw ConfigurationError("ConfigOptionVector::set_with_restore_2(): invalid size found");
+                T v = this->values.front();
+                this->values.resize(start, v);
+                //throw ConfigurationError("ConfigOptionVector::set_with_restore_2(): invalid size found");
             }
             else {
                 if (this->values.size() < start + len)
