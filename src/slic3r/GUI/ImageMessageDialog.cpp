@@ -29,7 +29,7 @@ ImageMessageDialog::ImageMessageDialog(wxWindow *parent, wxWindowID id, const wx
     int target_w = FromDIP(380);
     int target_h = FromDIP(270);
     std::string image_path = (boost::format("%1%/images/clumping.png") % resources_dir()).str();
-    wxImage* image = new wxImage(image_path, wxBITMAP_TYPE_ANY);
+    wxImage* image = new wxImage(image_path, wxBITMAP_TYPE_PNG);
     if (image && image->IsOk()) {
         *image = image->Scale(target_w, target_h, wxIMAGE_QUALITY_HIGH);
     }
