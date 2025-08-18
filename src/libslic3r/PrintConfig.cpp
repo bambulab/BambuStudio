@@ -1939,8 +1939,18 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloatsNullable { 2. });
 
     def           = this->add("filament_ramming_volumetric_speed", coFloats);
-    def->label    = L("Ramming volumetric speed");
-    def->tooltip  = L("The maximum volumetric speed for ramming, where -1 means using the maximum volumetric speed.");
+    def->label    = L("Extruder change");
+    def->tooltip  = L("The maximum volumetric speed for ramming before extruder change, where -1 means using the maximum volumetric speed.");
+    def->sidetext = L("mm³/s");
+    def->min      = -1;
+    def->max      = 200;
+    def->mode     = comAdvanced;
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{-1});
+
+    def           = this->add("filament_ramming_volumetric_speed_nc", coFloats);
+    def->label    = L("Hotend change");
+    def->tooltip  = L("The maximum volumetric speed for ramming before hotend change, where -1 means using the maximum volumetric speed.");
     def->sidetext = L("mm³/s");
     def->min      = -1;
     def->max      = 200;
@@ -1983,6 +1993,14 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("s");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5));
+
+    def           = this->add("machine_hotend_change_time", coFloat);
+    def->label    = L("Hotend change time");
+    def->tooltip  = L("Time to change hotend.");
+    def->sidetext = L("s");
+    def->min      = 0;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.0));
 
     def = this->add("group_algo_with_time", coBool);
     def->set_default_value(new ConfigOptionBool(false));
@@ -2165,8 +2183,16 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloats{10});
 
     def           = this->add("filament_change_length", coFloats);
-    def->label    = L("Filament ramming length");
+    def->label    = L("Extruder change");
     def->tooltip  = L("When changing the extruder, it is recommended to extrude a certain length of filament from the original extruder. This helps minimize nozzle oozing.");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats{10});
+
+    def           = this->add("filament_change_length_nc", coFloats);
+    def->label    = L("Hotend change");
+    def->tooltip  = L("When changing the hotend, it is recommended to extrude a certain length of filament from the original nozzle. This helps minimize nozzle oozing.");
     def->sidetext = L("mm");
     def->min      = 0;
     def->mode     = comAdvanced;
@@ -2205,7 +2231,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInts{ 100 });
 
     def          = this->add("filament_ramming_travel_time", coFloats);
-    def->label   = L("Travel time after ramming");
+    def->label   = L("Extruder change");
     def->tooltip = L("To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after "
                      "the ramming is complete. The setting define the travel time.");
     def->mode    = comAdvanced;
@@ -2214,8 +2240,18 @@ void PrintConfigDef::init_fff_params()
     def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{0});
 
+    def           = this->add("filament_ramming_travel_time_nc", coFloats);
+    def->label    = L("Hotend change");
+    def->tooltip  = L("To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after "
+                       "the ramming is complete. The setting define the travel time.");
+    def->mode     = comAdvanced;
+    def->sidetext = "s";
+    def->min      = 0;
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{0});
+
     def           = this->add("filament_pre_cooling_temperature", coInts);
-    def->label    = L("Precooling target temperature");
+    def->label    = L("Extruder change");
     def->tooltip  = L("To prevent oozing, the nozzle temperature will be cooled during ramming. Therefore, the ramming time must be greater than the cooldown time. 0 means disabled.");
     //def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->mode     = comAdvanced;
@@ -2223,6 +2259,16 @@ void PrintConfigDef::init_fff_params()
     def->min      = 0;
     //def->enum_values.push_back("-1");
     //def->enum_labels.push_back(L("None"));
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionIntsNullable{0});
+
+    def          = this->add("filament_pre_cooling_temperature_nc", coInts);
+    def->label   = L("Hotend change");
+    def->tooltip = L(
+        "To prevent oozing, the nozzle temperature will be cooled during ramming. Note: only a cooldown command and fan activation are triggered, reaching the target temperature is not guaranteed. 0 means disabled.");
+    def->mode     = comAdvanced;
+    def->sidetext = "°C";
+    def->min      = 0;
     def->nullable = true;
     def->set_default_value(new ConfigOptionIntsNullable{0});
 
@@ -6222,6 +6268,9 @@ std::set<std::string> filament_options_with_variant = {
     "filament_ramming_volumetric_speed",
     "filament_pre_cooling_temperature",
     "filament_ramming_travel_time",
+    "filament_ramming_volumetric_speed_nc",
+    "filament_pre_cooling_temperature_nc",
+    "filament_ramming_travel_time_nc",
     //"filament_extruder_id",
     "filament_extruder_variant",
     "filament_retraction_length",

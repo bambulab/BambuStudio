@@ -99,6 +99,9 @@
     "filament_ramming_volumetric_speed": [
         "-1"
     ],
+    "filament_ramming_volumetric_speed_nc": [
+        "-1"
+    ],
     "filament_minimal_purge_on_wipe_tower": [
         "15"
     ],
@@ -180,7 +183,13 @@
     "filament_pre_cooling_temperature": [
         "0"
     ],
+    "filament_pre_cooling_temperature_nc": [
+        "0"
+    ],
     "filament_ramming_travel_time": [
+        "0"
+    ],    
+    "filament_ramming_travel_time_nc": [
         "0"
     ],
     "hot_plate_temp": [
@@ -264,6 +273,18 @@
     "textured_plate_temp_initial_layer": [
         "60"
     ],
+<<<<<<< HEAD
+=======
+    "filament_change_length": [
+        "10"
+    ],
+    "filament_change_length_nc": [
+        "10"
+    ],
+    "volumetric_speed_coefficients": [
+        "0;0;0;0;0;0"
+    ],
+>>>>>>> b4b4dc5b0e (ENH:Divide ramming-related parameters according to nozzle change and extruder change.)
     "filament_velocity_adaptation_factor":[
         "1"
     ],

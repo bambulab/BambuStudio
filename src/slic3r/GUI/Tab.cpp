@@ -3430,7 +3430,6 @@ void TabFilament::build()
         // BBS
         optgroup->append_single_option_line("filament_is_support");
         optgroup->append_single_option_line("impact_strength_z");
-        optgroup->append_single_option_line("filament_change_length", "parameter/prime-tower#ramming");
 
         optgroup->append_single_option_line("filament_prime_volume", "parameter/prime-tower#primevolume");
         //optgroup->append_single_option_line("filament_colour");
@@ -3445,12 +3444,25 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_shrink");
         optgroup->append_single_option_line("filament_velocity_adaptation_factor");
         optgroup->append_single_option_line("filament_cost");
+        optgroup->append_single_option_line("temperature_vitrification");
 
         //BBS
-        optgroup->append_single_option_line("temperature_vitrification");
-        optgroup->append_single_option_line("filament_ramming_travel_time", "",0);
-        optgroup->append_single_option_line("filament_pre_cooling_temperature", "parameter/prime-tower#precooling", 0);
-        Line line = { L("Recommended nozzle temperature"), L("Recommended nozzle temperature range of this filament. 0 means no set") };
+        Line line = {L("Filament ramming length"), L("Filament length used in ramming.")};
+        line.append_option(optgroup->get_option("filament_change_length"));
+        line.append_option(optgroup->get_option("filament_change_length_nc"));
+        optgroup->append_line(line);
+
+        line = {L("Travel time after ramming"), L("A reverse travel movement after ramming.")};
+        line.append_option(optgroup->get_option("filament_ramming_travel_time",0));
+        line.append_option(optgroup->get_option("filament_ramming_travel_time_nc",0));
+        optgroup->append_line(line);
+
+        line = { L("Precooling target temperature"), L("Precooling target temperature during ramming.") };
+        line.append_option(optgroup->get_option("filament_pre_cooling_temperature",0));
+        line.append_option(optgroup->get_option("filament_pre_cooling_temperature_nc",0));
+        optgroup->append_line(line);
+
+        line = { L("Recommended nozzle temperature"), L("Recommended nozzle temperature range of this filament. 0 means no set") };
         line.append_option(optgroup->get_option("nozzle_temperature_range_low"));
         line.append_option(optgroup->get_option("nozzle_temperature_range_high"));
         optgroup->append_line(line);
@@ -3534,7 +3546,10 @@ void TabFilament::build()
         optgroup = page->new_optgroup(L("Volumetric speed limitation"), L"param_volumetric_speed");
         optgroup->append_single_option_line("filament_adaptive_volumetric_speed", "", 0);
         optgroup->append_single_option_line("filament_max_volumetric_speed", "", 0);
-        optgroup->append_single_option_line("filament_ramming_volumetric_speed", "",0);
+        line = {L("Ramming volumetric speed"), L("The maximum volumetric speed for ramming, where -1 means using the maximum volumetric speed.")};
+        line.append_option(optgroup->get_option("filament_ramming_volumetric_speed", 0));
+        line.append_option(optgroup->get_option("filament_ramming_volumetric_speed_nc", 0));
+        optgroup->append_line(line);
 
         // BBS
         optgroup = page->new_optgroup(L("Filament scarf seam settings"), L"param_volumetric_speed");
@@ -4004,6 +4019,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("machine_load_filament_time");
         optgroup->append_single_option_line("machine_unload_filament_time");
         optgroup->append_single_option_line("machine_switch_extruder_time");
+        optgroup->append_single_option_line("machine_hotend_change_time");
 
         optgroup = page->new_optgroup(L("Extruder Clearance"));
         optgroup->append_single_option_line("extruder_clearance_max_radius");

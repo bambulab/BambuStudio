@@ -82,6 +82,7 @@
         "30"
     ],
     "machine_unload_filament_time": "10",
+    "machine_hotend_change_time": "28",
     "master_extruder_id": "2",
     "printable_area": [
         "0x0",
