@@ -1472,6 +1472,9 @@ void Slic3r::Emboss::text2vshapes(EmbossShape &                emboss_shape,
             if (was_canceled())
                 return;
         }
+        if (letter == wchar_t(' ')) {
+            letter = 'i';
+        }
         unsigned id = static_cast<unsigned>(letter);
         float    real_scale = -1.f;
         if (bfc_fn) { // support_backup_fonts
@@ -1496,6 +1499,11 @@ void Slic3r::Emboss::text2vshapes(EmbossShape &                emboss_shape,
     }
     emboss_shape.text_scales = text_scales;
     emboss_shape.text_cursors    = text_cursors;
+    for (int i = 0; i < result.size(); i++) {
+        if (text[i] == wchar_t(' ')) {
+            result[i].expoly.clear();
+        }
+    }
     emboss_shape.shapes_with_ids = result;
 }
 
