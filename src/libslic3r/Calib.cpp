@@ -505,6 +505,8 @@ CalibPressureAdvancePattern::CalibPressureAdvancePattern(const Calib_Params &par
 
 void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfig &config, bool is_bbl_machine, Model &model, const Vec3d &origin)
 {
+    if (model.objects.empty())
+        return;
     std::stringstream gcode;
     gcode << "; start pressure advance pattern for layer\n";
 
