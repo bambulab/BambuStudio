@@ -264,6 +264,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "nozzle_temperature_initial_layer"
             || opt_key == "filament_minimal_purge_on_wipe_tower"
             || opt_key == "filament_max_volumetric_speed"
+            || opt_key == "filament_adaptive_volumetric_speed"
             || opt_key == "filament_ramming_volumetric_speed"
             || opt_key == "gcode_flavor"
             || opt_key == "single_extruder_multi_material"
