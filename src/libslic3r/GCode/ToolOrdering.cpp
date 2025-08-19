@@ -127,24 +127,30 @@ static double calc_max_layer_height(const PrintConfig &config, double max_object
 }
 
 //calculate the flush weight (first value) and filament change count(second value)
-static FilamentChangeStats calc_filament_change_info_by_toolorder(const PrintConfig* config, const std::vector<int>& filament_map, const std::vector<FlushMatrix>& flush_matrix, const std::vector<std::vector<unsigned int>>& layer_sequences)
+static FilamentChangeStats calc_filament_change_info_by_toolorder(const PrintConfig* config, const MultiNozzleUtils::MultiNozzleGroupResult& group_result, const std::vector<FlushMatrix>& flush_matrix, const std::vector<std::vector<unsigned int>>& layer_sequences)
 {
     FilamentChangeStats ret;
     std::unordered_map<int, int> flush_volume_per_filament;
-    std::vector<unsigned int>last_filament_per_extruder(2, -1);
 
+    MultiNozzleUtils::NozzleStatusRecorder recorder;
     int total_filament_change_count = 0;
     float total_filament_flush_weight = 0;
     for (const auto& ls : layer_sequences) {
-        for (const auto& item : ls) {
-            int extruder_id = filament_map[item];
-            int last_filament = last_filament_per_extruder[extruder_id];
-            if (last_filament != -1 && last_filament != item) {
-                int flush_volume = flush_matrix[extruder_id][last_filament][item];
-                flush_volume_per_filament[item] += flush_volume;
+        for (const auto& filament : ls) {
+            auto nozzle = group_result.get_nozzle_for_filament(filament);
+            if (!nozzle)
+                continue;
+
+            int extruder_id = nozzle->extruder_id;
+            int nozzle_id = nozzle->group_id;
+            int last_filament = recorder.get_filament_in_nozzle(nozzle_id);
+
+            if (last_filament != -1 && last_filament != filament) {
+                int flush_volume = flush_matrix[extruder_id][last_filament][filament];
+                flush_volume_per_filament[filament] += flush_volume;
                 total_filament_change_count += 1;
             }
-            last_filament_per_extruder[extruder_id] = item;
+            recorder.set_nozzle_status(nozzle_id, filament);
         }
     }
 
@@ -1344,7 +1350,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
     }
 
 
-    auto curr_flush_info = calc_filament_change_info_by_toolorder(print_config, filament_maps, nozzle_flush_mtx, filament_sequences);
+    auto curr_flush_info = calc_filament_change_info_by_toolorder(print_config, m_print->get_nozzle_group_result().value(), nozzle_flush_mtx, filament_sequences);
     if (nozzle_nums <= 1)
         m_stats_by_single_extruder = curr_flush_info;
     else {
@@ -1378,7 +1384,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
                 get_custom_seq,
                 &filament_sequences_one_extruder
             );
-            m_stats_by_single_extruder = calc_filament_change_info_by_toolorder(print_config, maps_without_group, nozzle_flush_mtx, filament_sequences_one_extruder);
+            m_stats_by_single_extruder = calc_filament_change_info_by_toolorder(print_config, result, nozzle_flush_mtx, filament_sequences_one_extruder);
         }
         // if not in best for flush mode,also calculate the info by best for flush mode
         if (map_mode != fmmAutoForFlush)
@@ -1393,7 +1399,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
                 get_custom_seq,
                 &filament_sequences_one_extruder
             );
-            m_stats_by_multi_extruder_best = calc_filament_change_info_by_toolorder(print_config, group_result_auto.filament_map, nozzle_flush_mtx, filament_sequences_one_extruder);
+            m_stats_by_multi_extruder_best = calc_filament_change_info_by_toolorder(print_config, group_result_auto, nozzle_flush_mtx, filament_sequences_one_extruder);
         }
     }
 
