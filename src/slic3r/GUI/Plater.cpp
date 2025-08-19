@@ -4543,7 +4543,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
                                    .TopDockable(false)
                                    .BottomDockable(false)
                                    .Floatable(wxGetApp().app_config->get_bool("enable_sidebar_floatable"))
-                                   .Resizable(wxGetApp().app_config->get_bool("enable_sidebar_resizable"))
+                                   .Resizable(true)
                                    .MinSize(wxSize(15 * wxGetApp().em_unit(), 90 * wxGetApp().em_unit()))
                                    .BestSize(wxSize(42 * wxGetApp().em_unit(), 90 * wxGetApp().em_unit())));
 
@@ -4562,8 +4562,24 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         const auto cfg    = wxGetApp().app_config;
         wxString   layout = wxString::FromUTF8(cfg->get("window_layout"));
         if (!layout.empty()) {
-            m_aui_mgr.LoadPerspective(layout, false);
-            sidebar_layout.is_collapsed = !sidebar.IsShown();
+            bool                     is_new_window_layout = true;
+            std::vector<std::string> parts;
+            boost::split(parts, layout, boost::is_any_of(";"));
+            for (const std::string &part : parts) {
+                std::vector<std::string> keyValues;
+                boost::split(keyValues, part, boost::is_any_of("="));
+                if (keyValues.size() == 2 && keyValues[0] == "minh") {
+                    auto minh_value = std::stof(keyValues[1]);
+                    if (minh_value < 0) {
+                        is_new_window_layout = false;
+                    }
+                    break;
+                }
+            }
+            if (is_new_window_layout) {
+                m_aui_mgr.LoadPerspective(layout, false);
+                sidebar_layout.is_collapsed = !sidebar.IsShown();
+            }
         }
 
         // Keep tracking the current sidebar size, by storing it using `best_size`, which will be stored
