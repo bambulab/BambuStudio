@@ -42,6 +42,9 @@
         "-1",
         "-1"
     ],
+    "filament_printable": [
+        "1"
+    ],
     "filament_retract_before_wipe": [
         "nil",
         "nil"
@@ -98,8 +101,9 @@
         "0",
         "0"
     ],
-    "filament_printable": [
-        "1"
+    "filament_adaptive_volumetric_speed": [
+        "0",
+        "0"
     ],
     "hole_coef_2": [
         "-0.012"
