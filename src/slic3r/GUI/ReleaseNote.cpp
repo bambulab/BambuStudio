@@ -2456,29 +2456,31 @@ void HelioStatementDialog::on_dpi_changed(const wxRect &suggested_rect)
 }
 
 
-HelioRemainUsageTime::HelioRemainUsageTime(wxWindow* parent) : wxPanel(parent)
+HelioRemainUsageTime::HelioRemainUsageTime(wxWindow* parent,  wxString label) : wxPanel(parent)
 {
-    Create();
+    Create(label);
 }
 
-void HelioRemainUsageTime::Create()
+void HelioRemainUsageTime::Create(wxString label)
 {
     SetBackgroundColour(*wxWHITE);
 
-    Label* label_prefix = new Label(this, _L("Remaining usage times for current account this month: "));
+    Label* label_prefix = new Label(this, label);
     label_prefix->SetMaxSize(wxSize(FromDIP(400), -1));
-    label_prefix->SetToolTip(_L("Remaining usage times for current account this month: "));
+    label_prefix->SetToolTip(label);
 
     m_label_remain_usage_time = new Label(this, "0");
     wxFont bold_font = m_label_remain_usage_time->GetFont();
     bold_font.SetWeight(wxFONTWEIGHT_BOLD);
+    m_label_remain_usage_time->SetMinSize(wxSize(FromDIP(40), -1));
+    m_label_remain_usage_time->SetMaxSize(wxSize(FromDIP(40), -1));
     m_label_remain_usage_time->SetFont(bold_font);
 
     wxBoxSizer* remain_sizer = new wxBoxSizer(wxHORIZONTAL);
     remain_sizer->Add(label_prefix, 0, wxALIGN_CENTER_VERTICAL);
     remain_sizer->Add(m_label_remain_usage_time, 0, wxALIGN_CENTER_VERTICAL);
 
-    label_click_to_use = new Label(this, _L("Click Confirm to start this optimization immediately."));
+    /*label_click_to_use = new Label(this, _L("Click Confirm to start this optimization immediately."));
     label_click_to_use->SetMaxSize(wxSize(FromDIP(400), -1));
     label_click_to_use->Wrap(FromDIP(400));
 
@@ -2487,24 +2489,24 @@ void HelioRemainUsageTime::Create()
     label_click_to_buy->Wrap(FromDIP(400));
 
     label_click_to_use->Hide();
-    label_click_to_buy->Hide();
+    label_click_to_buy->Hide();*/
 
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(remain_sizer);
-    sizer->Add(label_click_to_use, 0, wxALIGN_CENTER_VERTICAL);
+    //sizer->Add(label_click_to_use, 0, wxALIGN_CENTER_VERTICAL);
     SetSizer(sizer);
 }
 
 void HelioRemainUsageTime::UpdateHelpTips(int type)
 {
-    if (type == 0) {
+    /*if (type == 0) {
         label_click_to_use->Show();
         label_click_to_buy->Hide();
     }
     else {
         label_click_to_use->Hide();
         label_click_to_buy->Show();
-    }
+    }*/
     Layout();
     Fit();
 }
@@ -2624,17 +2626,10 @@ static double s_round(double value, int n)
     pay_sub->SetSize(wxSize(FromDIP(440), -1));
     pay_sub->Wrap(FromDIP(440));
 
-    auto helio_pay_link = new LinkLabel(panel_pay_optimization, _L("Buy Now"), "https://wiki.helioadditive.com/");
-    helio_pay_link->SeLinkLabelFColour(wxColour(0, 174, 66));
-    helio_pay_link->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-    helio_pay_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
-
     sizer_pay_optimization->Add(0, 0, 0, wxTOP, FromDIP(26));
     sizer_pay_optimization->Add(panel_pay_loading_icon, 0, wxALIGN_CENTER, 0);
     sizer_pay_optimization->Add(0, 0, 0, wxTOP, FromDIP(36));
     sizer_pay_optimization->Add(pay_sub, 0, wxLEFT, 0);
-    sizer_pay_optimization->Add(0, 0, 0, wxTOP, FromDIP(3));
-    sizer_pay_optimization->Add(helio_pay_link, 0, wxLEFT, 0);
 
     panel_pay_optimization->SetSizer(sizer_pay_optimization);
     panel_pay_optimization->Layout();
@@ -2650,8 +2645,19 @@ static double s_round(double value, int n)
     }
     wxBoxSizer *sizer_optimization = new wxBoxSizer(wxVERTICAL);
 
-    m_remain_usage_time = new HelioRemainUsageTime(panel_optimization);
+    wxBoxSizer *sizer_remain_usage_time = new wxBoxSizer(wxHORIZONTAL);
+    m_remain_usage_time = new HelioRemainUsageTime(panel_optimization, _L("Remaining usage times for current account this month: "));
     m_remain_usage_time->UpdateRemainTime(0);
+    sizer_remain_usage_time->Add(0, 0, 1, wxEXPAND, 0);
+    sizer_remain_usage_time->Add(m_remain_usage_time, 0, wxEXPAND, 0);
+
+    wxBoxSizer* sizer_remain_purchased_time = new wxBoxSizer(wxHORIZONTAL);
+    m_remain_purchased_time = new HelioRemainUsageTime(panel_optimization, _L("Purchased add-ons: "));
+    m_remain_purchased_time->UpdateRemainTime(0);
+    sizer_remain_purchased_time->Add(0, 0, 1, wxEXPAND, 0);
+    sizer_remain_purchased_time->Add(m_remain_purchased_time, 0, wxEXPAND, 0);
+
+    
 
     /*general Options*/
     std::map<int, wxString> config_outerwall;
@@ -2663,7 +2669,7 @@ static double s_round(double value, int n)
     advanced_settings_link = new wxPanel(panel_optimization);
     advanced_settings_link->SetBackgroundColour(*wxWHITE);
 
-    Label* more_setting_tips = new Label(advanced_settings_link, _L("Advanced settings"));
+    Label* more_setting_tips = new Label(advanced_settings_link, _L("Advanced Settings"));
     advace_setting_sizer->Add(more_setting_tips, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
     advanced_options_icon = new wxStaticBitmap(advanced_settings_link, wxID_ANY, create_scaled_bitmap("advanced_option3", panel_optimization, 18), wxDefaultPosition,
         wxSize(FromDIP(18), FromDIP(18)));
@@ -2673,17 +2679,10 @@ static double s_round(double value, int n)
     advanced_settings_link->Fit();
 
     /*buy now*/
-    buy_now_link = new LinkLabel(panel_optimization, _L("Buy Now"), "");
     more_setting_tips->SetForegroundColour(wxColour(0, 174, 100));
     more_setting_tips->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
     more_setting_tips->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
-
-    buy_now_link->SeLinkLabelFColour(wxColour(0, 174, 66));
-    buy_now_link->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
-    buy_now_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
-
-    //advanced_settings_link->Hide();
-    buy_now_link->Hide();
+    advanced_settings_link->Hide();
 
     /*advanced option*/
     panel_advanced_option = new wxPanel(panel_optimization);
@@ -2731,12 +2730,13 @@ static double s_round(double value, int n)
     panel_advanced_option->Fit();
 
     sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(24));
-    sizer_optimization->Add(m_remain_usage_time, 0, wxEXPAND, 0);
+    sizer_optimization->Add(sizer_remain_usage_time, 0, wxEXPAND, 0);
+    sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(3));
+    sizer_optimization->Add(sizer_remain_purchased_time, 0, wxEXPAND, 0);
     sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(10));
     sizer_optimization->Add(outerwall, 0, wxEXPAND, 0);
     sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(5));
     sizer_optimization->Add(advanced_settings_link, 0, wxEXPAND, 0);
-    sizer_optimization->Add(buy_now_link, 0, wxTOP, FromDIP(5));
     sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(8));
     sizer_optimization->Add(panel_advanced_option, 0, wxEXPAND, 0);
     sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(8));
@@ -2769,6 +2769,11 @@ static double s_round(double value, int n)
     helio_wiki_link->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
     helio_wiki_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
 
+    buy_now_link = new LinkLabel(this, _L("Buy add-ons"), "https://wiki.helioadditive.com/");
+    buy_now_link->SeLinkLabelFColour(wxColour(0, 174, 66));
+    buy_now_link->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    buy_now_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+
     /*confirm*/
     wxBoxSizer* button_sizer = new wxBoxSizer(wxHORIZONTAL);
     StateColor btn_bg_green( std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Enabled), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Disabled), std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
@@ -2786,16 +2791,18 @@ static double s_round(double value, int n)
 
     button_sizer->Add(0, 0, 1, wxEXPAND, 0);
     button_sizer->Add(m_button_confirm, 0, 0, 0);
-    button_sizer->Add(0, 0, 0, wxLEFT, FromDIP(30));
+    button_sizer->Add(0, 0, 0, wxLEFT, FromDIP(25));
 
     main_sizer->Add(line, 0, wxEXPAND, 0);
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
     main_sizer->Add(control_sizer, 0, wxCENTER, FromDIP(30));
-    main_sizer->Add(panel_simulation, 0,wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
-    main_sizer->Add(panel_pay_optimization, 0,wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
-    main_sizer->Add(panel_optimization, 0,wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
+    main_sizer->Add(panel_simulation, 0,wxEXPAND | wxLEFT | wxRIGHT, FromDIP(25));
+    main_sizer->Add(panel_pay_optimization, 0,wxEXPAND | wxLEFT | wxRIGHT, FromDIP(25));
+    main_sizer->Add(panel_optimization, 0,wxEXPAND | wxLEFT | wxRIGHT, FromDIP(25));
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
-    main_sizer->Add(helio_wiki_link, 0, wxLEFT | wxRIGHT, FromDIP(30));
+    main_sizer->Add(helio_wiki_link, 0, wxLEFT | wxRIGHT, FromDIP(25));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(4));
+    main_sizer->Add(buy_now_link, 0, wxLEFT | wxRIGHT, FromDIP(25));
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(11));
     main_sizer->Add(button_sizer, 0, wxEXPAND, 0);
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
@@ -2830,7 +2837,7 @@ void HelioInputDialog::update_action(int action)
         std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
 
         std::weak_ptr<int> weak_ptr = shared_ptr;
-        HelioQuery::request_remaining_optimizations(helio_api_url, helio_api_key, [this, weak_ptr](int times) {
+        HelioQuery::request_remaining_optimizations(helio_api_url, helio_api_key, [this, weak_ptr](int times, int addons) {
             if (auto temp_ptr = weak_ptr.lock()) {
                 CallAfter([=]() {
                     if (times <= 0) {
@@ -2859,6 +2866,7 @@ void HelioInputDialog::update_action(int action)
                     buy_now_link->setLinkUrl(url);
 
                     if (m_remain_usage_time) { m_remain_usage_time->UpdateRemainTime(times); }
+                    if (m_remain_purchased_time) { m_remain_purchased_time->UpdateRemainTime(addons); }
                 });
             }
             else {
