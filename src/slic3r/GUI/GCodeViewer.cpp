@@ -5646,7 +5646,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         float spacing             = 18.0f * m_scale;
         float icon_spacing        = 20.0f * m_scale;
         float icon_width          = image_height;
-        float text_width          = imgui.calc_text_size(_u8L("Helio Simulation&Optimization").c_str()).x + imgui.calc_text_size("A").x;
+        float text_width          = imgui.calc_text_size(_u8L("Helio Action").c_str()).x + imgui.calc_text_size("A").x;
         float helio_button_width  = icon_width + text_width  + 30 * m_scale;
         float helio_button_height = ImGui::GetFrameHeight();
         ImGui::SameLine(0, (single_word_width + spacing) * 8.0f - title_width - helio_button_width);
@@ -5678,7 +5678,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(),
                                             ImVec2(button_min.x + ImGui::GetStyle().FramePadding.x + icon_width + 10 * m_scale, text_y),
                                             color_text,
-                                            _u8L("Helio Simulation&Optimization").c_str());
+                                            _u8L("Helio Action").c_str());
         ImGui::PopStyleVar();
         if (button_clicked) {
             BOOST_LOG_TRIVIAL(info) << "Helio button clicked";
