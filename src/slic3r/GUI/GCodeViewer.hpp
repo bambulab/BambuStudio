@@ -929,7 +929,7 @@ public:
 
     const SequentialView& get_sequential_view() const { return m_sequential_view; }
     void update_sequential_view_current(unsigned int first, unsigned int last);
-
+    bool get_min_max_value_of_option(int index, float &_min, float &_max);
     /* BBS IMSlider */
     IMSlider *get_moves_slider() { return m_moves_slider; }
     IMSlider *get_layers_slider() { return m_layers_slider; }
