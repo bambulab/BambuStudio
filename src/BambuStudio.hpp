@@ -17,6 +17,8 @@ namespace IO {
     };
 }
 
+#define DOWNWARD_CHECK_MARGIN 10
+
 #define JSON_ASSEMPLE_PLATES                   "plates"
 #define JSON_ASSEMPLE_PLATE_PARAMS             "plate_params"
 #define JSON_ASSEMPLE_PLATE_NAME               "plate_name"
