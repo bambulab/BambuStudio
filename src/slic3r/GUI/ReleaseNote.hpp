@@ -388,14 +388,14 @@ class HelioRemainUsageTime : public wxPanel
 public:
     Label* label_click_to_use{ nullptr };
     Label* label_click_to_buy{ nullptr };
-    HelioRemainUsageTime(wxWindow *parent = nullptr);
+    HelioRemainUsageTime(wxWindow *parent = nullptr, wxString label = wxEmptyString);
 
 public:
     void UpdateRemainTime(int remain_time);
     void UpdateHelpTips(int type);
 
 private:
-    void Create();
+    void Create(wxString label);
    
 private:
     int    m_remain_usage_time = 0;
@@ -433,6 +433,7 @@ private:
     std::shared_ptr<int> shared_ptr{nullptr};
 
     HelioRemainUsageTime* m_remain_usage_time{nullptr};
+    HelioRemainUsageTime* m_remain_purchased_time{nullptr};
 public:
     HelioInputDialog(wxWindow *parent = nullptr);
     ~HelioInputDialog() {};
