@@ -1355,18 +1355,19 @@ int CLI::run(int argc, char **argv)
         return CLI_ENVIRONMENT_ERROR;
     }
 
-    /*BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
+    /* BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
      for (int index = 0; index < argc; index++)
          BOOST_LOG_TRIVIAL(info) << "index=" << index << ", arg is " << argv[index] << std::endl;
-     int debug_argc = 7;
+     int debug_argc = 8;
      char* debug_argv[] = {
          "F:\work\projects\bambu_debug\bamboo_slicer\build_debug\src\Debug\bambu-studio.exe",
          "--debug=3",
          "--export-3mf=output.3mf",
-         "--repetitions=6",
+         "--uptodate",
+         "--downward-check",
          "--slice=1",
          "--min-save",
-         "H2D_wrap_copy_1.3mf"
+         "cube_a1_switch.3mf"
      };
      if (!this->setup(debug_argc, debug_argv))*/
     if (!this->setup(argc, argv))
@@ -1493,7 +1494,7 @@ int CLI::run(int argc, char **argv)
     std::vector<plate_obj_size_info_t> plate_obj_size_infos;
     //int arrange_option;
     int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0, current_extruder_count = 1, new_extruder_count = 1, current_printer_variant_count = 1, current_print_variant_count = 1, new_printer_variant_count = 1;
-    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false;
+    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false, has_support = false;
     bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false, current_is_multi_extruder = false, new_is_multi_extruder = false, allow_mix_temp = false, enable_wrapping_detect = false;
     Semver file_version;
     Slic3r::GUI::Camera::ViewAngleType camera_view = Slic3r::GUI::Camera::ViewAngleType::Iso;
@@ -1990,6 +1991,21 @@ int CLI::run(int argc, char **argv)
     {
         BOOST_LOG_TRIVIAL(warning) << boost::format("%1%: not support to slice plate %2%, reset to 0")%__LINE__ %plate_to_slice;
         plate_to_slice = 0;
+    }
+    if (is_bbl_3mf) {
+        //support params process
+        ConfigOptionBool *enable_support_option = m_print_config.option<ConfigOptionBool>("enable_support", true);
+        //traverse each object one by one
+        size_t num_objects = m_models[0].objects.size();
+        for (int i = 0; i < num_objects; ++i) {
+            ModelObject* object = m_models[0].objects[i];
+            DynamicPrintConfig object_config = object->config.get();
+            ConfigOptionBool *obj_enable_support_option = object_config.option<ConfigOptionBool>("enable_support");
+            if (enable_support_option->value || (obj_enable_support_option && obj_enable_support_option->value)) {
+                has_support = true;
+                break;
+            }
+        }
     }
 
     //load custom gcode file
@@ -4093,8 +4109,14 @@ int CLI::run(int argc, char **argv)
                     Vec3d size = bbox.size();
                     if (size.x() > (current_printable_width - exclude_width))
                         new_center_offset(0) = ((double)current_printable_width)/2;
+                    else if (size.x() <= (current_printable_width - exclude_width - DOWNWARD_CHECK_MARGIN))
+                        new_center_offset(0) = new_center_offset(0) - DOWNWARD_CHECK_MARGIN/2;
+
                     if (size.y() > (current_printable_depth - exclude_depth))
                         new_center_offset(1) = ((double)current_printable_depth)/2;
+                    else if (size.y() <= (current_printable_depth - exclude_depth - DOWNWARD_CHECK_MARGIN))
+                        new_center_offset(1) = new_center_offset(1) - DOWNWARD_CHECK_MARGIN/2;
+
                     Vec3d new_center = new_origin + new_center_offset;
 
                     offset  = new_center - bbox.center();
@@ -4285,7 +4307,11 @@ int CLI::run(int argc, char **argv)
                 if (plate_info.exclude_width > 0) {
                     int real_width = plate_info.printable_width - plate_info.exclude_width;
                     int real_depth = plate_info.printable_depth - plate_info.exclude_depth;
-                    if ((size.x() > real_width) && (size.y() > real_depth)) {
+                    if (has_support && (old_printable_width > real_width) && (old_printable_depth > real_depth) && (old_exclude_area.empty())) {
+                        real_width -= DOWNWARD_CHECK_MARGIN;
+                        real_depth -= DOWNWARD_CHECK_MARGIN;
+                    }
+                    if ((size.x() > real_width) || (size.y() > real_depth)) {
                         BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, downward_check index %2%, name %3%, bbox {%4%, %5%} exceeds real size without exclude_area {%6%, %7%}")
                             %(index+1) %(index2+1) %plate_info.printer_name
                             %size.x() % size.y() %real_width %real_depth;
