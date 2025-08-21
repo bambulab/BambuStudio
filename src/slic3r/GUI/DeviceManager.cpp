@@ -187,6 +187,18 @@ wxString Slic3r::get_stage_string(int stage)
         return _L("Measuring Surface");
     case 58:
         return _L("Thermal Preconditioning for first layer optimization");
+    case 59:
+        return _L("Homing Blade Holder");                             // O1C
+    case 60:
+        return _L("Calibrating Camera Offset");                       // O1C
+    case 61:
+        return _L("Calibrating Blade Holder Position");               // O1C
+    case 62:
+        return _L("Hotend Pick and Place Test");                      // O1C
+    case 63:
+        return _L("Waiting for the Chamber temperature to equalize"); // O1S  O1E/U1   O1D/U2.5
+    case 64:
+        return _L(" Preparing Hotend");//O1C/U0
     case 65:
         return _L("Calibrating the detection position of nozzle clumping"); // N7
     default:
