@@ -15372,8 +15372,8 @@ void Plater::reslice()
         this->SetDropTarget(nullptr);
 
         // Stop helio job
-        p->helio_background_process.reset();
         p->helio_background_process.clear_helio_file_cache();
+        p->helio_background_process.reset();
         if (p->helio_background_process.is_running()) {
             p->helio_background_process.stop();
             p->helio_background_process.stop_current_helio_action();
