@@ -17,6 +17,7 @@ public:
     void link(wxMouseEvent &evt);
     Label *getLabel(){return m_txt;};
     void setLinkUrl(wxString url);
+    void setLabel(wxString label);
     bool SeLinkLabelFColour(const wxColour &colour);
     bool SeLinkLabelBColour(const wxColour &colour);
 };

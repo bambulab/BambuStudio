@@ -2645,21 +2645,18 @@ static double s_round(double value, int n)
     }
     wxBoxSizer *sizer_optimization = new wxBoxSizer(wxVERTICAL);
 
-    wxBoxSizer *sizer_remain_usage_time = new wxBoxSizer(wxHORIZONTAL);
-    m_remain_usage_time = new HelioRemainUsageTime(panel_optimization, _L("Remaining usage times for current account this month: "));
+    m_remain_usage_time = new HelioRemainUsageTime(panel_optimization, _L("Monthly quota remaining: "));
     m_remain_usage_time->UpdateRemainTime(0);
-    sizer_remain_usage_time->Add(0, 0, 1, wxEXPAND, 0);
-    sizer_remain_usage_time->Add(m_remain_usage_time, 0, wxEXPAND, 0);
 
-    wxBoxSizer* sizer_remain_purchased_time = new wxBoxSizer(wxHORIZONTAL);
-    m_remain_purchased_time = new HelioRemainUsageTime(panel_optimization, _L("Purchased add-ons: "));
+    m_remain_purchased_time = new HelioRemainUsageTime(panel_optimization, _L("Add-ons available: "));
     m_remain_purchased_time->UpdateRemainTime(0);
-    sizer_remain_purchased_time->Add(0, 0, 1, wxEXPAND, 0);
-    sizer_remain_purchased_time->Add(m_remain_purchased_time, 0, wxEXPAND, 0);
 
-    
+    /*split line*/
+    auto split_line = new wxPanel(panel_optimization, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    split_line->SetMaxSize(wxSize(-1, FromDIP(1)));
+    split_line->SetBackgroundColour(wxColour(236, 236, 236));
 
-    /*general Options*/
+    /*advanced Options*/
     std::map<int, wxString> config_outerwall;
     config_outerwall[0] = _L("No");
     config_outerwall[1] = _L("Yes");
@@ -2730,10 +2727,12 @@ static double s_round(double value, int n)
     panel_advanced_option->Fit();
 
     sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(24));
-    sizer_optimization->Add(sizer_remain_usage_time, 0, wxEXPAND, 0);
+    sizer_optimization->Add(m_remain_usage_time, 0, wxEXPAND, 0);
     sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(3));
-    sizer_optimization->Add(sizer_remain_purchased_time, 0, wxEXPAND, 0);
+    sizer_optimization->Add(m_remain_purchased_time, 0, wxEXPAND, 0);
     sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(10));
+    sizer_optimization->Add(split_line, 0, wxEXPAND, 0);
+    sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(12));
     sizer_optimization->Add(outerwall, 0, wxEXPAND, 0);
     sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(5));
     sizer_optimization->Add(advanced_settings_link, 0, wxEXPAND, 0);
@@ -2762,17 +2761,31 @@ static double s_round(double value, int n)
     });
 
     panel_optimization->Hide();
-    
-    /*helio wiki*/
-    auto helio_wiki_link = new LinkLabel(this, _L("Click for more details"), wxGetApp().app_config->get("language") =="zh_CN"? "https://wiki.helioadditive.com/zh/home" : "https://wiki.helioadditive.com/en/home");
-    helio_wiki_link->SeLinkLabelFColour(wxColour(0, 174, 66));
-    helio_wiki_link->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-    helio_wiki_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
 
-    buy_now_link = new LinkLabel(this, _L("Buy add-ons"), "https://wiki.helioadditive.com/");
+    buy_now_link = new LinkLabel(this, _L("Buy Now"), "https://wiki.helioadditive.com/");
     buy_now_link->SeLinkLabelFColour(wxColour(0, 174, 66));
     buy_now_link->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
     buy_now_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+    buy_now_link->Hide();
+
+    /*set buy url*/
+    std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
+    if (helio_api_key.empty()) return;
+
+    wxString url;
+    if (wxGetApp().app_config->get("region") == "China") {
+        url = "store.helioam.cn?patToken=" + helio_api_key;
+    }
+    else {
+        url = "store.helioadditive.com?patToken=" + helio_api_key;
+    }
+    buy_now_link->setLinkUrl(url);
+    
+    /*helio wiki*/
+    helio_wiki_link = new LinkLabel(this, _L("Click for more details"), wxGetApp().app_config->get("language") =="zh_CN"? "https://wiki.helioadditive.com/zh/home" : "https://wiki.helioadditive.com/en/home");
+    helio_wiki_link->SeLinkLabelFColour(wxColour(0, 174, 66));
+    helio_wiki_link->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    helio_wiki_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
 
     /*confirm*/
     wxBoxSizer* button_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -2800,9 +2813,9 @@ static double s_round(double value, int n)
     main_sizer->Add(panel_pay_optimization, 0,wxEXPAND | wxLEFT | wxRIGHT, FromDIP(25));
     main_sizer->Add(panel_optimization, 0,wxEXPAND | wxLEFT | wxRIGHT, FromDIP(25));
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
-    main_sizer->Add(helio_wiki_link, 0, wxLEFT | wxRIGHT, FromDIP(25));
-    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(4));
     main_sizer->Add(buy_now_link, 0, wxLEFT | wxRIGHT, FromDIP(25));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
+    main_sizer->Add(helio_wiki_link, 0, wxLEFT | wxRIGHT, FromDIP(25));
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(11));
     main_sizer->Add(button_sizer, 0, wxEXPAND, 0);
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
@@ -2827,9 +2840,11 @@ void HelioInputDialog::update_action(int action)
         togglebutton_simulate->SetIsSelected(true);
         togglebutton_optimize->SetIsSelected(false);
         panel_simulation->Show();
+        buy_now_link->Hide();
         panel_pay_optimization->Hide();
         panel_optimization->Hide();
         m_button_confirm->Enable();
+        helio_wiki_link->setLinkUrl( wxGetApp().app_config->get("language") =="zh_CN"? "https://wiki.helioadditive.com/zh/home" : "https://wiki.helioadditive.com/en/home");   
     }
     else {
         m_button_confirm->Disable();
@@ -2842,28 +2857,16 @@ void HelioInputDialog::update_action(int action)
                 CallAfter([=]() {
                     if (times <= 0) {
                         advanced_settings_link->Hide();
-                        buy_now_link->Show();
+                        buy_now_link->setLabel(_L("Buy Now"));
                         if (m_remain_usage_time) { m_remain_usage_time->UpdateHelpTips(0); }
                     } else {
                         m_button_confirm->Enable();
+                        buy_now_link->setLabel(_L("Buy add-ons"));
                         advanced_settings_link->Show();
-                        buy_now_link->Hide();
                         if (m_remain_usage_time) { m_remain_usage_time->UpdateHelpTips(1); }
                     }
                     Layout();
                     Fit();
-
-                    /*set buy url*/
-                    std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
-                    if (helio_api_key.empty()) return;
-
-                    wxString url;
-                    if (wxGetApp().app_config->get("region") == "China") {
-                        url = "store.helioam.cn?patToken=" + helio_api_key;
-                    } else {
-                        url = "store.helioadditive.com?patToken=" + helio_api_key;
-                    }
-                    buy_now_link->setLinkUrl(url);
 
                     if (m_remain_usage_time) { m_remain_usage_time->UpdateRemainTime(times); }
                     if (m_remain_purchased_time) { m_remain_purchased_time->UpdateRemainTime(addons); }
@@ -2877,6 +2880,9 @@ void HelioInputDialog::update_action(int action)
         togglebutton_simulate->SetIsSelected(false);
         togglebutton_optimize->SetIsSelected(true);
         panel_simulation->Hide();
+        buy_now_link->Show();
+        helio_wiki_link->setLinkUrl( wxGetApp().app_config->get("language") =="zh_CN"? "https://wiki.helioadditive.com/zh/optimization/quick-start" : "https://wiki.helioadditive.com/en/optimization/quick-start");   
+
         if (support_optimization == 0) {
             panel_pay_optimization->Hide();
             panel_optimization->Show();
