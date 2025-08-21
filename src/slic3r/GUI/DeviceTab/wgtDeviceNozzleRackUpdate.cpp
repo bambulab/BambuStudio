@@ -44,6 +44,11 @@ void wgtDeviceNozzleRackUpgradeDlg::UpdateRackInfo(const std::shared_ptr<DevNozz
     m_rack_upgrade_panel->UpdateRackInfo(rack);
 }
 
+void wgtDeviceNozzleRackUpgradeDlg::on_dpi_changed(const wxRect& suggested_rect)
+{
+    m_rack_upgrade_panel->Rescale();
+}
+
 wgtDeviceNozzleRackUprade::wgtDeviceNozzleRackUprade(wxWindow* parent,
                                                      wxWindowID id,
                                                      const wxPoint& pos,
@@ -165,6 +170,18 @@ void wgtDeviceNozzleRackUprade::OnBtnReadAll(wxCommandEvent& e)
     }
 }
 
+void wgtDeviceNozzleRackUprade::Rescale()
+{
+    m_btn_read_all->Rescale();
+    m_btn_update_all->Rescale();
+
+    m_extruder_nozzle_item->Rescale();
+    for (auto& iter : m_nozzle_items)
+    {
+        iter.second->Rescale();
+    }
+}
+
 #define WGT_DEVICE_NOZZLE_RACK_HOTEND_UPDATE_DEFAULT_BG *wxWHITE
 wgtDeviceNozzleRackHotendUpdate::wgtDeviceNozzleRackHotendUpdate(wxWindow* parent, const wxString& idx_text)
     : StaticBox(parent, wxID_ANY)
@@ -267,9 +284,18 @@ void wgtDeviceNozzleRackHotendUpdate::UpdateColourStyle(const wxColour& clr)
     SetBackgroundColour(clr);
     SetBorderColor(clr);
 
-    for (auto child : GetChildren())
+    // BFS: Update all children background color
+    auto children = GetChildren();
+    while (!children.IsEmpty())
     {
-        child->SetBackgroundColour(clr);
+        auto win = children.front();
+        children.pop_front();
+        win->SetBackgroundColour(clr);
+
+        for (auto child : win->GetChildren())
+        {
+            children.push_back(child);
+        }
     }
 }
 
@@ -281,7 +307,7 @@ void wgtDeviceNozzleRackHotendUpdate::UpdateExtruderNozzleInfo(const std::shared
         DevNozzleSystem* nozzle_system = rack->GetNozzleSystem();
         if (nozzle_system)
         {
-            UpdateInfo(nozzle_system->GetNozzle(m_ext_nozzle_id), nozzle_system->GetExtruderNozzleFirmware());
+            UpdateInfo(nozzle_system->GetNozzle(m_ext_nozzle_id));
         }
     }
 }
@@ -291,11 +317,11 @@ void wgtDeviceNozzleRackHotendUpdate::UpdateRackNozzleInfo(const std::shared_ptr
     m_nozzle_rack = rack;
     if (rack)
     {
-        UpdateInfo(rack->GetNozzle(m_rack_nozzle_id), rack->GetNozzleFirmwareInfo(m_rack_nozzle_id));
+        UpdateInfo(rack->GetNozzle(m_rack_nozzle_id));
     }
 }
 
-void wgtDeviceNozzleRackHotendUpdate::UpdateInfo(const DevNozzle& nozzle, const DevFirmwareVersionInfo& firmware)
+void wgtDeviceNozzleRackHotendUpdate::UpdateInfo(const DevNozzle& nozzle)
 {
     if (nozzle.IsEmpty() && m_nozzle_status != NOZZLE_STATUS_EMPTY)
     {
@@ -349,6 +375,7 @@ void wgtDeviceNozzleRackHotendUpdate::UpdateInfo(const DevNozzle& nozzle, const 
     }
 
     // Update firmware info
+    const DevFirmwareVersionInfo& firmware = nozzle.GetFirmwareInfo();
     if (!nozzle.IsAbnormal())
     {
         if (firmware.isValid())
@@ -427,6 +454,22 @@ void wgtDeviceNozzleRackHotendUpdate::OnUpdateIconClicked(wxCommandEvent& e)
             rack->CtrlRackUpgradeRackNozzle(m_rack_nozzle_id);
         }
     }
+}
+
+void wgtDeviceNozzleRackHotendUpdate::Rescale()
+{
+    // update images
+    if (m_nozzle_image) { m_nozzle_image->msw_rescale(); }
+    if (m_nozzle_empty_image) { m_nozzle_empty_image->msw_rescale(); }
+    if (m_nozzle_status == NOZZLE_STATUS_EMPTY && m_nozzle_empty_image)
+    {
+        m_icon_bitmap->SetBitmap(m_nozzle_empty_image->bmp());
+    }
+    else if (m_nozzle_image != nullptr)
+    {
+        m_icon_bitmap->SetBitmap(m_nozzle_image->bmp());
+    }
+    m_icon_bitmap->Refresh();
 }
 
 };// namespace Slic3r::GUI
