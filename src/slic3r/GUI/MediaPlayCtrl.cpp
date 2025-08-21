@@ -428,7 +428,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
                 : _L(iter->second.c_str());
             if (m_failed_code == 1) {
                 if (m_last_state == wxMEDIASTATE_PLAYING)
-                    msg2 = _L("The printer has been logged out and cannot connect.");
+                    msg2 = _L("Multi-device/client simultaneous liveview is not supported. Please close the liveview on other devices/clients and try again.");
             }
 #if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
             if (m_failed_code < 0)
