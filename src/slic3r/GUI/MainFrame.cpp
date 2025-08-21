@@ -1052,7 +1052,7 @@ void MainFrame::update_title()
     return;
 }
 
-void MainFrame::show_calibration_button(bool show)
+void MainFrame::show_calibration_button(bool show, bool is_BBL)
 {
 #ifdef __APPLE__
     bool shown = m_menubar->FindMenu(_L("Calibration")) != wxNOT_FOUND;
@@ -1065,7 +1065,7 @@ void MainFrame::show_calibration_button(bool show)
 #else
     topbar()->ShowCalibrationButton(show);
 #endif
-    show = !show;
+    show = is_BBL;
     auto shown2 = m_tabpanel->FindPage(m_calibration) != wxNOT_FOUND;
     if (shown2 == show)
         ;
@@ -3516,7 +3516,7 @@ void MainFrame::update_calibration_button_status()
     bool is_multi_extruder = wxGetApp().preset_bundle->get_printer_extruder_count() > 1;
     // Show calibration Menu for BBL printers if Develop Mode is on.
     bool show_calibration = (!isBBL || wxGetApp().app_config->get("developer_mode") == "true") && !is_multi_extruder;
-    wxGetApp().mainframe->show_calibration_button(show_calibration);
+    wxGetApp().mainframe->show_calibration_button(show_calibration, isBBL);
 }
 
 void MainFrame::reslice_now()

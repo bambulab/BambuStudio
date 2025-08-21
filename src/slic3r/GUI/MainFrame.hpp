@@ -265,7 +265,7 @@ public:
     void        update_title();
     void        set_max_recent_count(int max);
 
-    void        show_calibration_button(bool show);
+    void        show_calibration_button(bool show, bool is_BBL);
 
 	void        update_title_colour_after_set_title();
     void        show_option(bool show);
