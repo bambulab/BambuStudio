@@ -63,6 +63,27 @@ wxString DevNozzle::GetNozzleTypeStr() const
     return _L("Unknown");
 }
 
+DevFirmwareVersionInfo DevNozzle::GetFirmwareInfo() const
+{
+    const auto& nozzle_rack = m_nozzle_rack.lock();
+    if (nozzle_rack)
+    {
+        if (IsOnRack())
+        {
+            return nozzle_rack->GetNozzleFirmwareInfo(m_nozzle_id);
+        }
+        else
+        {
+            if (m_nozzle_id == 0)
+            {
+                return nozzle_rack->GetNozzleSystem()->GetExtruderNozzleFirmware();
+            }
+        }
+    }
+
+    return DevFirmwareVersionInfo();
+}
+
 DevNozzleSystem::DevNozzleSystem(MachineObject* owner)
     : m_owner(owner), m_nozzle_rack(std::make_shared<DevNozzleRack> (this))
 {
@@ -199,6 +220,7 @@ void DevNozzleSystemParser::ParseV1_0(const nlohmann::json& nozzletype_json,
     //Since both the old and new protocols push data.
    // assert(system->m_nozzles.size() < 2);
     DevNozzle nozzle;
+    nozzle.SetRack(system->GetNozzleRack());
     nozzle.m_nozzle_id = 0;
     nozzle.m_nozzle_flow = NozzleFlowType::S_FLOW; // default flow type
 
@@ -267,6 +289,8 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
         for (auto it = nozzle_json["info"].begin(); it != nozzle_json["info"].end(); it++)
         {
             DevNozzle nozzle_obj;
+            nozzle_obj.SetRack(system->GetNozzleRack());
+
             const auto& njon = it.value();
             nozzle_obj.m_nozzle_id = DevUtil::get_hex_bits(njon["id"].get<int>(), 0);
             nozzle_obj.m_diameter = njon["diameter"].get<float>();
@@ -274,6 +298,11 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
             if (njon.contains("stat"))/*maybe not contains*/
             {
                 nozzle_obj.SetStatus(njon["stat"].get<int>());
+            }
+
+            if (njon.contains("color_m"))/*maybe not contains*/
+            {
+                nozzle_obj.m_filament_clr = njon["color_m"].get<std::string>();
             }
 
             if (DevUtil::get_hex_bits(njon["id"].get<int>(), 1) == 1)
