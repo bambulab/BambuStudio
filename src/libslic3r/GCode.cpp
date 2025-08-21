@@ -3048,6 +3048,18 @@ void GCode::export_layer_filaments(GCodeProcessorResult* result)
                 iter->second.emplace_back(idx, idx);
         }
     }
+
+    {
+        result->filament_change_sequence.clear();
+        std::optional<unsigned int> prev_filament;
+        for(auto& layer : m_sorted_layer_filaments){
+            for(auto fidx : layer){
+                if(!prev_filament || prev_filament != fidx)
+                    result->filament_change_sequence.emplace_back(fidx);
+                prev_filament = fidx;
+            }
+        }
+    }
 }
 
 //BBS

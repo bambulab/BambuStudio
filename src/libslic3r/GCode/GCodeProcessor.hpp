@@ -280,6 +280,7 @@ namespace Slic3r {
         std::vector<NozzleType> nozzle_type;
         // first key stores filaments, second keys stores the layer ranges(enclosed) that use the filaments
         std::unordered_map<std::vector<unsigned int>, std::vector<std::pair<int, int>>,FilamentSequenceHash> layer_filaments;
+        std::vector<unsigned int> filament_change_sequence;
         // first key stores `from` filament, second keys stores the `to` filament
         std::map<std::pair<int,int>, int > filament_change_count_map;
 
@@ -325,6 +326,7 @@ namespace Slic3r {
             filament_printable_reuslt = other.filament_printable_reuslt;
             layer_filaments = other.layer_filaments;
             filament_change_count_map = other.filament_change_count_map;
+            filament_change_sequence = other.filament_change_sequence;
             skippable_part_time = other.skippable_part_time;
             initial_layer_time = other.initial_layer_time;
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -798,6 +800,7 @@ namespace Slic3r {
             float filament_load_times;
             float filament_unload_times;
             float extruder_change_times;
+            float hotend_change_times;
             float prepare_compensation_time;
 
             std::array<TimeMachine, static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count)> machines;
@@ -1385,6 +1388,7 @@ namespace Slic3r {
         float get_filament_load_time(size_t extruder_id);
         float get_filament_unload_time(size_t extruder_id);
         float get_extruder_change_time(size_t extruder_id);
+        float get_hotend_change_time();
         int   get_filament_vitrification_temperature(size_t extrude_id);
         void process_custom_gcode_time(CustomGCode::Type code);
         void process_filaments(CustomGCode::Type code);
