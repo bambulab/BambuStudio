@@ -543,6 +543,19 @@ void Selection::center()
     // calc distance
     Vec3d src_pos = this->get_bounding_box().center();
     Vec3d tar_pos = plate->get_center_origin();
+    auto mv = get_selected_volume(*this);
+    if (get_volume_idxs().size() == 1 && mv->is_text() && !mv->is_the_only_one_part()) {
+        auto index = mv->get_text_info().m_rr.mesh_id;
+        if (index >= 0 && index < mv->get_object()->volumes.size()) {
+            auto mo        = mv->get_object();
+            auto attach_mv = mo->volumes[index];
+            if (!attach_mv->is_text() && attach_mv->is_model_part()) {
+                auto mo_tran = mo->instances[0]->get_transformation();
+                auto world_tran = (mo_tran * attach_mv->get_transformation()).get_matrix();
+                tar_pos   = attach_mv->get_mesh_shared_ptr()->bounding_box().transformed(world_tran).center();
+            }
+        }
+    }
     Vec3d distance = Vec3d(tar_pos.x() - src_pos.x(), tar_pos.y() - src_pos.y(), 0);
 
     this->move_to_center(distance);
