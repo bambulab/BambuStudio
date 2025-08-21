@@ -1696,7 +1696,7 @@ void WebViewPanel::OpenMakerworldSearchPage(std::string KeyWord)
 
     wxString language_code = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
 
-    m_online_LastUrl = (boost::format("%1%%2%/studio/webview/search?keyword=%3%&from=bambustudio&from_studio_home=true") % host % language_code.mb_str() % UrlEncode(KeyWord)).str();
+    m_online_LastUrl = (boost::format("%1%%2%/studio/webview/search?from=bambustudio&keyword=%3%&from_studio_home=true") % host % language_code.mb_str() % UrlEncode(KeyWord)).str();
     SwitchWebContent("online");
     //SwitchLeftMenu("online");
 }
@@ -1792,6 +1792,8 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
                 if (auto pos = TmpNowUrl.find("&from_studio_home=true"); pos != std::string::npos) {
                     TmpNowUrl.erase(pos, 22);
                 }
+                std::regex pattern("&keyword=[^&]*");
+                TmpNowUrl = std::regex_replace(TmpNowUrl, pattern, "");
                 if(TmpNowUrl != m_browserMW->GetCurrentURL().ToStdString()) {
                     m_browserMW->LoadURL(TmpNowUrl); 
                 }
