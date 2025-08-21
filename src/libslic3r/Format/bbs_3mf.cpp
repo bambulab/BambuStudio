@@ -171,6 +171,7 @@ const std::string BBS_PROJECT_CONFIG_FILE = "Metadata/project_settings.config";
 const std::string BBS_MODEL_CONFIG_FILE = "Metadata/model_settings.config";
 const std::string BBS_MODEL_CONFIG_RELS_FILE = "Metadata/_rels/model_settings.config.rels";
 const std::string SLICE_INFO_CONFIG_FILE = "Metadata/slice_info.config";
+const std::string FILAMENT_SEQUENCE_FILE = "Metadata/filament_sequence.json";
 const std::string BBS_LAYER_HEIGHTS_PROFILE_FILE = "Metadata/layer_heights_profile.txt";
 const std::string LAYER_CONFIG_RANGES_FILE = "Metadata/layer_config_ranges.xml";
 const std::string BRIM_EAR_POINTS_FILE = "Metadata/brim_ear_points.txt";
@@ -1139,6 +1140,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         void _extract_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         void _extract_embossed_svg_shape_file(const std::string &filename, mz_zip_archive &archive, const mz_zip_archive_file_stat &stat);
 
+        void _extract_filament_sequence_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat &stat);
+
         // handlers to parse the .model file
         void _handle_start_model_xml_element(const char* name, const char** attributes);
         void _handle_end_model_xml_element(const char* name);
@@ -1514,6 +1517,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     _extract_xml_from_archive(archive, stat, _handle_start_config_xml_element, _handle_end_config_xml_element);
                     m_parsing_slice_info = false;
                 }
+                else if (boost::algorithm::iequals(name, FILAMENT_SEQUENCE_FILE)) {
+                    _extract_filament_sequence_from_archive(archive, stat);
+                }
             }
         }
 
@@ -1560,6 +1566,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate->pick_file = it->second->pick_file.empty();
             plate->pattern_bbox_file = it->second->pattern_bbox_file.empty();
             plate->config = it->second->config;
+            plate->filament_change_sequence = it->second->filament_change_sequence;
 
             if (!plate->thumbnail_file.empty())
                 _extract_from_archive(archive, plate->thumbnail_file, [&pixels = plate_data_list[it->first - 1]->plate_thumbnail.pixels](auto &archive, auto const &stat) -> bool {
@@ -1890,6 +1897,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     _extract_xml_from_archive(archive, stat, _handle_start_config_xml_element, _handle_end_config_xml_element);
                     m_parsing_slice_info = false;
                 }
+                else if (!dont_load_config && boost::algorithm::iequals(name, FILAMENT_SEQUENCE_FILE)){
+                    _extract_filament_sequence_from_archive(archive,stat);
+                }
                 else if (boost::algorithm::istarts_with(name, AUXILIARY_DIR)) {
                     // extract auxiliary directory to temp directory, do nothing for restore
                     if (m_load_aux && !m_load_restore)
@@ -2216,6 +2226,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->pattern_bbox_file = (m_load_restore || it->second->pattern_bbox_file.empty()) ? it->second->pattern_bbox_file : m_backup_path + "/" + it->second->pattern_bbox_file;
             plate_data_list[it->first-1]->config = it->second->config;
             plate_data_list[it->first-1]->filament_maps = it->second->filament_maps;
+            plate_data_list[it->first-1]->filament_change_sequence = it->second->filament_change_sequence;
 
             current_plate_data = plate_data_list[it->first - 1];
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__
@@ -3106,6 +3117,41 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     svg->file_data = m_path_to_emboss_shape_files[filename];
             }
     }
+
+    void _BBS_3MF_Importer::_extract_filament_sequence_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat &stat)
+    {
+        if(stat.m_uncomp_size <=0){
+            add_error("Error while reading layer config ranges data to buffer");
+            return;
+        }
+
+        std::string buffer((size_t)stat.m_uncomp_size, 0);
+        mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, (void*)buffer.data(), (size_t)stat.m_uncomp_size, 0);
+        if (res == 0) {
+            add_error("Error while reading filament sequence data to buffer");
+            return;
+        }
+
+        try {
+            json j = json::parse(buffer);
+            for (auto& elem : m_plater_data) {
+                int plate_idx = elem.first;
+                auto plater_data = elem.second;
+                std::string key = "plate_" + std::to_string(plate_idx);
+                auto plate_seq = j[key]["sequence"];
+                std::vector<unsigned int> sequence;
+                for (auto& item : plate_seq) {
+                    sequence.push_back(item.get<unsigned int>());
+                }
+                plater_data->filament_change_sequence = sequence;
+            }
+        }
+        catch (const std::exception& e) {
+            add_error(std::string("Error while parsing filament sequence JSON: ") + e.what());
+            return;
+        }
+    }
+
 
     void _BBS_3MF_Importer::_extract_custom_gcode_per_print_z_from_archive(::mz_zip_archive &archive, const mz_zip_archive_file_stat &stat)
     {
@@ -5685,6 +5731,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool _add_gcode_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, Export3mfProgressFn proFn = nullptr);
         bool _add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config);
         bool _add_auxiliary_dir_to_archive(mz_zip_archive &archive, const std::string &aux_dir, PackingTemporaryData &data);
+        bool _add_filament_sequence_file_to_archive(mz_zip_archive& archive, const PlateDataPtrs& plate_data_list);
 
         static int convert_instance_id_to_resource_id(const Model& model, int obj_id, int instance_id)
         {
@@ -6217,6 +6264,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // This file contains all sliced info of all plates
         if (!_add_slice_info_config_file_to_archive(archive, model, plate_data_list, objects_data, *config)) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", _add_slice_info_config_file_to_archive failed\n");
+            return false;
+        }
+
+        if (!_add_filament_sequence_file_to_archive(archive,plate_data_list)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", _add_filament_sequence_file_to_archive failed\n");
             return false;
         }
 
@@ -8266,6 +8318,34 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive &archive, c
     }
 
     return result;
+}
+
+
+bool _BBS_3MF_Exporter::_add_filament_sequence_file_to_archive(mz_zip_archive& archive, const PlateDataPtrs& plate_data_list)
+{
+    std::string sequence_str;
+    json j;
+
+    for(size_t idx =0 ;idx< plate_data_list.size();++idx){
+        PlateData* plate_data = plate_data_list[idx];
+        if(!plate_data)
+            continue;
+
+        std::string plate_idx = "plate_"+std::to_string(idx+1);
+        j[plate_idx]["sequence"] = plate_data->filament_change_sequence;
+    }
+
+    if(j.empty())
+        return true;
+
+    sequence_str = j.dump();
+
+    if(!mz_zip_writer_add_mem(&archive, FILAMENT_SEQUENCE_FILE.c_str(), sequence_str.c_str(), sequence_str.size(), MZ_DEFAULT_COMPRESSION)){
+        add_error("Unable to add model config file to archive");
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", store  slice-info to 3mf,  length %1%, failed\n") % sequence_str.length();
+        return false;
+    }
+    return true;
 }
 
 // Perform conversions based on the config values available.

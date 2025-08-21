@@ -526,6 +526,7 @@ void GCodeProcessor::TimeProcessor::reset()
     filament_load_times = 0.0f;
     filament_unload_times = 0.0f;
     extruder_change_times = 0.0f;
+    hotend_change_times = 0.0f;
 
 
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
@@ -1463,6 +1464,7 @@ void GCodeProcessorResult::reset() {
     spiral_vase_layers = std::vector<std::pair<float, std::pair<size_t, size_t>>>();
     layer_filaments.clear();
     filament_change_count_map.clear();
+    filament_change_sequence.clear();
     skippable_part_time.clear();
     warnings.clear();
 
@@ -1869,6 +1871,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_time_processor.filament_load_times = static_cast<float>(config.machine_load_filament_time.value);
     m_time_processor.filament_unload_times = static_cast<float>(config.machine_unload_filament_time.value);
     m_time_processor.extruder_change_times = static_cast<float>(config.machine_switch_extruder_time.value);
+    m_time_processor.hotend_change_times = static_cast<float>(config.machine_hotend_change_time.value);
     m_time_processor.prepare_compensation_time = static_cast<float>(config.machine_prepare_compensation_time.value);
 
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
@@ -2136,6 +2139,10 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     const ConfigOptionFloat* machine_switch_extruder_time = config.option<ConfigOptionFloat>("machine_switch_extruder_time");
     if (machine_switch_extruder_time != nullptr)
         m_time_processor.extruder_change_times = static_cast<float>(machine_switch_extruder_time->value);
+
+    const ConfigOptionFloat* machine_hotend_change_time = config.option<ConfigOptionFloat>("machine_hotend_change_time");
+    if(machine_hotend_change_time != nullptr)
+        m_time_processor.hotend_change_times = static_cast<float>(machine_hotend_change_time->value);
 
     const ConfigOptionFloat* machine_prepare_compensation_time = config.option<ConfigOptionFloat>("machine_prepare_compensation_time");
     if (machine_prepare_compensation_time != nullptr)
@@ -5613,7 +5620,7 @@ void GCodeProcessor::process_filament_change(int id)
         if(is_extruder_change)
             extra_time += get_extruder_change_time(next_extruder_id);
         if(is_nozzle_change)
-            extra_time += get_extruder_change_time(next_extruder_id);  // TODO: use a new param: nozzle change time
+            extra_time += get_hotend_change_time();  // TODO: use a new param: nozzle change time
         if(is_filament_change){
             extra_time += get_filament_unload_time(static_cast<size_t>(old_filament_in_nozzle));
             m_time_processor.extruder_unloaded = false;
@@ -5878,6 +5885,11 @@ float GCodeProcessor::get_extruder_change_time(size_t extruder_id)
 {
     //TODO: all extruder has the same value ?
     return m_time_processor.extruder_change_times;
+}
+
+float GCodeProcessor::get_hotend_change_time()
+{
+    return m_time_processor.hotend_change_times;
 }
 
 //BBS
