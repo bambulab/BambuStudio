@@ -185,7 +185,7 @@ void wgtDeviceNozzleRackToolHead::UpdateToolHeadInfo(const DevNozzle& extruder_n
 
     /* Icon*/
     bool extruder_exist = !extruder_nozzle.IsEmpty();
-    if (m_extruder_nozzle_exist != !extruder_exist)
+    if (m_extruder_nozzle_exist != extruder_exist)
     {
         m_extruder_nozzle_exist = extruder_exist;
         m_toolhead_icon->SetBitmap(m_extruder_nozzle_exist ? m_extruder_nozzle_normal->bmp() : m_extruder_nozzle_empty->bmp());
@@ -280,6 +280,7 @@ static void s_update_title(const std::shared_ptr<DevNozzleRack> rack, wgtDeviceN
     title_label->SetLabel(title);
 }
 
+#if 0
 static void s_update_readall_btn(const std::shared_ptr<DevNozzleRack> rack, Button* btn)
 {
     wxString label = _L("Read All");
@@ -295,6 +296,7 @@ static void s_update_readall_btn(const std::shared_ptr<DevNozzleRack> rack, Butt
 
     btn->Enable(rack->CtrlCanReadAll());
 };
+#endif
 
 void wgtDeviceNozzleRackArea::UpdateNozzleItems(const std::unordered_map<int, wgtDeviceNozzleRackNozzleItem*>& nozzle_items,
     std::shared_ptr<DevNozzleRack> nozzle_rack)
@@ -345,10 +347,9 @@ void wgtDeviceNozzleRackArea::UpdateRackInfo(std::weak_ptr<DevNozzleRack> rack)
     if (nozzle_rack)
     {
         s_update_title(nozzle_rack, m_title_nozzle_rack);
-        s_update_readall_btn(nozzle_rack, m_btn_read_all);
         UpdateNozzleItems(m_nozzle_items, nozzle_rack);
-
         m_rack_pos_panel->UpdateRackPos(nozzle_rack);
+        m_btn_read_all->Enable(nozzle_rack->CtrlCanReadAll());
     }
 
     if (m_rack_upgrade_dlg && m_rack_upgrade_dlg->IsShown())

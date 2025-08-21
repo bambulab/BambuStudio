@@ -16,6 +16,10 @@ namespace Slic3r
 
    struct DevNozzle
    {
+   private:
+       friend class DevNozzleSystemParser;
+
+   public:
        int             m_nozzle_id = -1;
        NozzleFlowType  m_nozzle_flow = NozzleFlowType::S_FLOW;// 0-common 1-high flow
        NozzleType      m_nozzle_type = NozzleType::ntUndefine;// 0-stainless_steel 1-hardened_steel 5-tungsten_carbide
@@ -28,7 +32,10 @@ namespace Slic3r
        static std::string   GetNozzleTypeString(NozzleType type);
    public:
        /**/
-       int      GetNozzleId() const { return m_nozzle_id; }
+       void       SetRack(const std::weak_ptr<DevNozzleRack>& rack) { m_nozzle_rack = rack; };
+
+       /**/
+       int        GetNozzleId() const { return m_nozzle_id; }
        NozzleType GetNozzleType() const { return m_nozzle_type; }
 
        // display
@@ -36,6 +43,10 @@ namespace Slic3r
        wxString GetNozzleDiameterStr() const {  return wxString::Format("%.1f mm", m_diameter);}
        wxString GetNozzleFlowTypeStr() const;
        wxString GetNozzleTypeStr() const;
+
+       // serial number
+       wxString GetSerialNumber() const { return GetFirmwareInfo().sn; }
+       DevFirmwareVersionInfo GetFirmwareInfo() const;
 
        /* holder nozzle*/
        bool IsOnRack() const { return m_on_rack; }
@@ -46,12 +57,16 @@ namespace Slic3r
        bool IsAbnormal() const;
        bool IsUnknown() const;
 
+       std::string GetFilamentColor() const { return m_filament_clr; }
+
        void SetOnRack(bool on_rack) { m_on_rack = on_rack; };
        void SetStatus(int stat) { m_stat = stat; }
 
    private:
        int m_stat = 0;
        bool m_on_rack = false;
+       std::string m_filament_clr;// main color
+       std::weak_ptr<DevNozzleRack> m_nozzle_rack; // weak pointer to the nozzle rack
    };
 
    class DevNozzleSystem

@@ -41,7 +41,7 @@ public:
     void UpdateRackInfo(const std::shared_ptr<DevNozzleRack> rack);;
 
 public:
-    void on_dpi_changed(const wxRect& suggested_rect) override {};
+    void on_dpi_changed(const wxRect& suggested_rect) override;
 
 private:
     wgtDeviceNozzleRackUprade* m_rack_upgrade_panel;
@@ -60,6 +60,7 @@ public:
 
 public:
     void UpdateRackInfo(const std::shared_ptr<DevNozzleRack> rack);
+    void Rescale();
 
 private:
     void CreateGui();
@@ -98,10 +99,13 @@ public:
     int GetRackNozzleId() const { return m_rack_nozzle_id; }
     void UpdateRackNozzleInfo(const std::shared_ptr<DevNozzleRack> rack);
 
+    // gui
+    void Rescale();
+
 private:
     void CreateGui();
 
-    void UpdateInfo(const DevNozzle& nozzle, const DevFirmwareVersionInfo& firmware);
+    void UpdateInfo(const DevNozzle& nozzle);
 
     void OnUpdateIconClicked(wxCommandEvent& e);
 
