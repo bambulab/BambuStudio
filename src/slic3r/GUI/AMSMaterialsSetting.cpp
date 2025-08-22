@@ -323,6 +323,26 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     cali_title_sizer->Add(m_ratio_text, 0, wxALIGN_CENTER_VERTICAL);
     cali_title_sizer->Add(m_wiki_ctrl, 0, wxALIGN_CENTER_VERTICAL);
 
+    wxBoxSizer *m_sizer_nozzle_id = new wxBoxSizer(wxHORIZONTAL);
+    // Nozzle ID
+    m_title_nozzle_id = new wxStaticText(parent, wxID_ANY, _L("Nozzle ID"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
+    m_title_nozzle_id->SetMinSize(wxSize(FromDIP(80), -1));
+    m_title_nozzle_id->SetMaxSize(wxSize(FromDIP(80), -1));
+    m_title_nozzle_id->SetFont(::Label::Body_13);
+    auto font = m_title_nozzle_id->GetFont();
+    font.SetUnderlined(true);
+    m_title_nozzle_id->SetFont(font);
+    m_title_nozzle_id->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
+    m_title_nozzle_id->SetToolTip(_L("Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."));
+    m_title_nozzle_id->Wrap(-1);
+    m_sizer_nozzle_id->Add(m_title_nozzle_id, 0, wxALIGN_CENTER, 0);
+    m_sizer_nozzle_id->Add(0, 0, 0, wxEXPAND, 0);
+
+    m_comboBox_nozzle_id = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, 0, nullptr, wxCB_READONLY);
+    m_comboBox_nozzle_id->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, &AMSMaterialsSetting::on_select_nozzle_id, this);
+    m_sizer_nozzle_id->Add(m_comboBox_nozzle_id, 1, wxALIGN_CENTER, 0);
+
+
     wxBoxSizer *m_sizer_cali_resutl = new wxBoxSizer(wxHORIZONTAL);
     // pa profile
     m_title_pa_profile = new wxStaticText(parent, wxID_ANY, _L("PA Profile"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
@@ -373,6 +393,8 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
     sizer->Add(cali_title_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
+    sizer->Add(m_sizer_nozzle_id, 0, wxLEFT | wxRIGHT, FromDIP(20));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
     sizer->Add(m_sizer_cali_resutl, 0, wxLEFT | wxRIGHT, FromDIP(20));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
     sizer->Add(kn_val_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
@@ -1115,6 +1137,65 @@ void AMSMaterialsSetting::on_select_cali_result(wxCommandEvent &evt)
     }
 }
 
+void AMSMaterialsSetting::on_select_nozzle_id(wxCommandEvent &evt){
+    if(m_comboBox_nozzle_id->GetStringSelection() == "Default"){
+        // disable pa profile selection
+    }else{
+        // enable pa profile selection
+        // refresh pa profile list
+    }
+}
+
+void AMSMaterialsSetting::update_nozzle_combo(MachineObject* obj){
+    if(!obj) return;
+
+    auto rack = obj->GetNozzleSystem()->GetNozzleRack();
+    int extruder_id = obj->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(ams_id));
+
+    if(rack->IsSupported() && extruder_id == MAIN_EXTRUDER_ID){
+        int r_nozzle_id = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
+        auto r_nozzle = obj->GetNozzleSystem()->GetNozzle(r_nozzle_id);
+        auto nozzle_map = rack->GetRackNozzles();
+
+        wxString nozzle_diameter = r_nozzle.GetNozzleDiameterStr();
+        wxString nozzle_flow = r_nozzle.GetNozzleFlowTypeStr();
+
+        auto nozzle_list = make_nozzles_info(r_nozzle, nozzle_map, nozzle_diameter, nozzle_flow);
+
+        m_comboBox_nozzle_id->Clear();
+        m_comboBox_nozzle_id->Set(nozzle_list);
+        m_comboBox_nozzle_id->SetSelection(0);
+
+        m_title_nozzle_id->Show();
+        m_comboBox_nozzle_id->Show();
+    } else{
+        m_title_nozzle_id->Hide();
+        m_comboBox_nozzle_id->Hide();
+    }
+
+    Layout();
+    Fit();
+}
+
+wxArrayString AMSMaterialsSetting::make_nozzles_info(const DevNozzle& r_nozzle, const std::map<int, DevNozzle>& nozzle_map, const wxString& nozzle_diameter, const wxString& nozzle_flow){
+    wxArrayString nozzle_list;
+
+    nozzle_list.Add("Default");
+
+    if(r_nozzle.GetNozzleDiameterStr() == nozzle_diameter && r_nozzle.GetNozzleFlowTypeStr() == nozzle_flow){
+        wxString item = wxString::Format("R | %s %s", r_nozzle.GetNozzleDiameterStr(), r_nozzle.GetNozzleFlowTypeStr());
+        nozzle_list.Add( item);
+    }
+    for(auto &nozzle : nozzle_map){
+        if(nozzle.second.GetNozzleDiameterStr() == nozzle_diameter && nozzle.second.GetNozzleFlowTypeStr() == nozzle_flow){
+            wxString item = wxString::Format("%d | %s %s", nozzle.second.GetNozzleId() + 1, r_nozzle.GetNozzleDiameterStr(), r_nozzle.GetNozzleFlowTypeStr());
+            nozzle_list.Add(item);
+        }
+    }
+    return nozzle_list;
+}
+
+
 void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
 {
     // Get the flag whether to open the filament setting dialog from the device page
@@ -1190,6 +1271,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
 
     //reset cali
     int cali_select_idx = -1;
+
+    update_nozzle_combo(obj);
 
     if ( !this->obj || m_filament_selection < 0) {
         m_input_k_val->Enable(false);
