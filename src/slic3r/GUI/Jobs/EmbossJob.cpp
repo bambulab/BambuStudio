@@ -1837,6 +1837,9 @@ void GenerateTextJob::get_text_mesh(TriangleMesh &result_mesh, std::vector<Trian
     if (chars_mesh.size() == 0) {
         BOOST_LOG_TRIVIAL(info) << boost::format("check error:get_text_mesh");
     }
+    if (i >= chars_mesh.size() || i< 0) {
+        return;
+    }
     TriangleMesh mesh = chars_mesh[i]; // m_cur_font_name
     auto         box  = mesh.bounding_box();
     mesh.translate(-box.center().x(), 0, 0);
