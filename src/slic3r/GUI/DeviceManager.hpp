@@ -78,6 +78,7 @@ class DevAmsTray;
 class DevBed;
 class DevConfig;
 class DevCtrl;
+class DevExtensionTool;
 class DevExtderSystem;
 class DevFan;
 class DevFilaSystem;
@@ -109,6 +110,7 @@ private:
 
     /*parts*/
     DevLamp*          m_lamp;
+    std::shared_ptr<DevExtensionTool> m_extension_tool;
     DevExtderSystem*  m_extder_system;
     DevNozzleSystem*  m_nozzle_system;
     DevFilaSystem*    m_fila_system;
@@ -317,6 +319,8 @@ public:
 
     /* parts */
     DevExtderSystem* GetExtderSystem() const { return m_extder_system; }
+    std::weak_ptr<DevExtensionTool> GetExtensionTool() const { return m_extension_tool; }
+
     DevNozzleSystem* GetNozzleSystem() const { return m_nozzle_system;}
 
     DevFilaSystem*   GetFilaSystem() const { return m_fila_system;}
