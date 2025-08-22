@@ -89,6 +89,7 @@ class DevNozzleSystem;
 class DeviceManager;
 class DevStorage;
 struct DevPrintTaskRatingInfo;
+struct DevNozzle;
 
 
 class MachineObject
@@ -290,6 +291,15 @@ public:
     bool is_main_extruder_on_left() const { return false;  } // only means the extruder is on the left hand when extruder id is 0
     bool is_multi_extruders() const;
     int  get_extruder_id_by_ams_id(const std::string& ams_id);
+
+    /* nozzle */
+    DevNozzle get_nozzle_by_id_code(int id_code) const;
+
+    /* ams settings*/
+    bool IsDetectOnInsertEnabled() const;;
+    //bool IsDetectOnPowerupEnabled() const { return m_enable_detect_on_powerup; }
+    //bool IsDetectRemainEnabled() const { return m_enable_detect_remain; }
+    //bool IsAutoRefillEnabled() const { return m_enable_auto_refill; }
 
     [[nodiscard]] bool is_nozzle_flow_type_supported() const { return is_enable_np; };
     [[nodiscard]] wxString get_nozzle_replace_url() const;

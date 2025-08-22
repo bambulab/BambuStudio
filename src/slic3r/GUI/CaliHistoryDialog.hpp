@@ -75,7 +75,7 @@ public:
 protected:
     virtual void on_ok(wxCommandEvent &event);
     virtual void on_cancel(wxCommandEvent &event);
-
+    void on_select_extruder(wxCommandEvent &event);
 
     wxArrayString get_all_filaments(const MachineObject *obj);
     int get_extruder_id(int extruder_index);  // extruder_index 0 : left, 1 : right
@@ -92,6 +92,7 @@ protected:
     ComboBox *m_comboBox_filament;
     ComboBox *m_comboBox_extruder;
     ComboBox *m_comboBox_nozzle_type;
+    ComboBox *m_comboBox_nozzle_id;
 
     struct FilamentInfos
     {
