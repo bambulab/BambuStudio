@@ -3522,7 +3522,7 @@ void TabFilament::build()
 
         //BBS
         optgroup = page->new_optgroup(L("Volumetric speed limitation"), L"param_volumetric_speed");
-        optgroup->append_single_option_line("filament_adaptive_volumetric_speed");
+        optgroup->append_single_option_line("filament_adaptive_volumetric_speed", "", 0);
         optgroup->append_single_option_line("filament_max_volumetric_speed", "", 0);
         optgroup->append_single_option_line("filament_ramming_volumetric_speed", "",0);
 
@@ -3756,8 +3756,8 @@ void TabFilament::toggle_options()
             toggle_line(el, is_BBL_printer);
 
         std::string volumetric_speed_cos = m_config->opt_string("volumetric_speed_coefficients", (unsigned int)(m_variant_combo->GetSelection()));
-        bool enable_fit = volumetric_speed_cos != "0;0;0;0;0;0";
-        toggle_option("filament_adaptive_volumetric_speed", enable_fit);
+        bool enable_fit = volumetric_speed_cos != "0 0 0 0 0 0";
+        toggle_option("filament_adaptive_volumetric_speed", enable_fit, 256 + (unsigned int) (m_variant_combo->GetSelection()));
     }
 
     if (m_active_page->title() == "Multi Filament") {
