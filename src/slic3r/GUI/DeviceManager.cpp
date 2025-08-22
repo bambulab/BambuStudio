@@ -1962,6 +1962,10 @@ int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult> &
                 j["print"]["filaments"][i]["n_coef"] = std::to_string(pa_calib_values[i].n_coef);
             else
                 j["print"]["filaments"][i]["n_coef"]  = "0.0";
+            if (pa_calib_values[i].nozzle_pos_id >= 0) {
+                j["print"]["filaments"][i]["nozzle_pos"]  = pa_calib_values[i].nozzle_pos_id;
+                j["print"]["filaments"][i]["nozzle_sn"]   = pa_calib_values[i].nozzle_sn;
+            }
         }
 
         return this->publish_json(j);
@@ -1979,6 +1983,10 @@ int MachineObject::command_delete_pa_calibration(const PACalibIndexInfo& pa_cali
     j["print"]["nozzle_id"]       = _generate_nozzle_id(pa_calib.nozzle_volume_type, to_string_nozzle_diameter(pa_calib.nozzle_diameter)).ToStdString();
     j["print"]["filament_id"]     = pa_calib.filament_id;
     j["print"]["cali_idx"]        = pa_calib.cali_idx;
+    if (pa_calib.nozzle_pos_id >= 0) {
+        j["print"]["nozzle_pos"] = pa_calib.nozzle_pos_id;
+        j["print"]["nozzle_sn"]  = pa_calib.nozzle_sn;
+    }
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_calib.nozzle_diameter);
 
     return this->publish_json(j);
@@ -1997,6 +2005,11 @@ int MachineObject::command_get_pa_calibration_tab(const PACalibExtruderInfo &cal
     if (calib_info.use_nozzle_volume_type)
         j["print"]["nozzle_id"] = _generate_nozzle_id(calib_info.nozzle_volume_type, to_string_nozzle_diameter(calib_info.nozzle_diameter)).ToStdString();
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(calib_info.nozzle_diameter);
+
+    if (calib_info.nozzle_pos_id >= 0) {
+        j["print"]["nozzle_pos"] = calib_info.nozzle_pos_id;
+        j["print"]["nozzle_sn"]  = calib_info.nozzle_sn;
+    }
 
     request_tab_from_bbs = true;
     return this->publish_json(j);
@@ -2022,6 +2035,10 @@ int MachineObject::commnad_select_pa_calibration(const PACalibIndexInfo& pa_cali
     j["print"]["slot_id"]         = pa_calib_info.slot_id;
     j["print"]["cali_idx"]        = pa_calib_info.cali_idx;
     j["print"]["filament_id"]     = pa_calib_info.filament_id;
+    if (pa_calib_info.nozzle_pos_id >= 0) {
+        j["print"]["nozzle_pos"]  = pa_calib_info.nozzle_pos_id;
+        j["print"]["nozzle_sn"]   = pa_calib_info.nozzle_sn;
+    }
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_calib_info.nozzle_diameter);
 
     return this->publish_json(j);
