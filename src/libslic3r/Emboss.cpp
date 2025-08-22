@@ -1275,7 +1275,7 @@ void letter2shapes(ExPolygons &       result,
 
     // Create glyph from font file and cache it
     const Glyph *glyph_ptr = (it != cache.end()) ? &it->second : get_glyph(unicode, font, font_prop, cache, font_info_cache);
-    if (glyph_ptr == nullptr) {
+    if (glyph_ptr == nullptr || glyph_ptr->shape.size() == 0) {
         bool can_gen_from_back_font = false;
         if (bfc_fn) {
             auto         fn_result = bfc_fn();
