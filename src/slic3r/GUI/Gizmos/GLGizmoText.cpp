@@ -1307,6 +1307,7 @@ void GLGizmoText::draw_rotation(int caption_size, int slider_width, int drag_lef
             const Selection &selection = m_parent.get_selection();
             const GLVolume * gl_volume = get_selected_gl_volume(selection);
             m_text_tran_in_object.set_from_transform(gl_volume->get_volume_transformation().get_matrix()); // on_stop_dragging//rotate//set m_text_tran_in_object
+            update_trafo_matrices();
             volume_transformation_changed();
         }
     }
@@ -1975,6 +1976,7 @@ void GLGizmoText::on_stop_dragging()
     m_need_update_tran = true;//dragging
     if (m_hover_id == m_move_cube_id) {
         m_parent.do_move("");//replace by wxGetApp() .plater()->take_snapshot("Modify Text"); in EmbossJob.cpp
+        update_trafo_matrices();
         m_need_update_text = true;
     } else {
         m_rotate_gizmo.stop_dragging();
