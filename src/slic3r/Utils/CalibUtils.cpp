@@ -1937,6 +1937,10 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
     std::string new_ams_mapping = "[{\"ams_id\":" + std::to_string(calib_info.ams_id) + ", \"slot_id\":" + std::to_string(calib_info.slot_id) + "}]";
     print_job->task_ams_mapping2 = new_ams_mapping;
 
+    if (calib_info.nozzle_pos_id > 0) {
+        std::string nozzle_mapping = "[" + std::to_string(calib_info.nozzle_pos_id) + "]";
+    }
+
     CalibMode cali_mode       = calib_info.params.mode;
     print_job->m_project_name = get_calib_mode_name(cali_mode, flow_ratio_mode);
     print_job->set_calibration_task(true);
@@ -2032,16 +2036,20 @@ void CalibUtils::send_to_print(const std::vector<CalibInfo> &calib_infos, wxStri
     // set AMS mapping
     std::string select_ams     = "[";
     std::string new_select_ams = "[";
+    std::string nozzle_mapping = "[";
     for (size_t i = 0; i < calib_infos.size(); ++i) {
         select_ams += calib_infos[i].select_ams;
         new_select_ams += "{\"ams_id\":" + std::to_string(calib_infos[i].ams_id) + ", \"slot_id\":" + std::to_string(calib_infos[i].slot_id) + "}";
+        nozzle_mapping += std::to_string(calib_infos[i].nozzle_pos_id);
         if (i != calib_infos.size() - 1) {
             select_ams += ",";
             new_select_ams += ",";
+            nozzle_mapping += ",";
         }
     }
     select_ams += "]";
     new_select_ams += "]";
+    nozzle_mapping += "]";
     print_job->task_ams_mapping      = select_ams;
     print_job->task_ams_mapping_info = "";
     print_job->task_ams_mapping2     = new_select_ams;
