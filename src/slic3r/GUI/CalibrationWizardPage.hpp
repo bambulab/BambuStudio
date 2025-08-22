@@ -103,6 +103,11 @@ public:
     void ShowPanel();
     void HidePanel();
 
+    void UpdateNozzleCombo(const wxArrayString& nozzle_list);
+    int  GetNozzleIdCode() const;
+    void ShowNozzleCombo();
+    void HideNozzleCombo();
+
 protected:
     int m_index{0};
     int m_tray_id { -1 };
@@ -112,6 +117,9 @@ protected:
     CheckBox* m_checkBox{ nullptr };
     wxRadioButton* m_radioBox{ nullptr };
     CalibrateFilamentComboBox* m_comboBox{ nullptr };
+    wxStaticBitmap* m_nozzle_bmp{ nullptr };
+    ComboBox* m_nozzle_combo{ nullptr };
+
     CalibrationFilamentMode m_mode { CalibrationFilamentMode::CALI_MODEL_SINGLE };
 };
 

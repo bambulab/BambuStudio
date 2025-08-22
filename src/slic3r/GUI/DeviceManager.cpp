@@ -31,6 +31,7 @@
 #include "DeviceCore/DevLamp.h"
 #include "DeviceCore/DevFan.h"
 #include "DeviceCore/DevStorage.h"
+#include "DeviceCore/DevNozzleRack.h"
 
 #include "DeviceCore/DevConfig.h"
 #include "DeviceCore/DevCtrl.h"
@@ -5564,6 +5565,20 @@ bool MachineObject::is_multi_extruders() const
 int MachineObject::get_extruder_id_by_ams_id(const std::string& ams_id)
 {
     return m_fila_system->GetExtruderIdByAmsId(ams_id);
+}
+
+DevNozzle MachineObject::get_nozzle_by_id_code(int id_code) const
+{
+    /* toolhead nozzle*/
+    if(id_code < 0x10){
+        int nozzle_id = m_extder_system->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
+        return m_nozzle_system->GetNozzle(nozzle_id);
+    } else{
+        /* rack nozzle*/
+        auto rack = m_nozzle_system->GetNozzleRack();
+        auto nozzle_map = rack->GetRackNozzles();
+        return nozzle_map[id_code - 0x10];
+    }
 }
 
 Slic3r::DevPrintingSpeedLevel MachineObject::GetPrintingSpeedLevel() const
