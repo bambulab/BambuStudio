@@ -96,10 +96,6 @@ void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig & pri
         }
         else
             params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius + 0.001)); // +0.001mm to avoid clearance check fail due to rounding error
-
-        // for sequential print, we need to inflate the bed because cleareance_radius is so large
-        params.bed_shrink_x -= unscale_(params.min_obj_distance / 2);
-        params.bed_shrink_y -= unscale_(params.min_obj_distance / 2);
     }
 }
 
@@ -119,6 +115,7 @@ void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPri
         ap.inflation = params.min_obj_distance != 0 ? params.min_obj_distance / 2 :
             plate_has_tree_support ? scaled(brim_max / 2) : scaled(ap.brim_width);
         });
+    params.brim_skirt_distance = std::max(params.brim_skirt_distance, float(brim_max));
 }
 
 void update_unselected_items_inflation(ArrangePolygons& unselected, const DynamicPrintConfig & print_cfg, const ArrangeParams& params)
@@ -152,8 +149,19 @@ Points get_shrink_bedpts(const DynamicPrintConfig & print_cfg, const ArrangePara
         Point center = Polygon(bedpts).bounding_box().center();
         for (auto& pt : bedpts) pt[direction] += dist * SGN(center[direction] - pt[direction]);
     };
-    shrinkFun(bedpts, scaled(params.bed_shrink_x), 0);
-    shrinkFun(bedpts, scaled(params.bed_shrink_y), 1);
+
+    ArrangeParams params_copy = params;
+    if (params.is_seq_print) {
+        // for sequential print, we need to inflate the bed because cleareance_radius is so large
+        params_copy.bed_shrink_x -= unscale_(params_copy.min_obj_distance / 2);
+        params_copy.bed_shrink_y -= unscale_(params_copy.min_obj_distance / 2);
+    } else {
+        // for non-seq print, we need to shrink the bed so the first layer of support won't exceed the bed
+        params_copy.bed_shrink_x = std::max(params_copy.bed_shrink_x, params_copy.brim_skirt_distance / 2);
+        params_copy.bed_shrink_y = std::max(params_copy.bed_shrink_y, params_copy.brim_skirt_distance / 2);
+    }
+    shrinkFun(bedpts, scaled(params_copy.bed_shrink_x), 0);
+    shrinkFun(bedpts, scaled(params_copy.bed_shrink_y), 1);
     return bedpts;
 }
 
