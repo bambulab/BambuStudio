@@ -1355,7 +1355,7 @@ int CLI::run(int argc, char **argv)
         return CLI_ENVIRONMENT_ERROR;
     }
 
-    /* BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
+     /* BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
      for (int index = 0; index < argc; index++)
          BOOST_LOG_TRIVIAL(info) << "index=" << index << ", arg is " << argv[index] << std::endl;
      int debug_argc = 8;
@@ -3817,6 +3817,7 @@ int CLI::run(int argc, char **argv)
     double height_to_rod = m_print_config.opt_float("extruder_clearance_height_to_rod");
     double cleareance_radius = m_print_config.opt_float("extruder_clearance_max_radius");
     double distance_to_rod = m_print_config.opt_float("extruder_clearance_dist_to_rod");
+    int shared_printable_width = 0, shared_printable_depth = 0, shared_printable_height = 0, shared_center_x = 0, shared_center_y = 0;
     //double plate_stride;
     std::string bed_texture;
 
@@ -3835,6 +3836,37 @@ int CLI::run(int argc, char **argv)
         old_printable_depth = current_printable_depth;
     if (old_printable_height == 0)
         old_printable_height = current_printable_height;
+    if ((current_extruder_areas.size() > 0) && (current_extruder_areas.size() == current_extruder_print_heights.size())) {
+        BoundingBox current_bbox({0, 0}, {current_printable_width, current_printable_depth});
+        int temp_height = current_printable_height;
+
+        for (unsigned int temp_index = 0; temp_index < current_extruder_areas.size(); temp_index++)
+        {
+            BoundingBox temp_bbox;
+            Pointfs& temp_extruder_shape = current_extruder_areas[temp_index];
+            for (unsigned int temp_index2 = 0; temp_index2 < temp_extruder_shape.size(); temp_index2++)
+                temp_bbox.merge({temp_extruder_shape[temp_index2].x(), temp_extruder_shape[temp_index2].y()});
+
+            if (current_bbox.min.x() < temp_bbox.min.x())
+                current_bbox.min.x() = temp_bbox.min.x();
+            if (current_bbox.min.y() < temp_bbox.min.y())
+                current_bbox.min.y() = temp_bbox.min.y();
+            if (current_bbox.max.x() > temp_bbox.max.x())
+                current_bbox.max.x() = temp_bbox.max.x();
+            if (current_bbox.max.y() > temp_bbox.max.y())
+                current_bbox.max.y() = temp_bbox.max.y();
+            if ((int)(current_extruder_print_heights[temp_index]) < temp_height)
+                temp_height = current_extruder_print_heights[temp_index];
+        }
+        shared_printable_width = current_bbox.size().x();
+        shared_printable_depth = current_bbox.size().y();
+        shared_printable_height = temp_height;
+        shared_center_x = current_bbox.center().x();
+        shared_center_y = current_bbox.center().y();
+
+        BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: shared_printable_size {%2%, %3%, %4%}, shared_center {%5%, %6%}")
+                    %__LINE__ %shared_printable_width %shared_printable_depth %shared_printable_height %shared_center_x %shared_center_y;
+    }
     if (is_bbl_3mf && (old_printable_width > 0) && (old_printable_depth > 0) && (old_printable_height > 0))
     {
         //check the printable size logic
@@ -4050,7 +4082,7 @@ int CLI::run(int argc, char **argv)
                 %(plate_index+1) %start.x() % start.y() % start.z() %end.x() % end.y() % end.z();
     };
 
-    auto translate_models = [translate_old, shrink_to_new_bed, old_printable_width, old_printable_depth, old_printable_height, current_printable_width, current_printable_depth, current_printable_height, current_exclude_area, &plate_obj_size_infos] (Slic3r::GUI::PartPlateList& plate_list, DynamicPrintConfig& print_config) {
+    auto translate_models = [translate_old, shrink_to_new_bed, old_printable_width, old_printable_depth, old_printable_height, current_printable_width, current_printable_depth, current_printable_height, shared_center_x, shared_center_y, current_exclude_area, &plate_obj_size_infos] (Slic3r::GUI::PartPlateList& plate_list, DynamicPrintConfig& print_config) {
         //BBS: translate old 3mf to correct positions
         if (translate_old) {
             //translate the objects
@@ -4107,15 +4139,23 @@ int CLI::run(int argc, char **argv)
                     Vec3d new_center_offset { ((double)current_printable_width + exclude_width)/2, ((double)current_printable_depth + exclude_depth)/2, 0};
                     BoundingBoxf3& bbox = plate_obj_size_infos[index].obj_bbox;
                     Vec3d size = bbox.size();
-                    if (size.x() > (current_printable_width - exclude_width))
-                        new_center_offset(0) = ((double)current_printable_width)/2;
-                    else if (size.x() <= (current_printable_width - exclude_width - DOWNWARD_CHECK_MARGIN))
-                        new_center_offset(0) = new_center_offset(0) - DOWNWARD_CHECK_MARGIN/2;
+                    if (shared_center_x != 0)
+                        new_center_offset(0) = (double)shared_center_x;
+                    else if (exclude_width > 0) {
+                        if (size.x() > (current_printable_width - exclude_width))
+                            new_center_offset(0) = ((double)current_printable_width)/2;
+                        else if (size.x() <= (current_printable_width - exclude_width - DOWNWARD_CHECK_MARGIN))
+                            new_center_offset(0) = new_center_offset(0) - DOWNWARD_CHECK_MARGIN/2;
+                    }
 
-                    if (size.y() > (current_printable_depth - exclude_depth))
-                        new_center_offset(1) = ((double)current_printable_depth)/2;
-                    else if (size.y() <= (current_printable_depth - exclude_depth - DOWNWARD_CHECK_MARGIN))
-                        new_center_offset(1) = new_center_offset(1) - DOWNWARD_CHECK_MARGIN/2;
+                    if (shared_center_y != 0)
+                        new_center_offset(1) = (double)shared_center_y;
+                    else if (exclude_depth > 0) {
+                        if (size.y() > (current_printable_depth - exclude_depth))
+                            new_center_offset(1) = ((double)current_printable_depth)/2;
+                        else if (size.y() <= (current_printable_depth - exclude_depth - DOWNWARD_CHECK_MARGIN))
+                            new_center_offset(1) = new_center_offset(1) - DOWNWARD_CHECK_MARGIN/2;
+                    }
 
                     Vec3d new_center = new_origin + new_center_offset;
 
@@ -4201,12 +4241,17 @@ int CLI::run(int argc, char **argv)
 
             printer_plate_info_t printer_plate;
             Pointfs temp_printable_area, temp_exclude_area, temp_wrapping_area;
+            std::vector<Pointfs> temp_extruder_areas;
+            std::vector<double> temp_extruder_print_heights;
 
             printer_plate.printer_name = config_name;
 
             temp_printable_area = config.option<ConfigOptionPoints>("printable_area", true)->values;
             temp_exclude_area = config.option<ConfigOptionPoints>("bed_exclude_area", true)->values;
             temp_wrapping_area = config.option<ConfigOptionPoints>("wrapping_exclude_area", true)->values;
+            temp_extruder_areas = config.option<ConfigOptionPointsGroups>("extruder_printable_area", true)->values;
+            temp_extruder_print_heights = config.option<ConfigOptionFloatsNullable>("extruder_printable_height", true)->values;
+
             if (temp_printable_area.size() >= 4) {
                 printer_plate.printable_width = (int)(temp_printable_area[2].x() - temp_printable_area[0].x());
                 printer_plate.printable_depth = (int)(temp_printable_area[2].y() - temp_printable_area[0].y());
@@ -4223,6 +4268,35 @@ int CLI::run(int argc, char **argv)
                 printer_plate.wrapping_depth = (int)(temp_wrapping_area[2].y() - temp_wrapping_area[0].y());
                 printer_plate.wrapping_x = (int)temp_wrapping_area[0].x();
                 printer_plate.wrapping_y = (int)temp_wrapping_area[0].y();
+            }
+            if ((temp_extruder_areas.size() > 0) && (temp_extruder_print_heights.size() == temp_extruder_areas.size())) {
+                double temp_extruder_height = printer_plate.printable_height;
+                BoundingBox current_bbox({0, 0}, {printer_plate.printable_width, printer_plate.printable_depth});
+
+                for (unsigned int temp_index = 0; temp_index < temp_extruder_areas.size(); temp_index++)
+                {
+                    BoundingBox temp_bbox;
+                    Pointfs& temp_extruder_shape = temp_extruder_areas[temp_index];
+                    for (unsigned int temp_index2 = 0; temp_index2 < temp_extruder_shape.size(); temp_index2++)
+                        temp_bbox.merge({temp_extruder_shape[temp_index2].x(), temp_extruder_shape[temp_index2].y()});
+
+                    if (current_bbox.min.x() < temp_bbox.min.x())
+                        current_bbox.min.x() = temp_bbox.min.x();
+                    if (current_bbox.min.y() < temp_bbox.min.y())
+                        current_bbox.min.y() = temp_bbox.min.y();
+                    if (current_bbox.max.x() > temp_bbox.max.x())
+                        current_bbox.max.x() = temp_bbox.max.x();
+                    if (current_bbox.max.y() > temp_bbox.max.y())
+                        current_bbox.max.y() = temp_bbox.max.y();
+                    if (temp_extruder_height > temp_extruder_print_heights[temp_index])
+                        temp_extruder_height = temp_extruder_print_heights[temp_index];
+                }
+                printer_plate.printable_width  = current_bbox.size().x();
+                printer_plate.printable_depth  = current_bbox.size().y();
+                printer_plate.printable_height = temp_extruder_height;
+
+                BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: for multi-extruder printer, change printable size to bbox {%1%, %2%, 0} - {%3%, %4%, %5%}")
+                            %current_bbox.min.x() %current_bbox.min.y() %current_bbox.max.x() %current_bbox.max.y() %temp_extruder_height;
             }
             BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: printable size{%1%,%2%, %3%}, exclude area{%4%, %5%: %6% x %7%}, wrapping area{%8%, %9%: %10% x %11%}, enable_wrapping_detect %12%")
                 %printer_plate.printable_width %printer_plate.printable_depth %printer_plate.printable_height
@@ -4347,7 +4421,7 @@ int CLI::run(int argc, char **argv)
                 BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: found compatible printer %1%")%plate_info.printer_name;
             }
         }
-        BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: downward_check_size %1%, failed_count %2%")%downward_check_size %failed_count;
+        BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%, downward_check: downward_check_size %2%, failed_count %3%")%__LINE__ %downward_check_size %failed_count;
         sliced_info.downward_machines = downward_compatible_machines;
 
         for(std::vector<std::string>::iterator it = sliced_info.upward_machines.begin(); it != sliced_info.upward_machines.end();){
