@@ -9199,6 +9199,9 @@ void Plater::priv::on_action_open_project(SimpleEvent&)
 void Plater::priv::on_action_slice_plate(SimpleEvent&)
 {
     if (q != nullptr) {
+
+        helio_background_process.reset();
+
         if (!q->check_ams_status(false))
             return;
 
@@ -15370,14 +15373,6 @@ void Plater::reslice()
     if (result) {
         p->m_is_slicing = true;
         this->SetDropTarget(nullptr);
-
-        // Stop helio job
-        p->helio_background_process.reset();
-        p->helio_background_process.clear_helio_file_cache();
-        if (p->helio_background_process.is_running()) {
-            p->helio_background_process.stop();
-            p->helio_background_process.stop_current_helio_action();
-        }
     }
 
     bool clean_gcode_toolpaths = true;
