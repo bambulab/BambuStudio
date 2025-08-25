@@ -193,10 +193,6 @@ public:
                                                         SimulationInput sinput,
                                                         OptimizationInput oinput);
 
-    static void stop_optimization(const std::string helio_api_url,
-                                            const std::string helio_api_key,
-                                            const std::string optimization_id);
-
     static CheckOptimizationResult check_optimization_progress(const std::string helio_api_url,
                                                                const std::string helio_api_key,
                                                                const std::string optimization_id);
@@ -240,7 +236,7 @@ public:
     static double convert_volume_speed(float mm3_per_second);
 
     /*user*/
-    static void request_remaining_optimizations(const std::string& helio_api_url, const std::string& helio_api_key, std::function<void(int, int)> func);
+    static void request_remaining_optimizations(const std::string& helio_api_url, const std::string& helio_api_key, std::function<void(int)> func);
 };
 
 class HelioBackgroundProcess
@@ -392,7 +388,7 @@ public:
     void create_simulation_step(HelioQuery::CreateGCodeResult create_gcode_res,std::unique_ptr<GUI::NotificationManager>& notification_manager);
     void create_optimization_step(HelioQuery::CreateGCodeResult create_gcode_res, std::unique_ptr<GUI::NotificationManager>& notification_manager);
     void save_downloaded_gcode_and_load_preview(std::string                                file_download_url,
-                                                std::string                                helio_gcode_path,
+                                                std::string                                simulated_gcode_path,
                                                 std::string                                tmp_path,
                                                 std::unique_ptr<GUI::NotificationManager>& notification_manager);
 
@@ -424,7 +420,7 @@ public:
         return (parent / new_filename).string();
     }
 
-    void load_helio_file_to_viwer(std::string file_path, std::string tmp_path);
+    void load_simulation_to_viwer(std::string file_path, std::string tmp_path);
 };
 } // namespace Slic3r
 #endif
