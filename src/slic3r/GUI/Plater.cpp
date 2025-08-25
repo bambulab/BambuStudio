@@ -9313,26 +9313,17 @@ void Plater::priv::on_helio_processing_complete(HelioCompletionEvent &a)
 
         /*Keep the original gcode*/
         //int deleted = boost::nowide::remove(a.tmp_path.c_str());
-        try{
-            fs::path original_path = a.tmp_path;
-            std::string original_path_name = original_path.parent_path().string() + "/original_" + original_path.filename().string();
-            int renamed = boost::nowide::rename(a.tmp_path.c_str(), original_path_name.c_str());
+        std::string original_path = "original_" + a.tmp_path;
+        int renamed = boost::nowide::rename(a.tmp_path.c_str(), original_path.c_str());
 
-            if (renamed != 0) {
-                BOOST_LOG_TRIVIAL(error) << "Helio Failed to rename file";
-            }
-        }
-        catch (...){
+        if (renamed != 0) { 
             BOOST_LOG_TRIVIAL(error) << "Helio Failed to rename file"; 
         }
-        
 
         std::string copied;
         copy_file(a.simulated_path, a.tmp_path, copied);
 
         BOOST_LOG_TRIVIAL(debug) << boost::format("Failed to delete file %1%") % copied;
-
-        helio_background_process.m_gcode_result->filename = a.tmp_path;
 
         GCodeProcessorResult *res1 = partplate_list.get_curr_plate()->get_gcode_result();
         *res1 = *helio_background_process.m_gcode_result;
