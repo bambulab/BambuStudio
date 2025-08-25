@@ -1,19 +1,25 @@
 #pragma once
 #include "libslic3r/CommonDefs.hpp"
+#include "libslic3r/MultiNozzleUtils.hpp"
 #include "slic3r/Utils/json_diff.hpp"
-
-#include <wx/string.h>
-#include <map>
 
 #include "DevNozzleSystem.h"
 #include "DevFirmware.h"
+
+#include <map>
+
+// wx
+#include <wx/string.h>
+#include <wx/event.h>
+
+wxDECLARE_EVENT(DEV_RACK_EVENT_READING_FINISHED, wxCommandEvent);
 
 namespace Slic3r
 {
     // Previous definitions
 class DevNozzleSystem;
 
-class DevNozzleRack
+class DevNozzleRack: public wxEvtHandler
 {
 public:
     enum RackStatus : int
@@ -63,9 +69,12 @@ public:
     bool HasUnreliableNozzles() const;
     bool HasUnknownNozzles() const;
 
+    std::vector<MultiNozzleUtils::NozzleGroupInfo> GetNozzleGroups() const;
+
     // refreshing
     int GetReadingIdx() const { return m_nozzle_system->GetReadingIdx(); }
     int GetReadingCount() const { return m_nozzle_system->GetReadingCount(); }
+    void SendReadingFinished();
 
     // firmware
     void AddNozzleFirmwareInfo(int nozzle_id, const DevFirmwareVersionInfo& info) { m_rack_nozzles_firmware[nozzle_id] = info; }

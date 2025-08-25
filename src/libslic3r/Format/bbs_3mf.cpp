@@ -632,7 +632,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         if (result && result->nozzle_group_result) {
             auto nozzle_for_filament = result->nozzle_group_result->get_nozzle_for_filament(it->first);
             if (nozzle_for_filament) {
-                info.nozzle_diameter = nozzle_for_filament->diameter;
+                info.nozzle_diameter = atof(nozzle_for_filament->diameter.c_str());
                 info.group_id = nozzle_for_filament->group_id;
                 info.nozzle_volume_type = get_nozzle_volume_type_string(nozzle_for_filament->volume_type);
             }

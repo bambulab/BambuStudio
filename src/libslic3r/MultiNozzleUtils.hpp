@@ -13,7 +13,7 @@ namespace MultiNozzleUtils {
 // 存储单个喷嘴的信息
 struct NozzleInfo
 {
-    double           diameter;
+    std::string      diameter;
     NozzleVolumeType volume_type;
     int              extruder_id; // 逻辑挤出机id
     int              group_id;    // 对应逻辑喷嘴id, 无实际意义
@@ -22,12 +22,14 @@ struct NozzleInfo
 // 喷嘴组信息，执行同步操作后前端传递给后端的数据
 struct NozzleGroupInfo
 {
-    double           diameter;
+    std::string      diameter;
     NozzleVolumeType volume_type;
     int              extruder_id;
     int              nozzle_count;
 
-    NozzleGroupInfo(const double nozzle_diameter_, const NozzleVolumeType volume_type_, const int extruder_id_, const int nozzle_count_)
+    NozzleGroupInfo() = default;
+
+    NozzleGroupInfo(const std::string& nozzle_diameter_, const NozzleVolumeType volume_type_, const int extruder_id_, const int nozzle_count_)
         : diameter(nozzle_diameter_), volume_type(volume_type_), extruder_id(extruder_id_), nozzle_count(nozzle_count_)
     {}
 

@@ -1215,7 +1215,6 @@ static bool is_skip_high_flow_printer(const std::string& printer)
 
 bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
 {
-    wxBusyCursor   busy;
     MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
     auto           printer_name = plater->get_selected_printer_name_in_combox();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " begin sync_extruder_list";
@@ -1268,13 +1267,19 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
         extruder_map = physical_extruder_map->values;
     }
     assert(obj->GetExtderSystem()->GetTotalExtderCount() == extruder_nums);
+    auto nozzle_option = tryPopUpMultiNozzleDialog(obj);
+    if (!nozzle_option)
+        return false;
 
     std::vector<float> nozzle_diameters;
     nozzle_diameters.resize(extruder_nums);
     for (size_t index = 0; index < extruder_nums; ++index) {
         int extruder_id = extruder_map[index];
-        nozzle_diameters[extruder_id] = obj->GetExtderSystem()->GetNozzleDiameter(index);
+        nozzle_diameters[extruder_id] = nozzle_option ? atof(nozzle_option->diameter.c_str()) : obj->GetExtderSystem()->GetNozzleDiameter(index);
         NozzleVolumeType target_type = NozzleVolumeType::nvtStandard;
+        if (nozzle_option && nozzle_option->extruder_nozzle_count.count(extruder_id))
+            target_type = nozzle_option->extruder_nozzle_count[extruder_id].first;
+
         auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
         if (obj->is_nozzle_flow_type_supported()) {
             if (obj->GetExtderSystem()->GetNozzleFlowType(index) == NozzleFlowType::NONE_FLOWTYPE) {
@@ -1804,8 +1809,24 @@ Sidebar::Sidebar(Plater *parent)
 
         p->left_extruder->SetHoverEnabledCallback([extruder_hover_enabled_cb]() { return extruder_hover_enabled_cb(0); });
         p->right_extruder->SetHoverEnabledCallback([extruder_hover_enabled_cb]() { return extruder_hover_enabled_cb(1); });
-        p->left_extruder->SetOnHoverClick([]() {manuallySetNozzleCount(0); wxGetApp().plater()->update(); });
-        p->right_extruder->SetOnHoverClick([]() {manuallySetNozzleCount(1); wxGetApp().plater()->update(); });
+        p->left_extruder->SetOnHoverClick([this, parent]() {
+            if (parent && parent->get_machine_sync_status()) {
+                GUI::tryPopUpMultiNozzleDialog(wxGetApp().getDeviceManager()->get_selected_machine());
+            }
+            else {
+                GUI::manuallySetNozzleCount(0);
+            }
+            wxGetApp().plater()->update();
+            });
+        p->right_extruder->SetOnHoverClick([this, parent]() {
+            if (parent && parent->get_machine_sync_status()) {
+                GUI::tryPopUpMultiNozzleDialog(wxGetApp().getDeviceManager()->get_selected_machine());
+            }
+            else {
+                GUI::manuallySetNozzleCount(1);
+            }
+            wxGetApp().plater()->update();
+            });
 
         auto switch_diameter = [this](wxCommandEvent & evt) {
             auto extruder = dynamic_cast<ExtruderGroup *>(dynamic_cast<ComboBox *>(evt.GetEventObject())->GetParent());
@@ -3119,6 +3140,16 @@ void Sidebar::get_big_btn_sync_pos_size(wxPoint &pt, wxSize &size)
 void Sidebar::get_small_btn_sync_pos_size(wxPoint &pt, wxSize &size) {
     size = ams_btn->GetSize();
     pt   = ams_btn->GetScreenPosition();
+}
+
+void Sidebar::set_extruder_nozzle_count(int extruder_id, int nozzle_count)
+{
+    if (extruder_id == 0) {
+        p->left_extruder->SetCount(nozzle_count);
+    }
+    else if (extruder_id == 1) {
+        p->right_extruder->SetCount(nozzle_count);
+    }
 }
 
 void Sidebar::load_ams_list(MachineObject* obj)
