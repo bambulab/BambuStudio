@@ -104,11 +104,10 @@ public:
     RadioSelectorList m_radio_group;
     // ComboBoxSelectorList    m_comxbo_group;
 
-    ::TextInput* helio_input_pat = {nullptr};
-    wxStaticBitmap* helio_pat_refresh = {nullptr};
-    wxStaticBitmap *helio_icon_helio = {nullptr};
-    wxPanel* helio_pat_panel = {nullptr};
-    wxPanel* helio_fun_panel = {nullptr};
+    ::TextInput* helio_input_pat = { nullptr };
+    wxStaticBitmap* helio_pat_refresh = { nullptr };
+    wxPanel* helio_pat_panel = { nullptr };
+    wxPanel* helio_fun_panel = { nullptr };
 
     wxBoxSizer *create_item_title(wxString title, wxWindow *parent, wxString tooltip);
     wxBoxSizer *create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param,const std::vector<wxString>& label_list, const std::vector<std::string>& value_list, std::function<void(int)> callback = nullptr, int title_width = 0, int combox_width = 0);

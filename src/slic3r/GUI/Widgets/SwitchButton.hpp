@@ -79,34 +79,4 @@ private:
     bool auto_disable_when_switch = false;
 };
 
-class CustomToggleButton : public wxWindow {
-public:
-    CustomToggleButton(wxWindow* parent, const wxString& label,
-        wxWindowID id = wxID_ANY,
-        const wxPoint& pos = wxDefaultPosition,
-        const wxSize& size = wxDefaultSize);
-
-
-    void SetLabel(const wxString& label) override;
-
-    void SetSelectedIcon(const wxString& iconPath);
-    void SetUnSelectedIcon(const wxString& iconPath);
-
-    void SetIsSelected(bool selected);
-    bool IsSelected() const;
-
-private:
-    void OnPaint(wxPaintEvent& event);
-    void render(wxDC& dc);
-    void doRender(wxDC& dc);
-    void OnSize(wxSizeEvent& event);
-
-    void on_left_down(wxMouseEvent& e);
-
-    wxString m_label;
-    wxBitmap m_selected_icon;
-    wxBitmap m_unselected_icon;
-    bool m_isSelected;
-};
-
 #endif // !slic3r_GUI_SwitchButton_hpp_
