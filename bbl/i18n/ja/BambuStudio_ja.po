@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 19:21+0800\n"
+"POT-Creation-Date: 2025-08-25 10:58+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1084,6 +1084,9 @@ msgstr "警告: テキストの標準にエラーがあります。"
 
 msgid "Warning:text normal has been reset."
 msgstr "警告: テキストの標準がリセットされました。"
+
+msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
+msgstr ""
 
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "警告: 古いマトリックスには少なくとも2つのパラメータ（反転、スケーリング、回転）が含まれています。編集を続けると、正しくない可能性があります。テキストをドラッグするか、現在のポーズをキャンセルして保存後、再編集してください。"
@@ -2447,24 +2450,6 @@ msgstr "完全冷却"
 msgid "Init"
 msgstr "初期化"
 
-msgid "Hotend"
-msgstr "ホットエンド"
-
-msgid "Parts"
-msgstr "パーツ"
-
-msgid "Aux"
-msgstr "補助"
-
-msgid "Nozzle1"
-msgstr "ノズル 1"
-
-msgid "MC Board"
-msgstr "MCボード"
-
-msgid "Heat"
-msgstr "加熱"
-
 msgid "Chamber"
 msgstr "チャンバー"
 
@@ -2491,8 +2476,33 @@ msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
 msgstr "冷却モードは、PLA／PETG／TPU素材の造形に適しています。"
 
 msgctxt "air_duct"
-msgid "Right"
-msgstr "右"
+msgid "Right(Aux)"
+msgstr "右（補助）"
+
+msgctxt "air_duct"
+msgid "Right(Filter)"
+msgstr ""
+
+msgid "Hotend"
+msgstr "ホットエンド"
+
+msgid "Parts"
+msgstr "パーツ"
+
+msgid "Aux"
+msgstr "補助"
+
+msgid "Nozzle1"
+msgstr "ノズル 1"
+
+msgid "MC Board"
+msgstr "MCボード"
+
+msgid "Heat"
+msgstr "加熱"
+
+msgid "Fan"
+msgstr "ファン"
 
 msgid "Idling..."
 msgstr "待機中..."
@@ -3461,7 +3471,7 @@ msgstr ""
 "スキン深さの50%%にリセットされます。"
 
 msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
-msgstr ""
+msgstr "スパイラルモードが有効になるのは、以下の条件をすべて満たしている場合のみです：ウォールループが1、サポート無効、プロービングによるクラッピング検出が無効、トップシェル層が0、粗い充填密度が0、タイムラプスタイプが従来型、Z方向のウォール速度スムージングが無効であること。"
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr "しかし、I3構造のマシンはタイムラプスビデオを生成しません。"
@@ -3763,13 +3773,25 @@ msgid "Problem Solved and Resume"
 msgstr "問題解決、再開"
 
 msgid "Got it, Turn off the Fire Alarm."
-msgstr ""
+msgstr "了解しました。火災警報をオフにします。"
 
 msgid "Retry (problem solved)"
 msgstr "再試行 (問題は解決済み)"
 
 msgid "Stop Drying"
 msgstr "乾燥を中止"
+
+msgid "Cancle"
+msgstr ""
+
+msgid "Done"
+msgstr "完了"
+
+msgid "Retry"
+msgstr "再試行"
+
+msgid "Resume"
+msgstr "再開"
 
 msgid "Unknown error."
 msgstr "不明なエラーです。"
@@ -3976,8 +3998,8 @@ msgstr "から"
 msgid "Slicing Result"
 msgstr "スライス結果"
 
-msgid "Helio Simulation"
-msgstr ""
+msgid "Helio Action"
+msgstr "Helioアクション"
 
 msgid "Color Scheme"
 msgstr "配色"
@@ -4524,6 +4546,12 @@ msgstr ""
 "H2Dマシンでtpuフィラメントを印刷するのはこれが初めてです。\n"
 "簡単なチュートリアルビデオをご覧になりたいですか?"
 
+msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
+msgstr "PPS-CFおよびPPA-CFは脆いため、ツールヘッド上部で曲がったPTFEチューブ内で破損する可能性があります。使用前にWikiをご参照ください。"
+
+msgid "Tips"
+msgstr "ヒント"
+
 msgid "Slice all"
 msgstr "スライス (全プレート)"
 
@@ -5036,8 +5064,8 @@ msgstr "接続に失敗しました。ネットワークを確認して再試行
 msgid "Please check the network and try again, You can restart or update the printer if the issue persists."
 msgstr "ネットワークを確認し、もう一度試してください。問題が解決しない場合は、プリンタを再起動するか更新してください。"
 
-msgid "The printer has been logged out and cannot connect."
-msgstr "プリンタはログアウトされ、接続できません。"
+msgid "Multi-device/client simultaneous liveview is not supported. Please close the liveview on other devices/clients and try again."
+msgstr ""
 
 msgid "Video Stopped."
 msgstr "ビデオが停止しました。"
@@ -5194,9 +5222,6 @@ msgstr ""
 msgid "Download waiting..."
 msgstr "ダウンロード待ち"
 
-msgid "Retry"
-msgstr "再試行"
-
 msgid "Play"
 msgstr "再生"
 
@@ -5209,9 +5234,6 @@ msgstr "ダウンロード完了"
 #, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "ダウンロード中 %d%%"
-
-msgid "Fan"
-msgstr "ファン"
 
 msgid "Air Condition"
 msgstr "冷暖制御"
@@ -5373,9 +5395,6 @@ msgstr "造形進捗"
 
 msgid "Parts Skip"
 msgstr "部品スキップ"
-
-msgid "Resume"
-msgstr "再開"
 
 msgid "Stop"
 msgstr "中止"
@@ -6047,6 +6066,10 @@ msgstr "プリンター設定"
 msgid "The %s nozzle can not print %s."
 msgstr "%sノズルは%sを印刷できません。"
 
+#, boost-format
+msgid "Mixing %1% with %2% in printing is not recommended.\n"
+msgstr "%1% と %2% を混ぜて造形することは推奨されません。\n"
+
 msgid " nozzle"
 msgstr "ノズル"
 
@@ -6437,16 +6460,16 @@ msgstr "Helioは素材「%s」には対応していません。"
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
 "Please request a new Helio-PAT."
-msgstr ""
+msgstr "有効なHelio-PATが検出されませんでした。Helioのシミュレーションおよび最適化を実行できません。新しいHelio-PATをリクエストしてください。"
 
 msgid "Execution Blocked"
-msgstr ""
+msgstr "実行がブロックされました"
 
 msgid "Regenerate PAT"
-msgstr ""
+msgstr "PATを再生成"
 
 msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
-msgstr ""
+msgstr "Helio PATの取得に失敗しました。［更新］をクリックして再取得してください。"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "スライシングエラーを解決して、もう一度公開していください"
@@ -6503,9 +6526,6 @@ msgstr ""
 
 msgid "Switch now"
 msgstr "今すぐ切り替える"
-
-msgid "Tips"
-msgstr "ヒント"
 
 msgid "Load project"
 msgstr "プロジェクトを読み込む"
@@ -6674,12 +6694,12 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "修復する前に、カスタムサポート、シームファセット、および色塗りが削除されました。モデル名："
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
-msgstr "プリンタが接続されていません。同期する前に、デバイスページに移動して%sプリンタに接続してください。"
+msgid "Printer not connected. Please go to the device page to connect %s before syncing."
+msgstr ""
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-msgstr "デバイスページで現在接続されているプリンタは%s ではありません。 同期する前に%s に切り替えてください。"
+msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
+msgstr ""
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "プリンタにフィラメントはありません。最初にプリンタにフィラメントをロードしてください。"
@@ -6752,10 +6772,10 @@ msgid "Plate% d: %s is not suggested to be used to print filament %s(%s). If you
 msgstr "プレート %d: %s はフィラメント %s(%s) の印刷には推奨されません。この印刷を実行する場合は、このフィラメントのベッド温度をゼロ以外の数値に設定してください。"
 
 msgid "Parameter recommendation"
-msgstr ""
+msgstr "パラメーター推奨"
 
 msgid "In the process preset, under \"Others-Advanced\", check \"Enable clumping detection by probing\". This feature generates a small wipe tower and performs probing detection to identify clumping issues early in the print and stop printing, preventing print failures or printer damage.\n"
-msgstr ""
+msgstr "Controleer in de voorinstelling onder \"Anders-Advanced\" \"Clumping detectie bij proefperiode inschakelen\". Deze functie genereert een kleine wipe toren en voert een proefdetectie uit om problemen die zich vroeg in de print voordoen te identificeren en te stoppen met afdrukken, het voorkomen van print mislukkingen of printer schade.\n"
 
 msgid "Currently, the object configuration form cannot be used with a multiple-extruder printer."
 msgstr "現在、複数の押出機を備えたプリンタでは、オブジェクト設定フォームを使用できません。"
@@ -8955,9 +8975,6 @@ msgstr "新バージョン"
 msgid "Skip this Version"
 msgstr "このバージョンをスキップ"
 
-msgid "Done"
-msgstr "完了"
-
 msgid "resume"
 msgstr "再開"
 
@@ -9073,23 +9090,53 @@ msgstr "この機能を有効にすることを確認すると、上記の内容
 msgid "Agree"
 msgstr "同意"
 
-msgid "Helio Additive"
-msgstr ""
-
-msgid "Chamber temperature"
+msgid "Chamber Temperature"
 msgstr "チャンバー温度"
 
-msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
-msgstr "ご注意：上記の温度は実際の状況に応じて設定してください。データが正確であるほど、分析結果の精度も高くなります。"
+msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
+msgstr ""
 
-msgid "How to use Helio"
-msgstr "Helio の使い方"
+msgid "Helio's advanced feature for power users: available post purchase on its official website."
+msgstr ""
 
-msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
+msgid "Monthly quota remaining: "
+msgstr ""
+
+msgid "Add-ons available: "
+msgstr ""
+
+msgid "Optimise Outer Walls"
+msgstr ""
+
+msgid "Advanced Settings"
+msgstr ""
+
+msgid "Min Velocity"
+msgstr ""
+
+msgid "Max Velocity"
+msgstr ""
+
+msgid "Min Volumetric Speed"
+msgstr ""
+
+msgid "Max Volumetric Speed"
+msgstr "最大体積速度"
+
+msgid "Buy Now"
 msgstr ""
 
 msgid "Click for more details"
+msgstr "詳細はこちら"
+
+msgid "Buy add-ons"
 msgstr ""
+
+msgid "Layers to Optimize "
+msgstr ""
+
+msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
+msgstr "Helio PATの取得に失敗しました。発行済みのPAT数が上限に達しています。Helio公式サイトの情報をご確認のうえ、利用可能になりましたら「更新」をクリックして再取得してください。"
 
 msgid "Air Pump"
 msgstr "エアポンプ"
@@ -9102,6 +9149,9 @@ msgstr "レーザー40W"
 
 msgid "Cutting Module"
 msgstr "カットモジュール"
+
+msgid "Auto Fire Extinguishing System"
+msgstr "自動消火システム"
 
 msgid "Model:"
 msgstr "モデル"
@@ -9418,7 +9468,7 @@ msgid "Printing high-temp and low-temp filaments together may cause nozzle clogg
 msgstr "高温用と低温用のフィラメントを同時に造形すると、ノズルの詰まりやプリンターの故障を引き起こす可能性があります。それでも造形を続行する場合は、「環境設定」でこのオプションを有効にしてください。"
 
 msgid "Printing different-temp filaments together may cause nozzle clogging or printer damage."
-msgstr ""
+msgstr "異なる温度帯のフィラメントを同時に造形すると、ノズルの詰まりやプリンターの損傷につながる可能性があります。"
 
 msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "高温対応と中温対応のフィラメントを併用すると、ノズルの詰まりやプリンターの損傷につながる恐れがあります。"
@@ -9435,14 +9485,8 @@ msgstr "オブジェクト順で造形するでは、この機能を使用でき
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "「オブジェクト単位」のシーケンスが有効な場合、クラミング検出は使用できません。"
 
-msgid "enable_wrapping_detection"
-msgstr ""
-
 msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
-msgstr ""
-
-msgid "enable_prime_tower"
-msgstr ""
+msgstr "クラッピング検出にはプライムタワーが必要です。使用しない場合、モデルに欠陥が生じる可能性があります。"
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "スパイラルモードでは、[オブジェクト順]で複数のオブジェクトを造形してください"
@@ -10049,7 +10093,7 @@ msgid "This setting will affect the speed of perimeters having radius <= small p
 msgstr "この設定は、半径が小さい外周しきい値以下（通常は穴）の外周速度に影響します。パーセンテージ（例：80%）で指定すると、上記の外壁速度設定に基づいて計算されます。0に設定すると自動になります。"
 
 msgid "Small perimeter threshold"
-msgstr ""
+msgstr "小さな外周のしきい値"
 
 msgid "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr "小さい外周の長さのしきい値を設定します。デフォルトのしきい値は0mmです。"
@@ -10261,6 +10305,15 @@ msgstr "最高温度順"
 msgid "Filament diameter is used to calculate extrusion in gcode, so it's important and should be accurate"
 msgstr "フィラメントの直径はG-code内の押出し計算に使用されるため、重要であり正確である必要があります。"
 
+msgid "Adaptive volumetric speed"
+msgstr ""
+
+msgid "When enabled, the extrusion flow is limited by the smaller of the fitted value (calculated from line width and layer height) and the user-defined maximum flow. When disabled, only the user-defined maximum flow is applied."
+msgstr ""
+
+msgid "Max volumetric speed multinomial coefficients"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr "収縮"
 
@@ -10271,6 +10324,12 @@ msgid ""
 msgstr ""
 "フィラメントが冷却後に収縮する割合を入力してください（100mm の代わりに 94mm を測定した場合は 94%）。XY 方向で補正するためにパーツがスケーリングされます。補正は外周用のフィラメントのみを対象とします。\n"
 "この補正はチェック後に適用されるため、オブジェクト間に十分なスペースを確保してください。"
+
+msgid "Velocity Adaptation Factor"
+msgstr ""
+
+msgid "This parameter reflects the speed at which a material transitions from one state to another. It, along with the smooth coefficient, determines the final length of the transition zone. A larger value: requires a shorter transition zone. A smaller value: requires a longer transition zone to avoid flow instability."
+msgstr ""
 
 msgid "Adhesiveness Category"
 msgstr "粘着性カテゴリー"
@@ -10610,10 +10669,10 @@ msgid "Clumping detection layers."
 msgstr "クラミング検出レイヤー"
 
 msgid "Probing exclude area of clumping"
-msgstr ""
+msgstr "クラッピング用プロービング除外エリア"
 
 msgid "Probing exclude area of clumping."
-msgstr ""
+msgstr "クラッピング用プロービング除外エリア"
 
 msgid "Thumbnail size"
 msgstr "サムネイルサイズ"
@@ -11630,6 +11689,9 @@ msgstr ""
 "この設定では、サポートウォールの数を[-1～2]の範囲で指定します。\n"
 "-1は自動設定、0はサポートが十分に厚ければインフィルのみのモードを許可することを意味します。"
 
+msgid "Chamber temperature"
+msgstr "チャンバー温度"
+
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr "高いチャンバー温度は、ABS、ASA、PC、PA などの高温材料において反りを抑制したり、層間接着強度を向上させるのに役立ちます。ただし、その一方で、ABS や ASA の空気ろ過性能が悪化する可能性があります。PLA、PETG、TPU、PVA などの低温材料においては、実際のチャンバー温度が高すぎるとノズルの詰まりを引き起こす可能性があるため、温度は高く設定しない方が良いです。そのため、0（オフ）に設定することを強くお勧めします。"
 
@@ -12120,9 +12182,6 @@ msgstr "動的流量"
 
 msgid "Flow Rate"
 msgstr "流量"
-
-msgid "Max Volumetric Speed"
-msgstr "最大体積速度"
 
 msgid "The name cannot be empty."
 msgstr "名前を空にすることはできません。"
@@ -13339,6 +13398,9 @@ msgstr ""
 "現在選択されている%s 押出機のノズルタイプが、実際のプリンタのノズルタイプと一致していません。\n"
 "上の「同期」ボタンをクリックし、キャリブレーションを再開してください。"
 
+msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+msgstr "自動キャリブレーションは、左右のノズル径が同じ場合にのみ対応します。"
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "キャリブレーションできません。設定されたキャリブレーション値の範囲が広すぎるか、ステップが小さすぎる可能性があります。"
 
@@ -13639,40 +13701,61 @@ msgstr "強度を重視した、0.8mmノズル用の強化プロファイルで�
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "造形速度を重視した、0.8mmノズル用の標準プロファイルです。"
 
-msgid "Helio: Process Started"
-msgstr ""
-
 msgid "Helio API endpoint is empty, please check the configuration."
-msgstr ""
+msgstr "Helio APIエンドポイントが未設定です。設定内容を確認してください。"
 
 msgid "Personal assecc token is empty, please fill in the correct token."
-msgstr ""
+msgstr "パーソナルアクセストークンが空です。正しいトークンを入力してください。"
 
 msgid "Helio: Presigned URL Created"
-msgstr ""
+msgstr "Helio：署名付きURLを作成しました"
 
 msgid "Helio: file succesfully uploaded"
-msgstr ""
+msgstr "Helio：ファイルを正常にアップロード"
 
 msgid "Helio: file upload failed"
-msgstr ""
+msgstr "Helio：ファイルのアップロードに失敗しました"
 
 msgid "Please make sure you have the corrent API key set in preferences."
-msgstr ""
+msgstr "正しいAPIキーが環境設定に設定されていることを確認してください。"
 
 msgid "Helio: GCode created successfully"
-msgstr ""
+msgstr "Helio：Gコードの生成に成功しました"
 
 msgid "Helio: simulation successfully created"
-msgstr ""
+msgstr "Helio：シミュレーションの生成に成功しました"
 
 msgid "Helio: simulation working"
-msgstr ""
+msgstr "Helio：シミュレーション実行中"
 
 msgid "Helio: simulation failed"
+msgstr "Helio：シミュレーションに失敗しました"
+
+msgid "Helio: Simulation check failed"
+msgstr ""
+
+msgid "Helio: Failed to create Simulation\n"
+msgstr ""
+
+msgid "Helio: Failed to create GCode\n"
+msgstr ""
+
+msgid "Helio: optimization successfully created"
+msgstr ""
+
+msgid "Helio: optimization working"
+msgstr ""
+
+msgid "Helio: Optimzaion check failed"
+msgstr ""
+
+msgid "Helio: Failed to create Optimization\n"
 msgstr ""
 
 msgid "Helio: GCode downloaded successfully"
+msgstr "Helio：Gコードのダウンロードに成功しました"
+
+msgid "Helio: GCode download failed\n"
 msgstr ""
 
 msgid "No AMS"
@@ -14175,8 +14258,26 @@ msgstr ""
 "反り防止\n"
 "ABSなど反りやすい材料を印刷する場合、ヒートベッド温度を適切に上げることで反りの発生を抑えられることをご存知ですか？"
 
-#~ msgid "Helio Action"
-#~ msgstr "Helioアクション"
+#~ msgctxt "air_duct"
+#~ msgid "Right"
+#~ msgstr "右"
+
+#~ msgid "The printer has been logged out and cannot connect."
+#~ msgstr "プリンタはログアウトされ、接続できません。"
+
+#, c-format, boost-format
+#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+#~ msgstr "プリンタが接続されていません。同期する前に、デバイスページに移動して%sプリンタに接続してください。"
+
+#, c-format, boost-format
+#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+#~ msgstr "デバイスページで現在接続されているプリンタは%s ではありません。 同期する前に%s に切り替えてください。"
+
+#~ msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
+#~ msgstr "ご注意：上記の温度は実際の状況に応じて設定してください。データが正確であるほど、分析結果の精度も高くなります。"
+
+#~ msgid "How to use Helio"
+#~ msgstr "Helio の使い方"
 
 #~ msgid "Open Preferences."
 #~ msgstr "環境設定を開く"
@@ -14204,9 +14305,6 @@ msgstr ""
 
 #~ msgid "Small perimter threshold"
 #~ msgstr "小周囲閾値"
-
-#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-#~ msgstr "自動キャリブレーションは、左右のノズル径が同じ場合にのみ対応します。"
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "レイヤー時間 (s)"
