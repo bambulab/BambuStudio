@@ -17,6 +17,7 @@ public:
     void SetBorderColor(const wxColour &color);
     void SetHoverEnabledCallback(std::function<bool()> cb);
     void SetOnHoverClick(std::function<void()> on_click);
+    void SetCount(int count);
 private:
 #ifdef __WXMSW__
     void OnPaint(wxPaintEvent &evt);

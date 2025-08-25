@@ -95,6 +95,29 @@ DevFirmwareVersionInfo DevNozzle::GetFirmwareInfo() const
 
     return DevFirmwareVersionInfo();
 }
+bool DevNozzle::AtLeftExtruder() const
+{
+    assert(GetTotalExtruderCount() == 2);
+    if (IsOnRack()) { return false; }
+    return m_nozzle_id == DEPUTY_EXTRUDER_ID;
+}
+
+bool DevNozzle::AtRightExtruder() const
+{
+    assert(GetTotalExtruderCount() == 2);
+    if (IsOnRack()) { return true; }
+    return m_nozzle_id == MAIN_EXTRUDER_ID;
+}
+
+int DevNozzle::GetTotalExtruderCount() const
+{
+    auto rack = m_nozzle_rack.lock();
+    if (rack){
+        MachineObject* obj = rack->GetNozzleSystem()->GetOwner();
+        return obj->GetExtderSystem()->GetTotalExtderCount();
+    }
+    return 1;
+}
 
 DevNozzleSystem::DevNozzleSystem(MachineObject* owner)
     : m_owner(owner), m_nozzle_rack(std::make_shared<DevNozzleRack> (this))
@@ -293,8 +316,17 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
         {
             int val = nozzle_json["state"].get<int>();
             system->m_state_0_4 = DevUtil::get_flag_bits(nozzle_json["state"].get<int>(), 0, 4);
-            system->m_reading_count = DevUtil::get_flag_bits(nozzle_json["state"].get<int>(), 4, 4);
-            system->m_reading_idx = DevUtil::get_flag_bits(nozzle_json["state"].get<int>(), 8, 4);
+            int new_reading_idx = DevUtil::get_flag_bits(nozzle_json["state"].get<int>(), 8, 4);
+            int new_reading_count = DevUtil::get_flag_bits(nozzle_json["state"].get<int>(), 4, 4);
+            if (system->m_reading_count != new_reading_count || system->m_reading_idx != new_reading_idx)
+            {
+                system->m_reading_idx = new_reading_idx;
+                system->m_reading_count = new_reading_count;
+                if (system->m_reading_count == 0)
+                {
+                    system->m_nozzle_rack->SendReadingFinished();
+                }
+            }
         }
 
         system->ClearNozzles();

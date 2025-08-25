@@ -13,6 +13,8 @@ public:
 
         m_label = new wxStaticText(this, wxID_ANY, label, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
         m_label->SetForegroundColour("#CECECE");
+        m_count = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+        m_count->SetForegroundColour("#CECECE");
         auto hover_icon = create_scaled_bitmap("dot");
         m_hover_btn = new wxBitmapButton(this, wxID_ANY, hover_icon, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 #ifdef __WXOSX__
@@ -21,6 +23,7 @@ public:
         m_hover_btn->SetBackgroundColour(*wxWHITE);
 #endif
         sizer->Add(m_label, 0, wxALIGN_CENTER_VERTICAL);
+        sizer->Add(m_count, 0, wxALIGN_CENTER_VERTICAL);
         sizer->Add(m_hover_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 5);
 
         SetSizerAndFit(sizer);
@@ -36,9 +39,24 @@ public:
 
     void SetHoverEnabledCallback(std::function<bool()> cb) { m_hover_enabled = cb;}
     void SetOnHoverClick(std::function<void()> on_click) { m_hover_on_click = on_click; }
+    void SetCount(int count) {
+        if(count == -1){
+            m_count->Hide();
+        }
+        else{
+            if(!m_count->IsShown())
+                m_count->Show();
+            wxString count_str = wxString::Format("(%d)", count);
+            m_count->SetLabel(count_str);
+        }
+        Layout();
+        Fit();
+    }
+
 private:
     wxStaticText* m_label;
     wxBitmapButton* m_hover_btn;
+    wxStaticText* m_count;
 
     std::function<void()> m_hover_on_click;
     std::function<bool()> m_hover_enabled;
@@ -78,6 +96,12 @@ void StaticGroup::SetHoverEnabledCallback(std::function<bool()> cb)
     }
 }
 
+void StaticGroup::SetCount(int count)
+{
+    if (hoverLabel_) {
+        hoverLabel_->SetCount(count);
+    }
+}
 
 void StaticGroup::SetOnHoverClick(std::function<void()>on_click)
 {

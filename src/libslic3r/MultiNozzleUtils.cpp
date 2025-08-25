@@ -216,7 +216,7 @@ std::optional<NozzleGroupInfo> NozzleGroupInfo::deserialize(const std::string &s
 
     try {
         int              extruder_id  = std::stoi(tokens[0]);
-        double           diameter     = std::stod(tokens[1]);
+        std::string      diameter = tokens[1];
         NozzleVolumeType volume_type = NozzleVolumeType(ConfigOptionEnum<NozzleVolumeType>::get_enum_values().at(tokens[2]));
         int              nozzle_count = std::stoi(tokens[3]);
 
