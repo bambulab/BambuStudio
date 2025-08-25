@@ -1107,11 +1107,11 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
     auto extruder_nozzle_counts = get_extruder_nozzle_count(print_config.extruder_nozzle_count.values);
     for(size_t idx = 0; idx < extruder_nums; ++idx){
         if (idx >= extruder_nozzle_counts.size() || extruder_nozzle_counts[idx].empty()) {
-            nozzle_groups.emplace_back(print_config.nozzle_diameter.values[idx], NozzleVolumeType(print_config.nozzle_volume_type.values[idx]), idx, print_config.extruder_max_nozzle_count.values[idx]);
+            nozzle_groups.emplace_back(std::to_string(print_config.nozzle_diameter.values[idx]), NozzleVolumeType(print_config.nozzle_volume_type.values[idx]), idx, print_config.extruder_max_nozzle_count.values[idx]);
         }
         else{
             for(auto [volume_type,count] : extruder_nozzle_counts[idx]){
-                nozzle_groups.emplace_back(print_config.nozzle_diameter.values[idx], volume_type, idx, count);
+                nozzle_groups.emplace_back(std::to_string(print_config.nozzle_diameter.values[idx]), volume_type, idx, count);
             }
         }
     }

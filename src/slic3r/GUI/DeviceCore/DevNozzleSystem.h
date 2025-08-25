@@ -49,6 +49,10 @@ namespace Slic3r
        wxString GetSerialNumber() const { return GetFirmwareInfo().sn; }
        DevFirmwareVersionInfo GetFirmwareInfo() const;
 
+       // location
+       bool AtLeftExtruder() const;
+       bool AtRightExtruder() const;
+
        /* holder nozzle*/
        bool IsOnRack() const { return m_on_rack; }
        bool IsInfoReliable() const;
@@ -62,6 +66,8 @@ namespace Slic3r
 
        void SetOnRack(bool on_rack) { m_on_rack = on_rack; };
        void SetStatus(int stat) { m_stat = stat; }
+   private:
+       int  GetTotalExtruderCount() const;
 
    private:
        int m_stat = 0;

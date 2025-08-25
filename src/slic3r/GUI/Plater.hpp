@@ -202,6 +202,7 @@ public:
     void on_full_screen(IntEvent &);
     void get_big_btn_sync_pos_size(wxPoint &pt, wxSize &size);
     void get_small_btn_sync_pos_size(wxPoint &pt, wxSize &size);
+    void set_extruder_nozzle_count(int extruder_id, int nozzle_count);
 
     PlaterPresetComboBox *  printer_combox();
     ObjectList*             obj_list();
