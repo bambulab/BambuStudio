@@ -2291,9 +2291,9 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     if (!is_only_text_case()) {
         auto depth_x = caption_size + space_size * 2 + temp_input_width;
         ImGui::SameLine(depth_x);
-        float depth_cap = m_imgui->calc_text_size(_L("Embedded depth")).x;
+        float depth_cap = m_imgui->calc_text_size(_L("Embeded depth")).x;
         ImGui::PushItemWidth(depth_cap);
-        m_imgui->text(_L("Embedded depth"));
+        m_imgui->text(_L("Embeded depth"));
 
         auto depth_input_x = depth_x + depth_cap + space_size * 2;
         ImGui::SameLine(depth_input_x);
