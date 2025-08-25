@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 19:21+0800\n"
+"POT-Creation-Date: 2025-08-25 10:58+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1085,6 +1085,9 @@ msgstr "Ostrzeżenie: wartość tekstu jest błędna"
 
 msgid "Warning:text normal has been reset."
 msgstr "Ostrzeżenie: wartość tekstu została zresetowana"
+
+msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
+msgstr ""
 
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "Ostrzeżenie: Stara macierz zawiera co najmniej dwa parametry: lustrzane odbicie, skalowanie i rotację. Kontynuowanie edycji może prowadzić do błędów. Przeciągnij tekst lub anuluj obecną pozycję, zapisz i edytuj ponownie."
@@ -2459,24 +2462,6 @@ msgstr "Pełne chłodzenie"
 msgid "Init"
 msgstr "Inicjalizacja"
 
-msgid "Hotend"
-msgstr ""
-
-msgid "Parts"
-msgstr "Część"
-
-msgid "Aux"
-msgstr "Pomocn."
-
-msgid "Nozzle1"
-msgstr "Dysza1"
-
-msgid "MC Board"
-msgstr "Płytka MC"
-
-msgid "Heat"
-msgstr "Grzanie"
-
 msgid "Chamber"
 msgstr "Komora"
 
@@ -2503,8 +2488,33 @@ msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
 msgstr "Tryb chłodzenia jest odpowiedni do druku takimi materiałami jak PLA/PETG/TPU."
 
 msgctxt "air_duct"
-msgid "Right"
-msgstr "Prawy"
+msgid "Right(Aux)"
+msgstr "Prawy(Aux)"
+
+msgctxt "air_duct"
+msgid "Right(Filter)"
+msgstr ""
+
+msgid "Hotend"
+msgstr ""
+
+msgid "Parts"
+msgstr "Część"
+
+msgid "Aux"
+msgstr "Pomocn."
+
+msgid "Nozzle1"
+msgstr "Dysza1"
+
+msgid "MC Board"
+msgstr "Płytka MC"
+
+msgid "Heat"
+msgstr "Grzanie"
+
+msgid "Fan"
+msgstr "Wentylator"
 
 msgid "Idling..."
 msgstr "Bezczynność..."
@@ -3790,6 +3800,18 @@ msgstr "Ponów próbę (problem rozwiązany)"
 msgid "Stop Drying"
 msgstr "Zatrzymaj suszenie"
 
+msgid "Cancle"
+msgstr ""
+
+msgid "Done"
+msgstr "Gotowe"
+
+msgid "Retry"
+msgstr "Ponów"
+
+msgid "Resume"
+msgstr "Wznów"
+
 msgid "Unknown error."
 msgstr "Nieznany błąd."
 
@@ -3996,7 +4018,7 @@ msgstr "z"
 msgid "Slicing Result"
 msgstr "Wynik krojenia"
 
-msgid "Helio Simulation"
+msgid "Helio Action"
 msgstr ""
 
 msgid "Color Scheme"
@@ -4550,6 +4572,12 @@ msgstr ""
 "Po raz pierwszy drukujesz filamenty tpu za pomocą maszyny H2D.\n"
 "Chcesz obejrzeć krótki film z poradnikiem?"
 
+msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
+msgstr "PPS-CF/PPA-CF jest kruchy i może pęknąć w wygiętym fragmencie rurki PTFE nad głowicą. Przed użyciem zapoznaj się z Wiki. "
+
+msgid "Tips"
+msgstr "Wskazówki"
+
 msgid "Slice all"
 msgstr "Potnij wszystkie płyty"
 
@@ -5066,8 +5094,8 @@ msgstr "Połączenie nieudane. Proszę sprawdzić połączenie sieciowe i sprób
 msgid "Please check the network and try again, You can restart or update the printer if the issue persists."
 msgstr "Proszę sprawdzić połączenie sieciowe i spróbować ponownie. Jeśli problem nadal występuje, można ponownie uruchomić lub zaktualizować drukarkę."
 
-msgid "The printer has been logged out and cannot connect."
-msgstr "Drukarka została wylogowana i nie można się z nią połączyć."
+msgid "Multi-device/client simultaneous liveview is not supported. Please close the liveview on other devices/clients and try again."
+msgstr ""
 
 msgid "Video Stopped."
 msgstr "Wideo zatrzymane."
@@ -5229,9 +5257,6 @@ msgstr ""
 msgid "Download waiting..."
 msgstr "Oczekiwanie na pobieranie..."
 
-msgid "Retry"
-msgstr "Ponów"
-
 msgid "Play"
 msgstr "Odtwarzaj"
 
@@ -5244,9 +5269,6 @@ msgstr "Pobieranie zakończone"
 #, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "Pobieranie %d%%..."
-
-msgid "Fan"
-msgstr "Wentylator"
 
 msgid "Air Condition"
 msgstr "Wentylacja"
@@ -5410,9 +5432,6 @@ msgstr "Postęp drukowania"
 
 msgid "Parts Skip"
 msgstr "Pomiń części"
-
-msgid "Resume"
-msgstr "Wznów"
 
 msgid "Stop"
 msgstr "Zatrzymaj"
@@ -6096,6 +6115,10 @@ msgstr "Ustawienia drukarki"
 msgid "The %s nozzle can not print %s."
 msgstr "Dysza %s nie może drukować %s."
 
+#, boost-format
+msgid "Mixing %1% with %2% in printing is not recommended.\n"
+msgstr "Mieszanie %1% z %2% podczas druku nie jest zalecane.\n"
+
 msgid " nozzle"
 msgstr " dysza"
 
@@ -6121,7 +6144,7 @@ msgid "(Including its escape characters)"
 msgstr "(w tym znaki specjalne)"
 
 msgid "Sliced Info"
-msgstr "Informacje o przetworzonym"
+msgstr "Informacje o cięciu"
 
 msgid "Used Filament (m)"
 msgstr "Użyty filament (m)"
@@ -6559,9 +6582,6 @@ msgstr ""
 msgid "Switch now"
 msgstr "Przełącz teraz"
 
-msgid "Tips"
-msgstr "Wskazówki"
-
 msgid "Load project"
 msgstr "Załaduj projekt"
 
@@ -6667,7 +6687,7 @@ msgid "The following characters are not allowed by a FAT file system:"
 msgstr "Poniższe znaki nie są dozwolone w systemie plików FAT:"
 
 msgid "Save Sliced file as:"
-msgstr "Zapisz przetworzony plik jako:"
+msgstr "Zapisz pocięty plik jako:"
 
 #, c-format, boost-format
 msgid "The file %s has been sent to the printer's storage space and can be viewed on the printer."
@@ -6727,12 +6747,12 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "Przed naprawą nazwy modelu usunięto niestandardowe podpory, fasety szwu i malowanie kolorem:"
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
-msgstr "Drukarka nie jest podłączona. Przejdź do strony urządzenia, aby podłączyć drukarkę %s przed synchronizacją."
+msgid "Printer not connected. Please go to the device page to connect %s before syncing."
+msgstr ""
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-msgstr "Drukarka która jest aktualnie podłączona na stronie urządzenia to nie jest drukarka %s. Przed synchronizacją przełącz na drukarkę %s."
+msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
+msgstr ""
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "Brak filamentu w drukarce. Najpierw załaduj filament do drukarki."
@@ -9018,9 +9038,6 @@ msgstr "Nowa wersja Bambu Studio"
 msgid "Skip this Version"
 msgstr "Pomiń tę wersję"
 
-msgid "Done"
-msgstr "Gotowe"
-
 msgid "resume"
 msgstr "wznów"
 
@@ -9136,22 +9153,52 @@ msgstr ""
 msgid "Agree"
 msgstr "Zgadzam się"
 
-msgid "Helio Additive"
-msgstr ""
-
-msgid "Chamber temperature"
+msgid "Chamber Temperature"
 msgstr "Temperatura komory"
 
-msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
+msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
 msgstr ""
 
-msgid "How to use Helio"
+msgid "Helio's advanced feature for power users: available post purchase on its official website."
 msgstr ""
 
-msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
+msgid "Monthly quota remaining: "
+msgstr ""
+
+msgid "Add-ons available: "
+msgstr ""
+
+msgid "Optimise Outer Walls"
+msgstr ""
+
+msgid "Advanced Settings"
+msgstr ""
+
+msgid "Min Velocity"
+msgstr ""
+
+msgid "Max Velocity"
+msgstr ""
+
+msgid "Min Volumetric Speed"
+msgstr ""
+
+msgid "Max Volumetric Speed"
+msgstr "Maksymalna prędkość przepływu"
+
+msgid "Buy Now"
 msgstr ""
 
 msgid "Click for more details"
+msgstr ""
+
+msgid "Buy add-ons"
+msgstr ""
+
+msgid "Layers to Optimize "
+msgstr ""
+
+msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
 msgstr ""
 
 msgid "Air Pump"
@@ -9165,6 +9212,9 @@ msgstr ""
 
 msgid "Cutting Module"
 msgstr "Moduł tnący"
+
+msgid "Auto Fire Extinguishing System"
+msgstr "Automatyczny system gaśniczy"
 
 msgid "Model:"
 msgstr "Model:"
@@ -9498,13 +9548,7 @@ msgstr "Timelapse nie jest obsługiwany, ponieważ sekwencja druku jest ustawion
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr ""
 
-msgid "enable_wrapping_detection"
-msgstr ""
-
 msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
-msgstr ""
-
-msgid "enable_prime_tower"
 msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
@@ -10324,6 +10368,15 @@ msgstr "Według najwyższej temperatury"
 msgid "Filament diameter is used to calculate extrusion in gcode, so it's important and should be accurate"
 msgstr "Średnica filamentu jest używana do obliczania ekstruzji w G-code, więc jest ważna i powinna być dokładna"
 
+msgid "Adaptive volumetric speed"
+msgstr ""
+
+msgid "When enabled, the extrusion flow is limited by the smaller of the fitted value (calculated from line width and layer height) and the user-defined maximum flow. When disabled, only the user-defined maximum flow is applied."
+msgstr ""
+
+msgid "Max volumetric speed multinomial coefficients"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr "Skurcz"
 
@@ -10334,6 +10387,12 @@ msgid ""
 msgstr ""
 "Podaj procent skurczu, którego filament doświadczy po schłodzeniu (94% jeśli zmierzyłeś 94mm zamiast 100mm). Część będzie skalowana w płaszczyźnie xy, aby to zrekompensować. Wzięto pod uwagę tylko filament używany do obwodu. \n"
 "Upewnij się, że pozostawiłeś wystarczająco dużo miejsca między obiektami, ponieważ ta kompensacja jest wykonywana po przeprowadzeniu kontroli."
+
+msgid "Velocity Adaptation Factor"
+msgstr ""
+
+msgid "This parameter reflects the speed at which a material transitions from one state to another. It, along with the smooth coefficient, determines the final length of the transition zone. A larger value: requires a shorter transition zone. A smaller value: requires a longer transition zone to avoid flow instability."
+msgstr ""
 
 msgid "Adhesiveness Category"
 msgstr "Kategoria przyczepności"
@@ -11689,6 +11748,9 @@ msgstr "Pętle ścian podpory"
 msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
 msgstr "To ustawienie określa liczbę ścian podporowych w zakresie [-1,2]. -1 oznacza opcję automatyczną, a 0 oznacza zezwolenie na tryb samego wypełnienia, gdy podpora jest wystarczająco gruba."
 
+msgid "Chamber temperature"
+msgstr "Temperatura komory"
+
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr "Wyższa temperatura komory może pomóc w redukcji wypaczania i potencjalnie prowadzić do większej siły wiązania międzywarstwowego w przypadku materiałów wysokotemperaturowych, takich jak ABS, ASA, PC, PA itp. Dla filametów PLA, PETG, TPU, PVA i innych materiałów niskotemperaturowych temperatura komory nie powinna być wysoka. Aby uniknąć zatykania sie dyszy zaleca się ustawienia na wartość 0 (wyłączone)."
 
@@ -12179,9 +12241,6 @@ msgstr "Dynamika przepływu"
 
 msgid "Flow Rate"
 msgstr "Natężenie przepływu"
-
-msgid "Max Volumetric Speed"
-msgstr "Maksymalna prędkość przepływu"
 
 msgid "The name cannot be empty."
 msgstr "Nazwa nie może być pusta."
@@ -13406,6 +13465,9 @@ msgstr ""
 "Aktualnie wybrany typ dyszy ekstrudera %s nie jest zgodny z aktualnym typem dyszy drukarki.\n"
 "Kliknij \"Synchronizuj\" i zrestartuj kalibrację."
 
+msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+msgstr "Automatyczna kalibracja jest możliwa tylko, kiedy średnica dyszy lewej i prawej jest identyczna."
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "Nie można skalibrować: być może zakres ustawionych wartości kalibracyjnych jest zbyt duży, lub krok jest zbyt mały"
 
@@ -13706,9 +13768,6 @@ msgstr "Profil wytrzymałości dla dyszy 0.8mm. Priorytetem jest wytrzymałość
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Profil standardowy dla dyszy 0.8mm. Priorytetem jest szybkość."
 
-msgid "Helio: Process Started"
-msgstr ""
-
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr ""
 
@@ -13739,7 +13798,31 @@ msgstr ""
 msgid "Helio: simulation failed"
 msgstr ""
 
+msgid "Helio: Simulation check failed"
+msgstr ""
+
+msgid "Helio: Failed to create Simulation\n"
+msgstr ""
+
+msgid "Helio: Failed to create GCode\n"
+msgstr ""
+
+msgid "Helio: optimization successfully created"
+msgstr ""
+
+msgid "Helio: optimization working"
+msgstr ""
+
+msgid "Helio: Optimzaion check failed"
+msgstr ""
+
+msgid "Helio: Failed to create Optimization\n"
+msgstr ""
+
 msgid "Helio: GCode downloaded successfully"
+msgstr ""
+
+msgid "Helio: GCode download failed\n"
 msgstr ""
 
 msgid "No AMS"
@@ -14243,6 +14326,21 @@ msgstr ""
 "Unikaj wypaczania\n"
 "Czy wiesz, że podczas drukowania materiałów podatnych na wypaczanie, takich jak ABS, odpowiednie zwiększenie temperatury stołu grzejnego może zmniejszyć prawdopodobieństwo wypaczania."
 
+#~ msgctxt "air_duct"
+#~ msgid "Right"
+#~ msgstr "Prawy"
+
+#~ msgid "The printer has been logged out and cannot connect."
+#~ msgstr "Drukarka została wylogowana i nie można się z nią połączyć."
+
+#, c-format, boost-format
+#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+#~ msgstr "Drukarka nie jest podłączona. Przejdź do strony urządzenia, aby podłączyć drukarkę %s przed synchronizacją."
+
+#, c-format, boost-format
+#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+#~ msgstr "Drukarka która jest aktualnie podłączona na stronie urządzenia to nie jest drukarka %s. Przed synchronizacją przełącz na drukarkę %s."
+
 #~ msgid "Open Preferences."
 #~ msgstr "Otwórz preferencje."
 
@@ -14266,9 +14364,6 @@ msgstr ""
 
 #~ msgid "Small perimter threshold"
 #~ msgstr "Próg małego obrysu"
-
-#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-#~ msgstr "Automatyczna kalibracja jest możliwa tylko, kiedy średnica dyszy lewej i prawej jest identyczna."
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "Czas warstwy (s)"
