@@ -12,7 +12,6 @@
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/StaticBox.hpp"
 #include "Widgets/WebView.hpp"
-#include "Widgets/SwitchButton.hpp"
 
 #include <wx/regex.h>
 #include <wx/progdlg.h>
@@ -2455,324 +2454,52 @@ void HelioStatementDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
 }
 
-
-HelioRemainUsageTime::HelioRemainUsageTime(wxWindow* parent) : wxPanel(parent)
-{
-    Create();
-}
-
-void HelioRemainUsageTime::Create()
+ HelioInputDialog::HelioInputDialog(wxWindow *parent /*= nullptr*/)
+    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Helio Additive"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     SetBackgroundColour(*wxWHITE);
 
-    Label* label_prefix = new Label(this, _L("Remaining usage times for current account this month: "));
-    label_prefix->SetMaxSize(wxSize(FromDIP(400), -1));
-    label_prefix->SetToolTip(_L("Remaining usage times for current account this month: "));
-
-    m_label_remain_usage_time = new Label(this, "0");
-    wxFont bold_font = m_label_remain_usage_time->GetFont();
-    bold_font.SetWeight(wxFONTWEIGHT_BOLD);
-    m_label_remain_usage_time->SetFont(bold_font);
-
-    wxBoxSizer* remain_sizer = new wxBoxSizer(wxHORIZONTAL);
-    remain_sizer->Add(label_prefix, 0, wxALIGN_CENTER_VERTICAL);
-    remain_sizer->Add(m_label_remain_usage_time, 0, wxALIGN_CENTER_VERTICAL);
-
-    label_click_to_use = new Label(this, _L("Click Confirm to start this optimization immediately."));
-    label_click_to_use->SetMaxSize(wxSize(FromDIP(400), -1));
-    label_click_to_use->Wrap(FromDIP(400));
-
-    label_click_to_buy = new Label(this, _L("Please click the link below to make a purchase or log in."));
-    label_click_to_buy->SetMaxSize(wxSize(FromDIP(400), -1));
-    label_click_to_buy->Wrap(FromDIP(400));
-
-    label_click_to_use->Hide();
-    label_click_to_buy->Hide();
-
-    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-    sizer->Add(remain_sizer);
-    sizer->Add(label_click_to_use, 0, wxALIGN_CENTER_VERTICAL);
-    SetSizer(sizer);
-}
-
-void HelioRemainUsageTime::UpdateHelpTips(int type)
-{
-    if (type == 0) {
-        label_click_to_use->Show();
-        label_click_to_buy->Hide();
-    }
-    else {
-        label_click_to_use->Hide();
-        label_click_to_buy->Show();
-    }
-    Layout();
-    Fit();
-}
-
-void HelioRemainUsageTime::UpdateRemainTime(int remain_time)
-{
-    if (m_remain_usage_time != remain_time) {
-        m_remain_usage_time = remain_time;
-        m_label_remain_usage_time->SetLabelText(wxString::Format("%d", m_remain_usage_time));
-    }
-}
-
-static int s_get_min_chamber_temp()// TODO, use the chamber of used filaments
-{
-    auto preset_full_config = wxGetApp().preset_bundle->full_config();
-    auto chamber_temperatures = preset_full_config.option<ConfigOptionInts>("chamber_temperatures");
-
-    if (chamber_temperatures)
-    {
-        int min_temp = std::numeric_limits<int>::max();
-        for (auto val : chamber_temperatures->values)
-        {
-            if (val < min_temp)
-            {
-                min_temp = val;
-            }
-        }
-
-        if (min_temp != std::numeric_limits<int>::max())
-        {
-            return min_temp;
-        }
-    }
-
-    return 0;
-}
-
-static double s_round(double value, int n)
-{
-    double factor = std::pow(10.0, n);
-    return std::round(value * factor) / factor;
-}
-
- HelioInputDialog::HelioInputDialog(wxWindow *parent /*= nullptr*/)
-    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, wxString("Helio Additive"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
-{
-    shared_ptr = std::make_shared<int>(0);
-
-    if (wxGetApp().dark_mode()) {
-        SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
-    } else {
-        SetBackgroundColour(*wxWHITE);
-    }
-
-    SetMinSize(wxSize(FromDIP(500), -1));
-    SetMaxSize(wxSize(FromDIP(500), -1));
-
     wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *item_sizer = new wxBoxSizer(wxHORIZONTAL);
+
     wxPanel *line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     line->SetBackgroundColour(wxColour(166, 169, 170));
 
-    wxBoxSizer* control_sizer = new wxBoxSizer(wxHORIZONTAL);
-    togglebutton_simulate = new CustomToggleButton(this, "Simulation");
-    togglebutton_optimize = new CustomToggleButton(this, "Optimization");
-    togglebutton_simulate->SetMinSize(wxSize(FromDIP(124), FromDIP(30)));
-    togglebutton_optimize->SetMinSize(wxSize(FromDIP(124), FromDIP(30)));
-    control_sizer->Add(togglebutton_simulate, 0, wxCENTER, 0);
-    control_sizer->Add(0, 0, 0, wxLEFT, FromDIP(10));
-    control_sizer->Add(togglebutton_optimize, 0, wxCENTER, 0);
+    Label* inout_title = new Label(this, Label::Body_13, _L("Chamber temperature"));
+    inout_title->SetFont(::Label::Head_14);
+    Label *temp_icon = new Label(this, Label::Body_13, wxT("\u00B0C"));
+    temp_icon->SetFont(::Label::Body_14);
 
-    togglebutton_simulate->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_simulation, this);
-    togglebutton_optimize->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_optimaztion, this);
+    m_input_item = new ::TextInput(this, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(120), -1), wxTE_PROCESS_ENTER);
+    StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
+    m_input_item->SetBackgroundColor(input_bg);
+    wxTextValidator validator(wxFILTER_NUMERIC);
+    m_input_item->GetTextCtrl()->SetValidator(validator);
+    m_input_item->GetTextCtrl()->SetHint(wxT("5-70"));
+    m_input_item->GetTextCtrl()->SetMaxLength(10);
+    m_input_item->GetTextCtrl()->SetWindowStyle(wxTE_RIGHT);
 
-    /*Simulation panel*/
-    panel_simulation = new wxPanel(this);
-    if (wxGetApp().dark_mode()) {
-        panel_simulation->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
-    } else {
-        panel_simulation->SetBackgroundColour(*wxWHITE);
-    }
-    wxBoxSizer *sizer_simulation = new wxBoxSizer(wxVERTICAL);
+    item_sizer->Add(inout_title, 0, wxCENTER, 0);
+    item_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    item_sizer->Add(m_input_item, 0, wxCENTER, 0);
+    item_sizer->Add(temp_icon, 0, wxCENTER, 0);
 
-    /*chamber temp*/
-    //int min_chamber_temp = s_get_min_chamber_temp();
-    auto chamber_temp_checker = TextInputValChecker::CreateDoubleRangeChecker(5.0, 70.0, true);
-    wxBoxSizer* chamber_temp_item_for_simulation = create_input_item(panel_simulation, "chamber_temp_for_simulation", _L("Chamber Temperature"), wxT("\u00B0C"), {chamber_temp_checker});
-    //m_input_items["chamber_temp_for_simulation"]->GetTextCtrl()->SetLabel(wxString::Format("%d", min_chamber_temp));
-    m_input_items["chamber_temp_for_simulation"]->GetTextCtrl()->SetHint(wxT("5-70"));
-
-    Label* sub = new Label(panel_simulation, _L("Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."));
+    Label *sub = new Label(this, _L("Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."));
     sub->SetForegroundColour(wxColour(144, 144, 144));
-    sub->SetSize(wxSize(FromDIP(440), -1));
-    sub->Wrap(FromDIP(440));
+    sub->SetMinSize(wxSize(FromDIP(420), -1));
+    sub->SetMinSize(wxSize(FromDIP(420), -1));
+    sub->Wrap(FromDIP(420));
 
-    sizer_simulation->Add(0, 0, 0, wxTOP, FromDIP(24));
-    sizer_simulation->Add(chamber_temp_item_for_simulation, 0, wxEXPAND, 0);
-    sizer_simulation->Add(0, 0, 0, wxTOP, FromDIP(16));
-    sizer_simulation->Add(sub, 0, wxEXPAND, 0);
-
-    panel_simulation->SetSizer(sizer_simulation);
-    panel_simulation->Layout();
-    panel_simulation->Fit();
-
-    /*Optimization Pay panel*/
-    panel_pay_optimization = new wxPanel(this);
-    if (wxGetApp().dark_mode()) {
-        panel_pay_optimization->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
-    } else {
-        panel_pay_optimization->SetBackgroundColour(*wxWHITE);
-    }
-    wxBoxSizer* sizer_pay_optimization = new wxBoxSizer(wxVERTICAL);
-    wxStaticBitmap* panel_pay_loading_icon = new wxStaticBitmap(panel_pay_optimization, wxID_ANY, create_scaled_bitmap("helio_loading", panel_optimization, 109), wxDefaultPosition,
-        wxSize(FromDIP(136), FromDIP(109)));
-    
-    Label* pay_sub = new Label(panel_pay_optimization, _L("Helio's advanced feature for power users: available post purchase on its official website."));
-    pay_sub->SetForegroundColour(wxColour(144, 144, 144));
-    pay_sub->SetSize(wxSize(FromDIP(440), -1));
-    pay_sub->Wrap(FromDIP(440));
-
-    auto helio_pay_link = new LinkLabel(panel_pay_optimization, _L("Buy Now"), "https://wiki.helioadditive.com/");
-    helio_pay_link->SeLinkLabelFColour(wxColour(0, 174, 66));
-    helio_pay_link->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-    helio_pay_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
-
-    sizer_pay_optimization->Add(0, 0, 0, wxTOP, FromDIP(26));
-    sizer_pay_optimization->Add(panel_pay_loading_icon, 0, wxALIGN_CENTER, 0);
-    sizer_pay_optimization->Add(0, 0, 0, wxTOP, FromDIP(36));
-    sizer_pay_optimization->Add(pay_sub, 0, wxLEFT, 0);
-    sizer_pay_optimization->Add(0, 0, 0, wxTOP, FromDIP(3));
-    sizer_pay_optimization->Add(helio_pay_link, 0, wxLEFT, 0);
-
-    panel_pay_optimization->SetSizer(sizer_pay_optimization);
-    panel_pay_optimization->Layout();
-    panel_pay_optimization->Fit();
-    panel_pay_optimization->Hide();
-
-    /*Optimization panel*/
-    panel_optimization = new wxPanel(this);
-    if (wxGetApp().dark_mode()) {
-        panel_optimization->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
-    } else {
-        panel_optimization->SetBackgroundColour(*wxWHITE);
-    }
-    wxBoxSizer *sizer_optimization = new wxBoxSizer(wxVERTICAL);
-
-    m_remain_usage_time = new HelioRemainUsageTime(panel_optimization);
-    m_remain_usage_time->UpdateRemainTime(0);
-
-    /*general Options*/
-    std::map<int, wxString> config_outerwall;
-    config_outerwall[0] = _L("No");
-    config_outerwall[1] = _L("Yes");
-    auto outerwall =  create_combo_item(panel_optimization, "optimiza_outerwall", _L("Optimise Outer Walls"), config_outerwall, 0);
-
-    wxBoxSizer* advace_setting_sizer = new wxBoxSizer(wxHORIZONTAL);
-    advanced_settings_link = new wxPanel(panel_optimization);
-    advanced_settings_link->SetBackgroundColour(*wxWHITE);
-
-    Label* more_setting_tips = new Label(advanced_settings_link, _L("Advanced settings"));
-    advace_setting_sizer->Add(more_setting_tips, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
-    advanced_options_icon = new wxStaticBitmap(advanced_settings_link, wxID_ANY, create_scaled_bitmap("advanced_option3", panel_optimization, 18), wxDefaultPosition,
-        wxSize(FromDIP(18), FromDIP(18)));
-    advace_setting_sizer->Add(advanced_options_icon, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
-    advanced_settings_link->SetSizer(advace_setting_sizer);
-    advanced_settings_link->Layout();
-    advanced_settings_link->Fit();
-
-    /*buy now*/
-    buy_now_link = new LinkLabel(panel_optimization, _L("Buy Now"), "");
-    more_setting_tips->SetForegroundColour(wxColour(0, 174, 100));
-    more_setting_tips->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
-    more_setting_tips->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
-
-    buy_now_link->SeLinkLabelFColour(wxColour(0, 174, 66));
-    buy_now_link->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
-    buy_now_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
-
-    //advanced_settings_link->Hide();
-    buy_now_link->Hide();
-
-    /*advanced option*/
-    panel_advanced_option = new wxPanel(panel_optimization);
-    if (wxGetApp().dark_mode()) {
-        panel_advanced_option->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
-    } else {
-        panel_advanced_option->SetBackgroundColour(*wxWHITE);
-    }
-    wxBoxSizer* sizer_advanced_option = new wxBoxSizer(wxVERTICAL);
-
-    auto double_min_checker = TextInputValChecker::CreateDoubleMinChecker(0);
-
-    // velocity
-    float min_speed = 0.0;
-    float max_speed = 0.0;
-    auto plater = Slic3r::GUI::wxGetApp().plater();
-    if (plater) { plater->get_preview_min_max_value_of_option((int)GCodeViewer::EViewType::Feedrate, min_speed, max_speed); }
-    wxBoxSizer* min_velocity_item = create_input_item(panel_advanced_option, "min_velocity", _L("Min Velocity"), wxT("mm/s"), { double_min_checker } );
-    m_input_items["min_velocity"]->GetTextCtrl()->SetLabel(wxString::Format("%.0f", s_round(min_speed, 0)));
-
-    wxBoxSizer* max_velocity_item = create_input_item(panel_advanced_option, "max_velocity", _L("Max Velocity"), wxT("mm/s"), { double_min_checker });
-    m_input_items["max_velocity"]->GetTextCtrl()->SetLabel(wxString::Format("%.0f", s_round(max_speed, 0)));
-
-    // volumetric speed
-    float min_volumetric_speed = 0.0;
-    float max_volumetric_speed = 0.0;
-    if (plater) { plater->get_preview_min_max_value_of_option((int)GCodeViewer::EViewType::VolumetricRate, min_volumetric_speed, max_volumetric_speed); }
-    wxBoxSizer* min_volumetric_speed_item = create_input_item(panel_advanced_option, "min_volumetric_speed", _L("Min Volumetric Speed"), wxT("mm\u00B3/s"), { double_min_checker });
-    m_input_items["min_volumetric_speed"]->GetTextCtrl()->SetLabel(wxString::Format("%.2f", s_round(min_volumetric_speed, 2)));
-
-    wxBoxSizer* max_volumetric_speed_item = create_input_item(panel_advanced_option, "max_volumetric_speed", _L("Max Volumetric Speed"), wxT("mm\u00B3/s"), { double_min_checker });
-    m_input_items["max_volumetric_speed"]->GetTextCtrl()->SetLabel(wxString::Format("%.2f", s_round(max_volumetric_speed, 2)));
-
-    // layers to optimize
-    int layer_count = plater ? plater->get_gcode_layers_count() : 0;
-    wxBoxSizer* layers_to_optimize_item = create_input_optimize_layers(panel_advanced_option, layer_count);
-
-    sizer_advanced_option->Add(min_velocity_item, 0, wxEXPAND, FromDIP(0));
-    sizer_advanced_option->Add(max_velocity_item, 0, wxEXPAND|wxTOP, FromDIP(6));
-    sizer_advanced_option->Add(min_volumetric_speed_item, 0, wxEXPAND|wxTOP, FromDIP(6));
-    sizer_advanced_option->Add(max_volumetric_speed_item, 0, wxEXPAND|wxTOP, FromDIP(6));
-    sizer_advanced_option->Add(layers_to_optimize_item, 0, wxEXPAND|wxTOP, FromDIP(6));
-    panel_advanced_option->SetSizer(sizer_advanced_option);
-    panel_advanced_option->Layout();
-    panel_advanced_option->Fit();
-
-    sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(24));
-    sizer_optimization->Add(m_remain_usage_time, 0, wxEXPAND, 0);
-    sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(10));
-    sizer_optimization->Add(outerwall, 0, wxEXPAND, 0);
-    sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(5));
-    sizer_optimization->Add(advanced_settings_link, 0, wxEXPAND, 0);
-    sizer_optimization->Add(buy_now_link, 0, wxTOP, FromDIP(5));
-    sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(8));
-    sizer_optimization->Add(panel_advanced_option, 0, wxEXPAND, 0);
-    sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(8));
-
-    panel_optimization->SetSizer(sizer_optimization);
-    panel_optimization->Layout();
-    panel_optimization->Fit();
-
-    panel_optimization->Hide();
-    panel_advanced_option->Hide();
-
-    more_setting_tips->Bind(wxEVT_LEFT_DOWN, [=](wxMouseEvent& e) {
-        if (only_advanced_settings)
-            return;
-
-        if (!use_advanced_settings) {
-            use_advanced_settings = true;
-        }
-        else {
-            use_advanced_settings = false;
-        }
-        show_advanced_mode();
-    });
-
-    panel_optimization->Hide();
-    
-    /*helio wiki*/
-    auto helio_wiki_link = new LinkLabel(this, _L("Click for more details"), wxGetApp().app_config->get("language") =="zh_CN"? "https://wiki.helioadditive.com/zh/home" : "https://wiki.helioadditive.com/en/home");
+    auto helio_wiki_link = new LinkLabel(this, _L("How to use Helio"), "https://wiki.helioadditive.com/");
     helio_wiki_link->SeLinkLabelFColour(wxColour(0, 174, 66));
-    helio_wiki_link->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-    helio_wiki_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
 
-    /*confirm*/
-    wxBoxSizer* button_sizer = new wxBoxSizer(wxHORIZONTAL);
-    StateColor btn_bg_green( std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Enabled), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Disabled), std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-        std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+    helio_wiki_link->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_HAND); });
+    helio_wiki_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_ARROW); });
+
+    wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+
 
     m_button_confirm = new Button(this, _L("Confirm"));
     m_button_confirm->SetBackgroundColor(btn_bg_green);
@@ -2782,25 +2509,38 @@ static double s_round(double value, int n)
     m_button_confirm->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_confirm->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_confirm->SetCornerRadius(FromDIP(12));
-    m_button_confirm->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_confirm, this);
+    m_button_confirm->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+        wxString s   = m_input_item->GetTextCtrl()->GetValue();
+        double   val = 0.0;
+        if (s.ToDouble(&val)) {
+
+            double clamped = val;
+            if (val < 5.0) clamped = 5.0;
+            if (val > 70.0) clamped = 70.0;
+
+            if (clamped != val) {
+                m_isAdjusting = true;
+                m_input_item->GetTextCtrl()->SetValue(wxString::Format("%.2f", clamped));
+                m_input_item->GetTextCtrl()->SetInsertionPointEnd();
+            }
+        }
+        EndModal(wxID_OK);
+    });
 
     button_sizer->Add(0, 0, 1, wxEXPAND, 0);
     button_sizer->Add(m_button_confirm, 0, 0, 0);
-    button_sizer->Add(0, 0, 0, wxLEFT, FromDIP(30));
+    button_sizer->Add(0, 0, 0, wxLEFT, FromDIP(40));
 
     main_sizer->Add(line, 0, wxEXPAND, 0);
-    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
-    main_sizer->Add(control_sizer, 0, wxCENTER, FromDIP(30));
-    main_sizer->Add(panel_simulation, 0,wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
-    main_sizer->Add(panel_pay_optimization, 0,wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
-    main_sizer->Add(panel_optimization, 0,wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
-    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+    main_sizer->Add(item_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+    main_sizer->Add(sub, 0, wxLEFT | wxRIGHT, FromDIP(30));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
     main_sizer->Add(helio_wiki_link, 0, wxLEFT | wxRIGHT, FromDIP(30));
-    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(11));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
     main_sizer->Add(button_sizer, 0, wxEXPAND, 0);
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
-
-    update_action(0);
 
     SetSizer(main_sizer);
     Layout();
@@ -2810,360 +2550,53 @@ static double s_round(double value, int n)
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
-void HelioInputDialog::update_action(int action)
+bool HelioInputDialog::IsValidFloat(const wxString &text)
 {
-    if (current_action == action) {
-        return;
+    if (text.IsEmpty()) return true;
+    if (text.Length() == 1 && wxIsdigit(text[0])) {
+        int digit = text[0] - '0';
+        return digit >= 5 && digit <= 9;
     }
 
-    if (action == 0) {
-        togglebutton_simulate->SetIsSelected(true);
-        togglebutton_optimize->SetIsSelected(false);
-        panel_simulation->Show();
-        panel_pay_optimization->Hide();
-        panel_optimization->Hide();
-        m_button_confirm->Enable();
-    }
-    else {
-        m_button_confirm->Disable();
-        std::string helio_api_url = Slic3r::HelioQuery::get_helio_api_url();
-        std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
-
-        std::weak_ptr<int> weak_ptr = shared_ptr;
-        HelioQuery::request_remaining_optimizations(helio_api_url, helio_api_key, [this, weak_ptr](int times) {
-            if (auto temp_ptr = weak_ptr.lock()) {
-                CallAfter([=]() {
-                    if (times <= 0) {
-                        advanced_settings_link->Hide();
-                        buy_now_link->Show();
-                        if (m_remain_usage_time) { m_remain_usage_time->UpdateHelpTips(0); }
-                    } else {
-                        m_button_confirm->Enable();
-                        advanced_settings_link->Show();
-                        buy_now_link->Hide();
-                        if (m_remain_usage_time) { m_remain_usage_time->UpdateHelpTips(1); }
-                    }
-                    Layout();
-                    Fit();
-
-                    /*set buy url*/
-                    std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
-                    if (helio_api_key.empty()) return;
-
-                    wxString url;
-                    if (wxGetApp().app_config->get("region") == "China") {
-                        url = "store.helioam.cn?patToken=" + helio_api_key;
-                    } else {
-                        url = "store.helioadditive.com?patToken=" + helio_api_key;
-                    }
-                    buy_now_link->setLinkUrl(url);
-
-                    if (m_remain_usage_time) { m_remain_usage_time->UpdateRemainTime(times); }
-                });
-            }
-            else {
-                //already closed dialog
-            }
-        });
-
-        togglebutton_simulate->SetIsSelected(false);
-        togglebutton_optimize->SetIsSelected(true);
-        panel_simulation->Hide();
-        if (support_optimization == 0) {
-            panel_pay_optimization->Hide();
-            panel_optimization->Show();
-        }
-        else {
-            panel_pay_optimization->Show();
-            panel_optimization->Hide();
-        }
-
-        /*hide based mode when nozzle diameter  = 0.2*/
-        const auto& full_config = wxGetApp().preset_bundle->full_config();
-        const auto& project_config = wxGetApp().preset_bundle->project_config;
-        double nozzle_diameter = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values[0];
-
-        if (boost::str(boost::format("%.1f") % nozzle_diameter) == "0.2") {
-            only_advanced_settings = true;
-            use_advanced_settings = true;
-            show_advanced_mode();
-        }    
-    }
-    Layout();
-    Fit();
-
-    current_action = action;
+    if (text == ".") return true;
+    double value;
+    if (!text.ToDouble(&value)) return false;
+    return value >= 5.0 && value <= 70.0;
 }
 
-void HelioInputDialog::show_advanced_mode()
+double HelioInputDialog::get_input_data()
 {
-    if (use_advanced_settings) {
-        advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option3", panel_optimization, 18));
-        panel_advanced_option->Show();
-    }
-    else {
-        advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option4", panel_optimization, 18));
-        panel_advanced_option->Hide();
-    }
-    Layout();
-    Fit();
-}
+    wxString value = m_input_item->GetTextCtrl()->GetValue();
 
-wxBoxSizer* HelioInputDialog::create_input_item(wxWindow* parent, std::string key, wxString name, wxString unit,
-                                                const std::vector<std::shared_ptr<TextInputValChecker>>& checkers)
-{
-    wxBoxSizer* item_sizer = new wxBoxSizer(wxHORIZONTAL);
-    Label* inout_title = new Label(parent, Label::Body_14, name);
-    inout_title->SetFont(::Label::Body_14);
-    inout_title->SetForegroundColour(wxColour("#262E30"));
-
-    TextInput *m_input_item = new TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(120), -1), wxTE_PROCESS_ENTER, unit);
-    wxColour   parent_bg    = parent->GetBackgroundColour();
-    //TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
-    StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(parent_bg, StateColor::Enabled));
-    m_input_item->SetBackgroundColor(input_bg);
-    wxTextValidator validator(wxFILTER_NUMERIC);
-    
-    m_input_item->GetTextCtrl()->SetBackgroundColour(parent_bg);
-    m_input_item->GetTextCtrl()->SetWindowStyleFlag(wxBORDER_NONE | wxTE_PROCESS_ENTER);
-    m_input_item->GetTextCtrl()->Bind(wxEVT_TEXT, [=](wxCommandEvent &) { 
-        wxTextCtrl *ctrl = m_input_item->GetTextCtrl();
-        wxColour new_bg = ctrl->GetValue().IsEmpty() && (key != "chamber_temp_for_simulation") ? wxColour(255, 182, 193) : parent_bg;
-        if (ctrl->GetBackgroundColour() != new_bg) {
-            ctrl->SetBackgroundColour(new_bg);
-            ctrl->Refresh();
-        }
-        });
-    m_input_item->GetTextCtrl()->SetValidator(validator);
-    m_input_item->GetTextCtrl()->SetMaxLength(10);
-    m_input_item->SetValCheckers(checkers);
-
-    item_sizer->Add(inout_title, 0, wxALIGN_CENTER, 0);
-    item_sizer->Add(0, 0, 1, wxEXPAND, 0);
-    item_sizer->Add(m_input_item, 0);
-
-    m_input_items.insert(std::pair<std::string, TextInput*>(key, m_input_item));
-    return item_sizer;
-}
-
-wxBoxSizer* HelioInputDialog::create_combo_item(wxWindow* parent, std::string key,  wxString name, std::map<int, wxString> combolist, int def)
-{
-    wxBoxSizer* item_sizer = new wxBoxSizer(wxHORIZONTAL);
-    Label* inout_title = new Label(parent, Label::Body_14, name);
-    inout_title->SetFont(::Label::Body_14);
-    inout_title->SetForegroundColour(wxColour("#262E30"));
-
-    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(120), -1), 0, nullptr, wxCB_READONLY);
-    combobox->SetFont(::Label::Body_13);
-    combobox->GetDropDown().SetFont(::Label::Body_13);
-
-    std::vector<wxString>::iterator iter;
-    for (auto label : combolist)
-        combobox->Append(label.second);
-
-    if (def < combolist.size()) {
-        combobox->SetSelection(def);
+    if (value == "-" || value.IsEmpty()) {
+        return -1;
     }
 
-    item_sizer->Add(inout_title, 0, wxALIGN_CENTER, 0);
-    item_sizer->Add(0, 0, 1, wxEXPAND, 0);
-    item_sizer->Add(combobox, 0);
+    double temp = 0;
+    if (is_number_regex(value, temp)) {
+        return temp;
+    }
 
-    m_combo_items.insert(std::pair<std::string, ComboBox*>(key, combobox));
-    return item_sizer;
+    return -1;
 }
 
-
-wxBoxSizer* HelioInputDialog::create_input_optimize_layers(wxWindow* parent, int layer_count)
+bool HelioInputDialog::is_number_regex(const wxString &str, double &value)
 {
-    wxBoxSizer* item_sizer = new wxBoxSizer(wxHORIZONTAL);
-    Label* inout_title = new Label(parent, Label::Body_14, _L("Layers to Optimize "));
-    inout_title->SetFont(::Label::Body_14);
-    inout_title->SetForegroundColour(wxColour("#262E30"));
-
-    StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
-    auto layer_range_checker = TextInputValChecker::CreateIntRangeChecker(0, layer_count);
-    wxColour parent_bg = parent->GetBackgroundColour();
-
-    TextInput* m_layer_min_item = new TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(76), -1), wxTE_PROCESS_ENTER);
-    m_layer_min_item->SetBackgroundColor(input_bg);
-    m_layer_min_item->GetTextCtrl()->SetWindowStyleFlag(wxBORDER_NONE | wxTE_PROCESS_ENTER);
-    m_layer_min_item->GetTextCtrl()->SetBackgroundColour(parent_bg);
-    m_layer_min_item->GetTextCtrl()->Bind(wxEVT_TEXT, [=](wxCommandEvent &) {
-        wxTextCtrl *ctrl = m_layer_min_item->GetTextCtrl();
-        wxColour new_bg = ctrl->GetValue().IsEmpty() ? wxColour(255, 182, 193) : parent_bg;
-        if (ctrl->GetBackgroundColour() != new_bg) {
-            ctrl->SetBackgroundColour(new_bg);
-            ctrl->Refresh();
-        }
-    });
-    m_layer_min_item->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-    m_layer_min_item->GetTextCtrl()->SetMaxLength(10);
-    m_layer_min_item->GetTextCtrl()->SetLabel("2");
-    m_layer_min_item->SetValCheckers({layer_range_checker});
-
-    TextInput* m_layer_max_item = new TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(76), -1), wxTE_PROCESS_ENTER);
-    m_layer_max_item->SetBackgroundColor(input_bg);
-    m_layer_min_item->GetTextCtrl()->SetWindowStyleFlag(wxBORDER_NONE | wxTE_PROCESS_ENTER);
-    m_layer_max_item->GetTextCtrl()->SetBackgroundColour(parent_bg);
-    m_layer_max_item->GetTextCtrl()->Bind(wxEVT_TEXT, [=](wxCommandEvent &) {
-        wxTextCtrl *ctrl = m_layer_max_item->GetTextCtrl();
-        wxColour new_bg = ctrl->GetValue().IsEmpty() ? wxColour(255, 182, 193) : parent_bg;
-        if (ctrl->GetBackgroundColour() != new_bg) {
-            ctrl->SetBackgroundColour(new_bg);
-            ctrl->Refresh();
-        }
-    });
-    m_layer_max_item->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-    m_layer_max_item->GetTextCtrl()->SetMaxLength(10);
-    m_layer_max_item->GetTextCtrl()->SetLabel(wxString::Format("%d", layer_count));
-    m_layer_max_item->SetValCheckers({ layer_range_checker });
-
-    item_sizer->Add(inout_title, 0, wxALIGN_CENTER, 0);
-    item_sizer->Add(0, 0, 1, wxEXPAND, 0);
-    item_sizer->Add(m_layer_min_item);
-    item_sizer->AddSpacer(FromDIP(1));
-    item_sizer->Add(new Label(parent, Label::Body_13, "-"), 0, wxALIGN_CENTER_VERTICAL, 0);
-    item_sizer->AddSpacer(FromDIP(1));
-    item_sizer->Add(m_layer_max_item);
-
-    m_input_items.insert(std::pair<std::string, TextInput*>("layers_to_optimize_min", m_layer_min_item));
-    m_input_items.insert(std::pair<std::string, TextInput*>("layers_to_optimize_max", m_layer_max_item));
-
-    return item_sizer;
-}
-
-
-static bool s_get_double_regex(const wxString& str, double& value)
-{
-    value = -1;
-
     std::string s = str.ToStdString();
     std::regex  pattern("^[-+]?[0-9]*\\.?[0-9]+$");
 
-    if (std::regex_match(s, pattern))
-    {
+    if (std::regex_match(s, pattern)) {
         return str.ToDouble(&value);
     }
 
     return false;
 }
 
-static bool s_get_int_regex(const wxString& str, int& value)
-{
-    value = -1;
+void HelioInputDialog::on_dpi_changed(const wxRect &suggested_rect) {}
 
-    std::string s = str.ToStdString();
-    std::regex  pattern("^[-+]?[0-9]+$");
-
-    if (std::regex_match(s, pattern))
-    {
-        long val;
-        if (str.ToLong(&val))
-        {
-            if (val >= INT_MIN && val <= INT_MAX)
-            {
-                value = static_cast<int>(val);
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-
-static bool s_get_double_val(TextInput* item, float& val)
-{
-    double double_val = -1;
-    if (item->CheckValid() && s_get_double_regex(item->GetTextCtrl()->GetValue(), double_val))
-    {
-        val = double_val;
-        return true;
-    }
-
-    val = double_val;
-    item->SetFocus();
-    item->GetTextCtrl()->SetInsertionPointEnd();
-    return false;
-};
-
-static bool s_get_int_val(TextInput* item, int& val)
-{
-    if (item->CheckValid() && s_get_int_regex(item->GetTextCtrl()->GetValue(), val))
-    {
-        return true;
-    }
-
-    item->SetFocus();
-    item->GetTextCtrl()->SetInsertionPointEnd();
-    return false;
-}
-
-Slic3r::HelioQuery::SimulationInput HelioInputDialog::get_simulation_input(bool& ok)
-{
-    HelioQuery::SimulationInput data;
-    if (m_input_items["chamber_temp_for_simulation"]->GetTextCtrl()->GetValue().IsEmpty()) {
-        ok = true;
-    }
-    else {
-        ok = s_get_double_val(m_input_items["chamber_temp_for_simulation"], data.chamber_temp);
-    }
-    return data;
-}
-
-Slic3r::HelioQuery::OptimizationInput HelioInputDialog::get_optimization_input(bool& ok)
-{
-    ok = false;
-    HelioQuery::OptimizationInput data;
-    data.outer_wall = m_combo_items["optimiza_outerwall"]->GetSelection();
-
-    if (!s_get_int_val(m_input_items["layers_to_optimize_min"], data.layers_to_optimize[0])) { return data; }
-    if (!s_get_int_val(m_input_items["layers_to_optimize_max"], data.layers_to_optimize[1])) { return data; }
-
-    if (data.layers_to_optimize[0] > data.layers_to_optimize[1]) {
-        int temp = data.layers_to_optimize[0];
-        data.layers_to_optimize[0] = data.layers_to_optimize[1];
-        data.layers_to_optimize[1] = temp;
-    }
-
-    if (!use_advanced_settings) {
-        ok = true;
-        return data;
-    }
-
-    if (!s_get_double_val(m_input_items["min_velocity"], data.min_velocity)) { return data; }
-    if (!s_get_double_val(m_input_items["max_velocity"], data.max_velocity)) { return data; }
-    if (!s_get_double_val(m_input_items["min_volumetric_speed"], data.min_volumetric_speed)) { return data; }
-    if (!s_get_double_val(m_input_items["max_volumetric_speed"], data.max_volumetric_speed)) { return data; }
-    ok = true;
-    return data;
-}
-
-
-void HelioInputDialog::on_confirm(wxMouseEvent& e)
-{
-    bool ok = false;
-    if (current_action == 0) // Simulation
-    {
-        get_simulation_input(ok);
-    }
-    else if (current_action == 1) // Optimization
-    {
-        get_optimization_input(ok);
-    }
-
-    if (ok)
-    {
-        EndModal(wxID_OK);
-    }
-}
-
-void HelioInputDialog::on_dpi_changed(const wxRect &suggested_rect) 
-{
-}
 
 HelioPatNotEnoughDialog::HelioPatNotEnoughDialog(wxWindow* parent /*= nullptr*/)
-    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, wxString("Helio Additive"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, wxString("Helio Additive"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     SetBackgroundColour(*wxWHITE);
 
@@ -3177,7 +2610,7 @@ HelioPatNotEnoughDialog::HelioPatNotEnoughDialog(wxWindow* parent /*= nullptr*/)
     text->SetMaxSize(wxSize(FromDIP(450), -1));
     text->Wrap(FromDIP(450));
 
-    auto helio_wiki_link = new LinkLabel(this, _L("Click for more details"), wxGetApp().app_config->get("language") =="zh_CN"? "https://wiki.helioadditive.com/zh/home" : "https://wiki.helioadditive.com/en/home");
+    auto helio_wiki_link = new LinkLabel(this, _L("Click for more details"), wxGetApp().app_config->get("language") == "zh_CN" ? "https://wiki.helioadditive.com/zh/home" : "https://wiki.helioadditive.com/en/home");
     helio_wiki_link->SeLinkLabelFColour(wxColour(0, 174, 66));
     helio_wiki_link->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
     helio_wiki_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
@@ -3205,11 +2638,11 @@ HelioPatNotEnoughDialog::HelioPatNotEnoughDialog(wxWindow* parent /*= nullptr*/)
 
     main_sizer->Add(line, 0, wxEXPAND, 0);
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(26));
-    main_sizer->Add(text, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(30));
+    main_sizer->Add(text, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
-    main_sizer->Add(helio_wiki_link, 0, wxLEFT|wxRIGHT, FromDIP(30));
+    main_sizer->Add(helio_wiki_link, 0, wxLEFT | wxRIGHT, FromDIP(30));
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
-    main_sizer->Add(sizer_button, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(30));
+    main_sizer->Add(sizer_button, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
 
     SetSizer(main_sizer);
     Layout();

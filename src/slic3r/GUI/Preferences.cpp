@@ -707,13 +707,6 @@ wxBoxSizer* PreferencesDialog::create_item_darkmode_checkbox(wxString title, wxW
 #endif
         SimpleEvent evt = SimpleEvent(EVT_GLCANVAS_COLOR_MODE_CHANGED);
         wxPostEvent(wxGetApp().plater(), evt);
-
-        if (helio_icon_helio) {
-            std::string helio_icon = wxGetApp().dark_mode() ? "helio_icon" : "helio_icon_dark";
-            helio_icon_helio->SetBitmap(create_scaled_bitmap(helio_icon, helio_icon_helio->GetParent(), 16));
-            helio_icon_helio->Refresh();
-        }
-
         e.Skip();
         });
 
@@ -1365,8 +1358,7 @@ wxWindow* PreferencesDialog::create_general_page()
     wxBoxSizer *sizer_helio_title = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *sizer_helio_pat = new wxBoxSizer(wxHORIZONTAL);
 
-    std::string helio_icon = wxGetApp().dark_mode() ? "helio_icon" : "helio_icon_dark";
-    helio_icon_helio = new wxStaticBitmap(helio_fun_panel, wxID_ANY, create_scaled_bitmap(helio_icon, helio_fun_panel, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+    auto helio_icon_helio = new wxStaticBitmap(helio_fun_panel, wxID_ANY, create_scaled_bitmap("helio_icon_dark", helio_fun_panel, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
 
     auto helio_title_slice = create_item_title(_L("Helio Options"), helio_fun_panel, _L("Helio Options"));
     auto helio_item_switch_slice = create_item_checkbox(_L("Enable Helio"), helio_fun_panel, _L("Enable Helio"), 50, "helio_enable");

@@ -2094,69 +2094,6 @@ void GCodeViewer::update_sequential_view_current(unsigned int first, unsigned in
     }
 }
 
-bool GCodeViewer::get_min_max_value_of_option(int index, float &_min, float &_max){
-    switch ((EViewType) index) {
-    case Slic3r::GUI::GCodeViewer::EViewType::Summary: break;
-    case Slic3r::GUI::GCodeViewer::EViewType::FeatureType: break;
-    case Slic3r::GUI::GCodeViewer::EViewType::Height: {
-        _min = m_extrusions.ranges.height.min;
-        _max = m_extrusions.ranges.height.max;
-        return true;
-    }
-    case Slic3r::GUI::GCodeViewer::EViewType::Width: {
-        _min = m_extrusions.ranges.width.min;
-        _max = m_extrusions.ranges.width.max;
-        return true;
-    }
-    case Slic3r::GUI::GCodeViewer::EViewType::Feedrate: {
-        _min = m_extrusions.ranges.feedrate.min;
-        _max = m_extrusions.ranges.feedrate.max;
-        return true;
-    }
-    case Slic3r::GUI::GCodeViewer::EViewType::FanSpeed: {
-        _min = m_extrusions.ranges.fan_speed.min;
-        _max = m_extrusions.ranges.fan_speed.max;
-        return true;
-    }
-    case Slic3r::GUI::GCodeViewer::EViewType::Temperature: {
-        _min = m_extrusions.ranges.temperature.min;
-        _max = m_extrusions.ranges.temperature.max;
-        return true;
-    }
-    case Slic3r::GUI::GCodeViewer::EViewType::ThermalIndexMin: {
-        _min = m_extrusions.ranges.thermal_index_min.min;
-        _max = m_extrusions.ranges.thermal_index_min.max;
-        return true;
-    }
-    case Slic3r::GUI::GCodeViewer::EViewType::ThermalIndexMax: {
-        _min = m_extrusions.ranges.thermal_index_max.min;
-        _max = m_extrusions.ranges.thermal_index_max.max;
-        return true;
-    }
-    case Slic3r::GUI::GCodeViewer::EViewType::ThermalIndexMean: {
-        _min = m_extrusions.ranges.thermal_index_mean.min;
-        _max = m_extrusions.ranges.thermal_index_mean.max;
-        return true;
-    }
-    case Slic3r::GUI::GCodeViewer::EViewType::VolumetricRate: {
-        _min = m_extrusions.ranges.volumetric_rate.min;
-        _max = m_extrusions.ranges.volumetric_rate.max;
-        return true;
-    }
-    case Slic3r::GUI::GCodeViewer::EViewType::Tool: break;
-    case Slic3r::GUI::GCodeViewer::EViewType::ColorPrint: break;
-    case Slic3r::GUI::GCodeViewer::EViewType::FilamentId: break;
-    case Slic3r::GUI::GCodeViewer::EViewType::LayerTime: {
-        _min = m_extrusions.ranges.layer_duration.min;
-        _max = m_extrusions.ranges.layer_duration.max;
-        return true;
-    }
-    case Slic3r::GUI::GCodeViewer::EViewType::Count: break;
-    default: break;
-    }
-    return false;
-}
-
 void GCodeViewer::enable_moves_slider(bool enable) const
 {
     bool render_as_disabled = !enable;
@@ -5628,6 +5565,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         return ret;
     };
 
+
     // BBS Slicing Result title
     ImGui::Dummy({window_padding, window_padding});
     ImGui::Dummy({window_padding, window_padding});
@@ -5638,15 +5576,13 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     if (wxGetApp().app_config->get("helio_enable") == "true") {
         auto  line_height         = ImGui::GetFrameHeight();
         auto  image_height        = line_height * 0.6;
-
         imgui.disabled_begin(!wxGetApp().is_helio_enable());
-
         float single_word_width   = imgui.calc_text_size("ABCD").x;
         float title_width         = imgui.calc_text_size(title).x;
         float spacing             = 18.0f * m_scale;
         float icon_spacing        = 20.0f * m_scale;
         float icon_width          = image_height;
-        float text_width          = imgui.calc_text_size(_u8L("Helio Simulation&Optimization").c_str()).x + imgui.calc_text_size("A").x;
+        float text_width          = imgui.calc_text_size(_u8L("Helio Simulation").c_str()).x + imgui.calc_text_size("A").x;
         float helio_button_width  = icon_width + text_width  + 30 * m_scale;
         float helio_button_height = ImGui::GetFrameHeight();
         ImGui::SameLine(0, (single_word_width + spacing) * 8.0f - title_width - helio_button_width);
@@ -5678,18 +5614,16 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(),
                                             ImVec2(button_min.x + ImGui::GetStyle().FramePadding.x + icon_width + 10 * m_scale, text_y),
                                             color_text,
-                                            _u8L("Helio Simulation&Optimization").c_str());
+                                            _u8L("Helio Simulation").c_str());
         ImGui::PopStyleVar();
         if (button_clicked) {
             BOOST_LOG_TRIVIAL(info) << "Helio button clicked";
             Plater *       plater = wxGetApp().plater();
-            wxCommandEvent evt(EVT_HELIO_INPUT_DLG);
+            wxCommandEvent evt(EVT_HELIO_INPUT_CHAMBER_TEMP);
             evt.SetEventObject(plater);
             wxPostEvent(plater, evt);
         }
-
         imgui.disabled_end();
-
         ImGui::SameLine();
     } else {
         // BBS Set the width of the 8 "ABCD" words minus the "sliced result" to the spacing between the buttons and the title
@@ -5699,6 +5633,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::SameLine(0, (single_word_width + spacing) * 8.0f - title_width);
     }
     // BBS support helio
+
     std::wstring btn_name;
     if (m_fold)
         btn_name = ImGui::UnfoldButtonIcon + boost::nowide::widen(std::string(""));
