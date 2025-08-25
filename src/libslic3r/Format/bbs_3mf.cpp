@@ -4492,6 +4492,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         text_info.text_configuration.style.prop.face_name = text_info.m_font_name;
         text_info.m_font_version = bbs_get_attribute_value_string(attributes, num_attributes, FONT_VERSION_ATTR);
         text_info.text_configuration.style.name = bbs_get_attribute_value_string(attributes, num_attributes, STYLE_NAME_ATTR);
+        if (std::atof(text_info.m_font_version.c_str()) > 2.2f) {
+            text_info.text_configuration.style.prop.boldness = bbs_get_attribute_value_float(attributes, num_attributes, BOLDNESS_ATTR);
+            text_info.text_configuration.style.prop.skew     = bbs_get_attribute_value_float(attributes, num_attributes, SKEW_ATTR);
+        }
         text_info.m_curr_font_idx = bbs_get_attribute_value_int(attributes, num_attributes, FONT_INDEX_ATTR);
 
         text_info.m_font_size = bbs_get_attribute_value_float(attributes, num_attributes, FONT_SIZE_ATTR);
@@ -7445,6 +7449,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         stream << FONT_NAME_ATTR << "=\"" << text_info.m_font_name << "\" ";
         stream << FONT_VERSION_ATTR << "=\"" << text_info.m_font_version << "\" ";
         stream << STYLE_NAME_ATTR << "=\"" << xml_escape_double_quotes_attribute_value(text_info.text_configuration.style.name) << "\" ";
+        stream << BOLDNESS_ATTR << "=\"" << *text_info.text_configuration.style.prop.boldness << "\" ";
+        stream << SKEW_ATTR << "=\"" << *text_info.text_configuration.style.prop.skew << "\" ";
 
         stream << FONT_INDEX_ATTR << "=\"" << text_info.m_curr_font_idx << "\" ";
 

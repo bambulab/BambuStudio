@@ -24,9 +24,10 @@ enum class SLAGizmoEventType : unsigned char;
 //1.0 mean v1.10 bambu version
 //1.1 mean v2.0 v2.1 bambu version(202505)
 //2.0 mean v2.2 bambu version(202507)
-//2.2 mean v2.2 bambu version(20250815)
+//2.2 mean v2.2 bambu version(20250815) fix char gap of text
+// 2.3 mean v2.3 bambu version(20250826) add custom boldness and skew
 const std::string NEW_FONT_BEGIN_VERSION  = "2.0";
-const std::string CUR_FONT_VERSION = "2.2";
+const std::string CUR_FONT_VERSION        = "2.3";
 class GLGizmoText : public GLGizmoBase
 {
 private:
@@ -44,7 +45,9 @@ private:
     const float m_font_size_max     = 1000.f;
     bool m_warning_font      = false;
     bool m_bold = true;
+    float m_custom_boldness  = 0.f;
     bool m_italic = false;
+    float m_custom_skew   = 0.f;
     float m_thickness = 2.f;
     const float  m_thickness_min     = 0.1f;
     const float  m_thickness_max     = 1000.f;
@@ -155,6 +158,8 @@ private:
 
     float m_rotate_angle_min_max = 0.f;
     float m_text_gap_min_max     = 0.f;
+    float m_text_boldness_min_max     = 0.f;
+    float m_text_skew_min_max     = 0.f;
 
 public:
     GLGizmoText(GLCanvas3D& parent, unsigned int sprite_id);
@@ -210,6 +215,7 @@ private:
     void draw_font_list();
     void draw_height(bool use_inch = false);
     void draw_depth(bool use_inch);
+    void   draw_advanced(float caption_size, float slider_width, float slider_icon_width, float drag_left_width);
     void init_font_name_texture();
     void reinit_text_lines(unsigned count_lines = 0);
     bool   check(ModelVolumeType volume_type);
@@ -236,8 +242,8 @@ private:
     void draw_style_save_as_popup();
     void draw_style_add_button(bool is_modified);
     void draw_delete_style_button();
-    void update_boldness();
-    void update_italic();
+    void update_default_boldness();
+    void update_default_italic();
     void set_default_boldness(std::optional<float> &boldness);
     void draw_model_type(int caption_width);
     void draw_surround_type(int caption_width);
