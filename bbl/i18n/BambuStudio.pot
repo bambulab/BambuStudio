@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 19:21+0800\n"
+"POT-Creation-Date: 2025-08-25 10:58+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1073,6 +1073,9 @@ msgid "Warning:text normal is error."
 msgstr ""
 
 msgid "Warning:text normal has been reset."
+msgstr ""
+
+msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
 msgstr ""
 
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
@@ -2434,24 +2437,6 @@ msgstr ""
 msgid "Init"
 msgstr ""
 
-msgid "Hotend"
-msgstr ""
-
-msgid "Parts"
-msgstr ""
-
-msgid "Aux"
-msgstr ""
-
-msgid "Nozzle1"
-msgstr ""
-
-msgid "MC Board"
-msgstr ""
-
-msgid "Heat"
-msgstr ""
-
 msgid "Chamber"
 msgstr ""
 
@@ -2478,7 +2463,32 @@ msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
 msgstr ""
 
 msgctxt "air_duct"
-msgid "Right"
+msgid "Right(Aux)"
+msgstr ""
+
+msgctxt "air_duct"
+msgid "Right(Filter)"
+msgstr ""
+
+msgid "Hotend"
+msgstr ""
+
+msgid "Parts"
+msgstr ""
+
+msgid "Aux"
+msgstr ""
+
+msgid "Nozzle1"
+msgstr ""
+
+msgid "MC Board"
+msgstr ""
+
+msgid "Heat"
+msgstr ""
+
+msgid "Fan"
 msgstr ""
 
 msgid "Idling..."
@@ -3690,6 +3700,18 @@ msgstr ""
 msgid "Stop Drying"
 msgstr ""
 
+msgid "Cancle"
+msgstr ""
+
+msgid "Done"
+msgstr ""
+
+msgid "Retry"
+msgstr ""
+
+msgid "Resume"
+msgstr ""
+
 msgid "Unknown error."
 msgstr ""
 
@@ -3893,7 +3915,7 @@ msgstr ""
 msgid "Slicing Result"
 msgstr ""
 
-msgid "Helio Simulation"
+msgid "Helio Action"
 msgstr ""
 
 msgid "Color Scheme"
@@ -4433,6 +4455,12 @@ msgid ""
 "Would you like to watch a quick tutorial video?"
 msgstr ""
 
+msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
+msgstr ""
+
+msgid "Tips"
+msgstr ""
+
 msgid "Slice all"
 msgstr ""
 
@@ -4942,7 +4970,7 @@ msgstr ""
 msgid "Please check the network and try again, You can restart or update the printer if the issue persists."
 msgstr ""
 
-msgid "The printer has been logged out and cannot connect."
+msgid "Multi-device/client simultaneous liveview is not supported. Please close the liveview on other devices/clients and try again."
 msgstr ""
 
 msgid "Video Stopped."
@@ -5097,9 +5125,6 @@ msgstr ""
 msgid "Download waiting..."
 msgstr ""
 
-msgid "Retry"
-msgstr ""
-
 msgid "Play"
 msgstr ""
 
@@ -5111,9 +5136,6 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "Downloading %d%%..."
-msgstr ""
-
-msgid "Fan"
 msgstr ""
 
 msgid "Air Condition"
@@ -5273,9 +5295,6 @@ msgid "Printing Progress"
 msgstr ""
 
 msgid "Parts Skip"
-msgstr ""
-
-msgid "Resume"
 msgstr ""
 
 msgid "Stop"
@@ -5940,6 +5959,10 @@ msgstr ""
 msgid "The %s nozzle can not print %s."
 msgstr ""
 
+#, possible-boost-format
+msgid "Mixing %1% with %2% in printing is not recommended.\n"
+msgstr ""
+
 msgid " nozzle"
 msgstr ""
 
@@ -6377,9 +6400,6 @@ msgstr ""
 msgid "Switch now"
 msgstr ""
 
-msgid "Tips"
-msgstr ""
-
 msgid "Load project"
 msgstr ""
 
@@ -6541,11 +6561,11 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+msgid "Printer not connected. Please go to the device page to connect %s before syncing."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
 msgstr ""
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
@@ -8762,9 +8782,6 @@ msgstr ""
 msgid "Skip this Version"
 msgstr ""
 
-msgid "Done"
-msgstr ""
-
 msgid "resume"
 msgstr ""
 
@@ -8878,22 +8895,52 @@ msgstr ""
 msgid "Agree"
 msgstr ""
 
-msgid "Helio Additive"
+msgid "Chamber Temperature"
 msgstr ""
 
-msgid "Chamber temperature"
+msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
 msgstr ""
 
-msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
+msgid "Helio's advanced feature for power users: available post purchase on its official website."
 msgstr ""
 
-msgid "How to use Helio"
+msgid "Monthly quota remaining: "
 msgstr ""
 
-msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
+msgid "Add-ons available: "
+msgstr ""
+
+msgid "Optimise Outer Walls"
+msgstr ""
+
+msgid "Advanced Settings"
+msgstr ""
+
+msgid "Min Velocity"
+msgstr ""
+
+msgid "Max Velocity"
+msgstr ""
+
+msgid "Min Volumetric Speed"
+msgstr ""
+
+msgid "Max Volumetric Speed"
+msgstr ""
+
+msgid "Buy Now"
 msgstr ""
 
 msgid "Click for more details"
+msgstr ""
+
+msgid "Buy add-ons"
+msgstr ""
+
+msgid "Layers to Optimize "
+msgstr ""
+
+msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
 msgstr ""
 
 msgid "Air Pump"
@@ -8906,6 +8953,9 @@ msgid "Laser 40W"
 msgstr ""
 
 msgid "Cutting Module"
+msgstr ""
+
+msgid "Auto Fire Extinguishing System"
 msgstr ""
 
 msgid "Model:"
@@ -9238,13 +9288,7 @@ msgstr ""
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr ""
 
-msgid "enable_wrapping_detection"
-msgstr ""
-
 msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
-msgstr ""
-
-msgid "enable_prime_tower"
 msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
@@ -10064,6 +10108,15 @@ msgstr ""
 msgid "Filament diameter is used to calculate extrusion in gcode, so it's important and should be accurate"
 msgstr ""
 
+msgid "Adaptive volumetric speed"
+msgstr ""
+
+msgid "When enabled, the extrusion flow is limited by the smaller of the fitted value (calculated from line width and layer height) and the user-defined maximum flow. When disabled, only the user-defined maximum flow is applied."
+msgstr ""
+
+msgid "Max volumetric speed multinomial coefficients"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr ""
 
@@ -10071,6 +10124,12 @@ msgstr ""
 msgid ""
 "Enter the shrinkage percentage that the filament will get after cooling (94% if you measure 94mm instead of 100mm). The part will be scaled in xy to compensate. Only the filament used for the perimeter is taken into account.\n"
 "Be sure to allow enough space between objects, as this compensation is done after the checks."
+msgstr ""
+
+msgid "Velocity Adaptation Factor"
+msgstr ""
+
+msgid "This parameter reflects the speed at which a material transitions from one state to another. It, along with the smooth coefficient, determines the final length of the transition zone. A larger value: requires a shorter transition zone. A smaller value: requires a longer transition zone to avoid flow instability."
 msgstr ""
 
 msgid "Adhesiveness Category"
@@ -11421,6 +11480,9 @@ msgstr ""
 msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
 msgstr ""
 
+msgid "Chamber temperature"
+msgstr ""
+
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr ""
 
@@ -11904,9 +11966,6 @@ msgid "Flow Dynamics"
 msgstr ""
 
 msgid "Flow Rate"
-msgstr ""
-
-msgid "Max Volumetric Speed"
 msgstr ""
 
 msgid "The name cannot be empty."
@@ -13045,6 +13104,9 @@ msgid ""
 "Please click the Sync button above and restart the calibration."
 msgstr ""
 
+msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+msgstr ""
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr ""
 
@@ -13337,9 +13399,6 @@ msgstr ""
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr ""
 
-msgid "Helio: Process Started"
-msgstr ""
-
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr ""
 
@@ -13370,7 +13429,31 @@ msgstr ""
 msgid "Helio: simulation failed"
 msgstr ""
 
+msgid "Helio: Simulation check failed"
+msgstr ""
+
+msgid "Helio: Failed to create Simulation\n"
+msgstr ""
+
+msgid "Helio: Failed to create GCode\n"
+msgstr ""
+
+msgid "Helio: optimization successfully created"
+msgstr ""
+
+msgid "Helio: optimization working"
+msgstr ""
+
+msgid "Helio: Optimzaion check failed"
+msgstr ""
+
+msgid "Helio: Failed to create Optimization\n"
+msgstr ""
+
 msgid "Helio: GCode downloaded successfully"
+msgstr ""
+
+msgid "Helio: GCode download failed\n"
 msgstr ""
 
 msgid "No AMS"
