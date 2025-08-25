@@ -34,12 +34,6 @@ void LinkLabel::setLinkUrl(wxString url)
     m_url = url;
 }
 
-void LinkLabel::setLabel(wxString label)
-{
-    m_txt->SetLabel(label);
-    Refresh();
-}
-
 void LinkLabel::link(wxMouseEvent &evt)
 {
     if (!m_url.IsEmpty()) {

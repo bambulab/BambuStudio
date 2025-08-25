@@ -278,7 +278,7 @@ public:
     HelioQuery::SimulationInput         simulation_input_data;
     HelioQuery::OptimizationInput       optimization_input_data;
 
-    Slic3r::GCodeProcessorResult* m_gcode_result{nullptr};
+    Slic3r::GCodeProcessorResult* m_gcode_result;
     Slic3r::GCodeProcessor        m_gcode_processor;
     Slic3r::GUI::Preview*         m_preview;
     std::function<void()>         m_update_function;
@@ -339,8 +339,6 @@ public:
     }
 
     void stop_current_helio_action();
-
-    void clear_helio_file_cache();
 
     void helio_threaded_process_start(std::mutex&                                slicing_mutex,
                                       std::condition_variable&                   slicing_condition,
