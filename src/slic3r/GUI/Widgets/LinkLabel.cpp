@@ -29,10 +29,6 @@ LinkLabel::LinkLabel(wxWindow *parent, wxString const &text, std::string url, lo
     Fit();
 }
 
-void LinkLabel::setLinkUrl(wxString url)
-{
-    m_url = url;
-}
 
 void LinkLabel::link(wxMouseEvent &evt)
 {
