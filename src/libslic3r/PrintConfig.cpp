@@ -2064,7 +2064,7 @@ void PrintConfigDef::init_fff_params()
     def->ratio_over = "layer_height";
     def->sidetext   = L("mm/%");
     def->mode    = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatsOrPercents{FloatOrPercent( 0, 10)});
+    def->set_default_value(new ConfigOptionFloatsOrPercents{FloatOrPercent(10, true)});
 
     def        = this->add("filament_scarf_gap", coFloatsOrPercents);
     def->label = L("Scarf slope gap");
