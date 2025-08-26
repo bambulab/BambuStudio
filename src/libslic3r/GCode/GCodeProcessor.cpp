@@ -171,6 +171,12 @@ static float get_z_height(const std::string_view comment_1)
     return print_z;
 }
 
+void FilamentPrintableResult::reset()
+{
+    conflict_filament.clear();
+    plate_name = "";
+}
+
 CommandProcessor::CommandProcessor()
 {
     root = std::make_unique<TrieNode>();
@@ -5946,8 +5952,14 @@ void GCodeProcessor::update_slice_warnings()
         if (used_filaments[idx] < m_result.required_nozzle_HRC.size())
             filament_hrc = m_result.required_nozzle_HRC[used_filaments[idx]];
 
-        int filament_extruder_id = m_filament_maps[used_filaments[idx]];
-        int extruder_hrc = nozzle_hrc_lists[filament_extruder_id];
+        int extruder_hrc = 0;
+        int filament_extruder_id = 0;
+        if (used_filaments[idx] >= 0 && used_filaments[idx] < m_filament_maps.size()) {
+            filament_extruder_id = m_filament_maps[used_filaments[idx]];
+            if (filament_extruder_id >= 0 && filament_extruder_id < nozzle_hrc_lists.size()) {
+                extruder_hrc = nozzle_hrc_lists[filament_extruder_id];
+            }
+        }
 
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": Check HRC: filament:%1%, hrc=%2%, extruder:%3%, hrc:%4%") % used_filaments[idx] % filament_hrc % filament_extruder_id % extruder_hrc;
 

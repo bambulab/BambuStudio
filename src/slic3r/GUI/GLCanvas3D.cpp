@@ -61,6 +61,7 @@
 // Print now includes tbb, and tbb includes Windows. This breaks compilation of wxWidgets if included before wx.
 #include "libslic3r/Print.hpp"
 #include "libslic3r/SLAPrint.hpp"
+#include "GCodeViewer.hpp"
 
 #include "wxExtensions.hpp"
 
@@ -556,6 +557,7 @@ void GLCanvas3D::LayersEditing::render_background_texture(const GLCanvas3D& canv
     shader->set_uniform("projection_matrix", Transform3d::Identity());
     shader->set_uniform("normal_matrix", m_normal_matrix_for_background);
 
+    glsafe(::glActiveTexture(GL_TEXTURE0 + 0));
     glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
     glsafe(::glBindTexture(GL_TEXTURE_2D, m_z_texture_id));
 
@@ -703,6 +705,7 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D & canvas, const 
     const GLsizei h = (GLsizei)m_layers_texture.height;
     const GLsizei half_w = w / 2;
     const GLsizei half_h = h / 2;
+    glsafe(::glActiveTexture(GL_TEXTURE0 + 0));
     glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
     glsafe(::glBindTexture(GL_TEXTURE_2D, m_z_texture_id));
     glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
@@ -1490,7 +1493,8 @@ void GLCanvas3D::on_change_color_mode(bool is_dark, bool reinit) {
     // Bed color
     m_bed.on_change_color_mode(is_dark);
     // GcodeViewer color
-    m_gcode_viewer.on_change_color_mode(is_dark);
+    auto& t_gcode_viewer = get_gcode_viewer();
+    t_gcode_viewer.on_change_color_mode(is_dark);
     // ImGui Style
     wxGetApp().imgui()->on_change_color_mode(is_dark);
     // Notification
@@ -1535,6 +1539,32 @@ const float GLCanvas3D::get_scale() const
 #else
     return 1.0f;
 #endif
+}
+
+gcode::GCodeViewer& GLCanvas3D::get_gcode_viewer() const
+{
+    if (!m_p_gcode_viewer) {
+        m_p_gcode_viewer = std::make_shared<gcode::GCodeViewer>();
+    }
+    return *m_p_gcode_viewer;
+}
+
+void GLCanvas3D::init_gcode_viewer(ConfigOptionMode mode, Slic3r::PresetBundle* preset_bundle)
+{
+    auto& t_gcode_viewer = get_gcode_viewer();
+    t_gcode_viewer.init(mode, preset_bundle);
+}
+
+void GLCanvas3D::reset_gcode_toolpaths()
+{
+    auto& t_gcode_viewer = get_gcode_viewer();
+    t_gcode_viewer.reset();
+}
+
+void GLCanvas3D::update_gcode_sequential_view_current(unsigned int first, unsigned int last)
+{
+    auto& t_gcode_viewer = get_gcode_viewer();
+    t_gcode_viewer.update_sequential_view_current(first, last);
 }
 
 unsigned int GLCanvas3D::get_volumes_count() const
@@ -2030,7 +2060,8 @@ void GLCanvas3D::enable_layers_editing(bool enable)
 
 void GLCanvas3D::enable_legend_texture(bool enable)
 {
-    m_gcode_viewer.enable_legend(enable);
+    auto& t_gcode_viewer = get_gcode_viewer();
+    t_gcode_viewer.enable_legend(enable);
 }
 
 void GLCanvas3D::enable_picking(bool enable)
@@ -2113,7 +2144,8 @@ void GLCanvas3D::zoom_to_selection()
 
 void GLCanvas3D::zoom_to_gcode()
 {
-    _zoom_to_box(m_gcode_viewer.get_paths_bounding_box(), 1.05);
+    const auto& t_gcode_viewer = get_gcode_viewer();
+    _zoom_to_box(t_gcode_viewer.get_paths_bounding_box(), 1.05);
 }
 
 void GLCanvas3D::zoom_to_plate(int plate_idx)
@@ -2269,8 +2301,11 @@ void GLCanvas3D::render(bool only_init)
     if (m_canvas_type == ECanvasType::CanvasView3D  && m_gizmos.get_current_type() == GLGizmosManager::Undefined) {
         enable_return_toolbar(false);
     }
-    if (m_canvas_type == ECanvasType::CanvasPreview)
-        m_gcode_viewer.init(wxGetApp().get_mode(), wxGetApp().preset_bundle);
+    if (m_canvas_type == ECanvasType::CanvasPreview) {
+        auto& t_gcode_viewer = get_gcode_viewer();
+        t_gcode_viewer.enable_legend(true);
+        t_gcode_viewer.init(wxGetApp().get_mode(), wxGetApp().preset_bundle);
+    }
 
     if (! m_bed.build_volume().valid()) {
         // this happens at startup when no data is still saved under <>\AppData\Roaming\Slic3rPE
@@ -2631,7 +2666,8 @@ void GLCanvas3D::render_calibration_thumbnail(ThumbnailData& thumbnail_data, uns
     if (!p_ogl_manager) {
         return;
     }
-    m_gcode_viewer.render_calibration_thumbnail(thumbnail_data, w, h, thumbnail_params,
+    auto& t_gcode_viewer = get_gcode_viewer();
+    t_gcode_viewer.render_calibration_thumbnail(thumbnail_data, w, h, thumbnail_params,
         wxGetApp().plater()->get_partplate_list(), *p_ogl_manager);
 }
 
@@ -2730,15 +2766,28 @@ void GLCanvas3D::ensure_on_bed(unsigned int object_idx, bool allow_negative_z)
     }
 }
 
-
-const std::vector<double>& GLCanvas3D::get_gcode_layers_zs() const
+bool GLCanvas3D::is_gcode_legend_enabled() const
 {
-    return m_gcode_viewer.get_layers_zs();
+    auto& t_gcode_viewer = get_gcode_viewer();
+    return t_gcode_viewer.is_legend_enabled();
+}
+
+std::vector<double> GLCanvas3D::get_gcode_layers_zs() const
+{
+    const auto& t_gcode_viewer = get_gcode_viewer();
+    const auto& t_layers = t_gcode_viewer.get_layers_zs();
+    std::vector<double> layer_z_list;
+    layer_z_list.reserve(t_layers.size());
+    for (int i = 0; i < t_layers.size(); ++i) {
+        layer_z_list.emplace_back(t_layers[i]);
+    }
+    return layer_z_list;
 }
 
 int GLCanvas3D::get_gcode_layers_count() const
 {
-    return m_gcode_viewer.get_layers_zs().size();
+    const auto& t_gcode_viewer = get_gcode_viewer();
+    return t_gcode_viewer.get_layers_zs().size();
 }
 
 std::vector<double> GLCanvas3D::get_volumes_print_zs(bool active_only) const
@@ -2748,12 +2797,31 @@ std::vector<double> GLCanvas3D::get_volumes_print_zs(bool active_only) const
 
 void GLCanvas3D::set_gcode_options_visibility_from_flags(unsigned int flags)
 {
-    m_gcode_viewer.set_options_visibility_from_flags(flags);
+    auto& t_gcode_viewer = get_gcode_viewer();
+    t_gcode_viewer.set_options_visibility_from_flags(flags);
+}
+
+unsigned int GLCanvas3D::get_gcode_options_visibility_flags() const
+{
+    const auto& t_gcode_viewer = get_gcode_viewer();
+    return t_gcode_viewer.get_options_visibility_flags();
 }
 
 void GLCanvas3D::set_volumes_z_range(const std::array<double, 2>& range)
 {
     m_volumes.set_range(range[0] - 1e-6, range[1] + 1e-6);
+}
+
+std::vector<CustomGCode::Item>& GLCanvas3D::get_custom_gcode_per_print_z() const
+{
+    const auto& t_gcode_viewer = get_gcode_viewer();
+    return t_gcode_viewer.get_custom_gcode_per_print_z();
+}
+
+size_t GLCanvas3D::get_gcode_extruders_count() const
+{
+    const auto& t_gcode_viewer = get_gcode_viewer();
+    return t_gcode_viewer.get_extruders_count();
 }
 
 std::vector<int> GLCanvas3D::load_object(const ModelObject& model_object, int obj_idx, std::vector<int> instance_idxs, bool lod_enabled)
@@ -3471,10 +3539,23 @@ static void reserve_new_volume_finalize_old_volume(GLVolume& vol_new, GLVolume& 
 void GLCanvas3D::load_shells(const Print& print, bool force_previewing)
 {
     if (m_initialized) {
-        m_gcode_viewer.set_show_horizontal_slider(false);
-        m_gcode_viewer.load_shells(print, m_initialized, force_previewing);
-        m_gcode_viewer.update_shells_color_by_extruder(m_config);
+        auto& t_gcode_viewer = get_gcode_viewer();
+        t_gcode_viewer.set_show_horizontal_slider(false);
+        t_gcode_viewer.load_shells(print, m_initialized, force_previewing);
+        t_gcode_viewer.update_shells_color_by_extruder(m_config);
     }
+}
+
+void GLCanvas3D::reset_shells()
+{
+    auto& t_gcode_viewer = get_gcode_viewer();
+    t_gcode_viewer.reset_shell();
+}
+
+void GLCanvas3D::set_shells_on_previewing(bool is_preview)
+{
+    auto& t_gcode_viewer = get_gcode_viewer();
+    t_gcode_viewer.set_shells_on_preview(is_preview);
 }
 
 //BBS: add only gcode mode
@@ -3486,8 +3567,9 @@ void GLCanvas3D::load_gcode_preview(const GCodeProcessorResult& gcode_result, co
 
     //BBS: init is called in GLCanvas3D.render()
     //when load gcode directly, it is too late
-    m_gcode_viewer.init(wxGetApp().get_mode(), wxGetApp().preset_bundle);
-    m_gcode_viewer.load(gcode_result, *this->fff_print(), wxGetApp().plater()->build_volume(), exclude_bounding_box,
+    auto& t_gcode_viewer = get_gcode_viewer();
+    t_gcode_viewer.init(wxGetApp().get_mode(), wxGetApp().preset_bundle);
+    t_gcode_viewer.load(gcode_result, *this->fff_print(), wxGetApp().plater()->build_volume(), exclude_bounding_box,
         m_initialized, wxGetApp().get_mode(), only_gcode);
 
     if (wxGetApp().is_editor()) {
@@ -3495,14 +3577,16 @@ void GLCanvas3D::load_gcode_preview(const GCodeProcessorResult& gcode_result, co
         _update_slice_error_status();
     }
 
-    m_gcode_viewer.refresh(gcode_result, str_tool_colors);
+    t_gcode_viewer.refresh(gcode_result, str_tool_colors);
+    t_gcode_viewer.refresh_render_paths();
     set_as_dirty();
     request_extra_frame();
 }
 
 void GLCanvas3D::refresh_gcode_preview_render_paths()
 {
-    m_gcode_viewer.refresh_render_paths();
+    auto& t_gcode_viewer = get_gcode_viewer();
+    t_gcode_viewer.refresh_render_paths();
     set_as_dirty();
     request_extra_frame();
 }
@@ -3938,7 +4022,13 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
             }
 #if !BBL_RELEASE_TO_PUBLIC
         case 'C':
-        case 'c': { m_gcode_viewer.toggle_gcode_window_visibility(); m_dirty = true; request_extra_frame(); break; }
+        case 'c': {
+            auto& t_gcode_viewer = get_gcode_viewer();
+            t_gcode_viewer.toggle_gcode_window_visibility();
+            m_dirty = true;
+            request_extra_frame();
+            break;
+        }
 #endif
         //case 'G':
         //case 'g': {
@@ -5288,7 +5378,8 @@ void GLCanvas3D::on_set_focus(wxFocusEvent& evt)
 }
 
 void GLCanvas3D::on_back_slice_begin() {
-    m_gcode_viewer.reset_curr_plate_thermal_options();
+    auto& t_gcode_viewer = get_gcode_viewer();
+    t_gcode_viewer.reset_curr_plate_thermal_options();
 }
 
 Size GLCanvas3D::get_canvas_size() const
@@ -5902,12 +5993,14 @@ void GLCanvas3D::msw_rescale()
 
 bool GLCanvas3D::has_toolpaths_to_export() const
 {
-    return m_gcode_viewer.can_export_toolpaths();
+    const auto& t_gcode_viewer = get_gcode_viewer();
+    return t_gcode_viewer.can_export_toolpaths();
 }
 
 void GLCanvas3D::export_toolpaths_to_obj(const char* filename) const
 {
-    m_gcode_viewer.export_toolpaths_to_obj(filename);
+    auto& t_gcode_viewer = get_gcode_viewer();
+    t_gcode_viewer.export_toolpaths_to_obj(filename);
 }
 
 void GLCanvas3D::mouse_up_cleanup()
@@ -7141,11 +7234,12 @@ BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_be
     }
 
     if (m_canvas_type == CanvasPreview) {
-        const BoundingBoxf3& toolpath_bb = m_gcode_viewer.get_max_bounding_box();
+        const auto& t_gcode_viewer = get_gcode_viewer();
+        const BoundingBoxf3& toolpath_bb = t_gcode_viewer.get_max_bounding_box();
         if (toolpath_bb.max_size() > 0.f)
             bb.merge(toolpath_bb);
         else
-            bb.merge(m_gcode_viewer.get_shell_bounding_box());
+            bb.merge(t_gcode_viewer.get_shell_bounding_box());
     }
 
     if ((m_canvas_type == CanvasView3D) && (fff_print()->config().print_sequence == PrintSequence::ByObject)) {
@@ -7446,7 +7540,8 @@ void GLCanvas3D::_render_background() const
             //BBS: use current plater's bounding box
             //BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
             BoundingBoxf3 test_volume = (const_cast<GLCanvas3D*>(this))->_get_current_partplate_print_volume();
-            const BoundingBoxf3& path_bounding_box = m_gcode_viewer.get_paths_bounding_box();
+            const auto& t_gcode_viewer = get_gcode_viewer();
+            const BoundingBoxf3& path_bounding_box = t_gcode_viewer.get_paths_bounding_box();
             if (empty(path_bounding_box))
                 use_error_color = false;
             else
@@ -7729,9 +7824,10 @@ void GLCanvas3D::_render_objects(GLVolumeCollection &cur_volumes, GLVolumeCollec
 //BBS: GUI refactor: add canvas size as parameters
 void GLCanvas3D::_render_gcode(int canvas_width, int canvas_height)
 {
-    m_gcode_viewer.render(canvas_width, canvas_height, SLIDER_RIGHT_MARGIN);
-    IMSlider *layers_slider = m_gcode_viewer.get_layers_slider();
-    IMSlider *moves_slider  = m_gcode_viewer.get_moves_slider();
+    auto& t_gcode_viewer = get_gcode_viewer();
+    t_gcode_viewer.render(canvas_width, canvas_height, SLIDER_RIGHT_MARGIN);
+    IMSlider* layers_slider = t_gcode_viewer.get_layers_slider();
+    IMSlider* moves_slider = t_gcode_viewer.get_moves_slider();
 
     if (layers_slider->is_need_post_tick_event()) {
         auto evt = new wxCommandEvent(EVT_CUSTOMEVT_TICKSCHANGED, m_canvas->GetId());
@@ -7742,19 +7838,19 @@ void GLCanvas3D::_render_gcode(int canvas_width, int canvas_height)
 
     if (layers_slider->is_dirty()) {
         set_volumes_z_range({layers_slider->GetLowerValueD(), layers_slider->GetHigherValueD()});
-        if (m_gcode_viewer.has_data()) {
-            m_gcode_viewer.set_layers_z_range({static_cast<unsigned int>(layers_slider->GetLowerValue()), static_cast<unsigned int>(layers_slider->GetHigherValue())});
+        if (t_gcode_viewer.has_data()) {
+            t_gcode_viewer.set_layers_z_range({static_cast<unsigned int>(layers_slider->GetLowerValue()), static_cast<unsigned int>(layers_slider->GetHigherValue())});
         }
         layers_slider->set_as_dirty(false);
         post_event(SimpleEvent(EVT_GLCANVAS_UPDATE));
-        m_gcode_viewer.update_marker_curr_move();
+        t_gcode_viewer.update_marker_curr_move();
     }
 
     if (moves_slider->is_dirty()) {
         moves_slider->set_as_dirty(false);
-        m_gcode_viewer.update_sequential_view_current((moves_slider->GetLowerValueD() - 1.0), static_cast<unsigned int>(moves_slider->GetHigherValueD() - 1.0));
+        t_gcode_viewer.update_sequential_view_current((moves_slider->GetLowerValueD() - 1.0), static_cast<unsigned int>(moves_slider->GetHigherValueD() - 1.0));
         post_event(SimpleEvent(EVT_GLCANVAS_UPDATE));
-        m_gcode_viewer.update_marker_curr_move();
+        t_gcode_viewer.update_marker_curr_move();
     }
 }
 
@@ -7794,12 +7890,13 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     {
 
 #if ENABLE_RETINA_GL
-        IMSlider* m_layers_slider = get_gcode_viewer().get_layers_slider();
-        IMSlider* m_moves_slider = get_gcode_viewer().get_moves_slider();
+        auto& t_gcode_viewer = get_gcode_viewer();
+        IMSlider* m_layers_slider = t_gcode_viewer.get_layers_slider();
+        IMSlider* m_moves_slider = t_gcode_viewer.get_moves_slider();
         const float sc = m_retina_helper->get_scale_factor();
         m_layers_slider->set_scale(sc);
         m_moves_slider->set_scale(sc);
-        m_gcode_viewer.set_scale(sc);
+        t_gcode_viewer.set_scale(sc);
 
         auto* m_notification = wxGetApp().plater()->get_notification_manager();
         m_notification->set_scale(sc);
@@ -8195,13 +8292,14 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
                 gcode_result_valid = false;
             }
         }
+        auto& t_gcode_viewer = get_gcode_viewer();
         if (all_plates_stats_item->selected && all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICED && gcode_result_valid) {
-            m_gcode_viewer.render_all_plates_stats(plate_list.get_nonempty_plates_slice_results());
+            t_gcode_viewer.render_all_plates_stats(plate_list.get_nonempty_plates_slice_results());
             m_can_show_navigator = false;
             m_render_preview = false;
         }
         else{
-            m_gcode_viewer.render_all_plates_stats(plate_list.get_nonempty_plates_slice_results(), false);
+            t_gcode_viewer.render_all_plates_stats(plate_list.get_nonempty_plates_slice_results(), false);
             m_render_preview = true;
         }
     }else
@@ -9934,26 +10032,27 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
 {
     _set_current(true);
     bool show = false;
+    auto& t_gcode_viewer = get_gcode_viewer();
     if (!m_volumes.empty()) {
         show = _is_any_volume_outside();
-        show &= m_gcode_viewer.has_data() && m_gcode_viewer.is_contained_in_bed() && m_gcode_viewer.m_conflict_result.has_value();
+        show &= t_gcode_viewer.has_data() && t_gcode_viewer.is_contained_in_bed() && t_gcode_viewer.get_conflict_result().has_value();
     } else {
         if (wxGetApp().is_editor()) {
             if (current_printer_technology() != ptSLA) {
-                unsigned int max_z_layer = m_gcode_viewer.get_layers_z_range().back();
+                unsigned int max_z_layer = t_gcode_viewer.get_layers_z_range().back();
                 if (warning == EWarning::ToolHeightOutside) // check if max z_layer height exceed max print height
-                    show = m_gcode_viewer.has_data() && (m_gcode_viewer.get_layers_zs()[max_z_layer] - m_gcode_viewer.get_max_print_height() >= 1e-6);
+                    show = t_gcode_viewer.has_data() && (t_gcode_viewer.get_layers_zs()[max_z_layer] - t_gcode_viewer.get_max_print_height() >= 1e-6);
                 else if (warning == EWarning::ToolpathOutside) { // check if max x,y coords exceed bed area
-                    show = m_gcode_viewer.has_data() && !m_gcode_viewer.is_contained_in_bed() &&
-                           (m_gcode_viewer.get_max_print_height() - m_gcode_viewer.get_layers_zs()[max_z_layer] >= 1e-6);
+                    show = t_gcode_viewer.has_data() && !t_gcode_viewer.is_contained_in_bed() &&
+                           (t_gcode_viewer.get_max_print_height() - t_gcode_viewer.get_layers_zs()[max_z_layer] >= 1e-6);
                 } else if (warning == EWarning::GCodeConflict)
-                    show = m_gcode_viewer.has_data() && m_gcode_viewer.is_contained_in_bed() && m_gcode_viewer.m_conflict_result.has_value();
+                    show = t_gcode_viewer.has_data() && t_gcode_viewer.is_contained_in_bed() && t_gcode_viewer.get_conflict_result().has_value();
                 else if (warning == EWarning::MultiExtruderPrintableError)
-                    show = m_gcode_viewer.has_data() && (m_gcode_viewer.m_gcode_check_result.error_code & 1);
+                    show = t_gcode_viewer.has_data() && (t_gcode_viewer.get_gcode_check_result().error_code & 1);
                 else if (warning == EWarning::MultiExtruderHeightOutside)
-                    show = m_gcode_viewer.has_data() && (m_gcode_viewer.m_gcode_check_result.error_code & (1 << 1));
+                    show = t_gcode_viewer.has_data() && (t_gcode_viewer.get_gcode_check_result().error_code & (1 << 1));
                 else if (warning == EWarning::FilamentUnPrintableOnFirstLayer)
-                    show = m_gcode_viewer.has_data() && m_gcode_viewer.filament_printable_reuslt.has_value();
+                    show = t_gcode_viewer.has_data() && t_gcode_viewer.get_filament_printable_result().has_value();
             }
         }
     }
@@ -10736,21 +10835,23 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     std::string text;
     ErrorType error = ErrorType::PLATER_WARNING;
     const ModelObject* conflictObj=nullptr;
+    const auto& t_gocde_viewer = get_gcode_viewer();
     switch (warning) {
     case EWarning::GCodeConflict: {
         static std::string prevConflictText;
         text  = prevConflictText;
         error = ErrorType::SLICING_SERIOUS_WARNING;
-        if (!m_gcode_viewer.m_conflict_result) { break; }
-        std::string objName1 = m_gcode_viewer.m_conflict_result.value()._objName1;
-        std::string objName2 = m_gcode_viewer.m_conflict_result.value()._objName2;
-        double      height   = m_gcode_viewer.m_conflict_result.value()._height;
-        int         layer    = m_gcode_viewer.m_conflict_result.value().layer;
+        const auto& t_conflict_result = t_gocde_viewer.get_conflict_result();
+        if (!t_conflict_result.has_value()) { break; }
+        std::string objName1 = t_conflict_result.value()._objName1;
+        std::string objName2 = t_conflict_result.value()._objName2;
+        double      height   = t_conflict_result.value()._height;
+        int         layer    = t_conflict_result.value().layer;
         text = (boost::format(_u8L("Conflicts of gcode paths have been found at layer %d. Please separate the conflicted objects farther (%s <-> %s).")) % (layer + 1) %
                 objName1 % objName2)
                    .str();
         prevConflictText        = text;
-        const PrintObject *obj2 = reinterpret_cast<const PrintObject *>(m_gcode_viewer.m_conflict_result.value()._obj2);
+        const PrintObject *obj2 = reinterpret_cast<const PrintObject *>(t_conflict_result.value()._obj2);
         conflictObj             = obj2->model_object();
         break;
     }
@@ -10773,8 +10874,9 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         break;
     }
     case EWarning::MultiExtruderPrintableError: {
-        for (auto error_iter = m_gcode_viewer.m_gcode_check_result.print_area_error_infos.begin(); error_iter != m_gcode_viewer.m_gcode_check_result.print_area_error_infos.end(); ++error_iter) {
-            if (error_iter != m_gcode_viewer.m_gcode_check_result.print_area_error_infos.begin()) {
+        const auto& t_gcode_check_result = t_gocde_viewer.get_gcode_check_result();
+        for (auto error_iter = t_gcode_check_result.print_area_error_infos.begin(); error_iter != t_gcode_check_result.print_area_error_infos.end(); ++error_iter) {
+            if (error_iter != t_gcode_check_result.print_area_error_infos.begin()) {
                 text += "\n";
             }
             int extruder_id = error_iter->first + 1; // change extruder id to 1 based
@@ -10799,7 +10901,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                     }
                 }
             }
-            for (GLVolume *volume : m_gcode_viewer.m_shells.volumes.volumes) {
+            for (GLVolume *volume : t_gocde_viewer.get_shells().volumes.volumes) {
                 for (auto obj_idx : slice_error_object_idxs) {
                     if (volume->object_idx() == obj_idx) {
                         volume->slice_error = true;
@@ -10819,8 +10921,9 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         break;
     }
     case EWarning::MultiExtruderHeightOutside: {
-        for (auto error_iter = m_gcode_viewer.m_gcode_check_result.print_height_error_infos.begin(); error_iter != m_gcode_viewer.m_gcode_check_result.print_height_error_infos.end(); ++error_iter) {
-            if (error_iter != m_gcode_viewer.m_gcode_check_result.print_height_error_infos.begin()) {
+        const auto& t_gcode_check_result = t_gocde_viewer.get_gcode_check_result();
+        for (auto error_iter = t_gcode_check_result.print_height_error_infos.begin(); error_iter != t_gcode_check_result.print_height_error_infos.end(); ++error_iter) {
+            if (error_iter != t_gcode_check_result.print_height_error_infos.begin()) {
                 text += "\n";
             }
             int              extruder_id = error_iter->first + 1; // change extruder id to 1 based
@@ -10852,7 +10955,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                 ++index;
             }
 
-            for (GLVolume *volume : m_gcode_viewer.m_shells.volumes.volumes) {
+            for (GLVolume* volume : t_gocde_viewer.get_shells().volumes.volumes) {
                 for (auto obj_idx : slice_error_object_idxs) {
                     if (volume->object_idx() == obj_idx) {
                         volume->slice_error = true;
@@ -10886,7 +10989,8 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         break;
     case EWarning::FilamentUnPrintableOnFirstLayer: {
         std::string             warning;
-        const std::vector<int> &conflict_filament = m_gcode_viewer.filament_printable_reuslt.conflict_filament;
+        const auto& t_tilament_result_conflict = t_gocde_viewer.get_filament_printable_result();
+        const std::vector<int>& conflict_filament = t_tilament_result_conflict.conflict_filament;
         auto                    iter              = conflict_filament.begin();
         for (int filament : conflict_filament) {
             warning += std::to_string(filament + 1);

@@ -13,7 +13,7 @@
 #include "Widgets/StaticBox.hpp"
 #include "Widgets/WebView.hpp"
 #include "Widgets/SwitchButton.hpp"
-
+#include "slic3r/GUI/GCodeRenderer/BaseRenderer.hpp"
 #include <wx/regex.h>
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
@@ -74,7 +74,7 @@ namespace Slic3r { namespace GUI {
      m_vebview->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, [this](const wxWebViewEvent& evt) {
          open_url(evt.GetString().ToStdString());
      });
-     
+
      std::string phurl1;
      std::string phurl2;
      if (GUI::wxGetApp().app_config->get("region") == "China") {
@@ -91,7 +91,7 @@ namespace Slic3r { namespace GUI {
      }
 
      phurl1 += GUI::wxGetApp().dark_mode() ? "?darkmode=1" : "?darkmode=0";
-     phurl2 += GUI::wxGetApp().dark_mode() ? "?darkmode=1" : "?darkmode=0"; 
+     phurl2 += GUI::wxGetApp().dark_mode() ? "?darkmode=1" : "?darkmode=0";
 
      auto _language = GUI::into_u8(GUI::wxGetApp().current_language_code());
      fs::path ph(resources_dir());
@@ -104,7 +104,7 @@ namespace Slic3r { namespace GUI {
      std::replace(url.begin(), url.end(), '\\', '/');
      url = "file:///" + url;
      m_vebview->LoadURL(from_u8(url));
-     
+
 
      page1_sizer->Add(m_vebview, 0, wxLEFT|wxRIGHT, FromDIP(33));
      page1_panel->SetSizer(page1_sizer);
@@ -229,7 +229,7 @@ namespace Slic3r { namespace GUI {
      pat_err_label->SetMaxSize(wxSize(FromDIP(720), -1));
      pat_err_label->Wrap(FromDIP(720));
      pat_err_label->SetForegroundColour(wxColour("#FC8800"));
-    
+
      wxBoxSizer* helio_links_sizer = new wxBoxSizer(wxHORIZONTAL);
      LinkLabel* helio_home_link =  new LinkLabel(page3_content_panel, _L("Helio Additive"), "https://www.helioadditive.com/");
      LinkLabel* helio_privacy_link = nullptr;
@@ -269,7 +269,7 @@ namespace Slic3r { namespace GUI {
      page3_content_sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
      //page3_content_sizer->Add(m_button_uninstall, 0, wxLEFT, 0);
 
-     
+
      page3_content_panel->SetSizer(page3_content_sizer);
      page3_content_panel->Layout();
      page3_sizer->Add(page3_content_panel, 0, wxLEFT | wxRIGHT, FromDIP(33));
@@ -376,7 +376,7 @@ void HelioStatementDialog::on_confirm(wxMouseEvent& e)
         show_pat_page();
         report_consent_install();
         request_pat();
-        
+
         /*hide helio on main windows*/
         if (wxGetApp().mainframe->expand_program_holder) {
             wxGetApp().mainframe->expand_program_holder->ShowExpandButton(wxGetApp().mainframe->expand_helio_id, true);
@@ -721,7 +721,7 @@ static double s_round(double value, int n)
     wxBoxSizer* sizer_pay_optimization = new wxBoxSizer(wxVERTICAL);
     wxStaticBitmap* panel_pay_loading_icon = new wxStaticBitmap(panel_pay_optimization, wxID_ANY, create_scaled_bitmap("helio_loading", panel_optimization, 109), wxDefaultPosition,
         wxSize(FromDIP(136), FromDIP(109)));
-    
+
     Label* pay_sub = new Label(panel_pay_optimization, _L("Helio's advanced feature for power users: available post purchase on its official website."));
     pay_sub->SetForegroundColour(wxColour(144, 144, 144));
     pay_sub->SetSize(wxSize(FromDIP(440), -1));
@@ -800,7 +800,7 @@ static double s_round(double value, int n)
     float min_speed = 0.0;
     float max_speed = 0.0;
     auto plater = Slic3r::GUI::wxGetApp().plater();
-    if (plater) { plater->get_preview_min_max_value_of_option((int)GCodeViewer::EViewType::Feedrate, min_speed, max_speed); }
+    if (plater) { plater->get_preview_min_max_value_of_option((int) gcode::EViewType::Feedrate, min_speed, max_speed); }
     wxBoxSizer* min_velocity_item = create_input_item(panel_advanced_option, "min_velocity", _L("Min Velocity"), wxT("mm/s"), { double_min_checker } );
     m_input_items["min_velocity"]->GetTextCtrl()->SetLabel(wxString::Format("%.0f", s_round(min_speed, 0)));
 
@@ -810,7 +810,7 @@ static double s_round(double value, int n)
     // volumetric speed
     float min_volumetric_speed = 0.0;
     float max_volumetric_speed = 0.0;
-    if (plater) { plater->get_preview_min_max_value_of_option((int)GCodeViewer::EViewType::VolumetricRate, min_volumetric_speed, max_volumetric_speed); }
+    if (plater) { plater->get_preview_min_max_value_of_option((int) gcode::EViewType::VolumetricRate, min_volumetric_speed, max_volumetric_speed); }
     wxBoxSizer* min_volumetric_speed_item = create_input_item(panel_advanced_option, "min_volumetric_speed", _L("Min Volumetric Speed"), wxT("mm\u00B3/s"), { double_min_checker });
     m_input_items["min_volumetric_speed"]->GetTextCtrl()->SetLabel(wxString::Format("%.2f", s_round(min_volumetric_speed, 2)));
 
@@ -919,7 +919,7 @@ static double s_round(double value, int n)
         url = "store.helioadditive.com?patToken=" + helio_api_key;
     }
     buy_now_link->setLinkUrl(url);
-    
+
     /*helio wiki*/
     helio_wiki_link = new LinkLabel(this, _L("Click for more details"), wxGetApp().app_config->get("language") =="zh_CN"? "https://wiki.helioadditive.com/zh/home" : "https://wiki.helioadditive.com/en/home");
     helio_wiki_link->SeLinkLabelFColour(wxColour(175, 124, 255));
@@ -1041,7 +1041,7 @@ void HelioInputDialog::update_action(int action)
         togglebutton_optimize->SetIsSelected(true);
         panel_simulation->Hide();
         buy_now_link->Show();
-        helio_wiki_link->setLinkUrl( wxGetApp().app_config->get("language") =="zh_CN"? "https://wiki.helioadditive.com/zh/optimization/quick-start" : "https://wiki.helioadditive.com/en/optimization/quick-start");   
+        helio_wiki_link->setLinkUrl( wxGetApp().app_config->get("language") =="zh_CN"? "https://wiki.helioadditive.com/zh/optimization/quick-start" : "https://wiki.helioadditive.com/en/optimization/quick-start");
 
         if (support_optimization == 0) {
             panel_pay_optimization->Hide();
@@ -1121,10 +1121,10 @@ wxBoxSizer* HelioInputDialog::create_input_item(wxWindow* parent, std::string ke
     StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(parent_bg, StateColor::Enabled));
     m_input_item->SetBackgroundColor(input_bg);
     wxTextValidator validator(wxFILTER_NUMERIC);
-    
+
     m_input_item->GetTextCtrl()->SetBackgroundColour(parent_bg);
     m_input_item->GetTextCtrl()->SetWindowStyleFlag(wxBORDER_NONE | wxTE_PROCESS_ENTER);
-    m_input_item->GetTextCtrl()->Bind(wxEVT_TEXT, [=](wxCommandEvent &) { 
+    m_input_item->GetTextCtrl()->Bind(wxEVT_TEXT, [=](wxCommandEvent &) {
         wxTextCtrl *ctrl = m_input_item->GetTextCtrl();
         wxColour new_bg = ctrl->GetValue().IsEmpty() && (key != "chamber_temp_for_simulation") ? wxColour(255, 182, 193) : parent_bg;
         if (ctrl->GetBackgroundColour() != new_bg) {
@@ -1356,7 +1356,7 @@ void HelioInputDialog::on_confirm(wxMouseEvent& e)
     }
 }
 
-void HelioInputDialog::on_dpi_changed(const wxRect &suggested_rect) 
+void HelioInputDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
 }
 

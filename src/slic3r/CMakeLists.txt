@@ -539,6 +539,13 @@ set(SLIC3R_GUI_SOURCES
     GUI/SendMultiMachinePage.cpp
     GUI/TaskManager.cpp
     GUI/TaskManager.hpp
+    GUI/RenderEnums.hpp
+    GUI/GCodeRenderer/AdvancedRenderer.hpp
+    GUI/GCodeRenderer/AdvancedRenderer.cpp
+    GUI/GCodeRenderer/BaseRenderer.hpp
+    GUI/GCodeRenderer/BaseRenderer.cpp
+    GUI/GCodeRenderer/LegacyRenderer.hpp
+    GUI/GCodeRenderer/LegacyRenderer.cpp
     Utils/WxFontUtils.cpp
     Utils/WxFontUtils.hpp
     Utils/EmbossStyleManager.cpp

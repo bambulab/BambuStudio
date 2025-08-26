@@ -2937,6 +2937,9 @@ bool GUI_App::on_init_inner()
 
         const bool cancel_glmultidraw = app_config->get_bool("cancel_glmultidraw");
         p_ogl_manager->set_cancle_glmultidraw(cancel_glmultidraw);
+
+        const bool b_advanced_gcode_viewer_enabled = app_config->get_bool("enable_advanced_gcode_viewer");
+        p_ogl_manager->set_advanced_gcode_viewer_enabled(b_advanced_gcode_viewer_enabled);
     }
 
     BBLSplashScreen * scrn = nullptr;
