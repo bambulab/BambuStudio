@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-25 10:58+0800\n"
+"POT-Creation-Date: 2025-08-26 14:08+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3998,8 +3998,8 @@ msgstr "から"
 msgid "Slicing Result"
 msgstr "スライス結果"
 
-msgid "Helio Action"
-msgstr "Helioアクション"
+msgid "Helio Simulation"
+msgstr "Helioシミュレーション"
 
 msgid "Color Scheme"
 msgstr "配色"
@@ -9090,53 +9090,23 @@ msgstr "この機能を有効にすることを確認すると、上記の内容
 msgid "Agree"
 msgstr "同意"
 
-msgid "Chamber Temperature"
+msgid "Helio Additive"
+msgstr ""
+
+msgid "Chamber temperature"
 msgstr "チャンバー温度"
 
-msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
-msgstr ""
+msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
+msgstr "ご注意：上記の温度は実際の状況に応じて設定してください。データが正確であるほど、分析結果の精度も高くなります。"
 
-msgid "Helio's advanced feature for power users: available post purchase on its official website."
-msgstr ""
-
-msgid "Monthly quota remaining: "
-msgstr ""
-
-msgid "Add-ons available: "
-msgstr ""
-
-msgid "Optimise Outer Walls"
-msgstr ""
-
-msgid "Advanced Settings"
-msgstr ""
-
-msgid "Min Velocity"
-msgstr ""
-
-msgid "Max Velocity"
-msgstr ""
-
-msgid "Min Volumetric Speed"
-msgstr ""
-
-msgid "Max Volumetric Speed"
-msgstr "最大体積速度"
-
-msgid "Buy Now"
-msgstr ""
-
-msgid "Click for more details"
-msgstr "詳細はこちら"
-
-msgid "Buy add-ons"
-msgstr ""
-
-msgid "Layers to Optimize "
-msgstr ""
+msgid "How to use Helio"
+msgstr "Helio の使い方"
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
 msgstr "Helio PATの取得に失敗しました。発行済みのPAT数が上限に達しています。Helio公式サイトの情報をご確認のうえ、利用可能になりましたら「更新」をクリックして再取得してください。"
+
+msgid "Click for more details"
+msgstr "詳細はこちら"
 
 msgid "Air Pump"
 msgstr "エアポンプ"
@@ -11689,9 +11659,6 @@ msgstr ""
 "この設定では、サポートウォールの数を[-1～2]の範囲で指定します。\n"
 "-1は自動設定、0はサポートが十分に厚ければインフィルのみのモードを許可することを意味します。"
 
-msgid "Chamber temperature"
-msgstr "チャンバー温度"
-
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr "高いチャンバー温度は、ABS、ASA、PC、PA などの高温材料において反りを抑制したり、層間接着強度を向上させるのに役立ちます。ただし、その一方で、ABS や ASA の空気ろ過性能が悪化する可能性があります。PLA、PETG、TPU、PVA などの低温材料においては、実際のチャンバー温度が高すぎるとノズルの詰まりを引き起こす可能性があるため、温度は高く設定しない方が良いです。そのため、0（オフ）に設定することを強くお勧めします。"
 
@@ -12182,6 +12149,9 @@ msgstr "動的流量"
 
 msgid "Flow Rate"
 msgstr "流量"
+
+msgid "Max Volumetric Speed"
+msgstr "最大体積速度"
 
 msgid "The name cannot be empty."
 msgstr "名前を空にすることはできません。"
@@ -13701,6 +13671,9 @@ msgstr "強度を重視した、0.8mmノズル用の強化プロファイルで�
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "造形速度を重視した、0.8mmノズル用の標準プロファイルです。"
 
+msgid "Helio: Process Started"
+msgstr "Helio：プロセスを開始しました"
+
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Helio APIエンドポイントが未設定です。設定内容を確認してください。"
 
@@ -13731,32 +13704,8 @@ msgstr "Helio：シミュレーション実行中"
 msgid "Helio: simulation failed"
 msgstr "Helio：シミュレーションに失敗しました"
 
-msgid "Helio: Simulation check failed"
-msgstr ""
-
-msgid "Helio: Failed to create Simulation\n"
-msgstr ""
-
-msgid "Helio: Failed to create GCode\n"
-msgstr ""
-
-msgid "Helio: optimization successfully created"
-msgstr ""
-
-msgid "Helio: optimization working"
-msgstr ""
-
-msgid "Helio: Optimzaion check failed"
-msgstr ""
-
-msgid "Helio: Failed to create Optimization\n"
-msgstr ""
-
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio：Gコードのダウンロードに成功しました"
-
-msgid "Helio: GCode download failed\n"
-msgstr ""
 
 msgid "No AMS"
 msgstr "AMS無し"
@@ -14258,6 +14207,12 @@ msgstr ""
 "反り防止\n"
 "ABSなど反りやすい材料を印刷する場合、ヒートベッド温度を適切に上げることで反りの発生を抑えられることをご存知ですか？"
 
+#~ msgid "Helio Action"
+#~ msgstr "Helioアクション"
+
+#~ msgid "Chamber Temperature"
+#~ msgstr "チャンバー温度"
+
 #~ msgctxt "air_duct"
 #~ msgid "Right"
 #~ msgstr "右"
@@ -14272,12 +14227,6 @@ msgstr ""
 #, c-format, boost-format
 #~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
 #~ msgstr "デバイスページで現在接続されているプリンタは%s ではありません。 同期する前に%s に切り替えてください。"
-
-#~ msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
-#~ msgstr "ご注意：上記の温度は実際の状況に応じて設定してください。データが正確であるほど、分析結果の精度も高くなります。"
-
-#~ msgid "How to use Helio"
-#~ msgstr "Helio の使い方"
 
 #~ msgid "Open Preferences."
 #~ msgstr "環境設定を開く"
