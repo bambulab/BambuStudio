@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-25 10:58+0800\n"
+"POT-Creation-Date: 2025-08-26 14:08+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4014,8 +4014,8 @@ msgstr "da"
 msgid "Slicing Result"
 msgstr "Risultato dello slicing"
 
-msgid "Helio Action"
-msgstr "Azione Helio"
+msgid "Helio Simulation"
+msgstr "Simulazione Helio"
 
 msgid "Color Scheme"
 msgstr "Schema Colore"
@@ -9127,53 +9127,25 @@ msgstr "Confermare l’attivazione di questa funzionalità implica che hai letto
 msgid "Agree"
 msgstr "Accetto"
 
-msgid "Chamber Temperature"
-msgstr "Temperatura Camera"
-
-msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
+msgid "Helio Additive"
 msgstr ""
 
-msgid "Helio's advanced feature for power users: available post purchase on its official website."
+msgid "Chamber temperature"
+msgstr "Temperatura della camera"
+
+msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
 msgstr ""
+"Nota: imposta la temperatura sopra indicata in base alla situazione reale.\n"
+"Più i dati sono accurati, più precisi saranno i risultati dell’analisi."
 
-msgid "Monthly quota remaining: "
-msgstr ""
-
-msgid "Add-ons available: "
-msgstr ""
-
-msgid "Optimise Outer Walls"
-msgstr ""
-
-msgid "Advanced Settings"
-msgstr ""
-
-msgid "Min Velocity"
-msgstr ""
-
-msgid "Max Velocity"
-msgstr ""
-
-msgid "Min Volumetric Speed"
-msgstr ""
-
-msgid "Max Volumetric Speed"
-msgstr "Massima velocità volumetrica"
-
-msgid "Buy Now"
-msgstr ""
-
-msgid "Click for more details"
-msgstr "Clicca per maggiori dettagli"
-
-msgid "Buy add-ons"
-msgstr ""
-
-msgid "Layers to Optimize "
-msgstr ""
+msgid "How to use Helio"
+msgstr "Come usare Helio"
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
 msgstr "Impossibile ottenere l’Helio PAT. Il numero di PAT emessi ha raggiunto il limite massimo. Presta attenzione alle informazioni presenti sul sito ufficiale di Helio. Fare clic su Aggiorna per ottenerlo nuovamente non appena sarà disponibile."
+
+msgid "Click for more details"
+msgstr "Clicca per maggiori dettagli"
 
 msgid "Air Pump"
 msgstr "Compressore Aria"
@@ -11723,9 +11695,6 @@ msgstr "Anelli di supporto a parete"
 msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
 msgstr "Questa impostazione specifica il numero di pareti di supporto nel range [-1,2]. -1 significa automatico e 0 significa consentire la modalità di solo riempimento dove il supporto è sufficientemente spesso."
 
-msgid "Chamber temperature"
-msgstr "Temperatura della camera"
-
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr "Una temperatura della camera più elevata può aiutare a sopprimere o ridurre la deformazione e potenzialmente portare a una maggiore aderenza tra i layer per i materiali ad alta temperatura come ABS, ASA, PC, PA e così via. Allo stesso tempo, il filtraggio dell'aria di ABS e ASA peggiorerà. Mentre per PLA, PETG, TPU, PVA e altri materiali a bassa temperatura, la temperatura della camera non dovrebbe essere elevata per evitare intasamenti, quindi spegnerla (settando a 0) è fortemente raccomandato"
 
@@ -12218,6 +12187,9 @@ msgstr "Flusso Dinamico"
 
 msgid "Flow Rate"
 msgstr "Flow Rate"
+
+msgid "Max Volumetric Speed"
+msgstr "Massima velocità volumetrica"
 
 msgid "The name cannot be empty."
 msgstr "Il nome non può essere vuoto."
@@ -13743,6 +13715,9 @@ msgstr "Profilo forte per nozzle 0.8 mm, che privilegia la resistenza."
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Profilo standard per nozzle 0.8 mm, che privilegia la velocità."
 
+msgid "Helio: Process Started"
+msgstr "Helio: Processo avviato"
+
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "L’endpoint API di Helio è vuoto, verificare la configurazione."
 
@@ -13773,32 +13748,8 @@ msgstr "Helio: simulazione in corso"
 msgid "Helio: simulation failed"
 msgstr "Helio: simulazione fallita"
 
-msgid "Helio: Simulation check failed"
-msgstr ""
-
-msgid "Helio: Failed to create Simulation\n"
-msgstr ""
-
-msgid "Helio: Failed to create GCode\n"
-msgstr ""
-
-msgid "Helio: optimization successfully created"
-msgstr ""
-
-msgid "Helio: optimization working"
-msgstr ""
-
-msgid "Helio: Optimzaion check failed"
-msgstr ""
-
-msgid "Helio: Failed to create Optimization\n"
-msgstr ""
-
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio: GCode scaricato con successo"
-
-msgid "Helio: GCode download failed\n"
-msgstr ""
 
 msgid "No AMS"
 msgstr "No AMS"
@@ -14301,6 +14252,12 @@ msgstr ""
 "Evita deformazioni\n"
 "Sapevi che quando si stampano materiali soggetti a deformazioni, come l'ABS, aumentare adeguatamente la temperatura del piano può ridurre la probabilità di deformazione."
 
+#~ msgid "Helio Action"
+#~ msgstr "Azione Helio"
+
+#~ msgid "Chamber Temperature"
+#~ msgstr "Temperatura Camera"
+
 #~ msgctxt "air_duct"
 #~ msgid "Right"
 #~ msgstr "Destra"
@@ -14315,14 +14272,6 @@ msgstr ""
 #, c-format, boost-format
 #~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
 #~ msgstr "La stampante attualmente collegata nella pagina del dispositivo non è un %s. Per favore, passa a un %s prima di sincronizzare."
-
-#~ msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
-#~ msgstr ""
-#~ "Nota: imposta la temperatura sopra indicata in base alla situazione reale.\n"
-#~ "Più i dati sono accurati, più precisi saranno i risultati dell’analisi."
-
-#~ msgid "How to use Helio"
-#~ msgstr "Come usare Helio"
 
 #~ msgid "Open Preferences."
 #~ msgstr "Apri Preferenze."

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-25 10:58+0800\n"
+"POT-Creation-Date: 2025-08-26 14:08+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3986,8 +3986,8 @@ msgstr "从"
 msgid "Slicing Result"
 msgstr "切片结果"
 
-msgid "Helio Action"
-msgstr "Helio功能"
+msgid "Helio Simulation"
+msgstr "Helio 仿真"
 
 msgid "Color Scheme"
 msgstr "颜色方案"
@@ -5057,7 +5057,7 @@ msgid "Please check the network and try again, You can restart or update the pri
 msgstr "检查网络后重试。如仍未恢复，可重启或更新打印机。"
 
 msgid "Multi-device/client simultaneous liveview is not supported. Please close the liveview on other devices/clients and try again."
-msgstr ""
+msgstr "不支持多设备/客户端同时查看实时监控，请关闭其他设备/客户端的实时监控后重试。"
 
 msgid "Video Stopped."
 msgstr "视频已停止。"
@@ -7137,7 +7137,7 @@ msgid "Preset sync"
 msgstr "配置同步"
 
 msgid "Preferences sync"
-msgstr "首选项同步"
+msgstr "偏好设置同步"
 
 msgid "View control settings"
 msgstr "视图控制设置"
@@ -9076,53 +9076,23 @@ msgstr "当您确认开启此功能后，代表您已经确认和同意以上声
 msgid "Agree"
 msgstr "同意"
 
-msgid "Chamber Temperature"
-msgstr "腔温"
-
-msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
+msgid "Helio Additive"
 msgstr ""
 
-msgid "Helio's advanced feature for power users: available post purchase on its official website."
-msgstr ""
+msgid "Chamber temperature"
+msgstr "腔体温度"
 
-msgid "Monthly quota remaining: "
-msgstr ""
+msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
+msgstr "注意：请根据实际情况设置上述温度。数据越准确，分析结果越精确。"
 
-msgid "Add-ons available: "
-msgstr ""
-
-msgid "Optimise Outer Walls"
-msgstr ""
-
-msgid "Advanced Settings"
-msgstr ""
-
-msgid "Min Velocity"
-msgstr ""
-
-msgid "Max Velocity"
-msgstr ""
-
-msgid "Min Volumetric Speed"
-msgstr ""
-
-msgid "Max Volumetric Speed"
-msgstr "最大容积速度"
-
-msgid "Buy Now"
-msgstr ""
-
-msgid "Click for more details"
-msgstr "点击查看更多详情"
-
-msgid "Buy add-ons"
-msgstr ""
-
-msgid "Layers to Optimize "
-msgstr ""
+msgid "How to use Helio"
+msgstr "如何使用 Helio"
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
 msgstr "获取 Helio-PAT 失败。已达到发行 PAT 的上限。请关注 Helio 官方网站的信息。可点击刷新重新获取。"
+
+msgid "Click for more details"
+msgstr "点击查看更多详情"
 
 msgid "Air Pump"
 msgstr "气泵"
@@ -9451,7 +9421,7 @@ msgid "Printing high-temp and low-temp filaments together may cause nozzle clogg
 msgstr "同时打印高温和低温材料可能导致喷嘴堵塞或打印机损坏。"
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
-msgstr "同时打印高温和低温材料可能导致喷嘴堵塞或打印机损坏。若仍需打印，可在首选项中启用该选项。"
+msgstr "同时打印高温和低温材料可能导致喷嘴堵塞或打印机损坏。若仍需打印，可在偏好设置中启用该选项。"
 
 msgid "Printing different-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "同时打印不同温度的耗材可能导致喷嘴堵塞或打印机损坏。"
@@ -10292,10 +10262,10 @@ msgid "Filament diameter is used to calculate extrusion in gcode, so it's import
 msgstr "耗材丝直径被用于计算G-code文件中的挤出量。因此很重要，应尽可能精确。"
 
 msgid "Adaptive volumetric speed"
-msgstr ""
+msgstr "预冲刷体积速度"
 
 msgid "When enabled, the extrusion flow is limited by the smaller of the fitted value (calculated from line width and layer height) and the user-defined maximum flow. When disabled, only the user-defined maximum flow is applied."
-msgstr ""
+msgstr "启用时，体积速度取“拟合值（有线宽和层高计算）“与”用户定义的最大值”中的较小值。禁用时，仅应用用户定义的最大值。"
 
 msgid "Max volumetric speed multinomial coefficients"
 msgstr ""
@@ -10312,10 +10282,13 @@ msgstr ""
 "请确保对象之间有足够的空间，因为补偿是在检查之后进行的。"
 
 msgid "Velocity Adaptation Factor"
-msgstr ""
+msgstr "速度适应系数"
 
 msgid "This parameter reflects the speed at which a material transitions from one state to another. It, along with the smooth coefficient, determines the final length of the transition zone. A larger value: requires a shorter transition zone. A smaller value: requires a longer transition zone to avoid flow instability."
 msgstr ""
+"此参数反映材料从一种状态过渡到另一种状态的速度。它与平滑系数一起决定过渡区的最终长度。\n"
+"大数值：需要较短的过渡区。\n"
+"小数值：需要较长的过渡区以避免流动不稳定。"
 
 msgid "Adhesiveness Category"
 msgstr "粘接性类别"
@@ -11671,9 +11644,6 @@ msgstr "支撑外墙层数"
 msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
 msgstr "此设置指定 [-1,2] 范围内的支撑墙数量。-1表示自动，0表示允许足够厚的支撑区域使用仅填充模式。"
 
-msgid "Chamber temperature"
-msgstr "腔体温度"
-
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr "更高的腔温可以帮助抑制或减少翘曲，同时可能会提高高温材料（如ABS、ASA、PC、PA等）的层间粘合强度。与此同时，ABS和ASA的空气过滤性能会变差。而对于PLA、PETG、TPU、PVA等低温材料，为了避免堵塞，实际的腔温不应该过高，因此强烈建议使用0（表示关闭）。"
 
@@ -12164,6 +12134,9 @@ msgstr "动态流量"
 
 msgid "Flow Rate"
 msgstr "流量比例"
+
+msgid "Max Volumetric Speed"
+msgstr "最大容积速度"
 
 msgid "The name cannot be empty."
 msgstr "名称不能为空。"
@@ -13674,6 +13647,9 @@ msgstr "0.8mm喷嘴的高强度打印参数，强度优先。"
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "0.8mm喷嘴的默认参数，速度优先。"
 
+msgid "Helio: Process Started"
+msgstr "Helio：处理已开始"
+
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Helio API 端点为空，请检查配置。"
 
@@ -13704,32 +13680,8 @@ msgstr "Helio：仿真运行中"
 msgid "Helio: simulation failed"
 msgstr "Helio：仿真失败"
 
-msgid "Helio: Simulation check failed"
-msgstr ""
-
-msgid "Helio: Failed to create Simulation\n"
-msgstr ""
-
-msgid "Helio: Failed to create GCode\n"
-msgstr ""
-
-msgid "Helio: optimization successfully created"
-msgstr ""
-
-msgid "Helio: optimization working"
-msgstr ""
-
-msgid "Helio: Optimzaion check failed"
-msgstr ""
-
-msgid "Helio: Failed to create Optimization\n"
-msgstr ""
-
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio：G代码下载成功"
-
-msgid "Helio: GCode download failed\n"
-msgstr ""
 
 msgid "No AMS"
 msgstr "没有AMS"
@@ -14232,12 +14184,15 @@ msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
+#~ msgid "Helio Action"
+#~ msgstr "Helio功能"
+
+#~ msgid "Chamber Temperature"
+#~ msgstr "腔温"
+
 #~ msgctxt "air_duct"
 #~ msgid "Right"
 #~ msgstr "右边"
-
-#~ msgid "Helio Simulation"
-#~ msgstr "Helio 仿真"
 
 #~ msgid "The printer has been logged out and cannot connect."
 #~ msgstr "打印机已注销，无法连接。"
@@ -14250,20 +14205,11 @@ msgstr ""
 #~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
 #~ msgstr "设备页当前连接的打印机不是 %s ，无法同步，请切换成 %s 后再同步。"
 
-#~ msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
-#~ msgstr "注意：请根据实际情况设置上述温度。数据越准确，分析结果越精确。"
-
-#~ msgid "How to use Helio"
-#~ msgstr "如何使用 Helio"
-
 #~ msgid "enable_wrapping_detection"
 #~ msgstr "启用触碰裹头检测"
 
 #~ msgid "enable_prime_tower"
 #~ msgstr "启用擦拭塔"
-
-#~ msgid "Helio: Process Started"
-#~ msgstr "Helio：处理已开始"
 
 #, c-format, boost-format
 #~ msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
