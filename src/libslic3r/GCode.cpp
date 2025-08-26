@@ -2122,7 +2122,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                                    [temp_cfg_flush_multiplier_idx](double inputx) { return inputx * temp_cfg_flush_multiplier_idx; });
                 }
                 print_cfg_temp.option<ConfigOptionFloats>("flush_volumes_matrix")->values = temp_flush_volumes_matrix;
-            } else if (filament_count_tmp == 1) {
+            } else if (filament_count_tmp == 1 || print.calib_params().mode != CalibMode::Calib_None) {
             }// Not applicable to flush matrix situations
             else
             { // flush_volumes_matrix value count error?
