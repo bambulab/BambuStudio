@@ -792,6 +792,16 @@ bool OpenGLManager::is_gizmo_keep_screen_size_enabled() const
     return m_b_gizmo_keep_screen_size_enabled;
 }
 
+void OpenGLManager::set_advanced_gcode_viewer_enabled(bool is_enabled)
+{
+    m_b_advanced_gcode_viewer_enabled = is_enabled;
+}
+
+bool OpenGLManager::is_advanced_gcode_viewer_enabled() const
+{
+    return m_b_advanced_gcode_viewer_enabled;
+}
+
 void OpenGLManager::set_toolbar_rendering_style(uint8_t style)
 {
     m_toolbar_rendering_style = style;
@@ -888,6 +898,140 @@ unsigned int OpenGLManager::get_draw_primitive_type(EDrawPrimitiveType type)
         return GL_LINE_LOOP;
     }
     }
+}
+
+uint32_t OpenGLManager::get_pixel_format(EPixelFormat format)
+{
+    switch (format)
+    {
+    case EPixelFormat::R:
+        return GL_RED;
+    case EPixelFormat::RG:
+        return GL_RG;
+    case EPixelFormat::RGB:
+        return GL_RGB;
+    case EPixelFormat::RGBA:
+        return GL_RGBA;
+    case EPixelFormat::DepthComponent:
+        return GL_DEPTH_COMPONENT;
+    case EPixelFormat::StencilIndex:
+        return GL_STENCIL_INDEX;
+    case EPixelFormat::DepthAndStencil:
+        return GL_DEPTH_STENCIL;
+    }
+
+    return GL_INVALID_ENUM;
+}
+
+uint32_t OpenGLManager::get_pixel_data_type(EPixelDataType type)
+{
+    switch (type)
+    {
+    case EPixelDataType::UByte:
+        return GL_UNSIGNED_BYTE;
+    case EPixelDataType::Byte:
+        return GL_BYTE;
+    case EPixelDataType::UShort:
+        return GL_UNSIGNED_SHORT;
+    case EPixelDataType::Short:
+        return GL_SHORT;
+    case EPixelDataType::UInt:
+        return GL_UNSIGNED_INT;
+    case EPixelDataType::Int:
+        return GL_INT;
+    case EPixelDataType::Float:
+        return GL_FLOAT;
+    }
+
+    return GL_INVALID_ENUM;
+}
+
+uint32_t OpenGLManager::get_pixel_data_size(EPixelDataType type)
+{
+    switch (type)
+    {
+    case EPixelDataType::UByte:
+        return 1;
+    case EPixelDataType::Byte:
+        return 1;
+    case EPixelDataType::UShort:
+        return 2;
+    case EPixelDataType::Short:
+        return 2;
+    case EPixelDataType::UInt:
+        return 4;
+    case EPixelDataType::Int:
+        return 4;
+    case EPixelDataType::Float:
+        return 4;
+    default:
+        return 0;
+    }
+}
+
+uint32_t OpenGLManager::get_texture_format(ETextureFormat format)
+{
+    switch (format)
+    {
+    case ETextureFormat::R8:
+        return GL_R8;
+    case ETextureFormat::R32F:
+        return GL_R32F;
+    case ETextureFormat::RG32F:
+        return GL_RG32F;
+    case ETextureFormat::RGBA8:
+        return GL_RGBA8;
+    case ETextureFormat::RGBA32F:
+        return GL_RGBA32F;
+    }
+    return GL_INVALID_ENUM;
+}
+
+uint32_t OpenGLManager::get_sampler_filter_mode(ESamplerFilterMode filter)
+{
+    switch (filter)
+    {
+    case ESamplerFilterMode::Nearset:
+        return GL_NEAREST;
+    case ESamplerFilterMode::Linear:
+        return GL_LINEAR;
+    }
+    return GL_INVALID_ENUM;
+}
+
+uint32_t OpenGLManager::get_format_size(ETextureFormat format)
+{
+    switch (format) {
+    case ETextureFormat::R8:
+        return 1;
+    case ETextureFormat::R32F:
+    case ETextureFormat::RGBA8:
+        return 4;
+    case ETextureFormat::RG32F:
+        return 8;
+    case ETextureFormat::RGBA32F:
+        return 16;
+    default:
+        return 0;
+    }
+}
+
+uint32_t OpenGLManager::get_target(ESamplerType t_sampler_type)
+{
+    GLenum target = GLU_INVALID_ENUM;
+    switch (t_sampler_type)
+    {
+    case ESamplerType::Sampler2D:
+        target = GL_TEXTURE_2D;
+        break;
+    case ESamplerType::Sampler2DArray:
+        target = GL_TEXTURE_2D_ARRAY;
+        break;
+    case ESamplerType::SamplerBuffer:
+        target = GL_TEXTURE_BUFFER;
+        break;
+    }
+    return target;
 }
 
 void OpenGLManager::detect_multisample(int* attribList)
@@ -1217,6 +1361,36 @@ OpenGLManager::FrameBufferModifier& OpenGLManager::FrameBufferModifier::set_heig
 {
     m_height = t_height;
     return *this;
+}
+
+PixelBufferDescriptor::PixelBufferDescriptor()
+{
+}
+
+PixelBufferDescriptor::PixelBufferDescriptor(std::vector<uint8_t>&& tBuffer, EPixelFormat tDataFormat, EPixelDataType tDataType, uint8_t tAlignment, uint32_t tLeft, uint32_t tTop, uint32_t tStride)
+{
+    mBuffer = std::move(tBuffer);
+    mFormat = tDataFormat;
+    mType = tDataType;
+    mAlignment = tAlignment;
+    mLeft = tLeft;
+    mTop = tTop;
+    mStride = tStride;
+}
+
+EPixelFormat PixelBufferDescriptor::get_format() const noexcept
+{
+    return mFormat;
+}
+
+EPixelDataType PixelBufferDescriptor::get_type() const noexcept
+{
+    return mType;
+}
+
+const std::vector<uint8_t>& PixelBufferDescriptor::get_buffer() const noexcept
+{
+    return mBuffer;
 }
 
 } // namespace GUI

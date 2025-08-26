@@ -79,7 +79,6 @@ public:
     void SetMaxValue(const int max_value);
     void SetKoefForLabels(const double koef) { m_label_koef = koef; }
     void SetSliderValues(const std::vector<double> &values);
-    void SetSliderAlternateValues(const std::vector<double> &values) { m_alternate_values = values; }
 
     Info GetTicksValues() const;
     void SetTicksValues(const Info &custom_gcode_per_print_z);
@@ -228,8 +227,6 @@ private:
     std::string              m_print_obj_idxs;
     bool                     m_is_need_post_tick_changed_event { false };
     Type                     m_tick_change_event_type;
-
-    std::vector<double> m_alternate_values;
 
     char m_custom_gcode[1024] = { 0 }; //menu
     char m_layer_number[64] = { 0 }; //menu

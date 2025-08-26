@@ -692,6 +692,7 @@ void PartPlate::render_height_limit(PartPlate::HeightLimitMode mode)
 void PartPlate::render_icon_texture(GLModel &icon, GLTexture &texture)
 {
     GLuint tex_id = (GLuint) texture.get_id();
+    glsafe(::glActiveTexture(GL_TEXTURE0 + 0));
     glsafe(::glBindTexture(GL_TEXTURE_2D, tex_id));
     icon.render_geometry();
     glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
@@ -708,6 +709,7 @@ void PartPlate::render_plate_name_texture()
     if (!m_plate_name_icon.is_initialized()) {
 		return;
 	}
+    glsafe(::glActiveTexture(GL_TEXTURE0 + 0));
     GLuint tex_id = (GLuint) m_name_texture.get_id();
     glsafe(::glBindTexture(GL_TEXTURE_2D, tex_id));
     m_plate_name_icon.render_geometry();

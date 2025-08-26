@@ -1,5 +1,6 @@
 #include "ReleaseNote.hpp"
 #include "I18N.hpp"
+#include "GCodeViewer.hpp"
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Thread.hpp"
