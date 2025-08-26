@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-25 10:58+0800\n"
+"POT-Creation-Date: 2025-08-26 14:08+0800\n"
 "PO-Revision-Date: 2025-07-17 21:56+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -4014,7 +4014,7 @@ msgstr "itibaren"
 msgid "Slicing Result"
 msgstr "Dilimleme Sonuçları"
 
-msgid "Helio Action"
+msgid "Helio Simulation"
 msgstr ""
 
 msgid "Color Scheme"
@@ -9131,52 +9131,22 @@ msgstr ""
 msgid "Agree"
 msgstr ""
 
-msgid "Chamber Temperature"
+msgid "Helio Additive"
 msgstr ""
 
-msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
+msgid "Chamber temperature"
+msgstr "Bölme sıcaklığı"
+
+msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
 msgstr ""
 
-msgid "Helio's advanced feature for power users: available post purchase on its official website."
-msgstr ""
-
-msgid "Monthly quota remaining: "
-msgstr ""
-
-msgid "Add-ons available: "
-msgstr ""
-
-msgid "Optimise Outer Walls"
-msgstr ""
-
-msgid "Advanced Settings"
-msgstr ""
-
-msgid "Min Velocity"
-msgstr ""
-
-msgid "Max Velocity"
-msgstr ""
-
-msgid "Min Volumetric Speed"
-msgstr ""
-
-msgid "Max Volumetric Speed"
-msgstr "Maksimum Hacimsel Hız"
-
-msgid "Buy Now"
-msgstr ""
-
-msgid "Click for more details"
-msgstr ""
-
-msgid "Buy add-ons"
-msgstr ""
-
-msgid "Layers to Optimize "
+msgid "How to use Helio"
 msgstr ""
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
+msgstr ""
+
+msgid "Click for more details"
 msgstr ""
 
 msgid "Air Pump"
@@ -11724,9 +11694,6 @@ msgstr "Destek duvarı döngüleri"
 msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
 msgstr "Bu ayar [-1,2] aralığındaki destek duvarlarının sayısını belirtir. -1 otomatik anlamına gelir ve 0, desteğin yeterince kalın olduğu yerlerde yalnızca sızma moduna izin verilmesi anlamına gelir."
 
-msgid "Chamber temperature"
-msgstr "Bölme sıcaklığı"
-
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr "Daha yüksek hazne sıcaklığı, eğrilmeyi bastırmaya veya azaltmaya yardımcı olabilir ve ABS, ASA, PC, PA ve benzeri gibi yüksek sıcaklıktaki malzemeler için potansiyel olarak daha yüksek ara katman yapışmasına yol açabilir Aynı zamanda, ABS ve ASA'nın hava filtrasyonu daha da kötüleşecektir. PLA, PETG, TPU, PVA ve diğer düşük sıcaklıktaki malzemeler için, tıkanmaları önlemek için gerçek hazne sıcaklığı yüksek olmamalıdır, bu nedenle kapatma anlamına gelen 0 şiddetle tavsiye edilir"
 
@@ -12217,6 +12184,9 @@ msgstr "Akış Dinamiği"
 
 msgid "Flow Rate"
 msgstr "Akış hızı"
+
+msgid "Max Volumetric Speed"
+msgstr "Maksimum Hacimsel Hız"
 
 msgid "The name cannot be empty."
 msgstr "Ad boş olamaz."
@@ -13746,6 +13716,9 @@ msgstr "Mukavemete öncelik veren 0,8 mm nozul için mukavemet profili."
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Hıza öncelik veren 0,8 mm nozul için standart profil."
 
+msgid "Helio: Process Started"
+msgstr ""
+
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr ""
 
@@ -13776,31 +13749,7 @@ msgstr ""
 msgid "Helio: simulation failed"
 msgstr ""
 
-msgid "Helio: Simulation check failed"
-msgstr ""
-
-msgid "Helio: Failed to create Simulation\n"
-msgstr ""
-
-msgid "Helio: Failed to create GCode\n"
-msgstr ""
-
-msgid "Helio: optimization successfully created"
-msgstr ""
-
-msgid "Helio: optimization working"
-msgstr ""
-
-msgid "Helio: Optimzaion check failed"
-msgstr ""
-
-msgid "Helio: Failed to create Optimization\n"
-msgstr ""
-
 msgid "Helio: GCode downloaded successfully"
-msgstr ""
-
-msgid "Helio: GCode download failed\n"
 msgstr ""
 
 msgid "No AMS"
