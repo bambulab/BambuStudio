@@ -943,7 +943,7 @@ void GLModel::render_geometry_instance(unsigned int instance_mats_vbo, unsigned 
 
 void GLModel::render_geometry_instance(unsigned int instance_mats_vbo, unsigned int instances_count, const std::pair<size_t, size_t> &range)
 {
-    if (instance_mats_vbo == 0 || instances_count == 0) {
+    if (instances_count == 0) {
         return;
     }
     if (m_render_data.size() != 1) { return; }
@@ -955,9 +955,6 @@ void GLModel::render_geometry_instance(unsigned int instance_mats_vbo, unsigned 
     if (render_data.vbo_id == 0 || render_data.ibo_id == 0) {
         if (render_data.geometry.vertices_count() > 0 && render_data.geometry.indices_count() > 0 && !send_to_gpu(render_data.geometry))
             return;
-    }
-    if (instance_mats_vbo == 0) {
-        return;
     }
     const Geometry &data = render_data.geometry;
 
@@ -1003,22 +1000,27 @@ void GLModel::render_geometry_instance(unsigned int instance_mats_vbo, unsigned 
     //glBindAttribLocation(shader->get_id(), 2, "instanceMatrix");
     //glBindAttribLocation(2, "instanceMatrix");
     //shader->bind(shaderProgram, 0, 'position');
-    const int i_loc0 = shader->get_attrib_location("i_data0");
-    const int i_loc1 = shader->get_attrib_location("i_data1");
-    const int i_loc2 = shader->get_attrib_location("i_data2");
-    const int i_loc3 = shader->get_attrib_location("i_data3");
+    bool has_instancing_attributes = false;
+    int i_loc0 = -1;
+    int i_loc1 = -1;
+    int i_loc2 = -1;
+    int i_loc3 = -1;
+    if (instance_mats_vbo > 0) {
+        i_loc0 = shader->get_attrib_location("i_data0");
+        i_loc1 = shader->get_attrib_location("i_data1");
+        i_loc2 = shader->get_attrib_location("i_data2");
+        i_loc3 = shader->get_attrib_location("i_data3");
 
-    const bool has_instancing_attributes = (i_loc0 != -1 && i_loc1 != -1 && i_loc2 != -1 && i_loc3 != -1);
-    if (has_instancing_attributes) {
-        bind_mats_vbo(instance_mats_vbo, instances_count, { i_loc0, i_loc1, i_loc2, i_loc3});
+        has_instancing_attributes = (i_loc0 != -1 && i_loc1 != -1 && i_loc2 != -1 && i_loc3 != -1);
+        if (has_instancing_attributes) {
+            bind_mats_vbo(instance_mats_vbo, instances_count, { i_loc0, i_loc1, i_loc2, i_loc3 });
+        }
     }
-    else {
-        return;
-    }
+
     auto res = shader->set_uniform("uniform_color", render_data.color);
 
     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_data.ibo_id));
-    glsafe(::glDrawElementsInstanced(mode, range.second - range.first, index_type, (const void *) (range.first * Geometry::index_stride_bytes(data)), instances_count));
+    glsafe(::glDrawElementsInstanced(mode, range.second - range.first, index_type, (const void*)(range.first * Geometry::index_stride_bytes(data)), instances_count));
     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
     if (has_instancing_attributes && instance_mats_vbo > 0) {
@@ -1031,6 +1033,7 @@ void GLModel::render_geometry_instance(unsigned int instance_mats_vbo, unsigned 
         glsafe(::glDisableVertexAttribArray(i_loc2));
         glsafe(::glDisableVertexAttribArray(i_loc3));
     }
+
     if (tex_coord_id != -1) glsafe(::glDisableVertexAttribArray(tex_coord_id));
     if (normal_id != -1) glsafe(::glDisableVertexAttribArray(normal_id));
     if (position_id != -1) glsafe(::glDisableVertexAttribArray(position_id));

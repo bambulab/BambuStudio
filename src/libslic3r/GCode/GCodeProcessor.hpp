@@ -154,9 +154,10 @@ namespace Slic3r {
         std::string plate_name;
         FilamentPrintableResult(){};
         FilamentPrintableResult(std::vector<int> &conflict_filament, std::string plate_name) : conflict_filament(conflict_filament), plate_name(plate_name) {}
-        bool has_value(){
+        bool has_value() const{
            return !conflict_filament.empty();
         };
+        void reset();
     };
 
     struct GCodeProcessorResult

@@ -2,6 +2,7 @@
 #define slic3r_OpenGLManager_hpp_
 
 #include "GLShadersManager.hpp"
+#include "RenderEnums.hpp"
 #include "libslic3r/Color.hpp"
 #include <memory>
 #include <unordered_map>
@@ -13,46 +14,41 @@ class wxGLContext;
 
 namespace Slic3r {
 namespace GUI {
-
-enum class EMSAAType : uint8_t
+class PixelBufferDescriptor
 {
-    Disabled,
-    X2,
-    X4,
-    // desktop only
-    X8,
-    X16
-};
+public:
 
-enum class EPixelFormat : uint16_t
-{
-    Unknow,
-    RGBA,
-    DepthComponent,
-    StencilIndex,
-    DepthAndStencil
-};
+    explicit PixelBufferDescriptor();
 
-enum class EPixelDataType : uint16_t
-{
-    Unknow,
-    UByte,
-    Byte,
-    UShort,
-    Short,
-    UInt,
-    Int,
-    Float
-};
+    /**
+    * Creates a new PixelBufferDescriptor referencing an image in main memory
+    *
+    * @param tBuffer   the buffer containing the image
+    * @param tDataFormat    Format of the image pixels
+    * @param tDataType      Type of the image pixels
+    * @param tAlignment Alignment in bytes of pixel rows
+    * @param tLeft      Left coordinate in pixels
+    * @param tTop       Top coordinate in pixels
+    * @param tStride    Stride of a row in pixels
+    */
+    PixelBufferDescriptor(std::vector<uint8_t>&& tBuffer, EPixelFormat tDataFormat, EPixelDataType tDataType, uint8_t tAlignment = 1,
+        uint32_t tLeft = 0, uint32_t tTop = 0, uint32_t tStride = 0);
 
-enum class EDrawPrimitiveType : uint8_t{
-    Points,
-    Triangles,
-    TriangleStrip,
-    TriangleFan,
-    Lines,
-    LineStrip,
-    LineLoop
+    EPixelFormat get_format() const noexcept;
+
+    EPixelDataType get_type() const noexcept;
+
+    const std::vector<uint8_t>& get_buffer() const noexcept;
+
+private:
+    std::vector<uint8_t> mBuffer;
+    EPixelFormat mFormat{ EPixelFormat::RGBA };
+    EPixelDataType mType{ EPixelDataType::Float };
+
+    uint8_t mAlignment{ 1 };
+    uint32_t mLeft{ 0 };
+    uint32_t mTop{ 0 };
+    uint32_t mStride{ 0 };
 };
 
 struct FrameBufferParams
@@ -231,6 +227,7 @@ private:
     uint32_t m_vao{ 0 };
     bool m_b_legacy_framebuffer_enabled{ true };
     bool m_b_gizmo_keep_screen_size_enabled{ true };
+    bool m_b_advanced_gcode_viewer_enabled{ true };
     uint8_t m_toolbar_rendering_style{ 0 };
     static GLInfo s_gl_info;
 #ifdef __APPLE__
@@ -271,6 +268,10 @@ public:
     bool is_legacy_framebuffer_enabled() const;
     void set_gizmo_keep_screen_size_enabled(bool is_enabled);
     bool is_gizmo_keep_screen_size_enabled() const;
+
+    void set_advanced_gcode_viewer_enabled(bool is_enabled);
+    bool is_advanced_gcode_viewer_enabled() const;
+
     void set_msaa_type(const std::string& type);
     void set_msaa_type(EMSAAType type);
     EMSAAType get_msaa_type() const;
@@ -297,6 +298,14 @@ public:
     static bool get_cancle_glmultidraw() { return s_cancle_glmultidraw; }
     static void set_cancle_glmultidraw(bool flag) { s_cancle_glmultidraw = flag; }
     static unsigned int get_draw_primitive_type(EDrawPrimitiveType type);
+
+    static uint32_t get_pixel_format(EPixelFormat format);
+    static uint32_t get_pixel_data_type(EPixelDataType type);
+    static uint32_t get_pixel_data_size(EPixelDataType type);
+    static uint32_t get_texture_format(ETextureFormat format);
+    static uint32_t get_sampler_filter_mode(ESamplerFilterMode filter);
+    static uint32_t get_format_size(ETextureFormat format);
+    static uint32_t get_target(ESamplerType);
 
 private:
     static void detect_multisample(int* attribList);

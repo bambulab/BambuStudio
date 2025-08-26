@@ -358,6 +358,21 @@ bool GLShaderProgram::set_uniform(const char* name, const Matrix4d& value) const
     return set_uniform(name, (Matrix4f)value.cast<float>());
 }
 
+bool GLShaderProgram::set_uniform(const char* name, const Vec2f& value) const
+{
+    int id = get_uniform_location(name);
+    if (id >= 0) {
+        glsafe(::glUniform2fv(id, 1, static_cast<const GLfloat*>(value.data())));
+        return true;
+    }
+    return false;
+}
+
+bool GLShaderProgram::set_uniform(const char* name, const Vec2d& value) const
+{
+    return set_uniform(name, static_cast<Vec2f>(value.cast<float>()));
+}
+
 bool GLShaderProgram::set_uniform(const char* name, const Vec3f& value) const
 {
     int id = get_uniform_location(name);
@@ -371,6 +386,21 @@ bool GLShaderProgram::set_uniform(const char* name, const Vec3f& value) const
 bool GLShaderProgram::set_uniform(const char* name, const Vec3d& value) const
 {
     return set_uniform(name, static_cast<Vec3f>(value.cast<float>()));
+}
+
+bool GLShaderProgram::set_uniform(const char* name, const Vec4f& value) const
+{
+    int id = get_uniform_location(name);
+    if (id >= 0) {
+        glsafe(::glUniform4fv(id, 1, static_cast<const GLfloat*>(value.data())));
+        return true;
+    }
+    return false;
+}
+
+bool GLShaderProgram::set_uniform(const char* name, const Vec4d& value) const
+{
+    return set_uniform(name, static_cast<Vec4f>(value.cast<float>()));
 }
 
 bool GLShaderProgram::set_uniform(const char* name, const ColorRGB& value) const

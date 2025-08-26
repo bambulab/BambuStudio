@@ -46,7 +46,7 @@ void EdgeGrid::Grid::create(const std::vector<const Polygon*> &polygons, coord_t
 		if (! polygon->empty())
 			m_contours.emplace_back(polygon->points, false);
 
-	create_from_m_contours(resolution);	
+	create_from_m_contours(resolution);
 }
 
 void EdgeGrid::Grid::create(const std::vector<Points> &polygons, coord_t resolution, bool open_polylines)
@@ -54,7 +54,7 @@ void EdgeGrid::Grid::create(const std::vector<Points> &polygons, coord_t resolut
 	// Collect the contours.
 	m_contours.clear();
 	m_contours.reserve(std::count_if(polygons.begin(), polygons.end(), [](const Points &p) { return p.size() > 1; }));
-	for (const Points &points : polygons) 
+	for (const Points &points : polygons)
 		if (points.size() > 1) {
 			const Point *begin = points.data();
 			const Point *end   = points.data() + points.size();

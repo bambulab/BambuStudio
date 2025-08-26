@@ -61,7 +61,7 @@ bool check_color_change(PrintObject *object, size_t frst_layer_id, size_t layers
 }
 
 
-static std::string gcode(Type type)
+static std::string gcode_type(Type type)
 {
     Slic3r::DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
     switch (type) {
@@ -386,7 +386,7 @@ void IMSlider::add_code_as_tick(Type type, int selected_extruder)
         return;
     }
 
-    if (type == ColorChange && gcode(ColorChange).empty()) GUI::wxGetApp().plater()->get_notification_manager()->push_notification(GUI::NotificationType::EmptyColorChangeCode);
+    if (type == ColorChange && gcode_type(ColorChange).empty()) GUI::wxGetApp().plater()->get_notification_manager()->push_notification(GUI::NotificationType::EmptyColorChangeCode);
 
     const int  extruder = selected_extruder > 0 ? selected_extruder : std::max<int>(1, m_only_extruder);
     const auto it       = m_ticks.ticks.find(TickCode{tick});
@@ -808,13 +808,13 @@ void IMSlider::show_tooltip(const TickCode& tick){
     case CustomGCode::ColorChange:
         break;
     case CustomGCode::PausePrint:
-        show_tooltip(_u8L("Pause:") + " \"" + gcode(PausePrint) + "\"" + time_str);
+        show_tooltip(_u8L("Pause:") + " \"" + gcode_type(PausePrint) + "\"" + time_str);
         break;
     case CustomGCode::ToolChange:
         show_tooltip(_u8L("Change Filament") + time_str);
         break;
     case CustomGCode::Template:
-        show_tooltip(_u8L("Custom Template:") + " \"" + gcode(Template) + "\"" + time_str);
+        show_tooltip(_u8L("Custom Template:") + " \"" + gcode_type(Template) + "\"" + time_str);
         break;
     case CustomGCode::Custom:
         show_tooltip(_u8L("Custom G-code:") + " \"" + tick.extra + "\"" + time_str);
@@ -1328,7 +1328,7 @@ void IMSlider::render_add_menu()
             }
             if (hovered) { show_tooltip(_u8L("Insert custom G-code at the beginning of this layer.")); }
 
-            if (!gcode(Template).empty()) {
+            if (!gcode_type(Template).empty()) {
                 if (menu_item_with_icon(_u8L("Add Custom Template").c_str(), "", ImVec2(0, 0), 0, false, menu_item_enable, &hovered)) {
                     add_code_as_tick(Template);
                 }
@@ -1375,7 +1375,7 @@ void IMSlider::render_edit_menu(const TickCode& tick)
             }
             break;
         case CustomGCode::Template:
-            if (!gcode(Template).empty()) {
+            if (!gcode_type(Template).empty()) {
                 if (menu_item_with_icon(_u8L("Delete Custom Template").c_str(), "")) {
                     delete_tick(tick);
                 }

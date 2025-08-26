@@ -82,6 +82,7 @@
 #include "3DBed.hpp"
 #include "PartPlate.hpp"
 #include "Camera.hpp"
+#include "GCodeViewer.hpp"
 #include "Mouse3DController.hpp"
 #include "Tab.hpp"
 #include "Jobs/OrientJob.hpp"
@@ -199,6 +200,8 @@ wxDEFINE_EVENT(EVT_ENABLE_GCODE_OPTION_ITEM_CHANGED, SimpleEvent);
 //BBS: print
 wxDEFINE_EVENT(EVT_PRINT_FROM_SDCARD_VIEW,          SimpleEvent);
 
+wxDEFINE_EVENT(EVT_GCODE_VIEWER_CHANGED, SimpleEvent);
+
 wxDEFINE_EVENT(EVT_CREATE_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_MODIFY_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_ADD_FILAMENT, SimpleEvent);
@@ -207,9 +210,11 @@ wxDEFINE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 wxDEFINE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
 
+// helio
 wxDEFINE_EVENT(EVT_HELIO_PROCESSING_COMPLETED, HelioCompletionEvent);
 wxDEFINE_EVENT(EVT_HELIO_PROCESSING_STARTED, SimpleEvent);
 wxDEFINE_EVENT(EVT_HELIO_INPUT_DLG, SimpleEvent);
+// end helio
 
 #define PRINTER_THUMBNAIL_SIZE (wxSize(FromDIP(48), FromDIP(48)))
 #define PRINTER_PANEL_SIZE (wxSize(FromDIP(96), FromDIP(68)))
@@ -4243,6 +4248,7 @@ public:
     void on_add_filament(SimpleEvent &);
     void on_delete_filament(SimpleEvent &);
     void on_add_custom_filament(ColorEvent &);
+    void on_gcode_viewer_changed(SimpleEvent&);
 
     void on_object_select(SimpleEvent&);
     void show_right_click_menu(Vec2d mouse_position, wxMenu *menu);
@@ -4516,6 +4522,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->q->Bind(EVT_ADD_FILAMENT, &priv::on_add_filament, this);
     this->q->Bind(EVT_DEL_FILAMENT, &priv::on_delete_filament, this);
     this->q->Bind(EVT_ADD_CUSTOM_FILAMENT, &priv::on_add_custom_filament, this);
+    this->q->Bind(EVT_GCODE_VIEWER_CHANGED, &priv::on_gcode_viewer_changed, this);
     main_frame->m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, &priv::on_tab_selection_changing, this);
 
     auto *panel_3d = new wxPanel(q);
@@ -4753,13 +4760,13 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent &) { select_next_view_3D(); });
         preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_COLLAPSE_SIDEBAR, [this](SimpleEvent&) { this->q->collapse_sidebar(!this->q->is_sidebar_collapsed());  });
         preview->get_wxglcanvas()->Bind(EVT_CUSTOMEVT_TICKSCHANGED, [this](wxCommandEvent& event) {
-            Type tick_event_type = (Type)event.GetInt();
+            CustomGCode::Type tick_event_type = (CustomGCode::Type)event.GetInt();
             Model& model = wxGetApp().plater()->model();
             //BBS: replace model custom gcode with current plate custom gcode
             model.plates_custom_gcodes[model.curr_plate_index] = preview->get_canvas3d()->get_gcode_viewer().get_layers_slider()->GetTicksValues();
 
             // BBS set to invalid state only
-            if (tick_event_type == Type::ToolChange || tick_event_type == Type::Custom || tick_event_type == Type::Template || tick_event_type == Type::PausePrint) {
+            if (tick_event_type == CustomGCode::Type::ToolChange || tick_event_type == CustomGCode::Type::Custom || tick_event_type == CustomGCode::Type::Template || tick_event_type == CustomGCode::Type::PausePrint) {
                 PartPlate *plate = this->q->get_partplate_list().get_curr_plate();
                 if (plate) {
                     plate->update_slice_result_valid_state(false);
@@ -4825,9 +4832,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_OPEN_FILAMENT_MAP_SETTINGS_DIALOG, [q](wxCommandEvent &evt) { q->open_filament_map_setting_dialog(evt); });
         //q->Bind(EVT_GLVIEWTOOLBAR_ASSEMBLE, [q](SimpleEvent&) { q->select_view_3D("Assemble"); });
 
+        // helio
         q->Bind(EVT_HELIO_PROCESSING_COMPLETED, &priv::on_helio_processing_complete, this);
         q->Bind(EVT_HELIO_PROCESSING_STARTED, &priv::on_helio_processing_start, this);
         q->Bind(EVT_HELIO_INPUT_DLG, &priv::on_helio_input_dlg, this);
+        // end helio
     }
 
     // Drop target:
@@ -11100,6 +11109,14 @@ void Plater::priv::on_delete_filament(SimpleEvent &evt) {
 void Plater::priv::on_add_custom_filament(ColorEvent &evt)
 {
     sidebar->add_custom_filament(evt.data);
+}
+
+void Plater::priv::on_gcode_viewer_changed(SimpleEvent&)
+{
+    if (!this->preview) {
+        return;
+    }
+    this->preview->reload_print(false, q->m_only_gcode);
 }
 
 void Plater::priv::enter_gizmos_stack()

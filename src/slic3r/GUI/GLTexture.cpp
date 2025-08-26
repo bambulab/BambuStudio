@@ -485,6 +485,13 @@ void GLTexture::reset()
 
     //BBS: GUI refactor
     m_original_width = m_original_height = 0;
+
+    // for buffer texture
+    if (m_buffer_id != -1u) {
+        glsafe(::glDeleteBuffers(1, &m_buffer_id));
+        m_buffer_id = -1u;
+    }
+    // end for buffer texture
 }
 
 bool GLTexture::generate_from_text_string(const std::string& text_str, wxFont &font, wxColor background, wxColor foreground)
@@ -686,17 +693,165 @@ void GLTexture::set_wrap_mode_v(ESamplerWrapMode mode)
 
 void GLTexture::bind(uint8_t stage)
 {
-    glActiveTexture(GL_TEXTURE0 + stage);
-    glBindTexture(GL_TEXTURE_2D, m_id);
+    glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
 
-    // set sampler state
-    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, get_gl_texture_wrap_mode(m_wrap_mode_u)));
-    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, get_gl_texture_wrap_mode(m_wrap_mode_v)));
+    GLenum target = OpenGLManager::get_target(m_sampler_type);
+    glsafe(::glBindTexture(target, m_id));
+
+    if (m_sampler_type != ESamplerType::SamplerBuffer) {
+        // set sampler state
+        glsafe(::glTexParameteri(target, GL_TEXTURE_WRAP_S, get_gl_texture_wrap_mode(m_wrap_mode_u)));
+        glsafe(::glTexParameteri(target, GL_TEXTURE_WRAP_T, get_gl_texture_wrap_mode(m_wrap_mode_v)));
+    }
 }
 
 void GLTexture::unbind()
 {
-    glBindTexture(GL_TEXTURE_2D, 0);
+    GLenum target = OpenGLManager::get_target(m_sampler_type);
+    glsafe(::glBindTexture(target, 0));
+}
+
+GLTexture& GLTexture::set_width(uint32_t width)
+{
+    m_width = width;
+    return *this;
+}
+
+GLTexture& GLTexture::set_height(uint32_t height)
+{
+    m_height = height;
+    return *this;
+}
+
+GLTexture& GLTexture::set_sampler(ESamplerType sampler_type)
+{
+    m_sampler_type = sampler_type;
+    return *this;
+}
+
+GLTexture& GLTexture::set_internal_format(ETextureFormat format)
+{
+    m_internal_format = format;
+    return *this;
+}
+
+GLTexture& GLTexture::set_pixel_data_type(EPixelDataType type)
+{
+    m_pixel_data_type = type;
+    return *this;
+}
+
+GLTexture& GLTexture::set_pixel_data_format(EPixelFormat format)
+{
+    m_pixel_format = format;
+    return *this;
+}
+
+GLTexture& GLTexture::set_mag_filter(ESamplerFilterMode filter)
+{
+    m_mag_filter_mode = filter;
+    return *this;
+}
+
+GLTexture& GLTexture::set_min_filter(ESamplerFilterMode filter)
+{
+    m_min_filter_mode = filter;
+    return *this;
+}
+
+void GLTexture::read_back(std::vector<uint8_t>& pixel_data) const
+{
+    const GLenum pixel_format = OpenGLManager::get_pixel_format(m_pixel_format);
+    const GLenum pixel_data_type = OpenGLManager::get_pixel_data_type(m_pixel_data_type);
+    const uint32_t pixel_data_size = OpenGLManager::get_pixel_data_size(m_pixel_data_type);
+    const uint32_t format_size = OpenGLManager::get_format_size(m_internal_format);
+    pixel_data.resize(m_width * m_height * format_size * pixel_data_size);
+    GLenum target = OpenGLManager::get_target(m_sampler_type);
+    glsafe(::glBindTexture(target, m_id));
+    glsafe(::glGetTexImage(target, 0, pixel_format, pixel_data_type, pixel_data.data()));
+    glsafe(::glBindTexture(target, 0));
+}
+
+void GLTexture::build()
+{
+    GLenum internal_format = OpenGLManager::get_texture_format(m_internal_format);
+    GLenum pixel_format = OpenGLManager::get_pixel_format(m_pixel_format);
+    GLenum pixel_data_type = OpenGLManager::get_pixel_data_type(m_pixel_data_type);
+
+    glsafe(::glGenTextures(1, &m_id));
+
+    GLenum target = OpenGLManager::get_target(m_sampler_type);
+
+    glsafe(::glBindTexture(target, m_id));
+    glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+
+    switch (target)
+    {
+    case GL_TEXTURE_2D:
+        glsafe(::glTexImage2D(target, 0, internal_format, GLsizei(m_width), GLsizei(m_height), 0, pixel_format, pixel_data_type, nullptr));
+        break;
+    case GL_TEXTURE_2D_ARRAY:
+        glsafe(::glTexImage3D(target, 0, internal_format, GLsizei(m_width), GLsizei(m_height), GLsizei(1), 0, pixel_format, pixel_data_type, nullptr));
+        break;
+    }
+
+    if (m_sampler_type != ESamplerType::SamplerBuffer) {
+        const auto mag_filter = OpenGLManager::get_sampler_filter_mode(m_mag_filter_mode);
+        const auto min_filter = OpenGLManager::get_sampler_filter_mode(m_min_filter_mode);
+        glsafe(::glTexParameteri(target, GL_TEXTURE_MAG_FILTER, mag_filter));
+        glsafe(::glTexParameteri(target, GL_TEXTURE_MIN_FILTER, min_filter));
+    }
+
+    glsafe(::glBindTexture(target, 0));
+}
+
+void GLTexture::set_image(size_t tLevel, uint32_t tXOffset, uint32_t tYOffset, uint32_t tZOffset, uint32_t tWidth, uint32_t tHeight, uint32_t tDepth, std::shared_ptr<PixelBufferDescriptor>& tpPixelBufferDesc) const
+{
+    GLenum tFormat = OpenGLManager::get_pixel_format(tpPixelBufferDesc->get_format());
+    GLenum tType = OpenGLManager::get_pixel_data_type(tpPixelBufferDesc->get_type());
+
+    GLenum target = OpenGLManager::get_target(m_sampler_type);
+    glsafe(::glBindTexture(target, m_id));
+    glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+    glsafe(::glTexSubImage2D(target, tLevel, tXOffset, tYOffset, tWidth, tHeight, tFormat, tType, tpPixelBufferDesc->get_buffer().data()));
+    glsafe(::glBindTexture(target, 0));
+}
+
+bool GLTexture::set_buffer(const std::vector<float>& t_buffer)
+{
+    if (m_sampler_type != ESamplerType::SamplerBuffer) {
+        return false;
+    }
+
+    const auto buffer_size = t_buffer.size() * sizeof(float);
+    if (buffer_size == 0) {
+        return false;
+    }
+
+    GLenum target = OpenGLManager::get_target(m_sampler_type);
+
+    if (m_buffer_id == UINT32_MAX || buffer_size > m_buffer_size) {
+        if (m_buffer_id != UINT32_MAX) {
+            glDeleteBuffers(1, &m_buffer_id);
+        }
+        glsafe(::glGenBuffers(1, &m_buffer_id));
+        glsafe(::glBindBuffer(target, m_buffer_id));
+        glsafe(::glBufferData(target, buffer_size, t_buffer.data(), GL_DYNAMIC_DRAW));
+        glsafe(::glBindBuffer(target, 0));
+
+        glsafe(::glBindTexture(target, m_id));
+        GLenum internal_format = OpenGLManager::get_texture_format(m_internal_format);
+        glsafe(::glTexBuffer(GL_TEXTURE_BUFFER, internal_format, m_buffer_id));
+        glsafe(::glBindTexture(target, 0));
+        m_buffer_size = buffer_size;
+    }
+    else {
+        glsafe(::glBindBuffer(target, m_buffer_id));
+        glsafe(::glBufferSubData(target, 0, buffer_size, t_buffer.data()));
+        glsafe(::glBindBuffer(target, 0));
+    }
+
+    return m_buffer_id != -1u;
 }
 
 void GLTexture::render_texture(unsigned int tex_id, float left, float right, float bottom, float top)
@@ -751,6 +906,7 @@ void GLTexture::render_sub_texture(unsigned int tex_id, float left, float right,
     }
     //glsafe(::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE));
 
+    glsafe(::glActiveTexture(GL_TEXTURE0 + 0));
     glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)tex_id));
     const int stage = 0;
     glsafe(::glActiveTexture(GL_TEXTURE0 + stage));

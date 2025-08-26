@@ -5,9 +5,12 @@
 #include <string>
 #include <vector>
 #include <thread>
+#include <memory>
 
 #include <wx/colour.h>
 #include <wx/font.h>
+
+#include "RenderEnums.hpp"
 
 class wxImage;
 
@@ -15,7 +18,7 @@ namespace Slic3r {
 namespace GUI {
 
     class GLModel;
-
+    class PixelBufferDescriptor;
     class GLTexture
     {
         class Compressor
@@ -98,6 +101,17 @@ namespace GUI {
         Compressor m_compressor;
         ESamplerWrapMode m_wrap_mode_u{ ESamplerWrapMode::Clamp };
         ESamplerWrapMode m_wrap_mode_v{ ESamplerWrapMode::Clamp };
+        ESamplerFilterMode m_mag_filter_mode{ ESamplerFilterMode::Nearset };
+        ESamplerFilterMode m_min_filter_mode{ ESamplerFilterMode::Nearset };
+        ESamplerType m_sampler_type{ ESamplerType::Sampler2D };
+        ETextureFormat m_internal_format{ ETextureFormat::R8 };
+        EPixelFormat m_pixel_format{ EPixelFormat::R };
+        EPixelDataType m_pixel_data_type{ EPixelDataType::UByte };
+
+        // for buffer texture
+        uint32_t m_buffer_id{ UINT32_MAX };
+        uint32_t m_buffer_size{ 0 };
+        // end for buffer texture
 
     public:
         GLTexture();
@@ -139,6 +153,33 @@ namespace GUI {
         void set_wrap_mode_v(ESamplerWrapMode mode);
         void bind(uint8_t stage = 0);
         void unbind();
+
+        GLTexture& set_width(uint32_t width);
+
+        GLTexture& set_height(uint32_t height);
+
+        GLTexture& set_sampler(ESamplerType sampler_type);
+
+        GLTexture& set_internal_format(ETextureFormat format);
+
+        GLTexture& set_pixel_data_type(EPixelDataType type);
+
+        GLTexture& set_pixel_data_format(EPixelFormat format);
+
+        GLTexture& set_mag_filter(ESamplerFilterMode filter);
+
+        GLTexture& set_min_filter(ESamplerFilterMode filter);
+
+        void read_back(std::vector<uint8_t>& pixel_data) const;
+
+        void build();
+
+        void set_image(size_t tLevel,
+            uint32_t tXOffset, uint32_t tYOffset, uint32_t tZOffset,
+            uint32_t tWidth, uint32_t tHeight, uint32_t tDepth,
+            std::shared_ptr<PixelBufferDescriptor>& tpPixelBufferDesc) const;
+
+        bool set_buffer(const std::vector<float>& t_buffer);
 
         static void render_texture(unsigned int tex_id, float left, float right, float bottom, float top);
         static void render_sub_texture(unsigned int tex_id, float left, float right, float bottom, float top, const Quad_UVs& uvs);
