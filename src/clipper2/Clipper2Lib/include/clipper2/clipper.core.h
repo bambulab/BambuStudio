@@ -19,8 +19,11 @@
 #include <numeric>
 #include <cmath>
 
-namespace Clipper2Lib
-{
+#ifdef USINGZ
+namespace Clipper2Lib_Z {
+#else
+namespace Clipper2Lib {
+#endif
 
 #if (defined(__cpp_exceptions) && __cpp_exceptions) || (defined(__EXCEPTIONS) && __EXCEPTIONS)
 
@@ -682,7 +685,7 @@ namespace Clipper2Lib
 
   inline int TriSign(int64_t x) // returns 0, 1 or -1
   {
-    return (x > 0) - (x < 0); 
+    return (x > 0) - (x < 0);
   }
 
   struct MultiplyUInt64Result
@@ -937,9 +940,9 @@ namespace Clipper2Lib
   }
 
   template<typename T>
-  inline int GetSign(const T& val) 
-  { 
-    if (!val) return 0; 
+  inline int GetSign(const T& val)
+  {
+    if (!val) return 0;
     return (val > 0) ? 1 : -1;
   }
 
