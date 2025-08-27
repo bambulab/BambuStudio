@@ -34,9 +34,9 @@ double HelioQuery::convert_volume_speed(float mm3_per_second) {
     return std::round(value * 1e20) / 1e20;
 }
 
-void HelioQuery::request_remaining_optimizations(const std::string & helio_api_url, const std::string & helio_api_key, std::function<void(int)> func) {
+void HelioQuery::request_remaining_optimizations(const std::string & helio_api_url, const std::string & helio_api_key, std::function<void(int, int)> func) {
     std::string query_body = R"( {
-        "query": "query GetUserRemainingOpts { user { remainingOptsThisMonth } }",
+        "query": "query GetUserRemainingOpts { user { remainingOptsThisMonth addOnOptimizations} }",
         "variables": {}
     } )";
 
@@ -61,18 +61,25 @@ void HelioQuery::request_remaining_optimizations(const std::string & helio_api_u
                 && parsed_obj["data"]["user"]["remainingOptsThisMonth"].is_number()) {
 
                 int global_remaining_opt_count = parsed_obj["data"]["user"]["remainingOptsThisMonth"].get<int>();
-                func(global_remaining_opt_count);
+                int global_remaining_addon_opt_count = 0;
+
+                if (parsed_obj["data"]["user"]["addOnOptimizations"].is_number()){
+                    global_remaining_addon_opt_count = parsed_obj["data"]["user"]["addOnOptimizations"].get<int>();
+                }
+
+                
+                func(global_remaining_opt_count, global_remaining_addon_opt_count);
             }
             else {
-                func(0);
+                func(0, 0);
             }
         }
         catch (...) {
-            func(0);
+            func(0, 0);
         }
             })
         .on_error([func](std::string body, std::string error, unsigned status) {
-            func(0);
+            func(0, 0);
             BOOST_LOG_TRIVIAL(error) << "Failed to obtain remaining optimization attempts: " << error << ", status: " << status;
         })
         .perform();
@@ -330,6 +337,16 @@ HelioQuery::UploadFileResult HelioQuery::upload_file_to_presigned_url(const std:
         .header("X-Version-Type", "Official");
 
     boost::filesystem::path file_path(file_path_string);
+
+    /*check origin file*/
+    try {
+        std::string original_path_name = file_path.parent_path().string() + "/original_" + file_path.filename().string();
+        if (fs::exists(original_path_name) && fs::is_regular_file(original_path_name)) {
+            file_path = boost::filesystem::path(original_path_name);
+            BOOST_LOG_TRIVIAL(error) << "use original gcode file for helio action";
+        }
+    }
+    catch (...) {}
 
     http.set_put_body(file_path)
         .on_complete([&res](std::string body, unsigned status) {
@@ -830,6 +847,34 @@ Slic3r::HelioQuery::CreateOptimizationResult HelioQuery::create_optimization(con
     return res;
 }
 
+void HelioQuery::stop_optimization(const std::string helio_api_url, const std::string helio_api_key, const std::string optimization_id)
+{
+    std::string query_body_template = R"( {
+        "query": "mutation StopOptimization($id: ID!) { stopOptimization(id: $id) }",
+        "variables": {
+            "id": "%1%"
+        }
+    } )";
+
+    std::string query_body = (boost::format(query_body_template) % optimization_id).str();
+    auto http = Http::post(helio_api_url);
+
+    http.header("Content-Type", "application/json")
+        .header("Authorization", helio_api_key)
+        .header("X-Version-Type", "Official")
+        .set_post_body(query_body);
+
+    http.timeout_connect(20)
+        .timeout_max(100)
+        .on_complete([=](std::string body, unsigned status) {
+            BOOST_LOG_TRIVIAL(info) << (boost::format("stop_optimization: success")).str();
+        })
+        .on_error([=](std::string body, std::string error, unsigned status) {
+            BOOST_LOG_TRIVIAL(info) << (boost::format("stop_optimization: failed")).str();
+        })
+        .perform_sync();
+}
+
 Slic3r::HelioQuery::CheckOptimizationResult HelioQuery::check_optimization_progress(const std::string helio_api_url,
                                                                                     const std::string helio_api_key,
                                                                                     const std::string optimization_id)
@@ -907,7 +952,7 @@ void HelioBackgroundProcess::stop_current_helio_action()
     }
 
     if (!current_optimization_result.id.empty()) {
-        //todo
+        HelioQuery::stop_optimization(helio_api_url, helio_api_key, current_optimization_result.id);
     }
 }
 
@@ -1187,7 +1232,7 @@ void HelioBackgroundProcess::create_optimization_step(HelioQuery::CreateGCodeRes
     }
 }
 void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string                                file_download_url,
-                                                                    std::string                                simulated_gcode_path,
+                                                                    std::string                                helio_gcode_path,
                                                                     std::string                                tmp_path,
                                                                     std::unique_ptr<GUI::NotificationManager>& notification_manager)
 {
@@ -1248,14 +1293,14 @@ void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string 
     }
 
     if (response_error.empty() && !was_canceled()) {
-        FILE* file = fopen(simulated_gcode_path.c_str(), "wb");
+        FILE* file = fopen(helio_gcode_path.c_str(), "wb");
         fwrite(downloaded_gcode.c_str(), 1, downloaded_gcode.size(), file);
         fclose(file);
 
         Slic3r::PrintBase::SlicingStatus status = Slic3r::PrintBase::SlicingStatus(100, _L("Helio: GCode downloaded successfully").ToStdString());
         Slic3r::SlicingStatusEvent*      evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
         wxQueueEvent(GUI::wxGetApp().plater(), evt);
-        HelioBackgroundProcess::load_simulation_to_viwer(simulated_gcode_path, tmp_path);
+        HelioBackgroundProcess::load_helio_file_to_viwer(helio_gcode_path, tmp_path);
     } else {
         set_state(STATE_CANCELED);
 
@@ -1266,17 +1311,16 @@ void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string 
     }
 }
 
-void HelioBackgroundProcess::load_simulation_to_viwer(std::string simulated_file_path, std::string tmp_path)
+void HelioBackgroundProcess::load_helio_file_to_viwer(std::string file_path, std::string tmp_path)
 {
     const Vec3d origin = GUI::wxGetApp().plater()->get_partplate_list().get_current_plate_origin();
     m_gcode_processor.set_xy_offset(origin(0), origin(1));
-    m_gcode_processor.process_file(simulated_file_path);
+    m_gcode_processor.process_file(file_path);
     auto res       = &m_gcode_processor.result();
     m_gcode_result = res;
 
     set_state(STATE_FINISHED);
-    Slic3r::HelioCompletionEvent* evt = new Slic3r::HelioCompletionEvent(GUI::EVT_HELIO_PROCESSING_COMPLETED, 0, simulated_file_path,
-                                                                         tmp_path, true);
+    Slic3r::HelioCompletionEvent* evt = new Slic3r::HelioCompletionEvent(GUI::EVT_HELIO_PROCESSING_COMPLETED, 0, file_path, tmp_path, true);
     wxQueueEvent(GUI::wxGetApp().plater(), evt);
 }
 
