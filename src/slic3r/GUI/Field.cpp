@@ -435,7 +435,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                         wxString y_str = thumbnail.GetNextToken();
                         if (y_str.ToDouble(&y) && !thumbnail.HasMoreTokens()) {
                             if (m_opt_id == "bed_exclude_area") {
-                                if (0 <= x && x <= 256 && 0 <= y && y <= 256) {
+                                if (0 <= x && x <= 350 && 0 <= y && y <= 350) {
                                     out_values.push_back(Vec2d(x, y));
                                     continue;
                                 }
@@ -1165,7 +1165,9 @@ void Choice::register_dynamic_list(std::string const &optname, DynamicList *list
 
 void DynamicList::update()
 {
-    for (auto c : m_choices) apply_on(c);
+    for (auto c : m_choices) {
+        apply_on(c);
+    }
 }
 
 void DynamicList::add_choice(Choice *choice)
@@ -1227,7 +1229,7 @@ void Choice::BUILD()
         opt_height = (double) temp->GetTextCtrl()->GetSize().GetHeight() / m_em_unit;
 
     // BBS
-    temp->SetTextLabel(m_opt.sidetext);
+    temp->SetTextLabel(_L(m_opt.sidetext));
     m_combine_side_text = true;
 
 #ifdef __WXGTK3__
@@ -1470,7 +1472,8 @@ void Choice::set_value(const boost::any& value, bool change_event)
         if (m_opt_id.compare("host_type") == 0 && val != 0 &&
 			m_opt.enum_values.size() > field->GetCount()) // for case, when PrusaLink isn't used as a HostType
 			val--;
-        if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" || m_opt_id == "support_style" || m_opt_id == "curr_bed_type")
+        if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" ||
+            m_opt_id == "support_style" || m_opt_id == "curr_bed_type" || m_opt_id == "locked_skin_infill_pattern" || m_opt_id == "locked_skeleton_infill_pattern")
 		{
 			std::string key;
 			const t_config_enum_values& map_names = *m_opt.enum_keys_map;
@@ -1557,8 +1560,8 @@ boost::any& Choice::get_value()
 	{
         if (m_opt.nullable && field->GetSelection() == -1)
             m_value = ConfigOptionEnumsGenericNullable::nil_value();
-        else if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" ||
-                 m_opt_id == "support_style" || m_opt_id == "curr_bed_type") {
+        else if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" || m_opt_id == "support_style" || m_opt_id == "curr_bed_type" || m_opt_id == "locked_skin_infill_pattern" ||
+                 m_opt_id == "locked_skeleton_infill_pattern") {
 			const std::string& key = m_opt.enum_values[field->GetSelection()];
 			m_value = int(m_opt.enum_keys_map->at(key));
 		}

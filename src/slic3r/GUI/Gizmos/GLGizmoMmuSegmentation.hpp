@@ -64,13 +64,11 @@ public:
 class GLGizmoMmuSegmentation : public GLGizmoPainterBase
 {
 public:
-    GLGizmoMmuSegmentation(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    GLGizmoMmuSegmentation(GLCanvas3D& parent, unsigned int sprite_id);
     ~GLGizmoMmuSegmentation() override = default;
-
+    void data_changed(bool is_serializing) override;
     void render_painter_gizmo() const override;
     void render_non_manifold_edges() const;
-    void set_painter_gizmo_data(const Selection& selection) override;
-
     void render_triangles(const Selection& selection) const override;
 
     // TriangleSelector::serialization/deserialization has a limit to store 19 different states.
@@ -85,8 +83,11 @@ public:
     bool on_number_key_down(int number);
     bool on_key_down_select_tool_type(int keyCode);
 
+    std::string get_icon_filename(bool is_dark_mode) const override;
+
 protected:
     // BBS
+    void                 set_painter_gizmo_data(const Selection &selection) override;
     std::array<float, 4> get_cursor_hover_color() const override;
     void on_set_state() override;
 
@@ -99,9 +100,11 @@ protected:
     void show_tooltip_information(float caption_max, float x, float y);
     bool on_is_selectable() const override;
     bool on_is_activable() const override;
-
+    void on_load(cereal::BinaryInputArchive &ar) override;
+    void on_save(cereal::BinaryOutputArchive &ar) const override;
     wxString handle_snapshot_action_name(bool shift_down, Button button_down) const override;
 
+    void        clear_parent_paint_outline_volumes() const;
     std::string get_gizmo_entering_text() const override { return "Entering color painting"; }
     std::string get_gizmo_leaving_text() const override { return "Leaving color painting"; }
     std::string get_action_snapshot_name() override { return "Color painting editing"; }
@@ -112,9 +115,6 @@ protected:
     std::vector<int>                  m_volumes_extruder_idxs;
 
     // BBS
-    wchar_t                           m_current_tool = 0;
-    bool                              m_detect_geometry_edge = true;
-
     static const constexpr float      CursorRadiusMin = 0.1f; // cannot be zero
 
 private:

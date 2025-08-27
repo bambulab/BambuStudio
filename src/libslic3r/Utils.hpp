@@ -10,9 +10,11 @@
 
 #include <boost/system/error_code.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem/path.hpp>
 #include <openssl/md5.h>
 
 #include "libslic3r.h"
+#include "libslic3r_version.h"
 
 //define CLI errors
 
@@ -68,6 +70,8 @@
 #define CLI_GCODE_PATH_CONFLICTS           -101
 #define CLI_GCODE_PATH_IN_UNPRINTABLE_AREA -102
 #define CLI_FILAMENT_UNPRINTABLE_ON_FIRST_LAYER -103
+#define CLI_GCODE_PATH_OUTSIDE             -104
+#define CLI_GCODE_IN_WRAPPING_DETECT_AREA  -105
 
 
 namespace boost { namespace filesystem { class directory_entry; }}
@@ -123,6 +127,167 @@ inline std::string convert_to_full_version(std::string short_version)
     }
     return result;
 }
+
+class PathSanitizer
+{
+public:
+    static std::string sanitize(const std::string &path) {
+        return sanitize_impl(path);
+    }
+
+    static std::string sanitize(std::string &&path) {
+        return sanitize_impl(path);
+    }
+
+    static std::string sanitize(const char *path) {
+        return path ? sanitize_impl(std::string(path)) : "";
+    }
+
+    static std::string sanitize(const boost::filesystem::path &path) {
+        return sanitize_impl(path.string());
+    }
+
+private:
+    inline static size_t start_pos = std::string::npos;
+    inline static size_t id_start_pos = std::string::npos;
+    inline static size_t name_size = 0;
+    inline static std::string full;
+
+    static bool init_usrname_range()
+    {
+        if (start_pos != std::string::npos) {
+            return true;
+        }
+#ifdef _WIN32
+        const char *env = std::getenv("USERPROFILE");
+    #if BBL_RELEASE_TO_PUBLIC
+        const size_t len = strlen("\\AppData\\Roaming\\BambuStudio\\user");
+    #else
+        const size_t len = BBL_INTERNAL_TESTING == 1 ? strlen("\\AppData\\Roaming\\BambuStudioInternal\\user") : strlen("\\AppData\\Roaming\\BambuStudioBeta\\user");
+    #endif
+#elif __APPLE__
+        const char *env = std::getenv("HOME");
+    #if BBL_RELEASE_TO_PUBLIC
+        const size_t len = strlen("/Library/Application Support/BambuStudio/user");
+    #else
+        const size_t len = BBL_INTERNAL_TESTING == 1 ? strlen("/Library/Application Support/BambuStudioInternal/user") : strlen("/Library/Application Support/BambuStudioBeta/user");
+    #endif
+#elif __linux__
+        const char *env = std::getenv("HOME");
+    #if BBL_RELEASE_TO_PUBLIC
+        const size_t len = strlen("/.config/BambuStudio/user");
+    #else
+        const size_t len = BBL_INTERNAL_TESTING == 1 ? strlen("/.config/BambuStudioInternal/user") : strlen("/.config/BambuStudioBeta/user");
+    #endif
+#else
+        // Unsupported platform, return raw input
+        return false;
+#endif
+        if (!env) {
+            return false;
+        }
+        full = std::string(env);
+        size_t sep_pos = full.find_last_of("\\/");
+        if (sep_pos == std::string::npos) {
+            return false;
+        }
+        start_pos = sep_pos + 1;
+        name_size = full.length() - start_pos;
+        id_start_pos = full.length() + len + 1;
+
+        if (name_size == 0) {
+            return false;
+        }
+        if (start_pos + name_size > full.length()) {
+            return false;
+        }
+        return true;
+    }
+
+    static inline std::string file_name(const std::string &name) {
+        return boost::filesystem::path(name).filename().string();
+    }
+
+    static std::string sanitize_impl(const std::string &raw)
+    {
+        if (!init_usrname_range()) {
+            return file_name(raw);
+        }
+
+        if (raw.length() < full.length() || raw.empty()) {
+            return file_name(raw);
+        }
+
+        std::string sanitized = raw;
+        if (raw[0] != full[0] || raw[full.length() - 1] != full[full.length() - 1]) {
+            if (std::isupper(raw[start_pos]) && std::tolower(raw[start_pos]) == full[start_pos]) {
+                sanitized.replace(start_pos, 12, std::string(12, '*'));
+                return sanitized;
+            }
+            return file_name(raw);
+        }
+
+        if (raw[start_pos + name_size] == '\\' || raw[start_pos + name_size] == '/') {
+            sanitized.replace(start_pos, name_size, std::string(name_size, '*'));
+        } else if (std::isupper(raw[start_pos]) && std::tolower(raw[start_pos]) == full[start_pos]) {
+            sanitized.replace(start_pos, 12, std::string(12, '*'));
+        } else {
+            return file_name(raw);
+        }
+
+        if (id_start_pos != std::string::npos && id_start_pos < sanitized.length() && (sanitized[id_start_pos - 1] == '\\' || sanitized[id_start_pos - 1] == '/') &&
+            std::isdigit(sanitized[id_start_pos])) {
+            // If the ID part is present, sanitize it as well
+            size_t id_end_pos = sanitized.find_first_of("\\/", id_start_pos);
+            if (id_end_pos == std::string::npos) {
+                id_end_pos = sanitized.length();
+            }
+            sanitized.replace(id_start_pos, id_end_pos - id_start_pos, std::string(id_end_pos - id_start_pos, '*'));
+        }
+
+        return file_name(sanitized);
+    }
+
+    static std::string sanitize_impl(std::string &&raw)
+    {
+        if (!init_usrname_range()) {
+            return file_name(raw);
+        }
+
+        if (raw.length() < full.length() || raw.empty()) {
+            return std::move(file_name(raw));
+        }
+
+        if (raw[0] != full[0] || raw[full.length() - 1] != full[full.length() - 1]) {
+            if (std::isupper(raw[start_pos]) && std::tolower(raw[start_pos]) == full[start_pos]) {
+                raw.replace(start_pos, 12, std::string(12, '*'));
+                return std::move(file_name(raw));
+            }
+            return std::move(file_name(raw));
+        }
+
+        if (raw[start_pos + name_size] == '\\' || raw[start_pos + name_size] == '/') {
+            raw.replace(start_pos, name_size, std::string(name_size, '*'));
+        } else if (std::isupper(raw[start_pos]) && std::tolower(raw[start_pos]) == full[start_pos]) {
+            raw.replace(start_pos, 12, std::string(12, '*'));
+        } else {
+            return std::move(file_name(raw));
+        }
+
+        if (id_start_pos != std::string::npos && id_start_pos < raw.length() && (raw[id_start_pos - 1] == '\\' || raw[id_start_pos - 1] == '/') &&
+            std::isdigit(raw[id_start_pos])) {
+            // If the ID part is present, sanitize it as well
+            size_t id_end_pos = raw.find_first_of("\\/", id_start_pos);
+            if (id_end_pos == std::string::npos) {
+                id_end_pos = raw.length();
+            }
+            raw.replace(id_start_pos, id_end_pos - id_start_pos, std::string(id_end_pos - id_start_pos, '*'));
+        }
+
+        return std::move(file_name(raw));
+    }
+};
+
 template<typename DataType>
 inline DataType round_divide(DataType dividend, DataType divisor) //!< Return dividend divided by divisor rounded to the nearest integer
 {
@@ -229,7 +394,7 @@ CopyFileResult copy_file_inner(const std::string &from, const std::string &to, s
 // of the source file before renaming.
 // Additional error info is passed in error message.
 extern CopyFileResult copy_file(const std::string &from, const std::string &to, std::string& error_message, const bool with_check = false);
-
+extern bool           copy_framework(const std::string &from, const std::string &to);
 // Compares two files if identical.
 extern CopyFileResult check_copy(const std::string& origin, const std::string& copy);
 
@@ -692,6 +857,9 @@ inline std::string filter_characters(const std::string& str, const std::string& 
 
     return filteredStr;
 }
+
+void save_string_file(const boost::filesystem::path& p, const std::string& str);
+void load_string_file(const boost::filesystem::path& p, std::string& str);
 
 } // namespace Slic3r
 

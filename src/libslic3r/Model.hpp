@@ -15,6 +15,7 @@
 #include "TriangleMesh.hpp"
 #include "CustomGCode.hpp"
 #include "enum_bitmask.hpp"
+#include "TextConfiguration.hpp"
 #include "EmbossShape.hpp"
 //BBS: add bbs 3mf
 #include "Format/bbs_3mf.hpp"
@@ -416,6 +417,8 @@ public:
     bool                    is_seam_painted() const;
     // Checks if any of object volume is painted using the multi-material painting gizmo.
     bool                    is_mm_painted() const;
+    // Checks if any of object volume is painted using the fuzzy skin painting gizmo.
+    bool                    is_fuzzy_skin_painted() const;
     // This object may have a varying layer height by painting or by a table.
     // Even if true is returned, the layer height profile may be "flat" with no difference to default layering.
     bool                    has_custom_layering() const
@@ -711,6 +714,7 @@ enum class EnforcerBlockerType : int8_t {
     NONE      = 0,
     ENFORCER  = 1,
     BLOCKER   = 2,
+    FUZZY_SKIN = ENFORCER,
     // Maximum is 15. The value is serialized in TriangleSelector into 6 bits using a 2 bit prefix code.
     Extruder1 = ENFORCER,
     Extruder2 = BLOCKER,
@@ -837,7 +841,7 @@ struct TextInfo
 {
     std::string m_font_name;
     std::string m_font_version;
-    float       m_font_size     = 16.f;
+    float       m_font_size     = 10.f;//size unit:mm version:1.1
     int         m_curr_font_idx = 0;
     bool        m_bold          = true;
     bool        m_italic        = false;
@@ -845,15 +849,23 @@ struct TextInfo
     float       m_embeded_depth = 0.f;
     float       m_rotate_angle    = 0;
     float       m_text_gap        = 0.f;
-    bool        m_is_surface_text = false;
-    bool        m_keep_horizontal = false;
+    bool        m_is_surface_text = false;//for old
+    bool        m_keep_horizontal = false;//for old
+    enum TextType {
+        HORIZONAL = 0, // Default
+        SURFACE,
+        SURFACE_HORIZONAL,
+        SURFACE_CHAR,
+    };
+    int         m_surface_type    = 1; // bool m_is_surface_text = false;//bool m_keep_horizontal = false;
     std::string m_text;
 
     RaycastResult m_rr;
     template<typename Archive> void serialize(Archive &ar) {
-        ar(m_font_name, m_font_version, m_font_size, m_curr_font_idx, m_bold, m_italic, m_thickness, m_embeded_depth, m_rotate_angle, m_text_gap, m_is_surface_text,
-           m_keep_horizontal, m_text, m_rr);
+        ar(m_font_name, m_font_version, m_font_size, m_curr_font_idx, m_bold, m_italic, m_thickness, m_embeded_depth, m_rotate_angle, m_text_gap, m_surface_type, m_text,
+           m_rr,text_configuration);
     }
+    TextConfiguration text_configuration;
 };
 
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
@@ -938,6 +950,8 @@ public:
     // List of mesh facets painted for MMU segmentation.
     FacetsAnnotation    mmu_segmentation_facets;
 
+     // List of fuzzy skin
+    FacetsAnnotation fuzzy_skin_facets;
     // BBS: quick access for volume extruders, 1 based
     mutable std::vector<int> mmuseg_extruders;
     mutable Timestamp        mmuseg_ts;
@@ -1018,8 +1032,8 @@ public:
     static std::string  type_to_string(const ModelVolumeType t);
 
     const Geometry::Transformation& get_transformation() const { return m_transformation; }
-    void set_transformation(const Geometry::Transformation& transformation) { m_transformation = transformation; }
-    void set_transformation(const Transform3d &trafo) { m_transformation.set_from_transform(trafo); }
+    void                            set_transformation(const Geometry::Transformation &transformation);
+    void                            set_transformation(const Transform3d &trafo);
 
     const Vec3d& get_offset() const { return m_transformation.get_offset(); }
     double get_offset(Axis axis) const { return m_transformation.get_offset(axis); }
@@ -1047,7 +1061,10 @@ public:
     void convert_from_imperial_units();
     void convert_from_meters();
 
+    void set_text_configuration(const TextConfiguration text_configuration);
+    TextConfiguration& get_text_configuration() { return m_text_info.text_configuration; }
     void set_text_info(const TextInfo& text_info) { m_text_info = text_info; }
+    void  clear_text_info() { m_text_info.m_text = ""; }
     const TextInfo& get_text_info() const { return m_text_info; }
     bool  is_text() const { return !m_text_info.m_text.empty(); }
     const Transform3d &get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const;
@@ -1055,11 +1072,13 @@ public:
         ObjectBase::set_new_unique_id();
         this->config.set_new_unique_id();
         this->supported_facets.set_new_unique_id();
+        this->fuzzy_skin_facets.set_new_unique_id();
         this->seam_facets.set_new_unique_id();
         this->mmu_segmentation_facets.set_new_unique_id();
     }
 
     bool is_fdm_support_painted() const { return !this->supported_facets.empty(); }
+    bool is_fuzzy_skin_facets_painted() const { return !this->fuzzy_skin_facets.empty(); }
     bool is_seam_painted() const { return !this->seam_facets.empty(); }
     bool is_mm_painted() const { return !this->mmu_segmentation_facets.empty(); }
 
@@ -1094,7 +1113,9 @@ private:
     Geometry::Transformation        	m_transformation;
 
     TextInfo m_text_info;
-
+    // Is set only when volume is Embossed Text type
+    // Contain information how to re-create volume
+    //std::optional<TextConfiguration> text_configuration;
     //BBS: add convex_hell_2d related logic
     void  calculate_convex_hull_2d(const Geometry::Transformation &transformation) const;
 
@@ -1109,10 +1130,12 @@ private:
 		assert(this->id().valid());
         assert(this->config.id().valid());
         assert(this->supported_facets.id().valid());
+        assert(this->fuzzy_skin_facets.id().valid());
         assert(this->seam_facets.id().valid());
         assert(this->mmu_segmentation_facets.id().valid());
         assert(this->id() != this->config.id());
         assert(this->id() != this->supported_facets.id());
+        assert(this->id() != this->fuzzy_skin_facets.id());
         assert(this->id() != this->seam_facets.id());
         assert(this->id() != this->mmu_segmentation_facets.id());
         if (mesh.facets_count() > 1)
@@ -1123,10 +1146,12 @@ private:
 		assert(this->id().valid());
         assert(this->config.id().valid());
         assert(this->supported_facets.id().valid());
+        assert(this->fuzzy_skin_facets.id().valid());
         assert(this->seam_facets.id().valid());
         assert(this->mmu_segmentation_facets.id().valid());
         assert(this->id() != this->config.id());
         assert(this->id() != this->supported_facets.id());
+        assert(this->id() != this->fuzzy_skin_facets.id());
         assert(this->id() != this->seam_facets.id());
         assert(this->id() != this->mmu_segmentation_facets.id());
     }
@@ -1135,10 +1160,12 @@ private:
 		assert(this->id().valid());
         assert(this->config.id().valid());
         assert(this->supported_facets.id().valid());
+        assert(this->fuzzy_skin_facets.id().valid());
         assert(this->seam_facets.id().valid());
         assert(this->mmu_segmentation_facets.id().valid());
         assert(this->id() != this->config.id());
         assert(this->id() != this->supported_facets.id());
+        assert(this->id() != this->fuzzy_skin_facets.id());
         assert(this->id() != this->seam_facets.id());
         assert(this->id() != this->mmu_segmentation_facets.id());
 	}
@@ -1147,22 +1174,28 @@ private:
     ModelVolume(ModelObject *object, const ModelVolume &other) :
         ObjectBase(other),
         name(other.name), source(other.source), m_mesh(other.m_mesh), m_convex_hull(other.m_convex_hull),
-        config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation),
-        supported_facets(other.supported_facets), seam_facets(other.seam_facets), mmu_segmentation_facets(other.mmu_segmentation_facets),
-        m_text_info(other.m_text_info), emboss_shape(other.emboss_shape)
+        config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
+        , supported_facets(other.supported_facets)
+        , fuzzy_skin_facets(other.fuzzy_skin_facets)
+        , seam_facets(other.seam_facets)
+        , mmu_segmentation_facets(other.mmu_segmentation_facets)
+        , m_text_info(other.m_text_info), emboss_shape(other.emboss_shape)
     {
 		assert(this->id().valid());
         assert(this->config.id().valid());
         assert(this->supported_facets.id().valid());
+        assert(this->fuzzy_skin_facets.id().valid());
         assert(this->seam_facets.id().valid());
         assert(this->mmu_segmentation_facets.id().valid());
         assert(this->id() != this->config.id());
         assert(this->id() != this->supported_facets.id());
+        assert(this->id() != this->fuzzy_skin_facets.id());
         assert(this->id() != this->seam_facets.id());
         assert(this->id() != this->mmu_segmentation_facets.id());
 		assert(this->id() == other.id());
         assert(this->config.id() == other.config.id());
         assert(this->supported_facets.id() == other.supported_facets.id());
+        assert(this->fuzzy_skin_facets.id() == other.fuzzy_skin_facets.id());
         assert(this->seam_facets.id() == other.seam_facets.id());
         assert(this->mmu_segmentation_facets.id() == other.mmu_segmentation_facets.id());
         this->set_material_id(other.material_id());
@@ -1175,10 +1208,12 @@ private:
 		assert(this->id().valid());
         assert(this->config.id().valid());
         assert(this->supported_facets.id().valid());
+        assert(this->fuzzy_skin_facets.id().valid());
         assert(this->seam_facets.id().valid());
         assert(this->mmu_segmentation_facets.id().valid());
         assert(this->id() != this->config.id());
         assert(this->id() != this->supported_facets.id());
+        assert(this->id() != this->fuzzy_skin_facets.id());
         assert(this->id() != this->seam_facets.id());
         assert(this->id() != this->mmu_segmentation_facets.id());
 		assert(this->id() != other.id());
@@ -1190,10 +1225,12 @@ private:
 		assert(this->config.id().valid());
         assert(this->config.id() != other.config.id());
         assert(this->supported_facets.id() != other.supported_facets.id());
+        assert(this->fuzzy_skin_facets.id() != other.fuzzy_skin_facets.id());
         assert(this->seam_facets.id() != other.seam_facets.id());
         assert(this->mmu_segmentation_facets.id() != other.mmu_segmentation_facets.id());
         assert(this->id() != this->config.id());
         assert(this->supported_facets.empty());
+        assert(this->fuzzy_skin_facets.empty());
         assert(this->seam_facets.empty());
         assert(this->mmu_segmentation_facets.empty());
     }
@@ -1203,10 +1240,12 @@ private:
 	friend class cereal::access;
 	friend class UndoRedo::StackImpl;
 	// Used for deserialization, therefore no IDs are allocated.
-	ModelVolume() : ObjectBase(-1), config(-1), supported_facets(-1), seam_facets(-1), mmu_segmentation_facets(-1), object(nullptr) {
+    ModelVolume() : ObjectBase(-1), config(-1), supported_facets(-1), fuzzy_skin_facets(-1), seam_facets(-1), mmu_segmentation_facets(-1), object(nullptr)
+    {
 		assert(this->id().invalid());
         assert(this->config.id().invalid());
         assert(this->supported_facets.id().invalid());
+        assert(this->fuzzy_skin_facets.id().invalid());
         assert(this->seam_facets.id().invalid());
         assert(this->mmu_segmentation_facets.id().invalid());
 	}
@@ -1220,6 +1259,9 @@ private:
         auto t = supported_facets.timestamp();
         cereal::load_by_value(ar, supported_facets);
         mesh_changed |= t != supported_facets.timestamp();
+        t = fuzzy_skin_facets.timestamp();
+        cereal::load_by_value(ar, fuzzy_skin_facets);
+        mesh_changed |= t != fuzzy_skin_facets.timestamp();
         t = seam_facets.timestamp();
         cereal::load_by_value(ar, seam_facets);
         mesh_changed |= t != seam_facets.timestamp();
@@ -1243,6 +1285,7 @@ private:
 		bool has_convex_hull = m_convex_hull.get() != nullptr;
         ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info, cut_info);
         cereal::save_by_value(ar, supported_facets);
+        cereal::save_by_value(ar, fuzzy_skin_facets);
         cereal::save_by_value(ar, seam_facets);
         cereal::save_by_value(ar, mmu_segmentation_facets);
         cereal::save_by_value(ar, config);
@@ -1278,9 +1321,10 @@ class ModelInstance final : public ObjectBase
 {
 private:
     Geometry::Transformation m_transformation;
-    Geometry::Transformation m_assemble_transformation;
+    mutable Geometry::Transformation m_assemble_transformation;
     Vec3d m_offset_to_assembly{ 0.0, 0.0, 0.0 };
     bool m_assemble_initialized;
+    mutable bool m_assemble_scalling_factor_dirty{ true };
 
 public:
     // flag showing the position of this instance with respect to the print volume (set by Print::validate() using ModelObject::check_instances_print_volume_state())
@@ -1302,19 +1346,14 @@ public:
     ModelObject* get_object() const { return this->object; }
 
     const Geometry::Transformation& get_transformation() const { return m_transformation; }
-    void set_transformation(const Geometry::Transformation& transformation) { m_transformation = transformation; }
+    void set_transformation(const Geometry::Transformation& transformation);
 
-    const Geometry::Transformation& get_assemble_transformation() const { return m_assemble_transformation; }
-    void set_assemble_transformation(const Geometry::Transformation& transformation) {
-        m_assemble_initialized = true;
-        m_assemble_transformation = transformation;
-    }
-    void set_assemble_from_transform(const Transform3d& transform) {
-        m_assemble_initialized = true;
-        m_assemble_transformation.set_from_transform(transform);
-    }
+    const Geometry::Transformation& get_assemble_transformation() const;
+    void                            set_assemble_transformation(const Geometry::Transformation &transformation);
+    void                            set_assemble_from_transform(const Transform3d &transform);
     const Vec3d& get_assemble_offset() {return m_assemble_transformation.get_offset(); }
-    void         set_assemble_offset(const Vec3d &offset){ m_assemble_initialized = true;m_assemble_transformation.set_offset(offset);}
+    void                            set_assemble_offset(const Vec3d &offset);
+
     void set_assemble_rotation(const Vec3d &rotation) { m_assemble_transformation.set_rotation(rotation); }
     void rotate_assemble(double angle, const Vec3d& axis) {
         m_assemble_transformation.set_rotation(m_assemble_transformation.get_rotation() + Geometry::extract_euler_angles(Eigen::Quaterniond(Eigen::AngleAxisd(angle, axis)).toRotationMatrix()));
@@ -1341,8 +1380,8 @@ public:
     const Vec3d& get_scaling_factor() const { return m_transformation.get_scaling_factor(); }
     double get_scaling_factor(Axis axis) const { return m_transformation.get_scaling_factor(axis); }
 
-    void set_scaling_factor(const Vec3d& scaling_factor) { m_transformation.set_scaling_factor(scaling_factor); }
-    void set_scaling_factor(Axis axis, double scaling_factor) { m_transformation.set_scaling_factor(axis, scaling_factor); }
+    void set_scaling_factor(const Vec3d& scaling_factor);
+    void set_scaling_factor(Axis axis, double scaling_factor);
 
     const Vec3d& get_mirror() const { return m_transformation.get_mirror(); }
     double get_mirror(Axis axis) const { return m_transformation.get_mirror(axis); }
@@ -1755,8 +1794,8 @@ bool model_volume_list_changed(const ModelObject &model_object_old, const ModelO
 // Test whether the now ModelObject has newer custom supports data than the old one.
 // The function assumes that volumes list is synchronized.
 bool model_custom_supports_data_changed(const ModelObject& mo, const ModelObject& mo_new);
-
-// Test whether the now ModelObject has newer custom seam data than the old one.
+bool model_custom_fuzzy_skin_data_changed(const ModelObject &mo, const ModelObject &mo_new);
+    // Test whether the now ModelObject has newer custom seam data than the old one.
 // The function assumes that volumes list is synchronized.
 bool model_custom_seam_data_changed(const ModelObject& mo, const ModelObject& mo_new);
 

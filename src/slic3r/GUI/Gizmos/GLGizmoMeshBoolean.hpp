@@ -38,7 +38,7 @@ struct VolumeInfo {
 class GLGizmoMeshBoolean : public GLGizmoBase
 {
 public:
-    GLGizmoMeshBoolean(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    GLGizmoMeshBoolean(GLCanvas3D& parent, unsigned int sprite_id);
     ~GLGizmoMeshBoolean();
 
     void set_enable(bool enable) { m_enable = enable; }
@@ -47,7 +47,9 @@ public:
     void set_src_volume(ModelVolume* mv);
     void set_tool_volume(ModelVolume* mv);
 
-    bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
+    bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down) override;
+
+    std::string get_icon_filename(bool b_dark_mode) const override;
 
 protected:
     virtual bool on_init() override;

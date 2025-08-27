@@ -75,6 +75,7 @@ struct TrayData
 class MaterialItem: public wxPanel
 {
 protected:
+    int m_text_pos_x =  0;
     int m_text_pos_y = -1;
     bool m_dropdown_allow_painted = true;
 
@@ -162,7 +163,7 @@ public:
 public:
     void update_data(TrayData data);
     void send_event(int fliament_id);
-    void set_data(wxColour colour, wxString name, bool remain_detect, TrayData data, bool unmatch = false);
+    void set_data(const wxString& tag_name, wxColour colour, wxString name, bool remain_detect, TrayData data, bool unmatch = false);
     void set_checked(bool checked);
     void set_tray_index(wxString t_index) { m_tray_index = t_index; };
 
@@ -207,6 +208,7 @@ class AmsMapingPopup : public PopupWindow
 {
     bool m_use_in_sync_dialog = false;
     bool m_ams_remain_detect_flag = false;
+    bool m_ext_mapping_filatype_check = true;
     wxStaticText* m_title_text{ nullptr };
 
 public:
@@ -253,6 +255,7 @@ public:
     wxString     m_right_tip_text;
     wxBoxSizer* m_sizer_split_ams_left;
     wxBoxSizer* m_sizer_split_ams_right;
+    bool        m_mapping_from_multi_machines {false};
 
     void         set_sizer_title(wxBoxSizer *sizer, wxString text);
     wxBoxSizer*  create_split_sizer(wxWindow* parent, wxString text);
@@ -267,14 +270,14 @@ public:
     void         add_ext_ams_mapping(TrayData tray_data, MappingItem *item);
     void         set_current_filament_id(int id) { m_current_filament_id = id; };
     int          get_current_filament_id(){return m_current_filament_id;};
-    bool         is_match_material(std::string material);
+    bool         is_match_material(std::string material) const;
     void         on_left_down(wxMouseEvent &evt);
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;
     void         paintEvent(wxPaintEvent &evt);
     void         set_parent_item(MaterialItem* item) {m_parent_item = item;};
     void         set_show_type(ShowType type) { m_show_type = type; };
-    std::vector<TrayData> parse_ams_mapping(std::map<std::string, Ams*> amsList);
+    std::vector<TrayData> parse_ams_mapping(std::map<std::string, DevAms*> amsList);
 
     using ResetCallback = std::function<void(const std::string&)>;
     void reset_ams_info();
@@ -282,13 +285,17 @@ public:
     void  show_reset_button();
     void  set_material_index_str(std::string str) { m_material_index = str; }
     const std::string &get_material_index_str() { return m_material_index; }
+    void  set_only_show_ext_spool(bool flag);
 
 public:
     void msw_rescale();
 
+    void EnableExtMappingFilaTypeCheck(bool to_check = true) { m_ext_mapping_filatype_check = to_check;} ;
+
 private:
     ResetCallback m_reset_callback{nullptr};
     std::string m_material_index;
+    bool m_only_show_ext_spool{false};
 };
 
 class AmsMapingTipPopup : public PopupWindow
@@ -317,25 +324,18 @@ public:
     AmsHumidityLevelList(wxWindow* parent);
     ~AmsHumidityLevelList() {};
 
-    ScalableBitmap background_img;
-    ScalableBitmap hum_level1_img;
-    ScalableBitmap hum_level2_img;
-    ScalableBitmap hum_level3_img;
-    ScalableBitmap hum_level4_img;
-
-    std::vector<ScalableBitmap> hum_level_img_light;
-    std::vector<ScalableBitmap> hum_level_img_dark;
-
-    wxStaticBitmap* hum_level1_bitmap;
-    wxStaticBitmap* hum_level2_bitmap;
-    wxStaticBitmap* hum_level3_bitmap;
-    wxStaticBitmap* hum_level4_bitmap;
-    wxStaticBitmap* hum_level5_bitmap;
-
+public:
     void msw_rescale();
+
+private:
     void paintEvent(wxPaintEvent& evt);
     void render(wxDC& dc);
     void doRender(wxDC& dc);
+
+private:
+    ScalableBitmap background_img;
+    std::vector<ScalableBitmap> hum_level_img_light;
+    std::vector<ScalableBitmap> hum_level_img_dark;
 };
 
 class AmsHumidityTipPopup : public PopupWindow
@@ -343,24 +343,31 @@ class AmsHumidityTipPopup : public PopupWindow
 public:
     AmsHumidityTipPopup(wxWindow* parent);
     ~AmsHumidityTipPopup() {};
-    void paintEvent(wxPaintEvent& evt);
 
-    virtual void OnDismiss() wxOVERRIDE;
-    virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
-
+public:
     void set_humidity_level(int level);
+    void msw_rescale();
+
+private:
+    virtual void OnDismiss() wxOVERRIDE {};
+    virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE { return PopupWindow::ProcessLeftDown(event);  };
+
+    void paintEvent(wxPaintEvent& evt);
     void render(wxDC& dc);
     void doRender(wxDC& dc);
 
-public:
+private:
     int current_humidity_level = 0;
 
     ScalableBitmap close_img;
+
     wxStaticBitmap* curr_humidity_img;
-    AmsHumidityLevelList* humidity_level_list{nullptr};
     wxStaticBitmap* m_img;
+
     Label* m_staticText;;
     Label* m_staticText_note;
+
+    AmsHumidityLevelList* humidity_level_list{nullptr};
 };
 
 class AmsTutorialPopup : public PopupWindow

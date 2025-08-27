@@ -389,7 +389,7 @@ void Slic3r::GUI::ImageGrid::changedEvent(wxCommandEvent& evt)
 {
     evt.Skip();
     BOOST_LOG_TRIVIAL(debug) << "ImageGrid::changedEvent: " << evt.GetEventType() << " index: " << evt.GetInt() 
-            << " name: " << evt.GetString().ToUTF8().data() << " extra: " << evt.GetExtraLong();
+            << " name: " << PathSanitizer::sanitize(evt.GetString().ToUTF8().data()) << " extra: " << evt.GetExtraLong();
     if (evt.GetEventType() == EVT_FILE_CHANGED) {
         if (evt.GetInt() == -1)
             m_file_sys->DownloadCheckFiles(wxGetApp().app_config->get("download_path"));

@@ -10,6 +10,9 @@
     "enable_overhang_speed": [
         "1"
     ],
+    "enable_height_slowdown": [
+        "0"
+    ],
     "gap_infill_speed": [
         "50"
     ],
@@ -51,6 +54,24 @@
     ],
     "print_extruder_variant": [
         "Direct Drive Standard"
+    ],
+    "slowdown_start_height": [
+        "0"
+    ],
+    "slowdown_start_speed": [
+        "1000"
+    ],
+    "slowdown_start_acc": [
+        "100000"
+    ],
+    "slowdown_end_height": [
+        "400"
+    ],
+    "slowdown_end_speed": [
+        "1000"
+    ],
+    "slowdown_end_acc": [
+        "100000"
     ],
     "small_perimeter_speed": [
         "50%"

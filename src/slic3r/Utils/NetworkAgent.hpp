@@ -36,8 +36,6 @@ typedef int (*func_stop_subscribe)(void *agent, std::string module);
 typedef int (*func_add_subscribe)(void *agent, std::vector<std::string> dev_list);
 typedef int (*func_del_subscribe)(void *agent, std::vector<std::string> dev_list);
 typedef void (*func_enable_multi_machine)(void *agent, bool enable);
-typedef int (*func_start_device_subscribe)(void* agent);
-typedef int (*func_stop_device_subscribe)(void* agent);
 typedef int (*func_send_message)(void *agent, std::string dev_id, std::string json_str, int qos, int flag);
 typedef int (*func_connect_printer)(void *agent, std::string dev_id, std::string dev_ip, std::string username, std::string password, bool use_ssl);
 typedef int (*func_disconnect_printer)(void *agent);
@@ -55,7 +53,6 @@ typedef std::string (*func_get_user_nickanme)(void *agent);
 typedef std::string (*func_build_login_cmd)(void *agent);
 typedef std::string (*func_build_logout_cmd)(void *agent);
 typedef std::string (*func_build_login_info)(void *agent);
-typedef int (*func_get_model_id_from_desgin_id)(void *agent, std::string& desgin_id, std::string& model_id);
 typedef int (*func_ping_bind)(void *agent, std::string ping_code);
 typedef int (*func_bind_detect)(void *agent, std::string dev_ip, std::string sec_link, detectResult& detect);
 typedef int (*func_set_server_callback)(void *agent, OnServerErrFn fn);
@@ -92,7 +89,6 @@ typedef int (*func_modify_printer_name)(void *agent, std::string dev_id, std::st
 typedef int (*func_get_camera_url)(void *agent, std::string dev_id, std::function<void(std::string)> callback);
 typedef int (*func_get_design_staffpick)(void *agent, int offset, int limit, std::function<void(std::string)> callback);
 typedef int (*func_start_pubilsh)(void *agent, PublishParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string* out);
-typedef int (*func_get_profile_3mf)(void *agent, BBLProfile* profile);
 typedef int (*func_get_model_publish_url)(void *agent, std::string* url);
 typedef int (*func_get_subtask)(void *agent, BBLModelTask* task, OnGetSubTaskFn getsub_fn);
 typedef int (*func_get_model_mall_home_url)(void *agent, std::string* url);
@@ -158,8 +154,6 @@ public:
     int add_subscribe(std::vector<std::string> dev_list);
     int del_subscribe(std::vector<std::string> dev_list);
     void enable_multi_machine(bool enable);
-    int start_device_subscribe();
-    int stop_device_subscribe();
     int send_message(std::string dev_id, std::string json_str, int qos, int flag);
     int connect_printer(std::string dev_id, std::string dev_ip, std::string username, std::string password, bool use_ssl);
     int disconnect_printer();
@@ -177,7 +171,6 @@ public:
     std::string build_login_cmd();
     std::string build_logout_cmd();
     std::string build_login_info();
-    int get_model_id_from_desgin_id(std::string& desgin_id, std::string& model_id);
     int ping_bind(std::string ping_code);
     int bind_detect(std::string dev_ip, std::string sec_link, detectResult& detect);
     int set_server_callback(OnServerErrFn fn);
@@ -214,7 +207,6 @@ public:
     int get_camera_url(std::string dev_id, std::function<void(std::string)> callback);
     int get_design_staffpick(int offset, int limit, std::function<void(std::string)> callback);
     int start_publish(PublishParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string* out);
-    int get_profile_3mf(BBLProfile* profile);
     int get_model_publish_url(std::string* url);
     int get_subtask(BBLModelTask* task, OnGetSubTaskFn getsub_fn);
     int get_model_mall_home_url(std::string* url);
@@ -269,8 +261,6 @@ private:
     static func_add_subscribe                  add_subscribe_ptr;
     static func_del_subscribe                  del_subscribe_ptr;
     static func_enable_multi_machine           enable_multi_machine_ptr;
-    static func_start_device_subscribe         start_device_subscribe_ptr;
-    static func_stop_device_subscribe          stop_device_subscribe_ptr;
     static func_send_message                   send_message_ptr;
     static func_connect_printer                connect_printer_ptr;
     static func_disconnect_printer             disconnect_printer_ptr;
@@ -288,7 +278,6 @@ private:
     static func_build_login_cmd                build_login_cmd_ptr;
     static func_build_logout_cmd               build_logout_cmd_ptr;
     static func_build_login_info               build_login_info_ptr;
-    static func_get_model_id_from_desgin_id    get_model_id_from_desgin_id_ptr;
     static func_ping_bind                      ping_bind_ptr;
     static func_bind_detect                    bind_detect_ptr;
     static func_set_server_callback            set_server_callback_ptr;
@@ -325,7 +314,6 @@ private:
     static func_get_camera_url                 get_camera_url_ptr;
     static func_get_design_staffpick           get_design_staffpick_ptr;
     static func_start_pubilsh                  start_publish_ptr;
-    static func_get_profile_3mf                get_profile_3mf_ptr;
     static func_get_model_publish_url          get_model_publish_url_ptr;
     static func_get_subtask                    get_subtask_ptr;
     static func_get_model_mall_home_url        get_model_mall_home_url_ptr;

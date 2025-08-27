@@ -8,7 +8,8 @@
 #include "MsgDialog.hpp"
 #include "DownloadProgressDialog.hpp"
 
-#include <boost/filesystem/string_file.hpp>
+#include "slic3r/Utils/BBLUtil.hpp"
+
 #include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
@@ -147,18 +148,20 @@ MediaPlayCtrl::~MediaPlayCtrl()
     while (!m_thread.try_join_for(boost::chrono::milliseconds(10))) {
         wxEventLoopBase::GetActive()->Yield();
     }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << this;
 }
 
 void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
 {
-    std::string machine = obj ? obj->dev_id : "";
+    std::string machine = obj ? obj->get_dev_id() : "";
     if (obj) {
         m_camera_exists  = obj->has_ipcam;
         m_dev_ver        = obj->get_ota_version();
         m_lan_mode       = obj->is_lan_mode_printer();
         m_lan_proto      = obj->liveview_local;
         m_remote_proto   = obj->get_liveview_remote();
-        m_lan_ip         = obj->dev_ip;
+        m_lan_ip         = obj->get_dev_ip();
         m_lan_passwd     = obj->get_access_code();
         m_device_busy    = obj->is_camera_busy_off();
         m_tutk_state     = obj->tutk_state;
@@ -187,7 +190,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
                     auto close = wxGetApp().app_config->get("liveview", "auto_stop_liveview") == "true";
                     if (close || obj == nullptr || !obj->is_in_printing()) {
                         m_next_retry = wxDateTime();
-                        Stop(_L("Temporarily closed because there is no operating for a long time."));
+                        Stop(_L("Temporarily closed because there is no operation for a while."));
                         return;
                     }
                 }
@@ -203,7 +206,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         return;
     }
     m_machine = machine;
-    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl switch machine: " << m_machine;
+    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl switch machine: " << BBLCrossTalk::Crosstalk_DevId(m_machine);
     m_disable_lan = false;
     m_failed_retry = 0;
     m_last_failed_codes.clear();
@@ -315,7 +318,11 @@ void MediaPlayCtrl::Play()
         url += "&dev_ver=" + m_dev_ver;
         url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
         url += "&cli_ver=" + std::string(SLIC3R_VERSION);
+
+#if !BBL_RELEASE_TO_PUBLIC
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_passwd(hide_id_middle_string(url, url.find(m_lan_ip), m_lan_ip.length()), {m_lan_passwd});
+#endif
+
         m_url = url;
         load();
         m_button_play->SetIcon("media_stop");
@@ -355,7 +362,12 @@ void MediaPlayCtrl::Play()
     if (agent) {
         std::string protocols[] = {"", "\"tutk\"", "\"agora\"", "\"tutk\",\"agora\""};
         agent->get_camera_url(m_machine + "|" + m_dev_ver + "|" + protocols[m_remote_proto],
-                [this, m = m_machine, v = agent_version, dv = m_dev_ver](std::string url) {
+                [this, m = m_machine, v = agent_version, dv = m_dev_ver, token = std::weak_ptr(m_token)](std::string url) {
+            if (token.expired()) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": token has been expired";
+                return;
+            }
+
             if (boost::algorithm::starts_with(url, "bambu:///")) {
                 url += "&device=" + into_u8(m);
                 url += "&net_ver=" + v;
@@ -364,11 +376,14 @@ void MediaPlayCtrl::Play()
                 url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
                 url += "&cli_ver=" + std::string(SLIC3R_VERSION);
             }
-            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_passwd(url,
-                    {"?uid=", "authkey=", "passwd=", "license=", "token="});
+
+#if !BBL_RELEASE_TO_PUBLIC
+            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_passwd(url, {"?uid=", "channel=", "authkey=", "passwd=", "license=", "token="});
+#endif
+
             CallAfter([this, m, url] {
                 if (m != m_machine) {
-                    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl drop late ttcode for machine: " << m;
+                    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl drop late ttcode for machine: " << BBLCrossTalk::Crosstalk_DevId(m);
                     return;
                 }
                 if (m_last_state == MEDIASTATE_INITIALIZING) {
@@ -413,7 +428,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
                 : _L(iter->second.c_str());
             if (m_failed_code == 1) {
                 if (m_last_state == wxMEDIASTATE_PLAYING)
-                    msg2 = _L("The printer has been logged out and cannot connect.");
+                    msg2 = _L("Multi-device/client simultaneous liveview is not supported. Please close the liveview on other devices/clients and try again.");
             }
 #if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
             if (m_failed_code < 0)
@@ -445,7 +460,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
         json j;
         j["stage"]          = last_state;
         j["dev_id"]         = m_machine;
-        j["dev_ip"]         = m_lan_ip;
+        j["dev_ip"]         = "";
         j["result"]         = "failed";
         j["user_triggered"] = m_user_triggered;
         j["failed_retry"]   = m_failed_retry;
@@ -468,7 +483,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
     if (last_state == wxMEDIASTATE_PLAYING && m_stat.size() == 4) {
         json j;
         j["dev_id"]         = m_machine;
-        j["dev_ip"]         = m_lan_ip;
+        j["dev_ip"]         = "";
         j["result"]         = m_failed_code ? "failed" : "success";
         j["tunnel"]         = tunnel;
         j["code"]           = m_failed_code;
@@ -587,7 +602,11 @@ void MediaPlayCtrl::ToggleStream()
             url = "bambu:///rtsp___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?proto=rtsp";
         url += "&device=" + into_u8(m_machine);
         url += "&dev_ver=" + m_dev_ver;
+
+#if !BBL_RELEASE_TO_PUBLIC
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream: " << hide_passwd(hide_id_middle_string(url, url.find(m_lan_ip), m_lan_ip.length()), {m_lan_passwd});
+#endif
+
         std::string             file_url = data_dir() + "/cameratools/url.txt";
         boost::nowide::ofstream file(file_url);
         auto                    url2 = encode_path(url.c_str());
@@ -609,8 +628,11 @@ void MediaPlayCtrl::ToggleStream()
             url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
             url += "&cli_ver=" + std::string(SLIC3R_VERSION);
         }
-        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream: " << hide_passwd(url,
-                {"?uid=", "authkey=", "passwd=", "license=", "token="});
+
+#if !BBL_RELEASE_TO_PUBLIC
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream: " << hide_passwd(url,{"?uid=", "authkey=", "passwd=", "license=", "token="});
+#endif
+
         CallAfter([this, m, url] {
             if (m != m_machine) return;
             if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {
@@ -676,7 +698,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
             json j;
             j["stage"] =  std::to_string(m_last_state);
             j["dev_id"] = m_machine;
-            j["dev_ip"] = m_lan_ip;
+            j["dev_ip"] = "";
             j["result"] = "success";
             j["code"] = 0;
             auto tunnel = into_u8(wxURI(m_url).GetPath()).substr(1);
@@ -773,7 +795,10 @@ void MediaPlayCtrl::media_proc()
         }
         wxString url = m_tasks.front();
         if (m_tasks.size() >= 2 && !url.IsEmpty() && url[0] != '<' && m_tasks[1] == "<stop>") {
+
+#if !BBL_RELEASE_TO_PUBLIC
             BOOST_LOG_TRIVIAL(trace) << "MediaPlayCtrl: busy skip url: " << url;
+#endif
             m_tasks.pop_front();
             m_tasks.pop_front();
             continue;
@@ -832,7 +857,7 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
     file_url2 = wxURI(file_url2).BuildURI();
     try {
         std::string configs;
-        boost::filesystem::load_string_file(file_ff_cfg, configs);
+        load_string_file(file_ff_cfg, configs);
         std::vector<std::string> configss;
         boost::algorithm::split(configss, configs, boost::algorithm::is_any_of("\r\n"));
         configss.erase(std::remove(configss.begin(), configss.end(), std::string()), configss.end());
@@ -861,7 +886,10 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
         process_source.detach();
         process_ffmpeg.detach();
     } catch (std::exception &e) {
+#if !BBL_RELEASE_TO_PUBLIC
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl failed to start camera stream: " << decode_path(e.what());
+#endif
+
         return false;
     }
     return true;

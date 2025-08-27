@@ -6,6 +6,16 @@ include(PrecompiledHeader)
 string(TIMESTAMP COMPILE_TIME %Y%m%d-%H%M%S)
 set(SLIC3R_BUILD_TIME ${COMPILE_TIME})
 
+if("${BBL_RELEASE_TO_PUBLIC}" STREQUAL "0")
+execute_process(
+    COMMAND git rev-parse HEAD
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_SHA1
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+set(SLIC3R_COMPILE_VERSION "${GIT_SHA1}")
+endif()
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libslic3r_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h @ONLY)
 
 if (MINGW)
@@ -26,6 +36,8 @@ set(lisbslic3r_sources
     AABBTreeLines.hpp
     AABBMesh.hpp
     AABBMesh.cpp
+    Algorithm/LineSegmentation/LineSegmentation.cpp
+    Algorithm/LineSegmentation/LineSegmentation.hpp
     AnyPtr.hpp
     AStar.hpp
     BoundingBox.cpp
@@ -50,6 +62,7 @@ set(lisbslic3r_sources
     Clipper2Utils.hpp
     Color.cpp
     Color.hpp
+    CommonDefs.hpp
     Config.cpp
     Config.hpp
     CurveAnalyzer.cpp
@@ -120,6 +133,8 @@ set(lisbslic3r_sources
     Frustum.hpp
     FlushVolCalc.cpp
     FlushVolCalc.hpp
+    FuzzySkin.cpp
+    FuzzySkin.hpp
     format.hpp
     Format/3mf.cpp
     Format/3mf.hpp
@@ -169,6 +184,8 @@ set(lisbslic3r_sources
     GCode/Smoothing.hpp
     GCode/CoolingBuffer.cpp
     GCode/CoolingBuffer.hpp
+    GCode/TimelapsePosPicker.cpp
+    GCode/TimelapsePosPicker.hpp
     GCode.cpp
     GCode.hpp
     GCodeReader.cpp
@@ -242,6 +259,8 @@ set(lisbslic3r_sources
     ParameterUtils.hpp
     PerimeterGenerator.cpp
     PerimeterGenerator.hpp
+    OverhangDetector.hpp
+    OverhangDetector.cpp
     PlaceholderParser.cpp
     PlaceholderParser.hpp
     Platform.cpp

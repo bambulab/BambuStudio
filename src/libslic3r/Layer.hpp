@@ -19,6 +19,8 @@ class LayerRegion;
 using LayerRegionPtrs = std::vector<LayerRegion*>;
 class PrintRegion;
 class PrintObject;
+struct PerimeterRegion;
+using PerimeterRegions = std::vector<PerimeterRegion>;
 
 namespace FillAdaptive {
     struct Octree;
@@ -81,7 +83,12 @@ public:
     void    prepare_fill_surfaces();
     //BBS
     void    auto_circle_compensation(SurfaceCollection &slices, const AutoContourHolesCompensationParams &auto_contour_holes_compensation_params, float manual_offset = 0.0f);
-    void    make_perimeters(const SurfaceCollection &slices, SurfaceCollection* fill_surfaces, ExPolygons* fill_no_overlap, std::vector<LoopNode> &loop_nodes);
+    void    make_perimeters(const SurfaceCollection &slices,
+                            // Configuration regions that will be applied to parts of created perimeters.
+                            const PerimeterRegions &perimeter_regions,
+                            SurfaceCollection     *fill_surfaces,
+                            ExPolygons            *fill_no_overlap,
+                            std::vector<LoopNode> &loop_nodes);
     void    process_external_surfaces(const Layer *lower_layer, const Polygons *lower_layer_covered);
     double  infill_area_threshold() const;
     // Trim surfaces by trimming polygons. Used by the elephant foot compensation at the 1st layer.
@@ -264,6 +271,8 @@ protected:
     void    simplify_support_multi_path(ExtrusionMultiPath* multipath);
     void    simplify_support_loop(ExtrusionLoop* loop);
 
+    bool has_compatible_layer_regions(const PrintRegionConfig &config, const PrintRegionConfig &other_config);
+
 private:
     // Sequential index of layer, 0-based, offsetted by number of raft layers.
     size_t              m_id;
@@ -318,6 +327,7 @@ protected:
         coordf_t   dist_to_top; // mm dist to top
         bool need_infill = false;
         bool need_extra_wall = false;
+        bool       need_cooling    = false;
         AreaGroup(ExPolygon *a, int t, coordf_t d) : area(a), type(t), dist_to_top(d) {}
     };
     std::vector<AreaGroup>                    area_groups;

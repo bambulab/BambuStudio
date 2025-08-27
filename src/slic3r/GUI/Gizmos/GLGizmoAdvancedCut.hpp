@@ -208,13 +208,13 @@ private:
     //GLSelectionRectangle m_selection_rectangle;
 
 public:
-    GLGizmoAdvancedCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    GLGizmoAdvancedCut(GLCanvas3D& parent, unsigned int sprite_id);
 
-    bool gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_position, bool shift_down, bool alt_down, bool control_down);
+    bool gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_position, bool shift_down, bool alt_down, bool control_down) override;
     bool on_key(const wxKeyEvent &evt) override;
 
     double get_movement() const { return m_movement; }
-    void finish_rotation();
+    void reset_rotation();
     std::string get_tooltip() const override;
 
     BoundingBoxf3 bounding_box() const;
@@ -228,6 +228,9 @@ public:
 
     BoundingBoxf3 get_bounding_box() const override;
 
+    std::string get_icon_filename(bool b_dark_mode) const override;
+    bool        wants_enter_leave_snapshots() const override { return true; }
+
 protected:
     virtual bool on_init();
     virtual void on_load(cereal::BinaryInputArchive &ar) override;
@@ -235,6 +238,7 @@ protected:
     virtual void data_changed(bool is_serializing) override;
     virtual std::string on_get_name() const;
     virtual std::string on_get_name_str() override { return "Cut"; }
+    void    apply_color_clip_plane_colors();
     virtual void on_set_state();
     void         close();
     virtual bool on_is_activable() const;

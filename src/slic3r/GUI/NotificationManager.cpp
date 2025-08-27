@@ -1301,6 +1301,7 @@ void NotificationManager::UpdatedItemsInfoNotification::add_type(InfoItemType ty
 		// BBS
 		//case InfoItemType::CustomSeam:          text += format(("%1$d Object has custom seam.",			"%1$d Objects have custom seam.",			(*it).second), (*it).second) + "\n"; break;
 		case InfoItemType::MmuSegmentation:     text += format(_L_PLURAL("%1$d Object has color painting.",			"%1$d Objects have color painting.",(*it).second), (*it).second) + "\n"; break;
+        case InfoItemType::FuzzySkin:           text += format(_L_PLURAL("%1$d Object has fuzzy skin.", "%1$d Objects have fuzzy skin.", (*it).second), (*it).second) + "\n"; break;
 		// BBS
 		//case InfoItemType::Sinking:             text += format(("%1$d Object has partial sinking.",		"%1$d Objects have partial sinking.",		(*it).second), (*it).second) + "\n"; break;
 		case InfoItemType::CutConnectors:       text += format(_L_PLURAL("%1$d object was loaded as a part of cut object.",		"%1$d objects were loaded as parts of cut object", (*it).second), (*it).second) + "\n"; break;
@@ -1583,7 +1584,7 @@ NotificationManager::NotificationManager(wxEvtHandler* evt_handler) :
 void NotificationManager::on_change_color_mode(bool is_dark) {
 	m_is_dark = is_dark;
 	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications){
-		notification->on_change_color_mode(is_dark);
+        notification->on_change_color_mode(is_dark);
 	}
 }
 
@@ -1690,6 +1691,14 @@ void NotificationManager::push_slicing_error_notification(const std::string &tex
 	push_notification_data({ NotificationType::SlicingError, NotificationLevel::ErrorNotificationLevel, 0,  _u8L("Error:") + "\n" + text, link, callback }, 0);
 	set_slicing_progress_hidden();
 }
+
+void NotificationManager::push_helio_error_notification(const std::string &text)
+{
+    set_all_slicing_errors_gray(false);
+    push_notification_data({NotificationType::HelioSlicingError, NotificationLevel::ErrorNotificationLevel, 0, _u8L("Error:") + "\n" + text, ""}, 0);
+    set_slicing_progress_hidden();
+}
+
 void NotificationManager::push_slicing_warning_notification(const std::string& text, bool gray, ModelObject const * obj, ObjectID oid, int warning_step, int warning_msg_id, NotificationLevel level/* = NotificationLevel::WarningNotificationLevel*/)
 {
 	std::function<bool(wxEvtHandler*)> callback;
@@ -1751,7 +1760,6 @@ void NotificationManager::push_slicing_customize_error_notification(Notification
     set_all_slicing_errors_gray(false);
     std::string prefix_msg = level == NotificationLevel::WarningNotificationLevel ? _u8L("Warning:") : _u8L("Error:");
     push_notification_data({type, level, 0, prefix_msg + "\n" + text, hypertext, callback}, 0);
-    set_slicing_progress_hidden();
 }
 
 void NotificationManager::close_slicing_customize_error_notification(NotificationType type, NotificationLevel level)
@@ -1761,6 +1769,48 @@ void NotificationManager::close_slicing_customize_error_notification(Notificatio
             notification->close();
         }
     }
+}
+
+void NotificationManager::push_assembly_warning_notification(const std::string& text)
+{
+    NotificationData data{ NotificationType::AssemblyWarning, NotificationLevel::WarningNotificationLevel, 0,  _u8L("Warning:") + "\n" + text };
+
+    auto notification = std::make_unique<NotificationManager::AssemblyWarningNotification>(data, m_id_provider, m_evt_handler);
+    push_notification_data(std::move(notification), 0);
+}
+
+void NotificationManager::close_assembly_warning_notification(const std::string& text)
+{
+    for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+        if (notification->get_type() == NotificationType::AssemblyWarning && notification->compare_text(_u8L("Warning:") + "\n" + text)) {
+            dynamic_cast<AssemblyWarningNotification*>(notification.get())->real_close();
+        }
+    }
+}
+
+void NotificationManager::show_assembly_info_notification(const std::string& text)
+{
+    NotificationData data{ NotificationType::AssemblyInfo, NotificationLevel::PrintInfoNotificationLevel, BBL_NOTICE_MAX_INTERVAL, text, "", nullptr};
+
+    for (auto it = m_pop_notifications.begin(); it != m_pop_notifications.end();) {
+        std::unique_ptr<PopNotification>& notification = *it;
+        if (notification->get_type() == NotificationType::AssemblyInfo) {
+            it = m_pop_notifications.erase(it);
+            break;
+        }
+        else
+            ++it;
+    }
+
+    auto notification = std::make_unique<NotificationManager::PopNotification>(data, m_id_provider, m_evt_handler);
+    notification->set_Multiline(true);
+    push_notification_data(std::move(notification), 0);
+}
+
+void NotificationManager::close_assembly_info_notification()
+{
+    for (std::unique_ptr<PopNotification>& notification : m_pop_notifications)
+        if (notification->get_type() == NotificationType::AssemblyInfo) { notification->close(); }
 }
 
 void NotificationManager::push_plater_warning_notification(const std::string& text)
@@ -1779,8 +1829,7 @@ void NotificationManager::push_plater_warning_notification(const std::string& te
 
 	auto notification = std::make_unique<NotificationManager::PlaterWarningNotification>(data, m_id_provider, m_evt_handler);
 	push_notification_data(std::move(notification), 0);
-	// dissaper if in preview
-	apply_in_preview();
+    apply_canvas_type();
 }
 
 void NotificationManager::close_plater_warning_notification(const std::string& text)
@@ -2068,11 +2117,12 @@ void NotificationManager::update_slicing_notif_dailytips(bool need_change)
 	// Slicing progress notification was not found - init it thru plater so correct cancel callback function is appended
 	wxGetApp().plater()->init_notification_manager();
 }
-void NotificationManager::set_slicing_progress_began()
+void NotificationManager::set_slicing_progress_began(bool is_helio)
 {
 	for (std::unique_ptr<PopNotification> & notification : m_pop_notifications) {
 		if (notification->get_type() == NotificationType::SlicingProgress) {
 			SlicingProgressNotification* spn = dynamic_cast<SlicingProgressNotification*>(notification.get());
+            spn->get_dailytips_panel()->set_is_helio(is_helio);
 			spn->set_progress_state(SlicingProgressNotification::SlicingProgressState::SP_BEGAN);
 			return;
 		}
@@ -2114,6 +2164,7 @@ void NotificationManager::set_slicing_progress_hidden()
 	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
 		if (notification->get_type() == NotificationType::SlicingProgress) {
 			SlicingProgressNotification* notif = dynamic_cast<SlicingProgressNotification*>(notification.get());
+            notif->get_dailytips_panel()->set_is_helio(false);
 			notif->set_progress_state(SlicingProgressNotification::SlicingProgressState::SP_NO_SLICING);
 			wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
 			return;
@@ -2223,40 +2274,6 @@ int  NotificationManager::progress_indicator_get_range() const
 	return 0;
 }
 
-void NotificationManager::push_hint_notification(bool open_next)
-{
-	return;
-	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
-		if (notification->get_type() == NotificationType::DidYouKnowHint) {
-			(dynamic_cast<HintNotification*>(notification.get()))->open_next();
-			return;
-		}
-	}
-
-	NotificationData data{ NotificationType::DidYouKnowHint, NotificationLevel::HintNotificationLevel, 300, "" };
-	// from user - open now
-	if (!open_next) {
-		push_notification_data(std::make_unique<NotificationManager::HintNotification>(data, m_id_provider, m_evt_handler, open_next), 0);
-		stop_delayed_notifications_of_type(NotificationType::DidYouKnowHint);
-		// at startup - delay for half a second to let other notification pop up, than try every 30 seconds
-		// show only if no notifications are shown
-	}
-	else {
-		auto condition = [&self = std::as_const(*this)]() {
-			return self.get_notification_count() == 0;
-		};
-		push_delayed_notification_data(std::make_unique<NotificationManager::HintNotification>(data, m_id_provider, m_evt_handler, open_next), condition, 500, 30000);
-	}
-}
-
-bool NotificationManager::is_hint_notification_open()
-{
-	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
-		if (notification->get_type() == NotificationType::DidYouKnowHint)
-			return true;
-	}
-	return false;
-}
 void NotificationManager::deactivate_loaded_hints()
 {
 	;
@@ -2351,15 +2368,25 @@ void NotificationManager::render_notifications(GLCanvas3D &canvas, float overlay
 
 	int i = 0;
 	for (const auto& notification : m_pop_notifications) {
+        if (m_canvas_type == GLCanvas3D::ECanvasType::CanvasAssembleView) {
+            if (notification->get_type() != NotificationType::AssemblyInfo && notification->get_type() != NotificationType::AssemblyWarning) {
+                continue;
+            }
+        }
+        else {
+            if (notification->get_type() == NotificationType::AssemblyInfo || notification->get_type() == NotificationType::AssemblyWarning) {
+                continue;
+            }
+        }
         if (notification->get_data().level == NotificationLevel::ErrorNotificationLevel || notification->get_data().level == NotificationLevel::SeriousWarningNotificationLevel) {
-            notification->bbl_render_block_notification(canvas, bottom_up_last_y, m_move_from_overlay && !m_in_preview, overlay_width * m_scale, right_margin * m_scale);
+            notification->bbl_render_block_notification(canvas, bottom_up_last_y, m_move_from_overlay && (m_canvas_type == GLCanvas3D::ECanvasType::CanvasView3D), overlay_width * m_scale, right_margin * m_scale);
             if (notification->get_state() != PopNotification::EState::Finished)
 				bottom_up_last_y = notification->get_top() + GAP_WIDTH;
 		}
 		else {
 			if (notification->get_state() != PopNotification::EState::Hidden && notification->get_state() != PopNotification::EState::Finished) {
 				i++;
-				notification->render(canvas, bottom_up_last_y, m_move_from_overlay && !m_in_preview, overlay_width * m_scale, right_margin * m_scale);
+				notification->render(canvas, bottom_up_last_y, m_move_from_overlay && (m_canvas_type == GLCanvas3D::ECanvasType::CanvasView3D), overlay_width * m_scale, right_margin * m_scale);
 				if (notification->get_state() != PopNotification::EState::Finished)
 					bottom_up_last_y = notification->get_top() + GAP_WIDTH;
 			}
@@ -2489,24 +2516,24 @@ bool NotificationManager::activate_existing(const NotificationManager::PopNotifi
 	return false;
 }
 
-void NotificationManager::set_in_preview(bool preview)
+void NotificationManager::set_canvas_type(GLCanvas3D::ECanvasType t_canvas_type)
 {
-    m_in_preview = preview;
+    m_canvas_type = t_canvas_type;
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::PlaterWarning)
-            notification->hide(preview);
+            notification->hide(m_canvas_type != GLCanvas3D::ECanvasType::CanvasView3D);
         if (notification->get_type() == NotificationType::BBLPlateInfo)
-            notification->hide(preview);
+            notification->hide(m_canvas_type != GLCanvas3D::ECanvasType::CanvasView3D);
         if (notification->get_type() == NotificationType::SignDetected)
-            notification->hide(!preview);
+            notification->hide(m_canvas_type == GLCanvas3D::ECanvasType::CanvasView3D);
         if (notification->get_type() == NotificationType::BBLObjectInfo)
-            notification->hide(preview);
+            notification->hide(m_canvas_type != GLCanvas3D::ECanvasType::CanvasView3D);
         if (notification->get_type() == NotificationType::BBLSeqPrintInfo)
-            notification->hide(preview);
-		if (m_in_preview && notification->get_type() == NotificationType::DidYouKnowHint)
-			notification->close();
+            notification->hide(m_canvas_type != GLCanvas3D::ECanvasType::CanvasView3D);
+        if ((m_canvas_type == GLCanvas3D::ECanvasType::CanvasPreview) && notification->get_type() == NotificationType::DidYouKnowHint)
+            notification->close();
         if (notification->get_type() == NotificationType::ValidateWarning)
-			notification->hide(preview);
+            notification->hide(m_canvas_type != GLCanvas3D::ECanvasType::CanvasView3D);
     }
 }
 
@@ -2905,4 +2932,14 @@ void NotificationManager::PlaterWarningNotification::close()
     if(m_on_delete_callback)
         m_on_delete_callback(this);
 }
-}}//namespace Slic3r
+}
+void GUI::NotificationManager::AssemblyWarningNotification::close()
+{
+    if (is_finished())
+        return;
+    m_state = EState::Hidden;
+    wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+    if (m_on_delete_callback)
+        m_on_delete_callback(this);
+}
+}//namespace Slic3r

@@ -107,7 +107,8 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CAT
                     }},
     { L("Speed"), {{"outer_wall_speed", "",1},{"inner_wall_speed", "",2},{"sparse_infill_speed", "",3},{"top_surface_speed", "",4}, {"internal_solid_infill_speed", "",5},
                     {"enable_overhang_speed", "",6}, {"overhang_1_4_speed", "",7}, {"overhang_2_4_speed", "",8}, {"overhang_3_4_speed", "",9}, {"overhang_4_4_speed", "",10}, {"overhang_totally_speed", "",11},
-                    {"bridge_speed", "",12}, {"gap_infill_speed", "",13}
+                    {"bridge_speed", "",12}, {"gap_infill_speed", "",13}, {"enable_height_slowdown", "", 14}, {"slowdown_start_height", "", 15}, {"slowdown_start_speed", "", 16}, {"slowdown_start_acc", "", 17}, 
+                    {"slowdown_end_height", "", 18}, {"slowdown_end_speed", "", 19}, {"slowdown_end_acc", "", 20}
                     }}
 };
 
@@ -255,7 +256,7 @@ std::map<std::string, std::string> SettingsFactory::CATEGORY_ICON =
     { L("Shell")                , "blank_14"    },
     { L("Infill")               , "blank_14"    },
     { L("Ironing")              , "blank_14"    },
-    { L("Fuzzy Skin")           , "menu_fuzzy_skin"  },
+    { L("Fuzzy Skin")           , "fuzzy_skin"  },
     { L("Support")              , "support"     },
     { L("Speed")                , "blank_14"    },
     { L("Extruders")            , "blank_14"    },
@@ -501,15 +502,19 @@ void MenuFactory::append_menu_item_delete_all_cutter(wxMenu *menu)
 
 void MenuFactory::append_menu_item_edit_text(wxMenu *menu)
 {
-#ifdef __WINDOWS__
+    wxString name = _L("Edit Text");
+    if (menu != &m_text_part_menu) {
+        const int menu_item_id = menu->FindItem(name);
+        if (menu_item_id != wxNOT_FOUND)
+            menu->Destroy(menu_item_id);
+        if (plater() == nullptr)
+            return;
+        if (!plater()->can_edit_text())
+            return;
+    }
     append_menu_item(
         menu, wxID_ANY, _L("Edit Text"), "", [](wxCommandEvent &) { plater()->edit_text(); }, "", nullptr,
         []() { return plater()->can_edit_text(); }, m_parent);
-#else
-    append_menu_item(
-        menu, wxID_ANY, _L("Edit Text"), "", [](wxCommandEvent &) { plater()->edit_text(); }, "", nullptr,
-        []() { return plater()->can_edit_text(); }, m_parent);
-#endif
 }
 
 void MenuFactory::append_menu_item_edit_svg(wxMenu *menu)
@@ -528,15 +533,26 @@ void MenuFactory::append_menu_item_edit_svg(wxMenu *menu)
 
     if (menu != &m_svg_part_menu) {
         const int menu_item_id = menu->FindItem(name);
-        if (menu_item_id != wxNOT_FOUND) menu->Destroy(menu_item_id);
+        if (menu_item_id != wxNOT_FOUND)
+            menu->Destroy(menu_item_id);
         if (!can_edit_svg()) return;
     }
 
     wxString    description = _L("Change SVG source file, projection, size, ...");
     std::string icon        = "svg_part";
     auto        open_svg    = [](const wxCommandEvent &) {
-        GLGizmosManager &mng = plater()->get_view3D_canvas3D()->get_gizmos_manager();
-        if (mng.get_current_type() == GLGizmosManager::Svg) mng.open_gizmo(GLGizmosManager::Svg); // close() and reopen - move to be visible
+        const auto& p_plater = plater();
+        if (!p_plater) {
+            return;
+        }
+        const auto& p_canvas = p_plater->get_current_canvas3D();
+        if (!p_canvas) {
+            return;
+        }
+        GLGizmosManager &mng = p_canvas->get_gizmos_manager();
+        if (mng.get_current_type() == GLGizmosManager::Svg) {
+            mng.open_gizmo(GLGizmosManager::Svg); // close() and reopen - move to be visible
+        }
         mng.open_gizmo(GLGizmosManager::Svg);
     };
     append_menu_item(menu, wxID_ANY, name, description, open_svg, icon, nullptr, can_edit_svg, m_parent);
@@ -1283,6 +1299,7 @@ void MenuFactory::create_part_menu()
         [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts", nullptr,
         []() { return plater()->can_split(false); }, m_parent);
     m_part_menu.AppendSeparator();
+    append_menu_item_per_object_process(&m_part_menu);
     append_menu_item_per_object_settings(&m_part_menu);
 }
 
@@ -1294,8 +1311,10 @@ void MenuFactory::create_text_part_menu()
     append_menu_item_delete(menu);
     append_menu_item_fix_through_netfabb(menu);
     append_menu_item_simplify(menu);
+    append_menu_item_center(menu);
     append_menu_items_mirror(menu);
     menu->AppendSeparator();
+    append_menu_item_per_object_process(menu);
     append_menu_item_per_object_settings(menu);
     append_menu_item_change_type(menu);
 }
@@ -1310,6 +1329,7 @@ void MenuFactory::create_svg_part_menu()
     append_menu_item_simplify(menu);
     append_menu_items_mirror(menu);
     menu->AppendSeparator();
+    append_menu_item_per_object_process(menu);
     append_menu_item_per_object_settings(menu);
     append_menu_item_change_type(menu);
 }
@@ -1338,6 +1358,7 @@ void MenuFactory::create_bbl_part_menu()
     append_submenu(menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
         []() { return plater()->can_split(true); }, m_parent);
     menu->AppendSeparator();
+    append_menu_item_per_object_process(menu);
     append_menu_item_per_object_settings(menu);
     append_menu_item_change_type(menu);
     append_menu_item_reload_from_disk(menu);
@@ -1494,6 +1515,7 @@ void MenuFactory::init(wxWindow* parent)
     //create_object_menu();
     create_sla_object_menu();
     //create_part_menu();
+    create_text_part_menu();
     create_svg_part_menu();
     create_bbl_object_menu();
     create_bbl_part_menu();
@@ -1529,6 +1551,7 @@ wxMenu* MenuFactory::object_menu()
     append_menu_items_convert_unit(&m_object_menu);
     append_menu_items_flush_options(&m_object_menu);
     append_menu_item_invalidate_cut_info(&m_object_menu);
+    append_menu_item_edit_text(&m_object_menu);
     append_menu_item_edit_svg(&m_object_menu);
     append_menu_item_change_filament(&m_object_menu);
     {
@@ -1542,7 +1565,7 @@ wxMenu* MenuFactory::sla_object_menu()
 {
     append_menu_items_convert_unit(&m_sla_object_menu);
     append_menu_item_settings(&m_sla_object_menu);
-    //append_menu_item_edit_text(&m_sla_object_menu);
+    append_menu_item_edit_text(&m_sla_object_menu);
     append_menu_item_edit_svg(&m_object_menu);
     //update_menu_items_instance_manipulation(mtObjectSLA);
     return &m_sla_object_menu;
@@ -1600,12 +1623,26 @@ wxMenu* MenuFactory::multi_selection_menu()
     wxDataViewItemArray sels;
     obj_list()->GetSelections(sels);
     bool multi_volume = true;
-
+    int  count        = 0;
+    int  obj_idx = -1;
     for (const wxDataViewItem& item : sels) {
         multi_volume = list_model()->GetItemType(item) & itVolume;
         if (!(list_model()->GetItemType(item) & (itVolume | itObject | itInstance)))
             // show this menu only for Objects(Instances mixed with Objects)/Volumes selection
             return nullptr;
+        if (multi_volume) {
+            auto temp_obj_idx = obj_list()->GetModel()->GetObjectIdByItem(item);
+            if (temp_obj_idx >= 0 && temp_obj_idx != obj_idx) {
+                if (obj_idx == -1) {
+                    obj_idx = temp_obj_idx;
+                }
+                else {
+                    multi_volume = false;
+                    break;
+                }
+            }
+        }
+        count++;
     }
 
     wxMenu* menu = new MenuWithSeparators();
@@ -1632,6 +1669,10 @@ wxMenu* MenuFactory::multi_selection_menu()
     }
     else {
         append_menu_item_center(menu);
+        auto mo = (*obj_list()->objects())[obj_idx];
+        if (count < mo->volumes.size()) {
+            append_menu_item_sub_merge(menu);
+        }
         append_menu_item_fix_through_netfabb(menu);
         //append_menu_item_simplify(menu);
         append_menu_item_delete(menu);
@@ -1649,6 +1690,7 @@ wxMenu* MenuFactory::multi_selection_menu()
             append_submenu(menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
                 []() { return plater()->can_split(true); }, m_parent);
         }
+        append_menu_item_per_object_process(menu);
     }
 
     {
@@ -1787,6 +1829,26 @@ void MenuFactory::append_menu_item_center(wxMenu* menu)
         }, m_parent);
 }
 
+void MenuFactory::append_menu_item_sub_merge(wxMenu *menu)
+{
+    append_menu_item(
+        menu, wxID_ANY, _L("Sub merge"), "",
+        [this](wxCommandEvent &) {
+            obj_list()->add_new_model_object_from_old_object();
+        },
+        "", nullptr,
+        []() {
+            if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
+                return false;
+            else {
+                if (obj_list()->has_selected_cut_object())
+                    return false;
+                return true;
+            }
+        },
+        m_parent);
+}
+
 void MenuFactory::append_menu_item_per_object_process(wxMenu* menu)
 {
     const std::vector<wxString> names = { _L("Edit Process Settings"), _L("Edit Process Settings") };
@@ -1803,6 +1865,28 @@ void MenuFactory::append_menu_item_per_object_process(wxMenu* menu)
                 selection.is_single_volume() ||
                 selection.is_multiple_volume();
         }, m_parent);
+
+    const std::vector<wxString> names2 = {_L("Copy Process Settings"), _L("Copy Process Settings")};
+    append_menu_item(
+        menu, wxID_ANY, names2[0], names2[1], [](wxCommandEvent &) {
+            wxGetApp().obj_list()->copy_settings_to_clipboard();
+        }, "", nullptr,
+        []() {
+            Selection &selection = plater()->canvas3D()->get_selection();
+            return selection.is_single_full_object() || selection.is_single_full_instance() ||
+                   selection.is_single_volume_or_modifier();
+        },
+        m_parent);
+
+    const std::vector<wxString> names3 = {_L("Paste Process Settings"), _L("Paste Process Settings")};
+    append_menu_item(
+        menu, wxID_ANY, names3[0], names3[1], [](wxCommandEvent &) {
+            wxGetApp().obj_list()->paste_settings_into_list();
+        }, "", nullptr,
+        []() {
+            return wxGetApp().obj_list()->can_paste_settings_into_list();
+        },
+        m_parent);
 }
 
 void MenuFactory::append_menu_item_per_object_settings(wxMenu* menu)

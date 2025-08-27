@@ -9,7 +9,7 @@ std::vector<double> Extruder::m_share_retracted = {0.,0.};
 Extruder::Extruder(unsigned int id, GCodeConfig *config, bool share_extruder) :
     m_id(id),
     m_config(config),
-    m_share_extruder(m_share_extruder)
+    m_share_extruder(share_extruder)
 {
     reset();
 
@@ -179,12 +179,12 @@ double Extruder::retract_restart_extra() const
 
 double Extruder::retract_length_toolchange() const
 {
-    return m_config->retract_length_toolchange.get_at(m_id);
+    return m_config->retract_length_toolchange.get_at(extruder_id());
 }
 
 double Extruder::retract_restart_extra_toolchange() const
 {
-    return m_config->retract_restart_extra_toolchange.get_at(m_id);
+    return m_config->retract_restart_extra_toolchange.get_at(extruder_id());
 }
 
 }

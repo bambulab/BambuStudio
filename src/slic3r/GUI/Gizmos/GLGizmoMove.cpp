@@ -22,8 +22,8 @@ const double GLGizmoMove3D::Offset = 10.0;
 #endif
 
 //BBS: GUI refactor: add obj manipulation
-GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation)
-    : GLGizmoBase(parent, icon_filename, sprite_id)
+GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation)
+    : GLGizmoBase(parent, sprite_id)
     , m_displacement(Vec3d::Zero())
     , m_snap_step(1.0)
     , m_starting_drag_position(Vec3d::Zero())
@@ -60,6 +60,7 @@ std::string GLGizmoMove3D::get_tooltip() const
 
 void GLGizmoMove3D::data_changed(bool is_serializing)
 {
+    enable_grabber(2, !m_parent.get_selection().is_wipe_tower());
     change_cs_by_selection();
 }
 
@@ -104,7 +105,7 @@ BoundingBoxf3 GLGizmoMove3D::get_bounding_box() const
             cur_tran = selection.get_first_volume()->get_instance_transformation();
         }
 
-        auto t_cross_mask_aabb = get_cross_mask_aabb(cur_tran.get_matrix(), Vec3f::Zero(), true);
+        auto t_cross_mask_aabb = get_cross_mask_aabb(cur_tran.get_matrix(), Vec3f::Zero());
         t_cross_mask_aabb.defined = true;
         t_aabb.merge(t_cross_mask_aabb);
         t_aabb.defined = true;
@@ -112,6 +113,11 @@ BoundingBoxf3 GLGizmoMove3D::get_bounding_box() const
 
     // end m_cross_mark aabb
     return t_aabb;
+}
+
+std::string GLGizmoMove3D::get_icon_filename(bool b_dark_mode) const
+{
+    return b_dark_mode ? "toolbar_move_dark.svg" : "toolbar_move.svg";
 }
 
 bool GLGizmoMove3D::on_init()
@@ -299,7 +305,7 @@ void GLGizmoMove3D::on_render()
         else {
             cur_tran = selection.get_first_volume()->get_instance_transformation();
         }
-        render_cross_mark(cur_tran.get_matrix(), Vec3f::Zero(), true);
+        render_cross_mark(cur_tran.get_matrix(), Vec3f::Zero());
     }
 }
 
@@ -335,22 +341,21 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 {
     double projection = 0.0;
 
-    Vec3d starting_vec = m_starting_drag_position - m_starting_box_center;
-    double len_starting_vec = starting_vec.norm();
-    if (len_starting_vec != 0.0) {
-        Vec3d mouse_dir = data.mouse_ray.unit_vector();
-        // finds the intersection of the mouse ray with the plane parallel to the camera viewport and passing throught the starting position
-        // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection algebric form
-        // in our case plane normal and ray direction are the same (orthogonal view)
-        // when moving to perspective camera the negative z unit axis of the camera needs to be transformed in world space and used as plane normal
-        Vec3d inters = data.mouse_ray.a + (m_starting_drag_position - data.mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
-        // vector from the starting position to the found intersection
-        Vec3d inters_vec = inters - m_starting_drag_position;
+    Vec3d mouse_dir = data.mouse_ray.unit_vector();
+    // finds the intersection of the mouse ray with the plane parallel to the camera viewport and passing throught the starting position
+    // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection algebric form
+    // in our case plane normal and ray direction are the same (orthogonal view)
+    // when moving to perspective camera the negative z unit axis of the camera needs to be transformed in world space and used as plane normal
+    Vec3d inters = data.mouse_ray.a + (m_starting_drag_position - data.mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
 
-        projection = inters_vec.norm();
-        const double sign = inters_vec.dot(starting_vec) > 1e-6f ? 1.0f : -1.0f;
-
-        projection = projection * sign;
+    if (m_hover_id == 0) {
+        projection = inters.x() - m_starting_drag_position.x();
+    }
+    else if (m_hover_id == 1) {
+        projection = inters.y() - m_starting_drag_position.y();
+    }
+    else if (m_hover_id == 2) {
+        projection = inters.z() - m_starting_drag_position.z();
     }
 
     if (wxGetKeyState(WXK_SHIFT))

@@ -7,6 +7,7 @@
 #include "BoundingBox.hpp"
 #include "libslic3r/AABBTreeLines.hpp"
 #include <boost/log/trivial.hpp>
+#include "PerimeterGenerator.hpp"
 static const int Continuitious_length = scale_(0.01);
 static const int dist_scale_threshold = 1.2;
 
@@ -144,6 +145,31 @@ ExPolygons Layer::merged(float offset_scaled) const
     return out;
 }
 
+// If there is any incompatibility, separate LayerRegions have to be created.
+bool Layer::has_compatible_layer_regions(const PrintRegionConfig &config, const PrintRegionConfig &other_config)
+{
+    return config.wall_filament             == other_config.wall_filament
+        && config.wall_loops                  == other_config.wall_loops
+        && config.inner_wall_speed.get_at(get_extruder_id(config.wall_filament))  == other_config.inner_wall_speed.get_at(get_extruder_id(config.wall_filament))
+        && config.outer_wall_speed.get_at(get_extruder_id(config.wall_filament))  == other_config.outer_wall_speed.get_at(get_extruder_id(config.wall_filament))
+        && config.gap_infill_speed.get_at(get_extruder_id(config.wall_filament))  == other_config.gap_infill_speed.get_at(get_extruder_id(config.wall_filament))
+        && config.detect_overhang_wall                   == other_config.detect_overhang_wall
+        && config.filter_out_gap_fill.value == other_config.filter_out_gap_fill.value
+        && config.opt_serialize("inner_wall_line_width") == other_config.opt_serialize("inner_wall_line_width")
+        && config.detect_thin_wall                  == other_config.detect_thin_wall
+        && config.infill_wall_overlap              == other_config.infill_wall_overlap
+        && config.seam_slope_conditional == other_config.seam_slope_conditional
+        && config.override_filament_scarf_seam_setting == other_config.override_filament_scarf_seam_setting
+        && config.seam_slope_type                      == other_config.seam_slope_type
+        && config.seam_slope_start_height              == other_config.seam_slope_start_height
+        && config.seam_slope_gap                       == other_config.seam_slope_gap
+        && config.seam_slope_min_length                == other_config.seam_slope_min_length
+        //&& config.scarf_angle_threshold  == other_config.scarf_angle_threshold
+        && config.seam_slope_entire_loop  == other_config.seam_slope_entire_loop
+        && config.seam_slope_steps        == other_config.seam_slope_steps
+        && config.seam_slope_inner_walls  == other_config.seam_slope_inner_walls;
+}
+
 // Here the perimeters are created cummulatively for all layer regions sharing the same parameters influencing the perimeters.
 // The perimeter paths and the thin fills (ExtrusionEntityCollection) are assigned to the first compatible layer region.
 // The resulting fill surface is split back among the originating regions.
@@ -152,7 +178,7 @@ void Layer::make_perimeters()
     BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id();
     // keep track of regions whose perimeters we have already generated
     std::vector<unsigned char> done(m_regions.size(), false);
- 
+
     for (LayerRegionPtrs::iterator layerm = m_regions.begin(); layerm != m_regions.end(); ++ layerm)
     	if ((*layerm)->slices.empty()) {
  			(*layerm)->perimeters.clear();
@@ -167,42 +193,35 @@ void Layer::make_perimeters()
 	        const PrintRegionConfig &config = (*layerm)->region().config();
 
 	        // find compatible regions
-	        LayerRegionPtrs layerms;
-	        layerms.push_back(*layerm);
-	        for (LayerRegionPtrs::const_iterator it = layerm + 1; it != m_regions.end(); ++it)
-	            if (! (*it)->slices.empty()) {
-		            LayerRegion* other_layerm = *it;
-		            const PrintRegionConfig &other_config = other_layerm->region().config();
-		            if (config.wall_filament             == other_config.wall_filament
-		                && config.wall_loops                  == other_config.wall_loops
-		                && config.inner_wall_speed.get_at(get_extruder_id(config.wall_filament))  == other_config.inner_wall_speed.get_at(get_extruder_id(config.wall_filament))
-		                && config.outer_wall_speed.get_at(get_extruder_id(config.wall_filament))  == other_config.outer_wall_speed.get_at(get_extruder_id(config.wall_filament))
-		                && config.gap_infill_speed.get_at(get_extruder_id(config.wall_filament))  == other_config.gap_infill_speed.get_at(get_extruder_id(config.wall_filament))
-		                && config.detect_overhang_wall                   == other_config.detect_overhang_wall
-		                && config.filter_out_gap_fill.value == other_config.filter_out_gap_fill.value
-		                && config.opt_serialize("inner_wall_line_width") == other_config.opt_serialize("inner_wall_line_width")
-		                && config.detect_thin_wall                  == other_config.detect_thin_wall
-		                && config.infill_wall_overlap              == other_config.infill_wall_overlap
-                        && config.fuzzy_skin                  == other_config.fuzzy_skin
-                        && config.fuzzy_skin_thickness        == other_config.fuzzy_skin_thickness
-                        && config.fuzzy_skin_point_distance       == other_config.fuzzy_skin_point_distance
-                        && config.seam_slope_conditional == other_config.seam_slope_conditional
-                        //&& config.scarf_angle_threshold  == other_config.scarf_angle_threshold
-                        && config.seam_slope_entire_loop  == other_config.seam_slope_entire_loop
-                        && config.seam_slope_steps        == other_config.seam_slope_steps
-                        && config.seam_slope_inner_walls  == other_config.seam_slope_inner_walls)
-		            {
-			 			other_layerm->perimeters.clear();
-			 			other_layerm->fills.clear();
-			 			other_layerm->thin_fills.clear();
-		                layerms.push_back(other_layerm);
-		                done[it - m_regions.begin()] = true;
-		            }
-		        }
+            LayerRegionPtrs layerms;
+            layerms.push_back(*layerm);
+
+            PerimeterRegions perimeter_regions;
+            for (LayerRegionPtrs::const_iterator it = layerm + 1; it != m_regions.end(); ++it) {
+                if ((*it)->slices.empty())
+                    continue;
+
+                LayerRegion* other_layerm = *it;
+                const size_t next_region_id = std::distance(m_regions.cbegin(), it);
+                const PrintRegionConfig &other_config = other_layerm->region().config();
+                if (!has_compatible_layer_regions(config, other_config))
+                    continue;
+
+                other_layerm->perimeters.clear();
+                other_layerm->fills.clear();
+                other_layerm->thin_fills.clear();
+                // layer_region_ids.push_back(next_region_id);
+                layerms.push_back(other_layerm);
+                done[it - m_regions.begin()] = true;
+
+                if (!PerimeterRegion::has_compatible_perimeter_regions(config, other_config)) {
+                    perimeter_regions.emplace_back(*other_layerm);
+                }
+            }
 
 	        if (layerms.size() == 1) {  // optimization
 	            (*layerm)->fill_surfaces.surfaces.clear();
-                (*layerm)->make_perimeters((*layerm)->slices, &(*layerm)->fill_surfaces, &(*layerm)->fill_no_overlap_expolygons, this->loop_nodes);
+                (*layerm)->make_perimeters((*layerm)->slices, perimeter_regions, &(*layerm)->fill_surfaces, &(*layerm)->fill_no_overlap_expolygons, this->loop_nodes);
 
 	            (*layerm)->fill_expolygons = to_expolygons((*layerm)->fill_surfaces.surfaces);
 	        } else {
@@ -223,11 +242,16 @@ void Layer::make_perimeters()
 	                    new_slices.append(offset_ex(surfaces_with_extra_perimeters.second, ClipperSafetyOffset), surfaces_with_extra_perimeters.second.front());
 	            }
 
+                // Try to merge compatible PerimeterRegions.
+                if (perimeter_regions.size() > 1) {
+                    PerimeterRegion::merge_compatible_perimeter_regions(perimeter_regions);
+                }
+
 	            // make perimeters
 	            SurfaceCollection fill_surfaces;
                 //BBS
                 ExPolygons fill_no_overlap;
-                layerm_config->make_perimeters(new_slices, &fill_surfaces, &fill_no_overlap, this->loop_nodes);
+                layerm_config->make_perimeters(new_slices, perimeter_regions, &fill_surfaces, &fill_no_overlap, this->loop_nodes);
 
 	            // assign fill_surfaces to each layer
 	            if (!fill_surfaces.surfaces.empty()) {

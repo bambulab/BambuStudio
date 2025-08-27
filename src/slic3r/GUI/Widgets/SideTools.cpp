@@ -57,7 +57,7 @@ void SideToolsPanel::on_timer(wxTimerEvent &event)
 
 void SideToolsPanel::set_current_printer_name(std::string dev_name)
 {
-     if (m_dev_name == from_u8(dev_name)) return;
+     if (m_dev_name == from_u8(dev_name) && !m_none_printer) return;
 
      m_none_printer = false;
      m_dev_name     = from_u8(dev_name);
@@ -66,7 +66,7 @@ void SideToolsPanel::set_current_printer_name(std::string dev_name)
 
 void SideToolsPanel::set_current_printer_signal(WifiSignal sign)
 {
-     if (last_printer_signal == sign) return;
+     if (last_printer_signal == sign && !m_none_printer) return;
 
      last_printer_signal = sign;
      m_none_printer = false;
@@ -199,13 +199,13 @@ void SideToolsPanel::doRender(wxDC &dc)
         auto sizet = dc.GetTextExtent(m_dev_name);
         auto text_end = size.x - m_wifi_none_img.GetBmpSize().x - 20;
 
-        std::string finally_name = m_dev_name.ToStdString();
+        wxString finally_name = m_dev_name;
         if (sizet.x > (text_end - left)) {
             auto limit_width = text_end - left - dc.GetTextExtent("...").x - 20;
             for (auto i = 0; i < m_dev_name.length(); i++) {
                 auto curr_width = dc.GetTextExtent(m_dev_name.substr(0, i));
                 if (curr_width.x >= limit_width) {
-                    finally_name = (m_dev_name.substr(0, i) + wxString("...")).ToStdString();
+                    finally_name = m_dev_name.substr(0, i) + "...";
                     break;
                 }
             }
@@ -274,7 +274,13 @@ SideTools::SideTools(wxWindow *parent, wxWindowID id, const wxPoint &pos, const 
     wxBoxSizer* connection_sizer_V = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer* connection_sizer_H = new wxBoxSizer(wxHORIZONTAL);
 
-    m_hyperlink = new wxHyperlinkCtrl(m_connection_info, wxID_ANY, _L("Failed to connect to the server"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+
+    bool is_zh  = wxGetApp().app_config->get("language") == "zh_CN";
+    wxString hyperlink_url = is_zh ? wxT("https://wiki.bambulab.com/zh/software/bambu-studio/failed-to-connect-printer") :
+                             wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer");
+
+
+    m_hyperlink = new wxHyperlinkCtrl(m_connection_info, wxID_ANY, _L("Failed to connect to the server"), hyperlink_url, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
     m_hyperlink->SetBackgroundColour(wxColour(255, 111, 0));
 
     m_more_err_open = ScalableBitmap(this, "monitir_err_open", 16);
@@ -328,7 +334,7 @@ SideTools::SideTools(wxWindow *parent, wxWindowID id, const wxPoint &pos, const 
     wxBoxSizer* sizer_error_desc = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer* sizer_extra_info = new wxBoxSizer(wxHORIZONTAL);
 
-    m_link_network_state = new wxHyperlinkCtrl(m_side_error_panel, wxID_ANY,_L("Check the status of current system services"),"",wxDefaultPosition,wxDefaultSize,wxALIGN_CENTER_HORIZONTAL | wxST_ELLIPSIZE_END);
+    m_link_network_state = new wxHyperlinkCtrl(m_side_error_panel, wxID_ANY,_L("Check the status of current system services"),"",wxDefaultPosition,wxDefaultSize, wxHL_ALIGN_CENTRE |wxST_ELLIPSIZE_END);
     m_link_network_state->SetMinSize(wxSize(FromDIP(220), -1));
     m_link_network_state->SetMaxSize(wxSize(FromDIP(220), -1));
     m_link_network_state->SetFont(::Label::Body_12);
@@ -459,7 +465,7 @@ void SideTools::update_status(MachineObject* obj)
     if (!obj) return;
 
     /* Update Device Info */
-    m_side_tools->set_current_printer_name(obj->dev_name);
+    m_side_tools->set_current_printer_name(obj->get_dev_name());
 
     // update wifi signal image
     int wifi_signal_val = 0;

@@ -175,6 +175,11 @@ void GCodeWriter::set_travel_acceleration(const std::vector<unsigned int>& accel
     m_travel_accelerations = accelerations;
 }
 
+void GCodeWriter::reset_last_acceleration()
+{
+    m_last_acceleration = 0;
+}
+
 void GCodeWriter::set_first_layer_travel_acceleration(const std::vector<unsigned int> &travel_accelerations)
 {
     m_first_layer_travel_accelerations = travel_accelerations;
@@ -438,20 +443,24 @@ std::string GCodeWriter::eager_lift(const LiftType type, bool tool_change)
         }
     }
 
+    double to_lift = target_lift - m_lifted;
+    if (to_lift < EPSILON)
+        return lift_move;
+
     // BBS: spiral lift only safe with known position
     // TODO: check the arc will move within bed area
     if (type == LiftType::SpiralLift && this->is_current_position_clear()) {
-        double radius = target_lift / (2 * PI * atan(GCodeWriter::slope_threshold));
-        // static spiral alignment when no move in x,y plane.
-        // spiral centra is a radius distance to the right (y=0)
-        Vec2d ij_offset = { radius, 0 };
-        if (target_lift > 0) {
-            lift_move = this->_spiral_travel_to_z(m_pos(2) + target_lift, ij_offset, "spiral lift Z",tool_change);
+        if (to_lift > 0) {
+            double radius = to_lift / (2 * PI * atan(GCodeWriter::slope_threshold));
+            // static spiral alignment when no move in x,y plane.
+            // spiral centra is a radius distance to the right (y=0)
+            Vec2d ij_offset = { radius, 0 };
+            lift_move = this->_spiral_travel_to_z(m_pos(2) + to_lift, ij_offset, "spiral lift Z",tool_change);
         }
     }
     //BBS: if position is unknown use normal lift
-    else if (target_lift > 0) {
-        lift_move = _travel_to_z(m_pos(2) + target_lift, "normal lift Z",tool_change);
+    else if (to_lift > 0) {
+        lift_move = _travel_to_z(m_pos(2) + to_lift, "normal lift Z", tool_change);
     }
     m_lifted = target_lift;
     m_to_lift = 0;

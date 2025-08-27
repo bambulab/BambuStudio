@@ -72,6 +72,7 @@ enum class AMSRoadShowMode : int {
     AMS_ROAD_MODE_FOUR,
     AMS_ROAD_MODE_DOUBLE,
     AMS_ROAD_MODE_SINGLE,
+    AMS_ROAD_MODE_SINGLE_N3S,
     AMS_ROAD_MODE_AMS_LITE,
     AMS_ROAD_MODE_NONE
 };
@@ -256,10 +257,14 @@ public:
         return true;
     };
 
-    bool parse_ams_info(MachineObject* obj, Ams *ams, bool remain_flag = false, bool humidity_flag = false);
-    void parse_ext_info(MachineObject* obj, AmsTray tray);
+    bool parse_ams_info(MachineObject* obj, DevAms *ams, bool remain_flag = false, bool humidity_flag = false);
+    void parse_ext_info(MachineObject* obj, DevAmsTray tray);
 
     bool support_drying() const { return (ams_type == AMSModel::N3S_AMS) || (ams_type == AMSModel::N3F_AMS); };
+    bool support_humidity() const { return  1 <= get_humidity_display_idx() && get_humidity_display_idx() <= 5; }
+    Caninfo get_caninfo(const std::string& can_id, bool& found) const;
+
+    int  get_humidity_display_idx() const;
 };
 
 /*************************************************
@@ -374,24 +379,12 @@ private:
     bool    m_show_ext     = false;
 
     AMSPanelPos m_ext_pos;
-    int         total_ext_num = 1;
+    int         m_ext_num = 1;
 
-    ScalableBitmap m_ams_ext_o_left;
-    ScalableBitmap m_ams_ext_o_right;
-    ScalableBitmap m_ams_ext_xp;
-    ScalableBitmap m_ams_ext_n1;
-    ScalableBitmap m_ams_ext_n2s;
-    ScalableBitmap m_ams_ext_default;
-
-    ScalableBitmap m_ext_o_left;
-    ScalableBitmap m_ext_o_right;
-    ScalableBitmap m_ext_xp;
-    ScalableBitmap m_ext_n1;
-    ScalableBitmap m_ext_n2s;
-    ScalableBitmap m_ext_default;
+    ScalableBitmap m_ext_image;
 
 public:
-    AMSExtImage(wxWindow *parent, AMSPanelPos ext_pos = AMSPanelPos::RIGHT_PANEL, ExtderData *data = nullptr, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition);
+    AMSExtImage(wxWindow *parent, AMSPanelPos ext_pos, int total_ext_num, bool over_ext, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition);
     ~AMSExtImage();
 
     void msw_rescale();
@@ -403,8 +396,7 @@ private:
     void render(wxDC &dc);
     void doRender(wxDC &dc);
 
-    void createImages();
-    const wxBitmap &get_bmp(const std::string &series_name, const std::string &printer_type, bool is_ams_ext, AMSPanelPos pos) const;
+    const wxBitmap &get_bmp(const std::string &printer_type, bool is_ams_ext, AMSPanelPos pos);
 };
 
 
@@ -488,6 +480,7 @@ protected:
     ScalableBitmap  m_bitmap_readonly_light;
     ScalableBitmap  m_bitmap_transparent;
     ScalableBitmap  m_bitmap_transparent_def;
+    ScalableBitmap  m_bitmap_transparent_lite;
 
     ScalableBitmap  m_bitmap_extra_tray_left;
     ScalableBitmap  m_bitmap_extra_tray_right;
@@ -747,9 +740,6 @@ public:
     ScalableBitmap ams_sun_img;
     ScalableBitmap ams_drying_img;
 
-
-    int      m_humidity = { 0 };
-    bool     m_show_humidity = { false };
     bool     m_vams_loading{ false };
     AMSModel m_ams_model;
 
@@ -857,7 +847,6 @@ wxDECLARE_EVENT(EVT_AMS_RETRY, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_SHOW_HUMIDITY_TIPS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_UNSELETED_VAMS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_UNSELETED_AMS, wxCommandEvent);
-wxDECLARE_EVENT(EVT_CLEAR_SPEED_CONTROL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_VAMS_ON_FILAMENT_EDIT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_SWITCH, SimpleEvent);
 

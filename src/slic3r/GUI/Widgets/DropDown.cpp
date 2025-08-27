@@ -36,7 +36,8 @@ DropDown::DropDown(std::vector<Item> &items)
     : items(items)
     , state_handler(this)
     , border_color(0xDBDBDB)
-    , text_color(0x363636)
+    , text_color(std::make_pair(0x909090, (int) StateColor::Disabled),
+        std::make_pair(0x363636, (int) StateColor::Normal))
     , selector_border_color(std::make_pair(0x00AE42, (int) StateColor::Hovered),
         std::make_pair(*wxWHITE, (int) StateColor::Normal))
     , selector_background_color(std::make_pair(0xEDFAF2, (int) StateColor::Checked),
@@ -59,6 +60,7 @@ void DropDown::Create(wxWindow *parent, long style)
     state_handler.update_binds();
     if ((style & DD_NO_CHECK_ICON) == 0)
         check_bitmap = ScalableBitmap(this, "checked", 16);
+    arrow_bitmap = ScalableBitmap(this, "hms_arrow", 16);
     text_off = style & DD_NO_TEXT;
 
     // BBS set default font
@@ -189,11 +191,57 @@ void DropDown::paintNow()
 
 static wxSize GetBmpSize(wxBitmap & bmp)
 {
+    if (!bmp.IsOk())
+        return wxSize(0, 0);
 #ifdef __APPLE__
     return bmp.GetScaledSize();
 #else
     return bmp.GetSize();
 #endif
+}
+
+static void _DrawSplitItem(const wxWindow* w, wxDC& dc, wxString split_text, wxPoint start_pt, int item_width, int item_height)
+{
+    // save dc
+    auto pre_clr = dc.GetTextForeground();
+    auto pre_pen = dc.GetPen();
+    dc.SetTextForeground(wxColour(172, 172, 172));//GRAY 500
+    dc.SetPen(wxColour(166, 169, 170));//GRAY 400
+    // miner font
+    auto font = w->GetFont();
+    font.SetPointSize(font.GetPointSize() - 3);
+    dc.SetFont(font);
+
+    int spacing = w->FromDIP(8);
+
+    if (!split_text.empty())// Paiting: text + spacing + line + spacing
+    {
+        int max_content_width = item_width - start_pt.x - 2 * spacing;
+        wxSize tSize = dc.GetMultiLineTextExtent(split_text);
+        if (tSize.x > max_content_width)
+        {
+            split_text = wxControl::Ellipsize(split_text, dc, wxELLIPSIZE_END, max_content_width);
+            tSize = dc.GetMultiLineTextExtent(split_text);
+        }
+
+        dc.SetFont(font);
+        dc.DrawText(split_text, start_pt);
+
+        int line_width = item_width - start_pt.x - tSize.x - 2 * spacing;
+        int line_y = start_pt.y + (tSize.GetHeight() / 2);
+        dc.DrawLine(start_pt.x + tSize.x + spacing, line_y, start_pt.x + tSize.x + line_width + spacing, line_y);// draw right line
+    }
+    else// Paiting: line + spacing
+    {
+        int line_y = start_pt.y + (item_height / 2);
+        int line_width = item_width - start_pt.x - spacing;
+        dc.DrawLine(start_pt.x, line_y, start_pt.x + line_width, line_y);// draw line
+    }
+
+    // restore dc
+    dc.SetTextForeground(pre_clr);
+    dc.SetPen(pre_pen);
+    dc.SetFont(w->GetFont());
 }
 
 /*
@@ -220,10 +268,11 @@ void DropDown::render(wxDC &dc)
         dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
 
     int selected_item = selectedItem();
+    int hover_index   = hoverIndex();
 
     // draw hover rectangle
     wxRect rcContent = {{0, offset.y}, rowSize};
-    if (hover_item >= 0 && (states & StateColor::Hovered)) {
+    if (hover_item >= 0 && (states & StateColor::Hovered) && (hover_index < 0 || !(items[hover_index].style & DD_ITEM_STYLE_SPLIT_ITEM))) {
         rcContent.y += rowSize.y * hover_item;
         if (rcContent.GetBottom() > 0 && rcContent.y < size.y) {
             if (selected_item == hover_item)
@@ -282,22 +331,35 @@ void DropDown::render(wxDC &dc)
 
     std::set<wxString> groups;
     // draw texts & icons
-    dc.SetTextForeground(text_color.colorForStates(states));
     int index = 0;
     for (int i = 0; i < items.size(); ++i) {
         auto &item = items[i];
+        int states2 = states;
+        if ((item.style & DD_ITEM_STYLE_DISABLED) != 0)
+            states2 &= ~StateColor::Enabled;
         // Skip by group
         if (group.IsEmpty()) {
             if (!item.group.IsEmpty()) {
-                if (groups.find(item.group) == groups.end())
-                    groups.insert(item.group);
-                else
+                if (groups.find(item.group) != groups.end())
                     continue;
+                groups.insert(item.group);
+                if (!item.group.IsEmpty()) {
+                    bool disabled = true;
+                    for (int j = i + 1; j < items.size(); ++j) {
+                        if (items[i].group != item.group && (items[j].style & DD_ITEM_STYLE_DISABLED) == 0) {
+                            disabled = false;
+                            break;
+                        }
+                    }
+                    if (!disabled)
+                        states2 |= StateColor::Enabled;
+                }
             }
         } else {
             if (item.group != group)
                 continue;
         }
+        bool is_hover = index == hover_item;
         ++index;
         if (rcContent.GetBottom() < 0) {
             rcContent.y += rowSize.y;
@@ -305,6 +367,13 @@ void DropDown::render(wxDC &dc)
         }
         if (rcContent.y > size.y) break;
         wxPoint pt   = rcContent.GetLeftTop();
+
+        if (item.style & DD_ITEM_STYLE_SPLIT_ITEM) {
+            _DrawSplitItem(this, dc, item.text, pt, rowSize.GetWidth(), rowSize.GetHeight());
+            rcContent.y += rowSize.GetHeight();
+            continue;
+        }
+
         auto &  icon  = item.icon;
         auto size2 = GetBmpSize(icon);
         if (iconSize.x > 0) {
@@ -322,18 +391,25 @@ void DropDown::render(wxDC &dc)
         }
         auto text = group.IsEmpty()
                         ? (item.group.IsEmpty() ? item.text : item.group)
-                        : item.text.substr(group.size()).Trim(false);
+                        : (item.text.StartsWith(group) && !group.EndsWith(' ') ? item.text.substr(group.size()).Trim(false) : item.text);
         if (!text_off && !text.IsEmpty()) {
             wxSize tSize = dc.GetMultiLineTextExtent(text);
             if (pt.x + tSize.x > rcContent.GetRight()) {
-                if (index == hover_item && item.tip.IsEmpty())
+                if (is_hover && item.tip.IsEmpty())
                     SetToolTip(text);
                 text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END,
                                             rcContent.GetRight() - pt.x);
             }
             pt.y += (rcContent.height - textSize.y) / 2;
             dc.SetFont(GetFont());
+            dc.SetTextForeground(text_color.colorForStates(states2));
             dc.DrawText(text, pt);
+            if (group.IsEmpty() && !item.group.IsEmpty()) {
+                auto szBmp = arrow_bitmap.GetBmpSize();
+                pt.x = rcContent.GetRight() - szBmp.x - 5;
+                pt.y = rcContent.y + (rcContent.height - szBmp.y) / 2;
+                dc.DrawBitmap(arrow_bitmap.bmp(), pt);
+            }
         }
         rcContent.y += rowSize.y;
     }
@@ -406,6 +482,7 @@ void DropDown::messureSize()
     iconSize = wxSize();
     count = 0;
     wxClientDC dc(GetParent() ? GetParent() : this);
+    dc.SetFont(GetFont());
     std::set<wxString> groups;
     for (size_t i = 0; i < items.size(); ++i) {
         auto &item = items[i];
@@ -426,8 +503,10 @@ void DropDown::messureSize()
         if (!text_off) {
             auto text = group.IsEmpty()
                         ? (item.group.IsEmpty() ? item.text : item.group)
-                        : item.text.substr(group.size()).Trim(false);
+                        : (item.text.StartsWith(group) && !group.EndsWith(' ') ? item.text.substr(group.size()).Trim(false) : item.text);
             size1 = dc.GetMultiLineTextExtent(text);
+            if (group.IsEmpty() && !item.group.IsEmpty())
+                size1.x += 5 + arrow_bitmap.GetBmpWidth();
         }
         if (item.icon.IsOk()) {
             wxSize size2 = GetBmpSize(item.icon);
@@ -441,6 +520,8 @@ void DropDown::messureSize()
     }
     if (!align_icon) iconSize.x = 0;
     wxSize szContent = textSize;
+    if (szContent.x < FromDIP(120))
+        szContent.x = FromDIP(120);
     szContent.x += 10;
     if (check_bitmap.bmp().IsOk()) {
         auto szBmp = check_bitmap.GetBmpSize();
@@ -554,10 +635,15 @@ void DropDown::mouseReleased(wxMouseEvent& event)
         pressedDown = false;
         if (HasCapture())
             ReleaseMouse();
-        if (hover_item >= 0) { // not moved
+        if (hover_item < 0)
+            return;
+        if (hover_item >= 0 && (subDropDown == nullptr || subDropDown->group.empty())) { // not moved
             sendDropDownEvent();
+            if (mainDropDown)
+                mainDropDown->hover_item = -1; // To Dismiss mainDropDown
             DismissAndNotify();
-        }
+        } else if (subDropDown)
+            subDropDown->Popup(subDropDown);
     }
 }
 
@@ -614,6 +700,7 @@ void DropDown::mouseMove(wxMouseEvent &event)
                 drop.Popup(&drop);
         } else if (index >= 0) {
             if (subDropDown) {
+                subDropDown->group.clear();
                 if (subDropDown->IsShown())
                     subDropDown->Dismiss();
             }
@@ -641,7 +728,8 @@ void DropDown::mouseWheelMoved(wxMouseEvent &event)
     if (hover >= (int) count) hover = -1;
     if (hover != hover_item) {
         hover_item = hover;
-        if (hover >= 0) SetToolTip(items[hover].tip);
+        if (auto index = hoverIndex(); index >= 0)
+            SetToolTip(items[index].tip);
     }
     paintNow();
 }
@@ -650,7 +738,7 @@ void DropDown::mouseWheelMoved(wxMouseEvent &event)
 void DropDown::sendDropDownEvent()
 {
     int index = hoverIndex();
-    if (index < 0)
+    if (index < 0 || (items[index].style & DD_ITEM_STYLE_DISABLED))
         return;
     wxCommandEvent event(wxEVT_COMBOBOX, GetId());
     event.SetEventObject(this);
@@ -669,7 +757,9 @@ void DropDown::Dismiss()
 void DropDown::OnDismiss()
 {
     if (mainDropDown) {
-        if (mainDropDown->hover_item < 0)
+
+        const wxPoint& mouse_pos = wxGetMousePosition();
+        if (!mainDropDown->GetScreenRect().Contains(mouse_pos))
             mainDropDown->DismissAndNotify();
         else
 #ifdef __WIN32__

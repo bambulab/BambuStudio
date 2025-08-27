@@ -358,6 +358,7 @@ public:
     bool is_from_single_object() const;
     bool is_sla_compliant() const;
     bool is_instance_mode() const { return m_mode == Instance; }
+    bool has_emboss_shape() const;
 
     bool contains_volume(unsigned int volume_idx) const { return m_list.find(volume_idx) != m_list.end(); }
     // returns true if the selection contains all the given indices
@@ -380,7 +381,8 @@ public:
     const IndicesList& get_volume_idxs() const { return m_list; }
     const GLVolume* get_volume(unsigned int volume_idx) const;
     GLVolume*      get_volume(unsigned int volume_idx);
-    const GLVolume* get_first_volume() const { return get_volume(*m_list.begin()); }
+    const GLVolume* get_volume_by_object_volumn_id(unsigned int volume_id) const;
+    const GLVolume* get_first_volume() const;
     const ObjectIdxsToInstanceIdxsMap& get_content() const { return m_cache.content; }
 
     unsigned int volumes_count() const { return (unsigned int)m_list.size(); }

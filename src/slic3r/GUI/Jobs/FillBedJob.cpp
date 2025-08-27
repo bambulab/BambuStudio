@@ -120,10 +120,11 @@ void FillBedJob::prepare()
 
     if (m_selected.empty()) return;
 
+    bool enable_wrapping = global_config.option<ConfigOptionBool>("enable_wrapping_detection")->value;
     //add the virtual object into unselect list if has
     double scaled_exclusion_gap = scale_(1);
-    plate_list.preprocess_exclude_areas(params.excluded_regions, 1, scaled_exclusion_gap);
-    plate_list.preprocess_exclude_areas(m_unselected);
+    plate_list.preprocess_exclude_areas(params.excluded_regions, enable_wrapping, 1, scaled_exclusion_gap);
+    plate_list.preprocess_exclude_areas(m_unselected, enable_wrapping);
 
     m_bedpts = get_bed_shape(global_config);
 
@@ -208,7 +209,7 @@ void FillBedJob::process()
     auto &partplate_list               = m_plater->get_partplate_list();
     if (params.avoid_extrusion_cali_region && global_config.opt_bool("scan_first_layer"))
         partplate_list.preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
-    
+
     update_selected_items_inflation(m_selected, global_config, params);
     update_unselected_items_inflation(m_unselected, global_config, params);
 
@@ -230,11 +231,16 @@ void FillBedJob::process()
 
     if (m_selected.size() > 100){
         // too many items, just find grid empty cells to put them
-        Vec2f step = unscaled<float>(get_extents(m_selected.front().poly).size()) + Vec2f(m_selected.front().brim_width, m_selected.front().brim_width);
+        Vec2f step = unscaled<float>(get_extents(m_selected.front().poly).size()) + 2 * Vec2f(m_selected.front().brim_width, m_selected.front().brim_width);
+
+        // calc the polygon position offset based on origin, in order to normalize the initial position of the arrange polygon
+        auto offset_on_origin = m_selected.front().poly.contour.bounding_box().center();
+
         std::vector<Vec2f> empty_cells = Plater::get_empty_cells(step);
         size_t n=std::min(m_selected.size(), empty_cells.size());
         for (size_t i = 0; i < n; i++) {
             m_selected[i].translation = scaled<coord_t>(empty_cells[i]);
+            m_selected[i].translation -= offset_on_origin;
             m_selected[i].bed_idx= 0;
         }
         for (size_t i = n; i < m_selected.size(); i++) {

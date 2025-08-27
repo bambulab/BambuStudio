@@ -622,6 +622,12 @@ namespace ImGui
     IMGUI_API bool          Selectable(const char* label, bool selected = false, ImGuiSelectableFlags flags = 0, const ImVec2& size = ImVec2(0, 0)); // "bool selected" carry the selection state (read-only). Selectable() is clicked is returns true so you can modify your selection state. size.x==0.0: use remaining width, size.x>0.0: specify width. size.y==0.0: use label height, size.y>0.0: specify height
     IMGUI_API bool          BBLImageSelectable(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& font_size, int font_line, const ImVec4& tint_col, const ImVec2& uv0, const ImVec2& uv1, bool selected = false);
     IMGUI_API bool          BBLSelectable(const char* label, bool selected = false, ImGuiSelectableFlags flags = 0, const ImVec2& size = ImVec2(0, 0)); // "bool selected" carry the selection state (read-only). Selectable() is clicked is returns true so you can modify your selection state. size.x==0.0: use remaining width, size.x>0.0: specify width. size.y==0.0: use label height, size.y>0.0: specify height
+    IMGUI_API bool BBLSelectable_LeftImage(
+        const char *         label,
+        bool                 selected = false,
+         ImTextureID  texture_id =nullptr,
+        ImGuiSelectableFlags flags    = 0,
+        const ImVec2 &size = ImVec2(0, 0));
     IMGUI_API bool          Selectable(const char* label, bool* p_selected, ImGuiSelectableFlags flags = 0, const ImVec2& size = ImVec2(0, 0));      // "bool* p_selected" point to the selection state (read-write), as a convenient helper.
 
     // Widgets: List Boxes

@@ -56,10 +56,8 @@ static ModelVolume* get_model_volume(const Selection& selection, Model& model)
     return obj->volumes[cid.volume_id];
 }
 
-GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D &       parent,
-                                 const std::string &icon_filename,
-                                 unsigned int       sprite_id)
-    : GLGizmoBase(parent, icon_filename, -1)
+GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D & parent, unsigned int sprite_id)
+    : GLGizmoBase(parent, sprite_id)
     , m_volume(nullptr)
     , m_show_wireframe(false)
     , m_move_to_center(false)
@@ -135,6 +133,11 @@ void GLGizmoSimplify::add_simplify_suggestion_notification(
         manager.push_simplify_suggestion_notification(
             t, objects[object_id]->id(), hypertext, open_simplify);
     }
+}
+
+std::string GLGizmoSimplify::get_icon_filename(bool is_dark_mode) const
+{
+    return "reduce_triangles.svg";
 }
 
 std::string GLGizmoSimplify::on_get_name() const
@@ -630,8 +633,15 @@ void GLGizmoSimplify::init_model(const indexed_triangle_set& its)
     m_glmodel.reset();
     m_glmodel.init_from(its);
     m_parent.toggle_model_objects_visibility(true); // selected volume may have changed
-    m_parent.toggle_model_objects_visibility(false, m_c->selection_info()->model_object(),
-        m_c->selection_info()->get_active_instance(), m_volume);
+    if (m_c) {
+        const auto& p_selection_info = m_c->selection_info();
+        if (p_selection_info) {
+            const auto& p_model_object = p_selection_info->model_object();
+            const auto& active_instance = p_selection_info->get_active_instance();
+            m_parent.toggle_model_objects_visibility(false, p_model_object,
+                active_instance, m_volume);
+        }
+    }
 
     if (const Selection&sel = m_parent.get_selection(); sel.get_volume_idxs().size() == 1)
         m_glmodel.set_color(-1, sel.get_volume(*sel.get_volume_idxs().begin())->color);

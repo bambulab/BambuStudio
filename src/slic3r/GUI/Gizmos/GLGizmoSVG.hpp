@@ -35,7 +35,7 @@ public:
     void        on_set_hover_id() override { m_rotate_gizmo.set_hover_id(m_hover_id); }
     void        on_enable_grabber(unsigned int id) override;
     void        on_disable_grabber(unsigned int id) override;
-
+    bool        wants_enter_leave_snapshots() const override { return true; }
      /// <summary>
     /// Create new text without given position
     /// </summary>
@@ -63,11 +63,13 @@ public:
     void register_single_mesh_pick();
 
     void update_single_mesh_pick(GLVolume *v);
-    bool gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_position, bool shift_down, bool alt_down, bool control_down);
+    bool gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_position, bool shift_down, bool alt_down, bool control_down) override;
     BoundingBoxf3 get_bounding_box() const override;
 
+    std::string get_icon_filename(bool is_dark_mode) const override;
+
 protected:
-    bool on_is_selectable() const override { return false; }
+    bool on_is_selectable() const override;
     virtual bool on_init() override;
     virtual std::string on_get_name() const override;
     std::string on_get_name_str() override { return "Move"; }

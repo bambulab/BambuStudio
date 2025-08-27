@@ -4,6 +4,7 @@
 #include "nlohmann/json.hpp"
 #include "MainFrame.hpp"
 #include "GUI_App.hpp"
+#include "BBLUtil.hpp"
 
 using namespace nlohmann;
 
@@ -98,7 +99,7 @@ TaskStateInfo::TaskStateInfo(BBL::PrintParams param)
                 95,    // PrintingStageFinished
                 100    // PrintingStageFinished
         };
-        BOOST_LOG_TRIVIAL(trace) << "task_manager: update task, " << m_params.dev_id << ", stage = " << stage << "code = " << code;
+        BOOST_LOG_TRIVIAL(trace) << "task_manager: update task, " << BBLCrossTalk::Crosstalk_DevId(m_params.dev_id) << ", stage = " << stage << "code = " << code;
         // update current percnet
         int curr_percent = 0;
         if (stage >= 0 && stage <= (int)PrintingStageFinished) {
@@ -210,7 +211,7 @@ int TaskManager::schedule(TaskStateInfo* task)
     assert(task->state() == TaskState::TS_PENDING);
     task->set_state(TaskState::TS_SENDING);
 
-    BOOST_LOG_TRIVIAL(trace) << "task_manager: schedule a task to dev_id = " << task->params().dev_id;
+    BOOST_LOG_TRIVIAL(trace) << "task_manager: schedule a task to dev_id = " << BBLCrossTalk::Crosstalk_DevId(task->params().dev_id);
     boost::thread* new_sending_thread = new boost::thread();
     *new_sending_thread = Slic3r::create_thread(
         [this, task] {
@@ -237,7 +238,7 @@ int TaskManager::schedule(TaskStateInfo* task)
                     task->set_state(TaskState::TS_SEND_CANCELED);
                 }
             }
-     
+
             /* remove from sending task list */
             m_scedule_mutex.lock();
             auto it = std::find(m_scedule_list.begin(), m_scedule_list.end(), task);
@@ -326,7 +327,11 @@ std::map<std::string, TaskStateInfo> TaskManager::get_task_list(int curr_page, i
         task_query_params.offset = curr_page * page_count;
         std::string task_info;
         int result = m_agent->get_user_tasks(task_query_params, &task_info);
+
+#if !BBL_RELEASE_TO_PUBLIC
         BOOST_LOG_TRIVIAL(trace) << "task_manager: get_task_list task_info=" << task_info;
+#endif
+
         if (result == 0) {
             try {
                 json j = json::parse(task_info);

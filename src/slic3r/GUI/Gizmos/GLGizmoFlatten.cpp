@@ -17,8 +17,8 @@ namespace Slic3r {
 namespace GUI {
 
 
-GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-    : GLGizmoBase(parent, icon_filename, sprite_id)
+GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoBase(parent, sprite_id)
     , m_normal(Vec3d::Zero())
     , m_starting_center(Vec3d::Zero())
 {
@@ -39,7 +39,7 @@ void GLGizmoFlatten::on_set_state()
 
 CommonGizmosDataID GLGizmoFlatten::on_get_requirements() const
 {
-    return CommonGizmosDataID(int(CommonGizmosDataID::SelectionInfo) | int(CommonGizmosDataID::InstancesHider) | int(CommonGizmosDataID::Raycaster) |
+    return CommonGizmosDataID(int(CommonGizmosDataID::SelectionInfo) | int(CommonGizmosDataID::Raycaster)|
                               int(CommonGizmosDataID::ObjectClipper));
 }
 
@@ -215,19 +215,20 @@ void GLGizmoFlatten::on_render()
                     if (m_last_hit_facet != m_hit_facet) {
                         m_last_hit_facet = m_hit_facet;
                         m_one_tri_model.reset();
-                        auto  mv         = mo->volumes[m_rr.mesh_id];
-                        auto  world_tran = (mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix() * mv->get_matrix()).cast<float>();
-                        auto &vertices   = mv->mesh().its.vertices;
-                        auto &cur_faces   = mv->mesh().its.indices;
+                        const auto&  mv         = mo->volumes[m_rr.mesh_id];
+                        const auto  world_tran = (mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix() * mv->get_matrix()).cast<float>();
+                        const auto& vertices   = mv->mesh().its.vertices;
+                        const auto& cur_faces   = mv->mesh().its.indices;
                         if (m_hit_facet < cur_faces.size()) {
-                            auto                 v0 = world_tran * vertices[cur_faces[m_hit_facet][0]] + m_rr.normal * 0.05;
-                            auto                 v1 = world_tran * vertices[cur_faces[m_hit_facet][1]] + m_rr.normal * 0.05;
-                            auto                 v2 = world_tran * vertices[cur_faces[m_hit_facet][2]] + m_rr.normal * 0.05;
                             indexed_triangle_set temp_its;
-                            temp_its.indices.push_back({0, 1, 2});
-                            temp_its.vertices.push_back(v0);
-                            temp_its.vertices.push_back(v1);
-                            temp_its.vertices.push_back(v2);
+                            const auto normal_bias = m_rr.normal * 0.05f;
+                            for (int i = 0; i < 3; ++i) {
+                                const auto& mesh_v = vertices[cur_faces[m_hit_facet][i]];
+                                auto v = world_tran * Vec4f(mesh_v[0], mesh_v[1], mesh_v[2], 1.0f);
+                                v /= (abs(v[3]) > 1e-6f ? v[3] : 1e-6f);
+                                temp_its.vertices.push_back({ v[0] + normal_bias[0], v[1] + normal_bias[1], v[2] + normal_bias[2] });
+                            }
+                            temp_its.indices.push_back({ 0, 1, 2 });
                             m_one_tri_model.init_from(temp_its);
                         }
                     }
@@ -290,15 +291,6 @@ void GLGizmoFlatten::on_render_for_picking()
 
     wxGetApp().unbind_shader();
     glsafe(::glEnable(GL_CULL_FACE));
-}
-
-void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
-{
-    m_starting_center = Vec3d::Zero();
-    if (model_object != m_old_model_object) {
-        m_planes.clear();
-        m_planes_valid = false;
-    }
 }
 
 void GLGizmoFlatten::update_planes()
@@ -532,7 +524,7 @@ void GLGizmoFlatten::update_planes()
     m_first_instance_scale = mo->instances.front()->get_scaling_factor();
     m_first_instance_mirror = mo->instances.front()->get_mirror();
     m_old_model_object = mo;
-
+    m_old_instance_id  = m_c->selection_info()->get_active_instance();
     // And finally create respective VBOs. The polygon is convex with
     // the vertices in order, so triangulation is trivial.
     for (auto& plane : m_planes) {
@@ -581,6 +573,27 @@ Vec3d GLGizmoFlatten::get_flattening_normal() const
     m_normal = Vec3d::Zero();
     m_starting_center = Vec3d::Zero();
     return out;
+}
+
+void GLGizmoFlatten::data_changed(bool is_serializing)
+{
+    const Selection &  selection    = m_parent.get_selection();
+    const ModelObject *model_object = nullptr;
+    int                instance_id  = -1;
+    if (selection.is_single_full_instance() || selection.is_from_single_object()) {
+        model_object = selection.get_model()->objects[selection.get_object_idx()];
+        instance_id  = selection.get_instance_idx();
+    }
+    m_starting_center = Vec3d::Zero();
+    if (model_object != m_old_model_object || instance_id != m_old_instance_id) {
+        m_planes.clear();
+        m_planes_valid = false;
+    }
+}
+
+std::string GLGizmoFlatten::get_icon_filename(bool b_dark_mode) const
+{
+    return b_dark_mode ? "toolbar_flatten_dark.svg" : "toolbar_flatten.svg";
 }
 
 } // namespace GUI

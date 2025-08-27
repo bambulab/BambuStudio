@@ -18,7 +18,6 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
-#include <boost/timer.hpp>
 
 static const float GROUND_Z = -0.04f;
 static const std::array<float, 4> DEFAULT_MODEL_COLOR = { 0.3255f, 0.337f, 0.337f, 1.0f };
@@ -269,16 +268,7 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
     //BBS: add part plate logic
 
     //BBS add default bed
-#if 1
-    ExPolygon poly{ Polygon::new_scale(printable_area) };
-#else
-    ExPolygon poly;
-    for (const Vec2d& p : printable_area) {
-        poly.contour.append(Point(scale_(p(0) + m_position.x()), scale_(p(1) + m_position.y())));
-    }
-#endif
-
-    calc_triangles(poly);
+    m_triangles.reset();
 
     //no need gridline for 3dbed
     //const BoundingBox& bed_bbox = poly.contour.bounding_box();
@@ -705,6 +695,9 @@ void Bed3D::render_model() const
             const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
             shader->set_uniform("view_normal_matrix", view_normal_matrix);
             if (m_build_volume.get_extruder_area_count() > 0) {
+                auto printable_area = m_build_volume.printable_area();
+                std::array<float, 4> full_print_volume = {(float)printable_area[0].x(), (float)printable_area[0].y(), (float)printable_area[2].x(), (float)printable_area[2].y()};
+                shader->set_uniform("full_print_volume", full_print_volume);
                 const BuildVolume::BuildSharedVolume& shared_volume = m_build_volume.get_shared_volume();
                 std::array<float, 4>       xy_data       = shared_volume.data;
                 shader->set_uniform("print_volume.type", shared_volume.type);

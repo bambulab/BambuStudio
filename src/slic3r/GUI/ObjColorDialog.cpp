@@ -22,6 +22,7 @@ using namespace Slic3r::GUI;
 int objcolor_scale(const int val) { return val * Slic3r::GUI::wxGetApp().em_unit() / 10; }
 int OBJCOLOR_ITEM_WIDTH() { return objcolor_scale(30); }
 static const wxColour g_text_color = wxColour(107, 107, 107, 255);
+static const wxColour g_undefined_color_in_obj   = wxColour(0, 255, 0, 255);
 const int HEADER_BORDER  = 5;
 const int CONTENT_BORDER = 3;
 const int PANEL_WIDTH = 400;
@@ -149,6 +150,14 @@ void ObjColorDialog::on_dpi_changed(const wxRect &suggested_rect)
 void ObjColorDialog::update_layout() {
     m_main_sizer->Layout();
     SetSizerAndFit(m_main_sizer);
+}
+
+bool ObjColorDialog::Show(bool show) {
+    if (m_panel_ObjColor->do_show(show)) {
+        return DPIDialog::Show(true);
+    } else {
+        return DPIDialog::Show(false);
+    }
 };
 
 ObjColorDialog::ObjColorDialog(wxWindow *parent, Slic3r::ObjDialogInOut &in_out, const std::vector<std::string> &extruder_colours)
@@ -191,7 +200,7 @@ ObjColorDialog::ObjColorDialog(wxWindow *parent, Slic3r::ObjDialogInOut &in_out,
     else {
         wxBoxSizer *  error_mtl_sizer       = new wxBoxSizer(wxVERTICAL);
 
-        wxStaticText *error_mtl_title       = new wxStaticText(this, wxID_ANY, _L("Some faces not define color."));
+        wxStaticText *error_mtl_title       = new wxStaticText(this, wxID_ANY, _L("Some faces don't have color defined."));
         if (!in_out.lost_material_name.empty()) {
             error_mtl_title->SetLabel(_L("mtl file exist error,could not find the material:") + " " + in_out.lost_material_name + ".");
         }
@@ -227,6 +236,7 @@ ObjColorDialog::ObjColorDialog(wxWindow *parent, Slic3r::ObjDialogInOut &in_out,
                   EndModal(wxCANCEL);
                   return;
               }
+              m_panel_ObjColor->clear_instance_and_revert_offset();
               m_panel_ObjColor->send_new_filament_to_ui();
               EndModal(wxID_OK);
             }, wxID_OK);
@@ -278,6 +288,7 @@ ObjColorPanel::ObjColorPanel(wxWindow *parent, Slic3r::ObjDialogInOut &in_out, c
             m_cluster_labels_from_algo.emplace_back(0);
         }
         m_cluster_map_filaments.resize(m_cluster_colors_from_algo.size());
+        m_new_add_colors.resize(m_cluster_map_filaments.size());
         m_color_num_recommend = m_color_cluster_num_by_algo = m_cluster_colors_from_algo.size();
     } else {//cluster deal
         deal_algo(-1);
@@ -343,41 +354,51 @@ ObjColorPanel::ObjColorPanel(wxWindow *parent, Slic3r::ObjDialogInOut &in_out, c
 
         m_sizer_simple->Add(specify_cluster_sizer, 0, wxEXPAND | wxLEFT, FromDIP(20));
         {//add combox
-            wxStaticText *combox_title = new wxStaticText(m_page_simple, wxID_ANY, _L("view"), wxPoint(FromDIP(216), FromDIP(312)));
-            //combox_title->SetTransparent(true);
-            combox_title->SetBackgroundColour(wxColour(240,240,240,0));
-            combox_title->SetForegroundColour(wxColour(107, 107, 107, 100));
-            auto cur_combox       = new ComboBox(m_page_simple, wxID_ANY, wxEmptyString, wxPoint(FromDIP(250), FromDIP(310)), wxSize(FromDIP(100), -1), 0, NULL, wxCB_READONLY);
-            wxArrayString choices    = get_all_camera_view_type();
-            for (size_t i = 0; i < choices.size(); i++) { cur_combox->Append(choices[i]); }
-            cur_combox->SetSelection(0);
-            cur_combox->Bind(wxEVT_COMBOBOX, [this](auto &e) {
-                set_view_angle_type(e.GetSelection());
-                Layout();
-                Fit();
-            });
-            //combox_sizer->Add(cur_combox, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL | wxEXPAND | wxALL, FromDIP(2));
-            // add image
-            wxImage image(IMAGE_SIZE_WIDTH, IMAGE_SIZE_WIDTH);
-            image.InitAlpha();
-            for (unsigned int r = 0; r < IMAGE_SIZE_WIDTH; ++r) {
-                for (unsigned int c = 0; c < IMAGE_SIZE_WIDTH; ++c) {
-                    image.SetRGB((int) c, (int) r, 0, 255, 0);
-                    image.SetAlpha((int) c, (int) r, 255);
+            auto      icon_sizer     = new wxBoxSizer(wxHORIZONTAL);
+            auto plater     = wxGetApp().plater();
+            {
+                auto mo = m_obj_in_out.model->objects[0];
+                mo->add_instance();
+                auto mv  = mo->volumes[0];
+                m_thumbnail_offset = Slic3r::Vec3d::Zero();
+                auto box = mo->bounding_box();
+                if (box.min.x() < 0 || box.min.y() < 0 || box.min.z() < 0) {
+                    m_thumbnail_offset = Slic3r::Vec3d(box.min.x() < 0 ? -box.min.x() : 0, box.min.y() < 0 ? -box.min.y() : 0, box.min.z() < 0 ? -box.min.z() : 0);
+                    mv->translate(m_thumbnail_offset);
                 }
             }
-            auto      icon_sizer     = new wxBoxSizer(wxHORIZONTAL);
-            m_image_button  = new wxButton(m_page_simple, wxID_ANY, {}, wxDefaultPosition, wxSize(FromDIP(IMAGE_SIZE_WIDTH), FromDIP(IMAGE_SIZE_WIDTH)),
-                                          wxBORDER_NONE | wxBU_AUTODRAW);
-            m_image_button->SetBitmap(image);
-            m_image_button->SetCanFocus(false);
-            icon_sizer->Add(m_image_button, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL | wxEXPAND | wxALL,
-                            FromDIP(0)); // wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL | wxEXPAND | wxALL
+
+                wxStaticText *combox_title = new wxStaticText(m_page_simple, wxID_ANY, _L("view"), wxPoint(FromDIP(216), FromDIP(312)));
+                // combox_title->SetTransparent(true);
+                combox_title->SetBackgroundColour(wxColour(240, 240, 240, 0));
+                combox_title->SetForegroundColour(wxColour(107, 107, 107, 100));
+                auto cur_combox = new ComboBox(m_page_simple, wxID_ANY, wxEmptyString, wxPoint(FromDIP(250), FromDIP(310)), wxSize(FromDIP(100), -1), 0, NULL, wxCB_READONLY);
+                wxArrayString choices = get_all_camera_view_type();
+                for (size_t i = 0; i < choices.size(); i++) { cur_combox->Append(choices[i]); }
+                cur_combox->SetSelection(0);
+                cur_combox->Bind(wxEVT_COMBOBOX, [this](auto &e) {
+                    set_view_angle_type(e.GetSelection());
+                    Layout();
+                    Fit();
+                });
+                // add image
+                wxImage image(IMAGE_SIZE_WIDTH, IMAGE_SIZE_WIDTH);
+                image.InitAlpha();
+                for (unsigned int r = 0; r < IMAGE_SIZE_WIDTH; ++r) {
+                    for (unsigned int c = 0; c < IMAGE_SIZE_WIDTH; ++c) {
+                        image.SetRGB((int) c, (int) r, 0, 255, 0);
+                        image.SetAlpha((int) c, (int) r, 255);
+                    }
+                }
+                m_image_button = new wxButton(m_page_simple, wxID_ANY, {}, wxDefaultPosition, wxSize(FromDIP(IMAGE_SIZE_WIDTH), FromDIP(IMAGE_SIZE_WIDTH)),
+                                              wxBORDER_NONE | wxBU_AUTODRAW);
+                m_image_button->SetBitmap(image);
+                m_image_button->SetCanFocus(false);
+                icon_sizer->Add(m_image_button, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL | wxEXPAND | wxALL,
+                                FromDIP(0)); // wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL | wxEXPAND | wxALL
+                cur_combox->Raise();//for mac
 
             m_sizer_simple->Add(icon_sizer, FromDIP(0), wxALIGN_CENTER | wxALL, FromDIP(0));
-            //{//choose camera view angle type
-            //    //m_sizer_simple->Add(combox_sizer, FromDIP(0), wxALIGN_CENTER | wxALL, FromDIP(2));
-            //}
         }
         wxBoxSizer *  current_filaments_title_sizer  = new wxBoxSizer(wxHORIZONTAL);
         wxStaticText *current_filaments_title = new wxStaticText(m_page_simple, wxID_ANY, _L("Current filament colors"));
@@ -502,6 +523,7 @@ void ObjColorPanel::cancel_paint_color() {
     m_filament_ids.clear();
     auto mo = m_obj_in_out.model->objects[0];
     mo->config.set("extruder", 1);
+    clear_instance_and_revert_offset();
     auto mv = mo->volumes[0];
     mv->mmu_segmentation_facets.reset();
     mv->config.set("extruder", 1);
@@ -515,7 +537,7 @@ void ObjColorPanel::update_filament_ids()
    m_filament_ids.reserve(m_input_colors_size);
    for (size_t i = 0; i < m_input_colors_size; i++) {
        auto label = m_cluster_labels_from_algo[i];
-       if (m_cluster_map_filaments[label] > 0) { 
+       if (m_cluster_map_filaments[label] > 0) {
            m_filament_ids.emplace_back(m_cluster_map_filaments[label]);
        } else {
            m_filament_ids.emplace_back(1);//min filament_id is 1
@@ -555,6 +577,7 @@ wxBoxSizer *ObjColorPanel::create_approximate_match_btn_sizer(wxWindow *parent)
     btn_sizer->Add(cur_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 0);
     cur_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) {
         deal_approximate_match_btn();
+        deal_thumbnail();
     });
     return btn_sizer;
 }
@@ -580,6 +603,7 @@ wxBoxSizer *ObjColorPanel::create_add_btn_sizer(wxWindow *parent)
     btn_sizer->Add(cur_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 0);
     cur_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) {
         deal_add_btn();
+        deal_thumbnail();
     });
     return btn_sizer;
 }
@@ -605,6 +629,7 @@ wxBoxSizer *ObjColorPanel::create_reset_btn_sizer(wxWindow *parent)
     btn_sizer->Add(cur_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 0);
     cur_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) {
         deal_reset_btn();
+        deal_thumbnail();
     });
     return btn_sizer;
 }
@@ -638,8 +663,8 @@ ComboBox *ObjColorPanel::CreateEditorCtrl(wxWindow *parent, int id) // wxRect la
     const int               icon_height = lround(2 * em);
     m_combox_icon_width                 = icon_width;
     m_combox_icon_height                = icon_height;
-    wxColour undefined_color(0,255,0,255);
-    icons.insert(icons.begin(), get_extruder_color_icon(undefined_color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString(), std::to_string(-1), icon_width, icon_height));
+
+    icons.insert(icons.begin(), get_extruder_color_icon(g_undefined_color_in_obj.GetAsString(wxC2S_HTML_SYNTAX).ToStdString(), std::to_string(-1), icon_width, icon_height));
     if (icons.empty())
         return nullptr;
 
@@ -647,11 +672,11 @@ ComboBox *ObjColorPanel::CreateEditorCtrl(wxWindow *parent, int id) // wxRect la
                                           wxCB_READONLY | CB_NO_DROP_ICON | CB_NO_TEXT);
     c_editor->SetMinSize(wxSize(FromDIP(m_combox_width), -1));
     c_editor->SetMaxSize(wxSize(FromDIP(m_combox_width), -1));
-    c_editor->GetDropDown().SetUseContentWidth(true);
+    c_editor->GetDropDown().SetUseContentWidth(false);
     for (size_t i = 0; i < icons.size(); i++) {
         c_editor->Append(wxString::Format("%d", i), *icons[i]);
         if (i == 0) {
-            c_editor->SetItemTooltip(i,undefined_color.GetAsString(wxC2S_HTML_SYNTAX));
+            c_editor->SetItemTooltip(i, g_undefined_color_in_obj.GetAsString(wxC2S_HTML_SYNTAX));
         } else {
             c_editor->SetItemTooltip(i, m_colours[i-1].GetAsString(wxC2S_HTML_SYNTAX));
         }
@@ -663,11 +688,8 @@ ComboBox *ObjColorPanel::CreateEditorCtrl(wxWindow *parent, int id) // wxRect la
         int   i       = atoi(com_box->GetName().c_str());
         if (i < m_cluster_map_filaments.size()) {
             m_cluster_map_filaments[i] = com_box->GetSelection();
+            m_new_add_colors[i]        = com_box->GetItemTooltip(com_box->GetSelection());
             deal_thumbnail();
-            if (m_cluster_map_filaments[i] > m_max_filament_index) {
-                m_max_filament_index = m_cluster_map_filaments[i];
-                update_new_add_final_colors();
-            }
         }
         evt.StopPropagation();
     });
@@ -695,12 +717,9 @@ void ObjColorPanel::deal_approximate_match_btn()
             });
         auto new_index= color_dists[0].id;
         m_result_icon_list[i]->bitmap_combox->SetSelection(new_index);
+        m_new_add_colors[i]        = m_result_icon_list[i]->bitmap_combox->GetItemTooltip(new_index);
         m_cluster_map_filaments[i] = new_index;
-        if (new_index > m_max_filament_index) {
-            m_max_filament_index = new_index;
-        }
     }
-    update_new_add_final_colors();
 }
 
 void ObjColorPanel::show_sizer(wxSizer *sizer, bool show)
@@ -793,10 +812,27 @@ void ObjColorPanel::draw_new_table()
 void ObjColorPanel::update_new_add_final_colors()
 {
     m_new_add_final_colors = m_new_add_colors;
+    if (!m_cluster_map_filaments.empty()) {
+        m_max_filament_index = *std::max_element(m_cluster_map_filaments.begin(), m_cluster_map_filaments.end());
+    } else {
+        m_max_filament_index = 0;
+    }
+
     if (m_max_filament_index <= m_colours.size()) { // Fix 20240904
         m_new_add_final_colors.clear();
-    } else {
+    }
+    else {
         m_new_add_final_colors.resize(m_max_filament_index - m_colours.size());
+        for (int ii = m_colours.size() ; ii < m_max_filament_index; ii++) {
+            for (int j = 0; j < m_cluster_map_filaments.size(); j++) {
+                if (m_cluster_map_filaments[j] == (ii+ 1) && j < m_new_add_colors.size()) {
+                    auto index                = ii - m_colours.size();
+                    if (index < m_new_add_final_colors.size()) {
+                        m_new_add_final_colors[index] = m_new_add_colors[j];
+                    }
+                }
+            }
+        }
     }
     if (m_new_add_final_colors.size() > 0) {
         m_is_add_filament = true;
@@ -822,6 +858,7 @@ void ObjColorPanel::deal_algo(char cluster_number, bool redraw_ui)
         return;
     }
     m_cluster_map_filaments.resize(m_cluster_colors_from_algo.size());
+    m_new_add_colors.resize(m_cluster_map_filaments.size());
     m_color_cluster_num_by_algo = m_cluster_colors_from_algo.size();
     if (cluster_number == -1) {
         m_color_num_recommend = m_color_cluster_num_by_algo;
@@ -837,15 +874,16 @@ void ObjColorPanel::deal_algo(char cluster_number, bool redraw_ui)
 
 void ObjColorPanel::deal_default_strategy()
 {
-    deal_add_btn();
-    deal_approximate_match_btn();
+    bool is_exceed = deal_add_btn();
+    if (!is_exceed) {
+        deal_approximate_match_btn();
+    }
     m_warning_text->SetLabelText(_L("Note") + ": " + _L("The color has been selected, you can choose OK \n to continue or manually adjust it."));
 }
 
 void ObjColorPanel::deal_thumbnail() {
     update_filament_ids();
     // generate model volume
-    m_deal_thumbnail_flag= false;
     if (m_obj_in_out.deal_vertex_color) {
         if (m_obj_in_out.filament_ids.size() > 0) {
             m_deal_thumbnail_flag = Model::obj_import_vertex_color_deal(m_obj_in_out.filament_ids, m_obj_in_out.first_extruder_id, m_obj_in_out.model);
@@ -861,41 +899,36 @@ void ObjColorPanel::deal_thumbnail() {
 void ObjColorPanel::generate_thumbnail()
 {
     if (m_deal_thumbnail_flag && m_obj_in_out.model->objects.size() == 1) {
-        auto mo = m_obj_in_out.model->objects[0];
-        mo->add_instance();
         std::vector<std::array<float, 4>> colors = GUI::wxGetApp().plater()->get_extruders_colors();
-        for (size_t i = 0; i < m_new_add_final_colors.size(); i++) {
+        for (size_t i = 0; i < m_new_add_colors.size(); i++) {
             std::array<float, 4> temp_color;
-            temp_color[0] = m_new_add_final_colors[i].Red() /255.f;
-            temp_color[1] = m_new_add_final_colors[i].Green() / 255.f;
-            temp_color[2] = m_new_add_final_colors[i].Blue() / 255.f;
-            temp_color[3] = m_new_add_final_colors[i].Alpha() / 255.f;
+            temp_color[0] = m_new_add_colors[i].Red() / 255.f;
+            temp_color[1] = m_new_add_colors[i].Green() / 255.f;
+            temp_color[2] = m_new_add_colors[i].Blue() / 255.f;
+            temp_color[3] = m_new_add_colors[i].Alpha() / 255.f;
             colors.emplace_back(temp_color);
         }
-        auto mv = mo->volumes[0];
-        auto box = mo->bounding_box();
-        if (box.min.x() < 0 || box.min.y() < 0 || box.min.z() < 0) {
-            mv->translate(box.min.x() < 0 ? -box.min.x() : 0, box.min.y() < 0 ? -box.min.y() : 0, box.min.z() < 0 ? -box.min.z() : 0);
-        }
-        wxGetApp().plater()->update_obj_preview_thumbnail(mo, 0, 0, colors, (int)m_camera_view_angle_type);
-        mo->clear_instances();
-        // get thumbnail image
-        PartPlate *plate = wxGetApp().plater()->get_partplate_list().get_plate(0);
-        auto &     data  = plate->obj_preview_thumbnail_data;
-        if (data.is_valid()) {
-            wxImage image(data.width, data.height);
-            image.InitAlpha();
-            for (unsigned int r = 0; r < data.height; ++r) {
-                unsigned int rr = (data.height - 1 - r) * data.width;
-                for (unsigned int c = 0; c < data.width; ++c) {
-                    unsigned char *px = (unsigned char *) data.pixels.data() + 4 * (rr + c);
-                    image.SetRGB((int) c, (int) r, px[0], px[1], px[2]);
-                    image.SetAlpha((int) c, (int) r, px[3]);
+
+            auto mo = m_obj_in_out.model->objects[0];
+            wxGetApp().plater()->update_obj_preview_thumbnail(mo, 0, 0, colors, (int) m_camera_view_angle_type);
+            // get thumbnail image
+            PartPlate *plate = wxGetApp().plater()->get_partplate_list().get_plate(0);
+            auto &     data  = plate->obj_preview_thumbnail_data;
+            if (data.is_valid()) {
+                wxImage image(data.width, data.height);
+                image.InitAlpha();
+                for (unsigned int r = 0; r < data.height; ++r) {
+                    unsigned int rr = (data.height - 1 - r) * data.width;
+                    for (unsigned int c = 0; c < data.width; ++c) {
+                        unsigned char *px = (unsigned char *) data.pixels.data() + 4 * (rr + c);
+                        image.SetRGB((int) c, (int) r, px[0], px[1], px[2]);
+                        image.SetAlpha((int) c, (int) r, px[3]);
+                    }
                 }
+                image = image.Rescale(FromDIP(IMAGE_SIZE_WIDTH), FromDIP(IMAGE_SIZE_WIDTH));
+                m_image_button->SetBitmap(image);
             }
-            image = image.Rescale(FromDIP(IMAGE_SIZE_WIDTH), FromDIP(IMAGE_SIZE_WIDTH));
-            m_image_button->SetBitmap(image);
-        }
+
     }
     else {
 #ifdef _WIN32
@@ -906,15 +939,35 @@ void ObjColorPanel::generate_thumbnail()
 
 void ObjColorPanel::set_view_angle_type(int value)
 {
-    if (value >= 0){
-        m_camera_view_angle_type = (Slic3r::GUI::Camera::ViewAngleType)value;
+    if (value >= 0) {
+        m_camera_view_angle_type = (Slic3r::GUI::Camera::ViewAngleType) value;
         generate_thumbnail();
     }
 }
 
-void ObjColorPanel::deal_add_btn()
+
+void ObjColorPanel::clear_instance_and_revert_offset()
 {
-    if (m_colours.size() > g_max_color) { return; }
+    auto mo = m_obj_in_out.model->objects[0];
+    mo->clear_instances();
+    auto mv  = mo->volumes[0];
+    auto box = mo->bounding_box();
+    if (!m_thumbnail_offset.isApprox(Slic3r::Vec3d::Zero())) {
+        mv->translate(-m_thumbnail_offset);
+    }
+}
+
+bool ObjColorPanel::do_show(bool show) {
+    if (show) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool ObjColorPanel::deal_add_btn()
+{
+    if (m_colours.size() > g_max_color) { return false; }
     deal_reset_btn();
     std::vector<wxBitmap *> new_icons;
     auto  new_color_size = m_cluster_colors_from_algo.size();
@@ -947,8 +1000,10 @@ void ObjColorPanel::deal_add_btn()
     }
     if (is_exceed) {
         deal_approximate_match_btn();
-        m_warning_text->SetLabelText(_L("Waring:The count of newly added and \n current extruders exceeds 16."));
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",Waring:The count of newly added and \n current extruders exceeds 32.";
+        return true;
     }
+    return false;
 }
 
 void ObjColorPanel::deal_reset_btn()
@@ -960,9 +1015,9 @@ void ObjColorPanel::deal_reset_btn()
         }
         item->bitmap_combox->SetSelection(0);
     }
-    m_is_add_filament = false;
-    m_new_add_colors.clear();
-    m_new_add_final_colors.clear();
+    for (int i = 0; i < m_new_add_colors.size(); i++) {
+        m_new_add_colors[i] = g_undefined_color_in_obj;
+    }
     m_warning_text->SetLabelText("");
 }
 

@@ -682,7 +682,8 @@ Transformation Transformation::volume_to_bed_transformation(const Transformation
         // General anisotropic scaling, general rotation.
         // Keep the modifier mesh in the instance coordinate system, so the modifier mesh will not be aligned with the world.
         // Scale it to get the required size.
-        out.set_scaling_factor(instance_transformation.get_scaling_factor().cwiseInverse());
+        auto scling_facor = instance_transformation.get_scaling_factor();
+        out.set_scaling_factor(scling_facor.cwiseInverse());
     }
 
     return out;

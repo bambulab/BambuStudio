@@ -5,7 +5,12 @@
     "from": "system",
     "setting_id": "GFSS02_06",
     "instantiation": "true",
-    "description": "This is a non-water-soluble support filament, and usually it is only for the support structure and not for the model body. To get better printing quality, please refer to this wiki: Printing Tips for Support Filament and Support Function.",
+    "fan_max_speed": [
+        "30"
+    ],
+    "fan_min_speed": [
+        "20"
+    ],
     "filament_deretraction_speed": [
         "nil",
         "nil"
@@ -14,6 +19,14 @@
         "1",
         "1"
     ],
+    "filament_flush_temp": [
+        "0",
+        "0"
+    ],
+    "filament_flush_volumetric_speed": [
+        "0",
+        "0"
+    ],
     "filament_long_retractions_when_cut": [
         "nil",
         "nil"
@@ -21,6 +34,10 @@
     "filament_max_volumetric_speed": [
         "0.5",
         "0.5"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
     ],
     "filament_retract_before_wipe": [
         "nil",
@@ -70,10 +87,6 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
-    "filament_ramming_volumetric_speed": [
-        "-1",
-        "-1"
-    ],
     "filament_pre_cooling_temperature": [
         "0",
         "0"
@@ -81,6 +94,14 @@
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "filament_adaptive_volumetric_speed": [
+        "0",
+        "0"
+    ],
+    "long_retractions_when_ec": [
+        "1",
+        "1"
     ],
     "nozzle_temperature": [
         "240",
@@ -90,11 +111,22 @@
         "240",
         "240"
     ],
+    "pre_start_fan_time": [
+        "2"
+    ],
+    "retraction_distances_when_ec": [
+        "10",
+        "10"
+    ],
+    "volumetric_speed_coefficients": [
+        "0 0 0 0 0 0",
+        "0 0 0 0 0 0"
+    ],
     "compatible_printers": [
         "Bambu Lab H2D 0.2 nozzle"
     ],
     "filament_start_gcode": [
-        "; filament start gcode\nM145 P0 ; set airduct mode to cooling mode\nM142 P1 R35 S40 U0.3 V0.5 ; set chamber autocooling"
+        "; filament start gcode\n"
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"

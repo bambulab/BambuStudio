@@ -6,7 +6,7 @@
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/SLA/IndexedMesh.hpp"
 #include "admesh/stl.h"
-
+#include "libslic3r/AnyPtr.hpp"
 #include "slic3r/GUI/GLModel.hpp"
 
 #include <cfloat>
@@ -93,9 +93,11 @@ public:
 
     // Which mesh to cut. MeshClipper remembers const * to it, caller
     // must make sure that it stays valid.
-    void set_mesh(const TriangleMesh& mesh);
+    void set_mesh(const indexed_triangle_set &mesh);
+    void set_mesh(AnyPtr<const indexed_triangle_set> &&ptr);
 
-    void set_negative_mesh(const TriangleMesh &mesh);
+    void set_negative_mesh(const indexed_triangle_set &mesh);
+    void set_negative_mesh(AnyPtr<const indexed_triangle_set> &&ptr);
 
     // Inform the MeshClipper about the transformation that transforms the mesh
     // into world coordinates.
@@ -115,8 +117,8 @@ private:
     void recalculate_triangles();
     void reset();
     Geometry::Transformation  m_trafo;
-    const TriangleMesh *      m_mesh          = nullptr;
-    const TriangleMesh *      m_negative_mesh = nullptr;
+    AnyPtr<const indexed_triangle_set> m_mesh;
+    AnyPtr<const indexed_triangle_set> m_negative_mesh;
 
     ClippingPlane m_plane;
     ClippingPlane m_limiting_plane = ClippingPlane::ClipsNothing();

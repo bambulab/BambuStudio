@@ -31,6 +31,8 @@ wxString WipingDialog::BuildTableObjStr()
     auto flush_multiplier = full_config.option<ConfigOptionFloats>("flush_multiplier")->values;
     int nozzle_num = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
     auto raw_matrix_data = full_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values;
+    auto nozzle_flush_dataset = full_config.option<ConfigOptionIntsNullable>("nozzle_flush_dataset")->values;
+
     std::vector<std::vector<double>> flush_matrixs;
     for (int idx = 0; idx < nozzle_num; ++idx) {
         flush_matrixs.emplace_back(get_flush_volumes_matrix(raw_matrix_data, idx, nozzle_num));
@@ -56,7 +58,10 @@ wxString WipingDialog::BuildTableObjStr()
     }
 
     for (int idx = 0; idx < nozzle_num; ++idx) {
-        obj["min_flush_volumes"].push_back(0);
+        int min_flush_from_nozzle_volume = *min_element(m_extra_flush_volume[idx].begin(), m_extra_flush_volume[idx].end());
+        GenericFlushPredictor pd(nozzle_flush_dataset[idx]);
+        int min_flush_from_flush_data = pd.get_min_flush_volume();
+        obj["min_flush_volumes"].push_back(std::min(min_flush_from_flush_data,min_flush_from_nozzle_volume));
         obj["max_flush_volumes"].push_back(m_max_flush_volume);
     }
 
@@ -64,18 +69,42 @@ wxString WipingDialog::BuildTableObjStr()
     return obj_str;
 }
 
-wxString WipingDialog::BuildTextObjStr()
+wxString WipingDialog::BuildTextObjStr(bool multi_language)
 {
-    wxString auto_flush_tip = _L("Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences");
-    wxString volume_desp_panel = _L("Flushing volume (mm³) for each filament pair.");
-    wxString volume_range_panel = wxString::Format(_L("Suggestion: Flushing Volume in range [%d, %d]"), 0, 700);
-    wxString multiplier_range_panel = wxString::Format(_L("The multiplier should be in range [%.2f, %.2f]."), 0, 3);
-    wxString calc_btn_panel = _L("Re-calculate");
-    wxString extruder_label_0 = _L("Left extruder");
-    wxString extruder_label_1 = _L("Right extruder");
-    wxString multiplier_label = _L("Multiplier");
-    wxString ok_btn_label = _L("OK");
-    wxString cancel_btn_label = _L("Cancel");
+    wxString auto_flush_tip;
+    wxString volume_desp_panel;
+    wxString volume_range_panel;
+    wxString multiplier_range_panel;
+    wxString calc_btn_panel;
+    wxString extruder_label_0;
+    wxString extruder_label_1;
+    wxString multiplier_label;
+    wxString ok_btn_label;
+    wxString cancel_btn_label;
+
+    if (multi_language) {
+        auto_flush_tip = _L("Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences");
+        volume_desp_panel = _L("Flushing volume (mm³) for each filament pair.");
+        volume_range_panel = wxString::Format(_L("Suggestion: Flushing Volume in range [%d, %d]"), 0, 700);
+        multiplier_range_panel = wxString::Format(_L("The multiplier should be in range [%.2f, %.2f]."), 0, 3);
+        calc_btn_panel = _L("Re-calculate");
+        extruder_label_0 = _L("Left extruder");
+        extruder_label_1 = _L("Right extruder");
+        multiplier_label = _L("Multiplier");
+        ok_btn_label = _L("OK");
+        cancel_btn_label = _L("Cancel");
+    } else {
+        auto_flush_tip = "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences";
+        volume_desp_panel = wxString::FromUTF8("Flushing volume (mm³) for each filament pair.");
+        volume_range_panel = wxString::Format("Suggestion: Flushing Volume in range [%d, %d]", 0, 700);
+        multiplier_range_panel = wxString::Format("The multiplier should be in range [%.2f, %.2f].", 0, 3);
+        calc_btn_panel = "Re-calculate";
+        extruder_label_0 = "Left extruder";
+        extruder_label_1 = "Right extruder";
+        multiplier_label = "Multiplier";
+        ok_btn_label = "OK";
+        cancel_btn_label = "Cancel";
+    }
 
     wxString text_obj = "{";
     text_obj += wxString::Format("\"volume_desp_panel\":\"%s\",", volume_desp_panel);
@@ -139,10 +168,12 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<std::vector<int>>
     wxString filepath_str = wxString::FromUTF8(filepath.string());
     wxFileName fn(filepath_str);
     if(fn.FileExists()) {
-        wxString url = "file:///" + fn.GetFullPath();
+        wxString url = wxFileSystem::FileNameToURL(fn);
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< "File exists and load url " << url.ToStdString();
         m_webview->LoadURL(url);
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< "Successfully loaded url: " << url.ToStdString();
     } else {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< "WipingDialog.html not exist";
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< "WipingDialog.html not exist at path: " << filepath.string();
     }
 
     main_sizer->SetSizeHints(this);
@@ -161,14 +192,22 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<std::vector<int>>
 
     m_webview->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, [this](wxWebViewEvent& evt) {
         std::string message = evt.GetString().ToStdString();
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< "Received message: " << message;
         try {
             json j = json::parse(message);
             if (j["msg"].get<std::string>() == "init") {
                 auto table_obj_str = BuildTableObjStr();
-                auto text_obj_str = BuildTextObjStr();
+                auto text_obj_str = BuildTextObjStr(true);
                 CallAfter([table_obj_str, text_obj_str, this] {
-                    wxString script = wxString::Format("buildTable(%s);buildText(%s)", table_obj_str, text_obj_str);
-                    m_webview->RunScript(script);
+                    wxString script1 = wxString::Format("buildTable(%s)", table_obj_str);
+                    m_webview->RunScript(script1);
+                    wxString script2 = wxString::Format("buildText(%s)", text_obj_str);
+                    bool result = m_webview->RunScript(script2);
+                    if (!result) {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< "Failed to run buildText, retry without multi language";
+                        wxString script3 = wxString::Format("buildText(%s)", BuildTextObjStr(false));
+                        m_webview->RunScript(script3);
+                    }
                     });
             }
             else if (j["msg"].get<std::string>() == "updateMatrix") {
@@ -191,6 +230,21 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<std::vector<int>>
                     store_matrixs.emplace_back((*iter).get<std::vector<double>>());
                 }
                 std::vector<double>store_multipliers = j["flush_multiplier"].get<std::vector<double>>();
+                {// limit all matrix value before write to gcode, the limitation is depends on the multipliers
+                    size_t cols_temp_matrix = 0;
+                    if (!store_matrixs.empty()) { cols_temp_matrix = store_matrixs[0].size(); }
+                    if (store_multipliers.size() == store_matrixs.size() && cols_temp_matrix>0) // nuzzles==nuzzles
+                    {
+                        for (size_t idx = 0; idx < store_multipliers.size(); ++idx) {
+                            double m_max_flush_volume_t = (double)m_max_flush_volume, m_store_multipliers=store_multipliers[idx];
+                            std::transform(store_matrixs[idx].begin(), store_matrixs[idx].end(),
+                                           store_matrixs[idx].begin(),
+                                           [m_max_flush_volume_t, m_store_multipliers](double inputx) {
+                                               return std::clamp(inputx, 0.0, m_max_flush_volume_t / m_store_multipliers);
+                                           });
+                        }
+                    }
+                }
                 this->StoreFlushData(extruder_num, store_matrixs, store_multipliers);
                 m_submit_flag = true;
                 this->Close();
@@ -200,15 +254,15 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<std::vector<int>>
             }
         }
         catch (...) {
-
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< "Failed to parse json message: " << message;
         }
         });
 }
 
 
-int WipingDialog::CalcFlushingVolume(const wxColour& from, const wxColour& to, int min_flush_volume ,bool is_multi_extruder, NozzleVolumeType volume_type)
+int WipingDialog::CalcFlushingVolume(const wxColour& from, const wxColour& to, int min_flush_volume , int nozzle_flush_dataset)
 {
-    Slic3r::FlushVolCalculator calculator(min_flush_volume, Slic3r::g_max_flush_volume, is_multi_extruder, volume_type);
+    Slic3r::FlushVolCalculator calculator(min_flush_volume, Slic3r::g_max_flush_volume, nozzle_flush_dataset);
     return calculator.calc_flush_vol(from.Alpha(), from.Red(), from.Green(), from.Blue(), to.Alpha(), to.Red(), to.Green(), to.Blue());
 }
 
@@ -224,8 +278,7 @@ WipingDialog::VolumeMatrix WipingDialog::CalcFlushingVolumes(int extruder_id)
     for (auto color_str : filament_color_strs)
         filament_colors.emplace_back(color_str);
 
-    NozzleVolumeType volume_type = NozzleVolumeType(full_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values[extruder_id]);
-    bool is_multi_extruder = preset_bundle->get_printer_extruder_count() > 1;
+    int flush_dataset_value = full_config.option<ConfigOptionIntsNullable>("nozzle_flush_dataset")->values[extruder_id];
     // Support for multi-color filament
     for (int i = 0; i < filament_colors.size(); ++i) {
         std::vector<wxColour> single_filament;
@@ -265,7 +318,7 @@ WipingDialog::VolumeMatrix WipingDialog::CalcFlushingVolumes(int extruder_id)
                     const wxColour& from = multi_colors[from_idx][i];
                     for (int j = 0; j < multi_colors[to_idx].size(); ++j) {
                         const wxColour& to = multi_colors[to_idx][j];
-                        int volume = CalcFlushingVolume(from, to, m_extra_flush_volume[extruder_id][from_idx], is_multi_extruder, volume_type);
+                        int volume = CalcFlushingVolume(from, to, m_extra_flush_volume[extruder_id][from_idx], flush_dataset_value);
                         flushing_volume = std::max(flushing_volume, volume);
                     }
                 }

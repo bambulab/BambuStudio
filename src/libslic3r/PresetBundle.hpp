@@ -57,14 +57,22 @@ struct FilamentBaseInfo
     std::string vendor;
     int nozzle_temp_range_low{ 220 };
     int nozzle_temp_range_high{ 220 };
+    int temperature_vitrification = INT_MAX;
     bool is_support{ false };
     bool is_system{ true };
+    int  filament_printable = 3;
 };
 
 // Bundle of Print + Filament + Printer presets.
 class PresetBundle
 {
 public:
+    static DynamicPrintConfig construct_full_config(Preset                         &in_printer_preset,
+                                                    Preset                         &in_print_preset,
+                                                    const DynamicPrintConfig       &project_config,
+                                                    std::vector<Preset>            &in_filament_presets,
+                                                    bool                            apply_extruder,
+                                                    std::optional<std::vector<int>> filament_maps_new);
     PresetBundle();
     PresetBundle(const PresetBundle &rhs);
     PresetBundle& operator=(const PresetBundle &rhs);
@@ -122,7 +130,7 @@ public:
     //BBS: get vendor's current version
     Semver get_vendor_profile_version(std::string vendor_name);
 
-    std::optional<FilamentBaseInfo> get_filament_by_filament_id(const std::string& filament_id) const;
+    std::optional<FilamentBaseInfo> get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name = std::string()) const;
 
     //BBS: project embedded preset logic
     PresetsConfigSubstitutions load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule);
@@ -311,6 +319,8 @@ private:
     std::pair<PresetsConfigSubstitutions, std::string> load_system_presets_from_json(ForwardCompatibilitySubstitutionRule compatibility_rule);
     // Merge one vendor's presets with the other vendor's presets, report duplicates.
     std::vector<std::string>    merge_presets(PresetBundle &&other);
+    // Update the multicolor information for filaments.
+    void update_filament_multi_color();
     // Update renamed_from and alias maps of system profiles.
     void 						update_system_maps();
 

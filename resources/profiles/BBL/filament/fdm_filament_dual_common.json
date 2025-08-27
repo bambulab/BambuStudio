@@ -58,6 +58,9 @@
         "",
         ""
     ],
+    "filament_change_length": [
+        "10"
+    ],
     "nozzle_temperature": [
         "",
         ""
@@ -66,7 +69,7 @@
         "",
         ""
     ],
-    "filament_change_length": [
-        "10"
+    "filament_velocity_adaptation_factor":[
+        "1"
     ]
 }

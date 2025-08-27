@@ -38,6 +38,7 @@ REQUIRED_DEV_PACKAGES=(
     nasm
     yasm
     x264-devel
+    bzip2-devel
 )
 
 if [[ -n "$UPDATE_LIB" ]]

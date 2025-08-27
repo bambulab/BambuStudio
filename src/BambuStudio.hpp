@@ -17,6 +17,8 @@ namespace IO {
     };
 }
 
+#define DOWNWARD_CHECK_MARGIN 10
+
 #define JSON_ASSEMPLE_PLATES                   "plates"
 #define JSON_ASSEMPLE_PLATE_PARAMS             "plate_params"
 #define JSON_ASSEMPLE_PLATE_NAME               "plate_name"
@@ -88,9 +90,15 @@ typedef struct _printer_plate_info {
     int                 exclude_x{0};
     int                 exclude_y{0};
 
+    int                 wrapping_width{0};
+    int                 wrapping_depth{0};
+    int                 wrapping_x{0};
+    int                 wrapping_y{0};
+
     float               height_to_lid{0.f};
     float               height_to_rod{0.f};
     float               cleareance_radius{0.f};
+    float               distance_to_rod{0.f};
 }printer_plate_info_t;
 
 typedef struct _plate_obj_size_info {

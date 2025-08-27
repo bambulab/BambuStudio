@@ -43,6 +43,7 @@ ImageDPIFrame::ImageDPIFrame()
     SetSizer(m_sizer_main);
     Layout();
     Fit();
+    init_timer();
 }
 
 ImageDPIFrame::~ImageDPIFrame() {
@@ -65,16 +66,56 @@ void ImageDPIFrame::on_dpi_changed(const wxRect &suggested_rect)
     //m_bitmap->Rescale();
 }
 
+void ImageDPIFrame::init_timer()
+{
+    m_refresh_timer = new wxTimer();
+    m_refresh_timer->SetOwner(this);
+    Bind(wxEVT_TIMER, &ImageDPIFrame::on_timer, this);
+}
+
+void ImageDPIFrame::on_timer(wxTimerEvent &event)
+{
+    if (!IsShown()) {//after 1s  to show Frame
+        if (m_timer_count >= 50) {
+            Show();
+            Raise();
+        }
+        m_timer_count++;
+    }else{
+        wxPoint mouse_pos = wxGetMousePosition();
+        wxRect window_rect = GetScreenRect();
+
+        wxPoint center(window_rect.x + window_rect.width / 2, window_rect.y + window_rect.height / 2);
+        int half_width = window_rect.width / 2;
+        int half_height = window_rect.height / 2;
+        wxRect expanded_rect(
+            center.x - half_width * 2,
+            center.y - half_height * 2,
+            window_rect.width * 2,
+            window_rect.height * 2
+        );
+
+        if (!expanded_rect.Contains(mouse_pos)) {
+            on_hide();
+        }
+    }
+}
+
 void ImageDPIFrame::on_show() {
     if (IsShown()) {
         on_hide();
     }
-    Show();
-    Raise();
+    if (m_refresh_timer) {
+        m_timer_count = 0;
+        m_refresh_timer->Start(ANIMATION_REFRESH_INTERVAL);
+    }
 }
 
 void ImageDPIFrame::on_hide()
 {
+    if (m_refresh_timer) {
+        m_refresh_timer->Stop();
+    }
     if (IsShown()) {
         Hide();
         if (wxGetApp().mainframe != nullptr) {

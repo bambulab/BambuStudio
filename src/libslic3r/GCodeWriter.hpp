@@ -56,6 +56,8 @@ public:
     std::string set_chamber_temperature(int temperature, bool wait = false);
     void set_acceleration(unsigned int acceleration);
     void set_travel_acceleration(const std::vector<unsigned int>& travel_accelerations);
+    void reset_last_acceleration();
+    std::vector<unsigned int> &get_travel_acceleration() { return m_travel_accelerations; }
     void set_first_layer_travel_acceleration(const std::vector<unsigned int>& travel_accelerations);
     void set_first_layer(bool is_first_layer);
     std::string set_pressure_advance(double pa) const;

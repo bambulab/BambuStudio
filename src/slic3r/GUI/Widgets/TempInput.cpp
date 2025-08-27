@@ -61,38 +61,22 @@ bool TempInput::CheckIsValidVal(bool show_warning)
 
     /*show temperature range warnings*/
     auto tempint = std::stoi(temp.ToStdString());
-    if (tempint > max_temp)
+    if (additional_temps.count(tempint) == 0)
     {
-        if (show_warning)
+        if (tempint > max_temp)
         {
-            Warning(true, WARNING_TOO_HIGH);
+            if (show_warning) { Warning(true, WARNING_TOO_HIGH); }
+            return false;
         }
-
-        return false;
-    }
-    else if (tempint < min_temp)
-    {
-        if (show_warning)
+        else if (tempint < min_temp)
         {
-            Warning(true, WARNING_TOO_LOW);
+            if (show_warning) { Warning(true, WARNING_TOO_LOW); }
+            return false;
         }
-
-        return false;
     }
+
 
     return true;
-}
-
-void TempInput::OnEdit()
-{
-    /*clear previous status*/
-    ResetWaringDlg();
-
-    /*check the value is valid or not*/
-    if (CheckIsValidVal(true))
-    {
-        SetFinish();
-    }
 }
 
 void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString normal_icon, wxString actice_icon, const wxPoint &pos, const wxSize &size, long style)
@@ -136,7 +120,18 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
     {
         if (!m_on_changing) /*the wxCUSTOMEVT_SET_TEMP_FINISH event may popup a dialog, which may generate dead loop*/
         {
-            OnEdit();
+            /*clear previous status*/
+            ResetWaringDlg();
+
+            /*check the value is valid or not*/
+            if (CheckIsValidVal(true))
+            {
+                SetFinish();
+
+                SetOnChanging();// filter in wxEVT_KILL_FOCUS while navigating
+                text_ctrl->Navigate(); // quit edit mode
+                ReSetOnChanging();
+            }
         }
     });
     text_ctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable context menu
@@ -241,14 +236,14 @@ void TempInput::Warning(bool warn, WarningType type)
     if (warning_mode) {
         if (wdialog == nullptr) {
             wdialog = new PopupWindow(this);
-            wdialog->SetBackgroundColour(wxColour(0xFFFFFF));
+            wdialog->SetBackgroundColour(wxColour("#FFFFFF"));
 
             wdialog->SetSizeHints(wxDefaultSize, wxDefaultSize);
 
             wxBoxSizer *sizer_body = new wxBoxSizer(wxVERTICAL);
 
             auto body = new wxPanel(wdialog, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-            body->SetBackgroundColour(wxColour(0xFFFFFF));
+            body->SetBackgroundColour(wxColour("#FFFFFF"));
 
 
             wxBoxSizer *sizer_text;
@@ -334,6 +329,7 @@ void TempInput::SetLabelColor(StateColor const &color)
 void TempInput::Rescale()
 {
     if (this->normal_icon.bmp().IsOk()) this->normal_icon.msw_rescale();
+    if (this->actice_icon.bmp().IsOk()) this->actice_icon.msw_rescale();
     if (this->degree_icon.bmp().IsOk()) this->degree_icon.msw_rescale();
     if (this->round_scale_hint_icon.bmp().IsOk()) this->round_scale_hint_icon.msw_rescale();
     messureSize();

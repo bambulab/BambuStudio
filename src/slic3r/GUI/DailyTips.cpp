@@ -143,6 +143,21 @@ void DailyTipsDataRenderer::render_img(const ImVec2& start_pos, const ImVec2& si
     }
 }
 
+bool has_cjk(const std::string &text)
+{
+    for (size_t i = 0; i < text.size() - 2; ++i) {
+        unsigned char c1 = text[i];
+        unsigned char c2 = text[i + 1];
+        unsigned char c3 = text[i + 2];
+
+        if ((c1 & 0xF0) == 0xE0 && (c2 & 0xC0) == 0x80 && (c3 & 0xC0) == 0x80) {
+            int codepoint = ((c1 & 0x0F) << 12 | ((c2 & 0x3F) << 6) | (c3 & 0x3F));
+            if (codepoint >= 0x3000 && codepoint <= 0x9FFF) { return true; }
+        }
+    }
+    return false;
+}
+
 void DailyTipsDataRenderer::render_text(const ImVec2& start_pos, const ImVec2& size) const
 {
     ImGuiWrapper& imgui = *wxGetApp().imgui();
@@ -157,16 +172,14 @@ void DailyTipsDataRenderer::render_text(const ImVec2& start_pos, const ImVec2& s
         title_line = m_data.main_text.substr(0, end_pos);
         title_line = ImGui::ColorMarkerStart + title_line + ImGui::ColorMarkerEnd;
         content_lines = m_data.main_text.substr(end_pos + 1);
+    } else {
+        content_lines = m_data.main_text;
     }
 
     ImGui::SetCursorPos(start_pos);
     imgui.text(title_line);
     
-    bool is_zh = false;
-    for (int i = 0; i < content_lines.size() - 1; i += 2) {
-        if ((content_lines[i] & 0x80) && (content_lines[i + 1] & 0x80))
-            is_zh = true;
-    }
+    bool is_zh = has_cjk(content_lines);
     if (!is_zh) {
         // problem in Chinese with spaces
         ImGui::SetCursorPosX(start_pos.x);
@@ -176,7 +189,11 @@ void DailyTipsDataRenderer::render_text(const ImVec2& start_pos, const ImVec2& s
         Label* wrapped_text = new Label(wxGetApp().GetTopWindow());
         wrapped_text->Hide();
         wrapped_text->SetLabelText(wxString::FromUTF8(content_lines));
-        wrapped_text->Wrap(size.x + ImGui::CalcTextSize("A").x * 5.0f);
+        float wrap_width = size.x + ImGui::CalcTextSize("A").x * 5.0f;
+#ifdef __APPLE__
+        wrap_width /= 2.0f;
+#endif
+        wrapped_text->Wrap(wrap_width);
         std::string wrapped_content_lines = wrapped_text->GetLabel().ToUTF8().data();
         wrapped_text->Destroy();
         ImGui::SetCursorPosX(start_pos.x);
@@ -316,7 +333,7 @@ void DailyTipsPanel::render()
 
 void DailyTipsPanel::retrieve_data_from_hint_database(HintDataNavigation nav)
 {
-    HintData* hint_data = HintDatabase::get_instance().get_hint(nav);
+    HintData* hint_data = HintDatabase::get_instance().get_hint(nav, m_is_helio);
     if (hint_data != nullptr)
     {
         DailyTipsData data{ hint_data->text,
@@ -349,6 +366,11 @@ void DailyTipsPanel::collapse()
 bool DailyTipsPanel::is_expanded()
 {
     return m_is_expanded;
+}
+
+void DailyTipsPanel::set_is_helio(bool is_helio)
+{
+    m_is_helio = is_helio;
 }
 
 void DailyTipsPanel::on_change_color_mode(bool is_dark)
@@ -460,8 +482,8 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
         }
 
         // page index
-        m_page_index = HintDatabase::get_instance().get_index() + 1;
-        m_pages_count = HintDatabase::get_instance().get_count();
+        m_page_index = HintDatabase::get_instance().get_index(m_is_helio) + 1;
+        m_pages_count = HintDatabase::get_instance().get_count(m_is_helio);
         std::string text_str = std::to_string(m_page_index) + "/" + std::to_string(m_pages_count);
         float text_item_width = ImGui::CalcTextSize(text_str.c_str()).x;
         ImGui::PushItemWidth(text_item_width);

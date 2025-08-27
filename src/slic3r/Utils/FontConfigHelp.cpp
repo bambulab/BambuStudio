@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2021 - 2022 Filip Sykala @Jony01
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "FontConfigHelp.hpp"
 
 #ifdef EXIST_FONT_CONFIG_INCLUDE
@@ -28,8 +24,8 @@ std::string Slic3r::GUI::get_font_path(const wxFont &font, bool reload_fonts)
         fc = FcInitLoadConfigAndFonts();
         finalize_guard.emplace([]() {
             // Some internal problem of Font config or other library use FC too(like wxWidget)
-            // fccache.c:795: FcCacheFini: Assertion `fcCacheChains[i] == NULL' failed. 
-            //FcFini(); 
+            // fccache.c:795: FcCacheFini: Assertion `fcCacheChains[i] == NULL' failed.
+            //FcFini();
             FcConfigDestroy(fc);
         });
     } else if (reload_fonts) {

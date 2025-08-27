@@ -18,18 +18,18 @@ namespace Slic3r {
 
 struct EmbossProjection{
     // Emboss depth, Size in local Z direction
-    double depth = 1.; // [in loacal mm]
+    double depth = 2.f; // [in loacal mm]//Modify By BBS 20241220
     // NOTE: User should see and modify mainly world size not local
 
     // Flag that result volume use surface cutted from source objects
     bool use_surface = false;
-
-    bool operator==(const EmbossProjection &other) const {
-        return depth == other.depth && use_surface == other.use_surface;
+    double embeded_depth = 0.f; // for old depth
+    bool   operator==(const EmbossProjection &other) const {
+        return depth == other.depth && use_surface == other.use_surface && embeded_depth == other.embeded_depth;
     }
 
     // undo / redo stack recovery
-    template<class Archive> void serialize(Archive &ar) { ar(depth, use_surface); }
+    template<class Archive> void serialize(Archive &ar) { ar(depth, use_surface, embeded_depth); }
 };
 
 // Extend expolygons with information whether it was successfull healed
@@ -38,7 +38,77 @@ struct HealedExPolygons{
     bool is_healed;
     operator ExPolygons&() { return expolygons; }
 };
+namespace Emboss {
+    // description of one letter
+    struct Glyph
+    {
+        // NOTE: shape is scaled by SHAPE_SCALE
+        // to be able store points without floating points
+        ExPolygons shape;
 
+        // values are in font points
+        int advance_width = 0, left_side_bearing = 0;
+    };
+    // cache for glyph by unicode
+    using Glyphs = std::map<int, Glyph>;
+    /// <summary>
+    /// keep information from file about font
+    /// (store file data itself)
+    /// + cache data readed from buffer
+    /// </summary>
+    struct FontFile
+    {
+        // loaded data from font file
+        // must store data size for imgui rasterization
+        // To not store data on heap and To prevent unneccesary copy
+        // data are stored inside unique_ptr
+        std::unique_ptr<std::vector<unsigned char>> data;
+
+        struct Info
+        {
+            // vertical position is "scale*(ascent - descent + lineGap)"
+            int ascent, descent, linegap;
+
+            // for convert font units to pixel
+            int unit_per_em;
+        };
+        // info for each font in data
+        std::vector<Info> infos;
+
+        FontFile(std::unique_ptr<std::vector<unsigned char>> data, std::vector<Info> &&infos) : data(std::move(data)), infos(std::move(infos))
+        {
+            assert(this->data != nullptr);
+            assert(!this->data->empty());
+        }
+
+        bool operator==(const FontFile &other) const
+        {
+            if (data->size() != other.data->size()) return false;
+            // if(*data != *other.data) return false;
+            for (size_t i = 0; i < infos.size(); i++)
+                if (infos[i].ascent != other.infos[i].ascent || infos[i].descent == other.infos[i].descent || infos[i].linegap == other.infos[i].linegap) return false;
+            return true;
+        }
+    };
+
+    /// <summary>
+    /// Add caching for shape of glyphs
+    /// </summary>
+    struct FontFileWithCache
+    {
+        // Pointer on data of the font file
+        std::shared_ptr<const FontFile> font_file;
+
+        // Cache for glyph shape
+        // IMPORTANT: accessible only in plater job thread !!!
+        // main thread only clear cache by set to another shared_ptr
+        std::shared_ptr<Emboss::Glyphs> cache;
+
+        FontFileWithCache() : font_file(nullptr), cache(nullptr) {}
+        explicit FontFileWithCache(std::unique_ptr<FontFile> font_file) : font_file(std::move(font_file)), cache(std::make_shared<Emboss::Glyphs>()) {}
+        bool has_value() const { return font_file != nullptr && cache != nullptr; }
+    };
+}
 // Help structure to identify expolygons grups
 // e.g. emboss -> per glyph -> identify character
 struct ExPolygonsWithId
@@ -64,7 +134,6 @@ struct EmbossShape
 {
     // shapes to to emboss separately over surface
     ExPolygonsWithIds shapes_with_ids;
-
     // Only cache for final shape
     // It is calculated from ExPolygonsWithIds
     // Flag is_healed --> whether union of shapes is healed
@@ -118,7 +187,8 @@ struct EmbossShape
     };
     // When embossing shape is made by svg file this is source data
     std::optional<SvgFile> svg_file;
-
+    std::vector<float> text_scales;
+    std::vector<float> text_cursors;
     // undo / redo stack recovery
     template<class Archive> void save(Archive &ar) const
     {

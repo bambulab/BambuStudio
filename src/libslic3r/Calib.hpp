@@ -15,6 +15,7 @@ enum class CalibMode : int {
     Calib_PA_Line,
     Calib_PA_Pattern,
     Calib_PA_Tower,
+    Calib_Auto_PA_Line,
     Calib_Flow_Rate,
     Calib_Temp_Tower,
     Calib_Vol_speed_Tower,
@@ -133,7 +134,7 @@ struct PACalibIndexInfo
     int         tray_id = 0;
     int         ams_id = 0;
     int         slot_id = 0;
-    int         cali_idx;
+    int         cali_idx = -1; // -1 means default
     float       nozzle_diameter;
     std::string filament_id;
 };

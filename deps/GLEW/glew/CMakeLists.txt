@@ -3,9 +3,12 @@ project(GLEW)
 
 find_package(OpenGL REQUIRED)
 
-if(OpenGL_EGL_FOUND)
-    message(STATUS "building GLEW for EGL (hope that wxWidgets agrees, otherwise you won't have any output!)")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DGLEW_EGL")
+# we do not support wayland for now
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    if(OpenGL_EGL_FOUND)
+        message(STATUS "building GLEW for EGL (hope that wxWidgets agrees, otherwise you won't have any output!)")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DGLEW_EGL")
+    endif()
 endif()
 
 add_library(GLEW src/glew.c)

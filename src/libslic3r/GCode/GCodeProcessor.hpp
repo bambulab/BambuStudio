@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <array>
 #include <vector>
+#include <regex>
 #include <mutex>
 #include <string>
 #include <string_view>
@@ -136,7 +137,8 @@ namespace Slic3r {
 
     struct GCodeCheckResult
     {
-        int error_code = 0;   // 0 means succeed, 0001 printable area error, 0010 printable height error
+        int error_code = 0;   // 0 means succeed, 0b 0001 multi extruder printable area error, 0b 0010 multi extruder printable height error,
+        // 0b 0100 plate printable area error, 0b 1000 plate printable height error, 0b 10000 wrapping detection area error
         std::map<int, std::vector<std::pair<int, int>>> print_area_error_infos;   // printable_area  extruder_id to <filament_id - object_label_id> which cannot printed in this extruder
         std::map<int, std::vector<std::pair<int, int>>> print_height_error_infos;   // printable_height extruder_id to <filament_id - object_label_id> which cannot printed in this extruder
         void reset() {
@@ -203,6 +205,9 @@ namespace Slic3r {
             float fan_speed{ 0.0f }; // percentage
             float temperature{ 0.0f }; // Celsius degrees
             float layer_duration{ 0.0f }; // s (layer id before finalize)
+            float thermal_index_min{0.0f};
+            float thermal_index_max{0.0f};
+            float thermal_index_mean{0.0f};
 
             std::array<float, 2>time{ 0.f,0.f }; // prefix sum of time, assigned during finalize()
 
@@ -237,6 +242,7 @@ namespace Slic3r {
         Pointfs printable_area;
         //BBS: add bed exclude area
         Pointfs bed_exclude_area;
+        Pointfs wrapping_exclude_area;
         std::vector<Pointfs> extruder_areas;
         std::vector<double> extruder_heights;
         //BBS: add toolpath_outside
@@ -247,6 +253,8 @@ namespace Slic3r {
         bool long_retraction_when_cut {0};
         int timelapse_warning_code {0};
         bool support_traditional_timelapse{true};
+        bool update_imgui_flag{false};
+        bool is_helio_gcode{false};
         float printable_height;
         SettingsIds settings_ids;
         size_t filaments_count;
@@ -287,8 +295,11 @@ namespace Slic3r {
             lines_ends = other.lines_ends;
             printable_area = other.printable_area;
             bed_exclude_area = other.bed_exclude_area;
+            wrapping_exclude_area = other.wrapping_exclude_area;
             toolpath_outside = other.toolpath_outside;
             label_object_enabled = other.label_object_enabled;
+            update_imgui_flag         = other.update_imgui_flag;
+            is_helio_gcode            = other.is_helio_gcode;
             long_retraction_when_cut = other.long_retraction_when_cut;
             timelapse_warning_code = other.timelapse_warning_code;
             printable_height = other.printable_height;
@@ -457,10 +468,21 @@ namespace Slic3r {
         static const std::string Mm3_Per_Mm_Tag;
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
+        struct ThermalIndex
+        {
+            float max;
+            float min;
+            float mean;
+            bool  isNull;
+            ThermalIndex() : min(-200), max(-200), mean(-200), isNull(true) {}
+
+            ThermalIndex(float minVal, float maxVal, float meanVal) : min(minVal), max(maxVal), mean(meanVal), isNull(false) {}
+        };
+        bool is_helio_gcode() { return m_is_helio_gcode; }
     private:
-        using AxisCoords = std::array<double, 4>;
+        using AxisCoords     = std::array<double, 4>;
         using ExtruderColors = std::vector<unsigned char>;
-        using ExtruderTemps = std::vector<float>;
+        using ExtruderTemps  = std::vector<float>;
 
         enum class EUnits : unsigned char
         {
@@ -608,6 +630,11 @@ namespace Slic3r {
 
             // accept the time block and total time
             using block_handler_t = std::function<void(const TimeBlock&, const float)>;
+            using AdditionalBufferBlock = std::pair<ExtrusionRole,float>;
+            using AdditionalBuffer = std::vector<AdditionalBufferBlock>;
+            AdditionalBuffer m_additional_time_buffer;
+
+            AdditionalBuffer merge_adjacent_addtional_time_blocks(const AdditionalBuffer& buffer);
 
             void reset();
 
@@ -764,6 +791,7 @@ namespace Slic3r {
             float filament_load_times;
             float filament_unload_times;
             float extruder_change_times;
+            float prepare_compensation_time;
 
             std::array<TimeMachine, static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count)> machines;
 
@@ -778,6 +806,7 @@ namespace Slic3r {
                 std::vector<GCodeProcessorResult::MoveVertex>& moves,
                 std::vector<ExtruderPreHeating::FilamentUsageBlock>& filament_blocks,
                 std::vector<ExtruderPreHeating::ExtruderUsageBlcok>& extruder_blocks,
+                std::vector<std::pair<unsigned int, unsigned int>>& skippable_blocks,
                 unsigned int& machine_start_gcode_end_line_id,
                 unsigned int& machine_end_gcode_start_line_id
             );
@@ -814,6 +843,7 @@ namespace Slic3r {
                 const std::vector<int> & pre_cooling_temp_,
                 const std::vector<double>& cooling_rate_,
                 const std::vector<double>& heating_rate_,
+                const std::vector<std::pair<unsigned int,unsigned int>>& skippable_blocks_,
                 unsigned int machine_start_gcode_end_id_,
                 unsigned int machine_end_gcode_start_id_
             ) :
@@ -827,6 +857,7 @@ namespace Slic3r {
                 filament_pre_cooling_temps(pre_cooling_temp_),
                 cooling_rate(cooling_rate_),
                 heating_rate(heating_rate_),
+                skippable_blocks(skippable_blocks_),
                 machine_start_gcode_end_id(machine_start_gcode_end_id_),
                 machine_end_gcode_start_id(machine_end_gcode_start_id_)
             {
@@ -844,7 +875,7 @@ namespace Slic3r {
             const std::vector<double>& cooling_rate;
             const std::vector<double>& heating_rate;
             const std::vector<int>& filament_pre_cooling_temps; // target cooling temp during post extrusion
-
+            const std::vector<std::pair<unsigned int, unsigned int>>& skippable_blocks;
             const unsigned int machine_start_gcode_end_id;
             const unsigned int machine_end_gcode_start_id;
 
@@ -1044,6 +1075,8 @@ namespace Slic3r {
         unsigned char m_extruder_id;
         ExtruderColors m_extruder_colors;
         ExtruderTemps m_extruder_temps;
+        ThermalIndex m_thermal_index;
+        bool m_is_helio_gcode{false};
         int m_highest_bed_temp;
         float m_extruded_last_z;
         float m_first_layer_height; // mm
@@ -1057,6 +1090,7 @@ namespace Slic3r {
         size_t m_last_default_color_id;
         bool m_detect_layer_based_on_tag {false};
         int m_seams_count;
+        bool m_measure_g29_time {false};
 #if ENABLE_GCODE_VIEWER_STATISTICS
         std::chrono::time_point<std::chrono::high_resolution_clock> m_start_time;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -1092,14 +1126,19 @@ namespace Slic3r {
 
     public:
         GCodeProcessor();
-
+        void init_filament_maps_and_nozzle_type_when_import_only_gcode();
         // check whether the gcode path meets the filament_map grouping requirements
-        bool check_multi_extruder_gcode_valid(const std::vector<Polygons> &unprintable_areas,
+        bool check_multi_extruder_gcode_valid(const int                         extruder_size,
+                                              const Pointfs                     plate_printable_area,
+                                              const double                      plate_printable_height,
+                                              const Pointfs                     wrapping_exclude_area,
+                                              const std::vector<Polygons> &unprintable_areas,
                                               const std::vector<double>   &printable_heights,
                                               const std::vector<int>      &filament_map,
                                               const std::vector<std::set<int>>& unprintable_filament_types );
         void apply_config(const PrintConfig& config);
 
+        DynamicConfig export_config_for_render() const;
         void set_filaments(const std::vector<Extruder>&filament_lists) { m_filament_lists=filament_lists;}
 
         void enable_stealth_time_estimator(bool enabled);
@@ -1139,12 +1178,34 @@ namespace Slic3r {
             m_detect_layer_based_on_tag = enabled;
         }
 
+        static ThermalIndex parse_helioadditive_comment(const std::string comment,bool& is_helio)
+        {
+            if (boost::algorithm::contains(comment, ";helioadditive=")) {
+                std::regex  regexPattern(R"(\bti\.max=(-?[0-9]*\.?[0-9]+),ti\.min=(-?[0-9]*\.?[0-9]+),ti\.mean=(-?[0-9]*\.?[0-9]+)\b)");
+                std::smatch match;
+                if (std::regex_search(comment, match, regexPattern)) {
+                    float maxVal  = std::stof(match[1].str()) * 100.0;
+                    float minVal  = std::stof(match[2].str()) * 100.0;
+                    float meanVal = std::stof(match[3].str()) * 100.0;
+                    is_helio      = true;
+                    return ThermalIndex(minVal, maxVal, meanVal);
+                } else {
+                    std::cerr << "Error: Unable to parse thermal index values from comment." << std::endl;
+                    return ThermalIndex();
+                }
+
+            } else {
+                return ThermalIndex();
+            }
+        };
+
     private:
         void register_commands();
         void apply_config(const DynamicPrintConfig& config);
         void apply_config_simplify3d(const std::string& filename);
         void apply_config_superslicer(const std::string& filename);
         void process_gcode_line(const GCodeReader::GCodeLine& line, bool producers_enabled);
+        void process_helioadditive_comment(const GCodeReader::GCodeLine& line);
 
         // Process tags embedded into comments
         void process_tags(const std::string_view comment, bool producers_enabled);
@@ -1287,8 +1348,10 @@ namespace Slic3r {
         void process_T(const std::string_view command);
         void process_M1020(const GCodeReader::GCodeLine &line);
 
-        void process_filament_change(int id);
+        void process_M622(const GCodeReader::GCodeLine &line);
+        void process_M623(const GCodeReader::GCodeLine &line);
 
+        void process_filament_change(int id);
         //BBS: different path_type is only used for arc move
         void store_move_vertex(EMoveType type, EMovePathType path_type = EMovePathType::Noop_move);
 

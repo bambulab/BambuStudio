@@ -11,6 +11,7 @@
 #include "BitmapComboBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "GUI_Utils.hpp"
+#include "EncodedFilament.hpp"
 
 class wxString;
 class wxTextCtrl;
@@ -123,7 +124,6 @@ protected:
 
     int m_last_selected;
     int m_em_unit;
-    bool m_suppress_change { true };
 
     // BBS: ams
     int  m_filament_idx       = -1;
@@ -157,11 +157,11 @@ protected:
     int  update_ams_color();
 
 #ifdef __linux__
-    static const char* separator_head() { return "------- "; }
-    static const char* separator_tail() { return " -------"; }
+    static const char* separator_head() { return "-- "; }
+    static const char* separator_tail() { return " --"; }
 #else // __linux__
-    static const char* separator_head() { return "------ "; }
-    static const char* separator_tail() { return " ------"; }
+    static const char* separator_head() { return "--"; }
+    static const char* separator_tail() { return " --"; }
 #endif // __linux__
     static wxString    separator(const std::string& label);
 
@@ -207,6 +207,11 @@ public:
     void msw_rescale() override;
     void OnSelect(wxCommandEvent& evt) override;
     void update_badge_according_flag();
+
+    FilamentColor get_cur_color_info();
+    void show_default_color_picker();
+    void sync_colour_config(const std::vector<std::string> &clrs, bool is_gradient);
+    void sys_color_changed() override;
 
 private:
     // BBS

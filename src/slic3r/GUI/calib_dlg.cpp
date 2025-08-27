@@ -9,7 +9,7 @@
 #include "libslic3r/PrintConfig.hpp"
 
 namespace Slic3r { namespace GUI {
-    
+
 wxBoxSizer* create_item_checkbox(wxString title, wxWindow* parent, bool* value, CheckBox*& checkbox)
 {
     wxBoxSizer* m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
@@ -185,7 +185,7 @@ void PA_Calibration_Dlg::reset_params() {
 
     if (!isDDE) {
         m_tiEndPA->GetTextCtrl()->SetValue(wxString::FromDouble(1.0));
-        
+
         if (m_params.mode == CalibMode::Calib_PA_Pattern) {
             m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.05));
         } else {
@@ -194,16 +194,14 @@ void PA_Calibration_Dlg::reset_params() {
     }
 }
 
-void PA_Calibration_Dlg::on_start(wxCommandEvent& event) { 
+void PA_Calibration_Dlg::on_start(wxCommandEvent& event) {
     bool read_double = false;
     read_double = m_tiStartPA->GetTextCtrl()->GetValue().ToDouble(&m_params.start);
     read_double = read_double && m_tiEndPA->GetTextCtrl()->GetValue().ToDouble(&m_params.end);
     read_double = read_double && m_tiPAStep->GetTextCtrl()->GetValue().ToDouble(&m_params.step);
-    if (!read_double || m_params.start < 0 || m_params.step < EPSILON || m_params.end < m_params.start + m_params.step) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nStart PA: >= 0.0\nEnd PA: > Start PA\nPA step: >= 0.001)"), wxEmptyString, wxICON_WARNING | wxOK);
-        msg_dlg.ShowModal();
+
+    if (!is_pa_params_valid(m_params))
         return;
-    }
 
     switch (m_rbMethod->GetSelection()) {
         case 1:
@@ -222,17 +220,17 @@ void PA_Calibration_Dlg::on_start(wxCommandEvent& event) {
     EndModal(wxID_OK);
 
 }
-void PA_Calibration_Dlg::on_extruder_type_changed(wxCommandEvent& event) { 
+void PA_Calibration_Dlg::on_extruder_type_changed(wxCommandEvent& event) {
     PA_Calibration_Dlg::reset_params();
-    event.Skip(); 
+    event.Skip();
 }
-void PA_Calibration_Dlg::on_method_changed(wxCommandEvent& event) { 
+void PA_Calibration_Dlg::on_method_changed(wxCommandEvent& event) {
     PA_Calibration_Dlg::reset_params();
-    event.Skip(); 
+    event.Skip();
 }
 
 void PA_Calibration_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
-    this->Refresh(); 
+    this->Refresh();
     Fit();
 }
 
@@ -247,7 +245,9 @@ enum FILAMENT_TYPE : int
     tPLA = 0,
     tABS_ASA,
     tPETG,
+    tPCTG,
     tTPU,
+    tTPU_AMS,
     tPA_CF,
     tPET_CF,
     tCustom
@@ -363,7 +363,7 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
         e.Skip();
         });
 
-    
+
 }
 
 Temp_Calibration_Dlg::~Temp_Calibration_Dlg() {
@@ -379,7 +379,7 @@ void Temp_Calibration_Dlg::on_start(wxCommandEvent& event) {
     read_long = read_long && m_tiEnd->GetTextCtrl()->GetValue().ToULong(&end);
 
     if (!read_long || start > 350 || end < 180  || end > (start - 5)) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nStart temp: <= 350\nEnd temp: >= 180\nStart temp > End temp + 5)"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nStart temp: <= 350\nEnd temp: >= 180\nStart temp >= End temp + 5)"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     }
@@ -404,7 +404,12 @@ void Temp_Calibration_Dlg::on_filament_type_changed(wxCommandEvent& event) {
             start = 250;
             end = 230;
             break;
+        case tPCTG:
+            start = 280;
+            end   = 240;
+            break;
         case tTPU:
+        case tTPU_AMS:
             start = 240;
             end = 210;
             break;
@@ -422,7 +427,7 @@ void Temp_Calibration_Dlg::on_filament_type_changed(wxCommandEvent& event) {
             end = 190;
             break;
     }
-    
+
     m_tiEnd->GetTextCtrl()->SetValue(std::to_string(end));
     m_tiStart->GetTextCtrl()->SetValue(std::to_string(start));
     event.Skip();
@@ -521,7 +526,7 @@ void MaxVolumetricSpeed_Test_Dlg::on_start(wxCommandEvent& event) {
     read_double = read_double && m_tiStep->GetTextCtrl()->GetValue().ToDouble(&m_params.step);
 
     if (!read_double || m_params.start <= 0 || m_params.step <= 0 || m_params.end < (m_params.start + m_params.step)) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nstart > 0 step >= 0\nend > start + step)"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nstart > 0 step >= 0\nend >= start + step)"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     }
@@ -628,7 +633,7 @@ void VFA_Test_Dlg::on_start(wxCommandEvent& event)
     read_double = read_double && m_tiStep->GetTextCtrl()->GetValue().ToDouble(&m_params.step);
 
     if (!read_double || m_params.start <= 10 || m_params.step <= 0 || m_params.end < (m_params.start + m_params.step)) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nstart > 10 step >= 0\nend > start + step)"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nstart > 10 step >= 0\nend >= start + step)"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     }
@@ -732,7 +737,7 @@ void Retraction_Test_Dlg::on_start(wxCommandEvent& event) {
     read_double = read_double && m_tiStep->GetTextCtrl()->GetValue().ToDouble(&m_params.step);
 
     if (!read_double || m_params.start < 0 || m_params.step <= 0 || m_params.end < (m_params.start + m_params.step)) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nstart > 0 step >= 0\nend > start + step)"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nstart > 0 step >= 0\nend >= start + step)"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     }

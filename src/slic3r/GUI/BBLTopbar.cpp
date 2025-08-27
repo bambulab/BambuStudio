@@ -180,19 +180,19 @@ void BBLTopbarArt::DrawButton(wxDC& dc, wxWindow* wnd, const wxAuiToolBarItem& i
     }
 }
 
-BBLTopbar::BBLTopbar(wxFrame* parent) 
+BBLTopbar::BBLTopbar(wxFrame* parent)
     : wxAuiToolBar(parent, ID_TOOL_BAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_TEXT | wxAUI_TB_HORZ_TEXT)
-{ 
+{
     Init(parent);
 }
 
 BBLTopbar::BBLTopbar(wxWindow* pwin, wxFrame* parent)
-    : wxAuiToolBar(pwin, ID_TOOL_BAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_TEXT | wxAUI_TB_HORZ_TEXT) 
-{ 
+    : wxAuiToolBar(pwin, ID_TOOL_BAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_TEXT | wxAUI_TB_HORZ_TEXT)
+{
     Init(parent);
 }
 
-void BBLTopbar::Init(wxFrame* parent) 
+void BBLTopbar::Init(wxFrame* parent)
 {
     SetArtProvider(new BBLTopbarArt());
     m_frame = parent;
@@ -230,8 +230,9 @@ void BBLTopbar::Init(wxFrame* parent)
     this->AddSpacer(FromDIP(10));
 
     wxBitmap save_bitmap = create_scaled_bitmap("topbar_save", nullptr, TOPBAR_ICON_SIZE);
-    wxAuiToolBarItem* save_btn = this->AddTool(wxID_SAVE, "", save_bitmap);
-
+    m_save_item          = this->AddTool(wxID_SAVE, "", save_bitmap);
+    wxBitmap save_inactive_bitmap = create_scaled_bitmap("topbar_save_inactive", nullptr, TOPBAR_ICON_SIZE);
+    m_save_item->SetDisabledBitmap(save_inactive_bitmap);
     this->AddSpacer(FromDIP(10));
 
     wxBitmap undo_bitmap = create_scaled_bitmap("topbar_undo", nullptr, TOPBAR_ICON_SIZE);
@@ -348,6 +349,7 @@ void BBLTopbar::OnSaveProject(wxAuiToolBarEvent& event)
     MainFrame* main_frame = dynamic_cast<MainFrame*>(m_frame);
     Plater* plater = main_frame->plater();
     plater->save_project();
+    EnableSaveItem(false);
 }
 
 void BBLTopbar::OnUndo(wxAuiToolBarEvent& event)
@@ -362,6 +364,30 @@ void BBLTopbar::OnRedo(wxAuiToolBarEvent& event)
     MainFrame* main_frame = dynamic_cast<MainFrame*>(m_frame);
     Plater* plater = main_frame->plater();
     plater->redo();
+}
+
+void BBLTopbar::EnableSaveItem(bool enable)
+{
+    if (m_save_item && GetToolEnabled(m_save_item->GetId()) != enable) {
+        this->EnableTool(m_save_item->GetId(), enable);
+        Refresh();
+    }
+}
+
+void BBLTopbar::EnableUndoItem(bool enable)
+{
+    if (m_undo_item && GetToolEnabled(m_undo_item->GetId()) != enable) {
+        this->EnableTool(m_undo_item->GetId(), enable);
+        Refresh();
+    }
+}
+
+void BBLTopbar::EnableRedoItem(bool enable)
+{
+    if (m_redo_item && GetToolEnabled(m_redo_item->GetId()) != enable) {
+        this->EnableTool(m_redo_item->GetId(), enable);
+        Refresh();
+    }
 }
 
 void BBLTopbar::EnableUndoRedoItems()
@@ -636,7 +662,7 @@ void BBLTopbar::OnMouseLeftDown(wxMouseEvent& event)
     wxPoint frame_pos = m_frame->GetScreenPosition();
     m_delta = mouse_pos - frame_pos;
 
-    if (FindToolByCurrentPosition() == NULL 
+    if (FindToolByCurrentPosition() == NULL
         || this->FindToolByCurrentPosition() == m_title_item)
     {
         CaptureMouse();
@@ -646,7 +672,7 @@ void BBLTopbar::OnMouseLeftDown(wxMouseEvent& event)
         return;
 #endif //  __WXMSW__
     }
-    
+
     event.Skip();
 }
 
@@ -674,7 +700,7 @@ void BBLTopbar::OnMouseMotion(wxMouseEvent& event)
 
     if (event.Dragging() && event.LeftIsDown())
     {
-        // leave max state and adjust position 
+        // leave max state and adjust position
         if (m_frame->IsMaximized()) {
             wxRect rect = m_frame->GetRect();
             // Filter unexcept mouse move

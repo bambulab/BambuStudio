@@ -8,6 +8,8 @@ set(SLIC3R_GUI_SOURCES
     pchheader.hpp
     GUI/Printer/PrinterFileSystem.cpp
     GUI/Printer/PrinterFileSystem.h
+    GUI/Widgets/AnimaController.hpp
+    GUI/Widgets/AnimaController.cpp
     GUI/Widgets/AxisCtrlButton.cpp
     GUI/Widgets/AxisCtrlButton.hpp
     GUI/Widgets/Button.cpp
@@ -32,6 +34,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/PopupWindow.hpp
     GUI/Widgets/Label.cpp
     GUI/Widgets/Label.hpp
+    GUI/Widgets/LinkLabel.cpp
+    GUI/Widgets/LinkLabel.hpp
     GUI/Widgets/Scrollbar.cpp
     GUI/Widgets/Scrollbar.hpp
     GUI/Widgets/ScrolledWindow.cpp
@@ -90,6 +94,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Auxiliary.hpp
     GUI/DailyTips.cpp
     GUI/DailyTips.hpp
+    GUI/EncodedFilament.hpp
+    GUI/EncodedFilament.cpp
     GUI/Project.cpp
     GUI/Project.hpp
     GUI/BackgroundSlicingProcess.cpp
@@ -142,6 +148,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoSimplify.hpp
     GUI/Gizmos/GLGizmoMmuSegmentation.cpp
     GUI/Gizmos/GLGizmoMmuSegmentation.hpp
+    GUI/Gizmos/GLGizmoFuzzySkin.cpp
+    GUI/Gizmos/GLGizmoFuzzySkin.hpp
     GUI/Gizmos/GLGizmoFaceDetector.cpp
     GUI/Gizmos/GLGizmoFaceDetector.hpp
     GUI/Gizmos/GLGizmoMeasure.cpp
@@ -312,6 +320,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/wxExtensions.hpp
     GUI/ObjColorDialog.cpp
     GUI/ObjColorDialog.hpp
+    GUI/FilamentPickerDialog.cpp
+    GUI/FilamentPickerDialog.hpp
+    GUI/FilamentBitmapUtils.cpp
+    GUI/FilamentBitmapUtils.hpp
     GUI/WipeTowerDialog.cpp
     GUI/WipeTowerDialog.hpp
     GUI/RemovableDriveManager.cpp
@@ -326,12 +338,18 @@ set(SLIC3R_GUI_SOURCES
     GUI/SyncAmsInfoDialog.hpp
     GUI/SurfaceDrag.cpp
     GUI/SurfaceDrag.hpp
+    GUI/TextLines.cpp
+    GUI/TextLines.hpp
     GUI/PlateSettingsDialog.cpp
     GUI/PlateSettingsDialog.hpp
     GUI/ImGuiWrapper.hpp
     GUI/ImGuiWrapper.cpp
+    GUI/ImageMessageDialog.hpp
+    GUI/ImageMessageDialog.cpp
     GUI/DeviceManager.hpp
     GUI/DeviceManager.cpp
+    GUI/DeviceErrorDialog.hpp
+    GUI/DeviceErrorDialog.cpp
     GUI/UserManager.hpp
     GUI/UserManager.cpp
     GUI/HttpServer.hpp
@@ -370,6 +388,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/UpgradeNetworkJob.cpp
     GUI/Jobs/ArrangeJob.hpp
     GUI/Jobs/ArrangeJob.cpp
+    GUI/Jobs/CreateFontNameImageJob.cpp
+    GUI/Jobs/CreateFontNameImageJob.hpp
+    GUI/Jobs/CreateFontStyleImagesJob.cpp
+    GUI/Jobs/CreateFontStyleImagesJob.hpp
     GUI/Jobs/OrientJob.hpp
     GUI/Jobs/OrientJob.cpp
     GUI/Jobs/RotoptimizeJob.hpp
@@ -424,6 +446,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/NotificationManager.hpp
     GUI/UnsavedChangesDialog.cpp
     GUI/UnsavedChangesDialog.hpp
+    GUI/UserPresetsDialog.cpp
+    GUI/UserPresetsDialog.hpp
     GUI/ExtraRenderers.cpp
     GUI/ExtraRenderers.hpp
     GUI/ProjectDirtyStateManager.hpp
@@ -442,10 +466,17 @@ set(SLIC3R_GUI_SOURCES
     GUI/BonjourDialog.hpp
     GUI/BindDialog.cpp
     GUI/BindDialog.hpp
+    GUI/PartSkipCommon.hpp
+    GUI/PartSkipDialog.cpp
+    GUI/PartSkipDialog.hpp
+    GUI/SkipPartCanvas.cpp
+    GUI/SkipPartCanvas.hpp
     GUI/ModelMall.hpp
     GUI/ModelMall.cpp
     GUI/SelectMachine.hpp
     GUI/SelectMachine.cpp
+    GUI/PrePrintChecker.hpp
+    GUI/PrePrintChecker.cpp
     GUI/SelectMachinePop.hpp
     GUI/SelectMachinePop.cpp
     GUI/SendToPrinter.hpp
@@ -502,12 +533,18 @@ set(SLIC3R_GUI_SOURCES
     GUI/SendMultiMachinePage.cpp
     GUI/TaskManager.cpp
     GUI/TaskManager.hpp
+    Utils/WxFontUtils.cpp
+    Utils/WxFontUtils.hpp
+    Utils/EmbossStyleManager.cpp
+    Utils/EmbossStyleManager.hpp
     Utils/Http.cpp
     Utils/Http.hpp
     Utils/FixModelByWin10.cpp
     Utils/FixModelByWin10.hpp
     Utils/Bonjour.cpp
     Utils/Bonjour.hpp
+    Utils/BBLUtil.hpp
+    Utils/BBLUtil.cpp
     Utils/FileHelp.cpp
     Utils/FileHelp.hpp
     Utils/PresetUpdater.cpp
@@ -535,6 +572,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/NetworkAgent.hpp
     Utils/MKS.hpp
     Utils/MKS.cpp
+    Utils/CpuMemory.cpp
+    Utils/CpuMemory.hpp
     Utils/Duet.cpp
     Utils/Duet.hpp
     Utils/FlashAir.cpp
@@ -552,8 +591,11 @@ set(SLIC3R_GUI_SOURCES
 	Utils/FontUtils.hpp
     Utils/WxFontUtils.hpp
     Utils/WxFontUtils.cpp
+    Utils/HelioDragon.cpp
+	Utils/HelioDragon.hpp
 )
 
+add_subdirectory(GUI/DeviceCore)
 add_subdirectory(GUI/DeviceTab)
 
 if (WIN32)

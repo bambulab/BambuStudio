@@ -103,6 +103,7 @@ private:
     bool m_ready_for_slice;
     bool m_slice_result_valid;
     bool m_apply_invalid {false};
+    bool m_helio_apply_invalid {false};
     float m_slice_percent;
 
     Print *m_print; //Print reference, not own it, no need to serialize
@@ -152,16 +153,15 @@ private:
 
     void init();
     bool valid_instance(int obj_id, int instance_id);
-    void generate_print_polygon(ExPolygon &print_polygon);
     void generate_exclude_polygon(ExPolygon &exclude_polygon);
     void generate_logo_polygon(ExPolygon &logo_polygon);
     void generate_logo_polygon(ExPolygon &logo_polygon,const BoundingBoxf3& box);
     void calc_bounding_boxes() const;
     void calc_height_limit();
 
+    int get_right_icon_offset_bed();
     void calc_vertex_for_plate_name(GLTexture &texture, GLModel &buffer);
     void calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int index, GLModel &buffer);
-    void calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer);
     bool calc_bed_3d_boundingbox(BoundingBoxf3 & box_in_plate_origin);
     void render_logo(bool bottom, bool render_cali = true);
     void render_logo_texture(GLTexture &logo_texture, GLModel &logo_buffer, bool bottom);
@@ -283,6 +283,9 @@ public:
     //set the print object, result and it's index
     void set_print(PrintBase *print, GCodeResult* result = nullptr, int index = -1);
 
+    // get gcode result
+    GCodeProcessorResult* get_gcode_result();
+
     //get gcode filename
     std::string get_gcode_filename();
 
@@ -305,7 +308,7 @@ public:
 
     Vec3d get_origin() { return m_origin; }
     //Vec3d calculate_wipe_tower_size(const DynamicPrintConfig &config, const double w, const double wipe_volume, int plate_extruder_size = 0, bool use_global_objects = false) const;
-    Vec3d estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int extruder_count = 1, int plate_extruder_size = 0, bool use_global_objects = false) const;
+    Vec3d estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int extruder_count = 1, int plate_extruder_size = 0, bool use_global_objects = false, bool enable_wrapping_detection = false) const;
     arrangement::ArrangePolygon estimate_wipe_tower_polygon(const DynamicPrintConfig & config, int plate_index, Vec3d& wt_pos, Vec3d& wt_size, int extruder_count = 1, int plate_extruder_size = 0, bool use_global_objects = false) const;
     bool check_objects_empty_and_gcode3mf(std::vector<int> &result) const;
     // get used filaments from config, 1 based idx
@@ -318,6 +321,8 @@ public:
     bool check_filament_printable(const DynamicPrintConfig & config, wxString& error_message);
     bool check_tpu_printable_status(const DynamicPrintConfig & config, const std::vector<int> &tpu_filaments);
     bool check_mixture_of_pla_and_petg(const DynamicPrintConfig & config);
+    bool check_mixture_filament_compatible(const DynamicPrintConfig& config, std::string &error_msg);
+    bool check_compatible_of_nozzle_and_filament(const DynamicPrintConfig & config, const std::vector<std::string>& filament_presets, std::string& error_msg);
 
     /* instance related operations*/
     //judge whether instance is bound in plate or not
@@ -406,6 +411,11 @@ public:
     {
         return m_ready_for_slice && !m_apply_invalid;
     }
+
+    bool can_helio_slice() const {
+        return m_ready_for_slice && !m_apply_invalid && !m_helio_apply_invalid;
+    }
+
     void update_slice_ready_status(bool ready_slice)
     {
         m_ready_for_slice = ready_slice;
@@ -416,9 +426,16 @@ public:
     {
         return m_apply_invalid;
     }
+    bool is_helio_apply_result_invalid() const {
+        return m_helio_apply_invalid;
+    }
     void update_apply_result_invalid(bool invalid)
     {
         m_apply_invalid = invalid;
+    }
+
+    void update_helio_apply_result_invalid(bool invalid) {
+        m_helio_apply_invalid = invalid;
     }
 
     //is slice result valid or not
@@ -558,6 +575,7 @@ class PartPlateList : public ObjectBase
     PartPlate unprintable_plate;
     Pointfs m_shape;
     Pointfs m_exclude_areas;
+    Pointfs m_wrapping_exclude_areas;
     std::vector<Pointfs> m_extruder_areas;
     std::vector<double> m_extruder_heights;
     BoundingBoxf3 m_bounding_box;
@@ -603,8 +621,6 @@ class PartPlateList : public ObjectBase
     void generate_icon_textures();
     void release_icon_textures();
 
-    void set_default_wipe_tower_pos_for_plate(int plate_idx);
-
     friend class cereal::access;
     friend class UndoRedo::StackImpl;
     friend class PartPlate;
@@ -615,6 +631,7 @@ private:
     void  calc_triangles(const ExPolygon &poly);
     void  calc_vertex_for_icons(int index, GLModel &gl_model);
     void  calc_exclude_triangles(const ExPolygon &poly);
+    void  calc_triangles_from_polygon(const ExPolygon &poly, GLModel& render_model);
     void  calc_gridlines(const ExPolygon &poly, const BoundingBox &pp_bbox);
     void  calc_vertex_for_number(int index, bool one_number, GLModel &gl_model);
 private:
@@ -628,9 +645,10 @@ private:
     std::vector<Geometry::Transformation> m_unselected_plate_trans;
     unsigned int                          m_unselected_plate_mats_vbo{0};
     bool                                  m_update_unselected_plate_mats_vbo{true};
-
+    ExPolygon                             m_print_polygon;
     GLModel                               m_triangles;
     GLModel                               m_exclude_triangles;
+    GLModel                               m_wrapping_detection_triangles;
     GLModel                               m_gridlines;
     GLModel                               m_gridlines_bolder;
     GLModel                               m_del_icon;
@@ -737,6 +755,7 @@ public:
     //int delete_plate(PartPlate* plate);
     void delete_selected_plate();
 
+    bool check_all_plate_local_bed_type(const std::vector<BedType>& cur_bed_types);
     //get a plate pointer by index
     PartPlate* get_plate(int index);
 
@@ -762,11 +781,13 @@ public:
     std::vector<PartPlate*> get_nonempty_plate_list();
 
     std::vector<const GCodeProcessorResult*> get_nonempty_plates_slice_results();
+    void set_default_wipe_tower_pos_for_plate(int plate_idx, bool init_pos = false);
 
     //compute the origin for printable plate with index i
     Vec3d get_current_plate_origin() { return compute_origin(m_current_plate, m_plate_cols); }
     Vec2d get_current_shape_position() { return compute_shape_position(m_current_plate, m_plate_cols); }
     Pointfs get_exclude_area() { return m_exclude_areas; }
+    Pointfs get_wrapping_exclude_area() const { return m_wrapping_exclude_areas; }
 
     std::set<int> get_extruders(bool conside_custom_gcode = false) const;
 
@@ -821,14 +842,14 @@ public:
 
     //reload objects for newly created plate
     int construct_objects_list_for_new_plate(int plate_index);
-
+    std::vector<Vec2d> get_plate_wrapping_detection_area();
     /* arrangement related functions */
     //compute the plate index
     int compute_plate_index(arrangement::ArrangePolygon& arrange_polygon);
     //preprocess an arrangement::ArrangePolygon, return true if it is in a locked plate
     bool preprocess_arrange_polygon(int obj_index, int instance_index, arrangement::ArrangePolygon& arrange_polygon, bool selected);
     bool preprocess_arrange_polygon_other_locked(int obj_index, int instance_index, arrangement::ArrangePolygon& arrange_polygon, bool selected);
-    bool preprocess_exclude_areas(arrangement::ArrangePolygons& unselected, int num_plates = 16, float inflation = 0);
+    bool preprocess_exclude_areas(arrangement::ArrangePolygons& unselected, bool enable_wrapping_detect, int num_plates = 16, float inflation = 0);
     bool preprocess_nonprefered_areas(arrangement::ArrangePolygons& regions, int num_plates = 1, float inflation=0);
 
     void postprocess_bed_index_for_selected(arrangement::ArrangePolygon& arrange_polygon);
@@ -851,6 +872,7 @@ public:
     void render_instance_background(bool force_default_color = false);
     void render_unselected_background(bool force_default_color);
     void render_grid(bool bottom);
+    void render_wrapping_detection_area(bool force_default_color);
     void render_exclude_area(bool force_default_color);
     void render_instance_exclude_area(bool force_default_color);
     void render_unselected_exclude_area(bool force_default_color);
@@ -865,7 +887,14 @@ public:
     int select_plate_by_obj(int obj_index, int instance_index);
     void calc_bounding_boxes();
     void select_plate_view();
-    bool set_shapes(const Pointfs& shape, const Pointfs& exclude_areas, const std::vector<Pointfs>& extruder_areas, const std::vector<double>& extruder_heights, const std::string& custom_texture, float height_to_lid, float height_to_rod);
+    bool set_shapes(const Pointfs              &shape,
+                    const Pointfs              &exclude_areas,
+                    const Pointfs              &wrapping_exclude_areas,
+                    const std::vector<Pointfs> &extruder_areas,
+                    const std::vector<double>  &extruder_heights,
+                    const std::string          &custom_texture,
+                    float                       height_to_lid,
+                    float                       height_to_rod);
     void set_hover_id(int id);
     void reset_hover_id();
     bool intersects(const BoundingBoxf3 &bb);

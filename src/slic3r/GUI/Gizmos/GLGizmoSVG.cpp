@@ -210,7 +210,7 @@ std::string volume_name(const EmbossShape &shape)
 
 // BBS: GUI refactor: add obj manipulation
 GLGizmoSVG::GLGizmoSVG(GLCanvas3D& parent,  unsigned int sprite_id)
-    : GLGizmoBase(parent, "tool_bar_svg.svg", sprite_id) //"toolbar_cut.svg" no use
+    : GLGizmoBase(parent,  sprite_id)
     , m_gui_cfg(nullptr)
     , m_rotate_gizmo(parent, GLGizmoRotate::Axis::Z) // grab id = 2 (Z axis)
 {
@@ -476,6 +476,11 @@ bool GLGizmoSVG::is_svg(const ModelVolume &volume) {
     return volume.emboss_shape.has_value() && volume.emboss_shape->svg_file.has_value();
 }
 
+bool GLGizmoSVG::on_is_selectable() const
+{
+    return true;
+}
+
 bool GLGizmoSVG::on_init()
 {
     m_rotate_gizmo.init();
@@ -493,11 +498,18 @@ std::string GLGizmoSVG::on_get_name() const
 
 bool GLGizmoSVG::on_is_activable() const
 {
-    const Selection &selection = m_parent.get_selection();
-    if (selection.is_empty()) {
-        return true;
+    const Selection &t_selection = m_parent.get_selection();
+    if (t_selection.is_empty()) {
+        return false;
     }
-    return  !selection.is_any_connector();//maybe is negitive volume or modifier volume
+    if (t_selection.is_any_connector()) {
+        return false;//maybe is negitive volume or modifier volume
+    }
+
+    if (!t_selection.has_emboss_shape()) {
+        return false;
+    }
+    return true;
 }
 
 void GLGizmoSVG::on_set_state() {
@@ -613,7 +625,7 @@ void GLGizmoSVG::on_render()
         render_glmodel(m_move_grabber.get_cube(), render_color, view_matrix * cube_mat, projection_matrix);
     }
 #ifdef DEBUG_SVG
-    render_cross_mark(tran.get_matrix(), Vec3f::Zero(), true);
+    render_cross_mark(tran.get_matrix(), Vec3f::Zero());
 #endif
     if (is_rotate_by_grabbers || (!is_surface_dragging && !is_parent_dragging)) {
         if (m_hover_id == c_move_cube_id && m_dragging) {
@@ -1323,7 +1335,7 @@ void GLGizmoSVG::draw_window()
     if (m_volume == nullptr)
         return;
     ImGui::Separator();
-
+    ImGui::Indent(m_gui_cfg->icon_width);
     draw_depth();
     draw_size();
 
@@ -1362,12 +1374,19 @@ void GLGizmoSVG::draw_preview()
         ImTextureID id = (void *) static_cast<intptr_t>(m_texture.id);
         unsigned    window_width = static_cast<unsigned>(ImGui::GetWindowSize().x - 2 * ImGui::GetStyle().WindowPadding.x);
 
-        if (m_texture.width > window_width && window_width > 0) {
-            m_texture.width = window_width;
+        if (window_width > 0) {
+            if (m_texture.width > window_width) {
+                float scale      = window_width / (float) m_texture.width;
+                m_texture.height = scale * m_texture.height;
+                m_texture.width  = window_width;
+            }
+            if (m_texture.height > window_width) {
+                float scale      = window_width / (float) m_texture.height;
+                m_texture.width  = scale * m_texture.width;
+                m_texture.height = window_width;
+            }
         }
-        if (m_texture.height > m_texture.width) {
-            m_texture.height = m_texture.width;
-        }
+
         ImVec2      s(m_texture.width, m_texture.height);
 
         //std::optional<float> spacing;
@@ -1410,7 +1429,7 @@ void GLGizmoSVG::draw_filename()
     const EmbossShape::SvgFile &svg = *es.svg_file;
     if (m_filename_preview.empty()) {
         // create filename preview
-        if (!svg.path.empty()) {
+        if (!svg.path.empty() && boost::filesystem::exists(svg.path)) {
             m_filename_preview = get_file_name(svg.path);
         } else if (!svg.path_in_3mf.empty()) {
             m_filename_preview = get_file_name(svg.path_in_3mf);
@@ -1448,7 +1467,7 @@ void GLGizmoSVG::draw_filename()
 
     is_hovered |= ImGui::IsItemHovered();
     if (is_hovered) {
-        wxString tooltip = GUI::format_wxstr(_L("SVG file path is \"%1%\""), svg.path);
+        wxString tooltip = GUI::format_wxstr(_L("SVG file path is \"%1%\""), boost::filesystem::exists(svg.path) ? svg.path : svg.path_in_3mf);
         m_imgui->tooltip(tooltip, m_gui_cfg->max_tooltip_width);
     }
 
@@ -1941,7 +1960,8 @@ void GLGizmoSVG::draw_mirroring()
         m_parent.do_mirror(L("Set Mirror"));
 
         // Mirror is ignoring keep up !!
-        if (m_keep_up) m_angle = calc_angle(selection);
+        if (m_keep_up)
+            m_angle = calc_angle(selection);
 
         volume_transformation_changed();
 
@@ -2213,6 +2233,11 @@ BoundingBoxf3 GLGizmoSVG::get_bounding_box() const
     // end m_rotate_gizmo aabb
 
     return t_aabb;
+}
+
+std::string GLGizmoSVG::get_icon_filename(bool is_dark_mode) const
+{
+    return "tool_bar_svg.svg";
 }
 
 void GLGizmoSVG::update_single_mesh_pick(GLVolume *v)

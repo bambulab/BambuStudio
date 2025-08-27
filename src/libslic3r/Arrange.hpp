@@ -4,7 +4,7 @@
 #include "ExPolygon.hpp"
 #include "PrintConfig.hpp"
 
-#define BED_SHRINK_SEQ_PRINT 5
+#define BED_SHRINK_SEQ_PRINT 0
 
 namespace Slic3r {
 
@@ -127,8 +127,8 @@ struct ArrangeParams {
     bool  is_seq_print                        = false;
     bool  align_to_y_axis                     = false;
     bool  save_svg                            = false;
-    float bed_shrink_x = 0.1;
-    float bed_shrink_y = 0.1;
+    float bed_shrink_x = 0.0;
+    float bed_shrink_y = 0.0;
     float brim_skirt_distance = 0;
     float clearance_height_to_rod = 0;
     float clearance_height_to_lid = 0;

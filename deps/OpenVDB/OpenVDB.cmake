@@ -6,6 +6,10 @@ else()
     set(_build_static ON)
 endif()
 
+if (BINARY_DIR_REL)
+    set(OPENVDB_DIRECTORY_FLAG --directory ${BINARY_DIR_REL}/dep_OpenVDB-prefix/src/dep_OpenVDB)
+endif ()
+
 set (_openvdb_vdbprint ON)
 #if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
     # Build fails on raspberry pi due to missing link directive to latomic
@@ -15,6 +19,7 @@ set (_openvdb_vdbprint ON)
 bambustudio_add_cmake_project(OpenVDB    
     URL https://github.com/tamasmeszaros/openvdb/archive/a68fd58d0e2b85f01adeb8b13d7555183ab10aa5.zip # 8.2 patched
     URL_HASH SHA256=f353e7b99bd0cbfc27ac9082de51acf32a8bc0b3e21ff9661ecca6f205ec1d81
+    PATCH_COMMAND git apply ${OPENVDB_DIRECTORY_FLAG} --verbose --ignore-space-change --whitespace=fix ${CMAKE_CURRENT_LIST_DIR}/0001-clang19.patch
     # URL https://github.com/AcademySoftwareFoundation/openvdb/archive/refs/tags/v10.0.1.zip
     # URL_HASH SHA256=48C2CFA9853B58FA86282DF1F83F0E99D07858CC03EB2BA8227DC447A830100A
     DEPENDS dep_TBB dep_Blosc dep_OpenEXR ${BOOST_PKG}

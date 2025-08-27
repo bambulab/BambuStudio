@@ -68,6 +68,7 @@ static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::GapFillIcon            , "gap_fill"                      },
     {ImGui::FoldButtonIcon         , "im_fold"                       },
     {ImGui::UnfoldButtonIcon       , "im_unfold"                     },
+    {ImGui::HelioIcon              , "helio_icon"                    },
     {ImGui::SphereButtonIcon       , "toolbar_modifier_sphere"       },
     // dark mode icon
     {ImGui::MinimalizeDarkButton       , "notification_minimalize_dark"       },
@@ -152,6 +153,7 @@ const ImVec4 ImGuiWrapper::COL_BUTTON_HOVERED    = COL_ORANGE_LIGHT;
 const ImVec4 ImGuiWrapper::COL_BUTTON_ACTIVE     = ImGuiWrapper::COL_BUTTON_HOVERED;
 
 //BBS
+const ImVec4 ImGuiWrapper::COL_WHITE             = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 const ImVec4 ImGuiWrapper::COL_RED               = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
 const ImVec4 ImGuiWrapper::COL_GREEN             = ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
 const ImVec4 ImGuiWrapper::COL_BLUE              = ImVec4(0.0f, 0.0f, 1.0f, 1.0f);
@@ -164,8 +166,8 @@ const ImVec4 ImGuiWrapper::COL_SEPARATOR_DARK    = { 0.24f, 0.24f, 0.27f, 1.0f }
 const ImVec4 ImGuiWrapper::COL_TITLE_BG          = { 0.745f, 0.745f, 0.745f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_WINDOW_BG         = { 1.000f, 1.000f, 1.000f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_WINDOW_BG_DARK    = { 45 / 255.f, 45 / 255.f, 49 / 255.f, 1.f };
-const ImVec4 ImGuiWrapper::COL_BAMBU             = {0.0f, 150.f / 255.0f, 136.0f / 255, 1.0f};
-
+const ImVec4 ImGuiWrapper::COL_BAMBU             = {0.0f, 174.0 / 255.0f, 66.0f / 255, 1.0f};
+const ImVec4 ImGuiWrapper::COL_BAMBU_CHANGE      = {1.0f, 111.0 / 255.0f, 0.0f / 255, 1.0f};
 int ImGuiWrapper::TOOLBAR_WINDOW_FLAGS = ImGuiWindowFlags_AlwaysAutoResize
                                  | ImGuiWindowFlags_NoMove
                                  | ImGuiWindowFlags_NoResize
@@ -513,6 +515,10 @@ void ImGuiWrapper::new_frame()
 
     ImGuiIO& io = ImGui::GetIO();
 
+    ImGui::NewFrame();
+    m_new_frame_open = true;
+
+    // BBL: we should render the new frame first, than reset keys' status
     // BBL: copy & paste form prusa github repo (https://github.com/prusa3d/PrusaSlicer/blob/master/src/slic3r/GUI/ImGuiWrapper.cpp#L375C5-L402C6)
     // synchronize key states
     // when the application loses the focus it may happen that the key up event is not processed
@@ -543,9 +549,6 @@ void ImGuiWrapper::new_frame()
     }
 
     // BBL: end copy & paste
-
-    ImGui::NewFrame();
-    m_new_frame_open = true;
 }
 
 void ImGuiWrapper::render()
@@ -793,6 +796,7 @@ bool ImGuiWrapper::bbl_slider_float(const std::string& label, float* v, float v_
     bool ret = ImGui::BBLSliderFloat(str_label.c_str(), v, v_min, v_max, format, power);
 
     m_last_slider_status.hovered = ImGui::IsItemHovered();
+    m_last_slider_status.edited = ImGui::IsItemEdited();
     m_last_slider_status.clicked = ImGui::IsItemClicked();
     m_last_slider_status.deactivated_after_edit = ImGui::IsItemDeactivatedAfterEdit();
 
@@ -1134,6 +1138,10 @@ void ImGuiWrapper::tooltip(const char *label, float wrap_width)
     ImGui::PopStyleColor(1);
     ImGui::PopTextWrapPos();
     ImGui::EndTooltip();
+}
+
+void ImGuiWrapper::tooltip(const std::string &label, float wrap_width) {
+    tooltip(label.c_str(), wrap_width);
 }
 
 void ImGuiWrapper::tooltip(const wxString &label, float wrap_width)
@@ -2941,6 +2949,10 @@ void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
         0.0f, 0.0f, 0.0f, 1.0f;
     shader->set_uniform("Texture", 0);
     shader->set_uniform("ProjMtx", ortho_projection);
+
+    const uint8_t stage = 0;
+    shader->set_uniform("s_texture", stage);
+
     // Will project scissor/clipping rectangles into framebuffer space
     const ImVec2 clip_off = draw_data->DisplayPos;       // (0,0) unless using multi-viewports
     const ImVec2 clip_scale = draw_data->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
@@ -2988,6 +3000,7 @@ void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
                 // Apply scissor/clipping rectangle (Y is inverted in OpenGL)
                 glsafe(::glScissor((int)clip_min.x, (int)(fb_height - clip_max.y), (int)(clip_max.x - clip_min.x), (int)(clip_max.y - clip_min.y)));
                 // Bind texture, Draw
+                glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
                 glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->GetTexID()));
                 glsafe(::glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, (void*)(intptr_t)(pcmd->IdxOffset * sizeof(ImDrawIdx))));
             }
@@ -3007,6 +3020,7 @@ void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
     glsafe(::glDisable(GL_SCISSOR_TEST));
     glsafe(::glEnable(GL_CULL_FACE));
     glsafe(::glEnable(GL_DEPTH_TEST));
+    glsafe(::glDisable(GL_BLEND));
 
     wxGetApp().unbind_shader();
 

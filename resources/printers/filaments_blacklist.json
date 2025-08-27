@@ -3,76 +3,48 @@
   ],
   "blacklist": [
     {
-      "vendor": "Third Party",
       "type": "TPU",
       "action": "prohibition",
-      "description": "TPU: not supported"
+      "slot": "ams",
+      "description": "TPU is not supported by AMS."
     },
     {
-      "vendor": "Bambu Lab",
-      "type": "TPU",
-      "action": "prohibition",
-      "description": "TPU: not supported"
-    },
-    {
-      "vendor": "Third Party",
       "type": "PVA",
       "action": "warning",
-      "description": "PVA: flexible"
+      "slot": "ams",
+      "description": "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
     },
     {
-      "vendor": "Bambu Lab",
       "type": "PVA",
       "action": "warning",
-      "description": "PVA: flexible"
+      "slot": "ext",
+      "description": "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
     },
     {
-      "vendor": "Third Party",
-      "type": "PLA-CF",
-      "action": "warning",
-      "description": "CF/GF: hard and brittle"
-    },
-    {
-      "vendor": "Third Party",
-      "type": "PETG-CF",
-      "action": "warning",
-      "description": "CF/GF: hard and brittle"
-    },
-    {
-      "vendor": "Third Party",
-      "type": "PA-CF",
-      "action": "warning",
-      "description": "CF/GF: hard and brittle"
-    },
-    {
-      "vendor": "Third Party",
-      "type": "PAHT-CF",
-      "action": "warning",
-      "description": "CF/GF: hard and brittle"
-    },
-    {
-      "vendor": "Third Party",
-      "type": "PET-CF",
-      "action": "warning",
-      "description": "CF/GF: hard and brittle"
-    },
-    {
-      "vendor": "Third Party",
-      "type": "PA6-CF",
-      "action": "warning",
-      "description": "CF/GF: hard and brittle"
-    },
-    {
-      "vendor": "Third Party",
       "type": "PPS-CF",
+      "model_id":["O1S"],
       "action": "warning",
-      "description": "CF/GF: hard and brittle"
+      "description": "PPS-CF is brittle and could break in bended PTFE tube above Toolhead.",
+      "wiki": "https://e.bambulab.com/t?c=UC64kdlpHxN3Mb15"
     },
     {
-      "vendor": "Third Party",
       "type": "PPA-CF",
+      "model_id":["O1S"],
       "action": "warning",
-      "description": "CF/GF: hard and brittle"
+      "description": "PPA-CF is brittle and could break in bended PTFE tube above Toolhead.",
+      "wiki": "https://e.bambulab.com/t?c=UC64kdlpHxN3Mb15"
+    },
+    {
+      "type_suffix": "CF",
+      "action": "warning",
+      "slot": "ams",
+      "description": "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+    },
+    {
+      "type_suffix": "GF",
+      "action": "warning",
+	  "slot": "ams",
+      "description": "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
     },
     {
       "vendor": "Bambu Lab",
@@ -80,31 +52,8 @@
       "name": "PLA Glow",
 	  "model_id":["N1","N2S"],
       "action": "warning",
-      "description": "PLA-Glow"
-    },
-    {
-      "vendor": "Bambu Lab",
-      "type": "PET-CF",
-      "action": "prohibition",
-      "description": "Bambu CF: not supported"
-    },
-    {
-      "vendor": "Bambu Lab",
-      "type": "PA6-CF",
-      "action": "prohibition",
-      "description": "Bambu CF: not supported"
-    },
-    {
-      "vendor": "Bambu Lab",
-      "type": "PPS-CF",
-      "action": "prohibition",
-      "description": "Bambu CF: not supported"
-    },
-    {
-      "vendor": "Bambu Lab",
-      "type": "PPA-CF",
-      "action": "prohibition",
-      "description": "Bambu CF: not supported"
+      "slot": "ams",
+      "description": "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
     }
   ]
 }

@@ -611,7 +611,7 @@ wxBoxSizer *Newer3mfVersionDialog::get_btn_sizer()
                             std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
     bool       file_version_newer = (*m_file_version) > (*m_cloud_version);
     if (!file_version_newer) {
-        m_update_btn = new Button(this, _L("Update"));
+        m_update_btn = new Button(this, _CTX(L_CONTEXT("Update", "Software"), "Software"));
         m_update_btn->SetBackgroundColor(btn_bg_green);
         m_update_btn->SetBorderColor(*wxWHITE);
         m_update_btn->SetTextColor(wxColour(0xFFFFFE));

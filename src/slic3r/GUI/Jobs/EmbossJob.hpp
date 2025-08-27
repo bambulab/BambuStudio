@@ -49,7 +49,7 @@ public:
     /// </summary>
     /// <param name="volume">Data object for store emboss params</param>
     virtual void write(ModelVolume &volume) const;
-
+    virtual TextConfiguration get_text_configuration() { return {}; }
     // Define projection move
     // True (raised) .. move outside from surface (MODEL_PART)
     // False (engraved).. move into object (NEGATIVE_VOLUME)
@@ -176,7 +176,7 @@ struct SurfaceVolumeData
         // source volumes
         std::shared_ptr<const TriangleMesh> mesh;
         // Transformation of volume inside of object
-        Transform3d tr;
+        Transform3d tr{Transform3d::Identity()};
     };
     using ModelSources = std::vector<ModelSource>;
     ModelSources sources;
@@ -261,6 +261,31 @@ public:
     void process(Ctl &ctl) override;
     void finalize(bool canceled, std::exception_ptr &eptr) override;
 };
+struct CreateTextInput
+{
+    std::vector<TriangleMesh> m_chars_mesh_result;
+    std::vector<float> m_text_cursors;
+    EmbossShape               m_text_shape;
+    TextInfo                  text_info;
+    DataBasePtr               base;
+
+    std::vector<Vec3d> m_position_points;
+};
+
+class CreateObjectTextJob : public JobNew
+{
+    CreateTextInput           m_input;
+public:
+    explicit CreateObjectTextJob(CreateTextInput &&input);
+    void process(Ctl &ctl) override;
+    void finalize(bool canceled, std::exception_ptr &eptr) override;
+};
+
+const GLVolume *find_glvoloume_render_screen_cs(const Selection &selection, const Vec2d &screen_center, const Camera &camera, const ModelObjectPtrs &objects, Vec2d *closest_center);
+void            create_all_char_mesh(DataBase &input, std::vector<TriangleMesh> &result,std::vector<float>& text_cursors, EmbossShape &shape);
+float           get_single_char_width( const std::vector<TriangleMesh> &chars_mesh_result);
+bool            calc_text_lengths(std::vector<double> &text_lengths, const std::vector<float> & text_cursors);
+void calc_position_points(std::vector<Vec3d> &position_points, std::vector<double> &text_lengths, float text_gap, const Vec3d &temp_pos_dir);
 
 struct Texture
 {
@@ -304,6 +329,82 @@ public:
     void process(Ctl &ctl) override;
     void finalize(bool canceled, std::exception_ptr &eptr) override;
 };
+
+void recreate_model_volume(Slic3r::ModelObject *model_object, int volume_idx, const TriangleMesh &mesh, Geometry::Transformation &text_tran, TextInfo &text_info);
+void create_text_volume(Slic3r::ModelObject *model_object,  const TriangleMesh &mesh, Geometry::Transformation &text_tran, TextInfo &text_info);
+class GenerateTextJob : public JobNew
+{
+public:
+    enum SurfaceType {
+        None,
+        Surface,
+        CharSurface,
+    };
+    struct InputInfo
+    {
+        Geometry::Transformation  m_text_tran_in_object;
+        Geometry::Transformation  m_model_object_in_world_tran;
+        ModelObject *             mo{nullptr};
+        int                       m_volume_idx;
+        int                       hit_mesh_id;
+        std::vector<Vec3d>        m_position_points;
+        std::vector<Vec3d>        m_normal_points;
+        std::vector<Vec3d>        m_cut_points_in_world;
+        std::vector<Vec3d>        m_cut_points_in_local;
+        Geometry::Transformation  m_text_tran_in_world; // Transform3d               m_text_cs_to_world_tran;
+        //Transform3d               m_object_cs_to_world_tran;
+        std::vector<TriangleMesh> m_chars_mesh_result;
+        std::vector<float>        m_text_cursors;
+        Vec3d                     m_text_position_in_world;
+        Vec3f                     m_text_normal_in_world;
+        float                     m_text_gap;
+        std::vector<double>       text_lengths;
+
+        Vec3d       m_cut_plane_dir_in_world;
+        float       m_thickness     = 2.f;
+        float       m_embeded_depth = 0.f;
+        SurfaceType m_surface_type  = SurfaceType::None;
+        TextInfo::TextType       text_surface_type;
+
+        TriangleMesh m_final_text_mesh;
+        Geometry::Transformation m_final_text_tran_in_object;
+        TextInfo                 text_info;
+
+        TriangleMesh slice_mesh;
+        EmbossShape m_text_shape;
+        bool         use_surface = false;
+        float        shape_scale;
+        bool         is_outside  = true;//bool is_outside = (type == ModelVolumeType::MODEL_PART);
+
+        bool         first_generate = false;
+        Emboss::DataUpdate m_data_update;
+
+    };
+    static bool update_text_positions(InputInfo &input_info);
+    static bool generate_text_points(InputInfo &input_info);
+    static Geometry::Transformation get_sub_mesh_tran(const Vec3d &position, const Vec3d &normal, const Vec3d &text_up_dir, float embeded_depth);
+    static void                     get_text_mesh(TriangleMesh &result_mesh, std::vector<TriangleMesh> &chars_mesh, int i, Geometry::Transformation& local_tran);
+    static void                     get_text_mesh(TriangleMesh &            result_mesh,
+                                                  EmbossShape &             text_shape,
+                                                  BoundingBoxes &           line_bbs,
+                                                  SurfaceVolumeData::ModelSources& input_ms_es,
+                                                  DataBase &input_db,
+                                                  int                       i,
+                                                  Geometry::Transformation &mv_tran,
+                                                  Geometry::Transformation &local_tran_to_object_cs,
+                                                  TriangleMesh &            slice_mesh);
+    static void generate_mesh_according_points(InputInfo& input_info);
+    static std::vector<Vec3d>       debug_cut_points_in_world;
+
+public:
+    explicit GenerateTextJob(InputInfo &&input);
+    void process(Ctl &ctl) override;
+    void finalize(bool canceled, std::exception_ptr &eptr) override;
+
+private:
+    InputInfo m_input;
+};
+
 static bool check(unsigned char gizmo_type);
 static bool check(const DataBase &input, bool check_fontfile, bool use_surface = false);
 static bool check(const CreateVolumeParams &input);
@@ -323,6 +424,7 @@ static TriangleMesh         try_create_mesh(DataBase &input);
 static TriangleMesh         create_mesh(DataBase &input);
 static std::vector<TriangleMesh> create_meshs(DataBase &input);
 static indexed_triangle_set cut_surface_to_its(const ExPolygons &shapes, const Transform3d &tr, const SurfaceVolumeData::ModelSources &sources, DataBase &input);
+static indexed_triangle_set cut_surface_to_its(const ExPolygons &shapes, float scale, const Transform3d &tr, const SurfaceVolumeData::ModelSources &sources, DataBase &input);
 static TriangleMesh         cut_per_glyph_surface(DataBase &input1, const SurfaceVolumeData &input2);
 static TriangleMesh         cut_surface(DataBase &input1, const SurfaceVolumeData &input2);
 static void                 _update_volume(TriangleMesh &&mesh, const DataUpdate &data, const Transform3d *tr = nullptr);

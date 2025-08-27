@@ -12,6 +12,8 @@ namespace Slic3r::Arachne
 
 ExtrusionLine::ExtrusionLine(const size_t inset_idx, const bool is_odd) : inset_idx(inset_idx), is_odd(is_odd), is_closed(false) {}
 
+ExtrusionLine::ExtrusionLine(const size_t inset_idx, const bool is_odd, const bool is_closed) : inset_idx(inset_idx), is_odd(is_odd), is_closed(is_closed) {}
+
 int64_t ExtrusionLine::getLength() const
 {
     if (junctions.empty())
@@ -278,7 +280,17 @@ double ExtrusionLine::area() const
 } // namespace Slic3r::Arachne
 
 namespace Slic3r {
-void extrusion_paths_append(ExtrusionPaths &dst, const ClipperLib_Z::Paths &extrusion_paths, const ExtrusionRole role, const Flow &flow, int overhang)
+
+void extrusion_paths_append(std::list<ExtrusionPath> &dst, const ClipperLib_Z::Paths &extrusion_paths, const ExtrusionRole role, const Flow &flow, double overhang)
+{
+    for (const ClipperLib_Z::Path &extrusion_path : extrusion_paths) {
+        ThickPolyline thick_polyline = Arachne::to_thick_polyline(extrusion_path);
+        ExtrusionPaths path = thick_polyline_to_multi_path(thick_polyline, role, flow, scaled<float>(0.05), float(SCALED_EPSILON), overhang).paths;
+        dst.insert(dst.end(), std::make_move_iterator(path.begin()), std::make_move_iterator(path.end()));
+    }
+}
+
+void extrusion_paths_append(ExtrusionPaths &dst, const ClipperLib_Z::Paths &extrusion_paths, const ExtrusionRole role, const Flow &flow, double overhang)
 {
     for (const ClipperLib_Z::Path &extrusion_path : extrusion_paths) {
         ThickPolyline thick_polyline = Arachne::to_thick_polyline(extrusion_path);
@@ -286,13 +298,13 @@ void extrusion_paths_append(ExtrusionPaths &dst, const ClipperLib_Z::Paths &extr
     }
 }
 
-void extrusion_paths_append(ExtrusionPaths &dst, const Arachne::ExtrusionLine &extrusion, const ExtrusionRole role, const Flow &flow, int overhang)
+void extrusion_paths_append(ExtrusionPaths &dst, const Arachne::ExtrusionLine &extrusion, const ExtrusionRole role, const Flow &flow, double overhang)
 {
     ThickPolyline thick_polyline = Arachne::to_thick_polyline(extrusion);
     Slic3r::append(dst, thick_polyline_to_multi_path(thick_polyline, role, flow, scaled<float>(0.05), float(SCALED_EPSILON), overhang).paths);
 }
 
-void extrusion_path_append(ExtrusionPaths &dst, const ThickPolyline &thick_polyline, const ExtrusionRole role, const Flow &flow, int overhang)
+void extrusion_path_append(ExtrusionPaths &dst, const ThickPolyline &thick_polyline, const ExtrusionRole role, const Flow &flow, double overhang)
 {
     Slic3r::append(dst, thick_polyline_to_multi_path(thick_polyline, role, flow, scaled<float>(0.05), float(SCALED_EPSILON), overhang).paths);
 }

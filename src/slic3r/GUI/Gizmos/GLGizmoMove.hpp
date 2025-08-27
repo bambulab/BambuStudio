@@ -41,7 +41,7 @@ class GLGizmoMove3D : public GLGizmoBase
 public:
     //BBS: add obj manipulation logic
     //GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
-    GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation);
+    GLGizmoMove3D(GLCanvas3D& parent, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation);
     virtual ~GLGizmoMove3D() = default;
 
     double get_snap_step(double step) const { return m_snap_step; }
@@ -52,6 +52,8 @@ public:
     std::string get_tooltip() const override;
     void        data_changed(bool is_serializing) override;
     BoundingBoxf3 get_bounding_box() const override;
+
+    std::string get_icon_filename(bool b_dark_mode) const override;
 
 protected:
     virtual bool on_init() override;

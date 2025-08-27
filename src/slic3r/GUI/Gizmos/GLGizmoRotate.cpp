@@ -29,7 +29,7 @@ const float GLGizmoRotate::GrabberOffset = 0.15f; // in percent of radius
 
 
 GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
-    : GLGizmoBase(parent, "", -1)
+    : GLGizmoBase(parent, -1)
     , m_axis(axis)
     , m_angle(0.0)
     , m_center(0.0, 0.0, 0.0)
@@ -42,7 +42,7 @@ GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
 }
 
 GLGizmoRotate::GLGizmoRotate(const GLGizmoRotate& other)
-    : GLGizmoBase(other.m_parent, other.m_icon_filename, other.m_sprite_id)
+    : GLGizmoBase(other.m_parent, other.m_sprite_id)
     , m_axis(other.m_axis)
     , m_angle(other.m_angle)
     , m_center(other.m_center)
@@ -459,6 +459,7 @@ Transform3d GLGizmoRotate::calculate_circle_model_matrix() const
 {
     auto radius = m_radius;
     modify_radius(radius);
+    radius *= 1.3;
     Transform3d redius_scale_matrix;
     Geometry::scale_transform(redius_scale_matrix, { radius, radius, radius });
     const Selection& selection = m_parent.get_selection();
@@ -488,9 +489,6 @@ Transform3d  GLGizmoRotate::transform_to_local(const Selection &selection) const
         break;
     }
     }
-
-    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes())
-        ret = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix(true, false, true, true) * ret;
 
     return m_orient_matrix * ret;
 
@@ -535,6 +533,9 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, cons
 }
 
 void GLGizmoRotate::init_data_from_selection(const Selection &selection) {
+    if (selection.is_empty()) {
+        return;
+    }
     const auto [box, box_trafo]           = m_force_local_coordinate ? selection.get_bounding_box_in_reference_system(ECoordinatesType::Local) :
                                                                        selection.get_bounding_box_in_current_reference_system();
     m_bounding_box                        = box;
@@ -577,41 +578,17 @@ BoundingBoxf3 GLGizmoRotate::get_bounding_box() const
         t_aabb.defined = true;
     }
     // end m_circle aabb
-
-    // m_grabber_connection aabb
-    if (m_grabber_connection.model.is_initialized()) {
-        BoundingBoxf3 t_grabber_connection_aabb = m_grabber_connection.model.get_bounding_box();
-        t_grabber_connection_aabb = t_grabber_connection_aabb.transformed(t_circle_model_matrix);
-        t_grabber_connection_aabb.defined = true;
-        t_aabb.merge(t_grabber_connection_aabb);
-        t_aabb.defined = true;
-    }
-
-
-    // m_grabbers aabb
-    if (m_grabbers.front().get_cube().is_initialized()) {
-        auto t_grabbers_aabb = m_grabbers.front().get_cube().get_bounding_box();
-        t_grabbers_aabb = t_grabbers_aabb.transformed(m_grabbers.front().m_matrix);
-        t_grabbers_aabb.defined = true;
-        t_aabb.merge(t_grabbers_aabb);
-        t_aabb.defined = true;
-    }
-    // end m_grabbers aabb
-
-    // m_cone aabb
-    if (m_cone.is_initialized()) {
-        auto t_cone_aabb = m_cone.get_bounding_box();
-        t_cone_aabb = t_cone_aabb.transformed(m_grabbers.front().m_matrix);
-        t_cone_aabb.defined = true;
-        t_aabb.merge(t_cone_aabb);
-        t_aabb.defined = true;
-    }
     return t_aabb;
 }
 
+std::string GLGizmoRotate::get_icon_filename(bool b_dark_mode) const
+{
+    return "";
+}
+
 //BBS: GUI refactor: add obj manipulation
-GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation)
-    : GLGizmoBase(parent, icon_filename, sprite_id)
+GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation)
+    : GLGizmoBase(parent, sprite_id)
     //BBS: GUI refactor: add obj manipulation
     , m_object_manipulation(obj_manipulation)
 {
@@ -631,27 +608,29 @@ BoundingBoxf3 GLGizmoRotate3D::get_bounding_box() const
     BoundingBoxf3 t_aabb;
     t_aabb.reset();
 
-    if (m_hover_id == -1 || m_hover_id == 0)
     {
         const auto t_x_aabb = m_gizmos[X].get_bounding_box();
         t_aabb.merge(t_x_aabb);
         t_aabb.defined = true;
     }
 
-    if (m_hover_id == -1 || m_hover_id == 1)
     {
         const auto t_y_aabb = m_gizmos[Y].get_bounding_box();
         t_aabb.merge(t_y_aabb);
         t_aabb.defined = true;
     }
 
-    if (m_hover_id == -1 || m_hover_id == 2)
     {
         const auto t_z_aabb = m_gizmos[Z].get_bounding_box();
         t_aabb.merge(t_z_aabb);
         t_aabb.defined = true;
     }
     return t_aabb;
+}
+
+std::string GLGizmoRotate3D::get_icon_filename(bool b_dark_mode) const
+{
+    return b_dark_mode ? "toolbar_rotate_dark.svg" : "toolbar_rotate.svg";
 }
 
 bool GLGizmoRotate3D::on_init()
@@ -692,6 +671,14 @@ void GLGizmoRotate3D::on_set_state()
 
 void GLGizmoRotate3D::data_changed(bool is_serializing) {
     const Selection &selection = m_parent.get_selection();
+    enable_grabber(0, !selection.is_wipe_tower());
+    enable_grabber(1, !selection.is_wipe_tower());
+    if (selection.is_wipe_tower()) {
+        DynamicPrintConfig &config                    = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+        set_rotation(Vec3d(0., 0., (M_PI / 180.) * dynamic_cast<const ConfigOptionFloat *>(config.option("wipe_tower_rotation_angle"))->value));
+    } else {
+        set_rotation(Vec3d::Zero());
+    }
     const GLVolume * volume    = selection.get_first_volume();
     if (volume == nullptr) {
         m_last_volume = nullptr;

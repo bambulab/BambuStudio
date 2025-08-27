@@ -943,6 +943,34 @@ __finished:
 #endif
 }
 
+bool copy_framework(const std::string &from, const std::string &to)
+{
+    boost::filesystem::path src(from), dst(to);
+    try {
+        if (!boost::filesystem::is_directory(src)) {
+            std::cerr << "Error: Source is not a directory: " << src << std::endl;
+            return false;
+        }
+        boost::filesystem::create_directories(dst);
+        for (boost::filesystem::directory_iterator it(src); it != boost::filesystem::directory_iterator(); ++it) {
+            const auto &entry     = it->path();
+            const auto  dest_path = dst / entry.filename();
+
+            if (boost::filesystem::is_symlink(entry)) {
+                boost::filesystem::copy_symlink(entry, dest_path);
+            } else if (boost::filesystem::is_directory(entry)) {
+                copy_framework(it->path().string(), dest_path.string());
+            } else {
+                boost::filesystem::copy(entry, dest_path, boost::filesystem::copy_options::overwrite_existing);
+            }
+        }
+        return true;
+    } catch (const boost::filesystem::filesystem_error &e) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Filesystem error: " << e.what();
+    }
+    return false;
+}
+
 CopyFileResult check_copy(const std::string &origin, const std::string &copy)
 {
 	boost::nowide::ifstream f1(origin, std::ifstream::in | std::ifstream::binary | std::ifstream::ate);
@@ -1487,6 +1515,24 @@ bool bbl_calc_md5(std::string &filename, std::string &md5_out)
     for (int j = 0; j < 16; j++) { sprintf(&md5_str[j * 2], "%02X", (unsigned int) digest[j]); }
     md5_out = std::string(md5_str);
     return true;
+}
+
+void save_string_file(const boost::filesystem::path& p, const std::string& str)
+{
+    boost::nowide::ofstream file;
+    file.exceptions(std::ios_base::failbit | std::ios_base::badbit);
+    file.open(p.generic_string(), std::ios_base::binary);
+    file.write(str.c_str(), str.size());
+}
+
+void load_string_file(const boost::filesystem::path& p, std::string& str)
+{
+    boost::nowide::ifstream file;
+    file.exceptions(std::ios_base::failbit | std::ios_base::badbit);
+    file.open(p.generic_string(), std::ios_base::binary);
+    std::size_t sz = static_cast<std::size_t>(boost::filesystem::file_size(p));
+    str.resize(sz, '\0');
+    file.read(&str[0], sz);
 }
 
 

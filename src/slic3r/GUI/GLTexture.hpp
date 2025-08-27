@@ -152,6 +152,28 @@ namespace GUI {
         friend class Compressor;
     };
 
+    struct BackgroundTexture
+    {
+        struct Metadata
+        {
+            // path of the file containing the background texture
+            std::string filename;
+            // size of the left edge, in pixels
+            unsigned int left;
+            // size of the right edge, in pixels
+            unsigned int right;
+            // size of the top edge, in pixels
+            unsigned int top;
+            // size of the bottom edge, in pixels
+            unsigned int bottom;
+
+            Metadata();
+        };
+
+        GLTexture texture;
+        Metadata metadata;
+    };
+
 } // namespace GUI
 } // namespace Slic3r
 

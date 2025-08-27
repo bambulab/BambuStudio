@@ -23,8 +23,8 @@
 namespace Slic3r::GUI {
 
 
-GLGizmoPainterBase::GLGizmoPainterBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-    : GLGizmoBase(parent, icon_filename, sprite_id)
+GLGizmoPainterBase::GLGizmoPainterBase(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoBase(parent, sprite_id)
 {
     // Make sphere and save it into a vertex buffer.
     m_vbo_sphere.load_its_flat_shading(its_make_sphere(1., (2*M_PI)/24.));
@@ -65,7 +65,7 @@ GLGizmoPainterBase::ClippingPlaneDataWrapper GLGizmoPainterBase::get_clipping_pl
     // z_range is calculated in the same way as in GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
     if (m_c->get_canvas()->get_use_clipping_planes()) {
         const std::array<ClippingPlane, 2> &clps = m_c->get_canvas()->get_clipping_planes();
-        clp_data_out.z_range                     = {float(-clps[0].get_data()[3]), float(clps[1].get_data()[3])};
+        clp_data_out.z_range                     = {-FLT_MAX, float(clps[1].get_data()[3])};
     }
 
     return clp_data_out;
@@ -127,6 +127,20 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection) const
     }
 }
 
+void GLGizmoPainterBase::init_selected_glvolume(GLVolume &v,const TriangleMesh &mesh, const Geometry::Transformation &world_transformation) const
+{
+    v.force_native_color = true;
+    v.selected           = true;
+    v.set_render_color();
+#if ENABLE_SMOOTH_NORMALS
+    v.indexed_vertex_array->load_mesh(mesh, true);
+#else
+    v.indexed_vertex_array->load_mesh(mesh);
+#endif // ENABLE_SMOOTH_NORMALS
+    v.indexed_vertex_array->finalize_geometry(true);
+    v.set_instance_transformation(world_transformation);
+    v.set_convex_hull(mesh.convex_hull_3d());
+}
 
 void GLGizmoPainterBase::render_cursor() const
 {
@@ -1224,14 +1238,22 @@ void GLGizmoPainterBase::on_set_state()
 
 
 
-void GLGizmoPainterBase::on_load(cereal::BinaryInputArchive&)
+void GLGizmoPainterBase::on_load(cereal::BinaryInputArchive &ar)
 {
     // We should update the gizmo from current ModelObject, but it is not
     // possible at this point. That would require having updated selection and
     // common gizmos data, which is not done at this point. Instead, save
     // a flag to do the update in set_painter_gizmo_data, which will be called
     // soon after.
+    ar(m_tool_type, m_current_tool, m_cursor_type, m_cursor_radius, m_cursor_height, m_lock_x_for_height_bottom, m_smart_fill_angle, m_bucket_fill_mode,
+       TriangleSelectorPatch::gap_area);
     m_schedule_update = true;
+}
+
+void GLGizmoPainterBase::on_save(cereal::BinaryOutputArchive &ar) const
+{
+    ar(m_tool_type, m_current_tool,m_cursor_type, m_cursor_radius, m_cursor_height, m_lock_x_for_height_bottom,
+        m_smart_fill_angle, m_bucket_fill_mode, TriangleSelectorPatch::gap_area);
 }
 
 TriangleSelector::ClippingPlane GLGizmoPainterBase::get_clipping_plane_in_volume_coordinates(const Transform3d &trafo) const {
@@ -1271,7 +1293,7 @@ std::array<float, 4> TriangleSelectorGUI::get_seed_fill_color(const std::array<f
         1.f};
 }
 
-void TriangleSelectorGUI::render(ImGuiWrapper* imgui, const Transform3d& matrix)
+void TriangleSelectorGUI::render(ImGuiWrapper *imgui, const Transform3d &matrix,bool render_paint_contour_at_same_time)
 {
     if (m_update_render_data) {
         update_render_data();
@@ -1302,7 +1324,9 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui, const Transform3d& matrix)
     ScopeGuard guard_gouraud([shader]() { wxGetApp().bind_shader(shader); });
     wxGetApp().unbind_shader();
 
-    render_paint_contour(matrix);
+    if (render_paint_contour_at_same_time) {
+        render_paint_contour(matrix);
+    }
 
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
     if (imgui)
@@ -1391,20 +1415,23 @@ void TriangleSelectorGUI::update_paint_contour()
         init_data.add_line(vertices_count - 2, vertices_count - 1);
     }
 
-    if (!init_data.is_empty())
+    if (!init_data.is_empty()) {
         m_paint_contour.init_from(std::move(init_data));
+    }
 }
-void TriangleSelectorGUI::render_paint_contour(const Transform3d& matrix)
+
+void TriangleSelectorGUI::render_paint_contour(const Transform3d &matrix, bool clear_depth)
 {
     const auto& contour_shader = wxGetApp().get_shader("mm_contour");
-    if (contour_shader)
-    {
+    if (contour_shader && m_paint_contour.is_initialized()){
         wxGetApp().bind_shader(contour_shader);
 
         const Camera& camera = wxGetApp().plater()->get_camera();
         contour_shader->set_uniform("view_model_matrix", camera.get_view_matrix() * matrix);
         contour_shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-
+        if (clear_depth){
+            glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
+        }
         glsafe(::glDepthFunc(GL_LEQUAL));
         m_paint_contour.render_geometry();
         glsafe(::glDepthFunc(GL_LESS));
@@ -1422,7 +1449,12 @@ bool TrianglePatch::is_fragment() const
 float TriangleSelectorPatch::gap_area = TriangleSelectorPatch::GapAreaMin;
 bool  TriangleSelectorPatch::exist_gap_area = false;
 
-void TriangleSelectorPatch::render(ImGuiWrapper* imgui, const Transform3d& matrix)
+TriangleSelectorPatch::TriangleSelectorPatch(const TriangleMesh &mesh, const std::vector<std::array<float, 4>> ebt_colors, float edge_limit): TriangleSelectorGUI(mesh, edge_limit), m_ebt_colors(ebt_colors)
+{
+}
+
+
+void TriangleSelectorPatch::render(ImGuiWrapper *imgui, const Transform3d &matrix, bool render_paint_contour_at_same_time)
 {
     if (m_update_render_data)
         update_render_data();
@@ -1470,7 +1502,9 @@ void TriangleSelectorPatch::render(ImGuiWrapper* imgui, const Transform3d& matri
     ScopeGuard guard_mm_gouraud([shader]() { wxGetApp().bind_shader(shader); });
     wxGetApp().unbind_shader();
 
-    render_paint_contour(matrix);
+    if (render_paint_contour_at_same_time) {
+        render_paint_contour(matrix);
+    }
 
     m_update_render_data = false;
 }

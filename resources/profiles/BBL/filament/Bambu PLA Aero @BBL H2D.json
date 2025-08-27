@@ -5,7 +5,6 @@
     "from": "system",
     "setting_id": "GFSA11_05",
     "instantiation": "true",
-    "description": "This filament is only used to print models with a low density usually, and some special parameters are required. To get better printing quality, please refer to this wiki: Instructions for printing RC model with foaming PLA (PLA Aero).",
     "additional_cooling_fan_speed": [
         "0"
     ],
@@ -17,6 +16,14 @@
         "0.6",
         "0.6"
     ],
+    "filament_flush_temp": [
+        "0",
+        "0"
+    ],
+    "filament_flush_volumetric_speed": [
+        "0",
+        "0"
+    ],
     "filament_long_retractions_when_cut": [
         "nil",
         "nil"
@@ -24,6 +31,10 @@
     "filament_max_volumetric_speed": [
         "6",
         "6"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
     ],
     "filament_retract_before_wipe": [
         "nil",
@@ -73,10 +84,6 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
-    "filament_ramming_volumetric_speed": [
-        "-1",
-        "-1"
-    ],
     "filament_pre_cooling_temperature": [
         "0",
         "0"
@@ -84,6 +91,14 @@
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "filament_adaptive_volumetric_speed": [
+        "0",
+        "0"
+    ],
+    "long_retractions_when_ec": [
+        "1",
+        "1"
     ],
     "nozzle_temperature": [
         "220",
@@ -93,8 +108,16 @@
         "220",
         "220"
     ],
+    "retraction_distances_when_ec": [
+        "10",
+        "10"
+    ],
     "slow_down_layer_time": [
         "8"
+    ],
+    "volumetric_speed_coefficients": [
+        "0 0 0 0 0 0",
+        "0 0 0 0 0 0"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle",
@@ -102,7 +125,7 @@
         "Bambu Lab H2D 0.8 nozzle"
     ],
     "filament_start_gcode": [
-        "; filament start gcode\nM145 P0 ; set airduct mode to cooling mode\nM142 P1 R35 S40 U0.3 V0.5 ; set chamber autocooling"
+        "; filament start gcode\n"
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"

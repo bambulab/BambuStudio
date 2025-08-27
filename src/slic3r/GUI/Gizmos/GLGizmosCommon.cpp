@@ -138,13 +138,19 @@ void SelectionInfo::on_release()
 
 int SelectionInfo::get_active_instance() const
 {
-    const Selection& selection = get_pool()->get_canvas()->get_selection();
+    const auto& p_pool = get_pool();
+    if (!p_pool) {
+        return -1;
+    }
+
+    const auto& p_canvas = p_pool->get_canvas();
+    if (!p_canvas) {
+        return -1;
+    }
+
+    const Selection& selection = p_canvas->get_selection();
     return selection.get_instance_idx();
 }
-
-
-
-
 
 void InstancesHider::on_update()
 {
@@ -154,8 +160,13 @@ void InstancesHider::on_update()
     double z_min;
     if (canvas->get_canvas_type() == GLCanvas3D::CanvasAssembleView)
         z_min = std::numeric_limits<double>::max();
-    else
-        z_min = -SINKING_Z_THRESHOLD;
+    else {
+        if (canvas->get_gizmos_manager().is_paint_gizmo()) {
+            z_min = -FLT_MAX;
+        } else {
+            z_min = -SINKING_Z_THRESHOLD;
+        }
+    }
 
     if (mo && active_inst != -1) {
         canvas->toggle_model_objects_visibility(false);
@@ -176,7 +187,7 @@ void InstancesHider::on_update()
             for (const TriangleMesh* mesh : meshes) {
                 m_clippers.emplace_back(new MeshClipper);
                 m_clippers.back()->set_plane(ClippingPlane(-Vec3d::UnitZ(), z_min));
-                m_clippers.back()->set_mesh(*mesh);
+                m_clippers.back()->set_mesh(mesh->its);
             }
             m_old_meshes = meshes;
         }
@@ -374,28 +385,23 @@ void ObjectClipper::on_update()
     // which mesh should be cut?
     std::vector<const TriangleMesh *>     meshes;
     std::vector<Geometry::Transformation> trafos;
-    bool                                  force_clipper_regeneration = false;
 
-    std::unique_ptr<MeshClipper> mc;
     Geometry::Transformation     mc_tr;
 
-    if (!mc && meshes.empty()) {
+    if (meshes.empty()) {
         for (const ModelVolume *mv : mo->volumes) {
             meshes.emplace_back(&mv->mesh());
             trafos.emplace_back(mv->get_transformation());
         }
     }
 
-    if (mc || force_clipper_regeneration || meshes != m_old_meshes) {
+    if (meshes != m_old_meshes) {
         m_clippers.clear();
         for (size_t i = 0; i < meshes.size(); ++i) {
             m_clippers.emplace_back(new MeshClipper, trafos[i]);
-            auto tri_mesh = new TriangleMesh(meshes[i]->its);
-            m_clippers.back().first->set_mesh(*tri_mesh);
+            m_clippers.back().first->set_mesh(meshes[i]->its);
         }
         m_old_meshes = std::move(meshes);
-
-        if (mc) { m_clippers.emplace_back(std::move(mc), mc_tr); }
 
         m_active_inst_bb_radius = mo->instance_bounding_box(get_pool()->selection_info()->get_active_instance()).radius();
     }
@@ -420,13 +426,22 @@ void CommonGizmosDataObjects::ObjectClipper::render_cut(const std::vector<size_t
     //consider normal view  or assemble view
     const ModelObject *      mo       = sel_info->model_object();
     Geometry::Transformation inst_trafo;
-    bool                     is_assem_cnv             = get_pool()->get_canvas()->get_canvas_type() == GLCanvas3D::CanvasAssembleView;
+    GLCanvas3D *             canvas                   = get_pool()->get_canvas();
+    bool                     is_assem_cnv             = canvas->get_canvas_type() == GLCanvas3D::CanvasAssembleView;
     inst_trafo                                        = is_assem_cnv ? mo->instances[sel_info->get_active_instance()]->get_assemble_transformation() :
                                                                        mo->instances[sel_info->get_active_instance()]->get_transformation();
     auto                           offset_to_assembly = mo->instances[0]->get_offset_to_assembly();
 
     auto                           debug             = sel_info->get_sla_shift();
     std::vector<size_t>            ignore_idxs_local = ignore_idxs ? *ignore_idxs : std::vector<size_t>();
+
+
+    double      z_min;
+    if (canvas->get_gizmos_manager().is_paint_gizmo()) {
+        z_min = -FLT_MAX;
+    } else {
+        z_min = -SINKING_Z_THRESHOLD;
+    }
 
     for (auto &clipper : m_clippers) {
         auto                     vol_trafo = clipper.second;
@@ -438,7 +453,7 @@ void CommonGizmosDataObjects::ObjectClipper::render_cut(const std::vector<size_t
         }
         clipper.first->set_plane(*m_clp);
         clipper.first->set_transformation(trafo);
-        clipper.first->set_limiting_plane(ClippingPlane(Vec3d::UnitZ(), -SINKING_Z_THRESHOLD));
+        clipper.first->set_limiting_plane(ClippingPlane(Vec3d::UnitZ(), z_min));
         clipper.first->render_cut(OpenGLManager::get_cut_plane_color(), &ignore_idxs_local);
         clipper.first->render_contour({1.f, 1.f, 1.f, 1.f}, &ignore_idxs_local);
 
@@ -468,9 +483,21 @@ void CommonGizmosDataObjects::ObjectClipper::set_behaviour(bool hide_clipped, bo
 
 void ObjectClipper::set_position(double pos, bool keep_normal, bool vertical_normal)
 {
-    const ModelObject *mo          = get_pool()->selection_info()->model_object();
-    int                active_inst = get_pool()->selection_info()->get_active_instance();
-    double             z_shift     = get_pool()->selection_info()->get_sla_shift();
+    const auto p_pool = get_pool();
+    if (!p_pool) {
+        return;
+    }
+
+    const auto& p_selection_info = p_pool->selection_info();
+    if (!p_selection_info) {
+        return;
+    }
+    const ModelObject* mo = p_selection_info->model_object();
+    if (!mo) {
+        return;
+    }
+    int                active_inst = p_selection_info->get_active_instance();
+    double             z_shift = p_selection_info->get_sla_shift();
     if (active_inst < 0) {
         return;
     }
@@ -481,8 +508,8 @@ void ObjectClipper::set_position(double pos, bool keep_normal, bool vertical_nor
         normal = (keep_normal && m_clp) ? m_clp->get_normal() : -wxGetApp().plater()->get_camera().get_dir_forward();
     }
     Vec3d center;
-    if (get_pool()->get_canvas()->get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
-        const SelectionInfo *sel_info           = get_pool()->selection_info();
+    if (p_pool->get_canvas()->get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
+        const SelectionInfo *sel_info           = p_selection_info;
         auto                 trafo              = mo->instances[sel_info->get_active_instance()]->get_assemble_transformation();
         auto                 offset_to_assembly = mo->instances[0]->get_offset_to_assembly();
         center                                  = trafo.get_offset() + offset_to_assembly * (GLVolume::explosion_ratio - 1.0);
@@ -492,7 +519,7 @@ void ObjectClipper::set_position(double pos, bool keep_normal, bool vertical_nor
     float        dist   = normal.dot(center);
 
     if (pos < 0.)
-        pos = m_clp_ratio;
+        pos = 0.;
 
     m_clp_ratio = pos;
     m_clp.reset(new ClippingPlane(normal, (dist - (-m_active_inst_bb_radius) - m_clp_ratio * 2 * m_active_inst_bb_radius)));
@@ -581,7 +608,7 @@ void SupportsClipper::on_update()
             // The timestamp has changed.
             m_clipper.reset(new MeshClipper);
             // The mesh should already have the shared vertices calculated.
-            m_clipper->set_mesh(print_object->support_mesh());
+            m_clipper->set_mesh(print_object->support_mesh().its);
             m_old_timestamp = timestamp;
         }
     }
@@ -737,7 +764,7 @@ void ModelObjectsClipper::on_update()
         m_clippers.clear();
         for (const TriangleMesh* mesh : meshes) {
             m_clippers.emplace_back(new MeshClipper);
-            m_clippers.back()->set_mesh(*mesh);
+            m_clippers.back()->set_mesh(mesh->its);
         }
         m_old_meshes = meshes;
 

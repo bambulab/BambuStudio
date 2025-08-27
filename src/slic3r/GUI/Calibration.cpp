@@ -11,6 +11,8 @@
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/StaticBox.hpp"
 
+#include "DeviceCore/DevConfig.h"
+
 static wxColour FG_COLOR = wxColour(0x32, 0x3A, 0x3D);
 static wxColour BG_COLOR = wxColour(0xF8, 0xF8, 0xF8);
 
@@ -118,7 +120,7 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     wxBoxSizer *cali_right_sizer_h = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *cali_right_sizer_v = new wxBoxSizer(wxVERTICAL);
 
-    auto cali_right_panel = new StaticBox(body_panel, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(182), FromDIP(160)));
+    auto cali_right_panel = new StaticBox(body_panel, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(182), FromDIP(200)));
     cali_right_panel->SetBackgroundColor(BG_COLOR);
     cali_right_panel->SetBorderColor(BG_COLOR);
 
@@ -216,14 +218,15 @@ wxWindow* CalibrationDialog::create_check_option(wxString title, wxWindow* paren
 void CalibrationDialog::update_cali(MachineObject *obj)
 {
     if (!obj) return;
-    if (obj->is_support_ai_monitoring && obj->is_support_lidar_calibration) {
+    if (obj->GetConfig()->SupportAIMonitor() && obj->GetConfig()->SupportCalibrationLidar())
+    {
         select_xcam_cali->Show();
     } else {
         select_xcam_cali->Hide();
         m_checkbox_list["xcam_cali"]->SetValue(false);
     }
 
-    if(obj->is_support_auto_leveling){
+    if(obj->is_support_bed_leveling != 0){
         select_bed_leveling->Show();
     }else{
         select_bed_leveling->Hide();
@@ -237,19 +240,16 @@ void CalibrationDialog::update_cali(MachineObject *obj)
         m_checkbox_list["motor_noise"]->SetValue(false);
     }
 
-    if (obj->is_support_nozzle_offset_cali) {
+    if (obj->GetConfig()->SupportCalibrationNozzleOffset()) {
         select_nozzle_cali->Show();
     } else {
         select_nozzle_cali->Hide();
         m_checkbox_list["nozzle_cali"]->SetValue(false);
     }
 
-    if (obj->is_support_high_tempbed_cali)
-    {
+    if (obj->GetConfig()->SupportCalibrationHighTempBed()) {
         select_heatbed_cali->Show();
-    }
-    else
-    {
+    } else {
         select_heatbed_cali->Hide();
         m_checkbox_list["bed_cali"]->SetValue(false);
     }
@@ -258,12 +258,14 @@ void CalibrationDialog::update_cali(MachineObject *obj)
         if (obj->is_calibration_done()) {
             m_calibration_btn->Enable();
             m_calibration_btn->SetLabel(_L("Completed"));
+
         } else {
             // RUNNING && IDLE
             m_calibration_btn->Disable();
             m_calibration_btn->SetLabel(_L("Calibrating"));
+
         }
-        auto size = wxSize(CALI_FLOW_CONTENT_WIDTH, obj->stage_list_info.size() * FromDIP(44));
+        auto size = wxSize(CALI_FLOW_CONTENT_WIDTH, obj->stage_list_info.size() * FromDIP(35));
         if (m_calibration_flow->GetSize().y != size.y) {
             m_calibration_flow->SetSize(size);
             m_calibration_flow->SetMinSize(size);
@@ -271,12 +273,13 @@ void CalibrationDialog::update_cali(MachineObject *obj)
             m_calibration_flow->Refresh();
 
             Layout();
+
         }
         if (is_stage_list_info_changed(obj)) {
             // change items if stage_list_info changed
             m_calibration_flow->DeleteAllItems();
             for (int i = 0; i < obj->stage_list_info.size(); i++) {
-                m_calibration_flow->AppendItem(get_stage_string(obj->stage_list_info[i]));
+                m_calibration_flow->AppendItem(Slic3r::get_stage_string(obj->stage_list_info[i]));
             }
         }
         int index = obj->get_curr_stage_idx();

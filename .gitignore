@@ -28,3 +28,6 @@ doc/
 **/process_full/
 **/machine_full/
 **/filament_full/
+test.js
+/.cache/
+.clangd

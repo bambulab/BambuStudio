@@ -14,6 +14,8 @@
 #include <wx/animate.h>
 #include <wx/dynarray.h>
 
+#include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
+
 
 namespace Slic3r { namespace GUI {
 
@@ -43,11 +45,11 @@ protected:
     std::map<std::string, AmsItem*>  m_ams_item_list;
     std::map<std::string, AMSExtImage*> m_ext_image_list;
 
-    ExtderData                       m_extder_data;
     std::string                      m_dev_id;
     std::vector<std::vector<std::string>> m_item_ids{ {}, {} };
     std::vector<std::pair<string, string>> pair_id;
 
+    int         m_total_ext_count = 1;
     AMSextruder *m_extruder{nullptr};
     AMSRoadDownPart* m_down_road{ nullptr };
 
@@ -138,7 +140,9 @@ public:
     void SetAmsModel(AMSModel mode, AMSModel ext_mode) {m_ams_model = mode; m_ext_model = ext_mode;};
     void AmsSelectedSwitch(wxCommandEvent& event);
 
-	void SetActionState(bool button_status[]);
+    void EnableLoadFilamentBtn(bool enable, const std::string& ams_id, const std::string& can_id, const wxString& tips);
+    void EnableUnLoadFilamentBtn(bool enable, const std::string& ams_id, const std::string& can_id,const wxString& tips);
+
     void EnterNoneAMSMode();
     void EnterGenericAMSMode();
     void EnterExtraAMSMode();
@@ -156,7 +160,7 @@ public:
                    const std::string   &printer_type,
                    std::vector<AMSinfo> ams_info,
                    std::vector<AMSinfo> ext_info,
-                   ExtderData           data,
+                   DevExtderSystem           data,
                    std::string          dev_id,
                    bool                 is_reset = true,
                    bool                 test     = false);
@@ -170,7 +174,7 @@ public:
     void AddAms(std::vector<AMSinfo> single_info, const std::string &series_name, const std::string &printer_type, AMSPanelPos pos = AMSPanelPos::LEFT_PANEL);
     void AddAmsPreview(std::vector<AMSinfo>single_info, AMSPanelPos pos);
     //void AddExtraAms(std::vector<AMSinfo>single_info);
-    void SetExtruder(bool on_off, std::string ams_id, std::string slot_id);
+    void SetExtruder(bool on_off, int nozzle_id, std::string ams_id, std::string slot_id);
     void SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP step);
     void SwitchAms(std::string ams_id);
 
@@ -193,6 +197,9 @@ public:
 
     virtual bool Enable(bool enable = true);
     void parse_object(MachineObject* obj);
+
+private:
+    std::string get_filament_id(const std::string& ams_id, const std::string& can_id);
 
 public:
     std::string m_current_select;

@@ -27,9 +27,15 @@
 #include <wx/string.h>
 #include <wx/snglinst.h>
 #include <wx/msgdlg.h>
+#include <wx/language.h>
 
 #include <mutex>
 #include <stack>
+
+#ifdef __APPLE__
+#include <IOKit/pwr_mgt/IOPMLib.h>
+#include <IOKit/IOMessage.h>
+#endif
 
 //#define BBL_HAS_FIRST_PAGE          1
 #define STUDIO_INACTIVE_TIMEOUT     15*60*1000
@@ -57,6 +63,7 @@ struct wxLanguageInfo;
 namespace Slic3r {
 
 class AppConfig;
+class FilamentColorCodeQuery;
 class PresetBundle;
 class PresetUpdater;
 class ModelObject;
@@ -238,6 +245,9 @@ private:
 #ifdef __linux__
     bool            m_opengl_initialized{ false };
 #endif
+#if defined(__WINDOWS__)
+    bool            m_is_arm64{false};
+#endif
 
 //import model from mall
     wxString       m_download_file_url;
@@ -281,7 +291,7 @@ private:
 	size_t m_instance_hash_int;
 
     //BBS
-    bool m_is_closing {false};
+    std::atomic<bool> m_is_closing {false};
     Slic3r::DeviceManager* m_device_manager { nullptr };
     Slic3r::UserManager* m_user_manager { nullptr };
     Slic3r::TaskManager* m_task_manager { nullptr };
@@ -300,6 +310,7 @@ private:
     VersionInfo privacy_version_info;
     static std::string version_display;
     HMSQuery    *hms_query { nullptr };
+    FilamentColorCodeQuery* m_filament_color_code_query{ nullptr };
 
     boost::thread    m_sync_update_thread;
     std::shared_ptr<int> m_user_sync_token;
@@ -336,10 +347,14 @@ public:
     Slic3r::TaskManager*   getTaskManager() { return m_task_manager; }
     HMSQuery* get_hms_query() { return hms_query; }
     NetworkAgent* getAgent() { return m_agent; }
+    FilamentColorCodeQuery* get_filament_color_code_query();
     bool is_editor() const { return m_app_mode == EAppMode::Editor; }
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
     bool is_recreating_gui() const { return m_is_recreating_gui; }
     std::string logo_name() const { return is_editor() ? "BambuStudio" : "BambuStudio-gcodeviewer"; }
+
+    bool is_closing() const { return m_is_closing.load(std::memory_order_acquire); }
+    void set_closing(bool closing) { m_is_closing.store(closing, std::memory_order_release); }
 
     bool     show_3d_navigator() const { return app_config->get_bool("show_3d_navigator"); }
     void     toggle_show_3d_navigator() const { app_config->set_bool("show_3d_navigator", !show_3d_navigator()); }
@@ -414,7 +429,7 @@ public:
     int             em_unit() const         { return m_em_unit; }
     bool            tabs_as_menu() const;
     wxSize          get_min_size() const;
-    float           toolbar_icon_scale(const bool is_limited = false) const;
+    float           toolbar_icon_scale(bool auto_scale, const bool is_limited = false) const;
     void            set_auto_toolbar_icon_scale(float scale) const;
     void            check_printer_presets();
 
@@ -426,7 +441,6 @@ public:
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
 
     wxString        transition_tridid(int trid_id) const;
-    wxString        transition_tridid(int trid_id, bool is_n3s) const;
     void            ShowUserGuide();
     void            ShowDownNetPluginDlg(bool post_login = false);
     void            ShowUserLogin(bool show = true);
@@ -456,6 +470,7 @@ public:
     void            on_user_login(wxCommandEvent &evt);
     void            on_user_login_handle(wxCommandEvent& evt);
     void            enable_user_preset_folder(bool enable);
+    void            save_privacy_policy_history(bool agree, std::string source = "");
 
     // BBS
     bool            is_studio_active();
@@ -475,7 +490,7 @@ public:
     static std::string format_display_version();
     std::string     format_IP(const std::string& ip);
     void            show_dialog(wxString msg);
-    void            push_notification(wxString msg, wxString title = wxEmptyString, UserNotificationStyle style = UserNotificationStyle::UNS_NORMAL);
+    void            push_notification(const MachineObject* obj, wxString msg, wxString title = wxEmptyString, UserNotificationStyle style = UserNotificationStyle::UNS_NORMAL);
     void            reload_settings();
     void            remove_user_presets();
     void            sync_preset(Preset* preset);
@@ -494,7 +509,13 @@ public:
 
     static bool     catch_error(std::function<void()> cb, const std::string& err);
 
-    void            persist_window_geometry(wxTopLevelWindow *window, bool default_maximized = false);
+    //for helio slice
+    bool            is_helio_enable();
+    static void     request_helio_pat(std::function<void(std::string)> func);
+    static void     request_helio_supported_data();
+	//static std::vector<Slic3r::HelioQuery::SupportedPrinters> get_helio_support_printer_model();
+
+    void                                               persist_window_geometry(wxTopLevelWindow *window, bool default_maximized = false);
     void            update_ui_from_settings();
 
     bool            switch_language();
@@ -575,6 +596,12 @@ public:
     void            set_download_model_name(std::string name) {m_mall_model_download_name = name;}
     std::string     get_download_model_url() {return m_mall_model_download_url;}
     std::string     get_download_model_name() {return m_mall_model_download_name;}
+
+    std::string     get_remote_version_str() { return version_info.version_str; }
+#if defined(__WINDOWS__)
+    bool            is_running_on_arm64() { return m_is_arm64; }
+#endif
+
 
     void            load_url(wxString url);
     void            open_mall_page_dialog();
@@ -668,6 +695,9 @@ public:
     void set_picking_effect(EPickingEffect effect);
     EPickingEffect get_picking_effect() const;
 
+    void set_picking_color(const ColorRGB& color);
+    const ColorRGB& get_picking_color() const;
+
 private:
     int             updating_bambu_networking();
     bool            on_init_inner();
@@ -697,12 +727,48 @@ private:
     boost::optional<Semver> m_last_config_version;
     std::string             m_open_method;
     EPickingEffect          m_picking_effect{ EPickingEffect::StencilOutline };
+    ColorRGB                m_picking_color{ 1.0f, 1.0f, 1.0f };
+
+#ifdef __APPLE__
+    void        RegisterMacPowerCallBack();
+    void        UnRegisterMacPowerCallBack();
+    static void MacPowerCallBack(void* refcon, io_service_t service, natural_t messageType, void * messageArgument);
+
+    bool                   m_mac_powercallback_registered = false;
+    void*                  m_mac_refcon;
+    IONotificationPortRef  m_mac_io_notify_port;
+    io_object_t            m_mac_io_obj;
+    io_service_t           m_mac_io_service;
+#endif
 };
 
 DECLARE_APP(GUI_App)
 wxDECLARE_EVENT(EVT_CONNECT_LAN_MODE_PRINT, wxCommandEvent);
 
-bool is_support_filament(int extruder_id);
+bool is_support_filament(int extruder_id, bool strict_check = true);
+bool is_soluble_filament(int extruder_id);
+// check if the filament for model is in the list
+bool has_filaments(const std::vector<string>& model_filaments);
+
+static std::vector<wxLanguage> s_supported_languages = {
+    wxLANGUAGE_ENGLISH,
+    wxLANGUAGE_CHINESE_SIMPLIFIED,
+    wxLANGUAGE_GERMAN,
+    wxLANGUAGE_FRENCH,
+    wxLANGUAGE_SPANISH,
+    wxLANGUAGE_SWEDISH,
+    wxLANGUAGE_DUTCH,
+    wxLANGUAGE_HUNGARIAN,
+    wxLANGUAGE_JAPANESE,
+    wxLANGUAGE_ITALIAN,
+    wxLANGUAGE_KOREAN,
+    wxLANGUAGE_RUSSIAN,
+    wxLANGUAGE_CZECH,
+    wxLANGUAGE_UKRAINIAN,
+    wxLANGUAGE_PORTUGUESE_BRAZILIAN,
+    wxLANGUAGE_TURKISH,
+    wxLANGUAGE_POLISH
+};
 } // namespace GUI
 } // Slic3r
 

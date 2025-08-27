@@ -55,7 +55,7 @@ class GLGizmoScale3D : public GLGizmoBase
 public:
     //BBS: add obj manipulation logic
     //GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
-    GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation);
+    GLGizmoScale3D(GLCanvas3D& parent, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation);
 
     double get_snap_step(double step) const { return m_snap_step; }
     void set_snap_step(double step) { m_snap_step = step; }
@@ -71,6 +71,8 @@ public:
     BoundingBoxf3 get_bounding_box() const override;
 
     bool on_key(const wxKeyEvent& key_event) override;
+
+    std::string get_icon_filename(bool b_dark_mode) const override;
 protected:
     virtual bool on_init() override;
     virtual std::string on_get_name() const override;

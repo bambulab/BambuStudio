@@ -13,7 +13,9 @@
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/TextInput.hpp"
-
+#include "Widgets/Button.hpp"
+#include "Widgets/RadioBox.hpp"
+#include "Widgets/LinkLabel.hpp"
 namespace Slic3r { namespace GUI {
 
 
@@ -86,7 +88,6 @@ public:
     wxString m_backup_interval_time;
 
     void      create();
-    wxWindow *create_tab_button(int id, wxString text);
 
     // debug mode
     ::CheckBox * m_developer_mode_ckeckbox   = {nullptr};
@@ -103,8 +104,13 @@ public:
     RadioSelectorList m_radio_group;
     // ComboBoxSelectorList    m_comxbo_group;
 
+    ::TextInput* helio_input_pat = { nullptr };
+    wxStaticBitmap* helio_pat_refresh = { nullptr };
+    wxPanel* helio_pat_panel = { nullptr };
+    wxPanel* helio_fun_panel = { nullptr };
+
     wxBoxSizer *create_item_title(wxString title, wxWindow *parent, wxString tooltip);
-    wxBoxSizer *create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param,const std::vector<wxString>& label_list, const std::vector<std::string>& value_list);
+    wxBoxSizer *create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param,const std::vector<wxString>& label_list, const std::vector<std::string>& value_list, std::function<void(int)> callback = nullptr, int title_width = 0, int combox_width = 0);
     wxBoxSizer *create_item_region_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist);
     wxBoxSizer *create_item_language_combobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param, std::vector<const wxLanguageInfo *> vlist);
     wxBoxSizer *create_item_loglevel_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist);
@@ -135,6 +141,12 @@ public:
 
     void Split(const std::string &src, const std::string &separator, std::vector<wxString> &dest);
     int m_current_language_selected = {0};
+
+    std::unordered_map<int, Button *> m_button_list;
+    std::unordered_map<int, ::CheckBox *> m_checkbox_list;
+    std::unordered_map<int, RadioBox *>   m_radiobox_list;
+    std::unordered_map<int, ::ComboBox *> m_combobox_list;
+    int                                   m_screen_height;
 
 protected:
     void OnSelectTabel(wxCommandEvent &event);

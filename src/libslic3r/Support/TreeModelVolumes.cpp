@@ -67,6 +67,14 @@ TreeModelVolumes::TreeModelVolumes(
     m_machine_border{ calculateMachineBorderCollision(build_volume.polygon()) }
 {
     m_bed_area = build_volume.polygon();
+    Polygons machine_borders;
+    if (!m_bed_area.empty()) {
+        Polygon hole(m_bed_area);
+        hole.reverse();
+        ExPolygon  machine_outline(offset(m_bed_area, scale_(1000))[0], hole);
+        ExPolygons outlines = machine_outline.split_expoly_with_holes(scale_(1.), {});
+        for (const auto &outline : outlines) machine_borders.emplace_back(outline.contour);
+    }
 #if 0
     std::unordered_map<size_t, size_t> mesh_to_layeroutline_idx;
     for (size_t mesh_idx = 0; mesh_idx < storage.meshes.size(); ++ mesh_idx) {
@@ -110,8 +118,10 @@ TreeModelVolumes::TreeModelVolumes(
         outlines.assign(num_layers, Polygons{});
         tbb::parallel_for(tbb::blocked_range<size_t>(num_raft_layers, num_layers, std::min<size_t>(1, std::max<size_t>(16, num_layers / (8 * tbb::this_task_arena::max_concurrency())))),
             [&](const tbb::blocked_range<size_t> &range) {
-            for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx)
-                outlines[layer_idx] = polygons_simplify(to_polygons(print_object.get_layer(layer_idx - num_raft_layers)->lslices), mesh_settings.resolution);
+                for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
+                    outlines[layer_idx] = polygons_simplify(to_polygons(print_object.get_layer(layer_idx - num_raft_layers)->lslices), mesh_settings.resolution);
+                    outlines[layer_idx].insert(outlines[layer_idx].end(), machine_borders.begin(), machine_borders.end());
+                }
         });
     }
 #endif

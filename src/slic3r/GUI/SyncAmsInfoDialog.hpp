@@ -175,14 +175,12 @@ public:
     void     on_cancel(wxCloseEvent &event);
     void     show_errors(wxString &info);
     void     Enable_Auto_Refill(bool enable);
-    void     connect_printer_mqtt();
-    void     clear_ip_address_config(wxCommandEvent &e);
     void     on_refresh(wxCommandEvent &event);
     void     on_set_finish_mapping(wxCommandEvent &evt);
     void     on_print_job_cancel(wxCommandEvent &evt);
     void     reset_and_sync_ams_list();
     void     generate_override_fix_ams_list();
-    void     clone_thumbnail_data(bool allow_clone_ams_color);
+    void     clone_thumbnail_data();
     void     record_edge_pixels_data();
     wxColour adjust_color_for_render(const wxColour &color);
     void     final_deal_edge_pixels_data(ThumbnailData &data);
@@ -190,6 +188,7 @@ public:
     void     show_ams_controls(bool flag);
     void     show_advanced_settings(bool flag, bool update_layout = true);
     void     update_thumbnail_data_accord_plate_index(bool allow_clone_ams_color);
+    void     update_final_thumbnail_data();
     void     unify_deal_thumbnail_data(ThumbnailData &input_data, ThumbnailData &no_light_data,bool allow_clone_ams_color);
     void     change_default_normal(int old_filament_id, wxColour temp_ams_color);
     void     on_timer(wxTimerEvent &event);
@@ -206,7 +205,6 @@ public:
     bool     is_blocking_printing(MachineObject *obj_);
     bool     is_same_nozzle_diameters(NozzleType &tag_nozzle_type, float &nozzle_diameter);
     bool     is_same_nozzle_type(std::string &filament_type, NozzleType &tag_nozzle_type);
-    bool     has_tips(MachineObject *obj);
     bool     is_timeout();
     int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
     void set_print_type(PrintFromType type) { m_print_type = type; };
@@ -215,15 +213,12 @@ public:
     void show_thumbnail_page();
     bool get_ams_mapping_result(std::string &mapping_array_str, std::string &mapping_array_str2, std::string &ams_mapping_info);
     bool build_nozzles_info(std::string &nozzles_info);
-    bool can_hybrid_mapping(ExtderData data);
-    void auto_supply_with_ext(std::vector<AmsTray> slots);
-    bool is_nozzle_type_match(ExtderData data, wxString &error_message) const;
+    bool can_hybrid_mapping(DevExtderSystem data);
+    void auto_supply_with_ext(std::vector<DevAmsTray> slots);
+    bool is_nozzle_type_match(DevExtderSystem data, wxString &error_message) const;
     int  convert_filament_map_nozzle_id_to_task_nozzle_id(int nozzle_id);
 
-    std::string get_print_status_info(PrintDialogStatus status);
-
     PrintFromType            get_print_type() { return m_print_type; };
-    wxString                 format_steel_name(NozzleType type);
     wxString                 format_text(wxString &m_msg);
     PrintDialogStatus        get_status() { return m_print_status; }
     std::vector<std::string> sort_string(std::vector<std::string> strArray);
@@ -253,7 +248,6 @@ public:
 public:
     bool Show(bool show) override;
     void updata_ui_data_after_connected_printer();
-    void update_ams_check(MachineObject *obj);
     void set_default(bool hide_some = false);
     void update_select_layout(MachineObject *obj);
     void set_default_normal(const ThumbnailData &);
@@ -324,10 +318,10 @@ private:
     wxStaticBitmap * m_advanced_options_icon{nullptr};
     wxBoxSizer *     m_append_color_sizer = nullptr;
     ::CheckBox*      m_append_color_checkbox = nullptr;
-    wxStaticText *   m_append_color_text = nullptr;
+    Label *          m_append_color_text = nullptr;
     wxBoxSizer *     m_merge_color_sizer     = nullptr;
     ::CheckBox*      m_merge_color_checkbox = nullptr;
-    wxStaticText *   m_merge_color_text  = nullptr;
+    Label *          m_merge_color_text     = nullptr;
     bool m_is_empty_project = true;
 
     bool m_check_dirty_fialment  = true;

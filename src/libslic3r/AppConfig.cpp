@@ -43,7 +43,7 @@ static const std::string MODELS_STR = "models";
 
 const std::string AppConfig::SECTION_FILAMENTS = "filaments";
 const std::string AppConfig::SECTION_MATERIALS = "sla_materials";
-
+const std::string AppConfig::SECTION_EMBOSS_STYLE = "font";
 std::string AppConfig::get_language_code()
 {
     std::string get_lang = get("language");
@@ -176,11 +176,18 @@ void AppConfig::set_defaults()
         set_bool("enable_merge_color_by_sync_ams", false);
     if (get("ams_sync_match_full_use_color_dist").empty())
         set_bool("ams_sync_match_full_use_color_dist", false);
+    if (get("enable_sidebar_floatable").empty())
+        set_bool("enable_sidebar_floatable", false);
+
+    if (get("export_sources_full_pathnames").empty())
+        set_bool("export_sources_full_pathnames", false);
 
     if (get("zoom_to_mouse").empty())
         set_bool("zoom_to_mouse", false);
     if (get("show_shells_in_preview").empty())
         set_bool("show_shells_in_preview", true);
+    if (get("enable_text_styles").empty())
+        set_bool("enable_text_styles", false);
     if (get("enable_lod").empty())
         set_bool("enable_lod", true);
     if (get("gamma_correct_in_import_obj").empty())
@@ -193,13 +200,21 @@ void AppConfig::set_defaults()
         set_bool("user_bed_type", true);
     if (get("grabber_size_factor").empty())
         set("grabber_size_factor", "1.0");
+    if (get("cancel_glmultidraw").empty())
+        set_bool("cancel_glmultidraw", false);
 //#ifdef SUPPORT_SHOW_HINTS
     if (get("show_hints").empty())
         set_bool("show_hints", false);
 //#endif
+    if (get("support_backup_fonts").empty())
+        set_bool("support_backup_fonts", true);
+    if (get("custom_back_font_name").empty())
+        set("custom_back_font_name", "");
     if (get("enable_multi_machine").empty())
         set_bool("enable_multi_machine", false);
 
+    if (get("enable_record_gcodeviewer_option_item").empty())
+        set_bool("enable_record_gcodeviewer_option_item", false);
     if (get("prefer_to_use_dgpu").empty())
         set_bool("prefer_to_use_dgpu", false);
 
@@ -355,7 +370,19 @@ void AppConfig::set_defaults()
     }
 
     if (get("mouse_wheel").empty()) {
-        set("mouse_wheel", "0");
+        set("mouse_wheel", "0"); }
+
+    // helio options
+    if (get("helio_enable").empty()) {
+        set_bool("helio_enable", false);
+    }
+
+    if (get("helio_api_china").empty()) {
+        set("helio_api_china", "https://api.helioam.cn/graphql");
+    }
+
+    if (get("helio_api_other").empty()) {
+        set("helio_api_other", "https://api.helioadditive.com/graphql");
     }
 
     if (get("max_recent_count").empty()) {
@@ -431,6 +458,13 @@ void AppConfig::set_defaults()
     }
     if (get("play_tpu_printing_video").empty()) {
         set_bool("play_tpu_printing_video", true);
+    }
+    if (get("show_wrapping_detect_dialog").empty()) {
+        set_bool("show_wrapping_detect_dialog", true);
+    }
+
+    if (get("prompt_for_brittle_filaments").empty()){
+        set_bool("prompt_for_brittle_filaments", true);
     }
 
     // Remove legacy window positions/sizes
@@ -655,12 +689,15 @@ std::string AppConfig::load()
                             m_filament_presets = iter.value().get<std::vector<std::string>>();
                         } else if (iter.key() == "filament_colors") {
                             m_filament_colors = iter.value().get<std::vector<std::string>>();
-                        }
-                        else {
+                        } else if(iter.key() == "filament_multi_colors") {
+                           m_filament_multi_colors = iter.value().get<std::vector<std::string>>();
+                        } else if(iter.key() == "filament_color_types") {
+                           m_filament_color_types = iter.value().get<std::vector<std::string>>();
+                        } else {
                             if (iter.value().is_string())
                                 m_storage[it.key()][iter.key()] = iter.value().get<std::string>();
                             else {
-                                BOOST_LOG_TRIVIAL(trace) << "load config warning...";
+                                BOOST_LOG_TRIVIAL(warning) << "load config warning...";
                             }
                         }
                     }
@@ -740,6 +777,13 @@ void AppConfig::save()
     for (const auto &filament_color : m_filament_colors) {
         j["app"]["filament_colors"].push_back(filament_color);
     }
+    for (const auto &filament_multi_color : m_filament_multi_colors) {
+       j["app"]["filament_multi_colors"].push_back(filament_multi_color);
+    }
+
+    for (const auto &filament_color_type : m_filament_color_types) {
+       j["app"]["filament_color_types"].push_back(filament_color_type);
+    }
 
     for (const auto &cali_info : m_printer_cali_infos) {
         json cali_json;
@@ -775,7 +819,7 @@ void AppConfig::save()
         } else if (category.first == "presets") {
             json j_filament_array;
             for(const auto& kvp : category.second) {
-                if (boost::starts_with(kvp.first, "filament") && kvp.first != "filament_colors") {
+                if (boost::starts_with(kvp.first, "filament") && kvp.first != "filament_colors" && kvp.first != "filament_multi_colors" && kvp.first != "filament_color_types") {
                     j_filament_array.push_back(kvp.second);
                 } else {
                     j[category.first][kvp.first] = kvp.second;
@@ -1252,11 +1296,11 @@ std::string AppConfig::get_region()
     std::string sel = get("iot_environment");
     std::string region;
     if (sel == ENV_DEV_HOST)
-        region = "ENV_CN_DEV";
+        region = "NEW_ENV_DEV_HOST";
     else if (sel == ENV_QAT_HOST)
-        region = "ENV_CN_QA";
+        region = "NEW_ENV_QAT_HOST";
     else if (sel == ENV_PRE_HOST)
-        region = "ENV_CN_PRE";
+        region = "NEW_ENV_PRE_HOST";
     if (region.empty())
         return this->get("region");
     return region;

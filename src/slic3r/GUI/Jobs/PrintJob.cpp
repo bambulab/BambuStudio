@@ -9,6 +9,9 @@
 #include "slic3r/GUI/MainFrame.hpp"
 #include "bambu_networking.hpp"
 
+#include "slic3r/GUI/DeviceCore/DevManager.h"
+#include "slic3r/GUI/DeviceCore/DevUtil.h"
+
 namespace Slic3r {
 namespace GUI {
 
@@ -50,7 +53,6 @@ void PrintJob::prepare()
     if (&job_data) {
         std::string temp_file = Slic3r::resources_dir() + "/check_access_code.txt";
         auto check_access_code_path = temp_file.c_str();
-        BOOST_LOG_TRIVIAL(trace) << "sned_job: check_access_code_path = " << check_access_code_path;
         job_data._temp_path = fs::path(check_access_code_path);
     }
 
@@ -256,6 +258,7 @@ void PrintJob::process()
     params.auto_bed_leveling    = this->auto_bed_leveling;
     params.auto_flow_cali       = this->auto_flow_cali;
     params.auto_offset_cali     = this->auto_offset_cali;
+    params.task_ext_change_assist = this->task_ext_change_assist;
 
     if (m_print_type == "from_sdcard_view") {
         params.dst_file = m_dst_path;
@@ -286,21 +289,20 @@ void PrintJob::process()
             catch (...) {}
         }
 
-        auto model_name = model_info->metadata_items.find(BBL_DESIGNER_MODEL_TITLE_TAG);
-        if (model_name != model_info->metadata_items.end()) {
-            try {
+         if (m_print_type != "from_sdcard_view") {
+            auto model_name = model_info->metadata_items.find(BBL_DESIGNER_MODEL_TITLE_TAG);
+            if (model_name != model_info->metadata_items.end()) {
+                try {
+                    std::string mall_model_name = model_name->second;
+                    std::replace(mall_model_name.begin(), mall_model_name.end(), ' ', '_');
+                    const char *unusable_symbols = "<>[]:/\\|?*\" ";
+                    for (const char *symbol = unusable_symbols; *symbol != '\0'; ++symbol) { std::replace(mall_model_name.begin(), mall_model_name.end(), *symbol, '_'); }
 
-                std::string mall_model_name = model_name->second;
-                std::replace(mall_model_name.begin(), mall_model_name.end(), ' ', '_');
-                const char* unusable_symbols = "<>[]:/\\|?*\" ";
-                for (const char* symbol = unusable_symbols; *symbol != '\0'; ++symbol) {
-                    std::replace(mall_model_name.begin(), mall_model_name.end(), *symbol, '_');
-                }
-
-                std::regex pattern("_+");
-                params.project_name = std::regex_replace(mall_model_name, pattern, "_");
+                    std::regex pattern("_+");
+                    params.project_name = std::regex_replace(mall_model_name, pattern, "_");
+                    params.project_name = truncate_string(params.project_name, 100);
+                } catch (...) {}
             }
-            catch (...) {}
         }
     }
 
@@ -485,7 +487,7 @@ void PrintJob::process()
             try {
                 job_info_j.parse(job_info);
                 if (job_info_j.contains("job_id")) {
-                    curr_job_id = JsonValParser::get_longlong_val(job_info_j["job_id"]);
+                    curr_job_id = DevJsonValParser::get_longlong_val(job_info_j["job_id"]);
                 }
                 BOOST_LOG_TRIVIAL(trace) << "print_job: curr_obj_id=" << curr_job_id;
 
@@ -526,8 +528,11 @@ void PrintJob::process()
             return true;
     };
 
-
-    if (params.connection_type != "lan") {
+    if (m_print_type == "from_sdcard_view") {
+        BOOST_LOG_TRIVIAL(info) << "print_job: try to send with cloud, model is sdcard view";
+        this->update_status(curr_percent, _L("Sending print job through cloud service"));
+        result = m_agent->start_sdcard_print(params, update_fn, cancel_fn);
+    } else if (params.connection_type != "lan") {
         if (params.dev_ip.empty())
             params.comments = "no_ip";
         else if (this->cloud_print_only)
@@ -539,12 +544,7 @@ void PrintJob::process()
 
 
         //use ftp only
-        if (m_print_type == "from_sdcard_view") {
-            BOOST_LOG_TRIVIAL(info) << "print_job: try to send with cloud, model is sdcard view";
-            this->update_status(curr_percent, _L("Sending print job through cloud service"));
-            result = m_agent->start_sdcard_print(params, update_fn, cancel_fn);
-        }
-        else if (!wxGetApp().app_config->get("lan_mode_only").empty() && wxGetApp().app_config->get("lan_mode_only") == "1") {
+        if (!wxGetApp().app_config->get("lan_mode_only").empty() && wxGetApp().app_config->get("lan_mode_only") == "1") {
 
             if (params.password.empty() || params.dev_ip.empty()) {
                 error_text = wxString::Format("Access code:%s Ip address:%s", params.password, params.dev_ip);

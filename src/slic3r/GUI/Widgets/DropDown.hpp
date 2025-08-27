@@ -11,6 +11,9 @@
 #define DD_NO_TEXT          0x0002
 #define DD_STYLE_MASK       0x0003
 
+#define DD_ITEM_STYLE_SPLIT_ITEM  0x0001 // ----text----, text with horizontal line arounds
+#define DD_ITEM_STYLE_DISABLED    0x0002 // ----text----, text with horizontal line arounds
+
 wxDECLARE_EVENT(EVT_DISMISS, wxCommandEvent);
 
 class DropDown : public PopupWindow
@@ -19,12 +22,15 @@ public:
     struct Item
     {
         wxString text;
+        wxString text_static_tips;// display static tips for TextInput.eg.PrinterInfoBox
         wxBitmap icon;
+        wxBitmap icon_textctrl;// display icon for TextInput.eg.PrinterInfoBox
         void *   data{nullptr};
         wxString group{};
         wxString alias{};
         wxString tip{};
         int      flag{0};
+        int      style{ 0 };// the style of item
     };
 
 private:
@@ -54,6 +60,7 @@ private:
     StateColor   selector_border_color;
     StateColor   selector_background_color;
     ScalableBitmap check_bitmap;
+    ScalableBitmap arrow_bitmap;
 
     bool pressedDown = false;
     boost::posix_time::ptime dismissTime;

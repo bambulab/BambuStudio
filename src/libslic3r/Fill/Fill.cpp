@@ -26,6 +26,9 @@ struct SurfaceFillParams
     unsigned int 	extruder = 0;
 	// Infill pattern, adjusted for the density etc.
     InfillPattern  	pattern = InfillPattern(0);
+	//for locked zag
+    InfillPattern   skin_pattern = InfillPattern(0);
+    InfillPattern   skeleton_pattern = InfillPattern(0);
 
     // FillBase
     // in unscaled coordinates
@@ -65,7 +68,8 @@ struct SurfaceFillParams
 	float			solid_infill_speed = 0;
     float           infill_shift_step          = 0;// param for cross zag
     float           infill_rotate_step         = 0; // param for zig zag to get cross texture
-
+    float           infill_lock_depth          = 0;
+    float           skin_infill_depth          = 0;
     bool            symmetric_infill_y_axis = false;
 
 	bool operator<(const SurfaceFillParams &rhs) const {
@@ -95,8 +99,11 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(solid_infill_speed);
 		RETURN_COMPARE_NON_EQUAL(infill_shift_step);
 		RETURN_COMPARE_NON_EQUAL(infill_rotate_step);
-        RETURN_COMPARE_NON_EQUAL(symmetric_infill_y_axis);
-
+		RETURN_COMPARE_NON_EQUAL(symmetric_infill_y_axis);
+		RETURN_COMPARE_NON_EQUAL(infill_lock_depth);
+		RETURN_COMPARE_NON_EQUAL(skin_infill_depth);
+        RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, skin_pattern);
+        RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, skeleton_pattern);
 		return false;
 	}
 
@@ -119,7 +126,11 @@ struct SurfaceFillParams
 				this->solid_infill_speed	== rhs.solid_infill_speed &&
 				this->infill_shift_step             == rhs.infill_shift_step &&
 				this->infill_rotate_step            == rhs.infill_rotate_step &&
-                this->symmetric_infill_y_axis	== rhs.symmetric_infill_y_axis;
+				this->symmetric_infill_y_axis	== rhs.symmetric_infill_y_axis &&
+				this->infill_lock_depth      ==  rhs.infill_lock_depth &&
+				this->skin_infill_depth      ==  rhs.skin_infill_depth &&
+				this-> skin_pattern     == rhs.skin_pattern &&
+				this-> skeleton_pattern == rhs.skeleton_pattern;
 	}
 };
 
@@ -135,16 +146,42 @@ struct SurfaceFill {
     ExPolygons          no_overlap_expolygons;
 };
 
-std::vector<SurfaceFill> group_fills(const Layer &layer)
+// BBS: used to judge whether the internal solid infill area is narrow
+static bool is_narrow_infill_area(const ExPolygon& expolygon)
+{
+	ExPolygons offsets = offset_ex(expolygon, -scale_(NARROW_INFILL_AREA_THRESHOLD));
+	if (offsets.empty())
+		return true;
+
+	return false;
+}
+
+std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_param)
 {
 	std::vector<SurfaceFill> surface_fills;
-
 	// Fill in a map of a region & surface to SurfaceFillParams.
 	std::set<SurfaceFillParams> 						set_surface_params;
 	std::vector<std::vector<const SurfaceFillParams*>> 	region_to_surface_params(layer.regions().size(), std::vector<const SurfaceFillParams*>());
     SurfaceFillParams									params;
     bool 												has_internal_voids = false;
 	const PrintObjectConfig&							object_config = layer.object()->config();
+
+	auto append_flow_param = [](std::map<Flow, ExPolygons> &flow_params, Flow flow, const ExPolygon &exp) {
+        auto it = flow_params.find(flow);
+        if (it == flow_params.end())
+            flow_params.insert({flow, {exp}});
+        else
+            it->second.push_back(exp);
+    };
+
+	auto append_density_param = [](std::map<float, ExPolygons> &density_params, float density, const ExPolygon &exp) {
+        auto it = density_params.find(density);
+        if (it == density_params.end())
+            density_params.insert({density, {exp}});
+        else
+            it->second.push_back(exp);
+    };
+
 	for (size_t region_id = 0; region_id < layer.regions().size(); ++ region_id) {
 		const LayerRegion  &layerm = *layer.regions()[region_id];
 		region_to_surface_params[region_id].assign(layerm.fill_surfaces.size(), nullptr);
@@ -158,7 +195,13 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        params.extruder 	 = layerm.region().extruder(extrusion_role);
 		        params.pattern 		 = region_config.sparse_infill_pattern.value;
 		        params.density       = float(region_config.sparse_infill_density);
-            if (params.pattern == ipCrossZag){
+                if (params.pattern == ipLockedZag) {
+                    params.infill_lock_depth = scale_(region_config.infill_lock_depth);
+                    params.skin_infill_depth = scale_(region_config.skin_infill_depth);
+                    params.skin_pattern      = region_config.locked_skin_infill_pattern.value;
+                    params.skeleton_pattern  = region_config.locked_skeleton_infill_pattern.value;
+				}
+            if (params.pattern == ipCrossZag || params.pattern == ipLockedZag){
                 params.infill_shift_step     = scale_(region_config.infill_shift_step);
                 params.symmetric_infill_y_axis  = region_config.symmetric_infill_y_axis;
             }else if (params.pattern == ipZigZag){
@@ -227,7 +270,28 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 					params.anchor_length = std::min(params.anchor_length, params.anchor_length_max);
 				}
 
-		        auto it_params = set_surface_params.find(params);
+				//get locked region param
+				if (params.pattern == ipLockedZag){
+					const PrintObject *object = layerm.layer()->object();
+					auto nozzle_diameter = float(object->print()->config().nozzle_diameter.get_at(layerm.region().extruder(extrusion_role) - 1));
+					Flow skin_flow = params.bridge ? params.flow : Flow::new_from_config_width(extrusion_role, region_config.skin_infill_line_width, nozzle_diameter, float((surface.thickness == -1) ? layer.height : surface.thickness));
+					//add skin flow
+					append_flow_param(lock_param.skin_flow_params, skin_flow, surface.expolygon);
+
+					Flow skeleton_flow = params.bridge ? params.flow : Flow::new_from_config_width(extrusion_role, region_config.skeleton_infill_line_width, nozzle_diameter, float((surface.thickness == -1) ? layer.height : surface.thickness)) ;
+					// add skeleton flow
+					append_flow_param(lock_param.skeleton_flow_params, skeleton_flow, surface.expolygon);
+
+					// add skin density
+					append_density_param(lock_param.skin_density_params, float(0.01 * region_config.skin_infill_density), surface.expolygon);
+
+					// add skin density
+					append_density_param(lock_param.skeleton_density_params, float(0.01 * region_config.skeleton_infill_density), surface.expolygon);
+
+				}
+
+                auto it_params = set_surface_params.find(params);
+
 		        if (it_params == set_surface_params.end())
 		        	it_params = set_surface_params.insert(it_params, params);
 		        region_to_surface_params[region_id][&surface - &layerm.fill_surfaces.surfaces.front()] = &(*it_params);
@@ -384,7 +448,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 				auto bbox = get_extents(surface_fills[i].expolygons[j]);
 				auto clipped_internals = ClipperUtils::clip_clipper_polygons_with_subject_bbox(lower_internal_areas, bbox.inflated(scale_(2))); // expand a little
 				auto clipped_internal_bbox = get_extents(clipped_internals);
-				if (is_narrow_expolygon(surface_fills[i].expolygons[j], narrow_threshold)) {
+				if (is_narrow_infill_area(surface_fills[i].expolygons[j])) {
 					if (!clipped_internals.empty() && bbox.overlap(clipped_internal_bbox) && !intersection_ex(offset_ex(surface_fills[i].expolygons[j],SCALED_EPSILON), clipped_internals).empty()) {
 						narrow_floating_expoly_idx.emplace_back(j);
 					}
@@ -484,8 +548,8 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
 //	this->export_region_fill_surfaces_to_svg_debug("10_fill-initial");
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
-
-	std::vector<SurfaceFill>  surface_fills = group_fills(*this);
+    LockRegionParam lock_param;
+    std::vector<SurfaceFill>     surface_fills = group_fills(*this, lock_param);
 	const Slic3r::BoundingBox bbox 			= this->object()->bounding_box();
 	const auto                resolution 	= this->object()->print()->config().resolution.value;
 
@@ -500,7 +564,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         // Create the filler object.
         std::unique_ptr<Fill> f = std::unique_ptr<Fill>(Fill::new_from_type(surface_fill.params.pattern));
         f->set_bounding_box(bbox);
-        f->layer_id = this->id();
+        f->layer_id = this->id() - this->object()->get_layer(0)->id(); // We need to subtract raft layers.
         f->z 		= this->print_z;
         f->angle 	= surface_fill.params.angle;
         f->adapt_fill_octree = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
@@ -523,6 +587,10 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         } else if (surface_fill.params.pattern == ipLightning){
             dynamic_cast<FillLightning::Filler*>(f.get())->generator = lightning_generator;
 		}
+		else if (surface_fill.params.pattern == ipMonotonicLine){
+			FillMonotonicLineWGapFill* fill_monoline = dynamic_cast<FillMonotonicLineWGapFill*>(f.get());
+			fill_monoline->apply_gap_compensation = this->object()->print()->config().apply_top_surface_compensation;
+		}
 		else if (surface_fill.params.pattern == ipFloatingConcentric) {
 			FillFloatingConcentric* fill_contour = dynamic_cast<FillFloatingConcentric*>(f.get());
 			assert(fill_contour != nullptr);
@@ -539,8 +607,8 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 					lower_unsuporrt_expolys = union_ex(lower_unsuporrt_expolys, sexpolys);
 				}
 				lower_unsuporrt_expolys = shrink_ex(lower_unsuporrt_expolys, SCALED_EPSILON);
-
-				std::vector<SurfaceFill> lower_fills = group_fills(*lower_layer);
+        LockRegionParam temp_skin_inner_param;
+				std::vector<SurfaceFill> lower_fills = group_fills(*lower_layer, temp_skin_inner_param);
 				bool detect_lower_sparse_lines = true;
 				for (auto& fill : lower_fills) {
 					if (fill.params.pattern == ipAdaptiveCubic || fill.params.pattern == ipLightning || fill.params.pattern == ipSupportCubic) {
@@ -596,7 +664,14 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		params.extrusion_role = surface_fill.params.extrusion_role;
 		params.using_internal_flow = using_internal_flow;
 		params.no_extrusion_overlap = surface_fill.params.overlap;
-        if (surface_fill.params.pattern == ipCrossZag) {
+		if( surface_fill.params.pattern == ipLockedZag ) {
+			params.locked_zag = true;
+            params.infill_lock_depth = surface_fill.params.infill_lock_depth;
+            params.skin_infill_depth = surface_fill.params.skin_infill_depth;
+            f->set_lock_region_param(lock_param);
+            f->set_skin_and_skeleton_pattern(surface_fill.params.skin_pattern, surface_fill.params.skeleton_pattern);
+		}
+        if (surface_fill.params.pattern == ipCrossZag || surface_fill.params.pattern == ipLockedZag) {
             if (f->layer_id % 2 == 0) {
                 params.horiz_move -= surface_fill.params.infill_shift_step * (f->layer_id / 2);
             } else {
@@ -624,9 +699,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 			f->spacing = surface_fill.params.spacing;
 			surface_fill.surface.expolygon = std::move(expoly);
 			// BBS: make fill
-			f->fill_surface_extrusion(&surface_fill.surface,
-				params,
-				m_regions[surface_fill.region_id]->fills.entities);
+			f->fill_surface_extrusion(&surface_fill.surface, params, m_regions[surface_fill.region_id]->fills.entities);
 		}
     }
 
@@ -650,7 +723,8 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 
 Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive::Octree* support_fill_octree, FillLightning::Generator* lightning_generator) const
 {
-	std::vector<SurfaceFill>  surface_fills = group_fills(*this);
+    LockRegionParam skin_inner_param;
+    std::vector<SurfaceFill> surface_fills = group_fills(*this, skin_inner_param);
 	const Slic3r::BoundingBox bbox = this->object()->bounding_box();
 	const auto                resolution = this->object()->print()->config().resolution.value;
 
@@ -684,7 +758,8 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         case ipArchimedeanChords:
         case ipOctagramSpiral:
         case ipZigZag:
-        case ipCrossZag: break;
+        case ipCrossZag:
+		case ipLockedZag: break;
         }
 
 		// Create the filler object.

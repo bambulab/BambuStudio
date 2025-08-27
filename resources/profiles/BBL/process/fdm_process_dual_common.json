@@ -4,6 +4,7 @@
     "inherits": "fdm_process_common",
     "from": "system",
     "instantiation": "false",
+    "enable_wrapping_detection": "0",
     "bridge_speed": [
         "50",
         "50",
@@ -16,29 +17,29 @@
         "10000",
         "10000"
     ],
-    "initial_layer_travel_acceleration": [
-        "6000",
-        "6000",
-        "6000",
-        "6000"
-    ],
-    "travel_acceleration": [
-        "10000",
-        "10000",
-        "10000",
-        "10000"
-    ],
     "enable_overhang_speed": [
         "1",
         "1",
         "1",
         "1"
     ],
+    "enable_height_slowdown": [
+        "0",
+        "0",
+        "0",
+        "0"
+    ],
     "gap_infill_speed": [
         "50",
         "50",
         "50",
         "50"
+    ],
+    "initial_layer_travel_acceleration": [
+        "6000",
+        "6000",
+        "6000",
+        "6000"
     ],
     "initial_layer_acceleration": [
         "500",
@@ -130,6 +131,43 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
+    "prime_tower_flat_ironing": "1",
+    "slowdown_start_height": [
+        "0",
+        "0",
+        "0",
+        "0"
+    ],
+    "slowdown_start_speed": [
+        "1000",
+        "1000",
+        "1000",
+        "1000"
+    ],
+    "slowdown_start_acc": [
+        "100000",
+        "100000",
+        "100000",
+        "100000"
+    ],
+    "slowdown_end_height": [
+        "400",
+        "400",
+        "400",
+        "400"
+    ],
+    "slowdown_end_speed": [
+        "1000",
+        "1000",
+        "1000",
+        "1000"
+    ],
+    "slowdown_end_acc": [
+        "100000",
+        "100000",
+        "100000",
+        "100000"
+    ],
     "small_perimeter_speed": [
         "50%",
         "50%",
@@ -166,6 +204,12 @@
         "150",
         "150",
         "150"
+    ],
+    "travel_acceleration": [
+        "10000",
+        "10000",
+        "10000",
+        "10000"
     ],
     "top_surface_acceleration": [
         "2000",

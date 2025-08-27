@@ -49,10 +49,14 @@ bool GLGizmoSeam::on_init()
     return true;
 }
 
-GLGizmoSeam::GLGizmoSeam(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-    : GLGizmoPainterBase(parent, icon_filename, sprite_id), m_current_tool(ImGui::CircleButtonIcon)
+GLGizmoSeam::GLGizmoSeam(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoPainterBase(parent, sprite_id), m_current_tool(ImGui::CircleButtonIcon)
 {
 
+}
+
+void GLGizmoSeam::data_changed(bool is_serializing) {
+    set_painter_gizmo_data(m_parent.get_selection());
 }
 
 
@@ -98,6 +102,11 @@ bool GLGizmoSeam::on_key_down_select_tool_type(int keyCode) {
         break;
     }
     return true;
+}
+
+std::string GLGizmoSeam::get_icon_filename(bool b_dark_mode) const
+{
+    return b_dark_mode ? "toolbar_seam_dark.svg" : "toolbar_seam.svg";
 }
 
 void GLGizmoSeam::render_triangles(const Selection& selection) const
@@ -187,7 +196,16 @@ void GLGizmoSeam::tool_changed(wchar_t old_tool, wchar_t new_tool)
 
 void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
 {
-    if (! m_c->selection_info()->model_object())
+    if (!m_c) {
+        return;
+    }
+    const auto& p_selection_info = m_c->selection_info();
+    if (!p_selection_info) {
+        return;
+    }
+    const auto& p_model_object = p_selection_info->model_object();
+
+    if (!p_model_object)
         return;
     m_imgui_start_pos[0] = x;
     m_imgui_start_pos[1] = y;
@@ -226,10 +244,10 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
 
     const float sliders_left_width = std::max(cursor_size_slider_left, clipping_slider_left);
     const float slider_icon_width  = m_imgui->get_slider_icon_size().x;
-
+    const float minimal_slider_width = m_imgui->scaled(4.f);
     const float sliders_width = m_imgui->scaled(7.0f);
     const float drag_left_width = ImGui::GetStyle().WindowPadding.x + sliders_left_width + sliders_width - space_size;
-
+    float       window_width      = minimal_slider_width + sliders_left_width + slider_icon_width;
     const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
 
     float             textbox_width       = 1.5 * slider_icon_width;
@@ -349,11 +367,16 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     }
     m_imgui->disabled_end();
     ImGui::Separator();
+    if (m_parent.is_volumes_selected_and_sinking()) {
+        m_imgui->warning_text_wrapped(_L("Warning") + ":" + _L("Painting below the build plate is not allowed.") +
+                                          _L("The white outline indicates the position of the build plate at Z = 0."),
+                                      window_width + m_imgui->scaled(3));
+    }
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(caption_max, x, get_cur_y);
 
-    float f_scale =m_parent.get_gizmos_manager().get_layout_scale();
+    float f_scale = m_parent.get_main_toolbar_scale();
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale));
 
     ImGui::SameLine();

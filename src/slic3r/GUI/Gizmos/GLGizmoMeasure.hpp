@@ -217,7 +217,7 @@ protected:
 #endif // ENABLE_MEASURE_GIZMO_DEBUG
 
 public:
-    GLGizmoMeasure(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    GLGizmoMeasure(GLCanvas3D& parent, unsigned int sprite_id);
     /// <summary>
     /// Apply rotation on select plane
     /// </summary>
@@ -227,16 +227,19 @@ public:
 
     void data_changed(bool is_serializing) override;
 
-    virtual bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
+    bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down) override;
 
     bool wants_enter_leave_snapshots() const override { return true; }
     std::string get_gizmo_entering_text() const override { return _u8L("Entering Measure gizmo"); }
     std::string get_gizmo_leaving_text() const override { return _u8L("Leaving Measure gizmo"); }
     //std::string get_action_snapshot_name() const override { return _u8L("Measure gizmo editing"); }
 
+    std::string get_icon_filename(bool is_dark_mode) const override;
+
 protected:
     bool on_init() override;
     std::string on_get_name() const override;
+    virtual std::string on_get_name_str() override { return "Measure"; }
     bool on_is_activable() const override;
     void on_render() override;
     void on_set_state() override;

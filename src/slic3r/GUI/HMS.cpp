@@ -1,5 +1,8 @@
 #include "HMS.hpp"
+
 #include "DeviceManager.hpp"
+#include "DeviceCore/DevManager.h"
+#include "DeviceCore/DevUtil.h"
 
 #include <boost/log/trivial.hpp>
 
@@ -7,8 +10,7 @@ static const char* HMS_PATH = "hms";
 static const char* HMS_LOCAL_IMG_PATH = "hms/local_image";
 
 // the local HMS info
-static unordered_set<string> package_dev_id_types{ "094" };
-static unordered_set<string> cloud_dev_id_types{ "00M", "00W", "03W", "01P", "01S", "030", "039" };
+static unordered_set<string> package_dev_id_types {"094", "239", "093"};
 
 namespace Slic3r {
 namespace GUI {
@@ -34,7 +36,7 @@ int get_hms_info_version(std::string& version)
             try {
                 json j = json::parse(body);
                 if (j.contains("ver")) {
-                    version = JsonValParser::get_longlong_val(j["ver"]);
+                    version = DevJsonValParser::get_longlong_val(j["ver"]);
                 }
             } catch (...) {
                 ;
@@ -74,11 +76,12 @@ int HMSQuery::download_hms_related(const std::string& hms_type, const std::strin
 
 
     bool to_save_local = false;
-    BOOST_LOG_TRIVIAL(info) << "hms: download url = " << url;
+    json j;
+
     Slic3r::Http http = Slic3r::Http::get(url);
-    http.on_complete([this, receive_json, hms_type, &to_save_local, &local_version](std::string body, unsigned status) {
+    http.on_complete([this, receive_json, hms_type, &to_save_local, &j, & local_version](std::string body, unsigned status) {
         try {
-            json j = json::parse(body);
+            j = json::parse(body);
             if (j.contains("result")) {
                 if (j["result"] == 0 && j.contains("data")) {
 
@@ -87,7 +90,7 @@ int HMSQuery::download_hms_related(const std::string& hms_type, const std::strin
                         return;
                     }
 
-                    const std::string& remote_ver = JsonValParser::get_longlong_val(j["ver"]);
+                    const std::string& remote_ver = DevJsonValParser::get_longlong_val(j["ver"]);
                     if (remote_ver <= local_version)
                     {
                         return;
@@ -120,7 +123,7 @@ int HMSQuery::download_hms_related(const std::string& hms_type, const std::strin
         }).perform_sync();
 
         if (to_save_local && !receive_json->empty()) {
-            save_to_local(lang, hms_type, dev_id_type, *receive_json);
+            save_to_local(lang, hms_type, dev_id_type, j);
         }
     return 0;
 }
@@ -192,41 +195,22 @@ int HMSQuery::load_from_local(const std::string& hms_type, const std::string& de
     try {
         if (json_file.is_open())
         {
-            if (package_dev_id_types.count(dev_id_type) != 0) /*temp for 094, the local file structure is different from saved cloud file*/
-            {
-                if (hms_type == QUERY_HMS_INFO)
-                {
-                    const json& j = json::parse(json_file);
-                    if (j.contains("data"))
-                    {
-                        *load_json = j["data"];
-                    }
-                }
-                else
-                {
-                    json_file >> (*load_json);
-                }
+            const json &j = json::parse(json_file);
+            if (hms_type.compare(QUERY_HMS_INFO) == 0) {
+                if (j.contains("data")) { (*load_json) = j["data"]; }
+            } else if (hms_type.compare(QUERY_HMS_ACTION) == 0) {
+                if (j.contains("data")) { (*load_json)["data"] = j["data"]; }
+            }
 
-                if ((*load_json).contains("ver"))
-                {
-                    load_version = JsonValParser::get_longlong_val((*load_json)["ver"]);
-                }
-                else
-                {
-                    BOOST_LOG_TRIVIAL(warning) << "HMS: load_from_local, no version info";
-                }
+            if (j.contains("version")) {
+                load_version = DevJsonValParser::get_longlong_val(j["version"]);
+            }
+            else if (j.contains("ver")) {
+                load_version = DevJsonValParser::get_longlong_val(j["ver"]);
             }
             else
             {
-                json_file >> (*load_json);
-                if ((*load_json).contains("version"))
-                {
-                    load_version = JsonValParser::get_longlong_val((*load_json)["version"]);
-                }
-                else
-                {
-                    BOOST_LOG_TRIVIAL(warning) << "HMS: load_from_local, no version info";
-                }
+                BOOST_LOG_TRIVIAL(warning) << "HMS: load_from_local, no version info";
             }
 
             return 0;
@@ -329,7 +313,7 @@ string HMSQuery::get_dev_id_type(const MachineObject* obj) const
 {
     if (obj)
     {
-        return obj->dev_id.substr(0, 3);
+        return obj->get_dev_id().substr(0, 3);
     }
 
     return string();
@@ -599,43 +583,49 @@ void HMSQuery::clear_hms_info()
     std::unique_lock unique_lock(m_hms_mutex);
     m_hms_info_jsons.clear();
     m_hms_action_jsons.clear();
+    m_cloud_hms_last_update_time.clear();
 }
 
 void HMSQuery::init_hms_info(const std::string& dev_type_id)
 {
     std::unique_lock unique_lock(m_hms_mutex);
-    if (m_hms_info_jsons.count(dev_type_id) != 0)
-    {
-        return;
-    }
-
     if (package_dev_id_types.count(dev_type_id) != 0)
     {
-        copy_from_data_dir_to_local();// STUDIO-9512
+        /*the local one only load once*/
+        if (m_hms_info_jsons.count(dev_type_id) == 0) {
 
-        string dev_type = "094";
-        m_hms_info_jsons.emplace(dev_type, json());
-        m_hms_action_jsons.emplace(dev_type, json());
+            std::string load_version;
+            load_from_local(QUERY_HMS_INFO, dev_type_id, &m_hms_info_jsons[dev_type_id], load_version);/*load from local first*/
+            if (load_version.empty() || load_version == "0") {
+                copy_from_data_dir_to_local(); // STUDIO-9512
+                load_from_local(QUERY_HMS_INFO, dev_type_id, &m_hms_info_jsons[dev_type_id], load_version);/*copy files to local, and retry load*/
+            }
+        }
 
-        std::string load_version;
-        load_from_local(QUERY_HMS_INFO, dev_type, &m_hms_info_jsons[dev_type], load_version);
-        load_from_local(QUERY_HMS_ACTION, dev_type, &m_hms_action_jsons[dev_type], load_version);
+        if (m_hms_action_jsons.count(dev_type_id) == 0) {
+            std::string load_version;
+            load_from_local(QUERY_HMS_ACTION, dev_type_id, &m_hms_action_jsons[dev_type_id], load_version);/*load from local first*/
+            if (load_version.empty() || load_version == "0") {
+                copy_from_data_dir_to_local(); // STUDIO-9512
+                load_from_local(QUERY_HMS_ACTION, dev_type_id, &m_hms_action_jsons[dev_type_id], load_version);/*copy files to local, and retry load*/
+            }
+        }
     }
 
-    if (cloud_dev_id_types.count(dev_type_id) != 0)
+    /*download from cloud*/
+    time_t info_last_update_time = m_cloud_hms_last_update_time[dev_type_id];
+
+    /* check hms is valid or not */
+    bool retry = false;
+    if(m_hms_info_jsons[dev_type_id].empty() || m_hms_action_jsons[dev_type_id].empty()){
+        retry =time(nullptr) - info_last_update_time > (60 * 1); // retry after 1 minute
+    }
+
+    if (time(nullptr) - info_last_update_time > (60 * 60 * 24) || retry)/*do not update in one day to reduce waiting*/
     {
-        if (m_hms_info_jsons.count(dev_type_id) == 0)
-        {
-            m_hms_info_jsons.emplace(dev_type_id, json());
-        }
-
-        if (m_hms_action_jsons.count(dev_type_id) == 0)
-        {
-            m_hms_action_jsons.emplace(dev_type_id, json());
-        }
-
         download_hms_related(QUERY_HMS_INFO, dev_type_id, &m_hms_info_jsons[dev_type_id]);
         download_hms_related(QUERY_HMS_ACTION, dev_type_id, &m_hms_action_jsons[dev_type_id]);
+        m_cloud_hms_last_update_time[dev_type_id] = time(nullptr);
     }
 }
 
@@ -656,11 +646,11 @@ std::string get_hms_wiki_url(std::string error_code)
     MachineObject* obj = dev->get_selected_machine();
     if (!obj) return url;
 
-    if (!obj->dev_id.empty()) {
+    if (!obj->get_dev_id().empty()) {
         url = (boost::format("https://%1%/index.php?e=%2%&d=%3%&s=device_hms&lang=%4%")
                        % hms_host
                        % error_code
-                       % obj->dev_id
+                       % obj->get_dev_id()
                        % lang_code).str();
     }
     return url;
@@ -709,7 +699,7 @@ std::string get_error_message(int error_code)
         }
         })
         .on_error([](std::string body, std::string error, unsigned status) {
-            BOOST_LOG_TRIVIAL(trace) << boost::format("[BBL ErrorMessage]: status=%1%, error=%2%, body=%3%") % status % error % body;
+            BOOST_LOG_TRIVIAL(info) << boost::format("[BBL ErrorMessage]: status=%1%, error=%2%, body=%3%") % status % error % body;
         }).perform_sync();
 
         return result_str;

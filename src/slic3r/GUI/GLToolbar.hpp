@@ -16,7 +16,7 @@ namespace Slic3r {
 namespace GUI {
 
 class GLCanvas3D;
-
+struct Camera;
 
 //BBS: GUI refactor: GLToolbar
 wxDECLARE_EVENT(EVT_GLTOOLBAR_OPEN_PROJECT, SimpleEvent);
@@ -67,7 +67,10 @@ public:
     typedef std::function<void()> ActionCallback;
     typedef std::function<bool()> VisibilityCallback;
     typedef std::function<bool()> EnablingCallback;
-    typedef std::function<void(float, float, float, float)> RenderCallback;
+    typedef std::function<void(float, float, float, float, float)> RenderCallback;
+    using OnHoverCallback = std::function<std::string()>;
+    using IconFilenameCallback = std::function<std::string(bool is_dark_mode)>;
+    using PressedRecheckCallback = std::function<bool()>;
 
     enum EType : unsigned char
     {
@@ -121,7 +124,6 @@ public:
         };
 
         std::string name;
-        std::string icon_filename;
         std::string tooltip;
         std::string additional_tooltip;
         //BBS: GUI refactor: GLToolbar
@@ -142,13 +144,19 @@ public:
         bool continuous_click{false};
         VisibilityCallback visibility_callback;
         EnablingCallback enabling_callback;
-
+        OnHoverCallback on_hover = nullptr;
+        IconFilenameCallback icon_filename_callback = nullptr;
+        PressedRecheckCallback pressed_recheck_callback = nullptr;
+        bool b_toggle_disable_others{ true };
+        bool b_toggle_affectable{ true };
+        bool b_collapsible{ true };
+        bool b_collapse_button{ false };
+        bool b_collapsed{ false };
         Data();
         //BBS: GUI refactor: GLToolbar
         Data(const GLToolbarItem::Data& data)
         {
             name = data.name;
-            icon_filename = data.icon_filename;
             tooltip = data.tooltip;
             additional_tooltip = data.additional_tooltip;
             button_text = data.button_text;
@@ -163,6 +171,14 @@ public:
             image_data = data.image_data;
             image_width = data.image_width;
             image_height = data.image_height;
+            on_hover = data.on_hover;
+            icon_filename_callback = data.icon_filename_callback;
+            pressed_recheck_callback = data.pressed_recheck_callback;
+            b_toggle_disable_others = data.b_toggle_disable_others;
+            b_toggle_affectable = data.b_toggle_affectable;
+            b_collapsible = data.b_collapsible;
+            b_collapse_button = data.b_collapse_button;
+            b_collapsed = data.b_collapsed;
         }
     };
 
@@ -181,8 +197,8 @@ private:
 
 public:
 
-    // remember left position for rendering menu
-    mutable float render_left_pos;
+    mutable float render_rect[4]{ 0.0f }; // left, right, bottom, top
+    mutable float* override_render_rect{ nullptr };
 
     std::chrono::system_clock::time_point get_start_time_point() const { return start; }
 
@@ -195,22 +211,23 @@ public:
     void set_highlight(EHighlightState state) { m_highlight_state = state; }
 
     const std::string& get_name() const { return m_data.name; }
-    const std::string& get_icon_filename() const { return m_data.icon_filename; }
-    void set_icon_filename(const std::string& filename) { m_data.icon_filename = filename; }
+    std::string get_icon_filename(bool is_dark_mode) const;
     const std::string& get_tooltip() const { return m_data.tooltip; }
     const std::string& get_additional_tooltip() const { return m_data.additional_tooltip; }
     void set_additional_tooltip(const std::string& text) { m_data.additional_tooltip = text; }
     void set_tooltip(const std::string& text)            { m_data.tooltip = text; }
-
-    void do_left_action() { m_last_action_type = Left; m_data.left.action_callback(); }
-    void do_right_action() { m_last_action_type = Right; m_data.right.action_callback(); }
+    void set_last_action_type(GLToolbarItem::EActionType type);
+    void do_left_action();
+    void do_right_action();
 
     bool is_enabled() const { return (m_state != Disabled) && (m_state != HoverDisabled); }
     bool is_disabled() const { return (m_state == Disabled) || (m_state == HoverDisabled); }
     bool is_hovered() const { return (m_state == Hover) || (m_state == HoverPressed) || (m_state == HoverDisabled); }
     bool is_pressed() const { return (m_state == Pressed) || (m_state == HoverPressed); }
-    bool is_visible() const { return m_data.visible; }
+    bool is_visible() const;
     bool is_separator() const { return m_type == Separator; }
+    bool toggle_disable_others() const;
+    bool toggle_affectable() const;
 
     bool is_left_toggable() const { return m_data.left.toggable; }
     bool is_right_toggable() const { return m_data.right.toggable; }
@@ -235,45 +252,95 @@ public:
     void set_button_text(const std::string& text) { m_data.button_text = text; }
     float get_extra_size_ratio() const { return m_data.extra_size_ratio; }
     void set_extra_size_ratio(const float ratio) { m_data.extra_size_ratio = ratio; }
-    void render_text(float left, float right, float bottom, float top) const;
+    void render_text() const;
     int generate_texture(wxFont& font);
     int generate_image_texture();
 
-    void render(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const;
+    void render(unsigned int tex_id, unsigned int tex_width, unsigned int tex_height, unsigned int icon_size, float toolbar_height, bool b_flip_v = false) const;
     void render_image(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const;
-private:
-    void set_visible(bool visible) { m_data.visible = visible; }
 
-    friend class GLToolbar;
+    const GLToolbarItem::Data& get_data() const;
+
+    void set_visible(bool visible);
+
+    GLToolbarItem::EType get_type() const;
+
+    bool is_inside(const Vec2d& mouse_pos) const;
+
+    bool is_collapsible() const;
+
+    bool is_collapse_button() const;
+
+    void set_collapsed(bool value);
+
+    bool is_collapsed() const;
+
+    bool recheck_pressed() const;
 };
 
-struct BackgroundTexture
+struct ToolbarLayout
 {
-    struct Metadata
+    enum EType : unsigned char
     {
-        // path of the file containing the background texture
-        std::string filename;
-        // size of the left edge, in pixels
-        unsigned int left;
-        // size of the right edge, in pixels
-        unsigned int right;
-        // size of the top edge, in pixels
-        unsigned int top;
-        // size of the bottom edge, in pixels
-        unsigned int bottom;
-
-        Metadata();
+        Horizontal,
+        Vertical,
+        Num_Types
     };
 
-    GLTexture texture;
-    Metadata metadata;
+    enum EHorizontalOrientation : unsigned char
+    {
+        HO_Left,
+        HO_Center,
+        HO_Right,
+        Num_Horizontal_Orientations
+    };
+
+    enum EVerticalOrientation : unsigned char
+    {
+        VO_Top,
+        VO_Center,
+        VO_Bottom,
+        Num_Vertical_Orientations
+    };
+
+    enum EPositionMode : uint8_t
+    {
+        TopLeft,
+        TopMiddle,
+        Custom
+    };
+
+    EType type;
+    EHorizontalOrientation horizontal_orientation;
+    EVerticalOrientation vertical_orientation;
+    EPositionMode position_mode;
+    float offset;
+    float top;
+    float left;
+    float border;
+    float separator_size;
+    float gap_size;
+    float icons_size;
+    float text_size;
+    float image_width;
+    float image_height;
+    float scale;
+    float collapsed_offset;
+
+    float width;
+    float height;
+    bool dirty;
+
+    ToolbarLayout();
 };
+
+class ToolbarRenderer;
 
 class GLToolbar
 {
 public:
     static const float Default_Icons_Size;
-
+public:
     enum EType : unsigned char
     {
         Normal,
@@ -281,68 +348,160 @@ public:
         Num_Types
     };
 
-    struct Layout
+    enum EToolbarRenderingMode : uint8_t
     {
-        enum EType : unsigned char
-        {
-            Horizontal,
-            Vertical,
-            Num_Types
-        };
-
-        enum EHorizontalOrientation : unsigned char
-        {
-            HO_Left,
-            HO_Center,
-            HO_Right,
-            Num_Horizontal_Orientations
-        };
-
-        enum EVerticalOrientation : unsigned char
-        {
-            VO_Top,
-            VO_Center,
-            VO_Bottom,
-            Num_Vertical_Orientations
-        };
-
-        EType type;
-        EHorizontalOrientation horizontal_orientation;
-        EVerticalOrientation vertical_orientation;
-        float top;
-        float left;
-        float border;
-        float separator_size;
-        float gap_size;
-        float icons_size;
-        float text_size;
-        float image_width;
-        float image_height;
-        float scale;
-
-        float width;
-        float height;
-        bool dirty;
-
-        Layout();
+        KeepSize,
+        Auto
     };
 
-private:
-    typedef std::vector<GLToolbarItem*> ItemsList;
+    GLToolbar(GLToolbar::EType type, const std::string& name);
+    virtual ~GLToolbar();
 
-    EType m_type;
-    std::string m_name;
-    bool m_enabled;
-    GLTexture m_icons_texture;
-    bool m_icons_texture_dirty;
-    mutable GLTexture m_images_texture;
-    mutable bool m_images_texture_dirty;
+    bool init(const BackgroundTexture::Metadata& background_texture);
+
+    bool init_arrow(const BackgroundTexture::Metadata& arrow_texture);
+
+    const ToolbarLayout& get_layout() const;
+
+    void set_layout_type(ToolbarLayout::EType type);
+
+    ToolbarLayout::EHorizontalOrientation get_horizontal_orientation() const;
+    void set_horizontal_orientation(ToolbarLayout::EHorizontalOrientation orientation);
+
+    ToolbarLayout::EVerticalOrientation get_vertical_orientation() const;
+    void set_vertical_orientation(ToolbarLayout::EVerticalOrientation orientation);
+
+    void set_position_mode(ToolbarLayout::EPositionMode t_position_mode);
+    void set_offset(float offset);
+    void set_position(float top, float left);
+    void set_border(float border);
+    void set_separator_size(float size);
+    void set_gap_size(float size);
+    void set_icons_size(float size);
+    void set_text_size(float size);
+    void set_scale(float scale);
+    float get_scale() const;
+
+    void set_icon_dirty();
+
+    bool is_enabled() const;
+    void set_enabled(bool enable);
+
+    float get_icons_size() const;
+    float get_width() const;
+    float get_height() const;
+
+    //BBS: GUI refactor: GLToolbar
+    bool add_item(const GLToolbarItem::Data& data, GLToolbarItem::EType type = GLToolbarItem::Action);
+    bool add_separator();
+    bool del_all_item();
+
+    void select_item(const std::string& name);
+
+    bool is_item_pressed(const std::string& name) const;
+    bool is_item_disabled(const std::string& name) const;
+    bool is_item_visible(const std::string& name) const;
+
+    bool is_any_item_pressed() const;
+
+    unsigned int get_items_count() const { return (unsigned int)m_items.size(); }
+    int get_item_id(const std::string& name) const;
+
+    std::string get_tooltip() const;
+    void set_tooltip(int item_id, const std::string& text);
+
+    void get_additional_tooltip(int item_id, std::string& text);
+    void set_additional_tooltip(int item_id, const std::string& text);
+    int  get_visible_items_cnt() const;
+
+    // get item pointer for highlighter timer
+    const std::shared_ptr<GLToolbarItem>& get_item(const std::string& item_name) const;
+
+    void render(const Camera& t_camera);
+
+    // returns true if any item changed its state
+    bool update_items_state();
+
+    void set_dark_mode_enabled(bool is_enabled);
+
+    const std::vector<std::shared_ptr<GLToolbarItem>>& get_items() const;
+
+    const GLTexture& get_icon_texture() const;
+    const BackgroundTexture& get_background_texture() const;
+    const BackgroundTexture& get_arrow_texture() const;
+
+    bool needs_collapsed() const;
+
+    void toggle_collapsed();
+    void set_collapsed();
+
+    bool is_collapsed() const;
+
+    void set_collapsed_offset(uint32_t offset_in_pixel);
+    uint32_t get_collapsed_offset();
+
+    GLToolbar::EToolbarRenderingMode get_rendering_mode();
+    void set_rendering_mode(GLToolbar::EToolbarRenderingMode mode);
+
+    void force_left_action(int item_id, GLCanvas3D& parent) { do_action(GLToolbarItem::Left, item_id, parent, false); }
+    void force_right_action(int item_id, GLCanvas3D& parent) { do_action(GLToolbarItem::Right, item_id, parent, false); }
+
+    void render_arrow(const std::weak_ptr<GLToolbarItem>& highlighted_item);
+
+    bool on_mouse(wxMouseEvent& evt, GLCanvas3D& parent);
+
+    //BBS: GUI refactor: GLToolbar
+    int generate_button_text_textures(wxFont& font);
+    int generate_image_textures();
+    float get_scaled_icon_size();
+
+protected:
+    void calc_layout() const;
+    const std::shared_ptr<ToolbarRenderer>& get_renderer() const;
+
+private:
+    float get_width_horizontal() const;
+    float get_width_vertical() const;
+    float get_height_horizontal() const;
+    float get_height_vertical() const;
+    float get_main_size() const;
+    bool generate_icons_texture() const;
+
+    // returns true if any item changed its state
+    bool update_items_visibility();
+    // returns true if any item changed its state
+    bool update_items_enabled_state();
+
+    bool update_items_pressed_state();
+
+    void do_action(GLToolbarItem::EActionType type, int item_id, GLCanvas3D& parent, bool check_hover);
+    void update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent);
+    // returns the id of the item under the given mouse position or -1 if none
+    int contains_mouse(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
+
+private:
+    mutable ToolbarLayout m_layout;
+    mutable bool m_icons_texture_dirty{ true };
+    mutable GLTexture m_icons_texture;
+    bool m_enabled{ false };
+    GLToolbar::EType m_type{ GLToolbar::EType::Normal };
+    std::string m_name{};
+    std::vector<std::shared_ptr<GLToolbarItem>> m_items;
+
     BackgroundTexture m_background_texture;
     BackgroundTexture m_arrow_texture;
-    Layout m_layout;
 
-    ItemsList m_items;
+    int m_pressed_toggable_id{ -1 };
+    bool m_b_dark_mode_enabled{ false };
 
+    mutable std::shared_ptr<ToolbarRenderer> m_p_renderer{ nullptr };
+
+    bool m_b_collapsed{ true };
+
+    EToolbarRenderingMode m_rendering_mode{ EToolbarRenderingMode::Auto };
+
+    mutable GLTexture m_images_texture;
+    mutable bool m_images_texture_dirty;
     struct MouseCapture
     {
         bool left;
@@ -357,106 +516,67 @@ private:
     };
 
     MouseCapture m_mouse_capture;
-    int m_pressed_toggable_id;
+};
 
+class ToolbarRenderer
+{
 public:
-    GLToolbar(EType type, const std::string& name);
-    ~GLToolbar();
+    explicit ToolbarRenderer();
+    ~ToolbarRenderer();
 
-    bool init(const BackgroundTexture::Metadata& background_texture);
+    virtual void render(const GLToolbar& t_toolbar, const Camera& t_camera) = 0;
 
-    bool init_arrow(const BackgroundTexture::Metadata& arrow_texture);
+    virtual GLToolbar::EToolbarRenderingMode get_mode() const = 0;
 
-    Layout::EType get_layout_type() const;
-    void set_layout_type(Layout::EType type);
-    void set_icon_dirty() { m_icons_texture_dirty = true; }
-    Layout::EHorizontalOrientation get_horizontal_orientation() const { return m_layout.horizontal_orientation; }
-    void set_horizontal_orientation(Layout::EHorizontalOrientation orientation) { m_layout.horizontal_orientation = orientation; }
-    Layout::EVerticalOrientation get_vertical_orientation() const { return m_layout.vertical_orientation; }
-    void set_vertical_orientation(Layout::EVerticalOrientation orientation) { m_layout.vertical_orientation = orientation; }
+    virtual void render_arrow(const GLToolbar& t_toolbar, const std::weak_ptr<GLToolbarItem>& highlighted_item) = 0;
 
-    void set_position(float top, float left);
-    void set_border(float border);
-    void set_separator_size(float size);
-    void set_gap_size(float size);
-    void set_icons_size(float size);
-    void set_text_size(float size);
-    void set_scale(float scale);
+    virtual bool needs_collapsed() const;
+};
 
-    bool is_enabled() const { return m_enabled; }
-    void set_enabled(bool enable) { m_enabled = enable; }
+class ToolbarAutoSizeRenderer : public ToolbarRenderer
+{
+public:
+    explicit ToolbarAutoSizeRenderer();
+    ~ToolbarAutoSizeRenderer();
 
-    //BBS: GUI refactor: GLToolbar
-    bool add_item(const GLToolbarItem::Data& data, GLToolbarItem::EType type = GLToolbarItem::Action);
-    bool add_separator();
-    bool del_all_item();
+    void render(const GLToolbar& t_toolbar, const Camera& t_camera) override;
 
-    float get_icons_size() { return m_layout.icons_size; }
-    float get_width();
-    float get_height();
+    GLToolbar::EToolbarRenderingMode get_mode() const override;
 
-    void select_item(const std::string& name);
-
-    bool is_item_pressed(const std::string& name) const;
-    bool is_item_disabled(const std::string& name) const;
-    bool is_item_visible(const std::string& name) const;
-
-    bool is_any_item_pressed() const;
-
-    unsigned int get_items_count() const { return (unsigned int)m_items.size(); }
-    int get_item_id(const std::string& name) const;
-
-    void force_left_action(int item_id, GLCanvas3D& parent) { do_action(GLToolbarItem::Left, item_id, parent, false); }
-    void force_right_action(int item_id, GLCanvas3D& parent) { do_action(GLToolbarItem::Right, item_id, parent, false); }
-
-    std::string get_tooltip() const;
-
-    void get_additional_tooltip(int item_id, std::string& text);
-    void set_additional_tooltip(int item_id, const std::string& text);
-    void set_tooltip(int item_id, const std::string& text);
-    int  get_visible_items_cnt() const;
-
-    // returns true if any item changed its state
-    bool update_items_state();
-
-    void render(const GLCanvas3D& parent,GLToolbarItem::EType type = GLToolbarItem::Action);
-    void render_arrow(const GLCanvas3D& parent, GLToolbarItem* highlighted_item);
-
-    bool on_mouse(wxMouseEvent& evt, GLCanvas3D& parent);
-    // get item pointer for highlighter timer
-    GLToolbarItem* get_item(const std::string& item_name);
-
-    //BBS: GUI refactor: GLToolbar
-    int generate_button_text_textures(wxFont& font);
-    int generate_image_textures();
-    float get_scaled_icon_size();
+    void render_arrow(const GLToolbar& t_toolbar, const std::weak_ptr<GLToolbarItem>& highlighted_item) override;
 
 private:
-    void calc_layout();
-    float get_width_horizontal() const;
-    float get_width_vertical() const;
-    float get_height_horizontal() const;
-    float get_height_vertical() const;
-    float get_main_size() const;
-    void do_action(GLToolbarItem::EActionType type, int item_id, GLCanvas3D& parent, bool check_hover);
-    void update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent);
-    void update_hover_state_horizontal(const Vec2d& mouse_pos, GLCanvas3D& parent);
-    void update_hover_state_vertical(const Vec2d& mouse_pos, GLCanvas3D& parent);
-    // returns the id of the item under the given mouse position or -1 if none
-    int contains_mouse(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
-    int contains_mouse_horizontal(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
-    int contains_mouse_vertical(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
+    void render_horizontal(const GLToolbar& t_toolbar, const Camera& t_camera);
+    void render_vertical(const GLToolbar& t_toolbar, const Camera& t_camera);
+    void render_background(const GLToolbar& t_toolbar, float left, float top, float right, float bottom, float border) const;
+    void calculate_position(const GLToolbar& t_toolbar, const Camera& t_camera, float& left, float& top);
+};
 
-    void render_background(float left, float top, float right, float bottom, float border) const;
-    void render_horizontal(const GLCanvas3D& parent,GLToolbarItem::EType type);
-    void render_vertical(const GLCanvas3D& parent);
+class ToolbarKeepSizeRenderer : public ToolbarRenderer
+{
+public:
+    explicit ToolbarKeepSizeRenderer();
+    ~ToolbarKeepSizeRenderer();
 
-    bool generate_icons_texture();
+    void render(const GLToolbar& t_toolbar, const Camera& t_camera) override;
 
-    // returns true if any item changed its state
-    bool update_items_visibility();
-    // returns true if any item changed its state
-    bool update_items_enabled_state();
+    GLToolbar::EToolbarRenderingMode get_mode() const override;
+
+    void render_arrow(const GLToolbar& t_toolbar, const std::weak_ptr<GLToolbarItem>& highlighted_item) override;
+
+    bool needs_collapsed() const override;
+
+private:
+    void render_horizontal(const GLToolbar& t_toolbar);
+    void render_vertical(const GLToolbar& t_toolbar);
+    void render_background(const GLToolbar& t_toolbar, float left, float top, float right, float bottom, float border) const;
+    void calculate_position(const GLToolbar& t_toolbar, const Camera& t_camera, float toolbar_width, float toolbar_height, float& left, float& top);
+    void recalculate_item_pos(const GLToolbar& t_toolbar, const Camera& t_camera, float& final_toolbar_width, float& final_toolbar_height, float& collapse_width);
+
+private:
+    bool m_b_needs_collapsed{ false };
+    std::vector<size_t> m_indices_to_draw;
+    float* m_p_override_render_rect{ nullptr };
 };
 
 } // namespace GUI

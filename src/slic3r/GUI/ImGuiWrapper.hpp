@@ -168,6 +168,7 @@ public:
     void text_wrapped(const std::string &label, float wrap_width);
     void text_wrapped(const wxString &label, float wrap_width);
     void tooltip(const char *label, float wrap_width);
+    void tooltip(const std::string &label, float wrap_width);
     void tooltip(const wxString &label, float wrap_width);
     void filament_group(const std::string &filament_type, const char *hex_color, unsigned char filament_id, float align_width);
 
@@ -341,6 +342,7 @@ public:
     static const ImVec4 COL_BUTTON_ACTIVE;
 
     //BBS add more colors
+    static const ImVec4 COL_WHITE;
     static const ImVec4 COL_RED;
     static const ImVec4 COL_GREEN;
     static const ImVec4 COL_BLUE;
@@ -354,6 +356,7 @@ public:
     static const ImVec4 COL_SEPARATOR;
     static const ImVec4 COL_SEPARATOR_DARK;
     static const ImVec4 COL_BAMBU;
+    static const ImVec4 COL_BAMBU_CHANGE;
     //BBS
     static void on_change_color_mode(bool is_dark);
     static void push_toolbar_style(const float scale);

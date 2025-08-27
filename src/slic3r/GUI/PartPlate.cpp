@@ -53,6 +53,7 @@ static const int PARTPLATE_ICON_SIZE = 16;
 static const int PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE = 12;
 static const int PARTPLATE_PLATE_NAME_FIX_HEIGHT_SIZE = 20;
 static const int PARTPLATE_ICON_GAP_TOP = 3;
+static const int PARTPLATE_NAME_EDIT_ICON_GAP_LEFT = 3;
 static const int PARTPLATE_ICON_GAP_LEFT = 3;
 static const int PARTPLATE_ICON_GAP_Y = 5;
 static const int PARTPLATE_TEXT_OFFSET_X1 = 3;
@@ -416,6 +417,15 @@ void PartPlate::calc_height_limit() {
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create height limit top lines\n";
 }
 
+int PartPlate::get_right_icon_offset_bed() {
+    if (&wxGetApp() && wxGetApp().plater()) {
+        auto offset = wxGetApp().plater()->get_right_icon_offset_bed();
+        return offset == 0 ? PARTPLATE_ICON_GAP_LEFT : offset;
+    } else {
+        return PARTPLATE_ICON_GAP_LEFT;
+    }
+}
+
 void PartPlate::calc_vertex_for_plate_name(GLTexture &texture, GLModel &gl_model)
 {
 	if (texture.get_width() > 0 && texture.get_height()) {
@@ -427,10 +437,10 @@ void PartPlate::calc_vertex_for_plate_name(GLTexture &texture, GLModel &gl_model
 		w                  = int(factor * (texture.get_width() * 16) / texture.get_height());
 		h                  = PARTPLATE_PLATE_NAME_FIX_HEIGHT_SIZE;
 		Vec2d p            = bed_ext[3] + Vec2d(0, PARTPLATE_PLATENAME_OFFSET_Y + h * texture.m_original_height / texture.get_height());
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) - h )});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w - offset_x), scale_(p(1) - h )});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w - offset_x), scale_(p(1) )});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) )});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + offset_x), scale_(p(1) - h)});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + w - offset_x), scale_(p(1) - h)});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + w - offset_x), scale_(p(1))});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + offset_x), scale_(p(1))});
 
 		auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
         gl_model.reset();
@@ -454,38 +464,23 @@ void PartPlate::calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int ind
 	if (texture && texture->get_width() > 0 && texture->get_height()) {
 		w    = int(factor * (texture->get_original_width() * 16) / texture->get_height()) + 1;
 
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w), scale_(p(1) - h )});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1) - h)});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1))});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w), scale_(p(1) )});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + w), scale_(p(1) - h)});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + w + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1) - h)});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + w + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1))});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + w), scale_(p(1))});
 
 		triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
 	} else {
 
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x ), scale_(p(1) - h )});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1) - h)});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1))});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) )});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + offset_x), scale_(p(1) - h)});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + offset_x + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1) - h)});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + offset_x + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1))});
+        poly.contour.append({scale_(p(0) + PARTPLATE_NAME_EDIT_ICON_GAP_LEFT + offset_x), scale_(p(1))});
 
 		triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
     }
     gl_model.reset();
     if (!gl_model.init_model_from_poly(triangles, GROUND_Z))
-		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
-}
-
-void PartPlate::calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer)
-{
-	ExPolygon poly;
-    Vec2d &   p = m_partplate_list->m_shape[2];
-
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT), scale_(p(1) - icon_count * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP) });
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE), scale_(p(1) - icon_count * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y)- PARTPLATE_ICON_GAP_TOP) });
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE), scale_(p(1) - PARTPLATE_ICON_GAP_TOP)});
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT), scale_(p(1) - PARTPLATE_ICON_GAP_TOP) });
-
-	auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
-	if (!buffer.set_from_triangles(triangles, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
 }
 
@@ -1232,7 +1227,7 @@ std::vector<int> PartPlate::get_extruders_under_cli(bool conside_custom_gcode, D
 bool PartPlate::check_objects_empty_and_gcode3mf(std::vector<int> &result) const
 {
     if (m_model->objects.empty()) {//objects is empty
-        if (wxGetApp().plater()->is_gcode_3mf()) { // if gcode.3mf file
+        if (wxGetApp().plater() && wxGetApp().plater()->is_gcode_3mf()) { // if gcode.3mf file
             for (int i = 0; i < slice_filaments_info.size(); i++) {
                 result.push_back(slice_filaments_info[i].id + 1);
             }
@@ -1341,17 +1336,12 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
         for (auto filament_idx : used_filaments) {
             int filament_id = filament_idx - 1;
             std::string filament_type = config.option<ConfigOptionStrings>("filament_type")->values.at(filament_id);
+            int filament_printable_status = config.option<ConfigOptionInts>("filament_printable")->values.at(filament_id);
             std::vector<int> filament_map  = get_real_filament_maps(config);
             int extruder_idx = filament_map[filament_id] - 1;
-            std::string filament_types_str;
-            auto unprintable_filament_types = config.option<ConfigOptionStrings>("unprintable_filament_types")->values;
-            if (extruder_idx < unprintable_filament_types.size())
-                filament_types_str = unprintable_filament_types.at(extruder_idx);
-            std::vector<string> filament_types = split_string(filament_types_str, ',');
-            auto iter = std::find(filament_types.begin(), filament_types.end(), filament_type);
-            if (iter != filament_types.end()) {
+            if (!(filament_printable_status >> extruder_idx & 1)) {
                 wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
-                error_message = wxString::Format(_L("The %s nozzle can not print %s."), extruder_name, filament_type);
+                error_message  = wxString::Format(_L("The %s nozzle can not print %s."), extruder_name, filament_type);
                 return false;
             }
         }
@@ -1361,10 +1351,8 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
 
 bool PartPlate::check_tpu_printable_status(const DynamicPrintConfig & config, const std::vector<int> &tpu_filaments)
 {
-    bool tpu_valid = true;
-
-    // only support at most 1 tpu
-    return tpu_filaments.size() <=1;
+	// do not limit the num of tpu filament in slicing
+	return true;
 }
 
 bool PartPlate::check_mixture_of_pla_and_petg(const DynamicPrintConfig &config)
@@ -1392,6 +1380,127 @@ bool PartPlate::check_mixture_of_pla_and_petg(const DynamicPrintConfig &config)
         return false;
 
     return true;
+}
+
+bool PartPlate::check_mixture_filament_compatible(const DynamicPrintConfig &config, std::string &error_msg)
+{
+    static std::unordered_map<std::string, std::unordered_set<std::string>> incompatible_filament_pairs;
+
+    auto add_incompatibility = [&](std::string filament_type1, std::string filament_type2) {
+        incompatible_filament_pairs[filament_type1].insert(filament_type2);
+        incompatible_filament_pairs[filament_type2].insert(filament_type1);
+    };
+
+    if (incompatible_filament_pairs.empty()) { add_incompatibility("PVA", "PETG"); }
+
+    std::vector<int>         used_filaments = get_extruders(true); // 1 based idx
+    std::vector<std::string> filament_types;
+    auto                     filament_type_opt = config.option<ConfigOptionStrings>("filament_type");
+    for (auto filament : used_filaments) {
+        int filament_idx = filament - 1;
+        filament_types.push_back(filament_type_opt->values[filament_idx]);
+    };
+
+    {
+        std::unordered_set<std::string> seen;
+        filament_types.erase(std::remove_if(filament_types.begin(), filament_types.end(), [&](const std::string &s) { return !seen.insert(s).second; }), filament_types.end());
+    }
+
+    std::vector<std::pair<std::string, std::string>> conflicts;
+
+    for (size_t i = 0; i < filament_types.size(); i++) {
+        auto it = incompatible_filament_pairs.find(filament_types[i]);
+        if (it == incompatible_filament_pairs.end()) continue;
+        for (size_t j = i + 1; j < filament_types.size(); ++j) {
+            if (it->second.count(filament_types[j])) { conflicts.emplace_back(filament_types[i], filament_types[j]); }
+        }
+    }
+
+    if (!conflicts.empty()) {
+        // TODO: add the full text if has multi conflict
+        auto conflict = conflicts.front();
+        error_msg     = GUI::format(_L("Mixing %1% with %2% in printing is not recommended.\n"), conflict.first, conflict.second);
+    }
+    return conflicts.empty();
+}
+
+bool PartPlate::check_compatible_of_nozzle_and_filament(const DynamicPrintConfig &config, const std::vector<std::string> &filament_presets, std::string &error_msg)
+{
+    float nozzle_diameter = config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values[0];
+    auto  volume_type_opt = config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+
+    auto get_filament_alias = [](std::string preset_name) -> std::string {
+        size_t      at_pos = preset_name.find('@');
+        std::string alias  = preset_name.substr(0, at_pos);
+        size_t      first  = alias.find_first_not_of(' ');
+        if (first == std::string::npos) return "";
+        size_t last = alias.find_last_not_of(' ');
+        return alias.substr(first, last - first + 1);
+    };
+
+    bool with_same_volume_type = std::all_of(volume_type_opt->values.begin(), volume_type_opt->values.end(),
+                                             [first_value = volume_type_opt->values[0]](int value) { return value == first_value; });
+
+    std::set<std::string> selected_filament_alias;
+    for (auto &filament_preset : filament_presets) { selected_filament_alias.insert(get_filament_alias(filament_preset)); }
+
+    auto get_incompatible_selected = [&](const NozzleVolumeType volume_type) -> std::set<std::string> {
+        std::vector<std::string> incompatible_filaments = Print::get_incompatible_filaments_by_nozzle(nozzle_diameter, volume_type);
+        std::set<std::string>    ret;
+        for (auto &filament : selected_filament_alias) {
+            if (std::find(incompatible_filaments.begin(), incompatible_filaments.end(), filament) != incompatible_filaments.end()) ret.insert(filament);
+        }
+        return ret;
+    };
+
+    auto get_nozzle_msg = [](const float nozzle_diameter, const NozzleVolumeType volume_type) -> std::string {
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(1) << nozzle_diameter;
+        std::string nozzle_msg = oss.str();
+        ((nozzle_msg += "mm ") += _u8L(get_nozzle_volume_type_string(volume_type))) += _u8L(" nozzle");
+        return nozzle_msg;
+    };
+
+    auto get_incompatible_filament_msg = [](const std::set<std::string> &incompatible_selected_filaments) -> std::string {
+        std::string filament_str;
+        size_t      idx = 0;
+        for (const auto &filament : incompatible_selected_filaments) {
+            if (idx > 0) filament_str += ',';
+            filament_str += filament;
+            ++idx;
+        }
+        return filament_str;
+    };
+
+    error_msg.clear();
+
+    std::set<int>                                     nozzle_volumes(volume_type_opt->values.begin(), volume_type_opt->values.end());
+    std::map<NozzleVolumeType, std::set<std::string>> incompatible_selected_map;
+
+    for (auto volume_type_value : nozzle_volumes) {
+        NozzleVolumeType volume_type           = static_cast<NozzleVolumeType>(volume_type_value);
+        auto             incompatible_selected = get_incompatible_selected(volume_type);
+        if (!incompatible_selected.empty()) incompatible_selected_map[volume_type] = incompatible_selected;
+    }
+
+    if (incompatible_selected_map.empty()) return true;
+
+    if (incompatible_selected_map.size() == 1) {
+        auto             elem                  = incompatible_selected_map.begin();
+        NozzleVolumeType volume_type           = elem->first;
+        auto             incompatible_selected = elem->second;
+        error_msg = GUI::format(_L("It is not recommended to print the following filament(s) with %1%: %2%\n"), get_nozzle_msg(nozzle_diameter, volume_type),
+                                get_incompatible_filament_msg(incompatible_selected));
+    } else {
+        std::string warning_msg = _u8L("It is not recommended to use the following nozzle and filament combinations:\n");
+        for (auto &elem : incompatible_selected_map) {
+            NozzleVolumeType volume_type           = elem.first;
+            auto             incompatible_selected = elem.second;
+            warning_msg += GUI::format(_L("%1% with %2%\n"),get_nozzle_msg(nozzle_diameter, volume_type), get_incompatible_filament_msg(incompatible_selected));
+        }
+        error_msg = warning_msg;
+    }
+    return false;
 }
 
 /*Vec3d PartPlate::calculate_wipe_tower_size(const DynamicPrintConfig &config, const double w, const double wipe_volume, int plate_extruder_size, bool use_global_objects) const
@@ -1433,7 +1542,7 @@ bool PartPlate::check_mixture_of_pla_and_petg(const DynamicPrintConfig &config)
     return wipe_tower_size;
 }*/
 
-Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int extruder_count, int plate_extruder_size, bool use_global_objects) const
+Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int extruder_count, int plate_extruder_size, bool use_global_objects, bool enable_wrapping_detection) const
 {
     Vec3d wipe_tower_size;
     double layer_height = 0.08f; // hard code layer height
@@ -1463,7 +1572,7 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
     wipe_tower_size(2) = max_height;
     //const DynamicPrintConfig &dconfig = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto timelapse_type    = config.option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
-    bool timelapse_enabled = timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false;
+    bool need_wipe_tower = (timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false) | enable_wrapping_detection;
     double extra_spacing     = config.option("prime_tower_infill_gap")->getFloat() / 100.;
     const ConfigOptionBool* use_rib_wall_opt = config.option<ConfigOptionBool>("prime_tower_rib_wall");
     bool use_rib_wall = use_rib_wall_opt ? use_rib_wall_opt->value: true;
@@ -1486,7 +1595,7 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
     if (extruder_count == 2) volume += filament_change_volume * (int) (plate_extruder_size / 2);
     if (use_rib_wall) {
         depth = std::sqrt(volume / layer_height * extra_spacing);
-        if (timelapse_enabled || plate_extruder_size > 1) {
+        if (need_wipe_tower || plate_extruder_size > 1) {
             float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
             depth = std::max((double) min_wipe_tower_depth, depth);
             depth += rib_width / std::sqrt(2) + m_print->config().prime_tower_extra_rib_length.value;
@@ -1495,7 +1604,7 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
     }
     else {
         depth  =  volume/ (layer_height * w) *extra_spacing;
-        if (timelapse_enabled || depth > EPSILON) {
+        if (need_wipe_tower || depth > EPSILON) {
             float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
             depth = std::max((double)min_wipe_tower_depth, depth);
         }
@@ -1513,7 +1622,9 @@ arrangement::ArrangePolygon PartPlate::estimate_wipe_tower_polygon(const Dynamic
 	float w = dynamic_cast<const ConfigOptionFloat*>(config.option("prime_tower_width"))->value;
 	//float a = dynamic_cast<const ConfigOptionFloat*>(config.option("wipe_tower_rotation_angle"))->value;
 	std::vector<double> v = dynamic_cast<const ConfigOptionFloats*>(config.option("filament_prime_volume"))->values;
-	wt_size = estimate_wipe_tower_size(config, w, get_max_element(v), extruder_count, plate_extruder_size, use_global_objects);
+    const ConfigOptionBool * wrapping_opt = dynamic_cast<const ConfigOptionBool *>(config.option("enable_wrapping_detection"));
+	bool enable_wrapping = (wrapping_opt != nullptr) && wrapping_opt->value;
+	wt_size = estimate_wipe_tower_size(config, w, get_max_element(v), extruder_count, plate_extruder_size, use_global_objects, enable_wrapping);
 	int plate_width=m_width, plate_depth=m_depth;
 	float depth = wt_size(1);
 	float margin = WIPE_TOWER_MARGIN, wp_brim_width = 0.f;
@@ -1751,6 +1862,12 @@ void PartPlate::get_print(PrintBase** print, GCodeResult** result, int* index)
 
 	return;
 }
+
+GCodeProcessorResult *PartPlate::get_gcode_result()
+{
+	return m_gcode_result;
+}
+
 
 //set the print object, result and it's index
 void PartPlate::set_print(PrintBase* print, GCodeResult* result, int index)
@@ -2353,76 +2470,6 @@ void PartPlate::set_logo_box_by_bed(const BoundingBoxf3& box)
 	}
 }
 
-void PartPlate::generate_print_polygon(ExPolygon &print_polygon)
-{
-	auto compute_points = [&print_polygon](Vec2d& center, double radius, double start_angle, double stop_angle, int count)
-	{
-		double angle, angle_steps;
-		angle_steps = (stop_angle - start_angle) / (count - 1);
-		for(int j = 0; j < count; j++ )
-		{
-			double angle = start_angle + j * angle_steps;
-			double x = center(0) + ::cos(angle) * radius;
-			double y = center(1) + ::sin(angle) * radius;
-			print_polygon.contour.append({ scale_(x), scale_(y) });
-		}
-	};
-
-	int points_count = 8;
-	if (m_shape.size() == 4)
-	{
-			//rectangle case
-			for (int i = 0; i < 4; i++)
-			{
-				const Vec2d& p = m_shape[i];
-				Vec2d center;
-				double start_angle, stop_angle, angle_steps, radius_x, radius_y, radius;
-				switch (i) {
-					case 0:
-						radius = 5.f;
-						center(0) = p(0) + radius;
-						center(1) = p(1) + radius;
-						start_angle = PI;
-						stop_angle = 1.5 * PI;
-						compute_points(center, radius, start_angle, stop_angle, points_count);
-						break;
-					case 1:
-						print_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
-						break;
-					case 2:
-						radius_x = (int)(p(0)) % 10;
-                        radius_y = (int)(p(1)) % 10;
-						radius = (radius_x > radius_y)?radius_y: radius_x;
-						if (radius < 5.0)
-							radius = 5.f;
-						center(0) = p(0) - radius;
-						center(1) = p(1) - radius;
-						start_angle = 0;
-						stop_angle = 0.5 * PI;
-						compute_points(center, radius, start_angle, stop_angle, points_count);
-						break;
-					case 3:
-                        radius_x = (int)(p(0)) % 10;
-						radius_y = (int)(p(1)) % 10;
-						radius = (radius_x > radius_y)?radius_y: radius_x;
-						if (radius < 5.0)
-							radius = 5.f;
-						center(0) = p(0) + radius;
-						center(1) = p(1) - radius;
-						start_angle = 0.5 * PI;
-						stop_angle = PI;
-						compute_points(center, radius, start_angle, stop_angle, points_count);
-						break;
-				}
-			}
-	}
-	else {
-		for (const Vec2d& p : m_shape) {
-			print_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
-		}
-	}
-}
-
 void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 {
 	auto compute_exclude_points = [&exclude_polygon](Vec2d& center, double radius, double start_angle, double stop_angle, int count)
@@ -2449,7 +2496,7 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 				double start_angle, stop_angle, angle_steps, radius_x, radius_y, radius;
 				switch (i) {
 					case 0:
-						radius = 5.f;
+                        radius = 8.f;
 						center(0) = p(0) + radius;
 						center(1) = p(1) + radius;
 						start_angle = PI;
@@ -3011,7 +3058,7 @@ void PartPlate::print() const
 	BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << boost::format(": plate index %1%, pointer %2%, print_index %3% print pointer %4%") % m_plate_index % this % m_print_index % m_print;
 	BOOST_LOG_TRIVIAL(trace) << boost::format("\t origin {%1%,%2%,%3%}, width %4%,  depth %5%, height %6%") % m_origin.x() % m_origin.y() % m_origin.z() % m_width % m_depth % m_height;
 	BOOST_LOG_TRIVIAL(trace) << boost::format("\t m_printable %1%, m_locked %2%, m_ready_for_slice %3%, m_slice_result_valid %4%,  m_tmp_gcode_path %5%, set size %6%")\
-		% m_printable % m_locked % m_ready_for_slice % m_slice_result_valid % m_tmp_gcode_path % obj_to_instance_set.size();
+		% m_printable % m_locked % m_ready_for_slice % m_slice_result_valid % PathSanitizer::sanitize(m_tmp_gcode_path) % obj_to_instance_set.size();
 	/*for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it) {
 		int obj_id = it->first;
 		int instance_id = it->second;
@@ -3199,11 +3246,6 @@ void PartPlateList::init()
 	m_plate_cols = 1;
 	m_current_plate = 0;
 
-	if (m_plater) {
-        // In GUI mode
-        set_default_wipe_tower_pos_for_plate(0);
-    }
-
 	select_plate(0);
 	unprintable_plate.set_index(1);
 
@@ -3253,9 +3295,13 @@ void PartPlateList::generate_print_polygon(ExPolygon &print_polygon)
             print_polygon.contour.append({scale_(x), scale_(y)});
         }
     };
-
+    bool use_rect_grid = false;
+    if (&wxGetApp() && wxGetApp().plater()) {
+        auto pm       = wxGetApp().plater()->get_curr_printer_model();
+        use_rect_grid = (pm && pm->use_rect_grid == "true") ? true : false;
+    }
     int points_count = 8;
-    if (m_shape.size() == 4) {
+    if (m_shape.size() == 4 && !use_rect_grid) {
         // rectangle case
         for (int i = 0; i < 4; i++) {
             const Vec2d &p = m_shape[i];
@@ -3263,7 +3309,7 @@ void PartPlateList::generate_print_polygon(ExPolygon &print_polygon)
             double       start_angle, stop_angle, radius_x, radius_y, radius;
             switch (i) {
             case 0:
-                radius      = 5.f;
+                radius      = 8.f;
                 center(0)   = p(0) + radius;
                 center(1)   = p(1) + radius;
                 start_angle = PI;
@@ -3324,7 +3370,7 @@ void PartPlateList::generate_exclude_polygon(ExPolygon &exclude_polygon)
             double       start_angle, stop_angle, radius;
             switch (i) {
             case 0:
-                radius      = 5.f;
+                radius      = 8.f;
                 center(0)   = p(0) + radius;
                 center(1)   = p(1) + radius;
                 start_angle = PI;
@@ -3368,6 +3414,18 @@ void PartPlateList::calc_exclude_triangles(const ExPolygon &poly)
     m_exclude_triangles.reset();
     if (!m_exclude_triangles.init_model_from_poly(triangles, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create plate triangles\n";
+}
+
+void PartPlateList::calc_triangles_from_polygon(const ExPolygon &poly, GLModel &render_model){
+    if (poly.empty()) {
+        render_model.reset();
+        return;
+    }
+    auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
+    render_model.reset();
+    if (!render_model.init_model_from_poly(triangles, GROUND_Z)) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "calc_triangles_from_polygon fail";
+    }
 }
 
 void PartPlateList::calc_gridlines(const ExPolygon &poly, const BoundingBox &pp_bbox)
@@ -3429,11 +3487,11 @@ void PartPlateList::calc_vertex_for_number(int index, bool one_number, GLModel &
 #else // in the bottom
     Vec2d &p        = m_shape[1];
     float  offset_x = one_number ? PARTPLATE_TEXT_OFFSET_X1 : PARTPLATE_TEXT_OFFSET_X2;
-
-    poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) + PARTPLATE_TEXT_OFFSET_Y)});
-    poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE - offset_x), scale_(p(1) + PARTPLATE_TEXT_OFFSET_Y)});
-    poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE - offset_x), scale_(p(1) + PARTPLATE_ICON_SIZE - PARTPLATE_TEXT_OFFSET_Y)});
-    poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) + PARTPLATE_ICON_SIZE - PARTPLATE_TEXT_OFFSET_Y)});
+    auto   right_icon_offset_bed = m_plate_list.size() > 0 ? m_plate_list[0]->get_right_icon_offset_bed() : PARTPLATE_ICON_GAP_LEFT;
+    poly.contour.append({scale_(p(0) + right_icon_offset_bed + offset_x), scale_(p(1) + PARTPLATE_TEXT_OFFSET_Y)});
+    poly.contour.append({scale_(p(0) + right_icon_offset_bed + PARTPLATE_ICON_SIZE - offset_x), scale_(p(1) + PARTPLATE_TEXT_OFFSET_Y)});
+    poly.contour.append({scale_(p(0) + right_icon_offset_bed + PARTPLATE_ICON_SIZE - offset_x), scale_(p(1) + PARTPLATE_ICON_SIZE - PARTPLATE_TEXT_OFFSET_Y)});
+    poly.contour.append({scale_(p(0) + right_icon_offset_bed + offset_x), scale_(p(1) + PARTPLATE_ICON_SIZE - PARTPLATE_TEXT_OFFSET_Y)});
 #endif
     auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
     gl_model.reset();
@@ -3444,14 +3502,11 @@ void PartPlateList::calc_vertex_for_icons(int index, GLModel &gl_model)
 {
     ExPolygon poly;
     Vec2d &   p = m_shape[2];
-
-    poly.contour.append(
-        {scale_(p(0) + PARTPLATE_ICON_GAP_LEFT), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP - PARTPLATE_ICON_SIZE)});
-    poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE),
-                         scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP - PARTPLATE_ICON_SIZE)});
-    poly.contour.append(
-        {scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP)});
-    poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP)});
+    auto      right_icon_offset_bed = m_plate_list.size() > 0 ? m_plate_list[0]->get_right_icon_offset_bed() : PARTPLATE_ICON_GAP_LEFT;
+    poly.contour.append({scale_(p(0) + right_icon_offset_bed), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP - PARTPLATE_ICON_SIZE)});
+    poly.contour.append({scale_(p(0) + right_icon_offset_bed + PARTPLATE_ICON_SIZE), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP - PARTPLATE_ICON_SIZE)});
+    poly.contour.append({scale_(p(0) + right_icon_offset_bed + PARTPLATE_ICON_SIZE), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP)});
+    poly.contour.append({scale_(p(0) + right_icon_offset_bed), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP)});
 
     auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
     gl_model.reset();
@@ -3760,7 +3815,7 @@ void PartPlateList::release_icon_textures()
     }
 }
 
-void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx)
+void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx, bool init_pos)
 {
     DynamicConfig &     proj_cfg     = wxGetApp().preset_bundle->project_config;
     ConfigOptionFloats *wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
@@ -3770,12 +3825,62 @@ void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx)
 
     auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
     // set the default position, the same with print config(left top)
-    ConfigOptionFloat wt_x_opt(WIPE_TOWER_DEFAULT_X_POS);
-    ConfigOptionFloat wt_y_opt(WIPE_TOWER_DEFAULT_Y_POS);
+    float x = WIPE_TOWER_DEFAULT_X_POS;
+    float y = WIPE_TOWER_DEFAULT_Y_POS;
     if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
-        wt_x_opt = ConfigOptionFloat(I3_WIPE_TOWER_DEFAULT_X_POS);
-        wt_y_opt = ConfigOptionFloat(I3_WIPE_TOWER_DEFAULT_Y_POS);
+        x = I3_WIPE_TOWER_DEFAULT_X_POS;
+        y = I3_WIPE_TOWER_DEFAULT_Y_POS;
     }
+
+    const float margin     = WIPE_TOWER_MARGIN;
+    PartPlate* part_plate = get_plate(plate_idx);
+    Vec3d plate_origin = part_plate->get_origin();
+    BoundingBoxf3  plate_bbox = part_plate->get_bounding_box();
+    BoundingBoxf  plate_bbox_2d(Vec2d(plate_bbox.min(0), plate_bbox.min(1)), Vec2d(plate_bbox.max(0), plate_bbox.max(1)));
+    const std::vector<Pointfs> &extruder_areas = part_plate->get_extruder_areas();
+    for (Pointfs points : extruder_areas) {
+        BoundingBoxf bboxf(points);
+        plate_bbox_2d.min = plate_bbox_2d.min(0) >= bboxf.min(0) ? plate_bbox_2d.min : bboxf.min;
+        plate_bbox_2d.max = plate_bbox_2d.max(0) <= bboxf.max(0) ? plate_bbox_2d.max : bboxf.max;
+    }
+
+    coordf_t plate_bbox_x_min_local_coord = plate_bbox_2d.min(0) - plate_origin(0);
+    coordf_t plate_bbox_x_max_local_coord = plate_bbox_2d.max(0) - plate_origin(0);
+    coordf_t plate_bbox_y_max_local_coord = plate_bbox_2d.max(1) - plate_origin(1);
+
+    std::vector<int>   filament_maps = part_plate->get_real_filament_maps(proj_cfg);
+    DynamicPrintConfig full_config   = wxGetApp().preset_bundle->full_config(false, filament_maps);
+    const DynamicPrintConfig &print_cfg = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    float w = dynamic_cast<const ConfigOptionFloat*>(print_cfg.option("prime_tower_width"))->value;
+    std::vector<double> v = dynamic_cast<const ConfigOptionFloats*>(full_config.option("filament_prime_volume"))->values;
+    bool enable_wrapping = dynamic_cast<const ConfigOptionBool*>(full_config.option("enable_wrapping_detection"))->value;
+    int nozzle_nums = wxGetApp().preset_bundle->get_printer_extruder_count();
+    double wipe_vol = get_max_element(v);
+    Vec3d wipe_tower_size = part_plate->estimate_wipe_tower_size(print_cfg, w, wipe_vol, nozzle_nums, init_pos ? 2 : 0, false, enable_wrapping);
+
+    if (!init_pos && (is_approx(wipe_tower_size(0), 0.0) || is_approx(wipe_tower_size(1), 0.0))) {
+        wipe_tower_size = part_plate->estimate_wipe_tower_size(print_cfg, w, wipe_vol, nozzle_nums, 2, false, enable_wrapping);
+    }
+
+    // update for wipe tower position
+    {
+        bool need_update = false;
+        if (x + margin + wipe_tower_size(0) > plate_bbox_x_max_local_coord) {
+            x = plate_bbox_x_max_local_coord - wipe_tower_size(0) - margin;
+        } else if (x < margin + plate_bbox_x_min_local_coord) {
+            x = margin + plate_bbox_x_min_local_coord;
+        }
+
+        if (y + margin + wipe_tower_size(1) > plate_bbox_y_max_local_coord) {
+            y = plate_bbox_y_max_local_coord - wipe_tower_size(1) - margin;
+        } else if (y < margin) {
+            y = margin;
+        }
+    }
+
+    ConfigOptionFloat wt_x_opt(x);
+    ConfigOptionFloat wt_y_opt(y);
+
     dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_x"))->set_at(&wt_x_opt, plate_idx, 0);
     dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_y"))->set_at(&wt_y_opt, plate_idx, 0);
 }
@@ -3794,7 +3899,7 @@ void PartPlateList::reset_size(int width, int depth, int height, bool reload_obj
 		m_plate_height = height;
 		update_all_plates_pos_and_size(false, false, true);
 		if (update_shapes) {
-			set_shapes(m_shape, m_exclude_areas, m_extruder_areas, m_extruder_heights, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
+			set_shapes(m_shape, m_exclude_areas, m_wrapping_exclude_areas, m_extruder_areas, m_extruder_heights, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
 		}
 		if (reload_objects)
 			reload_all_objects();
@@ -3886,6 +3991,11 @@ void PartPlateList::reinit()
 	//re-calc the bounding boxes
 	calc_bounding_boxes();
 
+    if (m_plater) {
+        // In GUI mode
+        set_default_wipe_tower_pos_for_plate(0, true);
+    }
+
 	return;
 }
 
@@ -3934,7 +4044,7 @@ int PartPlateList::create_plate(bool adjust_position)
 		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":old_cols %1% -> new_cols %2%") % old_cols % cols;
 		//update the origin of each plate
 		update_all_plates_pos_and_size(adjust_position, false);
-		set_shapes(m_shape, m_exclude_areas, m_extruder_areas, m_extruder_heights, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
+		set_shapes(m_shape, m_exclude_areas, m_wrapping_exclude_areas, m_extruder_areas, m_extruder_heights, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
 
 		if (m_plater) {
 			Vec2d pos = compute_shape_position(m_current_plate, cols);
@@ -3954,7 +4064,7 @@ int PartPlateList::create_plate(bool adjust_position)
 	// update wipe tower config
 	if (m_plater) {
 		// In GUI mode
-        set_default_wipe_tower_pos_for_plate(new_index);
+        set_default_wipe_tower_pos_for_plate(new_index, true);
 	}
 
 	unprintable_plate.set_index(new_index+1);
@@ -4104,7 +4214,7 @@ int PartPlateList::delete_plate(int index)
 	{
 		//update the origin of each plate
 		update_all_plates_pos_and_size();
-		set_shapes(m_shape, m_exclude_areas, m_extruder_areas, m_extruder_heights, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
+		set_shapes(m_shape, m_exclude_areas, m_wrapping_exclude_areas, m_extruder_areas, m_extruder_heights, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
 	}
 	else
 	{
@@ -4137,6 +4247,32 @@ int PartPlateList::delete_plate(int index)
 void PartPlateList::delete_selected_plate()
 {
 	delete_plate(m_current_plate);
+}
+
+bool PartPlateList::check_all_plate_local_bed_type(const std::vector<BedType> &cur_bed_types)
+{
+    std::string bed_type_key = "curr_bed_type";
+    bool        is_ok        = true;
+    for (int i = 0; i < m_plate_list.size(); i++) {
+        PartPlate *plate = m_plate_list[i];
+        if (plate->config()  && plate->config()->has(bed_type_key)) {
+            BedType bed_type = plate->config()->opt_enum<BedType>(bed_type_key);
+            if (bed_type == BedType::btDefault)
+                continue;
+            bool    find     = false;
+            for (auto tmp_type : cur_bed_types) {
+                if (bed_type == tmp_type) {
+                    find = true;
+                    break;
+                }
+            }
+            if (!find) {
+                plate->set_bed_type(BedType::btDefault);
+                is_ok = false;
+            }
+        }
+    }
+    return is_ok;
 }
 
 //get a plate pointer by index
@@ -4322,11 +4458,6 @@ void PartPlateList::update_all_plates_pos_and_size(bool adjust_position, bool wi
 		//compute origin1 for PartPlate
 		origin1 = compute_origin(i, m_plate_cols);
 		plate->set_pos_and_size(origin1, m_plate_width, m_plate_depth, m_plate_height, adjust_position, do_clear);
-
-		// set default wipe pos when switch plate
-        if (switch_plate_type && m_plater/* && plate->get_used_extruders().size() <= 0*/) {
-			set_default_wipe_tower_pos_for_plate(i);
-		}
 	}
 
 	origin2 = compute_origin_for_unprintable();
@@ -4802,6 +4933,16 @@ int PartPlateList::construct_objects_list_for_new_plate(int plate_index)
 	return ret;
 }
 
+std::vector<Vec2d> PartPlateList::get_plate_wrapping_detection_area()
+{
+    DynamicPrintConfig  gconfig                  = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    ConfigOptionPoints *wrapping_exclude_area_opt = gconfig.option<ConfigOptionPoints>("wrapping_exclude_area");
+    if (wrapping_exclude_area_opt) {
+        return wrapping_exclude_area_opt->values;
+    }
+
+    return std::vector<Vec2d>();
+}
 
 //compute the plate index
 int PartPlateList::compute_plate_index(arrangement::ArrangePolygon& arrange_polygon)
@@ -4848,7 +4989,7 @@ bool PartPlateList::preprocess_arrange_polygon(int obj_index, int instance_index
 					arrange_polygon.translation(Y) += scaled<double>(plate_stride_y() * arrange_polygon.row);
 				}
 			}
-			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% already in plate %3%, locked %4%, row %5%, col %6%\n") % obj_index % instance_index % i % locked % arrange_polygon.row % arrange_polygon.col;
+			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% name %7% instance_id %2% already in plate %3%, locked %4%, row %5%, col %6%\n") % obj_index % instance_index % i % locked % arrange_polygon.row % arrange_polygon.col % arrange_polygon.name;
 			return locked;
 		}
 		if (m_plate_list[i]->is_locked())
@@ -4893,10 +5034,40 @@ bool PartPlateList::preprocess_arrange_polygon_other_locked(int obj_index, int i
 	return locked;
 }
 
-bool PartPlateList::preprocess_exclude_areas(arrangement::ArrangePolygons& unselected, int num_plates, float inflation)
+bool PartPlateList::preprocess_exclude_areas(arrangement::ArrangePolygons &unselected, bool enable_wrapping_detect, int num_plates, float inflation)
 {
 	bool added = false;
 
+	// wrapping detection area
+    if (enable_wrapping_detect)
+	{
+        if (!m_wrapping_exclude_areas.empty())
+		{
+			Polygon ap{};
+            for (const Vec2d &p : m_wrapping_exclude_areas)
+			{
+                ap.append({scale_(p(0)), scale_(p(1))});
+            }
+
+			for(int j = 0; j < num_plates; j++)
+			{
+				arrangement::ArrangePolygon ret;
+				ret.poly.contour = ap;
+				ret.translation  = Vec2crd(0, 0);
+				ret.rotation     = 0.0f;
+				ret.is_virt_object = true;
+				ret.bed_idx      = j;
+				ret.height      = 1;
+				ret.name = "WrappingRegion";
+				ret.inflation = inflation;
+
+				unselected.emplace_back(std::move(ret));
+			}
+		}
+		added = true;
+	}
+
+	// excluded area
 	if (m_exclude_areas.size() > 0)
 	{
 		//has exclude areas
@@ -5121,6 +5292,23 @@ void PartPlateList::render_instance(bool bottom, bool only_current, bool only_bo
             shader->set_uniform("projection_matrix", proj_mat);
             if (!bottom) { // draw background
                 render_exclude_area(force_background_color); // for selected_plate
+                if(wxGetApp().plater()->get_enable_wrapping_detection()){
+                    if(!m_wrapping_detection_triangles.is_initialized()){
+                        auto points = get_plate_wrapping_detection_area();
+                        if (points.size() > 0) {//wrapping_detection_area
+                            ExPolygon temp_poly;
+                            for (const Vec2d &p : points) {
+                                temp_poly.contour.append({scale_(p(0)), scale_(p(1))});
+                            }
+                            auto      result = intersection(m_print_polygon, temp_poly);
+                            if (result.size() > 0) {
+                                ExPolygon wrapp_poly(result[0]);
+                                calc_triangles_from_polygon(wrapp_poly, m_wrapping_detection_triangles);
+                            }
+                        }
+                    }
+                    render_wrapping_detection_area(force_background_color);
+                }
             }
             if (show_grid)
                 render_grid(bottom); // for selected_plate
@@ -5244,6 +5432,15 @@ void PartPlateList::render_unselected_background(bool force_default_color)
     }
     m_triangles.set_color(color);
     m_triangles.render_geometry();
+}
+
+void PartPlateList::render_wrapping_detection_area(bool force_default_color)
+{
+    if (force_default_color || !m_wrapping_detection_triangles.is_initialized())
+        return;
+    ColorRGBA select_color{0.765f, 0.7686f, 0.7686f, 1.0f};
+    m_wrapping_detection_triangles.set_color(select_color);
+    m_wrapping_detection_triangles.render_geometry();
 }
 
 void PartPlateList::render_exclude_area(bool force_default_color)
@@ -5407,11 +5604,19 @@ void PartPlateList::select_plate_view()
 	m_plater->get_camera().select_view("topfront");
 }
 
-bool PartPlateList::set_shapes(const Pointfs& shape, const Pointfs& exclude_areas, const std::vector<Pointfs>& extruder_areas, const std::vector<double>& extruder_heights, const std::string& texture_filename, float height_to_lid, float height_to_rod)
+bool PartPlateList::set_shapes(const Pointfs              &shape,
+                               const Pointfs              &exclude_areas,
+                               const Pointfs              &wrapping_exclude_areas,
+                               const std::vector<Pointfs> &extruder_areas,
+                               const std::vector<double>  &extruder_heights,
+                               const std::string          &texture_filename,
+                               float                       height_to_lid,
+                               float                       height_to_rod)
 {
 	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
 	m_shape = shape;
 	m_exclude_areas = exclude_areas;
+    m_wrapping_exclude_areas = wrapping_exclude_areas;
 	m_extruder_areas = extruder_areas;
 	m_extruder_heights = extruder_heights;
 	m_height_to_lid = height_to_lid;
@@ -5440,6 +5645,10 @@ bool PartPlateList::set_shapes(const Pointfs& shape, const Pointfs& exclude_area
         ExPolygon poly;
         generate_print_polygon(poly);
         calc_triangles(poly);
+
+        // reset m_wrapping_detection_triangles when change printer
+        m_print_polygon = poly;
+        m_wrapping_detection_triangles.reset();
 
 		ExPolygon exclude_poly;
         generate_exclude_polygon(exclude_poly);
@@ -5626,7 +5835,7 @@ int PartPlateList::rebuild_plates_after_deserialize(std::vector<bool>& previous_
     for (unsigned int i = 0; i < (unsigned int) m_plate_list.size(); ++i) {
         m_plate_list[i]->m_partplate_list = this;
     }//set_shapes api: every plate use m_partplate_list
-	set_shapes(m_shape, m_exclude_areas, m_extruder_areas, m_extruder_heights, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
+	set_shapes(m_shape, m_exclude_areas, m_wrapping_exclude_areas, m_extruder_areas, m_extruder_heights, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i){
 		bool need_reset_print = false;
 		m_plate_list[i]->m_plater = this->m_plater;
@@ -5801,8 +6010,9 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 				plate_data_item->objects_and_instances.emplace_back(it->first, it->second);
 		}
 
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<boost::format(": plate %1%, gcode_filename=%2%, with_slice_info=%3%, slice_valid %4%, object item count %5%.")
-			%i %m_plate_list[i]->m_gcode_result->filename % with_slice_info %m_plate_list[i]->is_slice_result_valid()%plate_data_item->objects_and_instances.size();
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<boost::format(": plate %1%, gcode_filename=%2%, with_slice_info=%3%, slice_valid %4%, object item count %5%.") % i %
+                                       PathSanitizer::sanitize(m_plate_list[i]->m_gcode_result->filename) % with_slice_info % m_plate_list[i]->is_slice_result_valid() %
+                                       plate_data_item->objects_and_instances.size();
 
 		if (with_slice_info) {
 			if (m_plate_list[i]->get_slice_result() && m_plate_list[i]->is_slice_result_valid()) {
@@ -5872,8 +6082,9 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list, int f
 		{
 			BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":plate index %1% seems invalid, skip it")% plate_data_list[i]->plate_index;
 		}
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, gcode_file %2%, is_sliced_valid %3%, toolpath_outside %4%, is_support_used %5% is_label_object_enabled %6%")
-			%i %plate_data_list[i]->gcode_file %plate_data_list[i]->is_sliced_valid %plate_data_list[i]->toolpath_outside %plate_data_list[i]->is_support_used %plate_data_list[i]->is_label_object_enabled;
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, gcode_file %2%, is_sliced_valid %3%, toolpath_outside %4%, is_support_used %5% is_label_object_enabled %6%") % i %
+                                       PathSanitizer::sanitize(plate_data_list[i]->gcode_file) % plate_data_list[i]->is_sliced_valid % plate_data_list[i]->toolpath_outside %
+                                       plate_data_list[i]->is_support_used % plate_data_list[i]->is_label_object_enabled;
 		//load object and instance from 3mf
 		//just test for file correct or not, we will rebuild later
 		/*for (std::vector<std::pair<int, int>>::iterator it = plate_data_list[i]->objects_and_instances.begin(); it != plate_data_list[i]->objects_and_instances.end(); ++it)
@@ -5901,7 +6112,7 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list, int f
 		gcode_result->warnings = plate_data_list[i]->warnings;
         gcode_result->filament_maps = plate_data_list[i]->filament_maps;
 		if (m_plater && !plate_data_list[i]->thumbnail_file.empty()) {
-			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, load thumbnail from %2%.")%(i+1) %plate_data_list[i]->thumbnail_file;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, load thumbnail from %2%.") % (i + 1) % PathSanitizer::sanitize(plate_data_list[i]->thumbnail_file);
 			if (boost::filesystem::exists(plate_data_list[i]->thumbnail_file)) {
 				m_plate_list[index]->load_thumbnail_data(plate_data_list[i]->thumbnail_file, m_plate_list[index]->thumbnail_data);
 				BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<boost::format(": plate %1% after load, width %2%, height %3%, size %4%!")
@@ -5911,7 +6122,7 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list, int f
 
 		if (m_plater && !plate_data_list[i]->no_light_thumbnail_file.empty()) {
 			if (boost::filesystem::exists(plate_data_list[i]->no_light_thumbnail_file)) {
-				BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, load no_light_thumbnail_file from %2%.")%(i+1) %plate_data_list[i]->no_light_thumbnail_file;
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, load no_light_thumbnail_file from %2%.") % (i + 1) % PathSanitizer::sanitize(plate_data_list[i]->no_light_thumbnail_file);
 				m_plate_list[index]->load_thumbnail_data(plate_data_list[i]->no_light_thumbnail_file, m_plate_list[index]->no_light_thumbnail_data);
 			}
 		}
@@ -5924,13 +6135,13 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list, int f
 		}*/
 		if (m_plater && !plate_data_list[i]->top_file.empty()) {
 			if (boost::filesystem::exists(plate_data_list[i]->top_file)) {
-				BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, load top_thumbnail from %2%.")%(i+1) %plate_data_list[i]->top_file;
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, load top_thumbnail from %2%.") % (i + 1) % PathSanitizer::sanitize(plate_data_list[i]->top_file);
 				m_plate_list[index]->load_thumbnail_data(plate_data_list[i]->top_file, m_plate_list[index]->top_thumbnail_data);
 			}
 		}
 		if (m_plater && !plate_data_list[i]->pick_file.empty()) {
 			if (boost::filesystem::exists(plate_data_list[i]->pick_file)) {
-				BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, load pick_thumbnail from %2%.")%(i+1) %plate_data_list[i]->pick_file;
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, load pick_thumbnail from %2%.") % (i + 1) % PathSanitizer::sanitize(plate_data_list[i]->pick_file);
 				m_plate_list[index]->load_thumbnail_data(plate_data_list[i]->pick_file, m_plate_list[index]->pick_thumbnail_data);
 			}
 		}
@@ -6062,15 +6273,54 @@ void PartPlateList::init_bed_type_info()
     BedTextureInfo::TexturePart pei_part2(74, -10, 148, 12, "bbl_bed_pei_bottom.svg");
     BedTextureInfo::TexturePart pte_part1(10, 52, 8.393f, 192, "bbl_bed_pte_left.svg");
     BedTextureInfo::TexturePart pte_part2(74, -10, 148, 12, "bbl_bed_pte_bottom.svg");
-
+    auto bed_texture_maps        = wxGetApp().plater()->get_bed_texture_maps();
+    std::string bottom_texture_end_name = bed_texture_maps.find("bottom_texture_end_name") != bed_texture_maps.end() ? bed_texture_maps["bottom_texture_end_name"] : "";
+    std::string bottom_texture_rect_str = bed_texture_maps.find("bottom_texture_rect") != bed_texture_maps.end() ? bed_texture_maps["bottom_texture_rect"] : "";
+    std::string middle_texture_rect_str = bed_texture_maps.find("middle_texture_rect") != bed_texture_maps.end() ? bed_texture_maps["middle_texture_rect"] : "";
+    std::array<float, 4>        bottom_texture_rect = {0, 0, 0, 0}, middle_texture_rect = {0, 0, 0, 0};
+    if (bottom_texture_rect_str.size() > 0) {
+        std::vector<std::string> items;
+        boost::algorithm::erase_all(bottom_texture_rect_str, " ");
+        boost::split(items, bottom_texture_rect_str, boost::is_any_of(","));
+        if (items.size() == 4) {
+            for (int i = 0; i < items.size(); i++) {
+                bottom_texture_rect[i] = std::atof(items[i].c_str());
+            }
+        }
+    }
+    if (middle_texture_rect_str.size() > 0) {
+        std::vector<std::string> items;
+        boost::algorithm::erase_all(middle_texture_rect_str, " ");
+        boost::split(items, middle_texture_rect_str, boost::is_any_of(","));
+        if (items.size() == 4) {
+            for (int i = 0; i < items.size(); i++) {
+                middle_texture_rect[i] = std::atof(items[i].c_str());
+            }
+        }
+    }
     auto is_single_extruder = wxGetApp().preset_bundle->get_printer_extruder_count() == 1;
     if (!is_single_extruder) {
         m_allow_bed_type_in_double_nozzle.clear();
         pte_part1 = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_pte_middle.svg");
+        auto &middle_rect = middle_texture_rect;
+        if (middle_rect[2] > 0.f) {
+            pte_part1 = BedTextureInfo::TexturePart(middle_rect[0], middle_rect[1], middle_rect[2], middle_rect[3], "bbl_bed_pte_middle.svg");
+        }
         pte_part2 = BedTextureInfo::TexturePart(45, -14.5, 70, 8, "bbl_bed_pte_left_bottom.svg");
-
+        auto &bottom_rect = bottom_texture_rect;
+        if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
+            std::string pte_part2_name = "bbl_bed_pte_bottom_" + bottom_texture_end_name + ".svg";
+            pte_part2 = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], pte_part2_name);
+        }
         pei_part1  = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_pei_middle.svg");
+        if (middle_rect[2] > 0.f) {
+            pei_part1 = BedTextureInfo::TexturePart(middle_rect[0], middle_rect[1], middle_rect[2], middle_rect[3], "bbl_bed_pte_middle.svg");
+        }
         pei_part2  = BedTextureInfo::TexturePart(45, -14.5, 70, 8, "bbl_bed_pei_left_bottom.svg");
+        if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
+            std::string pei_part2_name = "bbl_bed_pei_bottom_" + bottom_texture_end_name + ".svg";
+            pei_part2                  = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], pei_part2_name);
+        }
         m_allow_bed_type_in_double_nozzle[(int) btPEI] = true;
         m_allow_bed_type_in_double_nozzle[(int) btPTE] = true;
     }
@@ -6096,8 +6346,8 @@ void PartPlateList::init_bed_type_info()
     float base_width  = 256;//standard 256*256 for single_extruder
     float base_height = 256;
     if (!is_single_extruder) {//standard 350*325 for double_extruder
-        base_width  = 350;
-        base_height = 320;
+        base_width  = bed_width;
+        base_height = bed_height;
     }
     float x_rate      = bed_width / base_width;
     float y_rate      = bed_height / base_height;

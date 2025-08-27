@@ -4,6 +4,8 @@
 #include <slic3r/GUI/Widgets/Label.hpp>
 #include "libslic3r/AppConfig.hpp"
 
+#include "DeviceCore/DevManager.h"
+
 namespace Slic3r { namespace GUI {
 ConnectPrinterDialog::ConnectPrinterDialog(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &pos, const wxSize &size, long style)
     : DPIDialog(parent, id, _L("ConnectPrinter(LAN)"), pos, size, style)
@@ -118,7 +120,7 @@ void ConnectPrinterDialog::init_bitmap()
     std::string language = config->get("language");
 
     if (m_obj) {
-        std::string img_str = DeviceManager::get_printer_diagram_img(m_obj->printer_type);
+        std::string img_str = DevPrinterConfigUtil::get_printer_connect_help_img(m_obj->printer_type);
         if(img_str.empty()){img_str = "input_access_code_x1"; }
 
         if (language == "zh_CN") {
@@ -169,7 +171,7 @@ void ConnectPrinterDialog::on_input_enter(wxCommandEvent& evt)
 }
 
 
-void ConnectPrinterDialog::on_button_confirm(wxCommandEvent &event) 
+void ConnectPrinterDialog::on_button_confirm(wxCommandEvent &event)
 {
     wxString code = m_textCtrl_code->GetTextCtrl()->GetValue();
     for (char c : code) {
@@ -180,9 +182,6 @@ void ConnectPrinterDialog::on_button_confirm(wxCommandEvent &event)
     }
     if (m_obj) {
         m_obj->set_user_access_code(code.ToStdString());
-        if (m_need_connect) {
-            wxGetApp().getDeviceManager()->set_selected_machine(m_obj->dev_id);
-        }
     }
     EndModal(wxID_OK);
 }

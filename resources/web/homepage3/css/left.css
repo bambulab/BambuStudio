@@ -47,8 +47,9 @@ html, body {
 .LinkBtn
 {
 	font-size:12px;
-	color: #1200FF;	
+	color: #00AE42;	
 	cursor: pointer;
+	text-decoration: underline;
 }
 
 .LinkBtn:hover
@@ -73,13 +74,13 @@ body
 {
 	border-right-width: 1px;
 	border-right-style: solid;
-	width: 100%;
+	width: calc(100% - 1px);
 	height: 100%;
 }
 
 #LoginArea
 {
-	height: 180px;
+	height: 90px;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -87,6 +88,8 @@ body
 	flex-wrap: nowrap;
 	position: relative;
 	width:100%;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
 }
 
 
@@ -100,22 +103,36 @@ body
 	cursor:pointer;
 }
 
+#LoginBtn
+{
+	display: flex;
+	align-items: center;
+	width: 120px;
+	word-wrap: break-word;
+	line-height: 1.2;
+	flex-wrap: wrap;
+	white-space: normal;
+}
+
 #Login1:hover #LoginBtn
 {
-	font-size:17px;
+	transform: scale(1.05);
 }
 
 
 #NoPluginTip
 {
-	position: absolute;
-	left: 0px;
-	bottom: 0px;
-	right: 0px;
-	display: none;
+	margin-top: 5px;
+	display: flex;
 	flex-direction: column;
 	justify-content: flex-end;
-	padding: 5px;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	padding-left: 5px;
+	padding-right: 5px;
+	border-radius: 4px;
+	border: 1px solid var(--remind, #FF6F00);
+	background: rgba(255, 111, 0, 0.15);
 }
 
 
@@ -138,24 +155,38 @@ body
 #Login2
 {
 	display: none;
-	flex-direction: column;
 	align-items: center;
 	text-align: center;
-	width: 100%;
+	justify-content: center;
+	width: 95%;
+	cursor: pointer;
 }
 
 #UserAvatarIcon
 {
-	height: 85px;
+	height: 36px;
 }
 
 #UserName
 {
-	white-space: nowrap;
+	white-space: normal;
 	text-overflow: ellipsis;
-	text-align: center;
+	text-align: left;
 	overflow: hidden; 
-	width: 80%;
+	margin-left: 12px;
+	word-wrap: break-word;
+  line-height: 1.2;
+}
+
+.PullBtn
+{
+	margin-left: 10px;
+	width: 16px;
+	height: 16px;
+	background-image: url('../img/left_pull_btn.svg');
+	background-size: cover;
+	background-position: center center;
+	background-repeat: no-repeat;
 }
 
 #LogoutBtn
@@ -181,14 +212,16 @@ body
 /*------------------*/
 #BtnArea
 {
-	
+	height: calc(100% - 91px);
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
 }
-
 
 .BtnItem
 {
-    padding-left:30px;	
-	padding-right: 14px;
+  padding-left: 20px;	
+	padding-right: 20px;
 	height:50px;
 	line-height: 50px;
 	display: flex;
@@ -199,6 +232,12 @@ body
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
+}
+
+.TopDivider
+{
+	border-top-width: 1px;
+	border-top-style: solid;
 }
 
 .BtnItem[menu="online"]
@@ -234,6 +273,12 @@ body
 	justify-content: center;
 }
 
+.BtnIcon-Right
+{
+	display: block;
+	margin-left: auto;
+}
+
 .BtnText
 {
 	overflow: hidden;
@@ -243,8 +288,14 @@ body
 
 .LeftIcon
 {
-	width:24px;
+	width: 24px;
 	height: 24px;
+}
+
+.RightIcon
+{
+	width: 15px;
+	height: 15px;
 }
 
 .BtnNewIcon
@@ -261,6 +312,74 @@ body
 	display: none;
 }
 
+/*dropdown*/
+#DropdownWrapper {
+	visibility: hidden;
+	width: 95%;
+	border-radius: 8px;
+	overflow: hidden;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+	position: absolute;
+	z-index: 1;
+	top: 70%;
+	left: 3px;
+}
+.dropdown-header {
+	display: flex;
+	align-items: center;
+	padding: 12px;
+}
+.avatar {
+	width: 38px;
+	height: 38px;
+	min-width: 38px;
+	margin-right: 16px;
+	background-image: url('../img/left_home_account.svg');
+	background-size: cover;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+.user-details {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+.UserName {
+	font-size: 15px;
+	font-weight: bold;
+	text-align: left;
+}
+.UserEmail {
+	font-size: 10px;
+	white-space: normal;
+	word-break: break-word;
+	overflow: hidden;
+	max-width: 92%;
+	text-align: left;
+	line-height: 1.4;
+}
+.DropdownFooter {
+	padding: 10px;
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+	transition: background 0.2s;
+}
+
+.LogoutIcon {
+	width: 15px;
+	height: 15px;
+	background-image: url('../img/left_logout_icon.svg');
+	background-size: cover;
+	background-position: center center;
+	background-repeat: no-repeat;
+	margin-right: 8px;
+}
+.LogoutBtn
+{
+	font-size: 13px;
+}
+
 
 /*-----Hide Button-----*/
 #HideBtn
@@ -268,7 +387,7 @@ body
 	position: absolute;
 	height: 60px;
 	width: 12px;
-	right: 1px;
+	right: 0px;
 	top: calc(50% - 30px);
 	cursor: pointer;
 	background-repeat: no-repeat;
@@ -278,6 +397,7 @@ body
 	border-top: 1px solid rgba(238, 238, 238, 1);
 	border-bottom: 1px solid rgba(238, 238, 238, 1);
 	border-radius: 4px 0px 0px 4px;
+	z-index: 99;
 }
 
 #HideBtn:hover

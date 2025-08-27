@@ -3,6 +3,7 @@
 
 #include <wx/dcclient.h>
 #include <wx/dcgraph.h>
+#include <wx/tipwin.h>
 #ifdef __APPLE__
 #include "libslic3r/MacUtils.hpp"
 #endif
@@ -107,6 +108,12 @@ void Button::SetInactiveIcon(const wxString &icon)
 void Button::SetMinSize(const wxSize& size)
 {
     minSize = size;
+    messureSize();
+}
+
+void Button::SetMaxSize(const wxSize& size)
+{
+    wxWindow::SetMaxSize(size);
     messureSize();
 }
 
@@ -310,8 +317,14 @@ void Button::messureSize()
     if (minSize.GetHeight() > 0)
         size.SetHeight(minSize.GetHeight());
 
-    if (auto w = GetMaxWidth(); w > 0 && size.GetWidth() > w)
+    if (auto w = GetMaxWidth(); w > 0 && size.GetWidth() > w) {
         size.SetWidth(GetMaxWidth());
+
+        const wxString& tip_str = GetToolTipText();
+        if (tip_str.IsEmpty()) {
+            SetToolTip(GetLabel());
+        }
+    }
 
     if (minSize.GetWidth() > size.GetWidth())
         wxWindow::SetMinSize(minSize);
@@ -390,3 +403,73 @@ WXLRESULT Button::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 #endif
 
 bool Button::AcceptsFocus() const { return canFocus; }
+
+void Button::EnableTooltipEvenDisabled()
+{
+#if defined(_MSC_VER) || defined(_WIN32)
+    auto parent = this->GetParent();
+    if (parent)
+    {
+        parent->Bind(wxEVT_MOTION, &Button::OnParentMotion, this);
+        parent->Bind(wxEVT_LEAVE_WINDOW, &Button::OnParentLeave, this);
+    };
+#endif
+};
+
+void Button::OnParentMotion(wxMouseEvent& event)
+{
+    auto parent = this->GetParent();
+    if (!parent) return event.Skip();
+
+    wxPoint pos = parent->ClientToScreen(event.GetPosition());
+    wxRect screen_rect = this->GetScreenRect();
+    wxString tip = this->GetToolTipText();
+    if (!tip.IsEmpty() && !this->IsEnabled() && screen_rect.Contains(pos))
+    {
+        if (!tipWindow)
+        {
+            tipWindow = new wxTipWindow(this, tip);
+            tipWindow->Bind(wxEVT_DESTROY, [this](wxEvent& event) { this->tipWindow = nullptr;});
+            tipWindow->Enable(false);
+        }
+
+        if (tipWindow->GetLabel() != tip)
+        {
+            tipWindow->SetLabel(tip);
+        }
+
+        tipWindow->Position(wxGetMousePosition(), wxSize(0, 0));
+        tipWindow->Popup();
+    }
+    else
+    {
+        if (tipWindow)
+        {
+            delete tipWindow;
+            tipWindow = nullptr;
+        }
+    }
+
+    event.Skip();
+}
+
+void Button::OnParentLeave(wxMouseEvent& event)
+{
+    auto parent = this->GetParent();
+    if (!parent) return event.Skip();
+
+    if (tipWindow)
+    {
+        wxPoint pos = parent->ClientToScreen(event.GetPosition());
+        wxRect screen_rect = this->GetScreenRect();
+        wxString tip = this->GetToolTipText();
+        if (!screen_rect.Contains(pos))
+        {
+            tipWindow->Dismiss();
+            delete tipWindow;
+            tipWindow = nullptr;
+        }
+    }
+
+    event.Skip();
+}

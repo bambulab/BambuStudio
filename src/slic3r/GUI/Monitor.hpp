@@ -144,7 +144,6 @@ public:
     void update_hms_tag();
     bool Show(bool show);
 
-	void update_side_panel();
     void show_status(int status);
 
     std::string get_string_from_tab(PrinterTab tab);
@@ -155,7 +154,9 @@ public:
     void stop_update() {update_flag = false;};
     void start_update() {update_flag = true;};
 
-    void jump_to_HMS(wxCommandEvent& e);
+
+    void jump_to_HMS();
+    void jump_to_LiveView();
 };
 
 

@@ -30,6 +30,11 @@ std::string GLGizmoFaceDetector::on_get_name() const
     return (_L("Face recognition") + " [P]").ToUTF8().data();
 }
 
+std::string GLGizmoFaceDetector::get_icon_filename(bool is_dark_mode) const
+{
+    return "face recognition.svg";
+}
+
 void GLGizmoFaceDetector::on_render()
 {
     if (m_model.is_initialized()) {

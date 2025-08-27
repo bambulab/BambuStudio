@@ -543,6 +543,19 @@ void Selection::center()
     // calc distance
     Vec3d src_pos = this->get_bounding_box().center();
     Vec3d tar_pos = plate->get_center_origin();
+    auto mv = get_selected_volume(*this);
+    if (get_volume_idxs().size() == 1 && mv->is_text() && !mv->is_the_only_one_part()) {
+        auto index = mv->get_text_info().m_rr.mesh_id;
+        if (index >= 0 && index < mv->get_object()->volumes.size()) {
+            auto mo        = mv->get_object();
+            auto attach_mv = mo->volumes[index];
+            if (!attach_mv->is_text() && attach_mv->is_model_part()) {
+                auto mo_tran = mo->instances[0]->get_transformation();
+                auto world_tran = (mo_tran * attach_mv->get_transformation()).get_matrix();
+                tar_pos   = attach_mv->get_mesh_shared_ptr()->bounding_box().transformed(world_tran).center();
+            }
+        }
+    }
     Vec3d distance = Vec3d(tar_pos.x() - src_pos.x(), tar_pos.y() - src_pos.y(), 0);
 
     this->move_to_center(distance);
@@ -812,6 +825,26 @@ bool Selection::is_sla_compliant() const
     return true;
 }
 
+bool Selection::has_emboss_shape() const
+{
+    if (!m_model) {
+        return false;
+    }
+
+    const int obj_idx = get_object_idx();
+    if (obj_idx < 0 || obj_idx >= m_model->objects.size()) {
+        return false;
+    }
+
+    const ModelVolumePtrs& obj_volumes = m_model->objects[obj_idx]->volumes;
+    for (size_t vol_idx = 0; vol_idx < obj_volumes.size(); vol_idx++) {
+        if (obj_volumes[vol_idx] && obj_volumes[vol_idx]->emboss_shape.has_value()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool Selection::contains_all_volumes(const std::vector<unsigned int>& volume_idxs) const
 {
     for (unsigned int i : volume_idxs) {
@@ -883,6 +916,26 @@ const GLVolume* Selection::get_volume(unsigned int volume_idx) const
 
 GLVolume *Selection::get_volume(unsigned int volume_idx) {
     return (m_valid && (volume_idx < (unsigned int) m_volumes->size())) ? (*m_volumes)[volume_idx] : nullptr;
+}
+
+
+const GLVolume *Selection::get_volume_by_object_volumn_id(unsigned int volume_id) const
+{
+    if (!m_valid || m_volumes->size() <= 0)
+        return nullptr;
+    for (const GLVolume *v : *m_volumes) {
+        if (v->object_idx() == get_object_idx() && v->volume_idx() == volume_id)
+            return const_cast<GLVolume *>(v);
+    }
+    return nullptr;
+}
+
+const GLVolume* Selection::get_first_volume() const
+{
+    if (!m_list.size()) {
+        return nullptr;
+    }
+    return get_volume(*m_list.begin());
 }
 
 const BoundingBoxf3& Selection::get_bounding_box() const
@@ -1001,9 +1054,11 @@ const std::pair<BoundingBoxf3, Transform3d> &Selection::get_bounding_box_in_curr
     assert(!is_empty());
 
     ECoordinatesType coordinates_type = wxGetApp().obj_manipul()->get_coordinates_type();
-    if (m_mode == Instance && coordinates_type == ECoordinatesType::Local) coordinates_type = ECoordinatesType::World;
+    if (m_mode == Instance && coordinates_type == ECoordinatesType::Local)
+        coordinates_type = ECoordinatesType::World;
 
-    if (last_coordinates_type != int(coordinates_type)) const_cast<std::optional<std::pair<BoundingBoxf3, Transform3d>> *>(&m_bounding_box_in_current_reference_system)->reset();
+    if (last_coordinates_type != int(coordinates_type))
+        const_cast<std::optional<std::pair<BoundingBoxf3, Transform3d>> *>(&m_bounding_box_in_current_reference_system)->reset();
 
     if (!m_bounding_box_in_current_reference_system.has_value()) {
         last_coordinates_type                                                                                            = int(coordinates_type);
@@ -1200,7 +1255,9 @@ void Selection::translate(const Vec3d &displacement, TransformationType transfor
                 Vec3d         tower_size          = v.bounding_box().size();
                 Vec3d         tower_origin        = m_cache.volumes_data[i].get_volume_position();
                 Vec3d         actual_displacement = displacement;
-                const double margin = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx)->fff_print()->is_step_done(psWipeTower)?2.:WIPE_TOWER_MARGIN;
+                bool show_read_wipe_tower = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx)->fff_print()->is_step_done(psWipeTower);
+
+                const double margin = show_read_wipe_tower ? WIPE_TOWER_MARGIN_AFTER_SLICING : WIPE_TOWER_MARGIN;
 
                 actual_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() *
                                         m_cache.volumes_data[i].get_instance_mirror_matrix())
@@ -1614,11 +1671,6 @@ void Selection::scale_and_translate(const Vec3d &scale, const Vec3d &world_trans
             } else
                 transform_instance_relative(v, volume_data, transformation_type, Geometry::translation_transform(world_translation) * Geometry::scale_transform(relative_scale),
                                             m_cache.dragging_center);
-            // update the instance assemble transform
-            ModelObject *            object             = m_model->objects[v.object_idx()];
-            Geometry::Transformation assemble_transform = object->instances[v.instance_idx()]->get_assemble_transformation();
-            assemble_transform.set_scaling_factor(v.get_instance_scaling_factor());
-            object->instances[v.instance_idx()]->set_assemble_transformation(assemble_transform);
         } else {
             if (!is_single_volume_or_modifier()) {
                 assert(transformation_type.world());

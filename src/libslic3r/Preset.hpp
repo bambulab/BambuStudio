@@ -59,8 +59,14 @@
 #define BBL_JSON_KEY_FAMILY                     "family"
 #define BBL_JSON_KEY_BED_MODEL                  "bed_model"
 #define BBL_JSON_KEY_BED_TEXTURE                "bed_texture"
+#define BBL_JSON_KEY_USE_RECT_GRID              "use_rect_grid"
 #define BBL_JSON_KEY_IMAGE_BED_TYPE             "image_bed_type"
 #define BBL_JSON_KEY_DEFAULT_BED_TYPE           "default_bed_type"
+#define BBL_JSON_KEY_BOTTOM_TEXTURE_END_NAME    "bottom_texture_end_name"
+#define BBL_JSON_KEY_BOTTOM_TEXTURE_RECT        "bottom_texture_rect"
+#define BBL_JSON_KEY_MIDDLE_TEXTURE_RECT        "middle_texture_rect"
+#define BBL_JSON_KEY_RIGHT_ICON_OFFSET_BED      "right_icon_offset_bed"
+
 #define BBL_JSON_KEY_HOTEND_MODEL               "hotend_model"
 #define BBL_JSON_KEY_DEFAULT_MATERIALS          "default_materials"
 #define BBL_JSON_KEY_NOT_SUPPORT_BED_TYPE       "not_support_bed_type"
@@ -88,6 +94,8 @@ extern Semver get_version_from_json(std::string file_path);
 extern int get_values_from_json(std::string file_path, std::vector<std::string>& keys, std::map<std::string, std::string>& key_values);
 
 extern ConfigFileType guess_config_file_type(const boost::property_tree::ptree &tree);
+
+extern void extend_default_config_length(DynamicPrintConfig& config, const bool set_nil_to_default, const DynamicPrintConfig& defaults);
 
 class VendorProfile
 {
@@ -118,8 +126,13 @@ public:
         // Vendor & Printer Model specific print bed model & texture.
         std::string 			 	bed_model;
         std::string 				bed_texture;
+        std::string                 use_rect_grid;
         std::string                 image_bed_type;
         std::string                 default_bed_type;
+        std::string                 bottom_texture_end_name;
+        std::string                 bottom_texture_rect;
+        std::string                 middle_texture_rect;
+        std::string                 right_icon_offset_bed;
         std::string                 hotend_model;
         PrinterVariant*       variant(const std::string &name) {
             for (auto &v : this->variants)
@@ -315,9 +328,11 @@ public:
     // special for upport G and Support W
     std::string get_filament_type(std::string &display_filament_type);
     std::string get_printer_type(PresetBundle *preset_bundle); // get edited preset type
+    std::string get_printer_name(PresetBundle *preset_bundle);
     std::string get_current_printer_type(PresetBundle *preset_bundle); // get current preset type
 
     static void get_extruder_names_and_keysets(Type type, std::string& extruder_id_name, std::string& extruder_variant_name, std::set<std::string>** p_key_set1, std::set<std::string>** p_key_set2);
+    std::string get_printer_id() const { return vendor ? vendor->id : ""; }
 
     bool has_lidar(PresetBundle *preset_bundle);
     bool is_custom_defined();
@@ -564,7 +579,7 @@ public:
     const std::string& 		get_preset_name_by_alias(const std::string& alias) const;
 	const std::string*		get_preset_name_renamed(const std::string &old_name) const;
     bool                    is_alias_exist(const std::string &alias, Preset* preset = nullptr);
-    void                    set_printer_hold_alias(const std::string &alias, Preset &preset);
+    void                    set_printer_hold_alias(const std::string &alias, Preset &preset, bool remove = false);
 
 	// used to update preset_choice from Tab
 	const std::deque<Preset>&	get_presets() const	{ return m_presets; }

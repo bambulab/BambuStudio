@@ -128,7 +128,7 @@ void LayerRegion::auto_circle_compensation(SurfaceCollection& slices, const Auto
     }
 }
 
-void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollection *fill_surfaces, ExPolygons *fill_no_overlap, std::vector<LoopNode> &loop_nodes)
+void LayerRegion::make_perimeters(const SurfaceCollection &slices, const PerimeterRegions &perimeter_regions, SurfaceCollection *fill_surfaces, ExPolygons *fill_no_overlap, std::vector<LoopNode> &loop_nodes)
 {
     this->perimeters.clear();
     this->thin_fills.clear();
@@ -170,6 +170,7 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
     g.ext_perimeter_flow    = this->flow(frExternalPerimeter);
     g.overhang_flow         = this->bridging_flow(frPerimeter, object_config.thick_bridges);
     g.solid_infill_flow     = this->flow(frSolidInfill);
+    g.perimeter_regions     = &perimeter_regions;
 
     if (this->layer()->object()->config().wall_generator.value == PerimeterGeneratorType::Arachne && !spiral_mode)
         g.process_arachne();

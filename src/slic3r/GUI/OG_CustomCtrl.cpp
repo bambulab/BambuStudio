@@ -780,7 +780,9 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
         }
         is_url_string = !suppress_hyperlinks && !og_line.label_path.empty();
         // BBS
-        h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label /* + ":" */, text_clr, icon_pos + ctrl->opt_group->label_width * ctrl->m_em_unit - h_pos, is_url_string, true);
+        wxCoord indent = og_line.subline ? lround(1.5 * ctrl->m_em_unit) : 0;
+        h_pos = draw_text(dc, wxPoint(h_pos + indent, v_pos), label /* + ":" */, text_clr, icon_pos + ctrl->opt_group->label_width * ctrl->m_em_unit - h_pos, is_url_string, true);
+        h_pos -= indent;
     }
 
     // If there's a widget, build it and set result to the correct position.

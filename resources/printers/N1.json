@@ -9,7 +9,11 @@
 					"remote": "tutk"
 				}
 			},
-			"nozzle_temp_range": [ 20, 300 ],
+			"nozzle_temp_range": [ 0, 300 ],
+			"nozzle_replace_wiki": {
+				"zh": "https://wiki.bambulab.com/zh/a1-mini/maintenance/hotend-heating-assembly-replacement",
+				"en": "https://wiki.bambulab.com/en/a1-mini/maintenance/hotend-heating-assembly-replacement"
+			},
 			"support_motor_noise_cali": true,
 			"support_tunnel_mqtt": true,
 			"support_mqtt_alive": true,
@@ -19,7 +23,7 @@
 			"support_prompt_sound": true,
 			"support_ams_humidity": false,
 			"support_auto_recovery_step_loss": true,
-			"support_auto_leveling": true,
+			"support_bed_leveling": 1,
 			"support_update_remain": false,
 			"support_timelapse": true,
 			"support_filament_backup": true,
@@ -36,9 +40,10 @@
 			"support_chamber_temp_edit": false,
 			"support_extrusion_cali": true,
 			"support_user_preset": false,
-			"bed_temperature_limit": 100
+			"bed_temperature_limit": 80
 		},
 		"model_id": "N1",
+		"support_wrapping_detection": false,
 		"compatible_machine": [],
 		"auto_cali_not_support_filaments": [ "GFU03", "GFU04" ],
 		"printer_type": "N1",
@@ -46,11 +51,13 @@
 		"printer_thumbnail_image": "printer_thumbnail_n1",
 		"printer_connect_help_image": "input_access_code_n1",
 		"printer_use_ams_image": "extra_icon",
+		"printer_ext_image": ["ext_image_n1"],
 		"use_ams_type": "f1",
 		"printer_arch": "i3",
 		"printer_series": "series_n",
 		"has_cali_line": false,
-		"printer_is_enclosed": false
+		"printer_is_enclosed": false,
+		"enable_set_nozzle_info": false
 	},
 	"01.01.50.01": {
 		"print": {

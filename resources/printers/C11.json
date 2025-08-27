@@ -8,7 +8,11 @@
 					"local": "local"
 				}
 			},
-			"nozzle_temp_range": [ 20, 300 ],
+			"nozzle_temp_range": [ 0, 300 ],
+			"nozzle_replace_wiki": {
+				"zh": "https://wiki.bambulab.com/zh/p1/maintenance/complete-hot-end-assembly",
+				"en": "https://wiki.bambulab.com/en/p1/maintenance/complete-hot-end-assembly"
+			},
 			"support_motor_noise_cali": false,
 			"support_tunnel_mqtt": false,
 			"support_mqtt_alive": false,
@@ -18,7 +22,7 @@
 			"support_prompt_sound": false,
 			"support_ams_humidity": true,
 			"support_auto_recovery_step_loss": true,
-			"support_auto_leveling": true,
+			"support_bed_leveling": 1,
 			"support_update_remain": true,
 			"support_timelapse": true,
 			"support_filament_backup": true,
@@ -39,6 +43,7 @@
 			"bed_temperature_limit": 100
 		},
 		"model_id": "C11",
+		"support_wrapping_detection": false,
 		"compatible_machine": [ "BL-P001", "BL-P002", "C12", "C13" ],
 		"auto_cali_not_support_filaments": [ "GFU03", "GFU04" ],
 		"printer_type": "C11",
@@ -46,11 +51,13 @@
 		"printer_thumbnail_image": "printer_thumbnail_p1p",
 		"printer_connect_help_image": "input_access_code_p1p",
 		"printer_use_ams_image": "ams_icon",
+		"printer_ext_image": ["ext_image_xp"],
 		"use_ams_type": "generic",
 		"printer_arch": "core_xy",
 		"printer_series": "series_p1p",
 		"has_cali_line": false,
-		"printer_is_enclosed": false
+		"printer_is_enclosed": false,
+		"enable_set_nozzle_info": false
 	},
 	"01.02.00.00": {
 		"print": {
@@ -86,6 +93,11 @@
 				}
 			},
 			"support_user_preset": true
+		}
+	},
+	"01.07.50.00": {
+		"print": {
+			"support_print_all": true
 		}
 	}
 }

@@ -12,6 +12,7 @@
 #include <boost/lexical_cast.hpp>
 #include <libslic3r/Model.hpp>
 #include <libslic3r/Format/bbs_3mf.hpp>
+#include "DeviceCore/DevStorage.h"
 
 #ifdef __WXMSW__
 #include <shellapi.h>
@@ -211,35 +212,45 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
 
 MediaFilePanel::~MediaFilePanel()
 {
-    SetMachineObject(nullptr);
+    UpdateByObj(nullptr);
 }
 
-void MediaFilePanel::SetMachineObject(MachineObject* obj)
+void MediaFilePanel::UpdateByObj(MachineObject* obj)
 {
-    std::string machine = obj ? obj->dev_id : "";
+    bool sdcard_state_changed = false;
+    std::string machine = obj ? obj->get_dev_id() : "";
     if (obj) {
         m_lan_mode     = obj->is_lan_mode_printer();
-        m_lan_ip       = obj->dev_ip;
+        m_lan_ip       = obj->get_dev_ip();
         m_lan_passwd   = obj->get_access_code();
         m_dev_ver      = obj->get_ota_version();
         m_device_busy  = obj->is_camera_busy_off();
-        m_sdcard_exist = obj->sdcard_state == MachineObject::SdcardState::HAS_SDCARD_NORMAL || obj->sdcard_state == MachineObject::SdcardState::HAS_SDCARD_READONLY;
         m_local_proto  = obj->file_local;
         m_remote_proto = obj->get_file_remote();
         m_model_download_support = obj->file_model_download;
+
+        if (m_sdcard_exist != (obj->GetStorage()->get_sdcard_state() == DevStorage::HAS_SDCARD_NORMAL)) {
+            m_sdcard_exist = obj->GetStorage()->get_sdcard_state() == DevStorage::HAS_SDCARD_NORMAL;
+            sdcard_state_changed = true;
+        }
     } else {
         m_lan_mode  = false;
         m_lan_ip.clear();
         m_lan_passwd.clear();
         m_dev_ver.clear();
-        m_sdcard_exist = false;
         m_device_busy = false;
         m_local_proto = 0;
         m_remote_proto = 0;
         m_model_download_support = false;
+
+        if (m_sdcard_exist) {
+            m_sdcard_exist = false; // reset sdcard state when no object
+            sdcard_state_changed = true;
+        }
     }
+
     Enable(obj && obj->is_info_ready() && obj->m_push_count > 0);
-    if (machine == m_machine) {
+    if (machine == m_machine && !sdcard_state_changed) {
         if ((m_waiting_enable && IsEnabled()) || (m_waiting_support && (m_local_proto || m_remote_proto))) {
             auto fs = m_image_grid->GetFileSystem();
             if (fs) fs->Retry();
@@ -325,7 +336,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
                 json j;
                 j["code"] = err;
                 j["dev_id"] = m_machine;
-                j["dev_ip"] = m_lan_ip;
+                j["dev_ip"] = "";
                 NetworkAgent* agent = wxGetApp().getAgent();
                 if (status == PrinterFileSystem::Failed && err != 0) {
                     j["result"] = "failed";
@@ -356,7 +367,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
                 json j;
                 j["code"] = result;
                 j["dev_id"] = m_machine;
-                j["dev_ip"] = m_lan_ip;
+                j["dev_ip"] = "";
                 if (result > 1) {
                     // download failed
                     j["result"] = "failed";
@@ -469,11 +480,6 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
         fs->SetUrl("0");
         return;
     }
-    if (!m_sdcard_exist) {
-        m_image_grid->SetStatus(m_bmp_failed, _L("Please check if the storage is inserted into the printer.\nIf it still cannot be read, you can try formatting the storage."));
-        fs->SetUrl("0");
-        return;
-    }
     if (m_device_busy) {
         m_image_grid->SetStatus(m_bmp_failed, _L("The printer is currently busy downloading. Please try again after it finishes."));
         fs->SetUrl("0");
@@ -520,7 +526,11 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
                 url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
                 url += "&cli_ver=" + std::string(SLIC3R_VERSION);
             }
+
+#if !BBL_RELEASE_TO_PUBLIC
             BOOST_LOG_TRIVIAL(info) << "MediaFilePanel::fetchUrl: camera_url: " << hide_passwd(url, {"?uid=", "authkey=", "passwd="});
+#endif
+
             CallAfter([=] {
                 boost::shared_ptr fs(wfs.lock());
                 if (!fs || fs != m_image_grid->GetFileSystem()) return;

@@ -265,7 +265,7 @@ public:
     void        update_title();
     void        set_max_recent_count(int max);
 
-    void        show_calibration_button(bool show);
+    void        show_calibration_button(bool show, bool is_BBL);
 
 	void        update_title_colour_after_set_title();
     void        show_option(bool show);
@@ -279,8 +279,10 @@ public:
     // Called from wxEVT_ACTIVATE, as wxEVT_CREATE was not reliable (bug in wxWidgets?).
     void        register_win32_callbacks();
     void        init_menubar_as_editor();
+    bool        check_bbl_farm_client_installed();
     void        init_menubar_as_gcodeviewer();
     void        update_menubar();
+    void        update_calibration_button_status();
     // Open item in menu by menu and item name (in actual language)
     void        open_menubar_item(const wxString& menu_name,const wxString& item_name);
 #ifdef _WIN32

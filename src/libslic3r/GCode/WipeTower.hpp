@@ -174,7 +174,7 @@ public:
 	// width		-- width of wipe tower in mm ( default 60 mm - leave as it is )
 	// wipe_area	-- space available for one toolchange in mm
 	// BBS: add partplate logic
-	WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origin, size_t initial_tool, const float wipe_tower_height);
+	WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origin, size_t initial_tool, const float wipe_tower_height, const std::vector<unsigned int>& slice_used_filaments);
 
 
 	// Set the extruder properties.
@@ -183,6 +183,7 @@ public:
 	// Appends into internal structure m_plan containing info about the future wipe tower
 	// to be used before building begins. The entries must be added ordered in z.
 	void plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool, float wipe_volume = 0.f, float prime_volume = 0.f);
+
 
 	// Iterates through prepared m_plan, generates ToolChangeResults and appends them to "result"
 	void generate(std::vector<std::vector<ToolChangeResult>> &result);
@@ -307,14 +308,13 @@ public:
     void set_need_reverse_travel(const std::vector<unsigned int> & used_extruders)
     {
         for (unsigned int filament_id : used_extruders) {
-            if (m_filpar[filament_id].ramming_travel_time > EPSILON) {
+            if (m_filpar[filament_id].ramming_travel_time > EPSILON && m_filaments_change_length[filament_id]>EPSILON) {
                 m_need_reverse_travel = true;
                 return;
             }
         }
     }
     bool has_tpu_filament() const { return m_has_tpu_filament; }
-
     struct FilamentParameters {
         std::string 	    material = "PLA";
         int                 category;
@@ -393,7 +393,7 @@ public:
 	void generate_wipe_tower_blocks();
     void update_all_layer_depth(float wipe_tower_depth);
     void set_nozzle_last_layer_id();
-
+    void calc_block_infill_gap();
     ToolChangeResult   tool_change_new(size_t new_tool, bool solid_change = false, bool solid_nozzlechange=false);
     NozzleChangeResult nozzle_change_new(int old_filament_id, int new_filament_id, bool solid_change = false);
     ToolChangeResult   finish_layer_new(bool extrude_perimeter = true, bool extrude_fill = true, bool extrude_fill_wall = true);
@@ -415,6 +415,9 @@ private:
         return m_filpar[0].filament_area; // all extruders are assumed to have the same filament diameter at this point
     }
 
+    int    m_slice_used_filaments      = 0;
+    int    m_wrapping_detection_layers = 0;
+    bool   m_enable_wrapping_detection = false;
 	bool   m_enable_timelapse_print = false;
 	bool   m_semm               = true; // Are we using a single extruder multimaterial printer?
     Vec2f  m_wipe_tower_pos; 			// Left front corner of the wipe tower in mm.
@@ -484,7 +487,7 @@ private:
 	float m_perimeter_width = 0.4f * Width_To_Nozzle_Ratio; // Width of an extrusion line, also a perimeter spacing for 100% infill.
     float m_nozzle_change_perimeter_width = 0.4f * Width_To_Nozzle_Ratio;
 	float m_extrusion_flow = 0.038f; //0.029f;// Extrusion flow is derived from m_perimeter_width, layer height and filament diameter.
-
+    std::unordered_map<int, std::pair<float,float>> m_block_infill_gap_width; // categories to infill_gap: toolchange gap, nozzlechange gap
 	// Extruder specific parameters.
     std::vector<FilamentParameters> m_filpar;
 
@@ -511,12 +514,16 @@ private:
     std::vector<double>        m_printable_height;
     bool is_first_layer() const { return size_t(m_layer_info - m_plan.begin()) == m_first_layer_idx; }
     bool                       is_valid_last_layer(int tool) const;
-
+    bool                       m_flat_ironing=false;
 	// Calculates length of extrusion line to extrude given volume
 	float volume_to_length(float volume, float line_width, float layer_height) const {
 		return std::max(0.f, volume / (layer_height * (line_width - layer_height * (1.f - float(M_PI) / 4.f))));
 	}
-
+    // Calculates volume of extrusion line
+    float length_to_volume(float length,float line_width, float layer_height) const
+    {
+        return std::max(0.f, length * (layer_height * (line_width - layer_height * (1.f - float(M_PI) / 4.f))));
+    }
 	// Calculates depth for all layers and propagates them downwards
 	void plan_tower();
 
@@ -546,6 +553,7 @@ private:
             float wipe_volume;
 			float wipe_length;
             float nozzle_change_depth{0};
+            float nozzle_change_length{0};
 			// BBS
 			float purge_volume;
             ToolChange(size_t old, size_t newtool, float depth=0.f, float ramming_depth=0.f, float fwl=0.f, float wv=0.f, float wl = 0, float pv = 0)
@@ -575,7 +583,7 @@ private:
     // ot -1 if there is no such toolchange.
     int first_toolchange_to_nonsoluble_nonsupport(
             const std::vector<WipeTowerInfo::ToolChange>& tool_changes) const;
-
+    WipeTowerInfo::ToolChange set_toolchange(int old_tool, int new_tool, float layer_height, float wipe_volume, float purge_volume);
 	void toolchange_Unload(
 		WipeTowerWriter &writer,
 		const box_coordinates  &cleaning_box,
@@ -597,6 +605,7 @@ private:
 		float wipe_volume);
     void get_wall_skip_points(const WipeTowerInfo &layer);
     ToolChangeResult merge_tcr(ToolChangeResult &first, ToolChangeResult &second);
+    float            get_block_gap_width(int tool, bool is_nozzlechangle = false);
 };
 
 

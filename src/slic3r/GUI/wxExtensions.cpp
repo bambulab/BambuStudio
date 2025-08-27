@@ -4,7 +4,6 @@
 #include <cmath>
 
 #include <wx/sizer.h>
-
 #include <boost/algorithm/string/replace.hpp>
 
 /* mac need the macro while including <boost/stacktrace.hpp>*/
@@ -26,7 +25,9 @@
 #include "BitmapComboBox.hpp"
 #include "Widgets/StaticBox.hpp"
 #include "Widgets/Label.hpp"
-
+#include "../Utils/WxFontUtils.hpp"
+#include "FilamentBitmapUtils.hpp"
+#include "../Utils/ColorSpaceConvert.hpp"
 #ifndef __linux__
 // msw_menuitem_bitmaps is used for MSW and OSX
 static std::map<int, std::string> msw_menuitem_bitmaps;
@@ -434,6 +435,8 @@ wxBitmap create_menu_bitmap(const std::string& bmp_name)
     return create_scaled_bitmap(bmp_name, nullptr, 16, false, "", true);
 }
 
+static std::unordered_set<std::string> s_bmps_not_found;
+
 // win is used to get a correct em_unit value
 // It's important for bitmaps of dialogs.
 // if win == nullptr, em_unit value of MainFrame will be used
@@ -470,8 +473,14 @@ wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
     }
 
     if (bmp == nullptr) {
+
+        /*stacktrace is time-consuming, optimize it*/
+        if (s_bmps_not_found.count(bmp_name) == 0) {
+            BOOST_LOG_TRIVIAL(error) << "Could not load bitmap: " << boost::stacktrace::stacktrace();
+            s_bmps_not_found.emplace(bmp_name);
+        }
+
         // Neither SVG nor PNG has been found, raise error
-        BOOST_LOG_TRIVIAL(error) << "Could not load bitmap: " << boost::stacktrace::stacktrace();
         throw Slic3r::RuntimeError("Could not load bitmap: " + bmp_name);
     }
 
@@ -490,8 +499,12 @@ wxBitmap create_scaled_bitmap2(const std::string& bmp_name_in, Slic3r::GUI::Bitm
 
     wxBitmap* bmp = cache.load_svg2(bmp_name, width, height, grayscale, false, array_new_color, resize ? em_unit(win) * 0.1f : 0.f);
     if (bmp == nullptr) {
-        // No SVG found
-        BOOST_LOG_TRIVIAL(error) << "Could not load bitmap: " << boost::stacktrace::stacktrace();
+        /*stacktrace is time-consuming, optimize it*/
+        if (s_bmps_not_found.count(bmp_name) == 0) {
+            BOOST_LOG_TRIVIAL(error) << "Could not load bitmap: " << boost::stacktrace::stacktrace();
+            s_bmps_not_found.emplace(bmp_name);
+        }
+
         throw Slic3r::RuntimeError("Could not load bitmap: " + bmp_name);
     }
     return *bmp;
@@ -540,27 +553,168 @@ std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
 {
     // Create the bitmap with color bars.
     std::vector<wxBitmap*> bmps;
-    std::vector<std::string> colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
+    std::vector<std::string> filaments_color_info = Slic3r::GUI::wxGetApp().plater()->get_filament_colors_render_info();
+    std::vector<std::string> ctype = Slic3r::GUI::wxGetApp().plater()->get_filament_color_render_type();
 
-    if (colors.empty())
-        return bmps;
+    if (!filaments_color_info.empty() && !ctype.empty() && ctype.size() == filaments_color_info.size()) {
+        std::vector<std::vector<std::string>> readable_color_info = read_color_pack(filaments_color_info);
+        /* It's supposed that standard size of an icon is 36px*16px for 100% scaled display.
+         * So set sizes for solid_colored icons used for filament preset
+         * and scale them in respect to em_unit value
+         */
+        const double em          = Slic3r::GUI::wxGetApp().em_unit();
+        const int    icon_width  = lround((thin_icon ? 2 : 4.4) * em);
+        const int    icon_height = lround(2 * em);
 
-    /* It's supposed that standard size of an icon is 36px*16px for 100% scaled display.
-     * So set sizes for solid_colored icons used for filament preset
-     * and scale them in respect to em_unit value
-     */
-    const double em = Slic3r::GUI::wxGetApp().em_unit();
-    const int icon_width = lround((thin_icon ? 2 : 4.4) * em);
-    const int icon_height = lround(2 * em);
+        int index = 0;
+        for (const auto &colors : readable_color_info) {
+            auto label = std::to_string(++index);
+            bool is_gradient = ctype[index-1] == "0";
+            if (colors.size() == 1) {
+                bmps.push_back(get_extruder_color_icon(colors[0], label, icon_width, icon_height));
+            } else {
+                bmps.push_back(get_extruder_color_icon(colors, is_gradient, label, icon_width, icon_height));
+            }
+        }
+    } else {
+        std::vector<std::string> colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
+        if (colors.empty()) return bmps;
 
-    int index = 0;
-    for (const std::string &color : colors)
-    {
-        auto label = std::to_string(++index);
-        bmps.push_back(get_extruder_color_icon(color, label, icon_width, icon_height));
+        const double em          = Slic3r::GUI::wxGetApp().em_unit();
+        const int    icon_width  = lround((thin_icon ? 2 : 4.4) * em);
+        const int    icon_height = lround(2 * em);
+        int index = 0;
+        for (const auto &color : colors) {
+            auto label = std::to_string(++index);
+            bmps.push_back(get_extruder_color_icon(color, label, icon_width, icon_height));
+        }
+    }
+    return bmps;
+
+
+}
+
+std::vector<std::vector<std::string>> read_color_pack(std::vector<std::string> color_pack) {
+    std::vector<std::vector<std::string>> color_info;
+    for (const std::string &color : color_pack) {
+        std::vector<std::string> colors;
+        colors = Slic3r::split_string(color, ' ');
+        color_info.push_back(colors);
+    }
+    return color_info;
+}
+
+wxColourData show_sys_picker_dialog(wxWindow *parent, const wxColourData &clr_data)
+{
+    wxColourData data = clr_data;
+    data.SetChooseFull(true);
+
+    // Load custom colors from config (support both "r,g,b,a" and "#RRGGBB" formats)
+    std::vector<std::string> colors = Slic3r::GUI::wxGetApp().app_config->get_custom_color_from_config();
+    for (int i = 0; i < (int)colors.size(); i++) {
+        wxColour c;
+        if (colors[i].find(',') != std::string::npos)
+            c = string_to_wxColor(colors[i]);
+        else
+            c = wxColour(colors[i]);
+        if (c.IsOk())
+            data.SetCustomColour(i, c);
     }
 
-    return bmps;
+    wxColourDialog dialog(parent, &data);
+    dialog.SetTitle(_L("Please choose the filament colour"));
+
+    if (dialog.ShowModal() == wxID_OK) {
+        data = dialog.GetColourData();
+
+        // Save custom colors to config (use RGBA string format for consistency)
+        std::vector<std::string> colors;
+        colors.resize(CUSTOM_COLOR_COUNT);
+        for (int i = 0; i < CUSTOM_COLOR_COUNT; i++) {
+            wxColour custom_clr = data.GetCustomColour(i);
+            if (custom_clr.IsOk())
+                colors[i] = color_to_string(custom_clr);
+        }
+        Slic3r::GUI::wxGetApp().app_config->save_custom_color_to_config(colors);
+    }
+
+    return data;
+}
+
+wxBitmap *get_extruder_color_icon(std::vector<std::string> colors, bool is_gradient, std::string label, int icon_width, int icon_height){
+
+    static Slic3r::GUI::BitmapCache bmp_cache;
+
+    // build cache key, include all color info
+    std::string bitmap_key = "";
+    for (const auto& color : colors) {
+        bitmap_key += color + "_";
+    }
+    bitmap_key += "h" + std::to_string(icon_height) + "-w" + std::to_string(icon_width) + "-i" + label;
+
+    wxBitmap *bitmap = bmp_cache.find(bitmap_key);
+    if (bitmap == nullptr) {
+
+        std::vector<wxColour> wx_colors;
+        for (const auto& color_str : colors) {
+            wx_colors.push_back(wxColour(color_str));
+        }
+        if (wx_colors.empty()) {
+            wx_colors.push_back(wxColour("#636363")); // default color if no colors provided
+        }
+
+        // create filament bitmap in multi color
+        wxBitmap base_bitmap = Slic3r::GUI::create_filament_bitmap(wx_colors, wxSize(icon_width, icon_height), is_gradient);
+
+        if (!base_bitmap.IsOk()) {
+            // if create failed, return nullptr
+            return nullptr;
+        }
+
+        // add text label directly on base_bitmap
+        if (!label.empty()) {
+#ifndef __WXMSW__
+            wxMemoryDC dc(base_bitmap);
+#else
+            wxClientDC cdc((wxWindow *) Slic3r::GUI::wxGetApp().mainframe);
+            wxMemoryDC dc(&cdc);
+            dc.SelectObject(base_bitmap);
+#endif
+
+            // Ensure no background contamination
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.SetPen(*wxTRANSPARENT_PEN);
+
+            dc.SetFont(::Label::Body_12);
+            Slic3r::GUI::WxFontUtils::get_suitable_font_size(icon_height - 2, dc);
+
+            auto size = dc.GetTextExtent(wxString(label));
+
+            // Set transparent background mode for text rendering
+            dc.SetBackgroundMode(wxTRANSPARENT);
+
+            // draw text with black border effect
+            int text_x = (icon_width - size.x) / 2;
+            int text_y = (icon_height - size.y) / 2;
+
+            // Draw very thin border with lighter color and fewer directions
+            dc.SetTextForeground(wxColor("262E30")); // Semi-transparent dark gray
+            dc.DrawText(label, text_x - 1, text_y);     // Left
+            dc.DrawText(label, text_x + 1, text_y);     // Right
+            dc.DrawText(label, text_x, text_y - 1);     // Up
+            dc.DrawText(label, text_x, text_y + 1);     // Down
+
+            // Draw main white text on top
+            dc.SetTextForeground(*wxWHITE);
+            dc.DrawText(label, text_x, text_y);
+
+            dc.SelectObject(wxNullBitmap);
+        }
+
+        // cache result
+        bitmap = bmp_cache.insert(bitmap_key, base_bitmap);
+    }
+    return bitmap;
 }
 
 wxBitmap *get_extruder_color_icon(std::string color, std::string label, int icon_width, int icon_height)
@@ -576,14 +730,19 @@ wxBitmap *get_extruder_color_icon(std::string color, std::string label, int icon
         // there is no neede to scale created solid bitmap
         wxColor clr(color);
         bitmap = bmp_cache.insert(bitmap_key, wxBitmap(icon_width, icon_height));
-#ifndef __WXMSW__
-        wxMemoryDC dc;
-#else
+#ifdef __WXOSX__
+        bitmap->UseAlpha();
+        wxMemoryDC dc(*bitmap);
+#elif defined(__WXMSW__)
         wxClientDC cdc((wxWindow *) Slic3r::GUI::wxGetApp().mainframe);
         wxMemoryDC dc(&cdc);
+        dc.SelectObject(*bitmap);
+#else
+        wxMemoryDC dc;
+        dc.SelectObject(*bitmap);
 #endif
         dc.SetFont(::Label::Body_12);
-        dc.SelectObject(*bitmap);
+        Slic3r::GUI::WxFontUtils::get_suitable_font_size(icon_height - 2, dc);
         if (clr.Alpha() == 0) {
             int             size        = icon_height * 2;
             static wxBitmap transparent = *Slic3r::GUI::BitmapCache().load_svg("transparent", size, size);
@@ -611,7 +770,6 @@ wxBitmap *get_extruder_color_icon(std::string color, std::string label, int icon
     }
     return bitmap;
 }
-
 void apply_extruder_selector(Slic3r::GUI::BitmapComboBox** ctrl,
                              wxWindow* parent,
                              const std::string& first_item/* = ""*/,
@@ -659,7 +817,6 @@ void apply_extruder_selector(Slic3r::GUI::BitmapComboBox** ctrl,
     }
     (*ctrl)->SetSelection(0);
 }
-
 
 // ----------------------------------------------------------------------------
 // LockButton
@@ -928,6 +1085,8 @@ wxSize ScalableBitmap::GetBmpSize(const wxBitmap &bmp)
 
 int ScalableBitmap::GetBmpWidth() const
 {
+    if (!m_bmp.IsOk())
+        return 0;
 #ifdef __APPLE__
     return m_bmp.GetScaledWidth();
 #else
@@ -937,6 +1096,8 @@ int ScalableBitmap::GetBmpWidth() const
 
 int ScalableBitmap::GetBmpHeight() const
 {
+    if (!m_bmp.IsOk())
+        return 0;
 #ifdef __APPLE__
     return m_bmp.GetScaledHeight();
 #else
@@ -985,8 +1146,8 @@ ScalableButton::ScalableButton( wxWindow *          parent,
     if (size != wxDefaultSize)
     {
         const int em = em_unit(parent);
-        m_width = size.x/em;
-        m_height= size.y/em;
+        m_width = size.x * 10 / em;
+        m_height= size.y * 10 / em;
     }
 }
 
@@ -1075,7 +1236,7 @@ void ScalableButton::msw_rescale()
     if (m_width > 0 || m_height>0)
     {
         const int em = em_unit(m_parent);
-        wxSize size(m_width * em, m_height * em);
+        wxSize size(m_width * em / 10, m_height * em / 10);
         SetMinSize(size);
     }
 }

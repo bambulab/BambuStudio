@@ -71,7 +71,7 @@ BBLStatusBarPrint::BBLStatusBarPrint(wxWindow *parent, int id)
 
     m_sizer_status_text = new wxBoxSizer(wxHORIZONTAL);
     m_link_show_error = new Label(top_panel, _L("Check the reason"));
-    m_link_show_error->SetForegroundColour(wxColour(0x00ae42));
+    m_link_show_error->SetForegroundColour(wxColour("#00AE42"));
     m_link_show_error->SetFont(::Label::Head_13);
     m_link_show_error->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { this->m_self->SetCursor(wxCURSOR_HAND); });
     m_link_show_error->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { this->m_self->SetCursor(wxCURSOR_ARROW); });
@@ -177,7 +177,9 @@ void BBLStatusBarPrint::set_range(int val)
 void BBLStatusBarPrint::clear_percent()
 {
     //set_percent_text(wxEmptyString);
-    m_cancelbutton->Hide();
+    if (!m_link_show_error->IsShown()) /*do not hide cancel if there are errors*/ {
+        m_cancelbutton->Hide();
+    }
 }
 
 void BBLStatusBarPrint::show_error_info(wxString msg, int code, wxString description, wxString extra)

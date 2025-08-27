@@ -5,7 +5,6 @@
     "from": "system",
     "setting_id": "GFSB01_13",
     "instantiation": "true",
-    "description": "When printing this filament, there's a risk of warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials.",
     "chamber_temperatures": [
         "65"
     ],
@@ -26,13 +25,25 @@
         "0.95",
         "0.95"
     ],
+    "filament_flush_temp": [
+        "0",
+        "0"
+    ],
+    "filament_flush_volumetric_speed": [
+        "0",
+        "0"
+    ],
     "filament_long_retractions_when_cut": [
         "nil",
         "nil"
     ],
     "filament_max_volumetric_speed": [
-        "18",
-        "18"
+        "20",
+        "30"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
     ],
     "filament_retract_before_wipe": [
         "nil",
@@ -51,8 +62,8 @@
         "nil"
     ],
     "filament_retraction_length": [
-        "nil",
-        "nil"
+        "0.4",
+        "0.4"
     ],
     "filament_retraction_minimum_travel": [
         "nil",
@@ -63,34 +74,34 @@
         "nil"
     ],
     "filament_wipe": [
-        "nil",
-        "nil"
+        "1",
+        "1"
     ],
     "filament_wipe_distance": [
-        "nil",
-        "nil"
+        "1",
+        "1"
     ],
     "filament_z_hop": [
         "nil",
         "nil"
     ],
     "filament_z_hop_types": [
-        "nil",
-        "nil"
+        "Spiral Lift",
+        "Spiral Lift"
     ],
     "filament_extruder_variant": [
         "Direct Drive Standard",
         "Direct Drive High Flow"
-    ],
-    "filament_ramming_volumetric_speed": [
-        "-1",
-        "-1"
     ],
     "filament_pre_cooling_temperature": [
         "0",
         "0"
     ],
     "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
+    "filament_adaptive_volumetric_speed": [
         "0",
         "0"
     ],
@@ -106,6 +117,10 @@
     "hole_limit_max": [
         "0.14"
     ],
+    "long_retractions_when_ec": [
+        "1",
+        "1"
+    ],
     "nozzle_temperature": [
         "270",
         "270"
@@ -114,11 +129,19 @@
         "270",
         "270"
     ],
+    "retraction_distances_when_ec": [
+        "10",
+        "10"
+    ],
+    "volumetric_speed_coefficients": [
+        "0 0 0 0 0 0",
+        "0 0 0 0 0 0"
+    ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle"
     ],
     "filament_start_gcode": [
-        "; filament start gcode\nM145 P1 ; set airduct mode to heating mode\n"
+        "; filament start gcode\n"
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
