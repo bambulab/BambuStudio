@@ -12,8 +12,11 @@
 
 #include "clipper2/clipper.core.h"
 
-namespace Clipper2Lib
-{
+#ifdef USINGZ
+namespace Clipper2Lib_Z {
+#else
+namespace Clipper2Lib {
+#endif
 
   namespace detail
   {

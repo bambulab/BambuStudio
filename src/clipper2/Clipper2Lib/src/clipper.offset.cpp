@@ -10,7 +10,11 @@
 #include "clipper2/clipper.h"
 #include "clipper2/clipper.offset.h"
 
+#ifdef USINGZ
+namespace Clipper2Lib_Z {
+#else
 namespace Clipper2Lib {
+#endif
 
 const double floating_point_tolerance = 1e-12;
 
@@ -41,7 +45,7 @@ std::optional<size_t> GetLowestClosedPathIdx(const Paths64& paths)
 	{
 		for (const Point64& pt : paths[i])
 		{
-			if ((pt.y < botPt.y) || 
+			if ((pt.y < botPt.y) ||
 				((pt.y == botPt.y) && (pt.x >= botPt.x))) continue;
             result = i;
 			botPt.x = pt.x;
@@ -55,7 +59,7 @@ inline double Hypot(double x, double y)
 {
 	// given that this is an internal function, and given the x and y parameters
 	// will always be coordinate values (or the difference between coordinate values),
-	// x and y should always be within INT64_MIN to INT64_MAX. Consequently, 
+	// x and y should always be within INT64_MIN to INT64_MAX. Consequently,
 	// there should be no risk that the following computation will overflow
 	// see https://stackoverflow.com/a/32436148/359538
 	return std::sqrt(x * x + y * y);
@@ -329,9 +333,9 @@ void ClipperOffset::OffsetPoint(Group& group, const Path64& path, size_t j, size
 	if (cos_a > -0.999 && (sin_a * group_delta_ < 0)) // test for concavity first (#593)
 	{
 		// is concave
-		// by far the simplest way to construct concave joins, especially those joining very 
-		// short segments, is to insert 3 points that produce negative regions. These regions 
-		// will be removed later by the finishing union operation. This is also the best way 
+		// by far the simplest way to construct concave joins, especially those joining very
+		// short segments, is to insert 3 points that produce negative regions. These regions
+		// will be removed later by the finishing union operation. This is also the best way
 		// to ensure that path reversals (ie over-shrunk paths) are removed.
 #ifdef USINGZ
         path_out.emplace_back(GetPerpendic(path[j], norms[k], group_delta_), path[j].z);
@@ -366,7 +370,7 @@ void ClipperOffset::OffsetPolygon(Group& group, const Path64& path)
 {
 	path_out.clear();
 	for (Path64::size_type j = 0, k = path.size() - 1; j < path.size(); k = j, ++j)
-		OffsetPoint(group, path, j, k);	
+		OffsetPoint(group, path, j, k);
     solution->emplace_back(path_out);
 }
 
@@ -376,7 +380,7 @@ void ClipperOffset::OffsetOpenJoined(Group& group, const Path64& path)
 	Path64 reverse_path(path);
 	std::reverse(reverse_path.begin(), reverse_path.end());
 
-	//rebuild normals 
+	//rebuild normals
 	std::reverse(norms.begin(), norms.end());
     norms.emplace_back(norms[0]);
 	norms.erase(norms.begin());

@@ -17,7 +17,11 @@
 #include "clipper2/clipper.rectclip.h"
 #include <type_traits>
 
-namespace Clipper2Lib {
+#ifdef USINGZ
+  namespace Clipper2Lib_Z {
+#else
+  namespace Clipper2Lib {
+#endif
 
   inline Paths64 BooleanOp(ClipType cliptype, FillRule fillrule,
     const Paths64& subjects, const Paths64& clips)

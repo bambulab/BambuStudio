@@ -14,7 +14,11 @@
 #include "clipper.engine.h"
 #include <optional>
 
+#ifdef USINGZ
+namespace Clipper2Lib_Z {
+#else
 namespace Clipper2Lib {
+#endif
 
 enum class JoinType { Square, Bevel, Round, Miter };
 //Square : Joins are 'squared' at exactly the offset distance (more complex code)
@@ -96,7 +100,7 @@ public:
 	void AddPath(const Path64& path, JoinType jt_, EndType et_);
 	void AddPaths(const Paths64& paths, JoinType jt_, EndType et_);
 	void Clear() { groups_.clear(); norms.clear(); };
-	
+
 	void Execute(double delta, Paths64& sols_64);
 	void Execute(double delta, PolyTree64& polytree);
 	void Execute(DeltaCallback64 delta_cb, Paths64& paths);
@@ -110,7 +114,7 @@ public:
 
 	bool PreserveCollinear() const { return preserve_collinear_; }
 	void PreserveCollinear(bool preserve_collinear){preserve_collinear_ = preserve_collinear;}
-	
+
 	bool ReverseSolution() const { return reverse_solution_; }
 	void ReverseSolution(bool reverse_solution) {reverse_solution_ = reverse_solution;}
 

@@ -15,7 +15,7 @@ Slic3r::Polylines Paths64_to_polylines(const Clipper2Lib::Paths64& in)
         for (const Clipper2Lib::Point64& point64 : path64)
             points.emplace_back(std::move(Slic3r::Point(point64.x, point64.y)));
         out.emplace_back(std::move(Slic3r::Polyline(points)));
-    }
+    } 
     return out;
 }
 

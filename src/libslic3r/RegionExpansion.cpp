@@ -7,10 +7,11 @@
 #include <libslic3r/AABBTreeIndirect.hpp>
 #include <libslic3r/ClipperZUtils.hpp>
 #include <libslic3r/ClipperUtils.hpp>
+#include <libslic3r/Clipper2ZUtils.hpp>
+#include <libslic3r/Clipper2Utils.hpp>
 #include <libslic3r/Utils.hpp>
 
 #include <numeric>
-
 namespace Slic3r {
 namespace Algorithm {
 
@@ -72,7 +73,7 @@ RegionExpansionParameters RegionExpansionParameters::build(
     // Clipper positive round offset should rather offset less than more.
     // Still a little bit of additional offset was added.
     out.max_inflation = (out.tiny_expansion + nsteps * out.initial_step) * 1.1;
-//                (clipper_round_offset_error(out.tiny_expansion, co.ArcTolerance) + nsteps * clipper_round_offset_error(out.initial_step, co.ArcTolerance) * 1.5; // Account for uncertainty 
+//                (clipper_round_offset_error(out.tiny_expansion, co.ArcTolerance) + nsteps * clipper_round_offset_error(out.initial_step, co.ArcTolerance) * 1.5; // Account for uncertainty
 
     return out;
 }
@@ -100,6 +101,36 @@ static ClipperLib_Z::Paths expolygons_to_zpaths_expanded_opened(
             append(out, ClipperZUtils::to_zpaths<true>(expansion_cache, base_idx));
         }
         ++ base_idx;
+    }
+    return out;
+}
+
+static Clipper2Lib_Z::Paths64 expolygons_to_zpaths64_expanded_opened(
+    const ExPolygons &src, const double expansion, int64_t &base_idx)
+{
+    Clipper2Lib_Z::Paths64 out;
+    out.reserve(2 * std::accumulate(src.begin(), src.end(), size_t(0), [](const size_t acc, const ExPolygon &expoly) { return acc + expoly.num_contours(); }));
+
+    Clipper2Lib_Z::ClipperOffset offsetter;
+
+    for (const ExPolygon &expoly : src) {
+        for (size_t icontour = 0; icontour < expoly.num_contours(); ++icontour) {
+            offsetter.Clear();
+
+            const Polygon &contour = expoly.contour_or_hole(icontour);
+            Clipper2Lib_Z::Path64 path;
+            path.reserve(contour.points.size());
+            for (const auto &p : contour.points) {
+                path.push_back(Clipper2Lib_Z::Point64{p.x(), p.y(), base_idx});
+            }
+            offsetter.AddPath(path, Clipper2Lib_Z::JoinType::Square, Clipper2Lib_Z::EndType::Polygon);
+
+            Clipper2Lib_Z::Paths64 expansion_cache;
+            double  offset_distance = (icontour == 0 ? expansion : -expansion);
+            offsetter.Execute(offset_distance, expansion_cache);
+            append(out, Clipper2ZUtils::to_zpaths64<true>(expansion_cache, base_idx));
+        }
+        ++base_idx;
     }
     return out;
 }
@@ -158,9 +189,55 @@ static inline void merge_splits(ClipperLib_Z::Paths &paths, std::vector<std::pai
     }
 }
 
+static inline void merge_splits(Clipper2Lib_Z::Paths64 &paths, std::vector<std::pair<Clipper2Lib_Z::Point64, int>> &splits)
+{
+    for (auto it_path = paths.begin(); it_path != paths.end();) {
+        Clipper2Lib_Z::Path64 &path = *it_path;
+        assert(path.size() >= 2);
+        bool merged = false;
+        if (path.size() >= 2) {
+            const Clipper2Lib_Z::Point64 &front = path.front();
+            const Clipper2Lib_Z::Point64 &back  = path.back();
+
+            if (front.x != back.x || front.y != back.y) {
+                auto find_end = [&splits](const Clipper2Lib_Z::Point64 &pt) -> std::pair<Clipper2Lib_Z::Point64, int> * {
+                    auto it = std::lower_bound(splits.begin(), splits.end(), pt, [](const auto &l, const auto &r) { return Clipper2ZUtils::zpoint64_lower(l.first, r); });
+                    return (it != splits.end() && it->first.x == pt.x && it->first.y == pt.y) ? &(*it) : nullptr;
+                };
+
+                auto *end       = find_end(front);
+                bool  end_front = true;
+                if (!end) {
+                    end_front = false;
+                    end       = find_end(back);
+                }
+
+                if (end) {
+                    if (end->second == -1) {
+                        end->second = int(it_path - paths.begin());
+                    } else {
+                        Clipper2Lib_Z::Path64 &other_path = paths[end->second];
+                        polylines_merge(other_path, other_path.front() == end->first, std::move(path), end_front);
+
+                        if (std::next(it_path) == paths.end()) {
+                            paths.pop_back();
+                            break;
+                        }
+
+                        path = std::move(paths.back());
+                        paths.pop_back();
+                        merged = true;
+                    }
+                }
+            }
+        }
+        if (!merged) ++it_path;
+    }
+}
+
 using AABBTreeBBoxes = AABBTreeIndirect::Tree<2, coord_t>;
 
-static AABBTreeBBoxes build_aabb_tree_over_expolygons(const ExPolygons &expolygons) 
+static AABBTreeBBoxes build_aabb_tree_over_expolygons(const ExPolygons &expolygons)
 {
     // Calculate bounding boxes of internal slices.
     std::vector<AABBTreeIndirect::BoundingBoxWrapper> bboxes;
@@ -175,7 +252,7 @@ static AABBTreeBBoxes build_aabb_tree_over_expolygons(const ExPolygons &expolygo
 
 static int sample_in_expolygons(
     // AABB tree over boundary expolygons
-    const AABBTreeBBoxes &aabb_tree, 
+    const AABBTreeBBoxes &aabb_tree,
     const ExPolygons     &expolygons,
     const Point          &sample)
 {
@@ -213,42 +290,41 @@ std::vector<WaveSeed> wave_seeds(
     if (src.empty() || boundary.empty())
         return {};
 
-    using Intersection  = ClipperZUtils::ClipperZIntersectionVisitor::Intersection;
-    using Intersections = ClipperZUtils::ClipperZIntersectionVisitor::Intersections;
+    using Intersection  = Clipper2ZUtils::Clipper2ZIntersectionVisitor::Intersection;
+    using Intersections = Clipper2ZUtils::Clipper2ZIntersectionVisitor::Intersections;
 
-    ClipperLib_Z::Paths segments;
+    Clipper2Lib_Z::Paths64 segments;
     Intersections       intersections;
 
-    coord_t             idx_boundary_begin = 1;
-    coord_t             idx_boundary_end   = idx_boundary_begin;
-    coord_t             idx_src_end;
-
+    int64_t             idx_boundary_begin = 1;
+    int64_t             idx_boundary_end   = idx_boundary_begin;
+    int64_t             idx_src_end;
     {
-        ClipperLib_Z::Clipper zclipper;
-        ClipperZUtils::ClipperZIntersectionVisitor visitor(intersections);
-        zclipper.ZFillFunction(visitor.clipper_callback());
+        Clipper2Lib_Z::Clipper64                       zclipper;
+        Clipper2ZUtils::Clipper2ZIntersectionVisitor visitor(intersections);
+        zclipper.SetZCallback(visitor.clipper_callback());
         // as closed contours
-        zclipper.AddPaths(ClipperZUtils::expolygons_to_zpaths(boundary, idx_boundary_end), ClipperLib_Z::ptClip, true);
+        zclipper.AddClip(Clipper2ZUtils::expolygons_to_zpaths64(boundary, idx_boundary_end));
         // as open contours
-        std::vector<std::pair<ClipperLib_Z::IntPoint, int>> zsrc_splits;
+        std::vector<std::pair<Clipper2Lib_Z::Point64, int>> zsrc_splits;
         {
             idx_src_end = idx_boundary_end;
-            ClipperLib_Z::Paths zsrc = expolygons_to_zpaths_expanded_opened(src, tiny_expansion, idx_src_end);
-            zclipper.AddPaths(zsrc, ClipperLib_Z::ptSubject, false);
+            Clipper2Lib_Z::Paths64 zsrc = expolygons_to_zpaths64_expanded_opened(src, tiny_expansion, idx_src_end);
+            zclipper.AddOpenSubject(zsrc);
             zsrc_splits.reserve(zsrc.size());
-            for (const ClipperLib_Z::Path &path : zsrc) {
+            for (const Clipper2Lib_Z::Path64 &path : zsrc) {
                 assert(path.size() >= 2);
                 assert(path.front() == path.back());
                 zsrc_splits.emplace_back(path.front(), -1);
             }
-            std::sort(zsrc_splits.begin(), zsrc_splits.end(), [](const auto &l, const auto &r){ return ClipperZUtils::zpoint_lower(l.first, r.first); });
+            std::sort(zsrc_splits.begin(), zsrc_splits.end(), [](const auto &l, const auto &r){ return Clipper2ZUtils::zpoint64_lower(l.first, r.first); });
         }
-        ClipperLib_Z::PolyTree polytree;
-        zclipper.Execute(ClipperLib_Z::ctIntersection, polytree, ClipperLib_Z::pftNonZero, ClipperLib_Z::pftNonZero);
-        ClipperLib_Z::PolyTreeToPaths(std::move(polytree), segments);
+        Clipper2Lib_Z::Paths64 closed_segs, open_segs;
+        zclipper.Execute(Clipper2Lib_Z::ClipType::Intersection, Clipper2Lib_Z::FillRule::NonZero, closed_segs, open_segs);
+        segments.insert(segments.end(), std::make_move_iterator(closed_segs.begin()), std::make_move_iterator(closed_segs.end()));
+        segments.insert(segments.end(), std::make_move_iterator(open_segs.begin()), std::make_move_iterator(open_segs.end()));
         merge_splits(segments, zsrc_splits);
     }
-
     // AABBTree over bounding boxes of boundaries.
     // Only built if necessary, that is if any of the seed contours is closed, thus there is no intersection point
     // with the boundary and all Z coordinates of the closed contour point to the source contour.
@@ -260,47 +336,48 @@ std::vector<WaveSeed> wave_seeds(
     WaveSeeds out;
     out.reserve(segments.size());
     int iseed = 0;
-    for (const ClipperLib_Z::Path &path : segments) {
+    for (const Clipper2Lib_Z::Path64 &path : segments) {
         assert(path.size() >= 2);
-        const ClipperLib_Z::IntPoint &front = path.front();
-        const ClipperLib_Z::IntPoint &back  = path.back();
+        const Clipper2Lib_Z::Point64  &front = path.front();
+        const Clipper2Lib_Z::Point64 &back  = path.back();
         // Both ends of a seed segment are supposed to be inside a single boundary expolygon.
         // Thus as long as the seed contour is not closed, it should be open at a boundary point.
-        assert((front == back && front.z() >= idx_boundary_end && front.z() < idx_src_end) || 
+        assert((front == back && front.z >= idx_boundary_end && front.z < idx_src_end) ||
             //(front.z() < 0 && back.z() < 0));
             // Hope that at least one end of an open polyline is clipped by the boundary, thus an intersection point is created.
-            (front.z() < 0 || back.z() < 0));
+            (front.z < 0 || back.z < 0));
         const Intersection *intersection = nullptr;
         auto intersection_point_valid = [idx_boundary_end, idx_src_end](const Intersection &is) {
             return is.first >= 1 && is.first < idx_boundary_end &&
                    is.second >= idx_boundary_end && is.second < idx_src_end;
         };
-        if (front.z() < 0) {
-            const Intersection &is = intersections[- front.z() - 1];
+        if (front.z < 0) {
+            const Intersection &is = intersections[- front.z - 1];
             assert(intersection_point_valid(is));
             if (intersection_point_valid(is))
                 intersection = &is;
         }
-        if (! intersection && back.z() < 0) {
-            const Intersection &is = intersections[- back.z() - 1];
+        if (! intersection && back.z < 0) {
+            const Intersection &is = intersections[- back.z - 1];
             assert(intersection_point_valid(is));
             if (intersection_point_valid(is))
                 intersection = &is;
         }
         if (intersection) {
-            // The path intersects the boundary contour at least at one side. 
-            out.push_back({ uint32_t(intersection->second - idx_boundary_end), uint32_t(intersection->first - 1), ClipperZUtils::from_zpath(path) });
+            // The path intersects the boundary contour at least at one side.
+            out.push_back({ uint32_t(intersection->second - idx_boundary_end), uint32_t(intersection->first - 1), Clipper2ZUtils::from_zpath64(path) });
         } else {
             // This should be a closed contour.
-            assert(front == back && front.z() >= idx_boundary_end && front.z() < idx_src_end);
+            assert(front == back && front.z >= idx_boundary_end && front.z < idx_src_end);
             // Find a source boundary expolygon of one sample of this closed path.
             if (aabb_tree.empty())
                 aabb_tree = build_aabb_tree_over_expolygons(boundary);
-            int boundary_id = sample_in_expolygons(aabb_tree, boundary, Point(front.x(), front.y()));
+            int boundary_id = sample_in_expolygons(aabb_tree, boundary, Point(front.x, front.y));
             // Boundary that contains the sample point was found.
             assert(boundary_id >= 0);
-            if (boundary_id >= 0)
-                out.push_back({ uint32_t(front.z() - idx_boundary_end), uint32_t(boundary_id), ClipperZUtils::from_zpath(path) });
+            if (boundary_id >= 0) {
+                out.push_back({uint32_t(front.z - idx_boundary_end), uint32_t(boundary_id), Clipper2ZUtils::from_zpath64(path)});
+            }
         }
         ++ iseed;
     }
@@ -381,7 +458,7 @@ static Polygons propagate_wave_from_boundary(
     assert(! seed.empty() && seed.front().size() >= 2);
     Polygons clipping = ClipperUtils::clip_clipper_polygons_with_subject_bbox(boundary, get_extents<true>(seed).inflated(max_inflation));
     ClipperLib::Paths polygons = wavefront_clip(wavefront_initial(co, seed, initial_step), clipping);
-    // Now offset the remaining 
+    // Now offset the remaining
     for (size_t ioffset = 0; ioffset < num_other_steps; ++ ioffset)
         polygons = wavefront_clip(wavefront_step(co, polygons, other_step), clipping);
     return to_polygons(polygons);
@@ -418,7 +495,7 @@ std::vector<RegionExpansion> propagate_waves(const ExPolygons &src, const ExPoly
 
 std::vector<RegionExpansion> propagate_waves(const ExPolygons &src, const ExPolygons &boundary,
     // Scaled expansion value
-    float expansion, 
+    float expansion,
     // Expand by waves of expansion_step size (expansion_step is scaled).
     float expansion_step,
     // Don't take more than max_nr_steps for small expansion_step.
@@ -472,7 +549,7 @@ std::vector<RegionExpansionEx> propagate_waves_ex(
 
 std::vector<Polygons> expand_expolygons(const ExPolygons &src, const ExPolygons &boundary,
     // Scaled expansion value
-    float expansion, 
+    float expansion,
     // Expand by waves of expansion_step size (expansion_step is scaled).
     float expansion_step,
     // Don't take more than max_nr_steps for small expansion_step.
