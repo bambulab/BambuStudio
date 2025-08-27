@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-26 14:08+0800\n"
+"POT-Creation-Date: 2025-08-27 20:24+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1153,7 +1153,7 @@ msgstr "行间距"
 
 #. TRN - Input label. Be short as possible
 msgid "Boldness"
-msgstr "粗"
+msgstr "粗细"
 
 #. TRN - Input label. Be short as possible
 #. Like Font italic
@@ -10262,10 +10262,10 @@ msgid "Filament diameter is used to calculate extrusion in gcode, so it's import
 msgstr "耗材丝直径被用于计算G-code文件中的挤出量。因此很重要，应尽可能精确。"
 
 msgid "Adaptive volumetric speed"
-msgstr "预冲刷体积速度"
+msgstr "自适应体积速度"
 
 msgid "When enabled, the extrusion flow is limited by the smaller of the fitted value (calculated from line width and layer height) and the user-defined maximum flow. When disabled, only the user-defined maximum flow is applied."
-msgstr "启用时，体积速度取“拟合值（有线宽和层高计算）“与”用户定义的最大值”中的较小值。禁用时，仅应用用户定义的最大值。"
+msgstr "启用时，体积速度取“拟合值（由线宽和层高计算）“与”用户定义的最大值”中的较小值。禁用时，仅应用用户定义的最大值。"
 
 msgid "Max volumetric speed multinomial coefficients"
 msgstr ""
