@@ -9,6 +9,9 @@
     "pressure_advance":[
         "0.056"
     ],
+    "nozzle_temperature_initial_layer": [
+        "245"
+    ],
     "compatible_printers": [
         "Qidi X-Plus 4 0.4 nozzle"
     ]
