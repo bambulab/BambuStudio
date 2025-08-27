@@ -2735,6 +2735,11 @@ const std::vector<double>& GLCanvas3D::get_gcode_layers_zs() const
     return m_gcode_viewer.get_layers_zs();
 }
 
+int GLCanvas3D::get_gcode_layers_count() const
+{
+    return m_gcode_viewer.get_layers_zs().size();
+}
+
 std::vector<double> GLCanvas3D::get_volumes_print_zs(bool active_only) const
 {
     return m_volumes.get_current_print_zs(active_only);

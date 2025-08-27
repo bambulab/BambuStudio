@@ -5,6 +5,7 @@
 #include "../wxExtensions.hpp"
 #include "../Utils/MacDarkMode.hpp"
 #include "../Utils/WxFontUtils.hpp"
+#include "../GUI_App.hpp"
 #ifdef __APPLE__
 #include "libslic3r/MacUtils.hpp"
 #endif
@@ -241,7 +242,7 @@ void SwitchBoard::render(wxDC &dc)
 
 void SwitchBoard::doRender(wxDC &dc)
 {
-    wxColour disable_color = wxColour(0xCECECE);
+    wxColour disable_color = wxColour("#CECECE");
 
     dc.SetPen(*wxTRANSPARENT_PEN);
 
@@ -334,4 +335,130 @@ void SwitchBoard::Disable()
 
     is_enable = false;
     Refresh();
+}
+
+CustomToggleButton::CustomToggleButton(wxWindow* parent, const wxString& label, wxWindowID id, const wxPoint& pos, const wxSize& size)
+    : wxWindow(parent, id, pos, size), m_isSelected(false) {
+    m_label = label;
+    SetSelectedIcon("switch_send_mode_tag_on"); // Default icon
+    SetUnSelectedIcon("switch_send_mode_tag_off"); // Default icon
+    Connect(wxEVT_PAINT, wxPaintEventHandler(CustomToggleButton::OnPaint));
+    Connect(wxEVT_SIZE, wxSizeEventHandler(CustomToggleButton::OnSize));
+    Bind(wxEVT_LEFT_DOWN, &CustomToggleButton::on_left_down, this);
+    SetBackgroundColour(*wxWHITE);
+    Slic3r::GUI::wxGetApp().UpdateDarkUIWin(this);
+}
+
+void CustomToggleButton::on_left_down(wxMouseEvent& e)
+{
+    SetIsSelected(true);
+}
+
+void CustomToggleButton::SetLabel(const wxString& label) {
+    m_label = label;
+    Refresh();
+}
+
+void CustomToggleButton::SetSelectedIcon(const wxString& iconPath) {
+    m_selected_icon = create_scaled_bitmap(iconPath.ToStdString(), nullptr,  16);
+    Refresh();
+}
+
+void CustomToggleButton::SetUnSelectedIcon(const wxString& iconPath) {
+    m_unselected_icon = create_scaled_bitmap(iconPath.ToStdString(), nullptr,  16);
+    Refresh();
+}
+
+void CustomToggleButton::SetIsSelected(bool selected) {
+    m_isSelected = selected;
+    Refresh();
+}
+
+
+bool CustomToggleButton::IsSelected() const {
+    return m_isSelected;
+}
+
+void CustomToggleButton::OnPaint(wxPaintEvent& event) {
+    wxPaintDC dc(this);
+    render(dc);
+}
+
+void CustomToggleButton::render(wxDC& dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({ 0, 0 }, size, &dc, { 0, 0 });
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void CustomToggleButton::doRender(wxDC& dc)
+{
+    wxRect rect = GetClientRect();
+    wxSize textRect = dc.GetMultiLineTextExtent(m_label);
+    wxSize iconRect = m_selected_icon.GetSize();
+    int iconRectWidth = iconRect.GetWidth();
+    int iconRectHeight = iconRect.GetHeight();
+#ifdef __APPLE__
+    iconRectWidth = FromDIP(16);
+    iconRectHeight = FromDIP(16);
+#endif
+    int left = (rect.GetSize().x -  textRect.GetWidth() - iconRectWidth - FromDIP(6)) / 2;
+
+    // Draw background
+    if (m_isSelected) {
+        dc.SetBrush(wxBrush(wxColour("#DEF5E7")));
+        dc.SetPen(wxPen(wxColour("#00AE42")));
+    }
+    else {
+        dc.SetBrush(wxBrush(wxColour("#FFFFFF")));
+        dc.SetPen(wxPen(wxColour("#EEEEEE")));
+    }
+    
+    dc.DrawRoundedRectangle(rect, 5);
+
+    // Draw icon
+    if (m_isSelected) {
+        if (m_selected_icon.IsOk()) {
+            int iconY = (rect.GetHeight() - iconRectHeight) / 2;
+            dc.DrawBitmap(m_selected_icon, left, iconY, true);
+            left += iconRectWidth + FromDIP(6);
+        }
+    } else {
+        if (m_unselected_icon.IsOk()) {
+            int iconY = (rect.GetHeight() - iconRectHeight) / 2;
+            dc.DrawBitmap(m_unselected_icon, left, iconY, true);
+            left += iconRectWidth + FromDIP(6);
+        }
+    }
+
+    // Draw text
+    dc.SetFont(::Label::Head_13);
+
+    if (m_isSelected) {
+        dc.SetTextForeground(wxColour("#00AE42"));
+    }
+    else {
+        dc.SetTextForeground(wxColour("#5C5C5C"));
+    }
+
+    int textY = (rect.GetHeight() - dc.GetCharHeight()) / 2;
+    dc.DrawText(m_label, left, textY);
+}
+void CustomToggleButton::OnSize(wxSizeEvent& event) {
+    Refresh();
+    event.Skip();
 }

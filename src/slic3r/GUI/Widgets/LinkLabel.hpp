@@ -1,7 +1,6 @@
 #ifndef slic3r_GUI_LinkLabel_hpp_
 #define slic3r_GUI_LinkLabel_hpp_
 
-#include <wx/panel.h>
 #include "Label.hpp"
 
 class LinkLabel : public wxWindow
@@ -13,10 +12,11 @@ private:
 
 public:
     LinkLabel(wxWindow *parent, wxString const &text, std::string url, long style = 0, wxSize size = wxDefaultSize);
-    ~LinkLabel(){};
+    ~LinkLabel() {};
 
     void link(wxMouseEvent &evt);
     Label *getLabel(){return m_txt;};
+    void setLinkUrl(wxString url);
     bool SeLinkLabelFColour(const wxColour &colour);
     bool SeLinkLabelBColour(const wxColour &colour);
 };
