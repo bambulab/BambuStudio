@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-26 14:08+0800\n"
+"POT-Creation-Date: 2025-08-27 20:06+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1087,7 +1087,7 @@ msgid "Warning:text normal has been reset."
 msgstr "Advertencia: el texto normal se ha restablecido."
 
 msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
-msgstr ""
+msgstr "Advertencia: el espaciado actual del texto no es muy razonable. Si continúa editando, se generará un espaciado de texto más razonable."
 
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "Advertencia: la matriz anterior tiene al menos dos parámetros: reflejo, escala y rotación. Si continúa editando, puede que no sea correcto. Arrastra el texto o cancela usando la postura actual, guárdalo y vuelve a editarlo."
@@ -2488,6 +2488,10 @@ msgstr "Der (Aux)"
 
 msgctxt "air_duct"
 msgid "Right(Filter)"
+msgstr "Derecha(Filtro)"
+
+msgctxt "air_duct"
+msgid "Left(Aux)"
 msgstr ""
 
 msgid "Hotend"
@@ -3797,7 +3801,7 @@ msgid "Stop Drying"
 msgstr "Detener el secado"
 
 msgid "Cancle"
-msgstr ""
+msgstr "Cancelar"
 
 msgid "Done"
 msgstr "Listo"
@@ -3883,25 +3887,25 @@ msgid "Layer Time"
 msgstr "Tiempo de capa"
 
 msgid "Height: "
-msgstr "Altura:"
+msgstr "Altura: "
 
 msgid "Width: "
-msgstr "Ancho:"
+msgstr "Ancho: "
 
 msgid "Speed: "
-msgstr "Velocidad:"
+msgstr "Velocidad: "
 
 msgid "Flow: "
-msgstr "Flujo:"
+msgstr "Flujo: "
 
 msgid "Layer Time: "
-msgstr "Tiempo de capa:"
+msgstr "Tiempo de capa: "
 
 msgid "Fan Speed: "
-msgstr "Velocidad del ventilador:"
+msgstr "Velocidad del ventilador: "
 
 msgid "Temperature: "
-msgstr "Temperatura:"
+msgstr "Temperatura: "
 
 msgid "Thermal Index"
 msgstr "Índice Térmico"
@@ -4014,8 +4018,8 @@ msgstr "desde"
 msgid "Slicing Result"
 msgstr "Resultado del corte"
 
-msgid "Helio Simulation"
-msgstr "Simulación de Helio"
+msgid "Helio Action"
+msgstr "Acción Helio"
 
 msgid "Color Scheme"
 msgstr "Esquema de colores"
@@ -5089,7 +5093,7 @@ msgid "Please check the network and try again, You can restart or update the pri
 msgstr "Compruebe la red e inténtelo de nuevo. Puede reiniciar o actualizar la impresora si el problema persiste."
 
 msgid "Multi-device/client simultaneous liveview is not supported. Please close the liveview on other devices/clients and try again."
-msgstr ""
+msgstr "No se permite la visualización en vivo simultánea en múltiples dispositivos o clientes. Por favor, cierre la visualización en vivo en otros dispositivos/clientes e inténtelo de nuevo."
 
 msgid "Video Stopped."
 msgstr "Vídeo detenido."
@@ -6739,11 +6743,11 @@ msgstr "Se eliminaron los soportes personalizados, las caras de costura y la pin
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
-msgstr ""
+msgstr "La impresora no está conectada. Vaya a la página del dispositivo para conectar una %s antes de realizar la sincronización."
 
 #, c-format, boost-format
 msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
-msgstr ""
+msgstr "La impresora actualmente conectada en la página del dispositivo no es %s. Cambie a %s antes de la sincronización."
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "No hay filamentos en la impresora. Cargue primero los filamentos en la impresora."
@@ -7641,6 +7645,14 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Ple
 msgstr "La dureza del material actual (%s) supera la dureza de %s (%s). Compruebe la configuración de la boquilla o del material e inténtelo de nuevo."
 
 #, c-format, boost-format
+msgid "[ %s ] requires printing in a high-temperature environment."
+msgstr ""
+
+#, c-format, boost-format
+msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
+msgstr ""
+
+#, c-format, boost-format
 msgid "The filament on %s may soften. Please unload."
 msgstr "El filamento %s puede ablandarse. Descárguelo, por favor."
 
@@ -7725,9 +7737,6 @@ msgstr "Esta impresora no admite la impresión de todas las planchas"
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "Antes de imprimir en TPU, tire de la tinta en frío para evitar obstrucciones. Puede usar el mantenimiento de la impresora con tirada en frío."
-
-msgid "High chamber temperature is required. Please close the door."
-msgstr "Se requiere una temperatura de cámara alta. Cierre la puerta, por favor."
 
 msgid "Please refer to Wiki before use->"
 msgstr "Consulte la Wiki antes de usar->"
@@ -9141,23 +9150,53 @@ msgstr "Al confirmar la activación de esta función, indica que ha leído y ace
 msgid "Agree"
 msgstr "Aceptar"
 
-msgid "Helio Additive"
-msgstr "Aditivo de Helio"
-
-msgid "Chamber temperature"
+msgid "Chamber Temperature"
 msgstr "Temperatura de la cámara"
 
-msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
-msgstr "Nota: Por favor, establezca la temperatura superior de acuerdo a la situación actual. Cuanto más precisos sean los datos, más precisos serán los resultados del análisis."
+msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
+msgstr ""
 
-msgid "How to use Helio"
-msgstr "Cómo utilizar Helio"
+msgid "Helio's advanced feature for power users: available post purchase on its official website."
+msgstr ""
 
-msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
-msgstr "No se ha podido obtener el PAT de Helio. El número de PATs emitidos ha alcanzado el límite superior. Por favor, preste atención a la información en el sitio web oficial de Helio. Haga clic en Actualizar para obtenerlo nuevamente una vez que esté disponible."
+msgid "Monthly quota remaining: "
+msgstr ""
+
+msgid "Add-ons available: "
+msgstr ""
+
+msgid "Optimise Outer Walls"
+msgstr ""
+
+msgid "Advanced Settings"
+msgstr ""
+
+msgid "Min Velocity"
+msgstr ""
+
+msgid "Max Velocity"
+msgstr ""
+
+msgid "Min Volumetric Speed"
+msgstr ""
+
+msgid "Max Volumetric Speed"
+msgstr "Velocidad volumétrica máxima"
+
+msgid "Buy Now"
+msgstr ""
 
 msgid "Click for more details"
 msgstr "Haga clic para más detalles"
+
+msgid "Buy add-ons"
+msgstr ""
+
+msgid "Layers to Optimize "
+msgstr ""
+
+msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
+msgstr "No se ha podido obtener el PAT de Helio. El número de PATs emitidos ha alcanzado el límite superior. Por favor, preste atención a la información en el sitio web oficial de Helio. Haga clic en Actualizar para obtenerlo nuevamente una vez que esté disponible."
 
 msgid "Air Pump"
 msgstr "Bomba de aire"
@@ -10327,13 +10366,13 @@ msgid "Filament diameter is used to calculate extrusion in gcode, so it's import
 msgstr "El diámetro del filamento se utiliza para calcular la extrusión en el gcode, por lo que es importante y debe ser preciso"
 
 msgid "Adaptive volumetric speed"
-msgstr ""
+msgstr "Velocidad volumétrica adaptativa"
 
 msgid "When enabled, the extrusion flow is limited by the smaller of the fitted value (calculated from line width and layer height) and the user-defined maximum flow. When disabled, only the user-defined maximum flow is applied."
-msgstr ""
+msgstr "Cuando está habilitado, el flujo de extrusión se limita al menor valor entre el valor ajustado (calculado a partir del ancho de línea y la altura de capa) y el flujo máximo definido por el usuario. Cuando está deshabilitado, solo se aplica el flujo máximo definido por el usuario."
 
 msgid "Max volumetric speed multinomial coefficients"
-msgstr ""
+msgstr "Coeficientes multinomiales de velocidad volumétrica máxima"
 
 msgid "Shrinkage"
 msgstr "Contracción"
@@ -10347,10 +10386,10 @@ msgstr ""
 "Asegúrese de dejar suficiente espacio entre los objetos, ya que esta compensación se realiza después de las comprobaciones."
 
 msgid "Velocity Adaptation Factor"
-msgstr ""
+msgstr "Factor de adaptación de velocidad"
 
 msgid "This parameter reflects the speed at which a material transitions from one state to another. It, along with the smooth coefficient, determines the final length of the transition zone. A larger value: requires a shorter transition zone. A smaller value: requires a longer transition zone to avoid flow instability."
-msgstr ""
+msgstr "Este parámetro refleja la velocidad a la que un material cambia de un estado a otro. Este, junto con el coeficiente de suavidad, determina la longitud final de la zona de transición. Un valor mayor: requiere una zona de transición más corta. Un valor menor: requiere una zona de transición más larga para evitar la inestabilidad del flujo."
 
 msgid "Adhesiveness Category"
 msgstr "Categoría de adhesividad"
@@ -11706,6 +11745,9 @@ msgstr "Lazos de pared de apoyo"
 msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
 msgstr "Esta configuración especifica el número de paredes de soporte en el rango de [-1,2]. -1 significa automático y 0 significa permitir el modo de solo relleno cuando el soporte es lo suficientemente grueso."
 
+msgid "Chamber temperature"
+msgstr "Temperatura de la cámara"
+
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on. At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials, the actual chamber temperature should not be high to avoid clogs, so 0 (turned off) is highly recommended."
 
@@ -12196,9 +12238,6 @@ msgstr "Dinámica de flujo"
 
 msgid "Flow Rate"
 msgstr "Velocidad de flujo"
-
-msgid "Max Volumetric Speed"
-msgstr "Velocidad volumétrica máxima"
 
 msgid "The name cannot be empty."
 msgstr "El nombre no puede estar vacío."
@@ -13726,9 +13765,6 @@ msgstr "Perfil de resistencia para boquilla de 0.8 mm, priorizando la resistenci
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Perfil estándar para boquilla de 0.8 mm, que prioriza la velocidad."
 
-msgid "Helio: Process Started"
-msgstr "Helio: Proceso iniciado"
-
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "El punto final de la API de Helio está vacío, por favor verifique la configuración."
 
@@ -13759,8 +13795,32 @@ msgstr "Helio: simulación en funcionamiento"
 msgid "Helio: simulation failed"
 msgstr "Helio: la simulación ha fallado"
 
+msgid "Helio: Simulation check failed"
+msgstr ""
+
+msgid "Helio: Failed to create Simulation\n"
+msgstr ""
+
+msgid "Helio: Failed to create GCode\n"
+msgstr ""
+
+msgid "Helio: optimization successfully created"
+msgstr ""
+
+msgid "Helio: optimization working"
+msgstr ""
+
+msgid "Helio: Optimzaion check failed"
+msgstr ""
+
+msgid "Helio: Failed to create Optimization\n"
+msgstr ""
+
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio: El G-Code se ha descargado con éxito"
+
+msgid "Helio: GCode download failed\n"
+msgstr ""
 
 msgid "No AMS"
 msgstr "SIN AMS"
@@ -14263,11 +14323,23 @@ msgstr ""
 "Evite el alabeo\n"
 "¿Sabías que al imprimir materiales propensos al alabeo, como el ABS, aumentar adecuadamente la temperatura del lecho térmico puede reducir la probabilidad de alabeo?"
 
-#~ msgid "Helio Action"
-#~ msgstr "Acción Helio"
+#~ msgid "Helio Simulation"
+#~ msgstr "Simulación de Helio"
 
-#~ msgid "Chamber Temperature"
-#~ msgstr "Temperatura de la cámara"
+#~ msgid "High chamber temperature is required. Please close the door."
+#~ msgstr "Se requiere una temperatura de cámara alta. Cierre la puerta, por favor."
+
+#~ msgid "Helio Additive"
+#~ msgstr "Aditivo de Helio"
+
+#~ msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
+#~ msgstr "Nota: Por favor, establezca la temperatura superior de acuerdo a la situación actual. Cuanto más precisos sean los datos, más precisos serán los resultados del análisis."
+
+#~ msgid "How to use Helio"
+#~ msgstr "Cómo utilizar Helio"
+
+#~ msgid "Helio: Process Started"
+#~ msgstr "Helio: Proceso iniciado"
 
 #~ msgctxt "air_duct"
 #~ msgid "Right"

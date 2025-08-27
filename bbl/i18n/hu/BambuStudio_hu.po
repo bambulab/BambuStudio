@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-26 14:08+0800\n"
+"POT-Creation-Date: 2025-08-27 20:06+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2490,6 +2490,10 @@ msgctxt "air_duct"
 msgid "Right(Filter)"
 msgstr ""
 
+msgctxt "air_duct"
+msgid "Left(Aux)"
+msgstr ""
+
 msgid "Hotend"
 msgstr ""
 
@@ -4014,8 +4018,8 @@ msgstr "ettől"
 msgid "Slicing Result"
 msgstr "Szeletelés eredménye"
 
-msgid "Helio Simulation"
-msgstr "Helio szimuláció"
+msgid "Helio Action"
+msgstr "Helio műveletek"
 
 msgid "Color Scheme"
 msgstr "Színséma"
@@ -7636,6 +7640,14 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Ple
 msgstr "Az aktuális anyag keménysége (%s) meghaladja a(z) %s (%s) keménységét. Kérjük, ellenőrizd a fúvóka vagy az anyag beállításait, és próbáld újra."
 
 #, c-format, boost-format
+msgid "[ %s ] requires printing in a high-temperature environment."
+msgstr ""
+
+#, c-format, boost-format
+msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
+msgstr ""
+
+#, c-format, boost-format
 msgid "The filament on %s may soften. Please unload."
 msgstr "A(z) %s filamentje megpuhulhat. Kérjük, távolítsd el."
 
@@ -7720,9 +7732,6 @@ msgstr "Ez a nyomtató nem támogatja az összes tálcára való nyomtatást"
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "TPU nyomtatása előtt végezz el egy hidegen kihúzást, hogy elkerüld az eltömődést. Ehhez használhatod a dedikált karbantartási módot."
-
-msgid "High chamber temperature is required. Please close the door."
-msgstr "Magas kamrahőmérséklet szükséges. Kérjük, csukd be az ajtót."
 
 msgid "Please refer to Wiki before use->"
 msgstr "Kérjük, használat előtt olvasd el a Wikit ->"
@@ -9134,23 +9143,53 @@ msgstr "Ha megerősíted ennek a funkciónak az engedélyezését, azzal azt is 
 msgid "Agree"
 msgstr "Elfogadás"
 
-msgid "Helio Additive"
-msgstr ""
-
-msgid "Chamber temperature"
+msgid "Chamber Temperature"
 msgstr "Kamra hőmérséklete"
 
-msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
-msgstr "Megjegyzés: Kérjük, a fenti hőmérsékletet az adott helyzetnek megfelelően állítsd be. Minél pontosabbak az adatok, annál precízebb lesz az elemzés eredménye."
+msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
+msgstr ""
 
-msgid "How to use Helio"
-msgstr "A Helio használata"
+msgid "Helio's advanced feature for power users: available post purchase on its official website."
+msgstr ""
 
-msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
-msgstr "Nem sikerült beszerezni a Helio PAT-et. A kiadott PAT-ok száma elérte a felső határt. Kérjük, figyeld a Helio hivatalos weboldalán található információkat. Kattints a Frissítés gombra, hogy újra megpróbáld, amint elérhetővé válik."
+msgid "Monthly quota remaining: "
+msgstr ""
+
+msgid "Add-ons available: "
+msgstr ""
+
+msgid "Optimise Outer Walls"
+msgstr ""
+
+msgid "Advanced Settings"
+msgstr ""
+
+msgid "Min Velocity"
+msgstr ""
+
+msgid "Max Velocity"
+msgstr ""
+
+msgid "Min Volumetric Speed"
+msgstr ""
+
+msgid "Max Volumetric Speed"
+msgstr "Max. volumetrikus sebesség"
+
+msgid "Buy Now"
+msgstr ""
 
 msgid "Click for more details"
 msgstr "Részletek megtekintése"
+
+msgid "Buy add-ons"
+msgstr ""
+
+msgid "Layers to Optimize "
+msgstr ""
+
+msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
+msgstr "Nem sikerült beszerezni a Helio PAT-et. A kiadott PAT-ok száma elérte a felső határt. Kérjük, figyeld a Helio hivatalos weboldalán található információkat. Kattints a Frissítés gombra, hogy újra megpróbáld, amint elérhetővé válik."
 
 msgid "Air Pump"
 msgstr "Légszivattyú"
@@ -11699,6 +11738,9 @@ msgstr "Támaszfalak száma"
 msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
 msgstr "Ez a beállítás határozza meg a tartófalak számát a [-1,2] tartományban. -1 azt jelenti, hogy automatikus, 0 pedig csak kitöltés módot, ahol a támasz elég vastag."
 
+msgid "Chamber temperature"
+msgstr "Kamra hőmérséklete"
+
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on. At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials, the actual chamber temperature should not be high to avoid clogs, so 0 (turned off) is highly recommended."
 
@@ -12189,9 +12231,6 @@ msgstr "Áramlásdinamika"
 
 msgid "Flow Rate"
 msgstr "Anyagáramlás"
-
-msgid "Max Volumetric Speed"
-msgstr "Max. volumetrikus sebesség"
 
 msgid "The name cannot be empty."
 msgstr "A név nem lehet üres."
@@ -13715,9 +13754,6 @@ msgstr "Profil a 0,8 mm-es fúvókához, az erősséget előtérbe helyezve."
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Standard profil 0,8 mm-es fúvókához, a sebességet előtérbe helyezve."
 
-msgid "Helio: Process Started"
-msgstr "Helio: Folyamat elindult"
-
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "A Helio API végpont üres, kérjük, ellenőrizd a beállításokat."
 
@@ -13748,8 +13784,32 @@ msgstr "Helio: a szimuláció fut"
 msgid "Helio: simulation failed"
 msgstr "Helio: a szimuláció sikertelen volt"
 
+msgid "Helio: Simulation check failed"
+msgstr ""
+
+msgid "Helio: Failed to create Simulation\n"
+msgstr ""
+
+msgid "Helio: Failed to create GCode\n"
+msgstr ""
+
+msgid "Helio: optimization successfully created"
+msgstr ""
+
+msgid "Helio: optimization working"
+msgstr ""
+
+msgid "Helio: Optimzaion check failed"
+msgstr ""
+
+msgid "Helio: Failed to create Optimization\n"
+msgstr ""
+
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio: A G-kód sikeresen letöltve"
+
+msgid "Helio: GCode download failed\n"
+msgstr ""
 
 msgid "No AMS"
 msgstr "Nincs AMS"
@@ -14253,11 +14313,20 @@ msgstr ""
 "Vetemedés elkerülése\n"
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
 
-#~ msgid "Helio Action"
-#~ msgstr "Helio műveletek"
+#~ msgid "Helio Simulation"
+#~ msgstr "Helio szimuláció"
 
-#~ msgid "Chamber Temperature"
-#~ msgstr "Kamra hőmérséklete"
+#~ msgid "High chamber temperature is required. Please close the door."
+#~ msgstr "Magas kamrahőmérséklet szükséges. Kérjük, csukd be az ajtót."
+
+#~ msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
+#~ msgstr "Megjegyzés: Kérjük, a fenti hőmérsékletet az adott helyzetnek megfelelően állítsd be. Minél pontosabbak az adatok, annál precízebb lesz az elemzés eredménye."
+
+#~ msgid "How to use Helio"
+#~ msgstr "A Helio használata"
+
+#~ msgid "Helio: Process Started"
+#~ msgstr "Helio: Folyamat elindult"
 
 #~ msgctxt "air_duct"
 #~ msgid "Right"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-26 14:08+0800\n"
+"POT-Creation-Date: 2025-08-27 20:06+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -2549,6 +2549,10 @@ msgctxt "air_duct"
 msgid "Right(Filter)"
 msgstr ""
 
+msgctxt "air_duct"
+msgid "Left(Aux)"
+msgstr ""
+
 msgid "Hotend"
 msgstr "Хотэнд"
 
@@ -4094,7 +4098,7 @@ msgstr "с"
 msgid "Slicing Result"
 msgstr "Результат нарезки"
 
-msgid "Helio Simulation"
+msgid "Helio Action"
 msgstr ""
 
 msgid "Color Scheme"
@@ -7814,6 +7818,14 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Ple
 msgstr ""
 
 #, c-format, boost-format
+msgid "[ %s ] requires printing in a high-temperature environment."
+msgstr ""
+
+#, c-format, boost-format
+msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
+msgstr ""
+
+#, c-format, boost-format
 msgid "The filament on %s may soften. Please unload."
 msgstr ""
 
@@ -7900,9 +7912,6 @@ msgid "This printer does not support printing all plates"
 msgstr "Данный принтер не поддерживает печать на всех типах печатных пластин."
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
-msgstr ""
-
-msgid "High chamber temperature is required. Please close the door."
 msgstr ""
 
 msgid "Please refer to Wiki before use->"
@@ -9357,22 +9366,52 @@ msgstr ""
 msgid "Agree"
 msgstr ""
 
-msgid "Helio Additive"
+msgid "Chamber Temperature"
 msgstr ""
 
-msgid "Chamber temperature"
-msgstr "Температура в термокамере"
-
-msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
+msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
 msgstr ""
 
-msgid "How to use Helio"
+msgid "Helio's advanced feature for power users: available post purchase on its official website."
 msgstr ""
 
-msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
+msgid "Monthly quota remaining: "
+msgstr ""
+
+msgid "Add-ons available: "
+msgstr ""
+
+msgid "Optimise Outer Walls"
+msgstr ""
+
+msgid "Advanced Settings"
+msgstr ""
+
+msgid "Min Velocity"
+msgstr ""
+
+msgid "Max Velocity"
+msgstr ""
+
+msgid "Min Volumetric Speed"
+msgstr ""
+
+msgid "Max Volumetric Speed"
+msgstr "Макс. объёмный расход"
+
+msgid "Buy Now"
 msgstr ""
 
 msgid "Click for more details"
+msgstr ""
+
+msgid "Buy add-ons"
+msgstr ""
+
+msgid "Layers to Optimize "
+msgstr ""
+
+msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
 msgstr ""
 
 msgid "Air Pump"
@@ -11986,6 +12025,9 @@ msgstr "Периметров поддержки"
 msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
 msgstr ""
 
+msgid "Chamber temperature"
+msgstr "Температура в термокамере"
+
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr "Более высокая температура внутри термокамеры может помочь уменьшить или даже исключить коробление материала. Также это улучшает межслойное соединения у высокотемпературных материалов, таких как ABS, ASA, PC, PA и т.д. (в то же время вытяжной вентилятор при печати ABS и ASA сделает её хуже). Для низкотемпературных материалов, таких как PLA, PETG, TPU, PVA и т. д., фактическая температура внутри термокамеры не должна быть слишком высокой, чтобы избежать засорения сопла, поэтому настоятельно рекомендуется установить температуру внутри термокамеры равной 0°C."
 
@@ -12493,9 +12535,6 @@ msgstr "Динамика потока"
 
 msgid "Flow Rate"
 msgstr "Скорость потока"
-
-msgid "Max Volumetric Speed"
-msgstr "Макс. объёмный расход"
 
 msgid "The name cannot be empty."
 msgstr "Имя не может быть пустым."
@@ -14044,9 +14083,6 @@ msgstr ""
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr ""
 
-msgid "Helio: Process Started"
-msgstr ""
-
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr ""
 
@@ -14077,7 +14113,31 @@ msgstr ""
 msgid "Helio: simulation failed"
 msgstr ""
 
+msgid "Helio: Simulation check failed"
+msgstr ""
+
+msgid "Helio: Failed to create Simulation\n"
+msgstr ""
+
+msgid "Helio: Failed to create GCode\n"
+msgstr ""
+
+msgid "Helio: optimization successfully created"
+msgstr ""
+
+msgid "Helio: optimization working"
+msgstr ""
+
+msgid "Helio: Optimzaion check failed"
+msgstr ""
+
+msgid "Helio: Failed to create Optimization\n"
+msgstr ""
+
 msgid "Helio: GCode downloaded successfully"
+msgstr ""
+
+msgid "Helio: GCode download failed\n"
 msgstr ""
 
 msgid "No AMS"

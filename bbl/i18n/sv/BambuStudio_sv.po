@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-26 14:08+0800\n"
+"POT-Creation-Date: 2025-08-27 20:06+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2487,6 +2487,10 @@ msgctxt "air_duct"
 msgid "Right(Filter)"
 msgstr ""
 
+msgctxt "air_duct"
+msgid "Left(Aux)"
+msgstr ""
+
 msgid "Hotend"
 msgstr ""
 
@@ -4011,8 +4015,8 @@ msgstr "från"
 msgid "Slicing Result"
 msgstr "Berednings resultat"
 
-msgid "Helio Simulation"
-msgstr "Helio Simulering"
+msgid "Helio Action"
+msgstr "Helio Åtgärd"
 
 msgid "Color Scheme"
 msgstr "Färgschema"
@@ -7634,6 +7638,14 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Ple
 msgstr "Hårdheten hos det aktuella materialet (%s) överstiger hårdheten hos %s(%s). Kontrollera inställningarna för nozzle eller material och försök igen."
 
 #, c-format, boost-format
+msgid "[ %s ] requires printing in a high-temperature environment."
+msgstr ""
+
+#, c-format, boost-format
+msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
+msgstr ""
+
+#, c-format, boost-format
 msgid "The filament on %s may soften. Please unload."
 msgstr "Filamentet på %s kan mjukna. Vänligen mata ut."
 
@@ -7718,9 +7730,6 @@ msgstr "Den här skrivaren stöder inte utskrift av alla byggplattor"
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "Vänligen kalldra innan du skriver ut TPU för att undvika igensättning. Du kan använda kalldragnings underhåll på printern."
-
-msgid "High chamber temperature is required. Please close the door."
-msgstr "Hög kammartemperatur krävs. Stäng dörren."
 
 msgid "Please refer to Wiki before use->"
 msgstr "Se Wiki före användning->"
@@ -9134,23 +9143,53 @@ msgstr "När du bekräftar att aktivera denna funktion innebär det att du har b
 msgid "Agree"
 msgstr "Godkänn"
 
-msgid "Helio Additive"
-msgstr "Helio Additiv"
+msgid "Chamber Temperature"
+msgstr "Temperatur i kammaren"
 
-msgid "Chamber temperature"
-msgstr "Kammarens temperatur"
+msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
+msgstr ""
 
-msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
-msgstr "Obs: Ställ in ovanstående temperatur enligt den faktiska situationen. Ju mer exakt data är, desto mer exakt kommer analysresultaten att bli."
+msgid "Helio's advanced feature for power users: available post purchase on its official website."
+msgstr ""
 
-msgid "How to use Helio"
-msgstr "Hur du använder Helio"
+msgid "Monthly quota remaining: "
+msgstr ""
 
-msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
-msgstr "Det gick inte att få Helio PAT. Antalet utfärdade PATs har nått den övre gränsen. Var uppmärksam på informationen på Helio officiella hemsida. Klicka Uppdatera för att få den igen när den är tillgänglig."
+msgid "Add-ons available: "
+msgstr ""
+
+msgid "Optimise Outer Walls"
+msgstr ""
+
+msgid "Advanced Settings"
+msgstr ""
+
+msgid "Min Velocity"
+msgstr ""
+
+msgid "Max Velocity"
+msgstr ""
+
+msgid "Min Volumetric Speed"
+msgstr ""
+
+msgid "Max Volumetric Speed"
+msgstr "Max volymetrisk hastighet"
+
+msgid "Buy Now"
+msgstr ""
 
 msgid "Click for more details"
 msgstr "Klicka för mer info"
+
+msgid "Buy add-ons"
+msgstr ""
+
+msgid "Layers to Optimize "
+msgstr ""
+
+msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
+msgstr "Det gick inte att få Helio PAT. Antalet utfärdade PATs har nått den övre gränsen. Var uppmärksam på informationen på Helio officiella hemsida. Klicka Uppdatera för att få den igen när den är tillgänglig."
 
 msgid "Air Pump"
 msgstr "Luftpump"
@@ -11700,6 +11739,9 @@ msgstr "Vägg support"
 msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
 msgstr "Den här inställningen anger antalet stödväggar i intervallet [-1,2]. -1 betyder auto och 0 betyder att endast tillåta fyllningsläge där stödet är tillräckligt tjockt."
 
+msgid "Chamber temperature"
+msgstr "Kammarens temperatur"
+
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on. At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials, the actual chamber temperature should not be high to avoid clogs, so 0 (turned off) is highly recommended."
 
@@ -12190,9 +12232,6 @@ msgstr "Flödesdynamik"
 
 msgid "Flow Rate"
 msgstr "Flödeshastighet"
-
-msgid "Max Volumetric Speed"
-msgstr "Max volymetrisk hastighet"
 
 msgid "The name cannot be empty."
 msgstr "Namnet får inte vara tomt."
@@ -13722,9 +13761,6 @@ msgstr "Styrkeprofil för 0.8 mm nozzle, prioritering av styrka."
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Standardprofil för 0.8 mm nozzle, prioriterar hastighet."
 
-msgid "Helio: Process Started"
-msgstr "Helio: Processen har startat"
-
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Helio API slutpunkt är tom, kontrollera konfigurationen."
 
@@ -13755,8 +13791,32 @@ msgstr "Helio: simulering arbetar"
 msgid "Helio: simulation failed"
 msgstr "Helio: simulering misslyckades"
 
+msgid "Helio: Simulation check failed"
+msgstr ""
+
+msgid "Helio: Failed to create Simulation\n"
+msgstr ""
+
+msgid "Helio: Failed to create GCode\n"
+msgstr ""
+
+msgid "Helio: optimization successfully created"
+msgstr ""
+
+msgid "Helio: optimization working"
+msgstr ""
+
+msgid "Helio: Optimzaion check failed"
+msgstr ""
+
+msgid "Helio: Failed to create Optimization\n"
+msgstr ""
+
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio: G kod hämtades framgångsrikt"
+
+msgid "Helio: GCode download failed\n"
+msgstr ""
 
 msgid "No AMS"
 msgstr "Ingen AMS"
@@ -14259,11 +14319,23 @@ msgstr ""
 "Undvik vridning\n"
 "Visste du att när du skriver ut material som är benägna att vrida, såsom ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten för vridning."
 
-#~ msgid "Helio Action"
-#~ msgstr "Helio Åtgärd"
+#~ msgid "Helio Simulation"
+#~ msgstr "Helio Simulering"
 
-#~ msgid "Chamber Temperature"
-#~ msgstr "Temperatur i kammaren"
+#~ msgid "High chamber temperature is required. Please close the door."
+#~ msgstr "Hög kammartemperatur krävs. Stäng dörren."
+
+#~ msgid "Helio Additive"
+#~ msgstr "Helio Additiv"
+
+#~ msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
+#~ msgstr "Obs: Ställ in ovanstående temperatur enligt den faktiska situationen. Ju mer exakt data är, desto mer exakt kommer analysresultaten att bli."
+
+#~ msgid "How to use Helio"
+#~ msgstr "Hur du använder Helio"
+
+#~ msgid "Helio: Process Started"
+#~ msgstr "Helio: Processen har startat"
 
 #~ msgctxt "air_duct"
 #~ msgid "Right"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-26 14:08+0800\n"
+"POT-Creation-Date: 2025-08-27 20:06+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2490,6 +2490,10 @@ msgctxt "air_duct"
 msgid "Right(Filter)"
 msgstr ""
 
+msgctxt "air_duct"
+msgid "Left(Aux)"
+msgstr ""
+
 msgid "Hotend"
 msgstr ""
 
@@ -4005,8 +4009,8 @@ msgstr "de"
 msgid "Slicing Result"
 msgstr "Résultat du Tranchage"
 
-msgid "Helio Simulation"
-msgstr "Simulation Helio"
+msgid "Helio Action"
+msgstr ""
 
 msgid "Color Scheme"
 msgstr "Mode d'Affichage"
@@ -7622,6 +7626,14 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Ple
 msgstr "La dureté du matériau actuel (%s) est supérieure à la dureté de %s (%s). Vérifiez les réglages de la buse ou du matériau, puis réessayez."
 
 #, c-format, boost-format
+msgid "[ %s ] requires printing in a high-temperature environment."
+msgstr ""
+
+#, c-format, boost-format
+msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
+msgstr ""
+
+#, c-format, boost-format
 msgid "The filament on %s may soften. Please unload."
 msgstr "Le filament sur %s peut se ramollir. Veuillez le décharger."
 
@@ -7706,9 +7718,6 @@ msgstr "Cette imprimante ne prend pas en charge l'impression de toutes les plaqu
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "Veuillez effectuer un tirage à froid avant d'imprimer du TPU pour éviter tout bouchage. Vous pouvez utiliser la procédure de Tirage à froid sur l'imprimante."
-
-msgid "High chamber temperature is required. Please close the door."
-msgstr "Une température de chambre élevée est requise. Fermez la porte, s'il vous plaît."
 
 msgid "Please refer to Wiki before use->"
 msgstr "Veuillez vous référer au Wiki avant utilisation->"
@@ -9118,23 +9127,53 @@ msgstr "En confirmant l'activation de cette fonctionnalité, vous confirmez et a
 msgid "Agree"
 msgstr "Accepter"
 
-msgid "Helio Additive"
-msgstr "Helio Additif"
-
-msgid "Chamber temperature"
+msgid "Chamber Temperature"
 msgstr "Température de la chambre"
 
-msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
-msgstr "Remarque : Veuillez régler la température ci-dessus en fonction de la situation réelle. Plus les données sont précises, plus les résultats de l'analyse seront exacts."
+msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
+msgstr ""
 
-msgid "How to use Helio"
-msgstr "Comment utiliser Helio"
+msgid "Helio's advanced feature for power users: available post purchase on its official website."
+msgstr ""
 
-msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
-msgstr "Échec de l’obtention de la clé Helio PAT. Le nombre de clés émises a atteint la limite maximale. Veuillez consulter les informations sur le site officiel de Helio. Cliquez sur Actualiser pour la récupérer dès qu’elle sera disponible."
+msgid "Monthly quota remaining: "
+msgstr ""
+
+msgid "Add-ons available: "
+msgstr ""
+
+msgid "Optimise Outer Walls"
+msgstr ""
+
+msgid "Advanced Settings"
+msgstr ""
+
+msgid "Min Velocity"
+msgstr ""
+
+msgid "Max Velocity"
+msgstr ""
+
+msgid "Min Volumetric Speed"
+msgstr ""
+
+msgid "Max Volumetric Speed"
+msgstr "Vitesse volumétrique max"
+
+msgid "Buy Now"
+msgstr ""
 
 msgid "Click for more details"
 msgstr "Cliquez pour en savoir plus"
+
+msgid "Buy add-ons"
+msgstr ""
+
+msgid "Layers to Optimize "
+msgstr ""
+
+msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
+msgstr "Échec de l’obtention de la clé Helio PAT. Le nombre de clés émises a atteint la limite maximale. Veuillez consulter les informations sur le site officiel de Helio. Cliquez sur Actualiser pour la récupérer dès qu’elle sera disponible."
 
 msgid "Air Pump"
 msgstr "Pompe à Air"
@@ -11683,6 +11722,9 @@ msgstr "Parois des supports"
 msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
 msgstr "Ce paramètre spécifie le nombre de parois de support comprises entre [-1,2]. -1 signifie automatique et 0 signifie l'activation du mode de remplissage uniquement lorsque le support est suffisamment épais."
 
+msgid "Chamber temperature"
+msgstr "Température de la chambre"
+
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on. At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials, the actual chamber temperature should not be high to avoid clogs, so 0 (turned off) is highly recommended."
 
@@ -12173,9 +12215,6 @@ msgstr "Flux Dynamique"
 
 msgid "Flow Rate"
 msgstr "Débit"
-
-msgid "Max Volumetric Speed"
-msgstr "Vitesse volumétrique max"
 
 msgid "The name cannot be empty."
 msgstr "Le nom ne peut pas être vide."
@@ -13703,9 +13742,6 @@ msgstr "Profil Renforcé pour buse de 0,8 mm, privilégiant la résistance."
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Profil Standard pour buse de 0,8 mm, privilégiant la vitesse."
 
-msgid "Helio: Process Started"
-msgstr "Helio : Processus Démarré"
-
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Le point de terminaison de l’API Helio est vide, veuillez vérifier la configuration."
 
@@ -13736,8 +13772,32 @@ msgstr "Helio : simulation en cours"
 msgid "Helio: simulation failed"
 msgstr "Helio : simulation échouée"
 
+msgid "Helio: Simulation check failed"
+msgstr ""
+
+msgid "Helio: Failed to create Simulation\n"
+msgstr ""
+
+msgid "Helio: Failed to create GCode\n"
+msgstr ""
+
+msgid "Helio: optimization successfully created"
+msgstr ""
+
+msgid "Helio: optimization working"
+msgstr ""
+
+msgid "Helio: Optimzaion check failed"
+msgstr ""
+
+msgid "Helio: Failed to create Optimization\n"
+msgstr ""
+
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio : GCode téléchargé avec succès"
+
+msgid "Helio: GCode download failed\n"
+msgstr ""
 
 msgid "No AMS"
 msgstr "Pas d’AMS"
@@ -14240,8 +14300,23 @@ msgstr ""
 "Évitez le warping\n"
 "Saviez-vous que lors de l'impression de matériaux sujets au warping, tels que l'ABS, une augmentation appropriée de la température du plateau peut réduire le risque de déformation ?"
 
-#~ msgid "Chamber Temperature"
-#~ msgstr "Température de la chambre"
+#~ msgid "Helio Simulation"
+#~ msgstr "Simulation Helio"
+
+#~ msgid "High chamber temperature is required. Please close the door."
+#~ msgstr "Une température de chambre élevée est requise. Fermez la porte, s'il vous plaît."
+
+#~ msgid "Helio Additive"
+#~ msgstr "Helio Additif"
+
+#~ msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
+#~ msgstr "Remarque : Veuillez régler la température ci-dessus en fonction de la situation réelle. Plus les données sont précises, plus les résultats de l'analyse seront exacts."
+
+#~ msgid "How to use Helio"
+#~ msgstr "Comment utiliser Helio"
+
+#~ msgid "Helio: Process Started"
+#~ msgstr "Helio : Processus Démarré"
 
 #~ msgctxt "air_duct"
 #~ msgid "Right"

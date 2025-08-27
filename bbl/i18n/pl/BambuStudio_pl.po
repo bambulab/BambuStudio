@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-26 14:08+0800\n"
+"POT-Creation-Date: 2025-08-27 20:06+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2495,6 +2495,10 @@ msgctxt "air_duct"
 msgid "Right(Filter)"
 msgstr ""
 
+msgctxt "air_duct"
+msgid "Left(Aux)"
+msgstr ""
+
 msgid "Hotend"
 msgstr ""
 
@@ -4018,7 +4022,7 @@ msgstr "z"
 msgid "Slicing Result"
 msgstr "Wynik krojenia"
 
-msgid "Helio Simulation"
+msgid "Helio Action"
 msgstr ""
 
 msgid "Color Scheme"
@@ -7648,6 +7652,14 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Ple
 msgstr "Twardość obecnego materiału (%s) przekracza twardość %s(%s). Sprawdź ustawienia dyszy lub materiału i spróbuj ponownie."
 
 #, c-format, boost-format
+msgid "[ %s ] requires printing in a high-temperature environment."
+msgstr ""
+
+#, c-format, boost-format
+msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
+msgstr ""
+
+#, c-format, boost-format
 msgid "The filament on %s may soften. Please unload."
 msgstr "Filament w %s może zmięknąć. Proszę rozładować."
 
@@ -7732,9 +7744,6 @@ msgstr "Ta drukarka nie obsługuje drukowania wszystkich stołów"
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "Przed drukiem z TPU należy wykonać cold pull, aby uniknąć zatkania. Można użyć opcji cold pull na drukarce."
-
-msgid "High chamber temperature is required. Please close the door."
-msgstr "Wymagana jest wysoka temperatura komory. Proszę zamknąć drzwiczki."
 
 msgid "Please refer to Wiki before use->"
 msgstr "Przed użyciem zapoznaj się z Wiki->"
@@ -9153,22 +9162,52 @@ msgstr ""
 msgid "Agree"
 msgstr "Zgadzam się"
 
-msgid "Helio Additive"
-msgstr ""
-
-msgid "Chamber temperature"
+msgid "Chamber Temperature"
 msgstr "Temperatura komory"
 
-msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
+msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
 msgstr ""
 
-msgid "How to use Helio"
+msgid "Helio's advanced feature for power users: available post purchase on its official website."
 msgstr ""
 
-msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
+msgid "Monthly quota remaining: "
+msgstr ""
+
+msgid "Add-ons available: "
+msgstr ""
+
+msgid "Optimise Outer Walls"
+msgstr ""
+
+msgid "Advanced Settings"
+msgstr ""
+
+msgid "Min Velocity"
+msgstr ""
+
+msgid "Max Velocity"
+msgstr ""
+
+msgid "Min Volumetric Speed"
+msgstr ""
+
+msgid "Max Volumetric Speed"
+msgstr "Maksymalna prędkość przepływu"
+
+msgid "Buy Now"
 msgstr ""
 
 msgid "Click for more details"
+msgstr ""
+
+msgid "Buy add-ons"
+msgstr ""
+
+msgid "Layers to Optimize "
+msgstr ""
+
+msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
 msgstr ""
 
 msgid "Air Pump"
@@ -11718,6 +11757,9 @@ msgstr "Pętle ścian podpory"
 msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
 msgstr "To ustawienie określa liczbę ścian podporowych w zakresie [-1,2]. -1 oznacza opcję automatyczną, a 0 oznacza zezwolenie na tryb samego wypełnienia, gdy podpora jest wystarczająco gruba."
 
+msgid "Chamber temperature"
+msgstr "Temperatura komory"
+
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr "Wyższa temperatura komory może pomóc w redukcji wypaczania i potencjalnie prowadzić do większej siły wiązania międzywarstwowego w przypadku materiałów wysokotemperaturowych, takich jak ABS, ASA, PC, PA itp. Dla filametów PLA, PETG, TPU, PVA i innych materiałów niskotemperaturowych temperatura komory nie powinna być wysoka. Aby uniknąć zatykania sie dyszy zaleca się ustawienia na wartość 0 (wyłączone)."
 
@@ -12208,9 +12250,6 @@ msgstr "Dynamika przepływu"
 
 msgid "Flow Rate"
 msgstr "Natężenie przepływu"
-
-msgid "Max Volumetric Speed"
-msgstr "Maksymalna prędkość przepływu"
 
 msgid "The name cannot be empty."
 msgstr "Nazwa nie może być pusta."
@@ -13738,9 +13777,6 @@ msgstr "Profil wytrzymałości dla dyszy 0.8mm. Priorytetem jest wytrzymałość
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Profil standardowy dla dyszy 0.8mm. Priorytetem jest szybkość."
 
-msgid "Helio: Process Started"
-msgstr ""
-
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr ""
 
@@ -13771,7 +13807,31 @@ msgstr ""
 msgid "Helio: simulation failed"
 msgstr ""
 
+msgid "Helio: Simulation check failed"
+msgstr ""
+
+msgid "Helio: Failed to create Simulation\n"
+msgstr ""
+
+msgid "Helio: Failed to create GCode\n"
+msgstr ""
+
+msgid "Helio: optimization successfully created"
+msgstr ""
+
+msgid "Helio: optimization working"
+msgstr ""
+
+msgid "Helio: Optimzaion check failed"
+msgstr ""
+
+msgid "Helio: Failed to create Optimization\n"
+msgstr ""
+
 msgid "Helio: GCode downloaded successfully"
+msgstr ""
+
+msgid "Helio: GCode download failed\n"
 msgstr ""
 
 msgid "No AMS"
@@ -14275,8 +14335,8 @@ msgstr ""
 "Unikaj wypaczania\n"
 "Czy wiesz, że podczas drukowania materiałów podatnych na wypaczanie, takich jak ABS, odpowiednie zwiększenie temperatury stołu grzejnego może zmniejszyć prawdopodobieństwo wypaczania."
 
-#~ msgid "Chamber Temperature"
-#~ msgstr "Temperatura komory"
+#~ msgid "High chamber temperature is required. Please close the door."
+#~ msgstr "Wymagana jest wysoka temperatura komory. Proszę zamknąć drzwiczki."
 
 #~ msgctxt "air_duct"
 #~ msgid "Right"
