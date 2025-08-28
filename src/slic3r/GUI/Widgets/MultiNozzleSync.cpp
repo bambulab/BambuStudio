@@ -91,7 +91,6 @@ void manuallySetNozzleCount(int extruder_id)
 
     if (dialog.ShowModal() == wxID_OK) {
         int nozzle_count = dialog.GetNozzleCount();
-        MultiNozzleUtils::NozzleGroupInfo info(std::to_string(nozzle_diameter), volume_type, extruder_id, nozzle_count);
         setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count);
     }
 }
@@ -136,6 +135,7 @@ ExtruderBadge::ExtruderBadge(wxWindow* parent) : wxPanel(parent)
     SetSizer(main_sizer);
     Layout();
     Fit();
+    wxGetApp().UpdateDarkUIWin(this);
 }
 
 void ExtruderBadge::SetExtruderInfo(int extruder_id, const wxString& diameter, const wxString& volume_type)
@@ -167,6 +167,7 @@ HotEndTable::HotEndTable(wxWindow* parent) :  wxPanel(parent, wxID_ANY, wxDefaul
     SetSizer(main_sizer);
     Layout();
     Fit();
+    wxGetApp().UpdateDarkUIWin(this);
 }
 
 void HotEndTable::UpdateRackInfo(std::weak_ptr<DevNozzleRack> rack)
@@ -253,6 +254,7 @@ MultiNozzleStatusTable::MultiNozzleStatusTable(wxWindow* parent): wxPanel(parent
     SetSizer(main_sizer);
     Layout();
     Fit();
+    wxGetApp().UpdateDarkUIWin(this);
 }
 
 void MultiNozzleStatusTable::UpdateRackInfo(std::weak_ptr<DevNozzleRack> rack)
@@ -279,7 +281,7 @@ void MultiNozzleStatusTable::UpdateRackInfo(std::weak_ptr<DevNozzleRack> rack)
 }
 
 
-Slic3r::GUI::MultiNozzleSyncDialog::MultiNozzleSyncDialog(wxWindow* parent,std::weak_ptr<DevNozzleRack> rack) : DPIDialog(parent, wxID_ANY, "Sync Nozzle status",wxDefaultPosition, wxDefaultSize,wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+Slic3r::GUI::MultiNozzleSyncDialog::MultiNozzleSyncDialog(wxWindow* parent,std::weak_ptr<DevNozzleRack> rack) : DPIDialog(parent, wxID_ANY, "Sync Nozzle status",wxDefaultPosition, wxDefaultSize,wxDEFAULT_DIALOG_STYLE)
 {
     m_nozzle_rack = rack;
     wxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -301,20 +303,30 @@ Slic3r::GUI::MultiNozzleSyncDialog::MultiNozzleSyncDialog(wxWindow* parent,std::
 
     wxBoxSizer* button_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_cancel_btn = new Button(this, "Cancel");
-    m_confirm_btn = new Button(this, "Confirm");
+    m_cancel_btn = new Button(this, _L("Cancel"), "", 0, 0, wxID_OK);
+    m_confirm_btn = new Button(this, _L("Confirm"), "", 0, 0, wxID_CANCEL);
 
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled),
+    StateColor btn_bg_green(
+        std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled),
         std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
-    StateColor btn_br_green(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled),
-        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
+    );
+
+    StateColor btn_text_green(
+        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
+    );
+
 
     m_confirm_btn->SetBackgroundColor(btn_bg_green);
-    m_confirm_btn->SetTextColor(wxColour("#FFFFFE"));
-    m_confirm_btn->SetMinSize(wxSize(FromDIP(60), FromDIP(24)));
-    m_cancel_btn->SetMinSize(wxSize(FromDIP(60), FromDIP(24)));
+    m_confirm_btn->SetMinSize(wxSize(FromDIP(55), FromDIP(24)));
+    m_confirm_btn->SetCornerRadius(FromDIP(12));
+    m_confirm_btn->SetBackgroundColor(btn_bg_green);
+    m_confirm_btn->SetTextColor(btn_text_green);
+    m_confirm_btn->SetFocus();
+
+    m_cancel_btn->SetMinSize(wxSize(FromDIP(55), FromDIP(24)));
+    m_cancel_btn->SetCornerRadius(FromDIP(12));
 
     button_sizer->AddStretchSpacer();
     button_sizer->Add(m_cancel_btn, 0, wxALL, FromDIP(10));
@@ -333,6 +345,8 @@ Slic3r::GUI::MultiNozzleSyncDialog::MultiNozzleSyncDialog(wxWindow* parent,std::
 
     m_refresh_timer = new wxTimer(this);
     Bind(wxEVT_TIMER, &MultiNozzleSyncDialog::OnRefreshTimer, this);
+    CenterOnParent();
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 
@@ -734,7 +748,11 @@ void setExtruderNozzleCount(PresetBundle* preset_bundle, int extruder_id, Nozzle
         int sum_count = 0;
         for (auto& elem : preset_bundle->extruder_nozzle_counts[extruder_id])
             sum_count += elem.second;
-        wxGetApp().plater()->sidebar().set_extruder_nozzle_count(extruder_id, sum_count);
+        auto nozzle_count_opt = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+        bool support_multi_nozzle = std::any_of(nozzle_count_opt->values.begin(), nozzle_count_opt->values.end(), [](int val) {return val > 1; });
+
+        int display_count = support_multi_nozzle ? sum_count : -1; // do not display nozzle count
+        wxGetApp().plater()->sidebar().set_extruder_nozzle_count(extruder_id, display_count);
     }
 }
 

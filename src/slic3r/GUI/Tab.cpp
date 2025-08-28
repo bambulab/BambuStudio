@@ -42,6 +42,7 @@
 #include "MarkdownTip.hpp"
 #include "Search.hpp"
 #include "BedShapeDialog.hpp"
+#include "Widgets/MultiNozzleSync.hpp"
 
 #include "DeviceCore/DevManager.h"
 
@@ -4579,6 +4580,14 @@ void TabPrinter::on_preset_loaded()
         }
         if (use_default_nozzle_volume_type) {
             m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values = current_printer.config.option<ConfigOptionEnumsGeneric>("default_nozzle_volume_type")->values;
+        }
+
+        auto extruder_max_nozzle_count = current_printer.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+        auto nozzle_volume_type =  m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+        if (extruder_max_nozzle_count && nozzle_volume_type) {
+            for (size_t idx = 0; idx < extruders_count; ++idx) {
+                setExtruderNozzleCount(m_preset_bundle, idx, NozzleVolumeType(nozzle_volume_type->values[idx]), extruder_max_nozzle_count->values[idx]);
+            }
         }
     }
 }
