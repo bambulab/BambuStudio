@@ -98,13 +98,6 @@ private:
 };
 
 
-std::vector<unsigned int> get_extruders_order(const std::vector<std::vector<float>> &wipe_volumes,
-                                              const std::vector<unsigned int> &curr_layer_extruders,
-                                              const std::vector<unsigned int> &next_layer_extruders,
-                                              const std::optional<unsigned int> &start_extruder_id,
-                                              bool use_forcast = false,
-                                              float *cost = nullptr);
-
 int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int> &filament_lists,
                                                const std::vector<int> &filament_maps,
                                                const std::vector<std::vector<unsigned int>> &layer_filaments,
@@ -122,6 +115,14 @@ int reorder_filaments_for_multi_nozzle_extruder(const std::vector<unsigned int>&
                                                 int multi_nozzle_num,
                                                 std::vector<std::vector<unsigned int>> * layer_sequences = nullptr,
                                                 std::vector<std::vector<std::vector<int>>>* nozzle_match_per_layer = nullptr);
+
+std::vector<unsigned int> get_extruders_order(const std::vector<std::vector<float>> &wipe_volumes,
+    const std::vector<unsigned int> &curr_layer_extruders,
+    const std::vector<unsigned int> &next_layer_extruders,
+    const std::optional<unsigned int> &start_extruder_id,
+    bool use_forcast = false,
+    float *cost = nullptr);
+
 #endif
 
 

@@ -1810,21 +1810,11 @@ Sidebar::Sidebar(Plater *parent)
         p->left_extruder->SetHoverEnabledCallback([extruder_hover_enabled_cb]() { return extruder_hover_enabled_cb(0); });
         p->right_extruder->SetHoverEnabledCallback([extruder_hover_enabled_cb]() { return extruder_hover_enabled_cb(1); });
         p->left_extruder->SetOnHoverClick([this, parent]() {
-            if (parent && parent->get_machine_sync_status()) {
-                GUI::tryPopUpMultiNozzleDialog(wxGetApp().getDeviceManager()->get_selected_machine());
-            }
-            else {
-                GUI::manuallySetNozzleCount(0);
-            }
+            GUI::manuallySetNozzleCount(0);
             wxGetApp().plater()->update();
             });
         p->right_extruder->SetOnHoverClick([this, parent]() {
-            if (parent && parent->get_machine_sync_status()) {
-                GUI::tryPopUpMultiNozzleDialog(wxGetApp().getDeviceManager()->get_selected_machine());
-            }
-            else {
-                GUI::manuallySetNozzleCount(1);
-            }
+            GUI::manuallySetNozzleCount(1);
             wxGetApp().plater()->update();
             });
 
