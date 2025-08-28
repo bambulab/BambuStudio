@@ -253,6 +253,8 @@ namespace Slic3r {
 
                 Layer& operator[](size_t index);
 
+                const Layer& operator[](size_t index) const;
+
                 void reset();
 
                 void set_current_layer_start(uint32_t);
