@@ -27,18 +27,6 @@ wxString DevNozzle::GetNozzleFlowTypeStr(NozzleFlowType type)
     return _L("Unknown");
 }
 
-wxString DevNozzle::GetNozzleFlowTypeCaliStyleStr() const
-{
-    switch (m_nozzle_flow)
-    {
-        case NozzleFlowType::H_FLOW: return _L("High Flow");
-        case NozzleFlowType::S_FLOW: return _L("Standard");
-        default: break;
-    }
-
-    return _L("Unknown");
-}
-
 bool DevNozzle::IsInfoReliable() const
 {
     if (IsEmpty()) { return false;}

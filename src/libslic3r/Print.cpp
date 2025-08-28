@@ -2042,8 +2042,8 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
             this->set_geometric_unprintable_filaments(geometric_unprintables);
         }
 
-        {
-            std::unordered_map<int,std::unordered_map<int,double>> filament_print_time;
+        std::unordered_map<int,std::unordered_map<int,double>> filament_print_time;
+        if (calib_params().mode == CalibMode::Calib_None) {
             for(PrintObject* obj : m_objects){
                 auto obj_filament_print_time = obj->calc_estimated_filament_print_time();
                 for(auto [filament_idx,extruder_time] : obj_filament_print_time) {
@@ -2052,8 +2052,8 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
                     }
                 }
             }
-            this->set_filament_print_time(filament_print_time);
         }
+        this->set_filament_print_time(filament_print_time);
 
         m_nozzle_group_result.reset();
         m_wipe_tower_data.clear();

@@ -43,7 +43,6 @@ namespace Slic3r
        wxString GetDisplayId() const;
        wxString GetNozzleDiameterStr() const {  return wxString::Format("%.1f mm", m_diameter);}
        wxString GetNozzleFlowTypeStr() const;
-       wxString GetNozzleFlowTypeCaliStyleStr() const;
        wxString GetNozzleTypeStr() const;
 
        static wxString      GetNozzleFlowTypeStr(NozzleFlowType type);
