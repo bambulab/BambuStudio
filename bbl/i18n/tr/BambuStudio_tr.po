@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-08-27 20:24+0800\n"
-"PO-Revision-Date: 2025-07-17 21:56+0300\n"
+"PO-Revision-Date: 2025-08-28 14:42+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -50,7 +50,7 @@ msgid "Damp PVA will become flexible and get stuck inside AMS,please take care t
 msgstr "Nemli PVA esnekleşecek ve AMS'nin içine sıkışacaktır, lütfen kullanmadan önce kurutmaya dikkat edin."
 
 msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
-msgstr ""
+msgstr "Nemli PVA esnektir ve ekstrüderde sıkışabilir. Kullanmadan önce kurutun."
 
 msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
 msgstr "PLA Glow'un pürüzlü yüzeyi AMS sisteminde, özellikle de AMS Lite'ın iç bileşenlerinde aşınmayı hızlandırabilir."
@@ -1087,7 +1087,7 @@ msgid "Warning:text normal has been reset."
 msgstr "Uyarı:normal metin sıfırlandı."
 
 msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
-msgstr ""
+msgstr "Uyarı: mevcut metin aralığı çok uygun değildir. Düzenlemeye devam ederseniz, daha uygun bir metin aralığı oluşturulacaktır."
 
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "Uyarı:eski matrisin en az iki parametresi vardır: yansıtma, ölçekleme ve döndürme. Düzenlemeye devam ederseniz, doğru olmayabilir. Lütfen metni sürükleyin veya mevcut pozu kullanarak iptal edin, kaydedin ve yeniden düzenleyin."
@@ -2486,11 +2486,11 @@ msgstr "Soğutma modu PLA/PETG/TPU malzemelerin baskısı için uygundur."
 
 msgctxt "air_duct"
 msgid "Right(Aux)"
-msgstr ""
+msgstr "Sağ(Yardımcı)"
 
 msgctxt "air_duct"
 msgid "Right(Filter)"
-msgstr ""
+msgstr "Sağ(Filtre)"
 
 msgid "Hotend"
 msgstr "Hotend"
@@ -3356,6 +3356,8 @@ msgid ""
 "Should not large than 100%.\n"
 "Reset to defualt"
 msgstr ""
+"%100'den fazla olmamalıdır.\n"
+"Varsayılana sıfırla"
 
 #, c-format, boost-format
 msgid "Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"
@@ -3486,7 +3488,7 @@ msgstr ""
 "Kaplama derinliğinin %%50'sine sıfırla."
 
 msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
-msgstr ""
+msgstr "Spiral modu yalnızca duvar döngüleri 1 olduğunda, destek devre dışı bırakıldığında, sondalama yoluyla kümelenme algılama devre dışı bırakıldığında, üst kabuk katmanları 0 olduğunda, seyrek dolgu yoğunluğu 0 olduğunda, zaman atlamalı tür geleneksel olduğunda ve z yönünde duvar hızını yumuşatma yanlış olduğunda çalışır."
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Ancak I3 yapısına sahip yazıcılar timelapse videolar oluşturmayacaktır."
@@ -3672,10 +3674,10 @@ msgid "Cutting Module Offset Calibration"
 msgstr "Kesim Modülü Ofset Kalibrasyonu"
 
 msgid "Measuring Surface"
-msgstr ""
+msgstr "Ölçüm Yüzeyi"
 
 msgid "Thermal Preconditioning for first layer optimization"
-msgstr ""
+msgstr "İlk katman optimizasyonu için termal ön hazırlık"
 
 msgid "Unknown"
 msgstr "Bilinmeyen"
@@ -3788,13 +3790,13 @@ msgid "Problem Solved and Resume"
 msgstr "Sorun Çözüldü ve Devam"
 
 msgid "Got it, Turn off the Fire Alarm."
-msgstr ""
+msgstr "Anladım, yangın alarmını kapat."
 
 msgid "Retry (problem solved)"
 msgstr "Yeniden deneyin (sorun çözüldü)"
 
 msgid "Stop Drying"
-msgstr ""
+msgstr "Kurutmayı Durdur"
 
 msgid "Cancle"
 msgstr ""
@@ -3865,13 +3867,13 @@ msgid "Fan Speed"
 msgstr "Fan hızı"
 
 msgid "Thermal Index (min)"
-msgstr ""
+msgstr "Termal İndeks (min)"
 
 msgid "Thermal Index (max)"
-msgstr ""
+msgstr "Termal İndeks (maks.)"
 
 msgid "Thermal Index (mean)"
-msgstr ""
+msgstr "Termal İndeks (ortalama)"
 
 msgid "Flow"
 msgstr "Akış"
@@ -3904,16 +3906,16 @@ msgid "Temperature: "
 msgstr "Sıcaklık: "
 
 msgid "Thermal Index"
-msgstr ""
+msgstr "Termal İndeks"
 
 msgid "Min: "
-msgstr ""
+msgstr "Min: "
 
 msgid "Max: "
-msgstr ""
+msgstr "Maks: "
 
 msgid "Mean: "
-msgstr ""
+msgstr "Ortalama: "
 
 msgid "Loading G-codes"
 msgstr "G-code lar yükleniyor"
@@ -4015,7 +4017,7 @@ msgid "Slicing Result"
 msgstr "Dilimleme Sonuçları"
 
 msgid "Helio Simulation"
-msgstr ""
+msgstr "Helio Simülasyonu"
 
 msgid "Color Scheme"
 msgstr "Renk Şeması"
@@ -4569,7 +4571,7 @@ msgstr ""
 "Hızlı bir öğretici video izlemek ister misiniz?"
 
 msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
-msgstr ""
+msgstr "PPS-CF/PPA-CF kırılgandır ve Baskı Kafası üzerindeki bükülmüş PTFE tüpte kırılabilir. Kullanmadan önce lütfen Wiki'ye bakın. "
 
 msgid "Tips"
 msgstr "İpuçları"
@@ -5089,7 +5091,7 @@ msgid "Please check the network and try again, You can restart or update the pri
 msgstr "Lütfen ağı kontrol edin ve tekrar deneyin, Sorun devam ederse yazıcıyı yeniden başlatabilir veya güncelleyebilirsiniz."
 
 msgid "Multi-device/client simultaneous liveview is not supported. Please close the liveview on other devices/clients and try again."
-msgstr ""
+msgstr "Birden fazla cihaz/istemci ile eşzamanlı canlı görüntüleme desteklenmemektedir. Lütfen diğer cihazlarda/istemcilerde canlı görüntülemeye son verin ve tekrar deneyin."
 
 msgid "Video Stopped."
 msgstr "Video durduruldu."
@@ -5580,7 +5582,7 @@ msgid "Ludicrous"
 msgstr "Absürt"
 
 msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti detection. Please choose carefully."
-msgstr ""
+msgstr "Görev sırasında ışıkların kapatılması, spagetti algılama gibi yapay zeka izlemenin başarısız olmasına neden olacaktır. Lütfen dikkatli seçin."
 
 msgid "Keep it On"
 msgstr "Açık Tut"
@@ -6027,7 +6029,7 @@ msgid "Auto-recovery from step loss"
 msgstr "Adım kaybında otomatik kurtarma"
 
 msgid "Open Door Detection"
-msgstr ""
+msgstr "Açık Kapı Algılama"
 
 msgid "Notification"
 msgstr "Bildirim"
@@ -6104,7 +6106,7 @@ msgstr "%s nozzul %s yazdıramıyor."
 
 #, boost-format
 msgid "Mixing %1% with %2% in printing is not recommended.\n"
-msgstr ""
+msgstr "Aşağıdaki filament(ler)in %1% ile %2% yazdırılması önerilmez:\n"
 
 msgid " nozzle"
 msgstr " nozul"
@@ -6271,6 +6273,8 @@ msgid ""
 "It seems that you have projects that were not closed properly. Would you like to restore your last unsaved project?\n"
 "If you have a currently opened project and click \"Restore\", the current project will be closed."
 msgstr ""
+"Görünüşe göre düzgün bir şekilde kapatılmamış projeleriniz var. Son kaydetmemiş projenizi geri yüklemek ister misiniz?\n"
+"Şu anda açık bir projeniz varsa ve “Geri Yükle”yi tıklarsanız, mevcut proje kapatılacaktır."
 
 msgid "Restore"
 msgstr "Geri Yükleme"
@@ -6487,31 +6491,33 @@ msgid "Slicing Plate %d"
 msgstr "Plaka %d dilimleniyor"
 
 msgid "Invalid printer preset. Unable to slice with Helio."
-msgstr ""
+msgstr "Yazıcı ön ayarı geçersiz. Helio ile dilimleme yapılamıyor."
 
 msgid "The current printer preset cannot be sliced using Helio."
-msgstr ""
+msgstr "Mevcut yazıcı ön ayarı Helio kullanılarak dilimlenemez."
 
 msgid "Helio does not support using a number of materials greater than 1."
-msgstr ""
+msgstr "Helio, 1'den fazla malzeme kullanımını desteklemez."
 
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
-msgstr ""
+msgstr "Helio, %s malzemelerini desteklemiyor"
 
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
 "Please request a new Helio-PAT."
 msgstr ""
+"Geçerli Helio-PAT algılanmadı. Helio simülasyonu ve optimizasyonu devam edemez. \n"
+"Lütfen yeni bir Helio-PAT talep edin."
 
 msgid "Execution Blocked"
-msgstr ""
+msgstr "Yürütme Engellendi"
 
 msgid "Regenerate PAT"
-msgstr ""
+msgstr "PAT'ı yeniden oluştur"
 
 msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
-msgstr ""
+msgstr "Helio PAT alınamadı, Yenile'ye tıklayarak tekrar alın."
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Lütfen dilimleme hatalarını giderip tekrar yayınlayın."
@@ -6735,11 +6741,11 @@ msgstr "Özel destekler, dikiş_yüzeyleri ve renk boyamaları onarım öncesind
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
-msgstr ""
+msgstr "Yazıcı bağlı değil. Senkronize etmeden önce %s'yi bağlamak için cihaz sayfasına gidin."
 
 #, c-format, boost-format
 msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
-msgstr ""
+msgstr "Cihaz sayfasında şu anda bağlı olan yazıcı %s değildir. Senkronize etmeden önce lütfen %s'ye geçin."
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "Yazıcıda filament yok. Lütfen önce yazıcıya filamentleri yükleyin."
@@ -6812,10 +6818,10 @@ msgid "Plate% d: %s is not suggested to be used to print filament %s(%s). If you
 msgstr "Plaka% d: %s'nin %s(%s) filamentinı yazdırmak için kullanılması önerilmez. Eğer yine de bu baskıyı yapmak istiyorsanız, lütfen bu filamentin yatak sıcaklığını sıfır olmayan bir değere ayarlayın."
 
 msgid "Parameter recommendation"
-msgstr ""
+msgstr "Parametre önerisi"
 
 msgid "In the process preset, under \"Others-Advanced\", check \"Enable clumping detection by probing\". This feature generates a small wipe tower and performs probing detection to identify clumping issues early in the print and stop printing, preventing print failures or printer damage.\n"
-msgstr ""
+msgstr "İşlem ön ayarında, “Diğerleri-Gelişmiş” altında “Prob ile kümelenme algılamayı etkinleştir” seçeneğini işaretleyin. Bu özellik, küçük bir silme kulesi oluşturur ve prob ile algılama gerçekleştirerek baskı sırasında kümelenme sorunlarını erken aşamada tespit eder ve baskıyı durdurarak baskı hatalarını veya yazıcı hasarını önler.\n"
 
 msgid "Currently, the object configuration form cannot be used with a multiple-extruder printer."
 msgstr "Şu anda, nesne yapılandırma formu çoklu ekstrüder yazıcı ile kullanılamaz."
@@ -7011,10 +7017,10 @@ msgid "Perform gamma correction on color after importing the obj model."
 msgstr "Obj modelini içe aktardıktan sonra renk üzerinde gama düzeltmesi yapın."
 
 msgid "Remember last used color scheme"
-msgstr ""
+msgstr "Son kullanılan renk şemasını hatırla"
 
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
-msgstr ""
+msgstr "Etkinleştirildiğinde, son kullanılan renk şeması (örneğin, Çizgi Türü, Hız) bir sonraki başlatmada otomatik olarak uygulanacaktır."
 
 msgid "Improve rendering performance by lod"
 msgstr "Oluşturma performansını lod ile iyileştirin"
@@ -7086,25 +7092,25 @@ msgid "Show history on the home page"
 msgstr "Ana sayfada geçmişi göster"
 
 msgid "Helio Options"
-msgstr ""
+msgstr "Helio Seçenekleri"
 
 msgid "Enable Helio"
-msgstr ""
+msgstr "Helio'yu etkinleştir"
 
 msgid "Helio-PAT"
-msgstr ""
+msgstr "Helio-PAT"
 
 msgid "About Helio"
-msgstr ""
+msgstr "Helio hakkında"
 
 msgid "Helio Privacy Policy"
-msgstr ""
+msgstr "Helio Gizlilik Politikası"
 
 msgid "Reminder During Slicing"
-msgstr ""
+msgstr "Dilimleme Sırasında Hatırlat"
 
 msgid "Automatic mode"
-msgstr ""
+msgstr "Otomatik mod"
 
 msgid "Maximum recent projects"
 msgstr "Maksimum yeni proje"
@@ -7898,13 +7904,13 @@ msgid "Prime tower is required for smooth timeplase. There may be flaws on the m
 msgstr "Sorunsuz timeplace için Prime kulesi gereklidir. Prime kulesi olmayan modelde kusurlar olabilir. Prime kulesi'ı devre dışı bırakmak istediğinizden emin misiniz?"
 
 msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
-msgstr ""
+msgstr "Topaklanma algılama için prime kulesi gereklidir. Prime kulesi olmadan modelde kusurlar olabilir. Prime kulesini devre dışı bırakmak istediğinizden emin misiniz?"
 
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
 msgstr "Hem hassas Z yüksekliğinin hem de prime kulesinin etkinleştirilmesi, prime kulenin boyutunun artmasına neden olabilir. Hala etkinleştirmek istiyor musunuz?"
 
 msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
-msgstr ""
+msgstr "Topaklanma algılama için prime kulesi gereklidir. Prime kulesi olmadan modelde kusurlar olabilir. Topaklanma algılamayı yine de etkinleştirmek istiyor musunuz?"
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Sorunsuz hızlandırılmış çekim için Prime Tower gereklidir. Prime kulesi olmayan modelde kusurlar olabilir. Prime kulesi'ı etkinleştirmek istiyor musunuz?"
@@ -8213,7 +8219,7 @@ msgid "Time lapse G-code"
 msgstr "Time Lapse G-code"
 
 msgid "Clumping Detection G-code"
-msgstr ""
+msgstr "Topaklanma Algılama G-code"
 
 msgid "Change filament G-code"
 msgstr "Filament Değişimi G-kod"
@@ -9093,61 +9099,61 @@ msgid "reconnect"
 msgstr "yeniden bağlan"
 
 msgid "Terms of Service"
-msgstr ""
+msgstr "Hzmet şartları"
 
 msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
-msgstr ""
+msgstr "Helio Additive'in üçüncü taraf yazılım hizmeti özelliğini etkinleştirmek üzeresiniz! Bu özelliğin kullanımını onaylamadan önce lütfen aşağıdaki açıklamaları dikkatlice okuyun."
 
 msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
-msgstr ""
+msgstr "Aksi belirtilmedikçe, Bambu Lab yalnızca resmi olarak sağlanan yazılım özellikleri için destek sağlar. Bu yazılımdaki Helio Additive'in bulut hizmetine dayalı dilimleme değerlendirme ve dilimleme optimizasyon özellikleri, Helio Additive tarafından geliştirilecek, işletilecek, sağlanacak ve bakımları yapılacaktır. Helio Additive, bu hizmetin etkinliği ve kullanılabilirliğinden sorumludur. Bu hizmetin optimizasyon özelliği, varsayılan yazdırma komutlarını değiştirebilir ve yazıcıda hasar riski oluşturabilir. Bu özellikler, ilgili hizmet işlevlerini gerçekleştirmek için gerekli kullanıcı bilgilerini ve verilerini toplar. Abonelikler ve ödemeler söz konusu olabilir. Ayrıntılı bilgi için lütfen Helio Additive'i ziyaret edin ve Helio Additive Gizlilik Sözleşmesi ile Helio Additive Kullanıcı Sözleşmesi'ne bakın."
 
 msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
-msgstr ""
+msgstr "Bu arada, bu ürünün Helio Additive'in hizmetlerine dayalı olarak “olduğu gibi” size sağlandığını ve Bambu'nun herhangi bir tür açık veya zımni garanti vermediğini ve hizmetin etkilerini kontrol edemediğini anlıyorsunuz. Yürürlükteki yasaların izin verdiği en geniş ölçüde, Bambu veya lisans verenleri/bağlı kuruluşları, ticari elverişlilik, tatmin edici kalite, belirli bir amaca uygunluk, doğruluk, gizlilik ve üçüncü taraf haklarının ihlal edilmemesi ile ilgili garantiler dahil ancak bunlarla sınırlı olmamak üzere, hiçbir açık veya zımni beyan veya garanti vermemektedir. Ağ hizmetlerinin doğası gereği, Bambu hizmetin her zaman kullanılabilir olacağını garanti edemez ve Bambu, ilgili koşullara bağlı olarak hizmeti sonlandırma hakkını saklı tutar."
 
 msgid "You agree not to use this product and its related updates to engage in the following activities:"
-msgstr ""
+msgstr "Bu ürünü ve ilgili güncellemeleri aşağıdaki faaliyetlerde kullanmayacağınızı kabul edersiniz:"
 
 msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
-msgstr ""
+msgstr "1. Bu ürünün herhangi bir bölümünü Helio Additive ve Bambu'nun yetkili kapsamı dışında kopyalamak veya kullanmak."
 
 msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
-msgstr ""
+msgstr "2. Bu ürünle ilgili ve/veya bu ürünün ayrılmaz bir parçası olan herhangi bir Dijital Hak Yönetimi sistemini bozmaya, atlamaya, değiştirmeye, geçersiz kılmaya veya atlatmaya çalışmak."
 
 msgid "3.Using this software and services for any improper or illegal activities."
-msgstr ""
+msgstr "3. Bu yazılımı ve hizmetleri uygunsuz veya yasa dışı faaliyetler için kullanmak."
 
 msgid "https://www.helioadditive.com/"
-msgstr ""
+msgstr "https://www.helioadditive.com/"
 
 msgid "Privacy Policy of Helio Additive"
-msgstr ""
+msgstr "Helio Additive Gizlilik Politikası"
 
 msgid "Terms of Use of Helio Additive"
-msgstr ""
+msgstr "Helio Additive Kullanım Koşulları"
 
 msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
-msgstr ""
+msgstr "Bu özelliği etkinleştirmek için onay verdiğinizde, yukarıdaki beyanları onayladığınız ve kabul ettiğiniz anlamına gelir."
 
 msgid "Agree"
-msgstr ""
+msgstr "Kabul"
 
 msgid "Helio Additive"
-msgstr ""
+msgstr "Helio Additive"
 
 msgid "Chamber temperature"
 msgstr "Bölme sıcaklığı"
 
 msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
-msgstr ""
+msgstr "Not: Lütfen yukarıdaki sıcaklığı gerçek duruma göre ayarlayın. Veriler ne kadar doğru olursa, analiz sonuçları da o kadar kesin olur."
 
 msgid "How to use Helio"
-msgstr ""
+msgstr "Helio nasıl kullanılır"
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
-msgstr ""
+msgstr "Helio PAT alınamadı. Verilen PAT sayısı üst sınıra ulaştı. Lütfen Helio resmi web sitesindeki bilgilere dikkat edin. Yeniden kullanılabilir olduğunda, Yenile'yi tıklayarak tekrar deneyin."
 
 msgid "Click for more details"
-msgstr ""
+msgstr "Daha fazla bilgi için tıklayın"
 
 msgid "Air Pump"
 msgstr "Hava Pompası"
@@ -9162,7 +9168,7 @@ msgid "Cutting Module"
 msgstr "Kesme Modülü"
 
 msgid "Auto Fire Extinguishing System"
-msgstr ""
+msgstr "Daha fazla bilgi için burayı tıklayın"
 
 msgid "Model:"
 msgstr "Model:"
@@ -9458,7 +9464,7 @@ msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr " Hariç tutma alanına çok yakın olduğundan yazdırma sırasında çarpışmalar meydana gelebilir."
 
 msgid " is too close to clumping detection area, there may be collisions when printing."
-msgstr ""
+msgstr " topaklanma algılama alanına çok yakınsa, yazdırma sırasında çarpışmalar olabilir."
 
 msgid "Prime Tower"
 msgstr "Prime Kulesi"
@@ -9470,7 +9476,7 @@ msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr " dışlama alanına çok yakın ve çarpışmalara neden olacak.\n"
 
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
-msgstr ""
+msgstr " topaklanma algılama alanına çok yakın ve çarpışmalara neden olacaktır.\n"
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "Yüksek sıcaklıklı ve düşük sıcaklıklı filamentlerin birlikte yazdırılması nozül tıkanmasına veya yazıcı hasarına neden olabilir."
@@ -9479,7 +9485,7 @@ msgid "Printing high-temp and low-temp filaments together may cause nozzle clogg
 msgstr "Yüksek sıcaklıklı ve düşük sıcaklıklı filamentlerin birlikte yazdırılması nozül tıkanmasına veya yazıcı hasarına neden olabilir. Yine de yazdırmak istiyorsanız, Tercihler'de seçeneği etkinleştirebilirsiniz."
 
 msgid "Printing different-temp filaments together may cause nozzle clogging or printer damage."
-msgstr ""
+msgstr "Farklı sıcaklıktaki filamentleri birlikte yazdırmak, nozulun tıkanmasına veya yazıcının hasar görmesine neden olabilir."
 
 msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "Yüksek sıcaklık ve orta sıcaklık filamentlerinin birlikte yazdırılması nozül tıkanmasına veya yazıcı hasarına neden olabilir."
@@ -9494,10 +9500,10 @@ msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is 
 msgstr "\"Nesneye göre\" dizisi etkinleştirildiğinde, hızlandırılmış çekimin yumuşak modu desteklenmez."
 
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
-msgstr ""
+msgstr "“Nesneye göre” sıralama etkinleştirildiğinde topaklanma algılama desteklenmez."
 
 msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
-msgstr ""
+msgstr "Topaklanma tespiti için prime kulesi gereklidir; aksi takdirde modelde kusurlar olabilir."
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Birden fazla nesneyi spiral vazo modunda yazdırmak için lütfen \"Nesneye göre\" yazdırma sırasını seçin."
@@ -9846,7 +9852,7 @@ msgstr "mm/s"
 
 #, c-format, boost-format
 msgid "Speed of 100%% overhang wall which has 0 overlap with the lower layer."
-msgstr ""
+msgstr "Alt katmanla 0 örtüşme olan 100%% çıkıntılı duvar hızı."
 
 msgid "Slow down by height"
 msgstr "Yüksekliğe göre yavaşla"
@@ -10104,7 +10110,7 @@ msgid "This setting will affect the speed of perimeters having radius <= small p
 msgstr "Bu ayar, yarıçapı <= küçük çevre eşiğine (genellikle delikler) sahip çevrelerin hızını etkileyecektir. Yüzde olarak ifade edilirse (örneğin: %80) yukarıdaki dış duvar hızı ayarı üzerinden hesaplanacaktır. Otomatik için sıfır olarak ayarlayın."
 
 msgid "Small perimeter threshold"
-msgstr ""
+msgstr "Küçük çevre eşiği"
 
 msgid "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr "Bu, küçük çevre uzunluğu için eşiği belirler. Varsayılan eşik 0 mm'dir"
@@ -10317,13 +10323,13 @@ msgid "Filament diameter is used to calculate extrusion in gcode, so it's import
 msgstr "Filament çapı, gcode'da ekstrüzyonu hesaplamak için kullanılır; bu nedenle önemlidir ve doğru olmalıdır"
 
 msgid "Adaptive volumetric speed"
-msgstr ""
+msgstr "Uyarlanabilir hacimsel hız"
 
 msgid "When enabled, the extrusion flow is limited by the smaller of the fitted value (calculated from line width and layer height) and the user-defined maximum flow. When disabled, only the user-defined maximum flow is applied."
-msgstr ""
+msgstr "Etkinleştirildiğinde, ekstrüzyon akışı, uyarlanmış değer (çizgi genişliği ve katman yüksekliğinden hesaplanır) ile kullanıcı tanımlı maksimum akıştan küçük olanı ile sınırlandırılır. Devre dışı bırakıldığında, yalnızca kullanıcı tanımlı maksimum akış uygulanır."
 
 msgid "Max volumetric speed multinomial coefficients"
-msgstr ""
+msgstr "Maksimum hacimsel hız multinomial katsayıları"
 
 msgid "Shrinkage"
 msgstr "Büzüşme"
@@ -10337,10 +10343,10 @@ msgstr ""
 "Bu telafi kontrollerden sonra yapıldığından, nesneler arasında yeterli boşluk bıraktığınızdan emin olun."
 
 msgid "Velocity Adaptation Factor"
-msgstr ""
+msgstr "Hız Uyum Faktörü"
 
 msgid "This parameter reflects the speed at which a material transitions from one state to another. It, along with the smooth coefficient, determines the final length of the transition zone. A larger value: requires a shorter transition zone. A smaller value: requires a longer transition zone to avoid flow instability."
-msgstr ""
+msgstr "Bu parametre, bir malzemenin bir durumdan diğerine geçiş hızını yansıtır. Düzgünlük katsayısı ile birlikte, geçiş bölgesinin nihai uzunluğunu belirler. Daha büyük bir değer: daha kısa bir geçiş bölgesi gerektirir. Daha küçük bir değer: akış dengesizliğini önlemek için daha uzun bir geçiş bölgesi gerektirir."
 
 msgid "Adhesiveness Category"
 msgstr "Yapışkanlık Kategorisi"
@@ -10671,19 +10677,19 @@ msgid "Enable this to enable the camera on printer to check the quality of first
 msgstr "Yazıcıdaki kameranın ilk katmanın kalitesini kontrol etmesini sağlamak için bunu etkinleştirin"
 
 msgid "Enable clumping detection"
-msgstr ""
+msgstr "Topaklanma algılamayı etkinleştir"
 
 msgid "Clumping detection layers"
-msgstr ""
+msgstr "Topaklanma algılama katmanları"
 
 msgid "Clumping detection layers."
-msgstr ""
+msgstr "Topaklanma algılama katmanları."
 
 msgid "Probing exclude area of clumping"
-msgstr ""
+msgstr "Topaklanma alanını hariç tutun"
 
 msgid "Probing exclude area of clumping."
-msgstr ""
+msgstr "Topaklanma alanını hariç tutarak inceleme."
 
 msgid "Thumbnail size"
 msgstr "Küçük resim boyutu"
@@ -10950,7 +10956,7 @@ msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "Bu gcode kısmı, z kaldırma işleminden sonra her katman değişikliğinde eklenir"
 
 msgid "Clumping detection G-code"
-msgstr ""
+msgstr "Topaklanma algılama G-code"
 
 msgid "Supports silent mode"
 msgstr "Sessiz modu destekler"
@@ -13717,40 +13723,40 @@ msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Hıza öncelik veren 0,8 mm nozul için standart profil."
 
 msgid "Helio: Process Started"
-msgstr ""
+msgstr "Helio: İşlem Başladı"
 
 msgid "Helio API endpoint is empty, please check the configuration."
-msgstr ""
+msgstr "Helio API uç noktası boş, lütfen yapılandırmayı kontrol edin."
 
 msgid "Personal assecc token is empty, please fill in the correct token."
-msgstr ""
+msgstr "Kişisel erişim anahtarı boş, lütfen doğru anahtarı girin."
 
 msgid "Helio: Presigned URL Created"
-msgstr ""
+msgstr "Helio: Önceden imzalanmış URL oluşturuldu"
 
 msgid "Helio: file succesfully uploaded"
-msgstr ""
+msgstr "Helio: dosya başarıyla yüklendi"
 
 msgid "Helio: file upload failed"
-msgstr ""
+msgstr "Helio: dosya yükleme başarısız oldu"
 
 msgid "Please make sure you have the corrent API key set in preferences."
-msgstr ""
+msgstr "Tercihlerinizde doğru API anahtarının ayarlandığından emin olun."
 
 msgid "Helio: GCode created successfully"
-msgstr ""
+msgstr "Helio: GCode başarıyla oluşturuldu"
 
 msgid "Helio: simulation successfully created"
-msgstr ""
+msgstr "Helio: simülasyon başarıyla oluşturuldu"
 
 msgid "Helio: simulation working"
-msgstr ""
+msgstr "Helio: simülasyon çalışıyor"
 
 msgid "Helio: simulation failed"
-msgstr ""
+msgstr "Helio: simülasyon başarısız oldu"
 
 msgid "Helio: GCode downloaded successfully"
-msgstr ""
+msgstr "Helio: GCode başarıyla indirildi"
 
 msgid "No AMS"
 msgstr "AMS Yok"
@@ -14163,8 +14169,7 @@ msgstr ""
 "Baskılarınızı plakalara ayırın\n"
 "Çok sayıda parçası olan bir modeli baskıya hazır ayrı kalıplara bölebileceğinizi biliyor muydunuz? Bu, tüm parçaları takip etme sürecini basitleştirecektir."
 
-#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
-#: Height]
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer Height]
 msgid ""
 "Speed up your print with Adaptive Layer Height\n"
 "Did you know that you can print a model even faster, by using the Adaptive Layer Height option? Check it out!"
@@ -14236,8 +14241,7 @@ msgstr ""
 "Gücü artırın\n"
 "Modelin gücünü artırmak için daha fazla duvar halkası ve daha yüksek seyrek dolgu yoğunluğu kullanabileceğinizi biliyor muydunuz?"
 
-#: resources/data/hints.ini: [hint:When need to print with the printer door
-#: opened]
+#: resources/data/hints.ini: [hint:When need to print with the printer door opened]
 msgid ""
 "When need to print with the printer door opened\n"
 "Did you know that opening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki."
