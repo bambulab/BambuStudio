@@ -559,7 +559,6 @@ namespace Slic3r
     }
 
 
-
     template<class T>
     static std::vector<T> collect_filaments_in_groups(const std::unordered_set<unsigned int>& group, const std::vector<unsigned int>& filament_list) {
         std::vector<T>ret;
@@ -602,14 +601,7 @@ namespace Slic3r
     }
 
 
-    // get best filament order of multiple nozzle
-    std::vector<std::vector<int>> get_extruders_order(const std::vector<std::vector<float>>& wipe_volumes,
-        const std::vector<int>& curr_layer_filaments,
-        const std::vector<int>& nozzle_state,
-        float* min_cost)
-    {
-        return solve_extruder_order_with_MCMF(wipe_volumes, curr_layer_filaments, nozzle_state, min_cost);
-    }
+
 
     // TODO:  add cusotm sequence
     static int reorder_filaments_for_minimum_flush_volume_base(const std::vector<unsigned int>& filament_lists,
@@ -890,6 +882,103 @@ namespace Slic3r
     }
 
 #if DEBUG_MULTI_NOZZLE_MCMF
+
+    //solve the problem by min cost max flow
+    static std::vector<std::vector<int>> solve_extruder_order_with_MCMF(const std::vector<std::vector<float>>& wipe_volumes,
+        const std::vector<int>& curr_layer_filaments,
+        const std::vector<int>& nozzle_state,
+        float* min_cost)
+    {
+        std::vector<std::vector<int>>ret;
+        std::vector<int>l_nodes = nozzle_state;
+        std::vector<int>r_nodes = curr_layer_filaments;
+        std::sort(r_nodes.begin(), r_nodes.end());
+
+        int nozzle_num = nozzle_state.size();
+        int filament_num = curr_layer_filaments.size();
+        int epochs = std::ceil(filament_num / (double)(nozzle_num));
+        for (int i = 0; i < epochs; ++i) {
+            GeneralMinCostSolver s(wipe_volumes, l_nodes, r_nodes);
+            auto match = s.solve();
+            ret.emplace_back(match);
+            l_nodes = match;
+
+            auto remove_iter = std::remove_if(r_nodes.begin(), r_nodes.end(), [match](auto item) {
+                return std::find(match.begin(), match.end(), item) != match.end();
+                });
+            r_nodes.erase(remove_iter, r_nodes.end());
+        }
+
+        if (min_cost) {
+            float cost = 0;
+            std::vector<int>nozzle_filament = nozzle_state;
+            for (int seq = 0; seq < ret.size(); ++seq) {
+                for (int id = 0; id < ret[seq].size(); ++id) {
+                    if (ret[seq][id] != -1) {
+                        if (nozzle_filament[id] != -1)
+                            cost += wipe_volumes[nozzle_filament[id]][ret[seq][id]];
+                        nozzle_filament[id] = ret[seq][id];
+                    }
+                }
+            }
+            *min_cost = cost;
+        }
+
+        return ret;
+    }
+
+        // get best filament order of multiple nozzle
+    std::vector<std::vector<int>> get_extruders_order(const std::vector<std::vector<float>>& wipe_volumes,
+        const std::vector<int>& curr_layer_filaments,
+        const std::vector<int>& nozzle_state,
+        float* min_cost)
+    {
+        return solve_extruder_order_with_MCMF(wipe_volumes, curr_layer_filaments, nozzle_state, min_cost);
+    }
+
+
+    // get nozzle match data when user set the filament sequence
+    static std::vector<std::vector<int>> get_nozzle_match_in_given_order(const std::vector<std::vector<float>>& wipe_volumes,
+        const std::vector<unsigned int>& layer_filaments_sequence,
+        const std::vector<int>& nozzle_state,
+        float* min_cost)
+    {
+        std::vector<std::vector<int>> ret;
+        std::vector<int>state = nozzle_state;
+        std::vector<int>filament_nozzles; //nozzles where each filament is placed
+
+        float cost = 0;
+
+        for (auto f : layer_filaments_sequence) {
+            float min_flush = std::numeric_limits<float>::max();
+            int min_flush_idx = -1;
+            for (size_t idx = 0; idx < state.size(); ++idx) {
+                float flush = (state[idx] == -1 ? 0 : wipe_volumes[state[idx]][f]);
+                if (flush < min_flush) {
+                    min_flush = flush;
+                    min_flush_idx = idx;
+                }
+            }
+            cost += min_flush;
+            state[min_flush_idx] = f;
+            filament_nozzles.emplace_back(min_flush_idx);
+        }
+
+        assert(filament_nozzles.size() == layer_filaments_sequence.size());
+        int prev = -1;
+        for (int idx = 0; idx < filament_nozzles.size(); ++idx) {
+            if (prev == -1 || filament_nozzles[idx] <= prev) {
+                ret.emplace_back(std::vector<int>(nozzle_state.size(), -1));
+            }
+            ret.back()[filament_nozzles[idx]] = layer_filaments_sequence[idx];
+            prev = filament_nozzles[idx];
+        }
+
+        if (min_cost)
+            *min_cost = cost;
+
+        return ret;
+    }
     int reorder_filaments_for_multi_nozzle_extruder(const std::vector<unsigned int>& filament_lists,
         const std::vector<int>& filament_maps,
         const std::vector<std::vector<unsigned int>>& layer_filaments,
