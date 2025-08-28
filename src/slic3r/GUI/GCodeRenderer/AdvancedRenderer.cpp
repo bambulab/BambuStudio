@@ -808,6 +808,23 @@ namespace Slic3r
                 if (!m_p_layer_manager || !m_p_layer_manager->size()) {
                     return false;
                 }
+
+                m_conflict_result = gcode_result.conflict_result;
+                if (m_conflict_result) {
+                    const auto t_layer_count = m_p_layer_manager->size();
+                    const auto conflict_height = m_conflict_result.value()._height;
+                    int tLayerId = -1;
+                    for (size_t i = 0; i < t_layer_count; ++i) {
+                        const auto& tpLayer = (*m_p_layer_manager)[i];
+                        if (tpLayer.get_z() < conflict_height) {
+                            continue;
+                        }
+                        tLayerId = i + 1;
+                        break;
+                    }
+                    m_conflict_result.value().layer = tLayerId;
+                }
+
                 return true;
             }
 
@@ -1652,7 +1669,7 @@ namespace Slic3r
                 const uint32_t width = color_count;
                 const uint32_t height = 1;
                 if (m_b_tool_colors_dirty) {
-                    if (!m_p_tool_colors_texture || width > m_p_tool_colors_texture->get_width()) {
+                    if (!m_p_tool_colors_texture || width != m_p_tool_colors_texture->get_width()) {
                         m_p_tool_colors_texture = std::make_shared<GLTexture>();
                         m_p_tool_colors_texture->set_width(width)
                             .set_height(height)
@@ -2319,6 +2336,11 @@ namespace Slic3r
             }
 
             Layer& LayerManager::operator[](size_t index)
+            {
+                return m_layer_list[index];
+            }
+
+            const Layer& LayerManager::operator[](size_t index) const
             {
                 return m_layer_list[index];
             }
