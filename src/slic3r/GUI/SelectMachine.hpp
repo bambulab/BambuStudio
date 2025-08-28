@@ -418,6 +418,7 @@ protected:
 
     wxBoxSizer*                         m_filament_panel_sizer;
     wxBoxSizer*                         m_filament_panel_left_sizer;
+    Label*                              m_filament_right_title;
     wxBoxSizer*                         m_filament_panel_right_sizer;
     wxBoxSizer*                         m_sizer_filament_2extruder;
 

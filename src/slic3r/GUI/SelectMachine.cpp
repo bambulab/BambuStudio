@@ -446,10 +446,10 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_filament_panel_right_sizer = new wxBoxSizer(wxVERTICAL);
     auto right_recommend_title_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto right_recommend_title1 = new Label(m_filament_right_panel, _L("Right Nozzle"));
-    right_recommend_title1->SetFont(::Label::Head_13);
-    right_recommend_title1->SetBackgroundColour(wxColour("#F8F8F8"));
-    right_recommend_title_sizer->Add(right_recommend_title1, 0, wxALIGN_CENTER, 0);
+    m_filament_right_title = new Label(m_filament_right_panel, _L("Right Nozzle"));
+    m_filament_right_title->SetFont(::Label::Head_13);
+    m_filament_right_title->SetBackgroundColour(wxColour("#F8F8F8"));
+    right_recommend_title_sizer->Add(m_filament_right_title, 0, wxALIGN_CENTER, 0);
 
     m_sizer_ams_mapping_right = new wxGridSizer(0, 5, FromDIP(7), FromDIP(7));
     m_filament_panel_right_sizer->Add(right_recommend_title_sizer, 0, wxLEFT|wxRIGHT|wxTOP, FromDIP(10));
@@ -3049,11 +3049,16 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     MachineObject* obj_ = get_current_machine();
     if(!obj_) return;
 
-    if (obj_->GetExtderSystem()->GetTotalExtderCount() > 1)
-    {
+    if (obj_->GetExtderSystem()->GetTotalExtderCount() > 1) {
         change_materialitem_tip(false); /*mapping to both ams and ext, is supported while total_extder_count is 2*/
     } else {
         change_materialitem_tip(true);
+    }
+
+    if (obj_->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->IsBowdenExtuder()) {
+        m_filament_right_title->SetLabel(_L("Right Nozzle(Aux)"));
+    } else {
+        m_filament_right_title->SetLabel(_L("Right Nozzle"));
     }
 
     update_ams_backup(obj_);
@@ -3789,6 +3794,8 @@ void SelectMachineDialog::set_default()
     }
     m_current_project_name = wxString::FromUTF8(file_name);
 
+    // filament area title
+    m_filament_right_title->SetLabel(_L("Right Nozzle"));
 
     //unsupported character filter
     m_current_project_name = from_u8(filter_characters(m_current_project_name.ToUTF8().data(), "<>[]:/\\|?*\""));
