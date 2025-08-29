@@ -485,6 +485,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/AmsMappingPopup.cpp
     GUI/ReleaseNote.hpp
     GUI/ReleaseNote.cpp
+    GUI/HelioReleaseNote.hpp
+    GUI/HelioReleaseNote.cpp
     GUI/SingleChoiceDialog.hpp
     GUI/SingleChoiceDialog.cpp
     GUI/CaliHistoryDialog.hpp
