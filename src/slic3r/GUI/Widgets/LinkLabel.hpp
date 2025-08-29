@@ -3,6 +3,8 @@
 
 #include "Label.hpp"
 
+wxDECLARE_EVENT(EVT_LINK_LABEL_LEFT_DOWN, wxCommandEvent);
+
 class LinkLabel : public wxWindow
 {
 private:
