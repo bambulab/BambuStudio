@@ -53,6 +53,7 @@
 #define BBL_JSON_KEY_FILAMENT_ID    "filament_id"
 #define BBL_JSON_KEY_UPDATE_TIME    "updated_time"
 #define BBL_JSON_KEY_INHERITS       "inherits"
+#define BBL_JSON_KEY_INCLUDES       "includes"
 #define BBL_JSON_KEY_INSTANTIATION  "instantiation"
 #define BBL_JSON_KEY_NOZZLE_DIAMETER            "nozzle_diameter"
 #define BBL_JSON_KEY_PRINTER_TECH                 "machine_tech"
