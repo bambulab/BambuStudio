@@ -1091,6 +1091,8 @@ void MainFrame::show_option(bool show)
             m_print_btn->Hide();
             m_slice_option_btn->Hide();
             m_print_option_btn->Hide();
+            split_line_icon->Hide();
+            expand_program_icon->Hide();
             Layout();
         }
     } else {
@@ -1099,6 +1101,8 @@ void MainFrame::show_option(bool show)
             m_print_btn->Show();
             m_slice_option_btn->Show();
             m_print_option_btn->Show();
+            split_line_icon->Show();
+            expand_program_icon->Show();
             Layout();
         }
     }
@@ -1687,6 +1691,18 @@ wxBoxSizer* MainFrame::create_side_tools()
     slice_sizer->Add(m_slice_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
     slice_panel->SetSizer(slice_sizer);
 
+#ifdef __APPLE__
+    split_line_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("topbar_line", this, 24), wxDefaultPosition, wxSize(FromDIP(3), FromDIP(24)), 0);
+    expand_program_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("expand_program", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
+
+    expand_program_icon->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    expand_program_icon->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+    expand_program_icon->Bind(wxEVT_LEFT_DOWN, [this](auto& event) {
+        ExpandCenterDialog dlg;
+        dlg.ShowModal();
+    });
+#endif
+
     auto print_sizer = new wxBoxSizer(wxHORIZONTAL);
     print_sizer->Add(m_print_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
     print_sizer->Add(m_print_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
@@ -1699,6 +1715,12 @@ wxBoxSizer* MainFrame::create_side_tools()
     sizer->Add(slice_panel);
     sizer->Add(FromDIP(15), 0, 0, 0, 0);
     sizer->Add(print_panel);
+#ifdef __APPLE__
+    sizer->Add(FromDIP(4), 0, 0, 0, 0);
+    sizer->Add(split_line_icon, 0, wxALIGN_CENTER, 0);
+    sizer->Add(FromDIP(4), 0, 0, 0, 0);
+    sizer->Add(expand_program_icon, 0, wxALIGN_CENTER, 0);
+#endif
     sizer->Add(FromDIP(19), 0, 0, 0, 0);
 
     sizer->Layout();

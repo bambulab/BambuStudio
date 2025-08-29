@@ -401,6 +401,9 @@ public:
     SideButton* m_print_btn{ nullptr };
     SideButton* m_print_option_btn{ nullptr };
 
+    wxStaticBitmap* split_line_icon{nullptr};
+    wxStaticBitmap* expand_program_icon{nullptr};
+
     SidePopup*  m_slice_option_pop_up{ nullptr };
 
     FilamentGroupPopup* m_filament_group_popup{ nullptr };

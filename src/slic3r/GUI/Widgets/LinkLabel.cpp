@@ -1,6 +1,8 @@
 #include <wx/sizer.h>
 #include "LinkLabel.hpp"
 
+wxDEFINE_EVENT(EVT_LINK_LABEL_LEFT_DOWN, wxCommandEvent);
+
 LinkLabel::LinkLabel(wxWindow *parent, wxString const &text, std::string url, long style, wxSize size)
     : wxWindow(parent, wxID_ANY, wxDefaultPosition, size, style)
 {
@@ -45,6 +47,10 @@ void LinkLabel::link(wxMouseEvent &evt)
     if (!m_url.IsEmpty()) {
         wxLaunchDefaultBrowser(m_url);
     }
+
+    wxCommandEvent e(EVT_LINK_LABEL_LEFT_DOWN, GetId());
+    e.SetEventObject(this);
+    GetEventHandler()->ProcessEvent(e);
 }
 
 bool LinkLabel::SeLinkLabelFColour(const wxColour &colour)
