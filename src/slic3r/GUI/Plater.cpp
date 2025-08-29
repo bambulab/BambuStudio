@@ -155,6 +155,8 @@
 #include "DeviceCore/DevManager.h"
 #include "ImageMessageDialog.hpp"
 
+#include "HelioReleaseNote.hpp"
+
 using boost::optional;
 namespace fs = boost::filesystem;
 using Slic3r::_3DScene;

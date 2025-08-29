@@ -37,6 +37,7 @@ public:
     void OnRedo(wxAuiToolBarEvent& event);
     void OnModelStoreClicked(wxAuiToolBarEvent& event);
     void OnPublishClicked(wxAuiToolBarEvent &event);
+    void OnExpandClicked(wxAuiToolBarEvent &event);
 
     wxAuiToolBarItem* FindToolByCurrentPosition();
 

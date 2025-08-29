@@ -32,12 +32,10 @@
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
 #include "DeviceManager.hpp"
-#include "HelioDragon.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
-#include "Widgets/LinkLabel.hpp"
 #include "Widgets/ScrolledWindow.hpp"
 #include <wx/hashmap.h>
 #include <wx/webview.h>
@@ -367,104 +365,15 @@ public:
     void on_dpi_changed(const wxRect &suggested_rect) override;
 };
 
-class HelioStatementDialog : public DPIDialog
-{
-private:
-    Label *m_title{nullptr};
-    Button *m_button_confirm{nullptr};
-    Button *m_button_cancel{nullptr};
-
-
-public:
-    HelioStatementDialog(wxWindow *parent = nullptr);
-    ~HelioStatementDialog(){};
-
-    // void on_ok(wxMouseEvent &evt);
-    void on_dpi_changed(const wxRect &suggested_rect) override;
-};
-
-class HelioRemainUsageTime : public wxPanel
+class ExpandCenterDialog : public DPIDialog
 {
 public:
-    Label* label_click_to_use{ nullptr };
-    Label* label_click_to_buy{ nullptr };
-    HelioRemainUsageTime(wxWindow *parent = nullptr, wxString label = wxEmptyString);
+    ExpandCenterDialog(wxWindow* parent = nullptr);
+    ~ExpandCenterDialog() {};
 
-public:
-    void UpdateRemainTime(int remain_time);
-    void UpdateHelpTips(int type);
-
-private:
-    void Create(wxString label);
-   
-private:
-    int    m_remain_usage_time = 0;
-    Label* m_label_remain_usage_time;
-};
-
-class HelioInputDialog : public DPIDialog
-{
-private:
-    bool use_advanced_settings{false};
-    bool only_advanced_settings{false};
-
-    CustomToggleButton* togglebutton_simulate{nullptr};
-    CustomToggleButton* togglebutton_optimize{nullptr};
-
-    std::map<std::string, TextInput*> m_input_items;
-    std::map<std::string, ComboBox*> m_combo_items;
-    Button* m_button_confirm{nullptr};
-    wxString m_lastValidValue = wxEmptyString;
-
-    wxPanel* panel_simulation{nullptr};
-    wxPanel* panel_pay_optimization{nullptr};
-    wxPanel* panel_optimization{nullptr};
-
-    wxPanel* advanced_settings_link{nullptr};
-    LinkLabel* buy_now_link{nullptr};
-    LinkLabel* helio_wiki_link{nullptr};
-
-    int current_action{-1}; //0-simulation 1-optimization
-    int support_optimization{0}; //-1-no 0-yes
-    int remaining_optimization_times{0};
-
-    wxStaticBitmap* advanced_options_icon{nullptr};
-    wxPanel* panel_advanced_option{nullptr};
-
-    std::shared_ptr<int> shared_ptr{nullptr};
-
-    HelioRemainUsageTime* m_remain_usage_time{nullptr};
-    HelioRemainUsageTime* m_remain_purchased_time{nullptr};
-public:
-    HelioInputDialog(wxWindow *parent = nullptr);
-    ~HelioInputDialog() {};
-
-public:
-    int get_action() const { return current_action; }
-
-    HelioQuery::SimulationInput get_simulation_input(bool& ok);
-    HelioQuery::OptimizationInput get_optimization_input(bool& ok);
-
-private:
-    wxBoxSizer* create_input_item(wxWindow* parent, std::string key, wxString name, wxString unit,
-                                  const std::vector<std::shared_ptr<TextInputValChecker>>& checkers);
-    wxBoxSizer* create_combo_item(wxWindow* parent, std::string key,  wxString name, std::map<int, wxString> combolist, int def);
-    wxBoxSizer* create_input_optimize_layers(wxWindow* parent, int layer_count);
-
-    void on_selected_simulation(wxMouseEvent& e) { update_action(0); }
-    void on_selected_optimaztion(wxMouseEvent& e){ update_action(1); }
-    void on_confirm(wxMouseEvent& e);
+    //void on_ok(wxMouseEvent &evt);
     void on_dpi_changed(const wxRect& suggested_rect) override;
-    void update_action(int action);
-    void show_advanced_mode();
-};
-
-class HelioPatNotEnoughDialog : public DPIDialog
-{
-public:
-    HelioPatNotEnoughDialog(wxWindow* parent = nullptr);
-    ~HelioPatNotEnoughDialog();
-    void on_dpi_changed(const wxRect& suggested_rect) override;
+    void on_open_expand(const wxCommandEvent& evt);
 };
 
 wxDECLARE_EVENT(EVT_CLOSE_IPADDRESS_DLG, wxCommandEvent);

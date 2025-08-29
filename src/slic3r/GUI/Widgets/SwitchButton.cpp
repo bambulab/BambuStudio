@@ -420,8 +420,8 @@ void CustomToggleButton::doRender(wxDC& dc)
 
     // Draw background
     if (m_isSelected) {
-        dc.SetBrush(wxBrush(wxColour("#DEF5E7")));
-        dc.SetPen(wxPen(wxColour("#00AE42")));
+        dc.SetBrush(wxBrush(m_secondary_colour));
+        dc.SetPen(wxPen(m_primary_colour));
     }
     else {
         dc.SetBrush(wxBrush(wxColour("#FFFFFF")));
@@ -449,7 +449,7 @@ void CustomToggleButton::doRender(wxDC& dc)
     dc.SetFont(::Label::Head_13);
 
     if (m_isSelected) {
-        dc.SetTextForeground(wxColour("#00AE42"));
+        dc.SetTextForeground(m_primary_colour);
     }
     else {
         dc.SetTextForeground(wxColour("#5C5C5C"));

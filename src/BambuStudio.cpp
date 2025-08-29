@@ -6640,7 +6640,7 @@ int CLI::run(int argc, char **argv)
                                 if (custom_gcodes_iter != model.plates_custom_gcodes.end())
                                 {
                                     CustomGCode::Info custom_gcodes = custom_gcodes_iter->second;
-                                    for (const Item& custom_gcode : custom_gcodes.gcodes)
+                                    for (const CustomGCode::Item& custom_gcode : custom_gcodes.gcodes)
                                         if (custom_gcode.type == CustomGCode::ToolChange) {
                                             has_tool_change = true;
                                             break;
