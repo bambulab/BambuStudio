@@ -48,6 +48,15 @@ bool support_nozzle_volume(const MachineObject* obj)
     return false;
 }
 
+wxString nozzle_id_code_to_string(int code){
+    if(code == 0){
+        return "R";
+    } else if(code >= 0x10){
+        return wxString::Format("%d", code - 0x10 +1);
+    }
+    return wxEmptyString;
+}
+
 static wxString get_preset_name_by_filament_id(std::string filament_id)
 {
     auto preset_bundle = wxGetApp().preset_bundle;
@@ -343,7 +352,7 @@ void HistoryWindow::sync_history_data() {
     if(rack->IsSupported() && get_extruder_id() == MAIN_EXTRUDER_ID) {
         auto nozzle_name = new Label(m_history_data_panel, _L("Nozzle ID"));
         nozzle_name->SetFont(Label::Head_14);
-         auto font = nozzle_name->GetFont();
+        auto font = nozzle_name->GetFont();
         font.SetUnderlined(true);
         nozzle_name->SetFont(font);
         nozzle_name->SetToolTip(_L("Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."));
@@ -458,7 +467,7 @@ void HistoryWindow::sync_history_data() {
         auto rack = curr_obj->GetNozzleSystem()->GetNozzleRack();
         if(rack->IsSupported() && get_extruder_id() == MAIN_EXTRUDER_ID){
             // Nozzle ID
-            wxString nozzle_id       = "R";
+            wxString nozzle_id       = nozzle_id_code_to_string(result.nozzle_pos_id);
             auto     nozzle_id_label = new Label(m_history_data_panel, nozzle_id);
             gbSizer->Add(nozzle_id_label, {i, column_idx++}, {1, 1}, wxBOTTOM, FromDIP(15));
         }
@@ -576,9 +585,13 @@ EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow             
 
     // Nozzle ID
     auto rack = obj->GetNozzleSystem()->GetNozzleRack();
-    if(rack->IsSupported()) {// [have to check main_extuder by other way!!!!]
+    if(rack->IsSupported() && result.extruder_id == MAIN_EXTRUDER_ID) {
         Label* nozzle_id_title = new Label(top_panel, _L("Nozzle ID"));
+<<<<<<< HEAD
         wxString nozzle_id = "R";
+=======
+        wxString nozzle_id     = nozzle_id_code_to_string(result.nozzle_pos_id);
+>>>>>>> 1d8d641b29 (FIX: check combox ptr for O1C)
         Label* nozzle_id_value = new Label(top_panel, nozzle_id);
         flex_sizer->Add(nozzle_id_title);
         flex_sizer->Add(nozzle_id_value);
@@ -932,6 +945,18 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
+<<<<<<< HEAD
+=======
+int NewCalibrationHistoryDialog::get_nozzle_combo_id_code() const{
+    if(!m_comboBox_nozzle_id) return -1;
+
+    auto sel = m_comboBox_nozzle_id->GetSelection();
+    if (sel != wxNOT_FOUND) return *(reinterpret_cast<int*>(m_comboBox_nozzle_id->GetClientData(sel)));
+
+    return -1;
+}
+
+>>>>>>> 1d8d641b29 (FIX: check combox ptr for O1C)
 int NewCalibrationHistoryDialog::get_extruder_id(int extruder_index)
 {
     if ((extruder_index != -1) && curr_obj->is_multi_extruders()) {
@@ -941,7 +966,14 @@ int NewCalibrationHistoryDialog::get_extruder_id(int extruder_index)
 }
 
 void NewCalibrationHistoryDialog::on_select_extruder(wxCommandEvent &event){
+<<<<<<< HEAD
     if(m_comboBox_extruder->GetStringSelection() == "Right"){
+=======
+    if(!m_comboBox_nozzle_id) return;
+
+    /* select right extruder */
+    if(m_comboBox_extruder->GetSelection() == 1){
+>>>>>>> 1d8d641b29 (FIX: check combox ptr for O1C)
         m_comboBox_nozzle_id->Enable();
     }else{
         m_comboBox_nozzle_id->Disable();
