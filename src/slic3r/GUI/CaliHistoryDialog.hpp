@@ -92,7 +92,7 @@ protected:
     ComboBox *m_comboBox_filament;
     ComboBox *m_comboBox_extruder;
     ComboBox *m_comboBox_nozzle_type;
-    ComboBox *m_comboBox_nozzle_id;
+    ComboBox *m_comboBox_nozzle_id{nullptr};
 
     struct FilamentInfos
     {
