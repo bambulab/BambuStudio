@@ -4252,6 +4252,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         DynamicPrintConfig        config;
         std::string 			  alias_name, inherits, description, instantiation, setting_id, filament_id;
         std::vector<std::string>  renamed_from;
+        std::vector<std::string>  includes;
         const DynamicPrintConfig* default_config = nullptr;
         std::string               reason;
         try {
@@ -4303,6 +4304,47 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
                     default_config = &presets_collection->default_preset().config;
             }
             config = *default_config;
+
+            auto includes_it = key_values.find(BBL_JSON_KEY_INCLUDES);
+            if (includes_it != key_values.end() && !includes_it->second.empty()) {
+                std::string include = includes_it->second;
+                if (include.front() == '"' && include.back() == '"') {
+                    includes.push_back(include.substr(1, include.length() - 2));
+                }
+                else if (include.front() == '[' && include.back() == ']') {
+                    try {
+                        nlohmann::json includes_json = nlohmann::json::parse(include);
+                        if (includes_json.is_array()) {
+                            for (const auto &include_item : includes_json) {
+                                if (include_item.is_string()) { includes.push_back(include_item.get<std::string>()); }
+                            }
+                        }
+                    } catch (const std::exception &e) {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Failed to parse includes array: " << include;
+                    }
+                }
+                else
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": invalid includes format: " << include;
+            }
+            for (const auto &name : includes) {
+                auto it = config_maps.find(name);
+                if (it != config_maps.end()) {
+                    const DynamicPrintConfig &include_config = it->second;
+
+                    const DynamicPrintConfig *include_default_config = nullptr;
+                    if (presets_collection->type() == Preset::TYPE_PRINTER)
+                        include_default_config = &presets_collection->default_preset_for(include_config).config;
+                    else
+                        include_default_config = &presets_collection->default_preset().config;
+                    std::vector<std::string> keys = include_config.diff(*include_default_config);
+
+                    config.apply_only(include_config, keys);
+
+                    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": Applied include " << name << " to " << preset_name;
+                }
+                else
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": can not find include " << name << " for " << preset_name;
+            }
 
             if ( auto ds_iter=key_values.find(BBL_JSON_KEY_DESCRIPTION); ds_iter != key_values.end())
                 description = ds_iter->second;

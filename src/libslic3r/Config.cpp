@@ -902,6 +902,9 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
             else if (!load_inherits_to_config && boost::iequals(it.key(), BBL_JSON_KEY_INHERITS)) {
                 key_values.emplace(BBL_JSON_KEY_INHERITS, it.value());
             }
+            else if (!load_inherits_to_config && boost::iequals(it.key(), BBL_JSON_KEY_INCLUDES)) {
+                key_values.emplace(BBL_JSON_KEY_INCLUDES, it.value().dump());
+            }
             else {
                 t_config_option_key opt_key = it.key();
                 std::string value_str;
