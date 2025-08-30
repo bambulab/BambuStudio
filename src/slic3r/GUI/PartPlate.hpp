@@ -241,8 +241,16 @@ public:
     std::vector<int> get_filament_maps() const;
     void set_filament_maps(const std::vector<int>& f_maps);
 
+    std::vector<int> get_filament_nozzle_maps() const;
+    void set_filament_nozzle_maps(const std::vector<int>& f_maps);
+
+    std::vector<int> get_filament_volume_maps() const;
+    void set_filament_volume_maps(const std::vector<int>& f_maps);
+
     void clear_filament_map();
     void clear_filament_map_mode();
+    void clear_filament_nozzle_map();
+    void clear_filament_volume_map();
 
     bool has_spiral_mode_config() const;
     bool get_spiral_vase_mode() const;
