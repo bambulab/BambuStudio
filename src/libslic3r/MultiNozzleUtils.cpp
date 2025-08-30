@@ -1,5 +1,6 @@
 #include "MultiNozzleUtils.hpp"
 #include "ProjectTask.hpp"
+#include "Utils.hpp"
 
 namespace Slic3r { namespace MultiNozzleUtils {
 
@@ -20,19 +21,6 @@ std::optional<MultiNozzleGroupResult> MultiNozzleGroupResult::init_from_slice_fi
 {
     if (filament_map.empty())
         return std::nullopt;
-
-
-    auto format_diameter_to_str = [](double diameter) {
-        double candidates[] = { 0.2, 0.4, 0.6, 0.8 };
-        double best = *std::min_element(std::begin(candidates), std::end(candidates),
-            [diameter](double a, double b) {
-                return std::abs(a - diameter) < std::abs(b - diameter);
-            });
-        std::ostringstream oss;
-        oss << std::fixed << std::setprecision(1) << best;
-        return oss.str();
-        };
-
 
     std::map<int, NozzleInfo> nozzle_list_map;
     std::vector<int> filament_nozzle_map = filament_map;

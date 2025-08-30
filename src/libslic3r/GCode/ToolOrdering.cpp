@@ -1067,6 +1067,15 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
         return MultiNozzleGroupResult(manual_filament_map, nozzle_list);
     }
 
+    if (mode == FilamentMapMode::fmmNozzleManual){
+        // directly build group result based on filament nozzle map
+        auto manual_filament_map = print_config.filament_map.values;
+        std::transform(manual_filament_map.begin(), manual_filament_map.end(), manual_filament_map.begin(), [](int v) { return v - 1; });
+        auto nozzle_list = build_nozzle_list(print_config.nozzle_diameter.values.front(),print_config.filament_nozzle_map.values, print_config.filament_volume_map.values, manual_filament_map);
+        return MultiNozzleGroupResult(print_config.filament_nozzle_map.values,nozzle_list);
+    }
+
+
     for (size_t nozzle_id = 0; nozzle_id < extruder_nums; ++nozzle_id) {
         std::vector<float>              flush_matrix(cast<float>(get_flush_volumes_matrix(print_config.flush_volumes_matrix.values, nozzle_id, extruder_nums)));
         std::vector<std::vector<float>> wipe_volumes;
