@@ -48,7 +48,9 @@ static std::vector<std::string> s_project_options {
     "flush_multiplier",
     "nozzle_volume_type",
     "filament_map_mode",
-    "filament_map"
+    "filament_map",
+    "filament_volume_map",
+    "filament_nozzle_map"
 };
 
 //BBS: add BBL as default
@@ -1883,6 +1885,12 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     std::vector<int> filament_maps(filament_colors.size(), 1);
     project_config.option<ConfigOptionInts>("filament_map")->values = filament_maps;
 
+    std::vector<int> filament_nozzle_maps(filament_colors.size(),-1);
+    project_config.option<ConfigOptionInts>("filament_nozzle_map")->values = filament_nozzle_maps;
+
+    std::vector<int> filament_volume_maps(filament_colors.size(), NozzleVolumeType::nvtDefault);
+    project_config.option<ConfigOptionInts>("filament_volume_map")->values = filament_volume_maps;
+
     std::vector<std::string> extruder_ams_count_str;
     if (config.has("presets", "extruder_ams_count")) {
         boost::algorithm::split(extruder_ams_count_str, config.get("presets", "extruder_ams_count"), boost::algorithm::is_any_of(","));
@@ -2033,11 +2041,15 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
     ConfigOptionStrings *filament_multi_color = project_config.option<ConfigOptionStrings>("filament_multi_colour");
     ConfigOptionStrings* filament_color_type = project_config.option<ConfigOptionStrings>("filament_colour_type");
     ConfigOptionInts* filament_map = project_config.option<ConfigOptionInts>("filament_map");
+    ConfigOptionInts* filament_nozzle_map = project_config.option<ConfigOptionInts>("filament_nozzle_map");
+    ConfigOptionInts* filament_volume_map = project_config.option<ConfigOptionInts>("filament_volume_map");
     filament_color->resize(n);
     filament_multi_color->resize(n);
     filament_color_type->resize(n);
     filament_map->values.resize(n, 1);
     ams_multi_color_filment.resize(n);
+    filament_nozzle_map->values.resize(n, 0);
+    filament_volume_map->values.resize(n, static_cast<int>(NozzleVolumeType::nvtDefault));
 
     //BBS set new filament color to new_color
     if (old_filament_count < n) {

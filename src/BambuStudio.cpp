@@ -1381,22 +1381,33 @@ int CLI::run(int argc, char **argv)
         return CLI_ENVIRONMENT_ERROR;
     }
 
-     /* BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
+#if 0
+     BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
      for (int index = 0; index < argc; index++)
          BOOST_LOG_TRIVIAL(info) << "index=" << index << ", arg is " << argv[index] << std::endl;
-     int debug_argc = 8;
      char* debug_argv[] = {
-         "F:\work\projects\bambu_debug\bamboo_slicer\build_debug\src\Debug\bambu-studio.exe",
+         "D:/code/bamboo_slicer/Release/1/build/src/Release/bambu-studio.exe",
          "--debug=3",
-         "--export-3mf=output.3mf",
-         "--uptodate",
-         "--downward-check",
          "--slice=1",
-         "--min-save",
-         "cube_a1_switch.3mf"
+         "--nozzle-volume-type",
+         "Standard,Standard",
+         "--filament-map-mode",
+         "Nozzle Manual",
+         "--extruder-nozzle-count",
+         "Standard#1;Standard#3",
+         "--filament-map",
+         "1,2,2,1,2,2,1,1",
+         "--filament-nozzle-map",
+         "0,1,1,0,2,3,0,0",
+         "--filament-volume-map",
+         "0,0,0,0,0,0,0,0",
+         "D:/code/bamboo_slicer/model/H2D-cube.3mf"
      };
-     if (!this->setup(debug_argc, debug_argv))*/
+     int debug_argc = sizeof(debug_argv) / sizeof(debug_argv[0]);
+     if (!this->setup(debug_argc, debug_argv))
+#else
     if (!this->setup(argc, argv))
+#endif
     {
         boost::nowide::cerr << "setup params error" << std::endl;
         return CLI_INVALID_PARAMS;
@@ -6276,6 +6287,8 @@ int CLI::run(int argc, char **argv)
                                 }
                                 else {
                                     std::vector<int> filament_maps;
+                                    std::vector<int> filament_nozzle_maps;
+                                    std::vector<int> filament_volume_maps;  // TODO: print with multi volume types
                                     if (m_extra_config.option<ConfigOptionInts>("filament_map")) {
                                         filament_maps = m_extra_config.option<ConfigOptionInts>("filament_map")->values;
                                         int default_value = -1;
@@ -6319,6 +6332,18 @@ int CLI::run(int argc, char **argv)
                                     }
                                     else
                                         filament_maps = part_plate->get_real_filament_maps(m_print_config);
+
+                                    if (mode == FilamentMapMode::fmmNozzleManual) {
+                                        if(!m_extra_config.option<ConfigOptionInts>("filament_nozzle_map") || !m_extra_config.option<ConfigOptionInts>("filament_nozzle_map")){
+                                            BOOST_LOG_TRIVIAL(error) << boost::format("plate %1% : some filaments can not be mapped under manual mode for multi extruder printer ") % (index + 1);
+                                            record_exit_reson(outfile_dir, CLI_FILAMENT_CAN_NOT_MAP, index + 1, cli_errors[CLI_FILAMENT_CAN_NOT_MAP], sliced_info);
+                                            flush_and_exit(CLI_FILAMENT_CAN_NOT_MAP);
+                                        }
+                                        filament_nozzle_maps = m_extra_config.option<ConfigOptionInts>("filament_nozzle_map")->values;
+                                        filament_volume_maps = m_extra_config.option<ConfigOptionInts>("filament_volume_map")->values;
+                                        part_plate->set_filament_nozzle_maps(filament_nozzle_maps);
+                                        part_plate->set_filament_volume_maps(filament_volume_maps);
+                                    }
 
                                     for (int index = 0; index < filament_maps.size(); index++)
                                     {

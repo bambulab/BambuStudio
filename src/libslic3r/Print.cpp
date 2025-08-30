@@ -305,6 +305,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "extruder_nozzle_count"
             || opt_key == "filament_map_mode"
             || opt_key == "filament_map"
+            || opt_key == "filament_nozzle_map"
+            || opt_key == "filament_volume_map"
             || opt_key == "filament_adhesiveness_category"
             //|| opt_key == "wipe_tower_bridging"
             || opt_key == "wipe_tower_no_sparse_layers"

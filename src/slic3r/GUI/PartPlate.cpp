@@ -3208,8 +3208,11 @@ void PartPlate::set_filament_map_mode(const FilamentMapMode& mode)
 	FilamentMapMode old_real_mode = old_mode == fmmDefault ? global_mode : old_mode;
 	FilamentMapMode new_real_mode = mode == fmmDefault ? global_mode : mode;
 
-	if (old_real_mode != new_real_mode)
+	if (old_real_mode != new_real_mode){
 		clear_filament_map();
+		clear_filament_nozzle_map();
+		clear_filament_volume_map();
+	}
 	if (mode == fmmDefault)
 		clear_filament_map_mode();
 	else
@@ -3228,6 +3231,42 @@ std::vector<int> PartPlate::get_filament_maps() const
 void PartPlate::set_filament_maps(const std::vector<int>& f_maps)
 {
     m_config.option<ConfigOptionInts>("filament_map", true)->values = f_maps;
+}
+
+std::vector<int> PartPlate::get_filament_nozzle_maps() const
+{
+	if(m_config.has("filament_nozzle_map"))
+		return m_config.option<ConfigOptionInts>("filament_nozzle_map")->values;
+	return {};
+}
+
+void PartPlate::set_filament_nozzle_maps(const std::vector<int>& f_maps)
+{
+	m_config.option<ConfigOptionInts>("filament_nozzle_map", true)->values = f_maps;
+}
+
+std::vector<int> PartPlate::get_filament_volume_maps() const
+{
+	if(m_config.has("filament_volume_map"))
+		return m_config.option<ConfigOptionInts>("filament_volume_map")->values;
+	return {};
+}
+
+void PartPlate::set_filament_volume_maps(const std::vector<int>& f_maps)
+{
+	m_config.option<ConfigOptionInts>("filament_volume_map", true)->values = f_maps;
+}
+
+void PartPlate::clear_filament_nozzle_map()
+{
+	if(m_config.has("filament_nozzle_map"))
+		m_config.erase("filament_nozzle_map");
+}
+
+void PartPlate::clear_filament_volume_map()
+{
+	if(m_config.has("filament_volume_map"))
+		m_config.erase("filament_volume_map");
 }
 
 void PartPlate::clear_filament_map()
@@ -3250,6 +3289,8 @@ void PartPlate::on_extruder_count_changed(int extruder_count)
         wxGetApp().plater()->set_global_filament_map(f_map);
         // clear filament map and mode in single extruder mode
         clear_filament_map();
+        clear_filament_nozzle_map();
+        clear_filament_volume_map();
         //clear_filament_map_mode();
         // do not clear mode now, reset to default mode
         m_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = FilamentMapMode::fmmAutoForFlush;
@@ -3262,6 +3303,16 @@ void PartPlate::set_filament_count(int filament_count)
         std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map")->values;
         filament_maps.resize(filament_count, 1);
     }
+
+	if(m_config.has("filament_nozzle_map")){
+		std::vector<int>& filament_nozzle_map = m_config.option<ConfigOptionInts>("filament_nozzle_map")->values;
+		filament_nozzle_map.resize(filament_count, 0);
+	}
+	if (m_config.has("filament_volume_map")) {
+		std::vector<int>& filament_volume_map = m_config.option<ConfigOptionInts>("filament_volume_map")->values;
+		filament_volume_map.resize(filament_count, static_cast<int>(NozzleVolumeType::nvtDefault));
+	}
+
 }
 
 void PartPlate::on_filament_added()
@@ -3270,6 +3321,16 @@ void PartPlate::on_filament_added()
         std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map")->values;
         filament_maps.push_back(1);
     }
+
+	if(m_config.has("filament_nozzle_map")){
+		std::vector<int>& filament_nozzle_map = m_config.option<ConfigOptionInts>("filament_nozzle_map")->values;
+		filament_nozzle_map.push_back(0);
+	}
+
+	if(m_config.has("filament_volume_map")){
+		std::vector<int>& filament_volume_map = m_config.option<ConfigOptionInts>("filament_volume_map")->values;
+		filament_volume_map.push_back(static_cast<int>(NozzleVolumeType::nvtDefault));
+	}
 }
 
 void PartPlate::on_filament_deleted(int filament_count, int filament_id)
@@ -3278,6 +3339,17 @@ void PartPlate::on_filament_deleted(int filament_count, int filament_id)
         std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map")->values;
         filament_maps.erase(filament_maps.begin() + filament_id);
     }
+
+	if(m_config.has("filament_nozzle_map")){
+		std::vector<int>& filament_nozzle_map = m_config.option<ConfigOptionInts>("filament_nozzle_map")->values;
+		filament_nozzle_map.erase(filament_nozzle_map.begin() + filament_id);
+	}
+
+	if(m_config.has("filament_volume_map")){
+		std::vector<int>& filament_volume_map = m_config.option<ConfigOptionInts>("filament_volume_map")->values;
+		filament_volume_map.erase(filament_volume_map.begin() + filament_id);
+	}
+
     update_first_layer_print_sequence_when_delete_filament(filament_id);
 }
 

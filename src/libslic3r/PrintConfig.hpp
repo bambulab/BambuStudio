@@ -312,20 +312,22 @@ enum ExtruderType {
 enum NozzleVolumeType {
     nvtStandard = 0,
     nvtHighFlow,
-    nvtMaxNozzleVolumeType = nvtHighFlow
+    nvtDefault,
+    nvtMaxNozzleVolumeType = nvtDefault
 };
 
 enum FilamentMapMode {
     fmmAutoForFlush,
     fmmAutoForMatch,
     fmmManual,
+    fmmNozzleManual,
     fmmDefault
 };
 
 extern std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type);
 
-std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type);
 
+std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type);
 static std::string bed_type_to_gcode_string(const BedType type)
 {
     std::string type_str;
@@ -1083,6 +1085,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInts,                required_nozzle_HRC))
     ((ConfigOptionEnum<FilamentMapMode>, filament_map_mode))
     ((ConfigOptionInts,                filament_map))
+    ((ConfigOptionInts,                filament_volume_map))
+    ((ConfigOptionInts,                filament_nozzle_map))
     //((ConfigOptionInts,                filament_extruder_id))
     ((ConfigOptionStrings,             filament_extruder_variant))
     ((ConfigOptionFloat,               machine_load_filament_time))
