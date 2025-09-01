@@ -60,15 +60,17 @@ public:
                 if (hr == S_OK) {
                     settings2->put_UserAgent(userAgent.wc_str());
                     settings2->Release();
+                    ICoreWebView2Settings4 *settings4;
+                    hr = settings->QueryInterface(&settings4);
+                    if (hr == S_OK) {
+                        settings4->put_IsGeneralAutofillEnabled(Slic3r::GUI::wxGetApp().app_config->get_bool("webview_auto_fill"));
+                        settings4->Release();
+                    }
                     return true;
                 }
             }
             settings->Release();
             return false;
-        } else {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": create web view failed.";
-            wxDynamicLibrary loaderDll;
-            loaderDll.Load("WebView2Loader.dll", wxDL_DEFAULT);
         }
         pendingUserAgent = userAgent;
         return true;
