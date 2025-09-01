@@ -31,9 +31,9 @@ function HandleStudio( pVal )
 
 	if(strCmd=='studio_userlogin')
 	{
-		let lastLoginInfo = pVal;
+		var lastLoginInfo = pVal;
 		SetLoginInfo(pVal['data']['avatar'],pVal['data']['name']);
-		if (!m_GetPrintHistoryStatus) {
+		if (!m_GetPrintHistoryStatus && (pVal != lastLoginInfo)) {
 			SendMsg_GetPrintHistory();
 		}
 	}
