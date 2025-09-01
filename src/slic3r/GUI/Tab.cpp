@@ -4559,6 +4559,7 @@ void TabPrinter::on_preset_loaded()
     if (!base_printer)
         base_printer = &current_printer;
     std::string base_name = base_printer->name;
+    std::string base_model = base_printer->config.option<ConfigOptionString>("printer_model")->value;
     // update the extruders count field
     auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloatsNullable*>(m_config->option("nozzle_diameter"));
     size_t extruders_count = nozzle_diameter->values.size();
@@ -4582,13 +4583,17 @@ void TabPrinter::on_preset_loaded()
             m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values = current_printer.config.option<ConfigOptionEnumsGeneric>("default_nozzle_volume_type")->values;
         }
 
-        auto extruder_max_nozzle_count = current_printer.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
-        auto nozzle_volume_type =  m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-        if (extruder_max_nozzle_count && nozzle_volume_type) {
-            for (size_t idx = 0; idx < extruders_count; ++idx) {
-                setExtruderNozzleCount(m_preset_bundle, idx, NozzleVolumeType(nozzle_volume_type->values[idx]), extruder_max_nozzle_count->values[idx]);
+        // only reset nozzle count when printer model is changed
+        if (base_model != m_base_preset_model) {
+            auto extruder_max_nozzle_count = current_printer.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+            auto nozzle_volume_type = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+            if (extruder_max_nozzle_count && nozzle_volume_type) {
+                for (size_t idx = 0; idx < extruders_count; ++idx) {
+                    setExtruderNozzleCount(m_preset_bundle, idx, NozzleVolumeType(nozzle_volume_type->values[idx]), extruder_max_nozzle_count->values[idx]);
+                }
             }
         }
+        m_base_preset_model = base_model;
     }
 }
 
