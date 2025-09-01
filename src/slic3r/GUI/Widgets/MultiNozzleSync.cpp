@@ -29,11 +29,11 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow* parent,int default_co
     choice_sizer->Add(label, 0, wxALL | wxALIGN_LEFT, FromDIP(20));
 
     wxArrayString nozzle_choices;
-    for (int i = 1; i <= max_nozzle_count; ++i)
+    for (int i = 0; i <= max_nozzle_count; ++i)
         nozzle_choices.Add(wxString::Format("%d", i));
 
     m_choice = new wxChoice(content, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(100), -1), nozzle_choices);
-    m_choice->SetSelection(default_count - 1);
+    m_choice->SetSelection(default_count);
     m_choice->SetBackgroundColour(*wxWHITE);
     choice_sizer->Add(m_choice, 0, wxLEFT | wxBOTTOM, FromDIP(20));
 
@@ -63,7 +63,7 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow* parent,int default_co
 
 int ManualNozzleCountDialog::GetNozzleCount() const
 {
-    return m_choice->GetSelection() + 1;
+    return m_choice->GetSelection();
 }
 
 void manuallySetNozzleCount(int extruder_id)
@@ -82,8 +82,11 @@ void manuallySetNozzleCount(int extruder_id)
     double nozzle_diameter = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values[extruder_id];
     auto nozzle_count_map = get_extruder_nozzle_count(full_config.option<ConfigOptionStrings>("extruder_nozzle_count")->values);
     int default_nozzle_count = 1;
-    if (extruder_id < nozzle_count_map.size() && nozzle_count_map[extruder_id].find(volume_type) != nozzle_count_map[extruder_id].end())
-        default_nozzle_count = nozzle_count_map[extruder_id][volume_type];
+    if (extruder_id < nozzle_count_map.size()) {
+        default_nozzle_count = std::accumulate(nozzle_count_map[extruder_id].begin(), nozzle_count_map[extruder_id].end(), 0, [](int a, auto& elem) {
+            return a + elem.second;
+            });
+    }
     else
         default_nozzle_count = extruder_max_nozzle_count->values[extruder_id];
 

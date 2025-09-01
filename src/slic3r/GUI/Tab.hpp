@@ -604,6 +604,7 @@ public:
 	size_t		m_cache_extruder_count = 0;
 	std::vector<std::string> m_extruder_variant_list;
 	std::string m_base_preset_name;
+	std::string m_base_preset_model;
 
     PrinterTechnology               m_printer_technology = ptFFF;
 
