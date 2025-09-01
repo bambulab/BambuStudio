@@ -794,7 +794,6 @@ const Glyph* get_glyph(
     // scale glyph size
     glyph.advance_width = static_cast<int>(glyph.advance_width / SHAPE_SCALE);
     glyph.left_side_bearing = static_cast<int>(glyph.left_side_bearing / SHAPE_SCALE);
-
     if (!glyph.shape.empty()) {
         if (font_prop.boldness.has_value()) {
             float delta = static_cast<float>(*font_prop.boldness / SHAPE_SCALE / font_prop.size_in_mm);
@@ -1237,6 +1236,7 @@ ExPolygons letter2shapes(wchar_t letter, Point &cursor, FontFileWithCache &font_
 }
 
 void letter2shapes(ExPolygons &       result,
+                   float              cur_scale,
                    FontFileWithCache &real_use_font,
                    float &            real_scale,
                    wchar_t            letter,
@@ -1275,7 +1275,7 @@ void letter2shapes(ExPolygons &       result,
 
     // Create glyph from font file and cache it
     const Glyph *glyph_ptr = (it != cache.end()) ? &it->second : get_glyph(unicode, font, font_prop, cache, font_info_cache);
-    if (glyph_ptr == nullptr) {
+    if (glyph_ptr == nullptr || glyph_ptr->shape.size() == 0) {
         bool can_gen_from_back_font = false;
         if (bfc_fn) {
             auto         fn_result = bfc_fn();
@@ -1309,8 +1309,12 @@ void letter2shapes(ExPolygons &       result,
     // move glyph to cursor position
     ExPolygons expolygons = glyph_ptr->shape; // copy
     for (ExPolygon &expolygon : expolygons) expolygon.translate(cursor);
-
-    cursor.x() += glyph_ptr->advance_width;
+    if (real_scale > 0) {
+        auto new_advance_width = glyph_ptr->advance_width * real_scale / cur_scale;
+        cursor.x() += new_advance_width;
+    } else {
+        cursor.x() += glyph_ptr->advance_width;
+    }
     result = expolygons;
 }
 
@@ -1396,12 +1400,12 @@ HealedExPolygons Slic3r::Emboss::text2shapes(EmbossShape &                emboss
                                              FontFileWithCache &          font_with_cache,
                                              const char *                 text,
                                              const FontProp &             font_prop,
+                                             double                       standard_scale,
                                              const std::function<bool()> &was_canceled,
-                                             BackFontCacheFn              bfc_fn,
-                                             double                        standard_scale)
+                                             BackFontCacheFn              bfc_fn)
 {//for CreateFontImageJob
     std::wstring      text_w  = boost::nowide::widen(text);
-    text2vshapes(emboss_shape, font_with_cache, text_w, font_prop, was_canceled, bfc_fn); // ExPolygonsWithIds vshapes =
+    text2vshapes(emboss_shape, font_with_cache, text_w, font_prop, standard_scale, was_canceled, bfc_fn); // ExPolygonsWithIds vshapes =
     auto &vshapes = emboss_shape.shapes_with_ids;
     float delta   = static_cast<float>(1. / SHAPE_SCALE);
     if (bfc_fn && standard_scale > 0) {
@@ -1440,6 +1444,7 @@ void Slic3r::Emboss::text2vshapes(EmbossShape &                emboss_shape,
                                   FontFileWithCache &          font_with_cache,
                                   const std::wstring &         text,
                                   const FontProp &             font_prop,
+                                  double                       standard_scale,
                                   const std::function<bool()> &was_canceled,
                                   BackFontCacheFn              bfc_fn)
 {
@@ -1451,7 +1456,8 @@ void Slic3r::Emboss::text2vshapes(EmbossShape &                emboss_shape,
 
     unsigned counter = 0;
     Point    cursor(0, 0);
-
+    std::vector<float> text_cursors;
+    float              last_x = 0.f,cur_x =0.f;
     fontinfo_opt      font_info_cache;
     ExPolygonsWithIds result;
     result.reserve(text.size());
@@ -1466,12 +1472,15 @@ void Slic3r::Emboss::text2vshapes(EmbossShape &                emboss_shape,
             if (was_canceled())
                 return;
         }
+        if (letter == wchar_t(' ')) {
+            letter = 'i';
+        }
         unsigned id = static_cast<unsigned>(letter);
         float    real_scale = -1.f;
         if (bfc_fn) { // support_backup_fonts
             ExPolygons        exps;
             FontFileWithCache real_use_font;
-            letter2shapes(exps, real_use_font,real_scale, letter, cursor, font_with_cache, font_prop, font_info_cache, bfc_fn);
+            letter2shapes(exps, standard_scale, real_use_font, real_scale, letter, cursor, font_with_cache, font_prop, font_info_cache, bfc_fn);
             result.push_back({id, exps});
             text_scales.emplace_back(real_scale);
             text_map_font.emplace_back(real_use_font);
@@ -1479,6 +1488,9 @@ void Slic3r::Emboss::text2vshapes(EmbossShape &                emboss_shape,
             result.push_back({id, letter2shapes(letter, cursor, font_with_cache, font_prop, font_info_cache)});
             text_scales.emplace_back(real_scale);
         }
+        cur_x = cursor.x() * standard_scale;
+        text_cursors.emplace_back(cur_x - last_x);
+        last_x = cur_x;
     }
     if (bfc_fn) {// support_backup_fonts
         align_shape(result, text_map_font, text, font_prop, font);
@@ -1486,6 +1498,12 @@ void Slic3r::Emboss::text2vshapes(EmbossShape &                emboss_shape,
         align_shape(result, text, font_prop, font);
     }
     emboss_shape.text_scales = text_scales;
+    emboss_shape.text_cursors    = text_cursors;
+    for (int i = 0; i < result.size(); i++) {
+        if (text[i] == wchar_t(' ')) {
+            result[i].expoly.clear();
+        }
+    }
     emboss_shape.shapes_with_ids = result;
 }
 

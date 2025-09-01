@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 19:21+0800\n"
+"POT-Creation-Date: 2025-08-27 20:24+0800\n"
 "PO-Revision-Date: 2025-07-17 21:56+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -1085,6 +1085,9 @@ msgstr "Uyarı:normal metin hatalıdır."
 
 msgid "Warning:text normal has been reset."
 msgstr "Uyarı:normal metin sıfırlandı."
+
+msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
+msgstr ""
 
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "Uyarı:eski matrisin en az iki parametresi vardır: yansıtma, ölçekleme ve döndürme. Düzenlemeye devam ederseniz, doğru olmayabilir. Lütfen metni sürükleyin veya mevcut pozu kullanarak iptal edin, kaydedin ve yeniden düzenleyin."
@@ -2456,24 +2459,6 @@ msgstr "Tam Soğutma"
 msgid "Init"
 msgstr "Başlangıç"
 
-msgid "Hotend"
-msgstr "Hotend"
-
-msgid "Parts"
-msgstr "Parçalar"
-
-msgid "Aux"
-msgstr "Yardımcı"
-
-msgid "Nozzle1"
-msgstr "Nozzle1"
-
-msgid "MC Board"
-msgstr "MC Kartı"
-
-msgid "Heat"
-msgstr "Isı"
-
 msgid "Chamber"
 msgstr "Oda"
 
@@ -2500,8 +2485,33 @@ msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
 msgstr "Soğutma modu PLA/PETG/TPU malzemelerin baskısı için uygundur."
 
 msgctxt "air_duct"
-msgid "Right"
-msgstr "Sağ"
+msgid "Right(Aux)"
+msgstr ""
+
+msgctxt "air_duct"
+msgid "Right(Filter)"
+msgstr ""
+
+msgid "Hotend"
+msgstr "Hotend"
+
+msgid "Parts"
+msgstr "Parçalar"
+
+msgid "Aux"
+msgstr "Yardımcı"
+
+msgid "Nozzle1"
+msgstr "Nozzle1"
+
+msgid "MC Board"
+msgstr "MC Kartı"
+
+msgid "Heat"
+msgstr "Isı"
+
+msgid "Fan"
+msgstr "Fan"
 
 msgid "Idling..."
 msgstr "Boşta..."
@@ -3786,6 +3796,18 @@ msgstr "Yeniden deneyin (sorun çözüldü)"
 msgid "Stop Drying"
 msgstr ""
 
+msgid "Cancle"
+msgstr ""
+
+msgid "Done"
+msgstr "Tamamlandı"
+
+msgid "Retry"
+msgstr "Yeniden"
+
+msgid "Resume"
+msgstr "Sürdür"
+
 msgid "Unknown error."
 msgstr "Bilinmeyen hata."
 
@@ -4546,6 +4568,12 @@ msgstr ""
 "Bu, H2D makinesi ile tpu filamentlerini ilk kez yazdırmanızdır.\n"
 "Hızlı bir öğretici video izlemek ister misiniz?"
 
+msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
+msgstr ""
+
+msgid "Tips"
+msgstr "İpuçları"
+
 msgid "Slice all"
 msgstr "Hepsini dilimle"
 
@@ -5060,8 +5088,8 @@ msgstr "Bağlantı Başarısız. Lütfen ağı kontrol edin ve tekrar deneyin"
 msgid "Please check the network and try again, You can restart or update the printer if the issue persists."
 msgstr "Lütfen ağı kontrol edin ve tekrar deneyin, Sorun devam ederse yazıcıyı yeniden başlatabilir veya güncelleyebilirsiniz."
 
-msgid "The printer has been logged out and cannot connect."
-msgstr "Yazıcının oturumu kapatıldı ve bağlanamıyor."
+msgid "Multi-device/client simultaneous liveview is not supported. Please close the liveview on other devices/clients and try again."
+msgstr ""
 
 msgid "Video Stopped."
 msgstr "Video durduruldu."
@@ -5222,9 +5250,6 @@ msgstr ""
 msgid "Download waiting..."
 msgstr "İndirme bekleniyor..."
 
-msgid "Retry"
-msgstr "Yeniden"
-
 msgid "Play"
 msgstr "Oynat"
 
@@ -5237,9 +5262,6 @@ msgstr "İndirme tamamlandı"
 #, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "%d%% indiriliyor..."
-
-msgid "Fan"
-msgstr "Fan"
 
 msgid "Air Condition"
 msgstr "Klima"
@@ -5403,9 +5425,6 @@ msgstr "Yazdırma İlerlemesi"
 
 msgid "Parts Skip"
 msgstr "Parça Atla"
-
-msgid "Resume"
-msgstr "Sürdür"
 
 msgid "Stop"
 msgstr "Durdur"
@@ -6083,6 +6102,10 @@ msgstr "Yazıcı Ayarları"
 msgid "The %s nozzle can not print %s."
 msgstr "%s nozzul %s yazdıramıyor."
 
+#, boost-format
+msgid "Mixing %1% with %2% in printing is not recommended.\n"
+msgstr ""
+
 msgid " nozzle"
 msgstr " nozul"
 
@@ -6546,9 +6569,6 @@ msgstr ""
 msgid "Switch now"
 msgstr "Şimdi değiştir"
 
-msgid "Tips"
-msgstr "İpuçları"
-
 msgid "Load project"
 msgstr "Projeyi Aç"
 
@@ -6714,12 +6734,12 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "Özel destekler, dikiş_yüzeyleri ve renk boyamaları onarım öncesinde kaldırıldı, model adı:"
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
-msgstr "Yazıcı bağlı değil. Senkronize etmeden önce %s yazıcıyı bağlamak için lütfen cihaz sayfasına gidin."
+msgid "Printer not connected. Please go to the device page to connect %s before syncing."
+msgstr ""
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-msgstr "Aygıt sayfasında şu anda bağlı olan yazıcı bir %s değil. Lütfen senkronize etmeden önce bir %s'ye geçin."
+msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
+msgstr ""
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "Yazıcıda filament yok. Lütfen önce yazıcıya filamentleri yükleyin."
@@ -8996,9 +9016,6 @@ msgstr "Bambu Studio'nun yeni sürümü"
 msgid "Skip this Version"
 msgstr "Bu versiyonu atla"
 
-msgid "Done"
-msgstr "Tamamlandı"
-
 msgid "resume"
 msgstr "devam"
 
@@ -9143,6 +9160,9 @@ msgstr "Laser 40W"
 
 msgid "Cutting Module"
 msgstr "Kesme Modülü"
+
+msgid "Auto Fire Extinguishing System"
+msgstr ""
 
 msgid "Model:"
 msgstr "Model:"
@@ -9476,13 +9496,7 @@ msgstr "\"Nesneye göre\" dizisi etkinleştirildiğinde, hızlandırılmış çe
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr ""
 
-msgid "enable_wrapping_detection"
-msgstr ""
-
 msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
-msgstr ""
-
-msgid "enable_prime_tower"
 msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
@@ -10302,6 +10316,15 @@ msgstr "En Yüksek Sıcaklığa Göre"
 msgid "Filament diameter is used to calculate extrusion in gcode, so it's important and should be accurate"
 msgstr "Filament çapı, gcode'da ekstrüzyonu hesaplamak için kullanılır; bu nedenle önemlidir ve doğru olmalıdır"
 
+msgid "Adaptive volumetric speed"
+msgstr ""
+
+msgid "When enabled, the extrusion flow is limited by the smaller of the fitted value (calculated from line width and layer height) and the user-defined maximum flow. When disabled, only the user-defined maximum flow is applied."
+msgstr ""
+
+msgid "Max volumetric speed multinomial coefficients"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr "Büzüşme"
 
@@ -10312,6 +10335,12 @@ msgid ""
 msgstr ""
 "Filamentin soğuduktan sonra alacağı büzülme yüzdesini girin (100 mm yerine 94 mm ölçerseniz 94%). Parça, telafi etmek için xy'de ölçeklendirilecektir. Yalnızca çevre için kullanılan filament dikkate alınır.\n"
 "Bu telafi kontrollerden sonra yapıldığından, nesneler arasında yeterli boşluk bıraktığınızdan emin olun."
+
+msgid "Velocity Adaptation Factor"
+msgstr ""
+
+msgid "This parameter reflects the speed at which a material transitions from one state to another. It, along with the smooth coefficient, determines the final length of the transition zone. A larger value: requires a shorter transition zone. A smaller value: requires a longer transition zone to avoid flow instability."
+msgstr ""
 
 msgid "Adhesiveness Category"
 msgstr "Yapışkanlık Kategorisi"
@@ -13384,6 +13413,9 @@ msgstr ""
 "Şu anda seçili olan %s ekstrüder nozul tipi gerçek yazıcı nozul tipiyle eşleşmiyor.\n"
 "Lütfen yukarıdaki Senkronizasyon düğmesine tıklayın ve kalibrasyonu yeniden başlatın."
 
+msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+msgstr "Otomatik kalibrasyon yalnızca sol ve sağ nozul çaplarının aynı olduğu durumları destekler."
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "Kalibre edilemiyor: ayarlanan kalibrasyon değeri aralığı çok büyük veya adım çok küçük olduğu için olabilir"
 
@@ -14221,6 +14253,21 @@ msgstr ""
 "Eğilmeyi önleyin\n"
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını azaltabileceğini biliyor muydunuz."
 
+#~ msgctxt "air_duct"
+#~ msgid "Right"
+#~ msgstr "Sağ"
+
+#~ msgid "The printer has been logged out and cannot connect."
+#~ msgstr "Yazıcının oturumu kapatıldı ve bağlanamıyor."
+
+#, c-format, boost-format
+#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+#~ msgstr "Yazıcı bağlı değil. Senkronize etmeden önce %s yazıcıyı bağlamak için lütfen cihaz sayfasına gidin."
+
+#, c-format, boost-format
+#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+#~ msgstr "Aygıt sayfasında şu anda bağlı olan yazıcı bir %s değil. Lütfen senkronize etmeden önce bir %s'ye geçin."
+
 #~ msgid "Open Preferences."
 #~ msgstr "Tercihler'i açın."
 
@@ -14247,9 +14294,6 @@ msgstr ""
 
 #~ msgid "Small perimter threshold"
 #~ msgstr "Küçük perimter eşiği"
-
-#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-#~ msgstr "Otomatik kalibrasyon yalnızca sol ve sağ nozul çaplarının aynı olduğu durumları destekler."
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "Katman Süresi (s)"

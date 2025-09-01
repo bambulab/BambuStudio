@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 19:21+0800\n"
+"POT-Creation-Date: 2025-08-27 20:24+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -54,7 +54,7 @@ msgid "Damp PVA will become flexible and get stuck inside AMS,please take care t
 msgstr "O PVA úmido se tornará flexível e ficará preso dentro do AMS. Por favor, seque-o antes de usar."
 
 msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
-msgstr ""
+msgstr "O PVA úmido é flexível e pode ficar preso no extrusor. Seque antes de usar."
 
 msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
 msgstr "A superfície áspera do PLA Glow pode acelerar o desgaste do sistema AMS, principalmente nos componentes internos do AMS Lite."
@@ -1089,6 +1089,9 @@ msgstr "Aviso: Texto normal é erro."
 
 msgid "Warning:text normal has been reset."
 msgstr "Aviso: O texto normal foi redefinido."
+
+msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
+msgstr ""
 
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr ""
@@ -2458,24 +2461,6 @@ msgstr "Resfriamento total"
 msgid "Init"
 msgstr "Iniciar"
 
-msgid "Hotend"
-msgstr ""
-
-msgid "Parts"
-msgstr "peças"
-
-msgid "Aux"
-msgstr "Aux"
-
-msgid "Nozzle1"
-msgstr "Bico1"
-
-msgid "MC Board"
-msgstr "Placa MC"
-
-msgid "Heat"
-msgstr "Aquecer"
-
 msgid "Chamber"
 msgstr "Câmara"
 
@@ -2502,8 +2487,33 @@ msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
 msgstr "O modo de resfriamento é adequado para impressão de materiais PLA/PETG/TPU."
 
 msgctxt "air_duct"
-msgid "Right"
-msgstr "Direita"
+msgid "Right(Aux)"
+msgstr "Dir.(Aux)"
+
+msgctxt "air_duct"
+msgid "Right(Filter)"
+msgstr ""
+
+msgid "Hotend"
+msgstr ""
+
+msgid "Parts"
+msgstr "peças"
+
+msgid "Aux"
+msgstr "Aux"
+
+msgid "Nozzle1"
+msgstr "Bico1"
+
+msgid "MC Board"
+msgstr "Placa MC"
+
+msgid "Heat"
+msgstr "Aquecer"
+
+msgid "Fan"
+msgstr "Ventilador"
 
 msgid "Idling..."
 msgstr "Em marcha lenta..."
@@ -3479,7 +3489,7 @@ msgstr ""
 "Redefinir para 50%% da profundidade da pele"
 
 msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
-msgstr ""
+msgstr "O modo espiral só funciona quando os loops de parede são 1, o suporte está desabilitado, a detecção de aglomeração por sondagem está desabilitada, as camadas de casca superior são 0, a densidade de preenchimento esparso é 0, o tipo de timelapse é tradicional e a velocidade de suavização da parede na direção z é falsa."
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Mas máquinas com estrutura I3 não gerarão vídeos em timelapse."
@@ -3789,6 +3799,18 @@ msgstr "Tentar novamente (problema resolvido)"
 msgid "Stop Drying"
 msgstr "Pare de secar"
 
+msgid "Cancle"
+msgstr ""
+
+msgid "Done"
+msgstr "Concluído"
+
+msgid "Retry"
+msgstr "Tentar novamente"
+
+msgid "Resume"
+msgstr "Resumir"
+
 msgid "Unknown error."
 msgstr "Erro desconhecido."
 
@@ -3867,7 +3889,7 @@ msgid "Height: "
 msgstr "Altura"
 
 msgid "Width: "
-msgstr "Largura"
+msgstr "Largura: "
 
 msgid "Speed: "
 msgstr "Velocidade"
@@ -4549,6 +4571,12 @@ msgstr ""
 "Esta é a primeira vez que você imprime filamentos de tpu com a máquina H2D.\n"
 "Você gostaria de assistir a um rápido vídeo tutorial?"
 
+msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
+msgstr "PPS-CF/PPA-CF é frágil e pode quebrar em um tubo de PTFE dobrado acima da cabeça da ferramenta. Consulte o Wiki antes de usar. "
+
+msgid "Tips"
+msgstr "Dicas"
+
 msgid "Slice all"
 msgstr "Fatiar tudo"
 
@@ -5063,8 +5091,8 @@ msgstr "Falha na conexão. Verifique a rede e tente novamente"
 msgid "Please check the network and try again, You can restart or update the printer if the issue persists."
 msgstr "Verifique a rede e tente novamente. Você pode reiniciar ou atualizar a impressora se o problema persistir."
 
-msgid "The printer has been logged out and cannot connect."
-msgstr "A impressora foi desconectada e não consegue se conectar."
+msgid "Multi-device/client simultaneous liveview is not supported. Please close the liveview on other devices/clients and try again."
+msgstr ""
 
 msgid "Video Stopped."
 msgstr "Vídeo parado."
@@ -5225,9 +5253,6 @@ msgstr ""
 msgid "Download waiting..."
 msgstr "Download em espera..."
 
-msgid "Retry"
-msgstr "Tentar novamente"
-
 msgid "Play"
 msgstr "Tocar"
 
@@ -5240,9 +5265,6 @@ msgstr "Transferência finalizada"
 #, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "Baixando %d%%..."
-
-msgid "Fan"
-msgstr "Ventilador"
 
 msgid "Air Condition"
 msgstr "Ar Condicionado"
@@ -5406,9 +5428,6 @@ msgstr "Progresso da impressão"
 
 msgid "Parts Skip"
 msgstr "Pular peças"
-
-msgid "Resume"
-msgstr "Resumir"
 
 msgid "Stop"
 msgstr "Parar"
@@ -6088,6 +6107,10 @@ msgstr "Configurações da impressora"
 msgid "The %s nozzle can not print %s."
 msgstr "O bico %s não consegue imprimir %s."
 
+#, boost-format
+msgid "Mixing %1% with %2% in printing is not recommended.\n"
+msgstr "Misturando%1% com%2% na impressão não é recomendado.\n"
+
 msgid " nozzle"
 msgstr "Bico"
 
@@ -6485,15 +6508,17 @@ msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
 "Please request a new Helio-PAT."
 msgstr ""
+"Nenhum Helio-PAT válido detectado. A simulação e otimização Helio não podem prosseguir.\n"
+"Por favor, solicite um novo Helio-PAT."
 
 msgid "Execution Blocked"
-msgstr ""
+msgstr "Execução Bloqueada"
 
 msgid "Regenerate PAT"
-msgstr ""
+msgstr "Regenerar PAT"
 
 msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
-msgstr ""
+msgstr "Falha ao obter o PAT Helio. Clique em Atualizar para tentar novamente."
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Resolva os erros de fatiamento e publique novamente."
@@ -6550,9 +6575,6 @@ msgstr ""
 
 msgid "Switch now"
 msgstr "Mude agora"
-
-msgid "Tips"
-msgstr "Dicas"
 
 msgid "Load project"
 msgstr "Carregar projeto"
@@ -6719,12 +6741,12 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "Suportes personalizados, seam_facets e pintura colorida foram removidos antes de reparar o nome do modelo:"
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
-msgstr "Impressora não conectada. Vá para a página do dispositivo para conectar uma impressora %s antes de sincronizar."
+msgid "Printer not connected. Please go to the device page to connect %s before syncing."
+msgstr ""
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-msgstr "A impressora conectada atualmente na página do dispositivo não é uma %s. Por favor, troque para uma %s antes de sincronizar."
+msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
+msgstr ""
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "Não há filamentos na impressora. Carregue os filamentos na impressora primeiro."
@@ -6797,10 +6819,10 @@ msgid "Plate% d: %s is not suggested to be used to print filament %s(%s). If you
 msgstr "Placa% d: %s não é sugerido para ser usado para imprimir o filamento %s(%s). Se você ainda quiser fazer essa impressão, defina a temperatura do leito desse filamento como diferente de zero."
 
 msgid "Parameter recommendation"
-msgstr ""
+msgstr "Recomendação de parâmetro"
 
 msgid "In the process preset, under \"Others-Advanced\", check \"Enable clumping detection by probing\". This feature generates a small wipe tower and performs probing detection to identify clumping issues early in the print and stop printing, preventing print failures or printer damage.\n"
-msgstr ""
+msgstr "No predefinido de processo, em \"Outros-Avançado\", marque \"Ativar detecção de aglomeração por sondagem\". Esse recurso gera uma pequena torre de limpeza e realiza uma sondagem para identificar problemas de aglomeração no início da impressão e interrompe a impressão, prevenindo falhas na impressão ou danos à impressora.\n"
 
 msgid "Currently, the object configuration form cannot be used with a multiple-extruder printer."
 msgstr "Atualmente, o formulário de configuração de objeto não pode ser usado com uma impressora com múltiplas extrusoras."
@@ -9005,9 +9027,6 @@ msgstr "Nova versão do Bambu Studio"
 msgid "Skip this Version"
 msgstr "Pular esta versão"
 
-msgid "Done"
-msgstr "Concluído"
-
 msgid "resume"
 msgstr "Continuar"
 
@@ -9136,10 +9155,10 @@ msgid "How to use Helio"
 msgstr "Como usar o Helio"
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
-msgstr ""
+msgstr "Falha ao obter Helio PAT. O número de PATs emitidos atingiu o limite máximo. Por favor, fique atento às informações no site oficial do Helio. Clique em Atualizar para tentar novamente assim que estiver disponível."
 
 msgid "Click for more details"
-msgstr ""
+msgstr "Clique para ver mais detalhes"
 
 msgid "Air Pump"
 msgstr "Bomba de ar"
@@ -9152,6 +9171,9 @@ msgstr ""
 
 msgid "Cutting Module"
 msgstr "Módulo de corte"
+
+msgid "Auto Fire Extinguishing System"
+msgstr "Sistema Automático de Extinção de Incêndios"
 
 msgid "Model:"
 msgstr "Modelo"
@@ -9468,7 +9490,7 @@ msgid "Printing high-temp and low-temp filaments together may cause nozzle clogg
 msgstr "Imprimir filamentos de alta e baixa temperatura juntos pode causar entupimento dos bicos ou danos à impressora. Se você ainda quiser imprimir, você pode ativar a opção em Preferências."
 
 msgid "Printing different-temp filaments together may cause nozzle clogging or printer damage."
-msgstr ""
+msgstr "Imprimir filamentos de diferentes temperaturas juntos pode causar entupimento do bico ou danos à impressora."
 
 msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "Imprimir filamentos de alta e média temperatura juntos pode causar entupimento dos bicos ou danos à impressora."
@@ -9485,14 +9507,8 @@ msgstr "O modo suave de lapso de tempo não é suportado quando a sequência “
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "A detecção de aglomeração não é suportada quando a sequência \"por objeto\" está ativada."
 
-msgid "enable_wrapping_detection"
-msgstr ""
-
 msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
-msgstr ""
-
-msgid "enable_prime_tower"
-msgstr ""
+msgstr "A torre principal é necessária para detecção de aglomeração; caso contrário, pode haver falhas no modelo."
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Selecione a sequência de impressão “Por objeto” para imprimir vários objetos no modo vaso em espiral."
@@ -10099,7 +10115,7 @@ msgid "This setting will affect the speed of perimeters having radius <= small p
 msgstr "Essa configuração afetará a velocidade dos perímetros com raio <= limite de perímetro pequeno (geralmente orifícios). Se expresso como porcentagem (por exemplo: 80%), ele será calculado na configuração de velocidade da parede externa acima. Defina como zero para automático."
 
 msgid "Small perimeter threshold"
-msgstr ""
+msgstr "Limite de perímetro pequeno"
 
 msgid "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr "Isso define o limite para um pequeno comprimento de perímetro. O limite padrão é 0mm"
@@ -10311,6 +10327,15 @@ msgstr "Por temperatura mais alta"
 msgid "Filament diameter is used to calculate extrusion in gcode, so it's important and should be accurate"
 msgstr "O diâmetro do filamento é usado para calcular a extrusão em gcode, por isso é importante e deve ser preciso"
 
+msgid "Adaptive volumetric speed"
+msgstr ""
+
+msgid "When enabled, the extrusion flow is limited by the smaller of the fitted value (calculated from line width and layer height) and the user-defined maximum flow. When disabled, only the user-defined maximum flow is applied."
+msgstr ""
+
+msgid "Max volumetric speed multinomial coefficients"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr "Encolhimento"
 
@@ -10321,6 +10346,12 @@ msgid ""
 msgstr ""
 "Insira a porcentagem de contração que o filamento terá após o resfriamento (94% se você medir 94 mm em vez de 100 mm). A peça será dimensionada em xy para compensar. Somente o filamento utilizado para o perímetro é levado em consideração.\n"
 "Certifique-se de deixar espaço suficiente entre os objetos, pois essa compensação é feita após as verificações."
+
+msgid "Velocity Adaptation Factor"
+msgstr ""
+
+msgid "This parameter reflects the speed at which a material transitions from one state to another. It, along with the smooth coefficient, determines the final length of the transition zone. A larger value: requires a shorter transition zone. A smaller value: requires a longer transition zone to avoid flow instability."
+msgstr ""
 
 msgid "Adhesiveness Category"
 msgstr "Categoria de Adesividade"
@@ -10660,10 +10691,10 @@ msgid "Clumping detection layers."
 msgstr "Camadas de detecção de aglomeração."
 
 msgid "Probing exclude area of clumping"
-msgstr ""
+msgstr "Sondagem para excluir área de aglomeração"
 
 msgid "Probing exclude area of clumping."
-msgstr ""
+msgstr "Exclusão da área de agrupamento durante a sondagem."
 
 msgid "Thumbnail size"
 msgstr "Tamanho da miniatura"
@@ -13391,6 +13422,9 @@ msgstr ""
 "O tipo de bico selecionado atualmente da extrusora %s não corresponde ao tipo de bico da impressora real.\n"
 "Clique no botão Sync acima e reinicie a calibração."
 
+msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+msgstr "A calibração automática só oferece suporte a casos em que os diâmetros dos bicos esquerdo e direito são idênticos."
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "Não é possível calibrar: talvez porque a faixa de valores de calibração definida seja muito grande ou a etapa seja muito pequena"
 
@@ -13695,37 +13729,37 @@ msgid "Helio: Process Started"
 msgstr ""
 
 msgid "Helio API endpoint is empty, please check the configuration."
-msgstr ""
+msgstr "O endpoint da API Helio está vazio, por favor verifique a configuração."
 
 msgid "Personal assecc token is empty, please fill in the correct token."
-msgstr ""
+msgstr "O token pessoal de acesso está vazio, por favor, preencha o token correto."
 
 msgid "Helio: Presigned URL Created"
-msgstr ""
+msgstr "Helio: URL pré-assinada criada"
 
 msgid "Helio: file succesfully uploaded"
-msgstr ""
+msgstr "Helio: arquivo enviado com sucesso"
 
 msgid "Helio: file upload failed"
-msgstr ""
+msgstr "Helio: falha no envio do arquivo"
 
 msgid "Please make sure you have the corrent API key set in preferences."
 msgstr ""
 
 msgid "Helio: GCode created successfully"
-msgstr ""
+msgstr "Helio: GCode criado com sucesso"
 
 msgid "Helio: simulation successfully created"
-msgstr ""
+msgstr "Helio: simulação criada com sucesso"
 
 msgid "Helio: simulation working"
-msgstr ""
+msgstr "Helio: simulação em andamento"
 
 msgid "Helio: simulation failed"
-msgstr ""
+msgstr "Helio: simulação falhou"
 
 msgid "Helio: GCode downloaded successfully"
-msgstr ""
+msgstr "Helio: GCode baixado com sucesso"
 
 msgid "No AMS"
 msgstr "SEM AMS"
@@ -14231,6 +14265,24 @@ msgstr ""
 #~ msgid "Helio Action"
 #~ msgstr "Ação Helio"
 
+#~ msgid "Chamber Temperature"
+#~ msgstr "Temperatura da câmara"
+
+#~ msgctxt "air_duct"
+#~ msgid "Right"
+#~ msgstr "Direita"
+
+#~ msgid "The printer has been logged out and cannot connect."
+#~ msgstr "A impressora foi desconectada e não consegue se conectar."
+
+#, c-format, boost-format
+#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+#~ msgstr "Impressora não conectada. Vá para a página do dispositivo para conectar uma impressora %s antes de sincronizar."
+
+#, c-format, boost-format
+#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+#~ msgstr "A impressora conectada atualmente na página do dispositivo não é uma %s. Por favor, troque para uma %s antes de sincronizar."
+
 #~ msgid "Open Preferences."
 #~ msgstr "Abra as Preferências."
 
@@ -14257,9 +14309,6 @@ msgstr ""
 
 #~ msgid "Small perimter threshold"
 #~ msgstr "Limite de perímetro pequeno"
-
-#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-#~ msgstr "A calibração automática só oferece suporte a casos em que os diâmetros dos bicos esquerdo e direito são idênticos."
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "Tempo (s) da camada"

@@ -280,6 +280,7 @@ static std::map<std::string, std::string> printer_thumbnails = {
     {"BL-P002", "printer_preview_BL-P002"},
     {"O1D", "printer_preview_O1D"},
     {"O1E", "printer_preview_O1E"},
+    {"O1S", "printer_preview_O1S"}
 };
 
 enum SlicedInfoIdx
@@ -787,11 +788,17 @@ static struct DynamicFilamentList : DynamicList
         for (auto i : items) {
             cb->Append(i.first, i.second ? *i.second : wxNullBitmap);
         }
-        int new_index = cb->FindString(old_selection);
-        if (new_index != wxNOT_FOUND) {
-            cb->SetSelection(new_index);
-        } else if ((unsigned int) old_index < cb->GetCount()) {
+
+        if (old_index >= 0 && (unsigned int) old_index < cb->GetCount()) {
             cb->SetSelection(old_index);
+            return;
+        }
+
+        int new_index = cb->FindString(old_selection);
+        if (old_index == cb->GetCount()) {
+            cb->SetSelection(old_index - 1);
+        } else if (new_index != wxNOT_FOUND) {
+            cb->SetSelection(new_index);
         } else {
             cb->SetSelection(0);
         }
@@ -4542,7 +4549,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
                                    .TopDockable(false)
                                    .BottomDockable(false)
                                    .Floatable(wxGetApp().app_config->get_bool("enable_sidebar_floatable"))
-                                   .Resizable(wxGetApp().app_config->get_bool("enable_sidebar_resizable"))
+                                   .Resizable(true)
                                    .MinSize(wxSize(15 * wxGetApp().em_unit(), 90 * wxGetApp().em_unit()))
                                    .BestSize(wxSize(42 * wxGetApp().em_unit(), 90 * wxGetApp().em_unit())));
 
@@ -4561,8 +4568,24 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         const auto cfg    = wxGetApp().app_config;
         wxString   layout = wxString::FromUTF8(cfg->get("window_layout"));
         if (!layout.empty()) {
-            m_aui_mgr.LoadPerspective(layout, false);
-            sidebar_layout.is_collapsed = !sidebar.IsShown();
+            bool                     is_new_window_layout = true;
+            std::vector<std::string> parts;
+            boost::split(parts, layout, boost::is_any_of(";"));
+            for (const std::string &part : parts) {
+                std::vector<std::string> keyValues;
+                boost::split(keyValues, part, boost::is_any_of("="));
+                if (keyValues.size() == 2 && keyValues[0] == "minh") {
+                    auto minh_value = std::stof(keyValues[1]);
+                    if (minh_value < 0) {
+                        is_new_window_layout = false;
+                    }
+                    break;
+                }
+            }
+            if (is_new_window_layout) {
+                m_aui_mgr.LoadPerspective(layout, false);
+                sidebar_layout.is_collapsed = !sidebar.IsShown();
+            }
         }
 
         // Keep tracking the current sidebar size, by storing it using `best_size`, which will be stored
@@ -11549,6 +11572,9 @@ void Plater::reset_flags_when_new_or_close_project()
 
 int Plater::new_project(bool skip_confirm, bool silent, const wxString &project_name)
 {
+    model().calib_pa_pattern.reset(nullptr);
+    model().plates_custom_gcodes.clear();
+
     bool transfer_preset_changes = false;
     // BBS: save confirm
     auto check = [this,&transfer_preset_changes](bool yes_or_no) {
@@ -11699,6 +11725,9 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
 int Plater::load_project(wxString const &filename2,
     wxString const& originfile)
 {
+    model().calib_pa_pattern.reset(nullptr);
+    model().plates_custom_gcodes.clear();
+
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "filename is: " << PathSanitizer::sanitize(filename2.ToUTF8().data())
                             << "and originfile is: " << PathSanitizer::sanitize(originfile.ToUTF8().data());
     auto filename = filename2;
@@ -16560,10 +16589,9 @@ void Plater::pop_warning_and_go_to_device_page(wxString printer_name, PrinterWar
     printer_name.Replace("Bambu Lab", "", false);
     wxString content;
     if (type == PrinterWarningType::NOT_CONNECTED) {
-        content = wxString::Format(_L("Printer not connected. Please go to the device page to connect an %s printer before syncing."), printer_name);
-
+        content = wxString::Format(_L("Printer not connected. Please go to the device page to connect %s before syncing."), printer_name);
     } else if (type == PrinterWarningType::INCONSISTENT) {
-        content = wxString::Format(_L("The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."), printer_name, printer_name);
+        content = wxString::Format(_L("The currently connected printer on the device page is not %s. Please switch to %s before syncing."), printer_name, printer_name);
     } else if (type == PrinterWarningType::UNINSTALL_FILAMENT) {
         content = _L("There are no filaments on the printer. Please load the filaments on the printer first.");
     } else if (type == PrinterWarningType::EMPTY_FILAMENT) {
@@ -17475,6 +17503,10 @@ int Plater::get_helio_process_status() const
 {
     int helio_state = p->helio_background_process.get_state();
     return helio_state;
+}
+
+void Plater::clear_helio_process_status() const {
+    p->helio_background_process.stop();
 }
 
 void Plater::update_helio_background_process(std::string& printer_id, std::string& material_id)

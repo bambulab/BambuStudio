@@ -198,10 +198,14 @@ public:
 
     void select_default_compatible_filament();
 
+    int get_index_by_tray_id(int tray_id);
+
     std::vector<FilamentComboBox*> get_selected_filament_combobox();
 
     // key is tray_id
     std::map<int, Preset*> get_selected_filaments();
+
+    std::map<int, DynamicPrintConfig> get_filament_ams_list() const { return filament_ams_list; }
 
     void get_preset_info(
         float& nozzle_dia,
@@ -233,6 +237,7 @@ public:
 protected:
     void create_selection_panel(wxWindow* parent);
     void create_filament_list_panel(wxWindow* parent);
+    wxBoxSizer* create_ams_items_sizer(MachineObject* obj, wxPanel* ams_preview_panel, std::vector<AMSPreview*> &ams_preview_list, std::vector<AMSinfo> &ams_info, int nozzle_id);
 
     void init_selection_values();
     void update_filament_combobox(std::string ams_id = "");
@@ -291,6 +296,7 @@ protected:
 
     // m_selection_panel widgets
     ComboBox*       m_comboBox_nozzle_dia;
+    ComboBox*       m_comboBox_nozzle_volume;
     ComboBox*       m_comboBox_bed_type;
     ComboBox*       m_comboBox_process;
     Label*          m_nozzle_diameter_tips{nullptr};
@@ -370,4 +376,3 @@ public:
 }} // namespace Slic3r::GUI
 
 #endif
-

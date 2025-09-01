@@ -2314,7 +2314,7 @@ bool GUI_App::is_blocking_printing(MachineObject *obj_)
     if (!dev) return true;
     std::string target_model;
     if (obj_ == nullptr) {
-        auto obj_ = dev->get_selected_machine();
+        obj_ = dev->get_selected_machine();
         if (obj_) {
             target_model = obj_->printer_type;
         }
@@ -5298,6 +5298,15 @@ void GUI_App::process_network_msg(std::string dev_id, std::string msg)
             m_show_error_msgdlg = true;
             auto modal_result = msg_dlg.ShowModal();
             m_show_error_msgdlg = false;
+        }
+    }
+    else if (msg == "device_cert_installed") {
+        BOOST_LOG_TRIVIAL(info) << "process_network_msg, device_cert_installed";
+        Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+        if (!dev) return;
+        MachineObject* obj = dev->get_my_machine(dev_id);
+        if (obj) {
+            obj->update_device_cert_state(true);
         }
     }
 }

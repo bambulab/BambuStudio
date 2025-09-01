@@ -1187,7 +1187,8 @@ void GLGizmoText::draw_model_type(int caption_width)
         ObjectList *        obj_list = app.obj_list();
         wxDataViewItemArray sel      = obj_list->reorder_volumes_and_get_selection(obj_list->get_selected_obj_idx(),
                                                                               [volume = text_volume](const ModelVolume *vol) { return vol == volume; });
-        if (!sel.IsEmpty()) obj_list->select_item(sel.front());
+        if (!sel.IsEmpty())
+            obj_list->select_item(sel.front());
 
         // NOTE: on linux, function reorder_volumes_and_get_selection call GLCanvas3D::reload_scene(refresh_immediately = false)
         // which discard m_volume pointer and set it to nullptr also selection is cleared so gizmo is automaticaly closed
@@ -1306,6 +1307,7 @@ void GLGizmoText::draw_rotation(int caption_size, int slider_width, int drag_lef
             const Selection &selection = m_parent.get_selection();
             const GLVolume * gl_volume = get_selected_gl_volume(selection);
             m_text_tran_in_object.set_from_transform(gl_volume->get_volume_transformation().get_matrix()); // on_stop_dragging//rotate//set m_text_tran_in_object
+            update_trafo_matrices();
             volume_transformation_changed();
         }
     }
@@ -1974,6 +1976,7 @@ void GLGizmoText::on_stop_dragging()
     m_need_update_tran = true;//dragging
     if (m_hover_id == m_move_cube_id) {
         m_parent.do_move("");//replace by wxGetApp() .plater()->take_snapshot("Modify Text"); in EmbossJob.cpp
+        update_trafo_matrices();
         m_need_update_text = true;
     } else {
         m_rotate_gizmo.stop_dragging();
@@ -2368,6 +2371,10 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     }
     if (m_show_text_normal_reset_tip) {
         m_imgui->warning_text(_L("Warning:text normal has been reset."));
+    }
+    if (m_font_version == NEW_FONT_BEGIN_VERSION) {
+        m_imgui->warning_text_wrapped(_L("Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated.")
+                                          ,full_width);
     }
    /* if (m_show_warning_regenerated && m_font_version != CUR_FONT_VERSION) {
         m_imgui->warning_text_wrapped(_L("Warning:Because current text does indeed use surround algorithm,if continue to edit, text has to regenerated according to new location."),
@@ -3767,9 +3774,9 @@ EmbossShape &TextDataBase::create_shape()
     };
     bool support_backup_fonts = GUI::wxGetApp().app_config->get_bool("support_backup_fonts");
     if (support_backup_fonts) {
-        text2vshapes(shape, m_font_file, text_w, fp, was_canceled, ft_fn);
+        text2vshapes(shape, m_font_file, text_w, fp, shape.scale, was_canceled, ft_fn);
     } else {
-        text2vshapes(shape, m_font_file, text_w, fp, was_canceled);
+        text2vshapes(shape, m_font_file, text_w, fp, shape.scale, was_canceled);
     }
     return shape;
 }

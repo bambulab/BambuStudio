@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 19:21+0800\n"
+"POT-Creation-Date: 2025-08-27 20:24+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1083,6 +1083,9 @@ msgstr "警告：文字法向量错误"
 msgid "Warning:text normal has been reset."
 msgstr "警告:文字法向量已经被重置。"
 
+msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
+msgstr "警告：当前文本间距不够合理。如果继续编辑，将生成更合理的文本间距。"
+
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "警告：旧矩阵至少有两个参数：镜像、缩放和旋转。如果继续编辑，则可能不正确。请拖动文本或取消使用当前姿势，保存并重新编辑。"
 
@@ -1150,7 +1153,7 @@ msgstr "行间距"
 
 #. TRN - Input label. Be short as possible
 msgid "Boldness"
-msgstr "粗"
+msgstr "粗细"
 
 #. TRN - Input label. Be short as possible
 #. Like Font italic
@@ -2443,24 +2446,6 @@ msgstr "强冷却模式"
 msgid "Init"
 msgstr ""
 
-msgid "Hotend"
-msgstr ""
-
-msgid "Parts"
-msgstr "部件"
-
-msgid "Aux"
-msgstr "辅助"
-
-msgid "Nozzle1"
-msgstr "喷嘴1"
-
-msgid "MC Board"
-msgstr ""
-
-msgid "Heat"
-msgstr "加热"
-
 msgid "Chamber"
 msgstr "腔体"
 
@@ -2487,8 +2472,33 @@ msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
 msgstr ""
 
 msgctxt "air_duct"
-msgid "Right"
-msgstr "右边"
+msgid "Right(Aux)"
+msgstr "右侧（辅助）"
+
+msgctxt "air_duct"
+msgid "Right(Filter)"
+msgstr ""
+
+msgid "Hotend"
+msgstr ""
+
+msgid "Parts"
+msgstr "部件"
+
+msgid "Aux"
+msgstr "辅助"
+
+msgid "Nozzle1"
+msgstr "喷嘴1"
+
+msgid "MC Board"
+msgstr ""
+
+msgid "Heat"
+msgstr "加热"
+
+msgid "Fan"
+msgstr "风扇"
 
 msgid "Idling..."
 msgstr "空闲中"
@@ -3502,7 +3512,7 @@ msgid "Calibrating Micro Lidar"
 msgstr "雷达相机校准"
 
 msgid "Homing toolhead"
-msgstr "工具头回到起始点"
+msgstr "工具头回中"
 
 msgid "Cleaning nozzle tip"
 msgstr "清理喷嘴头"
@@ -3757,6 +3767,18 @@ msgstr "重试 (问题已解决）"
 
 msgid "Stop Drying"
 msgstr "停止烘干"
+
+msgid "Cancle"
+msgstr "取消"
+
+msgid "Done"
+msgstr "完成"
+
+msgid "Retry"
+msgstr "重试"
+
+msgid "Resume"
+msgstr "继续"
 
 msgid "Unknown error."
 msgstr "未知错误。"
@@ -4517,6 +4539,12 @@ msgstr ""
 "这是您第一次使用H2D机器打印TPU耗材。\n"
 "您需要观看一个简短的指导视频吗？"
 
+msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
+msgstr "PPS-CF/PPA-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。请参考Wiki。"
+
+msgid "Tips"
+msgstr "提示"
+
 msgid "Slice all"
 msgstr "切片所有盘"
 
@@ -5028,8 +5056,8 @@ msgstr "链接失败。请检查网络后重试"
 msgid "Please check the network and try again, You can restart or update the printer if the issue persists."
 msgstr "检查网络后重试。如仍未恢复，可重启或更新打印机。"
 
-msgid "The printer has been logged out and cannot connect."
-msgstr "打印机已注销，无法连接。"
+msgid "Multi-device/client simultaneous liveview is not supported. Please close the liveview on other devices/clients and try again."
+msgstr "不支持多设备/客户端同时查看实时监控，请关闭其他设备/客户端的实时监控后重试。"
 
 msgid "Video Stopped."
 msgstr "视频已停止。"
@@ -5187,9 +5215,6 @@ msgstr ""
 msgid "Download waiting..."
 msgstr "等待下载中..."
 
-msgid "Retry"
-msgstr "重试"
-
 msgid "Play"
 msgstr "播放"
 
@@ -5202,9 +5227,6 @@ msgstr "下载完成"
 #, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "下载中 %d%%..."
-
-msgid "Fan"
-msgstr "风扇"
 
 msgid "Air Condition"
 msgstr "空调系统"
@@ -5369,9 +5391,6 @@ msgstr "打印进度"
 msgid "Parts Skip"
 msgstr "零件跳过"
 
-msgid "Resume"
-msgstr "继续"
-
 msgid "Stop"
 msgstr "停止"
 
@@ -5458,7 +5477,7 @@ msgid "Current extruder is busy changing filament"
 msgstr "当前挤出机正在换料"
 
 msgid "Current slot has alread been loaded"
-msgstr ""
+msgstr "当前槽位已加载"
 
 msgid "The selected slot is empty."
 msgstr "当前选择的槽位是空的"
@@ -6038,6 +6057,10 @@ msgstr "打印机设置"
 msgid "The %s nozzle can not print %s."
 msgstr "%s喷嘴不可以打印%s"
 
+#, boost-format
+msgid "Mixing %1% with %2% in printing is not recommended.\n"
+msgstr ""
+
 msgid " nozzle"
 msgstr "喷嘴"
 
@@ -6498,9 +6521,6 @@ msgstr ""
 msgid "Switch now"
 msgstr "现在切换"
 
-msgid "Tips"
-msgstr "提示"
-
 msgid "Load project"
 msgstr "加载项目"
 
@@ -6666,11 +6686,11 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "在修复之前，删除了支持、接缝和涂色信息,模型名字:"
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
-msgstr "未连接打印机，请前往设备页连接一台 %s 后再同步。"
+msgid "Printer not connected. Please go to the device page to connect %s before syncing."
+msgstr "打印机未连接，在同步之前，请前往设备页连接 %s。"
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
 msgstr "设备页当前连接的打印机不是 %s ，无法同步，请切换成 %s 后再同步。"
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
@@ -7117,7 +7137,7 @@ msgid "Preset sync"
 msgstr "配置同步"
 
 msgid "Preferences sync"
-msgstr "首选项同步"
+msgstr "偏好设置同步"
 
 msgid "View control settings"
 msgstr "视图控制设置"
@@ -8941,9 +8961,6 @@ msgstr "新版本的Bambu Studio"
 msgid "Skip this Version"
 msgstr "跳过本版本"
 
-msgid "Done"
-msgstr "完成"
-
 msgid "resume"
 msgstr "继续"
 
@@ -9088,6 +9105,9 @@ msgstr "激光 40W"
 
 msgid "Cutting Module"
 msgstr "刀切模组"
+
+msgid "Auto Fire Extinguishing System"
+msgstr "自动灭火装置"
 
 msgid "Model:"
 msgstr "型号："
@@ -9401,7 +9421,7 @@ msgid "Printing high-temp and low-temp filaments together may cause nozzle clogg
 msgstr "同时打印高温和低温材料可能导致喷嘴堵塞或打印机损坏。"
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
-msgstr "同时打印高温和低温材料可能导致喷嘴堵塞或打印机损坏。若仍需打印，可在首选项中启用该选项。"
+msgstr "同时打印高温和低温材料可能导致喷嘴堵塞或打印机损坏。若仍需打印，可在偏好设置中启用该选项。"
 
 msgid "Printing different-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "同时打印不同温度的耗材可能导致喷嘴堵塞或打印机损坏。"
@@ -9421,14 +9441,8 @@ msgstr "平滑模式的延时摄影不支持在逐件打印模式下使用。"
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "触碰裹头检测不支持在逐件打印模式下使用。"
 
-msgid "enable_wrapping_detection"
-msgstr "启用触碰裹头检测"
-
 msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
 msgstr "触碰裹头检测需要擦拭塔，否则打印件上可能会有瑕疵。"
-
-msgid "enable_prime_tower"
-msgstr "启用擦拭塔"
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "请选择逐件打印以支持在旋转花瓶模式下打印多个对象。"
@@ -10247,6 +10261,15 @@ msgstr "依据最高温"
 msgid "Filament diameter is used to calculate extrusion in gcode, so it's important and should be accurate"
 msgstr "耗材丝直径被用于计算G-code文件中的挤出量。因此很重要，应尽可能精确。"
 
+msgid "Adaptive volumetric speed"
+msgstr "自适应体积速度"
+
+msgid "When enabled, the extrusion flow is limited by the smaller of the fitted value (calculated from line width and layer height) and the user-defined maximum flow. When disabled, only the user-defined maximum flow is applied."
+msgstr "启用时，体积速度取“拟合值（由线宽和层高计算）“与”用户定义的最大值”中的较小值。禁用时，仅应用用户定义的最大值。"
+
+msgid "Max volumetric speed multinomial coefficients"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr "收缩"
 
@@ -10257,6 +10280,15 @@ msgid ""
 msgstr ""
 "输入耗材冷却后将会产生的收缩百分比（如果测量值为94毫米而不是100毫米，则为94%）。零件将在XY方向上缩放以进行补偿。仅考虑用于外周的耗材。  \n"
 "请确保对象之间有足够的空间，因为补偿是在检查之后进行的。"
+
+msgid "Velocity Adaptation Factor"
+msgstr "速度适应系数"
+
+msgid "This parameter reflects the speed at which a material transitions from one state to another. It, along with the smooth coefficient, determines the final length of the transition zone. A larger value: requires a shorter transition zone. A smaller value: requires a longer transition zone to avoid flow instability."
+msgstr ""
+"此参数反映材料从一种状态过渡到另一种状态的速度。它与平滑系数一起决定过渡区的最终长度。\n"
+"大数值：需要较短的过渡区。\n"
+"小数值：需要较长的过渡区以避免流动不稳定。"
 
 msgid "Adhesiveness Category"
 msgstr "粘接性类别"
@@ -13313,6 +13345,9 @@ msgid ""
 "Please click the Sync button above and restart the calibration."
 msgstr "当前选择的%s喷嘴类型与机器实际喷嘴类型不匹配，请点击上方的同步按钮，然后重新校准。"
 
+msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+msgstr "自动标定仅支持左右喷嘴直径完全相同的情况。"
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "无法标定：可能是标定值范围过大，或者是补偿过小"
 
@@ -14149,13 +14184,36 @@ msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
+#~ msgid "Helio Action"
+#~ msgstr "Helio功能"
+
+#~ msgid "Chamber Temperature"
+#~ msgstr "腔温"
+
+#~ msgctxt "air_duct"
+#~ msgid "Right"
+#~ msgstr "右边"
+
+#~ msgid "The printer has been logged out and cannot connect."
+#~ msgstr "打印机已注销，无法连接。"
+
+#, c-format, boost-format
+#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+#~ msgstr "未连接打印机，请前往设备页连接一台 %s 后再同步。"
+
+#, c-format, boost-format
+#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+#~ msgstr "设备页当前连接的打印机不是 %s ，无法同步，请切换成 %s 后再同步。"
+
+#~ msgid "enable_wrapping_detection"
+#~ msgstr "启用触碰裹头检测"
+
+#~ msgid "enable_prime_tower"
+#~ msgstr "启用擦拭塔"
+
 #, c-format, boost-format
 #~ msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
 #~ msgstr "未连接打印机，请前往设备页连接一台 %s 打印机后再同步。"
-
-#, c-format, boost-format
-#~ msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
-#~ msgstr "设备页当前连接的打印机不是 %s ，无法同步，请切换成 %s 后再同步。"
 
 #~ msgid "Parameter recommendation: In the process preset, under Others-Advanced, check Enable clumping detection by probing. This feature generates a small wipe tower and performs probing detection to identify clumping issues early in the print and stop printing, preventing print failures or printer damage.\n"
 #~ msgstr "在工艺预设的【其他-高级】中勾选“启用触碰裹头检测”选项。该功能将通过生成小型料塔和触碰检测，可在打印早期发现裹头问题并终止打印，避免打印失败或打印机损伤。\n"
@@ -14272,9 +14330,6 @@ msgstr ""
 #~ "收缩、翘曲与应力\n"
 #~ "通过控制热指数，可以消除由热引起的翘曲和应力根源。"
 
-#~ msgid "Helio Action"
-#~ msgstr "Helio功能"
-
 #~ msgid "Open Preferences."
 #~ msgstr "打开首选项"
 
@@ -14310,9 +14365,6 @@ msgstr ""
 
 #~ msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup.."
 #~ msgstr "启用后，将在下次启动Studio后切片自动应用上次切片时使用的颜色方案（如走线类型、速度）。"
-
-#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-#~ msgstr "自动标定仅支持左右喷嘴直径完全相同的情况。"
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "层时间（s）"
@@ -14492,9 +14544,6 @@ msgstr ""
 
 #~ msgid "Sensitivity of pausing is"
 #~ msgstr "暂停的灵敏度为"
-
-#~ msgid "Auto Fire Extinguishing System"
-#~ msgstr "自动灭火装置"
 
 #~ msgid "Expand the first raft or support layer to improve bed plate adhesion"
 #~ msgstr "扩展筏和支撑的首层可以改善和热床的粘接。"
@@ -16702,9 +16751,6 @@ msgstr ""
 
 #~ msgid "No vendor I want"
 #~ msgstr "没有我想要的供应商"
-
-#~ msgid "Cancle"
-#~ msgstr "取消"
 
 #~ msgid "Show \"Tip of the day\" notification after start"
 #~ msgstr "启动后显示“每日小贴士”通知"

@@ -3433,6 +3433,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("pressure_advance");
         optgroup->append_single_option_line("filament_density");
         optgroup->append_single_option_line("filament_shrink");
+        optgroup->append_single_option_line("filament_velocity_adaptation_factor");
         optgroup->append_single_option_line("filament_cost");
 
         //BBS
@@ -3521,6 +3522,7 @@ void TabFilament::build()
 
         //BBS
         optgroup = page->new_optgroup(L("Volumetric speed limitation"), L"param_volumetric_speed");
+        optgroup->append_single_option_line("filament_adaptive_volumetric_speed", "", 0);
         optgroup->append_single_option_line("filament_max_volumetric_speed", "", 0);
         optgroup->append_single_option_line("filament_ramming_volumetric_speed", "",0);
 
@@ -3752,6 +3754,10 @@ void TabFilament::toggle_options()
 
         for (auto el : {"supertack_plate_temp", "supertack_plate_temp_initial_layer", "cool_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp", "eng_plate_temp_initial_layer", "textured_plate_temp", "textured_plate_temp_initial_layer"})
             toggle_line(el, is_BBL_printer);
+
+        std::string volumetric_speed_cos = m_config->opt_string("volumetric_speed_coefficients", (unsigned int)(m_variant_combo->GetSelection()));
+        bool enable_fit = volumetric_speed_cos != "0 0 0 0 0 0";
+        toggle_option("filament_adaptive_volumetric_speed", enable_fit, 256 + (unsigned int) (m_variant_combo->GetSelection()));
     }
 
     if (m_active_page->title() == "Multi Filament") {
@@ -3843,6 +3849,7 @@ void TabPrinter::build_fff()
 
     auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloatsNullable*>(m_config->option("nozzle_diameter"));
     m_initial_extruders_count = m_extruders_count = nozzle_diameter->values.size();
+    m_extruder_variant_list = m_config->option<ConfigOptionStrings>("printer_extruder_variant")->values;
     // BBS
     //wxGetApp().obj_list()->update_objects_list_filament_column(m_initial_extruders_count);
 
@@ -4520,6 +4527,8 @@ void TabPrinter::on_preset_loaded()
     if (m_extruders_count != extruders_count)
         extruders_count_changed(extruders_count);
 
+    m_extruder_variant_list = m_config->option<ConfigOptionStrings>("printer_extruder_variant")->values;
+
     if (base_name != m_base_preset_name) {
         bool use_default_nozzle_volume_type = true;
         m_base_preset_name = base_name;
@@ -4804,14 +4813,16 @@ void Tab::load_current_preset()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": enter, m_type %1%")%Preset::get_type_string(m_type);
     const Preset& preset = m_presets->get_edited_preset();
-    int previous_extruder_count = 0;
+    std::vector<std::string> prev_variant_list;
+    int prev_extruder_count = 0;
 
     update_btns_enabling();
 
     if (m_type == Slic3r::Preset::TYPE_PRINTER) {
         // For the printer profile, generate the extruder pages.
         if (preset.printer_technology() == ptFFF) {
-            previous_extruder_count = static_cast<TabPrinter*>(this)->m_extruders_count;
+            prev_variant_list = static_cast<TabPrinter*>(this)->m_extruder_variant_list;
+            prev_extruder_count = static_cast<TabPrinter*>(this)->m_extruders_count;
             on_preset_loaded();
         }
         else
@@ -4819,9 +4830,11 @@ void Tab::load_current_preset()
     }
     if (m_type == Preset::TYPE_PRINT) {
         if (auto tab = wxGetApp().plate_tab) {
+            tab->m_config->apply(*m_config);
             tab->update_extruder_variants();
         }
         for (auto tab : wxGetApp().model_tabs_list) {
+            tab->m_config->apply(*m_config);
             tab->update_extruder_variants();
         }
     }
@@ -4899,8 +4912,9 @@ void Tab::load_current_preset()
             }
             //update the object config due to extruder count change
             DynamicPrintConfig& new_print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+            std::vector<std::string> new_variant_list = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionStrings>("printer_extruder_variant")->values;
             int new_extruder_count = wxGetApp().preset_bundle->get_printer_extruder_count();
-            if (previous_extruder_count != new_extruder_count)
+            if (prev_extruder_count != new_extruder_count || prev_variant_list.size() != new_variant_list.size())
             {
                 //process the object params here
                 Model& model = wxGetApp().plater()->model();
@@ -4909,20 +4923,14 @@ void Tab::load_current_preset()
                     ModelObject* object = model.objects[i];
                     DynamicPrintConfig object_config = object->config.get();
                     if (!object_config.empty()) {
-                        if (previous_extruder_count < new_extruder_count)
-                            object_config.update_values_from_single_to_multi_2(new_print_config, print_options_with_variant);
-                        else
-                            object_config.update_values_from_multi_to_single_2(print_options_with_variant);
+                        object_config.update_values_from_multi_to_multi_2(prev_variant_list, new_variant_list, new_print_config, print_options_with_variant);
                         object->config.assign_config(std::move(object_config));
                     }
                     for (ModelVolume* v : object->volumes) {
                         if (v->is_model_part() || v->is_modifier()) {
                             DynamicPrintConfig volume_config = v->config.get();
                             if (!volume_config.empty()) {
-                                if (previous_extruder_count < new_extruder_count)
-                                    volume_config.update_values_from_single_to_multi_2(new_print_config, print_options_with_variant);
-                                else
-                                    volume_config.update_values_from_multi_to_single_2(print_options_with_variant);
+                                volume_config.update_values_from_multi_to_multi_2(prev_variant_list,new_variant_list,new_print_config, print_options_with_variant);
                                 v->config.assign_config(std::move(volume_config));
                             }
                         }
@@ -4932,11 +4940,8 @@ void Tab::load_current_preset()
                         ModelConfig& layer_model_config = layer_config_it.second;
                         DynamicPrintConfig layer_config = layer_model_config.get();
                         if (!layer_config.empty()) {
-                           if (previous_extruder_count < new_extruder_count)
-                               layer_config.update_values_from_single_to_multi_2(new_print_config, print_options_with_variant);
-                           else
-                               layer_config.update_values_from_multi_to_single_2(print_options_with_variant);
-                           layer_model_config.assign_config(std::move(layer_config));
+                            layer_config.update_values_from_multi_to_multi_2(prev_variant_list,new_variant_list,new_print_config, print_options_with_variant);
+                            layer_model_config.assign_config(std::move(layer_config));
                        }
                     }
                 }
@@ -6165,6 +6170,9 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 
 void TabPrinter::set_extruder_volume_type(int extruder_id, NozzleVolumeType type)
 {
+    // -1 means single extruder, so we should default use extruder id 0
+    if (extruder_id == -1)
+        extruder_id = 0;
     auto nozzle_volumes = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
     assert(nozzle_volumes->values.size() > (size_t)extruder_id);
     nozzle_volumes->values[extruder_id] = type;

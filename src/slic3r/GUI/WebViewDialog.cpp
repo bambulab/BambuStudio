@@ -1279,6 +1279,19 @@ void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
             SetWebviewShow("right", false);
             SetWebviewShow("online", true);
         }
+
+        // search page jump to online page
+        if (m_online_last_url.find("/studio/webview/search") != std::string::npos) {
+            if ((TmpNowUrl.find("/studio/webview") != std::string::npos) &&
+                (TmpNowUrl.find("/studio/webview/search") == std::string::npos)) {
+                SwitchLeftMenu("online");
+            }
+        }
+        // jump to search page
+        if (TmpNowUrl.find("/studio/webview/search") != std::string::npos ) {
+            SwitchLeftMenu("search");
+        }
+        m_online_last_url = TmpNowUrl;
     }
 
     if (m_browser != nullptr && evt.GetId() == m_browser->GetId())
@@ -1683,9 +1696,9 @@ void WebViewPanel::OpenMakerworldSearchPage(std::string KeyWord)
 
     wxString language_code = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
 
-    m_online_LastUrl = (boost::format("%1%%2%/studio/webview/search?keyword=%3%&from=bambustudio") % host % language_code.mb_str() % UrlEncode(KeyWord)).str();
-
-    SwitchLeftMenu("online");
+    m_online_LastUrl = (boost::format("%1%%2%/studio/webview/search?from=bambustudio&keyword=%3%&from_studio_home=true") % host % language_code.mb_str() % UrlEncode(KeyWord)).str();
+    SwitchWebContent("online");
+    //SwitchLeftMenu("online");
 }
 
 void WebViewPanel::SetMakerworldModelID(std::string ModelID)
@@ -1771,7 +1784,19 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
 
                 m_online_LastUrl = "";
             } else {
-                //m_browserMW->Reload();
+                std::string TmpNowUrl = m_browserMW->GetCurrentURL().ToStdString();
+                // If you click Online on the search page, navigate back to the Online page.
+                if (auto pos = TmpNowUrl.find("/search"); pos != std::string::npos){
+                    TmpNowUrl.erase(pos, 7);
+                }
+                if (auto pos = TmpNowUrl.find("&from_studio_home=true"); pos != std::string::npos) {
+                    TmpNowUrl.erase(pos, 22);
+                }
+                std::regex pattern("&keyword=[^&]*");
+                TmpNowUrl = std::regex_replace(TmpNowUrl, pattern, "");
+                if(TmpNowUrl != m_browserMW->GetCurrentURL().ToStdString()) {
+                    m_browserMW->LoadURL(TmpNowUrl); 
+                }
             }
         }
 

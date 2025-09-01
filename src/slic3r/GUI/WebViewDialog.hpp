@@ -125,6 +125,7 @@ public:
     bool     m_onlinefirst;    // Online Page First Load
     wxString m_online_type;    // recommend & browse
     wxString m_online_LastUrl; // PageLastError Url
+    std::string m_online_last_url; //last url
 
     void SendDesignStaffpick(bool on);
     void get_design_staffpick(int offset, int limit, std::function<void(std::string)> callback);

@@ -329,18 +329,22 @@ std::string MachineObject::get_printer_thumbnail_img_str() const
     std::string img_str = DevPrinterConfigUtil::get_printer_thumbnail_img(printer_type);
     std::string img_url;
 
-    if (!img_str.empty()) {
-        img_url =  Slic3r::resources_dir() + "\\printers\\image\\" + img_str;
-        if (fs::exists(img_url + ".svg")) {
+     if (!img_str.empty())
+     {
+        img_url = Slic3r::resources_dir() + "\\images\\" + img_str ;
+        if (fs::exists(img_url + ".svg"))
+        {
             return img_url;
         }
-        else {
+        else
+        {
             img_url = img_str;
         }
-    }
-    else {
+     }
+     else
+     {
         img_url =  "printer_thumbnail";
-    }
+     }
 
     return img_url;
 }
@@ -823,6 +827,7 @@ void MachineObject::clear_version_info()
     air_pump_version_info = DevFirmwareVersionInfo();
     laser_version_info = DevFirmwareVersionInfo();
     cutting_module_version_info = DevFirmwareVersionInfo();
+    extinguish_version_info = DevFirmwareVersionInfo();
     module_vers.clear();
 }
 
@@ -834,6 +839,8 @@ void MachineObject::store_version_info(const DevFirmwareVersionInfo& info)
         laser_version_info = info;
     } else if (info.isCuttingModule()) {
         cutting_module_version_info = info;
+    } else if (info.isExtinguishSystem()) {
+        extinguish_version_info = info;
     }
 
     module_vers.emplace(info.name, info);
@@ -2321,6 +2328,7 @@ void MachineObject::reset()
     job_id_ = "";
     jobState_ = 0;
     m_plate_index = -1;
+    device_cert_installed = false;
 
     // reset print_json
     json empty_j;
@@ -2417,6 +2425,11 @@ bool MachineObject::is_info_ready(bool check_version) const
     return false;
 }
 
+
+bool MachineObject::is_security_control_ready() const
+{
+    return device_cert_installed;
+}
 
 std::vector<std::string> MachineObject::get_resolution_supported()
 {
@@ -3335,7 +3348,14 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
 
                         if (jj.contains("nozzle_diameter") && jj.contains("nozzle_type"))
                         {
-                            DevNozzleSystemParser::ParseV1_0(jj["nozzle_type"], jj["nozzle_diameter"], m_nozzle_system);
+                            int nozzle_flow_type = -1;
+
+                            if(jj.contains("flag3")){
+                                int flag3 = jj["flag3"].get<int>();
+                                nozzle_flow_type = get_flag_bits(flag3, 10, 3);
+                            }
+
+                            DevNozzleSystemParser::ParseV1_0(jj["nozzle_type"], jj["nozzle_diameter"], nozzle_flow_type, m_nozzle_system);
                         }
                     }
 
@@ -4205,7 +4225,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             }
                             catch (...) { }
                         }
-                        
+
                         if (check_studio_cmd && j["upgrade"].contains("err_code")) {
                             if (j["upgrade"]["err_code"].is_number()) {
                                 add_command_error_code_dlg(j["upgrade"]["err_code"].get<int>());
@@ -4289,6 +4309,11 @@ int MachineObject::publish_gcode(std::string gcode_str)
     }
 
     return publish_json(j);
+}
+
+void MachineObject::update_device_cert_state(bool ready)
+{
+    device_cert_installed = ready;
 }
 
 BBLSubTask* MachineObject::get_subtask()

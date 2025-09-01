@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 19:21+0800\n"
+"POT-Creation-Date: 2025-08-27 20:24+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1085,6 +1085,9 @@ msgstr "Avertissement : le texte normal est une erreur."
 
 msgid "Warning:text normal has been reset."
 msgstr "Avertissement : le texte normal a été réinitialisé."
+
+msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
+msgstr "Avertissement : l’espacement actuel du texte n’est pas très approprié. Si vous continuez l’édition, un espacement plus adapté sera généré."
 
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "Attention : l'ancienne matrice comporte au moins deux paramètres : l'effet miroir, la mise à l'échelle et la rotation. Si vous continuez l'édition, il se peut qu'elle ne soit pas correcte. Veuillez déplacer le texte ou annuler en utilisant la pose actuelle, sauvegarder et rééditer."
@@ -2454,24 +2457,6 @@ msgstr "Refroidissement Maximal"
 msgid "Init"
 msgstr ""
 
-msgid "Hotend"
-msgstr ""
-
-msgid "Parts"
-msgstr "Pièce"
-
-msgid "Aux"
-msgstr "Aux"
-
-msgid "Nozzle1"
-msgstr "Buse 1"
-
-msgid "MC Board"
-msgstr "Carte MC"
-
-msgid "Heat"
-msgstr "Chauffe"
-
 msgid "Chamber"
 msgstr "Chambre"
 
@@ -2498,8 +2483,33 @@ msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
 msgstr "Le mode de refroidissement convient à l'impression de matériaux PLA/PETG/TPU."
 
 msgctxt "air_duct"
-msgid "Right"
-msgstr "Droit"
+msgid "Right(Aux)"
+msgstr "D. (Aux)"
+
+msgctxt "air_duct"
+msgid "Right(Filter)"
+msgstr ""
+
+msgid "Hotend"
+msgstr ""
+
+msgid "Parts"
+msgstr "Pièce"
+
+msgid "Aux"
+msgstr "Aux"
+
+msgid "Nozzle1"
+msgstr "Buse 1"
+
+msgid "MC Board"
+msgstr "Carte MC"
+
+msgid "Heat"
+msgstr "Chauffe"
+
+msgid "Fan"
+msgstr "Ventilateur"
 
 msgid "Idling..."
 msgstr "Inactive..."
@@ -3467,7 +3477,7 @@ msgstr ""
 "Réinitialiser à 50%% de la profondeur de la peau"
 
 msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
-msgstr ""
+msgstr "Le mode spirale ne fonctionne que lorsque le nombre de parois est égal à 1, que les supports sont désactivés, que la détection d'encrassement par palpage est désactivée, que le nombre de couches supérieures est de 0, que la densité de remplissage est de 0, que le type de timelapse est « traditionnel » et que le lissage de la vitesse des parois dans la direction Z est désactivé."
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Mais les machines avec une structure I3 ne généreront pas de vidéos timelapse."
@@ -3769,13 +3779,25 @@ msgid "Problem Solved and Resume"
 msgstr "Problème résolu, Reprendre"
 
 msgid "Got it, Turn off the Fire Alarm."
-msgstr ""
+msgstr "Bien compris, désactivez l'Alarme Incendie."
 
 msgid "Retry (problem solved)"
 msgstr "Réessayer (problème résolu)"
 
 msgid "Stop Drying"
 msgstr "Arrêter Séchage"
+
+msgid "Cancle"
+msgstr ""
+
+msgid "Done"
+msgstr "Terminé"
+
+msgid "Retry"
+msgstr "Réessayer"
+
+msgid "Resume"
+msgstr "Résumer"
 
 msgid "Unknown error."
 msgstr "Erreur inconnue."
@@ -3984,7 +4006,7 @@ msgid "Slicing Result"
 msgstr "Résultat du Tranchage"
 
 msgid "Helio Simulation"
-msgstr ""
+msgstr "Simulation Helio"
 
 msgid "Color Scheme"
 msgstr "Mode d'Affichage"
@@ -4535,6 +4557,12 @@ msgstr ""
 "C'est la première fois que vous imprimez des filaments de TPU avec la H2D.\n"
 "Souhaitez-vous regarder un petit tutoriel vidéo ?"
 
+msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
+msgstr ""
+
+msgid "Tips"
+msgstr "Astuces"
+
 msgid "Slice all"
 msgstr "Tout trancher"
 
@@ -5049,8 +5077,8 @@ msgstr "Échec de la connexion. Vérifiez le réseau et réessayez"
 msgid "Please check the network and try again, You can restart or update the printer if the issue persists."
 msgstr "Vérifiez le réseau et réessayez. Vous pouvez redémarrer ou mettre à jour l'imprimante si le problème persiste."
 
-msgid "The printer has been logged out and cannot connect."
-msgstr "L'imprimante a été déconnectée et ne peut pas se connecter."
+msgid "Multi-device/client simultaneous liveview is not supported. Please close the liveview on other devices/clients and try again."
+msgstr ""
 
 msgid "Video Stopped."
 msgstr "La vidéo s’est arrêtée."
@@ -5211,9 +5239,6 @@ msgstr ""
 msgid "Download waiting..."
 msgstr "Téléchargement en attente..."
 
-msgid "Retry"
-msgstr "Réessayer"
-
 msgid "Play"
 msgstr "Lecture"
 
@@ -5226,9 +5251,6 @@ msgstr "Téléchargement terminé"
 #, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "Téléchargement %d%%..."
-
-msgid "Fan"
-msgstr "Ventilateur"
 
 msgid "Air Condition"
 msgstr "Régul. Chambre"
@@ -5392,9 +5414,6 @@ msgstr "Progression de l'impression"
 
 msgid "Parts Skip"
 msgstr "Sauter Pièces"
-
-msgid "Resume"
-msgstr "Résumer"
 
 msgid "Stop"
 msgstr "Arrêt"
@@ -6072,6 +6091,10 @@ msgstr "Paramètres de l'imprimante"
 msgid "The %s nozzle can not print %s."
 msgstr "La buse %s ne peut pas imprimer %s."
 
+#, boost-format
+msgid "Mixing %1% with %2% in printing is not recommended.\n"
+msgstr ""
+
 msgid " nozzle"
 msgstr " buse"
 
@@ -6467,15 +6490,17 @@ msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
 "Please request a new Helio-PAT."
 msgstr ""
+"Aucune Helio-PAT (clé) valide détecté. La simulation et l'optimisation Helio ne peuvent pas continuer. \n"
+"Veuillez demander une nouvelle clé Helio-PAT."
 
 msgid "Execution Blocked"
-msgstr ""
+msgstr "Exécution Bloquée"
 
 msgid "Regenerate PAT"
-msgstr ""
+msgstr "Régénérer la clé PAT"
 
 msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
-msgstr ""
+msgstr "Impossible d'obtenir la clé Helio PAT, cliquez sur Actualiser pour réessayer."
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Veuillez résoudre les erreurs de découpage et republier."
@@ -6532,9 +6557,6 @@ msgstr ""
 
 msgid "Switch now"
 msgstr "Changez maintenant"
-
-msgid "Tips"
-msgstr "Astuces"
 
 msgid "Load project"
 msgstr "Charger le projet"
@@ -6699,12 +6721,12 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "Les supports personnalisés, les surfaces de jointure et la peinture de couleur ont été retirés avant la réparation, nom du modèle :"
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
-msgstr "Imprimante non connectée. Veuillez consulter la page de l'appareil pour connecter une imprimante %s avant de procéder à la synchronisation."
+msgid "Printer not connected. Please go to the device page to connect %s before syncing."
+msgstr ""
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-msgstr "L'imprimante actuellement connectée sur la page Périphérique n'est pas une %s. Veuillez basculer vers une %s avant de procéder à la synchronisation."
+msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
+msgstr ""
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "Il n'y a pas de filaments dans l'imprimante. Veuillez d'abord charger les filaments sur l'imprimante."
@@ -6777,10 +6799,10 @@ msgid "Plate% d: %s is not suggested to be used to print filament %s(%s). If you
 msgstr "La plaque% d : %s n'est pas appropriée pour imprimer du %s(%s). Si vous souhaitez tout de même continuer l'impression, veuillez régler la température du plateau à une valeur différente de 0."
 
 msgid "Parameter recommendation"
-msgstr ""
+msgstr "Recommandation de paramètres"
 
 msgid "In the process preset, under \"Others-Advanced\", check \"Enable clumping detection by probing\". This feature generates a small wipe tower and performs probing detection to identify clumping issues early in the print and stop printing, preventing print failures or printer damage.\n"
-msgstr ""
+msgstr "Dans le préréglage de processus, sous « Autres - Avancé », cochez « Activer la détection d’encrassement par palpage ». Cette fonctionnalité génère une petite tour de nettoyage et utilise le palpage pour détecter rapidement les problèmes d’encrassement en début d’impression. Elle peut ainsi interrompre le travail afin d’éviter des échecs d’impression ou des dommages à l’imprimante.\n"
 
 msgid "Currently, the object configuration form cannot be used with a multiple-extruder printer."
 msgstr "Actuellement, le formulaire de configuration d'objet ne peut pas être utilisé avec une imprimante à extrudeuses multiples."
@@ -8981,9 +9003,6 @@ msgstr "Nouvelle version de Bambu Studio"
 msgid "Skip this Version"
 msgstr "Ignorer cette Version"
 
-msgid "Done"
-msgstr "Terminé"
-
 msgid "resume"
 msgstr "Reprendre"
 
@@ -9100,7 +9119,7 @@ msgid "Agree"
 msgstr "Accepter"
 
 msgid "Helio Additive"
-msgstr ""
+msgstr "Helio Additif"
 
 msgid "Chamber temperature"
 msgstr "Température de la chambre"
@@ -9112,10 +9131,10 @@ msgid "How to use Helio"
 msgstr "Comment utiliser Helio"
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
-msgstr ""
+msgstr "Échec de l’obtention de la clé Helio PAT. Le nombre de clés émises a atteint la limite maximale. Veuillez consulter les informations sur le site officiel de Helio. Cliquez sur Actualiser pour la récupérer dès qu’elle sera disponible."
 
 msgid "Click for more details"
-msgstr ""
+msgstr "Cliquez pour en savoir plus"
 
 msgid "Air Pump"
 msgstr "Pompe à Air"
@@ -9128,6 +9147,9 @@ msgstr ""
 
 msgid "Cutting Module"
 msgstr "Module de coupe"
+
+msgid "Auto Fire Extinguishing System"
+msgstr "Système d'Extinction Automatique d'Incendie"
 
 msgid "Model:"
 msgstr "Modèle :"
@@ -9444,7 +9466,7 @@ msgid "Printing high-temp and low-temp filaments together may cause nozzle clogg
 msgstr "L'impression simultanée de filaments haute température et basse température peut provoquer un bouchage de la buse ou endommager l'imprimante. Si vous souhaitez quand même imprimer, vous pouvez activer cette option dans les Préférences."
 
 msgid "Printing different-temp filaments together may cause nozzle clogging or printer damage."
-msgstr ""
+msgstr "L’impression simultanée de filaments à températures différentes peut provoquer un bouchage de la buse ou endommager l’imprimante."
 
 msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "L'impression simultanée de filaments haute et moyenne température peut provoquer un bouchage de la buse ou endommager l'imprimante."
@@ -9461,14 +9483,8 @@ msgstr "Le mode fluide du timelapse n'est pas pris en charge lorsque le mode d'i
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "La détection d'encrassement n'est pas prise en charge lorsque la séquence \"par objet\" est activée."
 
-msgid "enable_wrapping_detection"
-msgstr ""
-
 msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
-msgstr ""
-
-msgid "enable_prime_tower"
-msgstr ""
+msgstr "La détection d’agglutination nécessite une tour de purge; sans celle-ci, le modèle risque de présenter des défauts."
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Veuillez sélectionner la séquence d'impression \"Par objet\" pour imprimer plusieurs objets en mode vase en spirale."
@@ -10075,7 +10091,7 @@ msgid "This setting will affect the speed of perimeters having radius <= small p
 msgstr "Ce réglage affectera la vitesse des périmètres dont le rayon <= au seuil (ce sont généralement des trous). Si elle est exprimée en pourcentage (par exemple : 80 %), elle sera calculée sur la base du réglage de vitesse de la paroi extérieure ci-dessus. Réglez sur zéro pour le mode automatique."
 
 msgid "Small perimeter threshold"
-msgstr ""
+msgstr "Seuil périmètre court"
 
 msgid "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr "Cela définit le seuil pour une petite longueur de périmètre. Le seuil par défaut est de 0 mm"
@@ -10287,6 +10303,15 @@ msgstr "Par Température Maximale"
 msgid "Filament diameter is used to calculate extrusion in gcode, so it's important and should be accurate"
 msgstr "Le diamètre du filament est utilisé pour calculer l'extrusion dans le G-code, c'est une donnée importante qui doit être précise."
 
+msgid "Adaptive volumetric speed"
+msgstr ""
+
+msgid "When enabled, the extrusion flow is limited by the smaller of the fitted value (calculated from line width and layer height) and the user-defined maximum flow. When disabled, only the user-defined maximum flow is applied."
+msgstr ""
+
+msgid "Max volumetric speed multinomial coefficients"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr "Rétrécissement"
 
@@ -10297,6 +10322,12 @@ msgid ""
 msgstr ""
 "Entrez le pourcentage de rétrécissement que le filament obtiendra après refroidissement (94% isi vous mesurez 94mm au lieu de 100mm). La pièce sera mise à l'échelle en xy pour compenser. Seul le filament utilisé pour le périmètre est pris en compte.\n"
 "Veillez à laisser suffisamment d'espace entre les objets, car cette compensation est effectuée après les contrôles."
+
+msgid "Velocity Adaptation Factor"
+msgstr "Facteur d'Adaptation de la Vitesse"
+
+msgid "This parameter reflects the speed at which a material transitions from one state to another. It, along with the smooth coefficient, determines the final length of the transition zone. A larger value: requires a shorter transition zone. A smaller value: requires a longer transition zone to avoid flow instability."
+msgstr "Ce paramètre reflète la vitesse à laquelle un matériau passe d’un état à un autre. Combiné au coefficient de lissage, il détermine la longueur finale de la zone de transition. Une valeur plus élevée implique une zone de transition plus courte. Une valeur plus faible nécessite une zone de transition plus longue afin d’éviter les instabilités d’écoulement."
 
 msgid "Adhesiveness Category"
 msgstr "Catégorie d’Adhésivité"
@@ -10636,10 +10667,10 @@ msgid "Clumping detection layers."
 msgstr "Couches de détection d'encrassement."
 
 msgid "Probing exclude area of clumping"
-msgstr ""
+msgstr "Zone d’exclusion de palpage pour la détection d’agglutination"
 
 msgid "Probing exclude area of clumping."
-msgstr ""
+msgstr "Zone d’exclusion de palpage pour la détection d’agglutination."
 
 msgid "Thumbnail size"
 msgstr "Taille de miniature"
@@ -13369,6 +13400,9 @@ msgstr ""
 "Le type de buse actuellement sélectionné pour l'extrudeuse %s ne correspond pas au type de buse actuel de l'imprimante.\n"
 "Veuillez cliquer sur le bouton Sync ci-dessus et redémarrer l'étalonnage."
 
+msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+msgstr "L'étalonnage automatique ne prend en charge que les cas où les diamètres des buses gauche et droite sont identiques."
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "Impossible de calibrer : peut-être parce que la plage de valeurs d'étalonnage définie est trop grande ou le pas est trop petit"
 
@@ -13670,40 +13704,40 @@ msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Profil Standard pour buse de 0,8 mm, privilégiant la vitesse."
 
 msgid "Helio: Process Started"
-msgstr ""
+msgstr "Helio : Processus Démarré"
 
 msgid "Helio API endpoint is empty, please check the configuration."
-msgstr ""
+msgstr "Le point de terminaison de l’API Helio est vide, veuillez vérifier la configuration."
 
 msgid "Personal assecc token is empty, please fill in the correct token."
-msgstr ""
+msgstr "Le jeton d'accès personnel est vide, veuillez saisir le jeton correct."
 
 msgid "Helio: Presigned URL Created"
-msgstr ""
+msgstr "Helio : URL pré-signée créée"
 
 msgid "Helio: file succesfully uploaded"
-msgstr ""
+msgstr "Helio : fichier envoyé avec succès"
 
 msgid "Helio: file upload failed"
-msgstr ""
+msgstr "Helio : échec de l'envoi"
 
 msgid "Please make sure you have the corrent API key set in preferences."
-msgstr ""
+msgstr "Veuillez vous assurer que vous avez correctement configuré la clé API dans les préférences."
 
 msgid "Helio: GCode created successfully"
-msgstr ""
+msgstr "Helio : GCode créé avec succès"
 
 msgid "Helio: simulation successfully created"
-msgstr ""
+msgstr "Helio : simulation créée avec succès"
 
 msgid "Helio: simulation working"
-msgstr ""
+msgstr "Helio : simulation en cours"
 
 msgid "Helio: simulation failed"
-msgstr ""
+msgstr "Helio : simulation échouée"
 
 msgid "Helio: GCode downloaded successfully"
-msgstr ""
+msgstr "Helio : GCode téléchargé avec succès"
 
 msgid "No AMS"
 msgstr "Pas d’AMS"
@@ -14206,6 +14240,24 @@ msgstr ""
 "Évitez le warping\n"
 "Saviez-vous que lors de l'impression de matériaux sujets au warping, tels que l'ABS, une augmentation appropriée de la température du plateau peut réduire le risque de déformation ?"
 
+#~ msgid "Chamber Temperature"
+#~ msgstr "Température de la chambre"
+
+#~ msgctxt "air_duct"
+#~ msgid "Right"
+#~ msgstr "Droit"
+
+#~ msgid "The printer has been logged out and cannot connect."
+#~ msgstr "L'imprimante a été déconnectée et ne peut pas se connecter."
+
+#, c-format, boost-format
+#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+#~ msgstr "Imprimante non connectée. Veuillez consulter la page de l'appareil pour connecter une imprimante %s avant de procéder à la synchronisation."
+
+#, c-format, boost-format
+#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+#~ msgstr "L'imprimante actuellement connectée sur la page Périphérique n'est pas une %s. Veuillez basculer vers une %s avant de procéder à la synchronisation."
+
 #~ msgid "Open Preferences."
 #~ msgstr "Ouvrir Préférences."
 
@@ -14250,9 +14302,6 @@ msgstr ""
 
 #~ msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, and maintained by Helio Additive. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
 #~ msgstr "Sauf indication contraire, Bambu Lab ne prend en charge que les caractéristiques du logiciel fournies officiellement. Les fonctionnalités d'évaluation et d'optimisation du tranchage basées sur le service cloud d'Helio Additive dans ce logiciel seront développées, exploitées et maintenues par Helio Additive. Ces fonctionnalités recueilleront les informations et les données nécessaires à la réalisation des fonctions pertinentes du service. Veuillez visiter Helio Additive et vous référer à la convention de confidentialité Helio Additive et à la convention sur l'utilisateur additif Helio pour obtenir des renseignements détaillés."
-
-#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-#~ msgstr "L'étalonnage automatique ne prend en charge que les cas où les diamètres des buses gauche et droite sont identiques."
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "Durée de couche (s)"

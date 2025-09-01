@@ -176,8 +176,6 @@ void AppConfig::set_defaults()
         set_bool("enable_merge_color_by_sync_ams", false);
     if (get("ams_sync_match_full_use_color_dist").empty())
         set_bool("ams_sync_match_full_use_color_dist", false);
-    if (get("enable_sidebar_resizable").empty())
-        set_bool("enable_sidebar_resizable", true);
     if (get("enable_sidebar_floatable").empty())
         set_bool("enable_sidebar_floatable", false);
 
@@ -463,6 +461,10 @@ void AppConfig::set_defaults()
     }
     if (get("show_wrapping_detect_dialog").empty()) {
         set_bool("show_wrapping_detect_dialog", true);
+    }
+
+    if (get("prompt_for_brittle_filaments").empty()){
+        set_bool("prompt_for_brittle_filaments", true);
     }
 
     // Remove legacy window positions/sizes

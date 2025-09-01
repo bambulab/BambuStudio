@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 19:21+0800\n"
+"POT-Creation-Date: 2025-08-27 20:24+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -1081,6 +1081,9 @@ msgid "Warning:text normal is error."
 msgstr ""
 
 msgid "Warning:text normal has been reset."
+msgstr ""
+
+msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
 msgstr ""
 
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
@@ -2450,24 +2453,6 @@ msgstr "Повне охолодження"
 msgid "Init"
 msgstr ""
 
-msgid "Hotend"
-msgstr "Хотенд"
-
-msgid "Parts"
-msgstr "Part"
-
-msgid "Aux"
-msgstr "Aux"
-
-msgid "Nozzle1"
-msgstr "Сопло1"
-
-msgid "MC Board"
-msgstr ""
-
-msgid "Heat"
-msgstr ""
-
 msgid "Chamber"
 msgstr ""
 
@@ -2494,7 +2479,32 @@ msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
 msgstr ""
 
 msgctxt "air_duct"
-msgid "Right"
+msgid "Right(Aux)"
+msgstr ""
+
+msgctxt "air_duct"
+msgid "Right(Filter)"
+msgstr ""
+
+msgid "Hotend"
+msgstr "Хотенд"
+
+msgid "Parts"
+msgstr "Part"
+
+msgid "Aux"
+msgstr "Aux"
+
+msgid "Nozzle1"
+msgstr "Сопло1"
+
+msgid "MC Board"
+msgstr ""
+
+msgid "Heat"
+msgstr ""
+
+msgid "Fan"
 msgstr ""
 
 msgid "Idling..."
@@ -3782,6 +3792,18 @@ msgstr ""
 msgid "Stop Drying"
 msgstr ""
 
+msgid "Cancle"
+msgstr ""
+
+msgid "Done"
+msgstr "Виконано"
+
+msgid "Retry"
+msgstr "Ще раз"
+
+msgid "Resume"
+msgstr "Продовжити"
+
 msgid "Unknown error."
 msgstr ""
 
@@ -4532,6 +4554,12 @@ msgid ""
 "Would you like to watch a quick tutorial video?"
 msgstr ""
 
+msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
+msgstr ""
+
+msgid "Tips"
+msgstr "Поради"
+
 msgid "Slice all"
 msgstr "Нарізати все"
 
@@ -5046,8 +5074,8 @@ msgstr "Підключення не вдалося. Будь ласка, пер�
 msgid "Please check the network and try again, You can restart or update the printer if the issue persists."
 msgstr "Будь ласка, перевірте мережу та спробуйте ще раз. Якщо проблема продовжується, ви можете перезавантажити або оновити принтер."
 
-msgid "The printer has been logged out and cannot connect."
-msgstr "Принтер був вийшов із системи та не може підключитися."
+msgid "Multi-device/client simultaneous liveview is not supported. Please close the liveview on other devices/clients and try again."
+msgstr ""
 
 msgid "Video Stopped."
 msgstr "Відео зупинено."
@@ -5209,9 +5237,6 @@ msgstr ""
 msgid "Download waiting..."
 msgstr "Чекання завантаження..."
 
-msgid "Retry"
-msgstr "Ще раз"
-
 msgid "Play"
 msgstr "Відтворити"
 
@@ -5224,9 +5249,6 @@ msgstr "Завантаження завершено"
 #, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "Завантаження %d%%..."
-
-msgid "Fan"
-msgstr ""
 
 msgid "Air Condition"
 msgstr ""
@@ -5388,9 +5410,6 @@ msgstr "Хід друку"
 
 msgid "Parts Skip"
 msgstr ""
-
-msgid "Resume"
-msgstr "Продовжити"
 
 msgid "Stop"
 msgstr "Стоп"
@@ -6072,6 +6091,10 @@ msgstr "Налаштування принтера"
 msgid "The %s nozzle can not print %s."
 msgstr ""
 
+#, boost-format
+msgid "Mixing %1% with %2% in printing is not recommended.\n"
+msgstr ""
+
 msgid " nozzle"
 msgstr ""
 
@@ -6528,9 +6551,6 @@ msgstr ""
 msgid "Switch now"
 msgstr "Перемкнути зараз"
 
-msgid "Tips"
-msgstr "Поради"
-
 msgid "Load project"
 msgstr "Завантажити проєкт"
 
@@ -6696,12 +6716,12 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr ""
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
-msgstr "Принтер не під'єднаний. Будь ласка, перейдіть на сторінку принтера та під'єднайте принтер %s перед синхронізацією."
+msgid "Printer not connected. Please go to the device page to connect %s before syncing."
+msgstr ""
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-msgstr "Поточний під'єднаний принтер на сторінці принтеру не %s. Будь ласка, перемкніться на %s перед синхронізацією."
+msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
+msgstr ""
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "В принтері немає філаментів. Будь ласка, спочатку завантажте філаменти в принтер."
@@ -8949,9 +8969,6 @@ msgstr "Нова версія Bambu Studio"
 msgid "Skip this Version"
 msgstr "Пропустити цю версію"
 
-msgid "Done"
-msgstr "Виконано"
-
 msgid "resume"
 msgstr "продовжити"
 
@@ -9095,6 +9112,9 @@ msgid "Laser 40W"
 msgstr ""
 
 msgid "Cutting Module"
+msgstr ""
+
+msgid "Auto Fire Extinguishing System"
 msgstr ""
 
 msgid "Model:"
@@ -9431,13 +9451,7 @@ msgstr "Плавний режим таймлапсу не підтримуєть
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr ""
 
-msgid "enable_wrapping_detection"
-msgstr ""
-
 msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
-msgstr ""
-
-msgid "enable_prime_tower"
 msgstr ""
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
@@ -10267,6 +10281,15 @@ msgstr ""
 msgid "Filament diameter is used to calculate extrusion in gcode, so it's important and should be accurate"
 msgstr "Діаметр нитки використовується для розрахунку екструзії в gcode, тому він важливий імає бути точним"
 
+msgid "Adaptive volumetric speed"
+msgstr ""
+
+msgid "When enabled, the extrusion flow is limited by the smaller of the fitted value (calculated from line width and layer height) and the user-defined maximum flow. When disabled, only the user-defined maximum flow is applied."
+msgstr ""
+
+msgid "Max volumetric speed multinomial coefficients"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr "Усадка"
 
@@ -10277,6 +10300,12 @@ msgid ""
 msgstr ""
 "Введіть відсоток усадки, який філамент отримає після охолодження (94%, якщо ви вимірюєте 94 мм замість 100 мм). Частина буде масштабована в площинах xy для компенсації. Враховується лише філамент, використаний для периметра.\n"
 "Переконайтеся, що між об’єктами достатньо простору, оскільки ця компенсація виконується після перевірок."
+
+msgid "Velocity Adaptation Factor"
+msgstr ""
+
+msgid "This parameter reflects the speed at which a material transitions from one state to another. It, along with the smooth coefficient, determines the final length of the transition zone. A larger value: requires a shorter transition zone. A smaller value: requires a longer transition zone to avoid flow instability."
+msgstr ""
 
 msgid "Adhesiveness Category"
 msgstr ""
@@ -13322,6 +13351,9 @@ msgid ""
 "Please click the Sync button above and restart the calibration."
 msgstr ""
 
+msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+msgstr "Автоматичне калібрування тільки "
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "Неможливо калібрувати: можливо, через те, що діапазон встановлених значень калібрування занадто великий, або крок занадто малий"
 
@@ -14160,6 +14192,17 @@ msgstr ""
 "Уникнення деформації\n"
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як ABS, відповідне підвищення температури гарячого ліжка може зменшити ймовірність деформації."
 
+#~ msgid "The printer has been logged out and cannot connect."
+#~ msgstr "Принтер був вийшов із системи та не може підключитися."
+
+#, c-format, boost-format
+#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+#~ msgstr "Принтер не під'єднаний. Будь ласка, перейдіть на сторінку принтера та під'єднайте принтер %s перед синхронізацією."
+
+#, c-format, boost-format
+#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+#~ msgstr "Поточний під'єднаний принтер на сторінці принтеру не %s. Будь ласка, перемкніться на %s перед синхронізацією."
+
 #~ msgid "Open Preferences."
 #~ msgstr "Відкрийте налаштування."
 
@@ -14180,9 +14223,6 @@ msgstr ""
 
 #~ msgid "Small perimter threshold"
 #~ msgstr "Поріг малого периметру"
-
-#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-#~ msgstr "Автоматичне калібрування тільки "
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "Время слоя (c)"

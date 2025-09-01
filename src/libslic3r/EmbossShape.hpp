@@ -188,6 +188,7 @@ struct EmbossShape
     // When embossing shape is made by svg file this is source data
     std::optional<SvgFile> svg_file;
     std::vector<float> text_scales;
+    std::vector<float> text_cursors;
     // undo / redo stack recovery
     template<class Archive> void save(Archive &ar) const
     {

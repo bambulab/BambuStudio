@@ -529,10 +529,12 @@ public:
     void update_diff_values_to_child_config(DynamicPrintConfig& new_config, std::string extruder_id_name, std::string extruder_variant_name, std::set<std::string>& key_set1, std::set<std::string>& key_set2);
 
     int update_values_from_single_to_multi(DynamicPrintConfig& multi_config, std::set<std::string>& key_set, std::string id_name, std::string variant_name);
-    int update_values_from_multi_to_single(DynamicPrintConfig& single_config, std::set<std::string>& key_set, std::string id_name, std::string variant_name, std::vector<std::string>& extruder_variants);
+    int update_values_from_multi_to_multi(DynamicPrintConfig& new_config, std::set<std::string>& key_set, std::string id_name, std::string variant_name, std::vector<std::string>& extruder_variants);
 
-    int update_values_from_single_to_multi_2(DynamicPrintConfig& multi_config, std::set<std::string>& key_set);
-    int update_values_from_multi_to_single_2(std::set<std::string>& key_set);
+    //int update_values_from_single_to_multi_2(DynamicPrintConfig& multi_config, std::set<std::string>& key_set);
+    //int update_values_from_multi_to_single_2(std::set<std::string>& key_set);
+
+    int update_values_from_multi_to_multi_2(const std::vector<std::string>& src_extruder_variants, const std::vector<std::string>& dst_extruder_variants, const DynamicPrintConfig& dst_config, const std::set<std::string>& key_sets);
 
 public:
     // query filament
@@ -1034,6 +1036,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBools,               enable_pressure_advance))
     ((ConfigOptionFloats,              pressure_advance))
     ((ConfigOptionFloats,              filament_diameter))
+    ((ConfigOptionBoolsNullable,       filament_adaptive_volumetric_speed))
+    ((ConfigOptionStrings,             volumetric_speed_coefficients))
     ((ConfigOptionInts,              filament_adhesiveness_category))
     ((ConfigOptionFloats,              filament_density))
     ((ConfigOptionStrings,             filament_type))
@@ -1286,6 +1290,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,               exclude_object))
     ((ConfigOptionPercents,            filament_shrink))
     ((ConfigOptionFloats,             grab_length))
+    ((ConfigOptionFloats,             filament_velocity_adaptation_factor))
     //BBS
     ((ConfigOptionFloats,             circle_compensation_speed))
     ((ConfigOptionFloats,             diameter_limit))
