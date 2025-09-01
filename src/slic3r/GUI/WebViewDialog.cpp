@@ -1040,6 +1040,7 @@ bool WebViewPanel::GetJumpUrl(bool login, wxString ticket, wxString targeturl, w
         finalurl = wxString::Format("%sapi/sign-in/ticket?to=%s&ticket=%s", h, UrlEncode( std::string(targeturl.mb_str())), ticket);
     } else {
         finalurl = wxString::Format("%sapi/sign-out?to=%s", h, UrlEncode(std::string(targeturl.mb_str())));
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": LoadURL " << finalurl.ToStdString();
     }
 
     return true;
@@ -1181,6 +1182,8 @@ void WebViewPanel::ShowUserPrintTask(bool bShow, bool bForce)
         wxString Finalurl  = wxString::Format("%sapi/sign-out?to=%s", host, UrlEncode("about:blank"));
 
         m_browserPH->LoadURL(Finalurl);
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": LoadURL " << Finalurl.ToStdString();
+
         SetPrintHistoryTaskID(0);
         m_TaskInfo = "";
 
@@ -1781,7 +1784,7 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
         } else {
             if (m_online_LastUrl != "") {
                 m_browserMW->LoadURL(m_online_LastUrl);
-
+                BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": LoadURL " << m_online_LastUrl.ToStdString();
                 m_online_LastUrl = "";
             } else {
                 std::string TmpNowUrl = m_browserMW->GetCurrentURL().ToStdString();
