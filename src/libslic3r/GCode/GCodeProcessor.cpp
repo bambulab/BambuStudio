@@ -5596,7 +5596,7 @@ void GCodeProcessor::process_filament_change(int id)
             }
         }
     }
-    else{
+    else {
         auto old_extruder_opt = m_nozzle_group_result->get_nozzle_for_filament(prev_filament_id);
         auto new_extruder_opt = m_nozzle_group_result->get_nozzle_for_filament(next_filament_id);
 
@@ -5617,11 +5617,16 @@ void GCodeProcessor::process_filament_change(int id)
         bool is_filament_change = (old_filament_in_nozzle != next_filament_id);
 
 
-        if(is_extruder_change)
+        if (is_extruder_change) {
             extra_time += get_extruder_change_time(next_extruder_id);
-        if(is_nozzle_change)
-            extra_time += get_hotend_change_time();  // TODO: use a new param: nozzle change time
-        if(is_filament_change){
+        }
+        if (is_nozzle_change) {
+            extra_time += get_filament_unload_time(static_cast<size_t>(old_filament_in_nozzle));
+            extra_time += get_hotend_change_time();
+            m_time_processor.extruder_unloaded = false;
+            extra_time += get_filament_load_time(static_cast<size_t>(next_filament_id));
+        }
+        if (is_filament_change) {
             extra_time += get_filament_unload_time(static_cast<size_t>(old_filament_in_nozzle));
             m_time_processor.extruder_unloaded = false;
             extra_time += get_filament_load_time(static_cast<size_t>(next_filament_id));
