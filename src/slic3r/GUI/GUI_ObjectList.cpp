@@ -146,8 +146,12 @@ ObjectList::ObjectList(wxWindow* parent) :
 		int new_selected_column = -1;
 #endif //__WXMSW__
         GLGizmosManager &gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
-        if ((wxGetKeyState(WXK_SHIFT) || wxGetKeyState(WXK_CONTROL))
-            && gizmos_mgr.is_gizmo_activable_when_single_full_instance()) {
+        if ((wxGetKeyState(WXK_SHIFT) || wxGetKeyState(WXK_CONTROL)
+#ifdef __APPLE__
+             || wxGetKeyState(WXK_RAW_CONTROL) || wxGetKeyState(WXK_COMMAND)
+#endif
+                 ) &&
+            gizmos_mgr.is_gizmo_activable_when_single_full_instance()) {
             // selection will not be single_full_instance after shift_pressed,Caused exe crashed
             UnselectAll();
             Select(m_last_selected_item);
