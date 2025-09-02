@@ -1267,8 +1267,10 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
         extruder_map = physical_extruder_map->values;
     }
     assert(obj->GetExtderSystem()->GetTotalExtderCount() == extruder_nums);
+    auto extruder_max_nozzle_count = cur_preset.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count")->values;
     auto nozzle_option = tryPopUpMultiNozzleDialog(obj);
-    if (!nozzle_option)
+    bool support_multi_nozzle = std::any_of(extruder_max_nozzle_count.begin(),extruder_max_nozzle_count.end(),[](int val){return val>1;});
+    if (!nozzle_option && support_multi_nozzle)
         return false;
 
     std::vector<float> nozzle_diameters;
@@ -1276,9 +1278,10 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     for (size_t index = 0; index < extruder_nums; ++index) {
         int extruder_id = extruder_map[index];
         nozzle_diameters[extruder_id] = nozzle_option ? atof(nozzle_option->diameter.c_str()) : obj->GetExtderSystem()->GetNozzleDiameter(index);
+        std::optional<NozzleVolumeType> select_type;
         NozzleVolumeType target_type = NozzleVolumeType::nvtStandard;
         if (nozzle_option && nozzle_option->extruder_nozzle_count.count(extruder_id))
-            target_type = nozzle_option->extruder_nozzle_count[extruder_id].first;
+            select_type = nozzle_option->extruder_nozzle_count[extruder_id].first;
 
         auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
         if (obj->is_nozzle_flow_type_supported()) {
@@ -1292,6 +1295,8 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
             if (std::fabs(nozzle_diameters[extruder_id] - 0.2) > EPSILON && !is_skip_high_flow_printer(printer_model))
                 target_type = NozzleVolumeType(obj->GetExtderSystem()->GetNozzleFlowType(extruder_id) - 1);
         }
+        if (select_type)
+            target_type = *select_type;
         printer_tab->set_extruder_volume_type(index, target_type);
     }
 
