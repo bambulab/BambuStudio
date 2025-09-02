@@ -2379,6 +2379,7 @@ void MachineObject::reset()
     jobState_ = 0;
     m_plate_index = -1;
     device_cert_installed = false;
+    clear_auto_nozzle_mapping();// reset nozzle mapping
 
     // reset print_json
     json empty_j;
@@ -3013,6 +3014,8 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
 
 
             if (jj.contains("command")) {
+                parse_auto_nozzle_mapping(jj);//"get_auto_nozzle_mapping"
+
                 if (jj["command"].get<std::string>() == "ams_change_filament") {
                     if (jj.contains("errno")) {
                         if (jj["errno"].is_number()) {
@@ -5631,6 +5634,16 @@ Slic3r::DevAmsTray* MachineObject::get_ams_tray(std::string ams_id, std::string 
 bool MachineObject::HasAms() const
 {
     return m_fila_system->HasAms();
+}
+
+bool MachineObject::IsDetectOnInsertEnabled() const
+{
+    return m_fila_system->GetAmsSystemSetting().IsDetectOnInsertEnabled();
+}
+
+std::shared_ptr<Slic3r::DevNozzleRack> MachineObject::GetNozzleRack() const
+{
+    return m_nozzle_system->GetNozzleRack();
 }
 
 void change_the_opacity(wxColour& colour)

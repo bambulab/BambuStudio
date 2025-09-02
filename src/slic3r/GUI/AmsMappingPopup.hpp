@@ -77,23 +77,46 @@ struct TrayData
 class MaterialItem: public wxPanel
 {
 protected:
-    int m_text_pos_x =  0;
     int m_text_pos_y = -1;
     bool m_dropdown_allow_painted = true;
+    wxString m_mapping_text;
 
 public:
     MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname);
     ~MaterialItem();
 
-    wxPanel*    m_main_panel;
+    void allow_paint_dropdown(bool flag);
+
+    void set_ams_info(wxColour col, wxString txt,
+                      int ctype = 0, std::vector<wxColour> cols = std::vector<wxColour>(),
+                      bool record_back_info = false);
+    void reset_ams_info();
+    virtual void reset_valid_info();
+
+    void set_nozzle_info(const wxString& mapped_nozzle_str);
+
+    void disable();
+    void enable();
+    void on_normal();
+    void on_selected();
+    void on_warning();
+
+    void msw_rescale();
+
+protected:
+    void messure_size();
+
+public:
     wxColour    m_material_coloul;
     wxString    m_material_name;
+    wxString    m_mapped_nozzle_str;
 
     //info
     wxColour m_ams_coloul;
     wxString m_ams_name;
     int      m_ams_ctype = 0;
     std::vector<wxColour> m_ams_cols = std::vector<wxColour>();
+
     //reset
     wxColour              m_back_ams_coloul;
     wxString              m_back_ams_name;
@@ -106,28 +129,17 @@ public:
     ScalableBitmap m_filament_wheel_transparent;
     ScalableBitmap m_ams_wheel_mitem;
     ScalableBitmap m_ams_not_match;
+    ScalableBitmap m_rack_nozzle_bitmap;
 
     bool m_selected {false};
     bool m_warning{false};
     bool m_match {true};
     bool m_enable {true};
 
-    void msw_rescale();
-    void allow_paint_dropdown(bool flag);
-    void set_ams_info(wxColour col, wxString txt, int ctype=0, std::vector<wxColour> cols= std::vector<wxColour>(),bool record_back_info = false);
-    void reset_ams_info();
-
-    void disable();
-    void enable();
-    void on_normal();
-    void on_selected();
-    void on_warning();
-
     void paintEvent(wxPaintEvent &evt);
     virtual void render(wxDC &dc);
     void match(bool mat);
     virtual void doRender(wxDC &dc);
-    virtual void reset_valid_info();
 };
 
 class MaterialSyncItem : public MaterialItem
