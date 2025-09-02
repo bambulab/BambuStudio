@@ -801,6 +801,11 @@ void wgtDeviceNozzleRackNozzleItem::Rescale()
     if (m_nozzle_empty_image) { m_nozzle_empty_image->msw_rescale(); }
     if (m_nozzle_unknown_image) { m_nozzle_unknown_image->msw_rescale(); }
     if (m_nozzle_error_image) { m_nozzle_error_image->msw_rescale(); }
+    if (m_nozzle_status_icon->IsShown()) {
+        auto status_icon = create_scaled_bitmap("dev_rack_nozzle_error_icon");
+        m_nozzle_status_icon->SetBitmap(status_icon);
+        m_nozzle_status_icon->Refresh();
+    }
 
     switch (m_status)
     {
