@@ -1349,6 +1349,16 @@ std::vector<int> PartPlate::get_extruders_without_support(bool conside_custom_gc
 /* machine have 2 extruders*/
 /* logical extruder: 1-left, 2-right*/
 /* physical extruder: 0-right, 1-left*/
+int PartPlate::get_physical_extruder_by_logical_extruder(const DynamicConfig& g_config, int logical_extruder) const
+{
+    const auto the_map = g_config.option<ConfigOptionInts>("physical_extruder_map");
+    if (!the_map) {
+        return -1;
+    }
+
+	return the_map->values[logical_extruder];
+}
+
 int PartPlate::get_physical_extruder_by_filament_id(const DynamicConfig& g_config, int idx) const
 {
 	const std::vector<int>& filament_map = get_real_filament_maps(g_config);
@@ -1366,6 +1376,17 @@ int PartPlate::get_physical_extruder_by_filament_id(const DynamicConfig& g_confi
 	int zero_base_logical_idx = filament_map[idx - 1] - 1;
 	return the_map->values[zero_base_logical_idx];
 }
+
+int PartPlate::get_logical_extruder_by_filament_id(const DynamicConfig& g_config, int idx) const
+{
+    const std::vector<int>& filament_map = get_real_filament_maps(g_config);
+    if (filament_map.size() < idx) {
+        return -1;
+    }
+
+    return filament_map[idx - 1] - 1;
+}
+
 
 std::vector<int> PartPlate::get_used_filaments()
 {
@@ -3352,7 +3373,6 @@ void PartPlate::on_filament_deleted(int filament_count, int filament_id)
 
     update_first_layer_print_sequence_when_delete_filament(filament_id);
 }
-
 
 /* PartPlate List related functions*/
 PartPlateList::PartPlateList(int width, int depth, int height, Plater* platerObj, Model* modelObj, PrinterTechnology tech)

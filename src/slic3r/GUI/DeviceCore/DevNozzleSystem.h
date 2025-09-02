@@ -35,8 +35,11 @@ namespace Slic3r
        void       SetRack(const std::weak_ptr<DevNozzleRack>& rack) { m_nozzle_rack = rack; };
 
        /**/
-       int        GetNozzleId() const { return m_nozzle_id; }
-       NozzleType GetNozzleType() const { return m_nozzle_type; }
+       int            GetNozzleId() const { return m_nozzle_id; }
+       NozzleType     GetNozzleType() const { return m_nozzle_type; }
+       NozzleFlowType GetNozzleFlowType() const { return m_nozzle_flow; }
+       float          GetNozzleDiameter() const { return m_diameter; }
+       float          GetNozzleWear() const { return m_wear; }
 
        // display
        wxString GetDisplayId() const;
@@ -44,6 +47,9 @@ namespace Slic3r
        wxString GetNozzleFlowTypeStr() const;
        wxString GetNozzleFlowTypeCaliStyleStr() const;
        wxString GetNozzleTypeStr() const;
+
+       static wxString GetNozzleFlowTypeStr(NozzleFlowType type);
+       static wxString GetNozzleTypeStr(NozzleType type);
 
        // serial number
        wxString GetSerialNumber() const { return GetFirmwareInfo().sn; }
@@ -62,6 +68,7 @@ namespace Slic3r
        bool IsAbnormal() const;
        bool IsUnknown() const;
 
+       std::string GetFilamentId() const { return m_fila_id; }
        std::string GetFilamentColor() const { return m_filament_clr; }
 
        void SetOnRack(bool on_rack) { m_on_rack = on_rack; };
@@ -70,9 +77,15 @@ namespace Slic3r
        int  GetTotalExtruderCount() const;
 
    private:
-       int m_stat = 0;
        bool m_on_rack = false;
+
+       int m_stat = 0;
+       float m_wear;
+
+       std::string m_sn;
+       std::string m_fila_id;// main material
        std::string m_filament_clr;// main color
+
        std::weak_ptr<DevNozzleRack> m_nozzle_rack; // weak pointer to the nozzle rack
    };
 
@@ -95,10 +108,15 @@ namespace Slic3r
 
        bool                            ContainsNozzle(int id) const { return m_ext_nozzles.find(id) != m_ext_nozzles.end(); }
        DevNozzle                       GetNozzle(int id) const;
+       const std::vector<DevNozzle>    CollectNozzles(int ext_loc, NozzleFlowType flow_type, float diameter) const;
        const std::map<int, DevNozzle>& GetNozzles() const { return m_ext_nozzles;}
 
        bool  IsIdle() const { return m_state_0_4 == NOZZLE_SYSTEM_IDLE; }
        bool  IsRefreshing() const { return m_state_0_4 == NOZZLE_SYSTEM_REFRESHING; }
+
+       bool  HasUnreliableNozzles() const;
+       bool  HasUnknownNozzles() const;
+       int   GetKnownNozzleCountOn(int ext_id) const;
 
        /* reading*/
        int GetReadingIdx() const { return m_reading_idx; };

@@ -445,7 +445,11 @@ public:
     void reset_ams_material();
     void update_show_status(MachineObject* obj_ = nullptr);
 
+    bool CheckErrorRackStatus(MachineObject* obj_);//return true if no errors
+    bool CheckErrorExtruderNozzleWithSlicing(MachineObject* obj_);//return true if no errors
+
     void UpdateStatusCheckWarning_ExtensionTool(MachineObject* obj_);
+    void CheckWarningRackStatus(MachineObject* obj_);
 
     void update_ams_check(MachineObject* obj);
     void update_filament_change_count();
@@ -487,7 +491,7 @@ public:
     bool can_support_pa_auto_cali();
     bool is_same_printer_model();
     bool is_blocking_printing(MachineObject* obj_);
-    bool is_nozzle_hrc_matched(const DevExtder* extruder, std::string& filament_type) const;
+    bool is_nozzle_hrc_matched(const NozzleType& nozzle_type, std::string& filament_type) const;
     bool check_sdcard_for_timelpase(MachineObject* obj);
     bool is_timeout();
     int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
@@ -499,7 +503,6 @@ public:
     bool build_nozzles_info(std::string& nozzles_info);
     bool can_hybrid_mapping(DevExtderSystem data);
     void auto_supply_with_ext(std::vector<DevAmsTray> slots);
-    bool is_nozzle_type_match(DevExtderSystem data, wxString& error_message) const;
     int  convert_filament_map_nozzle_id_to_task_nozzle_id(int nozzle_id);
 
     PrintFromType get_print_type() {return m_print_type;};
