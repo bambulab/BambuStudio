@@ -122,7 +122,7 @@ bool should_fuzzify(const PrintRegionConfig &config, const size_t layer_idx, con
 {
     const FuzzySkinType fuzzy_skin_type = config.fuzzy_skin.value;
 
-    if (fuzzy_skin_type == FuzzySkinType::None || layer_idx <= 0) {
+    if (fuzzy_skin_type == FuzzySkinType::None || layer_idx <= 0 || fuzzy_skin_type == FuzzySkinType::Disabled_fuzzy) {
         return false;
     }
 
