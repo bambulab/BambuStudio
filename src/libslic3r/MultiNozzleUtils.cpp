@@ -162,6 +162,26 @@ int MultiNozzleGroupResult::get_nozzle_count(int target_extruder_id) const
     return static_cast<int>(nozzles.size());
 }
 
+std::vector<NozzleInfo>  MultiNozzleGroupResult::get_nozzle_vec(int target_extruder_id) const
+{
+    std::set<int> nozzles;
+    std::vector<NozzleInfo> nozzleinfo_vec;
+    for (auto& elem : extruder_to_filament_nozzles) {
+        auto& filament_to_nozzle = elem.second;
+        int   extruder_id = elem.first;
+
+        if (target_extruder_id == -1 || extruder_id == target_extruder_id) {
+            for (auto& filament_nozzle : filament_to_nozzle) {
+                if (nozzles.count(filament_nozzle.second.group_id) == 0) {
+                    nozzles.insert(filament_nozzle.second.group_id);
+                    nozzleinfo_vec.push_back(filament_nozzle.second);
+                }
+            }
+        }
+    }
+    return nozzleinfo_vec;
+}
+
 std::vector<NozzleInfo> MultiNozzleGroupResult::get_used_nozzles(const std::vector<unsigned int> &filament_list, int target_extruder_id) const
 {
     std::set<int> used_nozzles;

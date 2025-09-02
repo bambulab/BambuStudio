@@ -104,6 +104,20 @@ bool DevNozzleRack::HasUnknownNozzles() const
     return false;
 }
 
+int DevNozzleRack::GetKnownNozzleCount() const
+{
+    int count = 0;
+    for (const auto& nozzle : m_rack_nozzles)
+    {
+        if (!nozzle.second.IsEmpty() && !nozzle.second.IsUnknown())
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+
 void DevNozzleRack::ParseRackInfo(const nlohmann::json& rack_info)
 {
     ParseRackInfoV1_0(rack_info);

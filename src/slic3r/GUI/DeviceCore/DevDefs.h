@@ -57,7 +57,7 @@ enum AmsStatusMain
 
 
 /* Nozzle*/
-enum NozzleFlowType
+enum NozzleFlowType : int
 {
     NONE_FLOWTYPE,
     S_FLOW,

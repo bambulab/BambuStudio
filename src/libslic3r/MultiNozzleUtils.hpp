@@ -69,6 +69,7 @@ public:
 public:
     int                       get_extruder_id(int filament_id) const;       // 根据材料id取逻辑挤出机id
     int                       get_nozzle_count(int extruder_id = -1) const; // 获取指定挤出机下的使用的喷嘴数量，-1表示所有挤出机的喷嘴数量总和
+    std::vector<NozzleInfo>   get_nozzle_vec(int extruder_id = -1) const; // 获取指定挤出机下的使用的喷嘴列表，-1表示所有挤出机的喷嘴
     std::optional<NozzleInfo> get_nozzle_for_filament(int filament_id) const;
 };
 

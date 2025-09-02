@@ -701,7 +701,7 @@ std::optional<NozzleOption> tryPopUpMultiNozzleDialog(MachineObject* obj)
     if (!obj)
         return std::nullopt;
     auto rack = obj->GetNozzleSystem()->GetNozzleRack();
-    if (!rack)
+    if (!rack || !rack->IsSupported())
         return std::nullopt;
     MultiNozzleSyncDialog dialog(wxGetApp().plater_,rack);
 
