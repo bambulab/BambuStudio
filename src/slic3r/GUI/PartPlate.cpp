@@ -417,9 +417,13 @@ void PartPlate::calc_height_limit() {
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create height limit top lines\n";
 }
 
-int PartPlate::get_right_icon_offset_bed() {
+int PartPlate::get_right_icon_offset_bed(int i)
+{
     if (&wxGetApp() && wxGetApp().plater()) {
-        auto offset = wxGetApp().plater()->get_right_icon_offset_bed();
+        auto offset = wxGetApp().plater()->get_right_icon_offset_bed(i);
+        if (i > 0 && offset == 0) {
+            return 0;
+        }
         return offset == 0 ? PARTPLATE_ICON_GAP_LEFT : offset;
     } else {
         return PARTPLATE_ICON_GAP_LEFT;
@@ -710,7 +714,7 @@ void PartPlate::render_plate_name_texture()
     glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 }
 
-void PartPlate::render_icons(bool bottom, bool only_body, int hover_id)
+void PartPlate::render_icons(bool bottom, bool only_body, int hover_id, bool render_name_edit_icon)
 {
     if (!only_body) {
         if (hover_id == 1)
@@ -751,10 +755,12 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id)
             m_partplate_list->m_plate_filament_map_icon.set_visible(false);
         }
 
-		if (hover_id == PLATE_NAME_ID)
-            render_icon_texture(m_plate_name_edit_icon, m_partplate_list->m_plate_name_edit_hovered_texture);
-        else
-            render_icon_texture(m_plate_name_edit_icon, m_partplate_list->m_plate_name_edit_texture);
+        if (render_name_edit_icon) {
+            if (hover_id == PLATE_NAME_ID)
+                render_icon_texture(m_plate_name_edit_icon, m_partplate_list->m_plate_name_edit_hovered_texture);
+            else
+                render_icon_texture(m_plate_name_edit_icon, m_partplate_list->m_plate_name_edit_texture);
+        }
 
         if (m_partplate_list->render_plate_settings) {
             bool has_plate_settings = get_bed_type() != BedType::btDefault || get_print_seq() != PrintSequence::ByDefault || !get_first_layer_print_sequence().empty() ||
@@ -775,6 +781,19 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id)
         else {
             m_partplate_list->m_plate_settings_icon.set_visible(false);
         }
+    }
+    if (render_name_edit_icon) {
+        render_plate_name_texture();
+    }
+}
+
+void PartPlate::render_plate_name_icon_and_texture(bool only_body, int hover_id)
+{
+    if (!only_body) {
+        if (hover_id == PLATE_NAME_ID)
+            render_icon_texture(m_plate_name_edit_icon, m_partplate_list->m_plate_name_edit_hovered_texture);
+        else
+            render_icon_texture(m_plate_name_edit_icon, m_partplate_list->m_plate_name_edit_texture);
     }
     render_plate_name_texture();
 }
@@ -2686,8 +2705,8 @@ void PartPlate::render(bool bottom, bool only_body, bool force_background_color,
     {
         const auto& shader = wxGetApp().get_shader("printbed");
         wxGetApp().bind_shader(shader);
-        auto model_mat = m_partplate_list->m_plate_trans[m_plate_index].get_matrix();
-        shader->set_uniform("view_model_matrix", view_mat * model_mat);
+        auto cur_model_mat = m_partplate_list->m_plate_trans[m_plate_index];
+        shader->set_uniform("view_model_matrix", view_mat * cur_model_mat.get_matrix());
         shader->set_uniform("projection_matrix", proj_mat);
         shader->set_uniform("svg_source", 0);
         shader->set_uniform("transparent_background", 0);
@@ -2699,9 +2718,19 @@ void PartPlate::render(bool bottom, bool only_body, bool force_background_color,
          }
          {
              shader->set_uniform("transparent_background", bottom);
-             render_icons(bottom, only_body, hover_id);
-             if (!force_background_color) {
-                 render_numbers(bottom);
+             if (m_partplate_list->get_curr_plate_index() != m_plate_index) {
+                 render_plate_name_icon_and_texture(only_body, hover_id);
+                 cur_model_mat.set_offset(cur_model_mat.get_offset() + Vec3d(get_right_icon_offset_bed(1),0,0));
+                 shader->set_uniform("view_model_matrix", view_mat * cur_model_mat.get_matrix());
+                 render_icons(bottom, only_body, hover_id,false);
+                 if (!force_background_color) {
+                     render_numbers(bottom);
+                 }
+             } else {
+                 render_icons(bottom, only_body, hover_id);
+                 if (!force_background_color) {
+                     render_numbers(bottom);
+                 }
              }
          }
          wxGetApp().unbind_shader();
@@ -6312,6 +6341,8 @@ void PartPlateList::init_bed_type_info()
         if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
             std::string pte_part2_name = "bbl_bed_pte_bottom_" + bottom_texture_end_name + ".svg";
             pte_part2 = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], pte_part2_name);
+        } else if (bottom_rect[2] > 0.f) {
+            pte_part2.update_pos(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3]);
         }
 
         pei_part1  = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_pei_middle.svg");
@@ -6322,6 +6353,8 @@ void PartPlateList::init_bed_type_info()
         if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
             std::string pei_part2_name = "bbl_bed_pei_bottom_" + bottom_texture_end_name + ".svg";
             pei_part2                  = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], pei_part2_name);
+        } else if (bottom_rect[2] > 0.f) {
+            pei_part2.update_pos(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3]);
         }
 
         st_part1 = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_st_middle.svg");
@@ -6332,6 +6365,8 @@ void PartPlateList::init_bed_type_info()
         if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
             std::string st_part2_name = "bbl_bed_st_bottom_" + bottom_texture_end_name + ".svg";
             st_part2                   = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], st_part2_name);
+        } else if (bottom_rect[2] > 0.f) {
+            st_part2.update_pos(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3]);
         }
 
         ep_part1 = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_ep_middle.svg");
@@ -6342,6 +6377,8 @@ void PartPlateList::init_bed_type_info()
         if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
             std::string ep_part2_name = "bbl_bed_ep_bottom_" + bottom_texture_end_name + ".svg";
             ep_part2                   = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], ep_part2_name);
+        } else if (bottom_rect[2] > 0.f) {
+            ep_part2.update_pos(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3]);
         }
 
         pc_part1 = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_pc_middle.svg");
@@ -6351,6 +6388,8 @@ void PartPlateList::init_bed_type_info()
         if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
             std::string pc_part2_name = "bbl_bed_pc_bottom_" + bottom_texture_end_name + ".svg";
             pc_part2                  = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], pc_part2_name);
+        } else if (bottom_rect[2] > 0.f) {
+            pc_part2.update_pos(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3]);
         }
 
         m_allow_bed_type_in_double_nozzle.clear();
