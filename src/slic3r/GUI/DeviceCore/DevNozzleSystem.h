@@ -113,6 +113,10 @@ namespace Slic3r
        void ClearFirmwareInfoWTM();
        DevFirmwareVersionInfo GetExtruderNozzleFirmware() const { return m_ext_nozzle_firmware_info; }
 
+       /* replace nozzle*/
+       std::optional<int> GetReplaceNozzleSrc() const { return m_replace_nozzle_src; }
+       std::optional<int> GetReplaceNozzleTar() const { return m_replace_nozzle_tar; }
+
    private:
        void Reset();
        void ClearNozzles();
@@ -122,6 +126,9 @@ namespace Slic3r
 
        int m_extder_exist = 0;  //0- none exist 1-exist, unused
        int m_state_0_4 = 0;
+
+       std::optional<int> m_replace_nozzle_src; // replace nozzle source position
+       std::optional<int> m_replace_nozzle_tar; // replace nozzle target position
 
        /* refreshing */
        int m_reading_idx = 0;
