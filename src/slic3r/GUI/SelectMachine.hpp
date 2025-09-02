@@ -451,6 +451,7 @@ public:
 
     bool CheckErrorRackStatus(MachineObject* obj_);//return true if no errors
     bool CheckErrorExtruderNozzleWithSlicing(MachineObject* obj_);//return true if no errors
+    bool CheckErrorSyncNozzleMappingResult(MachineObject* obj);// return true if no errors
 
     void UpdateStatusCheckWarning_ExtensionTool(MachineObject* obj_);
     void CheckWarningRackStatus(MachineObject* obj_);
@@ -536,6 +537,9 @@ private:
 
     // events
     void on_nozzle_offset_option_changed(wxCommandEvent& event);
+
+    // get mapping nozzle display string
+    wxString get_mapped_nozzle_str(int fila_id);
 
     // enbale or disable external change assist
     bool is_enable_external_change_assist(std::vector<FilamentInfo>& ams_mapping_result);
