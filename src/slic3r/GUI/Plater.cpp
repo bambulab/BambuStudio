@@ -5050,11 +5050,17 @@ std::map<std::string, std::string> Plater::get_bed_texture_maps()
     return {};
 }
 
-int Plater::get_right_icon_offset_bed()
+int Plater::get_right_icon_offset_bed(int i)
 {
     auto pm = get_curr_printer_model();
     if (pm && pm->right_icon_offset_bed.size() > 0) {
-        return std::stoi(pm->right_icon_offset_bed);
+        std::vector<std::string> parts;
+        boost::split(parts, pm->right_icon_offset_bed, boost::is_any_of(";"));
+        if (parts.size() == 1 && i == 0) {
+            return std::stoi(pm->right_icon_offset_bed);
+        } else if (i < parts.size()) {
+            return std::stoi(parts[i]);
+        }
     }
     return 0;
 }
