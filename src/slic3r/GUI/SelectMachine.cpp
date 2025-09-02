@@ -563,6 +563,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
         _L("Calibrate nozzle offsets to enhance print quality.\n*Automatic mode: Check for calibration before printing. Skip if unnecessary."),
         ops_auto, "nozzle_offset_cali"
     );
+    option_nozzle_offset_cali_cali->Bind(EVT_SWITCH_PRINT_OPTION, &SelectMachineDialog::on_nozzle_offset_option_changed, this);
 
     m_sizer_options = new wxGridSizer(0, 2, FromDIP(5), FromDIP(10));
     m_sizer_options->Add(option_timelapse, 0, wxEXPAND);
@@ -584,7 +585,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_checkbox_list["flow_cali"]     = option_flow_dynamics_cali;
     m_checkbox_list["nozzle_offset_cali"] = option_nozzle_offset_cali_cali;
     for (auto print_opt : m_checkbox_list_order) {
-        print_opt->Bind(EVT_SWITCH_PRINT_OPTION, [this](auto &e) { save_option_vals(); });
+        print_opt->Bind(EVT_SWITCH_PRINT_OPTION, [this](auto& e) { save_option_vals(); e.Skip();});
     }
 
     option_auto_bed_level->Hide();
@@ -4689,6 +4690,34 @@ bool SelectMachineDialog::CheckErrorExtruderNozzleWithSlicing(MachineObject* obj
     }
 
     return true;
+}
+
+void SelectMachineDialog::on_nozzle_offset_option_changed(wxCommandEvent& event)
+{
+    if (event.GetString() != "off") {
+        event.Skip();
+        return;
+    }
+
+    DeviceManager* dev_ = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (dev_) {
+        MachineObject* obj_ = dev_->get_my_machine(m_printer_last_select);
+        if (obj_ && obj_->GetNozzleSystem()->GetNozzleRack()->IsSupported()) {
+            MessageDialog dlg(this, _L("Turning off this option will affect print quality if:\n"
+                              "1. Uncalibrated hotends is used\n"
+                              "2. The current nozzle, heatbed, or chamber temperature differs from the calibration conditions\n"
+                              "3. The toolhead hotend was manually removed or installed"), _L("Info"), wxYES | wxCANCEL | wxICON_INFORMATION);
+            dlg.SetButtonLabel(wxID_YES, _L("Keep it On"));
+            dlg.SetButtonLabel(wxID_CANCEL, _L("Turn it Off"));
+            int rtn = dlg.ShowModal();
+            if (rtn == wxID_YES) {
+                m_checkbox_list["nozzle_offset_cali"]->setValue("auto");
+                save_option_vals();
+            }
+        }
+    }
+
+    event.Skip();
 }
 
  ThumbnailPanel::ThumbnailPanel(wxWindow *parent, wxWindowID winid, const wxPoint &pos, const wxSize &size)
