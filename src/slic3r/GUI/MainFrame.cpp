@@ -1091,8 +1091,10 @@ void MainFrame::show_option(bool show)
             m_print_btn->Hide();
             m_slice_option_btn->Hide();
             m_print_option_btn->Hide();
+#ifdef __APPLE__
             split_line_icon->Hide();
             expand_program_icon->Hide();
+#endif
             Layout();
         }
     } else {
@@ -1101,8 +1103,10 @@ void MainFrame::show_option(bool show)
             m_print_btn->Show();
             m_slice_option_btn->Show();
             m_print_option_btn->Show();
+#ifdef __APPLE__
             split_line_icon->Show();
             expand_program_icon->Show();
+#endif
             Layout();
         }
     }
