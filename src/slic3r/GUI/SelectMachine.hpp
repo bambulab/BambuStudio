@@ -527,6 +527,9 @@ private:
     void save_option_vals();
     void save_option_vals(MachineObject *obj);
 
+    // events
+    void on_nozzle_offset_option_changed(wxCommandEvent& event);
+
     // enbale or disable external change assist
     bool is_enable_external_change_assist(std::vector<FilamentInfo>& ams_mapping_result);
 };
