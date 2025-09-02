@@ -18,6 +18,7 @@
 #include "libslic3r/FlushVolCalc.hpp"
 #include "BBLUtil.hpp"
 #include "../GUI/Plater.hpp"
+#include "../GUI/DeviceCore/DevNozzleSystem.h"
 
 namespace Slic3r {
 namespace GUI {
@@ -1938,7 +1939,10 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
     print_job->task_ams_mapping2 = new_ams_mapping;
 
     if (calib_info.nozzle_pos_id > 0) {
-        std::string nozzle_mapping = "[" + std::to_string(calib_info.nozzle_pos_id) + "]";
+        print_job->task_nozzle_mapping = "[" + std::to_string(calib_info.nozzle_pos_id) + "]";
+    } else if (calib_info.nozzle_pos_id == 0) {
+        auto nozzle_tar = obj_->GetNozzleSystem()->GetReplaceNozzleTar();
+        if (nozzle_tar.has_value()) { print_job->task_nozzle_mapping = "[" + std::to_string(calib_info.nozzle_pos_id) + "]"; }
     }
 
     CalibMode cali_mode       = calib_info.params.mode;
@@ -2040,7 +2044,13 @@ void CalibUtils::send_to_print(const std::vector<CalibInfo> &calib_infos, wxStri
     for (size_t i = 0; i < calib_infos.size(); ++i) {
         select_ams += calib_infos[i].select_ams;
         new_select_ams += "{\"ams_id\":" + std::to_string(calib_infos[i].ams_id) + ", \"slot_id\":" + std::to_string(calib_infos[i].slot_id) + "}";
-        nozzle_mapping += std::to_string(calib_infos[i].nozzle_pos_id);
+
+        auto nozzle_tar = obj_->GetNozzleSystem()->GetReplaceNozzleTar();
+        if (calib_infos[i].nozzle_pos_id == 0 && nozzle_tar.has_value())
+            nozzle_mapping += std::to_string(nozzle_tar.value());
+        else
+            nozzle_mapping += std::to_string(calib_infos[i].nozzle_pos_id);
+
         if (i != calib_infos.size() - 1) {
             select_ams += ",";
             new_select_ams += ",";

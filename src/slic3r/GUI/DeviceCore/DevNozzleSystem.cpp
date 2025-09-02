@@ -162,6 +162,9 @@ void DevNozzleSystem::Reset()
     m_reading_idx = 0;
     m_reading_count = 0;
 
+    m_replace_nozzle_src = std::nullopt;
+    m_replace_nozzle_tar = std::nullopt;
+
     m_nozzle_rack->Reset();
 }
 
@@ -327,6 +330,16 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
                     system->m_nozzle_rack->SendReadingFinished();
                 }
             }
+        }
+
+        if (nozzle_json.contains("src_id"))
+        {
+            system->m_replace_nozzle_src = std::make_optional(nozzle_json["src_id"].get<int>());
+        }
+
+        if (nozzle_json.contains("tar_id"))
+        {
+            system->m_replace_nozzle_tar = std::make_optional(nozzle_json["tar_id"].get<int>());
         }
 
         system->ClearNozzles();
