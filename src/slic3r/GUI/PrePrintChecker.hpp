@@ -107,6 +107,8 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusBlankPlate,
     PrintStatusUnsupportedPrinter,
     PrintStatusRackReading,
+    PrintStatusRackNozzleMappingWaiting,
+    PrintStatusRackNozzleMappingError,
     PrintStatusInvalidMapping,
     PrintStatusPrinterErrorEnd,
 
@@ -134,6 +136,7 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusToolHeadCoolingFanWarning,
     PrintStatusHasUnreliableNozzleWarning,
     PrintStatusRackNozzleNumUnmeetWarning,
+    PrintStatusRackNozzleMappingWarning,
     PrintStatusPrinterWarningEnd,
 
     // Warnings for filament

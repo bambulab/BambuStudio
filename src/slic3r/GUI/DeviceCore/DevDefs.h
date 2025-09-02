@@ -10,6 +10,7 @@
 
 #pragma once
 #include <string>
+#include <nlohmann/json.hpp>
 
 enum PrinterArch
 {
@@ -96,6 +97,24 @@ enum class DevFirmwareUpgradingState : int
     UpgradingAvaliable = 1,
     UpgradingInProgress = 2,
     UpgradingFinished = 3
+};
+
+struct DevNozzleMappingResult
+{
+    std::string m_result;
+    std::string m_type; // auto or manual
+
+    int         m_errno;
+    std::string m_detail_msg;
+    nlohmann::json m_detail_json;
+    std::unordered_map<int, int> m_nozzle_mapping; // key: fila_id, value: nozzle_id
+
+public:
+    void Clear();
+    bool IsEmpty() const
+    {
+        return m_result.empty();
+    }
 };
 
 class devPrinterUtil

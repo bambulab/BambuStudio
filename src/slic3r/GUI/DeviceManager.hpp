@@ -53,10 +53,12 @@
 
 using namespace nlohmann;
 namespace Slic3r {
+class Print;
 
 namespace GUI
 {
 class DeviceErrorDialog; // Previous definitions
+class Plater;
 }
 
 class NetworkAgent;
@@ -86,6 +88,7 @@ class DevPrintOptions;
 class DevHMS;
 class DevLamp;
 class DevNozzleSystem;
+class DevNozzleRack;
 class DeviceManager;
 class DevStorage;
 struct DevPrintTaskRatingInfo;
@@ -108,6 +111,9 @@ private:
 
     // type, time stamp, delay
     std::vector<std::tuple<std::string, uint64_t, uint64_t>> message_delay;
+
+    // the latest nozzle mapping
+    DevNozzleMappingResult m_auto_nozzle_mapping;
 
     /*parts*/
     DevLamp*          m_lamp;
@@ -296,6 +302,12 @@ public:
     DevNozzle get_nozzle_by_id_code(int id_code) const;
     DevNozzle get_nozzle_by_sn(const std::string& sn) const;
 
+    // auto nozzle mapping
+    DevNozzleMappingResult get_nozzle_mapping_result() const { return m_auto_nozzle_mapping; }
+    void clear_auto_nozzle_mapping() { m_auto_nozzle_mapping.Clear(); }
+    int ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, const std::vector<FilamentInfo>& ams_mapping, int nozzle_cali_opt);
+    void parse_auto_nozzle_mapping(const json& print_jj);
+
     /* ams settings*/
     bool IsDetectOnInsertEnabled() const;;
     //bool IsDetectOnPowerupEnabled() const { return m_enable_detect_on_powerup; }
@@ -326,7 +338,8 @@ public:
     DevExtderSystem* GetExtderSystem() const { return m_extder_system; }
     std::weak_ptr<DevExtensionTool> GetExtensionTool() const { return m_extension_tool; }
 
-    DevNozzleSystem* GetNozzleSystem() const { return m_nozzle_system;}
+    DevNozzleSystem*               GetNozzleSystem() const { return m_nozzle_system;}
+    std::shared_ptr<DevNozzleRack> GetNozzleRack() const;;
 
     DevFilaSystem*   GetFilaSystem() const { return m_fila_system;}
     bool             HasAms() const;

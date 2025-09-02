@@ -64,6 +64,7 @@ static void _add_containers(const AmsMapingPopup *                 win,
     //m_ams_wheel_mitem = ScalableBitmap(this, "ams_wheel", FromDIP(25));
     m_ams_wheel_mitem = ScalableBitmap(this, "ams_wheel_narrow", 25);
     m_ams_not_match = ScalableBitmap(this, "filament_not_mactch", 25);
+    m_rack_nozzle_bitmap = ScalableBitmap(this, "dev_rack_nozzle_print_job", 22);
 
     m_material_coloul = mcolour;
     m_material_name = mname;
@@ -73,9 +74,7 @@ static void _add_containers(const AmsMapingPopup *                 win,
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
 
-    SetSize(MATERIAL_ITEM_SIZE);
-    SetMinSize(MATERIAL_ITEM_SIZE);
-    SetMaxSize(MATERIAL_ITEM_SIZE);
+    messure_size();
     SetBackgroundColour(*wxWHITE);
 
     Bind(wxEVT_PAINT, &MaterialItem::paintEvent, this);
@@ -110,8 +109,20 @@ void MaterialItem::set_ams_info(wxColour col, wxString txt, int ctype, std::vect
     if (m_ams_ctype != ctype) { m_ams_ctype = ctype; need_refresh = true; }
     if (m_ams_coloul != col) { m_ams_coloul = col; need_refresh = true;}
     if (m_ams_name != txt) { m_ams_name = txt; need_refresh = true; }
-    if (need_refresh) { Refresh();}
+    if (need_refresh) {
+        messure_size();
+        Refresh();
+    }
     BOOST_LOG_TRIVIAL(info) << "set_ams_info " << m_ams_name;
+}
+
+void MaterialItem::set_nozzle_info(const wxString& mapped_nozzle_str)
+{
+    if (m_mapped_nozzle_str != mapped_nozzle_str) {
+        m_mapped_nozzle_str = mapped_nozzle_str;
+        messure_size();
+        Refresh();
+    }
 }
 
 void MaterialItem::reset_ams_info() {
@@ -119,14 +130,14 @@ void MaterialItem::reset_ams_info() {
     m_ams_coloul = wxColour(0xCE, 0xCE, 0xCE);
     m_ams_cols.clear();
     m_ams_ctype = 0;
+    m_mapped_nozzle_str.Clear();
+    messure_size();
     Refresh();
 }
 
 void MaterialItem::disable()
 {
     if (IsEnabled()) {
-        //this->Disable();
-        //Refresh();
         m_enable = false;
     }
 }
@@ -134,8 +145,6 @@ void MaterialItem::disable()
 void MaterialItem::enable()
 {
     if (!IsEnabled()) {
-        /*this->Enable();
-        Refresh();*/
         m_enable = true;
     }
 }
@@ -170,23 +179,17 @@ void MaterialItem::paintEvent(wxPaintEvent &evt)
 {
     wxPaintDC dc(this);
     render(dc);
-
-    //PrepareDC(buffdc);
-    //PrepareDC(dc);
-
 }
 
 void MaterialItem::render(wxDC &dc)
 {
-
-    wxString mapping_txt = wxEmptyString;
     if (m_ams_name.empty()) {
-        mapping_txt = "-";
+        m_mapping_text = "-";
     } else {
-        mapping_txt = m_ams_name;
+        m_mapping_text = m_ams_name;
     }
 
-    if (mapping_txt == "-") { m_match = false;}
+    if (m_mapping_text == "-") { m_match = false;}
     else {m_match = true;}
 
 #ifdef __WXMSW__
@@ -206,51 +209,10 @@ void MaterialItem::render(wxDC &dc)
 #else
     doRender(dc);
 #endif
-
-    auto mcolor = m_material_coloul;
-    auto acolor = m_ams_coloul;
-    change_the_opacity(acolor);
-    if (!IsEnabled()) {
-        mcolor = wxColour(0x90, 0x90, 0x90);
-        acolor = wxColour(0x90, 0x90, 0x90);
-    }
+}
 
     // materials name
     dc.SetFont(::Label::Body_13);
-
-    auto material_name_colour = mcolor.GetLuminance() < 0.6 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
-    if (mcolor.Alpha() == 0) {material_name_colour = wxColour(0x26, 0x2E, 0x30);}
-    dc.SetTextForeground(material_name_colour);
-
-    if (dc.GetTextExtent(m_material_name).x > GetSize().x - 10) {
-        dc.SetFont(::Label::Body_10);
-    }
-
-    auto material_txt_size = dc.GetTextExtent(m_material_name);
-    dc.DrawText(m_material_name, wxPoint((GetSize().x - material_txt_size.x) / 2, ((float)GetSize().y * 2 / 5 - material_txt_size.y) / 2));
-
-
-
-    dc.SetTextForeground(StateColor::darkModeColorFor(wxColour(0x26, 0x2E, 0x30)));
-    dc.SetFont(::Label::Head_12);
-
-    auto mapping_txt_size = wxSize(0, 0);
-    if (mapping_txt.size() >= 4) {
-        mapping_txt.insert(mapping_txt.size() / 2, "\n");
-        mapping_txt_size = dc.GetTextExtent(mapping_txt);
-        m_text_pos_y     = ((float) GetSize().y * 3 / 5 - mapping_txt_size.y) / 2 + (float) GetSize().y * 2 / 5 - mapping_txt_size.y / 2;
-        m_text_pos_x     = mapping_txt_size.x / 4;
-    } else {
-        mapping_txt_size = dc.GetTextExtent(mapping_txt);
-        m_text_pos_y     = ((float) GetSize().y * 3 / 5 - mapping_txt_size.y) / 2 + (float) GetSize().y * 2 / 5;
-        m_text_pos_x     = 0;
-    }
-
-    if (m_match) {
-        dc.DrawText(mapping_txt, wxPoint(GetSize().x / 2 + (GetSize().x / 2 - mapping_txt_size.x) / 2 - FromDIP(8) - FromDIP(LEFT_OFFSET) + m_text_pos_x, m_text_pos_y));
-    }
-}
-
 
 void MaterialItem::match(bool mat)
 {
@@ -265,11 +227,13 @@ void MaterialItem::doRender(wxDC& dc)
     auto acolor = m_ams_coloul;
     change_the_opacity(acolor);
 
-    if (mcolor.Alpha() == 0) {
+    if (mcolor.Alpha() == 0)
+    {
         dc.DrawBitmap(m_transparent_mitem.bmp(), FromDIP(1), FromDIP(1));
     }
 
-    if (!IsEnabled()) {
+    if (!IsEnabled())
+    {
         mcolor = wxColour(0x90, 0x90, 0x90);
         acolor = wxColour(0x90, 0x90, 0x90);
     }
@@ -277,113 +241,188 @@ void MaterialItem::doRender(wxDC& dc)
     //top
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(wxBrush(mcolor));
-    dc.DrawRoundedRectangle(0, 0, MATERIAL_ITEM_SIZE.x, FromDIP(20), 5);
+    dc.DrawRoundedRectangle(0, 0, size.x, FromDIP(20), 5);
 
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(wxBrush(mcolor));
-    dc.DrawRectangle(0, FromDIP(10), MATERIAL_ITEM_SIZE.x, FromDIP(10));
+    dc.DrawRectangle(0, FromDIP(10), size.x, FromDIP(10));
+
+    // materials name
+    auto up = 0;
+    auto material_name_colour = mcolor.GetLuminance() < 0.6 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
+    if (mcolor.Alpha() == 0) { material_name_colour = wxColour(0x26, 0x2E, 0x30); }
+    dc.SetTextForeground(material_name_colour);
+
+    dc.SetFont(::Label::Body_12);
+    if (dc.GetTextExtent(m_material_name).x > GetSize().x - 10)
+    {
+        dc.SetFont(::Label::Body_10);
+    }
+
+    auto material_txt_size = dc.GetTextExtent(m_material_name);
+    dc.DrawText(m_material_name, wxPoint((GetSize().x - material_txt_size.x) / 2, (FromDIP(20) - material_txt_size.y) / 2));
 
     dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
-    dc.DrawLine(FromDIP(1), FromDIP(20), FromDIP(MATERIAL_ITEM_SIZE.x), FromDIP(20));
+    dc.DrawLine(FromDIP(1), FromDIP(20), FromDIP(size.x), FromDIP(20));
+    up += FromDIP(20);
+    up += FromDIP(2); // spacing
 
     //bottom rectangle in wheel bitmap, size is MATERIAL_REC_WHEEL_SIZE(22)
+    auto paint_recty = up + (m_ams_wheel_mitem.GetBmpSize().y - MATERIAL_REC_WHEEL_SIZE.y) / 2;
     auto left = (size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3);
-    auto up = (size.y * 0.4 + (size.y * 0.6 - MATERIAL_REC_WHEEL_SIZE.y) / 2);
     auto right = left + MATERIAL_REC_WHEEL_SIZE.x - FromDIP(3);
     dc.SetPen(*wxTRANSPARENT_PEN);
     //bottom
-    if (m_ams_cols.size() > 1) {
+    if (m_ams_cols.size() > 1)
+    {
         int gwidth = std::round(MATERIAL_REC_WHEEL_SIZE.x / (m_ams_cols.size() - 1));
         //gradient
-        if (m_ams_ctype == 0) {
-            for (int i = 0; i < m_ams_cols.size() - 1; i++) {
-                auto rect = wxRect(left, up, right - left, MATERIAL_REC_WHEEL_SIZE.y);
+        if (m_ams_ctype == 0)
+        {
+            for (int i = 0; i < m_ams_cols.size() - 1; i++)
+            {
+                auto rect = wxRect(left, paint_recty, right - left, MATERIAL_REC_WHEEL_SIZE.y);
                 dc.GradientFillLinear(rect, m_ams_cols[i], m_ams_cols[i + 1], wxEAST);
                 left += gwidth;
             }
         }
-        else {
+        else
+        {
             int cols_size = m_ams_cols.size();
-            for (int i = 0; i < cols_size; i++) {
+            for (int i = 0; i < cols_size; i++)
+            {
                 dc.SetBrush(wxBrush(m_ams_cols[i]));
                 float x = left + ((float)MATERIAL_REC_WHEEL_SIZE.x) * i / cols_size;
-                if (i != cols_size - 1) {
-                    dc.DrawRoundedRectangle(x - FromDIP(LEFT_OFFSET), up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size + FromDIP(3), MATERIAL_REC_WHEEL_SIZE.y, 3);
+                if (i != cols_size - 1)
+                {
+                    dc.DrawRoundedRectangle(x - FromDIP(LEFT_OFFSET), paint_recty, ((float)MATERIAL_REC_WHEEL_SIZE.x) / cols_size + FromDIP(3), MATERIAL_REC_WHEEL_SIZE.y, 3);
                 }
-                else {
-                    dc.DrawRoundedRectangle(x - FromDIP(LEFT_OFFSET), up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size - FromDIP(1), MATERIAL_REC_WHEEL_SIZE.y, 3);
+                else
+                {
+                    dc.DrawRoundedRectangle(x - FromDIP(LEFT_OFFSET), paint_recty, ((float)MATERIAL_REC_WHEEL_SIZE.x) / cols_size - FromDIP(1), MATERIAL_REC_WHEEL_SIZE.y, 3);
                 }
             }
         }
     }
-    else {
-        if (m_match) {
+    else
+    {
+        if (m_match)
+        {
             dc.SetPen(*wxTRANSPARENT_PEN);
             dc.SetBrush(wxBrush(wxColour(acolor)));
-            dc.DrawRectangle((size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3) - FromDIP(LEFT_OFFSET), up, MATERIAL_REC_WHEEL_SIZE.x - FromDIP(1),
-                             MATERIAL_REC_WHEEL_SIZE.y);
+            dc.DrawRectangle((size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3) - FromDIP(LEFT_OFFSET), paint_recty, MATERIAL_REC_WHEEL_SIZE.x - FromDIP(1),
+                MATERIAL_REC_WHEEL_SIZE.y);
         }
     }
 
-
-    ////border
-//#if __APPLE__
-//    if (m_match) {
-//        dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
-//    } else {
-//        dc.SetPen(wxPen(wxColour(234, 31, 48), 2));
-//    }
-//    dc.SetBrush(*wxTRANSPARENT_BRUSH);
-//    dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), MATERIAL_ITEM_SIZE.x - FromDIP(1), MATERIAL_ITEM_SIZE.y - FromDIP(1), 5);
-//
-//    if (m_selected) {
-//        dc.SetPen(wxColour(0x00, 0xAE, 0x42));
-//        dc.SetBrush(*wxTRANSPARENT_BRUSH);
-//        dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), MATERIAL_ITEM_SIZE.x - FromDIP(1), MATERIAL_ITEM_SIZE.y - FromDIP(1), 5);
-//    }
-//#else
-
-    if (m_match) {
+    if (m_match)
+    {
         dc.SetPen(wxPen(wxGetApp().dark_mode() ? wxColour(107, 107, 107) : wxColour(0xAC, 0xAC, 0xAC), FromDIP(1)));
-    } else {
+    }
+    else
+    {
         dc.SetPen(wxPen(wxColour(234, 31, 48), FromDIP(1)));
     }
 
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.DrawRoundedRectangle(FromDIP(0), FromDIP(0), MATERIAL_ITEM_SIZE.x - FromDIP(0), MATERIAL_ITEM_SIZE.y - FromDIP(0), 5);
+    dc.DrawRoundedRectangle(FromDIP(0), FromDIP(0), size.x - FromDIP(0), size.y, 5);
 
-    if (m_selected) {
+    if (m_selected)
+    {
         dc.SetPen(wxPen(wxColour(0x00, 0xAE, 0x42), FromDIP(2)));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), MATERIAL_ITEM_SIZE.x - FromDIP(1), MATERIAL_ITEM_SIZE.y - FromDIP(1), 5);
+        dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(1), size.y - FromDIP(1), 5);
     }
-//#endif
-    if (m_text_pos_y > 0 && m_match) {
-        // arrow (remove arrow)
-        if ((acolor.Red() > 160 && acolor.Green() > 160 && acolor.Blue() > 160) && (acolor.Red() < 180 && acolor.Green() < 180 && acolor.Blue() < 180)) {
-            dc.DrawBitmap(m_arraw_bitmap_white.bmp(), size.x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(4)- FromDIP(LEFT_OFFSET), m_text_pos_y + FromDIP(3));
-        } else {
-            dc.DrawBitmap(m_arraw_bitmap_gray.bmp(), size.x - m_arraw_bitmap_gray.GetBmpSize().x - FromDIP(4)- FromDIP(LEFT_OFFSET), m_text_pos_y + FromDIP(3));
+    //#endif
+
+    auto wheel_left = (GetSize().x / 2 - m_ams_wheel_mitem.GetBmpSize().x) / 2 + FromDIP(2) - FromDIP(LEFT_OFFSET);
+    auto wheel_top = up;
+
+    if (!m_match)
+    {
+        wheel_left = (size.x - m_ams_not_match.GetBmpWidth()) / 2 - FromDIP(LEFT_OFFSET);
+        dc.DrawBitmap(m_ams_not_match.bmp(), wheel_left, wheel_top);
+    }
+    else
+    {
+        if (acolor.Alpha() == 0)
+        {
+            dc.DrawBitmap(m_filament_wheel_transparent.bmp(), wheel_left, wheel_top);
+        }
+        else
+        {
+            dc.DrawBitmap(m_ams_wheel_mitem.bmp(), wheel_left, wheel_top);
         }
     }
 
-    auto wheel_left = (GetSize().x / 2 - m_ams_wheel_mitem.GetBmpSize().x) / 2 + FromDIP(2);
-    auto wheel_top = ((float)GetSize().y * 0.6 - m_ams_wheel_mitem.GetBmpSize().y) / 2 + (float)GetSize().y * 0.4;
+    // text and arrow
+    dc.SetTextForeground(StateColor::darkModeColorFor(wxColour(0x26, 0x2E, 0x30)));
+    dc.SetFont(::Label::Head_12);
 
-    if (!m_match) {
-        wheel_left += m_ams_wheel_mitem.GetBmpSize().x;
-        dc.DrawBitmap(m_ams_not_match.bmp(), (size.x - m_ams_not_match.GetBmpWidth()) / 2 - FromDIP(LEFT_OFFSET), wheel_top);
-    } else {
-        if (acolor.Alpha() == 0) {
-            dc.DrawBitmap(m_filament_wheel_transparent.bmp(), wheel_left - FromDIP(LEFT_OFFSET), wheel_top);
-        } else {
-            dc.DrawBitmap(m_ams_wheel_mitem.bmp(), wheel_left - FromDIP(LEFT_OFFSET), wheel_top);
+    int text_pos_x = 0;
+    int text_pos_y = 0;
+    auto mapping_txt_size = wxSize(0, 0);
+    if (m_mapping_text.size() >= 4)
+    {
+        m_mapping_text.insert(m_mapping_text.size() / 2, "\n");
+        mapping_txt_size = dc.GetTextExtent(m_mapping_text);
+        text_pos_y = up + (m_ams_wheel_mitem.GetBmpSize().y - mapping_txt_size.y) / 2 - mapping_txt_size.y / 2;
+        text_pos_x = mapping_txt_size.x / 4;
+    }
+    else
+    {
+        mapping_txt_size = dc.GetTextExtent(m_mapping_text);
+        text_pos_y = up + (m_ams_wheel_mitem.GetBmpSize().y - mapping_txt_size.y) / 2;
+        text_pos_x = 0;
+    }
+
+    int arrow_left = size.x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(4) - FromDIP(LEFT_OFFSET);
+    if (m_match)
+    {
+        dc.DrawText(m_mapping_text, wxPoint(GetSize().x / 2 + (GetSize().x / 2 - mapping_txt_size.x) / 2 - FromDIP(8) - FromDIP(LEFT_OFFSET) + text_pos_x, text_pos_y));
+        if ((acolor.Red() > 160 && acolor.Green() > 160 && acolor.Blue() > 160) && (acolor.Red() < 180 && acolor.Green() < 180 && acolor.Blue() < 180))
+        {
+            dc.DrawBitmap(m_arraw_bitmap_white.bmp(), arrow_left, text_pos_y + FromDIP(3));
         }
+        else
+        {
+            dc.DrawBitmap(m_arraw_bitmap_gray.bmp(), arrow_left, text_pos_y + FromDIP(3));
+        }
+    }
+
+    up += m_ams_wheel_mitem.GetBmpSize().y;
+
+
+    if (!m_mapped_nozzle_str.IsEmpty()) {
+        wxPen dashed_pen(WXCOLOUR_GREY400, 1, wxPENSTYLE_SHORT_DASH);
+        dc.SetPen(dashed_pen);
+        up += FromDIP(4); // spacing
+        dc.DrawLine(FromDIP(1), up, FromDIP(size.x), up);
+
+        int bitmap_y = up + (size.y - up - m_rack_nozzle_bitmap.GetBmpHeight()) / 2;
+        int bitmap_l = wheel_left + (m_ams_wheel_mitem.GetBmpWidth() - m_rack_nozzle_bitmap.GetBmpWidth()) / 2 + FromDIP(2);
+        dc.DrawBitmap(m_rack_nozzle_bitmap.bmp(), bitmap_l, bitmap_y);
+
+        int text_y = up + (size.y - up - dc.GetTextExtent(m_mapped_nozzle_str).y) / 2;
+        dc.DrawText(m_mapped_nozzle_str, bitmap_l + m_rack_nozzle_bitmap.GetBmpWidth() + FromDIP(12), text_y);
     }
 }
 
 void MaterialItem::reset_valid_info() {
     set_ams_info(m_back_ams_coloul, m_back_ams_name, m_back_ams_ctype, m_back_ams_cols);
+}
+
+void MaterialItem::messure_size()
+{
+    if (m_mapped_nozzle_str.IsEmpty()) {
+        SetSize(wxSize(FromDIP(65), FromDIP(50)));
+        SetMinSize(wxSize(FromDIP(65), FromDIP(50)));
+        SetMaxSize(wxSize(FromDIP(65), FromDIP(50)));
+    } else {
+        SetSize(wxSize(FromDIP(65), FromDIP(84)));
+        SetMinSize(wxSize(FromDIP(65), FromDIP(84)));
+        SetMaxSize(wxSize(FromDIP(65), FromDIP(84)));
+    }
 }
 
  MaterialSyncItem::MaterialSyncItem(wxWindow *parent, wxColour mcolour, wxString mname) : MaterialItem(parent, mcolour, mname)
@@ -503,14 +542,14 @@ void MaterialSyncItem::doRender(wxDC &dc)
     // top
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(wxBrush(mcolor));
-    dc.DrawRoundedRectangle(0, 0, MATERIAL_ITEM_SIZE.x, FromDIP(20), 5);
+    dc.DrawRoundedRectangle(0, 0, size.x, FromDIP(20), 5);
 
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(wxBrush(mcolor));
-    dc.DrawRectangle(0, FromDIP(10), MATERIAL_ITEM_SIZE.x, FromDIP(10));
+    dc.DrawRectangle(0, FromDIP(10), size.x, FromDIP(10));
 
     dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
-    dc.DrawLine(FromDIP(1), FromDIP(20), FromDIP(MATERIAL_ITEM_SIZE.x), FromDIP(20));
+    dc.DrawLine(FromDIP(1), FromDIP(20), FromDIP(size.x), FromDIP(20));
     // bottom rectangle in wheel bitmap, size is MATERIAL_REC_WHEEL_SIZE(22)
     auto left  = (size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3);
     auto up    = (size.y * 0.4 + (size.y * 0.6 - MATERIAL_REC_WHEEL_SIZE.y) / 2);
@@ -557,32 +596,32 @@ void MaterialSyncItem::doRender(wxDC &dc)
     else {
         dc.SetPen(*wxTRANSPARENT_PEN);
         dc.SetBrush(wxBrush(mcolor));
-        dc.DrawRoundedRectangle(0, FromDIP(21), MATERIAL_ITEM_SIZE.x, MATERIAL_ITEM_SIZE.y - FromDIP(21), 5);
+        dc.DrawRoundedRectangle(0, FromDIP(21), size.x, size.y - FromDIP(21), 5);
 
-        dc.DrawRectangle(0, FromDIP(21), MATERIAL_ITEM_SIZE.x, FromDIP(10));
+        dc.DrawRectangle(0, FromDIP(21), size.x, FromDIP(10));
     }
 
     ////border
 #if __APPLE__
     dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.DrawRoundedRectangle(1, 1, MATERIAL_ITEM_SIZE.x - 1, MATERIAL_ITEM_SIZE.y - 1, 5);
+    dc.DrawRoundedRectangle(1, 1, size.x - 1, size.y - 1, 5);
 
     if (m_selected) {
         dc.SetPen(wxColour(0x00, 0xAE, 0x42));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(1, 1, MATERIAL_ITEM_SIZE.x - 1, MATERIAL_ITEM_SIZE.y - 1, 5);
+        dc.DrawRoundedRectangle(1, 1, size.x - 1, size.y - 1, 5);
     }
 #else
 
     dc.SetPen(wxPen(wxGetApp().dark_mode() ? wxColour(107, 107, 107) : wxColour(0xAC, 0xAC, 0xAC), FromDIP(1)));
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.DrawRoundedRectangle(0, 0, MATERIAL_ITEM_SIZE.x, MATERIAL_ITEM_SIZE.y, 5);
+    dc.DrawRoundedRectangle(0, 0, size.x, size.y, 5);
 
     if (m_selected) {
         dc.SetPen(wxPen(wxColour(0x00, 0xAE, 0x42), FromDIP(2)));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), MATERIAL_ITEM_SIZE.x - FromDIP(1), MATERIAL_ITEM_SIZE.y - FromDIP(1), 5);
+        dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(1), size.y - FromDIP(1), 5);
     }
 #endif
 
