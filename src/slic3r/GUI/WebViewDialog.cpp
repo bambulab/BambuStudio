@@ -1173,14 +1173,14 @@ void WebViewPanel::ShowUserPrintTask(bool bShow, bool bForce)
         if (m_contentname == "printhistory") SwitchLeftMenu("home");
 
         //refresh url
-        auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
+        // auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
 
-        wxString language_code = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
+        //wxString language_code = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
 
-        wxString mw_OffUrl = (boost::format("%1%%2%/studio/print-history?from=bambustudio") % host % language_code.mb_str()).str();
-        wxString Finalurl  = wxString::Format("%sapi/sign-out?to=%s", host, UrlEncode("about:blank"));
+        //wxString mw_OffUrl = (boost::format("%1%%2%/studio/print-history?from=bambustudio") % host % language_code.mb_str()).str();
+        //wxString Finalurl  = wxString::Format("%sapi/sign-out?to=%s", host, UrlEncode("about:blank"));
+        // m_browserPH->LoadURL(Finalurl);
 
-        m_browserPH->LoadURL(Finalurl);
         SetPrintHistoryTaskID(0);
         m_TaskInfo = "";
 
