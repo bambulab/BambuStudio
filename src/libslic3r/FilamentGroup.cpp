@@ -1188,13 +1188,10 @@ namespace Slic3r
             *cost =best_group.flush;
 
         m_memoryed_groups.clear();
-        while(memoryed_groups.empty()){
+        while(!memoryed_groups.empty()){
             auto top = memoryed_groups.top();
             memoryed_groups.pop();
-            std::vector<int> maps_tmp(ctx.group_info.total_filament_num,0);
-            for(size_t idx =0; idx < top.group.size(); ++idx)
-                maps_tmp[used_filaments[idx]] = top.group[idx];
-            m_memoryed_groups.push_back(maps_tmp);
+            m_memoryed_groups.push_back(top.group);
         }
 
         return best_group.filament_map;
