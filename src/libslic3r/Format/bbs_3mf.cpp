@@ -3141,7 +3141,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 auto plate_seq = j[key]["sequence"];
                 std::vector<unsigned int> sequence;
                 for (auto& item : plate_seq) {
-                    sequence.push_back(item.get<unsigned int>());
+                    sequence.push_back(item.get<unsigned int>() - 1); // data stored in file is 1 based, change to 0 based when loading
                 }
                 plater_data->filament_change_sequence = sequence;
             }
@@ -8332,7 +8332,9 @@ bool _BBS_3MF_Exporter::_add_filament_sequence_file_to_archive(mz_zip_archive& a
             continue;
 
         std::string plate_idx = "plate_"+std::to_string(idx+1);
-        j[plate_idx]["sequence"] = plate_data->filament_change_sequence;
+        std::vector<unsigned int> sequence = plate_data->filament_change_sequence;
+        std::transform(sequence.begin(), sequence.end(), sequence.begin(), [](unsigned int v) { return v + 1; }); // to 1 based idx
+        j[plate_idx]["sequence"] = sequence;
     }
 
     if(j.empty())
