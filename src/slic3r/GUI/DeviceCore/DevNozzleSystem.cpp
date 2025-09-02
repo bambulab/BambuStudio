@@ -13,11 +13,15 @@ namespace Slic3r
 
 wxString DevNozzle::GetNozzleFlowTypeStr() const
 {
-    switch (m_nozzle_flow)
-    {
-        case NozzleFlowType::H_FLOW: return _L("High Flow");
-        case NozzleFlowType::S_FLOW: return _L("Standard Flow");
-        default: break;
+    return GetNozzleFlowTypeStr(m_nozzle_flow);
+}
+
+wxString DevNozzle::GetNozzleFlowTypeStr(NozzleFlowType type)
+{
+    switch (type) {
+    case NozzleFlowType::H_FLOW: return _L("High Flow");
+    case NozzleFlowType::S_FLOW: return _L("Standard Flow");
+    default: break;
     }
 
     return _L("Unknown");
@@ -64,8 +68,12 @@ wxString DevNozzle::GetDisplayId() const
 
 wxString DevNozzle::GetNozzleTypeStr() const
 {
-    switch (m_nozzle_type)
-    {
+    return GetNozzleTypeStr(m_nozzle_type);
+}
+
+wxString DevNozzle::GetNozzleTypeStr(NozzleType type)
+{
+    switch (type) {
     case Slic3r::ntHardenedSteel:  return _L("Hardened Steel");
     case Slic3r::ntStainlessSteel: return _L("Stainless Steel");
     case Slic3r::ntTungstenCarbide: return _L("Tungsten Carbide");
@@ -153,6 +161,38 @@ std::string DevNozzle::GetNozzleTypeString(NozzleType type)
     default:                        return "Unknown";
     }
 }
+const std::vector<DevNozzle> DevNozzleSystem::CollectNozzles(int ext_loc, NozzleFlowType flow_type, float diameter) const
+{
+    auto s_match = [&](const DevNozzle& nozzle) -> bool {
+        if (nozzle.m_diameter != diameter) {
+            return false;
+        }
+
+        if (m_owner->is_nozzle_flow_type_supported() && flow_type != nozzle.GetNozzleFlowType()) {
+            return false;
+        }
+
+        return true;
+    };
+
+    std::vector<DevNozzle> result;
+
+    auto ext_nozzle = GetNozzle(ext_loc);
+    if (s_match(ext_nozzle)){
+        result.push_back(ext_nozzle);
+    }
+
+    if (ext_loc == MAIN_EXTRUDER_ID) {
+        auto rack_nozzles = m_nozzle_rack->GetRackNozzles();
+        for (auto rack_nozzle : rack_nozzles){
+            if (s_match(rack_nozzle.second)) {
+                result.push_back(rack_nozzle.second);
+            }
+        }
+    }
+
+    return result;
+}
 
 void DevNozzleSystem::Reset()
 {
@@ -207,6 +247,50 @@ void DevNozzleSystem::ClearFirmwareInfoWTM()
 void DevNozzleSystem::SetSupportNozzleRack(bool supported)
 {
     m_nozzle_rack->SetSupported(supported);
+}
+
+bool DevNozzleSystem::HasUnreliableNozzles() const
+{
+    for (auto nozzle : m_ext_nozzles) {
+        if (!nozzle.second.IsInfoReliable()) {
+            return true;
+        }
+    }
+
+    if (m_nozzle_rack->HasUnreliableNozzles()) {
+        return true;
+    }
+
+    return false;
+}
+
+bool DevNozzleSystem::HasUnknownNozzles() const
+{
+    for (auto nozzle : m_ext_nozzles) {
+        if (nozzle.second.IsUnknown()) {
+            return true;
+        }
+    }
+
+    if (m_nozzle_rack->HasUnknownNozzles()) {
+        return true;
+    }
+
+    return false;
+}
+
+int DevNozzleSystem::GetKnownNozzleCountOn(int ext_id) const
+{
+    int count = 0;
+    if (ext_id == MAIN_EXTRUDER_ID)         {
+        count = m_nozzle_rack->GetKnownNozzleCount();
+    }
+
+    if (!GetNozzle(ext_id).IsUnknown() && !GetNozzle(ext_id).IsEmpty()) {
+        count++;
+    }
+
+    return count;
 }
 
 static unordered_map<string, NozzleFlowType> _str2_nozzle_flow_type = {
@@ -356,6 +440,9 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
             {
                 nozzle_obj.SetStatus(njon["stat"].get<int>());
             }
+
+            DevJsonValParser::ParseVal(njon, "fila_id", nozzle_obj.m_fila_id);
+            DevJsonValParser::ParseVal(njon, "wear", nozzle_obj.m_wear);
 
             if (njon.contains("color_m"))/*maybe not contains*/
             {

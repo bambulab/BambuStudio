@@ -68,6 +68,7 @@ public:
     // status
     bool HasUnreliableNozzles() const;
     bool HasUnknownNozzles() const;
+    int GetKnownNozzleCount() const;
 
     std::vector<MultiNozzleUtils::NozzleGroupInfo> GetNozzleGroups() const;
 
