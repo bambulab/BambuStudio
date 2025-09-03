@@ -1155,6 +1155,9 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
 
             context.speed_info.filament_print_time = print->get_filament_print_time();
             context.speed_info.group_with_time = print->config().group_algo_with_time;
+            context.speed_info.nozzle_change_time  = print->config().machine_load_filament_time + print->config().machine_unload_filament_time +
+                                                    print->config().machine_hotend_change_time;
+            context.speed_info.extruder_change_time = print->config().machine_switch_extruder_time;
 
             for (size_t idx = 0; idx < filament_types.size(); ++idx) {
                 FilamentGroupUtils::FilamentInfo info;
