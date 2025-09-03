@@ -1122,8 +1122,9 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
     });
 
     std::vector<Preset> filament_presets;
-    std::vector<int>    filament_map;
-    filament_map.resize(sorted_calib_infos.size());
+    std::vector<int>    filament_map, f_volume_maps;
+    filament_map.resize(calib_infos.size(), 1);
+    f_volume_maps.resize(calib_infos.size(), static_cast<int>(NozzleVolumeType::nvtStandard));
     std::vector<int> physical_extruder_maps = dynamic_cast<ConfigOptionInts *>(printer_config.option("physical_extruder_map", true))->values;
     for (size_t i = 0; i < sorted_calib_infos.size(); ++i) {
         CalibInfo calib_info = sorted_calib_infos[i];
@@ -1136,9 +1137,10 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
             }
         }
     }
+    //todo: need to use the correct filament_volume_map later
 
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-    DynamicPrintConfig full_config   = PresetBundle::construct_full_config(printer_preset, print_preset, preset_bundle->project_config, filament_presets, false, filament_map);
+    DynamicPrintConfig full_config   = PresetBundle::construct_full_config(printer_preset, print_preset, preset_bundle->project_config, filament_presets, false, filament_map, f_volume_maps);
 
     set_for_auto_pa_model_and_config(sorted_calib_infos, full_config, model);
     if (!process_and_store_3mf(&model, full_config, params, error_message))

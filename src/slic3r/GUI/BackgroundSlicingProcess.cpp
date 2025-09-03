@@ -228,6 +228,8 @@ void BackgroundSlicingProcess::process_fff()
         if (m_current_plate->get_real_filament_map_mode(preset_bundle.project_config) < FilamentMapMode::fmmManual) {
             std::vector<int> f_maps = m_fff_print->get_filament_maps();
             m_current_plate->set_filament_maps(f_maps);
+            std::vector<int> f_volume_maps = m_fff_print->get_filament_volume_maps();
+            m_current_plate->set_filament_volume_maps(f_volume_maps);
 		}
 		wxCommandEvent evt(m_event_slicing_completed_id);
 		// Post the Slicing Finished message for the G-code viewer to update.

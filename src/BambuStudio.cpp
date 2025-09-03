@@ -1386,22 +1386,24 @@ int CLI::run(int argc, char **argv)
      for (int index = 0; index < argc; index++)
          BOOST_LOG_TRIVIAL(info) << "index=" << index << ", arg is " << argv[index] << std::endl;
      char* debug_argv[] = {
-         "D:/code/bamboo_slicer/Release/1/build/src/Release/bambu-studio.exe",
+         "F:\work\projects\bambu_debug\bamboo_slicer\build_debug\src\Debug\bambu-studio.exe",
          "--debug=3",
-         "--slice=1",
          "--nozzle-volume-type",
-         "Standard,Standard",
+         "Standard,High Flow",
          "--filament-map-mode",
          "Nozzle Manual",
          "--extruder-nozzle-count",
-         "Standard#1;Standard#3",
+         "1,6",
+         "--extruder-nozzle-volume-type",
+         "Standard,High Flow,High Flow,High Flow,High Flow,High Flow,High Flow",
          "--filament-map",
-         "1,2,2,1,2,2,1,1",
+         "1,1,2,2,2,2,2,2",
          "--filament-nozzle-map",
-         "0,1,1,0,2,3,0,0",
+         "0,0,3,4,1,5,2,6",
          "--filament-volume-map",
-         "0,0,0,0,0,0,0,0",
-         "D:/code/bamboo_slicer/model/H2D-cube.3mf"
+         "0,0,1,1,1,1,1,1",
+         "--slice=1",
+         "F:/cube_h2d.3mf"
      };
      int debug_argc = sizeof(debug_argv) / sizeof(debug_argv[0]);
      if (!this->setup(debug_argc, debug_argv))
@@ -3099,12 +3101,6 @@ int CLI::run(int argc, char **argv)
             flush_and_exit(ret);
         }
     }
-    if (m_print_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")) {
-        new_extruder_count = m_print_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
-        new_is_multi_extruder = new_extruder_count > 1;
-        new_printer_extruder_variants = m_print_config.option<ConfigOptionStrings>("printer_extruder_variant", true)->values;
-        new_printer_variant_count = new_printer_extruder_variants.size();
-    }
 
     //set the process settings into print config
     std::vector<std::string>& print_compatible_printers = m_print_config.option<ConfigOptionStrings>("print_compatible_printers", true)->values;
@@ -3175,6 +3171,14 @@ int CLI::run(int argc, char **argv)
     }
 
     //get nozzle_volume_type
+    bool different_extruder = m_print_config.support_different_extruders(new_extruder_count);
+    //new_extruder_count = m_print_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+    new_is_multi_extruder = new_extruder_count > 1;
+    new_printer_extruder_variants = m_print_config.option<ConfigOptionStrings>("printer_extruder_variant", true)->values;
+    new_printer_variant_count = new_printer_extruder_variants.size();
+    auto extruder_max_nozzle_count = m_print_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count", true)->values;
+    bool support_multi_nozzle = std::any_of(extruder_max_nozzle_count.begin(),extruder_max_nozzle_count.end(),[](int val){return val>1;});
+
     if(m_extra_config.has("nozzle_volume_type")) {
         auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(m_extra_config.option("nozzle_volume_type"));
         if (opt_nozzle_volume_type) {
@@ -3188,6 +3192,13 @@ int CLI::run(int argc, char **argv)
     }
     else {
         new_nozzle_volume_type.resize(new_extruder_count, nvtStandard);
+        if ((new_extruder_count > 1) || different_extruder) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("%1%: nozzle_volume_type not found, when different_extruder or multiple extruder, new_printer_name %2%, extruder_count %3%")%__LINE__ %new_printer_name %new_extruder_count;
+            //record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+            //flush_and_exit(CLI_INVALID_PARAMS);
+        }
+        else
+            BOOST_LOG_TRIVIAL(info) << boost::format("%1%: nozzle_volume_type not found, use standard by default, new_printer_name %2% extruder_count %3%")%__LINE__ %new_printer_name %new_extruder_count;
     }
     new_extruder_variants.resize(new_extruder_count, "");
     const ConfigOptionEnumsGeneric *opt_extruder_type = dynamic_cast<const ConfigOptionEnumsGeneric *>(m_print_config.option("extruder_type"));
@@ -6333,16 +6344,61 @@ int CLI::run(int argc, char **argv)
                                     else
                                         filament_maps = part_plate->get_real_filament_maps(m_print_config);
 
-                                    if (mode == FilamentMapMode::fmmNozzleManual) {
-                                        if(!m_extra_config.option<ConfigOptionInts>("filament_nozzle_map") || !m_extra_config.option<ConfigOptionInts>("filament_nozzle_map")){
-                                            BOOST_LOG_TRIVIAL(error) << boost::format("plate %1% : some filaments can not be mapped under manual mode for multi extruder printer ") % (index + 1);
-                                            record_exit_reson(outfile_dir, CLI_FILAMENT_CAN_NOT_MAP, index + 1, cli_errors[CLI_FILAMENT_CAN_NOT_MAP], sliced_info);
-                                            flush_and_exit(CLI_FILAMENT_CAN_NOT_MAP);
+                                    if (support_multi_nozzle && (mode == fmmManual || mode == fmmNozzleManual)) {
+                                        if (mode == FilamentMapMode::fmmNozzleManual) {
+                                            if (!m_extra_config.option<ConfigOptionInts>("filament_volume_map") ||
+                                                !m_extra_config.option<ConfigOptionInts>("filament_nozzle_map") ||
+                                                !m_extra_config.option<ConfigOptionInts>("extruder_nozzle_count") ||
+                                                !m_extra_config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type")) {
+                                                BOOST_LOG_TRIVIAL(error)
+                                                    << boost::format(
+                                                           "%1%, can not find filament_volume_map/filament_nozzle_map/extruder_nozzle_count/extruder_nozzle_volume_type under "
+                                                           "Nozzle Manual mode") %
+                                                           __LINE__;
+                                                record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, index + 1, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+                                                flush_and_exit(CLI_INVALID_PARAMS);
+                                            }
+                                            filament_nozzle_maps = m_extra_config.option<ConfigOptionInts>("filament_nozzle_map")->values;
+                                            filament_volume_maps = m_extra_config.option<ConfigOptionInts>("filament_volume_map")->values;
+                                            part_plate->set_filament_nozzle_maps(filament_nozzle_maps);
+                                            part_plate->set_filament_volume_maps(filament_volume_maps);
+                                        } else if (mode == fmmManual) {
+                                            if (!m_extra_config.option<ConfigOptionInts>("extruder_nozzle_count") ||
+                                                !m_extra_config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type")) {
+                                                BOOST_LOG_TRIVIAL(error)
+                                                    << boost::format("%1%, can not find extruder_nozzle_volume_type or extruder_nozzle_count under Manual mode") % __LINE__;
+                                                record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, index + 1, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+                                                flush_and_exit(CLI_INVALID_PARAMS);
+                                            }
                                         }
-                                        filament_nozzle_maps = m_extra_config.option<ConfigOptionInts>("filament_nozzle_map")->values;
-                                        filament_volume_maps = m_extra_config.option<ConfigOptionInts>("filament_volume_map")->values;
-                                        part_plate->set_filament_nozzle_maps(filament_nozzle_maps);
-                                        part_plate->set_filament_volume_maps(filament_volume_maps);
+                                        //assemble extruder_nozzle_stats
+                                        std::vector<std::map<NozzleVolumeType,int>> extruder_nozzle_stats_maps(new_extruder_count, std::map<NozzleVolumeType,int>{});
+                                        std::vector<int> extruder_nozzle_counts = m_extra_config.option<ConfigOptionInts>("extruder_nozzle_count")->values;
+                                        std::vector<int> extruder_nozzle_volume_types = m_extra_config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type")->values;
+                                        int nozzle_index = 0;
+                                        for(int e_index = 0; e_index < new_extruder_count; e_index++)
+                                        {
+                                            std::map<NozzleVolumeType,int> nozzle_volume_type_maps;
+                                            for (int sub_index = 0; sub_index < extruder_nozzle_counts[e_index]; sub_index++)
+                                            {
+                                                if (nozzle_volume_type_maps.find(NozzleVolumeType(extruder_nozzle_volume_types[nozzle_index])) != nozzle_volume_type_maps.end())
+                                                {
+                                                    nozzle_volume_type_maps[NozzleVolumeType(extruder_nozzle_volume_types[nozzle_index])]++;
+                                                }
+                                                else
+                                                    nozzle_volume_type_maps[NozzleVolumeType(extruder_nozzle_volume_types[nozzle_index])] = 1;
+
+                                                nozzle_index++;
+                                            }
+                                            extruder_nozzle_stats_maps[e_index] = std::move(nozzle_volume_type_maps);
+                                        }
+                                        m_print_config.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values = save_extruder_nozzle_stats_to_string(extruder_nozzle_stats_maps);
+                                    }
+                                    else if (!support_multi_nozzle && (mode == fmmNozzleManual)) {
+                                        BOOST_LOG_TRIVIAL(error)
+                                            << boost::format("%1%, Nozzle Manual mode not supported for %2%") % __LINE__ %new_printer_name;
+                                        record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, index + 1, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+                                        flush_and_exit(CLI_INVALID_PARAMS);
                                     }
 
                                     for (int index = 0; index < filament_maps.size(); index++)

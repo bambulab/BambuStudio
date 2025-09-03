@@ -88,7 +88,8 @@ public:
                                                     const DynamicPrintConfig       &project_config,
                                                     std::vector<Preset>            &in_filament_presets,
                                                     bool                            apply_extruder,
-                                                    std::optional<std::vector<int>> filament_maps_new);
+                                                    std::optional<std::vector<int>> filament_maps_new,
+                                                    std::optional<std::vector<int>> filament_volume_maps_new);
     PresetBundle();
     PresetBundle(const PresetBundle &rhs);
     PresetBundle& operator=(const PresetBundle &rhs);
@@ -229,13 +230,14 @@ public:
     bool                        has_defauls_only() const
         { return prints.has_defaults_only() && filaments.has_defaults_only() && printers.has_defaults_only(); }
 
-    DynamicPrintConfig          full_config(bool apply_extruder = true, std::optional<std::vector<int>>filament_maps = std::nullopt) const;
+    DynamicPrintConfig          full_config(bool apply_extruder = true, std::optional<std::vector<int>>filament_maps = std::nullopt, std::optional<std::vector<int>> filament_volume_maps = std::nullopt) const;
     // full_config() with the some "useless" config removed.
     DynamicPrintConfig          full_config_secure(std::optional<std::vector<int>>filament_maps = std::nullopt) const;
 
     //BBS: add some functions for multiple extruders
     int get_printer_extruder_count() const;
     bool support_different_extruders();
+    std::vector<int> get_default_nozzle_volume_types_for_filaments(std::vector<int>& f_maps);
 
     // Load user configuration and store it into the user profiles.
     // This method is called by the configuration wizard.
@@ -352,7 +354,7 @@ private:
     /*ConfigSubstitutions         load_config_file_config_bundle(
         const std::string &path, const boost::property_tree::ptree &tree, ForwardCompatibilitySubstitutionRule compatibility_rule);*/
 
-    DynamicPrintConfig          full_fff_config(bool apply_extruder, std::optional<std::vector<int>> filament_maps=std::nullopt) const;
+    DynamicPrintConfig          full_fff_config(bool apply_extruder, std::optional<std::vector<int>> filament_maps=std::nullopt, std::optional<std::vector<int>> filament_volume_maps=std::nullopt) const;
     DynamicPrintConfig          full_sla_config() const;
 };
 
