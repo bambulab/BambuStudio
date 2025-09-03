@@ -1238,20 +1238,32 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 
     //apply extruder related values
     std::vector<int> print_variant_index;
+    std::vector<std::vector<NozzleVolumeType>> nozzle_volume_types;
+    int extruder_count = 1, extruder_volume_type_count = 1;
+    bool different_extruder = false;
+
+    different_extruder = new_full_config.support_different_extruders(extruder_count);
+    extruder_volume_type_count = new_full_config.get_extruder_nozzle_volume_count(extruder_count, nozzle_volume_types);
     if (!extruder_applied) {
-        new_full_config.update_values_to_printer_extruders(new_full_config, printer_options_with_variant_1, "printer_extruder_id", "printer_extruder_variant");
-        new_full_config.update_values_to_printer_extruders(new_full_config, printer_options_with_variant_2, "printer_extruder_id", "printer_extruder_variant", 2);
-        //update print config related with variants
-        print_variant_index = new_full_config.update_values_to_printer_extruders(new_full_config, print_options_with_variant, "print_extruder_id", "print_extruder_variant");
+        if ((extruder_count > 1) || different_extruder) {
+            new_full_config.update_values_to_printer_extruders(new_full_config, extruder_count, extruder_volume_type_count, nozzle_volume_types, printer_options_with_variant_2, "printer_extruder_id", "printer_extruder_variant", 2);
+            new_full_config.update_values_to_printer_extruders(new_full_config, extruder_count, extruder_volume_type_count, nozzle_volume_types, printer_options_with_variant_1, "printer_extruder_id", "printer_extruder_variant");
+            //update print config related with variants
+            print_variant_index = new_full_config.update_values_to_printer_extruders(new_full_config, extruder_count, extruder_volume_type_count, nozzle_volume_types, print_options_with_variant, "print_extruder_id", "print_extruder_variant");
+        }
+        else
+            print_variant_index.resize(1, 0);
 
         m_ori_full_print_config = new_full_config;
-        new_full_config.update_values_to_printer_extruders_for_multiple_filaments(new_full_config, filament_options_with_variant,  "filament_self_index", "filament_extruder_variant");
+        if ((extruder_count > 1) || different_extruder)
+            new_full_config.update_values_to_printer_extruders_for_multiple_filaments(new_full_config, extruder_count, extruder_volume_type_count, filament_options_with_variant,  "filament_self_index", "filament_extruder_variant");
     }
     else {
-        int extruder_count;
-        bool different_extruder = new_full_config.support_different_extruders(extruder_count);
-        print_variant_index.resize(extruder_count);
-        for (int e_index = 0; e_index < extruder_count; e_index++)
+        //should not come here, we can not get the result of print_variant, for the values have been updated
+        //we just use the default values here
+        auto variant_opt = dynamic_cast<const ConfigOptionStrings *>(new_full_config.option("printer_extruder_variant"));
+        print_variant_index.resize(variant_opt->values.size());
+        for (int e_index = 0; e_index < variant_opt->values.size(); e_index++)
         {
             print_variant_index[e_index] = e_index;
         }
@@ -1269,7 +1281,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 
     //BBS: process the filament_map related logic
     std::unordered_set<std::string> print_diff_set(print_diff.begin(), print_diff.end());
-    if (print_diff_set.find("filament_map_mode") == print_diff_set.end())
+    if (!print_diff_set.empty() && print_diff_set.find("filament_map_mode") == print_diff_set.end())
     {
         FilamentMapMode map_mode = new_full_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value;
         if (map_mode < fmmManual) {
@@ -1281,11 +1293,31 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 old_opt->set(new_opt);
                 m_config.filament_map = *new_opt;
             }
+            if (print_diff_set.find("filament_volume_map") != print_diff_set.end()) {
+                print_diff_set.erase("filament_volume_map");
+                //full_config_diff.erase("filament_volume_map");
+                ConfigOptionInts* old_opt = m_full_print_config.option<ConfigOptionInts>("filament_volume_map", true);
+                ConfigOptionInts* new_opt = new_full_config.option<ConfigOptionInts>("filament_volume_map", true);
+                old_opt->set(new_opt);
+                m_config.filament_volume_map = *new_opt;
+            }
+            if (print_diff_set.find("filament_nozzle_map") != print_diff_set.end()) {
+                print_diff_set.erase("filament_nozzle_map");
+                //full_config_diff.erase("filament_nozzle_map");
+                ConfigOptionInts* old_opt = m_full_print_config.option<ConfigOptionInts>("filament_nozzle_map", true);
+                ConfigOptionInts* new_opt = new_full_config.option<ConfigOptionInts>("filament_nozzle_map", true);
+                old_opt->set(new_opt);
+                m_config.filament_nozzle_map = *new_opt;
+            }
         }
         else {
             print_diff_set.erase("extruder_ams_count");
+            print_diff_set.erase("extruder_nozzle_stats");
             std::vector<int> old_filament_map = m_config.filament_map.values;
             std::vector<int> new_filament_map = new_full_config.option<ConfigOptionInts>("filament_map", true)->values;
+
+            std::vector<int> old_filament_volume_map = m_config.filament_volume_map.values;
+            std::vector<int> new_filament_volume_map = new_full_config.option<ConfigOptionInts>("filament_volume_map", true)->values;
 
             if (old_filament_map.size() == new_filament_map.size())
             {
@@ -1303,9 +1335,40 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 if (same_map)
                     print_diff_set.erase("filament_map");
             }
+
+            if (old_filament_volume_map.size() == new_filament_volume_map.size())
+            {
+                bool same_map = true;
+                for (size_t index = 0; index < old_filament_volume_map.size(); index++)
+                {
+                    if ((old_filament_volume_map[index] == new_filament_volume_map[index])
+                        || (used_filament_set.find(index) == used_filament_set.end()))
+                        continue;
+                    else {
+                        same_map = false;
+                        break;
+                    }
+                }
+                if (same_map)
+                    print_diff_set.erase("filament_volume_map");
+            }
         }
         if (print_diff_set.size() != print_diff.size())
             print_diff.assign(print_diff_set.begin(), print_diff_set.end());
+    }
+
+    //filament_map_2
+    m_config.filament_map_2.values = filament_maps;
+    auto opt_extruder_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(new_full_config.option("extruder_type"));
+    auto opt_filament_volume_maps = dynamic_cast<const ConfigOptionInts*>(new_full_config.option("filament_volume_map"));
+    auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(new_full_config.option("nozzle_volume_type"));
+    for (int index = 0; index < filament_maps.size(); index++)
+    {
+        ExtruderType extruder_type = (ExtruderType)(opt_extruder_type->get_at(filament_maps[index] - 1));
+        NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(filament_maps[index] - 1));
+        if ((extruder_volume_type_count > extruder_count) && opt_filament_volume_maps && (opt_filament_volume_maps->values.size() > index))
+                nozzle_volume_type = (NozzleVolumeType)(opt_filament_volume_maps->values[index]);
+        m_config.filament_map_2.values[index] = new_full_config.get_index_for_extruder(filament_maps[index], "print_extruder_id", extruder_type, nozzle_volume_type, "print_extruder_variant");
     }
 
     // Do not use the ApplyStatus as we will use the max function when updating apply_status.

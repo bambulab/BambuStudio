@@ -1282,8 +1282,8 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
         nozzle_diameters[extruder_id] = nozzle_option ? atof(nozzle_option->diameter.c_str()) : obj->GetExtderSystem()->GetNozzleDiameter(index);
         std::optional<NozzleVolumeType> select_type;
         NozzleVolumeType target_type = NozzleVolumeType::nvtStandard;
-        if (nozzle_option && nozzle_option->extruder_nozzle_count.count(index))
-            select_type = nozzle_option->extruder_nozzle_count[index].first;
+        if (nozzle_option && nozzle_option->extruder_nozzle_stats.count(index))
+            select_type = nozzle_option->extruder_nozzle_stats[index].first;
 
         if (obj->is_nozzle_flow_type_supported()) {
             if (obj->GetExtderSystem()->GetNozzleFlowType(index) == NozzleFlowType::NONE_FLOWTYPE) {
@@ -6105,7 +6105,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                                     ConfigOptionInts* filament_volume_map = proj_cfg.opt<ConfigOptionInts>("filament_volume_map", true);
                                     if(filament_volume_map->size() != filament_count){
-                                        filament_volume_map->values.resize(filament_count,static_cast<int>(NozzleVolumeType::nvtDefault));
+                                        filament_volume_map->values.resize(filament_count,static_cast<int>(NozzleVolumeType::nvtStandard));
                                     }
 
                                     // Sync filament multi colour
@@ -7454,7 +7454,11 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     if (preset_bundle->get_printer_extruder_count() > 1) {
         PartPlate* cur_plate = background_process.get_current_plate();
         std::vector<int> f_maps = cur_plate->get_real_filament_maps(preset_bundle->project_config);
-        invalidated = background_process.apply(this->model, preset_bundle->full_config(false, f_maps));
+        std::vector<int> f_volume_maps = cur_plate->get_filament_volume_maps();
+        if (f_volume_maps.empty()) {
+            f_volume_maps = preset_bundle->get_default_nozzle_volume_types_for_filaments(f_maps);
+        }
+        invalidated = background_process.apply(this->model, preset_bundle->full_config(false, f_maps, f_volume_maps));
         background_process.fff_print()->set_extruder_filament_info(get_extruder_filament_info());
     }
     else
@@ -13327,7 +13331,12 @@ void Plater::load_gcode(const wxString& filename)
     //p->preview->get_canvas3d()->zoom_to_gcode();
     p->preview->get_canvas3d()->zoom_to_plate(0);
     p->partplate_list.get_curr_plate()->update_slice_result_valid_state(true);
-    current_print.apply(this->model(), wxGetApp().preset_bundle->full_config(false, current_print.get_filament_maps()));
+    std::vector<int> f_maps = current_print.get_filament_maps();
+    std::vector<int> f_volume_maps = p->partplate_list.get_curr_plate()->get_filament_volume_maps();
+    if (f_volume_maps.empty()) {
+        f_volume_maps = wxGetApp().preset_bundle->get_default_nozzle_volume_types_for_filaments(f_maps);
+    }
+    current_print.apply(this->model(), wxGetApp().preset_bundle->full_config(false, f_maps, f_volume_maps));
 
     if (p->preview->get_canvas3d()->get_gcode_layers_zs().empty()) {
         MessageDialog(this, _L("The selected file") + ":\n" + filename + "\n" + _L("does not contain valid gcode."),
@@ -17297,7 +17306,11 @@ void Plater::apply_background_progress()
     Print::ApplyStatus invalidated;
     if (preset_bundle->get_printer_extruder_count() > 1) {
         std::vector<int> f_maps = part_plate->get_real_filament_maps(preset_bundle->project_config);
-        invalidated = p->background_process.apply(this->model(), preset_bundle->full_config(false, f_maps));
+        std::vector<int> f_volume_maps = part_plate->get_filament_volume_maps();
+        if (f_volume_maps.empty()) {
+            f_volume_maps = preset_bundle->get_default_nozzle_volume_types_for_filaments(f_maps);
+        }
+        invalidated = p->background_process.apply(this->model(), preset_bundle->full_config(false, f_maps, f_volume_maps));
     }
     else
         invalidated = p->background_process.apply(this->model(), preset_bundle->full_config(false));
@@ -17342,7 +17355,11 @@ int Plater::select_plate(int plate_index, bool need_slice)
         //always apply the current plate's print
         if (preset_bundle->get_printer_extruder_count() > 1) {
             std::vector<int> f_maps = part_plate->get_real_filament_maps(preset_bundle->project_config);
-            invalidated = p->background_process.apply(this->model(), preset_bundle->full_config(false, f_maps));
+            std::vector<int> f_volume_maps = part_plate->get_filament_volume_maps();
+            if (f_volume_maps.empty()) {
+                f_volume_maps = preset_bundle->get_default_nozzle_volume_types_for_filaments(f_maps);
+            }
+            invalidated = p->background_process.apply(this->model(), preset_bundle->full_config(false, f_maps, f_volume_maps));
         }
         else
             invalidated = p->background_process.apply(this->model(), preset_bundle->full_config(false));
@@ -17761,7 +17778,11 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             //always apply the current plate's print
             if (preset_bundle->get_printer_extruder_count() > 1) {
                 std::vector<int> f_maps = part_plate->get_real_filament_maps(preset_bundle->project_config);
-                invalidated = p->background_process.apply(this->model(), preset_bundle->full_config(false, f_maps));
+                std::vector<int> f_volume_maps = part_plate->get_filament_volume_maps();
+                if (f_volume_maps.empty()) {
+                    f_volume_maps = preset_bundle->get_default_nozzle_volume_types_for_filaments(f_maps);
+                }
+                invalidated = p->background_process.apply(this->model(), preset_bundle->full_config(false, f_maps, f_volume_maps));
             }
             else
                 invalidated = p->background_process.apply(this->model(), preset_bundle->full_config(false));
