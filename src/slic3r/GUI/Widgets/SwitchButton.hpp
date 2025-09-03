@@ -9,6 +9,7 @@
 #include "Button.hpp"
 
 wxDECLARE_EVENT(wxCUSTOMEVT_SWITCH_POS, wxCommandEvent);
+wxDECLARE_EVENT(wxEXPAND_LEFT_DOWN, wxCommandEvent);
 
 class SwitchButton : public wxBitmapToggleButton
 {
@@ -113,6 +114,43 @@ private:
     wxColour m_secondary_colour{wxColour("#DEF5E7")};
 
     bool m_isSelected;
+};
+
+class ExpandButton : public wxWindow {
+public:
+    ExpandButton(wxWindow* parent,
+        std::string bmp,
+        wxWindowID id = wxID_ANY,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize);
+    
+    void msw_rescale();
+private:
+    std::string m_bmp_str;
+    wxBitmap m_bmp;
+    void OnPaint(wxPaintEvent& event);
+    void render(wxDC& dc);
+    void doRender(wxDC& dc);
+};
+
+class ExpandButtonHolder : public wxPanel {
+public:
+    ExpandButtonHolder(wxWindow* parent,
+        wxWindowID id = wxID_ANY,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize);
+
+    //wxBoxSizer* expand_sizer{nullptr};
+    wxBoxSizer* hsizer{nullptr};
+    wxBoxSizer* vsizer{nullptr};
+    void addExpandButton(wxWindowID id, std::string img);
+    void ShowExpandButton(wxWindowID id, bool show);
+    int GetAvailable();
+    void msw_rescale();
+private:
+    void OnPaint(wxPaintEvent& event);
+    void render(wxDC& dc);
+    void doRender(wxDC& dc);
 };
 
 #endif // !slic3r_GUI_SwitchButton_hpp_

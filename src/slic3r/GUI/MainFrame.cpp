@@ -1091,10 +1091,8 @@ void MainFrame::show_option(bool show)
             m_print_btn->Hide();
             m_slice_option_btn->Hide();
             m_print_option_btn->Hide();
-#ifdef __APPLE__
             split_line_icon->Hide();
-            expand_program_icon->Hide();
-#endif
+            expand_program_holder->Hide();
             Layout();
         }
     } else {
@@ -1103,10 +1101,8 @@ void MainFrame::show_option(bool show)
             m_print_btn->Show();
             m_slice_option_btn->Show();
             m_print_option_btn->Show();
-#ifdef __APPLE__
             split_line_icon->Show();
-            expand_program_icon->Show();
-#endif
+            expand_program_holder->Show();
             Layout();
         }
     }
@@ -1679,6 +1675,41 @@ wxBoxSizer* MainFrame::create_side_tools()
     int em = em_unit();
     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
 
+
+    /*helio*/
+    //auto expand_program_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    split_line_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("topbar_line", this, 22), wxDefaultPosition, wxSize(FromDIP(3), FromDIP(22)), 0);
+    expand_program_holder = new ExpandButtonHolder(this);
+    expand_program_holder->addExpandButton(expand_helio_id, "helio_icon");
+    expand_program_holder->addExpandButton(expand_program_id, "expand_program");
+    expand_program_holder->Bind(wxEXPAND_LEFT_DOWN, [=](const wxCommandEvent& e) {
+
+        if (e.GetInt() == expand_helio_id) {
+            BOOST_LOG_TRIVIAL(info) << "Helio button clicked";
+            Plater* plater = wxGetApp().plater();
+            wxCommandEvent evt(EVT_HELIO_INPUT_DLG);
+            evt.SetEventObject(plater);
+            wxPostEvent(plater, evt);
+        }
+
+        if (e.GetInt() == expand_program_id) {
+            ExpandCenterDialog dlg;
+            dlg.ShowModal();
+        }
+        });
+
+    if (wxGetApp().app_config->get("helio_enable") == "true") {
+        expand_program_holder->ShowExpandButton(expand_helio_id, true);
+    }
+    else {
+        expand_program_holder->ShowExpandButton(expand_helio_id, false);
+    }
+
+    //expand_program_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    //expand_program_sizer->Add(expand_program_holder, 0, wxALIGN_CENTER, 0);
+
+    /*slice*/
     m_slice_select = eSlicePlate;
     m_print_select = ePrintPlate;
 
@@ -1695,18 +1726,6 @@ wxBoxSizer* MainFrame::create_side_tools()
     slice_sizer->Add(m_slice_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
     slice_panel->SetSizer(slice_sizer);
 
-#ifdef __APPLE__
-    split_line_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("topbar_line", this, 24), wxDefaultPosition, wxSize(FromDIP(3), FromDIP(24)), 0);
-    expand_program_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("expand_program", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
-
-    expand_program_icon->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-    expand_program_icon->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
-    expand_program_icon->Bind(wxEVT_LEFT_DOWN, [this](auto& event) {
-        ExpandCenterDialog dlg;
-        dlg.ShowModal();
-    });
-#endif
-
     auto print_sizer = new wxBoxSizer(wxHORIZONTAL);
     print_sizer->Add(m_print_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
     print_sizer->Add(m_print_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
@@ -1715,16 +1734,15 @@ wxBoxSizer* MainFrame::create_side_tools()
     update_side_button_style();
     m_slice_option_btn->Enable();
     m_print_option_btn->Enable();
-    sizer->Add(FromDIP(15), 0, 0, 0, 0);
+    sizer->Add( 0, 0, 1, wxEXPAND, 0);
+    sizer->Add(expand_program_holder, 0, wxALIGN_CENTER, 0);
+    sizer->Add(FromDIP(4), 0, 0, 0, 0);
+    sizer->Add(split_line_icon, 0, wxALIGN_CENTER, 0);
+    sizer->Add(FromDIP(10), 0, 0, 0, 0);
     sizer->Add(slice_panel);
     sizer->Add(FromDIP(15), 0, 0, 0, 0);
     sizer->Add(print_panel);
-#ifdef __APPLE__
     sizer->Add(FromDIP(4), 0, 0, 0, 0);
-    sizer->Add(split_line_icon, 0, wxALIGN_CENTER, 0);
-    sizer->Add(FromDIP(4), 0, 0, 0, 0);
-    sizer->Add(expand_program_icon, 0, wxALIGN_CENTER, 0);
-#endif
     sizer->Add(FromDIP(19), 0, 0, 0, 0);
 
     sizer->Layout();
@@ -2303,6 +2321,7 @@ void MainFrame::update_slice_print_status(SlicePrintEventType event, bool can_sl
     m_slice_enable = enable_slice;
     m_print_enable = enable_print;
 
+    /*for healio*/
     if (!old_slice_status && enable_slice)
         m_plater->reset_check_status();
 }
@@ -2332,6 +2351,7 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     m_print_btn->Rescale();
     m_slice_option_btn->Rescale();
     m_print_option_btn->Rescale();
+    expand_program_holder->msw_rescale();
 
     // update Plater
     wxGetApp().plater()->msw_rescale();
