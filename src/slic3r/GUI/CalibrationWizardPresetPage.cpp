@@ -937,7 +937,7 @@ void CalibrationPresetPage::create_filament_list_panel(wxWindow* parent)
     panel_sizer->Add(m_single_ams_preview_panel);
 
     m_single_ams_items_panel   = new wxPanel(parent);
-    m_single_ams_items_panel->SetSizer(create_slot_items_sizer(m_single_ams_items_panel, m_filament_comboBox_list, 1));
+    m_single_ams_items_panel->SetSizer(create_slot_items_sizer(m_single_ams_items_panel, m_filament_comboBox_list, ExtruderRole::SINGLE_EXTRUDER));
 
     // set default selelected
     m_filament_comboBox_list[0]->GetRadioBox()->SetValue(true);
@@ -1032,11 +1032,11 @@ wxSizer* CalibrationPresetPage::create_ams_items_sizer(MachineObject* obj, wxPan
     return ams_items_sizer;
 }
 
-wxSizer* CalibrationPresetPage::create_slot_items_sizer(wxPanel* slot_items_panel, FilamentComboBoxList& filament_comboBox_list, int extuder_count){
+wxSizer* CalibrationPresetPage::create_slot_items_sizer(wxPanel* slot_items_panel, FilamentComboBoxList& filament_comboBox_list, ExtruderRole extuder_role){
     wxSizer* slot_ams_items_sizer;
-    if(extuder_count == 1){
+    if(extuder_role == ExtruderRole::SINGLE_EXTRUDER){
         slot_ams_items_sizer = new wxFlexGridSizer(2, 2, FromDIP(10), CALIBRATION_FGSIZER_HGAP);
-    }else if(extuder_count == 2){
+    }else if(extuder_role == ExtruderRole::MAIN_EXTRUDER || extuder_role == ExtruderRole::DEPUTY_EXTRUDER){
         slot_ams_items_sizer = new wxBoxSizer(wxVERTICAL);
     }
 
@@ -1059,10 +1059,13 @@ wxSizer* CalibrationPresetPage::create_slot_items_sizer(wxPanel* slot_items_pane
 
         fcb->Bind(EVT_CALI_TRAY_CHANGED, &CalibrationPresetPage::on_select_tray, this);
 
-        radio_btn->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent &evt) {
+        radio_btn->Bind(wxEVT_RADIOBUTTON, [this, extuder_role](wxCommandEvent &evt) {
             wxCommandEvent event(EVT_CALI_TRAY_CHANGED);
             event.SetEventObject(this);
             wxPostEvent(this, event);
+
+            /* note: radio button is only used for manual cali mode */
+            manage_filament_radio_btn(extuder_role);
         });
 
         check_box->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &evt) {
@@ -1077,6 +1080,18 @@ wxSizer* CalibrationPresetPage::create_slot_items_sizer(wxPanel* slot_items_pane
     return slot_ams_items_sizer;
 }
 
+/*main radio and deputy radio is incompatible in manual cali mode*/
+void CalibrationPresetPage::manage_filament_radio_btn(ExtruderRole extuder_role){
+    if(extuder_role == ExtruderRole::MAIN_EXTRUDER) {
+        for(auto &fcb : m_deputy_filament_comboBox_list) {
+            fcb->GetRadioBox()->SetValue(false);
+        }
+    } else if(extuder_role == ExtruderRole::DEPUTY_EXTRUDER) {
+        for(auto &fcb : m_main_filament_comboBox_list) {
+            fcb->GetRadioBox()->SetValue(false);
+        }
+    }
+}
 
 void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *parent)
 {
@@ -1099,7 +1114,7 @@ void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *
 
         // 2. AMS item
         m_main_ams_items_panel    = new wxPanel(m_main_filament_cali_panel);
-        m_main_ams_items_panel->SetSizer(create_slot_items_sizer(m_main_ams_items_panel, m_main_filament_comboBox_list, 2));
+        m_main_ams_items_panel->SetSizer(create_slot_items_sizer(m_main_ams_items_panel, m_main_filament_comboBox_list, ExtruderRole::MAIN_EXTRUDER));
 
         // set default selelected
         m_main_filament_comboBox_list[0]->GetRadioBox()->SetValue(true);
@@ -1115,7 +1130,7 @@ void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *
 
         // 2. AMS item
         m_deputy_ams_items_panel = new wxPanel(m_deputy_filament_cali_panel);
-        m_deputy_ams_items_panel->SetSizer(create_slot_items_sizer(m_deputy_ams_items_panel, m_deputy_filament_comboBox_list, 2));
+        m_deputy_ams_items_panel->SetSizer(create_slot_items_sizer(m_deputy_ams_items_panel, m_deputy_filament_comboBox_list, ExtruderRole::DEPUTY_EXTRUDER));
         m_deputy_sizer->Add(m_deputy_ams_items_panel, 0, wxEXPAND | wxALL, 10);
     }
 
