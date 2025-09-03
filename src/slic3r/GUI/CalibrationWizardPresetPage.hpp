@@ -244,6 +244,8 @@ protected:
     void init_selection_values();
     void update_filament_combobox(std::string ams_id = "");
 
+    void update_nozzle_id_combox();
+
     void on_select_nozzle(wxCommandEvent& evt);
     void on_select_plate_type(wxCommandEvent& evt);
 

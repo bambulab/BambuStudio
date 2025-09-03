@@ -721,6 +721,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
             nozzle_diameter_text->Wrap(-1);
 
             m_right_comboBox_nozzle_dia = new ComboBox(m_multi_nozzle_info_panel, wxID_ANY, "", wxDefaultPosition, CALIBRATION_FILAMENT_COMBOX_SIZE, 0, nullptr, wxCB_READONLY);
+            m_right_comboBox_nozzle_dia->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, [this](auto &e) { update_nozzle_id_combox(); });
             m_right_comboBox_nozzle_dia->Disable();
 
             m_right_nozzle_volume_type_sizer->AddSpacer(FromDIP(5));
@@ -735,6 +736,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
             nozzle_volume_type_text->Wrap(-1);
 
             m_right_comboBox_nozzle_volume = new ComboBox(m_multi_nozzle_info_panel, wxID_ANY, "", wxDefaultPosition, CALIBRATION_FILAMENT_COMBOX_SIZE, 0, nullptr, wxCB_READONLY);
+            m_right_comboBox_nozzle_volume->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, [this](auto &e) { update_nozzle_id_combox(); });
             m_right_comboBox_nozzle_volume->Disable();
 
             m_right_nozzle_volume_type_sizer->Add(nozzle_volume_type_text, 0, wxLEFT | wxRIGHT, 10);
@@ -2410,28 +2412,19 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
 
     /* display nozzle combobox */
     {
-        auto rack = obj->GetNozzleSystem()->GetNozzleRack();
+        update_nozzle_id_combox();
 
-        if(rack->IsSupported()){
-            wxString nozzle_diameter = m_right_comboBox_nozzle_dia->GetStringSelection();
-            wxString nozzle_flow = m_right_comboBox_nozzle_volume->GetStringSelection();
-
-            int r_nozzle_id = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
-            auto r_nozzle = obj->GetNozzleSystem()->GetNozzle(r_nozzle_id);
-            auto nozzle_map = rack->GetRackNozzles();
-
-            auto nozzle_list = make_nozzles_info(r_nozzle, nozzle_map, nozzle_diameter, nozzle_flow);
-            for(auto &fcb : m_main_filament_comboBox_list){
-                fcb->UpdateNozzleCombo(nozzle_list);
-                fcb->ShowNozzleCombo();
-                // int code = fcb->GetNozzleIdCode();
-                // obj->get_nozzle_by_id_code(code);
-            }
-
+        auto has_rack = obj->GetNozzleSystem()->GetNozzleRack()->IsSupported();
+        if (has_rack) {
             m_tips_map["rack"].first = true;
-        } else{
+            m_right_comboBox_nozzle_dia->Enable();
+            m_right_comboBox_nozzle_volume->Enable();
+        } else {
             m_tips_map["rack"].first = false;
+            m_right_comboBox_nozzle_dia->Disable();
+            m_right_comboBox_nozzle_volume->Disable();
         }
+
         m_filament_list_tips->SetLabel(get_filament_tips());
     }
 
@@ -2439,8 +2432,41 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
     Layout();
 }
 
-wxArrayString CalibrationPresetPage::make_nozzles_info(const DevNozzle& r_nozzle, const std::map<int, DevNozzle>& nozzle_map, const wxString& nozzle_diameter, const wxString& nozzle_flow){
-    wxArrayString nozzle_list;
+void CalibrationPresetPage::update_nozzle_id_combox()
+{
+    MachineObject *obj = get_current_object();
+
+    if (!obj) return;
+
+    auto rack     = obj->GetNozzleSystem()->GetNozzleRack();
+    bool has_rack = rack->IsSupported();
+    if (has_rack) {
+        wxString nozzle_diameter = m_right_comboBox_nozzle_dia->GetStringSelection();
+        wxString nozzle_flow;
+        switch (m_right_comboBox_nozzle_volume->GetSelection()) {
+        case 0: nozzle_flow = _L("Standard Flow"); break;
+        case 1: nozzle_flow = _L("High Flow"); break;
+        default: nozzle_flow = _L("Unknown"); break;
+        }
+
+        int  r_nozzle_id = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
+        auto r_nozzle    = obj->GetNozzleSystem()->GetNozzle(r_nozzle_id);
+        auto nozzle_map  = rack->GetRackNozzles();
+
+        auto nozzle_list = make_nozzles_info(r_nozzle, nozzle_map, nozzle_diameter, nozzle_flow);
+        for (auto &fcb : m_main_filament_comboBox_list) {
+            fcb->UpdateNozzleCombo(nozzle_list);
+            fcb->ShowNozzleCombo();
+        }
+    }
+}
+
+std::vector<std::pair<wxString, int>> CalibrationPresetPage::make_nozzles_info(const DevNozzle                &r_nozzle,
+                                                                               const std::map<int, DevNozzle> &nozzle_map,
+                                                                               const wxString                 &nozzle_diameter,
+                                                                               const wxString                 &nozzle_flow)
+{
+    std::vector<std::pair<wxString, int>> nozzle_list;
 
     if(r_nozzle.GetNozzleDiameterStr() == nozzle_diameter && r_nozzle.GetNozzleFlowTypeCaliStyleStr() == nozzle_flow){
         wxString item = wxString::Format("R | %s %s", r_nozzle.GetNozzleDiameterStr(), r_nozzle.GetNozzleFlowTypeCaliStyleStr());
