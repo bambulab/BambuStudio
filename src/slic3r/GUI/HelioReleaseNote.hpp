@@ -61,6 +61,7 @@ private:
     Button *m_button_cancel{nullptr};
 
     int current_page{ 0 };
+    std::shared_ptr<int> shared_ptr{nullptr};
 
     wxPanel* page1_panel{ nullptr };
     wxPanel* page2_panel{ nullptr };
@@ -69,9 +70,12 @@ private:
     bool page1_agree{ false };
     bool page2_agree{ false };
 
-    ::TextInput* helio_input_pat = { nullptr };
-    wxStaticBitmap* helio_pat_refresh = { nullptr };
-    wxStaticBitmap* helio_pat_view = { nullptr };
+    Label* pat_err_label{ nullptr };
+    TextInput* helio_input_pat{ nullptr };
+    wxStaticBitmap* helio_pat_refresh{ nullptr };
+    wxStaticBitmap* helio_pat_eview{ nullptr };
+    wxStaticBitmap* helio_pat_dview{ nullptr };
+    wxStaticBitmap* helio_pat_copy{ nullptr };
 
 public:
     HelioStatementDialog(wxWindow *parent = nullptr);
@@ -79,9 +83,15 @@ public:
 
     // void on_ok(wxMouseEvent &evt);
     void on_dpi_changed(const wxRect &suggested_rect) override;
-    void helio_action();
-
+    void show_err_info(std::string type);
+    void show_pat_option(std::string opt);
+    void show_agreement_page1();
+    void show_agreement_page2();
+    void show_pat_page();
+    void request_pat();
     void on_confirm(wxMouseEvent& e);
+    void open_url(std::string type);
+
     void OnLoaded(wxWebViewEvent& event);
     void OnTitleChanged(wxWebViewEvent& event);
     void OnError(wxWebViewEvent& event);
