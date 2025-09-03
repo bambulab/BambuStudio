@@ -1685,32 +1685,91 @@ void Choice::msw_rescale()
 
 void ColourPicker::BUILD()
 {
-	auto size = wxSize(def_width() * m_em_unit, wxDefaultCoord);
+    auto size = wxSize(def_width_wider() * m_em_unit, wxDefaultCoord);
     if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
     if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
-	// Validate the color
-	wxString clr_str(m_opt.type == coString ? m_opt.get_default_value<ConfigOptionString>()->value : m_opt.get_default_value<ConfigOptionStrings>()->get_at(m_opt_idx));
-	wxColour clr(clr_str);
-	if (clr_str.IsEmpty() || !clr.IsOk()) {
-		clr = wxTransparentColour;
-	}
+    // Validate the color
+    wxString clr_str(m_opt.type == coString ? m_opt.get_default_value<ConfigOptionString>()->value : m_opt.get_default_value<ConfigOptionStrings>()->get_at(m_opt_idx));
+    wxColour clr(clr_str);
+    if (clr_str.IsEmpty() || !clr.IsOk()) {
+	    clr = wxTransparentColour;
+    }
 
-	auto temp = new wxColourPickerCtrl(m_parent, wxID_ANY, clr, wxDefaultPosition, size);
+    // create a horizontal sizer with the color picker and a clear button
+    auto sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto panel = new wxPanel(m_parent, wxID_ANY, wxDefaultPosition, size, wxBORDER_NONE);
+    panel->SetSizer(sizer);
+
+    wxSize picker_size = size;
+    picker_size.SetWidth(picker_size.GetWidth() - 30);
+
+	m_color_picker = new wxColourPickerCtrl(panel, wxID_ANY, clr, wxDefaultPosition, picker_size);
     if (parent_is_custom_ctrl && m_opt.height < 0)
-        opt_height = (double)temp->GetSize().GetHeight() / m_em_unit;
-    temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-    convert_to_picker_widget(temp);
-    if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
+        opt_height = (double)m_color_picker->GetSize().GetHeight() / m_em_unit;
+    m_color_picker->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+    convert_to_picker_widget(m_color_picker);
+    if (!wxOSX) {
+        m_color_picker->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    }
+	wxGetApp().UpdateDarkUI(m_color_picker);
 
-	wxGetApp().UpdateDarkUI(temp->GetPickerCtrl());
+    // create the clear button
+    m_clear_button = new wxButton(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(25, picker_size.GetHeight()), wxBORDER_NONE);
+    update_clear_button_icon();
+    
+    bool has_color = clr.IsOk() && clr != wxTransparentColour;
+    m_clear_button->Show(has_color);
+
+    sizer->Add(m_color_picker, 1, wxEXPAND | (has_color ? wxRIGHT : 0), has_color ? 5 : 0);
+    sizer->Add(m_clear_button, 0, wxALIGN_CENTER_VERTICAL);
+
+    sizer->Layout();
+    panel->Fit();
 
 	// 	// recast as a wxWindow to fit the calling convention
-	window = dynamic_cast<wxWindow*>(temp);
+    window = dynamic_cast<wxWindow *>(panel);
 
-	temp->Bind(wxEVT_COLOURPICKER_CHANGED, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
+    m_color_picker->Bind(wxEVT_COLOURPICKER_CHANGED, ([this](wxCommandEvent e) {
+        update_clear_button_visibility();
+        on_change_field();
+        }), m_color_picker->GetId());
 
-	temp->SetToolTip(get_tooltip_text(clr_str));
+    m_clear_button->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { clear_color(); }), m_clear_button->GetId());
+
+    m_color_picker->SetToolTip(get_tooltip_text(clr_str));
+}
+
+void ColourPicker::clear_color()
+{
+    m_color_picker->SetColour(wxTransparentColour);
+    set_undef_value(m_color_picker);
+    update_clear_button_visibility();
+    on_change_field();
+}
+
+void ColourPicker::update_clear_button_visibility()
+{
+    wxColour current_color = m_color_picker->GetColour();
+    bool has_color = current_color.IsOk() && current_color != wxTransparentColour;
+
+    if (m_clear_button->IsShown() != has_color) {
+        m_clear_button->Show(has_color);
+
+        wxSizer *sizer = window->GetSizer();
+        if (sizer) {
+            wxSizerItem *item = sizer->GetItem(static_cast<size_t>(0));
+            // resize the color picker to occupy the freed space
+            if (item) {
+                item->SetFlag(wxEXPAND | (has_color ? wxRIGHT : 0));
+                item->SetBorder(has_color ? 5 : 0);
+                sizer->Layout();
+                window->GetParent()->Layout();
+            }
+        }
+
+        window->Refresh();
+    }
 }
 
 void ColourPicker::set_undef_value(wxColourPickerCtrl* field)
@@ -1744,21 +1803,21 @@ void ColourPicker::set_value(const boost::any& value, bool change_event)
 {
     m_disable_change_event = !change_event;
     const wxString clr_str(boost::any_cast<wxString>(value));
-    auto field = dynamic_cast<wxColourPickerCtrl*>(window);
 
     wxColour clr(clr_str);
     if (clr_str.IsEmpty() || !clr.IsOk())
-        set_undef_value(field);
+        set_undef_value(m_color_picker);
     else
-        field->SetColour(clr);
+        m_color_picker->SetColour(clr);
 
+    update_clear_button_visibility();
     m_disable_change_event = false;
 }
 
 boost::any& ColourPicker::get_value()
 {
     save_colors_to_config();
-	auto colour = static_cast<wxColourPickerCtrl*>(window)->GetColour();
+    auto colour = m_color_picker->GetColour();
     if (colour == wxTransparentColour)
         m_value = std::string("");
     else {
@@ -1772,29 +1831,65 @@ void ColourPicker::msw_rescale()
 {
     Field::msw_rescale();
 
-	wxColourPickerCtrl* field = dynamic_cast<wxColourPickerCtrl*>(window);
-    auto size = wxSize(def_width() * m_em_unit, wxDefaultCoord);
+    auto size = wxSize(def_width_wider() * m_em_unit, wxDefaultCoord);
     if (m_opt.height >= 0)
         size.SetHeight(m_opt.height * m_em_unit);
     else if (parent_is_custom_ctrl && opt_height > 0)
         size.SetHeight(lround(opt_height * m_em_unit));
     if (m_opt.width >= 0) size.SetWidth(m_opt.width * m_em_unit);
-    if (parent_is_custom_ctrl)
-        field->SetSize(size);
-    else
-        field->SetMinSize(size);
+    if (window) {
+        if (parent_is_custom_ctrl)
+            window->SetSize(size);
+        else
+            window->SetMinSize(size);
 
-    if (field->GetColour() == wxTransparentColour)
-        set_undef_value(field);
+        // recalculate the size of the color picker and clear button
+        wxSize picker_size = size;
+        picker_size.SetWidth(size.GetWidth() - 30);
+    
+        if (parent_is_custom_ctrl) {
+            m_color_picker->SetSize(picker_size);
+            m_clear_button->SetSize(wxSize(25, picker_size.GetHeight()));
+        } else {
+            m_color_picker->SetMinSize(picker_size);
+            m_clear_button->SetMinSize(wxSize(25, picker_size.GetHeight()));
+        }
+
+        wxSizer *sizer = window->GetSizer();
+        if (sizer) { sizer->Layout(); }
+        window->Refresh();
+    }
+    
+
+    if (m_color_picker->GetColour() == wxTransparentColour)
+        set_undef_value(m_color_picker);
 }
 
 void ColourPicker::sys_color_changed()
 {
 #ifdef _WIN32
-	if (wxWindow* win = this->getWindow())
-		if (wxColourPickerCtrl* picker = dynamic_cast<wxColourPickerCtrl*>(win))
-			wxGetApp().UpdateDarkUI(picker->GetPickerCtrl(), true);
+    if (wxWindow* win = this->getWindow()) {
+        wxGetApp().UpdateDarkUI(win);
+        if (m_color_picker)
+            wxGetApp().UpdateDarkUI(m_color_picker->GetPickerCtrl(), true);
+        if (m_clear_button) {
+            update_clear_button_icon();
+        }
+    }
 #endif
+}
+
+void ColourPicker::update_clear_button_icon()
+{
+    if (m_clear_button) {
+        const std::string icon_name  = wxGetApp().dark_mode() ? "clear_color_dark" : "clear_color_light";
+        wxBitmap new_bitmap = create_scaled_bitmap(icon_name, m_clear_button->GetParent(), 20, false);
+        m_clear_button->SetBitmap(new_bitmap);
+        m_clear_button->SetToolTip(_L("Clear color"));
+        m_clear_button->SetBackgroundColour(*wxWHITE);
+        wxGetApp().UpdateDarkUI(m_clear_button);
+        m_clear_button->Refresh();
+    }
 }
 
 void ColourPicker::on_button_click(wxCommandEvent &event) {

@@ -404,6 +404,8 @@ class ColourPicker : public Field {
 	using Field::Field;
 
     void            set_undef_value(wxColourPickerCtrl* field);
+    void            clear_color();
+
 public:
 	ColourPicker(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id) {}
 	ColourPicker(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
@@ -412,27 +414,33 @@ public:
 	wxWindow*		window{ nullptr };
 	void			BUILD()  override;
 
-	void			set_value(const std::string& value, bool change_event = false) {
+	void			set_value(const std::string& value, bool change_event = false)
+	{
 		m_disable_change_event = !change_event;
-		dynamic_cast<wxColourPickerCtrl*>(window)->SetColour(value);
+		m_color_picker->SetColour(value);
+        update_clear_button_visibility();
 		m_disable_change_event = false;
-	 	}
+	}
 	void			set_value(const boost::any& value, bool change_event = false) override;
 	boost::any&		get_value() override;
     void            msw_rescale() override;
     void            sys_color_changed() override;
 
-    void			enable() override { dynamic_cast<wxColourPickerCtrl*>(window)->Enable(); }
-    void			disable() override{ dynamic_cast<wxColourPickerCtrl*>(window)->Disable(); }
+    void			enable() override { m_color_picker->Enable(); }
+    void			disable() override{ m_color_picker->Disable(); }
 	wxWindow*		getWindow() override { return window; }
 
 private:
     void convert_to_picker_widget(wxColourPickerCtrl *widget);
     void on_button_click(wxCommandEvent &WXUNUSED(ev));
+    void update_clear_button_visibility();
+    void update_clear_button_icon();
     void save_colors_to_config();
 private:
     wxColourData*  m_clrData{nullptr};
     wxColourPickerWidget* m_picker_widget{nullptr};
+    wxColourPickerCtrl* m_color_picker{nullptr};
+    wxButton *m_clear_button{nullptr};
 };
 
 class PointCtrl : public Field {
