@@ -22,13 +22,13 @@ namespace Slic3r::GUI {
     struct NozzleOption
     {
         std::string diameter;
-        std::unordered_map<int, std::unordered_map<NozzleVolumeType, int>> extruder_nozzle_count;
+        std::unordered_map<int, std::unordered_map<NozzleVolumeType, int>> extruder_nozzle_stats;
     };
 #else
     struct NozzleOption
     {
         std::string diameter;
-        std::unordered_map<int, std::pair<NozzleVolumeType, int>> extruder_nozzle_count;
+        std::unordered_map<int, std::pair<NozzleVolumeType, int>> extruder_nozzle_stats;
     };
 #endif
 
@@ -140,7 +140,7 @@ public:
     virtual void on_dpi_changed(const wxRect& suggested_rect) {};
     std::vector<NozzleOption> GetNozzleOptions(const std::vector<MultiNozzleUtils::NozzleGroupInfo>& group_infos);
 
-    std::optional<NozzleOption> GetSelectedOption() { 
+    std::optional<NozzleOption> GetSelectedOption() {
         if (m_nozzle_option_idx < 0 || m_nozzle_option_idx >= m_nozzle_option_values.size())
             return std::nullopt;
         return m_nozzle_option_values[m_nozzle_option_idx];

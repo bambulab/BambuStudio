@@ -65,7 +65,8 @@ DynamicPrintConfig PresetBundle::construct_full_config(
     const DynamicPrintConfig& project_config,
     std::vector<Preset>& in_filament_presets,
     bool apply_extruder,
-    std::optional<std::vector<int>> filament_maps_new)
+    std::optional<std::vector<int>> filament_maps_new,
+    std::optional<std::vector<int>> filament_volume_maps_new)
 {
     DynamicPrintConfig &printer_config = in_printer_preset.config;
     DynamicPrintConfig &print_config   = in_print_preset.config;
@@ -80,11 +81,22 @@ DynamicPrintConfig PresetBundle::construct_full_config(
     size_t num_filaments = in_filament_presets.size();
 
     std::vector<int> filament_maps = out.option<ConfigOptionInts>("filament_map")->values;
+    std::vector<int> filament_volume_maps(num_filaments, (int)nvtStandard);
+
+    ConfigOptionInts* filament_volume_map_opt = out.option<ConfigOptionInts>("filament_volume_map");
     if (filament_maps_new.has_value())
         filament_maps = *filament_maps_new;
+    if (filament_volume_maps_new.has_value())
+        filament_volume_maps = *filament_volume_maps_new;
+    else if (filament_volume_map_opt && filament_volume_map_opt->values.size() == num_filaments)
+        filament_volume_maps = filament_volume_map_opt->values;
+
     // in some middle state, they may be different
     if (filament_maps.size() != num_filaments) {
         filament_maps.resize(num_filaments, 1);
+    }
+    if (filament_volume_maps.size() != num_filaments) {
+        filament_volume_maps.resize(num_filaments, nvtStandard);
     }
 
     auto *extruder_diameter = dynamic_cast<const ConfigOptionFloatsNullable *>(out.option("nozzle_diameter"));
@@ -105,18 +117,27 @@ DynamicPrintConfig PresetBundle::construct_full_config(
     std::string print_inherits = in_print_preset.inherits();
     inherits.emplace_back(print_inherits);
 
-    // BBS: update printer config related with variants
+    //BBS: update printer config related with variants
+    std::vector<std::vector<NozzleVolumeType>> nozzle_volume_types;
+    int extruder_count = 1, extruder_volume_type_count = 1;
+    bool different_extruder = false;
     if (apply_extruder) {
-        out.update_values_to_printer_extruders(out, printer_options_with_variant_1, "printer_extruder_id", "printer_extruder_variant");
-        out.update_values_to_printer_extruders(out, printer_options_with_variant_2, "printer_extruder_id", "printer_extruder_variant", 2);
-        // update print config related with variants
-        out.update_values_to_printer_extruders(out, print_options_with_variant, "print_extruder_id", "print_extruder_variant");
+        different_extruder = out.support_different_extruders(extruder_count);
+        extruder_volume_type_count = out.get_extruder_nozzle_volume_count(extruder_count, nozzle_volume_types);
+
+        if ((extruder_count > 1) || different_extruder) {
+            out.update_values_to_printer_extruders(out, extruder_count, extruder_volume_type_count, nozzle_volume_types, printer_options_with_variant_2, "printer_extruder_id", "printer_extruder_variant", 2);
+            out.update_values_to_printer_extruders(out, extruder_count, extruder_volume_type_count, nozzle_volume_types, printer_options_with_variant_1, "printer_extruder_id", "printer_extruder_variant");
+            // update print config related with variants
+            out.update_values_to_printer_extruders(out, extruder_count, extruder_volume_type_count, nozzle_volume_types, print_options_with_variant, "print_extruder_id", "print_extruder_variant");
+        }
     }
 
     if (num_filaments <= 1) {
         // BBS: update filament config related with variants
         DynamicPrintConfig filament_config = in_filament_presets[0].config;
-        if (apply_extruder) filament_config.update_values_to_printer_extruders(out, filament_options_with_variant, "", "filament_extruder_variant", 1, filament_maps[0]);
+        if (apply_extruder && ((extruder_count > 1) || different_extruder))
+            filament_config.update_values_to_printer_extruders(out, extruder_count, extruder_volume_type_count, nozzle_volume_types, filament_options_with_variant, "", "filament_extruder_variant", 1, filament_maps[0], (NozzleVolumeType)filament_volume_maps[0]);
         out.apply(filament_config);
         compatible_printers_condition.emplace_back(in_filament_presets[0].compatible_printers_condition());
         compatible_prints_condition.emplace_back(in_filament_presets[0].compatible_prints_condition());
@@ -139,8 +160,8 @@ DynamicPrintConfig PresetBundle::construct_full_config(
         filament_temp_configs.resize(num_filaments);
         for (size_t i = 0; i < num_filaments; ++i) {
             filament_temp_configs[i] = *(filament_configs[i]);
-            if (apply_extruder)
-                filament_temp_configs[i].update_values_to_printer_extruders(out, filament_options_with_variant, "", "filament_extruder_variant", 1, filament_maps[i]);
+            if (apply_extruder && ((extruder_count > 1) || different_extruder))
+                filament_temp_configs[i].update_values_to_printer_extruders(out, extruder_count, extruder_volume_type_count, nozzle_volume_types, filament_options_with_variant, "", "filament_extruder_variant", 1, filament_maps[i], (NozzleVolumeType)filament_volume_maps[i]);
         }
 
         // loop through options and apply them to the resulting config.
@@ -1937,7 +1958,7 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     std::vector<int> filament_nozzle_maps(filament_colors.size(),-1);
     project_config.option<ConfigOptionInts>("filament_nozzle_map")->values = filament_nozzle_maps;
 
-    std::vector<int> filament_volume_maps(filament_colors.size(), NozzleVolumeType::nvtDefault);
+    std::vector<int> filament_volume_maps(filament_colors.size(), static_cast<int>(NozzleVolumeType::nvtStandard));
     project_config.option<ConfigOptionInts>("filament_volume_map")->values = filament_volume_maps;
 
     std::vector<std::string> extruder_ams_count_str;
@@ -2105,7 +2126,7 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
     filament_map->values.resize(n, 1);
     ams_multi_color_filment.resize(n);
     filament_nozzle_map->values.resize(n, 0);
-    filament_volume_map->values.resize(n, static_cast<int>(NozzleVolumeType::nvtDefault));
+    filament_volume_map->values.resize(n, static_cast<int>(NozzleVolumeType::nvtStandard));
 
     //BBS set new filament color to new_color
     if (old_filament_count < n) {
@@ -2742,10 +2763,26 @@ bool PresetBundle::support_different_extruders()
     return supported;
 }
 
-DynamicPrintConfig PresetBundle::full_config(bool apply_extruder, std::optional<std::vector<int>>filament_maps) const
+std::vector<int> PresetBundle::get_default_nozzle_volume_types_for_filaments(std::vector<int>& f_maps)
+{
+    std::vector<int> result;
+    int filament_count = f_maps.size();
+    result.resize(filament_count, static_cast<int>(NozzleVolumeType::nvtStandard));
+
+    auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(this->project_config.option("nozzle_volume_type"));
+    for (int index = 0; index < filament_count; index++)
+    {
+        if (opt_nozzle_volume_type && opt_nozzle_volume_type->values.size() > (f_maps[index] - 1))
+            result[index] = opt_nozzle_volume_type->values[f_maps[index] - 1];
+    }
+
+    return result;
+}
+
+DynamicPrintConfig PresetBundle::full_config(bool apply_extruder, std::optional<std::vector<int>>filament_maps, std::optional<std::vector<int>> filament_volume_maps) const
 {
     return (this->printers.get_edited_preset().printer_technology() == ptFFF) ?
-        this->full_fff_config(apply_extruder, filament_maps) :
+        this->full_fff_config(apply_extruder, filament_maps, filament_volume_maps) :
         this->full_sla_config();
 }
 
@@ -2767,7 +2804,7 @@ const std::set<std::string> ignore_settings_list ={
     "print_settings_id", "filament_settings_id", "printer_settings_id"
 };
 
-DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optional<std::vector<int>> filament_maps_new) const
+DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optional<std::vector<int>> filament_maps_new, std::optional<std::vector<int>> filament_volume_maps_new) const
 {
     DynamicPrintConfig out;
     out.apply(FullPrintConfig::defaults());
@@ -2781,11 +2818,23 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     size_t  num_filaments = this->filament_presets.size();
 
     std::vector<int> filament_maps = out.option<ConfigOptionInts>("filament_map")->values;
+    std::vector<int> filament_volume_maps(num_filaments, (int)nvtStandard);
+
+    ConfigOptionInts* filament_volume_map_opt = out.option<ConfigOptionInts>("filament_volume_map");
     if (filament_maps_new.has_value())
         filament_maps = *filament_maps_new;
+    if (filament_volume_maps_new.has_value()) {
+        filament_volume_maps = *filament_volume_maps_new;
+        out.option<ConfigOptionInts>("filament_volume_map", true)->values = filament_volume_maps;
+    }
+    else if (filament_volume_map_opt && filament_volume_map_opt->values.size() == num_filaments)
+        filament_volume_maps = filament_volume_map_opt->values;
     //in some middle state, they may be different
     if (filament_maps.size() != num_filaments) {
         filament_maps.resize(num_filaments, 1);
+    }
+    if (filament_volume_maps.size() != num_filaments) {
+        filament_volume_maps.resize(num_filaments, nvtStandard);
     }
 
     auto* extruder_diameter = dynamic_cast<const ConfigOptionFloatsNullable*>(out.option("nozzle_diameter"));
@@ -2816,18 +2865,26 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     different_settings.emplace_back(different_print_settings);
 
     //BBS: update printer config related with variants
+    std::vector<std::vector<NozzleVolumeType>> nozzle_volume_types;
+    int extruder_count = 1, extruder_volume_type_count = 1;
+    bool different_extruder = false;
     if (apply_extruder) {
-        out.update_values_to_printer_extruders(out, printer_options_with_variant_1, "printer_extruder_id", "printer_extruder_variant");
-        out.update_values_to_printer_extruders(out, printer_options_with_variant_2, "printer_extruder_id", "printer_extruder_variant", 2);
-        //update print config related with variants
-        out.update_values_to_printer_extruders(out, print_options_with_variant, "print_extruder_id", "print_extruder_variant");
+        different_extruder = out.support_different_extruders(extruder_count);
+        extruder_volume_type_count = out.get_extruder_nozzle_volume_count(extruder_count, nozzle_volume_types);
+
+        if ((extruder_count > 1) || different_extruder) {
+            out.update_values_to_printer_extruders(out, extruder_count, extruder_volume_type_count, nozzle_volume_types, printer_options_with_variant_2, "printer_extruder_id", "printer_extruder_variant", 2);
+            out.update_values_to_printer_extruders(out, extruder_count, extruder_volume_type_count, nozzle_volume_types, printer_options_with_variant_1, "printer_extruder_id", "printer_extruder_variant");
+            //update print config related with variants
+            out.update_values_to_printer_extruders(out, extruder_count, extruder_volume_type_count, nozzle_volume_types, print_options_with_variant, "print_extruder_id", "print_extruder_variant");
+        }
     }
 
     if (num_filaments <= 1) {
         //BBS: update filament config related with variants
         DynamicPrintConfig filament_config = this->filaments.get_edited_preset().config;
-        if (apply_extruder)
-            filament_config.update_values_to_printer_extruders(out, filament_options_with_variant, "", "filament_extruder_variant", 1, filament_maps[0]);
+        if (apply_extruder && ((extruder_count > 1) || different_extruder))
+            filament_config.update_values_to_printer_extruders(out, extruder_count, extruder_volume_type_count, nozzle_volume_types, filament_options_with_variant, "", "filament_extruder_variant", 1, filament_maps[0],(NozzleVolumeType)filament_volume_maps[0]);
         out.apply(filament_config);
         compatible_printers_condition.emplace_back(this->filaments.get_edited_preset().compatible_printers_condition());
         compatible_prints_condition  .emplace_back(this->filaments.get_edited_preset().compatible_prints_condition());
@@ -2920,8 +2977,8 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
         filament_temp_configs.resize(num_filaments);
         for (size_t i = 0; i < num_filaments; ++i) {
             filament_temp_configs[i] = *(filament_configs[i]);
-            if (apply_extruder)
-                filament_temp_configs[i].update_values_to_printer_extruders(out, filament_options_with_variant, "", "filament_extruder_variant", 1, filament_maps[i]);
+            if (apply_extruder && ((extruder_count > 1) || different_extruder))
+                filament_temp_configs[i].update_values_to_printer_extruders(out, extruder_count, extruder_volume_type_count, nozzle_volume_types, filament_options_with_variant, "", "filament_extruder_variant", 1, filament_maps[i],(NozzleVolumeType)filament_volume_maps[i]);
         }
 
         // loop through options and apply them to the resulting config.
@@ -2998,6 +3055,7 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     out.erase("inherits");
     //BBS: add logic for settings check between different system presets
     out.erase("different_settings_to_system");
+    out.erase("filament_map_2");
 
     static const char *keys[] = { "support_filament", "support_interface_filament" };
     for (size_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++ i) {
@@ -3032,7 +3090,7 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     add_if_some_non_empty(std::move(different_settings),            "different_settings_to_system");
     add_if_some_non_empty(std::move(print_compatible_printers),     "print_compatible_printers");
     out.option<ConfigOptionStrings>("extruder_ams_count", true)->values   = save_extruder_ams_count_to_string(this->extruder_ams_counts);
-    out.option<ConfigOptionStrings>("extruder_nozzle_count", true)->values = save_extruder_nozzle_stats_to_string(this->extruder_nozzle_stat.get_raw_stat());
+    out.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values = save_extruder_nozzle_stats_to_string(this->extruder_nozzle_stat.get_raw_stat());
 
 	out.option<ConfigOptionEnumGeneric>("printer_technology", true)->value = ptFFF;
     return out;
