@@ -161,7 +161,7 @@ protected:
     wxStaticText *      warning_text;
     //wxPanel *           m_panel_body;
     wxStaticText *      m_title_filament;
-    wxStaticText *      m_title_nozzle_id;
+    wxStaticText *      m_title_nozzle_type;
     wxStaticText *      m_title_pa_profile;
     wxStaticText *      m_title_colour;
     wxStaticText *      m_title_temperature;
@@ -192,7 +192,7 @@ protected:
 #else
     ComboBox *m_comboBox_filament;
 #endif
-    ComboBox * m_comboBox_nozzle_id;
+    ComboBox * m_comboBox_nozzle_type;
     ComboBox * m_comboBox_cali_result;
     TextInput*       m_readonly_filament;
 

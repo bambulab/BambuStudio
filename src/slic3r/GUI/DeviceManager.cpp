@@ -5581,6 +5581,30 @@ DevNozzle MachineObject::get_nozzle_by_id_code(int id_code) const
     }
 }
 
+DevNozzle MachineObject::get_nozzle_by_sn(const std::string& sn) const
+{
+    int nozzle_id;
+    DevNozzle nozzle;
+
+    nozzle_id = m_extder_system->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
+    nozzle = m_nozzle_system->GetNozzle(nozzle_id);
+    if(nozzle.GetSerialNumber().compare(sn) == 0)
+        return nozzle;
+
+    nozzle_id = m_extder_system->GetExtderById(DEPUTY_EXTRUDER_ID)->GetNozzleId();
+    nozzle = m_nozzle_system->GetNozzle(nozzle_id);
+    if(nozzle.GetSerialNumber().compare(sn) == 0)
+        return nozzle;
+
+    auto rack = m_nozzle_system->GetNozzleRack();
+    auto nozzle_map = rack->GetRackNozzles();
+    for(auto& rack_nozzle : nozzle_map){
+        if(rack_nozzle.second.GetSerialNumber().compare(sn) == 0)
+            return rack_nozzle.second;
+    }
+    return nozzle;
+}
+
 Slic3r::DevPrintingSpeedLevel MachineObject::GetPrintingSpeedLevel() const
 {
     return m_print_options->GetPrintingSpeedLevel();
