@@ -50,6 +50,7 @@ class MultiNozzleGroupResult
 {
 private:
     std::unordered_map<int, std::unordered_map<int, NozzleInfo>> extruder_to_filament_nozzles;
+    std::vector<NozzleInfo> filament_to_nozzle;
 
 public:
     MultiNozzleGroupResult() = default;
@@ -62,6 +63,7 @@ public:
 
     std::vector<NozzleInfo> get_used_nozzles(const std::vector<unsigned int> &filament_list, int target_extruder_id = -1) const; // 获取给定材料列表下指定挤出机使用的喷嘴
     std::vector<int>        get_used_extruders(const std::vector<unsigned int> &filament_list) const;                            // 获取使用的挤出机列表
+    std::pair<int, int>     get_used_extruders_nozzles_count(const std::vector<unsigned int> &filament_list) const; // 获取给定材料列表下使用的挤出机，及对应的喷嘴
     std::vector<int>        get_extruder_list() const;
 
     std::vector<int> filament_map;

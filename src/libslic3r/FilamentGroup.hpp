@@ -110,12 +110,6 @@ namespace Slic3r
         const std::vector<std::vector<FilamentGroupUtils::MachineFilamentInfo>>& machine_filament_info,
         const double color_delta_threshold = 20);
 
-    std::vector<int> optimize_group_for_master_extruder(const std::vector<unsigned int>& used_filaments, const FilamentGroupContext& ctx, const std::vector<int>& filament_map);
-
-    bool can_swap_groups(const int extruder_id_0, const std::set<int>& group_0, const int extruder_id_1, const std::set<int>& group_1, const FilamentGroupContext& ctx);
-
-    std::vector<int> calc_filament_group_for_tpu(const std::set<int>& tpu_filaments, const int filament_nums, const int master_extruder_id);
-
     class FlushDistanceEvaluator
     {
     public:
@@ -263,7 +257,7 @@ namespace Slic3r
         void set_memory_threshold(double threshold) { memory_threshold = threshold; }
         MemoryedGroupHeap get_memoryed_groups()const { return memoryed_groups; }
 
-        void do_clustering(int timeout_ms = 100, int retry = 10);
+        void do_clustering(const FilamentGroupContext& context, int timeout_ms = 100, int retry = 10);
         std::vector<int> get_cluster_labels()const { return m_cluster_labels; }
 
     protected:
@@ -271,7 +265,7 @@ namespace Slic3r
         // calculate cluster distance
         int calc_cost(const std::vector<int>& clusters, const std::vector<int>& cluster_centers, int cluster_id = -1);
 
-        std::vector<int>cluster_small_data(const std::unordered_map<int, std::vector<int>>& placeable_limits, const std::unordered_map<int, std::vector<int>>& unplaceable_limits, const std::vector<int>& cluster_size, const std::vector<std::pair<std::set<int>, int>>& cluster_group_size);
+        std::vector<int> cluster_small_data(const FilamentGroupContext& context);
         // get initial cluster center
         std::vector<int>init_cluster_center(const std::unordered_map<int, std::vector<int>>& placeable_limits, const std::unordered_map<int, std::vector<int>>& unplaceable_limits, const std::vector<int>& cluster_size, const std::vector<std::pair<std::set<int>, int>>& cluster_group_size);
         // assign each elem to the cluster
