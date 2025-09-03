@@ -55,6 +55,10 @@ enum AmsStatusMain
 #define UNIQUE_EXTRUDER_ID        MAIN_EXTRUDER_ID
 #define INVALID_EXTRUDER_ID       -1
 
+// see PartPlate::get_physical_extruder_by_logical_extruder
+#define LOGIC_UNIQUE_EXTRUDER_ID  0
+#define LOGIC_L_EXTRUDER_ID       0
+#define LOGIC_R_EXTRUDER_ID       1
 
 /* Nozzle*/
 enum NozzleFlowType : int
@@ -97,3 +101,27 @@ public:
 };
 
 };// namespace Slic3r
+
+struct NozzleDef
+{
+    float                  nozzle_diameter;
+    Slic3r::NozzleFlowType nozzle_flow_type;
+
+    bool operator==(const NozzleDef& other) const
+    {
+        return nozzle_diameter == other.nozzle_diameter && nozzle_flow_type == other.nozzle_flow_type;
+    }
+};
+
+template<> struct std::hash<NozzleDef>
+{
+    std::size_t operator()(const NozzleDef& v) const noexcept
+    {
+        size_t h1 = std::hash<int>{}(v.nozzle_diameter * 1000);
+        size_t h2 = std::hash<int>{}(v.nozzle_flow_type);
+        return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
+    };
+};
+
+// key(extruder_id) -> { key1(nozzle type info), val1( number of the nozzle type)}
+using ExtruderNozzleInfos = std::unordered_map<int, std::unordered_map<NozzleDef, int>>;
