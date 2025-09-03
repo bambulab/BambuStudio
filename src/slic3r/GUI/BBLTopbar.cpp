@@ -28,7 +28,6 @@ enum CUSTOM_ID
     ID_TITLE,
     ID_MODEL_STORE,
     ID_PUBLISH,
-    ID_EXPAND,
     ID_TOPBAR_LINE,
     ID_CALIB,
     ID_TOOL_BAR = 3200,
@@ -278,9 +277,6 @@ void BBLTopbar::Init(wxFrame* parent)
     this->AddSpacer(12);
     */
 
-    wxBitmap m_expand_bitmap = create_scaled_bitmap("expand_program", nullptr, TOPBAR_ICON_SIZE);
-    wxAuiToolBarItem* m_expand_item = this->AddTool(ID_EXPAND, "", m_expand_bitmap);
-    this->AddSpacer(FromDIP(2));
     wxBitmap m_topbarline_bitmap = create_scaled_bitmap("topbar_line", nullptr, FromDIP(24));
     wxAuiToolBarItem* m_topbarline_item = this->AddTool(ID_TOPBAR_LINE, "", m_topbarline_bitmap);
     m_topbarline_item->SetDisabledBitmap(m_topbarline_bitmap);
@@ -331,7 +327,6 @@ void BBLTopbar::Init(wxFrame* parent)
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnUndo, this, wxID_UNDO);
     //this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnModelStoreClicked, this, ID_MODEL_STORE);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnPublishClicked, this, ID_PUBLISH);
-    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnExpandClicked, this, ID_EXPAND);
 }
 
 BBLTopbar::~BBLTopbar()
@@ -433,12 +428,6 @@ void BBLTopbar::ShowCalibrationButton(bool show)
 void BBLTopbar::OnModelStoreClicked(wxAuiToolBarEvent& event)
 {
     //GUI::wxGetApp().load_url(wxString(wxGetApp().app_config->get_web_host_url() + MODEL_STORE_URL));
-}
-
-void BBLTopbar::OnExpandClicked(wxAuiToolBarEvent& event)
-{
-    ExpandCenterDialog dlg;
-    dlg.ShowModal();
 }
 
 void BBLTopbar::OnPublishClicked(wxAuiToolBarEvent& event)
