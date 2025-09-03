@@ -17,6 +17,13 @@ enum FlowRatioCaliSource {
     FROM_COARSE_PAGE,
 };
 
+/* note: is not extruder id !!! */
+enum ExtruderRole {
+    SINGLE_EXTRUDER = 0,
+    MAIN_EXTRUDER,
+    DEPUTY_EXTRUDER,
+};
+
 class CalibrationPresetPage;
 
 class CaliPresetCaliStagePanel : public wxPanel
@@ -239,7 +246,9 @@ protected:
     void create_selection_panel(wxWindow* parent);
     void create_filament_list_panel(wxWindow* parent);
     wxSizer* create_ams_items_sizer(MachineObject* obj, wxPanel* ams_preview_panel, std::vector<AMSPreview*> &ams_preview_list, std::vector<AMSinfo> &ams_info, int nozzle_id);
-    wxSizer* create_slot_items_sizer(wxPanel* slot_items_panel, FilamentComboBoxList& filament_comboBox_list, int extruder_count);
+    wxSizer* create_slot_items_sizer(wxPanel* slot_items_panel, FilamentComboBoxList& filament_comboBox_list, ExtruderRole extuder_role);
+
+    void manage_filament_radio_btn(ExtruderRole extuder_role);
 
     void init_selection_values();
     void update_filament_combobox(std::string ams_id = "");
