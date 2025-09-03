@@ -38,6 +38,7 @@ namespace Slic3r
        int            GetNozzleId() const { return m_nozzle_id; }
        NozzleType     GetNozzleType() const { return m_nozzle_type; }
        NozzleFlowType GetNozzleFlowType() const { return m_nozzle_flow; }
+       NozzleDiameterType GetNozzleDiameterType() const;
        float          GetNozzleDiameter() const { return m_diameter; }
        float          GetNozzleWear() const { return m_wear; }
 

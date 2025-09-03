@@ -294,6 +294,7 @@ public:
 
     /* nozzle */
     DevNozzle get_nozzle_by_id_code(int id_code) const;
+    DevNozzle get_nozzle_by_sn(const std::string& sn) const;
 
     /* ams settings*/
     bool IsDetectOnInsertEnabled() const;;

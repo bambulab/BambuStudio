@@ -67,6 +67,15 @@ enum NozzleFlowType : int
     S_FLOW,
     H_FLOW
 };
+/* 0.2mm  0.4mm  0.6mm 0.8mm */
+enum NozzleDiameterType : int
+{
+    NONE_DIAMETER_TYPE,
+    NOZZLE_DIAMETER_0_2,
+    NOZZLE_DIAMETER_0_4,
+    NOZZLE_DIAMETER_0_6,
+    NOZZLE_DIAMETER_0_8
+};
 
 /*Print speed*/
 enum DevPrintingSpeedLevel

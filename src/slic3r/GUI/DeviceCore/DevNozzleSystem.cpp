@@ -83,6 +83,21 @@ wxString DevNozzle::GetNozzleTypeStr(NozzleType type)
     return _L("Unknown");
 }
 
+NozzleDiameterType DevNozzle::GetNozzleDiameterType() const
+{
+    if(GetNozzleDiameterStr() == wxString("0.2 mm"))
+        return NozzleDiameterType::NOZZLE_DIAMETER_0_2;
+    else if(GetNozzleDiameterStr() == wxString("0.4 mm"))
+        return NozzleDiameterType::NOZZLE_DIAMETER_0_4;
+    else if(GetNozzleDiameterStr() == wxString("0.6 mm"))
+        return NozzleDiameterType::NOZZLE_DIAMETER_0_6;
+    else if(GetNozzleDiameterStr() == wxString("0.8 mm"))
+        return NozzleDiameterType::NOZZLE_DIAMETER_0_8;
+    else
+        return NozzleDiameterType::NONE_DIAMETER_TYPE;
+}
+
+
 DevFirmwareVersionInfo DevNozzle::GetFirmwareInfo() const
 {
     const auto& nozzle_rack = m_nozzle_rack.lock();
