@@ -16,10 +16,17 @@ enum prePrintInfoType {
     Filament
 };
 
+enum class prePrintInfoStyle : int
+{
+    Default    = 0,
+    NozzleState = 0x01,
+};
+
 struct prePrintInfo
 {
     prePrintInfoLevel level;
     prePrintInfoType  type;
+    prePrintInfoStyle m_style = prePrintInfoStyle::Default;
     wxString msg;
     wxString tips;
     wxString wiki_url;
@@ -29,7 +36,12 @@ public:
     bool operator==(const prePrintInfo& other) const {
         return level == other.level && type == other.type &&
                msg == other.msg && tips == other.tips &&
-               wiki_url == other.wiki_url && index == other.index;
+               wiki_url == other.wiki_url && index == other.index &&
+               m_style == other.m_style;
+    }
+
+    bool testStyle(prePrintInfoStyle style) const {
+        return (static_cast<int>(m_style) & static_cast<int>(style)) == static_cast<int>(style);
     }
 };
 
@@ -52,6 +64,7 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusInSystemPrinting,
     PrintStatusInPrinting,
     PrintStatusNozzleMatchInvalid,
+    PrintStatusNozzleNoMatchedHotends,
     PrintStatusNozzleDataInvalid,
     PrintStatusNozzleDiameterMismatch,
     PrintStatusNozzleTypeMismatch,
@@ -123,6 +136,7 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusPublicUploadFiled,
 };
 
+class NozzleStatePanel;
 class PrePrintChecker
 {
 public:
@@ -132,7 +146,7 @@ public:
 public:
     void clear();
     /*auto merge*/
-    void add(PrintDialogStatus state, wxString msg, wxString tip, const wxString& wiki_url);
+    void add(PrintDialogStatus state, wxString msg, wxString tip, const wxString& wiki_url, prePrintInfoStyle style);
     static ::std::string get_print_status_info(PrintDialogStatus status);
 
 	wxString get_pre_state_msg(PrintDialogStatus status);
@@ -143,47 +157,24 @@ public:
     static bool is_warning_printer(PrintDialogStatus status) { return (PrintStatusPrinterWarningBegin < status) && (PrintStatusPrinterWarningEnd > status); };
     static bool is_warning_filament(PrintDialogStatus status) { return (PrintStatusFilamentWarningBegin < status) && (PrintStatusFilamentWarningEnd > status); };
 };
-//class PrePrintMsgBoard : public wxWindow
-//{
-//public:
-//    PrePrintMsgBoard(wxWindow * parent,
-//        wxWindowID      winid = wxID_ANY,
-//        const wxPoint & pos   = wxDefaultPosition,
-//        const wxSize &  size  = wxDefaultSize,
-//        long            style = wxTAB_TRAVERSAL | wxNO_BORDER,
-//        const wxString &name  = wxASCII_STR(wxPanelNameStr)
-//    );
-//
-//public:
-//    // Operations
-//    void addError(const wxString &msg, const wxString &tips = wxEmptyString) { Add(msg, tips, true); };
-//    void addWarning(const wxString &msg, const wxString &tips = wxEmptyString) { Add(msg, tips, false); };
-//    void clear() { m_sizer->Clear(); };
-//
-//    // Const Access
-//    bool isEmpty() const { return m_sizer->IsEmpty(); }
-//
-//private:
-//    void add(const wxString &msg, const wxString &tips, bool is_error);
-//
-//private:
-//    wxBoxSizer *m_sizer{nullptr};
-//};
 
-
-
+class SelectMachineDialog;
 class PrinterMsgPanel : public wxPanel
 {
 public:
-    PrinterMsgPanel(wxWindow *parent);
+    PrinterMsgPanel(wxWindow *parent, SelectMachineDialog* select_dialog);
 
 public:
     bool  UpdateInfos(const std::vector<prePrintInfo>& infos);
 
+private:
+    void  Clear();
+
  private:
+    SelectMachineDialog* m_select_dialog = nullptr;
+
     wxBoxSizer*  m_sizer = nullptr;
     std::vector<prePrintInfo> m_infos;
-
 };
 
 

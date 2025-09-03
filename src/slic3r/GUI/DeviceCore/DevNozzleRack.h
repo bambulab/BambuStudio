@@ -47,6 +47,13 @@ public:
         RACK_POS_END,
     };
 
+    enum RackCaliStatus
+    {
+        Rack_CALI_UNKNOWN = -1,
+        Rack_CALI_NOT = 0,
+        Rack_CALI_OK = 1,
+    };
+
 public:
     DevNozzleRack(DevNozzleSystem* nozzle_system);
     ~DevNozzleRack() = default;
@@ -61,6 +68,7 @@ public:
 
     RackPos     GetPosition() const { return m_position; }
     RackStatus  GetStatus() const { return m_status; }
+    RackCaliStatus GetCaliStatus() const { return m_cali_status;}
 
     DevNozzle GetNozzle(int idx) const;
     const std::map<int, DevNozzle>& GetRackNozzles() const { return m_rack_nozzles; }
@@ -119,6 +127,7 @@ private:
     bool m_is_supported = false; // Indicates if the nozzle rack is supported by the printer
     RackPos m_position = RACK_POS_UNKNOWN;
     RackStatus m_status = RACK_STATUS_UNKNOWN;
+    RackCaliStatus m_cali_status = Rack_CALI_UNKNOWN;
 
     std::map<int, DevNozzle> m_rack_nozzles; // Map of nozzle ID to DevNozzle objects
     std::map<int, DevFirmwareVersionInfo> m_rack_nozzles_firmware;

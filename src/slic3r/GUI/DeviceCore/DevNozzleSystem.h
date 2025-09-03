@@ -110,6 +110,7 @@ namespace Slic3r
        DevNozzle                       GetNozzle(int id) const;
        const std::vector<DevNozzle>    CollectNozzles(int ext_loc, NozzleFlowType flow_type, float diameter) const;
        const std::map<int, DevNozzle>& GetNozzles() const { return m_ext_nozzles;}
+       ExtruderNozzleInfos  GetExtruderNozzleInfo() const;
 
        bool  IsIdle() const { return m_state_0_4 == NOZZLE_SYSTEM_IDLE; }
        bool  IsRefreshing() const { return m_state_0_4 == NOZZLE_SYSTEM_REFRESHING; }

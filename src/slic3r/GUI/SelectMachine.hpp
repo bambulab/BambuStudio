@@ -438,7 +438,10 @@ public:
     void finish_mode();
 	void sync_ams_mapping_result(std::vector<FilamentInfo>& result);
     void prepare(int print_plate_idx);
-    void show_status(PrintDialogStatus status, std::vector<wxString> params = std::vector<wxString>(), wxString wiki_url = wxEmptyString);
+    void show_status(PrintDialogStatus status,
+                     std::vector<wxString> params = std::vector<wxString>(),
+                     wxString wiki_url = wxEmptyString,
+                     prePrintInfoStyle style = prePrintInfoStyle::Default);
     void sys_color_changed();
     void reset_timeout();
     void update_user_printer();
@@ -509,6 +512,9 @@ public:
     wxString    format_steel_name(NozzleType type);
     PrintDialogStatus  get_status() { return m_print_status; }
 
+    Plater* get_plater() const { return m_plater; }
+    MachineObject* get_current_machine() const;
+
 private:
     void EnableEditing(bool enable);
 
@@ -567,6 +573,31 @@ private:
 
     wxStaticBitmap* m_bed_image{ nullptr };
     Label*         m_text_bed_type;
+};
+
+class NozzleStatePanel : public wxPanel
+{
+public:
+    NozzleStatePanel(wxWindow* parent);
+
+public:
+    void UpdateInfoBy(Plater* plater, MachineObject* obj);
+    void Rescale() {};
+
+private:
+    void UpdateInfo(const ExtruderNozzleInfos& slicing_nozzle_infos,
+                    const ExtruderNozzleInfos& machine_nozzle_infos);
+    void UpdateGui();
+    void UpdateLabelColour();
+
+private:
+    ExtruderNozzleInfos m_slicing_nozzles;
+    ExtruderNozzleInfos m_installed_nozzles;
+
+    wxSizer* m_sizer;
+
+    // key(extruder_id) -> { key1(nozzle type info), val1(label)}
+    std::unordered_map<int, std::unordered_map<NozzleDef, Label*>> m_slicing_labels;
 };
 
 
