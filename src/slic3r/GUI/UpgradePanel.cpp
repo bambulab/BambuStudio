@@ -1164,7 +1164,14 @@ void MachineInfoPanel::show_status(int status, std::string upgrade_status_str)
         for (size_t i = 0; i < m_upgrading_sizer->GetItemCount(); i++) { m_upgrading_sizer->Show(true); }
         m_upgrade_retry_img->Hide();
         m_staticText_upgrading_info->Show();
-        m_staticText_upgrading_info->SetLabel(_L("Updating"));
+        if (upgrade_status_str == "HOTEND_INFO_REFRESHING") {
+            m_staticText_upgrading_info->SetLabel(_L("Refreshing hotend information..."));
+        } else if (upgrade_status_str == "VERSIONG_CHECKING") {
+            m_staticText_upgrading_info->SetLabel(_L("Checking version..."));
+        } else {
+            m_staticText_upgrading_info->SetLabel(_L("Updating"));
+        }
+
         m_staticText_upgrading_info->SetForegroundColour(TEXT_NORMAL_CLR);
         m_staticText_upgrading_percent->SetForegroundColour(TEXT_NORMAL_CLR);
         m_staticText_upgrading_percent->Show();
