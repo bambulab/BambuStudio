@@ -138,6 +138,8 @@ void DevNozzleRack::ParseRackInfoV1_0(const nlohmann::json& rack_info)
         m_position = RACK_POS_UNKNOWN; // Reset to default if out of range
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Invalid rack position: " << m_position << ", reset";
     }
+
+    DevJsonValParser::ParseVal(rack_info, "info", m_cali_status);
 }
 
 };

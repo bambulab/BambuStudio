@@ -164,6 +164,10 @@ std::string DevNozzle::GetNozzleTypeString(NozzleType type)
 const std::vector<DevNozzle> DevNozzleSystem::CollectNozzles(int ext_loc, NozzleFlowType flow_type, float diameter) const
 {
     auto s_match = [&](const DevNozzle& nozzle) -> bool {
+        if (nozzle.IsEmpty() || nozzle.IsAbnormal())   {
+            return false;
+        }
+
         if (nozzle.m_diameter != diameter) {
             return false;
         }
@@ -291,6 +295,51 @@ int DevNozzleSystem::GetKnownNozzleCountOn(int ext_id) const
     }
 
     return count;
+}
+
+ExtruderNozzleInfos DevNozzleSystem::GetExtruderNozzleInfo() const
+{
+    ExtruderNozzleInfos result;
+
+    // left
+    {
+        std::unordered_map<NozzleDef, int> installed_nozzle_map_l;
+        const auto& left_nozzle = GetNozzle(DEPUTY_EXTRUDER_ID);
+        if (!left_nozzle.IsEmpty() && !left_nozzle.IsAbnormal()) {
+            NozzleDef data;
+            data.nozzle_diameter = left_nozzle.GetNozzleDiameter();
+            data.nozzle_flow_type = left_nozzle.GetNozzleFlowType();
+            installed_nozzle_map_l[data]++;
+        }
+
+        result[DEPUTY_EXTRUDER_ID] = installed_nozzle_map_l;
+    }
+
+    // right
+    {
+        std::unordered_map<NozzleDef, int> installed_nozzle_map_r;
+        const auto& r_nozzle = GetNozzle(MAIN_EXTRUDER_ID);
+        if (!r_nozzle.IsEmpty() && !r_nozzle.IsAbnormal()) {
+            NozzleDef data;
+            data.nozzle_diameter = r_nozzle.GetNozzleDiameter();
+            data.nozzle_flow_type = r_nozzle.GetNozzleFlowType();
+            installed_nozzle_map_r[data]++;
+        }
+
+        auto rack_nozzles = m_nozzle_rack->GetRackNozzles();
+        for (auto rack_nozzle : rack_nozzles)             {
+            if (!rack_nozzle.second.IsEmpty() && !rack_nozzle.second.IsAbnormal()) {
+                NozzleDef data;
+                data.nozzle_diameter = rack_nozzle.second.GetNozzleDiameter();
+                data.nozzle_flow_type = rack_nozzle.second.GetNozzleFlowType();
+                installed_nozzle_map_r[data]++;
+            }
+        }
+
+        result[MAIN_EXTRUDER_ID] = installed_nozzle_map_r;
+    }
+
+    return result;
 }
 
 static unordered_map<string, NozzleFlowType> _str2_nozzle_flow_type = {

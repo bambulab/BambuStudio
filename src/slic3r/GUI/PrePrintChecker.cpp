@@ -1,4 +1,5 @@
 #include "PrePrintChecker.hpp"
+#include "SelectMachine.hpp"
 #include "GUI_Utils.hpp"
 #include "I18N.hpp"
 #include <set>
@@ -23,6 +24,7 @@ std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
     case PrintStatusInSystemPrinting: return "PrintStatusInSystemPrinting";
     case PrintStatusInPrinting: return "PrintStatusInPrinting";
     case PrintStatusNozzleMatchInvalid: return "PrintStatusNozzleMatchInvalid";
+    case PrintStatusNozzleNoMatchedHotends: return "PrintStatusNozzleNoMatchedHotends";
     case PrintStatusNozzleDataInvalid: return "PrintStatusNozzleDataInvalid";
     case PrintStatusNozzleDiameterMismatch: return "PrintStatusNozzleDiameterMismatch";
     case PrintStatusNozzleTypeMismatch: return "PrintStatusNozzleTypeMismatch";
@@ -109,7 +111,7 @@ void PrePrintChecker::clear()
     filamentList.clear();
 }
 
-void PrePrintChecker::add(PrintDialogStatus state, wxString msg, wxString tip, const wxString& wiki_url)
+void PrePrintChecker::add(PrintDialogStatus state, wxString msg, wxString tip, const wxString& wiki_url, prePrintInfoStyle style)
 {
     prePrintInfo info;
 
@@ -140,6 +142,7 @@ void PrePrintChecker::add(PrintDialogStatus state, wxString msg, wxString tip, c
     }
 
     info.wiki_url = wiki_url;
+    info.m_style = style;
 
     switch (info.type) {
     case prePrintInfoType::Filament:
@@ -156,37 +159,8 @@ void PrePrintChecker::add(PrintDialogStatus state, wxString msg, wxString tip, c
     }
 }
 
-
-//void PrePrintMsgBoard::add(const wxString &msg, const wxString &tips, bool is_error)
-//{
-//    if (msg.IsEmpty()) { return; }
-//
-//    /*message*/
-//    // create label
-//    if (!m_sizer->IsEmpty()) { m_sizer->AddSpacer(FromDIP(10)); }
-//    Label *msg_label = new Label(this, wxEmptyString);
-//    m_sizer->Add(msg_label, 0, wxLEFT, 0);
-//
-//    // set message
-//    msg_label->SetLabel(msg);
-//    msg_label->SetMinSize(wxSize(FromDIP(420), -1));
-//    msg_label->SetMaxSize(wxSize(FromDIP(420), -1));
-//    msg_label->Wrap(FromDIP(420));
-//
-//    // font color
-//    auto colour = is_error ? wxColour("#D01B1B") : wxColour(0xFF, 0x6F, 0x00);
-//    msg_label->SetForegroundColour(colour);
-//
-//    /*tips*/
-//    if (!tips.IsEmpty()) { /*Not supported yet*/
-//    }
-//
-//    Layout();
-//    Fit();
-//}
-
-PrinterMsgPanel::PrinterMsgPanel(wxWindow *parent)
-    : wxPanel(parent)
+PrinterMsgPanel::PrinterMsgPanel(wxWindow *parent, SelectMachineDialog* select_dialog)
+    : wxPanel(parent), m_select_dialog(select_dialog)
 {
     m_sizer = new wxBoxSizer(wxVERTICAL);
     this->SetSizer(m_sizer);
@@ -223,7 +197,6 @@ bool PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
             label->SetFont(::Label::Body_13);
             label->SetForegroundColour(_GetLabelColour(info));
 
-
             if (info.wiki_url.empty())
             {
                 label->SetLabel(info.msg);
@@ -237,8 +210,15 @@ bool PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
             }
 
             label->Wrap(this->GetMinSize().GetWidth());
-            label->Show();
             m_sizer->Add(label, 0, wxBOTTOM, FromDIP(4));
+
+            // special styles
+            if (info.testStyle(prePrintInfoStyle::NozzleState)) {
+                NozzleStatePanel* nozzle_info = new NozzleStatePanel(this);
+                nozzle_info->UpdateInfoBy(m_select_dialog->get_plater(), m_select_dialog->get_current_machine());
+                m_sizer->Add(nozzle_info, 0, wxLEFT, FromDIP(10));
+                m_sizer->AddSpacer(FromDIP(4));
+            }
         }
     }
 
