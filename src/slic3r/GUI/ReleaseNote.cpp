@@ -2317,11 +2317,17 @@ ExpandCenterDialog::ExpandCenterDialog(wxWindow* parent /*= nullptr*/) :
     expand_description->Wrap(FromDIP(450));
     expand_description->SetForegroundColour("#5C5C5C");
 
-    LinkLabel* use_now = new LinkLabel(this, _L("Use Immediately"), "");
-    use_now->SeLinkLabelFColour(wxColour(0, 174, 66));
-    use_now->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-    use_now->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
-    use_now->Bind(EVT_LINK_LABEL_LEFT_DOWN, &ExpandCenterDialog::on_open_expand, this);
+    StateColor btn_bg_green = StateColor(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+
+    Button* m_button_launch = new Button(this, _L("Use Immediately"));
+    m_button_launch->SetBackgroundColor(btn_bg_green);
+    m_button_launch->SetBorderColor(*wxWHITE);
+    m_button_launch->SetTextColor(wxColour(255, 255, 254));
+    m_button_launch->SetFont(Label::Head_13);
+    m_button_launch->SetSize(wxSize(FromDIP(58), FromDIP(28)));
+    m_button_launch->SetMinSize(wxSize(FromDIP(58), FromDIP(29)));
+    m_button_launch->SetCornerRadius(FromDIP(12));
+    m_button_launch->Bind(wxEVT_LEFT_DOWN, &ExpandCenterDialog::on_open_expand, this);
     
     main_sizer->Add(line, 0, wxEXPAND, 0);
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(26));
@@ -2331,7 +2337,7 @@ ExpandCenterDialog::ExpandCenterDialog(wxWindow* parent /*= nullptr*/) :
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
     main_sizer->Add(expand_description, 0, wxLEFT, FromDIP(40));
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
-    main_sizer->Add(use_now, 0, wxLEFT, FromDIP(40));
+    main_sizer->Add(m_button_launch, 0, wxLEFT, FromDIP(40));
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(38));
 
     SetSizer(main_sizer);
@@ -2344,7 +2350,7 @@ void ExpandCenterDialog::on_dpi_changed(const wxRect& suggested_rect)
 
 }
 
-void ExpandCenterDialog::on_open_expand(const wxCommandEvent& evt)
+void ExpandCenterDialog::on_open_expand(const wxMouseEvent& evt)
 {
     EndModal(wxID_CLOSE);
     HelioStatementDialog dlg;

@@ -15,6 +15,7 @@
 #include <wx/dcmemory.h>
 
 wxDEFINE_EVENT(wxCUSTOMEVT_SWITCH_POS, wxCommandEvent);
+wxDEFINE_EVENT(wxEXPAND_LEFT_DOWN, wxCommandEvent);
 
 SwitchButton::SwitchButton(wxWindow* parent, wxWindowID id)
 	: wxBitmapToggleButton(parent, id, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE | wxBU_EXACTFIT)
@@ -461,4 +462,206 @@ void CustomToggleButton::doRender(wxDC& dc)
 void CustomToggleButton::OnSize(wxSizeEvent& event) {
     Refresh();
     event.Skip();
+}
+
+ExpandButton::ExpandButton(wxWindow* parent,  std::string bmp, wxWindowID id, const wxPoint& pos, const wxSize& size)
+    : wxWindow(parent, id, pos, size)
+{
+    m_bmp_str = bmp;
+    m_bmp = create_scaled_bitmap(m_bmp_str, this, 18);
+    SetMinSize(wxSize(FromDIP(22), FromDIP(22)));
+    SetMaxSize(wxSize(FromDIP(22), FromDIP(22)));
+    Bind(wxEVT_PAINT, &ExpandButton::OnPaint, this);
+    Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+    Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        wxCommandEvent event(wxEXPAND_LEFT_DOWN);
+        event.SetInt(GetId());
+        wxPostEvent(GetParent(), event);
+    });
+}
+
+void ExpandButton::msw_rescale() 
+{
+    m_bmp = create_scaled_bitmap(m_bmp_str, this, 18);
+    Refresh();
+}
+
+void ExpandButton::OnPaint(wxPaintEvent& event) {
+    wxPaintDC dc(this);
+    render(dc);
+}
+
+void ExpandButton::render(wxDC& dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({ 0, 0 }, size, &dc, { 0, 0 });
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void ExpandButton::doRender(wxDC& dc)
+{
+    wxSize size = GetSize();
+    int left = (size.GetWidth() - m_bmp.GetSize().GetWidth()) / 2;
+    int top = (size.GetHeight() - m_bmp.GetSize().GetWidth()) / 2;
+    dc.DrawBitmap(m_bmp, left, top);
+}
+
+ExpandButtonHolder::ExpandButtonHolder(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
+    : wxPanel(parent, id, pos, size)
+{
+    SetBackgroundColour(wxColour("#3B4446"));
+    hsizer = new wxBoxSizer(wxHORIZONTAL);
+    hsizer->AddStretchSpacer(1);
+    vsizer = new wxBoxSizer(wxVERTICAL);
+
+    vsizer->Add(hsizer, 0, wxALIGN_CENTER, 0);
+
+    Bind(wxEVT_PAINT, &ExpandButtonHolder::OnPaint, this);
+    Bind(wxEVT_ENTER_WINDOW, [=](auto& e) {
+        auto a = 1;
+        });
+
+    SetSizer(vsizer);
+    Layout();
+    Fit();
+}
+
+void ExpandButtonHolder::addExpandButton(wxWindowID id, std::string img)
+{
+    ExpandButton* expand_program = new ExpandButton(this, img, id);
+    hsizer->Add(expand_program, 0, wxALIGN_CENTER|wxALL, FromDIP(3));
+    ShowExpandButton(id, true);
+    int length = GetAvailable();
+    SetMinSize(wxSize(length * FromDIP(24) + FromDIP(24) + (length - 1) * FromDIP(6), FromDIP(24)));
+    SetMaxSize(wxSize(length * FromDIP(24) + FromDIP(24) + (length - 1) * FromDIP(6), FromDIP(24)));
+    Layout();
+    Refresh();
+}
+
+void ExpandButtonHolder::ShowExpandButton(wxWindowID id, bool show)
+{
+    wxWindowList& children = this->GetChildren();
+    for (wxWindowList::iterator it = children.begin(); it != children.end(); ++it)
+    {
+        wxWindow* child = *it;
+        if (!child) continue;
+        ExpandButton* expandBtn = dynamic_cast<ExpandButton*>(child);
+        if (expandBtn != nullptr)
+        {
+            if (expandBtn->GetId() == id) {
+                expandBtn->Show(show);
+            }
+        }
+    }
+
+     int length = GetAvailable();
+
+     for (wxWindowList::iterator it = children.begin(); it != children.end(); ++it)
+     {
+         wxWindow* child = *it;
+         if (!child) continue;
+         ExpandButton* expandBtn = dynamic_cast<ExpandButton*>(child);
+         if (expandBtn != nullptr)
+         {
+             if (length <= 1) {
+                 expandBtn->SetBackgroundColour(wxColour("#3B4446"));
+             }
+             else {
+                 expandBtn->SetBackgroundColour(wxColour("#242E30"));
+             }
+         }
+     }
+
+    SetMinSize(wxSize(length * FromDIP(24) + FromDIP(24) + (length - 1) * FromDIP(6), FromDIP(24)));
+    SetMaxSize(wxSize(length * FromDIP(24) + FromDIP(24) + (length - 1) * FromDIP(6), FromDIP(24)));
+    Layout();
+    Fit();
+    Refresh();
+}
+
+int ExpandButtonHolder::GetAvailable()
+{
+    int count = 0;
+    wxWindowList& children = this->GetChildren();
+    for (wxWindowList::iterator it = children.begin(); it != children.end(); ++it)
+    {
+        wxWindow* child = *it;
+        if (!child) continue;
+        ExpandButton* expandBtn = dynamic_cast<ExpandButton*>(child);
+        if (expandBtn != nullptr)
+        {
+            if (expandBtn->IsShown()) {
+                count++;
+            }
+        }
+    }
+    return count;
+}
+
+void ExpandButtonHolder::msw_rescale()
+{
+    wxWindowList& children = this->GetChildren();
+    for (wxWindowList::iterator it = children.begin(); it != children.end(); ++it)
+    {
+        wxWindow* child = *it;
+        if (!child) continue;
+        ExpandButton* expandBtn = dynamic_cast<ExpandButton*>(child);
+        if (expandBtn != nullptr)
+        {
+            expandBtn->msw_rescale();
+        }
+    }
+    Refresh();
+}
+
+void ExpandButtonHolder::OnPaint(wxPaintEvent& event) {
+    wxPaintDC dc(this);
+    render(dc);
+}
+
+void ExpandButtonHolder::render(wxDC& dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({ 0, 0 }, size, &dc, { 0, 0 });
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void ExpandButtonHolder::doRender(wxDC& dc)
+{
+    wxSize size = GetSize();
+    
+    if (GetAvailable() > 1) {
+        dc.SetBrush(wxBrush(wxColour("#242E30")));
+        dc.SetPen(wxPen(wxColour("#242E30")));
+        dc.DrawRoundedRectangle(0, 0, size.x, size.y, FromDIP(10));
+    }
 }

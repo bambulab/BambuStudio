@@ -373,7 +373,7 @@ public:
 
     //void on_ok(wxMouseEvent &evt);
     void on_dpi_changed(const wxRect& suggested_rect) override;
-    void on_open_expand(const wxCommandEvent& evt);
+    void on_open_expand(const wxMouseEvent& evt);
 };
 
 wxDECLARE_EVENT(EVT_CLOSE_IPADDRESS_DLG, wxCommandEvent);

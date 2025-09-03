@@ -5639,69 +5639,13 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImVec2      title_start_pos = ImGui::GetCursorPos();
     std::string title           = _u8L("Slicing Result");
     imgui.bold_text(title);
-    if (wxGetApp().app_config->get("helio_enable") == "true") {
-        auto  line_height         = ImGui::GetFrameHeight();
-        auto  image_height        = line_height * 0.6;
+    
+    // BBS Set the width of the 8 "ABCD" words minus the "sliced result" to the spacing between the buttons and the title
+    float single_word_width = imgui.calc_text_size("ABCD").x;
+    float title_width       = imgui.calc_text_size(title).x;
+    float spacing           = 18.0f * m_scale;
+    ImGui::SameLine(0, (single_word_width + spacing) * 8.0f - title_width);
 
-        imgui.disabled_begin(!wxGetApp().is_helio_enable());
-
-        float single_word_width   = imgui.calc_text_size("ABCD").x;
-        float title_width         = imgui.calc_text_size(title).x;
-        float spacing             = 18.0f * m_scale;
-        float icon_spacing        = 20.0f * m_scale;
-        float icon_width          = image_height;
-        float text_width = imgui.calc_text_size(_u8L("Helio Action").c_str()).x + imgui.calc_text_size("A").x;
-        float helio_button_width = icon_width + text_width + 30 * m_scale;
-        float helio_button_height = ImGui::GetFrameHeight();
-        ImGui::SameLine(0, (single_word_width + spacing) * 8.0f - title_width - helio_button_width);
-        ImVec2 button_pos = ImGui::GetCursorScreenPos();
-        ImVec2 original_cursor_pos = ImGui::GetCursorPos();
-        float  vertical_offset = (ImGui::GetStyle().WindowPadding.y + ImGui::GetFrameHeight() + window_padding * 2.5 - helio_button_height) / 2.f;
-        ImGui::SetCursorPosY(vertical_offset);
-        bool   button_clicked = ImGui::InvisibleButton("HelioButton", ImVec2(helio_button_width, helio_button_height));
-        ImVec2 button_min = ImGui::GetItemRectMin();
-        ImVec2 button_max = ImGui::GetItemRectMax();
-        ImU32 color_default = ImGui::GetColorU32(ImVec4(0.686f, 0.486f, 1.0f, 1.0f));
-        ImU32 color_hovered = ImGui::GetColorU32(ImVec4(0.612f, 0.420f, 0.9f, 1.0f));
-        ImU32 color_active = ImGui::GetColorU32(ImVec4(0.541f, 0.365f, 0.8f, 1.0f));
-        ImU32 color_text = ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 12.0f * m_scale);
-        ImGui::GetWindowDrawList()->AddRectFilled(button_min, button_max, ImGui::IsItemHovered() ? (ImGui::IsItemActive() ? color_active : color_hovered) : color_default,
-            ImGui::GetStyle().FrameRounding);
-        ImGui::GetWindowDrawList()->AddRect(button_min, button_max, ImGui::GetColorU32(ImGuiCol_Border), ImGui::GetStyle().FrameRounding);
-        float content_height = button_max.y - button_min.y;
-        float text_y = button_min.y + (content_height - ImGui::GetTextLineHeight()) * 0.5f;
-
-        ImRect bb_image;
-        bb_image.Min = button_min;
-        bb_image.Min.x += std::min(10.f, line_height * 0.45f);
-        bb_image.Min.y += line_height * 0.2;
-        bb_image.Max.x = bb_image.Min.x + image_height;
-        bb_image.Max.y = bb_image.Min.y + image_height;
-        ImGui::GetWindowDrawList()->AddImage(m_helio_icon_texture, bb_image.Min, bb_image.Max);
-        ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(),
-            ImVec2(button_min.x + ImGui::GetStyle().FramePadding.x + icon_width + 10 * m_scale, text_y),
-            color_text,
-            _u8L("Helio Action").c_str());
-        ImGui::PopStyleVar();
-        if (button_clicked) {
-            BOOST_LOG_TRIVIAL(info) << "Helio button clicked";
-            Plater *       plater = wxGetApp().plater();
-            wxCommandEvent evt(EVT_HELIO_INPUT_DLG);
-            evt.SetEventObject(plater);
-            wxPostEvent(plater, evt);
-        }
-
-        imgui.disabled_end();
-
-        ImGui::SameLine();
-    } else {
-        // BBS Set the width of the 8 "ABCD" words minus the "sliced result" to the spacing between the buttons and the title
-        float single_word_width = imgui.calc_text_size("ABCD").x;
-        float title_width       = imgui.calc_text_size(title).x;
-        float spacing           = 18.0f * m_scale;
-        ImGui::SameLine(0, (single_word_width + spacing) * 8.0f - title_width);
-    }
     // BBS support helio
     std::wstring btn_name;
     if (m_fold)
