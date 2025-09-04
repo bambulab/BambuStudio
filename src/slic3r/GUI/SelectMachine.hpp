@@ -218,8 +218,9 @@ public:
 
     bool        contain_opt(const std::string& opt_str) const;
     void        update_options(std::vector<POItem> ops, const wxString &tips);
-    void        update_tooltip(const wxString &tips);
+    void        update_tooltip(const wxString &tips);// icon tips
     void        update_title_display();
+    void        update_tooltip_options_area(const wxString& opt_tips);// options area tips
 
     void  msw_rescale();
 

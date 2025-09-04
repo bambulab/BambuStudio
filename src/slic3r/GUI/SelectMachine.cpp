@@ -39,6 +39,13 @@
 #include "BitmapCache.hpp"
 #include "BindDialog.hpp"
 
+// definitions
+#define S_RACK_NOZZLE_OFFSET_CALI_WARNING _L(\
+"Turning off this option will affect print quality if:\n" \
+"1. Uncalibrated hotends is used\n" \
+"2. The current nozzle, heatbed, or chamber temperature differs from the calibration conditions\n" \
+"3. The toolhead hotend was manually removed or installed")
+
 namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_SWITCH_PRINT_OPTION, wxCommandEvent);
@@ -2222,6 +2229,40 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
         m_checkbox_list["timelapse"]->enable(false);
         m_checkbox_list["timelapse"]->setValue("off");
         m_checkbox_list["timelapse"]->update_tooltip(error_messgae);
+    }
+
+    if (obj->GetNozzleSystem()->GetNozzleRack()->IsSupported()) {
+        m_checkbox_list["nozzle_offset_cali"]->update_tooltip_options_area(S_RACK_NOZZLE_OFFSET_CALI_WARNING);
+    } else {
+        m_checkbox_list["nozzle_offset_cali"]->update_tooltip_options_area(wxEmptyString);
+    }
+
+    bool options_line_ignore = false;
+    if(wxGetApp().app_config){
+        options_line_ignore = wxGetApp().app_config->get("disable_auto_flow_cali_tips") == "true";
+    }
+
+    if (m_checkbox_list["flow_cali"]->IsShown() && false) {
+        m_checkbox_list["flow_cali"]->update_tooltip(
+            _L("Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value.\n") +
+            _L("On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value.\n") +
+            _L("Off: Prioritize using the value from your manual flow calibration."));
+
+        if (m_checkbox_list["flow_cali"]->getValue() == "auto") {
+            m_options_line_label->SetLabel(_L("If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder "
+                                              "will use the system default value."));
+            m_options_line_label->Wrap(FromDIP(630));
+            m_options_line_panel->Show(!options_line_ignore);
+        } else if (m_checkbox_list["flow_cali"]->getValue() == "on") {
+            m_options_line_label->SetLabel(_L("Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."));
+            m_options_line_label->Wrap(FromDIP(630));
+            m_options_line_panel->Show(!options_line_ignore);
+        } else {
+            m_options_line_panel->Hide();
+        }
+    } else {
+        m_checkbox_list["flow_cali"]->update_tooltip(_L("This process determines the dynamic flow values to improve overall print quality.\n*Automatic mode: Skip if the filament was calibrated recently."));
+        m_options_line_panel->Hide();
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " end";
@@ -4694,10 +4735,7 @@ void SelectMachineDialog::on_nozzle_offset_option_changed(wxCommandEvent& event)
     if (dev_) {
         MachineObject* obj_ = dev_->get_my_machine(m_printer_last_select);
         if (obj_ && obj_->GetNozzleSystem()->GetNozzleRack()->IsSupported()) {
-            MessageDialog dlg(this, _L("Turning off this option will affect print quality if:\n"
-                              "1. Uncalibrated hotends is used\n"
-                              "2. The current nozzle, heatbed, or chamber temperature differs from the calibration conditions\n"
-                              "3. The toolhead hotend was manually removed or installed"), _L("Info"), wxYES | wxCANCEL | wxICON_INFORMATION);
+            MessageDialog dlg(this, S_RACK_NOZZLE_OFFSET_CALI_WARNING, _L("Info"), wxYES | wxCANCEL | wxICON_INFORMATION);
             dlg.SetButtonLabel(wxID_YES, _L("Keep it On"));
             dlg.SetButtonLabel(wxID_CANCEL, _L("Turn it Off"));
             int rtn = dlg.ShowModal();
@@ -4894,6 +4932,13 @@ void PrintOption::update_tooltip(const wxString &tips)
     }
 
     m_printoption_tips->Show(!m_printoption_tips->GetToolTipText().IsEmpty());
+}
+
+void PrintOption::update_tooltip_options_area(const wxString& opt_tips)
+{
+    if (m_printoption_item->GetToolTipText() != opt_tips) {
+        m_printoption_item->SetToolTip(opt_tips);
+    }
 }
 
 std::string PrintOption::getValue()
