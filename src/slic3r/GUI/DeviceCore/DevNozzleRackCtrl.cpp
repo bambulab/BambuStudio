@@ -1,8 +1,8 @@
 #include "DevNozzleRack.h"
 #include "DevUtil.h"
+#include "DevExtruderSystem.h"
 
 #include "slic3r/GUI/DeviceManager.hpp"
-
 #include "slic3r/GUI/MsgDialog.hpp"
 #include "slic3r/GUI/I18N.hpp"
 
@@ -107,10 +107,44 @@ void DevNozzleRack::CrtlRackReadNozzle(int rack_nozzle_id) const
 
 bool DevNozzleRack::CtrlCanReadAll() const
 {
+    //is in print
     if (m_nozzle_system->GetOwner()->is_in_printing())
     {
         return false;
     }
+
+    if (m_nozzle_system->GetOwner()->is_in_upgrading() || !m_nozzle_system->GetOwner()->upgrade_module.empty()) {
+        return false;
+    }
+
+    //if have nozzle
+    bool has_nozzle_on_rack = false;
+    for (const auto &nozzle_pair : m_rack_nozzles)
+    {
+        if (!nozzle_pair.second.IsEmpty())
+        {
+            has_nozzle_on_rack = true;
+            break;
+        }
+    }
+
+    bool has_nozzle_on_ext = false;
+    if (m_nozzle_system->ContainsNozzle(MAIN_EXTRUDER_ID)) {
+        has_nozzle_on_ext = true;
+    }
+
+    if (!has_nozzle_on_rack && !has_nozzle_on_ext) {
+        return false;
+    }
+
+    //if is in loading
+    if (m_nozzle_system->GetOwner()->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE)
+    {
+        return false;
+    }
+
+    auto ext = m_nozzle_system->GetOwner()->GetExtderSystem();
+    if (ext && ext->IsBusyLoading()) return false;
 
     if (GetReadingCount() > 0)
     {
