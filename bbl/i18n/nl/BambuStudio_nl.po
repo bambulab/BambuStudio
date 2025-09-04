@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 19:21+0800\n"
+"POT-Creation-Date: 2025-08-27 20:24+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1085,6 +1085,9 @@ msgstr "Waarschuwing: Tekst normaal is fout."
 
 msgid "Warning:text normal has been reset."
 msgstr "Waarschuwing: Tekst normaal is gereset."
+
+msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
+msgstr ""
 
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "Waarschuwing: oude matrix heeft minstens twee parameters: spiegeling, schaling en rotatie. Als je doorgaat met bewerken, is deze mogelijk niet correct. Sleep tekst of annuleer met de huidige houding, sla op en bewerk opnieuw."
@@ -2454,24 +2457,6 @@ msgstr "Volledige koeling"
 msgid "Init"
 msgstr ""
 
-msgid "Hotend"
-msgstr ""
-
-msgid "Parts"
-msgstr "Onderdeel"
-
-msgid "Aux"
-msgstr "Aux"
-
-msgid "Nozzle1"
-msgstr ""
-
-msgid "MC Board"
-msgstr "MC-bord"
-
-msgid "Heat"
-msgstr "Warmte"
-
 msgid "Chamber"
 msgstr "Kamer"
 
@@ -2498,8 +2483,33 @@ msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
 msgstr "De koelmodus is geschikt voor het printen van PLA/PETG/TPU-materialen."
 
 msgctxt "air_duct"
-msgid "Right"
-msgstr "Rechts"
+msgid "Right(Aux)"
+msgstr "Rechts (Aux)"
+
+msgctxt "air_duct"
+msgid "Right(Filter)"
+msgstr ""
+
+msgid "Hotend"
+msgstr ""
+
+msgid "Parts"
+msgstr "Onderdeel"
+
+msgid "Aux"
+msgstr "Aux"
+
+msgid "Nozzle1"
+msgstr ""
+
+msgid "MC Board"
+msgstr "MC-bord"
+
+msgid "Heat"
+msgstr "Warmte"
+
+msgid "Fan"
+msgstr "Ventilator"
 
 msgid "Idling..."
 msgstr "Inactief..."
@@ -3786,6 +3796,18 @@ msgstr "Opnieuw proberen (probleem opgelost)"
 msgid "Stop Drying"
 msgstr "Stop met drogen"
 
+msgid "Cancle"
+msgstr ""
+
+msgid "Done"
+msgstr "Gereed"
+
+msgid "Retry"
+msgstr "Opnieuw proberen"
+
+msgid "Resume"
+msgstr "Hervatten"
+
 msgid "Unknown error."
 msgstr "Onbekende fout."
 
@@ -3993,7 +4015,7 @@ msgid "Slicing Result"
 msgstr "Snijresultaat"
 
 msgid "Helio Simulation"
-msgstr ""
+msgstr "Helio simulatie"
 
 msgid "Color Scheme"
 msgstr "Kleurschema"
@@ -4546,6 +4568,12 @@ msgstr ""
 "Is dit de eerste keer dat je tpu filamenten print met de H2D machine?\n"
 "Wil je een korte instructievideo bekijken?"
 
+msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
+msgstr "PPS-CF/PPA-CF is bros en kan breken in een gebogen PTFE-buis boven de toolhead. Raadpleeg Wiki voor gebruik. "
+
+msgid "Tips"
+msgstr "Tips"
+
 msgid "Slice all"
 msgstr "Alles slicen"
 
@@ -5060,8 +5088,8 @@ msgstr "Verbinding mislukt. Controleer het netwerk en probeer het opnieuw"
 msgid "Please check the network and try again, You can restart or update the printer if the issue persists."
 msgstr "Controleer het netwerk en probeer het opnieuw. U kunt de printer opnieuw opstarten of bijwerken als het probleem zich blijft voordoen."
 
-msgid "The printer has been logged out and cannot connect."
-msgstr "De printer is afgemeld en kan geen verbinding maken."
+msgid "Multi-device/client simultaneous liveview is not supported. Please close the liveview on other devices/clients and try again."
+msgstr ""
 
 msgid "Video Stopped."
 msgstr "Video gestopt."
@@ -5222,9 +5250,6 @@ msgstr ""
 msgid "Download waiting..."
 msgstr "Download wacht..."
 
-msgid "Retry"
-msgstr "Opnieuw proberen"
-
 msgid "Play"
 msgstr "Afspelen"
 
@@ -5237,9 +5262,6 @@ msgstr "Download voltooid"
 #, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "%d%% downloaden..."
-
-msgid "Fan"
-msgstr "Ventilator"
 
 msgid "Air Condition"
 msgstr "Airconditioning"
@@ -5403,9 +5425,6 @@ msgstr "Print voortgang"
 
 msgid "Parts Skip"
 msgstr "Onderdelen overslaan"
-
-msgid "Resume"
-msgstr "Hervatten"
 
 msgid "Stop"
 msgstr "Stop"
@@ -6085,6 +6104,10 @@ msgstr "Printer instellingen"
 msgid "The %s nozzle can not print %s."
 msgstr "De %s nozzle kan niet %s afdrukken."
 
+#, boost-format
+msgid "Mixing %1% with %2% in printing is not recommended.\n"
+msgstr ""
+
 msgid " nozzle"
 msgstr " sproeier"
 
@@ -6482,15 +6505,17 @@ msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
 "Please request a new Helio-PAT."
 msgstr ""
+"Geen geldige Helio-PAT gedetecteerd. Helio-simulatie en optimalisatie kunnen niet doorgaan.\n"
+"Vraag alstublieft een nieuwe Helio-PAT aan."
 
 msgid "Execution Blocked"
-msgstr ""
+msgstr "Uitvoering geblokkeerd"
 
 msgid "Regenerate PAT"
-msgstr ""
+msgstr "Genereer PAT opnieuw"
 
 msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
-msgstr ""
+msgstr "Kon Helio PAT niet verkrijgen, klik op Vernieuwen om het opnieuw te verkrijgen."
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Los aub de slicing fouten op en publiceer opnieuw."
@@ -6547,9 +6572,6 @@ msgstr ""
 
 msgid "Switch now"
 msgstr "Nu overschakelen"
-
-msgid "Tips"
-msgstr "Tips"
 
 msgid "Load project"
 msgstr "Project laden"
@@ -6716,12 +6738,12 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "Aangepaste steunen, seam_facets en kleurverf zijn verwijderd voordat de modelnaam werd gerepareerd:"
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
-msgstr "Printer niet aangesloten. Ga naar de apparaatpagina om een %s printer aan te sluiten voordat u gaat synchroniseren."
+msgid "Printer not connected. Please go to the device page to connect %s before syncing."
+msgstr ""
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-msgstr "De momenteel aangesloten printer op de apparaatpagina is geen %s. Schakel over naar een %s voordat u gaat synchroniseren."
+msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
+msgstr "De momenteel aangesloten printer op de apparaatpagina is geen %s. Schakel over naar %s voordat u gaat synchroniseren."
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "Er zitten geen filamenten in de printer. Laad eerst de filamenten in de printer."
@@ -6794,10 +6816,10 @@ msgid "Plate% d: %s is not suggested to be used to print filament %s(%s). If you
 msgstr "Plaat% d: %s wordt niet aanbevolen voor het printen van filament %s(%s). Als u toch wilt printen, stel dan de bedtemperatuur van dit filament in op niet nul."
 
 msgid "Parameter recommendation"
-msgstr ""
+msgstr "Parameteraanbeveling"
 
 msgid "In the process preset, under \"Others-Advanced\", check \"Enable clumping detection by probing\". This feature generates a small wipe tower and performs probing detection to identify clumping issues early in the print and stop printing, preventing print failures or printer damage.\n"
-msgstr ""
+msgstr "Controleer in de voorinstelling onder \"Anders-Advanced\" \"Clumping detectie bij proefperiode inschakelen\". Deze functie genereert een kleine wipe toren en voert een proefdetectie uit om problemen die zich vroeg in de print voordoen te identificeren en te stoppen met afdrukken, het voorkomen van print mislukkingen of printer schade.\n"
 
 msgid "Currently, the object configuration form cannot be used with a multiple-extruder printer."
 msgstr "Momenteel kan het objectconfiguratieformulier niet worden gebruikt met een printer met meerdere extruders."
@@ -9002,9 +9024,6 @@ msgstr "Nieuwe versie van Bambu Studio"
 msgid "Skip this Version"
 msgstr "Deze versie overslaan"
 
-msgid "Done"
-msgstr "Gereed"
-
 msgid "resume"
 msgstr "hervat"
 
@@ -9121,7 +9140,7 @@ msgid "Agree"
 msgstr "Akkoord"
 
 msgid "Helio Additive"
-msgstr ""
+msgstr "Helio-additief"
 
 msgid "Chamber temperature"
 msgstr "Kamertemperatuur"
@@ -9133,10 +9152,10 @@ msgid "How to use Helio"
 msgstr "Hoe Helio te gebruiken"
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
-msgstr ""
+msgstr "Kon Helio PAT niet verkrijgen. Het aantal uitgegeven PAT's heeft de bovengrens bereikt. Houd de informatie op de officiële Helio-website in de gaten. Klik op Vernieuwen om het opnieuw te proberen zodra het beschikbaar is."
 
 msgid "Click for more details"
-msgstr ""
+msgstr "Klik voor meer details"
 
 msgid "Air Pump"
 msgstr "Luchtpomp"
@@ -9149,6 +9168,9 @@ msgstr ""
 
 msgid "Cutting Module"
 msgstr "Snijmodule"
+
+msgid "Auto Fire Extinguishing System"
+msgstr "Automatisch brandblussysteem"
 
 msgid "Model:"
 msgstr "Model:"
@@ -9482,14 +9504,8 @@ msgstr "Vloeiende modus van timelapse wordt niet ondersteund wanneer \"per objec
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "Detectie van samenklontering wordt niet ondersteund wanneer de \"per object\"-sequentie is ingeschakeld."
 
-msgid "enable_wrapping_detection"
-msgstr ""
-
 msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
-msgstr ""
-
-msgid "enable_prime_tower"
-msgstr ""
+msgstr "Een primetoren is nodig voor het detecteren van klontering; anders kunnen er fouten in het model ontstaan."
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Selecteer de afdrukvolgorde \"per object\" om meerdere objecten in spiraalvaasmodus af te drukken."
@@ -10096,7 +10112,7 @@ msgid "This setting will affect the speed of perimeters having radius <= small p
 msgstr "Deze instelling beïnvloedt de snelheid van omtrekken met een straal &lt;= kleine omtrekdrempel (meestal gaten). Als het wordt uitgedrukt als percentage (bijvoorbeeld: 80%), wordt het berekend op de bovenstaande instelling voor de snelheid van de buitenmuur. Stel in op nul voor automatisch."
 
 msgid "Small perimeter threshold"
-msgstr ""
+msgstr "Kleine omtrek drempel"
 
 msgid "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr "Dit stelt de drempel voor kleine omtreklengte in. De standaarddrempel is 0 mm"
@@ -10308,6 +10324,15 @@ msgstr "Door hoogste temperatuur"
 msgid "Filament diameter is used to calculate extrusion in gcode, so it's important and should be accurate"
 msgstr "De diameter van het filament wordt gebruikt om de extrusie in gcode te berekenen, dus het is belangrijk en moet nauwkeurig zijn"
 
+msgid "Adaptive volumetric speed"
+msgstr ""
+
+msgid "When enabled, the extrusion flow is limited by the smaller of the fitted value (calculated from line width and layer height) and the user-defined maximum flow. When disabled, only the user-defined maximum flow is applied."
+msgstr ""
+
+msgid "Max volumetric speed multinomial coefficients"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr "Afname"
 
@@ -10318,6 +10343,12 @@ msgid ""
 msgstr ""
 "Vul het krimppercentage in dat het filament krijgt na afkoeling (94% als je 94mm meet in plaats van 100mm). Het onderdeel wordt ter compensatie geschaald in xy. Er wordt alleen rekening gehouden met het filament dat voor de omtrek wordt gebruikt.\n"
 "Zorg ervoor dat er voldoende ruimte tussen de objecten is, want deze compensatie gebeurt na de controles."
+
+msgid "Velocity Adaptation Factor"
+msgstr ""
+
+msgid "This parameter reflects the speed at which a material transitions from one state to another. It, along with the smooth coefficient, determines the final length of the transition zone. A larger value: requires a shorter transition zone. A smaller value: requires a longer transition zone to avoid flow instability."
+msgstr ""
 
 msgid "Adhesiveness Category"
 msgstr "Hechtvermogen Categorie"
@@ -13386,6 +13417,9 @@ msgstr ""
 "Het huidige geselecteerde type nozzle van extruder %s komt niet overeen met het huidige type nozzle van de printer.\n"
 "Klik op de bovenstaande Sync-knop en start de kalibratie opnieuw."
 
+msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+msgstr "Automatische kalibratie ondersteunt alleen gevallen waarbij de linker en rechter spuitdiameter identiek zijn."
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "Kan niet kalibreren: misschien omdat het bereik van de ingestelde kalibratiewaarde te groot is, of omdat de stap te klein is"
 
@@ -13687,40 +13721,40 @@ msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Standaardprofiel voor nozzle van 0,8 mm, waarbij snelheid voorop staat."
 
 msgid "Helio: Process Started"
-msgstr ""
+msgstr "Helio: Proces Gestart"
 
 msgid "Helio API endpoint is empty, please check the configuration."
-msgstr ""
+msgstr "Helio API-eindpunt is leeg, controleer de configuratie alstublieft."
 
 msgid "Personal assecc token is empty, please fill in the correct token."
-msgstr ""
+msgstr "Persoonlijke toegangstoken is leeg, vul de juiste token in."
 
 msgid "Helio: Presigned URL Created"
-msgstr ""
+msgstr "Helio: Vooraf ondertekende URL aangemaakt"
 
 msgid "Helio: file succesfully uploaded"
-msgstr ""
+msgstr "Helio: bestand succesvol geüpload"
 
 msgid "Helio: file upload failed"
-msgstr ""
+msgstr "Helio: bestand upload mislukt"
 
 msgid "Please make sure you have the corrent API key set in preferences."
-msgstr ""
+msgstr "Zorg ervoor dat u de juiste API-sleutel in de voorkeuren hebt ingesteld."
 
 msgid "Helio: GCode created successfully"
-msgstr ""
+msgstr "Helio: GCode succesvol aangemaakt"
 
 msgid "Helio: simulation successfully created"
-msgstr ""
+msgstr "Helio: simulatie succesvol aangemaakt"
 
 msgid "Helio: simulation working"
-msgstr ""
+msgstr "Helio: simulatie actief"
 
 msgid "Helio: simulation failed"
-msgstr ""
+msgstr "Helio: simulatie mislukt"
 
 msgid "Helio: GCode downloaded successfully"
-msgstr ""
+msgstr "Helio: GCode succesvol gedownload"
 
 msgid "No AMS"
 msgstr "GEEN AMS"
@@ -14223,16 +14257,30 @@ msgstr ""
 "Kromtrekken voorkomen\n"
 "Wist je dat bij het printen van materialen die gevoelig zijn voor kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het warmtebed de kans op kromtrekken kan verkleinen?"
 
+#~ msgid "Helio Action"
+#~ msgstr "Helio actie"
+
+#~ msgid "Chamber Temperature"
+#~ msgstr "Kamertemperatuur"
+
+#~ msgctxt "air_duct"
+#~ msgid "Right"
+#~ msgstr "Rechts"
+
+#~ msgid "The printer has been logged out and cannot connect."
+#~ msgstr "De printer is afgemeld en kan geen verbinding maken."
+
 #, c-format, boost-format
-#~ msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
+#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
 #~ msgstr "Printer niet aangesloten. Ga naar de apparaatpagina om een %s printer aan te sluiten voordat u gaat synchroniseren."
 
 #, c-format, boost-format
-#~ msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
-#~ msgstr "De momenteel aangesloten printer op de apparaatpagina is geen %s. Schakel over naar %s voordat u gaat synchroniseren."
+#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+#~ msgstr "De momenteel aangesloten printer op de apparaatpagina is geen %s. Schakel over naar een %s voordat u gaat synchroniseren."
 
-#~ msgid "Helio Action"
-#~ msgstr "Helio actie"
+#, c-format, boost-format
+#~ msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
+#~ msgstr "Printer niet aangesloten. Ga naar de apparaatpagina om een %s printer aan te sluiten voordat u gaat synchroniseren."
 
 #~ msgid "MqttSource"
 #~ msgstr "MqtSource"
@@ -14281,9 +14329,6 @@ msgstr ""
 
 #~ msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, and maintained by Helio Additive. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
 #~ msgstr "Tenzij anders vermeld, biedt Bambu Lab alleen ondersteuning voor de softwarefuncties die officieel worden geleverd. De functuelementen voor slicen-evaluatie en slicen-optimalisatie, gebaseerd op de cloudservice van Helio Additive in deze software, worden ontwikkeld, beheerd en onderhouden door Helio Additive. Deze functies verzamelen noodzakelijke gebruikersinformatie en gegevens om relevante servicefuncties te realiseren. Abonnementen en betalingen kunnen van toepassing zijn. Bezoek Helio Additive en raadpleeg de Helio Additive Privacyverklaring en de Helio Additive Gebruikersovereenkomst voor gedetailleerde informatie."
-
-#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-#~ msgstr "Automatische kalibratie ondersteunt alleen gevallen waarbij de linker en rechter spuitdiameter identiek zijn."
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "Laagtijd(en)"

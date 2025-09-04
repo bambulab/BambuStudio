@@ -126,6 +126,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "filament_colour",
         "default_filament_colour",
         "filament_diameter",
+         "volumetric_speed_coefficients",
         "filament_density",
         "filament_cost",
         "initial_layer_acceleration",
@@ -205,7 +206,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "bed_temperature_formula",
         "filament_notes",
         "process_notes",
-        "printer_notes"
+        "printer_notes",
+        "filament_velocity_adaptation_factor"
     };
 
     static std::unordered_set<std::string> steps_ignore;
@@ -262,6 +264,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "nozzle_temperature_initial_layer"
             || opt_key == "filament_minimal_purge_on_wipe_tower"
             || opt_key == "filament_max_volumetric_speed"
+            || opt_key == "filament_adaptive_volumetric_speed"
             || opt_key == "filament_ramming_volumetric_speed"
             || opt_key == "gcode_flavor"
             || opt_key == "single_extruder_multi_material"
@@ -1185,7 +1188,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         if (m_config.enable_wrapping_detection) {
             StringObjectException clumping_detection_setting_err;
             clumping_detection_setting_err.string = L("Clumping detection is not supported when \"by object\" sequence is enabled.");
-            clumping_detection_setting_err.opt_key = L("enable_wrapping_detection");
+            clumping_detection_setting_err.opt_key = "enable_wrapping_detection";
             return clumping_detection_setting_err;
         }
 
@@ -1210,7 +1213,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         if (m_config.enable_wrapping_detection && warning!=nullptr) {
             StringObjectException warningtemp;
             warningtemp.string     = L("Prime tower is required for clumping detection; otherwise, there may be flaws on the model.");
-            warningtemp.opt_key    = L("enable_prime_tower");
+            warningtemp.opt_key    = "enable_prime_tower";
             warningtemp.is_warning = true;
             *warning               = warningtemp;
         }
@@ -2719,7 +2722,7 @@ size_t Print::get_extruder_id(unsigned int filament_id) const
 bool Print::has_wipe_tower() const
 {
     if (m_config.enable_prime_tower.value == true) {
-        if (m_config.enable_wrapping_detection.value)
+        if (m_config.enable_wrapping_detection.value && m_config.wrapping_exclude_area.values.size() > 2)
             return true;
 
         if (enable_timelapse_print())

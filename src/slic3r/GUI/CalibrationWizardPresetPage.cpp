@@ -648,6 +648,19 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
         single_nozzle_sizer->Add(m_nozzle_diameter_tips, 0, wxALL, 0);
         single_nozzle_sizer->AddSpacer(PRESET_GAP);
 
+        auto nozzle_volume_type_text = new Label(m_single_nozzle_info_panel, _L("Nozzle Flow"));
+        nozzle_volume_type_text->SetFont(Label::Head_14);
+        nozzle_volume_type_text->Wrap(-1);
+
+        m_comboBox_nozzle_volume = new ComboBox(m_single_nozzle_info_panel, wxID_ANY, "", wxDefaultPosition, CALIBRATION_COMBOX_SIZE, 0, nullptr, wxCB_READONLY);
+        m_comboBox_nozzle_volume->Disable();
+
+        single_nozzle_sizer->Add(nozzle_volume_type_text, 0, wxALL, 0);
+        single_nozzle_sizer->AddSpacer(FromDIP(5));
+        single_nozzle_sizer->Add(m_comboBox_nozzle_volume, 0, wxALL, 0);
+        single_nozzle_sizer->AddSpacer(FromDIP(5));
+        single_nozzle_sizer->AddSpacer(PRESET_GAP);
+
         m_single_nozzle_info_panel->SetSizer(single_nozzle_sizer);
         panel_sizer->Add(m_single_nozzle_info_panel);
     }
@@ -794,12 +807,24 @@ float nozzle_diameter_list[NOZZLE_LIST_COUNT] = {0.2, 0.4, 0.6, 0.8 };
 
 void CalibrationPresetPage::init_selection_values()
 {
-    // init nozzle diameter
-    m_comboBox_nozzle_dia->Clear();
-    for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
-        m_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f mm", nozzle_diameter_list[i]));
+    // init nozzle diameter and nozzle volume
+    {
+        m_comboBox_nozzle_dia->Clear();
+        for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
+            m_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f mm", nozzle_diameter_list[i]));
+        }
+        m_comboBox_nozzle_dia->SetSelection(NOZZLE_LIST_DEFAULT);
+
+        m_comboBox_nozzle_volume->Clear();
+        const ConfigOptionDef *nozzle_volume_type_def = print_config_def.get("nozzle_volume_type");
+        if (nozzle_volume_type_def && nozzle_volume_type_def->enum_keys_map) {
+            for (auto item : nozzle_volume_type_def->enum_labels) {
+                m_comboBox_nozzle_volume->AppendString(_L(item));
+            }
+        }
+
+        m_comboBox_nozzle_volume->SetSelection(int(NozzleVolumeType::nvtStandard));
     }
-    m_comboBox_nozzle_dia->SetSelection(NOZZLE_LIST_DEFAULT);
 
     Preset* cur_printer_preset = get_printer_preset(curr_obj, 0.4);
 
@@ -887,27 +912,6 @@ void CalibrationPresetPage::create_filament_list_panel(wxWindow* parent)
 
     // Preview item
     m_multi_ams_panel = new wxPanel(parent);
-    auto multi_ams_sizer = new wxBoxSizer(wxVERTICAL);
-    auto ams_items_sizer = new wxBoxSizer(wxHORIZONTAL);
-    for (int i = 0; i < 5; i++) {
-        AMSModel ams_type  = AMSModel::GENERIC_AMS;
-        AMSinfo temp_info = AMSinfo{ std::to_string(i), std::vector<Caninfo>{} };
-        if (i == 4) {
-            temp_info.ams_type = AMSModel::EXT_AMS;
-            ams_type           = AMSModel::EXT_AMS;
-        }
-        auto amsitem = new AMSPreview(m_multi_ams_panel, wxID_ANY, temp_info, ams_type);
-        amsitem->Bind(wxEVT_LEFT_DOWN, [this, amsitem](wxMouseEvent& e) {
-            update_filament_combobox(amsitem->get_ams_id());
-            e.Skip();
-            });
-        m_ams_preview_list.push_back(amsitem);
-        ams_items_sizer->Add(amsitem, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(6));
-    }
-    multi_ams_sizer->Add(ams_items_sizer, 0);
-    multi_ams_sizer->AddSpacer(FromDIP(10));
-    m_multi_ams_panel->SetSizer(multi_ams_sizer);
-
     panel_sizer->Add(m_multi_ams_panel);
 
     auto filament_fgSizer = new wxFlexGridSizer(2, 2, FromDIP(10), CALIBRATION_FGSIZER_HGAP);
@@ -916,7 +920,7 @@ void CalibrationPresetPage::create_filament_list_panel(wxWindow* parent)
         wxRadioButton* radio_btn = new wxRadioButton(m_filament_list_panel, wxID_ANY, "");
         CheckBox* check_box = new CheckBox(m_filament_list_panel);
         check_box->SetBackgroundColour(*wxWHITE);
-        FilamentComboBox* fcb = new FilamentComboBox(m_filament_list_panel);
+        FilamentComboBox* fcb = new FilamentComboBox(m_filament_list_panel, i);
         fcb->SetRadioBox(radio_btn);
         fcb->SetCheckBox(check_box);
         fcb->set_select_mode(CalibrationFilamentMode::CALI_MODEL_SINGLE);
@@ -975,11 +979,16 @@ float CalibrationPresetPage::get_nozzle_diameter(int extruder_id) const
 
 NozzleVolumeType CalibrationPresetPage::get_nozzle_volume_type(int extruder_id) const
 {
-    if (extruder_id == LEFT_EXTRUDER_ID) {
-        return NozzleVolumeType(m_left_comboBox_nozzle_volume->GetSelection());
-    }
-    else if (extruder_id == RIGHT_EXTRUDER_ID) {
-        return NozzleVolumeType(m_right_comboBox_nozzle_volume->GetSelection());
+    if (curr_obj) {
+        if (curr_obj->is_multi_extruders()) {
+            if (extruder_id == LEFT_EXTRUDER_ID) {
+                return NozzleVolumeType(m_left_comboBox_nozzle_volume->GetSelection());
+            } else if (extruder_id == RIGHT_EXTRUDER_ID) {
+                return NozzleVolumeType(m_right_comboBox_nozzle_volume->GetSelection());
+            }
+        }
+        else
+            return NozzleVolumeType(m_comboBox_nozzle_volume->GetSelection());
     }
     return NozzleVolumeType::nvtStandard;
 }
@@ -999,6 +1008,35 @@ ExtruderType CalibrationPresetPage::get_extruder_type(int extruder_id) const
     return ExtruderType::etDirectDrive;
 }
 
+wxBoxSizer* CalibrationPresetPage::create_ams_items_sizer(MachineObject* obj, wxPanel* ams_preview_panel, std::vector<AMSPreview*> &ams_preview_list, std::vector<AMSinfo> &ams_info, int nozzle_id){
+    /* clear ams_preview_list */
+    for (auto &item : ams_preview_list) {
+        delete item;
+    }
+    ams_preview_list.clear();
+
+    /* create ams_preview_list */
+    auto ams_items_sizer = new wxBoxSizer(wxHORIZONTAL);
+    for (auto &info : ams_info) {
+        auto preview_ams_item = new AMSPreview(ams_preview_panel, wxID_ANY, info, info.ams_type);
+        preview_ams_item->Update(info);
+        preview_ams_item->Open();
+        ams_preview_list.push_back(preview_ams_item);
+        std::string ams_id = preview_ams_item->get_ams_id();
+        bool is_single = !obj->is_multi_extruders();
+        preview_ams_item->Bind(wxEVT_LEFT_DOWN, [this, ams_id, nozzle_id, is_single](wxMouseEvent &e) {
+            if(is_single){
+                update_filament_combobox(ams_id);
+            } else{
+                update_multi_extruder_filament_combobox(ams_id, nozzle_id);
+            }
+            e.Skip();
+        });
+        ams_items_sizer->Add(preview_ams_item, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(6));
+    }
+    return ams_items_sizer;
+}
+
 void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *parent)
 {
     m_multi_extruder_ams_panel_sizer = new wxBoxSizer(wxVERTICAL);
@@ -1016,24 +1054,6 @@ void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *
         // 1. Preview item
         m_main_sizer              = new wxStaticBoxSizer(wxVERTICAL, parent, "Main");
         m_main_ams_preview_panel  = new wxPanel(parent);
-        auto ams_items_sizer      = new wxBoxSizer(wxHORIZONTAL);
-        for (int i = 0; i < 5; i++) {  // most connect 4 ams(multi + single)
-            AMSModel ams_type = AMSModel::GENERIC_AMS;
-            AMSinfo temp_info     = AMSinfo{std::to_string(i), std::vector<Caninfo>{}};
-            if (i == 4) {
-                temp_info.ams_type = AMSModel::EXT_AMS;
-                ams_type           = AMSModel::EXT_AMS;
-            }
-            auto preview_ams_item = new AMSPreview(m_main_ams_preview_panel, wxID_ANY, temp_info, ams_type);
-            m_main_ams_preview_list.push_back(preview_ams_item);
-            size_t index = m_main_ams_preview_list.size() - 1;
-            preview_ams_item->Bind(wxEVT_LEFT_DOWN, [this, index](wxMouseEvent &e) {
-                update_multi_extruder_filament_combobox(m_main_ams_preview_list[index]->get_ams_id(), 0);
-                e.Skip();
-            });
-            ams_items_sizer->Add(preview_ams_item, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(6));
-        }
-        m_main_ams_preview_panel->SetSizer(ams_items_sizer);
         m_main_sizer->Add(m_main_ams_preview_panel);
 
         // 2. AMS item
@@ -1043,7 +1063,7 @@ void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *
             wxRadioButton *radio_btn               = new wxRadioButton(m_multi_exutrder_filament_list_panel, wxID_ANY, "");
             CheckBox *     check_box               = new CheckBox(m_multi_exutrder_filament_list_panel);
             check_box->SetBackgroundColour(*wxWHITE);
-            FilamentComboBox *fcb = new FilamentComboBox(m_multi_exutrder_filament_list_panel);
+            FilamentComboBox *fcb = new FilamentComboBox(m_multi_exutrder_filament_list_panel, i + 4);
             fcb->SetRadioBox(radio_btn);
             fcb->SetCheckBox(check_box);
             fcb->set_select_mode(CalibrationFilamentMode::CALI_MODEL_SINGLE);
@@ -1078,25 +1098,6 @@ void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *
         // 1. Preview item
         m_deputy_sizer             = new wxStaticBoxSizer(wxVERTICAL, parent, "Deputy");
         m_deputy_ams_preview_panel = new wxPanel(parent);
-        auto ams_items_sizer     = new wxBoxSizer(wxHORIZONTAL);
-        for (int i = 0; i < 5; i++) { // most connect 4 ams(multi + single) + 1 vt_slot
-            AMSModel ams_type  = AMSModel::GENERIC_AMS;
-            AMSinfo temp_info        = AMSinfo{std::to_string(i), std::vector<Caninfo>{}};
-            if (i == 4) {
-                temp_info.ams_type = AMSModel::EXT_AMS;
-                ams_type           = AMSModel::EXT_AMS;
-            }
-            auto preview_ams_item = new AMSPreview(m_deputy_ams_preview_panel, wxID_ANY, temp_info, ams_type);
-            m_deputy_ams_preview_list.push_back(preview_ams_item);
-            size_t index = m_deputy_ams_preview_list.size() - 1;
-            preview_ams_item->Bind(wxEVT_LEFT_DOWN, [this, index](wxMouseEvent &e) {
-                update_multi_extruder_filament_combobox(m_deputy_ams_preview_list[index]->get_ams_id(), 1);
-                e.Skip();
-            });
-            ams_items_sizer->Add(preview_ams_item, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(6));
-        }
-
-        m_deputy_ams_preview_panel->SetSizer(ams_items_sizer);
         m_deputy_sizer->Add(m_deputy_ams_preview_panel);
 
         // 2. AMS item
@@ -1106,7 +1107,7 @@ void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *
             wxRadioButton *radio_btn               = new wxRadioButton(m_multi_exutrder_filament_list_panel, wxID_ANY, "");
             CheckBox *     check_box               = new CheckBox(m_multi_exutrder_filament_list_panel);
             check_box->SetBackgroundColour(*wxWHITE);
-            FilamentComboBox *fcb = new FilamentComboBox(m_multi_exutrder_filament_list_panel);
+            FilamentComboBox *fcb = new FilamentComboBox(m_multi_exutrder_filament_list_panel, i);
             fcb->SetRadioBox(radio_btn);
             fcb->SetCheckBox(check_box);
             fcb->set_select_mode(CalibrationFilamentMode::CALI_MODEL_SINGLE);
@@ -1520,7 +1521,7 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
         }
     }
     if (devPrinterUtil::IsVirtualSlot(ams_id)) {
-        if (m_cali_mode == CalibMode::Calib_PA_Line && m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
+        if (m_cali_mode == CalibMode::Calib_PA_Line && (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO || m_cali_method == CalibrationMethod::CALI_METHOD_NEW_AUTO)) {
             std::string filamnt_type;
             preset->get_filament_type(filamnt_type);
             if (filamnt_type == "TPU") {
@@ -2267,6 +2268,13 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
         m_filament_list_panel->Hide();
     }
     else {
+        if ((obj->GetExtderSystem()->GetTotalExtderCount() > 0) && (obj->GetExtderSystem()->GetNozzleFlowType(0) != NozzleFlowType::NONE_FLOWTYPE))
+        {
+            m_comboBox_nozzle_volume->SetSelection(obj->GetExtderSystem()->GetNozzleFlowType(0) - 1);
+        } else {
+            m_comboBox_nozzle_volume->SetSelection(0);
+        }
+
         m_single_nozzle_info_panel->Show();
         m_multi_nozzle_info_panel->Hide();
         m_multi_exutrder_filament_list_panel->Hide();
@@ -2387,89 +2395,31 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
         m_ams_id_to_extruder_id_map[VIRTUAL_TRAY_DEPUTY_ID] = 1;
     }
 
-    // update for multi_exturder preview
-    for (auto i = 0; i < 4; i++) {
-        AMSPreview *main_item = m_main_ams_preview_list[i];
-        if (main_ams_info.size() > 0) {
-            if (i < main_ams_info.size()) {
-                main_item->Update(main_ams_info[i]);
-                main_item->Open();
-            } else {
-                main_item->Close();
-            }
-        }
-        else {
-            main_item->Close();
-        }
+    /* add vt_ams info to ams info list*/
+    for (const DevAmsTray& vt_tray : obj->vt_slot) {
+        AMSinfo     info;
+        info.parse_ext_info(obj, vt_tray);
+        info.ams_type = AMSModel::EXT_AMS;
 
-        AMSPreview *deputy_item = m_deputy_ams_preview_list[i];
-        if (deputy_ams_info.size() > 0) {
-            if (i < deputy_ams_info.size()) {
-                deputy_item->Update(deputy_ams_info[i]);
-                deputy_item->Open();
-            } else {
-                deputy_item->Close();
-            }
+        if (vt_tray.id == std::to_string(VIRTUAL_TRAY_MAIN_ID)) {
+            ams_info.push_back(info);
+            main_ams_info.push_back(info);
+        } else if (vt_tray.id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
+            deputy_ams_info.push_back(info);
         } else {
-            deputy_item->Close();
+            assert(false);
         }
     }
 
-    // update vt slot preview list
-    {
-        for (const DevAmsTray& vt_tray : obj->vt_slot) {
-            if (vt_tray.id == std::to_string(VIRTUAL_TRAY_MAIN_ID)) {
-                AMSinfo     info;
-                info.parse_ext_info(obj, vt_tray);
-                info.ams_type = AMSModel::EXT_AMS;
+    /* update ams preview */
+    auto ams_items_sizer = create_ams_items_sizer(obj, m_multi_ams_panel, m_ams_preview_list, ams_info, MAIN_EXTRUDER_ID);
+    auto multi_ams_sizer = new wxBoxSizer(wxVERTICAL);
+    multi_ams_sizer->Add(ams_items_sizer, 0);
+    multi_ams_sizer->AddSpacer(FromDIP(10));
+    m_multi_ams_panel->SetSizer(multi_ams_sizer);
 
-                AMSPreview *vt_item = m_main_ams_preview_list[4];
-                vt_item->Update(info);
-                vt_item->Open();
-            }
-            else if (vt_tray.id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
-                AMSinfo info;
-                info.parse_ext_info(obj, vt_tray);
-                info.ams_type = AMSModel::EXT_AMS;
-
-                AMSPreview *vt_item = m_deputy_ams_preview_list[4];
-                vt_item->Update(info);
-                vt_item->Open();
-            }
-            else {
-                assert(false);
-            }
-        }
-    }
-
-    // update for single extruer
-    {
-        for (auto i = 0; i < 4; i++) {
-            AMSPreview *item = m_ams_preview_list[i];
-            if (ams_info.size() > 0) {
-                if (i < ams_info.size()) {
-                    item->Update(ams_info[i]);
-                    item->Open();
-                } else {
-                    item->Close();
-                }
-            } else {
-                item->Close();
-            }
-        }
-
-        for (const DevAmsTray &vt_tray : obj->vt_slot) {
-            if (vt_tray.id == std::to_string(VIRTUAL_TRAY_MAIN_ID)) {
-                AMSinfo info;
-                info.parse_ext_info(obj, vt_tray);
-                info.ams_type = AMSModel::EXT_AMS;
-
-                AMSPreview *vt_item = m_ams_preview_list[4];
-                vt_item->Update(info);
-                vt_item->Open();
-            }
-        }
-    }
+    m_main_ams_preview_panel->SetSizer(create_ams_items_sizer(obj, m_main_ams_preview_panel, m_main_ams_preview_list, main_ams_info, MAIN_EXTRUDER_ID));
+    m_deputy_ams_preview_panel->SetSizer(create_ams_items_sizer(obj, m_deputy_ams_preview_panel, m_deputy_ams_preview_list, deputy_ams_info, DEPUTY_EXTRUDER_ID));
 
     Layout();
 }
@@ -2546,6 +2496,17 @@ void CalibrationPresetPage::select_default_compatible_filament()
     }
 
     check_filament_compatible();
+}
+
+int CalibrationPresetPage::get_index_by_tray_id(int tray_id)
+{
+    std::vector<FilamentComboBox*> fcb_list = get_selected_filament_combobox();
+    for (auto fcb : fcb_list) {
+        if (fcb->get_tray_id() == tray_id) {
+            return fcb->get_index();
+        }
+    }
+    return -1;
 }
 
 std::vector<FilamentComboBox*> CalibrationPresetPage::get_selected_filament_combobox()

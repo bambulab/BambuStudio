@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 19:21+0800\n"
+"POT-Creation-Date: 2025-08-27 20:24+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -47,7 +47,7 @@ msgid "Damp PVA will become flexible and get stuck inside AMS,please take care t
 msgstr "Damp PVA will become flexible and get stuck inside the AMS; please take care to dry it well before use."
 
 msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
-msgstr ""
+msgstr "Damp PVA is flexible and may get stuck in the extruder. Please dry it before use."
 
 msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
 msgstr ""
@@ -1075,6 +1075,9 @@ msgid "Warning:text normal is error."
 msgstr ""
 
 msgid "Warning:text normal has been reset."
+msgstr ""
+
+msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
 msgstr ""
 
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
@@ -2442,24 +2445,6 @@ msgstr ""
 msgid "Init"
 msgstr ""
 
-msgid "Hotend"
-msgstr ""
-
-msgid "Parts"
-msgstr "Part"
-
-msgid "Aux"
-msgstr "Aux"
-
-msgid "Nozzle1"
-msgstr ""
-
-msgid "MC Board"
-msgstr ""
-
-msgid "Heat"
-msgstr ""
-
 msgid "Chamber"
 msgstr ""
 
@@ -2486,7 +2471,32 @@ msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
 msgstr ""
 
 msgctxt "air_duct"
-msgid "Right"
+msgid "Right(Aux)"
+msgstr ""
+
+msgctxt "air_duct"
+msgid "Right(Filter)"
+msgstr ""
+
+msgid "Hotend"
+msgstr ""
+
+msgid "Parts"
+msgstr "Part"
+
+msgid "Aux"
+msgstr "Aux"
+
+msgid "Nozzle1"
+msgstr ""
+
+msgid "MC Board"
+msgstr ""
+
+msgid "Heat"
+msgstr ""
+
+msgid "Fan"
 msgstr ""
 
 msgid "Idling..."
@@ -3759,6 +3769,18 @@ msgstr ""
 msgid "Stop Drying"
 msgstr ""
 
+msgid "Cancle"
+msgstr ""
+
+msgid "Done"
+msgstr "Done"
+
+msgid "Retry"
+msgstr "Retry"
+
+msgid "Resume"
+msgstr "Resume"
+
 msgid "Unknown error."
 msgstr ""
 
@@ -4509,6 +4531,12 @@ msgid ""
 "Would you like to watch a quick tutorial video?"
 msgstr ""
 
+msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
+msgstr ""
+
+msgid "Tips"
+msgstr "Tips"
+
 msgid "Slice all"
 msgstr "Slice all"
 
@@ -5023,8 +5051,8 @@ msgstr "Connection Failed. Please check the network and try again"
 msgid "Please check the network and try again, You can restart or update the printer if the issue persists."
 msgstr "Please check the network and try again. You can restart or update the printer if the issue persists."
 
-msgid "The printer has been logged out and cannot connect."
-msgstr "The printer has been logged out and cannot connect."
+msgid "Multi-device/client simultaneous liveview is not supported. Please close the liveview on other devices/clients and try again."
+msgstr ""
 
 msgid "Video Stopped."
 msgstr ""
@@ -5185,9 +5213,6 @@ msgstr ""
 msgid "Download waiting..."
 msgstr "Download waiting..."
 
-msgid "Retry"
-msgstr "Retry"
-
 msgid "Play"
 msgstr "Play"
 
@@ -5200,9 +5225,6 @@ msgstr "Download finished"
 #, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "Downloading %d%%..."
-
-msgid "Fan"
-msgstr ""
 
 msgid "Air Condition"
 msgstr ""
@@ -5362,9 +5384,6 @@ msgstr "Printing Progress"
 
 msgid "Parts Skip"
 msgstr ""
-
-msgid "Resume"
-msgstr "Resume"
 
 msgid "Stop"
 msgstr "Stop"
@@ -6042,6 +6061,10 @@ msgstr "Printer settings"
 msgid "The %s nozzle can not print %s."
 msgstr ""
 
+#, boost-format
+msgid "Mixing %1% with %2% in printing is not recommended.\n"
+msgstr ""
+
 msgid " nozzle"
 msgstr ""
 
@@ -6495,9 +6518,6 @@ msgstr ""
 msgid "Switch now"
 msgstr ""
 
-msgid "Tips"
-msgstr "Tips"
-
 msgid "Load project"
 msgstr "Load project"
 
@@ -6661,11 +6681,11 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr ""
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+msgid "Printer not connected. Please go to the device page to connect %s before syncing."
 msgstr ""
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
 msgstr ""
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
@@ -8910,9 +8930,6 @@ msgstr "New version of Bambu Studio"
 msgid "Skip this Version"
 msgstr "Skip this Version"
 
-msgid "Done"
-msgstr "Done"
-
 msgid "resume"
 msgstr "resume"
 
@@ -9056,6 +9073,9 @@ msgid "Laser 40W"
 msgstr ""
 
 msgid "Cutting Module"
+msgstr ""
+
+msgid "Auto Fire Extinguishing System"
 msgstr ""
 
 msgid "Model:"
@@ -9390,14 +9410,8 @@ msgstr "Smooth mode of timelapse is not supported when \"by object\" sequence is
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "Clumping detection by probing is not supported when \"by object\" sequence is enabled."
 
-msgid "enable_wrapping_detection"
-msgstr "Enable clumping detection by probing"
-
 msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
 msgstr "Prime tower is required for clumping detection by probing. There may be flaws on the model without prime tower."
-
-msgid "enable_prime_tower"
-msgstr "Enable prime tower"
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
@@ -10216,6 +10230,15 @@ msgstr ""
 msgid "Filament diameter is used to calculate extrusion in gcode, so it's important and should be accurate"
 msgstr "Filament diameter is used to calculate extrusion variables in G-code, so it is important that this is accurate and precise."
 
+msgid "Adaptive volumetric speed"
+msgstr ""
+
+msgid "When enabled, the extrusion flow is limited by the smaller of the fitted value (calculated from line width and layer height) and the user-defined maximum flow. When disabled, only the user-defined maximum flow is applied."
+msgstr ""
+
+msgid "Max volumetric speed multinomial coefficients"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr ""
 
@@ -10223,6 +10246,12 @@ msgstr ""
 msgid ""
 "Enter the shrinkage percentage that the filament will get after cooling (94% if you measure 94mm instead of 100mm). The part will be scaled in xy to compensate. Only the filament used for the perimeter is taken into account.\n"
 "Be sure to allow enough space between objects, as this compensation is done after the checks."
+msgstr ""
+
+msgid "Velocity Adaptation Factor"
+msgstr ""
+
+msgid "This parameter reflects the speed at which a material transitions from one state to another. It, along with the smooth coefficient, determines the final length of the transition zone. A larger value: requires a shorter transition zone. A smaller value: requires a longer transition zone to avoid flow instability."
 msgstr ""
 
 msgid "Adhesiveness Category"
@@ -13257,6 +13286,9 @@ msgid ""
 "Please click the Sync button above and restart the calibration."
 msgstr ""
 
+msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+msgstr ""
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 
@@ -14093,6 +14125,15 @@ msgid ""
 msgstr ""
 "Avoid warping\n"
 "Did you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping?"
+
+#~ msgid "The printer has been logged out and cannot connect."
+#~ msgstr "The printer has been logged out and cannot connect."
+
+#~ msgid "enable_wrapping_detection"
+#~ msgstr "Enable clumping detection by probing"
+
+#~ msgid "enable_prime_tower"
+#~ msgstr "Enable prime tower"
 
 #~ msgid "Open Preferences."
 #~ msgstr "Open Preferences."

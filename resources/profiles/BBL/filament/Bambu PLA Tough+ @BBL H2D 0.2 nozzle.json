@@ -89,6 +89,10 @@
         "0",
         "0"
     ],
+    "filament_adaptive_volumetric_speed": [
+        "0",
+        "0"
+    ],
     "filament_enable_overhang_speed": [
         "1",
         "1"
@@ -119,11 +123,11 @@
     ],
     "nozzle_temperature": [
         "245",
-        "220"
+        "245"
     ],
     "nozzle_temperature_initial_layer": [
         "245",
-        "220"
+        "245"
     ],
     "override_process_overhang_speed": [
         "0",
@@ -135,6 +139,10 @@
     "retraction_distances_when_ec": [
         "10",
         "10"
+    ],
+    "volumetric_speed_coefficients": [
+        "0 0 0 0 0 0",
+        "0 0 0 0 0 0"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.2 nozzle"

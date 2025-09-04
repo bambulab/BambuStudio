@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 19:21+0800\n"
+"POT-Creation-Date: 2025-08-27 20:24+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1085,6 +1085,9 @@ msgstr "경고: 일반 텍스트 오류입니다."
 
 msgid "Warning:text normal has been reset."
 msgstr "경고: 텍스트 일반이 재설정되었습니다."
+
+msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
+msgstr "경고: 현재 텍스트 간격이 적절하지 않습니다. 편집을 계속하면 더 합리적인 텍스트 간격이 생성됩니다."
 
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "경고: 이전 매트릭스에는 미러링, 크기 조정 및 회전이라는 두 가지 이상의 매개변수가 있습니다. 계속 편집하면 올바르지 않을 수 있습니다. 텍스트를 드래그하거나 현재 포즈를 사용하여 취소하고 저장한 후 다시 편집하세요."
@@ -2449,24 +2452,6 @@ msgstr "전체 냉각"
 msgid "Init"
 msgstr ""
 
-msgid "Hotend"
-msgstr "노즐 마커가 손상되어 오른쪽 핫엔드를 식별할 수 없습니다. 핫엔드 유형을 수동으로 설정하세요."
-
-msgid "Parts"
-msgstr "출력물"
-
-msgid "Aux"
-msgstr "보조"
-
-msgid "Nozzle1"
-msgstr "노즐1"
-
-msgid "MC Board"
-msgstr "MC 보드"
-
-msgid "Heat"
-msgstr "열"
-
 msgid "Chamber"
 msgstr "실내 배기 팬"
 
@@ -2493,8 +2478,33 @@ msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
 msgstr "냉각 모드는 PLA/PETG/TPU 소재 출력에 적합합니다."
 
 msgctxt "air_duct"
-msgid "Right"
-msgstr "오른쪽"
+msgid "Right(Aux)"
+msgstr "오른쪽(Aux)"
+
+msgctxt "air_duct"
+msgid "Right(Filter)"
+msgstr ""
+
+msgid "Hotend"
+msgstr "노즐 마커가 손상되어 오른쪽 핫엔드를 식별할 수 없습니다. 핫엔드 유형을 수동으로 설정하세요."
+
+msgid "Parts"
+msgstr "출력물"
+
+msgid "Aux"
+msgstr "보조"
+
+msgid "Nozzle1"
+msgstr "노즐1"
+
+msgid "MC Board"
+msgstr "MC 보드"
+
+msgid "Heat"
+msgstr "열"
+
+msgid "Fan"
+msgstr "팬"
 
 msgid "Idling..."
 msgstr "유휴 상태..."
@@ -3781,6 +3791,18 @@ msgstr "재시도 (문제 해결됨)"
 msgid "Stop Drying"
 msgstr "건조 중지"
 
+msgid "Cancle"
+msgstr ""
+
+msgid "Done"
+msgstr "완료"
+
+msgid "Retry"
+msgstr "다시 시도"
+
+msgid "Resume"
+msgstr "재개"
+
 msgid "Unknown error."
 msgstr "알 수 없는 오류."
 
@@ -3988,7 +4010,7 @@ msgid "Slicing Result"
 msgstr "슬라이싱 결과"
 
 msgid "Helio Simulation"
-msgstr ""
+msgstr "Helio 시뮬레이션"
 
 msgid "Color Scheme"
 msgstr "색상 구성표"
@@ -4541,6 +4563,12 @@ msgstr ""
 "H2D 기계의 첫 TPU 필라멘트 출력입니다. \n"
 "간단한 튜토리얼 영상을 보시겠습니까?"
 
+msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
+msgstr "PPS-CF/PPA-CF는 취성이 강하여 툴헤드 위쪽의 구부러진 PTFE 튜브에서 파손될 수 있습니다. 사용 전에 Wiki를 참조하세요. "
+
+msgid "Tips"
+msgstr "팁"
+
 msgid "Slice all"
 msgstr "모두 슬라이스"
 
@@ -5053,8 +5081,8 @@ msgstr "연결에 실패했습니다. 네트워크를 확인하고 다시 시도
 msgid "Please check the network and try again, You can restart or update the printer if the issue persists."
 msgstr "네트워크를 확인하고 다시 시도하세요. 문제가 지속되면 프린터를 다시 시작하거나 업데이트할 수 있습니다."
 
-msgid "The printer has been logged out and cannot connect."
-msgstr "프린터가 로그아웃되어 연결할 수 없습니다."
+msgid "Multi-device/client simultaneous liveview is not supported. Please close the liveview on other devices/clients and try again."
+msgstr ""
 
 msgid "Video Stopped."
 msgstr "비디오가 중지되었습니다."
@@ -5214,9 +5242,6 @@ msgstr ""
 msgid "Download waiting..."
 msgstr "다운로드 대기 중..."
 
-msgid "Retry"
-msgstr "다시 시도"
-
 msgid "Play"
 msgstr "재생"
 
@@ -5229,9 +5254,6 @@ msgstr "다운로드 완료"
 #, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "%d%% 다운로드 중..."
-
-msgid "Fan"
-msgstr "팬"
 
 msgid "Air Condition"
 msgstr "공기 상태"
@@ -5395,9 +5417,6 @@ msgstr "출력 진행상황"
 
 msgid "Parts Skip"
 msgstr "물체 건너뛰기"
-
-msgid "Resume"
-msgstr "재개"
 
 msgid "Stop"
 msgstr "중지"
@@ -6073,6 +6092,10 @@ msgstr "프린터 설정"
 msgid "The %s nozzle can not print %s."
 msgstr "%s 노즐은 %s 을 인쇄할 수 없습니다."
 
+#, boost-format
+msgid "Mixing %1% with %2% in printing is not recommended.\n"
+msgstr "%1%와 %2% 혼합 출력을 권장하지 않습니다.\n"
+
 msgid " nozzle"
 msgstr "노즐"
 
@@ -6470,15 +6493,17 @@ msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
 "Please request a new Helio-PAT."
 msgstr ""
+"유효한 Helio-PAT가 감지되지 않았습니다. Helio 시뮬레이션 및 최적화를 진행할 수 없습니다. \n"
+"새 Helio-PAT를 요청하세요."
 
 msgid "Execution Blocked"
-msgstr ""
+msgstr "실행 차단됨"
 
 msgid "Regenerate PAT"
-msgstr ""
+msgstr "PAT 재생성"
 
 msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
-msgstr ""
+msgstr "Helio PAT를 얻지 못했습니다. 다시 얻으려면 새로 고침을 클릭하세요."
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "슬라이싱 오류를 해결하고 다시 게시하십시오."
@@ -6535,9 +6560,6 @@ msgstr ""
 
 msgid "Switch now"
 msgstr "지금 전환하기"
-
-msgid "Tips"
-msgstr "팁"
 
 msgid "Load project"
 msgstr "프로젝트 불러오기"
@@ -6704,11 +6726,11 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "사용자 지정 지원, 심_면 및 색상 페인팅이 수리하기 전에 제거되었습니다, 모델 이름:"
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
-msgstr "프린터가 연결되지 않았습니다. 동기화하기 전에 장치 페이지로 이동하여 %s 프린터를 연결하세요."
+msgid "Printer not connected. Please go to the device page to connect %s before syncing."
+msgstr ""
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
 msgstr "장치 페이지의 현재 연결된 프린터가 %s이 아닙니다. 동기화하기 전에 %s로 전환하세요."
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
@@ -6782,10 +6804,10 @@ msgid "Plate% d: %s is not suggested to be used to print filament %s(%s). If you
 msgstr "플레이트% d: %s는 필라멘트 %s (%s) 를 출력하는 데 사용하지 않는 것이 좋습니다. 그래도 이 출력을 진행하려면 이 필라멘트의 베드 온도를 0이 아닌 숫자로 설정하십시오."
 
 msgid "Parameter recommendation"
-msgstr ""
+msgstr "매개변수 추천"
 
 msgid "In the process preset, under \"Others-Advanced\", check \"Enable clumping detection by probing\". This feature generates a small wipe tower and performs probing detection to identify clumping issues early in the print and stop printing, preventing print failures or printer damage.\n"
-msgstr ""
+msgstr "프로세스 프리셋의 \"기타-고급\" 항목에서 \"프로빙으로 뭉침 감지 활성화\"를 선택하세요. 이 기능은 작은 와이프 타워를 생성하고 프로빙 감지를 수행하여 출력 초기에 뭉침 문제를 식별하고 출력 을 중지하여 출력 실패나 프린터 손상을 방지합니다.\n"
 
 msgid "Currently, the object configuration form cannot be used with a multiple-extruder printer."
 msgstr "현재 개체 구성 양식은 다중 압출기 프린터와 함께 사용할 수 없습니다."
@@ -8985,9 +9007,6 @@ msgstr "뱀부 스튜디오의 새 버전"
 msgid "Skip this Version"
 msgstr "이 버전 건너뛰기"
 
-msgid "Done"
-msgstr "완료"
-
 msgid "resume"
 msgstr "압출기가 정상적으로 압출되지 않으니 도우미에게 문의하세요. 문제 해결 후 결함이 허용 가능한 수준이면 '재시작' 버튼을 눌러 출력 작업을 다시 시작하세요."
 
@@ -9116,10 +9135,10 @@ msgid "How to use Helio"
 msgstr "Helio 사용 방법"
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
-msgstr ""
+msgstr "Helio PAT 획득 실패. 발급된 PAT 수가 상한선에 도달했습니다. Helio 공식 웹사이트의 정보를 주의 깊게 확인하시기 바랍니다. 사용 가능할 때 다시 얻으려면 새로 고침을 클릭하세요."
 
 msgid "Click for more details"
-msgstr ""
+msgstr "자세한 내용을 보려면 클릭하세요"
 
 msgid "Air Pump"
 msgstr "공기 펌프"
@@ -9132,6 +9151,9 @@ msgstr "레이저 40W"
 
 msgid "Cutting Module"
 msgstr "커팅 모듈"
+
+msgid "Auto Fire Extinguishing System"
+msgstr "자동 화재 진압 시스템"
 
 msgid "Model:"
 msgstr "모델:"
@@ -9465,14 +9487,8 @@ msgstr "“객체별” 시퀀스가 활성화된 경우 smooth 타임랩스 모
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "\"객체별\" 시퀀스가 활성화된 경우 뭉침 감지가 지원되지 않습니다."
 
-msgid "enable_wrapping_detection"
-msgstr ""
-
 msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
-msgstr ""
-
-msgid "enable_prime_tower"
-msgstr ""
+msgstr "뭉침 현상 감지를 위해 프라임 타워가 필요합니다. 그렇지 않으면 모델에 결함이 있을 수 있습니다."
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "나선형 꽃병 모드에서 여러 객체를 출력하려면 “객체별” 출력 순서를 선택하십시오."
@@ -10079,7 +10095,7 @@ msgid "This setting will affect the speed of perimeters having radius <= small p
 msgstr "이 설정은 반경이 <= 작은 경계 임계값(일반적으로 구멍)을 가진 외곽의 속도에 영향을 줍니다. 백분율로 표시되는 경우(예: 80%) 위의 외벽 속도 설정에 따라 계산됩니다. 자동의 경우 0으로 설정합니다."
 
 msgid "Small perimeter threshold"
-msgstr ""
+msgstr "작은 경계 임계값"
 
 msgid "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr "작은 둘레 길이에 대한 임계값을 설정합니다. 기본 임계값은 0mm입니다"
@@ -10291,6 +10307,15 @@ msgstr "최고 온도 기준"
 msgid "Filament diameter is used to calculate extrusion in gcode, so it's important and should be accurate"
 msgstr "필라멘트 직경은 G코드에서 압출량을 계산하는데 사용되므로 중요하며 정확해야 합니다"
 
+msgid "Adaptive volumetric speed"
+msgstr ""
+
+msgid "When enabled, the extrusion flow is limited by the smaller of the fitted value (calculated from line width and layer height) and the user-defined maximum flow. When disabled, only the user-defined maximum flow is applied."
+msgstr ""
+
+msgid "Max volumetric speed multinomial coefficients"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr "수축"
 
@@ -10301,6 +10326,12 @@ msgid ""
 msgstr ""
 "필라멘트가 냉각된 후 얻을 수축률을 입력합니다(94% if는 100mm가 아닌 94mm를 측정하는 경우). 보정을 위해 부품의 크기가 xy 단위로 조정됩니다. 둘레에 사용된 필라멘트만 고려됩니다.\n"
 "이 보정은 검사 후에 이루어지므로 물체 사이에 충분한 공간을 확보해야 합니다."
+
+msgid "Velocity Adaptation Factor"
+msgstr "속도 적응 계수"
+
+msgid "This parameter reflects the speed at which a material transitions from one state to another. It, along with the smooth coefficient, determines the final length of the transition zone. A larger value: requires a shorter transition zone. A smaller value: requires a longer transition zone to avoid flow instability."
+msgstr "이 매개변수는 재료가 한 상태에서 다른 상태로 전환되는 속도를 나타냅니다. 이 값과 스무스 계수는 전환 구간의 최종 길이를 결정합니다. 값이 클수록 전환 구간이 짧아져야 하며, 값이 작을수록 유동 불안정을 피하기 위해 전환 구간이 더 길어져야 합니다."
 
 msgid "Adhesiveness Category"
 msgstr "접착력 카테고리"
@@ -13372,6 +13403,9 @@ msgstr ""
 "현재 선택한 %s 압출기의 노즐 유형이 실제 프린터 노즐 유형과 일치하지 않습니다.\n"
 "위의 동기화 버튼을 클릭하고 보정을 다시 시작하십시오."
 
+msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+msgstr "자동 보정은 왼쪽과 오른쪽 노즐 직경이 동일한 경우에만 지원됩니다."
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "보정할 수 없음: 설정된 보정 값 범위가 너무 크거나 단계가 너무 작기 때문일 수 있습니다"
 
@@ -13673,40 +13707,40 @@ msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "속도를 우선시하는 0.8mm 노즐의 표준 프로필."
 
 msgid "Helio: Process Started"
-msgstr ""
+msgstr "Helio: 프로세스 시작됨"
 
 msgid "Helio API endpoint is empty, please check the configuration."
-msgstr ""
+msgstr "Helio API 엔드포인트가 비어 있습니다. 구성을 확인하세요."
 
 msgid "Personal assecc token is empty, please fill in the correct token."
-msgstr ""
+msgstr "개인 액세스 토큰이 비어 있습니다. 올바른 토큰을 입력해 주세요."
 
 msgid "Helio: Presigned URL Created"
-msgstr ""
+msgstr "Helio: 사전 서명된 URL 생성"
 
 msgid "Helio: file succesfully uploaded"
-msgstr ""
+msgstr "Helio: 파일 업로드 성공"
 
 msgid "Helio: file upload failed"
-msgstr ""
+msgstr "Helio: 파일 업로드 실패"
 
 msgid "Please make sure you have the corrent API key set in preferences."
-msgstr ""
+msgstr "설정에서 올바른 API 키가 설정되어 있는지 확인하십시오."
 
 msgid "Helio: GCode created successfully"
-msgstr ""
+msgstr "Helio: GCode 생성 성공"
 
 msgid "Helio: simulation successfully created"
-msgstr ""
+msgstr "Helio: 시뮬레이션 생성 성공"
 
 msgid "Helio: simulation working"
-msgstr ""
+msgstr "Helio: 시뮬레이션 작동 중"
 
 msgid "Helio: simulation failed"
-msgstr ""
+msgstr "Helio: 시뮬레이션 실패"
 
 msgid "Helio: GCode downloaded successfully"
-msgstr ""
+msgstr "Helio: G코드 다운로드 성공"
 
 msgid "No AMS"
 msgstr "AMS 초기화 프로세스 중에 AMS E 가 오프라인으로 감지되었습니다."
@@ -14209,16 +14243,30 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS와 같이 뒤틀리기 쉬운 소재를 출력할 때 열판 온도를 적절히 높이면 뒤틀릴 확률을 줄일 수 있다는 사실을 알고 계셨나요?"
 
+#~ msgid "Helio Action"
+#~ msgstr "Helio 액션"
+
+#~ msgid "Chamber Temperature"
+#~ msgstr "챔버 온도"
+
+#~ msgctxt "air_duct"
+#~ msgid "Right"
+#~ msgstr "오른쪽"
+
+#~ msgid "The printer has been logged out and cannot connect."
+#~ msgstr "프린터가 로그아웃되어 연결할 수 없습니다."
+
 #, c-format, boost-format
-#~ msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
+#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
 #~ msgstr "프린터가 연결되지 않았습니다. 동기화하기 전에 장치 페이지로 이동하여 %s 프린터를 연결하세요."
 
 #, c-format, boost-format
-#~ msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
+#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
 #~ msgstr "장치 페이지의 현재 연결된 프린터가 %s이 아닙니다. 동기화하기 전에 %s로 전환하세요."
 
-#~ msgid "Helio Action"
-#~ msgstr "Helio 액션"
+#, c-format, boost-format
+#~ msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
+#~ msgstr "프린터가 연결되지 않았습니다. 동기화하기 전에 장치 페이지로 이동하여 %s 프린터를 연결하세요."
 
 #~ msgid "MqttSource"
 #~ msgstr "Mqtt소스"
@@ -14249,9 +14297,6 @@ msgstr ""
 
 #~ msgid "Small perimter threshold"
 #~ msgstr "작은 경계 임계값"
-
-#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-#~ msgstr "자동 보정은 왼쪽과 오른쪽 노즐 직경이 동일한 경우에만 지원됩니다."
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "레이어 시간 (s)"

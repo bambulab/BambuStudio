@@ -128,7 +128,7 @@ void ConfigManipulation::check_filament_max_volumetric_speed(DynamicPrintConfig 
 
     float max_volumetric_speed = config->has("filament_max_volumetric_speed") ? config->opt_float_nullable("filament_max_volumetric_speed", (float) 0.5) : 0.5;
     // BBS: limite the min max_volumetric_speed
-    if (max_volumetric_speed < 0.5) {
+    if (max_volumetric_speed < 0.5 && wxGetApp().initialized()) {
         const wxString     msg_text = _(L("Too small max volumetric speed.\nReset to 0.5"));
         MessageDialog      dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
@@ -154,10 +154,9 @@ void ConfigManipulation::check_filament_scarf_setting(DynamicPrintConfig *config
                 reset = true;
         } else if (value > layer_height)
             reset = true;
-        if (reset) {
+        if (reset && wxGetApp().initialized()) {
             post_warning = true;
-            new_conf.option<ConfigOptionFloatsOrPercents>("filament_scarf_height")->values[i] =
-                wxGetApp().preset_bundle->filaments.get_selected_preset().config.option<ConfigOptionFloatsOrPercents>("filament_scarf_height")->values[i];
+            new_conf.set_key_value("filament_scarf_height", new ConfigOptionFloatsOrPercents{FloatOrPercent(10, true)});
         }
 
     }

@@ -971,10 +971,10 @@ static std::vector<std::string> s_Preset_print_options {
     "seam_slope_steps", "seam_slope_inner_walls", "role_base_wipe_speed" , "seam_slope_gap", "precise_outer_wall",
     "interlocking_beam", "interlocking_orientation", "interlocking_beam_layer_count", "interlocking_depth", "interlocking_boundary_avoidance", "interlocking_beam_width"};
 
-static std::vector<std::string> s_Preset_filament_options {/*"filament_colour", */ "default_filament_colour", "required_nozzle_HRC", "filament_diameter", "filament_type",
+static std::vector<std::string> s_Preset_filament_options{/*"filament_colour", */ "default_filament_colour", "required_nozzle_HRC", "filament_diameter", "volumetric_speed_coefficients", "filament_type",
                                                           "filament_soluble", "filament_is_support", "filament_printable", "filament_scarf_seam_type", "filament_scarf_height",
                                                           "filament_scarf_gap", "filament_scarf_length",
-    "filament_max_volumetric_speed", "impact_strength_z", "filament_ramming_volumetric_speed",
+    "filament_max_volumetric_speed", "impact_strength_z", "filament_ramming_volumetric_speed", "filament_adaptive_volumetric_speed",
     "filament_flow_ratio", "filament_density", "filament_adhesiveness_category", "filament_cost", "filament_minimal_purge_on_wipe_tower",
     "nozzle_temperature", "nozzle_temperature_initial_layer",
     // BBS
@@ -1000,7 +1000,7 @@ static std::vector<std::string> s_Preset_filament_options {/*"filament_colour", 
     "filament_extruder_variant",
     //OrcaSlicer
     "enable_pressure_advance", "pressure_advance", "chamber_temperatures","filament_notes",
-    "filament_long_retractions_when_cut","filament_retraction_distances_when_cut","filament_shrink",
+    "filament_long_retractions_when_cut","filament_retraction_distances_when_cut","filament_shrink", "filament_velocity_adaptation_factor",
     //BBS filament change length while the extruder color
     "filament_change_length","filament_prime_volume","filament_flush_volumetric_speed","filament_flush_temp",
     "long_retractions_when_ec", "retraction_distances_when_ec"

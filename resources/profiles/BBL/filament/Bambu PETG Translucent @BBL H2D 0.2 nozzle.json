@@ -89,6 +89,10 @@
         "0",
         "0"
     ],
+    "filament_adaptive_volumetric_speed": [
+        "0",
+        "0"
+    ],
     "long_retractions_when_ec": [
         "1",
         "1"
@@ -110,6 +114,10 @@
     ],
     "slow_down_layer_time": [
         "8"
+    ],
+    "volumetric_speed_coefficients": [
+        "0 0 0 0 0 0",
+        "0 0 0 0 0 0"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.2 nozzle"

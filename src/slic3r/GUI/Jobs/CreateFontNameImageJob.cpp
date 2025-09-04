@@ -61,12 +61,12 @@ void CreateFontImageJob::process(Ctl &ctl)
     double standard_scale  = get_text_shape_scale(fp, ff);
     bool        support_backup_fonts = GUI::wxGetApp().app_config->get_bool("support_backup_fonts");
     EmbossShape emboss_shape;
-    ExPolygons shapes = support_backup_fonts ? Emboss::text2shapes(emboss_shape, font_file_with_cache, text.c_str(), fp, was_canceled, ft_fn, standard_scale):
-          Emboss::text2shapes(emboss_shape, font_file_with_cache, text.c_str(), fp, was_canceled);
+    ExPolygons  shapes           = support_backup_fonts ? Emboss::text2shapes(emboss_shape, font_file_with_cache, text.c_str(), fp, standard_scale, was_canceled, ft_fn) :
+                                                          Emboss::text2shapes(emboss_shape, font_file_with_cache, text.c_str(), fp, standard_scale, was_canceled);
     m_input.generate_origin_text = true;
     if (shapes.empty()) {// select some character from font e.g. default text
         m_input.generate_origin_text = false;
-        shapes                       = Emboss::text2shapes(emboss_shape, font_file_with_cache, default_text.c_str(), fp, was_canceled, ft_fn, standard_scale);
+        shapes                       = Emboss::text2shapes(emboss_shape, font_file_with_cache, default_text.c_str(), fp, standard_scale, was_canceled, ft_fn);
     }
 
     if (shapes.empty()) {
@@ -190,7 +190,8 @@ void Slic3r::GUI::BackupFonts::generate_backup_fonts() {
          font_names.emplace_back(wxString::FromUTF8("Arial")); // Arabic
 #endif
 #ifdef __linux__
-         font_names.emplace_back(wxString(L"宋体"));                 // chinese confirm
+         font_names.emplace_back(wxString(L"宋体"));         // chinese confirm
+         font_names.emplace_back(wxString("AR PL UMing CN"));// chinese confirm
          font_names.emplace_back(wxString::FromUTF8("MS Gothic"));   // Japanese
          font_names.emplace_back(wxString::FromUTF8("NanumGothic")); // Korean
          font_names.emplace_back(wxString::FromUTF8("Arial"));       // Arabic

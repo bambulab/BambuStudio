@@ -1276,7 +1276,7 @@ ProjectTransform calc_project_tran(DataBase &input, double real_scale)
     return project_tr;
 }
 
-void create_all_char_mesh(DataBase &input, std::vector<TriangleMesh> &result, EmbossShape &shape)
+void create_all_char_mesh(DataBase &input, std::vector<TriangleMesh> &result, std::vector<float> &text_cursors, EmbossShape &shape)
 {
     shape = input.create_shape();//this will call letter2shapes
     if (shape.shapes_with_ids.empty())
@@ -1318,6 +1318,7 @@ void create_all_char_mesh(DataBase &input, std::vector<TriangleMesh> &result, Em
             result.emplace_back(mesh);
         }
     }
+    text_cursors = shape.text_cursors;
 }
 
 float get_single_char_width(const std::vector<TriangleMesh> &chars_mesh_result)
@@ -1333,20 +1334,11 @@ float get_single_char_width(const std::vector<TriangleMesh> &chars_mesh_result)
     return 0.f;
 }
 
-bool calc_text_lengths(std::vector<double> &text_lengths, const std::vector<TriangleMesh> &chars_mesh_result)
+bool calc_text_lengths(std::vector<double> &text_lengths, const std::vector<float> &text_cursors)
 {
     text_lengths.clear();
-    auto single_char_width = get_single_char_width(chars_mesh_result);
-    if (single_char_width < 0.01) { return false; }
-    for (int i = 0; i < chars_mesh_result.size(); ++i) {
-        auto box           = chars_mesh_result[i].bounding_box();
-        auto box_size      = box.size();
-        auto half_x_length = box_size[0] / 2.0f;
-        if (half_x_length < 0.01) {
-            text_lengths.emplace_back(single_char_width + 1);
-        } else {
-            text_lengths.emplace_back(half_x_length + 1);
-        }
+    for (int i = 0; i < text_cursors.size(); i++) {
+        text_lengths.emplace_back(text_cursors[i]/2.f);
     }
     return true;
 }
@@ -1404,7 +1396,7 @@ void GenerateTextJob::process(Ctl &ctl)
     auto canceled = was_canceled(ctl, *m_input.m_data_update.base);
     if (canceled)
         return;
-    create_all_char_mesh(*m_input.m_data_update.base, m_input.m_chars_mesh_result, m_input.m_text_shape);
+    create_all_char_mesh(*m_input.m_data_update.base, m_input.m_chars_mesh_result, m_input.m_text_cursors,m_input.m_text_shape);
     if (m_input.m_chars_mesh_result.empty()) {
         return;
     }
@@ -1458,7 +1450,7 @@ bool GenerateTextJob::update_text_positions(InputInfo &input_info)
         return false;
     }
     std::vector<double> text_lengths;
-    if (!calc_text_lengths(text_lengths, input_info.m_chars_mesh_result)) {
+    if (!calc_text_lengths(text_lengths, input_info.m_text_cursors)) {
         return false;
     }
     int text_num = input_info.m_chars_mesh_result.size(); // FIX by BBS 20250109
@@ -1845,6 +1837,9 @@ void GenerateTextJob::get_text_mesh(TriangleMesh &result_mesh, std::vector<Trian
     if (chars_mesh.size() == 0) {
         BOOST_LOG_TRIVIAL(info) << boost::format("check error:get_text_mesh");
     }
+    if (i >= chars_mesh.size() || i< 0) {
+        return;
+    }
     TriangleMesh mesh = chars_mesh[i]; // m_cur_font_name
     auto         box  = mesh.bounding_box();
     mesh.translate(-box.center().x(), 0, 0);
@@ -1950,12 +1945,12 @@ void GenerateTextJob::generate_mesh_according_points(InputInfo &input_info)
 CreateObjectTextJob::CreateObjectTextJob(CreateTextInput &&input) : m_input(std::move(input)) {}
 
 void CreateObjectTextJob::process(Ctl &ctl) {
-    create_all_char_mesh(*m_input.base, m_input.m_chars_mesh_result, m_input.m_text_shape);
+    create_all_char_mesh(*m_input.base, m_input.m_chars_mesh_result, m_input.m_text_cursors, m_input.m_text_shape);
     if (m_input.m_chars_mesh_result.empty()) {
         return;
     }
     std::vector<double> text_lengths;
-    calc_text_lengths(text_lengths, m_input.m_chars_mesh_result);
+    calc_text_lengths(text_lengths, m_input.m_text_cursors);
     calc_position_points(m_input.m_position_points, text_lengths, m_input.text_info.m_text_gap, Vec3d(1, 0, 0));
 }
 

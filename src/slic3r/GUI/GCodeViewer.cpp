@@ -698,16 +698,16 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
         std::vector<Line> ret;
         ret.reserve(end_id - start_id + 1);
         size_t length_of_line = 40;
-        if (m_sequential_view.m_gcode_viewer.is_helio_option()) {
-            length_of_line = 90;
-        }
         for (uint64_t id = start_id; id <= end_id; ++id) {
             // read line from file
             const size_t start = id == 1 ? 0 : m_lines_ends[id - 2];
             const size_t original_len   = m_lines_ends[id - 1] - start;
             const size_t len            = std::min(original_len, (size_t) length_of_line);
             std::string gline(m_file.data() + start, len);
-
+            if (boost::contains(gline, "helio")) {
+                length_of_line = 90;
+                m_sequential_view.m_gcode_viewer.set_show_horizontal_slider(true);
+            }
             std::string command;
             std::string parameters;
             std::string comment;
@@ -721,13 +721,7 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
             boost::split(tokens, gline, boost::is_any_of(";"), boost::token_compress_on);
             command = tokens.front();
             if (tokens.size() > 1) {
-                if (Slic3r::HelioBackgroundProcess::State::STATE_FINISHED == m_sequential_view.m_gcode_viewer.m_last_helio_process_status &&
-                    !m_sequential_view.m_gcode_viewer.is_helio_option() &&
-                    boost::contains(tokens.back(), "helio")) {
-                    comment = "";
-                } else {
-                    comment = ";" + tokens.back();
-                }
+                comment = ";" + tokens.back();
             }
 
             // extract gcode command and parameters
@@ -801,7 +795,7 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
     //BBS: GUI refactor: move to right
     //imgui.set_next_window_pos(0.0f, top, ImGuiCond_Always, 0.0f, 0.0f);
     imgui.set_next_window_pos(right, top, ImGuiCond_Always, 1.0f, 0.0f);
-    if (m_sequential_view.m_gcode_viewer.is_helio_option()) {
+    if (m_sequential_view.m_gcode_viewer.is_show_horizontal_slider()) {
         auto imgui_window_width = ImGui::CalcTextSize("10000 G1 X191.55 Y166.478 E.07946; helio").x;
         imgui.set_next_window_size(imgui_window_width, wnd_height, ImGuiCond_Always);
     } else {
@@ -809,7 +803,7 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
     }
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::SetNextWindowBgAlpha(0.8f);
-    if (m_sequential_view.m_gcode_viewer.is_helio_option()) {
+    if (m_sequential_view.m_gcode_viewer.is_show_horizontal_slider()) {
         imgui.begin(std::string("G-code"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysHorizontalScrollbar);
     } else {
         imgui.begin(std::string("G-code"),ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
@@ -1050,6 +1044,10 @@ GCodeViewer::~GCodeViewer()
         delete m_layers_slider;
         m_layers_slider = nullptr;
     }
+}
+
+bool Slic3r::GUI::GCodeViewer::is_show_horizontal_slider() const {
+    return m_show_horizontal_slider;
 }
 
 bool GCodeViewer::is_helio_option() const
@@ -3889,17 +3887,20 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
                         offset += static_cast<unsigned int>(sub_path.first.i_id);
 
                         // gets the vertex index from the index buffer on gpu
-                        const IBuffer& i_buffer = buffer.indices[sub_path.first.b_id];
-                        unsigned int index = 0;
-                        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
-                        glsafe(::glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLintptr>(offset * sizeof(IBufferType)), static_cast<GLsizeiptr>(sizeof(IBufferType)), static_cast<void*>(&index)));
-                        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+                        if (sub_path.first.b_id >= 0 && sub_path.first.b_id < buffer.indices.size()) {
+                            const IBuffer &i_buffer = buffer.indices[sub_path.first.b_id];
+                            unsigned int   index    = 0;
+                            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
+                            glsafe(::glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLintptr>(offset * sizeof(IBufferType)),
+                                                        static_cast<GLsizeiptr>(sizeof(IBufferType)), static_cast<void *>(&index)));
+                            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
-                        // gets the position from the vertices buffer on gpu
-                        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
-                        glsafe(::glGetBufferSubData(GL_ARRAY_BUFFER, static_cast<GLintptr>(index * buffer.vertices.vertex_size_bytes()), static_cast<GLsizeiptr>(3 * sizeof(float)), static_cast<void*>(sequential_view->current_position.data())));
-                        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-
+                            // gets the position from the vertices buffer on gpu
+                            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
+                            glsafe(::glGetBufferSubData(GL_ARRAY_BUFFER, static_cast<GLintptr>(index * buffer.vertices.vertex_size_bytes()),
+                                                        static_cast<GLsizeiptr>(3 * sizeof(float)), static_cast<void *>(sequential_view->current_position.data())));
+                            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+                        }
                         sequential_view->current_offset = Vec3f::Zero();
                         found = true;
                         break;
@@ -5665,7 +5666,13 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::SameLine();
     auto curr_plate_index = wxGetApp().plater()->get_partplate_list().get_curr_plate_index();
     if (wxGetApp().plater()->get_helio_process_status() != m_last_helio_process_status || m_gcode_result->update_imgui_flag) {
+        auto load_only_gcode = wxGetApp().plater()->only_gcode_mode();
+        auto load_gcode3mf   = wxGetApp().plater()->is_gcode_3mf();
+        if (load_only_gcode || load_gcode3mf) {
+            wxGetApp().plater()->clear_helio_process_status();
+        }
         m_last_helio_process_status = wxGetApp().plater()->get_helio_process_status();
+        m_show_horizontal_slider    = false;
         if ((int) Slic3r::HelioBackgroundProcess::State::STATE_FINISHED == m_last_helio_process_status || (m_gcode_result->update_imgui_flag &&m_gcode_result->is_helio_gcode)) {
             update_thermal_options(true);
             for (int i = 0; i < view_type_items.size(); i++) {

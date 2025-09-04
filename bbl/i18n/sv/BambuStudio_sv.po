@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 19:21+0800\n"
+"POT-Creation-Date: 2025-08-27 20:24+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1082,6 +1082,9 @@ msgstr "Varning: Normal text är fel."
 
 msgid "Warning:text normal has been reset."
 msgstr "Varning: Normal text har återställts."
+
+msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
+msgstr ""
 
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "Varning:gammal matris har minst två parametrar: spegling, skalning och rotation. Om du fortsätter att redigera kanske det inte är korrekt. Dra text eller avbryt med den aktuella ställningen, spara och redigera om igen."
@@ -2451,24 +2454,6 @@ msgstr "Full kylning"
 msgid "Init"
 msgstr ""
 
-msgid "Hotend"
-msgstr ""
-
-msgid "Parts"
-msgstr "Del"
-
-msgid "Aux"
-msgstr "Aux"
-
-msgid "Nozzle1"
-msgstr ""
-
-msgid "MC Board"
-msgstr "MC Kort"
-
-msgid "Heat"
-msgstr "Värme"
-
 msgid "Chamber"
 msgstr "Kammare"
 
@@ -2495,8 +2480,33 @@ msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
 msgstr "Kylnings läget är lämpligt för utskrift av PLA/PETG/TPU material."
 
 msgctxt "air_duct"
-msgid "Right"
-msgstr "Höger"
+msgid "Right(Aux)"
+msgstr "Höger(Aux)"
+
+msgctxt "air_duct"
+msgid "Right(Filter)"
+msgstr ""
+
+msgid "Hotend"
+msgstr ""
+
+msgid "Parts"
+msgstr "Del"
+
+msgid "Aux"
+msgstr "Aux"
+
+msgid "Nozzle1"
+msgstr ""
+
+msgid "MC Board"
+msgstr "MC Kort"
+
+msgid "Heat"
+msgstr "Värme"
+
+msgid "Fan"
+msgstr "Fläkt"
 
 msgid "Idling..."
 msgstr "Tomgång..."
@@ -3783,6 +3793,18 @@ msgstr "Försök igen (problemet löst)"
 msgid "Stop Drying"
 msgstr "Sluta torka"
 
+msgid "Cancle"
+msgstr ""
+
+msgid "Done"
+msgstr "Klar"
+
+msgid "Retry"
+msgstr "Försök igen"
+
+msgid "Resume"
+msgstr "Återuppta"
+
 msgid "Unknown error."
 msgstr "Okänt fel."
 
@@ -3990,7 +4012,7 @@ msgid "Slicing Result"
 msgstr "Berednings resultat"
 
 msgid "Helio Simulation"
-msgstr ""
+msgstr "Helio Simulering"
 
 msgid "Color Scheme"
 msgstr "Färgschema"
@@ -4543,6 +4565,12 @@ msgstr ""
 "Det här är första gången du skriver ut tpu filament med H2D maskinen.\n"
 "Vill du se en snabb instruktionsvideo?"
 
+msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
+msgstr "PPS-CF/PPA-CF är sprött och kan gå sönder i en böjd PTFE slang ovanför verktygshuvudet. Se Wiki innan du använder den. "
+
+msgid "Tips"
+msgstr "Tips"
+
 msgid "Slice all"
 msgstr "Bered allt"
 
@@ -5057,8 +5085,8 @@ msgstr "Anslutningen misslyckades. Kontrollera nätverket och försök igen"
 msgid "Please check the network and try again, You can restart or update the printer if the issue persists."
 msgstr "Kontrollera nätverket och försök igen. Du kan starta om eller uppdatera skrivaren om problemet kvarstår."
 
-msgid "The printer has been logged out and cannot connect."
-msgstr "Printern har loggats ut och kan inte anslutas."
+msgid "Multi-device/client simultaneous liveview is not supported. Please close the liveview on other devices/clients and try again."
+msgstr ""
 
 msgid "Video Stopped."
 msgstr "Video stoppad."
@@ -5219,9 +5247,6 @@ msgstr ""
 msgid "Download waiting..."
 msgstr "Nedladdning väntar..."
 
-msgid "Retry"
-msgstr "Försök igen"
-
 msgid "Play"
 msgstr "Spela"
 
@@ -5234,9 +5259,6 @@ msgstr "Nedladdning slutförd"
 #, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "Laddar ner %d%%..."
-
-msgid "Fan"
-msgstr "Fläkt"
 
 msgid "Air Condition"
 msgstr "Luftkonditionering"
@@ -5400,9 +5422,6 @@ msgstr "Utskriftsförlopp"
 
 msgid "Parts Skip"
 msgstr "Hoppa över delar"
-
-msgid "Resume"
-msgstr "Återuppta"
 
 msgid "Stop"
 msgstr "Stopp"
@@ -6082,6 +6101,10 @@ msgstr "Skrivarens inställningar"
 msgid "The %s nozzle can not print %s."
 msgstr "%s nozzle kan inte skriva ut %s."
 
+#, boost-format
+msgid "Mixing %1% with %2% in printing is not recommended.\n"
+msgstr ""
+
 msgid " nozzle"
 msgstr ""
 
@@ -6545,9 +6568,6 @@ msgstr ""
 msgid "Switch now"
 msgstr "Byt nu"
 
-msgid "Tips"
-msgstr "Tips"
-
 msgid "Load project"
 msgstr "Ladda projekt"
 
@@ -6713,12 +6733,12 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "Anpassade support, söm_ytor och färgmålning togs bort innan modellnamnet reparerades:"
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
-msgstr "Printer inte ansluten. Gå till enhetssidan för att ansluta en %s printer innan du synkroniserar."
+msgid "Printer not connected. Please go to the device page to connect %s before syncing."
+msgstr ""
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-msgstr "Den för närvarande anslutna printern på enhets sidan är inte en %s. Vänligen byt till en %s innan du synkroniserar."
+msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
+msgstr "Den anslutna printern på enhetssidan är inte %s. Växla till %s innan synkronisering."
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "Det finns inga filament på printern. Ladda filamenten på printern först."
@@ -6791,10 +6811,10 @@ msgid "Plate% d: %s is not suggested to be used to print filament %s(%s). If you
 msgstr "Platta% d: %s rekommenderas inte för användning av filament %s(%s). Om du fortfarande vill göra detta utskriftsjobb, ändra detta filaments byggplattas temperatur till ett tal som inte är noll."
 
 msgid "Parameter recommendation"
-msgstr ""
+msgstr "Rekommendation för parameter"
 
 msgid "In the process preset, under \"Others-Advanced\", check \"Enable clumping detection by probing\". This feature generates a small wipe tower and performs probing detection to identify clumping issues early in the print and stop printing, preventing print failures or printer damage.\n"
-msgstr ""
+msgstr "I process inställningen, under \"Övrigt-Avancerat\", markera \"Aktivera klump detektering genom probning\". Den här funktionen genererar ett litet torktorn och utför probnings detektering för att identifiera klumpnings problem tidigt i utskriften och stoppa utskriften, vilket förhindrar utskriftsfel eller printer skador.\n"
 
 msgid "Currently, the object configuration form cannot be used with a multiple-extruder printer."
 msgstr "För närvarande kan formuläret för objekt konfiguration inte användas med en printer med flera extruders."
@@ -8999,9 +9019,6 @@ msgstr "Ny version av Bambu Studio"
 msgid "Skip this Version"
 msgstr "Hoppa över denna version"
 
-msgid "Done"
-msgstr "Klar"
-
 msgid "resume"
 msgstr "återuppta"
 
@@ -9146,6 +9163,9 @@ msgstr ""
 
 msgid "Cutting Module"
 msgstr "Skär modul"
+
+msgid "Auto Fire Extinguishing System"
+msgstr "Automatiskt brandsläcknings system"
 
 msgid "Model:"
 msgstr "Modell:"
@@ -9479,14 +9499,8 @@ msgstr "Smooth läge för timelapse stöds inte när ”per objekt” -sekvens �
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "Klump detektering stöds inte när \"per objekt\" sekvens är aktiverad."
 
-msgid "enable_wrapping_detection"
-msgstr ""
-
 msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
-msgstr ""
-
-msgid "enable_prime_tower"
-msgstr ""
+msgstr "Prime Tower krävs för att klumpar upptäcks, annars kan det finnas brister på modellen."
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Kontrollera \"Per objekt\" utskrifts sekvens för att skriva ut multipla objekt i Vase läge."
@@ -10305,6 +10319,15 @@ msgstr "Efter högsta temp"
 msgid "Filament diameter is used to calculate extrusion in gcode, so it's important and should be accurate"
 msgstr "Filament diametern används för att beräkna extruderingen i G-kod, viktigt att detta är rätt"
 
+msgid "Adaptive volumetric speed"
+msgstr ""
+
+msgid "When enabled, the extrusion flow is limited by the smaller of the fitted value (calculated from line width and layer height) and the user-defined maximum flow. When disabled, only the user-defined maximum flow is applied."
+msgstr ""
+
+msgid "Max volumetric speed multinomial coefficients"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr "Krympning"
 
@@ -10315,6 +10338,12 @@ msgid ""
 msgstr ""
 "Ange den krympningsprocent som filamentet kommer att få efter kylning (94% om du mäter 94 mm istället för 100 mm). Delen kommer att skalas i xy för att kompensera. Endast det filament som används för omkretsen tas med i beräkningen.\n"
 "Se till att det finns tillräckligt med utrymme mellan objekten, eftersom denna kompensation görs efter kontrollerna."
+
+msgid "Velocity Adaptation Factor"
+msgstr ""
+
+msgid "This parameter reflects the speed at which a material transitions from one state to another. It, along with the smooth coefficient, determines the final length of the transition zone. A larger value: requires a shorter transition zone. A smaller value: requires a longer transition zone to avoid flow instability."
+msgstr ""
 
 msgid "Adhesiveness Category"
 msgstr "Kategori för vidhäftningsförmåga"
@@ -13390,6 +13419,9 @@ msgstr ""
 "Den för närvarande valda nozzle typ på %s extruder matchar inte den faktiska printer nozzle typen.\n"
 "Klicka på Synk knappen ovan och starta om kalibreringen."
 
+msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+msgstr "Automatisk kalibrering stöder endast fall där vänster och höger nozzle diameter är identiska."
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "Går inte att kalibrera: kan bero på att det inställda kalibreringsvärdet är för stort, eller att steget är för litet"
 
@@ -13691,40 +13723,40 @@ msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Standardprofil för 0.8 mm nozzle, prioriterar hastighet."
 
 msgid "Helio: Process Started"
-msgstr ""
+msgstr "Helio: Processen har startat"
 
 msgid "Helio API endpoint is empty, please check the configuration."
-msgstr ""
+msgstr "Helio API slutpunkt är tom, kontrollera konfigurationen."
 
 msgid "Personal assecc token is empty, please fill in the correct token."
-msgstr ""
+msgstr "Personlig assecc token är tom, fyll i rätt token."
 
 msgid "Helio: Presigned URL Created"
-msgstr ""
+msgstr "Helio: Försignerad URL skapad"
 
 msgid "Helio: file succesfully uploaded"
-msgstr ""
+msgstr "Helio: filen laddades upp"
 
 msgid "Helio: file upload failed"
-msgstr ""
+msgstr "Helio: Filuppladdning misslyckades"
 
 msgid "Please make sure you have the corrent API key set in preferences."
-msgstr ""
+msgstr "Se till att du har korrekt API nyckel inställd i inställningarna."
 
 msgid "Helio: GCode created successfully"
-msgstr ""
+msgstr "Helio: G kod skapades"
 
 msgid "Helio: simulation successfully created"
-msgstr ""
+msgstr "Helio: simulering har skapats"
 
 msgid "Helio: simulation working"
-msgstr ""
+msgstr "Helio: simulering arbetar"
 
 msgid "Helio: simulation failed"
-msgstr ""
+msgstr "Helio: simulering misslyckades"
 
 msgid "Helio: GCode downloaded successfully"
-msgstr ""
+msgstr "Helio: G kod hämtades framgångsrikt"
 
 msgid "No AMS"
 msgstr "Ingen AMS"
@@ -14227,16 +14259,30 @@ msgstr ""
 "Undvik vridning\n"
 "Visste du att när du skriver ut material som är benägna att vrida, såsom ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten för vridning."
 
+#~ msgid "Helio Action"
+#~ msgstr "Helio Åtgärd"
+
+#~ msgid "Chamber Temperature"
+#~ msgstr "Temperatur i kammaren"
+
+#~ msgctxt "air_duct"
+#~ msgid "Right"
+#~ msgstr "Höger"
+
+#~ msgid "The printer has been logged out and cannot connect."
+#~ msgstr "Printern har loggats ut och kan inte anslutas."
+
+#, c-format, boost-format
+#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+#~ msgstr "Printer inte ansluten. Gå till enhetssidan för att ansluta en %s printer innan du synkroniserar."
+
+#, c-format, boost-format
+#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+#~ msgstr "Den för närvarande anslutna printern på enhets sidan är inte en %s. Vänligen byt till en %s innan du synkroniserar."
+
 #, c-format, boost-format
 #~ msgid "Printer not connected. Please go to the device page to connect %s printer before syncing."
 #~ msgstr "Printern är inte ansluten. Gå till enhetssidan för att ansluta printern %s innan du synkroniserar."
-
-#, c-format, boost-format
-#~ msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
-#~ msgstr "Den anslutna printern på enhetssidan är inte %s. Växla till %s innan synkronisering."
-
-#~ msgid "Helio Action"
-#~ msgstr "Helio Åtgärd"
 
 #~ msgid "MqttSource"
 #~ msgstr "Mqtt Källa"
@@ -14285,9 +14331,6 @@ msgstr ""
 
 #~ msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, and maintained by Helio Additive. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
 #~ msgstr "Om inget annat anges ger Bambu Lab endast stöd för programvaru funktionerna officiellt tillhandahålls. Utvärderings- och berednings optimerings funktioner baserade på Helio Additives molntjänst i denna programvara kommer att utvecklas, drivas och underhållas av Helio Additive. Dessa funktioner kommer att samla in nödvändig användarinformation och data för att uppnå relevanta tjänstefunktioner. Prenumerationer och betalningar kan vara inblandade. Besök Helio Additive och hänvisa till Helios Additive Privacy Agreement och Helios Additive User Agreement för detaljerad information."
-
-#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-#~ msgstr "Automatisk kalibrering stöder endast fall där vänster och höger nozzle diameter är identiska."
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "Lagertid (s)"

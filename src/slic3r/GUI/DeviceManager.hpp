@@ -238,6 +238,8 @@ public:
     std::chrono::system_clock::time_point   last_request_push;  /* last received print push from machine */
     std::chrono::system_clock::time_point   last_request_start; /* last received print push from machine */
 
+    bool device_cert_installed = false;
+
     int m_active_state = 0; // 0 - not active, 1 - active, 2 - update-to-date
     bool is_tunnel_mqtt = false;
 
@@ -351,6 +353,7 @@ public:
     DevFirmwareVersionInfo air_pump_version_info;
     DevFirmwareVersionInfo laser_version_info;
     DevFirmwareVersionInfo cutting_module_version_info;
+    DevFirmwareVersionInfo extinguish_version_info;
     std::map<std::string, DevFirmwareVersionInfo> module_vers;
     std::map<std::string, DevFirmwareVersionInfo> new_ver_list;
     bool    m_new_ver_list_exist = false;
@@ -400,7 +403,7 @@ public:
     bool    nozzle_blob_detection_enabled{ false };
     time_t  nozzle_blob_detection_hold_start = 0;
 
-    bool    is_support_new_auto_cali_method{true};
+    bool    is_support_new_auto_cali_method{false};
     int last_cali_version = -1;
     int cali_version = -1;
     float                      cali_selected_nozzle_dia { 0.0 };
@@ -804,6 +807,7 @@ public:
     void set_online_state(bool on_off);
     bool is_online() { return m_is_online; }
     bool is_info_ready(bool check_version = true) const;
+    bool is_security_control_ready() const;
     bool is_camera_busy_off();
 
     std::vector<std::string> get_resolution_supported();
@@ -817,6 +821,7 @@ public:
     int local_publish_json(std::string json_str, int qos = 0, int flag = 0);
     int parse_json(std::string tunnel, std::string payload, bool key_filed_only = false);
     int publish_gcode(std::string gcode_str);
+    void update_device_cert_state(bool ready);
 
     static std::string setting_id_to_type(std::string setting_id, std::string tray_type);
     BBLSubTask* get_subtask();

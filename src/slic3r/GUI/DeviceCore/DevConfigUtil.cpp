@@ -106,10 +106,61 @@ std::string DevPrinterConfigUtil::get_fan_text(const std::string& type_str, cons
     return std::string();
 }
 
+std::string DevPrinterConfigUtil::get_fan_text(const std::string& type_str, int airduct_mode, int airduct_func, int submode)
+{
+    std::vector<std::string> filaments;
+    std::string              config_file = m_resource_file_path + "/printers/" + type_str + ".json";
+    boost::nowide::ifstream  json_file(config_file.c_str());
+    try
+    {
+        json jj;
+        if (json_file.is_open())
+        {
+            json_file >> jj;
+            if (jj.contains("00.00.00.00"))
+            {
+                json const& printer = jj["00.00.00.00"];
+                if (!printer.contains("fan"))
+                {
+                    return std::string();
+                }
+
+                json const& fan_item = printer["fan"];
+                const auto& airduct_mode_str = std::to_string(airduct_mode);
+                if (!fan_item.contains(airduct_mode_str))
+                {
+                    return std::string();
+                }
+
+                json const& airduct_item = fan_item[airduct_mode_str];
+                const auto& airduct_func_str = std::to_string(airduct_func);
+                if (airduct_item.contains(airduct_func_str))
+                {
+                    const auto& airduct_func_item = airduct_item[airduct_func_str];
+                    if (airduct_func_item.is_object())
+                    {
+                        return airduct_func_item[std::to_string(submode)].get<std::string>();
+                    }
+                    else if (airduct_func_item.is_string())
+                    {
+                        return airduct_func_item.get<std::string>();
+                    }
+                }
+            }
+        }
+    }
+    catch (...) {}
+    return std::string();
+}
+
 std::map<std::string, std::vector<std::string>> DevPrinterConfigUtil::get_all_subseries(std::string type_str)
 {
-    std::map<std::string, std::vector<std::string>> subseries;
     std::vector<wxString> m_files;
+    std::map<std::string, std::vector<std::string>> subseries;
+
+#if !BBL_RELEASE_TO_PUBLIC
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": path= " << m_resource_file_path + "/printers/";
+#endif
 
     wxDir dir(m_resource_file_path + "/printers/");
     if (!dir.IsOpened()) { return subseries; }
@@ -135,7 +186,6 @@ std::map<std::string, std::vector<std::string>> DevPrinterConfigUtil::get_all_su
                 json_file >> jj;
                 if (jj.contains("00.00.00.00"))
                 {
-
                     json const& printer = jj["00.00.00.00"];
                     if (printer.contains("subseries"))
                     {
@@ -151,12 +201,36 @@ std::map<std::string, std::vector<std::string>> DevPrinterConfigUtil::get_all_su
                         }
                         subseries.insert(make_pair(model_id, subs));
                     }
-
-
                 }
             }
         }
-        catch (...) {}
+        catch (...)
+        {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": failed to load " << file;
+        }
+    }
+
+#if !BBL_RELEASE_TO_PUBLIC
+    wxString result_str;
+    for (auto item : subseries)
+    {
+        wxString item_str = item.first;
+        item_str += ": ";
+        for (auto to_item : item.second)
+        {
+            item_str += to_item;
+            item_str += " ";
+        }
+
+        result_str += item_str + ", ";
+    }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": result= " << result_str;
+#endif
+
+    if (subseries.empty())
+    {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": result= " << "empty";
     }
 
     return subseries;

@@ -13,6 +13,7 @@
 #include "MsgDialog.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "libslic3r/Thread.hpp"
+#include "DeviceErrorDialog.hpp"
 
 #include "RecenterDialog.hpp"
 #include "CalibUtils.hpp"
@@ -75,38 +76,6 @@ static const wxFont PAGE_TITLE_FONT  = Label::Body_14;
 static wxColour PAGE_TITLE_FONT_COL  = wxColour(107, 107, 107);
 static wxColour GROUP_TITLE_FONT_COL = wxColour(172, 172, 172);
 static wxColour TEXT_LIGHT_FONT_COL  = wxColour(107, 107, 107);
-
-static std::vector<std::string> message_containing_retry{
-    "0701 8004",
-    "0701 8005",
-    "0701 8006",
-    "0701 8006",
-    "0701 8007",
-    "0700 8012",
-    "0701 8012",
-    "0702 8012",
-    "0703 8012",
-    "07FF 8003",
-    "07FF 8004",
-    "07FF 8005",
-    "07FF 8006",
-    "07FF 8007",
-    "07FF 8010",
-    "07FF 8011",
-    "07FF 8012",
-    "07FF 8013",
-    "12FF 8007",
-    "1200 8006"
-};
-
-static std::vector<std::string> message_containing_done{
-    "07FF 8007",
-    "12FF 8007"
-};
-
-static std::vector<std::string> message_containing_resume{
-    "0300 8013"
-};
 
 static wxImage fail_image;
 
@@ -2125,6 +2094,10 @@ void StatusBasePanel::expand_filament_loading(wxMouseEvent& e)
                     m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o_series_left", this, load_img_size));
                 }
             }
+            else
+            {
+                m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o_series", this, load_img_size));
+            }
         }
     }
 
@@ -2364,9 +2337,8 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     Bind(EVT_AMS_GUIDE_WIKI, &StatusPanel::on_ams_guide, this);
     Bind(EVT_AMS_RETRY, &StatusPanel::on_ams_retry, this);
     Bind(EVT_FAN_CHANGED, &StatusPanel::on_fan_changed, this);
-    Bind(EVT_SECONDARY_CHECK_DONE, &StatusPanel::on_print_error_done, this);
     Bind(EVT_SECONDARY_CHECK_RESUME, &StatusPanel::on_subtask_pause_resume, this);
-    Bind(EVT_ERROR_DIALOG_BTN_CLICKED, &StatusPanel::on_print_error_dlg_btn_clicked, this);
+    Bind(EVT_SECONDARY_CHECK_RETRY, [this](auto &e) { if (m_ams_control) { m_ams_control->on_retry(); }});
 
     m_switch_speed->Connect(wxEVT_LEFT_DOWN, wxCommandEventHandler(StatusPanel::on_switch_speed), NULL, this);
     m_calibration_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_calibration), NULL, this);
@@ -2418,9 +2390,6 @@ StatusPanel::~StatusPanel()
     m_parts_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_parts_options), NULL, this);
 
     // remove warning dialogs
-    if (m_print_error_dlg != nullptr)
-        delete m_print_error_dlg;
-
     if (abort_dlg != nullptr)
         delete abort_dlg;
 
@@ -2556,12 +2525,6 @@ void StatusPanel::on_subtask_pause_resume(wxCommandEvent &event)
             BOOST_LOG_TRIVIAL(info) << "monitor: pause current print task dev_id =" << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id());
             obj->command_task_pause();
         }
-        if (m_print_error_dlg) {
-            m_print_error_dlg->on_hide();
-        }if (m_print_error_dlg_no_action) {
-            m_print_error_dlg_no_action->on_hide();
-        }
-
     }
 }
 
@@ -2786,127 +2749,29 @@ void StatusPanel::show_recenter_dialog() {
         obj->command_go_home();
 }
 
-void StatusPanel::show_error_message(MachineObject *obj, bool is_exist, wxString msg, std::string print_error_str, wxString image_url, std::vector<int> used_button)
-{
-    const std::string &dev_id = obj ? obj->get_dev_id() : string();
-
-    if (is_exist && msg.IsEmpty()) {
-        error_info_reset();
-        if (m_print_error_dlg) { m_print_error_dlg->Hide();}
-        if (m_print_error_dlg_no_action) { m_print_error_dlg_no_action->Hide(); }
-    } else {
-        if (msg.IsEmpty()) { msg = _L("Unknown error."); }
-        m_project_task_panel->show_error_msg(msg);
-
-        if (!used_button.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "show print error! error_msg = " << msg;
-            if (m_print_error_dlg != nullptr) {
-                delete m_print_error_dlg;
-                m_print_error_dlg = nullptr;
-            }
-
-            m_print_error_dlg = new PrintErrorDialog(this->GetParent(), wxID_ANY, _L("Error"));
-            m_print_error_dlg->update_title_style(_L("Error"), used_button, this);
-            m_print_error_dlg->update_text_image(msg, print_error_str, image_url);
-            m_print_error_dlg->Bind(wxEVT_CLOSE_WINDOW, [this, dev_id](wxCloseEvent& e)
-                {
-                    MachineObject *the_obj = wxGetApp().getDeviceManager()->get_my_machine(dev_id);
-                    if (the_obj) { the_obj->command_clean_print_error_uiop(the_obj->print_error); }
-                    e.Skip();
-                });
-            m_print_error_dlg->on_show();
-        }
-        else {
-            //old error code dialog
-            auto it_retry = std::find(message_containing_retry.begin(), message_containing_retry.end(), print_error_str);
-            auto it_done = std::find(message_containing_done.begin(), message_containing_done.end(), print_error_str);
-            auto it_resume = std::find(message_containing_resume.begin(), message_containing_resume.end(), print_error_str);
-
-            BOOST_LOG_TRIVIAL(info) << "show print error! error_msg = " << msg;
-
-            wxDateTime now = wxDateTime::Now();
-            wxString show_time = now.Format("%H%M%d");
-            wxString error_code_msg = wxString::Format("%S\n[%S %S]", msg, print_error_str, show_time);
-
-            if (m_print_error_dlg_no_action != nullptr) {
-                delete m_print_error_dlg_no_action;
-                m_print_error_dlg_no_action = nullptr;
-            }
-
-            m_print_error_dlg_no_action = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
-            if (it_done != message_containing_done.end() && it_retry != message_containing_retry.end()) {
-                m_print_error_dlg_no_action->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::DONE_AND_RETRY, this);
-            }
-            else if (it_done != message_containing_done.end()) {
-                m_print_error_dlg_no_action->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_DONE, this);
-            }
-            else if (it_retry != message_containing_retry.end()) {
-                m_print_error_dlg_no_action->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_RETRY, this);
-            }
-            else if (it_resume != message_containing_resume.end()) {
-                m_print_error_dlg_no_action->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_RESUME, this);
-            }
-            else {
-                m_print_error_dlg_no_action->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM, this);
-            }
-            m_print_error_dlg_no_action->update_text(error_code_msg);
-            m_print_error_dlg_no_action->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, dev_id](wxCommandEvent &e) {
-                MachineObject *the_obj = wxGetApp().getDeviceManager()->get_my_machine(dev_id);
-                if (the_obj) {
-                    the_obj->command_clean_print_error(the_obj->subtask_id_, the_obj->print_error);
-                    the_obj->command_clean_print_error_uiop(the_obj->print_error);
-                }
-            });
-
-            m_print_error_dlg_no_action->Bind(wxEVT_CLOSE_WINDOW, [this, dev_id](wxCloseEvent& e)
-            {
-                MachineObject *the_obj = wxGetApp().getDeviceManager()->get_my_machine(dev_id);
-                if (the_obj) { the_obj->command_clean_print_error_uiop(the_obj->print_error); }
-                e.Skip();
-            });
-
-            m_print_error_dlg_no_action->Bind(EVT_SECONDARY_CHECK_RETRY, [this](wxCommandEvent& e) {
-                if (m_ams_control) {
-                    m_ams_control->on_retry();
-                }
-                });
-
-            m_print_error_dlg_no_action->on_show();
-        }
-        wxGetApp().mainframe->RequestUserAttention(wxUSER_ATTENTION_ERROR);
-    }
-}
 
 void StatusPanel::update_error_message()
 {
+    if (!obj) return;
+
+    static int last_error = -1;
+
     if (obj->print_error <= 0) {
-        before_error_code = obj->print_error;
-        show_error_message(obj, true, wxEmptyString);
-        return;
-    } else if (before_error_code != obj->print_error && obj->print_error != skip_print_error) {
-        before_error_code = obj->print_error;
+        error_info_reset();
+    } else if (obj->print_error != last_error) {
+        /* clear old dialog */
+        if (m_print_error_dlg) { delete m_print_error_dlg; }
 
-        if (wxGetApp().get_hms_query()) {
-            char buf[32];
-            ::sprintf(buf, "%08X", obj->print_error);
-            std::string print_error_str = std::string(buf);
-            if (print_error_str.size() > 4) { print_error_str.insert(4, "-"); }
+        /* show device error message*/
+        m_print_error_dlg = new DeviceErrorDialog(obj, this);
+        wxString error_msg = m_print_error_dlg->show_error_code(obj->print_error);
+        BOOST_LOG_TRIVIAL(info) << "print error: device error code = "<< obj->print_error;
 
-            wxString error_msg = wxGetApp().get_hms_query()->query_print_error_msg(obj, obj->print_error);
-            if (wxGetApp().get_hms_query()->is_internal_error(obj, obj->print_error))
-            {
-                return;
-            }
-
-            std::vector<int> used_button;
-            wxString error_image_url = wxGetApp().get_hms_query()->query_print_image_action(obj, obj->print_error, used_button);
-            // special case
-            if (print_error_str == "0300-8003" || print_error_str == "0300-8002" || print_error_str == "0300-800A") {
-                used_button.emplace_back(PrintErrorDialog::PrintErrorButton::JUMP_TO_LIVEVIEW);
-            }
-            show_error_message(obj, !error_msg.empty(), error_msg, print_error_str, error_image_url, used_button);
-        }
+        /* show error message on task panel */
+        if(!error_msg.IsEmpty()) { m_project_task_panel->show_error_msg(error_msg); }
     }
+
+    last_error = obj->print_error;
 }
 
 void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
@@ -2938,7 +2803,7 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
         m_bpButton_e_10->Enable();
         m_bpButton_e_down_10->Enable();
 
-	    m_bpButton_z_10->SetIcon("monitor_bed_up");
+        m_bpButton_z_10->SetIcon("monitor_bed_up");
         m_bpButton_z_1->SetIcon("monitor_bed_up");
         m_bpButton_z_down_1->SetIcon("monitor_bed_down");
         m_bpButton_z_down_10->SetIcon("monitor_bed_down");
@@ -3305,7 +3170,8 @@ void StatusPanel::update_ams(MachineObject *obj)
 
     if (obj) {
         if (obj->get_printer_ams_type() == "f1") { ams_mode = AMSModel::AMS_LITE; }
-        obj->check_ams_filament_valid();
+        if (obj->is_security_control_ready())
+            obj->check_ams_filament_valid();
     }
     if (obj->is_enable_np && obj->GetFilaSystem()->GetAmsList().size() > 0) {
         ams_mode = AMSModel(obj->GetFilaSystem()->GetAmsList().begin()->second->GetAmsType());
@@ -3760,6 +3626,8 @@ void StatusPanel::update_subtask(MachineObject *obj)
                         }
                         else if (obj->get_printer_arch() == PrinterArch::ARCH_I3)
                             png_path = (boost::format("%1%/images/fd_calibration_auto_i3.png") % resources_dir()).str();
+                        else if (obj->is_series_o())
+                            png_path = (boost::format("%1%/images/fd_calibration_auto_single_o.png") % resources_dir()).str();
                         else
                             png_path = (boost::format("%1%/images/fd_calibration_auto.png") % resources_dir()).str();
                     }
@@ -4398,9 +4266,6 @@ void StatusPanel::on_ams_load_vams(wxCommandEvent& event) {
 
     m_ams_control->SwitchAms(std::to_string(VIRTUAL_TRAY_MAIN_ID));
     on_ams_load_curr();
-    if (m_print_error_dlg) {
-        m_print_error_dlg->on_hide();
-    }
 }
 
 void StatusPanel::on_ams_switch(SimpleEvent &event)
@@ -4785,110 +4650,6 @@ void StatusPanel::on_ams_retry(wxCommandEvent& event)
     }
 }
 
-void StatusPanel::on_print_error_done(wxCommandEvent& event)
-{
-    BOOST_LOG_TRIVIAL(info) << "on_print_error_done";
-    if (obj) {
-        obj->command_ams_control("done");
-        if (m_print_error_dlg) {
-            m_print_error_dlg->on_hide();
-        }if (m_print_error_dlg_no_action) {
-            m_print_error_dlg_no_action->on_hide();
-        }
-    }
-}
-
-void StatusPanel::on_print_error_dlg_btn_clicked(wxCommandEvent& event)
-{
-    if (obj)
-    {
-        PrintErrorDialog::PrintErrorButton btn_id = static_cast<PrintErrorDialog::PrintErrorButton>(event.GetInt());
-        switch (btn_id) {
-            case Slic3r::GUI::PrintErrorDialog::RESUME_PRINTING: {
-                obj->command_hms_resume(std::to_string(before_error_code), obj->job_id_);
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::RESUME_PRINTING_DEFECTS: {
-                obj->command_hms_resume(std::to_string(before_error_code), obj->job_id_);
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::RESUME_PRINTING_PROBELM_SOLVED: {
-                obj->command_hms_resume(std::to_string(before_error_code), obj->job_id_);
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::STOP_PRINTING: {
-                obj->command_hms_stop(std::to_string(before_error_code), obj->job_id_);
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::CHECK_ASSISTANT: {
-                wxGetApp().mainframe->m_monitor->jump_to_HMS(); // go to assistant page
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::FILAMENT_EXTRUDED: {
-                obj->command_ams_control("done");
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::RETRY_FILAMENT_EXTRUDED: {
-                obj->command_ams_control("resume");
-                return;// do not hide the dialogs
-            }
-            case Slic3r::GUI::PrintErrorDialog::CONTINUE: {
-                obj->command_ams_control("resume");
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::LOAD_VIRTUAL_TRAY: {
-                m_ams_control->SwitchAms(std::to_string(VIRTUAL_TRAY_MAIN_ID));
-                on_ams_load_curr();
-                break;/*AP, unknown what it is*/
-            }
-            case Slic3r::GUI::PrintErrorDialog::OK_BUTTON: {
-                obj->command_clean_print_error(obj->subtask_id_, obj->print_error);
-                break;/*do nothing*/
-            }
-            case Slic3r::GUI::PrintErrorDialog::FILAMENT_LOAD_RESUME: {
-                obj->command_hms_resume(std::to_string(before_error_code), obj->job_id_);
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::JUMP_TO_LIVEVIEW: {
-                m_media_play_ctrl->jump_to_play();
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::NO_REMINDER_NEXT_TIME: {
-                obj->command_hms_idle_ignore(std::to_string(before_error_code), 0); /*the type is 0, supported by AP*/
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::IGNORE_NO_REMINDER_NEXT_TIME: {
-                obj->command_hms_ignore(std::to_string(before_error_code), obj->job_id_);
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::IGNORE_RESUME: {
-                obj->command_hms_ignore(std::to_string(before_error_code), obj->job_id_);
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::PROBLEM_SOLVED_RESUME: {
-                obj->command_hms_resume(std::to_string(before_error_code), obj->job_id_);
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::TURN_OFF_FIRE_ALARM: {
-                obj->command_stop_buzzer();
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::RETRY_PROBLEM_SOLVED: {
-                obj->command_ams_control("resume");
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::STOP_DRYING: {
-                obj->command_ams_drying_stop();
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::ERROR_BUTTON_COUNT: break;
-            default: break;
-        }
-
-        if (m_print_error_dlg) { m_print_error_dlg->on_hide(); }
-        if (m_print_error_dlg_no_action) { m_print_error_dlg_no_action->on_hide();}
-    }
-}
 
 void StatusPanel::on_fan_changed(wxCommandEvent& event)
 {
@@ -5334,7 +5095,6 @@ void StatusPanel::on_sys_color_changed()
     m_bitmap_speed_active.msw_rescale();
     m_switch_speed->SetImages(m_bitmap_speed, m_bitmap_speed);
     m_ams_control->msw_rescale();
-    if (m_print_error_dlg) { m_print_error_dlg->msw_rescale(); }
     rescale_camera_icons();
 }
 

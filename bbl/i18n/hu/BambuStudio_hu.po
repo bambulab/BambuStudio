@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 19:21+0800\n"
+"POT-Creation-Date: 2025-08-27 20:24+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -50,7 +50,7 @@ msgid "Damp PVA will become flexible and get stuck inside AMS,please take care t
 msgstr "A nedves PVA rugalmassá válik és elakadhat az AMS belsejében; kérjük, használat előtt alaposan szárítsd ki."
 
 msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
-msgstr ""
+msgstr "A nedves PVA felpuhul, ezért elakadhat az extruderben. Használat előtt szárítsd ki."
 
 msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
 msgstr "A PLA Glow érdes felülete felgyorsíthatja az AMS rendszer kopását, különösen az AMS Lite belső alkatrészein."
@@ -1085,6 +1085,9 @@ msgstr "Figyelmeztetés: A szöveg síkja hibás."
 
 msgid "Warning:text normal has been reset."
 msgstr "Figyelmeztetés: A szöveg síkja alaphelyzetbe állt."
+
+msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
+msgstr ""
 
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "Figyelmeztetés: a régi mátrixnak legalább két paramétere van: tükrözés, skálázás és forgatás. Ha folytatod a szerkesztést, lehet, hogy nem lesz helyes. Kérjük, húzd odébb a szöveget vagy töröld az aktuális beállítás, mentsd és szerkeszd újra."
@@ -2454,24 +2457,6 @@ msgstr "Teljes hűtés"
 msgid "Init"
 msgstr "Inicializálás"
 
-msgid "Hotend"
-msgstr ""
-
-msgid "Parts"
-msgstr "Tárgy"
-
-msgid "Aux"
-msgstr "Aux"
-
-msgid "Nozzle1"
-msgstr "Fúvóka1"
-
-msgid "MC Board"
-msgstr "MC-panel"
-
-msgid "Heat"
-msgstr "Fűtés"
-
 msgid "Chamber"
 msgstr "Kamra"
 
@@ -2498,8 +2483,33 @@ msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
 msgstr "A hűtési mód alkalmas PLA/PETG/TPU anyagok nyomtatására."
 
 msgctxt "air_duct"
-msgid "Right"
-msgstr "Jobb"
+msgid "Right(Aux)"
+msgstr "Jobb(Aux)"
+
+msgctxt "air_duct"
+msgid "Right(Filter)"
+msgstr ""
+
+msgid "Hotend"
+msgstr ""
+
+msgid "Parts"
+msgstr "Tárgy"
+
+msgid "Aux"
+msgstr "Aux"
+
+msgid "Nozzle1"
+msgstr "Fúvóka1"
+
+msgid "MC Board"
+msgstr "MC-panel"
+
+msgid "Heat"
+msgstr "Fűtés"
+
+msgid "Fan"
+msgstr "Ventilátor"
 
 msgid "Idling..."
 msgstr "Tétlen..."
@@ -3476,7 +3486,7 @@ msgstr ""
 "Visszaállítás 50%% mélységre"
 
 msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
-msgstr ""
+msgstr "A spirál mód csak akkor működik, ha a falak száma 1, a támasz le van tiltva, a tapintással történő anyagfelhalmozódás észlelése ki van kapcsolva, a felső héjrétegek száma 0, a ritkás kitöltés sűrűsége 0, a timelapse típusa hagyományos és a fal sebességének z irányban történő simítása ki van kapcsolva."
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Az I3-szerkezetű gépek azonban nem fognak timelapse videókat készíteni."
@@ -3786,6 +3796,18 @@ msgstr "Újra (probléma megoldva)"
 msgid "Stop Drying"
 msgstr "Szárítás leállítása"
 
+msgid "Cancle"
+msgstr ""
+
+msgid "Done"
+msgstr "Kész"
+
+msgid "Retry"
+msgstr "Újra"
+
+msgid "Resume"
+msgstr "Folytatás"
+
 msgid "Unknown error."
 msgstr "Ismeretlen hiba."
 
@@ -3993,7 +4015,7 @@ msgid "Slicing Result"
 msgstr "Szeletelés eredménye"
 
 msgid "Helio Simulation"
-msgstr ""
+msgstr "Helio szimuláció"
 
 msgid "Color Scheme"
 msgstr "Színséma"
@@ -4546,6 +4568,12 @@ msgstr ""
 "Ez az első alkalom, hogy TPU-filamentet nyomtatsz a H2D nyomtatóval.\n"
 "Szeretnél megnézni egy gyors oktatóvideót?"
 
+msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
+msgstr "A PPS-CF/PPA-CF rideg, és eltörhet a szerszámfej feletti hajlított PTFE-csőben. Kérjük, olvasd el a kapcsolódó cikket a Wikiben használat előtt. "
+
+msgid "Tips"
+msgstr "Tippek"
+
 msgid "Slice all"
 msgstr "Összes szeletelése"
 
@@ -5060,8 +5088,8 @@ msgstr "Csatlakozás sikertelen. Kérjük, ellenőrizd a hálózatot, és prób�
 msgid "Please check the network and try again, You can restart or update the printer if the issue persists."
 msgstr "Kérjük, ellenőrizd a hálózatot, és próbáld újra. Ha a probléma továbbra is fennáll, indítsd újra vagy frissítsd a nyomtatót."
 
-msgid "The printer has been logged out and cannot connect."
-msgstr "A nyomtató ki van jelentkezve, és nem tud csatlakozni."
+msgid "Multi-device/client simultaneous liveview is not supported. Please close the liveview on other devices/clients and try again."
+msgstr ""
 
 msgid "Video Stopped."
 msgstr "A videó leállt."
@@ -5222,9 +5250,6 @@ msgstr ""
 msgid "Download waiting..."
 msgstr "Várakozás letöltésre..."
 
-msgid "Retry"
-msgstr "Újra"
-
 msgid "Play"
 msgstr "Lejátszás"
 
@@ -5237,9 +5262,6 @@ msgstr "A letöltés kész"
 #, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "Letöltés %d%%..."
-
-msgid "Fan"
-msgstr "Ventilátor"
 
 msgid "Air Condition"
 msgstr "Légkondicionálás"
@@ -5403,9 +5425,6 @@ msgstr "Nyomtatás folyamata"
 
 msgid "Parts Skip"
 msgstr "Alkatrészek kihagyása"
-
-msgid "Resume"
-msgstr "Folytatás"
 
 msgid "Stop"
 msgstr "Állj"
@@ -6085,6 +6104,10 @@ msgstr "Nyomtatóbeállítások"
 msgid "The %s nozzle can not print %s."
 msgstr "A(z) %s fúvóka nem tud %s-t nyomtatni."
 
+#, boost-format
+msgid "Mixing %1% with %2% in printing is not recommended.\n"
+msgstr "A nyomtatás során nem ajánlott a(z) %1% és a(z) %2% keverése.\n"
+
 msgid " nozzle"
 msgstr " fúvóka"
 
@@ -6479,15 +6502,17 @@ msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
 "Please request a new Helio-PAT."
 msgstr ""
+"Nem észlelhető érvényes Helio-PAT. A Helio szimuláció és optimalizálás nem folytatódhat. \n"
+"Kérj új Helio-PAT-ot."
 
 msgid "Execution Blocked"
-msgstr ""
+msgstr "Végrehajtás blokkolva"
 
 msgid "Regenerate PAT"
-msgstr ""
+msgstr "PAT újragenerálása"
 
 msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
-msgstr ""
+msgstr "Nem sikerült letölteni a Helio PAT fájlt. Kattints a Frissítés gombra az újbóli lekéréshez."
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Kérjük, orvosold a szeletelési hibákat, és próbáld meg újra."
@@ -6544,9 +6569,6 @@ msgstr ""
 
 msgid "Switch now"
 msgstr "Váltás"
-
-msgid "Tips"
-msgstr "Tippek"
 
 msgid "Load project"
 msgstr "Projekt betöltése"
@@ -6713,12 +6735,12 @@ msgid "Custom supports,seam_facets and color painting were removed before repair
 msgstr "A javítás előtt eltávolítottuk az egyéni támaszokat, a varratokat és a festett színeket, modell neve:"
 
 #, c-format, boost-format
-msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
-msgstr "A nyomtató nincs csatlakoztatva. Kérjük, szinkronizálás előtt lépj az eszközoldalra, hogy csatlakoztass egy %s nyomtatót."
+msgid "Printer not connected. Please go to the device page to connect %s before syncing."
+msgstr ""
 
 #, c-format, boost-format
-msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
-msgstr "Az eszközoldalon jelenleg csatlakoztatott nyomtató nem %s. Kérjük, szinkronizálás előtt válts át erre: %s."
+msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
+msgstr ""
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "A nyomtatóban nincsenek filamentek. Kérjük, először töltsd be a filamenteket a nyomtatóba."
@@ -6791,10 +6813,10 @@ msgid "Plate% d: %s is not suggested to be used to print filament %s(%s). If you
 msgstr "A(z) % d: %s nem javasolt a(z) %s(%s) filament használatához. Ha folytatni szeretnéd a nyomtatást, kérjük állíts be 0-nál magasabb asztalhőmérsékletet a filamenthez."
 
 msgid "Parameter recommendation"
-msgstr ""
+msgstr "Paraméterajánlás"
 
 msgid "In the process preset, under \"Others-Advanced\", check \"Enable clumping detection by probing\". This feature generates a small wipe tower and performs probing detection to identify clumping issues early in the print and stop printing, preventing print failures or printer damage.\n"
-msgstr ""
+msgstr "A folyamatbeállításnál az \"Egyebek - Haladó\" részben pipáld ki a „Feltapadás-észlelés engedélyezése tapintással\" opciót. Ez a funkció egy kis törlőtornyot hoz létre, és tapintással végzett észlelést végez a feltapadás korai felismerése érdekében a nyomtatás során, majd leállítja a nyomtatást, megakadályozva ezzel a nyomtatási hibákat vagy a nyomtató károsodását.\n"
 
 msgid "Currently, the object configuration form cannot be used with a multiple-extruder printer."
 msgstr "Jelenleg az objektumkonfigurációs lap nem használható több extruderrel rendelkező nyomtatóval."
@@ -8997,9 +9019,6 @@ msgstr "A Bambu Studio új verziója"
 msgid "Skip this Version"
 msgstr "Verzió kihagyása"
 
-msgid "Done"
-msgstr "Kész"
-
 msgid "resume"
 msgstr "folytatás"
 
@@ -9083,7 +9102,7 @@ msgid "You are about to enable a third-party software service feature from Helio
 msgstr "Egy harmadik féltől származó szoftver szolgáltatási funkciót készülsz engedélyezni a Helio Additive-tól! Mielőtt megerősíted ennek a funkciónak a használatát, kérjük, figyelmesen olvasd el a következő információkat."
 
 msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
-msgstr ""
+msgstr "Ha másként nincs meghatározva, a Bambu Lab csak az általunk hivatalosan biztosított szoftverfunkciók támogatását nyújtja. A Helio Additive felhőszolgáltatásán alapuló szeletelésértékelési és szeletelésoptimalizálási funkciókat a Helio Additive fejleszti, üzemelteti, biztosítja és tartja karban. A Helio Additive felelős e szolgáltatás hatékonyságáért és elérhetőségéért. A szolgáltatás optimalizálási funkciója módosíthatja az alapértelmezett nyomtatási parancsokat, ami a nyomtató károsodásának kockázatával járhat. Csak olyan felhasználói információkat és adatokat gyűjt, amelyek a funkciók működéséhez szükségesek. A szolgáltatás használatához szükség lehet előfizetésre vagy egyéb fizetési formára. Kérjük, látogass el a Helio Additive oldalára, és tekintsd meg a Helio Additive Adatvédelmi Szabályzatát és a Helio Additive Felhasználói megállapodását a részletes információkért."
 
 msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
 msgstr "Ugyanakkor tudomásul veszed, hogy ezt a Helio Additive szolgáltatásain alapuló terméket „ahogy van” formában biztosítjuk számodra, és a Bambu nem vállal rá semmilyen kifejezett vagy vélelmezett garanciát, és nincs ellenőrzése a szolgáltatás esetleges hatásai felett. Az alkalmazandó jogszabályok által megengedett mértékig, a Bambu vagy a licenc biztosítója/partnerei nem nyújtanak semmilyen kifejezett vagy vélelmezett biztosítékot vagy garanciát, beleértve, de nem kizárólagosan az eladhatóságra, a kielégítő minőségre, a meghatározott célra való alkalmasságra, a pontosságra, a bizalmas kezelésre és a harmadik fél jogainak nem megsértésére. A hálózati szolgáltatások természetéből adódóan a Bambu nem tudja garantálni, hogy a szolgáltatás mindig elérhető lesz, és a Bambu fenntartja a jogot, hogy a vonatkozó körülmények alapján megszüntesse a szolgáltatást."
@@ -9128,10 +9147,10 @@ msgid "How to use Helio"
 msgstr "A Helio használata"
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
-msgstr ""
+msgstr "Nem sikerült beszerezni a Helio PAT-et. A kiadott PAT-ok száma elérte a felső határt. Kérjük, figyeld a Helio hivatalos weboldalán található információkat. Kattints a Frissítés gombra, hogy újra megpróbáld, amint elérhetővé válik."
 
 msgid "Click for more details"
-msgstr ""
+msgstr "Részletek megtekintése"
 
 msgid "Air Pump"
 msgstr "Légszivattyú"
@@ -9144,6 +9163,9 @@ msgstr "Lézer 40W"
 
 msgid "Cutting Module"
 msgstr "Vágómodul"
+
+msgid "Auto Fire Extinguishing System"
+msgstr "Automatikus tűzoltó rendszer"
 
 msgid "Model:"
 msgstr "Modell:"
@@ -9460,7 +9482,7 @@ msgid "Printing high-temp and low-temp filaments together may cause nozzle clogg
 msgstr "A magas és alacsony hőmérsékletű filamentek egyidejű nyomtatása a fúvóka eltömődését vagy a nyomtató károsodását okozhatja. Ha folytatni szeretnéd a nyomtatást, akkor a Beállításokban engedélyezheted ezt a lehetőséget."
 
 msgid "Printing different-temp filaments together may cause nozzle clogging or printer damage."
-msgstr ""
+msgstr "A különböző hőmérsékletű filamentek egyidejű nyomtatása a fúvóka eltömődését vagy a nyomtató károsodását okozhatja."
 
 msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "A magas és alacsony hőmérsékletű filamentek egyidejű nyomtatása a fúvóka eltömődését vagy a nyomtató károsodását okozhatja."
@@ -9477,14 +9499,8 @@ msgstr "A sima timelapse funkció nem használható, ha a nyomtatás „Tárgyan
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "A feltapadás érzékelése funkció nem használható, ha a nyomtatás „Tárgyanként“ sorrendre van állítva."
 
-msgid "enable_wrapping_detection"
-msgstr ""
-
 msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
-msgstr ""
-
-msgid "enable_prime_tower"
-msgstr ""
+msgstr "A feltapadás érzékeléséhez szükség van a törlőtoronyra, különben a modellen hibák keletkezhetnek."
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "Kérjük, válaszd a \"Tárgyanként\" nyomtatási sorrendet több tárgy spirálváza módban történő nyomtatásához."
@@ -10091,7 +10107,7 @@ msgid "This setting will affect the speed of perimeters having radius <= small p
 msgstr "Ez a beállítás azon peremek nyomtatási sebességére van hatással, amelyek sugara <= kis peremek küszöbértéke (általában furatok). Százalékban megadva (például: 80%) a külső fal sebessége alapján kerül kiszámításra. Állítsd 0-ra az automatikus beállításhoz."
 
 msgid "Small perimeter threshold"
-msgstr ""
+msgstr "Kis peremek küszöbértéke"
 
 msgid "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr "A kis peremek hosszának küszöbértékét határozza meg. Az alapértelmezett érték 0 mm"
@@ -10303,6 +10319,15 @@ msgstr "Legmagasabb hőmérséklet alapján"
 msgid "Filament diameter is used to calculate extrusion in gcode, so it's important and should be accurate"
 msgstr "A filamentátmérő az extrudálás kiszámításához szükséges a G-kódban, ezért fontos, hogy pontos legyen"
 
+msgid "Adaptive volumetric speed"
+msgstr ""
+
+msgid "When enabled, the extrusion flow is limited by the smaller of the fitted value (calculated from line width and layer height) and the user-defined maximum flow. When disabled, only the user-defined maximum flow is applied."
+msgstr ""
+
+msgid "Max volumetric speed multinomial coefficients"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr "Zsugorodás"
 
@@ -10313,6 +10338,12 @@ msgid ""
 msgstr ""
 "Add meg a zsugorodást százalékban kifejezve, amelyet a filament lehűlése után kapsz (94%, ha 100mm helyett 94mm-t mérsz). A tárgy XY irányban kerül átméretezésre, hogy kompenzálja ezt. Csak a külső falakhoz használt filamentnél kerül figyelembe vételre.\n"
 "Ügyelj arra, hogy elegendő helyet hagyj az objektumok között, mivel ez a kompenzáció az ellenőrzések után történik."
+
+msgid "Velocity Adaptation Factor"
+msgstr ""
+
+msgid "This parameter reflects the speed at which a material transitions from one state to another. It, along with the smooth coefficient, determines the final length of the transition zone. A larger value: requires a shorter transition zone. A smaller value: requires a longer transition zone to avoid flow instability."
+msgstr ""
 
 msgid "Adhesiveness Category"
 msgstr "Tapadás kategória"
@@ -10652,10 +10683,10 @@ msgid "Clumping detection layers."
 msgstr "Feltapadásészlelési rétegek."
 
 msgid "Probing exclude area of clumping"
-msgstr ""
+msgstr "Feltapadás tapintással való érzékelésének területe"
 
 msgid "Probing exclude area of clumping."
-msgstr ""
+msgstr "Feltapadás tapintással való érzékelésének területe."
 
 msgid "Thumbnail size"
 msgstr "Bélyegkép mérete"
@@ -13381,6 +13412,9 @@ msgstr ""
 "A(z) %s extruder kiválasztott fúvókatípusa nem felel meg a nyomtató tényleges fúvókatípusának.\n"
 "Kérjük, kattints a fenti Szinkronizálás gombra, és indítsd újra a kalibrálást."
 
+msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+msgstr "Az automatikus kalibrálás csak azokat az eseteket támogatja, amikor a bal és a jobb fúvóka átmérője azonos."
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "Nem lehet kalibrálni: előfordulhat, hogy a beállított kalibrációs értéktartomány túl nagy, vagy a lépésköz túl kicsi"
 
@@ -13682,40 +13716,40 @@ msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Standard profil 0,8 mm-es fúvókához, a sebességet előtérbe helyezve."
 
 msgid "Helio: Process Started"
-msgstr ""
+msgstr "Helio: Folyamat elindult"
 
 msgid "Helio API endpoint is empty, please check the configuration."
-msgstr ""
+msgstr "A Helio API végpont üres, kérjük, ellenőrizd a beállításokat."
 
 msgid "Personal assecc token is empty, please fill in the correct token."
-msgstr ""
+msgstr "A személyes hozzáférési token üres, kérjük, töltsd ki a helyes tokent."
 
 msgid "Helio: Presigned URL Created"
-msgstr ""
+msgstr "Helio: Előre aláírt URL létrehozva"
 
 msgid "Helio: file succesfully uploaded"
-msgstr ""
+msgstr "Helio: a fájl sikeresen feltöltve"
 
 msgid "Helio: file upload failed"
-msgstr ""
+msgstr "Helio: fájl feltöltése sikertelen"
 
 msgid "Please make sure you have the corrent API key set in preferences."
-msgstr ""
+msgstr "Kérjük, győződj meg róla, hogy a beállításoknál a helyes API-kulcs van megadva."
 
 msgid "Helio: GCode created successfully"
-msgstr ""
+msgstr "Helio: G-kód sikeresen létrehozva"
 
 msgid "Helio: simulation successfully created"
-msgstr ""
+msgstr "Helio: szimuláció sikeresen létrehozva"
 
 msgid "Helio: simulation working"
-msgstr ""
+msgstr "Helio: a szimuláció fut"
 
 msgid "Helio: simulation failed"
-msgstr ""
+msgstr "Helio: a szimuláció sikertelen volt"
 
 msgid "Helio: GCode downloaded successfully"
-msgstr ""
+msgstr "Helio: A G-kód sikeresen letöltve"
 
 msgid "No AMS"
 msgstr "Nincs AMS"
@@ -14222,6 +14256,24 @@ msgstr ""
 #~ msgid "Helio Action"
 #~ msgstr "Helio műveletek"
 
+#~ msgid "Chamber Temperature"
+#~ msgstr "Kamra hőmérséklete"
+
+#~ msgctxt "air_duct"
+#~ msgid "Right"
+#~ msgstr "Jobb"
+
+#~ msgid "The printer has been logged out and cannot connect."
+#~ msgstr "A nyomtató ki van jelentkezve, és nem tud csatlakozni."
+
+#, c-format, boost-format
+#~ msgid "Printer not connected. Please go to the device page to connect an %s printer before syncing."
+#~ msgstr "A nyomtató nincs csatlakoztatva. Kérjük, szinkronizálás előtt lépj az eszközoldalra, hogy csatlakoztass egy %s nyomtatót."
+
+#, c-format, boost-format
+#~ msgid "The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."
+#~ msgstr "Az eszközoldalon jelenleg csatlakoztatott nyomtató nem %s. Kérjük, szinkronizálás előtt válts át erre: %s."
+
 #~ msgid "Open Preferences."
 #~ msgstr "Beállítások megnyitása."
 
@@ -14248,9 +14300,6 @@ msgstr ""
 
 #~ msgid "Small perimter threshold"
 #~ msgstr "Kis peremek küszöbértéke"
-
-#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-#~ msgstr "Az automatikus kalibrálás csak azokat az eseteket támogatja, amikor a bal és a jobb fúvóka átmérője azonos."
 
 #~ msgid "Layer Time (s)"
 #~ msgstr "Rétegidő (mp)"
