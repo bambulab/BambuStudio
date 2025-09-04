@@ -3330,6 +3330,7 @@ void Sidebar::enable_purge_mode_btn(bool enable)
 }
 
 void Sidebar::load_ams_list(MachineObject* obj)
+
 {
     std::map<int, DynamicPrintConfig> filament_ams_list = build_filament_ams_list(obj);
 

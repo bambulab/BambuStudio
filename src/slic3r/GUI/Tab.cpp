@@ -4926,6 +4926,16 @@ void TabPrinter::on_preset_loaded()
                 set_extruder_volume_type(eid, (NozzleVolumeType)(default_nozzle_volume_type[eid]));
         }
 
+        if (base_model != m_base_preset_model) {
+            auto extruder_type = current_printer.config.option<ConfigOptionEnumsGeneric>("extruder_type")->values;
+            bool update_extruder_title = extruder_type.size() != m_extruder_type.size();
+            for (size_t idx = 0; idx < extruders_count; idx++) {
+                if (update_extruder_title || extruder_type[idx] != m_extruder_type[idx]) {
+                    wxGetApp().plater()->sidebar().set_extruder_title_with_type(idx, extruder_type[idx]);
+                }
+            }
+        }
+
         // only reset nozzle count when printer model is changed
         if (base_model != m_base_preset_model) {
             auto extruder_max_nozzle_count = current_printer.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");

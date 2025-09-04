@@ -1,6 +1,6 @@
 #include "StaticGroup.hpp"
 #include "Label.hpp"
-
+#include "slic3r/GUI/I18N.hpp"
 
 class HoverLabel : public wxPanel
 {
@@ -37,6 +37,7 @@ public:
 #endif
         sizer->Add(m_label, 0, wxALIGN_CENTER_VERTICAL);
         sizer->Add(m_brace_left, 0, wxALIGN_CENTER_VERTICAL);
+        sizer->Add(m_title_type, 0, wxALIGN_CENTER_VERTICAL);
         sizer->Add(m_count, 0, wxALIGN_CENTER_VERTICAL);
         sizer->Add(m_brace_right, 0, wxALIGN_CENTER_VERTICAL);
         sizer->Add(m_hover_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 5);
@@ -79,11 +80,26 @@ public:
         Layout();
         Fit();
     }
+    void SetTitleWithType(const int type) {
+        if (type != 1) { m_title_type->Hide();
+        } else {
+            if (!m_title_type->IsShown()) m_title_type->Show();
+            wxString title_str = wxString::Format(_L("(Aux) "));
+            m_title_type->SetLabel(title_str);
+        }
+        Layout();
+        Fit();
+    }
+    wxString GetSuffixStr() const {
+        return m_title_type->IsShown() ? m_title_type->GetLabel() : "";
+    }
 
 private:
     wxStaticText* m_label;
     wxBitmapButton* m_hover_btn;
     wxStaticText* m_count;
+    wxStaticText* m_title_type;
+
     wxStaticText* m_brace_left;
     wxStaticText* m_brace_right;
     std::function<void()> m_hover_on_click;
@@ -155,6 +171,20 @@ void StaticGroup::SetCount(int count)
         ResetLabelPos();
 #endif
     }
+}
+
+void StaticGroup::SetTitleWithType(const int type) {
+    if (hoverLabel_){
+        hoverLabel_->SetTitleWithType(type);
+    }
+}
+
+wxString StaticGroup::GetSuffixStr()
+{
+    if (hoverLabel_) {
+		return hoverLabel_->GetSuffixStr();
+    }
+    return wxString();
 }
 
 void StaticGroup::SetOnHoverClick(std::function<void()>on_click)

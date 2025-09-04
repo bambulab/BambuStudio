@@ -2719,11 +2719,13 @@ namespace Slic3r
                     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.00f, 0.00f, 0.00f, 0.1f));
                     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 2, window_padding));
                     ImDrawList* child_begin_draw_list = ImGui::GetWindowDrawList();
+                    auto extruders_type = config.option<ConfigOptionEnumsGeneric>("extruder_type")->values;
                     ImVec2      cursor_pos = ImGui::GetCursorScreenPos();
                     child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + line_height), IM_COL32(0, 0, 0, 20));
                     ImGui::BeginChild("#LeftAMS", ImVec2(half_width, ams_item_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
                     {
-                        imgui.text(_u8L("Left nozzle"));
+                        if (extruders_type.size()  && extruders_type[0] == ExtruderType::etBowden) imgui.text(_u8L("Left nozzle(Aux)"));
+                        else imgui.text(_u8L("Left nozzle"));
                         ImGui::Dummy({ window_padding, window_padding });
                         int index = 1;
                         for (const auto& extruder_filament : m_left_extruder_filament) {
@@ -2738,7 +2740,8 @@ namespace Slic3r
                     child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + line_height), IM_COL32(0, 0, 0, 20));
                     ImGui::BeginChild("#RightAMS", ImVec2(half_width, ams_item_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
                     {
-                        imgui.text(_u8L("Right nozzle"));
+                        if (extruders_type.size() > 1 && extruders_type[1] == ExtruderType::etBowden) imgui.text(_u8L("Right nozzle(Aux)"));
+                        else imgui.text(_u8L("Right nozzle"));
                         ImGui::Dummy({ window_padding, window_padding });
                         int index = 1;
                         for (const auto& extruder_filament : m_right_extruder_filament) {
