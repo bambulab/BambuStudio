@@ -8,6 +8,7 @@
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
 #include "slic3r/GUI/DeviceTab/wgtDeviceNozzleRack.h"
 #include "slic3r/GUI/Widgets/RadioBox.hpp"
+#include <wx/webview.h>
 
 #define ENABLE_MIX_FLOW_PRINT 0
 
@@ -16,6 +17,21 @@ namespace Slic3r {
 }
 
 namespace Slic3r::GUI {
+
+#if ENABLE_MIX_FLOW_PRINT
+    struct NozzleOption
+    {
+        std::string diameter;
+        std::unordered_map<int, std::unordered_map<NozzleVolumeType, int>> extruder_nozzle_count;
+    };
+#else
+    struct NozzleOption
+    {
+        std::string diameter;
+        std::unordered_map<int, std::pair<NozzleVolumeType, int>> extruder_nozzle_count;
+    };
+#endif
+
 class ManualNozzleCountDialog : public DPIDialog
 {
 public:
@@ -33,9 +49,14 @@ class ExtruderBadge :public wxPanel
 {
 public:
     ExtruderBadge(wxWindow* parent);
-
-    void SetExtruderInfo(int extruder_id, const wxString& label, const wxString& flow);
+    void SetExtruderInfo(int extruder_id, const string& label, const NozzleVolumeType& flow);
+    void UnMarkRelatedItems(const NozzleOption& option);
+    void MarkRelatedItems(const NozzleOption& option);
+    void SetExtruderValid(bool right_on);
 private:
+    void SetExtruderStatus(bool left_selected, bool right_selected);
+
+    bool m_right_on{ true };
     wxStaticBitmap* badget;
     Label* left;
     Label* right;
@@ -43,6 +64,9 @@ private:
     Label* right_diameter_desp;
     Label* left_flow_desp;
     Label* right_flow_desp;
+
+    std::vector<std::string> m_diameter_list;
+    std::vector<NozzleVolumeType> m_volume_type_list;
 };
 
 class HotEndTable :public wxPanel
@@ -50,10 +74,22 @@ class HotEndTable :public wxPanel
 public:
     HotEndTable(wxWindow* parent);
     void UpdateRackInfo(std::weak_ptr<DevNozzleRack> rack);
+    void MarkRelatedItems(const NozzleOption& option);
+    void UnMarkRelatedItems(const NozzleOption& option);
 private:
     StaticBox* CreateNozzleBox(const std::vector<int>& nozzle_indices);
     void UpdateNozzleItems(const std::unordered_map<int, wgtDeviceNozzleRackNozzleItem*>& nozzle_items,
         std::shared_ptr<DevNozzleRack> nozzle_rack);
+
+private:
+    struct HotEndAttr {
+        std::string diameter;
+        int extruder_id;
+        NozzleVolumeType volume_type;
+    };
+
+    std::vector<int> FilterHotEnds(const NozzleOption& option);
+
 private:
     StaticBox* m_arow_nozzle_box{ nullptr };
     StaticBox* m_brow_nozzle_box{ nullptr };
@@ -63,30 +99,39 @@ private:
 };
 
 
+wxDECLARE_EVENT(EVT_NOZZLE_SELECTED, wxCommandEvent);
+
+class NozzleListTable : public wxPanel
+{
+public:
+    NozzleListTable(wxWindow* parent);
+    int GetSelectIdx();
+    void SetOptions(const std::vector<NozzleOption>& options,int default_select);
+private:
+    wxString BuildTableObjStr();
+    wxString BuildTextObjStr();
+    std::vector<NozzleOption> m_nozzle_options;
+
+    void SendSelectionChangedEvent();
+
+    wxWebView* m_web_view;
+
+    int m_selected_idx;
+};
+
 class MultiNozzleStatusTable : public wxPanel
 {
 public:
     MultiNozzleStatusTable(wxWindow* parent);
     void UpdateRackInfo(std::weak_ptr<DevNozzleRack> rack);
+    void MarkRelatedItems(const NozzleOption& option);
+    void UnMarkRelatedItems(const NozzleOption& option);
 private:
     ExtruderBadge* m_badge;
     HotEndTable* m_table;
-
 };
 
-#if ENABLE_MIX_FLOW_PRINT
-    struct NozzleOption
-    {
-        std::string diameter;
-        std::unordered_map<int, std::unordered_map<NozzleVolumeType, int>> extruder_nozzle_count;
-    };
-#else
-    struct NozzleOption
-    {
-        std::string diameter;
-        std::unordered_map<int, std::pair<NozzleVolumeType, int>> extruder_nozzle_count;
-    };
-#endif
+
 class MultiNozzleSyncDialog : public DPIDialog
 {
 public:
@@ -118,13 +163,12 @@ private:
 
 private:
     MultiNozzleStatusTable* m_nozzle_table;
-    std::vector<std::pair<RadioBox*,Label*>> m_nozzle_option_labels;
+    NozzleListTable* m_list_table;
     std::vector<NozzleOption> m_nozzle_option_values;
     int m_nozzle_option_idx{ -1 };
     bool m_refreshing{ false };
 
     std::weak_ptr<DevNozzleRack> m_nozzle_rack;
-    wxPanel* m_list_panel{ nullptr };
     Label* m_tips;
 
     wxTimer* m_refresh_timer {nullptr};
