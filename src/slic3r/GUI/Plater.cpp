@@ -1275,15 +1275,16 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
 
     std::vector<float> nozzle_diameters;
     nozzle_diameters.resize(extruder_nums);
+    std::vector<NozzleVolumeType>target_types(extruder_nums, NozzleVolumeType::nvtStandard);
+
     for (size_t index = 0; index < extruder_nums; ++index) {
-        int extruder_id = extruder_map[index];
+        int extruder_id = extruder_map[index]; //physical extruder id
         nozzle_diameters[extruder_id] = nozzle_option ? atof(nozzle_option->diameter.c_str()) : obj->GetExtderSystem()->GetNozzleDiameter(index);
         std::optional<NozzleVolumeType> select_type;
         NozzleVolumeType target_type = NozzleVolumeType::nvtStandard;
-        if (nozzle_option && nozzle_option->extruder_nozzle_count.count(extruder_id))
-            select_type = nozzle_option->extruder_nozzle_count[extruder_id].first;
+        if (nozzle_option && nozzle_option->extruder_nozzle_count.count(index))
+            select_type = nozzle_option->extruder_nozzle_count[index].first;
 
-        auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
         if (obj->is_nozzle_flow_type_supported()) {
             if (obj->GetExtderSystem()->GetNozzleFlowType(index) == NozzleFlowType::NONE_FLOWTYPE) {
                 MessageDialog dlg(this->plater, _L("There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."),
@@ -1297,7 +1298,8 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
         }
         if (select_type)
             target_type = *select_type;
-        printer_tab->set_extruder_volume_type(index, target_type);
+
+        target_types[index] = target_type;
     }
 
     int deputy_4 = 0, main_4 = 0, deputy_1 = 0, main_1 = 0;
@@ -1339,6 +1341,12 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
         is_switching_diameter = true;
         switch_diameter(true);
         is_switching_diameter = false;
+    }
+
+    // set nozzle volume type after switching prset, so this value can override the old value stored in conf
+    auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
+    for (size_t idx = 0; idx < target_types.size(); ++idx) {
+        printer_tab->set_extruder_volume_type(idx, target_types[idx]);
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " finish sync_extruder_list";
