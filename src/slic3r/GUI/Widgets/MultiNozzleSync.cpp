@@ -7,6 +7,11 @@
 
 namespace Slic3r::GUI{
 
+wxDEFINE_EVENT(EVT_NOZZLE_SELECTED, wxCommandEvent);
+
+static const int LeftExtruderIdx = 0;
+static const int RightExtruderIdx = 1;
+
 ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow* parent,int default_count, int max_nozzle_count)
     :GUI::DPIDialog(parent, wxID_ANY, "Set nozzle count", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
@@ -102,17 +107,21 @@ ExtruderBadge::ExtruderBadge(wxWindow* parent) : wxPanel(parent)
 {
     wxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
     SetBackgroundColour("#F8F8F8");
-    wxBitmap icon = create_scaled_bitmap("nozzle_sync_badge", nullptr, FromDIP(90));
+    wxBitmap icon = create_scaled_bitmap("extruder_badge_none_selected", nullptr, FromDIP(90));
 
     left = new Label(this, _L("Left"));
     right = new Label(this, _L("Right"));
 
     badget = new wxStaticBitmap(this, wxID_ANY, icon);
 
-    left_diameter_desp = new Label(this, _L("0.4mm"));
-    right_diameter_desp = new Label(this, _L("0.4mm"));
-    left_flow_desp = new Label(this, _L(get_nozzle_volume_type_string(NozzleVolumeType::nvtStandard)));
-    right_flow_desp = new Label(this, _L(get_nozzle_volume_type_string(NozzleVolumeType::nvtStandard)));
+    m_diameter_list = { "0.4 mm","0.4 mm" };
+    m_volume_type_list = { NozzleVolumeType::nvtStandard,NozzleVolumeType::nvtStandard };
+
+    left_diameter_desp = new Label(this, _L(m_diameter_list[LeftExtruderIdx]));
+    right_diameter_desp = new Label(this, _L(m_diameter_list[RightExtruderIdx]));
+    left_flow_desp = new Label(this, _L(get_nozzle_volume_type_string(m_volume_type_list[LeftExtruderIdx])));
+    right_flow_desp = new Label(this, _L(get_nozzle_volume_type_string(m_volume_type_list[RightExtruderIdx])));
+
 
     wxBoxSizer* top_h = new wxBoxSizer(wxHORIZONTAL);
     top_h->Add(left, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(15));
@@ -122,18 +131,21 @@ ExtruderBadge::ExtruderBadge(wxWindow* parent) : wxPanel(parent)
     main_sizer->Add(top_h, 0, wxEXPAND | wxTOP, FromDIP(5));
     main_sizer->Add(badget, 0, wxALIGN_CENTER | wxTOP, FromDIP(5));
 
-    wxBoxSizer* bottom_diameter = new wxBoxSizer(wxHORIZONTAL);
-    bottom_diameter->Add(left_diameter_desp, 0, wxALIGN_CENTER_VERTICAL);
-    bottom_diameter->AddStretchSpacer(1);
-    bottom_diameter->Add(right_diameter_desp, 0, wxALIGN_CENTER_VERTICAL);
-    main_sizer->Add(bottom_diameter, 0, wxEXPAND | wxTOP, FromDIP(5));
+    wxBoxSizer* left_extruder = new wxBoxSizer(wxVERTICAL);
 
-    wxBoxSizer* bottom_flow = new wxBoxSizer(wxHORIZONTAL);
-    bottom_flow->Add(left_flow_desp, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, FromDIP(15));
-    bottom_flow->AddStretchSpacer(1);
-    bottom_flow->Add(right_flow_desp, 0, wxALIGN_CENTER_VERTICAL|wxRIGHT, FromDIP(15));
-    main_sizer->Add(bottom_flow, 0, wxEXPAND | wxTOP, FromDIP(5));
+    left_extruder->Add(left_diameter_desp, 0, wxALIGN_CENTER | wxLEFT, FromDIP(12));
+    left_extruder->Add(left_flow_desp, 0, wxALIGN_CENTER | wxLEFT, FromDIP(12));
 
+    wxBoxSizer* right_extruder = new wxBoxSizer(wxVERTICAL);
+    right_extruder->Add(right_diameter_desp, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(12));
+    right_extruder->Add(right_flow_desp, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(12));
+
+    wxBoxSizer* info_sizer = new wxBoxSizer(wxHORIZONTAL);
+    info_sizer->Add(left_extruder, 0);
+    info_sizer->AddStretchSpacer();
+    info_sizer->Add(right_extruder, 0);
+
+    main_sizer->Add(info_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
 
     SetSizer(main_sizer);
     Layout();
@@ -141,16 +153,96 @@ ExtruderBadge::ExtruderBadge(wxWindow* parent) : wxPanel(parent)
     wxGetApp().UpdateDarkUIWin(this);
 }
 
-void ExtruderBadge::SetExtruderInfo(int extruder_id, const wxString& diameter, const wxString& volume_type)
+void ExtruderBadge::SetExtruderInfo(int extruder_id, const std::string& diameter, const NozzleVolumeType& volume_type)
 {
-    if (extruder_id == 0) {
+    m_diameter_list[extruder_id] = diameter;
+    m_volume_type_list[extruder_id] = volume_type;
+
+    if (extruder_id == LeftExtruderIdx) {
         left_diameter_desp->SetLabel(diameter);
-        left_flow_desp->SetLabel(volume_type);
+        left_flow_desp->SetLabel(_L(get_nozzle_volume_type_string(volume_type)));
     }
-    else if (extruder_id == 1) {
+    else if (extruder_id == RightExtruderIdx) {
         right_diameter_desp->SetLabel(diameter);
-        right_flow_desp->SetLabel(volume_type);
+        right_flow_desp->SetLabel(_L(get_nozzle_volume_type_string(volume_type)));
     }
+}
+
+void ExtruderBadge::SetExtruderValid(bool right_on)
+{
+    if (!right_on) {
+        right_diameter_desp->SetLabel("");
+        right_flow_desp->SetLabel("");
+    }
+    std::string badge_name;
+    if (m_right_on)
+        badge_name = "extruder_badge_none_selected";
+    else
+        badge_name = "extruder_badge_none_selected_single";
+    wxBitmap icon = create_scaled_bitmap(badge_name, nullptr, FromDIP(90));
+    badget->SetBitmap(icon);
+
+    m_right_on = right_on;
+}
+
+void ExtruderBadge::SetExtruderStatus(bool left_selected, bool right_selected)
+{
+    std::string badge_name;
+    if (m_right_on) {
+        if (left_selected && right_selected)
+            badge_name = "extruder_badge_both_selected";
+        else if (left_selected)
+            badge_name = "extruder_badge_left_selected";
+        else if (right_selected)
+            badge_name = "extruder_badge_right_selected";
+        else
+            badge_name = "extruder_badge_none_selected";
+    }
+    else if (left_selected) {
+        badge_name = "extruder_badge_left_selected_single";
+    }
+    else {
+        badge_name = "extruder_badge_none_selected_single";
+    }
+
+    wxBitmap icon = create_scaled_bitmap(badge_name, nullptr, FromDIP(90));
+    badget->SetBitmap(icon);
+    Layout();
+}
+
+
+void ExtruderBadge::UnMarkRelatedItems(const NozzleOption& option)
+{
+    bool left_selected = true, right_selected = true;
+
+    if (m_diameter_list[LeftExtruderIdx] == option.diameter && option.extruder_nozzle_count.count(LeftExtruderIdx)
+        && option.extruder_nozzle_count.at(LeftExtruderIdx).first == m_volume_type_list[LeftExtruderIdx]
+        && option.extruder_nozzle_count.at(LeftExtruderIdx).second > 0)
+        left_selected = false;
+
+    if (m_diameter_list[RightExtruderIdx] == option.diameter && option.extruder_nozzle_count.count(RightExtruderIdx)
+        && option.extruder_nozzle_count.at(RightExtruderIdx).first == m_volume_type_list[RightExtruderIdx]
+        && option.extruder_nozzle_count.at(RightExtruderIdx).second > 0)
+        right_selected = false;
+
+    SetExtruderStatus(left_selected, right_selected);
+}
+
+void ExtruderBadge::MarkRelatedItems(const NozzleOption& option)
+{
+    bool left_selected = false, right_selected = false;
+
+    if (m_diameter_list[LeftExtruderIdx] == option.diameter && option.extruder_nozzle_count.count(LeftExtruderIdx)
+        && option.extruder_nozzle_count.at(LeftExtruderIdx).first == m_volume_type_list[LeftExtruderIdx]
+        && option.extruder_nozzle_count.at(LeftExtruderIdx).second > 0)
+        left_selected = true;
+
+    if (m_diameter_list[RightExtruderIdx] == option.diameter && option.extruder_nozzle_count.count(RightExtruderIdx)
+        && option.extruder_nozzle_count.at(RightExtruderIdx).first == m_volume_type_list[RightExtruderIdx]
+        && option.extruder_nozzle_count.at(RightExtruderIdx).second > 0)
+        right_selected = true;
+
+    SetExtruderStatus(left_selected, right_selected);
 }
 
 HotEndTable::HotEndTable(wxWindow* parent) :  wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
@@ -181,6 +273,94 @@ void HotEndTable::UpdateRackInfo(std::weak_ptr<DevNozzleRack> rack)
         UpdateNozzleItems(m_nozzle_items, nozzle_rack);
     }
 }
+
+std::vector<int> HotEndTable::FilterHotEnds(const NozzleOption& option)
+{
+    auto rack = m_nozzle_rack.lock();
+    if (!rack)
+        return {};
+
+    std::vector<HotEndAttr> nozzles_to_search;
+
+    for (auto& item : option.extruder_nozzle_count) {
+        HotEndAttr info;
+        info.diameter = option.diameter;
+        info.extruder_id = item.first;
+        info.volume_type = item.second.first;
+        nozzles_to_search.emplace_back(info);
+    }
+
+    std::vector<int> filtered_nozzles;
+
+    for (auto& info : nozzles_to_search) {
+
+        float diameter = atof(info.diameter.c_str());
+        NozzleFlowType flow = info.volume_type == nvtStandard ? NozzleFlowType::S_FLOW :
+            info.volume_type == nvtHighFlow ? NozzleFlowType::H_FLOW : NozzleFlowType::NONE_FLOWTYPE;
+        int extruder_id = 1 - info.extruder_id; //physical
+
+        auto nozzles = rack->GetNozzleSystem()->CollectNozzles(extruder_id, flow, diameter);
+
+        for (auto& nozzle : nozzles) {
+            if (nozzle.IsOnRack())
+                filtered_nozzles.emplace_back(nozzle.GetNozzleId());
+        }
+    }
+
+    return filtered_nozzles;
+}
+
+void HotEndTable::MarkRelatedItems(const NozzleOption& option)
+{
+    const static StateColor bg_green(
+        std::pair<wxColour, int>(wxColour("#DBFDE7"), StateColor::Normal)
+    );
+
+    const static StateColor bd_green(
+        std::pair<wxColour, int>(wxColour("#00AE42"), StateColor::Normal)
+    );
+    auto filtered_nozzles = FilterHotEnds(option);
+    for (auto nozzle_id : filtered_nozzles) {
+        auto iter = m_nozzle_items.find(nozzle_id);
+        if (iter == m_nozzle_items.end())
+            continue;
+        auto& item = iter->second;
+        item->SetBackgroundColor(bg_green);
+        item->SetBorderColor(bd_green);
+        for (auto child : item->GetChildren()) {
+            child->SetBackgroundColour("#DBFDE7");
+        }
+    }
+    wxGetApp().UpdateDarkUIWin(this);
+}
+
+void HotEndTable::UnMarkRelatedItems(const NozzleOption& option)
+{
+    static const wxColour bg_color("#EEEEEE");
+    static const wxColour bd_color("#CECECE");
+    const static StateColor bg_green(
+        std::pair<wxColour, int>(bg_color, StateColor::Normal)
+    );
+
+    const static StateColor bd_green(
+        std::pair<wxColour, int>(bd_color, StateColor::Normal)
+    );
+    auto filtered_nozzles = FilterHotEnds(option);
+    for (auto nozzle_id : filtered_nozzles) {
+        auto iter = m_nozzle_items.find(nozzle_id);
+        if (iter == m_nozzle_items.end())
+            continue;
+        auto& item = iter->second;
+        item->SetBackgroundColor(bg_green);
+        item->SetBorderColor(bd_green);
+        for (auto child : item->GetChildren()) {
+            child->SetBackgroundColour(bg_color);
+        }
+    }
+    wxGetApp().UpdateDarkUIWin(this);
+}
+
+
 
 StaticBox* HotEndTable::CreateNozzleBox(const std::vector<int>& nozzle_indices)
 {
@@ -220,6 +400,112 @@ void HotEndTable::OnPaint(wxPaintEvent& evt)
     dc.DrawRoundedRectangle(0, 0, size.GetWidth(), size.GetHeight(), 5);
 }
 
+NozzleListTable::NozzleListTable(wxWindow* parent) : wxPanel(parent,wxID_ANY,wxDefaultPosition,wxDefaultSize ,wxNO_BORDER)
+{
+    m_web_view = wxWebView::New(this, wxID_ANY, wxEmptyString, wxDefaultPosition,wxDefaultSize,wxString::FromAscii(wxWebViewBackendDefault),wxNO_BORDER);
+    m_web_view->AddScriptMessageHandler("nozzleListTable");
+    m_web_view->EnableContextMenu(false);
+    fs::path filepath = fs::path(resources_dir()) / "web/flush/NozzleListTable.html";
+    wxFileName fn(wxString::FromUTF8(filepath.string()));
+    wxString url = wxFileSystem::FileNameToURL(fn);
+    m_web_view->LoadURL(url);
+
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->AddStretchSpacer(0);
+    sizer->Add(m_web_view, 1, wxEXPAND);
+    sizer->AddStretchSpacer(0);
+    SetSizer(sizer);
+    Layout();
+
+    m_web_view->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, [this,sizer](wxWebViewEvent& evt) {
+        std::string message = evt.GetString().ToStdString();
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << "Received message: " << message;
+        try {
+            json j = json::parse(message);
+            if (j["msg"].get<std::string>() == "init") {
+                auto table_obj_str = BuildTableObjStr();
+                CallAfter([table_obj_str, this] {
+                    wxString script1 = wxString::Format("initTable(%s)", table_obj_str);
+                    m_web_view->RunScript(script1);
+                    });
+            }
+            else if (j["msg"].get<std::string>() == "updateList") {
+                auto table_obj_str = BuildTableObjStr();
+                auto text_obj_str = BuildTextObjStr();
+
+                CallAfter([table_obj_str, text_obj_str, this] {
+                    wxString script1 = wxString::Format("updateTable(%s)", table_obj_str);
+                    m_web_view->RunScript(script1);
+                    });
+
+            }
+            else if (j["msg"].get<std::string>() == "onSelect") {
+                int idx = j["index"].get<int>();
+                m_selected_idx = idx;
+                SendSelectionChangedEvent();
+            }
+            else if (j["msg"].get<std::string>() == "layout") {
+                int height = j["height"].get<int>();
+                int width = j["width"].get<int>();
+                wxSize table_size = wxSize(-1, FromDIP(height));
+                m_web_view->SetSize(table_size);
+                m_web_view->SetMaxSize(table_size);
+                m_web_view->SetMinSize(table_size);
+                this->GetParent()->Layout();
+                this->GetParent()->Fit();
+            }
+        }
+        catch (...) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Failed to parse json message: " << message;
+        }
+        });
+}
+
+wxString NozzleListTable::BuildTableObjStr()
+{
+    json obj = json::array();
+    for(size_t idx = 0; idx < m_nozzle_options.size(); ++idx){
+        const auto& option = m_nozzle_options[idx];
+        json json_opt;
+        json_opt["diameter"] = option.diameter;
+        json_opt["is_selected"] = idx == m_selected_idx;
+
+        json extruders = json::object();
+        for (const auto& [extruderId, nozzleInfo] : option.extruder_nozzle_count) {
+            nlohmann::json nozzleData;
+            nozzleData["type"] = get_nozzle_volume_type_string(nozzleInfo.first);
+            nozzleData["count"] = nozzleInfo.second;
+            extruders[std::to_string(extruderId)] = nozzleData;
+        }
+        json_opt["extruders"] = extruders;
+        obj.push_back(json_opt);
+    }
+    return wxString::FromUTF8(obj.dump().c_str());
+}
+
+void NozzleListTable::SendSelectionChangedEvent()
+{
+    wxCommandEvent event(EVT_NOZZLE_SELECTED, GetId());
+    event.SetInt(m_selected_idx);
+    event.SetEventObject(this);
+    ProcessWindowEvent(event);
+}
+wxString NozzleListTable::BuildTextObjStr()
+{
+    return "";
+}
+
+void NozzleListTable::SetOptions(const std::vector<NozzleOption>& options,int default_select)
+{
+    m_nozzle_options = options;
+    m_selected_idx = default_select;
+    auto table_obj_str = BuildTableObjStr();
+    wxString script1 = wxString::Format("updateTable(%s)", table_obj_str);
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "update table " << script1;
+    CallAfter([script1, this]() {
+        m_web_view->RunScript(script1);
+        });
+}
 
 MultiNozzleStatusTable::MultiNozzleStatusTable(wxWindow* parent): wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
 {
@@ -260,6 +546,20 @@ MultiNozzleStatusTable::MultiNozzleStatusTable(wxWindow* parent): wxPanel(parent
     wxGetApp().UpdateDarkUIWin(this);
 }
 
+void MultiNozzleStatusTable::MarkRelatedItems(const NozzleOption& option)
+{
+    m_table->MarkRelatedItems(option);
+
+    m_badge->MarkRelatedItems(option);
+}
+
+void MultiNozzleStatusTable::UnMarkRelatedItems(const NozzleOption& option)
+{
+    m_table->UnMarkRelatedItems(option);
+
+    m_badge->UnMarkRelatedItems(option);
+}
+
 void MultiNozzleStatusTable::UpdateRackInfo(std::weak_ptr<DevNozzleRack> rack)
 {
     if (m_table)
@@ -269,17 +569,21 @@ void MultiNozzleStatusTable::UpdateRackInfo(std::weak_ptr<DevNozzleRack> rack)
         if (!nozzle_rack)
             return;
         auto nozzles_in_extruder = nozzle_rack->GetNozzleSystem()->GetNozzles();
+        bool has_right = false;
         for (auto& elem : nozzles_in_extruder) {
             auto& nozzle = elem.second;
             int extruder_id = nozzle.AtLeftExtruder() ? 0 : 1;
-            wxString flow_str;
+            if (nozzle.AtRightExtruder())
+                has_right = true;
+            NozzleVolumeType volume_type;
             if (nozzle.m_nozzle_flow == NozzleFlowType::H_FLOW)
-                flow_str = _L(get_nozzle_volume_type_string(nvtHighFlow));
+                volume_type = nvtHighFlow;
             else
-                flow_str = _L(get_nozzle_volume_type_string(nvtStandard));
+                volume_type = nvtStandard;
 
-            m_badge->SetExtruderInfo(extruder_id, nozzle.GetNozzleDiameterStr(), flow_str);
+            m_badge->SetExtruderInfo(extruder_id, nozzle.GetNozzleDiameterStr().ToStdString(), volume_type);
         }
+        m_badge->SetExtruderValid(has_right);
     }
 }
 
@@ -295,9 +599,14 @@ Slic3r::GUI::MultiNozzleSyncDialog::MultiNozzleSyncDialog(wxWindow* parent,std::
     label_sizer->Add(m_tips, 0, wxLEFT | wxRIGHT, FromDIP(25));
     main_sizer->Add(label_sizer, 0, wxTOP | wxBOTTOM, FromDIP(15));
 
-    m_list_panel = new wxPanel(this);
-    m_list_panel->SetBackgroundColour(*wxWHITE);
-    main_sizer->Add(m_list_panel, 0, wxLEFT | wxRIGHT | wxTOP, FromDIP(5));
+    m_list_table = new NozzleListTable(this);
+
+    m_list_table->Bind(EVT_NOZZLE_SELECTED, [this](wxCommandEvent& evt) {
+        int idx = evt.GetInt();
+        this->OnSelectRadio(idx);
+        });
+
+    main_sizer->Add(m_list_table, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(25));
 
     m_nozzle_table = new MultiNozzleStatusTable(this);
     wxBoxSizer* table_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -339,12 +648,13 @@ Slic3r::GUI::MultiNozzleSyncDialog::MultiNozzleSyncDialog(wxWindow* parent,std::
 
     SetSizer(main_sizer);
 
-    main_sizer->SetSizeHints(this);
+    //main_sizer->SetSizeHints(this);
     main_sizer->Fit(this);
 
     int table_width = m_nozzle_table->GetBestSize().GetWidth();
     m_tips->Wrap(table_width);
     m_tips->SetMaxSize(wxSize(table_width, -1));
+    Layout();
 
     m_refresh_timer = new wxTimer(this);
     Bind(wxEVT_TIMER, &MultiNozzleSyncDialog::OnRefreshTimer, this);
@@ -391,14 +701,10 @@ void MultiNozzleSyncDialog::UpdateRackInfo(std::weak_ptr<DevNozzleRack> rack)
 
 void MultiNozzleSyncDialog::OnSelectRadio(int select_idx)
 {
-    for (size_t idx = 0; idx < m_nozzle_option_labels.size(); ++idx) {
-        auto& radio_box = m_nozzle_option_labels[idx].first;
-        if (idx == select_idx)
-            radio_box->SetValue(true);
-        else
-            radio_box->SetValue(false);
-    }
+    if (m_nozzle_option_idx != -1)
+        m_nozzle_table->UnMarkRelatedItems(m_nozzle_option_values[m_nozzle_option_idx]);
     m_nozzle_option_idx = select_idx;
+    m_nozzle_table->MarkRelatedItems(m_nozzle_option_values[m_nozzle_option_idx]);
 }
 
 bool MultiNozzleSyncDialog::hasMultiDiameters(const std::vector<MultiNozzleUtils::NozzleGroupInfo>& group_infos)
@@ -481,21 +787,15 @@ bool MultiNozzleSyncDialog::UpdateOptionList(std::weak_ptr<DevNozzleRack> rack, 
     bool has_unreliable = nozzle_rack->HasUnreliableNozzles() && !ignore_unreliable;
 
     if (has_unknown || has_unreliable) {
-        m_list_panel->Hide();
+        m_list_table->Hide();
         return true;
     }
 
-    m_list_panel->Show();
+    m_list_table->Show();
 
     m_nozzle_option_values.clear();
-    m_nozzle_option_labels.clear();
 
-    auto nozzle_groups = nozzle_rack->GetNozzleGroups();
-    auto options = GetNozzleOptions(nozzle_groups);
-
-    m_nozzle_option_values = options;
-
-    auto list_sizer = new wxBoxSizer(wxVERTICAL);
+    auto options = GetNozzleOptions(nozzle_rack->GetNozzleGroups());
 
     int recommend_idx = std::max_element(options.begin(), options.end(), [](const NozzleOption& opt1, const NozzleOption& opt2) {
         int count1 = 0, count2 = 0;
@@ -506,40 +806,9 @@ bool MultiNozzleSyncDialog::UpdateOptionList(std::weak_ptr<DevNozzleRack> rack, 
         return count1 < count2;
         }) - options.begin();
 
-
-        for (size_t idx = 0; idx < options.size(); ++idx) {
-            auto& option = options[idx];
-            std::vector<NozzleVolumeType> left_types, right_types;
-            wxString left_nozzle;
-            wxString right_nozzle;
-
-            if (!option.extruder_nozzle_count.count(0))
-                left_nozzle = _L("Left Nozzle(0)");
-            else
-                left_nozzle = wxString::Format(_L("Left %s Nozzle(%d)"), get_nozzle_volume_type_string(option.extruder_nozzle_count[0].first), option.extruder_nozzle_count[0].second);
-
-            if (!option.extruder_nozzle_count.count(1))
-                right_nozzle = _L("Right Nozzle(0)");
-            else
-                right_nozzle = wxString::Format(_L("Right %s Nozzle(%d)"), get_nozzle_volume_type_string(option.extruder_nozzle_count[1].first), option.extruder_nozzle_count[1].second);
-
-            wxString label = wxString::Format("%s: %s + %s", option.diameter, left_nozzle, right_nozzle);
-            auto line_sizer = new wxBoxSizer(wxHORIZONTAL);
-            RadioBox* rb = new RadioBox(m_list_panel);
-            Label* lb = new Label(m_list_panel, label);
-            m_nozzle_option_labels.push_back({ rb,lb });
-            rb->Bind(wxEVT_LEFT_DOWN, [this, idx](wxMouseEvent& e) {
-                OnSelectRadio(idx);
-                });
-
-            if (idx == recommend_idx)
-                OnSelectRadio(idx);
-
-            line_sizer->Add(rb, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-            line_sizer->Add(lb, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-            list_sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(10));
-        }
-        m_list_panel->SetSizer(list_sizer);
+    m_nozzle_option_values = options;
+    OnSelectRadio(recommend_idx);
+    m_list_table->SetOptions(options,recommend_idx);
 
         if (!has_unknown && !has_unreliable && options.size() == 1) {
             return false;
