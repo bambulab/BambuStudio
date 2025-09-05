@@ -1,0 +1,28 @@
+{
+    "type": "filament",
+    "name": "Overture PETG @BBL P1P",
+    "inherits": "Overture PETG @base",
+    "from": "system",
+    "setting_id": "GFOT007_04",
+    "instantiation": "true",
+    "compatible_printers": [
+        "Bambu Lab P1P 0.4 nozzle",
+        "Bambu Lab P1P 0.6 nozzle",
+        "Bambu Lab P1P 0.8 nozzle"
+    ],
+    "fan_cooling_layer_time": [
+        "30"
+    ],
+    "fan_max_speed": [
+        "40"
+    ],
+    "fan_min_speed": [
+        "10"
+    ],
+    "filament_max_volumetric_speed": [
+        "16"
+    ],
+    "slow_down_layer_time": [
+        "12"
+    ]
+}
