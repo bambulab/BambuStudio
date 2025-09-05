@@ -6223,6 +6223,11 @@ void TabPrinter::set_extruder_volume_type(int extruder_id, NozzleVolumeType type
     auto nozzle_volumes = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
     assert(nozzle_volumes->values.size() > (size_t)extruder_id);
     nozzle_volumes->values[extruder_id] = type;
+
+    auto& nozzle_count_elem = m_preset_bundle->extruder_nozzle_counts[extruder_id];
+
+    int nozzle_count_val = std::accumulate(nozzle_count_elem.begin(), nozzle_count_elem.end(), 0, [](int val, auto elem) { return val + elem.second; });
+    setExtruderNozzleCount(m_preset_bundle, extruder_id, type, nozzle_count_val);
     on_value_change((boost::format("nozzle_volume_type#%1%") % extruder_id).str(), int(type));
     update_dirty();
 
