@@ -1640,7 +1640,8 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusRackReading ||
-               status == PrintDialogStatus::PrintStatusNozzleNoMatchedHotends) {
+               status == PrintDialogStatus::PrintStatusNozzleNoMatchedHotends || 
+               status == PrintDialogStatus::PrintStatusNozzleRackMaximumInstalled) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusFilamentWarningHighChamberTempSoft ||
@@ -4644,6 +4645,13 @@ bool SelectMachineDialog::CheckErrorExtruderNozzleWithSlicing(MachineObject* obj
                 if (nozzle_sys->CollectNozzles(MAIN_EXTRUDER_ID, slicing_ext.nozzle_flow_type, slicing_ext.nozzle_diameter).empty()) {
                     show_status(PrintDialogStatus::PrintStatusNozzleNoMatchedHotends,
                                 { _L("No hotends available. Please re-slice.")},
+                                wxEmptyString, prePrintInfoStyle::NozzleState);
+                    return false;
+                }
+
+                if (nozzle_sys->IsRackMaximumInstalled())  {
+                    show_status(PrintDialogStatus::PrintStatusNozzleRackMaximumInstalled,
+                                { _L("The toolhead and hotend rack are full. Please remove at least one hotend before printing.") },
                                 wxEmptyString, prePrintInfoStyle::NozzleState);
                     return false;
                 }

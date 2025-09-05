@@ -65,6 +65,7 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusInPrinting,
     PrintStatusNozzleMatchInvalid,
     PrintStatusNozzleNoMatchedHotends,
+    PrintStatusNozzleRackMaximumInstalled,
     PrintStatusNozzleDataInvalid,
     PrintStatusNozzleDiameterMismatch,
     PrintStatusNozzleTypeMismatch,

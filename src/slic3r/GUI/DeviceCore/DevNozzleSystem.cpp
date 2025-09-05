@@ -406,6 +406,27 @@ ExtruderNozzleInfos DevNozzleSystem::GetExtruderNozzleInfo() const
     return result;
 }
 
+bool DevNozzleSystem::IsRackMaximumInstalled() const
+{
+    auto ext_nozzle = GetNozzle(MAIN_EXTRUDER_ID);
+    if (ext_nozzle.IsEmpty()) {
+        return false;
+    }
+
+    const auto& rack_nozzles = m_nozzle_rack->GetRackNozzles();
+    if (rack_nozzles.size() < 6) {
+        return false;
+    }
+
+    for (auto item : rack_nozzles) {
+        if (item.second.IsEmpty()) {
+            return false;
+        }
+    }
+
+    return true;
+};
+
 static unordered_map<string, NozzleFlowType> _str2_nozzle_flow_type = {
     {"S", NozzleFlowType::S_FLOW},
     {"H", NozzleFlowType::H_FLOW},
