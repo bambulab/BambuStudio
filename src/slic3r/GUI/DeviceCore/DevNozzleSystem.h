@@ -109,10 +109,18 @@ namespace Slic3r
    public:
        MachineObject* GetOwner() const { return m_owner; }
 
+       // nozzles on extruder
        bool                            ContainsNozzle(int id) const { return m_ext_nozzles.find(id) != m_ext_nozzles.end(); }
        DevNozzle                       GetNozzle(int id) const;
-       const std::vector<DevNozzle>    CollectNozzles(int ext_loc, NozzleFlowType flow_type, float diameter) const;
        const std::map<int, DevNozzle>& GetNozzles() const { return m_ext_nozzles;}
+
+       // nozzles on rack
+       void  SetSupportNozzleRack(bool supported);
+       std::shared_ptr<DevNozzleRack>  GetNozzleRack() const { return m_nozzle_rack;}
+
+       // nozzles on extruder and rack
+       bool IsRackMaximumInstalled() const;
+       const std::vector<DevNozzle> CollectNozzles(int ext_loc, NozzleFlowType flow_type, float diameter) const;
        ExtruderNozzleInfos  GetExtruderNozzleInfo() const;
        std::vector<MultiNozzleUtils::NozzleGroupInfo> GetNozzleGroups() const;
        bool  IsIdle() const { return m_state_0_4 == NOZZLE_SYSTEM_IDLE; }
@@ -125,10 +133,6 @@ namespace Slic3r
        /* reading*/
        int GetReadingIdx() const { return m_reading_idx; };
        int GetReadingCount() const { return m_reading_count; };
-
-       /* rack*/
-       void  SetSupportNozzleRack(bool supported);
-       std::shared_ptr<DevNozzleRack>  GetNozzleRack() const { return m_nozzle_rack;}
 
        /* firmware*/
        void AddFirmwareInfoWTM(const DevFirmwareVersionInfo& info);
