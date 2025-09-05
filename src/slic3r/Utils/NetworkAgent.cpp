@@ -11,7 +11,7 @@
 #include "slic3r/Utils/BBLUtil.hpp"
 #include "NetworkAgent.hpp"
 
-
+#include "slic3r/Utils/FileTransferUtils.hpp"
 
 using namespace BBL;
 
@@ -239,6 +239,9 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", line %1%,  successfully loaded library, using_backup %2%, module %3%")%__LINE__ %using_backup %netwoking_module;
 
+    // load file transfer interface
+    InitFTModule(netwoking_module);
+
     //load the functions
     check_debug_consistent_ptr        =  reinterpret_cast<func_check_debug_consistent>(get_network_function("bambu_network_check_debug_consistent"));
     get_version_ptr                   =  reinterpret_cast<func_get_version>(get_network_function("bambu_network_get_version"));
@@ -349,6 +352,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
 int NetworkAgent::unload_network_module()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", network module %1%")%netwoking_module;
+    UnloadFTModule();
 #if defined(_MSC_VER) || defined(_WIN32)
     if (netwoking_module) {
         FreeLibrary(netwoking_module);
