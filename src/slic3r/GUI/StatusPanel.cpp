@@ -42,7 +42,6 @@
 
 #include "ThermalPreconditioningDialog.hpp"
 
-
 namespace Slic3r { namespace GUI {
 
 #define TEMP_THRESHOLD_VAL 2

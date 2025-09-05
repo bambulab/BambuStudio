@@ -210,7 +210,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/GUI_Utils.hpp
     GUI/I18N.cpp
     GUI/I18N.hpp
-	GUI/IconManager.cpp
+    GUI/IconManager.cpp
     GUI/IconManager.hpp
     GUI/MainFrame.cpp
     GUI/MainFrame.hpp
@@ -602,14 +602,16 @@ set(SLIC3R_GUI_SOURCES
     Utils/CalibUtils.cpp
     Utils/CalibUtils.hpp
     Utils/ProfileDescription.hpp
-	Utils/FontConfigHelp.cpp
-	Utils/FontConfigHelp.hpp
-	Utils/FontUtils.cpp
-	Utils/FontUtils.hpp
+    Utils/FontConfigHelp.cpp
+    Utils/FontConfigHelp.hpp
+    Utils/FontUtils.cpp
+    Utils/FontUtils.hpp
     Utils/WxFontUtils.hpp
     Utils/WxFontUtils.cpp
     Utils/HelioDragon.cpp
-	Utils/HelioDragon.hpp
+    Utils/HelioDragon.hpp
+    Utils/FileTransferUtils.cpp
+    Utils/FileTransferUtils.hpp
 )
 
 add_subdirectory(GUI/DeviceCore)
