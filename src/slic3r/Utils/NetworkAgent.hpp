@@ -55,6 +55,7 @@ typedef std::string (*func_build_logout_cmd)(void *agent);
 typedef std::string (*func_build_login_info)(void *agent);
 typedef int (*func_ping_bind)(void *agent, std::string ping_code);
 typedef int (*func_bind_detect)(void *agent, std::string dev_ip, std::string sec_link, detectResult& detect);
+typedef int (*func_report_consent)(void *agent, std::string expand);
 typedef int (*func_set_server_callback)(void *agent, OnServerErrFn fn);
 typedef int (*func_bind)(void *agent, std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone, bool improved, OnUpdateStatusFn update_fn);
 typedef int (*func_unbind)(void *agent, std::string dev_id);
@@ -173,6 +174,7 @@ public:
     std::string build_login_info();
     int ping_bind(std::string ping_code);
     int bind_detect(std::string dev_ip, std::string sec_link, detectResult& detect);
+    int report_consent(std::string expand);
     int set_server_callback(OnServerErrFn fn);
     int bind(std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone, bool improved, OnUpdateStatusFn update_fn);
     int unbind(std::string dev_id);
@@ -280,6 +282,7 @@ private:
     static func_build_login_info               build_login_info_ptr;
     static func_ping_bind                      ping_bind_ptr;
     static func_bind_detect                    bind_detect_ptr;
+    static func_report_consent                 report_consent_ptr;
     static func_set_server_callback            set_server_callback_ptr;
     static func_bind                           bind_ptr;
     static func_unbind                         unbind_ptr;

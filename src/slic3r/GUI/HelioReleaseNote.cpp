@@ -197,7 +197,7 @@ namespace Slic3r { namespace GUI {
          bool copySuccess = false;
          if (wxTheClipboard->Open()){
              wxTheClipboard->Clear();
-             wxTextDataObject* dataObj = new wxTextDataObject(helio_input_pat->GetLabel());
+             wxTextDataObject* dataObj = new wxTextDataObject(Slic3r::HelioQuery::get_helio_pat());
              wxTheClipboard->SetData(dataObj);
              wxTheClipboard->Close();
          }
@@ -269,6 +269,7 @@ namespace Slic3r { namespace GUI {
      m_button_uninstall->SetCornerRadius(FromDIP(8));
      m_button_uninstall->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
          wxGetApp().app_config->set_bool("helio_enable", false);
+         report_consent_unstall();
 
          /*hide helio on main windows*/
          if (wxGetApp().mainframe->expand_program_holder) {
@@ -389,6 +390,10 @@ void HelioStatementDialog::on_confirm(wxMouseEvent& e)
         wxGetApp().app_config->set_bool("helio_enable", true);
         show_pat_page();
         request_pat();
+        report_consent_install();
+        wxGetApp().report_consent("");
+        
+
         /*hide helio on main windows*/
         if (wxGetApp().mainframe->expand_program_holder) {
             wxGetApp().mainframe->expand_program_holder->ShowExpandButton(wxGetApp().mainframe->expand_helio_id, true);
@@ -401,6 +406,32 @@ void HelioStatementDialog::on_confirm(wxMouseEvent& e)
     Fit();
     CentreOnParent();
  }
+
+void HelioStatementDialog::report_consent_install()
+{
+    /* NetworkAgent* agent = GUI::wxGetApp().getAgent();
+         if (agent && agent->is_user_login()) {
+             agent->report_consent("enter_model_mall");
+         }*/
+
+    NetworkAgent* agent = GUI::wxGetApp().getAgent();
+    if (agent && agent->is_user_login()) {
+        agent->report_consent("enter_model_mall");
+    }
+    else {
+        agent->report_consent("enter_model_mall");
+    }
+}
+
+void HelioStatementDialog::report_consent_unstall()
+{
+    NetworkAgent* agent = GUI::wxGetApp().getAgent();
+    if (agent && agent->is_user_login())
+        agent->report_consent("enter_model_mall");
+    else {
+        agent->report_consent("enter_model_mall");
+    }
+}
 
 void HelioStatementDialog::open_url(std::string type)
 {
@@ -521,9 +552,12 @@ void HelioStatementDialog::request_pat()
                     wxString wpat = wxString(pat.length(), '*');
                     helio_input_pat->SetLabel(wpat);
                     show_pat_option("dview");
+
+                    /*request helio data*/
+                    wxGetApp().request_helio_supported_data();
                 }
             }
-            });
+        });
     }
     else {
         show_err_info("");

@@ -90,6 +90,8 @@ public:
     void show_pat_page();
     void request_pat();
     void on_confirm(wxMouseEvent& e);
+    void report_consent_install();
+    void report_consent_unstall();
     void open_url(std::string type);
 
     void OnLoaded(wxWebViewEvent& event);

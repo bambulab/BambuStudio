@@ -469,8 +469,8 @@ ExpandButton::ExpandButton(wxWindow* parent,  std::string bmp, wxWindowID id, co
 {
     m_bmp_str = bmp;
     m_bmp = create_scaled_bitmap(m_bmp_str, this, 18);
-    SetMinSize(wxSize(FromDIP(22), FromDIP(22)));
-    SetMaxSize(wxSize(FromDIP(22), FromDIP(22)));
+    SetMinSize(wxSize(FromDIP(24), FromDIP(24)));
+    SetMaxSize(wxSize(FromDIP(24), FromDIP(24)));
     Bind(wxEVT_PAINT, &ExpandButton::OnPaint, this);
     Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
     Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
@@ -479,6 +479,12 @@ ExpandButton::ExpandButton(wxWindow* parent,  std::string bmp, wxWindowID id, co
         event.SetInt(GetId());
         wxPostEvent(GetParent(), event);
     });
+}
+
+void ExpandButton::update_bitmap(std::string bmp)
+{
+    m_bmp = create_scaled_bitmap(bmp, this, 18);
+    Refresh();
 }
 
 void ExpandButton::msw_rescale() 
@@ -516,15 +522,20 @@ void ExpandButton::render(wxDC& dc)
 void ExpandButton::doRender(wxDC& dc)
 {
     wxSize size = GetSize();
-    int left = (size.GetWidth() - m_bmp.GetSize().GetWidth()) / 2;
-    int top = (size.GetHeight() - m_bmp.GetSize().GetWidth()) / 2;
+    int left = (size.GetWidth() - FromDIP(18)) / 2;
+    int top = (size.GetHeight() - FromDIP(18)) / 2;
     dc.DrawBitmap(m_bmp, left, top);
 }
 
 ExpandButtonHolder::ExpandButtonHolder(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
     : wxPanel(parent, id, pos, size)
 {
+#ifdef __APPLE__
+    SetBackgroundColour(wxColour("#2D2D30"));
+#else
     SetBackgroundColour(wxColour("#3B4446"));
+#endif
+    
     hsizer = new wxBoxSizer(wxHORIZONTAL);
     hsizer->AddStretchSpacer(1);
     vsizer = new wxBoxSizer(wxVERTICAL);
@@ -546,11 +557,6 @@ void ExpandButtonHolder::addExpandButton(wxWindowID id, std::string img)
     ExpandButton* expand_program = new ExpandButton(this, img, id);
     hsizer->Add(expand_program, 0, wxALIGN_CENTER|wxALL, FromDIP(3));
     ShowExpandButton(id, true);
-    int length = GetAvailable();
-    SetMinSize(wxSize(length * FromDIP(24) + FromDIP(24) + (length - 1) * FromDIP(6), FromDIP(24)));
-    SetMaxSize(wxSize(length * FromDIP(24) + FromDIP(24) + (length - 1) * FromDIP(6), FromDIP(24)));
-    Layout();
-    Refresh();
 }
 
 void ExpandButtonHolder::ShowExpandButton(wxWindowID id, bool show)
@@ -582,7 +588,14 @@ void ExpandButtonHolder::ShowExpandButton(wxWindowID id, bool show)
                  expandBtn->SetBackgroundColour(wxColour("#3B4446"));
              }
              else {
-                 expandBtn->SetBackgroundColour(wxColour("#242E30"));
+
+#ifdef __APPLE__
+                expandBtn->SetBackgroundColour(wxColour("#384547"));
+#else
+                expandBtn->SetBackgroundColour(wxColour("#242E30"));
+#endif
+
+                 
              }
          }
      }
@@ -591,7 +604,40 @@ void ExpandButtonHolder::ShowExpandButton(wxWindowID id, bool show)
     SetMaxSize(wxSize(length * FromDIP(24) + FromDIP(24) + (length - 1) * FromDIP(6), FromDIP(24)));
     Layout();
     Fit();
-    Refresh();
+}
+
+void ExpandButtonHolder::updateExpandButtonBitmap(wxWindowID id, std::string bitmap)
+{
+    wxWindowList& children = this->GetChildren();
+    for (wxWindowList::iterator it = children.begin(); it != children.end(); ++it)
+    {
+        wxWindow* child = *it;
+        if (!child) continue;
+        ExpandButton* expandBtn = dynamic_cast<ExpandButton*>(child);
+        if (expandBtn != nullptr)
+        {
+            if (expandBtn->GetId() == id) {
+                expandBtn->update_bitmap(bitmap);
+            }   
+        }
+    }
+}
+
+void ExpandButtonHolder::EnableExpandButton(wxWindowID id, bool enb)
+{
+    wxWindowList& children = this->GetChildren();
+    for (wxWindowList::iterator it = children.begin(); it != children.end(); ++it)
+    {
+        wxWindow* child = *it;
+        if (!child) continue;
+        ExpandButton* expandBtn = dynamic_cast<ExpandButton*>(child);
+        if (expandBtn != nullptr)
+        {
+            if (expandBtn->GetId() == id) {
+                expandBtn->Enable(enb);
+            }
+        }
+    }
 }
 
 int ExpandButtonHolder::GetAvailable()
@@ -660,8 +706,13 @@ void ExpandButtonHolder::doRender(wxDC& dc)
     wxSize size = GetSize();
     
     if (GetAvailable() > 1) {
+#ifdef __APPLE__
+        dc.SetBrush(wxBrush(wxColour("#384547")));
+        dc.SetPen(wxPen(wxColour("#384547")));
+#else
         dc.SetBrush(wxBrush(wxColour("#242E30")));
         dc.SetPen(wxPen(wxColour("#242E30")));
+#endif
         dc.DrawRoundedRectangle(0, 0, size.x, size.y, FromDIP(10));
     }
 }
