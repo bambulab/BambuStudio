@@ -4,6 +4,9 @@
 #include "I18N.hpp"
 #include <set>
 
+#include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
+#include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
+
 
 namespace Slic3r { namespace GUI {
 
@@ -167,6 +170,20 @@ PrinterMsgPanel::PrinterMsgPanel(wxWindow *parent, SelectMachineDialog* select_d
     this->SetSizer(m_sizer);
 }
 
+void PrinterMsgPanel::Clear()
+{
+    m_infos.clear();
+    m_not_show_again_infos.clear();
+    ClearGUI();
+}
+
+void PrinterMsgPanel::ClearGUI()
+{
+    m_sizer->Clear(true);
+    m_scale_btns.clear();
+    m_ctrl_btns.clear();
+}
+
 static wxColour _GetLabelColour(const prePrintInfo& info)
 {
     if (info.level == Error)
@@ -189,9 +206,13 @@ bool PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
     }
     m_infos = infos;
 
-    m_sizer->Clear(true);
+    ClearGUI();
     for (const prePrintInfo& info : infos)
     {
+        if (m_not_show_again_infos.count(info) != 0) {
+            continue;
+        };
+
         if (!info.msg.empty())
         {
             Label* label = new Label(this);
@@ -199,7 +220,7 @@ bool PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
             label->SetForegroundColour(_GetLabelColour(info));
 
             if (info.wiki_url.empty())
-            {
+{
                 label->SetLabel(info.msg);
             }
             else
@@ -210,16 +231,18 @@ bool PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
                 label->Bind(wxEVT_LEFT_DOWN, [info](wxMouseEvent& event) { wxLaunchDefaultBrowser(info.wiki_url); });
             }
 
-            label->Wrap(this->GetMinSize().GetWidth());
-            m_sizer->Add(label, 0, wxBOTTOM, FromDIP(4));
+            ScalableButton* btn = CreateTypeButton(info);
+            label->Wrap(this->GetMinSize().GetWidth() - btn->GetSize().x - FromDIP(2));
 
-            // special styles
-            if (info.testStyle(prePrintInfoStyle::NozzleState)) {
-                NozzleStatePanel* nozzle_info = new NozzleStatePanel(this);
-                nozzle_info->UpdateInfoBy(m_select_dialog->get_plater(), m_select_dialog->get_current_machine());
-                m_sizer->Add(nozzle_info, 0, wxLEFT, FromDIP(10));
-                m_sizer->AddSpacer(FromDIP(4));
-            }
+            wxSizer* msg_sizer = new wxBoxSizer(wxHORIZONTAL);
+            msg_sizer->Add(btn, 0, wxLEFT | wxTOP);
+            msg_sizer->AddSpacer(FromDIP(2));
+            msg_sizer->Add(label, 0, wxLEFT | wxBOTTOM);
+            msg_sizer->Layout();
+            m_sizer->Add(msg_sizer, 0, wxBOTTOM, FromDIP(4));
+
+            // some special styles
+            AppendStyles(info);
         }
     }
 
@@ -231,6 +254,104 @@ bool PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
     return true;
 }
 
+void PrinterMsgPanel::Rescale()
+{
+    for (auto item : m_scale_btns) {
+        item->msw_rescale();
+    }
+
+    for (auto item : m_ctrl_btns) {
+        item->Rescale();
+    }
+
+    Layout();
+    Fit();
+}
+
+ScalableButton* PrinterMsgPanel::CreateTypeButton(const prePrintInfo& info)
+{
+    ScalableButton* btn = nullptr;
+    if (info.level == Error)         {
+        btn = new ScalableButton(this, wxID_ANY, "dev_error");
+    } else if (info.level == Warning) {
+        btn = new ScalableButton(this, wxID_ANY, "dev_warning");
+    } else {
+        btn = new ScalableButton(this, wxID_ANY, "dev_warning");
+    }
+
+    btn->SetBackgroundColour(*wxWHITE);
+    btn->SetMaxSize(wxSize(FromDIP(16), FromDIP(16)));
+    btn->SetMinSize(wxSize(FromDIP(16), FromDIP(16)));
+    btn->SetSize(wxSize(FromDIP(16), FromDIP(16)));
+    m_scale_btns.push_back(btn);
+    return btn;
+};
+
+static Label* s_create_btn_label(PrinterMsgPanel* panel, const wxString& btn_name)
+{
+    Label* btn = new Label(panel, btn_name);
+    btn->SetFont(Label::Body_13);
+    auto font = btn->GetFont();
+    font.SetUnderlined(true);
+    btn->SetFont(font);
+    btn->SetBackgroundColour(*wxWHITE);
+    btn->SetForegroundColour(wxColour("#00AE42"));
+    btn->Bind(wxEVT_ENTER_WINDOW, [panel](auto& e) { panel->SetCursor(wxCURSOR_HAND); });
+    btn->Bind(wxEVT_LEAVE_WINDOW, [panel](auto& e) { panel->SetCursor(wxCURSOR_ARROW); });
+    return btn;
+}
+
+void PrinterMsgPanel::AppendStyles(const prePrintInfo& info)
+{
+    // special styles
+    if (info.testStyle(prePrintInfoStyle::BtnNozzleRefresh) || info.testStyle(prePrintInfoStyle::BtnConfirmNotShowAgain)) {
+
+        wxBoxSizer* btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+        if (info.testStyle(prePrintInfoStyle::BtnNozzleRefresh)){
+            auto btn = s_create_btn_label(this, _L("Refresh"));
+            btn->Bind(wxEVT_LEFT_DOWN, &PrinterMsgPanel::OnRefreshNozzleBtnClicked, this);
+            btn_sizer->Add(btn, 0, wxLEFT, FromDIP(16));
+        }
+
+        if (info.testStyle(prePrintInfoStyle::BtnConfirmNotShowAgain)) {
+            auto btn = s_create_btn_label(this, _L("Confirm"));
+            btn->Bind(wxEVT_LEFT_DOWN, [this, info](auto& e) {
+                this->OnNotShowAgain(info);
+            });
+
+            btn_sizer->Add(btn, 0, wxLEFT, FromDIP(16));
+        }
+
+        m_sizer->Add(btn_sizer, 0, wxLEFT);
+        m_sizer->AddSpacer(FromDIP(4));
+    }
+
+    if (info.testStyle(prePrintInfoStyle::NozzleState)) {
+        NozzleStatePanel* nozzle_info = new NozzleStatePanel(this);
+        nozzle_info->UpdateInfoBy(m_select_dialog->get_plater(), m_select_dialog->get_current_machine());
+        m_sizer->Add(nozzle_info, 0, wxLEFT, FromDIP(16));
+        m_sizer->AddSpacer(FromDIP(4));
+    }
+}
+
+void PrinterMsgPanel::OnRefreshNozzleBtnClicked(wxMouseEvent& event)
+{
+    auto obj_ = m_select_dialog->get_current_machine();
+    if (obj_) {
+        obj_->GetNozzleSystem()->GetNozzleRack()->CtrlRackReadAll(true);
+    }
+
+    event.Skip();
+}
+
+void PrinterMsgPanel::OnNotShowAgain(const prePrintInfo& info)
+{
+    m_not_show_again_infos.insert(info);
+
+    auto cp_infos = m_infos;
+    m_infos.clear();
+    UpdateInfos(cp_infos);
+}
 
 }
 };

@@ -3,6 +3,10 @@
 
 #include <wx/wx.h>
 #include "Widgets/Label.hpp"
+
+class Button;
+class ScalableButton;
+
 namespace Slic3r { namespace GUI {
 
 enum prePrintInfoLevel {
@@ -18,9 +22,16 @@ enum prePrintInfoType {
 
 enum class prePrintInfoStyle : int
 {
-    Default    = 0,
-    NozzleState = 0x01,
+    Default = 0,
+    NozzleState = 0x001,
+    BtnNozzleRefresh = 0x002,
+    BtnConfirmNotShowAgain = 0x004,
 };
+
+inline constexpr prePrintInfoStyle operator|(prePrintInfoStyle a, prePrintInfoStyle b) noexcept
+{
+    return static_cast<prePrintInfoStyle>(static_cast<int>(a) | static_cast<int>(b));
+}
 
 struct prePrintInfo
 {
@@ -38,6 +49,22 @@ public:
                msg == other.msg && tips == other.tips &&
                wiki_url == other.wiki_url && index == other.index &&
                m_style == other.m_style;
+    }
+
+    bool operator<(const prePrintInfo& other) const {
+        if (level != other.level)
+            return level < other.level;
+        if (type != other.type)
+            return type < other.type;
+        if (msg != other.msg)
+            return msg < other.msg;
+        if (tips != other.tips)
+            return tips < other.tips;
+        if (wiki_url != other.wiki_url)
+            return wiki_url < other.wiki_url;
+        if (index != other.index)
+            return index < other.index;
+        return m_style < other.m_style;
     }
 
     bool testStyle(prePrintInfoStyle style) const {
@@ -166,16 +193,28 @@ public:
     PrinterMsgPanel(wxWindow *parent, SelectMachineDialog* select_dialog);
 
 public:
+    void  Clear();
     bool  UpdateInfos(const std::vector<prePrintInfo>& infos);
+    void  Rescale();
 
 private:
-    void  Clear();
+    void  ClearGUI();
+    void  AppendStyles(const prePrintInfo& info);
+    ScalableButton* CreateTypeButton(const prePrintInfo& info);
+
+    // events
+    void OnNotShowAgain(const prePrintInfo& info);
+    void OnRefreshNozzleBtnClicked(wxMouseEvent& event);
 
  private:
     SelectMachineDialog* m_select_dialog = nullptr;
 
     wxBoxSizer*  m_sizer = nullptr;
     std::vector<prePrintInfo> m_infos;
+    std::vector<ScalableButton*> m_scale_btns;
+    std::vector<Button*> m_ctrl_btns;
+
+    std::set<prePrintInfo> m_not_show_again_infos;
 };
 
 
