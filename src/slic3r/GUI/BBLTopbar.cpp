@@ -28,7 +28,6 @@ enum CUSTOM_ID
     ID_TITLE,
     ID_MODEL_STORE,
     ID_PUBLISH,
-    ID_TOPBAR_LINE,
     ID_CALIB,
     ID_TOOL_BAR = 3200,
     ID_AMS_NOTEBOOK,
@@ -276,12 +275,6 @@ void BBLTopbar::Init(wxFrame* parent)
     m_model_store_item = this->AddTool(ID_MODEL_STORE, "", model_store_bitmap);
     this->AddSpacer(12);
     */
-
-    wxBitmap m_topbarline_bitmap = create_scaled_bitmap("topbar_line", nullptr, FromDIP(24));
-    wxAuiToolBarItem* m_topbarline_item = this->AddTool(ID_TOPBAR_LINE, "", m_topbarline_bitmap);
-    m_topbarline_item->SetDisabledBitmap(m_topbarline_bitmap);
-    this->EnableTool(m_topbarline_item->GetId(), false);
-    this->AddSpacer(FromDIP(4));
 
     wxBitmap iconize_bitmap = create_scaled_bitmap("topbar_min", nullptr, TOPBAR_ICON_SIZE);
     wxAuiToolBarItem* iconize_btn = this->AddTool(wxID_ICONIZE_FRAME, "", iconize_bitmap);

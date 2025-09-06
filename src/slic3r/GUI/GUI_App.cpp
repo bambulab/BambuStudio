@@ -1090,10 +1090,6 @@ void GUI_App::post_init()
         if (!Slic3r::HelioQuery::get_helio_api_url().empty() && !Slic3r::HelioQuery::get_helio_pat().empty()) {
             wxGetApp().request_helio_supported_data();
         }
-
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync helio config: true";
-    } else {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync helio config: false";
     }
 
     m_open_method = "double_click";
@@ -5441,6 +5437,46 @@ void GUI_App::check_privacy_version(int online_login)
             request_user_handle(online_login);
             BOOST_LOG_TRIVIAL(error) << "check privacy version error" << body;
     }).perform();
+}
+
+void GUI_App::report_consent(std::string expand)
+{
+    update_http_extra_header();
+    std::string query_params = "v1/user-service/user/consent";
+    std::string url = get_http_url(app_config->get_country_code(), query_params);
+
+    json consentBody;
+    json formItemArray = json::array();
+    json formItem;
+
+    formItem["fromID"] = "PrivacyPolicy";
+    formItem["op"] = "Opt-in";
+    formItemArray.push_back(formItem);
+
+    consentBody["version"] = 1;
+    consentBody["scene"] = "delete_account";
+    consentBody["formList"] = formItemArray;
+
+    json consent;
+    consent["consentBody"] = consentBody.dump();
+
+    std::string post_body_str = consent.dump();
+
+    Http http = Http::post(url);
+    http.timeout_max(10)
+        .header("accept", "application/json")
+        .header("Content-Type", "application/json")
+        .set_post_body(post_body_str)
+        .on_complete(
+            [this](std::string body, unsigned status) {
+                //todo
+            }
+        )
+        .on_error(
+            [this](std::string body, std::string error, unsigned status) {
+            }
+        )
+        .perform_sync();
 }
 
 void GUI_App::no_new_version()
