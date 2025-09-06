@@ -69,6 +69,9 @@ BoundingBoxf3 GLGizmoMove3D::get_bounding_box() const
     BoundingBoxf3 t_aabb;
 
     Selection& selection = m_parent.get_selection();
+    if (selection.is_empty()) {
+        return t_aabb;
+    }
     // m_cone aabb
     if (m_cone.is_initialized()) {
         const auto& t_cone_aabb = m_cone.get_bounding_box();
@@ -185,7 +188,7 @@ void GLGizmoMove3D::on_update(const UpdateData& data)
 void GLGizmoMove3D::on_render()
 {
     Selection& selection = m_parent.get_selection();
-
+    if (selection.is_empty()) { return; }
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
