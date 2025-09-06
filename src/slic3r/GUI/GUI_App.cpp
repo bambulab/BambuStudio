@@ -5461,7 +5461,7 @@ void GUI_App::report_consent(std::string expand)
             [this](std::string body, std::string error, unsigned status) {
             }
         )
-        .perform_sync();
+        .perform();
 }
 
 void GUI_App::no_new_version()
