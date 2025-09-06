@@ -8756,8 +8756,8 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
             // Avoid a race condition
             return;
         }
-
-        notification_manager->set_slicing_progress_percentage(evt.status.text, (float)evt.status.percent / 100.0f);
+        
+        notification_manager->set_slicing_progress_percentage(evt.status.text, (float)evt.status.percent / 100.0f, evt.status.is_helio);
 
         // update slicing percent
         PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
@@ -9295,6 +9295,23 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
     if (!is_supported_by_helio) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Helio does not support materials %1%") % used_filament;
         GUI::MessageDialog msgdialog(nullptr, wxString::Format(_L("Helio does not support materials %s"),  used_filament), "", wxICON_WARNING | wxOK);
+        msgdialog.ShowModal();
+        return -1;
+    }
+
+    /*has warning*/
+    //PartPlate* plate = q->get_partplate_list().get_curr_plate();
+    //if (plate->get_slice_result()->warnings.size() > 0) {
+    //    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "has warnings!";
+    //    GUI::MessageDialog msgdialog(nullptr, _L("Please resolve warnings on the current plate to enable Helio functions."), "", wxICON_WARNING | wxOK);
+    //    msgdialog.ShowModal();
+    //    return -1;
+    //}
+
+    /*print sequence = by object*/
+    if (!wxGetApp().is_helio_enable()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "print sequence = by object";
+        GUI::MessageDialog msgdialog(nullptr, _L("Helio functions do not support the print sequence of \"ByObject\"."), "", wxICON_WARNING | wxOK);
         msgdialog.ShowModal();
         return -1;
     }
@@ -15379,12 +15396,14 @@ void Plater::reslice()
         this->SetDropTarget(nullptr);
 
         // Stop helio job
-        p->helio_background_process.clear_helio_file_cache();
-        p->helio_background_process.reset();
-        if (p->helio_background_process.is_running()) {
-            p->helio_background_process.stop();
-            p->helio_background_process.stop_current_helio_action();
-        }
+        //if (p->helio_background_process.is_running()) {
+        //    p->helio_background_process.clear_helio_file_cache();
+        //    p->helio_background_process.reset();
+
+        //    
+        //    p->helio_background_process.stop_current_helio_action();
+        //    p->helio_background_process.stop();
+        //}
     }
 
     bool clean_gcode_toolpaths = true;
@@ -15425,6 +15444,16 @@ void Plater::reslice()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished, started slicing for plate %1%") % p->partplate_list.get_curr_plate_index();
 
     record_slice_preset("slicing");
+}
+
+void Plater::stop_helio_process()
+{
+    if (p->helio_background_process.is_running()) {
+        p->helio_background_process.clear_helio_file_cache();
+        p->helio_background_process.reset();
+        p->helio_background_process.stop_current_helio_action();
+        p->helio_background_process.stop();
+    }   
 }
 
 void Plater::record_slice_preset(std::string action)
