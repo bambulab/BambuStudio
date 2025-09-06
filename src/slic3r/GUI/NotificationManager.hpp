@@ -277,7 +277,7 @@ public:
 	void update_slicing_notif_dailytips(bool need_change);
 	void set_slicing_progress_began(bool is_helio = false);
 	// percentage negative = canceled, <0-1) = progress, 1 = completed
-	void set_slicing_progress_percentage(const std::string& text, float percentage);
+	void set_slicing_progress_percentage(const std::string& text, float percentage, bool is_helio = false);
 	void set_slicing_progress_canceled(const std::string& text);
 	// hides slicing progress notification imidietly
 	void set_slicing_progress_hidden();

@@ -449,6 +449,7 @@ public:
         {
         }
         int             percent { -1 };
+        bool            is_helio{false};
         std::string     text;
         // Bitmap of flags.
         enum FlagBits {

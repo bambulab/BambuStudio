@@ -389,11 +389,9 @@ void HelioStatementDialog::on_confirm(wxMouseEvent& e)
     if (page1_agree && page2_agree) {
         wxGetApp().app_config->set_bool("helio_enable", true);
         show_pat_page();
-        request_pat();
         report_consent_install();
-        wxGetApp().report_consent("");
+        request_pat();
         
-
         /*hide helio on main windows*/
         if (wxGetApp().mainframe->expand_program_holder) {
             wxGetApp().mainframe->expand_program_holder->ShowExpandButton(wxGetApp().mainframe->expand_helio_id, true);
@@ -409,17 +407,14 @@ void HelioStatementDialog::on_confirm(wxMouseEvent& e)
 
 void HelioStatementDialog::report_consent_install()
 {
-    /* NetworkAgent* agent = GUI::wxGetApp().getAgent();
-         if (agent && agent->is_user_login()) {
-             agent->report_consent("enter_model_mall");
-         }*/
-
     NetworkAgent* agent = GUI::wxGetApp().getAgent();
     if (agent && agent->is_user_login()) {
         agent->report_consent("enter_model_mall");
+        agent->report_consent("enter_model_mall");
     }
     else {
-        agent->report_consent("enter_model_mall");
+        wxGetApp().report_consent("enter_model_mall");
+        wxGetApp().report_consent("enter_model_mall");
     }
 }
 
@@ -429,7 +424,7 @@ void HelioStatementDialog::report_consent_unstall()
     if (agent && agent->is_user_login())
         agent->report_consent("enter_model_mall");
     else {
-        agent->report_consent("enter_model_mall");
+        wxGetApp().report_consent("enter_model_mall");
     }
 }
 
@@ -1014,7 +1009,9 @@ void HelioInputDialog::update_action(int action)
             only_advanced_settings = true;
             use_advanced_settings = true;
             show_advanced_mode();
-        }    
+        }
+
+        /*hide based mode when preser has nozzle diameter  = 0.2*/
     }
     Layout();
     Fit();
