@@ -331,7 +331,7 @@ bool GLGizmoScale3D::is_scalling_mode_locked() const
 void GLGizmoScale3D::on_render()
 {
     const Selection& selection = m_parent.get_selection();
-
+    if (selection.is_empty()) { return; }
     bool single_instance = selection.is_single_full_instance();
     bool single_volume = selection.is_single_modifier() || selection.is_single_volume();
 
