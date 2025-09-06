@@ -124,8 +124,8 @@ void DevNozzleRack::CtrlRackReadAll(bool gui_check) const
 {
     if (gui_check && wxThread::IsMain())
     {
-        if (!HasUnknownNozzles())
-        {
+#if 0
+        if (!HasUnknownNozzles()) {
             Slic3r::GUI::MessageDialog dlg(nullptr, _L("Hotend information may be inaccurate. "
                 "Would you like to re-read the hotend? (Hotend information may change during power-off)."),
                 _L("Warning"), wxICON_WARNING | wxOK | wxYES);
@@ -133,24 +133,20 @@ void DevNozzleRack::CtrlRackReadAll(bool gui_check) const
             dlg.SetButtonLabel(wxID_YES, _L("Re-read all"));
 
             int rtn = dlg.ShowModal();
-            if (rtn == wxID_OK)
-            {
+            if (rtn == wxID_OK) {
                 CtrlRackConfirmAll();
-            }
-            else if (rtn == wxID_YES)
-            {
-                if (CheckRackMoveWarningDlg())
-                {
+            } else if (rtn == wxID_YES) {
+                if (CheckRackMoveWarningDlg()) {
                     CtrlRackReadAll(false);
                 }
             }
+
+            return;
         }
-        else
-        {
-            if (CheckRackMoveWarningDlg())
-            {
-                CtrlRackReadAll(false);
-            }
+#endif
+
+        if (CheckRackMoveWarningDlg()) {
+            CtrlRackReadAll(false);
         }
 
         return;
