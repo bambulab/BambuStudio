@@ -124,6 +124,7 @@ public:
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize);
     
+    void update_bitmap(std::string bmp);
     void msw_rescale();
 private:
     std::string m_bmp_str;
@@ -143,9 +144,12 @@ public:
     //wxBoxSizer* expand_sizer{nullptr};
     wxBoxSizer* hsizer{nullptr};
     wxBoxSizer* vsizer{nullptr};
+    int GetAvailable();
     void addExpandButton(wxWindowID id, std::string img);
     void ShowExpandButton(wxWindowID id, bool show);
-    int GetAvailable();
+    void updateExpandButtonBitmap(wxWindowID id, std::string bitmap);
+    void EnableExpandButton(wxWindowID id, bool enb);
+
     void msw_rescale();
 private:
     void OnPaint(wxPaintEvent& event);
