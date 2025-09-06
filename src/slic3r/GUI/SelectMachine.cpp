@@ -2971,6 +2971,8 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 
 
     //reset print status
+    m_text_printer_msg->Clear();
+    m_statictext_ams_msg->Clear();
     show_status(PrintDialogStatus::PrintStatusInit);
     update_show_status();
     update_print_status_msg();
@@ -3570,6 +3572,10 @@ void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
 
     m_mapping_popup.msw_rescale();
 
+
+    m_statictext_ams_msg->Rescale();
+    m_text_printer_msg->Rescale();
+
     Fit();
     Refresh();
 }
@@ -3640,6 +3646,9 @@ void SelectMachineDialog::set_default()
             show_status(PrintDialogStatus::PrintStatusInit);
         }
     }
+
+    m_text_printer_msg->Clear();
+    m_statictext_ams_msg->Clear();
 
     if (m_print_type == PrintFromType::FROM_NORMAL) {
         reset_and_sync_ams_list();
@@ -4501,7 +4510,8 @@ bool SelectMachineDialog::CheckErrorRackStatus(MachineObject* obj_)
     }
 
     if (rack->GetReadingCount() > 0) {
-        show_status(PrintStatusRackReading, { _L("Reading information of rack and nozzles. Please wait a moment.")});
+        const wxString& msg = wxString::Format(_L("Refreshing information of hotends(%d/%d)."), rack->GetReadingIdx(), rack->GetReadingCount());
+        show_status(PrintStatusRackReading, { msg + " " + _L("Please wait a moment...")});
         return false;
     }
 
@@ -4551,12 +4561,12 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
             if (nozzle_sys->GetNozzleRack()->GetCaliStatus() != DevNozzleRack::Rack_CALI_OK) {
                 show_status(PrintStatusRackNozzleNumUnmeetWarning,
                             { _L("There are not enough available hotends currently. Please complete the hotend rack setup and try again.") },
-                            wxEmptyString, prePrintInfoStyle::NozzleState);
+                            wxEmptyString, prePrintInfoStyle::NozzleState | prePrintInfoStyle::BtnNozzleRefresh);
             }
             else if (nozzle_sys->HasUnknownNozzles()) {
                 show_status(PrintStatusRackNozzleNumUnmeetWarning,
                             { _L("There are not enough available hotends currently. Please refresh the nozzle information and try again.") },
-                            wxEmptyString, prePrintInfoStyle::NozzleState);
+                            wxEmptyString, prePrintInfoStyle::NozzleState | prePrintInfoStyle::BtnNozzleRefresh);
             } else {
                 show_status(PrintStatusRackNozzleNumUnmeetWarning,
                             { _L("There are not enough available hotends currently. Please re-slice to avoid filament waste.") },
@@ -5553,7 +5563,7 @@ void NozzleStatePanel::UpdateGui()
     wxSizer* slicing_vbox = new wxBoxSizer(wxVERTICAL);
     Label* slicing_title = new Label(this, _L("Sliced file") + ":");
     slicing_title->SetBackgroundColour(*wxWHITE);
-    slicing_title->SetFont(Label::Head_12);
+    slicing_title->SetFont(Label::Body_12);
     slicing_vbox->Add(slicing_title, 0, wxALIGN_LEFT | wxTOP | wxBOTTOM, FromDIP(3));
 
     std::unordered_map<NozzleDef, Label*> m_slcing_nozzle_labels_l;
@@ -5582,7 +5592,7 @@ void NozzleStatePanel::UpdateGui()
     wxSizer* installed_vbox = new wxBoxSizer(wxVERTICAL);
     Label* installed_title = new Label(this, _L("Printer") + ":");
     installed_title->SetBackgroundColour(*wxWHITE);
-    installed_title->SetFont(Label::Head_12);
+    installed_title->SetFont(Label::Body_12);
     installed_vbox->Add(installed_title, 0, wxALIGN_LEFT | wxTOP | wxBOTTOM, FromDIP(3));
 
     auto installed_l_nozzles = m_installed_nozzles[DEPUTY_EXTRUDER_ID];
