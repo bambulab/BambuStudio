@@ -9426,7 +9426,8 @@ void Plater::priv::on_helio_input_dlg(SimpleEvent &a)
                     }
                     else {
                         Slic3r::HelioQuery::set_helio_pat(pat);
-                        on_helio_process();
+                        MessageDialog dlg(nullptr, _L("Successfully obtained PAT."), wxString("Helio Additive"), wxYES | wxICON_NONE);
+                        dlg.ShowModal();
                     }
                 });
             });
@@ -9436,10 +9437,14 @@ void Plater::priv::on_helio_input_dlg(SimpleEvent &a)
         }
     }
     else {
-        if (!Slic3r::HelioQuery::get_helio_api_url().empty() && !Slic3r::HelioQuery::get_helio_pat().empty()) {
+        if (HelioQuery::global_supported_printers.size() <= 0 || HelioQuery::global_supported_materials.size() <= 0) {
             wxGetApp().request_helio_supported_data();
+            auto dlg = MessageDialog(nullptr, _L("The printer list and material list are being synchronized. Please try again later."), _L("Synchronizing Helio"), wxOK | wxICON_WARNING);
+            dlg.ShowModal();
         }
-        on_helio_process();
+        else {
+            on_helio_process();
+        }
     }
 }
 

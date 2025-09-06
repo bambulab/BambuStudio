@@ -1675,10 +1675,7 @@ wxBoxSizer* MainFrame::create_side_tools()
     int em = em_unit();
     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
 
-
     /*helio*/
-    //auto expand_program_sizer = new wxBoxSizer(wxHORIZONTAL);
-
     split_line_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("topbar_line", this, 22), wxDefaultPosition, wxSize(FromDIP(3), FromDIP(22)), 0);
     expand_program_holder = new ExpandButtonHolder(this);
     expand_program_holder->addExpandButton(expand_helio_id, "helio_icon");
@@ -1705,9 +1702,6 @@ wxBoxSizer* MainFrame::create_side_tools()
     else {
         expand_program_holder->ShowExpandButton(expand_helio_id, false);
     }
-
-    //expand_program_sizer->Add(0, 0, 1, wxEXPAND, 0);
-    //expand_program_sizer->Add(expand_program_holder, 0, wxALIGN_CENTER, 0);
 
     /*slice*/
     m_slice_select = eSlicePlate;
@@ -2322,6 +2316,12 @@ void MainFrame::update_slice_print_status(SlicePrintEventType event, bool can_sl
     m_print_enable = enable_print;
 
     /*for healio*/
+    if (expand_program_holder) {
+        expand_program_holder->updateExpandButtonBitmap(expand_helio_id, m_print_enable?"helio_icon":"helio_icon_disable");
+        expand_program_holder->EnableExpandButton(expand_helio_id, m_print_enable);
+    }
+
+
     if (!old_slice_status && enable_slice)
         m_plater->reset_check_status();
 }
