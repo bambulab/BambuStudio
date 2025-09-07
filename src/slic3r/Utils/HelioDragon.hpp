@@ -62,12 +62,14 @@ public:
         std::string url;
         unsigned    status;
         std::string error;
+        std::string trace_id;
     };
 
     struct UploadFileResult
     {
         bool        success;
         std::string error;
+        std::string trace_id;
     };
 
     struct SupportedData
@@ -86,6 +88,7 @@ public:
         std::string error;
         vector<std::string> warning_flags;
         vector<std::string> error_flags;
+        std::string trace_id;
     };
 
     struct CreateSimulationResult
@@ -95,6 +98,7 @@ public:
         std::string name;
         std::string id;
         std::string error;
+        std::string trace_id;
 
         void reset() {
             status  = 0;
@@ -112,6 +116,7 @@ public:
         std::string name;
         std::string id;
         std::string error;
+        std::string trace_id;
 
         void reset() {
             status  = 0;
@@ -131,6 +136,7 @@ public:
         std::string name;
         std::string url;
         std::string error;
+        std::string trace_id;
     };
 
     struct CheckOptimizationResult
@@ -142,6 +148,7 @@ public:
         std::string name;
         std::string url;
         std::string error;
+        std::string trace_id;
     };
 
     
