@@ -9228,6 +9228,13 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
     std::vector<std::string> preset_name_array = wxGetApp().split_str(preset_name, "Bambu Lab ");
     std::string              preset_pure_name  = preset_name_array.size() >= 2 ? preset_name_array[1] : "";
 
+    /*running helio task*/
+     if (helio_background_process.is_running()) {
+         GUI::MessageDialog msgdialog(nullptr, _L("A Helio simulation or optimization task is in progress."), "", wxICON_NONE | wxOK);
+         msgdialog.ShowModal();
+         return -1;
+     }
+
     /*invalid printer preset*/
      if (preset_pure_name.empty()) {
         GUI::MessageDialog msgdialog(nullptr, _L("Invalid printer preset. Unable to slice with Helio."), "", wxICON_WARNING | wxOK);
