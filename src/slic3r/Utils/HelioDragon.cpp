@@ -24,6 +24,28 @@ namespace Slic3r {
 std::vector<HelioQuery::SupportedData> HelioQuery::global_supported_printers;
 std::vector<HelioQuery::SupportedData> HelioQuery::global_supported_materials;
 
+std::string extract_trace_id(const std::string& headers) {
+    std::istringstream iss(headers);
+    std::string line;
+    std::string trace_id;
+    while (std::getline(iss, line)) {
+        std::string lower_line;
+        for (unsigned char c : line) lower_line += std::tolower(c);
+        if (lower_line.find("trace-id:") == 0) {
+            size_t colon_pos = line.find(':');
+            if (colon_pos != std::string::npos) {
+                size_t value_start = colon_pos + 1;
+                while (value_start < line.size() && std::isspace(static_cast<unsigned char>(line[value_start]))) value_start++;
+                trace_id = line.substr(value_start);
+                trace_id.erase(trace_id.find_last_not_of(" \r\n") + 1);
+                break;
+            }
+        }
+    }
+
+    return trace_id;
+}
+
 double HelioQuery::convert_speed(float mm_per_second) {
     double value = static_cast<double>(mm_per_second) / 1000.0;
     return std::round(value * 1e9) / 1e9;
@@ -306,6 +328,16 @@ HelioQuery::PresignedURLResult HelioQuery::create_presigned_url(const std::strin
 
     http.timeout_connect(20)
         .timeout_max(100)
+        .on_header_callback([&res](std::string header_line) {
+            std::string lower_line;
+            for (unsigned char c : header_line) {
+                lower_line += static_cast<char>(std::tolower(c));
+            }
+            auto trace_id = extract_trace_id(lower_line);
+            if(!trace_id.empty()){
+                res.trace_id = trace_id;
+            }
+        })
         .on_complete([&res](std::string body, unsigned status) {
             nlohmann::json parsed_obj = nlohmann::json::parse(body);
             res.status                = status;
@@ -347,6 +379,16 @@ HelioQuery::UploadFileResult HelioQuery::upload_file_to_presigned_url(const std:
     catch (...) {}
 
     http.set_put_body(file_path)
+        .on_header_callback([&res](std::string header_line) {
+            std::string lower_line;
+            for (unsigned char c : header_line) {
+                lower_line += static_cast<char>(std::tolower(c));
+            }
+            auto trace_id = extract_trace_id(lower_line);
+            if (!trace_id.empty()) {
+                res.trace_id = trace_id;
+            }
+        })
         .on_complete([&res](std::string body, unsigned status) {
             if (status == 200)
                 res.success = true;
@@ -398,6 +440,16 @@ HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
 
     http.timeout_connect(20)
         .timeout_max(100)
+        .on_header_callback([&res](std::string header_line) {
+            std::string lower_line;
+            for (unsigned char c : header_line) {
+                lower_line += static_cast<char>(std::tolower(c));
+            }
+            auto trace_id = extract_trace_id(lower_line);
+            if (!trace_id.empty()) {
+                res.trace_id = trace_id;
+            }
+        })
         .on_complete([&res](std::string body, unsigned status) {
             nlohmann::json parsed_obj = nlohmann::json::parse(body);
             res.status                = status;
@@ -672,6 +724,16 @@ HelioQuery::CreateSimulationResult HelioQuery::create_simulation(const std::stri
             res.error  = error;
             res.status = status;
         })
+        .on_header_callback([&res](std::string header_line) {
+            std::string lower_line;
+            for (unsigned char c : header_line) {
+                lower_line += static_cast<char>(std::tolower(c));
+            }
+            auto trace_id = extract_trace_id(lower_line);
+            if (!trace_id.empty()) {
+                res.trace_id = trace_id;
+            }
+        })
         .perform_sync();
 
     return res;
@@ -695,7 +757,17 @@ void HelioQuery::stop_simulation(const std::string helio_api_url, const std::str
         .set_post_body(query_body);
 
     http.timeout_connect(20)
-        .timeout_max(100) 
+        .timeout_max(100)
+        .on_header_callback([](std::string header_line) {
+            std::string lower_line;
+            for (unsigned char c : header_line) {
+                lower_line += static_cast<char>(std::tolower(c));
+            }
+            auto trace_id = extract_trace_id(lower_line);
+            if (!trace_id.empty()) {
+                //auto trace_id = trace_id;
+            }
+        })
         .on_complete([=](std::string body, unsigned status) {
             BOOST_LOG_TRIVIAL(info) << (boost::format("stop_simulation: success")).str();
         })
@@ -728,6 +800,16 @@ HelioQuery::CheckSimulationProgressResult HelioQuery::check_simulation_progress(
 
     http.timeout_connect(20)
         .timeout_max(100)
+        .on_header_callback([&res](std::string header_line) {
+            std::string lower_line;
+            for (unsigned char c : header_line) {
+                lower_line += static_cast<char>(std::tolower(c));
+            }
+            auto trace_id = extract_trace_id(lower_line);
+            if (!trace_id.empty()) {
+                res.trace_id = trace_id;
+            }
+        })
         .on_complete([&res](std::string body, unsigned status) {
             nlohmann::json parsed_obj = nlohmann::json::parse(body);
             res.status                = status;
@@ -823,6 +905,16 @@ Slic3r::HelioQuery::CreateOptimizationResult HelioQuery::create_optimization(con
 
     http.timeout_connect(20)
         .timeout_max(100)
+        .on_header_callback([&res](std::string header_line) {
+            std::string lower_line;
+            for (unsigned char c : header_line) {
+                lower_line += static_cast<char>(std::tolower(c));
+            }
+            auto trace_id = extract_trace_id(lower_line);
+            if (!trace_id.empty()) {
+                res.trace_id = trace_id;
+            }
+        })
         .on_complete([&res](std::string body, unsigned status) {
             nlohmann::json parsed_obj = nlohmann::json::parse(body);
             res.status                = status;
@@ -864,6 +956,16 @@ void HelioQuery::stop_optimization(const std::string helio_api_url, const std::s
 
     http.timeout_connect(20)
         .timeout_max(100)
+        .on_header_callback([](std::string header_line) {
+            std::string lower_line;
+            for (unsigned char c : header_line) {
+                lower_line += static_cast<char>(std::tolower(c));
+            }
+            auto trace_id = extract_trace_id(lower_line);
+            if (!trace_id.empty()) {
+                //res.trace_id = trace_id;
+            }
+        })
         .on_complete([=](std::string body, unsigned status) {
             BOOST_LOG_TRIVIAL(info) << (boost::format("stop_optimization: success")).str();
         })
@@ -896,6 +998,16 @@ Slic3r::HelioQuery::CheckOptimizationResult HelioQuery::check_optimization_progr
 
     http.timeout_connect(20)
         .timeout_max(100)
+        .on_header_callback([&res](std::string header_line) {
+            std::string lower_line;
+            for (unsigned char c : header_line) {
+                lower_line += static_cast<char>(std::tolower(c));
+            }
+            auto trace_id = extract_trace_id(lower_line);
+            if (!trace_id.empty()) {
+                res.trace_id = trace_id;
+            }
+        })
         .on_complete([&res](std::string body, unsigned status) {
             nlohmann::json parsed_obj = nlohmann::json::parse(body);
             res.status                = status;
