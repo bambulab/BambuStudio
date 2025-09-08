@@ -78,8 +78,6 @@ public:
     bool HasUnknownNozzles() const;
     int GetKnownNozzleCount() const;
 
-    std::vector<MultiNozzleUtils::NozzleGroupInfo> GetNozzleGroups() const;
-
     // refreshing
     int GetReadingIdx() const { return m_nozzle_system->GetReadingIdx(); }
     int GetReadingCount() const { return m_nozzle_system->GetReadingCount(); }
