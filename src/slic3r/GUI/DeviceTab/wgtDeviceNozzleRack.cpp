@@ -14,6 +14,7 @@
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
 
 #include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/MainFrame.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
@@ -871,12 +872,11 @@ void wgtDeviceNozzleRackNozzleItem::OnBtnNozzleStatus(wxMouseEvent& evt)
     if (rack && m_status == wgtDeviceNozzleRackNozzleItem::NOZZLE_ERROR)
     {
         MessageDialog dlg(nullptr, _L("The hotend is in an abnormal state and currently unavailable. "
-            "Please upgrade the hotend firmware."), _L("Error"), wxICON_WARNING | wxOK | wxCANCEL);
-        dlg.SetButtonLabel(wxID_OK, _L("Upgrade"));
+            "Please go to 'Device -> Upgrade' to upgrade firmware."), _L("Error"), wxICON_WARNING | wxOK | wxCANCEL);
+        dlg.SetButtonLabel(wxID_OK, _L("Jump to the upgrade page"));
         dlg.SetButtonLabel(wxID_CANCEL, _L("Cancel"));
-        if (dlg.ShowModal() == wxID_OK)
-        {
-            rack->CtrlRackUpgradeRackNozzle(m_nozzle_id);
+        if (dlg.ShowModal() == wxID_OK) {
+            wxGetApp().mainframe->m_monitor->jump_to_Upgrade();
         };
     }
 }

@@ -83,16 +83,7 @@ void wgtDeviceNozzleRackUprade::CreateGui()
     m_btn_read_all->SetCanFocus(false);
     m_btn_read_all->Bind(wxEVT_BUTTON, &wgtDeviceNozzleRackUprade::OnBtnReadAll, this);
     header_sizer->Add(m_btn_read_all, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
-
-    // "Update all" button (green)
-    m_btn_update_all = new Button(this, _L("Update all"));
-    m_btn_update_all->SetFont(Label::Head_12);
-    m_btn_update_all->SetCanFocus(false);
-    m_btn_update_all->SetTextColorNormal(wxColour(0, 168, 84)); // Green
-    m_btn_update_all->Bind(wxEVT_BUTTON, &wgtDeviceNozzleRackUprade::OnBtnUpdateAll, this);
-    header_sizer->Add(m_btn_update_all, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(20));
-
-    main_sizer->Add(header_sizer, 0, wxEXPAND | wxTOP, FromDIP(10));
+    main_sizer->Add(header_sizer, 0, wxEXPAND | wxTOP | wxRIGHT, FromDIP(10));
 
     // "Nozzles"
     m_extruder_nozzle_item = new wgtDeviceNozzleRackHotendUpdate(this, "R");
@@ -148,18 +139,9 @@ void wgtDeviceNozzleRackUprade::UpdateRackInfo(const std::shared_ptr<DevNozzleRa
     }
 
     m_btn_read_all->Enable(rack->CtrlCanReadAll());
-    m_btn_update_all->Enable(rack->CtrlCanUpdateAll());
 
     // update layout
     Layout();
-}
-
-void wgtDeviceNozzleRackUprade::OnBtnUpdateAll(wxCommandEvent& e)
-{
-    if (auto rack = m_nozzle_rack.lock())
-    {
-        rack->CtrlRackUpgradeAll();
-    }
 }
 
 void wgtDeviceNozzleRackUprade::OnBtnReadAll(wxCommandEvent& e)
@@ -173,7 +155,6 @@ void wgtDeviceNozzleRackUprade::OnBtnReadAll(wxCommandEvent& e)
 void wgtDeviceNozzleRackUprade::Rescale()
 {
     m_btn_read_all->Rescale();
-    m_btn_update_all->Rescale();
 
     m_extruder_nozzle_item->Rescale();
     for (auto& iter : m_nozzle_items)
@@ -257,19 +238,6 @@ void wgtDeviceNozzleRackHotendUpdate::CreateGui()
     info_sizer->Add(m_sn_label, 0, wxALIGN_LEFT);
     info_sizer->Add(version_h_sizer, 0, wxALIGN_LEFT);
     content_sizer->Add(info_sizer, 1, wxALIGN_CENTER_VERTICAL | wxLEFT);
-
-    // Update button
-    m_upgrade_status = new Label(this);
-    m_upgrade_status->SetFont(Label::Body_12);
-    m_upgrade_status->SetBackgroundColour(WGT_DEVICE_NOZZLE_RACK_HOTEND_UPDATE_DEFAULT_BG);
-    content_sizer->Add(m_upgrade_status, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(25));
-
-    m_upgrade_button = new ScalableButton(this, wxID_ANY, "dev_refresh");
-    m_upgrade_button->SetBackgroundColour(WGT_DEVICE_NOZZLE_RACK_HOTEND_UPDATE_DEFAULT_BG);
-    m_upgrade_button->Bind(wxEVT_ENTER_WINDOW,[this](auto& e) { SetCursor(wxCURSOR_HAND); });
-    m_upgrade_button->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW);});
-    m_upgrade_button->Bind(wxEVT_BUTTON, &wgtDeviceNozzleRackHotendUpdate::OnUpdateIconClicked, this);
-    content_sizer->Add(m_upgrade_button, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(5));
     content_sizer->AddSpacer(FromDIP(25));
 
     auto* main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -387,17 +355,11 @@ void wgtDeviceNozzleRackHotendUpdate::UpdateInfo(const DevNozzle& nozzle)
                 m_version_label->SetLabel(wxString::Format("%s: %s > ", _L("Version"), firmware.sw_ver));
                 m_version_new_label->SetLabel(wxString::Format("%s", firmware.sw_new_ver));
                 m_version_new_label->Show(true);
-                m_upgrade_status->SetLabel(_L("Update"));
-                m_upgrade_status->SetForegroundColour(wxColour(0, 168, 84));
-                m_upgrade_status->Show(true);
-                m_upgrade_button->Show(true);
             }
             else
             {
                 m_version_label->SetLabel(wxString::Format("%s:%s", _L("Version"), firmware.sw_ver));
                 m_version_new_label->Show(false);
-                m_upgrade_status->Show(false);
-                m_upgrade_button->Show(false);
             }
         }
         else
@@ -405,8 +367,6 @@ void wgtDeviceNozzleRackHotendUpdate::UpdateInfo(const DevNozzle& nozzle)
             m_sn_label->SetLabel(wxString::Format("%s: N/A", _L("SN")));
             m_version_label->SetLabel(wxString::Format("%s: N/A", _L("Version")));
             m_version_new_label->Show(false);
-            m_upgrade_status->Show(false);
-            m_upgrade_button->Show(false);
         }
     }
     else /*default to show update icon if IsAbnormal*/
@@ -432,26 +392,6 @@ void wgtDeviceNozzleRackHotendUpdate::UpdateInfo(const DevNozzle& nozzle)
             m_sn_label->SetLabel(wxString::Format("%s: N/A", _L("SN")));
             m_version_label->SetLabel(wxString::Format("%s: N/A", _L("Version")));
             m_version_new_label->Show(false);
-        }
-
-        m_upgrade_status->SetLabel(_L("Update"));
-        m_upgrade_status->SetForegroundColour(wxColour(0, 168, 84));
-        m_upgrade_status->Show(true);
-        m_upgrade_button->Show(true);
-    }
-}
-
-void wgtDeviceNozzleRackHotendUpdate::OnUpdateIconClicked(wxCommandEvent& e)
-{
-    if (auto rack = m_nozzle_rack.lock())
-    {
-        if (m_ext_nozzle_id != -1)
-        {
-            rack->CtrlRackUpgradeExtruderNozzle();
-        }
-        else if (m_rack_nozzle_id != -1)
-        {
-            rack->CtrlRackUpgradeRackNozzle(m_rack_nozzle_id);
         }
     }
 }
