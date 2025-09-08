@@ -228,7 +228,8 @@ bool GCodeViewer::Path::matches(const GCodeProcessorResult::MoveVertex &move) co
         // use rounding to reduce the number of generated paths
         return type == move.type && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id && role == move.extrusion_role &&
                move.position.z() <= sub_paths.front().first.position.z() && feedrate == move.feedrate && fan_speed == move.fan_speed && height == round_to_bin(move.height) &&
-               width == round_to_bin(move.width) && matches_percent(volumetric_rate, move.volumetric_rate(), 0.05f) && layer_time == move.layer_duration;
+               width == round_to_bin(move.width) && matches_percent(volumetric_rate, move.volumetric_rate(), 0.05f) && layer_time == move.layer_duration &&
+               thermal_index_mean == move.thermal_index_mean && thermal_index_min == move.thermal_index_min && thermal_index_max == move.thermal_index_max;
     }
     case EMoveType::Travel: {
         return type == move.type && feedrate == move.feedrate && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id;
@@ -5639,7 +5640,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImVec2      title_start_pos = ImGui::GetCursorPos();
     std::string title           = _u8L("Slicing Result");
     imgui.bold_text(title);
-    
+
     // BBS Set the width of the 8 "ABCD" words minus the "sliced result" to the spacing between the buttons and the title
     float single_word_width = imgui.calc_text_size("ABCD").x;
     float title_width       = imgui.calc_text_size(title).x;
