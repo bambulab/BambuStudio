@@ -5441,26 +5441,11 @@ void GUI_App::check_privacy_version(int online_login)
 
 void GUI_App::report_consent(std::string expand)
 {
+    if(expand.empty()) return;
     update_http_extra_header();
     std::string query_params = "v1/user-service/user/consent";
     std::string url = get_http_url(app_config->get_country_code(), query_params);
-
-    json consentBody;
-    json formItemArray = json::array();
-    json formItem;
-
-    formItem["fromID"] = "PrivacyPolicy";
-    formItem["op"] = "Opt-in";
-    formItemArray.push_back(formItem);
-
-    consentBody["version"] = 1;
-    consentBody["scene"] = "delete_account";
-    consentBody["formList"] = formItemArray;
-
-    json consent;
-    consent["consentBody"] = consentBody.dump();
-
-    std::string post_body_str = consent.dump();
+    std::string post_body_str = expand;
 
     Http http = Http::post(url);
     http.timeout_max(10)
