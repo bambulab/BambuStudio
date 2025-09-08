@@ -1413,49 +1413,35 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         }
     };
 
-    auto is_same_nozzle_info = [obj](const ExtruderInfo &left, const ExtruderInfo &right) {
-        bool is_same_nozzle_type = true;
-        if (obj->is_nozzle_flow_type_supported())
-            is_same_nozzle_type = left.nozzle_volue_type == right.nozzle_volue_type;
-        return abs(left.diameter - right.diameter) < EPSILON && is_same_nozzle_type;
-    };
 
     // 2. update extruder status
     int extruder_nums = preset_bundle->get_printer_extruder_count();
     if (extruder_nums != obj->GetExtderSystem()->GetTotalExtderCount())
         return;
 
-    std::vector<ExtruderInfo> extruder_infos(extruder_nums);
+    //std::vector<ExtruderInfo> extruder_infos(extruder_nums);
+    std::vector<MultiNozzleUtils::NozzleGroupInfo> nozzle_group_infos(extruder_nums);
     std::vector<int> nozzle_volume_types = wxGetApp().preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
     for (size_t i = 0; i < nozzle_volume_types.size(); ++i) {
-        extruder_infos[i].nozzle_volue_type = nozzle_volume_types[i];
-    }
-
-    std::vector<std::map<int, int>> extruder_ams_counts = wxGetApp().preset_bundle->extruder_ams_counts;
-    if (extruder_ams_counts.size() >= extruder_nums) {
-        for (size_t i = 0; i < extruder_nums; ++i) {
-            for (auto iter = extruder_ams_counts[i].begin(); iter != extruder_ams_counts[i].end(); ++iter) {
-                if (iter->first == 4)
-                    extruder_infos[i].ams_4 = iter->second;
-                if (iter->first == 1)
-                    extruder_infos[i].ams_1 = iter->second;
-            }
-        }
+        NozzleVolumeType volume_type = NozzleVolumeType(nozzle_volume_types[i]);
+        nozzle_group_infos[i].volume_type = volume_type;
+        nozzle_group_infos[i].nozzle_count = wxGetApp().preset_bundle->extruder_nozzle_counts[i][volume_type];
+        nozzle_group_infos[i].extruder_id = i;
     }
 
     if (extruder_nums == 1) {
         double value = 0.0;
         single_extruder->diameter.ToDouble(&value);
-        extruder_infos[0].diameter = float(value);
+        nozzle_group_infos[0].diameter = format_diameter_to_str(value);
     }
     else if(extruder_nums == 2){
         double value = 0.0;
         left_extruder->diameter.ToDouble(&value);
-        extruder_infos[0].diameter = float(value);
+        nozzle_group_infos[0].diameter = format_diameter_to_str(value);
 
         value = 0.0;
         right_extruder->diameter.ToDouble(&value);
-        extruder_infos[1].diameter = float(value);
+        nozzle_group_infos[1].diameter = format_diameter_to_str(value);
     }
 
     std::vector<ExtruderInfo> machine_extruder_infos(obj->GetExtderSystem()->GetTotalExtderCount());
@@ -1481,9 +1467,11 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
 
     std::reverse(machine_extruder_infos.begin(), machine_extruder_infos.end());
 
+    auto machine_nozzle_groups = obj->GetNozzleSystem()->GetNozzleGroups();
+
     std::vector<bool> extruder_synced(extruder_nums, false);
     if (extruder_nums == 1) {
-        if (is_same_nozzle_info(extruder_infos[0], machine_extruder_infos[0])) {
+        if (std::find(machine_nozzle_groups.begin(),machine_nozzle_groups.end(),nozzle_group_infos[0])!=machine_nozzle_groups.end()) {
             single_extruder->ShowBadge(true);
             single_extruder->sync_ams(obj, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1);
             extruder_synced[0] = true;
@@ -1494,7 +1482,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         }
     }
     else if (extruder_nums == 2) {
-        if (extruder_infos[0] == machine_extruder_infos[0]) {
+        if (std::find(machine_nozzle_groups.begin(),machine_nozzle_groups.end(),nozzle_group_infos[0])!=machine_nozzle_groups.end()) {
             left_extruder->ShowBadge(true);
             left_extruder->sync_ams(obj, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1);
             extruder_synced[0] = true;
@@ -1504,7 +1492,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
             left_extruder->sync_ams(obj, {}, {});
         }
 
-        if (extruder_infos[1] == machine_extruder_infos[1]) {
+        if (std::find(machine_nozzle_groups.begin(),machine_nozzle_groups.end(),nozzle_group_infos[1])!=machine_nozzle_groups.end()) {
             right_extruder->ShowBadge(true);
             right_extruder->sync_ams(obj, machine_extruder_infos[1].ams_v4, machine_extruder_infos[1].ams_v1);
             extruder_synced[1] = true;
@@ -10761,13 +10749,28 @@ bool Plater::priv::check_ams_status_impl(bool is_slice_all)
     if (preset_bundle && preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == obj->get_show_printer_type()) {
         bool is_same_as_printer = true;
         auto nozzle_volumes_values = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
+        auto nozzle_diameter_values = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values;
+        auto extruder_nozzle_stats = preset_bundle->extruder_nozzle_counts;
+        
+        MultiNozzleUtils::NozzleGroupInfo preset_right_nozzle;
         assert(obj->GetExtderSystem()->GetTotalExtderCount() == 2 && nozzle_volumes_values.size() == 2);
         if (obj->GetExtderSystem()->GetTotalExtderCount() == 2 && nozzle_volumes_values.size() == 2) {
-            NozzleVolumeType right_nozzle_type = NozzleVolumeType(obj->GetExtderSystem()->GetNozzleFlowType(0) - 1);
-            NozzleVolumeType left_nozzle_type = NozzleVolumeType(obj->GetExtderSystem()->GetNozzleFlowType(1) - 1);
-            NozzleVolumeType preset_left_type  = NozzleVolumeType(nozzle_volumes_values[0]);
-            NozzleVolumeType preset_right_type  = NozzleVolumeType(nozzle_volumes_values[1]);
-            is_same_as_printer = (left_nozzle_type == preset_left_type && right_nozzle_type == preset_right_type);
+            NozzleVolumeType preset_left_volume  = NozzleVolumeType(nozzle_volumes_values[0]);
+            NozzleVolumeType preset_right_volume = NozzleVolumeType(nozzle_volumes_values[1]);
+            std::string preset_left_diameter = format_diameter_to_str(nozzle_diameter_values[0]);
+            std::string preset_right_diameter = format_diameter_to_str(nozzle_diameter_values[0]);
+
+            MultiNozzleUtils::NozzleGroupInfo preset_left_info(preset_left_diameter, preset_left_volume, 0, extruder_nozzle_stats[0][preset_left_volume]);
+            MultiNozzleUtils::NozzleGroupInfo preset_right_info(preset_right_diameter, preset_right_volume, 1, extruder_nozzle_stats[1][preset_right_volume]);
+
+            auto printer_groups=obj->GetNozzleSystem()->GetNozzleGroups();
+
+            for (auto preset_group : { preset_left_info,preset_right_info }) {
+                if (std::find(printer_groups.begin(), printer_groups.end(), preset_group) == printer_groups.end()) {
+                    is_same_as_printer = false;
+                    break;
+                }
+            }
         }
 
         std::vector<std::map<int, int>> ams_count_info;

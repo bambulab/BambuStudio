@@ -15,8 +15,8 @@ struct NozzleInfo
 {
     std::string      diameter;
     NozzleVolumeType volume_type;
-    int              extruder_id; // 逻辑挤出机id
-    int              group_id;    // 对应逻辑喷嘴id, 无实际意义
+    int              extruder_id{ -1 }; // 逻辑挤出机id
+    int              group_id{ -1 };    // 对应逻辑喷嘴id, 无实际意义
 };
 
 // 喷嘴组信息，执行同步操作后前端传递给后端的数据
@@ -39,6 +39,11 @@ struct NozzleGroupInfo
         if (diameter != rhs.diameter) return diameter < rhs.diameter;
         if (volume_type != rhs.volume_type) return volume_type < rhs.volume_type;
         return nozzle_count < rhs.nozzle_count;
+    }
+
+    inline bool operator==(const NozzleGroupInfo &rhs) const
+    {
+        return diameter == rhs.diameter && volume_type == rhs.volume_type && extruder_id == rhs.extruder_id && nozzle_count == rhs.nozzle_count;
     }
 
     std::string serialize() const;

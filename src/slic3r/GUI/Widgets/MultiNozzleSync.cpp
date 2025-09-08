@@ -114,7 +114,7 @@ ExtruderBadge::ExtruderBadge(wxWindow* parent) : wxPanel(parent)
 
     badget = new wxStaticBitmap(this, wxID_ANY, icon);
 
-    m_diameter_list = { "0.4 mm","0.4 mm" };
+    m_diameter_list = { "0.4","0.4" };
     m_volume_type_list = { NozzleVolumeType::nvtStandard,NozzleVolumeType::nvtStandard };
 
     left_diameter_desp = new Label(this, _L(m_diameter_list[LeftExtruderIdx]));
@@ -159,11 +159,11 @@ void ExtruderBadge::SetExtruderInfo(int extruder_id, const std::string& diameter
     m_volume_type_list[extruder_id] = volume_type;
 
     if (extruder_id == LeftExtruderIdx) {
-        left_diameter_desp->SetLabel(diameter);
+        left_diameter_desp->SetLabel(diameter + " mm");
         left_flow_desp->SetLabel(_L(get_nozzle_volume_type_string(volume_type)));
     }
     else if (extruder_id == RightExtruderIdx) {
-        right_diameter_desp->SetLabel(diameter);
+        right_diameter_desp->SetLabel(diameter + " mm");
         right_flow_desp->SetLabel(_L(get_nozzle_volume_type_string(volume_type)));
     }
 }
@@ -581,7 +581,7 @@ void MultiNozzleStatusTable::UpdateRackInfo(std::weak_ptr<DevNozzleRack> rack)
             else
                 volume_type = nvtStandard;
 
-            m_badge->SetExtruderInfo(extruder_id, nozzle.GetNozzleDiameterStr().ToStdString(), volume_type);
+            m_badge->SetExtruderInfo(extruder_id, format_diameter_to_str(nozzle.GetNozzleDiameter()), volume_type);
         }
         m_badge->SetExtruderValid(has_right);
     }
@@ -795,7 +795,7 @@ bool MultiNozzleSyncDialog::UpdateOptionList(std::weak_ptr<DevNozzleRack> rack, 
 
     m_nozzle_option_values.clear();
 
-    auto options = GetNozzleOptions(nozzle_rack->GetNozzleGroups());
+    auto options = GetNozzleOptions(nozzle_rack->GetNozzleSystem()->GetNozzleGroups());
 
     int recommend_idx = std::max_element(options.begin(), options.end(), [](const NozzleOption& opt1, const NozzleOption& opt2) {
         int count1 = 0, count2 = 0;
@@ -835,7 +835,7 @@ void MultiNozzleSyncDialog::UpdateTip(std::weak_ptr<DevNozzleRack> rack, bool ig
         m_tips->SetLabel(_L("Please confirm whether the required nozzle diameter and flow rate match the currently displayed values."));
     }
     else {
-        auto nozzle_groups = nozzle_rack->GetNozzleGroups();
+        auto nozzle_groups = nozzle_rack->GetNozzleSystem()->GetNozzleGroups();
 
         if (hasMultiDiameters(nozzle_groups)) {
             m_tips->SetLabel(_L("Your printer has multiple nozzle sizes installed. Mixing nozzle diameters in one print is not supported."

@@ -3,6 +3,7 @@
 #include "DevFirmware.h"
 
 #include "libslic3r/CommonDefs.hpp"
+#include "libslic3r/MultiNozzleUtils.hpp"
 #include "slic3r/Utils/json_diff.hpp"
 
 #include <wx/string.h>
@@ -113,7 +114,7 @@ namespace Slic3r
        const std::vector<DevNozzle>    CollectNozzles(int ext_loc, NozzleFlowType flow_type, float diameter) const;
        const std::map<int, DevNozzle>& GetNozzles() const { return m_ext_nozzles;}
        ExtruderNozzleInfos  GetExtruderNozzleInfo() const;
-
+       std::vector<MultiNozzleUtils::NozzleGroupInfo> GetNozzleGroups() const;
        bool  IsIdle() const { return m_state_0_4 == NOZZLE_SYSTEM_IDLE; }
        bool  IsRefreshing() const { return m_state_0_4 == NOZZLE_SYSTEM_REFRESHING; }
 
