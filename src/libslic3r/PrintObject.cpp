@@ -344,7 +344,7 @@ std::unordered_map<int, std::unordered_map<int,double>>  PrintObject::calc_estim
             int sparse_infill_filament = region.config().sparse_infill_filament - 1;
 
             auto sparse_infill_surfaces = layerm->fill_surfaces.filter_by_type(stInternal);
-            double sparse_area = unscale_(unscale_(std::accumulate(sparse_infill_surfaces.begin(), sparse_infill_surfaces.end(), 0.0, 
+            double sparse_area = unscale_(unscale_(std::accumulate(sparse_infill_surfaces.begin(), sparse_infill_surfaces.end(), 0.0,
                 [](double val, const Surface* surface) { return val + surface->area(); })));
             double full_area = unscale_(unscale_(get_expolygons_area(layerm->raw_slices)));
             double infill_area = unscale_(unscale_(get_expolygons_area(layerm->fill_expolygons)));
