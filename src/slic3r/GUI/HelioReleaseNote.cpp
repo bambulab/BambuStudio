@@ -416,7 +416,7 @@ void HelioStatementDialog::report_consent_install()
     formItemArray.push_back(formItem);
 
     formItem.clear();
-    formItem["formID"] = "StideoHelioNotice";
+    formItem["formID"] = "StudioHelioNotice";
     formItem["op"] = "Opt-in";
     formItemArray.push_back(formItem);
 
@@ -450,7 +450,7 @@ void HelioStatementDialog::report_consent_unstall()
     formItemArray.push_back(formItem);
 
     formItem.clear();
-    formItem["formID"] = "StideoHelioNotice";
+    formItem["formID"] = "StudioHelioNotice";
     formItem["op"] = "Withdraw";
     formItemArray.push_back(formItem);
 

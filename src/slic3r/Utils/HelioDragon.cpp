@@ -4,7 +4,8 @@
 #include <wx/string.h>
 #include <boost/optional.hpp>
 #include <boost/asio/ip/address.hpp>
-
+#include <vector>
+#include <boost/format.hpp>
 #include "PrintHost.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/PrintBase.hpp"
@@ -404,6 +405,48 @@ HelioQuery::UploadFileResult HelioQuery::upload_file_to_presigned_url(const std:
     return res;
 }
 
+HelioQuery::PollResult HelioQuery::poll_gcode_status(const std::string& helio_api_url,
+                                                     const std::string& helio_api_key,
+                                                     const std::string& gcode_id) 
+{
+    HelioQuery::PollResult result;
+    result.success = false;
+
+    std::string poll_query = R"( {
+        "query": "query GcodeV2($id: ID!) { gcodeV2(id: $id) { id name sizeKb status progress } }",
+        "variables": { "id": "%1%" }
+    } )";
+    std::string poll_body = (boost::format(poll_query) % gcode_id).str();
+
+    auto poll_http = Http::post(helio_api_url);
+    poll_http.header("Content-Type", "application/json")
+        .header("Authorization", helio_api_key)
+        .set_post_body(poll_body)
+        .timeout_connect(10)
+        .timeout_max(30)
+        .on_complete([&result](std::string poll_body, unsigned poll_status) {
+            try {
+                json poll_obj = json::parse(poll_body);
+                if (!poll_obj["data"]["gcodeV2"].is_null()) {
+                    auto gcode_data = poll_obj["data"]["gcodeV2"];
+                    result.status_str = gcode_data["status"];
+                    result.progress = gcode_data["progress"];
+                    result.sizeKb = gcode_data["sizeKb"];
+                    result.success = true;
+                }
+            }
+            catch (...) {
+                //tudo
+            }
+        })
+        .on_error([&result](std::string /*poll_body*/, std::string /*poll_error*/, unsigned /*poll_status*/) {
+        // Optionally handle polling error
+        })
+        .perform_sync();
+
+    return result;
+}
+
 HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
                                                        const std::string helio_api_url,
                                                        const std::string helio_api_key,
@@ -412,7 +455,7 @@ HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
 {
     HelioQuery::CreateGCodeResult res;
     std::string                   query_body_template = R"( {
-			"query": "mutation CreateGcode($input: CreateGcodeInput!) { createGcode(input: $input) {  errors gcode { id name sizeKb } } }",
+			"query": "mutation CreateGcode($input: CreateGcodeInputV2!) { createGcodeV2(input: $input) { id name sizeKb status progress } }",
 			"variables": {
 			  "input": {
 				"name": "%1%",
@@ -450,44 +493,49 @@ HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
                 res.trace_id = trace_id;
             }
         })
-        .on_complete([&res](std::string body, unsigned status) {
-            nlohmann::json parsed_obj = nlohmann::json::parse(body);
-            res.status                = status;
+        .on_complete([&res, helio_api_url, helio_api_key](std::string body, unsigned status) {
+        res.status = status;
+        try {
+            json parsed_obj = json::parse(body);
             if (parsed_obj.contains("errors")) {
-                res.error   = parsed_obj["errors"].dump();
+                res.error = parsed_obj["errors"].dump();
                 res.success = false;
-            } else {
+                return;
+            }
 
-                if (!parsed_obj["data"]["createGcode"]["gcode"].is_null()) {
-                    res.success = true;
-                    res.id      = parsed_obj["data"]["createGcode"]["gcode"]["id"];
-                    res.name    = parsed_obj["data"]["createGcode"]["gcode"]["name"];
-                } else {
-                    res.success = false;
-                    res.error   = "";
-                    for (const auto& err : parsed_obj["data"]["createGcode"]["criticalErrors"]) {
-                        std::string error_msg = err.get<std::string>();
-                        res.error_flags.push_back(error_msg);
+            auto gcode = parsed_obj["data"]["createGcodeV2"];
+            if (gcode.is_null()) {
+                res.success = false;
+                res.error = "Failed to create GCodeV2";
+                return;
+            }
 
-                        res.error += " ";
-                        res.error += error_msg;
-                    }
+            res.success = true;
+            res.id = gcode["id"];
+            res.name = gcode["name"];
+            res.sizeKb = gcode["sizeKb"];
+            res.status_str = gcode["status"];
+            res.progress = gcode["progress"];
 
-                    for (const auto& err : parsed_obj["data"]["createGcode"]["criticalErrors"]) {
-                        std::string error_msg = err.get<std::string>();
-                        res.error_flags.push_back(error_msg);
+            int poll_count = 0;
+            while (res.status_str != "READY" && poll_count < 60) {
+                std::this_thread::sleep_for(std::chrono::seconds(2));
 
-                        res.error += " ";
-                        res.error += error_msg;
-                    }
+                PollResult poll_res = poll_gcode_status(helio_api_url, helio_api_key, res.id);
+
+                if (poll_res.success) {
+                    res.status_str = poll_res.status_str;
+                    res.progress = poll_res.progress;
+                    res.sizeKb = poll_res.sizeKb;
                 }
 
-				for (const auto& err : parsed_obj["data"]["createGcode"]["warnings"]) {
-					std::string error_msg = err.get<std::string>();
-					res.warning_flags.push_back(error_msg);
-				}
-
+                poll_count++;
             }
+        }
+        catch (...) {
+            res.success = false;
+            res.error = "Failed to parse response";
+        }
         })
         .on_error([&res](std::string body, std::string error, unsigned status) {
             res.success = false;
@@ -498,10 +546,6 @@ HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
 
     return res;
 }
-
-#include <string>
-#include <vector>
-#include <boost/format.hpp>
 
 std::string HelioQuery::generate_simulation_graphql_query(const std::string &gcode_id, 
                                                           float temperatureStabilizationHeight,
