@@ -650,7 +650,6 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         int new_extruder_id = get_extruder_index(*m_print_config, new_filament_id);
 
         bool is_nozzle_change = !tcr.nozzle_change_result.gcode.empty() && (gcodegen.config().nozzle_diameter.size() > 1);
-
         std::string gcode;
 
         // Toolchangeresult.gcode assumes the wipe tower corner is at the origin (except for priming lines)
@@ -750,6 +749,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         std::string change_filament_gcode = gcodegen.config().change_filament_gcode.value;
 
         bool is_used_travel_avoid_perimeter = gcodegen.m_config.prime_tower_skip_points.value;
+        if (is_nozzle_change && !tcr.nozzle_change_result.is_extruder_change) is_used_travel_avoid_perimeter = false;
         // add nozzle change gcode into change filament gcode
         std::string nozzle_change_gcode_trans;
         if (is_nozzle_change) {
@@ -926,6 +926,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         else {
             // We have informed the m_writer about the current extruder_id, we can ignore the generated G-code.
         }
+        if(is_extruder_change)
+            gcodegen.set_state_after_extruder_change();
 
         if (need_travel_after_change_filament_gcode) {
             // move to start_pos for wiping after toolchange

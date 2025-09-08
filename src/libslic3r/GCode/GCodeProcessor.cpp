@@ -2941,10 +2941,22 @@ bool GCodeProcessor::get_last_z_from_gcode(const std::string& gcode_str, double&
 
 bool GCodeProcessor::get_last_position_from_gcode(const std::string &gcode_str, Vec3f &pos)
 {
+    auto parse_G387 = [](const std::string &line_str) {
+        if (line_str.find("G387 ") != 0) return 0;
+        if (line_str.find("J1") != std::string::npos) {
+            return -1;//min
+        } else if (line_str.find("J-1") != std::string::npos) {
+            return 1;//max
+        }
+        return 0;
+    };
+
     int  str_size     = gcode_str.size();
     int  start_index  = 0;
     int  end_index    = 0;
     bool is_z_changed = false;
+    Vec3f pre_pos(0, 0, 0);
+    Vec3i pre_pos_valid(0,0,0);
     while (end_index < str_size) {
         // find a full line
         if (gcode_str[end_index] != '\n') {
@@ -2959,8 +2971,10 @@ bool GCodeProcessor::get_last_position_from_gcode(const std::string &gcode_str, 
             line_str.erase(line_str.find_last_not_of(" ") + 1);
 
             // command which may have z movement
-            if (line_str.size() > 5 && (line_str.find("G0 ") == 0 || line_str.find("G1 ") == 0 || line_str.find("G2 ") == 0 || line_str.find("G3 ") == 0)) {
-                {
+            if (line_str.size() > 5 &&
+                (line_str.find("G0 ") == 0 || line_str.find("G1 ") == 0 || line_str.find("G2 ") == 0 || line_str.find("G3 ") == 0 || line_str.find("G387 ") == 0)) {
+                    int g387_j = parse_G387(line_str);
+                    {
                     float &x      = pos.x();
                     auto   z_pos  = line_str.find(" X");
                     float  temp_z = 0;
@@ -2977,6 +2991,11 @@ bool GCodeProcessor::get_last_position_from_gcode(const std::string &gcode_str, 
                             // The axis value has been parsed correctly.
                             x            = temp_z;
                             is_z_changed = true;
+                            if (g387_j != 0 && pre_pos_valid.x() != 0) {
+                                x = g387_j ==-1 ? std::min(pre_pos.x(), x) : std::max(pre_pos.x(), x);
+                            }
+                            pre_pos.x() = x;
+                            pre_pos_valid.x() = 1;
                         }
                     }
                 }
@@ -2998,6 +3017,9 @@ bool GCodeProcessor::get_last_position_from_gcode(const std::string &gcode_str, 
                             // The axis value has been parsed correctly.
                             y            = temp_z;
                             is_z_changed = true;
+                            if (g387_j != 0 && pre_pos_valid.y() != 0) { y = g387_j == -1 ? std::min(pre_pos.y(), y) : std::max(pre_pos.y(), y); }
+                            pre_pos.y() = y;
+                            pre_pos_valid.y() = 1;
                         }
                     }
                 }
@@ -3019,6 +3041,9 @@ bool GCodeProcessor::get_last_position_from_gcode(const std::string &gcode_str, 
                             // The axis value has been parsed correctly.
                             z            = temp_z;
                             is_z_changed = true;
+                            if (g387_j != 0 && pre_pos_valid.z()!=0) { z = g387_j == -1 ? std::min(pre_pos.z(), z) : std::max(pre_pos.z(), z); }
+                            pre_pos.z()       = z;
+                            pre_pos_valid.z() = 1;
                         }
                     }
                 }
