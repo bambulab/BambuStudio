@@ -14,7 +14,7 @@ public:
     void Play();
     void Stop();
     void Enable();
-    bool IsPlaying() const { return IsRunning(); };
+    bool IsPlaying();
     bool IsRunning() const;
 
 private:
