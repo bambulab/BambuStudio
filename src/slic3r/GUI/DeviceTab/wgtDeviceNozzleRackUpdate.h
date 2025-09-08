@@ -65,7 +65,6 @@ public:
 private:
     void CreateGui();
 
-    void OnBtnUpdateAll(wxCommandEvent& e);
     void OnBtnReadAll(wxCommandEvent& e);
 
 private:
@@ -76,7 +75,6 @@ private:
     std::unordered_map<int, wgtDeviceNozzleRackHotendUpdate*> m_nozzle_items;
 
     Button*  m_btn_read_all;
-    Button*  m_btn_update_all;
 };
 
 // Using for rack nozzle id or extruder nozzle id
@@ -106,8 +104,6 @@ private:
     void CreateGui();
 
     void UpdateInfo(const DevNozzle& nozzle);
-
-    void OnUpdateIconClicked(wxCommandEvent& e);
 
 private:
     enum NozzleStatus : int
@@ -141,9 +137,6 @@ private:
     Label* m_sn_label;
     Label* m_version_label;
     Label* m_version_new_label;
-    
-    Label* m_upgrade_status;
-    ScalableButton* m_upgrade_button{ nullptr };
 };
 
 
