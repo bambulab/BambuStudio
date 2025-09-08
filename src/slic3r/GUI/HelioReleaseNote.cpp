@@ -407,24 +407,68 @@ void HelioStatementDialog::on_confirm(wxMouseEvent& e)
 
 void HelioStatementDialog::report_consent_install()
 {
+    json consentBody;
+    json formItemArray = json::array();
+    json formItem;
+
+    formItem["formID"] = "StudioHelioTOU";
+    formItem["op"] = "Opt-in";
+    formItemArray.push_back(formItem);
+
+    formItem.clear();
+    formItem["formID"] = "StideoHelioNotice";
+    formItem["op"] = "Opt-in";
+    formItemArray.push_back(formItem);
+
+    consentBody["version"] = 1;
+    consentBody["scene"] = "helio_enable";
+    consentBody["formList"] = formItemArray;
+
+    json consent;
+    consent["consentBody"] = consentBody.dump();
+    std::string post_body_str = consent.dump();
+
     NetworkAgent* agent = GUI::wxGetApp().getAgent();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "  client_id:" << wxGetApp().app_config->get("slicer_uuid") << "\nreport_consent:" << post_body_str;
+
     if (agent && agent->is_user_login()) {
-        agent->report_consent("enter_model_mall");
-        agent->report_consent("enter_model_mall");
+        agent->report_consent(post_body_str);
     }
     else {
-        wxGetApp().report_consent("enter_model_mall");
-        wxGetApp().report_consent("enter_model_mall");
+        wxGetApp().report_consent(post_body_str);
     }
 }
 
 void HelioStatementDialog::report_consent_unstall()
 {
+    json consentBody;
+    json formItemArray = json::array();
+    json formItem;
+
+    formItem["formID"] = "StudioHelioTOU";
+    formItem["op"] = "Withdraw";
+    formItemArray.push_back(formItem);
+
+    formItem.clear();
+    formItem["formID"] = "StideoHelioNotice";
+    formItem["op"] = "Withdraw";
+    formItemArray.push_back(formItem);
+
+    consentBody["version"] = 1;
+    consentBody["scene"] = "helio_enable";
+    consentBody["formList"] = formItemArray;
+
+    json consent;
+    consent["consentBody"] = consentBody.dump();
+    std::string post_body_str = consent.dump();
+
     NetworkAgent* agent = GUI::wxGetApp().getAgent();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "  client_id:" << wxGetApp().app_config->get("slicer_uuid") << "\nreport_consent:" << post_body_str;
+
     if (agent && agent->is_user_login())
-        agent->report_consent("enter_model_mall");
+        agent->report_consent(post_body_str);
     else {
-        wxGetApp().report_consent("enter_model_mall");
+        wxGetApp().report_consent(post_body_str);
     }
 }
 
@@ -1000,18 +1044,30 @@ void HelioInputDialog::update_action(int action)
             panel_optimization->Hide();
         }
 
-        /*hide based mode when nozzle diameter  = 0.2*/
-        const auto& full_config = wxGetApp().preset_bundle->full_config();
-        const auto& project_config = wxGetApp().preset_bundle->project_config;
-        double nozzle_diameter = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values[0];
 
-        if (boost::str(boost::format("%.1f") % nozzle_diameter) == "0.2") {
-            only_advanced_settings = true;
-            use_advanced_settings = true;
-            show_advanced_mode();
+        try
+        {
+            /*hide based mode when nozzle diameter  = 0.2*/
+            const auto& full_config = wxGetApp().preset_bundle->full_config();
+            const auto& project_config = wxGetApp().preset_bundle->project_config;
+            double nozzle_diameter = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values[0];
+
+            if (boost::str(boost::format("%.1f") % nozzle_diameter) == "0.2") {
+                only_advanced_settings = true;
+                use_advanced_settings = true;
+                show_advanced_mode();
+            }
+
+            /*hide based mode when preser has nozzle diameter  = 0.2*/
+            auto edited_preset = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+            auto layer_height = edited_preset.option<ConfigOptionFloat>("layer_height")->value;
+            if (boost::str(boost::format("%.1f") % layer_height) == "0.2") {
+                only_advanced_settings = true;
+                use_advanced_settings = true;
+                show_advanced_mode();
+            }
         }
-
-        /*hide based mode when preser has nozzle diameter  = 0.2*/
+        catch (...){}
     }
     Layout();
     Fit();
