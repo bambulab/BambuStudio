@@ -1587,6 +1587,14 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
         float diameter = obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
         NozzleFlowType nozzle_volume_type = obj->GetExtderSystem()->GetNozzleFlowType(cali_info.extruder_id);
 
+        float diameter = obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
+        NozzleFlowType nozzle_volume_type = nozzle_volume_types[cali_info.extruder_id];
+        if (cali_info.nozzle_pos_id != -1) {
+            auto nozzle = obj->GetNozzleSystem()->GetNozzle(cali_info.nozzle_pos_id);
+            diameter = nozzle.GetNozzleDiameter();
+            nozzle_volume_type = nozzle.GetNozzleFlowType();
+        }
+
         if (!is_approx(cali_info.nozzle_diameter, diameter)) {
             if (is_multi_extruder)
                 error_message = wxString::Format(_L("The currently selected nozzle diameter of %s extruder does not match the actual nozzle diameter.\n"
@@ -1636,6 +1644,12 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject* obj, co
 
     float  diameter = obj->GetExtderSystem()->GetNozzleDiameter(cali_info.extruder_id);
     NozzleFlowType nozzle_volume_type = obj->GetExtderSystem()->GetNozzleFlowType(cali_info.extruder_id);
+    if (cali_info.nozzle_pos_id != -1) {
+        auto nozzle        = obj->GetNozzleSystem()->GetNozzle(cali_info.nozzle_pos_id);
+        diameter           = nozzle.GetNozzleDiameter();
+        nozzle_volume_type = nozzle.GetNozzleFlowType();
+    }
+
 
     if (!is_approx(nozzle_diameter, diameter)) {
         if (is_multi_extruder)
