@@ -4525,8 +4525,9 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
         return;
     }
 
-    if (nozzle_sys->HasUnreliableNozzles()) {
-        show_status(PrintStatusHasUnreliableNozzleWarning);
+    const std::vector<Slic3r::MultiNozzleUtils::NozzleInfo>& nozzle_vec = nozzle_group_res->get_nozzle_vec(LOGIC_R_EXTRUDER_ID);
+    if (nozzle_vec.empty()) {
+        return;// no need to check if no right nozzles used in slicing
     }
 
     std::unordered_map<NozzleDef, int> need_nozzle_map;
@@ -4543,6 +4544,7 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
         }
     }
 
+    bool nozzle_unmeet = false;
     for (auto need_nozzle : need_nozzle_map) {
         auto nozzle_info = need_nozzle.first;
         int installed_count = nozzle_sys->CollectNozzles(MAIN_EXTRUDER_ID, nozzle_info.nozzle_flow_type, nozzle_info.nozzle_diameter).size();
@@ -4562,8 +4564,14 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
                             wxEmptyString, prePrintInfoStyle::NozzleState);
             }
 
+            nozzle_unmeet = true;
             break;
         }
+    }
+
+    if (!nozzle_unmeet && nozzle_sys->HasUnreliableNozzles()) {
+        show_status(PrintStatusHasUnreliableNozzleWarning, {}, wxEmptyString,
+                    prePrintInfoStyle::BtnNozzleRefresh | prePrintInfoStyle::BtnConfirmNotShowAgain);
     }
 }
 
