@@ -12,8 +12,10 @@
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
 
 #include "slic3r/GUI/Widgets/StaticBox.hpp"
+#include "slic3r/GUI/Widgets/AnimaController.hpp"
 
 #include <wx/panel.h>
+#include <wx/simplebook.h>
 #include <memory>
 
 // Previous definitions
@@ -78,6 +80,7 @@ private:
 
 private:
     bool m_extruder_nozzle_exist = false;
+    std::string m_filament_color;
 
     // GUI
     ScalableBitmap* m_extruder_nozzle_normal = nullptr;
@@ -101,6 +104,7 @@ public:
 private:
     void CreateGui();
     StaticBox* CreateNozzleBox(const std::vector<int> nozzle_idxes);
+    wxSizer* CreateRefreshBook(wxPanel* parent);
 
     // updates
     void UpdateNozzleItems(const std::unordered_map<int, wgtDeviceNozzleRackNozzleItem*>& nozzle_items,
@@ -116,6 +120,10 @@ private:
     DevNozzleRack::RackStatus m_rack_status = DevNozzleRack::RACK_STATUS_UNKNOWN;
 
     // GUI
+    wxSimplebook* m_simple_book{ nullptr };
+    wxPanel* m_panel_content{ nullptr };
+    wxPanel* m_panel_refresh{ nullptr };
+
     wgtDeviceNozzleRackTitle* m_title_nozzle_rack;
     wxBoxSizer* m_hotends_sizer;
     StaticBox* m_arow_nozzles_box;
@@ -126,6 +134,10 @@ private:
 
     Button* m_btn_hotends_infos;
     Button* m_btn_read_all;
+
+    /* refresh book */
+    Label* m_progress_refresh{ nullptr };
+    AnimaIcon* m_refresh_icon{ nullptr };
 
     wgtDeviceNozzleRackUpgradeDlg* m_rack_upgrade_dlg = nullptr;
 };
@@ -192,7 +204,7 @@ public:
 private:
     void CreateGui();
 
-    void SetNozzleStatus(NOZZLE_STATUS status, const wxString& str1, const wxString& str2);
+    void SetNozzleStatus(NOZZLE_STATUS status, const wxString& str1, const wxString& str2, const std::string& color);
 
     void OnBtnNozzleStatus(wxMouseEvent& evt);
 
@@ -200,6 +212,7 @@ private:
     std::weak_ptr<DevNozzleRack> m_rack;
 
     int  m_nozzle_id;// internal id, from 0 to 5
+    std::string m_filament_color;
     NOZZLE_STATUS m_status = NOZZLE_STATUS::NOZZLE_EMPTY;
 
     // Images
