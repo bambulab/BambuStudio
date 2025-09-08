@@ -451,7 +451,6 @@ private:
     Vec2f              m_rib_offset{Vec2f(0.f, 0.f)};
     bool               m_tower_framework{false};
     bool               m_need_reverse_travel{false};
-
 	// G-code generator parameters.
     // BBS: remove useless config
     //float           m_cooling_tube_retraction   = 0.f;

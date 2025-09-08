@@ -3138,7 +3138,7 @@ WipeTower::NozzleChangeResult WipeTower::ramming(int old_filament_id, int new_fi
     auto format_line_M106 = []() { return std::string{"M106 S255\n"};};
     auto format_line_M633 = []() { return std::string{"M633\n"};};
     auto format_line_M632 = [](int filament_id) {
-        std::string buffer = "M632 S" + std::to_string(filament_id) + " M N\n";
+        std::string buffer = "M632 S" + std::to_string(filament_id) + " M N" + "\n";
         return buffer;
     };
 
