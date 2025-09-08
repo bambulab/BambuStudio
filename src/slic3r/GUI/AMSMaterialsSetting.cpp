@@ -1203,11 +1203,21 @@ void AMSMaterialsSetting::update_pa_profile_items()
                 if (cali_item.nozzle_volume_type != nozzle_volume_type || !is_approx(cali_item.nozzle_diameter, nozzle_diameter))
                     continue;
             }
-            if(cali_item.nozzle_pos_id == 0) {
-                items.push_back(std::make_pair(cali_item.nozzle_pos_id, wxString::Format("R | %s", from_u8(cali_item.name))));
+
+            if(rack->IsSupported() && extruder_id == MAIN_EXTRUDER_ID)
+            {
+                if(cali_item.nozzle_pos_id == 0) {
+                    items.push_back(wxString::Format("R | %s", from_u8(cali_item.name)));
+                } else if(cali_item.nozzle_pos_id >= 0x10){
+                    items.push_back(wxString::Format("%d | %s", (cali_item.nozzle_pos_id & 0x0f) + 1, from_u8(cali_item.name)));
+                } else {
+                    items.push_back(wxString::Format("N/A | %s", from_u8(cali_item.name)));
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "Nozzle position id is -1 or invalid.";
+                }
             } else {
-                items.push_back(std::make_pair(cali_item.nozzle_pos_id, wxString::Format("%d | %s", (cali_item.nozzle_pos_id & 0x0f) + 1, from_u8(cali_item.name))));
+                items.push_back(wxString::Format("%s", from_u8(cali_item.name)));
             }
+
             m_pa_profile_items.push_back(cali_item);
         }
     }
