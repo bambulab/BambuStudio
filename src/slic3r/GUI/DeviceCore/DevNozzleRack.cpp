@@ -40,45 +40,6 @@ DevFirmwareVersionInfo DevNozzleRack::GetNozzleFirmwareInfo(int nozzle_id) const
     return iter != m_rack_nozzles_firmware.end() ? iter->second : DevFirmwareVersionInfo();
 }
 
-std::vector<MultiNozzleUtils::NozzleGroupInfo> DevNozzleRack::GetNozzleGroups() const
-{
-    std::vector<MultiNozzleUtils::NozzleGroupInfo> nozzle_groups;
-    auto nozzle_in_extruder = this->GetNozzleSystem()->GetNozzles();
-    for (auto& elem : nozzle_in_extruder) {
-        auto& nozzle = elem.second;
-        MultiNozzleUtils::NozzleGroupInfo info;
-        info.extruder_id = nozzle.AtLeftExtruder() ? 0 : nozzle.AtRightExtruder() ? 1 : 0;
-        info.diameter = nozzle.GetNozzleDiameterStr().ToStdString();
-        info.volume_type = nozzle.m_nozzle_flow == NozzleFlowType::H_FLOW ? NozzleVolumeType::nvtHighFlow : NozzleVolumeType::nvtStandard;
-        info.nozzle_count = 1;
-        nozzle_groups.emplace_back(std::move(info));
-    }
-
-    auto nozzle_in_rack = this->GetRackNozzles(); // nozzles in rack
-    for (auto& elem : nozzle_in_rack) {
-        auto& nozzle = elem.second;
-        if (nozzle.IsUnknown() || !nozzle.IsInfoReliable())
-            continue;
-        int extruder_id = nozzle.AtLeftExtruder() ? 0 : nozzle.AtRightExtruder() ? 1 : 0;
-        std::string diameter = nozzle.GetNozzleDiameterStr().ToStdString();
-        NozzleVolumeType volume_type = nozzle.m_nozzle_flow == NozzleFlowType::H_FLOW ? NozzleVolumeType::nvtHighFlow : NozzleVolumeType::nvtStandard;
-
-        bool found = false;
-        for (auto& group : nozzle_groups) {
-            if (group.extruder_id == extruder_id &&
-                group.volume_type == volume_type &&
-                group.diameter == diameter) {
-                found = true;
-                group.nozzle_count += 1;
-                break;
-            }
-        }
-        if (!found)
-            nozzle_groups.emplace_back(diameter, volume_type, extruder_id, 1);
-    }
-    return nozzle_groups;
-}
-
 
 bool DevNozzleRack::HasUnreliableNozzles() const
 {
