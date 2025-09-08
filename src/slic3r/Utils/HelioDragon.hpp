@@ -57,10 +57,10 @@ public:
 
     struct PresignedURLResult
     {
+        unsigned    status;
         std::string key;
         std::string mimeType;
         std::string url;
-        unsigned    status;
         std::string error;
         std::string trace_id;
     };
@@ -79,6 +79,13 @@ public:
         std::string native_name;
     };
 
+    struct PollResult {
+        std::string status_str;
+        int progress;
+        int sizeKb;
+        bool success;
+    };
+
     struct CreateGCodeResult
     {
         unsigned    status;
@@ -89,6 +96,11 @@ public:
         vector<std::string> warning_flags;
         vector<std::string> error_flags;
         std::string trace_id;
+
+        // V2 API fields
+        float       sizeKb;
+        std::string status_str;
+        float       progress;
     };
 
     struct CreateSimulationResult
@@ -160,6 +172,11 @@ public:
     static void request_pat_token(std::function<void(std::string)> func);
     static PresignedURLResult create_presigned_url(const std::string helio_api_url, const std::string helio_api_key);
     static UploadFileResult   upload_file_to_presigned_url(const std::string file_path_string, const std::string upload_url);
+
+    static PollResult poll_gcode_status(const std::string& helio_api_url,
+                                        const std::string& helio_api_key,
+                                        const std::string& gcode_id);
+
     static CreateGCodeResult  create_gcode(const std::string key,
                                            const std::string helio_api_url,
                                            const std::string helio_api_key,
