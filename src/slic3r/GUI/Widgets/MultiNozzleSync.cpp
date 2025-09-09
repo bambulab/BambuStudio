@@ -451,6 +451,7 @@ NozzleListTable::NozzleListTable(wxWindow* parent) : wxPanel(parent,wxID_ANY,wxD
                 m_web_view->SetSize(table_size);
                 m_web_view->SetMaxSize(table_size);
                 m_web_view->SetMinSize(table_size);
+                this->Layout();
                 this->GetParent()->Layout();
                 this->GetParent()->Fit();
             }
@@ -529,7 +530,6 @@ MultiNozzleStatusTable::MultiNozzleStatusTable(wxWindow* parent): wxPanel(parent
     main_sizer->Add(title_panel, 0, wxEXPAND);
     main_sizer->AddSpacer(10);
 
-    auto nozzle_panel = new wxPanel(this);
     wxSizer* nozzle_area_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_table = new HotEndTable(this);
@@ -852,7 +852,7 @@ int MultiNozzleSyncDialog::ShowModal()
     bool res = UpdateUi(m_nozzle_rack);
     if (!res)
         return wxID_OK;
-    
+
     return DPIDialog::ShowModal();
 
 }
