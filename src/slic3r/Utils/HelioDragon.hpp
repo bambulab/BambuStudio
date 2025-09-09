@@ -260,6 +260,8 @@ public:
 
     static std::vector<SupportedData> global_supported_printers;
     static std::vector<SupportedData> global_supported_materials;
+    static std::string last_simulation_trace_id;
+    static std::string last_optimization_trace_id;
     static double convert_speed(float mm_per_second);
     static double convert_volume_speed(float mm3_per_second);
 

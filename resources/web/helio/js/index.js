@@ -23,3 +23,9 @@ function OpenTouLink() {
 function OpenHomeLink() {
     SendWXMessage("helio_link_home");
 }
+
+function getUrlParam(name) {
+	const reg = new RegExp(`(^|&)${name}=([^&]*)(&|$)`);
+	const r = window.location.search.substr(1).match(reg);
+	return r ? decodeURIComponent(r[2]) : null;
+}

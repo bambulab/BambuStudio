@@ -57,7 +57,6 @@ class HelioStatementDialog : public DPIDialog
 private:
     Label *m_title{nullptr};
     Button *m_button_confirm{nullptr};
-    Button *m_button_uninstall{nullptr};
     Button *m_button_cancel{nullptr};
 
     int current_page{ 0 };
@@ -91,7 +90,6 @@ public:
     void request_pat();
     void on_confirm(wxMouseEvent& e);
     void report_consent_install();
-    void report_consent_unstall();
     void open_url(std::string type);
 
     void OnLoaded(wxWebViewEvent& event);
@@ -126,6 +124,9 @@ private:
 
     CustomToggleButton* togglebutton_simulate{nullptr};
     CustomToggleButton* togglebutton_optimize{nullptr};
+
+    wxPanel* last_tid_panel{nullptr};
+    Label*   last_tid_label{nullptr};
 
     std::map<std::string, TextInput*> m_input_items;
     std::map<std::string, ComboBox*> m_combo_items;
