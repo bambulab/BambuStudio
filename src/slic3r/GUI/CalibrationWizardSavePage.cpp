@@ -719,7 +719,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
             k_value->GetTextCtrl()->SetValue(k_str);
             n_value->GetTextCtrl()->SetValue(n_str);
 
-            if(has_rack){
+            if(has_rack && item.extruder_id == MAIN_EXTRUDER_ID){
                 wxString nozzle_id_str;
                 if(item.nozzle_pos_id == 0){
                     nozzle_id_str += "R | ";
