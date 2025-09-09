@@ -8089,14 +8089,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++)
                 {
                     stream << "    <" << FILAMENT_TAG << " " << FILAMENT_ID_TAG << "=\"" << std::to_string(it->id + 1) << "\" "
-                           << FILAMENT_TRAY_INFO_ID_TAG <<"=\""<< it->filament_id <<"\" "
-                           << FILAMENT_TYPE_TAG << "=\"" << it->type << "\" "
-                           << FILAMENT_COLOR_TAG << "=\"" << it->color << "\" "
-                           << FILAMENT_USED_M_TAG << "=\"" << it->used_m << "\" "
-                           << FILAMENT_USED_G_TAG << "=\"" << it->used_g << "\" "
-                           << FILAMENT_NOZZLE_GROUP_ID_TAG << "=\"" << it->group_id << "\" "
-                           << FILAMENT_NOZZLE_DIAMETER_TAG << "=\"" << it->nozzle_diameter << "\" "
-                           << FILAMENT_NOZZLE_VOLUME_TYPE_TAG << "=\"" << it->nozzle_volume_type << "\" "
+                        << FILAMENT_TRAY_INFO_ID_TAG << "=\"" << it->filament_id << "\" "
+                        << FILAMENT_TYPE_TAG << "=\"" << it->type << "\" "
+                        << FILAMENT_COLOR_TAG << "=\"" << it->color << "\" "
+                        << FILAMENT_USED_M_TAG << "=\"" << it->used_m << "\" "
+                        << FILAMENT_USED_G_TAG << "=\"" << it->used_g << "\" "
+                        << FILAMENT_NOZZLE_GROUP_ID_TAG << "=\"" << it->group_id << "\" "
+                        << FILAMENT_NOZZLE_DIAMETER_TAG << "=\"" << it->nozzle_diameter << "\" "
+                        << FILAMENT_NOZZLE_VOLUME_TYPE_TAG << "=\"" << it->nozzle_volume_type << "\" ";
                 }
 
                 for (auto it = plate_data->warnings.begin(); it != plate_data->warnings.end(); it++) {

@@ -31,7 +31,8 @@ public:
         const std::unordered_map<int, std::vector<int>>& uv_link_limits = {},
         const std::unordered_map<int, std::vector<int>>& uv_unlink_limits = {},
         const std::vector<int>& u_capacity = {},
-        const std::vector<int>& v_capacity = {}
+        const std::vector<int>& v_capacity = {},
+        const std::vector<std::pair<std::set<int>, int>>& v_group_capacity = {}
     );
     std::vector<int> solve();
 
@@ -73,8 +74,9 @@ public:
         const std::unordered_map<int, std::vector<int>>& uv_link_limits = {},
         const std::unordered_map<int, std::vector<int>>& uv_unlink_limits = {},
         const std::vector<int>& u_capacity = {},
-        const std::vector<int>& v_capacity = {}
-    );
+        const std::vector<int>& v_capacity = {},
+        const std::vector<std::pair<std::set<int>, int>>& v_group_capacity = {});
+
     std::vector<int> solve();
     ~MinFlushFlowSolver();
 private:
