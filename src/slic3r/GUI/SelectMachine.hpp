@@ -536,6 +536,7 @@ private:
     void save_option_vals(MachineObject *obj);
 
     // events
+    void on_flow_pa_caliation_option_changed(wxCommandEvent& event);
     void on_nozzle_offset_option_changed(wxCommandEvent& event);
 
     // get mapping nozzle display string

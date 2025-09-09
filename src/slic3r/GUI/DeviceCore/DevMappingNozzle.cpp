@@ -48,7 +48,7 @@ static std::string s_get_diameter_str(const std::string& diameter)
 // warnings: 
 // (1) the fila_id here is 1 based index
 // (2) the AP wants the diameter string with 2 decimal places
-int MachineObject::ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, const std::vector<FilamentInfo>& ams_mapping, int nozzle_cali_opt)
+int MachineObject::ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, const std::vector<FilamentInfo>& ams_mapping, int flow_cali_opt)
 {
     m_auto_nozzle_mapping.Clear();
     if (!plater) {
@@ -74,7 +74,7 @@ int MachineObject::ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, con
     json command_jj;
     command_jj["print"]["command"] = "get_auto_nozzle_mapping";
     command_jj["print"]["sequence_id"] = std::to_string(m_sequence_id++);
-    command_jj["print"]["calibration"] = nozzle_cali_opt;
+    command_jj["print"]["calibration"] = flow_cali_opt;
 
     // filament seq
     json filament_seq_jj;

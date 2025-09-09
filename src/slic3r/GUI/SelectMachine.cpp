@@ -544,7 +544,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
         new PrintOption(m_options_other, _L("Flow Dynamics Calibration"),
                         _L("This process determines the dynamic flow values to improve overall print quality.\n*Automatic mode: Skip if the filament was calibrated recently."),
                         ops_auto, "flow_cali");
-
+    option_flow_dynamics_cali->Bind(EVT_SWITCH_PRINT_OPTION, &SelectMachineDialog::on_flow_pa_caliation_option_changed, this);
+    
     auto option_nozzle_offset_cali_cali  = new PrintOption(
         m_options_other,
         _L("Nozzle Offset Calibration"),
@@ -4760,6 +4761,22 @@ bool SelectMachineDialog::CheckErrorExtruderNozzleWithSlicing(MachineObject* obj
     return true;
 }
 
+void SelectMachineDialog::on_flow_pa_caliation_option_changed(wxCommandEvent& event)
+{
+    // update nozzle mapping result if flow pa calibration option changed
+    DeviceManager* dev_ = Slic3r::GUI::wxGetApp().getDeviceManager();
+    MachineObject* obj_ = dev_ ? dev_->get_my_machine(m_printer_last_select) : nullptr;
+    if (obj_ && m_plater && obj_->GetNozzleSystem()->GetNozzleRack()->IsSupported()) {
+        auto nozzle_group_res = m_plater->get_partplate_list().get_current_fff_print().get_nozzle_group_result();
+        if (nozzle_group_res && nozzle_group_res->get_nozzle_count(LOGIC_R_EXTRUDER_ID) != 0) {
+            // request nozzle mapping result if right extruder nozzles used in slicing
+            obj_->ctrl_get_auto_nozzle_mapping(m_plater, m_ams_mapping_result, m_checkbox_list["flow_cali"]->getValueInt());
+        }
+    }
+
+    event.Skip();
+}
+
 void SelectMachineDialog::on_nozzle_offset_option_changed(wxCommandEvent& event)
 {
     DeviceManager* dev_ = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -4783,12 +4800,6 @@ void SelectMachineDialog::on_nozzle_offset_option_changed(wxCommandEvent& event)
             m_checkbox_list["nozzle_offset_cali"]->setValue("auto");
             save_option_vals();
         }
-    }
-
-    // re-get auto nozzle mapping if nozzle offset cali changed
-    obj_ = dev_->get_my_machine(m_printer_last_select);
-    if (obj_) { // protect if the obj is deleted during dialog modaling
-        obj_->ctrl_get_auto_nozzle_mapping(m_plater, m_ams_mapping_result, m_checkbox_list["nozzle_offset_cali"]->getValueInt());
     }
 
     event.Skip();
@@ -4843,10 +4854,15 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResult(MachineObject* obj_)
         return true;// no need to check if not support nozzle rack
     }
 
+    auto nozzle_group_res = m_plater->get_partplate_list().get_current_fff_print().get_nozzle_group_result();
+    if (nozzle_group_res && nozzle_group_res->get_nozzle_count(LOGIC_R_EXTRUDER_ID) == 0) {
+        return true;// no need to check if no right nozzles used in slicing
+    }
+
     const auto& nozzle_mapping_res = obj_->get_nozzle_mapping_result();
     if (nozzle_mapping_res.IsEmpty()) {
         if (time(nullptr) - s_nozzle_mapping_last_request_time > 10) { // avoid too many requests
-            int rtn = obj_->ctrl_get_auto_nozzle_mapping(m_plater, m_ams_mapping_result, m_checkbox_list["nozzle_offset_cali"]->getValueInt());
+            int rtn = obj_->ctrl_get_auto_nozzle_mapping(m_plater, m_ams_mapping_result, m_checkbox_list["flow_cali"]->getValueInt());
             if (rtn == 0) {
                 s_nozzle_mapping_last_request_time = time(nullptr);
             } else {
