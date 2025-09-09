@@ -61,6 +61,11 @@ bool DevNozzle::IsUnknown() const
     return DevUtil::get_flag_bits(m_stat, 1, 2) == (1 << 1);
 }
 
+int DevNozzle::GetNozzlePosId() const
+{
+    return IsOnRack() ? (m_nozzle_id + 0x10) : m_nozzle_id;
+}
+
 wxString DevNozzle::GetDisplayId() const
 {
     return wxString::Format("%d", m_nozzle_id + 1);
