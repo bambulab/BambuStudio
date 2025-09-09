@@ -8750,6 +8750,9 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": event_type %1%, percent %2%, text %3%") % evt.GetEventType() % evt.status.percent % evt.status.text;
     //BBS: add slice project logic
     std::string title_text = _u8L("Slicing");
+    if (evt.status.is_helio) {
+        title_text = "";
+    }
     evt.status.text = title_text + evt.status.text;
     if (evt.status.percent >= 0) {
         if (m_ui_jobs.is_any_running()) {
@@ -9410,6 +9413,13 @@ void Plater::priv::on_helio_process()
                 helio_background_process.init(helio_api_key, helio_api_url, printer_id, material_id, g_result, preview, [this]() {});
                 helio_background_process.helio_thread_start(background_process.m_mutex, background_process.m_condition, background_process.m_state, notification_manager);
                 BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":helio simulation process called";
+
+                if (wxGetApp().getAgent()) {
+                    json j;
+                    j["operate"] = "action";
+                    j["content"] = "simulation";
+                    wxGetApp().getAgent()->track_event("helio_state", j.dump());
+                }
             }
             /*optimization*/
             else if (action == 1) {
@@ -9421,6 +9431,13 @@ void Plater::priv::on_helio_process()
                 helio_background_process.init(helio_api_key, helio_api_url, printer_id, material_id, g_result, preview, [this]() {});
                 helio_background_process.helio_thread_start(background_process.m_mutex, background_process.m_condition, background_process.m_state, notification_manager);
                 BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":helio optimization process called";
+
+                if (wxGetApp().getAgent()) {
+                    json j;
+                    j["operate"] = "action";
+                    j["content"] = "optimization";
+                    wxGetApp().getAgent()->track_event("helio_state", j.dump());
+                }
             }
 
             break;
