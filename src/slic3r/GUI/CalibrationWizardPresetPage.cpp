@@ -721,7 +721,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
             nozzle_diameter_text->Wrap(-1);
 
             m_right_comboBox_nozzle_dia = new ComboBox(m_multi_nozzle_info_panel, wxID_ANY, "", wxDefaultPosition, CALIBRATION_FILAMENT_COMBOX_SIZE, 0, nullptr, wxCB_READONLY);
-            m_right_comboBox_nozzle_dia->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, [this](auto &e) { update_nozzle_id_combox(); });
+            m_right_comboBox_nozzle_dia->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, &CalibrationPresetPage::on_select_nozzle, this);
             m_right_comboBox_nozzle_dia->Disable();
 
             m_right_nozzle_volume_type_sizer->AddSpacer(FromDIP(5));
@@ -736,7 +736,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
             nozzle_volume_type_text->Wrap(-1);
 
             m_right_comboBox_nozzle_volume = new ComboBox(m_multi_nozzle_info_panel, wxID_ANY, "", wxDefaultPosition, CALIBRATION_FILAMENT_COMBOX_SIZE, 0, nullptr, wxCB_READONLY);
-            m_right_comboBox_nozzle_volume->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, [this](auto &e) { update_nozzle_id_combox(); });
+            m_right_comboBox_nozzle_volume->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, &CalibrationPresetPage::on_select_nozzle, this);
             m_right_comboBox_nozzle_volume->Disable();
 
             m_right_nozzle_volume_type_sizer->Add(nozzle_volume_type_text, 0, wxLEFT | wxRIGHT, 10);

@@ -299,12 +299,15 @@ FilamentComboBox::FilamentComboBox(wxWindow* parent, int index, const wxPoint& p
 
 void FilamentComboBox::UpdateNozzleCombo(const std::vector<std::pair<wxString, int>> &nozzle_list)
 {
-    int index = m_nozzle_combo->GetSelection() == -1 ? 0 : m_nozzle_combo->GetSelection();
+    int index = (m_nozzle_combo->GetSelection() == -1 || m_nozzle_combo->GetSelection() >= nozzle_list.size()) ? 0 : m_nozzle_combo->GetSelection();
     m_nozzle_combo->Clear();
 
     for (auto &pair : nozzle_list) { m_nozzle_combo->Append(pair.first, wxNullBitmap, new int{pair.second}); }
 
     m_nozzle_combo->SetSelection(index);
+
+    /* nozzle Id combox update after load_tray, avoid make a bad influence for other */
+    if (m_nozzle_combo->GetCount() == 0) { Enable(false); }
 }
 
 int FilamentComboBox::GetNozzleIdCode() const
