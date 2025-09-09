@@ -15373,7 +15373,7 @@ void Plater::reslice()
     // Only restarts if the state is valid.
     //BBS: jusdge the result
     bool result = this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
-    p->preview->get_canvas3d()->on_back_slice_begin();
+    
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: restart background,state=%2%, result=%3%")%__LINE__%state %result;
     if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
     {
@@ -15400,17 +15400,11 @@ void Plater::reslice()
 
     if (result) {
         p->m_is_slicing = true;
+        p->preview->get_canvas3d()->on_back_slice_begin();
         this->SetDropTarget(nullptr);
 
-        // Stop helio job
-        //if (p->helio_background_process.is_running()) {
-        //    p->helio_background_process.clear_helio_file_cache();
-        //    p->helio_background_process.reset();
-
-        //    
-        //    p->helio_background_process.stop_current_helio_action();
-        //    p->helio_background_process.stop();
-        //}
+        // clear helio cache
+        p->helio_background_process.clear_helio_file_cache();
     }
 
     bool clean_gcode_toolpaths = true;
