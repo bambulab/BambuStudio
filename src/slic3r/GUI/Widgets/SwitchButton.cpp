@@ -425,7 +425,7 @@ void CustomToggleButton::doRender(wxDC& dc)
         dc.SetPen(wxPen(m_primary_colour));
     }
     else {
-        dc.SetBrush(wxBrush(wxColour("#FFFFFF")));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.SetPen(wxPen(wxColour("#EEEEEE")));
     }
     
@@ -453,7 +453,7 @@ void CustomToggleButton::doRender(wxDC& dc)
         dc.SetTextForeground(m_primary_colour);
     }
     else {
-        dc.SetTextForeground(wxColour("#5C5C5C"));
+        dc.SetTextForeground(Slic3r::GUI::wxGetApp().dark_mode() ? *wxWHITE:wxColour("#5C5C5C"));
     }
 
     int textY = (rect.GetHeight() - dc.GetCharHeight()) / 2;

@@ -56,7 +56,7 @@ namespace Slic3r { namespace GUI {
      wxFont bold_font = helio_top_label->GetFont();
      bold_font.SetWeight(wxFONTWEIGHT_BOLD);
      helio_top_label->SetFont(bold_font);
-     helio_top_label->SetForegroundColour(*wxWHITE);
+     helio_top_label->SetForegroundColour(wxColour("#FEFEFF"));
      //helio_top_hsizer->Add(0, 0, wxLEFT, FromDIP(40));
      helio_top_content_sizer->Add(helio_top_icon, 0, wxLEFT|wxALIGN_CENTER, FromDIP(45));
      helio_top_content_sizer->Add(helio_top_label, 0, wxLEFT|wxALIGN_CENTER,FromDIP(8));
@@ -89,6 +89,9 @@ namespace Slic3r { namespace GUI {
          phurl1 = "web/helio/helio_service_en.html";
          phurl2 = "web/helio/helio_service_snote_en.html";
      }
+
+     phurl1 += GUI::wxGetApp().dark_mode() ? "?darkmode=1" : "?darkmode=0";
+     phurl2 += GUI::wxGetApp().dark_mode() ? "?darkmode=1" : "?darkmode=0"; 
 
      auto _language = GUI::into_u8(GUI::wxGetApp().current_language_code());
      fs::path ph(resources_dir());
@@ -255,31 +258,6 @@ namespace Slic3r { namespace GUI {
 
      StateColor btn_bg_green = StateColor(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
 
-     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-         std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-
-     m_button_uninstall = new Button(page3_content_panel, _L("Uninstall the Helio Additive extension"));
-     m_button_uninstall->SetBackgroundColor(btn_bg_white);
-     m_button_uninstall->SetBorderColor(*wxWHITE);
-     m_button_uninstall->SetBorderColor(wxColour(38, 46, 48));
-     m_button_uninstall->SetTextColor(wxColour("#6B6B6B"));
-     m_button_uninstall->SetFont(Label::Head_13);
-     m_button_uninstall->SetSize(wxSize(-1, FromDIP(28)));
-     m_button_uninstall->SetMinSize(wxSize(-1, FromDIP(28)));
-     m_button_uninstall->SetCornerRadius(FromDIP(8));
-     m_button_uninstall->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
-         wxGetApp().app_config->set_bool("helio_enable", false);
-         report_consent_unstall();
-
-         /*hide helio on main windows*/
-         if (wxGetApp().mainframe->expand_program_holder) {
-             wxGetApp().mainframe->expand_program_holder->ShowExpandButton(wxGetApp().mainframe->expand_helio_id, false);
-             wxGetApp().mainframe->Layout();
-         }
-
-         EndModal(wxID_NO);
-     });
-
      page3_content_sizer->Add(enable_pat_title, 0, wxTOP, FromDIP(2));
      page3_content_sizer->Add(0, 0, 0, wxTOP, FromDIP(14));
      page3_content_sizer->Add(split_line, 0, wxEXPAND, 0);
@@ -289,7 +267,7 @@ namespace Slic3r { namespace GUI {
      page3_content_sizer->Add(0, 0, 0, wxTOP, FromDIP(28));
      page3_content_sizer->Add(helio_links_sizer, 0, wxEXPAND, 0);
      page3_content_sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
-     page3_content_sizer->Add(m_button_uninstall, 0, wxLEFT, 0);
+     //page3_content_sizer->Add(m_button_uninstall, 0, wxLEFT, 0);
 
      
      page3_content_panel->SetSizer(page3_content_sizer);
@@ -342,12 +320,12 @@ namespace Slic3r { namespace GUI {
          show_pat_page();
          request_pat();
          m_button_confirm->Hide();
-         m_button_uninstall->Show();
+         //m_button_uninstall->Show();
      }
      else {
          show_agreement_page1();
          m_button_confirm->Show();
-         m_button_uninstall->Hide();
+         //m_button_uninstall->Hide();
      }
 
 
@@ -382,12 +360,19 @@ void HelioStatementDialog::on_confirm(wxMouseEvent& e)
     }
     else if (current_page == 1) {
         page2_agree = true;
-        m_button_uninstall->Show();
+        //m_button_uninstall->Show();
         m_button_confirm->Hide();
     }
 
     if (page1_agree && page2_agree) {
         wxGetApp().app_config->set_bool("helio_enable", true);
+        if (wxGetApp().getAgent()) {
+            json j;
+            j["operate"] = "switch";
+            j["content"] = "enable";
+            wxGetApp().getAgent()->track_event("helio_state", j.dump());
+        }
+
         show_pat_page();
         report_consent_install();
         request_pat();
@@ -434,39 +419,6 @@ void HelioStatementDialog::report_consent_install()
     if (agent && agent->is_user_login()) {
         agent->report_consent(post_body_str);
     }
-    else {
-        wxGetApp().report_consent(post_body_str);
-    }
-}
-
-void HelioStatementDialog::report_consent_unstall()
-{
-    json consentBody;
-    json formItemArray = json::array();
-    json formItem;
-
-    formItem["formID"] = "StudioHelioTOU";
-    formItem["op"] = "Withdraw";
-    formItemArray.push_back(formItem);
-
-    formItem.clear();
-    formItem["formID"] = "StudioHelioNotice";
-    formItem["op"] = "Withdraw";
-    formItemArray.push_back(formItem);
-
-    consentBody["version"] = 1;
-    consentBody["scene"] = "helio_enable";
-    consentBody["formList"] = formItemArray;
-
-    json consent;
-    consent["consentBody"] = consentBody.dump();
-    std::string post_body_str = consent.dump();
-
-    NetworkAgent* agent = GUI::wxGetApp().getAgent();
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "  client_id:" << wxGetApp().app_config->get("slicer_uuid") << "\nreport_consent:" << post_body_str;
-
-    if (agent && agent->is_user_login())
-        agent->report_consent(post_body_str);
     else {
         wxGetApp().report_consent(post_body_str);
     }
@@ -828,7 +780,7 @@ static double s_round(double value, int n)
     advanced_settings_link->Fit();
 
     /*buy now*/
-    more_setting_tips->SetForegroundColour(wxColour(49, 49, 49));
+    //more_setting_tips->SetForegroundColour(wxColour(49, 49, 49));
     more_setting_tips->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
     more_setting_tips->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
     advanced_settings_link->Hide();
@@ -914,6 +866,41 @@ static double s_round(double value, int n)
 
     panel_optimization->Hide();
 
+    /*last trace id*/
+    last_tid_panel = new wxPanel(this);
+    wxBoxSizer* last_tid_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    Label* last_tid_title = new Label(last_tid_panel, _L("Trace ID: "));
+    last_tid_title->SetBackgroundColour(*wxWHITE);
+    last_tid_title->SetForegroundColour(wxColour(144, 144, 144));
+    last_tid_label = new Label(last_tid_panel, wxEmptyString);
+    last_tid_label->SetBackgroundColour(*wxWHITE);
+    last_tid_label->SetForegroundColour(wxColour(144, 144, 144));
+    wxStaticBitmap* helio_tid_copy = new wxStaticBitmap(last_tid_panel, wxID_ANY, create_scaled_bitmap("helio_copy", last_tid_panel, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
+    helio_tid_copy->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    helio_tid_copy->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+
+
+    helio_tid_copy->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        bool copySuccess = false;
+        if (wxTheClipboard->Open()) {
+            wxTheClipboard->Clear();
+            wxTextDataObject* dataObj = new wxTextDataObject(last_tid_label->GetLabel());
+            wxTheClipboard->SetData(dataObj);
+            wxTheClipboard->Close();
+        }
+        MessageDialog msg(this, _L("Copy successful!"), _L("Copy"), wxOK | wxYES_DEFAULT);
+        msg.ShowModal();
+        });
+
+    last_tid_sizer->Add(last_tid_title, 0, wxALIGN_CENTER, 0);
+    last_tid_sizer->Add(last_tid_label, 0, wxALIGN_CENTER, 0);
+    last_tid_sizer->Add(0, 0, 0, wxLEFT, FromDIP(6));
+    last_tid_sizer->Add(helio_tid_copy, 0, wxALIGN_CENTER, 0);
+    last_tid_panel->SetSizer(last_tid_sizer);
+    last_tid_panel->Layout();
+    last_tid_panel->Fit();
+
     buy_now_link = new LinkLabel(this, _L("Buy Now"), "https://wiki.helioadditive.com/");
     buy_now_link->SeLinkLabelFColour(wxColour(175, 124, 255));
     buy_now_link->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
@@ -964,7 +951,9 @@ static double s_round(double value, int n)
     main_sizer->Add(panel_simulation, 0,wxEXPAND | wxLEFT | wxRIGHT, FromDIP(25));
     main_sizer->Add(panel_pay_optimization, 0,wxEXPAND | wxLEFT | wxRIGHT, FromDIP(25));
     main_sizer->Add(panel_optimization, 0,wxEXPAND | wxLEFT | wxRIGHT, FromDIP(25));
-    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(4));
+    main_sizer->Add(last_tid_panel, 0, wxLEFT | wxRIGHT, FromDIP(25));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(4));
     main_sizer->Add(buy_now_link, 0, wxLEFT | wxRIGHT, FromDIP(25));
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
     main_sizer->Add(helio_wiki_link, 0, wxLEFT | wxRIGHT, FromDIP(25));
@@ -996,7 +985,15 @@ void HelioInputDialog::update_action(int action)
         panel_pay_optimization->Hide();
         panel_optimization->Hide();
         m_button_confirm->Enable();
-        helio_wiki_link->setLinkUrl( wxGetApp().app_config->get("language") =="zh_CN"? "https://wiki.helioadditive.com/zh/home" : "https://wiki.helioadditive.com/en/home");   
+        helio_wiki_link->setLinkUrl( wxGetApp().app_config->get("language") =="zh_CN"? "https://wiki.helioadditive.com/zh/home" : "https://wiki.helioadditive.com/en/home");
+
+        if (Slic3r::HelioQuery::last_simulation_trace_id.empty()) {
+            last_tid_panel->Hide();
+        }
+        else {
+            last_tid_label->SetLabel(Slic3r::HelioQuery::last_simulation_trace_id);
+            last_tid_panel->Show();
+        }
     }
     else {
         m_button_confirm->Disable();
@@ -1061,13 +1058,21 @@ void HelioInputDialog::update_action(int action)
             /*hide based mode when preser has nozzle diameter  = 0.2*/
             auto edited_preset = wxGetApp().preset_bundle->prints.get_edited_preset().config;
             auto layer_height = edited_preset.option<ConfigOptionFloat>("layer_height")->value;
-            if (boost::str(boost::format("%.1f") % layer_height) == "0.2") {
+            if (layer_height < 0.2) {
                 only_advanced_settings = true;
                 use_advanced_settings = true;
                 show_advanced_mode();
             }
         }
         catch (...){}
+
+        if (Slic3r::HelioQuery::last_optimization_trace_id.empty()) {
+            last_tid_panel->Hide();
+        }
+        else {
+            last_tid_label->SetLabel(Slic3r::HelioQuery::last_optimization_trace_id);
+            last_tid_panel->Show();
+        }
     }
     Layout();
     Fit();

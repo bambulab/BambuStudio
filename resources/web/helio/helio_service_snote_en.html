@@ -99,6 +99,44 @@
             color: #212121;
             display: block;
         }
+		
+		body.dark {
+            background-color: #2d2d31;
+            color: #FFFFFF;
+        }
+
+        body.dark .header {
+            background-color: #2d2d2d;
+            border-bottom-color: #444;
+
+        }
+
+        body.dark h1,
+        body.dark h2,
+        body.dark strong {
+            color: #FFFFFF;
+        }
+
+		body.dark .special-note {
+            color: #FFFFFF;
+        }
+        body.dark a {
+            color: #90caf9;
+        }
+
+        body.dark .btn-secondary {
+            background-color: #333;
+            color: #FFFFFF;
+            border-color: #555;
+        }
+
+        body.dark .btn-secondary:hover {
+            background-color: #444;
+        }
+
+        body.dark .warning {
+            color: #ff8a65;
+        }
     </style>
 </head>
 <body>
@@ -108,3 +146,10 @@
 	
 </body>
 </html>
+
+<script type="text/javascript">
+	const darkmode = getUrlParam('darkmode');
+	if (darkmode === '1') {
+		document.body.classList.add('dark');
+    }
+</script>

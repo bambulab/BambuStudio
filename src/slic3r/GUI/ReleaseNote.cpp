@@ -2306,7 +2306,7 @@ ExpandCenterDialog::ExpandCenterDialog(wxWindow* parent /*= nullptr*/) :
     expand_image->SetMaxSize(wxSize(FromDIP(450), FromDIP(144)));
 
     auto expand_name = new Label(this, Label::Head_16, wxString("Helio Additive"));
-    expand_name->SetForegroundColour("#2F3C3F");
+    expand_name->SetForegroundColour("#262E30");
     wxFont bold_font = expand_name->GetFont();
     bold_font.SetWeight(wxFONTWEIGHT_BOLD);
     expand_name->SetFont(bold_font);
@@ -2318,7 +2318,46 @@ ExpandCenterDialog::ExpandCenterDialog(wxWindow* parent /*= nullptr*/) :
     expand_description->SetForegroundColour("#5C5C5C");
 
     StateColor btn_bg_green = StateColor(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+        std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
 
+    Button* m_button_uninstall = new Button(this, _L("Uninstall the Helio Additive extension"));
+    m_button_uninstall->SetBackgroundColor(btn_bg_white);
+    m_button_uninstall->SetBorderColor(*wxWHITE);
+    m_button_uninstall->SetBorderColor(wxColour(38, 46, 48));
+    m_button_uninstall->SetTextColor(wxColour("#6B6B6B"));
+    m_button_uninstall->SetFont(Label::Head_13);
+    m_button_uninstall->SetSize(wxSize(-1, FromDIP(28)));
+    m_button_uninstall->SetMinSize(wxSize(-1, FromDIP(28)));
+    m_button_uninstall->SetCornerRadius(FromDIP(8));
+    m_button_uninstall->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        wxGetApp().app_config->set_bool("helio_enable", false);
+        if (wxGetApp().getAgent()) {
+            json j;
+            j["operate"] = "switch";
+            j["content"] = "disable";
+            wxGetApp().getAgent()->track_event("helio_state", j.dump());
+        }
+        report_consent_unstall();
+
+        /*hide helio on main windows*/
+        if (wxGetApp().mainframe->expand_program_holder) {
+            wxGetApp().mainframe->expand_program_holder->ShowExpandButton(wxGetApp().mainframe->expand_helio_id, false);
+            wxGetApp().mainframe->Layout();
+        }
+
+        EndModal(wxID_NO);
+    });
+
+    if (wxGetApp().app_config->get("helio_enable") == "true") {
+        m_button_uninstall->Show();
+    }
+    else {
+        m_button_uninstall->Hide();
+    }
+
+
+    wxBoxSizer* button_sizer = new wxBoxSizer(wxHORIZONTAL);
     Button* m_button_launch = new Button(this, _L("Use Immediately"));
     m_button_launch->SetBackgroundColor(btn_bg_green);
     m_button_launch->SetBorderColor(*wxWHITE);
@@ -2328,6 +2367,8 @@ ExpandCenterDialog::ExpandCenterDialog(wxWindow* parent /*= nullptr*/) :
     m_button_launch->SetMinSize(wxSize(FromDIP(58), FromDIP(29)));
     m_button_launch->SetCornerRadius(FromDIP(12));
     m_button_launch->Bind(wxEVT_LEFT_DOWN, &ExpandCenterDialog::on_open_expand, this);
+    button_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    button_sizer->Add(m_button_launch, 0, wxRIGHT, FromDIP(40));
     
     main_sizer->Add(line, 0, wxEXPAND, 0);
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(26));
@@ -2337,12 +2378,49 @@ ExpandCenterDialog::ExpandCenterDialog(wxWindow* parent /*= nullptr*/) :
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
     main_sizer->Add(expand_description, 0, wxLEFT, FromDIP(40));
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
-    main_sizer->Add(m_button_launch, 0, wxLEFT, FromDIP(40));
+    main_sizer->Add(m_button_uninstall, 0, wxLEFT, FromDIP(40));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
+    main_sizer->Add(button_sizer, 0, wxEXPAND, 0);
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(38));
+
+    wxGetApp().UpdateDlgDarkUI(this);
 
     SetSizer(main_sizer);
     Layout();
     Fit();
+}
+
+void ExpandCenterDialog::report_consent_unstall()
+{
+    json consentBody;
+    json formItemArray = json::array();
+    json formItem;
+
+    formItem["formID"] = "StudioHelioTOU";
+    formItem["op"] = "Withdraw";
+    formItemArray.push_back(formItem);
+
+    formItem.clear();
+    formItem["formID"] = "StudioHelioNotice";
+    formItem["op"] = "Withdraw";
+    formItemArray.push_back(formItem);
+
+    consentBody["version"] = 1;
+    consentBody["scene"] = "helio_enable";
+    consentBody["formList"] = formItemArray;
+
+    json consent;
+    consent["consentBody"] = consentBody.dump();
+    std::string post_body_str = consent.dump();
+
+    NetworkAgent* agent = GUI::wxGetApp().getAgent();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "  client_id:" << wxGetApp().app_config->get("slicer_uuid") << "\nreport_consent:" << post_body_str;
+
+    if (agent && agent->is_user_login())
+        agent->report_consent(post_body_str);
+    else {
+        wxGetApp().report_consent(post_body_str);
+    }
 }
 
 void ExpandCenterDialog::on_dpi_changed(const wxRect& suggested_rect)
