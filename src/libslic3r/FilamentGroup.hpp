@@ -107,7 +107,8 @@ namespace Slic3r
         } nozzle_info;
     };
 
-    std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>>& map_lists,
+    std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>> &filament_to_nozzles,
+        const std::vector<MultiNozzleUtils::NozzleInfo>& nozzle_list,
         const std::vector<unsigned int>& used_filaments,
         const std::vector<FilamentGroupUtils::FilamentInfo>& used_filament_info,
         const std::vector<std::vector<FilamentGroupUtils::MachineFilamentInfo>>& machine_filament_info,
