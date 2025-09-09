@@ -51,10 +51,10 @@ class MultiNozzleGroupResult
 private:
     std::unordered_map<int, std::unordered_map<int, NozzleInfo>> extruder_to_filament_nozzles;
     std::vector<NozzleInfo> filament_to_nozzle;
-
+    std::vector<unsigned int> used_filaments;
 public:
     MultiNozzleGroupResult() = default;
-    MultiNozzleGroupResult(const std::vector<int> &filament_nozzle_map, const std::vector<NozzleInfo> &nozzle_list);
+    MultiNozzleGroupResult(const std::vector<int> &filament_nozzle_map, const std::vector<NozzleInfo> &nozzle_list, const std::vector<unsigned int>& used_filament);
     static std::optional<MultiNozzleGroupResult> init_from_slice_filament(const std::vector<int>          &filament_map,
                                                                           const std::vector<FilamentInfo> &filament_info); // 1 based filament_map
     bool                                         are_filaments_same_extruder(int filament_id1, int filament_id2) const;    // 判断两个材料是否处于同一个挤出机
