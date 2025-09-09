@@ -4,9 +4,10 @@
 
 namespace Slic3r { namespace MultiNozzleUtils {
 
-MultiNozzleGroupResult::MultiNozzleGroupResult(const std::vector<int> &filament_nozzle_map, const std::vector<NozzleInfo> &nozzle_list)
+MultiNozzleGroupResult::MultiNozzleGroupResult(const std::vector<int> &filament_nozzle_map, const std::vector<NozzleInfo> &nozzle_list, const std::vector<unsigned int>& used_filaments_)
 {
     filament_map = filament_nozzle_map;
+    used_filaments = used_filaments_;
     filament_to_nozzle.resize(filament_nozzle_map.size());
     for (size_t filament_idx = 0; filament_idx < filament_nozzle_map.size(); ++filament_idx) {
         int               nozzle_id                             = filament_nozzle_map[filament_idx];
@@ -26,6 +27,7 @@ std::optional<MultiNozzleGroupResult> MultiNozzleGroupResult::init_from_slice_fi
     std::map<int, NozzleInfo> nozzle_list_map;
     std::vector<int> filament_nozzle_map = filament_map;
     std::map<int, std::vector<int>> group_ids_in_extruder;
+    std::vector<unsigned int> used_filaments;
 
     auto volume_type_str_to_enum = ConfigOptionEnum<NozzleVolumeType>::get_enum_values();
 
@@ -38,6 +40,7 @@ std::optional<MultiNozzleGroupResult> MultiNozzleGroupResult::init_from_slice_fi
         std::string volume_type  = filament_info[idx].nozzle_volume_type;
         if (nozzle_idx == -1) return std::nullopt; // Nozzle group id is not set, return empty optional
 
+        used_filaments.emplace_back(filament_idx);
         group_ids_in_extruder[extruder_idx].emplace_back(nozzle_idx);
 
         NozzleInfo nozzle;
@@ -102,7 +105,7 @@ std::optional<MultiNozzleGroupResult> MultiNozzleGroupResult::init_from_slice_fi
     if(new_filament_nozzle_map.empty() || nozzle_list_vec.empty())
         return std::nullopt;
 
-    return MultiNozzleGroupResult(new_filament_nozzle_map, nozzle_list_vec);
+    return MultiNozzleGroupResult(new_filament_nozzle_map, nozzle_list_vec, used_filaments);
 }
 
 int MultiNozzleGroupResult::get_extruder_id(int filament_id) const
@@ -173,6 +176,9 @@ std::vector<NozzleInfo>  MultiNozzleGroupResult::get_nozzle_vec(int target_extru
 
         if (target_extruder_id == -1 || extruder_id == target_extruder_id) {
             for (auto& filament_nozzle : filament_to_nozzle) {
+                int filament_id = filament_nozzle.first;
+                if(std::find(used_filaments.begin(), used_filaments.end(), filament_id) == used_filaments.end())
+                    continue;
                 if (nozzles.count(filament_nozzle.second.group_id) == 0) {
                     nozzles.insert(filament_nozzle.second.group_id);
                     nozzleinfo_vec.push_back(filament_nozzle.second);
