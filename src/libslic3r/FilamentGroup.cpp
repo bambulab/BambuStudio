@@ -1033,10 +1033,6 @@ namespace Slic3r
         std::vector<std::vector<int>> memoryed_maps = this->m_memoryed_groups;
         memoryed_maps.insert(memoryed_maps.begin(), ret);
 
-        std::vector<int> optimized_ret = optimize_group_for_master_extruder(used_filaments, ctx, ret);
-        if (optimized_ret != ret)
-            memoryed_maps.insert(memoryed_maps.begin(), optimized_ret);
-
         std::vector<FilamentGroupUtils::FilamentInfo> used_filament_info;
         for (auto f : used_filaments) {
             used_filament_info.emplace_back(ctx.model_info.filament_info[f]);
@@ -1050,9 +1046,10 @@ namespace Slic3r
     // sorted used_filaments
     std::vector<int> FilamentGroup::calc_min_flush_group_by_enum(const std::vector<unsigned int>& used_filaments, int* cost)
     {
-        static constexpr int UNPLACEABLE_LIMIT_REWARD = 100;  // reward value if the group result follows the unprintable limit
-        static constexpr int MAX_SIZE_LIMIT_REWARD = 10;    // reward value if the group result follows the max size per extruder
-        static constexpr int BEST_FIT_LIMIT_REWARD = 1;     // reward value if the group result try to fill the max size per extruder
+        static constexpr int UNPLACEABLE_LIMIT_REWARD = 10000;  // reward value if the group result follows the unprintable limit
+        static constexpr int MAX_SIZE_LIMIT_REWARD = 5000;    // reward value if the group result follows the max size per extruder
+        static constexpr int SUPPORT_PREFER_REWARD = 100;   // reward value if the group result follow the supoport limit
+        static constexpr int BEST_FIT_LIMIT_REWARD = 10;     // reward value if the group result try to fill the max size per extruder
 
         MemoryedGroupHeap memoryed_groups;
 
@@ -1102,6 +1099,18 @@ namespace Slic3r
             if (FGStrategy::BestFit == ctx.group_info.strategy && groups[0].size() >= ctx.machine_info.max_group_size[0] && groups[1].size() >= ctx.machine_info.max_group_size[1])
                 prefer_level += BEST_FIT_LIMIT_REWARD;
 
+            int prefer_filament_count = 0;
+            for (int gidx = 0; gidx < 2; ++gidx) {
+                if (ctx.machine_info.prefer_non_model_filament[gidx]) {
+                    for (int fidx : groups[gidx]) {
+                        if (ctx.model_info.filament_info[fidx].usage_type == FilamentGroupUtils::SupportOnly)
+                            prefer_filament_count += 1;
+                    }
+                }
+            }
+
+            prefer_level += prefer_filament_count * SUPPORT_PREFER_REWARD;
+
             std::vector<int>filament_maps(used_filament_num);
             for (int i = 0; i < used_filament_num; ++i) {
                 if (groups[0].find(i) != groups[0].end())
@@ -1118,6 +1127,9 @@ namespace Slic3r
                 get_custom_seq,
                 nullptr
             );
+
+            if (groups[ctx.machine_info.master_extruder_id].size() < (used_filaments.size() + 1) / 2)
+                total_cost += ABSOLUTE_FLUSH_GAP_TOLERANCE;  // slightly prefer master extruders with more flush
 
             CachedGroup curr_group;
             curr_group.flush = total_cost;
@@ -1152,7 +1164,7 @@ namespace Slic3r
                     MemoryedGroup mg(cached_group.filament_map, cached_group.score, cached_group.prefer_level);
                     update_memoryed_groups(mg, ctx.group_info.max_gap_threshold, memoryed_groups);
                 }
-                BOOST_LOG_TRIVIAL(info) << "Filament group" << count++ << ", score : " << cached_group.score << " , flush : " << cached_group.flush << " , time : " << cached_group.time;
+                BOOST_LOG_TRIVIAL(info) << "Filament group" << count++ << ", score : " << cached_group.score << " , flush : " << cached_group.flush << " , time : " << cached_group.time << " , prefer : " << cached_group.prefer_level;
             }
         }
 

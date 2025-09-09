@@ -13,7 +13,7 @@
 
 const static int DEFAULT_CLUSTER_SIZE = 16;
 
-const static int ABSOLUTE_FLUSH_GAP_TOLERANCE = 0.05;
+const static int ABSOLUTE_FLUSH_GAP_TOLERANCE = 10;
 
 namespace Slic3r
 {
@@ -28,6 +28,8 @@ namespace Slic3r
         FlushMode,
         MatchMode
     };
+
+    class FilamentGroupMultiNozzle;
 
     namespace FilamentGroupUtils
     {
@@ -88,6 +90,7 @@ namespace Slic3r
         struct MachineInfo {
             std::vector<int> max_group_size;
             std::vector<std::vector<FilamentGroupUtils::MachineFilamentInfo>> machine_filament_info;
+            std::vector<bool> prefer_non_model_filament;
             int master_extruder_id;
         } machine_info;
 
@@ -109,6 +112,7 @@ namespace Slic3r
         const std::vector<FilamentGroupUtils::FilamentInfo>& used_filament_info,
         const std::vector<std::vector<FilamentGroupUtils::MachineFilamentInfo>>& machine_filament_info,
         const double color_delta_threshold = 20);
+
 
     class FlushDistanceEvaluator
     {
@@ -149,6 +153,7 @@ namespace Slic3r
         std::vector<int> calc_min_flush_group(int* cost = nullptr);
         std::vector<int> calc_min_flush_group_by_enum(const std::vector<unsigned int>& used_filaments, int* cost = nullptr);
         std::vector<int> calc_min_flush_group_by_pam2(const std::vector<unsigned int>& used_filaments, int* cost = nullptr, int timeout_ms = 300);
+        std::vector<int> calc_min_flush_group_by_pam (const std::vector<unsigned int>& used_filaments, int* cost = nullptr, int timeout_ms = 300, int retry = 15);
 
         std::unordered_map<int, std::vector<int>> try_merge_filaments();
         void rebuild_context(const std::unordered_map<int, std::vector<int>>& merged_filaments);
@@ -157,6 +162,7 @@ namespace Slic3r
     private:
         FilamentGroupContext ctx;
         std::vector<std::vector<int>> m_memoryed_groups;
+        friend FilamentGroupMultiNozzle;
 
     public:
         std::optional<std::function<bool(int, std::vector<int>&)>> get_custom_seq;

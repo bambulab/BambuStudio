@@ -9,8 +9,10 @@
 #include "PrintConfig.hpp"
 #include "MultiNozzleUtils.hpp"
 
+
 namespace Slic3r
 {
+    class PrintObject;
     namespace FilamentGroupUtils
     {
         struct Color
@@ -27,11 +29,18 @@ namespace Slic3r
             std::string to_hex_str(bool include_alpha = false) const;
         };
 
+        enum FilamentUsageType {
+            SupportOnly,
+            ModelOnly,
+            Hybrid
+        };
+
 
         struct FilamentInfo {
             Color color;
             std::string type;
             bool is_support;
+            FilamentUsageType usage_type;
         };
 
         struct MachineFilamentInfo: public FilamentInfo {
@@ -91,6 +100,8 @@ namespace Slic3r
         std::vector<MultiNozzleUtils::NozzleInfo> build_nozzle_list(double diameter,const std::vector<int>& filament_nozzle_map, const std::vector<int>& filament_volume_map, const std::vector<int>& filament_map);
 
         std::map<int, std::vector<int>> build_extruder_nozzle_list(const std::vector<MultiNozzleUtils::NozzleInfo>& nozzle_list);
+
+        std::vector<FilamentUsageType> build_filament_usage_type_list(const PrintConfig& config, const std::vector<const PrintObject*>& objects);
 
 }
 
