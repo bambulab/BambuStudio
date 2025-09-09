@@ -35,6 +35,7 @@ namespace Slic3r
        void       SetRack(const std::weak_ptr<DevNozzleRack>& rack) { m_nozzle_rack = rack; };
 
        /**/
+       int            GetNozzlePosId() const;
        int            GetNozzleId() const { return m_nozzle_id; }
        NozzleType     GetNozzleType() const { return m_nozzle_type; }
        NozzleFlowType GetNozzleFlowType() const { return m_nozzle_flow; }
