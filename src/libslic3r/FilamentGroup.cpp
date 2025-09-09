@@ -72,13 +72,15 @@ namespace Slic3r
      * considered valid.
      *
      * @param map_lists Group list with similar flush count
+     * @param nozzle_lists nozzle_id -> extruder_id
      * @param used_filaments Idx of used filaments
      * @param used_filament_info Information of filaments used
      * @param machine_filament_info Information of filaments loaded in printer
      * @param color_threshold Threshold for considering colors to be similar
      * @return The group that best fits the filament distribution in AMS
      */
-    std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>>& map_lists,
+    std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>>& filament_to_nozzles,
+        const std::vector<MultiNozzleUtils::NozzleInfo>& nozzle_list,
         const std::vector<unsigned int>& used_filaments,
         const std::vector<FilamentGroupUtils::FilamentInfo>& used_filament_info,
         const std::vector<std::vector<MachineFilamentInfo>>& machine_filament_info_,
@@ -95,12 +97,13 @@ namespace Slic3r
         int best_cost = std::numeric_limits<int>::max();
         std::vector<int>best_map;
 
-        for (auto& map : map_lists) {
+        for (auto &filament_to_nozzle : filament_to_nozzles) {
             std::vector<std::vector<int>> group_filaments(2);
             std::vector<std::vector<Color>>group_colors(2);
 
             for (size_t i = 0; i < used_filaments.size(); ++i) {
-                int target_group = map[used_filaments[i]] == 0 ? 0 : 1;
+                auto &nozzle       = nozzle_list[filament_to_nozzle[used_filaments[i]]];
+                int   target_group = nozzle.extruder_id == 0 ? 0 : 1;
                 group_colors[target_group].emplace_back(used_filament_info[i].color);
                 group_filaments[target_group].emplace_back(i);
             }
@@ -155,7 +158,7 @@ namespace Slic3r
 
             if (best_map.empty() || group_cost < best_cost) {
                 best_cost = group_cost;
-                best_map = map;
+                best_map  = filament_to_nozzle;
             }
         }
 
@@ -691,7 +694,7 @@ namespace Slic3r
         FlushTimeMachine T;
         T.time_machine_start();
 
-        if (m_elem_count < m_k) {
+        if (m_elem_count <= m_k) {
             m_cluster_labels = cluster_small_data(context);
             return;
         }
@@ -707,6 +710,7 @@ namespace Slic3r
             int              curr_cluster_cost   = calc_cost(curr_cluster_labels, curr_cluster_centers);
 
             bool mediods_changed = true;
+            bool iteration_completed = false;
             while (mediods_changed && T.time_machine_end() < timeout_ms) {
                 mediods_changed       = false;
                 int best_swap_cost    = curr_cluster_cost;
@@ -723,6 +727,7 @@ namespace Slic3r
                         tmp_centers[cluster_id]      = elem; // swap the mediod
                         std::vector<int> tmp_labels  = assign_cluster_label(tmp_centers, m_placeable_limits, m_unplaceable_limits, m_max_cluster_size, m_cluster_group_size);
                         int              tmp_cost    = calc_cost(tmp_labels, tmp_centers);
+                        iteration_completed          = true;
 
                         if (tmp_cost < best_swap_cost) {
                             best_swap_cost    = tmp_cost;
@@ -748,7 +753,10 @@ namespace Slic3r
                 best_cluster_cost    = curr_cluster_cost;
                 best_cluster_labels  = curr_cluster_labels;
             }
-
+            if (!iteration_completed) {
+                MemoryedGroup g(curr_cluster_labels, curr_cluster_cost, 1);
+                update_memoryed_groups(g, memory_threshold, memoryed_groups);
+            }
             retry_count += 1;
         }
         m_cluster_labels = best_cluster_labels;
@@ -1038,7 +1046,7 @@ namespace Slic3r
             used_filament_info.emplace_back(ctx.model_info.filament_info[f]);
         }
 
-        ret = select_best_group_for_ams(memoryed_maps, used_filaments, used_filament_info, ctx.machine_info.machine_filament_info);
+        ret = select_best_group_for_ams(memoryed_maps, ctx.nozzle_info.nozzle_list, used_filaments, used_filament_info, ctx.machine_info.machine_filament_info);
         return ret;
     }
 
@@ -1316,12 +1324,16 @@ namespace Slic3r
 
         PAM.set_cluster_group_size(cluster_size_limit);
         PAM.do_clustering(m_context, 1500);
-        auto labels = PAM.get_cluster_labels();
 
-        std::vector<int>ret(m_context.group_info.total_filament_num, 0);
-        for (size_t idx = 0; idx < labels.size(); ++idx) {
-            ret[used_filaments[idx]] = labels[idx];
-        }
+        auto memoryed_groups = PAM.get_memoryed_groups();
+        std::vector<std::vector<int>> filament_to_nozzles;
+        change_memoryed_heaps_to_arrays(memoryed_groups, m_context.group_info.total_filament_num, used_filaments, filament_to_nozzles);
+
+        std::vector<FilamentGroupUtils::FilamentInfo> used_filament_info;
+        for (auto f : used_filaments) { used_filament_info.emplace_back(m_context.model_info.filament_info[f]); }
+
+        auto ret = select_best_group_for_ams(filament_to_nozzles, m_context.nozzle_info.nozzle_list, used_filaments, used_filament_info, m_context.machine_info.machine_filament_info);
+
         return ret;
     }
 
