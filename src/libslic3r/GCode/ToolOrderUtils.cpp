@@ -123,27 +123,40 @@ namespace Slic3r
         const std::unordered_map<int, std::vector<int>>& uv_link_limits,
         const std::unordered_map<int, std::vector<int>>& uv_unlink_limits,
         const std::vector<int>& u_capacity,
-        const std::vector<int>& v_capacity)
+        const std::vector<int>& v_capacity,
+        const std::vector<std::pair<std::set<int>,int>>& v_group_capacity)
     {
         assert(u_capacity.empty() || u_capacity.size() == u_nodes.size());
         assert(v_capacity.empty() || v_capacity.size() == v_nodes.size());
         l_nodes = u_nodes;
         r_nodes = v_nodes;
-        total_nodes = u_nodes.size() + v_nodes.size() + 2;
+        total_nodes = u_nodes.size() + v_nodes.size() + v_group_capacity.size() + 2;
         source_id = total_nodes - 2;
         sink_id = total_nodes - 1;
 
         adj.resize(total_nodes);
+
+        std::vector<int>v_node_to(v_nodes.size(), sink_id);
+        for (size_t gid = 0; gid < v_group_capacity.size(); ++gid) {
+            for (auto vid : v_group_capacity[gid].first)
+                v_node_to[vid] = l_nodes.size() + r_nodes.size() + gid;
+        }
 
         // add edge from source to left nodes
         for (int idx = 0; idx < l_nodes.size(); ++idx) {
             int capacity = u_capacity.empty() ? 1 : u_capacity[idx];
             add_edge(source_id, idx, capacity);
         }
-        // add edge from right nodes to sink node
+        // add edge from right nodes to v_node_to(sink node or temp group node)
         for (int idx = 0; idx < r_nodes.size(); ++idx) {
             int capacity = v_capacity.empty() ? 1 : v_capacity[idx];
-            add_edge(l_nodes.size() + idx, sink_id, capacity);
+            add_edge(l_nodes.size() + idx, v_node_to[idx], capacity);
+        }
+
+        // add edge from temp group node to sink node
+        for (int idx = 0; idx < v_group_capacity.size(); ++idx) {
+            int capacity = v_group_capacity[idx].second;
+            add_edge(l_nodes.size() + r_nodes.size() + idx, sink_id, capacity);
         }
 
         // add edge from left nodes to right nodes
@@ -277,7 +290,8 @@ namespace Slic3r
         const std::unordered_map<int, std::vector<int>>& uv_link_limits,
         const std::unordered_map<int, std::vector<int>>& uv_unlink_limits,
         const std::vector<int>& u_capacity,
-        const std::vector<int>& v_capacity)
+        const std::vector<int>& v_capacity,
+        const std::vector<std::pair<std::set<int>,int>>&v_group_capacity)
     {
         assert(u_capacity.empty() || u_capacity.size() == u_nodes.size());
         assert(v_capacity.empty() || v_capacity.size() == v_nodes.size());
@@ -286,12 +300,18 @@ namespace Slic3r
         m_solver->l_nodes = u_nodes;
         m_solver->r_nodes = v_nodes;
 
-        m_solver->total_nodes = u_nodes.size() + v_nodes.size() + 2;
+        m_solver->total_nodes = u_nodes.size() + v_nodes.size() + v_group_capacity.size() + 2;
 
         m_solver->source_id =m_solver->total_nodes - 2;
         m_solver->sink_id = m_solver->total_nodes - 1;
 
         m_solver->adj.resize(m_solver->total_nodes);
+
+        std::vector<int> v_node_to(v_nodes.size(), m_solver->sink_id);
+        for (size_t gid = 0; gid < v_group_capacity.size(); ++gid) {
+            for (auto vid : v_group_capacity[gid].first)
+                v_node_to[vid] = m_solver->l_nodes.size() + m_solver->r_nodes.size() + gid;
+        }
 
         // add edge from source to left nodes,cost to 0
         for (int i = 0; i < m_solver->l_nodes.size(); ++i) {
@@ -301,7 +321,12 @@ namespace Slic3r
         // add edge from right nodes to sink,cost to 0
         for (int i = 0; i < m_solver->r_nodes.size(); ++i) {
             int capacity = v_capacity.empty() ? 1 : v_capacity[i];
-            m_solver->add_edge(m_solver->l_nodes.size() + i, m_solver->sink_id, capacity, 0);
+            m_solver->add_edge(m_solver->l_nodes.size() + i, v_node_to[i], capacity, 0);
+        }
+        // add edge from temp group node to sink node
+        for(int i=0;i<v_group_capacity.size();++i){
+            int capacity = v_group_capacity[i].second;
+            m_solver->add_edge(m_solver->l_nodes.size() + m_solver->r_nodes.size() + i, m_solver->sink_id, capacity, 0);
         }
         // add edge from left node to right nodes
         for (int i = 0; i < m_solver->l_nodes.size(); ++i) {
