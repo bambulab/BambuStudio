@@ -90,6 +90,41 @@
         .warning {
             color: #FF5722;
         }
+		
+		body.dark {
+            background-color: #2d2d31;
+            color: #FFFFFF;
+        }
+
+        body.dark .header {
+            background-color: #2d2d2d;
+            border-bottom-color: #444;
+
+        }
+
+        body.dark h1,
+        body.dark h2,
+        body.dark strong {
+            color: #FFFFFF;
+        }
+
+        body.dark a {
+            color: #90caf9;
+        }
+
+        body.dark .btn-secondary {
+            background-color: #333;
+            color: #FFFFFF;
+            border-color: #555;
+        }
+
+        body.dark .btn-secondary:hover {
+            background-color: #444;
+        }
+
+        body.dark .warning {
+            color: #ff8a65;
+        }
     </style>
 </head>
 <body>
@@ -109,4 +144,10 @@
     <p><strong>当您确认开启此功能后，代表您已经确认和同意以上声明。</strong></p>
 </body>
 </html>
-    
+
+<script type="text/javascript">
+	const darkmode = getUrlParam('darkmode');
+	if (darkmode === '1') {
+		document.body.classList.add('dark');
+    }
+</script>
