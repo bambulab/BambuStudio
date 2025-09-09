@@ -1124,7 +1124,7 @@ void HelioBackgroundProcess::clear_helio_file_cache()
             }
         }
         catch (...) {
-            BOOST_LOG_TRIVIAL(error) << "Helio Failed to rename file";
+            BOOST_LOG_TRIVIAL(error) << "Helio Failed to delete file";
         }
     }
 }
