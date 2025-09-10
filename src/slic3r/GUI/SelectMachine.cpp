@@ -2446,6 +2446,9 @@ void SelectMachineDialog::on_send_print()
     m_print_job->task_ams_mapping      = ams_mapping_array;
     m_print_job->task_ams_mapping2     = ams_mapping_array2;
     m_print_job->task_ams_mapping_info = ams_mapping_info;
+    if (!obj_->get_nozzle_mapping_result().IsEmpty()) {
+        m_print_job->task_nozzle_mapping = obj_->get_nozzle_mapping_result().m_nozzle_mapping_json.dump();
+    }
 
     /* build nozzles info for multi extruders printers */
     if (build_nozzles_info(m_print_job->task_nozzles_info)) {
