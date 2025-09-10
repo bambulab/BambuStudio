@@ -73,7 +73,8 @@ int MachineObject::ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, con
 
     json command_jj;
     command_jj["print"]["command"] = "get_auto_nozzle_mapping";
-    command_jj["print"]["sequence_id"] = std::to_string(m_sequence_id++);
+    m_auto_nozzle_mapping.m_sequence_id = std::to_string(m_sequence_id++);
+    command_jj["print"]["sequence_id"] = m_auto_nozzle_mapping.m_sequence_id;
     command_jj["print"]["calibration"] = flow_cali_opt;
 
     // filament seq
@@ -187,12 +188,15 @@ void s_auto_nozzle_mapping(const nlohmann::json &print_jj, DevNozzleMappingResul
 void MachineObject::parse_auto_nozzle_mapping(const json& print_jj)
 {
     if (print_jj.contains("command") && print_jj["command"].get<string>() == "get_auto_nozzle_mapping") {
-        s_auto_nozzle_mapping(print_jj, m_auto_nozzle_mapping);
+        if (print_jj.contains("sequence_id") && print_jj["sequence_id"] == m_auto_nozzle_mapping.m_sequence_id) {
+            s_auto_nozzle_mapping(print_jj, m_auto_nozzle_mapping);
+        }
     }
 }
 
 void DevNozzleMappingResult::Clear()
 {
+    m_sequence_id.clear();
     m_result.clear();
     m_type.clear();
     m_errno = 0;
