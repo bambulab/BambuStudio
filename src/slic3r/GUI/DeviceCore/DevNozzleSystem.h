@@ -61,6 +61,7 @@ namespace Slic3r
        // location
        bool AtLeftExtruder() const;
        bool AtRightExtruder() const;
+       int  GetLogicExtruderId() const;// warning: logical extruder id
 
        /* holder nozzle*/
        bool IsOnRack() const { return m_on_rack; }
