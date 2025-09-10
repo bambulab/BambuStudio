@@ -2475,7 +2475,7 @@ void CalibrationPresetPage::update_nozzle_id_combox()
 {
     MachineObject *obj = get_current_object();
 
-    if (!obj) return;
+    if (!obj || !obj->GetNozzleSystem()) return;
 
     auto rack     = obj->GetNozzleSystem()->GetNozzleRack();
     bool has_rack = rack->IsSupported();
