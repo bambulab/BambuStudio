@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-27 20:06+0800\n"
+"POT-Creation-Date: 2025-09-10 10:23+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -45,6 +45,12 @@ msgstr "ekstruder"
 
 msgid "TPU is not supported by AMS."
 msgstr "TPU nie jest obsługiwane przez AMS."
+
+msgid "AMS does not support 'Bambu Lab PET-CF'."
+msgstr ""
+
+msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
+msgstr "Przed drukiem z TPU należy wykonać cold pull, aby uniknąć zatkania. Można użyć opcji cold pull na drukarce."
 
 msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
 msgstr "Mokre PVA stanie się elastyczne i zatnie się wewnątrz AMS, prosimy o ostrożność i wysuszenie przed użyciem."
@@ -1065,6 +1071,9 @@ msgstr "Grubość"
 msgid "Input text"
 msgstr "Wprowadź tekst"
 
+msgid "Advanced"
+msgstr "Zaawansowane"
+
 msgid "Embeded depth"
 msgstr "Głębokość osadzania"
 
@@ -1120,6 +1129,18 @@ msgstr "Nie można wybrać czcionki \"%1%\"."
 msgid "Revert text size."
 msgstr "Przywróć rozmiar tekstu."
 
+msgid ""
+"Advanced options cannot be changed for the selected font.\n"
+"Select another font."
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Boldness"
+msgstr "Pogrubienie"
+
+msgid "Skew"
+msgstr ""
+
 msgid "No symbol"
 msgstr "Brak symbolu"
 
@@ -1153,10 +1174,6 @@ msgstr "Odstęp tekstu"
 #. TRN - Input label. Be short as possible
 msgid "Line gap"
 msgstr "Odstęp między liniami"
-
-#. TRN - Input label. Be short as possible
-msgid "Boldness"
-msgstr "Pogrubienie"
 
 #. TRN - Input label. Be short as possible
 #. Like Font italic
@@ -1684,9 +1701,6 @@ msgstr "Opcje Wipe"
 
 msgid "Bed adhension"
 msgstr "Przyczepność do podłoża"
-
-msgid "Advanced"
-msgstr "Zaawansowane"
 
 msgid "Add part"
 msgstr "Dodaj część"
@@ -2737,6 +2751,19 @@ msgstr "Pomyślnie wysłano. Zamknij bieżącą stronę za %s s"
 msgid "Storage needs to be inserted before sending to printer."
 msgstr "Włóż pamięć przed wysłaniem do drukarki."
 
+msgid "Thermal Preconditioning for first layer optimization"
+msgstr "Wyrównywanie temperatury w celu optymalizacji pierwszej warstwy"
+
+#, c-format, boost-format
+msgid "Remaining time: %s"
+msgstr ""
+
+msgid "Remaining time: Calculating..."
+msgstr ""
+
+msgid "The heated bed's thermal preconditioning helps optimize the first layer print quality. Printing will start once preconditioning is complete."
+msgstr ""
+
 msgid "Choose SLA archive:"
 msgstr "Wybierz archiwum SLA:"
 
@@ -3682,9 +3709,6 @@ msgstr "Kalibracja offsetu modułu tnącego"
 msgid "Measuring Surface"
 msgstr "Pomiar powierzchni"
 
-msgid "Thermal Preconditioning for first layer optimization"
-msgstr "Wyrównywanie temperatury w celu optymalizacji pierwszej warstwy"
-
 msgid "Unknown"
 msgstr "Nieznane"
 
@@ -3801,10 +3825,13 @@ msgstr "Rozumiem, wyłącz alarm przeciwpożarowy."
 msgid "Retry (problem solved)"
 msgstr "Ponów próbę (problem rozwiązany)"
 
+msgid "Cancle"
+msgstr ""
+
 msgid "Stop Drying"
 msgstr "Zatrzymaj suszenie"
 
-msgid "Cancle"
+msgid "Proceed"
 msgstr ""
 
 msgid "Done"
@@ -3859,6 +3886,9 @@ msgstr ""
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Nieprawidłowy format. Oczekiwany format wektora: \"%1%\""
+
+msgid "Clear color"
+msgstr ""
 
 msgid "Summary"
 msgstr "Podsumowanie"
@@ -4021,9 +4051,6 @@ msgstr "z"
 
 msgid "Slicing Result"
 msgstr "Wynik krojenia"
-
-msgid "Helio Action"
-msgstr ""
 
 msgid "Color Scheme"
 msgstr "Schemat kolorów"
@@ -4433,11 +4460,17 @@ msgstr "Wykryto filamenty PLA i PETG. Dostosuj parametry zgodnie z Wiki, aby zap
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "Wieża czyszcząca wystaje poza granicę płyty."
 
+msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
+msgstr ""
+
 msgid "Click Wiki for help."
 msgstr "Kliknij na Wiki, aby uzyskać pomoc."
 
 msgid "Click here to regroup"
 msgstr "Kliknij tutaj, aby zmienić grupowanie"
+
+msgid "Flushing Volume"
+msgstr ""
 
 msgid "Calibration step selection"
 msgstr "Wybór kroku kalibracji"
@@ -5065,6 +5098,9 @@ msgstr "Odtwarzacz nie działa poprawnie. Proszę ponownie zainstalować odtwarz
 msgid "The player is not loaded, please click \"play\" button to retry."
 msgstr "Odtwarzacz nie został załadowany, proszę kliknąć przycisk \"Odtwórz\", aby spróbować ponownie."
 
+msgid "Plugin library failed to load. Click here to view the solution."
+msgstr ""
+
 msgid "Temporarily closed because there is no operation for a while."
 msgstr "Zostało tymczasowo zamknięte z powodu braku aktywności przez określony czas."
 
@@ -5138,6 +5174,9 @@ msgstr "Informacje"
 
 msgid "Playing..."
 msgstr "Odtwarzanie..."
+
+msgid "DLL load error"
+msgstr ""
 
 msgid "Loading..."
 msgstr "Ładowanie..."
@@ -5443,6 +5482,9 @@ msgstr "Zatrzymaj"
 msgid "Layer: N/A"
 msgstr "Warstwa: N/A"
 
+msgid "Click to view thermal preconditioning explanation"
+msgstr ""
+
 msgid "Estimated finish time: "
 msgstr "Szacowany czas zakończenia: "
 
@@ -5493,6 +5535,9 @@ msgstr "Typ dyszy"
 msgid "Print Options"
 msgstr "Opcje drukowania"
 
+msgid "Safety Options"
+msgstr ""
+
 msgid "100%"
 msgstr "100%"
 
@@ -5531,6 +5576,9 @@ msgstr "To gniazdo zostało już załadowane"
 
 msgid "The selected slot is empty."
 msgstr "Wybrane gniazdo jest puste."
+
+msgid "Printer 2D mode does not support 3D calibration"
+msgstr ""
 
 msgid "Downloading..."
 msgstr "Pobieranie..."
@@ -6043,15 +6091,6 @@ msgstr "Inspekcja pierwszej warstwy"
 msgid "Auto-recovery from step loss"
 msgstr "Automatyczne odzyskiwanie po utracie kroków"
 
-msgid "Open Door Detection"
-msgstr "Wykrywanie otwartych drzwi komory"
-
-msgid "Notification"
-msgstr "Powiadomienie"
-
-msgid "Pause printing"
-msgstr "Wstrzymaj drukowanie"
-
 msgid "Store Sent Files on External Storage"
 msgstr "Zapisz przesłane pliki w pamięci zewnętrznej"
 
@@ -6067,11 +6106,26 @@ msgstr "Detekcja Splątania Filamentu"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "Sprawdź, czy dysza nie została zatkana filamentem lub innym obcym przedmiotem."
 
-msgid "Nozzle Type"
-msgstr "Typ dyszy"
+msgid "Open Door Detection"
+msgstr "Wykrywanie otwartych drzwi komory"
 
-msgid "Nozzle Flow"
-msgstr "Przepływ dyszy"
+msgid "Notification"
+msgstr "Powiadomienie"
+
+msgid "Pause printing"
+msgstr "Wstrzymaj drukowanie"
+
+msgctxt "Nozzle Type"
+msgid "Type"
+msgstr ""
+
+msgctxt "Nozzle Diameter"
+msgid "Diameter"
+msgstr ""
+
+msgctxt "Nozzle Flow"
+msgid "Flow"
+msgstr ""
 
 msgid "Please change the nozzle settings on the printer."
 msgstr "Proszę zmienić ustawienia dyszy na drukarce."
@@ -6093,6 +6147,9 @@ msgstr "Wysoki przepływ"
 
 msgid "No wiki link available for this printer."
 msgstr "Brak odnośnika do wiki dla tej drukarki."
+
+msgid "Refreshing"
+msgstr ""
 
 msgid "Global"
 msgstr "Globalne"
@@ -6503,6 +6560,9 @@ msgstr "Wycinanie anulowane"
 msgid "Slicing Plate %d"
 msgstr "Wycinanie warstwy %d"
 
+msgid "A Helio simulation or optimization task is in progress."
+msgstr ""
+
 msgid "Invalid printer preset. Unable to slice with Helio."
 msgstr ""
 
@@ -6514,6 +6574,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
+msgstr ""
+
+msgid "Helio functions do not support the print sequence of \"ByObject\"."
 msgstr ""
 
 msgid ""
@@ -6528,6 +6591,15 @@ msgid "Regenerate PAT"
 msgstr ""
 
 msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
+msgstr ""
+
+msgid "Successfully obtained PAT."
+msgstr ""
+
+msgid "The printer list and material list are being synchronized. Please try again later."
+msgstr ""
+
+msgid "Synchronizing Helio"
 msgstr ""
 
 msgid "Please resolve the slicing errors and publish again."
@@ -7102,21 +7174,6 @@ msgstr "Wyświetl wybrane przez zespół modele online na stronie głównej"
 msgid "Show history on the home page"
 msgstr "Pokaż historię na stronie głównej"
 
-msgid "Helio Options"
-msgstr ""
-
-msgid "Enable Helio"
-msgstr ""
-
-msgid "Helio-PAT"
-msgstr ""
-
-msgid "About Helio"
-msgstr ""
-
-msgid "Helio Privacy Policy"
-msgstr ""
-
 msgid "Reminder During Slicing"
 msgstr ""
 
@@ -7176,6 +7233,9 @@ msgstr "Dołącz do programu poprawy doświadczeń użytkownika."
 
 msgid "What data would be collected?"
 msgstr "Jakie dane zostaną zebrane?"
+
+msgid "Auto-fill previously logged-in accounts."
+msgstr ""
 
 msgid "Develop Mode"
 msgstr "Tryb deweloperski"
@@ -7670,6 +7730,9 @@ msgstr "Filament w %s jest nieznany i może zmięknąć. Proszę ustawić filame
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "Nie można automatycznie dopasować odpowiedniego filamentu. Kliknij, aby dopasować go ręcznie."
 
+msgid "Install toolhead enhanced cooling fan to prevent filament softening."
+msgstr ""
+
 msgid "Cool"
 msgstr ""
 
@@ -7742,9 +7805,6 @@ msgstr "Ustaw dynamiczną kalibrację flow na 'wyłączony' aby włączyć włas
 msgid "This printer does not support printing all plates"
 msgstr "Ta drukarka nie obsługuje drukowania wszystkich stołów"
 
-msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
-msgstr "Przed drukiem z TPU należy wykonać cold pull, aby uniknąć zatkania. Można użyć opcji cold pull na drukarce."
-
 msgid "Please refer to Wiki before use->"
 msgstr "Przed użyciem zapoznaj się z Wiki->"
 
@@ -7792,6 +7852,9 @@ msgstr "Drukarka musi być w tej samej sieci LAN co Bambu Studio."
 
 msgid "The printer does not support sending to printer storage."
 msgstr "Drukarka nie obsługuje wysyłania do pamięci drukarki."
+
+msgid "Helio action completed successfully."
+msgstr ""
 
 msgid "Slice ok."
 msgstr "Przygotowanie modelu zakończone."
@@ -8174,6 +8237,12 @@ msgstr "Ustawienia szwu scarf dla filamentu"
 
 msgid "Cooling for specific layer"
 msgstr "Chłodzenie dla konkretnej warstwy"
+
+msgid "Special cooling settings"
+msgstr ""
+
+msgid "set addition fan speed before fist x layer"
+msgstr ""
 
 msgid "Part cooling fan"
 msgstr "Wentylator chłodzący wydruk"
@@ -9123,31 +9192,31 @@ msgstr "Wysyłanie nie powiodło się. Kliknij ponów aby ponowić próbę. Jeś
 msgid "reconnect"
 msgstr "Połącz ponownie"
 
-msgid "Terms of Service"
+msgid "Third-party Extension"
 msgstr ""
 
-msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
+msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
 msgstr ""
 
-msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
+msgid "Use Immediately"
 msgstr ""
 
-msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
+msgid "Third-Party Extension"
 msgstr ""
 
-msgid "You agree not to use this product and its related updates to engage in the following activities:"
+msgid "HELIO ADDITIVE"
 msgstr ""
 
-msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
+msgid "Helio Additive third - party software service feature has been successfully enabled!"
 msgstr ""
 
-msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
+msgid "Helio-PAT"
 msgstr ""
 
-msgid "3.Using this software and services for any improper or illegal activities."
+msgid "Copy successful!"
 msgstr ""
 
-msgid "https://www.helioadditive.com/"
+msgid "Helio Additive"
 msgstr ""
 
 msgid "Privacy Policy of Helio Additive"
@@ -9156,11 +9225,20 @@ msgstr ""
 msgid "Terms of Use of Helio Additive"
 msgstr ""
 
-msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
+msgid "Uninstall the Helio Additive extension"
 msgstr ""
 
-msgid "Agree"
-msgstr "Zgadzam się"
+msgid "Agree and proceed"
+msgstr ""
+
+msgid "Got it"
+msgstr ""
+
+msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
+msgstr ""
+
+msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
+msgstr ""
 
 msgid "Chamber Temperature"
 msgstr "Temperatura komory"
@@ -10035,14 +10113,17 @@ msgstr "Prędkość wentylatora wyciągowego podczas drukowania. Ta prędkość 
 msgid "Speed of exhuast fan after printing completes"
 msgstr "Prędkość wentylatora wyciągowego po zakończeniu drukowania"
 
-msgid "No cooling for the first"
-msgstr "Brak chłodzenia dla pierwszych"
+msgid "For the first"
+msgstr ""
 
-msgid "Close all cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion"
-msgstr "Wyłącz wszystkie wentylatory chłodzenia przez pierwsze kilka warstw. Wentylator chłodzenia pierwszej warstwy był wyłączony aby uzyskać lepszą przyczepność do podłoża"
+msgid "Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
+msgstr ""
 
 msgid "layers"
 msgstr "warstwy"
+
+msgid "Special cooling fan speed for the first certain layers"
+msgstr ""
 
 msgid "Don't support bridges"
 msgstr "Nie twórz podpór pod mostami"
@@ -10788,6 +10869,15 @@ msgstr "Najlepsza automatyczna pozycja układania w zakresie [0,1] względem ksz
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "Włącz tę opcję, jeśli maszyna ma dodatkowy wentylator chłodzący wydruk"
 
+msgid "Fan direction"
+msgstr ""
+
+msgid "Cooling fan direction of the printer"
+msgstr ""
+
+msgid "Both"
+msgstr ""
+
 msgid "Support control chamber temperature"
 msgstr "Sterowanie temperaturą komory"
 
@@ -11342,6 +11432,12 @@ msgstr "Domyślny typ objętości dyszy"
 
 msgid "Extra length on restart"
 msgstr "Dodatkowa długość przed wznowieniem"
+
+msgid "When the retraction is compensated after the travel move, the extruder will push this additional amount of filament. This setting is rarely needed."
+msgstr ""
+
+msgid "When the retraction is compensated after changing tool, the extruder will push this additional amount of filament."
+msgstr ""
 
 msgid "Retraction Speed"
 msgstr "Prędkość retrakcji"
@@ -12522,6 +12618,9 @@ msgstr "Nie skonfigurowano informacji o dyszy drukarki %s. Proszę je skonfiguro
 
 msgid "AMS and nozzle information are synced"
 msgstr "Zsynchronizowano informacje AMS i dyszy."
+
+msgid "Nozzle Flow"
+msgstr "Przepływ dyszy"
 
 msgid "Nozzle Info"
 msgstr "Informacje o dyszy"
@@ -13965,9 +14064,6 @@ msgstr "Usunięto"
 msgid "Management user presets"
 msgstr "Zarządzanie ustawieniami użytkownika"
 
-msgid "Custom filaments"
-msgstr "Filamenty użytkownika"
-
 msgid "No content"
 msgstr "Brak treści"
 
@@ -14334,6 +14430,118 @@ msgid ""
 msgstr ""
 "Unikaj wypaczania\n"
 "Czy wiesz, że podczas drukowania materiałów podatnych na wypaczanie, takich jak ABS, odpowiednie zwiększenie temperatury stołu grzejnego może zmniejszyć prawdopodobieństwo wypaczania."
+
+#: resources/data/helio_hints.ini: [hint: Single-Material Only]
+msgid ""
+"Single-Material Only\n"
+"Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: One Plate per Job]
+msgid ""
+"One Plate per Job\n"
+"Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: What is the Thermal Quality Index?]
+msgid ""
+"What is the Thermal Quality Index?\n"
+"The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Voxel-Level Accuracy]
+msgid ""
+"Voxel-Level Accuracy\n"
+"We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Fan & Airflow Model]
+msgid ""
+"Fan & Airflow Model\n"
+"A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: TQI Limits Explained]
+msgid ""
+"TQI Limits Explained\n"
+"-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: What Drives Runtime?]
+msgid ""
+"What Drives Runtime?\n"
+"Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Nozzle Temp Range]
+msgid ""
+"Nozzle Temp Range\n"
+"Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Debugging Flowchart]
+msgid ""
+"Debugging Flowchart\n"
+"Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Why Cooling Varies]
+msgid ""
+"Why Cooling Varies\n"
+"Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Extrusion Temp Model]
+msgid ""
+"Extrusion Temp Model\n"
+"Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Nozzle setting of 190 °C vs 320
+#: °C?]
+msgid ""
+"Nozzle setting of 190 °C vs 320 °C?\n"
+"A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Bed Temperature influence]
+msgid ""
+"Bed Temperature influence\n"
+"Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Actual Tool-Path]
+msgid ""
+"Actual Tool-Path\n"
+"Yes—your exact G-code path, speeds and fan commands are simulated."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Mesh Resolution]
+msgid ""
+"Mesh Resolution\n"
+"The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Shrinkage, Warping & Stress]
+msgid ""
+"Shrinkage, Warping & Stress\n"
+"By controlling the thermal index you can remove the heat-driven causes of warp and stress."
+msgstr ""
+
+#~ msgid "Nozzle Type"
+#~ msgstr "Typ dyszy"
+
+#~ msgid "Agree"
+#~ msgstr "Zgadzam się"
+
+#~ msgid "No cooling for the first"
+#~ msgstr "Brak chłodzenia dla pierwszych"
+
+#~ msgid "Close all cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion"
+#~ msgstr "Wyłącz wszystkie wentylatory chłodzenia przez pierwsze kilka warstw. Wentylator chłodzenia pierwszej warstwy był wyłączony aby uzyskać lepszą przyczepność do podłoża"
+
+#~ msgid "Custom filaments"
+#~ msgstr "Filamenty użytkownika"
 
 #~ msgid "High chamber temperature is required. Please close the door."
 #~ msgstr "Wymagana jest wysoka temperatura komory. Proszę zamknąć drzwiczki."

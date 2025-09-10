@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-27 20:06+0800\n"
+"POT-Creation-Date: 2025-09-10 10:23+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -45,6 +45,12 @@ msgstr ""
 
 msgid "TPU is not supported by AMS."
 msgstr "Az AMS nem támogatja a TPU-t."
+
+msgid "AMS does not support 'Bambu Lab PET-CF'."
+msgstr ""
+
+msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
+msgstr "TPU nyomtatása előtt végezz el egy hidegen kihúzást, hogy elkerüld az eltömődést. Ehhez használhatod a dedikált karbantartási módot."
 
 msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
 msgstr "A nedves PVA rugalmassá válik és elakadhat az AMS belsejében; kérjük, használat előtt alaposan szárítsd ki."
@@ -1065,6 +1071,9 @@ msgstr "Vastagság"
 msgid "Input text"
 msgstr "Szöveg"
 
+msgid "Advanced"
+msgstr "Haladó"
+
 msgid "Embeded depth"
 msgstr "Beágyazás mélysége"
 
@@ -1120,6 +1129,18 @@ msgstr "A(z) „%1%” betűtípus nem választható ki."
 msgid "Revert text size."
 msgstr "Szövegméret visszaállítása."
 
+msgid ""
+"Advanced options cannot be changed for the selected font.\n"
+"Select another font."
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Boldness"
+msgstr "Félkövérség"
+
+msgid "Skew"
+msgstr ""
+
 msgid "No symbol"
 msgstr "Nincs szimbólum"
 
@@ -1153,10 +1174,6 @@ msgstr "Szövegköz"
 #. TRN - Input label. Be short as possible
 msgid "Line gap"
 msgstr "Vonalköz"
-
-#. TRN - Input label. Be short as possible
-msgid "Boldness"
-msgstr "Félkövérség"
 
 #. TRN - Input label. Be short as possible
 #. Like Font italic
@@ -1684,9 +1701,6 @@ msgstr "Törlés opciók"
 
 msgid "Bed adhension"
 msgstr "Asztalra tapadás"
-
-msgid "Advanced"
-msgstr "Haladó"
 
 msgid "Add part"
 msgstr "Tárgy hozzáadása"
@@ -2732,6 +2746,19 @@ msgstr "Sikeresen elküldve. Az oldal bezárul %s mp-en belül"
 msgid "Storage needs to be inserted before sending to printer."
 msgstr "A nyomtatóra küldés előtt szükség van egy tárhelyre."
 
+msgid "Thermal Preconditioning for first layer optimization"
+msgstr "Előkondicionálás a jobb kezdőréteg érdekében"
+
+#, c-format, boost-format
+msgid "Remaining time: %s"
+msgstr ""
+
+msgid "Remaining time: Calculating..."
+msgstr ""
+
+msgid "The heated bed's thermal preconditioning helps optimize the first layer print quality. Printing will start once preconditioning is complete."
+msgstr ""
+
 msgid "Choose SLA archive:"
 msgstr "Válaszd ki az SLA-archívumot:"
 
@@ -3678,9 +3705,6 @@ msgstr "Vágómodul eltolás kalibrálása"
 msgid "Measuring Surface"
 msgstr "Felület mérése"
 
-msgid "Thermal Preconditioning for first layer optimization"
-msgstr "Előkondicionálás a jobb kezdőréteg érdekében"
-
 msgid "Unknown"
 msgstr "Ismeretlen"
 
@@ -3797,10 +3821,13 @@ msgstr "Rendben, kapcsold ki a tűzjelzőt."
 msgid "Retry (problem solved)"
 msgstr "Újra (probléma megoldva)"
 
+msgid "Cancle"
+msgstr ""
+
 msgid "Stop Drying"
 msgstr "Szárítás leállítása"
 
-msgid "Cancle"
+msgid "Proceed"
 msgstr ""
 
 msgid "Done"
@@ -3855,6 +3882,9 @@ msgstr ""
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Érvénytelen formátum. Elvárt vektor formátum: \"%1%\""
+
+msgid "Clear color"
+msgstr ""
 
 msgid "Summary"
 msgstr "Összegzés"
@@ -4017,9 +4047,6 @@ msgstr "ettől"
 
 msgid "Slicing Result"
 msgstr "Szeletelés eredménye"
-
-msgid "Helio Action"
-msgstr "Helio műveletek"
 
 msgid "Color Scheme"
 msgstr "Színséma"
@@ -4429,11 +4456,17 @@ msgstr "A keverékben PLA- és PETG-filament is található. A nyomtatási minő
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "A törlőtorony túlnyúlik a tálca területén."
 
+msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
+msgstr ""
+
 msgid "Click Wiki for help."
 msgstr "Kattints a Wikire a segítségért."
 
 msgid "Click here to regroup"
 msgstr "Kattints ide az átcsoportosításhoz"
+
+msgid "Flushing Volume"
+msgstr ""
 
 msgid "Calibration step selection"
 msgstr "Kalibrálási lépés kiválasztása"
@@ -5059,6 +5092,9 @@ msgstr "A lejátszó hibásan működik. Kérjük, telepítsd újra."
 msgid "The player is not loaded, please click \"play\" button to retry."
 msgstr "A lejátszó nem töltődött be; kérjük, kattints a „lejátszás” gombra az újra próbálkozáshoz."
 
+msgid "Plugin library failed to load. Click here to view the solution."
+msgstr ""
+
 msgid "Temporarily closed because there is no operation for a while."
 msgstr "Ideiglenesen bezárult, mert egy ideig nem volt tevékenység."
 
@@ -5132,6 +5168,9 @@ msgstr "Információ"
 
 msgid "Playing..."
 msgstr "Lejátszás..."
+
+msgid "DLL load error"
+msgstr ""
 
 msgid "Loading..."
 msgstr "Betöltés…"
@@ -5436,6 +5475,9 @@ msgstr "Állj"
 msgid "Layer: N/A"
 msgstr "Réteg: N/A"
 
+msgid "Click to view thermal preconditioning explanation"
+msgstr ""
+
 msgid "Estimated finish time: "
 msgstr "Becsült befejezési idő: "
 
@@ -5486,6 +5528,9 @@ msgstr "Nyomtató alkatrészek"
 msgid "Print Options"
 msgstr "Nyomtatási lehetőségek"
 
+msgid "Safety Options"
+msgstr ""
+
 msgid "100%"
 msgstr "100%"
 
@@ -5524,6 +5569,9 @@ msgstr "A jelenlegi slot már töltve van"
 
 msgid "The selected slot is empty."
 msgstr "A kiválasztott hely üres."
+
+msgid "Printer 2D mode does not support 3D calibration"
+msgstr ""
 
 msgid "Downloading..."
 msgstr "Letöltés..."
@@ -6032,15 +6080,6 @@ msgstr "Kezdőréteg ellenőrzése"
 msgid "Auto-recovery from step loss"
 msgstr "Automatikus helyreállítás lépésvesztésből"
 
-msgid "Open Door Detection"
-msgstr "Nyitott ajtó érzékelése"
-
-msgid "Notification"
-msgstr "Értesítés"
-
-msgid "Pause printing"
-msgstr "Nyomtatás szüneteltetése"
-
 msgid "Store Sent Files on External Storage"
 msgstr "Elküldött fájlok tárolása külső tárhelyen"
 
@@ -6056,11 +6095,26 @@ msgstr "Filament Tangle Detection"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "Ellenőrizd, hogy a fúvókára nem rakódott-e le filament vagy egyéb idegen anyag."
 
-msgid "Nozzle Type"
-msgstr "Fúvóka típusa"
+msgid "Open Door Detection"
+msgstr "Nyitott ajtó érzékelése"
 
-msgid "Nozzle Flow"
-msgstr "Fúvóka áramlás"
+msgid "Notification"
+msgstr "Értesítés"
+
+msgid "Pause printing"
+msgstr "Nyomtatás szüneteltetése"
+
+msgctxt "Nozzle Type"
+msgid "Type"
+msgstr ""
+
+msgctxt "Nozzle Diameter"
+msgid "Diameter"
+msgstr ""
+
+msgctxt "Nozzle Flow"
+msgid "Flow"
+msgstr ""
 
 msgid "Please change the nozzle settings on the printer."
 msgstr "Kérjük, módosítsd a fúvóka beállításait a nyomtatón."
@@ -6082,6 +6136,9 @@ msgstr "Nagy áramlás"
 
 msgid "No wiki link available for this printer."
 msgstr "Ehhez a nyomtatóhoz nincs wiki link."
+
+msgid "Refreshing"
+msgstr ""
 
 msgid "Global"
 msgstr "Globális"
@@ -6489,6 +6546,9 @@ msgstr "Szeletelés megszakítva"
 msgid "Slicing Plate %d"
 msgstr "%d tálca szeletelése"
 
+msgid "A Helio simulation or optimization task is in progress."
+msgstr ""
+
 msgid "Invalid printer preset. Unable to slice with Helio."
 msgstr "Érvénytelen nyomtatóbeállítás. Nem lehetséges a szeletelés Helióval."
 
@@ -6501,6 +6561,9 @@ msgstr "Helio nem támogatja egynél több anyag használatát."
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
 msgstr "Helio nem támogatja a következő anyagokat: %s"
+
+msgid "Helio functions do not support the print sequence of \"ByObject\"."
+msgstr ""
 
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
@@ -6517,6 +6580,15 @@ msgstr "PAT újragenerálása"
 
 msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
 msgstr "Nem sikerült letölteni a Helio PAT fájlt. Kattints a Frissítés gombra az újbóli lekéréshez."
+
+msgid "Successfully obtained PAT."
+msgstr ""
+
+msgid "The printer list and material list are being synchronized. Please try again later."
+msgstr ""
+
+msgid "Synchronizing Helio"
+msgstr ""
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Kérjük, orvosold a szeletelési hibákat, és próbáld meg újra."
@@ -7090,21 +7162,6 @@ msgstr "Mutassa a munkatársaink által kiválasztott online modelleket a kezdő
 msgid "Show history on the home page"
 msgstr "Előzmények megjelenítése a kezdőlapon"
 
-msgid "Helio Options"
-msgstr "Helio beállítások"
-
-msgid "Enable Helio"
-msgstr "Helio engedélyezése"
-
-msgid "Helio-PAT"
-msgstr ""
-
-msgid "About Helio"
-msgstr "Bővebben a Helióról"
-
-msgid "Helio Privacy Policy"
-msgstr "Helio adatvédelmi irányelvek"
-
 msgid "Reminder During Slicing"
 msgstr "Emlékeztető szeletelés közben"
 
@@ -7164,6 +7221,9 @@ msgstr "Csatlakozz a felhasználói élmény javítását célzó programhoz."
 
 msgid "What data would be collected?"
 msgstr "Milyen adatokat gyűjtünk?"
+
+msgid "Auto-fill previously logged-in accounts."
+msgstr ""
 
 msgid "Develop Mode"
 msgstr "Fejlesztői mód"
@@ -7658,6 +7718,9 @@ msgstr "A(z) %s filamentje ismeretlen típusú, előfordulhat, hogy felpuhul. K�
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "Nem lehet automatikusan hozzárendelni a megfelelő filamentet. Kérjük, kattints a kézi beállításra."
 
+msgid "Install toolhead enhanced cooling fan to prevent filament softening."
+msgstr ""
+
 msgid "Cool"
 msgstr ""
 
@@ -7730,9 +7793,6 @@ msgstr "Az egyéni dinamikus áramlási értékek engedélyezéséhez állítsd 
 msgid "This printer does not support printing all plates"
 msgstr "Ez a nyomtató nem támogatja az összes tálcára való nyomtatást"
 
-msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
-msgstr "TPU nyomtatása előtt végezz el egy hidegen kihúzást, hogy elkerüld az eltömődést. Ehhez használhatod a dedikált karbantartási módot."
-
 msgid "Please refer to Wiki before use->"
 msgstr "Kérjük, használat előtt olvasd el a Wikit ->"
 
@@ -7780,6 +7840,9 @@ msgstr "A nyomtatónak ugyanazon a hálózaton kell lennie, mint a Bambu Studió
 
 msgid "The printer does not support sending to printer storage."
 msgstr "A nyomtató nem támogatja a nyomtató tárhelyére küldést."
+
+msgid "Helio action completed successfully."
+msgstr ""
 
 msgid "Slice ok."
 msgstr "Szeletelés kész."
@@ -8157,6 +8220,12 @@ msgstr "Filament sál típusú varratainak beállításai"
 
 msgid "Cooling for specific layer"
 msgstr "Hűtés a megadott rétegtől"
+
+msgid "Special cooling settings"
+msgstr ""
+
+msgid "set addition fan speed before fist x layer"
+msgstr ""
 
 msgid "Part cooling fan"
 msgstr "Tárgyhűtő ventilátor"
@@ -9104,31 +9173,31 @@ msgstr "Nem sikerült az elküldés. Kattints az Újra gombra a küldés újból
 msgid "reconnect"
 msgstr "újracsatlakozás"
 
-msgid "Terms of Service"
-msgstr "Felhasználási feltételek"
+msgid "Third-party Extension"
+msgstr ""
 
-msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
-msgstr "Egy harmadik féltől származó szoftver szolgáltatási funkciót készülsz engedélyezni a Helio Additive-tól! Mielőtt megerősíted ennek a funkciónak a használatát, kérjük, figyelmesen olvasd el a következő információkat."
+msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
+msgstr ""
 
-msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
-msgstr "Ha másként nincs meghatározva, a Bambu Lab csak az általunk hivatalosan biztosított szoftverfunkciók támogatását nyújtja. A Helio Additive felhőszolgáltatásán alapuló szeletelésértékelési és szeletelésoptimalizálási funkciókat a Helio Additive fejleszti, üzemelteti, biztosítja és tartja karban. A Helio Additive felelős e szolgáltatás hatékonyságáért és elérhetőségéért. A szolgáltatás optimalizálási funkciója módosíthatja az alapértelmezett nyomtatási parancsokat, ami a nyomtató károsodásának kockázatával járhat. Csak olyan felhasználói információkat és adatokat gyűjt, amelyek a funkciók működéséhez szükségesek. A szolgáltatás használatához szükség lehet előfizetésre vagy egyéb fizetési formára. Kérjük, látogass el a Helio Additive oldalára, és tekintsd meg a Helio Additive Adatvédelmi Szabályzatát és a Helio Additive Felhasználói megállapodását a részletes információkért."
+msgid "Use Immediately"
+msgstr ""
 
-msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
-msgstr "Ugyanakkor tudomásul veszed, hogy ezt a Helio Additive szolgáltatásain alapuló terméket „ahogy van” formában biztosítjuk számodra, és a Bambu nem vállal rá semmilyen kifejezett vagy vélelmezett garanciát, és nincs ellenőrzése a szolgáltatás esetleges hatásai felett. Az alkalmazandó jogszabályok által megengedett mértékig, a Bambu vagy a licenc biztosítója/partnerei nem nyújtanak semmilyen kifejezett vagy vélelmezett biztosítékot vagy garanciát, beleértve, de nem kizárólagosan az eladhatóságra, a kielégítő minőségre, a meghatározott célra való alkalmasságra, a pontosságra, a bizalmas kezelésre és a harmadik fél jogainak nem megsértésére. A hálózati szolgáltatások természetéből adódóan a Bambu nem tudja garantálni, hogy a szolgáltatás mindig elérhető lesz, és a Bambu fenntartja a jogot, hogy a vonatkozó körülmények alapján megszüntesse a szolgáltatást."
+msgid "Third-Party Extension"
+msgstr ""
 
-msgid "You agree not to use this product and its related updates to engage in the following activities:"
-msgstr "Elfogadod, hogy nem használod ezt a terméket és a hozzá kapcsolódó frissítéseket az alábbi tevékenységek végzésére:"
+msgid "HELIO ADDITIVE"
+msgstr ""
 
-msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
-msgstr "1. A termék bármely részének másolása vagy felhasználása a Helio Additive és a Bambu által engedélyezett felhasználási körön kívül."
+msgid "Helio Additive third - party software service feature has been successfully enabled!"
+msgstr ""
 
-msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
-msgstr "2. A termékhez kapcsolódó és/vagy annak szerves részét képező bármely digitális tartalomvédelmi rendszert megzavarása, megkerülése, módosítása, érvénytelenítenése vagy kijátszása."
+msgid "Helio-PAT"
+msgstr ""
 
-msgid "3.Using this software and services for any improper or illegal activities."
-msgstr "3. A szoftver és a szolgáltatások használata bármilyen helytelen vagy illegális tevékenységre."
+msgid "Copy successful!"
+msgstr ""
 
-msgid "https://www.helioadditive.com/"
+msgid "Helio Additive"
 msgstr ""
 
 msgid "Privacy Policy of Helio Additive"
@@ -9137,11 +9206,20 @@ msgstr "A Helio Additive adatvédelmi irányelvei"
 msgid "Terms of Use of Helio Additive"
 msgstr "A Helio Additive felhasználási feltételei"
 
-msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
-msgstr "Ha megerősíted ennek a funkciónak az engedélyezését, azzal azt is megerősíted és elfogadod, hogy a fentiekben foglaltakkal egyetértesz."
+msgid "Uninstall the Helio Additive extension"
+msgstr ""
 
-msgid "Agree"
-msgstr "Elfogadás"
+msgid "Agree and proceed"
+msgstr ""
+
+msgid "Got it"
+msgstr ""
+
+msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
+msgstr ""
+
+msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
+msgstr ""
 
 msgid "Chamber Temperature"
 msgstr "Kamra hőmérséklete"
@@ -10016,14 +10094,17 @@ msgstr "Az elszívó ventilátor sebessége nyomtatás közben: ez a sebesség f
 msgid "Speed of exhuast fan after printing completes"
 msgstr "Az elszívóventilátor fordulatszáma a nyomtatás befejezése után"
 
-msgid "No cooling for the first"
-msgstr "Nincs hűtés az első"
+msgid "For the first"
+msgstr ""
 
-msgid "Close all cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion"
-msgstr "Kikapcsolja a hűtést a megadott első pár rétegnél. A hűtés kikapcsolása segítheti a jobb tárgyasztalhoz való tapadást"
+msgid "Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
+msgstr ""
 
 msgid "layers"
 msgstr "réteg"
+
+msgid "Special cooling fan speed for the first certain layers"
+msgstr ""
 
 msgid "Don't support bridges"
 msgstr "Ne támassza alá az áthidalásokat"
@@ -10769,6 +10850,15 @@ msgstr "A legjobb automatikus elrendezés tartománya [0,1] a tárgyasztal alakj
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "Engedélyezd ezt az opciót, ha a gép rendelkezik kiegészítő tárgyhűtő ventilátorral"
 
+msgid "Fan direction"
+msgstr ""
+
+msgid "Cooling fan direction of the printer"
+msgstr ""
+
+msgid "Both"
+msgstr ""
+
 msgid "Support control chamber temperature"
 msgstr "Kamrahőmérséklet-szabályozás engedélyezése"
 
@@ -11323,6 +11413,12 @@ msgstr "Alapértelmezett fúvóka térfogattípus"
 
 msgid "Extra length on restart"
 msgstr "Extra hossz újraindításkor"
+
+msgid "When the retraction is compensated after the travel move, the extruder will push this additional amount of filament. This setting is rarely needed."
+msgstr ""
+
+msgid "When the retraction is compensated after changing tool, the extruder will push this additional amount of filament."
+msgstr ""
 
 msgid "Retraction Speed"
 msgstr "Visszahúzás sebessége"
@@ -12505,6 +12601,9 @@ msgstr "A nyomtató %s fúvókaadatai nem lettek beállítva. A kalibrálás fol
 
 msgid "AMS and nozzle information are synced"
 msgstr "Az AMS és a fúvóka adatai szinkronizálva vannak"
+
+msgid "Nozzle Flow"
+msgstr "Fúvóka áramlás"
 
 msgid "Nozzle Info"
 msgstr "Fúvókainformáció"
@@ -13942,9 +14041,6 @@ msgstr "Eltávolítva"
 msgid "Management user presets"
 msgstr "Felhasználói beállítások kezelése"
 
-msgid "Custom filaments"
-msgstr "Egyedi filamentek"
-
 msgid "No content"
 msgstr "Nincs tartalom"
 
@@ -14312,6 +14408,160 @@ msgid ""
 msgstr ""
 "Vetemedés elkerülése\n"
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
+
+#: resources/data/helio_hints.ini: [hint: Single-Material Only]
+msgid ""
+"Single-Material Only\n"
+"Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: One Plate per Job]
+msgid ""
+"One Plate per Job\n"
+"Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: What is the Thermal Quality Index?]
+msgid ""
+"What is the Thermal Quality Index?\n"
+"The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Voxel-Level Accuracy]
+msgid ""
+"Voxel-Level Accuracy\n"
+"We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Fan & Airflow Model]
+msgid ""
+"Fan & Airflow Model\n"
+"A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: TQI Limits Explained]
+msgid ""
+"TQI Limits Explained\n"
+"-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: What Drives Runtime?]
+msgid ""
+"What Drives Runtime?\n"
+"Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Nozzle Temp Range]
+msgid ""
+"Nozzle Temp Range\n"
+"Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Debugging Flowchart]
+msgid ""
+"Debugging Flowchart\n"
+"Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Why Cooling Varies]
+msgid ""
+"Why Cooling Varies\n"
+"Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Extrusion Temp Model]
+msgid ""
+"Extrusion Temp Model\n"
+"Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Nozzle setting of 190 °C vs 320
+#: °C?]
+msgid ""
+"Nozzle setting of 190 °C vs 320 °C?\n"
+"A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Bed Temperature influence]
+msgid ""
+"Bed Temperature influence\n"
+"Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Actual Tool-Path]
+msgid ""
+"Actual Tool-Path\n"
+"Yes—your exact G-code path, speeds and fan commands are simulated."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Mesh Resolution]
+msgid ""
+"Mesh Resolution\n"
+"The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Shrinkage, Warping & Stress]
+msgid ""
+"Shrinkage, Warping & Stress\n"
+"By controlling the thermal index you can remove the heat-driven causes of warp and stress."
+msgstr ""
+
+#~ msgid "Helio Action"
+#~ msgstr "Helio műveletek"
+
+#~ msgid "Nozzle Type"
+#~ msgstr "Fúvóka típusa"
+
+#~ msgid "Helio Options"
+#~ msgstr "Helio beállítások"
+
+#~ msgid "Enable Helio"
+#~ msgstr "Helio engedélyezése"
+
+#~ msgid "About Helio"
+#~ msgstr "Bővebben a Helióról"
+
+#~ msgid "Helio Privacy Policy"
+#~ msgstr "Helio adatvédelmi irányelvek"
+
+#~ msgid "Terms of Service"
+#~ msgstr "Felhasználási feltételek"
+
+#~ msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
+#~ msgstr "Egy harmadik féltől származó szoftver szolgáltatási funkciót készülsz engedélyezni a Helio Additive-tól! Mielőtt megerősíted ennek a funkciónak a használatát, kérjük, figyelmesen olvasd el a következő információkat."
+
+#~ msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
+#~ msgstr "Ha másként nincs meghatározva, a Bambu Lab csak az általunk hivatalosan biztosított szoftverfunkciók támogatását nyújtja. A Helio Additive felhőszolgáltatásán alapuló szeletelésértékelési és szeletelésoptimalizálási funkciókat a Helio Additive fejleszti, üzemelteti, biztosítja és tartja karban. A Helio Additive felelős e szolgáltatás hatékonyságáért és elérhetőségéért. A szolgáltatás optimalizálási funkciója módosíthatja az alapértelmezett nyomtatási parancsokat, ami a nyomtató károsodásának kockázatával járhat. Csak olyan felhasználói információkat és adatokat gyűjt, amelyek a funkciók működéséhez szükségesek. A szolgáltatás használatához szükség lehet előfizetésre vagy egyéb fizetési formára. Kérjük, látogass el a Helio Additive oldalára, és tekintsd meg a Helio Additive Adatvédelmi Szabályzatát és a Helio Additive Felhasználói megállapodását a részletes információkért."
+
+#~ msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
+#~ msgstr "Ugyanakkor tudomásul veszed, hogy ezt a Helio Additive szolgáltatásain alapuló terméket „ahogy van” formában biztosítjuk számodra, és a Bambu nem vállal rá semmilyen kifejezett vagy vélelmezett garanciát, és nincs ellenőrzése a szolgáltatás esetleges hatásai felett. Az alkalmazandó jogszabályok által megengedett mértékig, a Bambu vagy a licenc biztosítója/partnerei nem nyújtanak semmilyen kifejezett vagy vélelmezett biztosítékot vagy garanciát, beleértve, de nem kizárólagosan az eladhatóságra, a kielégítő minőségre, a meghatározott célra való alkalmasságra, a pontosságra, a bizalmas kezelésre és a harmadik fél jogainak nem megsértésére. A hálózati szolgáltatások természetéből adódóan a Bambu nem tudja garantálni, hogy a szolgáltatás mindig elérhető lesz, és a Bambu fenntartja a jogot, hogy a vonatkozó körülmények alapján megszüntesse a szolgáltatást."
+
+#~ msgid "You agree not to use this product and its related updates to engage in the following activities:"
+#~ msgstr "Elfogadod, hogy nem használod ezt a terméket és a hozzá kapcsolódó frissítéseket az alábbi tevékenységek végzésére:"
+
+#~ msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
+#~ msgstr "1. A termék bármely részének másolása vagy felhasználása a Helio Additive és a Bambu által engedélyezett felhasználási körön kívül."
+
+#~ msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
+#~ msgstr "2. A termékhez kapcsolódó és/vagy annak szerves részét képező bármely digitális tartalomvédelmi rendszert megzavarása, megkerülése, módosítása, érvénytelenítenése vagy kijátszása."
+
+#~ msgid "3.Using this software and services for any improper or illegal activities."
+#~ msgstr "3. A szoftver és a szolgáltatások használata bármilyen helytelen vagy illegális tevékenységre."
+
+#~ msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
+#~ msgstr "Ha megerősíted ennek a funkciónak az engedélyezését, azzal azt is megerősíted és elfogadod, hogy a fentiekben foglaltakkal egyetértesz."
+
+#~ msgid "Agree"
+#~ msgstr "Elfogadás"
+
+#~ msgid "No cooling for the first"
+#~ msgstr "Nincs hűtés az első"
+
+#~ msgid "Close all cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion"
+#~ msgstr "Kikapcsolja a hűtést a megadott első pár rétegnél. A hűtés kikapcsolása segítheti a jobb tárgyasztalhoz való tapadást"
+
+#~ msgid "Custom filaments"
+#~ msgstr "Egyedi filamentek"
 
 #~ msgid "Helio Simulation"
 #~ msgstr "Helio szimuláció"

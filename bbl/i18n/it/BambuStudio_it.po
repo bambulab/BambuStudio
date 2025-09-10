@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-27 20:06+0800\n"
+"POT-Creation-Date: 2025-09-10 10:23+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -45,6 +45,12 @@ msgstr "estrusore"
 
 msgid "TPU is not supported by AMS."
 msgstr "Il TPU non è supportato dall'AMS."
+
+msgid "AMS does not support 'Bambu Lab PET-CF'."
+msgstr ""
+
+msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
+msgstr "Tira a freddo prima di stampare il TPU per evitare intasamenti. Puoi utilizzare la manutenzione a freddo della stampante."
 
 msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
 msgstr "Il PVA umido diventa flessibile e si blocca all'interno dell'AMS, quindi assicurati di asciugarlo prima dell'uso"
@@ -1065,6 +1071,9 @@ msgstr "Spessore"
 msgid "Input text"
 msgstr "Inserisci testo"
 
+msgid "Advanced"
+msgstr "Avanzate"
+
 msgid "Embeded depth"
 msgstr "Profondità incorporata"
 
@@ -1120,6 +1129,18 @@ msgstr "Font \"%1%\" non può essere selezionato."
 msgid "Revert text size."
 msgstr "Ripristina dimensione testo."
 
+msgid ""
+"Advanced options cannot be changed for the selected font.\n"
+"Select another font."
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Boldness"
+msgstr "Spessore"
+
+msgid "Skew"
+msgstr ""
+
 msgid "No symbol"
 msgstr "Nessun simbolo"
 
@@ -1153,10 +1174,6 @@ msgstr "Spazio del testo"
 #. TRN - Input label. Be short as possible
 msgid "Line gap"
 msgstr "Spazio tra linee"
-
-#. TRN - Input label. Be short as possible
-msgid "Boldness"
-msgstr "Spessore"
 
 #. TRN - Input label. Be short as possible
 #. Like Font italic
@@ -1684,9 +1701,6 @@ msgstr "Opzioni pulitura"
 
 msgid "Bed adhension"
 msgstr "Adesione al piano"
-
-msgid "Advanced"
-msgstr "Avanzate"
 
 msgid "Add part"
 msgstr "Aggiungi parte"
@@ -2732,6 +2746,19 @@ msgstr "Inviato con successo. Chiudi la pagina corrente in %s s"
 msgid "Storage needs to be inserted before sending to printer."
 msgstr "Prima di inviare alla stampante è necessario inserire la memoria."
 
+msgid "Thermal Preconditioning for first layer optimization"
+msgstr "Precondizionamento termico per l'ottimizzazione del primo layer"
+
+#, c-format, boost-format
+msgid "Remaining time: %s"
+msgstr ""
+
+msgid "Remaining time: Calculating..."
+msgstr ""
+
+msgid "The heated bed's thermal preconditioning helps optimize the first layer print quality. Printing will start once preconditioning is complete."
+msgstr ""
+
 msgid "Choose SLA archive:"
 msgstr "Seleziona l'archivio SLA:"
 
@@ -3678,9 +3705,6 @@ msgstr ""
 msgid "Measuring Surface"
 msgstr "Misura superficie"
 
-msgid "Thermal Preconditioning for first layer optimization"
-msgstr "Precondizionamento termico per l'ottimizzazione del primo layer"
-
 msgid "Unknown"
 msgstr "Sconosciuto"
 
@@ -3797,11 +3821,14 @@ msgstr "Ricevuto, disattivo l’allarme antincendio."
 msgid "Retry (problem solved)"
 msgstr "Riprova (problema risolto)"
 
+msgid "Cancle"
+msgstr "Annulla"
+
 msgid "Stop Drying"
 msgstr "Interrompi l'asciugatura"
 
-msgid "Cancle"
-msgstr "Annulla"
+msgid "Proceed"
+msgstr ""
 
 msgid "Done"
 msgstr "Fine"
@@ -3855,6 +3882,9 @@ msgstr ""
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Formato non valido. Formato vettoriale previsto: \"%1%\""
+
+msgid "Clear color"
+msgstr ""
 
 msgid "Summary"
 msgstr "Sommario"
@@ -4017,9 +4047,6 @@ msgstr "da"
 
 msgid "Slicing Result"
 msgstr "Risultato dello slicing"
-
-msgid "Helio Action"
-msgstr "Azione Helio"
 
 msgid "Color Scheme"
 msgstr "Schema Colore"
@@ -4427,11 +4454,17 @@ msgstr "Filamenti PLA e PETG rilevati nella miscela. Regola i parametri secondo 
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "La prime tower si estende oltre il confine del piatto."
 
+msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
+msgstr ""
+
 msgid "Click Wiki for help."
 msgstr "Fai clic su Wiki per assistenza."
 
 msgid "Click here to regroup"
 msgstr "Clicca qui per raggruppare nuovamente"
+
+msgid "Flushing Volume"
+msgstr ""
 
 msgid "Calibration step selection"
 msgstr "Seleziona procedure di calibrazione"
@@ -5053,6 +5086,9 @@ msgstr "Lettore non funzionante correttamente. Reinstallare il lettore di sistem
 msgid "The player is not loaded, please click \"play\" button to retry."
 msgstr "Player non caricato; fai clic sul pulsante «play» per riprovare."
 
+msgid "Plugin library failed to load. Click here to view the solution."
+msgstr ""
+
 msgid "Temporarily closed because there is no operation for a while."
 msgstr "Chiuso temporaneamente perché non ci sono attività programmate per un po'."
 
@@ -5126,6 +5162,9 @@ msgstr "Informazione"
 
 msgid "Playing..."
 msgstr "Riproduzione"
+
+msgid "DLL load error"
+msgstr ""
 
 msgid "Loading..."
 msgstr "Caricamento…"
@@ -5430,6 +5469,9 @@ msgstr "Ferma"
 msgid "Layer: N/A"
 msgstr "Layer: N/D"
 
+msgid "Click to view thermal preconditioning explanation"
+msgstr ""
+
 msgid "Estimated finish time: "
 msgstr "Tempo di completamento stimato: "
 
@@ -5480,6 +5522,9 @@ msgstr "Componenti Stampante"
 msgid "Print Options"
 msgstr "Opzioni stampa"
 
+msgid "Safety Options"
+msgstr ""
+
 msgid "100%"
 msgstr "100%"
 
@@ -5518,6 +5563,9 @@ msgstr "Lo slot attuale è stato caricato."
 
 msgid "The selected slot is empty."
 msgstr "Slot selezionato è vuoto."
+
+msgid "Printer 2D mode does not support 3D calibration"
+msgstr ""
 
 msgid "Downloading..."
 msgstr "Download in corso…"
@@ -6024,15 +6072,6 @@ msgstr "Ispezione del primo layer"
 msgid "Auto-recovery from step loss"
 msgstr "Recupero automatico perdita passi"
 
-msgid "Open Door Detection"
-msgstr "Rilevamento porta aperta"
-
-msgid "Notification"
-msgstr "Notifica"
-
-msgid "Pause printing"
-msgstr "Stampa in pausa"
-
 msgid "Store Sent Files on External Storage"
 msgstr "Salva file inviati su dispositivo esterno"
 
@@ -6048,11 +6087,26 @@ msgstr "Rilevamento groviglio filamento"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "Controllare se il nozzle è intasato dal filamento o altri oggetti estranei."
 
-msgid "Nozzle Type"
-msgstr "Tipo Nozzle"
+msgid "Open Door Detection"
+msgstr "Rilevamento porta aperta"
 
-msgid "Nozzle Flow"
-msgstr "Flusso nozzle"
+msgid "Notification"
+msgstr "Notifica"
+
+msgid "Pause printing"
+msgstr "Stampa in pausa"
+
+msgctxt "Nozzle Type"
+msgid "Type"
+msgstr ""
+
+msgctxt "Nozzle Diameter"
+msgid "Diameter"
+msgstr ""
+
+msgctxt "Nozzle Flow"
+msgid "Flow"
+msgstr ""
 
 msgid "Please change the nozzle settings on the printer."
 msgstr "Modifica le impostazioni dei nozzle sulla stampante."
@@ -6074,6 +6128,9 @@ msgstr "Flusso elevato"
 
 msgid "No wiki link available for this printer."
 msgstr "Nessun collegamento wiki disponibile per questa stampante."
+
+msgid "Refreshing"
+msgstr ""
 
 msgid "Global"
 msgstr "Globale"
@@ -6484,6 +6541,9 @@ msgstr "Slicing Annullato"
 msgid "Slicing Plate %d"
 msgstr "Slicing Piatto %d"
 
+msgid "A Helio simulation or optimization task is in progress."
+msgstr ""
+
 msgid "Invalid printer preset. Unable to slice with Helio."
 msgstr "Preset stampante non valido. Impossibile eseguire lo slicing con Helio."
 
@@ -6496,6 +6556,9 @@ msgstr "Helio non supporta un numero di materiali superiore a 1."
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
 msgstr "Helio non supporta i materiali %s"
+
+msgid "Helio functions do not support the print sequence of \"ByObject\"."
+msgstr ""
 
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
@@ -6512,6 +6575,15 @@ msgstr "Rigenera PAT"
 
 msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
 msgstr "Impossibile ottenere Helio PAT, clicca su Aggiorna per riprovare."
+
+msgid "Successfully obtained PAT."
+msgstr ""
+
+msgid "The printer list and material list are being synchronized. Please try again later."
+msgstr ""
+
+msgid "Synchronizing Helio"
+msgstr ""
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Risolvi gli errori di slicing e pubblica nuovamente."
@@ -7085,21 +7157,6 @@ msgstr "Mostra i modelli online selezionati dallo staff  nella home page"
 msgid "Show history on the home page"
 msgstr "Mostra cronologia sulla home page"
 
-msgid "Helio Options"
-msgstr "Opzioni Helio"
-
-msgid "Enable Helio"
-msgstr "Abilita Helio"
-
-msgid "Helio-PAT"
-msgstr ""
-
-msgid "About Helio"
-msgstr "Info su Helio"
-
-msgid "Helio Privacy Policy"
-msgstr ""
-
 msgid "Reminder During Slicing"
 msgstr "Ricorda Durante lo Slicing"
 
@@ -7159,6 +7216,9 @@ msgstr "Partecipa al programma di miglioramento dell'esperienza utenti."
 
 msgid "What data would be collected?"
 msgstr "Quali dati verrebbero raccolti?"
+
+msgid "Auto-fill previously logged-in accounts."
+msgstr ""
 
 msgid "Develop Mode"
 msgstr "Modalità sviluppatore"
@@ -7651,6 +7711,9 @@ msgstr "Il filamento su %s è sconosciuto e potrebbe ammorbidirsi. Imposta il fi
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "Impossibile abbinare automaticamente il filamento adatto. Clicca per abbinarlo manualmente."
 
+msgid "Install toolhead enhanced cooling fan to prevent filament softening."
+msgstr ""
+
 msgid "Cool"
 msgstr ""
 
@@ -7723,9 +7786,6 @@ msgstr "Imposta la calibrazione del flow dinamico su 'OFF' per abilitare un valo
 msgid "This printer does not support printing all plates"
 msgstr "Questa stampante non supporta la stampa di piatti multipla"
 
-msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
-msgstr "Tira a freddo prima di stampare il TPU per evitare intasamenti. Puoi utilizzare la manutenzione a freddo della stampante."
-
 msgid "Please refer to Wiki before use->"
 msgstr "Consulta il Wiki prima di utilizzarlo->"
 
@@ -7773,6 +7833,9 @@ msgstr "La stampante deve essere nella stessa LAN di Bambu Studio."
 
 msgid "The printer does not support sending to printer storage."
 msgstr "La stampante non supporta l'invio alla memoria della stampante."
+
+msgid "Helio action completed successfully."
+msgstr ""
 
 msgid "Slice ok."
 msgstr "Elaborazione ok."
@@ -8152,6 +8215,12 @@ msgstr "Impostazioni giuntura scarf del filamento"
 
 msgid "Cooling for specific layer"
 msgstr "Raffreddamento per layer specifici"
+
+msgid "Special cooling settings"
+msgstr ""
+
+msgid "set addition fan speed before fist x layer"
+msgstr ""
 
 msgid "Part cooling fan"
 msgstr "Ventola di raffreddamento oggetto"
@@ -9097,31 +9166,31 @@ msgstr "Invio fallito. Fai clic su Riprova per tentare di inviare nuovamente. Se
 msgid "reconnect"
 msgstr "ricollega"
 
-msgid "Terms of Service"
-msgstr "Termini di servizio"
+msgid "Third-party Extension"
+msgstr ""
 
-msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
-msgstr "Stai per attivare una funzionalità del servizio software di terze parti fornito da Helio Additive! Prima di confermare l’utilizzo di questa funzione, ti invitiamo a leggere attentamente le seguenti dichiarazioni."
+msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
+msgstr ""
 
-msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
-msgstr "Se non diversamente specificato, Bambu Lab fornisce supporto esclusivamente per le funzionalità software ufficialmente offerte. Le funzioni di valutazione e ottimizzazione dello slicing basate sul servizio cloud di Helio Additive, incluse in questo software, saranno sviluppate, gestite, fornite e mantenute da Helio Additive. Helio Additive è responsabile dell’efficacia e della disponibilità di questo servizio. La funzione di ottimizzazione può modificare i comandi di stampa predefiniti, con il rischio di danneggiare la stampante. Queste funzioni raccoglieranno le informazioni e i dati utente necessari per fornire le relative funzionalità. Possono essere previsti abbonamenti e pagamenti. Per informazioni dettagliate, visita il sito di Helio Additive e consulta l’Informativa sulla privacy e il Contratto di utilizzo di Helio Additive."
+msgid "Use Immediately"
+msgstr ""
 
-msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
-msgstr "Nel frattempo, sei consapevole che questo prodotto ti viene fornito \"così com'è\", in base ai servizi offerti da Helio Additive, e che Bambu non fornisce alcuna garanzia esplicita o implicita, né ha controllo sugli effetti del servizio. Nei limiti consentiti dalla legge, né Bambu né i suoi licenziatari o affiliati rilasciano dichiarazioni o garanzie, esplicite o implicite, comprese, a titolo esemplificativo, quelle relative alla commerciabilità, qualità soddisfacente, idoneità a uno scopo specifico, accuratezza, riservatezza o assenza di violazioni di diritti di terzi. Considerata la natura dei servizi network, Bambu non può garantire la disponibilità continua del servizio e si riserva il diritto di interromperlo in base alle circostanze."
+msgid "Third-Party Extension"
+msgstr ""
 
-msgid "You agree not to use this product and its related updates to engage in the following activities:"
-msgstr "Accetti di non utilizzare questo prodotto e i relativi aggiornamenti per svolgere le seguenti attività:"
+msgid "HELIO ADDITIVE"
+msgstr ""
 
-msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
-msgstr "1.Copiare o utilizzare qualsiasi parte di questo prodotto al di fuori dell’ambito autorizzato da Helio Additive e Bambu."
+msgid "Helio Additive third - party software service feature has been successfully enabled!"
+msgstr ""
 
-msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
-msgstr "2.Tentare di interrompere, bypassare, alterare, invalidare o eludere qualsiasi sistema di gestione dei diritti digitali collegato a e/o parte integrante di questo prodotto."
+msgid "Helio-PAT"
+msgstr ""
 
-msgid "3.Using this software and services for any improper or illegal activities."
-msgstr "3.Utilizzare questo software e i relativi servizi per attività improprie o illegali."
+msgid "Copy successful!"
+msgstr ""
 
-msgid "https://www.helioadditive.com/"
+msgid "Helio Additive"
 msgstr ""
 
 msgid "Privacy Policy of Helio Additive"
@@ -9130,11 +9199,20 @@ msgstr "Privacy Policy di Helio Additive"
 msgid "Terms of Use of Helio Additive"
 msgstr "Termini di utilizzo di Helio Additive"
 
-msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
-msgstr "Confermare l’attivazione di questa funzionalità implica che hai letto, compreso e accettato le dichiarazioni sopra riportate."
+msgid "Uninstall the Helio Additive extension"
+msgstr ""
 
-msgid "Agree"
-msgstr "Accetto"
+msgid "Agree and proceed"
+msgstr ""
+
+msgid "Got it"
+msgstr ""
+
+msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
+msgstr ""
+
+msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
+msgstr ""
 
 msgid "Chamber Temperature"
 msgstr "Temperatura Camera"
@@ -10009,14 +10087,17 @@ msgstr "Velocità della ventola di estrazione durante la stampa. Questa velocit�
 msgid "Speed of exhuast fan after printing completes"
 msgstr "Velocità della ventola di scarico al termine della stampa"
 
-msgid "No cooling for the first"
-msgstr "Nessun raffreddamento per il primo"
+msgid "For the first"
+msgstr ""
 
-msgid "Close all cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion"
-msgstr "Spegnere tutte le ventole di raffreddamento per i primi layer. Questo può servire a migliorare l'adesione del piatto."
+msgid "Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
+msgstr ""
 
 msgid "layers"
 msgstr "layers"
+
+msgid "Special cooling fan speed for the first certain layers"
+msgstr ""
 
 msgid "Don't support bridges"
 msgstr "Nessun supporto bridge"
@@ -10762,6 +10843,15 @@ msgstr "Migliore disposizione automatica nell'intervallo [0,1] w.r.t. forma pian
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "Abilitare questa opzione se la stampante dispone di una ventola di raffreddamento ausiliaria per gli oggetti"
 
+msgid "Fan direction"
+msgstr ""
+
+msgid "Cooling fan direction of the printer"
+msgstr ""
+
+msgid "Both"
+msgstr ""
+
 msgid "Support control chamber temperature"
 msgstr "Supporto controllo temperatura camera"
 
@@ -11316,6 +11406,12 @@ msgstr "Tipo di volume per il nozzle predefinito"
 
 msgid "Extra length on restart"
 msgstr "Lunghezza extra al riavvio"
+
+msgid "When the retraction is compensated after the travel move, the extruder will push this additional amount of filament. This setting is rarely needed."
+msgstr ""
+
+msgid "When the retraction is compensated after changing tool, the extruder will push this additional amount of filament."
+msgstr ""
 
 msgid "Retraction Speed"
 msgstr "Velocità di retrazione"
@@ -12501,6 +12597,9 @@ msgstr "Le informazioni sul nozzle della stampante %s non sono state impostate. 
 
 msgid "AMS and nozzle information are synced"
 msgstr "Informazioni AMS e nozzle sincronizzate"
+
+msgid "Nozzle Flow"
+msgstr "Flusso nozzle"
 
 msgid "Nozzle Info"
 msgstr "Informazioni nozzle"
@@ -13940,9 +14039,6 @@ msgstr "Rimosso"
 msgid "Management user presets"
 msgstr ""
 
-msgid "Custom filaments"
-msgstr ""
-
 msgid "No content"
 msgstr ""
 
@@ -14309,6 +14405,154 @@ msgid ""
 msgstr ""
 "Evita deformazioni\n"
 "Sapevi che quando si stampano materiali soggetti a deformazioni, come l'ABS, aumentare adeguatamente la temperatura del piano può ridurre la probabilità di deformazione."
+
+#: resources/data/helio_hints.ini: [hint: Single-Material Only]
+msgid ""
+"Single-Material Only\n"
+"Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: One Plate per Job]
+msgid ""
+"One Plate per Job\n"
+"Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: What is the Thermal Quality Index?]
+msgid ""
+"What is the Thermal Quality Index?\n"
+"The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Voxel-Level Accuracy]
+msgid ""
+"Voxel-Level Accuracy\n"
+"We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Fan & Airflow Model]
+msgid ""
+"Fan & Airflow Model\n"
+"A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: TQI Limits Explained]
+msgid ""
+"TQI Limits Explained\n"
+"-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: What Drives Runtime?]
+msgid ""
+"What Drives Runtime?\n"
+"Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Nozzle Temp Range]
+msgid ""
+"Nozzle Temp Range\n"
+"Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Debugging Flowchart]
+msgid ""
+"Debugging Flowchart\n"
+"Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Why Cooling Varies]
+msgid ""
+"Why Cooling Varies\n"
+"Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Extrusion Temp Model]
+msgid ""
+"Extrusion Temp Model\n"
+"Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Nozzle setting of 190 °C vs 320
+#: °C?]
+msgid ""
+"Nozzle setting of 190 °C vs 320 °C?\n"
+"A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Bed Temperature influence]
+msgid ""
+"Bed Temperature influence\n"
+"Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Actual Tool-Path]
+msgid ""
+"Actual Tool-Path\n"
+"Yes—your exact G-code path, speeds and fan commands are simulated."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Mesh Resolution]
+msgid ""
+"Mesh Resolution\n"
+"The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Shrinkage, Warping & Stress]
+msgid ""
+"Shrinkage, Warping & Stress\n"
+"By controlling the thermal index you can remove the heat-driven causes of warp and stress."
+msgstr ""
+
+#~ msgid "Helio Action"
+#~ msgstr "Azione Helio"
+
+#~ msgid "Nozzle Type"
+#~ msgstr "Tipo Nozzle"
+
+#~ msgid "Helio Options"
+#~ msgstr "Opzioni Helio"
+
+#~ msgid "Enable Helio"
+#~ msgstr "Abilita Helio"
+
+#~ msgid "About Helio"
+#~ msgstr "Info su Helio"
+
+#~ msgid "Terms of Service"
+#~ msgstr "Termini di servizio"
+
+#~ msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
+#~ msgstr "Stai per attivare una funzionalità del servizio software di terze parti fornito da Helio Additive! Prima di confermare l’utilizzo di questa funzione, ti invitiamo a leggere attentamente le seguenti dichiarazioni."
+
+#~ msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
+#~ msgstr "Se non diversamente specificato, Bambu Lab fornisce supporto esclusivamente per le funzionalità software ufficialmente offerte. Le funzioni di valutazione e ottimizzazione dello slicing basate sul servizio cloud di Helio Additive, incluse in questo software, saranno sviluppate, gestite, fornite e mantenute da Helio Additive. Helio Additive è responsabile dell’efficacia e della disponibilità di questo servizio. La funzione di ottimizzazione può modificare i comandi di stampa predefiniti, con il rischio di danneggiare la stampante. Queste funzioni raccoglieranno le informazioni e i dati utente necessari per fornire le relative funzionalità. Possono essere previsti abbonamenti e pagamenti. Per informazioni dettagliate, visita il sito di Helio Additive e consulta l’Informativa sulla privacy e il Contratto di utilizzo di Helio Additive."
+
+#~ msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
+#~ msgstr "Nel frattempo, sei consapevole che questo prodotto ti viene fornito \"così com'è\", in base ai servizi offerti da Helio Additive, e che Bambu non fornisce alcuna garanzia esplicita o implicita, né ha controllo sugli effetti del servizio. Nei limiti consentiti dalla legge, né Bambu né i suoi licenziatari o affiliati rilasciano dichiarazioni o garanzie, esplicite o implicite, comprese, a titolo esemplificativo, quelle relative alla commerciabilità, qualità soddisfacente, idoneità a uno scopo specifico, accuratezza, riservatezza o assenza di violazioni di diritti di terzi. Considerata la natura dei servizi network, Bambu non può garantire la disponibilità continua del servizio e si riserva il diritto di interromperlo in base alle circostanze."
+
+#~ msgid "You agree not to use this product and its related updates to engage in the following activities:"
+#~ msgstr "Accetti di non utilizzare questo prodotto e i relativi aggiornamenti per svolgere le seguenti attività:"
+
+#~ msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
+#~ msgstr "1.Copiare o utilizzare qualsiasi parte di questo prodotto al di fuori dell’ambito autorizzato da Helio Additive e Bambu."
+
+#~ msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
+#~ msgstr "2.Tentare di interrompere, bypassare, alterare, invalidare o eludere qualsiasi sistema di gestione dei diritti digitali collegato a e/o parte integrante di questo prodotto."
+
+#~ msgid "3.Using this software and services for any improper or illegal activities."
+#~ msgstr "3.Utilizzare questo software e i relativi servizi per attività improprie o illegali."
+
+#~ msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
+#~ msgstr "Confermare l’attivazione di questa funzionalità implica che hai letto, compreso e accettato le dichiarazioni sopra riportate."
+
+#~ msgid "Agree"
+#~ msgstr "Accetto"
+
+#~ msgid "No cooling for the first"
+#~ msgstr "Nessun raffreddamento per il primo"
+
+#~ msgid "Close all cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion"
+#~ msgstr "Spegnere tutte le ventole di raffreddamento per i primi layer. Questo può servire a migliorare l'adesione del piatto."
 
 #~ msgid "Helio Simulation"
 #~ msgstr "Simulazione Helio"

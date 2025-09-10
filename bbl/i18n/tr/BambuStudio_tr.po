@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-27 20:24+0800\n"
+"POT-Creation-Date: 2025-09-10 10:23+0800\n"
 "PO-Revision-Date: 2025-08-28 14:42+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -45,6 +45,12 @@ msgstr "ekstruder"
 
 msgid "TPU is not supported by AMS."
 msgstr "TPU, AMS tarafından desteklenmez."
+
+msgid "AMS does not support 'Bambu Lab PET-CF'."
+msgstr ""
+
+msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
+msgstr "Tıkanmayı önlemek için TPU'yu yazdırmadan önce lütfen filamenti soğuduktan sonra çekin. Yazıcıda soğuk çekme bakımını kullanabilirsiniz."
 
 msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
 msgstr "Nemli PVA esnekleşecek ve AMS'nin içine sıkışacaktır, lütfen kullanmadan önce kurutmaya dikkat edin."
@@ -1065,6 +1071,9 @@ msgstr "Kalınlık"
 msgid "Input text"
 msgstr "Giriş metni"
 
+msgid "Advanced"
+msgstr "Gelişmiş"
+
 msgid "Embeded depth"
 msgstr "Gömülme derinliği"
 
@@ -1120,6 +1129,18 @@ msgstr "“%1%” yazı tipi seçilemiyor."
 msgid "Revert text size."
 msgstr "Metin boyutunu geri al."
 
+msgid ""
+"Advanced options cannot be changed for the selected font.\n"
+"Select another font."
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Boldness"
+msgstr "Kalınlık"
+
+msgid "Skew"
+msgstr ""
+
 msgid "No symbol"
 msgstr "Sembol yok"
 
@@ -1153,10 +1174,6 @@ msgstr "Metin Boşluğu"
 #. TRN - Input label. Be short as possible
 msgid "Line gap"
 msgstr "Satır boşluğu"
-
-#. TRN - Input label. Be short as possible
-msgid "Boldness"
-msgstr "Kalınlık"
 
 #. TRN - Input label. Be short as possible
 #. Like Font italic
@@ -1686,9 +1703,6 @@ msgstr "Silme seçenekleri"
 
 msgid "Bed adhension"
 msgstr "Etek"
-
-msgid "Advanced"
-msgstr "Gelişmiş"
 
 msgid "Add part"
 msgstr "Parça ekle"
@@ -2734,6 +2748,19 @@ msgstr "Başarıyla gönderildi. %s s'de mevcut sayfayı kapat"
 msgid "Storage needs to be inserted before sending to printer."
 msgstr "Yazıcıya göndermeden önce deponun yerleştirilmesi gerekir."
 
+msgid "Thermal Preconditioning for first layer optimization"
+msgstr "İlk katman optimizasyonu için termal ön hazırlık"
+
+#, c-format, boost-format
+msgid "Remaining time: %s"
+msgstr ""
+
+msgid "Remaining time: Calculating..."
+msgstr ""
+
+msgid "The heated bed's thermal preconditioning helps optimize the first layer print quality. Printing will start once preconditioning is complete."
+msgstr ""
+
 msgid "Choose SLA archive:"
 msgstr "SLA arşivini seçin:"
 
@@ -3680,9 +3707,6 @@ msgstr "Kesim Modülü Ofset Kalibrasyonu"
 msgid "Measuring Surface"
 msgstr "Ölçüm Yüzeyi"
 
-msgid "Thermal Preconditioning for first layer optimization"
-msgstr "İlk katman optimizasyonu için termal ön hazırlık"
-
 msgid "Unknown"
 msgstr "Bilinmeyen"
 
@@ -3799,10 +3823,13 @@ msgstr "Anladım, yangın alarmını kapat."
 msgid "Retry (problem solved)"
 msgstr "Yeniden deneyin (sorun çözüldü)"
 
+msgid "Cancle"
+msgstr ""
+
 msgid "Stop Drying"
 msgstr "Kurutmayı Durdur"
 
-msgid "Cancle"
+msgid "Proceed"
 msgstr ""
 
 msgid "Done"
@@ -3857,6 +3884,9 @@ msgstr ""
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Geçersiz format. Beklenen vektör formatı: \"%1%\""
+
+msgid "Clear color"
+msgstr ""
 
 msgid "Summary"
 msgstr "Özet"
@@ -4019,9 +4049,6 @@ msgstr "itibaren"
 
 msgid "Slicing Result"
 msgstr "Dilimleme Sonuçları"
-
-msgid "Helio Action"
-msgstr ""
 
 msgid "Color Scheme"
 msgstr "Renk Şeması"
@@ -4431,11 +4458,17 @@ msgstr "Karışımda PLA ve PETG filamentleri tespit edildi. Baskı kalitesini s
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "Prime kulesi plaka sınırının dışında taşıyor."
 
+msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
+msgstr ""
+
 msgid "Click Wiki for help."
 msgstr "Yardım için Wiki'ye tıklayın."
 
 msgid "Click here to regroup"
 msgstr "Yeniden toplanmak için buraya tıklayın"
+
+msgid "Flushing Volume"
+msgstr ""
 
 msgid "Calibration step selection"
 msgstr "Kalibrasyon adımı seçimi"
@@ -5061,6 +5094,9 @@ msgstr "Oynatıcı arızalı. Lütfen sistem oynatıcısını yeniden yükleyin.
 msgid "The player is not loaded, please click \"play\" button to retry."
 msgstr "Oynatıcı yüklenmedi, yeniden denemek için lütfen \"oynat\" düğmesine tıklayın."
 
+msgid "Plugin library failed to load. Click here to view the solution."
+msgstr ""
+
 msgid "Temporarily closed because there is no operation for a while."
 msgstr "Bir süre işlem yapılmadığı için geçici olarak kapatıldı."
 
@@ -5134,6 +5170,9 @@ msgstr "Bilgi"
 
 msgid "Playing..."
 msgstr "Oynatılıyor..."
+
+msgid "DLL load error"
+msgstr ""
 
 msgid "Loading..."
 msgstr "Yükleniyor..."
@@ -5438,6 +5477,9 @@ msgstr "Durdur"
 msgid "Layer: N/A"
 msgstr "Katman: Yok"
 
+msgid "Click to view thermal preconditioning explanation"
+msgstr ""
+
 msgid "Estimated finish time: "
 msgstr "Tahmini bitiş süresi: "
 
@@ -5488,6 +5530,9 @@ msgstr "Yazıcı Parçaları"
 msgid "Print Options"
 msgstr "Yazdırma Seçenekleri"
 
+msgid "Safety Options"
+msgstr ""
+
 msgid "100%"
 msgstr "100%"
 
@@ -5526,6 +5571,9 @@ msgstr "Mevcut yuva zaten dolu"
 
 msgid "The selected slot is empty."
 msgstr "Seçilen yuva boş."
+
+msgid "Printer 2D mode does not support 3D calibration"
+msgstr ""
 
 msgid "Downloading..."
 msgstr "İndiriliyor..."
@@ -6032,15 +6080,6 @@ msgstr "İlk Katman Kontrolü"
 msgid "Auto-recovery from step loss"
 msgstr "Adım kaybında otomatik kurtarma"
 
-msgid "Open Door Detection"
-msgstr "Açık Kapı Algılama"
-
-msgid "Notification"
-msgstr "Bildirim"
-
-msgid "Pause printing"
-msgstr "Yazdırmayı duraklat"
-
 msgid "Store Sent Files on External Storage"
 msgstr "Gönderilen Dosyaları Harici Depolama Alanında Saklama"
 
@@ -6056,11 +6095,26 @@ msgstr "Filament Dolaşma Tespiti"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "Nozulun filament veya diğer yabancı cisimler tarafından tıkanıp tıkanmadığını kontrol edin."
 
-msgid "Nozzle Type"
-msgstr "Nozul tipi"
+msgid "Open Door Detection"
+msgstr "Açık Kapı Algılama"
 
-msgid "Nozzle Flow"
-msgstr "Nozul Akışı"
+msgid "Notification"
+msgstr "Bildirim"
+
+msgid "Pause printing"
+msgstr "Yazdırmayı duraklat"
+
+msgctxt "Nozzle Type"
+msgid "Type"
+msgstr ""
+
+msgctxt "Nozzle Diameter"
+msgid "Diameter"
+msgstr ""
+
+msgctxt "Nozzle Flow"
+msgid "Flow"
+msgstr ""
 
 msgid "Please change the nozzle settings on the printer."
 msgstr "Lütfen yazıcıdaki nozul ayarlarını değiştirin."
@@ -6082,6 +6136,9 @@ msgstr "Yüksek akış"
 
 msgid "No wiki link available for this printer."
 msgstr "Bu yazıcı için wiki bağlantısı mevcut değil."
+
+msgid "Refreshing"
+msgstr ""
 
 msgid "Global"
 msgstr "Genel"
@@ -6494,6 +6551,9 @@ msgstr "Dilimleme İptal Edildi"
 msgid "Slicing Plate %d"
 msgstr "Plaka %d dilimleniyor"
 
+msgid "A Helio simulation or optimization task is in progress."
+msgstr ""
+
 msgid "Invalid printer preset. Unable to slice with Helio."
 msgstr "Yazıcı ön ayarı geçersiz. Helio ile dilimleme yapılamıyor."
 
@@ -6506,6 +6566,9 @@ msgstr "Helio, 1'den fazla malzeme kullanımını desteklemez."
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
 msgstr "Helio, %s malzemelerini desteklemiyor"
+
+msgid "Helio functions do not support the print sequence of \"ByObject\"."
+msgstr ""
 
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
@@ -6522,6 +6585,15 @@ msgstr "PAT'ı yeniden oluştur"
 
 msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
 msgstr "Helio PAT alınamadı, Yenile'ye tıklayarak tekrar alın."
+
+msgid "Successfully obtained PAT."
+msgstr ""
+
+msgid "The printer list and material list are being synchronized. Please try again later."
+msgstr ""
+
+msgid "Synchronizing Helio"
+msgstr ""
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Lütfen dilimleme hatalarını giderip tekrar yayınlayın."
@@ -7095,21 +7167,6 @@ msgstr "Personel tarafından seçilen çevrimiçi modelleri ana sayfada gösteri
 msgid "Show history on the home page"
 msgstr "Ana sayfada geçmişi göster"
 
-msgid "Helio Options"
-msgstr "Helio Seçenekleri"
-
-msgid "Enable Helio"
-msgstr "Helio'yu etkinleştir"
-
-msgid "Helio-PAT"
-msgstr "Helio-PAT"
-
-msgid "About Helio"
-msgstr "Helio hakkında"
-
-msgid "Helio Privacy Policy"
-msgstr "Helio Gizlilik Politikası"
-
 msgid "Reminder During Slicing"
 msgstr "Dilimleme Sırasında Hatırlat"
 
@@ -7169,6 +7226,9 @@ msgstr "Müşteri Deneyimi İyileştirme Programına katılın."
 
 msgid "What data would be collected?"
 msgstr "Hangi veriler toplanacaktır?"
+
+msgid "Auto-fill previously logged-in accounts."
+msgstr ""
 
 msgid "Develop Mode"
 msgstr "Geliştirici Modu"
@@ -7661,6 +7721,9 @@ msgstr "%s üzerindeki filament bilinmiyor ve yumuşayabilir. Lütfen filamenti 
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "Uygun filamentle otomatik olarak eşleştirilemiyor. Manuel olarak eşleştirmek için lütfen tıklayın."
 
+msgid "Install toolhead enhanced cooling fan to prevent filament softening."
+msgstr ""
+
 msgid "Cool"
 msgstr "Güzel"
 
@@ -7733,9 +7796,6 @@ msgstr "Özel dinamik akış değerini etkinleştirmek için dinamik akış kali
 msgid "This printer does not support printing all plates"
 msgstr "Bu yazıcı tüm kalıpların yazdırılmasını desteklemiyor"
 
-msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
-msgstr "Tıkanmayı önlemek için TPU'yu yazdırmadan önce lütfen filamenti soğuduktan sonra çekin. Yazıcıda soğuk çekme bakımını kullanabilirsiniz."
-
 msgid "Please refer to Wiki before use->"
 msgstr "Lütfen kullanmadan önce Wiki'ye bakın->"
 
@@ -7783,6 +7843,9 @@ msgstr "Yazıcının Bambu Studio ile aynı LAN'da olması gerekmektedir."
 
 msgid "The printer does not support sending to printer storage."
 msgstr "Yazıcı, yazıcı belleğine göndermeyi desteklemiyor."
+
+msgid "Helio action completed successfully."
+msgstr ""
 
 msgid "Slice ok."
 msgstr "Dilimleme tamam."
@@ -8160,6 +8223,12 @@ msgstr "Filament atkı eklem dikişi ayarları"
 
 msgid "Cooling for specific layer"
 msgstr "Belirli Katman İçin Soğutma"
+
+msgid "Special cooling settings"
+msgstr ""
+
+msgid "set addition fan speed before fist x layer"
+msgstr ""
 
 msgid "Part cooling fan"
 msgstr "Parça Soğutma Fanı"
@@ -9107,32 +9176,32 @@ msgstr "Gönderilemedi. Tekrar göndermeyi denemek için Yeniden Dene'ye tıklay
 msgid "reconnect"
 msgstr "yeniden bağlan"
 
-msgid "Terms of Service"
-msgstr "Hzmet şartları"
+msgid "Third-party Extension"
+msgstr ""
 
-msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
-msgstr "Helio Additive'in üçüncü taraf yazılım hizmeti özelliğini etkinleştirmek üzeresiniz! Bu özelliğin kullanımını onaylamadan önce lütfen aşağıdaki açıklamaları dikkatlice okuyun."
+msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
+msgstr ""
 
-msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
-msgstr "Aksi belirtilmedikçe, Bambu Lab yalnızca resmi olarak sağlanan yazılım özellikleri için destek sağlar. Bu yazılımdaki Helio Additive'in bulut hizmetine dayalı dilimleme değerlendirme ve dilimleme optimizasyon özellikleri, Helio Additive tarafından geliştirilecek, işletilecek, sağlanacak ve bakımları yapılacaktır. Helio Additive, bu hizmetin etkinliği ve kullanılabilirliğinden sorumludur. Bu hizmetin optimizasyon özelliği, varsayılan yazdırma komutlarını değiştirebilir ve yazıcıda hasar riski oluşturabilir. Bu özellikler, ilgili hizmet işlevlerini gerçekleştirmek için gerekli kullanıcı bilgilerini ve verilerini toplar. Abonelikler ve ödemeler söz konusu olabilir. Ayrıntılı bilgi için lütfen Helio Additive'i ziyaret edin ve Helio Additive Gizlilik Sözleşmesi ile Helio Additive Kullanıcı Sözleşmesi'ne bakın."
+msgid "Use Immediately"
+msgstr ""
 
-msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
-msgstr "Bu arada, bu ürünün Helio Additive'in hizmetlerine dayalı olarak “olduğu gibi” size sağlandığını ve Bambu'nun herhangi bir tür açık veya zımni garanti vermediğini ve hizmetin etkilerini kontrol edemediğini anlıyorsunuz. Yürürlükteki yasaların izin verdiği en geniş ölçüde, Bambu veya lisans verenleri/bağlı kuruluşları, ticari elverişlilik, tatmin edici kalite, belirli bir amaca uygunluk, doğruluk, gizlilik ve üçüncü taraf haklarının ihlal edilmemesi ile ilgili garantiler dahil ancak bunlarla sınırlı olmamak üzere, hiçbir açık veya zımni beyan veya garanti vermemektedir. Ağ hizmetlerinin doğası gereği, Bambu hizmetin her zaman kullanılabilir olacağını garanti edemez ve Bambu, ilgili koşullara bağlı olarak hizmeti sonlandırma hakkını saklı tutar."
+msgid "Third-Party Extension"
+msgstr ""
 
-msgid "You agree not to use this product and its related updates to engage in the following activities:"
-msgstr "Bu ürünü ve ilgili güncellemeleri aşağıdaki faaliyetlerde kullanmayacağınızı kabul edersiniz:"
+msgid "HELIO ADDITIVE"
+msgstr ""
 
-msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
-msgstr "1. Bu ürünün herhangi bir bölümünü Helio Additive ve Bambu'nun yetkili kapsamı dışında kopyalamak veya kullanmak."
+msgid "Helio Additive third - party software service feature has been successfully enabled!"
+msgstr ""
 
-msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
-msgstr "2. Bu ürünle ilgili ve/veya bu ürünün ayrılmaz bir parçası olan herhangi bir Dijital Hak Yönetimi sistemini bozmaya, atlamaya, değiştirmeye, geçersiz kılmaya veya atlatmaya çalışmak."
+msgid "Helio-PAT"
+msgstr "Helio-PAT"
 
-msgid "3.Using this software and services for any improper or illegal activities."
-msgstr "3. Bu yazılımı ve hizmetleri uygunsuz veya yasa dışı faaliyetler için kullanmak."
+msgid "Copy successful!"
+msgstr ""
 
-msgid "https://www.helioadditive.com/"
-msgstr "https://www.helioadditive.com/"
+msgid "Helio Additive"
+msgstr ""
 
 msgid "Privacy Policy of Helio Additive"
 msgstr "Helio Additive Gizlilik Politikası"
@@ -9140,11 +9209,20 @@ msgstr "Helio Additive Gizlilik Politikası"
 msgid "Terms of Use of Helio Additive"
 msgstr "Helio Additive Kullanım Koşulları"
 
-msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
-msgstr "Bu özelliği etkinleştirmek için onay verdiğinizde, yukarıdaki beyanları onayladığınız ve kabul ettiğiniz anlamına gelir."
+msgid "Uninstall the Helio Additive extension"
+msgstr ""
 
-msgid "Agree"
-msgstr "Kabul"
+msgid "Agree and proceed"
+msgstr ""
+
+msgid "Got it"
+msgstr ""
+
+msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
+msgstr ""
+
+msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
+msgstr ""
 
 msgid "Chamber Temperature"
 msgstr ""
@@ -10019,14 +10097,17 @@ msgstr "Baskı sırasında egzoz fanının hızı. Bu hız, filament özel gcode
 msgid "Speed of exhuast fan after printing completes"
 msgstr "Baskı tamamlandıktan sonra egzoz fanının hızı"
 
-msgid "No cooling for the first"
-msgstr "Soğutmayı devre dışı bırak"
+msgid "For the first"
+msgstr ""
 
-msgid "Close all cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion"
-msgstr "İlk belirli katmanlar için tüm soğutma fanını kapatın. Daha iyi baskı plakası yapışması sağlamak için ilk katmanın soğutma fanı kapatılırdı"
+msgid "Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
+msgstr ""
 
 msgid "layers"
 msgstr "katmanlar"
+
+msgid "Special cooling fan speed for the first certain layers"
+msgstr ""
 
 msgid "Don't support bridges"
 msgstr "Köprülerde destek olmasın"
@@ -10772,6 +10853,15 @@ msgstr "Yatak şekline göre [0,1] aralığında en iyi otomatik düzenleme konu
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "Makinede yardımcı parça soğutma fanı varsa bu seçeneği etkinleştirin"
 
+msgid "Fan direction"
+msgstr ""
+
+msgid "Cooling fan direction of the printer"
+msgstr ""
+
+msgid "Both"
+msgstr ""
+
 msgid "Support control chamber temperature"
 msgstr "Destek kontrol ortam sıcaklığı"
 
@@ -11326,6 +11416,12 @@ msgstr "Varsayılan Nozul Hacim Tipi"
 
 msgid "Extra length on restart"
 msgstr "Yeniden başlatma sırasında ekstra uzunluk"
+
+msgid "When the retraction is compensated after the travel move, the extruder will push this additional amount of filament. This setting is rarely needed."
+msgstr ""
+
+msgid "When the retraction is compensated after changing tool, the extruder will push this additional amount of filament."
+msgstr ""
 
 msgid "Retraction Speed"
 msgstr "Geri çekme hızı"
@@ -12506,6 +12602,9 @@ msgstr "Yazıcı %s nozul bilgisi ayarlanmamış. Lütfen kalibrasyona devam etm
 
 msgid "AMS and nozzle information are synced"
 msgstr "AMS ve nozul bilgileri senkronize edilir"
+
+msgid "Nozzle Flow"
+msgstr "Nozul Akışı"
 
 msgid "Nozzle Info"
 msgstr "Nozul Bilgileri"
@@ -13949,9 +14048,6 @@ msgstr "Kaldırıldı"
 msgid "Management user presets"
 msgstr "Ön Tanımlı Kullanıcı Ayarlarını Yönet"
 
-msgid "Custom filaments"
-msgstr "Özel filamentler"
-
 msgid "No content"
 msgstr "İçerik yok"
 
@@ -14229,7 +14325,8 @@ msgstr ""
 "Baskılarınızı plakalara ayırın\n"
 "Çok sayıda parçası olan bir modeli baskıya hazır ayrı kalıplara bölebileceğinizi biliyor muydunuz? Bu, tüm parçaları takip etme sürecini basitleştirecektir."
 
-#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer Height]
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
+#: Height]
 msgid ""
 "Speed up your print with Adaptive Layer Height\n"
 "Did you know that you can print a model even faster, by using the Adaptive Layer Height option? Check it out!"
@@ -14301,7 +14398,8 @@ msgstr ""
 "Gücü artırın\n"
 "Modelin gücünü artırmak için daha fazla duvar halkası ve daha yüksek seyrek dolgu yoğunluğu kullanabileceğinizi biliyor muydunuz?"
 
-#: resources/data/hints.ini: [hint:When need to print with the printer door opened]
+#: resources/data/hints.ini: [hint:When need to print with the printer door
+#: opened]
 msgid ""
 "When need to print with the printer door opened\n"
 "Did you know that opening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki."
@@ -14316,6 +14414,160 @@ msgid ""
 msgstr ""
 "Eğilmeyi önleyin\n"
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını azaltabileceğini biliyor muydunuz."
+
+#: resources/data/helio_hints.ini: [hint: Single-Material Only]
+msgid ""
+"Single-Material Only\n"
+"Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: One Plate per Job]
+msgid ""
+"One Plate per Job\n"
+"Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: What is the Thermal Quality Index?]
+msgid ""
+"What is the Thermal Quality Index?\n"
+"The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Voxel-Level Accuracy]
+msgid ""
+"Voxel-Level Accuracy\n"
+"We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Fan & Airflow Model]
+msgid ""
+"Fan & Airflow Model\n"
+"A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: TQI Limits Explained]
+msgid ""
+"TQI Limits Explained\n"
+"-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: What Drives Runtime?]
+msgid ""
+"What Drives Runtime?\n"
+"Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Nozzle Temp Range]
+msgid ""
+"Nozzle Temp Range\n"
+"Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Debugging Flowchart]
+msgid ""
+"Debugging Flowchart\n"
+"Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Why Cooling Varies]
+msgid ""
+"Why Cooling Varies\n"
+"Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Extrusion Temp Model]
+msgid ""
+"Extrusion Temp Model\n"
+"Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Nozzle setting of 190 °C vs 320
+#: °C?]
+msgid ""
+"Nozzle setting of 190 °C vs 320 °C?\n"
+"A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Bed Temperature influence]
+msgid ""
+"Bed Temperature influence\n"
+"Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Actual Tool-Path]
+msgid ""
+"Actual Tool-Path\n"
+"Yes—your exact G-code path, speeds and fan commands are simulated."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Mesh Resolution]
+msgid ""
+"Mesh Resolution\n"
+"The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Shrinkage, Warping & Stress]
+msgid ""
+"Shrinkage, Warping & Stress\n"
+"By controlling the thermal index you can remove the heat-driven causes of warp and stress."
+msgstr ""
+
+#~ msgid "Nozzle Type"
+#~ msgstr "Nozul tipi"
+
+#~ msgid "Helio Options"
+#~ msgstr "Helio Seçenekleri"
+
+#~ msgid "Enable Helio"
+#~ msgstr "Helio'yu etkinleştir"
+
+#~ msgid "About Helio"
+#~ msgstr "Helio hakkında"
+
+#~ msgid "Helio Privacy Policy"
+#~ msgstr "Helio Gizlilik Politikası"
+
+#~ msgid "Terms of Service"
+#~ msgstr "Hzmet şartları"
+
+#~ msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
+#~ msgstr "Helio Additive'in üçüncü taraf yazılım hizmeti özelliğini etkinleştirmek üzeresiniz! Bu özelliğin kullanımını onaylamadan önce lütfen aşağıdaki açıklamaları dikkatlice okuyun."
+
+#~ msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
+#~ msgstr "Aksi belirtilmedikçe, Bambu Lab yalnızca resmi olarak sağlanan yazılım özellikleri için destek sağlar. Bu yazılımdaki Helio Additive'in bulut hizmetine dayalı dilimleme değerlendirme ve dilimleme optimizasyon özellikleri, Helio Additive tarafından geliştirilecek, işletilecek, sağlanacak ve bakımları yapılacaktır. Helio Additive, bu hizmetin etkinliği ve kullanılabilirliğinden sorumludur. Bu hizmetin optimizasyon özelliği, varsayılan yazdırma komutlarını değiştirebilir ve yazıcıda hasar riski oluşturabilir. Bu özellikler, ilgili hizmet işlevlerini gerçekleştirmek için gerekli kullanıcı bilgilerini ve verilerini toplar. Abonelikler ve ödemeler söz konusu olabilir. Ayrıntılı bilgi için lütfen Helio Additive'i ziyaret edin ve Helio Additive Gizlilik Sözleşmesi ile Helio Additive Kullanıcı Sözleşmesi'ne bakın."
+
+#~ msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
+#~ msgstr "Bu arada, bu ürünün Helio Additive'in hizmetlerine dayalı olarak “olduğu gibi” size sağlandığını ve Bambu'nun herhangi bir tür açık veya zımni garanti vermediğini ve hizmetin etkilerini kontrol edemediğini anlıyorsunuz. Yürürlükteki yasaların izin verdiği en geniş ölçüde, Bambu veya lisans verenleri/bağlı kuruluşları, ticari elverişlilik, tatmin edici kalite, belirli bir amaca uygunluk, doğruluk, gizlilik ve üçüncü taraf haklarının ihlal edilmemesi ile ilgili garantiler dahil ancak bunlarla sınırlı olmamak üzere, hiçbir açık veya zımni beyan veya garanti vermemektedir. Ağ hizmetlerinin doğası gereği, Bambu hizmetin her zaman kullanılabilir olacağını garanti edemez ve Bambu, ilgili koşullara bağlı olarak hizmeti sonlandırma hakkını saklı tutar."
+
+#~ msgid "You agree not to use this product and its related updates to engage in the following activities:"
+#~ msgstr "Bu ürünü ve ilgili güncellemeleri aşağıdaki faaliyetlerde kullanmayacağınızı kabul edersiniz:"
+
+#~ msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
+#~ msgstr "1. Bu ürünün herhangi bir bölümünü Helio Additive ve Bambu'nun yetkili kapsamı dışında kopyalamak veya kullanmak."
+
+#~ msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
+#~ msgstr "2. Bu ürünle ilgili ve/veya bu ürünün ayrılmaz bir parçası olan herhangi bir Dijital Hak Yönetimi sistemini bozmaya, atlamaya, değiştirmeye, geçersiz kılmaya veya atlatmaya çalışmak."
+
+#~ msgid "3.Using this software and services for any improper or illegal activities."
+#~ msgstr "3. Bu yazılımı ve hizmetleri uygunsuz veya yasa dışı faaliyetler için kullanmak."
+
+#~ msgid "https://www.helioadditive.com/"
+#~ msgstr "https://www.helioadditive.com/"
+
+#~ msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
+#~ msgstr "Bu özelliği etkinleştirmek için onay verdiğinizde, yukarıdaki beyanları onayladığınız ve kabul ettiğiniz anlamına gelir."
+
+#~ msgid "Agree"
+#~ msgstr "Kabul"
+
+#~ msgid "No cooling for the first"
+#~ msgstr "Soğutmayı devre dışı bırak"
+
+#~ msgid "Close all cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion"
+#~ msgstr "İlk belirli katmanlar için tüm soğutma fanını kapatın. Daha iyi baskı plakası yapışması sağlamak için ilk katmanın soğutma fanı kapatılırdı"
+
+#~ msgid "Custom filaments"
+#~ msgstr "Özel filamentler"
 
 #~ msgid "High chamber temperature is required. Please close the door."
 #~ msgstr "Yüksek oda sıcaklığı gereklidir. Lütfen kapıyı kapatın."
