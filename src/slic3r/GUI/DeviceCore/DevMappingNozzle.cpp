@@ -126,6 +126,10 @@ int MachineObject::ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, con
         if (nozzle.second.IsNormal()) {
             json nozzle_item_jj;
             nozzle_item_jj["pos"] = nozzle.second.GetNozzleId();
+            if (m_nozzle_system->GetReplaceNozzleTar().has_value() && nozzle_item_jj["pos"] == MAIN_EXTRUDER_ID) {
+                nozzle_item_jj["pos"] = m_nozzle_system->GetReplaceNozzleTar().value();// special case of tar_id. see protocol definition
+            }
+
             nozzle_item_jj["nozzle_d"] = s_get_diameter_str(nozzle.second.GetNozzleDiameter());
             nozzle_item_jj["nozzle_v"] = (nozzle.second.GetNozzleFlowType() == NozzleFlowType::H_FLOW) ? "High Flow" : "Standard";
             nozzle_item_jj["wear"] = nozzle.second.GetNozzleWear();
@@ -140,6 +144,10 @@ int MachineObject::ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, con
         if (nozzle.second.IsNormal()) {
             json nozzle_item_jj;
             nozzle_item_jj["pos"] = (nozzle.second.GetNozzleId() + 0x10);
+            if (m_nozzle_system->GetReplaceNozzleTar().has_value() && nozzle_item_jj["pos"] == MAIN_EXTRUDER_ID) {
+                nozzle_item_jj["pos"] = m_nozzle_system->GetReplaceNozzleTar().value();// special case of tar_id. see protocol definition
+            }
+
             nozzle_item_jj["nozzle_d"] = s_get_diameter_str(nozzle.second.GetNozzleDiameter());
             nozzle_item_jj["nozzle_v"] = (nozzle.second.GetNozzleFlowType() == NozzleFlowType::H_FLOW) ? "High Flow" : "Standard";
             nozzle_item_jj["wear"] = nozzle.second.GetNozzleWear();

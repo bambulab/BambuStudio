@@ -4834,6 +4834,8 @@ wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
         // get display name of nozzle id
         if (iter->second == MAIN_EXTRUDER_ID) {
             return "R";
+        } else if (obj_->GetNozzleSystem()->GetReplaceNozzleTar().has_value() && iter->second == obj_->GetNozzleSystem()->GetReplaceNozzleTar().value()) {
+            return "R";
         } else if(iter->second >= 0x10){
             return wxString::Format("%d", iter->second - 0x10 + 1);// display 1~n for rack hotends
         }
