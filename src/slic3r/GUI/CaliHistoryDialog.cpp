@@ -861,6 +861,7 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
     if(rack->IsSupported()){
         Label *nozzle_id_title = new Label(top_panel, _L("Nozzle ID"));
         m_comboBox_nozzle_id   = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
+        m_comboBox_nozzle_id->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, &NewCalibrationHistoryDialog::on_select_nozzle_pos, this);
 
         int r_nozzle_id = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
         auto r_nozzle = obj->GetNozzleSystem()->GetNozzle(r_nozzle_id);
@@ -969,14 +970,73 @@ int NewCalibrationHistoryDialog::get_extruder_id(int extruder_index)
     return 0;
 }
 
-void NewCalibrationHistoryDialog::on_select_extruder(wxCommandEvent &event){
-    if(!m_comboBox_nozzle_id) return;
+void NewCalibrationHistoryDialog::on_select_extruder(wxCommandEvent &event)
+{
+    static wxArrayString nozzle_type_backup;
+    static wxArrayString nozzle_diameter_backup;
+
+    if (!m_comboBox_nozzle_id || !m_comboBox_nozzle_type) return;
 
     /* select right extruder */
-    if(m_comboBox_extruder->GetSelection() == 1){
+    if (m_comboBox_extruder->GetSelection() == 1)
+    {
         m_comboBox_nozzle_id->Enable();
-    }else{
+
+        /* backup nozzle_type */
+        nozzle_type_backup.Clear();
+        for (unsigned int i = 0; i < m_comboBox_nozzle_type->GetCount(); ++i) {
+            nozzle_type_backup.Add(m_comboBox_nozzle_type->GetString(i));
+        }
+        /* backup nozzle_diameter */
+        nozzle_diameter_backup.Clear();
+        for (unsigned int i = 0; i < m_comboBox_nozzle_diameter->GetCount(); ++i) {
+            nozzle_diameter_backup.Add(m_comboBox_nozzle_diameter->GetString(i));
+        }
+        m_comboBox_nozzle_type->Disable();
+        m_comboBox_nozzle_diameter->Disable();
+    }
+    else
+    {
         m_comboBox_nozzle_id->Disable();
+        m_comboBox_nozzle_id->SetValue(wxEmptyString);
+
+        /* restore nozzle_type */
+        if (!nozzle_type_backup.IsEmpty()) {
+            m_comboBox_nozzle_type->Set(nozzle_type_backup);
+            m_comboBox_nozzle_type->SetSelection(-1);
+        }
+        /* restore nozzle_diameter */
+        if (!nozzle_diameter_backup.IsEmpty()) {
+            m_comboBox_nozzle_diameter->Set(nozzle_diameter_backup);
+            m_comboBox_nozzle_diameter->SetSelection(-1);
+        }
+        m_comboBox_nozzle_type->Enable();
+        m_comboBox_nozzle_diameter->Enable();
+    }
+}
+
+void NewCalibrationHistoryDialog::on_select_nozzle_pos(wxCommandEvent &event)
+{
+    if (!curr_obj) return;
+
+    auto sel = m_comboBox_nozzle_id->GetSelection();
+    if (sel == wxNOT_FOUND) return;
+
+    int pos = *(reinterpret_cast<int *>(m_comboBox_nozzle_id->GetClientData(sel)));
+
+    auto nozzle = curr_obj->get_nozzle_by_id_code(pos);
+    if (nozzle.IsNormal()) {
+        m_comboBox_nozzle_type->Clear();
+        switch (nozzle.GetNozzleFlowType()) {
+            case NozzleFlowType::S_FLOW: m_comboBox_nozzle_type->Append(_L("Standard")); break;
+            case NozzleFlowType::H_FLOW: m_comboBox_nozzle_type->Append(_L("High Flow")); break;
+            default: m_comboBox_nozzle_type->Append(_L("Unknown")); break;
+        }
+        m_comboBox_nozzle_type->SetSelection(0);
+
+        m_comboBox_nozzle_diameter->Clear();
+        m_comboBox_nozzle_diameter->Append(nozzle.GetNozzleDiameterStr());
+        m_comboBox_nozzle_diameter->SetSelection(0);
     }
 }
 
