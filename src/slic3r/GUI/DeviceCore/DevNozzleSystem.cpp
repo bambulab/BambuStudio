@@ -123,6 +123,24 @@ DevFirmwareVersionInfo DevNozzle::GetFirmwareInfo() const
 
     return DevFirmwareVersionInfo();
 }
+
+int DevNozzle::GetLogicExtruderId() const
+{
+    int total_ext_count = GetTotalExtruderCount();
+    if (total_ext_count == 1) {
+        return LOGIC_UNIQUE_EXTRUDER_ID;
+    } else if(total_ext_count == 2) {
+        if (AtLeftExtruder()) {
+            return LOGIC_L_EXTRUDER_ID;
+        } else if (AtRightExtruder()) {
+            return LOGIC_R_EXTRUDER_ID;
+        }
+    }
+
+    assert(0);
+    return LOGIC_UNIQUE_EXTRUDER_ID;
+}
+
 bool DevNozzle::AtLeftExtruder() const
 {
     assert(GetTotalExtruderCount() == 2);
@@ -226,7 +244,7 @@ std::vector<MultiNozzleUtils::NozzleGroupInfo> DevNozzleSystem::GetNozzleGroups(
     for (auto& elem : nozzle_in_extruder) {
         auto& nozzle = elem.second;
         MultiNozzleUtils::NozzleGroupInfo info;
-        info.extruder_id = nozzle.AtLeftExtruder() ? 0 : nozzle.AtRightExtruder() ? 1 : 0;
+        info.extruder_id = nozzle.GetLogicExtruderId();
         info.diameter = format_diameter_to_str(nozzle.m_diameter);
         info.volume_type = nozzle.m_nozzle_flow == NozzleFlowType::H_FLOW ? NozzleVolumeType::nvtHighFlow : NozzleVolumeType::nvtStandard;
         info.nozzle_count = 1;
@@ -242,7 +260,7 @@ std::vector<MultiNozzleUtils::NozzleGroupInfo> DevNozzleSystem::GetNozzleGroups(
         auto& nozzle = elem.second;
         if (nozzle.IsUnknown() || nozzle.IsAbnormal())
             continue;
-        int extruder_id = nozzle.AtLeftExtruder() ? 0 : nozzle.AtRightExtruder() ? 1 : 0;
+        int extruder_id = nozzle.GetLogicExtruderId();
         std::string diameter = format_diameter_to_str(nozzle.m_diameter);
         NozzleVolumeType volume_type = nozzle.m_nozzle_flow == NozzleFlowType::H_FLOW ? NozzleVolumeType::nvtHighFlow : NozzleVolumeType::nvtStandard;
 
