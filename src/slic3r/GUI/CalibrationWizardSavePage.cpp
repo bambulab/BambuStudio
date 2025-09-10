@@ -593,6 +593,16 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
 
             if (extruder_id == 0) {
                 default_name += L("Right Nozzle");
+                if (has_rack) {
+                    default_name += "_";
+                    if (info.nozzle_pos_id == 0) {
+                        default_name += "R";
+                    } else if (info.nozzle_pos_id >= 0x10) {
+                        default_name += std::to_string((info.nozzle_pos_id & 0x0f) + 1);
+                    } else {
+                        default_name += "N/A";
+                    }
+                }
             } else if (extruder_id == 1){
                 default_name += L("Left Nozzle");
             }
