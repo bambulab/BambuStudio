@@ -661,8 +661,8 @@ static double s_round(double value, int n)
     line->SetBackgroundColour(wxColour(166, 169, 170));
 
     wxBoxSizer* control_sizer = new wxBoxSizer(wxHORIZONTAL);
-    togglebutton_simulate = new CustomToggleButton(this, "Simulation");
-    togglebutton_optimize = new CustomToggleButton(this, "Optimization");
+    togglebutton_simulate = new CustomToggleButton(this, _L("Simulation"));
+    togglebutton_optimize = new CustomToggleButton(this, _L("Optimization"));
 
     togglebutton_simulate->set_primary_colour(wxColour("#AF7CFF"));
     togglebutton_simulate->set_secondary_colour(wxColour("#F5EEFF"));
