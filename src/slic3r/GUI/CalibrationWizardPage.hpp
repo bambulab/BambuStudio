@@ -103,7 +103,7 @@ public:
     void ShowPanel();
     void HidePanel();
 
-    void UpdateNozzleCombo(const wxArrayString& nozzle_list);
+    void UpdateNozzleCombo(const std::vector<std::pair<wxString, int>>& nozzle_list);
     int  GetNozzleIdCode() const;
     void ShowNozzleCombo();
     void HideNozzleCombo();

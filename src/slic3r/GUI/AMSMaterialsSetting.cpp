@@ -279,7 +279,7 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     m_panel_SN->Fit();
 
     wxBoxSizer* m_tip_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_tip_readonly = new Label(parent, "");
+    m_tip_readonly = new Label(parent, _L(""));
     m_tip_readonly->SetForegroundColour(*wxBLACK);
     m_tip_readonly->SetBackgroundColour(*wxWHITE);
     m_tip_readonly->SetMinSize(wxSize(FromDIP(380), -1));
@@ -840,6 +840,7 @@ void AMSMaterialsSetting::update_widgets()
 {
     if (obj && obj->get_printer_series() == PrinterSeries::SERIES_X1 && obj->cali_version <= -1) {
         // Low version firmware does not display k value
+        m_panel_normal->Show();
         m_panel_kn->Hide();
     }
     else if(is_virtual_tray()) // virtual tray
@@ -1129,7 +1130,7 @@ void AMSMaterialsSetting::post_select_event(int index) {
 void AMSMaterialsSetting::on_select_cali_result(wxCommandEvent &evt)
 {
     m_pa_cali_select_id = evt.GetSelection();
-    if (m_pa_cali_select_id >= 0) {
+    if (m_pa_cali_select_id >= 0 && m_pa_profile_items.size() > m_pa_cali_select_id) {
         m_input_k_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[m_pa_cali_select_id].k_value));
         m_input_n_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[m_pa_cali_select_id].n_coef));
     }
@@ -1139,12 +1140,15 @@ void AMSMaterialsSetting::on_select_cali_result(wxCommandEvent &evt)
     }
 }
 
-void AMSMaterialsSetting::on_select_nozzle_id(wxCommandEvent &evt){
-    if(m_comboBox_nozzle_id->GetStringSelection() == "Default"){
-        // disable pa profile selection
-    }else{
-        // enable pa profile selection
-        // refresh pa profile list
+void AMSMaterialsSetting::on_select_nozzle_pos_id(wxCommandEvent &evt)
+{
+    int selected_id = evt.GetSelection();
+
+    if(selected_id == -1){
+        m_comboBox_cali_result->Disable();
+    } else{
+        m_comboBox_cali_result->Enable();
+        update_pa_profile_items();
     }
 }
 
@@ -1176,8 +1180,7 @@ void AMSMaterialsSetting::update_pa_profile_items()
         nozzle_volume_type = NozzleVolumeType(nozzle_flow_type - 1);
     }
 
-    std::vector<std::pair<int, wxString>> items;
-
+    wxArrayString items;
     m_pa_profile_items.clear();
     m_comboBox_cali_result->SetValue(wxEmptyString);
     // add default item
@@ -1191,9 +1194,11 @@ void AMSMaterialsSetting::update_pa_profile_items()
         get_default_k_n_value(ams_filament_id, default_item.k_value, default_item.n_coef);
     }
     m_pa_profile_items.emplace_back(default_item);
+    items.push_back(_L("Default"));
 
     m_input_k_val->GetTextCtrl()->SetValue(wxEmptyString);
     std::vector<PACalibResult> cali_history = obj->pa_calib_tab;
+    std::sort(cali_history.begin(), cali_history.end(), [](const PACalibResult &left, const PACalibResult &right) { return left.nozzle_pos_id < right.nozzle_pos_id; });
     for (auto cali_item : cali_history) {
         if (cali_item.filament_id == ams_filament_id) {
             if (obj->is_multi_extruders()) {
@@ -1203,31 +1208,18 @@ void AMSMaterialsSetting::update_pa_profile_items()
                 if (cali_item.nozzle_volume_type != nozzle_volume_type || !is_approx(cali_item.nozzle_diameter, nozzle_diameter))
                     continue;
             }
-
-            if(rack->IsSupported() && extruder_id == MAIN_EXTRUDER_ID)
-            {
-                if(cali_item.nozzle_pos_id == 0) {
-                    items.push_back(wxString::Format("R | %s", from_u8(cali_item.name)));
-                } else if(cali_item.nozzle_pos_id >= 0x10){
-                    items.push_back(wxString::Format("%d | %s", (cali_item.nozzle_pos_id & 0x0f) + 1, from_u8(cali_item.name)));
-                } else {
-                    items.push_back(wxString::Format("N/A | %s", from_u8(cali_item.name)));
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "Nozzle position id is -1 or invalid.";
-                }
+            if(cali_item.nozzle_pos_id == 0) {
+                items.push_back(wxString::Format("R | %s", from_u8(cali_item.name)));
+            } else if(cali_item.nozzle_pos_id >= 0x10){
+                items.push_back(wxString::Format("%d | %s", (cali_item.nozzle_pos_id & 0x0f) + 1, from_u8(cali_item.name)));
             } else {
-                items.push_back(wxString::Format("%s", from_u8(cali_item.name)));
+                items.push_back(wxString::Format("N/A | %s", from_u8(cali_item.name)));
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "Nozzle position id is -1 or invalid.";
             }
-
             m_pa_profile_items.push_back(cali_item);
         }
     }
-    /* resort item and set item to combobox */
-    std::sort(items.begin(), items.end(), [](const std::pair<int, wxString> &left, const std::pair<int, wxString> &right) { return left.first < right.first; });
-    m_comboBox_cali_result->Clear();
-    m_comboBox_cali_result->AppendString(_L("Default"));
-    for(auto item : items){
-        m_comboBox_cali_result->AppendString(item.second);
-    }
+    m_comboBox_cali_result->Set(items);
     m_comboBox_cali_result->SetSelection(0);
 }
 
@@ -1270,7 +1262,7 @@ void AMSMaterialsSetting::update_nozzle_combo(MachineObject* obj){
                 case NozzleDiameterType::NOZZLE_DIAMETER_0_4: item = "0.4 mm"; break;
                 case NozzleDiameterType::NOZZLE_DIAMETER_0_6: item = "0.6 mm"; break;
                 case NozzleDiameterType::NOZZLE_DIAMETER_0_8: item = "0.8 mm"; break;
-                default: item = "Unknown"; break;
+                default: item = _L("Unknown"); break;
             }
             item += " ";
             switch(pair.second) {
@@ -1312,7 +1304,6 @@ int AMSMaterialsSetting::get_nozzle_sel_by_sn(MachineObject* obj, const std::str
 
     return -1;
 }
-
 
 void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
 {
@@ -1400,6 +1391,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         m_button_confirm->SetBorderColor(wxColour(0x90, 0x90, 0x90));
         m_comboBox_cali_result->Clear();
         m_comboBox_cali_result->SetValue(wxEmptyString);
+        m_comboBox_nozzle_type->Clear();
+        m_comboBox_nozzle_type->SetValue(wxEmptyString);
         m_input_k_val->GetTextCtrl()->SetValue(wxEmptyString);
         m_input_n_val->GetTextCtrl()->SetValue(wxEmptyString);
         m_comboBox_filament->SetClientData(new int(0));
@@ -1432,10 +1425,6 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
             }
         }
     }
-
-    wxArrayString items;
-    m_pa_profile_items.clear();
-    m_comboBox_cali_result->SetValue(wxEmptyString);
 
     auto get_cali_index = [this](const std::string& str) -> int{
         for (int i = 0; i < int(m_pa_profile_items.size()); ++i) {
@@ -1475,44 +1464,16 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     auto iter = std::find_if(cali_history.begin(), cali_history.end(), [cur_cali_idx](const PACalibResult& item){
         return item.cali_idx == cur_cali_idx;
     });
-    if (iter != cali_history.end()) {
-        if (!iter->nozzle_sn.empty() && iter->nozzle_sn != "N/A") {
-            int sel = get_nozzle_sel_by_sn(obj, iter->nozzle_sn);
-            m_comboBox_nozzle_type->SetSelection(sel);
-        }
+    if (iter != cali_history.end() && !iter->nozzle_sn.empty() && iter->nozzle_sn != "N/A") {
+        int sel = get_nozzle_sel_by_sn(obj, iter->nozzle_sn);
+        m_comboBox_nozzle_type->SetSelection(sel);
     } else {
         m_comboBox_nozzle_type->SetSelection(-1);
         m_comboBox_nozzle_type->SetValue(wxEmptyString);
     }
 
     if (obj->cali_version >= 0) {
-        // add default item
-        PACalibResult default_item;
-        default_item.cali_idx = -1;
-        default_item.filament_id = ams_filament_id;
-        if (obj->GetConfig()->SupportCalibrationPA_FlowAuto()) {
-            default_item.k_value = -1;
-            default_item.n_coef  = -1;
-        }
-        else {
-            get_default_k_n_value(ams_filament_id, default_item.k_value, default_item.n_coef);
-        }
-        m_pa_profile_items.emplace_back(default_item);
-        items.push_back(_L("Default"));
-
-        m_input_k_val->GetTextCtrl()->SetValue(wxEmptyString);
-        std::vector<PACalibResult> cali_history = this->obj->pa_calib_tab;
-        for (auto cali_item : cali_history) {
-            if (cali_item.filament_id == ams_filament_id) {
-                if (obj->is_multi_extruders() && (cali_item.extruder_id != extruder_id || cali_item.nozzle_volume_type != nozzle_volume_type)) {
-                    continue;
-                }
-                items.push_back(from_u8(cali_item.name));
-                m_pa_profile_items.push_back(cali_item);
-            }
-        }
-
-        m_comboBox_cali_result->Set(items);
+        update_pa_profile_items();
         if (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
             if (from_printer && (*from_printer == 1)) {
                 for (auto slot : obj->vt_slot) {
@@ -1526,8 +1487,12 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
                     m_comboBox_cali_result->SetSelection(0);
             }
             else {
-                int index = get_cali_index(m_comboBox_filament->GetLabel().ToStdString());
-                m_comboBox_cali_result->SetSelection(index);
+#ifdef __APPLE__
+                cali_select_idx = get_cali_index(m_comboBox_filament->GetValue().ToStdString());
+#else
+                cali_select_idx = get_cali_index(m_comboBox_filament->GetLabel().ToStdString());
+#endif
+                m_comboBox_cali_result->SetSelection(cali_select_idx);
             }
         }
         else {

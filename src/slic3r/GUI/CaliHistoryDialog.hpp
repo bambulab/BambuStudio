@@ -79,6 +79,7 @@ protected:
 
     wxArrayString get_all_filaments(const MachineObject *obj);
     int get_extruder_id(int extruder_index);  // extruder_index 0 : left, 1 : right
+    int get_nozzle_combo_id_code() const;
 
 protected:
     PACalibResult m_new_result;

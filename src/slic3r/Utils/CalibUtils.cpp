@@ -8,8 +8,6 @@
 
 #include "libslic3r/Model.hpp"
 #include "../GUI/MsgDialog.hpp"
-#include "BBLUtil.hpp"
-#include "libslic3r/FlushVolCalc.hpp"
 
 #include "../GUI/DeviceCore/DevConfig.h"
 #include "../GUI/DeviceCore/DevExtruderSystem.h"
@@ -1588,9 +1586,8 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
         NozzleFlowType nozzle_volume_type = obj->GetExtderSystem()->GetNozzleFlowType(cali_info.extruder_id);
 
         float diameter = obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
-        NozzleFlowType nozzle_volume_type = nozzle_volume_types[cali_info.extruder_id];
         if (cali_info.nozzle_pos_id != -1) {
-            auto nozzle = obj->GetNozzleSystem()->GetNozzle(cali_info.nozzle_pos_id);
+            auto nozzle = obj->get_nozzle_by_id_code(cali_info.nozzle_pos_id);
             diameter = nozzle.GetNozzleDiameter();
             nozzle_volume_type = nozzle.GetNozzleFlowType();
         }
@@ -1645,7 +1642,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject* obj, co
     float  diameter = obj->GetExtderSystem()->GetNozzleDiameter(cali_info.extruder_id);
     NozzleFlowType nozzle_volume_type = obj->GetExtderSystem()->GetNozzleFlowType(cali_info.extruder_id);
     if (cali_info.nozzle_pos_id != -1) {
-        auto nozzle        = obj->GetNozzleSystem()->GetNozzle(cali_info.nozzle_pos_id);
+        auto nozzle        = obj->get_nozzle_by_id_code(cali_info.nozzle_pos_id);
         diameter           = nozzle.GetNozzleDiameter();
         nozzle_volume_type = nozzle.GetNozzleFlowType();
     }
@@ -1952,11 +1949,11 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
     std::string new_ams_mapping = "[{\"ams_id\":" + std::to_string(calib_info.ams_id) + ", \"slot_id\":" + std::to_string(calib_info.slot_id) + "}]";
     print_job->task_ams_mapping2 = new_ams_mapping;
 
-    if (calib_info.nozzle_pos_id > 0) {
+    auto nozzle_tar = obj_->GetNozzleSystem()->GetReplaceNozzleTar();
+    if (calib_info.nozzle_pos_id == 0 && nozzle_tar.has_value()) {
+        print_job->task_nozzle_mapping = "[" + std::to_string(nozzle_tar.value()) + "]";
+    } else {
         print_job->task_nozzle_mapping = "[" + std::to_string(calib_info.nozzle_pos_id) + "]";
-    } else if (calib_info.nozzle_pos_id == 0) {
-        auto nozzle_tar = obj_->GetNozzleSystem()->GetReplaceNozzleTar();
-        if (nozzle_tar.has_value()) { print_job->task_nozzle_mapping = "[" + std::to_string(calib_info.nozzle_pos_id) + "]"; }
     }
 
     CalibMode cali_mode       = calib_info.params.mode;
@@ -1970,6 +1967,9 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
 
     {  // after send: record the print job
         json j;
+        j["print"]["ams_mapping"]     = print_job->task_ams_mapping;
+        j["print"]["ams_mapping_2"]   = print_job->task_ams_mapping2;
+        j["print"]["nozzle_mapping"]  = print_job->task_nozzle_mapping;
         j["print"]["project_name"]    = print_job->m_project_name;
         j["print"]["is_cali_task"]    = print_job->m_is_calibration_task;
         BOOST_LOG_TRIVIAL(info) << "send_cali_job - after send: " << j.dump();
@@ -2077,6 +2077,7 @@ void CalibUtils::send_to_print(const std::vector<CalibInfo> &calib_infos, wxStri
     print_job->task_ams_mapping      = select_ams;
     print_job->task_ams_mapping_info = "";
     print_job->task_ams_mapping2     = new_select_ams;
+    print_job->task_nozzle_mapping   = nozzle_mapping;
 
     print_job->task_use_ams = false;
     for (const CalibInfo& calib_info : calib_infos) {
@@ -2099,6 +2100,7 @@ void CalibUtils::send_to_print(const std::vector<CalibInfo> &calib_infos, wxStri
         json j;
         j["print"]["ams_mapping"] = print_job->task_ams_mapping;
         j["print"]["ams_mapping_2"] = print_job->task_ams_mapping2;
+        j["print"]["nozzle_mapping"] = print_job->task_nozzle_mapping;
         j["print"]["project_name"] = print_job->m_project_name;
         j["print"]["is_cali_task"] = print_job->m_is_calibration_task;
         BOOST_LOG_TRIVIAL(info) << "send_cali_job - after send: " << j.dump();

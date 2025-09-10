@@ -1107,10 +1107,12 @@ void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *
     m_multi_extruder_ams_panel_sizer->Add(m_filament_list_tips, 0, wxBOTTOM, FromDIP(10));
 
     {
+        m_main_filament_cali_panel = new wxPanel(parent);
         // 1. Preview item
-        m_main_sizer              = new wxStaticBoxSizer(wxVERTICAL, parent, "Main");
-        m_main_ams_preview_panel  = new wxPanel(parent);
+        m_main_sizer              = new wxStaticBoxSizer(wxVERTICAL, m_main_filament_cali_panel, "Main");
+        m_main_ams_preview_panel  = new wxPanel(m_main_filament_cali_panel);
         m_main_sizer->Add(m_main_ams_preview_panel);
+        m_main_filament_cali_panel->SetSizer(m_main_sizer);
 
         // 2. AMS item
         m_main_ams_items_panel    = new wxPanel(m_main_filament_cali_panel);
@@ -1123,10 +1125,12 @@ void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *
     }
 
     {
+        m_deputy_filament_cali_panel = new wxPanel(parent);
         // 1. Preview item
-        m_deputy_sizer             = new wxStaticBoxSizer(wxVERTICAL, parent, "Deputy");
-        m_deputy_ams_preview_panel = new wxPanel(parent);
+        m_deputy_sizer             = new wxStaticBoxSizer(wxVERTICAL, m_deputy_filament_cali_panel, "Deputy");
+        m_deputy_ams_preview_panel = new wxPanel(m_deputy_filament_cali_panel);
         m_deputy_sizer->Add(m_deputy_ams_preview_panel);
+        m_deputy_filament_cali_panel->SetSizer(m_deputy_sizer);
 
         // 2. AMS item
         m_deputy_ams_items_panel = new wxPanel(m_deputy_filament_cali_panel);
@@ -1151,6 +1155,7 @@ void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *
 
     parent->SetSizer(m_multi_extruder_ams_panel_sizer);
     m_multi_extruder_ams_panel_sizer->Fit(parent);
+    // Layout();
 }
 
 void CalibrationPresetPage::create_page(wxWindow* parent)
@@ -1358,7 +1363,7 @@ void CalibrationPresetPage::on_choose_ext_spool(wxCommandEvent& event)
 void CalibrationPresetPage::on_select_tray(wxCommandEvent& event)
 {
     check_filament_compatible();
-
+    set_cali_method(m_cali_method);
     on_recommend_input_value();
 }
 
@@ -1383,7 +1388,7 @@ void CalibrationPresetPage::on_switch_ams(std::string ams_id)
 void CalibrationPresetPage::on_recommend_input_value()
 {
     //TODO fix this
-    std::map<int, Preset *> selected_filaments = get_selected_filaments();
+    std::map<int, CaliFilamentInfo> selected_filaments = get_selected_filaments();
     if (selected_filaments.empty())
         return;
 
@@ -1391,7 +1396,7 @@ void CalibrationPresetPage::on_recommend_input_value()
 
     }
     else if (m_cali_mode == CalibMode::Calib_Flow_Rate && m_cali_stage_panel) {
-        Preset *selected_filament_preset = selected_filaments.begin()->second;
+        Preset *selected_filament_preset = selected_filaments.begin()->second.filament_preset;
         if (selected_filament_preset) {
             const ConfigOptionFloatsNullable* flow_ratio_opt = selected_filament_preset->config.option<ConfigOptionFloatsNullable>("filament_flow_ratio");
             if (flow_ratio_opt) {
@@ -1400,7 +1405,7 @@ void CalibrationPresetPage::on_recommend_input_value()
         }
     }
     else if (m_cali_mode == CalibMode::Calib_Vol_speed_Tower) {
-        Preset* selected_filament_preset = selected_filaments.begin()->second;
+        Preset* selected_filament_preset = selected_filaments.begin()->second.filament_preset;
         if (selected_filament_preset) {
             if (m_custom_range_panel) {
                 const ConfigOptionFloatsNullable* speed_opt = selected_filament_preset->config.option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed");
@@ -1443,14 +1448,14 @@ void CalibrationPresetPage::check_nozzle_diameter_for_auto_cali()
 
 void CalibrationPresetPage::check_filament_compatible()
 {
-    std::map<int, Preset*> selected_filaments = get_selected_filaments();
+    std::map<int, CaliFilamentInfo> selected_filaments = get_selected_filaments();
     std::string incompatiable_filament_name;
     std::string error_tips;
     int bed_temp = 0;
 
-    std::vector<Preset *> selected_filaments_list;
-    for (auto &item : selected_filaments)
-        selected_filaments_list.push_back(item.second);
+    std::vector<Preset*> selected_filaments_list;
+    for (auto& item: selected_filaments)
+        selected_filaments_list.push_back(item.second.filament_preset);
 
     check_filament_cali_reliability(selected_filaments_list);
 
@@ -1475,7 +1480,7 @@ void CalibrationPresetPage::check_filament_compatible()
     Layout();
 }
 
-bool CalibrationPresetPage::is_filaments_compatiable(const std::map<int, Preset*>& prests)
+bool CalibrationPresetPage::is_filaments_compatiable(const std::map<int, CaliFilamentInfo>& prests)
 {
     std::string incompatiable_filament_name;
     std::string error_tips;
@@ -1535,7 +1540,7 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
     return true;
 }
 
-bool CalibrationPresetPage::is_filaments_compatiable(const std::map<int, Preset*> &prests,
+bool CalibrationPresetPage::is_filaments_compatiable(const std::map<int, CaliFilamentInfo> &prests,
     int& bed_temp,
     std::string& incompatiable_filament_name,
     std::string& error_tips)
@@ -1545,7 +1550,7 @@ bool CalibrationPresetPage::is_filaments_compatiable(const std::map<int, Preset*
     bed_temp = 0;
     std::vector<std::string> filament_types;
     for (auto &item : prests) {
-        const auto& item_preset = item.second;
+        const auto& item_preset = item.second.filament_preset;
         if (!item_preset)
             continue;
 
@@ -2076,9 +2081,25 @@ void CalibrationPresetPage::set_cali_method(CalibrationMethod method)
                 wxArrayString values;
                 ExtruderType extruder_type  = ExtruderType::etDirectDrive;
                 Preset* printer_preset = get_printer_preset(curr_obj, get_nozzle_value());
-                if (printer_preset) {
-                    extruder_type = ExtruderType(printer_preset->config.opt_enum("extruder_type", 0));
+                std::vector<FilamentComboBox *> selected_filament = get_selected_filament_combobox();
+                if (!selected_filament.empty() && printer_preset) {
+                    int tray_id     = selected_filament[0]->get_tray_id();
+                    int out_tray_id = tray_id;
+                    int ams_id      = 0;
+                    int slot_id     = 0;
+                    get_tray_ams_and_slot_id(curr_obj, tray_id, ams_id, slot_id, out_tray_id);
+                    int              extruder_id            = get_extruder_id(ams_id);
+                    std::vector<int> physical_extruder_maps = dynamic_cast<ConfigOptionInts *>(printer_preset->config.option("physical_extruder_map"))->values;
+                    int              extruder_count         = dynamic_cast<ConfigOptionFloatsNullable *>(printer_preset->config.option("nozzle_diameter"))->values.size();
+                    int              extruder_idx           = extruder_id;
+                    for (size_t index = 0; index < extruder_count; ++index) {
+                        if (physical_extruder_maps[index] == extruder_id) {
+                            extruder_idx = index;
+                        }
+                    }
+                    extruder_type = ExtruderType(printer_preset->config.opt_enum("extruder_type", extruder_idx));
                 }
+
                 if (extruder_type == ExtruderType::etBowden) {
                     values.push_back(wxString::Format(wxT("%.0f"), 0));
                     values.push_back(wxString::Format(wxT("%.1f"), 0.5));
@@ -2242,8 +2263,8 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
         }
 
         if (!obj->is_main_extruder_on_left() && m_main_extruder_on_left) {
-            m_multi_exturder_ams_sizer->Detach(m_main_sizer);
-            m_multi_exturder_ams_sizer->Detach(m_deputy_sizer);
+            m_multi_exturder_ams_sizer->Detach(m_main_filament_cali_panel);
+            m_multi_exturder_ams_sizer->Detach(m_deputy_filament_cali_panel);
 
             m_main_sizer->GetStaticBox()->SetLabel(_L("Right Nozzle"));
             m_deputy_sizer->GetStaticBox()->SetLabel(_L("Left Nozzle"));
@@ -2253,8 +2274,8 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
             m_main_extruder_on_left = false;
         }
         else if (obj->is_main_extruder_on_left() && !m_main_extruder_on_left) {
-            m_multi_exturder_ams_sizer->Detach(m_main_sizer);
-            m_multi_exturder_ams_sizer->Detach(m_deputy_sizer);
+            m_multi_exturder_ams_sizer->Detach(m_main_filament_cali_panel);
+            m_multi_exturder_ams_sizer->Detach(m_deputy_filament_cali_panel);
 
             m_main_sizer->GetStaticBox()->SetLabel(_L("Left Nozzle"));
             m_deputy_sizer->GetStaticBox()->SetLabel(_L("Right Nozzle"));
@@ -2270,6 +2291,7 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
         m_filament_list_panel->Hide();
     }
     else {
+
         if ((obj->GetExtderSystem()->GetTotalExtderCount() > 0) && (obj->GetExtderSystem()->GetNozzleFlowType(0) != NozzleFlowType::NONE_FLOWTYPE))
         {
             m_comboBox_nozzle_volume->SetSelection(obj->GetExtderSystem()->GetNozzleFlowType(0) - 1);
@@ -2413,7 +2435,7 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
 
     /* update ams preview */
     { //single extuder
-        auto ams_items_sizer = create_ams_items_sizer(m_single_ams_preview_panel, m_single_ams_preview_list, ams_info, MAIN_EXTRUDER_ID);
+        auto ams_items_sizer = create_ams_items_sizer(obj, m_single_ams_preview_panel, m_single_ams_preview_list, ams_info, MAIN_EXTRUDER_ID);
         auto ams_sizer = new wxBoxSizer(wxVERTICAL);
         ams_sizer->Add(ams_items_sizer, 0);
         ams_sizer->AddSpacer(FromDIP(10));
@@ -2421,8 +2443,8 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
         m_single_ams_preview_panel->SetSizer(ams_sizer);
     }
     { //multi extuder
-        m_main_ams_preview_panel->SetSizer(create_ams_items_sizer(m_main_ams_preview_panel, m_main_ams_preview_list, main_ams_info, MAIN_EXTRUDER_ID));
-        m_deputy_ams_preview_panel->SetSizer(create_ams_items_sizer(m_deputy_ams_preview_panel, m_deputy_ams_preview_list, deputy_ams_info, DEPUTY_EXTRUDER_ID));
+        m_main_ams_preview_panel->SetSizer(create_ams_items_sizer(obj, m_main_ams_preview_panel, m_main_ams_preview_list, main_ams_info, MAIN_EXTRUDER_ID));
+        m_deputy_ams_preview_panel->SetSizer(create_ams_items_sizer(obj, m_deputy_ams_preview_panel, m_deputy_ams_preview_list, deputy_ams_info, DEPUTY_EXTRUDER_ID));
     }
 
     /* display nozzle combobox */
@@ -2483,16 +2505,17 @@ std::vector<std::pair<wxString, int>> CalibrationPresetPage::make_nozzles_info(c
 {
     std::vector<std::pair<wxString, int>> nozzle_list;
 
-    if(r_nozzle.GetNozzleDiameterStr() == nozzle_diameter && r_nozzle.GetNozzleFlowTypeCaliStyleStr() == nozzle_flow){
-        wxString item = wxString::Format("R | %s %s", r_nozzle.GetNozzleDiameterStr(), r_nozzle.GetNozzleFlowTypeCaliStyleStr());
-        nozzle_list.Add( item);
+    if (r_nozzle.IsNormal() && r_nozzle.GetNozzleDiameterStr() == nozzle_diameter && r_nozzle.GetNozzleFlowTypeStr() == nozzle_flow) {
+        wxString item = wxString::Format("R | %s %s", r_nozzle.GetNozzleDiameterStr(), r_nozzle.GetNozzleFlowTypeStr());
+        nozzle_list.emplace_back(item, 0);
     }
-    for(auto &nozzle : nozzle_map){
-        if(nozzle.second.GetNozzleDiameterStr() == nozzle_diameter && nozzle.second.GetNozzleFlowTypeCaliStyleStr() == nozzle_flow){
-            wxString item = wxString::Format("%d | %s %s", nozzle.second.GetNozzleId() + 1, r_nozzle.GetNozzleDiameterStr(), r_nozzle.GetNozzleFlowTypeCaliStyleStr());
-            nozzle_list.Add(item);
+    for (auto &nozzle : nozzle_map) {
+        if (nozzle.second.IsNormal() && nozzle.second.GetNozzleDiameterStr() == nozzle_diameter && nozzle.second.GetNozzleFlowTypeStr() == nozzle_flow) {
+            wxString item = wxString::Format("%d | %s %s", nozzle.second.GetNozzleId() + 1, nozzle.second.GetNozzleDiameterStr(), nozzle.second.GetNozzleFlowTypeStr());
+            nozzle_list.emplace_back(item, 0x10 | nozzle.second.GetNozzleId());
         }
     }
+
     return nozzle_list;
 }
 
@@ -2514,16 +2537,24 @@ void CalibrationPresetPage::select_default_compatible_filament()
         return;
 
     if (!devPrinterUtil::IsVirtualSlot(ams_id)) {
-        std::map<int, Preset *> selected_filament;
+        std::map<int, CaliFilamentInfo> selected_filament;
         for (size_t i = 0; i < 4; ++i) {
             auto &fcb = m_filament_comboBox_list[i];
             if (!fcb->GetRadioBox()->IsEnabled())
                 continue;
             int tray_id = fcb->get_tray_id();
+            int nozzle_pos_id = fcb->GetNozzleIdCode();
+            std::string nozzle_sn;
+            if (nozzle_pos_id != -1) {
+                DevNozzle nozzle = curr_obj->get_nozzle_by_id_code(nozzle_pos_id);
+                nozzle_sn        = nozzle.GetSerialNumber().ToStdString();
+            }
             Preset* preset = const_cast<Preset *>(fcb->GetComboBox()->get_selected_preset());
             if (m_cali_filament_mode == CalibrationFilamentMode::CALI_MODEL_SINGLE) {
                 selected_filament.clear();
-                selected_filament[tray_id] = preset;
+                selected_filament[tray_id].filament_preset = preset;
+                selected_filament[tray_id].nozzle_pos_id   = nozzle_pos_id;
+                selected_filament[tray_id].nozzle_sn       = nozzle_sn;
                 if (preset && is_filaments_compatiable(selected_filament)) {
                     fcb->GetRadioBox()->SetValue(true);
                     wxCommandEvent event(wxEVT_RADIOBUTTON);
@@ -2538,7 +2569,7 @@ void CalibrationPresetPage::select_default_compatible_filament()
                     fcb->GetCheckBox()->SetValue(false);
                     continue;
                 }
-                selected_filament.insert(std::make_pair(tray_id, preset));
+                selected_filament.insert(std::make_pair(tray_id, CaliFilamentInfo(preset, nozzle_pos_id, nozzle_sn)));
                 if (!is_filaments_compatiable(selected_filament)) {
                     selected_filament.erase(tray_id);
                     fcb->GetCheckBox()->SetValue(false);
@@ -2554,9 +2585,17 @@ void CalibrationPresetPage::select_default_compatible_filament()
         }
     }
     else {
-        std::map<int, Preset *> selected_filament;
+        std::map<int, CaliFilamentInfo> selected_filament;
         Preset  *preset  = const_cast<Preset *>(m_filament_comboBox_list[0]->GetComboBox()->get_selected_preset());
-        selected_filament[m_filament_comboBox_list[0]->get_tray_id()] = preset;
+        int tray_id = m_filament_comboBox_list[0]->get_tray_id();
+        selected_filament[tray_id].filament_preset = preset;
+        selected_filament[tray_id].nozzle_pos_id   = m_filament_comboBox_list[0]->GetNozzleIdCode();
+        std::string nozzle_sn;
+        if (selected_filament[tray_id].nozzle_pos_id == -1) {
+            DevNozzle nozzle = curr_obj->get_nozzle_by_id_code(selected_filament[tray_id].nozzle_pos_id);
+            nozzle_sn                    = nozzle.GetSerialNumber().ToStdString();
+        }
+        selected_filament[tray_id].filament_preset = preset;
         if (preset && is_filaments_compatiable(selected_filament)) {
             m_filament_comboBox_list[0]->GetRadioBox()->SetValue(true);
         } else
@@ -2630,16 +2669,24 @@ std::vector<FilamentComboBox*> CalibrationPresetPage::get_selected_filament_comb
     return fcb_list;
 }
 
-std::map<int, Preset*> CalibrationPresetPage::get_selected_filaments()
+std::map<int, CaliFilamentInfo> CalibrationPresetPage::get_selected_filaments()
 {
-    std::map<int, Preset*> out;
-    std::vector<FilamentComboBox*> fcb_list = get_selected_filament_combobox();
+    std::map<int, CaliFilamentInfo> out;
+    if (!curr_obj)
+        return out;
 
+    std::vector<FilamentComboBox*> fcb_list = get_selected_filament_combobox();
     for (int i = 0; i < fcb_list.size(); i++) {
         Preset* preset = const_cast<Preset*>(fcb_list[i]->GetComboBox()->get_selected_preset());
+        int nozzle_pos_id = fcb_list[i]->GetNozzleIdCode();
+        std::string nozzle_sn;
+        if (nozzle_pos_id != -1) {
+            DevNozzle nozzle = curr_obj->get_nozzle_by_id_code(nozzle_pos_id);
+            nozzle_sn = nozzle.GetSerialNumber().ToStdString();
+        }
         // valid tray id
         if (fcb_list[i]->get_tray_id() >= 0) {
-            out.emplace(std::make_pair(fcb_list[i]->get_tray_id(), preset));
+            out.emplace(std::make_pair(fcb_list[i]->get_tray_id(), CaliFilamentInfo(preset, nozzle_pos_id, nozzle_sn)));
         }
     }
 
@@ -2664,9 +2711,9 @@ void CalibrationPresetPage::get_cali_stage(CaliPresetStage& stage, float& value)
     m_cali_stage_panel->get_cali_stage(stage, value);
 
     if (stage != CaliPresetStage::CALI_MANUAL_STAGE_2) {
-        std::map<int, Preset*> selected_filaments = get_selected_filaments();
+        std::map<int, CaliFilamentInfo> selected_filaments = get_selected_filaments();
         if (!selected_filaments.empty()) {
-            const ConfigOptionFloatsNullable* flow_ratio_opt = selected_filaments.begin()->second->config.option<ConfigOptionFloatsNullable>("filament_flow_ratio");
+            const ConfigOptionFloatsNullable* flow_ratio_opt = selected_filaments.begin()->second.filament_preset->config.option<ConfigOptionFloatsNullable>("filament_flow_ratio");
             if (flow_ratio_opt) {
                 m_cali_stage_panel->set_flow_ratio_value(flow_ratio_opt->get_at(0));
                 value = flow_ratio_opt->get_at(0);
