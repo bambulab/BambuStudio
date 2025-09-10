@@ -959,6 +959,7 @@ void PressureAdvanceWizard::on_cali_save()
                 if (save_page->is_all_failed()) {
                     MessageDialog msg_dlg(nullptr, _L("The failed test result has been dropped."), wxEmptyString, wxOK);
                     msg_dlg.ShowModal();
+                    back_preset_info(curr_obj, true);
                     show_step(start_step);
                     return;
                 }
@@ -1372,6 +1373,7 @@ void FlowRateWizard::on_cali_save()
             if (save_page->is_all_failed()) {
                 MessageDialog msg_dlg(nullptr, _L("The failed test result has been dropped."), wxEmptyString, wxOK);
                 msg_dlg.ShowModal();
+                back_preset_info(curr_obj, true);
                 show_step(start_step);
                 return;
             }
@@ -1751,6 +1753,7 @@ void MaxVolumetricSpeedWizard::on_cali_save()
 
     MessageDialog msg_dlg(nullptr, _L("Max volumetric speed calibration result has been saved to preset"), wxEmptyString, wxOK);
     msg_dlg.ShowModal();
+    back_preset_info(curr_obj, true);
     show_step(start_step);
 }
 
