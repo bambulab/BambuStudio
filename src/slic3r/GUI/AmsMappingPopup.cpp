@@ -357,20 +357,21 @@ void MaterialItem::doRender(wxDC& dc)
 
     // text and arrow
     dc.SetTextForeground(StateColor::darkModeColorFor(wxColour(0x26, 0x2E, 0x30)));
-    dc.SetFont(::Label::Head_12);
 
     int text_pos_x = 0;
     int text_pos_y = 0;
     auto mapping_txt_size = wxSize(0, 0);
     if (m_mapping_text.size() >= 4)
     {
+        dc.SetFont(::Label::Head_11);
         m_mapping_text.insert(m_mapping_text.size() / 2, "\n");
         mapping_txt_size = dc.GetTextExtent(m_mapping_text);
-        text_pos_y = up + (m_ams_wheel_mitem.GetBmpSize().y - mapping_txt_size.y) / 2 - mapping_txt_size.y / 2;
+        text_pos_y = up + (m_ams_wheel_mitem.GetBmpSize().y - mapping_txt_size.y) / 2;
         text_pos_x = mapping_txt_size.x / 4;
     }
     else
     {
+        dc.SetFont(::Label::Head_12);
         mapping_txt_size = dc.GetTextExtent(m_mapping_text);
         text_pos_y = up + (m_ams_wheel_mitem.GetBmpSize().y - mapping_txt_size.y) / 2;
         text_pos_x = 0;
@@ -380,13 +381,15 @@ void MaterialItem::doRender(wxDC& dc)
     if (m_match)
     {
         dc.DrawText(m_mapping_text, wxPoint(GetSize().x / 2 + (GetSize().x / 2 - mapping_txt_size.x) / 2 - FromDIP(8) - FromDIP(LEFT_OFFSET) + text_pos_x, text_pos_y));
+        
+        int arrow_y = text_pos_y + (mapping_txt_size.y - m_arraw_bitmap_white.GetBmpHeight()) / 2;
         if ((acolor.Red() > 160 && acolor.Green() > 160 && acolor.Blue() > 160) && (acolor.Red() < 180 && acolor.Green() < 180 && acolor.Blue() < 180))
         {
-            dc.DrawBitmap(m_arraw_bitmap_white.bmp(), arrow_left, text_pos_y + FromDIP(3));
+            dc.DrawBitmap(m_arraw_bitmap_white.bmp(), arrow_left, arrow_y);
         }
         else
         {
-            dc.DrawBitmap(m_arraw_bitmap_gray.bmp(), arrow_left, text_pos_y + FromDIP(3));
+            dc.DrawBitmap(m_arraw_bitmap_gray.bmp(), arrow_left, arrow_y);
         }
     }
 
