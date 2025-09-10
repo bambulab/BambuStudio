@@ -173,6 +173,7 @@ void s_auto_nozzle_mapping(const nlohmann::json &print_jj, DevNozzleMappingResul
     DevJsonValParser::ParseVal(print_jj, "type", result.m_type);
 
     if (print_jj.contains("mapping")) {
+        result.m_nozzle_mapping_json = print_jj["mapping"];
         const auto& mapping = print_jj["mapping"].get<std::vector<int>>();
         for (int fila_id = 0; fila_id < mapping.size(); ++fila_id) {
             result.m_nozzle_mapping[fila_id] =  mapping[fila_id];
@@ -198,6 +199,7 @@ void DevNozzleMappingResult::Clear()
     m_detail_msg.clear();
     m_detail_json.clear();
     m_nozzle_mapping.clear();
+    m_nozzle_mapping_json.clear();
 }
 
 } // namespace Slic3r
