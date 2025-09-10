@@ -53,8 +53,10 @@ wxString nozzle_id_code_to_string(int code){
         return "R";
     } else if(code >= 0x10){
         return wxString::Format("%d", code - 0x10 +1);
+    } else {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "Nozzle position id is -1 or invalid.";
+        return "N/A";
     }
-    return wxEmptyString;
 }
 
 static wxString get_preset_name_by_filament_id(std::string filament_id)
@@ -427,6 +429,8 @@ void HistoryWindow::sync_history_data() {
             cali_info.cali_idx        = result.cali_idx;
             cali_info.nozzle_diameter = result.nozzle_diameter;
             cali_info.filament_id     = result.filament_id;
+            cali_info.nozzle_pos_id   = result.nozzle_pos_id;
+            cali_info.nozzle_sn       = result.nozzle_sn;
             CalibUtils::delete_PA_calib_result(cali_info);
             });
 
@@ -587,11 +591,7 @@ EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow             
     auto rack = obj->GetNozzleSystem()->GetNozzleRack();
     if(rack->IsSupported() && result.extruder_id == MAIN_EXTRUDER_ID) {
         Label* nozzle_id_title = new Label(top_panel, _L("Nozzle ID"));
-<<<<<<< HEAD
-        wxString nozzle_id = "R";
-=======
         wxString nozzle_id     = nozzle_id_code_to_string(result.nozzle_pos_id);
->>>>>>> 1d8d641b29 (FIX: check combox ptr for O1C)
         Label* nozzle_id_value = new Label(top_panel, nozzle_id);
         flex_sizer->Add(nozzle_id_title);
         flex_sizer->Add(nozzle_id_value);
@@ -861,12 +861,19 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
     if(rack->IsSupported()){
         Label *nozzle_id_title = new Label(top_panel, _L("Nozzle ID"));
         m_comboBox_nozzle_id   = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
-        wxArrayString          nozzle_items;
-        nozzle_items.Add("R");
-        for(int i=0; i<rack->GetRackNozzles().size(); i++){
-            nozzle_items.Add(wxString::Format("%d", i+1));
+
+        int r_nozzle_id = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
+        auto r_nozzle = obj->GetNozzleSystem()->GetNozzle(r_nozzle_id);
+
+        if(r_nozzle.IsNormal()){
+            m_comboBox_nozzle_id->Append("R", wxNullBitmap, new int{0});
         }
-        m_comboBox_nozzle_id->Set(nozzle_items);
+        for (auto nozzle_item : rack->GetRackNozzles()) {
+            if(nozzle_item.second.IsNormal()){
+                m_comboBox_nozzle_id->Append(wxString::Format("%d", nozzle_item.first + 1), wxNullBitmap, new int{0x10 | nozzle_item.first});
+            }
+        }
+
         m_comboBox_nozzle_id->SetSelection(-1);
         m_comboBox_nozzle_id->Disable();
         flex_sizer->Add(nozzle_id_title);
@@ -945,8 +952,6 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
-<<<<<<< HEAD
-=======
 int NewCalibrationHistoryDialog::get_nozzle_combo_id_code() const{
     if(!m_comboBox_nozzle_id) return -1;
 
@@ -956,7 +961,6 @@ int NewCalibrationHistoryDialog::get_nozzle_combo_id_code() const{
     return -1;
 }
 
->>>>>>> 1d8d641b29 (FIX: check combox ptr for O1C)
 int NewCalibrationHistoryDialog::get_extruder_id(int extruder_index)
 {
     if ((extruder_index != -1) && curr_obj->is_multi_extruders()) {
@@ -966,14 +970,10 @@ int NewCalibrationHistoryDialog::get_extruder_id(int extruder_index)
 }
 
 void NewCalibrationHistoryDialog::on_select_extruder(wxCommandEvent &event){
-<<<<<<< HEAD
-    if(m_comboBox_extruder->GetStringSelection() == "Right"){
-=======
     if(!m_comboBox_nozzle_id) return;
 
     /* select right extruder */
     if(m_comboBox_extruder->GetSelection() == 1){
->>>>>>> 1d8d641b29 (FIX: check combox ptr for O1C)
         m_comboBox_nozzle_id->Enable();
     }else{
         m_comboBox_nozzle_id->Disable();
@@ -1026,6 +1026,13 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
         m_new_result.nozzle_volume_type = NozzleVolumeType(m_comboBox_nozzle_type->GetSelection());
     }
 
+    int nozzle_pos_id = get_nozzle_combo_id_code();
+    std::string nozzle_sn;
+    if (nozzle_pos_id != -1) {
+        DevNozzle nozzle = curr_obj->get_nozzle_by_id_code(nozzle_pos_id);
+        nozzle_sn = nozzle.GetSerialNumber().ToStdString();
+    }
+
     auto filament_item = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];
     std::string filament_id   = filament_item.filament_id;
     std::string setting_id    = filament_item.setting_id;
@@ -1038,6 +1045,8 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
     m_new_result.nozzle_diameter = nozzle_value;
     m_new_result.filament_id = filament_id;
     m_new_result.setting_id = setting_id;
+    m_new_result.nozzle_pos_id = nozzle_pos_id;
+    m_new_result.nozzle_sn = nozzle_sn;
 
     // Check for duplicate names from history
     {
