@@ -297,36 +297,22 @@ FilamentComboBox::FilamentComboBox(wxWindow* parent, int index, const wxPoint& p
     main_sizer->Fit(this);
 }
 
-
-void FilamentComboBox::UpdateNozzleCombo(const wxArrayString& nozzle_list){
+void FilamentComboBox::UpdateNozzleCombo(const std::vector<std::pair<wxString, int>> &nozzle_list)
+{
     int index = m_nozzle_combo->GetSelection() == -1 ? 0 : m_nozzle_combo->GetSelection();
     m_nozzle_combo->Clear();
-    m_nozzle_combo->Set(nozzle_list);
 
-    // if(nozzle_list.size() == 0){
-    //     m_nozzle_combo->Append(_L("Empty"));
-    // }
+    for (auto &pair : nozzle_list) { m_nozzle_combo->Append(pair.first, wxNullBitmap, new int{pair.second}); }
+
     m_nozzle_combo->SetSelection(index);
 }
 
-int FilamentComboBox::GetNozzleIdCode() const {
-    int code = 0;
-    wxString text = m_nozzle_combo->GetStringSelection().BeforeFirst(' ');
+int FilamentComboBox::GetNozzleIdCode() const
+{
+    auto sel = m_nozzle_combo->GetSelection();
+    if (sel != wxNOT_FOUND) return *(reinterpret_cast<int*>(m_nozzle_combo->GetClientData(sel)));
 
-    if(text == "R"){
-        code = MAIN_EXTRUDER_ID;
-    } else if(text.IsNumber()){
-        long num = 0;
-        if (text.ToLong(&num)){
-            code = 0x10 | (num - 1);
-        }else{
-            return -1; // error message
-        }
-    } else{
-        return -1; // error message
-    }
-
-    return code;
+    return -1;
 }
 
 void FilamentComboBox::ShowNozzleCombo()
@@ -410,6 +396,13 @@ bool FilamentComboBox::Enable(bool enable) {
         m_radioBox->Enable(enable);
     if (m_checkBox)
         m_checkBox->Enable(enable);
+    if (m_comboBox)
+        m_comboBox->Enable(enable);
+    if (m_nozzle_combo){
+        m_nozzle_combo->Enable(enable);
+        if (!enable) m_nozzle_combo->SetValue(wxEmptyString);
+    }
+
     return wxPanel::Enable(enable);
 }
 

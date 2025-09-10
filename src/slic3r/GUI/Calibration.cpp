@@ -320,6 +320,8 @@ void CalibrationDialog::update_cali(MachineObject *obj)
             m_calibration_btn->Enable();
         }
     }
+
+
 }
 
 bool CalibrationDialog::is_stage_list_info_changed(MachineObject *obj)

@@ -166,6 +166,18 @@ enum CaliPresetPageStatus
     CaliPresetStatusDifferentNozzleDiameters
 };
 
+struct CaliFilamentInfo
+{
+    Preset *filament_preset{nullptr};
+    int         nozzle_pos_id{-1};
+    std::string nozzle_sn;
+
+    CaliFilamentInfo() {}
+    CaliFilamentInfo(Preset *preset, int nozzle_pos_id_, const std::string &nozzle_sn_)
+        : filament_preset(preset), nozzle_pos_id(nozzle_pos_id_), nozzle_sn(nozzle_sn_)
+    {}
+};
+
 class CalibrationPresetPage : public CalibrationWizardPage
 {
 public:
@@ -211,7 +223,7 @@ public:
     std::vector<FilamentComboBox*> get_selected_filament_combobox();
 
     // key is tray_id
-    std::map<int, Preset*> get_selected_filaments();
+    std::map<int, CaliFilamentInfo> get_selected_filaments();
 
     std::map<int, DynamicPrintConfig> get_filament_ams_list() const { return filament_ams_list; }
 
@@ -269,9 +281,9 @@ protected:
 
     void check_nozzle_diameter_for_auto_cali();
     void check_filament_compatible();
-    bool is_filaments_compatiable(const std::map<int, Preset *>& prests);
+    bool is_filaments_compatiable(const std::map<int, CaliFilamentInfo>& prests);
     bool is_filament_in_blacklist(int tray_id, Preset* preset, std::string& error_tips);
-    bool is_filaments_compatiable(const std::map<int, Preset *> &prests,
+    bool is_filaments_compatiable(const std::map<int, CaliFilamentInfo> &prests,
         int& bed_temp,
         std::string& incompatiable_filament_name,
         std::string& error_tips);
@@ -289,7 +301,7 @@ protected:
     bool is_blocking_printing();
     bool need_check_sdcard(MachineObject* obj);
 
-    wxArrayString make_nozzles_info(const DevNozzle& r_nozzle, const std::map<int, DevNozzle>& nozzle_map, const wxString& nozzle_diameter, const wxString& nozzle_flow);
+    std::vector<std::pair<wxString, int>> make_nozzles_info(const DevNozzle& r_nozzle, const std::map<int, DevNozzle>& nozzle_map, const wxString& nozzle_diameter, const wxString& nozzle_flow);
 
     std::map<std::string, std::pair<bool, wxString>> m_tips_map;
     void init_filament_list_tips();
@@ -317,7 +329,6 @@ protected:
     ComboBox*       m_comboBox_nozzle_volume;
     ComboBox*       m_comboBox_bed_type;
     ComboBox*       m_comboBox_process;
-    Label*          m_nozzle_diameter_tips{nullptr};
 
     std::vector<BedType> m_displayed_bed_types;
 
@@ -363,8 +374,10 @@ protected:
     wxStaticBoxSizer * m_deputy_sizer;
     wxStaticBoxSizer * m_left_nozzle_volume_type_sizer;
     wxStaticBoxSizer * m_right_nozzle_volume_type_sizer;
+    wxPanel*           m_main_filament_cali_panel;
+    wxPanel*           m_deputy_filament_cali_panel;
 
-
+    Label*          m_nozzle_diameter_tips{nullptr};
 
     ScalableButton*      m_ams_sync_button;
     FilamentComboBoxList m_filament_comboBox_list;
