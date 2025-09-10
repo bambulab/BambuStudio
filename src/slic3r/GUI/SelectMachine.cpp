@@ -47,6 +47,8 @@
 "2. The current nozzle, heatbed, or chamber temperature differs from the calibration conditions\n" \
 "3. The toolhead hotend was manually removed or installed")
 
+#define S_RACK_FLOW_DYNAMICS_CALI_WARNING _L("After modifying this option, the system will reassign the nozzles based on the calibrated dynamic flow calibration coefficient.")
+
 namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_SWITCH_PRINT_OPTION, wxCommandEvent);
@@ -4772,6 +4774,20 @@ void SelectMachineDialog::on_flow_pa_caliation_option_changed(wxCommandEvent& ev
     if (obj_ && m_plater && obj_->GetNozzleSystem()->GetNozzleRack()->IsSupported()) {
         auto nozzle_group_res = m_plater->get_partplate_list().get_current_fff_print().get_nozzle_group_result();
         if (nozzle_group_res && nozzle_group_res->get_nozzle_count(LOGIC_R_EXTRUDER_ID) != 0) {
+
+            if (event.GetString() == "off") {
+                MessageDialog dlg(this, S_RACK_FLOW_DYNAMICS_CALI_WARNING, _L("Info"), wxYES | wxCANCEL | wxICON_INFORMATION);
+                dlg.SetButtonLabel(wxID_YES, _L("Keep it On"));
+                dlg.SetButtonLabel(wxID_CANCEL, _L("Still turn it Off"));
+                int rtn = dlg.ShowModal();
+                if (rtn == wxID_YES) {
+                    m_checkbox_list["flow_cali"]->restoreValue();
+                    save_option_vals();
+                    event.Skip();
+                    return;
+                }
+            }
+
             // request nozzle mapping result if right extruder nozzles used in slicing
             obj_->ctrl_get_auto_nozzle_mapping(m_plater, m_ams_mapping_result, m_checkbox_list["flow_cali"]->getValueInt());
         }
@@ -4797,10 +4813,10 @@ void SelectMachineDialog::on_nozzle_offset_option_changed(wxCommandEvent& event)
     if (event.GetString() == "off") {
         MessageDialog dlg(this, S_RACK_NOZZLE_OFFSET_CALI_WARNING, _L("Info"), wxYES | wxCANCEL | wxICON_INFORMATION);
         dlg.SetButtonLabel(wxID_YES, _L("Keep it On"));
-        dlg.SetButtonLabel(wxID_CANCEL, _L("Turn it Off"));
+        dlg.SetButtonLabel(wxID_CANCEL, _L("Still turn it Off"));
         int rtn = dlg.ShowModal();
         if (rtn == wxID_YES) {
-            m_checkbox_list["nozzle_offset_cali"]->setValue("auto");
+            m_checkbox_list["nozzle_offset_cali"]->restoreValue();
             save_option_vals();
         }
     }
@@ -5088,6 +5104,11 @@ void PrintOption::update_tooltip_options_area(const wxString& opt_tips)
     }
 }
 
+void PrintOption::restoreValue()
+{
+    m_printoption_item->restoreValue();
+}
+
 std::string PrintOption::getValue()
 {
     return m_printoption_item->getValue();
@@ -5198,6 +5219,7 @@ void PrintOptionItem::on_left_down(wxMouseEvent& evt)
     auto select_size = GetSize().x / m_ops.size();
 
     int i = 0;
+    m_old_selected_key = selected_key;
     for (const auto& entry : m_ops)
     {
         auto left_edge = rect.x + i * select_size;
@@ -5229,10 +5251,12 @@ void PrintOptionItem::on_left_down(wxMouseEvent& evt)
         }
     }
 
-    wxCommandEvent event(EVT_SWITCH_PRINT_OPTION);
-    event.SetString(selected_key);
-    event.SetEventObject(GetParent());
-    wxPostEvent(GetParent(), event);
+    if (m_old_selected_key != selected_key) {
+        wxCommandEvent event(EVT_SWITCH_PRINT_OPTION);
+        event.SetString(selected_key);
+        event.SetEventObject(GetParent());
+        wxPostEvent(GetParent(), event);
+    }
 
     Refresh();
 }

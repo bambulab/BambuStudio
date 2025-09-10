@@ -150,6 +150,7 @@ public:
 public:
     void        setValue(std::string value);
     std::string getValue() const { return selected_key; }
+    void        restoreValue() { setValue(m_old_selected_key); } // see EVT_SWITCH_PRINT_OPTION
     void        update_options(std::vector<POItem> ops) {
         if (m_ops != ops)
         {
@@ -188,6 +189,7 @@ private:
     ScalableBitmap m_selected_disabled_bk_dark;
     std::vector<POItem> m_ops;
     std::string selected_key;
+    std::string m_old_selected_key;// for restoreValue on EVT_SWITCH_PRINT_OPTION
     std::string m_param;
 
     bool m_enable = true;
@@ -211,6 +213,7 @@ public:
     void        enable(bool en);
 
     void        setValue(std::string value);
+    void        restoreValue();
     std::string getValue();
     int         getValueInt();
 
