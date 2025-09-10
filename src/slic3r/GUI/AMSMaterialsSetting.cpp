@@ -1150,7 +1150,7 @@ void AMSMaterialsSetting::on_select_nozzle_pos_id(wxCommandEvent &evt)
 
 void AMSMaterialsSetting::update_pa_profile_items()
 {
-    if (!obj) return;
+    if (!obj || !obj->GetNozzleSystem()) return;
 
     int              extruder_id        = obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
     NozzleFlowType   nozzle_flow_type   = obj->GetExtderSystem()->GetNozzleFlowType(extruder_id);
@@ -1220,7 +1220,7 @@ void AMSMaterialsSetting::update_pa_profile_items()
 }
 
 void AMSMaterialsSetting::update_nozzle_combo(MachineObject* obj){
-    if(!obj) return;
+    if(!obj || !obj->GetNozzleSystem()) return;
 
     auto rack = obj->GetNozzleSystem()->GetNozzleRack();
     int extruder_id = obj->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(ams_id));
