@@ -492,8 +492,7 @@ bool CaliPASaveAutoPanel::get_result(std::vector<PACalibResult>& out_result) {
 
 void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<PACalibResult>& cali_result, const std::vector<PACalibResult>& history_result)
 {
-    if (!m_obj)
-        return;
+    if (!m_obj || !m_obj->GetNozzleSystem()) return;
 
     std::map<int, DynamicPrintConfig> old_full_filament_ams_list = wxGetApp().sidebar().build_filament_ams_list(m_obj);
     std::map<int, DynamicPrintConfig> full_filament_ams_list;
