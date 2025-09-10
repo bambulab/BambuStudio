@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 10:23+0800\n"
+"POT-Creation-Date: 2025-09-10 20:41+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -9401,6 +9401,9 @@ msgstr ""
 msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
 msgstr ""
 
+msgid "Uninstall the Helio Additive extension"
+msgstr ""
+
 msgid "Use Immediately"
 msgstr ""
 
@@ -9428,9 +9431,6 @@ msgstr ""
 msgid "Terms of Use of Helio Additive"
 msgstr ""
 
-msgid "Uninstall the Helio Additive extension"
-msgstr ""
-
 msgid "Agree and proceed"
 msgstr ""
 
@@ -9441,6 +9441,12 @@ msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
 msgstr ""
 
 msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
+msgstr ""
+
+msgid "Simulation"
+msgstr ""
+
+msgid "Optimization"
 msgstr ""
 
 msgid "Chamber Temperature"
@@ -9475,6 +9481,9 @@ msgstr ""
 
 msgid "Max Volumetric Speed"
 msgstr "Макс. объёмный расход"
+
+msgid "Trace ID: "
+msgstr ""
 
 msgid "Buy Now"
 msgstr ""
@@ -10279,6 +10288,16 @@ msgstr "Замедлять печать для лучшего охлаждени
 msgid "Enable this option to slow printing speed down to make the final layer time not shorter than the layer time threshold in \"Max fan speed threshold\", so that layer can be cooled for a longer time. This can improve the cooling quality for needle and small details"
 msgstr "Включите эту опцию для разрешения замедления скорости печати в зависимости от времени печати слоя, чтобы слой мог охлаждаться дольше. Это позволяет улучшить качество охлаждения острых концов и мелких деталей."
 
+msgid "Don't slow down outer walls"
+msgstr ""
+
+msgid ""
+"If enabled, this setting will ensure external perimeters are not slowed down to meet the minimum layer time. This is particularly helpful in the below scenarios:\n"
+"1. To avoid changes in shine when printing glossy filaments\n"
+"2. To avoid changes in external wall speed which may create slight wall artifacts that appear like Z banding\n"
+"3. To avoid printing at speeds which cause VFAs (fine artifacts) on the external walls"
+msgstr ""
+
 msgid "Normal printing"
 msgstr "Ускорение печати по умолчанию"
 
@@ -10996,6 +11015,9 @@ msgstr "Полная скорость вентилятора на слое"
 
 msgid "Randomly jitter while printing the wall, so that the surface has a rough look. This setting controls the fuzzy position"
 msgstr "Случайное дрожание сопла при печати внешнего периметра для создания эффекта шероховатой поверхности. Эта настройка определяет положение нечёткой оболочки."
+
+msgid "None(allow paint)"
+msgstr ""
 
 msgid "All walls"
 msgstr "Все периметры"
@@ -13804,6 +13826,16 @@ msgstr "Свернуть "
 msgid "Daily Tips"
 msgstr "Ежедневные советы "
 
+msgid ""
+"The printer nozzle information has not been set.\n"
+"Please configure it before proceeding with the calibration."
+msgstr ""
+
+msgid ""
+"The nozzle type does not match the actual printer nozzle type.\n"
+"Please click the Sync button above and restart the calibration."
+msgstr ""
+
 #, c-format, boost-format
 msgid ""
 "Please input valid values:\n"
@@ -13854,6 +13886,10 @@ msgid "The number of printer extruders and the printer selected for calibration 
 msgstr "Количество экструдеров у принтера не соответствует выбранному для калибровки принтеру."
 
 #, c-format, boost-format
+msgid "The nozzle diameter of %s extruder is 0.2mm which does not support automatic Flow Dynamics calibration."
+msgstr ""
+
+#, c-format, boost-format
 msgid ""
 "The currently selected nozzle diameter of %s extruder does not match the actual nozzle diameter.\n"
 "Please click the Sync button above and restart the calibration."
@@ -13875,10 +13911,6 @@ msgid ""
 msgstr ""
 "Выбранный в данный момент тип сопла для экструдера %s не соответствует фактическому типу сопла принтера.\n"
 "Пожалуйста, нажмите кнопку синхронизации выше и перезапустите калибровку."
-
-# ??? Автокалибровка работает только тогда, когда диаметры левого и правого сопел одинаковые.
-msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "Автокалибровка работает только при одинаковых диаметрах левого и правого сопел."
 
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "Невозможно выполнить калибровку: возможно, установленный диапазон значений калибровки слишком велик или шаг слишком мал."
@@ -14180,6 +14212,18 @@ msgid "Strength profile for 0.8mm nozzle, prioritizing strength."
 msgstr ""
 
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
+msgstr ""
+
+msgid "Failed to create GCodeV2"
+msgstr ""
+
+msgid "Failed to parse response"
+msgstr ""
+
+msgid "Helio simulation task failed"
+msgstr ""
+
+msgid "Helio optimization task failed"
 msgstr ""
 
 msgid "Helio API endpoint is empty, please check the configuration."
@@ -14842,6 +14886,10 @@ msgid ""
 "Shrinkage, Warping & Stress\n"
 "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
 msgstr ""
+
+# ??? Автокалибровка работает только тогда, когда диаметры левого и правого сопел одинаковые.
+#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "Автокалибровка работает только при одинаковых диаметрах левого и правого сопел."
 
 #~ msgid "Nozzle Type"
 #~ msgstr "Тип сопла"
