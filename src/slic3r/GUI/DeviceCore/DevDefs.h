@@ -107,6 +107,8 @@ struct DevNozzleMappingResult
     int         m_errno;
     std::string m_detail_msg;
     nlohmann::json m_detail_json;
+
+    nlohmann::json m_nozzle_mapping_json;
     std::unordered_map<int, int> m_nozzle_mapping; // key: fila_id, value: nozzle_id (from 0x10), the tar_id is no extruder
 
 public:
