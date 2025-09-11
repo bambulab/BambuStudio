@@ -79,6 +79,8 @@ public:
     NozzleVolumeType nozzle_volume_type;
     BedType     bed_type;
     float       nozzle_diameter;
+    int         nozzle_pos_id{-1};
+    std::string nozzle_sn;
     std::string filament_id;
     std::string setting_id;
     std::string name;
@@ -89,6 +91,8 @@ public:
         this->extruder_id     = other.extruder_id;
         this->nozzle_volume_type = other.nozzle_volume_type;
         this->nozzle_diameter = other.nozzle_diameter;
+        this->nozzle_pos_id   = other.nozzle_pos_id;
+        this->nozzle_sn       = other.nozzle_sn;
         this->filament_id     = other.filament_id;
         this->setting_id      = other.setting_id;
         this->name            = other.name;
