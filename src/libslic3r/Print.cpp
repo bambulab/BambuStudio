@@ -197,6 +197,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "inner_wall_acceleration",
         "sparse_infill_acceleration",
         "exclude_object",
+        "print_in_clockwise",
         "use_relative_e_distances",
         "activate_air_filtration",
         "during_print_exhaust_fan_speed",

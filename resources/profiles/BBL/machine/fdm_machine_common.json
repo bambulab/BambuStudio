@@ -110,6 +110,7 @@
     "nozzle_flush_dataset": [
         "0"
     ],
+    "print_in_clockwise": "0",
     "printable_height": "250",
     "printer_settings_id": "",
     "printer_structure": "corexy",
