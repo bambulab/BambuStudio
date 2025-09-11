@@ -870,7 +870,7 @@ static double s_round(double value, int n)
     last_tid_panel = new wxPanel(this);
     wxBoxSizer* last_tid_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    Label* last_tid_title = new Label(last_tid_panel, _L("Trace ID: "));
+    Label* last_tid_title = new Label(last_tid_panel, _L("Last Trace ID: "));
     last_tid_title->SetBackgroundColour(*wxWHITE);
     last_tid_title->SetForegroundColour(wxColour(144, 144, 144));
     last_tid_label = new Label(last_tid_panel, wxEmptyString);
