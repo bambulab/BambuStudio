@@ -101,11 +101,11 @@ bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         if (closest_hit == Vec3f::Zero() && closest_normal == Vec3f::Zero())
             return true;
 
-        if (get_selecting_state() == MeshBooleanSelectingState::SelectTool) {
+        if (get_selecting_state() == MeshBooleanSelectingState::SelectTool && closest_hit_mesh_id >= 0) {
             set_tool_volume(mo->volumes[closest_hit_mesh_id]);
             return true;
         }
-        if (get_selecting_state() == MeshBooleanSelectingState::SelectSource) {
+        if (get_selecting_state() == MeshBooleanSelectingState::SelectSource && closest_hit_mesh_id >= 0) {
             set_src_volume(mo->volumes[closest_hit_mesh_id]);
             return true;
         }
