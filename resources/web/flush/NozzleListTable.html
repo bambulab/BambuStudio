@@ -243,10 +243,10 @@
             labelText += '（推荐）';
           }
 
-          diameterCell.innerHTML = `
-            <input type="radio" name="nozzle" id="${radioId}" data-index="${index}" ${option.is_selected ? 'checked' : ''}>
-            <label for="${radioId}" class="${isRecommended ? 'recommended' : ''}">${labelText}</label>
-          `;
+        diameterCell.innerHTML = `
+        <input type="radio" name="nozzle" id="${radioId}" data-index="${index}" ${option.is_selected ? 'checked' : ''}>
+        <label for="${radioId}" class="${isRecommended ? 'recommended' : ''}">${labelText}</label>
+        `;
 
           const leftCell = document.createElement('td');
           const leftExtruder = option.extruders['0'] || { type: 'Standard', count: 0 };
@@ -255,17 +255,18 @@
           const rightExtruder = option.extruders['1'] || { type: 'Standard', count: 0 };
           rightCell.textContent = `${rightExtruder.count}个 (${rightExtruder.type == "Standard" ? standard_label : highflow_label})`;
 
-          // 添加单元格到行
-          row.appendChild(diameterCell);
-          row.appendChild(leftCell);
-          row.appendChild(rightCell);
+      // 添加单元格到行
+      row.appendChild(diameterCell);
+      row.appendChild(leftCell);
+      row.appendChild(rightCell);
+      
+      // 添加行到表格
+      tableBody.appendChild(row);
+    });
 
-          // 添加行到表格
-          tableBody.appendChild(row);
-        });
-
-        sendLayoutMessage()
-      }
-    </script>
-  </body>
+    sendLayoutMessage()
+  }
+  
+</script>
+</body>
 </html>

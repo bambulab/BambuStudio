@@ -1282,8 +1282,12 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
         nozzle_diameters[extruder_id] = nozzle_option ? atof(nozzle_option->diameter.c_str()) : obj->GetExtderSystem()->GetNozzleDiameter(index);
         std::optional<NozzleVolumeType> select_type;
         NozzleVolumeType target_type = NozzleVolumeType::nvtStandard;
-        if (nozzle_option && nozzle_option->extruder_nozzle_stats.count(index))
-            select_type = nozzle_option->extruder_nozzle_stats[index].first;
+        if (nozzle_option && nozzle_option->extruder_nozzle_stats.count(index)) {
+            if (nozzle_option->extruder_nozzle_stats[index].size() > 1)
+                select_type = NozzleVolumeType::nvtHybrid;
+            else
+                select_type = nozzle_option->extruder_nozzle_stats[index].begin()->first;
+        }
 
         if (obj->is_nozzle_flow_type_supported()) {
             if (obj->GetExtderSystem()->GetNozzleFlowType(index) == NozzleFlowType::NONE_FLOWTYPE) {
@@ -2379,14 +2383,15 @@ void Sidebar::update_presets(Preset::Type preset_type)
         auto nozzle_volumes = wxGetApp().preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
         auto diameters = wxGetApp().preset_bundle->printers.diameters_of_selected_printer();
         auto diameter = printer_preset.config.opt_string("printer_variant");
-        auto printer_model = printer_preset.config.opt_string("printer_model");
-        auto update_extruder_variant = [&](ExtruderGroup & extruder, int index) {
+        auto extruder_max_nozzle_count = printer_preset.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+        auto update_extruder_variant = [extruders_def, extruders, nozzle_volumes_def, nozzle_volumes, extruder_variants,diameter,extruder_max_nozzle_count](ExtruderGroup & extruder, int index) {
             extruder.combo_flow->Clear();
             auto type = extruders_def->enum_labels[extruders->values[index]];
             int select = -1;
             for (size_t i = 0; i < nozzle_volumes_def->enum_labels.size(); ++i) {
-                if (boost::algorithm::contains(extruder_variants->values[index], type + " " + nozzle_volumes_def->enum_labels[i])) {
-                    if ((diameter == "0.2" || is_skip_high_flow_printer(printer_model))&& nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[i]) == NozzleVolumeType::nvtHighFlow)
+                if (boost::algorithm::contains(extruder_variants->values[index], type + " " + nozzle_volumes_def->enum_labels[i]) ||
+                    extruder_max_nozzle_count->values[index] > 1 && nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[i]) == nvtHybrid) {
+                    if (diameter == "0.2" && nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[i]) == NozzleVolumeType::nvtHighFlow)
                         continue;
                     if (nozzle_volumes->values[index] == i)
                         select = extruder.combo_flow->GetCount();
@@ -10836,6 +10841,8 @@ bool Plater::priv::is_extruder_stat_synced(int target_extruder_id)
 
     auto nozzle_volume_values = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
     auto nozzle_diameter_values = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values;
+    auto extruder_nozzle_stats = preset_bundle->extruder_nozzle_stat.get_raw_stat();
+
 
     std::vector<std::vector<NozzleGroupInfo>> preset_nozzle_infos(nozzle_diameter_values.size());
 
@@ -10843,8 +10850,20 @@ bool Plater::priv::is_extruder_stat_synced(int target_extruder_id)
         NozzleVolumeType preset_volume_type = NozzleVolumeType(nozzle_volume_values[extruder_id]);
         std::string      preset_diameter = format_diameter_to_str(nozzle_diameter_values[extruder_id]);
 
-        NozzleGroupInfo preset_info(preset_diameter, preset_volume_type, extruder_id, preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id, preset_volume_type));
-        preset_nozzle_infos[extruder_id].emplace_back(preset_info);
+        if (preset_volume_type == nvtHybrid) {
+            if (extruder_id < extruder_nozzle_stats.size()) {
+                for (auto& elem : extruder_nozzle_stats[extruder_id]) {
+                    NozzleVolumeType type = elem.first;
+                    int              count = elem.second;
+                    NozzleGroupInfo  preset_info(preset_diameter, type, extruder_id, count);
+                    preset_nozzle_infos[extruder_id].emplace_back(preset_info);
+                }
+            }
+        }
+        else {
+            NozzleGroupInfo preset_info(preset_diameter, preset_volume_type, extruder_id, preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id, preset_volume_type));
+            preset_nozzle_infos[extruder_id].emplace_back(preset_info);
+        }
     }
 
     auto printer_groups = obj->GetNozzleSystem()->GetNozzleGroups();

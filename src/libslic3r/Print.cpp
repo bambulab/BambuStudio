@@ -2104,16 +2104,19 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
             auto map_mode = get_filament_map_mode();
             // get recommended filament map
             {
-                if(m_nozzle_group_result.has_value()){
-                    filament_maps = m_nozzle_group_result->filament_map;
+                if(get_nozzle_group_result().has_value()){
+                    filament_maps = get_nozzle_group_result()->get_extruder_map();
                 }
                 else{
                     auto group_result = ToolOrdering::get_recommended_filament_maps(this,all_filaments,map_mode,physical_unprintables,geometric_unprintables);
-                    filament_maps = group_result.filament_map;
                     set_nozzle_group_result(group_result);
                 }
-                std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value + 1; });
-                update_filament_maps_to_config(filament_maps);
+                auto group_result = get_nozzle_group_result();
+                update_filament_maps_to_config(
+                    group_result->get_extruder_map(false),
+                    group_result->get_volume_map(),
+                    group_result->get_nozzle_map()
+                );
             }
 
             //        print_object_instances_ordering = sort_object_instances_by_max_z(print);
@@ -2713,6 +2716,11 @@ std::vector<int> Print::get_filament_maps() const
     return m_config.filament_map.values;
 }
 
+std::vector<int> Print::get_filament_nozzle_maps() const
+{
+    return m_config.filament_nozzle_map.values;
+}
+
 std::vector<int> Print::get_filament_volume_maps() const
 {
     return m_config.filament_volume_map.values;
@@ -2806,6 +2814,15 @@ size_t Print::get_extruder_id(unsigned int filament_id) const
         return filament_map[filament_id] - 1;
     }
     return 0;
+}
+
+size_t Print::get_config_idx_for_filament(unsigned int filament_id) const
+{
+    std::vector<int> filament_map_2 = m_config.filament_map_2.values;
+    if (filament_id < filament_map_2.size()) {
+        return filament_map_2[filament_id];
+    }
+    return  0;
 }
 
 // Wipe tower support.

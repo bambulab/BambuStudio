@@ -62,6 +62,7 @@ private:
     std::unordered_map<int, std::unordered_map<int, NozzleInfo>> extruder_to_filament_nozzles;
     std::vector<NozzleInfo> filament_to_nozzle;
     std::vector<unsigned int> used_filaments;
+    std::vector<int> filament_map; // extruder map
 public:
     MultiNozzleGroupResult() = default;
     MultiNozzleGroupResult(const std::vector<int> &filament_nozzle_map, const std::vector<NozzleInfo> &nozzle_list, const std::vector<unsigned int>& used_filament);
@@ -76,13 +77,22 @@ public:
     std::pair<int, int>     get_used_extruders_nozzles_count(const std::vector<unsigned int> &filament_list) const; // 获取给定材料列表下使用的挤出机，及对应的喷嘴
     std::vector<int>        get_extruder_list() const;
 
-    std::vector<int> filament_map;
+    std::vector<int>        get_extruder_map(bool zero_based = true) const; 
+    std::vector<int>        get_nozzle_map() const;
+    std::vector<int>        get_volume_map() const;
+
+
+    int  get_config_idx_for_filament(int filament_idx, const PrintConfig& config);
+
+
 
 public:
     int                       get_extruder_id(int filament_id) const;       // 根据材料id取逻辑挤出机id
     int                       get_nozzle_count(int extruder_id = -1) const; // 获取指定挤出机下的使用的喷嘴数量，-1表示所有挤出机的喷嘴数量总和
     std::vector<NozzleInfo>   get_nozzle_vec(int extruder_id = -1) const; // 获取指定挤出机下的使用的喷嘴列表，-1表示所有挤出机的喷嘴
     std::optional<NozzleInfo> get_nozzle_for_filament(int filament_id) const;
+
+    std::unordered_map<const PrintConfig*, std::vector<int>> config_idx_map;
 };
 
 class NozzleStatusRecorder

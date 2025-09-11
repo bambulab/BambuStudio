@@ -35,7 +35,7 @@ void GCodeEditor::reset(const Vec3d &position)
     m_current_pos[0] = float(position.x());
     m_current_pos[1] = float(position.y());
     m_current_pos[2] = float(position.z());
-    m_current_pos[4] = float(m_config.travel_speed.get_at(get_extruder_index(m_config, m_current_extruder)));
+    m_current_pos[4] = float(m_config.travel_speed.get_at(get_config_idx_for_filament(m_config, m_current_extruder)));
     m_fan_speed = -1;
     m_additional_fan_speed = -1;
     m_current_fan_speed = -1;

@@ -261,9 +261,9 @@ int ExtruderNozzleStat::get_extruder_nozzle_count(int extruder_id, std::optional
 {
     if(extruder_id<0 || extruder_id >= extruder_nozzle_counts.size())
         return 0;
-    if(!volume_type.has_value())
+    if (!volume_type.has_value() || volume_type == NozzleVolumeType::nvtHybrid)
         return std::accumulate(extruder_nozzle_counts[extruder_id].begin(), extruder_nozzle_counts[extruder_id].end(), 0,
-            [](int sum, const std::pair<NozzleVolumeType,int>& p){ return sum + p.second; });
+            [](int sum, const std::pair<NozzleVolumeType, int>& p) { return sum + p.second; });
 
     auto iter = extruder_nozzle_counts[extruder_id].find(*volume_type);
     if(iter == extruder_nozzle_counts[extruder_id].end())
@@ -1955,7 +1955,7 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     std::vector<int> filament_maps(filament_colors.size(), 1);
     project_config.option<ConfigOptionInts>("filament_map")->values = filament_maps;
 
-    std::vector<int> filament_nozzle_maps(filament_colors.size(),-1);
+    std::vector<int> filament_nozzle_maps(filament_colors.size(),0);
     project_config.option<ConfigOptionInts>("filament_nozzle_map")->values = filament_nozzle_maps;
 
     std::vector<int> filament_volume_maps(filament_colors.size(), static_cast<int>(NozzleVolumeType::nvtStandard));

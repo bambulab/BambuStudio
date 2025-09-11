@@ -86,6 +86,14 @@ size_t get_extruder_index(const GCodeConfig& config, unsigned int filament_id)
     return 0;
 }
 
+size_t get_config_idx_for_filament(const GCodeConfig& config, unsigned int filament_id)
+{
+    if (filament_id < config.filament_map_2.size()) {
+        return config.filament_map_2.get_at(filament_id);
+    }
+    return 0;
+}
+
 static t_config_enum_names enum_names_from_keys_map(const t_config_enum_values &enum_keys_map)
 {
     t_config_enum_names names;
@@ -434,7 +442,8 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ExtruderType)
 
 static const t_config_enum_values s_keys_map_NozzleVolumeType = {
     { "Standard",  nvtStandard },
-    { "High Flow", nvtHighFlow }
+    { "High Flow", nvtHighFlow },
+    { "Hybrid", nvtHybrid}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(NozzleVolumeType)
 
@@ -1894,7 +1903,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_volume_map", coInts);
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionInts{(int)(NozzleVolumeType::nvtDefault)});
+    def->set_default_value(new ConfigOptionInts{(int)(NozzleVolumeType::nvtHybrid)});
 
 
     def = this->add("physical_extruder_map",coInts);
@@ -3929,8 +3938,10 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<NozzleVolumeType>::get_enum_values();
     def->enum_values.push_back(L("Standard"));
     def->enum_values.push_back(L("High Flow"));
+    def->enum_values.push_back("Hybrid");
     def->enum_labels.push_back(L("Standard"));
     def->enum_labels.push_back(L("High Flow"));
+    def->enum_labels.push_back(L("Hybrid"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnumsGeneric{ NozzleVolumeType::nvtStandard });
 
@@ -7517,7 +7528,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
             ExtruderType extruder_type = (ExtruderType)(opt_extruder_type->get_at(extruder_id - 1));
             NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(extruder_id - 1));
 
-            if (nozzle_volume_type == nvtDefault) {
+            if (nozzle_volume_type == nvtHybrid) {
                 if (extruder_nozzle_volume_count > extruder_count) {
                     //use the one passed
                     nozzle_volume_type = filament_nvt;

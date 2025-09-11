@@ -185,7 +185,7 @@ NozzleVolumeType to_nozzle_volume_type(const NozzleFlowType &type)
     switch (type) {
         case NozzleFlowType::S_FLOW: return NozzleVolumeType::nvtStandard;
         case NozzleFlowType::H_FLOW: return NozzleVolumeType::nvtHighFlow;
-        default: return NozzleVolumeType::nvtDefault;
+        default: return NozzleVolumeType::nvtStandard;
     }
 }
 
