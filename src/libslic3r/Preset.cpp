@@ -1076,7 +1076,7 @@ static std::vector<std::string> s_Preset_printer_options {
     // BBS
     "scan_first_layer", "wrapping_detection_layers", "wrapping_exclude_area", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode", "template_custom_gcode","machine_hotend_change_time",
     "nozzle_type","auxiliary_fan", "fan_direction", "nozzle_volume","upward_compatible_machine", "z_hop_types","support_chamber_temp_control","support_air_filtration","support_cooling_filter","cooling_filter_enabled","printer_structure","thumbnail_size",
-    "best_object_pos", "head_wrap_detect_zone","printer_notes",
+    "best_object_pos", "head_wrap_detect_zone","printer_notes","print_in_clockwise",
     "enable_long_retraction_when_cut","long_retractions_when_cut","retraction_distances_when_cut",
     //OrcaSlicer
     "host_type", "print_host", "printhost_apikey",
