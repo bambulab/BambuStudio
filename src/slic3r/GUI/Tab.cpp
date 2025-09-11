@@ -4614,6 +4614,7 @@ void TabPrinter::on_preset_loaded()
         }
 
         // only reset nozzle count when printer model is changed
+        // TODO: 换预设的时候，如果是混合模式，不知道怎么设置默认喷嘴数量
         if (base_model != m_base_preset_model) {
             auto extruder_max_nozzle_count = current_printer.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
             auto nozzle_volume_type = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
@@ -4621,7 +4622,7 @@ void TabPrinter::on_preset_loaded()
             if (extruder_max_nozzle_count && nozzle_volume_type) {
                 wxGetApp().plater()->sidebar().enable_nozzle_count_edit(has_multiple_nozzle);
                 for (size_t idx = 0; idx < extruders_count; ++idx) {
-                    setExtruderNozzleCount(m_preset_bundle, idx, NozzleVolumeType(nozzle_volume_type->values[idx]), extruder_max_nozzle_count->values[idx]);
+                    setExtruderNozzleCount(m_preset_bundle, idx, NozzleVolumeType(nozzle_volume_type->values[idx]), extruder_max_nozzle_count->values[idx],true);
                 }
             }
         }
@@ -6257,7 +6258,8 @@ void TabPrinter::set_extruder_volume_type(int extruder_id, NozzleVolumeType type
     nozzle_volumes->values[extruder_id] = type;
 
     int nozzle_count_val = m_preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id);
-    setExtruderNozzleCount(m_preset_bundle, extruder_id, type, nozzle_count_val);
+    updateNozzleCountDisplay(m_preset_bundle, extruder_id, type);
+
     on_value_change((boost::format("nozzle_volume_type#%1%") % extruder_id).str(), int(type));
     update_dirty();
 

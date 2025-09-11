@@ -1089,6 +1089,7 @@ namespace Slic3r {
         float m_fan_speed; // percentage
         ExtrusionRole m_extrusion_role;
         std::vector<int> m_filament_maps;
+        std::vector<int> m_config_idx_for_filament;
         std::vector<unsigned char> m_last_filament_id;
         std::vector<unsigned char> m_filament_id;
         unsigned char m_extruder_id;
@@ -1413,6 +1414,8 @@ namespace Slic3r {
         int get_last_filament_id(bool force_initialize = true) const;
         //get current used extruder
         int get_extruder_id(bool force_initialize = true)const;
+
+        int get_config_idx_for_filament(int filament_idx) const;
    };
 
 } /* namespace Slic3r */

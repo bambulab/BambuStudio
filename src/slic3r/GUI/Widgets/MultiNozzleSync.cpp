@@ -139,7 +139,7 @@ void manuallySetNozzleCount(int extruder_id)
 
     if (dialog.ShowModal() == wxID_OK) {
         int nozzle_count = dialog.GetNozzleCount();
-        setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count);
+        setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count,true);
     }
 }
 
@@ -253,13 +253,13 @@ void ExtruderBadge::UnMarkRelatedItems(const NozzleOption& option)
     bool left_selected = true, right_selected = true;
 
     if (m_diameter_list[LeftExtruderIdx] == option.diameter && option.extruder_nozzle_stats.count(LeftExtruderIdx)
-        && option.extruder_nozzle_stats.at(LeftExtruderIdx).first == m_volume_type_list[LeftExtruderIdx]
-        && option.extruder_nozzle_stats.at(LeftExtruderIdx).second > 0)
+        && option.extruder_nozzle_stats.at(LeftExtruderIdx).count(m_volume_type_list[LeftExtruderIdx])
+        && option.extruder_nozzle_stats.at(LeftExtruderIdx).at(m_volume_type_list[LeftExtruderIdx])>0)
         left_selected = false;
 
     if (m_diameter_list[RightExtruderIdx] == option.diameter && option.extruder_nozzle_stats.count(RightExtruderIdx)
-        && option.extruder_nozzle_stats.at(RightExtruderIdx).first == m_volume_type_list[RightExtruderIdx]
-        && option.extruder_nozzle_stats.at(RightExtruderIdx).second > 0)
+        && option.extruder_nozzle_stats.at(RightExtruderIdx).count(m_volume_type_list[RightExtruderIdx])
+        && option.extruder_nozzle_stats.at(RightExtruderIdx).at(m_volume_type_list[RightExtruderIdx])>0)
         right_selected = false;
 
     SetExtruderStatus(left_selected, right_selected);
@@ -270,13 +270,13 @@ void ExtruderBadge::MarkRelatedItems(const NozzleOption& option)
     bool left_selected = false, right_selected = false;
 
     if (m_diameter_list[LeftExtruderIdx] == option.diameter && option.extruder_nozzle_stats.count(LeftExtruderIdx)
-        && option.extruder_nozzle_stats.at(LeftExtruderIdx).first == m_volume_type_list[LeftExtruderIdx]
-        && option.extruder_nozzle_stats.at(LeftExtruderIdx).second > 0)
+        && option.extruder_nozzle_stats.at(LeftExtruderIdx).count(m_volume_type_list[LeftExtruderIdx])
+        && option.extruder_nozzle_stats.at(LeftExtruderIdx).at(m_volume_type_list[LeftExtruderIdx]) > 0)
         left_selected = true;
 
     if (m_diameter_list[RightExtruderIdx] == option.diameter && option.extruder_nozzle_stats.count(RightExtruderIdx)
-        && option.extruder_nozzle_stats.at(RightExtruderIdx).first == m_volume_type_list[RightExtruderIdx]
-        && option.extruder_nozzle_stats.at(RightExtruderIdx).second > 0)
+        && option.extruder_nozzle_stats.at(RightExtruderIdx).count(m_volume_type_list[RightExtruderIdx])
+        && option.extruder_nozzle_stats.at(RightExtruderIdx).at(m_volume_type_list[RightExtruderIdx]) > 0)
         right_selected = true;
 
     SetExtruderStatus(left_selected, right_selected);
@@ -320,11 +320,13 @@ std::vector<int> HotEndTable::FilterHotEnds(const NozzleOption& option)
     std::vector<HotEndAttr> nozzles_to_search;
 
     for (auto& item : option.extruder_nozzle_stats) {
-        HotEndAttr info;
-        info.diameter = option.diameter;
-        info.extruder_id = item.first;
-        info.volume_type = item.second.first;
-        nozzles_to_search.emplace_back(info);
+        for (auto& nozzle : item.second) {
+            HotEndAttr info;
+            info.diameter = option.diameter;
+            info.extruder_id = item.first;
+            info.volume_type = nozzle.first;
+            nozzles_to_search.emplace_back(info);
+        }
     }
 
     std::vector<int> filtered_nozzles;
@@ -518,8 +520,8 @@ wxString NozzleListTable::BuildTableObjStr()
         json extruders = json::object();
         for (const auto& [extruderId, nozzleInfo] : option.extruder_nozzle_stats) {
             nlohmann::json nozzleData;
-            nozzleData["type"] = get_nozzle_volume_type_string(nozzleInfo.first);
-            nozzleData["count"] = nozzleInfo.second;
+            nozzleData["type"] = "";
+            nozzleData["count"] = std::accumulate(nozzleInfo.begin(), nozzleInfo.end(), 0, [](int val, auto elem) {return val + elem.second; });
             extruders[std::to_string(extruderId)] = nozzleData;
         }
         json_opt["extruders"] = extruders;
@@ -867,10 +869,14 @@ bool MultiNozzleSyncDialog::UpdateOptionList(std::weak_ptr<DevNozzleRack> rack, 
 
     int recommend_idx = std::max_element(options.begin(), options.end(), [](const NozzleOption& opt1, const NozzleOption& opt2) {
         int count1 = 0, count2 = 0;
-        for (auto elem : opt1.extruder_nozzle_stats)
-            count1 += elem.second.second;
-        for (auto elem : opt2.extruder_nozzle_stats)
-            count2 += elem.second.second;
+        for (auto elem : opt1.extruder_nozzle_stats) {
+            for (auto& stats : elem.second)
+                count1 += stats.second;
+        }
+        for (auto elem : opt2.extruder_nozzle_stats) {
+            for (auto& stats : elem.second)
+                count2 += stats.second;
+        }
         return count1 < count2;
         }) - options.begin();
 
@@ -1058,15 +1064,21 @@ std::optional<NozzleOption> tryPopUpMultiNozzleDialog(MachineObject* obj)
         for (int extruder_id = 0; extruder_id < 2; ++extruder_id) {
             NozzleVolumeType volume_type;
             int nozzle_count;
+            bool clear_all = true;
             if (!selected_option->extruder_nozzle_stats.count(extruder_id)) {
                 volume_type = NozzleVolumeType(nozzle_volume_type_opt->values[extruder_id]);
                 nozzle_count = 0;
+                setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count, clear_all);
+                clear_all = false;
             }
             else {
-                volume_type = selected_option->extruder_nozzle_stats[extruder_id].first;
-                nozzle_count = selected_option->extruder_nozzle_stats[extruder_id].second;
+                for (auto& stat : selected_option->extruder_nozzle_stats[extruder_id]) {
+                    volume_type = stat.first;
+                    nozzle_count = stat.second;
+                    setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count, clear_all);
+                    clear_all = false;
+                }
             }
-            setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count);
         }
         return selected_option;
     }
@@ -1074,21 +1086,26 @@ std::optional<NozzleOption> tryPopUpMultiNozzleDialog(MachineObject* obj)
     return std::nullopt;
 }
 
-void setExtruderNozzleCount(PresetBundle* preset_bundle, int extruder_id, NozzleVolumeType volume_type, int nozzle_count, bool update_ui)
+void setExtruderNozzleCount(PresetBundle* preset_bundle, int extruder_id, NozzleVolumeType volume_type, int nozzle_count, bool clear_all)
 {
     if (!preset_bundle)
         return;
-    // currently we do not support multiple volume types
-    preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(extruder_id, volume_type, nozzle_count, true);
-    if (update_ui) {
-        int sum_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id);
-        auto nozzle_count_opt = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
-        bool support_multi_nozzle = std::any_of(nozzle_count_opt->values.begin(), nozzle_count_opt->values.end(), [](int val) {return val > 1; });
+    if (volume_type == NozzleVolumeType::nvtHybrid)
+        return;
 
-        int display_count = support_multi_nozzle ? sum_count : -1; // do not display nozzle count
-        wxGetApp().plater()->sidebar().set_extruder_nozzle_count(extruder_id, display_count);
-    }
+    preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(extruder_id, volume_type, nozzle_count, clear_all);
 }
 
+void updateNozzleCountDisplay(PresetBundle* preset_bundle, int extruder_id, NozzleVolumeType volume_type)
+{
+    int nozzle_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id, volume_type);
+
+    auto nozzle_count_opt = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    bool support_multi_nozzle = std::any_of(nozzle_count_opt->values.begin(), nozzle_count_opt->values.end(), [](int val) {return val > 1; });
+
+    int display_count = support_multi_nozzle ? nozzle_count : -1;
+    wxGetApp().plater()->sidebar().set_extruder_nozzle_count(extruder_id, display_count);
+
+}
 
 }
