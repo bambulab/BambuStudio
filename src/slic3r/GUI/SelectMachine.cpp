@@ -1389,7 +1389,6 @@ void SelectMachineDialog::auto_supply_with_ext(std::vector<DevAmsTray> slots) {
     }
 }
 
-
 int SelectMachineDialog::convert_filament_map_nozzle_id_to_task_nozzle_id(int nozzle_id)
 {
     if (nozzle_id == (int)FilamentMapNozzleId::NOZZLE_LEFT) {
@@ -4531,7 +4530,6 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
     }
 
     std::unordered_map<NozzleDef, int> need_nozzle_map;
-    const std::vector<Slic3r::MultiNozzleUtils::NozzleInfo>& nozzle_vec = nozzle_group_res->get_nozzle_vec(LOGIC_R_EXTRUDER_ID);
     for (auto slicing_nozzle : nozzle_vec) {
         try {
             NozzleDef data;
@@ -4570,8 +4568,7 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
     }
 
     if (!nozzle_unmeet && nozzle_sys->HasUnreliableNozzles()) {
-        show_status(PrintStatusHasUnreliableNozzleWarning, {}, wxEmptyString,
-                    prePrintInfoStyle::BtnNozzleRefresh | prePrintInfoStyle::BtnConfirmNotShowAgain);
+        show_status(PrintStatusHasUnreliableNozzleWarning);
     }
 }
 
