@@ -17,13 +17,6 @@ enum FlowRatioCaliSource {
     FROM_COARSE_PAGE,
 };
 
-/* note: is not extruder id !!! */
-enum ExtruderRole {
-    SINGLE_EXTRUDER = 0,
-    MAIN_EXTRUDER,
-    DEPUTY_EXTRUDER,
-};
-
 class CalibrationPresetPage;
 
 class CaliPresetCaliStagePanel : public wxPanel

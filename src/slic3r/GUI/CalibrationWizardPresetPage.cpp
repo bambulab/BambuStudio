@@ -1050,6 +1050,7 @@ wxSizer* CalibrationPresetPage::create_slot_items_sizer(wxPanel* slot_items_pane
         FilamentComboBox *fcb = new FilamentComboBox(slot_items_panel, i + 4);
         fcb->SetRadioBox(radio_btn);
         fcb->SetCheckBox(check_box);
+        fcb->SetExtuderRole(extuder_role);
         fcb->set_select_mode(CalibrationFilamentMode::CALI_MODEL_SINGLE);
 
         filament_comboBox_sizer->Add(radio_btn, 0, wxALIGN_CENTER);
@@ -2672,24 +2673,38 @@ std::vector<FilamentComboBox*> CalibrationPresetPage::get_selected_filament_comb
 std::map<int, CaliFilamentInfo> CalibrationPresetPage::get_selected_filaments()
 {
     std::map<int, CaliFilamentInfo> out;
-    if (!curr_obj)
-        return out;
+    if (!curr_obj || !curr_obj->GetNozzleSystem()) return out;
 
     std::vector<FilamentComboBox*> fcb_list = get_selected_filament_combobox();
-    for (int i = 0; i < fcb_list.size(); i++) {
-        Preset* preset = const_cast<Preset*>(fcb_list[i]->GetComboBox()->get_selected_preset());
-        int nozzle_pos_id = fcb_list[i]->GetNozzleIdCode();
+    for (auto &fcb : fcb_list) {
+        int nozzle_pos_id = -1;
         std::string nozzle_sn;
-        if (nozzle_pos_id != -1) {
-            DevNozzle nozzle = curr_obj->get_nozzle_by_id_code(nozzle_pos_id);
-            nozzle_sn = nozzle.GetSerialNumber().ToStdString();
+
+        if (curr_obj->GetNozzleSystem()->GetNozzleRack()->IsSupported())
+        {
+            if (fcb->GetExtuderRole()== ExtruderRole::MAIN_EXTRUDER)
+            {
+                if (nozzle_pos_id != -1) {
+                    DevNozzle nozzle = curr_obj->get_nozzle_by_id_code(nozzle_pos_id);
+                    nozzle_sn = nozzle.GetSerialNumber().ToStdString();
+                } else {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__<< "rack: right extuder has an invaild pos id";
+                }
+                nozzle_pos_id = fcb->GetNozzleIdCode();
+            }
+            else if (fcb->GetExtuderRole()== ExtruderRole::DEPUTY_EXTRUDER)
+            {
+                nozzle_sn = "";
+                nozzle_pos_id = DEPUTY_EXTRUDER_ID;
+            }
         }
         // valid tray id
-        if (fcb_list[i]->get_tray_id() >= 0) {
-            out.emplace(std::make_pair(fcb_list[i]->get_tray_id(), CaliFilamentInfo(preset, nozzle_pos_id, nozzle_sn)));
+        if (fcb->get_tray_id() >= 0)
+        {
+            Preset* preset = const_cast<Preset*>(fcb->GetComboBox()->get_selected_preset());
+            out.emplace(std::make_pair(fcb->get_tray_id(), CaliFilamentInfo(preset, nozzle_pos_id, nozzle_sn)));
         }
     }
-
 
     return out;
 }
