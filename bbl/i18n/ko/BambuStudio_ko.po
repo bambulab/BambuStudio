@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-09 14:22+0800\n"
+"POT-Creation-Date: 2025-09-11 14:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -9089,6 +9089,9 @@ msgstr ""
 msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
 msgstr ""
 
+msgid "Uninstall the Helio Additive extension"
+msgstr ""
+
 msgid "Use Immediately"
 msgstr ""
 
@@ -9116,9 +9119,6 @@ msgstr "Helio Additive의 개인정보 보호정책"
 msgid "Terms of Use of Helio Additive"
 msgstr "Helio Additive 이용 약관"
 
-msgid "Uninstall the Helio Additive extension"
-msgstr ""
-
 msgid "Agree and proceed"
 msgstr ""
 
@@ -9129,6 +9129,12 @@ msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
 msgstr ""
 
 msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
+msgstr ""
+
+msgid "Simulation"
+msgstr ""
+
+msgid "Optimization"
 msgstr ""
 
 msgid "Chamber Temperature"
@@ -9163,6 +9169,9 @@ msgstr ""
 
 msgid "Max Volumetric Speed"
 msgstr "최대 체적 속도"
+
+msgid "Trace ID: "
+msgstr ""
 
 msgid "Buy Now"
 msgstr ""
@@ -13744,6 +13753,18 @@ msgstr "강도를 우선시하는 0.8mm 노즐의 강도 프로필."
 
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "속도를 우선시하는 0.8mm 노즐의 표준 프로필."
+
+msgid "Failed to create GCodeV2"
+msgstr ""
+
+msgid "Failed to parse response"
+msgstr ""
+
+msgid "Helio simulation task failed"
+msgstr ""
+
+msgid "Helio optimization task failed"
+msgstr ""
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Helio API 엔드포인트가 비어 있습니다. 구성을 확인하세요."
