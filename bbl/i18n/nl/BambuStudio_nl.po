@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-09 14:22+0800\n"
+"POT-Creation-Date: 2025-09-11 14:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -9106,6 +9106,9 @@ msgstr ""
 msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
 msgstr ""
 
+msgid "Uninstall the Helio Additive extension"
+msgstr ""
+
 msgid "Use Immediately"
 msgstr ""
 
@@ -9133,9 +9136,6 @@ msgstr "Privacybeleid van Helio Additive"
 msgid "Terms of Use of Helio Additive"
 msgstr "Gebruiksvoorwaarden van Helio Additive"
 
-msgid "Uninstall the Helio Additive extension"
-msgstr ""
-
 msgid "Agree and proceed"
 msgstr ""
 
@@ -9146,6 +9146,12 @@ msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
 msgstr ""
 
 msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
+msgstr ""
+
+msgid "Simulation"
+msgstr ""
+
+msgid "Optimization"
 msgstr ""
 
 msgid "Chamber Temperature"
@@ -9180,6 +9186,9 @@ msgstr ""
 
 msgid "Max Volumetric Speed"
 msgstr "Maximale volumetrische snelheid"
+
+msgid "Trace ID: "
+msgstr ""
 
 msgid "Buy Now"
 msgstr ""
@@ -13758,6 +13767,18 @@ msgstr "Sterkteprofiel voor nozzle van 0,8 mm, waarbij kracht voorop staat."
 
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Standaardprofiel voor nozzle van 0,8 mm, waarbij snelheid voorop staat."
+
+msgid "Failed to create GCodeV2"
+msgstr ""
+
+msgid "Failed to parse response"
+msgstr ""
+
+msgid "Helio simulation task failed"
+msgstr ""
+
+msgid "Helio optimization task failed"
+msgstr ""
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Helio API-eindpunt is leeg, controleer de configuratie alstublieft."

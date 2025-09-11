@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-09 14:22+0800\n"
+"POT-Creation-Date: 2025-09-11 14:44+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -9038,16 +9038,19 @@ msgid "reconnect"
 msgstr "重新连接"
 
 msgid "Third-party Extension"
-msgstr ""
+msgstr "第三方扩展"
 
 msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
-msgstr ""
+msgstr "更坚固的零件、更少翘曲、更快打印—由高速物理FEM 仿真驱动"
+
+msgid "Uninstall the Helio Additive extension"
+msgstr "卸载 Helio Additive 扩展"
 
 msgid "Use Immediately"
-msgstr ""
+msgstr "立即使用"
 
 msgid "Third-Party Extension"
-msgstr ""
+msgstr "第三方扩展"
 
 msgid "HELIO ADDITIVE"
 msgstr ""
@@ -9070,14 +9073,11 @@ msgstr "Helio Additive 隐私政策"
 msgid "Terms of Use of Helio Additive"
 msgstr "Helio Additive 使用条款"
 
-msgid "Uninstall the Helio Additive extension"
-msgstr "卸载 Helio Additive 扩展"
-
 msgid "Agree and proceed"
 msgstr ""
 
 msgid "Got it"
-msgstr ""
+msgstr "知道了"
 
 msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
 msgstr "获取 Helio-PAT 失败，点击刷新重新获取。"
@@ -9085,38 +9085,47 @@ msgstr "获取 Helio-PAT 失败，点击刷新重新获取。"
 msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
 msgstr ""
 
+msgid "Simulation"
+msgstr ""
+
+msgid "Optimization"
+msgstr ""
+
 msgid "Chamber Temperature"
 msgstr "腔温"
 
 msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
-msgstr ""
+msgstr "注意：以上温度请根据实际情况调整。数据越准确，分析结果越精确。"
 
 msgid "Helio's advanced feature for power users: available post purchase on its official website."
 msgstr "Helio 的高级功能，面向专业用户：可在官方网站购买后获得。"
 
 msgid "Monthly quota remaining: "
-msgstr ""
+msgstr "每月剩余配额： "
 
 msgid "Add-ons available: "
-msgstr ""
+msgstr "可用的附加组件： "
 
 msgid "Optimise Outer Walls"
-msgstr ""
+msgstr "优化外墙"
 
 msgid "Advanced Settings"
-msgstr ""
+msgstr "高级设置"
 
 msgid "Min Velocity"
-msgstr ""
+msgstr "最小速度"
 
 msgid "Max Velocity"
-msgstr ""
+msgstr "最大速度"
 
 msgid "Min Volumetric Speed"
-msgstr ""
+msgstr "最小体积速度"
 
 msgid "Max Volumetric Speed"
-msgstr "最大容积速度"
+msgstr "最大体积速度"
+
+msgid "Trace ID: "
+msgstr ""
 
 msgid "Buy Now"
 msgstr ""
@@ -9125,10 +9134,10 @@ msgid "Click for more details"
 msgstr "点击查看更多详情"
 
 msgid "Buy add-ons"
-msgstr ""
+msgstr "购买附加组件"
 
 msgid "Layers to Optimize "
-msgstr ""
+msgstr "需要优化的层 "
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
 msgstr "获取 Helio-PAT 失败。已达到发行 PAT 的上限。请关注 Helio 官方网站的信息。可点击刷新重新获取。"
@@ -13685,6 +13694,18 @@ msgstr "0.8mm喷嘴的高强度打印参数，强度优先。"
 
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "0.8mm喷嘴的默认参数，速度优先。"
+
+msgid "Failed to create GCodeV2"
+msgstr ""
+
+msgid "Failed to parse response"
+msgstr ""
+
+msgid "Helio simulation task failed"
+msgstr ""
+
+msgid "Helio optimization task failed"
+msgstr ""
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Helio API 端点为空，请检查配置。"
