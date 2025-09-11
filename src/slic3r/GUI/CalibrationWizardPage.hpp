@@ -28,6 +28,13 @@ namespace Slic3r { namespace GUI {
 
 class CalibrationWizard;
 
+/* note: it's not extruder id !!! */
+enum ExtruderRole {
+    SINGLE_EXTRUDER = 0,
+    MAIN_EXTRUDER,
+    DEPUTY_EXTRUDER,
+};
+
 enum class CalibrationStyle : int
 {
     CALI_STYLE_DEFAULT = 0,
@@ -108,6 +115,9 @@ public:
     void ShowNozzleCombo();
     void HideNozzleCombo();
 
+    void SetExtuderRole(const ExtruderRole& role){ m_extuder_role = role; }
+    ExtruderRole GetExtuderRole() const { return m_extuder_role; }
+
 protected:
     int m_index{0};
     int m_tray_id { -1 };
@@ -121,6 +131,7 @@ protected:
     ComboBox* m_nozzle_combo{ nullptr };
 
     CalibrationFilamentMode m_mode { CalibrationFilamentMode::CALI_MODEL_SINGLE };
+    ExtruderRole m_extuder_role{ExtruderRole::SINGLE_EXTRUDER};
 };
 
 typedef std::vector<FilamentComboBox*> FilamentComboBoxList;
