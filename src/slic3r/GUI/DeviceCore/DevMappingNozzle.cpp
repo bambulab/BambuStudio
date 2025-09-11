@@ -169,6 +169,7 @@ void s_auto_nozzle_mapping(const nlohmann::json &print_jj, DevNozzleMappingResul
 {
     result.Clear();
     DevJsonValParser::ParseVal(print_jj, "result", result.m_result);
+    DevJsonValParser::ParseVal(print_jj, "reason", result.m_mqtt_reason);
     DevJsonValParser::ParseVal(print_jj, "errno", result.m_errno);
     DevJsonValParser::ParseVal(print_jj, "detail", result.m_detail_json);
     DevJsonValParser::ParseVal(print_jj, "type", result.m_type);
@@ -198,6 +199,7 @@ void DevNozzleMappingResult::Clear()
 {
     m_sequence_id.clear();
     m_result.clear();
+    m_mqtt_reason.clear();
     m_type.clear();
     m_errno = 0;
     m_detail_msg.clear();
