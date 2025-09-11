@@ -16,16 +16,26 @@ mv @SLIC3R_APP_CMD@ AppRun
 chmod +x AppRun
 
 cp resources/images/@SLIC3R_APP_KEY@_192px.png @SLIC3R_APP_KEY@.png
-mkdir -p usr/share/icons/hicolor/192x192/apps
-cp resources/images/@SLIC3R_APP_KEY@_192px.png usr/share/icons/hicolor/192x192/apps/@SLIC3R_APP_KEY@.png
+for PNG_SIZE in 32 128 192; do
+    mkdir -p usr/share/icons/hicolor/${PNG_SIZE}x${PNG_SIZE}/apps
+    cp resources/images/@SLIC3R_APP_KEY@_${PNG_SIZE}px.png usr/share/icons/hicolor/${PNG_SIZE}x${PNG_SIZE}/apps/@SLIC3R_APP_KEY@.png
+done
+
 cat <<EOF > @SLIC3R_APP_KEY@.desktop
 [Desktop Entry]
 Name=@SLIC3R_APP_KEY@
-Exec=AppRun %F
+GenericName=3D Printing Software
+Comment=A cutting-edge, feature-rich slicing software.
+Exec=AppRun %U
 Icon=@SLIC3R_APP_KEY@
+Terminal=false
 Type=Application
-Categories=Utility;
-MimeType=model/stl;application/vnd.ms-3mfdocument;application/prs.wavefront-obj;application/x-amf;
+Categories=Graphics;3DGraphics;Engineering;
+MimeType=model/stl;model/3mf;application/vnd.ms-3mfdocument;application/prs.wavefront-obj;application/x-amf;x-scheme-handler/bambustudio;x-scheme-handler/bambustudioopen;
+Keywords=3D;Printing;Slicer;slice;3D;printer;convert;gcode;stl;obj;amf;SLA
+StartupNotify=false
+StartupWMClass=@SLIC3R_APP_CMD@
+X-AppImage-Version=@SLIC3R_VERSION@
 EOF
 
 
