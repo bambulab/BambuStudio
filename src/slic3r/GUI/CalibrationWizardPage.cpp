@@ -299,12 +299,11 @@ FilamentComboBox::FilamentComboBox(wxWindow* parent, int index, const wxPoint& p
 
 void FilamentComboBox::UpdateNozzleCombo(const std::vector<std::pair<wxString, int>> &nozzle_list)
 {
-    int index = (m_nozzle_combo->GetSelection() == -1 || m_nozzle_combo->GetSelection() >= nozzle_list.size()) ? 0 : m_nozzle_combo->GetSelection();
     m_nozzle_combo->Clear();
 
     for (auto &pair : nozzle_list) { m_nozzle_combo->Append(pair.first, wxNullBitmap, new int{pair.second}); }
 
-    m_nozzle_combo->SetSelection(index);
+    m_nozzle_combo->SetSelection(0);
 
     /* nozzle Id combox update after load_tray, avoid make a bad influence for other */
     if (m_nozzle_combo->GetCount() == 0) { Enable(false); }
@@ -378,13 +377,19 @@ void FilamentComboBox::load_tray_from_ams(int id, DynamicPrintConfig& tray)
 
     }
 
+    if (m_nozzle_combo->IsShown() && m_nozzle_combo->GetCount() == 0) { Enable(false); }
+
     // check compatibility
     wxCommandEvent event(EVT_CALI_TRAY_CHANGED);
     event.SetEventObject(GetParent());
     wxPostEvent(GetParent(), event);
 }
 
-void FilamentComboBox::update_from_preset() { m_comboBox->update(); }
+void FilamentComboBox::update_from_preset()
+{
+    m_comboBox->update();
+    m_nozzle_combo->SetSelection(0);
+}
 
 bool FilamentComboBox::Show(bool show)
 {

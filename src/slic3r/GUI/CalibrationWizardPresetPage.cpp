@@ -2496,6 +2496,10 @@ void CalibrationPresetPage::update_nozzle_id_combox()
             fcb->UpdateNozzleCombo(nozzle_list);
             fcb->ShowNozzleCombo();
         }
+    } else {
+        for (auto &fcb : m_main_filament_comboBox_list) {
+            fcb->HideNozzleCombo();
+        }
     }
 }
 
@@ -2739,32 +2743,18 @@ void CalibrationPresetPage::get_cali_stage(CaliPresetStage& stage, float& value)
 
 void CalibrationPresetPage::update_multi_extruder_filament_combobox(const std::string &ams_id, int nozzle_id)
 {
-    if (nozzle_id == 0) {
-        for (auto &fcb : m_main_filament_comboBox_list) {
-            fcb->update_from_preset();
-            fcb->set_select_mode(m_cali_filament_mode);
-        }
-        for (auto i = 0; i < m_main_ams_preview_list.size(); i++) {
-            AMSPreview *item = m_main_ams_preview_list[i];
-            if (item->get_ams_id() == ams_id) {
-                item->OnSelected();
-            } else {
-                item->UnSelected();
-            }
-        }
+    auto &filament_comboBox_list = nozzle_id == MAIN_EXTRUDER_ID ? m_main_filament_comboBox_list : m_deputy_filament_comboBox_list;
+    auto &ams_preview_list       = nozzle_id == MAIN_EXTRUDER_ID ? m_main_ams_preview_list : m_deputy_ams_preview_list;
+
+    for (auto &fcb : filament_comboBox_list) {
+        fcb->update_from_preset();
+        fcb->set_select_mode(m_cali_filament_mode);
     }
-    else {
-        for (auto &fcb : m_deputy_filament_comboBox_list) {
-            fcb->update_from_preset();
-            fcb->set_select_mode(m_cali_filament_mode);
-        }
-        for (auto i = 0; i < m_deputy_ams_preview_list.size(); i++) {
-            AMSPreview *item = m_deputy_ams_preview_list[i];
-            if (item->get_ams_id() == ams_id) {
-                item->OnSelected();
-            } else {
-                item->UnSelected();
-            }
+    for (auto item : ams_preview_list) {
+        if (item->get_ams_id() == ams_id) {
+            item->OnSelected();
+        } else {
+            item->UnSelected();
         }
     }
 
@@ -2779,11 +2769,9 @@ void CalibrationPresetPage::update_multi_extruder_filament_combobox(const std::s
     if (filament_ams_list.empty()) return;
 
     int ams_id_int = 0;
-    try {
-        if (!ams_id.empty())
-            ams_id_int = stoi(ams_id.c_str());
-
-    } catch (...) {}
+    if (!ams_id.empty()) {
+        try { ams_id_int = stoi(ams_id.c_str()); } catch (...) {}
+    }
 
     int item_size = 4;
     if (ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
@@ -2796,16 +2784,9 @@ void CalibrationPresetPage::update_multi_extruder_filament_combobox(const std::s
 
     for (int i = 0; i < 4; i++) {
         if (i < item_size) {
-            if (nozzle_id == 0)
-                m_main_filament_comboBox_list[i]->ShowPanel();
-            else
-                m_deputy_filament_comboBox_list[i]->ShowPanel();
-        }
-        else {
-            if (nozzle_id == 0)
-                m_main_filament_comboBox_list[i]->HidePanel();
-            else
-                m_deputy_filament_comboBox_list[i]->HidePanel();
+            filament_comboBox_list[i]->ShowPanel();
+        } else {
+            filament_comboBox_list[i]->HidePanel();
         }
 
         int tray_index = ams_id_int * 4 + i;
@@ -2813,26 +2794,12 @@ void CalibrationPresetPage::update_multi_extruder_filament_combobox(const std::s
             tray_index = stoi(ams_id);
         }
 
-        auto it = std::find_if(filament_ams_list.begin(), filament_ams_list.end(), [tray_index](auto &entry) {
-            return entry.first == tray_index;
-        });
-
-        if (nozzle_id == 0) {
-            if (m_main_filament_comboBox_list.empty())
-                continue;
+        if (!filament_comboBox_list.empty()) {
+            auto it = std::find_if(filament_ams_list.begin(), filament_ams_list.end(), [tray_index](auto &entry) { return entry.first == tray_index; });
             if (it != filament_ams_list.end()) {
-                m_main_filament_comboBox_list[i]->load_tray_from_ams(tray_index, it->second);
+                filament_comboBox_list[i]->load_tray_from_ams(tray_index, it->second);
             } else {
-                m_main_filament_comboBox_list[i]->load_tray_from_ams(tray_index, empty_config);
-            }
-        }
-        else{
-            if (m_deputy_filament_comboBox_list.empty())
-                continue;
-            if (it != filament_ams_list.end()) {
-                m_deputy_filament_comboBox_list[i]->load_tray_from_ams(tray_index, it->second);
-            } else {
-                m_deputy_filament_comboBox_list[i]->load_tray_from_ams(tray_index, empty_config);
+                filament_comboBox_list[i]->load_tray_from_ams(tray_index, empty_config);
             }
         }
     }
