@@ -103,6 +103,7 @@ struct DevNozzleMappingResult
 {
     std::string m_sequence_id;
     std::string m_result;
+    std::string m_mqtt_reason;
     std::string m_type; // auto or manual
 
     int         m_errno;
