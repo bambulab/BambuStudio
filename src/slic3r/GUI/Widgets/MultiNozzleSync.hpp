@@ -10,7 +10,7 @@
 #include "slic3r/GUI/Widgets/RadioBox.hpp"
 #include <wx/webview.h>
 
-#define ENABLE_MIX_FLOW_PRINT 0
+#define ENABLE_MIX_FLOW_PRINT 1
 
 namespace Slic3r {
     class PresetBundle;
@@ -182,7 +182,9 @@ private:
 
 std::optional<NozzleOption> tryPopUpMultiNozzleDialog(MachineObject* obj);
 
-void setExtruderNozzleCount(PresetBundle* preset_bundle, int extruder_id, NozzleVolumeType type, int nozzle_count, bool update_ui = true);
+void setExtruderNozzleCount(PresetBundle* preset_bundle, int extruder_id, NozzleVolumeType type, int nozzle_count, bool clear_before_set);
+
+void updateNozzleCountDisplay(PresetBundle* preset_bundle, int extruder_id, NozzleVolumeType volume_type);
 
 void manuallySetNozzleCount(int extruder_id);
 

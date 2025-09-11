@@ -1115,15 +1115,21 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
 
     std::vector<MultiNozzleUtils::NozzleGroupInfo> nozzle_groups;
     auto extruder_nozzle_counts = get_extruder_nozzle_stats(print_config.extruder_nozzle_stats.values);
+    auto nozzle_volume_types = print_config.nozzle_volume_type.values;
     for(size_t idx = 0; idx < extruder_nums; ++idx){
         if (idx >= extruder_nozzle_counts.size() || extruder_nozzle_counts[idx].empty()) {
             nozzle_groups.emplace_back(format_diameter_to_str(print_config.nozzle_diameter.values[idx]), NozzleVolumeType(print_config.nozzle_volume_type.values[idx]), idx,
                                        print_config.extruder_max_nozzle_count.values[idx]);
         }
-        else{
-            for(auto [volume_type,count] : extruder_nozzle_counts[idx]){
-                nozzle_groups.emplace_back(format_diameter_to_str(print_config.nozzle_diameter.values[idx]), volume_type, idx, count);
+        else {
+            NozzleVolumeType type = NozzleVolumeType(nozzle_volume_types[idx]);
+            if (type == nvtHybrid) {
+                for (auto [volume_type, count] : extruder_nozzle_counts[idx]) {
+                    nozzle_groups.emplace_back(format_diameter_to_str(print_config.nozzle_diameter.values[idx]), volume_type, idx, count);
+                }
             }
+            else
+                nozzle_groups.emplace_back(format_diameter_to_str(print_config.nozzle_diameter.values[idx]), type, idx, extruder_nozzle_counts[idx][type]);
         }
     }
 
@@ -1201,8 +1207,9 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
             }
             MultiNozzleUtils::MultiNozzleGroupResult result(ret, context.nozzle_info.nozzle_list, used_filaments);
             if (mode == FilamentMapMode::fmmManual) {
+                auto result_map = result.get_extruder_map();
                 for (auto fid : used_filaments) {
-                    if (result.filament_map[fid] != print_config.filament_map.values[fid] - 1) {
+                    if (result_map[fid] != print_config.filament_map.values[fid] - 1) {
                         throw Slic3r::RuntimeError("Inconsistent filament map result in manual mode. Please check nozzle count.");
                     }
                 }
@@ -1295,20 +1302,24 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
             }
 
             if(m_print->get_nozzle_group_result().has_value()){
-                filament_maps =m_print->get_nozzle_group_result()->filament_map;
+                filament_maps =m_print->get_nozzle_group_result()->get_extruder_map();
             }
             else{
                 auto group_result = ToolOrdering::get_recommended_filament_maps(m_print,layer_filaments,map_mode,physical_unprintables,geometric_unprintables);
                 m_print->set_nozzle_group_result(group_result);
-                filament_maps = group_result.filament_map;
+                filament_maps = group_result.get_extruder_map();
             }
             if (filament_maps.empty())
                     return;
-            std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value + 1; });
-            m_print->update_filament_maps_to_config(filament_maps);
-        }
-        std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value - 1; });
 
+            auto group_result = m_print->get_nozzle_group_result();
+            m_print->update_filament_maps_to_config(
+                group_result->get_extruder_map(false),
+                group_result->get_volume_map(),
+                group_result->get_nozzle_map()
+            );
+
+        }
         check_filament_printable_after_group(used_filaments, filament_maps, print_config);
     }
     else {

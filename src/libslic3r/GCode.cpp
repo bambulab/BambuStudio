@@ -363,7 +363,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         //OrcaSlicer
         double cur_speed  = gcodegen.writer().get_current_speed();
         double wipe_speed = gcodegen.config().role_base_wipe_speed && cur_speed > EPSILON ? cur_speed / 60 :
-            gcodegen.writer().config.travel_speed.get_at(get_extruder_index(gcodegen.writer().config, gcodegen.writer().filament()->id())) * gcodegen.config().wipe_speed.value / 100;
+            gcodegen.writer().config.travel_speed.get_at(get_config_idx_for_filament(gcodegen.writer().config, gcodegen.writer().filament()->id())) * gcodegen.config().wipe_speed.value / 100;
 
         if (toolchange) { wipe_speed = gcodegen.m_print->config().prime_tower_max_speed.value; }
 
@@ -1223,6 +1223,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_writer.filament()->extruder_id())
 #define FILAMENT_CONFIG(OPT) m_config.OPT.get_at(m_writer.filament()->id())
+#define NOZZLE_CONFIG(OPT)   m_config.OPT.get_at(m_config.filament_map_2.values[m_writer.filament()->id()])
+
 // Collect pairs of object_layer + support_layer sorted by print_z.
 // object_layer & support_layer are considered to be on the same print_z, if they are not further than EPSILON.
 std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObject& object)
@@ -1738,7 +1740,7 @@ namespace DoExport {
                         // BBS: remove small small_perimeter_speed config, and will absolutely
                         // remove related code if no other issue in the coming release.
 	                    //region.config().get_abs_value("small_perimeter_speed") == 0 ||
-	                    region.config().outer_wall_speed.get_at(cur_extruder_index()) == 0 ||
+	                    region.config().outer_wall_speed.get_at(cur_config_index()) == 0 ||
 	                    region.config().get_abs_value("bridge_speed") == 0)
 	                    mm3_per_mm.push_back(layerm->perimeters.min_mm3_per_mm());
 	                if (region.config().get_abs_value("sparse_infill_speed") == 0 ||
@@ -2716,8 +2718,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
         std::string gcode;
         gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Layer_Change) + "\n";
-        if ((m_config.default_acceleration.get_at(cur_extruder_index()) > 0 && m_config.outer_wall_acceleration.get_at(cur_extruder_index()) > 0)) {
-            m_writer.set_acceleration((unsigned int) floor(m_config.outer_wall_acceleration.get_at(cur_extruder_index()) + 0.5));
+        if ((NOZZLE_CONFIG(default_acceleration) > 0 && NOZZLE_CONFIG(outer_wall_acceleration) > 0)) {
+            m_writer.set_acceleration((unsigned int) floor(NOZZLE_CONFIG(outer_wall_acceleration) + 0.5));
         }
 
         if (m_config.default_jerk.value > 0 && !this->is_BBL_Printer()) {
@@ -2728,7 +2730,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         CalibPressureAdvanceLine pa_test(this);
         double                 filament_max_volumetric_speed = m_config.option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed")->get_at(initial_extruder_id);
         Flow                   pattern_line                  = Flow(pa_test.line_width(), 0.2, m_config.nozzle_diameter.get_at(0));
-        auto                   fast_speed = std::min(print.default_region_config().outer_wall_speed.get_at(cur_extruder_index()), filament_max_volumetric_speed / pattern_line.mm3_per_mm());
+        auto                   fast_speed = std::min(print.default_region_config().outer_wall_speed.get_at(cur_config_index()), filament_max_volumetric_speed / pattern_line.mm3_per_mm());
         auto                   slow_speed = fast_speed / 4; /*std::max(20.0, fast_speed / 10.0);*/
         pa_test.set_speed(fast_speed, slow_speed);
         pa_test.draw_numbers() = print.calib_params().print_numbers;
@@ -3099,6 +3101,12 @@ size_t GCode::cur_extruder_index() const
     return get_extruder_id(m_writer.filament()->id());
 }
 
+size_t GCode::cur_config_index() const
+{
+    return m_config.filament_map_2.get_at(m_writer.filament()->id());
+}
+
+
 size_t GCode::get_extruder_id(unsigned int filament_id) const
 {
     if (m_print) {
@@ -3110,9 +3118,9 @@ size_t GCode::get_extruder_id(unsigned int filament_id) const
 void GCode::set_extrude_acceleration(bool is_first_layer)
 {
     if (is_first_layer) {
-        m_writer.set_acceleration((unsigned int) floor(m_config.initial_layer_acceleration.get_at(cur_extruder_index()) + 0.5));
+        m_writer.set_acceleration((unsigned int) floor(NOZZLE_CONFIG(initial_layer_acceleration) + 0.5));
     } else {
-        m_writer.set_acceleration((unsigned int) floor(m_config.default_acceleration.get_at(cur_extruder_index()) + 0.5));
+        m_writer.set_acceleration((unsigned int) floor(NOZZLE_CONFIG(default_acceleration) + 0.5));
     }
 }
 
@@ -3965,8 +3973,8 @@ GCode::LayerResult GCode::process_layer(
     //BBS
     if (first_layer) {
         //BBS: set first layer global acceleration
-        if (m_config.default_acceleration.get_at(cur_extruder_index()) > 0 && m_config.initial_layer_acceleration.get_at(cur_extruder_index()) > 0) {
-            double acceleration = m_config.initial_layer_acceleration.get_at(cur_extruder_index());
+        if (NOZZLE_CONFIG(default_acceleration) > 0 && NOZZLE_CONFIG(initial_layer_acceleration) > 0) {
+            double acceleration = NOZZLE_CONFIG(initial_layer_acceleration);
             m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
         }
 
@@ -3992,8 +4000,8 @@ GCode::LayerResult GCode::process_layer(
         }
 
         //BBS:  reset acceleration at sencond layer
-        if (m_config.default_acceleration.get_at(cur_extruder_index()) > 0 && m_config.initial_layer_acceleration.get_at(cur_extruder_index()) > 0) {
-            double acceleration = m_config.default_acceleration.get_at(cur_extruder_index());
+        if (NOZZLE_CONFIG(default_acceleration) > 0 && NOZZLE_CONFIG(initial_layer_acceleration) > 0) {
+            double acceleration = NOZZLE_CONFIG(default_acceleration);
             m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
         }
 
@@ -4473,7 +4481,7 @@ GCode::LayerResult GCode::process_layer(
                     path.mm3_per_mm = mm3_per_mm;
                 }
                 //FIXME using the support_speed of the 1st object printed.
-                gcode += this->extrude_loop(loop, "skirt", m_config.support_speed.get_at(cur_extruder_index()));
+                gcode += this->extrude_loop(loop, "skirt", NOZZLE_CONFIG(support_speed));
             }
             m_avoid_crossing_perimeters.use_external_mp(false);
             // Allow a straight travel move to the first object point if this is the first layer (but don't in next layers).
@@ -4498,7 +4506,7 @@ GCode::LayerResult GCode::process_layer(
                 set_origin(unscaled(offset));
                 for (ExtrusionEntity* ee : layer.object()->object_skirt().entities)
                     //FIXME using the support_speed of the 1st object printed.
-                    gcode += this->extrude_entity(*ee, "skirt", m_config.support_speed.get_at(cur_extruder_index()));
+                    gcode += this->extrude_entity(*ee, "skirt", NOZZLE_CONFIG(support_speed));
             }
         }
 
@@ -4561,7 +4569,7 @@ GCode::LayerResult GCode::process_layer(
                         this->set_origin(0., 0.);
                         m_avoid_crossing_perimeters.use_external_mp();
                         for (const ExtrusionEntity* ee : print.m_supportBrimMap.at(instance_to_print.print_object.id()).entities) {
-                            gcode += this->extrude_entity(*ee, "brim", m_config.support_speed.get_at(cur_extruder_index()));
+                            gcode += this->extrude_entity(*ee, "brim", NOZZLE_CONFIG(support_speed));
                         }
                         m_avoid_crossing_perimeters.use_external_mp(false);
                         // Allow a straight travel move to the first object point.
@@ -4602,7 +4610,7 @@ GCode::LayerResult GCode::process_layer(
                             this->set_origin(0., 0.);
                             m_avoid_crossing_perimeters.use_external_mp();
                             for (const ExtrusionEntity* ee : print.m_brimMap.at(instance_to_print.print_object.id()).entities) {
-                                gcode += this->extrude_entity(*ee, "brim", m_config.support_speed.get_at(cur_extruder_index()));
+                                gcode += this->extrude_entity(*ee, "brim", NOZZLE_CONFIG(support_speed));
                             }
                             m_avoid_crossing_perimeters.use_external_mp(false);
                             // Allow a straight travel move to the first object point.
@@ -4920,24 +4928,23 @@ double GCode::get_path_speed(const ExtrusionPath &path)
     // set speed
     double speed = 0;
     if (path.role() == erPerimeter) {
-        speed = m_config.inner_wall_speed.get_at(cur_extruder_index());
-        if (m_config.enable_overhang_speed.get_at(cur_extruder_index())) {
+        speed = NOZZLE_CONFIG(inner_wall_speed);
+        if (NOZZLE_CONFIG(enable_overhang_speed)) {
             double new_speed = 0;
             new_speed        = get_overhang_degree_corr_speed(speed, path.overhang_degree);
             speed            = new_speed == 0.0 ? speed : new_speed;
         }
     } else if (path.role() == erExternalPerimeter) {
-        speed = m_config.outer_wall_speed.get_at(cur_extruder_index());
-        if (m_config.enable_overhang_speed.get_at(cur_extruder_index())) {
+        speed = NOZZLE_CONFIG(outer_wall_speed);
+        if (NOZZLE_CONFIG(enable_overhang_speed)) {
             double new_speed = 0;
             new_speed        = get_overhang_degree_corr_speed(speed, path.overhang_degree);
             speed            = new_speed == 0.0 ? speed : new_speed;
         }
-    }
-    else if (path.role() == erOverhangPerimeter && path.overhang_degree == 5)
-        speed = m_config.overhang_totally_speed.get_at(cur_extruder_index());
+    } else if (path.role() == erOverhangPerimeter && path.overhang_degree == 5)
+        speed = NOZZLE_CONFIG(overhang_totally_speed);
     else if (path.role() == erOverhangPerimeter || path.role() == erBridgeInfill || path.role() == erSupportTransition) {
-        speed = m_config.bridge_speed.get_at(cur_extruder_index());
+        speed = NOZZLE_CONFIG(bridge_speed);
     }
     auto _mm3_per_mm = path.mm3_per_mm * double(m_curr_print->calib_mode() == CalibMode::Calib_Flow_Rate ? this->config().print_flow_ratio.value : 1);
 
@@ -4952,7 +4959,7 @@ double GCode::get_path_speed(const ExtrusionPath &path)
     if (this->on_first_layer()) {
         // BBS: for solid infill of initial layer, speed can be higher as long as
         // wall lines have be attached
-        if (path.role() != erBottomSurface) speed = m_config.initial_layer_speed.get_at(cur_extruder_index());
+        if (path.role() != erBottomSurface) speed = NOZZLE_CONFIG(initial_layer_speed);
     }
 
     if (filament_max_volumetric_speed > 0) {
@@ -5016,8 +5023,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
     double small_peri_speed=-1;
     // apply the small perimeter speed
-    if (speed==-1 && loop.length() <= SMALL_PERIMETER_LENGTH(m_config.small_perimeter_threshold.get_at(cur_extruder_index())))
-        small_peri_speed = m_config.small_perimeter_speed.get_at(cur_extruder_index()).get_abs_value(m_config.outer_wall_speed.get_at(cur_extruder_index()));
+    if (speed==-1 && loop.length() <= SMALL_PERIMETER_LENGTH(NOZZLE_CONFIG(small_perimeter_threshold)))
+        small_peri_speed = NOZZLE_CONFIG(small_perimeter_speed).get_abs_value(NOZZLE_CONFIG(outer_wall_speed));
 
     // extrude along the path
     std::string gcode;
@@ -5119,7 +5126,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
     if (!this->on_first_layer()) {
         // reset acceleration
-        m_writer.set_acceleration((unsigned int) (m_config.default_acceleration.get_at(cur_extruder_index()) + 0.5));
+        m_writer.set_acceleration((unsigned int) (NOZZLE_CONFIG(default_acceleration) + 0.5));
         if (!this->is_BBL_Printer())
             gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
     }
@@ -5204,7 +5211,7 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
     if (!this->on_first_layer()) {
         // reset acceleration
-        m_writer.set_acceleration((unsigned int) floor(m_config.default_acceleration.get_at(cur_extruder_index()) + 0.5));
+        m_writer.set_acceleration((unsigned int) floor(NOZZLE_CONFIG(default_acceleration) + 0.5));
         if (!this->is_BBL_Printer())
             gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
     }
@@ -5248,7 +5255,7 @@ std::string GCode::extrude_path(ExtrusionPath path, std::string description, dou
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
     if (!this->on_first_layer()) {
         // reset acceleration
-        m_writer.set_acceleration((unsigned int) floor(m_config.default_acceleration.get_at(cur_extruder_index()) + 0.5));
+        m_writer.set_acceleration((unsigned int) floor(NOZZLE_CONFIG(default_acceleration) + 0.5));
         if (!this->is_BBL_Printer())
             gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
     }
@@ -5316,8 +5323,8 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
 
     std::string gcode;
     if (! support_fills.entities.empty()) {
-        const double support_speed  = m_config.support_speed.get_at(cur_extruder_index());
-        const double support_interface_speed = m_config.support_interface_speed.get_at(cur_extruder_index());
+        const double support_speed  = NOZZLE_CONFIG(support_speed);
+        const double support_interface_speed = NOZZLE_CONFIG(support_interface_speed);
         for (const ExtrusionEntity *ee : support_fills.entities) {
             ExtrusionRole role = ee->role();
             assert(role == erSupportMaterial || role == erSupportMaterialInterface || role == erSupportTransition);
@@ -5765,18 +5772,18 @@ bool GCode::slowDownByHeight(double& maxSpeed, double& maxAcc, const ExtrusionPa
 {
     double height1, height2, speed1, speed2, acc1, acc2, desiredMaxSpeed = 1000., desiredMaxAcc = 100000;
     double currentHeight = this->m_layer->print_z;
-    bool do_slowdown_by_height = m_config.enable_height_slowdown.get_at(cur_extruder_index());
+    bool do_slowdown_by_height = NOZZLE_CONFIG(enable_height_slowdown);
 
     if (path.role() > erNone && path.role() <= erGapFill) {}
     else do_slowdown_by_height = false;
 
     if (do_slowdown_by_height) {
-        height1 = m_config.slowdown_start_height.get_at(cur_extruder_index());
-        height2 = m_config.slowdown_end_height.get_at(cur_extruder_index());
-        speed1 = m_config.slowdown_start_speed.get_at(cur_extruder_index());
-        speed2 = m_config.slowdown_end_speed.get_at(cur_extruder_index());
-        acc1 = m_config.slowdown_start_acc.get_at(cur_extruder_index());
-        acc2 = m_config.slowdown_end_acc.get_at(cur_extruder_index());
+        height1 = NOZZLE_CONFIG(slowdown_start_height);
+        height2 = NOZZLE_CONFIG(slowdown_end_height);
+        speed1 = NOZZLE_CONFIG(slowdown_start_speed);
+        speed2 = NOZZLE_CONFIG(slowdown_end_speed);
+        acc1 = NOZZLE_CONFIG(slowdown_start_acc);
+        acc2 = NOZZLE_CONFIG(slowdown_end_acc);
 
         if (height1 >= height2 || currentHeight > height2 || currentHeight < height1) do_slowdown_by_height = false;
         else {
@@ -5882,29 +5889,29 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     m_config.apply(m_calib_config);
 
     // adjust acceleration
-    if (m_config.default_acceleration.get_at(cur_extruder_index()) > 0) {
+    if (NOZZLE_CONFIG(default_acceleration) > 0) {
         double acceleration;
-        if (this->on_first_layer() && m_config.initial_layer_acceleration.get_at(cur_extruder_index()) > 0) {
-            acceleration = m_config.initial_layer_acceleration.get_at(cur_extruder_index());
+        if (this->on_first_layer() && NOZZLE_CONFIG(initial_layer_acceleration) > 0) {
+            acceleration = NOZZLE_CONFIG(initial_layer_acceleration);
 #if 0
         } else if (this->object_layer_over_raft() && m_config.first_layer_acceleration_over_raft.value > 0) {
             acceleration = m_config.first_layer_acceleration_over_raft.value;
         } else if (m_config.bridge_acceleration.value > 0 && is_bridge(path.role())) {
             acceleration = m_config.bridge_acceleration.value;
 #endif
-        } else if (m_config.outer_wall_acceleration.get_at(cur_extruder_index()) > 0
+        } else if (NOZZLE_CONFIG(outer_wall_acceleration) > 0
             //BBS: FIXME, in fact,we only need to set acceleration for outer wall. But we don't know
             //whether the overhang perimeter is outer or not. So using specific acceleration together.
             && (path.role() == erExternalPerimeter || path.role() == erOverhangPerimeter)) {
-            acceleration = m_config.outer_wall_acceleration.get_at(cur_extruder_index());
-        } else if (m_config.top_surface_acceleration.get_at(cur_extruder_index()) > 0 && is_top_surface(path.role())) {
-            acceleration = m_config.top_surface_acceleration.get_at(cur_extruder_index());
-        } else if (m_config.inner_wall_acceleration.get_at(cur_extruder_index()) > 0 && path.role() == erPerimeter) {
-            acceleration = m_config.inner_wall_acceleration.get_at(cur_extruder_index());
-        } else if (m_config.get_abs_value_at("sparse_infill_acceleration", cur_extruder_index()) > 0 && (path.role() == erInternalInfill)) {
-            acceleration = m_config.get_abs_value_at("sparse_infill_acceleration", cur_extruder_index());
+            acceleration = NOZZLE_CONFIG(outer_wall_acceleration);
+        } else if (NOZZLE_CONFIG(top_surface_acceleration) > 0 && is_top_surface(path.role())) {
+            acceleration = NOZZLE_CONFIG(top_surface_acceleration);
+        } else if (NOZZLE_CONFIG(inner_wall_acceleration) > 0 && path.role() == erPerimeter) {
+            acceleration = NOZZLE_CONFIG(inner_wall_acceleration);
+        } else if (m_config.get_abs_value_at("sparse_infill_acceleration", cur_config_index()) > 0 && (path.role() == erInternalInfill)) {
+            acceleration = m_config.get_abs_value_at("sparse_infill_acceleration", cur_config_index());
         } else {
-            acceleration = m_config.default_acceleration.get_at(cur_extruder_index());
+            acceleration = NOZZLE_CONFIG(default_acceleration);
         }
         if (do_slowdown_by_height)
             acceleration = std::min(acceleration, desiredMaxAcc);
@@ -5941,10 +5948,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     // set speed
     if (speed == -1) {
         if (path.role() == erPerimeter) {
-            speed = m_config.inner_wall_speed.get_at(cur_extruder_index());
+            speed = NOZZLE_CONFIG(inner_wall_speed);
             //reset speed by auto compensation speed
             if(use_seperate_speed) {
-                speed = m_config.circle_compensation_speed.get_at(cur_extruder_index());
+                speed = NOZZLE_CONFIG(circle_compensation_speed);
             }else if (m_config.detect_overhang_wall && m_config.smooth_speed_discontinuity_area && path.smooth_speed != 0)
                 speed = path.smooth_speed;
             else if (m_config.enable_overhang_speed.get_at(cur_extruder_index())) {
@@ -5953,10 +5960,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 speed = new_speed == 0.0 ? speed : new_speed;
             }
         } else if (path.role() == erExternalPerimeter) {
-            speed = m_config.outer_wall_speed.get_at(cur_extruder_index());
+            speed = NOZZLE_CONFIG(outer_wall_speed);
             // reset speed by auto compensation speed
             if (use_seperate_speed) {
-                speed = m_config.circle_compensation_speed.get_at(cur_extruder_index());
+                speed = NOZZLE_CONFIG(circle_compensation_speed);
             } else if (m_config.detect_overhang_wall && m_config.smooth_speed_discontinuity_area && path.smooth_speed != 0)
                 speed = path.smooth_speed;
             else if (m_config.enable_overhang_speed.get_at(cur_extruder_index())) {
@@ -5965,34 +5972,34 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 speed = new_speed == 0.0 ? speed : new_speed;
             }
         } else if (path.role() == erOverhangPerimeter && path.overhang_degree == 5) {
-            speed = m_config.overhang_totally_speed.get_at(cur_extruder_index());
+            speed = NOZZLE_CONFIG(overhang_totally_speed);
         } else if (path.role() == erOverhangPerimeter || path.role() == erBridgeInfill || path.role() == erSupportTransition) {
-            speed = m_config.bridge_speed.get_at(cur_extruder_index());
+            speed = NOZZLE_CONFIG(bridge_speed);
         } else if (path.role() == erInternalInfill) {
-            speed = m_config.sparse_infill_speed.get_at(cur_extruder_index());
+            speed = NOZZLE_CONFIG(sparse_infill_speed);
         } else if (path.role() == erSolidInfill) {
-            speed = m_config.internal_solid_infill_speed.get_at(cur_extruder_index());
+            speed = NOZZLE_CONFIG(internal_solid_infill_speed);
         } else if (path.role() == erFloatingVerticalShell){
             if(use_seperate_speed){
-                speed = m_config.bridge_speed.get_at(cur_extruder_index());
+                speed = NOZZLE_CONFIG(bridge_speed);
             }
             else{
-                speed = m_config.vertical_shell_speed.get_at(cur_extruder_index()).get_abs_value(m_config.internal_solid_infill_speed.get_at(cur_extruder_index()));
+                speed = NOZZLE_CONFIG(vertical_shell_speed).get_abs_value(NOZZLE_CONFIG(internal_solid_infill_speed));
             }
         }
          else if (path.role() == erTopSolidInfill) {
-            speed = m_config.top_surface_speed.get_at(cur_extruder_index());
+            speed = NOZZLE_CONFIG(top_surface_speed);
         } else if (path.role() == erIroning) {
             speed = m_config.get_abs_value("ironing_speed");
         } else if (path.role() == erBottomSurface) {
-            speed = m_config.initial_layer_infill_speed.get_at(cur_extruder_index());
+            speed = NOZZLE_CONFIG(initial_layer_infill_speed);
         } else if (path.role() == erGapFill) {
-            speed = m_config.gap_infill_speed.get_at(cur_extruder_index());
+            speed = NOZZLE_CONFIG(gap_infill_speed);
         }
         else if (path.role() == erSupportMaterial ||
                  path.role() == erSupportMaterialInterface) {
-            const double  support_speed = m_config.support_speed.get_at(cur_extruder_index());
-            const double support_interface_speed = m_config.support_interface_speed.get_at(cur_extruder_index());
+            const double  support_speed = NOZZLE_CONFIG(support_speed);
+            const double support_interface_speed = NOZZLE_CONFIG(support_interface_speed);
             speed = (path.role() == erSupportMaterial) ? support_speed : support_interface_speed;
         } else {
             throw Slic3r::InvalidArgument("Invalid speed");
@@ -6016,7 +6023,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         //BBS: for solid infill of initial layer, speed can be higher as long as
         //wall lines have be attached
         if (path.role() != erBottomSurface)
-            speed = m_config.initial_layer_speed.get_at(cur_extruder_index());
+            speed = NOZZLE_CONFIG(initial_layer_speed);
     }
     //BBS: remove this config
     //else if (this->object_layer_over_raft())

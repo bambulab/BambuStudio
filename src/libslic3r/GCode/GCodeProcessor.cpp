@@ -1900,6 +1900,8 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         std::transform(m_filament_maps.begin(), m_filament_maps.end(), m_filament_maps.begin(), [](int value) {return value - 1; });
     }
 
+    m_config_idx_for_filament = config.filament_map_2.values;
+
     const ConfigOptionBool* spiral_vase = config.option<ConfigOptionBool>("spiral_mode");
     if (spiral_vase != nullptr)
         m_detect_layer_based_on_tag  = spiral_vase->value;
@@ -2052,6 +2054,11 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     if (filament_maps != nullptr) {
         m_filament_maps = filament_maps->values;
         std::transform(m_filament_maps.begin(), m_filament_maps.end(), m_filament_maps.begin(), [](int value) {return value - 1; });
+    }
+
+    auto config_idx_for_filament = config.option<ConfigOptionInts>("filament_map_2");
+    if (config_idx_for_filament != nullptr){
+        m_config_idx_for_filament = config_idx_for_filament->values;
     }
 
     //BBS
@@ -4003,7 +4010,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 
             curr.abs_axis_feedrate[a] = std::abs(curr.axis_feedrate[a]);
             if (curr.abs_axis_feedrate[a] != 0.0f) {
-                float axis_max_feedrate = get_axis_max_feedrate(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_extruder_id());
+                float axis_max_feedrate = get_axis_max_feedrate(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_config_idx_for_filament(get_filament_id()));
                 if (axis_max_feedrate != 0.0f) min_feedrate_factor = std::min<float>(min_feedrate_factor, axis_max_feedrate / curr.abs_axis_feedrate[a]);
             }
         }
@@ -4021,7 +4028,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 
         //BBS
         for (unsigned char a = X; a <= E; ++a) {
-            float axis_max_acceleration = get_axis_max_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_extruder_id());
+            float axis_max_acceleration = get_axis_max_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_config_idx_for_filament(get_filament_id()));
             if (acceleration * std::abs(delta_pos[a]) * inv_distance > axis_max_acceleration)
                 acceleration = axis_max_acceleration / (std::abs(delta_pos[a]) * inv_distance);
         }
@@ -4397,7 +4404,7 @@ void GCodeProcessor::process_VG1(const GCodeReader::GCodeLine& line)
 
             curr.abs_axis_feedrate[a] = std::abs(curr.axis_feedrate[a]);
             if (curr.abs_axis_feedrate[a] != 0.0f) {
-                float axis_max_feedrate = get_axis_max_feedrate(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_extruder_id());
+                float axis_max_feedrate = get_axis_max_feedrate(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_config_idx_for_filament(get_filament_id()));
                 if (axis_max_feedrate != 0.0f) min_feedrate_factor = std::min<float>(min_feedrate_factor, axis_max_feedrate / curr.abs_axis_feedrate[a]);
             }
         }
@@ -4421,7 +4428,7 @@ void GCodeProcessor::process_VG1(const GCodeReader::GCodeLine& line)
 
         //BBS
         for (unsigned char a = X; a <= E; ++a) {
-            float axis_max_acceleration = get_axis_max_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_extruder_id());
+            float axis_max_acceleration = get_axis_max_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_config_idx_for_filament(get_filament_id()));
             if (acceleration * std::abs(delta_pos[a]) * inv_distance > axis_max_acceleration)
                 acceleration = axis_max_acceleration / (std::abs(delta_pos[a]) * inv_distance);
         }
@@ -4785,7 +4792,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
 
             curr.abs_axis_feedrate[a] = std::abs(curr.axis_feedrate[a]);
             if (curr.abs_axis_feedrate[a] != 0.0f) {
-                float axis_max_feedrate = get_axis_max_feedrate(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_extruder_id());
+                float axis_max_feedrate = get_axis_max_feedrate(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_config_idx_for_filament(get_filament_id()));
                 if (axis_max_feedrate != 0.0f) min_feedrate_factor = std::min<float>(min_feedrate_factor, axis_max_feedrate / curr.abs_axis_feedrate[a]);
             }
         }
@@ -4812,7 +4819,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
                 axis_acc[a] = acceleration * std::abs(delta_pos[a]) * inv_distance;
 
             if (axis_acc[a] != 0.0f) {
-                float axis_max_acceleration = get_axis_max_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_extruder_id());
+                float axis_max_acceleration = get_axis_max_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_config_idx_for_filament(get_filament_id()));
                 if (axis_max_acceleration != 0.0f && axis_acc[a] > axis_max_acceleration) min_acc_factor = std::min<float>(min_acc_factor, axis_max_acceleration / axis_acc[a]);
             }
         }
@@ -6153,6 +6160,11 @@ int GCodeProcessor::get_extruder_id(bool force_initialize)const
     if (m_extruder_id == (unsigned char)(-1))
         return force_initialize ? 0 : -1;
     return static_cast<int>(m_extruder_id);
+}
+
+int GCodeProcessor::get_config_idx_for_filament(int filament_idx) const
+{
+    return m_config_idx_for_filament[filament_idx];
 }
 
 void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimeProcessor::InsertedLinesMap& inserted_operation_lines)

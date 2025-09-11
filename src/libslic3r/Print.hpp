@@ -885,8 +885,8 @@ public:
     const PrintObjectConfig&    default_object_config() const { return m_default_object_config; }
     const PrintRegionConfig&    default_region_config() const { return m_default_region_config; }
     ConstPrintObjectPtrsAdaptor objects() const { return ConstPrintObjectPtrsAdaptor(&m_objects); }
-    PrintObject*                get_object(size_t idx) { return const_cast<PrintObject*>(m_objects[idx]); }
     const PrintObject*          get_object(size_t idx) const { return m_objects[idx]; }
+    PrintObject*                get_object(size_t idx) { return const_cast<PrintObject*>(m_objects[idx]); }
     // PrintObject by its ObjectID, to be used to uniquely bind slicing warnings to their source PrintObjects
     // in the notification center.
     const PrintObject*          get_object(ObjectID object_id) const {
@@ -932,8 +932,11 @@ public:
     std::vector<int> get_filament_maps() const;
     FilamentMapMode  get_filament_map_mode() const;
     std::vector<int> get_filament_volume_maps() const;
+    std::vector<int> get_filament_nozzle_maps() const;
     // get the group label of filament
     size_t get_extruder_id(unsigned int filament_id) const;
+    // get the config idx for filament
+    size_t get_config_idx_for_filament(unsigned int filament_id) const;
 
     const std::vector<std::vector<DynamicPrintConfig>>& get_extruder_filament_info() const { return m_extruder_filament_info; }
     void set_extruder_filament_info(const std::vector<std::vector<DynamicPrintConfig>>& filament_info) { m_extruder_filament_info = filament_info; }

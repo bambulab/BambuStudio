@@ -298,4 +298,68 @@ std::optional<NozzleGroupInfo> NozzleGroupInfo::deserialize(const std::string &s
     }
 }
 
+std::vector<int> MultiNozzleGroupResult::get_extruder_map(bool zero_based) const
+{
+    if(zero_based)
+        return filament_map;
+
+    auto new_filament_map = filament_map;
+    std::transform(new_filament_map.begin(), new_filament_map.end(), new_filament_map.begin(), [this](int val) { return val + 1;  });
+    return new_filament_map;
+}
+
+std::vector<int> MultiNozzleGroupResult::get_nozzle_map() const
+{
+    std::vector<int> nozzle_map(filament_map.size());
+    for (size_t idx = 0; idx < filament_to_nozzle.size(); ++idx)
+        nozzle_map[idx] = filament_to_nozzle[idx].group_id;
+    return nozzle_map;
+}
+
+std::vector<int> MultiNozzleGroupResult::get_volume_map() const
+{
+    std::vector<int> volume_map(filament_map.size());
+    for (size_t idx = 0; idx < filament_to_nozzle.size(); ++idx)
+        volume_map[idx] = filament_to_nozzle[idx].volume_type;
+    return volume_map;
+}
+
+
+int MultiNozzleGroupResult::get_config_idx_for_filament(int filament_idx, const PrintConfig& config)
+{
+    if(auto iter=config_idx_map.find(&config); iter != config_idx_map.end()){
+        return iter->second[filament_idx];
+    }
+
+    auto print_extruder_varint = config.printer_extruder_variant.values;
+    auto print_extruder_id = config.printer_extruder_id.values;
+    std::vector<ExtruderType> extruder_type_list;
+    for (size_t idx = 0; idx < config.extruder_type.size(); ++idx)
+        extruder_type_list.emplace_back(ExtruderType(config.extruder_type.values[idx]));
+
+    std::vector<int> config_index_vec(filament_map.size());
+    for(size_t idx  = 0; idx < config_index_vec.size(); ++idx){
+        int extruder_id = filament_to_nozzle[idx].extruder_id;
+        NozzleVolumeType volume_type = filament_to_nozzle[idx].volume_type;
+        ExtruderType extruder_type = extruder_type_list[extruder_id];
+
+        std::string variant = get_extruder_variant_string(extruder_type, volume_type);
+
+        int target_index = 0;
+        for (size_t j = 0; j < print_extruder_id.size(); ++j) {
+            if (print_extruder_id[j] == extruder_id && variant == print_extruder_varint[j]) {
+                target_index = j;
+                break;
+           }
+        }
+
+        config_index_vec[idx] = target_index;
+    }
+    config_idx_map[&config] = config_index_vec;
+    return config_index_vec[filament_idx];
+
+}
+
+
+
 }} // namespace Slic3r::MultiNozzleUtils

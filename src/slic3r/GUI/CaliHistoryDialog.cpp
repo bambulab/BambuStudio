@@ -1092,7 +1092,7 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
         if (sel != wxNOT_FOUND) {
             m_new_result.nozzle_volume_type = to_nozzle_volume_type(NozzleFlowType(*(int*)m_comboBox_nozzle_type->GetClientData(sel)));
         } else {
-            m_new_result.nozzle_volume_type = NozzleVolumeType::nvtDefault;
+            m_new_result.nozzle_volume_type = NozzleVolumeType::nvtStandard;
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid nozzle flow type sel";
         }
     }
