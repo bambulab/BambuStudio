@@ -4844,9 +4844,8 @@ wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
             return wxEmptyString;// the filament is not used at right extruder in slicing
         }
 
-        const auto& auto_nozzle_mapping = obj_->get_nozzle_mapping_result().m_nozzle_mapping;
-        auto iter = auto_nozzle_mapping.find(fila_id);
-        if (iter == auto_nozzle_mapping.end()) {
+        auto iter = m_nozzle_mapping_result.find(fila_id);
+        if (iter == m_nozzle_mapping_result.end()) {
             return "?";// the filament is not mapped by the machine
         }
 
@@ -4910,11 +4909,18 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResult(MachineObject* obj_)
     }
 
     if (!obj_->get_nozzle_mapping_result().m_nozzle_mapping.empty()) {
-        sync_ams_mapping_result(m_ams_mapping_result);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": sync_ams_mapping_result done.";
+        if (m_nozzle_mapping_result != obj_->get_nozzle_mapping_result().m_nozzle_mapping) {
+            m_nozzle_mapping_result = obj_->get_nozzle_mapping_result().m_nozzle_mapping;
+            sync_ams_mapping_result(m_ams_mapping_result);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": sync_ams_mapping_result done.";
+        }
+
         return true;
     }
 
+    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "empty";
+    const wxString& err_msg = wxString::Format(_L("Failed to receive nozzle auto-mapping table from printer { msg: %s }. Please refresh the printer information."), "empty table");
+    show_status(PrintDialogStatus::PrintStatusRackNozzleMappingError, { err_msg });
     return true;
 }
 
