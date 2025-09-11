@@ -4897,7 +4897,13 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResult(MachineObject* obj_)
         return false;
     }
 
-    if (nozzle_mapping_res.m_result == "error") {
+    if (nozzle_mapping_res.m_result == "failed") {
+        const auto& err_msg = wxString::Format(_L("Failed to receive nozzle auto-mapping table from printer { msg: %s }. Please refresh the printer information."), nozzle_mapping_res.m_mqtt_reason);
+        show_status(PrintDialogStatus::PrintStatusRackNozzleMappingError, { err_msg });
+        return false;
+    }
+
+    if (nozzle_mapping_res.m_result == "fail") {
         const wxString& err_msg = wxString::Format(_L("The printer failed to build the nozzle auto-mapping table { code: %d }. Please refresh the printer information."), nozzle_mapping_res.m_errno);
         show_status(PrintDialogStatus::PrintStatusRackNozzleMappingError, { err_msg });
         return false;
