@@ -3007,6 +3007,13 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     // BBS
+    def          = this->add("print_in_clockwise", coBool);
+    def->label   = L("Print loops in clockwise");
+    def->tooltip = L("Print in clockwise when enabled, or counterclockwise when not enabled, not work for spiral vase mode");
+    def->mode    = comDevelop;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    // BBS
     def          = this->add("enable_wrapping_detection", coBool);
     def->label   = L("Enable clumping detection");
     def->tooltip = L("Enable clumping detection");

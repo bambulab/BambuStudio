@@ -1221,6 +1221,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionString,              change_filament_gcode))
     ((ConfigOptionFloatsNullable,      travel_speed))
     ((ConfigOptionFloatsNullable,      travel_speed_z))
+    ((ConfigOptionBool,                print_in_clockwise))
     ((ConfigOptionBool,                use_relative_e_distances))
     ((ConfigOptionBool,                use_firmware_retraction))
     ((ConfigOptionBool,                silent_mode))

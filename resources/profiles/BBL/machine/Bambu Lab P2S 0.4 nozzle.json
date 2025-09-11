@@ -168,6 +168,7 @@
         "0",
         "0"
     ],
+    "print_in_clockwise": "1",
     "printable_height": "256",
     "printer_extruder_id": [
         "1",
