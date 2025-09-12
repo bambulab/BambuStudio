@@ -2688,13 +2688,13 @@ std::map<int, CaliFilamentInfo> CalibrationPresetPage::get_selected_filaments()
         {
             if (fcb->GetExtuderRole()== ExtruderRole::MAIN_EXTRUDER)
             {
+                nozzle_pos_id = fcb->GetNozzleIdCode();
                 if (nozzle_pos_id != -1) {
                     DevNozzle nozzle = curr_obj->get_nozzle_by_id_code(nozzle_pos_id);
                     nozzle_sn = nozzle.GetSerialNumber().ToStdString();
                 } else {
                     BOOST_LOG_TRIVIAL(warning) << __FUNCTION__<< "rack: right extuder has an invaild pos id";
                 }
-                nozzle_pos_id = fcb->GetNozzleIdCode();
             }
             else if (fcb->GetExtuderRole()== ExtruderRole::DEPUTY_EXTRUDER)
             {
