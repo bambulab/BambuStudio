@@ -2324,28 +2324,36 @@ void PartPlate::set_vase_mode_related_object_config(int obj_id) {
 	else
 		obj_ptrs = get_objects_on_this_plate();
 
-	DynamicPrintConfig* global_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
-	DynamicPrintConfig new_conf;
-	new_conf.set_key_value("wall_loops", new ConfigOptionInt(1));
-	new_conf.set_key_value("top_shell_layers", new ConfigOptionInt(0));
-	new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
-	new_conf.set_key_value("enable_support", new ConfigOptionBool(false));
-	new_conf.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
-	new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionEnum<EnsureVerticalThicknessLevel>(EnsureVerticalThicknessLevel::evtEnabled));
-	new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
-	new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
-	auto applying_keys = global_config->diff(new_conf);
+	DynamicPrintConfig new_object_conf, new_global_conf;
+    new_object_conf.set_key_value("wall_loops", new ConfigOptionInt(1));
+    new_object_conf.set_key_value("top_shell_layers", new ConfigOptionInt(0));
+    new_object_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+    new_object_conf.set_key_value("enable_support", new ConfigOptionBool(false));
+    new_object_conf.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
+    new_object_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionEnum<EnsureVerticalThicknessLevel>(EnsureVerticalThicknessLevel::evtEnabled));
+    new_object_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
 
+	new_global_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
+    new_global_conf.set_key_value("z_direction_outwall_speed_continuous", new ConfigOptionBool(false));
+    new_global_conf.set_key_value("enable_wrapping_detection", new ConfigOptionBool(false));
+
+	DynamicPrintConfig* global_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto global_applying_keys = global_config->diff(new_global_conf);
+    for (auto opt_key : global_applying_keys) {
+		global_config->set_key_value(opt_key, new_global_conf.option(opt_key)->clone());
+	}
+
+	auto object_applying_keys = global_config->diff(new_object_conf);
 	for (ModelObject* object : obj_ptrs) {
 		ModelConfigObject& config = object->config;
 
-		for (auto opt_key : applying_keys) {
-			config.set_key_value(opt_key, new_conf.option(opt_key)->clone());
+		for (auto opt_key : object_applying_keys) {
+			config.set_key_value(opt_key, new_object_conf.option(opt_key)->clone());
 		}
 
-		applying_keys = config.get().diff(new_conf);
-		for (auto opt_key : applying_keys) {
-			config.set_key_value(opt_key, new_conf.option(opt_key)->clone());
+		object_applying_keys = config.get().diff(new_object_conf);
+        for (auto opt_key : object_applying_keys) {
+			config.set_key_value(opt_key, new_object_conf.option(opt_key)->clone());
 		}
 	}
 	//wxGetApp().obj_list()->update_selections();
