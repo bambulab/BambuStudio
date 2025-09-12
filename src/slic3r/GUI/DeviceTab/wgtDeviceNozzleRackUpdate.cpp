@@ -76,13 +76,6 @@ void wgtDeviceNozzleRackUprade::CreateGui()
 
     // Spacer
     header_sizer->AddStretchSpacer();
-
-    // "Read hotends" button
-    m_btn_read_all = new Button(this, _L("Read hotends"));
-    m_btn_read_all->SetFont(Label::Head_12);
-    m_btn_read_all->SetCanFocus(false);
-    m_btn_read_all->Bind(wxEVT_BUTTON, &wgtDeviceNozzleRackUprade::OnBtnReadAll, this);
-    header_sizer->Add(m_btn_read_all, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
     main_sizer->Add(header_sizer, 0, wxEXPAND | wxTOP | wxRIGHT, FromDIP(10));
 
     // "Nozzles"
@@ -127,19 +120,6 @@ void wgtDeviceNozzleRackUprade::UpdateRackInfo(const std::shared_ptr<DevNozzleRa
         iter.second->UpdateRackNozzleInfo(rack);
     }
 
-    // update button status
-    if (rack->GetReadingCount() > 0)
-    {
-        const auto& text = _L("Reading") + wxString::Format(": %d/%d", rack->GetReadingIdx(), rack->GetReadingCount());
-        m_btn_read_all->SetLabel(text);
-    }
-    else
-    {
-        m_btn_read_all->SetLabel(_L("Read hotends"));
-    }
-
-    m_btn_read_all->Enable(rack->CtrlCanReadAll());
-
     // update layout
     Layout();
 }
@@ -154,8 +134,6 @@ void wgtDeviceNozzleRackUprade::OnBtnReadAll(wxCommandEvent& e)
 
 void wgtDeviceNozzleRackUprade::Rescale()
 {
-    m_btn_read_all->Rescale();
-
     m_extruder_nozzle_item->Rescale();
     for (auto& iter : m_nozzle_items)
     {
