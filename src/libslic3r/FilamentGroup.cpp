@@ -574,7 +574,7 @@ namespace Slic3r
     }
 
     // make sure each cluster at least have one elements
-    std::vector<int> KMediods::init_cluster_center(const std::unordered_map<int, std::vector<int>>& placeable_limits, const std::unordered_map<int, std::vector<int>>& unplaceable_limits,const std::vector<int>& cluster_size,const std::vector<std::pair<std::set<int>,int>>& cluster_group_size)
+    std::vector<int> KMediods::init_cluster_center(const std::unordered_map<int, std::vector<int>>& placeable_limits, const std::unordered_map<int, std::vector<int>>& unplaceable_limits,const std::vector<int>& cluster_size,const std::vector<std::pair<std::set<int>,int>>& cluster_group_size, int seed)
     {
         // max flow network
         std::vector<int> l_nodes(m_elem_count); // represent the filament idx, to be shuffled
@@ -586,8 +586,7 @@ namespace Slic3r
         std::unordered_map<int, std::vector<int>> shuffled_unplaceable_limits;
         // shuffle the filaments and transfer placeable,unplaceable limits
         {
-            std::random_device dev;
-            std::mt19937 rng(dev());
+            std::mt19937 rng(seed);
             std::shuffle(l_nodes.begin(), l_nodes.end(), rng);
 
             std::unordered_map<int, int>idx_transfer;
@@ -705,7 +704,7 @@ namespace Slic3r
         int              retry_count          = 0;
 
         while (retry_count < retry && T.time_machine_end() < timeout_ms) {
-            std::vector<int> curr_cluster_centers = init_cluster_center(m_placeable_limits, m_unplaceable_limits, m_max_cluster_size, m_cluster_group_size);
+            std::vector<int> curr_cluster_centers = init_cluster_center(m_placeable_limits, m_unplaceable_limits, m_max_cluster_size, m_cluster_group_size, retry_count);
             std::vector<int> curr_cluster_labels = assign_cluster_label(curr_cluster_centers, m_placeable_limits, m_unplaceable_limits, m_max_cluster_size, m_cluster_group_size);
             int              curr_cluster_cost   = calc_cost(curr_cluster_labels, curr_cluster_centers);
 
