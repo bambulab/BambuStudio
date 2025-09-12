@@ -73,8 +73,6 @@ private:
     // GUI
     wgtDeviceNozzleRackHotendUpdate* m_extruder_nozzle_item;
     std::unordered_map<int, wgtDeviceNozzleRackHotendUpdate*> m_nozzle_items;
-
-    Button*  m_btn_read_all;
 };
 
 // Using for rack nozzle id or extruder nozzle id
