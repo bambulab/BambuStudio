@@ -936,10 +936,12 @@ static double s_round(double value, int n)
     m_button_confirm->SetBorderColor(*wxWHITE);
     m_button_confirm->SetTextColor(wxColour(255, 255, 254));
     m_button_confirm->SetFont(Label::Body_12);
-    m_button_confirm->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_confirm->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_confirm->SetSize(wxSize(-1, FromDIP(24)));
+    m_button_confirm->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_confirm->SetCornerRadius(FromDIP(12));
     m_button_confirm->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_confirm, this);
+    m_button_confirm->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    m_button_confirm->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
 
     button_sizer->Add(0, 0, 1, wxEXPAND, 0);
     button_sizer->Add(m_button_confirm, 0, 0, 0);
@@ -978,6 +980,9 @@ void HelioInputDialog::update_action(int action)
     }
 
     if (action == 0) {
+        m_button_confirm->SetLabel(_L("Start Simulation"));
+        m_button_confirm->Layout();
+        m_button_confirm->Fit();
         togglebutton_simulate->SetIsSelected(true);
         togglebutton_optimize->SetIsSelected(false);
         panel_simulation->Show();
@@ -986,6 +991,9 @@ void HelioInputDialog::update_action(int action)
         panel_optimization->Hide();
         m_button_confirm->Enable();
         helio_wiki_link->setLinkUrl( wxGetApp().app_config->get("language") =="zh_CN"? "https://wiki.helioadditive.com/zh/home" : "https://wiki.helioadditive.com/en/home");
+
+
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "  last simulation trace id:" << Slic3r::HelioQuery::last_simulation_trace_id;
 
         if (Slic3r::HelioQuery::last_simulation_trace_id.empty()) {
             last_tid_panel->Hide();
@@ -996,6 +1004,9 @@ void HelioInputDialog::update_action(int action)
         }
     }
     else {
+        m_button_confirm->SetLabel(_L("Start Optimization"));
+        m_button_confirm->Layout();
+        m_button_confirm->Fit();
         m_button_confirm->Disable();
         std::string helio_api_url = Slic3r::HelioQuery::get_helio_api_url();
         std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
@@ -1065,6 +1076,8 @@ void HelioInputDialog::update_action(int action)
             }
         }
         catch (...){}
+
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "  last optimization trace id:" << Slic3r::HelioQuery::last_optimization_trace_id;
 
         if (Slic3r::HelioQuery::last_optimization_trace_id.empty()) {
             last_tid_panel->Hide();
