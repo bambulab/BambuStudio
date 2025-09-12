@@ -704,6 +704,9 @@ public:
                 w        = ww;
                 h        = hh;
             }
+            void update_file(std::string file) {
+                filename = file;
+            }
 
             void update_buffer();
             void reset();
