@@ -312,7 +312,7 @@ void MachineInfoPanel::createNozzleRackWidgets(wxBoxSizer *main_left_sizer)
     m_nozzle_rack_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     // left placeholder icon (keep consistent spacing with others)
-    m_nozzle_rack_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(150)));
+    m_nozzle_rack_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
     m_nozzle_rack_img->SetBitmap(m_img_nozzle_rack.bmp());
     m_nozzle_rack_sizer->Add(m_nozzle_rack_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
@@ -323,20 +323,21 @@ void MachineInfoPanel::createNozzleRackWidgets(wxBoxSizer *main_left_sizer)
     m_nozzle_rack_text->SetFont(Label::Head_14);
     content_sizer->Add(m_nozzle_rack_text, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxLEFT, FromDIP(50));
 
-    m_nozzle_rack_update_btn = new Button(this, _L("Update"));
-    StateColor btn_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
-                      std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Enabled),
-                      std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
-    StateColor btn_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Enabled));
-    StateColor btn_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled));
+      m_nozzle_rack_update_btn = new Button(this, _L("Info"));
+    StateColor btn_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(200, 200, 200), StateColor::Pressed),
+                      std::pair<wxColour, int>(wxColour(240, 240, 240), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
+                      std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+    StateColor btn_bd(std::pair<wxColour, int>(wxColour(200, 200, 200), StateColor::Disabled), std::pair<wxColour, int>(wxColour(150, 150, 150), StateColor::Enabled));
+    StateColor btn_text(std::pair<wxColour, int>(wxColour(150, 150, 150), StateColor::Disabled), std::pair<wxColour, int>(wxColour(0, 0, 0), StateColor::Enabled));
     m_nozzle_rack_update_btn->SetBackgroundColor(btn_bg);
     m_nozzle_rack_update_btn->SetBorderColor(btn_bd);
     m_nozzle_rack_update_btn->SetTextColor(btn_text);
-    m_nozzle_rack_update_btn->SetFont(Label::Body_10);
+    m_nozzle_rack_update_btn->SetFont(Label::Body_10.Bold());
     m_nozzle_rack_update_btn->SetMinSize(wxSize(FromDIP(-1), FromDIP(24)));
     m_nozzle_rack_update_btn->SetCornerRadius(FromDIP(12));
     m_nozzle_rack_update_btn->Bind(wxEVT_BUTTON, &MachineInfoPanel::on_nozzle_rack_update, this);
-    content_sizer->Add(m_nozzle_rack_update_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(600));
+    content_sizer->Add(m_nozzle_rack_update_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(1200));
+
 
     m_nozzle_rack_sizer->Add(content_sizer, 1, wxEXPAND, 0);
 
