@@ -709,8 +709,10 @@ namespace Slic3r
             std::vector<int> curr_cluster_labels = assign_cluster_label(curr_cluster_centers, m_placeable_limits, m_unplaceable_limits, m_max_cluster_size, m_cluster_group_size);
             int              curr_cluster_cost   = calc_cost(curr_cluster_labels, curr_cluster_centers);
 
+            MemoryedGroup g(curr_cluster_labels, curr_cluster_cost, 1);
+            update_memoryed_groups(g, memory_threshold, memoryed_groups);
+
             bool mediods_changed = true;
-            bool iteration_completed = false;
             while (mediods_changed && T.time_machine_end() < timeout_ms) {
                 mediods_changed       = false;
                 int best_swap_cost    = curr_cluster_cost;
@@ -727,7 +729,6 @@ namespace Slic3r
                         tmp_centers[cluster_id]      = elem; // swap the mediod
                         std::vector<int> tmp_labels  = assign_cluster_label(tmp_centers, m_placeable_limits, m_unplaceable_limits, m_max_cluster_size, m_cluster_group_size);
                         int              tmp_cost    = calc_cost(tmp_labels, tmp_centers);
-                        iteration_completed          = true;
 
                         if (tmp_cost < best_swap_cost) {
                             best_swap_cost    = tmp_cost;
@@ -752,10 +753,6 @@ namespace Slic3r
                 best_cluster_centers = curr_cluster_centers;
                 best_cluster_cost    = curr_cluster_cost;
                 best_cluster_labels  = curr_cluster_labels;
-            }
-            if (!iteration_completed) {
-                MemoryedGroup g(curr_cluster_labels, curr_cluster_cost, 1);
-                update_memoryed_groups(g, memory_threshold, memoryed_groups);
             }
             retry_count += 1;
         }
