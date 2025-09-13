@@ -58,6 +58,7 @@ ExternalProject_Add(dep_OpenSSL
         ${_cross_comp_prefix_line}
         no-shared
         no-asm
+        no-tests
         no-ssl3-method
         no-dynamic-engine
     BUILD_IN_SOURCE ON
