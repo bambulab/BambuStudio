@@ -450,7 +450,6 @@ namespace Slic3r
         float* min_cost)
     {
         std::sort(curr_layer_extruders.begin(), curr_layer_extruders.end());
-        std::sort(next_layer_extruders.begin(), next_layer_extruders.end());
         float best_cost = std::numeric_limits<float>::max();
         int best_change = std::numeric_limits<int>::max(); // add filament change check in case flush volume between different filament is 0
         std::vector<unsigned int>best_seq;
@@ -480,6 +479,7 @@ namespace Slic3r
             }
             if (curr_layer_cost > best_cost)
                 continue;
+            std::sort(next_layer_extruders.begin(), next_layer_extruders.end());
             do {
                 std::optional<unsigned int>prev_extruder_2 = prev_extruder_1;
                 float total_cost = curr_layer_cost;
@@ -697,7 +697,7 @@ namespace Slic3r
                 }
 
                 if(filament_sequences)
-                    filament_sequences->emplace_back(); // insert an empty array
+                    filament_sequences->emplace_back(sequence_in_group);
 
                 continue;
             }
