@@ -928,7 +928,8 @@ void Tab::init_options_list()
 
     for (const std::string& opt_key : m_config->keys())
     {
-        if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "compatible_prints" || opt_key == "compatible_printers" || opt_key == "thumbnail_size" || opt_key == "wrapping_exclude_area") {
+        if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "compatible_prints" || opt_key == "compatible_printers" || opt_key == "thumbnail_size" ||
+            opt_key == "wrapping_exclude_area" || opt_key == "post_process") {
             m_options_list.emplace(opt_key, m_opt_status_value);
             continue;
         }
@@ -2161,6 +2162,8 @@ void Tab::update_preset_description_line()
 
 static void validate_custom_note_cb(Tab *tab, ConfigOptionsGroupShp opt_group, const t_config_option_key &opt_key, const boost::any &value)
 {
+    tab->update_dirty();
+    tab->on_value_change(opt_key, value);
     if (boost::any_cast<std::string>(value).size() > 40 * 1024) {
         MessageDialog dialog(static_cast<wxWindow *>(wxGetApp().mainframe), _L("The notes are too large, and may not be synchronized to the cloud. Please keep it within 40k."),
                              "", wxICON_WARNING | wxOK);
