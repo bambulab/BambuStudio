@@ -448,7 +448,7 @@ public:
 
     std::vector<int> stage_list_info;
     int stage_curr = 0;
-    int stage_remaining_seconds = 0; 
+    int stage_remaining_seconds = 0;
     int m_push_count = 0;
     int m_full_msg_count = 0; /*the full message count, there are full or diff messages from network*/
     bool calibration_done { false };
@@ -610,6 +610,7 @@ public:
     bool is_support_purgechutepileup_detection{false};
     bool is_support_nozzleclumping_detection{false};
     bool is_support_airprinting_detection{false};
+    bool is_support_idelheadingprotect_detection{false};
 
     bool installed_upgrade_kit{false};
     int  bed_temperature_limit = -1;
