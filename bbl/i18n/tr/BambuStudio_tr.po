@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-11 14:44+0800\n"
+"POT-Creation-Date: 2025-09-15 10:04+0800\n"
 "PO-Revision-Date: 2025-08-28 14:42+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -9185,7 +9185,7 @@ msgstr ""
 msgid "Max Volumetric Speed"
 msgstr "Maksimum Hacimsel Hız"
 
-msgid "Trace ID: "
+msgid "Last Trace ID: "
 msgstr ""
 
 msgid "Buy Now"
@@ -9193,6 +9193,12 @@ msgstr ""
 
 msgid "Click for more details"
 msgstr "Daha fazla bilgi için tıklayın"
+
+msgid "Start Simulation"
+msgstr ""
+
+msgid "Start Optimization"
+msgstr ""
 
 msgid "Buy add-ons"
 msgstr ""
