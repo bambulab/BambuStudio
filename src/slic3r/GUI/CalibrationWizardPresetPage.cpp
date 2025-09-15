@@ -2353,6 +2353,8 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
         filament_ams_list[VIRTUAL_TRAY_DEPUTY_ID] = full_filament_ams_list[VIRTUAL_TRAY_DEPUTY_ID];
     }
 
+    update_nozzle_id_combox();
+
     // update filament from panel, display only obj has ams
     // update multi ams panel, display only obj has multi ams
     if (obj->HasAms()) {
@@ -2450,8 +2452,6 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
 
     /* display nozzle combobox */
     {
-        update_nozzle_id_combox();
-
         auto has_rack = obj->GetNozzleSystem()->GetNozzleRack()->IsSupported();
         if (has_rack) {
             m_tips_map["rack"].first = true;
