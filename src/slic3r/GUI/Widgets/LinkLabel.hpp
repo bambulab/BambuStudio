@@ -1,6 +1,8 @@
 #ifndef slic3r_GUI_LinkLabel_hpp_
 #define slic3r_GUI_LinkLabel_hpp_
 
+#include <wx/panel.h>
+
 #include "Label.hpp"
 
 wxDECLARE_EVENT(EVT_LINK_LABEL_LEFT_DOWN, wxCommandEvent);
