@@ -4,8 +4,10 @@
 #include <string>
 #include <wx/string.h>
 #include <boost/optional.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/asio/ip/address.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/nowide/cstdio.hpp>
 
 #include <condition_variable>
 #include <mutex>
