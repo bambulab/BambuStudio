@@ -304,9 +304,6 @@ void FilamentComboBox::UpdateNozzleCombo(const std::vector<std::pair<wxString, i
     for (auto &pair : nozzle_list) { m_nozzle_combo->Append(pair.first, wxNullBitmap, new int{pair.second}); }
 
     m_nozzle_combo->SetSelection(0);
-
-    /* nozzle Id combox update after load_tray, avoid make a bad influence for other */
-    if (m_nozzle_combo->GetCount() == 0) { Enable(false); }
 }
 
 int FilamentComboBox::GetNozzleIdCode() const
@@ -369,12 +366,7 @@ void FilamentComboBox::load_tray_from_ams(int id, DynamicPrintConfig& tray)
             SetValue(false);
         }
 
-        if (m_radioBox)
-            m_radioBox->Enable(m_comboBox->is_compatible_with_printer());
-
-        if (m_checkBox)
-            m_checkBox->Enable(m_comboBox->is_compatible_with_printer());
-
+        if (m_radioBox || m_checkBox) { Enable(m_comboBox->is_compatible_with_printer()); }
     }
 
     if (m_nozzle_combo->IsShown() && m_nozzle_combo->GetCount() == 0) { Enable(false); }
