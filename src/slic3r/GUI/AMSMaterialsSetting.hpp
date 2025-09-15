@@ -154,6 +154,7 @@ protected:
     void update_nozzle_combo(MachineObject* obj);
     int  get_nozzle_combo_id_code() const;
     int  get_nozzle_sel_by_sn(MachineObject* obj, const std::string& sn);
+    int  get_cali_index_by_ams_slot(MachineObject* obj, int ams_id, int slot_id);
 
 protected:
     StateColor          m_btn_bg_green;
