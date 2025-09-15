@@ -1,7 +1,9 @@
 #pragma once
 
 #include <array>
+#include <cstdint>
 #include <string>
+#include <sstream>
 #include <optional>
 
 namespace Slic3r {
