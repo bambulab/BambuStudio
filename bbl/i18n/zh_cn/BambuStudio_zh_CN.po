@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-11 14:44+0800\n"
+"POT-Creation-Date: 2025-09-15 10:04+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -6463,16 +6463,16 @@ msgstr ""
 "请申请新的Helio PAT。"
 
 msgid "Execution Blocked"
-msgstr ""
+msgstr "执行被阻止"
 
 msgid "Regenerate PAT"
-msgstr ""
+msgstr "重新生成 PAT"
 
 msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
 msgstr "获取 Helio-PAT 失败，点击刷新重新获取。"
 
 msgid "Successfully obtained PAT."
-msgstr ""
+msgstr "成功获得PAT。"
 
 msgid "The printer list and material list are being synchronized. Please try again later."
 msgstr ""
@@ -9062,7 +9062,7 @@ msgid "Helio-PAT"
 msgstr ""
 
 msgid "Copy successful!"
-msgstr ""
+msgstr "复制成功！"
 
 msgid "Helio Additive"
 msgstr ""
@@ -9074,7 +9074,7 @@ msgid "Terms of Use of Helio Additive"
 msgstr "Helio Additive 使用条款"
 
 msgid "Agree and proceed"
-msgstr ""
+msgstr "同意并继续"
 
 msgid "Got it"
 msgstr "知道了"
@@ -9086,10 +9086,10 @@ msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot b
 msgstr ""
 
 msgid "Simulation"
-msgstr ""
+msgstr "仿真"
 
 msgid "Optimization"
-msgstr ""
+msgstr "优化"
 
 msgid "Chamber Temperature"
 msgstr "腔温"
@@ -9124,14 +9124,20 @@ msgstr "最小体积速度"
 msgid "Max Volumetric Speed"
 msgstr "最大体积速度"
 
-msgid "Trace ID: "
-msgstr ""
+msgid "Last Trace ID: "
+msgstr "最后跟踪 ID: "
 
 msgid "Buy Now"
-msgstr ""
+msgstr "立即购买"
 
 msgid "Click for more details"
 msgstr "点击查看更多详情"
+
+msgid "Start Simulation"
+msgstr "开始仿真"
+
+msgid "Start Optimization"
+msgstr "开始优化"
 
 msgid "Buy add-ons"
 msgstr "购买附加组件"
@@ -13696,16 +13702,16 @@ msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "0.8mm喷嘴的默认参数，速度优先。"
 
 msgid "Failed to create GCodeV2"
-msgstr ""
+msgstr "无法创建 GCode"
 
 msgid "Failed to parse response"
 msgstr ""
 
 msgid "Helio simulation task failed"
-msgstr ""
+msgstr "Helio仿真任务失败"
 
 msgid "Helio optimization task failed"
-msgstr ""
+msgstr "Helio 优化任务失败"
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Helio API 端点为空，请检查配置。"

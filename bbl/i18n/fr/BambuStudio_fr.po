@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-11 14:44+0800\n"
+"POT-Creation-Date: 2025-09-15 10:04+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -9166,7 +9166,7 @@ msgstr ""
 msgid "Max Volumetric Speed"
 msgstr "Vitesse volumétrique max"
 
-msgid "Trace ID: "
+msgid "Last Trace ID: "
 msgstr ""
 
 msgid "Buy Now"
@@ -9174,6 +9174,12 @@ msgstr ""
 
 msgid "Click for more details"
 msgstr "Cliquez pour en savoir plus"
+
+msgid "Start Simulation"
+msgstr ""
+
+msgid "Start Optimization"
+msgstr ""
 
 msgid "Buy add-ons"
 msgstr ""

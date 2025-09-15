@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-11 14:44+0800\n"
+"POT-Creation-Date: 2025-09-15 10:04+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -8943,13 +8943,19 @@ msgstr ""
 msgid "Max Volumetric Speed"
 msgstr ""
 
-msgid "Trace ID: "
+msgid "Last Trace ID: "
 msgstr ""
 
 msgid "Buy Now"
 msgstr ""
 
 msgid "Click for more details"
+msgstr ""
+
+msgid "Start Simulation"
+msgstr ""
+
+msgid "Start Optimization"
 msgstr ""
 
 msgid "Buy add-ons"

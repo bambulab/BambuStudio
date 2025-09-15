@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-11 14:44+0800\n"
+"POT-Creation-Date: 2025-09-15 10:04+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -9049,13 +9049,19 @@ msgstr ""
 msgid "Max Volumetric Speed"
 msgstr "Maximální objemová rychlost"
 
-msgid "Trace ID: "
+msgid "Last Trace ID: "
 msgstr ""
 
 msgid "Buy Now"
 msgstr ""
 
 msgid "Click for more details"
+msgstr ""
+
+msgid "Start Simulation"
+msgstr ""
+
+msgid "Start Optimization"
 msgstr ""
 
 msgid "Buy add-ons"
