@@ -1305,6 +1305,32 @@ int AMSMaterialsSetting::get_nozzle_sel_by_sn(MachineObject* obj, const std::str
     return -1;
 }
 
+int AMSMaterialsSetting::get_cali_index_by_ams_slot(MachineObject *obj, int ams_id, int slot_id)
+{
+    if (!obj) return -1;
+
+    // Get the flag whether to open the filament setting dialog from the device page
+    int *from_printer = static_cast<int *>(m_comboBox_filament->GetClientData());
+    if (!from_printer || (*from_printer != 1)) return -1;
+
+    if (obj->cali_version >= 0) {
+        if (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
+            for (auto slot : obj->vt_slot) {
+                if (slot.id == std::to_string(ams_id)) return slot.cali_idx;
+            }
+        } else {
+            DevAmsTray *selected_tray = obj->GetFilaSystem()->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id));
+            if (!selected_tray) {
+                return -1;
+            } else {
+                return selected_tray->cali_idx;
+            }
+        }
+    }
+
+    return -1;
+}
+
 void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
 {
     // Get the flag whether to open the filament setting dialog from the device page
@@ -1441,27 +1467,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         dlg.ShowModal();
     }
 
-    int cur_cali_idx = -1;
-    if (obj->cali_version >= 0) {
-        if (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
-            if (from_printer && (*from_printer == 1)) {
-                for (auto slot : obj->vt_slot) {
-                    cur_cali_idx = slot.cali_idx;
-                }
-            }
-        } else {
-            if (from_printer && (*from_printer == 1)) {
-                DevAmsTray *selected_tray = this->obj->GetFilaSystem()->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id));
-                if (!selected_tray) {
-                    return;
-                }
-                cur_cali_idx = selected_tray->cali_idx;
-            }
-        }
-    }
-
     std::vector<PACalibResult> cali_history = obj->pa_calib_tab;
-    auto iter = std::find_if(cali_history.begin(), cali_history.end(), [cur_cali_idx](const PACalibResult& item){
+    auto iter = std::find_if(cali_history.begin(), cali_history.end(), [cur_cali_idx=get_cali_index_by_ams_slot(obj, ams_id, slot_id)](const PACalibResult& item){
         return item.cali_idx == cur_cali_idx;
     });
     if (iter != cali_history.end() && !iter->nozzle_sn.empty() && iter->nozzle_sn != "N/A") {
@@ -1474,52 +1481,28 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
 
     if (obj->cali_version >= 0) {
         update_pa_profile_items();
-        if (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
-            if (from_printer && (*from_printer == 1)) {
-                for (auto slot : obj->vt_slot) {
-                    if (slot.id == std::to_string(ams_id))
-                        cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, slot.cali_idx);
-                }
 
-                if (cali_select_idx >= 0)
-                    m_comboBox_cali_result->SetSelection(cali_select_idx);
-                else
-                    m_comboBox_cali_result->SetSelection(0);
+        int cali_idx = get_cali_index_by_ams_slot(obj, ams_id, slot_id);
+        /* get sel_idx of cali idex in pa_profile_items */
+        cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, cali_idx);
+
+        if(from_printer && (*from_printer == 1)) {
+            if (cali_select_idx >= 0) {
+                m_comboBox_cali_result->SetSelection(cali_select_idx);
+            } else {
+                m_comboBox_cali_result->SetSelection(0);
+                BOOST_LOG_TRIVIAL(info) << "extrusion_cali_status_error: cannot find pa profile"
+                                        << ", ams_id = " << ams_id
+                                        << ", slot_id = " << slot_id
+                                        << ", cali_idx = " << cali_idx;
             }
-            else {
+        } else {
 #ifdef __APPLE__
                 cali_select_idx = get_cali_index(m_comboBox_filament->GetValue().ToStdString());
 #else
                 cali_select_idx = get_cali_index(m_comboBox_filament->GetLabel().ToStdString());
 #endif
                 m_comboBox_cali_result->SetSelection(cali_select_idx);
-            }
-        }
-        else {
-            if (from_printer && (*from_printer == 1)) {
-                DevAmsTray* selected_tray = this->obj->GetFilaSystem()->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id));
-                if (!selected_tray)
-                {
-                    return;
-                }
-
-                cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, selected_tray->cali_idx);
-                if (cali_select_idx < 0)
-                {
-                    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_status_error: cannot find pa profile, ams_id = " << ams_id
-                        << ", slot_id = " << slot_id << ", cali_idx = " << selected_tray->cali_idx;
-                    cali_select_idx = 0;
-                }
-                m_comboBox_cali_result->SetSelection(cali_select_idx);
-            }
-            else {
-#ifdef __APPLE__
-                cali_select_idx = get_cali_index(m_comboBox_filament->GetValue().ToStdString());
-#else
-                cali_select_idx = get_cali_index(m_comboBox_filament->GetLabel().ToStdString());
-#endif
-                m_comboBox_cali_result->SetSelection(cali_select_idx);
-            }
         }
 
         if (cali_select_idx >= 0) {
@@ -1532,14 +1515,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         }
     }
     else {
-        if (!ams_filament_id.empty()) {
-            //m_input_k_val->GetTextCtrl()->SetValue("0.00");
-            m_input_k_val->Enable(true);
-        }
-        else {
-            //m_input_k_val->GetTextCtrl()->SetValue("0.00");
-            m_input_k_val->Disable();
-        }
+        //m_input_k_val->GetTextCtrl()->SetValue("0.00");
+        m_input_k_val->Enable(!ams_filament_id.empty());
     }
 
     m_comboBox_filament->SetClientData(new int(0));
