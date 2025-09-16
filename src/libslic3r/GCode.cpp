@@ -1682,7 +1682,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     print->set_done(psGCodeExport);
     //BBS: set enable_label_object
     result->label_object_enabled = m_enable_label_object;
-
+    result->initial_layer_time   = m_initial_layer_time;
     // Write the profiler measurements to file
     PROFILE_UPDATE();
     PROFILE_OUTPUT(debug_out_path("gcode-export-profile.txt").c_str());
@@ -3183,6 +3183,11 @@ void GCode::process_layers(
         m_print->set_status(90, message);
         tbb::parallel_pipeline(12, calculate_layer_time & write_gocde & output);
     }
+    for (auto& layer_res : layers_results) {
+        if (layer_res.layer_id == 0)
+            m_initial_layer_time = layer_res.layer_time;
+    }
+
 }
 
 // Process all layers of a single object instance (sequential mode) with a parallel pipeline:
