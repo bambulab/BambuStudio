@@ -1384,7 +1384,7 @@ void HelioBackgroundProcess::create_simulation_step(HelioQuery::CreateGCodeResul
 
             std::string error;
             try{
-                error = _u8L("Helio: Failed to create Simulation\n") + create_simulation_res.error;
+                error = _u8L("Helio: Failed to create Simulation") + "\n" + create_simulation_res.error;
             }
             catch (...){}
             
@@ -1397,7 +1397,7 @@ void HelioBackgroundProcess::create_simulation_step(HelioQuery::CreateGCodeResul
 
         std::string error;
         try {
-            error = _u8L("Helio: Failed to create GCode\n") + create_gcode_res.error;
+            error = _u8L("Helio: Failed to create GCode") + "\n" + create_gcode_res.error;
         }
         catch (...) {}
 
@@ -1490,7 +1490,7 @@ void HelioBackgroundProcess::create_optimization_step(HelioQuery::CreateGCodeRes
 
             std::string error;
             try {
-                error = _u8L("Helio: Failed to create Optimization\n") + create_optimization_res.error;
+                error = _u8L("Helio: Failed to create Optimization") + "\n" + create_optimization_res.error;
             }
             catch (...) {}
 
@@ -1505,7 +1505,7 @@ void HelioBackgroundProcess::create_optimization_step(HelioQuery::CreateGCodeRes
 
         std::string error;
         try {
-            error = _u8L("Helio: Failed to create GCode\n") + create_gcode_res.error;
+            error = _u8L("Helio: Failed to create GCode") + "\n" + create_gcode_res.error;
         }
         catch (...) {}
 
@@ -1591,7 +1591,7 @@ void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string 
 
         std::string error;
         try {
-            error = _u8L("Helio: GCode download failed\n") + response_error;
+            error = _u8L("Helio: GCode download failed") + "\n" + response_error;
         }
         catch (...) {}
 
