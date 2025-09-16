@@ -1047,7 +1047,8 @@ wxSizer* CalibrationPresetPage::create_slot_items_sizer(wxPanel* slot_items_pane
         CheckBox *     check_box               = new CheckBox(slot_items_panel);
         check_box->SetBackgroundColour(*wxWHITE);
 
-        FilamentComboBox *fcb = new FilamentComboBox(slot_items_panel, i + 4);
+        int index = extuder_role == ExtruderRole::MAIN_EXTRUDER ? (i + 4) : i;
+        FilamentComboBox *fcb = new FilamentComboBox(slot_items_panel, index);
         fcb->SetRadioBox(radio_btn);
         fcb->SetCheckBox(check_box);
         fcb->SetExtuderRole(extuder_role);
