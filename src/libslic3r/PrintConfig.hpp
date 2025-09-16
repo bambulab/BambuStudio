@@ -1300,6 +1300,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,               is_infill_first))
     // BBS: move from PrintObjectConfig
     ((ConfigOptionBool,               independent_support_layer_height))
+    ((ConfigOptionBool,               top_z_overrides_xy_distance))
     ((ConfigOptionBool,               exclude_object))
     ((ConfigOptionPercents,            filament_shrink))
     ((ConfigOptionFloats,             grab_length))

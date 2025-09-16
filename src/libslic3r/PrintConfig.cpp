@@ -4564,6 +4564,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialStyle>(smsDefault));
 
+    def           = this->add("top_z_overrides_xy_distance", coBool);
+    def->label    = L("Z overrides X/Y");
+    def->category = L("Support");
+    def->tooltip  = L("When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, "
+                       "and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports "
+                       "and the model follows support/object xy distance all the time");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("independent_support_layer_height", coBool);
     def->label = L("Independent support layer height");
     def->category = L("Support");
