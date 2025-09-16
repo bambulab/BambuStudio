@@ -275,6 +275,7 @@ void BedShapePanel::activate_options_page(ConfigOptionsGroupShp options_group)
 
 wxPanel *BedShapePanel::init_texture_panel()
 {
+    init_texture_panel_with_default();
     wxPanel *panel = new wxPanel(this);
     wxGetApp().UpdateDarkUI(panel, true);
     ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(panel, _L("Texture"));
