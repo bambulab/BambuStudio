@@ -18,6 +18,11 @@ bool PopupWindow::Create(wxWindow *parent, int style)
 #ifdef __WXGTK__
     GetTopParent(parent)->Bind(wxEVT_ACTIVATE, &PopupWindow::topWindowActivate, this);
 #endif
+#ifdef __WXMSW__
+    GetTopParent(parent)->Bind(wxEVT_ACTIVATE, &PopupWindow::topWindowActivate, this);
+    GetTopParent(parent)->Bind(wxEVT_ICONIZE, &PopupWindow::topWindowIconize, this);
+    GetTopParent(parent)->Bind(wxEVT_SHOW, &PopupWindow::topWindowShow, this);
+#endif
 #ifdef __WXOSX__
     if (style & wxPU_CONTAINS_CONTROLS)
     for (auto evt : {wxEVT_LEFT_DOWN, wxEVT_LEFT_UP, wxEVT_LEFT_DCLICK, wxEVT_MOTION, wxEVT_MOUSEWHEEL})
@@ -30,6 +35,11 @@ PopupWindow::~PopupWindow()
 {
 #ifdef __WXGTK__
     GetTopParent(this)->Unbind(wxEVT_ACTIVATE, &PopupWindow::topWindowActivate, this);
+#endif
+#ifdef __WXMSW__
+    GetTopParent(this)->Unbind(wxEVT_ACTIVATE, &PopupWindow::topWindowActivate, this);
+    GetTopParent(this)->Unbind(wxEVT_ICONIZE, &PopupWindow::topWindowIconize, this);
+    GetTopParent(this)->Unbind(wxEVT_SHOW, &PopupWindow::topWindowShow, this);
 #endif
 }
 
@@ -81,5 +91,28 @@ void PopupWindow::OnMouseEvent2(wxMouseEvent &evt)
 void PopupWindow::topWindowActivate(wxActivateEvent &event)
 {
     event.Skip();
+}
+#endif
+
+#ifdef __WXMSW__
+void PopupWindow::topWindowActivate(wxActivateEvent &event)
+{
+    event.Skip();
+    if (!event.GetActive())
+        Dismiss();
+}
+
+void PopupWindow::topWindowIconize(wxIconizeEvent &event)
+{
+    event.Skip();
+    if (event.IsIconized())
+        Dismiss();
+}
+
+void PopupWindow::topWindowShow(wxShowEvent &event)
+{
+    event.Skip();
+    if (!event.IsShown())
+        Dismiss();
 }
 #endif
