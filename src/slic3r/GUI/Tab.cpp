@@ -1641,6 +1641,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                 new_conf.set_key_value("support_object_xy_distance", new ConfigOptionFloat(0));
                 new_conf.set_key_value("support_interface_pattern",
                                        new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
+                new_conf.set_key_value("top_z_overrides_xy_distance", new ConfigOptionBool(true));
                 new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
                 new_conf.set_key_value("support_interface_filament", new ConfigOptionInt(filament_id + 1));
                 m_config_manipulation.apply(m_config, &new_conf);
@@ -1693,6 +1694,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                 new_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0));
                 new_conf.set_key_value("support_interface_pattern",
                                        new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
+                new_conf.set_key_value("top_z_overrides_xy_distance", new ConfigOptionBool(true));
                 new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
                 if (support_TPU || (is_soluble_filament(interface_filament_id) && !is_soluble_filament(filament_id))) {
                     new_conf.set_key_value("support_object_xy_distance", new ConfigOptionFloat(0));
@@ -2433,6 +2435,7 @@ void TabPrint::build()
         //optgroup->append_single_option_line("support_interface_loop_pattern");
 
         optgroup->append_single_option_line("support_object_xy_distance", "support");
+        optgroup->append_single_option_line("top_z_overrides_xy_distance", "support");
         optgroup->append_single_option_line("support_object_first_layer_gap", "support");
         optgroup->append_single_option_line("bridge_no_support", "support#base-pattern");
         optgroup->append_single_option_line("max_bridge_length", "support#tree-support-only-options");
