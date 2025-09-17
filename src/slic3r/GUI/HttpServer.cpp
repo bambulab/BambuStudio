@@ -7,144 +7,306 @@
 namespace Slic3r {
 namespace GUI {
 
-static std::string parse_params(std::string url, std::string key)
-{
-    size_t start = url.find(key);
-    if (start < 0) return "";
-    size_t eq = url.find('=', start);
-    if (eq < 0) return "";
-    std::string key_str = url.substr(start, eq - start);
-    if (key_str != key)
-        return "";
-    start += key.size() + 1;
-    size_t end = url.find('&', start);
-    if (end < 0)
-        return "";
-    std::string result = url.substr(start, end - start);
-    return result;
-}
+    struct TokenResp {
+        std::string accessToken;
+        std::string refreshToken;
+        double expiresIn;
+        double refreshExpiresIn;
+        std::string tfaKey;
+        std::string accessMethod;
+        std::string loginType;
 
-std::string http_headers::get_response()
-{
-    BOOST_LOG_TRIVIAL(info) << "thirdparty_login: get_response";
-    std::stringstream ssOut;
-    std::string url_str = Http::url_decode(url);
-    if (boost::contains(url_str, "access_token")) {
-        std::string sHTML = "<html><body><p>redirect to url </p></body></html>";
-        std::string redirect_url = parse_params(url_str, "redirect_url");
-        std::string access_token = parse_params(url_str, "access_token");
-        std::string refresh_token = parse_params(url_str, "refresh_token");
-        std::string expires_in_str = parse_params(url_str, "expires_in");
-        std::string refresh_expires_in_str = parse_params(url_str, "refresh_expires_in");
-        NetworkAgent* agent = wxGetApp().getAgent();
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(TokenResp, accessToken, refreshToken,
+            expiresIn, refreshExpiresIn, tfaKey, accessMethod, loginType)
+    };
 
-        unsigned int http_code;
-        std::string http_body;
-        int result = agent->get_my_profile(access_token, &http_code, &http_body);
-        if (result == 0) {
-            std::string user_id;
-            std::string user_name;
-            std::string user_account;
-            std::string user_avatar;
-            try {
-                json user_j = json::parse(http_body);
-                if (user_j.contains("uidStr"))
-                    user_id = user_j["uidStr"].get<std::string>();
-                if (user_j.contains("name"))
-                    user_name = user_j["name"].get<std::string>();
-                if (user_j.contains("avatar"))
-                    user_avatar = user_j["avatar"].get<std::string>();
-                if (user_j.contains("account"))
-                    user_account = user_j["account"].get<std::string>();
-            } catch (...) {
-                ;
-            }
-            json j;
-            j["data"]["refresh_token"] = refresh_token;
-            j["data"]["token"] = access_token;
-            j["data"]["expires_in"] = expires_in_str;
-            j["data"]["refresh_expires_in"] = refresh_expires_in_str;
-            j["data"]["user"]["uid"] = user_id;
-            j["data"]["user"]["name"] = user_name;
-            j["data"]["user"]["account"] = user_account;
-            j["data"]["user"]["avatar"] = user_avatar;
-            agent->change_user(j.dump());
-            if (agent->is_user_login()) {
-                wxGetApp().request_user_login(1);
-            }
-            GUI::wxGetApp().CallAfter([this] {
-                wxGetApp().ShowUserLogin(false);
-            });
-            std::string location_str = (boost::format("Location: %1%?result=success") % redirect_url).str();
-            ssOut << "HTTP/1.1 302 Found" << std::endl;
-            ssOut << location_str << std::endl;
-            ssOut << "content-type: text/html" << std::endl;
-            ssOut << "content-length: " << sHTML.length() << std::endl;
-            ssOut << std::endl;
-            ssOut << sHTML;
-        } else {
-            std::string error_str = "get_user_profile_error_" + std::to_string(result);
-            std::string location_str = (boost::format("Location: %1%?result=fail&error=%2%") % redirect_url % error_str).str();
-            ssOut << "HTTP/1.1 302 Found" << std::endl;
-            ssOut << location_str << std::endl;
-            ssOut << "content-type: text/html" << std::endl;
-            ssOut << "content-length: " << sHTML.length() << std::endl;
-            ssOut << std::endl;
-            ssOut << sHTML;
-        }
-    } else {
-        std::string sHTML = "<html><body><h1>404 Not Found</h1><p>There's nothing here.</p></body></html>";
-        ssOut << "HTTP/1.1 404 Not Found" << std::endl;
-        ssOut << "content-type: text/html" << std::endl;
-        ssOut << "content-length: " << sHTML.length() << std::endl;
-        ssOut << std::endl;
-        ssOut << sHTML;
+    struct ProfileResp {
+        std::string uidStr;
+        std::string account;
+        std::string name;
+        std::string avatar;
+
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(ProfileResp, uidStr, account,
+            name, avatar)
+    };
+
+    inline unsigned char hex_to_byte(char hi, char lo) {
+        auto hexval = [](char c) -> int {
+            if ('0' <= c && c <= '9') return c - '0';
+            if ('A' <= c && c <= 'F') return c - 'A' + 10;
+            if ('a' <= c && c <= 'f') return c - 'a' + 10;
+            return -1;
+            };
+        return static_cast<unsigned char>((hexval(hi) << 4) | hexval(lo));
     }
-    return ssOut.str();
-}
 
+    std::string url_decode(const std::string& in)
+    {
+        std::string out;
+        out.reserve(in.size());
 
-void accept_and_run(boost::asio::ip::tcp::acceptor& acceptor, boost::asio::io_service& io_service)
-{
-    std::shared_ptr<session> sesh = std::make_shared<session>(io_service);
-    acceptor.async_accept(sesh->socket,
-        [sesh, &acceptor, &io_service](const boost::beast::error_code& accept_error)
-        {
-            accept_and_run(acceptor, io_service);
-            if (!accept_error)
-            {
-                session::interact(sesh);
+        for (size_t i = 0; i < in.size(); ++i) {
+            if (in[i] == '%' && i + 2 < in.size() &&
+                std::isxdigit(static_cast<unsigned char>(in[i + 1])) &&
+                std::isxdigit(static_cast<unsigned char>(in[i + 2]))) {
+                out.push_back(static_cast<char>(hex_to_byte(in[i + 1], in[i + 2])));
+                i += 2;
             }
-        });
-}
+            else if (in[i] == '+') {
+                out.push_back(' ');
+            }
+            else {
+                out.push_back(in[i]);
+            }
+        }
+        return out;
+    }
 
 HttpServer::HttpServer()
 {
-    ;
+
 }
+
+ HttpServer::~HttpServer()
+ {
+     stop();
+ }
 
 void HttpServer::start()
 {
     BOOST_LOG_TRIVIAL(info) << "start_http_service...";
-    start_http_server = true;
-    m_http_server_thread = Slic3r::create_thread(
-        [this] {
-            boost::asio::io_service io_service;
-            boost::asio::ip::tcp::endpoint endpoint{ boost::asio::ip::tcp::v4(), LOCALHOST_PORT};
-            boost::asio::ip::tcp::acceptor acceptor { io_service, endpoint};
-            acceptor.listen();
-            accept_and_run(acceptor, io_service);
-            while (start_http_server) {
-                io_service.run();
-            }
-        });
+    if (running_.exchange(true)) return;
+
+    using tcp = boost::asio::ip::tcp;
+    guard_    = std::make_unique<boost::asio::executor_work_guard<decltype(io_.get_executor())>>(io_.get_executor());
+
+    tcp::endpoint ep{tcp::v4(), LOCALHOST_PORT};
+    boost::system::error_code ec;
+    acceptor_.open(ep.protocol(), ec);
+    acceptor_.set_option(tcp::acceptor::reuse_address(true), ec);
+    acceptor_.bind(ep, ec);
+    acceptor_.listen(boost::asio::socket_base::max_listen_connections, ec);
+
+    do_accept();
+    worker_ = boost::thread([this] { io_.run(); });
 }
 
 void HttpServer::stop()
 {
-    start_http_server = false;
-    if (m_http_server_thread.joinable())
-        m_http_server_thread.join();
+    if (!running_.exchange(false)) return;
+    boost::system::error_code ec;
+    acceptor_.close(ec);
+    io_.stop();
+    if (guard_) guard_.reset();
+    if (worker_.joinable()) worker_.join();
+    io_.restart();
+}
+
+void HttpServer::do_accept()
+{
+    auto handler = [this](boost::system::error_code ec, boost::asio::ip::tcp::socket s) {
+        if (!ec && running_) { std::make_shared<session>(std::move(s))->run(); }
+        if (running_) do_accept();
+    };
+    acceptor_.async_accept(handler);
+}
+
+static std::unordered_map<std::string, std::string> parse_query(const std::string& qs)
+{
+    std::unordered_map<std::string, std::string> result;
+    size_t start = 0;
+    while (start < qs.size()) {
+        size_t eq = qs.find('=', start);
+        size_t amp = qs.find('&', start);
+
+        std::string key, val;
+        if (eq != std::string::npos) {
+            key = qs.substr(start, eq - start);
+            if (amp != std::string::npos)
+                val = qs.substr(eq + 1, amp - eq - 1);
+            else
+                val = qs.substr(eq + 1);
+        }
+        else {
+            if (amp != std::string::npos)
+                key = qs.substr(start, amp - start);
+            else
+                key = qs.substr(start);
+        }
+        result[key] = val;
+
+        if (amp == std::string::npos) break;
+        start = amp + 1;
+    }
+    return result;
+}
+
+static bool is_http_scheme(const std::string& url)
+{
+    return url.rfind("http://", 0) == 0 || url.rfind("https://", 0) == 0;
+}
+
+static std::optional<LoginParams>
+parse_login_params(const boost::beast::http::request<boost::beast::http::string_body>& req)
+{
+    std::string target = req.target(); // "/path?ticket=...&redirect_url=..."
+
+    size_t qpos = target.find('?');
+    if (qpos == std::string::npos) {
+        return std::nullopt;
+    }
+    std::string query = target.substr(qpos + 1);
+
+    auto params = parse_query(query);
+
+    LoginParams out;
+    if (auto it = params.find("ticket"); it != params.end())
+        out.ticket = url_decode(it->second);
+    if (auto it = params.find("redirect_url"); it != params.end())
+        out.redirect_url = url_decode(it->second);
+
+    if (out.ticket.empty() || out.redirect_url.empty())
+        return std::nullopt;
+
+    if (!is_http_scheme(out.redirect_url))
+        return std::nullopt;
+
+    return out;
+}
+
+void session::do_write_404()
+{
+    using namespace boost::beast;
+    using http::field;
+    using http::status;
+    using http::string_body;
+    static const std::string body =
+        "<html><body><h1>404 Not Found</h1><p>There's nothing here.</p></body></html>";
+
+    auto res = std::make_shared<http::response<string_body>>(status::not_found, 11); // 11 = HTTP/1.1
+    res->set(http::field::content_type, "text/html");
+    res->keep_alive(false);
+    res->body() = body;
+    res->prepare_payload();
+
+    auto self = shared_from_this();
+    http::async_write(socket_, *res, [self, res](boost::beast::error_code ec, std::size_t) {
+        self->socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, ec);
+        });
+}
+
+void session::do_write_302(LoginParams params, bool result)
+{
+    using namespace boost::beast;
+    using http::field;
+    using http::status;
+    using http::string_body;
+    static const std::string body =
+        "<html><body><p>redirect to url</p></body></html>";
+
+    auto res = std::make_shared<http::response<string_body>>(status::found, 11);
+    std::string dest_url = result
+        ? (boost::format("%1%?result=success") % params.redirect_url).str()
+        : (boost::format("%1%?result=fail") % params.redirect_url).str();
+
+    res->set(field::location, dest_url);
+    res->set(field::content_type, "text/html");
+    res->body() = "<html><body><p>redirect to url</p></body></html>";
+    res->prepare_payload();
+    res->keep_alive(false);
+
+    auto self = shared_from_this();
+    http::async_write(self->socket_, *res,
+        [self, res](boost::beast::error_code ec, std::size_t) {
+            self->socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, ec);
+        });
+}
+
+void session::handle_request()
+{
+    using namespace boost::beast;
+    using http::field;
+    using http::status;
+    using http::string_body;
+
+    auto login_params = parse_login_params(req_);
+
+    if (login_params) {
+        auto login_info = TicketLoginTask::perform_sync(login_params->ticket);
+        if (login_info.empty())
+            do_write_302(*login_params, false);
+        else {
+            NetworkAgent *agent = wxGetApp().getAgent();
+            agent->change_user(login_info);
+            if (agent->is_user_login()) {
+                wxGetApp().request_user_login(1);
+                do_write_302(*login_params, true);
+            } else
+                do_write_302(*login_params, false);
+            GUI::wxGetApp().CallAfter([this] { wxGetApp().ShowUserLogin(false); });
+        }
+    }
+    else
+        do_write_404();
+}
+
+std::string TicketLoginTask::perform_sync(const std::string &ticket)
+{
+    auto login_info = do_request_login_info(ticket);
+    if (login_info)
+        return (*login_info);
+    else
+        return {};
+}
+
+void TicketLoginTask::perform_async(const std::string &ticket, std::function<void(std::string)> cb)
+{
+    boost::thread([cb = std::move(cb), ticket]() {
+        auto login_info = do_request_login_info(ticket);
+        auto result     = login_info ? *login_info : std::string();
+        if (wxTheApp) {
+            wxTheApp->CallAfter([cb, result = std::move(result)]() mutable { cb(std::move(result)); });
+        } else {
+            cb(result);
+        }
+    }).detach();
+}
+
+std::optional<std::string> TicketLoginTask::do_request_login_info(const std::string &ticket)
+{
+    try
+    {
+        NetworkAgent *agent = wxGetApp().getAgent();
+        unsigned int  http_code;
+        std::string   http_body;
+        if (agent->get_my_token(ticket, &http_code, &http_body) < 0)
+            return std::nullopt;
+        else {
+            auto token_resp = nlohmann::json::parse(http_body);
+            auto token_data = token_resp.get<TokenResp>();
+            if (agent->get_my_profile(token_data.accessToken, &http_code, &http_body) < 0)
+                return std::nullopt;
+            else {
+                auto profile_resp = nlohmann::json::parse(http_body);
+                auto profile_data = profile_resp.get<ProfileResp>();
+
+                json j;
+                j["data"]["refresh_token"]      = token_data.refreshToken;
+                j["data"]["token"]              = token_data.accessToken;
+                j["data"]["expires_in"]         = std::to_string(token_data.expiresIn);
+                j["data"]["refresh_expires_in"] = std::to_string(token_data.refreshExpiresIn);
+                j["data"]["user"]["uid"]        = profile_data.uidStr;
+                j["data"]["user"]["name"]       = profile_data.name;
+                j["data"]["user"]["account"]    = profile_data.account;
+                j["data"]["user"]["avatar"]     = profile_data.avatar;
+                return std::string(j.dump());
+            }
+        }
+    }
+    catch (...)
+    {
+        return std::nullopt;
+    }
 }
 
 } // GUI

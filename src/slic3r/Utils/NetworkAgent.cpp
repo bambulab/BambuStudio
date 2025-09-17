@@ -116,6 +116,7 @@ func_get_model_mall_home_url        NetworkAgent::get_model_mall_home_url_ptr = 
 func_get_model_mall_detail_url      NetworkAgent::get_model_mall_detail_url_ptr = nullptr;
 func_get_subtask                    NetworkAgent::get_subtask_ptr = nullptr;
 func_get_my_profile                 NetworkAgent::get_my_profile_ptr = nullptr;
+func_get_my_token                   NetworkAgent::get_my_token_ptr = nullptr;
 func_track_enable                   NetworkAgent::track_enable_ptr = nullptr;
 func_track_remove_files             NetworkAgent::track_remove_files_ptr = nullptr;
 func_track_event                    NetworkAgent::track_event_ptr = nullptr;
@@ -327,6 +328,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     get_model_mall_home_url_ptr       =  reinterpret_cast<func_get_model_mall_home_url>(get_network_function("bambu_network_get_model_mall_home_url"));
     get_model_mall_detail_url_ptr     =  reinterpret_cast<func_get_model_mall_detail_url>(get_network_function("bambu_network_get_model_mall_detail_url"));
     get_my_profile_ptr                =  reinterpret_cast<func_get_my_profile>(get_network_function("bambu_network_get_my_profile"));
+    get_my_token_ptr                  =  reinterpret_cast<func_get_my_profile>(get_network_function("bambu_network_get_my_token"));
     track_enable_ptr                  =  reinterpret_cast<func_track_enable>(get_network_function("bambu_network_track_enable"));
     track_remove_files_ptr            =  reinterpret_cast<func_track_remove_files>(get_network_function("bambu_network_track_remove_files"));
     track_event_ptr                   =  reinterpret_cast<func_track_event>(get_network_function("bambu_network_track_event"));
@@ -447,6 +449,7 @@ int NetworkAgent::unload_network_module()
     get_model_mall_home_url_ptr       =  nullptr;
     get_model_mall_detail_url_ptr     =  nullptr;
     get_my_profile_ptr                =  nullptr;
+    get_my_token_ptr                  =  nullptr;
     track_enable_ptr                  =  nullptr;
     track_remove_files_ptr            =  nullptr;
     track_event_ptr                   =  nullptr;
@@ -1461,6 +1464,17 @@ int NetworkAgent::get_my_profile(std::string token, unsigned int *http_code, std
     int ret = 0;
     if (network_agent && get_my_profile_ptr) {
         ret = get_my_profile_ptr(network_agent, token, http_code, http_body);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::get_my_token(std::string ticket, unsigned int* http_code, std::string* http_body)
+{
+    int ret = 0;
+    if (network_agent && get_my_token_ptr) {
+        ret = get_my_token_ptr(network_agent, ticket, http_code, http_body);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
     }
