@@ -1114,7 +1114,7 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
     bool ignore_ext_filament = false; // TODO: read from config
 
     std::vector<MultiNozzleUtils::NozzleGroupInfo> nozzle_groups;
-    auto extruder_nozzle_counts = get_extruder_nozzle_count(print_config.extruder_nozzle_count.values);
+    auto extruder_nozzle_counts = get_extruder_nozzle_stats(print_config.extruder_nozzle_count.values);
     for(size_t idx = 0; idx < extruder_nums; ++idx){
         if (idx >= extruder_nozzle_counts.size() || extruder_nozzle_counts[idx].empty()) {
             nozzle_groups.emplace_back(std::to_string(print_config.nozzle_diameter.values[idx]), NozzleVolumeType(print_config.nozzle_volume_type.values[idx]), idx, print_config.extruder_max_nozzle_count.values[idx]);

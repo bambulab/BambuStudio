@@ -2600,6 +2600,17 @@ bool PresetBundle::check_filament_temp_equation_by_printer_type_and_nozzle_for_m
     return is_equation;
 }
 
+int PresetBundle::get_extruder_nozzle_count(int extruder_id, NozzleVolumeType volume_type) const
+{
+    if (extruder_nozzle_counts.size() <= extruder_id)
+        return 1;
+
+    if(extruder_nozzle_counts.at(extruder_id).find(volume_type)!= extruder_nozzle_counts.at(extruder_id).end())
+        return extruder_nozzle_counts.at(extruder_id).at(volume_type);
+    else
+        return 0;
+}
+
 Preset *PresetBundle::get_similar_printer_preset(std::string printer_model, std::string printer_variant)
 {
     if (printer_model.empty())
@@ -2973,7 +2984,7 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     add_if_some_non_empty(std::move(different_settings),            "different_settings_to_system");
     add_if_some_non_empty(std::move(print_compatible_printers),     "print_compatible_printers");
     out.option<ConfigOptionStrings>("extruder_ams_count", true)->values   = save_extruder_ams_count_to_string(this->extruder_ams_counts);
-    out.option<ConfigOptionStrings>("extruder_nozzle_count", true)->values = save_extruder_nozzle_count_to_string(this->extruder_nozzle_counts);
+    out.option<ConfigOptionStrings>("extruder_nozzle_count", true)->values = save_extruder_nozzle_stats_to_string(this->extruder_nozzle_counts);
 
 	out.option<ConfigOptionEnumGeneric>("printer_technology", true)->value = ptFFF;
     return out;
@@ -3235,7 +3246,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     std::vector<std::string> extruder_nozzle_count = std::move(config.option<ConfigOptionStrings>("extruder_nozzle_count", true)->values);
     config.erase("extruder_nozzle_count");
     if (this->extruder_nozzle_counts.empty())
-        this->extruder_nozzle_counts = get_extruder_nozzle_count(extruder_nozzle_count);
+        this->extruder_nozzle_counts = get_extruder_nozzle_stats(extruder_nozzle_count);
 
     // 1) Create a name from the file name.
     // Keep the suffix (.ini, .gcode, .amf, .3mf etc) to differentiate it from the normal profiles.

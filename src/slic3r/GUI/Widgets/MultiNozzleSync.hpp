@@ -170,6 +170,7 @@ private:
 
     std::weak_ptr<DevNozzleRack> m_nozzle_rack;
     Label* m_tips;
+    Label* m_caution;
 
     wxTimer* m_refresh_timer {nullptr};
     size_t m_rack_event_token;
