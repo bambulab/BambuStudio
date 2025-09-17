@@ -2,7 +2,6 @@
 #define slic3r_GUI_PopupWindow_hpp_
 
 #include <wx/popupwin.h>
-#include <wx/event.h>
 
 class PopupWindow : public wxPopupTransientWindow
 {
@@ -24,12 +23,6 @@ private:
 
 #ifdef __WXGTK__
     void topWindowActivate(wxActivateEvent &event);
-#endif
-
-#ifdef __WXMSW__
-    void topWindowActivate(wxActivateEvent &event);
-    void topWindowIconize(wxIconizeEvent &event);
-    void topWindowShow(wxShowEvent &event);
 #endif
 };
 
