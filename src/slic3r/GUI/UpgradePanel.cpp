@@ -145,7 +145,6 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
 
 
     m_ahb_panel = new AmsPanel(this, wxID_ANY);
-    m_ahb_panel->m_staticText_ams->SetLabel("AMS HUB");
     m_ams_content_sizer->Add(m_ahb_panel, 0, wxEXPAND, 0);
 
 
@@ -687,6 +686,11 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
 
 
         m_ahb_panel->Show();
+        wxString hub_name = "-";
+        if (!obj->module_vers.find("ahb")->second.product_name.empty()) {
+            hub_name = obj->module_vers.find("ahb")->second.product_name;
+        }
+
 
         wxString hub_sn = "-";
         if (!obj->module_vers.find("ahb")->second.sn.empty()) {
@@ -743,7 +747,7 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
                 }
             }
         }
-
+        m_ahb_panel->m_staticText_ams->SetLabel(hub_name);
         m_ahb_panel->m_staticText_ams_sn_val->SetLabelText(hub_sn);
         m_ahb_panel->m_staticText_ams_ver_val->SetLabelText(hub_ver);
     }
