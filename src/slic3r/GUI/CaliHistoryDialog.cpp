@@ -884,12 +884,12 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
     if (support_nozzle_volume(curr_obj)) {
         Label *nozzle_name_title = new Label(top_panel, _L("Nozzle Flow"));
         m_comboBox_nozzle_type   = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
-        wxArrayString          nozzle_items;
         const ConfigOptionDef *nozzle_volume_type_def = print_config_def.get("nozzle_volume_type");
         if (nozzle_volume_type_def && nozzle_volume_type_def->enum_keys_map) {
-            for (auto item : nozzle_volume_type_def->enum_labels) { nozzle_items.push_back(_L(item)); }
+            for (auto item : nozzle_volume_type_def->enum_labels) {
+                m_comboBox_nozzle_type->Append(_L(item), wxNullBitmap, new int{to_nozzle_flow_type(item)});
+            }
         }
-        m_comboBox_nozzle_type->Set(nozzle_items);
         m_comboBox_nozzle_type->SetSelection(-1);
         flex_sizer->Add(nozzle_name_title);
         flex_sizer->Add(m_comboBox_nozzle_type);
@@ -897,10 +897,15 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
 
     Label *nozzle_diameter_title = new Label(top_panel, _L("Nozzle Diameter"));
     m_comboBox_nozzle_diameter = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
-    static std::array<float, 4> nozzle_diameter_list = {0.2f, 0.4f, 0.6f, 0.8f};
-    for (int i = 0; i < nozzle_diameter_list.size(); i++) {
-        m_comboBox_nozzle_diameter->AppendString(wxString::Format("%1.1f mm", nozzle_diameter_list[i]));
-        if (abs(obj->GetExtderSystem()->GetNozzleDiameter(0) - nozzle_diameter_list[i]) < 1e-3) {
+
+    static std::array<NozzleDiameterType, 4> nozzle_diameter_list = {NozzleDiameterType::NOZZLE_DIAMETER_0_2, NozzleDiameterType::NOZZLE_DIAMETER_0_4,
+                                                                     NozzleDiameterType::NOZZLE_DIAMETER_0_6, NozzleDiameterType::NOZZLE_DIAMETER_0_8};
+    for (int i = 0; i < nozzle_diameter_list.size(); i++)
+    {
+        auto diameter = nozzle_diameter_list[i];
+        m_comboBox_nozzle_diameter->Append(wxString::Format("%1.1f mm", to_nozzle_diameter_float(diameter)), wxNullBitmap, new int{diameter});
+
+        if(obj->GetExtderSystem()->GetNozzleDiameterType(0) == diameter){
             m_comboBox_nozzle_diameter->SetSelection(i);
         }
     }
@@ -972,9 +977,6 @@ int NewCalibrationHistoryDialog::get_extruder_id(int extruder_index)
 
 void NewCalibrationHistoryDialog::on_select_extruder(wxCommandEvent &event)
 {
-    static wxArrayString nozzle_type_backup;
-    static wxArrayString nozzle_diameter_backup;
-
     if (!m_comboBox_nozzle_id || !m_comboBox_nozzle_type) return;
 
     /* select right extruder */
@@ -982,16 +984,6 @@ void NewCalibrationHistoryDialog::on_select_extruder(wxCommandEvent &event)
     {
         m_comboBox_nozzle_id->Enable();
 
-        /* backup nozzle_type */
-        nozzle_type_backup.Clear();
-        for (unsigned int i = 0; i < m_comboBox_nozzle_type->GetCount(); ++i) {
-            nozzle_type_backup.Add(m_comboBox_nozzle_type->GetString(i));
-        }
-        /* backup nozzle_diameter */
-        nozzle_diameter_backup.Clear();
-        for (unsigned int i = 0; i < m_comboBox_nozzle_diameter->GetCount(); ++i) {
-            nozzle_diameter_backup.Add(m_comboBox_nozzle_diameter->GetString(i));
-        }
         m_comboBox_nozzle_type->Disable();
         m_comboBox_nozzle_diameter->Disable();
     }
@@ -1000,16 +992,6 @@ void NewCalibrationHistoryDialog::on_select_extruder(wxCommandEvent &event)
         m_comboBox_nozzle_id->Disable();
         m_comboBox_nozzle_id->SetValue(wxEmptyString);
 
-        /* restore nozzle_type */
-        if (!nozzle_type_backup.IsEmpty()) {
-            m_comboBox_nozzle_type->Set(nozzle_type_backup);
-            m_comboBox_nozzle_type->SetSelection(-1);
-        }
-        /* restore nozzle_diameter */
-        if (!nozzle_diameter_backup.IsEmpty()) {
-            m_comboBox_nozzle_diameter->Set(nozzle_diameter_backup);
-            m_comboBox_nozzle_diameter->SetSelection(-1);
-        }
         m_comboBox_nozzle_type->Enable();
         m_comboBox_nozzle_diameter->Enable();
     }
@@ -1026,17 +1008,21 @@ void NewCalibrationHistoryDialog::on_select_nozzle_pos(wxCommandEvent &event)
 
     auto nozzle = curr_obj->get_nozzle_by_id_code(pos);
     if (nozzle.IsNormal()) {
-        m_comboBox_nozzle_type->Clear();
-        switch (nozzle.GetNozzleFlowType()) {
-            case NozzleFlowType::S_FLOW: m_comboBox_nozzle_type->Append(_L("Standard")); break;
-            case NozzleFlowType::H_FLOW: m_comboBox_nozzle_type->Append(_L("High Flow")); break;
-            default: m_comboBox_nozzle_type->Append(_L("Unknown")); break;
+        auto nozzle_flow = nozzle.GetNozzleFlowType();
+        m_comboBox_nozzle_type->SetSelection(-1);
+        for(unsigned int i=0; i < m_comboBox_nozzle_type->GetCount(); i++) {
+            if(nozzle_flow == NozzleFlowType(*(int*)m_comboBox_nozzle_type->GetClientData(i))) {
+                m_comboBox_nozzle_type->SetSelection(i);
+            }
         }
-        m_comboBox_nozzle_type->SetSelection(0);
 
-        m_comboBox_nozzle_diameter->Clear();
-        m_comboBox_nozzle_diameter->Append(nozzle.GetNozzleDiameterStr());
-        m_comboBox_nozzle_diameter->SetSelection(0);
+        auto nozzle_diameter = nozzle.GetNozzleDiameterType();
+        m_comboBox_nozzle_diameter->SetSelection(-1);
+        for(unsigned int i=0; i < m_comboBox_nozzle_diameter->GetCount(); i++) {
+            if(nozzle_diameter == NozzleDiameterType(*(int*)m_comboBox_nozzle_diameter->GetClientData(i))) {
+                m_comboBox_nozzle_diameter->SetSelection(i);
+            }
+        }
     }
 }
 
@@ -1055,9 +1041,14 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
     wxString k_str = wxString::Format("%.3f", k);
     m_k_value->GetTextCtrl()->SetValue(k_str);
 
-    double   nozzle_value     = 0.0;
-    wxString nozzle_value_str = m_comboBox_nozzle_diameter->GetValue();
-    nozzle_value_str.ToDouble(&nozzle_value);
+    auto   sel          = m_comboBox_nozzle_diameter->GetSelection();
+    double nozzle_value = 0.0f;
+    if (sel != wxNOT_FOUND) {
+        nozzle_value = to_nozzle_diameter_float(NozzleDiameterType(*(int *) m_comboBox_nozzle_diameter->GetClientData(sel)));
+    } else {
+        nozzle_value = to_nozzle_diameter_float(NozzleDiameterType::NONE_DIAMETER_TYPE);
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid nozzle diameter type sel";
+    }
 
     std::string filament_name = m_comboBox_filament->GetValue().ToStdString();
     if (filament_name.empty()) {
@@ -1083,7 +1074,13 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
             msg_dlg.ShowModal();
             return;
         }
-        m_new_result.nozzle_volume_type = NozzleVolumeType(m_comboBox_nozzle_type->GetSelection());
+        auto sel = m_comboBox_nozzle_type->GetSelection();
+        if (sel != wxNOT_FOUND) {
+            m_new_result.nozzle_volume_type = to_nozzle_volume_type(NozzleFlowType(*(int*)m_comboBox_nozzle_type->GetClientData(sel)));
+        } else {
+            m_new_result.nozzle_volume_type = NozzleVolumeType::nvtDefault;
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid nozzle flow type sel";
+        }
     }
 
     int nozzle_pos_id = get_nozzle_combo_id_code();

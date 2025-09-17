@@ -61,6 +61,11 @@ namespace Slic3r
         return system->Owner()->GetNozzleSystem()->GetNozzle(m_current_nozzle_id).m_diameter;
     }
 
+    NozzleDiameterType DevExtder::GetNozzleDiameterType() const
+    {
+        return system->Owner()->GetNozzleSystem()->GetNozzle(m_current_nozzle_id).GetNozzleDiameterType();
+    }
+
     DevExtderSystem::DevExtderSystem(MachineObject* obj)
         : m_owner(obj)
     {
