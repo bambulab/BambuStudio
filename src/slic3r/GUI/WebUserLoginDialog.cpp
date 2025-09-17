@@ -279,7 +279,7 @@ void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
         json j = json::parse(into_u8(str_input));
 
         wxString strCmd = j["command"];
-        if (strCmd == "user_login") {
+        if (strCmd == "user_login" || strCmd == "user_ticket_login") {
             wxGetApp().handle_script_message(j.dump());
             Close();
         }

@@ -95,6 +95,7 @@ typedef int (*func_get_subtask)(void *agent, BBLModelTask* task, OnGetSubTaskFn 
 typedef int (*func_get_model_mall_home_url)(void *agent, std::string* url);
 typedef int (*func_get_model_mall_detail_url)(void *agent, std::string* url, std::string id);
 typedef int (*func_get_my_profile)(void *agent, std::string token, unsigned int *http_code, std::string *http_body);
+typedef int (*func_get_my_token)(void *agent, std::string ticket, unsigned int *http_code, std::string *http_body);
 typedef int (*func_track_enable)(void *agent, bool enable);
 typedef int (*func_track_remove_files)(void *agent);
 typedef int (*func_track_event)(void *agent, std::string evt_key, std::string content);
@@ -214,6 +215,7 @@ public:
     int get_model_mall_home_url(std::string* url);
     int get_model_mall_detail_url(std::string* url, std::string id);
     int get_my_profile(std::string token, unsigned int* http_code, std::string* http_body);
+    int get_my_token(std::string ticket, unsigned int* http_code, std::string* http_body);
     int track_enable(bool enable);
     int track_remove_files();
     int track_event(std::string evt_key, std::string content);
@@ -322,6 +324,7 @@ private:
     static func_get_model_mall_home_url        get_model_mall_home_url_ptr;
     static func_get_model_mall_detail_url      get_model_mall_detail_url_ptr;
     static func_get_my_profile                 get_my_profile_ptr;
+    static func_get_my_token                   get_my_token_ptr;
     static func_track_enable                   track_enable_ptr;
     static func_track_remove_files             track_remove_files_ptr;
     static func_track_event                    track_event_ptr;
