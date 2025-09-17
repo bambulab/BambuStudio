@@ -92,7 +92,15 @@ int MachineObject::ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, con
     // ams mapping
     std::vector<int> ams_mapping_vec(33, 0xFFFF);/* AP ask to fill them*/
     for (int fila_id = 0; fila_id < ams_mapping.size(); fila_id++) {
-        ams_mapping_vec[fila_id + 1] = ams_mapping[fila_id].tray_id;
+        try {
+            int ams_id = stoi(ams_mapping[fila_id].ams_id);
+            int slot_id = !ams_mapping[fila_id].slot_id.empty() ? stoi(ams_mapping[fila_id].slot_id) : 0;
+            ams_mapping_vec[fila_id + 1] = (ams_id << 8) | slot_id;/*using ams_id << 8 | slot_id*/
+        } catch (std::exception& e) {
+            assert(false && "invalid ams_id or slot_id");
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " exception: " << e.what();
+            ams_mapping_vec[fila_id + 1] = ams_mapping[fila_id].tray_id;
+        }
     }
     command_jj["print"]["ams_mapping"] = ams_mapping_vec;
 
