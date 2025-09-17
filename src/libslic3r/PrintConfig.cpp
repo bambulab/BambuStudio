@@ -499,7 +499,7 @@ std::vector<std::map<int, int>> get_extruder_ams_count(const std::vector<std::st
     return extruder_ams_counts;
 }
 
-std::vector<std::map<NozzleVolumeType,int>> get_extruder_nozzle_count(const std::vector<std::string>& strs)
+std::vector<std::map<NozzleVolumeType,int>> get_extruder_nozzle_stats(const std::vector<std::string>& strs)
 {
     std::vector<std::map<NozzleVolumeType,int>> extruder_nozzle_counts;
     for (const std::string& str : strs) {
@@ -540,7 +540,7 @@ std::vector<std::string> save_extruder_ams_count_to_string(const std::vector<std
     return extruder_ams_count_str;
 }
 
-std::vector<std::string> save_extruder_nozzle_count_to_string(const std::vector<std::map<NozzleVolumeType,int>>& extruder_nozzle_count)
+std::vector<std::string> save_extruder_nozzle_stats_to_string(const std::vector<std::map<NozzleVolumeType,int>>& extruder_nozzle_count)
 {
     std::vector<std::string> extruder_nozzle_count_str;
     for (size_t idx = 0; idx < extruder_nozzle_count.size(); ++idx) {
