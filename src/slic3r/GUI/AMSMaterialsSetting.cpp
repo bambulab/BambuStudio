@@ -345,12 +345,8 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     m_title_pa_profile->SetMinSize(wxSize(FromDIP(80), -1));
     m_title_pa_profile->SetMaxSize(wxSize(FromDIP(80), -1));
     m_title_pa_profile->SetFont(::Label::Body_13);
-    auto font = m_title_pa_profile->GetFont();
-    font.SetUnderlined(true);
-    m_title_pa_profile->SetFont(font);
     m_title_pa_profile->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
     m_title_pa_profile->Wrap(-1);
-    m_title_pa_profile->SetToolTip(_L("Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."));
     m_sizer_cali_resutl->Add(m_title_pa_profile, 0, wxALIGN_CENTER, 0);
     m_sizer_cali_resutl->Add(0, 0, 0, wxEXPAND, 0);
 
@@ -1274,9 +1270,21 @@ void AMSMaterialsSetting::update_nozzle_combo(MachineObject* obj){
         }
         m_title_nozzle_type->Show();
         m_comboBox_nozzle_type->Show();
+
+        /* set nozzle pos tooltip */
+        auto font = m_title_pa_profile->GetFont();
+        font.SetUnderlined(true);
+        m_title_pa_profile->SetFont(font);
+        m_title_pa_profile->SetToolTip(_L("Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."));
+
     } else{
         m_title_nozzle_type->Hide();
         m_comboBox_nozzle_type->Hide();
+
+        auto font = m_title_pa_profile->GetFont();
+        font.SetUnderlined(false);
+        m_title_pa_profile->SetFont(font);
+        m_title_pa_profile->SetToolTip(wxEmptyString);
     }
 
     Layout();

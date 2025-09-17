@@ -54,6 +54,7 @@ public:
     NozzleType     GetNozzleType()     const;
     NozzleFlowType GetNozzleFlowType() const;
     float          GetNozzleDiameter() const;
+    NozzleDiameterType GetNozzleDiameterType() const;
 
     // temperature
     int  GetCurrentTemp() const { return m_cur_temp; }
@@ -140,11 +141,12 @@ public:
     const std::vector<DevExtder>&  GetExtruders() const { return m_extders;};
 
     // get nozzle info which is installed on the extruder
-    NozzleType     GetNozzleType(int extder_id)     const { return GetExtderById(extder_id) ? GetExtderById(extder_id)->GetNozzleType() : NozzleType::ntUndefine; }
-    NozzleFlowType GetNozzleFlowType(int extder_id) const { return GetExtderById(extder_id) ? GetExtderById(extder_id)->GetNozzleFlowType() : NozzleFlowType::NONE_FLOWTYPE;; }
-    float          GetNozzleDiameter(int extder_id) const { return GetExtderById(extder_id) ? GetExtderById(extder_id)->GetNozzleDiameter() : 0.0; }
-    int            GetNozzleTempCurrent(int extder_id) const { return GetExtderById(extder_id) ? GetExtderById(extder_id)->GetCurrentTemp() : 0; }
-    int            GetNozzleTempTarget(int extder_id) const { return GetExtderById(extder_id) ? GetExtderById(extder_id)->GetTargetTemp() : 0; }
+    NozzleType          GetNozzleType(int extder_id)     const { return GetExtderById(extder_id) ? GetExtderById(extder_id)->GetNozzleType() : NozzleType::ntUndefine; }
+    NozzleFlowType      GetNozzleFlowType(int extder_id) const { return GetExtderById(extder_id) ? GetExtderById(extder_id)->GetNozzleFlowType() : NozzleFlowType::NONE_FLOWTYPE; }
+    NozzleDiameterType  GetNozzleDiameterType(int extder_id) const { return GetExtderById(extder_id) ? GetExtderById(extder_id)->GetNozzleDiameterType() : NozzleDiameterType::NONE_DIAMETER_TYPE; }
+    float               GetNozzleDiameter(int extder_id) const { return GetExtderById(extder_id) ? GetExtderById(extder_id)->GetNozzleDiameter() : 0.0; }
+    int                 GetNozzleTempCurrent(int extder_id) const { return GetExtderById(extder_id) ? GetExtderById(extder_id)->GetCurrentTemp() : 0; }
+    int                 GetNozzleTempTarget(int extder_id) const { return GetExtderById(extder_id) ? GetExtderById(extder_id)->GetTargetTemp() : 0; }
 
     // get slot info which is connected to the extruder
     std::string GetCurrentAmsId() const;
