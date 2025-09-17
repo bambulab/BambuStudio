@@ -92,7 +92,11 @@ private:
 };
 
 StaticGroup::StaticGroup(wxWindow *parent, wxWindowID id, const wxString &label)
-    : wxStaticBox(parent, id,"")
+#ifdef __WXOSX__
+    : wxStaticBox(parent, id, label)
+#else
+    : wxStaticBox(parent, id, "")
+#endif
 {
     hoverLabel_ = new HoverLabel(this, label);
     this->m_labelWin = hoverLabel_;
