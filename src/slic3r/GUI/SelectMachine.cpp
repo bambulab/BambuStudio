@@ -4915,7 +4915,9 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResult(MachineObject* obj_)
             if (rtn == 0) {
                 s_nozzle_mapping_last_request_time = time(nullptr);
             } else {
-                const auto& err_msg = wxString::Format(_L("Failed to send nozzle auto-mapping request to printer { code: %d }. Please refresh the printer information."), rtn);
+                const auto& err_msg = wxString::Format(_L("Failed to send nozzle auto-mapping request to printer { code: %d }. "
+                                                       "Please try to refresh the printer information. "
+                                                       "If it still does not recover, you can try to rebind the printer and check the network connection."), rtn);
                 show_status(PrintDialogStatus::PrintStatusRackNozzleMappingWaiting, { err_msg });
                 return false;
             }
