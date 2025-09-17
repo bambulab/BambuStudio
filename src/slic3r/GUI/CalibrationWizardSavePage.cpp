@@ -691,13 +691,13 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
         }
         comboBox_tray_name->Set(selections);
 
-        auto set_edit_mode = [this, k_value, n_value, k_value_failed, n_value_failed, nozzle_id_value, nozzle_id_failed, comboBox_tray_name, tray_name_failed](std::string str) {
+        auto set_edit_mode = [this, k_value, n_value, k_value_failed, n_value_failed, nozzle_id_value, nozzle_id_failed, comboBox_tray_name, tray_name_failed](std::string str, bool display_nozzle) {
             if (str == "normal") {
                 comboBox_tray_name->Show();
                 tray_name_failed->Show(false);
                 k_value->Show();
                 n_value->Show();
-                nozzle_id_value->Show();
+                nozzle_id_value->Show(display_nozzle);
                 k_value_failed->Show(false);
                 n_value_failed->Show(false);
                 nozzle_id_failed->Show(false);
@@ -710,7 +710,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
                 nozzle_id_value->Show(false);
                 k_value_failed->Show();
                 n_value_failed->Show();
-                nozzle_id_failed->Show();
+                nozzle_id_failed->Show(display_nozzle);
             }
 
             // hide n value
@@ -722,7 +722,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
         };
 
         if (!result_failed) {
-            set_edit_mode("normal");
+            set_edit_mode("normal", has_rack && item.extruder_id == MAIN_EXTRUDER_ID);
 
             auto k_str = wxString::Format("%.3f", item.k_value);
             auto n_str = wxString::Format("%.3f", item.n_coef);
@@ -739,10 +739,10 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
                     nozzle_id_str += "N/A | ";
                     BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "Nozzle position id is -1 or invalid.";
                 }
-                nozzle_id_str += wxString::Format("%.1f mm", item.nozzle_diameter);
+                nozzle_id_str += wxString::Format("%.1f mm ", item.nozzle_diameter);
                 switch(item.nozzle_volume_type){
-                    case NozzleVolumeType::nvtStandard: nozzle_id_str += " Standard Flow"; break;
-                    case NozzleVolumeType::nvtHighFlow: nozzle_id_str += " High Flow"; break;
+                    case NozzleVolumeType::nvtStandard: nozzle_id_str += _L("Standard Flow"); break;
+                    case NozzleVolumeType::nvtHighFlow: nozzle_id_str += _L("High Flow"); break;
                     default: break;
                 }
                 nozzle_id_value->SetLabel(nozzle_id_str);
@@ -757,7 +757,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
                 auto history   = filtered_results[selection];
             });
         } else {
-            set_edit_mode("failed");
+            set_edit_mode("failed", has_rack && item.extruder_id == MAIN_EXTRUDER_ID);
         }
 
         if ((m_obj->is_main_extruder_on_left() && item.extruder_id == 0)
