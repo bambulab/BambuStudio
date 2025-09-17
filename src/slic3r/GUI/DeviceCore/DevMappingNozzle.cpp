@@ -52,22 +52,25 @@ int MachineObject::ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, con
 {
     m_auto_nozzle_mapping.Clear();
     if (!plater) {
-        return - 1;
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": plater is nullptr";
+        return -1;
     }
 
     GCodeProcessorResult* gcode_result = plater->background_process().get_current_gcode_result();
     if (!gcode_result) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": gcode_result is nullptr";
         return -1;
     }
 
     const auto& result = plater->get_partplate_list().get_current_fff_print().get_nozzle_group_result();
     if (!result) {
         assert(false && "ff_print->get_nozzle_group_result() should not be nullptr");
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": ff_print->get_nozzle_group_result() is nullptr";
         return -1;
     }
 
     if (ams_mapping.empty()) {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": the ams mapping is empty";
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the ams mapping is empty";
         return -1;// the ams mapping is empty
     }
 
