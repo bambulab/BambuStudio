@@ -4833,39 +4833,53 @@ void SelectMachineDialog::on_nozzle_offset_option_changed(wxCommandEvent& event)
 wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
 {
     auto obj_ = get_current_machine();
-    if (obj_ && obj_->GetNozzleRack()->IsSupported() && m_plater) {
-        auto nozzle_group_res = m_plater->get_partplate_list().get_current_fff_print().get_nozzle_group_result();
-        if(!nozzle_group_res) {
-            return wxEmptyString;// there are no nozzle group result from slicing
-        }
+    if (!obj_) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": obj_ NULL";
+        return wxEmptyString;
+    }
 
-        if (nozzle_group_res->get_extruder_id(fila_id) != LOGIC_R_EXTRUDER_ID) {
-            return wxEmptyString;// the filament is not used at right extruder in slicing
-        }
+    if (!obj_->GetNozzleRack()->IsSupported())         {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": not support nozzle rack";
+        return wxEmptyString;
+    }
 
-        if (!nozzle_group_res->get_nozzle_for_filament(fila_id)) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": failed to get_nozzle_for_filament for " << fila_id;
-            return wxEmptyString;// the filament is not used at right extruder in slicing
-        }
+    if (!m_plater) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": m_plater NULL";
+    }
 
-        auto iter = m_nozzle_mapping_result.find(fila_id);
-        if (iter == m_nozzle_mapping_result.end()) {
-            return "?";// the filament is not mapped by the machine
-        }
+    auto nozzle_group_res = m_plater->get_partplate_list().get_current_fff_print().get_nozzle_group_result();
+    if (!nozzle_group_res) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": nozzle_group_res NULL";
+        return wxEmptyString;// there are no nozzle group result from slicing
+    }
 
-        // get display name of nozzle id
-        if (iter->second == MAIN_EXTRUDER_ID) {
-            return "R";
-        } else if (obj_->GetNozzleSystem()->GetReplaceNozzleTar().has_value() && iter->second == obj_->GetNozzleSystem()->GetReplaceNozzleTar().value()) {
-            return "R";
-        } else if(iter->second >= 0x10){
-            return wxString::Format("%d", iter->second - 0x10 + 1);// display 1~n for rack hotends
-        }
+    if (nozzle_group_res->get_extruder_id(fila_id) != LOGIC_R_EXTRUDER_ID) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": LOGIC_R_EXTRUDER_ID not used";
+        return wxEmptyString;// the filament is not used at right extruder in slicing
+    }
 
+    if (m_nozzle_mapping_result.empty()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": m_nozzle_mapping_result empty";
         return "?";
     }
 
-    return wxEmptyString;
+    auto iter = m_nozzle_mapping_result.find(fila_id);
+    if (iter == m_nozzle_mapping_result.end()) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": not mapped for " << fila_id;
+        return "?";// the filament is not mapped by the machine
+    }
+
+    // get display name of nozzle id
+    if (iter->second == MAIN_EXTRUDER_ID) {
+        return "R";
+    } else if (obj_->GetNozzleSystem()->GetReplaceNozzleTar().has_value() && iter->second == obj_->GetNozzleSystem()->GetReplaceNozzleTar().value()) {
+        return "R";
+    } else if (iter->second >= 0x10) {
+        return wxString::Format("%d", iter->second - 0x10 + 1);// display 1~n for rack hotends
+    }
+
+    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": invalid mapped nozzle id " << iter->second << " for " << fila_id;
+    return "?";
 }
 
 bool SelectMachineDialog::CheckErrorSyncNozzleMappingResult(MachineObject* obj_)

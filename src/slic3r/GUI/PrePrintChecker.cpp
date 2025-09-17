@@ -45,6 +45,8 @@ std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
     case PrintStatusColorQuantityExceed: return "PrintStatusColorQuantityExceed";
     // Handle filament errors
     case PrintStatusRackReading: return "PrintStatusRackReading";
+    case PrintStatusRackNozzleMappingWaiting: return "PrintStatusRackNozzleMappingWaiting";
+    case PrintStatusRackNozzleMappingError: return "PrintStatusRackNozzleMappingError";
     case PrintStatusInvalidMapping: return "PrintStatusInvalidMapping";
     case PrintStatusAmsOnSettingup: return "PrintStatusAmsOnSettingup";
     case PrintStatusAmsMappingInvalid: return "PrintStatusAmsMappingInvalid";
@@ -58,6 +60,7 @@ std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
     case PrintStatusToolHeadCoolingFanWarning: return "PrintStatusToolHeadCoolingFanWarning";
     case PrintStatusHasUnreliableNozzleWarning: return "PrintStatusRackHasUnreliableNozzleWarning";
     case PrintStatusRackNozzleNumUnmeetWarning: return "PrintStatusRackNozzleNumUnmeetWarning";
+    case PrintStatusRackNozzleMappingWarning: return "PrintStatusRackNozzleMappingWarning";
     case PrintStatusWarningKvalueNotUsed: return "PrintStatusWarningKvalueNotUsed";
     case PrintStatusHasFilamentInBlackListWarning: return "PrintStatusHasFilamentInBlackListWarning";
     case PrintStatusFilamentWarningHighChamberTemp: return "PrintStatusFilamentWarningHighChamberTemp";
