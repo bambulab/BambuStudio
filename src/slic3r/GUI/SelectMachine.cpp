@@ -4584,7 +4584,7 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
             if (nozzle_sys->GetNozzleRack()->GetCaliStatus() != DevNozzleRack::Rack_CALI_OK) {
                 show_status(PrintStatusRackNozzleNumUnmeetWarning,
                             { _L("There are not enough available hotends currently. Please complete the hotend rack setup and try again.") },
-                            wxEmptyString, prePrintInfoStyle::NozzleState | prePrintInfoStyle::BtnNozzleRefresh);
+                            wxEmptyString, prePrintInfoStyle::NozzleState);
             }
             else if (nozzle_sys->HasUnknownNozzles()) {
                 show_status(PrintStatusRackNozzleNumUnmeetWarning,
