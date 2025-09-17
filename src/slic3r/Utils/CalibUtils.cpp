@@ -150,6 +150,45 @@ std::vector<double> generate_max_speed_parameter_value(const std::string &key)
     return speed_values;
 }
 
+float to_nozzle_diameter_float(const NozzleDiameterType &type)
+{
+    switch (type){
+        case NozzleDiameterType::NOZZLE_DIAMETER_0_2: return 0.2f;
+        case NozzleDiameterType::NOZZLE_DIAMETER_0_4: return 0.4f;
+        case NozzleDiameterType::NOZZLE_DIAMETER_0_6: return 0.6f;
+        case NozzleDiameterType::NOZZLE_DIAMETER_0_8: return 0.8f;
+        default: return 0.4f;
+    }
+}
+
+NozzleFlowType to_nozzle_flow_type(const std::string &type)
+{
+    if(type == "Standard")
+        return NozzleFlowType::S_FLOW;
+    else if(type == "High Flow")
+        return NozzleFlowType::H_FLOW;
+    else
+        return NozzleFlowType::NONE_FLOWTYPE;
+}
+
+NozzleFlowType to_nozzle_flow_type(const NozzleVolumeType &type)
+{
+    switch (type) {
+        case NozzleVolumeType::nvtStandard: return NozzleFlowType::S_FLOW;
+        case NozzleVolumeType::nvtHighFlow: return NozzleFlowType::H_FLOW;
+        default: return NozzleFlowType::NONE_FLOWTYPE;
+    }
+}
+
+NozzleVolumeType to_nozzle_volume_type(const NozzleFlowType &type)
+{
+    switch (type) {
+        case NozzleFlowType::S_FLOW: return NozzleVolumeType::nvtStandard;
+        case NozzleFlowType::H_FLOW: return NozzleVolumeType::nvtHighFlow;
+        default: return NozzleVolumeType::nvtDefault;
+    }
+}
+
 static int get_physical_extruder_idx(std::vector<int> physical_extruder_maps, int extruder_id)
 {
     for (size_t index = 0; index < physical_extruder_maps.size(); ++index) {
