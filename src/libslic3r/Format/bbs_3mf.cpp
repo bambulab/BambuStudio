@@ -8096,7 +8096,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         << FILAMENT_USED_G_TAG << "=\"" << it->used_g << "\" "
                         << FILAMENT_NOZZLE_GROUP_ID_TAG << "=\"" << it->group_id << "\" "
                         << FILAMENT_NOZZLE_DIAMETER_TAG << "=\"" << it->nozzle_diameter << "\" "
-                        << FILAMENT_NOZZLE_VOLUME_TYPE_TAG << "=\"" << it->nozzle_volume_type << "\" ";
+                        << FILAMENT_NOZZLE_VOLUME_TYPE_TAG << "=\"" << it->nozzle_volume_type << "\"/>\n";
                 }
 
                 for (auto it = plate_data->warnings.begin(); it != plate_data->warnings.end(); it++) {
