@@ -1086,6 +1086,10 @@ void GUI_App::post_init()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: false";
     }
 
+    
+    
+    wxGetApp().report_consent_common(app_config->get("firstguide", "privacyuse") == "true"? true : false, "studio_improvement_policy_enable", "StudioImprovementPolicy");
+
     /*request helio config*/
     if (app_config->get("helio_enable") == "true") {
         if (!Slic3r::HelioQuery::get_helio_api_url().empty() && !Slic3r::HelioQuery::get_helio_pat().empty()) {
@@ -4904,6 +4908,9 @@ void GUI_App::enable_user_preset_folder(bool enable)
 
 void GUI_App::save_privacy_policy_history(bool agree, std::string source)
 {
+    /*trace*/
+    wxGetApp().report_consent_common(agree, "studio_improvement_policy_enable", "StudioImprovementPolicy");
+
     json j;
     wxDateTime::TimeZone tz(wxDateTime::Local);
     long offset = tz.GetOffset();
@@ -5365,11 +5372,13 @@ void GUI_App::show_check_privacy_dlg(wxCommandEvent& evt)
         app_config->set("privacy_version", privacy_version_info.version_str);
         app_config->set_bool("privacy_update_checked", true);
         app_config->save();
+        report_consent_common(true, "studio_privacy_policy_enable", "SoftwarePrivacy");
         request_user_handle(online_login);
         });
     privacy_dlg.Bind(EVT_PRIVACY_UPDATE_CANCEL, [this](wxCommandEvent &e) {
             app_config->set_bool("privacy_update_checked", false);
             app_config->save();
+            report_consent_common(false, "studio_privacy_policy_enable", "SoftwarePrivacy");
             if (m_agent) {
                 m_agent->user_logout();
             }
@@ -7720,6 +7729,38 @@ FilamentColorCodeQuery* GUI_App::get_filament_color_code_query()
 bool GUI_App::open_browser_with_warning_dialog(const wxString& url, int flags/* = 0*/)
 {
     return wxLaunchDefaultBrowser(url, flags);
+}
+
+void GUI_App::report_consent_common(bool agree, std::string scene, std::string formID)
+{
+    json consentBody;
+    json formItemArray = json::array();
+    json formItem;
+
+    if (app_config->get("region") == "China") {
+        formID += "-CN";
+    }
+    
+    formItem["formID"] = formID;
+    formItem["op"] = agree? "Opt-in" : "Withdraw";
+    formItemArray.push_back(formItem);
+
+    consentBody["version"] = 1;
+    consentBody["scene"] = scene;
+    consentBody["formList"] = formItemArray;
+
+    json consent;
+    consent["consentBody"] = consentBody.dump();
+    std::string post_body_str = consent.dump();
+
+    NetworkAgent* agent = GUI::wxGetApp().getAgent();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "  client_id:" << wxGetApp().app_config->get("slicer_uuid") << "\nreport_consent:" << post_body_str;
+
+    if (agent && agent->is_user_login())
+        agent->report_consent(post_body_str);
+    else {
+        wxGetApp().report_consent(post_body_str);
+    }
 }
 
 // static method accepting a wxWindow object as first parameter
