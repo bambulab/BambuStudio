@@ -1133,12 +1133,15 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
         auto extruder_ams_counts = get_extruder_ams_count(extruder_ams_count_str);
         std::vector<int> group_size = calc_max_group_size(extruder_ams_counts, ignore_ext_filament);
 
+        std::vector<bool> prefer_non_model_filament(extruder_nums,false);
+
         auto machine_filament_info = build_machine_filaments(print->get_extruder_filament_info(), extruder_ams_counts, ignore_ext_filament);
 
         std::vector<std::string> filament_types = print_config.filament_type.values;
         std::vector<std::string> filament_colours = print_config.filament_colour.values;
         std::vector<unsigned char> filament_is_support = print_config.filament_is_support.values;
         std::vector<std::string> filament_ids = print_config.filament_ids.values;
+        std::vector<FilamentUsageType> filament_usage_types = build_filament_usage_type_list(print_config, print->objects().vector());
         // speacially handle tpu filaments
         auto tpu_filaments = get_filament_by_type(used_filaments, &print_config, "TPU");
         FGMode fg_mode = mode == FilamentMapMode::fmmAutoForMatch ? FGMode::MatchMode: FGMode::FlushMode;
@@ -1164,12 +1167,14 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
                 info.color = filament_colours[idx];
                 info.type = filament_types[idx];
                 info.is_support = filament_is_support[idx];
+                info.usage_type = filament_usage_types[idx];
                 context.model_info.filament_info.emplace_back(std::move(info));
             }
 
             context.machine_info.machine_filament_info = machine_filament_info;
             context.machine_info.max_group_size = std::move(group_size);
             context.machine_info.master_extruder_id = master_extruder_id;
+            context.machine_info.prefer_non_model_filament = prefer_non_model_filament;
 
             context.group_info.total_filament_num = (int)(filament_nums);
             context.group_info.max_gap_threshold = 0.01;
@@ -1178,10 +1183,10 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
             context.group_info.ignore_ext_filament = ignore_ext_filament;
         }
 
+        context.nozzle_info.nozzle_list = build_nozzle_list(nozzle_groups);
+        context.nozzle_info.extruder_nozzle_list = build_extruder_nozzle_list(context.nozzle_info.nozzle_list);
 
         if (has_multiple_nozzle) {
-            context.nozzle_info.nozzle_list = build_nozzle_list(nozzle_groups);
-            context.nozzle_info.extruder_nozzle_list = build_extruder_nozzle_list(context.nozzle_info.nozzle_list);
             if(mode == FilamentMapMode::fmmManual){
                 auto manual_filament_map = print_config.filament_map.values;
                 std::transform(manual_filament_map.begin(), manual_filament_map.end(), manual_filament_map.begin(), [](int v) { return v - 1; });
