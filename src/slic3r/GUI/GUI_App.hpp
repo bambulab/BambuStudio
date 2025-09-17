@@ -562,6 +562,7 @@ public:
 
     void            open_preferences(size_t open_on_tab = 0, const std::string& highlight_option = std::string());
 
+    void            report_consent_common(bool agree, std::string scene, std::string formID);
     virtual bool OnExceptionInMainLoop() override;
     // Calls wxLaunchDefaultBrowser if user confirms in dialog.
     bool            open_browser_with_warning_dialog(const wxString& url, int flags = 0);
