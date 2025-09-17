@@ -633,7 +633,7 @@ void wgtDeviceNozzleRackPos::UpdateRackPos(DevNozzleRack::RackPos new_pos,
             if (new_pos == DevNozzleRack::RACK_POS_A_TOP)
             {
                 s_show_label(m_label_rowup, L_RAW_A_STR, s_hgreen_clr);
-                s_show_label(m_label_rowup_status, _L("Rasied"));
+                s_show_label(m_label_rowup_status, _L("Raised"));
 
                 m_rowbottom_panel->SetBorderColor(*wxWHITE);
                 m_rowbottom_panel->SetBackgroundColor(*wxWHITE);
@@ -646,7 +646,7 @@ void wgtDeviceNozzleRackPos::UpdateRackPos(DevNozzleRack::RackPos new_pos,
             else if (new_pos == DevNozzleRack::RACK_POS_B_TOP)
             {
                 s_show_label(m_label_rowup, L_RAW_B_STR, s_hgreen_clr);
-                s_show_label(m_label_rowup_status, _L("Rasied"));
+                s_show_label(m_label_rowup_status, _L("Raised"));
                 s_show_label(m_label_rowbottom, L_RAW_A_STR, *wxBLACK);
                 m_label_rowbottom_status->Show(false);
 
