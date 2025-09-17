@@ -203,6 +203,7 @@ public:
     void get_big_btn_sync_pos_size(wxPoint &pt, wxSize &size);
     void get_small_btn_sync_pos_size(wxPoint &pt, wxSize &size);
     void set_extruder_nozzle_count(int extruder_id, int nozzle_count);
+    void enable_nozzle_count_edit(bool enable);
 
     PlaterPresetComboBox *  printer_combox();
     ObjectList*             obj_list();
@@ -735,7 +736,8 @@ public:
     bool check_ams_status(bool is_slice_all);
     // only check sync status and printer model id
     bool get_machine_sync_status();
-
+    // check whether nozzle staus is synced with printer, extruder = -1 means check both extruder
+    bool is_extruder_stat_synced(int extruder_id = -1);
     void update_machine_sync_status();
 
     void show_wrapping_detect_dialog_if_necessary();

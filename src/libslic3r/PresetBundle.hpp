@@ -170,6 +170,7 @@ public:
                                                                                                std::string &      nozzle_temp_max,
                                                                                                std::string &      preset_setting_id);
     Preset *                    get_similar_printer_preset(std::string printer_model, std::string printer_variant);
+    int get_extruder_nozzle_count(int extruder_id, NozzleVolumeType volume_type) const;
 
     PresetCollection            prints;
     PresetCollection            sla_prints;

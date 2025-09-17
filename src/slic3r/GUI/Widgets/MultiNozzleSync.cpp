@@ -1,4 +1,4 @@
-#include "MultiNozzleSync.hpp"
+﻿#include "MultiNozzleSync.hpp"
 #include "../GUI_App.hpp"
 #include "../DeviceCore/DevManager.h"
 #include "libslic3r/PresetBundle.hpp"
@@ -79,13 +79,13 @@ void manuallySetNozzleCount(int extruder_id)
 
     auto full_config = GUI::wxGetApp().preset_bundle->full_config();
     auto extruder_max_nozzle_count = full_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
-    if (!extruder_max_nozzle_count || extruder_id >= extruder_max_nozzle_count->size() || extruder_max_nozzle_count->values[extruder_id] <= 1)
+    if (!extruder_max_nozzle_count || !std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int val) {return val > 1; }))
         return;
 
     ConfigOptionEnumsGeneric* nozzle_volume_type_opt = full_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
     NozzleVolumeType volume_type = NozzleVolumeType(nozzle_volume_type_opt->values[extruder_id]);
     double nozzle_diameter = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values[extruder_id];
-    auto nozzle_count_map = get_extruder_nozzle_count(full_config.option<ConfigOptionStrings>("extruder_nozzle_count")->values);
+    auto nozzle_count_map = get_extruder_nozzle_stats(full_config.option<ConfigOptionStrings>("extruder_nozzle_count")->values);
     int default_nozzle_count = 1;
     if (extruder_id < nozzle_count_map.size()) {
         default_nozzle_count = std::accumulate(nozzle_count_map[extruder_id].begin(), nozzle_count_map[extruder_id].end(), 0, [](int a, auto& elem) {
@@ -109,8 +109,7 @@ ExtruderBadge::ExtruderBadge(wxWindow* parent) : wxPanel(parent)
     SetBackgroundColour("#F8F8F8");
     wxBitmap icon = create_scaled_bitmap("extruder_badge_none_selected", nullptr, FromDIP(90));
 
-    left = new Label(this, _L("Left"));
-    right = new Label(this, _L("Right"));
+    auto extruder_label = new Label(this, _L("Extruder"));
 
     badget = new wxStaticBitmap(this, wxID_ANY, icon);
 
@@ -123,10 +122,8 @@ ExtruderBadge::ExtruderBadge(wxWindow* parent) : wxPanel(parent)
     right_flow_desp = new Label(this, _L(get_nozzle_volume_type_string(m_volume_type_list[RightExtruderIdx])));
 
 
-    wxBoxSizer* top_h = new wxBoxSizer(wxHORIZONTAL);
-    top_h->Add(left, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(15));
-    top_h->AddStretchSpacer(1);
-    top_h->Add(right, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(15));
+    wxBoxSizer* top_h = new wxBoxSizer(wxVERTICAL);
+    top_h->Add(extruder_label, 0, wxALIGN_CENTER | wxBOTTOM, FromDIP(10));
 
     main_sizer->Add(top_h, 0, wxEXPAND | wxTOP, FromDIP(5));
     main_sizer->Add(badget, 0, wxALIGN_CENTER | wxTOP, FromDIP(5));
@@ -245,11 +242,11 @@ void ExtruderBadge::MarkRelatedItems(const NozzleOption& option)
     SetExtruderStatus(left_selected, right_selected);
 }
 
-HotEndTable::HotEndTable(wxWindow* parent) :  wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
+HotEndTable::HotEndTable(wxWindow* parent) :  wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,wxBORDER_NONE)
 {
     Bind(wxEVT_PAINT, &HotEndTable::OnPaint, this);
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
-    auto label = new Label(this, _L("Shelf"));
+    auto label = new Label(this, _L("Induction Hotend Rack"));
     label->SetBackgroundColour("#F8F8F8");
 
     m_arow_nozzle_box = CreateNozzleBox({ 0,2,4 });
@@ -397,7 +394,7 @@ void HotEndTable::OnPaint(wxPaintEvent& evt)
 
     dc.SetPen(wxPen(wxColour("#EEEEEE"), 2));
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.DrawRoundedRectangle(0, 0, size.GetWidth(), size.GetHeight(), 5);
+    dc.DrawRoundedRectangle(0, 0, size.GetWidth()-2, size.GetHeight()-2, 5);
 }
 
 NozzleListTable::NozzleListTable(wxWindow* parent) : wxPanel(parent,wxID_ANY,wxDefaultPosition,wxDefaultSize ,wxNO_BORDER)
@@ -424,16 +421,18 @@ NozzleListTable::NozzleListTable(wxWindow* parent) : wxPanel(parent,wxID_ANY,wxD
             json j = json::parse(message);
             if (j["msg"].get<std::string>() == "init") {
                 auto table_obj_str = BuildTableObjStr();
-                CallAfter([table_obj_str, this] {
-                    wxString script1 = wxString::Format("initTable(%s)", table_obj_str);
+                auto text_obj_str = BuildTextObjStr();
+                CallAfter([table_obj_str, text_obj_str, this] {
+                    wxString script1 = wxString::Format("initText(%s)", text_obj_str);
                     m_web_view->RunScript(script1);
+                    wxString script2 = wxString::Format("initTable(%s)", table_obj_str);
+                    m_web_view->RunScript(script2);
                     });
             }
             else if (j["msg"].get<std::string>() == "updateList") {
                 auto table_obj_str = BuildTableObjStr();
-                auto text_obj_str = BuildTextObjStr();
 
-                CallAfter([table_obj_str, text_obj_str, this] {
+                CallAfter([table_obj_str, this] {
                     wxString script1 = wxString::Format("updateTable(%s)", table_obj_str);
                     m_web_view->RunScript(script1);
                     });
@@ -460,16 +459,21 @@ NozzleListTable::NozzleListTable(wxWindow* parent) : wxPanel(parent,wxID_ANY,wxD
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Failed to parse json message: " << message;
         }
         });
+
+    wxGetApp().UpdateDarkUIWin(this);
 }
 
 wxString NozzleListTable::BuildTableObjStr()
 {
-    json obj = json::array();
+    json obj;
+    obj["darkmode"] = wxGetApp().dark_mode();
+    obj["data"] = json::array();
     for(size_t idx = 0; idx < m_nozzle_options.size(); ++idx){
         const auto& option = m_nozzle_options[idx];
         json json_opt;
         json_opt["diameter"] = option.diameter;
         json_opt["is_selected"] = idx == m_selected_idx;
+        json_opt["darkmode"] = wxGetApp().dark_mode();
 
         json extruders = json::object();
         for (const auto& [extruderId, nozzleInfo] : option.extruder_nozzle_count) {
@@ -479,7 +483,7 @@ wxString NozzleListTable::BuildTableObjStr()
             extruders[std::to_string(extruderId)] = nozzleData;
         }
         json_opt["extruders"] = extruders;
-        obj.push_back(json_opt);
+        obj["data"].push_back(json_opt);
     }
     return wxString::FromUTF8(obj.dump().c_str());
 }
@@ -493,7 +497,23 @@ void NozzleListTable::SendSelectionChangedEvent()
 }
 wxString NozzleListTable::BuildTextObjStr()
 {
-    return "";
+    wxString nozzle_selection = _L("Nozzle Selection");
+    wxString nozzle_list = _L("Available Nozzles");
+    wxString Left = _L("Left");
+    wxString Right = _L("Right");
+    wxString highflow = _L(get_nozzle_volume_type_string(nvtHighFlow));
+    wxString standard = _L(get_nozzle_volume_type_string(nvtStandard));
+
+    wxString text_obj = "{";
+    text_obj += wxString::Format("\"nozzle_selection_label\":\"%s\",", nozzle_selection);
+    text_obj += wxString::Format("\"nozzle_list_label\":\"%s\",", nozzle_list);
+    text_obj += wxString::Format("\"left_label\":\"%s\",", Left);
+    text_obj += wxString::Format("\"right_label\":\"%s\",", Right);
+    text_obj += wxString::Format("\"highflow_label\":\"%s\",", highflow);
+    text_obj += wxString::Format("\"standard_label\":\"%s\"", standard);
+    text_obj += "}";
+
+    return text_obj;
 }
 
 void NozzleListTable::SetOptions(const std::vector<NozzleOption>& options,int default_select)
@@ -618,6 +638,10 @@ Slic3r::GUI::MultiNozzleSyncDialog::MultiNozzleSyncDialog(wxWindow* parent,std::
     m_cancel_btn = new Button(this, _L("Cancel"), "", 0, 0, wxID_OK);
     m_confirm_btn = new Button(this, _L("Confirm"), "", 0, 0, wxID_CANCEL);
 
+    m_caution = new Label(this, _L("Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."));
+    m_caution->SetForegroundColour("#909090");
+    main_sizer->Add(m_caution, 0, wxLEFT | wxRIGHT, FromDIP(25));
+
     StateColor btn_bg_green(
         std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled),
         std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
@@ -654,6 +678,10 @@ Slic3r::GUI::MultiNozzleSyncDialog::MultiNozzleSyncDialog(wxWindow* parent,std::
     int table_width = m_nozzle_table->GetBestSize().GetWidth();
     m_tips->Wrap(table_width);
     m_tips->SetMaxSize(wxSize(table_width, -1));
+
+    m_caution->Wrap(table_width);
+    m_caution->SetMaxSize(wxSize(table_width, -1));
+
     Layout();
 
     m_refresh_timer = new wxTimer(this);
@@ -827,23 +855,19 @@ void MultiNozzleSyncDialog::UpdateTip(std::weak_ptr<DevNozzleRack> rack, bool ig
 
     if (has_unknown && has_unreliable) {
         m_tips->SetLabel(_L("Unknown nozzle detected. Refresh to update info (unrefreshed nozzles will be excluded during slicing). Verify nozzle diameter & flow rate against displayed values."));
+        m_caution->Hide();
     }
     else if (has_unknown) {
         m_tips->SetLabel(_L("Unknown nozzle detected. Refresh to update (unrefreshed nozzles will be skipped in slicing)."));
+        m_caution->Hide();
     }
     else if (has_unreliable) {
         m_tips->SetLabel(_L("Please confirm whether the required nozzle diameter and flow rate match the currently displayed values."));
+        m_caution->Hide();
     }
     else {
-        auto nozzle_groups = nozzle_rack->GetNozzleSystem()->GetNozzleGroups();
-
-        if (hasMultiDiameters(nozzle_groups)) {
-            m_tips->SetLabel(_L("Your printer has multiple nozzle sizes installed. Mixing nozzle diameters in one print is not supported."
-                "Please select a nozzle diameter for this print(If the selected size is only on one extruder, single-extruder printing will be enforced.)"));
-        }
-        else {
-            m_tips->SetLabel("");
-        }
+        m_tips->SetLabel(_L("Your printer has different nozzles installed. Please select a nozzle for this print."));
+        m_caution->Show();
     }
 }
 
@@ -960,6 +984,8 @@ bool MultiNozzleSyncDialog::UpdateUi(std::weak_ptr<DevNozzleRack> rack, bool ign
     int table_width = m_nozzle_table->GetBestSize().GetWidth();
     m_tips->Wrap(table_width);
     m_tips->SetMaxSize(wxSize(table_width, -1));
+    m_caution->Wrap(table_width);
+    m_caution->SetMaxSize(wxSize(table_width, -1));
     Fit();
     return true;
 }

@@ -1420,28 +1420,17 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         return;
 
     //std::vector<ExtruderInfo> extruder_infos(extruder_nums);
-    std::vector<MultiNozzleUtils::NozzleGroupInfo> nozzle_group_infos(extruder_nums);
-    std::vector<int> nozzle_volume_types = wxGetApp().preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
-    for (size_t i = 0; i < nozzle_volume_types.size(); ++i) {
-        NozzleVolumeType volume_type = NozzleVolumeType(nozzle_volume_types[i]);
-        nozzle_group_infos[i].volume_type = volume_type;
-        nozzle_group_infos[i].nozzle_count = wxGetApp().preset_bundle->extruder_nozzle_counts[i][volume_type];
-        nozzle_group_infos[i].extruder_id = i;
-    }
 
     if (extruder_nums == 1) {
         double value = 0.0;
         single_extruder->diameter.ToDouble(&value);
-        nozzle_group_infos[0].diameter = format_diameter_to_str(value);
     }
     else if(extruder_nums == 2){
         double value = 0.0;
         left_extruder->diameter.ToDouble(&value);
-        nozzle_group_infos[0].diameter = format_diameter_to_str(value);
 
         value = 0.0;
         right_extruder->diameter.ToDouble(&value);
-        nozzle_group_infos[1].diameter = format_diameter_to_str(value);
     }
 
     std::vector<ExtruderInfo> machine_extruder_infos(obj->GetExtderSystem()->GetTotalExtderCount());
@@ -1467,11 +1456,9 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
 
     std::reverse(machine_extruder_infos.begin(), machine_extruder_infos.end());
 
-    auto machine_nozzle_groups = obj->GetNozzleSystem()->GetNozzleGroups();
-
     std::vector<bool> extruder_synced(extruder_nums, false);
     if (extruder_nums == 1) {
-        if (std::find(machine_nozzle_groups.begin(),machine_nozzle_groups.end(),nozzle_group_infos[0])!=machine_nozzle_groups.end()) {
+        if (this->plater->is_extruder_stat_synced()) {
             single_extruder->ShowBadge(true);
             single_extruder->sync_ams(obj, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1);
             extruder_synced[0] = true;
@@ -1482,7 +1469,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         }
     }
     else if (extruder_nums == 2) {
-        if (std::find(machine_nozzle_groups.begin(),machine_nozzle_groups.end(),nozzle_group_infos[0])!=machine_nozzle_groups.end()) {
+        if (this->plater->is_extruder_stat_synced(0)) {
             left_extruder->ShowBadge(true);
             left_extruder->sync_ams(obj, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1);
             extruder_synced[0] = true;
@@ -1492,7 +1479,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
             left_extruder->sync_ams(obj, {}, {});
         }
 
-        if (std::find(machine_nozzle_groups.begin(),machine_nozzle_groups.end(),nozzle_group_infos[1])!=machine_nozzle_groups.end()) {
+        if (this->plater->is_extruder_stat_synced(1)) {
             right_extruder->ShowBadge(true);
             right_extruder->sync_ams(obj, machine_extruder_infos[1].ams_v4, machine_extruder_infos[1].ams_v1);
             extruder_synced[1] = true;
@@ -1794,22 +1781,10 @@ Sidebar::Sidebar(Plater *parent)
         });
         p->btn_sync_printer = btn_sync;
 
-        auto extruder_hover_enabled_cb = [](int extruder_id) {
-            if (!wxGetApp().preset_bundle)
-                return false;
-            auto full_config = wxGetApp().preset_bundle->full_config();
-            ConfigOptionIntsNullable* extruder_max_nozzle_count = full_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
-            if (!extruder_max_nozzle_count || extruder_id >= extruder_max_nozzle_count->size())
-                return false;
-            return bool(extruder_max_nozzle_count->values[extruder_id] > 1);
-            };
-
         p->left_extruder = new ExtruderGroup(p->m_panel_printer_content, 0, _L("Left Nozzle"));
         p->right_extruder = new ExtruderGroup(p->m_panel_printer_content, 1, _L("Right Nozzle"));
         p->single_extruder = new ExtruderGroup(p->m_panel_printer_content, -1, _L("Nozzle"));
 
-        p->left_extruder->SetHoverEnabledCallback([extruder_hover_enabled_cb]() { return extruder_hover_enabled_cb(0); });
-        p->right_extruder->SetHoverEnabledCallback([extruder_hover_enabled_cb]() { return extruder_hover_enabled_cb(1); });
         p->left_extruder->SetOnHoverClick([this, parent]() {
             GUI::manuallySetNozzleCount(0);
             wxGetApp().plater()->update();
@@ -3143,6 +3118,11 @@ void Sidebar::set_extruder_nozzle_count(int extruder_id, int nozzle_count)
     }
 }
 
+void Sidebar::enable_nozzle_count_edit(bool enable){
+    p->left_extruder->SetEditEnabled(enable);
+    p->right_extruder->SetEditEnabled(enable);
+}
+
 void Sidebar::load_ams_list(MachineObject* obj)
 {
     std::map<int, DynamicPrintConfig> filament_ams_list = build_filament_ams_list(obj);
@@ -4147,6 +4127,7 @@ public:
     void reset_canvas_volumes();
     bool check_ams_status_impl(bool is_slice_all);  // Check whether the printer and ams status are consistent, for grouping algorithm
     bool get_machine_sync_status(); // check whether the printer is linked and the printer type is same as selected profile
+    bool is_extruder_stat_synced(int target_extruder_id = -1); // check whether nozzle staus is synced with printer, extruder = -1 means check both extruder
     Camera& get_current_camera();
 
     // BBS
@@ -10749,28 +10730,10 @@ bool Plater::priv::check_ams_status_impl(bool is_slice_all)
     if (preset_bundle && preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == obj->get_show_printer_type()) {
         bool is_same_as_printer = true;
         auto nozzle_volumes_values = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
-        auto nozzle_diameter_values = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values;
-        auto extruder_nozzle_stats = preset_bundle->extruder_nozzle_counts;
-        
-        MultiNozzleUtils::NozzleGroupInfo preset_right_nozzle;
+
         assert(obj->GetExtderSystem()->GetTotalExtderCount() == 2 && nozzle_volumes_values.size() == 2);
         if (obj->GetExtderSystem()->GetTotalExtderCount() == 2 && nozzle_volumes_values.size() == 2) {
-            NozzleVolumeType preset_left_volume  = NozzleVolumeType(nozzle_volumes_values[0]);
-            NozzleVolumeType preset_right_volume = NozzleVolumeType(nozzle_volumes_values[1]);
-            std::string preset_left_diameter = format_diameter_to_str(nozzle_diameter_values[0]);
-            std::string preset_right_diameter = format_diameter_to_str(nozzle_diameter_values[0]);
-
-            MultiNozzleUtils::NozzleGroupInfo preset_left_info(preset_left_diameter, preset_left_volume, 0, extruder_nozzle_stats[0][preset_left_volume]);
-            MultiNozzleUtils::NozzleGroupInfo preset_right_info(preset_right_diameter, preset_right_volume, 1, extruder_nozzle_stats[1][preset_right_volume]);
-
-            auto printer_groups=obj->GetNozzleSystem()->GetNozzleGroups();
-
-            for (auto preset_group : { preset_left_info,preset_right_info }) {
-                if (std::find(printer_groups.begin(), printer_groups.end(), preset_group) == printer_groups.end()) {
-                    is_same_as_printer = false;
-                    break;
-                }
-            }
+            is_same_as_printer = is_extruder_stat_synced();
         }
 
         std::vector<std::map<int, int>> ams_count_info;
@@ -10852,6 +10815,59 @@ bool Plater::priv::get_machine_sync_status()
 
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     return preset_bundle && preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == obj->get_show_printer_type();
+}
+
+bool Plater::priv::is_extruder_stat_synced(int target_extruder_id)
+{
+    using namespace MultiNozzleUtils;
+    Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev)
+        return false;
+
+    MachineObject* obj = dev->get_selected_machine();
+    if (!obj)
+        return false;
+
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    bool is_synced = true;
+
+    auto nozzle_volume_values = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
+    auto nozzle_diameter_values = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values;
+    auto extruder_nozzle_stats = preset_bundle->extruder_nozzle_counts;
+
+    std::vector<std::vector<NozzleGroupInfo>> preset_nozzle_infos(nozzle_diameter_values.size());
+
+    for (size_t extruder_id = 0; extruder_id < nozzle_diameter_values.size(); ++extruder_id) {
+        NozzleVolumeType preset_volume_type = NozzleVolumeType(nozzle_volume_values[extruder_id]);
+        std::string      preset_diameter = format_diameter_to_str(nozzle_diameter_values[extruder_id]);
+
+        NozzleGroupInfo preset_info(preset_diameter, preset_volume_type, extruder_id, preset_bundle->get_extruder_nozzle_count(extruder_id, preset_volume_type));
+        preset_nozzle_infos[extruder_id].emplace_back(preset_info);
+    }
+
+    auto printer_groups = obj->GetNozzleSystem()->GetNozzleGroups();
+    std::vector<std::vector<NozzleGroupInfo>> target_nozzle_groups;
+    if (target_extruder_id == -1)
+        target_nozzle_groups = preset_nozzle_infos;
+    else
+        target_nozzle_groups = { preset_nozzle_infos[target_extruder_id] };
+
+    for (auto preset_groups : target_nozzle_groups) {
+        for (auto& preset_group : preset_groups) {
+            if (preset_group.nozzle_count == 0) {
+                if (std::find_if(printer_groups.begin(), printer_groups.end(), [&preset_group](const NozzleGroupInfo& elem) { return preset_group.is_same_type(elem); }) !=
+                    printer_groups.end()) {
+                    is_synced = false;
+                    break;
+                }
+            }
+            else if (std::find(printer_groups.begin(), printer_groups.end(), preset_group) == printer_groups.end()) {
+                is_synced = false;
+                break;
+            }
+        }
+    }
+    return is_synced;
 }
 
 Camera& Plater::priv::get_current_camera()
@@ -18294,6 +18310,11 @@ void Plater::show_wrapping_detect_dialog_if_necessary()
 bool Plater::get_machine_sync_status()
 {
     return p->get_machine_sync_status();
+}
+
+bool Plater::is_extruder_stat_synced(int target_extruder_id)
+{
+    return p->is_extruder_stat_synced(target_extruder_id);
 }
 
 #if ENABLE_ENVIRONMENT_MAP

@@ -41,6 +41,11 @@ struct NozzleGroupInfo
         return nozzle_count < rhs.nozzle_count;
     }
 
+    bool is_same_type(const NozzleGroupInfo &rhs) const
+    {
+        return diameter == rhs.diameter && volume_type == rhs.volume_type && extruder_id == rhs.extruder_id;
+    }
+
     inline bool operator==(const NozzleGroupInfo &rhs) const
     {
         return diameter == rhs.diameter && volume_type == rhs.volume_type && extruder_id == rhs.extruder_id && nozzle_count == rhs.nozzle_count;

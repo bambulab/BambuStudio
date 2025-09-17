@@ -4587,7 +4587,9 @@ void TabPrinter::on_preset_loaded()
         if (base_model != m_base_preset_model) {
             auto extruder_max_nozzle_count = current_printer.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
             auto nozzle_volume_type = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+            bool has_multiple_nozzle = std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int i) { return i > 1; });
             if (extruder_max_nozzle_count && nozzle_volume_type) {
+                wxGetApp().plater()->sidebar().enable_nozzle_count_edit(has_multiple_nozzle);
                 for (size_t idx = 0; idx < extruders_count; ++idx) {
                     setExtruderNozzleCount(m_preset_bundle, idx, NozzleVolumeType(nozzle_volume_type->values[idx]), extruder_max_nozzle_count->values[idx]);
                 }
