@@ -13,6 +13,7 @@
 #include "Widgets/StaticBox.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/Label.hpp"
+#include "BackgroundSlicingProcess.hpp"
 #include "ConnectPrinter.hpp"
 
 #include "slic3r/Utils/BBLUtil.hpp"
@@ -4537,6 +4538,16 @@ bool SelectMachineDialog::CheckErrorRackStatus(MachineObject* obj_)
     return true;
 }
 
+static std::optional<MultiNozzleUtils::MultiNozzleGroupResult> s_get_nozzle_group_result(Plater* plater)
+{
+    PartPlate* cur_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    if (plater && plater->background_process().get_current_gcode_result()) {
+        return plater->background_process().get_current_gcode_result()->nozzle_group_result;
+    }
+
+    return std::nullopt;
+};
+
 void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
 {
     if (!obj_) {
@@ -4549,7 +4560,7 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
         return;
     }
 
-    auto nozzle_group_res = m_plater->get_partplate_list().get_current_fff_print().get_nozzle_group_result();
+    auto nozzle_group_res = s_get_nozzle_group_result(m_plater);
     if (!nozzle_group_res) {
         return;
     }
@@ -4776,7 +4787,7 @@ void SelectMachineDialog::on_flow_pa_caliation_option_changed(wxCommandEvent& ev
     DeviceManager* dev_ = Slic3r::GUI::wxGetApp().getDeviceManager();
     MachineObject* obj_ = dev_ ? dev_->get_my_machine(m_printer_last_select) : nullptr;
     if (obj_ && m_plater && obj_->GetNozzleSystem()->GetNozzleRack()->IsSupported()) {
-        auto nozzle_group_res = m_plater->get_partplate_list().get_current_fff_print().get_nozzle_group_result();
+        auto nozzle_group_res = s_get_nozzle_group_result(m_plater);
         if (nozzle_group_res && nozzle_group_res->get_nozzle_count(LOGIC_R_EXTRUDER_ID) != 0) {
 
             if (event.GetString() == "off") {
@@ -4847,7 +4858,7 @@ wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": m_plater NULL";
     }
 
-    auto nozzle_group_res = m_plater->get_partplate_list().get_current_fff_print().get_nozzle_group_result();
+    auto nozzle_group_res = s_get_nozzle_group_result(m_plater);
     if (!nozzle_group_res) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": nozzle_group_res NULL";
         return wxEmptyString;// there are no nozzle group result from slicing
@@ -4892,7 +4903,7 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResult(MachineObject* obj_)
         return true;// no need to check if not support nozzle rack
     }
 
-    auto nozzle_group_res = m_plater->get_partplate_list().get_current_fff_print().get_nozzle_group_result();
+    auto nozzle_group_res = s_get_nozzle_group_result(m_plater);;
     if (nozzle_group_res && nozzle_group_res->get_nozzle_count(LOGIC_R_EXTRUDER_ID) == 0) {
         return true;// no need to check if no right nozzles used in slicing
     }
@@ -5826,7 +5837,7 @@ void NozzleStatePanel::UpdateInfoBy(Plater* plater, MachineObject* obj)
 {
     if (plater && obj) {
         auto nozzle_sys = obj->GetNozzleSystem();
-        auto nozzle_group_res = plater->get_partplate_list().get_current_fff_print().get_nozzle_group_result();
+        auto nozzle_group_res = s_get_nozzle_group_result(plater);
         if (nozzle_group_res && nozzle_sys->GetNozzleRack()->IsSupported()) {
 
             ExtruderNozzleInfos slicing_nozzle_infos;
