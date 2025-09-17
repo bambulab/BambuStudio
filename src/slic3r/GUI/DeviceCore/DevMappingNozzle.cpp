@@ -62,10 +62,10 @@ int MachineObject::ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, con
         return -1;
     }
 
-    const auto& result = plater->get_partplate_list().get_current_fff_print().get_nozzle_group_result();
+    const auto& result = gcode_result->nozzle_group_result;
     if (!result) {
-        assert(false && "ff_print->get_nozzle_group_result() should not be nullptr");
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": ff_print->get_nozzle_group_result() is nullptr";
+        assert(false && "gcode_result->nozzle_group_result");
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": gcode_result->nozzle_group_result is NULL";
         return -1;
     }
 
