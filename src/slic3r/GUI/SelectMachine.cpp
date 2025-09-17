@@ -4559,6 +4559,10 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
         return;// no need to check if no right nozzles used in slicing
     }
 
+    if (nozzle_sys->HasUnreliableNozzles()) {
+        show_status(PrintStatusHasUnreliableNozzleWarning, {}, wxEmptyString, prePrintInfoStyle::BtnNozzleRefresh | prePrintInfoStyle::BtnConfirmNotShowAgain);
+    }
+
     std::unordered_map<NozzleDef, int> need_nozzle_map;
     for (auto slicing_nozzle : nozzle_vec) {
         try {

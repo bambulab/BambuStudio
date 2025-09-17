@@ -211,8 +211,6 @@ void MaterialItem::render(wxDC &dc)
 #endif
 }
 
-    // materials name
-    dc.SetFont(::Label::Body_13);
 
 void MaterialItem::match(bool mat)
 {
@@ -1585,7 +1583,7 @@ void MappingItem::render(wxDC &dc)
     top += 0.5 * mapping_item_checked.GetBmpHeight();
 
     // materials name
-    dc.SetFont(::Label::Head_13);
+    dc.SetFont(::Label::Head_12);
 
     auto txt_colour = m_coloul.GetLuminance() < 0.6 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
 
@@ -1594,11 +1592,12 @@ void MappingItem::render(wxDC &dc)
 
     if (m_coloul.Alpha() == 0) txt_colour = wxColour(0x26, 0x2E, 0x30);
     dc.SetTextForeground(txt_colour);
-
+    //show a1
     auto txt_size = dc.GetTextExtent(m_tray_index);
     top += FromDIP(2);
     dc.DrawText(m_tray_index, wxPoint((GetSize().x - txt_size.x) / 2, top));
 
+    //show materials name
     top += txt_size.y + FromDIP(2);
     m_name.size() > 4 ? dc.SetFont(::Label::Body_9) : dc.SetFont(::Label::Body_12);
     if(m_name.size() > 5){
