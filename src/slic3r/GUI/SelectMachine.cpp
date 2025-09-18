@@ -4595,17 +4595,24 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
         }
     }
 
-    bool nozzle_unmeet = false;
     for (auto need_nozzle : need_nozzle_map) {
         auto nozzle_info = need_nozzle.first;
-        int installed_count = nozzle_sys->CollectNozzles(MAIN_EXTRUDER_ID, nozzle_info.nozzle_flow_type, nozzle_info.nozzle_diameter).size();
+        const auto& installed_nozzles = nozzle_sys->CollectNozzles(MAIN_EXTRUDER_ID, nozzle_info.nozzle_flow_type, nozzle_info.nozzle_diameter);
+        int installed_count = installed_nozzles.size();
+        int installed_reliable_count = 0;
+        for (const auto& nozzle : installed_nozzles) {
+            if (nozzle.IsInfoReliable()) {
+                installed_reliable_count++;
+            }
+        }
+
+        // check if enough nozzles installed
         if (need_nozzle.second > installed_count) {
             if (nozzle_sys->GetNozzleRack()->GetCaliStatus() != DevNozzleRack::Rack_CALI_OK) {
                 show_status(PrintStatusRackNozzleNumUnmeetWarning,
                             { (S_RACK_NOZZLE_NOT_ENOUGH + " " + S_RACK_NOZZLE_SUGEEST_CALI) },
                             wxEmptyString, prePrintInfoStyle::NozzleState);
-            }
-            else if (nozzle_sys->HasUnknownNozzles()) {
+            } else if (nozzle_sys->HasUnknownNozzles()) {
                 show_status(PrintStatusRackNozzleNumUnmeetWarning,
                             { (S_RACK_NOZZLE_NOT_ENOUGH + " " + S_RACK_NOZZLE_SUGEEST_REFRESH) },
                             wxEmptyString, prePrintInfoStyle::NozzleState | prePrintInfoStyle::BtnNozzleRefresh);
@@ -4615,13 +4622,14 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
                             wxEmptyString, prePrintInfoStyle::NozzleState);
             }
 
-            nozzle_unmeet = true;
             break;
         }
-    }
 
-    if (!nozzle_unmeet && nozzle_sys->HasUnreliableNozzles()) {
-        show_status(PrintStatusHasUnreliableNozzleWarning);
+        // check if unreliable nozzle maybe used
+        if (need_nozzle.second > installed_reliable_count && nozzle_sys->HasUnreliableNozzles()) {
+            show_status(PrintStatusHasUnreliableNozzleWarning, {}, wxEmptyString,
+                        prePrintInfoStyle::BtnNozzleRefresh | prePrintInfoStyle::BtnConfirmNotShowAgain);
+        }
     }
 }
 
