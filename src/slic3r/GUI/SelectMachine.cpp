@@ -50,6 +50,14 @@
 
 #define S_RACK_FLOW_DYNAMICS_CALI_WARNING _L("After modifying this option, the system will reassign the nozzles based on the calibrated dynamic flow calibration coefficient.")
 
+#define S_RACK_NOZZLE_NOT_ENOUGH   _L("There are not enough available hotends currently.")
+#define S_RACK_NOZZLE_NO_MATCHED   _L("No hotends available.")
+
+#define S_RACK_NOZZLE_SUGEEST_CALI         _L("Please complete the hotend rack setup and try again.")
+#define S_RACK_NOZZLE_SUGEEST_REFRESH      _L("Please refresh the nozzle information and try again.")
+#define S_RACK_NOZZLE_SUGEEST_RESLICE      _L("Please re-slice.")
+#define S_RACK_NOZZLE_SUGEEST_RESLICE_FILA _L("Please re-slice to avoid filament waste.")
+
 namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_SWITCH_PRINT_OPTION, wxCommandEvent);
@@ -4594,16 +4602,16 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
         if (need_nozzle.second > installed_count) {
             if (nozzle_sys->GetNozzleRack()->GetCaliStatus() != DevNozzleRack::Rack_CALI_OK) {
                 show_status(PrintStatusRackNozzleNumUnmeetWarning,
-                            { _L("There are not enough available hotends currently. Please complete the hotend rack setup and try again.") },
+                            { (S_RACK_NOZZLE_NOT_ENOUGH + " " + S_RACK_NOZZLE_SUGEEST_CALI) },
                             wxEmptyString, prePrintInfoStyle::NozzleState);
             }
             else if (nozzle_sys->HasUnknownNozzles()) {
                 show_status(PrintStatusRackNozzleNumUnmeetWarning,
-                            { _L("There are not enough available hotends currently. Please refresh the nozzle information and try again.") },
+                            { (S_RACK_NOZZLE_NOT_ENOUGH + " " + S_RACK_NOZZLE_SUGEEST_REFRESH) },
                             wxEmptyString, prePrintInfoStyle::NozzleState | prePrintInfoStyle::BtnNozzleRefresh);
             } else {
                 show_status(PrintStatusRackNozzleNumUnmeetWarning,
-                            { _L("There are not enough available hotends currently. Please re-slice to avoid filament waste.") },
+                            { (S_RACK_NOZZLE_NOT_ENOUGH + " " + S_RACK_NOZZLE_SUGEEST_RESLICE_FILA) },
                             wxEmptyString, prePrintInfoStyle::NozzleState);
             }
 
@@ -4687,9 +4695,20 @@ bool SelectMachineDialog::CheckErrorExtruderNozzleWithSlicing(MachineObject* obj
             // no need to check right extruder nozzle when using nozzle rack
             if (slicing_ext_idx == MAIN_EXTRUDER_ID && nozzle_sys->GetNozzleRack()->IsSupported()) {
                 if (nozzle_sys->CollectNozzles(MAIN_EXTRUDER_ID, slicing_ext.nozzle_flow_type, slicing_ext.nozzle_diameter).empty()) {
-                    show_status(PrintDialogStatus::PrintStatusNozzleNoMatchedHotends,
-                                { _L("No hotends available. Please re-slice.")},
-                                wxEmptyString, prePrintInfoStyle::NozzleState);
+                    if (nozzle_sys->GetNozzleRack()->GetCaliStatus() != DevNozzleRack::Rack_CALI_OK) {
+                        show_status(PrintDialogStatus::PrintStatusNozzleNoMatchedHotends,
+                                    { (S_RACK_NOZZLE_NO_MATCHED + " " + S_RACK_NOZZLE_SUGEEST_CALI) },
+                                    wxEmptyString, prePrintInfoStyle::NozzleState);
+                    } else if (nozzle_sys->HasUnknownNozzles() || nozzle_sys->HasUnreliableNozzles()) {
+                        show_status(PrintDialogStatus::PrintStatusNozzleNoMatchedHotends,
+                                    { (S_RACK_NOZZLE_NO_MATCHED + " " + S_RACK_NOZZLE_SUGEEST_REFRESH) },
+                                    wxEmptyString, prePrintInfoStyle::NozzleState | prePrintInfoStyle::BtnNozzleRefresh);
+                    } else {
+                        show_status(PrintDialogStatus::PrintStatusNozzleNoMatchedHotends,
+                                    { (S_RACK_NOZZLE_NO_MATCHED + " " + S_RACK_NOZZLE_SUGEEST_RESLICE) },
+                                    wxEmptyString, prePrintInfoStyle::NozzleState);
+                    }
+
                     return false;
                 }
 
