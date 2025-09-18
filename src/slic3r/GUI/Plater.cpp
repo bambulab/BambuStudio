@@ -2530,8 +2530,11 @@ std::string Sidebar::get_cur_select_bed_image()
     auto select_bed_type   = get_cur_select_bed_type();
     auto series_suffix_str = m_cur_image_bed_type.empty() ? "" : ("_" + m_cur_image_bed_type);
     auto it = bed_type_thumbnails.find(select_bed_type);
-    if (it == bed_type_thumbnails.end())
-        return std::string();
+    if (it == bed_type_thumbnails.end()) {
+        it = bed_type_thumbnails.find(BedType::btPC);
+        if (it == bed_type_thumbnails.end())
+            return std::string();
+    }
     return it->second + series_suffix_str;
 }
 
