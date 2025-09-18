@@ -568,6 +568,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/ColorSpaceConvert.cpp
     Utils/OctoPrint.hpp
     Utils/OctoPrint.cpp
+    Utils/BambuConnect.hpp
+    Utils/BambuConnect.cpp
     Utils/PrintHost.hpp
     Utils/PrintHost.cpp
     Utils/NetworkAgent.cpp

@@ -14,6 +14,7 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Channel.hpp"
 #include "OctoPrint.hpp"
+#include "BambuConnect.hpp"
 #include "Duet.hpp"
 #include "FlashAir.hpp"
 #include "AstroBox.hpp"
@@ -49,10 +50,11 @@ PrintHost* PrintHost::get_print_host(DynamicPrintConfig *config)
             case htOctoPrint: return new OctoPrint(config);
             case htDuet:      return new Duet(config);
             case htFlashAir:  return new FlashAir(config);
-            case htAstroBox:  return new AstroBox(config);
-            case htRepetier:  return new Repetier(config);
-            case htPrusaLink: return new PrusaLink(config);
-            case htMKS:       return new MKS(config);
+            case htAstroBox:      return new AstroBox(config);
+            case htRepetier:      return new Repetier(config);
+            case htPrusaLink:     return new PrusaLink(config);
+            case htMKS:           return new MKS(config);
+            case htBambuConnect:  return new BambuConnect(config);
             default:          return nullptr;
         }
     } else {
@@ -163,7 +165,10 @@ void PrintHostJobQueue::priv::bg_thread_main()
                 break;
             }
 
-            source_to_remove = job.upload_data.source_path;
+            if (job.printhost && job.printhost->retain_source_file())
+                source_to_remove.clear();
+            else
+                source_to_remove = job.upload_data.source_path;
 
             if (! job.cancelled) {
                 perform_job(std::move(job));
@@ -180,7 +185,8 @@ void PrintHostJobQueue::priv::bg_thread_main()
     remove_source();
     auto jobs = channel_jobs.lock_rw();
     for (const PrintHostJob &job : *jobs) {
-        remove_source(job.upload_data.source_path);
+        if (!job.printhost || !job.printhost->retain_source_file())
+            remove_source(job.upload_data.source_path);
     }
 }
 
