@@ -446,8 +446,6 @@ set(lisbslic3r_sources
     Arachne/SkeletalTrapezoidationGraph.hpp
     Arachne/SkeletalTrapezoidationGraph.cpp
     Arachne/SkeletalTrapezoidationJoint.hpp
-    Arachne/PerimeterOrder.hpp
-    Arachne/PerimeterOrder.cpp
     Arachne/WallToolPaths.hpp
     Arachne/WallToolPaths.cpp
     Shape/TextShape.hpp
