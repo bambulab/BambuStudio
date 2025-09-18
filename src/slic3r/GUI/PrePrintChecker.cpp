@@ -307,7 +307,9 @@ static Label* s_create_btn_label(PrinterMsgPanel* panel, const wxString& btn_nam
 void PrinterMsgPanel::AppendStyles(const prePrintInfo& info)
 {
     // special styles
-    if (info.testStyle(prePrintInfoStyle::BtnNozzleRefresh) || info.testStyle(prePrintInfoStyle::BtnConfirmNotShowAgain)) {
+    if (info.testStyle(prePrintInfoStyle::BtnNozzleRefresh) ||
+        info.testStyle(prePrintInfoStyle::BtnConfirmNotShowAgain) || 
+        info.testStyle(prePrintInfoStyle::BtnInstallFanF000)) {
 
         wxBoxSizer* btn_sizer = new wxBoxSizer(wxHORIZONTAL);
         if (info.testStyle(prePrintInfoStyle::BtnNozzleRefresh)){
@@ -320,6 +322,15 @@ void PrinterMsgPanel::AppendStyles(const prePrintInfo& info)
             auto btn = s_create_btn_label(this, _L("Confirm"));
             btn->Bind(wxEVT_LEFT_DOWN, [this, info](auto& e) {
                 this->OnNotShowAgain(info);
+            });
+
+            btn_sizer->Add(btn, 0, wxLEFT, FromDIP(16));
+        }
+
+        if (info.testStyle(prePrintInfoStyle::BtnInstallFanF000)) {
+            auto btn = s_create_btn_label(this, _L("How to install"));
+            btn->Bind(wxEVT_LEFT_DOWN, [this, info](auto& e) {
+                wxLaunchDefaultBrowser("https://e.bambulab.com/t?c=l3T7caKGeNt3omA9");
             });
 
             btn_sizer->Add(btn, 0, wxLEFT, FromDIP(16));

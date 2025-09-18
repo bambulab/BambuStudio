@@ -26,6 +26,7 @@ enum class prePrintInfoStyle : int
     NozzleState = 0x001,
     BtnNozzleRefresh = 0x002,
     BtnConfirmNotShowAgain = 0x004,
+    BtnInstallFanF000 = 0x008,
 };
 
 inline constexpr prePrintInfoStyle operator|(prePrintInfoStyle a, prePrintInfoStyle b) noexcept
