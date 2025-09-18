@@ -15844,7 +15844,8 @@ void Plater::eject_drive()
 void Plater::take_snapshot(const std::string &snapshot_name) { p->take_snapshot(snapshot_name); }
 //void Plater::take_snapshot(const wxString &snapshot_name) { p->take_snapshot(snapshot_name); }
 void Plater::take_snapshot(const std::string &snapshot_name, UndoRedo::SnapshotType snapshot_type) { p->take_snapshot(snapshot_name, snapshot_type); }
-//void Plater::take_snapshot(const wxString &snapshot_name, UndoRedo::SnapshotType snapshot_type) { p->take_snapshot(snapshot_name, snapshot_type); }
+size_t Plater::get_active_snapshot_time() { return p->undo_redo_stack().active_snapshot_time(); }
+    //void Plater::take_snapshot(const wxString &snapshot_name, UndoRedo::SnapshotType snapshot_type) { p->take_snapshot(snapshot_name, snapshot_type); }
 void Plater::suppress_snapshots() { p->suppress_snapshots(); }
 void Plater::allow_snapshots() { p->allow_snapshots(); }
 // BBS: single snapshot
@@ -15858,6 +15859,7 @@ void Plater::single_snapshots_leave(SingleSnapshot *single)
 }
 void Plater::undo() { p->undo(); }
 void Plater::redo() { p->redo(); }
+void Plater::undo_redo_to(size_t time_to_load) { p->undo_redo_to(time_to_load); }
 void Plater::undo_to(int selection)
 {
     if (selection == 0) {

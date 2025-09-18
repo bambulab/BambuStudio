@@ -164,6 +164,8 @@ public:
     static void  text_colored(const ImVec4 &color, const wxString &label);
     void warning_text_wrapped(const char *all_text, float wrap_width);
     void warning_text_wrapped(const wxString &all_text, float wrap_width);
+    void error_text_wrapped(const char *text, float wrap_width);
+    void error_text_wrapped(const wxString &text, float wrap_width);
     void text_wrapped(const char *label, float wrap_width);
     void text_wrapped(const std::string &label, float wrap_width);
     void text_wrapped(const wxString &label, float wrap_width);

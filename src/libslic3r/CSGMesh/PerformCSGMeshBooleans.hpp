@@ -131,7 +131,7 @@ namespace detail_mcut {
             MeshBoolean::mcut::do_boolean(*dst, *src,"UNION");
             break;
         case CSGType::Difference:
-            MeshBoolean::mcut::do_boolean(*dst, *src,"A_NOT_B");
+            MeshBoolean::mcut::do_boolean(*dst, *src,"SUBSTRACTION");
             break;
         case CSGType::Intersection:
             MeshBoolean::mcut::do_boolean(*dst, *src,"INTERSECTION");
