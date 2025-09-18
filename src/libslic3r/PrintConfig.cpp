@@ -2798,6 +2798,12 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
     def->readonly=false;
 
+    def = this->add("heat_soak_enable", coBool);
+    def->label = L("Enable heat soak");
+    def->tooltip = L("Insert a heat soak pause in the machine start G-code before leveling");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("apply_top_surface_compensation", coBool);
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));

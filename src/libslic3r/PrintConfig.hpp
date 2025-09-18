@@ -1181,6 +1181,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<PrinterStructure>,printer_structure))
     ((ConfigOptionBool,                auxiliary_fan))
     ((ConfigOptionBool,                support_chamber_temp_control))
+    ((ConfigOptionBool,                heat_soak_enable))
     ((ConfigOptionBool,                apply_top_surface_compensation))
     ((ConfigOptionBool,                support_air_filtration))
     ((ConfigOptionBool,                accel_to_decel_enable))

@@ -4026,6 +4026,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("auxiliary_fan");
         optgroup->append_single_option_line("support_chamber_temp_control");
         optgroup->append_single_option_line("support_air_filtration");
+        optgroup->append_single_option_line("heat_soak_enable");
 
     const int gcode_field_height = 15; // 150
     const int notes_field_height = 25; // 250
@@ -4672,6 +4673,7 @@ void TabPrinter::toggle_options()
         toggle_option("support_chamber_temp_control",!is_BBL_printer);
         toggle_option("use_firmware_retraction", !is_BBL_printer);
         toggle_option("support_air_filtration",is_BBL_printer);
+        toggle_option("heat_soak_enable", is_BBL_printer);
         auto flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         bool is_marlin_flavor = flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware;
         // Disable silent mode for non-marlin firmwares.
