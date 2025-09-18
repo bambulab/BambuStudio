@@ -18,6 +18,8 @@ public:
     void SetEditEnabled(bool enable);
     void SetOnHoverClick(std::function<void()> on_click);
     void SetCount(int count);
+    bool Show(bool show=true) override;
+    void ResetLabelPos();
 private:
 #ifdef __WXMSW__
     void OnPaint(wxPaintEvent &evt);
