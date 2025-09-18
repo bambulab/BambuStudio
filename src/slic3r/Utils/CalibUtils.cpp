@@ -1584,8 +1584,6 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
 
         float diameter = obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
         NozzleFlowType nozzle_volume_type = obj->GetExtderSystem()->GetNozzleFlowType(cali_info.extruder_id);
-
-        float diameter = obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
         if (cali_info.nozzle_pos_id != -1) {
             auto nozzle = obj->get_nozzle_by_id_code(cali_info.nozzle_pos_id);
             diameter = nozzle.GetNozzleDiameter();
