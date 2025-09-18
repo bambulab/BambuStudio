@@ -1793,6 +1793,7 @@ Sidebar::Sidebar(Plater *parent)
             GUI::manuallySetNozzleCount(1);
             wxGetApp().plater()->update();
             });
+        p->single_extruder->SetEditEnabled(false);
 
         auto switch_diameter = [this](wxCommandEvent & evt) {
             auto extruder = dynamic_cast<ExtruderGroup *>(dynamic_cast<ComboBox *>(evt.GetEventObject())->GetParent());
@@ -3112,6 +3113,7 @@ void Sidebar::set_extruder_nozzle_count(int extruder_id, int nozzle_count)
 {
     if (extruder_id == 0) {
         p->left_extruder->SetCount(nozzle_count);
+        p->single_extruder->SetCount(nozzle_count);
     }
     else if (extruder_id == 1) {
         p->right_extruder->SetCount(nozzle_count);
