@@ -639,7 +639,7 @@ bool do_boolean_single(McutMesh &srcMesh, const McutMesh &cutMesh, const std::st
     // NOTE#1: you can extend these flags by bitwise ORing with additional flags (see `McDispatchFlags' in mcut.h)
     // NOTE#2: below order of columns MATTERS
     const std::map<std::string, McFlags> booleanOpts = {
-        {"A_NOT_B", MC_DISPATCH_FILTER_FRAGMENT_SEALING_INSIDE | MC_DISPATCH_FILTER_FRAGMENT_LOCATION_ABOVE},
+        {"SUBSTRACTION", MC_DISPATCH_FILTER_FRAGMENT_SEALING_INSIDE | MC_DISPATCH_FILTER_FRAGMENT_LOCATION_ABOVE},
         {"B_NOT_A", MC_DISPATCH_FILTER_FRAGMENT_SEALING_OUTSIDE | MC_DISPATCH_FILTER_FRAGMENT_LOCATION_BELOW},
         {"UNION", MC_DISPATCH_FILTER_FRAGMENT_SEALING_OUTSIDE | MC_DISPATCH_FILTER_FRAGMENT_LOCATION_ABOVE},
         {"INTERSECTION", MC_DISPATCH_FILTER_FRAGMENT_SEALING_INSIDE | MC_DISPATCH_FILTER_FRAGMENT_LOCATION_BELOW},
@@ -778,7 +778,7 @@ void do_boolean(McutMesh& srcMesh, const McutMesh& cutMesh, const std::string& b
         // But we can force it to work by spliting the src mesh into disconnected components,
         // and do booleans seperately, then merge all the results.
         indexed_triangle_set all_its;
-        if (boolean_opts == "UNION" || boolean_opts == "A_NOT_B") {
+        if (boolean_opts == "UNION" || boolean_opts == "SUBSTRACTION") {
             for (size_t i = 0; i < src_parts.size(); i++) {
                 auto src_part = triangle_mesh_to_mcut(src_parts[i]);
                 for (size_t j = 0; j < cut_parts.size(); j++) {

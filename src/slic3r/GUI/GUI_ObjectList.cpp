@@ -3773,15 +3773,6 @@ void ObjectList::part_selection_changed()
 
                     ModelVolume *volume = (*m_objects)[obj_idx]->volumes[volume_id];
                     enable_manipulation       = !((*m_objects)[obj_idx]->is_cut() && (volume->is_cut_connector() || volume->is_model_part()));
-
-                    GLGizmosManager& gizmos_mgr = wxGetApp().plater()->canvas3D()->get_gizmos_manager();
-                    if (gizmos_mgr.get_current_type() == GLGizmosManager::EType::MeshBoolean) {
-                        GLGizmoMeshBoolean* mesh_boolean = static_cast<GLGizmoMeshBoolean*>(gizmos_mgr.get_gizmo(GLGizmosManager::MeshBoolean));
-                        if (mesh_boolean->get_selecting_state() == MeshBooleanSelectingState::SelectSource)
-                            mesh_boolean->set_src_volume(volume);
-                        else if (mesh_boolean->get_selecting_state() == MeshBooleanSelectingState::SelectTool)
-                            mesh_boolean->set_tool_volume(volume);
-                    }
                 }
                 else if (type & itInstance) {
                     og_name = _L("Instance manipulation");
