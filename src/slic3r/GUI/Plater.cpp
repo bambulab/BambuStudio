@@ -268,7 +268,12 @@ static std::map<BedType, std::string> bed_type_thumbnails = {
     {BedType::btEP, "bed_engineering"},
     {BedType::btPEI, "bed_high_templ"},
     {BedType::btPTE, "bed_pei"},
-    {BedType::btSuperTack, "bed_cool_supertack"}
+    {BedType::btSuperTack, "bed_cool_supertack"},
+    {BedType::btDarkmoonG10, "bed_cool"},
+    {BedType::btDarkmoonIce, "bed_cool"},
+    {BedType::btDarkmoonLux, "bed_cool"},
+    {BedType::btDarkmoonCFX, "bed_cool"},
+    {BedType::btDarkmoonSatin, "bed_cool"}
 };
 
 // print_model_id

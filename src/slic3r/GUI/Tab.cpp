@@ -3752,7 +3752,10 @@ void TabFilament::toggle_options()
         bool support_chamber_temp_control = this->m_preset_bundle->printers.get_edited_preset().config.opt_bool("support_chamber_temp_control");
         toggle_line("chamber_temperatures", support_chamber_temp_control);
 
-        for (auto el : {"supertack_plate_temp", "supertack_plate_temp_initial_layer", "cool_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp", "eng_plate_temp_initial_layer", "textured_plate_temp", "textured_plate_temp_initial_layer"})
+        for (auto el : {"supertack_plate_temp", "supertack_plate_temp_initial_layer", "cool_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp", "eng_plate_temp_initial_layer", "textured_plate_temp", "textured_plate_temp_initial_layer",
+                        "darkmoon_g10_plate_temp", "darkmoon_g10_plate_temp_initial_layer", "darkmoon_ice_plate_temp", "darkmoon_ice_plate_temp_initial_layer",
+                        "darkmoon_lux_plate_temp", "darkmoon_lux_plate_temp_initial_layer", "darkmoon_cfx_plate_temp", "darkmoon_cfx_plate_temp_initial_layer",
+                        "darkmoon_satin_plate_temp", "darkmoon_satin_plate_temp_initial_layer"})
             toggle_line(el, is_BBL_printer);
 
         std::string volumetric_speed_cos = m_config->opt_string("volumetric_speed_coefficients", (unsigned int)(m_variant_combo->GetSelection()));

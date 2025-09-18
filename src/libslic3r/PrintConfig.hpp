@@ -244,6 +244,11 @@ enum BedType {
     btPEI,
     btPTE,
     btSuperTack,
+    btDarkmoonG10,
+    btDarkmoonIce,
+    btDarkmoonLux,
+    btDarkmoonCFX,
+    btDarkmoonSatin,
     btCount
 };
 
@@ -326,6 +331,21 @@ static std::string bed_type_to_gcode_string(const BedType type)
     case btSuperTack:
         type_str = "supertack_plate";
         break;
+    case btDarkmoonG10:
+        type_str = "darkmoon_g10_plate";
+        break;
+    case btDarkmoonIce:
+        type_str = "darkmoon_ice_plate";
+        break;
+    case btDarkmoonLux:
+        type_str = "darkmoon_lux_plate";
+        break;
+    case btDarkmoonCFX:
+        type_str = "darkmoon_cfx_plate";
+        break;
+    case btDarkmoonSatin:
+        type_str = "darkmoon_satin_plate";
+        break;
     case btPC:
         type_str = "cool_plate";
         break;
@@ -351,6 +371,21 @@ static std::string get_bed_temp_key(const BedType type)
     if (type == btSuperTack)
         return "supertack_plate_temp";
 
+    if (type == btDarkmoonG10)
+        return "darkmoon_g10_plate_temp";
+
+    if (type == btDarkmoonIce)
+        return "darkmoon_ice_plate_temp";
+
+    if (type == btDarkmoonLux)
+        return "darkmoon_lux_plate_temp";
+
+    if (type == btDarkmoonCFX)
+        return "darkmoon_cfx_plate_temp";
+
+    if (type == btDarkmoonSatin)
+        return "darkmoon_satin_plate_temp";
+
     if (type == btPC)
         return "cool_plate_temp";
 
@@ -370,6 +405,21 @@ static std::string get_bed_temp_1st_layer_key(const BedType type)
 {
     if (type == btSuperTack)
         return "supertack_plate_temp_initial_layer";
+
+    if (type == btDarkmoonG10)
+        return "darkmoon_g10_plate_temp_initial_layer";
+
+    if (type == btDarkmoonIce)
+        return "darkmoon_ice_plate_temp_initial_layer";
+
+    if (type == btDarkmoonLux)
+        return "darkmoon_lux_plate_temp_initial_layer";
+
+    if (type == btDarkmoonCFX)
+        return "darkmoon_cfx_plate_temp_initial_layer";
+
+    if (type == btDarkmoonSatin)
+        return "darkmoon_satin_plate_temp_initial_layer";
 
     if (type == btPC)
         return "cool_plate_temp_initial_layer";

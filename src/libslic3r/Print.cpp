@@ -136,6 +136,11 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "accel_to_decel_factor",
         // BBS
         "supertack_plate_temp_initial_layer",
+        "darkmoon_g10_plate_temp_initial_layer",
+        "darkmoon_ice_plate_temp_initial_layer",
+        "darkmoon_lux_plate_temp_initial_layer",
+        "darkmoon_cfx_plate_temp_initial_layer",
+        "darkmoon_satin_plate_temp_initial_layer",
         "cool_plate_temp_initial_layer",
         "eng_plate_temp_initial_layer",
         "hot_plate_temp_initial_layer",
@@ -273,6 +278,11 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "filament_ramming_travel_time"
             // BBS
             || opt_key == "supertack_plate_temp"
+            || opt_key == "darkmoon_g10_plate_temp"
+            || opt_key == "darkmoon_ice_plate_temp"
+            || opt_key == "darkmoon_lux_plate_temp"
+            || opt_key == "darkmoon_cfx_plate_temp"
+            || opt_key == "darkmoon_satin_plate_temp"
             || opt_key == "cool_plate_temp"
             || opt_key == "eng_plate_temp"
             || opt_key == "hot_plate_temp"

@@ -980,6 +980,11 @@ static std::vector<std::string> s_Preset_filament_options{/*"filament_colour", *
     // BBS
     "cool_plate_temp", "eng_plate_temp", "hot_plate_temp", "textured_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp_initial_layer", "hot_plate_temp_initial_layer","textured_plate_temp_initial_layer",
     "supertack_plate_temp_initial_layer", "supertack_plate_temp",
+    "darkmoon_g10_plate_temp", "darkmoon_g10_plate_temp_initial_layer",
+    "darkmoon_ice_plate_temp", "darkmoon_ice_plate_temp_initial_layer",
+    "darkmoon_lux_plate_temp", "darkmoon_lux_plate_temp_initial_layer",
+    "darkmoon_cfx_plate_temp", "darkmoon_cfx_plate_temp_initial_layer",
+    "darkmoon_satin_plate_temp", "darkmoon_satin_plate_temp_initial_layer",
     "circle_compensation_speed", "counter_coef_1", "counter_coef_2", "counter_coef_3", "hole_coef_1", "hole_coef_2", "hole_coef_3",
     "counter_limit_min", "counter_limit_max", "hole_limit_min", "hole_limit_max", "diameter_limit",
     // "bed_type",

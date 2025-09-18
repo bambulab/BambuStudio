@@ -20,6 +20,36 @@
   "cool_plate_temp_initial_layer": [
     "0"
   ],
+  "darkmoon_g10_plate_temp": [
+    "110"
+  ],
+  "darkmoon_g10_plate_temp_initial_layer": [
+    "110"
+  ],
+  "darkmoon_ice_plate_temp": [
+    "0"
+  ],
+  "darkmoon_ice_plate_temp_initial_layer": [
+    "0"
+  ],
+  "darkmoon_satin_plate_temp": [
+    "105"
+  ],
+  "darkmoon_satin_plate_temp_initial_layer": [
+    "105"
+  ],
+  "darkmoon_cfx_plate_temp": [
+    "110"
+  ],
+  "darkmoon_cfx_plate_temp_initial_layer": [
+    "110"
+  ],
+  "darkmoon_lux_plate_temp": [
+    "0"
+  ],
+  "darkmoon_lux_plate_temp_initial_layer": [
+    "0"
+  ],
   "during_print_exhaust_fan_speed": [
     "70"
   ],

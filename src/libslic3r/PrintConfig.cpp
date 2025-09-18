@@ -369,12 +369,17 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(OverhangThresholdParticipatingCooling)
 
 // BBS
 static const t_config_enum_values s_keys_map_BedType = {
-    { "Default Plate",      btDefault },
-    { "Cool Plate",         btPC },
-    { "Engineering Plate",  btEP  },
-    { "High Temp Plate",    btPEI  },
-    { "Textured PEI Plate", btPTE },
-    {"Supertack Plate",     btSuperTack}
+    { "Default Plate",          btDefault },
+    { "Cool Plate",             btPC },
+    { "Engineering Plate",      btEP  },
+    { "High Temp Plate",        btPEI  },
+    { "Textured PEI Plate",     btPTE },
+    {"Supertack Plate",         btSuperTack},
+    {"Darkmoon G10 Garolite",   btDarkmoonG10},
+    {"Darkmoon Ice",            btDarkmoonIce},
+    {"Darkmoon Lux",            btDarkmoonLux},
+    {"Darkmoon CFX",            btDarkmoonCFX},
+    {"Darkmoon Satin",          btDarkmoonSatin}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BedType)
 
@@ -791,6 +796,57 @@ void PrintConfigDef::init_fff_params()
     def->max        = 120;
     def->set_default_value(new ConfigOptionInts{45});
 
+
+    def             = this->add("darkmoon_g10_plate_temp", coInts);
+    def->label      = L("Other layers");
+    def->tooltip    = L("Bed temperature for layers except the initial one. "
+                     "Value 0 means the filament does not support to print on the Darkmoon G10 Garolite build plate");
+    def->sidetext   = "°C";
+    def->full_label = L("Bed temperature");
+    def->min        = 0;
+    def->max        = 120;
+    def->set_default_value(new ConfigOptionInts{45});
+
+    def             = this->add("darkmoon_ice_plate_temp", coInts);
+    def->label      = L("Other layers");
+    def->tooltip    = L("Bed temperature for layers except the initial one. "
+                     "Value 0 means the filament does not support to print on the Darkmoon Ice build plate");
+    def->sidetext   = "°C";
+    def->full_label = L("Bed temperature");
+    def->min        = 0;
+    def->max        = 120;
+    def->set_default_value(new ConfigOptionInts{45});
+
+    def             = this->add("darkmoon_lux_plate_temp", coInts);
+    def->label      = L("Other layers");
+    def->tooltip    = L("Bed temperature for layers except the initial one. "
+                     "Value 0 means the filament does not support to print on the Darkmoon Lux build plate");
+    def->sidetext   = "°C";
+    def->full_label = L("Bed temperature");
+    def->min        = 0;
+    def->max        = 120;
+    def->set_default_value(new ConfigOptionInts{45});
+
+    def             = this->add("darkmoon_cfx_plate_temp", coInts);
+    def->label      = L("Other layers");
+    def->tooltip    = L("Bed temperature for layers except the initial one. "
+                     "Value 0 means the filament does not support to print on the Darkmoon CFX build plate");
+    def->sidetext   = "°C";
+    def->full_label = L("Bed temperature");
+    def->min        = 0;
+    def->max        = 120;
+    def->set_default_value(new ConfigOptionInts{45});
+
+    def             = this->add("darkmoon_satin_plate_temp", coInts);
+    def->label      = L("Other layers");
+    def->tooltip    = L("Bed temperature for layers except the initial one. "
+                     "Value 0 means the filament does not support to print on the Darkmoon Satin build plate");
+    def->sidetext   = "°C";
+    def->full_label = L("Bed temperature");
+    def->min        = 0;
+    def->max        = 120;
+    def->set_default_value(new ConfigOptionInts{45});
+
     def = this->add("supertack_plate_temp_initial_layer", coInts);
     def->label = L("Initial layer");
     def->full_label = L("Initial layer bed temperature");
@@ -841,6 +897,57 @@ void PrintConfigDef::init_fff_params()
     def->max        = 120;
     def->set_default_value(new ConfigOptionInts{45});
 
+
+    def = this->add("darkmoon_g10_plate_temp_initial_layer", coInts);
+    def->label      = L("Initial layer");
+    def->full_label = L("Initial layer bed temperature");
+    def->tooltip    = L("Bed temperature of the initial layer. "
+                     "Value 0 means the filament does not support to print on the Darkmoon G10 Garolite build plate");
+    def->sidetext   = "°C";
+    def->min        = 0;
+    def->max        = 120;
+    def->set_default_value(new ConfigOptionInts{45});
+
+    def = this->add("darkmoon_ice_plate_temp_initial_layer", coInts);
+    def->label      = L("Initial layer");
+    def->full_label = L("Initial layer bed temperature");
+    def->tooltip    = L("Bed temperature of the initial layer. "
+                     "Value 0 means the filament does not support to print on the Darkmoon Ice build plate");
+    def->sidetext   = "°C";
+    def->min        = 0;
+    def->max        = 120;
+    def->set_default_value(new ConfigOptionInts{45});
+
+    def = this->add("darkmoon_lux_plate_temp_initial_layer", coInts);
+    def->label      = L("Initial layer");
+    def->full_label = L("Initial layer bed temperature");
+    def->tooltip    = L("Bed temperature of the initial layer. "
+                     "Value 0 means the filament does not support to print on the Darkmoon Lux build plate");
+    def->sidetext   = "°C";
+    def->min        = 0;
+    def->max        = 120;
+    def->set_default_value(new ConfigOptionInts{45});
+
+    def = this->add("darkmoon_cfx_plate_temp_initial_layer", coInts);
+    def->label      = L("Initial layer");
+    def->full_label = L("Initial layer bed temperature");
+    def->tooltip    = L("Bed temperature of the initial layer. "
+                     "Value 0 means the filament does not support to print on the Darkmoon CFX build plate");
+    def->sidetext   = "°C";
+    def->min        = 0;
+    def->max        = 120;
+    def->set_default_value(new ConfigOptionInts{45});
+
+    def = this->add("darkmoon_satin_plate_temp_initial_layer", coInts);
+    def->label      = L("Initial layer");
+    def->full_label = L("Initial layer bed temperature");
+    def->tooltip    = L("Bed temperature of the initial layer. "
+                     "Value 0 means the filament does not support to print on the Darkmoon Satin build plate");
+    def->sidetext   = "°C";
+    def->min        = 0;
+    def->max        = 120;
+    def->set_default_value(new ConfigOptionInts{45});
+
     def = this->add("curr_bed_type", coEnum);
     def->label = L("Bed type");
     def->tooltip = L("Bed types supported by the printer");
@@ -851,11 +958,21 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.emplace_back("High Temp Plate");
     def->enum_values.emplace_back("Textured PEI Plate");
     def->enum_values.emplace_back("Supertack Plate");
+    def->enum_values.emplace_back("Darkmoon G10 Garolite");
+    def->enum_values.emplace_back("Darkmoon Ice");
+    def->enum_values.emplace_back("Darkmoon Lux");
+    def->enum_values.emplace_back("Darkmoon CFX");
+    def->enum_values.emplace_back("Darkmoon Satin");
     def->enum_labels.emplace_back(L("Cool Plate"));
     def->enum_labels.emplace_back(L("Engineering Plate"));
     def->enum_labels.emplace_back(L("Smooth PEI Plate / High Temp Plate"));
     def->enum_labels.emplace_back(L("Textured PEI Plate"));
     def->enum_labels.emplace_back(L("Bambu Cool Plate SuperTack"));
+    def->enum_labels.emplace_back(L("Darkmoon G10 Garolite"));
+    def->enum_labels.emplace_back(L("Darkmoon Ice"));
+    def->enum_labels.emplace_back(L("Darkmoon Lux"));
+    def->enum_labels.emplace_back(L("Darkmoon CFX"));
+    def->enum_labels.emplace_back(L("Darkmoon Satin"));
     def->set_default_value(new ConfigOptionEnum<BedType>(btPC));
 
     // BBS

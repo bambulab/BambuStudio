@@ -6339,6 +6339,16 @@ void PartPlateList::init_bed_type_info()
 	bed_texture_info[btPEI].parts.push_back(pei_part2);
 	bed_texture_info[btPTE].parts.push_back(pte_part1);
 	bed_texture_info[btPTE].parts.push_back(pte_part2);
+    bed_texture_info[btDarkmoonG10].parts.push_back(pc_part1);
+    bed_texture_info[btDarkmoonG10].parts.push_back(pc_part2);
+    bed_texture_info[btDarkmoonIce].parts.push_back(pc_part1);
+    bed_texture_info[btDarkmoonIce].parts.push_back(pc_part2);
+    bed_texture_info[btDarkmoonLux].parts.push_back(pc_part1);
+    bed_texture_info[btDarkmoonLux].parts.push_back(pc_part2);
+    bed_texture_info[btDarkmoonCFX].parts.push_back(pc_part1);
+    bed_texture_info[btDarkmoonCFX].parts.push_back(pc_part2);
+    bed_texture_info[btDarkmoonSatin].parts.push_back(pc_part1);
+    bed_texture_info[btDarkmoonSatin].parts.push_back(pc_part2);
 
 	auto  bed_ext     = get_extents(m_shape);
 	int   bed_width   = bed_ext.size()(0);

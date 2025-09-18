@@ -77,10 +77,16 @@ void                SelectMachineDialog::init_machine_bed_types()
                                    _L("Bamabu Engineering Plate"),
                                    _L("Bamabu Smooth PEI Plate") + "/" + _L("High temperature Plate"),
                                    _L("Bamabu Textured PEI Plate"),
-                                   _L("Bambu Cool Plate SuperTack")
+                                   _L("Bambu Cool Plate SuperTack"),
+                                   _L("Darkmoon G10 Garolite"),
+                                   _L("Darkmoon Ice"),
+                                   _L("Darkmoon Lux"),
+                                   _L("Darkmoon CFX"),
+                                   _L("Darkmoon Satin")
         };
         MachineBedTypeString    = {//"auto",
-                                   "pc", "pe", "pei", "pte", "suprtack"};
+                                   "pc", "pe", "pei", "pte", "suprtack",
+                                   "darkmoon_g10", "darkmoon_ice", "darkmoon_lux", "darkmoon_cfx", "darkmoon_satin"};
     }
 }
 SelectMachineDialog::SelectMachineDialog(Plater *plater)

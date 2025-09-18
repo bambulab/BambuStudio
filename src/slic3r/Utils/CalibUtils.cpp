@@ -32,13 +32,18 @@ static const std::string temp_gcode_path = temp_dir + "/temp.gcode";
 static const std::string path            = temp_dir + "/test.3mf";
 static const std::string config_3mf_path = temp_dir + "/test_config.3mf";
 
-static std::string MachineBedTypeString[6] = {
+static std::string MachineBedTypeString[11] = {
     "auto",
     "pc",
     "ep",
     "pei",
     "pte",
-    "suprtack"
+    "suprtack",
+    "darkmoon_g10",
+    "darkmoon_ice",
+    "darkmoon_lux",
+    "darkmoon_cfx",
+    "darkmoon_satin"
 };
 
 std::vector<std::string> not_support_auto_pa_cali_filaments = {
