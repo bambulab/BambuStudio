@@ -4100,6 +4100,14 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                         pa_calib_result.nozzle_volume_type = convert_to_nozzle_type((*it)["nozzle_id"].get<std::string>());
                                     }
 
+                                    if ((*it).contains("nozzle_pos")) {
+                                        pa_calib_result.nozzle_pos_id = (*it)["nozzle_pos"].get<int>();
+                                    }
+
+                                    if ((*it).contains("nozzle_sn")) {
+                                        pa_calib_result.nozzle_sn = (*it)["nozzle_sn"].get<std::string>();
+                                    }
+
                                     if (jj["nozzle_diameter"].is_number_float()) {
                                         pa_calib_result.nozzle_diameter = jj["nozzle_diameter"].get<float>();
                                     } else if (jj["nozzle_diameter"].is_string()) {
@@ -4193,6 +4201,14 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                     pa_calib_result.nozzle_volume_type = convert_to_nozzle_type((*it)["nozzle_id"].get<std::string>());
                                 } else {
                                     pa_calib_result.nozzle_volume_type = NozzleVolumeType::nvtStandard;
+                                }
+
+                                if (it->contains("nozzle_pos")) {
+                                    pa_calib_result.nozzle_pos_id = (*it)["nozzle_pos"].get<int>();
+                                }
+
+                                if (it->contains("nozzle_sn")) {
+                                    pa_calib_result.nozzle_sn = (*it)["nozzle_sn"].get<std::string>();
                                 }
 
                                 if ((*it)["k_value"].is_number_float())
