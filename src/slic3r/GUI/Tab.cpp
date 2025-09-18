@@ -3485,6 +3485,31 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("textured_plate_temp"));
         optgroup->append_line(line);
 
+        line = {L("Darkmoon G10 Garolite"), L("Bed temperature when the Darkmoon G10 Garolite plate is installed. Value 0 means the filament does not support this plate")};
+        line.append_option(optgroup->get_option("darkmoon_g10_plate_temp_initial_layer"));
+        line.append_option(optgroup->get_option("darkmoon_g10_plate_temp"));
+        optgroup->append_line(line);
+
+        line = {L("Darkmoon Ice"), L("Bed temperature when the Darkmoon Ice plate is installed. Value 0 means the filament does not support this plate")};
+        line.append_option(optgroup->get_option("darkmoon_ice_plate_temp_initial_layer"));
+        line.append_option(optgroup->get_option("darkmoon_ice_plate_temp"));
+        optgroup->append_line(line);
+
+        line = {L("Darkmoon Lux"), L("Bed temperature when the Darkmoon Lux plate is installed. Value 0 means the filament does not support this plate")};
+        line.append_option(optgroup->get_option("darkmoon_lux_plate_temp_initial_layer"));
+        line.append_option(optgroup->get_option("darkmoon_lux_plate_temp"));
+        optgroup->append_line(line);
+
+        line = {L("Darkmoon CFX"), L("Bed temperature when the Darkmoon CFX plate is installed. Value 0 means the filament does not support this plate")};
+        line.append_option(optgroup->get_option("darkmoon_cfx_plate_temp_initial_layer"));
+        line.append_option(optgroup->get_option("darkmoon_cfx_plate_temp"));
+        optgroup->append_line(line);
+
+        line = {L("Darkmoon Satin"), L("Bed temperature when the Darkmoon Satin plate is installed. Value 0 means the filament does not support this plate")};
+        line.append_option(optgroup->get_option("darkmoon_satin_plate_temp_initial_layer"));
+        line.append_option(optgroup->get_option("darkmoon_satin_plate_temp"));
+        optgroup->append_line(line);
+
         optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value)
         {
             DynamicPrintConfig& filament_config = m_preset_bundle->filaments.get_edited_preset().config;
