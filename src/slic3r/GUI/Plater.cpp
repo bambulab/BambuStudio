@@ -2513,9 +2513,13 @@ void Sidebar::save_bed_type_to_config(const std::string &bed_type_name)
 
 BedType Sidebar::get_cur_select_bed_type() {
     int selection = p->combo_printer_bed->GetSelection();
-    if (selection < 0 && selection >= m_cur_combox_bed_types.size()) {
-        p->combo_printer_bed->SetSelection(0);
-        selection = 0;
+    if (selection < 0 || selection >= static_cast<int>(m_cur_combox_bed_types.size())) {
+        if (!m_cur_combox_bed_types.empty() && p->combo_printer_bed) {
+            p->combo_printer_bed->SetSelection(0);
+            selection = 0;
+        } else {
+            return BedType::btPC;
+        }
     }
     auto select_bed_type = m_cur_combox_bed_types[selection];
     return select_bed_type;
@@ -2525,8 +2529,10 @@ std::string Sidebar::get_cur_select_bed_image()
 {
     auto select_bed_type   = get_cur_select_bed_type();
     auto series_suffix_str = m_cur_image_bed_type.empty() ? "" : ("_" + m_cur_image_bed_type);
-    auto image_path        = bed_type_thumbnails[select_bed_type] + series_suffix_str;
-    return image_path;
+    auto it = bed_type_thumbnails.find(select_bed_type);
+    if (it == bed_type_thumbnails.end())
+        return std::string();
+    return it->second + series_suffix_str;
 }
 
 void Sidebar::set_bed_type_accord_combox(BedType bed_type) {
@@ -2539,8 +2545,12 @@ void Sidebar::set_bed_type_accord_combox(BedType bed_type) {
     use_default_bed_type();
     //re save preferred bed type
     auto        select_bed_type = get_cur_select_bed_type();
-    std::string bed_type_name   = print_config_def.get("curr_bed_type")->enum_values[int(select_bed_type) - 1];
-    save_bed_type_to_config(bed_type_name);
+    const auto *bed_type_def    = print_config_def.get("curr_bed_type");
+    int         select_index    = static_cast<int>(select_bed_type);
+    if (bed_type_def && select_index >= 1 && select_index <= static_cast<int>(bed_type_def->enum_values.size())) {
+        std::string bed_type_name = bed_type_def->enum_values[select_index - 1];
+        save_bed_type_to_config(bed_type_name);
+    }
 }
 
 bool Sidebar::reset_bed_type_combox_choices(bool is_sidebar_init)
@@ -2599,8 +2609,12 @@ bool Sidebar::use_default_bed_type(bool is_bbl_preset)
        return set_bed_type(pm->default_bed_type);
     }
     auto        select_bed_type = get_cur_select_bed_type();
-    std::string bed_type_name   = print_config_def.get("curr_bed_type")->enum_values[int(select_bed_type) - 1];
-    save_bed_type_to_config(bed_type_name);
+    const auto *bed_type_def    = print_config_def.get("curr_bed_type");
+    int         select_index    = static_cast<int>(select_bed_type);
+    if (bed_type_def && select_index >= 1 && select_index <= static_cast<int>(bed_type_def->enum_values.size())) {
+        std::string bed_type_name = bed_type_def->enum_values[select_index - 1];
+        save_bed_type_to_config(bed_type_name);
+    }
     return false;
 }
 
@@ -8560,11 +8574,21 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
 {
     ComboBox* combo = static_cast<ComboBox*>(evt.GetEventObject());
     auto        select_bed_type = sidebar->get_cur_select_bed_type();
-    std::string bed_type_name = print_config_def.get("curr_bed_type")->enum_values[(int)select_bed_type - 1];
+    const ConfigOptionDef *bed_type_def = print_config_def.get("curr_bed_type");
+    std::string bed_type_name;
+    if (bed_type_def) {
+        int select_index = static_cast<int>(select_bed_type);
+        if (select_index >= 1 && select_index <= static_cast<int>(bed_type_def->enum_values.size()))
+            bed_type_name = bed_type_def->enum_values[select_index - 1];
+        else if (!bed_type_def->enum_values.empty())
+            bed_type_name = bed_type_def->enum_values.front();
+    }
+    if (bed_type_name.empty())
+        return;
 
     PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
     DynamicPrintConfig& proj_config = wxGetApp().preset_bundle->project_config;
-    const t_config_enum_values* keys_map = print_config_def.get("curr_bed_type")->enum_keys_map;
+    const t_config_enum_values* keys_map = bed_type_def ? bed_type_def->enum_keys_map : nullptr;
     auto  user_bed_type_flag = wxGetApp().app_config->get("user_bed_type") == "true";
     if (combo && combo->is_drop_down() && user_bed_type_flag) { // save user behavior
         sidebar->save_bed_type_to_config(bed_type_name);

@@ -479,14 +479,17 @@ void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks, floa
         if (!block.flags.prepare_stage || block.move_type != EMoveType::Travel)
             moves_time[static_cast<size_t>(block.move_type)] += block_time;
         roles_time[static_cast<size_t>(block.role)] += block_time;
-        if (block.layer_id >= layers_time.size()) {
-            const size_t curr_size = layers_time.size();
-            layers_time.resize(block.layer_id);
-            for (size_t i = curr_size; i < layers_time.size(); ++i) {
-                layers_time[i] = 0.0f;
+        if (block.layer_id > 0) {
+            // Start G-code preparation blocks may report layer_id == 0. Skip them to avoid underflow.
+            if (block.layer_id > layers_time.size()) {
+                const size_t curr_size = layers_time.size();
+                layers_time.resize(block.layer_id);
+                for (size_t i = curr_size; i < layers_time.size(); ++i) {
+                    layers_time[i] = 0.0f;
+                }
             }
+            layers_time[block.layer_id - 1] += block_time;
         }
-        layers_time[block.layer_id - 1] += block_time;
         //BBS
         if (block.flags.prepare_stage)
             prepare_time += block_time;
