@@ -312,7 +312,6 @@ void GLGizmosManager::update_data()
     }
     if (m_current != Undefined)
         m_gizmos[m_current]->data_changed(m_serializing);
-
     //BBS: GUI refactor: add object manipulation in gizmo
     if (m_current == EType::Move || m_current == EType::Rotate || m_current == EType::Scale) {
         if (!selection.is_empty()) {
@@ -630,6 +629,13 @@ bool GLGizmosManager::wants_reslice_supports_on_undo() const
 
 void GLGizmosManager::on_change_color_mode(bool is_dark) {
     m_is_dark = is_dark;
+
+    // Notify all gizmos about theme change
+    for (auto& gizmo : m_gizmos) {
+        if (gizmo) {
+            gizmo->on_change_color_mode(is_dark);
+        }
+    }
 }
 
 void GLGizmosManager::render_current_gizmo() const

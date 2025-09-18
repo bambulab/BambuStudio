@@ -1111,6 +1111,17 @@ void ImGuiWrapper::warning_text_wrapped(const wxString &all_text, float wrap_wid
     warning_text_wrapped(label_utf8.c_str(), wrap_width);
 }
 
+void ImGuiWrapper::error_text_wrapped(const char *text, float wrap_width) {
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::to_ImVec4(ColorRGB::ERROR_COLOR()));
+    this->text_wrapped(text, wrap_width);
+    ImGui::PopStyleColor();
+}
+
+void ImGuiWrapper::error_text_wrapped(const wxString &text, float wrap_width) {
+    auto label_utf8 = into_u8(text);
+    error_text_wrapped(label_utf8.c_str(), wrap_width);
+}
+
 void ImGuiWrapper::text_wrapped(const char *label, float wrap_width)
 {
     ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + wrap_width);
