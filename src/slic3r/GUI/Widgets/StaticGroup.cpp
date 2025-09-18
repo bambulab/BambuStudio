@@ -18,6 +18,8 @@ public:
         m_count->SetFont(Label::Body_13.Bold());
         m_count->SetForegroundColour("#262E30");
 
+        m_count->Hide();
+
         m_brace_left = new wxStaticText(this, wxID_ANY, "(", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
         m_brace_left->SetFont(Label::Body_13);
         m_brace_left->SetForegroundColour("#262E30");
@@ -68,11 +70,9 @@ public:
             m_count->Hide();
         }
         else{
-            if(!m_count->IsShown()){
-                m_brace_left->Show();
-                m_count->Show();
-                m_brace_right->Show();
-            }
+            m_brace_left->Show();
+            m_count->Show();
+            m_brace_right->Show();
             wxString count_str = wxString::Format("%d", count);
             m_count->SetLabel(count_str);
         }
@@ -91,20 +91,47 @@ private:
 
 };
 
+static void PositionLabelOverStaticBox(wxPoint top_left, HoverLabel* label_)
+{
+    int ox = 10;
+    int oy = 0;
+    label_->SetPosition(top_left + wxPoint{ox,oy});
+}
+
 StaticGroup::StaticGroup(wxWindow *parent, wxWindowID id, const wxString &label)
 #ifdef __WXOSX__
-    : wxStaticBox(parent, id, label)
+: wxStaticBox(parent, id, label)
 #else
-    : wxStaticBox(parent, id, "")
+: wxStaticBox(parent, id, "")
 #endif
 {
+#ifdef __WXOSX__
+    hoverLabel_ = new HoverLabel(parent, label);
+#else
     hoverLabel_ = new HoverLabel(this, label);
-    this->m_labelWin = hoverLabel_;
+#endif
     SetBackgroundColour(*wxWHITE);
     SetForegroundColour("#CECECE");
     borderColor_ = wxColour("#CECECE");
 #ifdef __WXMSW__
     Bind(wxEVT_PAINT, &StaticGroup::OnPaint, this);
+#endif
+}
+
+bool StaticGroup::Show(bool show)
+{
+    bool ret = wxStaticBox::Show(show);
+#ifdef __WXOSX__
+    hoverLabel_->Show(show);
+    ResetLabelPos();
+#endif
+    return ret;
+}
+
+void StaticGroup::ResetLabelPos()
+{
+#ifdef __WXOSX__
+    PositionLabelOverStaticBox(this->GetPosition(),hoverLabel_);
 #endif
 }
 
@@ -114,6 +141,9 @@ void StaticGroup::SetEditEnabled(bool enable)
 {
     if (hoverLabel_) {
         hoverLabel_->EnableEdit(enable);
+#ifdef __WXOSX__
+        ResetLabelPos();
+#endif
     }
 }
 
@@ -121,6 +151,9 @@ void StaticGroup::SetCount(int count)
 {
     if (hoverLabel_) {
         hoverLabel_->SetCount(count);
+#ifdef __WXOSX__
+        ResetLabelPos();
+#endif
     }
 }
 
