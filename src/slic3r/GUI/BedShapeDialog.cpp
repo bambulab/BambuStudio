@@ -177,7 +177,7 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const Conf
 {
     wxGetApp().UpdateDarkUI(this);
     m_shape = default_pt.values;
-    m_custom_texture = custom_texture.value.empty() ? NONE : custom_texture.value;
+    m_custom_texture = custom_texture.value.empty() ? "resources/profiles/BBL/pei.png" : custom_texture.value;
     m_custom_model = custom_model.value.empty() ? NONE : custom_model.value;
 
     auto sbsizer = new wxStaticBoxSizer(wxVERTICAL, this, _L("Shape"));
@@ -275,7 +275,6 @@ void BedShapePanel::activate_options_page(ConfigOptionsGroupShp options_group)
 
 wxPanel *BedShapePanel::init_texture_panel()
 {
-    init_texture_panel_with_default();
     wxPanel *panel = new wxPanel(this);
     wxGetApp().UpdateDarkUI(panel, true);
     ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(panel, _L("Texture"));
