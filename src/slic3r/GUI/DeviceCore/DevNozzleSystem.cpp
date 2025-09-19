@@ -20,7 +20,7 @@ wxString DevNozzle::GetNozzleFlowTypeStr(NozzleFlowType type)
 {
     switch (type) {
     case NozzleFlowType::H_FLOW: return _L("High Flow");
-    case NozzleFlowType::S_FLOW: return _L("Standard Flow");
+    case NozzleFlowType::S_FLOW: return _L("Standard");
     default: break;
     }
 
