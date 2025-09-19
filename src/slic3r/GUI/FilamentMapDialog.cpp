@@ -110,9 +110,12 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
 }
 
 
-static const StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
-                                     std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-                                     std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+StateColor btn_bg_green(
+    std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled),
+    std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+    std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+    std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
+);
 
 static const StateColor btn_bd_green(std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
 
@@ -221,7 +224,6 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
         m_cancel_btn->SetFont(Label::Body_12);
 
         m_ok_btn->SetBackgroundColor(btn_bg_green);
-        m_ok_btn->SetBorderColor(btn_bd_green);
         m_ok_btn->SetTextColor(btn_text_green);
         m_cancel_btn->SetBackgroundColor(btn_bg_white);
         m_cancel_btn->SetBorderColor(btn_bd_white);
@@ -240,6 +242,19 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
     m_auto_btn->Bind(wxEVT_BUTTON, &FilamentMapDialog::on_switch_mode, this);
     m_manual_btn->Bind(wxEVT_BUTTON, &FilamentMapDialog::on_switch_mode, this);
     if (show_default) m_default_btn->Bind(wxEVT_BUTTON, &FilamentMapDialog::on_switch_mode, this);
+
+    m_manual_map_panel->Bind(wxEVT_INVALID_MANUAL_MAP, [this](wxCommandEvent& event) {
+        if (event.GetInt()) {
+            if (!m_ok_btn->IsEnabled()) {
+                m_ok_btn->Enable();
+            }
+        }
+        else {
+            if (m_ok_btn->IsEnabled()) {
+                m_ok_btn->Disable();
+            }
+        }
+        });
 
     SetSizer(main_sizer);
     Layout();
@@ -280,16 +295,7 @@ void FilamentMapDialog::on_checkbox(wxCommandEvent &event)
 void FilamentMapDialog::on_ok(wxCommandEvent &event)
 {
     if (m_page_type == PageType::ptManual) {
-        std::vector<int> left_filaments  = m_manual_map_panel->GetLeftFilaments();
-        std::vector<int> right_filaments = m_manual_map_panel->GetRightFilaments();
-
-        for (int i = 0; i < m_filament_map.size(); ++i) {
-            if (std::find(left_filaments.begin(), left_filaments.end(), i + 1) != left_filaments.end()) {
-                m_filament_map[i] = 1;
-            } else if (std::find(right_filaments.begin(), right_filaments.end(), i + 1) != right_filaments.end()) {
-                m_filament_map[i] = 2;
-            }
-        }
+        m_filament_map = m_manual_map_panel->GetFilamentMaps();
     }
 
     EndModal(wxID_OK);

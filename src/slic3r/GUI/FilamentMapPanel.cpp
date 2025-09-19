@@ -16,6 +16,73 @@ static const wxColour BorderDisableColor  = wxColour("#EEEEEE");
 static const wxColour TextNormalBlackColor = wxColour("#262E30");
 static const wxColour TextNormalGreyColor = wxColour("#6B6B6B");
 static const wxColour TextDisableColor = wxColour("#CECECE");
+static const wxColour TextErrorColor = wxColour("#E14747");
+
+wxDEFINE_EVENT(wxEVT_INVALID_MANUAL_MAP, wxCommandEvent);
+
+void FilamentMapManualPanel::OnTimer(wxTimerEvent &)
+{
+    bool valid = true;
+    int  invalid_eid = -1;
+    auto preset_bundle = wxGetApp().preset_bundle;
+    auto proj_config = preset_bundle->project_config;
+    auto nozzle_volume_values = proj_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
+    std::vector<int> filament_map = GetFilamentMaps();
+    std::vector<int>nozzle_count(nozzle_volume_values.size());
+    for (size_t eid = 0; eid < nozzle_volume_values.size(); ++eid) {
+        int count = preset_bundle->get_extruder_nozzle_count(eid, NozzleVolumeType(nozzle_volume_values[eid]));
+        if(count == 0 && std::find_if(m_filament_list.begin(), m_filament_list.end(), [this,eid,filament_map](int fid){ return (filament_map[fid - 1] - 1) == eid;}) != m_filament_list.end()) {
+            // the nozzle volume type is not supported by the printer, but is used in the model
+            valid = false;
+            invalid_eid = eid;
+            break;
+        }
+    }
+
+    if (m_invalid_id == invalid_eid)
+        return;
+
+    m_invalid_id = invalid_eid;
+
+    if(valid){
+        m_errors->Hide();
+    }
+    else{
+        m_errors->SetLabel(wxString::Format(_L("Error: %s extruder has no available nozzle, current group result is invalid."), invalid_eid == 0 ? _L("Left") : _L("Right")));
+        m_errors->Show();
+    }
+    m_left_panel->Freeze();
+    m_right_panel->Freeze();
+    m_tips->Freeze();
+    m_description->Freeze();
+    Layout();
+    Fit();
+    this->GetParent()->Layout();
+    this->GetParent()->Fit();
+    m_left_panel->Thaw();
+    m_right_panel->Thaw();
+    m_tips->Thaw();
+    m_description->Thaw();
+    wxCommandEvent event(wxEVT_INVALID_MANUAL_MAP);
+    event.SetInt(valid);
+    ProcessEvent(event);
+}
+
+std::vector<int> FilamentMapManualPanel::GetFilamentMaps() const
+{
+    std::vector<int> new_filament_map = m_filament_map;
+    std::vector<int> left_filaments  = this->GetLeftFilaments();
+    std::vector<int> right_filaments = this->GetRightFilaments();
+
+        for (int i = 0; i < new_filament_map.size(); ++i) {
+            if (std::find(left_filaments.begin(), left_filaments.end(), i + 1) != left_filaments.end()) {
+                new_filament_map[i] = 1;
+            } else if (std::find(right_filaments.begin(), right_filaments.end(), i + 1) != right_filaments.end()) {
+                new_filament_map[i] = 2;
+            }
+        }
+    return new_filament_map;
+}
 
 FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *parent,
                                                const std::vector<std::string> &color,
@@ -69,12 +136,28 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
     top_sizer->AddSpacer(FromDIP(20));
     top_sizer->Add(m_tips, 0, wxALIGN_LEFT | wxLEFT, FromDIP(15));
 
+    m_errors = new Label(this, "");
+    m_errors->SetFont(Label::Body_14);
+    m_errors->SetForegroundColour(TextErrorColor);
+    top_sizer->AddSpacer(FromDIP(10));
+    top_sizer->Add(m_errors, 0, wxALIGN_LEFT | wxLEFT, FromDIP(15));
+
+    m_errors->Hide();
+
+    m_timer = new wxTimer(this);
+    Bind(wxEVT_TIMER, &FilamentMapManualPanel::OnTimer, this);
+
     m_switch_btn->Bind(wxEVT_BUTTON, &FilamentMapManualPanel::OnSwitchFilament, this);
 
     SetSizer(top_sizer);
     Layout();
     Fit();
     GUI::wxGetApp().UpdateDarkUIWin(this);
+}
+
+FilamentMapManualPanel::~FilamentMapManualPanel()
+{
+    m_timer->Stop();
 }
 
 void FilamentMapManualPanel::OnSwitchFilament(wxCommandEvent &)
@@ -101,6 +184,7 @@ void FilamentMapManualPanel::Hide()
     m_right_panel->Hide();
     m_switch_btn->Hide();
     wxPanel::Hide();
+    m_timer->Stop();
 }
 
 void FilamentMapManualPanel::Show()
@@ -109,6 +193,7 @@ void FilamentMapManualPanel::Show()
     m_right_panel->Show();
     m_switch_btn->Show();
     wxPanel::Show();
+    m_timer->Start(500);
 }
 
 GUI::FilamentMapBtnPanel::FilamentMapBtnPanel(wxWindow *parent, const wxString &label, const wxString &detail, const std::string &icon) : wxPanel(parent)

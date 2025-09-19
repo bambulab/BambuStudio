@@ -8,12 +8,14 @@
 
 namespace Slic3r { namespace GUI {
 
+wxDECLARE_EVENT(wxEVT_INVALID_MANUAL_MAP, wxCommandEvent);
+
 class FilamentMapManualPanel : public wxPanel
 {
 public:
     FilamentMapManualPanel(wxWindow *parent, const std::vector<std::string> &color, const std::vector<std::string> &type, const std::vector<int> &filament_list, const std::vector<int> &filament_map);
-
-    std::vector<int> GetFilamentMaps() const { return m_filament_map; }
+    ~FilamentMapManualPanel();
+    std::vector<int> GetFilamentMaps() const;
     std::vector<int> GetLeftFilaments() const { return m_left_panel->GetAllFilaments(); }
     std::vector<int> GetRightFilaments() const { return m_right_panel->GetAllFilaments(); }
 
@@ -21,12 +23,14 @@ public:
     void Show();
 
 private:
+    void OnTimer(wxTimerEvent &evt);
     void           OnSwitchFilament(wxCommandEvent &);
     DragDropPanel *m_left_panel;
     DragDropPanel *m_right_panel;
 
     Label *m_description;
     Label *m_tips;
+    Label *m_errors;
 
     ScalableButton *m_switch_btn;
 
@@ -34,6 +38,8 @@ private:
     std::vector<int>         m_filament_list;
     std::vector<std::string> m_filament_color;
     std::vector<std::string> m_filament_type;
+    wxTimer* m_timer;
+    int m_invalid_id{ -1 };
 };
 
 class FilamentMapBtnPanel : public wxPanel

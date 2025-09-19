@@ -12,7 +12,7 @@ wxDEFINE_EVENT(EVT_NOZZLE_SELECTED, wxCommandEvent);
 static const int LeftExtruderIdx = 0;
 static const int RightExtruderIdx = 1;
 
-ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow* parent,int default_count, int max_nozzle_count)
+ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow* parent,int default_count, int max_nozzle_count, bool force_no_zero)
     :GUI::DPIDialog(parent, wxID_ANY, "Set nozzle count", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     this->SetBackgroundColour(*wxWHITE);
@@ -31,7 +31,7 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow* parent,int default_co
     wxBoxSizer* choice_sizer = new wxBoxSizer(wxVERTICAL);
 
     auto* label = new wxStaticText(content, wxID_ANY, "Please set nozzle count");
-    choice_sizer->Add(label, 0, wxALL | wxALIGN_LEFT, FromDIP(20));
+    choice_sizer->Add(label, 0, wxALL | wxALIGN_LEFT, FromDIP(10));
 
     wxArrayString nozzle_choices;
     for (int i = 0; i <= max_nozzle_count; ++i)
@@ -40,17 +40,48 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow* parent,int default_co
     m_choice = new wxChoice(content, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(100), -1), nozzle_choices);
     m_choice->SetSelection(default_count);
     m_choice->SetBackgroundColour(*wxWHITE);
-    choice_sizer->Add(m_choice, 0, wxLEFT | wxBOTTOM, FromDIP(20));
+    choice_sizer->Add(m_choice, 0, wxLEFT | wxBOTTOM, FromDIP(10));
+
+    m_error_label = new Label(this,"");
+    m_error_label->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#E14747")));
+    m_error_label->SetFont(Label::Body_12);
+    m_error_label->Hide();
+
+    m_choice->Bind(wxEVT_CHOICE, [this,force_no_zero,content](wxCommandEvent& e) {
+        int count = e.GetInt();
+        if(count >0 && m_error_label->IsShown()){
+            m_error_label->Hide();
+            m_confirm_btn->Enable();
+            content->Freeze();
+            this->Layout();
+            this->Fit();
+            content->Thaw();
+        }
+        else if(count == 0 && force_no_zero){
+            m_error_label->SetLabel("Error: Can not set both nozzle count to zero.");
+            m_error_label->Wrap(content->GetSize().x);
+            m_error_label->Show();
+            m_confirm_btn->Disable();
+            content->Freeze();
+            this->Layout();
+            this->Fit();
+            content->Thaw();
+        }
+        e.Skip();
+    });
 
     content_sizer->Add(nozzle_icon, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(15));
     content_sizer->Add(choice_sizer, 0, wxALIGN_CENTRE_VERTICAL);
 
-    auto bt_enable = StateColor(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    StateColor btn_bg_green(
+        std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled),
+        std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
+    );
 
     m_confirm_btn = new Button(this, _L("Confirm"));
-    m_confirm_btn->SetBackgroundColor(bt_enable);
-    m_confirm_btn->SetBorderColor(bt_enable);
+    m_confirm_btn->SetBackgroundColor(btn_bg_green);
     m_confirm_btn->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
     m_confirm_btn->SetMinSize(wxSize(FromDIP(68), FromDIP(23)));
     m_confirm_btn->SetMinSize(wxSize(FromDIP(68), FromDIP(23)));
@@ -60,6 +91,7 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow* parent,int default_co
 
     wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
     mainSizer->Add(content, 1, wxEXPAND);
+    mainSizer->Add(m_error_label, 0, wxALL, FromDIP(5));
     mainSizer->Add(m_confirm_btn, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, FromDIP(20));
 
     SetSizerAndFit(mainSizer);
@@ -95,7 +127,15 @@ void manuallySetNozzleCount(int extruder_id)
     else
         default_nozzle_count = extruder_max_nozzle_count->values[extruder_id];
 
-    ManualNozzleCountDialog dialog(GUI::wxGetApp().plater(), default_nozzle_count, extruder_max_nozzle_count->values[extruder_id]);
+    bool force_no_zero = true;
+    if(nozzle_volume_type_opt->values.size() > 1){
+        int other_nozzle_count = std::accumulate(nozzle_count_map[1-extruder_id].begin(), nozzle_count_map[1 - extruder_id].end(), 0, [](int a, auto& elem) {
+            return a + elem.second;
+            });
+        force_no_zero = other_nozzle_count == 0;
+    }
+
+    ManualNozzleCountDialog dialog(GUI::wxGetApp().plater(), default_nozzle_count, extruder_max_nozzle_count->values[extruder_id],force_no_zero);
 
     if (dialog.ShowModal() == wxID_OK) {
         int nozzle_count = dialog.GetNozzleCount();
