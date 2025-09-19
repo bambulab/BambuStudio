@@ -16,11 +16,13 @@ void StaticGroup_layoutBadge(void * group, void * badge);
 void StaticGroup::ShowBadge(bool show)
 {
 #ifdef __WXMSW__
-    if (show)
+    if (show && badge.name() != "badge") {
         badge = ScalableBitmap(this, "badge", 18);
-    else
+        Refresh();
+    } else if (!show && !badge.name().empty()) {
         badge = ScalableBitmap{};
-    Refresh();
+        Refresh();
+    }
 #endif
 #ifdef __WXOSX__
     if (show && badge == nullptr) {
