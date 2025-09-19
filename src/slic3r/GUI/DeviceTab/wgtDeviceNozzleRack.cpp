@@ -62,7 +62,7 @@ static wxBitmap SetNozzleBmpColor(const wxBitmap& bmp, const std::string& color_
         }
     }
 
-    return wxBitmap(img);
+    return wxBitmap(img, -1, bmp.GetScaleFactor());
 }
 
 wgtDeviceNozzleRack::wgtDeviceNozzleRack(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
@@ -862,8 +862,13 @@ void wgtDeviceNozzleRackNozzleItem::SetNozzleStatus(NOZZLE_STATUS status, const 
         }
     }
 
+    bool update_layout = (m_nozzle_label_1->GetLabel() != str1 || m_nozzle_label_2->GetLabel() != str2);
     m_nozzle_label_1->SetLabel(str1);
     m_nozzle_label_2->SetLabel(str2);
+
+    if (update_layout) {
+        Layout();
+    }
 }
 
 void wgtDeviceNozzleRackNozzleItem::OnBtnNozzleStatus(wxMouseEvent& evt)
