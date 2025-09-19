@@ -167,6 +167,18 @@ void MeshBooleanUI::draw_volume_lists()
         // Center the AB lists as a group
         set_centered_cursor_x(MeshBooleanConfig::LIST_WIDTH);
 
+        // Header line: Selected Objects [A-B] : (with [A-B] in bold)
+        ImGui::BeginGroup();
+        ImGui::TextUnformatted(("Selected " + mode_text + "s").c_str());
+        ImGui::SameLine(0, 0);
+        if (m_imgui) m_imgui->push_bold_font();
+        ImGui::TextUnformatted("[A - B]");
+        if (m_imgui) m_imgui->pop_bold_font();
+        ImGui::SameLine(0, 0);
+        ImGui::TextUnformatted(" :");
+        ImGui::EndGroup();
+        ImGui::Spacing();
+
         // Build A
         std::vector<ListItemInfo> list_a_items;
         std::vector<std::vector<unsigned int>> groups_a;
@@ -316,7 +328,7 @@ void MeshBooleanUI::draw_action_buttons()
     float separator_start_x = (ImGui::GetWindowWidth() - MeshBooleanConfig::LIST_WIDTH) * 0.5f;
     ImVec2 separator_pos = ImGui::GetCursorScreenPos();
     separator_pos.x = ImGui::GetWindowPos().x + separator_start_x;
-    ImU32 separator_color = ImGui::GetColorU32(ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
+    ImU32 separator_color = m_is_dark_mode ? MeshBooleanConfig::COLOR_SEPARATOR_DARK : MeshBooleanConfig::COLOR_SEPARATOR;
     draw_list->AddLine(ImVec2(separator_pos.x, separator_pos.y),
                        ImVec2(separator_pos.x + MeshBooleanConfig::LIST_WIDTH, separator_pos.y),
                        separator_color, 1.0f);
@@ -329,7 +341,7 @@ void MeshBooleanUI::draw_action_buttons()
     float min_button_width = 50.0f; // Minimum button width for aesthetics
 
     // Calculate Execute Boolean button width
-    std::string execute_text = _L("Execute Boolean").ToStdString();
+    std::string execute_text = _L("Execute").ToStdString();
     float execute_text_width = ImGui::CalcTextSize(execute_text.c_str()).x;
     float execute_button_width = std::max(execute_text_width + button_padding, min_button_width);
 
@@ -339,7 +351,7 @@ void MeshBooleanUI::draw_action_buttons()
     float reset_cancel_text_width = ImGui::CalcTextSize(reset_cancel_text.c_str()).x;
     float reset_cancel_button_width = std::max(reset_cancel_text_width + button_padding, min_button_width);
 
-    // Right-aligned OK/Cancel buttons within LIST_WIDTH area
+    // Right-aligned Execute/Cancel buttons within LIST_WIDTH area
     float buttons_total_width = execute_button_width + reset_cancel_button_width + button_spacing;
     float ctrl_start_x = (ImGui::GetWindowWidth() - MeshBooleanConfig::LIST_WIDTH) * 0.5f;
     float buttons_start_x = ctrl_start_x + MeshBooleanConfig::LIST_WIDTH - buttons_total_width;
@@ -368,7 +380,7 @@ void MeshBooleanUI::draw_action_buttons()
         }
     }
 
-    ok_clicked = m_imgui->button((_L("Execute Boolean") + "##btn").c_str(), execute_button_width, 0.0f);
+    ok_clicked = m_imgui->button((_L("Execute") + "##btn").c_str(), execute_button_width, 0.0f);
 
     if (!enable_button) {
         ImGui::PopItemFlag();
@@ -425,6 +437,7 @@ void MeshBooleanUI::draw_action_buttons()
     }
 
     ImGui::PopStyleVar();
+    ImGui::Spacing();
 }
 
 void MeshBooleanUI::draw_only_entity_checkbox()

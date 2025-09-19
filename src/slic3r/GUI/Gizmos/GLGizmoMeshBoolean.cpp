@@ -22,73 +22,20 @@ namespace GUI {
 
 // ========================== DEFINE STATIC WARNING MSG ==========================
 
-const std::string MeshBooleanWarnings::COMMON                   = _u8L("Unable to perform boolean operation on selected parts");
-const std::string MeshBooleanWarnings::GROUPING                 = _u8L("Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes.");
-const std::string MeshBooleanWarnings::INTERSECTION             = _u8L("No overlapping region found. Boolean intersection failed.");
-const std::string MeshBooleanWarnings::SUBSTRACTION               = _u8L("No overlapping region found. Boolean difference did not modify the object.");
+const std::string MeshBooleanWarnings::COMMON                   = _u8L("Unable to perform boolean operation on selected parts.");
 const std::string MeshBooleanWarnings::JOB_CANCELED             = _u8L("Operation Canceled.");
 const std::string MeshBooleanWarnings::JOB_FAILED               = _u8L("Operation Failed.");
 const std::string MeshBooleanWarnings::MIN_VOLUMES_UNION        = _u8L("Union operation requires at least two volumes.");
 const std::string MeshBooleanWarnings::MIN_VOLUMES_INTERSECTION = _u8L("Intersection operation requires at least two volumes.");
 const std::string MeshBooleanWarnings::MIN_VOLUMES_DIFFERENCE   = _u8L("Difference operation requires at least one volume in both A and B lists.");
+const std::string MeshBooleanWarnings::MIN_OBJECTS_UNION        = _u8L("Union operation requires at least two objects.");
+const std::string MeshBooleanWarnings::MIN_OBJECTS_INTERSECTION = _u8L("Intersection operation requires at least two objects.");
+const std::string MeshBooleanWarnings::MIN_OBJECTS_DIFFERENCE   = _u8L("Difference operation requires at least one object in both A and B lists.");
+const std::string MeshBooleanWarnings::GROUPING                 = _u8L("Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes.");
+const std::string MeshBooleanWarnings::OVERLAPING               = _u8L("No overlapping region found. Boolean intersection failed.");
 
 // ========================== UTILITY FUNCTIONS ==========================
 
-static bool check_if_active()
-{
-    const Plater* plater = wxGetApp().plater();
-    if (plater == nullptr) return false;
-    const GLCanvas3D* canvas = plater->canvas3D();
-    if (canvas == nullptr) return false;
-    const GLGizmosManager& mng = canvas->get_gizmos_manager();
-    // check if mesh boolean is still activ gizmo
-    if (mng.get_current_type() != GLGizmosManager::MeshBoolean) return false;
-    return true;
-}
-
-void GLGizmoMeshBoolean::render_selected_bounding_boxes()
-{
-    const Selection &selection = m_parent.get_selection();
-    const auto hover_rgba = abgr_u32_to_rgba(MeshBooleanConfig::COLOR_HOVER_BORDER);
-    float border_color_rgb[3] = { hover_rgba[0], hover_rgba[1], hover_rgba[2] };
-
-    if (m_target_mode == BooleanTargetMode::Object) {
-        // Object mode: draw bounding box for the selected object
-        std::set<int> objects_drawn;
-        for (unsigned int v_idx : m_volume_manager.get_selected_objects()) {
-            const GLVolume *glv = selection.get_volume(v_idx);
-            if (!glv) continue;
-            int obj_idx = glv->object_idx();
-            if (objects_drawn.count(obj_idx)) continue;
-            objects_drawn.insert(obj_idx);
-
-            std::vector<unsigned int> vols = selection.get_volume_idxs_from_object((unsigned int)obj_idx);
-            BoundingBoxf3 merged; merged.reset();
-            for (unsigned int vi : vols) {
-                const GLVolume *gv = selection.get_volume(vi);
-                if (!gv) continue;
-                BoundingBoxf3 bb = gv->transformed_convex_hull_bounding_box();
-                if (!bb.defined) continue;
-                if (!merged.defined) { merged = bb; merged.defined = true; }
-                else merged.merge(bb);
-            }
-            if (merged.defined) const_cast<Selection&>(selection).render_bounding_box(merged, border_color_rgb, MeshBooleanConfig::CORNER_BOX_LINE_SCALE);
-        }
-    } else {
-        // Part mode: draw bounding box for each selected part (allow non-entity)
-        for (unsigned int v_idx : m_volume_manager.get_selected_objects()) {
-            const GLVolume *glv = selection.get_volume(v_idx);
-            if (!glv) continue;
-            BoundingBoxf3 bb = glv->transformed_convex_hull_bounding_box();
-            if (!bb.defined) continue;
-            const_cast<Selection&>(selection).render_bounding_box(bb, border_color_rgb, MeshBooleanConfig::CORNER_BOX_LINE_SCALE);
-        }
-    }
-}
-
-// ========================== IMGUI RAII HELPERS ==========================
-
-// Small RAII helpers to keep ImGui state pushes balanced even on early returns.
 namespace {
 
     template <class T>
@@ -100,6 +47,33 @@ namespace {
         return a == b;
     }
 
+    static bool check_if_active()
+    {
+        const Plater* plater = wxGetApp().plater();
+        if (plater == nullptr) return false;
+        const GLCanvas3D* canvas = plater->canvas3D();
+        if (canvas == nullptr) return false;
+        const GLGizmosManager& mng = canvas->get_gizmos_manager();
+        // check if mesh boolean is still activ gizmo
+        if (mng.get_current_type() != GLGizmosManager::MeshBoolean) return false;
+        return true;
+    }
+
+    static const std::string& get_boolean_warning_by_mode(MeshBooleanOperation op, BooleanTargetMode mode) {
+        switch (op) {
+        case MeshBooleanOperation::Union:
+            return mode == BooleanTargetMode::Object ? MeshBooleanWarnings::MIN_OBJECTS_UNION
+                                                    : MeshBooleanWarnings::MIN_VOLUMES_UNION;
+        case MeshBooleanOperation::Intersection:
+            return mode == BooleanTargetMode::Object ? MeshBooleanWarnings::MIN_OBJECTS_INTERSECTION
+                                                    : MeshBooleanWarnings::MIN_VOLUMES_INTERSECTION;
+        case MeshBooleanOperation::Difference:
+            return mode == BooleanTargetMode::Object ? MeshBooleanWarnings::MIN_OBJECTS_DIFFERENCE
+                                                    : MeshBooleanWarnings::MIN_VOLUMES_DIFFERENCE;
+        default:
+            return MeshBooleanWarnings::COMMON;
+        }
+    }
     // Unified minimums guard used by Delete action; returns true if deletion should be blocked
     static bool violates_minimums_for_delete(MeshBooleanOperation mode,
                                              BooleanTargetMode target_mode,
@@ -131,19 +105,19 @@ namespace {
 
         auto remove_warning = [&](const std::string &w){ warnings.remove_warning(w); };
 
+        std::string pre_warning = get_boolean_warning_by_mode(mode, target_mode);
+
         bool object_mode = (target_mode == BooleanTargetMode::Object);
         if (mode == MeshBooleanOperation::Union || mode == MeshBooleanOperation::Intersection) {
             int remain = object_mode
                 ? count_objects_after(mgr.get_working_list(), mgr.get_selected_objects())
                 : count_meshes_after(mgr.get_working_list(), mgr.get_selected_objects());
             if (remain < 2) {
-                if (mode == MeshBooleanOperation::Union) warnings.add_warning(MeshBooleanWarnings::MIN_VOLUMES_UNION);
-                else warnings.add_warning(MeshBooleanWarnings::MIN_VOLUMES_INTERSECTION);
+                warnings.add_warning(pre_warning);
                 return true;
             }
             // satisfied now -> drop previous warning
-            if (mode == MeshBooleanOperation::Union) remove_warning(MeshBooleanWarnings::MIN_VOLUMES_UNION);
-            else remove_warning(MeshBooleanWarnings::MIN_VOLUMES_INTERSECTION);
+            remove_warning(pre_warning);
             return false;
         }
 
@@ -155,10 +129,10 @@ namespace {
             ? count_objects_after(mgr.get_list_b(), selected_in(mgr.get_list_b()))
             : count_meshes_after(mgr.get_list_b(), selected_in(mgr.get_list_b()));
         if (remain_a < 1 || remain_b < 1) {
-            warnings.add_warning(MeshBooleanWarnings::MIN_VOLUMES_DIFFERENCE);
+            warnings.add_warning(pre_warning);
             return true;
         }
-        remove_warning(MeshBooleanWarnings::MIN_VOLUMES_DIFFERENCE);
+        remove_warning(pre_warning);
         return false;
     }
 } // anonymous namespace
@@ -265,12 +239,15 @@ bool BooleanWarningManager::is_mode_specific_warning(const std::string& warning_
 {
     switch (mode) {
         case MeshBooleanOperation::Union:
-            return warning_text == MeshBooleanWarnings::MIN_VOLUMES_UNION;
+            return warning_text == MeshBooleanWarnings::MIN_VOLUMES_UNION ||
+                   warning_text == MeshBooleanWarnings::MIN_OBJECTS_UNION;
         case MeshBooleanOperation::Intersection:
             return warning_text == MeshBooleanWarnings::MIN_VOLUMES_INTERSECTION ||
-                   warning_text == MeshBooleanWarnings::INTERSECTION;
+                   warning_text == MeshBooleanWarnings::MIN_OBJECTS_INTERSECTION ||
+                   warning_text == MeshBooleanWarnings::OVERLAPING;
         case MeshBooleanOperation::Difference:
-            return warning_text == MeshBooleanWarnings::MIN_VOLUMES_DIFFERENCE;
+            return warning_text == MeshBooleanWarnings::MIN_VOLUMES_DIFFERENCE ||
+                   warning_text == MeshBooleanWarnings::MIN_OBJECTS_DIFFERENCE;
         default:
             return false;
     }
@@ -720,7 +697,7 @@ BooleanOperationResult BooleanOperationEngine::perform_intersection(const Volume
         }
 
         if (obj_count < 2) {
-            result.error_message = MeshBooleanWarnings::MIN_VOLUMES_INTERSECTION;
+            result.error_message = MeshBooleanWarnings::MIN_OBJECTS_INTERSECTION;
             return result;
         }
 
@@ -746,7 +723,7 @@ BooleanOperationResult BooleanOperationEngine::perform_intersection(const Volume
             // try { Slic3r::MeshBoolean::self_union(o); } catch (...) {}
             cur = execute_boolean_operation(cur, pre_union_result[i], MeshBooleanConfig::OP_INTERSECTION);
             if (cur.empty()) {
-                result.error_message = MeshBooleanWarnings::INTERSECTION;
+                result.error_message = MeshBooleanWarnings::OVERLAPING;
                 return result;
             }
         }
@@ -780,7 +757,7 @@ BooleanOperationResult BooleanOperationEngine::perform_difference(const VolumeLi
         BooleanOperationResult result;
 
         if (volumes_a.empty() || volumes_b.empty()) {
-            result.error_message = MeshBooleanWarnings::MIN_VOLUMES_DIFFERENCE;
+            result.error_message = MeshBooleanWarnings::MIN_OBJECTS_DIFFERENCE;
             return result;
         }
 
@@ -954,7 +931,7 @@ BooleanOperationResult BooleanOperationEngine::part_level_boolean(const std::vec
     if (operation == MeshBooleanConfig::OP_DIFFERENCE) { return part_level_sub(volumes, volumes, settings); }
     // Union or Intersection
     if (volumes.size() < 2 && !allow_single_volume) {
-        result.error_message = _u8L("Mesh operation requires at least two elements.");
+        result.error_message = MeshBooleanWarnings::COMMON;
         return result;
     }
 
@@ -980,7 +957,7 @@ BooleanOperationResult BooleanOperationEngine::part_level_sub(const std::vector<
     BooleanOperationResult result;
 
     if (volumes_a.empty() || volumes_b.empty()) {
-        result.error_message = MeshBooleanWarnings::MIN_VOLUMES_DIFFERENCE;
+        result.error_message = MeshBooleanWarnings::COMMON;
         return result;
     }
 
@@ -1294,6 +1271,7 @@ GLGizmoMeshBoolean::GLGizmoMeshBoolean(GLCanvas3D& parent, unsigned int sprite_i
 
 GLGizmoMeshBoolean::~GLGizmoMeshBoolean()
 {
+    restore_list_color_overrides();
     m_volume_manager.clear_all();
 }
 
@@ -1318,6 +1296,30 @@ bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             if (mv == nullptr) return true; // consume click but do not add
             if (clicked_volume->is_wipe_tower || clicked_volume->is_extrusion_path)
                 return true; // consume click but do not add
+
+            // Toggle off only gizmo's selection (bounding box), do not change global Selection
+            // NOTE: check out
+            {
+                if (m_target_mode == BooleanTargetMode::Part) {
+                    if (m_volume_manager.get_selected_objects().count(volume_idx) > 0) {
+                        m_volume_manager.remove_from_selection(volume_idx);
+                        refresh_canvas();
+                        return true;
+                    }
+                } else { // Object mode: deselect the whole object's volumes
+                    int obj_idx_clicked = clicked_volume->object_idx();
+                    std::vector<unsigned int> vols = selection.get_volume_idxs_from_object((unsigned int)obj_idx_clicked);
+                    bool any_selected = false;
+                    for (unsigned int v : vols) {
+                        if (m_volume_manager.get_selected_objects().count(v) > 0) { any_selected = true; break; }
+                    }
+                    if (any_selected) {
+                        for (unsigned int v : vols) m_volume_manager.remove_from_selection(v);
+                        refresh_canvas();
+                        return true;
+                    }
+                }
+            }
 
             bool added = false;
             // Add volume / Object to list
@@ -1357,7 +1359,6 @@ bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 apply_color_overrides_for_mode(m_operation_mode);
                 return true;
             }
-            // If it was already in list, still consume the click
             return true;
         }
     return false;
@@ -1456,11 +1457,12 @@ bool GLGizmoMeshBoolean::on_is_activable() const
 
     // Object mode: select 2 or more objects (full object or instance)
     if (selection.is_multiple_full_object() || selection.is_multiple_full_instance())
-        // return true;
         return is_on_same_plate(selection);
 
     // Part mode: single object, and it contains at least 2 meshes
-    if (selection.is_from_single_object()) {
+    bool is_activa_when_off = m_state == EState::Off && (selection.is_single_full_object() || selection.is_single_full_instance());
+    bool is_active_when_on = m_state == EState::On && (selection.is_from_single_object() || selection.is_from_single_instance());
+    if (is_activa_when_off || is_active_when_on) {
         int obj_idx = selection.get_object_idx();
         if (obj_idx >= 0 && obj_idx < (int)selection.get_model()->objects.size()) {
             const ModelObject* obj = selection.get_model()->objects[obj_idx];
@@ -1474,7 +1476,7 @@ bool GLGizmoMeshBoolean::on_is_activable() const
 std::string GLGizmoMeshBoolean::on_get_name() const
 {
     if (!on_is_activable() && m_state == EState::Off) {
-        return _u8L("Mesh Boolean") + ":\n" + _u8L("Object mode: select 2 or more objects; Part mode: single object and it contains at least 2 meshes.");
+        return _u8L("Mesh Boolean") + ":\n" + _u8L("- Object mode: Please select at least two objects.") + "\n" + _u8L("- Part mode: Please select one object with at least two meshes.");
     }
     return _u8L("Mesh Boolean");
 }
@@ -1629,6 +1631,46 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     ImGuiWrapper::pop_toolbar_style();
 }
 
+void GLGizmoMeshBoolean::render_selected_bounding_boxes()
+{
+    const Selection &selection = m_parent.get_selection();
+    const auto hover_rgba = abgr_u32_to_rgba(MeshBooleanConfig::COLOR_HOVER_BORDER);
+    float border_color_rgb[3] = { hover_rgba[0], hover_rgba[1], hover_rgba[2] };
+
+    if (m_target_mode == BooleanTargetMode::Object) {
+        // Object mode: draw bounding box for the selected object
+        std::set<int> objects_drawn;
+        for (unsigned int v_idx : m_volume_manager.get_selected_objects()) {
+            const GLVolume *glv = selection.get_volume(v_idx);
+            if (!glv) continue;
+            int obj_idx = glv->object_idx();
+            if (objects_drawn.count(obj_idx)) continue;
+            objects_drawn.insert(obj_idx);
+
+            std::vector<unsigned int> vols = selection.get_volume_idxs_from_object((unsigned int)obj_idx);
+            BoundingBoxf3 merged; merged.reset();
+            for (unsigned int vi : vols) {
+                const GLVolume *gv = selection.get_volume(vi);
+                if (!gv) continue;
+                BoundingBoxf3 bb = gv->transformed_convex_hull_bounding_box();
+                if (!bb.defined) continue;
+                if (!merged.defined) { merged = bb; merged.defined = true; }
+                else merged.merge(bb);
+            }
+            if (merged.defined) const_cast<Selection&>(selection).render_bounding_box(merged, border_color_rgb, MeshBooleanConfig::CORNER_BOX_LINE_SCALE);
+        }
+    } else {
+        // Part mode: draw bounding box for each selected part (allow non-entity)
+        for (unsigned int v_idx : m_volume_manager.get_selected_objects()) {
+            const GLVolume *glv = selection.get_volume(v_idx);
+            if (!glv) continue;
+            BoundingBoxf3 bb = glv->transformed_convex_hull_bounding_box();
+            if (!bb.defined) continue;
+            const_cast<Selection&>(selection).render_bounding_box(bb, border_color_rgb, MeshBooleanConfig::CORNER_BOX_LINE_SCALE);
+        }
+    }
+}
+
 void GLGizmoMeshBoolean::init_volume_manager(){
     const Selection& selection = m_parent.get_selection();
     if (m_target_mode == BooleanTargetMode::Part) m_volume_manager.init_part_mode_lists(selection);
@@ -1778,8 +1820,6 @@ void GLGizmoMeshBoolean::execute_boolean_operation()
             m_warning_manager.clear_warnings();
             m_volume_manager.clear_all();
             if (check_if_active()) init_volume_manager();
-            // m_target_mode = BooleanTargetMode::Unknown;
-            // m_state = EState::Off;
         } else {
             m_warning_manager.add_warning(result.error_message);
         }
