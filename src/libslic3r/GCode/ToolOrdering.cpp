@@ -1200,6 +1200,13 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
                 ret = fg.calc_filament_group_by_pam();
             }
             MultiNozzleUtils::MultiNozzleGroupResult result(ret, context.nozzle_info.nozzle_list, used_filaments);
+            if (mode == FilamentMapMode::fmmManual) {
+                for (auto fid : used_filaments) {
+                    if (result.filament_map[fid] != print_config.filament_map.values[fid] - 1) {
+                        throw Slic3r::RuntimeError("Inconsistent filament map result in manual mode. Please check nozzle count.");
+                    }
+                }
+            }
             return result;
         }
         else {
