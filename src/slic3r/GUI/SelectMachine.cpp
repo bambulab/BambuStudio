@@ -4573,6 +4573,10 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
         return;
     }
 
+    if (m_print_type != FROM_NORMAL) {
+        return;// there are no slicing data when print from sdcard
+    }
+
     const std::vector<Slic3r::MultiNozzleUtils::NozzleInfo>& nozzle_vec = nozzle_group_res->get_nozzle_vec(LOGIC_R_EXTRUDER_ID);
     if (nozzle_vec.empty()) {
         return;// no need to check if no right nozzles used in slicing
@@ -4877,6 +4881,11 @@ wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
         return wxEmptyString;
     }
 
+    if(m_print_type != FROM_NORMAL) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": from normal";
+        return wxEmptyString;// there are no slicing data when print from sdcard
+    }
+
     if (!m_plater) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": m_plater NULL";
     }
@@ -4924,6 +4933,10 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResult(MachineObject* obj_)
 
     if (!obj_->GetNozzleRack()->IsSupported()){
         return true;// no need to check if not support nozzle rack
+    }
+
+    if (m_print_type != FROM_NORMAL) {
+        return true;// there are no slicing data when print from sdcard
     }
 
     auto nozzle_group_res = s_get_nozzle_group_result(m_plater);;
