@@ -2480,12 +2480,19 @@ void CalibrationPresetPage::update_nozzle_id_combox()
     auto rack     = obj->GetNozzleSystem()->GetNozzleRack();
     bool has_rack = rack->IsSupported();
     if (has_rack) {
-        wxString nozzle_diameter = m_right_comboBox_nozzle_dia->GetStringSelection();
-        wxString nozzle_flow;
+        NozzleDiameterType nozzle_diameter;
+        switch (m_right_comboBox_nozzle_dia->GetSelection()) {
+            case 0: nozzle_diameter = NozzleDiameterType::NOZZLE_DIAMETER_0_2; break;
+            case 1: nozzle_diameter = NozzleDiameterType::NOZZLE_DIAMETER_0_4; break;
+            case 2: nozzle_diameter = NozzleDiameterType::NOZZLE_DIAMETER_0_6; break;
+            case 3: nozzle_diameter = NozzleDiameterType::NOZZLE_DIAMETER_0_8; break;
+            default: nozzle_diameter = NozzleDiameterType::NONE_DIAMETER_TYPE; break;
+        }
+        NozzleFlowType nozzle_flow;
         switch (m_right_comboBox_nozzle_volume->GetSelection()) {
-        case 0: nozzle_flow = _L("Standard Flow"); break;
-        case 1: nozzle_flow = _L("High Flow"); break;
-        default: nozzle_flow = _L("Unknown"); break;
+            case 0: nozzle_flow = NozzleFlowType::S_FLOW; break;
+            case 1: nozzle_flow = NozzleFlowType::H_FLOW; break;
+            default: nozzle_flow = NozzleFlowType::NONE_FLOWTYPE; break;
         }
 
         int  r_nozzle_id = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
@@ -2506,17 +2513,17 @@ void CalibrationPresetPage::update_nozzle_id_combox()
 
 std::vector<std::pair<wxString, int>> CalibrationPresetPage::make_nozzles_info(const DevNozzle                &r_nozzle,
                                                                                const std::map<int, DevNozzle> &nozzle_map,
-                                                                               const wxString                 &nozzle_diameter,
-                                                                               const wxString                 &nozzle_flow)
+                                                                               const NozzleDiameterType       &nozzle_diameter,
+                                                                               const NozzleFlowType           &nozzle_flow)
 {
     std::vector<std::pair<wxString, int>> nozzle_list;
 
-    if (r_nozzle.IsNormal() && r_nozzle.GetNozzleDiameterStr() == nozzle_diameter && r_nozzle.GetNozzleFlowTypeStr() == nozzle_flow) {
+    if (r_nozzle.IsNormal() && r_nozzle.GetNozzleDiameterType() == nozzle_diameter && r_nozzle.GetNozzleFlowType() == nozzle_flow) {
         wxString item = wxString::Format("R | %s %s", r_nozzle.GetNozzleDiameterStr(), r_nozzle.GetNozzleFlowTypeStr());
         nozzle_list.emplace_back(item, 0);
     }
     for (auto &nozzle : nozzle_map) {
-        if (nozzle.second.IsNormal() && nozzle.second.GetNozzleDiameterStr() == nozzle_diameter && nozzle.second.GetNozzleFlowTypeStr() == nozzle_flow) {
+        if (nozzle.second.IsNormal() && nozzle.second.GetNozzleDiameterType() == nozzle_diameter && nozzle.second.GetNozzleFlowType() == nozzle_flow) {
             wxString item = wxString::Format("%d | %s %s", nozzle.second.GetNozzleId() + 1, nozzle.second.GetNozzleDiameterStr(), nozzle.second.GetNozzleFlowTypeStr());
             nozzle_list.emplace_back(item, 0x10 | nozzle.second.GetNozzleId());
         }
