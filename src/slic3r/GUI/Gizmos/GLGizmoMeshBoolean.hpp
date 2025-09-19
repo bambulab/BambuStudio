@@ -85,6 +85,8 @@ struct MeshBooleanConfig {
     static constexpr unsigned int COLOR_SELECTED_BG_DARK = 0xFF354124; // Selected item background dark
     static constexpr unsigned int COLOR_HOVER_BORDER = 0xFF42AE00;  // Hover border
     static constexpr unsigned int COLOR_NON_MODEL = 0x80808080;     // Non-model volumes (semi-transparent gray)
+    static constexpr unsigned int COLOR_SEPARATOR = 0xFFCCCCCC;
+    static constexpr unsigned int COLOR_SEPARATOR_DARK = 0xFF4A4A4A;
     static constexpr unsigned int COLOR_TEXT = 0xFF000000;
     static constexpr unsigned int COLOR_TEXT_DARK = 0xFFF0EFEF;
 };
@@ -246,20 +248,23 @@ private:
     ModelVolume* create_result_volume(ModelObject* target_object, const TriangleMesh& result_mesh, ModelVolume* source_volume);
     void delete_volumes_from_model(const std::vector<ModelVolume*>& volumes_to_delete);
     void update_delete_list(BooleanOperationResult& result, const std::vector<ProcessedVolumeInfo>& volumes, const BooleanOperationSettings& settings) const;
+
 };
 
 // ========================== MAIN GIZMO CLASS ==========================
 
 struct MeshBooleanWarnings {
     static const std::string COMMON;
-    static const std::string GROUPING;
-    static const std::string INTERSECTION;
-    static const std::string SUBSTRACTION;
     static const std::string JOB_CANCELED;
     static const std::string JOB_FAILED;
     static const std::string MIN_VOLUMES_UNION;
     static const std::string MIN_VOLUMES_INTERSECTION;
     static const std::string MIN_VOLUMES_DIFFERENCE;
+    static const std::string MIN_OBJECTS_UNION;
+    static const std::string MIN_OBJECTS_INTERSECTION;
+    static const std::string MIN_OBJECTS_DIFFERENCE;
+    static const std::string GROUPING;
+    static const std::string OVERLAPING;
 };
 
 // ========================== WARNING SYSTEM ==========================
@@ -288,7 +293,6 @@ public:
     // Warning retrieval and filtering
     std::vector<WarningItem> get_warnings_for_current_mode(MeshBooleanOperation mode) const;
     std::vector<WarningItem> get_inline_hints_for_state(MeshBooleanOperation mode, const VolumeListManager& volume_manager) const;
-
     // Validation helpers
     bool has_errors() const;
     bool has_errors_for_mode(MeshBooleanOperation mode) const;
@@ -397,6 +401,7 @@ private:
     // Helper methods for visability management
     void apply_object_visibility(const Selection& selection) const;
     void apply_part_visibility(const Selection& selection) const;
+
 
 };
 } // namespace GUI
