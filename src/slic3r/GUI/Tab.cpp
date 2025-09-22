@@ -4279,8 +4279,11 @@ PageShp TabPrinter::build_kinematics_page()
         }
         append_option_line(optgroup, "machine_max_acceleration_extruding");
         append_option_line(optgroup, "machine_max_acceleration_retracting");
-        if (m_supports_travel_acceleration)
+
+        auto gcf = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
+        if (gcf == gcfMarlinFirmware || gcf == gcfMarlinLegacy || gcf == gcfKlipper) {
             append_option_line(optgroup, "machine_max_acceleration_travel");
+        }
 
     optgroup = page->new_optgroup(L("Jerk limitation"));
         for (const std::string &axis : axes)	{
@@ -4789,13 +4792,6 @@ void TabPrinter::update_fff()
     if (m_use_silent_mode != m_config->opt_bool("silent_mode"))	{
         m_rebuild_kinematics_page = true;
         m_use_silent_mode = m_config->opt_bool("silent_mode");
-    }
-
-    auto gcf_ = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
-    bool supports_travel_acceleration = (gcf_ == gcfMarlinFirmware || gcf_ == gcfMarlinLegacy || gcf_ == gcfKlipper);
-    if (m_supports_travel_acceleration != supports_travel_acceleration) {
-        m_rebuild_kinematics_page = true;
-        m_supports_travel_acceleration = supports_travel_acceleration;
     }
 
     toggle_options();
