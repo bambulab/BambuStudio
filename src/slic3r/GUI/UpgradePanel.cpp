@@ -143,8 +143,8 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     m_ams_sizer->Add(m_ams_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
 
     wxBoxSizer *m_ams_content_sizer = new wxBoxSizer(wxVERTICAL);
-    m_ams_content_sizer->Add(0, 40, 0, wxEXPAND, FromDIP(5));
-
+    m_ams_content_sizer->Add(0, 10, 0, wxEXPAND, FromDIP(5));
+    m_ams_content_sizer->Add(0, 0, 1, wxEXPAND, 0);
 
     m_ahb_panel = new AmsPanel(this, wxID_ANY);
     m_ams_content_sizer->Add(m_ahb_panel, 0, wxEXPAND, 0);
@@ -166,6 +166,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     //}
 
     m_ams_content_sizer->Add(m_ams_info_sizer, 0, wxEXPAND, 0);
+    m_ams_content_sizer->Add(0, 0, 1, wxEXPAND, 0);
     m_ams_sizer->Add(m_ams_content_sizer, 1, wxEXPAND, 0);
 
     m_main_left_sizer->Add(m_ams_sizer, 0, wxEXPAND, 0);
@@ -336,7 +337,7 @@ void MachineInfoPanel::createNozzleRackWidgets(wxBoxSizer *main_left_sizer)
     m_nozzle_rack_update_btn->SetMinSize(wxSize(FromDIP(-1), FromDIP(24)));
     m_nozzle_rack_update_btn->SetCornerRadius(FromDIP(12));
     m_nozzle_rack_update_btn->Bind(wxEVT_BUTTON, &MachineInfoPanel::on_nozzle_rack_update, this);
-    content_sizer->Add(m_nozzle_rack_update_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(1200));
+    content_sizer->Add(m_nozzle_rack_update_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(350));
 
 
     m_nozzle_rack_sizer->Add(content_sizer, 1, wxEXPAND, 0);
