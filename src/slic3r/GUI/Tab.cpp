@@ -1479,6 +1479,24 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         auto timelapse_type = m_config->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
         bool timelapse_enabled = timelapse_type->value == TimelapseType::tlSmooth;
         if (!boost::any_cast<bool>(value)) {
+
+            {// Add prime tower disabling confirm dialog for multi nozzle
+                const auto &extruder_max_nozzle_count_temp =
+                    GUI::wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count")->values;
+                int max_total_nozzle = std::accumulate(extruder_max_nozzle_count_temp.begin(), extruder_max_nozzle_count_temp.end(), 0);
+                if (max_total_nozzle>=2 ) {
+                    MessageDialog dlg(
+                        wxGetApp().plater(),
+                        _L("Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"),
+                        _L("Warning"), wxICON_WARNING | wxYES | wxNO);
+                    if (dlg.ShowModal() == wxID_NO) {
+                        DynamicPrintConfig new_conf = *m_config;
+                        new_conf.set_key_value("enable_prime_tower", new ConfigOptionBool(true));
+                        m_config_manipulation.apply(m_config, &new_conf);
+                    }
+                }
+            }
+
             bool set_enable_prime_tower = false;
             if (timelapse_enabled) {
                 MessageDialog
