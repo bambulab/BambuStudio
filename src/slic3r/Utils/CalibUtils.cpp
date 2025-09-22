@@ -1048,12 +1048,18 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
 
     Preset printer_preset = *calib_infos[0].printer_prest;
     Preset print_preset = *calib_infos[0].print_prest;
+
+    std::vector<CalibInfo> sorted_calib_infos = calib_infos;
+    std::sort(sorted_calib_infos.begin(), sorted_calib_infos.end(), [](const CalibInfo &left_item, const CalibInfo &right_item) {
+        return left_item.index < right_item.index;
+    });
+
     std::vector<Preset> filament_presets;
     std::vector<int>    filament_map;
-    filament_map.resize(calib_infos.size());
+    filament_map.resize(sorted_calib_infos.size());
     std::vector<int> physical_extruder_maps = dynamic_cast<ConfigOptionInts *>(printer_config.option("physical_extruder_map", true))->values;
-    for (size_t i = 0; i < calib_infos.size(); ++i) {
-        CalibInfo calib_info = calib_infos[i];
+    for (size_t i = 0; i < sorted_calib_infos.size(); ++i) {
+        CalibInfo calib_info = sorted_calib_infos[i];
         calib_info.filament_prest->config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(calib_info.bed_type));
         filament_presets.emplace_back(*calib_info.filament_prest);
         for (size_t index = 0; index < physical_extruder_maps.size(); ++index) {
@@ -1067,7 +1073,7 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     DynamicPrintConfig full_config   = PresetBundle::construct_full_config(printer_preset, print_preset, preset_bundle->project_config, filament_presets, false, filament_map);
 
-    set_for_auto_pa_model_and_config(calib_infos, full_config, model);
+    set_for_auto_pa_model_and_config(sorted_calib_infos, full_config, model);
     if (!process_and_store_3mf(&model, full_config, params, error_message))
         return false;
 
@@ -1097,7 +1103,7 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
             agent->track_event("cali", js.dump());
     } catch (...) {}
 
-    send_to_print(calib_infos, error_message);
+    send_to_print(sorted_calib_infos, error_message);
     return true;
 }
 
