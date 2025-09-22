@@ -867,9 +867,9 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                     auto bbx = m_wipe_tower_bbx;
                     bbx.translate((m_wipe_tower_pos + m_rib_offset).cast<double>());
                     if (stop_pos.x() < bbx.center().x())
-                        stop_pos = Vec2f(stop_pos.x() - 2.f, bbx.center().y());
+                        stop_pos = Vec2f(stop_pos.x() - 2.f, stop_pos.y());
                     else
-                        stop_pos = Vec2f(stop_pos.x() + 2.f, bbx.center().y());
+                        stop_pos = Vec2f(stop_pos.x() + 2.f, stop_pos.y());
                     BoundingBoxf printer_bbx = unscaled(get_extents(gcodegen.m_print->get_extruder_shared_printable_polygon()));
                     if (stop_pos.x() < printer_bbx.min[0]) stop_pos.x() = printer_bbx.min[0];
                     if (stop_pos.x() > printer_bbx.max[0]) stop_pos.x() = printer_bbx.max[0];
