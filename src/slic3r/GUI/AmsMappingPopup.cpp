@@ -3,6 +3,7 @@
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Thread.hpp"
+#include "slic3r/Utils/WxFontUtils.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_Preview.hpp"
@@ -361,8 +362,8 @@ void MaterialItem::doRender(wxDC& dc)
     auto mapping_txt_size = wxSize(0, 0);
     if (m_mapping_text.size() >= 4)
     {
-        dc.SetFont(::Label::Head_11);
         m_mapping_text.insert(m_mapping_text.size() / 2, "\n");
+        WxFontUtils::get_suitable_font_size(FromDIP(13), dc);
         mapping_txt_size = dc.GetTextExtent(m_mapping_text);
         text_pos_y = up + (m_ams_wheel_mitem.GetBmpSize().y - mapping_txt_size.y) / 2;
         text_pos_x = mapping_txt_size.x / 4;
