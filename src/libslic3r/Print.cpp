@@ -2036,6 +2036,8 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         m_skirt.clear();
         m_skirt_convex_hull.clear();
         m_first_layer_convex_hull.points.clear();
+        for (PrintObject *object : m_objects)  object->m_skirt.clear();
+
         const bool draft_shield = config().draft_shield != dsDisabled;
 
         if (this->has_skirt() && draft_shield) {
