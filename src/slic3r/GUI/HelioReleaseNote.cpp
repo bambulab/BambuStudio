@@ -1015,15 +1015,20 @@ void HelioInputDialog::update_action(int action)
         HelioQuery::request_remaining_optimizations(helio_api_url, helio_api_key, [this, weak_ptr](int times, int addons) {
             if (auto temp_ptr = weak_ptr.lock()) {
                 CallAfter([=]() {
-                    if (times <= 0) {
-                        advanced_settings_link->Hide();
-                        buy_now_link->setLabel(_L("Buy Now"));
-                        if (m_remain_usage_time) { m_remain_usage_time->UpdateHelpTips(0); }
-                    } else {
-                        m_button_confirm->Enable();
-                        buy_now_link->setLabel(_L("Buy add-ons"));
+                    if (times > 0 || addons > 0) {
                         advanced_settings_link->Show();
-                        if (m_remain_usage_time) { m_remain_usage_time->UpdateHelpTips(1); }
+                        m_button_confirm->Enable();
+                    }
+                    else {
+                        advanced_settings_link->Hide();
+                        if (times <= 0) {
+                            buy_now_link->setLabel(_L("Buy Now"));
+                            if (m_remain_usage_time) { m_remain_usage_time->UpdateHelpTips(0); }
+                        }
+                        else {
+                            buy_now_link->setLabel(_L("Buy add-ons"));
+                            if (m_remain_usage_time) { m_remain_usage_time->UpdateHelpTips(1); }
+                        }
                     }
                     Layout();
                     Fit();
