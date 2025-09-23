@@ -46,8 +46,8 @@ public:
         CANCLE = 37,
         REMOVE_CLOSE_BTN = 39, // special case, do not show close button
         PROCEED = 41,
-
-        ERROR_BUTTON_COUNT,
+        OK_JUMP_RACK = 49,
+        ABORT = 51,
 
         // old error code to pseudo action
         DBL_CHECK_CANCEL = 10000,

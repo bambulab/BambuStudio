@@ -620,6 +620,8 @@ public:
     void show_filament_load_group(bool show = true);
     MediaPlayCtrl* get_media_play_ctrl() {return m_media_play_ctrl;};
 
+    void jump_to_Rack();
+
 private:
     void on_ams_rack_switch(wxCommandEvent& event);
 };

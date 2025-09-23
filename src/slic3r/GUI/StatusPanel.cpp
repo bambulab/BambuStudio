@@ -2297,6 +2297,16 @@ void StatusBasePanel::show_filament_load_group(bool show)
     }
 }
 
+void StatusBasePanel::jump_to_Rack()
+{
+    if (obj && obj->GetNozzleRack()->IsSupported()) {
+        m_ams_rack_switch->updateState("right");
+        m_ams_control_box->Show(false);
+        m_panel_nozzle_rack->Show(true);
+        Layout();
+    }
+}
+
 void StatusBasePanel::on_ams_rack_switch(wxCommandEvent& e)
 {
     if (!m_ams_control_box->IsShown() && e.GetInt() == 1)
