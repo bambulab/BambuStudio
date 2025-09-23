@@ -20,6 +20,7 @@ namespace GUI {
 #define EDIT_HISTORY_DIALOG_INPUT_SIZE     wxSize(FromDIP(160), FromDIP(24))
 #define NEW_HISTORY_DIALOG_INPUT_SIZE      wxSize(FromDIP(250), FromDIP(24))
 #define HISTORY_WINDOW_ITEMS_COUNT         6
+#define MAX_HISTORY_ITEMS_NUM              100
 
 enum CaliColumnType : int {
     Cali_Name = 0,
@@ -312,6 +313,7 @@ void HistoryWindow::reqeust_history_result(MachineObject* obj)
             cali_info.use_nozzle_volume_type = false;
             cali_info.use_extruder_id        = false;
             CalibUtils::emit_get_PA_calib_infos(cali_info);
+            CalibUtils::emit_get_all_PA_calib_infos();
             m_tips->SetLabel(_L("Refreshing the historical Flow Dynamics Calibration records"));
             BOOST_LOG_TRIVIAL(info) << "request calib history";
         }
@@ -534,6 +536,12 @@ void HistoryWindow::on_click_new_button(wxCommandEvent& event)
 {
     if (curr_obj && curr_obj->get_printer_series() == PrinterSeries::SERIES_P1P && m_calib_results_history.size() >= 16) {
         MessageDialog msg_dlg(nullptr, wxString::Format(_L("This machine type can only hold %d history results per nozzle."), 16), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    }
+    /* note: all_pa_calib_tab is updated along with pa_calib_tab!!! */
+    if(curr_obj && curr_obj->all_pa_calib_tab.size() >= MAX_HISTORY_ITEMS_NUM) {
+        MessageDialog msg_dlg(nullptr, wxString::Format(_L("You have reached the limit of %d PA factors. Please delete some before adding new ones."), MAX_HISTORY_ITEMS_NUM), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     }
