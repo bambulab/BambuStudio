@@ -418,6 +418,12 @@ void HistoryWindow::sync_history_data() {
         delete_button->SetMinSize(wxSize(-1, FromDIP(24)));
         delete_button->SetCornerRadius(FromDIP(12));
         delete_button->Bind(wxEVT_BUTTON, [this, gbSizer, i, &result, column_count](auto& e) {
+            if (m_ui_op_lock) {
+                return;
+            } else {
+                m_ui_op_lock = true;
+            }
+
             for (int j = 0; j < column_count; j++) {
                 auto item = gbSizer->FindItemAtPosition({ i, j });
                 if (item && item->GetWindow())
