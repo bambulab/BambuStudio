@@ -556,5 +556,19 @@ void MonitorPanel::jump_to_LiveView()
     m_status_info_panel->get_media_play_ctrl()->jump_to_play();
 }
 
+void MonitorPanel::jump_to_Rack()
+{
+    if (!this->IsShown()) {
+        return;
+    }
+
+    auto page = m_tabpanel->GetCurrentPage();
+    if (page && page != m_status_info_panel) {
+        m_tabpanel->SetSelection(PT_STATUS);
+    }
+
+    m_status_info_panel->jump_to_Rack();
+}
+
 } // GUI
 } // Slic3r
