@@ -30,7 +30,7 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow* parent,int default_co
 
     wxBoxSizer* choice_sizer = new wxBoxSizer(wxVERTICAL);
 
-    auto* label = new wxStaticText(content, wxID_ANY, "Please set nozzle count");
+    auto* label = new wxStaticText(content, wxID_ANY, _L("Please set nozzle count"));
     choice_sizer->Add(label, 0, wxALL | wxALIGN_LEFT, FromDIP(10));
 
     wxArrayString nozzle_choices;
@@ -58,7 +58,7 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow* parent,int default_co
             content->Thaw();
         }
         else if(count == 0 && force_no_zero){
-            m_error_label->SetLabel("Error: Can not set both nozzle count to zero.");
+            m_error_label->SetLabel(_L("Error: Can not set both nozzle count to zero."));
             m_error_label->Wrap(content->GetSize().x);
             m_error_label->Show();
             m_confirm_btn->Disable();
