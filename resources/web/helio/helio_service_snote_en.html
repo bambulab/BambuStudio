@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<script type="text/javascript" src="js/index.js"></script>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            position: absolute;
+            width: 690px;
+            height: 190px;
+            font-family: 'HarmonyOS Sans SC', sans-serif;
+            font-style: normal;
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 22px; /* 157% */
+            color: #5C5C5C;
+            margin: 10;
+            box-sizing: border-box;
+        }
+        .header {
+            background-color: #f5f5f5;
+            padding: 10px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+		.underline {
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+        .header h1 {
+            font-size: 16px;
+            margin: 0;
+            color: #333333;
+        }
+        h2 {
+            font-size: 16px;
+            margin: 0 0 15px 0;
+            color: #333333;
+        }
+        p {
+            margin: 0 0 15px 0;
+            text-align: justify;
+        }
+        strong {
+            font-weight: 600;
+            color: #333333;
+        }
+        a {
+            color: #0066CC;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        ul {
+            margin: 0 0 15px 20px;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        .buttons {
+            margin-top: 25px;
+            display: flex;
+            gap: 15px;
+        }
+        .btn {
+            padding: 8px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'HarmonyOS Sans SC', sans-serif;
+            font-size: 14px;
+            line-height: 1;
+            border: none;
+        }
+        .btn-primary {
+            background-color: #007DFF;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0066CC;
+        }
+        .btn-secondary {
+            background-color: #F5F5F5;
+            color: #5C5C5C;
+            border: 1px solid #DDDDDD;
+        }
+        .btn-secondary:hover {
+            background-color: #EAEAEA;
+        }
+        .warning {
+            color: #FF5722;
+        }
+		.special-note {
+            font-family: 'HarmonyOS Sans SC';
+            font-style: normal;
+            font-weight: 700;
+            font-size: 16px;
+            line-height: 22px;
+            color: #212121;
+            display: block;
+        }
+		
+		body.dark {
+            background-color: #2d2d31;
+            color: #FFFFFF;
+        }
+
+        body.dark .header {
+            background-color: #2d2d2d;
+            border-bottom-color: #444;
+
+        }
+
+        body.dark h1,
+        body.dark h2,
+        body.dark strong {
+            color: #FFFFFF;
+        }
+
+		body.dark .special-note {
+            color: #FFFFFF;
+        }
+        body.dark a {
+            color: #90caf9;
+        }
+
+        body.dark .btn-secondary {
+            background-color: #333;
+            color: #FFFFFF;
+            border-color: #555;
+        }
+
+        body.dark .btn-secondary:hover {
+            background-color: #444;
+        }
+
+        body.dark .warning {
+            color: #ff8a65;
+        }
+    </style>
+</head>
+<body>
+    <p><span class="special-note">Special Note</span></p>
+    
+    <p>This service is provided and hosted by a third party, Helio Additive. All data collection and processing activities are solely managed by Helio Additive, and Bambu Lab assumes no responsibility in this regard.  By clicking "Accept and proceed", you agree to <a class="underline" href="#" onclick="OpenPPLink()">Helio Additive's privacy policy. </a></p>
+	
+</body>
+</html>
+
+<script type="text/javascript">
+	const darkmode = getUrlParam('darkmode');
+	if (darkmode === '1') {
+		document.body.classList.add('dark');
+    }
+</script>

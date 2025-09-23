@@ -121,7 +121,7 @@ wxDECLARE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 
 wxDECLARE_EVENT(EVT_HELIO_PROCESSING_COMPLETED, HelioCompletionEvent);
 wxDECLARE_EVENT(EVT_HELIO_PROCESSING_STARTED, SimpleEvent);
-wxDECLARE_EVENT(EVT_HELIO_INPUT_CHAMBER_TEMP, SimpleEvent);
+wxDECLARE_EVENT(EVT_HELIO_INPUT_DLG, SimpleEvent);
 wxDECLARE_EVENT(EVT_GCODE_VIEWER_CHANGED, SimpleEvent);
 
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
@@ -474,6 +474,7 @@ public:
     bool has_toolpaths_to_export() const;
     void export_toolpaths_to_obj() const;
     void reslice();
+    void stop_helio_process();
     void record_slice_preset(std::string action);
     void reslice_SLA_supports(const ModelObject &object, bool postpone_error_messages = false);
     void reslice_SLA_hollowing(const ModelObject &object, bool postpone_error_messages = false);
@@ -577,6 +578,8 @@ public:
     GLCanvas3D* canvas3D();
     const GLCanvas3D * canvas3D() const;
     GLCanvas3D* get_current_canvas3D(bool exclude_preview = false);
+    bool        get_preview_min_max_value_of_option(int index, float &_min, float &_max);
+    int         get_gcode_layers_count();
     GLCanvas3D* get_view3D_canvas3D();
     GLCanvas3D* get_preview_canvas3D();
     GLCanvas3D* get_assmeble_canvas3D();

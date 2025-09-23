@@ -1,6 +1,8 @@
 #ifndef slic3r_GUI_ReleaseNote_hpp_
 #define slic3r_GUI_ReleaseNote_hpp_
 
+#include <limits>
+
 #include <wx/wx.h>
 #include <wx/intl.h>
 #include <wx/collpane.h>
@@ -35,7 +37,6 @@
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/ScrolledWindow.hpp"
-#include "Widgets/LinkLabel.hpp"
 #include <wx/hashmap.h>
 #include <wx/webview.h>
 
@@ -364,49 +365,17 @@ public:
     void on_dpi_changed(const wxRect &suggested_rect) override;
 };
 
-class HelioStatementDialog : public DPIDialog
-{
-private:
-    Label *m_title{nullptr};
-    Button *m_button_confirm{nullptr};
-    Button *m_button_cancel{nullptr};
-
-
-public:
-    HelioStatementDialog(wxWindow *parent = nullptr);
-    ~HelioStatementDialog(){};
-
-    // void on_ok(wxMouseEvent &evt);
-    void on_dpi_changed(const wxRect &suggested_rect) override;
-};
-
-class HelioInputDialog : public DPIDialog
-{
-private:
-    TextInput *m_input_item{nullptr};
-    Button *m_button_confirm{nullptr};
-    bool m_isAdjusting = false;
-    wxString m_lastValidValue = wxEmptyString;
-
-public:
-    HelioInputDialog(wxWindow *parent = nullptr);
-    ~HelioInputDialog(){};
-
-    // void on_ok(wxMouseEvent &evt);
-    bool   IsValidFloat(const wxString &text);
-    double get_input_data();
-    bool is_number_regex(const wxString &str, double &value);
-    void on_dpi_changed(const wxRect &suggested_rect) override;
-};
-
-class HelioPatNotEnoughDialog : public DPIDialog
+class ExpandCenterDialog : public DPIDialog
 {
 public:
-    HelioPatNotEnoughDialog(wxWindow* parent = nullptr);
-    ~HelioPatNotEnoughDialog();
+    ExpandCenterDialog(wxWindow* parent = nullptr);
+    ~ExpandCenterDialog() {};
+
+    //void on_ok(wxMouseEvent &evt);
     void on_dpi_changed(const wxRect& suggested_rect) override;
+    void on_open_expand(const wxMouseEvent& evt);
+    void report_consent_unstall();
 };
-
 
 wxDECLARE_EVENT(EVT_CLOSE_IPADDRESS_DLG, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CHECKBOX_CHANGE, wxCommandEvent);

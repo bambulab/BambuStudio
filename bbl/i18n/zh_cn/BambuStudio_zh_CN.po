@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-27 20:24+0800\n"
+"POT-Creation-Date: 2025-09-15 15:18+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2473,11 +2473,11 @@ msgstr ""
 
 msgctxt "air_duct"
 msgid "Right(Aux)"
-msgstr "右侧（辅助）"
+msgstr "右（辅助）"
 
 msgctxt "air_duct"
 msgid "Right(Filter)"
-msgstr ""
+msgstr "右（过滤）"
 
 msgid "Hotend"
 msgstr ""
@@ -3650,7 +3650,7 @@ msgid "Thermal Preconditioning for first layer optimization"
 msgstr "首层优化保温准备"
 
 msgid "Unknown"
-msgstr "未定义"
+msgstr "未知"
 
 msgid "Update successful."
 msgstr "更新成功。"
@@ -3985,9 +3985,6 @@ msgstr "从"
 
 msgid "Slicing Result"
 msgstr "切片结果"
-
-msgid "Helio Simulation"
-msgstr "Helio 仿真"
 
 msgid "Color Scheme"
 msgstr "颜色方案"
@@ -6439,6 +6436,9 @@ msgstr "切片已取消"
 msgid "Slicing Plate %d"
 msgstr "正在切片盘%d"
 
+msgid "A Helio simulation or optimization task is in progress."
+msgstr "Helio 仿真或优化任务正在进行中。"
+
 msgid "Invalid printer preset. Unable to slice with Helio."
 msgstr "打印机预设无效，无法使用 Helio 功能。"
 
@@ -6452,6 +6452,9 @@ msgstr "Helio 只支持最多1种材料。"
 msgid "Helio does not support materials %s"
 msgstr "Helio 不支持材料 %s"
 
+msgid "Helio functions do not support the print sequence of \"ByObject\"."
+msgstr "Helio 功能不支持“逐件”的打印顺序。"
+
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
 "Please request a new Helio-PAT."
@@ -6460,13 +6463,22 @@ msgstr ""
 "请申请新的Helio PAT。"
 
 msgid "Execution Blocked"
-msgstr ""
+msgstr "执行被阻止"
 
 msgid "Regenerate PAT"
-msgstr ""
+msgstr "重新生成 PAT"
 
 msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
 msgstr "获取 Helio-PAT 失败，点击刷新重新获取。"
+
+msgid "Successfully obtained PAT."
+msgstr "成功获得PAT。"
+
+msgid "The printer list and material list are being synchronized. Please try again later."
+msgstr "打印机列表和材料列表正在同步中。请稍后再试。"
+
+msgid "Synchronizing Helio"
+msgstr "正在同步 Helio"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "请解决切片错误后再重新发布。"
@@ -7036,21 +7048,6 @@ msgstr "在主页上显示工作人员挑选的在线模型"
 
 msgid "Show history on the home page"
 msgstr "在主页上显示历史"
-
-msgid "Helio Options"
-msgstr "Helio 选项"
-
-msgid "Enable Helio"
-msgstr "开启 Helio"
-
-msgid "Helio-PAT"
-msgstr ""
-
-msgid "About Helio"
-msgstr "关于 Helio"
-
-msgid "Helio Privacy Policy"
-msgstr "Helio 隐私政策"
 
 msgid "Reminder During Slicing"
 msgstr ""
@@ -7720,6 +7717,9 @@ msgstr "打印机需要与Bambu Studio在同一个局域网内。"
 
 msgid "The printer does not support sending to printer storage."
 msgstr "打印机不支持发送到打印机的存储。"
+
+msgid "Helio action completed successfully."
+msgstr "Helio操作已成功完成。"
 
 msgid "Slice ok."
 msgstr "切片完成"
@@ -8986,7 +8986,7 @@ msgid "Access Code"
 msgstr "访问码"
 
 msgid "Printer model"
-msgstr "打印机模型"
+msgstr "打印机型号"
 
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "在哪里可以找到打印机的IP和访问代码?"
@@ -9037,31 +9037,34 @@ msgstr "发送失败。您可以点击“重试”再次发送。如果重试无
 msgid "reconnect"
 msgstr "重新连接"
 
-msgid "Terms of Service"
-msgstr "服务条款"
+msgid "Third-party Extension"
+msgstr "第三方扩展"
 
-msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
-msgstr "您正准备开启一个来自Helio Additive的第三方软件服务功能！在确认使用此功能前，请仔细阅读以下声明。"
+msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
+msgstr "更坚固的零件、更少翘曲、更快打印—由高速物理FEM 仿真驱动"
 
-msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
-msgstr "除非特殊说明，拓竹科技仅对官方提供的软件功能提供支持。本软件中基于Helio Additive云端服务的切片评估和切片优化功能由Helio Additive负责开发、维护以及对外提供服务，其服务效果和可用性由Helio Additive负责.本服务的优化功能可能修改默认的打印指令，存在打印机损坏的风险。同时这些功能将收集必要的用户信息和数据以实现相关服务功能，并可能涉及订阅与付费，请访问Helio Addtive和参考Helio Additive隐私协议 和Helio Addtive 用户使用协议获取详细信息。"
+msgid "Uninstall the Helio Additive extension"
+msgstr "卸载 Helio Additive 扩展"
 
-msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
-msgstr "同时，您理解本产品是基于Helio Additive的服务“按原样”向您提供，拓竹不存在任何形式的明示或暗示担保，也无法控制服务效果，并且在适用法律允许的最大范围内，拓竹、其许可方/附属公司均不提供任何明示或暗示的陈述或保证，包括但不限于有关适销性、满意质量、适用于特定目的、准确性、保密权以及不侵犯第三方权利的保证。基于网络服务的特性，拓竹无法保证该服务随时可达，并且拓竹有权根据相关情况终止该服务。"
+msgid "Use Immediately"
+msgstr "立即使用"
 
-msgid "You agree not to use this product and its related updates to engage in the following activities:"
-msgstr "您同意不使用本产品及相关更新内容从事以下行为："
+msgid "Third-Party Extension"
+msgstr "第三方扩展"
 
-msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
-msgstr "1. 在Helio Additive和拓竹授权范围之外复制或使用本产品的任何一部分内容。"
+msgid "HELIO ADDITIVE"
+msgstr ""
 
-msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
-msgstr "2. 企图破坏、绕过、改变、作废或者逃避和本产品相关的以及/或者属于本产品有机组成的一部分的任何数字版权管理系统。"
+msgid "Helio Additive third - party software service feature has been successfully enabled!"
+msgstr "Helio Additive 第三方软件服务功能已成功启用！"
 
-msgid "3.Using this software and services for any improper or illegal activities."
-msgstr "3. 利用本软件和服务进行任何不当或违反法律的行为。"
+msgid "Helio-PAT"
+msgstr ""
 
-msgid "https://www.helioadditive.com/"
+msgid "Copy successful!"
+msgstr "复制成功！"
+
+msgid "Helio Additive"
 msgstr ""
 
 msgid "Privacy Policy of Helio Additive"
@@ -9070,29 +9073,80 @@ msgstr "Helio Additive 隐私政策"
 msgid "Terms of Use of Helio Additive"
 msgstr "Helio Additive 使用条款"
 
-msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
-msgstr "当您确认开启此功能后，代表您已经确认和同意以上声明。"
+msgid "Agree and proceed"
+msgstr "同意并继续"
 
-msgid "Agree"
-msgstr "同意"
+msgid "Got it"
+msgstr "知道了"
 
-msgid "Helio Additive"
+msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
+msgstr "获取 Helio-PAT 失败，点击刷新重新获取。"
+
+msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
 msgstr ""
 
-msgid "Chamber temperature"
-msgstr "腔体温度"
+msgid "Simulation"
+msgstr "仿真"
 
-msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
-msgstr "注意：请根据实际情况设置上述温度。数据越准确，分析结果越精确。"
+msgid "Optimization"
+msgstr "优化"
 
-msgid "How to use Helio"
-msgstr "如何使用 Helio"
+msgid "Chamber Temperature"
+msgstr "腔温"
 
-msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
-msgstr "获取 Helio-PAT 失败。已达到发行 PAT 的上限。请关注 Helio 官方网站的信息。可点击刷新重新获取。"
+msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
+msgstr "注意：以上温度请根据实际情况调整。数据越准确，分析结果越精确。"
+
+msgid "Helio's advanced feature for power users: available post purchase on its official website."
+msgstr "Helio 的高级功能，面向专业用户：可在官方网站购买后获得。"
+
+msgid "Monthly quota remaining: "
+msgstr "每月剩余配额： "
+
+msgid "Add-ons available: "
+msgstr "可用的配额："
+
+msgid "Optimise Outer Walls"
+msgstr "优化外墙"
+
+msgid "Advanced Settings"
+msgstr "高级设置"
+
+msgid "Min Velocity"
+msgstr "最小速度"
+
+msgid "Max Velocity"
+msgstr "最大速度"
+
+msgid "Min Volumetric Speed"
+msgstr "最小体积速度"
+
+msgid "Max Volumetric Speed"
+msgstr "最大体积速度"
+
+msgid "Last Trace ID: "
+msgstr "最后跟踪 ID: "
+
+msgid "Buy Now"
+msgstr "立即购买"
 
 msgid "Click for more details"
 msgstr "点击查看更多详情"
+
+msgid "Start Simulation"
+msgstr "开始仿真"
+
+msgid "Start Optimization"
+msgstr "开始优化"
+
+msgid "Buy add-ons"
+msgstr "购买配额"
+
+msgid "Layers to Optimize "
+msgstr "需要优化的层 "
+
+msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
+msgstr "获取 Helio-PAT 失败。已达到发行 PAT 的上限。请关注 Helio 官方网站的信息。可点击刷新重新获取。"
 
 msgid "Air Pump"
 msgstr "气泵"
@@ -9923,7 +9977,7 @@ msgid "No cooling for the first"
 msgstr "关闭冷却对前"
 
 msgid "Close all cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion"
-msgstr "对开始的一些层关闭所有的部件冷却风扇。通常关闭首层冷却用来获得更好的热床粘接"
+msgstr "Turn off all cooling fans for the first few layers. This can be used to improve bed adhesion."
 
 msgid "layers"
 msgstr "层"
@@ -11644,6 +11698,9 @@ msgstr "支撑外墙层数"
 msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
 msgstr "此设置指定 [-1,2] 范围内的支撑墙数量。-1表示自动，0表示允许足够厚的支撑区域使用仅填充模式。"
 
+msgid "Chamber temperature"
+msgstr "腔体温度"
+
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr "更高的腔温可以帮助抑制或减少翘曲，同时可能会提高高温材料（如ABS、ASA、PC、PA等）的层间粘合强度。与此同时，ABS和ASA的空气过滤性能会变差。而对于PLA、PETG、TPU、PVA等低温材料，为了避免堵塞，实际的腔温不应该过高，因此强烈建议使用0（表示关闭）。"
 
@@ -12134,9 +12191,6 @@ msgstr "动态流量"
 
 msgid "Flow Rate"
 msgstr "流量比例"
-
-msgid "Max Volumetric Speed"
-msgstr "最大容积速度"
 
 msgid "The name cannot be empty."
 msgstr "名称不能为空。"
@@ -12983,7 +13037,7 @@ msgid "Input Custom Model"
 msgstr "输入自定义型号"
 
 msgid "Can't find my printer model"
-msgstr "不能找到我的打印机模型"
+msgstr "无法找到我的打印机型号"
 
 msgid "Input Custom Nozzle Diameter"
 msgstr "请输入自定义喷嘴直径"
@@ -13647,8 +13701,17 @@ msgstr "0.8mm喷嘴的高强度打印参数，强度优先。"
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "0.8mm喷嘴的默认参数，速度优先。"
 
-msgid "Helio: Process Started"
-msgstr "Helio：处理已开始"
+msgid "Failed to create GCodeV2"
+msgstr "无法创建 GCode"
+
+msgid "Failed to parse response"
+msgstr ""
+
+msgid "Helio simulation task failed"
+msgstr "Helio仿真任务失败"
+
+msgid "Helio optimization task failed"
+msgstr "Helio 优化任务失败"
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Helio API 端点为空，请检查配置。"
@@ -13680,8 +13743,32 @@ msgstr "Helio：仿真运行中"
 msgid "Helio: simulation failed"
 msgstr "Helio：仿真失败"
 
+msgid "Helio: Simulation check failed"
+msgstr "Helio：仿真检测失败"
+
+msgid "Helio: Failed to create Simulation\n"
+msgstr "Helio: 创建仿真失败\n"
+
+msgid "Helio: Failed to create GCode\n"
+msgstr "Helio：创建G代码失败\n"
+
+msgid "Helio: optimization successfully created"
+msgstr "Helio：优化创建成功"
+
+msgid "Helio: optimization working"
+msgstr "Helio：优化运行中"
+
+msgid "Helio: Optimzaion check failed"
+msgstr "Helio：优化检查失败"
+
+msgid "Helio: Failed to create Optimization\n"
+msgstr "Helio：创建优化失败\n"
+
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio：G代码下载成功"
+
+msgid "Helio: GCode download failed\n"
+msgstr "Helio：GCode 下载失败\n"
 
 msgid "No AMS"
 msgstr "没有AMS"
@@ -14184,11 +14271,191 @@ msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
+#: resources/data/helio_hints.ini: [hint: Single-Material Only]
+msgid ""
+"Single-Material Only\n"
+"Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
+msgstr ""
+"仅支持单一材料\n"
+"Helio 当前每个作业只支持一种材料和一个喷嘴。多材料或多喷头的 G-code 会加入长时间暂停，打断热连续性，从而导致模拟结果不准确。"
+
+#: resources/data/helio_hints.ini: [hint: One Plate per Job]
+msgid ""
+"One Plate per Job\n"
+"Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
+msgstr ""
+"每个作业只支持一个构建板\n"
+"请上传只包含一个构建板的 G-code。多构建板的项目当前尚不支持，因此只会模拟第一个构建板。"
+
+#: resources/data/helio_hints.ini: [hint: What is the Thermal Quality Index?]
+msgid ""
+"What is the Thermal Quality Index?\n"
+"The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
+msgstr ""
+"什么是热质量指数？\n"
+"热质量指数（范围为 –100 到 +100）表示每个区域的打印温度是偏热还是偏冷。绿色（约等于 0）表示“刚刚好”的区域，可获得强度高、无翘曲的零件。将大部分区域保持在绿色有助于获得最佳效果。"
+
+#: resources/data/helio_hints.ini: [hint: Voxel-Level Accuracy]
+msgid ""
+"Voxel-Level Accuracy\n"
+"We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
+msgstr ""
+"体素级精度\n"
+"我们在每一个时间步都预测每个体素的温度，对于标准作业，预测误差通常在 ±5–10 °C 之间。有暂停、自定义固件或异常冷却设置时，这一误差可能会扩大。"
+
+#: resources/data/helio_hints.ini: [hint: Fan & Airflow Model]
+msgid ""
+"Fan & Airflow Model\n"
+"A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
+msgstr ""
+"风扇与气流模型\n"
+"一个简化的风扇与室内气流模型可以展示冷却设置如何影响零件温度，而无需复杂的 CFD 计算——适合日常调优。目前尚未模拟腔体内的涡流，以保证运行速度。"
+
+#: resources/data/helio_hints.ini: [hint: TQI Limits Explained]
+msgid ""
+"TQI Limits Explained\n"
+"-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
+msgstr ""
+"热质量指数极限说明\n"
+"-100 → 太冷：拉伸强度约比理想值 0 的零件低 50%（根据 ASTM D638 骨型测试）。+100 → 太热：层之间保持熔融状态，可能下垂或坍塌。将区域保持在接近 0 的值，可获得最佳强度与精度。"
+
+#: resources/data/helio_hints.ini: [hint: What Drives Runtime?]
+msgid ""
+"What Drives Runtime?\n"
+"Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
+msgstr ""
+"哪些因素影响运行时间？\n"
+"额外的层、密集填充、大量小弧线（即细小网格元素）或非常慢的打印速度都会增加模拟时间，因为求解器需要处理更多时间步。多核 CPU 或 CUDA GPU 可加快模拟速度。"
+
+#: resources/data/helio_hints.ini: [hint: Nozzle Temp Range]
+msgid ""
+"Nozzle Temp Range\n"
+"Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
+msgstr ""
+"喷嘴温度范围\n\n"
+"支持的喷嘴设定温度范围为 190 – 320 °C；超出范围的值将被限制，以确保物理模拟真实可靠。"
+
+#: resources/data/helio_hints.ini: [hint: Debugging Flowchart]
+msgid ""
+"Debugging Flowchart\n"
+"Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
+msgstr ""
+"调试流程图\n"
+"不确定结果为何异常？只需几分钟，按照我们的逐步调试流程图检查设置、G-code 和材料问题。"
+
+#: resources/data/helio_hints.ini: [hint: Why Cooling Varies]
+msgid ""
+"Why Cooling Varies\n"
+"Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
+msgstr ""
+"为什么冷却效果不同\n"
+"外壁和桥接区域冷却速度最快，而厚实的内部结构则保持更高温度——几何结构、气流和路径都会影响冷却效果，模拟可视化会呈现这些差异。"
+
+#: resources/data/helio_hints.ini: [hint: Extrusion Temp Model]
+msgid ""
+"Extrusion Temp Model\n"
+"Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
+msgstr ""
+"挤出温度模型\n"
+"材料属性决定熔化曲线，而打印机结构决定材料实际吸收的热量，因此该模型既与材料相关，也需针对打印机进行校准。"
+
+#: resources/data/helio_hints.ini: [hint: Nozzle setting of 190 °C vs 320
+#: °C?]
+msgid ""
+"Nozzle setting of 190 °C vs 320 °C?\n"
+"A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
+msgstr ""
+"喷嘴设定为 190 °C 与 320 °C 有何区别？\n"
+"喷嘴温度变化 100 °C 对热指数的影响较小，因为挤出温度、流速和沉积后的冷却过程才是决定零件热历史的主要因素。"
+
+#: resources/data/helio_hints.ini: [hint: Bed Temperature influence]
+msgid ""
+"Bed Temperature influence\n"
+"Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
+msgstr ""
+"热床温度的影响\n"
+"目前模型只考虑第一层的热床温度；后续层的床温变化尚未纳入模拟。"
+
+#: resources/data/helio_hints.ini: [hint: Actual Tool-Path]
+msgid ""
+"Actual Tool-Path\n"
+"Yes—your exact G-code path, speeds and fan commands are simulated."
+msgstr ""
+"实际工具路径\n"
+"是的——我们会模拟您的完整 G-code 路径、打印速度和风扇指令。"
+
+#: resources/data/helio_hints.ini: [hint: Mesh Resolution]
+msgid ""
+"Mesh Resolution\n"
+"The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
+msgstr ""
+"网格分辨率\n"
+"体素网格的分辨率比 G-code 的线间距更高，能够逐层捕捉细节，同时不会浪费计算资源。"
+
+#: resources/data/helio_hints.ini: [hint: Shrinkage, Warping & Stress]
+msgid ""
+"Shrinkage, Warping & Stress\n"
+"By controlling the thermal index you can remove the heat-driven causes of warp and stress."
+msgstr ""
+"收缩、翘曲与应力\n"
+"通过控制热指数，可以消除由热引起的翘曲和应力根源。"
+
+#~ msgid "Helio Simulation"
+#~ msgstr "Helio 仿真"
+
+#~ msgid "Helio Options"
+#~ msgstr "Helio 选项"
+
+#~ msgid "Enable Helio"
+#~ msgstr "开启 Helio"
+
+#~ msgid "About Helio"
+#~ msgstr "关于 Helio"
+
+#~ msgid "Helio Privacy Policy"
+#~ msgstr "Helio 隐私政策"
+
+#~ msgid "Terms of Service"
+#~ msgstr "服务条款"
+
+#~ msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
+#~ msgstr "您正准备开启一个来自Helio Additive的第三方软件服务功能！在确认使用此功能前，请仔细阅读以下声明。"
+
+#~ msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
+#~ msgstr "除非特殊说明，拓竹科技仅对官方提供的软件功能提供支持。本软件中基于Helio Additive云端服务的切片评估和切片优化功能由Helio Additive负责开发、维护以及对外提供服务，其服务效果和可用性由Helio Additive负责.本服务的优化功能可能修改默认的打印指令，存在打印机损坏的风险。同时这些功能将收集必要的用户信息和数据以实现相关服务功能，并可能涉及订阅与付费，请访问Helio Addtive和参考Helio Additive隐私协议 和Helio Addtive 用户使用协议获取详细信息。"
+
+#~ msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
+#~ msgstr "同时，您理解本产品是基于Helio Additive的服务“按原样”向您提供，拓竹不存在任何形式的明示或暗示担保，也无法控制服务效果，并且在适用法律允许的最大范围内，拓竹、其许可方/附属公司均不提供任何明示或暗示的陈述或保证，包括但不限于有关适销性、满意质量、适用于特定目的、准确性、保密权以及不侵犯第三方权利的保证。基于网络服务的特性，拓竹无法保证该服务随时可达，并且拓竹有权根据相关情况终止该服务。"
+
+#~ msgid "You agree not to use this product and its related updates to engage in the following activities:"
+#~ msgstr "您同意不使用本产品及相关更新内容从事以下行为："
+
+#~ msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
+#~ msgstr "1. 在Helio Additive和拓竹授权范围之外复制或使用本产品的任何一部分内容。"
+
+#~ msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
+#~ msgstr "2. 企图破坏、绕过、改变、作废或者逃避和本产品相关的以及/或者属于本产品有机组成的一部分的任何数字版权管理系统。"
+
+#~ msgid "3.Using this software and services for any improper or illegal activities."
+#~ msgstr "3. 利用本软件和服务进行任何不当或违反法律的行为。"
+
+#~ msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
+#~ msgstr "当您确认开启此功能后，代表您已经确认和同意以上声明。"
+
+#~ msgid "Agree"
+#~ msgstr "同意"
+
+#~ msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
+#~ msgstr "注意：请根据实际情况设置上述温度。数据越准确，分析结果越精确。"
+
+#~ msgid "How to use Helio"
+#~ msgstr "如何使用 Helio"
+
+#~ msgid "Helio: Process Started"
+#~ msgstr "Helio：处理已开始"
+
 #~ msgid "Helio Action"
 #~ msgstr "Helio功能"
-
-#~ msgid "Chamber Temperature"
-#~ msgstr "腔温"
 
 #~ msgctxt "air_duct"
 #~ msgid "Right"
@@ -14217,118 +14484,6 @@ msgstr ""
 
 #~ msgid "Parameter recommendation: In the process preset, under Others-Advanced, check Enable clumping detection by probing. This feature generates a small wipe tower and performs probing detection to identify clumping issues early in the print and stop printing, preventing print failures or printer damage.\n"
 #~ msgstr "在工艺预设的【其他-高级】中勾选“启用触碰裹头检测”选项。该功能将通过生成小型料塔和触碰检测，可在打印早期发现裹头问题并终止打印，避免打印失败或打印机损伤。\n"
-
-#~ msgid ""
-#~ "Single-Material Only\n"
-#~ "Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
-#~ msgstr ""
-#~ "仅支持单一材料\n"
-#~ "Helio 当前每个作业只支持一种材料和一个喷嘴。多材料或多喷头的 G-code 会加入长时间暂停，打断热连续性，从而导致模拟结果不准确。"
-
-#~ msgid ""
-#~ "One Plate per Job\n"
-#~ "Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
-#~ msgstr ""
-#~ "每个作业只支持一个构建板\n"
-#~ "请上传只包含一个构建板的 G-code。多构建板的项目当前尚不支持，因此只会模拟第一个构建板。"
-
-#~ msgid ""
-#~ "What is the Thermal Quality Index?\n"
-#~ "The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
-#~ msgstr ""
-#~ "什么是热质量指数？\n"
-#~ "热质量指数（范围为 –100 到 +100）表示每个区域的打印温度是偏热还是偏冷。绿色（约等于 0）表示“刚刚好”的区域，可获得强度高、无翘曲的零件。将大部分区域保持在绿色有助于获得最佳效果。"
-
-#~ msgid ""
-#~ "Voxel-Level Accuracy\n"
-#~ "We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
-#~ msgstr ""
-#~ "体素级精度\n"
-#~ "我们在每一个时间步都预测每个体素的温度，对于标准作业，预测误差通常在 ±5–10 °C 之间。有暂停、自定义固件或异常冷却设置时，这一误差可能会扩大。"
-
-#~ msgid ""
-#~ "Fan & Airflow Model\n"
-#~ "A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
-#~ msgstr ""
-#~ "风扇与气流模型\n"
-#~ "一个简化的风扇与室内气流模型可以展示冷却设置如何影响零件温度，而无需复杂的 CFD 计算——适合日常调优。目前尚未模拟腔体内的涡流，以保证运行速度。"
-
-#~ msgid ""
-#~ "TQI Limits Explained\n"
-#~ "-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
-#~ msgstr ""
-#~ "热质量指数极限说明\n"
-#~ "-100 → 太冷：拉伸强度约比理想值 0 的零件低 50%（根据 ASTM D638 骨型测试）。+100 → 太热：层之间保持熔融状态，可能下垂或坍塌。将区域保持在接近 0 的值，可获得最佳强度与精度。"
-
-#~ msgid ""
-#~ "What Drives Runtime?\n"
-#~ "Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
-#~ msgstr ""
-#~ "哪些因素影响运行时间？\n"
-#~ "额外的层、密集填充、大量小弧线（即细小网格元素）或非常慢的打印速度都会增加模拟时间，因为求解器需要处理更多时间步。多核 CPU 或 CUDA GPU 可加快模拟速度。"
-
-#~ msgid ""
-#~ "Nozzle Temp Range\n"
-#~ "Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
-#~ msgstr ""
-#~ "喷嘴温度范围\n"
-#~ "支持的喷嘴设定温度范围为 190 – 320 °C；超出范围的值将被限制，以确保物理模拟真实可靠。"
-
-#~ msgid ""
-#~ "Debugging Flowchart\n"
-#~ "Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
-#~ msgstr ""
-#~ "调试流程图\n"
-#~ "不确定结果为何异常？只需几分钟，按照我们的逐步调试流程图检查设置、G-code 和材料问题。"
-
-#~ msgid ""
-#~ "Why Cooling Varies\n"
-#~ "Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
-#~ msgstr ""
-#~ "为什么冷却效果不同\n"
-#~ "外壁和桥接区域冷却速度最快，而厚实的内部结构则保持更高温度——几何结构、气流和路径都会影响冷却效果，模拟可视化会呈现这些差异。"
-
-#~ msgid ""
-#~ "Extrusion Temp Model\n"
-#~ "Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
-#~ msgstr ""
-#~ "挤出温度模型\n"
-#~ "材料属性决定熔化曲线，而打印机结构决定材料实际吸收的热量，因此该模型既与材料相关，也需针对打印机进行校准。"
-
-#~ msgid ""
-#~ "Nozzle setting of 190 °C vs 320 °C?\n"
-#~ "A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
-#~ msgstr ""
-#~ "喷嘴设定为 190 °C 与 320 °C 有何区别？\n"
-#~ "喷嘴温度变化 100 °C 对热指数的影响较小，因为挤出温度、流速和沉积后的冷却过程才是决定零件热历史的主要因素。"
-
-#~ msgid ""
-#~ "Bed Temperature influence\n"
-#~ "Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
-#~ msgstr ""
-#~ "热床温度的影响\n"
-#~ "目前模型只考虑第一层的热床温度；后续层的床温变化尚未纳入模拟。"
-
-#~ msgid ""
-#~ "Actual Tool-Path\n"
-#~ "Yes—your exact G-code path, speeds and fan commands are simulated."
-#~ msgstr ""
-#~ "实际工具路径\n"
-#~ "是的——我们会模拟您的完整 G-code 路径、打印速度和风扇指令。"
-
-#~ msgid ""
-#~ "Mesh Resolution\n"
-#~ "The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
-#~ msgstr ""
-#~ "网格分辨率\n"
-#~ "体素网格的分辨率比 G-code 的线间距更高，能够逐层捕捉细节，同时不会浪费计算资源。"
-
-#~ msgid ""
-#~ "Shrinkage, Warping & Stress\n"
-#~ "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
-#~ msgstr ""
-#~ "收缩、翘曲与应力\n"
-#~ "通过控制热指数，可以消除由热引起的翘曲和应力根源。"
 
 #~ msgid "Open Preferences."
 #~ msgstr "打开首选项"

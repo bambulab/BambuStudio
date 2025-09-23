@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-27 20:24+0800\n"
+"POT-Creation-Date: 2025-09-15 15:18+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -4011,9 +4011,6 @@ msgstr "från"
 msgid "Slicing Result"
 msgstr "Berednings resultat"
 
-msgid "Helio Simulation"
-msgstr "Helio Simulering"
-
 msgid "Color Scheme"
 msgstr "Färgschema"
 
@@ -6483,6 +6480,9 @@ msgstr "Beredning avbruten"
 msgid "Slicing Plate %d"
 msgstr "Bereder plattan %d"
 
+msgid "A Helio simulation or optimization task is in progress."
+msgstr ""
+
 msgid "Invalid printer preset. Unable to slice with Helio."
 msgstr "Ogiltig printer inställning. Det går inte att bereda med Helio."
 
@@ -6495,6 +6495,9 @@ msgstr "Helio stöder inte användning av ett antal material större än 1."
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
 msgstr "Helio stöder inte material %s"
+
+msgid "Helio functions do not support the print sequence of \"ByObject\"."
+msgstr ""
 
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
@@ -6511,6 +6514,15 @@ msgstr "Regenerera PAT"
 
 msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
 msgstr "Det gick inte att få Helio PAT, Klicka på Uppdatera för att få det igen."
+
+msgid "Successfully obtained PAT."
+msgstr ""
+
+msgid "The printer list and material list are being synchronized. Please try again later."
+msgstr ""
+
+msgid "Synchronizing Helio"
+msgstr ""
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Lös berednings felen och publicera igen."
@@ -7083,21 +7095,6 @@ msgstr "Visa personalens utvalda modeller online på startsidan"
 
 msgid "Show history on the home page"
 msgstr "Visa historik på startsidan"
-
-msgid "Helio Options"
-msgstr "Helio alternativ"
-
-msgid "Enable Helio"
-msgstr "Aktivera Helio"
-
-msgid "Helio-PAT"
-msgstr ""
-
-msgid "About Helio"
-msgstr "Om Helio"
-
-msgid "Helio Privacy Policy"
-msgstr "Helios integritets policy"
 
 msgid "Reminder During Slicing"
 msgstr "Påminnelse under beredning"
@@ -7769,6 +7766,9 @@ msgstr "Printern måste finnas på samma LAN som Bambu Studio."
 
 msgid "The printer does not support sending to printer storage."
 msgstr "Printern har inte stöd för att skicka till printerns lagringsutrymme."
+
+msgid "Helio action completed successfully."
+msgstr ""
 
 msgid "Slice ok."
 msgstr "Beredning ok."
@@ -9095,32 +9095,35 @@ msgstr "Det gick inte att skicka. Klicka på Försök igen för att försöka sk
 msgid "reconnect"
 msgstr "återanslut"
 
-msgid "Terms of Service"
-msgstr "Användarvillkor"
-
-msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
-msgstr "Du håller på att aktivera en tredje parts programvara från Helio Additive! Innan du bekräftar användningen av denna funktion, vänligen noggrant läsa följande uttalanden."
-
-msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
-msgstr "Om inget annat anges ger Bambu Lab endast support för programvarufunktionerna som officiellt tillhandahålls. Utvärderings- och berednings optimerings funktioner baserade på Helio Additive's molntjänst i denna programvara kommer att utvecklas, drivs, tillhandahålls och underhålls av Helio Additive. Helio Additive ansvarar för effektiviteten och tillgängligheten av denna tjänst. Optimerings funktionen i denna tjänst kan ändra standardkommandon för utskrift, vilket innebär en risk för printer skador. Dessa funktioner kommer att samla in nödvändig användarinformation och data för att uppnå relevanta servicefunktioner. Prenumerationer och betalningar kan vara involverade. Besök Helio Additive och hänvisa till Helios Additive Privacy Agreement och Helios Additive User Agreement för detaljerad information."
-
-msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
-msgstr "Samtidigt förstår du att denna produkt tillhandahålls till dig \"i befintligt skick\" baserat på Helio Additive's tjänster, och Bambu lämnar inga uttryckliga eller underförstådda garantier av något slag, och kan inte heller kontrollera tjänstekostnaderna. I den utsträckning det är tillåtet enligt tillämplig lag tillhandahåller Bambu eller dess licensgivare/dotterbolag inga uttryckliga eller underförstådda utfästelser eller garantier, inklusive men inte begränsat till garantier om säljbarhet, tillfredsställande kvalitet, lämplighet för ett visst ändamål, exakthet, sekretess och icke kränkning av tredje parts rättigheter. På grund av nätverkstjänsternas karaktär kan Bambu inte garantera att tjänsten kommer att finnas tillgänglig hela tiden, och Bambu förbehåller sig rätten att avsluta tjänsten baserat på relevanta omständigheter."
-
-msgid "You agree not to use this product and its related updates to engage in the following activities:"
-msgstr "Du samtycker till att inte använda denna produkt och dess relaterade uppdateringar för att engagera sig i följande aktiviteter:"
-
-msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
-msgstr "1.Kopiera eller använd någon del av denna produkt utanför den auktoriserade omfattningen av Helio Additive och Bambu."
-
-msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
-msgstr "2. Försök att störa, kringgå, ändra, ogiltigförklara eller undgå något Digitala Rättigheter Management system relaterade till och/eller en integrerad del av denna produkt."
-
-msgid "3.Using this software and services for any improper or illegal activities."
-msgstr "3.Använda denna programvara och tjänster för eventuella olämpliga eller olagliga aktiviteter."
-
-msgid "https://www.helioadditive.com/"
+msgid "Third-party Extension"
 msgstr ""
+
+msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
+msgstr ""
+
+msgid "Uninstall the Helio Additive extension"
+msgstr ""
+
+msgid "Use Immediately"
+msgstr ""
+
+msgid "Third-Party Extension"
+msgstr ""
+
+msgid "HELIO ADDITIVE"
+msgstr ""
+
+msgid "Helio Additive third - party software service feature has been successfully enabled!"
+msgstr ""
+
+msgid "Helio-PAT"
+msgstr ""
+
+msgid "Copy successful!"
+msgstr ""
+
+msgid "Helio Additive"
+msgstr "Helio Additiv"
 
 msgid "Privacy Policy of Helio Additive"
 msgstr "Integritets policy för Helio Additive"
@@ -9128,29 +9131,80 @@ msgstr "Integritets policy för Helio Additive"
 msgid "Terms of Use of Helio Additive"
 msgstr "Villkor för användning av Helio Additive"
 
-msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
-msgstr "När du bekräftar att aktivera denna funktion innebär det att du har bekräftat och godkänt ovanstående uttalanden."
+msgid "Agree and proceed"
+msgstr ""
 
-msgid "Agree"
-msgstr "Godkänn"
+msgid "Got it"
+msgstr ""
 
-msgid "Helio Additive"
-msgstr "Helio Additiv"
+msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
+msgstr ""
 
-msgid "Chamber temperature"
-msgstr "Kammarens temperatur"
+msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
+msgstr ""
 
-msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
-msgstr "Obs: Ställ in ovanstående temperatur enligt den faktiska situationen. Ju mer exakt data är, desto mer exakt kommer analysresultaten att bli."
+msgid "Simulation"
+msgstr ""
 
-msgid "How to use Helio"
-msgstr "Hur du använder Helio"
+msgid "Optimization"
+msgstr ""
 
-msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
-msgstr "Det gick inte att få Helio PAT. Antalet utfärdade PATs har nått den övre gränsen. Var uppmärksam på informationen på Helio officiella hemsida. Klicka Uppdatera för att få den igen när den är tillgänglig."
+msgid "Chamber Temperature"
+msgstr "Temperatur i kammaren"
+
+msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
+msgstr ""
+
+msgid "Helio's advanced feature for power users: available post purchase on its official website."
+msgstr ""
+
+msgid "Monthly quota remaining: "
+msgstr ""
+
+msgid "Add-ons available: "
+msgstr ""
+
+msgid "Optimise Outer Walls"
+msgstr ""
+
+msgid "Advanced Settings"
+msgstr ""
+
+msgid "Min Velocity"
+msgstr ""
+
+msgid "Max Velocity"
+msgstr ""
+
+msgid "Min Volumetric Speed"
+msgstr ""
+
+msgid "Max Volumetric Speed"
+msgstr "Max volymetrisk hastighet"
+
+msgid "Last Trace ID: "
+msgstr ""
+
+msgid "Buy Now"
+msgstr ""
 
 msgid "Click for more details"
 msgstr "Klicka för mer info"
+
+msgid "Start Simulation"
+msgstr ""
+
+msgid "Start Optimization"
+msgstr ""
+
+msgid "Buy add-ons"
+msgstr ""
+
+msgid "Layers to Optimize "
+msgstr ""
+
+msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
+msgstr "Det gick inte att få Helio PAT. Antalet utfärdade PATs har nått den övre gränsen. Var uppmärksam på informationen på Helio officiella hemsida. Klicka Uppdatera för att få den igen när den är tillgänglig."
 
 msgid "Air Pump"
 msgstr "Luftpump"
@@ -11700,6 +11754,9 @@ msgstr "Vägg support"
 msgid "This setting specifies the count of support walls in the range of [-1,2]. -1 means auto, and 0 means allowing infill-only mode where support is thick enough."
 msgstr "Den här inställningen anger antalet stödväggar i intervallet [-1,2]. -1 betyder auto och 0 betyder att endast tillåta fyllningsläge där stödet är tillräckligt tjockt."
 
+msgid "Chamber temperature"
+msgstr "Kammarens temperatur"
+
 msgid "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
 msgstr "Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on. At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials, the actual chamber temperature should not be high to avoid clogs, so 0 (turned off) is highly recommended."
 
@@ -12190,9 +12247,6 @@ msgstr "Flödesdynamik"
 
 msgid "Flow Rate"
 msgstr "Flödeshastighet"
-
-msgid "Max Volumetric Speed"
-msgstr "Max volymetrisk hastighet"
 
 msgid "The name cannot be empty."
 msgstr "Namnet får inte vara tomt."
@@ -13722,8 +13776,17 @@ msgstr "Styrkeprofil för 0.8 mm nozzle, prioritering av styrka."
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Standardprofil för 0.8 mm nozzle, prioriterar hastighet."
 
-msgid "Helio: Process Started"
-msgstr "Helio: Processen har startat"
+msgid "Failed to create GCodeV2"
+msgstr ""
+
+msgid "Failed to parse response"
+msgstr ""
+
+msgid "Helio simulation task failed"
+msgstr ""
+
+msgid "Helio optimization task failed"
+msgstr ""
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Helio API slutpunkt är tom, kontrollera konfigurationen."
@@ -13755,8 +13818,32 @@ msgstr "Helio: simulering arbetar"
 msgid "Helio: simulation failed"
 msgstr "Helio: simulering misslyckades"
 
+msgid "Helio: Simulation check failed"
+msgstr ""
+
+msgid "Helio: Failed to create Simulation\n"
+msgstr ""
+
+msgid "Helio: Failed to create GCode\n"
+msgstr ""
+
+msgid "Helio: optimization successfully created"
+msgstr ""
+
+msgid "Helio: optimization working"
+msgstr ""
+
+msgid "Helio: Optimzaion check failed"
+msgstr ""
+
+msgid "Helio: Failed to create Optimization\n"
+msgstr ""
+
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio: G kod hämtades framgångsrikt"
+
+msgid "Helio: GCode download failed\n"
+msgstr ""
 
 msgid "No AMS"
 msgstr "Ingen AMS"
@@ -14259,11 +14346,159 @@ msgstr ""
 "Undvik vridning\n"
 "Visste du att när du skriver ut material som är benägna att vrida, såsom ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten för vridning."
 
+#: resources/data/helio_hints.ini: [hint: Single-Material Only]
+msgid ""
+"Single-Material Only\n"
+"Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: One Plate per Job]
+msgid ""
+"One Plate per Job\n"
+"Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: What is the Thermal Quality Index?]
+msgid ""
+"What is the Thermal Quality Index?\n"
+"The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Voxel-Level Accuracy]
+msgid ""
+"Voxel-Level Accuracy\n"
+"We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Fan & Airflow Model]
+msgid ""
+"Fan & Airflow Model\n"
+"A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: TQI Limits Explained]
+msgid ""
+"TQI Limits Explained\n"
+"-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: What Drives Runtime?]
+msgid ""
+"What Drives Runtime?\n"
+"Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Nozzle Temp Range]
+msgid ""
+"Nozzle Temp Range\n"
+"Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Debugging Flowchart]
+msgid ""
+"Debugging Flowchart\n"
+"Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Why Cooling Varies]
+msgid ""
+"Why Cooling Varies\n"
+"Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Extrusion Temp Model]
+msgid ""
+"Extrusion Temp Model\n"
+"Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Nozzle setting of 190 °C vs 320
+#: °C?]
+msgid ""
+"Nozzle setting of 190 °C vs 320 °C?\n"
+"A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Bed Temperature influence]
+msgid ""
+"Bed Temperature influence\n"
+"Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Actual Tool-Path]
+msgid ""
+"Actual Tool-Path\n"
+"Yes—your exact G-code path, speeds and fan commands are simulated."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Mesh Resolution]
+msgid ""
+"Mesh Resolution\n"
+"The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Shrinkage, Warping & Stress]
+msgid ""
+"Shrinkage, Warping & Stress\n"
+"By controlling the thermal index you can remove the heat-driven causes of warp and stress."
+msgstr ""
+
+#~ msgid "Helio Simulation"
+#~ msgstr "Helio Simulering"
+
+#~ msgid "Helio Options"
+#~ msgstr "Helio alternativ"
+
+#~ msgid "Enable Helio"
+#~ msgstr "Aktivera Helio"
+
+#~ msgid "About Helio"
+#~ msgstr "Om Helio"
+
+#~ msgid "Helio Privacy Policy"
+#~ msgstr "Helios integritets policy"
+
+#~ msgid "Terms of Service"
+#~ msgstr "Användarvillkor"
+
+#~ msgid "You are about to enable a third-party software service feature from Helio Additive! Before confirming the use of this feature, please carefully read the following statements."
+#~ msgstr "Du håller på att aktivera en tredje parts programvara från Helio Additive! Innan du bekräftar användningen av denna funktion, vänligen noggrant läsa följande uttalanden."
+
+#~ msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on Helio Additive's cloud service in this software will be developed, operated, provided, and maintained by Helio Additive. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit Helio Additive and refer to the Helio Additive Privacy Agreement and the Helio Additive User Agreement for detailed information."
+#~ msgstr "Om inget annat anges ger Bambu Lab endast support för programvarufunktionerna som officiellt tillhandahålls. Utvärderings- och berednings optimerings funktioner baserade på Helio Additive's molntjänst i denna programvara kommer att utvecklas, drivs, tillhandahålls och underhålls av Helio Additive. Helio Additive ansvarar för effektiviteten och tillgängligheten av denna tjänst. Optimerings funktionen i denna tjänst kan ändra standardkommandon för utskrift, vilket innebär en risk för printer skador. Dessa funktioner kommer att samla in nödvändig användarinformation och data för att uppnå relevanta servicefunktioner. Prenumerationer och betalningar kan vara involverade. Besök Helio Additive och hänvisa till Helios Additive Privacy Agreement och Helios Additive User Agreement för detaljerad information."
+
+#~ msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on Helio Additive's services, and Bambu makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu cannot guarantee that the service will be available at all times, and Bambu reserves the right to terminate the service based on relevant circumstances."
+#~ msgstr "Samtidigt förstår du att denna produkt tillhandahålls till dig \"i befintligt skick\" baserat på Helio Additive's tjänster, och Bambu lämnar inga uttryckliga eller underförstådda garantier av något slag, och kan inte heller kontrollera tjänstekostnaderna. I den utsträckning det är tillåtet enligt tillämplig lag tillhandahåller Bambu eller dess licensgivare/dotterbolag inga uttryckliga eller underförstådda utfästelser eller garantier, inklusive men inte begränsat till garantier om säljbarhet, tillfredsställande kvalitet, lämplighet för ett visst ändamål, exakthet, sekretess och icke kränkning av tredje parts rättigheter. På grund av nätverkstjänsternas karaktär kan Bambu inte garantera att tjänsten kommer att finnas tillgänglig hela tiden, och Bambu förbehåller sig rätten att avsluta tjänsten baserat på relevanta omständigheter."
+
+#~ msgid "You agree not to use this product and its related updates to engage in the following activities:"
+#~ msgstr "Du samtycker till att inte använda denna produkt och dess relaterade uppdateringar för att engagera sig i följande aktiviteter:"
+
+#~ msgid "1.Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu."
+#~ msgstr "1.Kopiera eller använd någon del av denna produkt utanför den auktoriserade omfattningen av Helio Additive och Bambu."
+
+#~ msgid "2.Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product."
+#~ msgstr "2. Försök att störa, kringgå, ändra, ogiltigförklara eller undgå något Digitala Rättigheter Management system relaterade till och/eller en integrerad del av denna produkt."
+
+#~ msgid "3.Using this software and services for any improper or illegal activities."
+#~ msgstr "3.Använda denna programvara och tjänster för eventuella olämpliga eller olagliga aktiviteter."
+
+#~ msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
+#~ msgstr "När du bekräftar att aktivera denna funktion innebär det att du har bekräftat och godkänt ovanstående uttalanden."
+
+#~ msgid "Agree"
+#~ msgstr "Godkänn"
+
+#~ msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
+#~ msgstr "Obs: Ställ in ovanstående temperatur enligt den faktiska situationen. Ju mer exakt data är, desto mer exakt kommer analysresultaten att bli."
+
+#~ msgid "How to use Helio"
+#~ msgstr "Hur du använder Helio"
+
+#~ msgid "Helio: Process Started"
+#~ msgstr "Helio: Processen har startat"
+
 #~ msgid "Helio Action"
 #~ msgstr "Helio Åtgärd"
-
-#~ msgid "Chamber Temperature"
-#~ msgstr "Temperatur i kammaren"
 
 #~ msgctxt "air_duct"
 #~ msgid "Right"

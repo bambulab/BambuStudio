@@ -1040,6 +1040,7 @@ bool WebViewPanel::GetJumpUrl(bool login, wxString ticket, wxString targeturl, w
         finalurl = wxString::Format("%sapi/sign-in/ticket?to=%s&ticket=%s", h, UrlEncode( std::string(targeturl.mb_str())), ticket);
     } else {
         finalurl = wxString::Format("%sapi/sign-out?to=%s", h, UrlEncode(std::string(targeturl.mb_str())));
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": LoadURL " << finalurl.ToStdString();
     }
 
     return true;
@@ -1173,14 +1174,14 @@ void WebViewPanel::ShowUserPrintTask(bool bShow, bool bForce)
         if (m_contentname == "printhistory") SwitchLeftMenu("home");
 
         //refresh url
-        auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
+        // auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
 
-        wxString language_code = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
+        //wxString language_code = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
 
-        wxString mw_OffUrl = (boost::format("%1%%2%/studio/print-history?from=bambustudio") % host % language_code.mb_str()).str();
-        wxString Finalurl  = wxString::Format("%sapi/sign-out?to=%s", host, UrlEncode("about:blank"));
+        //wxString mw_OffUrl = (boost::format("%1%%2%/studio/print-history?from=bambustudio") % host % language_code.mb_str()).str();
+        //wxString Finalurl  = wxString::Format("%sapi/sign-out?to=%s", host, UrlEncode("about:blank"));
+        // m_browserPH->LoadURL(Finalurl);
 
-        m_browserPH->LoadURL(Finalurl);
         SetPrintHistoryTaskID(0);
         m_TaskInfo = "";
 
@@ -1781,7 +1782,7 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
         } else {
             if (m_online_LastUrl != "") {
                 m_browserMW->LoadURL(m_online_LastUrl);
-
+                BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": LoadURL " << m_online_LastUrl.ToStdString();
                 m_online_LastUrl = "";
             } else {
                 std::string TmpNowUrl = m_browserMW->GetCurrentURL().ToStdString();

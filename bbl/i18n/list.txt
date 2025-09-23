@@ -178,6 +178,7 @@ src/slic3r/GUI/KBShortcutsDialog.hpp
 src/slic3r/GUI/KBShortcutsDialog.cpp
 src/slic3r/GUI/ReleaseNote.cpp
 src/slic3r/GUI/ReleaseNote.hpp
+src/slic3r/GUI/HelioReleaseNote.cpp
 src/slic3r/GUI/UpgradePanel.cpp
 src/slic3r/Utils/FixModelByWin10.cpp
 src/slic3r/Utils/PresetUpdater.cpp

@@ -1,7 +1,7 @@
 {
   "name": "Bambulab",
-  "url": "http:/www.bambulab.com/Parameters/vendor/BBL.json",
-  "version": "02.02.00.03",
+  "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
+  "version": "02.02.00.04",
   "force_update": "0",
   "description": "the initial version of BBL configurations",
   "machine_model_list": [
@@ -2926,170 +2926,6 @@
       "sub_path": "filament/Bambu PLA Aero @BBL X1C.json"
     },
     {
-      "name": "Cookiecad PLA @base",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @base.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL A1",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL A1.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL A1 0.2 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL A1 0.2 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL A1M",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL A1M.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL A1M 0.2 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL A1M 0.2 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL H2D",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2D.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL H2D 0.2 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2D 0.2 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL H2D 0.6 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2D 0.6 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL H2D 0.8 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2D 0.8 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL H2DP",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2DP.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL H2DP 0.2 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2DP 0.2 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL H2DP 0.6 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2DP 0.6 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL H2DP 0.8 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2DP 0.8 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL H2S",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2S.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL H2S 0.2 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2S 0.2 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL H2S 0.6 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2S 0.6 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL H2S 0.8 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2S 0.8 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL P1P",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL P1P.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL P1P 0.2 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL P1P 0.2 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL X1",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL X1.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL X1C",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL X1C.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL X1C 0.2 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL X1C 0.2 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PLA @BBL X1C 0.8 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL X1C 0.8 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PETG @base",
-      "sub_path": "filament/Cookiecad/Cookiecad PETG @base.json"
-    },
-    {
-      "name": "Cookiecad PETG @BBL A1",
-      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL A1.json"
-    },
-    {
-      "name": "Cookiecad PETG @BBL A1 0.2 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL A1 0.2 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PETG @BBL A1 0.8 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL A1 0.8 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PETG @BBL H2D 0.2 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL H2D 0.2 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PETG @BBL H2D 0.4 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL H2D 0.4 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PETG @BBL H2D 0.6 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL H2D 0.6 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PETG @BBL H2DP 0.2 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL H2DP 0.2 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PETG @BBL H2DP 0.4 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL H2DP 0.4 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PETG @BBL H2DP 0.6 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL H2DP 0.6 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PETG @BBL H2S",
-      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL H2S.json"
-    },
-    {
-      "name": "Cookiecad PETG @BBL H2S 0.2 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL H2S 0.2 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PETG @BBL X1C",
-      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL X1C.json"
-    },
-    {
-      "name": "Cookiecad PETG @BBL A1M 0.4 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL A1M 0.4 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PETG @BBL X1C 0.2 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL X1C 0.2 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PETG @BBL A1M 0.2 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL A1M 0.2 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PETG @BBL X1C 0.8 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL X1C 0.8 nozzle.json"
-    },
-    {
-      "name": "Cookiecad PETG @BBL A1M 0.8 nozzle",
-      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL A1M 0.8 nozzle.json"
-    },
-    {
       "name": "Bambu PLA Basic @base",
       "sub_path": "filament/Bambu PLA Basic @base.json"
     },
@@ -4540,6 +4376,170 @@
     {
       "name": "Generic PLA-CF @BBL P1P",
       "sub_path": "filament/P1P/Generic PLA-CF @BBL P1P.json"
+    },
+    {
+      "name": "Cookiecad PLA @base",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @base.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL A1",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL A1.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL A1 0.2 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL A1 0.2 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL A1M",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL A1M.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL A1M 0.2 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL A1M 0.2 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL H2D",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2D.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL H2D 0.2 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2D 0.2 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL H2D 0.6 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2D 0.6 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL H2D 0.8 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2D 0.8 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL H2DP",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2DP.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL H2DP 0.2 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2DP 0.2 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL H2DP 0.6 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2DP 0.6 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL H2DP 0.8 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2DP 0.8 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL H2S",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2S.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL H2S 0.2 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2S 0.2 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL H2S 0.6 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2S 0.6 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL H2S 0.8 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL H2S 0.8 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL P1P",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL P1P.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL P1P 0.2 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL P1P 0.2 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL X1",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL X1.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL X1C",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL X1C.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL X1C 0.2 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL X1C 0.2 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PLA @BBL X1C 0.8 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PLA @BBL X1C 0.8 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PETG @base",
+      "sub_path": "filament/Cookiecad/Cookiecad PETG @base.json"
+    },
+    {
+      "name": "Cookiecad PETG @BBL A1",
+      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL A1.json"
+    },
+    {
+      "name": "Cookiecad PETG @BBL A1 0.2 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL A1 0.2 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PETG @BBL A1 0.8 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL A1 0.8 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PETG @BBL H2D 0.2 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL H2D 0.2 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PETG @BBL H2D 0.4 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL H2D 0.4 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PETG @BBL H2D 0.6 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL H2D 0.6 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PETG @BBL H2DP 0.2 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL H2DP 0.2 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PETG @BBL H2DP 0.4 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL H2DP 0.4 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PETG @BBL H2DP 0.6 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL H2DP 0.6 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PETG @BBL H2S",
+      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL H2S.json"
+    },
+    {
+      "name": "Cookiecad PETG @BBL H2S 0.2 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL H2S 0.2 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PETG @BBL X1C",
+      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL X1C.json"
+    },
+    {
+      "name": "Cookiecad PETG @BBL A1M 0.4 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL A1M 0.4 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PETG @BBL X1C 0.2 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL X1C 0.2 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PETG @BBL A1M 0.2 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL A1M 0.2 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PETG @BBL X1C 0.8 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL X1C 0.8 nozzle.json"
+    },
+    {
+      "name": "Cookiecad PETG @BBL A1M 0.8 nozzle",
+      "sub_path": "filament/Cookiecad/Cookiecad PETG @BBL A1M 0.8 nozzle.json"
     },
     {
       "name": "Overture Matte PLA @base",

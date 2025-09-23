@@ -76,6 +76,7 @@ func_build_logout_cmd               NetworkAgent::build_logout_cmd_ptr = nullptr
 func_build_login_info               NetworkAgent::build_login_info_ptr = nullptr;
 func_ping_bind                      NetworkAgent::ping_bind_ptr = nullptr;
 func_bind_detect                    NetworkAgent::bind_detect_ptr = nullptr;
+func_report_consent                 NetworkAgent::report_consent_ptr = nullptr;
 func_set_server_callback            NetworkAgent::set_server_callback_ptr = nullptr;
 func_bind                           NetworkAgent::bind_ptr = nullptr;
 func_unbind                         NetworkAgent::unbind_ptr = nullptr;
@@ -286,6 +287,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     build_login_info_ptr              =  reinterpret_cast<func_build_login_info>(get_network_function("bambu_network_build_login_info"));
     ping_bind_ptr                     =  reinterpret_cast<func_ping_bind>(get_network_function("bambu_network_ping_bind"));
     bind_detect_ptr                   =  reinterpret_cast<func_bind_detect>(get_network_function("bambu_network_bind_detect"));
+    report_consent_ptr                =  reinterpret_cast<func_report_consent>(get_network_function("bambu_network_report_consent"));
     set_server_callback_ptr           =  reinterpret_cast<func_set_server_callback>(get_network_function("bambu_network_set_server_callback"));
     bind_ptr                          =  reinterpret_cast<func_bind>(get_network_function("bambu_network_bind"));
     unbind_ptr                        =  reinterpret_cast<func_unbind>(get_network_function("bambu_network_unbind"));
@@ -1014,6 +1016,17 @@ int NetworkAgent::bind_detect(std::string dev_ip, std::string sec_link, detectRe
         ret = bind_detect_ptr(network_agent, dev_ip, sec_link, detect);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_ip=%3%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevIP(dev_ip);
+    }
+    return ret;
+}
+
+int NetworkAgent::report_consent(std::string expand)
+{
+    int ret = 0;
+    if (network_agent && report_consent_ptr) {
+        ret = report_consent_ptr(network_agent, expand);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
     }
     return ret;
 }

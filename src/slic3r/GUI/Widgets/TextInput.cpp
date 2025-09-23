@@ -2,8 +2,11 @@
 #include "Label.hpp"
 #include "TextCtrl.h"
 
+#include "slic3r/GUI/I18N.hpp"
+
 #include <wx/dcclient.h>
 #include <wx/dcgraph.h>
+#include "../MsgDialog.hpp"
 
 BEGIN_EVENT_TABLE(TextInput, wxPanel)
 
@@ -37,10 +40,11 @@ TextInput::TextInput(wxWindow *     parent,
                      wxString       icon,
                      const wxPoint &pos,
                      const wxSize & size,
-                     long           style)
+                     long           style,
+                     wxString       unit)
     : TextInput()
 {
-    Create(parent, text, label, icon, pos, size, style);
+    Create(parent, text, label, icon, pos, size, style, unit);
 }
 
 void TextInput::Create(wxWindow *     parent,
@@ -49,8 +53,10 @@ void TextInput::Create(wxWindow *     parent,
                        wxString       icon,
                        const wxPoint &pos,
                        const wxSize & size,
-                       long           style)
+                       long           style,
+                       wxString       unit)
 {
+    m_unit    = unit;
     text_ctrl = nullptr;
     StaticBox::Create(parent, wxID_ANY, pos, size, style);
     wxWindow::SetLabel(label);
@@ -76,6 +82,15 @@ void TextInput::Create(wxWindow *     parent,
         ProcessEventLocally(e);
     });
     text_ctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable context menu
+
+    text_ctrl->Bind(wxEVT_TEXT, [this](auto &e)
+        {
+            if (m_checkers.empty()) { return e.Skip(); }
+
+            CheckValid(false);
+            e.Skip();
+        });
+
     if (!icon.IsEmpty()) {
         this->icon = ScalableBitmap(this, icon.ToStdString(), 16);
     }
@@ -181,7 +196,7 @@ void TextInput::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
     if (sizeFlags & wxSIZE_USE_EXISTING) return;
     wxSize size = GetSize();
-    wxPoint textPos = {std::max(5, int(radius)), 0};
+    wxPoint textPos = {5, 0};
     if (this->icon.bmp().IsOk()) {
         wxSize szIcon = this->icon.GetBmpSize();
         textPos.x += szIcon.x;
@@ -194,8 +209,11 @@ void TextInput::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     if (align_right)
         textPos.x += labelSize.x;
     if (text_ctrl) {
+        wxClientDC dc(this);
+        wxSize unitSize = dc.GetTextExtent(m_unit);
+        int unit_space = (m_unit.IsEmpty() ? 0 : unitSize.x + 5) + 10;
         wxSize textSize = text_ctrl->GetSize();
-        textSize.x = size.x - textPos.x - labelSize.x - 10;
+        textSize.x = size.x - textPos.x - labelSize.x - unit_space;
         text_ctrl->SetSize(textSize);
         text_ctrl->SetPosition({textPos.x, (size.y - textSize.y) / 2});
     }
@@ -227,7 +245,7 @@ void TextInput::render(wxDC& dc)
     bool   align_center = GetWindowStyle() & wxALIGN_CENTER_HORIZONTAL;
     bool   align_right = GetWindowStyle() & wxALIGN_RIGHT;
     // start draw
-    wxPoint pt = {std::max(5, int(radius)), 0};
+    wxPoint pt = {5, 0};
     if (icon.bmp().IsOk()) {
         wxSize szIcon = icon.GetBmpSize();
         pt.y = (size.y - szIcon.y) / 2;
@@ -300,6 +318,19 @@ void TextInput::render(wxDC& dc)
             dc.DrawText(static_tips, pt);
         }
     }
+    if (!m_unit.IsEmpty() && text_ctrl) {
+        wxPoint ctrl_pos  = text_ctrl->GetPosition();
+        wxSize  ctrl_size = text_ctrl->GetSize();
+        wxSize  unit_size = dc.GetTextExtent(m_unit);
+
+        int x = ctrl_pos.x + ctrl_size.x + 4;
+        int y = ctrl_pos.y + (ctrl_size.y - unit_size.y) / 2;
+        wxFont unit_font = text_ctrl->GetFont();
+        unit_font.SetPointSize(unit_font.GetPointSize() - 1);
+        dc.SetFont(unit_font);
+        dc.SetTextForeground(wxColour(144, 144, 144));
+        dc.DrawText(m_unit, wxPoint(x, y));
+    }
 }
 
 void TextInput::messureSize()
@@ -323,6 +354,91 @@ void TextInput::messureSize()
 
     wxSize minSize = size;
     minSize.x = GetMinWidth();
+    /*if (!m_unit.IsEmpty()) {
+        wxClientDC dc(this);
+        wxSize     unitSize = dc.GetTextExtent(m_unit);
+        minSize.x += unitSize.x + 20;
+    }*/
     SetMinSize(minSize);
     SetSize(size);
+}
+
+bool TextInput::CheckValid(bool pop_dlg) const
+{
+    for (auto checker : m_checkers)
+    {
+        wxString error_msg = checker->CheckValid(text_ctrl->GetValue());
+        if (!error_msg.IsEmpty())
+        {
+            text_ctrl->SetBackgroundColour(wxColour(255, 220, 220));
+            text_ctrl->SetToolTip(error_msg);
+            text_ctrl->Refresh();
+
+            if (pop_dlg)
+            {
+                Slic3r::GUI::MessageDialog dlg(nullptr, error_msg, _L("Error"), wxOK |wxICON_WARNING);
+                dlg.ShowModal();
+            }
+
+            return false;
+        }
+    }
+
+    text_ctrl->SetBackgroundColour(*wxWHITE);
+    text_ctrl->SetToolTip(wxEmptyString);
+    text_ctrl->Refresh();
+    return true;
+}
+
+std::shared_ptr<TextInputValChecker> TextInputValChecker::CreateIntMinChecker(int val)
+{
+    return std::make_shared<TextInputValIntMinChecker>(val);
+}
+
+wxString TextInputValIntMinChecker::CheckValid(const wxString& value) const
+{
+    long num;
+    if (value.ToLong(&num) && num >= m_min_value) { return wxEmptyString; }
+    return  wxString::Format(_L("Please input a number greater than or equal to %d"), m_min_value);
+}
+
+std::shared_ptr<TextInputValChecker> TextInputValChecker::CreateIntRangeChecker(int min, int max)
+{
+    return std::make_shared<TextInputValIntRangeChecker>(min, max);
+}
+
+std::shared_ptr<TextInputValChecker> TextInputValChecker::CreateDoubleMinChecker(double min)
+{
+    return std::make_shared<TextInputValDoubleMinChecker>(min);
+}
+
+std::shared_ptr<TextInputValChecker> TextInputValChecker::CreateDoubleRangeChecker(double min, double max, bool enable)
+{
+    return std::make_shared<TextInputValDoubleRangeChecker> (min, max, enable);
+}
+
+wxString TextInputValIntRangeChecker::CheckValid(const wxString& value) const
+{
+    long num;
+    if (value.ToLong(&num) && num >= m_min_value && num <= m_max_value) { return wxEmptyString; }
+    return  wxString::Format(_L("Please enter a number between %d and %d."), m_min_value, m_max_value);
+}
+
+wxString TextInputValDoubleMinChecker::CheckValid(const wxString& value) const
+{
+    double num;
+    if (value.ToDouble(&num) && num >= m_min_value) { return wxEmptyString; }
+    return  wxString::Format(_L("Please enter a float greater than or equal to %f."), m_min_value);
+}
+
+wxString TextInputValDoubleRangeChecker::CheckValid(const wxString& value) const
+{
+    if (m_enable_empty && value.empty())
+    {
+        return wxEmptyString;
+    }
+
+    double num;
+    if (value.ToDouble(&num) && num >= m_min_value && num <= m_max_value) { return wxEmptyString; }
+    return  wxString::Format(_L("Please enter a float between %f and %f."), m_min_value, m_max_value);
 }
