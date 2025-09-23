@@ -389,6 +389,7 @@ public:
 	void generate_wipe_tower_blocks();
     void update_all_layer_depth(float wipe_tower_depth);
     void set_nozzle_last_layer_id();
+    void set_first_layer_flow_ratio(const float flow_ratio);
     void calc_block_infill_gap();
     ToolChangeResult   tool_change_new(size_t new_tool, bool solid_change = false, bool solid_nozzlechange=false);
     NozzleChangeResult ramming(int old_filament_id, int new_filament_id, bool solid_change = false, bool extruder_change = true); // extruder_chang means nozzle_change
@@ -483,6 +484,7 @@ private:
     float m_bed_width; // width of the bed bounding box
     Vec2f m_bed_bottom_left; // bottom-left corner coordinates (for rectangular beds)
 
+    float m_first_layer_flow_ratio;
 	float m_perimeter_width = 0.4f * Width_To_Nozzle_Ratio; // Width of an extrusion line, also a perimeter spacing for 100% infill.
     float m_nozzle_change_perimeter_width = 0.4f * Width_To_Nozzle_Ratio;
 	float m_extrusion_flow = 0.038f; //0.029f;// Extrusion flow is derived from m_perimeter_width, layer height and filament diameter.
