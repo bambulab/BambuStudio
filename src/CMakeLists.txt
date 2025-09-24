@@ -147,6 +147,10 @@ target_link_libraries(BambuStudio libslic3r_gui)
         # Generate debug symbols even in release mode.
         target_link_options(BambuStudio PUBLIC "$<$<CONFIG:RELEASE>:/DEBUG>")
         target_link_libraries(BambuStudio user32.lib Setupapi.lib)
+        # Add GMP and MPFR libraries for CGAL
+        target_link_libraries(BambuStudio 
+            ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/win64/libgmp-10.lib
+            ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/win64/libmpfr-4.lib)
     elseif (MINGW)
         target_link_libraries(BambuStudio ws2_32 uxtheme setupapi)
     elseif (APPLE)

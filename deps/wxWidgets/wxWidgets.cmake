@@ -26,7 +26,7 @@ endif ()
 bambustudio_add_cmake_project(wxWidgets
     GIT_REPOSITORY "https://github.com/bambulab/wxWidgets"
     GIT_TAG master
-    DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} ${TIFF_PKG} ${JPEG_PKG}
+    DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} ${JPEG_PKG}
     CMAKE_ARGS
         -DwxBUILD_PRECOMP=ON
         ${_wx_toolkit}
@@ -51,7 +51,7 @@ bambustudio_add_cmake_project(wxWidgets
         -DwxUSE_LIBPNG=sys
         -DwxUSE_ZLIB=sys
         -DwxUSE_LIBJPEG=sys
-        -DwxUSE_LIBTIFF=sys
+        -DwxUSE_LIBTIFF=OFF
         -DwxUSE_EXPAT=sys
         ${_wx_egl}
 )
