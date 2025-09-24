@@ -235,6 +235,7 @@ struct PrintParams {
     int             auto_flow_cali{ 0 };
     int             auto_offset_cali{ 0 };
     bool            task_ext_change_assist;
+    bool            try_emmc_print;
 };
 
 struct TaskQueryParams
