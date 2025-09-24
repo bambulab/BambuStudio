@@ -1,130 +1,186 @@
 {
     "result": 0,
-    "t": 1757425628,
-    "ver": 202509091807,
+    "t": 1758214990,
+    "ver": 202511160923,
     "data": {
         "device_hms": {
-            "ver": 202509091807,
+            "ver": 202511160923,
             "sv": [
                 {
-                    "ecode": "1A00040000020001",
-                    "intro": "Hotend har lossnat från verktygsmagasinets position 4. Sätt tillbaka den på plats. Flytta verktygshuvudet manuellt bort från ställningen och klicka sedan på \"Fortsätt\"."
+                    "ecode": "0300AB0000020003",
+                    "intro": "Temperatursensorn på den högra varmvägsbrytaren är onormal. För att förhindra munstyckets igensättning kommer kylfläkten att fortsätta köra med hög hastighet. Du kan felsöka sensorn när utskriften är inaktiv."
                 },
                 {
-                    "ecode": "1A00020000020001",
-                    "intro": "Hotend har lossnat från verktygsmagasinets position 2. Sätt tillbaka den på plats. Flytta verktygshuvudet manuellt bort från ställningen och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00050000020001",
-                    "intro": "Hotend har lossnat från verktygsmagasinets position 5. Sätt tillbaka den på plats. Flytta verktygshuvudet manuellt bort från ställningen och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00060000020001",
-                    "intro": "Hotend har lossnat från verktygsmagasinets position 6. Sätt tillbaka den på plats. Flytta verktygshuvudet manuellt bort från ställningen och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00010000020001",
-                    "intro": "Hotend har lossnat från verktygsmagasinets position 1. Sätt tillbaka den på plats. Flytta verktygshuvudet manuellt bort från ställningen och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00030000020001",
-                    "intro": "Hotend har lossnat från verktygsmagasinets position 3. Sätt tillbaka den på plats. Flytta verktygshuvudet manuellt bort från ställningen och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00060000020002",
-                    "intro": "Ett fel uppstod vid hämtning/nästning av hotend 6. Vänligen placera tillbaka den i verktygshuvudet, sedan flytta verktygshuvudet manuellt till maskinens centrum innan du fortsätter."
-                },
-                {
-                    "ecode": "1A00120000020010",
-                    "intro": "Hotend bytes systemet är inte kalibrerat. Följ instruktionerna för att slutföra kalibreringen."
-                },
-                {
-                    "ecode": "0704260000020001",
-                    "intro": "Induktionshotenden håller på att värmas upp, och torkkraften hos AMS E kommer att minska. Vänligen anslut strömadaptern eller vänta tills hotenden är färdig med att värmas upp."
+                    "ecode": "0C00020000010001",
+                    "intro": "Höjdmätnings lasern lyser inte. Kontrollera om det finns hinder eller en lös kabel till kamerans huvud."
                 },
                 {
                     "ecode": "1A00030000020002",
-                    "intro": "Ett fel uppstod vid hämtning/inbäddning av hotend 3. Vänligen placera tillbaka den i verktygshuvudet, sedan manuellt flytta verktygshuvudet till maskinens centrum innan du fortsätter."
+                    "intro": "Ett fel uppstod vid hämtning/koppling av hotend 3. Sätt tillbaka den i verktygshuvudet och flytta sedan verktygshuvudet manuellt till maskinens mitt innan du fortsätter."
                 },
                 {
                     "ecode": "1A00010000020002",
-                    "intro": "Ett fel uppstod vid hämtning/nästning av hotend 1. Vänligen placera tillbaka den i verktygshuvudet, sedan flytta verktygshuvudet manuellt till maskinens centrum innan du fortsätter."
+                    "intro": "Ett fel uppstod vid hämtning/koppling av hotend 1. Sätt tillbaka den i verktygshuvudet och flytta sedan verktygshuvudet manuellt till maskinens mitt innan du fortsätter."
                 },
                 {
                     "ecode": "1A00050000020002",
-                    "intro": "Ett fel uppstod vid hämtning/nästning av hotend 5. Vänligen placera tillbaka den i verktygshuvudet, sedan flytta verktygshuvudet manuellt till maskinens centrum innan du fortsätter."
-                },
-                {
-                    "ecode": "1804260000020001",
-                    "intro": "Induktionshotenden håller på att värmas upp, och torkkraften hos AMS-HT E kommer att minska. Vänligen anslut strömadaptern eller vänta tills hotenden är färdig med att värmas upp."
-                },
-                {
-                    "ecode": "0702260000020001",
-                    "intro": "Induktionshotenden håller på att värmas upp, och torkkraften hos AMS C kommer att minska. Vänligen anslut strömadaptern eller vänta tills hotenden är färdig med att värmas upp."
-                },
-                {
-                    "ecode": "0700260000020001",
-                    "intro": "Induktionshotenden håller på att värmas upp, och torkkraften hos AMS A kommer att minska. Vänligen anslut strömadaptern eller vänta tills hotenden är färdig med att värmas upp."
+                    "intro": "Ett fel uppstod vid hämtning/koppling av hotend 5. Sätt tillbaka den i verktygshuvudet och flytta sedan verktygshuvudet manuellt till maskinens mitt innan du fortsätter."
                 },
                 {
                     "ecode": "1A00040000020002",
-                    "intro": "Ett fel uppstod vid hämtning/nästning av hotend 4. Vänligen placera tillbaka den i verktygshuvudet, sedan flytta verktygshuvudet manuellt till maskinens centrum innan du fortsätter."
-                },
-                {
-                    "ecode": "0701260000020001",
-                    "intro": "Induktionshotenden håller på att värmas upp, och torkkraften hos AMS B kommer att minskas. Vänligen anslut strömadaptern eller vänta tills hotenden är färdig med att värmas upp."
-                },
-                {
-                    "ecode": "1801260000020001",
-                    "intro": "Induktionshotenden håller på att värmas upp, och torkkraften hos AMS-HT B kommer att minska. Vänligen anslut strömadaptern eller vänta tills hotenden är färdig med att värmas upp."
-                },
-                {
-                    "ecode": "1800260000020001",
-                    "intro": "Induktionshotenden håller på att värmas upp, och torkkraften hos AMS-HT A kommer att minska. Vänligen anslut strömadaptern eller vänta tills hotenden är färdig med att värmas upp."
-                },
-                {
-                    "ecode": "1805260000020001",
-                    "intro": "Induktionshotenden håller på att värmas upp, och torkkraften hos AMS-HT F kommer att minska. Vänligen anslut strömadaptern eller vänta tills hotenden är färdig med att värmas upp."
+                    "intro": "Ett fel uppstod vid hämtning/koppling av hotend 4. Sätt tillbaka den i verktygshuvudet och flytta sedan verktygshuvudet manuellt till maskinens mitt innan du fortsätter."
                 },
                 {
                     "ecode": "1A00020000020002",
-                    "intro": "Ett fel uppstod vid hämtning/nästning av hotend 2. Vänligen placera tillbaka den i verktygshuvudet, sedan flytta verktygshuvudet manuellt till maskinens centrum innan du fortsätter."
+                    "intro": "Ett fel uppstod vid hämtning/koppling av hotend 2. Sätt tillbaka den i verktygshuvudet och flytta sedan verktygshuvudet manuellt till maskinens mitt innan du fortsätter."
                 },
                 {
-                    "ecode": "1803260000020001",
-                    "intro": "Induktionshotenden håller på att värmas upp, och torkkraften hos AMS-HT D kommer att minska. Vänligen anslut strömadaptern eller vänta tills hotenden är färdig med att värmas upp."
+                    "ecode": "0700F00000020001",
+                    "intro": "Filament- och hotend-matchning misslyckades. Var vänlig verifiera att hotenden i hotend-rackplats 1 är korrekt installerad."
                 },
                 {
-                    "ecode": "0707260000020001",
-                    "intro": "Induktionshotenden håller på att värmas upp, och torkkraften hos AMS H kommer att minska. Vänligen anslut strömadaptern eller vänta tills hotenden är färdig med att värmas upp."
+                    "ecode": "0703F00000020001",
+                    "intro": "Filament- och hotend-matchning misslyckades. Var vänlig verifiera att hotenden i hotend-rackplats 4 är korrekt installerad."
                 },
                 {
-                    "ecode": "1806260000020001",
-                    "intro": "Induktionshotenden håller på att värmas upp, och torkkraften hos AMS-HT G kommer att minska. Vänligen anslut strömadaptern eller vänta tills hotenden är färdig med att värmas upp."
+                    "ecode": "0701F00000020001",
+                    "intro": "Filament- och hotend-matchning misslyckades. Var god verifiera att hotenden i hotend-rackplats 2 är korrekt installerade."
                 },
                 {
-                    "ecode": "0703260000020001",
-                    "intro": "Induktionshotenden håller på att värmas upp, och torkkraften hos AMS D kommer att minska. Vänligen anslut strömadaptern eller vänta tills hotenden är färdig med att värmas upp."
+                    "ecode": "0702F00000020001",
+                    "intro": "Filament- och hotend-matchning misslyckades. Var vänlig verifiera att hotenden i hotend-rackplats 3 är korrekt installerad."
                 },
                 {
-                    "ecode": "1802260000020001",
-                    "intro": "Induktionshotenden håller på att värmas upp, och torkkraften hos AMS-HT C kommer att minska. Vänligen anslut strömadaptern eller vänta tills hotenden är färdig med att värmas upp."
+                    "ecode": "0704F00000020001",
+                    "intro": "Filament- och hotend-matchning misslyckades. Var vänlig verifiera att hotenden i hotend-rackplats 5 är korrekt installerad."
                 },
                 {
-                    "ecode": "0706260000020001",
-                    "intro": "Induktionshotenden håller på att värmas upp, och torkkraften hos AMS G kommer att minskas. Vänligen anslut strömadaptern eller vänta tills hotenden är färdig med att värmas upp."
+                    "ecode": "0705F00000020001",
+                    "intro": "Filament- och hotend-matchning misslyckades. Var god verifiera att hotenden i hotend-rackplats 6 är korrekt installerade."
                 },
                 {
-                    "ecode": "1807260000020001",
-                    "intro": "Induktionshotenden håller på att värmas upp, och torkkraften hos AMS-HT H kommer att minska. Vänligen anslut strömadaptern eller vänta tills hotenden är färdig med att värmas upp."
+                    "ecode": "1A00060000020001",
+                    "intro": "Ett fel uppstod när hotenden skulle kopplas/hämtas. Placera tillbaka hotenden på plats 6 i stället, flytta verktygshuvudet manuellt till mitten av byggplattan och fortsätt sedan."
                 },
                 {
-                    "ecode": "0705260000020001",
-                    "intro": "Induktionshotenden håller på att värmas upp, och torkkraften hos AMS F kommer att minska. Vänligen anslut strömadaptern eller vänta tills hotenden är färdig med att värmas upp."
+                    "ecode": "1A00060000020002",
+                    "intro": "Ett fel uppstod vid hämtning/koppling av hotend 6. Sätt tillbaka den i verktygshuvudet och flytta sedan verktygshuvudet manuellt till maskinens mitt innan du fortsätter."
+                },
+                {
+                    "ecode": "1A00010000020001",
+                    "intro": "Ett fel uppstod när hotenden skulle kopplas/hämtas. Placera tillbaka hotenden på plats 1 i stället, flytta verktygshuvudet manuellt till mitten av byggplattan och fortsätt sedan."
+                },
+                {
+                    "ecode": "1A00040000020001",
+                    "intro": "Ett fel uppstod när hotenden skulle kopplas/hämtas. Placera tillbaka hotenden på plats 4 i stället, flytta verktygshuvudet manuellt till mitten av byggplattan och fortsätt sedan."
+                },
+                {
+                    "ecode": "1A00030000020001",
+                    "intro": "Ett fel uppstod när hotenden skulle kopplas/hämtas. Placera tillbaka hotenden på plats 3 i stället, flytta verktygshuvudet manuellt till mitten av byggplattan och fortsätt sedan."
+                },
+                {
+                    "ecode": "1A00020000020001",
+                    "intro": "Ett fel uppstod när hotenden skulle kopplas/hämtas. Placera tillbaka hotenden på plats 2 i stället, flytta verktygshuvudet manuellt till mitten av byggplattan och fortsätt sedan."
+                },
+                {
+                    "ecode": "1A00050000020001",
+                    "intro": "Ett fel uppstod när hotenden skulle kopplas/hämtas. Placera tillbaka hotenden på plats 5 i stället, flytta verktygshuvudet manuellt till mitten av byggplattan och fortsätt sedan."
                 },
                 {
                     "ecode": "1A00120000020001",
                     "intro": "Kalibrering av hotend ställning misslyckades: kamera kalibreringsdata är onormala. Rengör nozzle rester och kontrollera om värmepappret på värmebädden är trasigt."
+                },
+                {
+                    "ecode": "0300DB0000020001",
+                    "intro": "Lasermodul upptäckt. Installera rätt munstycke korrekt för att säkerställa korrekt kalibrering av lasermodulmontering."
+                },
+                {
+                    "ecode": "0300DA0000020001",
+                    "intro": "Lasermodul upptäckt. Ta bort hetänden från hetändhållaren för att förhindra att laserbearbetningsrester påverkar utskriftsprestandan."
+                },
+                {
+                    "ecode": "0300020000010001",
+                    "intro": "Höger extrudernozzle temperaturfel. Värmespiralen kan vara kortsluten. Vänligen kontrollera om isoleringsskiktet är intakt."
+                },
+                {
+                    "ecode": "0300020000010002",
+                    "intro": "Höger extrudernozzle temperaturfel. Värmeslingan kan vara öppen. Vänligen kontrollera om kontakten är löst."
+                },
+                {
+                    "ecode": "0300020000010003",
+                    "intro": "Höger extrudernozzle temperaturfel. Värmekärnan kan överhettas."
+                },
+                {
+                    "ecode": "0300020000010008",
+                    "intro": "Rätt munstyckestemperaturfel, uppvärmning misslyckades."
+                },
+                {
+                    "ecode": "1A00120000020010",
+                    "intro": "Induktions hotend stället har inte installerats. Följ instruktionerna för att slutföra installationen innan du använder dess funktioner."
+                },
+                {
+                    "ecode": "0704260000020001",
+                    "intro": "Induktions hotenden värms upp och torkeffekten hos AMS E kommer att minska. Anslut nätadaptern eller vänta tills hotend värmts upp."
+                },
+                {
+                    "ecode": "1804260000020001",
+                    "intro": "Induktions hotenden värms upp och torkeffekten hos AMS-HT E kommer att minska. Anslut nätadaptern eller vänta tills hotend värmts upp."
+                },
+                {
+                    "ecode": "0702260000020001",
+                    "intro": "Induktions hotenden värms upp och torkeffekten hos AMS C kommer att minska. Anslut nätadaptern eller vänta tills hotend värmts upp."
+                },
+                {
+                    "ecode": "0700260000020001",
+                    "intro": "Induktions hotenden värms upp och torkeffekten hos AMS A kommer att minska. Anslut nätadaptern eller vänta tills hotend värmts upp."
+                },
+                {
+                    "ecode": "0701260000020001",
+                    "intro": "Induktions hotenden värms upp och torkeffekten hos AMS B kommer att minska. Anslut nätadaptern eller vänta tills hotend värmts upp."
+                },
+                {
+                    "ecode": "1801260000020001",
+                    "intro": "Induktions hotenden värms upp och torkeffekten hos AMS-HT B kommer att minska. Anslut nätadaptern eller vänta tills hotend värmts upp."
+                },
+                {
+                    "ecode": "1800260000020001",
+                    "intro": "Induktions hotenden värms upp och torkeffekten hos AMS-HT A kommer att minska. Anslut nätadaptern eller vänta tills hotend värmts upp."
+                },
+                {
+                    "ecode": "1805260000020001",
+                    "intro": "Induktions hotenden värms upp och torkeffekten hos AMS-HT F kommer att minska. Anslut nätadaptern eller vänta tills hotend värmts upp."
+                },
+                {
+                    "ecode": "1803260000020001",
+                    "intro": "Induktions hotenden värms upp och torkeffekten hos AMS-HT D kommer att minska. Anslut nätadaptern eller vänta tills hotend värmts upp."
+                },
+                {
+                    "ecode": "0707260000020001",
+                    "intro": "Induktions hotenden värms upp och torkeffekten hos AMS H kommer att minska. Anslut nätadaptern eller vänta tills hotend värmts upp."
+                },
+                {
+                    "ecode": "1806260000020001",
+                    "intro": "Induktions hotenden värms upp och torkeffekten hos AMS-HT G kommer att minska. Anslut nätadaptern eller vänta tills hotend värmts upp."
+                },
+                {
+                    "ecode": "0703260000020001",
+                    "intro": "Induktions hotenden värms upp och torkeffekten hos AMS D kommer att minska. Anslut nätadaptern eller vänta tills hotend värmts upp."
+                },
+                {
+                    "ecode": "1802260000020001",
+                    "intro": "Induktions hotenden värms upp och torkeffekten hos AMS-HT C kommer att minska. Anslut nätadaptern eller vänta tills hotend värmts upp."
+                },
+                {
+                    "ecode": "0706260000020001",
+                    "intro": "Induktions hotenden värms upp och torkeffekten hos AMS G kommer att minska. Anslut nätadaptern eller vänta tills hotend värmts upp."
+                },
+                {
+                    "ecode": "1807260000020001",
+                    "intro": "Induktions hotenden värms upp och torkeffekten hos AMS-HT H kommer att minska. Anslut nätadaptern eller vänta tills hotend värmts upp."
+                },
+                {
+                    "ecode": "0705260000020001",
+                    "intro": "Induktions hotenden värms upp och torkeffekten hos AMS F kommer att minska. Anslut nätadaptern eller vänta tills hotend värmts upp."
                 },
                 {
                     "ecode": "0300AB0000010001",
@@ -351,6 +407,10 @@
                     "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 4 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
                 },
                 {
+                    "ecode": "1A00200000020001",
+                    "intro": "Strömavbrott inträffade under byte av hotend. Följ Wiki-guiden för att återställa inställningen, annars kan utskriften misslyckas."
+                },
+                {
                     "ecode": "1A00120000020002",
                     "intro": "Kalibreringen av hotend ställningen misslyckades. Markeringsfunktionen upptäcktes inte. Kontrollera om den visuella markeringen på ställningen är skadad eller täckt av smuts."
                 },
@@ -359,16 +419,16 @@
                     "intro": "Kalibreringen av induktionsvärme enhetens ställning misslyckades: resultatet överskred rörelseområdet. Kontrollera om ställningens struktur är deformerad."
                 },
                 {
-                    "ecode": "1A00200000020001",
-                    "intro": "Strömavbrott inträffade under byte av hotend. Följ Wiki-guiden för att återställa inställningen, annars kan utskriften misslyckas."
-                },
-                {
                     "ecode": "1A00E00000010005",
                     "intro": "Induktionsvärme huvudet blockeras av ett hinder under nollställning. Ta bort eventuella hinder från dess rörelsebana."
                 },
                 {
                     "ecode": "1A00E00000010006",
                     "intro": "Induktionsvärme huvudets hempositionerings avstånd är för långt. Kuggremmen kan vara lös. Kontrollera och dra åt den."
+                },
+                {
+                    "ecode": "1A00100000020001",
+                    "intro": "Verktygshuvudets XY-axel eller hotend ställningen har inte slutfört hempositioneringen. Hotend bytet kan inte fortsätta."
                 },
                 {
                     "ecode": "1A00220000010002",
@@ -427,10 +487,6 @@
                     "intro": "Kontroll av hotend byte misslyckades: ingen hotend upptäckt på plats 4."
                 },
                 {
-                    "ecode": "1A00100000020001",
-                    "intro": "Verktygshuvudets XY-axel eller hotend ställningen har inte slutfört hempositioneringen. Hotend bytet kan inte fortsätta."
-                },
-                {
                     "ecode": "0503000000030027",
                     "intro": ""
                 },
@@ -481,10 +537,6 @@
                 {
                     "ecode": "030002000001000B",
                     "intro": "Höger extruder nozzle temperaturkontroll är onormal, möjligen på grund av att hotenden inte är korrekt installerad eller på grund av ett fel på det trådlösa temperaturmätnings kortet."
-                },
-                {
-                    "ecode": "0C00020000010001",
-                    "intro": "Höjdmätnings lasern lyser inte. Kontrollera om det finns hinder eller en lös kabel till kamerans huvud."
                 },
                 {
                     "ecode": "0300D70000020001",
@@ -539,12 +591,12 @@
                     "intro": "Brandsläckar cylinder är inte installerad. Bekräfta på sidan för brandsläckare."
                 },
                 {
-                    "ecode": "0500050000020030",
-                    "intro": ""
-                },
-                {
                     "ecode": "0501040000030002",
                     "intro": "Gängstänger behöver smörjas nu."
+                },
+                {
+                    "ecode": "0500050000020030",
+                    "intro": ""
                 },
                 {
                     "ecode": "0300910000010008",
@@ -639,38 +691,6 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "1800020000020002",
-                    "intro": "AMS-HT A Mätaren har ingen signal. Mätaren kan ha dålig kontakt."
-                },
-                {
-                    "ecode": "0500050000010009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500050000010008",
-                    "intro": ""
-                },
-                {
-                    "ecode": "050005000001000B",
-                    "intro": ""
-                },
-                {
-                    "ecode": "050005000001000A",
-                    "intro": ""
-                },
-                {
-                    "ecode": "050005000001000C",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00010000020016",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00010000020015",
-                    "intro": ""
-                },
-                {
                     "ecode": "0500010000020003",
                     "intro": ""
                 },
@@ -759,6 +779,38 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "1800020000020002",
+                    "intro": "AMS-HT A Mätaren har ingen signal. Mätaren kan ha dålig kontakt."
+                },
+                {
+                    "ecode": "0500050000010009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500050000010008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050005000001000B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050005000001000A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050005000001000C",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00010000020016",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00010000020015",
+                    "intro": ""
+                },
+                {
                     "ecode": "0500030000020010",
                     "intro": ""
                 },
@@ -783,6 +835,14 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "0C00040000030028",
+                    "intro": "Kalibreringen av skärmaskinens offsetmodul misslyckades, vilket kan resultera i felaktiga snitt. Se till att det 80g vita skrivarpapperet (brevpapperstjocklek) är korrekt positionerat och kontrollera om skärbladets spets är slitet."
+                },
+                {
+                    "ecode": "0C00040000030026",
+                    "intro": "För att förbättra noggrannheten i lågeffektsdetektionen har högerkammarens ljus automatiskt stängts av."
+                },
+                {
                     "ecode": "0C0001000002001A",
                     "intro": ""
                 },
@@ -797,14 +857,6 @@
                 {
                     "ecode": "0500060000020052",
                     "intro": ""
-                },
-                {
-                    "ecode": "0C00040000030028",
-                    "intro": "Kalibreringen av skärmaskinens offsetmodul misslyckades, vilket kan resultera i felaktiga snitt. Se till att det 80g vita skrivarpapperet (brevpapperstjocklek) är korrekt positionerat och kontrollera om skärbladets spets är slitet."
-                },
-                {
-                    "ecode": "0C00040000030026",
-                    "intro": "För att förbättra noggrannheten i lågeffektsdetektionen har högerkammarens ljus automatiskt stängts av."
                 },
                 {
                     "ecode": "0300D50000020005",
@@ -1113,10 +1165,6 @@
                 {
                     "ecode": "03001E0000010003",
                     "intro": "Vänster nozzle temperatur är onormal; värmaren är överhettad."
-                },
-                {
-                    "ecode": "0300020000010003",
-                    "intro": "Höger nozzle temperatur är onormal; värmaren är överhettad."
                 },
                 {
                     "ecode": "0707620000020001",
@@ -6827,10 +6875,6 @@
                     "intro": "Temperaturen på vänster extruder nozzle är onormal; sensorn kan ha en kortslutning, kontrollera om kontakten är ordentligt ansluten."
                 },
                 {
-                    "ecode": "0300020000010002",
-                    "intro": "Höger extruder nozzle temperatur är onormal; värmaren kan ha en öppen krets."
-                },
-                {
                     "ecode": "0300020000010006",
                     "intro": "Höger extruder nozzle temperatur är onormal; sensorn kan ha en kortslutning, kontrollera om kontakten är ordentligt ansluten."
                 },
@@ -7691,14 +7735,6 @@
                     "intro": "AMS H fack 2 matar filament efter AMS timeout."
                 },
                 {
-                    "ecode": "0300020000010001",
-                    "intro": "Höger extruder nozzle temperatur är onormal; värmaren kan ha en kortslutning."
-                },
-                {
-                    "ecode": "03001E0000010001",
-                    "intro": "Temperaturen på vänster extruder nozzle är onormal; värmaren kan ha kortslutits."
-                },
-                {
                     "ecode": "0702230000020018",
                     "intro": "AMS C fack 4 stödmotor har stannat, på grund av för stort motstånd i slangen nära AMS."
                 },
@@ -7871,6 +7907,14 @@
                     "intro": "AMS-HT H fack 3 matar filament efter AMS timeout."
                 },
                 {
+                    "ecode": "03001E0000010001",
+                    "intro": "Temperaturen på vänster extruder nozzle är onormal; värmaren kan ha kortslutits."
+                },
+                {
+                    "ecode": "0300900000010003",
+                    "intro": "Kammarens uppvärmning misslyckades. Strömförsörjnings temperaturen kan vara för hög."
+                },
+                {
                     "ecode": "1802230000020011",
                     "intro": "AMS-HT C fack 4 drar tillbaka filament till AMS timeout."
                 },
@@ -8035,18 +8079,6 @@
                     "intro": "AMS-HT F fack 4 stödmotor stannat, på grund av för högt motstånd i slangen mellan filament bufferten och verktygshuvudet."
                 },
                 {
-                    "ecode": "0300900000010003",
-                    "intro": "Kammarens uppvärmning misslyckades. Strömförsörjnings temperaturen kan vara för hög."
-                },
-                {
-                    "ecode": "0300900000010001",
-                    "intro": "Kammar uppvärmningen misslyckades. Värmaren blåser inte varmluft."
-                },
-                {
-                    "ecode": "0300900000010002",
-                    "intro": "Kammarens uppvärmning misslyckades. Möjliga orsaker: kammaren är inte helt sluten, omgivningstemperaturen är för låg eller nätaggregatets värme avledningsventil är blockerad."
-                },
-                {
                     "ecode": "0700230000020020",
                     "intro": "AMS A fack 4 stödmotor har stannat, på grund av för högt motstånd i slangen nära filament bufferten。"
                 },
@@ -8189,6 +8221,14 @@
                 {
                     "ecode": "1800220000020022",
                     "intro": "AMS-HT A fack 3 stödmotor har stannat, på grund av för högt motstånd i slangen nära verktygshuvudet."
+                },
+                {
+                    "ecode": "0300900000010001",
+                    "intro": "Kammar uppvärmningen misslyckades. Värmaren blåser inte varmluft."
+                },
+                {
+                    "ecode": "0300900000010002",
+                    "intro": "Kammarens uppvärmning misslyckades. Möjliga orsaker: kammaren är inte helt sluten, omgivningstemperaturen är för låg eller nätaggregatets värme avledningsventil är blockerad."
                 },
                 {
                     "ecode": "0706210000020019",
@@ -11583,10 +11623,6 @@
                     "intro": "AMS H Hall sensorn för inmatning av fack 1 är frånkopplad, vilket kan bero på dålig kontakt."
                 },
                 {
-                    "ecode": "0701210000020008",
-                    "intro": "AMS B Hall sensorn för inmatning av fack 2 är frånkopplad, vilket kan bero på dålig kontakt."
-                },
-                {
                     "ecode": "1801130000020002",
                     "intro": "AMS-HT B fack 4 motorn är överbelastad. Filamentet kan vara trassligt eller fastnat."
                 },
@@ -11761,6 +11797,10 @@
                 {
                     "ecode": "1802110000010001",
                     "intro": "AMS-HT C fack 2 motorn har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+                },
+                {
+                    "ecode": "0701210000020008",
+                    "intro": "AMS B Hall sensorn för inmatning av fack 2 är frånkopplad, vilket kan bero på dålig kontakt."
                 },
                 {
                     "ecode": "0700220000020002",
@@ -13607,10 +13647,6 @@
                     "intro": "Fel på krypterings chipet"
                 },
                 {
-                    "ecode": "1807120000020002",
-                    "intro": "AMS-HT H Fack 3 stöd motor är överbelastad. Filamentet kan vara trassligt eller fastnat."
-                },
-                {
                     "ecode": "0707200000030002",
                     "intro": "AMS H Fack 1 filamentet har tagit slut och automatiskt växlat till fack med samma filament."
                 },
@@ -13757,6 +13793,10 @@
                 {
                     "ecode": "1803110000010001",
                     "intro": "AMS-HT D fack 2 motorn har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+                },
+                {
+                    "ecode": "1807120000020002",
+                    "intro": "AMS-HT H Fack 3 stöd motor är överbelastad. Filamentet kan vara trassligt eller fastnat."
                 },
                 {
                     "ecode": "0700200000020005",
@@ -13947,10 +13987,6 @@
                     "intro": "RFID kan inte avläsas på grund av hårdvaru eller struktur fel."
                 },
                 {
-                    "ecode": "1804210000020001",
-                    "intro": "AMS-HT E Fack 2 filamentet har tagit slut. Sätt i ett nytt filament."
-                },
-                {
                     "ecode": "1801200000020008",
                     "intro": "AMS-HT B Hall sensorn för inmatning av fack 1 är frånkopplad, vilket kan bero på dålig kontakt."
                 },
@@ -14133,6 +14169,10 @@
                 {
                     "ecode": "1800560000030001",
                     "intro": "AMS-HT A genomgår torr kylning; vänta tills den svalnar innan du använder den."
+                },
+                {
+                    "ecode": "1804210000020001",
+                    "intro": "AMS-HT E Fack 2 filamentet har tagit slut. Sätt i ett nytt filament."
                 },
                 {
                     "ecode": "0700220000020001",
@@ -19565,35 +19605,19 @@
             ]
         },
         "device_error": {
-            "ver": 202509091807,
+            "ver": 202511160923,
             "sv": [
                 {
-                    "ecode": "03008029",
-                    "intro": "MC–hotend rack kommunikationsfel. Vänligen kontrollera om huvudkortskabeln till racken är löst."
+                    "ecode": "05024023",
+                    "intro": "Induktions-hotendigenkänningsfel upptäckt. Gå till sidan ”Hotends & Rack” och klicka på ”Read All” för att upptäcka igen. Om problemet kvarstår, försök uppdatera firmware på sidan ”Firmware”."
                 },
                 {
-                    "ecode": "05028022",
-                    "intro": "Induktionshett verifiering misslyckades. Vänligen byt ut hettan och försök igen."
+                    "ecode": "07008036",
+                    "intro": "Hotend-rack grov hemning misslyckades. Vänligen kontrollera för hinder eller om byggplattan är feljusterad."
                 },
                 {
-                    "ecode": "0300802A",
-                    "intro": "Hotend rack motor position sensor fel. Om problemet kvarstår efter att ha försökt igen, starta om skrivaren."
-                },
-                {
-                    "ecode": "03004016",
-                    "intro": "Dysan rengöring misslyckades. Klicka på assistenten för felsökning."
-                },
-                {
-                    "ecode": "0300802B",
-                    "intro": "Hotend rack motorfel. Vänligen kontrollera och ta bort eventuella hinder som påverkar rackrörelsen innan du fortsätter."
-                },
-                {
-                    "ecode": "05024021",
-                    "intro": "Misslyckades med att läsa information om induktions-hotend. Vänligen byt ut hotenden eller starta om skrivaren."
-                },
-                {
-                    "ecode": "05024018",
-                    "intro": "Hotend ställningen har inte kalibrerats och hotend växling kan inte utföras. Slutför ställnings kalibreringen innan du fortsätter."
+                    "ecode": "18008036",
+                    "intro": "Hotend-rack grovhoming misslyckades. Vänligen kontrollera för hinder eller om byggplattan är feljusterad."
                 },
                 {
                     "ecode": "07008018",
@@ -19676,6 +19700,114 @@
                     "intro": "Det gick inte att hämta mappningstabellen för filament hotend från berednings filen, välj \"Fortsätt\" för att försöka igen."
                 },
                 {
+                    "ecode": "03008056",
+                    "intro": "Lasermodul upptäckt. Ta bort hetänden från hetändhållaren för att förhindra att laserbearbetningsrester påverkar utskriftsprestandan."
+                },
+                {
+                    "ecode": "1A004009",
+                    "intro": "Värmehuvudshyllan har inte installerats. Vänligen slutför installationen innan du utför en utbyte av värmehuvudet."
+                },
+                {
+                    "ecode": "07018007",
+                    "intro": "Misslyckades med att extrudera filamentet. Kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "07028007",
+                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "07038007",
+                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "07008007",
+                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18058007",
+                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "07078007",
+                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18078007",
+                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "07058007",
+                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18038007",
+                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18018007",
+                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18028007",
+                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18008007",
+                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "07048007",
+                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18068007",
+                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18048007",
+                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "07068007",
+                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "07008035",
+                    "intro": "Hotend hållarens grova hempositionering misslyckades. Kontrollera om det finns hinder eller om byggplattan är feljusterad."
+                },
+                {
+                    "ecode": "18008035",
+                    "intro": "Hotend hållarens grova hempositionering misslyckades. Kontrollera om det finns hinder eller om byggplattan är feljusterad."
+                },
+                {
+                    "ecode": "03008029",
+                    "intro": "Kommunikationsfel mellan MC och hotend ställ. Kontrollera om kabeln till ställets moderkort är lös."
+                },
+                {
+                    "ecode": "05028022",
+                    "intro": "Verifiering av induktionsvärmaren misslyckades. Byt ut värme enheten och försök igen."
+                },
+                {
+                    "ecode": "0300802A",
+                    "intro": "Fel på motorpositions sensorn för hotend ställningen. Om problemet kvarstår efter ett nytt försök, starta om printern."
+                },
+                {
+                    "ecode": "03004016",
+                    "intro": "Nozzle rengöringen misslyckades. Klicka på Assistenten för felsökning."
+                },
+                {
+                    "ecode": "0300802B",
+                    "intro": "Fel på motorn i hotend stället. Kontrollera och ta bort eventuella hinder som påverkar ställnings rörelsen innan du fortsätter."
+                },
+                {
+                    "ecode": "05024021",
+                    "intro": "Det gick inte att läsa informationen från induktions hotend. Byt ut hotend eller starta om printern."
+                },
+                {
+                    "ecode": "05024018",
+                    "intro": "Hotend stället har inte kalibrerats och hotend växling kan inte utföras. Slutför ställnings kalibreringen på enheten."
+                },
+                {
                     "ecode": "03008053",
                     "intro": "Lasermodul upptäckt. Installera rätt nozzle korrekt för att säkerställa korrekt kalibrering av lasermodulens montering."
                 },
@@ -19742,10 +19874,6 @@
                 {
                     "ecode": "05004047",
                     "intro": "Utskriften har avbrutits eftersom den tillgängliga mängden eller modellen av hotend inte stämmer överens med den beredda filen. Kontrollera hotend modellen och antalet innan du startar om utskriftsjobbet."
-                },
-                {
-                    "ecode": "0500807E",
-                    "intro": "Placera en StrongGrip skärmatta på skärskyddets bas."
                 },
                 {
                     "ecode": "0500409F",
@@ -19816,6 +19944,10 @@
                     "intro": "Enheten  kan inte detektera laserns fjärde axel. Anslut modulkabeln igen eller starta om printern."
                 },
                 {
+                    "ecode": "0500807E",
+                    "intro": "Placera en StrongGrip skärmatta på skärskyddets bas."
+                },
+                {
                     "ecode": "05008062",
                     "intro": "Markeringen på utskrifts plattan har inte upptäckts. Kontrollera att utskrifts plattan är korrekt placerad på värmebädden med alla fyra hörn i linje och att markeringen är synlig. Om starkt ljus lyser på utskrifts plattan bör du överväga att stänga frontluckan och blockera externa ljuskällor."
                 },
@@ -19824,12 +19956,12 @@
                     "intro": "Hotend växlings systemet är upptaget; utför uppgraderingen när den är inaktiv."
                 },
                 {
-                    "ecode": "0500808B",
-                    "intro": "Installationen av BirdsEye kameran misslyckades. Ta bort alla föremål och mattan på värmebädden för att säkerställa att markeringarna på värmebädden är synliga. Se samtidigt till att BirdsEye kameran är korrekt installerad och ta bort eventuella hinder som kan blockera kamerans sikt."
-                },
-                {
                     "ecode": "0502C012",
                     "intro": "Uppgiften kan inte pausas."
+                },
+                {
+                    "ecode": "0500808B",
+                    "intro": "Installationen av BirdsEye kameran misslyckades. Ta bort alla föremål och mattan på värmebädden för att säkerställa att markeringarna på värmebädden är synliga. Se samtidigt till att BirdsEye kameran är korrekt installerad och ta bort eventuella hinder som kan blockera kamerans sikt."
                 },
                 {
                     "ecode": "07FFC010",
@@ -19868,6 +20000,10 @@
                     "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
                 },
                 {
+                    "ecode": "03008081",
+                    "intro": "Brandsläckarens gascylinder är felaktigt installerad. Bekräfta på brandsläckarsidan."
+                },
+                {
                     "ecode": "07008034",
                     "intro": "Det gick inte att ta upp hotend från hållaren i position 1. Kontrollera om det finns filament rester eller fastnat material."
                 },
@@ -19896,10 +20032,6 @@
                     "intro": "Det gick inte att placera hotenden i hållare position 3. Kontrollera om det finns filament rester eller fastnat material."
                 },
                 {
-                    "ecode": "03008081",
-                    "intro": "Brandsläckarens gascylinder är felaktigt installerad. Bekräfta på brandsläckarsidan."
-                },
-                {
                     "ecode": "03008025",
                     "intro": "Hotend hållarens hempositionerings avstånd är för långt. Kontrollera att kuggremmen och motorns kugghjul inte är lösa eller skadade."
                 },
@@ -19920,20 +20052,12 @@
                     "intro": "Laser/kalibrerings läge: Ta bort alla hotends från hållaren innan du försöker igen."
                 },
                 {
-                    "ecode": "07058034",
-                    "intro": "Det gick inte att ta upp hotenden från hållaren i position 6. Kontrollera om det finns filament rester eller fastnat material."
+                    "ecode": "07008033",
+                    "intro": "Det gick inte att placera hotenden i hållare position 1. Kontrollera om det finns filament rester eller fastnat material."
                 },
                 {
-                    "ecode": "07058033",
-                    "intro": "Det gick inte att placera hotend i hållare position 6. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "07018033",
-                    "intro": "Det gick inte att placera hotend i hållare position 2. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "07028034",
-                    "intro": "Det gick inte att ta upp hotend från hållaren i position 3. Kontrollera om det finns filament rester eller fastnat material."
+                    "ecode": "07008030",
+                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
                 },
                 {
                     "ecode": "18018034",
@@ -19960,20 +20084,20 @@
                     "intro": "Det gick inte att placera hotenden i hållare position 6. Kontrollera om det finns filament rester eller fastnat material."
                 },
                 {
-                    "ecode": "07008033",
-                    "intro": "Det gick inte att placera hotenden i hållare position 1. Kontrollera om det finns filament rester eller fastnat material."
+                    "ecode": "07058034",
+                    "intro": "Det gick inte att ta upp hotenden från hållaren i position 6. Kontrollera om det finns filament rester eller fastnat material."
                 },
                 {
-                    "ecode": "07008030",
-                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
+                    "ecode": "07058033",
+                    "intro": "Det gick inte att placera hotend i hållare position 6. Kontrollera om det finns filament rester eller fastnat material."
                 },
                 {
-                    "ecode": "07008035",
-                    "intro": "Hotend hållarens grova hempositionering misslyckades. Kontrollera om det finns hinder eller om byggplattan är feljusterad."
+                    "ecode": "07018033",
+                    "intro": "Det gick inte att placera hotend i hållare position 2. Kontrollera om det finns filament rester eller fastnat material."
                 },
                 {
-                    "ecode": "18008035",
-                    "intro": "Hotend hållarens grova hempositionering misslyckades. Kontrollera om det finns hinder eller om byggplattan är feljusterad."
+                    "ecode": "07028034",
+                    "intro": "Det gick inte att ta upp hotend från hållaren i position 3. Kontrollera om det finns filament rester eller fastnat material."
                 },
                 {
                     "ecode": "0300C070",
@@ -21764,10 +21888,6 @@
                     "intro": "Timeout för rensning av gammalt filament: Kontrollera om filament sitter fast eller om extrudern är igensatt."
                 },
                 {
-                    "ecode": "18058007",
-                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
-                },
-                {
                     "ecode": "18008013",
                     "intro": "Timeout för rensning av gammalt filament: Kontrollera om filament sitter fast eller om extrudern är igensatt."
                 },
@@ -21780,28 +21900,12 @@
                     "intro": "Timeout för rensning av gammalt filament: Kontrollera om filament sitter fast eller om extrudern är igensatt."
                 },
                 {
-                    "ecode": "07078007",
-                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
-                },
-                {
-                    "ecode": "18078007",
-                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
-                },
-                {
                     "ecode": "18FE8024",
                     "intro": "Kalibrering av extruder positionen misslyckades; se assistenten."
                 },
                 {
                     "ecode": "18058013",
                     "intro": "Timeout för rensning av gammalt filament: Kontrollera om filament sitter fast eller om extrudern är igensatt."
-                },
-                {
-                    "ecode": "07058007",
-                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
-                },
-                {
-                    "ecode": "18018007",
-                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
                 },
                 {
                     "ecode": "18FE8001",
@@ -21814,14 +21918,6 @@
                 {
                     "ecode": "07048013",
                     "intro": "Timeout för rensning av gammalt filament: Kontrollera om filament sitter fast eller om extrudern är igensatt."
-                },
-                {
-                    "ecode": "07048007",
-                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
-                },
-                {
-                    "ecode": "18048007",
-                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
                 },
                 {
                     "ecode": "05008071",
@@ -21842,14 +21938,6 @@
                 {
                     "ecode": "05008067",
                     "intro": "Placera en LightGrip skärmatta på skärskyddets bas."
-                },
-                {
-                    "ecode": "07018007",
-                    "intro": "Misslyckades med att extrudera filamentet. Kontrollera om extrudern är igensatt."
-                },
-                {
-                    "ecode": "07028007",
-                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
                 },
                 {
                     "ecode": "03008042",
@@ -21874,10 +21962,6 @@
                 {
                     "ecode": "07FF8001",
                     "intro": "Det gick inte att klippa filamentet på den högra extrudern. Kontrollera kniven."
-                },
-                {
-                    "ecode": "07038007",
-                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
                 },
                 {
                     "ecode": "07FE8013",
@@ -21932,10 +22016,6 @@
                     "intro": "Timeout för rensning av gammalt filament: Kontrollera om filament sitter fast eller om extrudern är igensatt."
                 },
                 {
-                    "ecode": "07008007",
-                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
-                },
-                {
                     "ecode": "18FE8013",
                     "intro": "Timeout rensning av gammalt filament från vänster extruder: Kontrollera om filamentet har fastnat eller om extrudern är igensatt."
                 },
@@ -21944,24 +22024,12 @@
                     "intro": "Timeout för rensning av gammalt filament: Kontrollera om filament sitter fast eller om extrudern är igensatt."
                 },
                 {
-                    "ecode": "18038007",
-                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
-                },
-                {
                     "ecode": "18FF8002",
                     "intro": "Skäret på den högra extrudern har fastnat. Dra ut skärhandtaget."
                 },
                 {
                     "ecode": "18FF8020",
                     "intro": "Extruderbyte misslyckades; se assistenten."
-                },
-                {
-                    "ecode": "18028007",
-                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
-                },
-                {
-                    "ecode": "18008007",
-                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
                 },
                 {
                     "ecode": "07078013",
@@ -21980,20 +22048,12 @@
                     "intro": "Kalibrering av extruder positionen misslyckades; se assistenten."
                 },
                 {
-                    "ecode": "18068007",
-                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
-                },
-                {
                     "ecode": "18078013",
                     "intro": "Timeout för rensning av gammalt filament: Kontrollera om filament sitter fast eller om extrudern är igensatt."
                 },
                 {
                     "ecode": "18FF8001",
                     "intro": "Det gick inte att klippa filamentet på höger extruder. Kontrollera kniven."
-                },
-                {
-                    "ecode": "07068007",
-                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt."
                 },
                 {
                     "ecode": "07FF8010",

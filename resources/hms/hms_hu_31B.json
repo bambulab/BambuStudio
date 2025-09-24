@@ -1,130 +1,186 @@
 {
     "result": 0,
-    "t": 1757425628,
-    "ver": 202509091807,
+    "t": 1758214990,
+    "ver": 202511160923,
     "data": {
         "device_hms": {
-            "ver": 202509091807,
+            "ver": 202511160923,
             "hu": [
                 {
-                    "ecode": "1A00040000020001",
-                    "intro": "A hotend levált a hotendtartó 4. pozíciójáról. Kérjük, helyezd vissza. Kézzel mozgasd el a szerszámfejet a tartótól, majd kattints a \"Folytatás\" gombra."
+                    "ecode": "0300AB0000020003",
+                    "intro": "A jobb hotend hőszigetelőjén lévő hőmérséklet-érzékelő rendellenes. A dugulások elkerülése érdekében a hűtőventilátor folyamatosan magas sebességgel fog működni. A szenzor problémáját akkor lehet megoldani, amikor a nyomtatás inaktív."
                 },
                 {
-                    "ecode": "1A00020000020001",
-                    "intro": "A hotend levált a hotendtartó 2. pozíciójáról. Kérjük, helyezd vissza. Kézzel mozgasd el a szerszámfejet a tartótól, majd kattints a \"Folytatás\" gombra."
-                },
-                {
-                    "ecode": "1A00050000020001",
-                    "intro": "A hotend levált a hotendtartó 5. pozíciójáról. Kérjük, helyezd vissza. Kézzel mozgasd el a szerszámfejet a tartótól, majd kattints a \"Folytatás\" gombra."
-                },
-                {
-                    "ecode": "1A00060000020001",
-                    "intro": "A hotend levált a hotendtartó 6. pozíciójáról. Kérjük, helyezd vissza. Kézzel mozgasd el a szerszámfejet a tartótól, majd kattints a \"Folytatás\" gombra."
-                },
-                {
-                    "ecode": "1A00010000020001",
-                    "intro": "A hotend levált a hotendtartó 1. pozíciójáról. Kérjük, helyezd vissza. Kézzel mozgasd el a szerszámfejet a tartótól, majd kattints a \"Folytatás\" gombra."
-                },
-                {
-                    "ecode": "1A00030000020001",
-                    "intro": "A hotend levált a hotendtartó 3. pozíciójáról. Kérjük, helyezd vissza. Kézzel mozgasd el a szerszámfejet a tartótól, majd kattints a \"Folytatás\" gombra."
-                },
-                {
-                    "ecode": "1A00060000020002",
-                    "intro": "Hiba történt a 6. forrasztófej behelyezése/szabályozása közben. Kérjük, helyezze vissza a szerszámgépbe, majd kézzel mozgassa a szerszámgépet a gép közepére, mielőtt folytatná."
-                },
-                {
-                    "ecode": "1A00120000020010",
-                    "intro": "A hotendváltó rendszer nincs kalibrálva. Kérjük, kövesd az utasításokat a kalibrálás befejezéséhez."
-                },
-                {
-                    "ecode": "0704260000020001",
-                    "intro": "Az indukciós hőfej felforrósodik, és az AMS E szárító teljesítménye csökkenni fog. Kérjük, csatlakoztassa az áramadaptert, vagy várja meg, amíg a hőfej befejezi a felforrósodást."
+                    "ecode": "0C00020000010001",
+                    "intro": "A magasságmérő lézer nem világít. Ellenőrizd, hogy nem zavarja-e valami a rálátást vagy nincs-e kilazulva a szerszámfej kamerájának kábele."
                 },
                 {
                     "ecode": "1A00030000020002",
-                    "intro": "Hiba történt a forrófej 3 lekérdezése/szülése közben. Kérjük, helyezze vissza a szerszámgépbe, majd kézzel mozgassa a szerszámgépet a gép közepére, mielőtt folytatná."
+                    "intro": "Hiba történt a 3. hotend felvételekor/lerakásakor. Helyezd vissza a szerszámfejbe, majd a folytatás előtt kézzel mozgasd a szerszámfejet az asztal közepére."
                 },
                 {
                     "ecode": "1A00010000020002",
-                    "intro": "Hiba történt a forrófej 1 lekérése/szülése közben. Kérjük, helyezze vissza a szerszámgépbe, majd kézzel mozgassa a szerszámgépet a gép közepére, mielőtt folytatná."
+                    "intro": "Hiba történt az 1. hotend felvételekor/lerakásakor. Helyezd vissza a szerszámfejbe, majd a folytatás előtt kézzel mozgasd a szerszámfejet az asztal közepére."
                 },
                 {
                     "ecode": "1A00050000020002",
-                    "intro": "Hiba történt a 5. forrasztófej behelyezése/szabályozása közben. Kérjük, helyezze vissza a szerszámgépbe, majd kézzel mozgassa a szerszámgépet a gép közepére, mielőtt folytatná."
-                },
-                {
-                    "ecode": "1804260000020001",
-                    "intro": "Az indukciós hőfej felforrósodik, és az AMS-HT E szárító teljesítménye csökkenni fog. Kérjük, csatlakoztassa az áramadaptert, vagy várja meg, amíg a hőfej befejezi a felforrósodást."
-                },
-                {
-                    "ecode": "0702260000020001",
-                    "intro": "Az indukciós hőfej felforrósodik, és az AMS C szárító teljesítménye csökkenni fog. Kérjük, csatlakoztassa az áramadaptert, vagy várja meg, amíg a hőfej befejezi a felforrósodást."
-                },
-                {
-                    "ecode": "0700260000020001",
-                    "intro": "Az indukciós hőfej felforrósodik, és az AMS A szárító teljesítménye csökkenni fog. Kérjük, csatlakoztassa az áramadaptert, vagy várja meg, amíg a hőfej befejezi a felforrósodást."
+                    "intro": "Hiba történt az 5. hotend felvételekor/lerakásakor. Helyezd vissza a szerszámfejbe, majd a folytatás előtt kézzel mozgasd a szerszámfejet az asztal közepére."
                 },
                 {
                     "ecode": "1A00040000020002",
-                    "intro": "Hiba történt a forrófej 4 lekérdezése/szülése közben. Kérjük, helyezze vissza a szerszámgépbe, majd kézzel mozgassa a szerszámgépet a gép közepére, mielőtt folytatná."
-                },
-                {
-                    "ecode": "0701260000020001",
-                    "intro": "Az indukciós hőfej felforrósodik, és az AMS B szárító teljesítménye csökkenni fog. Kérjük, csatlakoztassa az áramadaptert, vagy várja meg, amíg a hőfej befejezi a felforrósodást."
-                },
-                {
-                    "ecode": "1801260000020001",
-                    "intro": "Az indukciós hőfej felforrósodik, és az AMS-HT B szárító teljesítménye csökkenni fog. Kérjük, csatlakoztassa az áramadaptert, vagy várja meg, amíg a hőfej befejezi a felforrósodást."
-                },
-                {
-                    "ecode": "1800260000020001",
-                    "intro": "Az indukciós hőfej felforrósodik, és az AMS-HT A szárító teljesítménye csökkenni fog. Kérjük, csatlakoztassa az áramadaptert, vagy várja meg, amíg a hőfej befejezi a felforrósodást."
-                },
-                {
-                    "ecode": "1805260000020001",
-                    "intro": "Az indukciós hőfej felforrósodik, és az AMS-HT F szárító teljesítménye csökkenni fog. Kérjük, csatlakoztassa az áramadaptert, vagy várja meg, amíg a hőfej befejezi a felforrósodást."
+                    "intro": "Hiba történt a 4. hotend felvételekor/lerakásakor. Helyezd vissza a szerszámfejbe, majd a folytatás előtt kézzel mozgasd a szerszámfejet az asztal közepére."
                 },
                 {
                     "ecode": "1A00020000020002",
-                    "intro": "Hiba történt a forróvég 2 lekérdezése/szülése közben. Kérjük, helyezze vissza a szerszámgépbe, majd kézzel mozgassa a szerszámgépet a gép közepére, mielőtt folytatná."
+                    "intro": "Hiba történt a 2. hotend felvételekor/lerakásakor. Helyezd vissza a szerszámfejbe, majd a folytatás előtt kézzel mozgasd a szerszámfejet az asztal közepére."
                 },
                 {
-                    "ecode": "1803260000020001",
-                    "intro": "Az indukciós hőfej felforrósodik, és az AMS-HT D szárító teljesítménye csökkenni fog. Kérjük, csatlakoztassa az áramadaptert, vagy várja meg, amíg a hőfej befejezi a felforrósodást."
+                    "ecode": "0700F00000020001",
+                    "intro": "Szálas és hőfej illesztése sikertelen volt. Kérjük, ellenőrizze, hogy a hőfej a hőfej tartó 1. helyén megfelelően van telepítve."
                 },
                 {
-                    "ecode": "0707260000020001",
-                    "intro": "Az indukciós hőfej felforrósodik, és az AMS H szárító teljesítménye csökkenni fog. Kérjük, csatlakoztassa az áramadaptert, vagy várja meg, amíg a hőfej befejezi a felforrósodást."
+                    "ecode": "0703F00000020001",
+                    "intro": "Szálas és forróvég illesztés sikertelen. Kérjük, ellenőrizze, hogy a forróvég a forróvég tartó 4. nyílásába helyesen van-e telepítve."
                 },
                 {
-                    "ecode": "1806260000020001",
-                    "intro": "Az indukciós hőfej felforrósodik, és az AMS-HT G szárító teljesítménye csökkenni fog. Kérjük, csatlakoztassa az áramadaptert, vagy várja meg, amíg a hőfej befejezi a felforrósodást."
+                    "ecode": "0701F00000020001",
+                    "intro": "Szálon és hotend illesztés sikertelen. Kérjük, ellenőrizze, hogy a hotend a hotend tartó 2. nyílásában helyesen van telepítve."
                 },
                 {
-                    "ecode": "0703260000020001",
-                    "intro": "Az indukciós hőfej felforrósodik, és az AMS D szárító teljesítménye csökkenni fog. Kérjük, csatlakoztassa az áramadaptert, vagy várja meg, amíg a hőfej befejezi a felforrósodást."
+                    "ecode": "0702F00000020001",
+                    "intro": "Szálon és hotend illesztés sikertelen. Kérjük, ellenőrizze, hogy a hotend a hotend tartó 3. nyílásában helyesen van-e telepítve."
                 },
                 {
-                    "ecode": "1802260000020001",
-                    "intro": "Az indukciós hőfej felforrósodik, és az AMS-HT C szárító teljesítménye csökkenni fog. Kérjük, csatlakoztassa az áramadaptert, vagy várja meg, amíg a hőfej befejezi a felforrósodást."
+                    "ecode": "0704F00000020001",
+                    "intro": "Szálas és hőfej illesztése sikertelen volt. Kérjük, ellenőrizze, hogy a hőfej a hőfej tartó 5. nyílásában megfelelően van telepítve."
                 },
                 {
-                    "ecode": "0706260000020001",
-                    "intro": "Az indukciós hőfej felforrósodik, és az AMS G szárító teljesítménye csökkenni fog. Kérjük, csatlakoztassa az áramadaptert, vagy várja meg, amíg a hőfej befejezi a felforrósodást."
+                    "ecode": "0705F00000020001",
+                    "intro": "Szálon és hotend illesztés sikertelen. Kérjük, ellenőrizze, hogy a hotend a hotend tartó 6. nyílásában helyesen van telepítve."
                 },
                 {
-                    "ecode": "1807260000020001",
-                    "intro": "Az indukciós hőfej felforrósodik, és az AMS-HT H szárító teljesítménye csökkenni fog. Kérjük, csatlakoztassa az áramadaptert, vagy várja meg, amíg a hőfej befejezi a felforrósodást."
+                    "ecode": "1A00060000020001",
+                    "intro": "Hiba történt a hotend lehelyezése/felvétele során. A folytatáshoz helyezd vissza a hotendet a tartó 6. nyílásába, majd kézzel mozgasd a szerszámfejet a tárgyasztal közepére."
                 },
                 {
-                    "ecode": "0705260000020001",
-                    "intro": "Az indukciós hőfej felforrósodik, és az AMS F szárító teljesítménye csökkenni fog. Kérjük, csatlakoztassa az áramadaptert, vagy várja meg, amíg a hőfej befejezi a felforrósodást."
+                    "ecode": "1A00060000020002",
+                    "intro": "Hiba történt a 6. hotend felvételekor/lerakásakor. Helyezd vissza a szerszámfejbe, majd a folytatás előtt kézzel mozgasd a szerszámfejet az asztal közepére."
+                },
+                {
+                    "ecode": "1A00010000020001",
+                    "intro": "Hiba történt a hotend lehelyezése/felvétele során. A folytatáshoz helyezd vissza a hotendet a tartó 1. nyílásába, majd kézzel mozgasd a szerszámfejet a tárgyasztal közepére."
+                },
+                {
+                    "ecode": "1A00040000020001",
+                    "intro": "Hiba történt a hotend lehelyezése/felvétele során. A folytatáshoz helyezd vissza a hotendet a tartó 4. nyílásába, majd kézzel mozgasd a szerszámfejet a tárgyasztal közepére."
+                },
+                {
+                    "ecode": "1A00030000020001",
+                    "intro": "Hiba történt a hotend lehelyezése/felvétele során. A folytatáshoz helyezd vissza a hotendet a tartó 3. nyílásába, majd kézzel mozgasd a szerszámfejet a tárgyasztal közepére."
+                },
+                {
+                    "ecode": "1A00020000020001",
+                    "intro": "Hiba történt a hotend lehelyezése/felvétele során. A folytatáshoz helyezd vissza a hotendet a tartó 2. nyílásába, majd kézzel mozgasd a szerszámfejet a tárgyasztal közepére."
+                },
+                {
+                    "ecode": "1A00050000020001",
+                    "intro": "Hiba történt a hotend lehelyezése/felvétele során. A folytatáshoz helyezd vissza a hotendet a tartó 5. nyílásába, majd kézzel mozgasd a szerszámfejet a tárgyasztal közepére."
                 },
                 {
                     "ecode": "1A00120000020001",
                     "intro": "A hotendtartó kalibrálása sikertelen: a kamera kalibrációs adatai hibása. Tisztítsd meg a fúvókát, és ellenőrizd, hogy az asztalon lévő hőpapír nem sérült-e meg."
+                },
+                {
+                    "ecode": "0300DB0000020001",
+                    "intro": "Lézermodul észlelve. Kérjük, helyesen szerelje fel a megfelelő fúvókát a megfelelő Lézermodul Rögzítési Kalibráláshoz."
+                },
+                {
+                    "ecode": "0300DA0000020001",
+                    "intro": "Lézermodul észlelve. Kérjük távolítsa el a forrófejet a forrófej tartóról, hogy megakadályozza a lézeres feldolgozás maradványainak a nyomtatási teljesítményre gyakorolt hatását."
+                },
+                {
+                    "ecode": "0300020000010001",
+                    "intro": "Jobb extruderkúp hőmérséklet hiba. A fűtőtekercs rövidzárlatot okozhat. Kérjük, ellenőrizze, hogy az szigetelőréteg érintetlen-e."
+                },
+                {
+                    "ecode": "0300020000010002",
+                    "intro": "Jobb extruderkúp hőmérséklet hiba. A fűtőtekercs lehet, hogy áramkör nélküli. Kérjük, ellenőrizze, hogy a csatlakozó laza-e."
+                },
+                {
+                    "ecode": "0300020000010003",
+                    "intro": "Jobb extruderkúp hőmérséklet hiba. A fűtőmag túlmelegedhet."
+                },
+                {
+                    "ecode": "0300020000010008",
+                    "intro": "A megfelelő fúvóka hőmérsékleti hiba, a fűtés nem sikerült."
+                },
+                {
+                    "ecode": "1A00120000020010",
+                    "intro": "Az indukciós hotendtartó nem lett beállítva. Kérjük, kövesd az utasításokat a beállítás befejezéséhez, mielőtt használnád."
+                },
+                {
+                    "ecode": "0704260000020001",
+                    "intro": "Az indukciós hotend melegszik, ezért az AMS E csak csökkent szárítási teljesítménnyel üzemel. Csatlakoztass egy hálózati adaptert, vagy várd meg, amíg a hotend befejezi a fűtést."
+                },
+                {
+                    "ecode": "1804260000020001",
+                    "intro": "Az indukciós hotend melegszik, ezért az AMS-HT E csak csökkent szárítási teljesítménnyel üzemel. Csatlakoztass egy hálózati adaptert, vagy várd meg, amíg a hotend befejezi a fűtést."
+                },
+                {
+                    "ecode": "0702260000020001",
+                    "intro": "Az indukciós hotend melegszik, ezért az AMS C csak csökkent szárítási teljesítménnyel üzemel. Csatlakoztass egy hálózati adaptert, vagy várd meg, amíg a hotend befejezi a fűtést."
+                },
+                {
+                    "ecode": "0700260000020001",
+                    "intro": "Az indukciós hotend melegszik, ezért az AMS A csak csökkent szárítási teljesítménnyel üzemel. Csatlakoztass egy hálózati adaptert, vagy várd meg, amíg a hotend befejezi a fűtést."
+                },
+                {
+                    "ecode": "0701260000020001",
+                    "intro": "Az indukciós hotend melegszik, ezért az AMS B csak csökkent szárítási teljesítménnyel üzemel. Csatlakoztass egy hálózati adaptert, vagy várd meg, amíg a hotend befejezi a fűtést."
+                },
+                {
+                    "ecode": "1801260000020001",
+                    "intro": "Az indukciós hotend melegszik, ezért az AMS-HT B csak csökkent szárítási teljesítménnyel üzemel. Csatlakoztass egy hálózati adaptert, vagy várd meg, amíg a hotend befejezi a fűtést."
+                },
+                {
+                    "ecode": "1800260000020001",
+                    "intro": "Az indukciós hotend melegszik, ezért az AMS-HT A csak csökkent szárítási teljesítménnyel üzemel. Csatlakoztass egy hálózati adaptert, vagy várd meg, amíg a hotend befejezi a fűtést."
+                },
+                {
+                    "ecode": "1805260000020001",
+                    "intro": "Az indukciós hotend melegszik, ezért az AMS-HT F csak csökkent szárítási teljesítménnyel üzemel. Csatlakoztass egy hálózati adaptert, vagy várd meg, amíg a hotend befejezi a fűtést."
+                },
+                {
+                    "ecode": "1803260000020001",
+                    "intro": "Az indukciós hotend melegszik, ezért az AMS-HT D csak csökkent szárítási teljesítménnyel üzemel. Csatlakoztass egy hálózati adaptert, vagy várd meg, amíg a hotend befejezi a fűtést."
+                },
+                {
+                    "ecode": "0707260000020001",
+                    "intro": "Az indukciós hotend melegszik, ezért az AMS H csak csökkent szárítási teljesítménnyel üzemel. Csatlakoztass egy hálózati adaptert, vagy várd meg, amíg a hotend befejezi a fűtést."
+                },
+                {
+                    "ecode": "1806260000020001",
+                    "intro": "Az indukciós hotend melegszik, ezért az AMS-HT G csak csökkent szárítási teljesítménnyel üzemel. Csatlakoztass egy hálózati adaptert, vagy várd meg, amíg a hotend befejezi a fűtést."
+                },
+                {
+                    "ecode": "0703260000020001",
+                    "intro": "Az indukciós hotend melegszik, ezért az AMS D csak csökkent szárítási teljesítménnyel üzemel. Csatlakoztass egy hálózati adaptert, vagy várd meg, amíg a hotend befejezi a fűtést."
+                },
+                {
+                    "ecode": "1802260000020001",
+                    "intro": "Az indukciós hotend melegszik, ezért az AMS-HT C csak csökkent szárítási teljesítménnyel üzemel. Csatlakoztass egy hálózati adaptert, vagy várd meg, amíg a hotend befejezi a fűtést."
+                },
+                {
+                    "ecode": "0706260000020001",
+                    "intro": "Az indukciós hotend melegszik, ezért az AMS G csak csökkent szárítási teljesítménnyel üzemel. Csatlakoztass egy hálózati adaptert, vagy várd meg, amíg a hotend befejezi a fűtést."
+                },
+                {
+                    "ecode": "1807260000020001",
+                    "intro": "Az indukciós hotend melegszik, ezért az AMS-HT H csak csökkent szárítási teljesítménnyel üzemel. Csatlakoztass egy hálózati adaptert, vagy várd meg, amíg a hotend befejezi a fűtést."
+                },
+                {
+                    "ecode": "0705260000020001",
+                    "intro": "Az indukciós hotend melegszik, ezért az AMS F csak csökkent szárítási teljesítménnyel üzemel. Csatlakoztass egy hálózati adaptert, vagy várd meg, amíg a hotend befejezi a fűtést."
                 },
                 {
                     "ecode": "0300AB0000010001",
@@ -351,6 +407,10 @@
                     "intro": "A hotend és a hotendtartó dokkolása közben áramkimaradás történt. Kérjük, helyezd vissza a hotendet a 4. pozícióból a szerszámfejre, és mozgasd a szerszámfejet a tárgyasztal közepére, hogy elkerüld az ütközést a tartóval."
                 },
                 {
+                    "ecode": "1A00200000020001",
+                    "intro": "Áramkimaradás történt a hotend csere közben. Kérjük, kövesse a Wiki útmutatóját a beállítás helyreállításához, különben a nyomtatás sikertelen lehet."
+                },
+                {
                     "ecode": "1A00120000020002",
                     "intro": "A hotendtartó kalibrálása sikertelen. A jelölés nem észlelhető. Kérjük, ellenőrizd, hogy az tartón található jelölés nem sérült-e meg vagy nincs-e letakarva."
                 },
@@ -359,16 +419,16 @@
                     "intro": "Az indukciós hotendtartó kalibrálása sikertelen: az eredmény meghaladta a mozgási tartományt. Ellenőrizd, hogy a tartó szerkezete deformálódott-e."
                 },
                 {
-                    "ecode": "1A00200000020001",
-                    "intro": "Áramkimaradás történt a hotend csere közben. Kérjük, kövesse a Wiki útmutatóját a beállítás helyreállításához, különben a nyomtatás sikertelen lehet."
-                },
-                {
                     "ecode": "1A00E00000010005",
                     "intro": "Az indukciós hotendtartó elakadt az alaphelyzetbe állítás során. Kérjük, távolítsd el az útban lévő akadályokat."
                 },
                 {
                     "ecode": "1A00E00000010006",
                     "intro": "Az indukciós hotendtartó alaphelyzetbe állítása során túl sokat mozog, valószínűleg a szíj lazasága miatt. Kérjük, szükség esetén feszíts a szíjon."
+                },
+                {
+                    "ecode": "1A00100000020001",
+                    "intro": "Szerszámfej XY-tengelye/hotend tartója nem központos, nem végezhető el a szerszámváltás."
                 },
                 {
                     "ecode": "1A00220000010002",
@@ -427,10 +487,6 @@
                     "intro": "A hotend cseréje sikertelen: nem található hotend a 4. férőhelyen."
                 },
                 {
-                    "ecode": "1A00100000020001",
-                    "intro": "Szerszámfej XY-tengelye/hotend tartója nem központos, nem végezhető el a szerszámváltás."
-                },
-                {
                     "ecode": "0503000000030027",
                     "intro": ""
                 },
@@ -481,10 +537,6 @@
                 {
                     "ecode": "030002000001000B",
                     "intro": "A jobb oldali fúvóka hőmérséklete nem megfelelő. Lehet, hogy a hotend nincs megfelelően felszerelve vagy a vezeték nélküli hőmérsékletmérő panel meghibásodott."
-                },
-                {
-                    "ecode": "0C00020000010001",
-                    "intro": "A magasságmérő lézer nem világít. Ellenőrizd, hogy nem zavarja-e valami a rálátást vagy nincs-e kilazulva a szerszámfej kamerájának kábele."
                 },
                 {
                     "ecode": "0300D70000020001",
@@ -539,12 +591,12 @@
                     "intro": "A tűzoltó gázpalack nincs beszerelve. Kérjük, ellenőrizd a tűzoltó készülék oldalán."
                 },
                 {
-                    "ecode": "0500050000020030",
-                    "intro": ""
-                },
-                {
                     "ecode": "0501040000030002",
                     "intro": "A menetes szár kenésre szorul."
+                },
+                {
+                    "ecode": "0500050000020030",
+                    "intro": ""
                 },
                 {
                     "ecode": "0300910000010008",
@@ -639,38 +691,6 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "1800020000020002",
-                    "intro": "AMS-HT A: nem érkezett jel a távolságmérőből. Előfordulhat, hogy a távolságmérő csatlakozója nem érintkezik megfelelően."
-                },
-                {
-                    "ecode": "0500050000010009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500050000010008",
-                    "intro": ""
-                },
-                {
-                    "ecode": "050005000001000B",
-                    "intro": ""
-                },
-                {
-                    "ecode": "050005000001000A",
-                    "intro": ""
-                },
-                {
-                    "ecode": "050005000001000C",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00010000020016",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00010000020015",
-                    "intro": ""
-                },
-                {
                     "ecode": "0500010000020003",
                     "intro": ""
                 },
@@ -759,6 +779,38 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "1800020000020002",
+                    "intro": "AMS-HT A: nem érkezett jel a távolságmérőből. Előfordulhat, hogy a távolságmérő csatlakozója nem érintkezik megfelelően."
+                },
+                {
+                    "ecode": "0500050000010009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500050000010008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050005000001000B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050005000001000A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050005000001000C",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00010000020016",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00010000020015",
+                    "intro": ""
+                },
+                {
                     "ecode": "0500030000020010",
                     "intro": ""
                 },
@@ -783,6 +835,14 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "0C00040000030028",
+                    "intro": "A Vágómodul eltolási kalibrálása sikertelen volt, ami pontatlan vágásokhoz vezethet. Kérjük, győződjön meg róla, hogy a 80g fehér nyomtatópapír (levél papírvastagság) megfelelően van elhelyezve, és ellenőrizze, hogy a vágópengének a hegye el van-e kopva."
+                },
+                {
+                    "ecode": "0C00040000030026",
+                    "intro": "A láng érzékelés pontosságának javítása érdekében a jobb kamra fénye automatikusan kikapcsolódott."
+                },
+                {
                     "ecode": "0C0001000002001A",
                     "intro": ""
                 },
@@ -797,14 +857,6 @@
                 {
                     "ecode": "0500060000020052",
                     "intro": ""
-                },
-                {
-                    "ecode": "0C00040000030028",
-                    "intro": "A Vágómodul eltolási kalibrálása sikertelen volt, ami pontatlan vágásokhoz vezethet. Kérjük, győződjön meg róla, hogy a 80g fehér nyomtatópapír (levél papírvastagság) megfelelően van elhelyezve, és ellenőrizze, hogy a vágópengének a hegye el van-e kopva."
-                },
-                {
-                    "ecode": "0C00040000030026",
-                    "intro": "A láng érzékelés pontosságának javítása érdekében a jobb kamra fénye automatikusan kikapcsolódott."
                 },
                 {
                     "ecode": "0300D50000020005",
@@ -1113,10 +1165,6 @@
                 {
                     "ecode": "03001E0000010003",
                     "intro": "A bal oldali fúvóka hőmérséklete nem megfelelő; a fűtőelem túlmelegedett."
-                },
-                {
-                    "ecode": "0300020000010003",
-                    "intro": "A jobb oldali fúvóka hőmérséklete nem megfelelő; a fűtőelem túlmelegedett."
                 },
                 {
                     "ecode": "0707620000020001",
@@ -6827,10 +6875,6 @@
                     "intro": "A bal oldali fúvóka hőmérséklete nem megfelelő; az érzékelő rövidzárlatos, kérjük ellenőrizd a csatlakozót."
                 },
                 {
-                    "ecode": "0300020000010002",
-                    "intro": "A jobb oldali fúvóka hőmérséklete nem megfelelő; a fűtőelem szakadt."
-                },
-                {
                     "ecode": "0300020000010006",
                     "intro": "A jobb oldali fúvóka hőmérséklete nem megfelelő; az érzékelő rövidzárlatos, kérjük ellenőrizd a csatlakozót."
                 },
@@ -7691,14 +7735,6 @@
                     "intro": "AMS H slot 2: időtúllépés a filament AMS-ből való kitöltése során."
                 },
                 {
-                    "ecode": "0300020000010001",
-                    "intro": "A jobb oldali fúvóka hőmérséklete nem megfelelő; a fűtőelem rövidzárlatos."
-                },
-                {
-                    "ecode": "03001E0000010001",
-                    "intro": "A bal oldali fúvóka hőmérséklete nem megfelelő; a fűtőelem rövidzárlatos."
-                },
-                {
                     "ecode": "0702230000020018",
                     "intro": "AMS C slot 4: a segédmotor elakadt az AMS közelében lévő csőben keletkezett túlzott ellenállás miatt."
                 },
@@ -7871,6 +7907,14 @@
                     "intro": "AMS-HT H slot 3: időtúllépés a filament AMS-ből való kitöltése során."
                 },
                 {
+                    "ecode": "03001E0000010001",
+                    "intro": "A bal oldali fúvóka hőmérséklete nem megfelelő; a fűtőelem rövidzárlatos."
+                },
+                {
+                    "ecode": "0300900000010003",
+                    "intro": "A kamrafűtés meghibásodott. A tápegység hőmérséklete túl magas."
+                },
+                {
                     "ecode": "1802230000020011",
                     "intro": "AMS-HT C slot 4: időtúllépés a filament AMS-be való visszahúzása során."
                 },
@@ -8035,18 +8079,6 @@
                     "intro": "AMS-HT F slot 4: a segédmotor elakadt a filament puffer és a szerszámfej között lévő csőben keletkezett túlzott ellenállás miatt."
                 },
                 {
-                    "ecode": "0300900000010003",
-                    "intro": "A kamrafűtés meghibásodott. A tápegység hőmérséklete túl magas."
-                },
-                {
-                    "ecode": "0300900000010001",
-                    "intro": "A kamrafűtés meghibásodott. Lehet, hogy a kamrafűtés nem képes a meleg levegő befúvására."
-                },
-                {
-                    "ecode": "0300900000010002",
-                    "intro": "A kamrafűtés hibásan működik. Lehet, hogy a kamra nincs bezárva, vagy a külső hőmérséklet túl alacsony, esetleg a tápegység szellőzőnyílása el lett torlaszolva."
-                },
-                {
                     "ecode": "0700230000020020",
                     "intro": "AMS A slot 4: a segédmotor elakadt a filament puffer közelében lévő csőben keletkezett túlzott ellenállás miatt."
                 },
@@ -8189,6 +8221,14 @@
                 {
                     "ecode": "1800220000020022",
                     "intro": "AMS-HT A slot 3: a segédmotor elakadt a szerszámfej közelében lévő csőben keletkezett túlzott ellenállás miatt."
+                },
+                {
+                    "ecode": "0300900000010001",
+                    "intro": "A kamrafűtés meghibásodott. Lehet, hogy a kamrafűtés nem képes a meleg levegő befúvására."
+                },
+                {
+                    "ecode": "0300900000010002",
+                    "intro": "A kamrafűtés hibásan működik. Lehet, hogy a kamra nincs bezárva, vagy a külső hőmérséklet túl alacsony, esetleg a tápegység szellőzőnyílása el lett torlaszolva."
                 },
                 {
                     "ecode": "0706210000020019",
@@ -11583,10 +11623,6 @@
                     "intro": "AMS H Slot 1 bemeneti Hall-jeladója nincs csatlakoztatva, ennek oka lehet a csatlakozó rossz érintkezése."
                 },
                 {
-                    "ecode": "0701210000020008",
-                    "intro": "AMS B Slot 2 bemeneti Hall-jeladója nincs csatlakoztatva, ennek oka lehet a csatlakozó rossz érintkezése."
-                },
-                {
                     "ecode": "1801130000020002",
                     "intro": "Az AMS-HT B slot 4 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
                 },
@@ -11761,6 +11797,10 @@
                 {
                     "ecode": "1802110000010001",
                     "intro": "Az AMS-HT C slot 2 motor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+                },
+                {
+                    "ecode": "0701210000020008",
+                    "intro": "AMS B Slot 2 bemeneti Hall-jeladója nincs csatlakoztatva, ennek oka lehet a csatlakozó rossz érintkezése."
                 },
                 {
                     "ecode": "0700220000020002",
@@ -13607,10 +13647,6 @@
                     "intro": "Titkosító chip meghibásodás"
                 },
                 {
-                    "ecode": "1807120000020002",
-                    "intro": "Az AMS-HT H slot 3 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
-                },
-                {
                     "ecode": "0707200000030002",
                     "intro": "AMS H Slot 1 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
                 },
@@ -13757,6 +13793,10 @@
                 {
                     "ecode": "1803110000010001",
                     "intro": "Az AMS-HT D slot 2 motor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+                },
+                {
+                    "ecode": "1807120000020002",
+                    "intro": "Az AMS-HT H slot 3 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
                 },
                 {
                     "ecode": "0700200000020005",
@@ -13947,10 +13987,6 @@
                     "intro": "Az RFID nem olvasható hardveres vagy szerkezeti hiba miatt."
                 },
                 {
-                    "ecode": "1804210000020001",
-                    "intro": "AMS-HT E Slot 2 filament elfogyott. Kérjük, helyezz be új filamentet."
-                },
-                {
                     "ecode": "1801200000020008",
                     "intro": "AMS-HT B Slot 1 bemeneti Hall-jeladója nincs csatlakoztatva, ennek oka lehet a csatlakozó rossz érintkezése."
                 },
@@ -14133,6 +14169,10 @@
                 {
                     "ecode": "1800560000030001",
                     "intro": "AMS-HT A szárító hűtést végez; kérjük használat előtt várj, amíg lehűl."
+                },
+                {
+                    "ecode": "1804210000020001",
+                    "intro": "AMS-HT E Slot 2 filament elfogyott. Kérjük, helyezz be új filamentet."
                 },
                 {
                     "ecode": "0700220000020001",
@@ -19565,35 +19605,19 @@
             ]
         },
         "device_error": {
-            "ver": 202509091807,
+            "ver": 202511160923,
             "hu": [
                 {
-                    "ecode": "03008029",
-                    "intro": "MC–hotend rack kommunikációs hiba. Kérjük, ellenőrizze, hogy a rack főlapkábel laza-e."
+                    "ecode": "05024023",
+                    "intro": "Indukciós hotend felismerési hiba történt. Kérjük, lépjen a „Hotends & Rack” oldalra, és kattintson az „Összes beolvasása” gombra az újbóli felismeréshez. Ha a probléma továbbra is fennáll, próbálja meg frissíteni a firmware-t a „Firmware” oldalon."
                 },
                 {
-                    "ecode": "05028022",
-                    "intro": "Indukciós hőfej ellenőrzése sikertelen volt. Kérjük, cserélje ki a hőfejet, majd próbálja újra."
+                    "ecode": "07008036",
+                    "intro": "Hotend állvány durva hazaállítás sikertelen. Kérjük, ellenőrizze az akadályokat, vagy hogy az építőlap nincs-e elcsúszva."
                 },
                 {
-                    "ecode": "0300802A",
-                    "intro": "Hotend állvány motor pozíció szenzor hiba. Ha a probléma továbbra is fennáll a próbálkozások után, indítsa újra a nyomtatót."
-                },
-                {
-                    "ecode": "03004016",
-                    "intro": "Fúvócs tisztítás sikertelen volt. Kattintson az Asszisztensre a hibaelhárításhoz."
-                },
-                {
-                    "ecode": "0300802B",
-                    "intro": "Hotend állvány motor hiba. Kérjük, ellenőrizze és távolítsa el az állvány mozgását akadályozó akadályokat, mielőtt folytatná."
-                },
-                {
-                    "ecode": "05024021",
-                    "intro": "Nem sikerült olvasni az indukciós hotend információkat. Kérjük, cserélje ki a hotendet, vagy indítsa újra a nyomtatót."
-                },
-                {
-                    "ecode": "05024018",
-                    "intro": "A hotendtartó nem lett kalibrálva, ezért a hotendváltás nem hajtható végre. Kérjük, végezd el a kalibrálást, mielőtt folytatnád."
+                    "ecode": "18008036",
+                    "intro": "Hotend állvány durva hazaállítás sikertelen. Kérjük, ellenőrizze az akadályokat, vagy hogy az építőlemez nincs-e elcsúszva."
                 },
                 {
                     "ecode": "07008018",
@@ -19676,6 +19700,114 @@
                     "intro": "Nem sikerült a hotendet a filamenthez rendelni a szeletelt fájlból; válaszd a „Folytatás” lehetőséget az újrapróbáláshoz."
                 },
                 {
+                    "ecode": "03008056",
+                    "intro": "Lézermodul észlelve. Kérjük távolítsa el a forrófejet a forrófej tartóról, hogy megakadályozza a lézeres feldolgozás maradványainak a nyomtatási teljesítményre gyakorolt hatását."
+                },
+                {
+                    "ecode": "1A004009",
+                    "intro": "A hotend állvány nincs beállítva. Kérjük, végezze el a beállítást, mielőtt a hotend cseréjét elvégezné."
+                },
+                {
+                    "ecode": "07018007",
+                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
+                },
+                {
+                    "ecode": "07028007",
+                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
+                },
+                {
+                    "ecode": "07038007",
+                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
+                },
+                {
+                    "ecode": "07008007",
+                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
+                },
+                {
+                    "ecode": "18058007",
+                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
+                },
+                {
+                    "ecode": "07078007",
+                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
+                },
+                {
+                    "ecode": "18078007",
+                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
+                },
+                {
+                    "ecode": "07058007",
+                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
+                },
+                {
+                    "ecode": "18038007",
+                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
+                },
+                {
+                    "ecode": "18018007",
+                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
+                },
+                {
+                    "ecode": "18028007",
+                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
+                },
+                {
+                    "ecode": "18008007",
+                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
+                },
+                {
+                    "ecode": "07048007",
+                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
+                },
+                {
+                    "ecode": "18068007",
+                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
+                },
+                {
+                    "ecode": "18048007",
+                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
+                },
+                {
+                    "ecode": "07068007",
+                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
+                },
+                {
+                    "ecode": "07008035",
+                    "intro": "Nem sikerült a szerszámtartó alaphelyzetbe állítása. Kérjük ellenőrizd, hogy nincs-e idegen anyag a tárgyasztalon vagy a tárgyasztal nincs-e elbillenve."
+                },
+                {
+                    "ecode": "18008035",
+                    "intro": "Nem sikerült a hotendtartó alaphelyzetbe állítása. Kérjük ellenőrizd, hogy nincs-e idegen anyag a tárgyasztalon vagy a tárgyasztal nincs-e elbillenve."
+                },
+                {
+                    "ecode": "03008029",
+                    "intro": "MC–hotendtartó kommunikációs hiba. Kérjük, ellenőrizd, hogy a tartó alaplapjának kábele kilazult-e."
+                },
+                {
+                    "ecode": "05028022",
+                    "intro": "Az indukciós hotend ellenőrzése sikertelen. Cseréld ki a hotendet, és próbáld újra."
+                },
+                {
+                    "ecode": "0300802A",
+                    "intro": "Hotendtartó motor pozícióérzékelő hiba. Ha a probléma újrapróbálkozás után is fennáll, indítsd újra a nyomtatót."
+                },
+                {
+                    "ecode": "03004016",
+                    "intro": "A fúvóka tisztítása sikertelen. Kattints az Asszisztensre a hibaelhárításhoz."
+                },
+                {
+                    "ecode": "0300802B",
+                    "intro": "Hotendtartó motor hiba. Kérjük, távolítsd el az összes lehetséges akadályt, mielőtt folytatnád."
+                },
+                {
+                    "ecode": "05024021",
+                    "intro": "Nem sikerült beolvasni az indukciós hotend információit. Cseréld ki a hotendet, vagy indítsd újra a nyomtatót."
+                },
+                {
+                    "ecode": "05024018",
+                    "intro": "A hotendtartó nincs kalibrálva, ezért a hotendváltás nem végezhető el. Kérjük, végezd el a tartó kalibrálását a készüléken."
+                },
+                {
                     "ecode": "03008053",
                     "intro": "Lézer modul észlelve. Kérjük, helyezd be megfelelően a jobb oldali fúvókát a lézer modul kalibrálásához."
                 },
@@ -19742,10 +19874,6 @@
                 {
                     "ecode": "05004047",
                     "intro": "A nyomtatás leállt, mert a rendelkezésre álló hotend mennyiség vagy modell nem egyezik a szeletelt fájlban megadottal. Kérjük, ellenőrizd a hotend modellt és mennyiséget a nyomtatási feladat újraindítása előtt."
-                },
-                {
-                    "ecode": "0500807E",
-                    "intro": "Kérjük, helyezd a StrongGrip vágólapot a vágáshoz szükséges védőlapra."
                 },
                 {
                     "ecode": "0500409F",
@@ -19816,6 +19944,10 @@
                     "intro": "Negyedik lézer tengely: az eszköz nem található. Kérjük, csatlakoztasd újra a modul kábelét vagy indítsd újra a nyomtatót."
                 },
                 {
+                    "ecode": "0500807E",
+                    "intro": "Kérjük, helyezd a StrongGrip vágólapot a vágáshoz szükséges védőlapra."
+                },
+                {
                     "ecode": "05008062",
                     "intro": "A tálca azonosítóját nem sikerült beolvasni. Kérjük, győződj meg arról, hogy a tálca mind a négy sarka megfelelően illeszkedik a tárgyasztalra és az azonosító látható. Amennyiben a tálcát erős fény éri, próbáld meg becsukni az ajtót és eltakarni a külső fényforrást."
                 },
@@ -19824,12 +19956,12 @@
                     "intro": "A hotendváltó rendszer elfoglalt; kérjük, tétlen állapotban végezd el a frissítést."
                 },
                 {
-                    "ecode": "0500808B",
-                    "intro": "A BirdsEye kamera beállítása nem sikerült. Kérjük, távolíts el minden tárgyat és a szőnyeget a tárgyasztalról, és győződj meg arról, hogy a tárgyasztal jelölései láthatóak. Ellenőrizd a BirdsEye kamerát, és távolíts el minden olyan tárgyat, amely akadályozhatja a kamera szabad kilátását."
-                },
-                {
                     "ecode": "0502C012",
                     "intro": "A feladat nem szüneteltethető."
+                },
+                {
+                    "ecode": "0500808B",
+                    "intro": "A BirdsEye kamera beállítása nem sikerült. Kérjük, távolíts el minden tárgyat és a szőnyeget a tárgyasztalról, és győződj meg arról, hogy a tárgyasztal jelölései láthatóak. Ellenőrizd a BirdsEye kamerát, és távolíts el minden olyan tárgyat, amely akadályozhatja a kamera szabad kilátását."
                 },
                 {
                     "ecode": "07FFC010",
@@ -19868,6 +20000,10 @@
                     "intro": "A szerszámcsere előtti felismerés sikertelen; kérjük, ellenőrizd a hotend helyzetét."
                 },
                 {
+                    "ecode": "03008081",
+                    "intro": "A tűzoltó gázpalack helytelenül van beszerelve. Kérjük, ellenőrizd a tűzoltó készülék oldalán."
+                },
+                {
                     "ecode": "07008034",
                     "intro": "Nem sikerült felvenni a hotendet az 1. pozícióból. Kérjük, ellenőrizd, hogy nem maradt-e benne filament vagy egyéb ragadós anyag."
                 },
@@ -19896,10 +20032,6 @@
                     "intro": "Nem sikerült behelyezni a hotendet a 3. pozícióba. Kérjük, ellenőrizd, hogy nem maradt-e benne filament vagy egyéb ragadós anyag."
                 },
                 {
-                    "ecode": "03008081",
-                    "intro": "A tűzoltó gázpalack helytelenül van beszerelve. Kérjük, ellenőrizd a tűzoltó készülék oldalán."
-                },
-                {
                     "ecode": "03008025",
                     "intro": "A hotendtartó alaphelyzetbe állítási távolsága túl nagy. Kérjük, ellenőrizd a szíj és a motor kerekének lazaságát vagy sérülését."
                 },
@@ -19920,20 +20052,12 @@
                     "intro": "Lézer/Kalibrációs mód: Kérjük, távolítsd el az összes hotendet a tartóból, mielőtt újra próbálkozna."
                 },
                 {
-                    "ecode": "07058034",
-                    "intro": "Nem sikerült felvenni a hotendet a 6. pozícióból. Kérjük, ellenőrizd, hogy nem maradt-e benne filament vagy egyéb ragadós anyag."
+                    "ecode": "07008033",
+                    "intro": "Nem sikerült behelyezni a hotendet az 1. pozícióba. Kérjük, ellenőrizd, hogy nem maradt-e benne filament vagy egyéb ragadós anyag."
                 },
                 {
-                    "ecode": "07058033",
-                    "intro": "Nem sikerült behelyezni a hotendet a 6. pozícióba. Kérjük, ellenőrizd, hogy nem maradt-e benne filament vagy egyéb ragadós anyag."
-                },
-                {
-                    "ecode": "07018033",
-                    "intro": "Nem sikerült behelyezni a hotendet a 2. pozícióba. Kérjük, ellenőrizd, hogy nem maradt-e benne filament vagy egyéb ragadós anyag."
-                },
-                {
-                    "ecode": "07028034",
-                    "intro": "Nem sikerült felvenni a hotendet a 3. pozícióból. Kérjük, ellenőrizd, hogy nem maradt-e benne filament vagy egyéb ragadós anyag."
+                    "ecode": "07008030",
+                    "intro": "A szerszámcsere előtti felismerés sikertelen; kérjük, ellenőrizd a hotend helyzetét."
                 },
                 {
                     "ecode": "18018034",
@@ -19960,20 +20084,20 @@
                     "intro": "Nem sikerült behelyezni a hotendet a 6. pozícióba. Kérjük, ellenőrizd, hogy nem maradt-e benne filament vagy egyéb ragadós anyag."
                 },
                 {
-                    "ecode": "07008033",
-                    "intro": "Nem sikerült behelyezni a hotendet az 1. pozícióba. Kérjük, ellenőrizd, hogy nem maradt-e benne filament vagy egyéb ragadós anyag."
+                    "ecode": "07058034",
+                    "intro": "Nem sikerült felvenni a hotendet a 6. pozícióból. Kérjük, ellenőrizd, hogy nem maradt-e benne filament vagy egyéb ragadós anyag."
                 },
                 {
-                    "ecode": "07008030",
-                    "intro": "A szerszámcsere előtti felismerés sikertelen; kérjük, ellenőrizd a hotend helyzetét."
+                    "ecode": "07058033",
+                    "intro": "Nem sikerült behelyezni a hotendet a 6. pozícióba. Kérjük, ellenőrizd, hogy nem maradt-e benne filament vagy egyéb ragadós anyag."
                 },
                 {
-                    "ecode": "07008035",
-                    "intro": "Nem sikerült a szerszámtartó alaphelyzetbe állítása. Kérjük ellenőrizd, hogy nincs-e idegen anyag a tárgyasztalon vagy a tárgyasztal nincs-e elbillenve."
+                    "ecode": "07018033",
+                    "intro": "Nem sikerült behelyezni a hotendet a 2. pozícióba. Kérjük, ellenőrizd, hogy nem maradt-e benne filament vagy egyéb ragadós anyag."
                 },
                 {
-                    "ecode": "18008035",
-                    "intro": "Nem sikerült a hotendtartó alaphelyzetbe állítása. Kérjük ellenőrizd, hogy nincs-e idegen anyag a tárgyasztalon vagy a tárgyasztal nincs-e elbillenve."
+                    "ecode": "07028034",
+                    "intro": "Nem sikerült felvenni a hotendet a 3. pozícióból. Kérjük, ellenőrizd, hogy nem maradt-e benne filament vagy egyéb ragadós anyag."
                 },
                 {
                     "ecode": "0300C070",
@@ -21764,10 +21888,6 @@
                     "intro": "Időtúllépés a régi filament kiöblítésekor: Előfordulhat, hogy a filament beragadt vagy az extruder eltömődött."
                 },
                 {
-                    "ecode": "18058007",
-                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
-                },
-                {
                     "ecode": "18008013",
                     "intro": "Időtúllépés a régi filament kiöblítésekor: Előfordulhat, hogy a filament beragadt vagy az extruder eltömődött."
                 },
@@ -21780,28 +21900,12 @@
                     "intro": "Időtúllépés a régi filament kiöblítésekor: Előfordulhat, hogy a filament beragadt vagy az extruder eltömődött."
                 },
                 {
-                    "ecode": "07078007",
-                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
-                },
-                {
-                    "ecode": "18078007",
-                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
-                },
-                {
                     "ecode": "18FE8024",
                     "intro": "Az extruder pozíciójának kalibrálása sikertelen; kérjük, fordulj az Asszisztenshez."
                 },
                 {
                     "ecode": "18058013",
                     "intro": "Időtúllépés a régi filament kiöblítésekor: Előfordulhat, hogy a filament beragadt vagy az extruder eltömődött."
-                },
-                {
-                    "ecode": "07058007",
-                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
-                },
-                {
-                    "ecode": "18018007",
-                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
                 },
                 {
                     "ecode": "18FE8001",
@@ -21814,14 +21918,6 @@
                 {
                     "ecode": "07048013",
                     "intro": "Időtúllépés a régi filament kiöblítésekor: Előfordulhat, hogy a filament beragadt vagy az extruder eltömődött."
-                },
-                {
-                    "ecode": "07048007",
-                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
-                },
-                {
-                    "ecode": "18048007",
-                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
                 },
                 {
                     "ecode": "05008071",
@@ -21842,14 +21938,6 @@
                 {
                     "ecode": "05008067",
                     "intro": "Kérjük, helyezd a LightGrip vágólapot a vágáshoz szükséges védőlapra."
-                },
-                {
-                    "ecode": "07018007",
-                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
-                },
-                {
-                    "ecode": "07028007",
-                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
                 },
                 {
                     "ecode": "03008042",
@@ -21874,10 +21962,6 @@
                 {
                     "ecode": "07FF8001",
                     "intro": "Nem sikerült elvágni a filamentet a jobb extruderben. Kérjük, ellenőrizd a vágót."
-                },
-                {
-                    "ecode": "07038007",
-                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
                 },
                 {
                     "ecode": "07FE8013",
@@ -21932,10 +22016,6 @@
                     "intro": "Időtúllépés a régi filament kiöblítésekor: Előfordulhat, hogy a filament beragadt vagy az extruder eltömődött."
                 },
                 {
-                    "ecode": "07008007",
-                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
-                },
-                {
                     "ecode": "18FE8013",
                     "intro": "Időtúllépés a régi filament öblítésekor a bal extruderben: előfordulhat, hogy a filament beragadt vagy az extruder eltömődött."
                 },
@@ -21944,24 +22024,12 @@
                     "intro": "Időtúllépés a régi filament kiöblítésekor: Előfordulhat, hogy a filament beragadt vagy az extruder eltömődött."
                 },
                 {
-                    "ecode": "18038007",
-                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
-                },
-                {
                     "ecode": "18FF8002",
                     "intro": "A jobb oldali extruder vágója beragadt. Kérjük, húzd ki a vágó karját."
                 },
                 {
                     "ecode": "18FF8020",
                     "intro": "Az extrudercsere sikertelen; kérjük, fordulj az Asszisztenshez."
-                },
-                {
-                    "ecode": "18028007",
-                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
-                },
-                {
-                    "ecode": "18008007",
-                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
                 },
                 {
                     "ecode": "07078013",
@@ -21980,20 +22048,12 @@
                     "intro": "Az extruder pozíciójának kalibrálása sikertelen; kérjük, fordulj az Asszisztenshez."
                 },
                 {
-                    "ecode": "18068007",
-                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
-                },
-                {
                     "ecode": "18078013",
                     "intro": "Időtúllépés a régi filament kiöblítésekor: Előfordulhat, hogy a filament beragadt vagy az extruder eltömődött."
                 },
                 {
                     "ecode": "18FF8001",
                     "intro": "Nem sikerült elvágni a filamentet a jobb extruderben. Kérjük, ellenőrizd a vágót."
-                },
-                {
-                    "ecode": "07068007",
-                    "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
                 },
                 {
                     "ecode": "07FF8010",
