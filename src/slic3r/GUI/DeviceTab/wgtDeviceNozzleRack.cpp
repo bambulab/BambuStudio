@@ -107,7 +107,7 @@ void wgtDeviceNozzleRack::UpdateRackInfo(std::shared_ptr<DevNozzleRack> rack)
     DevNozzleSystem* nozzle_system = m_nozzle_rack.lock()->GetNozzleSystem();
     if (nozzle_system)
     {
-        m_toolhead_panel->UpdateToolHeadInfo(nozzle_system->GetNozzle(MAIN_EXTRUDER_ID));
+        m_toolhead_panel->UpdateToolHeadInfo(nozzle_system->GetExtNozzle(MAIN_EXTRUDER_ID));
         m_rack_area->UpdateRackInfo(m_nozzle_rack);
     }
 }

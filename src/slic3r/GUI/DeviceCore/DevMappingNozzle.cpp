@@ -133,7 +133,7 @@ int MachineObject::ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, con
 
     // nozzle info
     json nozzle_info_jj;
-    const auto& extruder_nozzles = m_nozzle_system->GetNozzles();
+    const auto& extruder_nozzles = m_nozzle_system->GetExtNozzles();
     for (const auto& nozzle : extruder_nozzles) {
         if (nozzle.second.IsNormal()) {
             json nozzle_item_jj;

@@ -1234,7 +1234,7 @@ void AMSMaterialsSetting::update_nozzle_combo(MachineObject* obj){
 
     if(rack->IsSupported() && extruder_id == MAIN_EXTRUDER_ID){
         int r_nozzle_id = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
-        auto r_nozzle = obj->GetNozzleSystem()->GetNozzle(r_nozzle_id);
+        auto r_nozzle = obj->GetNozzleSystem()->GetExtNozzle(r_nozzle_id);
         auto nozzle_map = rack->GetRackNozzles();
 
         std::set<std::pair<NozzleDiameterType, NozzleFlowType>> nozzle_type_set;
