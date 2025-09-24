@@ -17,6 +17,7 @@
 #include "slic3r/Utils/WxFontUtils.hpp"
 #include "slic3r/GUI/Jobs/CreateFontNameImageJob.hpp"
 #include "slic3r/GUI/Jobs/NotificationProgressIndicator.hpp"
+#include "slic3r/GUI/UIHelpers/TextEllipsis.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
 
 #include <wx/font.h>
@@ -2313,13 +2314,23 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
         auto depth_x = caption_size + space_size * 2 + temp_input_width;
         ImGui::SameLine(depth_x);
         float depth_cap = m_imgui->calc_text_size(_L("Embeded depth")).x;
-        ImGui::PushItemWidth(depth_cap);
-        m_imgui->text(_L("Embeded depth"));
-
+        std::string display_text  = _u8L("Embeded depth");
         auto depth_input_x = depth_x + depth_cap + space_size * 2;
+        ImFont *imgui_font    = m_style_manager.get_imgui_font();
+        auto    valid_width   = full_width - depth_input_x;
+        if (valid_width < 80) {
+            valid_width = 80;
+            depth_cap   = full_width - valid_width - depth_x - space_size * 2;
+            depth_input_x = depth_x + depth_cap + space_size * 2;
+            display_text = ellipsize_text_imgui(_u8L("Embeded depth"), depth_cap);
+        }
+        ImGui::PushItemWidth(depth_cap);
+        m_imgui->text(display_text);
+        if (ImGui::IsItemHovered()) {
+            m_imgui->tooltip(_u8L("Embeded depth"), m_gui_cfg->max_tooltip_width);
+        }
         ImGui::SameLine(depth_input_x);
 
-        auto valid_width = full_width - depth_input_x;
         ImGui::PushItemWidth(valid_width);
         old_value = m_embeded_depth;
         if (ImGui::InputFloat("###text_embeded_depth", &m_embeded_depth, 0.0f, 0.0f, "%.2f")) {
