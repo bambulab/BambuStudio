@@ -1,38 +1,118 @@
 {
     "result": 0,
-    "t": 1757425628,
-    "ver": 202509091807,
+    "t": 1758214990,
+    "ver": 202511160923,
     "data": {
         "device_hms": {
-            "ver": 202509091807,
+            "ver": 202511160923,
             "en": [
                 {
-                    "ecode": "1A00040000020001",
-                    "intro": "An error occurred while nesting/fetching the hotend. Please place the hotend back into slot 4 of the rack, manually move the toolhead to the center of the build plate, and then continue."
+                    "ecode": "0300AB0000020003",
+                    "intro": "The temperature sensor on the right hotend heatbreak is abnormal. To prevent nozzle clogs, the cooling fan will continue running at high speed. You can troubleshoot the sensor issue when the print is idle."
                 },
                 {
-                    "ecode": "1A00020000020001",
-                    "intro": "An error occurred while nesting/fetching the hotend. Please place the hotend back into slot 2 of the rack, manually move the toolhead to the center of the build plate, and then continue."
+                    "ecode": "0C00020000010001",
+                    "intro": "The height measuring laser is not lit. Please check if it is blocked or if the connection cable is disconnected."
                 },
                 {
-                    "ecode": "1A00050000020001",
-                    "intro": "An error occurred while nesting/fetching the hotend. Please place the hotend back into slot 5 of the rack, manually move the toolhead to the center of the build plate, and then continue."
+                    "ecode": "1A00030000020002",
+                    "intro": "Error fetching/nesting the hotend in rack slot 3. Ensure the hotend holder has a hotend installed, the corresponding rack slot is empty, and manually move the toolhead to the machine center before continuing."
+                },
+                {
+                    "ecode": "1A00010000020002",
+                    "intro": "Error fetching/nesting the hotend in rack slot 1. Ensure the hotend holder has a hotend installed, the corresponding rack slot is empty, and manually move the toolhead to the machine center before continuing."
+                },
+                {
+                    "ecode": "1A00050000020002",
+                    "intro": "Error fetching/nesting the hotend in rack slot 5. Ensure the hotend holder has a hotend installed, the corresponding rack slot is empty, and manually move the toolhead to the machine center before continuing."
+                },
+                {
+                    "ecode": "1A00040000020002",
+                    "intro": "Error fetching/nesting the hotend in rack slot 4. Ensure the hotend holder has a hotend installed, the corresponding rack slot is empty, and manually move the toolhead to the machine center before continuing."
+                },
+                {
+                    "ecode": "1A00020000020002",
+                    "intro": "Error fetching/nesting the hotend in rack slot 2. Ensure the hotend holder has a hotend installed, the corresponding rack slot is empty, and manually move the toolhead to the machine center before continuing."
+                },
+                {
+                    "ecode": "0700F00000020001",
+                    "intro": "Filament and hotend matching failed. Please verify that the hotend in the hotend rack slot 1 is correctly installed."
+                },
+                {
+                    "ecode": "0703F00000020001",
+                    "intro": "Filament and hotend matching failed. Please verify that the hotend in the hotend rack slot 4 is correctly installed."
+                },
+                {
+                    "ecode": "0701F00000020001",
+                    "intro": "Filament and hotend matching failed. Please verify that the hotend in the hotend rack slot 2 is correctly installed."
+                },
+                {
+                    "ecode": "0702F00000020001",
+                    "intro": "Filament and hotend matching failed. Please verify that the hotend in the hotend rack slot 3 is correctly installed."
+                },
+                {
+                    "ecode": "0704F00000020001",
+                    "intro": "Filament and hotend matching failed. Please verify that the hotend in the hotend rack slot 5 is correctly installed."
+                },
+                {
+                    "ecode": "0705F00000020001",
+                    "intro": "Filament and hotend matching failed. Please verify that the hotend in the hotend rack slot 6 is correctly installed."
                 },
                 {
                     "ecode": "1A00060000020001",
-                    "intro": "An error occurred while nesting/fetching the hotend. Please place the hotend back into slot 6 of the rack, manually move the toolhead to the center of the build plate, and then continue."
-                },
-                {
-                    "ecode": "1A00010000020001",
-                    "intro": "An error occurred while nesting/fetching the hotend. Please place the hotend back into slot 1 of the rack, manually move the toolhead to the center of the build plate, and then continue."
-                },
-                {
-                    "ecode": "1A00030000020001",
-                    "intro": "An error occurred while nesting/fetching the hotend. Please place the hotend back into slot 3 of the rack, manually move the toolhead to the center of the build plate, and then continue."
+                    "intro": "Error fetching/nesting the hotend in rack slot 6. Ensure the hotend holder has no hotend installed, the corresponding rack slot contains a hotend, and manually move the toolhead to the machine center before continuing."
                 },
                 {
                     "ecode": "1A00060000020002",
-                    "intro": "An error occurred while fetching/nesting hotend 6. Please place it back into the toolhead, then manually move the toolhead to the center of the machine before continuing."
+                    "intro": "Error fetching/nesting the hotend in rack slot 6. Ensure the hotend holder has a hotend installed, the corresponding rack slot is empty, and manually move the toolhead to the machine center before continuing."
+                },
+                {
+                    "ecode": "1A00010000020001",
+                    "intro": "Error fetching/nesting the hotend in rack slot 1. Ensure the hotend holder has no hotend installed, the corresponding rack slot contains a hotend, and manually move the toolhead to the machine center before continuing."
+                },
+                {
+                    "ecode": "1A00040000020001",
+                    "intro": "Error fetching/nesting the hotend in rack slot 4. Ensure the hotend holder has no hotend installed, the corresponding rack slot contains a hotend, and manually move the toolhead to the machine center before continuing."
+                },
+                {
+                    "ecode": "1A00030000020001",
+                    "intro": "Error fetching/nesting the hotend in rack slot 3. Ensure the hotend holder has no hotend installed, the corresponding rack slot contains a hotend, and manually move the toolhead to the machine center before continuing."
+                },
+                {
+                    "ecode": "1A00020000020001",
+                    "intro": "Error fetching/nesting the hotend in rack slot 2. Ensure the hotend holder has no hotend installed, the corresponding rack slot contains a hotend, and manually move the toolhead to the machine center before continuing."
+                },
+                {
+                    "ecode": "1A00050000020001",
+                    "intro": "Error fetching/nesting the hotend in rack slot 5. Ensure the hotend holder has no hotend installed, the corresponding rack slot contains a hotend, and manually move the toolhead to the machine center before continuing."
+                },
+                {
+                    "ecode": "1A00120000020001",
+                    "intro": "Hotend rack calibration failed: camera calibration data is abnormal. Please clean nozzle residue, check whether the heatbed thermal paper is intact, and remove any debris from its surface."
+                },
+                {
+                    "ecode": "0300DB0000020001",
+                    "intro": "Laser module detected. Please install the right nozzle correctly to ensure proper Laser Module Mounting Calibration."
+                },
+                {
+                    "ecode": "0300DA0000020001",
+                    "intro": "Laser module detected. Please remove the hotend from the hotend rack to prevent laser processing debris from affecting printing performance."
+                },
+                {
+                    "ecode": "0300020000010001",
+                    "intro": "Right extruder nozzle temperature error. The heater coil may be short-circuited. Please check if the insulation layer is intact."
+                },
+                {
+                    "ecode": "0300020000010002",
+                    "intro": "Right extruder nozzle temperature error. The heater coil may be open-circuited. Please check if the connector is loose."
+                },
+                {
+                    "ecode": "0300020000010003",
+                    "intro": "Right extruder nozzle temperature error. The heater core may be overheating."
+                },
+                {
+                    "ecode": "0300020000010008",
+                    "intro": "The right nozzle temperature error, heating failed."
                 },
                 {
                     "ecode": "1A00120000020010",
@@ -41,18 +121,6 @@
                 {
                     "ecode": "0704260000020001",
                     "intro": "The induction hotend is heating up, and the drying power of AMS E will be reduced. Please connect the power adapter or wait until the hotend finishes heating."
-                },
-                {
-                    "ecode": "1A00030000020002",
-                    "intro": "An error occurred while fetching/nesting hotend 3. Please place it back into the toolhead, then manually move the toolhead to the center of the machine before continuing."
-                },
-                {
-                    "ecode": "1A00010000020002",
-                    "intro": "An error occurred while fetching/nesting hotend 1. Please place it back into the toolhead, then manually move the toolhead to the center of the machine before continuing."
-                },
-                {
-                    "ecode": "1A00050000020002",
-                    "intro": "An error occurred while fetching/nesting hotend 5. Please place it back into the toolhead, then manually move the toolhead to the center of the machine before continuing."
                 },
                 {
                     "ecode": "1804260000020001",
@@ -65,10 +133,6 @@
                 {
                     "ecode": "0700260000020001",
                     "intro": "The induction hotend is heating up, and the drying power of AMS A will be reduced. Please connect the power adapter or wait until the hotend finishes heating."
-                },
-                {
-                    "ecode": "1A00040000020002",
-                    "intro": "An error occurred while fetching/nesting hotend 4. Please place it back into the toolhead, then manually move the toolhead to the center of the machine before continuing."
                 },
                 {
                     "ecode": "0701260000020001",
@@ -85,10 +149,6 @@
                 {
                     "ecode": "1805260000020001",
                     "intro": "The induction hotend is heating up, and the drying power of AMS-HT F will be reduced. Please connect the power adapter or wait until the hotend finishes heating."
-                },
-                {
-                    "ecode": "1A00020000020002",
-                    "intro": "An error occurred while fetching/nesting hotend 2. Please place it back into the toolhead, then manually move the toolhead to the center of the machine before continuing."
                 },
                 {
                     "ecode": "1803260000020001",
@@ -121,10 +181,6 @@
                 {
                     "ecode": "0705260000020001",
                     "intro": "The induction hotend is heating up, and the drying power of AMS F will be reduced. Please connect the power adapter or wait until the hotend finishes heating."
-                },
-                {
-                    "ecode": "1A00120000020001",
-                    "intro": "Hotend rack calibration failed: camera calibration data is abnormal. Please clean nozzle residue and check whether the thermal paper on the heatbed is broken."
                 },
                 {
                     "ecode": "0300AB0000010001",
@@ -351,6 +407,10 @@
                     "intro": "Power loss occurred while docking the hotend to the hotend rack. Please reinstall the hotend from position 4 to the toolhead, and move the toolhead to the center of the heatbed to avoid interference with the rack."
                 },
                 {
+                    "ecode": "1A00200000020001",
+                    "intro": "Power outage occurred during hotend replacement. Please follow the Wiki guide to restore the setup, otherwise printing may fail."
+                },
+                {
                     "ecode": "1A00120000020002",
                     "intro": "Hotend rack calibration failed. Marker feature not detected. Please check if the visual marker on the rack is damaged or obscured by dirt."
                 },
@@ -359,16 +419,16 @@
                     "intro": "Induction Hotend Rack calibration failed: result exceeded travel range. Please check if the rack structure is deformed."
                 },
                 {
-                    "ecode": "1A00200000020001",
-                    "intro": "Power outage occurred during hotend replacement. Please follow the Wiki guide to restore the setup, otherwise printing may fail."
-                },
-                {
                     "ecode": "1A00E00000010005",
                     "intro": "The Induction Hotend Rack is blocked by an obstacle during homing. Please clear any obstructions from its movement path."
                 },
                 {
                     "ecode": "1A00E00000010006",
                     "intro": "Induction Hotend Rack homing distance is too long. The timing belt may be loose. Please check and tighten."
+                },
+                {
+                    "ecode": "1A00100000020001",
+                    "intro": "Toolhead XY axis or hotend rack has not finished homing. Hotend replacement cannot proceed."
                 },
                 {
                     "ecode": "1A00220000010002",
@@ -427,10 +487,6 @@
                     "intro": "Hotend swap check failed: no hotend detected at slot 4."
                 },
                 {
-                    "ecode": "1A00100000020001",
-                    "intro": "Toolhead XY axis or hotend rack has not finished homing. Hotend replacement cannot proceed."
-                },
-                {
                     "ecode": "0503000000030027",
                     "intro": ""
                 },
@@ -481,10 +537,6 @@
                 {
                     "ecode": "030002000001000B",
                     "intro": "The right extruder nozzle temperature control is abnormal, possibly due to the hotend not being properly installed or a malfunction of the wireless temperature measurement board."
-                },
-                {
-                    "ecode": "0C00020000010001",
-                    "intro": "The height measuring laser is not lit. Check for obstructions or a loose toolhead camera cable."
                 },
                 {
                     "ecode": "0300D70000020001",
@@ -539,12 +591,12 @@
                     "intro": "Fire extinguisher cylinder not installed. Please confirm on the extinguisher page."
                 },
                 {
-                    "ecode": "0500050000020030",
-                    "intro": ""
-                },
-                {
                     "ecode": "0501040000030002",
                     "intro": "Threaded rods need lubrication now."
+                },
+                {
+                    "ecode": "0500050000020030",
+                    "intro": ""
                 },
                 {
                     "ecode": "0300910000010008",
@@ -639,38 +691,6 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "1800020000020002",
-                    "intro": "AMS-HT A The odometer has no signal. The odometer connector may have poor contact."
-                },
-                {
-                    "ecode": "0500050000010009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500050000010008",
-                    "intro": ""
-                },
-                {
-                    "ecode": "050005000001000B",
-                    "intro": ""
-                },
-                {
-                    "ecode": "050005000001000A",
-                    "intro": ""
-                },
-                {
-                    "ecode": "050005000001000C",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00010000020016",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00010000020015",
-                    "intro": ""
-                },
-                {
                     "ecode": "0500010000020003",
                     "intro": ""
                 },
@@ -759,6 +779,38 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "1800020000020002",
+                    "intro": "AMS-HT A The odometer has no signal. The odometer connector may have poor contact."
+                },
+                {
+                    "ecode": "0500050000010009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500050000010008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050005000001000B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050005000001000A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050005000001000C",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00010000020016",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00010000020015",
+                    "intro": ""
+                },
+                {
                     "ecode": "0500030000020010",
                     "intro": ""
                 },
@@ -783,6 +835,14 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "0C00040000030028",
+                    "intro": "The Cutting Module offset calibration failed, which may result in inaccurate cuts. Please ensure the 80g white printer paper(letter paper thickness) is properly positioned and check whether the cutting blade tip is worn."
+                },
+                {
+                    "ecode": "0C00040000030026",
+                    "intro": "To improve flame detection accuracy, the right chamber light has been automatically turned off."
+                },
+                {
                     "ecode": "0C0001000002001A",
                     "intro": ""
                 },
@@ -797,14 +857,6 @@
                 {
                     "ecode": "0500060000020052",
                     "intro": ""
-                },
-                {
-                    "ecode": "0C00040000030028",
-                    "intro": "The Cutting Module offset calibration failed, which may result in inaccurate cuts. Please ensure the 80g white printer paper(letter paper thickness) is properly positioned and check whether the cutting blade tip is worn."
-                },
-                {
-                    "ecode": "0C00040000030026",
-                    "intro": "To improve flame detection accuracy, the right chamber light has been automatically turned off."
                 },
                 {
                     "ecode": "0300D50000020005",
@@ -1113,10 +1165,6 @@
                 {
                     "ecode": "03001E0000010003",
                     "intro": "The left nozzle temperature is abnormal; the heater is overheated."
-                },
-                {
-                    "ecode": "0300020000010003",
-                    "intro": "The right nozzle temperature is abnormal; the heater is overheated."
                 },
                 {
                     "ecode": "0707620000020001",
@@ -6827,10 +6875,6 @@
                     "intro": "The left nozzle temperature is abnormal; the sensor may have a short circuit, please check whether the connector is properly plugged in."
                 },
                 {
-                    "ecode": "0300020000010002",
-                    "intro": "The right nozzle temperature is abnormal; the heater may have an open circuit."
-                },
-                {
                     "ecode": "0300020000010006",
                     "intro": "The right nozzle temperature is abnormal; the sensor may have a short circuit, please check whether the connector is properly plugged in."
                 },
@@ -7691,14 +7735,6 @@
                     "intro": "AMS H slot 2 feeds filament out of AMS timeout."
                 },
                 {
-                    "ecode": "0300020000010001",
-                    "intro": "The right nozzle temperature is abnormal; the heater may have a short circuit."
-                },
-                {
-                    "ecode": "03001E0000010001",
-                    "intro": "The left nozzle temperature is abnormal; the heater may have a short circuit."
-                },
-                {
                     "ecode": "0702230000020018",
                     "intro": "AMS C slot 4 assist motor is stalled，due to excessive resistance in the tube near AMS."
                 },
@@ -7871,6 +7907,14 @@
                     "intro": "AMS-HT H slot 3 feeds filament out of AMS timeout."
                 },
                 {
+                    "ecode": "03001E0000010001",
+                    "intro": "The left nozzle temperature is abnormal; the heater may have a short circuit."
+                },
+                {
+                    "ecode": "0300900000010003",
+                    "intro": "Chamber heating failed. The power supply temperature may be too high."
+                },
+                {
                     "ecode": "1802230000020011",
                     "intro": "AMS-HT C slot 4 pulls filament back to AMS timeout."
                 },
@@ -8035,18 +8079,6 @@
                     "intro": "AMS-HT F slot 4 assist motor is stalled，due to excessive resistance in the tube between the filament buffer and the toolhead."
                 },
                 {
-                    "ecode": "0300900000010003",
-                    "intro": "Chamber heating failed. The power supply temperature may be too high."
-                },
-                {
-                    "ecode": "0300900000010001",
-                    "intro": "Chamber heating failed. The heater may not be blowing hot air."
-                },
-                {
-                    "ecode": "0300900000010002",
-                    "intro": "Chamber heating failed. Possible causes: the chamber is not fully enclosed, ambient temperature is too low, or the power supply heat dissipation vent is blocked."
-                },
-                {
                     "ecode": "0700230000020020",
                     "intro": "AMS A slot 4 assist motor is stalled，due to excessive resistance in the tube near the filament buffer。"
                 },
@@ -8189,6 +8221,14 @@
                 {
                     "ecode": "1800220000020022",
                     "intro": "AMS-HT A slot 3 assist motor is stalled，due to excessive resistance in the tube near the toolhead."
+                },
+                {
+                    "ecode": "0300900000010001",
+                    "intro": "Chamber heating failed. The heater may not be blowing hot air."
+                },
+                {
+                    "ecode": "0300900000010002",
+                    "intro": "Chamber heating failed. Possible causes: the chamber is not fully enclosed, ambient temperature is too low, or the power supply heat dissipation vent is blocked."
                 },
                 {
                     "ecode": "0706210000020019",
@@ -11583,10 +11623,6 @@
                     "intro": "AMS H Slot 1 feed-in Hall sensor is disconnected, which may be due to poor connector contact."
                 },
                 {
-                    "ecode": "0701210000020008",
-                    "intro": "AMS B Slot 2 feed-in Hall sensor is disconnected, which may be due to poor connector contact."
-                },
-                {
                     "ecode": "1801130000020002",
                     "intro": "The AMS-HT B slot 4 motor is overloaded. The filament may be tangled or stuck."
                 },
@@ -11761,6 +11797,10 @@
                 {
                     "ecode": "1802110000010001",
                     "intro": "The AMS-HT C slot 2 motor has slipped. The extrusion wheel may be malfunctioning, or the filament may be too thin."
+                },
+                {
+                    "ecode": "0701210000020008",
+                    "intro": "AMS B Slot 2 feed-in Hall sensor is disconnected, which may be due to poor connector contact."
                 },
                 {
                     "ecode": "0700220000020002",
@@ -13607,10 +13647,6 @@
                     "intro": "Encryption chip failure"
                 },
                 {
-                    "ecode": "1807120000020002",
-                    "intro": "The AMS-HT H slot 3 motor is overloaded. The filament may be tangled or stuck."
-                },
-                {
                     "ecode": "0707200000030002",
                     "intro": "AMS H Slot 1 filament has run out and automatically switched to the slot with the same filament."
                 },
@@ -13757,6 +13793,10 @@
                 {
                     "ecode": "1803110000010001",
                     "intro": "The AMS-HT D slot 2 motor has slipped. The extrusion wheel may be malfunctioning, or the filament may be too thin."
+                },
+                {
+                    "ecode": "1807120000020002",
+                    "intro": "The AMS-HT H slot 3 motor is overloaded. The filament may be tangled or stuck."
                 },
                 {
                     "ecode": "0700200000020005",
@@ -13947,10 +13987,6 @@
                     "intro": "RFID cannot be read because of a hardware or structural error."
                 },
                 {
-                    "ecode": "1804210000020001",
-                    "intro": "AMS-HT E Slot 2 filament has run out. Please insert a new filament."
-                },
-                {
                     "ecode": "1801200000020008",
                     "intro": "AMS-HT B Slot 1 feed-in Hall sensor is disconnected, which may be due to poor connector contact."
                 },
@@ -14133,6 +14169,10 @@
                 {
                     "ecode": "1800560000030001",
                     "intro": "AMS-HT A is undergoing dry cooling; please wait for it to cool down before operating."
+                },
+                {
+                    "ecode": "1804210000020001",
+                    "intro": "AMS-HT E Slot 2 filament has run out. Please insert a new filament."
                 },
                 {
                     "ecode": "0700220000020001",
@@ -19565,8 +19605,180 @@
             ]
         },
         "device_error": {
-            "ver": 202509091807,
+            "ver": 202511160923,
             "en": [
+                {
+                    "ecode": "05024023",
+                    "intro": "Induction hotend recognition error detected. Please go to the \"Hotends & Rack\" page and click \"Read All\" to re-detect. If the issue persists, try updating the firmware on the \"Firmware\" page."
+                },
+                {
+                    "ecode": "07008036",
+                    "intro": "Hotend rack coarse homing failed. Please check for obstructions or if the build plate is misaligned."
+                },
+                {
+                    "ecode": "18008036",
+                    "intro": "Hotend rack coarse homing failed. Please check for obstructions or if the build plate is misaligned."
+                },
+                {
+                    "ecode": "07008018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "07028018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "07058018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "07038018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "07FE8018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "07048018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "07068018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "07018018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "07078018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "07FF8018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "18078018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "18FE8018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "18048018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "18008018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "18018018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "18068018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "18058018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "18FF8018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "18038018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "18028018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "03008056",
+                    "intro": "Laser module detected. Please remove the hotend from the hotend rack to prevent laser processing debris from affecting printing performance."
+                },
+                {
+                    "ecode": "1A004009",
+                    "intro": "The hotend rack has not been set up. Please complete the setup before performing a hotend replacement."
+                },
+                {
+                    "ecode": "07018007",
+                    "intro": "Failed to extrude the filament. Please check Assistant for more details."
+                },
+                {
+                    "ecode": "07028007",
+                    "intro": "Failed to extrude the filament. Please check Assistant for more details."
+                },
+                {
+                    "ecode": "07038007",
+                    "intro": "Failed to extrude the filament. Please check Assistant for more details."
+                },
+                {
+                    "ecode": "07008007",
+                    "intro": "Failed to extrude the filament. Please check Assistant for more details."
+                },
+                {
+                    "ecode": "18058007",
+                    "intro": "Failed to extrude the filament. Please check Assistant for more details."
+                },
+                {
+                    "ecode": "07078007",
+                    "intro": "Failed to extrude the filament. Please check Assistant for more details."
+                },
+                {
+                    "ecode": "18078007",
+                    "intro": "Failed to extrude the filament. Please check Assistant for more details."
+                },
+                {
+                    "ecode": "07058007",
+                    "intro": "Failed to extrude the filament. Please check Assistant for more details."
+                },
+                {
+                    "ecode": "18038007",
+                    "intro": "Failed to extrude the filament. Please check Assistant for more details."
+                },
+                {
+                    "ecode": "18018007",
+                    "intro": "Failed to extrude the filament. Please check Assistant for more details."
+                },
+                {
+                    "ecode": "18028007",
+                    "intro": "Failed to extrude the filament. Please check Assistant for more details."
+                },
+                {
+                    "ecode": "18008007",
+                    "intro": "Failed to extrude the filament. Please check Assistant for more details."
+                },
+                {
+                    "ecode": "07048007",
+                    "intro": "Failed to extrude the filament. Please check Assistant for more details."
+                },
+                {
+                    "ecode": "18068007",
+                    "intro": "Failed to extrude the filament. Please check Assistant for more details."
+                },
+                {
+                    "ecode": "18048007",
+                    "intro": "Failed to extrude the filament. Please check Assistant for more details."
+                },
+                {
+                    "ecode": "07068007",
+                    "intro": "Failed to extrude the filament. Please check Assistant for more details."
+                },
+                {
+                    "ecode": "07008035",
+                    "intro": "Hotend Rack coarse homing failed. Please check for obstructions or if the build plate is misaligned."
+                },
+                {
+                    "ecode": "18008035",
+                    "intro": "Hotend Rack coarse homing failed. Please check for obstructions or if the build plate is misaligned."
+                },
                 {
                     "ecode": "03008029",
                     "intro": "MC–hotend rack communication error. Please check if the rack mainboard cable is loose."
@@ -19594,86 +19806,6 @@
                 {
                     "ecode": "05024018",
                     "intro": "The hotend rack has not been calibrated, and hotend switching cannot be performed. Please complete the rack calibration on the device."
-                },
-                {
-                    "ecode": "07008018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please select \"Resume\" to retry."
-                },
-                {
-                    "ecode": "07028018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please select \"Resume\" to retry."
-                },
-                {
-                    "ecode": "07058018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please select \"Resume\" to retry."
-                },
-                {
-                    "ecode": "07038018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please select \"Resume\" to retry."
-                },
-                {
-                    "ecode": "07FE8018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please select \"Resume\" to retry."
-                },
-                {
-                    "ecode": "07048018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please select \"Resume\" to retry."
-                },
-                {
-                    "ecode": "07068018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please select \"Resume\" to retry."
-                },
-                {
-                    "ecode": "07018018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please select \"Resume\" to retry."
-                },
-                {
-                    "ecode": "07078018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please select \"Resume\" to retry."
-                },
-                {
-                    "ecode": "07FF8018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please select \"Resume\" to retry."
-                },
-                {
-                    "ecode": "18078018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please select \"Resume\" to retry."
-                },
-                {
-                    "ecode": "18FE8018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please select \"Resume\" to retry."
-                },
-                {
-                    "ecode": "18048018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please select \"Resume\" to retry."
-                },
-                {
-                    "ecode": "18008018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please select \"Resume\" to retry."
-                },
-                {
-                    "ecode": "18018018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please select \"Resume\" to retry."
-                },
-                {
-                    "ecode": "18068018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please select \"Resume\" to retry."
-                },
-                {
-                    "ecode": "18058018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please select \"Resume\" to retry."
-                },
-                {
-                    "ecode": "18FF8018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please select \"Resume\" to retry."
-                },
-                {
-                    "ecode": "18038018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please select \"Resume\" to retry."
-                },
-                {
-                    "ecode": "18028018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please select \"Resume\" to retry."
                 },
                 {
                     "ecode": "03008053",
@@ -19744,10 +19876,6 @@
                     "intro": "The print has stopped because the available hotend quantity or model does not match the sliced file. Please verify the hotend model and quantity before restarting the print job."
                 },
                 {
-                    "ecode": "0500807E",
-                    "intro": "Please place a StrongGrip cutting mat on the cutting protection base."
-                },
-                {
                     "ecode": "0500409F",
                     "intro": "The device cannot detect the Air Pump.  Please reconnect the module cable or restart the printer."
                 },
@@ -19816,6 +19944,10 @@
                     "intro": "The device cannot detect Laser Fourth Axis.  Please reconnect the module cable or restart the printer."
                 },
                 {
+                    "ecode": "0500807E",
+                    "intro": "Please place a StrongGrip cutting mat on the cutting protection base."
+                },
+                {
                     "ecode": "05008062",
                     "intro": "The print plate marker was not detected. Please confirm the print plate is correctly positioned on the heatbed with all four corners aligned, and the marker is visible. If strong light is shining on the print sheet, consider closing the front door and blocking external light sources."
                 },
@@ -19824,12 +19956,12 @@
                     "intro": "Hotend Change System is busy; please perform the upgrade when it is idle."
                 },
                 {
-                    "ecode": "0500808B",
-                    "intro": "The BirdsEye Camera setup failed. Please remove all objects and the mat on the heatbed to ensure the heatbed markers are visible. Meanwhile, please ensure the BirdsEye Camera is installed correctly and remove any obstructions that may block the camera's view."
-                },
-                {
                     "ecode": "0502C012",
                     "intro": "The task cannot be paused."
+                },
+                {
+                    "ecode": "0500808B",
+                    "intro": "The BirdsEye Camera setup failed. Please remove all objects and the mat on the heatbed to ensure the heatbed markers are visible. Meanwhile, please ensure the BirdsEye Camera is installed correctly and remove any obstructions that may block the camera's view."
                 },
                 {
                     "ecode": "07FFC010",
@@ -19868,6 +20000,10 @@
                     "intro": "Hotend pre-swap check failed. Please verify that the hotend is correctly placed."
                 },
                 {
+                    "ecode": "03008081",
+                    "intro": "Fire extinguisher cylinder not installed. Please confirm on the extinguisher page."
+                },
+                {
                     "ecode": "07008034",
                     "intro": "Failed to pick up hotend from holder Position 1. Please check for filament residue or sticking material."
                 },
@@ -19896,10 +20032,6 @@
                     "intro": "Failed to place hotend into holder Position 3. Please check for filament residue or sticking material."
                 },
                 {
-                    "ecode": "03008081",
-                    "intro": "Fire extinguisher cylinder not installed. Please confirm on the extinguisher page."
-                },
-                {
                     "ecode": "03008025",
                     "intro": "Hotend holder homing distance too long. Please inspect the timing belt and motor gear for looseness or damage."
                 },
@@ -19920,20 +20052,12 @@
                     "intro": "Laser/Calibration mode: Please remove all hotends from the holder before retrying."
                 },
                 {
-                    "ecode": "07058034",
-                    "intro": "Failed to pick up hotend from holder Position 6. Please check for filament residue or sticking material."
+                    "ecode": "07008033",
+                    "intro": "Failed to place hotend into holder Position 1. Please check for filament residue or sticking material."
                 },
                 {
-                    "ecode": "07058033",
-                    "intro": "Failed to place hotend into holder Position 6. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "07018033",
-                    "intro": "Failed to place hotend into holder Position 2. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "07028034",
-                    "intro": "Failed to pick up hotend from holder Position 3. Please check for filament residue or sticking material."
+                    "ecode": "07008030",
+                    "intro": "Hotend pre-swap check failed. Please verify that the hotend is correctly placed."
                 },
                 {
                     "ecode": "18018034",
@@ -19960,20 +20084,20 @@
                     "intro": "Failed to place hotend into holder Position 6. Please check for filament residue or sticking material."
                 },
                 {
-                    "ecode": "07008033",
-                    "intro": "Failed to place hotend into holder Position 1. Please check for filament residue or sticking material."
+                    "ecode": "07058034",
+                    "intro": "Failed to pick up hotend from holder Position 6. Please check for filament residue or sticking material."
                 },
                 {
-                    "ecode": "07008030",
-                    "intro": "Hotend pre-swap check failed. Please verify that the hotend is correctly placed."
+                    "ecode": "07058033",
+                    "intro": "Failed to place hotend into holder Position 6. Please check for filament residue or sticking material."
                 },
                 {
-                    "ecode": "07008035",
-                    "intro": "Hotend holder coarse homing failed. Please check for obstructions or if the build plate is misaligned."
+                    "ecode": "07018033",
+                    "intro": "Failed to place hotend into holder Position 2. Please check for filament residue or sticking material."
                 },
                 {
-                    "ecode": "18008035",
-                    "intro": "Hotend holder coarse homing failed. Please check for obstructions or if the build plate is misaligned."
+                    "ecode": "07028034",
+                    "intro": "Failed to pick up hotend from holder Position 3. Please check for filament residue or sticking material."
                 },
                 {
                     "ecode": "0300C070",
@@ -21764,10 +21888,6 @@
                     "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
                 },
                 {
-                    "ecode": "18058007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
-                },
-                {
                     "ecode": "18008013",
                     "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
                 },
@@ -21780,28 +21900,12 @@
                     "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
                 },
                 {
-                    "ecode": "07078007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
-                },
-                {
-                    "ecode": "18078007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
-                },
-                {
                     "ecode": "18FE8024",
                     "intro": "Extruder position calibration failed; please refer to the assistant."
                 },
                 {
                     "ecode": "18058013",
                     "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
-                },
-                {
-                    "ecode": "07058007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
-                },
-                {
-                    "ecode": "18018007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
                 },
                 {
                     "ecode": "18FE8001",
@@ -21814,14 +21918,6 @@
                 {
                     "ecode": "07048013",
                     "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
-                },
-                {
-                    "ecode": "07048007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
-                },
-                {
-                    "ecode": "18048007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
                 },
                 {
                     "ecode": "05008071",
@@ -21842,14 +21938,6 @@
                 {
                     "ecode": "05008067",
                     "intro": "Please place a LightGrip cutting mat on the cutting protection base."
-                },
-                {
-                    "ecode": "07018007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
-                },
-                {
-                    "ecode": "07028007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
                 },
                 {
                     "ecode": "03008042",
@@ -21874,10 +21962,6 @@
                 {
                     "ecode": "07FF8001",
                     "intro": "Failed to cut the filament of the right extruder. Please check the cutter."
-                },
-                {
-                    "ecode": "07038007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
                 },
                 {
                     "ecode": "07FE8013",
@@ -21932,10 +22016,6 @@
                     "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
                 },
                 {
-                    "ecode": "07008007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
-                },
-                {
                     "ecode": "18FE8013",
                     "intro": "Timeout purging old filament of the left extruder: Please check if the filament is stuck or the extruder is clogged."
                 },
@@ -21944,24 +22024,12 @@
                     "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
                 },
                 {
-                    "ecode": "18038007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
-                },
-                {
                     "ecode": "18FF8002",
                     "intro": "The cutter of the right extruder is stuck. Please pull out the cutter handle."
                 },
                 {
                     "ecode": "18FF8020",
                     "intro": "Extruder change failed; please refer to the assistant."
-                },
-                {
-                    "ecode": "18028007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
-                },
-                {
-                    "ecode": "18008007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
                 },
                 {
                     "ecode": "07078013",
@@ -21980,20 +22048,12 @@
                     "intro": "Extruder position calibration failed; please refer to the assistant."
                 },
                 {
-                    "ecode": "18068007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
-                },
-                {
                     "ecode": "18078013",
                     "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
                 },
                 {
                     "ecode": "18FF8001",
                     "intro": "Failed to cut the filament of the right extruder. Please check the cutter."
-                },
-                {
-                    "ecode": "07068007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
                 },
                 {
                     "ecode": "07FF8010",

@@ -1,130 +1,186 @@
 {
     "result": 0,
-    "t": 1757425628,
-    "ver": 202509091807,
+    "t": 1758214990,
+    "ver": 202511160923,
     "data": {
         "device_hms": {
-            "ver": 202509091807,
+            "ver": 202511160923,
             "pl": [
                 {
-                    "ecode": "1A00040000020001",
-                    "intro": "Hotend wypadł ze stojaka hotendu z pozycji 4. Proszę umieścić go z powrotem. Ręcznie odsuń głowicę od stojaka, a następnie kliknij \"Wznów\"."
+                    "ecode": "0300AB0000020003",
+                    "intro": "Czujnik temperatury na prawym rozgrzanym zakończeniu jest nietypowy. Aby zapobiec zatorom w dyszy, wentylator chłodzący będzie nadal pracować z dużą prędkością. Możesz rozwiązać problem z czujnikiem, gdy druk jest bezczynny."
                 },
                 {
-                    "ecode": "1A00020000020001",
-                    "intro": "Hotend wypadł ze stojaka hotendu z pozycji 2. Proszę umieścić go z powrotem. Ręcznie odsuń głowicę od stojaka, a następnie kliknij \"Wznów\"."
-                },
-                {
-                    "ecode": "1A00050000020001",
-                    "intro": "Hotend wypadł ze stojaka hotendu z pozycji 5. Proszę umieścić go z powrotem. Ręcznie odsuń głowicę od stojaka, a następnie kliknij \"Wznów\"."
-                },
-                {
-                    "ecode": "1A00060000020001",
-                    "intro": "Hotend wypadł ze stojaka hotendu z pozycji 6. Proszę umieścić go z powrotem. Ręcznie odsuń głowicę od stojaka, a następnie kliknij \"Wznów\"."
-                },
-                {
-                    "ecode": "1A00010000020001",
-                    "intro": "Hotend wypadł ze stojaka hotendu z pozycji 1. Proszę umieścić go z powrotem. Ręcznie odsuń głowicę od stojaka, a następnie kliknij \"Wznów\"."
-                },
-                {
-                    "ecode": "1A00030000020001",
-                    "intro": "Hotend wypadł ze stojaka hotendu z pozycji 3. Proszę umieścić go z powrotem. Ręcznie odsuń głowicę od stojaka, a następnie kliknij \"Wznów\"."
-                },
-                {
-                    "ecode": "1A00060000020002",
-                    "intro": "Wystąpił błąd podczas pobierania/gniazdowania hotend 6. Proszę umieścić go z powrotem w głowicy narzędzia, a następnie ręcznie przesunąć głowicę narzędzia do środka maszyny przed kontynuowaniem."
-                },
-                {
-                    "ecode": "1A00120000020010",
-                    "intro": "System wymiany hotendu nie jest skalibrowany. Postępuj zgodnie z instrukcjami, aby dokończyć kalibrację."
-                },
-                {
-                    "ecode": "0704260000020001",
-                    "intro": "Indukcyjny hotend się nagrzewa, a moc suszenia AMS E zostanie zmniejszona. Proszę podłączyć adapter zasilania lub poczekać, aż hotend zakończy nagrzewanie."
+                    "ecode": "0C00020000010001",
+                    "intro": "Laser do pomiaru wysokości nie świeci. Sprawdź, czy nic nie blokuje wiązki i czy kabel kamery w głowicy nie jest poluzowany."
                 },
                 {
                     "ecode": "1A00030000020002",
-                    "intro": "Wystąpił błąd podczas pobierania/gniazdowania hotend 3. Proszę umieścić go z powrotem w głowicy narzędzia, a następnie ręcznie przesunąć głowicę narzędzia do środka maszyny przed kontynuowaniem."
+                    "intro": "Wystąpił błąd podczas pobierania/osadzania hotendu 3. Proszę umieścić go z powrotem w głowicy, a następnie ręcznie przesunąć głowicę na środek urządzenia przed kontynuacją."
                 },
                 {
                     "ecode": "1A00010000020002",
-                    "intro": "Wystąpił błąd podczas pobierania/gniazdowania hotendu 1. Proszę umieścić go z powrotem w głowicy narzędzia, a następnie ręcznie przesunąć głowicę narzędzia do środka maszyny przed kontynuowaniem."
+                    "intro": "Wystąpił błąd podczas pobierania/osadzania hotendu 1. Proszę umieścić go z powrotem w głowicy, a następnie ręcznie przesunąć głowicę na środek urządzenia przed kontynuacją."
                 },
                 {
                     "ecode": "1A00050000020002",
-                    "intro": "Wystąpił błąd podczas pobierania/gniazdowania hotendu 5. Proszę umieścić go z powrotem w głowicy narzędzia, a następnie ręcznie przesunąć głowicę narzędzia do środka maszyny przed kontynuowaniem."
-                },
-                {
-                    "ecode": "1804260000020001",
-                    "intro": "Indukcyjny hotend się nagrzewa, a moc suszenia AMS-HT E zostanie zmniejszona. Proszę podłączyć adapter zasilania lub poczekać, aż hotend zakończy nagrzewanie."
-                },
-                {
-                    "ecode": "0702260000020001",
-                    "intro": "Indukcyjny hotend się nagrzewa, a moc suszenia AMS C zostanie zmniejszona. Proszę podłączyć zasilacz lub poczekać, aż hotend zakończy nagrzewanie."
-                },
-                {
-                    "ecode": "0700260000020001",
-                    "intro": "Indukcyjny hotend się nagrzewa, a moc suszenia AMS A zostanie zmniejszona. Proszę podłączyć adapter zasilania lub poczekać, aż hotend zakończy nagrzewanie."
+                    "intro": "Wystąpił błąd podczas pobierania/osadzania hotendu 5. Proszę umieścić go z powrotem w głowicy, a następnie ręcznie przesunąć głowicę na środek urządzenia przed kontynuacją."
                 },
                 {
                     "ecode": "1A00040000020002",
-                    "intro": "Wystąpił błąd podczas pobierania/gniazdowania hotendu 4. Proszę umieścić go z powrotem w głowicy narzędzia, a następnie ręcznie przesunąć głowicę narzędzia do środka maszyny przed kontynuowaniem."
-                },
-                {
-                    "ecode": "0701260000020001",
-                    "intro": "Indukcyjny hotend się nagrzewa, a moc suszenia AMS B zostanie zmniejszona. Proszę podłączyć adapter zasilania lub poczekać, aż hotend zakończy nagrzewanie."
-                },
-                {
-                    "ecode": "1801260000020001",
-                    "intro": "Indukcyjny hotend się nagrzewa, a moc suszenia AMS-HT B zostanie zmniejszona. Proszę podłączyć adapter zasilania lub poczekać, aż hotend zakończy nagrzewanie."
-                },
-                {
-                    "ecode": "1800260000020001",
-                    "intro": "Indukcyjny hotend się nagrzewa, a moc suszenia AMS-HT A zostanie zmniejszona. Proszę podłączyć adapter zasilania lub poczekać, aż hotend zakończy nagrzewanie."
-                },
-                {
-                    "ecode": "1805260000020001",
-                    "intro": "Indukcyjny hotend się nagrzewa, a moc suszenia AMS-HT F zostanie zmniejszona. Proszę podłączyć adapter zasilania lub poczekać, aż hotend zakończy nagrzewanie."
+                    "intro": "Wystąpił błąd podczas pobierania/osadzania hotendu 4. Proszę umieścić go z powrotem w głowicy, a następnie ręcznie przesunąć głowicę na środek urządzenia przed kontynuacją."
                 },
                 {
                     "ecode": "1A00020000020002",
-                    "intro": "Wystąpił błąd podczas pobierania/gniazdowania hotendu 2. Proszę umieścić go z powrotem w głowicy narzędzia, a następnie ręcznie przesunąć głowicę narzędzia do środka maszyny przed kontynuowaniem."
+                    "intro": "Wystąpił błąd podczas pobierania/osadzania hotendu 2. Proszę umieścić go z powrotem w głowicy, a następnie ręcznie przesunąć głowicę na środek urządzenia przed kontynuacją."
                 },
                 {
-                    "ecode": "1803260000020001",
-                    "intro": "Indukcyjny hotend się nagrzewa, a moc suszenia AMS-HT D zostanie zmniejszona. Proszę podłączyć adapter zasilania lub poczekać, aż hotend zakończy nagrzewanie."
+                    "ecode": "0700F00000020001",
+                    "intro": "Nieudane dopasowanie filamentu i hotendu. Proszę sprawdzić, czy hotend w slocie 1 stojaka na hotend jest poprawnie zainstalowany."
                 },
                 {
-                    "ecode": "0707260000020001",
-                    "intro": "Indukcyjny hotend się nagrzewa, a moc suszenia AMS H zostanie zmniejszona. Proszę podłączyć adapter zasilania lub poczekać, aż hotend zakończy nagrzewanie."
+                    "ecode": "0703F00000020001",
+                    "intro": "Nieudane dopasowanie filamentu i hotendu. Proszę sprawdzić, czy hotend w slocie 4 stojaka na hotend jest poprawnie zainstalowany."
                 },
                 {
-                    "ecode": "1806260000020001",
-                    "intro": "Indukcyjny hotend się nagrzewa, a moc suszenia AMS-HT G zostanie zmniejszona. Proszę podłączyć adapter zasilania lub poczekać, aż hotend zakończy nagrzewanie."
+                    "ecode": "0701F00000020001",
+                    "intro": "Nieudane dopasowanie filamentu i hotendu. Proszę sprawdzić, czy hotend w slocie 2 stojaka na hotend jest poprawnie zainstalowany."
                 },
                 {
-                    "ecode": "0703260000020001",
-                    "intro": "Indukcyjny hotend się nagrzewa, a moc suszenia AMS D zostanie zmniejszona. Proszę podłączyć adapter zasilania lub poczekać, aż hotend zakończy nagrzewanie."
+                    "ecode": "0702F00000020001",
+                    "intro": "Nieudane dopasowanie filamentu i hotendu. Proszę sprawdzić, czy hotend w slocie 3 stojaka na hotend jest poprawnie zainstalowany."
                 },
                 {
-                    "ecode": "1802260000020001",
-                    "intro": "Indukcyjny hotend się nagrzewa, a moc suszenia AMS-HT C zostanie zmniejszona. Proszę podłączyć adapter zasilania lub poczekać, aż hotend zakończy nagrzewanie."
+                    "ecode": "0704F00000020001",
+                    "intro": "Nieudane dopasowanie filamentu i hotendu. Proszę sprawdzić, czy hotend w slocie 5 stojaka na hotend jest poprawnie zainstalowany."
                 },
                 {
-                    "ecode": "0706260000020001",
-                    "intro": "Indukcyjny hotend się nagrzewa, a moc suszenia AMS G zostanie zmniejszona. Proszę podłączyć adapter zasilania lub poczekać, aż hotend zakończy nagrzewanie."
+                    "ecode": "0705F00000020001",
+                    "intro": "Nieudane dopasowanie filamentu i hotendu. Proszę sprawdzić, czy hotend w slocie 6 stojaka na hotend jest poprawnie zainstalowany."
                 },
                 {
-                    "ecode": "1807260000020001",
-                    "intro": "Indukcyjny hotend się nagrzewa, a moc suszenia AMS-HT H zostanie zmniejszona. Proszę podłączyć adapter zasilania lub poczekać, aż hotend zakończy nagrzewanie."
+                    "ecode": "1A00060000020001",
+                    "intro": "Wystąpił błąd podczas osadzania/pobierania hotendu. Umieść hotend z powrotem w gnieździe 6 stojaka, ręcznie przesuń ją na środek płyty roboczej, a następnie kontynuuj."
                 },
                 {
-                    "ecode": "0705260000020001",
-                    "intro": "Indukcyjny hotend się nagrzewa, a moc suszenia AMS F zostanie zmniejszona. Proszę podłączyć adapter zasilania lub poczekać, aż hotend zakończy nagrzewanie."
+                    "ecode": "1A00060000020002",
+                    "intro": "Wystąpił błąd podczas pobierania/osadzania hotendu 6. Proszę umieścić go z powrotem w głowicy, a następnie ręcznie przesunąć głowicę na środek urządzenia przed kontynuacją."
+                },
+                {
+                    "ecode": "1A00010000020001",
+                    "intro": "Wystąpił błąd podczas osadzania/pobierania hotendu. Umieść hotend z powrotem w gnieździe 1 stojaka, ręcznie przesuń ją na środek płyty roboczej, a następnie kontynuuj."
+                },
+                {
+                    "ecode": "1A00040000020001",
+                    "intro": "Wystąpił błąd podczas osadzania/pobierania hotendu. Umieść hotend z powrotem w gnieździe 4 stojaka, ręcznie przesuń ją na środek płyty roboczej, a następnie kontynuuj."
+                },
+                {
+                    "ecode": "1A00030000020001",
+                    "intro": "Wystąpił błąd podczas osadzania/pobierania hotendu. Umieść hotend z powrotem w gnieździe 3 stojaka, ręcznie przesuń ją na środek płyty roboczej, a następnie kontynuuj."
+                },
+                {
+                    "ecode": "1A00020000020001",
+                    "intro": "Wystąpił błąd podczas osadzania/pobierania hotendu. Umieść hotend z powrotem w gnieździe 2 stojaka, ręcznie przesuń ją na środek płyty roboczej, a następnie kontynuuj."
+                },
+                {
+                    "ecode": "1A00050000020001",
+                    "intro": "Wystąpił błąd podczas osadzania/pobierania hotendu. Umieść hotend z powrotem w gnieździe 5 stojaka, ręcznie przesuń ją na środek płyty roboczej, a następnie kontynuuj."
                 },
                 {
                     "ecode": "1A00120000020001",
-                    "intro": "Kalibracja stojaka hotendu nie powiodła się: dane kalibracyjne kamery są nieprawidłowe. Proszę oczyścić dysze z resztek i sprawdzić, czy papier termiczny na stole grzewczym nie jest uszkodzony."
+                    "intro": "Kalibracja stojaka na hotendy nie powiodła się: dane kalibracyjne kamery są nieprawidłowe. Proszę oczyścić dysze z resztek i sprawdzić, czy papier termiczny na stole grzewczym nie jest uszkodzony."
+                },
+                {
+                    "ecode": "0300DB0000020001",
+                    "intro": "Wykryto moduł laserowy. Proszę prawidłowo zainstalować odpowiednią dyszę, aby zapewnić właściwą kalibrację montażu modułu laserowego."
+                },
+                {
+                    "ecode": "0300DA0000020001",
+                    "intro": "Wykryto moduł laserowy. Proszę usunąć gorący koniec z uchwytu gorącego końca, aby zapobiec wpływowi pozostałości po obróbce laserowej na wydajność drukowania."
+                },
+                {
+                    "ecode": "0300020000010001",
+                    "intro": "Błąd temperatury dyszy prawego ekstrudera. Spirala grzewcza może być zwarcia. Proszę sprawdzić, czy warstwa izolacyjna jest nietknięta."
+                },
+                {
+                    "ecode": "0300020000010002",
+                    "intro": "Błąd temperatury dyszy prawego ekstrudera. Spirala grzewcza może być przerwana. Proszę sprawdzić, czy złącze jest luźne."
+                },
+                {
+                    "ecode": "0300020000010003",
+                    "intro": "Błąd temperatury dyszy prawego ekstrudera. Rdzeń grzałki może się przegrzewać."
+                },
+                {
+                    "ecode": "0300020000010008",
+                    "intro": "Błąd temperatury dyszy prawej, nieudane ogrzewanie."
+                },
+                {
+                    "ecode": "1A00120000020010",
+                    "intro": "Stojak na hotendy indukcyjne nie został skonfigurowany. Proszę postępować zgodnie z instrukcjami, aby zakończyć konfigurację przed korzystaniem z jego funkcji."
+                },
+                {
+                    "ecode": "0704260000020001",
+                    "intro": "Hotend indukcyjny nagrzewa się, w związku z czym moc suszenia AMS E zostanie ograniczona. Proszę podłączyć zasilacz lub poczekać, aż hotend zakończy nagrzewanie."
+                },
+                {
+                    "ecode": "1804260000020001",
+                    "intro": "Hotend indukcyjny nagrzewa się, w związku z czym moc suszenia AMS-HT E zostanie ograniczona. Proszę podłączyć zasilacz lub poczekać, aż hotend zakończy nagrzewanie."
+                },
+                {
+                    "ecode": "0702260000020001",
+                    "intro": "Hotend indukcyjny nagrzewa się, w związku z czym moc suszenia AMS C zostanie ograniczona. Proszę podłączyć zasilacz lub poczekać, aż hotend zakończy nagrzewanie."
+                },
+                {
+                    "ecode": "0700260000020001",
+                    "intro": "Hotend indukcyjny nagrzewa się, w związku z czym moc suszenia AMS A zostanie ograniczona. Proszę podłączyć zasilacz lub poczekać, aż hotend zakończy nagrzewanie."
+                },
+                {
+                    "ecode": "0701260000020001",
+                    "intro": "Hotend indukcyjny nagrzewa się, w związku z czym moc suszenia AMS B zostanie ograniczona. Proszę podłączyć zasilacz lub poczekać, aż hotend zakończy nagrzewanie."
+                },
+                {
+                    "ecode": "1801260000020001",
+                    "intro": "Hotend indukcyjny nagrzewa się, w związku z czym moc suszenia AMS-HT B zostanie ograniczona. Proszę podłączyć zasilacz lub poczekać, aż hotend zakończy nagrzewanie."
+                },
+                {
+                    "ecode": "1800260000020001",
+                    "intro": "Hotend indukcyjny nagrzewa się, w związku z czym moc suszenia AMS-HT A zostanie ograniczona. Proszę podłączyć zasilacz lub poczekać, aż hotend zakończy nagrzewanie."
+                },
+                {
+                    "ecode": "1805260000020001",
+                    "intro": "Hotend indukcyjny nagrzewa się, w związku z czym moc suszenia AMS-HT F zostanie ograniczona. Proszę podłączyć zasilacz lub poczekać, aż hotend zakończy nagrzewanie."
+                },
+                {
+                    "ecode": "1803260000020001",
+                    "intro": "Hotend indukcyjny nagrzewa się, w związku z czym moc suszenia AMS-HT D zostanie ograniczona. Proszę podłączyć zasilacz lub poczekać, aż hotend zakończy nagrzewanie."
+                },
+                {
+                    "ecode": "0707260000020001",
+                    "intro": "Hotend indukcyjny nagrzewa się, w związku z czym moc suszenia AMS H zostanie ograniczona. Proszę podłączyć zasilacz lub poczekać, aż hotend zakończy nagrzewanie."
+                },
+                {
+                    "ecode": "1806260000020001",
+                    "intro": "Hotend indukcyjny nagrzewa się, w związku z czym moc suszenia AMS-HT G zostanie ograniczona. Proszę podłączyć zasilacz lub poczekać, aż hotend zakończy nagrzewanie."
+                },
+                {
+                    "ecode": "0703260000020001",
+                    "intro": "Hotend indukcyjny nagrzewa się, w związku z czym moc suszenia AMS D zostanie ograniczona. Proszę podłączyć zasilacz lub poczekać, aż hotend zakończy nagrzewanie."
+                },
+                {
+                    "ecode": "1802260000020001",
+                    "intro": "Hotend indukcyjny nagrzewa się, w związku z czym moc suszenia AMS-HT C zostanie ograniczona. Proszę podłączyć zasilacz lub poczekać, aż hotend zakończy nagrzewanie."
+                },
+                {
+                    "ecode": "0706260000020001",
+                    "intro": "Hotend indukcyjny nagrzewa się, w związku z czym moc suszenia AMS G zostanie ograniczona. Proszę podłączyć zasilacz lub poczekać, aż hotend zakończy nagrzewanie."
+                },
+                {
+                    "ecode": "1807260000020001",
+                    "intro": "Hotend indukcyjny nagrzewa się, w związku z czym moc suszenia AMS-HT H zostanie ograniczona. Proszę podłączyć zasilacz lub poczekać, aż hotend zakończy nagrzewanie."
+                },
+                {
+                    "ecode": "0705260000020001",
+                    "intro": "Hotend indukcyjny nagrzewa się, w związku z czym moc suszenia AMS F zostanie ograniczona. Proszę podłączyć zasilacz lub poczekać, aż hotend zakończy nagrzewanie."
                 },
                 {
                     "ecode": "0300AB0000010001",
@@ -152,7 +208,7 @@
                 },
                 {
                     "ecode": "1A00120000020004",
-                    "intro": "Kalibracja wysokości stojaka hotendu jest nieprawidłowa. Sprawdź, czy nie ma żadnych ciał obcych, które mogą powodować blokowanie stojaka."
+                    "intro": "Kalibracja wysokości stojaka na hotendy jest nieprawidłowa. Sprawdź, czy nie ma żadnych ciał obcych, które mogą powodować blokowanie stojaka."
                 },
                 {
                     "ecode": "07FE70000002000A",
@@ -196,7 +252,7 @@
                 },
                 {
                     "ecode": "1A00130000020001",
-                    "intro": "Stojak hotendu jest pełny. Przed kontynuacją proszę wyjąć co najmniej jeden hotend."
+                    "intro": "Stojak na hotendy jest pełny. Przed kontynuacją proszę wyjąć co najmniej jeden hotend."
                 },
                 {
                     "ecode": "070670000002000A",
@@ -248,7 +304,7 @@
                 },
                 {
                     "ecode": "0501040000030006",
-                    "intro": "Zatrzask indukcyjnego hotendu może być zużyty. Aby zapewnić poprawną wymianę hotendu, wymień zatrzask i oczyść pręty stojaka  indukcyjnego hotendu."
+                    "intro": "Zatrzask indukcyjnego hotendu może być zużyty. Aby zapewnić poprawną wymianę hotendu, wymień zatrzask i oczyść pręty indukcyjnego stojaka na hotendy."
                 },
                 {
                     "ecode": "0500040000010056",
@@ -300,7 +356,7 @@
                 },
                 {
                     "ecode": "1A00110000020002",
-                    "intro": "Wstępne bazowanie stojaka hotendu nie powiodło się. Sprawdź, czy nie występują przeszkody."
+                    "intro": "Wstępne bazowanie stojaka na hotendy nie powiodło się. Sprawdź, czy nie występują przeszkody."
                 },
                 {
                     "ecode": "1A00210000020001",
@@ -324,7 +380,7 @@
                 },
                 {
                     "ecode": "1A00110000020003",
-                    "intro": "Wstępne bazowanie indukcyjnego stojaka hotendu nie powiodło się z powodu nadmiernego przesunięcia. Sprawdź stan paska zębatego."
+                    "intro": "Wstępne bazowanie stojaka na hotendy indukcyjne nie powiodło się z powodu przekroczenia dopuszczalnego zakresu ruchu. Sprawdź stan paska zębatego."
                 },
                 {
                     "ecode": "1A00230000020002",
@@ -351,24 +407,28 @@
                     "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 4 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
                 },
                 {
-                    "ecode": "1A00120000020002",
-                    "intro": "Kalibracja stojaka hotendu nie powiodła się. Nie wykryto znacznika. Sprawdź, czy znacznik wizualny na stojaku nie jest uszkodzony lub zasłonięty przez zanieczyszczenia."
-                },
-                {
-                    "ecode": "1A00120000020003",
-                    "intro": "Kalibracja stojaka indukcyjnego hotendu nie powiodła się: wynik przekroczył zakres ruchu. Sprawdź, czy konstrukcja stojaka nie jest odkształcona."
-                },
-                {
                     "ecode": "1A00200000020001",
                     "intro": "Wystąpiła przerwa w dostawie prądu podczas wymiany hotendu. Proszę postępować zgodnie z przewodnikiem Wiki, aby przywrócić ustawienia, w przeciwnym razie drukowanie może się nie powieść."
                 },
                 {
+                    "ecode": "1A00120000020002",
+                    "intro": "Kalibracja stojaka na hotendy nie powiodła się. Nie wykryto znacznika. Sprawdź, czy znacznik wizualny na stojaku nie jest uszkodzony lub zasłonięty przez zanieczyszczenia."
+                },
+                {
+                    "ecode": "1A00120000020003",
+                    "intro": "Kalibracja stojaka na hotendy indukcyjne nie powiodła się: wynik przekroczył zakres ruchu. Sprawdź, czy konstrukcja stojaka nie jest odkształcona."
+                },
+                {
                     "ecode": "1A00E00000010005",
-                    "intro": "Stojak hotendu indukcyjnego został zablokowany przez przeszkody podczas powrotu do pozycji bazowej. Proszę usunąć wszelkie przeszkody na jego drodze."
+                    "intro": "Stojak na hotendy indukcyjne został zablokowany przez przeszkody podczas powrotu do pozycji bazowej. Proszę usunąć wszelkie przeszkody na jego drodze."
                 },
                 {
                     "ecode": "1A00E00000010006",
-                    "intro": "Odległość bazowania stojaka hotendu indukcyjnego jest zbyt duża. Pasek zębaty może być luźny. Proszę sprawdzić i naciągnąć."
+                    "intro": "Odległość bazowania stojaka na hotendy indukcyjne jest zbyt duża. Pasek zębaty może być luźny. Proszę sprawdzić i go naciągnąć."
+                },
+                {
+                    "ecode": "1A00100000020001",
+                    "intro": "Bazowanie w osi XY głowicy lub stojaka na hotendy nie zostało zakończone. Nie można kontynuować wymiany hotendu."
                 },
                 {
                     "ecode": "1A00220000010002",
@@ -427,10 +487,6 @@
                     "intro": "Kontrola wymiany hotendu nieudana: brak hotendu w slocie 4."
                 },
                 {
-                    "ecode": "1A00100000020001",
-                    "intro": "Bazowanie w osi XY głowicy lub stojaka hotendu nie zostało zakończone. Nie można kontynuować wymiany hotendu."
-                },
-                {
                     "ecode": "0503000000030027",
                     "intro": ""
                 },
@@ -483,10 +539,6 @@
                     "intro": "Kontrola temperatury dyszy prawego ekstrudera działa nieprawidłowo, co może wynikać z nieprawidłowego montażu hotendu lub awarią płytki bezprzewodowego odczytu temperatury."
                 },
                 {
-                    "ecode": "0C00020000010001",
-                    "intro": "Laser do pomiaru wysokości nie świeci. Sprawdź, czy nic nie blokuje wiązki i czy kabel kamery w głowicy nie jest poluzowany."
-                },
-                {
                     "ecode": "0300D70000020001",
                     "intro": "Czwarta oś lasera nie jest podłączona"
                 },
@@ -532,19 +584,19 @@
                 },
                 {
                     "ecode": "0300E10000010001",
-                    "intro": "Czujnik prądu silnika uchwytu hotendu jest nieprawidłowy. Prawdopodobnie z powodu usterki sprzętowego obwodu próbkowania. Jeśli ponowne uruchomienie drukarki nie rozwiąże problemu, skontaktuj się z obsługą klienta."
+                    "intro": "Czujnik prądu silnika uchwytu hotendu działa nieprawidłowo. Prawdopodobnie z powodu usterki sprzętowego obwodu próbkowania. Jeśli ponowne uruchomienie drukarki nie rozwiąże problemu, skontaktuj się z obsługą klienta."
                 },
                 {
                     "ecode": "0300D50000020004",
                     "intro": "Zbiornik gaśnicy nie został zainstalowany. Proszę potwierdzić to na stronie gaśnicy."
                 },
                 {
-                    "ecode": "0500050000020030",
-                    "intro": ""
-                },
-                {
                     "ecode": "0501040000030002",
                     "intro": "Pręty gwintowane wymagają natychmiastowego nasmarowania."
+                },
+                {
+                    "ecode": "0500050000020030",
+                    "intro": ""
                 },
                 {
                     "ecode": "0300910000010008",
@@ -639,38 +691,6 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "1800020000020002",
-                    "intro": "AMS-HT A Brak sygnału odometrii. Złącze czujnika odometrii może mieć słaby styk."
-                },
-                {
-                    "ecode": "0500050000010009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500050000010008",
-                    "intro": ""
-                },
-                {
-                    "ecode": "050005000001000B",
-                    "intro": ""
-                },
-                {
-                    "ecode": "050005000001000A",
-                    "intro": ""
-                },
-                {
-                    "ecode": "050005000001000C",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00010000020016",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00010000020015",
-                    "intro": ""
-                },
-                {
                     "ecode": "0500010000020003",
                     "intro": ""
                 },
@@ -759,6 +779,38 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "1800020000020002",
+                    "intro": "AMS-HT A Brak sygnału odometrii. Złącze czujnika odometrii może mieć słaby styk."
+                },
+                {
+                    "ecode": "0500050000010009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500050000010008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050005000001000B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050005000001000A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050005000001000C",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00010000020016",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00010000020015",
+                    "intro": ""
+                },
+                {
                     "ecode": "0500030000020010",
                     "intro": ""
                 },
@@ -783,6 +835,14 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "0C00040000030028",
+                    "intro": "Kalibracja przesunięcia modułu cięcia nie powiodła się, co może skutkować niedokładnymi cięciami. Upewnij się, że biały papier drukarki o gramaturze 80g (grubość papieru listowego) jest prawidłowo umieszczony i sprawdź, czy końcówka ostrza tnącego jest zużyta."
+                },
+                {
+                    "ecode": "0C00040000030026",
+                    "intro": "Aby poprawić dokładność wykrywania płomienia, światło w prawej komorze zostało automatycznie wyłączone."
+                },
+                {
                     "ecode": "0C0001000002001A",
                     "intro": ""
                 },
@@ -797,14 +857,6 @@
                 {
                     "ecode": "0500060000020052",
                     "intro": ""
-                },
-                {
-                    "ecode": "0C00040000030028",
-                    "intro": "Kalibracja przesunięcia modułu cięcia nie powiodła się, co może skutkować niedokładnymi cięciami. Upewnij się, że biały papier drukarki o gramaturze 80g (grubość papieru listowego) jest prawidłowo umieszczony i sprawdź, czy końcówka ostrza tnącego jest zużyta."
-                },
-                {
-                    "ecode": "0C00040000030026",
-                    "intro": "Aby poprawić dokładność wykrywania płomienia, światło w prawej komorze zostało automatycznie wyłączone."
                 },
                 {
                     "ecode": "0300D50000020005",
@@ -1113,10 +1165,6 @@
                 {
                     "ecode": "03001E0000010003",
                     "intro": "Temperatura lewej dyszy jest nieprawidłowa. Grzałka uległa przegrzaniu."
-                },
-                {
-                    "ecode": "0300020000010003",
-                    "intro": "Temperatura prawej dyszy jest nieprawidłowa. Grzałka uległa przegrzaniu."
                 },
                 {
                     "ecode": "0707620000020001",
@@ -6827,10 +6875,6 @@
                     "intro": "Temperatura lewej dyszy jest nieprawidłowa. Czujnik może mieć zwarcie, sprawdź, czy wtyczka jest prawidłowo podłączona."
                 },
                 {
-                    "ecode": "0300020000010002",
-                    "intro": "Temperatura prawej dyszy jest nieprawidłowa. Grzałka może mieć przerwę w obwodzie."
-                },
-                {
                     "ecode": "0300020000010006",
                     "intro": "Temperatura prawej dyszy jest nieprawidłowa. Czujnik może mieć zwarcie, sprawdź, czy wtyczka jest prawidłowo podłączona."
                 },
@@ -7691,14 +7735,6 @@
                     "intro": "AMS H gniazdo 2 przekroczono limit czasu podawania filamentu z AMS."
                 },
                 {
-                    "ecode": "0300020000010001",
-                    "intro": "Temperatura prawej dyszy jest nieprawidłowa. Grzałka może mieć zwarcie."
-                },
-                {
-                    "ecode": "03001E0000010001",
-                    "intro": "Temperatura lewej dyszy jest nieprawidłowa. Grzałka może mieć zwarcie."
-                },
-                {
                     "ecode": "0702230000020018",
                     "intro": "AMS C gniazdo 4 silnik pomocniczy nie działa, z powodu zbyt dużego oporu w rurce PTFE przy AMS."
                 },
@@ -7871,6 +7907,14 @@
                     "intro": "AMS-HT H gniazdo 3 przekroczono limit czasu podawania filamentu z AMS."
                 },
                 {
+                    "ecode": "03001E0000010001",
+                    "intro": "Temperatura lewej dyszy jest nieprawidłowa. Grzałka może mieć zwarcie."
+                },
+                {
+                    "ecode": "0300900000010003",
+                    "intro": "Ogrzewanie komory nie powiodło się. Temperatura zasilacza może być zbyt wysoka."
+                },
+                {
                     "ecode": "1802230000020011",
                     "intro": "AMS-HT C gniazdo 4 przekroczono limit czasu wycofania filamentu do AMS."
                 },
@@ -8035,18 +8079,6 @@
                     "intro": "AMS-HT F gniazdo 4 silnik pomocniczy nie działa, zbyt duży opór w rurce między buforem filamentu, a głowicą."
                 },
                 {
-                    "ecode": "0300900000010003",
-                    "intro": "Ogrzewanie komory nie powiodło się. Temperatura zasilacza może być zbyt wysoka."
-                },
-                {
-                    "ecode": "0300900000010001",
-                    "intro": "Podgrzewanie komory zakończone niepowodzeniem. Grzałka komory może nie dostarczać gorącego powietrza."
-                },
-                {
-                    "ecode": "0300900000010002",
-                    "intro": "Podgrzewanie komory nie powiodło się. Komora może nie być zamknięta, temperatura otoczenia może być zbyt niska lub otwór wentylacyjny zasilacza może być zablokowany."
-                },
-                {
                     "ecode": "0700230000020020",
                     "intro": "AMS A gniazdo 4 silnik pomocniczy nie działa, zbyt duży opór w rurce PTFE przy buforze filamentu."
                 },
@@ -8189,6 +8221,14 @@
                 {
                     "ecode": "1800220000020022",
                     "intro": "AMS-HT A gniazdo 3 silnik pomocniczy nie działa, zbyt duży opór w rurce przy głowicy."
+                },
+                {
+                    "ecode": "0300900000010001",
+                    "intro": "Podgrzewanie komory zakończone niepowodzeniem. Grzałka komory może nie dostarczać gorącego powietrza."
+                },
+                {
+                    "ecode": "0300900000010002",
+                    "intro": "Podgrzewanie komory nie powiodło się. Komora może nie być zamknięta, temperatura otoczenia może być zbyt niska lub otwór wentylacyjny zasilacza może być zablokowany."
                 },
                 {
                     "ecode": "0706210000020019",
@@ -11583,10 +11623,6 @@
                     "intro": "AMS H Czujnik Halla na wejściu gniazda 1 jest odłączony, co może wynikać ze słabego styku złącza."
                 },
                 {
-                    "ecode": "0701210000020008",
-                    "intro": "AMS B Czujnik Halla na wejściu gniazda 2 jest odłączony, co może wynikać ze słabego styku złącza."
-                },
-                {
                     "ecode": "1801130000020002",
                     "intro": "Silnik gniazda 4 modułu AMS-HT B jest przeciążony. Filament może być splątany lub zablokowany."
                 },
@@ -11761,6 +11797,10 @@
                 {
                     "ecode": "1802110000010001",
                     "intro": "Silnik gniazda 2 modułu AMS-HT C ślizga się. Koło ekstruzji może działać nieprawidłowo lub filament może być zbyt cienki."
+                },
+                {
+                    "ecode": "0701210000020008",
+                    "intro": "AMS B Czujnik Halla na wejściu gniazda 2 jest odłączony, co może wynikać ze słabego styku złącza."
                 },
                 {
                     "ecode": "0700220000020002",
@@ -13607,10 +13647,6 @@
                     "intro": "Awaria układu szyfrującego"
                 },
                 {
-                    "ecode": "1807120000020002",
-                    "intro": "Silnik gniazda 3 modułu AMS-HT H jest przeciążony. Filament może być splątany lub zablokowany."
-                },
-                {
                     "ecode": "0707200000030002",
                     "intro": "Skończył się filament w AMS H gniazdo 1 i został automatycznie przełączony na gniazdo z tym samym filamentem."
                 },
@@ -13757,6 +13793,10 @@
                 {
                     "ecode": "1803110000010001",
                     "intro": "Silnik gniazda 2 modułu AMS-HT D ślizga się. Koło ekstruzji może działać nieprawidłowo lub filament może być zbyt cienki."
+                },
+                {
+                    "ecode": "1807120000020002",
+                    "intro": "Silnik gniazda 3 modułu AMS-HT H jest przeciążony. Filament może być splątany lub zablokowany."
                 },
                 {
                     "ecode": "0700200000020005",
@@ -13947,10 +13987,6 @@
                     "intro": "Nie można odczytać RFID z powodu błędu sprzętowego lub strukturalnego."
                 },
                 {
-                    "ecode": "1804210000020001",
-                    "intro": "Skończył się filament w gnieździe 2 modułu AMS-HT E. Proszę włożyć nowy filament."
-                },
-                {
                     "ecode": "1801200000020008",
                     "intro": "AMS-HT B Czujnik Halla na wejściu gniazda 1 jest odłączony, co może wynikać ze słabego styku złącza."
                 },
@@ -14133,6 +14169,10 @@
                 {
                     "ecode": "1800560000030001",
                     "intro": "AMS-HT schładza się po procesie suszenia. Proszę odczekać, aż się schłodzi przed dalszym użyciem."
+                },
+                {
+                    "ecode": "1804210000020001",
+                    "intro": "Skończył się filament w gnieździe 2 modułu AMS-HT E. Proszę włożyć nowy filament."
                 },
                 {
                     "ecode": "0700220000020001",
@@ -19565,35 +19605,19 @@
             ]
         },
         "device_error": {
-            "ver": 202509091807,
+            "ver": 202511160923,
             "pl": [
                 {
-                    "ecode": "03008029",
-                    "intro": "Błąd komunikacji między głowicą MC a stojakiem. Proszę sprawdzić, czy kabel główny płyty stojaka jest luźny."
+                    "ecode": "05024023",
+                    "intro": "Wykryto błąd rozpoznawania indukcyjnego hotenda. Proszę przejść do strony „Hotends & Rack” i kliknąć „Read All”, aby ponownie wykryć. Jeśli problem będzie się powtarzał, spróbuj zaktualizować firmware na stronie „Firmware”."
                 },
                 {
-                    "ecode": "05028022",
-                    "intro": "Weryfikacja gorącego końcówki indukcyjnej nie powiodła się. Proszę wymień końcówkę i spróbuj ponownie."
+                    "ecode": "07008036",
+                    "intro": "Zgrzewarka Hotend nieudane grubo domowe. Proszę sprawdzić czy nie ma przeszkód lub czy płyta budowlana jest niewyprostowana."
                 },
                 {
-                    "ecode": "0300802A",
-                    "intro": "Błąd czujnika pozycji silnika stojaka Hotend. Jeśli problem będzie się utrzymywał po ponownej próbie, zrestartuj drukarkę."
-                },
-                {
-                    "ecode": "03004016",
-                    "intro": "Czyszczenie dyszy nie powiodło się. Kliknij Asystenta w celu rozwiązania problemu."
-                },
-                {
-                    "ecode": "0300802B",
-                    "intro": "Błąd silnika stojaka Hotend. Przed kontynuowaniem sprawdź i usuń wszelkie przeszkody wpływające na ruch stojaka."
-                },
-                {
-                    "ecode": "05024021",
-                    "intro": "Nie udało się odczytać informacji o gorącym końcu indukcyjnym. Proszę wymień gorący koniec lub zrestartuj drukarkę."
-                },
-                {
-                    "ecode": "05024018",
-                    "intro": "Stojak hotendu nie został skalibrowany i nie można wykonać zmiany hotendu. Przed kontynuowaniem należy wykonać kalibrację stojaka."
+                    "ecode": "18008036",
+                    "intro": "Zgrzewarka Hotend nieudane grubo home. Proszę sprawdzić czy nie ma przeszkód lub czy płyta budowlana jest niewyprostowana."
                 },
                 {
                     "ecode": "07008018",
@@ -19676,6 +19700,114 @@
                     "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę wybierać \"Wznów\", aby spróbować ponownie."
                 },
                 {
+                    "ecode": "03008056",
+                    "intro": "Wykryto moduł laserowy. Proszę usunąć gorący koniec z uchwytu gorącego końca, aby zapobiec wpływowi pozostałości po obróbce laserowej na wydajność drukowania."
+                },
+                {
+                    "ecode": "1A004009",
+                    "intro": "Stojak hotend nie został jeszcze skonfigurowany. Proszę ukończyć konfigurację przed przystąpieniem do wymiany hotendu."
+                },
+                {
+                    "ecode": "07018007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "07028007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "07038007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "07008007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "18058007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "07078007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "18078007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "07058007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "18038007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "18018007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "18028007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "18008007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "07048007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "18068007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "18048007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "07068007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "07008035",
+                    "intro": "Nie udało się wykonać wstępnego bazowania uchwytu hotendu. Proszę sprawdzić, czy na stole roboczym nie ma przeszkód oraz poprawność ustawienia płyty roboczej."
+                },
+                {
+                    "ecode": "18008035",
+                    "intro": "Nie udało się wykonać wstępnego bazowania uchwytu hotendu. Proszę sprawdzić, czy na stole roboczym nie ma przeszkód oraz poprawność ustawienia płyty roboczej."
+                },
+                {
+                    "ecode": "03008029",
+                    "intro": "Błąd komunikacji między MC a stojakiem na hotendy. Sprawdź, czy kabel płyty głównej stojaka nie jest poluzowany."
+                },
+                {
+                    "ecode": "05028022",
+                    "intro": "Weryfikacja hotendu indukcyjnego nie powiodła się. Wymień hotend i spróbuj ponownie."
+                },
+                {
+                    "ecode": "0300802A",
+                    "intro": "Błąd czujnika położenia silnika stojaka na hotendy. Jeśli problem będzie się powtarzał po ponownej próbie, należy zrestartować drukarkę."
+                },
+                {
+                    "ecode": "03004016",
+                    "intro": "Nie udało się wyczyścić dyszy. Kliknij Asystenta, aby rozwiązać problem."
+                },
+                {
+                    "ecode": "0300802B",
+                    "intro": "Błąd silnika stojaka na hotendy. Proszę sprawdzić i usunąć wszelkie przeszkody utrudniające ruch stojaka przed kontynuacją."
+                },
+                {
+                    "ecode": "05024021",
+                    "intro": "Nie udało się odczytać informacji o hotendzie indukcyjnym. Wymień hotend lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05024018",
+                    "intro": "Stojak na hotendy nie został skalibrowany, dlatego nie można zmienić hotendu. Proszę zakończyć kalibrację stojaka na urządzeniu."
+                },
+                {
                     "ecode": "03008053",
                     "intro": "Wykryto moduł lasera. Proszę prawidłowo zamontować prawą dyszę, aby zapewnić poprawną kalibrację montażu modułu laserowego."
                 },
@@ -19685,7 +19817,7 @@
                 },
                 {
                     "ecode": "1A004008",
-                    "intro": "Stojak hotendu jest pełny i nie można przeprowadzić zmiany hotendu. Proszę usunąć jeden hotend przed kontynuacją."
+                    "intro": "Stojak na hotendy jest pełny i nie można przeprowadzić zmiany hotendu. Proszę usunąć jeden hotend przed kontynuacją."
                 },
                 {
                     "ecode": "05024019",
@@ -19697,7 +19829,7 @@
                 },
                 {
                     "ecode": "05024020",
-                    "intro": "Stojak hotendu jest pełny. Przed kontynuacją proszę wyjąć jeden hotend."
+                    "intro": "Stojak na hotendy jest pełny. Przed kontynuacją proszę wyjąć jeden hotend."
                 },
                 {
                     "ecode": "05024017",
@@ -19705,27 +19837,27 @@
                 },
                 {
                     "ecode": "05024016",
-                    "intro": "Nie wykryto żadnego dostępnego hotendu w uchwycie hotendu indukcyjnego ani w stojaku hotendu. Proszę zainstalować hotend i spróbować ponownie."
+                    "intro": "Nie wykryto żadnego dostępnego hotendu w uchwycie hotendu indukcyjnego ani w stojaku na hotendy. Proszę zainstalować hotend i spróbować ponownie."
                 },
                 {
                     "ecode": "1A004007",
-                    "intro": "Kalibracja stojaka hotendu indukcyjnego nie powiodła się. Sprawdź Asystenta."
+                    "intro": "Kalibracja stojaka na indukcyjne hotendy nie powiodła się. Sprawdź Asystenta."
                 },
                 {
                     "ecode": "1A008004",
-                    "intro": "Przed uruchomieniem trybu lasera lub przed kalibracją stojaka hotendu usuń wszystkie hotendy ze stojaka."
+                    "intro": "Przed uruchomieniem trybu lasera lub przed kalibracją stojaka na hotendy usuń wszystkie hotendy ze stojaka."
                 },
                 {
                     "ecode": "1A008002",
-                    "intro": "Bazowanie indukcyjnego stojaka hotendu zakończył się niepowodzeniem z powodu napotkania przeszkody. Proszę ją usunąć i wznowić drukowanie."
+                    "intro": "Bazowanie stojaka na hotendy indukcyjne zakończył się niepowodzeniem z powodu napotkania przeszkody. Proszę ją usunąć i wznowić drukowanie."
                 },
                 {
                     "ecode": "1A008003",
-                    "intro": "Odległość powrotu do pozycji bazowej stojaka hotendu jest nietypowo długa. Sprawdź, czy pasek zębaty nie jest luźny lub uszkodzony."
+                    "intro": "Odległość powrotu do pozycji bazowej stojaka na hotendy jest nietypowo długa. Sprawdź, czy pasek zębaty nie jest luźny lub uszkodzony."
                 },
                 {
                     "ecode": "1A004001",
-                    "intro": "Wstępne bazowanie stojaka hotendu nie powiodło się. Drukowanie zostało anulowane. Proszę upewnić się, że nic nie blokuje jego ruchu."
+                    "intro": "Wstępne bazowanie stojaka na hotendy nie powiodło się. Drukowanie zostało anulowane. Proszę upewnić się, że nic nie blokuje jego ruchu."
                 },
                 {
                     "ecode": "05024015",
@@ -19742,10 +19874,6 @@
                 {
                     "ecode": "05004047",
                     "intro": "Druk został zatrzymany, ponieważ dostępna liczba lub model hotendu nie zgadza się z plikiem przygotowanym do druku. Sprawdź model i ilość hotendów przed ponownym uruchomieniem druku."
-                },
-                {
-                    "ecode": "0500807E",
-                    "intro": "Proszę położyć matę StrongGrip na podstawie ochronnej do cięcia."
                 },
                 {
                     "ecode": "0500409F",
@@ -19816,6 +19944,10 @@
                     "intro": "Urządzenie nie może wykryć 4 osi lasera.  Podłącz ponownie kabel modułu lub uruchom ponownie drukarkę."
                 },
                 {
+                    "ecode": "0500807E",
+                    "intro": "Proszę położyć matę StrongGrip na podstawie ochronnej do cięcia."
+                },
+                {
                     "ecode": "05008062",
                     "intro": "Znacznik płyty roboczej nie został wykryty. Upewnij się, że płyta robocza jest prawidłowo ustawiona na stole grzewczym, wszystkie cztery rogi są wyrównane, a znacznik jest widoczny. Przy zbyt jasnym oświetleniu powierzchni płyty, zamknij przednie drzwi komory i ogranicz dopływ światła zewnętrznego."
                 },
@@ -19824,12 +19956,12 @@
                     "intro": "System wymiany hotendu jest zajęty. Proszę wykonać aktualizację w stanie bezczynności."
                 },
                 {
-                    "ecode": "0500808B",
-                    "intro": "Konfiguracja kamery BirdsEye nie powiodła się. Wyczyść stół grzewczy, usuń wszystkie obiekty i matę oraz upewnij się, że znaczniki podgrzewanego stołu są widoczne. Jednocześnie upewnij się, że kamera BirdsEye jest prawidłowo zainstalowana i usuń wszelkie przeszkody, które mogą blokować jej widoczność."
-                },
-                {
                     "ecode": "0502C012",
                     "intro": "Zadanie nie można zostać wstrzymane."
+                },
+                {
+                    "ecode": "0500808B",
+                    "intro": "Konfiguracja kamery BirdsEye nie powiodła się. Wyczyść stół grzewczy, usuń wszystkie obiekty i matę oraz upewnij się, że znaczniki podgrzewanego stołu są widoczne. Jednocześnie upewnij się, że kamera BirdsEye jest prawidłowo zainstalowana i usuń wszelkie przeszkody, które mogą blokować jej widoczność."
                 },
                 {
                     "ecode": "07FFC010",
@@ -19868,6 +20000,10 @@
                     "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
                 },
                 {
+                    "ecode": "03008081",
+                    "intro": "Zbiornik gaśnicy nie został zainstalowany. Proszę potwierdzić to na stronie gaśnicy."
+                },
+                {
                     "ecode": "07008034",
                     "intro": "Nie udało się pobrać hotendu z pozycji 1 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
                 },
@@ -19896,10 +20032,6 @@
                     "intro": "Nie udało się umieścić hotendu w pozycji 3 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
                 },
                 {
-                    "ecode": "03008081",
-                    "intro": "Zbiornik gaśnicy nie został zainstalowany. Proszę potwierdzić to na stronie gaśnicy."
-                },
-                {
                     "ecode": "03008025",
                     "intro": "Odległość bazowania uchwytu hotendu jest zbyt duża. Proszę sprawdzić pasek zębaty i przekładnię silnika pod kątem luzów lub uszkodzeń."
                 },
@@ -19920,20 +20052,12 @@
                     "intro": "Tryb lasera/kalibracji: Przed ponowną próbą wyjmij wszystkie głowice z uchwytu."
                 },
                 {
-                    "ecode": "07058034",
-                    "intro": "Nie udało się pobrać hotendu z pozycji 6 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                    "ecode": "07008033",
+                    "intro": "Nie udało się umieścić hotendu w pozycji 1 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
                 },
                 {
-                    "ecode": "07058033",
-                    "intro": "Nie udało się umieścić hotendu w pozycji 6 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "07018033",
-                    "intro": "Nie udało się umieścić hotendu w pozycji 2 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "07028034",
-                    "intro": "Nie udało się pobrać hotendu z pozycji 3 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                    "ecode": "07008030",
+                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
                 },
                 {
                     "ecode": "18018034",
@@ -19960,20 +20084,20 @@
                     "intro": "Nie udało się umieścić hotendu w pozycji 6 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
                 },
                 {
-                    "ecode": "07008033",
-                    "intro": "Nie udało się umieścić hotendu w pozycji 1 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                    "ecode": "07058034",
+                    "intro": "Nie udało się pobrać hotendu z pozycji 6 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
                 },
                 {
-                    "ecode": "07008030",
-                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
+                    "ecode": "07058033",
+                    "intro": "Nie udało się umieścić hotendu w pozycji 6 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
                 },
                 {
-                    "ecode": "07008035",
-                    "intro": "Nie udało się wykonać wstępnego bazowania uchwytu hotendu. Proszę sprawdzić, czy na stole roboczym nie ma przeszkód oraz poprawność ustawienia płyty roboczej."
+                    "ecode": "07018033",
+                    "intro": "Nie udało się umieścić hotendu w pozycji 2 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
                 },
                 {
-                    "ecode": "18008035",
-                    "intro": "Nie udało się wykonać wstępnego bazowania uchwytu hotendu. Proszę sprawdzić, czy na stole roboczym nie ma przeszkód oraz poprawność ustawienia płyty roboczej."
+                    "ecode": "07028034",
+                    "intro": "Nie udało się pobrać hotendu z pozycji 3 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
                 },
                 {
                     "ecode": "0300C070",
@@ -21764,10 +21888,6 @@
                     "intro": "Przekroczono limit czasu usuwania starego filamentu: Sprawdź, czy filament się nie zaciął lub czy ekstruder nie jest zatkany."
                 },
                 {
-                    "ecode": "18058007",
-                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
-                },
-                {
                     "ecode": "18008013",
                     "intro": "Przekroczono limit czasu usuwania starego filamentu: Sprawdź, czy filament się nie zaciął lub czy ekstruder nie jest zatkany."
                 },
@@ -21780,28 +21900,12 @@
                     "intro": "Przekroczono limit czasu usuwania starego filamentu: Sprawdź, czy filament się nie zaciął lub czy ekstruder nie jest zatkany."
                 },
                 {
-                    "ecode": "07078007",
-                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
-                },
-                {
-                    "ecode": "18078007",
-                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
-                },
-                {
                     "ecode": "18FE8024",
                     "intro": "Kalibracja pozycji ekstrudera nie powiodła się. Skorzystaj z pomocy asystenta. Po rozwiązywaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
                 },
                 {
                     "ecode": "18058013",
                     "intro": "Przekroczono limit czasu usuwania starego filamentu: Sprawdź, czy filament się nie zaciął lub czy ekstruder nie jest zatkany."
-                },
-                {
-                    "ecode": "07058007",
-                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
-                },
-                {
-                    "ecode": "18018007",
-                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
                 },
                 {
                     "ecode": "18FE8001",
@@ -21814,14 +21918,6 @@
                 {
                     "ecode": "07048013",
                     "intro": "Przekroczono limit czasu usuwania starego filamentu: Sprawdź, czy filament się nie zaciął lub czy ekstruder nie jest zatkany."
-                },
-                {
-                    "ecode": "07048007",
-                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
-                },
-                {
-                    "ecode": "18048007",
-                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
                 },
                 {
                     "ecode": "05008071",
@@ -21842,14 +21938,6 @@
                 {
                     "ecode": "05008067",
                     "intro": "Proszę położyć matę LightGrip na podstawie ochronnej do cięcia."
-                },
-                {
-                    "ecode": "07018007",
-                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
-                },
-                {
-                    "ecode": "07028007",
-                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
                 },
                 {
                     "ecode": "03008042",
@@ -21874,10 +21962,6 @@
                 {
                     "ecode": "07FF8001",
                     "intro": "Nie udało się przeciąć filamentu prawego ekstrudera. Sprawdź nóż. Po rozwiązywaniu problemów kliknij przycisk \"Spróbuj ponownie\"."
-                },
-                {
-                    "ecode": "07038007",
-                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
                 },
                 {
                     "ecode": "07FE8013",
@@ -21932,10 +22016,6 @@
                     "intro": "Przekroczono limit czasu usuwania starego filamentu: Sprawdź, czy filament się nie zaciął lub czy ekstruder nie jest zatkany."
                 },
                 {
-                    "ecode": "07008007",
-                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
-                },
-                {
                     "ecode": "18FE8013",
                     "intro": "Przekroczono limit czasu usuwania starego filamentu z lewego ekstrudera: Sprawdź, czy filament się nie zaciął lub czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
                 },
@@ -21944,24 +22024,12 @@
                     "intro": "Przekroczono limit czasu usuwania starego filamentu: Sprawdź, czy filament się nie zaciął lub czy ekstruder nie jest zatkany."
                 },
                 {
-                    "ecode": "18038007",
-                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
-                },
-                {
                     "ecode": "18FF8002",
                     "intro": "Przecinarka prawego ekstrudera jest zablokowana. Wysuń dźwignię noża i kliknij przycisk \"Spróbuj ponownie\"."
                 },
                 {
                     "ecode": "18FF8020",
                     "intro": "Zmiana ekstrudera nie powiodła się. Skorzystaj z asystenta, po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
-                },
-                {
-                    "ecode": "18028007",
-                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
-                },
-                {
-                    "ecode": "18008007",
-                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
                 },
                 {
                     "ecode": "07078013",
@@ -21980,20 +22048,12 @@
                     "intro": "Kalibracja pozycji ekstrudera nie powiodła się. Skorzystaj z pomocy asystenta. Po rozwiązywaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
                 },
                 {
-                    "ecode": "18068007",
-                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
-                },
-                {
                     "ecode": "18078013",
                     "intro": "Przekroczono limit czasu usuwania starego filamentu: Sprawdź, czy filament się nie zaciął lub czy ekstruder nie jest zatkany."
                 },
                 {
                     "ecode": "18FF8001",
                     "intro": "Nie udało się przeciąć filamentu prawego ekstrudera. Sprawdź nóż. Po rozwiązywaniu problemów kliknij przycisk \"Spróbuj ponownie\"."
-                },
-                {
-                    "ecode": "07068007",
-                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić czy ekstruder nie jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Spróbuj ponownie\"."
                 },
                 {
                     "ecode": "07FF8010",

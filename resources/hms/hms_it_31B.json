@@ -1,130 +1,186 @@
 {
     "result": 0,
-    "t": 1757425628,
-    "ver": 202509091807,
+    "t": 1758214990,
+    "ver": 202511160923,
     "data": {
         "device_hms": {
-            "ver": 202509091807,
+            "ver": 202511160923,
             "it": [
                 {
-                    "ecode": "1A00040000020001",
-                    "intro": "Hotend caduto dalla stazione rack 4. Riposizionalo. Allontana manualmente la testa portautensili dal rack, quindi fare clic su \"Riprendi\"."
+                    "ecode": "0300AB0000020003",
+                    "intro": "Il sensore di temperatura sul break del calore del hotend destro è anomalo. Per evitare otturazioni della ugello, il ventilatore di raffreddamento continuerà a funzionare a velocità elevata. È possibile risolvere il problema del sensore quando la stampa è inattiva."
                 },
                 {
-                    "ecode": "1A00020000020001",
-                    "intro": "Hotend caduto dalla stazione rack 2. Riposizionalo. Allontana manualmente la testa portautensili dal rack, quindi fare clic su \"Riprendi\"."
-                },
-                {
-                    "ecode": "1A00050000020001",
-                    "intro": "Hotend caduto dalla stazione rack 5. Riposizionalo. Allontana manualmente la testa portautensili dal rack, quindi fare clic su \"Riprendi\"."
-                },
-                {
-                    "ecode": "1A00060000020001",
-                    "intro": "Hotend caduto dalla stazione rack 6. Riposizionalo. Allontana manualmente la testa portautensili dal rack, quindi fare clic su \"Riprendi\"."
-                },
-                {
-                    "ecode": "1A00010000020001",
-                    "intro": "Hotend caduto dalla stazione rack 1. Riposizionalo. Allontana manualmente la testa portautensili dal rack, quindi fare clic su \"Riprendi\"."
-                },
-                {
-                    "ecode": "1A00030000020001",
-                    "intro": "Hotend caduto dalla stazione rack 3. Riposizionalo. Allontana manualmente la testa portautensili dal rack, quindi fare clic su \"Riprendi\"."
-                },
-                {
-                    "ecode": "1A00060000020002",
-                    "intro": "Si è verificato un errore durante il recupero/inserimento del hotend 6. Si prega di riposizionarlo nella testina, quindi spostare manualmente la testina al centro della macchina prima di continuare."
-                },
-                {
-                    "ecode": "1A00120000020010",
-                    "intro": "Il sistema di sostituzione dell'hotend non è calibrato. Segui le istruzioni per calibrarlo."
-                },
-                {
-                    "ecode": "0704260000020001",
-                    "intro": "Il hotend di induzione si sta riscaldando e la potenza di asciugatura di AMS E verrà ridotta. Si prega di collegare l'adattatore di alimentazione o attendere che il hotend finisca di riscaldarsi."
+                    "ecode": "0C00020000010001",
+                    "intro": "Il laser di misurazione dell’altezza non è acceso. Verificare la presenza di ostruzioni o di un cavo della telecamera hotend allentato."
                 },
                 {
                     "ecode": "1A00030000020002",
-                    "intro": "Si è verificato un errore durante il recupero/inserimento del hotend 3. Si prega di riposizionarlo nella testina, quindi spostare manualmente la testina al centro della macchina prima di continuare."
+                    "intro": "Si è verificato un errore durante il recupero/reinserimento dell'hotend 3. Riposizionalo nella testa di stampa, quindi sposta manualmente la testa di stampa al centro della macchina prima di continuare."
                 },
                 {
                     "ecode": "1A00010000020002",
-                    "intro": "Si è verificato un errore durante il recupero/inserimento del hotend 1. Si prega di riposizionarlo nella testina, quindi spostare manualmente la testina al centro della macchina prima di continuare."
+                    "intro": "Si è verificato un errore durante il recupero/reinserimento dell'hotend 1. Riposizionalo nella testa di stampa, quindi sposta manualmente la testa di stampa al centro della macchina prima di continuare."
                 },
                 {
                     "ecode": "1A00050000020002",
-                    "intro": "Si è verificato un errore durante il recupero/inserimento del hotend 5. Si prega di riposizionarlo nella testina, quindi spostare manualmente la testina al centro della macchina prima di continuare."
-                },
-                {
-                    "ecode": "1804260000020001",
-                    "intro": "Il hotend di induzione si sta riscaldando e la potenza di essiccazione di AMS-HT E verrà ridotta. Si prega di collegare l'adattatore di alimentazione o attendere che il hotend finisca di riscaldarsi."
-                },
-                {
-                    "ecode": "0702260000020001",
-                    "intro": "Il hotend di induzione si sta riscaldando e la potenza di asciugatura di AMS C verrà ridotta. Si prega di collegare l'adattatore di alimentazione o attendere che il hotend finisca di riscaldarsi."
-                },
-                {
-                    "ecode": "0700260000020001",
-                    "intro": "Il hotend di induzione si sta riscaldando e la potenza di asciugatura di AMS A verrà ridotta. Si prega di collegare l'adattatore di alimentazione o attendere che il hotend finisca di riscaldarsi."
+                    "intro": "Si è verificato un errore durante il recupero/reinserimento dell'hotend 5. Riposizionalo nella testa di stampa, quindi sposta manualmente la testa di stampa al centro della macchina prima di continuare."
                 },
                 {
                     "ecode": "1A00040000020002",
-                    "intro": "Si è verificato un errore durante il recupero/inserimento del hotend 4. Si prega di riposizionarlo nella testina, quindi spostare manualmente la testina al centro della macchina prima di continuare."
-                },
-                {
-                    "ecode": "0701260000020001",
-                    "intro": "Il hotend di induzione si sta riscaldando e la potenza di asciugatura di AMS B verrà ridotta. Si prega di collegare l'adattatore di alimentazione o attendere che il hotend finisca di riscaldarsi."
-                },
-                {
-                    "ecode": "1801260000020001",
-                    "intro": "Il hotend di induzione si sta riscaldando e la potenza di essiccazione di AMS-HT B verrà ridotta. Si prega di collegare l'adattatore di alimentazione o attendere che il hotend finisca di riscaldarsi."
-                },
-                {
-                    "ecode": "1800260000020001",
-                    "intro": "Il hotend di induzione si sta riscaldando e la potenza di essiccazione di AMS-HT A verrà ridotta. Si prega di collegare l'adattatore di alimentazione o attendere che il hotend finisca di riscaldarsi."
-                },
-                {
-                    "ecode": "1805260000020001",
-                    "intro": "Il hotend di induzione si sta riscaldando e la potenza di essiccazione di AMS-HT F verrà ridotta. Si prega di collegare l'adattatore di alimentazione o attendere che il hotend finisca di riscaldarsi."
+                    "intro": "Si è verificato un errore durante il recupero/reinserimento dell'hotend 4. Riposizionalo nella testa di stampa, quindi sposta manualmente la testa di stampa al centro della macchina prima di continuare."
                 },
                 {
                     "ecode": "1A00020000020002",
-                    "intro": "Si è verificato un errore durante il recupero/inserimento del hotend 2. Si prega di riposizionarlo nella testina, quindi spostare manualmente la testina al centro della macchina prima di continuare."
+                    "intro": "Si è verificato un errore durante il recupero/reinserimento dell'hotend 2. Riposizionalo nella testa di stampa, quindi sposta manualmente la testa di stampa al centro della macchina prima di continuare."
                 },
                 {
-                    "ecode": "1803260000020001",
-                    "intro": "Il hotend di induzione si sta riscaldando e la potenza di essiccazione di AMS-HT D verrà ridotta. Si prega di collegare l'adattatore di alimentazione o attendere che il hotend finisca di riscaldarsi."
+                    "ecode": "0700F00000020001",
+                    "intro": "Filament e abbinamento hotend fallito. Verificare che l'hotend nello slot 1 del portabobine hotend sia installato correttamente."
                 },
                 {
-                    "ecode": "0707260000020001",
-                    "intro": "Il hotend di induzione si sta riscaldando e la potenza di essiccazione di AMS H verrà ridotta. Si prega di collegare l'adattatore di alimentazione o attendere che il hotend finisca di riscaldarsi."
+                    "ecode": "0703F00000020001",
+                    "intro": "Filament e abbinamento hotend fallito. Verificare che l'hotend nello slot 4 del portabobine hotend sia installato correttamente."
                 },
                 {
-                    "ecode": "1806260000020001",
-                    "intro": "Il hotend di induzione si sta riscaldando e la potenza di essiccazione di AMS-HT G verrà ridotta. Si prega di collegare l'adattatore di alimentazione o attendere che il hotend finisca di riscaldarsi."
+                    "ecode": "0701F00000020001",
+                    "intro": "Filament e abbinamento hotend fallito. Verifica che l'hotend nello slot 2 del supporto hotend sia installato correttamente."
                 },
                 {
-                    "ecode": "0703260000020001",
-                    "intro": "Il hotend di induzione si sta riscaldando e la potenza di asciugatura di AMS D verrà ridotta. Si prega di collegare l'adattatore di alimentazione o di attendere che il hotend finisca di riscaldarsi."
+                    "ecode": "0702F00000020001",
+                    "intro": "Filament e abbinamento hotend fallito. Si prega di verificare che l'hotend nello slot 3 del portabobine hotend sia installato correttamente."
                 },
                 {
-                    "ecode": "1802260000020001",
-                    "intro": "Il hotend di induzione si sta riscaldando e la potenza di essiccazione di AMS-HT C verrà ridotta. Si prega di collegare l'adattatore di alimentazione o attendere che il hotend finisca di riscaldarsi."
+                    "ecode": "0704F00000020001",
+                    "intro": "Filament e abbinamento hotend fallito. Si prega di verificare che l'hotend nello slot 5 del portabobine hotend sia installato correttamente."
                 },
                 {
-                    "ecode": "0706260000020001",
-                    "intro": "Il hotend di induzione si sta riscaldando e la potenza di asciugatura di AMS G verrà ridotta. Si prega di collegare l'adattatore di alimentazione o attendere che il hotend finisca di riscaldarsi."
+                    "ecode": "0705F00000020001",
+                    "intro": "Filament e abbinamento hotend fallito. Verificare che l'hotend nello slot 6 del portabobine hotend sia installato correttamente."
                 },
                 {
-                    "ecode": "1807260000020001",
-                    "intro": "Il hotend di induzione si sta riscaldando e la potenza di essiccazione di AMS-HT H verrà ridotta. Si prega di collegare l'adattatore di alimentazione o attendere che il hotend finisca di riscaldarsi."
+                    "ecode": "1A00060000020001",
+                    "intro": "C'è stato un problema mentre si inseriva/recuperava l'hotend. Rimetti l'hotend nello slot 6 del rack, sposta a mano la testa di stampa al centro del piano e poi continua."
                 },
                 {
-                    "ecode": "0705260000020001",
-                    "intro": "Il hotend di induzione si sta riscaldando e la potenza di essiccazione di AMS F verrà ridotta. Si prega di collegare l'adattatore di alimentazione o attendere che il hotend finisca di riscaldarsi."
+                    "ecode": "1A00060000020002",
+                    "intro": "Si è verificato un errore durante il recupero/reinserimento dell'hotend 6. Riposizionalo nella testa di stampa, quindi sposta manualmente la testa di stampa al centro della macchina prima di continuare."
+                },
+                {
+                    "ecode": "1A00010000020001",
+                    "intro": "C'è stato un problema mentre si inseriva/recuperava l'hotend. Rimetti l'hotend nello slot 1 del rack, sposta a mano la testa di stampa al centro del piano e poi continua."
+                },
+                {
+                    "ecode": "1A00040000020001",
+                    "intro": "C'è stato un problema mentre si inseriva/recuperava l'hotend. Rimetti l'hotend nello slot 4 del rack, sposta a mano la testa di stampa al centro del piano e poi continua."
+                },
+                {
+                    "ecode": "1A00030000020001",
+                    "intro": "C'è stato un problema mentre si inseriva/recuperava l'hotend. Rimetti l'hotend nello slot 3 del rack, sposta a mano la testa di stampa al centro del piano e poi continua."
+                },
+                {
+                    "ecode": "1A00020000020001",
+                    "intro": "C'è stato un problema mentre si inseriva/recuperava l'hotend. Rimetti l'hotend nello slot 2 del rack, sposta a mano la testa di stampa al centro del piano e poi continua."
+                },
+                {
+                    "ecode": "1A00050000020001",
+                    "intro": "C'è stato un problema mentre si inseriva/recuperava l'hotend. Rimetti l'hotend nello slot 5 del rack, sposta a mano la testa di stampa al centro del piano e poi continua."
                 },
                 {
                     "ecode": "1A00120000020001",
                     "intro": "Calibrazione del rack hotend non riuscita: i dati di calibrazione della fotocamera sono anomali. Pulire i residui sul nozzle e verificare che la carta termica sul piano non sia danneggiata."
+                },
+                {
+                    "ecode": "0300DB0000020001",
+                    "intro": "Modulo laser rilevato. Si prega di installare correttamente la giusta ugello per garantire una corretta calibrazione del montaggio del modulo laser."
+                },
+                {
+                    "ecode": "0300DA0000020001",
+                    "intro": "Modulo laser rilevato. Si prega di rimuovere il hotend dal supporto hotend per evitare che i detriti del processo laser influenzino le prestazioni di stampa."
+                },
+                {
+                    "ecode": "0300020000010001",
+                    "intro": "Errore di temperatura della boccola dell'estrusore destro. La bobina riscaldante potrebbe essere in cortocircuito. Si prega di verificare se lo strato isolante è integro."
+                },
+                {
+                    "ecode": "0300020000010002",
+                    "intro": "Errore di temperatura della boccola dell'estrusore destro. La bobina riscaldante potrebbe essere in corto circuito. Si prega di verificare se il connettore è allentato."
+                },
+                {
+                    "ecode": "0300020000010003",
+                    "intro": "Errore di temperatura della boccola dell'estrusore destro. Il nucleo del riscaldatore potrebbe surriscaldarsi."
+                },
+                {
+                    "ecode": "0300020000010008",
+                    "intro": "L'errore di temperatura della bocchetta corretta, riscaldamento fallito."
+                },
+                {
+                    "ecode": "1A00120000020010",
+                    "intro": "Il rack dell'hotend a induzione non è stato configurato. Segui le istruzioni per completare la configurazione prima di usare le sue funzioni."
+                },
+                {
+                    "ecode": "0704260000020001",
+                    "intro": "L'hotend a induzione si sta riscaldando e la potenza di asciugatura dell'AMS E sarà ridotta. Collega l'adattatore di alimentazione o attendere che l'hotend termini il riscaldamento."
+                },
+                {
+                    "ecode": "1804260000020001",
+                    "intro": "L'hotend a induzione si sta riscaldando e la potenza di asciugatura dell'AMS-HT E sarà ridotta. Collega l'adattatore di alimentazione o attendere che l'hotend termini il riscaldamento."
+                },
+                {
+                    "ecode": "0702260000020001",
+                    "intro": "L'hotend a induzione si sta riscaldando e la potenza di asciugatura dell'AMS C sarà ridotta. Collega l'adattatore di alimentazione o attendere che l'hotend termini il riscaldamento."
+                },
+                {
+                    "ecode": "0700260000020001",
+                    "intro": "L'hotend a induzione si sta riscaldando e la potenza di asciugatura dell'AMS A sarà ridotta. Collega l'adattatore di alimentazione o attendere che l'hotend termini il riscaldamento."
+                },
+                {
+                    "ecode": "0701260000020001",
+                    "intro": "L'hotend a induzione si sta riscaldando e la potenza di asciugatura dell'AMS B sarà ridotta. Collega l'adattatore di alimentazione o attendere che l'hotend termini il riscaldamento."
+                },
+                {
+                    "ecode": "1801260000020001",
+                    "intro": "L'hotend a induzione si sta riscaldando e la potenza di asciugatura dell'AMS-HT B sarà ridotta. Collega l'adattatore di alimentazione o attendere che l'hotend termini il riscaldamento."
+                },
+                {
+                    "ecode": "1800260000020001",
+                    "intro": "L'hotend a induzione si sta riscaldando e la potenza di asciugatura dell'AMS-HT A sarà ridotta. Collega l'adattatore di alimentazione o attendere che l'hotend termini il riscaldamento."
+                },
+                {
+                    "ecode": "1805260000020001",
+                    "intro": "L'hotend a induzione si sta riscaldando e la potenza di asciugatura dell'AMS-HT F sarà ridotta. Collega l'adattatore di alimentazione o attendere che l'hotend termini il riscaldamento."
+                },
+                {
+                    "ecode": "1803260000020001",
+                    "intro": "L'hotend a induzione si sta riscaldando e la potenza di asciugatura dell'AMS-HT D sarà ridotta. Collega l'adattatore di alimentazione o attendere che l'hotend termini il riscaldamento."
+                },
+                {
+                    "ecode": "0707260000020001",
+                    "intro": "L'hotend a induzione si sta riscaldando e la potenza di asciugatura dell'AMS H sarà ridotta. Collega l'adattatore di alimentazione o attendere che l'hotend termini il riscaldamento."
+                },
+                {
+                    "ecode": "1806260000020001",
+                    "intro": "L'hotend a induzione si sta riscaldando e la potenza di asciugatura dell'AMS-HT G sarà ridotta. Collega l'adattatore di alimentazione o attendere che l'hotend termini il riscaldamento."
+                },
+                {
+                    "ecode": "0703260000020001",
+                    "intro": "L'hotend a induzione si sta riscaldando e la potenza di asciugatura dell'AMS D sarà ridotta. Collega l'adattatore di alimentazione o attendere che l'hotend termini il riscaldamento."
+                },
+                {
+                    "ecode": "1802260000020001",
+                    "intro": "L'hotend a induzione si sta riscaldando e la potenza di asciugatura dell'AMS-HT C sarà ridotta. Collega l'adattatore di alimentazione o attendere che l'hotend termini il riscaldamento."
+                },
+                {
+                    "ecode": "0706260000020001",
+                    "intro": "L'hotend a induzione si sta riscaldando e la potenza di asciugatura dell'AMS G sarà ridotta. Collega l'adattatore di alimentazione o attendere che l'hotend termini il riscaldamento."
+                },
+                {
+                    "ecode": "1807260000020001",
+                    "intro": "L'hotend a induzione si sta riscaldando e la potenza di asciugatura dell'AMS-HT H sarà ridotta. Collega l'adattatore di alimentazione o attendere che l'hotend termini il riscaldamento."
+                },
+                {
+                    "ecode": "0705260000020001",
+                    "intro": "L'hotend a induzione si sta riscaldando e la potenza di asciugatura dell'AMS F sarà ridotta. Collega l'adattatore di alimentazione o attendere che l'hotend termini il riscaldamento."
                 },
                 {
                     "ecode": "0300AB0000010001",
@@ -351,6 +407,10 @@
                     "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 4 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
                 },
                 {
+                    "ecode": "1A00200000020001",
+                    "intro": "Si è verificato un'interruzione di corrente durante la sostituzione dell'hotend. Si prega di seguire la guida Wiki per ripristinare la configurazione, altrimenti la stampa potrebbe fallire."
+                },
+                {
                     "ecode": "1A00120000020002",
                     "intro": "Calibrazione rack hotend fallita. Indicatore non rilevato. Verificare che l'indicatore visivo sul rack non sia danneggiato o coperto da sporcizia."
                 },
@@ -359,16 +419,16 @@
                     "intro": "Calibrazione Rack Hotend ad Induzione fallita: il risultato ha superato il limite di corsa. Controlla se la struttura del rack è deformata."
                 },
                 {
-                    "ecode": "1A00200000020001",
-                    "intro": "Si è verificato un'interruzione di corrente durante la sostituzione dell'hotend. Si prega di seguire la guida Wiki per ripristinare la configurazione, altrimenti la stampa potrebbe fallire."
-                },
-                {
                     "ecode": "1A00E00000010005",
                     "intro": "Il Rack Hotend ad Induzione è bloccato da un ostacolo durante l’homing. Rimuovi qualsiasi ostruzione dal suo percorso di movimento."
                 },
                 {
                     "ecode": "1A00E00000010006",
                     "intro": "Distanza di homing del Rack Hotend ad Induzione troppo lunga. La cinghia potrebbe essere allentata. Controlla e tendila."
+                },
+                {
+                    "ecode": "1A00100000020001",
+                    "intro": "Gli assi XY della testina di stampa o il rack hotend non hanno completato l’homing. La sostituzione dell’hotend non può procedere."
                 },
                 {
                     "ecode": "1A00220000010002",
@@ -427,10 +487,6 @@
                     "intro": "Controllo sostituzione hotend fallito: hotend assente su slot 4."
                 },
                 {
-                    "ecode": "1A00100000020001",
-                    "intro": "Gli assi XY della testina di stampa o il rack hotend non hanno completato l’homing. La sostituzione dell’hotend non può procedere."
-                },
-                {
                     "ecode": "0503000000030027",
                     "intro": ""
                 },
@@ -481,10 +537,6 @@
                 {
                     "ecode": "030002000001000B",
                     "intro": "Temperatura nozzle estrusore destro anomala, forse l'hotend non è montato correttamente o c'è un problema con la scheda di misurazione della temperatura wireless."
-                },
-                {
-                    "ecode": "0C00020000010001",
-                    "intro": "Il laser di misurazione dell’altezza non è acceso. Verificare la presenza di ostruzioni o di un cavo della telecamera hotend allentato."
                 },
                 {
                     "ecode": "0300D70000020001",
@@ -539,12 +591,12 @@
                     "intro": "Bombola estintore non installata. Verificare nella pagina estintore."
                 },
                 {
-                    "ecode": "0500050000020030",
-                    "intro": ""
-                },
-                {
                     "ecode": "0501040000030002",
                     "intro": "Le barre filettate necessitano di lubrificazione immediata."
+                },
+                {
+                    "ecode": "0500050000020030",
+                    "intro": ""
                 },
                 {
                     "ecode": "0300910000010008",
@@ -639,38 +691,6 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "1800020000020002",
-                    "intro": "AMS-HT A L'odometro non ha segnale. Il connettore dell'odometro potrebbe avere un falso contatto."
-                },
-                {
-                    "ecode": "0500050000010009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500050000010008",
-                    "intro": ""
-                },
-                {
-                    "ecode": "050005000001000B",
-                    "intro": ""
-                },
-                {
-                    "ecode": "050005000001000A",
-                    "intro": ""
-                },
-                {
-                    "ecode": "050005000001000C",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00010000020016",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00010000020015",
-                    "intro": ""
-                },
-                {
                     "ecode": "0500010000020003",
                     "intro": ""
                 },
@@ -759,6 +779,38 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "1800020000020002",
+                    "intro": "AMS-HT A L'odometro non ha segnale. Il connettore dell'odometro potrebbe avere un falso contatto."
+                },
+                {
+                    "ecode": "0500050000010009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500050000010008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050005000001000B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050005000001000A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050005000001000C",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00010000020016",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00010000020015",
+                    "intro": ""
+                },
+                {
                     "ecode": "0500030000020010",
                     "intro": ""
                 },
@@ -783,6 +835,14 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "0C00040000030028",
+                    "intro": "La calibrazione dell'offset del modulo di taglio è fallita, il che potrebbe causare tagli inaccurati. Assicurati che la carta stampante bianca da 80g (spessore carta da lettera) sia posizionata correttamente e controlla se la punta della lama di taglio è consumata."
+                },
+                {
+                    "ecode": "0C00040000030026",
+                    "intro": "Per migliorare l'accuratezza della rilevazione delle fiamme, la luce della camera destra è stata automaticamente spenta."
+                },
+                {
                     "ecode": "0C0001000002001A",
                     "intro": ""
                 },
@@ -797,14 +857,6 @@
                 {
                     "ecode": "0500060000020052",
                     "intro": ""
-                },
-                {
-                    "ecode": "0C00040000030028",
-                    "intro": "La calibrazione dell'offset del modulo di taglio è fallita, il che potrebbe causare tagli inaccurati. Assicurati che la carta stampante bianca da 80g (spessore carta da lettera) sia posizionata correttamente e controlla se la punta della lama di taglio è consumata."
-                },
-                {
-                    "ecode": "0C00040000030026",
-                    "intro": "Per migliorare l'accuratezza della rilevazione delle fiamme, la luce della camera destra è stata automaticamente spenta."
                 },
                 {
                     "ecode": "0300D50000020005",
@@ -1113,10 +1165,6 @@
                 {
                     "ecode": "03001E0000010003",
                     "intro": "Temperatura nozzle sisnistro anomala; Il termistore è surriscaldato."
-                },
-                {
-                    "ecode": "0300020000010003",
-                    "intro": "Temperatura nozzle destro anomala; Il termistore è surriscaldato."
                 },
                 {
                     "ecode": "0707620000020001",
@@ -6827,10 +6875,6 @@
                     "intro": "La temperatura del nozzle sinistro è anomala; il sensore potrebbe essere in cortocircuito. Verificare che il connettore sia inserito correttamente."
                 },
                 {
-                    "ecode": "0300020000010002",
-                    "intro": "La temperatura del nozzle destro è anomala; il termistore potrebbe essere interrotto."
-                },
-                {
                     "ecode": "0300020000010006",
                     "intro": "La temperatura del nozzle destro è anomala; il sensore potrebbe essere in cortocircuito, verificare che il connettore sia inserito correttamente."
                 },
@@ -7691,14 +7735,6 @@
                     "intro": "AMS H slot 2: Timeout alimentazione del filamento dall'AMS."
                 },
                 {
-                    "ecode": "0300020000010001",
-                    "intro": "La temperatura del nozzle destro è anomala; il termistore potrebbe essere in cortocircuito."
-                },
-                {
-                    "ecode": "03001E0000010001",
-                    "intro": "La temperatura del nozzle sinistro è anomala; il termistore potrebbe essere in cortocircuito."
-                },
-                {
                     "ecode": "0702230000020018",
                     "intro": "AMS C slot 4: Il motore di assistenza è bloccato a causa di un'eccessiva resistenza nel tubo vicino all'AMS."
                 },
@@ -7871,6 +7907,14 @@
                     "intro": "AMS-HT H slot 3: Timeout alimentazione del filamento dall'AMS."
                 },
                 {
+                    "ecode": "03001E0000010001",
+                    "intro": "La temperatura del nozzle sinistro è anomala; il termistore potrebbe essere in cortocircuito."
+                },
+                {
+                    "ecode": "0300900000010003",
+                    "intro": "Riscaldamento della camera fallito. La temperatura dell'alimentatore potrebbe essere troppo alta."
+                },
+                {
                     "ecode": "1802230000020011",
                     "intro": "AMS-HT C slot 4: Timeout nel ritiro del filamento nell'AMS."
                 },
@@ -8035,18 +8079,6 @@
                     "intro": "Motore assistenza slot 4 dell'AMS-HT F bloccato causa eccessiva resistenza nel tubo tra buffer filamento e testa di stampa."
                 },
                 {
-                    "ecode": "0300900000010003",
-                    "intro": "Riscaldamento della camera fallito. La temperatura dell'alimentatore potrebbe essere troppo alta."
-                },
-                {
-                    "ecode": "0300900000010001",
-                    "intro": "Riscaldamento della camera fallito. Il riscaldatore potrebbe non soffiare aria calda."
-                },
-                {
-                    "ecode": "0300900000010002",
-                    "intro": "Riscaldamento della camera fallito. Possibili cause: la camera non è completamente chiusa, la temperatura ambiente è troppo bassa o la ventola di dissipazione dell'alimentatore è bloccata."
-                },
-                {
                     "ecode": "0700230000020020",
                     "intro": "Motore assistenza slot 4 dell'AMS A bloccato causa eccessiva resistenza nel tubo vicino al buffer filamento."
                 },
@@ -8189,6 +8221,14 @@
                 {
                     "ecode": "1800220000020022",
                     "intro": "AMS-HT A slot 3: Il motore di assistenza è bloccato a causa di un'eccessiva resistenza nel tubo vicino alla testa di stampa"
+                },
+                {
+                    "ecode": "0300900000010001",
+                    "intro": "Riscaldamento della camera fallito. Il riscaldatore potrebbe non soffiare aria calda."
+                },
+                {
+                    "ecode": "0300900000010002",
+                    "intro": "Riscaldamento della camera fallito. Possibili cause: la camera non è completamente chiusa, la temperatura ambiente è troppo bassa o la ventola di dissipazione dell'alimentatore è bloccata."
                 },
                 {
                     "ecode": "0706210000020019",
@@ -11583,10 +11623,6 @@
                     "intro": "AMS H Slot 1 Il sensore Hall in ingresso è scollegato. Il connettore potrebbe avere un falso contatto."
                 },
                 {
-                    "ecode": "0701210000020008",
-                    "intro": "AMS B Slot 2 Il sensore Hall in ingresso è scollegato. Il connettore potrebbe avere un falso contatto."
-                },
-                {
                     "ecode": "1801130000020002",
                     "intro": "Il motore Slot 4 dell'AMS-HT B è sovraccarico. Il filamento potrebbe essere aggrovigliato o bloccato."
                 },
@@ -11761,6 +11797,10 @@
                 {
                     "ecode": "1802110000010001",
                     "intro": "Il motore dello Slot 2 dell'AMS-HT C sta slittando. La ruota dentata dell'estrusore potrebbe essere usurata, o il filamento troppo sottile."
+                },
+                {
+                    "ecode": "0701210000020008",
+                    "intro": "AMS B Slot 2 Il sensore Hall in ingresso è scollegato. Il connettore potrebbe avere un falso contatto."
                 },
                 {
                     "ecode": "0700220000020002",
@@ -13607,10 +13647,6 @@
                     "intro": "Errore al chip di crittografia"
                 },
                 {
-                    "ecode": "1807120000020002",
-                    "intro": "Il motore Slot 3 dell'AMS-HT H è sovraccarico. Il filamento potrebbe essere aggrovigliato o bloccato."
-                },
-                {
                     "ecode": "0707200000030002",
                     "intro": "AMS H Slot 1 il filamento è esaurito ed è stato effettuato automaticamente lo switch su uno slot con lo stesso filamento."
                 },
@@ -13757,6 +13793,10 @@
                 {
                     "ecode": "1803110000010001",
                     "intro": "Il motore dello Slot 2 dell'AMS-HT D sta slittando. La ruota dentata dell'estrusore potrebbe essere usurata, o il filamento troppo sottile."
+                },
+                {
+                    "ecode": "1807120000020002",
+                    "intro": "Il motore Slot 3 dell'AMS-HT H è sovraccarico. Il filamento potrebbe essere aggrovigliato o bloccato."
                 },
                 {
                     "ecode": "0700200000020005",
@@ -13947,10 +13987,6 @@
                     "intro": "L'RFID non può essere letto a causa di un errore hardware o strutturale."
                 },
                 {
-                    "ecode": "1804210000020001",
-                    "intro": "AMS-HT E Slot 2 Filamento terminato. Inserisci un nuovo filamento."
-                },
-                {
                     "ecode": "1801200000020008",
                     "intro": "AMS-HT B Slot 1 Il sensore Hall in ingresso è scollegato. Il connettore potrebbe avere un falso contatto."
                 },
@@ -14133,6 +14169,10 @@
                 {
                     "ecode": "1800560000030001",
                     "intro": "AMS-HT A è in fase di raffreddamento; attendere che si raffreddi prima di operare."
+                },
+                {
+                    "ecode": "1804210000020001",
+                    "intro": "AMS-HT E Slot 2 Filamento terminato. Inserisci un nuovo filamento."
                 },
                 {
                     "ecode": "0700220000020001",
@@ -19565,35 +19605,19 @@
             ]
         },
         "device_error": {
-            "ver": 202509091807,
+            "ver": 202511160923,
             "it": [
                 {
-                    "ecode": "03008029",
-                    "intro": "MC–hotend rack通信错误。请检查机架主板电缆是否松动。"
+                    "ecode": "05024023",
+                    "intro": "È stato rilevato un errore di riconoscimento del hotend ad induzione. Per favore vai alla pagina “Hotends & Rack” e clicca “Read All” per rilevare nuovamente. Se il problema persiste, prova ad aggiornare il firmware nella pagina “Firmware”."
                 },
                 {
-                    "ecode": "05028022",
-                    "intro": "Verifica hotend di induzione fallita. Si prega di sostituire il hotend e riprovare."
+                    "ecode": "07008036",
+                    "intro": "Hotend rack coarse homing fallito. Si prega di controllare la presenza di ostacoli o se il piano di costruzione è disallineato."
                 },
                 {
-                    "ecode": "0300802A",
-                    "intro": "Errore del sensore di posizione del motore del portautensili. Se il problema persiste dopo aver riprovato, riavviare la stampante."
-                },
-                {
-                    "ecode": "03004016",
-                    "intro": "Pulizia ugello fallita. Fare clic sull'Assistente per la risoluzione dei problemi."
-                },
-                {
-                    "ecode": "0300802B",
-                    "intro": "Errore motore del portautensili. Si prega di controllare e rimuovere eventuali ostacoli che influenzano il movimento del portautensili prima di continuare."
-                },
-                {
-                    "ecode": "05024021",
-                    "intro": "Non è stato possibile leggere le informazioni sull'hotend di induzione. Si prega di sostituire l'hotend o riavviare la stampante."
-                },
-                {
-                    "ecode": "05024018",
-                    "intro": "Il rack hotend non è stato calibrato e il cambio hotend non può essere eseguito. Completare la calibrazione del rack prima di procedere."
+                    "ecode": "18008036",
+                    "intro": "Hotend rack coarse homing fallito. Si prega di controllare la presenza di ostacoli o se il piano di costruzione è disallineato."
                 },
                 {
                     "ecode": "07008018",
@@ -19676,6 +19700,114 @@
                     "intro": "Impossibile ottenere la tabella di mappatura filamento–hotend dal file di slicing, selezionare “Riprendi” per riprovare."
                 },
                 {
+                    "ecode": "03008056",
+                    "intro": "Modulo laser rilevato. Si prega di rimuovere il hotend dal supporto hotend per evitare che i detriti di lavorazione laser influenzino le prestazioni di stampa."
+                },
+                {
+                    "ecode": "1A004009",
+                    "intro": "Il rack hotend non è stato configurato. Si prega di completare la configurazione prima di eseguire una sostituzione del hotend."
+                },
+                {
+                    "ecode": "07018007",
+                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
+                },
+                {
+                    "ecode": "07028007",
+                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
+                },
+                {
+                    "ecode": "07038007",
+                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
+                },
+                {
+                    "ecode": "07008007",
+                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
+                },
+                {
+                    "ecode": "18058007",
+                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
+                },
+                {
+                    "ecode": "07078007",
+                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
+                },
+                {
+                    "ecode": "18078007",
+                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
+                },
+                {
+                    "ecode": "07058007",
+                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
+                },
+                {
+                    "ecode": "18038007",
+                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
+                },
+                {
+                    "ecode": "18018007",
+                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
+                },
+                {
+                    "ecode": "18028007",
+                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
+                },
+                {
+                    "ecode": "18008007",
+                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
+                },
+                {
+                    "ecode": "07048007",
+                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
+                },
+                {
+                    "ecode": "18068007",
+                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
+                },
+                {
+                    "ecode": "18048007",
+                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
+                },
+                {
+                    "ecode": "07068007",
+                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
+                },
+                {
+                    "ecode": "07008035",
+                    "intro": "Errore homing supporto hotend. Controlla che non ci siano ostacoli o che il piano non sia disallineato."
+                },
+                {
+                    "ecode": "18008035",
+                    "intro": "Errore homing supporto hotend. Controlla che non ci siano ostacoli o che il piano non sia disallineato."
+                },
+                {
+                    "ecode": "03008029",
+                    "intro": "Errore di comunicazione tra MC e rack hotend. Verifica che il cavo della scheda madre del rack non sia allentato."
+                },
+                {
+                    "ecode": "05028022",
+                    "intro": "Verifica hotend a induzione fallita. Sostituisci l'hotend e riprova."
+                },
+                {
+                    "ecode": "0300802A",
+                    "intro": "Errore sensore di posizione del motore rack hotend. Se il problema persiste dopo aver riprovato, riavvia la stampante."
+                },
+                {
+                    "ecode": "03004016",
+                    "intro": "Pulizia Nozzle fallita. Clicca sull' assistente per la risoluzione dei problemi."
+                },
+                {
+                    "ecode": "0300802B",
+                    "intro": "Errore motore rack hotend. Controlla e togli eventuali ostacoli che bloccano il movimento del rack prima di continuare."
+                },
+                {
+                    "ecode": "05024021",
+                    "intro": "Impossibile leggere le informazioni sull'hotend a induzione. Sostituisci l'hotend o riavvia la stampante."
+                },
+                {
+                    "ecode": "05024018",
+                    "intro": "Il rack dell'hotend non è calibrato e non si può cambiare l'hotend. Fai la calibrazione del rack sul dispositivo."
+                },
+                {
                     "ecode": "03008053",
                     "intro": "Modulo laser rilevato. Installare correttamente il nozzle destro per garantire la corretta calibrazione del montaggio del modulo laser."
                 },
@@ -19742,10 +19874,6 @@
                 {
                     "ecode": "05004047",
                     "intro": "La stampa si è interrotta perché il numero di hotend o il modello disponibili non corrispondono al file elaborato. Controlla il modello e il numero di hotend prima di riavviare la stampa."
-                },
-                {
-                    "ecode": "0500807E",
-                    "intro": "Posiziona un tappetino da taglio StrongGrip sulla base di protezione da taglio."
                 },
                 {
                     "ecode": "0500409F",
@@ -19816,6 +19944,10 @@
                     "intro": "Il dispositivo non riesce a rilevare il Quarto Asse Laser. Ricollegare il cavo del modulo o riavviare la stampante."
                 },
                 {
+                    "ecode": "0500807E",
+                    "intro": "Posiziona un tappetino da taglio StrongGrip sulla base di protezione da taglio."
+                },
+                {
                     "ecode": "05008062",
                     "intro": "Il marker del piano di stampa non è stato rilevato. Verificare che la piastra sia correttamente posizionato sul piano, con tutti e quattro gli angoli allineati e il marker ben visibile. Se una luce intensa colpisce la piastra, considerare di chiudere lo sportello frontale e bloccare eventuali fonti di luce esterne."
                 },
@@ -19824,12 +19956,12 @@
                     "intro": "Sistema cambio hotend occupato; aggiorna quando inattivo."
                 },
                 {
-                    "ecode": "0500808B",
-                    "intro": "Configurazione della BirdsEye Camera non riuscita. Rimuovere tutti gli oggetti e il tappetino dal piano, in modo che i marker del piano siano visibili. Assicurarsi inoltre che la BirdsEye Camera sia installata correttamente e che non vi siano ostruzioni che ne blocchino la visuale."
-                },
-                {
                     "ecode": "0502C012",
                     "intro": "Impossibile mettere in pausa l’attività."
+                },
+                {
+                    "ecode": "0500808B",
+                    "intro": "Configurazione della BirdsEye Camera non riuscita. Rimuovere tutti gli oggetti e il tappetino dal piano, in modo che i marker del piano siano visibili. Assicurarsi inoltre che la BirdsEye Camera sia installata correttamente e che non vi siano ostruzioni che ne blocchino la visuale."
                 },
                 {
                     "ecode": "07FFC010",
@@ -19868,6 +20000,10 @@
                     "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
                 },
                 {
+                    "ecode": "03008081",
+                    "intro": "Bombola estintore non installata. Si prega di confermare nella pagina estintore."
+                },
+                {
                     "ecode": "07008034",
                     "intro": "Prelevamento hotend dalla supporto nella posizione 1 fallita, Controlla se ci sono residui di filamento o materiale incollato."
                 },
@@ -19896,10 +20032,6 @@
                     "intro": "Posizionamento hotend nel supporto posizione 3 fallito. Controlla se ci sono residui di filamento o materiale incollato."
                 },
                 {
-                    "ecode": "03008081",
-                    "intro": "Bombola estintore non installata. Si prega di confermare nella pagina estintore."
-                },
-                {
                     "ecode": "03008025",
                     "intro": "Distanza di ritorno supporto hotend è troppo lunga. Controlla che la cinghia di distribuzione e l'ingranaggio del motore non siano allentati o danneggiati."
                 },
@@ -19920,20 +20052,12 @@
                     "intro": "Modalità laser/calibrazione: togli tutti gli hotend dal supporto prima di riprovare."
                 },
                 {
-                    "ecode": "07058034",
-                    "intro": "Prelevamento hotend dalla supporto nella posizione 6 fallita, Controlla se ci sono residui di filamento o materiale incollato."
+                    "ecode": "07008033",
+                    "intro": "Posizionamento hotend nel supporto posizione 1 fallito. Controlla se ci sono residui di filamento o materiale incollato."
                 },
                 {
-                    "ecode": "07058033",
-                    "intro": "Posizionamento hotend nel supporto posizione 6 fallito. Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "07018033",
-                    "intro": "Posizionamento hotend nel supporto posizione 2 fallito. Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "07028034",
-                    "intro": "Prelevamento hotend dalla supporto nella posizione 3 fallita, Controlla se ci sono residui di filamento o materiale incollato."
+                    "ecode": "07008030",
+                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
                 },
                 {
                     "ecode": "18018034",
@@ -19960,20 +20084,20 @@
                     "intro": "Posizionamento hotend nel supporto posizione 6 fallito. Controlla se ci sono residui di filamento o materiale incollato."
                 },
                 {
-                    "ecode": "07008033",
-                    "intro": "Posizionamento hotend nel supporto posizione 1 fallito. Controlla se ci sono residui di filamento o materiale incollato."
+                    "ecode": "07058034",
+                    "intro": "Prelevamento hotend dalla supporto nella posizione 6 fallita, Controlla se ci sono residui di filamento o materiale incollato."
                 },
                 {
-                    "ecode": "07008030",
-                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
+                    "ecode": "07058033",
+                    "intro": "Posizionamento hotend nel supporto posizione 6 fallito. Controlla se ci sono residui di filamento o materiale incollato."
                 },
                 {
-                    "ecode": "07008035",
-                    "intro": "Errore homing supporto hotend. Controlla che non ci siano ostacoli o che il piano non sia disallineato."
+                    "ecode": "07018033",
+                    "intro": "Posizionamento hotend nel supporto posizione 2 fallito. Controlla se ci sono residui di filamento o materiale incollato."
                 },
                 {
-                    "ecode": "18008035",
-                    "intro": "Errore homing supporto hotend. Controlla che non ci siano ostacoli o che il piano non sia disallineato."
+                    "ecode": "07028034",
+                    "intro": "Prelevamento hotend dalla supporto nella posizione 3 fallita, Controlla se ci sono residui di filamento o materiale incollato."
                 },
                 {
                     "ecode": "0300C070",
@@ -21764,10 +21888,6 @@
                     "intro": "Timeout spurgo vecchio filamento: controlla se il filamento è bloccato o l'estrusore ha cloggato."
                 },
                 {
-                    "ecode": "18058007",
-                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
-                },
-                {
                     "ecode": "18008013",
                     "intro": "Timeout spurgo vecchio filamento: controlla se il filamento è bloccato o l'estrusore ha cloggato."
                 },
@@ -21780,28 +21900,12 @@
                     "intro": "Timeout spurgo vecchio filamento: controlla se il filamento è bloccato o l'estrusore ha cloggato."
                 },
                 {
-                    "ecode": "07078007",
-                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
-                },
-                {
-                    "ecode": "18078007",
-                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
-                },
-                {
                     "ecode": "18FE8024",
                     "intro": "Calibrazione posizione estrusore fallita; fai riferimento all'Assistente."
                 },
                 {
                     "ecode": "18058013",
                     "intro": "Timeout spurgo vecchio filamento: controlla se il filamento è bloccato o l'estrusore ha cloggato."
-                },
-                {
-                    "ecode": "07058007",
-                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
-                },
-                {
-                    "ecode": "18018007",
-                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
                 },
                 {
                     "ecode": "18FE8001",
@@ -21814,14 +21918,6 @@
                 {
                     "ecode": "07048013",
                     "intro": "Timeout spurgo vecchio filamento: controlla se il filamento è bloccato o l'estrusore ha cloggato."
-                },
-                {
-                    "ecode": "07048007",
-                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
-                },
-                {
-                    "ecode": "18048007",
-                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
                 },
                 {
                     "ecode": "05008071",
@@ -21842,14 +21938,6 @@
                 {
                     "ecode": "05008067",
                     "intro": "Posiziona un tappetino da taglio LightGrip sulla base di protezione da taglio."
-                },
-                {
-                    "ecode": "07018007",
-                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
-                },
-                {
-                    "ecode": "07028007",
-                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
                 },
                 {
                     "ecode": "03008042",
@@ -21874,10 +21962,6 @@
                 {
                     "ecode": "07FF8001",
                     "intro": "Taglio filamento estrusore destro fallito. Verifica la taglierina."
-                },
-                {
-                    "ecode": "07038007",
-                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
                 },
                 {
                     "ecode": "07FE8013",
@@ -21932,10 +22016,6 @@
                     "intro": "Timeout spurgo vecchio filamento: controlla se il filamento è bloccato o l'estrusore ha cloggato."
                 },
                 {
-                    "ecode": "07008007",
-                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
-                },
-                {
                     "ecode": "18FE8013",
                     "intro": "Timeout durante lo spurgo del vecchio filamento estrusore sinistro: controlla se il filamento è bloccato o l'estrusore è intasato."
                 },
@@ -21944,24 +22024,12 @@
                     "intro": "Timeout spurgo vecchio filamento: controlla se il filamento è bloccato o l'estrusore ha cloggato. Dopo aver risolto il problema, clicca su Riprova."
                 },
                 {
-                    "ecode": "18038007",
-                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
-                },
-                {
                     "ecode": "18FF8002",
                     "intro": "La taglierina dell'estrusore destro è bloccata. Estrai la leva della taglierina."
                 },
                 {
                     "ecode": "18FF8020",
                     "intro": "Cambio estrusore fallito; fai riferimento all'Assistente."
-                },
-                {
-                    "ecode": "18028007",
-                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
-                },
-                {
-                    "ecode": "18008007",
-                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
                 },
                 {
                     "ecode": "07078013",
@@ -21980,20 +22048,12 @@
                     "intro": "Calibrazione posizione estrusore fallita; fai riferimento all'Assistente."
                 },
                 {
-                    "ecode": "18068007",
-                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
-                },
-                {
                     "ecode": "18078013",
                     "intro": "Timeout spurgo vecchio filamento: controlla se il filamento è bloccato o l'estrusore ha cloggato."
                 },
                 {
                     "ecode": "18FF8001",
                     "intro": "Taglio filamento estrusore destro fallito. Verifica la taglierina."
-                },
-                {
-                    "ecode": "07068007",
-                    "intro": "L'estrusione del filamento è fallita. Verifica se l'estrusore è intasato."
                 },
                 {
                     "ecode": "07FF8010",
