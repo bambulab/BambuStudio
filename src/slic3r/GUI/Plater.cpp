@@ -11507,6 +11507,62 @@ bool Plater::priv::PopupObjectTable(int object_id, int volume_id, const wxPoint&
     return true;
 }
 
+std::string sanitize_config_paths(const std::string &config_value)
+{
+    if (config_value.empty()) { return config_value; }
+
+    std::vector<std::string> paths;
+    std::string              current_path;
+    bool                     in_quotes  = false;
+    char                     quote_char = '\0';
+
+    for (size_t i = 0; i < config_value.length(); ++i) {
+        char c = config_value[i];
+        if (!in_quotes && (c == '"' || c == '\'')) {
+            in_quotes  = true;
+            quote_char = c;
+            continue;
+        } else if (in_quotes && c == quote_char) {
+            in_quotes  = false;
+            quote_char = '\0';
+            continue;
+        } else if (!in_quotes && (c == ';' || c == ',')) {
+            if (!current_path.empty()) {
+                paths.push_back(boost::trim_copy(current_path));
+                current_path.clear();
+            }
+            continue;
+        }
+        current_path += c;
+    }
+
+    if (!current_path.empty()) {
+        paths.push_back(boost::trim_copy(current_path));
+    }
+
+    std::vector<std::string> sanitized_paths;
+    for (const std::string &path : paths) {
+        if (!path.empty()) {
+            if (path.find('/') != std::string::npos || path.find('\\') != std::string::npos) {
+                try {
+                    boost::filesystem::path fs_path(path);
+                    sanitized_paths.push_back(fs_path.filename().string());
+                } catch (...) {
+                    size_t last_slash = path.find_last_of("/\\");
+                    if (last_slash != std::string::npos && last_slash < path.length() - 1) {
+                        sanitized_paths.push_back(path.substr(last_slash + 1));
+                    } else {
+                        sanitized_paths.push_back(path);
+                    }
+                }
+            } else {
+                sanitized_paths.push_back(path);
+            }
+        }
+    }
+
+    return boost::join(sanitized_paths, ";");
+}
 
 void Plater::priv::record_start_print_preset(std::string action) {
     // record start print preset
@@ -11556,8 +11612,12 @@ void Plater::priv::record_start_print_preset(std::string action) {
                     for (int k = 0; k < values.size(); ++k) {
                         std::string str = values[k];
                         const ConfigOption* config = full_config.option(str);
+                        auto serialized = config->serialize();
+                        if (str == "post_process") {
+                            serialized = sanitize_config_paths(serialized);
+                        }
                         if (config)
-                            j_system[str] = config->serialize();
+                            j_system[str] = serialized;
                     }
                 }
             }
