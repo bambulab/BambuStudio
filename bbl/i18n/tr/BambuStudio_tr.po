@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-09-15 15:18+0800\n"
-"PO-Revision-Date: 2025-08-28 14:42+0300\n"
+"PO-Revision-Date: 2025-09-24 18:58+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -406,7 +406,7 @@ msgid "Translate(Relative)"
 msgstr "Çevir(Göreceli)"
 
 msgid "°"
-msgstr "°/s"
+msgstr "°"
 
 msgid "Reset current rotation to the value when open the rotation tool."
 msgstr "Dönüş açısını, döndürme aracı açıldığındaki konuma sıfırlayın."
@@ -3799,7 +3799,7 @@ msgid "Stop Drying"
 msgstr "Kurutmayı Durdur"
 
 msgid "Cancle"
-msgstr ""
+msgstr "İptal"
 
 msgid "Done"
 msgstr "Tamamlandı"
@@ -6488,7 +6488,7 @@ msgid "Slicing Plate %d"
 msgstr "Plaka %d dilimleniyor"
 
 msgid "A Helio simulation or optimization task is in progress."
-msgstr ""
+msgstr "Bir Helio simülasyonu veya optimizasyon görevi devam ediyor."
 
 msgid "Invalid printer preset. Unable to slice with Helio."
 msgstr "Yazıcı ön ayarı geçersiz. Helio ile dilimleme yapılamıyor."
@@ -6504,7 +6504,7 @@ msgid "Helio does not support materials %s"
 msgstr "Helio, %s malzemelerini desteklemiyor"
 
 msgid "Helio functions do not support the print sequence of \"ByObject\"."
-msgstr ""
+msgstr "Helio fonksiyonları \"ByObject\" yazdırma sırasını desteklemez."
 
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
@@ -6523,13 +6523,13 @@ msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
 msgstr "Helio PAT alınamadı, Yenile'ye tıklayarak tekrar alın."
 
 msgid "Successfully obtained PAT."
-msgstr ""
+msgstr "PAT başarıyla alındı."
 
 msgid "The printer list and material list are being synchronized. Please try again later."
-msgstr ""
+msgstr "Yazıcı listesi ve malzeme listesi senkronize ediliyor. Lütfen daha sonra tekrar deneyin."
 
 msgid "Synchronizing Helio"
-msgstr ""
+msgstr "Helio'yu Senkronize Etme"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Lütfen dilimleme hatalarını giderip tekrar yayınlayın."
@@ -7773,7 +7773,7 @@ msgid "The printer does not support sending to printer storage."
 msgstr "Yazıcı, yazıcı belleğine göndermeyi desteklemiyor."
 
 msgid "Helio action completed successfully."
-msgstr ""
+msgstr "Helio eylemi başarıyla tamamlandı."
 
 msgid "Slice ok."
 msgstr "Dilimleme tamam."
@@ -9099,31 +9099,31 @@ msgid "reconnect"
 msgstr "yeniden bağlan"
 
 msgid "Third-party Extension"
-msgstr ""
+msgstr "Üçüncü Taraf Uzantısı"
 
 msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
-msgstr ""
+msgstr "Daha güçlü parçalar, daha az bükülme, daha hızlı baskılar - hızlı fizik tabanlı FEM simülasyonu ile desteklenir"
 
 msgid "Uninstall the Helio Additive extension"
-msgstr ""
+msgstr "Helio Additive uzantısını kaldırma"
 
 msgid "Use Immediately"
-msgstr ""
+msgstr "Hemen Kullanın"
 
 msgid "Third-Party Extension"
-msgstr ""
+msgstr "Üçüncü Taraf Uzantısı"
 
 msgid "HELIO ADDITIVE"
-msgstr ""
+msgstr "HELIO KATKI MADDESİ"
 
 msgid "Helio Additive third - party software service feature has been successfully enabled!"
-msgstr ""
+msgstr "Helio Additive üçüncü taraf yazılım hizmeti özelliği başarıyla etkinleştirildi!"
 
 msgid "Helio-PAT"
 msgstr "Helio-PAT"
 
 msgid "Copy successful!"
-msgstr ""
+msgstr "Kopyalama başarılı!"
 
 msgid "Helio Additive"
 msgstr "Helio Additive"
@@ -9135,76 +9135,76 @@ msgid "Terms of Use of Helio Additive"
 msgstr "Helio Additive Kullanım Koşulları"
 
 msgid "Agree and proceed"
-msgstr ""
+msgstr "Kabul edin ve devam edin"
 
 msgid "Got it"
-msgstr ""
+msgstr "Git"
 
 msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
-msgstr ""
+msgstr "Helio PAT alınamadı, tekrar almak için Yenile'ye tıklayın."
 
 msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
-msgstr ""
+msgstr "PAT elde edilemedi. Miktar sınırına ulaşıldı, bu nedenle elde edilemiyor. PAT'ı yeniden elde etmek için yenile düğmesine tıklayın."
 
 msgid "Simulation"
-msgstr ""
+msgstr "Simülasyon"
 
 msgid "Optimization"
-msgstr ""
+msgstr "Optimizasyon"
 
 msgid "Chamber Temperature"
-msgstr ""
+msgstr "Oda Sıcaklığı"
 
 msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
-msgstr ""
+msgstr "Not: Yukarıdaki sıcaklığı gerçek koşullara göre ayarlayın. Daha doğru veriler daha kesin analiz sonuçları sağlar."
 
 msgid "Helio's advanced feature for power users: available post purchase on its official website."
-msgstr ""
+msgstr "Helio'nun güçlü kullanıcılar için gelişmiş özelliği: resmi web sitesinde satın alındıktan sonra kullanılabilir."
 
 msgid "Monthly quota remaining: "
-msgstr ""
+msgstr "Kalan aylık kota: "
 
 msgid "Add-ons available: "
-msgstr ""
+msgstr "Eklentiler mevcut: "
 
 msgid "Optimise Outer Walls"
-msgstr ""
+msgstr "Dış Duvarları Optimize Edin"
 
 msgid "Advanced Settings"
-msgstr ""
+msgstr "Gelişmiş Ayarlar"
 
 msgid "Min Velocity"
-msgstr ""
+msgstr "Min Hız"
 
 msgid "Max Velocity"
-msgstr ""
+msgstr "Maksimum Hız"
 
 msgid "Min Volumetric Speed"
-msgstr ""
+msgstr "Min Volumetrik Hız"
 
 msgid "Max Volumetric Speed"
 msgstr "Maksimum Hacimsel Hız"
 
 msgid "Last Trace ID: "
-msgstr ""
+msgstr "Son İz Kimliği: "
 
 msgid "Buy Now"
-msgstr ""
+msgstr "Satın Al"
 
 msgid "Click for more details"
 msgstr "Daha fazla bilgi için tıklayın"
 
 msgid "Start Simulation"
-msgstr ""
+msgstr "Simülasyonu Başlat"
 
 msgid "Start Optimization"
-msgstr ""
+msgstr "Optimizasyonu Başlat"
 
 msgid "Buy add-ons"
-msgstr ""
+msgstr "Eklentiler satın alın"
 
 msgid "Layers to Optimize "
-msgstr ""
+msgstr "Optimize Edilecek Katmanlar "
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
 msgstr "Helio PAT alınamadı. Verilen PAT sayısı üst sınıra ulaştı. Lütfen Helio resmi web sitesindeki bilgilere dikkat edin. Yeniden kullanılabilir olduğunda, Yenile'yi tıklayarak tekrar deneyin."
@@ -13777,16 +13777,16 @@ msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Hıza öncelik veren 0,8 mm nozul için standart profil."
 
 msgid "Failed to create GCodeV2"
-msgstr ""
+msgstr "GCodeV2 oluşturulamadı"
 
 msgid "Failed to parse response"
-msgstr ""
+msgstr "Yanıt ayrıştırılamadı"
 
 msgid "Helio simulation task failed"
-msgstr ""
+msgstr "Helio simülasyon görevi başarısız oldu"
 
 msgid "Helio optimization task failed"
-msgstr ""
+msgstr "Helio optimizasyon görevi başarısız oldu"
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Helio API uç noktası boş, lütfen yapılandırmayı kontrol edin."
@@ -13822,28 +13822,28 @@ msgid "Helio: Simulation check failed"
 msgstr ""
 
 msgid "Helio: Failed to create Simulation\n"
-msgstr ""
+msgstr "Helio: Simülasyon oluşturulamadı\n"
 
 msgid "Helio: Failed to create GCode\n"
-msgstr ""
+msgstr "Helio: GCode oluşturulamadı\n"
 
 msgid "Helio: optimization successfully created"
-msgstr ""
+msgstr "Helio: optimizasyon başarıyla oluşturuldu"
 
 msgid "Helio: optimization working"
-msgstr ""
+msgstr "Helio: optimizasyon çalışıyor"
 
 msgid "Helio: Optimzaion check failed"
-msgstr ""
+msgstr "Helio: Optimizasyon kontrolü başarısız oldu"
 
 msgid "Helio: Failed to create Optimization\n"
-msgstr ""
+msgstr "Helio: Optimizasyon oluşturulamadı\n"
 
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio: GCode başarıyla indirildi"
 
 msgid "Helio: GCode download failed\n"
-msgstr ""
+msgstr "Helio: GCode indirme başarısız oldu\n"
 
 msgid "No AMS"
 msgstr "AMS Yok"
@@ -14256,8 +14256,7 @@ msgstr ""
 "Baskılarınızı plakalara ayırın\n"
 "Çok sayıda parçası olan bir modeli baskıya hazır ayrı kalıplara bölebileceğinizi biliyor muydunuz? Bu, tüm parçaları takip etme sürecini basitleştirecektir."
 
-#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
-#: Height]
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer Height]
 msgid ""
 "Speed up your print with Adaptive Layer Height\n"
 "Did you know that you can print a model even faster, by using the Adaptive Layer Height option? Check it out!"
@@ -14329,8 +14328,7 @@ msgstr ""
 "Gücü artırın\n"
 "Modelin gücünü artırmak için daha fazla duvar halkası ve daha yüksek seyrek dolgu yoğunluğu kullanabileceğinizi biliyor muydunuz?"
 
-#: resources/data/hints.ini: [hint:When need to print with the printer door
-#: opened]
+#: resources/data/hints.ini: [hint:When need to print with the printer door opened]
 msgid ""
 "When need to print with the printer door opened\n"
 "Did you know that opening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki."
@@ -14351,97 +14349,128 @@ msgid ""
 "Single-Material Only\n"
 "Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
 msgstr ""
+"Yalnızca Tek Malzeme\n"
+"Helio şu anda iş başına bir malzeme ve bir nozul simüle etmektedir. Çoklu malzeme veya çoklu ekstrüder G kodu, termal sürekliliği bozan uzun duraklamalar ekler, bu nedenle sonuçlar anlamlı olmaz."
 
 #: resources/data/helio_hints.ini: [hint: One Plate per Job]
 msgid ""
 "One Plate per Job\n"
 "Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
 msgstr ""
+"İş Başına Bir Plaka\n"
+"Tek bir yapım plakası ile G kodunu yükleyin — çok plakalı projeler henüz desteklenmemektedir, bu nedenle yalnızca ilk plaka çalışacaktır."
 
 #: resources/data/helio_hints.ini: [hint: What is the Thermal Quality Index?]
 msgid ""
 "What is the Thermal Quality Index?\n"
 "The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
 msgstr ""
+"Termal Kalite Endeksi nedir?\n"
+"Termal Kalite Endeksi (ölçek –100 ila +100), her bölgenin ne kadar sıcak veya soğuk yazdırıldığını gösterir—yeşil (≈ 0) güçlü, eğrilik içermeyen parçalar için “tam doğru” bölgedir. En iyi sonuçlar için parçanın çoğunu yeşil tutun."
 
 #: resources/data/helio_hints.ini: [hint: Voxel-Level Accuracy]
 msgid ""
 "Voxel-Level Accuracy\n"
 "We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
 msgstr ""
+"Voksel Düzeyinde Doğruluk\n"
+"Her zaman adımında her vokseldeki sıcaklığı tahmin ediyoruz ve standart işler için tahmin genellikle ±5–10 °C aralığındadır. Duraklamalar, özel donanım yazılımı veya olağandışı soğutma bu marjı genişletebilir."
 
 #: resources/data/helio_hints.ini: [hint: Fan & Airflow Model]
 msgid ""
 "Fan & Airflow Model\n"
 "A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
 msgstr ""
+"Fan ve Hava Akışı Modeli\n"
+"Basitleştirilmiş fan ve oda modeli, soğutma ayarlarının parça sıcaklıklarını nasıl değiştirdiğini yavaş CFD hesaplamaları olmadan gösterir; bu, günlük ayarlamalar için idealdir. Oda girdapları henüz simüle edilmediğinden, çalıştırmalar hızlı kalır."
 
 #: resources/data/helio_hints.ini: [hint: TQI Limits Explained]
 msgid ""
 "TQI Limits Explained\n"
 "-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
 msgstr ""
+"TQI Sınırları Açıklaması\n"
+"-100 → çok soğuk: gerilme mukavemeti ideal 0 değerinde basılan parçalara göre ~%50 daha düşüktür (ASTM D638 köpek kemiği testleri). +100 → çok sıcak: katmanlar erimiş halde kalır ve sarkabilir veya çökebilir. En yüksek mukavemet ve doğruluk için bölgeleri 0 değerine yakın tutun."
 
 #: resources/data/helio_hints.ini: [hint: What Drives Runtime?]
 msgid ""
 "What Drives Runtime?\n"
 "Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
 msgstr ""
+"Çalışma Süresini Etkileyen Faktörler Nelerdir?\n"
+"Ekstra katmanlar, yoğun dolgu, çok sayıda küçük yay (küçük ağ elemanları) veya çok yavaş baskı hızları, çözücünün daha fazla saniye boyunca adım adım ilerlemesi gerektiğinden simülasyon süresini uzatır. Çok çekirdekli CPU'lar veya CUDA GPU'lar işlemleri hızlandırır."
 
 #: resources/data/helio_hints.ini: [hint: Nozzle Temp Range]
 msgid ""
 "Nozzle Temp Range\n"
 "Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
 msgstr ""
+"Nozul Sıcaklık Aralığı\n"
+"Desteklenen ayar noktaları 190 – 320 °C arasındadır; bu aralığın dışındaki değerler fiziksel gerçekçiliği korumak için sabitlenir."
 
 #: resources/data/helio_hints.ini: [hint: Debugging Flowchart]
 msgid ""
 "Debugging Flowchart\n"
 "Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
 msgstr ""
+"Hata Ayıklama Akış Şeması\n"
+"Sonucun neden yanlış göründüğünden emin değil misiniz? Ayarları, G kodunu ve malzeme sorunlarını dakikalar içinde izlemek için adım adım hata ayıklama akış şemamızı takip edin."
 
 #: resources/data/helio_hints.ini: [hint: Why Cooling Varies]
 msgid ""
 "Why Cooling Varies\n"
 "Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
 msgstr ""
+"Soğutma Neden Değişir?\n"
+"Dış duvarlar ve köprüler en hızlı şekilde soğurken, kalın iç kısımlar daha sıcak kalır. Geometri, hava akışı ve takım yolu bu konuda rol oynar ve simülasyon bu farklılıkları görselleştirir."
 
 #: resources/data/helio_hints.ini: [hint: Extrusion Temp Model]
 msgid ""
 "Extrusion Temp Model\n"
 "Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
 msgstr ""
+"Ekstrüzyon Sıcaklığı Modeli\n"
+"Malzeme özellikleri erime eğrisini şekillendirir, ancak yazıcı geometrisi filamentin gerçekte ne kadar ısı kazandığını belirler, bu nedenle model malzemeye özeldir ve yazıcıya göre kalibre edilir."
 
-#: resources/data/helio_hints.ini: [hint: Nozzle setting of 190 °C vs 320
-#: °C?]
+#: resources/data/helio_hints.ini: [hint: Nozzle setting of 190 °C vs 320 °C?]
 msgid ""
 "Nozzle setting of 190 °C vs 320 °C?\n"
 "A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
 msgstr ""
+"190 °C ile 320 °C nozul ayarı?\n"
+"100 °C'lik bir nozul değişikliği, ekstrüzyon sıcaklığı, akış hızı ve biriktirme sonrası soğutma parçanın ısı geçmişini domine ettiği için termal indeksi sadece hafifçe değiştirir."
 
 #: resources/data/helio_hints.ini: [hint: Bed Temperature influence]
 msgid ""
 "Bed Temperature influence\n"
 "Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
 msgstr ""
+"Yatak Sıcaklığının Etkisi\n"
+"Şu anda sadece ilk katman yatak sıcaklığı modele besleniyor; daha sonraki yatak değişiklikleri henüz kaydedilmiyor."
 
 #: resources/data/helio_hints.ini: [hint: Actual Tool-Path]
 msgid ""
 "Actual Tool-Path\n"
 "Yes—your exact G-code path, speeds and fan commands are simulated."
 msgstr ""
+"Gerçek Takım Yolu\n"
+"Evet — tam G kodu yolunuz, hızlarınız ve fan komutlarınız simüle edilir."
 
 #: resources/data/helio_hints.ini: [hint: Mesh Resolution]
 msgid ""
 "Mesh Resolution\n"
 "The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
 msgstr ""
+"Ağ Çözünürlüğü\n"
+"Voksel ızgarası, G kodu satır aralığından daha incedir ve hesaplama gücünü boşa harcamadan katman katman ayrıntıları yakalar."
 
 #: resources/data/helio_hints.ini: [hint: Shrinkage, Warping & Stress]
 msgid ""
 "Shrinkage, Warping & Stress\n"
 "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
 msgstr ""
+"Büzülme, Çarpılma ve Gerilim\n"
+"Termal indeksi kontrol ederek, ısı kaynaklı çarpılma ve gerilimin nedenlerini ortadan kaldırabilirsiniz."
 
 #~ msgid "Helio Simulation"
 #~ msgstr "Helio Simülasyonu"
