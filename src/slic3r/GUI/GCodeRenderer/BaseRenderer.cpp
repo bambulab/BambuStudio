@@ -606,7 +606,10 @@ namespace Slic3r
                         short_time(get_time_dhms(time)) == short_time(get_time_dhms(m_print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time)))
                         m_time_estimate_mode = PrintEstimatedStatistics::ETimeMode::Normal;
                 }
-                m_fold = false;
+                if (&wxGetApp() && !wxGetApp().app_config->get_bool("use_last_fold_state_gcodeview_option_panel")) {
+                    m_fold = false;
+                }
+
                 bool only_gcode_3mf = false;
                 PartPlate* current_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
                 bool current_has_print_instances = current_plate->has_printable_instances();
