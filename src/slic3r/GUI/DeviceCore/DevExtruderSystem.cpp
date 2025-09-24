@@ -48,22 +48,22 @@ namespace Slic3r
 
     NozzleType DevExtder::GetNozzleType() const
     {
-        return system->Owner()->GetNozzleSystem()->GetNozzle(m_current_nozzle_id).m_nozzle_type;
+        return system->Owner()->GetNozzleSystem()->GetExtNozzle(m_current_nozzle_id).m_nozzle_type;
     }
 
     NozzleFlowType DevExtder::GetNozzleFlowType() const
     {
-        return system->Owner()->GetNozzleSystem()->GetNozzle(m_current_nozzle_id).m_nozzle_flow;
+        return system->Owner()->GetNozzleSystem()->GetExtNozzle(m_current_nozzle_id).m_nozzle_flow;
     }
 
     float DevExtder::GetNozzleDiameter() const
     {
-        return system->Owner()->GetNozzleSystem()->GetNozzle(m_current_nozzle_id).m_diameter;
+        return system->Owner()->GetNozzleSystem()->GetExtNozzle(m_current_nozzle_id).m_diameter;
     }
 
     NozzleDiameterType DevExtder::GetNozzleDiameterType() const
     {
-        return system->Owner()->GetNozzleSystem()->GetNozzle(m_current_nozzle_id).GetNozzleDiameterType();
+        return system->Owner()->GetNozzleSystem()->GetExtNozzle(m_current_nozzle_id).GetNozzleDiameterType();
     }
 
     DevExtderSystem::DevExtderSystem(MachineObject* obj)

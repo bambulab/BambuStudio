@@ -111,13 +111,15 @@ namespace Slic3r
        MachineObject* GetOwner() const { return m_owner; }
 
        // nozzles on extruder
-       bool                            ContainsNozzle(int id) const { return m_ext_nozzles.find(id) != m_ext_nozzles.end(); }
-       DevNozzle                       GetNozzle(int id) const;
-       const std::map<int, DevNozzle>& GetNozzles() const { return m_ext_nozzles;}
+       bool                            ContainsExtNozzle(int id) const { return m_ext_nozzles.find(id) != m_ext_nozzles.end(); }
+       DevNozzle                       GetExtNozzle(int id) const;
+       const std::map<int, DevNozzle>& GetExtNozzles() const { return m_ext_nozzles;}
 
        // nozzles on rack
        void  SetSupportNozzleRack(bool supported);
        std::shared_ptr<DevNozzleRack>  GetNozzleRack() const { return m_nozzle_rack;}
+       DevNozzle                       GetRackNozzle(int idx) const;
+       const std::map<int, DevNozzle>& GetRackNozzles() const;
 
        // nozzles on extruder and rack
        bool IsRackMaximumInstalled() const;

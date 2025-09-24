@@ -170,7 +170,7 @@ DevNozzleSystem::DevNozzleSystem(MachineObject* owner)
 {
 }
 
-DevNozzle DevNozzleSystem::GetNozzle(int id) const
+DevNozzle DevNozzleSystem::GetExtNozzle(int id) const
 {
     if (m_ext_nozzles.find(id) != m_ext_nozzles.end())
     {
@@ -199,6 +199,17 @@ std::string DevNozzle::GetNozzleTypeString(NozzleType type)
     default:                        return "Unknown";
     }
 }
+
+Slic3r::DevNozzle DevNozzleSystem::GetRackNozzle(int idx) const
+{
+    return m_nozzle_rack->GetNozzle(idx);
+}
+
+const std::map<int, Slic3r::DevNozzle>& DevNozzleSystem::GetRackNozzles() const
+{
+    return m_nozzle_rack->GetRackNozzles();
+}
+
 const std::vector<DevNozzle> DevNozzleSystem::CollectNozzles(int ext_loc, NozzleFlowType flow_type, float diameter) const
 {
     auto s_match = [&](const DevNozzle& nozzle) -> bool {
@@ -219,7 +230,7 @@ const std::vector<DevNozzle> DevNozzleSystem::CollectNozzles(int ext_loc, Nozzle
 
     std::vector<DevNozzle> result;
 
-    auto ext_nozzle = GetNozzle(ext_loc);
+    auto ext_nozzle = GetExtNozzle(ext_loc);
     if (s_match(ext_nozzle)){
         result.push_back(ext_nozzle);
     }
@@ -240,7 +251,7 @@ std::vector<MultiNozzleUtils::NozzleGroupInfo> DevNozzleSystem::GetNozzleGroups(
 {
     std::vector<MultiNozzleUtils::NozzleGroupInfo> nozzle_groups;
 
-    auto nozzle_in_extruder = this->GetNozzles();
+    auto nozzle_in_extruder = this->GetExtNozzles();
     for (auto& elem : nozzle_in_extruder) {
         auto& nozzle = elem.second;
         MultiNozzleUtils::NozzleGroupInfo info;
@@ -372,7 +383,7 @@ int DevNozzleSystem::GetKnownNozzleCountOn(int ext_id) const
         count = m_nozzle_rack->GetKnownNozzleCount();
     }
 
-    if (!GetNozzle(ext_id).IsUnknown() && !GetNozzle(ext_id).IsEmpty()) {
+    if (!GetExtNozzle(ext_id).IsUnknown() && !GetExtNozzle(ext_id).IsEmpty()) {
         count++;
     }
 
@@ -386,7 +397,7 @@ ExtruderNozzleInfos DevNozzleSystem::GetExtruderNozzleInfo() const
     // left
     {
         std::unordered_map<NozzleDef, int> installed_nozzle_map_l;
-        const auto& left_nozzle = GetNozzle(DEPUTY_EXTRUDER_ID);
+        const auto& left_nozzle = GetExtNozzle(DEPUTY_EXTRUDER_ID);
         if (!left_nozzle.IsEmpty() && !left_nozzle.IsAbnormal()) {
             NozzleDef data;
             data.nozzle_diameter = left_nozzle.GetNozzleDiameter();
@@ -400,7 +411,7 @@ ExtruderNozzleInfos DevNozzleSystem::GetExtruderNozzleInfo() const
     // right
     {
         std::unordered_map<NozzleDef, int> installed_nozzle_map_r;
-        const auto& r_nozzle = GetNozzle(MAIN_EXTRUDER_ID);
+        const auto& r_nozzle = GetExtNozzle(MAIN_EXTRUDER_ID);
         if (!r_nozzle.IsEmpty() && !r_nozzle.IsAbnormal()) {
             NozzleDef data;
             data.nozzle_diameter = r_nozzle.GetNozzleDiameter();
@@ -426,7 +437,7 @@ ExtruderNozzleInfos DevNozzleSystem::GetExtruderNozzleInfo() const
 
 bool DevNozzleSystem::IsRackMaximumInstalled() const
 {
-    auto ext_nozzle = GetNozzle(MAIN_EXTRUDER_ID);
+    auto ext_nozzle = GetExtNozzle(MAIN_EXTRUDER_ID);
     if (ext_nozzle.IsEmpty()) {
         return false;
     }

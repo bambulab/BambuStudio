@@ -253,7 +253,7 @@ void wgtDeviceNozzleRackHotendUpdate::UpdateExtruderNozzleInfo(const std::shared
         DevNozzleSystem* nozzle_system = rack->GetNozzleSystem();
         if (nozzle_system)
         {
-            UpdateInfo(nozzle_system->GetNozzle(m_ext_nozzle_id));
+            UpdateInfo(nozzle_system->GetExtNozzle(m_ext_nozzle_id));
         }
     }
 }

@@ -5696,7 +5696,7 @@ DevNozzle MachineObject::get_nozzle_by_id_code(int id_code) const
     /* toolhead nozzle*/
     if (id_code == MAIN_EXTRUDER_ID || id_code == DEPUTY_EXTRUDER_ID) {
         int nozzle_id = m_extder_system->GetExtderById(id_code)->GetNozzleId();
-        return m_nozzle_system->GetNozzle(nozzle_id);
+        return m_nozzle_system->GetExtNozzle(nozzle_id);
     } else if (id_code >= 0x10) {
         /* rack nozzle*/
         auto rack       = m_nozzle_system->GetNozzleRack();
@@ -5704,7 +5704,7 @@ DevNozzle MachineObject::get_nozzle_by_id_code(int id_code) const
         return nozzle_map[id_code - 0x10];
     } else {
         BOOST_LOG_TRIVIAL(error) << "Invalid nozzle pos id: " << id_code << ", replace with main extuder nozzle";
-        return m_nozzle_system->GetNozzle(0);
+        return m_nozzle_system->GetExtNozzle(0);
     }
 }
 
@@ -5714,12 +5714,12 @@ DevNozzle MachineObject::get_nozzle_by_sn(const std::string& sn) const
     DevNozzle nozzle;
 
     nozzle_id = m_extder_system->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
-    nozzle = m_nozzle_system->GetNozzle(nozzle_id);
+    nozzle = m_nozzle_system->GetExtNozzle(nozzle_id);
     if(nozzle.GetSerialNumber().compare(sn) == 0)
         return nozzle;
 
     nozzle_id = m_extder_system->GetExtderById(DEPUTY_EXTRUDER_ID)->GetNozzleId();
-    nozzle = m_nozzle_system->GetNozzle(nozzle_id);
+    nozzle = m_nozzle_system->GetExtNozzle(nozzle_id);
     if(nozzle.GetSerialNumber().compare(sn) == 0)
         return nozzle;
 

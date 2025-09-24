@@ -628,7 +628,7 @@ void MultiNozzleStatusTable::UpdateRackInfo(std::weak_ptr<DevNozzleRack> rack)
         auto nozzle_rack = rack.lock();
         if (!nozzle_rack)
             return;
-        auto nozzles_in_extruder = nozzle_rack->GetNozzleSystem()->GetNozzles();
+        auto nozzles_in_extruder = nozzle_rack->GetNozzleSystem()->GetExtNozzles();
         bool has_right = false;
         for (auto& elem : nozzles_in_extruder) {
             auto& nozzle = elem.second;
