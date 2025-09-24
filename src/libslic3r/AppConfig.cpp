@@ -188,6 +188,8 @@ void AppConfig::set_defaults()
         set_bool("show_shells_in_preview", true);
     if (get("enable_text_styles").empty())
         set_bool("enable_text_styles", false);
+    if (get("use_last_fold_state_gcodeview_option_panel").empty())
+        set_bool("use_last_fold_state_gcodeview_option_panel", true);
     if (get("enable_lod").empty())
         set_bool("enable_lod", true);
     if (get("gamma_correct_in_import_obj").empty())
