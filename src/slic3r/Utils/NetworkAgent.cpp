@@ -12,6 +12,7 @@
 #include "NetworkAgent.hpp"
 
 #include "slic3r/Utils/FileTransferUtils.hpp"
+#include "slic3r/Utils/CertificateVerify.hpp"
 
 using namespace BBL;
 
@@ -184,6 +185,10 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     if (using_backup) {
         plugin_folder = plugin_folder/"backup";
     }
+    std::optional<SignerSummary> self_cert_summary, module_cert_summary;
+    self_cert_summary = SummarizeSelf();
+    if (!self_cert_summary)
+        BOOST_LOG_TRIVIAL(info) << "self cert not exist";
 
     //first load the library
 #if defined(_MSC_VER) || defined(_WIN32)
@@ -191,13 +196,18 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     wchar_t lib_wstr[128];
     memset(lib_wstr, 0, sizeof(lib_wstr));
     ::MultiByteToWideChar(CP_UTF8, NULL, library.c_str(), strlen(library.c_str())+1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
-    netwoking_module = LoadLibrary(lib_wstr);
-    /*if (!netwoking_module) {
-        library = std::string(BAMBU_NETWORK_LIBRARY) + ".dll";
-        memset(lib_wstr, 0, sizeof(lib_wstr));
-        ::MultiByteToWideChar(CP_UTF8, NULL, library.c_str(), strlen(library.c_str()) + 1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
+    if (self_cert_summary) {
+        module_cert_summary = SummarizeModule(library);
+        if (module_cert_summary) {
+            if (IsSamePublisher(*self_cert_summary, *module_cert_summary))
+                netwoking_module = LoadLibrary(lib_wstr);
+            else
+                BOOST_LOG_TRIVIAL(info) << "module is from another publisher:" << module_cert_summary->as_print();
+        }
+        else
+            BOOST_LOG_TRIVIAL(info) << "module_cert is null";
+    } else
         netwoking_module = LoadLibrary(lib_wstr);
-    }*/
     if (!netwoking_module) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", try load library directly from current directory");
 
@@ -206,10 +216,21 @@ int NetworkAgent::initialize_network_module(bool using_backup)
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", can not get path in current directory for %1%") % BAMBU_NETWORK_LIBRARY;
             return -1;
         }
-        //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", current path %1%")%library_path;
         memset(lib_wstr, 0, sizeof(lib_wstr));
         ::MultiByteToWideChar(CP_UTF8, NULL, library_path.c_str(), strlen(library_path.c_str())+1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
-        netwoking_module = LoadLibrary(lib_wstr);
+        if (self_cert_summary) {
+            module_cert_summary = SummarizeModule(library_path);
+            if (module_cert_summary) {
+                if (IsSamePublisher(*self_cert_summary, *module_cert_summary))
+                    netwoking_module = LoadLibrary(lib_wstr);
+                else
+                    BOOST_LOG_TRIVIAL(info) << "module is from another publisher:" << module_cert_summary->as_print();
+            }
+            else
+                BOOST_LOG_TRIVIAL(info) << "module_cert is null";
+        }
+        else
+            netwoking_module = LoadLibrary(lib_wstr);
     }
 #else
     #if defined(__WXMAC__)
@@ -218,17 +239,24 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     library = plugin_folder.string() + "/" + std::string("lib") + std::string(BAMBU_NETWORK_LIBRARY) + ".so";
     #endif
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", line %1%, loading network module, using_backup %2%\n")%__LINE__ %using_backup;
-    netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
+    module_cert_summary = SummarizeModule(library);
+    if (self_cert_summary) {
+        module_cert_summary = SummarizeModule(library);
+        if (module_cert_summary) {
+            if (IsSamePublisher(*self_cert_summary, *module_cert_summary))
+                netwoking_module = dlopen(library.c_str(), RTLD_LAZY);
+            else
+                BOOST_LOG_TRIVIAL(info) << "module is from another publisher:" << module_cert_summary->as_print();
+        }
+        else
+            BOOST_LOG_TRIVIAL(info) << "module_cert is null";
+    }
+    else
+        netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
     if (!netwoking_module) {
-        /*#if defined(__WXMAC__)
-        library = std::string("lib") + BAMBU_NETWORK_LIBRARY + ".dylib";
-        #else
-        library = std::string("lib") + BAMBU_NETWORK_LIBRARY + ".so";
-        #endif*/
-        //netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
         char* dll_error = dlerror();
-        printf("error, dlerror is %s\n", dll_error);
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", error, dlerror is %1%")%dll_error;
+        std::string err       = dll_error ? std::string(dll_error) : std::string("(null)");
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", error, dlerror is %1%") % err;
     }
     printf("after dlopen, network_module is %p\n", netwoking_module);
 #endif
