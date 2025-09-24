@@ -878,7 +878,7 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
         m_comboBox_nozzle_id->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, &NewCalibrationHistoryDialog::on_select_nozzle_pos, this);
 
         int r_nozzle_id = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
-        auto r_nozzle = obj->GetNozzleSystem()->GetNozzle(r_nozzle_id);
+        auto r_nozzle = obj->GetNozzleSystem()->GetExtNozzle(r_nozzle_id);
 
         if(r_nozzle.IsNormal()){
             m_comboBox_nozzle_id->Append("R", wxNullBitmap, new int{0});

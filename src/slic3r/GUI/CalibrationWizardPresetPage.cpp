@@ -2496,7 +2496,7 @@ void CalibrationPresetPage::update_nozzle_id_combox()
         }
 
         int  r_nozzle_id = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
-        auto r_nozzle    = obj->GetNozzleSystem()->GetNozzle(r_nozzle_id);
+        auto r_nozzle    = obj->GetNozzleSystem()->GetExtNozzle(r_nozzle_id);
         auto nozzle_map  = rack->GetRackNozzles();
 
         auto nozzle_list = make_nozzles_info(r_nozzle, nozzle_map, nozzle_diameter, nozzle_flow);

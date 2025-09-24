@@ -4698,7 +4698,7 @@ bool SelectMachineDialog::CheckErrorExtruderNozzleWithSlicing(MachineObject* obj
         for (auto slicing_ext_nozzle : slicing_ext_nozzles)  {
             int slicing_ext_idx = slicing_ext_nozzle.first;
             auto slicing_ext = slicing_ext_nozzle.second;
-            auto installed_ext_nozzle = nozzle_sys->GetNozzle(slicing_ext_idx);
+            auto installed_ext_nozzle = nozzle_sys->GetExtNozzle(slicing_ext_idx);
 
             // no need to check right extruder nozzle when using nozzle rack
             if (slicing_ext_idx == MAIN_EXTRUDER_ID && nozzle_sys->GetNozzleRack()->IsSupported()) {

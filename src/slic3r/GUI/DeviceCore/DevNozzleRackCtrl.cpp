@@ -129,7 +129,7 @@ bool DevNozzleRack::CtrlCanReadAll() const
     }
 
     bool has_nozzle_on_ext = false;
-    if (m_nozzle_system->ContainsNozzle(MAIN_EXTRUDER_ID)) {
+    if (m_nozzle_system->ContainsExtNozzle(MAIN_EXTRUDER_ID)) {
         has_nozzle_on_ext = true;
     }
 
@@ -201,7 +201,7 @@ bool DevNozzleRack::CtrlCanUpdateAll() const
         return false;
     }
 
-    auto ext_nozzle = m_nozzle_system->GetNozzle(MAIN_EXTRUDER_ID);
+    auto ext_nozzle = m_nozzle_system->GetExtNozzle(MAIN_EXTRUDER_ID);
     if (ext_nozzle.IsAbnormal())
     {
         return true;
