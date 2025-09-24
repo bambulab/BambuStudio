@@ -1,8 +1,51 @@
 {
     "result": 0,
-    "t": 1757423112,
-    "ver": 202509092012,
+    "t": 1758213556,
+    "ver": 202511160923,
     "data": [
+        {
+            "ecode": "05024023",
+            "image": "",
+            "actions": [
+                49
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "18008018",
+            "image": "",
+            "actions": [
+                2
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "1A004009",
+            "image": "",
+            "actions": [
+                50
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "07008036",
+            "image": "",
+            "actions": [
+                39,
+                34,
+                51
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "07008035",
+            "image": "",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "31B"
+        },
         {
             "ecode": "07FF8007",
             "image": "50489a8d8143d72e374d740e6a63d5dc.png",
@@ -2251,6 +2294,14 @@
                 21
             ],
             "device": "31B"
+        },
+        {
+            "ecode": "0500400E",
+            "image": "",
+            "actions": [
+                11
+            ],
+            "device": "default"
         },
         {
             "ecode": "05004037",
