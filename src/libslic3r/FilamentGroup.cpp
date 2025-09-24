@@ -532,6 +532,7 @@ namespace Slic3r
             int left_extruder_elems = 0, right_extruder_elems = 0;
             int prefer_level = (m_elem_count + 1) * (m_elem_count + 1);
             std::unordered_map<int, std::vector<int>> nozzles_filaments;
+            std::vector<int> groups(m_cluster_group_size.size());
             //4.calculate group info
             for (int i = 0; i < m_elem_count; i++) {
                 int n_id = num % m_k;
@@ -540,12 +541,10 @@ namespace Slic3r
                 labels[used_filaments[i]] = n_id;
                 used_labels[i]            = n_id;
                 nozzles_filaments[n_id].emplace_back(i);
-                left_extruder_elems += (nozzle_to_extruder[n_id] == 0);
-                right_extruder_elems += nozzle_to_extruder[n_id];
+                groups[nozzle_to_extruder[n_id]]++;
                 if (std::find(candidates[i].begin(), candidates[i].end(), n_id) == candidates[i].end()) prefer_level -= (m_elem_count + 1);
             }
-            prefer_level -= std::max(0, left_extruder_elems - m_cluster_group_size[0].second);
-            prefer_level -= std::max(0, right_extruder_elems - m_cluster_group_size[1].second);
+            for (int i = 0; i < groups.size(); i++) prefer_level -= std::max(0, groups[i] - m_cluster_group_size[i].second);
 
             //5.compute group hash
             group_hashs.clear();
@@ -567,6 +566,8 @@ namespace Slic3r
             double time = change_count.first *context.speed_info.extruder_change_time + change_count.second *context.speed_info.nozzle_change_time;
             double score = evaluate_score(flush_volume, time, true);
 
+            if (groups[context.machine_info.master_extruder_id] < (used_filaments.size() + 1)/2)
+                score += ABSOLUTE_FLUSH_GAP_TOLERANCE; //slightly prefer master extruders with more flush
             MemoryedGroup group(used_labels, score, prefer_level);
             update_memoryed_groups(group, memory_threshold == 0 ? 1 : memory_threshold, memoryed_groups);
         }
