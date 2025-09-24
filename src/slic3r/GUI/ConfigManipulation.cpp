@@ -341,6 +341,15 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         is_msg_dlg_already_exist = false;
     }
 
+    if (config->option<ConfigOptionBool>("enable_wrapping_detection")->value) {
+        std::string printer_type = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+        if (!DevPrinterConfigUtil::support_wrapping_detection(printer_type)) {
+            DynamicPrintConfig new_conf = *config;
+            new_conf.set_key_value("enable_wrapping_detection", new ConfigOptionBool(false));
+            apply(config, &new_conf);
+        }
+    }
+
     double sparse_infill_density = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
     auto timelapse_type = config->opt_enum<TimelapseType>("timelapse_type");
 
@@ -874,9 +883,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     for (auto el : {"seam_slope_type", "seam_slope_start_height", "seam_slope_gap", "seam_slope_min_length"})
         toggle_line(el, override_filament_scarf_seam_settings);
 
-    ConfigOptionPoints *wrapping_exclude_area_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionPoints>("wrapping_exclude_area");
-    bool support_wrapping_detect = wrapping_exclude_area_opt &&wrapping_exclude_area_opt->values.size() > 3;
-    toggle_line("enable_wrapping_detection", support_wrapping_detect);
+    std::string printer_type = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    toggle_line("enable_wrapping_detection", DevPrinterConfigUtil::support_wrapping_detection(printer_type));
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
