@@ -354,8 +354,6 @@ void PrinterMsgPanel::OnRefreshNozzleBtnClicked(wxMouseEvent& event)
     if (obj_) {
         obj_->GetNozzleSystem()->GetNozzleRack()->CtrlRackReadAll(true);
     }
-
-    event.Skip();
 }
 
 void PrinterMsgPanel::OnNotShowAgain(const prePrintInfo& info)
