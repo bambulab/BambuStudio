@@ -16228,6 +16228,10 @@ void Plater::set_bed_shape() const
     if (final_texture_filename.empty()) {
         final_texture_filename = resources_dir() + "/images/PEIdefault.png";
     }
+    // BBS: Always fallback to PEI texture if the final texture is still empty or invalid
+    if (final_texture_filename.empty() || !boost::filesystem::exists(final_texture_filename)) {
+        final_texture_filename = resources_dir() + "/images/PEIdefault.png";
+    }
     set_bed_shape(p->config->option<ConfigOptionPoints>("printable_area")->values,
         //BBS: add bed exclude areas
         p->config->option<ConfigOptionPoints>("bed_exclude_area")->values,
