@@ -4118,112 +4118,8 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("%1% file not exist.") % subfile;
             continue;
         }
-        VendorProfile::PrinterModel model;
-        model.id = machine_model.first;
-        try {
-            boost::nowide::ifstream ifs(subfile);
-            json j;
-            ifs >> j;
-            //parse the json elements
-            for (auto it = j.begin(); it != j.end(); it++) {
-                if (boost::iequals(it.key(), BBL_JSON_KEY_VERSION)) {
-                    //get version
-                }
-                else if (boost::iequals(it.key(), BBL_JSON_KEY_URL)) {
-                    //get url
-                }
-                else if (boost::iequals(it.key(), BBL_JSON_KEY_NAME)) {
-                    //get name
-                    model.name = it.value();
-                }
-                else if (boost::iequals(it.key(), BBL_JSON_KEY_MODEL_ID)) {
-                    //get model_id
-                    model.model_id = it.value();
-                }
-                else if (boost::iequals(it.key(), BBL_JSON_KEY_NOZZLE_DIAMETER)) {
-                    //get nozzle diameter
-                    std::string nozzle_diameters = it.value();
-                    std::vector<std::string> variants;
-                    if (Slic3r::unescape_strings_cstyle(nozzle_diameters, variants)) {
-                        for (const std::string &variant_name : variants) {
-                            if (model.variant(variant_name) == nullptr)
-                                model.variants.emplace_back(VendorProfile::PrinterVariant(variant_name));
-                        }
-                    } else {
-                        BOOST_LOG_TRIVIAL(error)<< __FUNCTION__ << boost::format(": invalid nozzle_diameters %1% for Vendor %1%") % nozzle_diameters % vendor_name;
-                    }
-                }
-                else if (boost::iequals(it.key(), BBL_JSON_KEY_PRINTER_TECH)) {
-                    //get printer tech
-                    if (boost::algorithm::starts_with(it.value(), "SL"))
-                        model.technology = ptSLA;
-                    else
-                        model.technology = ptFFF;
-                }
-                else if (boost::iequals(it.key(), BBL_JSON_KEY_FAMILY)) {
-                    //get family
-                    model.family = it.value();
-                }
-                else if (boost::iequals(it.key(), BBL_JSON_KEY_BED_MODEL)) {
-                    //get bed model
-                    model.bed_model = it.value();
-                } else if (boost::iequals(it.key(), BBL_JSON_KEY_DEFAULT_BED_TYPE)) {
-                    // get bed type
-                    model.default_bed_type = it.value();
-                } else if (boost::iequals(it.key(), BBL_JSON_KEY_RIGHT_ICON_OFFSET_BED)) {
-                    model.right_icon_offset_bed = it.value();
-                } else if (boost::iequals(it.key(), BBL_JSON_KEY_BOTTOM_TEXTURE_END_NAME)) {
-                    model.bottom_texture_end_name = it.value();
-                } else if (boost::iequals(it.key(), BBL_JSON_KEY_USE_DOUBLE_EXTRUDER_DEFAULT_TEXTURE)) {
-                    model.use_double_extruder_default_texture = it.value();
-                } else if (boost::iequals(it.key(), BBL_JSON_KEY_BOTTOM_TEXTURE_RECT)) {
-                    model.bottom_texture_rect = it.value();
-                } else if (boost::iequals(it.key(), BBL_JSON_KEY_MIDDLE_TEXTURE_RECT)) {
-                    model.middle_texture_rect = it.value();
-                } else if (boost::iequals(it.key(), BBL_JSON_KEY_USE_RECT_GRID)) {
-                    model.use_rect_grid = it.value();
-                }
-                else if (boost::iequals(it.key(), BBL_JSON_KEY_IMAGE_BED_TYPE)) {
-                    model.image_bed_type = it.value();
-                }
-                else if (boost::iequals(it.key(), BBL_JSON_KEY_BED_TEXTURE)) {
-                    //get bed texture
-                    model.bed_texture = it.value();
-                }
-                else if (boost::iequals(it.key(), BBL_JSON_KEY_HOTEND_MODEL)) {
-                    model.hotend_model = it.value();
-                }
-                else if (boost::iequals(it.key(), BBL_JSON_KEY_DEFAULT_MATERIALS)) {
-                    //get machine list
-                    std::string default_materials_field = it.value();
-                    if (Slic3r::unescape_strings_cstyle(default_materials_field, model.default_materials)) {
-                    	Slic3r::sort_remove_duplicates(model.default_materials);
-                        if (! model.default_materials.empty() && model.default_materials.front().empty())
-                            // An empty material was inserted into the list of default materials. Remove it.
-                            model.default_materials.erase(model.default_materials.begin());
-                    } else {
-                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": invalid default_materials %1% for Vendor %1%") % default_materials_field % vendor_name;
-                    }
-                } else if (boost::iequals(it.key(), BBL_JSON_KEY_NOT_SUPPORT_BED_TYPE)) {
-                    // get machine list
-                    std::string not_support_bed_type_field = it.value();
-                    if (Slic3r::unescape_strings_cstyle(not_support_bed_type_field, model.not_support_bed_types)) {
-                        Slic3r::sort_remove_duplicates(model.not_support_bed_types);
-                        if (!model.not_support_bed_types.empty() && model.not_support_bed_types.front().empty())
-                            // An empty material was inserted into the list of default materials. Remove it.
-                            model.not_support_bed_types.erase(model.not_support_bed_types.begin());
-                    } else {
-                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__
-                                                 << boost::format(": invalid not_support_bed_types %1% for Vendor %1%") % not_support_bed_type_field % vendor_name;
-                    }
-                }
-            }
-        }
-        catch(nlohmann::detail::parse_error &err) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<< subfile <<" got a nlohmann::detail::parse_error, reason = " << err.what();
-            throw ConfigurationError((boost::format("Failed loading configuration file %1%: %2%\nSuggest cleaning the directory %3% firstly")
-                %subfile %err.what() % path).str());
-        }
+        VendorProfile::PrinterModel model = load_vendor_configs_from_json(subfile);
+        model.id                          = machine_model.first;
 
         if (! model.id.empty() && ! model.variants.empty())
             vendor_profile.models.push_back(std::move(model));
@@ -4532,6 +4428,105 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", finished, presets_loaded %1%")%presets_loaded;
     return std::make_pair(std::move(substitutions), presets_loaded);
+}
+
+VendorProfile::PrinterModel PresetBundle::load_vendor_configs_from_json(const std::string &path)
+{
+    VendorProfile::PrinterModel model;
+    if (!boost::filesystem::exists(path)) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("%1% file not exist.") % path;
+        throw ConfigurationError((boost::format("Failed loading configuration file, please check %1% firstly") % path).str());
+        return model;
+    }
+    try {
+        boost::nowide::ifstream ifs(path);
+        json                    j;
+        ifs >> j;
+        // parse the json elements
+        for (auto it = j.begin(); it != j.end(); it++) {
+            if (boost::iequals(it.key(), BBL_JSON_KEY_VERSION)) {
+                // get version
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_URL)) {
+                // get url
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_NAME)) {
+                // get name
+                model.name = it.value();
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_MODEL_ID)) {
+                // get model_id
+                model.model_id = it.value();
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_NOZZLE_DIAMETER)) {
+                // get nozzle diameter
+                std::string              nozzle_diameters = it.value();
+                std::vector<std::string> variants;
+                if (Slic3r::unescape_strings_cstyle(nozzle_diameters, variants)) {
+                    for (const std::string &variant_name : variants) {
+                        if (model.variant(variant_name) == nullptr) model.variants.emplace_back(VendorProfile::PrinterVariant(variant_name));
+                    }
+                }
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_PRINTER_TECH)) {
+                // get printer tech
+                if (boost::algorithm::starts_with(it.value(), "SL"))
+                    model.technology = ptSLA;
+                else
+                    model.technology = ptFFF;
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_FAMILY)) {
+                // get family
+                model.family = it.value();
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_BED_MODEL)) {
+                // get bed model
+                model.bed_model = it.value();
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_DEFAULT_BED_TYPE)) {
+                // get bed type
+                model.default_bed_type = it.value();
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_RIGHT_ICON_OFFSET_BED)) {
+                model.right_icon_offset_bed = it.value();
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_BOTTOM_TEXTURE_END_NAME)) {
+                model.bottom_texture_end_name = it.value();
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_USE_DOUBLE_EXTRUDER_DEFAULT_TEXTURE)) {
+                model.use_double_extruder_default_texture = it.value();
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_BOTTOM_TEXTURE_RECT)) {
+                model.bottom_texture_rect = it.value();
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_BOTTOM_TEXTURE_RECT_LONGER)) {
+                model.bottom_texture_rect_longer = it.value();
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_MIDDLE_TEXTURE_RECT)) {
+                model.middle_texture_rect = it.value();
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_USE_RECT_GRID)) {
+                model.use_rect_grid = it.value();
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_IMAGE_BED_TYPE)) {
+                model.image_bed_type = it.value();
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_BED_TEXTURE)) {
+                // get bed texture
+                model.bed_texture = it.value();
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_HOTEND_MODEL)) {
+                model.hotend_model = it.value();
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_DEFAULT_MATERIALS)) {
+                // get machine list
+                std::string default_materials_field = it.value();
+                if (Slic3r::unescape_strings_cstyle(default_materials_field, model.default_materials)) {
+                    Slic3r::sort_remove_duplicates(model.default_materials);
+                    if (!model.default_materials.empty() && model.default_materials.front().empty())
+                        // An empty material was inserted into the list of default materials. Remove it.
+                        model.default_materials.erase(model.default_materials.begin());
+                }
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_NOT_SUPPORT_BED_TYPE)) {
+                // get machine list
+                std::string not_support_bed_type_field = it.value();
+                if (Slic3r::unescape_strings_cstyle(not_support_bed_type_field, model.not_support_bed_types)) {
+                    Slic3r::sort_remove_duplicates(model.not_support_bed_types);
+                    if (!model.not_support_bed_types.empty() && model.not_support_bed_types.front().empty())
+                        // An empty material was inserted into the list of default materials. Remove it.
+                        model.not_support_bed_types.erase(model.not_support_bed_types.begin());
+                } else {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": invalid not_support_bed_types %1% for Vendor") % not_support_bed_type_field;
+                }
+            }
+        }
+    } catch (nlohmann::detail::parse_error &err) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse "
+                                 << " got a nlohmann::detail::parse_error, reason = " << err.what();
+        throw ConfigurationError((boost::format("Failed loading configuration file  %1%\nSuggest cleaning the directory %2% firstly") % err.what() % path).str());
+    }
+    return model;
 }
 
 void PresetBundle::on_extruders_count_changed(int extruders_count)
