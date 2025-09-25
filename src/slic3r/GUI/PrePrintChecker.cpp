@@ -286,6 +286,7 @@ ScalableButton* PrinterMsgPanel::CreateTypeButton(const prePrintInfo& info)
     btn->SetMaxSize(wxSize(FromDIP(16), FromDIP(16)));
     btn->SetMinSize(wxSize(FromDIP(16), FromDIP(16)));
     btn->SetSize(wxSize(FromDIP(16), FromDIP(16)));
+    wxGetApp().UpdateDarkUI(btn);
     m_scale_btns.push_back(btn);
     return btn;
 };
@@ -299,8 +300,11 @@ static Label* s_create_btn_label(PrinterMsgPanel* panel, const wxString& btn_nam
     btn->SetFont(font);
     btn->SetBackgroundColour(*wxWHITE);
     btn->SetForegroundColour(wxColour("#00AE42"));
-    btn->Bind(wxEVT_ENTER_WINDOW, [panel](auto& e) { panel->SetCursor(wxCURSOR_HAND); });
-    btn->Bind(wxEVT_LEAVE_WINDOW, [panel](auto& e) { panel->SetCursor(wxCURSOR_ARROW); });
+
+    btn->Bind(wxEVT_ENTER_WINDOW, [panel](auto &e) { panel->SetCursor(wxCURSOR_HAND); });
+    btn->Bind(wxEVT_LEAVE_WINDOW, [panel](auto &e) { panel->SetCursor(wxCURSOR_ARROW); });
+
+    wxGetApp().UpdateDarkUI(btn);
     return btn;
 }
 
