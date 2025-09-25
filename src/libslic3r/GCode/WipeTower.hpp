@@ -183,7 +183,7 @@ public:
 
 	// Appends into internal structure m_plan containing info about the future wipe tower
 	// to be used before building begins. The entries must be added ordered in z.
-	void plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool, float wipe_volume = 0.f, float prime_volume = 0.f);
+    void plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool, float wipe_volume_ec = 0.f, float wipe_volume_nc = 0.f, float prime_volume = 0.f);
 
 
 	// Iterates through prepared m_plan, generates ToolChangeResults and appends them to "result"
@@ -399,6 +399,8 @@ public:
     Vec2f              get_rib_offset() const { return m_rib_offset; }
     bool               is_need_ramming(int filament_id_1, int filament_id_2);
     bool               is_same_extruder(int filament_id_1, int filament_id_2);
+    bool               is_same_nozzle(int filament_id_1, int filament_id_2);
+
 
 private:
 	enum wipe_shape // A fill-in direction

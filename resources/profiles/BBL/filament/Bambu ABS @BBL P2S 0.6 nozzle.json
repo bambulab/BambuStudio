@@ -5,9 +5,13 @@
     "from": "system",
     "setting_id": "GFSB00_36",
     "instantiation": "true",
+<<<<<<< HEAD:resources/profiles/BBL/filament/Bambu ABS @BBL P2S 0.6 nozzle.json
     "activate_air_filtration": [
         "0"
     ],
+=======
+    "description": "When printing this filament, there's a risk of warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials.",
+>>>>>>> 9c5a7ee7f7 (ENH:Add a parameter for the prime volume after a hotend change):resources/profiles/BBL/filament/Bambu ABS @BBL H2C.json
     "chamber_temperatures": [
         "65"
     ],
@@ -81,6 +85,9 @@
     "filament_wipe_distance": [
         "nil",
         "nil"
+    ],
+    "filament_prime_volume_nc": [
+        "60"
     ],
     "filament_z_hop": [
         "nil",

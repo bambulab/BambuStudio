@@ -1335,7 +1335,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloats,             counter_limit_max))
     ((ConfigOptionFloats,             hole_limit_min))
     ((ConfigOptionFloats,             hole_limit_max))
-    ((ConfigOptionFloats,             filament_prime_volume)))
+    ((ConfigOptionFloats,             filament_prime_volume))
+    ((ConfigOptionFloats,             filament_prime_volume_nc)))
 // This object is mapped to Perl as Slic3r::Config::Full.
 PRINT_CONFIG_CLASS_DERIVED_DEFINE0(
     FullPrintConfig,
