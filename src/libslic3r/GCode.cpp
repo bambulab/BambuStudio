@@ -2727,6 +2727,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     if (m_writer.need_toolchange(initial_extruder_id)) {
                         const PrintObjectConfig &object_config              = object.config();
                         coordf_t                 initial_layer_print_height = print.config().initial_layer_print_height.value;
+
+                        if (m_enable_label_object && print.config().support_object_skip_flush.value) {
+                            m_filament_instances_code = _encode_label_ids_to_base64({(*print_object_instance_sequential_active)->model_instance->get_labeled_id()});
+                        }
+
                         file.write(this->set_extruder(initial_extruder_id, initial_layer_print_height, true));
                         prime_extruder = true;
                     } else {
@@ -4340,7 +4345,7 @@ GCode::LayerResult GCode::process_layer(
     // Extrude the skirt, brim, support, perimeters, infill ordered by the extruders.
     for (unsigned int extruder_id : layer_tools.extruders)
     {
-        if (m_enable_label_object && print.config().support_object_skip_flush.value) {
+        if (print.config().print_sequence == PrintSequence::ByLayer && m_enable_label_object && print.config().support_object_skip_flush.value) {
             std::vector<size_t> filament_instances_id;
             for (InstanceToPrint &instance : filament_to_print_instances[extruder_id]) filament_instances_id.emplace_back(instance.label_object_id);
             m_filament_instances_code = _encode_label_ids_to_base64(filament_instances_id);
