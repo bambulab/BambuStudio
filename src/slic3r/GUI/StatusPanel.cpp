@@ -719,7 +719,17 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     bSizer_text->Add(0, 0, 0, wxLEFT, FromDIP(20));
     bSizer_text->Add(m_staticText_progress_left, 0, wxALIGN_CENTER_VERTICAL | wxALL, 0);
 
-    m_printing_stage_value = new wxStaticText(penel_finish_time, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_ELLIPSIZE_END);
+    m_printing_stage_panel = new wxPanel(penel_finish_time);
+    wxBoxSizer *printingstage_vertical_sizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *printingstage_horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_printing_stage_underline = new wxPanel(m_printing_stage_panel);
+    m_printing_stage_underline->SetMaxSize(wxSize(-1, FromDIP(1)));
+    m_printing_stage_underline->SetMinSize(wxSize(-1, FromDIP(1)));
+    m_printing_stage_underline->SetBackgroundColour(wxColour(146, 146, 146));
+    m_printing_stage_underline->Hide();
+
+    m_printing_stage_value = new wxStaticText(m_printing_stage_panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_ELLIPSIZE_END);
     m_printing_stage_value->Wrap(-1);
     m_printing_stage_value->SetMaxSize(wxSize(FromDIP(800), -1));
 #ifdef __WXOSX_MAC__
@@ -736,15 +746,13 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
         MachineObject *obj         = dev_manager ? dev_manager->get_selected_machine() : nullptr;
         if (obj && obj->stage_curr == 58) {
             m_printing_stage_value->SetCursor(wxCursor(wxCURSOR_HAND));
-            wxFont font = m_printing_stage_value->GetFont();
-            font.SetUnderlined(true);
-            m_printing_stage_value->SetFont(font);
+            m_printing_stage_underline->Show();
         } else {
             m_printing_stage_value->SetCursor(wxCursor(wxCURSOR_ARROW));
-            wxFont font = m_printing_stage_value->GetFont();
-            font.SetUnderlined(false);
-            m_printing_stage_value->SetFont(font);
+            m_printing_stage_underline->Hide();
         }
+        m_printing_stage_panel->Layout();
+        Layout();
         event.Skip();
     });
     m_printing_stage_value->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &event) {
@@ -752,10 +760,10 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
         MachineObject *obj = dev_manager ? dev_manager->get_selected_machine() : nullptr;
         if (obj && obj->stage_curr == 58) {
             m_printing_stage_value->SetCursor(wxCURSOR_ARROW);
-            wxFont font = m_printing_stage_value->GetFont();
-            font.SetUnderlined(false);
-            m_printing_stage_value->SetFont(font);
+            m_printing_stage_underline->Hide();
         }
+        m_printing_stage_panel->Layout();
+        Layout();
         event.Skip();
     });
 
@@ -765,8 +773,9 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
 
 
     // Create question button
-    m_question_button = new ScalableButton(penel_finish_time, wxID_ANY, "thermal_question", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+    m_question_button = new ScalableButton(m_printing_stage_panel, wxID_ANY, "thermal_question", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
     m_question_button->SetToolTip(_L("Click to view thermal preconditioning explanation"));
+    m_question_button->SetBackgroundColour(wxColour(255, 255, 255));
     m_question_button->Hide(); // Hide by default
     m_question_button->Bind(wxEVT_LEFT_UP, &PrintingTaskPanel::on_stage_clicked, this);
     m_question_button->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &event) {
@@ -774,11 +783,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
         MachineObject *obj         = dev_manager ? dev_manager->get_selected_machine() : nullptr;
         if (obj && obj->stage_curr == 58) {
             m_question_button->SetCursor(wxCursor(wxCURSOR_HAND));
-            if (m_printing_stage_value) {
-                wxFont f = m_printing_stage_value->GetFont();
-                f.SetUnderlined(true);
-                m_printing_stage_value->SetFont(f);
-            }
+            m_printing_stage_underline->Show();
         }
         event.Skip();
     });
@@ -787,14 +792,16 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
         MachineObject *obj         = dev_manager ? dev_manager->get_selected_machine() : nullptr;
         if (obj && obj->stage_curr == 58) {
             m_question_button->SetCursor(wxCURSOR_ARROW);
-            if (m_printing_stage_value) {
-                wxFont f = m_printing_stage_value->GetFont();
-                f.SetUnderlined(false);
-                m_printing_stage_value->SetFont(f);
-            }
+            m_printing_stage_underline->Hide();
             event.Skip();
         }
     });
+
+    printingstage_horizontal_sizer->Add(m_printing_stage_value, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 0);
+    printingstage_horizontal_sizer->Add(m_question_button, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(5));
+    printingstage_vertical_sizer->Add(printingstage_horizontal_sizer, 0, wxALIGN_CENTER_VERTICAL, 0);
+    printingstage_vertical_sizer->Add(m_printing_stage_underline, 0, wxEXPAND |wxALIGN_TOP, 0);
+    m_printing_stage_panel->SetSizer(printingstage_vertical_sizer);
 
     m_staticText_finish_time = new Label(penel_finish_time);
 
@@ -807,8 +814,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     m_staticText_finish_day = new RectTextPanel(penel_finish_time);
     m_staticText_finish_day->SetMinSize(wxSize(20, 20));
     m_staticText_finish_day->Hide();
-    bSizer_finish_time->Add(m_printing_stage_value, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 0);
-    bSizer_finish_time->Add(m_question_button, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(5));
+    bSizer_finish_time->Add(m_printing_stage_panel, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 0);
     bSizer_finish_time->Add(0, 0, 1, wxEXPAND, 0);
     bSizer_finish_time->Add(m_staticText_finish_time, 0, wxLEFT | wxEXPAND, 0);
     bSizer_finish_time->Add(m_staticText_finish_day, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
@@ -822,7 +828,6 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
 
     progress_left_sizer->Add(penel_text, 0, wxEXPAND | wxALL, 0);
     progress_left_sizer->Add(m_gauge_progress, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(10));
-
 
 
     progress_left_sizer->Add(penel_finish_time, 0, wxEXPAND |wxALL, 0);
@@ -1178,18 +1183,13 @@ void PrintingTaskPanel::update_stage_value_with_machine(wxString stage, int val,
     m_printing_stage_value->SetLabelText(stage);
 
     if (obj && obj->stage_curr == 58) {
-        // Show English text for thermal preconditioning
-        m_printing_stage_value->SetForegroundColour(wxColour(146, 146, 146)); // Gray color, indicates clickable
-        m_printing_stage_value->SetCursor(wxCursor(wxCURSOR_HAND));
         m_question_button->Show(); // Show question button
     } else {
-        m_printing_stage_value->SetForegroundColour(STAGE_TEXT_COL);
-        m_printing_stage_value->SetCursor(wxCURSOR_ARROW);
-        wxFont font = m_printing_stage_value->GetFont();
-        font.SetUnderlined(false);
-        m_printing_stage_value->SetFont(font);
         m_question_button->Hide(); // Hide question button
+        m_printing_stage_underline->Hide();
     }
+    m_printing_stage_panel->Layout();
+    Layout();
 }
 
 void PrintingTaskPanel::on_stage_clicked(wxMouseEvent &event)
