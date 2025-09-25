@@ -6486,9 +6486,10 @@ void PartPlateList::init_bed_type_info()
     auto bed_texture_maps        = wxGetApp().plater()->get_bed_texture_maps();
     std::string bottom_texture_end_name = bed_texture_maps.find("bottom_texture_end_name") != bed_texture_maps.end() ? bed_texture_maps["bottom_texture_end_name"] : "";
     std::string bottom_texture_rect_str = bed_texture_maps.find("bottom_texture_rect") != bed_texture_maps.end() ? bed_texture_maps["bottom_texture_rect"] : "";
+    std::string bottom_texture_rect_longer_str = bed_texture_maps.find("bottom_texture_rect_longer") != bed_texture_maps.end() ? bed_texture_maps["bottom_texture_rect_longer"] : "";
     std::string middle_texture_rect_str = bed_texture_maps.find("middle_texture_rect") != bed_texture_maps.end() ? bed_texture_maps["middle_texture_rect"] : "";
     std::string use_double_extruder_default_texture = bed_texture_maps.find("use_double_extruder_default_texture") != bed_texture_maps.end() ? bed_texture_maps["use_double_extruder_default_texture"] : "";
-    std::array<float, 4>        bottom_texture_rect = {0, 0, 0, 0}, middle_texture_rect = {0, 0, 0, 0};
+    std::array<float, 4> bottom_texture_rect = {0, 0, 0, 0}, bottom_texture_rect_longer = {0, 0, 0, 0}, middle_texture_rect = {0, 0, 0, 0};
     if (bottom_texture_rect_str.size() > 0) {
         std::vector<std::string> items;
         boost::algorithm::erase_all(bottom_texture_rect_str, " ");
@@ -6496,6 +6497,16 @@ void PartPlateList::init_bed_type_info()
         if (items.size() == 4) {
             for (int i = 0; i < items.size(); i++) {
                 bottom_texture_rect[i] = std::atof(items[i].c_str());
+            }
+        }
+    }
+    if (bottom_texture_rect_longer_str.size() > 0) {
+        std::vector<std::string> items;
+        boost::algorithm::erase_all(bottom_texture_rect_longer_str, " ");
+        boost::split(items, bottom_texture_rect_longer_str, boost::is_any_of(","));
+        if (items.size() == 4) {
+            for (int i = 0; i < items.size(); i++) {
+                bottom_texture_rect_longer[i] = std::atof(items[i].c_str());
             }
         }
     }
@@ -6519,6 +6530,7 @@ void PartPlateList::init_bed_type_info()
         }
         pte_part2 = BedTextureInfo::TexturePart(45, -14.5, 70, 8, "bbl_bed_pte_left_bottom.svg");
         auto &bottom_rect = bottom_texture_rect;
+        auto &bottom_rect_longer = bottom_texture_rect_longer;
         if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
             std::string pte_part2_name = "bbl_bed_pte_bottom_" + bottom_texture_end_name + ".svg";
             pte_part2 = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], pte_part2_name);
@@ -6546,6 +6558,8 @@ void PartPlateList::init_bed_type_info()
         if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
             std::string st_part2_name = "bbl_bed_st_bottom_" + bottom_texture_end_name + ".svg";
             st_part2                   = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], st_part2_name);
+        } else if (bottom_rect_longer[2] > 0.f) {
+            st_part2.update_pos(bottom_rect_longer[0], bottom_rect_longer[1], bottom_rect_longer[2], bottom_rect_longer[3]);
         } else if (bottom_rect[2] > 0.f) {
             st_part2.update_pos(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3]);
         }
@@ -6558,6 +6572,8 @@ void PartPlateList::init_bed_type_info()
         if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
             std::string ep_part2_name = "bbl_bed_ep_bottom_" + bottom_texture_end_name + ".svg";
             ep_part2                   = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], ep_part2_name);
+        } else if (bottom_rect_longer[2] > 0.f) {
+            ep_part2.update_pos(bottom_rect_longer[0], bottom_rect_longer[1], bottom_rect_longer[2], bottom_rect_longer[3]);
         } else if (bottom_rect[2] > 0.f) {
             ep_part2.update_pos(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3]);
         }
