@@ -1,4 +1,4 @@
-﻿#include "BaseRenderer.hpp"
+#include "BaseRenderer.hpp"
 #include "slic3r/GUI/IMSlider.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_Utils.hpp"

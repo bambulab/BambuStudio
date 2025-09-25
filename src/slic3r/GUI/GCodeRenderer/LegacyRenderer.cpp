@@ -1,4 +1,4 @@
-﻿#include "slic3r/GUI/GCodeRenderer/LegacyRenderer.hpp"
+#include "slic3r/GUI/GCodeRenderer/LegacyRenderer.hpp"
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/BuildVolume.hpp"
 #include "libslic3r/ClipperUtils.hpp"
