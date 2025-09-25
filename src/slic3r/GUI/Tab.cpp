@@ -3450,7 +3450,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_is_support");
         optgroup->append_single_option_line("impact_strength_z");
 
-        optgroup->append_single_option_line("filament_prime_volume", "parameter/prime-tower#primevolume");
+        //optgroup->append_single_option_line("filament_prime_volume", "parameter/prime-tower#primevolume");
         //optgroup->append_single_option_line("filament_colour");
         optgroup->append_single_option_line("required_nozzle_HRC");
         optgroup->append_single_option_line("default_filament_colour");
@@ -3466,7 +3466,13 @@ void TabFilament::build()
         optgroup->append_single_option_line("temperature_vitrification");
 
         //BBS
-        Line line = {L("Filament ramming length"), L("Filament length used in ramming.")};
+        Line line = {L("Filament prime volume"), L("The volume of material to prime extruder on tower.")};
+        line.append_option(optgroup->get_option("filament_prime_volume"));
+        line.append_option(optgroup->get_option("filament_prime_volume_nc"));
+        optgroup->append_line(line);
+
+
+        line = {L("Filament ramming length"), L("Filament length used in ramming.")};
         line.append_option(optgroup->get_option("filament_change_length"));
         line.append_option(optgroup->get_option("filament_change_length_nc"));
         optgroup->append_line(line);

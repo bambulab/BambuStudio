@@ -1012,7 +1012,7 @@ static std::vector<std::string> s_Preset_filament_options{/*"filament_colour", *
     "enable_pressure_advance", "pressure_advance", "chamber_temperatures","filament_notes",
     "filament_long_retractions_when_cut","filament_retraction_distances_when_cut","filament_shrink", "filament_velocity_adaptation_factor",
     //BBS filament change length while the extruder color
-    "filament_change_length","filament_change_length_nc","filament_prime_volume","filament_flush_volumetric_speed","filament_flush_temp",
+    "filament_change_length","filament_change_length_nc","filament_prime_volume","filament_prime_volume_nc","filament_flush_volumetric_speed","filament_flush_temp",
     "long_retractions_when_ec", "retraction_distances_when_ec",
 };
 

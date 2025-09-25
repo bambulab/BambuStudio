@@ -312,6 +312,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "wipe_tower_no_sparse_layers"
             || opt_key == "flush_volumes_matrix"
             || opt_key == "filament_prime_volume"
+            || opt_key == "filament_prime_volume_nc"
             || opt_key == "flush_into_infill"
             || opt_key == "flush_into_support"
             || opt_key == "initial_layer_infill_speed"
@@ -2973,7 +2974,7 @@ void Print::_make_wipe_tower()
                 volume_to_purge = std::max(0.f, volume_to_purge - grab_purge_volume);
 
                 wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, old_filament_id, filament_id,
-                    m_config.filament_prime_volume.values[filament_id], volume_to_purge);
+                                           m_config.filament_prime_volume.values[filament_id], m_config.filament_prime_volume_nc.values[filament_id], volume_to_purge);
                 old_filament_id = filament_id;
 
                 nozzle_recorder.set_nozzle_status(nozzle_id, filament_id);

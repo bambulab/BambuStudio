@@ -1962,7 +1962,7 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("filament_ramming_volumetric_speed_nc", coFloats);
     def->label    = L("Hotend change");
-    def->tooltip  = L("The maximum volumetric speed for ramming before hotend change, where -1 means using the maximum volumetric speed.");
+    def->tooltip  = L("The maximum volumetric speed for ramming before a hotend change, where -1 means using the maximum volumetric speed.");
     def->sidetext = L("mm³/s");
     def->min      = -1;
     def->max      = 200;
@@ -2228,12 +2228,22 @@ void PrintConfigDef::init_fff_params()
 
     // BBS
     def = this->add("filament_prime_volume", coFloats);
-    def->label = L("Filament prime volume");
-    def->tooltip = L("The volume of material to prime extruder on tower.");
+    def->label = L("Filament change");
+    //def->tooltip = L("The volume of material to prime extruder on tower.");
+    def->tooltip = L("The volume of material required to prime the extruder on the tower, excluding a hotend change.");
     def->sidetext = L("mm³");
     def->min = 1.0;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloats{45.});
+
+    // BBS
+    def           = this->add("filament_prime_volume_nc", coFloats);
+    def->label    = L("Hotend change");
+    def->tooltip  = L("The volume of material required to prime the extruder for a hotend change on the tower.");
+    def->sidetext = L("mm³");
+    def->min      = 1.0;
+    def->mode     = comSimple;
+    def->set_default_value(new ConfigOptionFloats{60.});
 
     // BBS
     def = this->add("temperature_vitrification", coInts);

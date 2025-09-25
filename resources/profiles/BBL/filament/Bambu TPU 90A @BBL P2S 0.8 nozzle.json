@@ -5,6 +5,7 @@
     "from": "system",
     "setting_id": "GFSU03_17",
     "instantiation": "true",
+<<<<<<< HEAD:resources/profiles/BBL/filament/Bambu TPU 90A @BBL P2S 0.8 nozzle.json
     "additional_cooling_fan_speed": [
         "100"
     ],
@@ -14,6 +15,9 @@
     "eng_plate_temp_initial_layer": [
         "35"
     ],
+=======
+    "description": "This is a water-soluble support filament, and usually it is only for the support structure and not for the model body. Printing this filament is of many requirements, and to get better printing quality, please refer to this wiki: PVA Printing Guide.",
+>>>>>>> 9c5a7ee7f7 (ENH:Add a parameter for the prime volume after a hotend change):resources/profiles/BBL/filament/Bambu PVA @BBL H2C 0.4 nozzle.json
     "filament_deretraction_speed": [
         "nil",
         "nil"
@@ -78,6 +82,9 @@
         "nil",
         "nil"
     ],
+    "filament_prime_volume_nc": [
+        "60"
+    ],
     "filament_z_hop": [
         "nil",
         "nil"
@@ -130,6 +137,7 @@
         "0",
         "0"
     ],
+<<<<<<< HEAD:resources/profiles/BBL/filament/Bambu TPU 90A @BBL P2S 0.8 nozzle.json
     "filament_ramming_travel_time_nc": [
         "0",
         "0"
@@ -138,6 +146,8 @@
         "-1",
         "-1"
     ],
+=======
+>>>>>>> 9c5a7ee7f7 (ENH:Add a parameter for the prime volume after a hotend change):resources/profiles/BBL/filament/Bambu PVA @BBL H2C 0.4 nozzle.json
     "long_retractions_when_ec": [
         "0",
         "0"
