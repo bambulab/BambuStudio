@@ -2361,52 +2361,49 @@ void TreeSupport::draw_circles()
                         }
                     }
                     else {
-                        Polygon circle(branch_circle);
-                        double  scale = node.radius / branch_radius;
-                        double moveX = node.movement.x() / (scale * branch_radius_scaled);
-                        double moveY = node.movement.y() / (scale * branch_radius_scaled);
-                        //BOOST_LOG_TRIVIAL(debug) << format("scale,moveX,moveY: %.3f,%.3f,%.3f", scale, moveX, moveY);
-
-                        if (!SQUARE_SUPPORT && std::abs(moveX)>0.001 && std::abs(moveY)>0.001) { // draw ellipse along movement direction
-                            const double vsize_inv = 0.5 / (0.01 + std::sqrt(moveX * moveX + moveY * moveY));
-                            double       matrix[2*2]  = {
-                                scale * (1 + moveX * moveX * vsize_inv),scale * (0 + moveX * moveY * vsize_inv),
-                                scale * (0 + moveX * moveY * vsize_inv),scale * (1 + moveY * moveY * vsize_inv),
-                            };
-                            int i = 0;
-                            for (auto vertex: branch_circle.points) {
-                                vertex = Point(matrix[0] * vertex.x() + matrix[1] * vertex.y(), matrix[2] * vertex.x() + matrix[3] * vertex.y());
-                                circle.points[i++] = node.position + vertex;
-                            }
-                        } else {
-                            for (int i = 0;i< circle.points.size(); i++) {
-                                circle.points[i] = circle.points[i] * scale + node.position;
-                            }
-                        }
-                        //brim_width = tree_brim_width > 0 ?
-                        //                 tree_brim_width :
-                        //                 std::max(MIN_BRANCH_RADIUS_FIRST_LAYER,
-                        //                          std::min(node.radius + node.dist_mm_to_top / (scale * branch_radius) * 0.5, MAX_BRANCH_RADIUS_FIRST_LAYER) - node.radius);
-                        area = avoid_object_remove_extra_small_parts(ExPolygon(circle), get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
-                        // area = diff_clipped({ ExPolygon(circle) }, get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
-
-                        if (!area.empty()) has_circle_node = true;
-                        if (node.need_extra_wall) append(extra_wall_area, area);
-                        if (node.overhang_degree >= 2) append(cooldown_area, area);
-
                         // merge overhang to get a smoother interface surface
                         // Do not merge when buildplate_only is on, because some underneath nodes may have been deleted.
                         if (top_interface_layers > 0 && (node.support_roof_layers_below > 1 || (node.support_roof_layers_below >= 0 && !node.is_sharp_tail)) &&
                             !on_buildplate_only) {
-                            ExPolygons overhang_expanded;
                             if (node.overhang.contour.size() > 100 || node.overhang.holes.size() > 1)
-                                overhang_expanded.emplace_back(node.overhang);
+                                area.emplace_back(node.overhang);
                             else {
-                                overhang_expanded = offset_ex({node.overhang}, scale_(m_ts_data->m_xy_distance));
+                                area = offset_ex({node.overhang}, scale_(m_ts_data->m_xy_distance));
                             }
-                            append(area, overhang_expanded);
+                        } else {
+                            Polygon circle(branch_circle);
+                            double  scale = node.radius / branch_radius;
+                            double  moveX = node.movement.x() / (scale * branch_radius_scaled);
+                            double  moveY = node.movement.y() / (scale * branch_radius_scaled);
+                            // BOOST_LOG_TRIVIAL(debug) << format("scale,moveX,moveY: %.3f,%.3f,%.3f", scale, moveX, moveY);
+
+                            if (!SQUARE_SUPPORT && std::abs(moveX) > 0.001 && std::abs(moveY) > 0.001) { // draw ellipse along movement direction
+                                const double vsize_inv     = 0.5 / (0.01 + std::sqrt(moveX * moveX + moveY * moveY));
+                                double       matrix[2 * 2] = {
+                                    scale * (1 + moveX * moveX * vsize_inv),
+                                    scale * (0 + moveX * moveY * vsize_inv),
+                                    scale * (0 + moveX * moveY * vsize_inv),
+                                    scale * (1 + moveY * moveY * vsize_inv),
+                                };
+                                int i = 0;
+                                for (auto vertex : branch_circle.points) {
+                                    vertex             = Point(matrix[0] * vertex.x() + matrix[1] * vertex.y(), matrix[2] * vertex.x() + matrix[3] * vertex.y());
+                                    circle.points[i++] = node.position + vertex;
+                                }
+                            } else {
+                                for (int i = 0; i < circle.points.size(); i++) { circle.points[i] = circle.points[i] * scale + node.position; }
+                            }
+                            // brim_width = tree_brim_width > 0 ?
+                            //                  tree_brim_width :
+                            //                  std::max(MIN_BRANCH_RADIUS_FIRST_LAYER,
+                            //                           std::min(node.radius + node.dist_mm_to_top / (scale * branch_radius) * 0.5, MAX_BRANCH_RADIUS_FIRST_LAYER) - node.radius);
+                            area = avoid_object_remove_extra_small_parts(ExPolygon(circle), get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
+                            // area = diff_clipped({ ExPolygon(circle) }, get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
                         }
 
+                        if (!area.empty()) has_circle_node = true;
+                        if (node.need_extra_wall) append(extra_wall_area, area);
+                        if (node.overhang_degree >= 2) append(cooldown_area, area);
                     }
 
                     if (layer_nr == 0 && m_raft_layers == 0) {
