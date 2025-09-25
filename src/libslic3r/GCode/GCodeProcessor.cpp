@@ -5495,7 +5495,7 @@ void GCodeProcessor::process_SYNC(const GCodeReader::GCodeLine& line)
 {
     float time = 0;
     if (line.has_value('T', time) ) {
-        simulate_st_synchronize(time);
+        simulate_st_synchronize(time,erFlush);
     }
 }
 
