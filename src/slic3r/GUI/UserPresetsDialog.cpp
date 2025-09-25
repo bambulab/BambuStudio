@@ -74,7 +74,7 @@ UserPresetsDialog::UserPresetsDialog(wxWindow *parent)
     m_button_delete     = new Button(this, _L("Delete"));
     m_button_delete->SetBorderColorNormal(wxColor("#D01B1B"));
     m_button_delete->SetTextColorNormal(wxColor("#D01B1B"));
-    m_check_all->Bind(wxEVT_TOGGLEBUTTON, [this](auto &evt) { on_all_checked(evt.IsChecked(), true); });
+    m_check_all->Bind(wxEVT_TOGGLEBUTTON, [this](auto &evt) { evt.Skip(); on_all_checked(evt.IsChecked(), true); });
     label->Bind(wxEVT_LEFT_UP, [this](auto &evt) {
         bool checked = !m_check_all->GetValue();
         m_check_all->SetValue(checked);
