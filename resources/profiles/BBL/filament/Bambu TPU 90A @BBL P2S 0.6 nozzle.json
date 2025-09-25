@@ -78,6 +78,9 @@
         "0",
         "0"
     ],
+    "filament_prime_volume_nc": [
+        "60"
+    ],
     "filament_z_hop": [
         "nil",
         "nil"
@@ -130,6 +133,7 @@
         "0",
         "0"
     ],
+<<<<<<< HEAD:resources/profiles/BBL/filament/Bambu TPU 90A @BBL P2S 0.6 nozzle.json
     "filament_ramming_travel_time_nc": [
         "0",
         "0"
@@ -138,6 +142,8 @@
         "-1",
         "-1"
     ],
+=======
+>>>>>>> 9c5a7ee7f7 (ENH:Add a parameter for the prime volume after a hotend change):resources/profiles/BBL/filament/Generic PETG @BBL H2C 0.4 nozzle.json
     "long_retractions_when_ec": [
         "0",
         "0"
