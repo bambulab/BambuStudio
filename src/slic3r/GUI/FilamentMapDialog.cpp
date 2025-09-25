@@ -273,6 +273,8 @@ void FilamentMapDialog::on_checkbox(wxCommandEvent &event)
         dialog.ShowModal();
         this->Close();
     }
+
+    event.Skip();
 }
 
 void FilamentMapDialog::on_ok(wxCommandEvent &event)
