@@ -40,7 +40,7 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow* parent,int default_co
     m_choice = new wxChoice(content, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(100), -1), nozzle_choices);
     m_choice->SetSelection(default_count);
     m_choice->SetBackgroundColour(*wxWHITE);
-    choice_sizer->Add(m_choice, 0, wxLEFT | wxBOTTOM, FromDIP(10));
+    choice_sizer->Add(m_choice, 0, wxLEFT | wxBOTTOM | wxRIGHT, FromDIP(10));
 
     m_error_label = new Label(this,"");
     m_error_label->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#E14747")));
@@ -1078,14 +1078,10 @@ void setExtruderNozzleCount(PresetBundle* preset_bundle, int extruder_id, Nozzle
 {
     if (!preset_bundle)
         return;
-    if (extruder_id >= preset_bundle->extruder_nozzle_counts.size())
-        preset_bundle->extruder_nozzle_counts.resize(extruder_id + 1);
-    preset_bundle->extruder_nozzle_counts[extruder_id].clear(); // currently we do not support multiple volume types
-    preset_bundle->extruder_nozzle_counts[extruder_id][volume_type] = nozzle_count;
+    // currently we do not support multiple volume types
+    preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(extruder_id, volume_type, nozzle_count, true);
     if (update_ui) {
-        int sum_count = 0;
-        for (auto& elem : preset_bundle->extruder_nozzle_counts[extruder_id])
-            sum_count += elem.second;
+        int sum_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id);
         auto nozzle_count_opt = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
         bool support_multi_nozzle = std::any_of(nozzle_count_opt->values.begin(), nozzle_count_opt->values.end(), [](int val) {return val > 1; });
 

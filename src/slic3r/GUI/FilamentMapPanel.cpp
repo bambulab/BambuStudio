@@ -30,7 +30,7 @@ void FilamentMapManualPanel::OnTimer(wxTimerEvent &)
     std::vector<int> filament_map = GetFilamentMaps();
     std::vector<int>nozzle_count(nozzle_volume_values.size());
     for (size_t eid = 0; eid < nozzle_volume_values.size(); ++eid) {
-        int count = preset_bundle->get_extruder_nozzle_count(eid, NozzleVolumeType(nozzle_volume_values[eid]));
+        int count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(eid, NozzleVolumeType(nozzle_volume_values[eid]));
         if(count == 0 && std::find_if(m_filament_list.begin(), m_filament_list.end(), [this,eid,filament_map](int fid){ return (filament_map[fid - 1] - 1) == eid;}) != m_filament_list.end()) {
             // the nozzle volume type is not supported by the printer, but is used in the model
             valid = false;
