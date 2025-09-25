@@ -236,6 +236,55 @@ DynamicPrintConfig PresetBundle::construct_full_config(
     return out;
 }
 
+int ExtruderNozzleStat::get_extruder_nozzle_count(int extruder_id, std::optional<NozzleVolumeType> volume_type) const
+{
+    if(extruder_id<0 || extruder_id >= extruder_nozzle_counts.size())
+        return 0;
+    if(!volume_type.has_value())
+        return std::accumulate(extruder_nozzle_counts[extruder_id].begin(), extruder_nozzle_counts[extruder_id].end(), 0,
+            [](int sum, const std::pair<NozzleVolumeType,int>& p){ return sum + p.second; });
+
+    auto iter = extruder_nozzle_counts[extruder_id].find(*volume_type);
+    if(iter == extruder_nozzle_counts[extruder_id].end())
+        return 0;
+    return iter->second;
+}
+
+void ExtruderNozzleStat::on_printer_model_change(PresetBundle* preset_bundle)
+{
+    BOOST_LOG_TRIVIAL(info)<< __FUNCTION__ << boost::format(": reset extruder nozzle stat by printer model change : %1%") % preset_bundle->printers.get_selected_preset().name;
+    auto nozzle_volume_type = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    auto max_nozzle_count = preset_bundle->printers.get_selected_preset().config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    extruder_nozzle_counts.resize(max_nozzle_count->size());
+    for (size_t eid = 0; eid < extruder_nozzle_counts.size(); ++eid) {
+        NozzleVolumeType type = nvtStandard;
+        if (eid >= nozzle_volume_type->size())
+            BOOST_LOG_TRIVIAL(error)<< __FUNCTION__ << boost::format(": eid out of bounds, use standard flow");
+        else
+            type = NozzleVolumeType(nozzle_volume_type->values[eid]);
+        set_extruder_nozzle_count(eid, type, max_nozzle_count->values[eid], true);
+    }
+}
+
+void ExtruderNozzleStat::on_volume_type_switch(int extruder_id, NozzleVolumeType type)
+{ 
+    if(extruder_id<0 || extruder_id >= extruder_nozzle_counts.size())
+        return;
+    int current_count = get_extruder_nozzle_count(extruder_id, std::nullopt);
+    extruder_nozzle_counts[extruder_id].clear();
+    extruder_nozzle_counts[extruder_id][type] = current_count;
+}
+
+void ExtruderNozzleStat::set_extruder_nozzle_count(int extruder_id, NozzleVolumeType type, int count, bool clear)
+{
+    if (extruder_id >= extruder_nozzle_counts.size())
+        extruder_nozzle_counts.resize(extruder_id + 1);
+    if(clear)
+        extruder_nozzle_counts[extruder_id].clear();
+    extruder_nozzle_counts[extruder_id][type] = count;
+}
+
+
 PresetBundle::PresetBundle()
     : prints(Preset::TYPE_PRINT, Preset::print_options(), static_cast<const PrintRegionConfig &>(FullPrintConfig::defaults()))
     , filaments(Preset::TYPE_FILAMENT, Preset::filament_options(), static_cast<const PrintRegionConfig &>(FullPrintConfig::defaults()), "Default Filament")
@@ -1957,13 +2006,20 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
         if (!prev_nozzle_volume_type.empty()) {
             ConfigOptionEnumsGeneric* nozzle_volume_type_option = project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
             if (nozzle_volume_type_option->deserialize(prev_nozzle_volume_type)) {
+                for (size_t eid = 0; eid < nozzle_volume_type_option->size(); ++eid) {
+                    extruder_nozzle_stat.on_volume_type_switch(eid, NozzleVolumeType(nozzle_volume_type_option->values[eid]));
+                }
                 use_default_nozzle_volume_type = false;
             }
         }
     }
 
     if (use_default_nozzle_volume_type) {
-        project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values = current_printer.config.option<ConfigOptionEnumsGeneric>("default_nozzle_volume_type")->values;
+        auto nozzle_volume_type_option = project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+        nozzle_volume_type_option->values = current_printer.config.option<ConfigOptionEnumsGeneric>("default_nozzle_volume_type")->values;
+        for (size_t eid = 0; eid < nozzle_volume_type_option->size(); ++eid) {
+            extruder_nozzle_stat.on_volume_type_switch(eid, NozzleVolumeType(nozzle_volume_type_option->values[eid]));
+        }
     }
 
     // Parse the initial physical printer name.
@@ -2600,17 +2656,6 @@ bool PresetBundle::check_filament_temp_equation_by_printer_type_and_nozzle_for_m
     return is_equation;
 }
 
-int PresetBundle::get_extruder_nozzle_count(int extruder_id, NozzleVolumeType volume_type) const
-{
-    if (extruder_nozzle_counts.size() <= extruder_id)
-        return 1;
-
-    if(extruder_nozzle_counts.at(extruder_id).find(volume_type)!= extruder_nozzle_counts.at(extruder_id).end())
-        return extruder_nozzle_counts.at(extruder_id).at(volume_type);
-    else
-        return 0;
-}
-
 Preset *PresetBundle::get_similar_printer_preset(std::string printer_model, std::string printer_variant)
 {
     if (printer_model.empty())
@@ -2673,7 +2718,10 @@ bool PresetBundle::is_the_only_edited_filament(unsigned int filament_index)
 void PresetBundle::reset_default_nozzle_volume_type()
 {
     Preset& current_printer = this->printers.get_edited_preset();
-    this->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values = current_printer.config.option<ConfigOptionEnumsGeneric>("default_nozzle_volume_type")->values;
+    auto nozzle_volume_type_option = this->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    nozzle_volume_type_option->values = current_printer.config.option<ConfigOptionEnumsGeneric>("default_nozzle_volume_type")->values;
+    for(size_t eid = 0; eid < nozzle_volume_type_option->size(); ++eid)
+        extruder_nozzle_stat.on_volume_type_switch(eid, NozzleVolumeType(nozzle_volume_type_option->values[eid]));
 }
 
 int PresetBundle::get_printer_extruder_count() const
@@ -2984,7 +3032,7 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     add_if_some_non_empty(std::move(different_settings),            "different_settings_to_system");
     add_if_some_non_empty(std::move(print_compatible_printers),     "print_compatible_printers");
     out.option<ConfigOptionStrings>("extruder_ams_count", true)->values   = save_extruder_ams_count_to_string(this->extruder_ams_counts);
-    out.option<ConfigOptionStrings>("extruder_nozzle_count", true)->values = save_extruder_nozzle_stats_to_string(this->extruder_nozzle_counts);
+    out.option<ConfigOptionStrings>("extruder_nozzle_count", true)->values = save_extruder_nozzle_stats_to_string(this->extruder_nozzle_stat.get_raw_stat());
 
 	out.option<ConfigOptionEnumGeneric>("printer_technology", true)->value = ptFFF;
     return out;
@@ -3243,10 +3291,14 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     if (this->extruder_ams_counts.empty())
         this->extruder_ams_counts = get_extruder_ams_count(extruder_ams_count);
 
-    std::vector<std::string> extruder_nozzle_count = std::move(config.option<ConfigOptionStrings>("extruder_nozzle_count", true)->values);
-    config.erase("extruder_nozzle_count");
-    if (this->extruder_nozzle_counts.empty())
-        this->extruder_nozzle_counts = get_extruder_nozzle_stats(extruder_nozzle_count);
+    {
+        auto nozzle_volume_opt = config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+        if (this->extruder_nozzle_stat.get_raw_stat().size() != nozzle_volume_opt->size())
+            this->extruder_nozzle_stat.on_printer_model_change(this);
+        for (size_t idx = 0; idx < nozzle_volume_opt->size(); ++idx) {
+            this->extruder_nozzle_stat.on_volume_type_switch(idx, NozzleVolumeType(nozzle_volume_opt->values[idx]));
+        }
+    }
 
     // 1) Create a name from the file name.
     // Keep the suffix (.ini, .gcode, .amf, .3mf etc) to differentiate it from the normal profiles.

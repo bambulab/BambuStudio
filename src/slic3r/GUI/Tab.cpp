@@ -4594,11 +4594,17 @@ void TabPrinter::on_preset_loaded()
         if (!prev_nozzle_volume_type.empty()) {
             ConfigOptionEnumsGeneric* nozzle_volume_type_option = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
             if (nozzle_volume_type_option->deserialize(prev_nozzle_volume_type)) {
+                for (size_t idx = 0; idx < nozzle_volume_type_option->size(); ++idx) {
+                    // TODO: replace extruder_nozzle_count with a structure in later version
+                    m_preset_bundle->extruder_nozzle_stat.on_volume_type_switch(idx, NozzleVolumeType(nozzle_volume_type_option->values[idx]));
+                };
                 use_default_nozzle_volume_type = false;
             }
         }
         if (use_default_nozzle_volume_type) {
-            m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values = current_printer.config.option<ConfigOptionEnumsGeneric>("default_nozzle_volume_type")->values;
+            auto default_nozzle_volume_type = current_printer.config.option<ConfigOptionEnumsGeneric>("default_nozzle_volume_type")->values;
+            for (size_t eid = 0; eid < default_nozzle_volume_type.size(); ++eid)
+                set_extruder_volume_type(eid, (NozzleVolumeType)(default_nozzle_volume_type[eid]));
         }
 
         // only reset nozzle count when printer model is changed
@@ -6244,9 +6250,7 @@ void TabPrinter::set_extruder_volume_type(int extruder_id, NozzleVolumeType type
     assert(nozzle_volumes->values.size() > (size_t)extruder_id);
     nozzle_volumes->values[extruder_id] = type;
 
-    auto& nozzle_count_elem = m_preset_bundle->extruder_nozzle_counts[extruder_id];
-
-    int nozzle_count_val = std::accumulate(nozzle_count_elem.begin(), nozzle_count_elem.end(), 0, [](int val, auto elem) { return val + elem.second; });
+    int nozzle_count_val = m_preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id);
     setExtruderNozzleCount(m_preset_bundle, extruder_id, type, nozzle_count_val);
     on_value_change((boost::format("nozzle_volume_type#%1%") % extruder_id).str(), int(type));
     update_dirty();

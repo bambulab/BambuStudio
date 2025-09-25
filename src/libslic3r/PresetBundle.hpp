@@ -63,6 +63,22 @@ struct FilamentBaseInfo
     int  filament_printable = 3;
 };
 
+class PresetBundle;
+struct ExtruderNozzleStat
+{
+public:
+    void on_volume_type_switch(int extruder_id, NozzleVolumeType type);
+    void on_printer_model_change(PresetBundle* preset_bundle);
+    void set_extruder_nozzle_count(int extruder_id, NozzleVolumeType type, int count, bool clear);
+    int get_extruder_nozzle_count(int extruder_id, std::optional<NozzleVolumeType> volume_type = std::nullopt) const;
+
+    const std::vector<std::map<NozzleVolumeType, int>> get_raw_stat() const { return extruder_nozzle_counts; }
+    void set_raw_stat(const std::vector<std::map<NozzleVolumeType, int>>& data) { extruder_nozzle_counts = data; }
+
+private:
+    std::vector<std::map<NozzleVolumeType,int>> extruder_nozzle_counts;
+};
+
 // Bundle of Print + Filament + Printer presets.
 class PresetBundle
 {
@@ -170,7 +186,6 @@ public:
                                                                                                std::string &      nozzle_temp_max,
                                                                                                std::string &      preset_setting_id);
     Preset *                    get_similar_printer_preset(std::string printer_model, std::string printer_variant);
-    int get_extruder_nozzle_count(int extruder_id, NozzleVolumeType volume_type) const;
 
     PresetCollection            prints;
     PresetCollection            sla_prints;
@@ -188,8 +203,7 @@ public:
     std::vector<std::vector<std::string>> ams_multi_color_filment;
 
     std::vector<std::map<int, int>> extruder_ams_counts;
-    std::vector<std::map<NozzleVolumeType,int>> extruder_nozzle_counts;
-
+    ExtruderNozzleStat extruder_nozzle_stat;
     // Calibrate
     Preset const * calibrate_printer = nullptr;
     std::set<Preset const *> calibrate_filaments;

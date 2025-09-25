@@ -10835,7 +10835,6 @@ bool Plater::priv::is_extruder_stat_synced(int target_extruder_id)
 
     auto nozzle_volume_values = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
     auto nozzle_diameter_values = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values;
-    auto extruder_nozzle_stats = preset_bundle->extruder_nozzle_counts;
 
     std::vector<std::vector<NozzleGroupInfo>> preset_nozzle_infos(nozzle_diameter_values.size());
 
@@ -10843,7 +10842,7 @@ bool Plater::priv::is_extruder_stat_synced(int target_extruder_id)
         NozzleVolumeType preset_volume_type = NozzleVolumeType(nozzle_volume_values[extruder_id]);
         std::string      preset_diameter = format_diameter_to_str(nozzle_diameter_values[extruder_id]);
 
-        NozzleGroupInfo preset_info(preset_diameter, preset_volume_type, extruder_id, preset_bundle->get_extruder_nozzle_count(extruder_id, preset_volume_type));
+        NozzleGroupInfo preset_info(preset_diameter, preset_volume_type, extruder_id, preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id, preset_volume_type));
         preset_nozzle_infos[extruder_id].emplace_back(preset_info);
     }
 
