@@ -1693,10 +1693,13 @@ Sidebar::Sidebar(Plater *parent)
 
         p->combo_printer_bed->Bind(wxEVT_COMBOBOX, [this](auto &e) {
             bool isDual          = static_cast<wxBoxSizer *>(p->panel_printer_preset->GetSizer())->GetOrientation() == wxVERTICAL;
-            auto image_path        = get_cur_select_bed_image();
-            p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
-            if (p->big_bed_image_popup) {
-                p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
+            bool exist;
+            auto image_path = get_cur_select_bed_image(exist);
+            if (exist) {
+                p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
+                if (p->big_bed_image_popup) {
+                    p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
+                }
             }
             e.Skip(); // fix bug:Event spreads to sidebar
         });
@@ -2032,8 +2035,11 @@ void Sidebar::on_enter_image_printer_bed(wxMouseEvent &evt) {
     wxPoint temp_pos(pos.x + rect.GetWidth() +  FromDIP(3), pos.y);
     if (p->big_bed_image_popup == nullptr) {
         p->big_bed_image_popup = new ImageDPIFrame();
-        auto image_path        = get_cur_select_bed_image();
-        p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
+        bool exist;
+        auto image_path = get_cur_select_bed_image(exist);
+        if (exist) {
+            p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
+        }
     }
     p->big_bed_image_popup->SetCanFocus(false);
     p->big_bed_image_popup->SetPosition(temp_pos);
@@ -2390,23 +2396,26 @@ void Sidebar::update_presets(Preset::Type preset_type)
             extruder.combo_diameter->SetSelection(select);
             extruder.diameter = diameter;
         };
-        auto image_path = get_cur_select_bed_image();
-        if (is_dual_extruder) {
-            AMSCountPopupWindow::UpdateAMSCount(0, p->left_extruder);
-            AMSCountPopupWindow::UpdateAMSCount(1, p->right_extruder);
-            update_extruder_variant(*p->left_extruder, 0);
-            update_extruder_variant(*p->right_extruder, 1);
-            //if (!p->is_switching_diameter) {
+        bool exist;
+        auto image_path = get_cur_select_bed_image(exist);
+        if (exist) {
+            if (is_dual_extruder) {
+                AMSCountPopupWindow::UpdateAMSCount(0, p->left_extruder);
+                AMSCountPopupWindow::UpdateAMSCount(1, p->right_extruder);
+                update_extruder_variant(*p->left_extruder, 0);
+                update_extruder_variant(*p->right_extruder, 1);
+                // if (!p->is_switching_diameter) {
                 update_extruder_diameter(*p->left_extruder);
                 update_extruder_diameter(*p->right_extruder);
-            //}
-            p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
-        } else {
-            AMSCountPopupWindow::UpdateAMSCount(0, p->single_extruder);
-            update_extruder_variant(*p->single_extruder, 0);
-            //if (!p->is_switching_diameter)
+                //}
+                p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
+            } else {
+                AMSCountPopupWindow::UpdateAMSCount(0, p->single_extruder);
+                update_extruder_variant(*p->single_extruder, 0);
+                // if (!p->is_switching_diameter)
                 update_extruder_diameter(*p->single_extruder);
-            p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
+                p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
+            }
         }
 
         if (GUI::wxGetApp().plater())
@@ -2498,11 +2507,18 @@ BedType Sidebar::get_cur_select_bed_type() {
     return select_bed_type;
 }
 
-std::string Sidebar::get_cur_select_bed_image()
+std::string Sidebar::get_cur_select_bed_image(bool &exist)
 {
     auto select_bed_type   = get_cur_select_bed_type();
     auto series_suffix_str = m_cur_image_bed_type.empty() ? "" : ("_" + m_cur_image_bed_type);
     auto image_path        = bed_type_thumbnails[select_bed_type] + series_suffix_str;
+    auto                      full_path         = Slic3r::GUI::from_u8(Slic3r::var(image_path + ".png")).ToStdString();
+    boost::system::error_code ec;
+    if (boost::filesystem::exists(full_path, ec)) {
+        exist = true;
+    } else {
+        exist = false;
+    }
     return image_path;
 }
 
@@ -2605,8 +2621,11 @@ void Sidebar::msw_rescale()
     p->btn_edit_printer->msw_rescale();
     p->image_printer->SetSize(PRINTER_THUMBNAIL_SIZE);
     bool isDual     = static_cast<wxBoxSizer *>(p->panel_printer_preset->GetSizer())->GetOrientation() == wxVERTICAL;
-    auto image_path = get_cur_select_bed_image();
-    p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
+    bool exist;
+    auto image_path = get_cur_select_bed_image(exist);
+    if (exist) {
+        p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
+    }
 
     p->m_filament_icon->msw_rescale();
     p->m_bpButton_add_filament->msw_rescale();
@@ -3602,7 +3621,14 @@ void Sidebar::update_printer_thumbnail()
     Preset & selected_preset = preset_bundle->printers.get_edited_preset();
     std::string printer_type    = selected_preset.get_current_printer_type(preset_bundle);
     try {
-        p->image_printer->SetBitmap(create_scaled_bitmap("printer_preview_" + printer_type, this, 48));
+        auto   image_name = "printer_preview_" + printer_type;
+        auto   full_path  = Slic3r::GUI::from_u8(Slic3r::var(image_name + ".png")).ToStdString();
+        boost::system::error_code ec;
+        if (boost::filesystem::exists(full_path, ec)) {
+            p->image_printer->SetBitmap(create_scaled_bitmap(image_name, this, 48));
+        }else{
+            p->image_printer->SetBitmap(create_scaled_bitmap("printer_placeholder", this, 48));
+        }
     }
     catch (...) {
         p->image_printer->SetBitmap(create_scaled_bitmap("printer_placeholder", this, 48));
@@ -5082,6 +5108,9 @@ std::map<std::string, std::string> Plater::get_bed_texture_maps()
         }
         if (pm->bottom_texture_rect.size() > 0) {
             maps["bottom_texture_rect"] = pm->bottom_texture_rect;
+        }
+        if (pm->bottom_texture_rect_longer.size() > 0) {
+            maps["bottom_texture_rect_longer"] = pm->bottom_texture_rect_longer;
         }
         if (pm->middle_texture_rect.size() > 0) {
             maps["middle_texture_rect"] = pm->middle_texture_rect;

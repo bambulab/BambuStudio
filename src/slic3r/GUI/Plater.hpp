@@ -169,7 +169,7 @@ public:
     bool set_bed_type(const std::string& bed_type_name);
     void save_bed_type_to_config(const std::string &bed_type_name);
     BedType get_cur_select_bed_type();
-    std::string get_cur_select_bed_image();
+    std::string get_cur_select_bed_image(bool& exist);
     void set_bed_type_accord_combox(BedType bed_type);
     bool reset_bed_type_combox_choices(bool is_sidebar_init = false);
     bool use_default_bed_type(bool is_bbl_preset = true);
