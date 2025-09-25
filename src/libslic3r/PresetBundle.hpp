@@ -260,7 +260,7 @@ public:
     //BBS: add json related logic
     std::pair<PresetsConfigSubstitutions, size_t> load_vendor_configs_from_json(
         const std::string &path, const std::string &vendor_name, LoadConfigBundleAttributes flags, ForwardCompatibilitySubstitutionRule compatibility_rule);
-
+    VendorProfile::PrinterModel                   load_vendor_configs_from_json(const std::string &path);
     // Export a config bundle file containing all the presets and the names of the active presets.
     //void                        export_configbundle(const std::string &path, bool export_system_settings = false, bool export_physical_printers = false);
     //BBS: add a function to export current configbundle as default
