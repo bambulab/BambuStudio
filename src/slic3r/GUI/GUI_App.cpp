@@ -4544,6 +4544,15 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     wxPostEvent(mainframe, e);
                 }
             }
+            else if (command_str.compare("search_wiki") == 0){
+                if (mainframe && root.get_child_optional("data") != boost::none) {
+                    pt::ptree data_node = root.get_child("data");
+                    boost::optional<std::string> keyword = data_node.get_optional<std::string>("keyword");
+                    if (mainframe->m_webview) {
+                        mainframe->m_webview->get_wiki_search_result(keyword.value());
+                    }
+                }
+            }
             else if (command_str.compare("userguide_wiki_open") == 0) {
                 if (root.get_child_optional("data") != boost::none) {
                     pt::ptree                    data_node = root.get_child("data");
