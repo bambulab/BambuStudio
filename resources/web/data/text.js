@@ -117,7 +117,12 @@ var LangText={
 		"t123": "Plate",
 		"t124": "",
 		"t125": "Maker’s Supply",
-		"t126": "Loading……"
+		"t126": "Loading……",
+		"wk17": "Bambu Lab Academy",
+		"wk18": "Quick Start Tutorial",
+		"wk19": "Learn by Topic",
+		"wk20": "Filament Guide",
+		"wk21": "Explore now"
 	},
 	"zh_CN": {
 		"t1": "欢迎使用Bambu Studio",
@@ -253,7 +258,12 @@ var LangText={
 		"wk13": "STEP格式",
 		"wk14": "与STL相比，STEP带来了更多有效的信息。由于STEP的高精度，切片时可以生成更多的圆弧路径。STEP还包括模型每个零件的装配关系，可分割模型后恢复装配视图。",
 		"wk15": "3D文本",
-		"wk16": "使用3D文本工具，用户可以轻松地在项目中创建各种3D文本形状，使模型更加个性化。Bambu Studio提供了数十种字体，并支持粗体和斜体样式，使文本具有更大的灵活性。"
+		"wk16": "使用3D文本工具，用户可以轻松地在项目中创建各种3D文本形状，使模型更加个性化。Bambu Studio提供了数十种字体，并支持粗体和斜体样式，使文本具有更大的灵活性。",
+		"wk17": "拓竹学院",
+		"wk18": "快速入门指南",
+		"wk19": "按主题学习",
+		"wk20": "材料指南",
+		"wk21": "立即探索"
 	},
 	"ja_JP": {
 		"t1": "Bambu Studioへようこそ",
@@ -372,7 +382,12 @@ var LangText={
 		"t122": "オンラインモデルを検索する",
 		"t123": "シート材",
 		"t124": "",
-		"t126": "読み込み中……"
+		"t126": "読み込み中……",
+		"wk17": "バンブーラボ アカデミー",
+		"wk18": "クイックスタート チュートリアル",
+		"wk19": "トピック別に学ぶ",
+		"wk20": "フィラメント ガイド",
+		"wk21": "今すぐ探索"
 	},
 	"it_IT": {
 		"t1": "Benvenuti allo Studio Bambu",
@@ -491,7 +506,12 @@ var LangText={
 		"t122": "Cerca modelli online",
 		"t123": "piatto",
 		"t124": "",
-		"t126": "Caricamento in corso……"
+		"t126": "Caricamento in corso……",
+		"wk17": "Bambu Lab Accademia",
+		"wk18": "Tutorial di Avvio Rapido",
+		"wk19": "Impara per Argomento",
+		"wk20": "Guida al Filamento",
+		"wk21": "Esplora ora"
 	},
 	"fr_FR": {
 		"t1": "Bienvenue chez Bambu Studio",
@@ -610,7 +630,12 @@ var LangText={
 		"t122": "Rechercher des modèles en ligne",
 		"t123": "assiette",
 		"t124": "",
-		"t126": "Chargement en cours……"
+		"t126": "Chargement en cours……",
+		"wk17": "Académie Bambu Lab",
+		"wk18": "Tutoriel de Démarrage Rapide",
+		"wk19": "Apprendre par sujet",
+		"wk20": "Guide des filaments",
+		"wk21": "Explorer maintenant"
 	},
 	"de_DE": {
 		"t1": "Willkommen im Bambu Studio",
@@ -729,7 +754,12 @@ var LangText={
 		"t122": "Suche Online-Modelle",
 		"t123": "Teller",
 		"t124": "",
-		"t126": "Laden……"
+		"t126": "Laden……",
+		"wk17": "Bambu Lab Akademie",
+		"wk18": "Schnellstartanleitung",
+		"wk19": "Lernen nach Thema",
+		"wk20": "Filament-Leitfaden",
+		"wk21": "Jetzt erkunden"
 	},
 	"hu_HU": {
 		"t1": "Üdvözöljük a Bambu Stúdióban",
@@ -848,7 +878,12 @@ var LangText={
 		"t122": "Online modellek keresése",
 		"t123": "tányér",
 		"t124": "",
-		"t126": "Betöltés folyamatban……"
+		"t126": "Betöltés folyamatban……",
+		"wk17": "Bambu Lab Akadémia",
+		"wk18": "Gyorsindítási Útmutató",
+		"wk19": "Tanulj témakörök szerint",
+		"wk20": "Filament Útmutató",
+		"wk21": "Fedezd fel most"
 	},
 	"es_ES": {
 		"t1": "Bienvenido a Bambu Studio",
@@ -967,7 +1002,12 @@ var LangText={
 		"t122": "Buscar modelos en línea",
 		"t123": "plato",
 		"t124": "",
-		"t126": "Carga en progreso……"
+		"t126": "Carga en progreso……",
+		"wk17": "Academia Bambu Lab",
+		"wk18": "Tutorial de Inicio Rápido",
+		"wk19": "Aprender por tema",
+		"wk20": "Guía de filamentos",
+		"wk21": "Explorar ahora"
 	},
 	"sv_SE": {
 		"t1": "Välkommen till Bambu Studio",
@@ -1086,7 +1126,12 @@ var LangText={
 		"t122": "Sök online-modeller",
 		"t123": "fat",
 		"t124": "",
-		"t126": "Laddning pågår……"
+		"t126": "Laddning pågår……",
+		"wk17": "Bambu Lab Akademin",
+		"wk18": "Snabbstartsguide",
+		"wk19": "Lär dig efter ämne",
+		"wk20": "Filamentguide",
+		"wk21": "Utforska nu"
 	},
 	"cs_CZ": {
 		"t1": "Vítejte v Bambu Studio",
@@ -1205,7 +1250,12 @@ var LangText={
 		"t122": "Hledat online modely",
 		"t123": "talíř",
 		"t124": "",
-		"t126": "Načtení probíhá……"
+		"t126": "Načtení probíhá……",
+		"wk17": "Bambu Lab Akademie",
+		"wk18": "Rychlý Návod k Použití",
+		"wk19": "Učit se podle tématu",
+		"wk20": "Průvodce filamenty",
+		"wk21": "Prozkoumat nyní"
 	},
 	"nl_NL": {
 		"t1": "Welkom bij Bambu Studio",
@@ -1324,7 +1374,12 @@ var LangText={
 		"t122": "Zoek online modellen",
 		"t123": "bord",
 		"t124": "",
-		"t126": "Laden in uitvoering……"
+		"t126": "Laden in uitvoering……",
+		"wk17": "Bambu Lab Academie",
+		"wk18": "Snelstartgids",
+		"wk19": "Leren per Onderwerp",
+		"wk20": "Filamentgids",
+		"wk21": "Nu verkennen"
 	},
 	"uk_UA": {
 		"t1": "Вітаємо в Bambu Studio!",
@@ -1443,7 +1498,12 @@ var LangText={
 		"t122": "Пошук онлайн-моделей",
 		"t123": "тарілка",
 		"t124": "",
-		"t126": "Завантаження триває……"
+		"t126": "Завантаження триває……",
+		"wk17": "Академія Bambu Lab",
+		"wk18": "Керівництво з Швидкого Початку",
+		"wk19": "Навчання за Темою",
+		"wk20": "Посібник з Філаментів",
+		"wk21": "Досліджуйте зараз"
 	},
 	"ru_RU": {
 		"t1": "Приветствуем в Bambu Studio!",
@@ -1562,7 +1622,12 @@ var LangText={
 		"t122": "Поиск онлайн-моделей",
 		"t123": "тарелка",
 		"t124": "",
-		"t126": "Загрузка идёт……"
+		"t126": "Загрузка идёт……",
+		"wk17": "Академия Bambu Lab",
+		"wk18": "Руководство по быстрому запуску",
+		"wk19": "Обучение по теме",
+		"wk20": "Руководство по пруткам",
+		"wk21": "Исследуйте сейчас"
 	},
 	"tr_TR": {
 		"t1": "Bambu Stüdyo'ya Hoş Geldiniz",
@@ -1681,7 +1746,12 @@ var LangText={
 		"t122": "Çevrimiçi modelleri arayın",
 		"t123": "tabak",
 		"t124": "",
-		"t126": "Yükleme devam ediyor……"
+		"t126": "Yükleme devam ediyor……",
+		"wk17": "Bambu Lab Akademisi",
+		"wk18": "Hızlı Başlangıç Kılavuzu",
+		"wk19": "Konuya Göre Öğrenme",
+		"wk20": "Filament Kılavuzu",
+		"wk21": "Şimdi Keşfet"
 	},
 	"pt_BR": {
 		"t1": "Bem-vindo ao Bambu Studio",
@@ -1800,7 +1870,12 @@ var LangText={
 		"t122": "Procurar modelos online",
 		"t123": "prato",
 		"t124": "",
-		"t126": "Carregamento em andamento……"
+		"t126": "Carregamento em andamento……",
+		"wk17": "Academia Bambu Lab",
+		"wk18": "Tutorial de Início Rápido",
+		"wk19": "Aprendizado por Tópico",
+		"wk20": "Guia de Filamento",
+		"wk21": "Explore Agora"
 	},
 	"ko_KR": {
 		"t1": "Bambu Studio에 오신 것을 환영합니다",
@@ -1919,7 +1994,12 @@ var LangText={
 		"t122": "온라인 모델을 검색하다",
 		"t123": "접시",
 		"t124": "",
-		"t126": "로딩 중……"
+		"t126": "로딩 중……",
+		"wk17": "밤부랩 아카데미",
+		"wk18": "빠른 시작 튜토리얼",
+		"wk19": "주제별 학습",
+		"wk20": "필라멘트 가이드",
+		"wk21": "지금 탐색"
 	},
 	"pl_PL": {
 		"t1": "Witamy w Bambu Studio",
@@ -2038,7 +2118,12 @@ var LangText={
 		"t122": "Wyszukaj modele online",
 		"t123": "talerz",
 		"t124": "",
-		"t126": "Ładowanie trwa……"
+		"t126": "Ładowanie trwa……",
+		"wk17": "Akademia Bambu Lab",
+		"wk18": "Samouczek Szybkiego Startu",
+		"wk19": "Nauka według Tematu",
+		"wk20": "Przewodnik po Filamentach",
+		"wk21": "Odkrywaj teraz"
 	}
 };
 

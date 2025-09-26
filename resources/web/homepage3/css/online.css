@@ -162,7 +162,7 @@
 }
 
 /*-----Search Bar------*/
-#HotModel_Search_Bar
+.searchBar
 {
 	display: none;
 	align-items: center;
@@ -174,7 +174,7 @@
 	height: 40px;	
 }
 
-#HotModel_Search_InputArea
+.searchInputArea
 {
 	display: flex;
 	align-items: center;
@@ -183,7 +183,7 @@
     border-radius: 22px 0px 0px 22px;
 }
 
-#HotModel_Search_Input
+.searchInput
 {
 	height: 30px;
 	flex-grow: 1;
@@ -193,7 +193,7 @@
 }
 
 
-#HotModel_Search_Btn
+.searchBtn
 {
 	width: 60px;
 	height: 100%;
