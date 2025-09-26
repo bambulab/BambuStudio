@@ -668,6 +668,9 @@ namespace Slic3r
 
             void BaseRenderer::reset_shell()
             {
+                if (&wxGetApp() && wxGetApp().app_config->get_bool("show_shells_in_preview")) {
+                    if (m_gcode_result && m_gcode_result->is_helio_gcode) { return; }
+                }
                 m_shells.reset();
                 m_shell_bounding_box.reset();
             }
