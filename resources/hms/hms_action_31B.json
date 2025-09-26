@@ -1,8 +1,295 @@
 {
     "result": 0,
-    "t": 1758213556,
+    "t": 1758688836,
     "ver": 202511160923,
     "data": [
+        {
+            "ecode": "07048033",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "18008034",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "07038034",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "18038033",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "18008033",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "07018034",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "07028034",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "18028034",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "18058033",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "18038034",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "07018033",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "18048034",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "07048034",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "07058034",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "18018033",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "18058034",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "07038033",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "07058033",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "18048033",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "18028033",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "07028033",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "18018034",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "07028006",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "07038006",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "05FE8069",
+            "image": "b52c90db068362654a34c9b8e7a50ec6.png",
+            "actions": [
+                24
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "05FE8053",
+            "image": "b52c90db068362654a34c9b8e7a50ec6.png",
+            "actions": [
+                28,
+                27
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "05FE806A",
+            "image": "b52c90db068362654a34c9b8e7a50ec6.png",
+            "actions": [
+                25,
+                28
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "18008010",
+            "image": "f87557495f2f2163a44bde8f4ddd9b8c.png",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "18018010",
+            "image": "f87557495f2f2163a44bde8f4ddd9b8c.png",
+            "actions": [
+                6,
+                9
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "07FFC00A",
+            "image": "50489a8d8143d72e374d740e6a63d5dc.png",
+            "actions": [
+                7,
+                8
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "05008053",
+            "image": "78c1f8cfbcc3559055917d5e5cd2d83a.png",
+            "actions": [
+                28,
+                27
+            ],
+            "device": "31B"
+        },
+        {
+            "ecode": "07FE8007",
+            "image": "e38fb2be2bcae43215b99ae028ae551d.png",
+            "actions": [
+                7,
+                8
+            ],
+            "device": "31B"
+        },
         {
             "ecode": "05024023",
             "image": "",
@@ -489,15 +776,6 @@
             "device": "31B"
         },
         {
-            "ecode": "05FE8053",
-            "image": "6463538e852994bef933fec54e09dad0.png",
-            "actions": [
-                28,
-                27
-            ],
-            "device": "31B"
-        },
-        {
             "ecode": "05008073",
             "image": "c26671383a1e75b844f1a26228c83d4e.png",
             "actions": [
@@ -722,15 +1000,6 @@
             "device": "31B"
         },
         {
-            "ecode": "05008053",
-            "image": "f53110e7c243ba8b139f27201d6877f0.png",
-            "actions": [
-                28,
-                27
-            ],
-            "device": "31B"
-        },
-        {
             "ecode": "05008074",
             "image": "bfc449a53ca0deeba7d3f40a563c533c.png",
             "actions": [
@@ -904,15 +1173,6 @@
             "actions": [
                 9,
                 6
-            ],
-            "device": "31B"
-        },
-        {
-            "ecode": "07FE8007",
-            "image": "c7535a8b7d8da4c986dfda80b531f1dd.png",
-            "actions": [
-                7,
-                8
             ],
             "device": "31B"
         },
@@ -1547,15 +1807,6 @@
             "device": "31B"
         },
         {
-            "ecode": "18008010",
-            "image": "",
-            "actions": [
-                9,
-                6
-            ],
-            "device": "31B"
-        },
-        {
             "ecode": "07FE8013",
             "image": "",
             "actions": [
@@ -1678,15 +1929,6 @@
             "actions": [
                 4,
                 6
-            ],
-            "device": "31B"
-        },
-        {
-            "ecode": "07FFC00A",
-            "image": "f82697b8532761fcbd8b9524fae85952.png",
-            "actions": [
-                7,
-                8
             ],
             "device": "31B"
         },
@@ -1840,14 +2082,6 @@
             "device": "31B"
         },
         {
-            "ecode": "05FE8069",
-            "image": "6463538e852994bef933fec54e09dad0.png",
-            "actions": [
-                24
-            ],
-            "device": "31B"
-        },
-        {
             "ecode": "07008004",
             "image": "26de8fa3aad0a57321b163f16efbfa6b.png",
             "actions": [
@@ -1960,14 +2194,6 @@
             "device": "31B"
         },
         {
-            "ecode": "05FF8069",
-            "image": "1c6893be4fe8b0b6da0e8dde6e350ac3.png",
-            "actions": [
-                24
-            ],
-            "device": "31B"
-        },
-        {
             "ecode": "0C008034",
             "image": "",
             "actions": [
@@ -2053,15 +2279,6 @@
             "device": "31B"
         },
         {
-            "ecode": "18018010",
-            "image": "",
-            "actions": [
-                6,
-                9
-            ],
-            "device": "31B"
-        },
-        {
             "ecode": "07FEC009",
             "image": "b6e6e72effe4270314f9c5c3468a886e.png",
             "actions": [
@@ -2111,15 +2328,6 @@
             "actions": [
                 4,
                 6
-            ],
-            "device": "31B"
-        },
-        {
-            "ecode": "05FE806A",
-            "image": "6463538e852994bef933fec54e09dad0.png",
-            "actions": [
-                25,
-                28
             ],
             "device": "31B"
         },
