@@ -222,7 +222,7 @@ namespace Slic3r
         return used_filaments;
     }
 
-    FlushDistanceEvaluator::FlushDistanceEvaluator(const FlushMatrix& flush_matrix, const std::vector<unsigned int>& used_filaments, const std::vector<std::vector<unsigned int>>& layer_filaments, double p)
+    FlushDistanceEvaluator::FlushDistanceEvaluator(const std::vector<FlushMatrix>& flush_matrix, const std::vector<unsigned int>& used_filaments, const std::vector<std::vector<unsigned int>>& layer_filaments, double p)
     {
         //calc pair counts
         std::vector<std::vector<int>>count_matrix(used_filaments.size(), std::vector<int>(used_filaments.size()));
@@ -243,28 +243,30 @@ namespace Slic3r
             }
         }
 
-        m_distance_matrix.resize(used_filaments.size(), std::vector<float>(used_filaments.size()));
+        m_distance_matrix.resize(flush_matrix.size(), std::vector<std::vector<float>>(used_filaments.size(), std::vector<float>(used_filaments.size())));
 
         for (size_t i = 0; i < used_filaments.size(); ++i) {
             for (size_t j = 0; j < used_filaments.size(); ++j) {
-                if (i == j)
-                    m_distance_matrix[i][j] = 0;
-                else {
+                for (size_t k = 0; k < flush_matrix.size(); k++) {
+                    if (i == j)
+                        m_distance_matrix[k][i][j] = 0;
+                    else {
                     //TODO: check m_flush_matrix
-                    float max_val = std::max(flush_matrix[used_filaments[i]][used_filaments[j]], flush_matrix[used_filaments[j]][used_filaments[i]]);
-                    float min_val = std::min(flush_matrix[used_filaments[i]][used_filaments[j]], flush_matrix[used_filaments[j]][used_filaments[i]]);
-                    m_distance_matrix[i][j] = (max_val * p + min_val * (1 - p)) * (std::max(count_matrix[i][j], 1));
+                        float max_val = std::max(flush_matrix[k][used_filaments[i]][used_filaments[j]], flush_matrix[k][used_filaments[j]][used_filaments[i]]);
+                        float min_val = std::min(flush_matrix[k][used_filaments[i]][used_filaments[j]], flush_matrix[k][used_filaments[j]][used_filaments[i]]);
+                        m_distance_matrix[k][i][j] = (max_val * p + min_val * (1 - p)) * (std::max(count_matrix[i][j], 1));
+                    }
                 }
             }
         }
     }
 
-    double FlushDistanceEvaluator::get_distance(int idx_a, int idx_b) const
+    double FlushDistanceEvaluator::get_distance(int idx_a, int idx_b, int extruder_id) const
     {
-        assert(0 <= idx_a && idx_a < m_distance_matrix.size());
-        assert(0 <= idx_b && idx_b < m_distance_matrix.size());
+        assert(0 <= idx_a && idx_a < m_distance_matrix[extruder_id].size());
+        assert(0 <= idx_b && idx_b < m_distance_matrix[extruder_id].size());
 
-        return m_distance_matrix[idx_a][idx_b];
+        return m_distance_matrix[extruder_id][idx_a][idx_b];
     }
 
     double TimeEvaluator::get_estimated_time(const std::vector<int>& filament_map) const
@@ -336,8 +338,8 @@ namespace Slic3r
                 new_max_group_size[1 - gid] = std::max(new_max_group_size[1 - gid] - 1, 0); // decrease group_size
                 continue;
             }
-            int distance_to_0 = m_evaluator->get_distance(i, center[0]);
-            int distance_to_1 = m_evaluator->get_distance(i, center[1]);
+            int distance_to_0 = m_evaluator->get_distance(i, center[0], 0);
+            int distance_to_1 = m_evaluator->get_distance(i, center[1], 1);
             min_heap.push({ i,distance_to_0 - distance_to_1 });
         }
 
@@ -383,7 +385,7 @@ namespace Slic3r
     {
         int total_cost = 0;
         for (int i = 0; i < m_elem_count; ++i)
-            total_cost += m_evaluator->get_distance(i, medoids[labels[i]]);
+            total_cost += m_evaluator->get_distance(i, medoids[labels[i]], labels[i]);
         return total_cost;
     }
 
@@ -441,21 +443,43 @@ namespace Slic3r
         this->m_cluster_labels = best_labels;
     }
 
+    void KMediods::set_cluster_group_size(const std::vector<std::pair<std::set<int>, int>> &cluster_group_size)
+    {
+        m_cluster_group_size = cluster_group_size;
+        m_nozzle_to_extruder.resize(m_k, 0);
+        for (int i = 0; i < m_cluster_group_size.size(); i++) {
+            for (auto nozzle_id : m_cluster_group_size[i].first) m_nozzle_to_extruder[nozzle_id] = i;
+        }
+    }
+
     int KMediods::calc_cost(const std::vector<int>& cluster_labels, const std::vector<int>& cluster_centers,int cluster_id)
     {
         assert(m_evaluator);
         int total_cost = 0;
+
+        std::vector<std::pair<int, double>> nozzle_cost(m_k,{0,0.0});
+        std::vector<int> nozzle_filaments(m_k, 0);
         for (int i = 0; i < m_elem_count; ++i) {
             if (cluster_id != -1 && cluster_labels[i] != cluster_id)
                 continue;
             if (cluster_centers[cluster_labels[i]] == -1)
                 continue;
+
+            nozzle_filaments[cluster_labels[i]]++;
             for (int j = i + 1; j < m_elem_count; ++j) {
-                if (cluster_labels[i] == cluster_labels[j]) {
-                    total_cost += m_evaluator->get_distance(i, j);
+                int nozzle_i = cluster_labels[i];
+                int nozzle_j = cluster_labels[j];
+                if (nozzle_i == nozzle_j) {
+                    nozzle_cost[nozzle_i].first++;
+                    nozzle_cost[nozzle_j].second += m_evaluator->get_distance(i, j, m_nozzle_to_extruder[nozzle_i]);
                 }
             }
         }
+        for (size_t i = 0; i < nozzle_cost.size(); ++i) {
+            if (nozzle_filaments[i] > 0 && nozzle_cost[i].second > 0)
+                total_cost += nozzle_cost[i].second / nozzle_cost[i].first * (nozzle_filaments[i] - 1);
+        }
+
         return total_cost;
     }
 
@@ -491,11 +515,6 @@ namespace Slic3r
                 for (int g : it->second) group_set.erase(g);
             }
             candidates[i].assign(group_set.begin(), group_set.end());
-        }
-
-        std::vector<int> nozzle_to_extruder(m_k);
-        for (int i = 0; i < m_cluster_group_size.size(); i++) {
-            for (auto nozzle_id : m_cluster_group_size[i].first) nozzle_to_extruder[nozzle_id] = i;
         }
 
         // Store the hash value of each nozzle and its filaments in each group
@@ -541,7 +560,7 @@ namespace Slic3r
                 labels[used_filaments[i]] = n_id;
                 used_labels[i]            = n_id;
                 nozzles_filaments[n_id].emplace_back(i);
-                groups[nozzle_to_extruder[n_id]]++;
+                groups[m_nozzle_to_extruder[n_id]]++;
                 if (std::find(candidates[i].begin(), candidates[i].end(), n_id) == candidates[i].end()) prefer_level -= (m_elem_count + 1);
             }
             for (int i = 0; i < groups.size(); i++) prefer_level -= std::max(0, groups[i] - m_cluster_group_size[i].second);
@@ -561,9 +580,9 @@ namespace Slic3r
 
             //6.Evaluate group scores
             MultiNozzleUtils::MultiNozzleGroupResult group_res(labels, context.nozzle_info.nozzle_list, used_filaments);
-            auto change_count = get_estimate_extruder_nozzle_change_count(context.model_info.layer_filaments, group_res);
+            auto change_count = get_estimate_extruder_filament_change_count(context.model_info.layer_filaments, group_res);
             auto flush_volume = calc_cost(used_labels,std::vector<int>(m_k,0),-1);
-            double time = change_count.first *context.speed_info.extruder_change_time + change_count.second *context.speed_info.nozzle_change_time;
+            double time = change_count.first *context.speed_info.extruder_change_time + change_count.second *context.speed_info.filament_change_time;
             double score = evaluate_score(flush_volume, time, true);
 
             if (groups[context.machine_info.master_extruder_id] < (used_filaments.size() + 1)/2)
@@ -631,7 +650,7 @@ namespace Slic3r
                 if (center[j] == -1)
                     distance_matrix[i][j] = 0;
                 else
-                    distance_matrix[i][j] = m_evaluator->get_distance(i, center[j]);
+                    distance_matrix[i][j] = m_evaluator->get_distance(i, center[j], m_nozzle_to_extruder[j]);
             }
         }
 
@@ -1195,7 +1214,7 @@ namespace Slic3r
         std::map<int, int>unplaceable_limits;
         extract_unprintable_limit_indices(ctx.model_info.unprintable_filaments, used_filaments, unplaceable_limits);
 
-        auto distance_evaluator = std::make_shared<FlushDistanceEvaluator>(ctx.model_info.flush_matrix[0], used_filaments, ctx.model_info.layer_filaments);
+        auto distance_evaluator = std::make_shared<FlushDistanceEvaluator>(ctx.model_info.flush_matrix, used_filaments, ctx.model_info.layer_filaments);
         KMediods2 PAM((int)used_filaments.size(), distance_evaluator, ctx.machine_info.master_extruder_id);
         PAM.set_max_cluster_size(ctx.machine_info.max_group_size);
         PAM.set_unplaceable_limits(unplaceable_limits);
@@ -1240,7 +1259,7 @@ namespace Slic3r
         std::map<int, int>unplaceable_limits;
         extract_unprintable_limit_indices(m_context.model_info.unprintable_filaments, used_filaments, unplaceable_limits);
 
-        auto distance_evaluator = std::make_shared<FlushDistanceEvaluator>(m_context.model_info.flush_matrix[0], used_filaments, m_context.model_info.layer_filaments);
+        auto distance_evaluator = std::make_shared<FlushDistanceEvaluator>(m_context.model_info.flush_matrix, used_filaments, m_context.model_info.layer_filaments);
         std::vector<std::set<int>>groups(2);
 
         // first cluster
@@ -1302,7 +1321,7 @@ namespace Slic3r
         unplaceable_limits = rebuild_nozzle_unprintables(unplaceable_limits);
 
         int k = m_context.nozzle_info.nozzle_list.size();
-        auto distance_evaluator = std::make_shared<FlushDistanceEvaluator>(m_context.model_info.flush_matrix[0], used_filaments, m_context.model_info.layer_filaments);
+        auto distance_evaluator = std::make_shared<FlushDistanceEvaluator>(m_context.model_info.flush_matrix, used_filaments, m_context.model_info.layer_filaments);
 
          KMediods PAM(k, (int)used_filaments.size(), distance_evaluator);
         PAM.set_unplacable_limits(unplaceable_limits);

@@ -300,14 +300,14 @@ namespace FilamentGroupUtils
         return ret;
     }
 
-    std::pair<int, int> get_estimate_extruder_nozzle_change_count(const std::vector<std::vector<unsigned int>> &layer_filaments, const MultiNozzleUtils::MultiNozzleGroupResult &extruder_nozzle_info)
+    std::pair<int, int> get_estimate_extruder_filament_change_count(const std::vector<std::vector<unsigned int>> &layer_filaments, const MultiNozzleUtils::MultiNozzleGroupResult &extruder_nozzle_info)
     {
         std::pair<int, int> ret{0,0};
         for (auto &filament_list : layer_filaments) {
             auto extruder_nozzle = extruder_nozzle_info.get_used_extruders_nozzles_count(filament_list);
 
             ret.first += (extruder_nozzle.first - 1);
-            ret.second += std::max(0, extruder_nozzle.second - extruder_nozzle.first);
+            ret.second += std::max(0, int(filament_list.size()) - extruder_nozzle.first);
         }
         return ret;
     }
