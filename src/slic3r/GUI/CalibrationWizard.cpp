@@ -29,8 +29,11 @@ std::map<int, CaliFilamentInfo> get_cached_selected_filament(MachineObject* obj)
         if (!preset)
             continue;
 
-        DevNozzle nozzle = obj->get_nozzle_by_sn(selected_prest.nozzle_sn);
-        int nozzle_pos_id = nozzle.GetNozzlePosId();
+        int nozzle_pos_id = -1;
+        if (!selected_prest.nozzle_sn.empty() && selected_prest.nozzle_sn != "N/A") {
+            DevNozzle nozzle = obj->get_nozzle_by_sn(selected_prest.nozzle_sn);
+            nozzle_pos_id = nozzle.GetNozzlePosId();
+        }
         selected_filament_map.emplace(std::make_pair(selected_prest.tray_id, CaliFilamentInfo(preset, nozzle_pos_id, selected_prest.nozzle_sn)));
     }
     return selected_filament_map;
