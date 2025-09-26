@@ -502,3 +502,65 @@ function FinishGuide()
 	}
 	//window.location.href="../6/index.html";
 }
+
+function ChooseDefaultFilament()
+{
+	//ModelList
+	let pModel=$("#MachineList input:gt(0)");
+	let nModel=pModel.length;
+	let ModelList=new Array();
+	for(let n=0;n<nModel;n++)
+	{
+		let OneModel=pModel[n];
+		ModelList.push(  OneModel.getAttribute("mode") );
+	}	
+	
+	//DefaultMaterialList
+	let DefaultMaterialString=new Array();
+	let nMode=m_ProfileItem["model"].length;
+	for(let n=0;n<nMode;n++)
+	{
+		let OneMode=m_ProfileItem["model"][n];
+		let ModeName=OneMode['model'];
+        let DefaultM=OneMode['materials'];
+		
+		if( ModelList.indexOf(ModeName)>-1 )	
+		{
+			DefaultMaterialString+=OneMode['materials']+';';
+		}
+	}	
+	
+	let DefaultMaterialArray=DefaultMaterialString.split(';');
+	//alert(DefaultMaterialString);
+	
+	//Filament
+	let FilaNodes=$("#ItemBlockArea input");
+    let nFilament=FilaNodes.length;
+    for(let m=0;m<nFilament;m++)
+	{
+		let OneFF=FilaNodes[m];
+		$(OneFF).prop("checked",false);
+		
+	  let filamentList=OneFF.getAttribute("filalist"); 
+		//alert(filamentList);
+		let filamentArray=filamentList.split(';')
+		
+		let HasModel=false;
+		let NowFilaLength=filamentArray.length;
+		for(let p=0;p<NowFilaLength;p++)
+		{
+			let NowFila=filamentArray[p];
+		
+			if( NowFila!='' && DefaultMaterialArray.indexOf(NowFila)>-1)
+			{
+				HasModel=true;
+				break;
+			}
+		}
+			
+		if(HasModel)
+		    $(OneFF).prop("checked",true);
+	}
+	
+	ShowNotice(0);
+}
