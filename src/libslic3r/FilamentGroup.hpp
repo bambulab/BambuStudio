@@ -97,7 +97,7 @@ namespace Slic3r
         struct SpeedInfo{
             std::unordered_map<int,std::unordered_map<int,double>> filament_print_time;
             double extruder_change_time;
-            double nozzle_change_time;
+            double filament_change_time;
             bool group_with_time;
         } speed_info;
 
@@ -118,11 +118,11 @@ namespace Slic3r
     class FlushDistanceEvaluator
     {
     public:
-        FlushDistanceEvaluator(const FlushMatrix& flush_matrix,const std::vector<unsigned int>&used_filaments,const std::vector<std::vector<unsigned int>>& layer_filaments, double p = 0.65);
+        FlushDistanceEvaluator(const std::vector<FlushMatrix>& flush_matrix,const std::vector<unsigned int>&used_filaments,const std::vector<std::vector<unsigned int>>& layer_filaments, double p = 0.65);
         ~FlushDistanceEvaluator() = default;
-        double get_distance(int idx_a, int idx_b) const;
+        double get_distance(int idx_a, int idx_b, int extruder_id) const;
     private:
-        std::vector<std::vector<float>>m_distance_matrix;
+        std::vector<std::vector<std::vector<float>>>m_distance_matrix;
 
     };
 
@@ -253,7 +253,7 @@ namespace Slic3r
         // set max group size
         void set_max_cluster_size(const std::vector<int>& group_size) { m_max_cluster_size = group_size; }
 
-        void set_cluster_group_size(const std::vector<std::pair<std::set<int>,int>>& cluster_group_size) { m_cluster_group_size = cluster_group_size;}
+        void set_cluster_group_size(const std::vector<std::pair<std::set<int>,int>>& cluster_group_size); 
 
         // key stores elem, value stores the cluster id that the elem must be placed
         void set_placable_limits(const std::unordered_map<int, std::vector<int>>& placable_limits) { m_placeable_limits = placable_limits; }
@@ -286,6 +286,7 @@ namespace Slic3r
         std::vector<int>m_max_cluster_size; // 每个喷嘴能够分配的最大耗材数量
         std::vector<int>m_cluster_labels;  // 分配结果，细化到喷嘴id
         std::vector<std::pair<std::set<int>,int>> m_cluster_group_size;
+        std::vector<int> m_nozzle_to_extruder;
 
 
         int m_k;
