@@ -402,6 +402,7 @@ public:
     bool is_any_job_running() const;
     void select_view(const std::string& direction);
     //BBS: add no_slice logic
+    void set_slice_from_slice_btn(bool flag);
     void select_view_3D(const std::string& name, bool no_slice = true);
 
     void reload_paint_after_background_process_apply();
