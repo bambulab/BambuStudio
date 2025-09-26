@@ -134,7 +134,6 @@ private:
     GLModel        m_height_limit_bottom;
     GLModel        m_height_limit_top;
     GLModel        m_plate_name_edit_icon;
-
     float m_scale_factor{ 1.0f };
     GLUquadricObject* m_quadric;
     int m_hover_id;
@@ -175,6 +174,7 @@ private:
     void render_right_arrow(const float* render_color, bool use_lighting) const;
 
     void render_icon_texture(GLModel &buffer, GLTexture &texture);
+    void show_tooltip(const std::string tooltip);
     void render_plate_name_texture();
     void render_icons(bool bottom, bool only_body = false, int hover_id = -1,bool render_name_edit_icon = true);
     void render_plate_name_icon_and_texture(bool only_body = false, int hover_id = -1);
@@ -188,8 +188,8 @@ private:
 
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
-    static const unsigned int PLATE_FILAMENT_MAP_ID = 6;
-    static const unsigned int GRABBER_COUNT = 8;
+    static const unsigned int GRABBER_COUNT         = 9;
+    static const unsigned int PLATE_FILAMENT_MAP_ID = GRABBER_COUNT - 2;
     static const unsigned int PLATE_NAME_ID = GRABBER_COUNT-1;
 
     static std::array<float, 4> SELECT_COLOR;
@@ -590,6 +590,8 @@ class PartPlateList : public ObjectBase
     GLTexture m_logo_texture;
     GLTexture m_del_texture;
     GLTexture m_del_hovered_texture;
+    GLTexture m_move_front_hovered_texture;
+    GLTexture m_move_front_texture;
     GLTexture m_arrange_texture;
     GLTexture m_arrange_hovered_texture;
     GLTexture m_orient_texture;
@@ -663,6 +665,7 @@ private:
     GLModel                               m_lock_icon;
     GLModel                               m_plate_settings_icon;
     GLModel                               m_plate_filament_map_icon;
+    GLModel                               m_move_front_icon;
     GLModel                               m_plate_idx_icon;
     float                                 m_scale_factor{1.0f};
 
@@ -755,7 +758,8 @@ public:
         depth = m_plate_depth;
         height = m_plate_height;
     }
-
+    // Pantheon: update plates after moving plate to the front
+    void update_plates();
     /*basic plate operations*/
     //create an empty plate and return its index
     int create_plate(bool adjust_position = true);
