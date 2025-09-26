@@ -698,6 +698,21 @@ void PartPlate::render_icon_texture(GLModel &icon, GLTexture &texture)
     glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 }
 
+void PartPlate::show_tooltip(const std::string tooltip)
+{
+    const auto scale = m_plater->get_current_canvas3D()->get_scale();
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {6 * scale, 3 * scale});
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, {3 * scale});
+    ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
+    ImGui::PushStyleColor(ImGuiCol_Border, {0, 0, 0, 0});
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));
+    ImGui::BeginTooltip();
+    ImGui::TextUnformatted(tooltip.c_str());
+    ImGui::EndTooltip();
+    ImGui::PopStyleColor(3);
+    ImGui::PopStyleVar(2);
+}
+
 void PartPlate::render_plate_name_texture()
 {
      if (m_name_change) {
@@ -719,18 +734,24 @@ void PartPlate::render_plate_name_texture()
 void PartPlate::render_icons(bool bottom, bool only_body, int hover_id, bool render_name_edit_icon)
 {
     if (!only_body) {
-        if (hover_id == 1)
+        if (hover_id == 1) {
             render_icon_texture(m_partplate_list->m_del_icon, m_partplate_list->m_del_hovered_texture);
+            show_tooltip(_u8L("Remove current plate (if not last one)"));
+        }
         else
             render_icon_texture(m_partplate_list->m_del_icon, m_partplate_list->m_del_texture);
 
-        if (hover_id == 2)
+        if (hover_id == 2){
             render_icon_texture(m_partplate_list->m_orient_icon, m_partplate_list->m_orient_hovered_texture);
+            show_tooltip(_u8L("Auto orient objects on current plate"));
+        }
         else
             render_icon_texture(m_partplate_list->m_orient_icon, m_partplate_list->m_orient_texture);
 
-        if (hover_id == 3)
+        if (hover_id == 3){
             render_icon_texture(m_partplate_list->m_arrange_icon, m_partplate_list->m_arrange_hovered_texture);
+            show_tooltip(_u8L("Arrange objects on current plate"));
+        }
         else
             render_icon_texture(m_partplate_list->m_arrange_icon, m_partplate_list->m_arrange_texture);
 
@@ -739,6 +760,7 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id, bool ren
                 render_icon_texture(m_partplate_list->m_lock_icon, m_partplate_list->m_locked_hovered_texture);
             else
                 render_icon_texture(m_partplate_list->m_lock_icon, m_partplate_list->m_lockopen_hovered_texture);
+            show_tooltip(_u8L("Unlock current plate"));
         } else {
             if (this->is_locked())
                 render_icon_texture(m_partplate_list->m_lock_icon, m_partplate_list->m_locked_texture);
@@ -748,18 +770,23 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id, bool ren
 
 		int extruder_count = wxGetApp().preset_bundle->get_printer_extruder_count();
         if (extruder_count == 2) {
-            if (hover_id == PLATE_FILAMENT_MAP_ID)
+            if (hover_id == PLATE_FILAMENT_MAP_ID){
                 render_icon_texture(m_partplate_list->m_plate_filament_map_icon, m_partplate_list->m_plate_set_filament_map_hovered_texture);
+                show_tooltip(_u8L("Edit filament grouping"));
+            }
             else
                 render_icon_texture(m_partplate_list->m_plate_filament_map_icon, m_partplate_list->m_plate_set_filament_map_texture);
+
             m_partplate_list->m_plate_filament_map_icon.set_visible(true);
         } else {
             m_partplate_list->m_plate_filament_map_icon.set_visible(false);
         }
 
         if (render_name_edit_icon) {
-            if (hover_id == PLATE_NAME_ID)
+            if (hover_id == PLATE_NAME_ID) {
                 render_icon_texture(m_plate_name_edit_icon, m_partplate_list->m_plate_name_edit_hovered_texture);
+                show_tooltip(_u8L("Edit current plate name"));
+            }
             else
                 render_icon_texture(m_plate_name_edit_icon, m_partplate_list->m_plate_name_edit_texture);
         }
@@ -772,6 +799,7 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id, bool ren
                     render_icon_texture(m_partplate_list->m_plate_settings_icon, m_partplate_list->m_plate_settings_hovered_texture);
                 else
                     render_icon_texture(m_partplate_list->m_plate_settings_icon, m_partplate_list->m_plate_settings_changed_hovered_texture);
+                show_tooltip(_u8L("Customize current plate"));
             } else {
                 if (!has_plate_settings)
                     render_icon_texture(m_partplate_list->m_plate_settings_icon, m_partplate_list->m_plate_settings_texture);
@@ -782,6 +810,13 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id, bool ren
         }
         else {
             m_partplate_list->m_plate_settings_icon.set_visible(false);
+        }
+
+        if (hover_id == 6) {
+            render_icon_texture(m_partplate_list->m_move_front_icon, m_partplate_list->m_move_front_hovered_texture);
+            show_tooltip(_u8L("Move plate to the front"));
+        } else {
+            render_icon_texture(m_partplate_list->m_move_front_icon, m_partplate_list->m_move_front_texture);
         }
     }
     if (render_name_edit_icon) {
@@ -1042,7 +1077,9 @@ void PartPlate::on_render_for_picking() {
 
     std::vector<GLModel *> gl_models = {&m_partplate_list->m_triangles, &m_partplate_list->m_del_icon, &m_partplate_list->m_orient_icon, &m_partplate_list->m_arrange_icon,
                                         &m_partplate_list->m_lock_icon, &m_partplate_list->m_plate_settings_icon,
-                                        &m_partplate_list->m_plate_filament_map_icon, &m_plate_name_edit_icon};
+                                        &m_partplate_list->m_move_front_icon,
+                                        &m_partplate_list->m_plate_filament_map_icon,//some case not show
+                                        &m_plate_name_edit_icon};
     for (size_t i = 0; i < gl_models.size(); i++) {
         if (!gl_models[i]->get_visible()) {
             continue;
@@ -3748,6 +3785,21 @@ void PartPlateList::generate_icon_textures()
 		}
 	}
 
+    // if (m_move_front_texture.get_id() == 0)
+    {
+        file_name = path + (m_is_dark ? "plate_move_front_dark.svg" : "plate_move_front.svg");
+        if (!m_move_front_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+        }
+    }
+
+    // if (m_move_front_hovered_texture.get_id() == 0)
+    {
+        file_name = path + (m_is_dark ? "plate_move_front_hover_dark.svg" : "plate_move_front_hover.svg");
+        if (!m_move_front_hovered_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+        }
+    }
 	// if (m_plate_name_edit_texture.get_id() == 0)
 	{
 		file_name = path + (m_is_dark ? "plate_name_edit_dark.svg" : "plate_name_edit.svg");
@@ -3810,6 +3862,8 @@ void PartPlateList::release_icon_textures()
 	m_logo_texture.reset();
 	m_del_texture.reset();
 	m_del_hovered_texture.reset();
+    m_move_front_hovered_texture.reset();
+    m_move_front_texture.reset();
 	m_arrange_texture.reset();
 	m_arrange_hovered_texture.reset();
 	m_orient_texture.reset();
@@ -4047,6 +4101,13 @@ void PartPlateList::reinit()
 
 void PartPlateList::set_bed3d(Bed3D *_bed3d) {
 	m_bed3d = _bed3d;
+}
+
+void PartPlateList::update_plates()
+{
+    update_all_plates_pos_and_size(true, false);
+    //set_shapes(m_shape, m_exclude_areas, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
+    set_shapes(m_shape, m_exclude_areas, m_wrapping_exclude_areas, m_extruder_areas, m_extruder_heights, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
 }
 
 /*basic plate operations*/
@@ -5709,7 +5770,8 @@ bool PartPlateList::set_shapes(const Pointfs              &shape,
         calc_vertex_for_icons(2, m_arrange_icon);
         calc_vertex_for_icons(3, m_lock_icon);
         calc_vertex_for_icons(4, m_plate_settings_icon);
-        calc_vertex_for_icons(5, m_plate_filament_map_icon);
+        calc_vertex_for_icons(5, m_move_front_icon);
+        calc_vertex_for_icons(6, m_plate_filament_map_icon);
         calc_vertex_for_number(0, false, m_plate_idx_icon);
     }
 	return true;
