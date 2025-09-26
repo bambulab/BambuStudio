@@ -4023,6 +4023,7 @@ public:
     } m_ui_jobs;
 
     int                         m_job_prepare_state;
+    bool                        m_slice_from_slice_button{false};
 
     bool                        delayed_scene_refresh;
     std::string                 delayed_error_message;
@@ -4096,6 +4097,7 @@ public:
     void update(unsigned int flags = 0);
     void select_view(const std::string& direction);
     //BBS: add no_slice option
+    void set_slice_from_slice_btn(bool flag);
     void select_view_3D(const std::string& name, bool no_slice = true);
     void select_next_view_3D();
 
@@ -5246,6 +5248,8 @@ void Plater::priv::apply_free_camera_correction(bool apply/* = true*/)
         camera.recover_from_free_camera();
 }
 
+void Plater::priv::set_slice_from_slice_btn(bool flag) { m_slice_from_slice_button = flag; }
+
 //BBS: add no slice option
 void Plater::priv::select_view_3D(const std::string& name, bool no_slice)
 {
@@ -5257,6 +5261,14 @@ void Plater::priv::select_view_3D(const std::string& name, bool no_slice)
         set_current_panel(view3D, no_slice);
     }
     else if (name == "Preview") {
+        if (!no_slice && !m_slice_from_slice_button) {
+            if (!this->partplate_list.get_curr_plate()->is_slice_result_valid() && !q->check_ams_status(false))
+                return;
+        }
+        if (!no_slice) {
+            set_slice_from_slice_btn(false);
+        }
+
         BOOST_LOG_TRIVIAL(info) << "select preview";
         //BBS update extruder params and speed table before slicing
         const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
@@ -14293,6 +14305,7 @@ void Plater::update_ui_from_settings() { p->update_ui_from_settings(); }
 
 void Plater::select_view(const std::string& direction) { p->select_view(direction); }
 
+void Plater::set_slice_from_slice_btn(bool flag) { p->set_slice_from_slice_btn(flag); }
 //BBS: add no_slice logic
 void Plater::select_view_3D(const std::string& name, bool no_slice) { p->select_view_3D(name, no_slice); }
 
