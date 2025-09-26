@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Cache-Control" content="max-age=7200" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+    <title>wiki</title>
+    <link rel="stylesheet" type="text/css" href="./css/common.css" />	
+    <link rel="stylesheet" type="text/css" href="./css/rightcommon.css" />
+    <link rel="stylesheet" type="text/css" href="./css/wiki.css" />
+    <link rel="stylesheet" type="text/css" href="./css/dark.css" />	
+
+    <script type="text/javascript" src="../include/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="../include/json2.js"></script>	
+    <script type="text/javascript" src="../include/globalapi.js"></script>	
+
+    <script type="text/javascript" src="../data/text.js"></script>		
+    <script type="text/javascript" src="js/wiki.js"></script>
+  </head>
+  <body onLoad="OnInit()">
+    <div class="searchBlock">
+      <div id="Wiki_Search_Bar" class="searchBar">
+		    <div id="Wiki_Search_Btn" class="searchBtn">
+			    <img src="img/search.svg" />
+			</div>			
+			<div id="Wiki_Search_InputArea" class="searchInputArea">
+				<input id="Wiki_Search_Input" class="searchInput" maxlength="1000" placeholder="" />
+			</div>
+      <div id="search_result_area" class="searchResultArea">
+        <!-- <div class="searchResult">title</div>
+        <div class="searchResult">title</div>
+        <div class="searchResult">title</div>
+        <div class="searchResult">title</div>
+        <div class="searchResult">title</div>
+        <div class="searchResult">title</div>
+        <div class="searchResult">title</div>
+        <div class="searchResult">title</div>
+        <div class="searchResult">title</div>
+        <div class="searchResult">title</div>
+        <div class="searchResult">title</div>
+        <div class="searchResult">title</div> -->
+      </div>
+		</div>
+    </div>
+
+    <div class="academyBlock">
+      <div class="titleBlock">
+        <div class="title trans TextS1" tid="wk17">Bambu Lab Academy</div>
+        <div class="more TextS1" onclick="openAcademyUrl('support/academy')"><span class="trans" tid="t108">MORE</span> ></div>
+      </div>
+      <div class="switchBlock">
+          <div id="academy_Left_Btn" class="leftSwitch switchBtn"></div>
+          <div id="academy_Right_Btn" class="rightSwitch switchBtn"></div>
+      </div>
+      <div id="academy_content" class="academyContent">
+        <div id="academy_Card_Content" class="cardContent">
+          <!-- <div class="card">
+            <img class="cardImg" src="img/printer_a1.png" />
+            <div class="cardTitle">Bambulab A1 Mini</div>
+          </div> -->
+        </div>
+      </div>
+
+    </div>
+
+    <div class="tutorialBlock" id="tutorial_block">
+      <div class="titleBlock">
+        <div class="title trans TextS1" tid="wk18">Quick Start Tutorial</div>
+        <div class="more TextS1" onclick="OpenUrlInLocalBrowser('https://www.youtube.com/playlist?list=PLFUVS59deIm2mawl3Zjk1XI9yp7H7955J')"><span class="trans" tid="t108">MORE</span> ></div>
+      </div>
+      <div class="tutorialSwitchBlock">
+          <div id="tutorial_Left_Btn" class="leftSwitch switchBtn"></div>
+          <div id="tutorial_Right_Btn" class="rightSwitch switchBtn"></div>
+      </div>
+      <div id="tutorial_content" class="tutorialContent">
+        <div id="tutorial_Card_Content" class="cardContent">
+          <!-- <div class="videoCard">
+            <div class="videoThumbnail" style="width: 352px;height:264px;background-color: aquamarine;"> </div>
+            <div class="videoTitle">Intro: Overview of Bambu Studio</div>
+          </div> -->
+        </div>
+      </div>
+    </div>
+
+    <div class="topicBlock">
+      <div class="titleBlock">
+        <div class="title trans TextS1" tid="wk19">Learn by Topic</div>
+        <div class="more TextS1" onclick="openWikiUrl('bambu-studio')"><span class="trans" tid="t108">MORE</span> ></div>
+      </div>
+      <div id="topic_content" class="topicContent">
+        <!-- <div class="topicCard">
+          <div class="topicTitle">Quick Start</div>
+          <ul>
+            <li>Bambu Studio Quick Start Guide</li>
+            <li>Remote Control & Monitoring</li>
+            <li>Multi-Color Printing</li>
+          </ul>
+        </div> -->
+      </div>
+    </div>
+
+    <div class="footerBlock">
+      <img class="rabbit" src="img/wiki_bottom_banner_2.png" />
+      <div class="bannerContent">
+        <div class="bannerTitle trans" tid="wk20">Filament Guide</div>
+        <!-- <div class="bannerText">Perhaps there are a few too many old ideas baked into Perhamany old ideas baked into </div> -->
+        <div class="bannerBtn trans" onclick="openAcademyUrl('filament/collections')" tid="wk21">Explore now</div>
+      </div>
+    </div>
+  </body>
+</html> 
