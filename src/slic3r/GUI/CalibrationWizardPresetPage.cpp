@@ -608,8 +608,14 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
 
         for (const auto& extruder : curr_obj->GetExtderSystem()->GetExtruders()) {
             if (extruder.GetNozzleType() == NozzleType::ntUndefine) {
-                wxString name = _L("left");
-                if (extruder.GetExtId() == 0) { name = _L("right"); }
+                if(extruder.GetExtId() == MAIN_EXTRUDER_ID) {
+                    auto rack = curr_obj->GetNozzleRack();
+                    if( rack && rack->IsSupported() && rack->GetRackNozzles().size() > 0) {
+                        continue;
+                    }
+                }
+
+                wxString name = extruder.GetExtId() == MAIN_EXTRUDER_ID ? _L("right") : _L("left");
                 wxString msg = wxString::Format(_L("Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."), name);
                 MessageDialog msg_dlg(nullptr, msg, wxEmptyString, wxICON_WARNING | wxOK);
                 msg_dlg.ShowModal();
