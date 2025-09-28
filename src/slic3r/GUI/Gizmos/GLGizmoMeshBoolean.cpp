@@ -938,7 +938,7 @@ BooleanOperationResult BooleanOperationEngine::part_level_boolean(const std::vec
     auto acc = execute_boolean_on_meshes(volumes, operation);
     if (!acc.has_value()) {
         result.success = false;
-        result.error_message =  MeshBooleanWarnings::JOB_FAILED;
+        result.error_message = operation == MeshBooleanConfig::OP_UNION ? MeshBooleanWarnings::JOB_FAILED : MeshBooleanWarnings::OVERLAPING;
         return result;
     }
     TriangleMesh accumulated_mesh = *acc;
@@ -1166,7 +1166,7 @@ ModelVolume* BooleanOperationEngine::create_result_volume(ModelObject* target_ob
     ModelVolume* new_volume = target_object->add_volume(std::move(local_mesh), result_type, false);
 
     // Copy properties from source volume
-    new_volume->name = source_volume->name;
+    new_volume->name = source_volume->name + "_Boolean";
     new_volume->set_new_unique_id();
     bool same_object = (source_volume && source_volume->get_object() == target_object);
     if (same_object) new_volume->config.apply(source_volume->config);
@@ -1222,8 +1222,8 @@ GLGizmoMeshBoolean::GLGizmoMeshBoolean(GLCanvas3D& parent, unsigned int sprite_i
     m_ui->set_warning_manager(&m_warning_manager);
 
     // Setup UI callbacks
-    m_ui->on_execute_boolean_operation = [this]() {
-        execute_boolean_operation();
+    m_ui->on_execute_mesh_boolean = [this]() {
+        execute_mesh_boolean();
     };
     m_ui->on_reset_operation = [this]() {
         const Selection& selection = m_parent.get_selection();
@@ -1541,6 +1541,7 @@ void GLGizmoMeshBoolean::on_set_state()
         restore_list_color_overrides();
         m_parent.toggle_model_objects_visibility(true);
         m_last_plate_idx_for_visibility = -1;
+        wxGetApp().plater()->update(); // Ensure colors / scene are fully refreshed immediately
     }
 }
 
@@ -1714,7 +1715,7 @@ void GLGizmoMeshBoolean::on_save(cereal::BinaryOutputArchive &ar) const
 
 // ========================== BOOLEAN OPERATION EXECUTION ==========================
 
-void GLGizmoMeshBoolean::execute_boolean_operation()
+void GLGizmoMeshBoolean::execute_mesh_boolean()
 {
     Plater::TakeSnapshot Snap(wxGetApp().plater(), "Bool execution");
     if (m_state != EState::On)
@@ -1819,7 +1820,10 @@ void GLGizmoMeshBoolean::execute_boolean_operation()
             m_boolean_engine.apply_result_to_model(result, current_model_object, current_selected_index, settings, mode, participants);
             m_warning_manager.clear_warnings();
             m_volume_manager.clear_all();
-            if (check_if_active()) init_volume_manager();
+            if (check_if_active()){
+                init_volume_manager();
+                apply_color_overrides_for_mode(mode);
+            }
         } else {
             m_warning_manager.add_warning(result.error_message);
         }

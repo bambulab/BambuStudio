@@ -391,7 +391,7 @@ void MeshBooleanUI::draw_action_buttons()
 
     if (ok_clicked && enable_button) {
         m_warning_manager->clear_warnings();
-        if (on_execute_boolean_operation) on_execute_boolean_operation();
+        if (on_execute_mesh_boolean) on_execute_mesh_boolean();
     }
 
     ImGui::SameLine(0, button_spacing);
