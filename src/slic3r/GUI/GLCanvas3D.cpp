@@ -8249,7 +8249,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
                     m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICE_FAILED;
             }
             else {
-                if (plate_list.get_plate(i)->has_printable_instances() && !plate_list.get_plate(i)->can_slice())
+                if ((plate_list.get_plate(i)->has_printable_instances() && !plate_list.get_plate(i)->can_slice()) || plate_list.get_plate(i)->has_outside_object())
                     m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICE_FAILED;
                 else {
                     if (plate_list.get_plate(i)->get_slicing_percent() < 0.0f)
@@ -10617,12 +10617,14 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
         plate_build_volume      = plate->get_build_volume();
 
         for (GLVolume* vol : volumes.volumes) {
-            if (!vol->is_modifier && !vol->is_wipe_tower && (!thumbnail_params.parts_only || vol->composite_id.volume_id >= 0)) {
-                if (is_volume_in_plate_boundingbox(*vol, plate_idx, plate_build_volume)) {
+            if (!vol->is_modifier  
+                && !vol->is_wipe_tower  
+                && (!thumbnail_params.parts_only || vol->composite_id.volume_id >= 0) 
+                && (vol->partly_inside || is_volume_in_plate_boundingbox(*vol, plate_idx, plate_build_volume))) {
                     visible_volumes.emplace_back(vol);
-                }
             }
         }
+
         BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: plate_idx %1% volumes size %2%, shader %3%, use_top_view=%4%, for_picking=%5%") % plate_idx %
             visible_volumes.size() % shader.get() % (int)camera_view_angle_type % for_picking;
     }
