@@ -19833,7 +19833,7 @@
                 },
                 {
                     "ecode": "05024017",
-                    "intro": "Az indukciós hotend ellenőrzése a hotendváltó időtúllépése miatt sikertelen. Kérjük, próbáld meg újra."
+                    "intro": "A feladat meghiúsult az indukciós hotend váltás időtúllépése miatt. Kérjük, menjen a „Hotend & Tartó” oldalra, és kattintson az „Összes olvasása” gombra a kézi váltáshoz."
                 },
                 {
                     "ecode": "05024016",

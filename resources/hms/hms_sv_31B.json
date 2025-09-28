@@ -19833,7 +19833,7 @@
                 },
                 {
                     "ecode": "05024017",
-                    "intro": "Induktions hotend verifieringen misslyckades på grund av timeout för hotend omkopplaren. Försök igen."
+                    "intro": "Uppgiften misslyckades på grund av timeout vid byte av induktionshotend. Gå till sidan \"Hotend & Ställ\" och klicka på \"Läs alla\" för att byta manuellt."
                 },
                 {
                     "ecode": "05024016",

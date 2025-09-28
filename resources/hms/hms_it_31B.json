@@ -19833,7 +19833,7 @@
                 },
                 {
                     "ecode": "05024017",
-                    "intro": "Verifica dell’hotend a induzione non riuscita a causa del timeout del cambio hotend. Riprovare."
+                    "intro": "L'attività non è riuscita a causa di un timeout durante il cambio dell’hotend a induzione. Vai alla pagina \"Hotend e Supporto\" e fai clic su \"Leggi tutto\" per passare manualmente."
                 },
                 {
                     "ecode": "05024016",

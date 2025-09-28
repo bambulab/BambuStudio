@@ -19833,7 +19833,7 @@
                 },
                 {
                     "ecode": "05024017",
-                    "intro": "La verificación del hotend de inducción ha fallado debido al tiempo de espera del interruptor del hotend. Inténtelo de nuevo."
+                    "intro": "La tarea falló debido a un tiempo de espera en el cambio del hotend de inducción. Vaya a la página \"Hotend y Soporte\" y haga clic en \"Leer todo\" para cambiar manualmente."
                 },
                 {
                     "ecode": "05024016",
