@@ -422,6 +422,11 @@ public:
         m_ready_for_slice = ready_slice;
     }
 
+    //does plate contain object partly outside plate
+    bool has_outside_object() {
+        return !instance_outside_set.empty();
+    }
+
     //bedtype mismatch or not
     bool is_apply_result_invalid() const
     {
