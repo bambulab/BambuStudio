@@ -19833,7 +19833,7 @@
                 },
                 {
                     "ecode": "05024017",
-                    "intro": "La vérification du Hotend à Induction a échoué en raison d’un délai dépassé lors du changement de Hotend. Veuillez réessayer."
+                    "intro": "La tâche a échoué en raison d’un délai d’attente lors du changement de la buse à induction. Veuillez aller à la page « Hotend & Support » et cliquer sur « Lire tout » pour basculer manuellement."
                 },
                 {
                     "ecode": "05024016",

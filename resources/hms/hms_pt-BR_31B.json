@@ -19833,7 +19833,7 @@
                 },
                 {
                     "ecode": "05024017",
-                    "intro": "Falha na verificação do hotend de indução devido ao tempo limite do interruptor do hotend. Tente novamente."
+                    "intro": "A tarefa falhou devido a um tempo limite na troca do hotend de indução. Vá para a página \"Hotend & Suporte\" e clique em \"Ler tudo\" para alternar manualmente."
                 },
                 {
                     "ecode": "05024016",

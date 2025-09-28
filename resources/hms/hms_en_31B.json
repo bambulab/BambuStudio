@@ -19833,7 +19833,7 @@
                 },
                 {
                     "ecode": "05024017",
-                    "intro": "Induction hotend verification failed due to hotend switch timeout. Please try again."
+                    "intro": "The task failed due to a timeout on the induction hotend switch. Please go to the \"Hotend & Rack\" page and click \"Read All\" to switch manually."
                 },
                 {
                     "ecode": "05024016",

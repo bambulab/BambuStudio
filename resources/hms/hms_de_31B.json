@@ -19833,7 +19833,7 @@
                 },
                 {
                     "ecode": "05024017",
-                    "intro": "Die Überprüfung des Induktions-Hotends ist aufgrund einer Zeitüberschreitung beim Hotend-Wechsel fehlgeschlagen. Bitte versuchen Sie es erneut."
+                    "intro": "Die Aufgabe ist aufgrund eines Zeitüberschreitungsfehlers beim Umschalten des Induktions-Hotends fehlgeschlagen. Bitte gehen Sie zur Seite „Hotend & Gestell“ und klicken Sie auf „Alle lesen“, um manuell umzuschalten."
                 },
                 {
                     "ecode": "05024016",

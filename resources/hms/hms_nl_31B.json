@@ -19833,7 +19833,7 @@
                 },
                 {
                     "ecode": "05024017",
-                    "intro": "Het testen van de inductie-hotend is mislukt omdat de hotend-schakelaar te lang heeft gewacht. Probeer het nog eens."
+                    "intro": "De taak is mislukt vanwege een time-out bij het overschakelen van de inductie-hotend. Ga naar de pagina \"Hotend & Rek\" en klik op \"Alles lezen\" om handmatig over te schakelen."
                 },
                 {
                     "ecode": "05024016",
