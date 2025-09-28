@@ -2511,15 +2511,14 @@ std::string Sidebar::get_cur_select_bed_image(bool &exist)
 {
     auto select_bed_type   = get_cur_select_bed_type();
     auto series_suffix_str = m_cur_image_bed_type.empty() ? "" : ("_" + m_cur_image_bed_type);
-    auto image_path        = bed_type_thumbnails[select_bed_type] + series_suffix_str;
-    auto                      full_path         = Slic3r::GUI::from_u8(Slic3r::var(image_path + ".png")).ToStdString();
-    boost::system::error_code ec;
-    if (boost::filesystem::exists(full_path, ec)) {
+    auto image_name        = bed_type_thumbnails[select_bed_type] + series_suffix_str;
+    auto full_path         = into_u8(Slic3r::GUI::from_u8(Slic3r::var(image_name + ".png")));
+    if (boost::filesystem::exists(full_path)) {
         exist = true;
     } else {
         exist = false;
     }
-    return image_path;
+    return image_name;
 }
 
 void Sidebar::set_bed_type_accord_combox(BedType bed_type) {
@@ -3622,9 +3621,8 @@ void Sidebar::update_printer_thumbnail()
     std::string printer_type    = selected_preset.get_current_printer_type(preset_bundle);
     try {
         auto   image_name = "printer_preview_" + printer_type;
-        auto   full_path  = Slic3r::GUI::from_u8(Slic3r::var(image_name + ".png")).ToStdString();
-        boost::system::error_code ec;
-        if (boost::filesystem::exists(full_path, ec)) {
+        auto full_path  = into_u8(Slic3r::GUI::from_u8(Slic3r::var(image_name + ".png")));
+        if (boost::filesystem::exists(full_path)) {
             p->image_printer->SetBitmap(create_scaled_bitmap(image_name, this, 48));
         }else{
             p->image_printer->SetBitmap(create_scaled_bitmap("printer_placeholder", this, 48));
