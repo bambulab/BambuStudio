@@ -371,7 +371,7 @@ private:
     mutable int m_last_plate_idx_for_visibility {-1};
 
     void reset_gizmo();
-    void execute_boolean_operation();
+    void execute_mesh_boolean();
     void init_volume_manager();
     bool get_cur_entity_only() const;
     bool is_on_same_plate(const Selection& selection) const;

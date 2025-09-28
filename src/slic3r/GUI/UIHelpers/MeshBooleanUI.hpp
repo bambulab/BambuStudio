@@ -67,7 +67,7 @@ public:
     void set_warning_manager(BooleanWarningManager* manager) { m_warning_manager = manager; }
 
     // Callback interface for UI events
-    std::function<void()> on_execute_boolean_operation;
+    std::function<void()> on_execute_mesh_boolean;
     std::function<void()> on_reset_operation;
     std::function<void(MeshBooleanOperation)> on_apply_color_overrides;
     std::function<bool()> on_delete_selected; // Returns true if delete was successful
