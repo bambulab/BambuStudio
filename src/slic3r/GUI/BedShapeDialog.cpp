@@ -657,29 +657,24 @@ const std::string& BedShapePanel::get_custom_texture() const
     if (m_custom_texture != NONE) {
         return m_custom_texture;
     }
-    
+
     // PEI texture fallback - if no custom texture is set, use PEI texture as default
-    static std::string PEI_TEXTURE_PATH;
-    static bool initialized = false;
-    
-    if (!initialized) {
+    static const std::string& PEI_TEXTURE_PATH = []() -> const std::string& {
+        static std::string path;
         try {
             std::string full_path = Slic3r::resources_dir() + "/images/PEIdefault.png";
-            
-            // Check if PEI texture file exists
             if (boost::filesystem::exists(full_path)) {
-                PEI_TEXTURE_PATH = full_path;
+                path = full_path;
             }
         } catch (...) {
-            PEI_TEXTURE_PATH.clear();
+            path.clear();
         }
-        initialized = true;
-    }
-    
+        return path;
+    }();
+
     if (!PEI_TEXTURE_PATH.empty()) {
         return PEI_TEXTURE_PATH;
     }
-    
     return EMPTY_STRING; 
 }
 
