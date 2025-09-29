@@ -12,6 +12,7 @@ namespace Slic3r {
 namespace GUI {
 
 class GLCanvas3D;
+class GLGizmoAlignment;
 
 class GizmoObjectManipulation
 {
@@ -104,7 +105,7 @@ protected:
 
 public:
     GizmoObjectManipulation(GLCanvas3D& glcanvas);
-    ~GizmoObjectManipulation() {}
+    ~GizmoObjectManipulation();
 
     bool        IsShown();
     void        UpdateAndShow(const bool show);
@@ -166,6 +167,7 @@ private:
     void reset_scale_value();
 
     GLCanvas3D& m_glcanvas;
+    GLGizmoAlignment* m_alignment_helper;
     unsigned int m_last_active_item { 0 };
     std::map<std::string, wxString> m_desc_move;
     std::map<std::string, wxString> m_desc_rotate;
