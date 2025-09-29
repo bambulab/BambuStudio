@@ -322,6 +322,7 @@ namespace Slic3r {
             layer_filaments = other.layer_filaments;
             filament_change_count_map = other.filament_change_count_map;
             skippable_part_time = other.skippable_part_time;
+            initial_layer_time = other.initial_layer_time;
 #if ENABLE_GCODE_VIEWER_STATISTICS
             time = other.time;
 #endif
