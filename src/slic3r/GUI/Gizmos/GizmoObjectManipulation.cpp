@@ -148,9 +148,7 @@ void GizmoObjectManipulation::update_settings_value(const Selection &selection)
         m_new_absolute_rotation  = rotation * (180. / M_PI);
         delete_negative_sign(m_new_absolute_rotation);
         if (is_world_coordinates()) {//for move and rotate
-            const Geometry::Transformation trafo(volume->world_matrix());
-            const Vec3d &offset = trafo.get_offset();
-            m_new_position            = offset;
+            m_new_position            = volume->bounding_box().transformed(volume->world_matrix()).center();
             m_new_scale               = Vec3d(100.0, 100.0, 100.0);
             m_unscale_size            = selection.get_bounding_box_in_current_reference_system().first.size();
             m_new_size                = selection.get_bounding_box_in_current_reference_system().first.size();
@@ -160,7 +158,7 @@ void GizmoObjectManipulation::update_settings_value(const Selection &selection)
             m_unscale_size            = selection.get_bounding_box_in_current_reference_system().first.size();
             m_new_size                = selection.get_bounding_box_in_current_reference_system().first.size();
         } else {
-            m_new_position            = volume->get_volume_offset();
+            m_new_position            = volume->bounding_box().transformed(volume->get_volume_transformation().get_matrix()).center();
             m_new_scale_label_string  = L("Scale");
             m_new_scale               = Vec3d(100.0, 100.0, 100.0);
             m_unscale_size            = selection.get_bounding_box_in_current_reference_system().first.size();
