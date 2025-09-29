@@ -139,6 +139,18 @@ public:
         IC_FIT_CAMERA_DARK,
         IC_FIT_CAMERA_DARK_HOVER,
         IC_HELIO_ICON,
+        IC_ALIGN_X_MIN,
+        IC_ALIGN_X_CENTER,
+        IC_ALIGN_X_MAX,
+        IC_ALIGN_Y_MIN,
+        IC_ALIGN_Y_CENTER,
+        IC_ALIGN_Y_MAX,
+        IC_ALIGN_Z_MIN,
+        IC_ALIGN_Z_CENTER,
+        IC_ALIGN_Z_MAX,
+        IC_DISTRIBUTE_X,
+        IC_DISTRIBUTE_Y,
+        IC_DISTRIBUTE_Z,
     };
 
     explicit GLGizmosManager(GLCanvas3D& parent);
@@ -222,16 +234,16 @@ public:
 
     //BBS
     void* get_icon_texture_id(MENU_ICON_NAME icon) {
-        if (icon_list.find((int)icon) != icon_list.end())
-            return icon_list[icon];
-        else
-            return nullptr;
+        auto it = icon_list.find((int)icon);
+        if (it != icon_list.end())
+            return it->second;
+        return ensure_icon_loaded(icon);
     }
     void* get_icon_texture_id(MENU_ICON_NAME icon) const{
-        if (icon_list.find((int)icon) != icon_list.end())
-            return icon_list.at(icon);
-        else
-            return nullptr;
+        auto it = icon_list.find((int)icon);
+        if (it != icon_list.end())
+            return it->second;
+        return ensure_icon_loaded(icon);
     }
     void  update_paint_base_camera_rotate_rad();
     Vec3d get_flattening_normal() const;
@@ -296,6 +308,7 @@ private:
     bool is_svg_selected(int idx) const;
     std::string on_hover(int idx);
     void on_click(int idx);
+    static void* ensure_icon_loaded(MENU_ICON_NAME icon);
 
 private:
     bool m_object_located_outside_plate{false};

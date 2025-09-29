@@ -174,6 +174,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/GLSelectionRectangle.hpp
     GUI/Gizmos/GizmoObjectManipulation.cpp
     GUI/Gizmos/GizmoObjectManipulation.hpp
+    GUI/Gizmos/GLGizmoAlignment.cpp
+    GUI/Gizmos/GLGizmoAlignment.hpp
     GUI/GLModel.hpp
     GUI/GLModel.cpp
     GUI/GLTexture.hpp
