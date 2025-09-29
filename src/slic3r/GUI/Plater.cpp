@@ -14530,7 +14530,7 @@ void Plater::merge(size_t obj_idx, std::vector<int>& vol_indeces)
     size_t last_id = p->model.objects.size() - 1;
     for (size_t i = 0; i < new_objects.size(); ++i)
     {
-        selection.add_object((unsigned int)(last_id - i), i == 0);
+        selection.add_volume((unsigned int)(last_id - i), 0, 0, i == 0);
     }
 }
 
