@@ -195,16 +195,6 @@ void extend_default_config_length(DynamicPrintConfig& config, const bool set_nil
     }
 }
 
-std::map<std::string, std::string> VendorProfile::PrinterModel::get_bed_texture_maps() const
-{
-    std::map<std::string, std::string> maps;
-    if (use_double_extruder_default_texture.size() > 0) { maps["use_double_extruder_default_texture"] = use_double_extruder_default_texture; }
-    if (bottom_texture_end_name.size() > 0) { maps["bottom_texture_end_name"] = bottom_texture_end_name; }
-    if (bottom_texture_rect.size() > 0) { maps["bottom_texture_rect"] = bottom_texture_rect; }
-    if (bottom_texture_rect_longer.size() > 0) { maps["bottom_texture_rect_longer"] = bottom_texture_rect_longer; }
-    if (middle_texture_rect.size() > 0) { maps["middle_texture_rect"] = middle_texture_rect; }
-    return maps;
-}
 
 VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem::path &path, bool load_all)
 {
