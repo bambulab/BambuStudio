@@ -933,8 +933,21 @@ void _arrange(
             for (auto angle : allowed_angles) {
                 auto rotsh = itm.rawShape();
                 sl::rotate(rotsh, angle);
-                bb         = sl::boundingBox(rotsh);
-                bp2d::Coord infl = std::min(original_infl, (bp2d::Coord)(std::min(pure_bin_width - bb.width(), pure_bin_height - bb.height())) / 2);
+                bb = sl::boundingBox(rotsh);
+                bp2d::Coord infl = std::min(original_infl, static_cast<bp2d::Coord>(std::floor(std::min(pure_bin_width - bb.width(), pure_bin_height - bb.height())) / 2.0));
+
+                // check and correct the inflation
+                if (infl < original_infl){
+                    sl::offset(rotsh, infl);
+                    auto box = sl::boundingBox(rotsh);
+                    auto diff_w = box.width() - pure_bin_width;
+                    auto diff_h = box.height() - pure_bin_height;
+                    if (diff_w > 0 || diff_h > 0)
+                    {
+                        infl -= static_cast<bp2d::Coord>(std::max(diff_w, diff_h));
+                    }
+                }
+
                 if (infl >= 0/* && itm.height <= params.printable_height*/) {
                     // if the bed is expanded, the item should also be expanded
                     if (params.bed_shrink_x < 0) infl = std::max(infl,(bp2d::Coord) scale_(-params.bed_shrink_x));
