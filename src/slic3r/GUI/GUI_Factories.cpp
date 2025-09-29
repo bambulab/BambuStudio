@@ -1102,6 +1102,24 @@ void MenuFactory::append_menu_item_merge_parts_to_single_part(wxMenu* menu)
         []() { return obj_list()->can_mesh_boolean(); }, m_parent);
 }
 
+void MenuFactory::append_menu_item_merge_some_parts_to_single_part(wxMenu *menu)
+{
+    menu->AppendSeparator();
+    append_menu_item(menu, wxID_ANY, _L("Merge into Single Part"), _L("Merge the selected parts into one part"),
+        [](wxCommandEvent&) {
+            obj_list()->merge_volumes();
+        }, "", menu,
+        []() {
+            if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
+                return false;
+            else {
+                if (obj_list()->has_selected_cut_object()) return false;
+                return true;
+            }
+        },
+        m_parent);
+}
+
 void MenuFactory::append_menu_items_mirror(wxMenu* menu)
 {
     wxMenu* mirror_menu = new wxMenu();
@@ -1673,6 +1691,7 @@ wxMenu* MenuFactory::multi_selection_menu()
         if (count < mo->volumes.size()) {
             append_menu_item_sub_merge(menu);
         }
+        append_menu_item_merge_some_parts_to_single_part(menu);
         append_menu_item_fix_through_netfabb(menu);
         //append_menu_item_simplify(menu);
         append_menu_item_delete(menu);
