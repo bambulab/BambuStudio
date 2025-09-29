@@ -66,7 +66,6 @@
 #define BBL_JSON_KEY_BOTTOM_TEXTURE_END_NAME    "bottom_texture_end_name"
 #define BBL_JSON_KEY_USE_DOUBLE_EXTRUDER_DEFAULT_TEXTURE  "use_double_extruder_default_texture"
 #define BBL_JSON_KEY_BOTTOM_TEXTURE_RECT        "bottom_texture_rect"
-#define BBL_JSON_KEY_BOTTOM_TEXTURE_RECT_LONGER  "bottom_texture_rect_longer"
 #define BBL_JSON_KEY_MIDDLE_TEXTURE_RECT        "middle_texture_rect"
 #define BBL_JSON_KEY_RIGHT_ICON_OFFSET_BED      "right_icon_offset_bed"
 
@@ -135,7 +134,6 @@ public:
         std::string                 bottom_texture_end_name;
         std::string                 use_double_extruder_default_texture;
         std::string                 bottom_texture_rect;
-        std::string                 bottom_texture_rect_longer;
         std::string                 middle_texture_rect;
         std::string                 right_icon_offset_bed;
         std::string                 hotend_model;
@@ -147,7 +145,6 @@ public:
         }
 
         const PrinterVariant* variant(const std::string &name) const { return const_cast<PrinterModel*>(this)->variant(name); }
-        std::map<std::string, std::string> get_bed_texture_maps() const;
     };
     std::vector<PrinterModel>          models;
 
