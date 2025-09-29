@@ -2674,7 +2674,7 @@ ModelObjectPtrs ModelObject::merge_volumes(std::vector<int>& vol_indeces)
     ModelVolume* vol = upper->add_volume(mesh);
     for (int i = 0; i < volumes.size();i++) {
         if (std::find(vol_indeces.begin(), vol_indeces.end(), i) != vol_indeces.end()) {
-            vol->name = volumes[i]->name + "_merged";
+            vol->name = "Merged Parts";
             vol->config.assign_config(volumes[i]->config);
         }
         else
