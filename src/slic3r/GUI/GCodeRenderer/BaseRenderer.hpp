@@ -251,6 +251,7 @@ namespace Slic3r {
                 bool m_only_gcode_in_preview{ false };
                 //BBS
                 Shells            m_shells;
+                const DynamicPrintConfig *m_config;//equal glcanvas3d m_config
                 GCodeCheckResult  m_gcode_check_result;
                 FilamentPrintableResult filament_printable_reuslt;
                 ConflictResultOpt m_conflict_result;

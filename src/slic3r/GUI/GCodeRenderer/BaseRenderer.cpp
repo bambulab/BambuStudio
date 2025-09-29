@@ -306,8 +306,10 @@ namespace Slic3r
 
             void BaseRenderer::update_shells_color_by_extruder(const DynamicPrintConfig* config)
             {
-                if (config != nullptr)
+                if (config != nullptr) {
+                    m_config = config;
                     m_shells.volumes.update_colors_by_extruder(config, false);
+                }
             }
 
             void BaseRenderer::load_shells(const Print& print, bool initialized, bool force_previewing)
@@ -540,12 +542,7 @@ namespace Slic3r
                 m_settings_ids = gcode_result.settings_ids;
                 m_filament_diameters = gcode_result.filament_diameters;
                 m_filament_densities = gcode_result.filament_densities;
-                //BBS: always load shell at preview
-                /*if (wxGetApp().is_editor())
-                {
-                    //load_shells(print, initialized);
-                }
-                else {*/
+
                 //BBS: add only gcode mode
                 if (m_only_gcode_in_preview) {
                     Pointfs printable_area;
@@ -598,6 +595,10 @@ namespace Slic3r
                             { min.x() + 0.442265 * size.x(), max.y()},
                             { min.x(), max.y() } };
                     }*/
+                }
+                else if (&wxGetApp() && wxGetApp().app_config->get_bool("show_shells_in_preview")) { // BBS: load shell at helio_gcode
+                    load_shells(print, initialized,true);
+                    update_shells_color_by_extruder(m_config);
                 }
                 m_print_statistics = gcode_result.print_statistics;
                 if (m_time_estimate_mode != PrintEstimatedStatistics::ETimeMode::Normal) {
@@ -668,9 +669,6 @@ namespace Slic3r
 
             void BaseRenderer::reset_shell()
             {
-                if (&wxGetApp() && wxGetApp().app_config->get_bool("show_shells_in_preview")) {
-                    if (m_gcode_result && m_gcode_result->is_helio_gcode) { return; }
-                }
                 m_shells.reset();
                 m_shell_bounding_box.reset();
             }
