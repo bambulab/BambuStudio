@@ -1242,9 +1242,11 @@ wxWindow* PreferencesDialog::create_general_page()
         p_ogl_manager->set_toolbar_rendering_style(idx);
     });
 
+#ifdef BBL_ENABLE_ADVANCED_GCODE_VIEWER
     auto  enable_advanced_gcode_viewer = create_item_checkbox(_L("Enable advanced gcode viewer"), page,
         _L("Enable advanced gcode viewer."), 50,
         "enable_advanced_gcode_viewer");
+#endif
 
     float range_min = 1.0, range_max = 2.5;
     auto item_grabber_size_settings = create_item_range_input(_L("Grabber scale"), page,
@@ -1355,7 +1357,9 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_enable_record_gcodeviewer_option_item, 0, wxTOP, FromDIP(3));
 
     sizer_page->Add(enable_lod_settings, 0, wxTOP, FromDIP(3));
+#ifdef BBL_ENABLE_ADVANCED_GCODE_VIEWER
     sizer_page->Add(enable_advanced_gcode_viewer, 0, wxTOP, FromDIP(3));
+#endif
     sizer_page->Add(item_toolbar_style, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_grabber_size_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(title_presets, 0, wxTOP | wxEXPAND, FromDIP(20));

@@ -226,8 +226,10 @@ void AppConfig::set_defaults()
     if (get("enable_advanced_antialiasing").empty())
         set_bool("enable_advanced_antialiasing", false);
 
+#ifdef BBL_ENABLE_ADVANCED_GCODE_VIEWER
     if (get("enable_advanced_gcode_viewer").empty())
         set_bool("enable_advanced_gcode_viewer", true);
+#endif
 
     if (get("gizmo_keep_screen_size").empty())
         set_bool("gizmo_keep_screen_size", true);
