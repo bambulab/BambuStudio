@@ -186,6 +186,8 @@ wxString Slic3r::get_stage_string(int stage)
         return _L("Measuring Surface");
     case 58:
         return _L("Thermal Preconditioning for first layer optimization");
+    case 65:
+        return _L("Calibrating the detection position of nozzle clumping"); // N7
     default:
         BOOST_LOG_TRIVIAL(info) << "stage = " << stage;
     }
@@ -1870,7 +1872,7 @@ bool MachineObject::is_support_command_calibration()
     return true;
 }
 
-int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali, bool motor_noise, bool nozzle_cali, bool bed_cali)
+int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali, bool motor_noise, bool nozzle_cali, bool bed_cali, bool clumppos_cali)
 {
     if (!is_support_command_calibration()) {
         // fixed gcode file
@@ -1883,7 +1885,8 @@ int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, 
         json j;
         j["print"]["command"] = "calibration";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        j["print"]["option"]=       (bed_cali     ? 1 << 5 : 0)
+        j["print"]["option"]  = +   (clumppos_cali ? 1 << 6 : 0)
+                                +   (bed_cali     ? 1 << 5 : 0)
                                 +   (nozzle_cali  ? 1 << 4 : 0)
                                 +   (motor_noise  ? 1 << 3 : 0)
                                 +   (vibration    ? 1 << 2 : 0)
