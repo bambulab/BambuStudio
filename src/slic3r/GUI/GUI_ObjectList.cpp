@@ -5534,8 +5534,8 @@ ModelVolume* ObjectList::get_selected_model_volume()
     const auto obj_idx = get_selected_obj_idx();
     if (vol_idx < 0 || obj_idx < 0)
         return nullptr;
-
-    return (*m_objects)[obj_idx]->volumes[vol_idx];
+    auto new_vol_idx = m_objects_model->get_real_volume_index_in_3d(obj_idx, vol_idx);
+    return (*m_objects)[obj_idx]->volumes[new_vol_idx];
 }
 
 void ObjectList::change_part_type()
