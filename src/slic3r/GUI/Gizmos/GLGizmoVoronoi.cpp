@@ -581,6 +581,10 @@ namespace Slic3r::GUI {
 
                 m_move_to_center = true;
 
+                // Schedule an update to initialize triangle selectors on first render
+                // The base class will call update_from_model_object() during rendering
+                m_schedule_update = true;
+
                 // Make sure model is visible - ensure instances hider shows everything
                 if (m_c) {
                     BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - m_c is valid, checking subsystems";
@@ -598,14 +602,10 @@ namespace Slic3r::GUI {
                         if (mo) {
                             BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - model has " << mo->volumes.size() << " volumes";
                         }
-
-                        // Initialize triangle selectors now that selection_info is available
-                        // This ensures the mesh can be rendered even if on_opening() was called too early
-                        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - initializing triangle selectors";
-                        update_from_model_object(true);
-                        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - triangle selectors initialized, count: " << m_triangle_selectors.size();
                     } else {
-                        BOOST_LOG_TRIVIAL(warning) << "GLGizmoVoronoi: on_set_state() - selection_info is NULL!";
+                        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - selection_info is NULL (will be set up by gizmo manager)";
+                        // selection_info will be set up after on_set_state() returns
+                        // Triangle selectors will be initialized automatically during first render cycle
                     }
                 } else {
                     BOOST_LOG_TRIVIAL(error) << "GLGizmoVoronoi: on_set_state() - m_c is NULL! Model may not be visible!";
