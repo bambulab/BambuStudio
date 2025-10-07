@@ -370,10 +370,12 @@ protected:
     GLIndexedVertexArray m_vbo_sphere;
 
     bool m_internal_stack_active = false;
-    bool m_schedule_update = false;
     Vec2d m_last_mouse_click = Vec2d::Zero();
 
     Button m_button_down = Button::None;
+
+protected:
+    bool m_schedule_update = false;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
 
 

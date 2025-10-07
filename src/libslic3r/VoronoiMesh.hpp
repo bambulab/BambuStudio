@@ -38,7 +38,6 @@ namespace Slic3r {
             float edge_curvature = 0.0f;  // 0 = straight, 1 = maximum curve
             int edge_subdivisions = 0;  // 0 = straight line, 1+ = curved segments
             bool hollow_cells = true;
-            bool clip_to_input = false;
             int random_seed = 42;  // For reproducible random generation
 
             // Progress callback - returns false to cancel

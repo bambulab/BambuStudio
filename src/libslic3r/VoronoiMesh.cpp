@@ -161,7 +161,7 @@ namespace Slic3r {
         if (config.progress_callback && !config.progress_callback(90))
             return nullptr;
 
-        // Always clip wireframe to input mesh boundary to prevent edges extending beyond the model
+        // Always clip wireframe to input mesh boundary
         BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Clipping wireframe to mesh boundary";
         clip_to_mesh_boundary(*result, input_mesh);
         BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - After clipping: vertices=" << result->vertices.size() << ", faces=" << result->indices.size();

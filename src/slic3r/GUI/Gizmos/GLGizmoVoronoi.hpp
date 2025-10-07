@@ -113,7 +113,6 @@ namespace Slic3r {
                 float edge_curvature = 0.0f;  // 0 = straight, 1 = maximum curve
                 int edge_subdivisions = 0;  // 0 = straight line, 1+ = curved segments
                 bool hollow_cells = true;
-                bool clip_to_input = false;
                 int random_seed = 42;
                 bool show_seed_preview = false;
                 bool enable_triangle_painting = false;
@@ -128,7 +127,6 @@ namespace Slic3r {
                         edge_curvature == rhs.edge_curvature &&
                         edge_subdivisions == rhs.edge_subdivisions &&
                         hollow_cells == rhs.hollow_cells &&
-                        clip_to_input == rhs.clip_to_input &&
                         random_seed == rhs.random_seed;
                 }
                 bool operator!=(const Configuration& rhs) const {

@@ -294,10 +294,6 @@ namespace Slic3r::GUI {
         if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("%s", into_u8(_u8L("Only wireframe edges, no cell filling (current mode)")).c_str());
         }
-        ImGui::Checkbox("Clip to input", &m_configuration.clip_to_input);
-        if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("%s", into_u8(_u8L("Trim wireframe to fit within original mesh bounds")).c_str());
-        }
 
         ImGui::Separator();
 
@@ -819,7 +815,6 @@ namespace Slic3r::GUI {
                 voronoi_config.edge_curvature = m_state.config.edge_curvature;
                 voronoi_config.edge_subdivisions = m_state.config.edge_subdivisions;
                 voronoi_config.hollow_cells = m_state.config.hollow_cells;
-                voronoi_config.clip_to_input = m_state.config.clip_to_input;
                 voronoi_config.random_seed = m_state.config.random_seed;
 
                 // Set progress callback
