@@ -38,6 +38,7 @@ namespace Slic3r {
             virtual bool on_init() override;
             virtual void on_render() override;
             virtual void on_render_for_picking() override {}
+            virtual void data_changed(bool is_serializing) override;
 
             // Painting integration
             void render_painter_gizmo() const override;
@@ -147,6 +148,7 @@ namespace Slic3r {
 
             bool m_move_to_center;
             const ModelVolume* m_volume;
+            indexed_triangle_set m_original_mesh;  // Store original mesh for repeated generation
             GLModel m_glmodel;
 
             struct State {

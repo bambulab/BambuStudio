@@ -554,6 +554,12 @@ namespace Slic3r::GUI {
 
                     m_volume = get_model_volume(selection, model);
                     BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - volume captured BEFORE base class: " << (m_volume ? "VALID" : "NULL");
+
+                    // Store the ORIGINAL mesh for repeated generation
+                    if (m_volume) {
+                        m_original_mesh = m_volume->mesh().its;
+                        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - original mesh stored, vertices: " << m_original_mesh.vertices.size();
+                    }
                 } else {
                     BOOST_LOG_TRIVIAL(warning) << "GLGizmoVoronoi: on_set_state() - plater is NULL, can't capture volume";
                 }
@@ -641,6 +647,11 @@ namespace Slic3r::GUI {
         }
     }
 
+    void GLGizmoVoronoi::data_changed(bool is_serializing)
+    {
+        set_painter_gizmo_data(m_parent.get_selection());
+    }
+
     void GLGizmoVoronoi::on_render()
     {
         static bool logged_once = false;
@@ -696,11 +707,12 @@ namespace Slic3r::GUI {
         BOOST_LOG_TRIVIAL(info) << "apply_voronoi() - m_volume is valid";
 
         // Copy mesh data immediately before starting thread to avoid dangling pointer
+        // Use m_original_mesh to prevent layering on repeated generations
         indexed_triangle_set mesh_copy;
         try {
-            BOOST_LOG_TRIVIAL(info) << "apply_voronoi() - copying mesh";
-            mesh_copy = m_volume->mesh().its;
-            BOOST_LOG_TRIVIAL(info) << "apply_voronoi() - mesh copied, vertices: " << mesh_copy.vertices.size() << ", faces: " << mesh_copy.indices.size();
+            BOOST_LOG_TRIVIAL(info) << "apply_voronoi() - copying ORIGINAL mesh";
+            mesh_copy = m_original_mesh;
+            BOOST_LOG_TRIVIAL(info) << "apply_voronoi() - original mesh copied, vertices: " << mesh_copy.vertices.size() << ", faces: " << mesh_copy.indices.size();
         }
         catch (const std::exception& e) {
             BOOST_LOG_TRIVIAL(error) << "Failed to copy mesh for Voronoi generation: " << e.what();

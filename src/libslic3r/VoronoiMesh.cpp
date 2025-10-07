@@ -161,9 +161,10 @@ namespace Slic3r {
         if (config.progress_callback && !config.progress_callback(90))
             return nullptr;
 
-        if (config.clip_to_input) {
-            clip_to_mesh_boundary(*result, input_mesh);
-        }
+        // Always clip wireframe to input mesh boundary to prevent edges extending beyond the model
+        BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Clipping wireframe to mesh boundary";
+        clip_to_mesh_boundary(*result, input_mesh);
+        BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - After clipping: vertices=" << result->vertices.size() << ", faces=" << result->indices.size();
 
         // Step 4: Finalize progress
         if (config.progress_callback && !config.progress_callback(100))
@@ -695,8 +696,12 @@ namespace Slic3r {
         int edge_segments,
         const Config& config)
     {
-        if (seed_points.size() < 4 || edge_thickness <= 0.0f)
+        BOOST_LOG_TRIVIAL(info) << "create_edge_structure() - START, seed_points: " << seed_points.size() << ", edge_thickness: " << edge_thickness;
+
+        if (seed_points.size() < 4 || edge_thickness <= 0.0f) {
+            BOOST_LOG_TRIVIAL(warning) << "create_edge_structure() - Early return: seed_points.size()=" << seed_points.size() << ", edge_thickness=" << edge_thickness;
             return;
+        }
 
         // Build Delaunay triangulation to get Voronoi edges
         Delaunay dt;
@@ -713,15 +718,25 @@ namespace Slic3r {
                 }
             }
 
-            if (dt.number_of_vertices() < 4 || !dt.is_valid())
+            BOOST_LOG_TRIVIAL(info) << "create_edge_structure() - Delaunay built, vertices: " << dt.number_of_vertices() << ", valid: " << dt.is_valid();
+
+            if (dt.number_of_vertices() < 4 || !dt.is_valid()) {
+                BOOST_LOG_TRIVIAL(warning) << "create_edge_structure() - Delaunay validation failed!";
                 return;
+            }
+        }
+        catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(error) << "create_edge_structure() - Exception during Delaunay: " << e.what();
+            return;
         }
         catch (...) {
+            BOOST_LOG_TRIVIAL(error) << "create_edge_structure() - Unknown exception during Delaunay";
             return;
         }
 
         // Extract unique Voronoi edges (circumcenters of adjacent tetrahedra)
         std::set<std::pair<Point_3, Point_3>> unique_edges;
+        std::map<Point_3, std::vector<Point_3>> vertex_connections;  // Track which edges meet at each vertex
 
         for (auto eit = dt.finite_edges_begin(); eit != dt.finite_edges_end(); ++eit) {
             auto cell1 = eit->first;
@@ -742,9 +757,15 @@ namespace Slic3r {
                     // Store edge (ensure consistent ordering)
                     auto edge = (cc1 < cc2) ? std::make_pair(cc1, cc2) : std::make_pair(cc2, cc1);
                     unique_edges.insert(edge);
+
+                    // Track vertex connections for proper junctions
+                    vertex_connections[cc1].push_back(cc2);
+                    vertex_connections[cc2].push_back(cc1);
                 }
             }
         }
+
+        BOOST_LOG_TRIVIAL(info) << "create_edge_structure() - Found " << unique_edges.size() << " edges and " << vertex_connections.size() << " vertices";
 
         if (config.progress_callback && !config.progress_callback(50))
             return;
@@ -885,34 +906,78 @@ namespace Slic3r {
                     result.indices.emplace_back(i1, i2, i3);
                 }
 
-                // Add caps for first and last segments only
-                if (seg == 0) {
-                    // Cap at start
-                    Vec3f center1 = seg_p1.cast<float>();
-                    size_t cap1_idx = result.vertices.size();
-                    result.vertices.push_back(center1);
+                // Caps are added later at proper junction vertices
+            }
+        }
 
-                    for (int i = 0; i < edge_segments; ++i) {
-                        int i0 = base_idx + i * 2;
-                        int i2 = base_idx + ((i + 1) % edge_segments) * 2;
-                        result.indices.emplace_back(cap1_idx, i2, i0);
-                    }
+        // Create spherical junctions at vertices where multiple edges meet
+        BOOST_LOG_TRIVIAL(info) << "create_edge_structure() - Creating vertex junctions";
+        std::map<Point_3, size_t> vertex_junction_map;  // Maps vertex to its junction center index
+
+        for (const auto& [vertex, connections] : vertex_connections) {
+            if (connections.size() < 2)
+                continue;  // Skip isolated vertices
+
+            Vec3d center(vertex.x(), vertex.y(), vertex.z());
+
+            // Create a small sphere at the junction with same radius as edges
+            const int sphere_rings = 4;
+            const int sphere_segments = 8;
+            size_t base_vertex_idx = result.vertices.size();
+
+            // Add center point
+            result.vertices.emplace_back(center.cast<float>());
+            vertex_junction_map[vertex] = base_vertex_idx;
+
+            // Create sphere vertices
+            for (int ring = 1; ring <= sphere_rings; ++ring) {
+                float phi = M_PI * float(ring) / float(sphere_rings + 1);
+                float ring_radius = radius * std::sin(phi);
+                float ring_z = radius * std::cos(phi);
+
+                for (int seg = 0; seg < sphere_segments; ++seg) {
+                    float theta = 2.0f * M_PI * float(seg) / float(sphere_segments);
+                    Vec3d offset(ring_radius * std::cos(theta),
+                                ring_radius * std::sin(theta),
+                                ring_z);
+                    result.vertices.emplace_back((center + offset).cast<float>());
                 }
+            }
 
-                if (seg == curve_points.size() - 2) {
-                    // Cap at end
-                    Vec3f center2 = seg_p2.cast<float>();
-                    size_t cap2_idx = result.vertices.size();
-                    result.vertices.push_back(center2);
+            // Create sphere faces
+            // Top cap (center to first ring)
+            for (int seg = 0; seg < sphere_segments; ++seg) {
+                int next_seg = (seg + 1) % sphere_segments;
+                result.indices.emplace_back(
+                    base_vertex_idx,
+                    base_vertex_idx + 1 + seg,
+                    base_vertex_idx + 1 + next_seg
+                );
+            }
 
-                    for (int i = 0; i < edge_segments; ++i) {
-                        int i1 = base_idx + i * 2 + 1;
-                        int i3 = base_idx + ((i + 1) % edge_segments) * 2 + 1;
-                        result.indices.emplace_back(cap2_idx, i1, i3);
-                    }
+            // Middle rings
+            for (int ring = 0; ring < sphere_rings - 1; ++ring) {
+                int ring_start = base_vertex_idx + 1 + ring * sphere_segments;
+                int next_ring_start = ring_start + sphere_segments;
+
+                for (int seg = 0; seg < sphere_segments; ++seg) {
+                    int next_seg = (seg + 1) % sphere_segments;
+
+                    result.indices.emplace_back(
+                        ring_start + seg,
+                        next_ring_start + seg,
+                        ring_start + next_seg
+                    );
+                    result.indices.emplace_back(
+                        ring_start + next_seg,
+                        next_ring_start + seg,
+                        next_ring_start + next_seg
+                    );
                 }
             }
         }
+
+        BOOST_LOG_TRIVIAL(info) << "create_edge_structure() - Created " << vertex_junction_map.size() << " junction spheres";
 
         if (config.progress_callback)
             config.progress_callback(80);
