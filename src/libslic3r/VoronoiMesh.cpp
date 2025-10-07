@@ -398,7 +398,7 @@ namespace Slic3r {
                 }
 
                 // Clip to input mesh if requested
-                if (clip_mesh && config.clip_to_input) {
+                if (clip_mesh) {
                     try {
                         // Create temporary meshes for boolean operation
                         indexed_triangle_set clipped = cell_its;
