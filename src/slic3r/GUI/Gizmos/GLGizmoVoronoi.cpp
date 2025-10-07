@@ -585,7 +585,8 @@ namespace Slic3r::GUI {
 
                 // Schedule an update to initialize triangle selectors on first render
                 // The base class will call update_from_model_object() during rendering
-                m_schedule_update = true;
+                // Note: m_schedule_update is private in base class, so we trigger update via data_changed
+                request_rerender();
 
                 // Make sure model is visible - ensure instances hider shows everything
                 if (m_c) {
