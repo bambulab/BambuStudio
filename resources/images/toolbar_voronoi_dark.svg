@@ -1,0 +1,33 @@
+<svg width="42" height="42" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_voronoi_dark)">
+<!-- Outer cube outline (lighter for dark mode) -->
+<rect x="8.5" y="8.5" width="25" height="25" stroke="#B6B6B6" stroke-width="1"/>
+
+<!-- Voronoi cell structure inside -->
+<!-- Cell 1 (top-left) -->
+<path d="M8.5 8.5 L21 14 L16 21 L8.5 18 Z" stroke="#00AE42" stroke-width="0.8" fill="none"/>
+<!-- Cell 2 (top-right) -->
+<path d="M33.5 8.5 L21 14 L26 21 L33.5 18 Z" stroke="#00AE42" stroke-width="0.8" fill="none"/>
+<!-- Cell 3 (middle-left) -->
+<path d="M8.5 18 L16 21 L16 27 L8.5 33.5 Z" stroke="#00AE42" stroke-width="0.8" fill="none"/>
+<!-- Cell 4 (middle-right) -->
+<path d="M33.5 18 L26 21 L26 27 L33.5 33.5 Z" stroke="#00AE42" stroke-width="0.8" fill="none"/>
+<!-- Cell 5 (center) -->
+<path d="M16 21 L21 14 L26 21 L21 28 Z" stroke="#00AE42" stroke-width="0.8" fill="none"/>
+<!-- Cell 6 (bottom) -->
+<path d="M8.5 33.5 L16 27 L21 28 L26 27 L33.5 33.5 Z" stroke="#00AE42" stroke-width="0.8" fill="none"/>
+
+<!-- Seed points (small circles) -->
+<circle cx="13" cy="14" r="0.8" fill="#00AE42"/>
+<circle cx="29" cy="14" r="0.8" fill="#00AE42"/>
+<circle cx="12" cy="25" r="0.8" fill="#00AE42"/>
+<circle cx="30" cy="25" r="0.8" fill="#00AE42"/>
+<circle cx="21" cy="21" r="0.8" fill="#00AE42"/>
+<circle cx="21" cy="30" r="0.8" fill="#00AE42"/>
+</g>
+<defs>
+<clipPath id="clip0_voronoi_dark">
+<rect width="42" height="42" fill="white"/>
+</clipPath>
+</defs>
+</svg>

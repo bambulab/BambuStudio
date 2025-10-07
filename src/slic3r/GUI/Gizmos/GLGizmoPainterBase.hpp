@@ -24,7 +24,8 @@ enum class PainterGizmoType {
     FDM_SUPPORTS,
     FUZZY_SKIN,
     SEAM,
-    MMU_SEGMENTATION
+    MMU_SEGMENTATION,
+    VORONOI
 };
 
 class GLPaintContour

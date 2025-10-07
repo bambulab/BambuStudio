@@ -25,6 +25,7 @@
 #include "slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoFuzzySkin.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSimplify.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoVoronoi.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoText.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSVG.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoMeshBoolean.hpp"
@@ -100,6 +101,7 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoSeam(m_parent, EType::Seam));
     m_gizmos.emplace_back(new GLGizmoBrimEars(m_parent, EType::BrimEars));
     m_gizmos.emplace_back(new GLGizmoFuzzySkin(m_parent, EType::FuzzySkin));
+    m_gizmos.emplace_back(new GLGizmoVoronoi(m_parent, EType::Voronoi));
     m_gizmos.emplace_back(new GLGizmoMeasure(m_parent, EType::Measure));
     m_gizmos.emplace_back(new GLGizmoSimplify(m_parent, EType::Simplify));
 
@@ -564,6 +566,7 @@ bool GLGizmosManager::is_paint_gizmo() const
 {
     return m_current == EType::FdmSupports ||
            m_current == EType::FuzzySkin ||
+           m_current == EType::Voronoi ||
            m_current == EType::MmuSegmentation ||
            m_current == EType::Seam;
 }
@@ -1347,6 +1350,8 @@ std::string GLGizmosManager::convert_gizmo_type_to_string(Slic3r::GUI::GLGizmosM
         return "Color Painting";
     case Slic3r::GUI::GLGizmosManager::EType::FuzzySkin:
         return "FuzzySkin";
+    case Slic3r::GUI::GLGizmosManager::EType::Voronoi:
+        return "Voronoi";
     case Slic3r::GUI::GLGizmosManager::EType::Measure:
         return "Mesause";
     case Slic3r::GUI::GLGizmosManager::EType::Assembly:

@@ -83,6 +83,7 @@ public:
         Seam,
         BrimEars,
         FuzzySkin,
+        Voronoi,
         Measure,
         Simplify,
         SlaSupports,
