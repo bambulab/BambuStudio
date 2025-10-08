@@ -1311,13 +1311,6 @@ namespace Slic3r::GUI {
 
     void GLGizmoVoronoi::render_painter_gizmo() const
     {
-        static bool logged_once = false;
-        if (!logged_once) {
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::render_painter_gizmo() - First call";
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::render_painter_gizmo() - enable_triangle_painting: " << m_configuration.enable_triangle_painting;
-            logged_once = true;
-        }
-
         const Selection& selection = m_parent.get_selection();
 
         glsafe(::glEnable(GL_BLEND));
@@ -1325,16 +1318,12 @@ namespace Slic3r::GUI {
 
         render_triangles(selection);
 
-        // Only render clipping plane and cursor when painting mode is active
-        if (m_configuration.enable_triangle_painting) {
-            // Render the clipping plane cut to show the model cross-section
-            if (m_c && m_c->object_clipper()) {
-                m_c->object_clipper()->render_cut();
-            }
-            if (m_c && m_c->instances_hider()) {
-                m_c->instances_hider()->render_cut();
-            }
+        // Always render clipping plane, instances hider, and cursor (like other painter gizmos)
+        m_c->object_clipper()->render_cut();
+        m_c->instances_hider()->render_cut();
 
+        // Only render cursor when painting mode is active
+        if (m_configuration.enable_triangle_painting) {
             render_cursor();
         }
 
@@ -1476,10 +1465,9 @@ namespace Slic3r::GUI {
         BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_opening() START";
 
         try {
-            // NOTE: Don't call toggle_model_objects_visibility here!
-            // The base class GLGizmoPainterBase already handles model visibility correctly.
-            // Calling it here can cause issues with the rendering pipeline.
-            // Just like GLGizmoSeam, we let the base class handle everything.
+            // Ensure model is visible when gizmo opens
+            m_parent.toggle_model_objects_visibility(true);
+            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_opening() - toggled model visibility to true";
 
             // Try to get volume from selection if m_volume isn't set yet
             if (!m_volume && m_c && m_c->selection_info()) {
