@@ -728,6 +728,12 @@ namespace Slic3r {
         BOOST_LOG_TRIVIAL(info) << "Voro++: Generated " << result->vertices.size() << " vertices, "
                                  << result->indices.size() << " faces";
 
+        // Apply styling if in solid mode
+        if (!config.hollow_cells && config.cell_style != CellStyle::Pure) {
+            BOOST_LOG_TRIVIAL(info) << "Applying cell styling: " << static_cast<int>(config.cell_style);
+            apply_cell_styling(*result, config);
+        }
+
         return result;
     }
 
@@ -1664,6 +1670,328 @@ namespace Slic3r {
         BOOST_LOG_TRIVIAL(info) << "  Generation time: " << stats.generation_time_ms << "ms";
         
         return result;
+    }
+
+    // STYLING FUNCTIONS - Apply creative flair to Voronoi cells
+    
+    // Main styling dispatcher
+    void VoronoiMesh::apply_cell_styling(
+        indexed_triangle_set& mesh,
+        const Config& config)
+    {
+        if (mesh.vertices.empty() || mesh.indices.empty()) {
+            return;
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "apply_cell_styling() - Applying style: " << static_cast<int>(config.cell_style);
+        
+        auto start = std::chrono::high_resolution_clock::now();
+        
+        switch (config.cell_style) {
+            case CellStyle::Pure:
+                // No styling - pure mathematical Voronoi
+                break;
+                
+            case CellStyle::Rounded:
+                apply_rounding(mesh, config.rounding_radius);
+                if (config.subdivision_level > 0) {
+                    apply_organic_smoothing(mesh, config.subdivision_level);
+                }
+                break;
+                
+            case CellStyle::Chamfered:
+                apply_chamfering(mesh, config.chamfer_distance);
+                break;
+                
+            case CellStyle::Crystalline:
+                apply_crystalline_cuts(mesh);
+                break;
+                
+            case CellStyle::Organic:
+                apply_organic_smoothing(mesh, std::max(1, config.subdivision_level));
+                break;
+                
+            case CellStyle::Faceted:
+                apply_faceting(mesh);
+                break;
+        }
+        
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        
+        BOOST_LOG_TRIVIAL(info) << "apply_cell_styling() - Styling complete in " << duration.count() << "ms";
+    }
+    
+    // Rounded style - smooth corners and edges
+    void VoronoiMesh::apply_rounding(indexed_triangle_set& mesh, float radius)
+    {
+        if (radius <= 0.0f || mesh.vertices.empty()) {
+            return;
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "apply_rounding() - Rounding with radius: " << radius;
+        
+        // Build adjacency information
+        std::vector<std::vector<int>> vertex_neighbors(mesh.vertices.size());
+        
+        for (const auto& face : mesh.indices) {
+            for (int i = 0; i < 3; ++i) {
+                int v1 = face[i];
+                int v2 = face[(i + 1) % 3];
+                
+                if (std::find(vertex_neighbors[v1].begin(), vertex_neighbors[v1].end(), v2) == vertex_neighbors[v1].end()) {
+                    vertex_neighbors[v1].push_back(v2);
+                }
+                if (std::find(vertex_neighbors[v2].begin(), vertex_neighbors[v2].end(), v1) == vertex_neighbors[v2].end()) {
+                    vertex_neighbors[v2].push_back(v1);
+                }
+            }
+        }
+        
+        // Apply Laplacian smoothing with limited iterations
+        std::vector<Vec3f> new_positions = mesh.vertices;
+        int iterations = 3;
+        float strength = std::min(radius, 0.8f);
+        
+        for (int iter = 0; iter < iterations; ++iter) {
+            for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+                if (vertex_neighbors[i].empty()) {
+                    continue;
+                }
+                
+                // Compute average of neighbors
+                Vec3f avg = Vec3f::Zero();
+                for (int neighbor : vertex_neighbors[i]) {
+                    avg += mesh.vertices[neighbor];
+                }
+                avg /= static_cast<float>(vertex_neighbors[i].size());
+                
+                // Move vertex toward average
+                new_positions[i] = mesh.vertices[i] * (1.0f - strength) + avg * strength;
+            }
+            
+            mesh.vertices = new_positions;
+            strength *= 0.7f;  // Reduce strength each iteration
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "apply_rounding() - Applied " << iterations << " smoothing iterations";
+    }
+    
+    // Chamfered style - beveled edges
+    void VoronoiMesh::apply_chamfering(indexed_triangle_set& mesh, float distance)
+    {
+        if (distance <= 0.0f || mesh.vertices.empty()) {
+            return;
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "apply_chamfering() - Chamfering with distance: " << distance;
+        
+        // Find edges and create bevels
+        std::map<std::pair<int, int>, std::vector<int>> edge_faces;
+        
+        for (size_t fi = 0; fi < mesh.indices.size(); ++fi) {
+            const auto& face = mesh.indices[fi];
+            for (int i = 0; i < 3; ++i) {
+                int v1 = face[i];
+                int v2 = face[(i + 1) % 3];
+                auto edge = (v1 < v2) ? std::make_pair(v1, v2) : std::make_pair(v2, v1);
+                edge_faces[edge].push_back(fi);
+            }
+        }
+        
+        // For each edge shared by 2+ faces, create a bevel
+        std::vector<Vec3i> new_faces;
+        std::vector<Vec3f> new_vertices = mesh.vertices;
+        
+        for (const auto& [edge, faces] : edge_faces) {
+            if (faces.size() >= 2) {
+                // Move edge vertices inward slightly
+                int v1 = edge.first;
+                int v2 = edge.second;
+                
+                Vec3f edge_center = (mesh.vertices[v1] + mesh.vertices[v2]) * 0.5f;
+                Vec3f edge_vec = (mesh.vertices[v2] - mesh.vertices[v1]).normalized();
+                
+                // Shrink edge slightly
+                float shrink = std::min(distance, 0.3f);
+                new_vertices[v1] = mesh.vertices[v1] + edge_vec * shrink;
+                new_vertices[v2] = mesh.vertices[v2] - edge_vec * shrink;
+            }
+        }
+        
+        mesh.vertices = new_vertices;
+        
+        BOOST_LOG_TRIVIAL(info) << "apply_chamfering() - Chamfered " << edge_faces.size() << " edges";
+    }
+    
+    // Crystalline style - add extra cuts for gem-like appearance
+    void VoronoiMesh::apply_crystalline_cuts(indexed_triangle_set& mesh)
+    {
+        if (mesh.vertices.empty() || mesh.indices.empty()) {
+            return;
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "apply_crystalline_cuts() - Adding crystalline facets";
+        
+        // Subdivide larger faces to add detail
+        std::vector<Vec3i> new_indices;
+        new_indices.reserve(mesh.indices.size() * 2);
+        
+        for (const auto& face : mesh.indices) {
+            const Vec3f& v0 = mesh.vertices[face[0]];
+            const Vec3f& v1 = mesh.vertices[face[1]];
+            const Vec3f& v2 = mesh.vertices[face[2]];
+            
+            // Calculate face area
+            Vec3f edge1 = v1 - v0;
+            Vec3f edge2 = v2 - v0;
+            float area = 0.5f * edge1.cross(edge2).norm();
+            
+            // Subdivide large faces
+            if (area > 5.0f) {
+                // Add center vertex
+                int center_idx = mesh.vertices.size();
+                Vec3f center = (v0 + v1 + v2) / 3.0f;
+                
+                // Slightly perturb center for angular look
+                Vec3f normal = edge1.cross(edge2).normalized();
+                center += normal * 0.1f;
+                
+                mesh.vertices.push_back(center);
+                
+                // Create 3 new triangles
+                new_indices.emplace_back(face[0], face[1], center_idx);
+                new_indices.emplace_back(face[1], face[2], center_idx);
+                new_indices.emplace_back(face[2], face[0], center_idx);
+            } else {
+                new_indices.push_back(face);
+            }
+        }
+        
+        mesh.indices = new_indices;
+        
+        BOOST_LOG_TRIVIAL(info) << "apply_crystalline_cuts() - Created " << mesh.indices.size() << " facets";
+    }
+    
+    // Organic style - subdivision surface smoothing
+    void VoronoiMesh::apply_organic_smoothing(indexed_triangle_set& mesh, int subdivisions)
+    {
+        if (subdivisions <= 0 || mesh.vertices.empty()) {
+            return;
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "apply_organic_smoothing() - Applying " << subdivisions << " subdivision levels";
+        
+        for (int level = 0; level < subdivisions; ++level) {
+            // Simple Loop subdivision approximation
+            std::map<std::pair<int, int>, int> edge_midpoints;
+            std::vector<Vec3f> new_vertices = mesh.vertices;
+            std::vector<Vec3i> new_faces;
+            
+            new_faces.reserve(mesh.indices.size() * 4);
+            
+            auto get_or_create_midpoint = [&](int v1, int v2) -> int {
+                auto edge = (v1 < v2) ? std::make_pair(v1, v2) : std::make_pair(v2, v1);
+                auto it = edge_midpoints.find(edge);
+                
+                if (it != edge_midpoints.end()) {
+                    return it->second;
+                }
+                
+                int new_idx = new_vertices.size();
+                Vec3f midpoint = (mesh.vertices[v1] + mesh.vertices[v2]) * 0.5f;
+                new_vertices.push_back(midpoint);
+                edge_midpoints[edge] = new_idx;
+                return new_idx;
+            };
+            
+            // Subdivide each triangle into 4
+            for (const auto& face : mesh.indices) {
+                int v0 = face[0];
+                int v1 = face[1];
+                int v2 = face[2];
+                
+                int m01 = get_or_create_midpoint(v0, v1);
+                int m12 = get_or_create_midpoint(v1, v2);
+                int m20 = get_or_create_midpoint(v2, v0);
+                
+                // Create 4 new triangles
+                new_faces.emplace_back(v0, m01, m20);
+                new_faces.emplace_back(v1, m12, m01);
+                new_faces.emplace_back(v2, m20, m12);
+                new_faces.emplace_back(m01, m12, m20);
+            }
+            
+            mesh.vertices = new_vertices;
+            mesh.indices = new_faces;
+            
+            // Apply smoothing
+            apply_rounding(mesh, 0.3f);
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "apply_organic_smoothing() - Result: " << mesh.vertices.size() 
+                                 << " vertices, " << mesh.indices.size() << " faces";
+    }
+    
+    // Faceted style - add extra triangulation for visual interest
+    void VoronoiMesh::apply_faceting(indexed_triangle_set& mesh)
+    {
+        if (mesh.vertices.empty() || mesh.indices.empty()) {
+            return;
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "apply_faceting() - Adding facet detail";
+        
+        // Add strategic subdivisions for low-poly look
+        std::vector<Vec3i> new_indices;
+        new_indices.reserve(mesh.indices.size() * 2);
+        
+        std::mt19937 rng(42);
+        std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+        
+        for (const auto& face : mesh.indices) {
+            const Vec3f& v0 = mesh.vertices[face[0]];
+            const Vec3f& v1 = mesh.vertices[face[1]];
+            const Vec3f& v2 = mesh.vertices[face[2]];
+            
+            // Calculate face area
+            Vec3f edge1 = v1 - v0;
+            Vec3f edge2 = v2 - v0;
+            float area = 0.5f * edge1.cross(edge2).norm();
+            
+            // Randomly subdivide some larger faces
+            if (area > 3.0f && dist(rng) > 0.5f) {
+                // Split along longest edge
+                float len01 = (v1 - v0).norm();
+                float len12 = (v2 - v1).norm();
+                float len20 = (v0 - v2).norm();
+                
+                int new_idx = mesh.vertices.size();
+                
+                if (len01 >= len12 && len01 >= len20) {
+                    // Split edge 0-1
+                    mesh.vertices.push_back((v0 + v1) * 0.5f);
+                    new_indices.emplace_back(face[0], new_idx, face[2]);
+                    new_indices.emplace_back(new_idx, face[1], face[2]);
+                } else if (len12 >= len20) {
+                    // Split edge 1-2
+                    mesh.vertices.push_back((v1 + v2) * 0.5f);
+                    new_indices.emplace_back(face[0], face[1], new_idx);
+                    new_indices.emplace_back(face[0], new_idx, face[2]);
+                } else {
+                    // Split edge 2-0
+                    mesh.vertices.push_back((v2 + v0) * 0.5f);
+                    new_indices.emplace_back(face[0], face[1], new_idx);
+                    new_indices.emplace_back(new_idx, face[1], face[2]);
+                }
+            } else {
+                new_indices.push_back(face);
+            }
+        }
+        
+        mesh.indices = new_indices;
+        
+        BOOST_LOG_TRIVIAL(info) << "apply_faceting() - Created " << mesh.indices.size() << " faceted triangles";
     }
 
     // PHASE 5: Mesh validation

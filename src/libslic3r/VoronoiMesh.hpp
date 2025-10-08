@@ -21,7 +21,7 @@ namespace Slic3r {
             Adaptive     // Adaptive density based on mesh features
         };
 
-        // Edge shape types for wireframe edges
+        // Edge shape types for wireframe edges (mathematically correct Voronoi edges)
         enum class EdgeShape {
             Cylinder,
             Square,
@@ -29,23 +29,43 @@ namespace Slic3r {
             Octagon,
             Star
         };
+        
+        // Solid cell styling (for creative flair on mathematical Voronoi cells)
+        enum class CellStyle {
+            Pure,           // Pure mathematical Voronoi cells (polyhedral)
+            Rounded,        // Rounded corners at vertices
+            Chamfered,      // Chamfered edges
+            Crystalline,    // Sharp angular cuts
+            Organic,        // Smooth flowing surfaces
+            Faceted         // Extra triangulation for visual interest
+        };
 
         struct Config {
             SeedType seed_type = SeedType::Vertices;
             int num_seeds = 50;
-            float wall_thickness = 1.0f;
-            float edge_thickness = 1.0f;  // Thickness of wireframe edges/struts connecting Voronoi vertices
-            EdgeShape edge_shape = EdgeShape::Cylinder;
-            int edge_segments = 8;
-            float edge_curvature = 0.0f;  // 0 = straight, 1 = maximum curve
-            int edge_subdivisions = 0;  // 0 = straight line, 1+ = curved segments
-            bool hollow_cells = true;
             int random_seed = 42;  // For reproducible random generation
             
+            // Mode selection
+            bool hollow_cells = true;  // true = wireframe (pure Voronoi edges), false = solid cells
+            
+            // Wireframe mode parameters (mathematically correct Voronoi edge structure)
+            float edge_thickness = 1.0f;       // Thickness of Voronoi edge struts
+            EdgeShape edge_shape = EdgeShape::Cylinder;
+            int edge_segments = 8;             // Cross-section resolution
+            float edge_curvature = 0.0f;       // 0 = straight, 1 = curved
+            int edge_subdivisions = 0;         // Curve smoothness
+            
+            // Solid mode parameters (mathematical Voronoi cells with flair)
+            CellStyle cell_style = CellStyle::Rounded;  // Creative styling
+            float wall_thickness = 0.0f;       // 0 = solid, >0 = shell thickness
+            float rounding_radius = 0.5f;      // For Rounded style
+            float chamfer_distance = 0.3f;     // For Chamfered style
+            int subdivision_level = 1;         // Higher = smoother (for Organic/Rounded)
+            
             // Advanced options
-            bool clip_to_mesh = true;     // Clip cells to original mesh boundary
-            float min_cell_size = 0.0f;   // Minimum cell size (0 = no limit)
-            float adaptive_factor = 1.0f; // For adaptive seeding (1.0 = uniform, higher = more variation)
+            bool clip_to_mesh = true;          // Clip to original mesh boundary
+            float min_cell_size = 0.0f;        // Minimum cell size (0 = no limit)
+            float adaptive_factor = 1.0f;      // For adaptive seeding
 
             // Progress callback - returns false to cancel
             std::function<bool(int)> progress_callback = nullptr;
@@ -163,6 +183,19 @@ namespace Slic3r {
             const Config& config,
             const indexed_triangle_set* clip_mesh
         );
+        
+        // Apply styling to Voronoi cells (for solid mode flair)
+        static void apply_cell_styling(
+            indexed_triangle_set& mesh,
+            const Config& config
+        );
+        
+        // Styling methods for different cell styles
+        static void apply_rounding(indexed_triangle_set& mesh, float radius);
+        static void apply_chamfering(indexed_triangle_set& mesh, float distance);
+        static void apply_crystalline_cuts(indexed_triangle_set& mesh);
+        static void apply_organic_smoothing(indexed_triangle_set& mesh, int subdivisions);
+        static void apply_faceting(indexed_triangle_set& mesh);
     };
 
 } // namespace Slic3r

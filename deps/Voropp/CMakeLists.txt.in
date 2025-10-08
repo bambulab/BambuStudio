@@ -21,7 +21,19 @@ set(VOROPP_SOURCES
     src/wall.cc
 )
 
-# Header files
+# Optional source files that may not exist in all voro++ versions
+set(VOROPP_OPTIONAL_SOURCES
+    src/v_base_wl.cc
+)
+
+# Check for optional sources and add them if they exist
+foreach(SOURCE ${VOROPP_OPTIONAL_SOURCES})
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE}")
+        list(APPEND VOROPP_SOURCES ${SOURCE})
+    endif()
+endforeach()
+
+# Header files - primary public headers
 set(VOROPP_HEADERS
     src/c_loops.hh
     src/cell.hh
@@ -33,11 +45,15 @@ set(VOROPP_HEADERS
     src/rad_option.hh
     src/unitcell.hh
     src/v_base.hh
-    src/v_base_wl.hh
     src/v_compute.hh
     src/voro++.hh
     src/wall.hh
     src/worklist.hh
+)
+
+# Optional headers that may not exist in all voro++ versions  
+# (v_base_wl is typically a .cc file, not a header, so we leave this empty)
+set(VOROPP_OPTIONAL_HEADERS
 )
 
 # Build static library
@@ -59,9 +75,19 @@ install(TARGETS voropp
     RUNTIME DESTINATION bin
 )
 
+# Install required headers
 install(FILES ${VOROPP_HEADERS}
     DESTINATION include/voro++
 )
+
+# Install optional headers only if they exist
+foreach(HEADER ${VOROPP_OPTIONAL_HEADERS})
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${HEADER}")
+        install(FILES ${HEADER}
+            DESTINATION include/voro++
+        )
+    endif()
+endforeach()
 
 # Create voro++.hh wrapper in include root for easier inclusion
 install(CODE "
