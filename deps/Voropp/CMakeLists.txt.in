@@ -75,10 +75,16 @@ install(TARGETS voropp
     RUNTIME DESTINATION bin
 )
 
-# Install required headers
-install(FILES ${VOROPP_HEADERS}
-    DESTINATION include/voro++
-)
+# Install headers - only install files that actually exist
+foreach(HEADER ${VOROPP_HEADERS})
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${HEADER}")
+        install(FILES ${HEADER}
+            DESTINATION include/voro++
+        )
+    else()
+        message(WARNING "Header file ${HEADER} not found, skipping installation")
+    endif()
+endforeach()
 
 # Install optional headers only if they exist
 foreach(HEADER ${VOROPP_OPTIONAL_HEADERS})
