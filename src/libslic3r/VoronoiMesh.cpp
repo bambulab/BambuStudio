@@ -15,7 +15,7 @@
 #include <boost/log/trivial.hpp>
 
 // Voro++ for 3D Voronoi tessellation
-#include <voro++.hh>
+#include "src/voro++.hh"
 
 // CGAL headers for mesh operations (boolean, convex hull, etc)
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
@@ -33,6 +33,16 @@
 namespace Slic3r {
 
     namespace PMP = CGAL::Polygon_mesh_processing;
+
+    // Helper function: Test if point is inside mesh using ray casting
+    static bool is_point_inside_mesh(const AABBMesh& aabb_mesh, const Vec3d& point) {
+        // Cast ray in arbitrary direction (Z+) and count intersections
+        Vec3d ray_dir(0, 0, 1);
+        auto hit = aabb_mesh.query_ray_hit(point, ray_dir);
+
+        // If ray hits mesh and is pointing inward, point is inside
+        return hit.is_inside();
+    }
 
     // CGAL type definitions for 3D Delaunay/Voronoi
     using K = CGAL::Exact_predicates_inexact_constructions_kernel;
@@ -866,7 +876,7 @@ namespace Slic3r {
         auto get_profile_point = [&](int i, float r) -> Vec3d {
             float angle = (2.0f * M_PI * i) / config.edge_segments;
             switch (config.edge_shape) {
-                case EdgeShape::Square: {
+                case VoronoiMesh::EdgeShape::Square: {
                     float t = fmod(angle / (M_PI / 2.0f), 4.0f);
                     int side = int(t);
                     float blend = t - side;
@@ -879,13 +889,13 @@ namespace Slic3r {
                     }
                     return Vec3d(x * r, y * r, 0);
                 }
-                case EdgeShape::Hexagon:
-                case EdgeShape::Octagon: {
-                    int sides = (config.edge_shape == EdgeShape::Hexagon) ? 6 : 8;
+                case VoronoiMesh::EdgeShape::Hexagon:
+                case VoronoiMesh::EdgeShape::Octagon: {
+                    int sides = (config.edge_shape == VoronoiMesh::EdgeShape::Hexagon) ? 6 : 8;
                     float snap_angle = std::round(angle / (2.0f * M_PI / sides)) * (2.0f * M_PI / sides);
                     return Vec3d(r * std::cos(snap_angle), r * std::sin(snap_angle), 0);
                 }
-                case EdgeShape::Star: {
+                case VoronoiMesh::EdgeShape::Star: {
                     int point = int(angle / (2.0f * M_PI / 10.0f));
                     float point_angle = point * (2.0f * M_PI / 10.0f);
                     float next_angle = (point + 1) * (2.0f * M_PI / 10.0f);
@@ -1221,7 +1231,7 @@ namespace Slic3r {
     }
 
     // Helper function for creating edge structures (currently unused but kept for future wireframe improvements)
-    static void create_edge_structure(
+    void create_edge_structure_helper(
         indexed_triangle_set& result,
         const std::vector<Vec3d>& seed_points,
         const BoundingBoxf3& bounds,
@@ -1333,7 +1343,7 @@ namespace Slic3r {
             float r = radius;
 
             switch (edge_shape) {
-                case EdgeShape::Square: {
+                case VoronoiMesh::EdgeShape::Square: {
                     // Square cross-section
                     float t = fmod(angle / (M_PI / 2.0f), 4.0f);
                     int side = int(t);
@@ -1348,15 +1358,15 @@ namespace Slic3r {
                     return Vec3d(x * r, y * r, 0);
                 }
 
-                case EdgeShape::Hexagon:
-                case EdgeShape::Octagon: {
+                case VoronoiMesh::EdgeShape::Hexagon:
+                case VoronoiMesh::EdgeShape::Octagon: {
                     // Regular polygon
                     int sides = (edge_shape == EdgeShape::Hexagon) ? 6 : 8;
                     float snap_angle = std::round(angle / (2.0f * M_PI / sides)) * (2.0f * M_PI / sides);
                     return Vec3d(r * std::cos(snap_angle), r * std::sin(snap_angle), 0);
                 }
 
-                case EdgeShape::Star: {
+                case VoronoiMesh::EdgeShape::Star: {
                     // 5-pointed star
                     int point = int(angle / (2.0f * M_PI / 10.0f));
                     float point_angle = point * (2.0f * M_PI / 10.0f);

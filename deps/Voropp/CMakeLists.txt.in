@@ -51,7 +51,7 @@ add_library(voropp STATIC ${VOROPP_SOURCES})
 add_library(voropp::voropp ALIAS voropp)
 
 target_include_directories(voropp PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include>
 )
 
@@ -63,18 +63,11 @@ install(TARGETS voropp
     RUNTIME DESTINATION bin
 )
 
-# Install all headers directly to include directory (voro++ expects flat structure)
-foreach(HEADER ${VOROPP_HEADERS})
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${HEADER}")
-        get_filename_component(HEADER_NAME ${HEADER} NAME)
-        install(FILES ${HEADER}
-            DESTINATION include
-            RENAME ${HEADER_NAME}
-        )
-    else()
-        message(WARNING "Header file ${HEADER} not found, skipping installation")
-    endif()
-endforeach()
+# Install headers in src/ subdirectory to match source layout
+install(DIRECTORY src/
+    DESTINATION include/src
+    FILES_MATCHING PATTERN "*.hh"
+)
 
 # Export package config
 install(EXPORT voroppTargets
