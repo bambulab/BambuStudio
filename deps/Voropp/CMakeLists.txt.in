@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Source files from voro++ src directory
+# Based on official Voro++ 0.4.6 release from https://math.lbl.gov/voro++/
 set(VOROPP_SOURCES
     src/c_loops.cc
     src/cell.cc
@@ -21,19 +22,11 @@ set(VOROPP_SOURCES
     src/wall.cc
 )
 
-# Optional source files that may not exist in all voro++ versions
-set(VOROPP_OPTIONAL_SOURCES
-    src/v_base_wl.cc
-)
+# Note: v_base_wl.cc does NOT exist in official Voro++ 0.4.6
+# The library is complete with just the above files
 
-# Check for optional sources and add them if they exist
-foreach(SOURCE ${VOROPP_OPTIONAL_SOURCES})
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE}")
-        list(APPEND VOROPP_SOURCES ${SOURCE})
-    endif()
-endforeach()
-
-# Header files - primary public headers
+# Header files from voro++ src directory
+# Based on official Voro++ 0.4.6 release
 set(VOROPP_HEADERS
     src/c_loops.hh
     src/cell.hh
@@ -49,11 +42,6 @@ set(VOROPP_HEADERS
     src/voro++.hh
     src/wall.hh
     src/worklist.hh
-)
-
-# Optional headers that may not exist in all voro++ versions  
-# (v_base_wl is typically a .cc file, not a header, so we leave this empty)
-set(VOROPP_OPTIONAL_HEADERS
 )
 
 # Build static library
@@ -75,7 +63,7 @@ install(TARGETS voropp
     RUNTIME DESTINATION bin
 )
 
-# Install headers - only install files that actually exist
+# Install headers
 foreach(HEADER ${VOROPP_HEADERS})
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${HEADER}")
         install(FILES ${HEADER}
@@ -83,15 +71,6 @@ foreach(HEADER ${VOROPP_HEADERS})
         )
     else()
         message(WARNING "Header file ${HEADER} not found, skipping installation")
-    endif()
-endforeach()
-
-# Install optional headers only if they exist
-foreach(HEADER ${VOROPP_OPTIONAL_HEADERS})
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${HEADER}")
-        install(FILES ${HEADER}
-            DESTINATION include/voro++
-        )
     endif()
 endforeach()
 
