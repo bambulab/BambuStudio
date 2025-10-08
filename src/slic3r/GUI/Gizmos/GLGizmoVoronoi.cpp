@@ -986,24 +986,41 @@ namespace Slic3r::GUI {
             if (volume != mv)
                 return;
 
+            // Preserve the object's position before replacing mesh
+            Vec3d instance_offset = obj->instances.empty() ? Vec3d::Zero() : obj->instances[0]->get_offset();
+            Vec3d volume_offset = volume->get_offset();
+
+            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Preserving position: instance_offset=("
+                << instance_offset.x() << "," << instance_offset.y() << "," << instance_offset.z()
+                << "), volume_offset=(" << volume_offset.x() << "," << volume_offset.y() << "," << volume_offset.z() << ")";
+
             // Replace the mesh
             BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Replacing mesh in volume";
             TriangleMesh new_mesh(*result_its);
             volume->set_mesh(std::move(new_mesh));
             volume->calculate_convex_hull();
 
-            // Mark as modified and update
+            // Restore the position
+            volume->set_offset(volume_offset);
+            if (!obj->instances.empty()) {
+                obj->instances[0]->set_offset(instance_offset);
+            }
+
+            // Mark as modified and update WITHOUT calling ensure_on_bed
             BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Updating plater";
             obj->invalidate_bounding_box();
-            plater->changed_object(cid.object_id);
-            plater->update();
 
-            // Force canvas refresh to show the new mesh
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Forcing canvas refresh";
+            // Don't call changed_object because it calls ensure_on_bed which moves the object
+            // Instead, manually trigger just the view update
             GLCanvas3D* canvas = plater->canvas3D();
             if (canvas) {
-                canvas->reload_scene(true);  // Reload the scene to show the new mesh
+                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Reloading scene";
+                canvas->reload_scene(false);  // Reload the scene to show the new mesh
+                canvas->requires_check_outside_state();
             }
+
+            // Update background process for slicing
+            plater->update();
 
             BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - COMPLETE, model replaced!";
             request_rerender();
