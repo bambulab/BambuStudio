@@ -16,7 +16,9 @@ namespace Slic3r {
         enum class SeedType {
             Vertices,    // Use mesh vertices as seed points
             Grid,        // Use regular grid of points
-            Random       // Use random points within bounding box
+            Random,      // Use random points within bounding box
+            Surface,     // Place seeds on mesh surface
+            Adaptive     // Adaptive density based on mesh features
         };
 
         // Edge shape types for wireframe edges
@@ -39,9 +41,30 @@ namespace Slic3r {
             int edge_subdivisions = 0;  // 0 = straight line, 1+ = curved segments
             bool hollow_cells = true;
             int random_seed = 42;  // For reproducible random generation
+            
+            // Advanced options
+            bool clip_to_mesh = true;     // Clip cells to original mesh boundary
+            float min_cell_size = 0.0f;   // Minimum cell size (0 = no limit)
+            float adaptive_factor = 1.0f; // For adaptive seeding (1.0 = uniform, higher = more variation)
 
             // Progress callback - returns false to cancel
             std::function<bool(int)> progress_callback = nullptr;
+        };
+        
+        // Statistics about generated Voronoi structure
+        struct Statistics {
+            int num_cells = 0;
+            int num_vertices = 0;
+            int num_faces = 0;
+            int num_edges = 0;
+            float min_cell_volume = 0.0f;
+            float max_cell_volume = 0.0f;
+            float avg_cell_volume = 0.0f;
+            float total_volume = 0.0f;
+            float min_edge_length = 0.0f;
+            float max_edge_length = 0.0f;
+            float avg_edge_length = 0.0f;
+            int generation_time_ms = 0;
         };
 
         // Generate a Voronoi mesh from an input mesh
@@ -49,6 +72,19 @@ namespace Slic3r {
         static std::unique_ptr<indexed_triangle_set> generate(
             const indexed_triangle_set& input_mesh,
             const Config& config
+        );
+        
+        // Generate Voronoi mesh and return statistics
+        static std::unique_ptr<indexed_triangle_set> generate_with_stats(
+            const indexed_triangle_set& input_mesh,
+            const Config& config,
+            Statistics& stats
+        );
+        
+        // Validate Voronoi mesh (check for issues)
+        static bool validate_mesh(
+            const indexed_triangle_set& mesh,
+            std::vector<std::string>* issues = nullptr
         );
 
     private:
@@ -74,6 +110,21 @@ namespace Slic3r {
         static std::vector<Vec3d> generate_random_seeds(
             const indexed_triangle_set& mesh,
             int num_seeds,
+            int random_seed
+        );
+        
+        // Generate seeds on mesh surface
+        static std::vector<Vec3d> generate_surface_seeds(
+            const indexed_triangle_set& mesh,
+            int num_seeds,
+            int random_seed
+        );
+        
+        // Generate seeds with adaptive density
+        static std::vector<Vec3d> generate_adaptive_seeds(
+            const indexed_triangle_set& mesh,
+            int num_seeds,
+            float adaptive_factor,
             int random_seed
         );
 

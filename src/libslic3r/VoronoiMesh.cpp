@@ -9,6 +9,8 @@
 #include <array>
 #include <cmath>
 #include <limits>
+#include <chrono>
+#include <queue>
 
 #include <boost/log/trivial.hpp>
 
@@ -186,6 +188,10 @@ namespace Slic3r {
             return generate_grid_seeds(mesh, config.num_seeds);
         case SeedType::Random:
             return generate_random_seeds(mesh, config.num_seeds, config.random_seed);
+        case SeedType::Surface:
+            return generate_surface_seeds(mesh, config.num_seeds, config.random_seed);
+        case SeedType::Adaptive:
+            return generate_adaptive_seeds(mesh, config.num_seeds, config.adaptive_factor, config.random_seed);
         default:
             return {};
         }
@@ -273,6 +279,236 @@ namespace Slic3r {
         BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Generated " << seeds.size()
                                  << " grid seeds from " << candidates.size() << " candidates (all inside mesh)";
 
+        return seeds;
+    }
+
+    // PHASE 4: Surface-based seeding - place seeds on mesh surface
+    std::vector<Vec3d> VoronoiMesh::generate_surface_seeds(
+        const indexed_triangle_set& mesh,
+        int num_seeds,
+        int random_seed)
+    {
+        std::vector<Vec3d> seeds;
+        
+        if (mesh.indices.empty() || num_seeds <= 0) {
+            return seeds;
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "generate_surface_seeds() - Generating " << num_seeds << " surface seeds";
+        
+        std::mt19937 gen(random_seed);
+        
+        // Calculate triangle areas for weighted sampling
+        std::vector<float> triangle_areas;
+        triangle_areas.reserve(mesh.indices.size());
+        float total_area = 0.0f;
+        
+        for (const auto& face : mesh.indices) {
+            const Vec3f& v0 = mesh.vertices[face[0]];
+            const Vec3f& v1 = mesh.vertices[face[1]];
+            const Vec3f& v2 = mesh.vertices[face[2]];
+            
+            Vec3f edge1 = v1 - v0;
+            Vec3f edge2 = v2 - v0;
+            float area = 0.5f * edge1.cross(edge2).norm();
+            
+            triangle_areas.push_back(area);
+            total_area += area;
+        }
+        
+        // Create cumulative distribution for area-weighted sampling
+        std::vector<float> cumulative_areas;
+        cumulative_areas.reserve(triangle_areas.size());
+        float cumsum = 0.0f;
+        for (float area : triangle_areas) {
+            cumsum += area;
+            cumulative_areas.push_back(cumsum);
+        }
+        
+        std::uniform_real_distribution<float> dist(0.0f, total_area);
+        std::uniform_real_distribution<float> bary_dist(0.0f, 1.0f);
+        
+        seeds.reserve(num_seeds);
+        
+        for (int i = 0; i < num_seeds; ++i) {
+            // Select triangle weighted by area
+            float random_area = dist(gen);
+            auto it = std::lower_bound(cumulative_areas.begin(), cumulative_areas.end(), random_area);
+            size_t triangle_idx = std::distance(cumulative_areas.begin(), it);
+            
+            if (triangle_idx >= mesh.indices.size()) {
+                triangle_idx = mesh.indices.size() - 1;
+            }
+            
+            // Generate random barycentric coordinates
+            float u = bary_dist(gen);
+            float v = bary_dist(gen);
+            if (u + v > 1.0f) {
+                u = 1.0f - u;
+                v = 1.0f - v;
+            }
+            float w = 1.0f - u - v;
+            
+            // Compute point on triangle
+            const auto& face = mesh.indices[triangle_idx];
+            const Vec3f& v0 = mesh.vertices[face[0]];
+            const Vec3f& v1 = mesh.vertices[face[1]];
+            const Vec3f& v2 = mesh.vertices[face[2]];
+            
+            Vec3d point = (v0 * u + v1 * v + v2 * w).cast<double>();
+            seeds.push_back(point);
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "generate_surface_seeds() - Generated " << seeds.size() << " surface seeds";
+        return seeds;
+    }
+
+    // PHASE 4: Adaptive seeding with Poisson disk sampling approximation
+    std::vector<Vec3d> VoronoiMesh::generate_adaptive_seeds(
+        const indexed_triangle_set& mesh,
+        int num_seeds,
+        float adaptive_factor,
+        int random_seed)
+    {
+        std::vector<Vec3d> seeds;
+        
+        if (mesh.vertices.empty() || num_seeds <= 0) {
+            return seeds;
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "generate_adaptive_seeds() - Generating " << num_seeds 
+                                 << " seeds with adaptive factor " << adaptive_factor;
+        
+        // Compute bounding box
+        BoundingBoxf3 bbox;
+        for (const auto& v : mesh.vertices) {
+            bbox.merge(v.cast<double>());
+        }
+        
+        // Build AABB tree for point-in-mesh testing
+        AABBTreeIndirect::Tree3f tree;
+        tree.init_3d_tree(mesh);
+        
+        // Calculate mesh features for adaptive density
+        // Use vertex curvature as a proxy for feature density
+        std::vector<float> vertex_importance(mesh.vertices.size(), 1.0f);
+        
+        // Compute vertex normals and curvature estimation
+        std::vector<Vec3f> vertex_normals(mesh.vertices.size(), Vec3f::Zero());
+        std::vector<int> vertex_valence(mesh.vertices.size(), 0);
+        
+        for (const auto& face : mesh.indices) {
+            const Vec3f& v0 = mesh.vertices[face[0]];
+            const Vec3f& v1 = mesh.vertices[face[1]];
+            const Vec3f& v2 = mesh.vertices[face[2]];
+            
+            Vec3f normal = (v1 - v0).cross(v2 - v0).normalized();
+            
+            for (int i = 0; i < 3; ++i) {
+                vertex_normals[face[i]] += normal;
+                vertex_valence[face[i]]++;
+            }
+        }
+        
+        // Normalize and compute curvature estimate
+        for (size_t i = 0; i < vertex_normals.size(); ++i) {
+            if (vertex_valence[i] > 0) {
+                vertex_normals[i] /= float(vertex_valence[i]);
+                vertex_normals[i].normalize();
+                
+                // High valence or large normal variation indicates features
+                float feature_score = std::abs(vertex_valence[i] - 6.0f) / 6.0f; // 6 is typical
+                vertex_importance[i] = 1.0f + feature_score * adaptive_factor;
+            }
+        }
+        
+        // Poisson disk sampling with adaptive density
+        std::mt19937 gen(random_seed);
+        std::uniform_real_distribution<double> dist_x(bbox.min.x(), bbox.max.x());
+        std::uniform_real_distribution<double> dist_y(bbox.min.y(), bbox.max.y());
+        std::uniform_real_distribution<double> dist_z(bbox.min.z(), bbox.max.z());
+        
+        // Calculate base minimum distance
+        float volume = bbox.size().x() * bbox.size().y() * bbox.size().z();
+        float base_min_distance = std::cbrt(volume / num_seeds) * 0.5f;
+        
+        BOOST_LOG_TRIVIAL(info) << "generate_adaptive_seeds() - Base min distance: " << base_min_distance;
+        
+        seeds.reserve(num_seeds);
+        int attempts = 0;
+        int max_attempts = num_seeds * 100;
+        
+        // Initial seed
+        for (int initial_tries = 0; initial_tries < 100 && seeds.empty(); ++initial_tries) {
+            Vec3d point(dist_x(gen), dist_y(gen), dist_z(gen));
+            if (AABBTreeIndirect::is_inside(tree, mesh, point.cast<float>())) {
+                seeds.push_back(point);
+                break;
+            }
+        }
+        
+        if (seeds.empty()) {
+            BOOST_LOG_TRIVIAL(warning) << "generate_adaptive_seeds() - Could not find initial seed point";
+            return seeds;
+        }
+        
+        // Poisson disk sampling with adaptive distance
+        while (seeds.size() < size_t(num_seeds) && attempts < max_attempts) {
+            Vec3d candidate(dist_x(gen), dist_y(gen), dist_z(gen));
+            attempts++;
+            
+            // Check if inside mesh
+            if (!AABBTreeIndirect::is_inside(tree, mesh, candidate.cast<float>())) {
+                continue;
+            }
+            
+            // Find nearest vertex to determine local feature density
+            float nearest_dist = std::numeric_limits<float>::max();
+            size_t nearest_vertex = 0;
+            for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+                float d = (mesh.vertices[i].cast<double>() - candidate).norm();
+                if (d < nearest_dist) {
+                    nearest_dist = d;
+                    nearest_vertex = i;
+                }
+            }
+            
+            // Adaptive minimum distance based on local importance
+            float local_importance = vertex_importance[nearest_vertex];
+            float adaptive_min_distance = base_min_distance / std::sqrt(local_importance);
+            
+            // Check distance to existing seeds
+            bool too_close = false;
+            for (const auto& existing : seeds) {
+                if ((existing - candidate).norm() < adaptive_min_distance) {
+                    too_close = true;
+                    break;
+                }
+            }
+            
+            if (!too_close) {
+                seeds.push_back(candidate);
+            }
+        }
+        
+        // Fill remaining with relaxed constraints if needed
+        if (seeds.size() < size_t(num_seeds)) {
+            BOOST_LOG_TRIVIAL(info) << "generate_adaptive_seeds() - Filling remaining " 
+                                     << (num_seeds - seeds.size()) << " seeds with relaxed constraints";
+            
+            attempts = 0;
+            while (seeds.size() < size_t(num_seeds) && attempts < max_attempts) {
+                Vec3d point(dist_x(gen), dist_y(gen), dist_z(gen));
+                if (AABBTreeIndirect::is_inside(tree, mesh, point.cast<float>())) {
+                    seeds.push_back(point);
+                }
+                attempts++;
+            }
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "generate_adaptive_seeds() - Generated " << seeds.size() 
+                                 << " adaptive seeds (target: " << num_seeds << ")";
+        
         return seeds;
     }
 
@@ -1299,6 +1535,140 @@ namespace Slic3r {
 
         if (config.progress_callback)
             config.progress_callback(80);
+    }
+
+    // PHASE 5: Generate with statistics
+    std::unique_ptr<indexed_triangle_set> VoronoiMesh::generate_with_stats(
+        const indexed_triangle_set& input_mesh,
+        const Config& config,
+        Statistics& stats)
+    {
+        auto start_time = std::chrono::high_resolution_clock::now();
+        
+        // Generate the mesh
+        auto result = generate(input_mesh, config);
+        
+        auto end_time = std::chrono::high_resolution_clock::now();
+        stats.generation_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+            end_time - start_time).count();
+        
+        if (!result || result->vertices.empty()) {
+            return result;
+        }
+        
+        // Calculate statistics
+        stats.num_vertices = result->vertices.size();
+        stats.num_faces = result->indices.size();
+        
+        // Calculate edge statistics
+        std::set<std::pair<int, int>> unique_edges;
+        for (const auto& face : result->indices) {
+            for (int i = 0; i < 3; ++i) {
+                int v1 = face[i];
+                int v2 = face[(i + 1) % 3];
+                auto edge = (v1 < v2) ? std::make_pair(v1, v2) : std::make_pair(v2, v1);
+                unique_edges.insert(edge);
+            }
+        }
+        stats.num_edges = unique_edges.size();
+        
+        // Calculate edge lengths
+        if (!unique_edges.empty()) {
+            stats.min_edge_length = std::numeric_limits<float>::max();
+            stats.max_edge_length = 0.0f;
+            float total_edge_length = 0.0f;
+            
+            for (const auto& edge : unique_edges) {
+                Vec3f v1 = result->vertices[edge.first];
+                Vec3f v2 = result->vertices[edge.second];
+                float length = (v2 - v1).norm();
+                
+                stats.min_edge_length = std::min(stats.min_edge_length, length);
+                stats.max_edge_length = std::max(stats.max_edge_length, length);
+                total_edge_length += length;
+            }
+            
+            stats.avg_edge_length = total_edge_length / unique_edges.size();
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate_with_stats() - Statistics:";
+        BOOST_LOG_TRIVIAL(info) << "  Vertices: " << stats.num_vertices;
+        BOOST_LOG_TRIVIAL(info) << "  Faces: " << stats.num_faces;
+        BOOST_LOG_TRIVIAL(info) << "  Edges: " << stats.num_edges;
+        BOOST_LOG_TRIVIAL(info) << "  Edge length: " << stats.min_edge_length << " - " 
+                                 << stats.max_edge_length << " (avg: " << stats.avg_edge_length << ")";
+        BOOST_LOG_TRIVIAL(info) << "  Generation time: " << stats.generation_time_ms << "ms";
+        
+        return result;
+    }
+
+    // PHASE 5: Mesh validation
+    bool VoronoiMesh::validate_mesh(
+        const indexed_triangle_set& mesh,
+        std::vector<std::string>* issues)
+    {
+        bool is_valid = true;
+        
+        if (issues) {
+            issues->clear();
+        }
+        
+        // Check 1: Empty mesh
+        if (mesh.vertices.empty()) {
+            if (issues) issues->push_back("Mesh has no vertices");
+            return false;
+        }
+        
+        if (mesh.indices.empty()) {
+            if (issues) issues->push_back("Mesh has no faces");
+            return false;
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "validate_mesh() - Validating mesh with " 
+                                 << mesh.vertices.size() << " vertices and " 
+                                 << mesh.indices.size() << " faces";
+        
+        // Check 2: Invalid face indices
+        for (size_t i = 0; i < mesh.indices.size(); ++i) {
+            const auto& face = mesh.indices[i];
+            for (int j = 0; j < 3; ++j) {
+                if (face[j] < 0 || face[j] >= static_cast<int>(mesh.vertices.size())) {
+                    if (issues) {
+                        issues->push_back("Face " + std::to_string(i) + " has invalid vertex index: " + std::to_string(face[j]));
+                    }
+                    is_valid = false;
+                }
+            }
+        }
+        
+        // Check 3: Degenerate faces
+        int degenerate_count = 0;
+        for (size_t i = 0; i < mesh.indices.size(); ++i) {
+            const auto& face = mesh.indices[i];
+            const Vec3f& v0 = mesh.vertices[face[0]];
+            const Vec3f& v1 = mesh.vertices[face[1]];
+            const Vec3f& v2 = mesh.vertices[face[2]];
+            
+            Vec3f edge1 = v1 - v0;
+            Vec3f edge2 = v2 - v0;
+            float area = 0.5f * edge1.cross(edge2).norm();
+            
+            if (area < 1e-8f) {
+                degenerate_count++;
+            }
+        }
+        
+        if (degenerate_count > 0) {
+            if (issues) {
+                issues->push_back("Total degenerate faces: " + std::to_string(degenerate_count));
+            }
+            is_valid = false;
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "validate_mesh() - Validation complete: " << (is_valid ? "VALID" : "INVALID");
+        BOOST_LOG_TRIVIAL(info) << "  Degenerate faces: " << degenerate_count;
+        
+        return is_valid;
     }
 
 } // namespace Slic3r
