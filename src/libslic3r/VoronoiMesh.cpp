@@ -755,49 +755,43 @@ namespace Slic3r {
             return;
         }
 
-        // Extract unique Voronoi edges (circumcenters of adjacent tetrahedra)
-        // In the Voronoi diagram, edges connect circumcenters of adjacent Delaunay cells
+        // Extract Voronoi edges - CORRECT DUAL: Delaunay FACETS -> Voronoi EDGES
+        // Each Delaunay facet (triangular face) is shared by two tetrahedra
+        // The Voronoi edge connects the circumcenters of these two tetrahedra
         std::set<std::pair<Point_3, Point_3>> unique_edges;
         std::map<Point_3, std::vector<Point_3>> vertex_connections;  // Track which edges meet at each vertex
 
-        // Iterate over all finite edges in the Delaunay triangulation
-        for (auto eit = dt.finite_edges_begin(); eit != dt.finite_edges_end(); ++eit) {
-            // Get the two cells incident to this edge
-            Delaunay::Cell_handle cell = eit->first;
-            int i = eit->second;
-            int j = eit->third;
+        // Iterate over all finite FACETS in the Delaunay triangulation
+        for (auto fit = dt.finite_facets_begin(); fit != dt.finite_facets_end(); ++fit) {
+            // A facet is a pair (Cell_handle c, int i) where i is the index of the opposite vertex
+            Delaunay::Cell_handle cell1 = fit->first;
+            int facet_index = fit->second;
 
-            // Collect all cells that share this edge
-            std::vector<Delaunay::Cell_handle> incident_cells;
-            dt.incident_cells(*eit, std::back_inserter(incident_cells));
+            // Get the neighboring cell across this facet
+            Delaunay::Cell_handle cell2 = cell1->neighbor(facet_index);
 
-            // The incident cells form a cycle around the edge
-            // Create Voronoi edges between consecutive cells in this cycle
-            for (size_t k = 0; k < incident_cells.size(); ++k) {
-                auto cell1 = incident_cells[k];
-                auto cell2 = incident_cells[(k + 1) % incident_cells.size()];
+            // Both cells must be finite (not infinite)
+            if (!dt.is_infinite(cell1) && !dt.is_infinite(cell2)) {
+                // Get circumcenters (Voronoi vertices)
+                Point_3 cc1 = cell1->circumcenter();
+                Point_3 cc2 = cell2->circumcenter();
 
-                if (!dt.is_infinite(cell1) && !dt.is_infinite(cell2)) {
-                    Point_3 cc1 = cell1->circumcenter();
-                    Point_3 cc2 = cell2->circumcenter();
+                // Relaxed bounds check (allow circumcenters slightly outside)
+                double margin = (bounds.max - bounds.min).norm() * 0.5;
+                if (cc1.x() >= bounds.min.x() - margin && cc1.x() <= bounds.max.x() + margin &&
+                    cc1.y() >= bounds.min.y() - margin && cc1.y() <= bounds.max.y() + margin &&
+                    cc1.z() >= bounds.min.z() - margin && cc1.z() <= bounds.max.z() + margin &&
+                    cc2.x() >= bounds.min.x() - margin && cc2.x() <= bounds.max.x() + margin &&
+                    cc2.y() >= bounds.min.y() - margin && cc2.y() <= bounds.max.y() + margin &&
+                    cc2.z() >= bounds.min.z() - margin && cc2.z() <= bounds.max.z() + margin) {
 
-                    // Relaxed bounds check (allow circumcenters slightly outside)
-                    double margin = (bounds.max - bounds.min).norm() * 0.5;
-                    if (cc1.x() >= bounds.min.x() - margin && cc1.x() <= bounds.max.x() + margin &&
-                        cc1.y() >= bounds.min.y() - margin && cc1.y() <= bounds.max.y() + margin &&
-                        cc1.z() >= bounds.min.z() - margin && cc1.z() <= bounds.max.z() + margin &&
-                        cc2.x() >= bounds.min.x() - margin && cc2.x() <= bounds.max.x() + margin &&
-                        cc2.y() >= bounds.min.y() - margin && cc2.y() <= bounds.max.y() + margin &&
-                        cc2.z() >= bounds.min.z() - margin && cc2.z() <= bounds.max.z() + margin) {
+                    // Store edge (ensure consistent ordering to avoid duplicates)
+                    auto edge = (cc1 < cc2) ? std::make_pair(cc1, cc2) : std::make_pair(cc2, cc1);
+                    unique_edges.insert(edge);
 
-                        // Store edge (ensure consistent ordering)
-                        auto edge = (cc1 < cc2) ? std::make_pair(cc1, cc2) : std::make_pair(cc2, cc1);
-                        unique_edges.insert(edge);
-
-                        // Track vertex connections for proper junctions
-                        vertex_connections[cc1].push_back(cc2);
-                        vertex_connections[cc2].push_back(cc1);
-                    }
+                    // Track vertex connections for proper junctions
+                    vertex_connections[cc1].push_back(cc2);
+                    vertex_connections[cc2].push_back(cc1);
                 }
             }
         }
