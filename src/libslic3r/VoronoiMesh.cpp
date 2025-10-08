@@ -1537,15 +1537,79 @@ namespace Slic3r {
             config.progress_callback(80);
     }
 
-    // PHASE 5: Generate with statistics
+    // PHASE 5: Generate with statistics using Voro++
     std::unique_ptr<indexed_triangle_set> VoronoiMesh::generate_with_stats(
         const indexed_triangle_set& input_mesh,
         const Config& config,
         Statistics& stats)
     {
+        using namespace voro;
+        
         auto start_time = std::chrono::high_resolution_clock::now();
         
-        // Generate the mesh
+        // Generate seed points first
+        std::vector<Vec3d> seed_points = generate_seed_points(input_mesh, config);
+        
+        if (seed_points.empty()) {
+            BOOST_LOG_TRIVIAL(error) << "generate_with_stats() - No seed points generated";
+            return nullptr;
+        }
+        
+        // Compute bounding box
+        BoundingBoxf3 bbox;
+        for (const auto& v : input_mesh.vertices) {
+            bbox.merge(v.cast<double>());
+        }
+        
+        // Create Voro++ container to compute cell statistics
+        int grid_size = std::max(3, int(std::cbrt(seed_points.size()) + 0.5));
+        container con(
+            bbox.min.x(), bbox.max.x(),
+            bbox.min.y(), bbox.max.y(),
+            bbox.min.z(), bbox.max.z(),
+            grid_size, grid_size, grid_size,
+            false, false, false,
+            8
+        );
+        
+        // Insert seeds into Voro++ container
+        for (size_t i = 0; i < seed_points.size(); ++i) {
+            const Vec3d& p = seed_points[i];
+            con.put(i, p.x(), p.y(), p.z());
+        }
+        
+        // Compute Voronoi cell statistics
+        c_loop_all vl(con);
+        voronoicell_neighbor cell;
+        
+        stats.num_cells = 0;
+        stats.min_cell_volume = std::numeric_limits<float>::max();
+        stats.max_cell_volume = 0.0f;
+        stats.total_volume = 0.0f;
+        
+        if (vl.start()) do {
+            if (con.compute_cell(cell, vl)) {
+                stats.num_cells++;
+                
+                // Get cell volume
+                double volume = cell.volume();
+                stats.min_cell_volume = std::min(stats.min_cell_volume, float(volume));
+                stats.max_cell_volume = std::max(stats.max_cell_volume, float(volume));
+                stats.total_volume += float(volume);
+            }
+        } while (vl.inc());
+        
+        if (stats.num_cells > 0) {
+            stats.avg_cell_volume = stats.total_volume / stats.num_cells;
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "generate_with_stats() - Voro++ statistics:";
+        BOOST_LOG_TRIVIAL(info) << "  Cells: " << stats.num_cells;
+        BOOST_LOG_TRIVIAL(info) << "  Cell volume: " << stats.min_cell_volume << " - " 
+                                 << stats.max_cell_volume << " (avg: " << stats.avg_cell_volume << ")";
+        BOOST_LOG_TRIVIAL(info) << "  Total volume: " << stats.total_volume;
+        
+        // Now generate the actual mesh
         auto result = generate(input_mesh, config);
         
         auto end_time = std::chrono::high_resolution_clock::now();
@@ -1556,7 +1620,7 @@ namespace Slic3r {
             return result;
         }
         
-        // Calculate statistics
+        // Calculate mesh statistics
         stats.num_vertices = result->vertices.size();
         stats.num_faces = result->indices.size();
         
@@ -1591,7 +1655,7 @@ namespace Slic3r {
             stats.avg_edge_length = total_edge_length / unique_edges.size();
         }
         
-        BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate_with_stats() - Statistics:";
+        BOOST_LOG_TRIVIAL(info) << "generate_with_stats() - Mesh statistics:";
         BOOST_LOG_TRIVIAL(info) << "  Vertices: " << stats.num_vertices;
         BOOST_LOG_TRIVIAL(info) << "  Faces: " << stats.num_faces;
         BOOST_LOG_TRIVIAL(info) << "  Edges: " << stats.num_edges;
