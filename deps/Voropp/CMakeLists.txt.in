@@ -43,6 +43,9 @@ set(VOROPP_HEADERS
 # Build static library
 add_library(voropp STATIC ${VOROPP_SOURCES})
 
+# Create alias for namespaced target
+add_library(voropp::voropp ALIAS voropp)
+
 target_include_directories(voropp PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:include>

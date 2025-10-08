@@ -105,15 +105,12 @@ namespace Slic3r {
             float wall_thickness
         );
 
-        // Create wireframe structure from Voronoi edges
-        static void create_edge_structure(
-            indexed_triangle_set& result,
+        // Create wireframe structure from Voro++ edge data
+        static std::unique_ptr<indexed_triangle_set> create_wireframe_from_voropp(
             const std::vector<Vec3d>& seed_points,
             const BoundingBoxf3& bounds,
-            float edge_thickness,
-            EdgeShape edge_shape,
-            int edge_segments,
-            const Config& config
+            const Config& config,
+            const indexed_triangle_set* clip_mesh
         );
     };
 

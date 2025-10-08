@@ -235,65 +235,84 @@ namespace Slic3r::GUI {
         ImGui::InputInt("##num_seeds_input", &m_configuration.num_seeds);
         m_configuration.num_seeds = std::max(10, std::min(500, m_configuration.num_seeds));
 
-        // Wall thickness
-        ImGui::Text("%s:", tr_wall_thickness.c_str());
-        ImGui::SliderFloat("##wall_thickness", &m_configuration.wall_thickness, 0.1f, 5.0f);
+        // Wall thickness (only for solid cells)
+        if (!m_configuration.hollow_cells) {
+            ImGui::Text("%s:", tr_wall_thickness.c_str());
+            ImGui::SliderFloat("##wall_thickness", &m_configuration.wall_thickness, 0.0f, 5.0f);
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s", into_u8(_u8L("Shell thickness for solid cells (0 = completely solid)")).c_str());
+            }
+        }
 
-        // Edge thickness (branches/struts)
-        ImGui::Text("%s:", into_u8(_u8L("Edge thickness")).c_str());
-        ImGui::SliderFloat("##edge_thickness", &m_configuration.edge_thickness, 0.1f, 5.0f);
+        // Edge thickness (only for wireframe)
+        if (m_configuration.hollow_cells) {
+            ImGui::Text("%s:", into_u8(_u8L("Edge thickness")).c_str());
+            ImGui::SliderFloat("##edge_thickness", &m_configuration.edge_thickness, 0.1f, 5.0f);
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s", into_u8(_u8L("Thickness of wireframe struts between Voronoi vertices")).c_str());
+            }
+
+            // Edge shape selection (only for wireframe)
+            ImGui::Text("%s:", into_u8(_u8L("Edge shape")).c_str());
+            const char* edge_shapes[] = { "Cylinder", "Square", "Hexagon", "Octagon", "Star" };
+            int current_shape = static_cast<int>(m_configuration.edge_shape);
+            if (ImGui::Combo("##edge_shape", &current_shape, edge_shapes, IM_ARRAYSIZE(edge_shapes))) {
+                m_configuration.edge_shape = static_cast<Configuration::EdgeShape>(current_shape);
+            }
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s", into_u8(_u8L("Cross-section shape of wireframe struts")).c_str());
+            }
+
+            // Edge detail/segments (only for wireframe)
+            ImGui::Text("%s:", into_u8(_u8L("Edge detail")).c_str());
+            ImGui::SliderInt("##edge_segments", &m_configuration.edge_segments, 3, 32);
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s", into_u8(_u8L("Number of segments for edge cross-section (higher = smoother)")).c_str());
+            }
+
+            // Edge curvature control (only for wireframe)
+            ImGui::Text("%s:", into_u8(_u8L("Edge curvature")).c_str());
+            ImGui::SliderFloat("##edge_curvature", &m_configuration.edge_curvature, 0.0f, 1.0f, "%.2f");
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s", into_u8(_u8L("Amount of curve/bend in struts (0 = straight, 1 = maximum curve)")).c_str());
+            }
+
+            // Edge subdivisions control (only for wireframe)
+            ImGui::Text("%s:", into_u8(_u8L("Edge subdivisions")).c_str());
+            ImGui::SliderInt("##edge_subdivisions", &m_configuration.edge_subdivisions, 0, 10);
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s", into_u8(_u8L("Number of curve segments per edge (0 = straight, higher = smoother curves)")).c_str());
+            }
+        }
+
+        // Cell generation mode toggle with info
+        ImGui::Text("%s:", into_u8(_u8L("Structure")).c_str());
         if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("%s", into_u8(_u8L("Thickness of wireframe edges between Voronoi vertices")).c_str());
+            ImGui::SetTooltip("%s", into_u8(_u8L("Choose between solid Voronoi cells or wireframe edges\nBoth modes use Voro++ for fast generation!")).c_str());
         }
 
-        // Edge shape selection
-        ImGui::Text("%s:", into_u8(_u8L("Edge shape")).c_str());
-        const char* edge_shapes[] = { "Cylinder", "Square", "Hexagon", "Octagon", "Star" };
-        int current_shape = static_cast<int>(m_configuration.edge_shape);
-        if (ImGui::Combo("##edge_shape", &current_shape, edge_shapes, IM_ARRAYSIZE(edge_shapes))) {
-            m_configuration.edge_shape = static_cast<Configuration::EdgeShape>(current_shape);
-        }
-        if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("%s", into_u8(_u8L("Cross-section shape of struts")).c_str());
-        }
-
-        // Edge detail/segments (for custom complexity)
-        ImGui::Text("%s:", into_u8(_u8L("Edge detail")).c_str());
-        ImGui::SliderInt("##edge_segments", &m_configuration.edge_segments, 3, 32);
-        if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("%s", into_u8(_u8L("Number of segments for edge cross-section (higher = smoother)")).c_str());
-        }
-
-        // Edge curvature control
-        ImGui::Text("%s:", into_u8(_u8L("Edge curvature")).c_str());
-        ImGui::SliderFloat("##edge_curvature", &m_configuration.edge_curvature, 0.0f, 1.0f, "%.2f");
-        if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("%s", into_u8(_u8L("Amount of curve/bend in struts (0 = straight, 1 = maximum curve)")).c_str());
-        }
-
-        // Edge subdivisions control
-        ImGui::Text("%s:", into_u8(_u8L("Edge subdivisions")).c_str());
-        ImGui::SliderInt("##edge_subdivisions", &m_configuration.edge_subdivisions, 0, 10);
-        if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("%s", into_u8(_u8L("Number of curve segments per edge (0 = straight, higher = smoother curves)")).c_str());
-        }
-
-        // Hollow / solid toggle
-        ImGui::Text("Cells:");
-        ImGui::SameLine();
-        if (ImGui::RadioButton("Solid", !m_configuration.hollow_cells)) {
+        if (ImGui::RadioButton(into_u8(_u8L("Solid cells")).c_str(), !m_configuration.hollow_cells)) {
             m_configuration.hollow_cells = false;
         }
         if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("%s", into_u8(_u8L("Fill Voronoi cells (future feature)")).c_str());
+            ImGui::SetTooltip("%s", into_u8(_u8L("Generate solid polyhedral Voronoi cells\n(Voro++ tessellation)")).c_str());
         }
         ImGui::SameLine();
-        if (ImGui::RadioButton("Hollow", m_configuration.hollow_cells)) {
+        if (ImGui::RadioButton(into_u8(_u8L("Wireframe")).c_str(), m_configuration.hollow_cells)) {
             m_configuration.hollow_cells = true;
         }
         if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("%s", into_u8(_u8L("Only wireframe edges, no cell filling (current mode)")).c_str());
+            ImGui::SetTooltip("%s", into_u8(_u8L("Generate Voronoi wireframe structure\n(Voro++ cell edges)")).c_str());
         }
+
+        // Show current mode info
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.8f, 0.4f, 1.0f));
+        if (m_configuration.hollow_cells) {
+            ImGui::TextWrapped("Mode: Voro++ wireframe (edges from cell faces)");
+        } else {
+            ImGui::TextWrapped("Mode: Voro++ solid cells (polyhedral tessellation)");
+        }
+        ImGui::PopStyleColor();
 
         ImGui::Separator();
 

@@ -224,35 +224,54 @@ namespace Slic3r {
     {
         std::vector<Vec3d> seeds;
 
-        // Compute bounding box and shrink slightly to keep seeds inside
+        // Compute bounding box
         BoundingBoxf3 bbox;
         for (const auto& v : mesh.vertices) {
             bbox.merge(v.cast<double>());
         }
 
-        // Shrink bbox by 10% to keep seeds away from boundary
-        Vec3d shrink = bbox.size() * 0.1;
-        bbox.min += shrink;
-        bbox.max -= shrink;
-
-        // Calculate grid dimensions
-        int dim = std::max(2, int(std::cbrt(double(num_seeds)) + 0.5));
+        // Calculate grid dimensions - generate more candidates than needed for filtering
+        int dim = std::max(2, int(std::cbrt(double(num_seeds * 3)) + 0.5));
 
         Vec3d size = bbox.size();
         Vec3d step = size / double(dim - 1);
 
-        seeds.reserve(dim * dim * dim);
+        // Build AABB tree for point-in-mesh testing
+        AABBTreeIndirect::Tree3f tree;
+        tree.init_3d_tree(mesh);
+
+        std::vector<Vec3d> candidates;
+        candidates.reserve(dim * dim * dim);
+
         for (int x = 0; x < dim; ++x) {
             for (int y = 0; y < dim; ++y) {
                 for (int z = 0; z < dim; ++z) {
                     Vec3d point = bbox.min + Vec3d(x * step.x(), y * step.y(), z * step.z());
-                    seeds.push_back(point);
+
+                    // Test if point is inside mesh using AABBTree
+                    if (AABBTreeIndirect::is_inside(tree, mesh, point.cast<float>())) {
+                        candidates.push_back(point);
+                    }
                 }
             }
         }
 
+        // If we got enough seeds, use them directly
+        if (candidates.size() <= size_t(num_seeds)) {
+            BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Generated " << candidates.size()
+                                     << " grid seeds (all inside mesh)";
+            return candidates;
+        }
+
+        // Otherwise, uniformly sample from candidates
+        seeds.reserve(num_seeds);
+        int step_size = std::max(1, int(candidates.size()) / num_seeds);
+        for (size_t i = 0; i < candidates.size() && seeds.size() < size_t(num_seeds); i += step_size) {
+            seeds.push_back(candidates[i]);
+        }
+
         BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Generated " << seeds.size()
-                                 << " grid seeds in shrunk bbox";
+                                 << " grid seeds from " << candidates.size() << " candidates (all inside mesh)";
 
         return seeds;
     }
@@ -264,16 +283,11 @@ namespace Slic3r {
     {
         std::vector<Vec3d> seeds;
 
-        // Compute bounding box and shrink slightly to keep seeds inside
+        // Compute bounding box
         BoundingBoxf3 bbox;
         for (const auto& v : mesh.vertices) {
             bbox.merge(v.cast<double>());
         }
-
-        // Shrink bbox by 10% to keep seeds away from boundary
-        Vec3d shrink = bbox.size() * 0.1;
-        bbox.min += shrink;
-        bbox.max -= shrink;
 
         // Use provided seed for reproducibility
         std::mt19937 gen(random_seed);
@@ -282,13 +296,32 @@ namespace Slic3r {
         std::uniform_real_distribution<double> dist_y(bbox.min.y(), bbox.max.y());
         std::uniform_real_distribution<double> dist_z(bbox.min.z(), bbox.max.z());
 
+        // Build AABB tree for point-in-mesh testing
+        AABBTreeIndirect::Tree3f tree;
+        tree.init_3d_tree(mesh);
+
         seeds.reserve(num_seeds);
-        for (int i = 0; i < num_seeds; ++i) {
-            seeds.emplace_back(dist_x(gen), dist_y(gen), dist_z(gen));
+        int attempts = 0;
+        int max_attempts = num_seeds * 100; // Prevent infinite loop for very sparse meshes
+
+        while (seeds.size() < size_t(num_seeds) && attempts < max_attempts) {
+            Vec3d point(dist_x(gen), dist_y(gen), dist_z(gen));
+
+            // Test if point is inside mesh using AABBTree
+            if (AABBTreeIndirect::is_inside(tree, mesh, point.cast<float>())) {
+                seeds.push_back(point);
+            }
+
+            ++attempts;
         }
 
-        BOOST_LOG_TRIVIAL(info) << "generate_random_seeds() - Generated " << seeds.size()
-                                 << " random seeds in shrunk bbox";
+        if (seeds.size() < size_t(num_seeds)) {
+            BOOST_LOG_TRIVIAL(warning) << "generate_random_seeds() - Only generated " << seeds.size()
+                                        << " seeds (target: " << num_seeds << ") after " << attempts << " attempts";
+        } else {
+            BOOST_LOG_TRIVIAL(info) << "generate_random_seeds() - Generated " << seeds.size()
+                                     << " random seeds (all inside mesh) in " << attempts << " attempts";
+        }
 
         return seeds;
     }
@@ -299,7 +332,7 @@ namespace Slic3r {
         const Config& config,
         const indexed_triangle_set* clip_mesh)
     {
-        BOOST_LOG_TRIVIAL(info) << "tessellate_voronoi_cells() - START with " << seed_points.size() << " seeds";
+        BOOST_LOG_TRIVIAL(info) << "tessellate_voronoi_cells() - START with " << seed_points.size() << " seeds, hollow_cells=" << config.hollow_cells;
 
         if (seed_points.empty()) {
             return std::make_unique<indexed_triangle_set>();
@@ -308,7 +341,16 @@ namespace Slic3r {
         if (config.progress_callback && !config.progress_callback(25))
             return nullptr;
 
-        return tessellate_voronoi_with_voropp(seed_points, bounds, config, clip_mesh);
+        // Both modes now use Voro++ - it's faster and provides all data we need!
+        if (config.hollow_cells) {
+            // Hollow/Wireframe mode: Extract edges from Voro++ cells
+            BOOST_LOG_TRIVIAL(info) << "tessellate_voronoi_cells() - Using Voro++ for wireframe edge extraction";
+            return create_wireframe_from_voropp(seed_points, bounds, config, clip_mesh);
+        } else {
+            // Solid cells mode: Generate polyhedral cells using Voro++
+            BOOST_LOG_TRIVIAL(info) << "tessellate_voronoi_cells() - Using Voro++ for solid polyhedral cells";
+            return tessellate_voronoi_with_voropp(seed_points, bounds, config, clip_mesh);
+        }
     }
 
     // Voro++ implementation - FAST!
@@ -363,6 +405,9 @@ namespace Slic3r {
             }
 
             if (con.compute_cell(cell, vl)) {
+                // Create a separate mesh for this cell
+                indexed_triangle_set cell_mesh;
+
                 // Get cell vertices
                 std::vector<double> verts;
                 cell.vertices(vl.x(), vl.y(), vl.z(), verts);
@@ -373,12 +418,9 @@ namespace Slic3r {
                 cell.face_vertices(face_vertices);
                 cell.face_orders(face_orders);
 
-                // Convert Voro++ cell to triangulated mesh
-                size_t vertex_offset = result->vertices.size();
-
                 // Add vertices (verts contains x1,y1,z1,x2,y2,z2,...)
                 for (size_t i = 0; i + 2 < verts.size(); i += 3) {
-                    result->vertices.emplace_back(
+                    cell_mesh.vertices.emplace_back(
                         float(verts[i]),
                         float(verts[i + 1]),
                         float(verts[i + 2])
@@ -395,20 +437,320 @@ namespace Slic3r {
                             int v1 = face_vertices[face_start + j];
                             int v2 = face_vertices[face_start + j + 1];
 
-                            result->indices.emplace_back(
-                                v0 + vertex_offset,
-                                v1 + vertex_offset,
-                                v2 + vertex_offset
-                            );
+                            cell_mesh.indices.emplace_back(v0, v1, v2);
                         }
                     }
                     face_start += face_order;
+                }
+
+                // Clip cell to input mesh if provided
+                if (clip_mesh && !clip_mesh->vertices.empty()) {
+                    try {
+                        // Perform boolean intersection: cell ∩ original_mesh
+                        MeshBoolean::cgal::intersect(cell_mesh, *clip_mesh);
+
+                        // Skip cells that were completely outside the mesh
+                        if (cell_mesh.vertices.empty() || cell_mesh.indices.empty()) {
+                            continue;
+                        }
+                    }
+                    catch (const std::exception& e) {
+                        BOOST_LOG_TRIVIAL(warning) << "Voro++: Failed to clip cell " << processed
+                                                   << " - " << e.what() << " - using unclipped cell";
+                    }
+                    catch (...) {
+                        BOOST_LOG_TRIVIAL(warning) << "Voro++: Failed to clip cell " << processed
+                                                   << " - using unclipped cell";
+                    }
+                }
+
+                // Apply hollowing for solid cells with wall thickness
+                // NOTE: If hollow_cells is true, we're in wireframe mode, not here
+                if (!config.hollow_cells && config.wall_thickness > 0.0f) {
+                    // Create shell with inward offset (for solid cells that need hollowing)
+                    create_hollow_cells(cell_mesh, config.wall_thickness);
+                }
+                // If hollow_cells is true, this path shouldn't be reached (we use wireframe instead)
+
+                // Merge this cell into the result
+                size_t vertex_offset = result->vertices.size();
+
+                result->vertices.insert(result->vertices.end(),
+                                       cell_mesh.vertices.begin(),
+                                       cell_mesh.vertices.end());
+
+                for (const auto& face : cell_mesh.indices) {
+                    result->indices.emplace_back(
+                        face(0) + vertex_offset,
+                        face(1) + vertex_offset,
+                        face(2) + vertex_offset
+                    );
                 }
             }
         } while (vl.inc());
 
         BOOST_LOG_TRIVIAL(info) << "Voro++: Generated " << result->vertices.size() << " vertices, "
                                  << result->indices.size() << " faces";
+
+        return result;
+    }
+
+    // Extract wireframe edges directly from Voro++ cells (MUCH faster than CGAL Delaunay!)
+    std::unique_ptr<indexed_triangle_set> VoronoiMesh::create_wireframe_from_voropp(
+        const std::vector<Vec3d>& seed_points,
+        const BoundingBoxf3& bounds,
+        const Config& config,
+        const indexed_triangle_set* clip_mesh)
+    {
+        using namespace voro;
+
+        BOOST_LOG_TRIVIAL(info) << "create_wireframe_from_voropp() - START, seeds: " << seed_points.size();
+
+        auto result = std::make_unique<indexed_triangle_set>();
+
+        if (seed_points.empty() || config.edge_thickness <= 0.0f) {
+            BOOST_LOG_TRIVIAL(warning) << "create_wireframe_from_voropp() - Invalid parameters";
+            return result;
+        }
+
+        // Create Voro++ container
+        int grid_size = std::max(3, int(std::cbrt(seed_points.size()) + 0.5));
+        container con(
+            bounds.min.x(), bounds.max.x(),
+            bounds.min.y(), bounds.max.y(),
+            bounds.min.z(), bounds.max.z(),
+            grid_size, grid_size, grid_size,
+            false, false, false,
+            8
+        );
+
+        // Insert seed points
+        BOOST_LOG_TRIVIAL(info) << "Voro++ Wireframe: Inserting " << seed_points.size() << " particles";
+        for (size_t i = 0; i < seed_points.size(); ++i) {
+            const Vec3d& p = seed_points[i];
+            con.put(i, p.x(), p.y(), p.z());
+        }
+
+        if (config.progress_callback && !config.progress_callback(35))
+            return nullptr;
+
+        // Extract Voronoi edges from cells
+        // Key insight: Each cell face edge is a Voronoi edge
+        std::set<std::pair<Vec3d, Vec3d>> unique_edges;
+        std::map<Vec3d, std::vector<Vec3d>, 
+                 std::function<bool(const Vec3d&, const Vec3d&)>> 
+            vertex_connections([](const Vec3d& a, const Vec3d& b) {
+                if (std::abs(a.x() - b.x()) > 1e-9) return a.x() < b.x();
+                if (std::abs(a.y() - b.y()) > 1e-9) return a.y() < b.y();
+                return a.z() < b.z();
+            });
+
+        c_loop_all vl(con);
+        voronoicell_neighbor cell;
+
+        int processed = 0;
+        int total = seed_points.size();
+
+        BOOST_LOG_TRIVIAL(info) << "Voro++ Wireframe: Extracting edges from cells";
+
+        if (vl.start()) do {
+            processed++;
+            if (processed % 10 == 0) {
+                int progress = 35 + (processed * 35) / total;
+                if (config.progress_callback && !config.progress_callback(progress))
+                    return nullptr;
+            }
+
+            if (con.compute_cell(cell, vl)) {
+                // Get vertices of this cell
+                std::vector<double> verts;
+                cell.vertices(vl.x(), vl.y(), vl.z(), verts);
+
+                std::vector<Vec3d> cell_vertices;
+                for (size_t i = 0; i + 2 < verts.size(); i += 3) {
+                    cell_vertices.emplace_back(verts[i], verts[i + 1], verts[i + 2]);
+                }
+
+                // Get face information
+                std::vector<int> face_vertices_indices;
+                std::vector<int> face_orders;
+                cell.face_vertices(face_vertices_indices);
+                cell.face_orders(face_orders);
+
+                // Extract edges from face perimeters
+                int vertex_idx = 0;
+                for (int face_order : face_orders) {
+                    for (int v = 0; v < face_order; ++v) {
+                        int v_next = (v + 1) % face_order;
+                        int vi1 = face_vertices_indices[vertex_idx + v];
+                        int vi2 = face_vertices_indices[vertex_idx + v_next];
+
+                        if (vi1 < (int)cell_vertices.size() && vi2 < (int)cell_vertices.size()) {
+                            Vec3d p1 = cell_vertices[vi1];
+                            Vec3d p2 = cell_vertices[vi2];
+
+                            // Store edge with consistent ordering
+                            auto edge = (p1.x() < p2.x() || (p1.x() == p2.x() && p1.y() < p2.y()) || 
+                                       (p1.x() == p2.x() && p1.y() == p2.y() && p1.z() < p2.z()))
+                                ? std::make_pair(p1, p2) : std::make_pair(p2, p1);
+                            unique_edges.insert(edge);
+
+                            // Track connections
+                            vertex_connections[p1].push_back(p2);
+                            vertex_connections[p2].push_back(p1);
+                        }
+                    }
+                    vertex_idx += face_order;
+                }
+            }
+        } while (vl.inc());
+
+        BOOST_LOG_TRIVIAL(info) << "Voro++ Wireframe: Found " << unique_edges.size() << " edges, " 
+                                 << vertex_connections.size() << " vertices";
+
+        if (config.progress_callback && !config.progress_callback(70))
+            return nullptr;
+
+        // Generate strut geometry
+        const float radius = config.edge_thickness * 0.5f;
+
+        auto get_profile_point = [&](int i, float r) -> Vec3d {
+            float angle = (2.0f * M_PI * i) / config.edge_segments;
+            switch (config.edge_shape) {
+                case EdgeShape::Square: {
+                    float t = fmod(angle / (M_PI / 2.0f), 4.0f);
+                    int side = int(t);
+                    float blend = t - side;
+                    float x, y;
+                    switch (side) {
+                        case 0: x = 1.0f; y = blend * 2.0f - 1.0f; break;
+                        case 1: x = 1.0f - blend * 2.0f; y = 1.0f; break;
+                        case 2: x = -1.0f; y = 1.0f - blend * 2.0f; break;
+                        default: x = blend * 2.0f - 1.0f; y = -1.0f; break;
+                    }
+                    return Vec3d(x * r, y * r, 0);
+                }
+                case EdgeShape::Hexagon:
+                case EdgeShape::Octagon: {
+                    int sides = (config.edge_shape == EdgeShape::Hexagon) ? 6 : 8;
+                    float snap_angle = std::round(angle / (2.0f * M_PI / sides)) * (2.0f * M_PI / sides);
+                    return Vec3d(r * std::cos(snap_angle), r * std::sin(snap_angle), 0);
+                }
+                case EdgeShape::Star: {
+                    int point = int(angle / (2.0f * M_PI / 10.0f));
+                    float point_angle = point * (2.0f * M_PI / 10.0f);
+                    float next_angle = (point + 1) * (2.0f * M_PI / 10.0f);
+                    float blend = (angle - point_angle) / (next_angle - point_angle);
+                    float r1 = (point % 2 == 0) ? r : r * 0.4f;
+                    float r2 = (point % 2 == 0) ? r * 0.4f : r;
+                    float current_r = r1 * (1.0f - blend) + r2 * blend;
+                    return Vec3d(current_r * std::cos(angle), current_r * std::sin(angle), 0);
+                }
+                default:
+                    return Vec3d(r * std::cos(angle), r * std::sin(angle), 0);
+            }
+        };
+
+        // Create struts for each edge
+        for (const auto& edge : unique_edges) {
+            Vec3d p1 = edge.first;
+            Vec3d p2 = edge.second;
+            Vec3d dir = (p2 - p1).normalized();
+            float length = (p2 - p1).norm();
+            if (length < 1e-6) continue;
+
+            std::vector<Vec3d> curve_points;
+            int num_segments = config.edge_subdivisions + 1;
+
+            if (config.edge_subdivisions == 0 || config.edge_curvature <= 0.0f) {
+                curve_points.push_back(p1);
+                curve_points.push_back(p2);
+            } else {
+                Vec3d midpoint = (p1 + p2) * 0.5;
+                Vec3d curve_perp = (std::abs(dir.z()) < 0.9) ? dir.cross(Vec3d(0, 0, 1)).normalized() 
+                                                              : dir.cross(Vec3d(1, 0, 0)).normalized();
+                float offset_amount = length * config.edge_curvature * 0.5f;
+                Vec3d control_point = midpoint + curve_perp * offset_amount;
+
+                for (int s = 0; s <= num_segments; ++s) {
+                    float t = float(s) / float(num_segments);
+                    float b0 = (1.0f - t) * (1.0f - t);
+                    float b1 = 2.0f * (1.0f - t) * t;
+                    float b2 = t * t;
+                    curve_points.push_back(p1 * b0 + control_point * b1 + p2 * b2);
+                }
+            }
+
+            for (size_t seg = 0; seg < curve_points.size() - 1; ++seg) {
+                Vec3d seg_p1 = curve_points[seg];
+                Vec3d seg_p2 = curve_points[seg + 1];
+                Vec3d seg_dir = (seg_p2 - seg_p1).normalized();
+                Vec3d perp1 = (std::abs(seg_dir.z()) < 0.9) ? seg_dir.cross(Vec3d(0, 0, 1)).normalized() 
+                                                             : seg_dir.cross(Vec3d(1, 0, 0)).normalized();
+                Vec3d perp2 = seg_dir.cross(perp1).normalized();
+                size_t base_idx = result->vertices.size();
+
+                for (int i = 0; i <= config.edge_segments; ++i) {
+                    Vec3d profile = get_profile_point(i, radius);
+                    Vec3d offset = perp1 * profile.x() + perp2 * profile.y();
+                    result->vertices.emplace_back((seg_p1 + offset).cast<float>());
+                    result->vertices.emplace_back((seg_p2 + offset).cast<float>());
+                }
+
+                for (int i = 0; i < config.edge_segments; ++i) {
+                    int i0 = base_idx + i * 2;
+                    int i1 = base_idx + i * 2 + 1;
+                    int i2 = base_idx + (i + 1) * 2;
+                    int i3 = base_idx + (i + 1) * 2 + 1;
+                    result->indices.emplace_back(i0, i2, i1);
+                    result->indices.emplace_back(i1, i2, i3);
+                }
+            }
+        }
+
+        // Create junctions
+        for (const auto& [vertex, connections] : vertex_connections) {
+            if (connections.size() < 2) continue;
+            const int sphere_rings = 4, sphere_segments = 8;
+            size_t base_idx = result->vertices.size();
+            result->vertices.emplace_back(vertex.cast<float>());
+
+            for (int ring = 1; ring <= sphere_rings; ++ring) {
+                float phi = M_PI * float(ring) / float(sphere_rings + 1);
+                float ring_radius = radius * std::sin(phi);
+                float ring_z = radius * std::cos(phi);
+                for (int seg = 0; seg < sphere_segments; ++seg) {
+                    float theta = 2.0f * M_PI * float(seg) / float(sphere_segments);
+                    Vec3d offset(ring_radius * std::cos(theta), ring_radius * std::sin(theta), ring_z);
+                    result->vertices.emplace_back((vertex + offset).cast<float>());
+                }
+            }
+
+            for (int seg = 0; seg < sphere_segments; ++seg) {
+                int next = (seg + 1) % sphere_segments;
+                result->indices.emplace_back(base_idx, base_idx + 1 + seg, base_idx + 1 + next);
+            }
+            for (int ring = 0; ring < sphere_rings - 1; ++ring) {
+                int ring_start = base_idx + 1 + ring * sphere_segments;
+                int next_ring = ring_start + sphere_segments;
+                for (int seg = 0; seg < sphere_segments; ++seg) {
+                    int next = (seg + 1) % sphere_segments;
+                    result->indices.emplace_back(ring_start + seg, next_ring + seg, ring_start + next);
+                    result->indices.emplace_back(ring_start + next, next_ring + seg, next_ring + next);
+                }
+            }
+            int last_ring = base_idx + 1 + (sphere_rings - 1) * sphere_segments;
+            for (int seg = 0; seg < sphere_segments; ++seg) {
+                int next = (seg + 1) % sphere_segments;
+                result->indices.emplace_back(base_idx, last_ring + next, last_ring + seg);
+            }
+        }
+
+        BOOST_LOG_TRIVIAL(info) << "Voro++ Wireframe: Complete! vertices=" << result->vertices.size() 
+                                 << ", faces=" << result->indices.size();
+
+        if (config.progress_callback)
+            config.progress_callback(90);
 
         return result;
     }
