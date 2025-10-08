@@ -552,9 +552,14 @@ namespace Slic3r::GUI {
                     BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - volume captured BEFORE base class: " << (m_volume ? "VALID" : "NULL");
 
                     // Store the ORIGINAL mesh for repeated generation
+                    // Only store if we don't already have it (to preserve the true original)
                     if (m_volume) {
-                        m_original_mesh = m_volume->mesh().its;
-                        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - original mesh stored, vertices: " << m_original_mesh.vertices.size();
+                        if (m_original_mesh.vertices.empty()) {
+                            m_original_mesh = m_volume->mesh().its;
+                            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - original mesh stored, vertices: " << m_original_mesh.vertices.size();
+                        } else {
+                            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - original mesh already stored, keeping it (vertices: " << m_original_mesh.vertices.size() << ")";
+                        }
                     }
                 } else {
                     BOOST_LOG_TRIVIAL(warning) << "GLGizmoVoronoi: on_set_state() - plater is NULL, can't capture volume";
@@ -672,8 +677,8 @@ namespace Slic3r::GUI {
             logged_once = true;
         }
 
-        // Always render the mesh so it's visible when gizmo is active
-        render_painter_gizmo();
+        // Note: render_painter_gizmo() is called by GLCanvas3D, not here
+        // on_render() is for rendering overlays like seed preview
 
         // Render seed preview points if enabled
         if (m_configuration.show_seed_preview) {
@@ -707,6 +712,13 @@ namespace Slic3r::GUI {
         // Use m_original_mesh to prevent layering on repeated generations
         indexed_triangle_set mesh_copy;
         try {
+            // If original mesh is not stored yet, capture it now and use it
+            if (m_original_mesh.vertices.empty() && m_volume) {
+                BOOST_LOG_TRIVIAL(info) << "apply_voronoi() - original mesh not stored, capturing now";
+                m_original_mesh = m_volume->mesh().its;
+                BOOST_LOG_TRIVIAL(info) << "apply_voronoi() - original mesh captured, vertices: " << m_original_mesh.vertices.size();
+            }
+
             BOOST_LOG_TRIVIAL(info) << "apply_voronoi() - copying ORIGINAL mesh";
             mesh_copy = m_original_mesh;
             BOOST_LOG_TRIVIAL(info) << "apply_voronoi() - original mesh copied, vertices: " << mesh_copy.vertices.size() << ", faces: " << mesh_copy.indices.size();
@@ -1311,6 +1323,13 @@ namespace Slic3r::GUI {
 
     void GLGizmoVoronoi::render_painter_gizmo() const
     {
+        static bool logged_first_call = false;
+        if (!logged_first_call) {
+            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::render_painter_gizmo() - FIRST CALL";
+            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::render_painter_gizmo() - triangle_selectors.size(): " << m_triangle_selectors.size();
+            logged_first_call = true;
+        }
+
         const Selection& selection = m_parent.get_selection();
 
         glsafe(::glEnable(GL_BLEND));
@@ -1562,6 +1581,9 @@ namespace Slic3r::GUI {
             m_seed_preview_points.clear();
             m_2d_voronoi_cells.clear();
             m_2d_delaunay_edges.clear();
+
+            // Clear original mesh so it can be recaptured for different objects
+            m_original_mesh.clear();
 
             // Reset volume pointer
             m_volume = nullptr;

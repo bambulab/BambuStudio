@@ -137,10 +137,8 @@ namespace Slic3r {
             bbox.merge(v.cast<double>());
         }
 
-        // Expand bbox slightly to ensure all cells are within bounds
-        Vec3d expansion = bbox.size() * 0.1;
-        bbox.min -= expansion;
-        bbox.max += expansion;
+        // Don't expand bbox for wireframe (expansion was for solid cells)
+        // Wireframe should stay within the original mesh bounds
         BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Bounding box computed: min(" << bbox.min.x() << "," << bbox.min.y() << "," << bbox.min.z() << "), max(" << bbox.max.x() << "," << bbox.max.y() << "," << bbox.max.z() << ")";
 
         if (config.progress_callback && !config.progress_callback(20))
@@ -170,15 +168,10 @@ namespace Slic3r {
         if (config.progress_callback && !config.progress_callback(90))
             return nullptr;
 
-        // Step 4: Clip wireframe to input mesh boundary
-        BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Before clipping: vertices=" << result->vertices.size() << ", faces=" << result->indices.size();
-        BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Clipping wireframe to mesh boundary";
-        clip_to_mesh_boundary(*result, input_mesh);
-        BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - After clipping: vertices=" << result->vertices.size() << ", faces=" << result->indices.size();
-
-        if (result->vertices.empty() || result->indices.empty()) {
-            BOOST_LOG_TRIVIAL(error) << "VoronoiMesh::generate() - Clipping removed all geometry! This means the boolean intersection failed.";
-        }
+        // Step 4: For wireframe, don't use boolean clipping (wireframe is not manifold)
+        // The wireframe is already bounded by the seed points which are inside the mesh
+        BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Result: vertices=" << result->vertices.size() << ", faces=" << result->indices.size();
+        BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Skipping boolean clipping for wireframe (not manifold)";
 
         // Step 5: Finalize progress
         if (config.progress_callback && !config.progress_callback(100))
