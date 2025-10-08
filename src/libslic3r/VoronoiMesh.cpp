@@ -12,7 +12,10 @@
 
 #include <boost/log/trivial.hpp>
 
-// CGAL headers for 3D Voronoi/Delaunay
+// Voro++ for 3D Voronoi tessellation
+#include <voro++.hh>
+
+// CGAL headers for mesh operations (boolean, convex hull, etc)
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Delaunay_triangulation_3.h>
 #include <CGAL/Triangulation_vertex_base_with_info_3.h>
@@ -144,21 +147,13 @@ namespace Slic3r {
         if (config.progress_callback && !config.progress_callback(20))
             return nullptr;
 
-        // Step 3: Create Voronoi structure based on configuration
+        // Step 3: Create Voronoi cells (polyhedral cell-based approach)
         auto result = std::make_unique<indexed_triangle_set>();
 
-        if (config.edge_thickness > 0.0f) {
-            // Create wireframe lattice structure
-            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Creating Voronoi wireframe edge structure";
-            create_edge_structure(*result, seed_points, bbox, config.edge_thickness,
-                                config.edge_shape, config.edge_segments, config);
-            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Wireframe created, vertices: " << result->vertices.size() << ", faces: " << result->indices.size();
-        } else {
-            // Create solid Voronoi cells (for when edge_thickness = 0)
-            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Creating solid Voronoi cells";
-            result = tessellate_voronoi(seed_points, bbox, config, nullptr);
-            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Voronoi cells created, vertices: " << result->vertices.size() << ", faces: " << result->indices.size();
-        }
+        BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Creating polyhedral Voronoi cells";
+        result = tessellate_voronoi_cells(seed_points, bbox, config, &input_mesh);
+        BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Voronoi cells created, vertices: "
+                                 << result->vertices.size() << ", faces: " << result->indices.size();
 
         if (!result || result->vertices.empty()) {
             BOOST_LOG_TRIVIAL(error) << "VoronoiMesh::generate() - Edge structure is empty or null!";
@@ -229,11 +224,16 @@ namespace Slic3r {
     {
         std::vector<Vec3d> seeds;
 
-        // Compute bounding box
+        // Compute bounding box and shrink slightly to keep seeds inside
         BoundingBoxf3 bbox;
         for (const auto& v : mesh.vertices) {
             bbox.merge(v.cast<double>());
         }
+
+        // Shrink bbox by 10% to keep seeds away from boundary
+        Vec3d shrink = bbox.size() * 0.1;
+        bbox.min += shrink;
+        bbox.max -= shrink;
 
         // Calculate grid dimensions
         int dim = std::max(2, int(std::cbrt(double(num_seeds)) + 0.5));
@@ -251,6 +251,9 @@ namespace Slic3r {
             }
         }
 
+        BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Generated " << seeds.size()
+                                 << " grid seeds in shrunk bbox";
+
         return seeds;
     }
 
@@ -261,11 +264,16 @@ namespace Slic3r {
     {
         std::vector<Vec3d> seeds;
 
-        // Compute bounding box
+        // Compute bounding box and shrink slightly to keep seeds inside
         BoundingBoxf3 bbox;
         for (const auto& v : mesh.vertices) {
             bbox.merge(v.cast<double>());
         }
+
+        // Shrink bbox by 10% to keep seeds away from boundary
+        Vec3d shrink = bbox.size() * 0.1;
+        bbox.min += shrink;
+        bbox.max -= shrink;
 
         // Use provided seed for reproducibility
         std::mt19937 gen(random_seed);
@@ -279,19 +287,139 @@ namespace Slic3r {
             seeds.emplace_back(dist_x(gen), dist_y(gen), dist_z(gen));
         }
 
+        BOOST_LOG_TRIVIAL(info) << "generate_random_seeds() - Generated " << seeds.size()
+                                 << " random seeds in shrunk bbox";
+
         return seeds;
     }
 
-    std::unique_ptr<indexed_triangle_set> VoronoiMesh::tessellate_voronoi(
+    std::unique_ptr<indexed_triangle_set> VoronoiMesh::tessellate_voronoi_cells(
         const std::vector<Vec3d>& seed_points,
         const BoundingBoxf3& bounds,
         const Config& config,
         const indexed_triangle_set* clip_mesh)
     {
+        BOOST_LOG_TRIVIAL(info) << "tessellate_voronoi_cells() - START with " << seed_points.size() << " seeds";
+
         if (seed_points.empty()) {
             return std::make_unique<indexed_triangle_set>();
         }
 
+        if (config.progress_callback && !config.progress_callback(25))
+            return nullptr;
+
+        return tessellate_voronoi_with_voropp(seed_points, bounds, config, clip_mesh);
+    }
+
+    // Voro++ implementation - FAST!
+    std::unique_ptr<indexed_triangle_set> VoronoiMesh::tessellate_voronoi_with_voropp(
+        const std::vector<Vec3d>& seed_points,
+        const BoundingBoxf3& bounds,
+        const Config& config,
+        const indexed_triangle_set* clip_mesh)
+    {
+        using namespace voro;
+
+        auto result = std::make_unique<indexed_triangle_set>();
+
+        // Create Voro++ container with bounding box
+        // Parameters: (xmin, xmax, ymin, ymax, zmin, zmax, nx, ny, nz, periodic_x, periodic_y, periodic_z, allocate, max_particles)
+        // Grid size affects performance: ~(particles^(1/3))
+        int grid_size = std::max(3, int(std::cbrt(seed_points.size()) + 0.5));
+
+        container con(
+            bounds.min.x(), bounds.max.x(),
+            bounds.min.y(), bounds.max.y(),
+            bounds.min.z(), bounds.max.z(),
+            grid_size, grid_size, grid_size,
+            false, false, false,  // Non-periodic
+            8  // Initial memory allocation per grid cell
+        );
+
+        // Insert seed points
+        BOOST_LOG_TRIVIAL(info) << "Voro++: Inserting " << seed_points.size() << " particles into container";
+        for (size_t i = 0; i < seed_points.size(); ++i) {
+            const Vec3d& p = seed_points[i];
+            con.put(i, p.x(), p.y(), p.z());
+        }
+
+        if (config.progress_callback && !config.progress_callback(40))
+            return nullptr;
+
+        // Extract cells
+        BOOST_LOG_TRIVIAL(info) << "Voro++: Extracting Voronoi cells";
+        c_loop_all vl(con);
+        voronoicell_neighbor cell;
+
+        int processed = 0;
+        int total = seed_points.size();
+
+        if (vl.start()) do {
+            processed++;
+            if (processed % 10 == 0) {
+                int progress = 40 + (processed * 40) / total;
+                if (config.progress_callback && !config.progress_callback(progress))
+                    return nullptr;
+            }
+
+            if (con.compute_cell(cell, vl)) {
+                // Get cell vertices
+                std::vector<double> verts;
+                cell.vertices(vl.x(), vl.y(), vl.z(), verts);
+
+                // Get face information
+                std::vector<int> face_vertices;
+                std::vector<int> face_orders;
+                cell.face_vertices(face_vertices);
+                cell.face_orders(face_orders);
+
+                // Convert Voro++ cell to triangulated mesh
+                size_t vertex_offset = result->vertices.size();
+
+                // Add vertices (verts contains x1,y1,z1,x2,y2,z2,...)
+                for (size_t i = 0; i + 2 < verts.size(); i += 3) {
+                    result->vertices.emplace_back(
+                        float(verts[i]),
+                        float(verts[i + 1]),
+                        float(verts[i + 2])
+                    );
+                }
+
+                // Triangulate each face
+                int face_start = 0;
+                for (int face_order : face_orders) {
+                    if (face_order >= 3) {
+                        // Fan triangulation from first vertex
+                        int v0 = face_vertices[face_start];
+                        for (int j = 1; j + 1 < face_order; ++j) {
+                            int v1 = face_vertices[face_start + j];
+                            int v2 = face_vertices[face_start + j + 1];
+
+                            result->indices.emplace_back(
+                                v0 + vertex_offset,
+                                v1 + vertex_offset,
+                                v2 + vertex_offset
+                            );
+                        }
+                    }
+                    face_start += face_order;
+                }
+            }
+        } while (vl.inc());
+
+        BOOST_LOG_TRIVIAL(info) << "Voro++: Generated " << result->vertices.size() << " vertices, "
+                                 << result->indices.size() << " faces";
+
+        return result;
+    }
+
+    // CGAL fallback implementation
+    std::unique_ptr<indexed_triangle_set> VoronoiMesh::tessellate_voronoi_with_cgal(
+        const std::vector<Vec3d>& seed_points,
+        const BoundingBoxf3& bounds,
+        const Config& config,
+        const indexed_triangle_set* clip_mesh)
+    {
         // Need at least 4 non-coplanar points for 3D Delaunay
         if (seed_points.size() < 4) {
             // Add dummy points to ensure we have enough for triangulation
@@ -302,7 +430,7 @@ namespace Slic3r {
             while (extended_seeds.size() < 4) {
                 extended_seeds.push_back(center + Vec3d(size.x() * (extended_seeds.size() - 2), 0, 0));
             }
-            return tessellate_voronoi(extended_seeds, bounds, config, clip_mesh);
+            return tessellate_voronoi_with_cgal(extended_seeds, bounds, config, clip_mesh);
         }
 
         if (config.progress_callback && !config.progress_callback(25))
@@ -762,7 +890,13 @@ namespace Slic3r {
         std::map<Point_3, std::vector<Point_3>> vertex_connections;  // Track which edges meet at each vertex
 
         // Iterate over all finite FACETS in the Delaunay triangulation
+        int total_facets = 0;
+        int finite_both = 0;
+        int passed_bounds = 0;
+
         for (auto fit = dt.finite_facets_begin(); fit != dt.finite_facets_end(); ++fit) {
+            total_facets++;
+
             // A facet is a pair (Cell_handle c, int i) where i is the index of the opposite vertex
             Delaunay::Cell_handle cell1 = fit->first;
             int facet_index = fit->second;
@@ -772,6 +906,8 @@ namespace Slic3r {
 
             // Both cells must be finite (not infinite)
             if (!dt.is_infinite(cell1) && !dt.is_infinite(cell2)) {
+                finite_both++;
+
                 // Get circumcenters (Voronoi vertices)
                 Point_3 cc1 = cell1->circumcenter();
                 Point_3 cc2 = cell2->circumcenter();
@@ -785,6 +921,8 @@ namespace Slic3r {
                     cc2.y() >= bounds.min.y() - margin && cc2.y() <= bounds.max.y() + margin &&
                     cc2.z() >= bounds.min.z() - margin && cc2.z() <= bounds.max.z() + margin) {
 
+                    passed_bounds++;
+
                     // Store edge (ensure consistent ordering to avoid duplicates)
                     auto edge = (cc1 < cc2) ? std::make_pair(cc1, cc2) : std::make_pair(cc2, cc1);
                     unique_edges.insert(edge);
@@ -795,6 +933,9 @@ namespace Slic3r {
                 }
             }
         }
+
+        BOOST_LOG_TRIVIAL(info) << "create_edge_structure() - Facet stats: total=" << total_facets
+                                 << ", finite_both=" << finite_both << ", passed_bounds=" << passed_bounds;
 
         BOOST_LOG_TRIVIAL(info) << "create_edge_structure() - Found " << unique_edges.size() << " edges and " << vertex_connections.size() << " vertices";
 

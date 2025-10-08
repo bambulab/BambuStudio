@@ -43,6 +43,7 @@ option(DEP_BUILD_GLFW "Compile GLFW" ON)
 option(DEP_BUILD_FREETYPE "Compile freetype" ON)
 option(DEP_BUILD_WXWIDGETS "Compile wxWidgets" ON)
 option(DEP_BUILD_FFMPEG "Compile ffmpeg" ON)
+option(DEP_BUILD_VOROPP "Compile Voro++" ON)
 
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
 set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE PATH "Path for downloaded source packages.")
@@ -239,6 +240,12 @@ include(GMP/GMP.cmake)
 include(MPFR/MPFR.cmake)
 include(CGAL/CGAL.cmake)
 
+set(VOROPP_PKG "")
+if (DEP_BUILD_VOROPP)
+    include(Voropp/Voropp.cmake)
+    set(VOROPP_PKG dep_Voropp)
+endif ()
+
 include(NLopt/NLopt.cmake)
 
 set(OPENSSL_PKG "")
@@ -280,6 +287,7 @@ set(_dep_list
     dep_OpenCSG
     dep_OpenCV
     dep_CGAL
+    ${VOROPP_PKG}
     ${OPENSSL_PKG}
     ${GLFW_PKG}
     ${PNG_PKG}

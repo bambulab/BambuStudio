@@ -552,14 +552,12 @@ namespace Slic3r::GUI {
                     BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - volume captured BEFORE base class: " << (m_volume ? "VALID" : "NULL");
 
                     // Store the ORIGINAL mesh for repeated generation
-                    // Only store if we don't already have it (to preserve the true original)
-                    if (m_volume) {
-                        if (m_original_mesh.vertices.empty()) {
-                            m_original_mesh = m_volume->mesh().its;
-                            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - original mesh stored, vertices: " << m_original_mesh.vertices.size();
-                        } else {
-                            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - original mesh already stored, keeping it (vertices: " << m_original_mesh.vertices.size() << ")";
-                        }
+                    // CRITICAL: Only capture ONCE - never overwrite to preserve true input mesh
+                    if (m_volume && m_original_mesh.vertices.empty()) {
+                        m_original_mesh = m_volume->mesh().its;
+                        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - original mesh captured, vertices: " << m_original_mesh.vertices.size();
+                    } else if (!m_original_mesh.vertices.empty()) {
+                        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - preserving original mesh (vertices: " << m_original_mesh.vertices.size() << "), current volume has: " << (m_volume ? std::to_string(m_volume->mesh().its.vertices.size()) : "NULL");
                     }
                 } else {
                     BOOST_LOG_TRIVIAL(warning) << "GLGizmoVoronoi: on_set_state() - plater is NULL, can't capture volume";
@@ -712,11 +710,14 @@ namespace Slic3r::GUI {
         // Use m_original_mesh to prevent layering on repeated generations
         indexed_triangle_set mesh_copy;
         try {
-            // If original mesh is not stored yet, capture it now and use it
+            // If original mesh is not stored yet, capture it now
+            // IMPORTANT: Only capture if it looks like an actual model (not a previous Voronoi result)
             if (m_original_mesh.vertices.empty() && m_volume) {
                 BOOST_LOG_TRIVIAL(info) << "apply_voronoi() - original mesh not stored, capturing now";
                 m_original_mesh = m_volume->mesh().its;
                 BOOST_LOG_TRIVIAL(info) << "apply_voronoi() - original mesh captured, vertices: " << m_original_mesh.vertices.size();
+            } else if (!m_original_mesh.vertices.empty()) {
+                BOOST_LOG_TRIVIAL(info) << "apply_voronoi() - using previously stored original mesh, vertices: " << m_original_mesh.vertices.size();
             }
 
             BOOST_LOG_TRIVIAL(info) << "apply_voronoi() - copying ORIGINAL mesh";
@@ -1000,27 +1001,23 @@ namespace Slic3r::GUI {
             volume->set_mesh(std::move(new_mesh));
             volume->calculate_convex_hull();
 
-            // Restore the position
+            // Use changed_object to properly update the model and GL scene
+            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Calling changed_object to update GL";
+            plater->changed_object(cid.object_id);
+
+            // Restore position AFTER changed_object (which calls ensure_on_bed)
+            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Restoring original position";
             volume->set_offset(volume_offset);
             if (!obj->instances.empty()) {
                 obj->instances[0]->set_offset(instance_offset);
             }
 
-            // Mark as modified and update WITHOUT calling ensure_on_bed
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Updating plater";
-            obj->invalidate_bounding_box();
-
-            // Don't call changed_object because it calls ensure_on_bed which moves the object
-            // Instead, manually trigger just the view update
+            // Force final scene reload to show restored position
             GLCanvas3D* canvas = plater->canvas3D();
             if (canvas) {
-                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Reloading scene";
-                canvas->reload_scene(false);  // Reload the scene to show the new mesh
-                canvas->requires_check_outside_state();
+                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Final scene reload";
+                canvas->reload_scene(true);
             }
-
-            // Update background process for slicing
-            plater->update();
 
             BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - COMPLETE, model replaced!";
             request_rerender();

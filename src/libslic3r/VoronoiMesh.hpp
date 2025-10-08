@@ -77,12 +77,20 @@ namespace Slic3r {
             int random_seed
         );
 
-        // Perform 3D Voronoi tessellation using CGAL
-        static std::unique_ptr<indexed_triangle_set> tessellate_voronoi(
+        // Perform 3D Voronoi tessellation - main entry point
+        static std::unique_ptr<indexed_triangle_set> tessellate_voronoi_cells(
             const std::vector<Vec3d>& seed_points,
             const BoundingBoxf3& bounds,
             const Config& config,
             const indexed_triangle_set* clip_mesh = nullptr
+        );
+
+        // Voro++ implementation (fast polyhedral cell generation)
+        static std::unique_ptr<indexed_triangle_set> tessellate_voronoi_with_voropp(
+            const std::vector<Vec3d>& seed_points,
+            const BoundingBoxf3& bounds,
+            const Config& config,
+            const indexed_triangle_set* clip_mesh
         );
 
         // Clip Voronoi cells to original mesh boundary
