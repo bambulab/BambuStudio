@@ -146,29 +146,38 @@ namespace Slic3r {
         if (config.progress_callback && !config.progress_callback(20))
             return nullptr;
 
-        // Step 3: Tessellate Voronoi cells
-        BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Tessellating Voronoi cells";
-        // Don't pass clip_mesh to avoid preserving external shell
-        auto result = tessellate_voronoi(seed_points, bbox, config, nullptr);
+        // Step 3: Create Voronoi structure based on configuration
+        auto result = std::make_unique<indexed_triangle_set>();
 
-        if (!result || result->vertices.empty()) {
-            BOOST_LOG_TRIVIAL(error) << "VoronoiMesh::generate() - Voronoi tessellation failed or is empty!";
-            return nullptr;
+        if (config.edge_thickness > 0.0f) {
+            // Create wireframe lattice structure
+            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Creating Voronoi wireframe edge structure";
+            create_edge_structure(*result, seed_points, bbox, config.edge_thickness,
+                                config.edge_shape, config.edge_segments, config);
+            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Wireframe created, vertices: " << result->vertices.size() << ", faces: " << result->indices.size();
+        } else {
+            // Create solid Voronoi cells (for when edge_thickness = 0)
+            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Creating solid Voronoi cells";
+            result = tessellate_voronoi(seed_points, bbox, config, nullptr);
+            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Voronoi cells created, vertices: " << result->vertices.size() << ", faces: " << result->indices.size();
         }
 
-        BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Voronoi cells generated, vertices: " << result->vertices.size() << ", faces: " << result->indices.size();
+        if (!result || result->vertices.empty()) {
+            BOOST_LOG_TRIVIAL(error) << "VoronoiMesh::generate() - Edge structure is empty or null!";
+            return nullptr;
+        }
 
         if (config.progress_callback && !config.progress_callback(90))
             return nullptr;
 
-        // Step 4: Clip to input mesh boundary to keep only internal Voronoi structure
-        BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Clipping to mesh boundary";
-        try {
-            MeshBoolean::cgal::intersect(*result, input_mesh);
-            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - After clipping: vertices=" << result->vertices.size() << ", faces=" << result->indices.size();
-        }
-        catch (...) {
-            BOOST_LOG_TRIVIAL(warning) << "VoronoiMesh::generate() - Clipping failed, using unclipped result";
+        // Step 4: Clip wireframe to input mesh boundary
+        BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Before clipping: vertices=" << result->vertices.size() << ", faces=" << result->indices.size();
+        BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Clipping wireframe to mesh boundary";
+        clip_to_mesh_boundary(*result, input_mesh);
+        BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - After clipping: vertices=" << result->vertices.size() << ", faces=" << result->indices.size();
+
+        if (result->vertices.empty() || result->indices.empty()) {
+            BOOST_LOG_TRIVIAL(error) << "VoronoiMesh::generate() - Clipping removed all geometry! This means the boolean intersection failed.";
         }
 
         // Step 5: Finalize progress
@@ -495,18 +504,32 @@ namespace Slic3r {
         indexed_triangle_set& voronoi_mesh,
         const indexed_triangle_set& original_mesh)
     {
-        if (voronoi_mesh.vertices.empty() || original_mesh.vertices.empty())
+        if (voronoi_mesh.vertices.empty() || original_mesh.vertices.empty()) {
+            BOOST_LOG_TRIVIAL(warning) << "clip_to_mesh_boundary() - Empty mesh provided";
             return;
+        }
+
+        BOOST_LOG_TRIVIAL(info) << "clip_to_mesh_boundary() - Input: voronoi vertices=" << voronoi_mesh.vertices.size()
+                                 << ", faces=" << voronoi_mesh.indices.size()
+                                 << ", original vertices=" << original_mesh.vertices.size()
+                                 << ", faces=" << original_mesh.indices.size();
 
         try {
             TriangleMesh voronoi_tm(voronoi_mesh);
             TriangleMesh original_tm(original_mesh);
 
+            BOOST_LOG_TRIVIAL(info) << "clip_to_mesh_boundary() - Attempting boolean intersection...";
             MeshBoolean::cgal::intersect(voronoi_tm, original_tm);
 
+            BOOST_LOG_TRIVIAL(info) << "clip_to_mesh_boundary() - Intersection succeeded, result vertices=" << voronoi_tm.its.vertices.size();
             voronoi_mesh = voronoi_tm.its;
         }
+        catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(error) << "clip_to_mesh_boundary() - Exception during boolean intersection: " << e.what();
+            // Keep original Voronoi mesh if boolean operation fails
+        }
         catch (...) {
+            BOOST_LOG_TRIVIAL(error) << "clip_to_mesh_boundary() - Unknown exception during boolean intersection";
             // Keep original Voronoi mesh if boolean operation fails
         }
     }
