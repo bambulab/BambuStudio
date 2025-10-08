@@ -63,26 +63,18 @@ install(TARGETS voropp
     RUNTIME DESTINATION bin
 )
 
-# Install headers
+# Install all headers directly to include directory (voro++ expects flat structure)
 foreach(HEADER ${VOROPP_HEADERS})
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${HEADER}")
+        get_filename_component(HEADER_NAME ${HEADER} NAME)
         install(FILES ${HEADER}
-            DESTINATION include/voro++
+            DESTINATION include
+            RENAME ${HEADER_NAME}
         )
     else()
         message(WARNING "Header file ${HEADER} not found, skipping installation")
     endif()
 endforeach()
-
-# Create voro++.hh wrapper in include root for easier inclusion
-install(CODE "
-    file(WRITE \"\${CMAKE_INSTALL_PREFIX}/include/voro++.hh\"
-        \"#ifndef VOROPP_HH\\n\"
-        \"#define VOROPP_HH\\n\"
-        \"#include \\\"voro++/voro++.hh\\\"\\n\"
-        \"#endif\\n\"
-    )
-")
 
 # Export package config
 install(EXPORT voroppTargets

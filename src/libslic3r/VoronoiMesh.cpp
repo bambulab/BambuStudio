@@ -1,5 +1,5 @@
 #include "VoronoiMesh.hpp"
-#include "libslic3r/AABBTreeIndirect.hpp"
+#include "libslic3r/AABBMesh.hpp"
 #include "libslic3r/MeshBoolean.hpp"
 #include "libslic3r/TriangleMesh.hpp"
 #include <random>
@@ -44,6 +44,16 @@ namespace Slic3r {
     using CGALMesh = CGAL::Surface_mesh<Point_3>;
 
     namespace {
+
+        // Helper function to test if a point is inside a mesh using raycast
+        bool is_point_inside_mesh(const AABBMesh& aabb_mesh, const Vec3d& point) {
+            // Cast a ray in arbitrary direction (we use +Z)
+            Vec3d dir(0.0, 0.0, 1.0);
+            auto hit = aabb_mesh.query_ray_hit(point, dir);
+            
+            // If we hit the mesh and the hit is from inside, point is inside
+            return hit.is_inside();
+        }
 
         indexed_triangle_set surface_mesh_to_indexed(const CGALMesh& mesh)
         {
@@ -242,9 +252,8 @@ namespace Slic3r {
         Vec3d size = bbox.size();
         Vec3d step = size / double(dim - 1);
 
-        // Build AABB tree for point-in-mesh testing
-        AABBTreeIndirect::Tree3f tree;
-        tree.init_3d_tree(mesh);
+        // Build AABB mesh for point-in-mesh testing
+        AABBMesh aabb_mesh(mesh);
 
         std::vector<Vec3d> candidates;
         candidates.reserve(dim * dim * dim);
@@ -254,8 +263,8 @@ namespace Slic3r {
                 for (int z = 0; z < dim; ++z) {
                     Vec3d point = bbox.min + Vec3d(x * step.x(), y * step.y(), z * step.z());
 
-                    // Test if point is inside mesh using AABBTree
-                    if (AABBTreeIndirect::is_inside(tree, mesh, point.cast<float>())) {
+                    // Test if point is inside mesh using AABB mesh
+                    if (is_point_inside_mesh(aabb_mesh, point)) {
                         candidates.push_back(point);
                     }
                 }
@@ -385,9 +394,8 @@ namespace Slic3r {
             bbox.merge(v.cast<double>());
         }
         
-        // Build AABB tree for point-in-mesh testing
-        AABBTreeIndirect::Tree3f tree;
-        tree.init_3d_tree(mesh);
+        // Build AABB mesh for point-in-mesh testing
+        AABBMesh aabb_mesh(mesh);
         
         // Calculate mesh features for adaptive density
         // Use vertex curvature as a proxy for feature density
@@ -441,7 +449,7 @@ namespace Slic3r {
         // Initial seed
         for (int initial_tries = 0; initial_tries < 100 && seeds.empty(); ++initial_tries) {
             Vec3d point(dist_x(gen), dist_y(gen), dist_z(gen));
-            if (AABBTreeIndirect::is_inside(tree, mesh, point.cast<float>())) {
+            if (is_point_inside_mesh(aabb_mesh, point)) {
                 seeds.push_back(point);
                 break;
             }
@@ -458,7 +466,7 @@ namespace Slic3r {
             attempts++;
             
             // Check if inside mesh
-            if (!AABBTreeIndirect::is_inside(tree, mesh, candidate.cast<float>())) {
+            if (!is_point_inside_mesh(aabb_mesh, candidate)) {
                 continue;
             }
             
@@ -499,7 +507,7 @@ namespace Slic3r {
             attempts = 0;
             while (seeds.size() < size_t(num_seeds) && attempts < max_attempts) {
                 Vec3d point(dist_x(gen), dist_y(gen), dist_z(gen));
-                if (AABBTreeIndirect::is_inside(tree, mesh, point.cast<float>())) {
+                if (is_point_inside_mesh(aabb_mesh, point)) {
                     seeds.push_back(point);
                 }
                 attempts++;
@@ -532,9 +540,8 @@ namespace Slic3r {
         std::uniform_real_distribution<double> dist_y(bbox.min.y(), bbox.max.y());
         std::uniform_real_distribution<double> dist_z(bbox.min.z(), bbox.max.z());
 
-        // Build AABB tree for point-in-mesh testing
-        AABBTreeIndirect::Tree3f tree;
-        tree.init_3d_tree(mesh);
+        // Build AABB mesh for point-in-mesh testing
+        AABBMesh aabb_mesh(mesh);
 
         seeds.reserve(num_seeds);
         int attempts = 0;
@@ -543,8 +550,8 @@ namespace Slic3r {
         while (seeds.size() < size_t(num_seeds) && attempts < max_attempts) {
             Vec3d point(dist_x(gen), dist_y(gen), dist_z(gen));
 
-            // Test if point is inside mesh using AABBTree
-            if (AABBTreeIndirect::is_inside(tree, mesh, point.cast<float>())) {
+            // Test if point is inside mesh using AABB mesh
+            if (is_point_inside_mesh(aabb_mesh, point)) {
                 seeds.push_back(point);
             }
 
@@ -1213,14 +1220,15 @@ namespace Slic3r {
         }
     }
 
-    void VoronoiMesh::create_edge_structure(
+    // Helper function for creating edge structures (currently unused but kept for future wireframe improvements)
+    static void create_edge_structure(
         indexed_triangle_set& result,
         const std::vector<Vec3d>& seed_points,
         const BoundingBoxf3& bounds,
         float edge_thickness,
-        EdgeShape edge_shape,
+        VoronoiMesh::EdgeShape edge_shape,
         int edge_segments,
-        const Config& config)
+        const VoronoiMesh::Config& config)
     {
         BOOST_LOG_TRIVIAL(info) << "create_edge_structure() - START, seed_points: " << seed_points.size() << ", edge_thickness: " << edge_thickness;
 
