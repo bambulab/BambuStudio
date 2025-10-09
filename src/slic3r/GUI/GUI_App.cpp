@@ -1233,10 +1233,10 @@ void GUI_App::post_init()
         if (is_editor())
             mainframe->select_tab(size_t(0));
         mainframe->Thaw();
-        plater_->trigger_restore_project(1);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", end load_gl_resources";
     }
-//#endif
+    plater_->trigger_restore_project(1);
+    //#endif
 
     //BBS: remove GCodeViewer as seperate APP logic
     /*if (this->init_params->start_as_gcodeviewer) {
