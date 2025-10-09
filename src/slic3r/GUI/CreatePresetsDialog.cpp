@@ -225,7 +225,7 @@ static wxBoxSizer* create_checkbox(wxWindow* parent, Preset* preset, wxString& p
     ::CheckBox *  checkbox = new ::CheckBox(parent);
     sizer->Add(checkbox, 0, 0, 0);
     preset_checkbox.push_back(std::make_pair(checkbox, preset));
-    wxStaticText *preset_name_str = new wxStaticText(parent, wxID_ANY, preset_name);
+    wxStaticText *preset_name_str = new wxStaticText(parent, wxID_ANY, preset_name, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     wxToolTip *   toolTip         = new wxToolTip(preset_name);
     preset_name_str->SetToolTip(toolTip);
     sizer->Add(preset_name_str, 0, wxLEFT, 5);
