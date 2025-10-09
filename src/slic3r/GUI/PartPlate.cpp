@@ -1031,8 +1031,13 @@ void PartPlate::on_render_for_picking() {
 
     const auto& shader = wxGetApp().get_shader("flat");
     wxGetApp().bind_shader(shader);
-    auto model_mat = m_partplate_list->m_plate_trans[m_plate_index].get_matrix();
-    shader->set_uniform("view_model_matrix", view_mat * model_mat);
+    auto cur_model_mat = m_partplate_list->m_plate_trans[m_plate_index];
+    if (m_partplate_list->get_curr_plate_index() != m_plate_index) {
+        cur_model_mat.set_offset(cur_model_mat.get_offset() + Vec3d(get_right_icon_offset_bed(1), 0, 0));
+        shader->set_uniform("view_model_matrix", view_mat * cur_model_mat.get_matrix());
+    } else {
+        shader->set_uniform("view_model_matrix", view_mat * cur_model_mat.get_matrix());
+    }
     shader->set_uniform("projection_matrix", proj_mat);
 
     std::vector<GLModel *> gl_models = {&m_partplate_list->m_triangles, &m_partplate_list->m_del_icon, &m_partplate_list->m_orient_icon, &m_partplate_list->m_arrange_icon,
@@ -1040,9 +1045,9 @@ void PartPlate::on_render_for_picking() {
                                         &m_partplate_list->m_plate_filament_map_icon, &m_plate_name_edit_icon};
     for (size_t i = 0; i < gl_models.size(); i++) {
         if (!gl_models[i]->get_visible()) {
-			continue;
-		}
-        if (!camera.getFrustum().intersects(gl_models[i]->get_bounding_box().transformed(model_mat))) {
+            continue;
+        }
+        if (!camera.getFrustum().intersects(gl_models[i]->get_bounding_box().transformed(cur_model_mat.get_matrix()))) {
             continue;
         }
         int hover_id                  =  i;
