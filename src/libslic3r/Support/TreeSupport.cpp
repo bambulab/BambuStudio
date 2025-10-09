@@ -2234,11 +2234,9 @@ void TreeSupport::draw_circles()
     bool on_buildplate_only = m_object_config->support_on_build_plate_only.value;
     Polygon branch_circle; //Pre-generate a circle with correct diameter so that we don't have to recompute those (co)sines every time.
 
-    double orig_xy_distance;
-    if (print->config().top_z_overrides_xy_distance) {
-        orig_xy_distance  = m_ts_data->m_xy_distance;
+    double orig_xy_distance = m_ts_data->m_xy_distance;
+    if (print->config().top_z_overrides_xy_distance)
         m_ts_data->m_xy_distance = std::min(m_ts_data->m_xy_distance, double(top_z_distance));
-    }
 
     // Use square support if there are too many nodes per layer because circle support needs much longer time to compute
     // Hower circle support can be printed faster, so we prefer circle for fewer nodes case.
