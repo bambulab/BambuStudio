@@ -23,6 +23,7 @@
 #include <wx/dir.h>
 #include "fast_float/fast_float.h"
 
+#include "DeviceCore/DevChamber.h"
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevExtensionTool.h"
 #include "DeviceCore/DevExtruderSystem.h"
@@ -39,6 +40,7 @@
 #include "DeviceCore/DevPrintOptions.h"
 #include "DeviceCore/DevPrintTaskInfo.h"
 #include "DeviceCore/DevHMS.h"
+#include "DeviceCore/DevUpgrade.h"
 
 #include "DeviceCore/DevMapping.h"
 #include "DeviceCore/DevManager.h"
@@ -489,7 +491,6 @@ void MachineObject::reload_printer_settings()
 
 MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::string name, std::string id, std::string ip)
     :dev_name(name),
-    dev_id(id),
     dev_ip(ip),
     subtask_(nullptr),
     model_task(nullptr),
@@ -499,12 +500,12 @@ MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::s
     m_manager = manager;
     m_agent = agent;
 
+    m_dev_info = DevInfo::Create(this);
+    m_dev_info->SetDevId(id);
+
     reset();
 
     /* temprature fields */
-
-    chamber_temp        = 0.0f;
-    chamber_temp_target = 0.0f;
     frame_temp          = 0.0f;
 
     /* ams fileds */
@@ -514,12 +515,6 @@ MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::s
 
     /* signals */
     wifi_signal = "";
-
-    /* upgrade */
-    upgrade_force_upgrade = false;
-    upgrade_new_version = false;
-    upgrade_consistency_request = false;
-
 
     /* printing */
     mc_print_stage = 0;
@@ -538,14 +533,17 @@ MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::s
     vt_slot.push_back(vslot);
 
     {
+        m_chamber = DevChamber::Create(this);
         m_lamp = new DevLamp(this);
         m_fan = new DevFan(this);
         m_bed = new DevBed(this);
+
         m_storage       = new DevStorage(this);
         m_extder_system = new DevExtderSystem(this);
         m_extension_tool = DevExtensionTool::Create(this);
         m_nozzle_system = new DevNozzleSystem(this);
         m_fila_system   = new DevFilaSystem(this);
+        m_upgrade       = DevUpgrade::Create(this);
         m_hms_system    = new DevHMS(this);
         m_config = new DevConfig(this);
 
@@ -723,11 +721,6 @@ void MachineObject::get_ams_colors(std::vector<wxColour> &ams_colors) {
 
 std::string MachineObject::get_firmware_type_str()
 {
-    /*if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER)
-        return "engineer";
-    else if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION)
-        return "product";*/
-
     // return product by default;
     // always return product, printer do not push this field
     return "product";
@@ -735,11 +728,6 @@ std::string MachineObject::get_firmware_type_str()
 
 std::string MachineObject::get_lifecycle_type_str()
 {
-    /*if (lifecycle == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER)
-        return "engineer";
-    else if (lifecycle == PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION)
-        return "product";*/
-
     // return product by default;
     // always return product, printer do not push this field
     return "product";
@@ -747,25 +735,7 @@ std::string MachineObject::get_lifecycle_type_str()
 
 bool MachineObject::is_in_upgrading() const
 {
-    return upgrade_display_state == DevFirmwareUpgradingState::UpgradingInProgress;
-}
-
-bool MachineObject::is_upgrading_avalable()
-{
-    return upgrade_display_state == DevFirmwareUpgradingState::UpgradingAvaliable;
-}
-
-int MachineObject::get_upgrade_percent() const
-{
-    if (upgrade_progress.empty())
-        return 0;
-    try {
-        int result = atoi(upgrade_progress.c_str());
-        return result;
-    } catch(...) {
-        ;
-    }
-    return 0;
+    return m_upgrade->IsUpgrading();
 }
 
 std::string MachineObject::get_ota_version()
@@ -793,25 +763,6 @@ bool MachineObject::check_version_valid()
     }
     get_version_retry = 0;
     return valid;
-}
-
-wxString MachineObject::get_upgrade_result_str(int err_code)
-{
-    switch(err_code) {
-    case UpgradeNoError:
-        return _L("Update successful.");
-    case UpgradeDownloadFailed:
-        return _L("Downloading failed.");
-    case UpgradeVerfifyFailed:
-        return _L("Verification failed.");
-    case UpgradeFlashFailed:
-        return _L("Update failed.");
-    case UpgradePrinting:
-        return _L("Update failed.");
-    default:
-        return _L("Update failed.");
-    }
-    return "";
 }
 
 std::map<int, DevFirmwareVersionInfo> MachineObject::get_ams_version()
@@ -1214,15 +1165,15 @@ int MachineObject::command_request_push_all(bool request_now)
 
     if (diff.count() < REQUEST_PUSH_MIN_TIME) {
         if (request_now) {
-            BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all, dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
+            BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all, dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id());
             last_request_push = std::chrono::system_clock::now();
         }
         else {
-            BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all: send request too fast, dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
+            BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all: send request too fast, dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id());
             return -1;
         }
     } else {
-        BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all, dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
+        BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all, dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id());
         last_request_push = std::chrono::system_clock::now();
     }
 
@@ -1239,11 +1190,11 @@ int MachineObject::command_pushing(std::string cmd)
     auto curr_time = std::chrono::system_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_request_start);
     if (diff.count() < REQUEST_START_MIN_TIME) {
-        BOOST_LOG_TRIVIAL(trace) << "static: command_request_start: send request too fast, dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
+        BOOST_LOG_TRIVIAL(trace) << "static: command_request_start: send request too fast, dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id());
         return -1;
     }
     else {
-        BOOST_LOG_TRIVIAL(trace) << "static: command_request_start, dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
+        BOOST_LOG_TRIVIAL(trace) << "static: command_request_start, dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id());
         last_request_start = std::chrono::system_clock::now();
     }
 
@@ -1281,54 +1232,6 @@ int MachineObject::command_clean_print_error_uiop(int print_error)
     char buf[32];
     ::sprintf(buf, "%08X", print_error);
     j["system"]["err"] = std::string(buf);
-
-    return this->publish_json(j);
-}
-
-int MachineObject::command_upgrade_confirm()
-{
-    json j;
-    j["upgrade"]["command"] = "upgrade_confirm";
-    j["upgrade"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    j["upgrade"]["src_id"] = 1; // 1 for slicer
-    return this->publish_json(j);
-}
-
-int MachineObject::command_consistency_upgrade_confirm()
-{
-    json j;
-    j["upgrade"]["command"] = "consistency_confirm";
-    j["upgrade"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    j["upgrade"]["src_id"] = 1; // 1 for slicer
-    return this->publish_json(j);
-}
-
-int MachineObject::command_upgrade_firmware(FirmwareInfo info)
-{
-    std::string version     = info.version;
-    std::string dst_url     = info.url;
-    std::string module_name = info.module_type;
-
-    json j;
-    j["upgrade"]["command"]     = "start";
-    j["upgrade"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    j["upgrade"]["url"]         = info.url;
-    j["upgrade"]["module"]      = info.module_type;
-    j["upgrade"]["version"]     = info.version;
-    j["upgrade"]["src_id"]      = 1;
-
-    return this->publish_json(j);
-}
-
-int MachineObject::command_upgrade_module(std::string url, std::string module_type, std::string version)
-{
-    json j;
-    j["upgrade"]["command"] = "start";
-    j["upgrade"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    j["upgrade"]["url"] = url;
-    j["upgrade"]["module"] = module_type;
-    j["upgrade"]["version"] = version;
-    j["upgrade"]["src_id"] = 1;
 
     return this->publish_json(j);
 }
@@ -1527,16 +1430,6 @@ int MachineObject::command_refresh_nozzle(){
     json j;
     j["print"]["sequence_id"]    = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["command"]        = "refresh_nozzle";
-
-    return this->publish_json(j, 1);
-}
-
-int MachineObject::command_set_chamber(int temp)
-{
-    json j;
-    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    j["print"]["command"] = "set_ctt";
-    j["print"]["ctt_val"] = temp;
 
     return this->publish_json(j, 1);
 }
@@ -2375,14 +2268,14 @@ bool MachineObject::is_core_xy()
 
 void MachineObject::reset_update_time()
 {
-    BOOST_LOG_TRIVIAL(trace) << "reset reset_update_time, dev_id =" << BBLCrossTalk::Crosstalk_DevId(dev_id);
+    BOOST_LOG_TRIVIAL(trace) << "reset reset_update_time, dev_id =" << BBLCrossTalk::Crosstalk_DevId(get_dev_id());
     last_update_time = std::chrono::system_clock::now();
     subscribe_counter = SUBSCRIBE_RETRY_COUNT;
 }
 
 void MachineObject::reset()
 {
-    BOOST_LOG_TRIVIAL(trace) << "reset dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
+    BOOST_LOG_TRIVIAL(trace) << "reset dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id());
     last_update_time = std::chrono::system_clock::now();
     subscribe_counter = SUBSCRIBE_RETRY_COUNT;
     m_push_count = 0;
@@ -2398,7 +2291,6 @@ void MachineObject::reset()
     iot_print_status = "";
     print_status = "";
     last_mc_print_stage = -1;
-    m_new_ver_list_exist = false;
     network_wired = false;
     dev_connection_name = "";
     job_id_ = "";
@@ -2457,7 +2349,7 @@ bool MachineObject::is_connected()
     std::chrono::system_clock::time_point curr_time = std::chrono::system_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_update_time);
     if (diff.count() > DISCONNECT_TIMEOUT) {
-        BOOST_LOG_TRIVIAL(trace) << "machine_object: dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id) <<", diff count = " << diff.count();
+        BOOST_LOG_TRIVIAL(trace) << "machine_object: dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id()) <<", diff count = " << diff.count();
         return false;
     }
 
@@ -2499,7 +2391,7 @@ bool MachineObject::is_info_ready(bool check_version) const
         << ": not ready, m_full_msg_count=" << m_full_msg_count
         << ", m_push_count=" << m_push_count
         << ", diff.count()=" << diff.count()
-        << ", dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
+        << ", dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id());
     return false;
 }
 
@@ -2636,7 +2528,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                 if (j_pre["print"]["command"].get<std::string>() == "push_status") {
                     if (j_pre["print"].contains("msg")) {
                         if (j_pre["print"]["msg"].get<int>() == 0) {           //all message
-                            BOOST_LOG_TRIVIAL(trace) << "static: get push_all msg, dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
+                            BOOST_LOG_TRIVIAL(trace) << "static: get push_all msg, dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id());
                             m_push_count++;
                             m_full_msg_count++;
 
@@ -2793,9 +2685,9 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
         }
 
         if (Slic3r::get_logging_level() < level_string_to_boost("trace")) {
-            BOOST_LOG_TRIVIAL(info) << "parse_json: dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id) << ", origin playload=" << BBLCrossTalk::Crosstalk_JsonLog(j_pre);
+            BOOST_LOG_TRIVIAL(info) << "parse_json: dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id()) << ", origin playload=" << BBLCrossTalk::Crosstalk_JsonLog(j_pre);
         } else {
-            BOOST_LOG_TRIVIAL(trace) << "parse_json: dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id) << ", tunnel is=" << tunnel << ", merged playload=" << BBLCrossTalk::Crosstalk_JsonLog(j);
+            BOOST_LOG_TRIVIAL(trace) << "parse_json: dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id()) << ", tunnel is=" << tunnel << ", merged playload=" << BBLCrossTalk::Crosstalk_JsonLog(j);
         }
 
         // Parse version info first, as if version arrive or change, 'print' need parse again with new compatible settings
@@ -3322,7 +3214,8 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     if (!key_field_only) {
                         /* temperature */
 
-                        DevBed::ParseV1_0(jj,m_bed);
+                        DevBed::ParseV1_0(jj, m_bed);
+                        m_chamber->ParseChamber(jj);
 
                         if (jj.contains("frame_temper")) {
                             if (jj["frame_temper"].is_number()) {
@@ -3332,16 +3225,6 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
 
                         ExtderSystemParser::ParseV1_0(jj, m_extder_system);
 
-                        if (jj.contains("chamber_temper")) {
-                            if (jj["chamber_temper"].is_number()) {
-                                chamber_temp = jj["chamber_temper"].get<float>();
-                            }
-                        }
-                        if (jj.contains("ctt")) {
-                            if (jj["ctt"].is_number()) {
-                                chamber_temp_target = jj["ctt"].get<float>();
-                            }
-                        }
                         /* signals */
                         if (jj.contains("link_th_state"))
                             link_th = jj["link_th_state"].get<std::string>();
@@ -3406,33 +3289,8 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                         catch (...) {
                             ;
                         }
-
-                        /* get fimware type */
-                        try {
-                            if (jj.contains("mess_production_state")) {
-                                if (jj["mess_production_state"].get<std::string>() == "engineer")
-                                    firmware_type = PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER;
-                                else if (jj["mess_production_state"].get<std::string>() == "product")
-                                    firmware_type = PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION;
-                            }
-                        }
-                        catch (...) {
-                            ;
-                        }
                     }
                     if (!key_field_only) {
-                        try {
-                            if (jj.contains("lifecycle")) {
-                                if (jj["lifecycle"].get<std::string>() == "engineer")
-                                    lifecycle = PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER;
-                                else if (jj["lifecycle"].get<std::string>() == "product")
-                                    lifecycle = PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION;
-                            }
-                        }
-                        catch (...) {
-                            ;
-                        }
-
                         try {
                             if (jj.contains("lights_report") && jj["lights_report"].is_array()) {
                                 for (auto it = jj["lights_report"].begin(); it != jj["lights_report"].end(); it++) {
@@ -3463,105 +3321,14 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     }
 
 #pragma region upgrade
+                    m_upgrade->ParseUpgrade_V1_0(jj);
+
                     try {
                         if (jj.contains("upgrade_state")) {
-                            if (jj["upgrade_state"].contains("status"))
-                                upgrade_status = jj["upgrade_state"]["status"].get<std::string>();
-                            if (jj["upgrade_state"].contains("progress")) {
-                                upgrade_progress = jj["upgrade_state"]["progress"].get<std::string>();
-                            } if (jj["upgrade_state"].contains("new_version_state"))
-                                upgrade_new_version = jj["upgrade_state"]["new_version_state"].get<int>() == 1 ? true : false;
                             if (!check_enable_np(jj) && jj["upgrade_state"].contains("ams_new_version_number"))/* is not used in new np, by AP*/
                                 ams_new_version_number = jj["upgrade_state"]["ams_new_version_number"].get<std::string>();
-                            if (jj["upgrade_state"].contains("ota_new_version_number"))
-                                ota_new_version_number = jj["upgrade_state"]["ota_new_version_number"].get<std::string>();
                             if (jj["upgrade_state"].contains("ahb_new_version_number"))
                                 ahb_new_version_number = jj["upgrade_state"]["ahb_new_version_number"].get<std::string>();
-                            if (jj["upgrade_state"].contains("module"))
-                                upgrade_module = jj["upgrade_state"]["module"].get<std::string>();
-                            if (jj["upgrade_state"].contains("message"))
-                                upgrade_message = jj["upgrade_state"]["message"].get<std::string>();
-                            if (jj["upgrade_state"].contains("consistency_request"))
-                                upgrade_consistency_request = jj["upgrade_state"]["consistency_request"].get<bool>();
-                            if (jj["upgrade_state"].contains("force_upgrade"))
-                                upgrade_force_upgrade = jj["upgrade_state"]["force_upgrade"].get<bool>();
-                            if (jj["upgrade_state"].contains("err_code"))
-                                upgrade_err_code = jj["upgrade_state"]["err_code"].get<int>();
-                            if (jj["upgrade_state"].contains("dis_state")) {
-                                if ((int)upgrade_display_state != jj["upgrade_state"]["dis_state"].get<int>()
-                                    && jj["upgrade_state"]["dis_state"].get<int>() == 3) {
-                                    GUI::wxGetApp().CallAfter([this] {
-                                        this->command_get_version();
-                                        });
-                                }
-                                if (upgrade_display_hold_count > 0)
-                                {
-                                    upgrade_display_hold_count--;
-                                }
-                                else
-                                {
-                                    upgrade_display_state = (DevFirmwareUpgradingState)jj["upgrade_state"]["dis_state"].get<int>();
-                                    if ((upgrade_display_state == DevFirmwareUpgradingState::UpgradingAvaliable) && is_lan_mode_printer())
-                                    {
-                                        upgrade_display_state = DevFirmwareUpgradingState::UpgradingUnavaliable;
-                                    }
-                                }
-                            }
-                            else {
-                                if (upgrade_display_hold_count > 0)
-                                    upgrade_display_hold_count--;
-                                else {
-                                    //BBS compatibility with old version
-                                    if (upgrade_status == "DOWNLOADING"
-                                        || upgrade_status == "FLASHING"
-                                        || upgrade_status == "UPGRADE_REQUEST"
-                                        || upgrade_status == "PRE_FLASH_START"
-                                        || upgrade_status == "PRE_FLASH_SUCCESS") {
-                                        upgrade_display_state = DevFirmwareUpgradingState::UpgradingInProgress;
-                                    }
-                                    else if (upgrade_status == "UPGRADE_SUCCESS"
-                                        || upgrade_status == "DOWNLOAD_FAIL"
-                                        || upgrade_status == "FLASH_FAIL"
-                                        || upgrade_status == "PRE_FLASH_FAIL"
-                                        || upgrade_status == "UPGRADE_FAIL") {
-                                        upgrade_display_state = DevFirmwareUpgradingState::UpgradingFinished;
-                                    }
-                                    else {
-                                        if (upgrade_new_version) {
-                                            upgrade_display_state = DevFirmwareUpgradingState::UpgradingAvaliable;
-                                        }
-                                        else {
-                                            upgrade_display_state = DevFirmwareUpgradingState::UpgradingUnavaliable;
-                                        }
-                                    }
-                                }
-                            }
-                            // new ver list
-                            if (jj["upgrade_state"].contains("new_ver_list")) {
-                                m_new_ver_list_exist = true;
-                                new_ver_list.clear();
-                                for (auto ver_item = jj["upgrade_state"]["new_ver_list"].begin(); ver_item != jj["upgrade_state"]["new_ver_list"].end(); ver_item++) {
-                                    DevFirmwareVersionInfo ver_info;
-                                    if (ver_item->contains("name"))
-                                        ver_info.name = (*ver_item)["name"].get<std::string>();
-                                    else
-                                        continue;
-
-                                    if (ver_item->contains("cur_ver"))
-                                        ver_info.sw_ver = (*ver_item)["cur_ver"].get<std::string>();
-                                    if (ver_item->contains("new_ver"))
-                                        ver_info.sw_new_ver = (*ver_item)["new_ver"].get<std::string>();
-
-                                    if (ver_info.name == "ota") {
-                                        ota_new_version_number = ver_info.sw_new_ver;
-                                    }
-
-                                    new_ver_list.insert(std::make_pair(ver_info.name, ver_info));
-                                }
-                            }
-                            else {
-                                new_ver_list.clear();
-                            }
                         }
                     }
                     catch (...) {
@@ -4419,12 +4186,6 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
             try {
                 if (j.contains("upgrade")) {
                     if (j["upgrade"].contains("command")) {
-                        if (j["upgrade"]["command"].get<std::string>() == "upgrade_confirm") {
-                            this->upgrade_display_state = DevFirmwareUpgradingState::UpgradingInProgress;
-                            upgrade_display_hold_count = HOLD_COUNT_MAX;
-                            BOOST_LOG_TRIVIAL(info) << "ack of upgrade_confirm";
-                        }
-
                         bool check_studio_cmd = true;
                         if (j["upgrade"].contains("sequence_id")) {
                             try
@@ -5053,8 +4814,6 @@ void MachineObject::parse_new_info(json print)
             m_fila_system->GetAmsSystemSetting().SetDetectOnPowerupEnabled(get_flag_bits(cfg, 1));
         }
 
-        upgrade_force_upgrade = get_flag_bits(cfg, 2);
-
         if (time(nullptr) - camera_recording_ctl_start > HOLD_COUNT_MAX)
         {
             camera_recording_when_printing = get_flag_bits(cfg, 3);
@@ -5201,33 +4960,20 @@ void MachineObject::parse_new_info(json print)
         m_lamp->SetLampCloseRecheck((get_flag_bits(stat, 36) == 1));
     }
 
+    m_dev_info->ParseInfo(print);
+
     /*device*/
     if (print.contains("device")) {
         json const& device = print["device"];
 
-
         //new fan data
         m_fan->ParseV3_0(device);
-
-        if (device.contains("type")) {
-            m_device_mode = (DeviceMode)device["type"].get<int>();// FDM:1<<0 Laser:1<< Cut:1<<2
-        }
 
         DevBed::ParseV2_0(device, m_bed);
         DevNozzleSystemParser::ParseV2_0(device, m_nozzle_system);
 
         if (device.contains("extruder")) { ExtderSystemParser::ParseV2_0(device["extruder"], m_extder_system);}
         if (device.contains("ext_tool")) { DevExtensionToolParser::ParseV2_0(device["ext_tool"], m_extension_tool); }
-
-        if (device.contains("ctc")) {
-            json const& ctc = device["ctc"];
-            int state = get_flag_bits(ctc["state"].get<int>(), 0, 4);
-            if (ctc.contains("info")) {
-                json const &info = ctc["info"];
-                chamber_temp = get_flag_bits(info["temp"].get<int>(), 0, 16);
-                chamber_temp_target  = get_flag_bits(info["temp"].get<int>(), 16, 16);
-            }
-        }
     }
 }
 
@@ -5766,6 +5512,14 @@ std::optional<bool> MachineObject::IsDetectOnInsertEnabled() const
 std::shared_ptr<Slic3r::DevNozzleRack> MachineObject::GetNozzleRack() const
 {
     return m_nozzle_system->GetNozzleRack();
+}
+
+std::string MachineObject::get_dev_id() const {
+    return m_dev_info->GetDevId();
+}
+
+void MachineObject::set_dev_id(std::string val) {
+    m_dev_info->SetDevId(val);
 }
 
 void change_the_opacity(wxColour& colour)

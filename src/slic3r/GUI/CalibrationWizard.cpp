@@ -9,6 +9,9 @@
 #include "CalibUtils.hpp"
 #include "BBLUtil.hpp"
 
+#include "DeviceCore/DevInfo.h"
+#include "DeviceCore/DevManager.h"
+
 namespace Slic3r { namespace GUI {
 
 #define CALIBRATION_DEBUG
@@ -415,7 +418,7 @@ void CalibrationWizard::recover_preset_info(MachineObject *obj)
     std::vector<PrinterCaliInfo> back_infos = wxGetApp().app_config->get_printer_cali_infos();
     for (const auto& back_info : back_infos) {
         if (obj && (obj->get_dev_id() == back_info.dev_id) ) {
-            obj->set_dev_id(back_info.dev_id);
+            obj->GetInfo()->SetDevId(back_info.dev_id);
             obj->cali_finished    = back_info.cali_finished;
             obj->cache_flow_ratio = back_info.cache_flow_ratio;
             obj->selected_cali_preset = back_info.selected_presets;

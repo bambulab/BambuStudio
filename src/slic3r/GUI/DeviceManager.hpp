@@ -67,17 +67,11 @@ enum ManualPaCaliMethod {
     PA_PATTERN,
 };
 
-
-#define UpgradeNoError          0
-#define UpgradeDownloadFailed   -1
-#define UpgradeVerfifyFailed    -2
-#define UpgradeFlashFailed      -3
-#define UpgradePrinting         -4
-
 // Previous definitions
 class DevAms;
 class DevAmsTray;
 class DevBed;
+class DevChamber;
 class DevConfig;
 class DevCtrl;
 class DevExtensionTool;
@@ -86,11 +80,13 @@ class DevFan;
 class DevFilaSystem;
 class DevPrintOptions;
 class DevHMS;
+class DevInfo;
 class DevLamp;
 class DevNozzleSystem;
 class DevNozzleRack;
 class DeviceManager;
 class DevStorage;
+class DevUpgrade;
 struct DevPrintTaskRatingInfo;
 struct DevNozzle;
 
@@ -103,11 +99,11 @@ private:
     std::shared_ptr<int> m_token = std::make_shared<int>(1);
 
     /* properties */
-    std::string dev_id;
     std::string dev_name;
     std::string dev_ip;
     std::string access_code;
     std::string user_access_code;
+    std::shared_ptr<DevInfo>  m_dev_info;
 
     // type, time stamp, delay
     std::vector<std::tuple<std::string, uint64_t, uint64_t>> message_delay;
@@ -116,6 +112,7 @@ private:
     DevNozzleMappingResult m_auto_nozzle_mapping;
 
     /*parts*/
+    std::shared_ptr<DevChamber> m_chamber;
     DevLamp*          m_lamp;
     std::shared_ptr<DevExtensionTool> m_extension_tool;
     DevExtderSystem*  m_extder_system;
@@ -131,6 +128,9 @@ private:
     /*Print Options/Speed*/
     DevPrintOptions* m_print_options;
 
+    /*Upgrade*/
+    std::shared_ptr<DevUpgrade> m_upgrade;
+   
     /*HMS*/
     DevHMS* m_hms_system;
 
@@ -165,27 +165,26 @@ public:
     std::string get_dev_ip() const { return dev_ip; }
     void set_dev_ip(std::string ip) { dev_ip = ip;  }
 
-    std::string get_dev_id() const { return dev_id; }
-    void set_dev_id(std::string val) { dev_id = val; }
+    std::string get_dev_id() const;
+    void set_dev_id(std::string val);
+
+    std::string connection_type() const;
+    bool        is_lan_mode_printer() const;
+    bool        is_cloud_mode_printer() const;
 
     bool        local_use_ssl_for_mqtt { true };
     bool        local_use_ssl_for_ftp { true };
     std::string get_ftp_folder();
 
     int         subscribe_counter{3};
+    std::string dev_connection_name;    /* lan | eth */
 
-    std::string dev_connection_type;    /* lan | cloud */
-    std::string connection_type() const { return dev_connection_type; }
-    bool is_lan_mode_printer() { return dev_connection_type == "lan"; }
-    bool is_cloud_mode_printer() { return dev_connection_type == "cloud"; }
-
+    /* message time*/
     std::chrono::system_clock::time_point last_cloud_msg_time_;
     std::chrono::system_clock::time_point last_lan_msg_time_;
 
     bool HasRecentCloudMessage();
     bool HasRecentLanMessage();
-
-    std::string dev_connection_name;    /* lan | eth */
 
     /*access code*/
     bool has_access_right() const { return !get_access_code().empty(); }
@@ -222,8 +221,6 @@ public:
     void reload_printer_settings();
     std::string get_printer_thumbnail_img_str() const;
 
-    std::string dev_product_name;       // set by iot service, get /user/print
-
     std::string bind_user_name;
     std::string bind_user_id;
     std::string bind_sec_link;
@@ -231,12 +228,8 @@ public:
     std::string bind_state;     /* free | occupied */
     bool is_avaliable() { return bind_state == "free"; }
 
-    time_t last_alive;
     bool m_is_online;
-    bool m_lan_mode_connection_state{false};
     bool m_set_ctt_dlg{ false };
-    void set_lan_mode_connection_state(bool state) {m_lan_mode_connection_state = state;};
-    bool get_lan_mode_connection_state() {return m_lan_mode_connection_state;};
     void set_ctt_dlg( wxString text);
     int  parse_msg_count = 0;
     int  keep_alive_count = 0;
@@ -266,7 +259,6 @@ public:
     int   ams_status_sub;
     int   ams_version = 0;
 
-    int extrusion_cali_hold_count = 0;
     std::chrono::system_clock::time_point last_extrusion_cali_start_time;
     int extrusion_cali_set_tray_id = -1;
     std::chrono::system_clock::time_point extrusion_cali_set_hold_start;
@@ -289,7 +281,6 @@ public:
 
     bool is_target_slot_unload() const;
     bool can_unload_filament();
-    bool is_support_amx_ext_mix_mapping() const { return true;}
 
     void get_ams_colors(std::vector<wxColour>& ams_colors);
 
@@ -327,8 +318,6 @@ public:
     int    last_online_version = -1;
 
     /* temperature */
-    float  chamber_temp;
-    float  chamber_temp_target;
     float  frame_temp;
 
     /* signals */
@@ -336,6 +325,7 @@ public:
     std::string link_th;
     std::string link_ams;
     bool        network_wired { false };
+    std::shared_ptr<DevInfo> GetInfo() const { return m_dev_info; }
 
     /* parts */
     DevExtderSystem* GetExtderSystem() const { return m_extder_system; }
@@ -347,6 +337,7 @@ public:
     DevFilaSystem*   GetFilaSystem() const { return m_fila_system;}
     bool             HasAms() const;
 
+    std::shared_ptr<DevChamber> GetChamber() const { return m_chamber; }
     DevLamp*         GetLamp() const { return m_lamp; }
     DevFan*          GetFan() const { return m_fan; }
     DevBed *         GetBed() const { return m_bed; };
@@ -359,20 +350,10 @@ public:
     DevPrintOptions*      GetPrintOptions() const { return m_print_options; } /* print options */
     DevPrintingSpeedLevel GetPrintingSpeedLevel() const; /* print speed */
 
+    std::weak_ptr<DevUpgrade> GetUpgrade() const { return m_upgrade;}
+
     /* upgrade */
-    bool upgrade_force_upgrade { false };
-    bool upgrade_new_version { false };
-    bool upgrade_consistency_request { false };
-    DevFirmwareUpgradingState upgrade_display_state;
-    int upgrade_display_hold_count = 0;
-    PrinterFirmwareType       firmware_type; // engineer|production
-    PrinterFirmwareType       lifecycle { PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION };
-    std::string upgrade_progress;
-    std::string upgrade_message;
-    std::string upgrade_status;
-    std::string upgrade_module;
     std::string ams_new_version_number;
-    std::string ota_new_version_number;
     std::string ahb_new_version_number;
     int get_version_retry = 0;
 
@@ -381,19 +362,13 @@ public:
     DevFirmwareVersionInfo cutting_module_version_info;
     DevFirmwareVersionInfo extinguish_version_info;
     std::map<std::string, DevFirmwareVersionInfo> module_vers;
-    std::map<std::string, DevFirmwareVersionInfo> new_ver_list;
-    bool    m_new_ver_list_exist = false;
-    int upgrade_err_code = 0;
     std::vector<FirmwareInfo> firmware_list;
 
     std::string get_firmware_type_str();
     std::string get_lifecycle_type_str();
     bool is_in_upgrading() const;
-    bool is_upgrading_avalable();
-    int get_upgrade_percent() const;
     std::string get_ota_version();
     bool check_version_valid();
-    wxString get_upgrade_result_str(int upgrade_err_code);
     // key: ams_id start as 0,1,2,3
     std::map<int, DevFirmwareVersionInfo> get_ams_version();
 
@@ -557,13 +532,6 @@ public:
         DOOR_OPEN_CHECK_ENABLE_PAUSE_PRINT = 2,/*pause print*/
     };
 
-    enum DeviceMode : unsigned int
-    {
-        DEVICE_MODE_FDM   = 0x00000001,
-        DEVICE_MODE_LASER = 0x00000010,
-        DEVICE_MODE_CUT   = 0x00000100,
-    };
-
     bool        file_model_download{false};
     bool        virtual_camera{false};
 
@@ -654,8 +622,6 @@ public:
     /*temp temp range*/
     std::vector<int>    bed_temp_range;
 
-
-
     /* machine mqtt apis */
     int connect(bool use_openssl = true);
     int disconnect();
@@ -679,10 +645,6 @@ public:
     /* key: sequence id, value: callback */
 
     bool is_makeworld_subtask();
-
-    /* device type */
-    DeviceMode  m_device_mode{ DEVICE_MODE_FDM };
-    inline bool is_fdm_type() const { return m_device_mode == DEVICE_MODE_FDM; }
 
     int m_plate_index { -1 };
     std::string m_gcode_file;
@@ -721,12 +683,6 @@ public:
     int command_get_access_code();
     int command_ack_proceed(json& proceed);
 
-    /* command upgrade */
-    int command_upgrade_confirm();
-    int command_consistency_upgrade_confirm();
-    int command_upgrade_firmware(FirmwareInfo info);
-    int command_upgrade_module(std::string url, std::string module_type, std::string version);
-
     /* control apis */
     int command_xyz_abs();
     int command_auto_leveling();
@@ -752,7 +708,6 @@ public:
     int command_set_nozzle(int temp);
     int command_set_nozzle_new(int nozzle_id, int temp);
     int command_refresh_nozzle();
-    int command_set_chamber(int temp);
     int check_resume_condition();
     // ams controls
     //int command_ams_switch(int tray_index, int old_temp = 210, int new_temp = 210);

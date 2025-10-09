@@ -2184,8 +2184,6 @@ void GUI_App::init_networking_callbacks()
                                 event.SetInt(-1);
                                 BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = " << state;
                             }
-
-                            obj->set_lan_mode_connection_state(false);
                         }
                         else {
                             if (state == ConnectStatus::ConnectStatusOk) {
