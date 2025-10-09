@@ -8691,6 +8691,15 @@ Polygon get_bed_shape_with_excluded_area(const PrintConfig& cfg, bool use_share)
             exclude_poly.points.clear();
         }
     }
+    if (cfg.enable_wrapping_detection.value) {
+        Pointfs wrapping_detection_area = cfg.wrapping_exclude_area.values;
+        Polygon wrapping_poly;
+        for (size_t i = 0; i < wrapping_detection_area.size(); ++i) {
+            auto pt = wrapping_detection_area[i];
+            wrapping_poly.points.push_back(Point(scale_(pt.x()), scale_(pt.y())));
+        }
+        exclude_polys.push_back(wrapping_poly);
+    }
     auto tmp = diff({ bed_poly }, exclude_polys);
     if (!tmp.empty()) bed_poly = tmp[0];
     return bed_poly;
