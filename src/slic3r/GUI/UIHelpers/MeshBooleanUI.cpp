@@ -272,6 +272,7 @@ void MeshBooleanUI::draw_control_buttons()
             m_volume_manager->move_selected_to_left();
             m_volume_manager->update_obj_lists(m_parent->get_selection());
             if (on_apply_color_overrides) on_apply_color_overrides(m_operation_mode);
+            m_warning_manager->clear_warnings();
         }
         ImGui::SameLine(0, MeshBooleanConfig::ICON_SPACING);
 
@@ -279,6 +280,7 @@ void MeshBooleanUI::draw_control_buttons()
             m_volume_manager->move_selected_to_right();
             m_volume_manager->update_obj_lists(m_parent->get_selection());
             if (on_apply_color_overrides) on_apply_color_overrides(m_operation_mode);
+            m_warning_manager->clear_warnings();
         }
         ImGui::SameLine(0, MeshBooleanConfig::ICON_SPACING);
 
@@ -286,6 +288,7 @@ void MeshBooleanUI::draw_control_buttons()
             m_volume_manager->swap_lists();
             m_volume_manager->update_obj_lists(m_parent->get_selection());
             if (on_apply_color_overrides) on_apply_color_overrides(m_operation_mode);
+            m_warning_manager->clear_warnings();
         }
         ImGui::SameLine(0, MeshBooleanConfig::ICON_SPACING);
     }
