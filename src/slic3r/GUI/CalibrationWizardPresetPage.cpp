@@ -10,10 +10,12 @@
 #include "DeviceCore/DevExtruderSystem.h"
 #include "DeviceCore/DevFilaBlackList.h"
 #include "DeviceCore/DevFilaSystem.h"
-#include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevStorage.h"
 #include "DeviceCore/DevNozzleSystem.h"
 #include "DeviceCore/DevNozzleRack.h"
+#include "DeviceCore/DevUpgrade.h"
+
+#include "DeviceCore/DevManager.h"
 
 #define CALIBRATION_LABEL_SIZE wxSize(FromDIP(150), FromDIP(24))
 #define SYNC_BUTTON_SIZE (wxSize(FromDIP(50), FromDIP(50)))
@@ -1798,13 +1800,14 @@ void CalibrationPresetPage::update_show_status()
         }
     }
 
-    if (wxGetApp().app_config) {
-        if (obj_->upgrade_force_upgrade) {
-            show_status(CaliPresetPageStatus::CaliPresetStatusNeedForceUpgrading);
+    auto upgrade_ptr = obj_->GetUpgrade().lock();
+    if (upgrade_ptr) {
+        if (upgrade_ptr->IsUpgradeForceUpgrade()) {
+            show_status(CaliPresetStatusNeedForceUpgrading);
             return;
         }
 
-        if (obj_->upgrade_consistency_request) {
+        if (upgrade_ptr->IsUpgradeConsistencyRequest()) {
             show_status(CaliPresetStatusNeedConsistencyUpgrading);
             return;
         }

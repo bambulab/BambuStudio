@@ -99,7 +99,7 @@ enum DevPrintingSpeedLevel
 };
 
 /*Upgrade*/
-enum class DevFirmwareUpgradingState : int
+enum class DevFirmwareUpgradeState : int
 {
     DC = -1,
     UpgradingUnavaliable = 0,

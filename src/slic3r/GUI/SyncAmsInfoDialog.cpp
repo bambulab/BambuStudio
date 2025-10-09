@@ -1240,15 +1240,9 @@ bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
     }
     // single nozzle
     else {
-        if (obj_->is_support_amx_ext_mix_mapping()) {
-            map_opt         = {false, true, false, true}; // four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
-            filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(),
-                                                         wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true);
-            // auto_supply_with_ext(obj_->vt_slot);
-        } else {
-            map_opt         = {false, true, false, false};
-            filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt);
-        }
+        map_opt = { false, true, false, true }; // four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
+        filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(),
+                                                               wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true);
     }
 
     if (filament_result == 0) {
@@ -2333,20 +2327,6 @@ void SyncAmsInfoDialog::update_show_status()
     // do ams mapping if no ams result
     if (m_ams_mapping_result.empty()) {
         do_ams_mapping(obj_);
-    }
-
-
-    // reading done
-    if (wxGetApp().app_config) {
-        if (obj_->upgrade_force_upgrade) {
-            show_status(PrintDialogStatus::PrintStatusNeedForceUpgrading);
-            return;
-        }
-
-        if (obj_->upgrade_consistency_request) {
-            show_status(PrintStatusNeedConsistencyUpgrading);
-            return;
-        }
     }
 
     if (is_blocking_printing(obj_)) {

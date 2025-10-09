@@ -6,6 +6,9 @@
 list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceCore/DevBed.cpp
     GUI/DeviceCore/DevBed.h
+    GUI/DeviceCore/DevChamber.h
+    GUI/DeviceCore/DevChamber.cpp
+    GUI/DeviceCore/DevChamberCtrl.cpp
     GUI/DeviceCore/DevConfig.h
     GUI/DeviceCore/DevConfig.cpp
     GUI/DeviceCore/DevConfigUtil.h
@@ -53,6 +56,9 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceCore/DevNozzleRackCtrl.cpp
     GUI/DeviceCore/DevNozzleSystem.h
     GUI/DeviceCore/DevNozzleSystem.cpp
+    GUI/DeviceCore/DevUpgrade.h
+    GUI/DeviceCore/DevUpgrade.cpp
+    GUI/DeviceCore/DevUpgradeCtrl.cpp
     GUI/DeviceCore/DevUtil.h
     GUI/DeviceCore/DevUtil.cpp
     GUI/DeviceCore/DevUtilBackend.h

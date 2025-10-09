@@ -11,14 +11,6 @@ namespace Slic3r {
 //Previous definitions
 class MachineObject;
 
-enum PrinterFirmwareType
-{
-    FIRMWARE_TYPE_ENGINEER = 0,
-    FIRMWARE_TYPE_PRODUCTION,
-    FIRMEARE_TYPE_UKNOWN,
-};
-
-
 class FirmwareInfo
 {
 public:
