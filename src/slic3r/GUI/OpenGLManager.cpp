@@ -799,10 +799,7 @@ void OpenGLManager::set_advanced_gcode_viewer_enabled(bool is_enabled)
 
 bool OpenGLManager::is_advanced_gcode_viewer_enabled() const
 {
-#ifdef BBL_ENABLE_ADVANCED_GCODE_VIEWER
     return m_b_advanced_gcode_viewer_enabled;
-#endif
-    return false;
 }
 
 void OpenGLManager::set_toolbar_rendering_style(uint8_t style)
