@@ -2419,6 +2419,7 @@ void MachineObject::reset()
         }
     }
     subtask_ = nullptr;
+    has_extra_flow_type = false;
     m_partskip_ids.clear();
 }
 
