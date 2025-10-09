@@ -125,6 +125,69 @@ namespace Slic3r {
             return true;
         }
 
+        // Clip wireframe mesh to stay within mesh bounds
+        void clip_wireframe_to_mesh(indexed_triangle_set& wireframe, const indexed_triangle_set& mesh) {
+            if (wireframe.vertices.empty() || mesh.vertices.empty()) {
+                return;
+            }
+            
+            // Build AABB mesh for proper inside/outside testing
+            AABBMesh aabb_mesh(mesh);
+            
+            // Mark vertices that are outside the mesh
+            std::vector<bool> keep_vertex(wireframe.vertices.size(), true);
+            int removed_count = 0;
+            
+            for (size_t i = 0; i < wireframe.vertices.size(); ++i) {
+                Vec3d point = wireframe.vertices[i].cast<double>();
+                
+                // Use proper ray-based inside test
+                Vec3d ray_dir(0, 0, 1);
+                auto hit = aabb_mesh.query_ray_hit(point, ray_dir);
+                
+                if (!hit.is_inside()) {
+                    keep_vertex[i] = false;
+                    removed_count++;
+                }
+            }
+            
+            if (removed_count == 0) {
+                BOOST_LOG_TRIVIAL(info) << "clip_wireframe_to_mesh: All vertices inside mesh";
+                return;
+            }
+            
+            BOOST_LOG_TRIVIAL(info) << "clip_wireframe_to_mesh: Removing " << removed_count << " vertices out of " << wireframe.vertices.size();
+            
+            // Build vertex remapping
+            std::vector<int> vertex_map(wireframe.vertices.size(), -1);
+            std::vector<Vec3f> new_vertices;
+            new_vertices.reserve(wireframe.vertices.size() - removed_count);
+            
+            for (size_t i = 0; i < wireframe.vertices.size(); ++i) {
+                if (keep_vertex[i]) {
+                    vertex_map[i] = new_vertices.size();
+                    new_vertices.push_back(wireframe.vertices[i]);
+                }
+            }
+            
+            // Rebuild faces, skipping those with removed vertices
+            std::vector<Vec3i> new_indices;
+            new_indices.reserve(wireframe.indices.size());
+            
+            for (const auto& face : wireframe.indices) {
+                if (keep_vertex[face[0]] && keep_vertex[face[1]] && keep_vertex[face[2]]) {
+                    new_indices.emplace_back(
+                        vertex_map[face[0]],
+                        vertex_map[face[1]],
+                        vertex_map[face[2]]
+                    );
+                }
+            }
+            
+            wireframe.vertices = std::move(new_vertices);
+            wireframe.indices = std::move(new_indices);
+        }
+
     } // namespace
 
     std::unique_ptr<indexed_triangle_set> VoronoiMesh::generate(
@@ -1052,70 +1115,6 @@ namespace Slic3r {
 
         return result;
     }
-    
-    // Clip wireframe mesh to stay within mesh bounds
-    void clip_wireframe_to_mesh(indexed_triangle_set& wireframe, const indexed_triangle_set& mesh) {
-        if (wireframe.vertices.empty() || mesh.vertices.empty()) {
-            return;
-        }
-        
-        // Build AABB mesh for proper inside/outside testing
-        AABBMesh aabb_mesh(mesh);
-        
-        // Mark vertices that are outside the mesh
-        std::vector<bool> keep_vertex(wireframe.vertices.size(), true);
-        int removed_count = 0;
-        
-        for (size_t i = 0; i < wireframe.vertices.size(); ++i) {
-            Vec3d point = wireframe.vertices[i].cast<double>();
-            
-            // Use proper ray-based inside test
-            Vec3d ray_dir(0, 0, 1);
-            auto hit = aabb_mesh.query_ray_hit(point, ray_dir);
-            
-            if (!hit.is_inside()) {
-                keep_vertex[i] = false;
-                removed_count++;
-            }
-        }
-        
-        if (removed_count == 0) {
-            BOOST_LOG_TRIVIAL(info) << "clip_wireframe_to_mesh: All vertices inside mesh";
-            return;
-        }
-        
-        BOOST_LOG_TRIVIAL(info) << "clip_wireframe_to_mesh: Removing " << removed_count << " vertices out of " << wireframe.vertices.size();
-        
-        // Build vertex remapping
-        std::vector<int> vertex_map(wireframe.vertices.size(), -1);
-        std::vector<Vec3f> new_vertices;
-        new_vertices.reserve(wireframe.vertices.size() - removed_count);
-        
-        for (size_t i = 0; i < wireframe.vertices.size(); ++i) {
-            if (keep_vertex[i]) {
-                vertex_map[i] = new_vertices.size();
-                new_vertices.push_back(wireframe.vertices[i]);
-            }
-        }
-        
-        // Rebuild faces, skipping those with removed vertices
-        std::vector<Vec3i> new_indices;
-        new_indices.reserve(wireframe.indices.size());
-        
-        for (const auto& face : wireframe.indices) {
-            if (keep_vertex[face[0]] && keep_vertex[face[1]] && keep_vertex[face[2]]) {
-                new_indices.emplace_back(
-                    vertex_map[face[0]],
-                    vertex_map[face[1]],
-                    vertex_map[face[2]]
-                );
-            }
-        }
-        
-        wireframe.vertices = std::move(new_vertices);
-        wireframe.indices = std::move(new_indices);
-    }
-
 
     void VoronoiMesh::clip_to_mesh_boundary(
         indexed_triangle_set& voronoi_mesh,
