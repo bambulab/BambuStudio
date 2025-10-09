@@ -9,8 +9,11 @@
 #include "libslic3r/Thread.hpp"
 
 #include "DeviceCore/DevFilaSystem.h"
-#include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevNozzleSystem.h"
+#include "DeviceCore/DevUpgrade.h"
+
+#include "DeviceCore/DevManager.h"
+
 #include "DeviceTab/wgtDeviceNozzleRackUpdate.h"
 
 namespace Slic3r {
@@ -561,6 +564,11 @@ void MachineInfoPanel::update(MachineObject* obj)
 
     m_obj = obj;
     if (obj) {
+        auto upgrade_ptr = obj->GetUpgrade().lock();
+        if (!upgrade_ptr) {
+            return;
+        }
+
         this->Freeze();
         //update online status img
         m_panel_caption->Freeze();
@@ -568,10 +576,10 @@ void MachineInfoPanel::update(MachineObject* obj)
             m_upgrade_status_img->SetBitmap(upgrade_gray_icon.bmp());
             wxString caption_text = wxString::Format("%s(%s)", from_u8(obj->get_dev_name()), _L("Offline"));
             m_caption_text->SetLabelText(caption_text);
-            show_status((int)DevFirmwareUpgradingState::UpgradingUnavaliable);
+            show_status((int)DevFirmwareUpgradeState::UpgradingUnavaliable);
         } else {
-            show_status((int)obj->upgrade_display_state, obj->upgrade_status);
-            if (obj->upgrade_display_state == DevFirmwareUpgradingState::UpgradingUnavaliable) {
+            show_status((int)upgrade_ptr->GetUpgradeState(), upgrade_ptr->GetUpgradeStatusStr());
+            if (upgrade_ptr->GetUpgradeState() == DevFirmwareUpgradeState::UpgradingUnavaliable) {
                 if (obj->can_abort()) {
                     wxString caption_text = wxString::Format("%s(%s)", from_u8(obj->get_dev_name()), _L("Printing"));
                     m_caption_text->SetLabelText(caption_text);
@@ -603,14 +611,15 @@ void MachineInfoPanel::update(MachineObject* obj)
         update_nozzle_rack(obj);
 
         //update progress
-        int upgrade_percent = obj->get_upgrade_percent();
-        if (obj->upgrade_display_state == DevFirmwareUpgradingState::UpgradingInProgress) {
-            m_upgrade_progress->SetValue(upgrade_percent);
-            m_staticText_upgrading_percent->SetLabelText(wxString::Format("%d%%", upgrade_percent));
-        } else if (obj->upgrade_display_state == DevFirmwareUpgradingState::UpgradingFinished) {
-            wxString result_text = obj->get_upgrade_result_str(obj->upgrade_err_code);
-            m_upgrade_progress->SetValue(upgrade_percent);
-            m_staticText_upgrading_percent->SetLabelText(wxString::Format("%d%%", upgrade_percent));
+        if (upgrade_ptr) {
+            int upgrade_percent = upgrade_ptr->GetUpgradeProgressInt();
+            if (upgrade_ptr->GetUpgradeState() == DevFirmwareUpgradeState::UpgradingInProgress) {
+                m_upgrade_progress->SetValue(upgrade_percent);
+                m_staticText_upgrading_percent->SetLabelText(wxString::Format("%d%%", upgrade_percent));
+            } else if (upgrade_ptr->GetUpgradeState() == DevFirmwareUpgradeState::UpgradingFinished) {
+                m_upgrade_progress->SetValue(upgrade_percent);
+                m_staticText_upgrading_percent->SetLabelText(wxString::Format("%d%%", upgrade_percent));
+            }
         }
 
         wxString model_id_text = obj->get_printer_type_display_str();
@@ -625,7 +634,12 @@ void MachineInfoPanel::update(MachineObject* obj)
 
 void MachineInfoPanel::update_version_text(MachineObject* obj)
 {
-    if (obj->upgrade_display_state == DevFirmwareUpgradingState::UpgradingInProgress) {
+    auto upgrade_ptr = obj->GetUpgrade().lock();
+    if (!upgrade_ptr) {
+        return;
+    }
+
+    if (upgrade_ptr->IsUpgrading()) {
         m_staticText_ver_val->SetLabelText("-");
         //m_staticText_ams_ver_val->SetLabelText("-");
         m_ota_new_version_img->Hide();
@@ -634,15 +648,15 @@ void MachineInfoPanel::update_version_text(MachineObject* obj)
         auto it = obj->module_vers.find("ota");
 
         // old protocol
-        if (obj->new_ver_list.empty() && !obj->m_new_ver_list_exist) {
-            if (obj->upgrade_new_version
-                && !obj->ota_new_version_number.empty()) {
+        if (upgrade_ptr->GetNewVersionList().empty()) {
+            if (upgrade_ptr->HasNewVersion()
+                && !upgrade_ptr->GetOtaNewVersion().empty()) {
                 if (it != obj->module_vers.end()) {
                     wxString ver_text= it->second.sw_ver;
                     if ((it->second.firmware_flag & 0x3) == FIRMWARE_STASUS::BETA) {
                         ver_text+= wxString::Format("(%s)", _L("Beta version"));
                     }
-                    ver_text += wxString::Format("->%s", obj->ota_new_version_number);
+                    ver_text += wxString::Format("->%s", upgrade_ptr->GetOtaNewVersion());
                     if (((it->second.firmware_flag >> 2) & 0x3) == FIRMWARE_STASUS::BETA) {
                         ver_text += wxString::Format("(%s)", _L("Beta version"));
                     }
@@ -671,8 +685,9 @@ void MachineInfoPanel::update_version_text(MachineObject* obj)
                 m_ota_new_version_img->Hide();
             }
         } else {
-            auto ota_it = obj->new_ver_list.find("ota");
-            if (ota_it == obj->new_ver_list.end()) {
+            const auto &new_version_list = upgrade_ptr->GetNewVersionList();
+            auto ota_it = new_version_list.find("ota");
+            if (ota_it == new_version_list.end()) {
                 if (it != obj->module_vers.end()) {
                     wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Latest version"));
                     if ((it->second.firmware_flag & 0x3) == FIRMWARE_STASUS::BETA) {
@@ -719,6 +734,13 @@ void MachineInfoPanel::update_version_text(MachineObject* obj)
 
 void MachineInfoPanel::update_ams_ext(MachineObject *obj)
 {
+    auto upgrade_ptr   = obj->GetUpgrade().lock();
+    if (!upgrade_ptr) {
+        return;
+    }
+
+    const auto &new_version_list = upgrade_ptr->GetNewVersionList();
+
     bool has_hub_model = false;
 
     bool is_o_series = obj->is_series_o();
@@ -770,8 +792,8 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
             hub_ver = wxString::Format("%s(%s)", hub_ver, _L("Latest version"));
         }*/
 
-        if (obj->new_ver_list.empty() && !obj->m_new_ver_list_exist) {
-            if (obj->upgrade_new_version && obj->ahb_new_version_number.compare(obj->module_vers.find("ahb")->second.sw_ver) != 0) {
+        if (new_version_list.empty()) {
+            if (upgrade_ptr->HasNewVersion() && obj->ahb_new_version_number.compare(obj->module_vers.find("ahb")->second.sw_ver) != 0) {
                 m_ahb_panel->m_ams_new_version_img->Show();
 
                 if (obj->ahb_new_version_number.empty()) {
@@ -785,9 +807,8 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
                 hub_ver = ver_text;
             }
         } else {
-            auto ver_item = obj->new_ver_list.find("ahb");
-
-            if (ver_item == obj->new_ver_list.end()) {
+            auto ver_item = new_version_list.find("ahb");
+            if (ver_item == new_version_list.end()) {
                 m_ahb_panel->m_ams_new_version_img->Hide();
                 wxString ver_text = wxString::Format("%s(%s)", obj->module_vers.find("ahb")->second.sw_ver, _L("Latest version"));
                 hub_ver           = ver_text;
@@ -820,8 +841,8 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
             wxString ver_text = extra_ams_it->second.sw_ver;
 
             bool has_new_version = false;
-            auto new_extra_ams_ver = obj->new_ver_list.find(extra_ams_str);
-            if (new_extra_ams_ver != obj->new_ver_list.end())
+            auto new_extra_ams_ver = new_version_list.find(extra_ams_str);
+            if (new_extra_ams_ver != new_version_list.end())
                 has_new_version = true;
 
             extra_ams_it->second.sw_new_ver;
@@ -933,13 +954,13 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
                 }
                 else {
                     // update ams img
-                    if (m_obj->upgrade_display_state == DevFirmwareUpgradingState::UpgradingInProgress) {
+                    if (upgrade_ptr->GetUpgradeState() == DevFirmwareUpgradeState::UpgradingInProgress) {
                         ams_ver = "-";
                         amspanel->m_ams_new_version_img->Hide();
                     }
                     else {
-                        if (obj->new_ver_list.empty() && !obj->m_new_ver_list_exist) {
-                            if (obj->upgrade_new_version &&
+                        if (new_version_list.empty()) {
+                            if (upgrade_ptr->HasNewVersion() &&
                                 !obj->ams_new_version_number.empty() &&
                                 obj->ams_new_version_number.compare(it->second.sw_ver) != 0) {
                                 amspanel->m_ams_new_version_img->Show();
@@ -984,9 +1005,9 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
                         }
                         else {
                             std::string ams_idx = (boost::format("ams/%1%") % ams_id).str();
-                            auto        ver_item = obj->new_ver_list.find(ams_idx);
+                            auto        ver_item = new_version_list.find(ams_idx);
 
-                            if (ver_item == obj->new_ver_list.end()) {
+                            if (ver_item == new_version_list.end()) {
                                 amspanel->m_ams_new_version_img->Hide();
                                 wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Latest version"));
                                 if ((it->second.firmware_flag & 0x3) == FIRMWARE_STASUS::BETA) {
@@ -1063,8 +1084,8 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
 
         // has new version
         bool has_new_version = false;
-        auto new_ext_ver = obj->new_ver_list.find("ext");
-        if (new_ext_ver != obj->new_ver_list.end())
+        auto new_ext_ver = new_version_list.find("ext");
+        if (new_ext_ver != new_version_list.end())
             has_new_version = true;
 
         if (has_new_version) {
@@ -1209,7 +1230,7 @@ void MachineInfoPanel::show_status(int status, std::string upgrade_status_str)
 
     Freeze();
 
-    if (status == (int)DevFirmwareUpgradingState::UpgradingUnavaliable) {
+    if (status == (int)DevFirmwareUpgradeState::UpgradingUnavaliable) {
         m_button_upgrade_firmware->Show();
         m_button_upgrade_firmware->Disable();
         for (size_t i = 0; i < m_upgrading_sizer->GetItemCount(); i++) {
@@ -1218,14 +1239,14 @@ void MachineInfoPanel::show_status(int status, std::string upgrade_status_str)
         m_upgrade_retry_img->Hide();
         m_staticText_upgrading_info->Hide();
         m_staticText_upgrading_percent->Hide();
-    } else if (status == (int) DevFirmwareUpgradingState::UpgradingAvaliable) {
+    } else if (status == (int) DevFirmwareUpgradeState::UpgradingAvaliable) {
         m_button_upgrade_firmware->Show();
         m_button_upgrade_firmware->Enable();
         for (size_t i = 0; i < m_upgrading_sizer->GetItemCount(); i++) { m_upgrading_sizer->Show(false); }
         m_upgrade_retry_img->Hide();
         m_staticText_upgrading_info->Hide();
         m_staticText_upgrading_percent->Hide();
-    } else if (status == (int) DevFirmwareUpgradingState::UpgradingInProgress) {
+    } else if (status == (int) DevFirmwareUpgradeState::UpgradingInProgress) {
         m_button_upgrade_firmware->Disable();
         for (size_t i = 0; i < m_upgrading_sizer->GetItemCount(); i++) { m_upgrading_sizer->Show(true); }
         m_upgrade_retry_img->Hide();
@@ -1241,7 +1262,7 @@ void MachineInfoPanel::show_status(int status, std::string upgrade_status_str)
         m_staticText_upgrading_info->SetForegroundColour(TEXT_NORMAL_CLR);
         m_staticText_upgrading_percent->SetForegroundColour(TEXT_NORMAL_CLR);
         m_staticText_upgrading_percent->Show();
-    } else if (status == (int) DevFirmwareUpgradingState::UpgradingFinished) {
+    } else if (status == (int) DevFirmwareUpgradeState::UpgradingFinished) {
         if (upgrade_status_str == "UPGRADE_FAIL") {
             m_staticText_upgrading_info->SetLabel(_L("Updating failed"));
             m_staticText_upgrading_info->SetForegroundColour(TEXT_FAILED_CLR);
@@ -1360,22 +1381,25 @@ void MachineInfoPanel::on_sys_color_changed()
 
 void MachineInfoPanel::confirm_upgrade(MachineObject* obj)
 {
-    if (obj) {
-        obj->command_upgrade_confirm();
-        obj->upgrade_display_state = DevFirmwareUpgradingState::UpgradingInProgress;
-        obj->upgrade_display_hold_count = HOLD_COUNT_MAX;
+    auto upgrade_ptr = m_obj ? m_obj->GetUpgrade().lock() : nullptr;
+    if (upgrade_ptr) {
+        upgrade_ptr->CtrlUpgradeConfirm();
+
         // enter in progress status first
-        this->show_status((int)DevFirmwareUpgradingState::UpgradingInProgress);
+        this->show_status((int) DevFirmwareUpgradeState::UpgradingInProgress);
     }
 }
 
 void MachineInfoPanel::upgrade_firmware_internal() {
-    if (!m_obj)
+    auto upgrade_ptr = m_obj ? m_obj->GetUpgrade().lock() : nullptr;
+    if (!upgrade_ptr) {
         return;
+    }
+
     if (panel_type == ptOtaPanel) {
-        m_obj->command_upgrade_firmware(m_ota_info);
+        upgrade_ptr->CtrlUpgradeFirmware(m_ota_info);
     } else if (panel_type == ptAmsPanel) {
-        m_obj->command_upgrade_firmware(m_ams_info);
+        upgrade_ptr->CtrlUpgradeFirmware(m_ams_info);
     } else if (panel_type == ptPushPanel) {
         confirm_upgrade();
     }
@@ -1398,8 +1422,9 @@ void MachineInfoPanel::on_consisitency_upgrade_firmware(wxCommandEvent &event)
     if (confirm_dlg == nullptr) {
         confirm_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Update firmware"));
         confirm_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
-            if (m_obj) {
-                m_obj->command_consistency_upgrade_confirm();
+            auto upgrade_ptr = m_obj ? m_obj->GetUpgrade().lock() : nullptr;
+            if (upgrade_ptr) {
+                upgrade_ptr->CtrlUpgradeConsistencyConfirm();
             }
         });
     }
@@ -1412,14 +1437,16 @@ void MachineInfoPanel::on_show_release_note(wxMouseEvent &event)
     DeviceManager *dev = wxGetApp().getDeviceManager();
     if (!dev) return;
 
+    auto upgrade_ptr = m_obj->GetUpgrade().lock();
+    if (!upgrade_ptr) return;
 
     wxString next_version_release_note;
     wxString now_version_release_note;
     std::string version_number            = "";
 
     for (auto iter : m_obj->firmware_list) {
-        if (iter.version == m_obj->ota_new_version_number) {
-            version_number            = m_obj->ota_new_version_number;
+        if (iter.version == upgrade_ptr->GetOtaNewVersion()) {
+            version_number            = upgrade_ptr->GetOtaNewVersion();
             next_version_release_note = wxString::FromUTF8(iter.description);
         }
         if (iter.version == m_obj->get_ota_version()) {
@@ -1429,7 +1456,7 @@ void MachineInfoPanel::on_show_release_note(wxMouseEvent &event)
     }
 
     ReleaseNoteDialog dlg;
-    if (!m_obj->ota_new_version_number.empty()) {
+    if (!upgrade_ptr->GetOtaNewVersion().empty()) {
         dlg.update_release_note(next_version_release_note, version_number);
         dlg.ShowModal();
         return;
@@ -1503,6 +1530,8 @@ void UpgradePanel::update(MachineObject *obj)
         refresh_version_and_firmware(obj);
     }
 
+    auto upgrade_ptr = obj ? obj->GetUpgrade().lock() : nullptr;
+
     Freeze();
     if (m_obj && m_need_update) {
         if (m_obj->is_firmware_info_valid()) {
@@ -1515,20 +1544,21 @@ void UpgradePanel::update(MachineObject *obj)
 
     //force upgrade
     //unlock hint
-    if (m_obj && (m_obj->upgrade_display_state == DevFirmwareUpgradingState::UpgradingFinished) && (last_forced_hint_status != m_obj->upgrade_display_state)) {
-        last_forced_hint_status = m_obj->upgrade_display_state;
+    if (upgrade_ptr && (upgrade_ptr->GetUpgradeState() == DevFirmwareUpgradeState::UpgradingFinished) && (last_forced_hint_status != upgrade_ptr->GetUpgradeState())) {
+        last_forced_hint_status = upgrade_ptr->GetUpgradeState();
         m_show_forced_hint = true;
     }
+
     if (m_obj && m_show_forced_hint) {
-        if (m_obj->upgrade_force_upgrade) {
+        auto upgrade_ptr = m_obj->GetUpgrade().lock();
+        if (upgrade_ptr && upgrade_ptr->IsUpgradeForceUpgrade()) {
             m_show_forced_hint = false;   //lock hint
             if (force_dlg == nullptr) {
                 force_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Update firmware"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_CANCEL, wxDefaultPosition, wxDefaultSize);
                 force_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
-                    if (m_obj) {
-                        m_obj->command_upgrade_confirm();
-                        m_obj->upgrade_display_state = DevFirmwareUpgradingState::UpgradingInProgress;
-                        m_obj->upgrade_display_hold_count = HOLD_COUNT_MAX;
+                    auto upgrade_ptr = m_obj ? m_obj->GetUpgrade().lock() : nullptr;
+                    if (upgrade_ptr) {
+                        upgrade_ptr->CtrlUpgradeConfirm();
                     }
                 });
             }
@@ -1540,18 +1570,21 @@ void UpgradePanel::update(MachineObject *obj)
     }
 
     //consistency upgrade
-    if (m_obj && (m_obj->upgrade_display_state == DevFirmwareUpgradingState::UpgradingFinished) && (last_consistency_hint_status != m_obj->upgrade_display_state)) {
-        last_consistency_hint_status = m_obj->upgrade_display_state;
+    if (upgrade_ptr && (upgrade_ptr->GetUpgradeState() == DevFirmwareUpgradeState::UpgradingFinished) && (last_consistency_hint_status != upgrade_ptr->GetUpgradeState())) {
+        last_consistency_hint_status = upgrade_ptr->GetUpgradeState();
         m_show_consistency_hint = true;
     }
+
     if (m_obj && m_show_consistency_hint) {
-        if (m_obj->upgrade_consistency_request) {
+        auto upgrade_ptr = m_obj->GetUpgrade().lock();
+        if (upgrade_ptr && upgrade_ptr->IsUpgradeConsistencyRequest()) {
             m_show_consistency_hint = false;
             if (consistency_dlg == nullptr) {
                 consistency_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Update firmware"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_CANCEL, wxDefaultPosition, wxDefaultSize);
                 consistency_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
-                    if (m_obj) {
-                        m_obj->command_consistency_upgrade_confirm();
+                    auto upgrade_ptr = m_obj ? m_obj->GetUpgrade().lock() : nullptr;
+                    if (upgrade_ptr) {
+                        upgrade_ptr->CtrlUpgradeConsistencyConfirm();
                     }
                 });
             }

@@ -113,7 +113,7 @@ bool DevNozzleRack::CtrlCanReadAll() const
         return false;
     }
 
-    if (m_nozzle_system->GetOwner()->is_in_upgrading() || !m_nozzle_system->GetOwner()->upgrade_module.empty()) {
+    if (m_nozzle_system->GetOwner()->is_in_upgrading()) {
         return false;
     }
 

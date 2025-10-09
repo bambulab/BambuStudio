@@ -24,9 +24,12 @@
 #include "DeviceCore/DevExtruderSystem.h"
 #include "DeviceCore/DevFilaBlackList.h"
 #include "DeviceCore/DevFilaSystem.h"
+#include "DeviceCore/DevInfo.h"
+#include "DeviceCore/DevStorage.h"
+#include "DeviceCore/DevUpgrade.h"
+
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevMapping.h"
-#include "DeviceCore/DevStorage.h"
 
 #include "DeviceCore/DevUtilBackend.h"
 
@@ -1135,23 +1138,13 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
 
     //single nozzle
     else {
-        if (obj_->is_support_amx_ext_mix_mapping()){
-            map_opt = { false, true, false, false }; //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
-            if (!use_ams) {
-                map_opt[1] = false;
-                map_opt[3] = true;
-            }
-            filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt);
-            //auto_supply_with_ext(obj_->vt_slot);
+        map_opt = { false, true, false, false }; //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
+        if (!use_ams) {
+            map_opt[1] = false;
+            map_opt[3] = true;
         }
-        else {
-            map_opt = { false, true, false, false };
-            if (!use_ams) {
-                map_opt[1] = false;
-                map_opt[3] = true;
-            }
-            filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt);
-        }
+        filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt);
+        // auto_supply_with_ext(obj_->vt_slot);
     }
 
     if (filament_result == 0) {
@@ -3213,19 +3206,20 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
     }
 
      /*reading done*/
-    if (wxGetApp().app_config) {
-        if (obj_->upgrade_force_upgrade) {
+    auto upgrade_ptr = obj_->GetUpgrade().lock();
+    if (upgrade_ptr) {
+        if (upgrade_ptr->IsUpgradeForceUpgrade()) {
             show_status(PrintDialogStatus::PrintStatusNeedForceUpgrading);
             return;
         }
 
-        if (obj_->upgrade_consistency_request) {
+        if (upgrade_ptr->IsUpgradeConsistencyRequest()) {
             show_status(PrintStatusNeedConsistencyUpgrading);
             return;
         }
     }
 
-    if (!obj_->is_fdm_type()) {
+    if (!obj_->GetInfo()->IsFdmMode()) {
         show_status(PrintDialogStatus::PrintStatusModeNotFDM);
         return;
     }

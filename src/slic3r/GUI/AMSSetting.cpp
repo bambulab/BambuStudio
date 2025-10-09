@@ -4,6 +4,8 @@
 
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
+#include "slic3r/GUI/DeviceCore/DevUpgrade.h"
+
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 
 #include "slic3r/GUI/MsgDialog.hpp"
@@ -644,7 +646,7 @@ void AMSSettingTypePanel::Update(const MachineObject* obj)
     }
 
     if (ptr->IsSwitching())  {
-        int display_percent = obj->get_upgrade_percent();
+        int display_percent = obj->GetUpgrade().lock()->GetUpgradeProgressInt();
         if (display_percent == 100 || display_percent == 0) {
             display_percent = 1;// special case, sometimes it's switching but percent is 0 or 100
         }
