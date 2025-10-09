@@ -1067,7 +1067,6 @@ void BooleanOperationEngine::apply_result_to_model(const BooleanOperationResult&
         if (!new_obj->instances.empty() && new_obj->instances[0] && !new_obj->instances[0]->is_assemble_initialized())
             new_obj->instances[0]->set_assemble_transformation(new_obj->instances[0]->get_transformation());
 
-        add_object_to_sidebar(new_obj);
         return new_obj;
     };
 
@@ -1135,10 +1134,17 @@ void BooleanOperationEngine::apply_result_to_model(const BooleanOperationResult&
         wxGetApp().obj_list()->reorder_volumes_and_get_selection(obj_idx);
         wxGetApp().obj_list()->changed_object(obj_idx);
     };
+
+    // For object mode, add to sidebar after all volumes are created and configured
+    // This ensures proper material/extruder configuration before wipe tower updates
+    if (settings.target_mode == BooleanTargetMode::Object) {
+        add_object_to_sidebar(target_object);
+    }
+
     refresh_sidebar_for(target_object);
 
     if (settings.target_mode == BooleanTargetMode::Part)
-        target_object->ensure_on_bed();
+       target_object->ensure_on_bed();
     wxGetApp().plater()->update();
 }
 //NOTE: keep watching
@@ -1233,7 +1239,8 @@ GLGizmoMeshBoolean::GLGizmoMeshBoolean(GLCanvas3D& parent, unsigned int sprite_i
         init_volume_manager();
         m_volume_manager.update_obj_lists(selection);
         restore_list_color_overrides();
-        apply_color_overrides_for_mode(m_operation_mode);
+        apply_color_overrides_for_mode(m_ui->get_selected_operation());
+        m_warning_manager.clear_warnings();
     };
     m_ui->on_apply_color_overrides = [this](MeshBooleanOperation mode) {
         apply_color_overrides_for_mode(mode);
@@ -1262,7 +1269,7 @@ GLGizmoMeshBoolean::GLGizmoMeshBoolean(GLCanvas3D& parent, unsigned int sprite_i
         if (m_color_overrides.applied) {
             restore_list_color_overrides();
         }
-
+        m_warning_manager.clear_warnings();
         refresh_canvas();
         return true; // Delete successful
     };
@@ -1535,13 +1542,12 @@ void GLGizmoMeshBoolean::on_set_state()
         wxGetApp().plater()->take_snapshot("Mesh Boolean");
     }
     else if (m_state == EState::Off) {
-        m_volume_manager.clear_all();
-        m_target_mode = BooleanTargetMode::Unknown;
         //NOTE: check out
         restore_list_color_overrides();
+        m_volume_manager.clear_all();
+        m_target_mode = BooleanTargetMode::Unknown;
         m_parent.toggle_model_objects_visibility(true);
         m_last_plate_idx_for_visibility = -1;
-        wxGetApp().plater()->update(); // Ensure colors / scene are fully refreshed immediately
     }
 }
 
@@ -1608,6 +1614,12 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
         m_ui->set_entity_only(m_entity_only);
 
         m_ui->render_content(m_parent, GLGizmoBase::m_imgui, GLGizmoBase::m_is_dark_mode);
+
+        if (m_keep_original_models != m_ui->get_keep_original_models() ||
+            m_entity_only != m_ui->get_entity_only() ||
+            m_operation_mode != m_ui->get_selected_operation()){
+            m_warning_manager.clear_warnings();
+        }
 
         // Get updated values from UI
         m_operation_mode = m_ui->get_selected_operation();
