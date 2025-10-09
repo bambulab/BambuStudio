@@ -541,7 +541,9 @@ void DevNozzleSystemParser::ParseV1_0(const nlohmann::json& nozzletype_json,
         if (flag_e3d.has_value()) {
             // 0: BBL S_FLOW; 1:E3D H_FLOW (only P)
             if (flag_e3d.value() == 1) {
+                // note: E3D = E3D nozzle type + High Flow
                 nozzle.m_nozzle_flow = NozzleFlowType::H_FLOW;
+                nozzle.m_nozzle_type = NozzleType::ntE3D;
             } else {
                 nozzle.m_nozzle_flow = NozzleFlowType::S_FLOW;
             }

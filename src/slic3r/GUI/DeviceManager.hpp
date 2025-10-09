@@ -309,12 +309,15 @@ public:
     void parse_auto_nozzle_mapping(const json& print_jj);
 
     /* ams settings*/
-    bool IsDetectOnInsertEnabled() const;;
+    bool IsDetectOnInsertEnabled() const;
     //bool IsDetectOnPowerupEnabled() const { return m_enable_detect_on_powerup; }
     //bool IsDetectRemainEnabled() const { return m_enable_detect_remain; }
     //bool IsAutoRefillEnabled() const { return m_enable_auto_refill; }
 
-    [[nodiscard]] bool is_nozzle_flow_type_supported() const { return is_enable_np; };
+    /* E3D has extra nozzle flow type info */
+    bool has_extra_flow_type{false};
+
+    [[nodiscard]] bool is_nozzle_flow_type_supported() const { return is_enable_np | has_extra_flow_type; };
     [[nodiscard]] wxString get_nozzle_replace_url() const;
 
     /*online*/
@@ -454,7 +457,7 @@ public:
         has_get_pa_calib_tab = false;
         pa_calib_tab.clear();
     }
-    
+
     void reset_all_pa_cali_history_result()
     {
         has_get_all_pa_calib_tab = false;
