@@ -34,16 +34,6 @@ namespace Slic3r {
 
     namespace PMP = CGAL::Polygon_mesh_processing;
 
-    // Helper function: Test if point is inside mesh using ray casting
-    static bool is_point_inside_mesh(const AABBMesh& aabb_mesh, const Vec3d& point) {
-        // Cast ray in arbitrary direction (Z+) and count intersections
-        Vec3d ray_dir(0, 0, 1);
-        auto hit = aabb_mesh.query_ray_hit(point, ray_dir);
-
-        // If ray hits mesh and is pointing inward, point is inside
-        return hit.is_inside();
-    }
-
     // CGAL type definitions for 3D Delaunay/Voronoi
     using K = CGAL::Exact_predicates_inexact_constructions_kernel;
     using Vb = CGAL::Triangulation_vertex_base_with_info_3<int, K>;
@@ -746,7 +736,7 @@ namespace Slic3r {
                                  << result->indices.size() << " faces";
 
         // Apply styling if in solid mode
-        if (!config.hollow_cells && config.cell_style != CellStyle::Pure) {
+        if (!config.hollow_cells && config.cell_style != VoronoiMesh::CellStyle::Pure) {
             BOOST_LOG_TRIVIAL(info) << "Applying cell styling: " << static_cast<int>(config.cell_style);
             apply_cell_styling(*result, config);
         }
@@ -795,14 +785,29 @@ namespace Slic3r {
 
         // Extract Voronoi edges from cells
         // Key insight: Each cell face edge is a Voronoi edge
-        std::set<std::pair<Vec3d, Vec3d>> unique_edges;
-        std::map<Vec3d, std::vector<Vec3d>, 
-                 std::function<bool(const Vec3d&, const Vec3d&)>> 
-            vertex_connections([](const Vec3d& a, const Vec3d& b) {
-                if (std::abs(a.x() - b.x()) > 1e-9) return a.x() < b.x();
-                if (std::abs(a.y() - b.y()) > 1e-9) return a.y() < b.y();
-                return a.z() < b.z();
-            });
+        // Define comparison function for Vec3d with epsilon tolerance
+        struct Vec3dCompare {
+            bool operator()(const Vec3d& a, const Vec3d& b) const {
+                constexpr double eps = 1e-9;
+                if (std::abs(a.x() - b.x()) > eps) return a.x() < b.x();
+                if (std::abs(a.y() - b.y()) > eps) return a.y() < b.y();
+                if (std::abs(a.z() - b.z()) > eps) return a.z() < b.z();
+                return false;  // Equal within epsilon
+            }
+        };
+
+        // Define comparison function for pairs of Vec3d
+        struct Vec3dPairCompare {
+            Vec3dCompare vec3d_comp;
+            bool operator()(const std::pair<Vec3d, Vec3d>& a, const std::pair<Vec3d, Vec3d>& b) const {
+                if (vec3d_comp(a.first, b.first)) return true;
+                if (vec3d_comp(b.first, a.first)) return false;
+                return vec3d_comp(a.second, b.second);
+            }
+        };
+
+        std::set<std::pair<Vec3d, Vec3d>, Vec3dPairCompare> unique_edges((Vec3dPairCompare()));
+        std::map<Vec3d, std::vector<Vec3d>, Vec3dCompare> vertex_connections((Vec3dCompare()));
 
         c_loop_all vl(con);
         voronoicell_neighbor cell;
@@ -848,10 +853,9 @@ namespace Slic3r {
                             Vec3d p1 = cell_vertices[vi1];
                             Vec3d p2 = cell_vertices[vi2];
 
-                            // Store edge with consistent ordering
-                            auto edge = (p1.x() < p2.x() || (p1.x() == p2.x() && p1.y() < p2.y()) || 
-                                       (p1.x() == p2.x() && p1.y() == p2.y() && p1.z() < p2.z()))
-                                ? std::make_pair(p1, p2) : std::make_pair(p2, p1);
+                            // Store edge with consistent ordering using the comparator
+                            Vec3dCompare vec_comp;
+                            auto edge = vec_comp(p1, p2) ? std::make_pair(p1, p2) : std::make_pair(p2, p1);
                             unique_edges.insert(edge);
 
                             // Track connections
@@ -1281,8 +1285,32 @@ namespace Slic3r {
         // Extract Voronoi edges - CORRECT DUAL: Delaunay FACETS -> Voronoi EDGES
         // Each Delaunay facet (triangular face) is shared by two tetrahedra
         // The Voronoi edge connects the circumcenters of these two tetrahedra
-        std::set<std::pair<Point_3, Point_3>> unique_edges;
-        std::map<Point_3, std::vector<Point_3>> vertex_connections;  // Track which edges meet at each vertex
+        
+        // Define comparators for CGAL Point_3
+        struct Point3Compare {
+            bool operator()(const Point_3& a, const Point_3& b) const {
+                constexpr double eps = 1e-9;
+                if (std::abs(CGAL::to_double(a.x()) - CGAL::to_double(b.x())) > eps) 
+                    return CGAL::to_double(a.x()) < CGAL::to_double(b.x());
+                if (std::abs(CGAL::to_double(a.y()) - CGAL::to_double(b.y())) > eps) 
+                    return CGAL::to_double(a.y()) < CGAL::to_double(b.y());
+                if (std::abs(CGAL::to_double(a.z()) - CGAL::to_double(b.z())) > eps) 
+                    return CGAL::to_double(a.z()) < CGAL::to_double(b.z());
+                return false;
+            }
+        };
+        
+        struct Point3PairCompare {
+            Point3Compare pt_comp;
+            bool operator()(const std::pair<Point_3, Point_3>& a, const std::pair<Point_3, Point_3>& b) const {
+                if (pt_comp(a.first, b.first)) return true;
+                if (pt_comp(b.first, a.first)) return false;
+                return pt_comp(a.second, b.second);
+            }
+        };
+        
+        std::set<std::pair<Point_3, Point_3>, Point3PairCompare> unique_edges((Point3PairCompare()));
+        std::map<Point_3, std::vector<Point_3>, Point3Compare> vertex_connections((Point3Compare()));  // Track which edges meet at each vertex
 
         // Iterate over all finite FACETS in the Delaunay triangulation
         int total_facets = 0;
@@ -1319,7 +1347,9 @@ namespace Slic3r {
                     passed_bounds++;
 
                     // Store edge (ensure consistent ordering to avoid duplicates)
-                    auto edge = (cc1 < cc2) ? std::make_pair(cc1, cc2) : std::make_pair(cc2, cc1);
+                    // Use the Point3Compare to order the edge consistently
+                    Point3Compare pt_comp;
+                    auto edge = pt_comp(cc1, cc2) ? std::make_pair(cc1, cc2) : std::make_pair(cc2, cc1);
                     unique_edges.insert(edge);
 
                     // Track vertex connections for proper junctions
@@ -1361,7 +1391,7 @@ namespace Slic3r {
                 case VoronoiMesh::EdgeShape::Hexagon:
                 case VoronoiMesh::EdgeShape::Octagon: {
                     // Regular polygon
-                    int sides = (edge_shape == EdgeShape::Hexagon) ? 6 : 8;
+                    int sides = (edge_shape == VoronoiMesh::EdgeShape::Hexagon) ? 6 : 8;
                     float snap_angle = std::round(angle / (2.0f * M_PI / sides)) * (2.0f * M_PI / sides);
                     return Vec3d(r * std::cos(snap_angle), r * std::sin(snap_angle), 0);
                 }
@@ -1479,7 +1509,22 @@ namespace Slic3r {
 
         // Create spherical junctions at vertices where multiple edges meet
         BOOST_LOG_TRIVIAL(info) << "create_edge_structure() - Creating vertex junctions";
-        std::map<Point_3, size_t> vertex_junction_map;  // Maps vertex to its junction center index
+        
+        // Define comparator for this map too
+        struct Point3Compare_Local {
+            bool operator()(const Point_3& a, const Point_3& b) const {
+                constexpr double eps = 1e-9;
+                if (std::abs(CGAL::to_double(a.x()) - CGAL::to_double(b.x())) > eps) 
+                    return CGAL::to_double(a.x()) < CGAL::to_double(b.x());
+                if (std::abs(CGAL::to_double(a.y()) - CGAL::to_double(b.y())) > eps) 
+                    return CGAL::to_double(a.y()) < CGAL::to_double(b.y());
+                if (std::abs(CGAL::to_double(a.z()) - CGAL::to_double(b.z())) > eps) 
+                    return CGAL::to_double(a.z()) < CGAL::to_double(b.z());
+                return false;
+            }
+        };
+        
+        std::map<Point_3, size_t, Point3Compare_Local> vertex_junction_map((Point3Compare_Local()));  // Maps vertex to its junction center index
 
         for (const auto& [vertex, connections] : vertex_connections) {
             if (connections.size() < 2)
@@ -1706,30 +1751,30 @@ namespace Slic3r {
         auto start = std::chrono::high_resolution_clock::now();
         
         switch (config.cell_style) {
-            case CellStyle::Pure:
+            case VoronoiMesh::CellStyle::Pure:
                 // No styling - pure mathematical Voronoi
                 break;
                 
-            case CellStyle::Rounded:
+            case VoronoiMesh::CellStyle::Rounded:
                 apply_rounding(mesh, config.rounding_radius);
                 if (config.subdivision_level > 0) {
                     apply_organic_smoothing(mesh, config.subdivision_level);
                 }
                 break;
                 
-            case CellStyle::Chamfered:
+            case VoronoiMesh::CellStyle::Chamfered:
                 apply_chamfering(mesh, config.chamfer_distance);
                 break;
                 
-            case CellStyle::Crystalline:
+            case VoronoiMesh::CellStyle::Crystalline:
                 apply_crystalline_cuts(mesh);
                 break;
                 
-            case CellStyle::Organic:
+            case VoronoiMesh::CellStyle::Organic:
                 apply_organic_smoothing(mesh, std::max(1, config.subdivision_level));
                 break;
                 
-            case CellStyle::Faceted:
+            case VoronoiMesh::CellStyle::Faceted:
                 apply_faceting(mesh);
                 break;
         }
