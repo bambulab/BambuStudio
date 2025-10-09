@@ -1020,9 +1020,17 @@ namespace Slic3r::GUI {
             volume->set_mesh(std::move(new_mesh));
             volume->calculate_convex_hull();
 
+            // Invalidate caches that depend on mesh geometry
+            volume->invalidate_convex_hull_2d();
+            obj->invalidate_bounding_box();
+
             // Use changed_object to properly update the model and GL scene
             BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Calling changed_object to update GL";
             plater->changed_object(cid.object_id);
+
+            // Schedule background process to update slicing
+            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Scheduling background process for re-slice";
+            m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 
             // Restore position AFTER changed_object (which calls ensure_on_bed)
             BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Restoring original position";

@@ -680,7 +680,8 @@ namespace Slic3r {
                             int v1 = face_vertices[face_start + j];
                             int v2 = face_vertices[face_start + j + 1];
 
-                            cell_mesh.indices.emplace_back(v0, v1, v2);
+                            // REVERSED WINDING: Voro++ faces point inward, so reverse them
+                            cell_mesh.indices.emplace_back(v0, v2, v1);
                         }
                     }
                     face_start += face_order;
@@ -944,27 +945,50 @@ namespace Slic3r {
                 }
             }
 
-            for (size_t seg = 0; seg < curve_points.size() - 1; ++seg) {
-                Vec3d seg_p1 = curve_points[seg];
-                Vec3d seg_p2 = curve_points[seg + 1];
-                Vec3d seg_dir = (seg_p2 - seg_p1).normalized();
-                Vec3d perp1 = (std::abs(seg_dir.z()) < 0.9) ? seg_dir.cross(Vec3d(0, 0, 1)).normalized() 
-                                                             : seg_dir.cross(Vec3d(1, 0, 0)).normalized();
-                Vec3d perp2 = seg_dir.cross(perp1).normalized();
-                size_t base_idx = result->vertices.size();
-
+            // Create strut geometry along the curve
+            // We'll create one continuous tube, reusing vertices between segments
+            std::vector<size_t> segment_base_indices;
+            segment_base_indices.reserve(curve_points.size());
+            
+            for (size_t seg = 0; seg < curve_points.size(); ++seg) {
+                Vec3d point = curve_points[seg];
+                
+                // Calculate perpendicular axes for this point
+                Vec3d dir;
+                if (seg == 0) {
+                    dir = (curve_points[seg + 1] - curve_points[seg]).normalized();
+                } else if (seg == curve_points.size() - 1) {
+                    dir = (curve_points[seg] - curve_points[seg - 1]).normalized();
+                } else {
+                    dir = (curve_points[seg + 1] - curve_points[seg - 1]).normalized();
+                }
+                
+                Vec3d perp1 = (std::abs(dir.z()) < 0.9) ? dir.cross(Vec3d(0, 0, 1)).normalized() 
+                                                         : dir.cross(Vec3d(1, 0, 0)).normalized();
+                Vec3d perp2 = dir.cross(perp1).normalized();
+                
+                // Store the base index for this ring of vertices
+                segment_base_indices.push_back(result->vertices.size());
+                
+                // Create ring of vertices around this point
                 for (int i = 0; i <= config.edge_segments; ++i) {
                     Vec3d profile = get_profile_point(i, radius);
                     Vec3d offset = perp1 * profile.x() + perp2 * profile.y();
-                    result->vertices.emplace_back((seg_p1 + offset).cast<float>());
-                    result->vertices.emplace_back((seg_p2 + offset).cast<float>());
+                    result->vertices.emplace_back((point + offset).cast<float>());
                 }
-
+            }
+            
+            // Connect consecutive rings to form the tube
+            for (size_t seg = 0; seg < curve_points.size() - 1; ++seg) {
+                size_t ring1_start = segment_base_indices[seg];
+                size_t ring2_start = segment_base_indices[seg + 1];
+                
                 for (int i = 0; i < config.edge_segments; ++i) {
-                    int i0 = base_idx + i * 2;
-                    int i1 = base_idx + i * 2 + 1;
-                    int i2 = base_idx + (i + 1) * 2;
-                    int i3 = base_idx + (i + 1) * 2 + 1;
+                    int i0 = ring1_start + i;
+                    int i1 = ring1_start + i + 1;
+                    int i2 = ring2_start + i;
+                    int i3 = ring2_start + i + 1;
+                    
                     result->indices.emplace_back(i0, i2, i1);
                     result->indices.emplace_back(i1, i2, i3);
                 }
@@ -1012,10 +1036,81 @@ namespace Slic3r {
         BOOST_LOG_TRIVIAL(info) << "Voro++ Wireframe: Complete! vertices=" << result->vertices.size() 
                                  << ", faces=" << result->indices.size();
 
+        // Clip wireframe to mesh bounds if requested
+        if (clip_mesh && !clip_mesh->vertices.empty() && config.clip_to_mesh) {
+            BOOST_LOG_TRIVIAL(info) << "Voro++ Wireframe: Clipping to mesh bounds...";
+            clip_wireframe_to_mesh(*result, *clip_mesh);
+            BOOST_LOG_TRIVIAL(info) << "Voro++ Wireframe: After clipping, vertices=" << result->vertices.size() 
+                                     << ", faces=" << result->indices.size();
+        }
+
         if (config.progress_callback)
             config.progress_callback(90);
 
         return result;
+    }
+    
+    // Clip wireframe mesh to stay within mesh bounds
+    void clip_wireframe_to_mesh(indexed_triangle_set& wireframe, const indexed_triangle_set& mesh) {
+        if (wireframe.vertices.empty() || mesh.vertices.empty()) {
+            return;
+        }
+        
+        // Build AABB mesh for proper inside/outside testing
+        AABBMesh aabb_mesh(mesh);
+        
+        // Mark vertices that are outside the mesh
+        std::vector<bool> keep_vertex(wireframe.vertices.size(), true);
+        int removed_count = 0;
+        
+        for (size_t i = 0; i < wireframe.vertices.size(); ++i) {
+            Vec3d point = wireframe.vertices[i].cast<double>();
+            
+            // Use proper ray-based inside test
+            Vec3d ray_dir(0, 0, 1);
+            auto hit = aabb_mesh.query_ray_hit(point, ray_dir);
+            
+            if (!hit.is_inside()) {
+                keep_vertex[i] = false;
+                removed_count++;
+            }
+        }
+        
+        if (removed_count == 0) {
+            BOOST_LOG_TRIVIAL(info) << "clip_wireframe_to_mesh: All vertices inside mesh";
+            return;
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "clip_wireframe_to_mesh: Removing " << removed_count << " vertices out of " << wireframe.vertices.size();
+        
+        // Build vertex remapping
+        std::vector<int> vertex_map(wireframe.vertices.size(), -1);
+        std::vector<Vec3f> new_vertices;
+        new_vertices.reserve(wireframe.vertices.size() - removed_count);
+        
+        for (size_t i = 0; i < wireframe.vertices.size(); ++i) {
+            if (keep_vertex[i]) {
+                vertex_map[i] = new_vertices.size();
+                new_vertices.push_back(wireframe.vertices[i]);
+            }
+        }
+        
+        // Rebuild faces, skipping those with removed vertices
+        std::vector<Vec3i> new_indices;
+        new_indices.reserve(wireframe.indices.size());
+        
+        for (const auto& face : wireframe.indices) {
+            if (keep_vertex[face[0]] && keep_vertex[face[1]] && keep_vertex[face[2]]) {
+                new_indices.emplace_back(
+                    vertex_map[face[0]],
+                    vertex_map[face[1]],
+                    vertex_map[face[2]]
+                );
+            }
+        }
+        
+        wireframe.vertices = std::move(new_vertices);
+        wireframe.indices = std::move(new_indices);
     }
 
 
