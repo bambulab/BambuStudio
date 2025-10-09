@@ -766,7 +766,7 @@ inline std::string get_bbl_monitor_time_dhm(float time_in_secs)
     time_in_secs -= (float)days * 86400.0f;
     int hours = (int)(time_in_secs / 3600.0f);
     time_in_secs -= (float)hours * 3600.0f;
-    int minutes = (int)(time_in_secs / 60.0f);
+    int minutes = (int) std::ceil(time_in_secs / 60.0f);
 
     char buffer[64];
     if (days > 0)
@@ -827,7 +827,7 @@ inline std::string get_bbl_remain_time_dhms(float time_in_secs)
     time_in_secs -= (float) days * 86400.0f;
     int hours = (int) (time_in_secs / 3600.0f);
     time_in_secs -= (float) hours * 3600.0f;
-    int minutes = (int) (time_in_secs / 60.0f);
+    int minutes = (int) std::ceil(time_in_secs / 60.0f);
     time_in_secs -= (float) minutes * 60.0f;
 
     char buffer[64];
