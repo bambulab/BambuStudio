@@ -44,6 +44,9 @@ namespace Slic3r {
     using CGALMesh = CGAL::Surface_mesh<Point_3>;
 
     namespace {
+        
+        // Forward declaration for helper function
+        void clip_wireframe_to_mesh(indexed_triangle_set& wireframe, const indexed_triangle_set& mesh);
 
         // Helper function to test if a point is inside a mesh using raycast
         bool is_point_inside_mesh(const AABBMesh& aabb_mesh, const Vec3d& point) {
