@@ -570,8 +570,8 @@ namespace Slic3r::GUI {
                 
                 if (ImGui::Button(into_u8(_u8L("Use Object Center")).c_str())) {
                     // Calculate object center from mesh bounds
-                    if (m_volume && m_volume->mesh()) {
-                        BoundingBoxf3 bbox = m_volume->mesh()->bounding_box();
+                    if (m_volume) {
+                        BoundingBoxf3 bbox = m_volume->mesh().bounding_box();
                         m_configuration.density_center = (bbox.min + bbox.max) * 0.5;
                     }
                 }
