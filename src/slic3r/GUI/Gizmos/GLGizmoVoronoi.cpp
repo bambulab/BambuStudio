@@ -1582,9 +1582,10 @@ namespace Slic3r::GUI {
                 }
                 
                 // Apply Lloyd's relaxation using VoronoiMesh function
+                // Note: lloyd_relaxation needs bounds, not mesh
                 seeds_double = Slic3r::VoronoiMesh::lloyd_relaxation(
-                    mesh,
                     seeds_double,
+                    shrunk_bbox,  // Use the shrunk bbox (same as actual generation)
                     m_configuration.relaxation_iterations
                 );
                 
