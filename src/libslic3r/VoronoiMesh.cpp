@@ -488,6 +488,13 @@ namespace Slic3r {
                 add_edge(face[2], face[0]);
             }
             
+            // Compute mesh center for outward detection
+            Vec3f mesh_center = Vec3f::Zero();
+            for (const Vec3f& v : mesh.vertices) {
+                mesh_center += v;
+            }
+            mesh_center /= float(mesh.vertices.size());
+            
             // Propagate orientation from seed face
             std::vector<bool> visited(mesh.indices.size(), false);
             std::vector<bool> should_flip(mesh.indices.size(), false);
@@ -507,6 +514,24 @@ namespace Slic3r {
                 if (area > max_area) {
                     max_area = area;
                     seed_face = i;
+                }
+            }
+            
+            // Check if seed face normal points outward, flip if not
+            {
+                const auto& face = mesh.indices[seed_face];
+                const Vec3f& v0 = mesh.vertices[face[0]];
+                const Vec3f& v1 = mesh.vertices[face[1]];
+                const Vec3f& v2 = mesh.vertices[face[2]];
+                
+                Vec3f normal = (v1 - v0).cross(v2 - v0);
+                Vec3f face_center = (v0 + v1 + v2) / 3.0f;
+                Vec3f to_face = face_center - mesh_center;
+                
+                // If normal points inward (toward center), flip the seed face
+                if (normal.dot(to_face) < 0) {
+                    should_flip[seed_face] = true;
+                    BOOST_LOG_TRIVIAL(debug) << "Seed face points inward, will flip";
                 }
             }
             
@@ -2302,7 +2327,10 @@ namespace Slic3r {
                     );
                 }
 
-                // Triangulate each face
+                // Get seed position for orientation reference
+                Vec3d seed_pos(vl.x(), vl.y(), vl.z());
+
+                // Triangulate each face with correct orientation
                 int face_start = 0;
                 for (int face_order : face_orders) {
                     if (face_order >= 3) {
@@ -2312,8 +2340,27 @@ namespace Slic3r {
                             int v1 = face_vertices[face_start + j];
                             int v2 = face_vertices[face_start + j + 1];
 
-                            // REVERSED WINDING: Voro++ faces point inward, so reverse them
-                            cell_mesh.indices.emplace_back(v0, v2, v1);
+                            // CRITICAL: Check face orientation relative to seed
+                            // Voro++ faces point inward by default, we need them outward
+                            Vec3f vert0 = cell_mesh.vertices[v0];
+                            Vec3f vert1 = cell_mesh.vertices[v1];
+                            Vec3f vert2 = cell_mesh.vertices[v2];
+                            
+                            // Face normal
+                            Vec3f normal = (vert1 - vert0).cross(vert2 - vert0);
+                            
+                            // Vector from face to seed (inward direction)
+                            Vec3f to_seed = seed_pos.cast<float>() - vert0;
+                            
+                            // If normal points toward seed, it's inward-facing (Voro++ default)
+                            // We want outward-facing, so reverse it
+                            if (normal.dot(to_seed) > 0) {
+                                // Inward-facing, reverse to make outward
+                                cell_mesh.indices.emplace_back(v0, v2, v1);
+                            } else {
+                                // Already outward-facing
+                                cell_mesh.indices.emplace_back(v0, v1, v2);
+                            }
                         }
                     }
                     face_start += face_order;
@@ -2326,7 +2373,12 @@ namespace Slic3r {
                                                   << " (vertices=" << cell_mesh.vertices.size() 
                                                   << ", faces=" << cell_mesh.indices.size() << ")";
                         
+                        // Store original size for validation
+                        size_t original_vertex_count = cell_mesh.vertices.size();
+                        size_t original_face_count = cell_mesh.indices.size();
+                        
                         // Perform boolean intersection: cell ∩ original_mesh
+                        // This REPLACES cell_mesh with the intersection result
                         MeshBoolean::cgal::intersect(cell_mesh, *clip_mesh);
 
                         // Skip cells that were completely outside the mesh
@@ -2335,21 +2387,76 @@ namespace Slic3r {
                             continue;
                         }
                         
+                        // Validate that intersection actually clipped the cell
+                        if (cell_mesh.vertices.size() >= original_vertex_count && 
+                            cell_mesh.indices.size() >= original_face_count) {
+                            BOOST_LOG_TRIVIAL(warning) << "Voro++: Cell " << processed 
+                                                        << " intersection didn't reduce size - may extend outside bounds";
+                        }
+                        
                         BOOST_LOG_TRIVIAL(debug) << "Voro++: Cell " << processed << " clipped successfully "
                                                   << "(vertices=" << cell_mesh.vertices.size() 
                                                   << ", faces=" << cell_mesh.indices.size() << ")";
+                        
+                        // CRITICAL: Boolean ops destroy orientation - fix using cell center
+                        Vec3f cell_center = Vec3f::Zero();
+                        for (const auto& v : cell_mesh.vertices) {
+                            cell_center += v;
+                        }
+                        cell_center /= float(cell_mesh.vertices.size());
+                        
+                        // Orient each face to point away from cell center
+                        for (auto& face : cell_mesh.indices) {
+                            const Vec3f& v0 = cell_mesh.vertices[face[0]];
+                            const Vec3f& v1 = cell_mesh.vertices[face[1]];
+                            const Vec3f& v2 = cell_mesh.vertices[face[2]];
+                            
+                            Vec3f normal = (v1 - v0).cross(v2 - v0);
+                            Vec3f to_center = cell_center - v0;
+                            
+                            // If normal points inward (toward center), flip the face
+                            if (normal.dot(to_center) > 0) {
+                                std::swap(face[1], face[2]);
+                            }
+                        }
                     }
                     catch (const std::exception& e) {
                         BOOST_LOG_TRIVIAL(warning) << "Voro++: Failed to clip cell " << processed
-                                                   << " - " << e.what() << " - using unclipped cell";
+                                                   << " - " << e.what() << " - skipping cell";
+                        continue;
                     }
                     catch (...) {
                         BOOST_LOG_TRIVIAL(warning) << "Voro++: Failed to clip cell " << processed
-                                                   << " - unknown error - using unclipped cell";
+                                                   << " - unknown error - skipping cell";
+                        continue;
                     }
                 } else {
-                    BOOST_LOG_TRIVIAL(debug) << "Voro++: Cell " << processed << " - no clipping (clip_mesh=" 
-                                              << (clip_mesh ? "provided" : "NULL") << ")";
+                    // NO CLIPPING - this might be the issue!
+                    BOOST_LOG_TRIVIAL(warning) << "Voro++: Cell " << processed << " - NO CLIPPING APPLIED! "
+                                                << "clip_mesh=" << (clip_mesh ? "empty" : "NULL");
+                    
+                    // Without clipping, cells extend beyond mesh bounds
+                    // Skip these cells if clip_mesh was supposed to be provided
+                    if (clip_mesh == nullptr) {
+                        BOOST_LOG_TRIVIAL(error) << "Voro++: clip_mesh is NULL - cells will extend beyond bounds!";
+                    }
+                    
+                    // No clipping - verify orientation using seed position
+                    Vec3f cell_center = seed_pos.cast<float>();
+                    
+                    for (auto& face : cell_mesh.indices) {
+                        const Vec3f& v0 = cell_mesh.vertices[face[0]];
+                        const Vec3f& v1 = cell_mesh.vertices[face[1]];
+                        const Vec3f& v2 = cell_mesh.vertices[face[2]];
+                        
+                        Vec3f normal = (v1 - v0).cross(v2 - v0);
+                        Vec3f to_center = cell_center - v0;
+                        
+                        // Verify - should already be correct from initial triangulation
+                        if (normal.dot(to_center) > 0) {
+                            std::swap(face[1], face[2]);
+                        }
+                    }
                 }
 
                 // Apply hollowing for solid cells with wall thickness
@@ -2359,6 +2466,17 @@ namespace Slic3r {
                     create_hollow_cells(cell_mesh, config.wall_thickness);
                 }
                 // If hollow_cells is true, this path shouldn't be reached (we use wireframe instead)
+
+                // Clean up per-cell before merging to prevent propagation of issues
+                if (!cell_mesh.vertices.empty() && !cell_mesh.indices.empty()) {
+                    remove_degenerate_faces(cell_mesh);
+                    
+                    // Skip empty cells after cleanup
+                    if (cell_mesh.indices.empty()) {
+                        BOOST_LOG_TRIVIAL(debug) << "Voro++: Cell " << processed << " empty after cleanup, skipping";
+                        continue;
+                    }
+                }
 
                 // Merge this cell into the result
                 size_t vertex_offset = result->vertices.size();
@@ -2380,10 +2498,35 @@ namespace Slic3r {
         BOOST_LOG_TRIVIAL(info) << "Voro++: Generated " << result->vertices.size() << " vertices, "
                                  << result->indices.size() << " faces";
 
-        // Apply robust cleanup to fix boundary degeneracies
+        // Apply lightweight cleanup - orientation already correct per-cell
         if (!result->vertices.empty() && !result->indices.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "Voro++: Applying robust cleanup to fix near-boundary degeneracies";
-            robust_mesh_cleanup(*result);
+            BOOST_LOG_TRIVIAL(info) << "Voro++: Applying final cleanup (welding and degenerate removal)";
+            
+            // Aggressive welding to merge shared vertices between cells
+            // This eliminates the "thick overlapping" effect from duplicate vertices
+            size_t orig_vertex_count = result->vertices.size();
+            weld_nearby_vertices(*result);
+            size_t welded_count = orig_vertex_count - result->vertices.size();
+            
+            if (welded_count > 0) {
+                BOOST_LOG_TRIVIAL(info) << "Welded " << welded_count << " duplicate vertices between cells";
+            }
+            
+            // Remove any degenerate faces created by welding
+            size_t orig_face_count = result->indices.size();
+            remove_degenerate_faces(*result);
+            size_t removed_count = orig_face_count - result->indices.size();
+            
+            if (removed_count > 0) {
+                BOOST_LOG_TRIVIAL(info) << "Removed " << removed_count << " degenerate faces";
+            }
+            
+            BOOST_LOG_TRIVIAL(info) << "Voro++: Final result: " << result->vertices.size() 
+                                     << " vertices, " << result->indices.size() << " faces";
+            
+            // Validate final mesh
+            validate_geometry(*result, "Final Voronoi mesh");
+            validate_manifoldness(*result, "Final Voronoi mesh");
         }
 
         // Apply styling if in solid mode
