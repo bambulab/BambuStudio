@@ -349,6 +349,40 @@ void HelioQuery::request_pat_token(std::function<void(std::string)> func)
         .perform();
 }
 
+void HelioQuery::optimization_feedback(const std::string helio_api_url, const std::string helio_api_key, std::string optimization_id, float rating, std::string comment)
+{
+    std::string query_body = R"({
+        "query": "mutation AddOptimizationFeedback($input: OptimizationFeedbackInput!) { addOptimizationFeedback(input: $input) { id } }",
+        "variables": {
+            "input": {
+                "optimizationId": "%1%",
+                "rating": %2%,
+                "comment": "%3%"
+            }
+        }
+    })";
+
+    query_body = boost::str(boost::format(query_body)
+        % optimization_id
+        % rating
+        % comment);
+    auto http = Http::post(helio_api_url);
+
+    http.header("Content-Type", "application/json")
+        .header("Authorization", "Bearer " + helio_api_key)
+        .header("X-Version-Type", "Official")
+        .set_post_body(query_body);
+
+    http.timeout_connect(20)
+        .timeout_max(100)
+        .on_complete([=](std::string body, unsigned status) {
+            BOOST_LOG_TRIVIAL(info) << "optimization_feedback" << body;
+        })
+        .on_error([](std::string body, std::string error, unsigned status) {
+        })
+        .perform();
+}
+
 HelioQuery::PresignedURLResult HelioQuery::create_presigned_url(const std::string helio_api_url, const std::string helio_api_key)
 {
     HelioQuery::PresignedURLResult res;
@@ -1093,7 +1127,7 @@ Slic3r::HelioQuery::CheckOptimizationResult HelioQuery::check_optimization_progr
 {
     HelioQuery::CheckOptimizationResult res;
     std::string                               query_body_template = R"( {
-							"query": "query Optimization($id: ID!) { optimization(id: $id) { id name progress status optimizedGcodeWithThermalIndexesUrl } }",
+							"query": "query Optimization($id: ID!) { optimization(id: $id) { id name progress status optimizedGcodeWithThermalIndexesUrl qualityStdImprovement qualityMeanImprovement } }",
 							"variables": {
 								"id": "%1%"
 							}
@@ -1141,6 +1175,8 @@ Slic3r::HelioQuery::CheckOptimizationResult HelioQuery::check_optimization_progr
                 res.progress = parsed_obj["data"]["optimization"]["progress"];
                 res.is_finished = parsed_obj["data"]["optimization"]["status"] == "FINISHED";
                 if (res.is_finished) {
+                    res.qualityStdImprovement = parsed_obj["data"]["optimization"]["qualityStdImprovement"];
+                    res.qualityMeanImprovement = parsed_obj["data"]["optimization"]["qualityMeanImprovement"];
                     res.url = parsed_obj["data"]["optimization"]["optimizedGcodeWithThermalIndexesUrl"];
                 }
             }
@@ -1187,6 +1223,13 @@ void HelioBackgroundProcess::stop_current_helio_action()
 
     if (!current_optimization_result.id.empty()) {
         HelioQuery::stop_optimization(helio_api_url, helio_api_key, current_optimization_result.id);
+    }
+}
+
+void HelioBackgroundProcess::feedback_current_helio_action(float rating, std::string commend)
+{
+    if (!current_optimization_result.id.empty()) {
+        HelioQuery::optimization_feedback(helio_api_url, helio_api_key, current_optimization_result.id, rating, commend);
     }
 }
 
@@ -1352,9 +1395,10 @@ void HelioBackgroundProcess::create_simulation_step(HelioQuery::CreateGCodeResul
                             std::string simulated_gcode_path = HelioBackgroundProcess::create_path_for_simulated_gcode(
                                 m_gcode_result->filename);
 
+                            HelioQuery::RatingData rating_data;
                             HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(check_simulation_progress_res.url,
                                                                                            simulated_gcode_path, m_gcode_result->filename,
-                                                                                           notification_manager);
+                                                                                           notification_manager, rating_data);
                             break;
                         }
                     } else {
@@ -1454,9 +1498,15 @@ void HelioBackgroundProcess::create_optimization_step(HelioQuery::CreateGCodeRes
                             std::string optimized_gcode_path = HelioBackgroundProcess::create_path_for_optimization_gcode(
                                 m_gcode_result->filename);
 
+
+                            HelioQuery::RatingData rating_data;
+                            rating_data.action = 1;
+                            rating_data.qualityMeanImprovement = check_optimzaion_progress_res.qualityMeanImprovement;
+                            rating_data.qualityStdImprovement =check_optimzaion_progress_res.qualityStdImprovement;
+
                             HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(check_optimzaion_progress_res.url,
                                 optimized_gcode_path, m_gcode_result->filename,
-                                notification_manager);
+                                notification_manager, rating_data);
                             break;
                         }
                     }
@@ -1516,7 +1566,8 @@ void HelioBackgroundProcess::create_optimization_step(HelioQuery::CreateGCodeRes
 void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string                                file_download_url,
                                                                     std::string                                helio_gcode_path,
                                                                     std::string                                tmp_path,
-                                                                    std::unique_ptr<GUI::NotificationManager>& notification_manager)
+                                                                    std::unique_ptr<GUI::NotificationManager>& notification_manager,
+                                                                    HelioQuery::RatingData                     rating_data)
 {
     auto        http            = Http::get(file_download_url);
     unsigned    response_status = 0;
@@ -1585,7 +1636,7 @@ void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string 
         status.is_helio = true;
         Slic3r::SlicingStatusEvent*      evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
         wxQueueEvent(GUI::wxGetApp().plater(), evt);
-        HelioBackgroundProcess::load_helio_file_to_viwer(helio_gcode_path, tmp_path);
+        HelioBackgroundProcess::load_helio_file_to_viwer(helio_gcode_path, tmp_path, rating_data);
     } else {
         set_state(STATE_CANCELED);
 
@@ -1601,7 +1652,7 @@ void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string 
     }
 }
 
-void HelioBackgroundProcess::load_helio_file_to_viwer(std::string file_path, std::string tmp_path)
+void HelioBackgroundProcess::load_helio_file_to_viwer(std::string file_path, std::string tmp_path, HelioQuery::RatingData rating_data)
 {
     const Vec3d origin = GUI::wxGetApp().plater()->get_partplate_list().get_current_plate_origin();
     m_gcode_processor.set_xy_offset(origin(0), origin(1));
@@ -1610,7 +1661,8 @@ void HelioBackgroundProcess::load_helio_file_to_viwer(std::string file_path, std
     m_gcode_result = res;
 
     set_state(STATE_FINISHED);
-    Slic3r::HelioCompletionEvent* evt = new Slic3r::HelioCompletionEvent(GUI::EVT_HELIO_PROCESSING_COMPLETED, 0, file_path, tmp_path, true);
+
+    Slic3r::HelioCompletionEvent* evt = new Slic3r::HelioCompletionEvent(GUI::EVT_HELIO_PROCESSING_COMPLETED, 0, file_path, tmp_path, true, "", rating_data.action, rating_data.qualityMeanImprovement, rating_data.qualityStdImprovement);
     wxQueueEvent(GUI::wxGetApp().plater(), evt);
 }
 
