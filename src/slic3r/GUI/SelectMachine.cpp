@@ -1560,9 +1560,6 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintDialogStatus::PrintStatusAmsOnSettingup) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(false);
-    } else if (status == PrintDialogStatus::PrintStatusInvalidMapping) {
-        Enable_Refresh_Button(true);
-        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingInvalid) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(false);
@@ -3363,7 +3360,7 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
     if (obj_->GetExtderSystem()->GetTotalExtderCount() > 1) {
         for (auto mres : m_ams_mapping_result) {
             if (mres.ams_id.empty() && mres.slot_id.empty()) {
-                show_status(PrintDialogStatus::PrintStatusInvalidMapping);
+                show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
                 return;
             }
         }
