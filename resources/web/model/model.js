@@ -216,11 +216,11 @@ function ShowProjectInfo( p3MF )
 function ShowModelInfo( pModel )
 {
 	//==========Model Info==========
-	let sModelName=decodeURIComponent(pModel.name);
-	let sModelAuthor=decodeURIComponent(pModel.author);
+	let sModelName=DOMPurify.sanitize(decodeURIComponent(pModel.name));
+	let sModelAuthor=DOMPurify.sanitize(decodeURIComponent(pModel.author));
 	let UploadType=pModel.upload_type.toLowerCase();
 	let sLicence=pModel.license.toUpperCase();
-	let sModelDesc=decodeURIComponent(pModel.description);
+	let sModelDesc=DOMPurify.sanitize(decodeURIComponent(pModel.description));
 	sModelDesc=HtmlDecodeFrom3MF( sModelDesc );
 	
 	if( pModel.hasOwnProperty('model_id') )
@@ -233,7 +233,7 @@ function ShowModelInfo( pModel )
 	
 	$('#ModelName').html(sModelName);
 	$('#ModelName').attr('title',sModelName);
-    $('#ModelAuthorName').html(sModelAuthor);
+  $('#ModelAuthorName').html(sModelAuthor);
 	
 	switch(UploadType)
 	{
