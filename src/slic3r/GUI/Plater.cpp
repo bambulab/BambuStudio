@@ -9400,7 +9400,7 @@ void Plater::priv::on_helio_processing_complete(HelioCompletionEvent &a)
 
 
         std::string copied;
-        copy_file(a.simulated_path, a.tmp_path, copied);
+        copy_file(a.path, a.tmp_path, copied);
 
         BOOST_LOG_TRIVIAL(debug) << boost::format("Failed to delete file %1%") % copied;
 
@@ -9408,15 +9408,16 @@ void Plater::priv::on_helio_processing_complete(HelioCompletionEvent &a)
 
         GCodeProcessorResult *res1 = partplate_list.get_curr_plate()->get_gcode_result();
         *res1 = *helio_background_process.m_gcode_result;
-        //res1->lines_ends           = helio_background_process.m_gcode_result->lines_ends;
-        //res1->moves                = helio_background_process.m_gcode_result->moves;
-
         GCodeProcessorResult *res2 = background_process.get_current_gcode_result();
         *res2 = *helio_background_process.m_gcode_result;
-        //res2->lines_ends           = helio_background_process.m_gcode_result->lines_ends;
-        //res2->moves                = helio_background_process.m_gcode_result->moves;
 
         this->update();
+
+        /*show rating*/
+        if (a.action == 1) {
+            HelioRatingDialog dlg(nullptr, 0, 0, a.quality_mean_improvement, a.quality_std_improvement);
+            dlg.ShowModal();
+        }
     } else {
         notification_manager->push_helio_error_notification(a.error_message);
     }
@@ -15593,6 +15594,11 @@ void Plater::stop_helio_process()
         p->helio_background_process.stop_current_helio_action();
         p->helio_background_process.stop();
     }
+}
+
+void Plater::feedback_helio_process(float rating, std::string commend)
+{
+    p->helio_background_process.feedback_current_helio_action(rating, commend);
 }
 
 void Plater::record_slice_preset(std::string action)
