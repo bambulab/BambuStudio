@@ -1456,32 +1456,34 @@ namespace Slic3r::GUI {
 
             BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - generating seeds, type: " << (int)m_configuration.seed_type << ", num: " << m_configuration.num_seeds;
 
+            // Apply same bbox shrinking as actual generation (10% margin)
+            Vec3d shrink = bbox.size() * 0.1;
+            BoundingBoxf3 shrunk_bbox = bbox;
+            shrunk_bbox.min += shrink;
+            shrunk_bbox.max -= shrink;
+            
+            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - using shrunk bbox for preview to match actual generation";
+
             if (m_configuration.seed_type == Configuration::SEED_GRID) {
                 // Grid seeds - ensure proper distribution
                 int seeds_per_axis = static_cast<int>(std::ceil(std::cbrt(m_configuration.num_seeds)));
                 seeds_per_axis = std::max(2, seeds_per_axis); // At least 2x2x2 grid
 
-                Vec3d step = bbox.size() / double(seeds_per_axis);
-                Vec3d offset = step * 0.5; // Center points in cells
+                Vec3d step = shrunk_bbox.size() / double(seeds_per_axis - 1); // Use shrunk bbox
 
                 for (int x = 0; x < seeds_per_axis; ++x) {
                     for (int y = 0; y < seeds_per_axis; ++y) {
                         for (int z = 0; z < seeds_per_axis; ++z) {
-                            Vec3d pt = bbox.min + Vec3d(
-                                offset.x() + x * step.x(),
-                                offset.y() + y * step.y(),
-                                offset.z() + z * step.z()
+                            Vec3d pt = shrunk_bbox.min + Vec3d(
+                                x * step.x(),
+                                y * step.y(),
+                                z * step.z()
                             );
 
-                            // Only add if within actual mesh bounds
-                            if (pt.x() >= bbox.min.x() && pt.x() <= bbox.max.x() &&
-                                pt.y() >= bbox.min.y() && pt.y() <= bbox.max.y() &&
-                                pt.z() >= bbox.min.z() && pt.z() <= bbox.max.z()) {
-                                m_seed_preview_points.push_back(pt.cast<float>());
+                            m_seed_preview_points.push_back(pt.cast<float>());
 
-                                if (m_seed_preview_points.size() >= static_cast<size_t>(m_configuration.num_seeds))
-                                    break;
-                            }
+                            if (m_seed_preview_points.size() >= static_cast<size_t>(m_configuration.num_seeds))
+                                break;
                         }
                         if (m_seed_preview_points.size() >= static_cast<size_t>(m_configuration.num_seeds))
                             break;
@@ -1491,42 +1493,15 @@ namespace Slic3r::GUI {
                 }
             }
             else if (m_configuration.seed_type == Configuration::SEED_RANDOM) {
-                // Random seeds with better distribution using Poisson disk sampling approximation
+                // Random seeds - use shrunk bbox to match actual generation
                 std::mt19937 rng(m_configuration.random_seed);
 
-                // Calculate minimum distance between points for better distribution
-                float volume = bbox.size().x() * bbox.size().y() * bbox.size().z();
-                float cell_volume = volume / m_configuration.num_seeds;
-                float min_distance = std::cbrt(cell_volume) * 0.5f; // Half the average cell size
+                std::uniform_real_distribution<double> dist_x(shrunk_bbox.min.x(), shrunk_bbox.max.x());
+                std::uniform_real_distribution<double> dist_y(shrunk_bbox.min.y(), shrunk_bbox.max.y());
+                std::uniform_real_distribution<double> dist_z(shrunk_bbox.min.z(), shrunk_bbox.max.z());
 
-                std::uniform_real_distribution<double> dist_x(bbox.min.x(), bbox.max.x());
-                std::uniform_real_distribution<double> dist_y(bbox.min.y(), bbox.max.y());
-                std::uniform_real_distribution<double> dist_z(bbox.min.z(), bbox.max.z());
-
-                int max_attempts = m_configuration.num_seeds * 50;
-                int attempts = 0;
-
-                while (static_cast<int>(m_seed_preview_points.size()) < m_configuration.num_seeds && attempts < max_attempts) {
-                    Vec3d pt(dist_x(rng), dist_y(rng), dist_z(rng));
-
-                    // Check minimum distance from existing points
-                    bool too_close = false;
-                    for (const auto& existing : m_seed_preview_points) {
-                        if ((existing.cast<double>() - pt).norm() < min_distance) {
-                            too_close = true;
-                            break;
-                        }
-                    }
-
-                    if (!too_close) {
-                        m_seed_preview_points.push_back(pt.cast<float>());
-                    }
-
-                    attempts++;
-                }
-
-                // Fill remaining if we couldn't maintain minimum distance
-                while (static_cast<int>(m_seed_preview_points.size()) < m_configuration.num_seeds) {
+                // Generate exactly num_seeds points (no inside test needed with shrunk bbox)
+                for (int i = 0; i < m_configuration.num_seeds; ++i) {
                     Vec3d pt(dist_x(rng), dist_y(rng), dist_z(rng));
                     m_seed_preview_points.push_back(pt.cast<float>());
                 }
@@ -1591,6 +1566,37 @@ namespace Slic3r::GUI {
                     }
                     BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - Farthest point sampling complete, selected " << m_seed_preview_points.size() << " vertices";
                 }
+            }
+
+            // Apply Lloyd's relaxation if enabled (to match actual generation)
+            if (m_configuration.relax_seeds && m_configuration.relaxation_iterations > 0 && 
+                !m_seed_preview_points.empty()) {
+                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - Applying Lloyd's relaxation (" 
+                                         << m_configuration.relaxation_iterations << " iterations)";
+                
+                // Convert to Vec3d for VoronoiMesh function
+                std::vector<Vec3d> seeds_double;
+                seeds_double.reserve(m_seed_preview_points.size());
+                for (const auto& pt : m_seed_preview_points) {
+                    seeds_double.push_back(pt.cast<double>());
+                }
+                
+                // Apply Lloyd's relaxation using VoronoiMesh function
+                seeds_double = Slic3r::VoronoiMesh::lloyd_relaxation(
+                    mesh,
+                    seeds_double,
+                    m_configuration.relaxation_iterations
+                );
+                
+                // Convert back to Vec3f
+                m_seed_preview_points.clear();
+                m_seed_preview_points.reserve(seeds_double.size());
+                for (const auto& pt : seeds_double) {
+                    m_seed_preview_points.push_back(pt.cast<float>());
+                }
+                
+                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - Lloyd's relaxation complete, "
+                                         << m_seed_preview_points.size() << " seeds";
             }
 
             // Create OpenGL model for rendering seed points
