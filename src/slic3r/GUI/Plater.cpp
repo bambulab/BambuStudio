@@ -9402,6 +9402,18 @@ void Plater::priv::on_helio_processing_complete(HelioCompletionEvent &a)
         std::string copied;
         copy_file(a.path, a.tmp_path, copied);
 
+        /*time improvement */
+        float      time_origin_value;
+        float      time_optimized_value;
+        auto       aprint_stats = wxGetApp().plater()->get_partplate_list().get_current_fff_print().print_statistics();
+        PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+        if (plate) {
+            if (plate->get_slice_result()) { 
+                time_origin_value = plate->get_slice_result()->print_statistics.modes[0].time;
+                //time_origin = wxString::Format("%s", short_time(get_time_dhms(plate->get_slice_result()->print_statistics.modes[0].time))); 
+            }
+        }
+
         BOOST_LOG_TRIVIAL(debug) << boost::format("Failed to delete file %1%") % copied;
 
         helio_background_process.m_gcode_result->filename = a.tmp_path;
@@ -9415,7 +9427,18 @@ void Plater::priv::on_helio_processing_complete(HelioCompletionEvent &a)
 
         /*show rating*/
         if (a.action == 1) {
-            HelioRatingDialog dlg(nullptr, 0, 0, a.quality_mean_improvement, a.quality_std_improvement);
+
+            auto       aprint_stats1 = wxGetApp().plater()->get_partplate_list().get_current_fff_print().print_statistics();
+            wxString   time1;
+            PartPlate* plate1 = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+            if (plate1) {
+                if (plate->get_slice_result()) {
+                    time_optimized_value = plate->get_slice_result()->print_statistics.modes[0].time;
+                    //time_optimized = wxString::Format("%s", short_time(get_time_dhms(plate->get_slice_result()->print_statistics.modes[0].time))); 
+                }
+            }
+
+            HelioRatingDialog dlg(nullptr, time_origin_value, time_optimized_value, a.quality_mean_improvement, a.quality_std_improvement);
             dlg.ShowModal();
         }
     } else {
