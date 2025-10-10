@@ -533,7 +533,14 @@ function openWikiUrl(path)
     open_url += "en/";
   }
   open_url += path;
-  OpenUrlInLocalBrowser(open_url);
+
+  var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="userguide_wiki_open";
+	tSend['data']={};
+	tSend['data']['url']=open_url;
+	
+	SendWXMessage( JSON.stringify(tSend) );	
 }
 
 // --------------------common ----------------
