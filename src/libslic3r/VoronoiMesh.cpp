@@ -4105,39 +4105,51 @@ namespace Slic3r {
             con.put(i, p.x(), p.y(), p.z());
         }
         
-        // Get specific cell
+        // Get specific cell by iterating through container
         voronoicell_neighbor cell;
         const Vec3d& seed = seed_points[cell_id];
+        c_loop_all vl(con);
         
-        if (con.compute_cell(cell, seed.x(), seed.y(), seed.z())) {
-            info.seed_position = seed;
-            info.volume = cell.volume();
-            info.surface_area = cell.surface_area();
-            info.num_faces = cell.number_of_faces();
-            info.num_vertices = cell.p;
-            info.num_edges = cell.number_of_edges();
-            
-            double cx, cy, cz;
-            cell.centroid(cx, cy, cz);
-            info.centroid = Vec3d(seed.x() + cx, seed.y() + cy, seed.z() + cz);
-            
-            std::vector<int> neighbors;
-            cell.neighbors(neighbors);
-            info.neighbor_ids = neighbors;
-            
-            std::vector<double> areas;
-            cell.face_areas(areas);
-            info.face_areas = areas;
-            
-            std::vector<double> normals;
-            cell.normals(normals);
-            for (size_t i = 0; i + 2 < normals.size(); i += 3) {
-                info.face_normals.emplace_back(normals[i], normals[i + 1], normals[i + 2]);
+        bool found = false;
+        if (vl.start()) do {
+            if (vl.pid() == cell_id) {
+                if (con.compute_cell(cell, vl)) {
+                    found = true;
+                    info.seed_position = seed;
+                    info.volume = cell.volume();
+                    info.surface_area = cell.surface_area();
+                    info.num_faces = cell.number_of_faces();
+                    info.num_vertices = cell.p;
+                    info.num_edges = cell.number_of_edges();
+                    
+                    double cx, cy, cz;
+                    cell.centroid(cx, cy, cz);
+                    info.centroid = Vec3d(seed.x() + cx, seed.y() + cy, seed.z() + cz);
+                    
+                    std::vector<int> neighbors;
+                    cell.neighbors(neighbors);
+                    info.neighbor_ids = neighbors;
+                    
+                    std::vector<double> areas;
+                    cell.face_areas(areas);
+                    info.face_areas = areas;
+                    
+                    std::vector<double> normals;
+                    cell.normals(normals);
+                    for (size_t i = 0; i + 2 < normals.size(); i += 3) {
+                        info.face_normals.emplace_back(normals[i], normals[i + 1], normals[i + 2]);
+                    }
+                    
+                    std::vector<int> face_orders;
+                    cell.face_orders(face_orders);
+                    info.face_vertex_counts = face_orders;
+                }
+                break;
             }
-            
-            std::vector<int> face_orders;
-            cell.face_orders(face_orders);
-            info.face_vertex_counts = face_orders;
+        } while (vl.inc());
+        
+        if (!found) {
+            BOOST_LOG_TRIVIAL(warning) << "Cell " << cell_id << " not found in container";
         }
         
         return info;
@@ -4174,13 +4186,19 @@ namespace Slic3r {
             con.put(i, p.x(), p.y(), p.z());
         }
         
-        // Get specific cell neighbors
+        // Get specific cell neighbors by iterating through container
         voronoicell_neighbor cell;
         const Vec3d& seed = seed_points[cell_id];
+        c_loop_all vl(con);
         
-        if (con.compute_cell(cell, seed.x(), seed.y(), seed.z())) {
-            cell.neighbors(neighbors);
-        }
+        if (vl.start()) do {
+            if (vl.pid() == cell_id) {
+                if (con.compute_cell(cell, vl)) {
+                    cell.neighbors(neighbors);
+                }
+                break;
+            }
+        } while (vl.inc());
         
         return neighbors;
     }
