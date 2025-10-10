@@ -157,6 +157,7 @@ bool Layer::has_compatible_layer_regions(const PrintRegionConfig &config, const 
            && config.detect_overhang_wall == other_config.detect_overhang_wall
            && config.filter_out_gap_fill.value == other_config.filter_out_gap_fill.value
            && config.opt_serialize("inner_wall_line_width") == other_config.opt_serialize("inner_wall_line_width")
+           && config.opt_serialize("outer_wall_line_width") == other_config.opt_serialize("outer_wall_line_width")
            && config.detect_thin_wall == other_config.detect_thin_wall
            && config.infill_wall_overlap == other_config.infill_wall_overlap
            && config.override_filament_scarf_seam_setting == other_config.override_filament_scarf_seam_setting
