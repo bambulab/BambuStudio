@@ -888,11 +888,11 @@ namespace Slic3r {
             BOOST_LOG_TRIVIAL(info) << "Total boundary edges: " << boundary_edges;
             BOOST_LOG_TRIVIAL(info) << "Total non-manifold edges: " << non_manifold_edges;
             
-            // Check 2: Duplicate vertices
-            std::map<Vec3i, std::vector<int>> pos_to_vertices;
+            // Check 2: Duplicate vertices (using tuple as key for comparison)
+            std::map<std::tuple<int, int, int>, std::vector<int>> pos_to_vertices;
             for (size_t i = 0; i < mesh.vertices.size(); ++i) {
                 Vec3f v = mesh.vertices[i];
-                Vec3i key(int(v.x() * 1000), int(v.y() * 1000), int(v.z() * 1000));
+                auto key = std::make_tuple(int(v.x() * 1000), int(v.y() * 1000), int(v.z() * 1000));
                 pos_to_vertices[key].push_back(i);
             }
             
