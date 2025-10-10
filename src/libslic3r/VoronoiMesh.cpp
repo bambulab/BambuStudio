@@ -2455,7 +2455,7 @@ namespace Slic3r {
         return result;
     }
 
-    // Extract wireframe edges directly from Voro++ cells (MUCH faster than CGAL Delaunay!)
+    // Extract wireframe edges directly from Voro++ cells - creates independent cylinders per edge
     std::unique_ptr<indexed_triangle_set> VoronoiMesh::create_wireframe_from_voropp(
         const std::vector<Vec3d>& seed_points,
         const BoundingBoxf3& bounds,
@@ -2489,37 +2489,49 @@ namespace Slic3r {
             con.put(i, p.x(), p.y(), p.z());
         }
 
-        // Extract VORONOI EDGES from cell faces
-        struct Vec3dCompare {
+
+        // Extract unique edges with better precision
+        struct Vec3dHash {
+            size_t operator()(const Vec3d& v) const {
+                // Round to 6 decimal places for hashing
+                int64_t x = int64_t(std::round(v.x() * 1000000));
+                int64_t y = int64_t(std::round(v.y() * 1000000));
+                int64_t z = int64_t(std::round(v.z() * 1000000));
+                return std::hash<int64_t>()(x) ^ (std::hash<int64_t>()(y) << 1) ^ (std::hash<int64_t>()(z) << 2);
+            }
+        };
+        
+        struct Vec3dEqual {
             bool operator()(const Vec3d& a, const Vec3d& b) const {
-                constexpr double eps = 1e-9;
-                if (std::abs(a.x() - b.x()) > eps) return a.x() < b.x();
-                if (std::abs(a.y() - b.y()) > eps) return a.y() < b.y();
-                if (std::abs(a.z() - b.z()) > eps) return a.z() < b.z();
-                return false;
+                return (a - b).norm() < 1e-6;
             }
         };
         
-        struct Vec3dPairCompare {
-            Vec3dCompare vec3d_comp;
+        struct EdgeHash {
+            Vec3dHash hasher;
+            size_t operator()(const std::pair<Vec3d, Vec3d>& e) const {
+                return hasher(e.first) ^ (hasher(e.second) << 1);
+            }
+        };
+        
+        struct EdgeEqual {
+            Vec3dEqual eq;
             bool operator()(const std::pair<Vec3d, Vec3d>& a, const std::pair<Vec3d, Vec3d>& b) const {
-                if (vec3d_comp(a.first, b.first)) return true;
-                if (vec3d_comp(b.first, a.first)) return false;
-                return vec3d_comp(a.second, b.second);
+                return (eq(a.first, b.first) && eq(a.second, b.second)) ||
+                       (eq(a.first, b.second) && eq(a.second, b.first));
             }
         };
         
-        std::set<std::pair<Vec3d, Vec3d>, Vec3dPairCompare> unique_edges;
-        std::map<Vec3d, std::vector<Vec3d>, Vec3dCompare> vertex_connections;
+        std::unordered_set<std::pair<Vec3d, Vec3d>, EdgeHash, EdgeEqual> unique_edges;
 
         c_loop_all vl(con);
         voronoicell_neighbor cell;
 
-        BOOST_LOG_TRIVIAL(info) << "Extracting Voronoi cell edges from cell faces";
+        BOOST_LOG_TRIVIAL(info) << "Extracting Voronoi edges from cells...";
 
         if (vl.start()) do {
             if (con.compute_cell(cell, vl)) {
-                // Get Voronoi vertices for THIS cell
+                // Get cell vertices
                 std::vector<double> verts;
                 cell.vertices(vl.x(), vl.y(), vl.z(), verts);
 
@@ -2528,17 +2540,15 @@ namespace Slic3r {
                     cell_vertices.emplace_back(verts[i], verts[i + 1], verts[i + 2]);
                 }
 
-                // Get face structure - each face is a polygon on the cell surface
+                // Get face structure
                 std::vector<int> face_vertex_indices;
                 std::vector<int> face_orders;
                 cell.face_vertices(face_vertex_indices);
                 cell.face_orders(face_orders);
 
-                // Extract edges from each face polygon
+                // Extract edges from face polygons
                 int vertex_idx = 0;
                 for (int face_order : face_orders) {
-                    // Each face has 'face_order' vertices forming a polygon
-                    // The edges of this polygon are the VORONOI EDGES
                     for (int v = 0; v < face_order; ++v) {
                         int v_next = (v + 1) % face_order;
                         int vi1 = face_vertex_indices[vertex_idx + v];
@@ -2550,16 +2560,13 @@ namespace Slic3r {
                             Vec3d p1 = cell_vertices[vi1];
                             Vec3d p2 = cell_vertices[vi2];
 
-                            // Store edge with consistent ordering
-                            Vec3dCompare comp;
-                            auto edge = comp(p1, p2) ? std::make_pair(p1, p2) : std::make_pair(p2, p1);
-                            
-                            // Only add if edge doesn't already exist (deduplication)
-                            if (unique_edges.insert(edge).second) {
-                                // Track vertex connections for junction creation
-                                vertex_connections[p1].push_back(p2);
-                                vertex_connections[p2].push_back(p1);
+                            // Normalize edge ordering
+                            if (p1.x() > p2.x() || (p1.x() == p2.x() && p1.y() > p2.y()) || 
+                                (p1.x() == p2.x() && p1.y() == p2.y() && p1.z() > p2.z())) {
+                                std::swap(p1, p2);
                             }
+                            
+                            unique_edges.insert(std::make_pair(p1, p2));
                         }
                     }
                     vertex_idx += face_order;
@@ -2567,230 +2574,118 @@ namespace Slic3r {
             }
         } while (vl.inc());
 
-        BOOST_LOG_TRIVIAL(info) << "Found " << unique_edges.size() << " edges, " 
-                                 << vertex_connections.size() << " junctions";
+        BOOST_LOG_TRIVIAL(info) << "Found " << unique_edges.size() << " unique edges";
 
         if (unique_edges.empty()) {
-            BOOST_LOG_TRIVIAL(error) << "No Voronoi edges extracted!";
+            BOOST_LOG_TRIVIAL(error) << "No edges extracted!";
             return result;
         }
 
-        // CRITICAL: Build unified mesh with shared vertices
+        // Generate cylindrical strut for each edge
         const float radius = config.edge_thickness * 0.5f;
+        const int segments = std::max(3, config.edge_segments);
         
-        // Map each Voronoi vertex to its junction ring vertices
-        std::map<Vec3d, std::vector<int>, Vec3dCompare> junction_rings;
-        
-        auto get_profile_point = [&](int i, float r) -> Vec3d {
-            float angle = (2.0f * M_PI * i) / config.edge_segments;
-            switch (config.edge_shape) {
-                case EdgeShape::Square: {
-                    float t = fmod(angle / (M_PI / 2.0f), 4.0f);
-                    int side = int(t);
-                    float blend = t - side;
-                    float x, y;
-                    switch (side) {
-                        case 0: x = 1.0f; y = blend * 2.0f - 1.0f; break;
-                        case 1: x = 1.0f - blend * 2.0f; y = 1.0f; break;
-                        case 2: x = -1.0f; y = 1.0f - blend * 2.0f; break;
-                        default: x = blend * 2.0f - 1.0f; y = -1.0f; break;
-                    }
-                    return Vec3d(x * r, y * r, 0);
-                }
-                case EdgeShape::Hexagon:
-                case EdgeShape::Octagon: {
-                    int sides = (config.edge_shape == EdgeShape::Hexagon) ? 6 : 8;
-                    float snap_angle = std::round(angle / (2.0f * M_PI / sides)) * (2.0f * M_PI / sides);
-                    return Vec3d(r * std::cos(snap_angle), r * std::sin(snap_angle), 0);
-                }
-                case EdgeShape::Star: {
-                    int point = int(angle / (2.0f * M_PI / 10.0f));
-                    float point_angle = point * (2.0f * M_PI / 10.0f);
-                    float next_angle = (point + 1) * (2.0f * M_PI / 10.0f);
-                    float blend = (angle - point_angle) / (next_angle - point_angle);
-                    float r1 = (point % 2 == 0) ? r : r * 0.4f;
-                    float r2 = (point % 2 == 0) ? r * 0.4f : r;
-                    float current_r = r1 * (1.0f - blend) + r2 * blend;
-                    return Vec3d(current_r * std::cos(angle), current_r * std::sin(angle), 0);
-                }
-                default:
-                    return Vec3d(r * std::cos(angle), r * std::sin(angle), 0);
-            }
-        };
+        BOOST_LOG_TRIVIAL(info) << "Creating cylindrical struts (radius=" << radius 
+                                 << ", segments=" << segments << ")";
 
-        // STEP 1: Create junction rings (these will be shared by struts)
-        BOOST_LOG_TRIVIAL(info) << "Creating junction rings...";
-        for (const auto& [vertex, connections] : vertex_connections) {
-            if (connections.size() < 2) continue;
-            
-            Vec3d center = vertex;
-            
-            // Create a ring of vertices around this junction
-            // Use average direction of connections for orientation
-            Vec3d avg_dir = Vec3d::Zero();
-            for (const auto& conn : connections) {
-                avg_dir += (conn - center).normalized();
-            }
-            if (avg_dir.norm() > 1e-6) {
-                avg_dir.normalize();
-            } else {
-                avg_dir = Vec3d(0, 0, 1);  // Fallback
-            }
-            
-            Vec3d perp1 = (std::abs(avg_dir.z()) < 0.9) ? avg_dir.cross(Vec3d(0, 0, 1)).normalized()
-                                                          : avg_dir.cross(Vec3d(1, 0, 0)).normalized();
-            Vec3d perp2 = avg_dir.cross(perp1).normalized();
-            
-            // Create junction ring vertices
-            std::vector<int> ring_indices;
-            for (int i = 0; i < config.edge_segments; ++i) {
-                Vec3d profile = get_profile_point(i, radius);
-                Vec3d offset = perp1 * profile.x() + perp2 * profile.y();
-                
-                int idx = result->vertices.size();
-                result->vertices.emplace_back((center + offset).cast<float>());
-                ring_indices.push_back(idx);
-            }
-            
-            junction_rings[vertex] = ring_indices;
-            
-            // Create junction cap (close the junction)
-            int center_idx = result->vertices.size();
-            result->vertices.emplace_back(center.cast<float>());
-            
-            for (int i = 0; i < config.edge_segments; ++i) {
-                int next = (i + 1) % config.edge_segments;
-                result->indices.emplace_back(center_idx, ring_indices[next], ring_indices[i]);
-            }
-        }
-
-        // STEP 2: Create struts connecting junction rings
-        BOOST_LOG_TRIVIAL(info) << "Creating struts connecting junctions...";
         for (const auto& edge : unique_edges) {
             Vec3d p1 = edge.first;
             Vec3d p2 = edge.second;
             
-            float length = (p2 - p1).norm();
-            if (length < 1e-6) continue;
-
-            // Get junction rings at both ends
-            auto it1 = junction_rings.find(p1);
-            auto it2 = junction_rings.find(p2);
+            Vec3d dir = (p2 - p1);
+            float length = dir.norm();
             
-            if (it1 == junction_rings.end() || it2 == junction_rings.end()) {
-                BOOST_LOG_TRIVIAL(warning) << "Edge endpoint has no junction ring! Creating isolated strut.";
-                
-                // Fallback: create isolated strut with caps (shouldn't happen if junctions are created properly)
-                Vec3d dir = (p2 - p1).normalized();
-                Vec3d perp1 = (std::abs(dir.z()) < 0.9) ? dir.cross(Vec3d(0, 0, 1)).normalized() 
-                                                          : dir.cross(Vec3d(1, 0, 0)).normalized();
-                Vec3d perp2 = dir.cross(perp1).normalized();
-                
-                size_t cap1_center = result->vertices.size();
-                result->vertices.emplace_back(p1.cast<float>());
-                
-                std::vector<int> ring1;
-                for (int i = 0; i < config.edge_segments; ++i) {
-                    Vec3d profile = get_profile_point(i, radius);
-                    Vec3d offset = perp1 * profile.x() + perp2 * profile.y();
-                    int idx = result->vertices.size();
-                    result->vertices.emplace_back((p1 + offset).cast<float>());
-                    ring1.push_back(idx);
-                }
-                
-                size_t cap2_center = result->vertices.size();
-                result->vertices.emplace_back(p2.cast<float>());
-                
-                std::vector<int> ring2;
-                for (int i = 0; i < config.edge_segments; ++i) {
-                    Vec3d profile = get_profile_point(i, radius);
-                    Vec3d offset = perp1 * profile.x() + perp2 * profile.y();
-                    int idx = result->vertices.size();
-                    result->vertices.emplace_back((p2 + offset).cast<float>());
-                    ring2.push_back(idx);
-                }
-                
-                // Cap 1
-                for (int i = 0; i < config.edge_segments; ++i) {
-                    int next = (i + 1) % config.edge_segments;
-                    result->indices.emplace_back(cap1_center, ring1[next], ring1[i]);
-                }
-                
-                // Tube
-                for (int i = 0; i < config.edge_segments; ++i) {
-                    int next = (i + 1) % config.edge_segments;
-                    result->indices.emplace_back(ring1[i], ring2[i], ring1[next]);
-                    result->indices.emplace_back(ring1[next], ring2[i], ring2[next]);
-                }
-                
-                // Cap 2
-                for (int i = 0; i < config.edge_segments; ++i) {
-                    int next = (i + 1) % config.edge_segments;
-                    result->indices.emplace_back(cap2_center, ring2[i], ring2[next]);
-                }
-                
-                continue;
+            if (length < 1e-6f) continue;
+            
+            dir /= length;  // Normalize
+            
+            // Create perpendicular frame
+            Vec3d perp1, perp2;
+            if (std::abs(dir.z()) < 0.9) {
+                perp1 = dir.cross(Vec3d(0, 0, 1)).normalized();
+            } else {
+                perp1 = dir.cross(Vec3d(1, 0, 0)).normalized();
+            }
+            perp2 = dir.cross(perp1).normalized();
+            
+            // Generate cylinder vertices
+            size_t base_idx = result->vertices.size();
+            
+            // Ring at p1
+            for (int i = 0; i < segments; ++i) {
+                float angle = 2.0f * M_PI * i / segments;
+                float x = radius * std::cos(angle);
+                float y = radius * std::sin(angle);
+                Vec3d offset = perp1 * x + perp2 * y;
+                result->vertices.emplace_back((p1 + offset).cast<float>());
             }
             
-            const auto& ring1 = it1->second;
-            const auto& ring2 = it2->second;
+            // Ring at p2
+            for (int i = 0; i < segments; ++i) {
+                float angle = 2.0f * M_PI * i / segments;
+                float x = radius * std::cos(angle);
+                float y = radius * std::sin(angle);
+                Vec3d offset = perp1 * x + perp2 * y;
+                result->vertices.emplace_back((p2 + offset).cast<float>());
+            }
             
-            // Connect the two rings to form a tube
-            // CRITICAL: These rings are already part of the junctions, so strut shares vertices!
-            for (int i = 0; i < config.edge_segments; ++i) {
-                int next = (i + 1) % config.edge_segments;
+            // Create cylinder body (tube connecting the two rings)
+            for (int i = 0; i < segments; ++i) {
+                int next = (i + 1) % segments;
                 
-                int r1_i = ring1[i];
-                int r1_next = ring1[next];
-                int r2_i = ring2[i];
-                int r2_next = ring2[next];
+                int i0 = base_idx + i;                      // Current vertex on ring 1
+                int i1 = base_idx + next;                   // Next vertex on ring 1
+                int i2 = base_idx + segments + i;           // Current vertex on ring 2
+                int i3 = base_idx + segments + next;        // Next vertex on ring 2
                 
                 // Create two triangles for this quad
-                result->indices.emplace_back(r1_i, r2_i, r1_next);
-                result->indices.emplace_back(r1_next, r2_i, r2_next);
+                result->indices.emplace_back(i0, i2, i1);
+                result->indices.emplace_back(i1, i2, i3);
+            }
+            
+            // Create caps at both ends
+            // Cap at p1
+            int cap1_center = result->vertices.size();
+            result->vertices.emplace_back(p1.cast<float>());
+            
+            for (int i = 0; i < segments; ++i) {
+                int next = (i + 1) % segments;
+                result->indices.emplace_back(cap1_center, base_idx + i, base_idx + next);
+            }
+            
+            // Cap at p2
+            int cap2_center = result->vertices.size();
+            result->vertices.emplace_back(p2.cast<float>());
+            
+            for (int i = 0; i < segments; ++i) {
+                int next = (i + 1) % segments;
+                result->indices.emplace_back(cap2_center, base_idx + segments + next, base_idx + segments + i);
             }
         }
 
-        BOOST_LOG_TRIVIAL(info) << "Unified wireframe: vertices=" << result->vertices.size()
-                                 << ", faces=" << result->indices.size();
+        BOOST_LOG_TRIVIAL(info) << "Created wireframe: " << result->vertices.size() 
+                                 << " vertices, " << result->indices.size() << " faces";
 
-        // Validate manifoldness
-        if (!is_mesh_manifold(*result)) {
-            BOOST_LOG_TRIVIAL(error) << "Wireframe is NOT MANIFOLD after construction!";
-            
-            // Detailed diagnosis
-            diagnose_non_manifold(*result);
-            
-            // Attempt repair
-            repair_non_manifold(*result);
-        }
+        // Cleanup
+        BOOST_LOG_TRIVIAL(info) << "Cleaning up wireframe...";
         
-        if (!is_mesh_watertight(*result)) {
-            BOOST_LOG_TRIVIAL(error) << "Wireframe is NOT WATERTIGHT!";
-            fill_holes(*result);
-        }
-
-        // Clip to mesh if requested
-        if (clip_mesh && !clip_mesh->vertices.empty() && config.clip_to_mesh) {
-            BOOST_LOG_TRIVIAL(info) << "Clipping wireframe to mesh bounds";
-            clip_wireframe_to_mesh(*result, *clip_mesh);
-            
-            // Re-validate after clipping
-            if (!is_mesh_manifold(*result)) {
-                BOOST_LOG_TRIVIAL(warning) << "Wireframe not manifold after clipping, repairing...";
-                diagnose_non_manifold(*result);
-                repair_non_manifold(*result);
-            }
-            
-            if (!is_mesh_watertight(*result)) {
-                BOOST_LOG_TRIVIAL(warning) << "Wireframe not watertight after clipping, filling holes...";
-                fill_holes(*result);
-            }
-        }
+        // Remove degenerate faces first
+        remove_degenerate_faces(*result);
+        
+        // Weld vertices at junctions (where tubes meet)
+        weld_vertices(*result, radius * 0.1f);  // Weld within 10% of radius
+        
+        // Remove any degenerates created by welding
+        remove_degenerate_faces(*result);
+        
+        // Final cleanup
+        remove_degenerate_faces(*result);
+        
+        BOOST_LOG_TRIVIAL(info) << "Final wireframe: " << result->vertices.size() 
+                                 << " vertices, " << result->indices.size() << " faces";
 
         return result;
     }
-
     void VoronoiMesh::clip_to_mesh_boundary(
         indexed_triangle_set& voronoi_mesh,
         const indexed_triangle_set& original_mesh)
