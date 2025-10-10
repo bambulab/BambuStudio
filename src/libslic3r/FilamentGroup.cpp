@@ -218,7 +218,7 @@ namespace Slic3r
             for (const auto& f : lf)
                 used_filaments_set.insert(f);
         std::vector<unsigned int>used_filaments(used_filaments_set.begin(), used_filaments_set.end());
-        std::sort(used_filaments.begin(), used_filaments.end());
+        sort_remove_duplicates(used_filaments);
         return used_filaments;
     }
 
