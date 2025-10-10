@@ -899,11 +899,15 @@ namespace Slic3r::GUI {
                         BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - model_object: " << (mo ? "VALID" : "NULL");
                         if (mo) {
                             BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - model has " << mo->volumes.size() << " volumes";
+                            
+                            // CRITICAL FIX: Initialize triangle selectors NOW to fix gray screen
+                            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - initializing triangle selectors";
+                            update_from_model_object(true);
+                            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - triangle selectors initialized, count: " << m_triangle_selectors.size();
                         }
                     } else {
-                        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - selection_info is NULL (will be set up by gizmo manager)";
-                        // selection_info will be set up after on_set_state() returns
-                        // Triangle selectors will be initialized automatically during first render cycle
+                        BOOST_LOG_TRIVIAL(warning) << "GLGizmoVoronoi: on_set_state() - selection_info is NULL, will retry during render";
+                        // Triangle selectors will be initialized during first render cycle
                     }
                 } else {
                     BOOST_LOG_TRIVIAL(error) << "GLGizmoVoronoi: on_set_state() - m_c is NULL! Model may not be visible!";
@@ -1322,44 +1326,35 @@ namespace Slic3r::GUI {
             BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Replacing mesh in volume";
             TriangleMesh new_mesh(*result_its);
             volume->set_mesh(std::move(new_mesh));
-            volume->calculate_convex_hull();
-
-            // Invalidate caches that depend on mesh geometry
-            volume->invalidate_convex_hull_2d();
-            obj->invalidate_bounding_box();
-
-            // CRITICAL: Force complete scene update
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Forcing complete update";
             
-            // Method 1: Update the model object (this calls ensure_on_bed)
-            plater->changed_object(*obj);
-            
-            // Method 2: Force GL scene reload to show the new mesh
-            GLCanvas3D* canvas = plater->canvas3D();
-            if (canvas) {
-                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Reloading GL scene";
-                canvas->reload_scene(true);
-            }
-
-            // Method 3: Schedule background process to update slicing
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Scheduling background process for re-slice";
-            plater->schedule_background_process();
-            
-            // Method 4: Force canvas refresh
-            m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
-
-            // Restore position AFTER all updates
+            // Restore position BEFORE updating (so updates see correct position)
             BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Restoring original position";
             volume->set_offset(volume_offset);
             if (!obj->instances.empty()) {
                 obj->instances[0]->set_offset(instance_offset);
             }
+            
+            // Recalculate geometry after position is set
+            volume->calculate_convex_hull();
+            volume->invalidate_convex_hull_2d();
+            obj->invalidate_bounding_box();
 
-            // Final reload to show restored position
+            // CRITICAL: Proper update sequence
+            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Initiating model update";
+            
+            // Step 1: Notify plater that object changed (updates model internals)
+            plater->changed_object(*obj);
+            
+            // Step 2: Reload the 3D scene to show new geometry  
+            GLCanvas3D* canvas = plater->canvas3D();
             if (canvas) {
-                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Final scene reload with restored position";
-                canvas->reload_scene(true);
+                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Reloading 3D scene";
+                canvas->reload_scene(true, true); // force=true, refresh_immediately=true
             }
+            
+            // Step 3: Update slicing/preview
+            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Scheduling background re-slice";
+            plater->schedule_background_process();
 
             BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - COMPLETE, model replaced!";
             request_rerender();

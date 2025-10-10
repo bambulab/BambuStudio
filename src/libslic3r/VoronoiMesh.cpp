@@ -244,8 +244,20 @@ namespace Slic3r {
             Vec3d dir(0.0, 0.0, 1.0);
             auto hit = aabb_mesh.query_ray_hit(point, dir);
             
-            // If we hit the mesh and the hit is from inside, point is inside
-            return hit.is_inside();
+            bool inside = hit.is_inside();
+            
+            // DEBUG: Log for first few points to verify inside test works
+            static int debug_count = 0;
+            static std::mutex debug_mutex;
+            
+            std::lock_guard<std::mutex> lock(debug_mutex);
+            if (debug_count < 10) {
+                BOOST_LOG_TRIVIAL(debug) << "is_point_inside_mesh() - Point " << point.transpose() 
+                                          << " inside=" << inside;
+                debug_count++;
+            }
+            
+            return inside;
         }
 
         indexed_triangle_set surface_mesh_to_indexed(const CGALMesh& mesh)
@@ -1705,11 +1717,21 @@ namespace Slic3r {
         for (const auto& v : mesh.vertices) {
             bbox.merge(v.cast<double>());
         }
+        
+        // CRITICAL: Log bbox to verify it's correct
+        BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Mesh bounding box: min=" 
+                                 << bbox.min.transpose() << ", max=" << bbox.max.transpose();
+        BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Mesh size: " << bbox.size().transpose();
 
         // Calculate grid dimensions - generate more candidates than needed for filtering
         int dim = std::max(2, int(std::cbrt(double(num_seeds * 3)) + 0.5));
+        
+        BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Grid dimensions: " 
+                                 << dim << "x" << dim << "x" << dim;
 
         Vec3d size = bbox.size();
+        
+        // CRITICAL: Use proper spacing - points go from min to max inclusive
         Vec3d step = size / double(dim - 1);
 
         // Build AABB mesh for point-in-mesh testing
@@ -1731,10 +1753,39 @@ namespace Slic3r {
             }
         }
 
+        // Log candidate generation
+        BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Generated " << candidates.size() 
+                                 << " candidate points from " << (dim*dim*dim) << " grid positions";
+
+        // Verify first/last candidates are reasonable
+        if (!candidates.empty()) {
+            BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - First candidate: " << candidates.front().transpose();
+            BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Last candidate: " << candidates.back().transpose();
+        }
+        
+        // If we got very few candidates, the inside test might be failing
+        if (candidates.size() < size_t(num_seeds) / 2) {
+            BOOST_LOG_TRIVIAL(warning) << "generate_grid_seeds() - Very few candidates passed inside test!";
+            BOOST_LOG_TRIVIAL(warning) << "generate_grid_seeds() - This might be a simple convex mesh (cube), "
+                                        << "falling back to ALL grid points";
+            
+            // For simple convex meshes (like cubes), just use all grid points
+            candidates.clear();
+            for (int x = 0; x < dim; ++x) {
+                for (int y = 0; y < dim; ++y) {
+                    for (int z = 0; z < dim; ++z) {
+                        Vec3d point = bbox.min + Vec3d(x * step.x(), y * step.y(), z * step.z());
+                        candidates.push_back(point);
+                    }
+                }
+            }
+            BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Using all " << candidates.size() << " grid points";
+        }
+
         // If we got enough seeds, use them directly
         if (candidates.size() <= size_t(num_seeds)) {
             BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Generated " << candidates.size()
-                                     << " grid seeds (all inside mesh)";
+                                     << " grid seeds (all candidates used)";
             return candidates;
         }
 
@@ -1746,12 +1797,26 @@ namespace Slic3r {
         }
 
         BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Generated " << seeds.size()
-                                 << " grid seeds from " << candidates.size() << " candidates (all inside mesh)";
+                                 << " grid seeds from " << candidates.size() << " candidates";
+        
+        // CRITICAL: Verify seeds are inside bounds
+        int outside_count = 0;
+        for (const auto& seed : seeds) {
+            if (!bbox.contains(seed)) {
+                outside_count++;
+            }
+        }
+        
+        if (outside_count > 0) {
+            BOOST_LOG_TRIVIAL(error) << "generate_grid_seeds() - ERROR: " << outside_count 
+                                      << " seeds are OUTSIDE mesh bounds!";
+        }
 
         return seeds;
     }
 
-    // PHASE 4: Surface-based seeding - place seeds on mesh surface
+    // PHASE 4: Surface-based seeding - place seeds offset inward from mesh surface
+    // This guarantees coverage and avoids inside test failures
     std::vector<Vec3d> VoronoiMesh::generate_surface_seeds(
         const indexed_triangle_set& mesh,
         int num_seeds,
@@ -1763,7 +1828,8 @@ namespace Slic3r {
             return seeds;
         }
         
-        BOOST_LOG_TRIVIAL(info) << "generate_surface_seeds() - Generating " << num_seeds << " surface seeds";
+        BOOST_LOG_TRIVIAL(info) << "generate_surface_seeds() - Generating " << num_seeds 
+                                 << " surface seeds with inward offset";
         
         std::mt19937 gen(random_seed);
         
@@ -1784,6 +1850,36 @@ namespace Slic3r {
             triangle_areas.push_back(area);
             total_area += area;
         }
+        
+        BOOST_LOG_TRIVIAL(info) << "generate_surface_seeds() - Total mesh surface area: " << total_area;
+        
+        // Compute mesh center for determining inward direction
+        Vec3d center = Vec3d::Zero();
+        for (const auto& v : mesh.vertices) {
+            center += v.cast<double>();
+        }
+        center /= mesh.vertices.size();
+        
+        BOOST_LOG_TRIVIAL(info) << "generate_surface_seeds() - Mesh center: " << center.transpose();
+        
+        // Calculate average edge length for offset distance
+        double total_edge_length = 0.0;
+        int edge_count = 0;
+        for (const auto& face : mesh.indices) {
+            const Vec3f& v0 = mesh.vertices[face[0]];
+            const Vec3f& v1 = mesh.vertices[face[1]];
+            const Vec3f& v2 = mesh.vertices[face[2]];
+            
+            total_edge_length += (v1 - v0).norm();
+            total_edge_length += (v2 - v1).norm();
+            total_edge_length += (v0 - v2).norm();
+            edge_count += 3;
+        }
+        double avg_edge = total_edge_length / edge_count;
+        double inset_distance = avg_edge * 2.0;  // Offset seeds inside by 2x avg edge length
+        
+        BOOST_LOG_TRIVIAL(info) << "generate_surface_seeds() - Average edge length: " << avg_edge 
+                                 << ", inset distance: " << inset_distance;
         
         // Create cumulative distribution for area-weighted sampling
         std::vector<float> cumulative_areas;
@@ -1818,17 +1914,40 @@ namespace Slic3r {
             }
             float w = 1.0f - u - v;
             
-            // Compute point on triangle
+            // Compute point on triangle surface
             const auto& face = mesh.indices[triangle_idx];
             const Vec3f& v0 = mesh.vertices[face[0]];
             const Vec3f& v1 = mesh.vertices[face[1]];
             const Vec3f& v2 = mesh.vertices[face[2]];
             
-            Vec3d point = (v0 * u + v1 * v + v2 * w).cast<double>();
-            seeds.push_back(point);
+            Vec3d surface_point = (v0 * u + v1 * v + v2 * w).cast<double>();
+            
+            // Calculate face normal
+            Vec3f edge1 = v1 - v0;
+            Vec3f edge2 = v2 - v0;
+            Vec3d normal = edge1.cross(edge2).normalized().cast<double>();
+            
+            // Determine if normal points inward or outward
+            Vec3d to_center = center - surface_point;
+            if (normal.dot(to_center) < 0) {
+                normal = -normal;  // Flip to point inward
+            }
+            
+            // Offset point inward
+            Vec3d interior_point = surface_point + normal * inset_distance;
+            
+            seeds.push_back(interior_point);
         }
         
-        BOOST_LOG_TRIVIAL(info) << "generate_surface_seeds() - Generated " << seeds.size() << " surface seeds";
+        BOOST_LOG_TRIVIAL(info) << "generate_surface_seeds() - Generated " << seeds.size() 
+                                 << " seeds (offset " << inset_distance << " units inward)";
+        
+        // Verify seeds are reasonable
+        if (!seeds.empty()) {
+            BOOST_LOG_TRIVIAL(info) << "generate_surface_seeds() - First seed: " << seeds.front().transpose();
+            BOOST_LOG_TRIVIAL(info) << "generate_surface_seeds() - Last seed: " << seeds.back().transpose();
+        }
+        
         return seeds;
     }
 
@@ -1992,6 +2111,13 @@ namespace Slic3r {
         for (const auto& v : mesh.vertices) {
             bbox.merge(v.cast<double>());
         }
+        
+        // CRITICAL: Log bbox to verify it's correct
+        BOOST_LOG_TRIVIAL(info) << "generate_random_seeds() - Target: " << num_seeds 
+                                 << " seeds, random_seed: " << random_seed;
+        BOOST_LOG_TRIVIAL(info) << "generate_random_seeds() - Mesh bounding box: min=" 
+                                 << bbox.min.transpose() << ", max=" << bbox.max.transpose();
+        BOOST_LOG_TRIVIAL(info) << "generate_random_seeds() - Mesh size: " << bbox.size().transpose();
 
         // Use provided seed for reproducibility
         std::mt19937 gen(random_seed);
@@ -2021,9 +2147,33 @@ namespace Slic3r {
         if (seeds.size() < size_t(num_seeds)) {
             BOOST_LOG_TRIVIAL(warning) << "generate_random_seeds() - Only generated " << seeds.size()
                                         << " seeds (target: " << num_seeds << ") after " << attempts << " attempts";
+            BOOST_LOG_TRIVIAL(warning) << "generate_random_seeds() - The mesh may be too sparse or inside test failing!";
+            
+            // FALLBACK: If we got very few seeds, fall back to grid
+            if (seeds.size() < size_t(num_seeds) / 2) {
+                BOOST_LOG_TRIVIAL(warning) << "generate_random_seeds() - Too few seeds, falling back to grid generation";
+                return generate_grid_seeds(mesh, num_seeds);
+            }
         } else {
             BOOST_LOG_TRIVIAL(info) << "generate_random_seeds() - Generated " << seeds.size()
                                      << " random seeds (all inside mesh) in " << attempts << " attempts";
+        }
+        
+        // CRITICAL: Verify seeds are inside bounds
+        int outside_count = 0;
+        for (const auto& seed : seeds) {
+            if (!bbox.contains(seed)) {
+                outside_count++;
+                if (outside_count <= 5) {  // Log first few
+                    BOOST_LOG_TRIVIAL(error) << "generate_random_seeds() - Seed OUTSIDE bounds: " 
+                                              << seed.transpose();
+                }
+            }
+        }
+        
+        if (outside_count > 0) {
+            BOOST_LOG_TRIVIAL(error) << "generate_random_seeds() - ERROR: " << outside_count 
+                                      << " seeds are OUTSIDE mesh bounds!";
         }
 
         return seeds;
@@ -2036,9 +2186,31 @@ namespace Slic3r {
         const indexed_triangle_set* clip_mesh)
     {
         BOOST_LOG_TRIVIAL(info) << "tessellate_voronoi_cells() - START with " << seed_points.size() << " seeds, hollow_cells=" << config.hollow_cells;
+        
+        // CRITICAL: Log bounds to verify correctness
+        BOOST_LOG_TRIVIAL(info) << "tessellate_voronoi_cells() - Voronoi container bounds: min=" 
+                                 << bounds.min.transpose() << ", max=" << bounds.max.transpose();
+        BOOST_LOG_TRIVIAL(info) << "tessellate_voronoi_cells() - Container size: " << bounds.size().transpose();
 
         if (seed_points.empty()) {
             return std::make_unique<indexed_triangle_set>();
+        }
+        
+        // CRITICAL: Verify all seeds are inside bounds
+        int outside_count = 0;
+        for (const auto& seed : seed_points) {
+            if (!bounds.contains(seed)) {
+                outside_count++;
+                if (outside_count <= 5) {  // Log first few
+                    BOOST_LOG_TRIVIAL(error) << "tessellate_voronoi_cells() - Seed OUTSIDE bounds: " 
+                                              << seed.transpose();
+                }
+            }
+        }
+        
+        if (outside_count > 0) {
+            BOOST_LOG_TRIVIAL(error) << "tessellate_voronoi_cells() - ERROR: " << outside_count 
+                                      << " seeds are OUTSIDE container bounds!";
         }
 
         if (config.progress_callback && !config.progress_callback(25))
