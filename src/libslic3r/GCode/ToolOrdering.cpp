@@ -1055,7 +1055,7 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
     std::vector<MultiNozzleUtils::NozzleInfo> nozzle_list;
     for(size_t idx =0; idx<extruder_nums;++idx){
         NozzleInfo tmp;
-        tmp.diameter = print_config.nozzle_diameter.values[idx];
+        tmp.diameter    = format_diameter_to_str(print_config.nozzle_diameter.values[idx]);
         tmp.group_id = idx;
         tmp.extruder_id = idx;
         tmp.volume_type = NozzleVolumeType(print_config.nozzle_volume_type.values[idx]);
@@ -1117,11 +1117,12 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
     auto extruder_nozzle_counts = get_extruder_nozzle_stats(print_config.extruder_nozzle_count.values);
     for(size_t idx = 0; idx < extruder_nums; ++idx){
         if (idx >= extruder_nozzle_counts.size() || extruder_nozzle_counts[idx].empty()) {
-            nozzle_groups.emplace_back(std::to_string(print_config.nozzle_diameter.values[idx]), NozzleVolumeType(print_config.nozzle_volume_type.values[idx]), idx, print_config.extruder_max_nozzle_count.values[idx]);
+            nozzle_groups.emplace_back(format_diameter_to_str(print_config.nozzle_diameter.values[idx]), NozzleVolumeType(print_config.nozzle_volume_type.values[idx]), idx,
+                                       print_config.extruder_max_nozzle_count.values[idx]);
         }
         else{
             for(auto [volume_type,count] : extruder_nozzle_counts[idx]){
-                nozzle_groups.emplace_back(std::to_string(print_config.nozzle_diameter.values[idx]), volume_type, idx, count);
+                nozzle_groups.emplace_back(format_diameter_to_str(print_config.nozzle_diameter.values[idx]), volume_type, idx, count);
             }
         }
     }
