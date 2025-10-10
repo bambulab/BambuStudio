@@ -6,11 +6,12 @@
 #include <algorithm>
 #include <set>
 #include <map>
+#include <queue>
 #include <array>
 #include <cmath>
 #include <limits>
 #include <chrono>
-#include <queue>
+#include <numeric>
 
 #include <boost/log/trivial.hpp>
 
@@ -45,8 +46,179 @@ namespace Slic3r {
 
     namespace {
         
-        // Forward declaration for helper function
+        // Geometric tolerances for robust processing
+        constexpr double EPSILON = 1e-6;
+        constexpr double MIN_EDGE_LENGTH = 1e-4;
+        constexpr double MIN_FACE_AREA = 1e-8;
+        constexpr double WELD_DISTANCE = 1e-5;
+        constexpr double BOUNDARY_MARGIN_PERCENT = 0.05;  // 5% expansion
+        
+        // Forward declarations for helper functions
         void clip_wireframe_to_mesh(indexed_triangle_set& wireframe, const indexed_triangle_set& mesh);
+        
+        // Spatial hash for efficient vertex welding
+        struct SpatialHash {
+            std::unordered_map<Vec3i, std::vector<size_t>, Vec3iHash> grid;
+            double cell_size;
+            
+            explicit SpatialHash(double cs) : cell_size(cs) {}
+            
+            Vec3i hash_pos(const Vec3f& p) const {
+                return Vec3i(
+                    int(std::floor(p.x() / cell_size)),
+                    int(std::floor(p.y() / cell_size)),
+                    int(std::floor(p.z() / cell_size))
+                );
+            }
+            
+            void insert(size_t vertex_id, const Vec3f& pos) {
+                Vec3i h = hash_pos(pos);
+                grid[h].push_back(vertex_id);
+            }
+            
+            std::vector<size_t> query_neighbors(const Vec3f& pos, double radius) {
+                std::vector<size_t> result;
+                int search_range = int(std::ceil(radius / cell_size));
+                Vec3i center = hash_pos(pos);
+                
+                for (int dx = -search_range; dx <= search_range; ++dx) {
+                    for (int dy = -search_range; dy <= search_range; ++dy) {
+                        for (int dz = -search_range; dz <= search_range; ++dz) {
+                            Vec3i h = center + Vec3i(dx, dy, dz);
+                            auto it = grid.find(h);
+                            if (it != grid.end()) {
+                                result.insert(result.end(), it->second.begin(), it->second.end());
+                            }
+                        }
+                    }
+                }
+                return result;
+            }
+        };
+        
+        // Weld nearby vertices to eliminate near-duplicates
+        void weld_vertices(indexed_triangle_set& mesh, double weld_threshold = WELD_DISTANCE) {
+            if (mesh.vertices.empty()) return;
+            
+            BOOST_LOG_TRIVIAL(info) << "weld_vertices: Input vertices=" << mesh.vertices.size();
+            
+            // Build spatial hash
+            SpatialHash hash(weld_threshold * 2.0);
+            for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+                hash.insert(i, mesh.vertices[i]);
+            }
+            
+            // Find vertex clusters and build remap table
+            std::vector<int> vertex_remap(mesh.vertices.size());
+            std::iota(vertex_remap.begin(), vertex_remap.end(), 0);
+            
+            std::vector<bool> visited(mesh.vertices.size(), false);
+            std::vector<Vec3f> new_vertices;
+            new_vertices.reserve(mesh.vertices.size());
+            
+            for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+                if (visited[i]) continue;
+                
+                // Find all vertices within weld distance
+                auto neighbors = hash.query_neighbors(mesh.vertices[i], weld_threshold);
+                
+                std::vector<size_t> cluster;
+                for (size_t j : neighbors) {
+                    if (!visited[j] && (mesh.vertices[i] - mesh.vertices[j]).norm() < weld_threshold) {
+                        cluster.push_back(j);
+                        visited[j] = true;
+                    }
+                }
+                
+                if (cluster.empty()) {
+                    cluster.push_back(i);
+                    visited[i] = true;
+                }
+                
+                // Compute centroid of cluster
+                Vec3f centroid = Vec3f::Zero();
+                for (size_t j : cluster) {
+                    centroid += mesh.vertices[j];
+                }
+                centroid /= float(cluster.size());
+                
+                // Add welded vertex
+                int new_idx = new_vertices.size();
+                new_vertices.push_back(centroid);
+                
+                // Remap all vertices in cluster to new index
+                for (size_t j : cluster) {
+                    vertex_remap[j] = new_idx;
+                }
+            }
+            
+            // Remap face indices
+            for (auto& face : mesh.indices) {
+                face[0] = vertex_remap[face[0]];
+                face[1] = vertex_remap[face[1]];
+                face[2] = vertex_remap[face[2]];
+            }
+            
+            mesh.vertices = std::move(new_vertices);
+            
+            BOOST_LOG_TRIVIAL(info) << "weld_vertices: Output vertices=" << mesh.vertices.size() 
+                                     << " (removed " << (visited.size() - new_vertices.size()) << " duplicates)";
+        }
+        
+        // Remove degenerate edges and faces
+        void remove_degenerates(indexed_triangle_set& mesh) {
+            if (mesh.indices.empty()) return;
+            
+            BOOST_LOG_TRIVIAL(info) << "remove_degenerates: Input faces=" << mesh.indices.size();
+            
+            std::vector<Vec3i> new_faces;
+            new_faces.reserve(mesh.indices.size());
+            
+            int removed_degenerate = 0;
+            int removed_zero_area = 0;
+            
+            for (const auto& face : mesh.indices) {
+                // Check for degenerate face (repeated indices)
+                if (face[0] == face[1] || face[1] == face[2] || face[2] == face[0]) {
+                    removed_degenerate++;
+                    continue;
+                }
+                
+                // Check for zero-area face
+                const Vec3f& v0 = mesh.vertices[face[0]];
+                const Vec3f& v1 = mesh.vertices[face[1]];
+                const Vec3f& v2 = mesh.vertices[face[2]];
+                
+                Vec3f e1 = v1 - v0;
+                Vec3f e2 = v2 - v0;
+                double area = 0.5 * e1.cross(e2).norm();
+                
+                if (area < MIN_FACE_AREA) {
+                    removed_zero_area++;
+                    continue;
+                }
+                
+                new_faces.push_back(face);
+            }
+            
+            mesh.indices = std::move(new_faces);
+            
+            BOOST_LOG_TRIVIAL(info) << "remove_degenerates: Output faces=" << mesh.indices.size()
+                                     << " (removed " << removed_degenerate << " degenerate, "
+                                     << removed_zero_area << " zero-area)";
+        }
+        
+        // Expand bounding box by margin
+        BoundingBoxf3 expand_bounds(const BoundingBoxf3& bbox, double margin_percent) {
+            Vec3d size = bbox.size();
+            double margin = size.minCoeff() * margin_percent;
+            
+            BoundingBoxf3 expanded = bbox;
+            expanded.min -= Vec3d(margin, margin, margin);
+            expanded.max += Vec3d(margin, margin, margin);
+            
+            return expanded;
+        }
 
         // Helper function to test if a point is inside a mesh using raycast
         bool is_point_inside_mesh(const AABBMesh& aabb_mesh, const Vec3d& point) {
@@ -123,6 +295,363 @@ namespace Slic3r {
                 return false;
             }
             return true;
+        }
+        
+        // Robust geometric processing utilities
+        constexpr double GEOM_EPSILON = 1e-6;
+        constexpr double MIN_EDGE_LENGTH_SQ = 1e-8;  // squared for efficiency
+        constexpr double MIN_FACE_AREA = 1e-8;
+        constexpr double WELD_THRESHOLD = 1e-5;
+        
+        // Validate geometry for NaN/Inf and report issues
+        bool validate_geometry(const indexed_triangle_set& mesh, const std::string& label) {
+            bool has_issues = false;
+            int nan_vertices = 0;
+            int inf_vertices = 0;
+            int zero_area_faces = 0;
+            int negative_area_faces = 0;
+            
+            // Check vertices for NaN/Inf
+            for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+                const Vec3f& v = mesh.vertices[i];
+                if (std::isnan(v.x()) || std::isnan(v.y()) || std::isnan(v.z())) {
+                    nan_vertices++;
+                    has_issues = true;
+                }
+                if (std::isinf(v.x()) || std::isinf(v.y()) || std::isinf(v.z())) {
+                    inf_vertices++;
+                    has_issues = true;
+                }
+            }
+            
+            // Check faces for zero/negative area
+            for (const auto& face : mesh.indices) {
+                if (face[0] >= mesh.vertices.size() || 
+                    face[1] >= mesh.vertices.size() || 
+                    face[2] >= mesh.vertices.size()) {
+                    continue; // Invalid index
+                }
+                
+                const Vec3f& v0 = mesh.vertices[face[0]];
+                const Vec3f& v1 = mesh.vertices[face[1]];
+                const Vec3f& v2 = mesh.vertices[face[2]];
+                
+                Vec3f e1 = v1 - v0;
+                Vec3f e2 = v2 - v0;
+                Vec3f cross = e1.cross(e2);
+                double area = 0.5 * cross.norm();
+                
+                if (area < MIN_FACE_AREA) {
+                    zero_area_faces++;
+                }
+                
+                // Check if face is inverted (negative area via signed volume)
+                double signed_vol = cross.dot(v0);
+                if (signed_vol < -GEOM_EPSILON) {
+                    negative_area_faces++;
+                }
+            }
+            
+            if (has_issues || zero_area_faces > 0 || negative_area_faces > 0) {
+                BOOST_LOG_TRIVIAL(warning) << label << " geometry validation:";
+                if (nan_vertices > 0)
+                    BOOST_LOG_TRIVIAL(warning) << "  - NaN vertices: " << nan_vertices;
+                if (inf_vertices > 0)
+                    BOOST_LOG_TRIVIAL(warning) << "  - Inf vertices: " << inf_vertices;
+                if (zero_area_faces > 0)
+                    BOOST_LOG_TRIVIAL(warning) << "  - Zero-area faces: " << zero_area_faces;
+                if (negative_area_faces > 0)
+                    BOOST_LOG_TRIVIAL(warning) << "  - Potentially inverted faces: " << negative_area_faces;
+            } else {
+                BOOST_LOG_TRIVIAL(info) << label << " geometry validation: CLEAN";
+            }
+            
+            return !has_issues;
+        }
+        
+        // Check manifoldness: all edges should have exactly 2 adjacent faces
+        void validate_manifoldness(const indexed_triangle_set& mesh, const std::string& label) {
+            std::map<std::pair<int, int>, int> edge_count;
+            
+            for (const auto& face : mesh.indices) {
+                // Add all three edges (with consistent ordering)
+                auto add_edge = [&](int v0, int v1) {
+                    if (v0 > v1) std::swap(v0, v1);
+                    edge_count[{v0, v1}]++;
+                };
+                
+                add_edge(face[0], face[1]);
+                add_edge(face[1], face[2]);
+                add_edge(face[2], face[0]);
+            }
+            
+            int boundary_edges = 0;
+            int non_manifold_edges = 0;
+            
+            for (const auto& [edge, count] : edge_count) {
+                if (count == 1) {
+                    boundary_edges++;
+                } else if (count > 2) {
+                    non_manifold_edges++;
+                }
+            }
+            
+            if (boundary_edges > 0 || non_manifold_edges > 0) {
+                BOOST_LOG_TRIVIAL(warning) << label << " manifold check:";
+                BOOST_LOG_TRIVIAL(warning) << "  - Boundary edges (open): " << boundary_edges;
+                BOOST_LOG_TRIVIAL(warning) << "  - Non-manifold edges: " << non_manifold_edges;
+            } else {
+                BOOST_LOG_TRIVIAL(info) << label << " manifold check: PASS (watertight)";
+            }
+        }
+        
+        // Orient faces consistently using normal propagation
+        void orient_faces_consistently(indexed_triangle_set& mesh) {
+            if (mesh.indices.empty()) return;
+            
+            BOOST_LOG_TRIVIAL(info) << "Orienting faces consistently...";
+            
+            // Build adjacency graph
+            std::map<std::pair<int, int>, std::vector<size_t>> edge_to_faces;
+            
+            for (size_t i = 0; i < mesh.indices.size(); ++i) {
+                const auto& face = mesh.indices[i];
+                
+                auto add_edge = [&](int v0, int v1) {
+                    auto key = (v0 < v1) ? std::make_pair(v0, v1) : std::make_pair(v1, v0);
+                    edge_to_faces[key].push_back(i);
+                };
+                
+                add_edge(face[0], face[1]);
+                add_edge(face[1], face[2]);
+                add_edge(face[2], face[0]);
+            }
+            
+            // Propagate orientation from seed face
+            std::vector<bool> visited(mesh.indices.size(), false);
+            std::vector<bool> should_flip(mesh.indices.size(), false);
+            std::queue<size_t> to_process;
+            
+            // Start from face with largest area (most likely correct)
+            size_t seed_face = 0;
+            double max_area = 0.0;
+            
+            for (size_t i = 0; i < mesh.indices.size(); ++i) {
+                const auto& face = mesh.indices[i];
+                const Vec3f& v0 = mesh.vertices[face[0]];
+                const Vec3f& v1 = mesh.vertices[face[1]];
+                const Vec3f& v2 = mesh.vertices[face[2]];
+                
+                double area = 0.5 * (v1 - v0).cross(v2 - v0).norm();
+                if (area > max_area) {
+                    max_area = area;
+                    seed_face = i;
+                }
+            }
+            
+            to_process.push(seed_face);
+            visited[seed_face] = true;
+            
+            int flipped_count = 0;
+            
+            while (!to_process.empty()) {
+                size_t current_face = to_process.front();
+                to_process.pop();
+                
+                const auto& face = mesh.indices[current_face];
+                
+                // Check all three edges
+                for (int e = 0; e < 3; ++e) {
+                    int v0 = face[e];
+                    int v1 = face[(e + 1) % 3];
+                    
+                    auto key = (v0 < v1) ? std::make_pair(v0, v1) : std::make_pair(v1, v0);
+                    auto it = edge_to_faces.find(key);
+                    if (it == edge_to_faces.end()) continue;
+                    
+                    for (size_t neighbor_idx : it->second) {
+                        if (neighbor_idx == current_face || visited[neighbor_idx]) continue;
+                        
+                        // Check if neighbor needs flipping
+                        const auto& neighbor = mesh.indices[neighbor_idx];
+                        
+                        // Find shared edge in neighbor
+                        bool same_direction = false;
+                        for (int ne = 0; ne < 3; ++ne) {
+                            int nv0 = neighbor[ne];
+                            int nv1 = neighbor[(ne + 1) % 3];
+                            
+                            // If edge is in same direction in both faces, they have opposite normals
+                            if ((v0 == nv0 && v1 == nv1) || (v0 == nv1 && v1 == nv0)) {
+                                same_direction = (v0 == nv0 && v1 == nv1);
+                                break;
+                            }
+                        }
+                        
+                        // If current face is flipped, neighbor should match; if not, opposite
+                        if (should_flip[current_face]) {
+                            should_flip[neighbor_idx] = !same_direction;
+                        } else {
+                            should_flip[neighbor_idx] = same_direction;
+                        }
+                        
+                        if (should_flip[neighbor_idx]) {
+                            flipped_count++;
+                        }
+                        
+                        visited[neighbor_idx] = true;
+                        to_process.push(neighbor_idx);
+                    }
+                }
+            }
+            
+            // Apply flips
+            for (size_t i = 0; i < mesh.indices.size(); ++i) {
+                if (should_flip[i]) {
+                    std::swap(mesh.indices[i][1], mesh.indices[i][2]);
+                }
+            }
+            
+            if (flipped_count > 0) {
+                BOOST_LOG_TRIVIAL(info) << "Flipped " << flipped_count << " faces for consistent orientation";
+            }
+        }
+        
+        // Weld nearby vertices to eliminate near-duplicates after clipping
+        void weld_nearby_vertices(indexed_triangle_set& mesh) {
+            if (mesh.vertices.empty()) return;
+            
+            size_t original_count = mesh.vertices.size();
+            
+            // Simple O(n²) welding - could optimize with spatial hash for large meshes
+            std::vector<int> vertex_map(mesh.vertices.size());
+            std::iota(vertex_map.begin(), vertex_map.end(), 0);
+            
+            std::vector<Vec3f> welded_vertices;
+            welded_vertices.reserve(mesh.vertices.size());
+            std::vector<bool> processed(mesh.vertices.size(), false);
+            
+            for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+                if (processed[i]) continue;
+                
+                // Find all vertices within weld threshold
+                std::vector<size_t> cluster;
+                cluster.push_back(i);
+                processed[i] = true;
+                
+                for (size_t j = i + 1; j < mesh.vertices.size(); ++j) {
+                    if (processed[j]) continue;
+                    
+                    double dist_sq = (mesh.vertices[i] - mesh.vertices[j]).squaredNorm();
+                    if (dist_sq < WELD_THRESHOLD * WELD_THRESHOLD) {
+                        cluster.push_back(j);
+                        processed[j] = true;
+                    }
+                }
+                
+                // Compute centroid of cluster
+                Vec3f centroid = Vec3f::Zero();
+                for (size_t idx : cluster) {
+                    centroid += mesh.vertices[idx];
+                }
+                centroid /= float(cluster.size());
+                
+                // Map all vertices in cluster to the new welded vertex
+                int new_index = welded_vertices.size();
+                welded_vertices.push_back(centroid);
+                
+                for (size_t idx : cluster) {
+                    vertex_map[idx] = new_index;
+                }
+            }
+            
+            // Remap face indices
+            for (auto& face : mesh.indices) {
+                face[0] = vertex_map[face[0]];
+                face[1] = vertex_map[face[1]];
+                face[2] = vertex_map[face[2]];
+            }
+            
+            mesh.vertices = std::move(welded_vertices);
+            
+            size_t welded_count = original_count - mesh.vertices.size();
+            if (welded_count > 0) {
+                BOOST_LOG_TRIVIAL(info) << "Welded " << welded_count << " nearby vertices (tolerance=" 
+                                         << WELD_THRESHOLD << ")";
+            }
+        }
+        
+        // Remove degenerate triangles (zero-length edges, zero-area)
+        void remove_degenerate_faces(indexed_triangle_set& mesh) {
+            if (mesh.indices.empty()) return;
+            
+            size_t original_count = mesh.indices.size();
+            std::vector<Vec3i> clean_faces;
+            clean_faces.reserve(mesh.indices.size());
+            
+            for (const auto& face : mesh.indices) {
+                // Skip if any vertices are the same (degenerate)
+                if (face[0] == face[1] || face[1] == face[2] || face[2] == face[0]) {
+                    continue;
+                }
+                
+                // Check edge lengths
+                const Vec3f& v0 = mesh.vertices[face[0]];
+                const Vec3f& v1 = mesh.vertices[face[1]];
+                const Vec3f& v2 = mesh.vertices[face[2]];
+                
+                double e01_sq = (v1 - v0).squaredNorm();
+                double e12_sq = (v2 - v1).squaredNorm();
+                double e20_sq = (v0 - v2).squaredNorm();
+                
+                if (e01_sq < MIN_EDGE_LENGTH_SQ || e12_sq < MIN_EDGE_LENGTH_SQ || e20_sq < MIN_EDGE_LENGTH_SQ) {
+                    continue;
+                }
+                
+                // Check face area
+                Vec3f e1 = v1 - v0;
+                Vec3f e2 = v2 - v0;
+                double area = 0.5 * e1.cross(e2).norm();
+                
+                if (area < MIN_FACE_AREA) {
+                    continue;
+                }
+                
+                clean_faces.push_back(face);
+            }
+            
+            size_t removed_count = original_count - clean_faces.size();
+            if (removed_count > 0) {
+                BOOST_LOG_TRIVIAL(info) << "Removed " << removed_count << " degenerate faces";
+                mesh.indices = std::move(clean_faces);
+            }
+        }
+        
+        // Cleanup pipeline: validate + weld + remove degenerates + orient
+        void robust_mesh_cleanup(indexed_triangle_set& mesh) {
+            if (mesh.vertices.empty() || mesh.indices.empty()) return;
+            
+            BOOST_LOG_TRIVIAL(info) << "Robust cleanup: input vertices=" << mesh.vertices.size() 
+                                     << ", faces=" << mesh.indices.size();
+            
+            // Step 1: Validate input geometry
+            validate_geometry(mesh, "Pre-cleanup");
+            
+            // Step 2: Weld nearby vertices
+            weld_nearby_vertices(mesh);
+            
+            // Step 3: Remove degenerate faces
+            remove_degenerate_faces(mesh);
+            
+            // Step 4: Orient faces consistently (FIX FOR SHREDDED APPEARANCE!)
+            orient_faces_consistently(mesh);
+            
+            // Step 5: Final validation
+            validate_geometry(mesh, "Post-cleanup");
+            validate_manifoldness(mesh, "Post-cleanup");
+            
+            BOOST_LOG_TRIVIAL(info) << "Robust cleanup: output vertices=" << mesh.vertices.size() 
+                                     << ", faces=" << mesh.indices.size();
         }
 
         // Clip wireframe mesh to stay within mesh bounds
@@ -756,13 +1285,22 @@ namespace Slic3r {
                 // Clip cell to input mesh if provided
                 if (clip_mesh && !clip_mesh->vertices.empty()) {
                     try {
+                        BOOST_LOG_TRIVIAL(debug) << "Voro++: Clipping cell " << processed 
+                                                  << " (vertices=" << cell_mesh.vertices.size() 
+                                                  << ", faces=" << cell_mesh.indices.size() << ")";
+                        
                         // Perform boolean intersection: cell ∩ original_mesh
                         MeshBoolean::cgal::intersect(cell_mesh, *clip_mesh);
 
                         // Skip cells that were completely outside the mesh
-                        if (cell_mesh.vertices.empty() || cell_mesh.indices.empty()) {
+                        if (cell_mesh.vertices.empty() || cell_mesh.indices.size() == 0) {
+                            BOOST_LOG_TRIVIAL(debug) << "Voro++: Cell " << processed << " completely outside mesh, skipping";
                             continue;
                         }
+                        
+                        BOOST_LOG_TRIVIAL(debug) << "Voro++: Cell " << processed << " clipped successfully "
+                                                  << "(vertices=" << cell_mesh.vertices.size() 
+                                                  << ", faces=" << cell_mesh.indices.size() << ")";
                     }
                     catch (const std::exception& e) {
                         BOOST_LOG_TRIVIAL(warning) << "Voro++: Failed to clip cell " << processed
@@ -770,8 +1308,11 @@ namespace Slic3r {
                     }
                     catch (...) {
                         BOOST_LOG_TRIVIAL(warning) << "Voro++: Failed to clip cell " << processed
-                                                   << " - using unclipped cell";
+                                                   << " - unknown error - using unclipped cell";
                     }
+                } else {
+                    BOOST_LOG_TRIVIAL(debug) << "Voro++: Cell " << processed << " - no clipping (clip_mesh=" 
+                                              << (clip_mesh ? "provided" : "NULL") << ")";
                 }
 
                 // Apply hollowing for solid cells with wall thickness
@@ -801,6 +1342,12 @@ namespace Slic3r {
 
         BOOST_LOG_TRIVIAL(info) << "Voro++: Generated " << result->vertices.size() << " vertices, "
                                  << result->indices.size() << " faces";
+
+        // Apply robust cleanup to fix boundary degeneracies
+        if (!result->vertices.empty() && !result->indices.empty()) {
+            BOOST_LOG_TRIVIAL(info) << "Voro++: Applying robust cleanup to fix near-boundary degeneracies";
+            robust_mesh_cleanup(*result);
+        }
 
         // Apply styling if in solid mode
         if (!config.hollow_cells && config.cell_style != VoronoiMesh::CellStyle::Pure) {
@@ -1102,12 +1649,27 @@ namespace Slic3r {
         BOOST_LOG_TRIVIAL(info) << "Voro++ Wireframe: Complete! vertices=" << result->vertices.size() 
                                  << ", faces=" << result->indices.size();
 
+        // Apply robust cleanup to wireframe geometry
+        if (!result->vertices.empty() && !result->indices.empty()) {
+            BOOST_LOG_TRIVIAL(info) << "Voro++ Wireframe: Applying robust cleanup";
+            robust_mesh_cleanup(*result);
+        }
+
         // Clip wireframe to mesh bounds if requested
         if (clip_mesh && !clip_mesh->vertices.empty() && config.clip_to_mesh) {
             BOOST_LOG_TRIVIAL(info) << "Voro++ Wireframe: Clipping to mesh bounds...";
-            clip_wireframe_to_mesh(*result, *clip_mesh);
-            BOOST_LOG_TRIVIAL(info) << "Voro++ Wireframe: After clipping, vertices=" << result->vertices.size() 
+            BOOST_LOG_TRIVIAL(info) << "Voro++ Wireframe: Before clipping - vertices=" << result->vertices.size() 
                                      << ", faces=" << result->indices.size();
+            clip_wireframe_to_mesh(*result, *clip_mesh);
+            BOOST_LOG_TRIVIAL(info) << "Voro++ Wireframe: After clipping - vertices=" << result->vertices.size() 
+                                     << ", faces=" << result->indices.size();
+                                     
+            // Cleanup again after clipping (may create new degeneracies)
+            BOOST_LOG_TRIVIAL(info) << "Voro++ Wireframe: Post-clip cleanup";
+            robust_mesh_cleanup(*result);
+        } else {
+            BOOST_LOG_TRIVIAL(info) << "Voro++ Wireframe: Skipping clipping (clip_to_mesh=" 
+                                     << config.clip_to_mesh << ")";
         }
 
         if (config.progress_callback)

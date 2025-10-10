@@ -104,11 +104,21 @@ namespace Slic3r {
                     EDGE_STAR
                 };
 
+                enum CellStyle {
+                    STYLE_PURE,
+                    STYLE_ROUNDED,
+                    STYLE_CHAMFERED,
+                    STYLE_CRYSTALLINE,
+                    STYLE_ORGANIC,
+                    STYLE_FACETED
+                };
+
                 SeedType seed_type = SEED_VERTICES;
                 int num_seeds = 50;
                 float wall_thickness = 1.0f;
                 float edge_thickness = 1.0f;  // Thickness of wireframe edges/struts
                 EdgeShape edge_shape = EDGE_CYLINDER;
+                CellStyle cell_style = STYLE_PURE;
                 int edge_segments = 8;  // Number of sides/segments for the edge shape
                 float edge_curvature = 0.0f;  // 0 = straight, 1 = maximum curve
                 int edge_subdivisions = 0;  // 0 = straight line, 1+ = curved segments
@@ -123,6 +133,7 @@ namespace Slic3r {
                         wall_thickness == rhs.wall_thickness &&
                         edge_thickness == rhs.edge_thickness &&
                         edge_shape == rhs.edge_shape &&
+                        cell_style == rhs.cell_style &&
                         edge_segments == rhs.edge_segments &&
                         edge_curvature == rhs.edge_curvature &&
                         edge_subdivisions == rhs.edge_subdivisions &&

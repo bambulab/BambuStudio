@@ -242,6 +242,17 @@ namespace Slic3r::GUI {
             if (ImGui::IsItemHovered()) {
                 ImGui::SetTooltip("%s", into_u8(_u8L("Shell thickness for solid cells (0 = completely solid)")).c_str());
             }
+            
+            // Cell style selection (only for solid cells)
+            ImGui::Text("%s:", into_u8(_u8L("Cell Style")).c_str());
+            const char* cell_styles[] = { "Pure", "Rounded", "Chamfered", "Crystalline", "Organic", "Faceted" };
+            int current_style = static_cast<int>(m_configuration.cell_style);
+            if (ImGui::Combo("##cell_style", &current_style, cell_styles, IM_ARRAYSIZE(cell_styles))) {
+                m_configuration.cell_style = static_cast<Configuration::CellStyle>(current_style);
+            }
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s", into_u8(_u8L("Pure: Mathematical Voronoi\nRounded: Smooth corners\nChamfered: Beveled edges\nCrystalline: Angular cuts\nOrganic: Flowing surfaces\nFaceted: Extra detail")).c_str());
+            }
         }
 
         // Edge thickness (only for wireframe)
@@ -844,6 +855,7 @@ namespace Slic3r::GUI {
                 voronoi_config.wall_thickness = m_state.config.wall_thickness;
                 voronoi_config.edge_thickness = m_state.config.edge_thickness;
                 voronoi_config.edge_shape = static_cast<VoronoiMesh::EdgeShape>(m_state.config.edge_shape);
+                voronoi_config.cell_style = static_cast<VoronoiMesh::CellStyle>(m_state.config.cell_style);
                 voronoi_config.edge_segments = m_state.config.edge_segments;
                 voronoi_config.edge_curvature = m_state.config.edge_curvature;
                 voronoi_config.edge_subdivisions = m_state.config.edge_subdivisions;
