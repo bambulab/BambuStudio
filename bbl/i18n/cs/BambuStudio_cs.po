@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 09:38+0800\n"
+"POT-Creation-Date: 2025-10-10 17:50+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -100,6 +100,9 @@ msgstr "Nečinný"
 #, c-format, boost-format
 msgid "%d ℃"
 msgstr ""
+
+msgid "Model:"
+msgstr "Model:"
 
 msgid "Serial:"
 msgstr "Sériové číslo:"
@@ -3179,6 +3182,27 @@ msgstr ""
 msgid "Detects clogging and filament grinding, halting printing immediately to conserve time and filament."
 msgstr ""
 
+msgid "AMS Type"
+msgstr ""
+
+msgid "Switching"
+msgstr ""
+
+msgid "The printer is busy and cannot switch AMS type."
+msgstr ""
+
+msgid "Please unload all filament before switching."
+msgstr ""
+
+msgid "AMS type switching needs firmware update, taking about 30s. Switch now ?"
+msgstr ""
+
+msgid "Arrange AMS Order"
+msgstr ""
+
+msgid "AMS ID will be reset. If you want a specific ID sequence, disconnect all AMS before resetting and connect them in the desired order after resetting."
+msgstr ""
+
 msgid "File"
 msgstr "Soubor"
 
@@ -3657,6 +3681,9 @@ msgstr ""
 msgid "Measuring Surface"
 msgstr ""
 
+msgid "Calibrating the detection position of nozzle clumping"
+msgstr ""
+
 msgid "Unknown"
 msgstr "Neznámý"
 
@@ -3837,270 +3864,6 @@ msgstr "Neplatný formát. Očekávaný vektorový formát: \"%1%\""
 
 msgid "Clear color"
 msgstr ""
-
-msgid "Summary"
-msgstr ""
-
-msgid "Layer Height"
-msgstr "Výška vrstvy"
-
-msgid "Line Width"
-msgstr "Šířka Extruze"
-
-msgid "Fan Speed"
-msgstr "Rychlost ventilátoru"
-
-msgid "Thermal Index (min)"
-msgstr ""
-
-msgid "Thermal Index (max)"
-msgstr ""
-
-msgid "Thermal Index (mean)"
-msgstr ""
-
-msgid "Flow"
-msgstr "Průtok"
-
-msgid "Tool"
-msgstr "Nástroj"
-
-msgid "Layer Time"
-msgstr "Čas vrstvy"
-
-msgid "Height: "
-msgstr "Výška: "
-
-msgid "Width: "
-msgstr "Šířka: "
-
-msgid "Speed: "
-msgstr "Rychlost: "
-
-msgid "Flow: "
-msgstr "Průtok: "
-
-msgid "Layer Time: "
-msgstr "Čas vrstvy: "
-
-msgid "Fan Speed: "
-msgstr "Rychlost ventilátoru: "
-
-msgid "Temperature: "
-msgstr "Teplota: "
-
-msgid "Thermal Index"
-msgstr ""
-
-msgid "Min: "
-msgstr ""
-
-msgid "Max: "
-msgstr ""
-
-msgid "Mean: "
-msgstr ""
-
-msgid "Loading G-codes"
-msgstr "Načítání G-kódů"
-
-msgid "Generating geometry vertex data"
-msgstr "Generování dat vrcholů geometrie"
-
-msgid "Generating geometry index data"
-msgstr "Generování dat indexu geometrie"
-
-msgid "Statistics of All Plates"
-msgstr "Statistiky všech Podložek"
-
-msgid "Display"
-msgstr "Displej"
-
-msgid "Flushed"
-msgstr "Čištění"
-
-msgid "Tower"
-msgstr ""
-
-msgid "Total"
-msgstr "Celkem"
-
-msgid "Total cost"
-msgstr ""
-
-msgid "Time"
-msgstr "Čas"
-
-msgid "Time Estimation"
-msgstr "Časový odhad"
-
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr ""
-
-msgid "Filament Grouping"
-msgstr ""
-
-msgid "Why this grouping"
-msgstr ""
-
-msgid "Left nozzle"
-msgstr ""
-
-msgid "Right nozzle"
-msgstr ""
-
-msgid "Please place filaments on the printer based on grouping result."
-msgstr ""
-
-msgid "Tips:"
-msgstr "Tipy:"
-
-msgid "Current grouping of slice result is not optimal."
-msgstr ""
-
-#, boost-format
-msgid "Increase %1%g filament and %2% changes compared to optimal grouping."
-msgstr ""
-
-#, boost-format
-msgid "Increase %1%g filament and save %2% changes compared to optimal grouping."
-msgstr ""
-
-#, boost-format
-msgid "Save %1%g filament and increase %2% changes compared to optimal grouping."
-msgstr ""
-
-#, boost-format
-msgid "Save %1%g filament and %2% changes compared to a printer with one nozzle."
-msgstr ""
-
-#, boost-format
-msgid "Save %1%g filament and increase %2% changes compared to a printer with one nozzle."
-msgstr ""
-
-#, boost-format
-msgid "Increase %1%g filament and save %2% changes compared to a printer with one nozzle."
-msgstr ""
-
-msgid "Set to Optimal"
-msgstr ""
-
-msgid "Regroup filament"
-msgstr ""
-
-msgid "up to"
-msgstr "až do"
-
-msgid "above"
-msgstr "nad"
-
-msgid "from"
-msgstr "z"
-
-msgid "Slicing Result"
-msgstr ""
-
-msgid "Color Scheme"
-msgstr "Barevné schéma"
-
-msgid "Percent"
-msgstr "Procento"
-
-msgid "Used filament"
-msgstr "Použito filamentu"
-
-msgid "Layer Height (mm)"
-msgstr "Výška vrstvy (mm)"
-
-msgid "Line Width (mm)"
-msgstr "Šířka Extruze (mm)"
-
-msgid "Speed (mm/s)"
-msgstr "Rychlost (mm/s)"
-
-msgid "Fan Speed (%)"
-msgstr "Rychlost ventilátoru (%)"
-
-msgid "Temperature (°C)"
-msgstr "Teplota (°C)"
-
-msgid "Volumetric flow rate (mm³/s)"
-msgstr "Objemový průtok (mm³/s)"
-
-msgid "Travel"
-msgstr "Rychloposun"
-
-msgid "Seams"
-msgstr "Švy"
-
-msgid "Retract"
-msgstr "Retrakce"
-
-msgid "Unretract"
-msgstr "Deretrakce"
-
-msgid "Filament Changes"
-msgstr "Výměna Filamentu"
-
-msgid "Wipe"
-msgstr "Čištění"
-
-msgid "Options"
-msgstr "Možnosti"
-
-msgid "travel"
-msgstr "Cestování"
-
-msgid "Extruder"
-msgstr "Extruder"
-
-msgid "Cost"
-msgstr "Náklady"
-
-msgid "Total time"
-msgstr "Celkový čas"
-
-msgid "Filament change times"
-msgstr "Doby výměny Filamentu"
-
-msgid "Color change"
-msgstr "Změna barvy"
-
-msgid "Print"
-msgstr "Tisk"
-
-msgid "Printer"
-msgstr "Tiskárna"
-
-msgid "Print settings"
-msgstr "Nastavení tisku"
-
-msgid "Total Estimation"
-msgstr "Celkový odhad"
-
-msgid "Normal mode"
-msgstr "Normální režim"
-
-msgid "Total Filament"
-msgstr ""
-
-msgid "Model Filament"
-msgstr ""
-
-msgid "Prepare and timelapse time"
-msgstr ""
-
-msgid "Prepare time"
-msgstr "Čas přípravy"
-
-msgid "Model printing time"
-msgstr "Doba tisku modelu"
-
-msgid "Switch to silent mode"
-msgstr "Přepnout do tichého režimu"
-
-msgid "Switch to normal mode"
-msgstr "Přepnout do normálního režimu"
 
 msgid ""
 "An object is placed in the left/right nozzle-only area or exceeds the printable height of the left nozzle.\n"
@@ -4430,6 +4193,9 @@ msgstr "Vyrovnání podložky"
 msgid "High-temperature Heatbed Calibration"
 msgstr ""
 
+msgid "Nozzle clumping detection Calibration"
+msgstr ""
+
 msgid "Calibration program"
 msgstr "Kalibrační program"
 
@@ -4558,6 +4324,9 @@ msgstr "Slicuj Vše"
 
 msgid "Export G-code file"
 msgstr "Exportovat soubor s G-kódem"
+
+msgid "Print"
+msgstr "Tisk"
 
 msgid "Send"
 msgstr "Odeslat"
@@ -5475,6 +5244,9 @@ msgstr "Lampa"
 msgid "Bed"
 msgstr "Podložka"
 
+msgid "Extruder"
+msgstr "Extruder"
+
 msgid "Debug Info"
 msgstr "Informace o ladění"
 
@@ -5495,6 +5267,9 @@ msgstr ""
 
 msgid "The printer is busy on other print job"
 msgstr "Tiskárna je zaneprázdněna jinou tiskovou úlohou"
+
+msgid "When printing is paused, filament loading and unloading are only supported for external slots."
+msgstr ""
 
 msgid "Current extruder is busy changing filament"
 msgstr ""
@@ -5540,6 +5315,9 @@ msgid "Homing"
 msgstr ""
 
 msgid "Please heat the nozzle to above 170 degree before loading or unloading filament."
+msgstr ""
+
+msgid "Chamber temperature cannot be changed in cooling mode while printing."
 msgstr ""
 
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
@@ -6060,6 +5838,9 @@ msgstr ""
 msgid "Tungsten Carbide"
 msgstr ""
 
+msgid "Brass"
+msgstr "Mosaz"
+
 msgid "High flow"
 msgstr ""
 
@@ -6067,6 +5848,15 @@ msgid "No wiki link available for this printer."
 msgstr ""
 
 msgid "Refreshing"
+msgstr ""
+
+msgid "Unavailable while heating maintenance function is on."
+msgstr ""
+
+msgid "Idel Heating Protection"
+msgstr ""
+
+msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr ""
 
 msgid "Global"
@@ -6137,6 +5927,9 @@ msgstr "Použito Filamentu (g)"
 msgid "Used Materials"
 msgstr "Použité materiály"
 
+msgid "Cost"
+msgstr "Náklady"
+
 msgid "Estimated time"
 msgstr "Odhadovaný čas"
 
@@ -6151,6 +5944,9 @@ msgstr ""
 
 msgid "AMS(1 slot)"
 msgstr ""
+
+msgid "Flow"
+msgstr "Průtok"
 
 msgid "Not installed"
 msgstr ""
@@ -6185,6 +5981,9 @@ msgstr ""
 
 msgid "Sync extruder infomation"
 msgstr ""
+
+msgid "Printer"
+msgstr "Tiskárna"
 
 msgid "Click to edit preset"
 msgstr "Klikněte pro editaci přednastavení"
@@ -6793,6 +6592,9 @@ msgstr "Trojúhelníky: %1%\n"
 msgid " (Repair)"
 msgstr " (Oprava)"
 
+msgid "Tips:"
+msgstr "Tipy:"
+
 msgid "To repair the model, please use a third-party tool before importing it into Bambu Studio, such as "
 msgstr ""
 
@@ -6922,6 +6724,9 @@ msgstr ""
 msgid "All"
 msgstr "Všechny"
 
+msgid "Color change"
+msgstr "Změna barvy"
+
 msgid "Disabled"
 msgstr ""
 
@@ -7010,6 +6815,12 @@ msgid "Uncollapsible"
 msgstr ""
 
 msgid "Toolbar Style"
+msgstr ""
+
+msgid "Enable advanced gcode viewer"
+msgstr ""
+
+msgid "Enable advanced gcode viewer."
 msgstr ""
 
 msgid "Grabber scale"
@@ -7112,6 +6923,9 @@ msgid "Dark Mode"
 msgstr "Tmavý režim"
 
 msgid "Enable dark mode"
+msgstr ""
+
+msgid "Filament Grouping"
 msgstr ""
 
 msgid "Pop up to select filament grouping mode"
@@ -7656,6 +7470,9 @@ msgstr "Tiskárna provádí pokyny. Po dokončení restartujte tisk"
 msgid "AMS is setting up. Please try again later."
 msgstr ""
 
+msgid "Not all filaments used in slicing are mapped to the printer. Please check the mapping of filaments."
+msgstr ""
+
 msgid "Please do not mix-use the Ext with AMS"
 msgstr ""
 
@@ -7688,6 +7505,9 @@ msgstr ""
 
 msgid "This printer does not support printing all plates"
 msgstr "Tato tiskárna nepodporuje tisk všech podložek"
+
+msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
+msgstr ""
 
 msgid "Please refer to Wiki before use->"
 msgstr ""
@@ -7890,14 +7710,15 @@ msgstr ""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use PLA for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+"overrides XY, disable independent support layer height and use PLA for both support interface and support base"
 msgstr ""
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+"and support base"
 msgstr ""
 
 msgid ""
@@ -7911,13 +7732,15 @@ msgstr ""
 
 msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
+"independent support layer height"
 msgstr ""
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+"and support base"
 msgstr ""
 
 msgid ""
@@ -8323,7 +8146,13 @@ msgstr ""
 msgid "(Modified)"
 msgstr ""
 
+msgid "Left nozzle"
+msgstr ""
+
 msgid "Preset(Old)"
+msgstr ""
+
+msgid "Right nozzle"
 msgstr ""
 
 msgid "Modified Value(New)"
@@ -9097,6 +8926,9 @@ msgstr ""
 msgid "Chamber Temperature"
 msgstr ""
 
+msgid "If it is for the A series and P1P, please enter the ambient temperature here."
+msgstr ""
+
 msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
 msgstr ""
 
@@ -9151,6 +8983,18 @@ msgstr ""
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
 msgstr ""
 
+msgid "Print Time Improvement"
+msgstr ""
+
+msgid "Average Improvement"
+msgstr ""
+
+msgid "Consistency Improvement"
+msgstr ""
+
+msgid "Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next."
+msgstr ""
+
 msgid "Air Pump"
 msgstr ""
 
@@ -9165,9 +9009,6 @@ msgstr ""
 
 msgid "Auto Fire Extinguishing System"
 msgstr ""
-
-msgid "Model:"
-msgstr "Model:"
 
 msgid "Update firmware"
 msgstr "Aktualizovat firmware"
@@ -9685,6 +9526,12 @@ msgstr ""
 msgid "mm or %"
 msgstr "mm or %"
 
+msgid "Avoid crossing wall - Includes support"
+msgstr ""
+
+msgid "Including support while avoiding crossing wall."
+msgstr ""
+
 msgid "Other layers"
 msgstr "Ostatní vrstvy"
 
@@ -9949,6 +9796,9 @@ msgstr "Normální tisk"
 
 msgid "The default acceleration of both normal printing and travel except initial layer"
 msgstr "Výchozí zrychlení normálního tisku i pohybu kromě počáteční vrstvy"
+
+msgid "Travel"
+msgstr "Rychloposun"
 
 msgid "The acceleration of travel except initial layer"
 msgstr ""
@@ -10652,8 +10502,8 @@ msgstr ""
 msgid "Filter out tiny gaps"
 msgstr "Odfiltrujte drobné mezery"
 
-msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
-msgstr "Odfiltrujte mezery menší než zadaná hraniční hodnota. Toto nastavení neovlivní horní/spodní vrstvy"
+msgid "Filter out gaps smaller than the threshold specified. Gaps smaller than this threshold will be ignored"
+msgstr ""
 
 msgid "Precise wall"
 msgstr ""
@@ -10726,9 +10576,6 @@ msgstr "Nerezová ocel"
 
 msgid "Tungsten carbide"
 msgstr ""
-
-msgid "Brass"
-msgstr "Mosaz"
 
 msgid "Printer structure"
 msgstr ""
@@ -11683,6 +11530,12 @@ msgstr "Strom Hybrid"
 msgid "Tree Organic"
 msgstr ""
 
+msgid "Z overrides X/Y"
+msgstr ""
+
+msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
+msgstr ""
+
 msgid "Independent support layer height"
 msgstr "Výška nezávislé podpůrné vrstvy"
 
@@ -11933,6 +11786,9 @@ msgid "Positive values can increase the size of the rib wall, while negative val
 msgstr ""
 
 msgid "Rib width"
+msgstr ""
+
+msgid "Rib width is always less than half the prime tower side length."
 msgstr ""
 
 msgid "Skip points"
@@ -12780,55 +12636,47 @@ msgstr "Ruší se"
 msgid "Error uploading to print host:"
 msgstr "Chyba při nahrávání na tiskový server:"
 
-msgid "Unable to perform boolean operation on selected parts"
-msgstr "Nelze provést booleovskou operaci na vybraných částech"
+msgid "Unable to perform boolean operation on selected parts."
+msgstr ""
 
-msgid "Performed boolean intersection fails because the selected parts have no intersection"
+msgid "Operation Canceled."
+msgstr ""
+
+msgid "Operation Failed."
+msgstr ""
+
+msgid "Union operation requires at least two volumes."
+msgstr ""
+
+msgid "Intersection operation requires at least two volumes."
+msgstr ""
+
+msgid "Difference operation requires at least one volume in both A and B lists."
+msgstr ""
+
+msgid "Union operation requires at least two objects."
+msgstr ""
+
+msgid "Intersection operation requires at least two objects."
+msgstr ""
+
+msgid "Difference operation requires at least one object in both A and B lists."
+msgstr ""
+
+msgid "Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
+msgstr ""
+
+msgid "No overlapping region found. Boolean intersection failed."
 msgstr ""
 
 msgid "Mesh Boolean"
 msgstr "Booleovská síť"
 
-msgid ""
-"Please add at least one more object and select them together,\n"
-"then right click to assembly these objects."
+msgid "- Object mode: Please select at least two objects."
 msgstr ""
 
-msgid "Please right click to assembly these objects."
+msgid "- Part mode: Please select one object with at least two meshes."
 msgstr ""
-
-msgid "Union"
-msgstr "Sjednocení"
-
-msgid "Difference"
-msgstr "Rozdíl"
-
-msgid "Intersection"
-msgstr "Průsečík"
-
-msgid "Source Volume"
-msgstr "Zdrojový objem"
-
-msgid "Tool Volume"
-msgstr "Objem nástroje"
-
-msgid "selected"
-msgstr "vybráno"
-
-msgid "Part 1"
-msgstr "Část 1"
-
-msgid "Subtract from"
-msgstr "Odečíst od"
-
-msgid "Part 2"
-msgstr "Část 2"
-
-msgid "Subtract with"
-msgstr "Odečíst s"
-
-msgid "Delete input"
-msgstr "Smazat vstup"
 
 msgid "Network Test"
 msgstr ""
@@ -13725,10 +13573,10 @@ msgstr ""
 msgid "Helio: Simulation check failed"
 msgstr ""
 
-msgid "Helio: Failed to create Simulation\n"
+msgid "Helio: Failed to create Simulation"
 msgstr ""
 
-msgid "Helio: Failed to create GCode\n"
+msgid "Helio: Failed to create GCode"
 msgstr ""
 
 msgid "Helio: optimization successfully created"
@@ -13740,13 +13588,13 @@ msgstr ""
 msgid "Helio: Optimzaion check failed"
 msgstr ""
 
-msgid "Helio: Failed to create Optimization\n"
+msgid "Helio: Failed to create Optimization"
 msgstr ""
 
 msgid "Helio: GCode downloaded successfully"
 msgstr ""
 
-msgid "Helio: GCode download failed\n"
+msgid "Helio: GCode download failed"
 msgstr ""
 
 msgid "No AMS"
@@ -14335,6 +14183,192 @@ msgid ""
 "Shrinkage, Warping & Stress\n"
 "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
 msgstr ""
+
+#~ msgid "Layer Height"
+#~ msgstr "Výška vrstvy"
+
+#~ msgid "Line Width"
+#~ msgstr "Šířka Extruze"
+
+#~ msgid "Fan Speed"
+#~ msgstr "Rychlost ventilátoru"
+
+#~ msgid "Tool"
+#~ msgstr "Nástroj"
+
+#~ msgid "Layer Time"
+#~ msgstr "Čas vrstvy"
+
+#~ msgid "Height: "
+#~ msgstr "Výška: "
+
+#~ msgid "Width: "
+#~ msgstr "Šířka: "
+
+#~ msgid "Speed: "
+#~ msgstr "Rychlost: "
+
+#~ msgid "Flow: "
+#~ msgstr "Průtok: "
+
+#~ msgid "Layer Time: "
+#~ msgstr "Čas vrstvy: "
+
+#~ msgid "Fan Speed: "
+#~ msgstr "Rychlost ventilátoru: "
+
+#~ msgid "Temperature: "
+#~ msgstr "Teplota: "
+
+#~ msgid "Loading G-codes"
+#~ msgstr "Načítání G-kódů"
+
+#~ msgid "Generating geometry vertex data"
+#~ msgstr "Generování dat vrcholů geometrie"
+
+#~ msgid "Generating geometry index data"
+#~ msgstr "Generování dat indexu geometrie"
+
+#~ msgid "Statistics of All Plates"
+#~ msgstr "Statistiky všech Podložek"
+
+#~ msgid "Display"
+#~ msgstr "Displej"
+
+#~ msgid "Flushed"
+#~ msgstr "Čištění"
+
+#~ msgid "Total"
+#~ msgstr "Celkem"
+
+#~ msgid "Time"
+#~ msgstr "Čas"
+
+#~ msgid "Time Estimation"
+#~ msgstr "Časový odhad"
+
+#~ msgid "up to"
+#~ msgstr "až do"
+
+#~ msgid "above"
+#~ msgstr "nad"
+
+#~ msgid "from"
+#~ msgstr "z"
+
+#~ msgid "Color Scheme"
+#~ msgstr "Barevné schéma"
+
+#~ msgid "Percent"
+#~ msgstr "Procento"
+
+#~ msgid "Used filament"
+#~ msgstr "Použito filamentu"
+
+#~ msgid "Layer Height (mm)"
+#~ msgstr "Výška vrstvy (mm)"
+
+#~ msgid "Line Width (mm)"
+#~ msgstr "Šířka Extruze (mm)"
+
+#~ msgid "Speed (mm/s)"
+#~ msgstr "Rychlost (mm/s)"
+
+#~ msgid "Fan Speed (%)"
+#~ msgstr "Rychlost ventilátoru (%)"
+
+#~ msgid "Temperature (°C)"
+#~ msgstr "Teplota (°C)"
+
+#~ msgid "Volumetric flow rate (mm³/s)"
+#~ msgstr "Objemový průtok (mm³/s)"
+
+#~ msgid "Seams"
+#~ msgstr "Švy"
+
+#~ msgid "Retract"
+#~ msgstr "Retrakce"
+
+#~ msgid "Unretract"
+#~ msgstr "Deretrakce"
+
+#~ msgid "Filament Changes"
+#~ msgstr "Výměna Filamentu"
+
+#~ msgid "Wipe"
+#~ msgstr "Čištění"
+
+#~ msgid "Options"
+#~ msgstr "Možnosti"
+
+#~ msgid "travel"
+#~ msgstr "Cestování"
+
+#~ msgid "Total time"
+#~ msgstr "Celkový čas"
+
+#~ msgid "Filament change times"
+#~ msgstr "Doby výměny Filamentu"
+
+#~ msgid "Print settings"
+#~ msgstr "Nastavení tisku"
+
+#~ msgid "Total Estimation"
+#~ msgstr "Celkový odhad"
+
+#~ msgid "Normal mode"
+#~ msgstr "Normální režim"
+
+#~ msgid "Prepare time"
+#~ msgstr "Čas přípravy"
+
+#~ msgid "Model printing time"
+#~ msgstr "Doba tisku modelu"
+
+#~ msgid "Switch to silent mode"
+#~ msgstr "Přepnout do tichého režimu"
+
+#~ msgid "Switch to normal mode"
+#~ msgstr "Přepnout do normálního režimu"
+
+#~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
+#~ msgstr "Odfiltrujte mezery menší než zadaná hraniční hodnota. Toto nastavení neovlivní horní/spodní vrstvy"
+
+#~ msgid "Unable to perform boolean operation on selected parts"
+#~ msgstr "Nelze provést booleovskou operaci na vybraných částech"
+
+#~ msgid "Union"
+#~ msgstr "Sjednocení"
+
+#~ msgid "Difference"
+#~ msgstr "Rozdíl"
+
+#~ msgid "Intersection"
+#~ msgstr "Průsečík"
+
+#~ msgid "Source Volume"
+#~ msgstr "Zdrojový objem"
+
+#~ msgid "Tool Volume"
+#~ msgstr "Objem nástroje"
+
+#~ msgid "selected"
+#~ msgstr "vybráno"
+
+#~ msgid "Part 1"
+#~ msgstr "Část 1"
+
+#~ msgid "Subtract from"
+#~ msgstr "Odečíst od"
+
+#~ msgid "Part 2"
+#~ msgstr "Část 2"
+
+#~ msgid "Subtract with"
+#~ msgstr "Odečíst s"
+
+#~ msgid "Delete input"
+#~ msgstr "Smazat vstup"
 
 #~ msgid "No cooling for the first"
 #~ msgstr "První bez chlazení"
