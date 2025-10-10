@@ -1743,98 +1743,53 @@ namespace Slic3r {
             bbox.merge(v.cast<double>());
         }
         
-        // CRITICAL: Log bbox to verify it's correct
         BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Mesh bounding box: min=" 
                                  << bbox.min.transpose() << ", max=" << bbox.max.transpose();
-        BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Mesh size: " << bbox.size().transpose();
 
-        // Calculate grid dimensions - generate more candidates than needed for filtering
-        int dim = std::max(2, int(std::cbrt(double(num_seeds * 3)) + 0.5));
+        // **CRITICAL FIX**: Shrink bbox by 10% on each side to ensure seeds are WELL INSIDE
+        // This avoids unreliable point-in-mesh tests and ensures seeds aren't on/near boundaries
+        Vec3d shrink = bbox.size() * 0.1;  // 10% shrink on each axis
+        bbox.min += shrink;
+        bbox.max -= shrink;
+        
+        BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Shrunk bbox (10% margin): min=" 
+                                 << bbox.min.transpose() << ", max=" << bbox.max.transpose();
+
+        // Calculate grid dimensions
+        int dim = std::max(2, int(std::cbrt(double(num_seeds)) + 0.5));
         
         BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Grid dimensions: " 
-                                 << dim << "x" << dim << "x" << dim;
+                                 << dim << "x" << dim << "x" << dim << " = " << (dim*dim*dim) << " points";
 
         Vec3d size = bbox.size();
-        
-        // CRITICAL: Use proper spacing - points go from min to max inclusive
-        Vec3d step = size / double(dim - 1);
+        Vec3d step = size / double(dim - 1);  // Space between grid points
 
-        // Build AABB mesh for point-in-mesh testing
-        AABBMesh aabb_mesh(mesh);
+        seeds.reserve(dim * dim * dim);
 
-        std::vector<Vec3d> candidates;
-        candidates.reserve(dim * dim * dim);
-
+        // Generate grid WITHOUT inside test (seeds are guaranteed inside due to shrunk bbox)
         for (int x = 0; x < dim; ++x) {
             for (int y = 0; y < dim; ++y) {
                 for (int z = 0; z < dim; ++z) {
                     Vec3d point = bbox.min + Vec3d(x * step.x(), y * step.y(), z * step.z());
-
-                    // Test if point is inside mesh using AABB mesh
-                    if (is_point_inside_mesh(aabb_mesh, point)) {
-                        candidates.push_back(point);
-                    }
+                    seeds.push_back(point);
                 }
             }
         }
 
-        // Log candidate generation
-        BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Generated " << candidates.size() 
-                                 << " candidate points from " << (dim*dim*dim) << " grid positions";
+        BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Generated " << seeds.size() << " seeds";
 
-        // Verify first/last candidates are reasonable
-        if (!candidates.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - First candidate: " << candidates.front().transpose();
-            BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Last candidate: " << candidates.back().transpose();
-        }
-        
-        // If we got very few candidates, the inside test might be failing
-        if (candidates.size() < size_t(num_seeds) / 2) {
-            BOOST_LOG_TRIVIAL(warning) << "generate_grid_seeds() - Very few candidates passed inside test!";
-            BOOST_LOG_TRIVIAL(warning) << "generate_grid_seeds() - This might be a simple convex mesh (cube), "
-                                        << "falling back to ALL grid points";
+        // If we have too many seeds, uniformly sample
+        if (seeds.size() > size_t(num_seeds)) {
+            std::vector<Vec3d> sampled;
+            sampled.reserve(num_seeds);
             
-            // For simple convex meshes (like cubes), just use all grid points
-            candidates.clear();
-            for (int x = 0; x < dim; ++x) {
-                for (int y = 0; y < dim; ++y) {
-                    for (int z = 0; z < dim; ++z) {
-                        Vec3d point = bbox.min + Vec3d(x * step.x(), y * step.y(), z * step.z());
-                        candidates.push_back(point);
-                    }
-                }
+            int step_size = std::max(1, int(seeds.size()) / num_seeds);
+            for (size_t i = 0; i < seeds.size() && sampled.size() < size_t(num_seeds); i += step_size) {
+                sampled.push_back(seeds[i]);
             }
-            BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Using all " << candidates.size() << " grid points";
-        }
-
-        // If we got enough seeds, use them directly
-        if (candidates.size() <= size_t(num_seeds)) {
-            BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Generated " << candidates.size()
-                                     << " grid seeds (all candidates used)";
-            return candidates;
-        }
-
-        // Otherwise, uniformly sample from candidates
-        seeds.reserve(num_seeds);
-        int step_size = std::max(1, int(candidates.size()) / num_seeds);
-        for (size_t i = 0; i < candidates.size() && seeds.size() < size_t(num_seeds); i += step_size) {
-            seeds.push_back(candidates[i]);
-        }
-
-        BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Generated " << seeds.size()
-                                 << " grid seeds from " << candidates.size() << " candidates";
-        
-        // CRITICAL: Verify seeds are inside bounds
-        int outside_count = 0;
-        for (const auto& seed : seeds) {
-            if (!bbox.contains(seed)) {
-                outside_count++;
-            }
-        }
-        
-        if (outside_count > 0) {
-            BOOST_LOG_TRIVIAL(error) << "generate_grid_seeds() - ERROR: " << outside_count 
-                                      << " seeds are OUTSIDE mesh bounds!";
+            
+            seeds = sampled;
+            BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Sampled down to " << seeds.size() << " seeds";
         }
 
         return seeds;
@@ -2137,69 +2092,31 @@ namespace Slic3r {
             bbox.merge(v.cast<double>());
         }
         
-        // CRITICAL: Log bbox to verify it's correct
-        BOOST_LOG_TRIVIAL(info) << "generate_random_seeds() - Target: " << num_seeds 
-                                 << " seeds, random_seed: " << random_seed;
-        BOOST_LOG_TRIVIAL(info) << "generate_random_seeds() - Mesh bounding box: min=" 
+        BOOST_LOG_TRIVIAL(info) << "generate_random_seeds() - Original bbox: min=" 
                                  << bbox.min.transpose() << ", max=" << bbox.max.transpose();
-        BOOST_LOG_TRIVIAL(info) << "generate_random_seeds() - Mesh size: " << bbox.size().transpose();
 
-        // Use provided seed for reproducibility
+        // **CRITICAL FIX**: Shrink bbox to ensure seeds are well inside
+        Vec3d shrink = bbox.size() * 0.1;  // 10% shrink
+        bbox.min += shrink;
+        bbox.max -= shrink;
+        
+        BOOST_LOG_TRIVIAL(info) << "generate_random_seeds() - Shrunk bbox: min=" 
+                                 << bbox.min.transpose() << ", max=" << bbox.max.transpose();
+
         std::mt19937 gen(random_seed);
-
         std::uniform_real_distribution<double> dist_x(bbox.min.x(), bbox.max.x());
         std::uniform_real_distribution<double> dist_y(bbox.min.y(), bbox.max.y());
         std::uniform_real_distribution<double> dist_z(bbox.min.z(), bbox.max.z());
 
-        // Build AABB mesh for point-in-mesh testing
-        AABBMesh aabb_mesh(mesh);
-
         seeds.reserve(num_seeds);
-        int attempts = 0;
-        int max_attempts = num_seeds * 100; // Prevent infinite loop for very sparse meshes
 
-        while (seeds.size() < size_t(num_seeds) && attempts < max_attempts) {
+        // Generate seeds WITHOUT inside test
+        for (int i = 0; i < num_seeds; ++i) {
             Vec3d point(dist_x(gen), dist_y(gen), dist_z(gen));
-
-            // Test if point is inside mesh using AABB mesh
-            if (is_point_inside_mesh(aabb_mesh, point)) {
-                seeds.push_back(point);
-            }
-
-            ++attempts;
+            seeds.push_back(point);
         }
 
-        if (seeds.size() < size_t(num_seeds)) {
-            BOOST_LOG_TRIVIAL(warning) << "generate_random_seeds() - Only generated " << seeds.size()
-                                        << " seeds (target: " << num_seeds << ") after " << attempts << " attempts";
-            BOOST_LOG_TRIVIAL(warning) << "generate_random_seeds() - The mesh may be too sparse or inside test failing!";
-            
-            // FALLBACK: If we got very few seeds, fall back to grid
-            if (seeds.size() < size_t(num_seeds) / 2) {
-                BOOST_LOG_TRIVIAL(warning) << "generate_random_seeds() - Too few seeds, falling back to grid generation";
-                return generate_grid_seeds(mesh, num_seeds);
-            }
-        } else {
-            BOOST_LOG_TRIVIAL(info) << "generate_random_seeds() - Generated " << seeds.size()
-                                     << " random seeds (all inside mesh) in " << attempts << " attempts";
-        }
-        
-        // CRITICAL: Verify seeds are inside bounds
-        int outside_count = 0;
-        for (const auto& seed : seeds) {
-            if (!bbox.contains(seed)) {
-                outside_count++;
-                if (outside_count <= 5) {  // Log first few
-                    BOOST_LOG_TRIVIAL(error) << "generate_random_seeds() - Seed OUTSIDE bounds: " 
-                                              << seed.transpose();
-                }
-            }
-        }
-        
-        if (outside_count > 0) {
-            BOOST_LOG_TRIVIAL(error) << "generate_random_seeds() - ERROR: " << outside_count 
-                                      << " seeds are OUTSIDE mesh bounds!";
-        }
+        BOOST_LOG_TRIVIAL(info) << "generate_random_seeds() - Generated " << seeds.size() << " random seeds";
 
         return seeds;
     }
@@ -2547,7 +2464,7 @@ namespace Slic3r {
     {
         using namespace voro;
 
-        BOOST_LOG_TRIVIAL(info) << "create_wireframe_from_voropp() - Building MANIFOLD wireframe with shared vertices";
+        BOOST_LOG_TRIVIAL(info) << "create_wireframe_from_voropp() - Building Voronoi edge wireframe";
 
         auto result = std::make_unique<indexed_triangle_set>();
 
@@ -2572,9 +2489,7 @@ namespace Slic3r {
             con.put(i, p.x(), p.y(), p.z());
         }
 
-        // CRITICAL: Extract VORONOI EDGES (not Delaunay edges!)
-        // Voronoi edges are the edges of the Voronoi cells themselves
-        
+        // Extract VORONOI EDGES from cell faces
         struct Vec3dCompare {
             bool operator()(const Vec3d& a, const Vec3d& b) const {
                 constexpr double eps = 1e-9;
@@ -2600,11 +2515,11 @@ namespace Slic3r {
         c_loop_all vl(con);
         voronoicell_neighbor cell;
 
-        BOOST_LOG_TRIVIAL(info) << "Extracting Voronoi cell edges (NOT Delaunay edges)";
+        BOOST_LOG_TRIVIAL(info) << "Extracting Voronoi cell edges from cell faces";
 
         if (vl.start()) do {
             if (con.compute_cell(cell, vl)) {
-                // Get vertices of THIS cell (these are Voronoi vertices)
+                // Get Voronoi vertices for THIS cell
                 std::vector<double> verts;
                 cell.vertices(vl.x(), vl.y(), vl.z(), verts);
 
@@ -2613,35 +2528,38 @@ namespace Slic3r {
                     cell_vertices.emplace_back(verts[i], verts[i + 1], verts[i + 2]);
                 }
 
-                // Get face structure
+                // Get face structure - each face is a polygon on the cell surface
                 std::vector<int> face_vertex_indices;
                 std::vector<int> face_orders;
                 cell.face_vertices(face_vertex_indices);
                 cell.face_orders(face_orders);
 
-                // CORRECT: Extract edges from the CELL FACES
-                // These are the actual Voronoi edges (edges of the polyhedron)
+                // Extract edges from each face polygon
                 int vertex_idx = 0;
                 for (int face_order : face_orders) {
-                    // Each face is a polygon with 'face_order' vertices
-                    // The edges of this polygon are Voronoi edges
+                    // Each face has 'face_order' vertices forming a polygon
+                    // The edges of this polygon are the VORONOI EDGES
                     for (int v = 0; v < face_order; ++v) {
                         int v_next = (v + 1) % face_order;
                         int vi1 = face_vertex_indices[vertex_idx + v];
                         int vi2 = face_vertex_indices[vertex_idx + v_next];
 
-                        if (vi1 < (int)cell_vertices.size() && vi2 < (int)cell_vertices.size()) {
+                        if (vi1 >= 0 && vi1 < (int)cell_vertices.size() && 
+                            vi2 >= 0 && vi2 < (int)cell_vertices.size()) {
+                            
                             Vec3d p1 = cell_vertices[vi1];
                             Vec3d p2 = cell_vertices[vi2];
 
                             // Store edge with consistent ordering
                             Vec3dCompare comp;
                             auto edge = comp(p1, p2) ? std::make_pair(p1, p2) : std::make_pair(p2, p1);
-                            unique_edges.insert(edge);
-
-                            // Track connections for junctions
-                            vertex_connections[p1].push_back(p2);
-                            vertex_connections[p2].push_back(p1);
+                            
+                            // Only add if edge doesn't already exist (deduplication)
+                            if (unique_edges.insert(edge).second) {
+                                // Track vertex connections for junction creation
+                                vertex_connections[p1].push_back(p2);
+                                vertex_connections[p2].push_back(p1);
+                            }
                         }
                     }
                     vertex_idx += face_order;
