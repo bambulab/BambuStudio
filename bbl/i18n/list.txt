@@ -55,6 +55,8 @@ src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRack.h
 src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRack.cpp
 src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRackUpdate.h
 src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRackUpdate.cpp
+src/slic3r/GUI/DeviceTab/wgtDeviceNozzleSelect.h
+src/slic3r/GUI/DeviceTab/wgtDeviceNozzleSelect.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFlatten.cpp
 src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp

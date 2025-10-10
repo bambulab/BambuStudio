@@ -26,6 +26,8 @@
 
 #include "DeviceCore/DevFilaSystem.h"
 
+#include "DeviceTab/wgtDeviceNozzleSelect.h"
+
 namespace Slic3r { namespace GUI {
 #define MATERIAL_ITEM_SIZE wxSize(FromDIP(65), FromDIP(50))
 #define MATERIAL_REC_WHEEL_SIZE wxSize(FromDIP(17), FromDIP(16))
@@ -761,17 +763,28 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_sizer_ams_right_horizonal->Add(m_reset_btn, 0, wxALIGN_TOP | wxEXPAND );
      m_reset_btn->Hide();
      m_right_first_text_panel->SetSizer(m_sizer_ams_right_horizonal);
-     const int same_height = 15;
+     const int same_height = 20;
      m_left_first_text_panel->SetMaxSize(wxSize(-1, FromDIP(same_height)));
      m_right_first_text_panel->SetMaxSize(wxSize(-1, FromDIP(same_height)));
 
-     m_sizer_ams_right->Add(m_right_first_text_panel, 0, wxEXPAND | wxBOTTOM | wxTOP, FromDIP(8));
-     m_right_split_ams_sizer = create_split_sizer(m_right_marea_panel, _L("Right AMS"));
-     m_sizer_ams_right->Add(m_right_split_ams_sizer, 0, wxEXPAND, 0);
-     m_sizer_ams_right->Add(m_sizer_ams_basket_right, 0, wxEXPAND|wxTOP, FromDIP(8));
-     m_sizer_ams_right->Add(create_split_sizer(m_right_marea_panel, _L("External")), 0, wxEXPAND|wxTOP, FromDIP(8));
-     m_sizer_ams_right->Add(m_right_extra_slot, 0, wxEXPAND|wxTOP, FromDIP(8));
+     // content_sizer
+     wxSizer *content_ams_sizer = new wxBoxSizer(wxVERTICAL);
+     m_right_split_ams_sizer    = create_split_sizer(m_right_marea_panel, _L("Right AMS"));
+     content_ams_sizer->Add(m_right_split_ams_sizer, 0, wxEXPAND, 0);
+     content_ams_sizer->Add(m_sizer_ams_basket_right, 0, wxEXPAND | wxTOP, FromDIP(8));
+     content_ams_sizer->Add(create_split_sizer(m_right_marea_panel, _L("External")), 0, wxEXPAND | wxTOP, FromDIP(8));
+     content_ams_sizer->Add(m_right_extra_slot, 0, wxEXPAND | wxTOP, FromDIP(8));
 
+     m_rack_nozzle_select = new wgtDeviceNozzleRackSelect(m_right_marea_panel);
+     m_rack_nozzle_select->Bind(EVT_NOZZLE_RACK_ITEM_CLICKED, &AmsMapingPopup::OnNozzleMappingSelected, this);
+     m_rack_nozzle_select->Show(false);
+
+     wxSizer *content_sizer = new wxBoxSizer(wxHORIZONTAL);
+     content_sizer->Add(content_ams_sizer, 1, wxEXPAND | wxLEFT);
+     content_sizer->Add(m_rack_nozzle_select, 1, wxEXPAND | wxLEFT, FromDIP(25));
+
+     m_sizer_ams_right->Add(m_right_first_text_panel, 0, wxEXPAND | wxBOTTOM | wxTOP, FromDIP(8));
+     m_sizer_ams_right->Add(content_sizer, 0, wxEXPAND, 0);
 
      m_left_marea_panel->SetSizer(m_sizer_ams_left);
      m_right_marea_panel->SetSizer(m_sizer_ams_right);
@@ -779,7 +792,7 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      //m_sizer_ams->Add(m_left_marea_panel, 0, wxEXPAND, FromDIP(0));
      m_sizer_ams->Add(m_left_marea_panel, 0, wxRIGHT, FromDIP(10));
      m_sizer_ams->Add(0, 0, 0, wxEXPAND, FromDIP(15));
-     m_sizer_ams->Add(m_right_marea_panel, 1, wxEXPAND, FromDIP(0));
+     m_sizer_ams->Add(m_right_marea_panel, 0, wxEXPAND, FromDIP(0));
 
      m_sizer_main->Add(title_panel, 0, wxEXPAND | wxALL, FromDIP(2));
      m_sizer_main->Add(m_sizer_ams, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(14));
@@ -1098,6 +1111,10 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
 
     /*title*/
     update_title(obj);
+
+    /*rack*/
+    update_rack_select(obj);
+
 
     if (wxGetApp().dark_mode() && m_reset_btn->GetName() != "erase_dark") {
         m_reset_btn->SetName("erase_dark");
@@ -1464,6 +1481,43 @@ void AmsMapingPopup::paintEvent(wxPaintEvent &evt)
     dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
+}
+
+void AmsMapingPopup::update_rack_select(MachineObject *obj)
+{
+    m_rack = obj ? obj->GetNozzleRack() : nullptr;
+
+    bool show_rack_select_area = false;
+    if (!m_mapping_from_multi_machines && !m_use_in_sync_dialog &&
+        obj && obj->GetNozzleRack()->IsSupported() && !obj->get_nozzle_mapping_result().m_nozzle_mapping.empty()) {
+        const auto &nozzle_mapping_result = obj->get_nozzle_mapping_result().m_nozzle_mapping;
+        if (auto iter = nozzle_mapping_result.find(m_current_filament_id); iter != nozzle_mapping_result.end()) {
+            m_rack_nozzle_select->UpdateRackSelect(obj->GetNozzleRack(), iter->second);
+        } else {
+            m_rack_nozzle_select->UpdateRackSelect(obj->GetNozzleRack(), -1);
+        }
+
+        show_rack_select_area = true;
+    }
+
+    if (show_rack_select_area != m_rack_nozzle_select->IsShown()) {
+        m_right_tip_text = show_rack_select_area ? _L("Select filament and hotends which installed to the right nozzle") : _L("Select filament that installed to the right nozzle");
+        m_right_tips->SetLabel(m_right_tip_text);
+        m_rack_nozzle_select->Show(show_rack_select_area);
+        Layout();
+        Fit();
+    }
+}
+
+void AmsMapingPopup::OnNozzleMappingSelected(wxCommandEvent& evt)
+{
+    if (auto ptr = m_rack.lock()) {
+        MachineObject* obj = ptr->GetNozzleSystem()->GetOwner();
+        obj->set_manual_nozzle_mapping(m_current_filament_id, m_rack_nozzle_select->GetSelectedNozzlePosID());
+    }
+
+    evt.Skip();
+    Dismiss();
 }
 
  MappingItem::MappingItem(wxWindow *parent)

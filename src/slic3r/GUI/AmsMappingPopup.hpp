@@ -42,7 +42,18 @@
 
 #define MAPPING_ITEM_INVALID_REMAIN -1
 
-namespace Slic3r { namespace GUI {
+// Previous definitions
+namespace Slic3r
+{
+class DevNozzleRack;
+namespace GUI
+{
+class wgtDeviceNozzleRackSelect;
+};
+};
+
+namespace Slic3r {
+namespace GUI {
 
 
 #define AMS_TOTAL_COUNT 4
@@ -256,6 +267,7 @@ public:
 
     wxPanel *    m_left_marea_panel{nullptr};
     wxPanel *    m_right_marea_panel{nullptr};
+    wgtDeviceNozzleRackSelect *m_rack_nozzle_select{nullptr};
     wxPanel *    m_left_first_text_panel{nullptr};
     wxPanel *    m_right_first_text_panel{nullptr};
     wxBoxSizer * m_left_split_ams_sizer{nullptr};
@@ -277,6 +289,7 @@ public:
     void         set_tag_texture(std::string texture);
     void         update(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result);
     void         update_title(MachineObject* obj);
+    void         update_rack_select(MachineObject* obj);
     void         update_items_check_state(const std::vector<FilamentInfo>& ams_mapping_result);
     void         update_ams_data_multi_machines();
     void         add_ams_mapping(std::vector<TrayData> tray_data, bool remain_detect_flag, wxWindow *container, wxBoxSizer *sizer);
@@ -306,6 +319,12 @@ public:
     void EnableExtMappingFilaTypeCheck(bool to_check = true) { m_ext_mapping_filatype_check = to_check;} ;
 
 private:
+    // events
+    void OnNozzleMappingSelected(wxCommandEvent& evt);
+
+private:
+    std::weak_ptr<DevNozzleRack> m_rack;
+
     ResetCallback m_reset_callback{nullptr};
     std::string m_material_index;
     bool m_only_show_ext_spool{false};

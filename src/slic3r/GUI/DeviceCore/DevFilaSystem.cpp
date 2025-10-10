@@ -260,7 +260,8 @@ int DevFilaSystem::GetExtruderIdByAmsId(const std::string& ams_id) const
         return DEPUTY_EXTRUDER_ID;
     }
 
-    assert(false && __FUNCTION__);
+
+    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": ams_id " << ams_id << " not found";
     return 0; // not found
 }
 

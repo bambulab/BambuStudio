@@ -31,7 +31,13 @@ void DevNozzleRack::SendReadingFinished()
 DevNozzle DevNozzleRack::GetNozzle(int idx) const
 {
     auto iter = m_rack_nozzles.find(idx);
-    return iter == m_rack_nozzles.end() ? DevNozzle() : iter->second;
+    if (iter == m_rack_nozzles.end()) {
+        DevNozzle nozzle;
+        nozzle.SetOnRack(true);
+        return nozzle;
+    }
+
+    return iter->second;
 }
 
 DevFirmwareVersionInfo DevNozzleRack::GetNozzleFirmwareInfo(int nozzle_id) const
