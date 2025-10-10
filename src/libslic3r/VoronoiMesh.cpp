@@ -1410,14 +1410,51 @@ namespace Slic3r {
         
         // ADVANCED: Apply Lloyd's relaxation for uniform cells
         if (config.relax_seeds && config.relaxation_iterations > 0) {
-            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Applying Lloyd's relaxation";
-            seed_points = relax_seeds_lloyd(seed_points, input_mesh, bbox, config.relaxation_iterations);
+            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Applying Lloyd's relaxation (" 
+                                     << config.relaxation_iterations << " iterations)";
+            seed_points = lloyd_relaxation(seed_points, bbox, config.relaxation_iterations);
+        }
+        
+        // ADVANCED: Generate weights for variable density
+        std::vector<double> weights;
+        if (config.use_weighted_cells) {
+            if (!config.cell_weights.empty() && config.cell_weights.size() == seed_points.size()) {
+                // Use provided weights
+                weights = config.cell_weights;
+                BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Using " << weights.size() 
+                                         << " provided cell weights";
+            } else {
+                // Auto-generate weights based on density_center
+                weights = generate_density_weights(seed_points, config.density_center, config.density_falloff);
+                BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Generated density weights around " 
+                                         << "(" << config.density_center.x() << "," 
+                                         << config.density_center.y() << "," 
+                                         << config.density_center.z() << ")";
+            }
+        }
+        
+        // ADVANCED: Optimize for load direction
+        if (config.optimize_for_load) {
+            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Optimizing for load direction";
+            seed_points = optimize_for_load_direction(seed_points, config.load_direction, config.load_stretch_factor);
         }
         
         // ADVANCED: Apply anisotropic transformation
         if (config.anisotropic && config.anisotropy_ratio > 0.0f) {
             BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Applying anisotropic transformation";
             seed_points = apply_anisotropic_transform(seed_points, config.anisotropy_direction, config.anisotropy_ratio);
+        }
+        
+        // ADVANCED: Validate printability before generation
+        if (config.validate_printability && config.min_feature_size > 0.0f) {
+            std::string error_msg;
+            if (!validate_printability(seed_points, bbox, config.min_feature_size, error_msg)) {
+                BOOST_LOG_TRIVIAL(warning) << "VoronoiMesh::generate() - Printability validation failed: " << error_msg;
+                if (config.error_callback) {
+                    config.error_callback(error_msg);
+                }
+                // Continue anyway, but user has been warned
+            }
         }
         
         // ADVANCED: Multi-scale generation (early exit if enabled)
@@ -3624,8 +3661,554 @@ namespace Slic3r {
         
         BOOST_LOG_TRIVIAL(info) << "validate_mesh() - Validation complete: " << (is_valid ? "VALID" : "INVALID");
         BOOST_LOG_TRIVIAL(info) << "  Degenerate faces: " << degenerate_count;
-        
+
         return is_valid;
+    }
+    
+    // ========== ADVANCED VORO++ ANALYSIS FUNCTIONS ==========
+    
+    std::vector<VoronoiMesh::CellInfo> VoronoiMesh::analyze_cells(
+        const std::vector<Vec3d>& seed_points,
+        const BoundingBoxf3& bounds)
+    {
+        using namespace voro;
+        
+        BOOST_LOG_TRIVIAL(info) << "analyze_cells() - Analyzing " << seed_points.size() << " cells";
+        
+        std::vector<CellInfo> cell_infos;
+        cell_infos.reserve(seed_points.size());
+        
+        if (seed_points.empty()) {
+            return cell_infos;
+        }
+        
+        // Create Voro++ container
+        int grid_size = std::max(3, int(std::cbrt(seed_points.size()) + 0.5));
+        container con(
+            bounds.min.x(), bounds.max.x(),
+            bounds.min.y(), bounds.max.y(),
+            bounds.min.z(), bounds.max.z(),
+            grid_size, grid_size, grid_size,
+            false, false, false,
+            8
+        );
+        
+        // Insert seed points
+        for (size_t i = 0; i < seed_points.size(); ++i) {
+            const Vec3d& p = seed_points[i];
+            con.put(i, p.x(), p.y(), p.z());
+        }
+        
+        // Analyze each cell
+        c_loop_all vl(con);
+        voronoicell_neighbor cell;
+        
+        if (vl.start()) do {
+            if (con.compute_cell(cell, vl)) {
+                CellInfo info;
+                
+                // Basic info
+                info.cell_id = vl.pid();
+                double x, y, z;
+                vl.pos(x, y, z);
+                info.seed_position = Vec3d(x, y, z);
+                
+                // Volume and surface area
+                info.volume = cell.volume();
+                info.surface_area = cell.surface_area();
+                
+                // Topology
+                info.num_faces = cell.number_of_faces();
+                info.num_vertices = cell.p;
+                info.num_edges = cell.number_of_edges();
+                
+                // Centroid
+                double cx, cy, cz;
+                cell.centroid(cx, cy, cz);
+                info.centroid = Vec3d(x + cx, y + cy, z + cz);
+                
+                // Neighbors
+                std::vector<int> neighbors;
+                cell.neighbors(neighbors);
+                info.neighbor_ids = neighbors;
+                
+                // Face areas
+                std::vector<double> areas;
+                cell.face_areas(areas);
+                info.face_areas = areas;
+                
+                // Face normals
+                std::vector<double> normals;
+                cell.normals(normals);
+                for (size_t i = 0; i + 2 < normals.size(); i += 3) {
+                    info.face_normals.emplace_back(normals[i], normals[i + 1], normals[i + 2]);
+                }
+                
+                // Face vertex counts
+                std::vector<int> face_orders;
+                cell.face_orders(face_orders);
+                info.face_vertex_counts = face_orders;
+                
+                cell_infos.push_back(info);
+            }
+        } while (vl.inc());
+        
+        BOOST_LOG_TRIVIAL(info) << "analyze_cells() - Analyzed " << cell_infos.size() << " cells successfully";
+        
+        return cell_infos;
+    }
+    
+    VoronoiMesh::CellInfo VoronoiMesh::get_cell_info(
+        const std::vector<Vec3d>& seed_points,
+        const BoundingBoxf3& bounds,
+        int cell_id)
+    {
+        using namespace voro;
+        
+        CellInfo info;
+        info.cell_id = cell_id;
+        
+        if (cell_id < 0 || cell_id >= static_cast<int>(seed_points.size())) {
+            BOOST_LOG_TRIVIAL(error) << "get_cell_info() - Invalid cell_id: " << cell_id;
+            return info;
+        }
+        
+        // Create Voro++ container
+        int grid_size = std::max(3, int(std::cbrt(seed_points.size()) + 0.5));
+        container con(
+            bounds.min.x(), bounds.max.x(),
+            bounds.min.y(), bounds.max.y(),
+            bounds.min.z(), bounds.max.z(),
+            grid_size, grid_size, grid_size,
+            false, false, false,
+            8
+        );
+        
+        // Insert all seed points
+        for (size_t i = 0; i < seed_points.size(); ++i) {
+            const Vec3d& p = seed_points[i];
+            con.put(i, p.x(), p.y(), p.z());
+        }
+        
+        // Get specific cell
+        voronoicell_neighbor cell;
+        const Vec3d& seed = seed_points[cell_id];
+        
+        if (con.compute_cell(cell, seed.x(), seed.y(), seed.z())) {
+            info.seed_position = seed;
+            info.volume = cell.volume();
+            info.surface_area = cell.surface_area();
+            info.num_faces = cell.number_of_faces();
+            info.num_vertices = cell.p;
+            info.num_edges = cell.number_of_edges();
+            
+            double cx, cy, cz;
+            cell.centroid(cx, cy, cz);
+            info.centroid = Vec3d(seed.x() + cx, seed.y() + cy, seed.z() + cz);
+            
+            std::vector<int> neighbors;
+            cell.neighbors(neighbors);
+            info.neighbor_ids = neighbors;
+            
+            std::vector<double> areas;
+            cell.face_areas(areas);
+            info.face_areas = areas;
+            
+            std::vector<double> normals;
+            cell.normals(normals);
+            for (size_t i = 0; i + 2 < normals.size(); i += 3) {
+                info.face_normals.emplace_back(normals[i], normals[i + 1], normals[i + 2]);
+            }
+            
+            std::vector<int> face_orders;
+            cell.face_orders(face_orders);
+            info.face_vertex_counts = face_orders;
+        }
+        
+        return info;
+    }
+    
+    std::vector<int> VoronoiMesh::find_cell_neighbors(
+        const std::vector<Vec3d>& seed_points,
+        const BoundingBoxf3& bounds,
+        int cell_id)
+    {
+        using namespace voro;
+        
+        std::vector<int> neighbors;
+        
+        if (cell_id < 0 || cell_id >= static_cast<int>(seed_points.size())) {
+            BOOST_LOG_TRIVIAL(error) << "find_cell_neighbors() - Invalid cell_id: " << cell_id;
+            return neighbors;
+        }
+        
+        // Create Voro++ container
+        int grid_size = std::max(3, int(std::cbrt(seed_points.size()) + 0.5));
+        container con(
+            bounds.min.x(), bounds.max.x(),
+            bounds.min.y(), bounds.max.y(),
+            bounds.min.z(), bounds.max.z(),
+            grid_size, grid_size, grid_size,
+            false, false, false,
+            8
+        );
+        
+        // Insert all seed points
+        for (size_t i = 0; i < seed_points.size(); ++i) {
+            const Vec3d& p = seed_points[i];
+            con.put(i, p.x(), p.y(), p.z());
+        }
+        
+        // Get specific cell neighbors
+        voronoicell_neighbor cell;
+        const Vec3d& seed = seed_points[cell_id];
+        
+        if (con.compute_cell(cell, seed.x(), seed.y(), seed.z())) {
+            cell.neighbors(neighbors);
+        }
+        
+        return neighbors;
+    }
+    
+    std::vector<Vec3d> VoronoiMesh::compute_cell_centroids(
+        const std::vector<Vec3d>& seed_points,
+        const BoundingBoxf3& bounds)
+    {
+        using namespace voro;
+        
+        BOOST_LOG_TRIVIAL(info) << "compute_cell_centroids() - Computing centroids for " << seed_points.size() << " cells";
+        
+        std::vector<Vec3d> centroids;
+        centroids.reserve(seed_points.size());
+        
+        if (seed_points.empty()) {
+            return centroids;
+        }
+        
+        // Create Voro++ container
+        int grid_size = std::max(3, int(std::cbrt(seed_points.size()) + 0.5));
+        container con(
+            bounds.min.x(), bounds.max.x(),
+            bounds.min.y(), bounds.max.y(),
+            bounds.min.z(), bounds.max.z(),
+            grid_size, grid_size, grid_size,
+            false, false, false,
+            8
+        );
+        
+        // Insert seed points
+        for (size_t i = 0; i < seed_points.size(); ++i) {
+            const Vec3d& p = seed_points[i];
+            con.put(i, p.x(), p.y(), p.z());
+        }
+        
+        // Compute centroids
+        c_loop_all vl(con);
+        voronoicell cell;
+        
+        if (vl.start()) do {
+            if (con.compute_cell(cell, vl)) {
+                double x, y, z;
+                vl.pos(x, y, z);
+                
+                double cx, cy, cz;
+                cell.centroid(cx, cy, cz);
+                
+                centroids.emplace_back(x + cx, y + cy, z + cz);
+            } else {
+                // If cell computation fails, use seed position as fallback
+                double x, y, z;
+                vl.pos(x, y, z);
+                centroids.emplace_back(x, y, z);
+            }
+        } while (vl.inc());
+        
+        BOOST_LOG_TRIVIAL(info) << "compute_cell_centroids() - Computed " << centroids.size() << " centroids";
+        
+        return centroids;
+    }
+    
+    // ========== ADVANCED OPTIMIZATION FUNCTIONS ==========
+    
+    std::vector<Vec3d> VoronoiMesh::lloyd_relaxation(
+        std::vector<Vec3d> seeds,
+        const BoundingBoxf3& bounds,
+        int iterations)
+    {
+        using namespace voro;
+        
+        BOOST_LOG_TRIVIAL(info) << "lloyd_relaxation() - Relaxing " << seeds.size() 
+                                 << " seeds over " << iterations << " iterations";
+        
+        if (seeds.empty() || iterations <= 0) {
+            return seeds;
+        }
+        
+        int grid_size = std::max(3, int(std::cbrt(seeds.size()) + 0.5));
+        
+        for (int iter = 0; iter < iterations; ++iter) {
+            container con(
+                bounds.min.x(), bounds.max.x(),
+                bounds.min.y(), bounds.max.y(),
+                bounds.min.z(), bounds.max.z(),
+                grid_size, grid_size, grid_size,
+                false, false, false, 8
+            );
+            
+            // Insert current seeds
+            for (size_t i = 0; i < seeds.size(); ++i) {
+                const Vec3d& p = seeds[i];
+                con.put(i, p.x(), p.y(), p.z());
+            }
+            
+            // Compute new seed positions (centroids)
+            std::vector<Vec3d> new_seeds;
+            new_seeds.reserve(seeds.size());
+            
+            c_loop_all vl(con);
+            voronoicell cell;
+            
+            if (vl.start()) do {
+                if (con.compute_cell(cell, vl)) {
+                    double x, y, z;
+                    vl.pos(x, y, z);
+                    
+                    // Use Voro++'s built-in centroid function
+                    double cx, cy, cz;
+                    cell.centroid(cx, cy, cz);
+                    
+                    new_seeds.emplace_back(x + cx, y + cy, z + cz);
+                } else {
+                    // If cell computation fails, keep original position
+                    double x, y, z;
+                    vl.pos(x, y, z);
+                    new_seeds.emplace_back(x, y, z);
+                }
+            } while (vl.inc());
+            
+            seeds = new_seeds;
+            
+            BOOST_LOG_TRIVIAL(info) << "lloyd_relaxation() - Iteration " << (iter + 1) 
+                                     << "/" << iterations << " complete";
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "lloyd_relaxation() - Relaxation complete";
+        return seeds;
+    }
+    
+    std::vector<double> VoronoiMesh::generate_density_weights(
+        const std::vector<Vec3d>& seeds,
+        const Vec3d& dense_point,
+        float density_falloff)
+    {
+        BOOST_LOG_TRIVIAL(info) << "generate_density_weights() - Generating weights for " 
+                                 << seeds.size() << " seeds";
+        
+        std::vector<double> weights;
+        weights.reserve(seeds.size());
+        
+        for (const auto& seed : seeds) {
+            double dist = (seed - dense_point).norm();
+            
+            // Closer to dense_point = smaller weight = smaller cell = higher density
+            // weight represents radius², so smaller radius² = smaller cell
+            double weight = 1.0 + dist * density_falloff;
+            weights.push_back(weight * weight);  // Store radius²
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "generate_density_weights() - Generated " << weights.size() 
+                                 << " weights";
+        return weights;
+    }
+    
+    std::vector<Vec3d> VoronoiMesh::optimize_for_load_direction(
+        const std::vector<Vec3d>& seeds,
+        const Vec3d& load_direction,
+        float stretch_factor)
+    {
+        BOOST_LOG_TRIVIAL(info) << "optimize_for_load_direction() - Optimizing " << seeds.size() 
+                                 << " seeds, stretch=" << stretch_factor;
+        
+        std::vector<Vec3d> optimized;
+        optimized.reserve(seeds.size());
+        
+        Vec3d dir = load_direction.normalized();
+        
+        for (const auto& seed : seeds) {
+            // Decompose seed into parallel and perpendicular components
+            double projection = seed.dot(dir);
+            Vec3d parallel = dir * projection;
+            Vec3d perpendicular = seed - parallel;
+            
+            // Stretch parallel component by stretch_factor
+            Vec3d stretched = parallel * stretch_factor + perpendicular;
+            optimized.push_back(stretched);
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "optimize_for_load_direction() - Optimization complete";
+        return optimized;
+    }
+    
+    std::set<int> VoronoiMesh::find_connected_cells(
+        const std::vector<Vec3d>& seed_points,
+        const BoundingBoxf3& bounds,
+        int start_cell_id)
+    {
+        using namespace voro;
+        
+        BOOST_LOG_TRIVIAL(info) << "find_connected_cells() - Finding connected component from cell " 
+                                 << start_cell_id;
+        
+        std::set<int> connected;
+        
+        if (start_cell_id < 0 || start_cell_id >= static_cast<int>(seed_points.size())) {
+            BOOST_LOG_TRIVIAL(error) << "find_connected_cells() - Invalid start_cell_id: " 
+                                      << start_cell_id;
+            return connected;
+        }
+        
+        // Create Voro++ container
+        int grid_size = std::max(3, int(std::cbrt(seed_points.size()) + 0.5));
+        container con(
+            bounds.min.x(), bounds.max.x(),
+            bounds.min.y(), bounds.max.y(),
+            bounds.min.z(), bounds.max.z(),
+            grid_size, grid_size, grid_size,
+            false, false, false, 8
+        );
+        
+        // Insert all seed points
+        for (size_t i = 0; i < seed_points.size(); ++i) {
+            const Vec3d& p = seed_points[i];
+            con.put(i, p.x(), p.y(), p.z());
+        }
+        
+        // Build neighbor graph
+        std::map<int, std::vector<int>> neighbor_graph;
+        
+        c_loop_all vl(con);
+        voronoicell_neighbor cell;
+        
+        if (vl.start()) do {
+            if (con.compute_cell(cell, vl)) {
+                int cell_id = vl.pid();
+                
+                std::vector<int> neighbors;
+                cell.neighbors(neighbors);
+                
+                neighbor_graph[cell_id] = neighbors;
+            }
+        } while (vl.inc());
+        
+        // BFS to find connected component
+        std::queue<int> to_visit;
+        to_visit.push(start_cell_id);
+        connected.insert(start_cell_id);
+        
+        while (!to_visit.empty()) {
+            int current = to_visit.front();
+            to_visit.pop();
+            
+            auto it = neighbor_graph.find(current);
+            if (it != neighbor_graph.end()) {
+                for (int neighbor : it->second) {
+                    if (neighbor >= 0 && !connected.count(neighbor)) {
+                        connected.insert(neighbor);
+                        to_visit.push(neighbor);
+                    }
+                }
+            }
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "find_connected_cells() - Found " << connected.size() 
+                                 << " connected cells";
+        return connected;
+    }
+    
+    bool VoronoiMesh::validate_printability(
+        const std::vector<Vec3d>& seed_points,
+        const BoundingBoxf3& bounds,
+        float min_feature_size,
+        std::string& error_message)
+    {
+        using namespace voro;
+        
+        BOOST_LOG_TRIVIAL(info) << "validate_printability() - Validating " << seed_points.size() 
+                                 << " cells, min_feature_size=" << min_feature_size;
+        
+        if (seed_points.empty()) {
+            error_message = "No seed points provided";
+            return false;
+        }
+        
+        // Create Voro++ container
+        int grid_size = std::max(3, int(std::cbrt(seed_points.size()) + 0.5));
+        container con(
+            bounds.min.x(), bounds.max.x(),
+            bounds.min.y(), bounds.max.y(),
+            bounds.min.z(), bounds.max.z(),
+            grid_size, grid_size, grid_size,
+            false, false, false, 8
+        );
+        
+        // Insert seed points
+        for (size_t i = 0; i < seed_points.size(); ++i) {
+            const Vec3d& p = seed_points[i];
+            con.put(i, p.x(), p.y(), p.z());
+        }
+        
+        int too_small_count = 0;
+        double min_dimension = std::numeric_limits<double>::max();
+        int problematic_cell_id = -1;
+        
+        c_loop_all vl(con);
+        voronoicell cell;
+        
+        if (vl.start()) do {
+            if (con.compute_cell(cell, vl)) {
+                // Get vertices to compute bounding box
+                std::vector<double> verts;
+                double x, y, z;
+                vl.pos(x, y, z);
+                cell.vertices(x, y, z, verts);
+                
+                Vec3d cell_min(1e10, 1e10, 1e10);
+                Vec3d cell_max(-1e10, -1e10, -1e10);
+                
+                for (size_t i = 0; i + 2 < verts.size(); i += 3) {
+                    Vec3d v(verts[i], verts[i+1], verts[i+2]);
+                    cell_min = cell_min.cwiseMin(v);
+                    cell_max = cell_max.cwiseMax(v);
+                }
+                
+                Vec3d cell_size = cell_max - cell_min;
+                double min_cell_dim = cell_size.minCoeff();
+                
+                if (min_cell_dim < min_dimension) {
+                    min_dimension = min_cell_dim;
+                    problematic_cell_id = vl.pid();
+                }
+                
+                if (min_cell_dim < min_feature_size) {
+                    too_small_count++;
+                }
+            }
+        } while (vl.inc());
+        
+        if (too_small_count > 0) {
+            error_message = "Printability issue: " + std::to_string(too_small_count) + 
+                           " cells have features smaller than " + 
+                           std::to_string(min_feature_size) + "mm. " +
+                           "Minimum cell dimension found: " + std::to_string(min_dimension) + "mm " +
+                           "(cell #" + std::to_string(problematic_cell_id) + "). " +
+                           "Reduce seed count or increase minimum feature size.";
+            
+            BOOST_LOG_TRIVIAL(warning) << "validate_printability() - FAILED: " << error_message;
+            return false;
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "validate_printability() - PASSED: All cells meet minimum feature size";
+        return true;
     }
 
 } // namespace Slic3r

@@ -540,6 +540,112 @@ namespace Slic3r::GUI {
             if (ImGui::IsItemHovered()) {
                 ImGui::SetTooltip("%s", into_u8(_u8L("Minimum printable feature size")).c_str());
             }
+            
+            ImGui::Separator();
+            
+            // Weighted Voronoi (Variable Density)
+            ImGui::Text("%s:", into_u8(_u8L("Variable Density")).c_str());
+            if (ImGui::Checkbox(into_u8(_u8L("Use weighted cells")).c_str(), &m_configuration.use_weighted_cells)) {
+                // Config changed
+            }
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s", into_u8(_u8L("Create variable density infill (smaller cells = higher density)\nUseful for gradient infill and stress concentration")).c_str());
+            }
+            
+            if (m_configuration.use_weighted_cells) {
+                ImGui::Indent();
+                
+                ImGui::Text("%s:", into_u8(_u8L("Density center")).c_str());
+                float density_center[3] = {
+                    static_cast<float>(m_configuration.density_center.x()),
+                    static_cast<float>(m_configuration.density_center.y()),
+                    static_cast<float>(m_configuration.density_center.z())
+                };
+                if (ImGui::InputFloat3("##density_center", density_center)) {
+                    m_configuration.density_center = Vec3d(density_center[0], density_center[1], density_center[2]);
+                }
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("%s", into_u8(_u8L("Point where density is highest (cells smallest)\nCells grow larger away from this point")).c_str());
+                }
+                
+                if (ImGui::Button(into_u8(_u8L("Use Object Center")).c_str())) {
+                    // Calculate object center from mesh bounds
+                    if (m_volume && m_volume->mesh()) {
+                        BoundingBoxf3 bbox = m_volume->mesh()->bounding_box();
+                        m_configuration.density_center = (bbox.min + bbox.max) * 0.5;
+                    }
+                }
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("%s", into_u8(_u8L("Set density center to object's geometric center")).c_str());
+                }
+                
+                ImGui::Text("%s:", into_u8(_u8L("Falloff")).c_str());
+                ImGui::SliderFloat("##density_falloff", &m_configuration.density_falloff, 0.5f, 5.0f);
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("%s", into_u8(_u8L("How quickly density decreases with distance\nLower = gradual change, Higher = sharp transition")).c_str());
+                }
+                
+                ImGui::Unindent();
+            }
+            
+            ImGui::Separator();
+            
+            // Load Optimization
+            ImGui::Text("%s:", into_u8(_u8L("Load Optimization")).c_str());
+            if (ImGui::Checkbox(into_u8(_u8L("Optimize for load")).c_str(), &m_configuration.optimize_for_load)) {
+                // Config changed
+            }
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s", into_u8(_u8L("Stretch cells along load direction for improved strength\nRecommended for parts with known load direction")).c_str());
+            }
+            
+            if (m_configuration.optimize_for_load) {
+                ImGui::Indent();
+                
+                ImGui::Text("%s:", into_u8(_u8L("Load direction")).c_str());
+                if (ImGui::Button("Gravity (Down)")) {
+                    m_configuration.load_direction = Vec3d(0, 0, -1);
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Up")) {
+                    m_configuration.load_direction = Vec3d(0, 0, 1);
+                }
+                
+                float load_dir[3] = {
+                    static_cast<float>(m_configuration.load_direction.x()),
+                    static_cast<float>(m_configuration.load_direction.y()),
+                    static_cast<float>(m_configuration.load_direction.z())
+                };
+                if (ImGui::InputFloat3("##load_dir", load_dir)) {
+                    m_configuration.load_direction = Vec3d(load_dir[0], load_dir[1], load_dir[2]);
+                    double len = m_configuration.load_direction.norm();
+                    if (len > 1e-6) {
+                        m_configuration.load_direction /= len;
+                    }
+                }
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("%s", into_u8(_u8L("Direction of primary load (will be normalized)")).c_str());
+                }
+                
+                ImGui::Text("%s:", into_u8(_u8L("Stretch factor")).c_str());
+                ImGui::SliderFloat("##load_stretch", &m_configuration.load_stretch_factor, 1.0f, 2.0f);
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("%s", into_u8(_u8L("1.0 = no stretch\n1.2 = 20% stretch (typical)\n1.5+ = aggressive")).c_str());
+                }
+                
+                ImGui::Unindent();
+            }
+            
+            ImGui::Separator();
+            
+            // Printability Validation
+            ImGui::Text("%s:", into_u8(_u8L("Pre-Validation")).c_str());
+            if (ImGui::Checkbox(into_u8(_u8L("Validate before generation")).c_str(), &m_configuration.validate_printability)) {
+                // Config changed
+            }
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s", into_u8(_u8L("Check if settings will produce printable features\nWarns if cells are too small for selected nozzle")).c_str());
+            }
         }
 
         ImGui::Separator();
@@ -1030,10 +1136,23 @@ namespace Slic3r::GUI {
                 voronoi_config.anisotropy_direction = m_state.config.anisotropy_direction;
                 voronoi_config.anisotropy_ratio = m_state.config.anisotropy_ratio;
                 
+                // Weighted Voronoi
+                voronoi_config.use_weighted_cells = m_state.config.use_weighted_cells;
+                voronoi_config.cell_weights = m_state.config.cell_weights;
+                voronoi_config.density_center = m_state.config.density_center;
+                voronoi_config.density_falloff = m_state.config.density_falloff;
+                
+                // Load optimization
+                voronoi_config.optimize_for_load = m_state.config.optimize_for_load;
+                voronoi_config.load_direction = m_state.config.load_direction;
+                voronoi_config.load_stretch_factor = m_state.config.load_stretch_factor;
+                
+                // Printability
                 voronoi_config.enforce_watertight = m_state.config.enforce_watertight;
                 voronoi_config.auto_repair = m_state.config.auto_repair;
                 voronoi_config.min_wall_thickness = m_state.config.min_wall_thickness;
                 voronoi_config.min_feature_size = m_state.config.min_feature_size;
+                voronoi_config.validate_printability = m_state.config.validate_printability;
 
                 // Set progress callback
                 // Use try_lock to avoid deadlock - if we can't get the lock, just skip the update

@@ -81,11 +81,23 @@ namespace Slic3r {
             Vec3d anisotropy_direction = Vec3d(0, 0, 1);  // Stretch direction
             float anisotropy_ratio = 2.0f;     // Stretch factor (1.0 = isotropic)
             
+            // Weighted Voronoi for variable density (NEW)
+            bool use_weighted_cells = false;   // Enable weighted tessellation
+            std::vector<double> cell_weights;  // Weight (radius²) per seed point
+            Vec3d density_center;              // Point of high density (for auto-weighting)
+            float density_falloff = 2.0f;      // Distance decay for auto-weighting
+            
+            // Load-bearing optimization (NEW)
+            bool optimize_for_load = false;    // Optimize for directional load
+            Vec3d load_direction = Vec3d(0, 0, -1);  // Load direction (default: gravity)
+            float load_stretch_factor = 1.2f;  // How much to stretch (1.0 = no stretch)
+            
             // Printability constraints
             bool enforce_watertight = false;   // Fail if not watertight after generation
             bool auto_repair = true;           // Attempt automatic repair of holes
             float min_wall_thickness = 0.4f;   // Minimum printable wall thickness (mm)
             float min_feature_size = 0.2f;     // Minimum printable feature size (mm)
+            bool validate_printability = false; // Pre-validate before generation
 
             // Progress callback - returns false to cancel
             std::function<bool(int)> progress_callback = nullptr;
@@ -109,6 +121,22 @@ namespace Slic3r {
             float avg_edge_length = 0.0f;
             int generation_time_ms = 0;
         };
+        
+        // Per-cell information from Voro++
+        struct CellInfo {
+            int cell_id = -1;                    // Cell index
+            Vec3d seed_position;                 // Seed point location
+            Vec3d centroid;                      // Cell centroid
+            double volume = 0.0;                 // Cell volume
+            double surface_area = 0.0;           // Cell surface area
+            int num_faces = 0;                   // Number of cell faces
+            int num_vertices = 0;                // Number of cell vertices
+            int num_edges = 0;                   // Number of cell edges
+            std::vector<int> neighbor_ids;       // IDs of neighboring cells
+            std::vector<double> face_areas;      // Area of each face
+            std::vector<Vec3d> face_normals;     // Normal of each face
+            std::vector<int> face_vertex_counts; // Vertices per face
+        };
 
         // Generate a Voronoi mesh from an input mesh
         // Returns nullptr if generation fails or is cancelled
@@ -122,6 +150,68 @@ namespace Slic3r {
             const indexed_triangle_set& input_mesh,
             const Config& config,
             Statistics& stats
+        );
+        
+        // Extract detailed information about all Voronoi cells
+        static std::vector<CellInfo> analyze_cells(
+            const std::vector<Vec3d>& seed_points,
+            const BoundingBoxf3& bounds
+        );
+        
+        // Get information about a specific cell
+        static CellInfo get_cell_info(
+            const std::vector<Vec3d>& seed_points,
+            const BoundingBoxf3& bounds,
+            int cell_id
+        );
+        
+        // Find neighbors of a specific cell
+        static std::vector<int> find_cell_neighbors(
+            const std::vector<Vec3d>& seed_points,
+            const BoundingBoxf3& bounds,
+            int cell_id
+        );
+        
+        // Compute centroid of each Voronoi cell
+        static std::vector<Vec3d> compute_cell_centroids(
+            const std::vector<Vec3d>& seed_points,
+            const BoundingBoxf3& bounds
+        );
+        
+        // Lloyd's relaxation for uniform cell distribution
+        static std::vector<Vec3d> lloyd_relaxation(
+            std::vector<Vec3d> seeds,
+            const BoundingBoxf3& bounds,
+            int iterations
+        );
+        
+        // Generate weights for variable density
+        static std::vector<double> generate_density_weights(
+            const std::vector<Vec3d>& seeds,
+            const Vec3d& dense_point,
+            float density_falloff
+        );
+        
+        // Optimize seeds for directional load
+        static std::vector<Vec3d> optimize_for_load_direction(
+            const std::vector<Vec3d>& seeds,
+            const Vec3d& load_direction,
+            float stretch_factor
+        );
+        
+        // Find connected component of cells
+        static std::set<int> find_connected_cells(
+            const std::vector<Vec3d>& seed_points,
+            const BoundingBoxf3& bounds,
+            int start_cell_id
+        );
+        
+        // Validate printability before generation
+        static bool validate_printability(
+            const std::vector<Vec3d>& seed_points,
+            const BoundingBoxf3& bounds,
+            float min_feature_size,
+            std::string& error_message
         );
         
         // Validate Voronoi mesh (check for issues)

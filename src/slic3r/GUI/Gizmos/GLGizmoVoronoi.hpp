@@ -142,11 +142,23 @@ namespace Slic3r {
                 Vec3d anisotropy_direction = Vec3d(0, 0, 1);  // Default: vertical (Z)
                 float anisotropy_ratio = 2.0f;
                 
+                // Weighted Voronoi for variable density
+                bool use_weighted_cells = false;
+                std::vector<double> cell_weights;  // Weight per seed (radius²)
+                Vec3d density_center = Vec3d(0, 0, 0);  // Point of high density
+                float density_falloff = 2.0f;  // Distance decay for auto-weighting
+                
+                // Load-bearing optimization
+                bool optimize_for_load = false;
+                Vec3d load_direction = Vec3d(0, 0, -1);  // Default: gravity (down)
+                float load_stretch_factor = 1.2f;  // Stretch factor along load direction
+                
                 // Printability constraints
                 bool enforce_watertight = false;
                 bool auto_repair = true;
                 float min_wall_thickness = 0.4f;
                 float min_feature_size = 0.2f;
+                bool validate_printability = false;  // Pre-validate before generation
 
                 bool operator==(const Configuration& rhs) const {
                     return seed_type == rhs.seed_type &&
@@ -168,10 +180,18 @@ namespace Slic3r {
                         anisotropic == rhs.anisotropic &&
                         anisotropy_direction == rhs.anisotropy_direction &&
                         anisotropy_ratio == rhs.anisotropy_ratio &&
+                        use_weighted_cells == rhs.use_weighted_cells &&
+                        cell_weights == rhs.cell_weights &&
+                        density_center == rhs.density_center &&
+                        density_falloff == rhs.density_falloff &&
+                        optimize_for_load == rhs.optimize_for_load &&
+                        load_direction == rhs.load_direction &&
+                        load_stretch_factor == rhs.load_stretch_factor &&
                         enforce_watertight == rhs.enforce_watertight &&
                         auto_repair == rhs.auto_repair &&
                         min_wall_thickness == rhs.min_wall_thickness &&
-                        min_feature_size == rhs.min_feature_size;
+                        min_feature_size == rhs.min_feature_size &&
+                        validate_printability == rhs.validate_printability;
                 }
                 bool operator!=(const Configuration& rhs) const {
                     return !(*this == rhs);
