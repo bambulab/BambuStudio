@@ -467,9 +467,10 @@ void AppConfig::set_defaults()
     if (get("show_wrapping_detect_dialog").empty()) {
         set_bool("show_wrapping_detect_dialog", true);
     }
-    if (get("item_webview_auto_fill").empty()) {
-        set_bool("item_webview_auto_fill", true);
+    if (get("webview_auto_fill").empty()) {
+        set_bool("webview_auto_fill", true);
     }
+    erase("app", "item_webview_auto_fill");
 
     if (get("prompt_for_brittle_filaments").empty()){
         set_bool("prompt_for_brittle_filaments", true);
