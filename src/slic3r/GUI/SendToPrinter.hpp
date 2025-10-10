@@ -38,10 +38,13 @@
 #include "Widgets/ScrolledWindow.hpp"
 #include <wx/simplebook.h>
 #include <wx/hashmap.h>
-#include "Printer/PrinterFileSystem.h"
 #include "Widgets/AnimaController.hpp"
 
+
 namespace Slic3r {
+class FileTransferTunnel;
+class FileTransferJob;
+
 namespace GUI {
 
 class SendToPrinterDialog : public DPIDialog
@@ -49,7 +52,6 @@ class SendToPrinterDialog : public DPIDialog
 private:
     void init_bind();
     void init_timer();
-
 
     int                                 m_print_plate_idx;
     int                                 m_current_filament_id;
@@ -114,7 +116,6 @@ private:
     wxBoxSizer*                         sizer_thumbnail;
     wxBoxSizer*                         m_sizer_scrollable_region;
     wxBoxSizer*                         m_sizer_main;
-
     wxStaticText*                       m_file_name;
     PrintDialogStatus                   m_print_status{ PrintStatusInit };
     AnimaIcon *                         m_animaicon{nullptr};
@@ -127,18 +128,55 @@ private:
     wxColour                            m_colour_bold_color{ wxColour(38, 46, 48) };
     wxTimer*                            m_refresh_timer{ nullptr };
     std::unique_ptr<wxTimer>            m_task_timer{ nullptr };
+    std::unique_ptr<wxTimer>            m_url_timer{nullptr};
     std::shared_ptr<BBLStatusBarSend>   m_status_bar;
-    wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
+    wxScrolledWindow                   *m_sw_print_failed_info{nullptr};
     std::shared_ptr<int>                m_token = std::make_shared<int>(0);
-    std::vector<RadioBox*>              m_storage_radioBox;
-
-    bool                                  m_waiting_support{ false };
-    bool                                  m_waiting_enable{ false };
-    boost::shared_ptr<PrinterFileSystem>  m_file_sys;
-    std::vector<std::string>              m_ability_list;
+    std::vector<RadioBox *>             m_storage_radioBox;
+    std::string                         m_selected_storage;
+    bool                                m_if_has_sdcard;
+    bool                                m_waiting_support{ false };
+    bool                                m_waiting_enable{ false };
+    std::vector<std::string>            m_ability_list;
 
 public:
-    SendToPrinterDialog(Plater* plater = nullptr);
+    enum {
+        SUCCESS                  = 0,
+        CONTINUE                 = 1,
+        ERROR_JSON               = 2,
+        ERROR_PIPE               = 3,
+        ERROR_CANCEL             = 4,
+        ERROR_RES_BUSY           = 5,
+        ERROR_TIME_OUT           = 6,
+        FILE_NO_EXIST            = 10,
+        FILE_NAME_INVALID        = 11,
+        FILE_SIZE_ERR            = 12,
+        FILE_OPEN_ERR            = 13,
+        FILE_READ_WRITE_ERR      = 14,
+        FILE_CHECK_ERR           = 15,
+        FILE_TYPE_ERR            = 16,
+        STORAGE_UNAVAILABLE      = 17,
+        API_VERSION_UNSUPPORT    = 18,
+        FILE_EXIST               = 19,
+        STORAGE_SPACE_NOT_ENOUGH = 20,
+        FILE_CREATE_ERR          = 21,
+        FILE_WRITE_ERR           = 22,
+        MD5_COMPARE_ERR          = 23,
+        FILE_RENAME_ERR          = 24,
+        SEND_ERR                 = 25,
+};
+
+private:
+    enum ConnectionStatus { NOT_START, CONNECTING, CONNECTED, CONNECTION_FAILED, DISCONNECTED };
+    ConnectionStatus m_connection_status{ConnectionStatus::NOT_START};
+
+    std::unique_ptr<FileTransferTunnel> m_filetransfer_tunnel;
+    std::unique_ptr<FileTransferJob>    m_filetransfer_mediability_job;
+    std::unique_ptr<FileTransferJob>    m_filetransfer_uploadfile_job;
+    wxDateTime                          m_last_refresh_time;
+
+public:
+    SendToPrinterDialog(Plater *plater = nullptr);
     ~SendToPrinterDialog();
 
     bool Show(bool show);
@@ -179,9 +217,20 @@ public:
 
     wxString format_text(wxString& m_msg);
     std::vector<std::string> sort_string(std::vector<std::string> strArray);
+    void GetConnection();
 
-    void fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs);
+private:
+    void ResetConnectMethod();
+    void ResetTunnelAndJob();
+    void OnConnection(bool is_success, int error_code, std::string error_msg);
+    void CreateMediaAbilityJob();
+    void CreateUploadFileJob(const std::string &path, const std::string &name);
+    void ChangeConnectMethod();
+    void UploadFileProgressCallback(int progress);
+    void UploadFileRessultCallback(int res, int resp_ec, std::string json_res, std::vector<std::byte> bin_res);
+    void Reset();
 };
+
 
 wxDECLARE_EVENT(EVT_CLEAR_IPADDRESS, wxCommandEvent);
 }
