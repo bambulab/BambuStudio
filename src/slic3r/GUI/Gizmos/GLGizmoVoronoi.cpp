@@ -763,12 +763,9 @@ namespace Slic3r::GUI {
             fflush(stderr);
             BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - base class returned, enable_triangle_painting: " << m_configuration.enable_triangle_painting;
 
-            // Disable clipping plane immediately after base class (which may have enabled it)
-            // Only enable clipping when user explicitly enters painting mode
-            if (m_c && m_c->object_clipper()) {
-                m_c->object_clipper()->set_position(-1., false);
-                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - disabled clipping plane after base class";
-            }
+            // Keep clipping plane state as set by base class for proper mesh rendering
+            // The base class enables it at position 0, which allows the mesh to be visible
+            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - keeping clipping plane state from base class";
 
             if (get_state() == GLGizmoBase::EState::On) {
                 BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - post-base-class activation";
@@ -1212,25 +1209,36 @@ namespace Slic3r::GUI {
             volume->invalidate_convex_hull_2d();
             obj->invalidate_bounding_box();
 
-            // Use changed_object to properly update the model and GL scene
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Calling changed_object to update GL";
-            plater->changed_object(cid.object_id);
+            // CRITICAL: Force complete scene update
+            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Forcing complete update";
+            
+            // Method 1: Update the model object (this calls ensure_on_bed)
+            plater->changed_object(*obj);
+            
+            // Method 2: Force GL scene reload to show the new mesh
+            GLCanvas3D* canvas = plater->canvas3D();
+            if (canvas) {
+                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Reloading GL scene";
+                canvas->reload_scene(true);
+            }
 
-            // Schedule background process to update slicing
+            // Method 3: Schedule background process to update slicing
             BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Scheduling background process for re-slice";
+            plater->schedule_background_process();
+            
+            // Method 4: Force canvas refresh
             m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 
-            // Restore position AFTER changed_object (which calls ensure_on_bed)
+            // Restore position AFTER all updates
             BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Restoring original position";
             volume->set_offset(volume_offset);
             if (!obj->instances.empty()) {
                 obj->instances[0]->set_offset(instance_offset);
             }
 
-            // Force final scene reload to show restored position
-            GLCanvas3D* canvas = plater->canvas3D();
+            // Final reload to show restored position
             if (canvas) {
-                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Final scene reload";
+                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::worker_finished() - Final scene reload with restored position";
                 canvas->reload_scene(true);
             }
 
@@ -1730,15 +1738,16 @@ namespace Slic3r::GUI {
                 }
             }
 
-            // Initialize triangle selectors so the model can be rendered
-            // This is essential for render_triangles() to work properly
-            update_from_model_object(true);
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_opening() - initialized triangle selectors";
+            // NOTE: Don't call update_from_model_object() here!
+            // selection_info is NULL at this point, so triangle selectors can't be initialized
+            // The base class will call update_from_model_object() later when selection_info is ready
+            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_opening() - skipping triangle selector init (will be done by base class)";
 
-            // Disable clipping plane initially (only enable during painting mode)
+            // Keep clipping plane enabled for proper rendering
+            // Don't disable it immediately - let base class manage it
             if (m_c && m_c->object_clipper()) {
-                m_c->object_clipper()->set_position(-1., false);
-                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_opening() - disabled clipping plane";
+                // Keep whatever position the base class set
+                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_opening() - keeping clipping plane state from base class";
             }
 
             // Always try to update previews when opening, not just when show_seed_preview is true
