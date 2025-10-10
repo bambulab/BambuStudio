@@ -12,5 +12,7 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceTab/wgtDeviceNozzleRack.cpp
     GUI/DeviceTab/wgtDeviceNozzleRackUpdate.h
     GUI/DeviceTab/wgtDeviceNozzleRackUpdate.cpp
+    GUI/DeviceTab/wgtDeviceNozzleSelect.h
+    GUI/DeviceTab/wgtDeviceNozzleSelect.cpp
 )
 set(SLIC3R_GUI_SOURCES ${SLIC3R_GUI_SOURCES} PARENT_SCOPE)
