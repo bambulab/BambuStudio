@@ -27,15 +27,17 @@ class SLAPrint;
 class HelioCompletionEvent : public wxEvent
 {
 public:
-    HelioCompletionEvent(wxEventType eventType, int winid, std::string in_simulated_path, std::string in_tmp_path, bool in_is_successful, std::string in_error_message = "")
-        : wxEvent(winid, eventType), tmp_path(in_tmp_path), simulated_path(in_simulated_path), is_successful(in_is_successful), error_message(in_error_message)
-    {}
+    HelioCompletionEvent(wxEventType eventType, int winid, std::string in_path, std::string in_tmp_path, bool in_is_successful, std::string in_error_message = "", int ac = 0, std::string mean_impro = "", std::string std_impro = "")
+        : wxEvent(winid, eventType), tmp_path(in_tmp_path), path(in_path), is_successful(in_is_successful), error_message(in_error_message), action(ac), quality_mean_improvement(mean_impro), quality_std_improvement(std_impro){}
     virtual wxEvent *Clone() const { return new HelioCompletionEvent(*this); }
 
     std::string tmp_path;
-    std::string simulated_path;
+    std::string path;
     bool        is_successful;
     std::string error_message;
+    int action; //0-simulation 1-optimization
+    std::string quality_mean_improvement;	
+    std::string quality_std_improvement;	
 };
 
 class SlicingStatusEvent : public wxEvent

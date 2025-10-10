@@ -8,6 +8,7 @@
 #include "GUI_Preview.hpp"
 #include "MainFrame.hpp"
 #include "format.hpp"
+#include "GLToolbar.hpp"
 #include "Widgets/ProgressDialog.hpp"
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/StaticBox.hpp"
@@ -690,10 +691,19 @@ static double s_round(double value, int n)
     }
     wxBoxSizer *sizer_simulation = new wxBoxSizer(wxVERTICAL);
 
+    const Preset& current_printer = wxGetApp().preset_bundle->printers.get_selected_preset();
+    const Preset* base_printer = wxGetApp().preset_bundle->printers.get_preset_base(current_printer);
+    auto opt_nozzle_diameters =     base_printer->config.option<ConfigOptionString>("model_id");
+
     /*chamber temp*/
     //int min_chamber_temp = s_get_min_chamber_temp();
     auto chamber_temp_checker = TextInputValChecker::CreateDoubleRangeChecker(5.0, 70.0, true);
     wxBoxSizer* chamber_temp_item_for_simulation = create_input_item(panel_simulation, "chamber_temp_for_simulation", _L("Chamber Temperature"), wxT("\u00B0C"), {chamber_temp_checker});
+
+    auto chamber_tips = new Label(panel_simulation, Label::Body_13, _L("If it is for the A series and P1P, please enter the ambient temperature here."));
+    chamber_tips->SetForegroundColour(wxColour(144, 144, 144));
+    chamber_tips->SetSize(wxSize(FromDIP(440), -1));
+    chamber_tips->Wrap(FromDIP(440));
     //m_input_items["chamber_temp_for_simulation"]->GetTextCtrl()->SetLabel(wxString::Format("%d", min_chamber_temp));
     m_input_items["chamber_temp_for_simulation"]->GetTextCtrl()->SetHint(wxT("5-70"));
 
@@ -704,6 +714,8 @@ static double s_round(double value, int n)
 
     sizer_simulation->Add(0, 0, 0, wxTOP, FromDIP(24));
     sizer_simulation->Add(chamber_temp_item_for_simulation, 0, wxEXPAND, 0);
+    sizer_simulation->Add(0, 0, 0, wxTOP, FromDIP(8));
+    sizer_simulation->Add(chamber_tips, 0, wxEXPAND, 0);
     sizer_simulation->Add(0, 0, 0, wxTOP, FromDIP(16));
     sizer_simulation->Add(sub, 0, wxEXPAND, 0);
 
@@ -1424,6 +1436,231 @@ HelioPatNotEnoughDialog::~HelioPatNotEnoughDialog() {}
 void HelioPatNotEnoughDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
 
+}
+
+HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimized, std::string mean_impro, std::string std_impro)
+    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, wxString("Helio Additive"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+{
+    original_time = original;       
+    optimized_time = optimized; 
+    quality_mean_improvement = wxString(mean_impro);
+    quality_std_improvement = wxString(std_impro);
+
+    SetBackgroundColour(*wxWHITE);
+    shared_ptr = std::make_shared<int>(0);
+
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
+    SetBackgroundColour(*wxWHITE);
+
+    wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
+
+
+    wxBoxSizer *helio_top_hsizer        = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *helio_top_vsizer        = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *helio_top_content_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    auto helio_top_background = new wxPanel(this);
+    helio_top_background->SetBackgroundColour(wxColour(16, 16, 16));
+    helio_top_background->SetMinSize(wxSize(-1, FromDIP(70)));
+    helio_top_background->SetMaxSize(wxSize(-1, FromDIP(70)));
+    auto   helio_top_icon  = new wxStaticBitmap(helio_top_background, wxID_ANY, create_scaled_bitmap("helio_icon", helio_top_background, 32), wxDefaultPosition,
+                                             wxSize(FromDIP(32), FromDIP(32)), 0);
+    auto   helio_top_label = new Label(helio_top_background, Label::Body_16, L("HELIO ADDITIVE"));
+    wxFont bold_font       = helio_top_label->GetFont();
+    bold_font.SetWeight(wxFONTWEIGHT_BOLD);
+    helio_top_label->SetFont(bold_font);
+    helio_top_label->SetForegroundColour(wxColour("#FEFEFF"));
+    // helio_top_hsizer->Add(0, 0, wxLEFT, FromDIP(40));
+    helio_top_content_sizer->Add(helio_top_icon, 0, wxLEFT | wxALIGN_CENTER, FromDIP(45));
+    helio_top_content_sizer->Add(helio_top_label, 0, wxLEFT | wxALIGN_CENTER, FromDIP(8));
+    helio_top_vsizer->Add(helio_top_content_sizer, 0, wxALIGN_CENTER, 0);
+    helio_top_hsizer->Add(helio_top_vsizer, 0, wxALIGN_CENTER, 0);
+    helio_top_background->SetSizer(helio_top_hsizer);
+    helio_top_background->Layout();
+
+    
+    wxBoxSizer *time_impro = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *average_impro = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *consistency_impro = new wxBoxSizer(wxHORIZONTAL);
+
+    auto title_time_impro = new Label(this, Label::Body_14, _L("Print Time Improvement"));
+    auto title_average_impro     = new Label(this, Label::Body_14, _L("Average Improvement"));
+    auto title_consistency_impro = new Label(this, Label::Body_14, _L("Consistency Improvement"));
+
+
+    title_time_impro->SetForegroundColour(wxColour("#262E30"));
+    title_average_impro->SetForegroundColour(wxColour("#262E30"));
+    title_consistency_impro->SetForegroundColour(wxColour("#262E30"));
+
+    title_time_impro->SetMinSize(wxSize(FromDIP(225), -1));
+    title_average_impro->SetMinSize(wxSize(FromDIP(225), -1));
+    title_consistency_impro->SetMinSize(wxSize(FromDIP(225), -1));
+
+    wxString txt_average_impro;
+    wxString txt_consistency_impro;
+
+    quality_mean_improvement.MakeLower();
+    quality_std_improvement.MakeLower();   
+
+    auto label_time_impro        = new Label(this, Label::Body_14, _L("30 min"));
+    auto label_average_impro     = new Label(this, Label::Body_14, format_improvement(quality_mean_improvement));
+    auto label_consistency_impro = new Label(this, Label::Body_14, format_improvement(quality_std_improvement));
+
+    label_time_impro->SetForegroundColour(wxColour("#262E30"));
+    label_average_impro->SetForegroundColour(wxColour("#262E30"));
+    label_consistency_impro->SetForegroundColour(wxColour("#262E30"));
+
+    auto lab_bold_font = label_time_impro->GetFont();
+    lab_bold_font.SetWeight(wxFONTWEIGHT_BOLD);
+    label_time_impro->SetFont(lab_bold_font);
+    label_average_impro->SetFont(lab_bold_font);
+    label_consistency_impro->SetFont(lab_bold_font);
+
+    time_impro->Add(title_time_impro, 0, wxLEFT, 0);
+    time_impro->Add(label_time_impro, 0, wxLEFT, 0);
+
+    average_impro->Add(title_average_impro, 0, wxLEFT, 0);
+    average_impro->Add(label_average_impro, 0, wxLEFT, 0);
+
+    consistency_impro->Add(title_consistency_impro, 0, wxLEFT, 0);
+    consistency_impro->Add(label_consistency_impro, 0, wxLEFT, 0);
+
+
+    wxPanel *line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    line->SetBackgroundColour(wxColour(166, 169, 170));
+
+    auto tips = new Label(this, Label::Body_14, L("Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next."));
+    tips->SetForegroundColour(wxColour(144, 144, 144));
+    tips->SetSize(wxSize(FromDIP(410), -1));
+    tips->SetMinSize(wxSize(FromDIP(410), -1));
+    tips->SetMaxSize(wxSize(FromDIP(410), -1));
+    tips->Wrap(FromDIP(410));
+
+    /*helio wiki*/
+    auto helio_wiki_link = new LinkLabel(this, _L("Click for more details"),
+                                    wxGetApp().app_config->get("language") == "zh_CN" ? "https://wiki.helioadditive.com/zh/home" : "https://wiki.helioadditive.com/en/home");
+    helio_wiki_link->SeLinkLabelFColour(wxColour(175, 124, 255));
+    helio_wiki_link->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_HAND); });
+    helio_wiki_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_ARROW); });
+
+    wxBoxSizer *sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
+
+    /*rating*/
+    wxBoxSizer *sizer_rating = new wxBoxSizer(wxHORIZONTAL);
+    std::vector<wxStaticBitmap *> stars;
+    auto rating_star1 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("score_star_dark", this, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
+    auto rating_star2 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("score_star_dark", this, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
+    auto rating_star3 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("score_star_dark", this, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
+    auto rating_star4 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("score_star_dark", this, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
+    auto rating_star5 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("score_star_dark", this, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
+
+    stars.push_back(rating_star1);
+    stars.push_back(rating_star2);
+    stars.push_back(rating_star3);
+    stars.push_back(rating_star4);
+    stars.push_back(rating_star5);
+
+    for (auto i = 0; i < stars.size(); i++) { 
+        stars[i]->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_HAND); });
+        stars[i]->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_ARROW); });
+        stars[i]->Bind(wxEVT_LEFT_DOWN, [this, stars, i](wxMouseEvent &e) {
+            if (!finish_rating) {
+                finish_rating = true;
+                std::vector<float> rating_num = { 0.2f, 0.4f, 0.6f, 0.8f, 1.0f };
+                if (i < rating_num.size()) {
+                    show_rating(stars, i);  
+                    wxGetApp().plater()->feedback_helio_process(rating_num[i], "");
+                }
+            }
+        });
+    }
+
+    sizer_rating->Add(rating_star1, 0, wxLEFT, 0);
+    sizer_rating->Add(rating_star2, 0, wxLEFT, FromDIP(10));
+    sizer_rating->Add(rating_star3, 0, wxLEFT, FromDIP(10));
+    sizer_rating->Add(rating_star4, 0, wxLEFT, FromDIP(10));
+    sizer_rating->Add(rating_star5, 0, wxLEFT, FromDIP(10));
+
+    wxStaticBitmap* save_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("save", this, 24), wxDefaultPosition,
+        wxSize(FromDIP(24), FromDIP(24)));
+
+    save_icon->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    save_icon->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+    save_icon->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        wxPostEvent(wxGetApp().plater(), SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE));
+    });
+
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Enabled), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Disabled), std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Pressed), std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Hovered),
+        std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+
+    auto m_button_confirm = new Button(this, _L("OK"));
+    m_button_confirm->SetBackgroundColor(btn_bg_green);
+    m_button_confirm->SetBorderColor(*wxWHITE);
+    m_button_confirm->SetTextColor(wxColour(255, 255, 254));
+    m_button_confirm->SetFont(Label::Body_12);
+    m_button_confirm->SetSize(wxSize(FromDIP(48), FromDIP(24)));
+    m_button_confirm->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
+    m_button_confirm->SetCornerRadius(FromDIP(12));
+    m_button_confirm->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        EndModal(wxID_CLOSE);
+    });
+    m_button_confirm->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    m_button_confirm->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+
+    sizer_bottom->Add(sizer_rating, 0, wxLEFT|wxALIGN_CENTER, 0);
+    sizer_bottom->Add( 0, 0, 1, wxEXPAND, 0 );
+    sizer_bottom->Add(save_icon, 0, wxLEFT|wxALIGN_CENTER, 0);
+    sizer_bottom->Add(0, 0, 0, wxLEFT, FromDIP(14));
+    sizer_bottom->Add(m_button_confirm, 0, wxLEFT|wxALIGN_CENTER, 0);
+    
+    main_sizer->Add(helio_top_background, 0, wxEXPAND, 0);
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(26));
+    main_sizer->Add(time_impro, 0, wxLEFT | wxRIGHT, FromDIP(40));
+    main_sizer->Add(0, 0, 0,wxTOP, FromDIP(14));
+    main_sizer->Add(average_impro, 0, wxLEFT | wxRIGHT, FromDIP(40));
+    main_sizer->Add(0, 0, 0,wxTOP, FromDIP(14));
+    main_sizer->Add(consistency_impro, 0, wxLEFT | wxRIGHT, FromDIP(40));
+    main_sizer->Add(0, 0, 0,wxTOP, FromDIP(24));
+    main_sizer->Add(line, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(40));
+    main_sizer->Add(0, 0, 0,wxTOP, FromDIP(14));
+    main_sizer->Add(tips, 0, wxLEFT|wxRIGHT, FromDIP(40));
+    main_sizer->Add(0, 0, 0,wxTOP, FromDIP(10));
+    main_sizer->Add(helio_wiki_link, 0, wxLEFT | wxRIGHT, FromDIP(40));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(18));
+    main_sizer->Add(sizer_bottom, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(40));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(23));
+
+    SetSizer(main_sizer);
+    Layout();
+    Fit();
+}
+
+void HelioRatingDialog::show_rating(std::vector<wxStaticBitmap *> stars, int rating)
+{
+    for (auto i = 0; i <= rating; i++) {
+        stars[i]->SetBitmap(create_scaled_bitmap("score_star_light", this, 24));
+        stars[i]->Refresh(); 
+    }
+}
+
+wxString HelioRatingDialog::format_improvement(wxString imp) 
+{
+    if (imp == "low") {
+        return _L("Low");
+    }
+    else if (imp == "medium") {
+        return _L("Medium");
+    }
+    else if (imp == "high") {
+        return _L("High");  
+    }
+    return _L("Medium");
+} 
+
+void HelioRatingDialog::on_dpi_changed(const wxRect &suggested_rect) 
+{
 }
 
  }} // namespace Slic3r::GUI
