@@ -48,13 +48,22 @@ namespace Slic3r {
         
         // Geometric tolerances for robust processing
         constexpr double EPSILON = 1e-6;
+        constexpr double GEOM_EPSILON = 1e-6;
         constexpr double MIN_EDGE_LENGTH = 1e-4;
+        constexpr double MIN_EDGE_LENGTH_SQ = 1e-8;
         constexpr double MIN_FACE_AREA = 1e-8;
         constexpr double WELD_DISTANCE = 1e-5;
+        constexpr double WELD_THRESHOLD = 1e-7;  // REDUCED from 1e-5 for accuracy
         constexpr double BOUNDARY_MARGIN_PERCENT = 0.05;  // 5% expansion
+        constexpr double MIN_SEED_SEPARATION_FACTOR = 0.5;  // Relative to cell size
         
         // Forward declarations for helper functions
         void clip_wireframe_to_mesh(indexed_triangle_set& wireframe, const indexed_triangle_set& mesh);
+        
+        // Type aliases for convenience
+        using Config = VoronoiMesh::Config;
+        using EdgeShape = VoronoiMesh::EdgeShape;
+        using CellStyle = VoronoiMesh::CellStyle;
         
         // Hash function for Vec3i to use in unordered_map
         struct Vec3iHash {
@@ -305,14 +314,6 @@ namespace Slic3r {
             }
             return true;
         }
-        
-        // Robust geometric processing utilities
-        // UPDATED: Tighter tolerances for mathematical accuracy
-        constexpr double GEOM_EPSILON = 1e-6;
-        constexpr double MIN_EDGE_LENGTH_SQ = 1e-8;
-        constexpr double MIN_FACE_AREA = 1e-8;
-        constexpr double WELD_THRESHOLD = 1e-7;  // REDUCED from 1e-5 for accuracy
-        constexpr double MIN_SEED_SEPARATION_FACTOR = 0.5;  // Relative to cell size
         
         // Filter seed points to ensure minimum separation
         std::vector<Vec3d> filter_seed_points(
