@@ -217,4 +217,11 @@ void DevNozzleMappingResult::Clear()
     m_nozzle_mapping_json.clear();
 }
 
+
+void MachineObject::set_manual_nozzle_mapping(int fila_id, int nozzle_pos_id)
+{
+    m_auto_nozzle_mapping.m_nozzle_mapping[fila_id] = nozzle_pos_id;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": fila_id=" << fila_id << ", nozzle_pos_id=" << nozzle_pos_id;
+};
+
 } // namespace Slic3r

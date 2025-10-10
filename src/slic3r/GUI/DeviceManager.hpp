@@ -304,6 +304,7 @@ public:
 
     // auto nozzle mapping
     DevNozzleMappingResult get_nozzle_mapping_result() const { return m_auto_nozzle_mapping; }
+    void set_manual_nozzle_mapping(int fila_id, int nozzle_pos_id);// nozzle_pos_id is O\0x10\0x20\0x30...
     void clear_auto_nozzle_mapping() { m_auto_nozzle_mapping.Clear(); }
     int ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, const std::vector<FilamentInfo>& ams_mapping, int flow_cali_opt);
     void parse_auto_nozzle_mapping(const json& print_jj);

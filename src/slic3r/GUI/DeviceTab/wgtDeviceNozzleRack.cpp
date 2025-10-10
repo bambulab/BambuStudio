@@ -40,6 +40,8 @@ static wxColour s_red_clr("#D01B1B");
 static std::vector<int> a_nozzle_seq = { 0, 2, 4, 1, 3, 5 };
 static std::vector<int> b_nozzle_seq = { 1, 3, 5, 0, 2, 4 };
 
+wxDEFINE_EVENT(EVT_NOZZLE_RACK_NOZZLE_ITEM_SELECTED, wxCommandEvent);
+
 namespace Slic3r::GUI
 {
 
@@ -733,80 +735,110 @@ void wgtDeviceNozzleRackNozzleItem::CreateGui()
     SetCornerRadius(FromDIP(5));
     SetBackgroundColor(*wxWHITE);
 
-    // Left
+    // Top H
+    wxSizer *top_h_sizer = new wxBoxSizer(wxHORIZONTAL);
+
     m_nozzle_label_id = new Label(this);
     m_nozzle_label_id->SetFont(Label::Body_12);
     m_nozzle_label_id->SetBackgroundColour(*wxWHITE);
     m_nozzle_label_id->SetLabel(wxString::Format("%d", m_nozzle_id + 1));
 
-    // Right
-    wxBoxSizer* r_sizer = new wxBoxSizer(wxVERTICAL);
-    m_status = NOZZLE_STATUS::NOZZLE_EMPTY;
+    m_status             = NOZZLE_STATUS::NOZZLE_EMPTY;
     m_nozzle_empty_image = new ScalableBitmap(this, "dev_rack_nozzle_empty", 46);
     m_nozzle_icon = new wxStaticBitmap(this, wxID_ANY, m_nozzle_empty_image->bmp(), wxDefaultPosition, WX_DIP_SIZE_46);
     m_nozzle_icon->SetBackgroundColour(*wxWHITE);
-    r_sizer->Add(m_nozzle_icon, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP);
+
+    m_nozzle_selected_bitmap = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, WX_DIP_SIZE(20, 20));
+    m_nozzle_selected_bitmap->SetBackgroundColour(*wxWHITE);
+
+    top_h_sizer->Add(m_nozzle_label_id, 0, wxTOP | wxLEFT, FromDIP(6));
+    top_h_sizer->AddSpacer(FromDIP(10));
+    top_h_sizer->Add(m_nozzle_icon, 0, wxTOP, FromDIP(10));
+    top_h_sizer->AddStretchSpacer();
+    top_h_sizer->Add(m_nozzle_selected_bitmap, 0, wxTOP | wxRIGHT, FromDIP(1));
+
+    // Bottom V
+    wxBoxSizer* bottom_v = new wxBoxSizer(wxVERTICAL);
 
     wxSizer* label_h_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_nozzle_label_1 = new Label(this);
     m_nozzle_label_1->SetFont(Label::Body_12);
     m_nozzle_label_1->SetBackgroundColour(*wxWHITE);
     m_nozzle_label_1->SetLabel(_L("Empty"));
-    label_h_sizer->Add(m_nozzle_label_1, 0, wxLEFT);
+
+    label_h_sizer->Add(m_nozzle_label_1, 0, wxALIGN_LEFT);
 
     auto status_icon = create_scaled_bitmap("dev_rack_nozzle_error_icon");
-    m_nozzle_status_icon = new wxStaticBitmap(this, wxID_ANY, status_icon, wxDefaultPosition, WX_DIP_SIZE(15, 15));
+    m_nozzle_status_icon = new wxStaticBitmap(this, wxID_ANY, status_icon, wxDefaultPosition, WX_DIP_SIZE(14, 14));
     m_nozzle_status_icon->Bind(wxEVT_LEFT_DOWN, &wgtDeviceNozzleRackNozzleItem::OnBtnNozzleStatus, this);
     m_nozzle_status_icon->Bind(wxEVT_ENTER_WINDOW, [this](auto&) { SetCursor(wxCURSOR_HAND); });
     m_nozzle_status_icon->Bind(wxEVT_LEAVE_WINDOW, [this](auto&) { SetCursor(wxCURSOR_ARROW); });
     m_nozzle_status_icon->SetBackgroundColour(*wxWHITE);
     m_nozzle_status_icon->Show(false);
 
-    label_h_sizer->Add(m_nozzle_status_icon, 0, wxALIGN_TOP);
-    r_sizer->Add(label_h_sizer, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(2));
+    label_h_sizer->Add(m_nozzle_status_icon, 0, wxALIGN_CENTER | wxLEFT, FromDIP(2));
+    bottom_v->Add(label_h_sizer, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(2));
 
     m_nozzle_label_2 = new Label(this);
     m_nozzle_label_2->SetFont(Label::Body_12);
     m_nozzle_label_2->SetBackgroundColour(*wxWHITE);
-    r_sizer->Add(m_nozzle_label_2, 0, wxALIGN_CENTER_HORIZONTAL);
+    bottom_v->Add(m_nozzle_label_2, 0, wxALIGN_CENTER_HORIZONTAL);
 
     // Main sizer
     wxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
-    main_sizer->Add(m_nozzle_label_id, 0, wxTOP | wxLEFT, FromDIP(6));
-    main_sizer->Add(r_sizer, 0, wxTOP | wxALIGN_CENTER_HORIZONTAL);
+    main_sizer->Add(top_h_sizer);
+    main_sizer->Add(bottom_v, 0, wxALIGN_CENTER_HORIZONTAL);
     SetSizer(main_sizer);
 
     SetMinSize(WGT_RACK_NOZZLE_SIZE);
     SetMaxSize(WGT_RACK_NOZZLE_SIZE);
     SetSize(WGT_RACK_NOZZLE_SIZE);
-
     Layout();
 };
 
-void wgtDeviceNozzleRackNozzleItem::Update(const std::shared_ptr<DevNozzleRack> rack)
+void wgtDeviceNozzleRackNozzleItem::SetSelected(bool selected)
+{
+    if (!m_enable_select){
+        assert(false && "not support select");
+        return;
+    }
+
+    if (m_is_selected != selected) {
+        m_is_selected = selected;
+        if (selected) {
+            if (!m_nozzle_selected_image) {
+                m_nozzle_selected_image = new ScalableBitmap(this, "dev_rack_nozzle_selected", 20);
+            }
+
+            m_nozzle_selected_bitmap->SetBitmap(m_nozzle_selected_image->bmp());
+            SetBorderColor(StateColor::darkModeColorFor(s_hgreen_clr));
+        } else {
+            m_nozzle_selected_bitmap->SetBitmap(wxNullBitmap);
+            SetBorderColor(StateColor::darkModeColorFor(s_gray_clr));
+        }
+
+        Refresh();
+    }
+}
+
+void wgtDeviceNozzleRackNozzleItem::Update(const std::shared_ptr<DevNozzleRack> rack, bool on_rack /*= true*/)
 {
     m_rack = rack;
 
-    if (rack)
-    {
-        const auto& nozzle_info = rack->GetNozzle(m_nozzle_id);
-        const wxString& diameter_str = nozzle_info.GetNozzleDiameterStr();
-        const wxString& flowtype_str = nozzle_info.GetNozzleFlowTypeStr();
-        const std::string& color     = nozzle_info.GetFilamentColor();
-        if (nozzle_info.IsEmpty())/*check empty first*/
-        {
+    if (rack) {
+        const auto        &nozzle_info  = on_rack ? rack->GetNozzle(m_nozzle_id) : rack->GetNozzleSystem()->GetExtNozzle(m_nozzle_id);
+        const wxString    &diameter_str = nozzle_info.GetNozzleDiameterStr();
+        const wxString    &flowtype_str = nozzle_info.GetNozzleFlowTypeStr();
+        const std::string &color        = nozzle_info.GetFilamentColor();
+
+        /*check empty first*/
+        if (nozzle_info.IsEmpty()) {
             SetNozzleStatus(NOZZLE_STATUS::NOZZLE_EMPTY, _L("Empty"), wxEmptyString, color);
-        }
-        if (nozzle_info.IsNormal())
-        {
+        } else if (nozzle_info.IsNormal()) {
             SetNozzleStatus(NOZZLE_STATUS::NOZZLE_NORMAL, diameter_str, flowtype_str, color);
-        }
-        else if (nozzle_info.IsAbnormal())
-        {
+        } else if (nozzle_info.IsAbnormal()) {
             SetNozzleStatus(NOZZLE_STATUS::NOZZLE_ERROR, _L("Error"), wxEmptyString, color);
-        }
-        else if (nozzle_info.IsUnknown())
-        {
+        } else if (nozzle_info.IsUnknown()) {
             SetNozzleStatus(NOZZLE_STATUS::NOZZLE_UNKNOWN, _L("Unknown"), wxEmptyString, color);
         }
     }
@@ -898,6 +930,11 @@ void wgtDeviceNozzleRackNozzleItem::Rescale()
         m_nozzle_status_icon->Refresh();
     }
 
+    if (m_nozzle_selected_image) {
+        m_nozzle_selected_image->msw_rescale();
+        m_nozzle_selected_bitmap->SetBitmap(m_nozzle_selected_image->bmp());
+    };
+
     switch (m_status)
     {
     case Slic3r::GUI::wgtDeviceNozzleRackNozzleItem::NOZZLE_EMPTY:
@@ -926,5 +963,32 @@ void wgtDeviceNozzleRackNozzleItem::Rescale()
     }
     };
 };
+
+void wgtDeviceNozzleRackNozzleItem::EnableSelect()
+{
+    if (m_enable_select == true) {
+        return;
+    };
+
+    m_enable_select = true;
+    m_nozzle_icon->Bind(wxEVT_LEFT_DOWN, [this](auto& evt) { OnItemSelected(evt); });
+    m_nozzle_label_id->Bind(wxEVT_LEFT_DOWN, [this](auto& evt) { OnItemSelected(evt); });
+    m_nozzle_label_1->Bind(wxEVT_LEFT_DOWN, [this](auto& evt) { OnItemSelected(evt); });
+    m_nozzle_label_2->Bind(wxEVT_LEFT_DOWN, [this](auto& evt) { OnItemSelected(evt); });
+    Bind(wxEVT_LEFT_DOWN, [this](auto& evt) { OnItemSelected(evt); });
+}
+
+void wgtDeviceNozzleRackNozzleItem::OnItemSelected(wxMouseEvent& evt)
+{
+    if (m_enable_select){
+        SetSelected(true);
+        wxCommandEvent command_evt(EVT_NOZZLE_RACK_NOZZLE_ITEM_SELECTED, GetId());
+        command_evt.SetEventObject(this);
+        ProcessEvent(command_evt);
+    }
+
+    evt.Skip();
+}
+
 
 };

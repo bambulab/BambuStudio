@@ -38,6 +38,9 @@ namespace GUI
 }
 };
 
+// Events
+wxDECLARE_EVENT(EVT_NOZZLE_RACK_NOZZLE_ITEM_SELECTED, wxCommandEvent);
+
 namespace Slic3r::GUI
 {
 class wgtDeviceNozzleRack : public wxPanel
@@ -182,7 +185,6 @@ private:
     ScalableButton* m_btn_homing{ nullptr };
 };
 
-
 class wgtDeviceNozzleRackNozzleItem : public StaticBox
 {
 public:
@@ -198,7 +200,15 @@ public:
     wgtDeviceNozzleRackNozzleItem(wxWindow* parent, int nozzle_id);
 
 public:
-    void Update(const std::shared_ptr<DevNozzleRack> rack);
+    void Update(const std::shared_ptr<DevNozzleRack> rack, bool on_rack = true); // on_rack is false means extruder nozzle
+
+    int  GetNozzleId() const { return m_nozzle_id; }
+    void SetDisplayIdText(const wxString& text) { m_nozzle_label_id->SetLabel(text);};
+
+    void EnableSelect();;
+    void SetSelected(bool selected);
+    bool IsSelected() const { return m_is_selected; }
+
     void Rescale();
 
 private:
@@ -207,13 +217,20 @@ private:
     void SetNozzleStatus(NOZZLE_STATUS status, const wxString& str1, const wxString& str2, const std::string& color);
 
     void OnBtnNozzleStatus(wxMouseEvent& evt);
+    void OnItemSelected(wxMouseEvent& evt);
 
 private:
     std::weak_ptr<DevNozzleRack> m_rack;
 
-    int  m_nozzle_id;// internal id, from 0 to 5
-    std::string m_filament_color;
-    NOZZLE_STATUS m_status = NOZZLE_STATUS::NOZZLE_EMPTY;
+    int           m_nozzle_id; // internal id, from 0 to 5
+    std::string   m_filament_color;
+    NOZZLE_STATUS m_status      = NOZZLE_STATUS::NOZZLE_EMPTY;
+
+    // select
+    bool  m_is_selected = false;
+    bool  m_enable_select = false;
+    ScalableBitmap* m_nozzle_selected_image{ nullptr };
+    wxStaticBitmap* m_nozzle_selected_bitmap{ nullptr };
 
     // Images
     ScalableBitmap* m_nozzle_normal_image{ nullptr };
