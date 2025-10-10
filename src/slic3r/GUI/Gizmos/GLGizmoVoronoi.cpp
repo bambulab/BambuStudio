@@ -102,6 +102,17 @@ namespace Slic3r::GUI {
             tr_random_seed = _u8L("Random seed");
             tr_seed_preview = _u8L("Preview seeds");
             
+            // Advanced feature translations
+            tr_advanced_options = _u8L("Advanced Options");
+            tr_relax_seeds = _u8L("Relax seeds (Lloyd's)");
+            tr_relaxation_iterations = _u8L("Relaxation iterations");
+            tr_multi_scale = _u8L("Multi-scale");
+            tr_scale_levels = _u8L("Scale levels");
+            tr_anisotropic = _u8L("Anisotropic");
+            tr_anisotropy_direction = _u8L("Direction");
+            tr_anisotropy_ratio = _u8L("Stretch ratio");
+            tr_printability = _u8L("Printability");
+            
             fprintf(stderr, "GLGizmoVoronoi: Constructor END\n");
             fflush(stderr);
         }
@@ -381,6 +392,154 @@ namespace Slic3r::GUI {
             ImGui::Separator();
             ImGui::Text("%s:", into_u8(_u8L("2D Preview")).c_str());
             render_2d_voronoi_preview();
+        }
+
+        ImGui::Separator();
+
+        // Advanced Options Section (collapsible)
+        if (ImGui::CollapsingHeader(tr_advanced_options.c_str())) {
+            
+            // Lloyd's Relaxation
+            ImGui::Text("%s:", into_u8(_u8L("Uniformity")).c_str());
+            if (ImGui::Checkbox(tr_relax_seeds.c_str(), &m_configuration.relax_seeds)) {
+                // Config changed
+            }
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s", into_u8(_u8L("Iteratively move seeds to cell centroids for uniform cell sizes\nRecommended: 3-5 iterations\nCost: +150-500ms")).c_str());
+            }
+            
+            if (m_configuration.relax_seeds) {
+                ImGui::Indent();
+                ImGui::Text("%s:", into_u8(_u8L("Iterations")).c_str());
+                ImGui::SliderInt("##relaxation_iterations", &m_configuration.relaxation_iterations, 1, 10);
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("%s", into_u8(_u8L("Number of Lloyd iterations (3-5 typical, diminishing returns after 5)")).c_str());
+                }
+                ImGui::Unindent();
+            }
+            
+            ImGui::Separator();
+            
+            // Multi-Scale Hierarchical
+            ImGui::Text("%s:", into_u8(_u8L("Complexity")).c_str());
+            if (ImGui::Checkbox(tr_multi_scale.c_str(), &m_configuration.multi_scale)) {
+                // Config changed
+            }
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s", into_u8(_u8L("Generate hierarchical structure with multiple density levels\nCoarse core → Fine surface detail\nCost: 2-4× generation time")).c_str());
+            }
+            
+            if (m_configuration.multi_scale) {
+                ImGui::Indent();
+                ImGui::Text("%s:", tr_scale_levels.c_str());
+                int num_levels = static_cast<int>(m_configuration.scale_seed_counts.size());
+                if (ImGui::SliderInt("##scale_levels", &num_levels, 2, 4)) {
+                    m_configuration.scale_seed_counts.resize(num_levels);
+                    m_configuration.scale_thicknesses.resize(num_levels);
+                    
+                    // Auto-calculate reasonable defaults
+                    for (int i = 0; i < num_levels; ++i) {
+                        float ratio = std::pow(4.0f, static_cast<float>(i));  // 4× increase per level
+                        m_configuration.scale_seed_counts[i] = static_cast<int>(m_configuration.num_seeds * ratio / 4.0f);
+                        m_configuration.scale_thicknesses[i] = m_configuration.edge_thickness * std::pow(0.5f, static_cast<float>(i));
+                    }
+                }
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("%s", into_u8(_u8L("Number of hierarchy levels (2-4 typical)")).c_str());
+                }
+                
+                // Show calculated seed counts
+                std::string scale_info = "Seeds per level: ";
+                for (size_t i = 0; i < m_configuration.scale_seed_counts.size(); ++i) {
+                    scale_info += std::to_string(m_configuration.scale_seed_counts[i]);
+                    if (i < m_configuration.scale_seed_counts.size() - 1)
+                        scale_info += " → ";
+                }
+                ImGui::TextWrapped("%s", scale_info.c_str());
+                ImGui::Unindent();
+            }
+            
+            ImGui::Separator();
+            
+            // Anisotropic Transformation
+            ImGui::Text("%s:", into_u8(_u8L("Directional Strength")).c_str());
+            if (ImGui::Checkbox(tr_anisotropic.c_str(), &m_configuration.anisotropic)) {
+                // Config changed
+            }
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s", into_u8(_u8L("Elongate cells along load direction for directional strength\nIdeal for vertical towers or horizontal beams\nCost: <5ms (minimal)")).c_str());
+            }
+            
+            if (m_configuration.anisotropic) {
+                ImGui::Indent();
+                
+                // Direction presets
+                ImGui::Text("%s:", tr_anisotropy_direction.c_str());
+                if (ImGui::Button("Vertical (Z)")) {
+                    m_configuration.anisotropy_direction = Vec3d(0, 0, 1);
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Horizontal (X)")) {
+                    m_configuration.anisotropy_direction = Vec3d(1, 0, 0);
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Horizontal (Y)")) {
+                    m_configuration.anisotropy_direction = Vec3d(0, 1, 0);
+                }
+                
+                // Manual direction input
+                float dir[3] = { 
+                    static_cast<float>(m_configuration.anisotropy_direction.x()),
+                    static_cast<float>(m_configuration.anisotropy_direction.y()),
+                    static_cast<float>(m_configuration.anisotropy_direction.z())
+                };
+                if (ImGui::InputFloat3("##aniso_dir", dir)) {
+                    m_configuration.anisotropy_direction = Vec3d(dir[0], dir[1], dir[2]);
+                    // Normalize
+                    double len = m_configuration.anisotropy_direction.norm();
+                    if (len > 1e-6) {
+                        m_configuration.anisotropy_direction /= len;
+                    }
+                }
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("%s", into_u8(_u8L("Manual direction vector (will be normalized)")).c_str());
+                }
+                
+                // Stretch ratio
+                ImGui::Text("%s:", tr_anisotropy_ratio.c_str());
+                ImGui::SliderFloat("##aniso_ratio", &m_configuration.anisotropy_ratio, 1.0f, 5.0f);
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("%s", into_u8(_u8L("1.0 = isotropic (no stretch)\n1.5-2.5 = moderate (typical)\n3.0+ = extreme elongation")).c_str());
+                }
+                
+                ImGui::Unindent();
+            }
+            
+            ImGui::Separator();
+            
+            // Printability Options
+            ImGui::Text("%s:", tr_printability.c_str());
+            ImGui::Checkbox(into_u8(_u8L("Enforce watertight")).c_str(), &m_configuration.enforce_watertight);
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s", into_u8(_u8L("Fail generation if result is not watertight (has holes)")).c_str());
+            }
+            
+            ImGui::Checkbox(into_u8(_u8L("Auto-repair")).c_str(), &m_configuration.auto_repair);
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s", into_u8(_u8L("Automatically attempt to repair holes and manifold issues")).c_str());
+            }
+            
+            ImGui::Text("%s:", into_u8(_u8L("Min wall thickness (mm)")).c_str());
+            ImGui::SliderFloat("##min_wall", &m_configuration.min_wall_thickness, 0.2f, 2.0f);
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s", into_u8(_u8L("Minimum printable wall thickness (typically 0.4mm for FDM)")).c_str());
+            }
+            
+            ImGui::Text("%s:", into_u8(_u8L("Min feature size (mm)")).c_str());
+            ImGui::SliderFloat("##min_feature", &m_configuration.min_feature_size, 0.1f, 1.0f);
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s", into_u8(_u8L("Minimum printable feature size")).c_str());
+            }
         }
 
         ImGui::Separator();
@@ -861,6 +1020,23 @@ namespace Slic3r::GUI {
                 voronoi_config.edge_subdivisions = m_state.config.edge_subdivisions;
                 voronoi_config.hollow_cells = m_state.config.hollow_cells;
                 voronoi_config.random_seed = m_state.config.random_seed;
+
+                // Advanced features
+                voronoi_config.relax_seeds = m_state.config.relax_seeds;
+                voronoi_config.relaxation_iterations = m_state.config.relaxation_iterations;
+                
+                voronoi_config.multi_scale = m_state.config.multi_scale;
+                voronoi_config.scale_seed_counts = m_state.config.scale_seed_counts;
+                voronoi_config.scale_thicknesses = m_state.config.scale_thicknesses;
+                
+                voronoi_config.anisotropic = m_state.config.anisotropic;
+                voronoi_config.anisotropy_direction = m_state.config.anisotropy_direction;
+                voronoi_config.anisotropy_ratio = m_state.config.anisotropy_ratio;
+                
+                voronoi_config.enforce_watertight = m_state.config.enforce_watertight;
+                voronoi_config.auto_repair = m_state.config.auto_repair;
+                voronoi_config.min_wall_thickness = m_state.config.min_wall_thickness;
+                voronoi_config.min_feature_size = m_state.config.min_feature_size;
 
                 // Set progress callback
                 // Use try_lock to avoid deadlock - if we can't get the lock, just skip the update

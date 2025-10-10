@@ -66,9 +66,32 @@ namespace Slic3r {
             bool clip_to_mesh = true;          // Clip to original mesh boundary
             float min_cell_size = 0.0f;        // Minimum cell size (0 = no limit)
             float adaptive_factor = 1.0f;      // For adaptive seeding
+            
+            // Lloyd's relaxation for uniform cells (NEW)
+            bool relax_seeds = false;          // Enable seed relaxation
+            int relaxation_iterations = 3;     // Number of Lloyd iterations (1-10)
+            
+            // Multi-scale hierarchical Voronoi (NEW)
+            bool multi_scale = false;          // Generate multiple scales
+            std::vector<int> scale_seed_counts = {50, 200, 800};     // Coarse→fine
+            std::vector<float> scale_thicknesses = {2.0f, 1.0f, 0.5f}; // Thick→thin
+            
+            // Anisotropic stretching for directional strength (NEW)
+            bool anisotropic = false;          // Enable anisotropic cells
+            Vec3d anisotropy_direction = Vec3d(0, 0, 1);  // Stretch direction
+            float anisotropy_ratio = 2.0f;     // Stretch factor (1.0 = isotropic)
+            
+            // Printability constraints
+            bool enforce_watertight = false;   // Fail if not watertight after generation
+            bool auto_repair = true;           // Attempt automatic repair of holes
+            float min_wall_thickness = 0.4f;   // Minimum printable wall thickness (mm)
+            float min_feature_size = 0.2f;     // Minimum printable feature size (mm)
 
             // Progress callback - returns false to cancel
             std::function<bool(int)> progress_callback = nullptr;
+            
+            // Error callback - called with validation errors
+            std::function<void(const std::string&)> error_callback = nullptr;
         };
         
         // Statistics about generated Voronoi structure

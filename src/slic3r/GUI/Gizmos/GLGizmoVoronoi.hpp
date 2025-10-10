@@ -127,6 +127,27 @@ namespace Slic3r {
                 bool show_seed_preview = false;
                 bool enable_triangle_painting = false;
 
+                // Advanced features
+                // Lloyd's relaxation for uniform cells
+                bool relax_seeds = false;
+                int relaxation_iterations = 3;
+                
+                // Multi-scale hierarchical Voronoi
+                bool multi_scale = false;
+                std::vector<int> scale_seed_counts = {50, 200, 800};
+                std::vector<float> scale_thicknesses = {2.0f, 1.0f, 0.5f};
+                
+                // Anisotropic transformation for directional strength
+                bool anisotropic = false;
+                Vec3d anisotropy_direction = Vec3d(0, 0, 1);  // Default: vertical (Z)
+                float anisotropy_ratio = 2.0f;
+                
+                // Printability constraints
+                bool enforce_watertight = false;
+                bool auto_repair = true;
+                float min_wall_thickness = 0.4f;
+                float min_feature_size = 0.2f;
+
                 bool operator==(const Configuration& rhs) const {
                     return seed_type == rhs.seed_type &&
                         num_seeds == rhs.num_seeds &&
@@ -138,7 +159,19 @@ namespace Slic3r {
                         edge_curvature == rhs.edge_curvature &&
                         edge_subdivisions == rhs.edge_subdivisions &&
                         hollow_cells == rhs.hollow_cells &&
-                        random_seed == rhs.random_seed;
+                        random_seed == rhs.random_seed &&
+                        relax_seeds == rhs.relax_seeds &&
+                        relaxation_iterations == rhs.relaxation_iterations &&
+                        multi_scale == rhs.multi_scale &&
+                        scale_seed_counts == rhs.scale_seed_counts &&
+                        scale_thicknesses == rhs.scale_thicknesses &&
+                        anisotropic == rhs.anisotropic &&
+                        anisotropy_direction == rhs.anisotropy_direction &&
+                        anisotropy_ratio == rhs.anisotropy_ratio &&
+                        enforce_watertight == rhs.enforce_watertight &&
+                        auto_repair == rhs.auto_repair &&
+                        min_wall_thickness == rhs.min_wall_thickness &&
+                        min_feature_size == rhs.min_feature_size;
                 }
                 bool operator!=(const Configuration& rhs) const {
                     return !(*this == rhs);
@@ -197,6 +230,17 @@ namespace Slic3r {
             std::string tr_wall_thickness;
             std::string tr_random_seed;
             std::string tr_seed_preview;
+            
+            // Advanced feature translations
+            std::string tr_advanced_options;
+            std::string tr_relax_seeds;
+            std::string tr_relaxation_iterations;
+            std::string tr_multi_scale;
+            std::string tr_scale_levels;
+            std::string tr_anisotropic;
+            std::string tr_anisotropy_direction;
+            std::string tr_anisotropy_ratio;
+            std::string tr_printability;
 
             std::map<std::string, wxString> m_desc;
 

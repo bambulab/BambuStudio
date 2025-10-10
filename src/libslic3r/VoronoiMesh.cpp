@@ -56,6 +56,15 @@ namespace Slic3r {
         // Forward declarations for helper functions
         void clip_wireframe_to_mesh(indexed_triangle_set& wireframe, const indexed_triangle_set& mesh);
         
+        // Hash function for Vec3i to use in unordered_map
+        struct Vec3iHash {
+            std::size_t operator()(const Vec3i &cell_id) const {
+                return std::hash<int>()(cell_id.x()) ^ 
+                       std::hash<int>()(cell_id.y() * 593) ^
+                       std::hash<int>()(cell_id.z() * 7919);
+            }
+        };
+        
         // Spatial hash for efficient vertex welding
         struct SpatialHash {
             std::unordered_map<Vec3i, std::vector<size_t>, Vec3iHash> grid;
@@ -298,10 +307,49 @@ namespace Slic3r {
         }
         
         // Robust geometric processing utilities
+        // UPDATED: Tighter tolerances for mathematical accuracy
         constexpr double GEOM_EPSILON = 1e-6;
-        constexpr double MIN_EDGE_LENGTH_SQ = 1e-8;  // squared for efficiency
+        constexpr double MIN_EDGE_LENGTH_SQ = 1e-8;
         constexpr double MIN_FACE_AREA = 1e-8;
-        constexpr double WELD_THRESHOLD = 1e-5;
+        constexpr double WELD_THRESHOLD = 1e-7;  // REDUCED from 1e-5 for accuracy
+        constexpr double MIN_SEED_SEPARATION_FACTOR = 0.5;  // Relative to cell size
+        
+        // Filter seed points to ensure minimum separation
+        std::vector<Vec3d> filter_seed_points(
+            const std::vector<Vec3d>& seeds,
+            const BoundingBoxf3& bounds)
+        {
+            if (seeds.empty()) return seeds;
+            
+            double bbox_size = bounds.size().norm();
+            double min_separation = bbox_size / std::sqrt(double(seeds.size())) * MIN_SEED_SEPARATION_FACTOR;
+            
+            BOOST_LOG_TRIVIAL(info) << "Filtering seeds: min_separation=" << min_separation 
+                                     << " (bbox_size=" << bbox_size << ", num_seeds=" << seeds.size() << ")";
+            
+            std::vector<Vec3d> filtered;
+            filtered.reserve(seeds.size());
+            
+            for (const auto& seed : seeds) {
+                bool too_close = false;
+                for (const auto& existing : filtered) {
+                    if ((seed - existing).norm() < min_separation) {
+                        too_close = true;
+                        break;
+                    }
+                }
+                if (!too_close) {
+                    filtered.push_back(seed);
+                }
+            }
+            
+            if (filtered.size() < seeds.size()) {
+                BOOST_LOG_TRIVIAL(info) << "Filtered out " << (seeds.size() - filtered.size()) 
+                                         << " seeds that were too close (prevents needle-thin cells)";
+            }
+            
+            return filtered;
+        }
         
         // Validate geometry for NaN/Inf and report issues
         bool validate_geometry(const indexed_triangle_set& mesh, const std::string& label) {
@@ -653,6 +701,388 @@ namespace Slic3r {
             BOOST_LOG_TRIVIAL(info) << "Robust cleanup: output vertices=" << mesh.vertices.size() 
                                      << ", faces=" << mesh.indices.size();
         }
+        
+        // ========== WATERTIGHT MESH REPAIR FUNCTIONS ==========
+        
+        // Check if mesh is watertight (all edges have exactly 2 adjacent faces)
+        bool is_mesh_watertight(const indexed_triangle_set& mesh) {
+            std::map<std::pair<int, int>, int> edge_count;
+            
+            for (const auto& face : mesh.indices) {
+                for (int i = 0; i < 3; ++i) {
+                    int v1 = face[i];
+                    int v2 = face[(i + 1) % 3];
+                    auto edge = (v1 < v2) ? std::make_pair(v1, v2) : std::make_pair(v2, v1);
+                    edge_count[edge]++;
+                }
+            }
+            
+            for (const auto& [edge, count] : edge_count) {
+                if (count != 2) {
+                    return false;  // Not watertight (hole or non-manifold)
+                }
+            }
+            
+            return true;
+        }
+        
+        // Find boundary loops (chains of edges that appear only once)
+        std::vector<std::vector<int>> find_boundary_loops(const indexed_triangle_set& mesh) {
+            // Track directed edges
+            std::map<std::pair<int, int>, int> edge_count;
+            
+            for (const auto& face : mesh.indices) {
+                for (int i = 0; i < 3; ++i) {
+                    int v1 = face[i];
+                    int v2 = face[(i + 1) % 3];
+                    edge_count[{v1, v2}]++;
+                }
+            }
+            
+            // Build adjacency map for boundary edges
+            std::map<int, std::vector<int>> adjacency;
+            for (const auto& [edge, count] : edge_count) {
+                if (count == 1) {  // Boundary edge
+                    adjacency[edge.first].push_back(edge.second);
+                }
+            }
+            
+            // Extract loops
+            std::vector<std::vector<int>> loops;
+            std::set<int> visited;
+            
+            for (const auto& [start_v, _] : adjacency) {
+                if (visited.count(start_v)) continue;
+                
+                std::vector<int> loop;
+                int current = start_v;
+                
+                // Follow chain until we return to start or reach dead end
+                while (current != -1 && loop.size() < mesh.vertices.size()) {
+                    if (visited.count(current) && current != start_v) {
+                        break;  // Reached another loop
+                    }
+                    
+                    loop.push_back(current);
+                    visited.insert(current);
+                    
+                    // Find next vertex
+                    auto it = adjacency.find(current);
+                    if (it != adjacency.end() && !it->second.empty()) {
+                        int next = it->second[0];
+                        if (next == start_v && loop.size() >= 3) {
+                            // Completed loop!
+                            break;
+                        }
+                        current = next;
+                    } else {
+                        break;  // Dead end
+                    }
+                }
+                
+                if (loop.size() >= 3) {
+                    loops.push_back(loop);
+                }
+            }
+            
+            return loops;
+        }
+        
+        // Fill a hole with fan triangulation
+        void fill_hole(indexed_triangle_set& mesh, const std::vector<int>& boundary_loop) {
+            if (boundary_loop.size() < 3) return;
+            
+            // Use first vertex as fan center
+            int v0 = boundary_loop[0];
+            
+            // Compute centroid to determine winding direction
+            Vec3f centroid = Vec3f::Zero();
+            for (int v : boundary_loop) {
+                centroid += mesh.vertices[v];
+            }
+            centroid /= float(boundary_loop.size());
+            
+            // Create fan triangles
+            for (size_t i = 1; i + 1 < boundary_loop.size(); ++i) {
+                int v1 = boundary_loop[i];
+                int v2 = boundary_loop[i + 1];
+                
+                // Compute normal
+                Vec3f edge1 = mesh.vertices[v1] - mesh.vertices[v0];
+                Vec3f edge2 = mesh.vertices[v2] - mesh.vertices[v0];
+                Vec3f normal = edge1.cross(edge2);
+                
+                // Check orientation relative to centroid
+                Vec3f to_centroid = centroid - mesh.vertices[v0];
+                
+                if (normal.dot(to_centroid) > 0) {
+                    // Inward-facing, flip for outward normal
+                    mesh.indices.emplace_back(v0, v2, v1);
+                } else {
+                    mesh.indices.emplace_back(v0, v1, v2);
+                }
+            }
+        }
+        
+        // Comprehensive mesh repair
+        void repair_mesh(indexed_triangle_set& mesh) {
+            if (mesh.vertices.empty() || mesh.indices.empty()) return;
+            
+            BOOST_LOG_TRIVIAL(info) << "repair_mesh: Starting repair...";
+            
+            size_t orig_v = mesh.vertices.size();
+            size_t orig_f = mesh.indices.size();
+            
+            // Phase 1: Clean degenerate geometry
+            remove_degenerate_faces(mesh);
+            
+            // Phase 2: Weld vertices to create manifold connections
+            weld_nearby_vertices(mesh);
+            
+            // Phase 3: Find and fill holes
+            auto loops = find_boundary_loops(mesh);
+            if (!loops.empty()) {
+                BOOST_LOG_TRIVIAL(info) << "repair_mesh: Found " << loops.size() << " holes to fill";
+                
+                for (const auto& loop : loops) {
+                    if (loop.size() >= 3 && loop.size() <= 100) {
+                        fill_hole(mesh, loop);
+                    } else {
+                        BOOST_LOG_TRIVIAL(warning) << "repair_mesh: Skipping hole with " << loop.size() << " vertices";
+                    }
+                }
+            }
+            
+            // Phase 4: Orient faces consistently
+            orient_faces_consistently(mesh);
+            
+            // Phase 5: Final cleanup
+            remove_degenerate_faces(mesh);
+            
+            // Phase 6: Validate result
+            bool watertight = is_mesh_watertight(mesh);
+            
+            BOOST_LOG_TRIVIAL(info) << "repair_mesh: Complete. Vertices " << orig_v << "→" << mesh.vertices.size()
+                                     << ", Faces " << orig_f << "→" << mesh.indices.size()
+                                     << ", Watertight: " << (watertight ? "YES" : "NO");
+        }
+        
+        // ========== ADVANCED VORONOI ALGORITHMS ==========
+        
+        // Lloyd's relaxation: move seeds to cell centroids for uniform cells
+        std::vector<Vec3d> relax_seeds_lloyd(
+            const std::vector<Vec3d>& initial_seeds,
+            const indexed_triangle_set& mesh,
+            const BoundingBoxf3& bounds,
+            int iterations)
+        {
+            if (initial_seeds.empty() || iterations <= 0) return initial_seeds;
+            
+            std::vector<Vec3d> seeds = initial_seeds;
+            AABBMesh aabb(mesh);
+            
+            BOOST_LOG_TRIVIAL(info) << "Lloyd relaxation: " << iterations << " iterations on " 
+                                     << seeds.size() << " seeds";
+            
+            for (int iter = 0; iter < iterations; ++iter) {
+                // Create Voro++ container
+                double margin = 0.1;
+                voro::container con(
+                    bounds.min.x() - margin, bounds.max.x() + margin,
+                    bounds.min.y() - margin, bounds.max.y() + margin,
+                    bounds.min.z() - margin, bounds.max.z() + margin,
+                    std::max(3, int(std::cbrt(seeds.size()))),
+                    std::max(3, int(std::cbrt(seeds.size()))),
+                    std::max(3, int(std::cbrt(seeds.size()))),
+                    false, false, false, 8
+                );
+                
+                // Add seed points
+                for (size_t i = 0; i < seeds.size(); ++i) {
+                    con.put(i, seeds[i].x(), seeds[i].y(), seeds[i].z());
+                }
+                
+                // Compute cell centroids
+                std::vector<Vec3d> new_seeds;
+                new_seeds.reserve(seeds.size());
+                
+                voro::c_loop_all vl(con);
+                voro::voronoicell cell;
+                
+                if (vl.start()) do {
+                    if (con.compute_cell(cell, vl)) {
+                        // Get cell vertices
+                        std::vector<double> verts;
+                        cell.vertices(vl.x(), vl.y(), vl.z(), verts);
+                        
+                        // Compute centroid
+                        Vec3d centroid = Vec3d::Zero();
+                        int vert_count = verts.size() / 3;
+                        
+                        for (int i = 0; i < vert_count; ++i) {
+                            centroid.x() += verts[i * 3 + 0];
+                            centroid.y() += verts[i * 3 + 1];
+                            centroid.z() += verts[i * 3 + 2];
+                        }
+                        
+                        if (vert_count > 0) {
+                            centroid /= double(vert_count);
+                            
+                            // Keep centroid if inside mesh, otherwise keep original
+                            if (is_point_inside_mesh(aabb, centroid)) {
+                                new_seeds.push_back(centroid);
+                            } else {
+                                new_seeds.push_back(seeds[vl.pid()]);
+                            }
+                        } else {
+                            new_seeds.push_back(seeds[vl.pid()]);
+                        }
+                    }
+                } while (vl.inc());
+                
+                seeds = new_seeds;
+                
+                BOOST_LOG_TRIVIAL(info) << "Lloyd iteration " << (iter + 1) << "/" << iterations 
+                                         << " complete";
+            }
+            
+            return seeds;
+        }
+        
+        // Apply anisotropic transformation to seeds
+        std::vector<Vec3d> apply_anisotropic_transform(
+            const std::vector<Vec3d>& seeds,
+            const Vec3d& direction,
+            float ratio)
+        {
+            if (ratio <= 0.0f || std::abs(ratio - 1.0f) < 1e-6) {
+                return seeds;  // No transformation needed
+            }
+            
+            Vec3d dir = direction.normalized();
+            
+            std::vector<Vec3d> transformed;
+            transformed.reserve(seeds.size());
+            
+            BOOST_LOG_TRIVIAL(info) << "Applying anisotropic transform: direction=(" 
+                                     << dir.x() << "," << dir.y() << "," << dir.z() 
+                                     << "), ratio=" << ratio;
+            
+            for (const auto& seed : seeds) {
+                // Decompose into parallel and perpendicular components
+                double projection = seed.dot(dir);
+                Vec3d parallel = dir * projection;
+                Vec3d perpendicular = seed - parallel;
+                
+                // Stretch parallel component
+                Vec3d stretched = parallel * ratio + perpendicular;
+                transformed.push_back(stretched);
+            }
+            
+            return transformed;
+        }
+        
+        // Inverse anisotropic transformation for geometry
+        void apply_inverse_anisotropic_transform(
+            indexed_triangle_set& mesh,
+            const Vec3d& direction,
+            float ratio)
+        {
+            if (ratio <= 0.0f || std::abs(ratio - 1.0f) < 1e-6) {
+                return;  // No transformation needed
+            }
+            
+            Vec3d dir = direction.normalized();
+            float inv_ratio = 1.0f / ratio;
+            
+            for (auto& vertex : mesh.vertices) {
+                Vec3d v = vertex.cast<double>();
+                
+                // Decompose
+                double projection = v.dot(dir);
+                Vec3d parallel = dir * projection;
+                Vec3d perpendicular = v - parallel;
+                
+                // Apply inverse stretch
+                Vec3d unstretched = parallel * inv_ratio + perpendicular;
+                vertex = unstretched.cast<float>();
+            }
+        }
+        
+        // Generate multi-scale hierarchical Voronoi
+        std::unique_ptr<indexed_triangle_set> generate_multiscale(
+            const indexed_triangle_set& input_mesh,
+            const Config& config)
+        {
+            if (!config.multi_scale || config.scale_seed_counts.empty()) {
+                return nullptr;
+            }
+            
+            BOOST_LOG_TRIVIAL(info) << "Generating multi-scale Voronoi: " 
+                                     << config.scale_seed_counts.size() << " levels";
+            
+            auto result = std::make_unique<indexed_triangle_set>();
+            
+            // Generate each scale level
+            for (size_t level = 0; level < config.scale_seed_counts.size(); ++level) {
+                Config level_config = config;
+                level_config.num_seeds = config.scale_seed_counts[level];
+                level_config.multi_scale = false;  // Prevent recursion
+                
+                // Adjust thickness if provided
+                if (level < config.scale_thicknesses.size()) {
+                    level_config.edge_thickness = config.scale_thicknesses[level];
+                }
+                
+                BOOST_LOG_TRIVIAL(info) << "Multi-scale level " << (level + 1) 
+                                         << ": seeds=" << level_config.num_seeds
+                                         << ", thickness=" << level_config.edge_thickness;
+                
+                // Generate this scale level
+                auto level_mesh = VoronoiMesh::generate(input_mesh, level_config);
+                
+                if (!level_mesh) {
+                    BOOST_LOG_TRIVIAL(warning) << "Multi-scale level " << (level + 1) 
+                                                << " failed, skipping";
+                    continue;
+                }
+                
+                // Merge with result
+                size_t vertex_offset = result->vertices.size();
+                
+                result->vertices.insert(
+                    result->vertices.end(),
+                    level_mesh->vertices.begin(),
+                    level_mesh->vertices.end()
+                );
+                
+                for (const auto& face : level_mesh->indices) {
+                    result->indices.emplace_back(
+                        face[0] + vertex_offset,
+                        face[1] + vertex_offset,
+                        face[2] + vertex_offset
+                    );
+                }
+            }
+            
+            if (result->vertices.empty()) {
+                BOOST_LOG_TRIVIAL(error) << "Multi-scale generation produced no geometry";
+                return nullptr;
+            }
+            
+            // Weld interfaces between scales
+            BOOST_LOG_TRIVIAL(info) << "Welding multi-scale interfaces...";
+            weld_nearby_vertices(*result);
+            
+            // Final cleanup
+            robust_mesh_cleanup(*result);
+            
+            BOOST_LOG_TRIVIAL(info) << "Multi-scale generation complete: " 
+                                     << result->vertices.size() << " vertices, "
+                                     << result->indices.size() << " faces";
+            
+            return result;
+        }
 
         // Clip wireframe mesh to stay within mesh bounds
         void clip_wireframe_to_mesh(indexed_triangle_set& wireframe, const indexed_triangle_set& mesh) {
@@ -746,6 +1176,45 @@ namespace Slic3r {
         for (const auto& v : input_mesh.vertices) {
             bbox.merge(v.cast<double>());
         }
+        
+        // CRITICAL: Filter seeds to ensure minimum separation (prevents needle-thin cells)
+        size_t original_seed_count = seed_points.size();
+        seed_points = filter_seed_points(seed_points, bbox);
+        
+        if (seed_points.empty()) {
+            BOOST_LOG_TRIVIAL(error) << "VoronoiMesh::generate() - All seeds filtered out (too close together)!";
+            return nullptr;
+        }
+        
+        if (seed_points.size() < original_seed_count) {
+            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Filtered to " << seed_points.size() 
+                                     << " seeds (removed " << (original_seed_count - seed_points.size()) 
+                                     << " that were too close for clean Voronoi structure)";
+        }
+        
+        // ADVANCED: Apply Lloyd's relaxation for uniform cells
+        if (config.relax_seeds && config.relaxation_iterations > 0) {
+            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Applying Lloyd's relaxation";
+            seed_points = relax_seeds_lloyd(seed_points, input_mesh, bbox, config.relaxation_iterations);
+        }
+        
+        // ADVANCED: Apply anisotropic transformation
+        if (config.anisotropic && config.anisotropy_ratio > 0.0f) {
+            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Applying anisotropic transformation";
+            seed_points = apply_anisotropic_transform(seed_points, config.anisotropy_direction, config.anisotropy_ratio);
+        }
+        
+        // ADVANCED: Multi-scale generation (early exit if enabled)
+        if (config.multi_scale) {
+            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Using multi-scale mode";
+            auto result = generate_multiscale(input_mesh, config);
+            
+            if (result && config.auto_repair && !is_mesh_watertight(*result)) {
+                repair_mesh(*result);
+            }
+            
+            return result;
+        }
 
         // Don't expand bbox for wireframe (expansion was for solid cells)
         // Wireframe should stay within the original mesh bounds
@@ -778,6 +1247,12 @@ namespace Slic3r {
         // Step 5: Finalize progress
         if (config.progress_callback && !config.progress_callback(100))
             return nullptr;
+        
+        // ADVANCED: Apply inverse anisotropic transform to geometry
+        if (config.anisotropic && config.anisotropy_ratio > 0.0f) {
+            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Applying inverse anisotropic transform";
+            apply_inverse_anisotropic_transform(*result, config.anisotropy_direction, config.anisotropy_ratio);
+        }
 
         return result;
     }
