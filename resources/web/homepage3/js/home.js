@@ -330,10 +330,10 @@ function ShowRecentFileList( pList )
 	{
 		let OneFile=pList[n];
 		
-		let sPath=OneFile['path'];
-		let sImg=OneFile["image"] || sImages[sPath];
+		let sPath=DOMPurify.sanitize(OneFile['path']);
+		let sImg=DOMPurify.sanitize(OneFile["image"]) || sImages[sPath];
 		let sTime=OneFile['time'];
-		let sName=OneFile['project_name'];
+		let sName=DOMPurify.sanitize(OneFile['project_name']);
 		sImages[sPath] = sImg;
 		
 		//let index=sPath.lastIndexOf('\\')>0?sPath.lastIndexOf('\\'):sPath.lastIndexOf('\/');
