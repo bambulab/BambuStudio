@@ -1504,7 +1504,11 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
     quality_mean_improvement.MakeLower();
     quality_std_improvement.MakeLower();   
 
-    auto label_time_impro        = new Label(this, Label::Body_14, _L("30 min"));
+    auto label_original_time = wxString::Format("%s", short_time(get_time_dhms(original_time)));
+    auto label_optimized_time = wxString::Format("%s", short_time(get_time_dhms(optimized_time)));
+    auto label_thrifty_time = wxString::Format("%s", short_time(get_time_dhms(original_time - optimized_time)));
+
+    auto label_time_impro        = new Label(this, Label::Body_14,label_thrifty_time + " (" + label_original_time + " -> " + label_optimized_time + ")");
     auto label_average_impro     = new Label(this, Label::Body_14, format_improvement(quality_mean_improvement));
     auto label_consistency_impro = new Label(this, Label::Body_14, format_improvement(quality_std_improvement));
 
