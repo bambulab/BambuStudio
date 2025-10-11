@@ -48,7 +48,7 @@
 #include <CGAL/Side_of_triangle_mesh.h>
 #include <CGAL/AABB_tree.h>
 #include <CGAL/AABB_face_graph_triangle_primitive.h>
-#include <CGAL/AABB_traits.h>
+#include <CGAL/AABB_traits_3.h>
 #include <CGAL/intersections.h>
 #include <CGAL/Object.h>
 #include <CGAL/boost/graph/copy_face_graph.h>
@@ -88,7 +88,7 @@ namespace Slic3r {
     using CGALMeshExact = CGAL::Surface_mesh<Ke::Point_3>;
     using Polyhedron = CGAL::Polyhedron_3<Kf>;
     using Primitive = CGAL::AABB_face_graph_triangle_primitive<CGALMesh>;
-    using AABBTraits = CGAL::AABB_traits<Kf, Primitive>;
+    using AABBTraits = CGAL::AABB_traits_3<Kf, Primitive>;
     using AABBTree = CGAL::AABB_tree<AABBTraits>;
     using SideTester = CGAL::Side_of_triangle_mesh<CGALMesh, Kf>;
 

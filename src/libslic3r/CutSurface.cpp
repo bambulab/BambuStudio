@@ -29,6 +29,9 @@ using namespace Slic3r;
 #include <CGAL/Exact_integer.h>
 #include <CGAL/Surface_mesh.h>
 #include <CGAL/Cartesian_converter.h>
+#include <CGAL/AABB_tree.h>
+#include <CGAL/AABB_face_graph_triangle_primitive.h>
+#include <CGAL/AABB_traits_3.h>
 #include <tbb/parallel_for.h>
 
 // libslic3r
@@ -2755,7 +2758,7 @@ using BBS = std::vector<BoundingBoxf3>;
 BBS create_bbs(const VCutAOIs &cuts, const CutMeshes &cut_models);
 
 using Primitive = CGAL::AABB_face_graph_triangle_primitive<CutMesh>;
-using Traits    = CGAL::AABB_traits<EpicKernel, Primitive>;
+using Traits    = CGAL::AABB_traits_3<EpicKernel, Primitive>;
 using Ray       = EpicKernel::Ray_3;
 using Tree      = CGAL::AABB_tree<Traits>;
 using Trees     = std::vector<Tree>;
