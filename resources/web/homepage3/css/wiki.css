@@ -4,6 +4,10 @@ html{
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
+
+body{
+  max-width: none !important;
+}
 /* -----------searchBlock----------- */
 .searchBlock{
   height: 60px;
@@ -203,7 +207,7 @@ html{
 .topicBlock{
   padding: 48px 48px;
   background-color: #F8F8F8;
-  margin-top: 12px;
+  margin-top: 48px;
 }
 
 .topicContent{
@@ -216,7 +220,7 @@ html{
 .topicCard{
   padding: 24px 24px;
   flex: 1 1 300px;
-  min-width: 300px;
+  min-width: 600px;
   background-color: #FFFFFF;
   box-sizing: border-box;;
 }
