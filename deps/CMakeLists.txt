@@ -43,7 +43,6 @@ option(DEP_BUILD_GLFW "Compile GLFW" ON)
 option(DEP_BUILD_FREETYPE "Compile freetype" ON)
 option(DEP_BUILD_WXWIDGETS "Compile wxWidgets" ON)
 option(DEP_BUILD_FFMPEG "Compile ffmpeg" ON)
-option(DEP_BUILD_VOROPP "Compile Voro++" ON)
 
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
 set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE PATH "Path for downloaded source packages.")

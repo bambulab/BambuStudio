@@ -270,8 +270,8 @@ namespace Slic3r {
             const indexed_triangle_set* clip_mesh = nullptr
         );
 
-        // Voro++ implementation (fast polyhedral cell generation)
-        static std::unique_ptr<indexed_triangle_set> tessellate_voronoi_with_voropp(
+        // CGAL implementation for solid Voronoi cells
+        static std::unique_ptr<indexed_triangle_set> tessellate_voronoi_with_cgal(
             const std::vector<Vec3d>& seed_points,
             const BoundingBoxf3& bounds,
             const Config& config,
@@ -300,15 +300,6 @@ namespace Slic3r {
         // Create wireframe using Delaunay-Voronoi duality (PRIMARY METHOD - mathematically correct)
         // Uses CGAL's Delaunay triangulation to extract proper Voronoi edges via circumcenters
         static std::unique_ptr<indexed_triangle_set> create_wireframe_from_delaunay(
-            const std::vector<Vec3d>& seed_points,
-            const BoundingBoxf3& bounds,
-            const Config& config,
-            const indexed_triangle_set* clip_mesh
-        );
-        
-        // Legacy: Create wireframe from Voro++ cells (kept for reference, not used)
-        // Note: Voro++ is still used for Lloyd's relaxation, just not edge extraction
-        static std::unique_ptr<indexed_triangle_set> create_wireframe_from_voropp(
             const std::vector<Vec3d>& seed_points,
             const BoundingBoxf3& bounds,
             const Config& config,

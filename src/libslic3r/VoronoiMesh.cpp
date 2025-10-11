@@ -16,11 +16,11 @@
 #include <limits>
 #include <chrono>
 #include <numeric>
+#include <optional>
+#include <list>
+#include <mutex>
 
 #include <boost/log/trivial.hpp>
-
-// Voro++ for 3D Voronoi tessellation
-#include "src/voro++.hh"
 
 // CGAL headers for mesh operations (boolean, convex hull, etc)
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
@@ -33,6 +33,14 @@
 #include <CGAL/Polygon_mesh_processing/polygon_soup_to_polygon_mesh.h>
 #include <CGAL/Polygon_mesh_processing/orient_polygon_soup.h>
 #include <CGAL/Polygon_mesh_processing/orientation.h>
+#include <CGAL/Polygon_mesh_processing/triangulate_faces.h>
+#include <CGAL/halfspace_intersection_3.h>
+#include <CGAL/Side_of_triangle_mesh.h>
+#include <CGAL/AABB_tree.h>
+#include <CGAL/AABB_face_graph_triangle_primitive.h>
+#include <CGAL/intersections.h>
+#include <CGAL/Object.h>
+#include <CGAL/boost/graph/copy_face_graph.h>
 #include <CGAL/IO/io.h>
 
 namespace Slic3r {
@@ -46,7 +54,17 @@ namespace Slic3r {
     using Tds = CGAL::Triangulation_data_structure_3<Vb, Cb>;
     using Delaunay = CGAL::Delaunay_triangulation_3<K, Tds>;
     using Point_3 = K::Point_3;
+    using Segment_3 = K::Segment_3;
+    using Ray_3 = K::Ray_3;
+    using Line_3 = K::Line_3;
+    using Vector_3 = K::Vector_3;
+    using Plane_3 = K::Plane_3;
+    using Iso_cuboid_3 = K::Iso_cuboid_3;
     using CGALMesh = CGAL::Surface_mesh<Point_3>;
+    using Polyhedron = CGAL::Polyhedron_3<K>;
+    using Primitive = CGAL::AABB_face_graph_triangle_primitive<CGALMesh>;
+    using AABBTree = CGAL::AABB_tree<Primitive>;
+    using SideTester = CGAL::Side_of_triangle_mesh<CGALMesh, K>;
 
     namespace {
         
@@ -329,6 +347,451 @@ namespace Slic3r {
                 return false;
             }
             return true;
+        }
+
+        struct DelaunayDiagram {
+            Delaunay dt;
+            std::vector<Delaunay::Vertex_handle> vertex_by_index;
+
+            explicit DelaunayDiagram(const std::vector<Vec3d>& seeds)
+            {
+                std::vector<std::pair<Point_3, int>> points;
+                points.reserve(seeds.size());
+                for (size_t i = 0; i < seeds.size(); ++i) {
+                    points.emplace_back(Point_3(seeds[i].x(), seeds[i].y(), seeds[i].z()), int(i));
+                }
+
+                dt.insert(points.begin(), points.end());
+
+                vertex_by_index.resize(seeds.size(), Delaunay::Vertex_handle());
+                for (auto vit = dt.finite_vertices_begin(); vit != dt.finite_vertices_end(); ++vit) {
+                    int idx = vit->info();
+                    if (idx >= 0 && idx < static_cast<int>(vertex_by_index.size())) {
+                        vertex_by_index[idx] = vit;
+                    }
+                }
+            }
+
+            Delaunay::Vertex_handle vertex(int idx) const
+            {
+                if (idx < 0 || idx >= static_cast<int>(vertex_by_index.size()))
+                    return Delaunay::Vertex_handle();
+                return vertex_by_index[idx];
+            }
+        };
+
+        struct VorEdge {
+            Point_3 a;
+            Point_3 b;
+        };
+
+        struct VoronoiCellData {
+            int seed_index = -1;
+            Point_3 seed_point = Point_3(0, 0, 0);
+            Vec3d centroid = Vec3d::Zero();
+            double volume = 0.0;
+            double surface_area = 0.0;
+            Vec3d bbox_min = Vec3d(std::numeric_limits<double>::max(),
+                                   std::numeric_limits<double>::max(),
+                                   std::numeric_limits<double>::max());
+            Vec3d bbox_max = Vec3d(std::numeric_limits<double>::lowest(),
+                                   std::numeric_limits<double>::lowest(),
+                                   std::numeric_limits<double>::lowest());
+            indexed_triangle_set geometry;
+            std::vector<int> neighbor_ids;
+            std::vector<double> face_areas;
+            std::vector<Vec3d> face_normals;
+            std::vector<int> face_vertex_counts;
+        };
+
+        inline Vec3d to_vec3d(const Point_3& p)
+        {
+            return Vec3d(CGAL::to_double(p.x()), CGAL::to_double(p.y()), CGAL::to_double(p.z()));
+        }
+
+        Iso_cuboid_3 make_cuboid(const BoundingBoxf3& bounds)
+        {
+            return Iso_cuboid_3(
+                Point_3(bounds.min.x(), bounds.min.y(), bounds.min.z()),
+                Point_3(bounds.max.x(), bounds.max.y(), bounds.max.z())
+            );
+        }
+
+        std::vector<Plane_3> build_bounding_planes(const BoundingBoxf3& bounds)
+        {
+            std::vector<Plane_3> planes;
+            planes.reserve(6);
+
+            planes.emplace_back(Point_3(bounds.min.x(), bounds.min.y(), bounds.min.z()), Vector_3(1, 0, 0));
+            planes.emplace_back(Point_3(bounds.max.x(), bounds.min.y(), bounds.min.z()), Vector_3(-1, 0, 0));
+            planes.emplace_back(Point_3(bounds.min.x(), bounds.min.y(), bounds.min.z()), Vector_3(0, 1, 0));
+            planes.emplace_back(Point_3(bounds.min.x(), bounds.max.y(), bounds.min.z()), Vector_3(0, -1, 0));
+            planes.emplace_back(Point_3(bounds.min.x(), bounds.min.y(), bounds.min.z()), Vector_3(0, 0, 1));
+            planes.emplace_back(Point_3(bounds.min.x(), bounds.min.y(), bounds.max.z()), Vector_3(0, 0, -1));
+
+            return planes;
+        }
+
+        std::optional<Segment_3> clip_ray_to_box(const Ray_3& ray, const Iso_cuboid_3& box)
+        {
+            CGAL::Object obj = CGAL::intersection(ray, box);
+            if (const Segment_3* seg = CGAL::object_cast<Segment_3>(&obj)) {
+                return *seg;
+            }
+            return std::nullopt;
+        }
+
+        std::optional<Segment_3> clip_line_to_box(const Line_3& line, const Iso_cuboid_3& box)
+        {
+            CGAL::Object obj = CGAL::intersection(line, box);
+            if (const Segment_3* seg = CGAL::object_cast<Segment_3>(&obj)) {
+                return *seg;
+            }
+            return std::nullopt;
+        }
+
+        bool segment_long_enough(const Segment_3& seg, double min_length_sq)
+        {
+            return CGAL::to_double(seg.squared_length()) > min_length_sq;
+        }
+
+        void accumulate_polygon_metrics(
+            const std::vector<Vec3d>& polygon,
+            double& area_out,
+            Vec3d& normal_out)
+        {
+            if (polygon.size() < 3) {
+                area_out = 0.0;
+                normal_out = Vec3d::Zero();
+                return;
+            }
+
+            Vec3d normal = Vec3d::Zero();
+            for (size_t i = 0; i < polygon.size(); ++i) {
+                const Vec3d& current = polygon[i];
+                const Vec3d& next = polygon[(i + 1) % polygon.size()];
+                normal.x() += (current.y() - next.y()) * (current.z() + next.z());
+                normal.y() += (current.z() - next.z()) * (current.x() + next.x());
+                normal.z() += (current.x() - next.x()) * (current.y() + next.y());
+            }
+
+            double area = 0.5 * normal.norm();
+            if (area < 1e-12) {
+                area_out = 0.0;
+                normal_out = Vec3d::Zero();
+                return;
+            }
+
+            area_out = area;
+            normal_out = normal.normalized();
+        }
+
+        bool compute_mesh_metrics(
+            const indexed_triangle_set& mesh,
+            VoronoiCellData& data)
+        {
+            if (mesh.indices.empty())
+                return false;
+
+            double volume_sum = 0.0;
+            Vec3d centroid_sum = Vec3d::Zero();
+            double surface_area = 0.0;
+
+            Vec3d bbox_min = Vec3d(std::numeric_limits<double>::max(),
+                                   std::numeric_limits<double>::max(),
+                                   std::numeric_limits<double>::max());
+            Vec3d bbox_max = Vec3d(std::numeric_limits<double>::lowest(),
+                                   std::numeric_limits<double>::lowest(),
+                                   std::numeric_limits<double>::lowest());
+
+            for (const auto& tri : mesh.indices) {
+                const Vec3f& af = mesh.vertices[tri(0)];
+                const Vec3f& bf = mesh.vertices[tri(1)];
+                const Vec3f& cf = mesh.vertices[tri(2)];
+
+                Vec3d a = af.cast<double>();
+                Vec3d b = bf.cast<double>();
+                Vec3d c = cf.cast<double>();
+
+                bbox_min = bbox_min.cwiseMin(a).cwiseMin(b).cwiseMin(c);
+                bbox_max = bbox_max.cwiseMax(a).cwiseMax(b).cwiseMax(c);
+
+                Vec3d ab = b - a;
+                Vec3d ac = c - a;
+                Vec3d cross = ab.cross(ac);
+                double triangle_area = 0.5 * cross.norm();
+                surface_area += triangle_area;
+
+                double volume = a.dot(b.cross(c)) / 6.0;
+                volume_sum += volume;
+
+                Vec3d tetra_centroid = (a + b + c) / 4.0;
+                centroid_sum += tetra_centroid * volume;
+            }
+
+            if (std::abs(volume_sum) < 1e-12)
+                return false;
+
+            data.volume = std::abs(volume_sum);
+            data.surface_area = surface_area;
+            Vec3d centroid = centroid_sum / volume_sum;
+            data.centroid = centroid;
+            data.bbox_min = bbox_min;
+            data.bbox_max = bbox_max;
+            return true;
+        }
+
+        bool compute_voronoi_cell_data(
+            VoronoiCellData& out,
+            const DelaunayDiagram& diagram,
+            int seed_index,
+            const std::vector<Plane_3>& bounding_planes,
+            const indexed_triangle_set* clip_mesh)
+        {
+            auto vh = diagram.vertex(seed_index);
+            if (vh == Delaunay::Vertex_handle())
+                return false;
+
+            out.seed_index = seed_index;
+            out.seed_point = vh->point();
+
+            std::vector<Plane_3> planes = bounding_planes;
+            std::unordered_set<int> neighbor_ids;
+
+            auto add_neighbor = [&](Delaunay::Vertex_handle nh) {
+                if (nh == Delaunay::Vertex_handle() || diagram.dt.is_infinite(nh))
+                    return;
+                int nid = nh->info();
+                if (nid < 0)
+                    return;
+                if (!neighbor_ids.insert(nid).second)
+                    return;
+
+                Point_3 q = nh->point();
+                Point_3 p = vh->point();
+                if (p == q)
+                    return;
+                Point_3 mid = CGAL::midpoint(p, q);
+                Vector_3 normal = Vector_3(
+                    p.x() - q.x(),
+                    p.y() - q.y(),
+                    p.z() - q.z()
+                );
+                planes.emplace_back(mid, normal);
+            };
+
+            std::vector<Delaunay::Vertex_handle> adjacent;
+            diagram.dt.finite_adjacent_vertices(vh, std::back_inserter(adjacent));
+            for (auto nh : adjacent) {
+                add_neighbor(nh);
+            }
+
+            out.neighbor_ids.assign(neighbor_ids.begin(), neighbor_ids.end());
+
+            if (planes.size() < 4)
+                return false;
+
+            Polyhedron poly;
+            if (!CGAL::halfspace_intersection_3(planes.begin(), planes.end(), poly, vh->point()))
+                return false;
+
+            if (poly.is_empty() || poly.size_of_vertices() < 4)
+                return false;
+
+            out.face_areas.clear();
+            out.face_normals.clear();
+            out.face_vertex_counts.clear();
+
+            for (auto fit = poly.facets_begin(); fit != poly.facets_end(); ++fit) {
+                std::vector<Vec3d> polygon_points;
+                auto h = fit->facet_begin();
+                auto h_end = h;
+                do {
+                    polygon_points.push_back(to_vec3d(h->vertex()->point()));
+                    ++h;
+                } while (h != h_end);
+
+                double area = 0.0;
+                Vec3d normal = Vec3d::Zero();
+                accumulate_polygon_metrics(polygon_points, area, normal);
+
+                out.face_vertex_counts.push_back(int(polygon_points.size()));
+                out.face_areas.push_back(area);
+                out.face_normals.push_back(normal);
+            }
+
+            CGALMesh cell_mesh;
+            CGAL::copy_face_graph(poly, cell_mesh);
+            PMP::triangulate_faces(cell_mesh);
+
+            indexed_triangle_set cell_its = surface_mesh_to_indexed(cell_mesh);
+            remove_degenerate_faces(cell_its);
+
+            if (clip_mesh && !clip_mesh->vertices.empty()) {
+                TriangleMesh tmp(cell_its);
+                try {
+                    MeshBoolean::cgal::intersect(tmp, *clip_mesh);
+                } catch (...) {
+                    return false;
+                }
+
+                if (tmp.its.vertices.empty() || tmp.its.indices.empty())
+                    return false;
+                cell_its = tmp.its;
+                remove_degenerate_faces(cell_its);
+            }
+
+            if (cell_its.indices.empty())
+                return false;
+
+            out.geometry = std::move(cell_its);
+            if (!compute_mesh_metrics(out.geometry, out))
+                return false;
+
+            return true;
+        }
+
+        std::vector<VoronoiCellData> compute_all_cells(
+            const std::vector<Vec3d>& seeds,
+            const BoundingBoxf3& bounds,
+            const indexed_triangle_set* clip_mesh)
+        {
+            DelaunayDiagram diagram(seeds);
+            std::vector<Plane_3> bounding_planes = build_bounding_planes(bounds);
+            std::vector<VoronoiCellData> cells;
+            cells.reserve(seeds.size());
+
+            for (size_t i = 0; i < seeds.size(); ++i) {
+                VoronoiCellData cell;
+                if (compute_voronoi_cell_data(cell, diagram, int(i), bounding_planes, clip_mesh)) {
+                    cells.push_back(std::move(cell));
+                }
+            }
+
+            return cells;
+        }
+
+        std::vector<VorEdge> extract_voronoi_edges(
+            const DelaunayDiagram& diagram,
+            const Iso_cuboid_3& bbox,
+            double min_length_sq)
+        {
+            std::vector<VorEdge> edges;
+
+            for (auto fit = diagram.dt.finite_facets_begin(); fit != diagram.dt.finite_facets_end(); ++fit) {
+                CGAL::Object dual = diagram.dt.dual(*fit);
+
+                if (const Segment_3* seg = CGAL::object_cast<Segment_3>(&dual)) {
+                    if (segment_long_enough(*seg, min_length_sq)) {
+                        edges.push_back({ seg->source(), seg->target() });
+                    }
+                } else if (const Ray_3* ray = CGAL::object_cast<Ray_3>(&dual)) {
+                    auto clipped = clip_ray_to_box(*ray, bbox);
+                    if (clipped && segment_long_enough(*clipped, min_length_sq)) {
+                        edges.push_back({ clipped->source(), clipped->target() });
+                    }
+                } else if (const Line_3* line = CGAL::object_cast<Line_3>(&dual)) {
+                    auto clipped = clip_line_to_box(*line, bbox);
+                    if (clipped && segment_long_enough(*clipped, min_length_sq)) {
+                        edges.push_back({ clipped->source(), clipped->target() });
+                    }
+                }
+            }
+
+            return edges;
+        }
+
+        std::vector<VorEdge> clip_edges_to_volume(
+            const CGALMesh& mesh,
+            const std::vector<VorEdge>& input_edges,
+            double min_length_sq)
+        {
+            if (input_edges.empty() || mesh.is_empty())
+                return {};
+
+            AABBTree tree(faces(mesh).begin(), faces(mesh).end(), mesh);
+            tree.accelerate_distance_queries();
+
+            SideTester inside(mesh);
+
+            std::vector<VorEdge> result;
+            result.reserve(input_edges.size());
+
+            for (const auto& edge : input_edges) {
+                Segment_3 seg(edge.a, edge.b);
+                if (!segment_long_enough(seg, min_length_sq))
+                    continue;
+
+                auto point_status = [&](const Point_3& p) {
+                    CGAL::Oriented_side side = inside(p);
+                    return side == CGAL::ON_BOUNDED_SIDE || side == CGAL::ON_BOUNDARY;
+                };
+
+                bool a_inside = point_status(edge.a);
+                bool b_inside = point_status(edge.b);
+
+                if (a_inside && b_inside) {
+                    result.push_back(edge);
+                    continue;
+                }
+
+                std::list<CGAL::Object> intersections;
+                tree.all_intersections(seg, std::back_inserter(intersections));
+
+                std::vector<Point_3> points;
+                points.reserve(2 + intersections.size() * 2);
+                points.push_back(edge.a);
+                points.push_back(edge.b);
+
+                for (const auto& obj : intersections) {
+                    if (const Point_3* ip = CGAL::object_cast<Point_3>(&obj)) {
+                        points.push_back(*ip);
+                    } else if (const Segment_3* sp = CGAL::object_cast<Segment_3>(&obj)) {
+                        points.push_back(sp->source());
+                        points.push_back(sp->target());
+                    }
+                }
+
+                Vec3d source = to_vec3d(edge.a);
+                Vec3d target = to_vec3d(edge.b);
+                Vec3d dir = target - source;
+                double len_sq = dir.squaredNorm();
+                if (len_sq < min_length_sq)
+                    continue;
+
+                auto parameter = [&](const Point_3& p) {
+                    Vec3d pv = to_vec3d(p);
+                    return (pv - source).dot(dir) / len_sq;
+                };
+
+                std::sort(points.begin(), points.end(), [&](const Point_3& lhs, const Point_3& rhs) {
+                    return parameter(lhs) < parameter(rhs);
+                });
+
+                std::vector<Point_3> unique_points;
+                unique_points.reserve(points.size());
+                const double param_eps = 1e-9;
+                for (const auto& p : points) {
+                    if (unique_points.empty() || std::abs(parameter(p) - parameter(unique_points.back())) > param_eps) {
+                        unique_points.push_back(p);
+                    }
+                }
+
+                for (size_t i = 0; i + 1 < unique_points.size(); ++i) {
+                    Point_3 a = unique_points[i];
+                    Point_3 b = unique_points[i + 1];
+                    Point_3 mid = CGAL::midpoint(a, b);
+
+                    if (point_status(mid)) {
+                        Segment_3 clipped(a, b);
+                        if (segment_long_enough(clipped, min_length_sq)) {
+                            result.push_back({ a, b });
+                        }
+                    }
+                }
+            }
+
+            return result;
         }
         
         // Filter seed points to ensure minimum separation
