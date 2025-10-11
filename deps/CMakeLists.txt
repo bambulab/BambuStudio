@@ -239,12 +239,6 @@ include(GMP/GMP.cmake)
 include(MPFR/MPFR.cmake)
 include(CGAL/CGAL.cmake)
 
-set(VOROPP_PKG "")
-if (DEP_BUILD_VOROPP)
-    include(Voropp/Voropp.cmake)
-    set(VOROPP_PKG dep_Voropp)
-endif ()
-
 include(NLopt/NLopt.cmake)
 
 set(OPENSSL_PKG "")
@@ -286,7 +280,6 @@ set(_dep_list
     dep_OpenCSG
     dep_OpenCV
     dep_CGAL
-    ${VOROPP_PKG}
     ${OPENSSL_PKG}
     ${GLFW_PKG}
     ${PNG_PKG}
