@@ -266,6 +266,8 @@ namespace Slic3r::GUI {
         out.min_feature_size = cfg.min_feature_size;
         out.validate_printability = cfg.validate_printability;
         out.restricted_voronoi = cfg.restricted_voronoi;
+        if (out.restricted_voronoi)
+            out.clip_to_mesh = true;
 
         return out;
     }
@@ -422,6 +424,10 @@ namespace Slic3r::GUI {
             }
             else {
                 m_seed_preview_model.reset();
+                m_seed_preview_points.clear();
+                m_seed_preview_points_exact.clear();
+                m_2d_voronoi_cells.clear();
+                m_2d_delaunay_edges.clear();
             }
         }
 

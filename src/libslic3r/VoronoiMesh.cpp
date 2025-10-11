@@ -991,6 +991,196 @@ namespace Slic3r {
             return edges;
         }
 
+        static std::unique_ptr<indexed_triangle_set> create_wireframe_from_restricted_voronoi(
+            const DelaunayDiagram& diagram,
+            const std::vector<Vec3d>& seeds,
+            const indexed_triangle_set& surface_mesh,
+            const Config& config,
+            double abs_eps)
+        {
+            auto result = std::make_unique<indexed_triangle_set>();
+            auto polygons = compute_surface_rvd_polygons(diagram, seeds, surface_mesh, abs_eps);
+
+            if (polygons.empty()) {
+                BOOST_LOG_TRIVIAL(warning) << "create_wireframe_from_restricted_voronoi() - No surface polygons generated";
+                return result;
+            }
+
+            BOOST_LOG_TRIVIAL(info) << "create_wireframe_from_restricted_voronoi() - Surface polygons: " << polygons.size();
+
+            const double min_edge_length_sq = abs_eps * abs_eps;
+
+            struct Vec3dHash {
+                double scale;
+                explicit Vec3dHash(double s) : scale(s) {}
+                size_t operator()(const Vec3d& v) const {
+                    int64_t x = int64_t(std::llround(v.x() * scale));
+                    int64_t y = int64_t(std::llround(v.y() * scale));
+                    int64_t z = int64_t(std::llround(v.z() * scale));
+                    return std::hash<int64_t>()(x) ^ (std::hash<int64_t>()(y) << 1) ^ (std::hash<int64_t>()(z) << 2);
+                }
+            };
+
+            struct Vec3dEqual {
+                double eps;
+                explicit Vec3dEqual(double e) : eps(e) {}
+                bool operator()(const Vec3d& a, const Vec3d& b) const {
+                    return (a - b).norm() <= eps;
+                }
+            };
+
+            struct EdgeHash {
+                Vec3dHash hasher;
+                explicit EdgeHash(double scale) : hasher(scale) {}
+                size_t operator()(const std::pair<Vec3d, Vec3d>& e) const {
+                    return hasher(e.first) ^ (hasher(e.second) << 1);
+                }
+            };
+
+            struct EdgeEqual {
+                Vec3dEqual eq;
+                explicit EdgeEqual(double eps) : eq(eps) {}
+                bool operator()(const std::pair<Vec3d, Vec3d>& a, const std::pair<Vec3d, Vec3d>& b) const {
+                    return (eq(a.first, b.first) && eq(a.second, b.second)) ||
+                           (eq(a.first, b.second) && eq(a.second, b.first));
+                }
+            };
+
+            const double hash_scale = 1.0 / std::max(abs_eps, 1e-9);
+
+            if (config.hollow_cells) {
+                std::unordered_set<std::pair<Vec3d, Vec3d>, EdgeHash, EdgeEqual> surface_edges(
+                    64, EdgeHash(hash_scale), EdgeEqual(abs_eps));
+
+                auto canonical_edge = [&](Vec3d a, Vec3d b) {
+                    auto lt_eps = [abs_eps](double lhs, double rhs) {
+                        return lhs + abs_eps < rhs;
+                    };
+                    auto eq_eps = [abs_eps](double lhs, double rhs) {
+                        return std::abs(lhs - rhs) <= abs_eps;
+                    };
+                    if (lt_eps(b.x(), a.x()) ||
+                        (eq_eps(a.x(), b.x()) && lt_eps(b.y(), a.y())) ||
+                        (eq_eps(a.x(), b.x()) && eq_eps(a.y(), b.y()) && lt_eps(b.z(), a.z()))) {
+                        std::swap(a, b);
+                    }
+                    return std::make_pair(a, b);
+                };
+
+                for (const auto& poly : polygons) {
+                    const auto& verts = poly.vertices;
+                    size_t count = verts.size();
+                    if (count < 2)
+                        continue;
+                    for (size_t i = 0; i < count; ++i) {
+                        const Vec3d& a = verts[i];
+                        const Vec3d& b = verts[(i + 1) % count];
+                        if ((b - a).squaredNorm() < min_edge_length_sq)
+                            continue;
+                        surface_edges.insert(canonical_edge(a, b));
+                    }
+                }
+
+                if (surface_edges.empty()) {
+                    BOOST_LOG_TRIVIAL(warning) << "create_wireframe_from_restricted_voronoi() - No edges after dedup";
+                    return result;
+                }
+
+                const float radius = config.edge_thickness * 0.5f;
+                const int segments = std::max(3, config.edge_segments);
+
+                int skipped_degenerate = 0;
+                for (const auto& edge : surface_edges) {
+                    Vec3d p1 = edge.first;
+                    Vec3d p2 = edge.second;
+                    Vec3d dir = (p2 - p1);
+                    double len_sq = dir.squaredNorm();
+                    if (len_sq < min_edge_length_sq) {
+                        skipped_degenerate++;
+                        continue;
+                    }
+
+                    dir.normalize();
+                    Vec3d perp1 = dir.cross(std::abs(dir.z()) < 0.9 ? Vec3d(0, 0, 1) : Vec3d(1, 0, 0));
+                    if (perp1.squaredNorm() < 1e-12) {
+                        perp1 = dir.cross(Vec3d(0, 1, 0));
+                    }
+                    perp1.normalize();
+                    Vec3d perp2 = dir.cross(perp1).normalized();
+
+                    size_t base_idx = result->vertices.size();
+                    for (int i = 0; i < segments; ++i) {
+                        float angle = 2.0f * float(M_PI) * float(i) / float(segments);
+                        float x = radius * std::cos(angle);
+                        float y = radius * std::sin(angle);
+                        Vec3d offset = perp1 * x + perp2 * y;
+                        result->vertices.emplace_back((p1 + offset).cast<float>());
+                    }
+                    for (int i = 0; i < segments; ++i) {
+                        float angle = 2.0f * float(M_PI) * float(i) / float(segments);
+                        float x = radius * std::cos(angle);
+                        float y = radius * std::sin(angle);
+                        Vec3d offset = perp1 * x + perp2 * y;
+                        result->vertices.emplace_back((p2 + offset).cast<float>());
+                    }
+
+                    for (int i = 0; i < segments; ++i) {
+                        int next = (i + 1) % segments;
+                        result->indices.emplace_back(base_idx + i, base_idx + segments + i, base_idx + segments + next);
+                        result->indices.emplace_back(base_idx + i, base_idx + segments + next, base_idx + next);
+                    }
+
+                    if (config.edge_caps) {
+                        int cap1_center = result->vertices.size();
+                        result->vertices.emplace_back(p1.cast<float>());
+                        for (int i = 0; i < segments; ++i) {
+                            int next = (i + 1) % segments;
+                            result->indices.emplace_back(cap1_center, base_idx + next, base_idx + i);
+                        }
+
+                        int cap2_center = result->vertices.size();
+                        result->vertices.emplace_back(p2.cast<float>());
+                        for (int i = 0; i < segments; ++i) {
+                            int next = (i + 1) % segments;
+                            result->indices.emplace_back(cap2_center, base_idx + segments + i, base_idx + segments + next);
+                        }
+                    }
+                }
+
+                if (skipped_degenerate > 0) {
+                    BOOST_LOG_TRIVIAL(info) << "create_wireframe_from_restricted_voronoi() - Skipped " << skipped_degenerate << " degenerate edges";
+                }
+
+                remove_degenerate_faces(*result);
+                weld_vertices(*result, radius * 0.1f);
+                remove_degenerate_faces(*result);
+            } else {
+                for (const auto& poly : polygons) {
+                    const auto& verts = poly.vertices;
+                    if (verts.size() < 3)
+                        continue;
+
+                    size_t base_idx = result->vertices.size();
+                    for (const Vec3d& v : verts) {
+                        result->vertices.emplace_back(v.cast<float>());
+                    }
+                    for (size_t i = 1; i + 1 < verts.size(); ++i) {
+                        result->indices.emplace_back(int(base_idx), int(base_idx + i), int(base_idx + i + 1));
+                    }
+                }
+
+                remove_degenerate_faces(*result);
+                weld_vertices(*result, abs_eps);
+                remove_degenerate_faces(*result);
+            }
+
+            BOOST_LOG_TRIVIAL(info) << "create_wireframe_from_restricted_voronoi() - Result: "
+                                     << result->vertices.size() << " vertices, "
+                                     << result->indices.size() << " faces";
+
+            return result;
+        }
+
         std::vector<VorEdge> clip_edges_to_volume(
             const CGALMesh& mesh,
             const std::vector<VorEdge>& input_edges,
@@ -2813,6 +3003,15 @@ namespace Slic3r {
             return create_wireframe_from_delaunay(seed_points, bounds, config, clip_mesh);
         }
 
+        if (config.restricted_voronoi) {
+            if (clip_mesh && !clip_mesh->indices.empty()) {
+                BOOST_LOG_TRIVIAL(info) << "tessellate_voronoi_cells() - Restricted Voronoi on surface";
+                return create_wireframe_from_delaunay(seed_points, bounds, config, clip_mesh);
+            } else {
+                BOOST_LOG_TRIVIAL(warning) << "tessellate_voronoi_cells() - Restricted Voronoi requested without surface mesh";
+            }
+        }
+
         BOOST_LOG_TRIVIAL(info) << "tessellate_voronoi_cells() - Using CGAL halfspace intersection for solid cells";
         return tessellate_voronoi_with_cgal(seed_points, bounds, config, clip_mesh);
     }
@@ -2914,6 +3113,14 @@ namespace Slic3r {
         const double bbox_diag = (expanded_bounds.max - expanded_bounds.min).norm();
         const double abs_eps = std::max(1e-7, 1e-8 * bbox_diag);
         const double min_edge_length_sq = abs_eps * abs_eps;
+
+        if (config.restricted_voronoi) {
+            if (clip_mesh && !clip_mesh->indices.empty()) {
+                return create_wireframe_from_restricted_voronoi(diagram, seed_points, *clip_mesh, config, abs_eps);
+            } else {
+                BOOST_LOG_TRIVIAL(warning) << "create_wireframe_from_delaunay() - Restricted Voronoi requires surface mesh; falling back to full Voronoi";
+            }
+        }
 
         Iso_cuboid_3 bbox = make_cuboid(expanded_bounds);
         auto raw_edges = extract_voronoi_edges(diagram, bbox, min_edge_length_sq);
