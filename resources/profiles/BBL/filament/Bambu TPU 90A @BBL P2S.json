@@ -63,8 +63,8 @@
         "nil"
     ],
     "filament_retraction_length": [
-        "1",
-        "1"
+        "0.4",
+        "0.4"
     ],
     "filament_retraction_minimum_travel": [
         "nil",
@@ -163,7 +163,9 @@
         "0 0 0 0 0 0"
     ],
     "compatible_printers": [
-        "Bambu Lab P2S 0.4 nozzle"
+        "Bambu Lab P2S 0.4 nozzle",
+        "Bambu Lab P2S 0.6 nozzle",
+        "Bambu Lab P2S 0.8 nozzle"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n"
