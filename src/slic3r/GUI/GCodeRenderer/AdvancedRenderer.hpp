@@ -182,17 +182,23 @@ namespace Slic3r {
                 const std::vector<float>& get_options_segment_list() const;
                 const std::vector<float>& get_other_segment_list() const;
 
+                void update_position_data_texture();
                 void bind_position_data_texture(uint8_t stage) const;
-                void bind_width_height_data_texture(uint8_t stage, const GCodeProcessorResult& gcode_result) const;
+
+                void update_width_height_data_texture(const GCodeProcessorResult& gcode_result);
+                void bind_width_height_data_texture(uint8_t stage) const;
 
                 void update_per_move_data(EViewType t_view_type, const GCodeProcessorResult& gcode_result);
+                void update_per_move_data_texture();
                 void bind_per_move_data_texture(uint8_t stage) const;
 
-                void bind_other_segment_texture(uint8_t stage) const;
+                void update_other_segment_texture();
                 uint32_t get_other_segment_count() const;
+                void bind_other_segment_texture(uint8_t stage) const;
 
-                void bind_options_segment_texture(uint8_t stage) const;
+                void update_options_segment_texture();
                 uint32_t get_options_segment_count() const;
+                void bind_options_segment_texture(uint8_t stage) const;
 
                 uint32_t get_current_move_id(uint32_t seg_index) const;
 
@@ -287,11 +293,13 @@ namespace Slic3r {
 
                 void update_per_move_data(EViewType t_view_type, const GCodeProcessorResult& t_gcode_result);
 
-                void bind_transient_options_texture(uint8_t stage) const;
+                void update_transient_options_texture();
                 uint32_t get_transient_options_segment_count() const;
+                void bind_transient_options_texture(uint8_t stage) const;
 
-                void bind_transient_other_texture(uint8_t stage) const;
+                void update_transient_other_texture();
                 uint32_t get_transient_other_segment_count() const;
+                void bind_transient_other_texture(uint8_t stage) const;
                 const std::vector<float>& get_transient_other_segment_list() const;
 
                 void mark_move_dirty();
