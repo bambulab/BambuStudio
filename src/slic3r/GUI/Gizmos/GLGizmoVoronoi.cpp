@@ -15,6 +15,14 @@
 #include <CGAL/Triangulation_data_structure_3.h>
 #include <CGAL/Delaunay_triangulation_3.h>
 
+// 2D Voronoi diagram support
+#include <CGAL/Delaunay_triangulation_2.h>
+#include <CGAL/Regular_triangulation_2.h>
+#include <CGAL/Voronoi_diagram_2.h>
+#include <CGAL/Delaunay_triangulation_adaptation_traits_2.h>
+#include <CGAL/Regular_triangulation_adaptation_traits_2.h>
+#include <CGAL/Delaunay_triangulation_adaptation_policies_2.h>
+
 #include <GL/glew.h>
 #include <thread>
 #include <chrono>
@@ -38,6 +46,7 @@
 namespace Slic3r::GUI {
 
     namespace {
+        // 3D types for 3D preview
         using PreviewKernel  = CGAL::Exact_predicates_inexact_constructions_kernel;
         using PreviewCellBase = CGAL::Delaunay_triangulation_cell_base_with_circumcenter_3<PreviewKernel>;
         using PreviewVertexBase = CGAL::Triangulation_vertex_base_with_info_3<int, PreviewKernel>;
@@ -45,6 +54,23 @@ namespace Slic3r::GUI {
         using PreviewDT       = CGAL::Delaunay_triangulation_3<PreviewKernel, PreviewTDS>;
         using PreviewPoint    = PreviewKernel::Point_3;
         using PreviewSegment  = PreviewKernel::Segment_3;
+
+        // 2D types for 2D Voronoi diagram preview
+        using K2 = CGAL::Exact_predicates_inexact_constructions_kernel;
+        using Point_2 = K2::Point_2;
+        using Weighted_point_2 = K2::Weighted_point_2;
+        
+        // Standard Delaunay/Voronoi (unweighted)
+        using DT2 = CGAL::Delaunay_triangulation_2<K2>;
+        using AT2 = CGAL::Delaunay_triangulation_adaptation_traits_2<DT2>;
+        using AP2 = CGAL::Delaunay_triangulation_caching_degeneracy_removal_policy_2<DT2>;
+        using VD2 = CGAL::Voronoi_diagram_2<DT2, AT2, AP2>;
+        
+        // Weighted (Regular) Delaunay/Voronoi (power diagram)
+        using RT2 = CGAL::Regular_triangulation_2<K2>;
+        using AT2_RT = CGAL::Regular_triangulation_adaptation_traits_2<RT2>;
+        using AP2_RT = CGAL::Regular_triangulation_caching_degeneracy_removal_policy_2<RT2>;
+        using VD2_RT = CGAL::Voronoi_diagram_2<RT2, AT2_RT, AP2_RT>;
 
         struct VoronoiPreviewData {
             std::vector<PreviewPoint> seeds;
@@ -102,6 +128,12 @@ namespace Slic3r::GUI {
             constexpr float phi_conjugate = 0.6180339887498949f;
             float h = std::fmod(idx * phi_conjugate, 1.0f);
             return hsv_to_rgb(h, 0.6f, 0.9f);
+        }
+
+        static ImU32 color_from_index_imgui(size_t idx)
+        {
+            Vec3f rgb = color_from_index(idx);
+            return ImGui::ColorConvertFloat4ToU32(ImVec4(rgb.x(), rgb.y(), rgb.z(), 0.6f));
         }
     } // namespace
 
@@ -1863,6 +1895,203 @@ namespace Slic3r::GUI {
 
         // Reserve space in ImGui layout for the canvas
         ImGui::Dummy(canvas_size);
+    }
+
+    void GLGizmoVoronoi::update_2d_voronoi_preview()
+    {
+        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_2d_voronoi_preview() START";
+        
+        m_2d_voronoi_cells.clear();
+        m_2d_delaunay_edges.clear();
+
+        if (m_seed_preview_points_exact.empty()) {
+            BOOST_LOG_TRIVIAL(warning) << "GLGizmoVoronoi: update_2d_voronoi_preview() - No seeds available";
+            return;
+        }
+
+        try {
+            // Project seeds onto XY plane and normalize to [0,1]
+            std::vector<Vec3d> seeds_3d = m_seed_preview_points_exact;
+            
+            // Compute bounding box
+            Vec3d min_pt = seeds_3d[0];
+            Vec3d max_pt = seeds_3d[0];
+            for (const auto& seed : seeds_3d) {
+                min_pt = min_pt.cwiseMin(seed);
+                max_pt = max_pt.cwiseMax(seed);
+            }
+            
+            // Add margin
+            Vec3d range = max_pt - min_pt;
+            double margin = 0.1 * range.norm();
+            min_pt -= Vec3d(margin, margin, margin);
+            max_pt += Vec3d(margin, margin, margin);
+            range = max_pt - min_pt;
+            
+            // Prevent division by zero
+            if (range.x() < 1e-6) range.x() = 1.0;
+            if (range.y() < 1e-6) range.y() = 1.0;
+
+            // Check if weighted mode is enabled
+            bool use_weighted = m_configuration.use_weighted_cells;
+            
+            if (use_weighted && !m_configuration.cell_weights.empty() && 
+                m_configuration.cell_weights.size() == seeds_3d.size()) {
+                
+                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: 2D preview - Using WEIGHTED Voronoi (power diagram)";
+                
+                // Build weighted 2D Voronoi (power diagram)
+                RT2 rt;
+                std::vector<Point_2> seed_points_2d;
+                
+                for (size_t i = 0; i < seeds_3d.size(); ++i) {
+                    const Vec3d& seed = seeds_3d[i];
+                    double weight = m_configuration.cell_weights[i];
+                    
+                    // Normalize to [0,1]
+                    double x = (seed.x() - min_pt.x()) / range.x();
+                    double y = (seed.y() - min_pt.y()) / range.y();
+                    
+                    // Clamp to valid range
+                    x = std::max(0.0, std::min(1.0, x));
+                    y = std::max(0.0, std::min(1.0, y));
+                    
+                    seed_points_2d.push_back(Point_2(x, y));
+                    
+                    // Scale weight to normalized space
+                    double scaled_weight = weight / (range.x() * range.x());
+                    
+                    Weighted_point_2 wp(Point_2(x, y), scaled_weight);
+                    rt.insert(wp);
+                }
+                
+                // Build Voronoi diagram adaptor
+                VD2_RT vd(rt);
+                
+                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: 2D preview - Built weighted Voronoi with " 
+                                         << vd.number_of_faces() << " faces";
+                
+                // Extract Voronoi cells
+                int face_idx = 0;
+                for (auto fit = vd.faces_begin(); fit != vd.faces_end(); ++fit, ++face_idx) {
+                    VoronoiCell2D cell;
+                    
+                    // Get seed point for this face
+                    auto vh = fit->dual();
+                    if (rt.is_infinite(vh))
+                        continue;
+                    
+                    Point_2 seed_pt = rt.geom_traits().construct_point_2_object()(vh->point());
+                    cell.seed_point = Vec2f(static_cast<float>(seed_pt.x()), 
+                                           static_cast<float>(seed_pt.y()));
+                    
+                    // Assign color
+                    cell.color = color_from_index_imgui(face_idx);
+                    
+                    // Extract cell vertices (bounded by [0,1] box)
+                    auto ccb = fit->ccb();
+                    auto he = ccb;
+                    bool bounded = true;
+                    
+                    do {
+                        if (he->has_source()) {
+                            Point_2 p = he->source()->point();
+                            
+                            // Clamp to [0,1] bounding box
+                            double x = std::max(0.0, std::min(1.0, p.x()));
+                            double y = std::max(0.0, std::min(1.0, p.y()));
+                            
+                            cell.vertices.push_back(Vec2f(static_cast<float>(x), 
+                                                         static_cast<float>(y)));
+                        } else {
+                            bounded = false;
+                            break;
+                        }
+                    } while (++he != ccb);
+                    
+                    if (bounded && cell.vertices.size() >= 3) {
+                        m_2d_voronoi_cells.push_back(cell);
+                    }
+                }
+                
+            } else {
+                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: 2D preview - Using STANDARD Voronoi (unweighted)";
+                
+                // Build standard 2D Voronoi
+                DT2 dt;
+                std::vector<Point_2> seed_points_2d;
+                
+                for (const auto& seed : seeds_3d) {
+                    // Normalize to [0,1]
+                    double x = (seed.x() - min_pt.x()) / range.x();
+                    double y = (seed.y() - min_pt.y()) / range.y();
+                    
+                    // Clamp to valid range
+                    x = std::max(0.0, std::min(1.0, x));
+                    y = std::max(0.0, std::min(1.0, y));
+                    
+                    Point_2 p(x, y);
+                    seed_points_2d.push_back(p);
+                    dt.insert(p);
+                }
+                
+                // Build Voronoi diagram adaptor
+                VD2 vd(dt);
+                
+                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: 2D preview - Built standard Voronoi with " 
+                                         << vd.number_of_faces() << " faces";
+                
+                // Extract Voronoi cells
+                int face_idx = 0;
+                for (auto fit = vd.faces_begin(); fit != vd.faces_end(); ++fit, ++face_idx) {
+                    VoronoiCell2D cell;
+                    
+                    // Get seed point for this face
+                    Point_2 seed_pt = fit->dual()->point();
+                    cell.seed_point = Vec2f(static_cast<float>(seed_pt.x()), 
+                                           static_cast<float>(seed_pt.y()));
+                    
+                    // Assign color
+                    cell.color = color_from_index_imgui(face_idx);
+                    
+                    // Extract cell vertices (bounded by [0,1] box)
+                    auto ccb = fit->ccb();
+                    auto he = ccb;
+                    bool bounded = true;
+                    
+                    do {
+                        if (he->has_source()) {
+                            Point_2 p = he->source()->point();
+                            
+                            // Clamp to [0,1] bounding box
+                            double x = std::max(0.0, std::min(1.0, p.x()));
+                            double y = std::max(0.0, std::min(1.0, p.y()));
+                            
+                            cell.vertices.push_back(Vec2f(static_cast<float>(x), 
+                                                         static_cast<float>(y)));
+                        } else {
+                            bounded = false;
+                            break;
+                        }
+                    } while (++he != ccb);
+                    
+                    if (bounded && cell.vertices.size() >= 3) {
+                        m_2d_voronoi_cells.push_back(cell);
+                    }
+                }
+            }
+            
+            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_2d_voronoi_preview() - Generated " 
+                                     << m_2d_voronoi_cells.size() << " cells";
+        }
+        catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(error) << "GLGizmoVoronoi: update_2d_voronoi_preview() EXCEPTION: " << e.what();
+            m_2d_voronoi_cells.clear();
+        }
+        catch (...) {
+            BOOST_LOG_TRIVIAL(error) << "GLGizmoVoronoi: update_2d_voronoi_preview() UNKNOWN EXCEPTION";
+            m_2d_voronoi_cells.clear();
+        }
     }
 
 } // namespace Slic3r::GUI
