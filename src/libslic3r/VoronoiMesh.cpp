@@ -56,7 +56,7 @@
 #include <CGAL/Object.h>
 #include <CGAL/boost/graph/copy_face_graph.h>
 #include <CGAL/IO/io.h>
-#include <CGAL/Assertion_exception.h>
+#include <CGAL/exceptions.h>
 #include <CGAL/Regular_triangulation_cell_base_3.h>
 #include <CGAL/Regular_triangulation_vertex_base_3.h>
 
@@ -691,7 +691,7 @@ namespace Slic3r {
                 
                 return true;
             }
-            catch (const std::exception& e) {
+            catch (const CGAL::Failure_exception& e) {
                 BOOST_LOG_TRIVIAL(warning) << "Halfspace intersection failed: " << e.what();
                 return false;
             }
@@ -799,7 +799,7 @@ namespace Slic3r {
                 
                 return true;
             }
-            catch (const std::exception& e) {
+            catch (const CGAL::Failure_exception& e) {
                 BOOST_LOG_TRIVIAL(warning) << "Boolean intersection failed: " << e.what();
                 return false;
             }
@@ -3601,7 +3601,7 @@ namespace Slic3r {
             Polyhedron poly;
             try {
                 CGAL::halfspace_intersection_3(planes.begin(), planes.end(), poly, p_current);
-            } catch (const CGAL::Assertion_exception&) {
+            } catch (const CGAL::Failure_exception&) {
                 return false;
             }
             
@@ -4307,8 +4307,8 @@ namespace Slic3r {
             BOOST_LOG_TRIVIAL(info) << "clip_to_mesh_boundary() - Intersection succeeded, result vertices=" << voronoi_tm.its.vertices.size();
             voronoi_mesh = voronoi_tm.its;
         }
-        catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << "clip_to_mesh_boundary() - Exception during boolean intersection: " << e.what();
+        catch (const CGAL::Failure_exception& e) {
+            BOOST_LOG_TRIVIAL(error) << "clip_to_mesh_boundary() - CGAL failure during boolean intersection: " << e.what();
             // Keep original Voronoi mesh if boolean operation fails
         }
         catch (...) {
@@ -4537,8 +4537,8 @@ namespace Slic3r {
                 return;
             }
         }
-        catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << "create_edge_structure() - Exception during Delaunay: " << e.what();
+        catch (const CGAL::Failure_exception& e) {
+            BOOST_LOG_TRIVIAL(error) << "create_edge_structure() - CGAL failure during Delaunay: " << e.what();
             return;
         }
         catch (...) {
