@@ -44,6 +44,9 @@
 #include <CGAL/Polygon_mesh_processing/triangulate_faces.h>
 #include <CGAL/Polygon_mesh_processing/corefinement.h>
 #include <CGAL/convex_hull_3.h>
+#include <CGAL/Plane_3.h>
+#include <CGAL/Vector_3.h>
+#include <CGAL/Point_3.h>
 #include <CGAL/Convex_hull_3/dual/halfspace_intersection_3.h>
 #include <CGAL/Side_of_triangle_mesh.h>
 #include <CGAL/AABB_tree.h>
