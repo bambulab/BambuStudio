@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <set>
 #include <map>
+#include <unordered_set>
+#include <unordered_map>
 #include <queue>
 #include <array>
 #include <cmath>
@@ -2160,9 +2162,9 @@ namespace Slic3r {
 
         // Both modes now use Voro++ - it's faster and provides all data we need!
         if (config.hollow_cells) {
-            // Hollow/Wireframe mode: Extract edges from Voro++ cells
-            BOOST_LOG_TRIVIAL(info) << "tessellate_voronoi_cells() - Using Voro++ for wireframe edge extraction";
-            return create_wireframe_from_voropp(seed_points, bounds, config, clip_mesh);
+            // Hollow/Wireframe mode: Extract proper Voronoi edges using Delaunay-Voronoi duality
+            BOOST_LOG_TRIVIAL(info) << "tessellate_voronoi_cells() - Using Delaunay-Voronoi duality (CGAL)";
+            return create_wireframe_from_delaunay(seed_points, bounds, config, clip_mesh);
         } else {
             // Solid cells mode: Generate polyhedral cells using Voro++
             BOOST_LOG_TRIVIAL(info) << "tessellate_voronoi_cells() - Using Voro++ for solid polyhedral cells";
@@ -2455,6 +2457,416 @@ namespace Slic3r {
         return result;
     }
 
+    // NEW: Extract Voronoi edges using Delaunay-Voronoi duality (mathematically correct method)
+    // Based on: Ledoux (2007), Yan et al. (2016)
+    std::unique_ptr<indexed_triangle_set> VoronoiMesh::create_wireframe_from_delaunay(
+        const std::vector<Vec3d>& seed_points,
+        const BoundingBoxf3& bounds,
+        const Config& config,
+        const indexed_triangle_set* clip_mesh)
+    {
+        BOOST_LOG_TRIVIAL(info) << "create_wireframe_from_delaunay() - Using Delaunay-Voronoi duality";
+
+        auto result = std::make_unique<indexed_triangle_set>();
+
+        if (seed_points.empty() || config.edge_thickness <= 0.0f) {
+            return result;
+        }
+
+        // Step 1: Build Delaunay triangulation with CGAL (robust predicates)
+        BOOST_LOG_TRIVIAL(info) << "Building Delaunay triangulation for " << seed_points.size() << " seeds";
+        
+        Delaunay dt;
+        std::vector<std::pair<K::Point_3, int>> points_with_info;
+        points_with_info.reserve(seed_points.size());
+        
+        for (size_t i = 0; i < seed_points.size(); ++i) {
+            K::Point_3 p(seed_points[i].x(), seed_points[i].y(), seed_points[i].z());
+            points_with_info.emplace_back(p, i);
+        }
+        
+        dt.insert(points_with_info.begin(), points_with_info.end());
+        
+        BOOST_LOG_TRIVIAL(info) << "Delaunay triangulation complete: " 
+                                 << dt.number_of_vertices() << " vertices, "
+                                 << dt.number_of_cells() << " tetrahedra";
+
+        // Step 2: Compute scene-relative epsilon
+        const double bbox_diag = (bounds.max - bounds.min).norm();
+        const double abs_eps = std::max(1e-7, 1e-8 * bbox_diag);
+        const double MIN_EDGE_LENGTH_SQ = abs_eps * abs_eps;
+        
+        BOOST_LOG_TRIVIAL(info) << "Using epsilon=" << abs_eps << " (bbox diagonal=" << bbox_diag << ")";
+
+        // Step 3: Extract Voronoi edges from Delaunay duality
+        // A Voronoi edge connects the circumcenters of two tetrahedra sharing a triangular face
+        
+        struct Vec3dHash {
+            double scale;
+            Vec3dHash(double s) : scale(s) {}
+            size_t operator()(const Vec3d& v) const {
+                int64_t x = int64_t(std::llround(v.x() * scale));
+                int64_t y = int64_t(std::llround(v.y() * scale));
+                int64_t z = int64_t(std::llround(v.z() * scale));
+                return std::hash<int64_t>()(x) ^ (std::hash<int64_t>()(y) << 1) ^ (std::hash<int64_t>()(z) << 2);
+            }
+        };
+        
+        struct Vec3dEqual {
+            double eps;
+            Vec3dEqual(double e) : eps(e) {}
+            bool operator()(const Vec3d& a, const Vec3d& b) const {
+                return (a - b).norm() <= eps;
+            }
+        };
+        
+        struct EdgeHash {
+            Vec3dHash hasher;
+            EdgeHash(double scale) : hasher(scale) {}
+            size_t operator()(const std::pair<Vec3d, Vec3d>& e) const {
+                return hasher(e.first) ^ (hasher(e.second) << 1);
+            }
+        };
+        
+        struct EdgeEqual {
+            Vec3dEqual eq;
+            EdgeEqual(double eps) : eq(eps) {}
+            bool operator()(const std::pair<Vec3d, Vec3d>& a, const std::pair<Vec3d, Vec3d>& b) const {
+                return (eq(a.first, b.first) && eq(a.second, b.second)) ||
+                       (eq(a.first, b.second) && eq(a.second, b.first));
+            }
+        };
+        
+        const double hash_scale = 1.0 / abs_eps;
+        std::unordered_set<std::pair<Vec3d, Vec3d>, EdgeHash, EdgeEqual> voronoi_edges(
+            10, EdgeHash(hash_scale), EdgeEqual(abs_eps)
+        );
+
+        BOOST_LOG_TRIVIAL(info) << "Extracting Voronoi edges via circumcenters...";
+        
+        int bounded_edges = 0;
+        int unbounded_edges = 0;
+        
+        // Iterate over all facets (triangular faces) in the Delaunay triangulation
+        for (auto fit = dt.finite_facets_begin(); fit != dt.finite_facets_end(); ++fit) {
+            // A facet is (cell, index) where index indicates which vertex is opposite the face
+            auto cell = fit->first;
+            int index = fit->second;
+            
+            // Get the neighbor cell across this facet
+            auto neighbor = cell->neighbor(index);
+            
+            // Check if this is an interior facet (both cells are finite)
+            if (!dt.is_infinite(cell) && !dt.is_infinite(neighbor)) {
+                // Bounded Voronoi edge: connect circumcenters of the two tetrahedra
+                K::Point_3 c1 = dt.dual(cell);
+                K::Point_3 c2 = dt.dual(neighbor);
+                
+                Vec3d p1(c1.x(), c1.y(), c1.z());
+                Vec3d p2(c2.x(), c2.y(), c2.z());
+                
+                // Epsilon-based lexicographic ordering
+                auto lt_eps = [abs_eps](double a, double b) { return a + abs_eps < b; };
+                auto eq_eps = [abs_eps](double a, double b) { return std::abs(a - b) <= abs_eps; };
+                
+                if (lt_eps(p2.x(), p1.x()) ||
+                    (eq_eps(p1.x(), p2.x()) && lt_eps(p2.y(), p1.y())) ||
+                    (eq_eps(p1.x(), p2.x()) && eq_eps(p1.y(), p2.y()) && lt_eps(p2.z(), p1.z()))) {
+                    std::swap(p1, p2);
+                }
+                
+                voronoi_edges.insert(std::make_pair(p1, p2));
+                bounded_edges++;
+            }
+            else if (!dt.is_infinite(cell) || !dt.is_infinite(neighbor)) {
+                // Unbounded Voronoi edge (one cell is infinite)
+                // This is a ray starting at the finite cell's circumcenter
+                auto finite_cell = dt.is_infinite(cell) ? neighbor : cell;
+                
+                K::Point_3 circumcenter = dt.dual(finite_cell);
+                Vec3d ray_start(circumcenter.x(), circumcenter.y(), circumcenter.z());
+                
+                // Compute ray direction (perpendicular to the Delaunay face)
+                // Get the three vertices of the face
+                std::vector<K::Point_3> face_vertices;
+                for (int i = 0; i < 4; ++i) {
+                    if (i != index) {
+                        face_vertices.push_back(cell->vertex(i)->point());
+                    }
+                }
+                
+                // Compute face normal
+                K::Vector_3 v1 = face_vertices[1] - face_vertices[0];
+                K::Vector_3 v2 = face_vertices[2] - face_vertices[0];
+                K::Vector_3 normal = CGAL::cross_product(v1, v2);
+                
+                // Ray extends in direction of normal (or opposite, depending on orientation)
+                Vec3d ray_dir(normal.x(), normal.y(), normal.z());
+                ray_dir.normalize();
+                
+                // Truncate ray to bounding box
+                double max_extent = bbox_diag * 2.0;
+                Vec3d ray_end = ray_start + ray_dir * max_extent;
+                
+                // Clip ray to bounds
+                // (Simple box clipping - can be improved)
+                if (ray_end.x() < bounds.min.x()) ray_end.x() = bounds.min.x();
+                if (ray_end.y() < bounds.min.y()) ray_end.y() = bounds.min.y();
+                if (ray_end.z() < bounds.min.z()) ray_end.z() = bounds.min.z();
+                if (ray_end.x() > bounds.max.x()) ray_end.x() = bounds.max.x();
+                if (ray_end.y() > bounds.max.y()) ray_end.y() = bounds.max.y();
+                if (ray_end.z() > bounds.max.z()) ray_end.z() = bounds.max.z();
+                
+                voronoi_edges.insert(std::make_pair(ray_start, ray_end));
+                unbounded_edges++;
+            }
+        }
+
+        BOOST_LOG_TRIVIAL(info) << "Extracted " << bounded_edges << " bounded edges, " 
+                                 << unbounded_edges << " unbounded edges";
+
+        // Step 3.5: Clip edges to mesh if requested (BEFORE generating cylinders)
+        if (clip_mesh && !clip_mesh->vertices.empty() && config.clip_to_mesh) {
+            BOOST_LOG_TRIVIAL(info) << "Clipping " << voronoi_edges.size() 
+                                     << " edges to mesh interior...";
+            
+            std::unordered_set<std::pair<Vec3d, Vec3d>, EdgeHash, EdgeEqual> clipped_edges(
+                10, EdgeHash(hash_scale), EdgeEqual(abs_eps)
+            );
+            
+            AABBMesh aabb(*clip_mesh);
+            int edges_kept = 0;
+            int edges_clipped = 0;
+            int edges_removed = 0;
+            
+            for (const auto& edge : voronoi_edges) {
+                Vec3d p1 = edge.first;
+                Vec3d p2 = edge.second;
+                
+                // Test both endpoints
+                Vec3d ray_dir(0.123456, 0.234567, 0.876543);
+                auto hit1 = aabb.query_ray_hit(p1, ray_dir);
+                auto hit2 = aabb.query_ray_hit(p2, ray_dir);
+                
+                bool p1_inside = hit1.is_inside() || (hit1.distance() != -1 && std::abs(hit1.distance()) < abs_eps * 10.0);
+                bool p2_inside = hit2.is_inside() || (hit2.distance() != -1 && std::abs(hit2.distance()) < abs_eps * 10.0);
+                
+                if (p1_inside && p2_inside) {
+                    // Both inside - keep entire edge
+                    clipped_edges.insert(edge);
+                    edges_kept++;
+                }
+                else if (!p1_inside && !p2_inside) {
+                    // Both outside - remove edge
+                    edges_removed++;
+                }
+                else {
+                    // One inside, one outside - clip edge
+                    // For now, keep the segment (proper clipping would require line-mesh intersection)
+                    // TODO: Implement proper edge-mesh intersection clipping
+                    clipped_edges.insert(edge);
+                    edges_clipped++;
+                }
+            }
+            
+            BOOST_LOG_TRIVIAL(info) << "Edge clipping: " << edges_kept << " kept, "
+                                     << edges_clipped << " clipped, " 
+                                     << edges_removed << " removed";
+            
+            voronoi_edges = clipped_edges;
+        }
+
+        // Step 4: Generate cylinder geometry for each edge
+        const float radius = config.edge_thickness * 0.5f;
+        const int segments = std::max(3, config.edge_segments);
+        
+        BOOST_LOG_TRIVIAL(info) << "Creating cylindrical struts (radius=" << radius 
+                                 << ", segments=" << segments << ")";
+
+        int skipped_degenerate = 0;
+        
+        for (const auto& edge : voronoi_edges) {
+            Vec3d p1 = edge.first;
+            Vec3d p2 = edge.second;
+            
+            Vec3d dir = (p2 - p1);
+            double len_sq = dir.squaredNorm();
+            
+            if (len_sq < MIN_EDGE_LENGTH_SQ) {
+                skipped_degenerate++;
+                continue;
+            }
+            
+            dir.normalize();
+            
+            // Robust perpendicular frame
+            Vec3d perp1 = dir.cross(std::abs(dir.z()) < 0.9 ? Vec3d(0, 0, 1) : Vec3d(1, 0, 0));
+            if (perp1.squaredNorm() < 1e-12) {
+                perp1 = dir.cross(Vec3d(0, 1, 0));
+            }
+            perp1.normalize();
+            Vec3d perp2 = dir.cross(perp1).normalized();
+            
+            size_t base_idx = result->vertices.size();
+            
+            // Ring at p1
+            for (int i = 0; i < segments; ++i) {
+                float angle = 2.0f * M_PI * i / segments;
+                float x = radius * std::cos(angle);
+                float y = radius * std::sin(angle);
+                Vec3d offset = perp1 * x + perp2 * y;
+                result->vertices.emplace_back((p1 + offset).cast<float>());
+            }
+            
+            // Ring at p2
+            for (int i = 0; i < segments; ++i) {
+                float angle = 2.0f * M_PI * i / segments;
+                float x = radius * std::cos(angle);
+                float y = radius * std::sin(angle);
+                Vec3d offset = perp1 * x + perp2 * y;
+                result->vertices.emplace_back((p2 + offset).cast<float>());
+            }
+            
+            // Tube body
+            for (int i = 0; i < segments; ++i) {
+                int next = (i + 1) % segments;
+                int i0 = base_idx + i;
+                int i1 = base_idx + next;
+                int i2 = base_idx + segments + i;
+                int i3 = base_idx + segments + next;
+                result->indices.emplace_back(i0, i2, i1);
+                result->indices.emplace_back(i1, i2, i3);
+            }
+            
+            // Optional caps
+            if (config.edge_caps) {
+                int cap1_center = result->vertices.size();
+                result->vertices.emplace_back(p1.cast<float>());
+                for (int i = 0; i < segments; ++i) {
+                    int next = (i + 1) % segments;
+                    result->indices.emplace_back(cap1_center, base_idx + i, base_idx + next);
+                }
+                
+                int cap2_center = result->vertices.size();
+                result->vertices.emplace_back(p2.cast<float>());
+                for (int i = 0; i < segments; ++i) {
+                    int next = (i + 1) % segments;
+                    result->indices.emplace_back(cap2_center, base_idx + segments + next, base_idx + segments + i);
+                }
+            }
+        }
+
+        if (skipped_degenerate > 0) {
+            BOOST_LOG_TRIVIAL(info) << "Skipped " << skipped_degenerate << " degenerate edges";
+        }
+
+        BOOST_LOG_TRIVIAL(info) << "Created wireframe: " << result->vertices.size() 
+                                 << " vertices, " << result->indices.size() << " faces";
+
+        // Cleanup
+        remove_degenerate_faces(*result);
+        weld_vertices(*result, radius * 0.1f);
+        remove_degenerate_faces(*result);
+        
+        if (clip_mesh && !clip_mesh->vertices.empty() && config.clip_to_mesh) {
+            BOOST_LOG_TRIVIAL(info) << "Clipping wireframe to mesh boundary...";
+            
+            // Improved clipping: clip edge segments before generating cylinders would be better,
+            // but for now use the existing mesh-based clipping with improved tolerance
+            clip_wireframe_to_mesh_improved(*result, *clip_mesh, abs_eps);
+            remove_degenerate_faces(*result);
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "Final wireframe: " << result->vertices.size() 
+                                 << " vertices, " << result->indices.size() << " faces";
+
+        return result;
+    }
+
+    // Improved wireframe clipping that respects edge structure
+    void VoronoiMesh::clip_wireframe_to_mesh_improved(
+        indexed_triangle_set& wireframe,
+        const indexed_triangle_set& clip_mesh,
+        double epsilon)
+    {
+        if (wireframe.vertices.empty() || clip_mesh.vertices.empty()) {
+            return;
+        }
+
+        BOOST_LOG_TRIVIAL(info) << "clip_wireframe_to_mesh_improved() - Clipping " 
+                                 << wireframe.vertices.size() << " vertices";
+
+        // Build AABB tree for inside/outside testing
+        AABBMesh aabb(clip_mesh);
+        
+        // Mark vertices that are inside or on the surface
+        std::vector<bool> keep_vertex(wireframe.vertices.size(), false);
+        int kept_count = 0;
+        
+        for (size_t i = 0; i < wireframe.vertices.size(); ++i) {
+            Vec3d pt = wireframe.vertices[i].cast<double>();
+            
+            // Ray casting for inside test
+            Vec3d ray_dir(0.123456, 0.234567, 0.876543); // Arbitrary non-axis-aligned direction
+            auto hit = aabb.query_ray_hit(pt, ray_dir);
+            
+            // Consider point inside if:
+            // 1. Ray test says inside
+            // 2. OR point is very close to surface (on boundary)
+            bool is_inside = hit.is_inside();
+            
+            if (!is_inside && hit.distance() != -1) {
+                // Check if point is on surface (within epsilon)
+                double dist_to_surface = std::abs(hit.distance());
+                if (dist_to_surface < epsilon * 10.0) { // Slightly larger tolerance for boundary
+                    is_inside = true;
+                }
+            }
+            
+            if (is_inside) {
+                keep_vertex[i] = true;
+                kept_count++;
+            }
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "Keeping " << kept_count << " / " 
+                                 << wireframe.vertices.size() << " vertices";
+
+        // Build vertex remapping
+        std::vector<int> vertex_map(wireframe.vertices.size(), -1);
+        std::vector<Vec3f> new_vertices;
+        new_vertices.reserve(kept_count);
+        
+        for (size_t i = 0; i < wireframe.vertices.size(); ++i) {
+            if (keep_vertex[i]) {
+                vertex_map[i] = new_vertices.size();
+                new_vertices.push_back(wireframe.vertices[i]);
+            }
+        }
+        
+        // Keep faces where ALL vertices are inside
+        // (Partial clipping would require splitting faces, which is complex)
+        std::vector<Vec3i> new_faces;
+        int dropped_faces = 0;
+        
+        for (const auto& face : wireframe.indices) {
+            if (keep_vertex[face[0]] && keep_vertex[face[1]] && keep_vertex[face[2]]) {
+                new_faces.emplace_back(
+                    vertex_map[face[0]],
+                    vertex_map[face[1]],
+                    vertex_map[face[2]]
+                );
+            } else {
+                dropped_faces++;
+            }
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "Dropped " << dropped_faces << " faces with outside vertices";
+        
+        wireframe.vertices = new_vertices;
+        wireframe.indices = new_faces;
+    }
+
     // Extract wireframe edges directly from Voro++ cells - creates independent cylinders per edge
     std::unique_ptr<indexed_triangle_set> VoronoiMesh::create_wireframe_from_voropp(
         const std::vector<Vec3d>& seed_points,
@@ -2489,26 +2901,40 @@ namespace Slic3r {
             con.put(i, p.x(), p.y(), p.z());
         }
 
+        // FIX #1: Compute scene-relative epsilon for better edge deduplication
+        const double bbox_diag = (bounds.max - bounds.min).norm();
+        const double abs_eps = std::max(1e-7, 1e-8 * bbox_diag);
+        const double hash_scale = 1.0 / abs_eps;
+        
+        BOOST_LOG_TRIVIAL(info) << "Wireframe: bbox diagonal=" << bbox_diag 
+                                 << ", epsilon=" << abs_eps;
 
-        // Extract unique edges with better precision
+        // FIX #2: Improved hash/equal with scene-relative tolerance
         struct Vec3dHash {
+            double scale;
+            Vec3dHash(double s) : scale(s) {}
+            
             size_t operator()(const Vec3d& v) const {
-                // Round to 6 decimal places for hashing
-                int64_t x = int64_t(std::round(v.x() * 1000000));
-                int64_t y = int64_t(std::round(v.y() * 1000000));
-                int64_t z = int64_t(std::round(v.z() * 1000000));
+                int64_t x = int64_t(std::llround(v.x() * scale));
+                int64_t y = int64_t(std::llround(v.y() * scale));
+                int64_t z = int64_t(std::llround(v.z() * scale));
                 return std::hash<int64_t>()(x) ^ (std::hash<int64_t>()(y) << 1) ^ (std::hash<int64_t>()(z) << 2);
             }
         };
         
         struct Vec3dEqual {
+            double eps;
+            Vec3dEqual(double e) : eps(e) {}
+            
             bool operator()(const Vec3d& a, const Vec3d& b) const {
-                return (a - b).norm() < 1e-6;
+                return (a - b).norm() <= eps;
             }
         };
         
         struct EdgeHash {
             Vec3dHash hasher;
+            EdgeHash(double scale) : hasher(scale) {}
+            
             size_t operator()(const std::pair<Vec3d, Vec3d>& e) const {
                 return hasher(e.first) ^ (hasher(e.second) << 1);
             }
@@ -2516,18 +2942,202 @@ namespace Slic3r {
         
         struct EdgeEqual {
             Vec3dEqual eq;
+            EdgeEqual(double eps) : eq(eps) {}
+            
             bool operator()(const std::pair<Vec3d, Vec3d>& a, const std::pair<Vec3d, Vec3d>& b) const {
                 return (eq(a.first, b.first) && eq(a.second, b.second)) ||
                        (eq(a.first, b.second) && eq(a.second, b.first));
             }
         };
         
-        std::unordered_set<std::pair<Vec3d, Vec3d>, EdgeHash, EdgeEqual> unique_edges;
+        std::unordered_set<std::pair<Vec3d, Vec3d>, EdgeHash, EdgeEqual> unique_edges(
+            10, EdgeHash(hash_scale), EdgeEqual(abs_eps)
+        );
 
         c_loop_all vl(con);
         voronoicell_neighbor cell;
 
         BOOST_LOG_TRIVIAL(info) << "Extracting Voronoi edges from cells...";
+
+        if (vl.start()) do {
+            if (con.compute_cell(cell, vl)) {
+                // Get cell vertices
+                std::vector<double> verts;
+                cell.vertices(vl.x(), vl.y(), vl.z(), verts);
+
+                std::vector<Vec3d> cell_vertices;
+                for (size_t i = 0; i + 2 < verts.size(); i += 3) {
+                    cell_vertices.emplace_back(verts[i], verts[i + 1], verts[i + 2]);
+                }
+
+                // Get face structure
+                std::vector<int> face_vertex_indices;
+                std::vector<int> face_orders;
+                cell.face_vertices(face_vertex_indices);
+                cell.face_orders(face_orders);
+
+                // Extract edges from face polygons
+                int vertex_idx = 0;
+                for (int face_order : face_orders) {
+                    for (int v = 0; v < face_order; ++v) {
+                        int v_next = (v + 1) % face_order;
+                        int vi1 = face_vertex_indices[vertex_idx + v];
+                        int vi2 = face_vertex_indices[vertex_idx + v_next];
+
+                        if (vi1 >= 0 && vi1 < (int)cell_vertices.size() && 
+                            vi2 >= 0 && vi2 < (int)cell_vertices.size()) {
+                            
+                            Vec3d p1 = cell_vertices[vi1];
+                            Vec3d p2 = cell_vertices[vi2];
+
+                            // FIX #3: Use epsilon-based lexicographic comparison
+                            auto lt_eps = [abs_eps](double a, double b) { return a + abs_eps < b; };
+                            auto eq_eps = [abs_eps](double a, double b) { return std::abs(a - b) <= abs_eps; };
+                            
+                            if (lt_eps(p2.x(), p1.x()) ||
+                                (eq_eps(p1.x(), p2.x()) && lt_eps(p2.y(), p1.y())) ||
+                                (eq_eps(p1.x(), p2.x()) && eq_eps(p1.y(), p2.y()) && lt_eps(p2.z(), p1.z()))) {
+                                std::swap(p1, p2);
+                            }
+                            
+                            unique_edges.insert(std::make_pair(p1, p2));
+                        }
+                    }
+                    vertex_idx += face_order;
+                }
+            }
+        } while (vl.inc());
+
+        BOOST_LOG_TRIVIAL(info) << "Found " << unique_edges.size() << " unique edges";
+
+        if (unique_edges.empty()) {
+            BOOST_LOG_TRIVIAL(error) << "No edges extracted!";
+            return result;
+        }
+
+        // Generate cylindrical strut for each edge
+        const float radius = config.edge_thickness * 0.5f;
+        const int segments = std::max(3, config.edge_segments);
+        const double MIN_EDGE_LENGTH_SQ = abs_eps * abs_eps;  // FIX #4: Guard against zero-length edges
+        
+        BOOST_LOG_TRIVIAL(info) << "Creating cylindrical struts (radius=" << radius 
+                                 << ", segments=" << segments << ", min_length=" << std::sqrt(MIN_EDGE_LENGTH_SQ) << ")";
+
+        int skipped_degenerate = 0;
+        
+        for (const auto& edge : unique_edges) {
+            Vec3d p1 = edge.first;
+            Vec3d p2 = edge.second;
+            
+            Vec3d dir = (p2 - p1);
+            double len_sq = dir.squaredNorm();
+            
+            // FIX #4: Skip degenerate/near-zero edges
+            if (len_sq < MIN_EDGE_LENGTH_SQ) {
+                skipped_degenerate++;
+                continue;
+            }
+            
+            dir.normalize();
+            
+            // FIX #5: Robust perpendicular frame with fallback
+            Vec3d perp1 = dir.cross(std::abs(dir.z()) < 0.9 ? Vec3d(0, 0, 1) : Vec3d(1, 0, 0));
+            if (perp1.squaredNorm() < 1e-12) {
+                perp1 = dir.cross(Vec3d(0, 1, 0));
+            }
+            perp1.normalize();
+            Vec3d perp2 = dir.cross(perp1).normalized();
+            
+            // Generate cylinder vertices
+            size_t base_idx = result->vertices.size();
+            
+            // Ring at p1
+            for (int i = 0; i < segments; ++i) {
+                float angle = 2.0f * M_PI * i / segments;
+                float x = radius * std::cos(angle);
+                float y = radius * std::sin(angle);
+                Vec3d offset = perp1 * x + perp2 * y;
+                result->vertices.emplace_back((p1 + offset).cast<float>());
+            }
+            
+            // Ring at p2
+            for (int i = 0; i < segments; ++i) {
+                float angle = 2.0f * M_PI * i / segments;
+                float x = radius * std::cos(angle);
+                float y = radius * std::sin(angle);
+                Vec3d offset = perp1 * x + perp2 * y;
+                result->vertices.emplace_back((p2 + offset).cast<float>());
+            }
+            
+            // Create cylinder body (tube connecting the two rings)
+            for (int i = 0; i < segments; ++i) {
+                int next = (i + 1) % segments;
+                
+                int i0 = base_idx + i;
+                int i1 = base_idx + next;
+                int i2 = base_idx + segments + i;
+                int i3 = base_idx + segments + next;
+                
+                // Create two triangles for this quad
+                result->indices.emplace_back(i0, i2, i1);
+                result->indices.emplace_back(i1, i2, i3);
+            }
+            
+            // FIX #6: Optional end caps (can be disabled to reduce overlap)
+            if (config.edge_caps) {
+                // Cap at p1
+                int cap1_center = result->vertices.size();
+                result->vertices.emplace_back(p1.cast<float>());
+                
+                for (int i = 0; i < segments; ++i) {
+                    int next = (i + 1) % segments;
+                    result->indices.emplace_back(cap1_center, base_idx + i, base_idx + next);
+                }
+                
+                // Cap at p2
+                int cap2_center = result->vertices.size();
+                result->vertices.emplace_back(p2.cast<float>());
+                
+                for (int i = 0; i < segments; ++i) {
+                    int next = (i + 1) % segments;
+                    result->indices.emplace_back(cap2_center, base_idx + segments + next, base_idx + segments + i);
+                }
+            }
+        }
+
+        if (skipped_degenerate > 0) {
+            BOOST_LOG_TRIVIAL(info) << "Skipped " << skipped_degenerate << " degenerate edges";
+        }
+
+        BOOST_LOG_TRIVIAL(info) << "Created wireframe: " << result->vertices.size() 
+                                 << " vertices, " << result->indices.size() << " faces";
+
+        // Cleanup
+        BOOST_LOG_TRIVIAL(info) << "Cleaning up wireframe...";
+        
+        // Remove degenerate faces first
+        remove_degenerate_faces(*result);
+        
+        // Weld vertices at junctions (where tubes meet)
+        weld_vertices(*result, radius * 0.1f);
+        
+        // Remove any degenerates created by welding
+        remove_degenerate_faces(*result);
+        
+        // FIX #7: Apply clipping if requested
+        if (clip_mesh && !clip_mesh->vertices.empty() && config.clip_to_mesh) {
+            BOOST_LOG_TRIVIAL(info) << "Clipping wireframe to mesh boundary...";
+            clip_wireframe_to_mesh(*result, *clip_mesh);
+            
+            // Re-clean after clipping
+            remove_degenerate_faces(*result);
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "Final wireframe: " << result->vertices.size() 
+                                 << " vertices, " << result->indices.size() << " faces";
+
+        return result;
+    }
 
         if (vl.start()) do {
             if (con.compute_cell(cell, vl)) {

@@ -54,6 +54,7 @@ namespace Slic3r {
             int edge_segments = 8;             // Cross-section resolution
             float edge_curvature = 0.0f;       // 0 = straight, 1 = curved
             int edge_subdivisions = 0;         // Curve smoothness
+            bool edge_caps = false;            // Add end caps to cylinders (can cause overlap at junctions)
             
             // Solid mode parameters (mathematical Voronoi cells with flair)
             CellStyle cell_style = CellStyle::Rounded;  // Creative styling
@@ -282,6 +283,13 @@ namespace Slic3r {
             indexed_triangle_set& voronoi_mesh,
             const indexed_triangle_set& original_mesh
         );
+        
+        // Improved wireframe clipping with epsilon-aware boundary handling
+        static void clip_wireframe_to_mesh_improved(
+            indexed_triangle_set& wireframe,
+            const indexed_triangle_set& clip_mesh,
+            double epsilon
+        );
 
         // Create hollow cells by offsetting cell walls inward
         static void create_hollow_cells(
@@ -289,7 +297,17 @@ namespace Slic3r {
             float wall_thickness
         );
 
-        // Create wireframe structure from Voro++ edge data
+        // Create wireframe using Delaunay-Voronoi duality (PRIMARY METHOD - mathematically correct)
+        // Uses CGAL's Delaunay triangulation to extract proper Voronoi edges via circumcenters
+        static std::unique_ptr<indexed_triangle_set> create_wireframe_from_delaunay(
+            const std::vector<Vec3d>& seed_points,
+            const BoundingBoxf3& bounds,
+            const Config& config,
+            const indexed_triangle_set* clip_mesh
+        );
+        
+        // Legacy: Create wireframe from Voro++ cells (kept for reference, not used)
+        // Note: Voro++ is still used for Lloyd's relaxation, just not edge extraction
         static std::unique_ptr<indexed_triangle_set> create_wireframe_from_voropp(
             const std::vector<Vec3d>& seed_points,
             const BoundingBoxf3& bounds,
