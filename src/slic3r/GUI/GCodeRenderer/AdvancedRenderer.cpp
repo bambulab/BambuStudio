@@ -1192,7 +1192,7 @@ namespace Slic3r
                 case EViewType::ColorPrint:
                 {
                     tool_colos_count = m_tools.m_tool_colors.size();
-                    const uint8_t color_range_stage = texture_stage++;
+                    const uint8_t color_range_stage = texture_stage;
                     bind_tool_colors_texture(color_range_stage);
                     p_shader->set_uniform("s_color_range_texture", color_range_stage);
                     break;
@@ -1205,14 +1205,14 @@ namespace Slic3r
                 case EViewType::LayerTime:
                 case EViewType::VolumetricRate:
                 {
-                    const uint8_t color_range_stage = texture_stage++;
+                    const uint8_t color_range_stage = texture_stage;
                     bind_color_range_texture(color_range_stage);
                     p_shader->set_uniform("s_color_range_texture", color_range_stage);
                     break;
                 }
                 case EViewType::FeatureType:
                 {
-                    const uint8_t color_range_stage = texture_stage++;
+                    const uint8_t color_range_stage = texture_stage;
                     bind_role_colors_texture(color_range_stage);
                     p_shader->set_uniform("s_color_range_texture", color_range_stage);
                     break;
@@ -1222,7 +1222,7 @@ namespace Slic3r
                 case EViewType::ThermalIndexMax:
                 case EViewType::ThermalIndexMean:
                 {
-                    const uint8_t color_range_stage = texture_stage++;
+                    const uint8_t color_range_stage = texture_stage;
                     bind_thermal_index_range_colors_texture(color_range_stage);
                     p_shader->set_uniform("s_color_range_texture", color_range_stage);
                     break;
@@ -1231,7 +1231,21 @@ namespace Slic3r
                 }
 
                 for (size_t i = 0; i < layer_index_list.size(); ++i) {
-                    const auto& t_layer = (*p_layer_manager)[layer_index_list[i]];
+
+                    auto& t_layer = (*p_layer_manager)[layer_index_list[i]];
+
+                    t_layer.update_position_data_texture();
+
+                    t_layer.update_width_height_data_texture(*m_gcode_result);
+
+                    t_layer.update_per_move_data_texture();
+
+                    if (0 == i) {
+                        m_p_layer_manager->update_transient_other_texture();
+                    }
+                    else {
+                        t_layer.update_other_segment_texture();
+                    }
 
                     p_shader->set_uniform("u_isTopLayer_hasCustomOptins", Vec2f(float(i == 0), 0.0f));
 
@@ -1240,7 +1254,7 @@ namespace Slic3r
                     p_shader->set_uniform("s_position_texture", position_texture_stage);
 
                     uint8_t width_height_texture_stage = texture_stage + 2;
-                    t_layer.bind_width_height_data_texture(width_height_texture_stage, *m_gcode_result);
+                    t_layer.bind_width_height_data_texture(width_height_texture_stage);
                     p_shader->set_uniform("s_width_height_data_texture", width_height_texture_stage);
 
                     uint8_t per_move_data_texture_stage = texture_stage + 3;
@@ -1292,7 +1306,7 @@ namespace Slic3r
                 p_shader->set_uniform("u_isUnlit_optionTextureSize_topLayerOnly_emissionFactor", Vec4f(float(b_unlit), float(Options_Colors.size()), float(top_layer_only), 0.25f));
 
                 uint8_t texture_stage = 0;
-                const uint8_t option_color_texture_stage = texture_stage++;
+                const uint8_t option_color_texture_stage = texture_stage;
                 bind_option_colors_texture(option_color_texture_stage);
                 p_shader->set_uniform("s_option_color_texture", option_color_texture_stage);
 
@@ -1300,13 +1314,27 @@ namespace Slic3r
                 {
                     p_shader->set_uniform("u_is_top_layer", float(i == 0));
 
-                    const auto& t_layer = (*p_layer_manager)[layer_index_list[i]];
+                    auto& t_layer = (*p_layer_manager)[layer_index_list[i]];
+
+                    t_layer.update_position_data_texture();
+
+                    t_layer.update_width_height_data_texture(*m_gcode_result);
+
+                    t_layer.update_per_move_data_texture();
+
+                    if (0 == i) {
+                        m_p_layer_manager->update_transient_options_texture();
+                    }
+                    else {
+                        t_layer.update_options_segment_texture();
+                    }
+
                     uint8_t position_texture_stage = texture_stage + 1;
                     t_layer.bind_position_data_texture(position_texture_stage);
                     p_shader->set_uniform("s_position_texture", position_texture_stage);
 
                     uint8_t width_height_data_texture_stage = texture_stage + 2;
-                    t_layer.bind_width_height_data_texture(width_height_data_texture_stage, *m_gcode_result);
+                    t_layer.bind_width_height_data_texture(width_height_data_texture_stage);
                     p_shader->set_uniform("s_width_height_data_texture", width_height_data_texture_stage);
 
                     uint8_t per_move_data_texture_stage = texture_stage + 3;
@@ -1383,7 +1411,7 @@ namespace Slic3r
                         p_shader->set_uniform("s_position_texture", position_texture_stage);
 
                         uint8_t width_height_data_texture_stage = texture_stage++;
-                        t_layer.bind_width_height_data_texture(width_height_data_texture_stage, *m_gcode_result);
+                        t_layer.bind_width_height_data_texture(width_height_data_texture_stage);
                         p_shader->set_uniform("s_width_height_data_texture", width_height_data_texture_stage);
 
                         uint32_t seg_count = 0;
@@ -1508,7 +1536,6 @@ namespace Slic3r
                     pixel_data.resize(temp_data.size() * sizeof(float));
                     memcpy(pixel_data.data(), temp_data.data(), temp_data.size() * sizeof(float));
                     std::shared_ptr<Slic3r::GUI::PixelBufferDescriptor> pbd = std::make_shared<Slic3r::GUI::PixelBufferDescriptor>(std::move(pixel_data), Slic3r::GUI::EPixelFormat::RGBA, Slic3r::GUI::EPixelDataType::Float);
-                    glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
                     m_p_color_range_texture->set_image(0, 0, 0, 0, width, height, 1, pbd);
                 }
 
@@ -1554,7 +1581,6 @@ namespace Slic3r
                     pixel_data.resize(temp_data.size() * sizeof(float));
                     memcpy(pixel_data.data(), temp_data.data(), temp_data.size() * sizeof(float));
                     std::shared_ptr<Slic3r::GUI::PixelBufferDescriptor> pbd = std::make_shared<Slic3r::GUI::PixelBufferDescriptor>(std::move(pixel_data), Slic3r::GUI::EPixelFormat::RGBA, Slic3r::GUI::EPixelDataType::Float);
-                    glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
                     m_p_thermal_index_range_colors_texture->set_image(0, 0, 0, 0, width, height, 1, pbd);
                 }
 
@@ -1599,7 +1625,6 @@ namespace Slic3r
                     pixel_data.resize(temp_data.size() * sizeof(float));
                     memcpy(pixel_data.data(), temp_data.data(), temp_data.size() * sizeof(float));
                     std::shared_ptr<Slic3r::GUI::PixelBufferDescriptor> pbd = std::make_shared<Slic3r::GUI::PixelBufferDescriptor>(std::move(pixel_data), Slic3r::GUI::EPixelFormat::RGBA, Slic3r::GUI::EPixelDataType::Float);
-                    glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
                     m_p_role_colors_texture->set_image(0, 0, 0, 0, width, height, 1, pbd);
                 }
 
@@ -1644,7 +1669,6 @@ namespace Slic3r
                     pixel_data.resize(temp_data.size() * sizeof(float));
                     memcpy(pixel_data.data(), temp_data.data(), temp_data.size() * sizeof(float));
                     std::shared_ptr<Slic3r::GUI::PixelBufferDescriptor> pbd = std::make_shared<Slic3r::GUI::PixelBufferDescriptor>(std::move(pixel_data), Slic3r::GUI::EPixelFormat::RGBA, Slic3r::GUI::EPixelDataType::Float);
-                    glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
                     m_p_option_colors_texture->set_image(0, 0, 0, 0, width, height, 1, pbd);
                 }
 
@@ -1695,7 +1719,6 @@ namespace Slic3r
                     pixel_data.resize(temp_data.size() * sizeof(float));
                     memcpy(pixel_data.data(), temp_data.data(), temp_data.size() * sizeof(float));
                     std::shared_ptr<Slic3r::GUI::PixelBufferDescriptor> pbd = std::make_shared<Slic3r::GUI::PixelBufferDescriptor>(std::move(pixel_data), Slic3r::GUI::EPixelFormat::RGBA, Slic3r::GUI::EPixelDataType::Float);
-                    glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
                     m_p_tool_colors_texture->set_image(0, 0, 0, 0, width, height, 1, pbd);
                 }
 
@@ -2015,7 +2038,7 @@ namespace Slic3r
                 return m_other_segment_list;
             }
 
-            void Layer::bind_position_data_texture(uint8_t stage) const
+            void Layer::update_position_data_texture()
             {
                 const uint32_t width = 1;
                 const uint32_t height = 1;
@@ -2048,13 +2071,16 @@ namespace Slic3r
                         m_b_position_dirty = false;
                     }
                 }
+            }
 
+            void Layer::bind_position_data_texture(uint8_t stage) const
+            {
                 if (m_p_position_texture) {
                     m_p_position_texture->bind(stage);
                 }
             }
 
-            void Layer::bind_width_height_data_texture(uint8_t stage, const GCodeProcessorResult& gcode_result) const
+            void Layer::update_width_height_data_texture(const GCodeProcessorResult& gcode_result)
             {
                 const uint32_t width = 1;
                 const uint32_t height = 1;
@@ -2085,13 +2111,15 @@ namespace Slic3r
                         t_segment_width_height.emplace_back(float(width));
                         t_segment_width_height.emplace_back(float(height));
                     }
-                    glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
                     const auto& rt = m_p_width_height_data_texture->set_buffer(t_segment_width_height);
                     if (rt) {
                         m_b_width_height_data_dirty = false;
                     }
                 }
+            }
 
+            void Layer::bind_width_height_data_texture(uint8_t stage) const
+            {
                 if (m_p_width_height_data_texture) {
                     m_p_width_height_data_texture->bind(stage);
                 }
@@ -2113,7 +2141,7 @@ namespace Slic3r
                 m_b_per_move_data_dirty = true;
             }
 
-            void Layer::bind_per_move_data_texture(uint8_t stage)  const
+            void Layer::update_per_move_data_texture()
             {
                 const uint32_t width = 1;
                 const uint32_t height = 1;
@@ -2131,20 +2159,22 @@ namespace Slic3r
                 }
 
                 if (m_b_per_move_data_dirty) {
-                    glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
                     const auto& rt = m_p_per_move_data_texture->set_buffer(m_per_move_data_list);
                     if (rt) {
                         m_per_move_data_list.clear();
                         m_b_per_move_data_dirty = false;
                     }
                 }
+            }
 
+            void Layer::bind_per_move_data_texture(uint8_t stage) const
+            {
                 if (m_p_per_move_data_texture) {
                     m_p_per_move_data_texture->bind(stage);
                 }
             }
 
-            void Layer::bind_other_segment_texture(uint8_t stage) const
+            void Layer::update_other_segment_texture()
             {
                 const uint32_t width = 1;
                 const uint32_t height = 1;
@@ -2163,7 +2193,6 @@ namespace Slic3r
 
                 if (m_p_other_segment_texture) {
                     if (m_b_other_segment_dirty) {
-                        glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
                         const auto& rt = m_p_other_segment_texture->set_buffer(m_other_segment_list);
                         if (rt) {
                             m_other_segment_count = m_other_segment_list.size() / 4;
@@ -2174,7 +2203,6 @@ namespace Slic3r
                             m_other_segment_count = 0;
                         }
                     }
-                    m_p_other_segment_texture->bind(stage);
                 }
             }
 
@@ -2183,7 +2211,14 @@ namespace Slic3r
                 return m_other_segment_count;
             }
 
-            void Layer::bind_options_segment_texture(uint8_t stage) const
+            void Layer::bind_other_segment_texture(uint8_t stage) const
+            {
+                if (m_p_other_segment_texture) {
+                    m_p_other_segment_texture->bind(stage);
+                }
+            }
+
+            void Layer::update_options_segment_texture()
             {
                 const uint32_t width = 1;
                 const uint32_t height = 1;
@@ -2203,8 +2238,6 @@ namespace Slic3r
                 if (m_p_options_segment_texture) {
 
                     if (m_b_options_segment_dirty) {
-
-                        glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
                         const auto& rt = m_p_options_segment_texture->set_buffer(m_options_segment_list);
                         if (rt) {
                             m_options_segment_count = m_options_segment_list.size() / 4;
@@ -2215,14 +2248,19 @@ namespace Slic3r
                             m_options_segment_count = 0;
                         }
                     }
-
-                    m_p_options_segment_texture->bind(stage);
                 }
             }
 
             uint32_t Layer::get_options_segment_count() const
             {
                 return m_options_segment_count;
+            }
+
+            void Layer::bind_options_segment_texture(uint8_t stage) const
+            {
+                if (m_p_options_segment_texture) {
+                    m_p_options_segment_texture->bind(stage);
+                }
             }
 
             uint32_t Layer::get_current_move_id(uint32_t seg_index) const
@@ -2622,7 +2660,7 @@ namespace Slic3r
                 clear_view_type_dirty();
             }
 
-            void LayerManager::bind_transient_options_texture(uint8_t stage) const
+            void LayerManager::update_transient_options_texture()
             {
                 const uint32_t width = 1;
                 const uint32_t height = 1;
@@ -2642,8 +2680,6 @@ namespace Slic3r
                 if (m_p_options_segment_texture) {
 
                     if (m_b_options_segment_dirty) {
-
-                        glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
                         const auto& rt = m_p_options_segment_texture->set_buffer(m_options_segment_list);
                         if (rt) {
                             m_options_segment_count = m_options_segment_list.size() / 4;
@@ -2654,8 +2690,6 @@ namespace Slic3r
                             m_options_segment_count = 0;
                         }
                     }
-
-                    m_p_options_segment_texture->bind(stage);
                 }
             }
 
@@ -2664,7 +2698,14 @@ namespace Slic3r
                 return m_options_segment_count;
             }
 
-            void LayerManager::bind_transient_other_texture(uint8_t stage) const
+            void LayerManager::bind_transient_options_texture(uint8_t stage) const
+            {
+                if (m_p_options_segment_texture) {
+                    m_p_options_segment_texture->bind(stage);
+                }
+            }
+
+            void LayerManager::update_transient_other_texture()
             {
                 const uint32_t width = 1;
                 const uint32_t height = 1;
@@ -2683,7 +2724,6 @@ namespace Slic3r
 
                 if (m_p_other_segment_texture) {
                     if (m_b_other_segment_dirty) {
-                        glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
                         const auto& rt = m_p_other_segment_texture->set_buffer(m_other_segment_list);
                         if (rt) {
                             m_other_segment_count = m_other_segment_list.size() / 4;
@@ -2694,13 +2734,19 @@ namespace Slic3r
                             m_other_segment_count = 0;
                         }
                     }
-                    m_p_other_segment_texture->bind(stage);
                 }
             }
 
             uint32_t LayerManager::get_transient_other_segment_count() const
             {
                 return m_other_segment_count;
+            }
+
+            void LayerManager::bind_transient_other_texture(uint8_t stage) const
+            {
+                if (m_p_other_segment_texture) {
+                    m_p_other_segment_texture->bind(stage);
+                }
             }
 
             const std::vector<float>& LayerManager::get_transient_other_segment_list() const
