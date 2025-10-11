@@ -49,7 +49,6 @@
 #include <CGAL/intersections.h>
 #include <CGAL/Object.h>
 #include <CGAL/boost/graph/copy_face_graph.h>
-#include <CGAL/boost/graph/Euler_operations.h>
 #include <CGAL/IO/io.h>
 
 namespace Slic3r {
@@ -2837,8 +2836,8 @@ namespace Slic3r {
         }
         
         Vec3d size = bbox.size();
-        double aspect_ratio = std::max({size.x(), size.y(), size.z()}) / 
-                              std::min({size.x(), size.y(), size.z()});
+        double aspect_ratio = std::max(std::max(size.x(), size.y()), size.z()) / 
+                              std::min(std::min(size.x(), size.y()), size.z());
         
         bool is_sphere_like = (aspect_ratio < 1.5);  // Roughly spherical
         
@@ -4310,9 +4309,9 @@ namespace Slic3r {
             cell_bbox.merge(v.cast<double>());
         }
 
-        float min_dimension = std::min({ cell_bbox.size().x(),
-                                        cell_bbox.size().y(),
-                                        cell_bbox.size().z() });
+        float min_dimension = std::min(std::min(cell_bbox.size().x(),
+                                                 cell_bbox.size().y()),
+                                        cell_bbox.size().z());
 
         // Skip hollowing for cells too small relative to wall thickness
         if (min_dimension < wall_thickness * 3.0f) {
@@ -5658,7 +5657,7 @@ namespace Slic3r {
 
         for (const auto& cell : cells) {
             Vec3d size = cell.bbox_max - cell.bbox_min;
-            double min_dim = std::min({size.x(), size.y(), size.z()});
+            double min_dim = std::min(std::min(size.x(), size.y()), size.z());
             if (min_dim < min_dimension) {
                 min_dimension = min_dim;
                 problematic_cell_id = cell.seed_index;
