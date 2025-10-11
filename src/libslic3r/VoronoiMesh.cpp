@@ -5606,7 +5606,28 @@ namespace Slic3r {
             return connected;
         }
 
-        DelaunayDiagram diagram(seed_points);
+        // Build Delaunay triangulation directly
+        Delaunay dt;
+        std::vector<Delaunay::Vertex_handle> vertex_by_index;
+
+        // Insert seed points into Delaunay triangulation
+        std::vector<std::pair<Point_3, int>> points;
+        points.reserve(seed_points.size());
+        for (size_t i = 0; i < seed_points.size(); ++i) {
+            points.emplace_back(Point_3(seed_points[i].x(), seed_points[i].y(), seed_points[i].z()), int(i));
+        }
+        dt.insert(points.begin(), points.end());
+
+        // Build index mapping
+        vertex_by_index.resize(seed_points.size(), Delaunay::Vertex_handle());
+        for (auto vit = dt.finite_vertices_begin(); vit != dt.finite_vertices_end(); ++vit) {
+            int idx = vit->info();
+            if (idx >= 0 && idx < static_cast<int>(vertex_by_index.size())) {
+                vertex_by_index[idx] = vit;
+            }
+        }
+
+        // BFS to find connected cells
         std::queue<int> to_visit;
         to_visit.push(start_cell_id);
         connected.insert(start_cell_id);
@@ -5615,14 +5636,20 @@ namespace Slic3r {
             int current = to_visit.front();
             to_visit.pop();
 
-            auto vh = diagram.vertex(current);
+            // Get vertex handle for current cell
+            Delaunay::Vertex_handle vh;
+            if (current >= 0 && current < static_cast<int>(vertex_by_index.size())) {
+                vh = vertex_by_index[current];
+            }
+
             if (vh == Delaunay::Vertex_handle())
                 continue;
 
+            // Find adjacent vertices in Delaunay triangulation
             std::vector<Delaunay::Vertex_handle> adjacent;
-            diagram.dt.finite_adjacent_vertices(vh, std::back_inserter(adjacent));
+            dt.finite_adjacent_vertices(vh, std::back_inserter(adjacent));
             for (auto nh : adjacent) {
-                if (!diagram.dt.is_infinite(nh)) {
+                if (!dt.is_infinite(nh)) {
                     int nid = nh->info();
                     if (nid >= 0 && connected.insert(nid).second)
                         to_visit.push(nid);
@@ -5650,19 +5677,104 @@ namespace Slic3r {
             return false;
         }
 
-        BoundingBoxf3 expanded_bounds = expand_bounds(bounds, BOUNDARY_MARGIN_PERCENT);
-        auto cells = compute_all_cells(seed_points, expanded_bounds, nullptr);
+        // Expand bounds by margin for boundary cells
+        constexpr double BOUNDARY_MARGIN = 0.05;  // 5% expansion
+        Vec3d bounds_size = bounds.size();
+        double margin = bounds_size.minCoeff() * BOUNDARY_MARGIN;
+        BoundingBoxf3 expanded_bounds = bounds;
+        expanded_bounds.min -= Vec3d(margin, margin, margin);
+        expanded_bounds.max += Vec3d(margin, margin, margin);
 
+        // Build Delaunay triangulation for Voronoi computation
+        Delaunay dt;
+        std::vector<Delaunay::Vertex_handle> vertex_by_index;
+
+        // Insert seed points
+        std::vector<std::pair<Point_3, int>> points;
+        points.reserve(seed_points.size());
+        for (size_t i = 0; i < seed_points.size(); ++i) {
+            points.emplace_back(Point_3(seed_points[i].x(), seed_points[i].y(), seed_points[i].z()), int(i));
+        }
+        dt.insert(points.begin(), points.end());
+
+        // Build index mapping
+        vertex_by_index.resize(seed_points.size(), Delaunay::Vertex_handle());
+        for (auto vit = dt.finite_vertices_begin(); vit != dt.finite_vertices_end(); ++vit) {
+            int idx = vit->info();
+            if (idx >= 0 && idx < static_cast<int>(vertex_by_index.size())) {
+                vertex_by_index[idx] = vit;
+            }
+        }
+
+        // Build bounding planes for cell clipping
+        std::vector<Plane_3> bounding_planes;
+        bounding_planes.reserve(6);
+        Vec3d n;
+        n = Vec3d(1, 0, 0);  bounding_planes.emplace_back(Point_3(expanded_bounds.max.x(), 0, 0), Vector_3(n.x(), n.y(), n.z()));
+        n = Vec3d(-1, 0, 0); bounding_planes.emplace_back(Point_3(expanded_bounds.min.x(), 0, 0), Vector_3(n.x(), n.y(), n.z()));
+        n = Vec3d(0, 1, 0);  bounding_planes.emplace_back(Point_3(0, expanded_bounds.max.y(), 0), Vector_3(n.x(), n.y(), n.z()));
+        n = Vec3d(0, -1, 0); bounding_planes.emplace_back(Point_3(0, expanded_bounds.min.y(), 0), Vector_3(n.x(), n.y(), n.z()));
+        n = Vec3d(0, 0, 1);  bounding_planes.emplace_back(Point_3(0, 0, expanded_bounds.max.z()), Vector_3(n.x(), n.y(), n.z()));
+        n = Vec3d(0, 0, -1); bounding_planes.emplace_back(Point_3(0, 0, expanded_bounds.min.z()), Vector_3(n.x(), n.y(), n.z()));
+
+        // Validate each cell's dimensions
         int too_small_count = 0;
         double min_dimension = std::numeric_limits<double>::max();
         int problematic_cell_id = -1;
 
-        for (const auto& cell : cells) {
-            Vec3d size = cell.bbox_max - cell.bbox_min;
+        for (size_t i = 0; i < seed_points.size(); ++i) {
+            Delaunay::Vertex_handle vh;
+            if (i < vertex_by_index.size()) {
+                vh = vertex_by_index[i];
+            }
+
+            if (vh == Delaunay::Vertex_handle())
+                continue;
+
+            // Compute bounding box of Voronoi cell by checking circumcenters
+            Vec3d cell_bbox_min = Vec3d(std::numeric_limits<double>::max(),
+                                        std::numeric_limits<double>::max(),
+                                        std::numeric_limits<double>::max());
+            Vec3d cell_bbox_max = Vec3d(std::numeric_limits<double>::lowest(),
+                                        std::numeric_limits<double>::lowest(),
+                                        std::numeric_limits<double>::lowest());
+
+            // Get incident cells and their circumcenters (Voronoi vertices)
+            std::vector<Delaunay::Cell_handle> incident_cells;
+            dt.incident_cells(vh, std::back_inserter(incident_cells));
+
+            bool has_valid_vertices = false;
+            for (auto cell : incident_cells) {
+                if (dt.is_infinite(cell))
+                    continue;
+
+                Point_3 cc = dt.dual(cell);
+                Vec3d v(CGAL::to_double(cc.x()), CGAL::to_double(cc.y()), CGAL::to_double(cc.z()));
+
+                // Update bounding box
+                cell_bbox_min = Vec3d(
+                    std::min(cell_bbox_min.x(), v.x()),
+                    std::min(cell_bbox_min.y(), v.y()),
+                    std::min(cell_bbox_min.z(), v.z())
+                );
+                cell_bbox_max = Vec3d(
+                    std::max(cell_bbox_max.x(), v.x()),
+                    std::max(cell_bbox_max.y(), v.y()),
+                    std::max(cell_bbox_max.z(), v.z())
+                );
+                has_valid_vertices = true;
+            }
+
+            if (!has_valid_vertices)
+                continue;
+
+            // Check minimum cell dimension
+            Vec3d size = cell_bbox_max - cell_bbox_min;
             double min_dim = std::min(std::min(size.x(), size.y()), size.z());
+
             if (min_dim < min_dimension) {
                 min_dimension = min_dim;
-                problematic_cell_id = cell.seed_index;
+                problematic_cell_id = static_cast<int>(i);
             }
             if (min_dim < min_feature_size)
                 ++too_small_count;
