@@ -56,6 +56,9 @@
 #include <CGAL/Object.h>
 #include <CGAL/boost/graph/copy_face_graph.h>
 #include <CGAL/IO/io.h>
+#include <CGAL/Assertion_exception.h>
+#include <CGAL/Regular_triangulation_cell_base_3.h>
+#include <CGAL/Regular_triangulation_vertex_base_3.h>
 
 namespace Slic3r {
 
@@ -74,7 +77,11 @@ namespace Slic3r {
     using Delaunay = CGAL::Delaunay_triangulation_3<Kf, Tds>;
     
     // Regular triangulation (weighted/power diagram)
-    using RT = CGAL::Regular_triangulation_3<Kf>;
+    using RT_Vb_base = CGAL::Regular_triangulation_vertex_base_3<Kf>;
+    using RT_Vb = CGAL::Triangulation_vertex_base_with_info_3<int, Kf, RT_Vb_base>;
+    using RT_Cb = CGAL::Regular_triangulation_cell_base_3<Kf>;
+    using RT_Tds = CGAL::Triangulation_data_structure_3<RT_Vb, RT_Cb>;
+    using RT = CGAL::Regular_triangulation_3<Kf, RT_Tds>;
     using Weighted_point = RT::Weighted_point;
     using Bare_point = RT::Bare_point;
     
@@ -110,6 +117,7 @@ namespace Slic3r {
         
         // Forward declarations for helper functions
         void clip_wireframe_to_mesh(indexed_triangle_set& wireframe, const indexed_triangle_set& mesh);
+        void remove_degenerate_faces(indexed_triangle_set& mesh);
         
         // Type aliases for convenience
         using Config = VoronoiMesh::Config;
@@ -909,8 +917,11 @@ namespace Slic3r {
                 return false;
 
             Polyhedron poly;
-            if (!CGAL::halfspace_intersection_3(planes.begin(), planes.end(), poly, vh->point()))
+            try {
+                CGAL::halfspace_intersection_3(planes.begin(), planes.end(), poly, vh->point());
+            } catch (const CGAL::Assertion_exception&) {
                 return false;
+            }
 
             if (poly.is_empty() || poly.size_of_vertices() < 4)
                 return false;
@@ -947,7 +958,7 @@ namespace Slic3r {
             if (clip_mesh && !clip_mesh->vertices.empty()) {
                 TriangleMesh tmp(cell_its);
                 try {
-                    MeshBoolean::cgal::intersect(tmp, *clip_mesh);
+                    MeshBoolean::cgal::intersect(tmp, TriangleMesh(*clip_mesh));
                 } catch (...) {
                     return false;
                 }
@@ -1515,7 +1526,7 @@ namespace Slic3r {
                     continue;
 
                 auto point_status = [&](const Point_3& p) {
-                    CGAL::Oriented_side side = inside(p);
+                    CGAL::Bounded_side side = inside(p);
                     return side == CGAL::ON_BOUNDED_SIDE || side == CGAL::ON_BOUNDARY;
                 };
 
@@ -3588,8 +3599,11 @@ namespace Slic3r {
             
             // Use CGAL halfspace intersection (same as compute_voronoi_cell_data)
             Polyhedron poly;
-            if (!CGAL::halfspace_intersection_3(planes.begin(), planes.end(), poly, p_current))
+            try {
+                CGAL::halfspace_intersection_3(planes.begin(), planes.end(), poly, p_current);
+            } catch (const CGAL::Assertion_exception&) {
                 return false;
+            }
             
             if (poly.is_empty() || poly.size_of_vertices() < 4)
                 return false;
