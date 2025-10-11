@@ -1885,12 +1885,95 @@ namespace Slic3r::GUI {
             }
         }
 
-        // Draw seed points
+        // Draw seed points (variable size for weighted mode)
         ImU32 seed_color = ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-        for (const auto& cell : m_2d_voronoi_cells) {
+        ImU32 seed_outline = ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.8f));
+        
+        bool is_weighted = m_configuration.use_weighted_cells && 
+                          !m_configuration.cell_weights.empty() &&
+                          m_configuration.cell_weights.size() == m_seed_preview_points_exact.size();
+        
+        // Compute weight range for sizing if weighted
+        double min_weight = 1.0, max_weight = 1.0, weight_range = 1.0;
+        if (is_weighted) {
+            min_weight = m_configuration.cell_weights[0];
+            max_weight = m_configuration.cell_weights[0];
+            for (double w : m_configuration.cell_weights) {
+                min_weight = std::min(min_weight, w);
+                max_weight = std::max(max_weight, w);
+            }
+            weight_range = max_weight - min_weight;
+            if (weight_range < 1e-9) weight_range = 1.0;
+        }
+        
+        for (size_t i = 0; i < m_2d_voronoi_cells.size(); ++i) {
+            const auto& cell = m_2d_voronoi_cells[i];
             ImVec2 seed_pos(canvas_pos.x + cell.seed_point.x() * canvas_size.x,
                            canvas_pos.y + cell.seed_point.y() * canvas_size.y);
-            draw_list->AddCircleFilled(seed_pos, 2.0f, seed_color);
+            
+            // Variable radius based on weight
+            float radius = 2.0f;
+            if (is_weighted && i < m_configuration.cell_weights.size()) {
+                double normalized_weight = (m_configuration.cell_weights[i] - min_weight) / weight_range;
+                radius = 1.5f + static_cast<float>(normalized_weight) * 3.5f; // 1.5 to 5.0
+            }
+            
+            // Draw with outline for better visibility
+            draw_list->AddCircleFilled(seed_pos, radius + 1.0f, seed_outline);
+            draw_list->AddCircleFilled(seed_pos, radius, seed_color);
+        }
+        
+        // Draw legend for weighted mode
+        if (is_weighted) {
+            ImVec2 legend_pos(canvas_pos.x + 5.0f, canvas_pos.y + canvas_size.y - 40.0f);
+            ImU32 text_color = m_is_dark_mode ? 
+                ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 1.0f)) :
+                ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+            
+            // Legend background
+            ImVec2 legend_size(80.0f, 30.0f);
+            ImU32 legend_bg = m_is_dark_mode ?
+                ImGui::ColorConvertFloat4ToU32(ImVec4(0.2f, 0.2f, 0.2f, 0.8f)) :
+                ImGui::ColorConvertFloat4ToU32(ImVec4(0.9f, 0.9f, 0.9f, 0.8f));
+            draw_list->AddRectFilled(legend_pos, 
+                ImVec2(legend_pos.x + legend_size.x, legend_pos.y + legend_size.y), 
+                legend_bg, 3.0f);
+            
+            // Text
+            draw_list->AddText(ImVec2(legend_pos.x + 5.0f, legend_pos.y + 3.0f), 
+                              text_color, "Weighted");
+            
+            // Gradient bar (blue to red)
+            for (int i = 0; i < 60; ++i) {
+                float t = static_cast<float>(i) / 59.0f;
+                ImU32 bar_color = ImGui::ColorConvertFloat4ToU32(
+                    ImVec4(t, 0.3f, 1.0f - t, 1.0f));
+                draw_list->AddRectFilled(
+                    ImVec2(legend_pos.x + 5.0f + i, legend_pos.y + 18.0f),
+                    ImVec2(legend_pos.x + 6.0f + i, legend_pos.y + 25.0f),
+                    bar_color);
+            }
+        }
+        
+        // Draw mode indicator
+        ImVec2 mode_pos(canvas_pos.x + canvas_size.x - 80.0f, canvas_pos.y + 5.0f);
+        ImU32 mode_text_color = m_is_dark_mode ? 
+            ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.8f)) :
+            ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.8f));
+        
+        const char* mode_text = is_weighted ? "Power" : "Standard";
+        draw_list->AddText(mode_pos, mode_text_color, mode_text);
+        
+        // Anisotropic indicator
+        if (m_configuration.anisotropic) {
+            ImVec2 aniso_pos(canvas_pos.x + 5.0f, canvas_pos.y + 5.0f);
+            draw_list->AddText(aniso_pos, mode_text_color, "Anisotropic");
+        }
+        
+        // Multi-scale indicator
+        if (m_configuration.multi_scale) {
+            ImVec2 ms_pos(canvas_pos.x + 5.0f, canvas_pos.y + 20.0f);
+            draw_list->AddText(ms_pos, mode_text_color, "Multi-Scale");
         }
 
         // Reserve space in ImGui layout for the canvas
@@ -1932,6 +2015,27 @@ namespace Slic3r::GUI {
             if (range.x() < 1e-6) range.x() = 1.0;
             if (range.y() < 1e-6) range.y() = 1.0;
 
+            // Apply anisotropic aspect ratio to preview if enabled
+            double aspect_x = 1.0;
+            double aspect_y = 1.0;
+            if (m_configuration.anisotropic && m_configuration.anisotropy_ratio > 0.0f) {
+                // Determine which axis to stretch based on anisotropy_direction
+                Vec3d dir = m_configuration.anisotropy_direction.normalized();
+                double abs_x = std::abs(dir.x());
+                double abs_y = std::abs(dir.y());
+                
+                if (abs_x > abs_y) {
+                    // Stretch in X direction
+                    aspect_x = m_configuration.anisotropy_ratio;
+                } else {
+                    // Stretch in Y direction  
+                    aspect_y = m_configuration.anisotropy_ratio;
+                }
+                
+                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: 2D preview - Applying anisotropic aspect: " 
+                                         << aspect_x << " x " << aspect_y;
+            }
+
             // Check if weighted mode is enabled
             bool use_weighted = m_configuration.use_weighted_cells;
             
@@ -1943,14 +2047,26 @@ namespace Slic3r::GUI {
                 // Build weighted 2D Voronoi (power diagram)
                 RT2 rt;
                 std::vector<Point_2> seed_points_2d;
+                std::vector<double> seed_weights;
+                
+                // Compute weight statistics for visualization
+                double min_weight = m_configuration.cell_weights[0];
+                double max_weight = m_configuration.cell_weights[0];
+                for (double w : m_configuration.cell_weights) {
+                    min_weight = std::min(min_weight, w);
+                    max_weight = std::max(max_weight, w);
+                }
+                double weight_range = max_weight - min_weight;
+                if (weight_range < 1e-9) weight_range = 1.0;
                 
                 for (size_t i = 0; i < seeds_3d.size(); ++i) {
                     const Vec3d& seed = seeds_3d[i];
                     double weight = m_configuration.cell_weights[i];
+                    seed_weights.push_back(weight);
                     
-                    // Normalize to [0,1]
-                    double x = (seed.x() - min_pt.x()) / range.x();
-                    double y = (seed.y() - min_pt.y()) / range.y();
+                    // Normalize to [0,1] with anisotropic scaling
+                    double x = (seed.x() - min_pt.x()) / range.x() / aspect_x;
+                    double y = (seed.y() - min_pt.y()) / range.y() / aspect_y;
                     
                     // Clamp to valid range
                     x = std::max(0.0, std::min(1.0, x));
@@ -1985,8 +2101,30 @@ namespace Slic3r::GUI {
                     cell.seed_point = Vec2f(static_cast<float>(seed_pt.x()), 
                                            static_cast<float>(seed_pt.y()));
                     
-                    // Assign color
-                    cell.color = color_from_index_imgui(face_idx);
+                    // Find which seed this corresponds to for weight-based coloring
+                    size_t seed_idx = face_idx % seeds_3d.size();
+                    for (size_t i = 0; i < seed_points_2d.size(); ++i) {
+                        double dx = seed_pt.x() - seed_points_2d[i].x();
+                        double dy = seed_pt.y() - seed_points_2d[i].y();
+                        if (dx*dx + dy*dy < 1e-9) {
+                            seed_idx = i;
+                            break;
+                        }
+                    }
+                    
+                    // Color based on weight (gradient from blue=low to red=high)
+                    if (seed_idx < seed_weights.size()) {
+                        double normalized_weight = (seed_weights[seed_idx] - min_weight) / weight_range;
+                        
+                        // Blue to red gradient
+                        float r = static_cast<float>(normalized_weight);
+                        float g = 0.3f;
+                        float b = static_cast<float>(1.0 - normalized_weight);
+                        
+                        cell.color = ImGui::ColorConvertFloat4ToU32(ImVec4(r, g, b, 0.6f));
+                    } else {
+                        cell.color = color_from_index_imgui(face_idx);
+                    }
                     
                     // Extract cell vertices (bounded by [0,1] box)
                     auto ccb = fit->ccb();
@@ -2021,10 +2159,28 @@ namespace Slic3r::GUI {
                 DT2 dt;
                 std::vector<Point_2> seed_points_2d;
                 
+                // Check for multi-scale mode
+                std::vector<int> scale_levels;
+                if (m_configuration.multi_scale && !m_configuration.scale_seed_counts.empty()) {
+                    // Mark which scale level each seed belongs to
+                    int cumulative = 0;
+                    for (size_t level = 0; level < m_configuration.scale_seed_counts.size(); ++level) {
+                        int count = m_configuration.scale_seed_counts[level];
+                        for (int i = 0; i < count && cumulative + i < static_cast<int>(seeds_3d.size()); ++i) {
+                            scale_levels.push_back(static_cast<int>(level));
+                        }
+                        cumulative += count;
+                    }
+                    // Fill remaining with last level
+                    while (scale_levels.size() < seeds_3d.size()) {
+                        scale_levels.push_back(static_cast<int>(m_configuration.scale_seed_counts.size() - 1));
+                    }
+                }
+                
                 for (const auto& seed : seeds_3d) {
-                    // Normalize to [0,1]
-                    double x = (seed.x() - min_pt.x()) / range.x();
-                    double y = (seed.y() - min_pt.y()) / range.y();
+                    // Normalize to [0,1] with anisotropic scaling
+                    double x = (seed.x() - min_pt.x()) / range.x() / aspect_x;
+                    double y = (seed.y() - min_pt.y()) / range.y() / aspect_y;
                     
                     // Clamp to valid range
                     x = std::max(0.0, std::min(1.0, x));
@@ -2051,8 +2207,20 @@ namespace Slic3r::GUI {
                     cell.seed_point = Vec2f(static_cast<float>(seed_pt.x()), 
                                            static_cast<float>(seed_pt.y()));
                     
-                    // Assign color
-                    cell.color = color_from_index_imgui(face_idx);
+                    // Color based on scale level if multi-scale
+                    if (!scale_levels.empty() && face_idx < static_cast<int>(scale_levels.size())) {
+                        int level = scale_levels[face_idx];
+                        // Different hue per level
+                        float hue = static_cast<float>(level) / static_cast<float>(m_configuration.scale_seed_counts.size());
+                        float h_rad = hue * 6.28318f;
+                        float r = 0.5f + 0.5f * std::cos(h_rad);
+                        float g = 0.5f + 0.5f * std::cos(h_rad + 2.0944f);
+                        float b = 0.5f + 0.5f * std::cos(h_rad + 4.1888f);
+                        cell.color = ImGui::ColorConvertFloat4ToU32(ImVec4(r, g, b, 0.6f));
+                    } else {
+                        // Standard golden ratio coloring
+                        cell.color = color_from_index_imgui(face_idx);
+                    }
                     
                     // Extract cell vertices (bounded by [0,1] box)
                     auto ccb = fit->ccb();

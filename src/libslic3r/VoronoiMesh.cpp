@@ -49,7 +49,7 @@
 #include <CGAL/intersections.h>
 #include <CGAL/Object.h>
 #include <CGAL/boost/graph/copy_face_graph.h>
-#include <CGAL/Euler_operations.h>
+#include <CGAL/boost/graph/Euler_operations.h>
 #include <CGAL/IO/io.h>
 
 namespace Slic3r {
