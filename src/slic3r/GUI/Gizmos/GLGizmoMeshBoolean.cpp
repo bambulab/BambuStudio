@@ -8,6 +8,9 @@
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/format.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "libslic3r/CSGMesh/CSGMesh.hpp"
+#include "libslic3r/CSGMesh/ModelToCSGMesh.hpp"
+#include "libslic3r/CSGMesh/PerformCSGMeshBooleans.hpp"
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -37,6 +40,36 @@ const std::string MeshBooleanWarnings::OVERLAPING               = _u8L("No overl
 // ========================== UTILITY FUNCTIONS ==========================
 
 namespace {
+
+    class DebugLogger {
+        std::ofstream log_file;
+    public:
+        DebugLogger() {
+            log_file.open("C:/temp/boolean_debug.txt", std::ios::out | std::ios::app);
+
+            // Get current time
+            auto now = std::chrono::system_clock::now();
+            auto time_t = std::chrono::system_clock::to_time_t(now);
+
+            log_file << "\n=== Boolean Operation Debug Started at "
+                    << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S")
+                    << " ===" << std::endl;
+        }
+
+        void log(const std::string& msg) {
+            if (log_file.is_open()) {
+                log_file << msg << std::endl;
+                log_file.flush();
+            }
+        }
+
+        ~DebugLogger() {
+            if (log_file.is_open()) {
+                log_file << "=== Debug Session Ended ===" << std::endl;
+                log_file.close();
+            }
+        }
+    };
 
     template <class T>
     static bool is_equal_ignore_order(std::vector<T> a, std::vector<T> b)
@@ -350,6 +383,31 @@ std::vector<WarningItem> BooleanWarningManager::get_inline_hints_for_state(MeshB
 // Manages volume lists for different boolean operations (A/B lists, working list)
 VolumeListManager::VolumeListManager() {}
 
+void VolumeListManager::sort_volumes_by_type(std::vector<unsigned int>& volume_indices, const Selection& selection) {
+    // Sort volumes so that MODEL_PART volumes appear first, then other types
+    std::sort(volume_indices.begin(), volume_indices.end(), [&selection](unsigned int a, unsigned int b) {
+        const GLVolume* vol_a = selection.get_volume(a);
+        const GLVolume* vol_b = selection.get_volume(b);
+
+        if (!vol_a || !vol_b) return false;
+
+        ModelVolume* mv_a = get_model_volume(*vol_a, selection.get_model()->objects);
+        ModelVolume* mv_b = get_model_volume(*vol_b, selection.get_model()->objects);
+
+        if (!mv_a || !mv_b) return false;
+
+        bool is_a_model_part = mv_a->is_model_part();
+        bool is_b_model_part = mv_b->is_model_part();
+
+        // MODEL_PART volumes should come first
+        if (is_a_model_part && !is_b_model_part) return true;
+        if (!is_a_model_part && is_b_model_part) return false;
+
+        // If both are the same type, maintain original order (stable sort)
+        return a < b;
+    });
+}
+
 bool VolumeListManager::selection_changed(const Selection& selection){
     std::vector<unsigned int> cur_volumes;
     const Selection::IndicesList& volume_idxs = selection.get_volume_idxs();
@@ -366,6 +424,10 @@ void VolumeListManager::init_part_mode_lists(const Selection& selection) {
     for (unsigned int vol_idx : volume_idxs) {
         m_working_volumes.push_back(vol_idx);
     }
+
+    // Sort volumes so that MODEL_PART volumes appear first
+    sort_volumes_by_type(m_working_volumes, selection);
+
     m_a_list_volumes.push_back(m_working_volumes.front());
     m_b_list_volumes.assign(m_working_volumes.begin() + 1, m_working_volumes.end());
 }
@@ -392,6 +454,11 @@ void VolumeListManager::init_object_mode_lists(const Selection& selection){
         // overall
         m_working_volumes.push_back(vol_idx);
     }
+
+    // Sort all lists so that MODEL_PART volumes appear first
+    sort_volumes_by_type(m_working_volumes, selection);
+    sort_volumes_by_type(m_a_list_volumes, selection);
+    sort_volumes_by_type(m_b_list_volumes, selection);
 }
 
 void VolumeListManager::clear_all() {
@@ -595,20 +662,33 @@ void VolumeListManager::remove_indices_from_all_lists(const std::set<unsigned in
 
 // ========================== BOOLEAN OPERATION ENGINE IMPLEMENTATION ==========================
 // Helpers for non-model handling abstraction
-static void filter_volumes_for_boolean(std::vector<BooleanOperationEngine::ProcessedVolumeInfo>& volumes,
+static void filter_volumes_for_boolean(std::vector<BooleanOperationEngine::VolumeInfo>& volumes,
                                        const BooleanOperationSettings& settings)
 {
     // Remove invalid or empty-mesh volumes to avoid downstream boolean crashes
-    volumes.erase(std::remove_if(volumes.begin(), volumes.end(), [](const BooleanOperationEngine::ProcessedVolumeInfo& info){
+    volumes.erase(std::remove_if(volumes.begin(), volumes.end(), [](const BooleanOperationEngine::VolumeInfo& info){
         return info.model_volume == nullptr || info.model_volume->mesh().empty();
     }), volumes.end());
 
     // If only operating on entities, drop non-model parts
     if (settings.entity_only) {
-        volumes.erase(std::remove_if(volumes.begin(), volumes.end(), [](const BooleanOperationEngine::ProcessedVolumeInfo& info){
+        volumes.erase(std::remove_if(volumes.begin(), volumes.end(), [](const BooleanOperationEngine::VolumeInfo& info){
             return info.model_volume == nullptr || !info.model_volume->is_model_part();
         }), volumes.end());
     }
+}
+
+static void validate_before_boolean(const std::vector<BooleanOperationEngine::VolumeInfo>& volumes,
+                                    BooleanOperationResult& result)
+{
+    std::vector<const ModelVolume*> candidates;
+    for (const auto& v : volumes) {
+        if (v.model_volume) candidates.push_back(v.model_volume);
+    }
+    csg::BooleanFailReason fail_reason;
+    std::string warning_text = check_boolean_possible(candidates, fail_reason);
+    if (warning_text == "" || fail_reason == csg::BooleanFailReason::SelfIntersect) return;
+    result.error_message = warning_text;
 }
 
 static void attach_ignored_non_models_to_target(ModelObject* target_object,
@@ -671,6 +751,7 @@ BooleanOperationResult BooleanOperationEngine::perform_union(const VolumeListMan
                                                            const BooleanOperationSettings& settings) {
     auto volumes = prepare_volumes(volume_manager.get_working_list(), selection);
     filter_volumes_for_boolean(volumes, settings);
+
     return part_level_boolean(volumes, settings, MeshBooleanConfig::OP_UNION);
 }
 
@@ -687,7 +768,7 @@ BooleanOperationResult BooleanOperationEngine::perform_intersection(const Volume
 
         // Group by object index
         int obj_count = 1, last_obj = volumes[0].object_index;
-        std::unordered_map<int, std::vector<ProcessedVolumeInfo>> by_object;
+        std::unordered_map<int, std::vector<VolumeInfo>> by_object;
         for (const auto &v : volumes) {
             by_object[v.object_index].push_back(v);
             if (v.object_index != last_obj) {
@@ -762,8 +843,8 @@ BooleanOperationResult BooleanOperationEngine::perform_difference(const VolumeLi
         }
 
         // Group volumes by object (but don't union them - keep each object separate)
-        auto group_by_object = [&](const std::vector<ProcessedVolumeInfo> &vols) -> std::unordered_map<int, std::vector<ProcessedVolumeInfo>> {
-            std::unordered_map<int, std::vector<ProcessedVolumeInfo>> by_object;
+        auto group_by_object = [&](const std::vector<VolumeInfo> &vols) -> std::unordered_map<int, std::vector<VolumeInfo>> {
+            std::unordered_map<int, std::vector<VolumeInfo>> by_object;
             for (const auto &v : vols) by_object[v.object_index].push_back(v);
             return by_object;
         };
@@ -797,7 +878,7 @@ BooleanOperationResult BooleanOperationEngine::perform_difference(const VolumeLi
 
         // For each A object, subtract all B volumes
         for (const auto &kv : a_by_object) {
-            const std::vector<ProcessedVolumeInfo> &a_object_volumes = kv.second;
+            const std::vector<VolumeInfo> &a_object_volumes = kv.second;
 
             // Each volume in this A object gets subtracted by all B
             for (const auto &a_vol : a_object_volumes) {
@@ -852,12 +933,13 @@ std::string BooleanOperationEngine::validate_operation(MeshBooleanOperation type
     return "";
 }
 
-std::vector<BooleanOperationEngine::ProcessedVolumeInfo> BooleanOperationEngine::prepare_volumes(
+
+std::vector<BooleanOperationEngine::VolumeInfo> BooleanOperationEngine::prepare_volumes(
     const std::vector<unsigned int>& volume_indices,
     const Selection& selection) const {
 
-    std::vector<ProcessedVolumeInfo> result;
-    result.reserve(volume_indices.size());
+    static DebugLogger logger;
+    std::vector<VolumeInfo> result;
 
     for (unsigned int volume_idx : volume_indices) {
         const GLVolume* gl_volume = selection.get_volume(volume_idx);
@@ -866,7 +948,7 @@ std::vector<BooleanOperationEngine::ProcessedVolumeInfo> BooleanOperationEngine:
         ModelVolume* model_volume = get_model_volume(*gl_volume, selection.get_model()->objects);
         if (!model_volume) continue;
 
-        ProcessedVolumeInfo info;
+        VolumeInfo info;
         info.model_volume = model_volume;
         info.volume_index = volume_idx;
         info.object_index = gl_volume->object_idx();
@@ -876,10 +958,22 @@ std::vector<BooleanOperationEngine::ProcessedVolumeInfo> BooleanOperationEngine:
         result.push_back(info);
     }
 
+    // Sort volumes: MODEL_PART first, then others (consistent with UI display order)
+    std::sort(result.begin(), result.end(), [](const VolumeInfo& a, const VolumeInfo& b) {
+        if (!a.model_volume || !b.model_volume) return false;
+        bool a_is_model_part = a.model_volume->is_model_part();
+        bool b_is_model_part = b.model_volume->is_model_part();
+        // MODEL_PART volumes come first
+        if (a_is_model_part && !b_is_model_part) return true;
+        if (!a_is_model_part && b_is_model_part) return false;
+        // Same type: maintain original order (stable)
+        return a.volume_index < b.volume_index;
+    });
+
     return result;
 }
 
-TriangleMesh BooleanOperationEngine::get_transformed_mesh(const ProcessedVolumeInfo& volume_info) const {
+TriangleMesh BooleanOperationEngine::get_transformed_mesh(const VolumeInfo& volume_info) const {
     TriangleMesh mesh;
     if (volume_info.model_volume != nullptr)
         mesh = volume_info.model_volume->mesh();
@@ -902,7 +996,7 @@ TriangleMesh BooleanOperationEngine::execute_boolean_operation(const TriangleMes
     return TriangleMesh();
 }
 
-std::optional<TriangleMesh> BooleanOperationEngine::execute_boolean_on_meshes(const std::vector<ProcessedVolumeInfo> &volumes, const std::string &operation) const
+std::optional<TriangleMesh> BooleanOperationEngine::execute_boolean_on_meshes(const std::vector<VolumeInfo> &volumes, const std::string &operation) const
 {
     if (volumes.empty()) return std::nullopt;
 
@@ -911,22 +1005,79 @@ std::optional<TriangleMesh> BooleanOperationEngine::execute_boolean_on_meshes(co
         TriangleMesh next_mesh = get_transformed_mesh(volumes[i]);
         try {
             accumulated_result = execute_boolean_operation(accumulated_result, next_mesh, operation);
-            if (accumulated_result.empty()) return std::nullopt;
+
+            // Check if result is empty
+            if (accumulated_result.empty()) {
+                BOOST_LOG_TRIVIAL(warning) << "Boolean operation returned empty mesh at step " << i;
+
+                // For INTERSECTION: try CGAL as fallback
+                if (operation == MeshBooleanConfig::OP_INTERSECTION) {
+                    BOOST_LOG_TRIVIAL(info) << "Attempting CGAL fallback for intersection...";
+
+                    // Rebuild the mesh before the failed operation
+                    TriangleMesh acc_before = get_transformed_mesh(volumes[0]);
+                    for (size_t j = 1; j < i; ++j) {
+                        TriangleMesh temp_mesh = get_transformed_mesh(volumes[j]);
+                        acc_before = execute_boolean_operation(acc_before, temp_mesh, operation);
+                        // Minimal cleanup after each step
+                        its_merge_vertices(acc_before.its);
+                        its_remove_degenerate_faces(acc_before.its);
+                    }
+
+                    try {
+                        Slic3r::MeshBoolean::cgal::intersect(acc_before, next_mesh);
+                        if (!acc_before.empty()) {
+                            BOOST_LOG_TRIVIAL(info) << "CGAL fallback succeeded!";
+                            accumulated_result = acc_before;
+                        } else {
+                            BOOST_LOG_TRIVIAL(warning) << "CGAL also returned empty mesh";
+                            return std::nullopt;
+                        }
+                    } catch (const std::exception& e) {
+                        BOOST_LOG_TRIVIAL(warning) << "CGAL fallback failed: " << e.what();
+                        return std::nullopt;
+                    }
+                } else {
+                    // For other operations, just return nullopt
+                    return std::nullopt;
+                }
+            }
+
+            // Apply mesh cleanup based on operation type
+            if (operation == MeshBooleanConfig::OP_INTERSECTION) {
+                // Aggressive cleanup for intersection
+                its_remove_degenerate_faces(accumulated_result.its);
+                its_merge_vertices(accumulated_result.its, true);
+                its_remove_degenerate_faces(accumulated_result.its, true);
+                its_compactify_vertices(accumulated_result.its, true);
+
+                // // Rebuild mesh from scratch
+                // indexed_triangle_set cleaned_its;
+                // cleaned_its.vertices = accumulated_result.its.vertices;
+                // cleaned_its.indices = accumulated_result.its.indices;
+                // accumulated_result = TriangleMesh(std::move(cleaned_its));
+
+                // its_merge_vertices(accumulated_result.its, true);
+                // its_compactify_vertices(accumulated_result.its, true);
+            } else {
+                // Minimal cleanup for difference/union to preserve precision
+                its_remove_degenerate_faces(accumulated_result.its);
+                its_compactify_vertices(accumulated_result.its);
+            }
+
         } catch (const std::exception &e) {
-            BOOST_LOG_TRIVIAL(warning)  << "Executing boolean on meshes failed: " << e.what();
+            BOOST_LOG_TRIVIAL(warning) << "Executing boolean on meshes failed: " << e.what();
             return std::nullopt;
         }
     }
     return accumulated_result;
 }
 
-BooleanOperationResult BooleanOperationEngine::part_level_boolean(const std::vector<ProcessedVolumeInfo>& volumes,
+BooleanOperationResult BooleanOperationEngine::part_level_boolean(const std::vector<VolumeInfo>& volumes,
                                                       const BooleanOperationSettings& settings,
                                                       const std::string& operation,
                                                       bool allow_single_volume) const {
     BooleanOperationResult result;
-    bool success = true;
-
     // Difference
     if (operation == MeshBooleanConfig::OP_DIFFERENCE) { return part_level_sub(volumes, volumes, settings); }
     // Union or Intersection
@@ -934,6 +1085,8 @@ BooleanOperationResult BooleanOperationEngine::part_level_boolean(const std::vec
         result.error_message = MeshBooleanWarnings::COMMON;
         return result;
     }
+    validate_before_boolean(volumes, result);
+    if (result.error_message != "") return result;
 
     auto acc = execute_boolean_on_meshes(volumes, operation);
     if (!acc.has_value()) {
@@ -951,8 +1104,8 @@ BooleanOperationResult BooleanOperationEngine::part_level_boolean(const std::vec
     return result;
 }
 
-BooleanOperationResult BooleanOperationEngine::part_level_sub(const std::vector<ProcessedVolumeInfo>& volumes_a,
-                                                                      const std::vector<ProcessedVolumeInfo>& volumes_b,
+BooleanOperationResult BooleanOperationEngine::part_level_sub(const std::vector<VolumeInfo>& volumes_a,
+                                                                      const std::vector<VolumeInfo>& volumes_b,
                                                                       const BooleanOperationSettings& settings) const {
     BooleanOperationResult result;
 
@@ -960,7 +1113,10 @@ BooleanOperationResult BooleanOperationEngine::part_level_sub(const std::vector<
         result.error_message = MeshBooleanWarnings::COMMON;
         return result;
     }
-
+    validate_before_boolean(volumes_a, result);
+    if (result.error_message != "") return result;
+    validate_before_boolean(volumes_b, result);
+    if (result.error_message != "") return result;
     // Process each A volume: A_i = A_i - ALL_B_volumes
     for (size_t a_idx = 0; a_idx < volumes_a.size(); ++a_idx) {
         TriangleMesh accumulated_result = get_transformed_mesh(volumes_a[a_idx]);
@@ -1000,18 +1156,26 @@ BooleanOperationResult BooleanOperationEngine::part_level_sub(const std::vector<
     return result;
 }
 
+// Collect volumes that need to be deleted (excluding the source/first volume)
+// Note: volumes[0] is handled separately in apply_result_to_model via should_replace_source
 void BooleanOperationEngine::update_delete_list(BooleanOperationResult& result,
-                                                        const std::vector<ProcessedVolumeInfo>& volumes,
+                                                        const std::vector<VolumeInfo>& volumes,
                                                         const BooleanOperationSettings& settings ) const {
-    if (!settings.keep_original_models){
-        if (settings.entity_only){
-            for (size_t i = 0; i < volumes.size(); ++i) {
-                if (volumes[i].model_volume->is_model_part()) result.volumes_to_delete.push_back(volumes[i].model_volume);
-            }
-        } else {
-            for (size_t i = 1; i < volumes.size(); ++i) {
+    // If keeping original models, don't delete anything here (volumes[0] may still be replaced in Difference mode)
+    if (settings.keep_original_models) return;
+
+    // Delete all volumes except volumes[0] (which is the source, handled separately)
+    if (settings.entity_only) {
+        // In entity_only mode, only delete MODEL_PART volumes
+        for (size_t i = 1; i < volumes.size(); ++i) {
+            if (volumes[i].model_volume->is_model_part()) {
                 result.volumes_to_delete.push_back(volumes[i].model_volume);
             }
+        }
+    } else {
+        // In normal mode, delete all volumes
+        for (size_t i = 1; i < volumes.size(); ++i) {
+            result.volumes_to_delete.push_back(volumes[i].model_volume);
         }
     }
 }
@@ -1022,7 +1186,9 @@ void BooleanOperationEngine::apply_result_to_model(const BooleanOperationResult&
                                                   int object_index,
                                                   const BooleanOperationSettings& settings,
                                                   MeshBooleanOperation mode,
-                                                  const std::vector<ModelObject*>& participating_objects) {
+                                                  const std::vector<ModelObject*>& participating_objects,
+                                                  const std::vector<ModelObject*>& a_group_objects,
+                                                  const std::vector<ModelObject*>& b_group_objects) {
     if (!result.success || result.result_meshes.empty() || settings.target_mode == BooleanTargetMode::Unknown)
         return;
     (void)object_index;
@@ -1074,30 +1240,51 @@ void BooleanOperationEngine::apply_result_to_model(const BooleanOperationResult&
     if (!target_object)
         return;
 
+    // ===== STEP 1: Decide which source volumes should be replaced =====
+    // "Replace" means: delete the old source volume and create new result volume in its place
+    // This is different from "delete other volumes" which happens in update_delete_list()
     auto should_replace_source = [&](const ModelVolume* src) -> bool {
         if (!src || src->get_object() != target_object) return false;
-        const bool allow_replace_for_difference = (mode == MeshBooleanOperation::Difference);
-        if (!(allow_replace_for_difference || !settings.keep_original_models)) return false;
+
+        // Replacement policy depends on mode:
+        // - Difference mode: ALWAYS replace A volumes (even if keeping originals, we need new A-B result)
+        // - Union/Intersection: Replace only if not keeping originals
+        const bool is_difference_mode = (mode == MeshBooleanOperation::Difference);
+        if (!is_difference_mode && settings.keep_original_models) return false;
+
+        // In entity_only mode, only MODEL_PART volumes participate in boolean ops
         if (settings.entity_only && !src->is_model_part()) return false;
+
         return true;
     };
 
-    // Create new volumes for each result mesh
+    // ===== STEP 2: Create new result volumes =====
+    // Collect sources that need to be replaced (deleted after new volumes are created)
+    std::vector<ModelVolume*> sources_to_replace;
+
     for (size_t i = 0; i < result.result_meshes.size(); ++i) {
         if (i >= result.source_volumes.size()) break;
         ModelVolume* source_volume = result.source_volumes[i];
         if (settings.entity_only && (!source_volume || !source_volume->is_model_part()))
             continue;
 
+        // Create the new result volume
         ModelVolume* new_volume = create_result_volume(target_object, result.result_meshes[i], source_volume);
         if (!new_volume) continue;
         new_volume->set_type(ModelVolumeType::MODEL_PART);
 
+        // Mark source for replacement if policy allows
         if (should_replace_source(source_volume)) {
-            auto &volumes = target_object->volumes;
-            if (auto it = std::find(volumes.begin(), volumes.end(), source_volume); it != volumes.end())
-                target_object->delete_volume(std::distance(volumes.begin(), it));
+            sources_to_replace.push_back(source_volume);
         }
+    }
+
+    // ===== STEP 3: Delete source volumes (now that new ones exist) =====
+    // This is the "replace" operation: delete old volumes[0] from each result
+    for (ModelVolume* src : sources_to_replace) {
+        auto &volumes = target_object->volumes;
+        if (auto it = std::find(volumes.begin(), volumes.end(), src); it != volumes.end())
+            target_object->delete_volume(std::distance(volumes.begin(), it));
     }
 
     // Attach ignored non-model volumes before any deletion to avoid dangling pointers
@@ -1109,18 +1296,43 @@ void BooleanOperationEngine::apply_result_to_model(const BooleanOperationResult&
                 delete_volumes_from_model(result.volumes_to_delete);
             return;
         }
-        if (settings.keep_original_models) return;
+
+        // Object mode: collect objects to delete
         auto &objects = *wxGetApp().obj_list()->objects();
-        std::set<int> obj_indices;
-        for (ModelObject* src_obj : participating_objects) {
-            if (!src_obj || src_obj == target_object) continue;
-            auto it = std::find(objects.begin(), objects.end(), src_obj);
-            if (it != objects.end()) obj_indices.insert(int(it - objects.begin()));
+        std::set<int> obj_indices_to_delete;
+
+        // Collect object indices to delete
+        auto collect_indices = [&](const std::vector<ModelObject*>& obj_list) {
+            for (const ModelObject* obj : obj_list) {
+                if (!obj || obj == target_object) continue;
+                if (auto it = std::find(objects.begin(), objects.end(), obj); it != objects.end()) {
+                    obj_indices_to_delete.insert(static_cast<int>(it - objects.begin()));
+                }
+            }
+        };
+
+        if (mode == MeshBooleanOperation::Difference) {
+            // Difference: Always delete A group objects
+            collect_indices(a_group_objects);
+            // Delete B group objects only if keep_original_models is false
+            if (!settings.keep_original_models) {
+                collect_indices(b_group_objects);
+            }
+        } else {
+            // Union/Intersection: Delete all participating objects only if keep_original_models is false
+            if (!settings.keep_original_models) {
+                collect_indices(participating_objects);
+            }
         }
-        if (obj_indices.empty()) return;
-        std::vector<ItemForDelete> obj_items; obj_items.reserve(obj_indices.size());
-        for (int idx : obj_indices) obj_items.emplace_back(ItemType::itObject, idx, -1);
-        wxGetApp().obj_list()->delete_from_model_and_list(obj_items);
+
+        if (!obj_indices_to_delete.empty()) {
+            std::vector<ItemForDelete> obj_items;
+            obj_items.reserve(obj_indices_to_delete.size());
+            for (int idx : obj_indices_to_delete) {
+                obj_items.emplace_back(ItemType::itObject, idx, -1);
+            }
+            wxGetApp().obj_list()->delete_from_model_and_list(obj_items);
+        }
     };
     perform_post_deletions();
 
@@ -1175,7 +1387,13 @@ ModelVolume* BooleanOperationEngine::create_result_volume(ModelObject* target_ob
     new_volume->name = source_volume->name + "_Boolean";
     new_volume->set_new_unique_id();
     bool same_object = (source_volume && source_volume->get_object() == target_object);
-    if (same_object) new_volume->config.apply(source_volume->config);
+
+    // Copy config: always for same object, or when source is non-MODEL_PART (needs extruder settings)
+    // This is critical for avoiding "No extrusions" errors when boolean result replaces non-MODEL_PART
+    if (same_object || !source_volume->is_model_part()) {
+        new_volume->config.apply(source_volume->config);
+    }
+
     new_volume->set_type(result_type);
     new_volume->set_material_id(source_volume->material_id());
 
@@ -1808,28 +2026,46 @@ void GLGizmoMeshBoolean::execute_mesh_boolean()
         }
 
         if (result.success) {
-            // Build participating objects set directly
-            std::vector<ModelObject*> participants;
-            auto collect_from = [&](const std::vector<unsigned int>& idxs){
+            // For Part mode: clear color overrides before applying result (which may delete volumes)
+            // to avoid index mismatch after volume deletion
+            if (settings.target_mode == BooleanTargetMode::Part && m_color_overrides.applied) {
+                m_color_overrides.clear();
+            }
+
+            // Collect unique ModelObject* from volume indices
+            auto collect_objects = [&](const std::vector<unsigned int>& idxs) -> std::vector<ModelObject*> {
+                std::unordered_set<ModelObject*> unique_objects;
                 for (unsigned int v_idx : idxs) {
                     const GLVolume* glv = selection.get_volume(v_idx);
                     if (!glv) continue;
                     ModelVolume* mv = get_model_volume(*glv, selection.get_model()->objects);
                     if (!mv) continue;
                     ModelObject* mo = mv->get_object();
-                    if (!mo) continue;
-                    if (std::find(participants.begin(), participants.end(), mo) == participants.end())
-                        participants.push_back(mo);
+                    if (mo) unique_objects.insert(mo);
                 }
+                return std::vector<ModelObject*>(unique_objects.begin(), unique_objects.end());
             };
-            if (mode == MeshBooleanOperation::Difference) {
-                collect_from(m_volume_manager.get_list_a());
-                collect_from(m_volume_manager.get_list_b());
-            } else {
-                collect_from(m_volume_manager.get_working_list());
-            }
+
+            // Set target mode once for all operations
             settings.target_mode = m_target_mode;
-            m_boolean_engine.apply_result_to_model(result, current_model_object, current_selected_index, settings, mode, participants);
+
+            // Collect objects and apply result based on operation type
+            if (mode == MeshBooleanOperation::Difference) {
+                auto a_objects = collect_objects(m_volume_manager.get_list_a());
+                auto b_objects = collect_objects(m_volume_manager.get_list_b());
+
+                std::vector<ModelObject*> participants;
+                participants.reserve(a_objects.size() + b_objects.size());
+                participants.insert(participants.end(), a_objects.begin(), a_objects.end());
+                participants.insert(participants.end(), b_objects.begin(), b_objects.end());
+
+                m_boolean_engine.apply_result_to_model(result, current_model_object, current_selected_index,
+                    settings, mode, participants, a_objects, b_objects);
+            } else {
+                auto participants = collect_objects(m_volume_manager.get_working_list());
+                m_boolean_engine.apply_result_to_model(result, current_model_object, current_selected_index,
+                    settings, mode, participants, {}, {});
+            }
             m_warning_manager.clear_warnings();
             m_volume_manager.clear_all();
             if (check_if_active()){
