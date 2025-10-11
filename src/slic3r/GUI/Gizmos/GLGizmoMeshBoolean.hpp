@@ -165,6 +165,10 @@ public:
 
     // Helper functions
     std::vector<std::string> get_volume_names(const std::vector<unsigned int>& volume_list, const Selection& selection) const;
+
+    // Sorting function to prioritize MODEL_PART volumes
+    void sort_volumes_by_type(std::vector<unsigned int>& volume_indices, const Selection& selection);
+
 private:
     // Volume lists
     std::vector<unsigned int> m_working_volumes;
@@ -222,10 +226,10 @@ public:
 
     // Validation and utility methods
     std::string validate_operation(MeshBooleanOperation type, const VolumeListManager& volume_manager) const;
-    void apply_result_to_model(const BooleanOperationResult& result, ModelObject* target_object, int object_index, const BooleanOperationSettings& settings, MeshBooleanOperation mode, const std::vector<ModelObject*>& participating_objects);
+    void apply_result_to_model(const BooleanOperationResult& result, ModelObject* target_object, int object_index, const BooleanOperationSettings& settings, MeshBooleanOperation mode, const std::vector<ModelObject*>& participating_objects, const std::vector<ModelObject*>& a_group_objects = {}, const std::vector<ModelObject*>& b_group_objects = {});
 
     // Expose processed volume info so helper utilities in the same translation unit can reference it
-    struct ProcessedVolumeInfo {
+    struct VolumeInfo {
         ModelVolume* model_volume;
         Transform3d transformation;
         unsigned int volume_index;
@@ -234,20 +238,20 @@ public:
 
 private:
     // Volume processing helpers
-    std::vector<ProcessedVolumeInfo> prepare_volumes(const std::vector<unsigned int>& volume_indices, const Selection& selection) const;
-    TriangleMesh get_transformed_mesh(const ProcessedVolumeInfo& volume_info) const;
+    std::vector<VolumeInfo> prepare_volumes(const std::vector<unsigned int>& volume_indices, const Selection& selection) const;
+    TriangleMesh get_transformed_mesh(const VolumeInfo& volume_info) const;
     TriangleMesh execute_boolean_operation(const TriangleMesh& mesh_a, const TriangleMesh& mesh_b, const std::string& operation_name) const;
 
     // Core implementation methods
-    BooleanOperationResult part_level_boolean(const std::vector<ProcessedVolumeInfo>& volumes, const BooleanOperationSettings& settings, const std::string& operation, bool allow_single_volume = false) const;
-    BooleanOperationResult part_level_sub(const std::vector<ProcessedVolumeInfo>& volumes_a, const std::vector<ProcessedVolumeInfo>& volumes_b, const BooleanOperationSettings& settings) const;
+    BooleanOperationResult part_level_boolean(const std::vector<VolumeInfo>& volumes, const BooleanOperationSettings& settings, const std::string& operation, bool allow_single_volume = false) const;
+    BooleanOperationResult part_level_sub(const std::vector<VolumeInfo>& volumes_a, const std::vector<VolumeInfo>& volumes_b, const BooleanOperationSettings& settings) const;
     std::optional<TriangleMesh> execute_boolean_on_meshes(
-        const std::vector<ProcessedVolumeInfo>& volumes,
+        const std::vector<VolumeInfo>& volumes,
         const std::string& operation) const;
     // Model manipulation helpers
     ModelVolume* create_result_volume(ModelObject* target_object, const TriangleMesh& result_mesh, ModelVolume* source_volume);
     void delete_volumes_from_model(const std::vector<ModelVolume*>& volumes_to_delete);
-    void update_delete_list(BooleanOperationResult& result, const std::vector<ProcessedVolumeInfo>& volumes, const BooleanOperationSettings& settings) const;
+    void update_delete_list(BooleanOperationResult& result, const std::vector<VolumeInfo>& volumes, const BooleanOperationSettings& settings) const;
 
 };
 
