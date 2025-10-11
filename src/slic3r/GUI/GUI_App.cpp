@@ -6249,6 +6249,7 @@ bool GUI_App::load_language(wxString language, bool initial)
 
     if (! wxLocale::IsAvailable(language_info->Language)&&initial) {
         language_info = wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH_UK);
+        language_dict = wxLanguage(language_info->Language);
         app_config->set("language", language_info->CanonicalName.ToUTF8().data());
     }
     else if (initial) {
@@ -6297,8 +6298,11 @@ bool GUI_App::load_language(wxString language, bool initial)
         wxMessageBox(message, "Bambu Studio - Switching language failed", wxOK | wxICON_ERROR);
         if (initial)
 			std::exit(EXIT_FAILURE);
-		else
-			return false;
+        else {
+            language_info = wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH_UK);
+            language_dict = wxLanguage(language_info->Language);
+            app_config->set("language", language_info->CanonicalName.ToUTF8().data());
+        }
     }
 
     // Release the old locales, create new locales.
