@@ -24,7 +24,9 @@
 
 // CGAL headers for mesh operations (boolean, convex hull, etc)
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/Delaunay_triangulation_3.h>
+#include <CGAL/Regular_triangulation_3.h>
 #include <CGAL/Triangulation_vertex_base_with_info_3.h>
 #include <CGAL/Delaunay_triangulation_cell_base_with_circumcenter_3.h>
 #include <CGAL/convex_hull_3.h>
@@ -34,6 +36,7 @@
 #include <CGAL/Polygon_mesh_processing/orient_polygon_soup.h>
 #include <CGAL/Polygon_mesh_processing/orientation.h>
 #include <CGAL/Polygon_mesh_processing/triangulate_faces.h>
+#include <CGAL/Polygon_mesh_processing/corefinement.h>
 #include <CGAL/halfspace_intersection_3.h>
 #include <CGAL/Side_of_triangle_mesh.h>
 #include <CGAL/AABB_tree.h>
@@ -41,6 +44,7 @@
 #include <CGAL/intersections.h>
 #include <CGAL/Object.h>
 #include <CGAL/boost/graph/copy_face_graph.h>
+#include <CGAL/Euler_operations.h>
 #include <CGAL/IO/io.h>
 
 namespace Slic3r {
@@ -48,23 +52,35 @@ namespace Slic3r {
     namespace PMP = CGAL::Polygon_mesh_processing;
 
     // CGAL type definitions for 3D Delaunay/Voronoi
-    using K = CGAL::Exact_predicates_inexact_constructions_kernel;
-    using Vb = CGAL::Triangulation_vertex_base_with_info_3<int, K>;
-    using Cb = CGAL::Delaunay_triangulation_cell_base_with_circumcenter_3<K>;
+    // Fast kernel for triangulation
+    using Kf = CGAL::Exact_predicates_inexact_constructions_kernel;
+    // Exact kernel for robust boolean operations
+    using Ke = CGAL::Exact_predicates_exact_constructions_kernel;
+    
+    // Delaunay triangulation (unweighted)
+    using Vb = CGAL::Triangulation_vertex_base_with_info_3<int, Kf>;
+    using Cb = CGAL::Delaunay_triangulation_cell_base_with_circumcenter_3<Kf>;
     using Tds = CGAL::Triangulation_data_structure_3<Vb, Cb>;
-    using Delaunay = CGAL::Delaunay_triangulation_3<K, Tds>;
-    using Point_3 = K::Point_3;
-    using Segment_3 = K::Segment_3;
-    using Ray_3 = K::Ray_3;
-    using Line_3 = K::Line_3;
-    using Vector_3 = K::Vector_3;
-    using Plane_3 = K::Plane_3;
-    using Iso_cuboid_3 = K::Iso_cuboid_3;
+    using Delaunay = CGAL::Delaunay_triangulation_3<Kf, Tds>;
+    
+    // Regular triangulation (weighted/power diagram)
+    using RT = CGAL::Regular_triangulation_3<Kf>;
+    
+    // Legacy aliases (keep for compatibility)
+    using K = Kf;
+    using Point_3 = Kf::Point_3;
+    using Segment_3 = Kf::Segment_3;
+    using Ray_3 = Kf::Ray_3;
+    using Line_3 = Kf::Line_3;
+    using Vector_3 = Kf::Vector_3;
+    using Plane_3 = Kf::Plane_3;
+    using Iso_cuboid_3 = Kf::Iso_cuboid_3;
     using CGALMesh = CGAL::Surface_mesh<Point_3>;
-    using Polyhedron = CGAL::Polyhedron_3<K>;
+    using CGALMeshExact = CGAL::Surface_mesh<Ke::Point_3>;
+    using Polyhedron = CGAL::Polyhedron_3<Kf>;
     using Primitive = CGAL::AABB_face_graph_triangle_primitive<CGALMesh>;
     using AABBTree = CGAL::AABB_tree<Primitive>;
-    using SideTester = CGAL::Side_of_triangle_mesh<CGALMesh, K>;
+    using SideTester = CGAL::Side_of_triangle_mesh<CGALMesh, Kf>;
 
     namespace {
         
@@ -543,6 +559,289 @@ namespace Slic3r {
             data.centroid = centroid;
             data.bbox_min = bbox_min;
             data.bbox_max = bbox_max;
+            return true;
+        }
+
+        // ============================================================================
+        // ROBUST CGAL-ONLY SOLID VORONOI CELL GENERATION
+        // ============================================================================
+        
+        struct Halfspace {
+            Plane_3 plane;
+            bool keep_positive;  // whether we keep the positive side
+        };
+        
+        /**
+         * Build halfspace planes for a seed from its Delaunay neighbors
+         * For unweighted Voronoi: bisector planes between seed and neighbors
+         */
+        std::vector<Halfspace> build_halfspaces_for_seed(
+            const Delaunay& dt,
+            Delaunay::Vertex_handle vh)
+        {
+            const Point_3 s = vh->point();
+            std::vector<Halfspace> halfspaces;
+            
+            // Get all Delaunay neighbors (the only sites that can bound this cell)
+            std::vector<Delaunay::Vertex_handle> neighbors;
+            dt.finite_adjacent_vertices(vh, std::back_inserter(neighbors));
+            
+            for (auto nh : neighbors) {
+                const Point_3 sp = nh->point();  // neighbor site
+                
+                // Skip if same point (degenerate)
+                if (s == sp) continue;
+                
+                // Midplane between s and sp
+                Vector_3 n = sp - s;  // plane normal points towards neighbor
+                Point_3 m = CGAL::midpoint(s, sp);
+                Plane_3 bis(m, n);   // plane through m with normal n
+                
+                // We want the half-space that contains s (the "closer-to-s" side)
+                // Check which side of the plane contains s
+                bool keep_positive = (bis.oriented_side(s) == CGAL::ON_POSITIVE_SIDE);
+                halfspaces.push_back({bis, keep_positive});
+            }
+            
+            return halfspaces;
+        }
+        
+        /**
+         * Add bounding box halfspaces to ensure cell is bounded
+         */
+        void add_bbox_halfspaces(
+            const BoundingBoxf3& bbox,
+            std::vector<Halfspace>& halfspaces,
+            double pad_fraction = 0.25)
+        {
+            // Expand a bit to ensure seeds on boundary have valid cells
+            double dx = (bbox.max.x() - bbox.min.x());
+            double dy = (bbox.max.y() - bbox.min.y());
+            double dz = (bbox.max.z() - bbox.min.z());
+            double diag = std::sqrt(dx*dx + dy*dy + dz*dz);
+            double pad = pad_fraction * diag;
+            
+            double xmin = bbox.min.x() - pad, xmax = bbox.max.x() + pad;
+            double ymin = bbox.min.y() - pad, ymax = bbox.max.y() + pad;
+            double zmin = bbox.min.z() - pad, zmax = bbox.max.z() + pad;
+            
+            // 6 planes of the box; keep the interior
+            halfspaces.push_back({ Plane_3( 1, 0, 0, -xmin), true  }); // x >= xmin
+            halfspaces.push_back({ Plane_3(-1, 0, 0,  xmax), true  }); // x <= xmax
+            halfspaces.push_back({ Plane_3( 0, 1, 0, -ymin), true  }); // y >= ymin
+            halfspaces.push_back({ Plane_3( 0,-1, 0,  ymax), true  }); // y <= ymax
+            halfspaces.push_back({ Plane_3( 0, 0, 1, -zmin), true  }); // z >= zmin
+            halfspaces.push_back({ Plane_3( 0, 0,-1,  zmax), true  }); // z <= zmax
+        }
+        
+        /**
+         * Intersect halfspaces to create a convex polyhedron (the Voronoi cell)
+         * Uses CGAL::halfspace_intersection_3 for robust computation
+         */
+        bool make_cell_polyhedron(
+            const std::vector<Halfspace>& halfspaces,
+            const Point_3& inside_pt,
+            CGALMesh& cell_out)
+        {
+            if (halfspaces.size() < 4) {
+                return false;  // Need at least 4 planes for a 3D polyhedron
+            }
+            
+            // Orient all planes so positive side is kept
+            std::vector<Plane_3> planes;
+            planes.reserve(halfspaces.size());
+            for (const auto& h : halfspaces) {
+                planes.push_back(h.keep_positive ? h.plane : h.plane.opposite());
+            }
+            
+            try {
+                // CGAL's robust halfspace intersection
+                CGAL::halfspace_intersection_3(
+                    planes.begin(),
+                    planes.end(),
+                    cell_out,
+                    inside_pt
+                );
+                
+                // Check if result is valid
+                if (cell_out.is_empty() || cell_out.number_of_vertices() < 4) {
+                    return false;
+                }
+                
+                return true;
+            }
+            catch (const std::exception& e) {
+                BOOST_LOG_TRIVIAL(warning) << "Halfspace intersection failed: " << e.what();
+                return false;
+            }
+            catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << "Halfspace intersection failed with unknown error";
+                return false;
+            }
+        }
+        
+        /**
+         * Promote EPICK mesh to EPECK mesh for robust boolean operations
+         */
+        CGALMeshExact promote_mesh_to_exact(const CGALMesh& m)
+        {
+            CGALMeshExact out;
+            std::vector<CGALMeshExact::Vertex_index> vmap;
+            vmap.reserve(m.number_of_vertices());
+            
+            for (auto v : m.vertices()) {
+                const auto& p = m.point(v);
+                vmap.push_back(out.add_vertex(
+                    Ke::Point_3(
+                        CGAL::to_double(p.x()),
+                        CGAL::to_double(p.y()),
+                        CGAL::to_double(p.z())
+                    )
+                ));
+            }
+            
+            for (auto f : m.faces()) {
+                std::vector<CGALMeshExact::Vertex_index> ring;
+                for (auto hv : CGAL::halfedges_around_face(m.halfedge(f), m)) {
+                    ring.push_back(vmap[static_cast<size_t>(m.target(hv))]);
+                }
+                if (ring.size() >= 3) {
+                    CGAL::Euler::add_face(ring, out);
+                }
+            }
+            
+            return out;
+        }
+        
+        /**
+         * Demote EPECK mesh back to EPICK mesh
+         */
+        CGALMesh demote_mesh_to_inexact(const CGALMeshExact& m)
+        {
+            CGALMesh out;
+            std::vector<CGALMesh::Vertex_index> vmap;
+            vmap.reserve(m.number_of_vertices());
+            
+            for (auto v : m.vertices()) {
+                const auto& p = m.point(v);
+                vmap.push_back(out.add_vertex(
+                    Point_3(
+                        CGAL::to_double(p.x()),
+                        CGAL::to_double(p.y()),
+                        CGAL::to_double(p.z())
+                    )
+                ));
+            }
+            
+            for (auto f : m.faces()) {
+                std::vector<CGALMesh::Vertex_index> ring;
+                for (auto hv : CGAL::halfedges_around_face(m.halfedge(f), m)) {
+                    ring.push_back(vmap[static_cast<size_t>(m.target(hv))]);
+                }
+                if (ring.size() >= 3) {
+                    CGAL::Euler::add_face(ring, out);
+                }
+            }
+            
+            return out;
+        }
+        
+        /**
+         * Clip cell to model volume using robust boolean intersection
+         * This produces a watertight solid cell inside the object
+         */
+        bool clip_cell_to_model(
+            const CGALMesh& cell,
+            const CGALMesh& model,
+            CGALMesh& result_out)
+        {
+            try {
+                // Promote to exact kernel for robust booleans
+                CGALMeshExact cell_exact = promote_mesh_to_exact(cell);
+                CGALMeshExact model_exact = promote_mesh_to_exact(model);
+                
+                CGALMeshExact result_exact;
+                
+                // Compute boolean intersection
+                bool ok = PMP::corefine_and_compute_intersection(
+                    cell_exact,
+                    model_exact,
+                    result_exact
+                );
+                
+                if (!ok || result_exact.is_empty() || result_exact.number_of_faces() == 0) {
+                    return false;  // Empty intersection = cell is outside model
+                }
+                
+                // Demote back to inexact kernel
+                result_out = demote_mesh_to_inexact(result_exact);
+                
+                return true;
+            }
+            catch (const std::exception& e) {
+                BOOST_LOG_TRIVIAL(warning) << "Boolean intersection failed: " << e.what();
+                return false;
+            }
+            catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << "Boolean intersection failed with unknown error";
+                return false;
+            }
+        }
+        
+        /**
+         * Generate a single solid Voronoi cell for one seed using robust CGAL-only method
+         * This is the main entry point for the new robust implementation
+         */
+        bool compute_solid_voronoi_cell_robust(
+            VoronoiCellData& out,
+            const Delaunay& dt,
+            int seed_index,
+            Delaunay::Vertex_handle vh,
+            const BoundingBoxf3& bounds,
+            const CGALMesh* clip_model = nullptr)
+        {
+            if (vh == Delaunay::Vertex_handle()) {
+                return false;
+            }
+            
+            const Point_3 s = vh->point();
+            out.seed_index = seed_index;
+            out.seed_point = s;
+            
+            // Step 1: Build halfspaces from Delaunay neighbors
+            std::vector<Halfspace> halfspaces = build_halfspaces_for_seed(dt, vh);
+            
+            if (halfspaces.empty()) {
+                return false;  // No neighbors = degenerate cell
+            }
+            
+            // Step 2: Add bounding box halfspaces
+            add_bbox_halfspaces(bounds, halfspaces, 0.25);
+            
+            // Step 3: Intersect halfspaces to get cell polyhedron
+            CGALMesh cell;
+            if (!make_cell_polyhedron(halfspaces, s, cell)) {
+                return false;
+            }
+            
+            // Step 4: Clip to model volume if provided
+            CGALMesh final_cell;
+            if (clip_model != nullptr) {
+                if (!clip_cell_to_model(cell, *clip_model, final_cell)) {
+                    return false;  // Cell is outside model or clipping failed
+                }
+            } else {
+                final_cell = cell;
+            }
+            
+            // Step 5: Convert to indexed_triangle_set
+            out.geometry = surface_mesh_to_indexed(final_cell);
+            
+            // Step 6: Compute metrics
+            if (!compute_mesh_metrics(out.geometry, out)) {
+                return false;
+            }
+            
             return true;
         }
 
@@ -3016,7 +3315,7 @@ namespace Slic3r {
         return tessellate_voronoi_with_cgal(seed_points, bounds, config, clip_mesh);
     }
 
-    // Voro++ implementation - FAST!
+    // CGAL-based solid cell implementation with optional robust method
     std::unique_ptr<indexed_triangle_set> VoronoiMesh::tessellate_voronoi_with_cgal(
         const std::vector<Vec3d>& seed_points,
         const BoundingBoxf3& bounds,
@@ -3035,10 +3334,27 @@ namespace Slic3r {
         const double abs_eps = std::max(1e-7, 1e-8 * bbox_diag);
 
         BoundingBoxf3 expanded_bounds = expand_bounds(bounds, BOUNDARY_MARGIN_PERCENT);
-        auto bounding_planes = build_bounding_planes(expanded_bounds);
-
+        
+        // Build Delaunay triangulation
         DelaunayDiagram diagram(seed_points);
-        const indexed_triangle_set* clipping_mesh = (clip_mesh && config.clip_to_mesh) ? clip_mesh : nullptr;
+        
+        // Decide whether to use robust method
+        // Use robust method if:
+        // 1. Clipping to mesh is requested (requires boolean ops)
+        // 2. Cell style requires post-processing
+        // 3. User explicitly enabled robust mode
+        bool use_robust_method = (clip_mesh != nullptr && config.clip_to_mesh);
+        
+        // Convert clip_mesh to CGAL mesh if using robust method
+        CGALMesh cgal_clip_model;
+        if (use_robust_method && clip_mesh != nullptr) {
+            if (!indexed_to_surface_mesh(*clip_mesh, cgal_clip_model)) {
+                BOOST_LOG_TRIVIAL(warning) << "Failed to convert clip mesh to CGAL format, using standard method";
+                use_robust_method = false;
+            } else {
+                BOOST_LOG_TRIVIAL(info) << "Using robust CGAL-only solid cell generation with mesh clipping";
+            }
+        }
 
         const size_t total = seed_points.size();
         size_t generated_cells = 0;
@@ -3051,7 +3367,27 @@ namespace Slic3r {
             }
 
             VoronoiCellData cell;
-            if (!compute_voronoi_cell_data(cell, diagram, int(i), bounding_planes, clipping_mesh))
+            bool cell_generated = false;
+            
+            if (use_robust_method) {
+                // Use new robust CGAL-only method
+                auto vh = diagram.vertex(int(i));
+                if (vh != Delaunay::Vertex_handle()) {
+                    const CGALMesh* clip_ptr = (clip_mesh != nullptr) ? &cgal_clip_model : nullptr;
+                    cell_generated = compute_solid_voronoi_cell_robust(
+                        cell, diagram.dt, int(i), vh, bounds, clip_ptr
+                    );
+                }
+            } else {
+                // Use legacy halfspace intersection method
+                auto bounding_planes = build_bounding_planes(expanded_bounds);
+                const indexed_triangle_set* clipping_mesh = (clip_mesh && config.clip_to_mesh) ? clip_mesh : nullptr;
+                cell_generated = compute_voronoi_cell_data(
+                    cell, diagram, int(i), bounding_planes, clipping_mesh
+                );
+            }
+            
+            if (!cell_generated)
                 continue;
 
             size_t vertex_offset = result->vertices.size();
@@ -3074,7 +3410,8 @@ namespace Slic3r {
 
         BOOST_LOG_TRIVIAL(info) << "tessellate_voronoi_with_cgal() - Generated " << generated_cells
                                 << " cells (vertices=" << result->vertices.size()
-                                << ", faces=" << result->indices.size() << ")";
+                                << ", faces=" << result->indices.size() << ")"
+                                << " using " << (use_robust_method ? "robust" : "standard") << " method";
 
         remove_degenerate_faces(*result);
         weld_vertices(*result, WELD_DISTANCE);
