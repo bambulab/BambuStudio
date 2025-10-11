@@ -110,6 +110,7 @@ void HelioQuery::request_remaining_optimizations(const std::string & helio_api_u
     http.header("Content-Type", "application/json")
         .header("Authorization", "Bearer " + helio_api_key)
         .header("X-Version-Type", "Official")
+        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     http.timeout_connect(20)
@@ -120,16 +121,19 @@ void HelioQuery::request_remaining_optimizations(const std::string & helio_api_u
 
             if (parsed_obj.contains("data") && parsed_obj["data"].contains("user")
                 && parsed_obj["data"]["user"].contains("remainingOptsThisMonth")
-                && parsed_obj["data"]["user"]["remainingOptsThisMonth"].is_number()) {
+                && parsed_obj["data"]["user"].contains("addOnOptimizations")) {
 
-                int global_remaining_opt_count = parsed_obj["data"]["user"]["remainingOptsThisMonth"].get<int>();
+                int global_remaining_opt_count = 0;
                 int global_remaining_addon_opt_count = 0;
 
-                if (parsed_obj["data"]["user"]["addOnOptimizations"].is_number()){
+                if (parsed_obj["data"]["user"]["remainingOptsThisMonth"].is_number()) {
+                    global_remaining_opt_count = parsed_obj["data"]["user"]["remainingOptsThisMonth"].get<int>();
+                }
+
+                if (parsed_obj["data"]["user"]["addOnOptimizations"].is_number()) {
                     global_remaining_addon_opt_count = parsed_obj["data"]["user"]["addOnOptimizations"].get<int>();
                 }
 
-                
                 func(global_remaining_opt_count, global_remaining_addon_opt_count);
             }
             else {
@@ -166,6 +170,7 @@ void HelioQuery::request_support_machine(const std::string helio_api_url, const 
     http.header("Content-Type", "application/json")
         .header("Authorization", "Bearer " + helio_api_key)
         .header("X-Version-Type", "Official")
+        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     http.timeout_connect(20)
@@ -227,6 +232,7 @@ void HelioQuery::request_support_material(const std::string helio_api_url, const
     http.header("Content-Type", "application/json")
         .header("Authorization", "Bearer " + helio_api_key)
         .header("X-Version-Type", "Official")
+        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     http.timeout_connect(20)
@@ -371,6 +377,7 @@ void HelioQuery::optimization_feedback(const std::string helio_api_url, const st
     http.header("Content-Type", "application/json")
         .header("Authorization", "Bearer " + helio_api_key)
         .header("X-Version-Type", "Official")
+        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     http.timeout_connect(20)
@@ -398,6 +405,7 @@ HelioQuery::PresignedURLResult HelioQuery::create_presigned_url(const std::strin
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
         .header("X-Version-Type", "Official")
+        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     if (GUI::wxGetApp().app_config->get("region") == "China") {
@@ -442,7 +450,8 @@ HelioQuery::UploadFileResult HelioQuery::upload_file_to_presigned_url(const std:
 
     Http http = Http::put(upload_url);
     http.header("Content-Type", "application/octet-stream")
-        .header("X-Version-Type", "Official");
+        .header("X-Version-Type", "Official")
+        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION));
 
     boost::filesystem::path file_path(file_path_string);
 
@@ -556,6 +565,7 @@ HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
         .header("X-Version-Type", "Official")
+        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     if (GUI::wxGetApp().app_config->get("region") == "China") {
@@ -776,6 +786,7 @@ std::string HelioQuery::create_optimization_default_get(const std::string helio_
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
         .header("X-Version-Type", "Official")
+        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     std::string response_headers;
@@ -829,6 +840,7 @@ HelioQuery::CreateSimulationResult HelioQuery::create_simulation(const std::stri
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
         .header("X-Version-Type", "Official")
+        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     if (GUI::wxGetApp().app_config->get("region") == "China") {
@@ -885,6 +897,7 @@ void HelioQuery::stop_simulation(const std::string helio_api_url, const std::str
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
         .header("X-Version-Type", "Official")
+        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     http.timeout_connect(20)
@@ -927,6 +940,7 @@ HelioQuery::CheckSimulationProgressResult HelioQuery::check_simulation_progress(
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
         .header("X-Version-Type", "Official")
+        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     if (GUI::wxGetApp().app_config->get("region") == "China") {
@@ -977,7 +991,6 @@ HelioQuery::CheckSimulationProgressResult HelioQuery::check_simulation_progress(
 Slic3r::HelioQuery::CreateOptimizationResult HelioQuery::create_optimization(const std::string helio_api_url, 
                                                                              const std::string helio_api_key, 
                                                                              const std::string gcode_id,
-                                                                             SimulationInput sinput,
                                                                              OptimizationInput oinput)
 {
 
@@ -987,7 +1000,7 @@ Slic3r::HelioQuery::CreateOptimizationResult HelioQuery::create_optimization(con
     const bool outer_wall = oinput.outer_wall;
 
     /*SimulationInput*/
-    const float chamber_temp = sinput.chamber_temp;
+    const float chamber_temp = oinput.chamber_temp;
     DynamicPrintConfig print_config = GUI::wxGetApp().preset_bundle->full_config();
     const float layer_threshold = 20; //Default values from Helio
     std::string bed_temp_key = Slic3r::get_bed_temp_1st_layer_key((Slic3r::BedType)(print_config.option("curr_bed_type")->getInt()));
@@ -1042,6 +1055,7 @@ Slic3r::HelioQuery::CreateOptimizationResult HelioQuery::create_optimization(con
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
         .header("X-Version-Type", "Official")
+        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     if (GUI::wxGetApp().app_config->get("region") == "China") {
@@ -1098,6 +1112,7 @@ void HelioQuery::stop_optimization(const std::string helio_api_url, const std::s
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
         .header("X-Version-Type", "Official")
+        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     http.timeout_connect(20)
@@ -1140,6 +1155,7 @@ Slic3r::HelioQuery::CheckOptimizationResult HelioQuery::check_optimization_progr
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
         .header("X-Version-Type", "Official")
+        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     if (GUI::wxGetApp().app_config->get("region") == "China") {
@@ -1459,7 +1475,7 @@ void HelioBackgroundProcess::create_optimization_step(HelioQuery::CreateGCodeRes
         wxQueueEvent(GUI::wxGetApp().plater(), evt);
 
         const std::string gcode_id = create_gcode_res.id;
-        HelioQuery::CreateOptimizationResult create_optimization_res = HelioQuery::create_optimization(helio_api_url, helio_api_key, gcode_id, simulation_input_data, optimization_input_data);
+        HelioQuery::CreateOptimizationResult create_optimization_res = HelioQuery::create_optimization(helio_api_url, helio_api_key, gcode_id, optimization_input_data);
         current_optimization_result = create_optimization_res;
         current_simulation_result.reset();
 

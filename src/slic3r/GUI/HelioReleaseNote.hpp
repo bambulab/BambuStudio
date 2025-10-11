@@ -121,6 +121,7 @@ class HelioInputDialog : public DPIDialog
 private:
     bool use_advanced_settings{false};
     bool only_advanced_settings{false};
+    bool is_no_chamber{false};
 
     CustomToggleButton* togglebutton_simulate{nullptr};
     CustomToggleButton* togglebutton_optimize{nullptr};
