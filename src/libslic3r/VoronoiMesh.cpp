@@ -1202,88 +1202,6 @@ namespace Slic3r {
             return polygons;
         }
 
-        std::vector<Vec3d> VoronoiMesh::prepare_seed_points(
-            const indexed_triangle_set& input_mesh,
-            const Config& config,
-            BoundingBoxf3* out_bounds)
-        {
-            std::vector<Vec3d> seed_points = generate_seed_points(input_mesh, config);
-            BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Initial seeds: " << seed_points.size();
-
-            if (seed_points.empty()) {
-                BOOST_LOG_TRIVIAL(error) << "prepare_seed_points() - No seed points generated";
-                if (out_bounds) *out_bounds = BoundingBoxf3();
-                return {};
-            }
-
-            BoundingBoxf3 bbox;
-            for (const auto& v : input_mesh.vertices)
-                bbox.merge(v.cast<double>());
-
-            if (!bbox.defined || bbox.size().minCoeff() <= 0.0) {
-                BOOST_LOG_TRIVIAL(error) << "prepare_seed_points() - Invalid bounding box";
-                if (out_bounds) *out_bounds = BoundingBoxf3();
-                return {};
-            }
-
-            if (out_bounds)
-                *out_bounds = bbox;
-
-            size_t original_seed_count = seed_points.size();
-            seed_points = filter_seed_points(seed_points, bbox);
-
-            if (seed_points.empty()) {
-                BOOST_LOG_TRIVIAL(error) << "prepare_seed_points() - All seeds filtered out after separation test";
-                return {};
-            }
-
-            if (seed_points.size() < original_seed_count) {
-                BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Filtered to " << seed_points.size()
-                                        << " seeds (removed " << (original_seed_count - seed_points.size())
-                                        << " that were too close)";
-            }
-
-            if (config.relax_seeds && config.relaxation_iterations > 0) {
-                BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Applying Lloyd relaxation ("
-                                         << config.relaxation_iterations << " iterations)";
-                seed_points = lloyd_relaxation(seed_points, bbox, config.relaxation_iterations);
-            }
-
-            if (config.use_weighted_cells) {
-                if (!config.cell_weights.empty() && config.cell_weights.size() == seed_points.size()) {
-                    BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Using " << config.cell_weights.size()
-                                             << " provided weights";
-                } else {
-                    auto weights = generate_density_weights(seed_points, config.density_center, config.density_falloff);
-                    BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Generated " << weights.size()
-                                             << " density weights";
-                    (void)weights;
-                }
-            }
-
-            if (config.optimize_for_load) {
-                BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Optimizing for load direction";
-                seed_points = optimize_for_load_direction(seed_points, config.load_direction, config.load_stretch_factor);
-            }
-
-            if (config.anisotropic && config.anisotropy_ratio > 0.0f) {
-                BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Applying anisotropic transform";
-                seed_points = apply_anisotropic_transform(seed_points, config.anisotropy_direction, config.anisotropy_ratio);
-            }
-
-            if (config.validate_printability && config.min_feature_size > 0.0f) {
-                std::string error_msg;
-                if (!validate_printability(seed_points, bbox, config.min_feature_size, error_msg)) {
-                    BOOST_LOG_TRIVIAL(warning) << "prepare_seed_points() - Printability warning: " << error_msg;
-                    if (config.error_callback)
-                        config.error_callback(error_msg);
-                }
-            }
-
-            BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Final seed count: " << seed_points.size();
-            return seed_points;
-        }
-
         std::vector<VorEdge> extract_voronoi_edges(
             const DelaunayDiagram& diagram,
             const Iso_cuboid_3& bbox,
@@ -1657,9 +1575,10 @@ namespace Slic3r {
             
             // Check faces for zero/negative area
             for (const auto& face : mesh.indices) {
-                if (face[0] >= mesh.vertices.size() || 
-                    face[1] >= mesh.vertices.size() || 
-                    face[2] >= mesh.vertices.size()) {
+                if (face[0] < 0 || face[1] < 0 || face[2] < 0 ||
+                    static_cast<size_t>(face[0]) >= mesh.vertices.size() || 
+                    static_cast<size_t>(face[1]) >= mesh.vertices.size() || 
+                    static_cast<size_t>(face[2]) >= mesh.vertices.size()) {
                     continue; // Invalid index
                 }
                 
@@ -2636,6 +2555,88 @@ namespace Slic3r {
         }
 
     } // namespace
+
+    std::vector<Vec3d> VoronoiMesh::prepare_seed_points(
+        const indexed_triangle_set& input_mesh,
+        const Config& config,
+        BoundingBoxf3* out_bounds)
+    {
+        std::vector<Vec3d> seed_points = generate_seed_points(input_mesh, config);
+        BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Initial seeds: " << seed_points.size();
+
+        if (seed_points.empty()) {
+            BOOST_LOG_TRIVIAL(error) << "prepare_seed_points() - No seed points generated";
+            if (out_bounds) *out_bounds = BoundingBoxf3();
+            return {};
+        }
+
+        BoundingBoxf3 bbox;
+        for (const auto& v : input_mesh.vertices)
+            bbox.merge(v.cast<double>());
+
+        if (!bbox.defined || bbox.size().minCoeff() <= 0.0) {
+            BOOST_LOG_TRIVIAL(error) << "prepare_seed_points() - Invalid bounding box";
+            if (out_bounds) *out_bounds = BoundingBoxf3();
+            return {};
+        }
+
+        if (out_bounds)
+            *out_bounds = bbox;
+
+        size_t original_seed_count = seed_points.size();
+        seed_points = filter_seed_points(seed_points, bbox);
+
+        if (seed_points.empty()) {
+            BOOST_LOG_TRIVIAL(error) << "prepare_seed_points() - All seeds filtered out after separation test";
+            return {};
+        }
+
+        if (seed_points.size() < original_seed_count) {
+            BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Filtered to " << seed_points.size()
+                                    << " seeds (removed " << (original_seed_count - seed_points.size())
+                                    << " that were too close)";
+        }
+
+        if (config.relax_seeds && config.relaxation_iterations > 0) {
+            BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Applying Lloyd relaxation ("
+                                     << config.relaxation_iterations << " iterations)";
+            seed_points = lloyd_relaxation(seed_points, bbox, config.relaxation_iterations);
+        }
+
+        if (config.use_weighted_cells) {
+            if (!config.cell_weights.empty() && config.cell_weights.size() == seed_points.size()) {
+                BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Using " << config.cell_weights.size()
+                                         << " provided weights";
+            } else {
+                auto weights = generate_density_weights(seed_points, config.density_center, config.density_falloff);
+                BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Generated " << weights.size()
+                                         << " density weights";
+                (void)weights;
+            }
+        }
+
+        if (config.optimize_for_load) {
+            BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Optimizing for load direction";
+            seed_points = optimize_for_load_direction(seed_points, config.load_direction, config.load_stretch_factor);
+        }
+
+        if (config.anisotropic && config.anisotropy_ratio > 0.0f) {
+            BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Applying anisotropic transform";
+            seed_points = apply_anisotropic_transform(seed_points, config.anisotropy_direction, config.anisotropy_ratio);
+        }
+
+        if (config.validate_printability && config.min_feature_size > 0.0f) {
+            std::string error_msg;
+            if (!validate_printability(seed_points, bbox, config.min_feature_size, error_msg)) {
+                BOOST_LOG_TRIVIAL(warning) << "prepare_seed_points() - Printability warning: " << error_msg;
+                if (config.error_callback)
+                    config.error_callback(error_msg);
+            }
+        }
+
+        BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Final seed count: " << seed_points.size();
+        return seed_points;
+    }
 
     std::unique_ptr<indexed_triangle_set> VoronoiMesh::generate(
         const indexed_triangle_set& input_mesh,
@@ -4125,164 +4126,6 @@ namespace Slic3r {
         wireframe.indices = new_faces;
     }
 
-    // Extract wireframe edges directly from Voro++ cells - creates independent cylinders per edge
-            if (vl.start()) do {
-            if (con.compute_cell(cell, vl)) {
-                // Get cell vertices
-                std::vector<double> verts;
-                cell.vertices(vl.x(), vl.y(), vl.z(), verts);
-
-                std::vector<Vec3d> cell_vertices;
-                for (size_t i = 0; i + 2 < verts.size(); i += 3) {
-                    cell_vertices.emplace_back(verts[i], verts[i + 1], verts[i + 2]);
-                }
-
-                // Get face structure
-                std::vector<int> face_vertex_indices;
-                std::vector<int> face_orders;
-                cell.face_vertices(face_vertex_indices);
-                cell.face_orders(face_orders);
-
-                // Extract edges from face polygons
-                int vertex_idx = 0;
-                for (int face_order : face_orders) {
-                    for (int v = 0; v < face_order; ++v) {
-                        int v_next = (v + 1) % face_order;
-                        int vi1 = face_vertex_indices[vertex_idx + v];
-                        int vi2 = face_vertex_indices[vertex_idx + v_next];
-
-                        if (vi1 >= 0 && vi1 < (int)cell_vertices.size() && 
-                            vi2 >= 0 && vi2 < (int)cell_vertices.size()) {
-                            
-                            Vec3d p1 = cell_vertices[vi1];
-                            Vec3d p2 = cell_vertices[vi2];
-
-                            // Normalize edge ordering
-                            if (p1.x() > p2.x() || (p1.x() == p2.x() && p1.y() > p2.y()) || 
-                                (p1.x() == p2.x() && p1.y() == p2.y() && p1.z() > p2.z())) {
-                                std::swap(p1, p2);
-                            }
-                            
-                            unique_edges.insert(std::make_pair(p1, p2));
-                        }
-                    }
-                    vertex_idx += face_order;
-                }
-            }
-        } while (vl.inc());
-
-        BOOST_LOG_TRIVIAL(info) << "Found " << unique_edges.size() << " unique edges";
-
-        if (unique_edges.empty()) {
-            BOOST_LOG_TRIVIAL(error) << "No edges extracted!";
-            return result;
-        }
-
-        // Generate cylindrical strut for each edge
-        const float radius = config.edge_thickness * 0.5f;
-        const int segments = std::max(3, config.edge_segments);
-        
-        BOOST_LOG_TRIVIAL(info) << "Creating cylindrical struts (radius=" << radius 
-                                 << ", segments=" << segments << ")";
-
-        for (const auto& edge : unique_edges) {
-            Vec3d p1 = edge.first;
-            Vec3d p2 = edge.second;
-            
-            Vec3d dir = (p2 - p1);
-            float length = dir.norm();
-            
-            if (length < 1e-6f) continue;
-            
-            dir /= length;  // Normalize
-            
-            // Create perpendicular frame
-            Vec3d perp1, perp2;
-            if (std::abs(dir.z()) < 0.9) {
-                perp1 = dir.cross(Vec3d(0, 0, 1)).normalized();
-            } else {
-                perp1 = dir.cross(Vec3d(1, 0, 0)).normalized();
-            }
-            perp2 = dir.cross(perp1).normalized();
-            
-            // Generate cylinder vertices
-            size_t base_idx = result->vertices.size();
-            
-            // Ring at p1
-            for (int i = 0; i < segments; ++i) {
-                float angle = 2.0f * M_PI * i / segments;
-                float x = radius * std::cos(angle);
-                float y = radius * std::sin(angle);
-                Vec3d offset = perp1 * x + perp2 * y;
-                result->vertices.emplace_back((p1 + offset).cast<float>());
-            }
-            
-            // Ring at p2
-            for (int i = 0; i < segments; ++i) {
-                float angle = 2.0f * M_PI * i / segments;
-                float x = radius * std::cos(angle);
-                float y = radius * std::sin(angle);
-                Vec3d offset = perp1 * x + perp2 * y;
-                result->vertices.emplace_back((p2 + offset).cast<float>());
-            }
-            
-            // Create cylinder body (tube connecting the two rings)
-            for (int i = 0; i < segments; ++i) {
-                int next = (i + 1) % segments;
-                
-                int i0 = base_idx + i;                      // Current vertex on ring 1
-                int i1 = base_idx + next;                   // Next vertex on ring 1
-                int i2 = base_idx + segments + i;           // Current vertex on ring 2
-                int i3 = base_idx + segments + next;        // Next vertex on ring 2
-                
-                // Create two triangles for this quad
-                result->indices.emplace_back(i0, i2, i1);
-                result->indices.emplace_back(i1, i2, i3);
-            }
-            
-            // Create caps at both ends
-            // Cap at p1
-            int cap1_center = result->vertices.size();
-            result->vertices.emplace_back(p1.cast<float>());
-            
-            for (int i = 0; i < segments; ++i) {
-                int next = (i + 1) % segments;
-                result->indices.emplace_back(cap1_center, base_idx + i, base_idx + next);
-            }
-            
-            // Cap at p2
-            int cap2_center = result->vertices.size();
-            result->vertices.emplace_back(p2.cast<float>());
-            
-            for (int i = 0; i < segments; ++i) {
-                int next = (i + 1) % segments;
-                result->indices.emplace_back(cap2_center, base_idx + segments + next, base_idx + segments + i);
-            }
-        }
-
-        BOOST_LOG_TRIVIAL(info) << "Created wireframe: " << result->vertices.size() 
-                                 << " vertices, " << result->indices.size() << " faces";
-
-        // Cleanup
-        BOOST_LOG_TRIVIAL(info) << "Cleaning up wireframe...";
-        
-        // Remove degenerate faces first
-        remove_degenerate_faces(*result);
-        
-        // Weld vertices at junctions (where tubes meet)
-        weld_vertices(*result, radius * 0.1f);  // Weld within 10% of radius
-        
-        // Remove any degenerates created by welding
-        remove_degenerate_faces(*result);
-        
-        // Final cleanup
-        remove_degenerate_faces(*result);
-        
-        BOOST_LOG_TRIVIAL(info) << "Final wireframe: " << result->vertices.size() 
-                                 << " vertices, " << result->indices.size() << " faces";
-
-        return result;
-    }
     void VoronoiMesh::clip_to_mesh_boundary(
         indexed_triangle_set& voronoi_mesh,
         const indexed_triangle_set& original_mesh)
