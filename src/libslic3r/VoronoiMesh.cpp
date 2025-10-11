@@ -2661,15 +2661,26 @@ namespace Slic3r {
 
         // Generate weights for weighted Voronoi if enabled and not provided
         Config working_config = config;  // Make a mutable copy
-        if (working_config.use_weighted_cells && 
-            (working_config.cell_weights.empty() || working_config.cell_weights.size() != seed_points.size())) {
-            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Generating density weights for " 
-                                     << seed_points.size() << " seeds";
-            working_config.cell_weights = generate_density_weights(
-                seed_points, 
-                working_config.density_center, 
-                working_config.density_falloff
-            );
+        if (working_config.use_weighted_cells) {
+            if (working_config.cell_weights.empty() || working_config.cell_weights.size() != seed_points.size()) {
+                BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Weighted Voronoi enabled, auto-generating weights for " 
+                                         << seed_points.size() << " seeds";
+                BOOST_LOG_TRIVIAL(info) << "  Density center: (" << working_config.density_center.transpose() << ")";
+                BOOST_LOG_TRIVIAL(info) << "  Density falloff: " << working_config.density_falloff;
+                working_config.cell_weights = generate_density_weights(
+                    seed_points, 
+                    working_config.density_center, 
+                    working_config.density_falloff
+                );
+                BOOST_LOG_TRIVIAL(info) << "  Generated " << working_config.cell_weights.size() << " weights "
+                                         << "(min: " << *std::min_element(working_config.cell_weights.begin(), working_config.cell_weights.end())
+                                         << ", max: " << *std::max_element(working_config.cell_weights.begin(), working_config.cell_weights.end()) << ")";
+            } else {
+                BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Using " << working_config.cell_weights.size() 
+                                         << " custom weights";
+            }
+        } else {
+            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Standard (unweighted) Voronoi mode";
         }
 
         // Step 3: Create Voronoi cells (polyhedral cell-based approach)
@@ -3320,12 +3331,20 @@ namespace Slic3r {
         // Check for weighted Voronoi (power diagram)
         if (config.use_weighted_cells && !config.cell_weights.empty() && 
             config.cell_weights.size() == seed_points.size()) {
-            BOOST_LOG_TRIVIAL(info) << "tessellate_voronoi_cells() - Using weighted Voronoi (power diagram)";
+            BOOST_LOG_TRIVIAL(info) << "tessellate_voronoi_cells() - Using WEIGHTED Voronoi (power diagram) with " 
+                                     << config.cell_weights.size() << " weights";
             return tessellate_weighted_voronoi(seed_points, config.cell_weights, bounds, config, clip_mesh);
+        } else if (config.use_weighted_cells) {
+            // Weighted requested but weights not available - log warning and fall back to standard
+            BOOST_LOG_TRIVIAL(warning) << "tessellate_voronoi_cells() - Weighted Voronoi requested but weights not available "
+                                        << "(have " << config.cell_weights.size() << " weights, need " << seed_points.size() 
+                                        << "). Falling back to STANDARD Voronoi";
+        } else {
+            BOOST_LOG_TRIVIAL(info) << "tessellate_voronoi_cells() - Using STANDARD (unweighted) Voronoi";
         }
 
         if (config.hollow_cells) {
-            BOOST_LOG_TRIVIAL(info) << "tessellate_voronoi_cells() - Using CGAL Delaunay dual for wireframe";
+            BOOST_LOG_TRIVIAL(info) << "tessellate_voronoi_cells() - Mode: Wireframe (hollow cells)";
             return create_wireframe_from_delaunay(seed_points, bounds, config, clip_mesh);
         }
 

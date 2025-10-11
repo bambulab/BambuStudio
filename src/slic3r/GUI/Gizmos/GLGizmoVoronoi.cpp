@@ -652,6 +652,75 @@ namespace Slic3r::GUI {
             
             ImGui::Separator();
             
+            // Weighted Voronoi (Power Diagram)
+            ImGui::Text("%s:", into_u8(_u8L("Cell Sizing")).c_str());
+            bool weighted_changed = ImGui::Checkbox(into_u8(_u8L("Weighted (Variable Density)")).c_str(), &m_configuration.use_weighted_cells);
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s", into_u8(_u8L("Enable weighted Voronoi (power diagram) for variable cell sizes\n"
+                                                     "✓ Standard: Equal-sized cells\n"
+                                                     "✓ Weighted: Cell size varies by weight\n"
+                                                     "Use for gradient density or stress-optimized structures")).c_str());
+            }
+            
+            // Show mode indicator
+            if (m_configuration.use_weighted_cells) {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.8f, 1.0f, 1.0f));
+                ImGui::TextWrapped("Mode: Power Diagram (Variable Density)");
+                ImGui::PopStyleColor();
+            } else {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.8f, 0.4f, 1.0f));
+                ImGui::TextWrapped("Mode: Standard Voronoi (Uniform)");
+                ImGui::PopStyleColor();
+            }
+            
+            if (m_configuration.use_weighted_cells) {
+                ImGui::Indent();
+                
+                // Density center position
+                ImGui::Text("%s:", into_u8(_u8L("Density Center")).c_str());
+                float density_center[3] = {
+                    static_cast<float>(m_configuration.density_center.x()),
+                    static_cast<float>(m_configuration.density_center.y()),
+                    static_cast<float>(m_configuration.density_center.z())
+                };
+                if (ImGui::InputFloat3("##density_center", density_center)) {
+                    m_configuration.density_center = Vec3d(density_center[0], density_center[1], density_center[2]);
+                }
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("%s", into_u8(_u8L("Point of highest density (smallest cells)\n"
+                                                         "Cells grow larger with distance from this point")).c_str());
+                }
+                
+                // Quick center button
+                ImGui::SameLine();
+                if (ImGui::SmallButton(into_u8(_u8L("Center")).c_str())) {
+                    set_center_position();  // Use existing function to set to model center
+                }
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("%s", into_u8(_u8L("Set to model center")).c_str());
+                }
+                
+                // Density falloff
+                ImGui::Text("%s:", into_u8(_u8L("Density Falloff")).c_str());
+                ImGui::SliderFloat("##density_falloff", &m_configuration.density_falloff, 0.1f, 10.0f, "%.2f");
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("%s", into_u8(_u8L("How quickly density decreases with distance\n"
+                                                         "Low (0.1-1.0): Gradual transition\n"
+                                                         "Medium (1.0-3.0): Moderate gradient\n"
+                                                         "High (3.0-10.0): Sharp transition\n"
+                                                         "Formula: weight = (1 + dist × falloff)²")).c_str());
+                }
+                
+                // Info about weights
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+                ImGui::TextWrapped("Weights auto-generated from density center");
+                ImGui::PopStyleColor();
+                
+                ImGui::Unindent();
+            }
+            
+            ImGui::Separator();
+            
             // Multi-Scale Hierarchical
             ImGui::Text("%s:", into_u8(_u8L("Complexity")).c_str());
             if (ImGui::Checkbox(tr_multi_scale.c_str(), &m_configuration.multi_scale)) {
