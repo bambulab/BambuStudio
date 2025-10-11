@@ -185,3 +185,17 @@ html,body
 {
 	background-color: rgba(70, 70, 71, 1);
 }
+
+
+/*wiki.css*/
+.topicBlock{
+	background-color: #000000;
+}
+
+.card{
+	background-color: #737373;
+}
+
+.topicCard{
+	background-color: #737373;
+}

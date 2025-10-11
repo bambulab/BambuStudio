@@ -2,42 +2,42 @@ var cardData = [
   {
     "title": "Bambu Lab A1 Mini",
     "img": "img/printer_a1mini.png",
-    "link": "support/academy/1"
+    "link": "support/academy/3"
   },
   {
     "title": "Bambu Lab A1",
     "img": "img/printer_a1.png",
-    "link": "support/academy/6"
+    "link": "support/academy/8"
   },
   {
     "title": "Bambu Lab P1S",
     "img": "img/printer_p1s.png",
-    "link": "support/academy/4"
+    "link": "support/academy/6"
   },
   {
     "title": "Bambu Lab X1C",
     "img": "img/printer_x1c.png",
-    "link": "support/academy/7"
+    "link": "support/academy/9"
   },
   {
     "title": "Bambu Lab H2D",
     "img": "img/printer_h2d.png",
-    "link": "support/academy/8"
+    "link": "support/academy/10"
   },
   {
     "title": "Bambu Studio",
     "img": "img/studio.png",
-    "link": "support/academy/3"
+    "link": "support/academy/5"
   },
   {
     "title": "Bambu Suite",
     "img": "img/suite.png",
-    "link": "support/academy/9"
+    "link": "support/academy/11"
   },
   {
     "title": "Bambu Handy",
     "img": "img/handy.png",
-    "link": "support/academy/5"
+    "link": "support/academy/7"
   },
 ];
 
@@ -200,7 +200,7 @@ var topicData = [
       {
         "title": "Introduction to Filament Grouping Strategy for Dual Nozzle Printers",   
         "zhcn-title": "双喷嘴打印机耗材切片分组",
-        "link": "bambu-studio/manual/dual-nozzles-slicing-filament-grouping"
+        "link": "software/bambu-studio/manual/dual-nozzles-slicing-filament-grouping"
       },
       {
         "title": "Multi-Color Printing",   
@@ -340,7 +340,10 @@ function OnInit() {
     }
   });
 
-  $(document).on('mousedown touchstart', function (e) {
+  // $(".searchResult").on("click", function(e) {
+  //   console.log(e);
+  // });
+  $(document).on('click', function (e) {
     if (!$(e.target).closest('.search').length) {
       $('#search_result_area').empty();
     }
@@ -451,7 +454,7 @@ function createVideoHTML() {
   for (let i = 0; i < academyData.length; i++) {
     let html = `<div class="videoCard" onclick="openVideoUrl('${academyData[i].id}')">
                   <img class="videoThumbnail" src="img/${academyData[i].id}.jpg" />
-                  <div class="videoTitle">${academyData[i].title}</div>
+                  <div class="videoTitle TextS1">${academyData[i].title}</div>
                 </div>`;
     $('#tutorial_Card_Content').append(html)
   }
