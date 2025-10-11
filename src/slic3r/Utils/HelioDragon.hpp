@@ -47,8 +47,7 @@ public:
         std::array<int, 2> layers_to_optimize = { -1, -1 };
 
         bool isDefault() {
-            return  (chamber_temp == -1) &&
-                    (min_velocity == -1) &&
+            return  (min_velocity == -1) &&
                     (max_velocity == -1) &&
                     (min_volumetric_speed == -1) &&
                     (max_volumetric_speed == -1);
@@ -224,7 +223,6 @@ public:
     static CreateOptimizationResult create_optimization(const std::string helio_api_url,
                                                         const std::string helio_api_key,
                                                         const std::string gcode_id,
-                                                        SimulationInput sinput,
                                                         OptimizationInput oinput);
 
     static void stop_optimization(const std::string helio_api_url,

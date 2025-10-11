@@ -682,6 +682,10 @@ static double s_round(double value, int n)
     togglebutton_simulate->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_simulation, this);
     togglebutton_optimize->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_optimaztion, this);
 
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    auto source_model = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+    is_no_chamber = !DevPrinterConfigUtil::get_value_from_config<bool>(source_model, "print", "support_chamber");
+
     /*Simulation panel*/
     panel_simulation = new wxPanel(this);
     if (wxGetApp().dark_mode()) {
@@ -691,33 +695,23 @@ static double s_round(double value, int n)
     }
     wxBoxSizer *sizer_simulation = new wxBoxSizer(wxVERTICAL);
 
-    const Preset& current_printer = wxGetApp().preset_bundle->printers.get_selected_preset();
-    const Preset* base_printer = wxGetApp().preset_bundle->printers.get_preset_base(current_printer);
-    auto opt_nozzle_diameters =     base_printer->config.option<ConfigOptionString>("model_id");
-
     /*chamber temp*/
     //int min_chamber_temp = s_get_min_chamber_temp();
     auto chamber_temp_checker = TextInputValChecker::CreateDoubleRangeChecker(5.0, 70.0, true);
-    wxBoxSizer* chamber_temp_item_for_simulation = create_input_item(panel_simulation, "chamber_temp_for_simulation", _L("Chamber Temperature"), wxT("\u00B0C"), {chamber_temp_checker});
+    wxBoxSizer* chamber_temp_item_for_simulation = create_input_item(panel_simulation, "chamber_temp_for_simulation", is_no_chamber?_L("Environment Temperature"):_L("Chamber Temperature"), wxT("\u00B0C"), {chamber_temp_checker});
 
-    auto chamber_tips = new Label(panel_simulation, Label::Body_13, _L("If it is for the A series and P1P, please enter the ambient temperature here."));
-    chamber_tips->SetForegroundColour(wxColour(144, 144, 144));
-    chamber_tips->SetSize(wxSize(FromDIP(440), -1));
-    chamber_tips->Wrap(FromDIP(440));
     //m_input_items["chamber_temp_for_simulation"]->GetTextCtrl()->SetLabel(wxString::Format("%d", min_chamber_temp));
     m_input_items["chamber_temp_for_simulation"]->GetTextCtrl()->SetHint(wxT("5-70"));
 
-    Label* sub = new Label(panel_simulation, _L("Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."));
-    sub->SetForegroundColour(wxColour(144, 144, 144));
-    sub->SetSize(wxSize(FromDIP(440), -1));
-    sub->Wrap(FromDIP(440));
+    Label* sub_simulation = new Label(panel_simulation, _L("Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."));
+    sub_simulation->SetForegroundColour(wxColour(144, 144, 144));
+    sub_simulation->SetSize(wxSize(FromDIP(440), -1));
+    sub_simulation->Wrap(FromDIP(440));
 
     sizer_simulation->Add(0, 0, 0, wxTOP, FromDIP(24));
     sizer_simulation->Add(chamber_temp_item_for_simulation, 0, wxEXPAND, 0);
-    sizer_simulation->Add(0, 0, 0, wxTOP, FromDIP(8));
-    sizer_simulation->Add(chamber_tips, 0, wxEXPAND, 0);
-    sizer_simulation->Add(0, 0, 0, wxTOP, FromDIP(16));
-    sizer_simulation->Add(sub, 0, wxEXPAND, 0);
+    sizer_simulation->Add(0, 0, 0, wxTOP, FromDIP(10));
+    sizer_simulation->Add(sub_simulation, 0, wxEXPAND, 0);
 
     panel_simulation->SetSizer(sizer_simulation);
     panel_simulation->Layout();
@@ -769,12 +763,24 @@ static double s_round(double value, int n)
     split_line->SetMaxSize(wxSize(-1, FromDIP(1)));
     split_line->SetBackgroundColour(wxColour(236, 236, 236));
 
-    /*advanced Options*/
+    wxBoxSizer* chamber_temp_item_for_optimization = nullptr;
+    Label* sub_optimization = nullptr;
+    if (is_no_chamber) {
+        chamber_temp_item_for_optimization = create_input_item(panel_optimization, "chamber_temp_for_optimization", is_no_chamber?_L("Environment Temperature"):_L("Chamber Temperature"), wxT("\u00B0C"), {chamber_temp_checker});
+        m_input_items["chamber_temp_for_optimization"]->GetTextCtrl()->SetHint(wxT("5-70"));
+
+        sub_optimization = new Label(panel_optimization, _L("Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."));
+        sub_optimization->SetForegroundColour(wxColour(144, 144, 144));
+        sub_optimization->SetSize(wxSize(FromDIP(440), -1));
+        sub_optimization->Wrap(FromDIP(440));
+    }
+
     std::map<int, wxString> config_outerwall;
     config_outerwall[0] = _L("No");
     config_outerwall[1] = _L("Yes");
     auto outerwall =  create_combo_item(panel_optimization, "optimiza_outerwall", _L("Optimise Outer Walls"), config_outerwall, 0);
 
+    /*advanced Options*/
     wxBoxSizer* advace_setting_sizer = new wxBoxSizer(wxHORIZONTAL);
     advanced_settings_link = new wxPanel(panel_optimization);
     advanced_settings_link->SetBackgroundColour(*wxWHITE);
@@ -849,8 +855,13 @@ static double s_round(double value, int n)
     sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(10));
     sizer_optimization->Add(split_line, 0, wxEXPAND, 0);
     sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(12));
+    if (is_no_chamber) {
+        sizer_optimization->Add(chamber_temp_item_for_optimization, 0, wxEXPAND, 0);
+        sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(10));
+        sizer_optimization->Add(sub_optimization, 0, wxEXPAND, 0);
+    }
     sizer_optimization->Add(outerwall, 0, wxEXPAND, 0);
-    sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(5));
+    sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(12));
     sizer_optimization->Add(advanced_settings_link, 0, wxEXPAND, 0);
     sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(8));
     sizer_optimization->Add(panel_advanced_option, 0, wxEXPAND, 0);
@@ -1068,7 +1079,6 @@ void HelioInputDialog::update_action(int action)
             panel_pay_optimization->Show();
             panel_optimization->Hide();
         }
-
 
         try
         {
@@ -1330,6 +1340,14 @@ Slic3r::HelioQuery::OptimizationInput HelioInputDialog::get_optimization_input(b
 {
     ok = false;
     HelioQuery::OptimizationInput data;
+
+    auto it = m_input_items.find("chamber_temp_for_optimization");
+    if (it != m_input_items.end()) {
+        if (!m_input_items["chamber_temp_for_optimization"]->GetTextCtrl()->GetValue().IsEmpty() && !s_get_double_val(m_input_items["chamber_temp_for_optimization"], data.chamber_temp)) {
+            return data;
+        }
+    }
+    
     data.outer_wall = m_combo_items["optimiza_outerwall"]->GetSelection();
 
     if (!s_get_int_val(m_input_items["layers_to_optimize_min"], data.layers_to_optimize[0])) { return data; }
