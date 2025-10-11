@@ -67,6 +67,7 @@ namespace Slic3r {
             bool clip_to_mesh = true;          // Clip to original mesh boundary
             float min_cell_size = 0.0f;        // Minimum cell size (0 = no limit)
             float adaptive_factor = 1.0f;      // For adaptive seeding
+            bool restricted_voronoi = false;   // Restrict Voronoi to surface (RVD)
             
             // Lloyd's relaxation for uniform cells (NEW)
             bool relax_seeds = false;          // Enable seed relaxation
@@ -177,6 +178,13 @@ namespace Slic3r {
         static std::vector<Vec3d> compute_cell_centroids(
             const std::vector<Vec3d>& seed_points,
             const BoundingBoxf3& bounds
+        );
+
+        // Prepare final seed set used for generation (after filtering, relaxation, etc.)
+        static std::vector<Vec3d> prepare_seed_points(
+            const indexed_triangle_set& input_mesh,
+            const Config& config,
+            BoundingBoxf3* out_bounds = nullptr
         );
         
         // Lloyd's relaxation for uniform cell distribution

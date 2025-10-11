@@ -399,9 +399,14 @@ namespace Slic3r {
                                    std::numeric_limits<double>::lowest());
             indexed_triangle_set geometry;
             std::vector<int> neighbor_ids;
-            std::vector<double> face_areas;
-            std::vector<Vec3d> face_normals;
-            std::vector<int> face_vertex_counts;
+        std::vector<double> face_areas;
+        std::vector<Vec3d> face_normals;
+        std::vector<int> face_vertex_counts;
+    };
+
+        struct RvdPolygon {
+            std::vector<Vec3d> vertices;
+            int seed_index = -1;
         };
 
         inline Vec3d to_vec3d(const Point_3& p)
@@ -669,6 +674,291 @@ namespace Slic3r {
             }
 
             return cells;
+        }
+
+        static std::vector<Vec3d> clip_polygon_by_bisector(
+            const std::vector<Vec3d>& polygon,
+            const Vec3d& seed_i,
+            const Vec3d& seed_j,
+            double epsilon)
+        {
+            if (polygon.size() < 3)
+                return {};
+
+            Vec3d normal = seed_j - seed_i;
+            double normal_norm = normal.norm();
+            if (normal_norm < 1e-12)
+                return {};
+            Vec3d mid = (seed_i + seed_j) * 0.5;
+            double denom_eps = normal_norm * 1e-12;
+
+            auto is_inside = [&](const Vec3d& p) {
+                return (p - mid).dot(normal) <= epsilon;
+            };
+
+            std::vector<Vec3d> output;
+            output.reserve(polygon.size());
+
+            for (size_t idx = 0; idx < polygon.size(); ++idx) {
+                const Vec3d& curr = polygon[idx];
+                const Vec3d& next = polygon[(idx + 1) % polygon.size()];
+                bool curr_inside = is_inside(curr);
+                bool next_inside = is_inside(next);
+
+                if (curr_inside && next_inside) {
+                    output.push_back(next);
+                } else if (curr_inside && !next_inside) {
+                    Vec3d dir = next - curr;
+                    double denom = dir.dot(normal);
+                    if (std::abs(denom) > denom_eps) {
+                        double t = -((curr - mid).dot(normal)) / denom;
+                        t = std::clamp(t, 0.0, 1.0);
+                        Vec3d inter = curr + dir * t;
+                        output.push_back(inter);
+                    }
+                } else if (!curr_inside && next_inside) {
+                    Vec3d dir = next - curr;
+                    double denom = dir.dot(normal);
+                    if (std::abs(denom) > denom_eps) {
+                        double t = -((curr - mid).dot(normal)) / denom;
+                        t = std::clamp(t, 0.0, 1.0);
+                        Vec3d inter = curr + dir * t;
+                        output.push_back(inter);
+                    }
+                    output.push_back(next);
+                }
+            }
+
+            if (output.size() < 3)
+                return {};
+
+            std::vector<Vec3d> cleaned;
+            cleaned.reserve(output.size());
+            for (const Vec3d& p : output) {
+                if (cleaned.empty() || (p - cleaned.back()).norm() > epsilon * 1e-2)
+                    cleaned.push_back(p);
+            }
+            if (cleaned.size() >= 2 && (cleaned.front() - cleaned.back()).squaredNorm() < epsilon * epsilon * 1e-2) {
+                cleaned.back() = cleaned.front();
+            }
+
+            // Remove duplicated last == first if present
+            if (cleaned.size() >= 2 && (cleaned.front() - cleaned.back()).squaredNorm() < epsilon * epsilon * 1e-4) {
+                cleaned.pop_back();
+            }
+
+            if (cleaned.size() < 3)
+                return {};
+
+            return cleaned;
+        }
+
+        static double polygon_area(const std::vector<Vec3d>& polygon)
+        {
+            if (polygon.size() < 3)
+                return 0.0;
+
+            Vec3d accum = Vec3d::Zero();
+            for (size_t i = 0; i < polygon.size(); ++i) {
+                const Vec3d& a = polygon[i];
+                const Vec3d& b = polygon[(i + 1) % polygon.size()];
+                accum += a.cross(b);
+            }
+            return 0.5 * accum.norm();
+        }
+
+        static void enqueue_seed_neighbors(
+            const DelaunayDiagram& diagram,
+            int seed_index,
+            int depth_limit,
+            std::set<int>& candidates,
+            std::unordered_set<int>& visited_seeds)
+        {
+            if (seed_index < 0)
+                return;
+
+            std::queue<std::pair<int, int>> q;
+            if (visited_seeds.insert(seed_index).second) {
+                q.emplace(seed_index, 0);
+            }
+
+            while (!q.empty()) {
+                auto [current_idx, depth] = q.front();
+                q.pop();
+                candidates.insert(current_idx);
+
+                if (depth >= depth_limit)
+                    continue;
+
+                auto vh = diagram.vertex(current_idx);
+                if (vh == Delaunay::Vertex_handle() || diagram.dt.is_infinite(vh))
+                    continue;
+
+                std::vector<Delaunay::Vertex_handle> neighbors;
+                diagram.dt.finite_adjacent_vertices(vh, std::back_inserter(neighbors));
+                for (auto nh : neighbors) {
+                    if (nh == Delaunay::Vertex_handle() || diagram.dt.is_infinite(nh))
+                        continue;
+                    int neighbor_idx = nh->info();
+                    if (neighbor_idx < 0)
+                        continue;
+                    if (visited_seeds.insert(neighbor_idx).second) {
+                        q.emplace(neighbor_idx, depth + 1);
+                    }
+                }
+            }
+        }
+
+        static std::vector<RvdPolygon> compute_surface_rvd_polygons(
+            const DelaunayDiagram& diagram,
+            const std::vector<Vec3d>& seeds,
+            const indexed_triangle_set& surface,
+            double epsilon)
+        {
+            std::vector<RvdPolygon> polygons;
+            if (surface.indices.empty() || surface.vertices.empty())
+                return polygons;
+
+            auto nearest_seed_index = [&](const Vec3d& point) -> int {
+                Point_3 query(point.x(), point.y(), point.z());
+                auto vh = diagram.dt.nearest_vertex(query);
+                if (vh == Delaunay::Vertex_handle() || diagram.dt.is_infinite(vh))
+                    return -1;
+                int idx = vh->info();
+                return (idx >= 0 && idx < static_cast<int>(seeds.size())) ? idx : -1;
+            };
+
+            constexpr int neighbor_depth = 2;
+
+            for (const auto& tri : surface.indices) {
+                Vec3d p0 = surface.vertices[tri[0]].cast<double>();
+                Vec3d p1 = surface.vertices[tri[1]].cast<double>();
+                Vec3d p2 = surface.vertices[tri[2]].cast<double>();
+
+                std::set<int> candidates;
+                std::unordered_set<int> visited;
+
+                int idx0 = nearest_seed_index(p0);
+                int idx1 = nearest_seed_index(p1);
+                int idx2 = nearest_seed_index(p2);
+                Vec3d centroid = (p0 + p1 + p2) / 3.0;
+                int idx_centroid = nearest_seed_index(centroid);
+
+                enqueue_seed_neighbors(diagram, idx0, neighbor_depth, candidates, visited);
+                enqueue_seed_neighbors(diagram, idx1, neighbor_depth, candidates, visited);
+                enqueue_seed_neighbors(diagram, idx2, neighbor_depth, candidates, visited);
+                enqueue_seed_neighbors(diagram, idx_centroid, neighbor_depth, candidates, visited);
+
+                if (candidates.empty())
+                    continue;
+
+                for (int seed_idx : candidates) {
+                    if (seed_idx < 0 || seed_idx >= static_cast<int>(seeds.size()))
+                        continue;
+
+                    std::vector<Vec3d> poly = { p0, p1, p2 };
+                    for (int other_idx : candidates) {
+                        if (other_idx == seed_idx || other_idx < 0 || other_idx >= static_cast<int>(seeds.size()))
+                            continue;
+                        poly = clip_polygon_by_bisector(poly, seeds[seed_idx], seeds[other_idx], epsilon);
+                        if (poly.size() < 3)
+                            break;
+                    }
+
+                    if (poly.size() < 3)
+                        continue;
+
+                    double area = polygon_area(poly);
+                    if (area < epsilon * epsilon)
+                        continue;
+
+                    polygons.push_back({ poly, seed_idx });
+                }
+            }
+
+            return polygons;
+        }
+
+        std::vector<Vec3d> VoronoiMesh::prepare_seed_points(
+            const indexed_triangle_set& input_mesh,
+            const Config& config,
+            BoundingBoxf3* out_bounds)
+        {
+            std::vector<Vec3d> seed_points = generate_seed_points(input_mesh, config);
+            BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Initial seeds: " << seed_points.size();
+
+            if (seed_points.empty()) {
+                BOOST_LOG_TRIVIAL(error) << "prepare_seed_points() - No seed points generated";
+                if (out_bounds) *out_bounds = BoundingBoxf3();
+                return {};
+            }
+
+            BoundingBoxf3 bbox;
+            for (const auto& v : input_mesh.vertices)
+                bbox.merge(v.cast<double>());
+
+            if (!bbox.defined || bbox.size().minCoeff() <= 0.0) {
+                BOOST_LOG_TRIVIAL(error) << "prepare_seed_points() - Invalid bounding box";
+                if (out_bounds) *out_bounds = BoundingBoxf3();
+                return {};
+            }
+
+            if (out_bounds)
+                *out_bounds = bbox;
+
+            size_t original_seed_count = seed_points.size();
+            seed_points = filter_seed_points(seed_points, bbox);
+
+            if (seed_points.empty()) {
+                BOOST_LOG_TRIVIAL(error) << "prepare_seed_points() - All seeds filtered out after separation test";
+                return {};
+            }
+
+            if (seed_points.size() < original_seed_count) {
+                BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Filtered to " << seed_points.size()
+                                        << " seeds (removed " << (original_seed_count - seed_points.size())
+                                        << " that were too close)";
+            }
+
+            if (config.relax_seeds && config.relaxation_iterations > 0) {
+                BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Applying Lloyd relaxation ("
+                                         << config.relaxation_iterations << " iterations)";
+                seed_points = lloyd_relaxation(seed_points, bbox, config.relaxation_iterations);
+            }
+
+            if (config.use_weighted_cells) {
+                if (!config.cell_weights.empty() && config.cell_weights.size() == seed_points.size()) {
+                    BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Using " << config.cell_weights.size()
+                                             << " provided weights";
+                } else {
+                    auto weights = generate_density_weights(seed_points, config.density_center, config.density_falloff);
+                    BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Generated " << weights.size()
+                                             << " density weights";
+                    (void)weights;
+                }
+            }
+
+            if (config.optimize_for_load) {
+                BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Optimizing for load direction";
+                seed_points = optimize_for_load_direction(seed_points, config.load_direction, config.load_stretch_factor);
+            }
+
+            if (config.anisotropic && config.anisotropy_ratio > 0.0f) {
+                BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Applying anisotropic transform";
+                seed_points = apply_anisotropic_transform(seed_points, config.anisotropy_direction, config.anisotropy_ratio);
+            }
+
+            if (config.validate_printability && config.min_feature_size > 0.0f) {
+                std::string error_msg;
+                if (!validate_printability(seed_points, bbox, config.min_feature_size, error_msg)) {
+                    BOOST_LOG_TRIVIAL(warning) << "prepare_seed_points() - Printability warning: " << error_msg;
+                    if (config.error_callback)
+                        config.error_callback(error_msg);
+                }
+            }
+
+            BOOST_LOG_TRIVIAL(info) << "prepare_seed_points() - Final seed count: " << seed_points.size();
+            return seed_points;
         }
 
         std::vector<VorEdge> extract_voronoi_edges(
@@ -1844,88 +2134,16 @@ namespace Slic3r {
         if (config.progress_callback && !config.progress_callback(0))
             return nullptr;
 
-        // Step 1: Generate seed points (10% progress)
-        BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Generating seed points, type: " << (int)config.seed_type << ", num_seeds: " << config.num_seeds;
-        std::vector<Vec3d> seed_points = generate_seed_points(input_mesh, config);
-        BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Generated " << seed_points.size() << " seed points";
+        BoundingBoxf3 bbox;
+        std::vector<Vec3d> seed_points = prepare_seed_points(input_mesh, config, &bbox);
         if (seed_points.empty()) {
-            BOOST_LOG_TRIVIAL(error) << "VoronoiMesh::generate() - No seed points generated!";
+            BOOST_LOG_TRIVIAL(error) << "VoronoiMesh::generate() - Failed to prepare seed points";
             return nullptr;
         }
 
         if (config.progress_callback && !config.progress_callback(10))
             return nullptr;
 
-        // Step 2: Compute bounding box
-        BoundingBoxf3 bbox;
-        for (const auto& v : input_mesh.vertices) {
-            bbox.merge(v.cast<double>());
-        }
-        
-        // CRITICAL: Filter seeds to ensure minimum separation (prevents needle-thin cells)
-        size_t original_seed_count = seed_points.size();
-        seed_points = filter_seed_points(seed_points, bbox);
-        
-        if (seed_points.empty()) {
-            BOOST_LOG_TRIVIAL(error) << "VoronoiMesh::generate() - All seeds filtered out (too close together)!";
-            return nullptr;
-        }
-        
-        if (seed_points.size() < original_seed_count) {
-            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Filtered to " << seed_points.size() 
-                                     << " seeds (removed " << (original_seed_count - seed_points.size()) 
-                                     << " that were too close for clean Voronoi structure)";
-        }
-        
-        // ADVANCED: Apply Lloyd's relaxation for uniform cells
-        if (config.relax_seeds && config.relaxation_iterations > 0) {
-            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Applying Lloyd's relaxation (" 
-                                     << config.relaxation_iterations << " iterations)";
-            seed_points = lloyd_relaxation(seed_points, bbox, config.relaxation_iterations);
-        }
-        
-        // ADVANCED: Generate weights for variable density
-        std::vector<double> weights;
-        if (config.use_weighted_cells) {
-            if (!config.cell_weights.empty() && config.cell_weights.size() == seed_points.size()) {
-                // Use provided weights
-                weights = config.cell_weights;
-                BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Using " << weights.size() 
-                                         << " provided cell weights";
-            } else {
-                // Auto-generate weights based on density_center
-                weights = generate_density_weights(seed_points, config.density_center, config.density_falloff);
-                BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Generated density weights around " 
-                                         << "(" << config.density_center.x() << "," 
-                                         << config.density_center.y() << "," 
-                                         << config.density_center.z() << ")";
-            }
-        }
-        
-        // ADVANCED: Optimize for load direction
-        if (config.optimize_for_load) {
-            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Optimizing for load direction";
-            seed_points = optimize_for_load_direction(seed_points, config.load_direction, config.load_stretch_factor);
-        }
-        
-        // ADVANCED: Apply anisotropic transformation
-        if (config.anisotropic && config.anisotropy_ratio > 0.0f) {
-            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Applying anisotropic transformation";
-            seed_points = apply_anisotropic_transform(seed_points, config.anisotropy_direction, config.anisotropy_ratio);
-        }
-        
-        // ADVANCED: Validate printability before generation
-        if (config.validate_printability && config.min_feature_size > 0.0f) {
-            std::string error_msg;
-            if (!validate_printability(seed_points, bbox, config.min_feature_size, error_msg)) {
-                BOOST_LOG_TRIVIAL(warning) << "VoronoiMesh::generate() - Printability validation failed: " << error_msg;
-                if (config.error_callback) {
-                    config.error_callback(error_msg);
-                }
-                // Continue anyway, but user has been warned
-            }
-        }
-        
         // ADVANCED: Multi-scale generation (early exit if enabled)
         if (config.multi_scale) {
             BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Using multi-scale mode";

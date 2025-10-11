@@ -137,6 +137,8 @@ namespace Slic3r::GUI {
             m_worker.join();
         m_glmodel.reset();
         m_seed_preview_model.reset();
+        m_seed_preview_points.clear();
+        m_seed_preview_points_exact.clear();
     }
 
     bool GLGizmoVoronoi::on_esc_key_down()
@@ -198,6 +200,74 @@ namespace Slic3r::GUI {
         }
 
         GizmoImguiEnd();
+    }
+
+    VoronoiMesh::Config GLGizmoVoronoi::build_voronoi_config(const Configuration& cfg) const
+    {
+        VoronoiMesh::Config out;
+
+        switch (cfg.seed_type) {
+        case Configuration::SEED_VERTICES: out.seed_type = VoronoiMesh::SeedType::Vertices; break;
+        case Configuration::SEED_GRID:     out.seed_type = VoronoiMesh::SeedType::Grid;     break;
+        case Configuration::SEED_RANDOM:   out.seed_type = VoronoiMesh::SeedType::Random;   break;
+        default:                           out.seed_type = VoronoiMesh::SeedType::Vertices; break;
+        }
+
+        out.num_seeds = std::max(0, cfg.num_seeds);
+        out.wall_thickness = cfg.wall_thickness;
+        out.edge_thickness = cfg.edge_thickness;
+        out.edge_segments = cfg.edge_segments;
+        out.edge_curvature = cfg.edge_curvature;
+        out.edge_subdivisions = cfg.edge_subdivisions;
+        out.hollow_cells = cfg.hollow_cells;
+        out.random_seed = cfg.random_seed;
+
+        switch (cfg.edge_shape) {
+        case Configuration::EDGE_CYLINDER: out.edge_shape = VoronoiMesh::EdgeShape::Cylinder; break;
+        case Configuration::EDGE_SQUARE:   out.edge_shape = VoronoiMesh::EdgeShape::Square;   break;
+        case Configuration::EDGE_HEXAGON:  out.edge_shape = VoronoiMesh::EdgeShape::Hexagon;  break;
+        case Configuration::EDGE_OCTAGON:  out.edge_shape = VoronoiMesh::EdgeShape::Octagon;  break;
+        case Configuration::EDGE_STAR:     out.edge_shape = VoronoiMesh::EdgeShape::Star;     break;
+        default:                           out.edge_shape = VoronoiMesh::EdgeShape::Cylinder; break;
+        }
+
+        switch (cfg.cell_style) {
+        case Configuration::STYLE_PURE:        out.cell_style = VoronoiMesh::CellStyle::Pure;        break;
+        case Configuration::STYLE_ROUNDED:     out.cell_style = VoronoiMesh::CellStyle::Rounded;     break;
+        case Configuration::STYLE_CHAMFERED:   out.cell_style = VoronoiMesh::CellStyle::Chamfered;   break;
+        case Configuration::STYLE_CRYSTALLINE: out.cell_style = VoronoiMesh::CellStyle::Crystalline; break;
+        case Configuration::STYLE_ORGANIC:     out.cell_style = VoronoiMesh::CellStyle::Organic;     break;
+        case Configuration::STYLE_FACETED:     out.cell_style = VoronoiMesh::CellStyle::Faceted;     break;
+        default:                               out.cell_style = VoronoiMesh::CellStyle::Pure;        break;
+        }
+
+        out.relax_seeds = cfg.relax_seeds;
+        out.relaxation_iterations = cfg.relaxation_iterations;
+        out.multi_scale = cfg.multi_scale;
+        out.scale_seed_counts = cfg.scale_seed_counts;
+        out.scale_thicknesses = cfg.scale_thicknesses;
+
+        out.anisotropic = cfg.anisotropic;
+        out.anisotropy_direction = cfg.anisotropy_direction;
+        out.anisotropy_ratio = cfg.anisotropy_ratio;
+
+        out.use_weighted_cells = cfg.use_weighted_cells;
+        out.cell_weights = cfg.cell_weights;
+        out.density_center = cfg.density_center;
+        out.density_falloff = cfg.density_falloff;
+
+        out.optimize_for_load = cfg.optimize_for_load;
+        out.load_direction = cfg.load_direction;
+        out.load_stretch_factor = cfg.load_stretch_factor;
+
+        out.enforce_watertight = cfg.enforce_watertight;
+        out.auto_repair = cfg.auto_repair;
+        out.min_wall_thickness = cfg.min_wall_thickness;
+        out.min_feature_size = cfg.min_feature_size;
+        out.validate_printability = cfg.validate_printability;
+        out.restricted_voronoi = cfg.restricted_voronoi;
+
+        return out;
     }
 
     void GLGizmoVoronoi::render_ui_content()
@@ -380,10 +450,8 @@ namespace Slic3r::GUI {
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, m_is_dark_mode ? ImVec4(70 / 255.0f, 70 / 255.0f, 70 / 255.0f, 1.0f) : ImVec4(0.85f, 0.85f, 0.85f, 1.0f));
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, m_is_dark_mode ? ImVec4(50 / 255.0f, 50 / 255.0f, 50 / 255.0f, 1.0f) : ImVec4(0.65f, 0.65f, 0.65f, 1.0f));
 
-            if (ImGui::Button(into_u8(_u8L("Update Preview")).c_str())) {
+            if (ImGui::Button(into_u8(_u8L("Update Preview")).c_str()))
                 update_seed_preview();
-                update_2d_voronoi_preview();
-            }
 
             ImGui::PopStyleColor(3);
             ImGui::PopStyleVar(1);
@@ -398,6 +466,17 @@ namespace Slic3r::GUI {
 
         // Advanced Options Section (collapsible)
         if (ImGui::CollapsingHeader(tr_advanced_options.c_str())) {
+
+            ImGui::Text("%s:", into_u8(_u8L("Voronoi Mode")).c_str());
+            bool restricted_changed = ImGui::Checkbox(into_u8(_u8L("Restricted to surface (RVD)")).c_str(), &m_configuration.restricted_voronoi);
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s", into_u8(_u8L("Clip Voronoi to the mesh surface using Restricted Voronoi Diagram (RVD)")).c_str());
+            }
+            if (restricted_changed && m_configuration.show_seed_preview) {
+                update_seed_preview();
+            }
+
+            ImGui::Separator();
             
             // Lloyd's Relaxation
             ImGui::Text("%s:", into_u8(_u8L("Uniformity")).c_str());
@@ -917,8 +996,6 @@ namespace Slic3r::GUI {
                 if (m_configuration.show_seed_preview) {
                     BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - updating seed preview";
                     update_seed_preview();
-                    BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - updating 2D voronoi preview";
-                    update_2d_voronoi_preview();
                     BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - preview updates complete";
                 }
 
@@ -930,6 +1007,7 @@ namespace Slic3r::GUI {
                 m_glmodel.reset();
                 m_seed_preview_model.reset();
                 m_seed_preview_points.clear();
+                m_seed_preview_points_exact.clear();
                 BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - deactivation COMPLETE";
             }
         }
@@ -1116,47 +1194,7 @@ namespace Slic3r::GUI {
 
                 // Convert configuration
                 BOOST_LOG_TRIVIAL(info) << "process() - Converting configuration";
-                voronoi_config.seed_type = static_cast<VoronoiMesh::SeedType>(m_state.config.seed_type);
-                voronoi_config.num_seeds = m_state.config.num_seeds;
-                voronoi_config.wall_thickness = m_state.config.wall_thickness;
-                voronoi_config.edge_thickness = m_state.config.edge_thickness;
-                voronoi_config.edge_shape = static_cast<VoronoiMesh::EdgeShape>(m_state.config.edge_shape);
-                voronoi_config.cell_style = static_cast<VoronoiMesh::CellStyle>(m_state.config.cell_style);
-                voronoi_config.edge_segments = m_state.config.edge_segments;
-                voronoi_config.edge_curvature = m_state.config.edge_curvature;
-                voronoi_config.edge_subdivisions = m_state.config.edge_subdivisions;
-                voronoi_config.hollow_cells = m_state.config.hollow_cells;
-                voronoi_config.random_seed = m_state.config.random_seed;
-
-                // Advanced features
-                voronoi_config.relax_seeds = m_state.config.relax_seeds;
-                voronoi_config.relaxation_iterations = m_state.config.relaxation_iterations;
-                
-                voronoi_config.multi_scale = m_state.config.multi_scale;
-                voronoi_config.scale_seed_counts = m_state.config.scale_seed_counts;
-                voronoi_config.scale_thicknesses = m_state.config.scale_thicknesses;
-                
-                voronoi_config.anisotropic = m_state.config.anisotropic;
-                voronoi_config.anisotropy_direction = m_state.config.anisotropy_direction;
-                voronoi_config.anisotropy_ratio = m_state.config.anisotropy_ratio;
-                
-                // Weighted Voronoi
-                voronoi_config.use_weighted_cells = m_state.config.use_weighted_cells;
-                voronoi_config.cell_weights = m_state.config.cell_weights;
-                voronoi_config.density_center = m_state.config.density_center;
-                voronoi_config.density_falloff = m_state.config.density_falloff;
-                
-                // Load optimization
-                voronoi_config.optimize_for_load = m_state.config.optimize_for_load;
-                voronoi_config.load_direction = m_state.config.load_direction;
-                voronoi_config.load_stretch_factor = m_state.config.load_stretch_factor;
-                
-                // Printability
-                voronoi_config.enforce_watertight = m_state.config.enforce_watertight;
-                voronoi_config.auto_repair = m_state.config.auto_repair;
-                voronoi_config.min_wall_thickness = m_state.config.min_wall_thickness;
-                voronoi_config.min_feature_size = m_state.config.min_feature_size;
-                voronoi_config.validate_printability = m_state.config.validate_printability;
+                voronoi_config = build_voronoi_config(m_state.config);
 
                 // Set progress callback
                 // Use try_lock to avoid deadlock - if we can't get the lock, just skip the update
@@ -1412,229 +1450,91 @@ namespace Slic3r::GUI {
         // Update preview if it's enabled
         if (m_configuration.show_seed_preview) {
             update_seed_preview();
-            update_2d_voronoi_preview();
         }
     }
 
     void GLGizmoVoronoi::update_seed_preview()
-    {
-        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() START";
-        
-        // Safety checks
-        if (!m_volume) {
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - no volume, returning";
+{
+    BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() START";
+
+    if (!m_volume) {
+        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - no volume, returning";
+        return;
+    }
+
+    try {
+        m_seed_preview_points.clear();
+        m_seed_preview_points_exact.clear();
+        m_seed_preview_model.reset();
+        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - cleared previous data";
+
+        const indexed_triangle_set& mesh = !m_original_mesh.vertices.empty() ? m_original_mesh : m_volume->mesh().its;
+        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - source mesh vertices: " << mesh.vertices.size();
+
+        if (mesh.vertices.empty()) {
+            BOOST_LOG_TRIVIAL(warning) << "GLGizmoVoronoi: update_seed_preview() - Empty mesh for seed preview";
             return;
         }
 
-        try {
-            m_seed_preview_points.clear();
-            m_seed_preview_model.reset();
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - cleared previous data";
+        VoronoiMesh::Config voronoi_config = build_voronoi_config(m_configuration);
 
-            const indexed_triangle_set& mesh = m_volume->mesh().its;
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - got mesh, vertices: " << mesh.vertices.size();
+        std::vector<Vec3d> seeds;
 
-            // Validate mesh
-            if (mesh.vertices.empty()) {
-                BOOST_LOG_TRIVIAL(warning) << "GLGizmoVoronoi: update_seed_preview() - Empty mesh for seed preview";
-                return;
+        if (voronoi_config.multi_scale && !voronoi_config.scale_seed_counts.empty()) {
+            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - multi-scale preview with "
+                                    << voronoi_config.scale_seed_counts.size() << " levels";
+            for (size_t level = 0; level < voronoi_config.scale_seed_counts.size(); ++level) {
+                VoronoiMesh::Config level_cfg = voronoi_config;
+                level_cfg.multi_scale = false;
+                level_cfg.num_seeds = voronoi_config.scale_seed_counts[level];
+                if (level < voronoi_config.scale_thicknesses.size())
+                    level_cfg.edge_thickness = voronoi_config.scale_thicknesses[level];
+
+                auto level_seeds = VoronoiMesh::prepare_seed_points(mesh, level_cfg);
+                seeds.insert(seeds.end(), level_seeds.begin(), level_seeds.end());
             }
-
-            // Compute bounding box for generated points
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - computing bounding box";
-            BoundingBoxf3 bbox;
-            for (const auto& v : mesh.vertices) {
-                bbox.merge(v.cast<double>());
-            }
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - bbox computed";
-
-            // Ensure valid bounding box
-            if (!bbox.defined || bbox.size().minCoeff() <= 0) {
-                BOOST_LOG_TRIVIAL(warning) << "GLGizmoVoronoi: update_seed_preview() - Invalid bounding box for seed preview";
-                return;
-            }
-
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - generating seeds, type: " << (int)m_configuration.seed_type << ", num: " << m_configuration.num_seeds;
-
-            // Apply same bbox shrinking as actual generation (10% margin)
-            Vec3d shrink = bbox.size() * 0.1;
-            BoundingBoxf3 shrunk_bbox = bbox;
-            shrunk_bbox.min += shrink;
-            shrunk_bbox.max -= shrink;
-            
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - using shrunk bbox for preview to match actual generation";
-
-            if (m_configuration.seed_type == Configuration::SEED_GRID) {
-                // Grid seeds - ensure proper distribution
-                int seeds_per_axis = static_cast<int>(std::ceil(std::cbrt(m_configuration.num_seeds)));
-                seeds_per_axis = std::max(2, seeds_per_axis); // At least 2x2x2 grid
-
-                Vec3d step = shrunk_bbox.size() / double(seeds_per_axis - 1); // Use shrunk bbox
-
-                for (int x = 0; x < seeds_per_axis; ++x) {
-                    for (int y = 0; y < seeds_per_axis; ++y) {
-                        for (int z = 0; z < seeds_per_axis; ++z) {
-                            Vec3d pt = shrunk_bbox.min + Vec3d(
-                                x * step.x(),
-                                y * step.y(),
-                                z * step.z()
-                            );
-
-                            m_seed_preview_points.push_back(pt.cast<float>());
-
-                            if (m_seed_preview_points.size() >= static_cast<size_t>(m_configuration.num_seeds))
-                                break;
-                        }
-                        if (m_seed_preview_points.size() >= static_cast<size_t>(m_configuration.num_seeds))
-                            break;
-                    }
-                    if (m_seed_preview_points.size() >= static_cast<size_t>(m_configuration.num_seeds))
-                        break;
-                }
-            }
-            else if (m_configuration.seed_type == Configuration::SEED_RANDOM) {
-                // Random seeds - use shrunk bbox to match actual generation
-                std::mt19937 rng(m_configuration.random_seed);
-
-                std::uniform_real_distribution<double> dist_x(shrunk_bbox.min.x(), shrunk_bbox.max.x());
-                std::uniform_real_distribution<double> dist_y(shrunk_bbox.min.y(), shrunk_bbox.max.y());
-                std::uniform_real_distribution<double> dist_z(shrunk_bbox.min.z(), shrunk_bbox.max.z());
-
-                // Generate exactly num_seeds points (no inside test needed with shrunk bbox)
-                for (int i = 0; i < m_configuration.num_seeds; ++i) {
-                    Vec3d pt(dist_x(rng), dist_y(rng), dist_z(rng));
-                    m_seed_preview_points.push_back(pt.cast<float>());
-                }
-            }
-            else {
-                // Vertex seeds - use farthest point sampling for better distribution
-                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - Using VERTEX seeds, mesh has " << mesh.vertices.size() << " vertices";
-
-                if (static_cast<int>(mesh.vertices.size()) <= m_configuration.num_seeds) {
-                    // Use all vertices if we have fewer than requested
-                    BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - Using ALL vertices (mesh.vertices.size() <= num_seeds)";
-                    for (const auto& v : mesh.vertices) {
-                        m_seed_preview_points.push_back(v);
-                    }
-                    BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - Added " << m_seed_preview_points.size() << " vertex seeds";
-                }
-                else {
-                    // Farthest point sampling
-                    BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - Using farthest point sampling for " << m_configuration.num_seeds << " seeds from " << mesh.vertices.size() << " vertices";
-
-                    std::vector<bool> selected(mesh.vertices.size(), false);
-                    std::vector<float> min_distances(mesh.vertices.size(), std::numeric_limits<float>::max());
-
-                    // Start with a random vertex
-                    std::mt19937 rng(m_configuration.random_seed);
-                    std::uniform_int_distribution<size_t> dist(0, mesh.vertices.size() - 1);
-                    size_t first_idx = dist(rng);
-                    selected[first_idx] = true;
-                    m_seed_preview_points.push_back(mesh.vertices[first_idx]);
-                    BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - Selected first vertex at index " << first_idx;
-
-                    // Update distances from first point
-                    for (size_t i = 0; i < mesh.vertices.size(); ++i) {
-                        float d = (mesh.vertices[i] - mesh.vertices[first_idx]).norm();
-                        min_distances[i] = std::min(min_distances[i], d);
-                    }
-
-                    // Select remaining points
-                    for (int k = 1; k < m_configuration.num_seeds; ++k) {
-                        // Find vertex with maximum minimum distance
-                        size_t best_idx = 0;
-                        float max_min_dist = -1.0f;
-
-                        for (size_t i = 0; i < mesh.vertices.size(); ++i) {
-                            if (!selected[i] && min_distances[i] > max_min_dist) {
-                                max_min_dist = min_distances[i];
-                                best_idx = i;
-                            }
-                        }
-
-                        // Add the selected vertex
-                        selected[best_idx] = true;
-                        m_seed_preview_points.push_back(mesh.vertices[best_idx]);
-
-                        // Update distances
-                        for (size_t i = 0; i < mesh.vertices.size(); ++i) {
-                            if (!selected[i]) {
-                                float d = (mesh.vertices[i] - mesh.vertices[best_idx]).norm();
-                                min_distances[i] = std::min(min_distances[i], d);
-                            }
-                        }
-                    }
-                    BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - Farthest point sampling complete, selected " << m_seed_preview_points.size() << " vertices";
-                }
-            }
-
-            // Apply Lloyd's relaxation if enabled (to match actual generation)
-            if (m_configuration.relax_seeds && m_configuration.relaxation_iterations > 0 && 
-                !m_seed_preview_points.empty()) {
-                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - Applying Lloyd's relaxation (" 
-                                         << m_configuration.relaxation_iterations << " iterations)";
-                
-                // Convert to Vec3d for VoronoiMesh function
-                std::vector<Vec3d> seeds_double;
-                seeds_double.reserve(m_seed_preview_points.size());
-                for (const auto& pt : m_seed_preview_points) {
-                    seeds_double.push_back(pt.cast<double>());
-                }
-                
-                // Apply Lloyd's relaxation using VoronoiMesh function
-                // Note: lloyd_relaxation needs bounds, not mesh
-                seeds_double = Slic3r::VoronoiMesh::lloyd_relaxation(
-                    seeds_double,
-                    shrunk_bbox,  // Use the shrunk bbox (same as actual generation)
-                    m_configuration.relaxation_iterations
-                );
-                
-                // Convert back to Vec3f
-                m_seed_preview_points.clear();
-                m_seed_preview_points.reserve(seeds_double.size());
-                for (const auto& pt : seeds_double) {
-                    m_seed_preview_points.push_back(pt.cast<float>());
-                }
-                
-                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - Lloyd's relaxation complete, "
-                                         << m_seed_preview_points.size() << " seeds";
-            }
-
-            // Create OpenGL model for rendering seed points
-            if (!m_seed_preview_points.empty()) {
-                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - creating OpenGL model for " << m_seed_preview_points.size() << " points";
-                GLModel::Geometry init_data;
-                init_data.format = { GLModel::PrimitiveType::Points, GLModel::Geometry::EVertexLayout::P3 };
-
-                for (const Vec3f& pt : m_seed_preview_points) {
-                    init_data.add_vertex(pt);
-                }
-
-                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - initializing model";
-                m_seed_preview_model.init_from(std::move(init_data));
-                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - requesting rerender";
-                request_rerender();
-
-                // Also update 2D preview
-                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - updating 2D voronoi preview";
-                update_2d_voronoi_preview();
-                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - 2D preview updated";
-            }
-            else {
-                BOOST_LOG_TRIVIAL(warning) << "GLGizmoVoronoi: update_seed_preview() - no seed points generated!";
-            }
-            
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() COMPLETE";
+        } else {
+            seeds = VoronoiMesh::prepare_seed_points(mesh, voronoi_config);
         }
-        catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << "GLGizmoVoronoi: update_seed_preview() EXCEPTION: " << e.what();
-            m_seed_preview_points.clear();
+
+        if (seeds.empty()) {
+            BOOST_LOG_TRIVIAL(warning) << "GLGizmoVoronoi: update_seed_preview() - No seeds generated by VoronoiMesh::prepare_seed_points";
+            return;
         }
-        catch (...) {
-            BOOST_LOG_TRIVIAL(error) << "GLGizmoVoronoi: update_seed_preview() UNKNOWN EXCEPTION";
-            m_seed_preview_points.clear();
-        }
+
+        m_seed_preview_points_exact = seeds;
+        m_seed_preview_points.reserve(seeds.size());
+        for (const Vec3d& pt : seeds)
+            m_seed_preview_points.push_back(pt.cast<float>());
+
+        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - Final preview seed count: " << m_seed_preview_points.size();
+
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::PrimitiveType::Points, GLModel::Geometry::EVertexLayout::P3 };
+        for (const Vec3f& pt : m_seed_preview_points)
+            init_data.add_vertex(pt);
+
+        m_seed_preview_model.init_from(std::move(init_data));
+        request_rerender();
+
+        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - updating 2D voronoi preview";
+        update_2d_voronoi_preview();
+        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - 2D preview updated";
+
+        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() COMPLETE";
     }
+    catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << "GLGizmoVoronoi: update_seed_preview() EXCEPTION: " << e.what();
+        m_seed_preview_points.clear();
+        m_seed_preview_points_exact.clear();
+    }
+    catch (...) {
+        BOOST_LOG_TRIVIAL(error) << "GLGizmoVoronoi: update_seed_preview() UNKNOWN EXCEPTION";
+        m_seed_preview_points.clear();
+        m_seed_preview_points_exact.clear();
+    }
+}
+
 
     void GLGizmoVoronoi::render_seed_preview()
     {
@@ -1889,15 +1789,6 @@ namespace Slic3r::GUI {
                 BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_opening() - skipping preview (volume: NULL)";
             }
 
-            // Safe 2D preview update
-            try {
-                update_2d_voronoi_preview();
-                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_opening() - 2D preview updated";
-            }
-            catch (...) {
-                BOOST_LOG_TRIVIAL(error) << "GLGizmoVoronoi: on_opening() - Exception in 2D preview update";
-            }
-
             request_rerender();
             BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_opening() COMPLETE";
         }
@@ -1938,6 +1829,7 @@ namespace Slic3r::GUI {
 
             // Clear all containers
             m_seed_preview_points.clear();
+            m_seed_preview_points_exact.clear();
             m_2d_voronoi_cells.clear();
             m_2d_delaunay_edges.clear();
 

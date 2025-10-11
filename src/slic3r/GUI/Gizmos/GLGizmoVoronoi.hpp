@@ -76,6 +76,8 @@ namespace Slic3r {
             void generate_fallback_hexagonal_preview();
             void render_ui_content();  // Extracted UI rendering for safer error handling
 
+            VoronoiMesh::Config build_voronoi_config(const Configuration& cfg) const;
+
             struct VoronoiCell2D {
                 std::vector<Vec2f> vertices;
                 Vec2f seed_point;
@@ -160,6 +162,9 @@ namespace Slic3r {
                 float min_feature_size = 0.2f;
                 bool validate_printability = false;  // Pre-validate before generation
 
+                // Restricted Voronoi (surface)
+                bool restricted_voronoi = false;
+
                 bool operator==(const Configuration& rhs) const {
                     return seed_type == rhs.seed_type &&
                         num_seeds == rhs.num_seeds &&
@@ -191,7 +196,8 @@ namespace Slic3r {
                         auto_repair == rhs.auto_repair &&
                         min_wall_thickness == rhs.min_wall_thickness &&
                         min_feature_size == rhs.min_feature_size &&
-                        validate_printability == rhs.validate_printability;
+                        validate_printability == rhs.validate_printability &&
+                        restricted_voronoi == rhs.restricted_voronoi;
                 }
                 bool operator!=(const Configuration& rhs) const {
                     return !(*this == rhs);
@@ -206,6 +212,7 @@ namespace Slic3r {
 
             // Seed preview
             std::vector<Vec3f> m_seed_preview_points;
+            std::vector<Vec3d> m_seed_preview_points_exact;
             GLModel m_seed_preview_model;
 
             bool m_move_to_center;
