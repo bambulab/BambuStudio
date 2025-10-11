@@ -44,8 +44,7 @@
 #include <CGAL/Polygon_mesh_processing/triangulate_faces.h>
 #include <CGAL/Polygon_mesh_processing/corefinement.h>
 #include <CGAL/convex_hull_3.h>
-// Note: halfspace_intersection_3 may be in <CGAL/Convex_hull_3/dual/halfspace_intersection_3.h> 
-// but not all CGAL versions have it - we'll rely on convex_hull_3.h
+#include <CGAL/Convex_hull_3/dual/halfspace_intersection_3.h>
 #include <CGAL/Side_of_triangle_mesh.h>
 #include <CGAL/AABB_tree.h>
 #include <CGAL/AABB_face_graph_triangle_primitive.h>
