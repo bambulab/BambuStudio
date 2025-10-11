@@ -1,6 +1,8 @@
 #include "VoronoiMesh.hpp"
 #include "libslic3r/AABBMesh.hpp"
+#include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/MeshBoolean.hpp"
+#include "libslic3r/Point.hpp"
 #include "libslic3r/TriangleMesh.hpp"
 #include <random>
 #include <algorithm>
@@ -4882,8 +4884,8 @@ namespace Slic3r {
     }
     
     bool VoronoiMesh::validate_printability(
-        const std::vector<Vec3d>& seed_points,
-        const BoundingBoxf3& bounds,
+        const std::vector<::Slic3r::Vec3d>& seed_points,
+        const ::Slic3r::BoundingBoxf3& bounds,
         float min_feature_size,
         std::string& error_message)
     {
@@ -4909,7 +4911,7 @@ namespace Slic3r {
         
         // Insert seed points
         for (size_t i = 0; i < seed_points.size(); ++i) {
-            const Vec3d& p = seed_points[i];
+            const ::Slic3r::Vec3d& p = seed_points[i];
             con.put(i, p.x(), p.y(), p.z());
         }
         
@@ -4928,16 +4930,16 @@ namespace Slic3r {
                 vl.pos(x, y, z);
                 cell.vertices(x, y, z, verts);
                 
-                Vec3d cell_min(1e10, 1e10, 1e10);
-                Vec3d cell_max(-1e10, -1e10, -1e10);
+                ::Slic3r::Vec3d cell_min(1e10, 1e10, 1e10);
+                ::Slic3r::Vec3d cell_max(-1e10, -1e10, -1e10);
                 
                 for (size_t i = 0; i + 2 < verts.size(); i += 3) {
-                    Vec3d v(verts[i], verts[i+1], verts[i+2]);
+                    ::Slic3r::Vec3d v(verts[i], verts[i+1], verts[i+2]);
                     cell_min = cell_min.cwiseMin(v);
                     cell_max = cell_max.cwiseMax(v);
                 }
                 
-                Vec3d cell_size = cell_max - cell_min;
+                ::Slic3r::Vec3d cell_size = cell_max - cell_min;
                 double min_cell_dim = cell_size.minCoeff();
                 
                 if (min_cell_dim < min_dimension) {

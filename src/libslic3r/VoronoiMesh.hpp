@@ -209,8 +209,8 @@ namespace Slic3r {
         
         // Validate printability before generation
         static bool validate_printability(
-            const std::vector<Vec3d>& seed_points,
-            const BoundingBoxf3& bounds,
+            const std::vector<::Slic3r::Vec3d>& seed_points,
+            const ::Slic3r::BoundingBoxf3& bounds,
             float min_feature_size,
             std::string& error_message
         );
