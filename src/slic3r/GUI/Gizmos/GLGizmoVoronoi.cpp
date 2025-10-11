@@ -9,6 +9,12 @@
 #include "libslic3r/VoronoiMesh.hpp"
 #include "libslic3r/Geometry.hpp"
 
+#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Delaunay_triangulation_cell_base_with_circumcenter_3.h>
+#include <CGAL/Triangulation_vertex_base_with_info_3.h>
+#include <CGAL/Triangulation_data_structure_3.h>
+#include <CGAL/Delaunay_triangulation_3.h>
+
 #include <GL/glew.h>
 #include <thread>
 #include <chrono>
@@ -30,6 +36,74 @@
 #endif
 
 namespace Slic3r::GUI {
+
+    namespace {
+        using PreviewKernel  = CGAL::Exact_predicates_inexact_constructions_kernel;
+        using PreviewCellBase = CGAL::Delaunay_triangulation_cell_base_with_circumcenter_3<PreviewKernel>;
+        using PreviewVertexBase = CGAL::Triangulation_vertex_base_with_info_3<int, PreviewKernel>;
+        using PreviewTDS      = CGAL::Triangulation_data_structure_3<PreviewVertexBase, PreviewCellBase>;
+        using PreviewDT       = CGAL::Delaunay_triangulation_3<PreviewKernel, PreviewTDS>;
+        using PreviewPoint    = PreviewKernel::Point_3;
+        using PreviewSegment  = PreviewKernel::Segment_3;
+
+        struct VoronoiPreviewData {
+            std::vector<PreviewPoint> seeds;
+            std::vector<PreviewSegment> edges;
+        };
+
+        VoronoiPreviewData compute_voronoi_preview(const std::vector<PreviewPoint>& seeds)
+        {
+            VoronoiPreviewData data;
+            data.seeds = seeds;
+            if (seeds.empty())
+                return data;
+
+            PreviewDT dt;
+            dt.insert(seeds.begin(), seeds.end());
+
+            for (auto it = dt.finite_facets_begin(); it != dt.finite_facets_end(); ++it) {
+                CGAL::Object dual = dt.dual(*it);
+                if (const PreviewSegment* seg = CGAL::object_cast<PreviewSegment>(&dual)) {
+                    data.edges.push_back(*seg);
+                }
+            }
+            return data;
+        }
+
+        static Vec3f hsv_to_rgb(float h, float s, float v)
+        {
+            h = std::fmod(h, 1.0f);
+            if (h < 0.0f) h += 1.0f;
+
+            float c = v * s;
+            float x = c * (1.0f - std::fabs(std::fmod(h * 6.0f, 2.0f) - 1.0f));
+            float m = v - c;
+
+            float r = 0.0f, g = 0.0f, b = 0.0f;
+            if (h < 1.0f / 6.0f) {
+                r = c; g = x; b = 0.0f;
+            } else if (h < 2.0f / 6.0f) {
+                r = x; g = c; b = 0.0f;
+            } else if (h < 3.0f / 6.0f) {
+                r = 0.0f; g = c; b = x;
+            } else if (h < 4.0f / 6.0f) {
+                r = 0.0f; g = x; b = c;
+            } else if (h < 5.0f / 6.0f) {
+                r = x; g = 0.0f; b = c;
+            } else {
+                r = c; g = 0.0f; b = x;
+            }
+
+            return Vec3f(r + m, g + m, b + m);
+        }
+
+        static Vec3f color_from_index(size_t idx)
+        {
+            constexpr float phi_conjugate = 0.6180339887498949f;
+            float h = std::fmod(idx * phi_conjugate, 1.0f);
+            return hsv_to_rgb(h, 0.6f, 0.9f);
+        }
+    } // namespace
 
     static void call_after_if_active(
         GLGizmoVoronoi* self,
@@ -136,9 +210,10 @@ namespace Slic3r::GUI {
         if (m_worker.joinable())
             m_worker.join();
         m_glmodel.reset();
-        m_seed_preview_model.reset();
         m_seed_preview_points.clear();
         m_seed_preview_points_exact.clear();
+        m_seed_preview_colors.clear();
+        m_voronoi_preview_edges.clear();
     }
 
     bool GLGizmoVoronoi::on_esc_key_down()
@@ -270,6 +345,78 @@ namespace Slic3r::GUI {
             out.clip_to_mesh = true;
 
         return out;
+    }
+
+    void GLGizmoVoronoi::update_voronoi_preview(const std::vector<Vec3d>& seeds)
+    {
+        if (!m_configuration.show_seed_preview) {
+            clear_voronoi_preview();
+            return;
+        }
+
+        if (seeds.empty()) {
+            clear_voronoi_preview();
+            return;
+        }
+
+        std::vector<PreviewPoint> seed_points;
+        seed_points.reserve(seeds.size());
+        for (const Vec3d& s : seeds)
+            seed_points.emplace_back(s.x(), s.y(), s.z());
+
+        VoronoiPreviewData preview = compute_voronoi_preview(seed_points);
+
+        m_voronoi_preview_edges.clear();
+        m_voronoi_preview_edges.reserve(preview.edges.size() * 2);
+        for (const PreviewSegment& seg : preview.edges) {
+            const PreviewPoint& a = seg.source();
+            const PreviewPoint& b = seg.target();
+            m_voronoi_preview_edges.emplace_back(Vec3f(float(a.x()), float(a.y()), float(a.z())));
+            m_voronoi_preview_edges.emplace_back(Vec3f(float(b.x()), float(b.y()), float(b.z())));
+        }
+
+        request_rerender();
+    }
+
+    void GLGizmoVoronoi::clear_voronoi_preview()
+    {
+        m_voronoi_preview_edges.clear();
+    }
+
+    void GLGizmoVoronoi::render_voronoi_preview() const
+    {
+        if (!m_configuration.show_seed_preview)
+            return;
+        if (m_seed_preview_points.empty())
+            return;
+
+        glsafe(::glPushAttrib(GL_ENABLE_BIT | GL_POINT_BIT | GL_LINE_BIT));
+        glsafe(::glDisable(GL_LIGHTING));
+
+        glsafe(::glPointSize(6.0f));
+        glsafe(::glBegin(GL_POINTS));
+        for (size_t i = 0; i < m_seed_preview_points.size(); ++i) {
+            const Vec3f& p = m_seed_preview_points[i];
+            const Vec3f& c = m_seed_preview_colors.empty() ? Vec3f(0.2f, 0.8f, 0.3f) : m_seed_preview_colors[i % m_seed_preview_colors.size()];
+            glsafe(::glColor3f(c.x(), c.y(), c.z()));
+            glsafe(::glVertex3f(p.x(), p.y(), p.z()));
+        }
+        glsafe(::glEnd());
+
+        if (!m_voronoi_preview_edges.empty()) {
+            glsafe(::glLineWidth(1.0f));
+            glsafe(::glColor3f(0.95f, 0.85f, 0.2f));
+            glsafe(::glBegin(GL_LINES));
+            for (size_t i = 0; i + 1 < m_voronoi_preview_edges.size(); i += 2) {
+                const Vec3f& a = m_voronoi_preview_edges[i];
+                const Vec3f& b = m_voronoi_preview_edges[i + 1];
+                glsafe(::glVertex3f(a.x(), a.y(), a.z()));
+                glsafe(::glVertex3f(b.x(), b.y(), b.z()));
+            }
+            glsafe(::glEnd());
+        }
+
+        glsafe(::glPopAttrib());
     }
 
     void GLGizmoVoronoi::render_ui_content()
@@ -421,13 +568,13 @@ namespace Slic3r::GUI {
         if (ImGui::Checkbox(tr_seed_preview.c_str(), &m_configuration.show_seed_preview)) {
             if (m_configuration.show_seed_preview) {
                 update_seed_preview();
-            }
-            else {
-                m_seed_preview_model.reset();
+            } else {
                 m_seed_preview_points.clear();
                 m_seed_preview_points_exact.clear();
+                m_seed_preview_colors.clear();
                 m_2d_voronoi_cells.clear();
                 m_2d_delaunay_edges.clear();
+                clear_voronoi_preview();
             }
         }
 
@@ -1011,9 +1158,10 @@ namespace Slic3r::GUI {
                 BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - deactivating gizmo";
                 m_volume = nullptr;
                 m_glmodel.reset();
-                m_seed_preview_model.reset();
                 m_seed_preview_points.clear();
                 m_seed_preview_points_exact.clear();
+                m_seed_preview_colors.clear();
+                clear_voronoi_preview();
                 BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_set_state() - deactivation COMPLETE";
             }
         }
@@ -1058,10 +1206,8 @@ namespace Slic3r::GUI {
         // Note: render_painter_gizmo() is called by GLCanvas3D, not here
         // on_render() is for rendering overlays like seed preview
 
-        // Render seed preview points if enabled
-        if (m_configuration.show_seed_preview) {
-            render_seed_preview();
-        }
+        if (m_configuration.show_seed_preview)
+            render_voronoi_preview();
     }
 
     CommonGizmosDataID GLGizmoVoronoi::on_get_requirements() const
@@ -1460,594 +1606,91 @@ namespace Slic3r::GUI {
     }
 
     void GLGizmoVoronoi::update_seed_preview()
-{
-    BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() START";
-
-    if (!m_volume) {
-        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - no volume, returning";
-        return;
-    }
-
-    try {
-        m_seed_preview_points.clear();
-        m_seed_preview_points_exact.clear();
-        m_seed_preview_model.reset();
-        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - cleared previous data";
-
-        const indexed_triangle_set& mesh = !m_original_mesh.vertices.empty() ? m_original_mesh : m_volume->mesh().its;
-        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - source mesh vertices: " << mesh.vertices.size();
-
-        if (mesh.vertices.empty()) {
-            BOOST_LOG_TRIVIAL(warning) << "GLGizmoVoronoi: update_seed_preview() - Empty mesh for seed preview";
-            return;
-        }
-
-        VoronoiMesh::Config voronoi_config = build_voronoi_config(m_configuration);
-
-        std::vector<Vec3d> seeds;
-
-        if (voronoi_config.multi_scale && !voronoi_config.scale_seed_counts.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - multi-scale preview with "
-                                    << voronoi_config.scale_seed_counts.size() << " levels";
-            for (size_t level = 0; level < voronoi_config.scale_seed_counts.size(); ++level) {
-                VoronoiMesh::Config level_cfg = voronoi_config;
-                level_cfg.multi_scale = false;
-                level_cfg.num_seeds = voronoi_config.scale_seed_counts[level];
-                if (level < voronoi_config.scale_thicknesses.size())
-                    level_cfg.edge_thickness = voronoi_config.scale_thicknesses[level];
-
-                auto level_seeds = VoronoiMesh::prepare_seed_points(mesh, level_cfg);
-                seeds.insert(seeds.end(), level_seeds.begin(), level_seeds.end());
-            }
-        } else {
-            seeds = VoronoiMesh::prepare_seed_points(mesh, voronoi_config);
-        }
-
-        if (seeds.empty()) {
-            BOOST_LOG_TRIVIAL(warning) << "GLGizmoVoronoi: update_seed_preview() - No seeds generated by VoronoiMesh::prepare_seed_points";
-            return;
-        }
-
-        m_seed_preview_points_exact = seeds;
-        m_seed_preview_points.reserve(seeds.size());
-        for (const Vec3d& pt : seeds)
-            m_seed_preview_points.push_back(pt.cast<float>());
-
-        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - Final preview seed count: " << m_seed_preview_points.size();
-
-        GLModel::Geometry init_data;
-        init_data.format = { GLModel::PrimitiveType::Points, GLModel::Geometry::EVertexLayout::P3 };
-        for (const Vec3f& pt : m_seed_preview_points)
-            init_data.add_vertex(pt);
-
-        m_seed_preview_model.init_from(std::move(init_data));
-        request_rerender();
-
-        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - updating 2D voronoi preview";
-        update_2d_voronoi_preview();
-        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - 2D preview updated";
-
-        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() COMPLETE";
-    }
-    catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << "GLGizmoVoronoi: update_seed_preview() EXCEPTION: " << e.what();
-        m_seed_preview_points.clear();
-        m_seed_preview_points_exact.clear();
-    }
-    catch (...) {
-        BOOST_LOG_TRIVIAL(error) << "GLGizmoVoronoi: update_seed_preview() UNKNOWN EXCEPTION";
-        m_seed_preview_points.clear();
-        m_seed_preview_points_exact.clear();
-    }
-}
-
-
-    void GLGizmoVoronoi::render_seed_preview()
     {
-        if (!m_seed_preview_model.is_initialized() || m_seed_preview_points.empty())
-            return;
+        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() START";
 
-        glsafe(::glEnable(GL_BLEND));
-        glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-        // Set point size for seed visualization
-        glsafe(::glPointSize(8.0f));
-
-        const Camera& camera = wxGetApp().plater()->get_camera();
-        Transform3d view_model_matrix = camera.get_view_matrix();
-
-        // Get model transform
-        const Selection& selection = m_parent.get_selection();
-        if (!selection.is_empty()) {
-            const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
-            if (vol) {
-                view_model_matrix = camera.get_view_matrix() * vol->world_matrix();
-            }
-        }
-
-        // Render seed points in green
-        std::array<float, 4> green_color = { 0.0f, 0.7f, 0.0f, 0.9f };
-
-        const auto& shader = wxGetApp().get_shader("gouraud_light");
-        if (shader) {
-            wxGetApp().bind_shader(shader);
-            shader->set_uniform("view_model_matrix", view_model_matrix);
-            shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-            shader->set_uniform("emission_factor", 0.5f);
-
-            m_seed_preview_model.set_color(-1, green_color);
-            m_seed_preview_model.render_geometry();
-
-            wxGetApp().unbind_shader();
-        }
-
-        glsafe(::glPointSize(1.0f));
-        glsafe(::glDisable(GL_BLEND));
-    }
-
-    void GLGizmoVoronoi::render_painter_gizmo() const
-    {
-        static bool logged_first_call = false;
-        if (!logged_first_call) {
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::render_painter_gizmo() - FIRST CALL";
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::render_painter_gizmo() - triangle_selectors.size(): " << m_triangle_selectors.size();
-            logged_first_call = true;
-        }
-
-        const Selection& selection = m_parent.get_selection();
-
-        glsafe(::glEnable(GL_BLEND));
-        glsafe(::glEnable(GL_DEPTH_TEST));
-
-        render_triangles(selection);
-
-        // Always render clipping plane, instances hider, and cursor (like other painter gizmos)
-        m_c->object_clipper()->render_cut();
-        m_c->instances_hider()->render_cut();
-
-        // Only render cursor when painting mode is active
-        if (m_configuration.enable_triangle_painting) {
-            render_cursor();
-        }
-
-        glsafe(::glDisable(GL_BLEND));
-    }
-
-    void GLGizmoVoronoi::render_triangles(const Selection& selection) const
-    {
-        // Safety check: only render if triangle selectors are initialized
-        if (m_triangle_selectors.empty()) {
-            BOOST_LOG_TRIVIAL(warning) << "GLGizmoVoronoi::render_triangles() - triangle_selectors is empty, skipping render";
+        if (!m_volume) {
+            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - no volume, returning";
+            clear_voronoi_preview();
             return;
         }
-
-        // Call the base class implementation which handles all the shader setup
-        // and proper rendering of the model triangles
-        GLGizmoPainterBase::render_triangles(selection);
-    }
-
-    void GLGizmoVoronoi::update_model_object()
-    {
-        // Safety check for m_c pointer
-        if (!m_c)
-            return;
-
-        // Save painted triangle data to model volume
-        const Selection& selection = m_parent.get_selection();
-        const ModelObject* mo = m_c->selection_info()->model_object();
-
-        if (!mo || !selection.is_from_single_instance())
-            return;
-
-        for (const ModelVolume* mv : mo->volumes) {
-            if (mv->is_model_part()) {
-                auto it = std::find(mo->volumes.begin(), mo->volumes.end(), mv);
-                int mesh_id = std::distance(mo->volumes.begin(), it);
-                if (mesh_id < (int)m_triangle_selectors.size() && m_triangle_selectors[mesh_id]) {
-                    m_parent.request_extra_frame();
-                }
-            }
-        }
-    }
-
-    void GLGizmoVoronoi::update_from_model_object(bool first_update)
-    {
-        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_from_model_object() START, first_update=" << first_update;
-
-        // Safety check for m_c pointer
-        if (!m_c) {
-            BOOST_LOG_TRIVIAL(warning) << "GLGizmoVoronoi: update_from_model_object() - m_c is NULL";
-            return;
-        }
-
-        if (!m_c->selection_info()) {
-            BOOST_LOG_TRIVIAL(warning) << "GLGizmoVoronoi: update_from_model_object() - selection_info is NULL";
-            return;
-        }
-
-        const ModelObject* mo = m_c->selection_info()->model_object();
-        if (!mo) {
-            BOOST_LOG_TRIVIAL(warning) << "GLGizmoVoronoi: update_from_model_object() - model_object is NULL";
-            return;
-        }
-
-        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_from_model_object() - model_object has " << mo->volumes.size() << " volumes";
-
-        // Initialize triangle selectors if needed
-        if (first_update || m_triangle_selectors.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_from_model_object() - clearing triangle selectors";
-            m_triangle_selectors.clear();
-
-            for (const ModelVolume* mv : mo->volumes) {
-                if (mv->is_model_part()) {
-                    BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_from_model_object() - creating triangle selector for model part";
-                    try {
-                        const TriangleMesh& mesh = mv->mesh();
-                        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_from_model_object() - got mesh, creating TriangleSelectorGUI";
-                        m_triangle_selectors.emplace_back(std::make_unique<TriangleSelectorGUI>(mesh));
-                        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_from_model_object() - TriangleSelectorGUI created successfully";
-                    }
-                    catch (const std::exception& e) {
-                        BOOST_LOG_TRIVIAL(error) << "GLGizmoVoronoi: update_from_model_object() - Exception creating TriangleSelectorGUI: " << e.what();
-                        throw;
-                    }
-                }
-            }
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_from_model_object() - created " << m_triangle_selectors.size() << " triangle selectors";
-        }
-
-        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_from_model_object() COMPLETE";
-    }
-
-    bool GLGizmoVoronoi::on_init()
-    {
-        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_init() START";
-        
-        try {
-            // Initialize shortcut key and descriptions (similar to other painter gizmos)
-            m_shortcut_key = WXK_CONTROL_V;
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_init() - shortcut key set";
-            
-            // Get shortkey prefixes
-            const wxString ctrl = GUI::shortkey_ctrl_prefix();
-            const wxString alt = GUI::shortkey_alt_prefix();
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_init() - shortkey prefixes obtained";
-            
-            // Set up tool descriptions
-            m_desc["clipping_of_view_caption"] = alt + _L("Mouse wheel");
-            m_desc["clipping_of_view"] = _L("Section view");
-            m_desc["cursor_size_caption"] = ctrl + _L("Mouse wheel");
-            m_desc["cursor_size"] = _L("Pen size");
-            m_desc["remove_caption"] = _L("Shift + Left mouse button");
-            m_desc["remove"] = _L("Erase");
-            m_desc["remove_all"] = _L("Erase all painting");
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_init() - descriptions set";
-
-            // Initialize painting system
-            m_cursor_radius = 2.0f;
-            m_is_dark_mode = false;
-
-            // Initialize volume pointer to null for safety
-            m_volume = nullptr;
-            
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_init() COMPLETE - returning true";
-            return true;
-        }
-        catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << "GLGizmoVoronoi: on_init() EXCEPTION: " << e.what();
-            return false;
-        }
-        catch (...) {
-            BOOST_LOG_TRIVIAL(error) << "GLGizmoVoronoi: on_init() UNKNOWN EXCEPTION";
-            return false;
-        }
-    }
-
-    void GLGizmoVoronoi::on_opening()
-    {
-        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_opening() START";
 
         try {
-            // Ensure model is visible when gizmo opens
-            m_parent.toggle_model_objects_visibility(true);
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_opening() - toggled model visibility to true";
-
-            // Try to get volume from selection if m_volume isn't set yet
-            if (!m_volume && m_c && m_c->selection_info()) {
-                const ModelObject* mo = m_c->selection_info()->model_object();
-                if (mo && !mo->volumes.empty()) {
-                    for (const ModelVolume* mv : mo->volumes) {
-                        if (mv->is_model_part()) {
-                            m_volume = mv;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            // NOTE: Don't call update_from_model_object() here!
-            // selection_info is NULL at this point, so triangle selectors can't be initialized
-            // The base class will call update_from_model_object() later when selection_info is ready
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_opening() - skipping triangle selector init (will be done by base class)";
-
-            // Keep clipping plane enabled for proper rendering
-            // Don't disable it immediately - let base class manage it
-            if (m_c && m_c->object_clipper()) {
-                // Keep whatever position the base class set
-                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_opening() - keeping clipping plane state from base class";
-            }
-
-            // Always try to update previews when opening, not just when show_seed_preview is true
-            if (m_volume) {
-                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_opening() - updating previews";
-                try {
-                    update_seed_preview();
-                    BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_opening() - seed preview updated";
-                }
-                catch (const std::exception& e) {
-                    BOOST_LOG_TRIVIAL(error) << "GLGizmoVoronoi: on_opening() - Exception in preview update: " << e.what();
-                }
-                catch (...) {
-                    BOOST_LOG_TRIVIAL(error) << "GLGizmoVoronoi: on_opening() - Unknown exception in preview update";
-                }
-            }
-            else {
-                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_opening() - skipping preview (volume: NULL)";
-            }
-
-            request_rerender();
-            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: on_opening() COMPLETE";
-        }
-        catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << "GLGizmoVoronoi: on_opening() EXCEPTION: " << e.what();
-            throw;
-        }
-        catch (...) {
-            BOOST_LOG_TRIVIAL(error) << "GLGizmoVoronoi: on_opening() UNKNOWN EXCEPTION";
-            throw;
-        }
-    }
-
-    void GLGizmoVoronoi::on_shutdown()
-    {
-        try {
-            stop_worker_thread_request();
-            if (m_worker.joinable()) {
-                m_worker.join();
-            }
-
-            // Thread-safe state cleanup
-            {
-                std::lock_guard<std::mutex> lock(m_state_mutex);
-                m_state.status = State::idle;
-                m_state.progress = 0;
-                m_state.result.reset();
-                m_state.mv = nullptr;
-            }
-
-            // Safe cleanup of OpenGL resources
-            if (m_glmodel.is_initialized()) {
-                m_glmodel.reset();
-            }
-            if (m_seed_preview_model.is_initialized()) {
-                m_seed_preview_model.reset();
-            }
-
-            // Clear all containers
             m_seed_preview_points.clear();
             m_seed_preview_points_exact.clear();
-            m_2d_voronoi_cells.clear();
-            m_2d_delaunay_edges.clear();
+            m_seed_preview_colors.clear();
+            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - cleared previous data";
 
-            // Clear original mesh so it can be recaptured for different objects
-            m_original_mesh.clear();
+            const indexed_triangle_set& mesh = !m_original_mesh.vertices.empty() ? m_original_mesh : m_volume->mesh().its;
+            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - source mesh vertices: " << mesh.vertices.size();
 
-            // Reset volume pointer
-            m_volume = nullptr;
-
-            // Ensure model is visible when shutting down (like other painter gizmos)
-            m_parent.toggle_model_objects_visibility(true);
-
-        }
-        catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << "Error in on_shutdown: " << e.what();
-        }
-        catch (...) {
-            BOOST_LOG_TRIVIAL(error) << "Unknown error in on_shutdown";
-        }
-    }
-
-    wxString GLGizmoVoronoi::handle_snapshot_action_name(bool shift_down, GLGizmoPainterBase::Button button_down) const
-    {
-        if (shift_down)
-            return wxString("Reset Voronoi painting");
-
-        return (button_down == Button::Left)
-            ? wxString("Add Voronoi region")
-            : wxString("Remove Voronoi region");
-    }
-
-    void GLGizmoVoronoi::update_2d_voronoi_preview()
-    {
-        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_2d_voronoi_preview() START - seed_preview_points.size() = " << m_seed_preview_points.size();
-
-        m_2d_voronoi_cells.clear();
-        m_2d_delaunay_edges.clear();
-
-        if (m_seed_preview_points.empty()) {
-            // Generate fallback preview instead of returning empty
-            BOOST_LOG_TRIVIAL(warning) << "GLGizmoVoronoi: update_2d_voronoi_preview() - seed_preview_points is EMPTY, falling back to hexagonal preview";
-            try {
-                generate_fallback_hexagonal_preview();
+            if (mesh.vertices.empty()) {
+                BOOST_LOG_TRIVIAL(warning) << "GLGizmoVoronoi: update_seed_preview() - Empty mesh for seed preview";
+                clear_voronoi_preview();
+                return;
             }
-            catch (...) {
-                BOOST_LOG_TRIVIAL(error) << "Exception in fallback preview generation";
-            }
-            return;
-        }
 
-        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_2d_voronoi_preview() - seed_preview_points is NOT empty, generating actual Voronoi diagram";
+            VoronoiMesh::Config voronoi_config = build_voronoi_config(m_configuration);
 
-        // Convert 3D seed points to 2D (project to XY plane)
-        std::vector<jcv_point> points_2d;
-        points_2d.reserve(m_seed_preview_points.size());
+            std::vector<Vec3d> seeds;
 
-        // Find bounding box of projected points
-        float min_x = FLT_MAX, max_x = -FLT_MAX;
-        float min_y = FLT_MAX, max_y = -FLT_MAX;
+            if (voronoi_config.multi_scale && !voronoi_config.scale_seed_counts.empty()) {
+                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - multi-scale preview with "
+                                        << voronoi_config.scale_seed_counts.size() << " levels";
+                for (size_t level = 0; level < voronoi_config.scale_seed_counts.size(); ++level) {
+                    VoronoiMesh::Config level_cfg = voronoi_config;
+                    level_cfg.multi_scale = false;
+                    level_cfg.num_seeds = voronoi_config.scale_seed_counts[level];
+                    if (level < voronoi_config.scale_thicknesses.size())
+                        level_cfg.edge_thickness = voronoi_config.scale_thicknesses[level];
 
-        for (const auto& pt3d : m_seed_preview_points) {
-            min_x = std::min(min_x, pt3d.x());
-            max_x = std::max(max_x, pt3d.x());
-            min_y = std::min(min_y, pt3d.y());
-            max_y = std::max(max_y, pt3d.y());
-        }
-
-        // Add some padding to avoid edge cases
-        float padding = 0.1f;
-        min_x -= padding;
-        max_x += padding;
-        min_y -= padding;
-        max_y += padding;
-
-        // Normalize points to [0, 1] range for the 2D preview
-        float scale_x = (max_x - min_x) > 0 ? 1.0f / (max_x - min_x) : 1.0f;
-        float scale_y = (max_y - min_y) > 0 ? 1.0f / (max_y - min_y) : 1.0f;
-
-        for (const auto& pt3d : m_seed_preview_points) {
-            jcv_point pt2d;
-            pt2d.x = (pt3d.x() - min_x) * scale_x;
-            pt2d.y = (pt3d.y() - min_y) * scale_y;
-            points_2d.push_back(pt2d);
-        }
-
-        // Set up bounding rectangle
-        jcv_rect rect;
-        rect.min.x = 0.0f;
-        rect.min.y = 0.0f;
-        rect.max.x = 1.0f;
-        rect.max.y = 1.0f;
-
-        // Generate Voronoi diagram
-        jcv_diagram diagram;
-        memset(&diagram, 0, sizeof(jcv_diagram));
-
-        try {
-            jcv_diagram_generate((int)points_2d.size(), points_2d.data(), &rect, nullptr, &diagram);
-
-            // Extract cells from the diagram
-            const jcv_site* sites = jcv_diagram_get_sites(&diagram);
-
-            if (sites) {
-                for (int i = 0; i < diagram.numsites; ++i) {
-                    const jcv_site* site = &sites[i];
-                    VoronoiCell2D cell;
-                    cell.seed_point = Vec2f(site->p.x, site->p.y);
-
-                    // Collect vertices from the edges
-                    jcv_graphedge* edge = site->edges;
-                    std::vector<Vec2f> vertices;
-
-                    while (edge) {
-                        vertices.push_back(Vec2f(edge->pos[0].x, edge->pos[0].y));
-                        edge = edge->next;
-                    }
-
-                    // Sort vertices in counter-clockwise order
-                    if (vertices.size() >= 3) {
-                        Vec2f center = cell.seed_point;
-                        std::sort(vertices.begin(), vertices.end(), [&center](const Vec2f& a, const Vec2f& b) {
-                            float angle_a = atan2f(a.y() - center.y(), a.x() - center.x());
-                            float angle_b = atan2f(b.y() - center.y(), b.x() - center.x());
-                            return angle_a < angle_b;
-                            });
-
-                        cell.vertices = vertices;
-
-                        // Generate a color for this cell based on the seed index
-                        float hue = (float(i) / float(diagram.numsites)) * 360.0f;
-                        float r, g, b;
-                        ImGui::ColorConvertHSVtoRGB(hue / 360.0f, 0.6f, 0.8f, r, g, b);
-                        cell.color = ImGui::ColorConvertFloat4ToU32(ImVec4(r, g, b, 0.7f));
-
-                        m_2d_voronoi_cells.push_back(cell);
-                    }
+                    auto level_seeds = VoronoiMesh::prepare_seed_points(mesh, level_cfg);
+                    seeds.insert(seeds.end(), level_seeds.begin(), level_seeds.end());
                 }
+            } else {
+                seeds = VoronoiMesh::prepare_seed_points(mesh, voronoi_config);
             }
 
-            // Capture Delaunay edges for the preview overlay
-            jcv_delauney_iter delaunay_iter;
-            jcv_delauney_begin(&diagram, &delaunay_iter);
-            jcv_delauney_edge delaunay_edge;
-            while (jcv_delauney_next(&delaunay_iter, &delaunay_edge)) {
-                Vec2f start(delaunay_edge.pos[0].x, delaunay_edge.pos[0].y);
-                Vec2f end(delaunay_edge.pos[1].x, delaunay_edge.pos[1].y);
-
-                if ((start - end).squaredNorm() < std::numeric_limits<float>::epsilon())
-                    continue;
-
-                m_2d_delaunay_edges.push_back({ start, end });
+            if (seeds.empty()) {
+                BOOST_LOG_TRIVIAL(warning) << "GLGizmoVoronoi: update_seed_preview() - No seeds generated by VoronoiMesh::prepare_seed_points";
+                clear_voronoi_preview();
+                return;
             }
 
-            // Safely free the diagram
-            jcv_diagram_free(&diagram);
+            m_seed_preview_points_exact = seeds;
+            m_seed_preview_points.reserve(seeds.size());
+            m_seed_preview_colors.reserve(seeds.size());
+            for (size_t i = 0; i < seeds.size(); ++i) {
+                m_seed_preview_points.push_back(seeds[i].cast<float>());
+                m_seed_preview_colors.push_back(color_from_index(i));
+            }
 
+            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - Final preview seed count: " << m_seed_preview_points.size();
+
+            if (m_configuration.show_seed_preview) {
+                update_voronoi_preview(m_seed_preview_points_exact);
+                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - updating 2D voronoi preview";
+                update_2d_voronoi_preview();
+                BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() - 2D preview updated";
+            } else {
+                clear_voronoi_preview();
+            }
+
+            BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi: update_seed_preview() COMPLETE";
         }
         catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << "Error in update_2d_voronoi_preview: " << e.what();
-            m_2d_voronoi_cells.clear();
-            m_2d_delaunay_edges.clear();
-            generate_fallback_hexagonal_preview();
+            BOOST_LOG_TRIVIAL(error) << "GLGizmoVoronoi: update_seed_preview() EXCEPTION: " << e.what();
+            m_seed_preview_points.clear();
+            m_seed_preview_points_exact.clear();
+            m_seed_preview_colors.clear();
+            clear_voronoi_preview();
         }
         catch (...) {
-            BOOST_LOG_TRIVIAL(error) << "Unknown error in update_2d_voronoi_preview";
-            m_2d_voronoi_cells.clear();
-            m_2d_delaunay_edges.clear();
-            generate_fallback_hexagonal_preview();
-        }
-    }
-
-    void GLGizmoVoronoi::generate_fallback_hexagonal_preview()
-    {
-        if (m_seed_preview_points.empty()) {
-            return;
-        }
-
-        try {
-            // Generate simple hexagonal cells as fallback
-            int grid_size = std::max(2, static_cast<int>(std::sqrt(m_seed_preview_points.size())));
-            float cell_size = 1.0f / grid_size;
-
-            for (int i = 0; i < grid_size; ++i) {
-                for (int j = 0; j < grid_size; ++j) {
-                    VoronoiCell2D cell;
-                    cell.seed_point = Vec2f((i + 0.5f) * cell_size, (j + 0.5f) * cell_size);
-
-                    // Generate hexagon vertices
-                    float radius = cell_size * 0.4f;
-                    for (int k = 0; k < 6; ++k) {
-                        float angle = (k * 2.0f * M_PI) / 6.0f;
-                        Vec2f vertex;
-                        vertex.x() = cell.seed_point.x() + radius * cosf(angle);
-                        vertex.y() = cell.seed_point.y() + radius * sinf(angle);
-                        cell.vertices.push_back(vertex);
-                    }
-
-                    // Generate color
-                    float hue = (float(i * grid_size + j) / float(grid_size * grid_size)) * 360.0f;
-                    float r, g, b;
-                    ImGui::ColorConvertHSVtoRGB(hue / 360.0f, 0.6f, 0.8f, r, g, b);
-                    cell.color = ImGui::ColorConvertFloat4ToU32(ImVec4(r, g, b, 0.7f));
-
-                    m_2d_voronoi_cells.push_back(cell);
-                }
-            }
-        }
-        catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << "Error in generate_fallback_hexagonal_preview: " << e.what();
-        }
-        catch (...) {
-            BOOST_LOG_TRIVIAL(error) << "Unknown error in generate_fallback_hexagonal_preview";
+            BOOST_LOG_TRIVIAL(error) << "GLGizmoVoronoi: update_seed_preview() UNKNOWN EXCEPTION";
+            m_seed_preview_points.clear();
+            m_seed_preview_points_exact.clear();
+            m_seed_preview_colors.clear();
+            clear_voronoi_preview();
         }
     }
 

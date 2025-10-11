@@ -68,7 +68,6 @@ namespace Slic3r {
             // Seed preview and randomization
             void update_seed_preview();
             void randomize_seed();
-            void render_seed_preview();
 
             // 2D Voronoi preview
             void render_2d_voronoi_preview();
@@ -77,6 +76,9 @@ namespace Slic3r {
             void render_ui_content();  // Extracted UI rendering for safer error handling
 
             VoronoiMesh::Config build_voronoi_config(const Configuration& cfg) const;
+            void update_voronoi_preview(const std::vector<Vec3d>& seeds);
+            void clear_voronoi_preview();
+            void render_voronoi_preview() const;
 
             struct VoronoiCell2D {
                 std::vector<Vec2f> vertices;
@@ -213,7 +215,8 @@ namespace Slic3r {
             // Seed preview
             std::vector<Vec3f> m_seed_preview_points;
             std::vector<Vec3d> m_seed_preview_points_exact;
-            GLModel m_seed_preview_model;
+            std::vector<Vec3f> m_seed_preview_colors;
+            std::vector<Vec3f> m_voronoi_preview_edges;
 
             bool m_move_to_center;
             const ModelVolume* m_volume;
