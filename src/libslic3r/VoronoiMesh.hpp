@@ -286,6 +286,15 @@ namespace Slic3r {
             const indexed_triangle_set* clip_mesh
         );
 
+        // Weighted Voronoi (Power Diagram) using Regular Triangulation
+        static std::unique_ptr<indexed_triangle_set> tessellate_weighted_voronoi(
+            const std::vector<Vec3d>& seed_points,
+            const std::vector<double>& weights,
+            const BoundingBoxf3& bounds,
+            const Config& config,
+            const indexed_triangle_set* clip_mesh
+        );
+
         // Clip Voronoi cells to original mesh boundary
         static void clip_to_mesh_boundary(
             indexed_triangle_set& voronoi_mesh,

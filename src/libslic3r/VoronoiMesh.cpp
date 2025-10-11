@@ -19,6 +19,11 @@
 #include <optional>
 #include <list>
 #include <mutex>
+#include <atomic>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #include <boost/log/trivial.hpp>
 
@@ -37,7 +42,7 @@
 #include <CGAL/Polygon_mesh_processing/orientation.h>
 #include <CGAL/Polygon_mesh_processing/triangulate_faces.h>
 #include <CGAL/Polygon_mesh_processing/corefinement.h>
-#include <CGAL/halfspace_intersection_3.h>
+#include <CGAL/Convex_hull_3/dual/halfspace_intersection_3.h>
 #include <CGAL/Side_of_triangle_mesh.h>
 #include <CGAL/AABB_tree.h>
 #include <CGAL/AABB_face_graph_triangle_primitive.h>
@@ -65,6 +70,8 @@ namespace Slic3r {
     
     // Regular triangulation (weighted/power diagram)
     using RT = CGAL::Regular_triangulation_3<Kf>;
+    using Weighted_point = RT::Weighted_point;
+    using Bare_point = RT::Bare_point;
     
     // Legacy aliases (keep for compatibility)
     using K = Kf;
@@ -2652,11 +2659,24 @@ namespace Slic3r {
         if (config.progress_callback && !config.progress_callback(20))
             return nullptr;
 
+        // Generate weights for weighted Voronoi if enabled and not provided
+        Config working_config = config;  // Make a mutable copy
+        if (working_config.use_weighted_cells && 
+            (working_config.cell_weights.empty() || working_config.cell_weights.size() != seed_points.size())) {
+            BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Generating density weights for " 
+                                     << seed_points.size() << " seeds";
+            working_config.cell_weights = generate_density_weights(
+                seed_points, 
+                working_config.density_center, 
+                working_config.density_falloff
+            );
+        }
+
         // Step 3: Create Voronoi cells (polyhedral cell-based approach)
         auto result = std::make_unique<indexed_triangle_set>();
 
         BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Creating polyhedral Voronoi cells";
-        result = tessellate_voronoi_cells(seed_points, bbox, config, &input_mesh);
+        result = tessellate_voronoi_cells(seed_points, bbox, working_config, &input_mesh);
         BOOST_LOG_TRIVIAL(info) << "VoronoiMesh::generate() - Voronoi cells created, vertices: "
                                  << result->vertices.size() << ", faces: " << result->indices.size();
 
@@ -3297,6 +3317,13 @@ namespace Slic3r {
         if (config.progress_callback && !config.progress_callback(25))
             return nullptr;
 
+        // Check for weighted Voronoi (power diagram)
+        if (config.use_weighted_cells && !config.cell_weights.empty() && 
+            config.cell_weights.size() == seed_points.size()) {
+            BOOST_LOG_TRIVIAL(info) << "tessellate_voronoi_cells() - Using weighted Voronoi (power diagram)";
+            return tessellate_weighted_voronoi(seed_points, config.cell_weights, bounds, config, clip_mesh);
+        }
+
         if (config.hollow_cells) {
             BOOST_LOG_TRIVIAL(info) << "tessellate_voronoi_cells() - Using CGAL Delaunay dual for wireframe";
             return create_wireframe_from_delaunay(seed_points, bounds, config, clip_mesh);
@@ -3359,23 +3386,39 @@ namespace Slic3r {
         const size_t total = seed_points.size();
         size_t generated_cells = 0;
 
-        for (size_t i = 0; i < seed_points.size(); ++i) {
-            if (config.progress_callback) {
-                int progress = 40 + int(((i + 1) * 40) / std::max<size_t>(1, total));
-                if (!config.progress_callback(progress))
-                    return nullptr;
-            }
+        // Parallel cell generation using OpenMP
+        std::vector<VoronoiCellData> cells(seed_points.size());
+        std::atomic<bool> cancelled(false);
 
-            VoronoiCellData cell;
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic, 4) if(seed_points.size() > 20)
+#endif
+        for (int i = 0; i < static_cast<int>(seed_points.size()); ++i) {
+            if (cancelled.load())
+                continue;
+            
+            // Progress callback (thread-safe, only for some threads to reduce overhead)
+            if (config.progress_callback && i % 10 == 0) {
+                int progress = 40 + int(((i + 1) * 40) / seed_points.size());
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+                {
+                    if (!config.progress_callback(progress))
+                        cancelled.store(true);
+                }
+            }
+            
+            VoronoiCellData& cell = cells[i];
             bool cell_generated = false;
             
             if (use_robust_method) {
                 // Use new robust CGAL-only method
-                auto vh = diagram.vertex(int(i));
+                auto vh = diagram.vertex(i);
                 if (vh != Delaunay::Vertex_handle()) {
                     const CGALMesh* clip_ptr = (clip_mesh != nullptr) ? &cgal_clip_model : nullptr;
                     cell_generated = compute_solid_voronoi_cell_robust(
-                        cell, diagram.dt, int(i), vh, bounds, clip_ptr
+                        cell, diagram.dt, i, vh, bounds, clip_ptr
                     );
                 }
             } else {
@@ -3383,15 +3426,24 @@ namespace Slic3r {
                 auto bounding_planes = build_bounding_planes(expanded_bounds);
                 const indexed_triangle_set* clipping_mesh = (clip_mesh && config.clip_to_mesh) ? clip_mesh : nullptr;
                 cell_generated = compute_voronoi_cell_data(
-                    cell, diagram, int(i), bounding_planes, clipping_mesh
+                    cell, diagram, i, bounding_planes, clipping_mesh
                 );
             }
-            
-            if (!cell_generated)
-                continue;
+        }
 
+        // Check for cancellation
+        if (cancelled.load())
+            return nullptr;
+
+        // Merge cells into result (serial)
+        for (const auto& cell : cells) {
+            if (cell.geometry.vertices.empty())
+                continue;
+            
             size_t vertex_offset = result->vertices.size();
-            result->vertices.insert(result->vertices.end(), cell.geometry.vertices.begin(), cell.geometry.vertices.end());
+            result->vertices.insert(result->vertices.end(), 
+                                   cell.geometry.vertices.begin(), 
+                                   cell.geometry.vertices.end());
             for (const auto& tri : cell.geometry.indices) {
                 result->indices.emplace_back(
                     tri(0) + vertex_offset,
@@ -3399,7 +3451,6 @@ namespace Slic3r {
                     tri(2) + vertex_offset
                 );
             }
-
             generated_cells++;
         }
 
@@ -3428,6 +3479,305 @@ namespace Slic3r {
         return result;
     }
 
+
+    // ========== WEIGHTED VORONOI (POWER DIAGRAM) IMPLEMENTATION ==========
+
+    // Helper: Compute a single power cell from Regular Triangulation
+    namespace {
+        bool compute_power_cell(
+            VoronoiCellData& cell,
+            const RT& rt,
+            RT::Vertex_handle vh,
+            const std::vector<Plane_3>& bounding_planes,
+            const indexed_triangle_set* clip_mesh,
+            const Config& config)
+        {
+            if (rt.is_infinite(vh))
+                return false;
+            
+            // Get the weighted point for this vertex
+            auto wp_current = vh->point();
+            auto p_current = wp_current.point();
+            double w_current = wp_current.weight();
+            
+            // Start with bounding planes
+            std::vector<Plane_3> planes = bounding_planes;
+            
+            // Get all finite adjacent vertices (Delaunay neighbors in the weighted sense)
+            std::vector<RT::Vertex_handle> neighbors;
+            rt.finite_adjacent_vertices(vh, std::back_inserter(neighbors));
+            
+            std::unordered_set<int> neighbor_ids;
+            
+            for (auto nh : neighbors) {
+                if (rt.is_infinite(nh))
+                    continue;
+                    
+                // Get neighbor's weighted point
+                auto wp_neighbor = nh->point();
+                auto p_neighbor = wp_neighbor.point();
+                double w_neighbor = wp_neighbor.weight();
+                
+                // Skip degenerate case
+                if (p_current == p_neighbor)
+                    continue;
+                
+                // Compute power bisector plane
+                // Power bisector: |x - p1|² - w1 = |x - p2|² - w2
+                // Simplifies to: 2(p2 - p1)·x = |p2|² - |p1|² + w1 - w2
+                
+                Vector_3 normal = p_neighbor - p_current;
+                
+                // Calculate d such that the plane equation is: normal·x = d
+                double p1_sq = CGAL::squared_distance(Point_3(CGAL::ORIGIN), p_current);
+                double p2_sq = CGAL::squared_distance(Point_3(CGAL::ORIGIN), p_neighbor);
+                double d = (p2_sq - p1_sq + w_current - w_neighbor) / 2.0;
+                
+                // Create plane through a point such that normal·point = d
+                double normal_sq_len = normal.squared_length();
+                if (normal_sq_len < 1e-12)
+                    continue;
+                    
+                Point_3 plane_point = Point_3(CGAL::ORIGIN) + normal * (d / normal_sq_len);
+                Plane_3 bisector(plane_point, normal);
+                
+                // Ensure orientation: p_current should be on the "kept" side
+                // Orient the plane so that p_current is on the positive side
+                if (bisector.oriented_side(p_current) == CGAL::ON_NEGATIVE_SIDE) {
+                    bisector = bisector.opposite();
+                }
+                
+                planes.push_back(bisector);
+                
+                // Track neighbor
+                int nid = nh->info();
+                if (nid >= 0) {
+                    neighbor_ids.insert(nid);
+                }
+            }
+            
+            cell.neighbor_ids.assign(neighbor_ids.begin(), neighbor_ids.end());
+            
+            if (planes.size() < 4)
+                return false;
+            
+            // Use CGAL halfspace intersection (same as compute_voronoi_cell_data)
+            Polyhedron poly;
+            if (!CGAL::halfspace_intersection_3(planes.begin(), planes.end(), poly, p_current))
+                return false;
+            
+            if (poly.is_empty() || poly.size_of_vertices() < 4)
+                return false;
+            
+            // Extract geometry from polyhedron
+            cell.face_areas.clear();
+            cell.face_normals.clear();
+            cell.face_vertex_counts.clear();
+            
+            for (auto fit = poly.facets_begin(); fit != poly.facets_end(); ++fit) {
+                std::vector<Vec3d> polygon_points;
+                auto h = fit->facet_begin();
+                auto h_end = h;
+                do {
+                    const auto& p = h->vertex()->point();
+                    polygon_points.emplace_back(p.x(), p.y(), p.z());
+                    ++h;
+                } while (h != h_end);
+                
+                cell.face_vertex_counts.push_back(static_cast<int>(polygon_points.size()));
+                
+                if (polygon_points.size() >= 3) {
+                    Vec3d v0 = polygon_points[0];
+                    Vec3d v1 = polygon_points[1];
+                    Vec3d v2 = polygon_points[2];
+                    Vec3d n = (v1 - v0).cross(v2 - v0);
+                    double area = 0.5 * n.norm();
+                    cell.face_areas.push_back(area);
+                    if (area > 1e-10) {
+                        cell.face_normals.push_back(n.normalized());
+                    } else {
+                        cell.face_normals.push_back(Vec3d(0, 0, 1));
+                    }
+                }
+            }
+            
+            // Convert polyhedron to triangle mesh
+            for (auto fit = poly.facets_begin(); fit != poly.facets_end(); ++fit) {
+                std::vector<int> face_verts;
+                auto h = fit->facet_begin();
+                auto h_end = h;
+                do {
+                    const auto& p = h->vertex()->point();
+                    // Find or add vertex
+                    int vidx = -1;
+                    for (size_t i = 0; i < cell.geometry.vertices.size(); ++i) {
+                        Vec3f diff = cell.geometry.vertices[i] - Vec3f(p.x(), p.y(), p.z());
+                        if (diff.squaredNorm() < 1e-10) {
+                            vidx = i;
+                            break;
+                        }
+                    }
+                    if (vidx < 0) {
+                        vidx = cell.geometry.vertices.size();
+                        cell.geometry.vertices.emplace_back(
+                            static_cast<float>(p.x()),
+                            static_cast<float>(p.y()),
+                            static_cast<float>(p.z())
+                        );
+                    }
+                    face_verts.push_back(vidx);
+                    ++h;
+                } while (h != h_end);
+                
+                // Triangulate face
+                for (size_t i = 1; i + 1 < face_verts.size(); ++i) {
+                    cell.geometry.indices.emplace_back(
+                        face_verts[0],
+                        face_verts[i],
+                        face_verts[i + 1]
+                    );
+                }
+            }
+            
+            // Compute centroid
+            cell.centroid = Vec3d::Zero();
+            for (const auto& v : cell.geometry.vertices) {
+                cell.centroid += v.cast<double>();
+            }
+            if (!cell.geometry.vertices.empty()) {
+                cell.centroid /= static_cast<double>(cell.geometry.vertices.size());
+            }
+            
+            cell.seed_index = vh->info();
+            cell.seed_point = p_current;
+            
+            return true;
+        }
+    } // anonymous namespace
+
+    // Weighted Voronoi (Power Diagram) using Regular Triangulation
+    std::unique_ptr<indexed_triangle_set> VoronoiMesh::tessellate_weighted_voronoi(
+        const std::vector<Vec3d>& seed_points,
+        const std::vector<double>& weights,
+        const BoundingBoxf3& bounds,
+        const Config& config,
+        const indexed_triangle_set* clip_mesh)
+    {
+        auto result = std::make_unique<indexed_triangle_set>();
+        
+        if (seed_points.empty() || weights.size() != seed_points.size()) {
+            BOOST_LOG_TRIVIAL(error) << "tessellate_weighted_voronoi() - Invalid input: "
+                                      << seed_points.size() << " seeds, " << weights.size() << " weights";
+            return result;
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "tessellate_weighted_voronoi() - Building power diagram with " 
+                                 << seed_points.size() << " weighted seeds";
+        
+        // Build Regular Triangulation (weighted Delaunay)
+        RT rt;
+        std::vector<RT::Vertex_handle> vertex_handles;
+        vertex_handles.reserve(seed_points.size());
+        
+        for (size_t i = 0; i < seed_points.size(); ++i) {
+            Weighted_point wp(
+                Bare_point(seed_points[i].x(), seed_points[i].y(), seed_points[i].z()),
+                weights[i]  // weight = radius² (power distance parameter)
+            );
+            auto vh = rt.insert(wp);
+            vh->info() = static_cast<int>(i);
+            vertex_handles.push_back(vh);
+        }
+        
+        int num_hidden = 0;
+        for (auto vh : vertex_handles) {
+            if (rt.is_infinite(vh))
+                num_hidden++;
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "tessellate_weighted_voronoi() - Regular triangulation built: " 
+                                 << rt.number_of_vertices() << " vertices, "
+                                 << num_hidden << " hidden by weights";
+        
+        BoundingBoxf3 expanded_bounds = expand_bounds(bounds, BOUNDARY_MARGIN_PERCENT);
+        auto bounding_planes = build_bounding_planes(expanded_bounds);
+        
+        // Generate power cells (with parallel processing)
+        std::vector<VoronoiCellData> cells(seed_points.size());
+        std::atomic<bool> cancelled(false);
+        
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic, 4) if(seed_points.size() > 20)
+#endif
+        for (int i = 0; i < static_cast<int>(seed_points.size()); ++i) {
+            if (cancelled.load())
+                continue;
+                
+            if (config.progress_callback && i % 10 == 0) {
+                int progress = 40 + int(((i + 1) * 40) / seed_points.size());
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+                {
+                    if (!config.progress_callback(progress))
+                        cancelled.store(true);
+                }
+            }
+            
+            auto vh = vertex_handles[i];
+            if (rt.is_infinite(vh)) {
+                BOOST_LOG_TRIVIAL(trace) << "Seed " << i << " is hidden by power diagram";
+                continue;  // This seed is hidden by larger-weight neighbors
+            }
+            
+            // Compute power cell using halfspace intersection
+            compute_power_cell(cells[i], rt, vh, bounding_planes, clip_mesh, config);
+        }
+        
+        // Check for cancellation
+        if (cancelled.load())
+            return nullptr;
+        
+        // Merge cells into result
+        size_t generated_cells = 0;
+        for (const auto& cell : cells) {
+            if (cell.geometry.vertices.empty())
+                continue;
+                
+            size_t vertex_offset = result->vertices.size();
+            result->vertices.insert(result->vertices.end(), 
+                                   cell.geometry.vertices.begin(), 
+                                   cell.geometry.vertices.end());
+            for (const auto& tri : cell.geometry.indices) {
+                result->indices.emplace_back(
+                    tri(0) + vertex_offset,
+                    tri(1) + vertex_offset,
+                    tri(2) + vertex_offset
+                );
+            }
+            generated_cells++;
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << "tessellate_weighted_voronoi() - Generated " << generated_cells 
+                                 << " power cells (vertices=" << result->vertices.size()
+                                 << ", faces=" << result->indices.size() << ")";
+        
+        // Clean up geometry
+        remove_degenerate_faces(*result);
+        weld_vertices(*result, WELD_DISTANCE);
+        remove_degenerate_faces(*result);
+        
+        // Apply styling if solid cells
+        if (!config.hollow_cells && config.wall_thickness > 0.0f) {
+            create_hollow_cells(*result, config.wall_thickness);
+        }
+        
+        if (!config.hollow_cells && config.cell_style != CellStyle::Pure) {
+            apply_cell_styling(*result, config);
+        }
+        
+        return result;
+    }
 
 
     // NEW: Extract Voronoi edges using Delaunay-Voronoi duality (mathematically correct method)
