@@ -1465,7 +1465,7 @@ namespace Slic3r {
                 points.push_back(edge.b);
 
                 for (const auto& item : intersections) {
-                    const CGAL::Object& obj = item.second;
+                    const CGAL::Object& obj = item.first;
                     if (const Point_3* ip = CGAL::object_cast<Point_3>(&obj)) {
                         points.push_back(*ip);
                     } else if (const Segment_3* sp = CGAL::object_cast<Segment_3>(&obj)) {
