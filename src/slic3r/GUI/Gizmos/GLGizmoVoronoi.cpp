@@ -276,6 +276,16 @@ namespace Slic3r::GUI {
         return true;
     }
 
+    bool GLGizmoVoronoi::on_init()
+    {
+        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::on_init()";
+        m_tool_type = ToolType::BRUSH;
+        m_cursor_type = TriangleSelector::CursorType::CIRCLE;
+        m_cursor_radius = 2.0f;
+        m_configuration.enable_triangle_painting = false;
+        return true;
+    }
+
     void GLGizmoVoronoi::on_render_input_window(float x, float y, float bottom_limit)
     {
         fprintf(stderr, "GLGizmoVoronoi: on_render_input_window() CALLED\n");
@@ -1279,6 +1289,210 @@ namespace Slic3r::GUI {
         set_painter_gizmo_data(m_parent.get_selection());
     }
 
+    void GLGizmoVoronoi::render_painter_gizmo() const
+    {
+        if (!m_configuration.enable_triangle_painting || m_triangle_selectors.empty() || m_c == nullptr)
+            return;
+
+        glsafe(::glEnable(GL_BLEND));
+        glsafe(::glEnable(GL_DEPTH_TEST));
+
+        render_triangles(m_parent.get_selection());
+
+        if (m_c->object_clipper())
+            m_c->object_clipper()->render_cut();
+        if (m_c->instances_hider())
+            m_c->instances_hider()->render_cut();
+
+        render_cursor();
+
+        glsafe(::glDisable(GL_BLEND));
+    }
+
+    void GLGizmoVoronoi::render_triangles(const Selection& selection) const
+    {
+        GLGizmoPainterBase::render_triangles(selection);
+    }
+
+    void GLGizmoVoronoi::update_model_object()
+    {
+        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::update_model_object()";
+
+        if (!m_volume) {
+            m_excluded_facet_mask.clear();
+            return;
+        }
+
+        if (!m_c || !m_c->selection_info())
+            return;
+
+        const ModelObject* mo = m_c->selection_info()->model_object();
+        if (!mo)
+            return;
+
+        int selector_idx = -1;
+        TriangleSelectorPatch* selector_ptr = nullptr;
+        for (const ModelVolume* mv : mo->volumes) {
+            if (!mv->is_model_part())
+                continue;
+            ++selector_idx;
+            if (mv == m_volume && selector_idx < int(m_triangle_selectors.size())) {
+                selector_ptr = dynamic_cast<TriangleSelectorPatch*>(m_triangle_selectors[selector_idx].get());
+                break;
+            }
+        }
+
+        if (!selector_ptr) {
+            BOOST_LOG_TRIVIAL(warning) << "GLGizmoVoronoi::update_model_object() - selector not found for current volume";
+            m_excluded_facet_mask.clear();
+            return;
+        }
+
+        const TriangleMesh& mesh = m_volume->mesh();
+        size_t facet_count = static_cast<size_t>(mesh.facets_count());
+        std::vector<uint8_t> mask(facet_count, 0);
+
+        auto& triangles = selector_ptr->get_triangles();
+        for (const TriangleSelector::Triangle& triangle : triangles) {
+            if (!triangle.valid() || triangle.is_split())
+                continue;
+            int source = triangle.source_triangle;
+            if (source < 0 || static_cast<size_t>(source) >= mask.size())
+                continue;
+            if (triangle.get_state() == EnforcerBlockerType::BLOCKER)
+                mask[static_cast<size_t>(source)] = 1;
+        }
+
+        m_excluded_facet_mask = std::move(mask);
+        selector_ptr->request_update_render_data(true);
+        request_rerender();
+    }
+
+    void GLGizmoVoronoi::update_from_model_object(bool first_update)
+    {
+        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::update_from_model_object(first_update=" << first_update << ")";
+
+        m_triangle_selectors.clear();
+
+        if (!m_c || !m_c->selection_info()) {
+            m_volume = nullptr;
+            m_excluded_facet_mask.clear();
+            return;
+        }
+
+        ModelObject* mo = m_c->selection_info()->model_object();
+        if (!mo)
+            return;
+
+        Plater* plater = wxGetApp().plater();
+        if (!plater)
+            return;
+
+        Model& model = plater->model();
+        ModelVolume* new_volume = get_model_volume(m_parent.get_selection(), model);
+        bool volume_changed = (new_volume != m_volume);
+        m_volume = new_volume;
+
+        if (!m_volume) {
+            m_excluded_facet_mask.clear();
+            return;
+        }
+
+        if (volume_changed) {
+            m_original_mesh = m_volume->mesh().its;
+            m_excluded_facet_mask.assign(static_cast<size_t>(m_volume->mesh().facets_count()), 0);
+        } else if (m_excluded_facet_mask.size() != static_cast<size_t>(m_volume->mesh().facets_count())) {
+            m_excluded_facet_mask.assign(static_cast<size_t>(m_volume->mesh().facets_count()), 0);
+        }
+
+        std::vector<std::array<float, 4>> colors;
+        colors.push_back(GLVolume::NEUTRAL_COLOR);
+        colors.push_back(TriangleSelectorGUI::enforcers_color);
+        colors.push_back(TriangleSelectorGUI::blockers_color);
+
+        TriangleSelectorPatch* target_selector = nullptr;
+
+        for (const ModelVolume* mv : mo->volumes) {
+            if (!mv->is_model_part())
+                continue;
+
+            auto selector = std::make_unique<TriangleSelectorPatch>(mv->mesh(), colors);
+            selector->set_wireframe_needed(true);
+            selector->request_update_render_data(true);
+
+            if (mv == m_volume)
+                target_selector = selector.get();
+
+            m_triangle_selectors.emplace_back(std::move(selector));
+        }
+
+        if (target_selector && !m_excluded_facet_mask.empty()) {
+            auto& triangles = target_selector->get_triangles();
+            const size_t mask_size = m_excluded_facet_mask.size();
+            for (TriangleSelector::Triangle& triangle : triangles) {
+                if (!triangle.valid() || triangle.is_split())
+                    continue;
+                int source = triangle.source_triangle;
+                if (source < 0 || static_cast<size_t>(source) >= mask_size)
+                    continue;
+                bool blocked = m_excluded_facet_mask[static_cast<size_t>(source)] != 0;
+                if (blocked && triangle.get_state() != EnforcerBlockerType::BLOCKER)
+                    triangle.set_state(EnforcerBlockerType::BLOCKER);
+                else if (!blocked && triangle.get_state() == EnforcerBlockerType::BLOCKER)
+                    triangle.set_state(EnforcerBlockerType::NONE);
+            }
+            target_selector->request_update_render_data(true);
+        }
+
+        request_rerender();
+    }
+
+    void GLGizmoVoronoi::on_opening()
+    {
+        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::on_opening()";
+        m_move_to_center = true;
+        m_configuration.enable_triangle_painting = false;
+    }
+
+    void GLGizmoVoronoi::on_shutdown()
+    {
+        BOOST_LOG_TRIVIAL(info) << "GLGizmoVoronoi::on_shutdown()";
+
+        stop_worker_thread_request();
+        if (m_worker.joinable())
+            m_worker.join();
+
+        {
+            std::lock_guard<std::mutex> lock(m_state_mutex);
+            m_state.status = State::idle;
+            m_state.result.reset();
+            m_state.mv = nullptr;
+            m_state.mesh_copy.vertices.clear();
+            m_state.mesh_copy.indices.clear();
+        }
+
+        m_configuration.enable_triangle_painting = false;
+        m_triangle_selectors.clear();
+        m_volume = nullptr;
+        m_glmodel.reset();
+        m_seed_preview_points.clear();
+        m_seed_preview_points_exact.clear();
+        m_seed_preview_colors.clear();
+        clear_voronoi_preview();
+        m_excluded_facet_mask.clear();
+    }
+
+    wxString GLGizmoVoronoi::handle_snapshot_action_name(bool shift_down, Button button_down) const
+    {
+        if (shift_down)
+            return wxString("Unselect all");
+        if (button_down == Button::Left)
+            return wxString("Exclude area");
+        if (button_down == Button::Right)
+            return wxString("Restore area");
+        return wxString();
+    }
+
     void GLGizmoVoronoi::on_render()
     {
         static bool logged_once = false;
@@ -1348,6 +1562,23 @@ namespace Slic3r::GUI {
             BOOST_LOG_TRIVIAL(info) << "apply_voronoi() - copying ORIGINAL mesh";
             mesh_copy = m_original_mesh;
             BOOST_LOG_TRIVIAL(info) << "apply_voronoi() - original mesh copied, vertices: " << mesh_copy.vertices.size() << ", faces: " << mesh_copy.indices.size();
+
+            if (!m_excluded_facet_mask.empty()) {
+                if (m_excluded_facet_mask.size() == mesh_copy.indices.size()) {
+                    BOOST_LOG_TRIVIAL(info) << "apply_voronoi() - applying facet exclusion mask (" << m_excluded_facet_mask.size() << " entries)";
+                    std::vector<stl_triangle_vertex_indices> filtered_indices;
+                    filtered_indices.reserve(mesh_copy.indices.size());
+                    for (size_t i = 0; i < mesh_copy.indices.size(); ++i) {
+                        if (m_excluded_facet_mask[i] == 0)
+                            filtered_indices.push_back(mesh_copy.indices[i]);
+                    }
+                    mesh_copy.indices.swap(filtered_indices);
+                    BOOST_LOG_TRIVIAL(info) << "apply_voronoi() - mesh after exclusion: faces=" << mesh_copy.indices.size();
+                } else {
+                    BOOST_LOG_TRIVIAL(warning) << "apply_voronoi() - exclusion mask size (" << m_excluded_facet_mask.size()
+                                               << ") does not match mesh face count (" << mesh_copy.indices.size() << ")";
+                }
+            }
         }
         catch (const std::exception& e) {
             BOOST_LOG_TRIVIAL(error) << "Failed to copy mesh for Voronoi generation: " << e.what();
@@ -1686,7 +1917,8 @@ namespace Slic3r::GUI {
     {
         if (m_move_to_center && m_volume) {
             m_move_to_center = false;
-            // Position window near the selected object
+            const Vec3d center = m_volume->mesh().center();
+            m_configuration.density_center = center;
         }
     }
 

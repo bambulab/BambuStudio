@@ -7,6 +7,7 @@
 #include "libslic3r/VoronoiMesh.hpp"
 #include <imgui/imgui.h>
 
+#include <cstdint>
 #include <mutex>
 #include <thread>
 #include <map>
@@ -244,6 +245,7 @@ namespace Slic3r {
             std::thread m_worker;
             std::mutex m_state_mutex;
             State m_state;
+            std::vector<uint8_t> m_excluded_facet_mask;
 
             struct GuiCfg
             {
