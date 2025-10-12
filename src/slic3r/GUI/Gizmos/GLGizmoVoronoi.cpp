@@ -35,10 +35,6 @@
 #include <wx/string.h>
 #include <boost/log/trivial.hpp>
 
-// 2D Voronoi library for preview
-#define JC_VORONOI_IMPLEMENTATION
-#include "jc_voronoi.h"
-
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
