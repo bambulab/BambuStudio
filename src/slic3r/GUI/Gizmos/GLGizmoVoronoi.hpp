@@ -54,6 +54,8 @@ namespace Slic3r {
             CommonGizmosDataID on_get_requirements() const override;
 
         private:
+            struct Configuration;
+
             void apply_voronoi();
             void close();
 
