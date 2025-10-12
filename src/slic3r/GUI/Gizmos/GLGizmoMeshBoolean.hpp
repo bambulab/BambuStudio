@@ -39,14 +39,14 @@ struct MeshBooleanConfig {
     static constexpr float ICON_PADDING = SPACING_LG;  // Padding inside icon areas
 
     // ========================== LIST DIMENSIONS ==========================
-    static constexpr float LIST_WIDTH = 500.0f;        // Total list width
+    static constexpr float LIST_WIDTH = 480.0f;        // Total list width
     static constexpr float LIST_HEIGHT = 190.0f;       // List content height
     static constexpr float LIST_TITLE_HEIGHT = HEIGHT_STANDARD;  // List header height
     static constexpr float LIST_ITEM_HEIGHT = 24.0f;   // Individual item height
     static constexpr float LIST_PADDING = 12.0f;       // Padding between lists
 
     // ========================== LAYOUT DIMENSIONS ==========================
-    static constexpr float CONTROL_WIDTH = 480.0f;     // Control area width
+    static constexpr float CONTROL_WIDTH = 460.0f;     // Control area width
     static constexpr float TAB_HEIGHT = HEIGHT_STANDARD;  // Tab button height
 
     // ========================== VISUAL STYLING ==========================
@@ -302,8 +302,8 @@ public:
     bool has_errors_for_mode(MeshBooleanOperation mode) const;
 
     // UI rendering support
-    void render_warning(const WarningItem& item, float width, ImTextureID warning_icon, ImTextureID error_icon, ImGuiWrapper* imgui);
-    void render_warnings_list(const std::vector<WarningItem>& warnings, float width, ImTextureID warning_icon, ImTextureID error_icon, ImGuiWrapper* imgui);
+    void render_warning(const WarningItem& item, float width, ImTextureID warning_icon, ImTextureID error_icon, ImGuiWrapper* imgui, float icon_size);
+    void render_warnings_list(const std::vector<WarningItem>& warnings, float width, ImTextureID warning_icon, ImTextureID error_icon, ImGuiWrapper* imgui, float icon_size);
 
 private:
     std::vector<WarningItem> m_warnings;

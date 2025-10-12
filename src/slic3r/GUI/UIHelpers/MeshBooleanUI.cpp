@@ -87,6 +87,22 @@ void MeshBooleanUI::render_content(GLCanvas3D& parent, ImGuiWrapper* imgui, bool
         return;
     }
 
+    // Calculate adaptive heights based on font size at render start
+    float font_height = ImGui::GetFontSize();
+    float frame_padding_y = ImGui::GetStyle().FramePadding.y;
+
+    m_computed_icon_size_button = std::max(MeshBooleanConfig::ICON_SIZE_BUTTON, font_height + frame_padding_y);
+    m_computed_icon_size_display = std::max(MeshBooleanConfig::ICON_SIZE_DISPLAY, font_height - 1.0f * frame_padding_y);
+
+    // Tab button height: max of font and icon, plus padding
+    m_computed_tab_height = std::max(font_height, m_computed_icon_size_display) + 4.0f * frame_padding_y;
+
+    // List title height: font size plus padding
+    m_computed_list_title_height = font_height + 4.0f * frame_padding_y;
+
+    // List item height: max of font and icon (NO extra padding - Selectable adds it automatically)
+    m_computed_list_item_height = std::max(font_height, m_computed_icon_size_display) + 2.0f * frame_padding_y;
+
     // Reduce overall spacing throughout the interface
     ImVec2 original_item_spacing = ImGui::GetStyle().ItemSpacing;
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(original_item_spacing.x, original_item_spacing.y * MeshBooleanConfig::SPACING_VERTICAL_REDUCTION));
@@ -99,7 +115,11 @@ void MeshBooleanUI::render_content(GLCanvas3D& parent, ImGuiWrapper* imgui, bool
 
     ImGui::Spacing();
     draw_control_buttons();
-    ImGui::Spacing();
+
+    // Reduced spacing between control buttons and entity checkbox
+    ImVec2 cursor_pos = ImGui::GetCursorPos();
+    ImGui::SetCursorPos(ImVec2(cursor_pos.x, cursor_pos.y + ImGui::GetStyle().ItemSpacing.y * 0.5f));
+
     draw_only_entity_checkbox();
 
     // Action buttons (OK / Cancel / Progress + extras)
@@ -125,28 +145,33 @@ bool MeshBooleanUI::draw_operation_mode_tabs()
     bool clicked_any = false;
 
     // Compute max tab length to keep three tabs visually aligned
-    const int max_tab_length = 2 * ImGui::GetStyle().FramePadding.x + MeshBooleanConfig::ICON_SIZE_DISPLAY + MeshBooleanConfig::ICON_SPACING + std::max(ImGui::CalcTextSize(_u8L("Union").c_str()).x,
+    const int max_tab_length = 4 * ImGui::GetStyle().FramePadding.x + m_computed_icon_size_display + MeshBooleanConfig::ICON_SPACING + std::max(ImGui::CalcTextSize(_u8L("Union").c_str()).x,
         std::max(ImGui::CalcTextSize(_u8L("Difference").c_str()).x, ImGui::CalcTextSize(_u8L("Intersection").c_str()).x)) + MeshBooleanConfig::ICON_PADDING;
 
-    // Center tab strip
-    float window_width = ImGui::GetWindowWidth();
+    // Calculate tab strip total width and store dynamic widths
     float total_width = 3 * max_tab_length;
+
+    // Compare with LIST_WIDTH and take the larger value for all UI elements
+    m_computed_list_width = std::max(total_width + 80.0f, m_computed_list_width);
+    m_computed_control_width = m_computed_list_width - 20.0f;
+
+    // Center tab strip
     set_centered_cursor_x(total_width);
 
     ImGui::BeginGroup();
-    if (draw_tab_button("union", _u8L("Union").c_str(), m_operation_mode == MeshBooleanOperation::Union, ImVec2(max_tab_length, MeshBooleanConfig::TAB_HEIGHT), true, 0)) {
+    if (draw_tab_button("union", _u8L("Union").c_str(), m_operation_mode == MeshBooleanOperation::Union, ImVec2(max_tab_length, m_computed_tab_height), true, 0)) {
         m_operation_mode = MeshBooleanOperation::Union;
         clicked_any = true;
         if (on_apply_color_overrides) on_apply_color_overrides(m_operation_mode);
     }
     ImGui::SameLine(0, 0);
-    if (draw_tab_button("intersection", _u8L("Intersection").c_str(), m_operation_mode == MeshBooleanOperation::Intersection, ImVec2(max_tab_length, MeshBooleanConfig::TAB_HEIGHT), true, 1)) {
+    if (draw_tab_button("intersection", _u8L("Intersection").c_str(), m_operation_mode == MeshBooleanOperation::Intersection, ImVec2(max_tab_length, m_computed_tab_height), true, 1)) {
         m_operation_mode = MeshBooleanOperation::Intersection;
         clicked_any = true;
         if (on_apply_color_overrides) on_apply_color_overrides(m_operation_mode);
     }
     ImGui::SameLine(0, 0);
-    if (draw_tab_button("difference", _u8L("Difference").c_str(), m_operation_mode == MeshBooleanOperation::Difference, ImVec2(max_tab_length, MeshBooleanConfig::TAB_HEIGHT), true, 2)) {
+    if (draw_tab_button("difference", _u8L("Difference").c_str(), m_operation_mode == MeshBooleanOperation::Difference, ImVec2(max_tab_length, m_computed_tab_height), true, 2)) {
         m_operation_mode = MeshBooleanOperation::Difference;
         clicked_any = true;
         if (on_apply_color_overrides) on_apply_color_overrides(m_operation_mode);
@@ -165,19 +190,25 @@ void MeshBooleanUI::draw_volume_lists()
 
     if (m_operation_mode == MeshBooleanOperation::Difference) {
         // Center the AB lists as a group
-        set_centered_cursor_x(MeshBooleanConfig::LIST_WIDTH);
+        set_centered_cursor_x(m_computed_list_width);
 
         // Header line: Selected Objects [A-B] : (with [A-B] in bold)
         ImGui::BeginGroup();
         ImGui::TextUnformatted(("Selected " + mode_text + "s").c_str());
         ImGui::SameLine(0, 0);
         if (m_imgui) m_imgui->push_bold_font();
-        ImGui::TextUnformatted("[A - B]");
+        ImGui::TextUnformatted(" [A - B]");
         if (m_imgui) m_imgui->pop_bold_font();
         ImGui::SameLine(0, 0);
         ImGui::TextUnformatted(" :");
         ImGui::EndGroup();
         ImGui::Spacing();
+
+        // Center the two lists as a combined group
+        set_centered_cursor_x(m_computed_list_width);
+
+        // Wrap both lists in a group for proper centering
+        ImGui::BeginGroup();
 
         // Build A
         std::vector<ListItemInfo> list_a_items;
@@ -185,7 +216,7 @@ void MeshBooleanUI::draw_volume_lists()
         build_list(m_volume_manager->get_list_a(), list_a_items, groups_a);
         ImGui::BeginGroup();
         render_group_list(mode_text + "_SUB_A",
-                          ImVec2((MeshBooleanConfig::LIST_WIDTH - MeshBooleanConfig::LIST_PADDING) / 2, MeshBooleanConfig::LIST_HEIGHT),
+                          ImVec2((m_computed_list_width - MeshBooleanConfig::LIST_PADDING) / 2, m_computed_list_title_height * 5.0f),
                           list_a_items, groups_a, MeshBooleanConfig::COLOR_LIST_A);
         ImGui::EndGroup();
 
@@ -197,12 +228,14 @@ void MeshBooleanUI::draw_volume_lists()
         build_list(m_volume_manager->get_list_b(), list_b_items, groups_b);
         ImGui::BeginGroup();
         render_group_list(mode_text + "_SUB_B",
-                          ImVec2((MeshBooleanConfig::LIST_WIDTH - MeshBooleanConfig::LIST_PADDING) / 2, MeshBooleanConfig::LIST_HEIGHT),
+                          ImVec2((m_computed_list_width - MeshBooleanConfig::LIST_PADDING) / 2, m_computed_list_title_height * 5.0f),
                           list_b_items, groups_b, MeshBooleanConfig::COLOR_LIST_B);
         ImGui::EndGroup();
+
+        ImGui::EndGroup(); // End wrapper group for both lists
     } else {
         // Center the single list
-        set_centered_cursor_x(MeshBooleanConfig::LIST_WIDTH);
+        set_centered_cursor_x(m_computed_list_width);
 
         std::vector<ListItemInfo> items;
         std::vector<std::vector<unsigned int>> groups;
@@ -210,7 +243,7 @@ void MeshBooleanUI::draw_volume_lists()
         ImGui::BeginGroup();
         std::string table_text = m_operation_mode == MeshBooleanOperation::Union ? "UNI" : "INT";
         render_group_list(mode_text + "_" + table_text,
-                          ImVec2(MeshBooleanConfig::LIST_WIDTH, MeshBooleanConfig::LIST_HEIGHT), items, groups,
+                          ImVec2(m_computed_list_width, m_computed_list_title_height * 5.0f), items, groups,
                           MeshBooleanConfig::COLOR_LIST_A);
         ImGui::EndGroup();
     }
@@ -231,11 +264,11 @@ void MeshBooleanUI::draw_control_buttons()
     float checkbox_icon_width = ImGui::GetFrameHeight() * 0.78f;
     float checkbox_spacing = ImGui::GetStyle().ItemInnerSpacing.x + 4.0f;
     float checkbox_total_width = checkbox_icon_width + checkbox_spacing + checkbox_text_width;
-    float button_group_width = (m_operation_mode == MeshBooleanOperation::Difference) ? (MeshBooleanConfig::ICON_SIZE_BUTTON * 4 + MeshBooleanConfig::ICON_SPACING * 3) : MeshBooleanConfig::ICON_SIZE_BUTTON;
-    float spacing_between = MeshBooleanConfig::CONTROL_WIDTH - checkbox_total_width - button_group_width;
+    float button_group_width = (m_operation_mode == MeshBooleanOperation::Difference) ? (m_computed_icon_size_button * 4 + MeshBooleanConfig::ICON_SPACING * 3) : m_computed_icon_size_button;
+    float spacing_between = m_computed_control_width - checkbox_total_width - button_group_width;
 
     // Center the control row
-    set_centered_cursor_x(MeshBooleanConfig::CONTROL_WIDTH);
+    set_centered_cursor_x(m_computed_control_width);
 
     // Render checkbox using helper function
     render_checkbox(_L("Keep original models"), m_keep_original_models, !b_async_working_or_cancelling);
@@ -317,30 +350,30 @@ void MeshBooleanUI::draw_action_buttons()
     {
         auto current_warnings = m_warning_manager->get_warnings_for_current_mode(m_operation_mode);
         if (!current_warnings.empty()) {
-            m_warning_manager->render_warnings_list(current_warnings, MeshBooleanConfig::CONTROL_WIDTH, m_warning_icon_id, m_error_icon_id, m_imgui);
+            m_warning_manager->render_warnings_list(current_warnings, m_computed_control_width, m_warning_icon_id, m_error_icon_id, m_imgui, m_computed_icon_size_display);
         } else {
             auto hints = m_warning_manager->get_inline_hints_for_state(m_operation_mode, *m_volume_manager);
             if (!hints.empty()) {
-                m_warning_manager->render_warnings_list(hints, MeshBooleanConfig::CONTROL_WIDTH, m_warning_icon_id, m_error_icon_id, m_imgui);
+                m_warning_manager->render_warnings_list(hints, m_computed_control_width, m_warning_icon_id, m_error_icon_id, m_imgui, m_computed_icon_size_display);
             }
         }
     }
 
     // Separator line
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    float separator_start_x = (ImGui::GetWindowWidth() - MeshBooleanConfig::LIST_WIDTH) * 0.5f;
+    float separator_start_x = (ImGui::GetWindowWidth() - m_computed_list_width) * 0.5f;
     ImVec2 separator_pos = ImGui::GetCursorScreenPos();
     separator_pos.x = ImGui::GetWindowPos().x + separator_start_x;
     ImU32 separator_color = m_is_dark_mode ? MeshBooleanConfig::COLOR_SEPARATOR_DARK : MeshBooleanConfig::COLOR_SEPARATOR;
     draw_list->AddLine(ImVec2(separator_pos.x, separator_pos.y),
-                       ImVec2(separator_pos.x + MeshBooleanConfig::LIST_WIDTH, separator_pos.y),
+                       ImVec2(separator_pos.x + m_computed_list_width, separator_pos.y),
                        separator_color, 1.0f);
 
     ImGui::Spacing();ImGui::Spacing();
 
     // Calculate adaptive button widths based on text
     float button_spacing = 15.0f;
-    float button_padding = 20.0f; // Horizontal padding inside buttons
+    float button_padding = 2.0f * ImGui::GetStyle().FramePadding.x; // Use ImGui's actual frame padding
     float min_button_width = 50.0f; // Minimum button width for aesthetics
 
     // Calculate Execute Boolean button width
@@ -356,8 +389,8 @@ void MeshBooleanUI::draw_action_buttons()
 
     // Right-aligned Execute/Cancel buttons within LIST_WIDTH area
     float buttons_total_width = execute_button_width + reset_cancel_button_width + button_spacing;
-    float ctrl_start_x = (ImGui::GetWindowWidth() - MeshBooleanConfig::LIST_WIDTH) * 0.5f;
-    float buttons_start_x = ctrl_start_x + MeshBooleanConfig::LIST_WIDTH - buttons_total_width;
+    float ctrl_start_x = (ImGui::GetWindowWidth() - m_computed_list_width) * 0.5f;
+    float buttons_start_x = ctrl_start_x + m_computed_list_width - buttons_total_width;
     ImGui::SetCursorPosX(buttons_start_x);
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
@@ -453,10 +486,62 @@ void MeshBooleanUI::draw_only_entity_checkbox()
     // If there is no non-entity, do not show this checkbox
     if (!has_non_entity) return;
 
-    float ctrl_width = MeshBooleanConfig::CONTROL_WIDTH;
-    set_centered_cursor_x(ctrl_width);
+    // Match width with control row above (Keep original models row)
+    const float info_icon_spacing = 4.0f;
+
+    set_centered_cursor_x(m_computed_control_width);
+
+    // Begin group for horizontal layout
+    ImGui::BeginGroup();
+
     bool previous_entity_only = m_entity_only;
-    render_checkbox(_u8L("Perform Boolean operations on entities only"), m_entity_only, !b_async_working_or_cancelling);
+    render_checkbox(_u8L("Entity Only"), m_entity_only, !b_async_working_or_cancelling);
+
+    // Get checkbox bounding box for proper alignment
+    ImVec2  checkbox_size = ImGui::GetItemRectSize();
+
+    // Add info icon
+    ImGui::SameLine(0, info_icon_spacing);
+
+    // Get appropriate info icon based on dark mode
+    ImTextureID info_icon = m_is_dark_mode ? m_info_icon_dark_id : m_info_icon_light_id;
+
+    if (info_icon) {
+        ImVec2 icon_pos = ImGui::GetCursorScreenPos();
+
+#ifdef __WXOSX__
+        icon_pos.y += (checkbox_size.y - m_computed_icon_size_display) * 0.5f;
+#else
+        icon_pos.y += (checkbox_size.y - m_computed_icon_size_display);
+#endif
+
+        // Draw icon
+        ImGui::GetWindowDrawList()->AddImage(
+            info_icon,
+            icon_pos,
+            ImVec2(icon_pos.x + m_computed_icon_size_display, icon_pos.y + m_computed_icon_size_display)
+        );
+
+        // Create invisible button for hover detection
+        ImGui::SetCursorScreenPos(icon_pos);
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+        ImGui::Button("##entity_info", ImVec2(m_computed_icon_size_display, m_computed_icon_size_display));
+        ImGui::PopStyleColor(4);
+
+        // Show tooltip on hover
+        if (ImGui::IsItemHovered()) {
+            if (m_imgui) {
+                m_imgui->tooltip(_u8L("Perform Boolean operations on entities only"), ImGui::GetFontSize() * 20.0f);
+            } else {
+                ImGui::SetTooltip("%s", _u8L("Perform Boolean operations on entities only").c_str());
+            }
+        }
+    }
+
+    ImGui::EndGroup();
 
     if (previous_entity_only != m_entity_only) {
         if (on_apply_color_overrides) {
@@ -518,6 +603,10 @@ bool MeshBooleanUI::load_icons()
         {"warning.svg", &m_warning_icon_id, false},  // Warning icon
         {"error.svg", &m_error_icon_id, false},      // Error icon
 
+        // Info icons
+        {"more_info.svg", &m_info_icon_light_id, false},
+        {"more_info_dark.svg", &m_info_icon_dark_id, false},
+
         // List item type icons
         {"bool_object_light.svg", &m_object_icon_light_id, false},
         {"bool_object_dark.svg",  &m_object_icon_dark_id,  false},
@@ -559,10 +648,10 @@ bool MeshBooleanUI::load_icons()
         {"bool_swap_clicked.svg", &m_swap_clicked_icon_id, true}
     };
 
-    auto load_icons_helper = [&resources_path](const std::vector<IconInfo>& icons) -> bool {
+    auto load_icons_helper = [this, &resources_path](const std::vector<IconInfo>& icons) -> bool {
         bool all_loaded = true;
         for (const auto& icon : icons) {
-            const int size = icon.is_button ? MeshBooleanConfig::ICON_SIZE_BUTTON : MeshBooleanConfig::ICON_SIZE_DISPLAY;
+            const int size = 64.0f;
             if (IMTexture::load_from_svg_file(resources_path + icon.filename, size, size, *icon.texture_id)) {
                 // Successfully loaded
             } else {
@@ -631,7 +720,7 @@ bool MeshBooleanUI::draw_tab_button(const char* icon_name, const char* text, boo
         draw_list->AddRect(button_min, button_max, border_color, rounding, ImDrawFlags_RoundCornersTopRight | ImDrawFlags_RoundCornersBottomRight);
     }
 
-    const float icon_size = MeshBooleanConfig::ICON_SIZE_DISPLAY;
+    const float icon_size = m_computed_icon_size_display;
     const float spacing   = MeshBooleanConfig::ICON_SPACING;
     const float padding   = MeshBooleanConfig::ICON_PADDING;
     ImVec2 text_size = ImGui::CalcTextSize(text);
@@ -656,7 +745,7 @@ bool MeshBooleanUI::operation_button(const char* id, ImTextureID light_id, ImTex
                                     bool enabled)
 {
     if (!enabled) {
-        ImGui::Image(m_is_dark_mode ? hover_id : inactive_id, ImVec2(MeshBooleanConfig::ICON_SIZE_BUTTON, MeshBooleanConfig::ICON_SIZE_BUTTON));
+        ImGui::Image(m_is_dark_mode ? hover_id : inactive_id, ImVec2(m_computed_icon_size_button, m_computed_icon_size_button));
         return false;
     }
 
@@ -666,7 +755,7 @@ bool MeshBooleanUI::operation_button(const char* id, ImTextureID light_id, ImTex
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
 
-    bool clicked = ImGui::Button("##op", ImVec2(MeshBooleanConfig::ICON_SIZE_BUTTON, MeshBooleanConfig::ICON_SIZE_BUTTON));
+    bool clicked = ImGui::Button("##op", ImVec2(m_computed_icon_size_button, m_computed_icon_size_button));
 
     ImTextureID icon_id = nullptr;
     if (ImGui::IsItemActive()) {
@@ -708,7 +797,7 @@ void MeshBooleanUI::draw_object_list(const std::string& table_name, ImVec2 size,
 
     // Title row
     ImVec2 title_min = ImVec2(pos.x, pos.y);
-    ImVec2 title_max = ImVec2(pos.x + size.x, pos.y + MeshBooleanConfig::LIST_TITLE_HEIGHT);
+    ImVec2 title_max = ImVec2(pos.x + size.x, pos.y + m_computed_list_title_height);
     draw_list->AddRectFilled(title_min, title_max, title_bg_color, MeshBooleanConfig::ROUNDING_LIST, ImDrawFlags_RoundCornersTop);
 
     // Make title text center with item count
@@ -733,7 +822,7 @@ void MeshBooleanUI::draw_object_list(const std::string& table_name, ImVec2 size,
     // Position for centered text
     ImVec2 start_pos = ImVec2(
         title_min.x + (title_max.x - title_min.x - total_width) * 0.5f,
-        title_min.y + (MeshBooleanConfig::LIST_TITLE_HEIGHT - title_text_size.y) * 0.5f
+        title_min.y + (m_computed_list_title_height - title_text_size.y) * 0.5f
     );
 
     // Draw title text (normal size)
@@ -776,10 +865,10 @@ void MeshBooleanUI::draw_object_list(const std::string& table_name, ImVec2 size,
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, IM_COL32(180, 180, 180, 220));
 
     // Create child window for list content - don't reduce height for bottom margin to avoid clipping
-    float available_height = size.y - MeshBooleanConfig::LIST_TITLE_HEIGHT - title_to_list_spacing;
+    float available_height = size.y - m_computed_list_title_height - title_to_list_spacing;
     ImGui::BeginChild((std::string("list_") + table_name).c_str(), ImVec2(size.x, available_height), false);
 
-    // Draw list items
+    // Draw list items with spacing between them
     for (size_t i = 0; i < items.size(); i++) {
         ImGui::PushID((int)i);
         bool is_selected = selected_indices.find(i) != selected_indices.end();
@@ -813,7 +902,7 @@ bool MeshBooleanUI::draw_selectable(const ListItemInfo& item_info, bool selected
     ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(0, 0, 0, 0));
-    bool clicked = ImGui::Selectable("##selectable", selected, ImGuiSelectableFlags_AllowItemOverlap, ImVec2(size.x, MeshBooleanConfig::LIST_ITEM_HEIGHT));
+    bool clicked = ImGui::Selectable("##selectable", selected, ImGuiSelectableFlags_AllowItemOverlap, ImVec2(size.x, m_computed_list_item_height));
     ImGui::PopStyleColor(4);
     ImGui::PopStyleVar(1);
 
@@ -872,7 +961,7 @@ bool MeshBooleanUI::draw_selectable(const ListItemInfo& item_info, bool selected
     }
 
     // Calculate positions for icon and text
-    const float icon_size = MeshBooleanConfig::ICON_SIZE_DISPLAY;
+    const float icon_size = m_computed_icon_size_display;
     const float icon_spacing = 4.0f; // spacing between icon and text
 
     float content_start_x = item_min.x + MeshBooleanConfig::SPACING_TEXT;
@@ -896,7 +985,7 @@ bool MeshBooleanUI::draw_selectable(const ListItemInfo& item_info, bool selected
 
     // Compute available width for text, reserving space for a possible right-side warning icon in object mode
     bool will_show_warning_icon = item_info.is_object_mode && m_warning_icon_id && object_has_non_entity_volumes(item_info.object_idx);
-    const float warning_icon_size = MeshBooleanConfig::ICON_SIZE_DISPLAY;
+    const float warning_icon_size = m_computed_icon_size_display;
     const float warning_icon_margin = 8.0f;
     float right_reserved = will_show_warning_icon ? (warning_icon_size + warning_icon_margin) : 0.0f;
 
@@ -993,7 +1082,7 @@ void MeshBooleanUI::set_centered_cursor_x(float width) const
     float window_width = ImGui::GetWindowWidth();
 
     // Use a minimum window width to prevent layout jumping on first render
-    float min_expected_width = MeshBooleanConfig::LIST_WIDTH + 40.0f;
+    float min_expected_width = m_computed_list_width + 40.0f;
     if (window_width < min_expected_width) {
         window_width = min_expected_width;
     }
@@ -1098,7 +1187,7 @@ void MeshBooleanUI::draw_progress_bar()
     ImGui::Spacing();
 
     // Center the progress bar
-    float progress_width = MeshBooleanConfig::CONTROL_WIDTH;
+    float progress_width = m_computed_control_width;
     set_centered_cursor_x(progress_width);
 
         // Progress bar styling (matching original BambuStudio style)
