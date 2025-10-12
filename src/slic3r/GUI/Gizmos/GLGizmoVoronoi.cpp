@@ -14,14 +14,13 @@
 #include <CGAL/Triangulation_vertex_base_with_info_3.h>
 #include <CGAL/Triangulation_data_structure_3.h>
 #include <CGAL/Delaunay_triangulation_3.h>
-
-// 2D Voronoi diagram support
 #include <CGAL/Delaunay_triangulation_2.h>
 #include <CGAL/Regular_triangulation_2.h>
 #include <CGAL/Voronoi_diagram_2.h>
 #include <CGAL/Delaunay_triangulation_adaptation_traits_2.h>
 #include <CGAL/Regular_triangulation_adaptation_traits_2.h>
 #include <CGAL/Delaunay_triangulation_adaptation_policies_2.h>
+#include <CGAL/Regular_triangulation_adaptation_policies_2.h>
 
 #include <GL/glew.h>
 #include <thread>
@@ -51,21 +50,19 @@ namespace Slic3r::GUI {
         using PreviewPoint    = PreviewKernel::Point_3;
         using PreviewSegment  = PreviewKernel::Segment_3;
 
-        // 2D types for 2D Voronoi diagram preview
+        // 2D types for Voronoi preview in the UI
         using K2 = CGAL::Exact_predicates_inexact_constructions_kernel;
         using Point_2 = K2::Point_2;
-        using Weighted_point_2 = K2::Weighted_point_2;
-        
-        // Standard Delaunay/Voronoi (unweighted)
+
         using DT2 = CGAL::Delaunay_triangulation_2<K2>;
         using AT2 = CGAL::Delaunay_triangulation_adaptation_traits_2<DT2>;
         using AP2 = CGAL::Delaunay_triangulation_caching_degeneracy_removal_policy_2<DT2>;
         using VD2 = CGAL::Voronoi_diagram_2<DT2, AT2, AP2>;
-        
-        // Weighted (Regular) Delaunay/Voronoi (power diagram)
+
         using RT2 = CGAL::Regular_triangulation_2<K2>;
+        using Weighted_point_2 = RT2::Weighted_point;
         using AT2_RT = CGAL::Regular_triangulation_adaptation_traits_2<RT2>;
-        using AP2_RT = CGAL::Regular_triangulation_caching_degeneracy_removal_policy_2<RT2>;
+        using AP2_RT = CGAL::Regular_triangulation_degeneracy_removal_policy_2<RT2>;
         using VD2_RT = CGAL::Voronoi_diagram_2<RT2, AT2_RT, AP2_RT>;
 
         struct VoronoiPreviewData {
