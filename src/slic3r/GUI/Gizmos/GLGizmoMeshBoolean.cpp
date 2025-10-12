@@ -286,28 +286,29 @@ bool BooleanWarningManager::is_mode_specific_warning(const std::string& warning_
     }
 }
 
-void BooleanWarningManager::render_warning(const WarningItem& item, float width, ImTextureID warning_icon, ImTextureID error_icon, ImGuiWrapper* imgui)
+void BooleanWarningManager::render_warning(const WarningItem& item, float width, ImTextureID warning_icon, ImTextureID error_icon, ImGuiWrapper* imgui, float icon_size)
 {
     // Draw icon: warning or error
     ImTextureID icon_id = (item.severity == WarningSeverity::Error && error_icon) ? error_icon : warning_icon;
     if (icon_id) {
         ImVec2 icon_pos = ImGui::GetCursorScreenPos();
+        icon_pos.y += (ImGui::GetFontSize() - icon_size) * 0.5f; // Center vertically
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
         draw_list->AddImage(icon_id, icon_pos,
-            ImVec2(icon_pos.x + MeshBooleanConfig::ICON_SIZE_DISPLAY,
-                  icon_pos.y + MeshBooleanConfig::ICON_SIZE_DISPLAY));
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + MeshBooleanConfig::ICON_SIZE_DISPLAY + MeshBooleanConfig::ICON_SPACING);
+            ImVec2(icon_pos.x + icon_size,
+                  icon_pos.y + icon_size));
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + icon_size + MeshBooleanConfig::ICON_SPACING);
     }
 
     // Render warning text
-    const float avail = width - MeshBooleanConfig::ICON_SIZE_DISPLAY - MeshBooleanConfig::ICON_SPACING;
+    const float avail = width - icon_size - MeshBooleanConfig::ICON_SPACING;
     if (item.severity == WarningSeverity::Error)
         imgui->error_text_wrapped(item.text, avail);
     else
         imgui->warning_text_wrapped(item.text, avail);
 }
 
-void BooleanWarningManager::render_warnings_list(const std::vector<WarningItem>& warnings, float width, ImTextureID warning_icon, ImTextureID error_icon, ImGuiWrapper* imgui)
+void BooleanWarningManager::render_warnings_list(const std::vector<WarningItem>& warnings, float width, ImTextureID warning_icon, ImTextureID error_icon, ImGuiWrapper* imgui, float icon_size)
 {
     if (!warnings.empty()) {
         for (const auto& warning : warnings) {
@@ -316,7 +317,7 @@ void BooleanWarningManager::render_warnings_list(const std::vector<WarningItem>&
             float start_x = (window_width - width) * 0.5f;
             ImGui::SetCursorPosX(start_x);
 
-            render_warning(warning, width, warning_icon, error_icon, imgui);
+            render_warning(warning, width, warning_icon, error_icon, imgui, icon_size);
             ImGui::Spacing();
         }
     }

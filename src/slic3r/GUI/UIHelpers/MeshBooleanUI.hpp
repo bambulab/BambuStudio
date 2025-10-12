@@ -2,6 +2,7 @@
 #define slic3r_MeshBooleanUI_hpp_
 
 #include "slic3r/GUI/ImGuiWrapper.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoMeshBoolean.hpp"
 #include "libslic3r/Model.hpp"
 #include "imgui/imgui.h"
 #include <string>
@@ -103,6 +104,15 @@ private:
     GLCanvas3D* m_parent{nullptr};
     ImGuiWrapper* m_imgui{nullptr};
 
+    // Dynamic layout dimensions (computed based on content and font size)
+    mutable float m_computed_list_width{MeshBooleanConfig::LIST_WIDTH};
+    mutable float m_computed_control_width{MeshBooleanConfig::CONTROL_WIDTH};
+    mutable float m_computed_tab_height{MeshBooleanConfig::TAB_HEIGHT};
+    mutable float m_computed_list_title_height{MeshBooleanConfig::LIST_TITLE_HEIGHT};
+    mutable float m_computed_list_item_height{MeshBooleanConfig::LIST_ITEM_HEIGHT};
+    mutable float m_computed_icon_size_display{MeshBooleanConfig::ICON_SIZE_DISPLAY};
+    mutable float m_computed_icon_size_button{MeshBooleanConfig::ICON_SIZE_BUTTON};
+
     // ========================== ICON IDs ==========================
 
     // Operation icons
@@ -116,6 +126,10 @@ private:
     // Warning icons
     ImTextureID m_warning_icon_id{0};
     ImTextureID m_error_icon_id{0};
+
+    // Info icons
+    ImTextureID m_info_icon_light_id{0};
+    ImTextureID m_info_icon_dark_id{0};
 
     // List item type icons
     ImTextureID m_object_icon_light_id{0};
