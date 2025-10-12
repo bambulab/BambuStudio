@@ -9,6 +9,11 @@
 #include "libslic3r/VoronoiMesh.hpp"
 #include "libslic3r/Geometry.hpp"
 
+#ifdef Handle
+// OpenCASCADE defines Handle(Class) macro which breaks CGAL type names.
+#undef Handle
+#endif
+
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Delaunay_triangulation_cell_base_with_circumcenter_3.h>
 #include <CGAL/Triangulation_vertex_base_with_info_3.h>
