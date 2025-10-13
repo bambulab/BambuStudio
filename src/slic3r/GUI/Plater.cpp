@@ -1199,6 +1199,18 @@ bool Sidebar::priv::switch_diameter(bool single)
     return wxGetApp().get_tab(Preset::TYPE_PRINTER)->select_preset(preset->name);
 }
 
+static bool is_skip_high_flow_printer(const std::string& printer)
+{
+    static const std::set<std::string> invalidate_list = {
+        "Bambu Lab X1",
+        "Bambu Lab X1E",
+        "Bambu Lab X1 Carbon",
+        "Bambu Lab P1P",
+        "Bambu Lab P1S"
+    };
+    return invalidate_list.count(printer);
+};
+
 bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
 {
     wxBusyCursor   busy;
@@ -1248,6 +1260,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     std::vector<int> extruder_map(extruder_nums);
     std::iota(extruder_map.begin(), extruder_map.end(), 0);
     const ConfigOptionInts *physical_extruder_map = cur_preset.config.option<ConfigOptionInts>("physical_extruder_map");
+    auto printer_model = cur_preset.config.opt_string("printer_model");
     if (physical_extruder_map != nullptr) {
         assert(physical_extruder_map->values.size() == extruder_nums);
         extruder_map = physical_extruder_map->values;
@@ -1269,7 +1282,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
                 continue;
             }
             // hack code, only use standard flow for 0.2
-            if (std::fabs(nozzle_diameters[extruder_id] - 0.2) > EPSILON)
+            if (std::fabs(nozzle_diameters[extruder_id] - 0.2) > EPSILON && !is_skip_high_flow_printer(printer_model))
                 target_type = NozzleVolumeType(obj->GetExtderSystem()->GetNozzleFlowType(extruder_id) - 1);
         }
         printer_tab->set_extruder_volume_type(index, target_type);
@@ -2367,13 +2380,14 @@ void Sidebar::update_presets(Preset::Type preset_type)
         auto nozzle_volumes = wxGetApp().preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
         auto diameters = wxGetApp().preset_bundle->printers.diameters_of_selected_printer();
         auto diameter = printer_preset.config.opt_string("printer_variant");
-        auto update_extruder_variant = [extruders_def, extruders, nozzle_volumes_def, nozzle_volumes, extruder_variants,diameter](ExtruderGroup & extruder, int index) {
+        auto printer_model = printer_preset.config.opt_string("printer_model");
+        auto update_extruder_variant = [&](ExtruderGroup & extruder, int index) {
             extruder.combo_flow->Clear();
             auto type = extruders_def->enum_labels[extruders->values[index]];
             int select = -1;
             for (size_t i = 0; i < nozzle_volumes_def->enum_labels.size(); ++i) {
                 if (boost::algorithm::contains(extruder_variants->values[index], type + " " + nozzle_volumes_def->enum_labels[i])) {
-                    if (diameter == "0.2" && nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[i]) == NozzleVolumeType::nvtHighFlow)
+                    if ((diameter == "0.2"| | is_skip_high_flow_printer(printer_model))&& nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[i]) == NozzleVolumeType::nvtHighFlow)
                         continue;
                     if (nozzle_volumes->values[index] == i)
                         select = extruder.combo_flow->GetCount();
