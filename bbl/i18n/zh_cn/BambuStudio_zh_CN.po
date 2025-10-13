@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-10 17:50+0800\n"
+"POT-Creation-Date: 2025-10-13 10:02+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1139,7 +1139,7 @@ msgid "Boldness"
 msgstr "粗细"
 
 msgid "Skew"
-msgstr ""
+msgstr "偏斜"
 
 msgid "No symbol"
 msgstr "没有符号"
@@ -3702,7 +3702,7 @@ msgid "Measuring Surface"
 msgstr "曲面测量中"
 
 msgid "Calibrating the detection position of nozzle clumping"
-msgstr ""
+msgstr "校准喷嘴堵头检测的位置"
 
 msgid "Unknown"
 msgstr "未知"
@@ -4215,7 +4215,7 @@ msgid "High-temperature Heatbed Calibration"
 msgstr "高温热床校准"
 
 msgid "Nozzle clumping detection Calibration"
-msgstr ""
+msgstr "喷嘴裹头检测位置校准"
 
 msgid "Calibration program"
 msgstr "校准程序"
@@ -5344,7 +5344,7 @@ msgid "Please heat the nozzle to above 170 degree before loading or unloading fi
 msgstr "请在进料或退料前把喷嘴升温到170℃以上。"
 
 msgid "Chamber temperature cannot be changed in cooling mode while printing."
-msgstr ""
+msgstr "打印过程中，冷却模式下无法调节腔温。"
 
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr "如果腔室温度超过40℃, 系统将自动切换到腔温保持模式。请确认是否切换。"
@@ -7565,32 +7565,26 @@ msgstr "当前固件最多支持 16 种材料。您可以在准备页将材料�
 msgid "Please refer to Wiki before use->"
 msgstr ""
 
+msgid "Current firmware does not support file transfer to internal storage."
+msgstr "当前固件不支持向内部存储传输文件。"
+
 msgid "Send to Printer storage"
 msgstr "发送到打印机存储"
 
 msgid "Try to connect"
 msgstr "尝试连接"
 
-msgid "click to retry"
-msgstr ""
+msgid "Internal Storage"
+msgstr "内置存储"
+
+msgid "External Storage"
+msgstr "外置存储"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "上传文件超时，请检查固件版本是否支持。"
 
-msgid "No available external storage was obtained. Please confirm and try again."
-msgstr "没有可用的外部存储介质。请确认后重试。"
-
-msgid "Media capability acquisition timeout, please check if the firmware version supports it."
-msgstr "媒体能力获取超时，请检查固件版本是否支持它。"
-
-msgid "Sending..."
-msgstr "发送中..."
-
-msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
-msgstr "文件上传超时。请检查固件版本是否支持此操作操作或验证打印机是否正常工作。"
-
-msgid "Sending failed, please try again!"
-msgstr "发送失败，请重试！"
+msgid "Connection timed out, please check your network."
+msgstr ""
 
 msgid "Connection failed. Click the icon to retry"
 msgstr "连接失败，点击图标重试"
@@ -7609,6 +7603,12 @@ msgstr "打印机需要与Bambu Studio在同一个局域网内。"
 
 msgid "The printer does not support sending to printer storage."
 msgstr "打印机不支持发送到打印机的存储。"
+
+msgid "Sending..."
+msgstr "发送中..."
+
+msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
+msgstr "文件上传超时。请检查固件版本是否支持此操作操作或验证打印机是否正常工作。"
 
 msgid "Helio action completed successfully."
 msgstr "Helio操作已成功完成。"
@@ -8995,11 +8995,11 @@ msgstr "仿真"
 msgid "Optimization"
 msgstr "优化"
 
+msgid "Environment Temperature"
+msgstr ""
+
 msgid "Chamber Temperature"
 msgstr "腔温"
-
-msgid "If it is for the A series and P1P, please enter the ambient temperature here."
-msgstr ""
 
 msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
 msgstr "注意：以上温度请根据实际情况调整。数据越准确，分析结果越精确。"
@@ -12752,43 +12752,43 @@ msgid "Unable to perform boolean operation on selected parts."
 msgstr "因其他加热维护功能已开启，本功能暂不可用。"
 
 msgid "Operation Canceled."
-msgstr ""
+msgstr "操作已取消。"
 
 msgid "Operation Failed."
-msgstr ""
+msgstr "操作失败。"
 
 msgid "Union operation requires at least two volumes."
-msgstr ""
+msgstr "并集操作需要至少两个零件。"
 
 msgid "Intersection operation requires at least two volumes."
-msgstr ""
+msgstr "交集至少需要两个零件。"
 
 msgid "Difference operation requires at least one volume in both A and B lists."
-msgstr ""
+msgstr "差集需要A 和 B 列表中至少各有一个零件。"
 
 msgid "Union operation requires at least two objects."
 msgstr "并集操作需要至少两个物体。"
 
 msgid "Intersection operation requires at least two objects."
-msgstr ""
+msgstr "交集至少需要两个物体。"
 
 msgid "Difference operation requires at least one object in both A and B lists."
-msgstr ""
+msgstr "差集需要A 和 B 列表中至少各有一个物体。"
 
 msgid "Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
-msgstr ""
+msgstr "无法按对象分组，及合并零件。请检查是否存在自相交、非流形几何体或开放网格。"
 
 msgid "No overlapping region found. Boolean intersection failed."
-msgstr ""
+msgstr "未找到重叠区域，相交结果失败。请确认列表中所有元素存在重叠。"
 
 msgid "Mesh Boolean"
 msgstr "布尔运算"
 
 msgid "- Object mode: Please select at least two objects."
-msgstr ""
+msgstr "- 对象模式：请至少选择两个对象。"
 
 msgid "- Part mode: Please select one object with at least two meshes."
-msgstr ""
+msgstr "- 部件模式：请选择一个包含至少两个零件的对象。"
 
 msgid "Network Test"
 msgstr "网络测试"
@@ -14366,6 +14366,15 @@ msgid ""
 msgstr ""
 "收缩、翘曲与应力\n"
 "通过控制热指数，可以消除由热引起的翘曲和应力根源。"
+
+#~ msgid "No available external storage was obtained. Please confirm and try again."
+#~ msgstr "没有可用的外部存储介质。请确认后重试。"
+
+#~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
+#~ msgstr "媒体能力获取超时，请检查固件版本是否支持它。"
+
+#~ msgid "Sending failed, please try again!"
+#~ msgstr "发送失败，请重试！"
 
 #~ msgid "Summary"
 #~ msgstr "概要"

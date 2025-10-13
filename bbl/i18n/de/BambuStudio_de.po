@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-10 17:50+0800\n"
+"POT-Creation-Date: 2025-10-13 10:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7616,32 +7616,26 @@ msgstr ""
 msgid "Please refer to Wiki before use->"
 msgstr "Bitte lesen Sie vor der Verwendung die Wiki-Informationen ->"
 
+msgid "Current firmware does not support file transfer to internal storage."
+msgstr ""
+
 msgid "Send to Printer storage"
 msgstr "An Druckerspeicher senden"
 
 msgid "Try to connect"
 msgstr "Verbindung herstellen"
 
-msgid "click to retry"
-msgstr "Klicken, um erneut zu versuchen"
+msgid "Internal Storage"
+msgstr ""
+
+msgid "External Storage"
+msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Timeout beim Hochladen der Datei: Bitte überprüfen Sie, ob die Firmware-Version dies unterstützt."
 
-msgid "No available external storage was obtained. Please confirm and try again."
-msgstr "Es wurde kein verfügbarer externer Speicher gefunden. Bitte überprüfen und erneut versuchen."
-
-msgid "Media capability acquisition timeout, please check if the firmware version supports it."
-msgstr "Zeitüberschreitung bei der Erfassung der Medienfunktion. Überprüfen Sie bitte, ob die Firmware-Version dies unterstützt."
-
-msgid "Sending..."
-msgstr "Senden..."
-
-msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
-msgstr "Zeitüberschreitung beim Datei-Upload. Bitte überprüfen Sie, ob die Firmware-Version diesen Vorgang unterstützt oder ob der Drucker ordnungsgemäß funktioniert."
-
-msgid "Sending failed, please try again!"
-msgstr "Senden fehlgeschlagen. Bitte versuchen Sie es erneut!"
+msgid "Connection timed out, please check your network."
+msgstr ""
 
 msgid "Connection failed. Click the icon to retry"
 msgstr "Verbindung fehlgeschlagen. Klicken Sie auf das Symbol, um es erneut zu versuchen."
@@ -7660,6 +7654,12 @@ msgstr "Der Drucker muss sich im selben LAN befinden wie Bambu Studio."
 
 msgid "The printer does not support sending to printer storage."
 msgstr "Der Drucker unterstützt das Senden an den Druckerspeicher nicht."
+
+msgid "Sending..."
+msgstr "Senden..."
+
+msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
+msgstr "Zeitüberschreitung beim Datei-Upload. Bitte überprüfen Sie, ob die Firmware-Version diesen Vorgang unterstützt oder ob der Drucker ordnungsgemäß funktioniert."
 
 msgid "Helio action completed successfully."
 msgstr "Helio-Aktion erfolgreich abgeschlossen."
@@ -9045,11 +9045,11 @@ msgstr ""
 msgid "Optimization"
 msgstr "Optimierung"
 
+msgid "Environment Temperature"
+msgstr ""
+
 msgid "Chamber Temperature"
 msgstr "Kammertemperatur"
-
-msgid "If it is for the A series and P1P, please enter the ambient temperature here."
-msgstr ""
 
 msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
 msgstr "Hinweis: Passen Sie die oben angegebene Temperatur entsprechend den tatsächlichen Bedingungen an. Genauere Daten gewährleisten präzisere Analyseergebnisse."
@@ -14432,6 +14432,18 @@ msgid ""
 msgstr ""
 "Schrumpfung, Verzug und Spannung\n"
 "Durch die Kontrolle des Wärmeindexes können Sie die durch Hitze verursachten Faktoren für Verzug und Spannung beseitigen."
+
+#~ msgid "click to retry"
+#~ msgstr "Klicken, um erneut zu versuchen"
+
+#~ msgid "No available external storage was obtained. Please confirm and try again."
+#~ msgstr "Es wurde kein verfügbarer externer Speicher gefunden. Bitte überprüfen und erneut versuchen."
+
+#~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
+#~ msgstr "Zeitüberschreitung bei der Erfassung der Medienfunktion. Überprüfen Sie bitte, ob die Firmware-Version dies unterstützt."
+
+#~ msgid "Sending failed, please try again!"
+#~ msgstr "Senden fehlgeschlagen. Bitte versuchen Sie es erneut!"
 
 #~ msgid "Summary"
 #~ msgstr "Zusammenfassung"

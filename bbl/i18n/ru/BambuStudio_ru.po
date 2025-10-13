@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-10 17:50+0800\n"
+"POT-Creation-Date: 2025-10-13 10:02+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -7789,6 +7789,9 @@ msgstr ""
 msgid "Please refer to Wiki before use->"
 msgstr ""
 
+msgid "Current firmware does not support file transfer to internal storage."
+msgstr ""
+
 # ??? хранилище
 msgid "Send to Printer storage"
 msgstr "Отправить на накопитель принтера"
@@ -7796,27 +7799,17 @@ msgstr "Отправить на накопитель принтера"
 msgid "Try to connect"
 msgstr ""
 
-msgid "click to retry"
+msgid "Internal Storage"
+msgstr ""
+
+msgid "External Storage"
 msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Время ожидания загрузки файла истекло. Проверьте, поддерживается ли этот тип файла текущей версией прошивки."
 
-msgid "No available external storage was obtained. Please confirm and try again."
+msgid "Connection timed out, please check your network."
 msgstr ""
-
-# ???
-msgid "Media capability acquisition timeout, please check if the firmware version supports it."
-msgstr "Время ожидания получения мультимедийных данных истекло. Проверьте, поддерживается ли это текущей версией прошивки."
-
-msgid "Sending..."
-msgstr "Отправка..."
-
-msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
-msgstr "Время ожидания загрузки файла истекло. Проверьте, поддерживает ли текущая версия прошивки эту возможность, или убедитесь в правильности работы принтера."
-
-msgid "Sending failed, please try again!"
-msgstr "Отправка не удалась, попробуйте ещё раз!"
 
 msgid "Connection failed. Click the icon to retry"
 msgstr ""
@@ -7835,6 +7828,12 @@ msgstr "Принтер должен находиться в одной лока�
 
 msgid "The printer does not support sending to printer storage."
 msgstr "Принтер не поддерживает отправку в хранилище принтера."
+
+msgid "Sending..."
+msgstr "Отправка..."
+
+msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
+msgstr "Время ожидания загрузки файла истекло. Проверьте, поддерживает ли текущая версия прошивки эту возможность, или убедитесь в правильности работы принтера."
 
 msgid "Helio action completed successfully."
 msgstr ""
@@ -9265,10 +9264,10 @@ msgstr ""
 msgid "Optimization"
 msgstr ""
 
-msgid "Chamber Temperature"
+msgid "Environment Temperature"
 msgstr ""
 
-msgid "If it is for the A series and P1P, please enter the ambient temperature here."
+msgid "Chamber Temperature"
 msgstr ""
 
 msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
@@ -14725,6 +14724,13 @@ msgid ""
 "Shrinkage, Warping & Stress\n"
 "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
 msgstr ""
+
+# ???
+#~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
+#~ msgstr "Время ожидания получения мультимедийных данных истекло. Проверьте, поддерживается ли это текущей версией прошивки."
+
+#~ msgid "Sending failed, please try again!"
+#~ msgstr "Отправка не удалась, попробуйте ещё раз!"
 
 #~ msgid "Summary"
 #~ msgstr "Суммарная информация"

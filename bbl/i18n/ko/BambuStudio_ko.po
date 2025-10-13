@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-10 17:50+0800\n"
+"POT-Creation-Date: 2025-10-13 10:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7609,32 +7609,26 @@ msgstr "현재 펌웨어는 최대 16개의 재료를 지원합니다. 준비 �
 msgid "Please refer to Wiki before use->"
 msgstr "사용하기 전에 Wiki를 참조하십시오->"
 
+msgid "Current firmware does not support file transfer to internal storage."
+msgstr ""
+
 msgid "Send to Printer storage"
 msgstr "프린터 저장소로 보내기"
 
 msgid "Try to connect"
 msgstr "연결 시도"
 
-msgid "click to retry"
-msgstr "다시 시도하려면 클릭"
+msgid "Internal Storage"
+msgstr ""
+
+msgid "External Storage"
+msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "파일 업로드 시간 초과, 펌웨어 버전이 이를 지원하는지 확인하세요."
 
-msgid "No available external storage was obtained. Please confirm and try again."
-msgstr "사용 가능한 외부 저장소를 찾을 수 없습니다. 확인 후 다시 시도하세요."
-
-msgid "Media capability acquisition timeout, please check if the firmware version supports it."
-msgstr "미디어 기능 획득 시간 초과, 펌웨어 버전이 이를 지원하는지 확인하세요."
-
-msgid "Sending..."
-msgstr "보내는 중..."
-
-msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
-msgstr "파일 업로드 시간이 초과되었습니다. 펌웨어 버전이 이 작업을 지원하는지 확인하거나 프린터가 제대로 작동하는지 확인하세요."
-
-msgid "Sending failed, please try again!"
-msgstr "전송 실패. 다시 시도하십시오!"
+msgid "Connection timed out, please check your network."
+msgstr ""
 
 msgid "Connection failed. Click the icon to retry"
 msgstr "연결에 실패했습니다. 아이콘을 클릭하여 다시 시도하세요."
@@ -7653,6 +7647,12 @@ msgstr "프린터는 Bambu Studio와 동일한 LAN에 있어야 합니다."
 
 msgid "The printer does not support sending to printer storage."
 msgstr "프린터가 프린터 저장소로 전송을 지원하지 않습니다."
+
+msgid "Sending..."
+msgstr "보내는 중..."
+
+msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
+msgstr "파일 업로드 시간이 초과되었습니다. 펌웨어 버전이 이 작업을 지원하는지 확인하거나 프린터가 제대로 작동하는지 확인하세요."
 
 msgid "Helio action completed successfully."
 msgstr "Helio 작업이 성공적으로 완료되었습니다."
@@ -9043,11 +9043,11 @@ msgstr "시뮬레이션"
 msgid "Optimization"
 msgstr "최적화"
 
+msgid "Environment Temperature"
+msgstr ""
+
 msgid "Chamber Temperature"
 msgstr "챔버 온도"
-
-msgid "If it is for the A series and P1P, please enter the ambient temperature here."
-msgstr ""
 
 msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
 msgstr "참고: 위 온도는 실제 조건에 맞게 조정하십시오. 데이터가 더 정확할수록 분석 결과도 더 정밀해집니다."
@@ -14431,6 +14431,18 @@ msgid ""
 msgstr ""
 "수축, 뒤틀림 및 응력\n"
 "열 지수를 제어하여 열에 의해 발생하는 뒤틀림과 응력의 원인을 제거할 수 있습니다."
+
+#~ msgid "click to retry"
+#~ msgstr "다시 시도하려면 클릭"
+
+#~ msgid "No available external storage was obtained. Please confirm and try again."
+#~ msgstr "사용 가능한 외부 저장소를 찾을 수 없습니다. 확인 후 다시 시도하세요."
+
+#~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
+#~ msgstr "미디어 기능 획득 시간 초과, 펌웨어 버전이 이를 지원하는지 확인하세요."
+
+#~ msgid "Sending failed, please try again!"
+#~ msgstr "전송 실패. 다시 시도하십시오!"
 
 #~ msgid "Summary"
 #~ msgstr "요약"

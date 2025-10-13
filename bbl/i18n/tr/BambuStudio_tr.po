@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-10 17:50+0800\n"
+"POT-Creation-Date: 2025-10-13 10:02+0800\n"
 "PO-Revision-Date: 2025-08-28 14:42+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -7619,32 +7619,26 @@ msgstr ""
 msgid "Please refer to Wiki before use->"
 msgstr "Lütfen kullanmadan önce Wiki'ye bakın->"
 
+msgid "Current firmware does not support file transfer to internal storage."
+msgstr ""
+
 msgid "Send to Printer storage"
 msgstr "Yazıcı depolama alanına gönder"
 
 msgid "Try to connect"
 msgstr "Tekrar bağlan"
 
-msgid "click to retry"
-msgstr "tekrar denemek için tıklayın"
+msgid "Internal Storage"
+msgstr ""
+
+msgid "External Storage"
+msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Dosya yükleme zaman aşımı, lütfen ürün yazılımı sürümünün bunu destekleyip desteklemediğini kontrol edin."
 
-msgid "No available external storage was obtained. Please confirm and try again."
-msgstr "Kullanılabilir harici depolama alanı bulunamadı. Lütfen onaylayın ve tekrar deneyin."
-
-msgid "Media capability acquisition timeout, please check if the firmware version supports it."
-msgstr "Medya yeteneği edinme zaman aşımı, lütfen ürün yazılımı sürümünün bunu destekleyip desteklemediğini kontrol edin."
-
-msgid "Sending..."
-msgstr "Gönderiliyor..."
-
-msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
-msgstr "Dosya yükleme zaman aşımına uğradı. Lütfen ürün yazılımı sürümünün bu işlemi destekleyip desteklemediğini kontrol edin veya yazıcının düzgün çalışıp çalışmadığını doğrulayın."
-
-msgid "Sending failed, please try again!"
-msgstr "Gönderme başarısız oldu, lütfen tekrar deneyin!"
+msgid "Connection timed out, please check your network."
+msgstr ""
 
 msgid "Connection failed. Click the icon to retry"
 msgstr "Bağlantı başarısız oldu. Yeniden denemek için simgeye tıklayın"
@@ -7663,6 +7657,12 @@ msgstr "Yazıcının Bambu Studio ile aynı LAN'da olması gerekmektedir."
 
 msgid "The printer does not support sending to printer storage."
 msgstr "Yazıcı, yazıcı belleğine göndermeyi desteklemiyor."
+
+msgid "Sending..."
+msgstr "Gönderiliyor..."
+
+msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
+msgstr "Dosya yükleme zaman aşımına uğradı. Lütfen ürün yazılımı sürümünün bu işlemi destekleyip desteklemediğini kontrol edin veya yazıcının düzgün çalışıp çalışmadığını doğrulayın."
 
 msgid "Helio action completed successfully."
 msgstr ""
@@ -9048,10 +9048,10 @@ msgstr ""
 msgid "Optimization"
 msgstr ""
 
-msgid "Chamber Temperature"
+msgid "Environment Temperature"
 msgstr ""
 
-msgid "If it is for the A series and P1P, please enter the ambient temperature here."
+msgid "Chamber Temperature"
 msgstr ""
 
 msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
@@ -14395,6 +14395,18 @@ msgid ""
 "Shrinkage, Warping & Stress\n"
 "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
 msgstr ""
+
+#~ msgid "click to retry"
+#~ msgstr "tekrar denemek için tıklayın"
+
+#~ msgid "No available external storage was obtained. Please confirm and try again."
+#~ msgstr "Kullanılabilir harici depolama alanı bulunamadı. Lütfen onaylayın ve tekrar deneyin."
+
+#~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
+#~ msgstr "Medya yeteneği edinme zaman aşımı, lütfen ürün yazılımı sürümünün bunu destekleyip desteklemediğini kontrol edin."
+
+#~ msgid "Sending failed, please try again!"
+#~ msgstr "Gönderme başarısız oldu, lütfen tekrar deneyin!"
 
 #~ msgid "Summary"
 #~ msgstr "Özet"
