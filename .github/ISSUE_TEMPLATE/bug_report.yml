@@ -15,6 +15,14 @@ body:
       placeholder: e.g. 1.6.2.4
     validations:
       required: true
+  - type: input
+    id: firmware_version
+    attributes:
+      label: Printer Firmware Version
+      description: Please check the firmware version in the printer’s settings menu.
+      placeholder: e.g. 01.01.03.00
+    validations:
+      required: true
   - type: dropdown
     id: app_from
     attributes:
