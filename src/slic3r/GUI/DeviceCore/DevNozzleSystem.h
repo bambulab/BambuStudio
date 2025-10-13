@@ -16,6 +16,12 @@ namespace Slic3r
        NozzleFlowType  m_nozzle_flow = NozzleFlowType::S_FLOW;// 0-common 1-high flow
        NozzleType      m_nozzle_type = NozzleType::ntUndefine;// 0-stainless_steel 1-hardened_steel 5-tungsten_carbide
        float           m_diameter = 0.4f;// 0.2mm  0.4mm  0.6mm 0.8mm
+
+    public:
+       NozzleType     GetNozzleType() const { return m_nozzle_type; }
+       NozzleFlowType     GetNozzleFlowType() const { return m_nozzle_flow; }
+       static std::string   GetNozzleFlowTypeString(NozzleFlowType type);
+       static std::string   GetNozzleTypeString(NozzleType type);
    };
 
    class DevNozzleSystem
