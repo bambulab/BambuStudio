@@ -459,7 +459,8 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
             && (m_user_triggered || m_failed_retry > 3)) {
         json j;
         j["stage"]          = last_state;
-        j["dev_id"]         = m_machine;
+        //j["dev_id"]         = m_machine;
+        j["dev_id"]         = "";
         j["dev_ip"]         = "";
         j["result"]         = "failed";
         j["user_triggered"] = m_user_triggered;
@@ -482,7 +483,8 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
 
     if (last_state == wxMEDIASTATE_PLAYING && m_stat.size() == 4) {
         json j;
-        j["dev_id"]         = m_machine;
+        //j["dev_id"]         = m_machine;
+        j["dev_id"]         = "";
         j["dev_ip"]         = "";
         j["result"]         = m_failed_code ? "failed" : "success";
         j["tunnel"]         = tunnel;
@@ -697,7 +699,8 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
             // track event
             json j;
             j["stage"] =  std::to_string(m_last_state);
-            j["dev_id"] = m_machine;
+            //j["dev_id"] = m_machine;
+            j["dev_id"] = "";
             j["dev_ip"] = "";
             j["result"] = "success";
             j["code"] = 0;
