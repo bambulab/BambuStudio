@@ -127,6 +127,8 @@ struct ArrangeParams {
     bool  is_seq_print                        = false;
     bool  align_to_y_axis                     = false;
     bool  save_svg                            = false;
+    bool  plate_has_tree_support              = false;
+    double brim_max                            = 0;
     float bed_shrink_x = 0.0;
     float bed_shrink_y = 0.0;
     float brim_skirt_distance = 0;
