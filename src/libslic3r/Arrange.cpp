@@ -103,19 +103,19 @@ void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPri
     // do not inflate brim_width. Objects are allowed to have overlapped brim.
     Points      bedpts = get_shrink_bedpts(print_cfg, params);
     BoundingBox bedbb = Polygon(bedpts).bounding_box();
-    double brim_max = 0;
-    bool plate_has_tree_support = false;
+    params.brim_max = 0;
+    params.plate_has_tree_support = false;
     std::for_each(selected.begin(), selected.end(), [&](ArrangePolygon& ap) {
-        brim_max = std::max(brim_max, ap.brim_width);
-        if (ap.has_tree_support) plate_has_tree_support = true; });
+        params.brim_max = std::max(params.brim_max, ap.brim_width);
+        if (ap.has_tree_support) params.plate_has_tree_support = true;
+    });
     std::for_each(selected.begin(), selected.end(), [&](ArrangePolygon& ap) {
         // 1. if user input a distance, use it
         // 2. if there is an object with tree support, all objects use the max tree branch radius (brim_max=branch diameter)
         // 3. otherwise, use each object's own brim width
-        ap.inflation = params.min_obj_distance != 0 ? params.min_obj_distance / 2 :
-            plate_has_tree_support ? scaled(brim_max / 2) : scaled(ap.brim_width);
+        ap.inflation = params.min_obj_distance != 0 ? params.min_obj_distance / 2 : params.plate_has_tree_support ? scaled(params.brim_max / 2) : scaled(ap.brim_width);
         });
-    params.brim_skirt_distance = std::max(params.brim_skirt_distance, float(brim_max));
+    params.brim_skirt_distance = std::max(params.brim_skirt_distance, float(params.brim_max));
 }
 
 void update_unselected_items_inflation(ArrangePolygons& unselected, const DynamicPrintConfig & print_cfg, const ArrangeParams& params)
@@ -134,9 +134,11 @@ void update_unselected_items_inflation(ArrangePolygons& unselected, const Dynami
     // 屏蔽区域只需要膨胀brim宽度，防止brim长过去；挤出标定区域不需要膨胀，brim可以长过去。
     // 以前我们认为还需要膨胀clearance_radius/2，这其实是不需要的，因为这些区域并不会真的摆放物体，
     // 其他物体的膨胀轮廓是可以跟它们重叠的。
-    std::for_each(unselected.begin(), unselected.end(),
-        [&](auto& ap) { ap.inflation = !ap.is_virt_object ? (params.min_obj_distance == 0 ? scaled(ap.brim_width) : params.min_obj_distance / 2)
-        : (ap.is_extrusion_cali_object ? 0 : exclusion_gap); });
+    std::for_each(unselected.begin(), unselected.end(), [&](auto &ap) {
+        ap.inflation = !ap.is_virt_object                                  ? (params.min_obj_distance == 0 ? scaled(ap.brim_width) : params.min_obj_distance / 2) :
+                       (ap.is_wipe_tower && params.plate_has_tree_support) ? scaled(params.brim_max / 2) :
+                                                                             (ap.is_extrusion_cali_object ? 0 : exclusion_gap);
+    });
 }
 
 //it will be accurate after call update_params
