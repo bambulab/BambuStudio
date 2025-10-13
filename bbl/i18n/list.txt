@@ -220,6 +220,7 @@ src/slic3r/GUI/BonjourDialog.cpp
 src/slic3r/GUI/calib_dlg.cpp
 src/slic3r/GUI/PrintHostDialogs.cpp
 src/slic3r/GUI/Gizmos/GLGizmoMeshBoolean.cpp
+src/slic3r/GUI/UIHelpers/MeshBooleanUI.cpp
 src/slic3r/GUI/NetworkTestDialog.cpp
 src/slic3r/GUI/CreatePresetsDialog.cpp
 src/slic3r/GUI/DailyTips.cpp
