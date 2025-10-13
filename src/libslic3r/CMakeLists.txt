@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 project(libslic3r)
 
+include(FetchContent)
+
 include(PrecompiledHeader)
 
 string(TIMESTAMP COMPILE_TIME %Y%m%d-%H%M%S)
@@ -495,13 +497,26 @@ find_package(CGAL REQUIRED)
 find_package(OpenCV REQUIRED core)
 cmake_policy(POP)
 
+FetchContent_Declare(jc_voronoi
+    GIT_REPOSITORY https://github.com/JCash/voronoi.git
+    GIT_TAG dev)
+
+FetchContent_GetProperties(jc_voronoi)
+if(NOT jc_voronoi_POPULATED)
+    FetchContent_Populate(jc_voronoi)
+endif()
+
+set(JC_VORONOI_INCLUDE_DIR ${jc_voronoi_SOURCE_DIR}/src)
+
 add_library(libslic3r_cgal STATIC
     CutSurface.hpp CutSurface.cpp
     IntersectionPoints.hpp IntersectionPoints.cpp
     MeshBoolean.hpp MeshBoolean.cpp
     TryCatchSignal.hpp TryCatchSignal.cpp
     Triangulation.hpp Triangulation.cpp)
-target_include_directories(libslic3r_cgal PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(libslic3r_cgal PRIVATE
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${JC_VORONOI_INCLUDE_DIR})
 
 # Reset compile options of libslic3r_cgal. Despite it being linked privately, CGAL options
 # (-frounding-math) still propagate to dependent libs which is not desired.
@@ -535,7 +550,10 @@ endif ()
 encoding_check(libslic3r)
 
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
-target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(libslic3r PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${JC_VORONOI_INCLUDE_DIR}
+    PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r PUBLIC ${EXPAT_INCLUDE_DIRS})
 
 # Find the OCCT and related libraries
