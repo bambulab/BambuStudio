@@ -1427,19 +1427,11 @@ namespace Slic3r::GUI {
         }
 
         if (target_selector && !m_excluded_facet_mask.empty()) {
-            auto& triangles = target_selector->get_triangles();
             const size_t mask_size = m_excluded_facet_mask.size();
-            for (auto& triangle : triangles) {
-                if (!triangle.valid() || triangle.is_split())
-                    continue;
-                int source = triangle.source_triangle;
-                if (source < 0 || static_cast<size_t>(source) >= mask_size)
-                    continue;
-                bool blocked = m_excluded_facet_mask[static_cast<size_t>(source)] != 0;
-                if (blocked && triangle.get_state() != EnforcerBlockerType::BLOCKER)
-                    triangle.set_state(EnforcerBlockerType::BLOCKER);
-                else if (!blocked && triangle.get_state() == EnforcerBlockerType::BLOCKER)
-                    triangle.set_state(EnforcerBlockerType::NONE);
+            for (size_t i = 0; i < mask_size; ++i) {
+                EnforcerBlockerType desired = m_excluded_facet_mask[i] ? EnforcerBlockerType::BLOCKER
+                                                                       : EnforcerBlockerType::NONE;
+                target_selector->set_facet(static_cast<int>(i), desired);
             }
             target_selector->request_update_render_data(true);
         }
