@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 10:02+0800\n"
+"POT-Creation-Date: 2025-10-13 20:42+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2763,6 +2763,10 @@ msgstr "Hátralévő idő: Számítás folyamatban..."
 
 msgid "The heated bed's thermal preconditioning helps optimize the first layer print quality. Printing will start once preconditioning is complete."
 msgstr "Az tárgyasztal termikus előfűtése segít optimalizálni az első réteg nyomtatási minőségét. A nyomtatás az előfűtés befejezése után indul."
+
+#, c-format, boost-format
+msgid "Remaining time: %dmin%ds"
+msgstr ""
 
 msgid "Choose SLA archive:"
 msgstr "Válaszd ki az SLA-archívumot:"
@@ -7516,12 +7520,12 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Ple
 msgstr "Az aktuális anyag keménysége (%s) meghaladja a(z) %s (%s) keménységét. Kérjük, ellenőrizd a fúvóka vagy az anyag beállításait, és próbáld újra."
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment."
-msgstr "[ %s ] magas hőmérsékletű környezetben történő nyomtatást igényel."
-
-#, c-format, boost-format
 msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
 msgstr "[ %s ] magas hőmérsékleten történő nyomtatást igényel. Kérjük, csukd be az ajtót."
+
+#, c-format, boost-format
+msgid "[ %s ] requires printing in a high-temperature environment."
+msgstr "[ %s ] magas hőmérsékletű környezetben történő nyomtatást igényel."
 
 #, c-format, boost-format
 msgid "The filament on %s may soften. Please unload."
@@ -12841,6 +12845,30 @@ msgstr "- Objektum mód: Kérjük, válassz ki legalább két objektumot."
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- Tárgy mód: Válassz ki egy objektumot, amely legalább két hálóval rendelkezik."
 
+msgid "Union"
+msgstr "Egyesítés"
+
+msgid "Difference"
+msgstr "Subtraction"
+
+msgid "Intersection"
+msgstr "Metszéspont"
+
+msgid "Keep original models"
+msgstr ""
+
+msgid "Execute"
+msgstr ""
+
+msgid "Entity Only"
+msgstr ""
+
+msgid "Perform Boolean operations on entities only."
+msgstr ""
+
+msgid "This object contains non-part components."
+msgstr ""
+
 msgid "Network Test"
 msgstr "Hálózati teszt"
 
@@ -14723,15 +14751,6 @@ msgstr ""
 
 #~ msgid "Please right click to assembly these objects."
 #~ msgstr "Kattints jobb gombbal az objektumok összeállításához."
-
-#~ msgid "Union"
-#~ msgstr "Egyesítés"
-
-#~ msgid "Difference"
-#~ msgstr "Különbség"
-
-#~ msgid "Intersection"
-#~ msgstr "Metszéspont"
 
 #~ msgid "Source Volume"
 #~ msgstr "Forrás térfogat"

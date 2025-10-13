@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 10:02+0800\n"
+"POT-Creation-Date: 2025-10-13 20:42+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2758,6 +2758,10 @@ msgstr "남은 시간: 계산 중..."
 
 msgid "The heated bed's thermal preconditioning helps optimize the first layer print quality. Printing will start once preconditioning is complete."
 msgstr "히트 베드의 열 예열 기능은 첫 레이어 출력 품질을 최적화하는 데 도움이 됩니다. 예열이 완료되면 출력이 시작됩니다."
+
+#, c-format, boost-format
+msgid "Remaining time: %dmin%ds"
+msgstr ""
 
 msgid "Choose SLA archive:"
 msgstr "SLA 아카이브 선택:"
@@ -7507,12 +7511,12 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Ple
 msgstr "현재 재료의 경도 (%s) 가 경도 %s (%s) 를 초과합니다. 노즐 또는 재료 설정을 확인하고 다시 시도하십시오."
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment."
-msgstr "[ %s ] 고온 환경에서 출력해야 합니다."
-
-#, c-format, boost-format
 msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
 msgstr "[ %s ] 고온 환경에서 출력해야 합니다. 문을 닫아 주세요."
+
+#, c-format, boost-format
+msgid "[ %s ] requires printing in a high-temperature environment."
+msgstr "[ %s ] 고온 환경에서 출력해야 합니다."
 
 #, c-format, boost-format
 msgid "The filament on %s may soften. Please unload."
@@ -12837,6 +12841,30 @@ msgstr "- 객체 모드: 최소 두 개의 객체를 선택하세요."
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- 부품 모드: 메시가 두 개 이상인 객체 하나를 선택하세요."
 
+msgid "Union"
+msgstr "유니언"
+
+msgid "Difference"
+msgstr "Subtraction"
+
+msgid "Intersection"
+msgstr "교차점"
+
+msgid "Keep original models"
+msgstr ""
+
+msgid "Execute"
+msgstr ""
+
+msgid "Entity Only"
+msgstr ""
+
+msgid "Perform Boolean operations on entities only."
+msgstr ""
+
+msgid "This object contains non-part components."
+msgstr ""
+
 msgid "Network Test"
 msgstr "개방형 네트워크 테스트"
 
@@ -14727,15 +14755,6 @@ msgstr ""
 
 #~ msgid "Please right click to assembly these objects."
 #~ msgstr "이러한 개체를 조립하려면 마우스 오른쪽 버튼을 클릭하세요."
-
-#~ msgid "Union"
-#~ msgstr "유니언"
-
-#~ msgid "Difference"
-#~ msgstr "차이점"
-
-#~ msgid "Intersection"
-#~ msgstr "교차점"
 
 #~ msgid "Source Volume"
 #~ msgstr "소스 볼륨"

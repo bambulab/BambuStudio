@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 10:02+0800\n"
+"POT-Creation-Date: 2025-10-13 20:42+0800\n"
 "PO-Revision-Date: 2025-08-28 14:42+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -2762,6 +2762,10 @@ msgid "Remaining time: Calculating..."
 msgstr ""
 
 msgid "The heated bed's thermal preconditioning helps optimize the first layer print quality. Printing will start once preconditioning is complete."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Remaining time: %dmin%ds"
 msgstr ""
 
 msgid "Choose SLA archive:"
@@ -7517,11 +7521,11 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Ple
 msgstr "Mevcut malzemenin (%s) sertliği %s'nin (%s) sertliğini aşıyor. Lütfen nozul veya malzeme ayarlarını doğrulayın ve tekrar deneyin."
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment."
+msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
 msgstr ""
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
+msgid "[ %s ] requires printing in a high-temperature environment."
 msgstr ""
 
 #, c-format, boost-format
@@ -12836,6 +12840,30 @@ msgstr ""
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr ""
 
+msgid "Union"
+msgstr "Union"
+
+msgid "Difference"
+msgstr "Fark"
+
+msgid "Intersection"
+msgstr "Kesişim"
+
+msgid "Keep original models"
+msgstr ""
+
+msgid "Execute"
+msgstr ""
+
+msgid "Entity Only"
+msgstr ""
+
+msgid "Perform Boolean operations on entities only."
+msgstr ""
+
+msgid "This object contains non-part components."
+msgstr ""
+
 msgid "Network Test"
 msgstr "Ağ testi"
 
@@ -14693,15 +14721,6 @@ msgstr ""
 
 #~ msgid "Please right click to assembly these objects."
 #~ msgstr "Bu nesneleri birleştirmek için lütfen sağ tıklayın."
-
-#~ msgid "Union"
-#~ msgstr "Union"
-
-#~ msgid "Difference"
-#~ msgstr "Fark"
-
-#~ msgid "Intersection"
-#~ msgstr "Kesişim"
 
 #~ msgid "Source Volume"
 #~ msgstr "Kaynak Hacmi"
