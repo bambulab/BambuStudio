@@ -1352,8 +1352,8 @@ namespace Slic3r::GUI {
         size_t facet_count = static_cast<size_t>(mesh.facets_count());
         std::vector<uint8_t> mask(facet_count, 0);
 
-        auto& triangles = selector_ptr->get_triangles();
-        for (const TriangleSelector::Triangle& triangle : triangles) {
+        const auto& triangles = selector_ptr->get_triangles();
+        for (const auto& triangle : triangles) {
             if (!triangle.valid() || triangle.is_split())
                 continue;
             int source = triangle.source_triangle;
@@ -1429,7 +1429,7 @@ namespace Slic3r::GUI {
         if (target_selector && !m_excluded_facet_mask.empty()) {
             auto& triangles = target_selector->get_triangles();
             const size_t mask_size = m_excluded_facet_mask.size();
-            for (TriangleSelector::Triangle& triangle : triangles) {
+            for (auto& triangle : triangles) {
                 if (!triangle.valid() || triangle.is_split())
                     continue;
                 int source = triangle.source_triangle;
