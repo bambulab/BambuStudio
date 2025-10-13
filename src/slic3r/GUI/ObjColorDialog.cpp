@@ -846,7 +846,27 @@ void ObjColorPanel::deal_algo(char cluster_number, bool redraw_ui)
     }
     wxBusyCursor cursor;
     m_last_cluster_number = cluster_number;
-    obj_color_deal_algo(m_input_colors, m_cluster_colors_from_algo, m_cluster_labels_from_algo, cluster_number,g_max_color);
+    if (m_obj_in_out.first_time_using_makerlab && m_obj_in_out.mtl_colors.size() <= g_max_color) {
+        m_obj_in_out.first_time_using_makerlab = false;
+        m_cluster_colors_from_algo             = m_obj_in_out.mtl_colors;
+        m_cluster_labels_from_algo.clear();
+        m_cluster_labels_from_algo.reserve(m_input_colors.size());
+        for (int i = 0; i < m_input_colors.size(); i++) {
+            bool can_find = false;
+            for (int j = 0; j < m_cluster_colors_from_algo.size(); j++) {
+                if (Slic3r::color_is_equal(m_input_colors[i],m_cluster_colors_from_algo[j])) {
+                    m_cluster_labels_from_algo.emplace_back(j);
+                    can_find = true;
+                }
+            }
+            if (!can_find) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " error,not matched: " << i;
+                m_cluster_labels_from_algo.emplace_back(0);
+            }
+        }
+    } else {
+        obj_color_deal_algo(m_input_colors, m_cluster_colors_from_algo, m_cluster_labels_from_algo, cluster_number, g_max_color);
+    }
 
     m_cluster_colours.clear();
     m_cluster_colours.reserve(m_cluster_colors_from_algo.size());

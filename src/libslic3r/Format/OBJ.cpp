@@ -151,19 +151,26 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
                 // Insert one or two faces (triangulate a quad).
                 its.indices.emplace_back(indices[0], indices[1], indices[2]);
                 int  face_index =its.indices.size() - 1;
-                RGBA face_color;
-                auto set_face_color = [&uvs, &data, &mtl_data, &obj_info, &face_color, &gamma_correct](int face_index, const std::string mtl_name) {
+                auto get_face_color = [&mtl_data ,& gamma_correct](const std::string mtl_name, RGBA &face_color) {
                     if (mtl_data.new_mtl_unmap.find(mtl_name) != mtl_data.new_mtl_unmap.end()) {
-                        for (size_t n = 0; n < 3; n++) {//0.1 is light ambient
-                            float  object_ka = 0.f;
+                        for (size_t n = 0; n < 3; n++) { // 0.1 is light ambient
+                            float object_ka = 0.f;
                             if (mtl_data.new_mtl_unmap[mtl_name]->Ka[n] > 0.01 && mtl_data.new_mtl_unmap[mtl_name]->Ka[n] < 0.99) {
                                 object_ka = mtl_data.new_mtl_unmap[mtl_name]->Ka[n] * 0.1;
                             }
                             auto  value   = object_ka + float(mtl_data.new_mtl_unmap[mtl_name]->Kd[n]);
-                            float temp     = gamma_correct ? ColorRGBA::gamma_correct(value) : value;
+                            float temp    = gamma_correct ? ColorRGBA::gamma_correct(value) : value;
                             face_color[n] = std::clamp(temp, 0.f, 1.f);
                         }
                         face_color[3] = gamma_correct ? ColorRGBA::gamma_correct(mtl_data.new_mtl_unmap[mtl_name]->Tr) : mtl_data.new_mtl_unmap[mtl_name]->Tr; // alpha
+                        return true;
+                    }
+                    return false;
+                };
+                auto set_face_color = [&uvs, &data, &mtl_data, &obj_info, &get_face_color](int face_index, const std::string mtl_name) {
+                    if (mtl_data.new_mtl_unmap.find(mtl_name) != mtl_data.new_mtl_unmap.end()) {
+                        RGBA face_color;
+                        get_face_color(mtl_name,face_color);
                         if (mtl_data.new_mtl_unmap[mtl_name]->map_Kd.size() > 0) {
                             auto png_name       = mtl_data.new_mtl_unmap[mtl_name]->map_Kd;
                             obj_info.has_uv_png = true;
@@ -199,6 +206,16 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
                     }
                 };
                 if (exist_mtl) {
+                    if (mtl_data.first_time_using_makerlab && obj_info.mtl_colors.empty()) {
+                        obj_info.first_time_using_makerlab = true;
+                        obj_info.mtl_colors.reserve(mtl_data.mtl_orders.size());
+                        for (int i = 0; i < mtl_data.mtl_orders.size(); i++) {
+                            RGBA face_color;
+                            if (get_face_color(mtl_data.mtl_orders[i],face_color)) {
+                                obj_info.mtl_colors.emplace_back(face_color);
+                            }
+                        }
+                    }
                     set_face_color_by_mtl(face_index);
                 }
                 if (cnt == 4) {
