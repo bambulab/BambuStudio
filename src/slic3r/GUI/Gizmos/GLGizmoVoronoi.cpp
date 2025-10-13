@@ -1717,11 +1717,8 @@ namespace Slic3r::GUI {
                 BOOST_LOG_TRIVIAL(warning) << "Voronoi generation produced empty result";
                 std::lock_guard<std::mutex> lock(m_state_mutex);
                 m_state.status = State::idle;
+            }
         }
-
-        // Reserve the drawing space in the layout so subsequent widgets are placed below.
-        ImGui::Dummy(canvas_size);
-    }
         catch (const VoronoiCanceledException&) {
             // Cancelled by user
             std::lock_guard<std::mutex> lock(m_state_mutex);
