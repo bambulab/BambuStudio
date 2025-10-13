@@ -6,6 +6,7 @@
 #include "slic3r/GUI/I18N.hpp"
 
 #include "DevUtil.h"
+#include "DevNozzleSystem.h"
 
 using namespace nlohmann;
 
@@ -138,7 +139,7 @@ wxString DevAms::GetDisplayName() const
 {
     wxString ams_display_format;
     auto iter = s_ams_display_formats.find(m_ams_type);
-    if (iter != s_ams_display_formats.end()) 
+    if (iter != s_ams_display_formats.end())
     {
         ams_display_format = iter->second;
     }
@@ -153,7 +154,7 @@ wxString DevAms::GetDisplayName() const
     {
         num_id = std::stoi(GetAmsId());
     }
-    catch (const std::exception& e) 
+    catch (const std::exception& e)
     {
         assert(0 && __FUNCTION__);
         BOOST_LOG_TRIVIAL(error) << "Invalid AMS ID: " << GetAmsId() << ", error: " << e.what();
@@ -256,6 +257,13 @@ int DevFilaSystem::GetExtruderIdByAmsId(const std::string& ams_id) const
 
     assert(false && __FUNCTION__);
     return 0; // not found
+}
+
+std::string DevFilaSystem::GetNozzleFlowStringByAmsId(const std::string& ams_id) const
+{
+    auto extuder_id = GetExtruderIdByAmsId(ams_id);
+    auto nozzle = GetOwner()->GetNozzleSystem()->GetNozzle(extuder_id);
+    return nozzle.GetNozzleFlowTypeString(nozzle.GetNozzleFlowType());
 }
 
 bool DevFilaSystem::IsAmsSettingUp() const

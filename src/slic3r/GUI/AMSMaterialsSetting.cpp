@@ -580,7 +580,9 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
 
                     if (vendor && (vendor->values.size() > 0)) {
                         std::string vendor_name = vendor->values[0];
-                        DevFilaBlacklist::check_filaments_in_blacklist(obj->printer_type, vendor_name, filamnt_type, it->filament_id, ams_id, slot_id, it->name, in_blacklist, action, info);
+                        std::string nozzle_flow = obj->GetFilaSystem() ? obj->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id)) : std::string();
+
+                        DevFilaBlacklist::check_filaments_in_blacklist(obj->printer_type, vendor_name, filamnt_type, it->filament_id, ams_id, slot_id, it->alias, nozzle_flow, in_blacklist, action, info);
                     }
 
                     if (in_blacklist) {

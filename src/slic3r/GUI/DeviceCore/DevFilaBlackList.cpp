@@ -60,10 +60,10 @@ static std::string _get_filament_name_from_ams(int ams_id, int slot_id)
         return name;
     }
 
-    const auto tray = obj->GetFilaSystem()->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id));
-    if (!tray) { return name; }
+    const auto tray = obj->get_tray(std::to_string(ams_id), std::to_string(slot_id));
+    if (!tray.is_tray_info_ready()) { return name; }
 
-    std::string filament_id = tray->setting_id;
+    std::string filament_id = tray.setting_id;
 
     PresetBundle* preset_bundle = GUI::wxGetApp().preset_bundle;
     auto          option = preset_bundle->get_filament_by_filament_id(filament_id);
@@ -78,6 +78,7 @@ void check_filaments(std::string  model_id,
                      int          ams_id,
                      int          slot_id,
                      std::string  tag_name,
+                     std::string  nozzle_flow,
                      bool& in_blacklist,
                      std::string& ac,
                      wxString& info,
@@ -102,25 +103,26 @@ void check_filaments(std::string  model_id,
             std::string vendor = filament_item.contains("vendor") ? filament_item["vendor"].get<std::string>() : "";
             std::string type = filament_item.contains("type") ? filament_item["type"].get<std::string>() : "";
             std::string type_suffix = filament_item.contains("type_suffix") ? filament_item["type_suffix"].get<std::string>() : "";
+            std::string name_suffix = filament_item.contains("name_suffix") ? filament_item["name_suffix"].get<std::string>() : "";
             std::string name = filament_item.contains("name") ? filament_item["name"].get<std::string>() : "";
             std::string slot = filament_item.contains("slot") ? filament_item["slot"].get<std::string>() : "";
             std::vector<std::string> model_ids = filament_item.contains("model_id") ? filament_item["model_id"].get<std::vector<std::string>>() : std::vector<std::string>();
+            std::vector<std::string> nozzle_flows = filament_item.contains("nozzle_flows") ? filament_item["nozzle_flows"].get<std::vector<std::string>>() : std::vector<std::string>();
             std::string action = filament_item.contains("action") ? filament_item["action"].get<std::string>() : "";
             std::string description = filament_item.contains("description") ? filament_item["description"].get<std::string>() : "";
 
             // check model id
             if (!model_ids.empty() && std::find(model_ids.begin(), model_ids.end(), model_id) == model_ids.end()) { continue; }
 
+            // check nozzle flows
+            if (!nozzle_flows.empty() && std::find(nozzle_flows.begin(), nozzle_flows.end(), nozzle_flow) == nozzle_flows.end()) { continue; }
+
             // check vendor
             std::transform(vendor.begin(), vendor.end(), vendor.begin(), ::tolower);
             if (!vendor.empty())
             {
-                if ((vendor == "bambu lab" && (tag_vendor == vendor)) ||
-                    (vendor == "third party" && (tag_vendor != "bambu lab")))
-                {
-                    // Do nothing
-                }
-                else
+                if(!((vendor == "bambu lab"   && tag_vendor == "bambu lab") ||
+                     (vendor == "third party" && tag_vendor != "bambu lab") ))
                 {
                     continue;
                 }
@@ -141,6 +143,14 @@ void check_filaments(std::string  model_id,
             // check name
             std::transform(name.begin(), name.end(), name.begin(), ::tolower);
             if (!name.empty() && (name != tag_name)) { continue; }
+
+            // check name suffix
+            std::transform(name_suffix.begin(), name_suffix.end(), name_suffix.begin(), ::tolower);
+            if (!name_suffix.empty())
+            {
+                if (tag_name.length() < name_suffix.length()) { continue; }
+                if ((tag_name.substr(tag_name.length() - name_suffix.length()) != name_suffix)) { continue; }
+            }
 
             // check loc
             if (!slot.empty())
@@ -167,6 +177,7 @@ void check_filaments(std::string  model_id,
             // Error in description
             L("TPU is not supported by AMS.");
             L("AMS does not support 'Bambu Lab PET-CF'.");
+            L("The current filament doesn't support the high-flow nozzle and can't be used.");
 
             // Warning in description
             L("Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer.");
@@ -176,6 +187,7 @@ void check_filaments(std::string  model_id,
             L("CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution.");
             L("PPS-CF is brittle and could break in bended PTFE tube above Toolhead.");
             L("PPA-CF is brittle and could break in bended PTFE tube above Toolhead.");
+            L("The filament may require slicing parameter adjustments.");
         }
     }
 }
@@ -189,12 +201,13 @@ void DevFilaBlacklist::check_filaments_in_blacklist(std::string model_id,
                                                     int                ams_id,
                                                     int                slot_id,
                                                     std::string        tag_name,
+                                                    std::string        nozzle_flow,
                                                     bool& in_blacklist,
                                                     std::string& ac,
                                                     wxString& info)
 {
     wxString wiki_url;
-    check_filaments_in_blacklist_url(model_id, tag_vendor, tag_type, filament_id, ams_id, slot_id, tag_name, in_blacklist, ac, info, wiki_url);
+    check_filaments_in_blacklist_url(model_id, tag_vendor, tag_type, filament_id, ams_id, slot_id, tag_name, nozzle_flow, in_blacklist, ac, info, wiki_url);
 }
 
 
@@ -240,7 +253,7 @@ bool check_filaments_printable(const std::string &tag_vendor, const std::string 
     return true;
 }
 
-void DevFilaBlacklist::check_filaments_in_blacklist_url(std::string model_id, std::string tag_vendor, std::string tag_type, const std::string& filament_id, int ams_id, int slot_id, std::string tag_name, bool& in_blacklist, std::string& ac, wxString& info, wxString& wiki_url)
+void DevFilaBlacklist::check_filaments_in_blacklist_url(std::string model_id, std::string tag_vendor, std::string tag_type, const std::string& filament_id, int ams_id, int slot_id, std::string tag_name, std::string nozzle_flow, bool& in_blacklist, std::string& ac, wxString& info, wxString& wiki_url)
 {
     if (ams_id < 0 || slot_id < 0)
     {
@@ -252,7 +265,7 @@ void DevFilaBlacklist::check_filaments_in_blacklist_url(std::string model_id, st
         return;
     }
 
-    check_filaments(model_id, tag_vendor, tag_type, ams_id, slot_id, tag_name, in_blacklist, ac, info, wiki_url);
+    check_filaments(model_id, tag_vendor, tag_type, ams_id, slot_id, tag_name, nozzle_flow, in_blacklist, ac, info, wiki_url);
 }
 
 }
