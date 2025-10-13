@@ -1208,26 +1208,44 @@ namespace Slic3r {
             double min_length_sq)
         {
             std::vector<VorEdge> edges;
+            edges.reserve(static_cast<size_t>(diagram.dt.number_of_facets()) * 2);
+
+            int total_facets    = 0;
+            int valid_edges     = 0;
+            int infinite_edges  = 0;
 
             for (auto fit = diagram.dt.finite_facets_begin(); fit != diagram.dt.finite_facets_end(); ++fit) {
+                ++total_facets;
+
                 CGAL::Object dual = diagram.dt.dual(*fit);
 
                 if (const Segment_3* seg = CGAL::object_cast<Segment_3>(&dual)) {
                     if (segment_long_enough(*seg, min_length_sq)) {
                         edges.push_back({ seg->source(), seg->target() });
+                        ++valid_edges;
                     }
                 } else if (const Ray_3* ray = CGAL::object_cast<Ray_3>(&dual)) {
                     auto clipped = clip_ray_to_box(*ray, bbox);
                     if (clipped && segment_long_enough(*clipped, min_length_sq)) {
                         edges.push_back({ clipped->source(), clipped->target() });
+                        ++valid_edges;
+                    } else {
+                        ++infinite_edges;
                     }
                 } else if (const Line_3* line = CGAL::object_cast<Line_3>(&dual)) {
                     auto clipped = clip_line_to_box(*line, bbox);
                     if (clipped && segment_long_enough(*clipped, min_length_sq)) {
                         edges.push_back({ clipped->source(), clipped->target() });
+                        ++valid_edges;
+                    } else {
+                        ++infinite_edges;
                     }
                 }
             }
+
+            BOOST_LOG_TRIVIAL(info) << "extract_voronoi_edges() - total_facets=" << total_facets
+                                    << ", valid_edges=" << valid_edges
+                                    << ", infinite_or_clipped=" << infinite_edges;
 
             return edges;
         }
@@ -3398,7 +3416,8 @@ namespace Slic3r {
         const double bbox_diag = (bounds.max - bounds.min).norm();
         const double abs_eps = std::max(1e-7, 1e-8 * bbox_diag);
 
-        BoundingBoxf3 expanded_bounds = expand_bounds(bounds, BOUNDARY_MARGIN_PERCENT);
+        constexpr double WIREFRAME_BOUNDARY_MARGIN = 0.5;
+        BoundingBoxf3 expanded_bounds = expand_bounds(bounds, WIREFRAME_BOUNDARY_MARGIN);
         
         // Build Delaunay triangulation
         DelaunayDiagram diagram(seed_points);
@@ -3855,14 +3874,39 @@ namespace Slic3r {
 
         BOOST_LOG_TRIVIAL(info) << "create_wireframe_from_delaunay() - Extracted " << raw_edges.size() << " raw edges";
 
+        if (raw_edges.empty()) {
+            BOOST_LOG_TRIVIAL(error) << "create_wireframe_from_delaunay() - NO EDGES EXTRACTED! Check Delaunay triangulation.";
+            return result;
+        }
+
+        BOOST_LOG_TRIVIAL(info) << "create_wireframe_from_delaunay() - Sample edges:";
+        for (size_t i = 0; i < std::min<size_t>(5, raw_edges.size()); ++i) {
+            Vec3d p1 = to_vec3d(raw_edges[i].a);
+            Vec3d p2 = to_vec3d(raw_edges[i].b);
+            BOOST_LOG_TRIVIAL(info) << "  Edge " << i << ": " << p1.transpose() << " -> " << p2.transpose();
+        }
+
         if (clip_mesh && config.clip_to_mesh && !clip_mesh->vertices.empty()) {
-            CGALMesh clip_surface;
-            if (indexed_to_surface_mesh(*clip_mesh, clip_surface)) {
-                raw_edges = clip_edges_to_volume(clip_surface, raw_edges, min_edge_length_sq);
-                BOOST_LOG_TRIVIAL(info) << "create_wireframe_from_delaunay() - Edges after clipping: " << raw_edges.size();
-            } else {
-                BOOST_LOG_TRIVIAL(warning) << "create_wireframe_from_delaunay() - Failed to build CGAL surface mesh for clipping";
+            AABBMesh aabb(*clip_mesh);
+            std::vector<VorEdge> clipped_edges;
+            clipped_edges.reserve(raw_edges.size());
+
+            for (const auto& edge : raw_edges) {
+                Vec3d p1 = to_vec3d(edge.a);
+                Vec3d p2 = to_vec3d(edge.b);
+                bool p1_inside = is_point_inside_mesh(aabb, p1);
+                bool p2_inside = is_point_inside_mesh(aabb, p2);
+                if (p1_inside || p2_inside) {
+                    clipped_edges.push_back(edge);
+                }
             }
+
+            BOOST_LOG_TRIVIAL(info) << "create_wireframe_from_delaunay() - Edges after endpoint clipping: "
+                                    << clipped_edges.size() << " / " << raw_edges.size();
+            raw_edges.swap(clipped_edges);
+        } else {
+            BOOST_LOG_TRIVIAL(info) << "create_wireframe_from_delaunay() - Skipping clipping, keeping all "
+                                    << raw_edges.size() << " edges";
         }
 
         struct Vec3dHash {
@@ -3903,19 +3947,7 @@ namespace Slic3r {
 
         const double hash_scale = 1.0 / abs_eps;
         std::unordered_set<std::pair<Vec3d, Vec3d>, EdgeHash, EdgeEqual> voronoi_edges(
-            raw_edges.size() * 2 + 1, EdgeHash(hash_scale), EdgeEqual(abs_eps));
-
-        auto canonical = [&](Vec3d p1, Vec3d p2) {
-            auto lt_eps = [abs_eps](double a, double b) { return a + abs_eps < b; };
-            auto eq_eps = [abs_eps](double a, double b) { return std::abs(a - b) <= abs_eps; };
-
-            if (lt_eps(p2.x(), p1.x()) ||
-                (eq_eps(p1.x(), p2.x()) && lt_eps(p2.y(), p1.y())) ||
-                (eq_eps(p1.x(), p2.x()) && eq_eps(p1.y(), p2.y()) && lt_eps(p2.z(), p1.z()))) {
-                std::swap(p1, p2);
-            }
-            return std::make_pair(p1, p2);
-        };
+            raw_edges.size() * 2, EdgeHash(hash_scale), EdgeEqual(abs_eps));
 
         size_t skipped_short = 0;
         for (const auto& edge : raw_edges) {
@@ -3927,14 +3959,20 @@ namespace Slic3r {
                 continue;
             }
 
-            voronoi_edges.insert(canonical(p1, p2));
+            // Canonical ordering for stable hashing
+            if (p2.x() < p1.x() || (p2.x() == p1.x() && p2.y() < p1.y()) ||
+                (p2.x() == p1.x() && p2.y() == p1.y() && p2.z() < p1.z())) {
+                std::swap(p1, p2);
+            }
+
+            voronoi_edges.insert({ p1, p2 });
         }
 
         if (skipped_short > 0) {
             BOOST_LOG_TRIVIAL(info) << "create_wireframe_from_delaunay() - Skipped " << skipped_short << " very short edges";
         }
 
-        BOOST_LOG_TRIVIAL(info) << "create_wireframe_from_delaunay() - Unique edges: " << voronoi_edges.size();
+        BOOST_LOG_TRIVIAL(info) << "create_wireframe_from_delaunay() - Unique edges after deduplication: " << voronoi_edges.size();
 
         // Step 4: Generate cylinder geometry for each edge
         const float radius = config.edge_thickness * 0.5f;
