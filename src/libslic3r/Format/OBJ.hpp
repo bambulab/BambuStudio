@@ -12,6 +12,8 @@ class ModelObject;
 struct ObjInfo {
     std::vector<RGBA> vertex_colors;
     std::vector<RGBA> face_colors;
+    std::vector<RGBA> mtl_colors;
+    bool              first_time_using_makerlab{false};
     bool              is_single_mtl{false};
     std::string       lost_material_name{""};
     std::vector<std::array<Vec2f,3>> uvs;
@@ -33,6 +35,8 @@ struct ObjDialogInOut
     unsigned char              first_extruder_id;
     bool                       deal_vertex_color;
     Model *                    model{nullptr};
+    std::vector<RGBA>          mtl_colors;
+    bool                       first_time_using_makerlab{false};
     // ml
     std::string ml_region;
     std::string ml_name;

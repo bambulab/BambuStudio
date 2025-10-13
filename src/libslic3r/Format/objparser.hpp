@@ -62,8 +62,8 @@ struct ObjObject
 
 inline bool operator==(const ObjObject &v1, const ObjObject &v2)
 {
-	return 
-		v1.vertexIdxFirst	== v2.vertexIdxFirst	&& 
+	return
+		v1.vertexIdxFirst	== v2.vertexIdxFirst	&&
 		v1.name.compare(v2.name) == 0;
 }
 
@@ -125,7 +125,9 @@ struct MtlData
 {
     // Version of the data structure for load / store in the private binary format.
     int version;
+    bool                                                        first_time_using_makerlab{false};
     std::unordered_map<std::string, std::shared_ptr<ObjNewMtl>> new_mtl_unmap;
+    std::vector<std::string>                                    mtl_orders;
 };
 extern bool objparse(const char *path, ObjData &data);
 extern bool mtlparse(const char *path, MtlData &data);
