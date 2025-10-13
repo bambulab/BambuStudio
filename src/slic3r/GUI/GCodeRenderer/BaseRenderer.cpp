@@ -3682,7 +3682,7 @@ namespace Slic3r
                         break;
                     }
                     case EType::Logarithmic: {
-                        global_t = (value > min && min > 0.0f) ? ::log(value / min) / step : 0.0f;
+                        global_t = (value > _min && _min > 0.0f && step != 0.0f) ? std::max(0.0f, value - _min) / step : 0.0f;
                         break;
                     }
                     }
