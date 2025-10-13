@@ -6302,6 +6302,7 @@ bool GUI_App::load_language(wxString language, bool initial)
             language_info = wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH_UK);
             language_dict = wxLanguage(language_info->Language);
             app_config->set("language", language_info->CanonicalName.ToUTF8().data());
+            return false;
         }
     }
 
