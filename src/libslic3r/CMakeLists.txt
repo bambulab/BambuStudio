@@ -497,16 +497,18 @@ find_package(CGAL REQUIRED)
 find_package(OpenCV REQUIRED core)
 cmake_policy(POP)
 
-FetchContent_Declare(jc_voronoi
-    GIT_REPOSITORY https://github.com/JCash/voronoi.git
-    GIT_TAG dev)
-
-FetchContent_GetProperties(jc_voronoi)
-if(NOT jc_voronoi_POPULATED)
-    FetchContent_Populate(jc_voronoi)
+if(NOT DEFINED JC_VORONOI_SOURCE_DIR)
+    FetchContent_Declare(jc_voronoi
+        GIT_REPOSITORY https://github.com/JCash/voronoi.git
+        GIT_TAG dev)
+    FetchContent_GetProperties(jc_voronoi)
+    if(NOT jc_voronoi_POPULATED)
+        FetchContent_Populate(jc_voronoi)
+    endif()
+    set(JC_VORONOI_SOURCE_DIR ${jc_voronoi_SOURCE_DIR})
 endif()
 
-set(JC_VORONOI_INCLUDE_DIR ${jc_voronoi_SOURCE_DIR}/src)
+set(JC_VORONOI_INCLUDE_DIR ${JC_VORONOI_SOURCE_DIR}/src)
 
 add_library(libslic3r_cgal STATIC
     CutSurface.hpp CutSurface.cpp
