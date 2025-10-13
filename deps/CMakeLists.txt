@@ -87,14 +87,16 @@ find_package(Git REQUIRED)
 # The default command line for patching. Only works for newer 
 set(PATCH_CMD ${GIT_EXECUTABLE} apply --verbose --ignore-space-change --whitespace=fix)
 
-FetchContent_Declare(jc_voronoi
-    GIT_REPOSITORY https://github.com/JCash/voronoi.git
-    GIT_TAG dev)
-FetchContent_GetProperties(jc_voronoi)
-if(NOT jc_voronoi_POPULATED)
-    FetchContent_Populate(jc_voronoi)
+if(NOT DEFINED JC_VORONOI_SOURCE_DIR)
+    FetchContent_Declare(jc_voronoi
+        GIT_REPOSITORY https://github.com/JCash/voronoi.git
+        GIT_TAG dev)
+    FetchContent_GetProperties(jc_voronoi)
+    if(NOT jc_voronoi_POPULATED)
+        FetchContent_Populate(jc_voronoi)
+    endif()
+    set(JC_VORONOI_SOURCE_DIR ${jc_voronoi_SOURCE_DIR} CACHE PATH "Path to JC Voronoi sources fetched during deps stage" FORCE)
 endif()
-set(JC_VORONOI_SOURCE_DIR ${jc_voronoi_SOURCE_DIR} CACHE PATH "Path to JC Voronoi sources fetched during deps stage" FORCE)
 
 get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 

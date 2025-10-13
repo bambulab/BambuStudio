@@ -508,7 +508,7 @@ if(NOT DEFINED JC_VORONOI_SOURCE_DIR)
     set(JC_VORONOI_SOURCE_DIR ${jc_voronoi_SOURCE_DIR})
 endif()
 
-set(JC_VORONOI_INCLUDE_DIR ${JC_VORONOI_SOURCE_DIR}/src)
+set(JC_VORONOI_INCLUDE_DIR ${JC_VORONOI_SOURCE_DIR}/src CACHE PATH "JC Voronoi include directory")
 
 add_library(libslic3r_cgal STATIC
     CutSurface.hpp CutSurface.cpp
