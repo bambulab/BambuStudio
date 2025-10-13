@@ -1995,7 +1995,9 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         std::string action;
         wxString info;
         wxString wiki_url;
-        DevFilaBlacklist::check_filaments_in_blacklist_url(obj_->printer_type, filament_brand, filament_type, m_ams_mapping_result[i].filament_id, ams_id, slot_id, "", in_blacklist,
+        std::string nozzle_flow = obj_->GetFilaSystem() ? obj_->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id)) : std::string();
+
+        DevFilaBlacklist::check_filaments_in_blacklist_url(obj_->printer_type, filament_brand, filament_type, m_ams_mapping_result[i].filament_id, ams_id, slot_id, "", nozzle_flow, in_blacklist,
                                                         action, info, wiki_url);
         if (in_blacklist && action == "warning") {
             confirm_text.push_back(ConfirmBeforeSendInfo(info, wiki_url));
@@ -3471,7 +3473,9 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         std::string action;
         wxString info;
         wxString wiki_url;
-        DevFilaBlacklist::check_filaments_in_blacklist_url(obj_->printer_type, filament_brand, filament_type, m_ams_mapping_result[i].filament_id, ams_id, slot_id, "", in_blacklist,
+        std::string nozzle_flow = obj_->GetFilaSystem() ? obj_->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id)) : std::string();
+
+        DevFilaBlacklist::check_filaments_in_blacklist_url(obj_->printer_type, filament_brand, filament_type, m_ams_mapping_result[i].filament_id, ams_id, slot_id, "", nozzle_flow, in_blacklist,
                                                         action, info, wiki_url);
         if (in_blacklist) {
 

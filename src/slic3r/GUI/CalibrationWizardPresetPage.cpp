@@ -1504,7 +1504,9 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
         auto vendor = dynamic_cast<ConfigOptionStrings*> (preset->config.option("filament_vendor"));
         if (vendor && (vendor->values.size() > 0)) {
             std::string vendor_name = vendor->values[0];
-            DevFilaBlacklist::check_filaments_in_blacklist(curr_obj->printer_type, vendor_name, filamnt_type, preset->filament_id, ams_id, slot_id, "", in_blacklist, action, info);
+            std::string nozzle_flow = curr_obj->GetFilaSystem() ? curr_obj->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id)) : std::string();
+
+            DevFilaBlacklist::check_filaments_in_blacklist(curr_obj->printer_type, vendor_name, filamnt_type, preset->filament_id, ams_id, slot_id, "", nozzle_flow, in_blacklist, action, info);
         }
 
         if (in_blacklist) {

@@ -17,6 +17,26 @@ DevNozzle DevNozzleSystem::GetNozzle(int id) const
     return DevNozzle();
 }
 
+std::string DevNozzle::GetNozzleFlowTypeString(NozzleFlowType type)
+{
+    switch (type) {
+        case NozzleFlowType::H_FLOW: return "High Flow";
+        case NozzleFlowType::S_FLOW: return "Standard";
+        default: return "Unknown";
+    }
+}
+
+std::string DevNozzle::GetNozzleTypeString(NozzleType type)
+{
+    switch (type) {
+    case Slic3r::ntHardenedSteel:   return "Hardened Steel";
+    case Slic3r::ntStainlessSteel:  return "Stainless Steel";
+    case Slic3r::ntTungstenCarbide: return "Tungsten Carbide";
+    case Slic3r::ntBrass:           return "Brass";
+    default:                        return "Unknown";
+    }
+}
+
 void DevNozzleSystem::Reset()
 {
     m_nozzles.clear();
