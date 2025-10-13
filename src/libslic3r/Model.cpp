@@ -299,6 +299,8 @@ Model Model::read_from_file(const std::string&                                  
             } else if (obj_info.face_colors.size() > 0 && obj_info.has_uv_png == false) { // mtl file
                 if (objFn) { // 1.result is ok and pop up a dialog
                     in_out.input_colors      = std::move(obj_info.face_colors);
+                    in_out.mtl_colors        = std::move(obj_info.mtl_colors);
+                    in_out.first_time_using_makerlab = obj_info.first_time_using_makerlab;
                     in_out.is_single_color   = obj_info.is_single_mtl;
                     in_out.deal_vertex_color = false;
                     objFn(in_out);
@@ -985,7 +987,7 @@ std::string Model::get_backup_path()
     }
     boost::filesystem::path temp_path(backup_path);
     std::string temp_path_safe = PathSanitizer::sanitize(temp_path);
-    try {    
+    try {
         if (!boost::filesystem::exists(temp_path))
         {
             BOOST_LOG_TRIVIAL(info) << "create /3D/Objects in " << temp_path_safe;

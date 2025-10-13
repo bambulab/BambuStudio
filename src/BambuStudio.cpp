@@ -894,7 +894,13 @@ void merge_or_add_object(assemble_plate_info_t& assemble_plate_info, Model &mode
     }
 }
 
-bool convert_obj_cluster_colors(std::vector<Slic3r::RGBA>& input_colors, std::vector<RGBA>& all_colours, int max_filament_count, std::vector<unsigned char>& output_filament_ids, int& first_filament_id)
+bool convert_obj_cluster_colors(std::vector<Slic3r::RGBA> & input_colors,
+                                std::vector<RGBA> &         all_colours,
+                                int                         max_filament_count,
+                                std::vector<unsigned char> &output_filament_ids,
+                                int &                       first_filament_id,
+                                bool                        first_time_using_makerlab = false,
+                                std::vector<Slic3r::RGBA>   mtl_colors                = {})
 {
     using namespace Slic3r::GUI;
 
@@ -903,8 +909,27 @@ bool convert_obj_cluster_colors(std::vector<Slic3r::RGBA>& input_colors, std::ve
         std::vector<Slic3r::RGBA> cluster_colors;
         std::vector<int>          cluster_labels;
         char                      cluster_number = -1;
-
-        obj_color_deal_algo(input_colors, cluster_colors, cluster_labels, cluster_number, (int)EnforcerBlockerType::ExtruderMax);
+        if (first_time_using_makerlab && mtl_colors.size() < (int) EnforcerBlockerType::ExtruderMax) {
+            first_time_using_makerlab = false;
+            cluster_colors            = mtl_colors;
+            cluster_labels.clear();
+            cluster_labels.reserve(input_colors.size());
+            for (int i = 0; i < input_colors.size(); i++) {
+                bool can_find = false;
+                for (int j = 0; j < cluster_colors.size(); j++) {
+                    if (Slic3r::color_is_equal(input_colors[i],cluster_colors[j])) {
+                        cluster_labels.emplace_back(j);
+                        can_find = true;
+                    }
+                }
+                if (!can_find) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " error,not matched: " << i;
+                    cluster_labels.emplace_back(0);
+                }
+            }
+        } else {
+            obj_color_deal_algo(input_colors, cluster_colors, cluster_labels, cluster_number, (int) EnforcerBlockerType::ExtruderMax);
+        }
         std::vector<int> cluster_color_maps;
 
         BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, after obj_color_deal_algo, cluster_colors size %3%, all_colours size %4%, max_filament_count=%5%")%__FUNCTION__ %__LINE__%cluster_colors.size() %all_colours.size() %max_filament_count;
@@ -1084,7 +1109,8 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
                     }
                     skip_filament = true;
                 } else if (obj_info.face_colors.size() > 0 && obj_info.has_uv_png == false) { // mtl file
-                    convert_obj_cluster_colors(obj_info.face_colors, all_colours, max_filament_count, output_filament_ids, first_filament_id);
+                    convert_obj_cluster_colors(obj_info.face_colors, all_colours, max_filament_count, output_filament_ids, first_filament_id, obj_info.first_time_using_makerlab,
+                                               obj_info.mtl_colors);
                     if (output_filament_ids.size() > 0) {
                         unsigned char first_eid = (unsigned char)first_filament_id;
                         result = Model::obj_import_face_color_deal(output_filament_ids, first_eid, & obj_temp_model);
