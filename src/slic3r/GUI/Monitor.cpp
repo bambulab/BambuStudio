@@ -456,7 +456,8 @@ void MonitorPanel::show_status(int status)
     if ((last_status & (int)MonitorStatus::MONITOR_CONNECTING) != 0) {
         NetworkAgent* agent = wxGetApp().getAgent();
         json j;
-        j["dev_id"] = obj ? obj->get_dev_id() : "obj_nullptr";
+        //j["dev_id"] = obj ? obj->get_dev_id() : "obj_nullptr";
+        j["dev_id"] = "";
         if ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0) {
             j["result"] = "failed";
             if (agent) {
