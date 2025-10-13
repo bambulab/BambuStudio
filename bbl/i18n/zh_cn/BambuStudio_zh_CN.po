@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 10:02+0800\n"
+"POT-Creation-Date: 2025-10-13 20:42+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1133,6 +1133,8 @@ msgid ""
 "Advanced options cannot be changed for the selected font.\n"
 "Select another font."
 msgstr ""
+"无法更改所选字体的高级选项。\n"
+"请选择另一种字体。"
 
 #. TRN - Input label. Be short as possible
 msgid "Boldness"
@@ -2749,6 +2751,10 @@ msgstr "剩余时间：计算中"
 msgid "The heated bed's thermal preconditioning helps optimize the first layer print quality. Printing will start once preconditioning is complete."
 msgstr "保温热床可以优化首层打印质量，保温完成后将发起打印。"
 
+#, c-format, boost-format
+msgid "Remaining time: %dmin%ds"
+msgstr ""
+
 msgid "Choose SLA archive:"
 msgstr "选择SLA存档："
 
@@ -3194,22 +3200,22 @@ msgid "Detects clogging and filament grinding, halting printing immediately to c
 msgstr "检测到堵塞和耗材丝碾磨，立即停止打印以节约时间和耗材丝"
 
 msgid "AMS Type"
-msgstr ""
+msgstr "AMS 类型"
 
 msgid "Switching"
 msgstr "切换中"
 
 msgid "The printer is busy and cannot switch AMS type."
-msgstr ""
+msgstr "打印机正忙，无法切换AMS类型。"
 
 msgid "Please unload all filament before switching."
-msgstr ""
+msgstr "切换前请卸下所有耗材丝。"
 
 msgid "AMS type switching needs firmware update, taking about 30s. Switch now ?"
 msgstr ""
 
 msgid "Arrange AMS Order"
-msgstr ""
+msgstr "重新排序 AMS"
 
 msgid "AMS ID will be reset. If you want a specific ID sequence, disconnect all AMS before resetting and connect them in the desired order after resetting."
 msgstr "已连接AMS的ID将被重置。如果你想要一个特定的ID顺序，在重置后断开所有AMS的连接，重置后按所需顺序连接。"
@@ -3883,7 +3889,7 @@ msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "无效格式，应该是\"%1%\"这种数组格式"
 
 msgid "Clear color"
-msgstr ""
+msgstr "清除颜色"
 
 msgid ""
 "An object is placed in the left/right nozzle-only area or exceeds the printable height of the left nozzle.\n"
@@ -4905,7 +4911,7 @@ msgid "Playing..."
 msgstr "正在播放中……"
 
 msgid "DLL load error"
-msgstr ""
+msgstr "DLL加载错误"
 
 msgid "Loading..."
 msgstr "正在加载视频……"
@@ -5307,7 +5313,7 @@ msgid "The selected slot is empty."
 msgstr "当前选择的槽位是空的"
 
 msgid "Printer 2D mode does not support 3D calibration"
-msgstr ""
+msgstr "打印机 2D 模式不支持 3D 校准"
 
 msgid "Downloading..."
 msgstr "下载中..."
@@ -6865,10 +6871,10 @@ msgid "Toolbar Style"
 msgstr "工具栏风格"
 
 msgid "Enable advanced gcode viewer"
-msgstr ""
+msgstr "启用高级 gcode 查看器"
 
 msgid "Enable advanced gcode viewer."
-msgstr ""
+msgstr "启用高级 gcode 查看器。"
 
 msgid "Grabber scale"
 msgstr "抓手比例"
@@ -6925,10 +6931,10 @@ msgid "Show history on the home page"
 msgstr "在主页上显示历史"
 
 msgid "Reminder During Slicing"
-msgstr ""
+msgstr "切片时提醒"
 
 msgid "Automatic mode"
-msgstr ""
+msgstr "自动模式"
 
 msgid "Maximum recent projects"
 msgstr "近期项目的最大数量"
@@ -6988,7 +6994,7 @@ msgid "What data would be collected?"
 msgstr "将收集哪些数据？"
 
 msgid "Auto-fill previously logged-in accounts."
-msgstr ""
+msgstr "自动填充历史账号"
 
 msgid "Develop Mode"
 msgstr "开发者模式"
@@ -7463,12 +7469,12 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Ple
 msgstr "当前材料(%s) 的硬度 高于 %s(%s)的硬度，请确认喷嘴或材料属性后重试。"
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment."
-msgstr "[ %s ] 需要在高温环境下打印。"
-
-#, c-format, boost-format
 msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
 msgstr "[ %s ] 需要在高温环境下打印。请关上门。"
+
+#, c-format, boost-format
+msgid "[ %s ] requires printing in a high-temperature environment."
+msgstr "[ %s ] 需要在高温环境下打印。"
 
 #, c-format, boost-format
 msgid "The filament on %s may soften. Please unload."
@@ -7584,7 +7590,7 @@ msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "上传文件超时，请检查固件版本是否支持。"
 
 msgid "Connection timed out, please check your network."
-msgstr ""
+msgstr "连接超时，请检查您的网络。"
 
 msgid "Connection failed. Click the icon to retry"
 msgstr "连接失败，点击图标重试"
@@ -7608,7 +7614,7 @@ msgid "Sending..."
 msgstr "发送中..."
 
 msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
-msgstr "文件上传超时。请检查固件版本是否支持此操作操作或验证打印机是否正常工作。"
+msgstr "文件上传超时。请检查固件版本是否支持此操作或验证打印机是否正常工作。"
 
 msgid "Helio action completed successfully."
 msgstr "Helio操作已成功完成。"
@@ -7988,7 +7994,7 @@ msgid "Cooling for specific layer"
 msgstr "特定层冷却"
 
 msgid "Special cooling settings"
-msgstr ""
+msgstr "特殊冷却设置"
 
 msgid "set addition fan speed before fist x layer"
 msgstr ""
@@ -8987,7 +8993,7 @@ msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
 msgstr "获取 Helio-PAT 失败，点击刷新重新获取。"
 
 msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
-msgstr ""
+msgstr "获取 Helio-PAT 失败。已达到数量上限，无法再获取。请点击刷新按钮重新获取PAT。"
 
 msgid "Simulation"
 msgstr "仿真"
@@ -8996,7 +9002,7 @@ msgid "Optimization"
 msgstr "优化"
 
 msgid "Environment Temperature"
-msgstr ""
+msgstr "环境温度"
 
 msgid "Chamber Temperature"
 msgstr "腔温"
@@ -9056,16 +9062,16 @@ msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upp
 msgstr "获取 Helio-PAT 失败。已达到发行 PAT 的上限。请关注 Helio 官方网站的信息。可点击刷新重新获取。"
 
 msgid "Print Time Improvement"
-msgstr ""
+msgstr "打印时间优化"
 
 msgid "Average Improvement"
-msgstr ""
+msgstr "平均优化效果"
 
 msgid "Consistency Improvement"
-msgstr ""
+msgstr "一致性优化效果"
 
 msgid "Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next."
-msgstr ""
+msgstr "您的G代码已完成优化，以实现最佳打印效果。若需进一步提升打印质量，可查阅我们的wiki文档，获取后续操作的实用技巧与建议。"
 
 msgid "Air Pump"
 msgstr "气泵"
@@ -10672,10 +10678,10 @@ msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "如果机器有辅助部件冷却风扇，勾选该选项"
 
 msgid "Fan direction"
-msgstr ""
+msgstr "风扇方向"
 
 msgid "Cooling fan direction of the printer"
-msgstr ""
+msgstr "打印机冷却风扇方向"
 
 msgid "Both"
 msgstr ""
@@ -12749,7 +12755,7 @@ msgid "Error uploading to print host:"
 msgstr "上传到打印主机时出错："
 
 msgid "Unable to perform boolean operation on selected parts."
-msgstr "因其他加热维护功能已开启，本功能暂不可用。"
+msgstr "无法对所选零件执行布尔运算。"
 
 msgid "Operation Canceled."
 msgstr "操作已取消。"
@@ -12789,6 +12795,30 @@ msgstr "- 对象模式：请至少选择两个对象。"
 
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- 部件模式：请选择一个包含至少两个零件的对象。"
+
+msgid "Union"
+msgstr "并集"
+
+msgid "Difference"
+msgstr "Subtraction"
+
+msgid "Intersection"
+msgstr "交集"
+
+msgid "Keep original models"
+msgstr ""
+
+msgid "Execute"
+msgstr ""
+
+msgid "Entity Only"
+msgstr ""
+
+msgid "Perform Boolean operations on entities only."
+msgstr ""
+
+msgid "This object contains non-part components."
+msgstr ""
 
 msgid "Network Test"
 msgstr "网络测试"
@@ -13717,10 +13747,10 @@ msgid "Helio: Simulation check failed"
 msgstr "Helio：仿真检测失败"
 
 msgid "Helio: Failed to create Simulation"
-msgstr ""
+msgstr "Helio: 创建仿真失败"
 
 msgid "Helio: Failed to create GCode"
-msgstr ""
+msgstr "Helio: 创建GCode失败"
 
 msgid "Helio: optimization successfully created"
 msgstr "Helio：优化创建成功"
@@ -13732,13 +13762,13 @@ msgid "Helio: Optimzaion check failed"
 msgstr "Helio：优化检查失败"
 
 msgid "Helio: Failed to create Optimization"
-msgstr ""
+msgstr "Helio: 创建优化失败"
 
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio：G代码下载成功"
 
 msgid "Helio: GCode download failed"
-msgstr ""
+msgstr "Helio: GCode 下载失败"
 
 msgid "No AMS"
 msgstr "没有AMS"
@@ -14659,15 +14689,6 @@ msgstr ""
 
 #~ msgid "Please right click to assembly these objects."
 #~ msgstr "请右键组合这些对象"
-
-#~ msgid "Union"
-#~ msgstr "并集"
-
-#~ msgid "Difference"
-#~ msgstr "相减"
-
-#~ msgid "Intersection"
-#~ msgstr "交集"
 
 #~ msgid "Source Volume"
 #~ msgstr "源体积"

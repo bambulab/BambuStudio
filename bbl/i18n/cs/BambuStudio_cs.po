@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 10:02+0800\n"
+"POT-Creation-Date: 2025-10-13 20:42+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -2747,6 +2747,10 @@ msgid "Remaining time: Calculating..."
 msgstr ""
 
 msgid "The heated bed's thermal preconditioning helps optimize the first layer print quality. Printing will start once preconditioning is complete."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Remaining time: %dmin%ds"
 msgstr ""
 
 msgid "Choose SLA archive:"
@@ -7410,11 +7414,11 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Ple
 msgstr ""
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment."
+msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
 msgstr ""
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
+msgid "[ %s ] requires printing in a high-temperature environment."
 msgstr ""
 
 #, c-format, boost-format
@@ -12678,6 +12682,30 @@ msgstr ""
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr ""
 
+msgid "Union"
+msgstr "Sjednocení"
+
+msgid "Difference"
+msgstr "Rozdíl"
+
+msgid "Intersection"
+msgstr "Průsečík"
+
+msgid "Keep original models"
+msgstr ""
+
+msgid "Execute"
+msgstr ""
+
+msgid "Entity Only"
+msgstr ""
+
+msgid "Perform Boolean operations on entities only."
+msgstr ""
+
+msgid "This object contains non-part components."
+msgstr ""
+
 msgid "Network Test"
 msgstr ""
 
@@ -14336,15 +14364,6 @@ msgstr ""
 
 #~ msgid "Unable to perform boolean operation on selected parts"
 #~ msgstr "Nelze provést booleovskou operaci na vybraných částech"
-
-#~ msgid "Union"
-#~ msgstr "Sjednocení"
-
-#~ msgid "Difference"
-#~ msgstr "Rozdíl"
-
-#~ msgid "Intersection"
-#~ msgstr "Průsečík"
 
 #~ msgid "Source Volume"
 #~ msgstr "Zdrojový objem"

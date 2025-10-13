@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 10:02+0800\n"
+"POT-Creation-Date: 2025-10-13 20:42+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -2756,6 +2756,10 @@ msgid "Remaining time: Calculating..."
 msgstr ""
 
 msgid "The heated bed's thermal preconditioning helps optimize the first layer print quality. Printing will start once preconditioning is complete."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Remaining time: %dmin%ds"
 msgstr ""
 
 msgid "Choose SLA archive:"
@@ -7481,11 +7485,11 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Ple
 msgstr ""
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment."
+msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
 msgstr ""
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
+msgid "[ %s ] requires printing in a high-temperature environment."
 msgstr ""
 
 #, c-format, boost-format
@@ -12785,6 +12789,30 @@ msgstr ""
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr ""
 
+msgid "Union"
+msgstr "Об'єднання"
+
+msgid "Difference"
+msgstr "Різниця"
+
+msgid "Intersection"
+msgstr "Перетин"
+
+msgid "Keep original models"
+msgstr ""
+
+msgid "Execute"
+msgstr ""
+
+msgid "Entity Only"
+msgstr ""
+
+msgid "Perform Boolean operations on entities only."
+msgstr ""
+
+msgid "This object contains non-part components."
+msgstr ""
+
 msgid "Network Test"
 msgstr "Тест мережі"
 
@@ -14527,15 +14555,6 @@ msgstr ""
 
 #~ msgid "Please right click to assembly these objects."
 #~ msgstr "Будь ласка, натисніть праву кнопку миші, щоб зібрати ці об’єкти."
-
-#~ msgid "Union"
-#~ msgstr "Об'єднання"
-
-#~ msgid "Difference"
-#~ msgstr "Різниця"
-
-#~ msgid "Intersection"
-#~ msgstr "Перетин"
 
 #~ msgid "Source Volume"
 #~ msgstr "Об'єм джерела"
