@@ -181,11 +181,15 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # We pick it from environment if it is not defined in another way
 if(WIN32)
     if(EXISTS "${CMAKE_SOURCE_DIR}/scripts/hooks/pre-commit"  AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
-        message(STATUS ".git: directory")
-        configure_file(
-            "${CMAKE_SOURCE_DIR}/scripts/hooks/pre-commit"
-            "${CMAKE_SOURCE_DIR}/.git/hooks/pre-commit"
-        )
+       if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/.git")
+            message(STATUS ".git: directory")
+            configure_file(
+                "${CMAKE_SOURCE_DIR}/scripts/hooks/pre-commit"
+                "${CMAKE_SOURCE_DIR}/.git/hooks/pre-commit"
+            )
+       else()
+           message(STATUS "skip pre-commit git hook")
+       endif()
     endif()
 
     find_package(PkgConfig REQUIRED)
