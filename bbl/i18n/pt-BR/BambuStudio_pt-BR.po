@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-10 17:50+0800\n"
+"POT-Creation-Date: 2025-10-13 10:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3735,7 +3735,7 @@ msgid "Measuring Surface"
 msgstr "Superfície de Medição"
 
 msgid "Calibrating the detection position of nozzle clumping"
-msgstr ""
+msgstr "Calibrando a posição de detecção do agrupamento do bico"
 
 msgid "Unknown"
 msgstr "Desconhecido"
@@ -4249,7 +4249,7 @@ msgid "High-temperature Heatbed Calibration"
 msgstr "Calibração de leito térmico de alta temperatura"
 
 msgid "Nozzle clumping detection Calibration"
-msgstr ""
+msgstr "Calibração de detecção de aglomeração no bico"
 
 msgid "Calibration program"
 msgstr "Programa de calibração"
@@ -7624,32 +7624,26 @@ msgstr "O firmware atual suporta no máximo 16 materiais. Você pode reduzir o n
 msgid "Please refer to Wiki before use->"
 msgstr "Por favor, consulte Wiki antes de usar->"
 
+msgid "Current firmware does not support file transfer to internal storage."
+msgstr ""
+
 msgid "Send to Printer storage"
 msgstr "Enviar para armazenamento da impressora"
 
 msgid "Try to connect"
 msgstr "Tente se conectar"
 
-msgid "click to retry"
-msgstr "clique para tentar novamente"
+msgid "Internal Storage"
+msgstr ""
+
+msgid "External Storage"
+msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Tempo limite de upload do arquivo: verifique se a versão do firmware suporta isso."
 
-msgid "No available external storage was obtained. Please confirm and try again."
-msgstr "Nenhum armazenamento externo disponível foi obtido. Confirme e tente novamente."
-
-msgid "Media capability acquisition timeout, please check if the firmware version supports it."
-msgstr "Tempo limite de aquisição de capacidade de mídia, verifique se a versão do firmware suporta isso."
-
-msgid "Sending..."
-msgstr "Enviando..."
-
-msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
-msgstr "O upload do arquivo expirou. Verifique se a versão do firmware suporta esta operação ou verifique se a impressora está funcionando corretamente."
-
-msgid "Sending failed, please try again!"
-msgstr "O envio falhou, tente novamente!"
+msgid "Connection timed out, please check your network."
+msgstr ""
 
 msgid "Connection failed. Click the icon to retry"
 msgstr "Falha na conexão. Clique no ícone para tentar novamente."
@@ -7668,6 +7662,12 @@ msgstr "É necessário que a impressora esteja na mesma LAN do Bambu Studio."
 
 msgid "The printer does not support sending to printer storage."
 msgstr "A impressora não suporta envio para armazenamento da impressora."
+
+msgid "Sending..."
+msgstr "Enviando..."
+
+msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
+msgstr "O upload do arquivo expirou. Verifique se a versão do firmware suporta esta operação ou verifique se a impressora está funcionando corretamente."
 
 msgid "Helio action completed successfully."
 msgstr "Ação Helio concluída com sucesso."
@@ -9069,11 +9069,11 @@ msgstr "Simulação"
 msgid "Optimization"
 msgstr "Otimização"
 
+msgid "Environment Temperature"
+msgstr ""
+
 msgid "Chamber Temperature"
 msgstr "Temperatura da câmara"
-
-msgid "If it is for the A series and P1P, please enter the ambient temperature here."
-msgstr ""
 
 msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
 msgstr "Nota: Ajuste a temperatura acima com base nas condições reais. Dados mais precisos garantem resultados de análise mais exatos."
@@ -9130,16 +9130,16 @@ msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upp
 msgstr "Falha ao obter Helio PAT. O número de PATs emitidos atingiu o limite máximo. Por favor, fique atento às informações no site oficial do Helio. Clique em Atualizar para tentar novamente assim que estiver disponível."
 
 msgid "Print Time Improvement"
-msgstr ""
+msgstr "Melhoria do Tempo de Impressão"
 
 msgid "Average Improvement"
-msgstr ""
+msgstr "Melhoria Média"
 
 msgid "Consistency Improvement"
-msgstr ""
+msgstr "Melhoria de Consistência"
 
 msgid "Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next."
-msgstr ""
+msgstr "Seu gcode foi aprimorado para a melhor impressão possível. Para aprimorar ainda mais sua impressão, confira nosso wiki para dicas e truques sobre o que fazer a seguir."
 
 msgid "Air Pump"
 msgstr "Bomba de ar"
@@ -14456,6 +14456,18 @@ msgid ""
 msgstr ""
 "Encolhimento, empenamento e tensão\n"
 "Ao controlar o índice térmico, você pode remover as causas de empenamento e tensão causadas pelo calor."
+
+#~ msgid "click to retry"
+#~ msgstr "clique para tentar novamente"
+
+#~ msgid "No available external storage was obtained. Please confirm and try again."
+#~ msgstr "Nenhum armazenamento externo disponível foi obtido. Confirme e tente novamente."
+
+#~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
+#~ msgstr "Tempo limite de aquisição de capacidade de mídia, verifique se a versão do firmware suporta isso."
+
+#~ msgid "Sending failed, please try again!"
+#~ msgstr "O envio falhou, tente novamente!"
 
 #~ msgid "Summary"
 #~ msgstr "Resumo"
