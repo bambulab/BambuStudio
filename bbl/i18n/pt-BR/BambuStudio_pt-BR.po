@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 10:02+0800\n"
+"POT-Creation-Date: 2025-10-13 20:42+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2767,6 +2767,10 @@ msgstr "Tempo restante: Calculando..."
 
 msgid "The heated bed's thermal preconditioning helps optimize the first layer print quality. Printing will start once preconditioning is complete."
 msgstr "O pré-condicionamento térmico da cama aquecida ajuda a otimizar a qualidade de impressão da primeira camada. A impressão será iniciada após a conclusão do pré-condicionamento."
+
+#, c-format, boost-format
+msgid "Remaining time: %dmin%ds"
+msgstr ""
 
 msgid "Choose SLA archive:"
 msgstr "Escolha o arquivo SLA:"
@@ -7520,12 +7524,12 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Ple
 msgstr "A dureza do material atual (%s ) excede a dureza de%s (%s ). Verifique as configurações do bico ou do material e tente novamente."
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment."
-msgstr "[ %s ] requer impressão em ambiente de alta temperatura."
-
-#, c-format, boost-format
 msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
 msgstr "[ %s ] requer impressão em ambiente de alta temperatura. Por favor, feche a porta."
+
+#, c-format, boost-format
+msgid "[ %s ] requires printing in a high-temperature environment."
+msgstr "[ %s ] requer impressão em ambiente de alta temperatura."
 
 #, c-format, boost-format
 msgid "The filament on %s may soften. Please unload."
@@ -12861,6 +12865,30 @@ msgstr "- Modo de objeto: selecione pelo menos dois objetos."
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- Modo de parte: Selecione um objeto com pelo menos duas malhas."
 
+msgid "Union"
+msgstr "União"
+
+msgid "Difference"
+msgstr "Subtraction"
+
+msgid "Intersection"
+msgstr "Interseção"
+
+msgid "Keep original models"
+msgstr ""
+
+msgid "Execute"
+msgstr ""
+
+msgid "Entity Only"
+msgstr ""
+
+msgid "Perform Boolean operations on entities only."
+msgstr ""
+
+msgid "This object contains non-part components."
+msgstr ""
+
 msgid "Network Test"
 msgstr "Teste de rede"
 
@@ -14752,15 +14780,6 @@ msgstr ""
 
 #~ msgid "Please right click to assembly these objects."
 #~ msgstr "Clique com o botão direito para montar esses objetos."
-
-#~ msgid "Union"
-#~ msgstr "União"
-
-#~ msgid "Difference"
-#~ msgstr "Diferença"
-
-#~ msgid "Intersection"
-#~ msgstr "Interseção"
 
 #~ msgid "Source Volume"
 #~ msgstr "Volume de origem"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 10:02+0800\n"
+"POT-Creation-Date: 2025-10-13 20:42+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2748,6 +2748,10 @@ msgid "Remaining time: Calculating..."
 msgstr ""
 
 msgid "The heated bed's thermal preconditioning helps optimize the first layer print quality. Printing will start once preconditioning is complete."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Remaining time: %dmin%ds"
 msgstr ""
 
 msgid "Choose SLA archive:"
@@ -7450,11 +7454,11 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Ple
 msgstr ""
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment."
+msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
 msgstr ""
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
+msgid "[ %s ] requires printing in a high-temperature environment."
 msgstr ""
 
 #, c-format, boost-format
@@ -12692,7 +12696,7 @@ msgid "Operation Failed."
 msgstr ""
 
 msgid "Union operation requires at least two volumes."
-msgstr ""
+msgstr "Union operation requires at least two parts."
 
 msgid "Intersection operation requires at least two volumes."
 msgstr "Intersection operation requires at least two parts."
@@ -12723,6 +12727,30 @@ msgstr ""
 
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- Part mode: Please select one object with at least two parts."
+
+msgid "Union"
+msgstr "Union"
+
+msgid "Difference"
+msgstr "Subtraction"
+
+msgid "Intersection"
+msgstr "Intersection"
+
+msgid "Keep original models"
+msgstr ""
+
+msgid "Execute"
+msgstr ""
+
+msgid "Entity Only"
+msgstr ""
+
+msgid "Perform Boolean operations on entities only."
+msgstr ""
+
+msgid "This object contains non-part components."
+msgstr ""
 
 msgid "Network Test"
 msgstr "Network Test"
@@ -14460,15 +14488,6 @@ msgstr ""
 
 #~ msgid "Please right click to assembly these objects."
 #~ msgstr "Please right click to assemble these objects."
-
-#~ msgid "Union"
-#~ msgstr "Union"
-
-#~ msgid "Difference"
-#~ msgstr "Subtraction"
-
-#~ msgid "Intersection"
-#~ msgstr "Intersection"
 
 #~ msgid "Source Volume"
 #~ msgstr "Source Volume"

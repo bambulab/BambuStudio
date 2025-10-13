@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 10:02+0800\n"
+"POT-Creation-Date: 2025-10-13 20:42+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2750,6 +2750,10 @@ msgstr "残り時間: 計算中..."
 
 msgid "The heated bed's thermal preconditioning helps optimize the first layer print quality. Printing will start once preconditioning is complete."
 msgstr "ヒートベッドの熱的な予備調整は、一層目の造形品質を最適化するのに役立ちます。予備調整が完了すると、造形が開始されます。"
+
+#, c-format, boost-format
+msgid "Remaining time: %dmin%ds"
+msgstr ""
 
 msgid "Choose SLA archive:"
 msgstr "SLA アーカイブを選択します:"
@@ -7473,12 +7477,12 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Ple
 msgstr "現在の素材（%s）の硬度が、%s（%s）の硬度を超えています。ノズルまたは材料の設定を確認し、再度お試しください。"
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment."
-msgstr "[%s] の造形には高温環境が必要です。"
-
-#, c-format, boost-format
 msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
 msgstr "[ %s ]の造形には高温環境が必要です。ドアを閉じてください。"
+
+#, c-format, boost-format
+msgid "[ %s ] requires printing in a high-temperature environment."
+msgstr "[%s] の造形には高温環境が必要です。"
 
 #, c-format, boost-format
 msgid "The filament on %s may soften. Please unload."
@@ -12790,6 +12794,30 @@ msgstr "- オブジェクトモード：2つ以上のオブジェクトを選択
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- パーツモード: 2つ以上のメッシュを含む1つのオブジェクトを選択してください。"
 
+msgid "Union"
+msgstr "合成"
+
+msgid "Difference"
+msgstr "Subtraction"
+
+msgid "Intersection"
+msgstr "交差点"
+
+msgid "Keep original models"
+msgstr ""
+
+msgid "Execute"
+msgstr ""
+
+msgid "Entity Only"
+msgstr ""
+
+msgid "Perform Boolean operations on entities only."
+msgstr ""
+
+msgid "This object contains non-part components."
+msgstr ""
+
 msgid "Network Test"
 msgstr "ネットワークテスト"
 
@@ -14681,15 +14709,6 @@ msgstr ""
 
 #~ msgid "Please right click to assembly these objects."
 #~ msgstr "右クリックして、これらのオブジェクトを組み立ててください。"
-
-#~ msgid "Union"
-#~ msgstr "合成"
-
-#~ msgid "Difference"
-#~ msgstr "違い"
-
-#~ msgid "Intersection"
-#~ msgstr "交差点"
 
 #~ msgid "Source Volume"
 #~ msgstr "ソースボリューム"
