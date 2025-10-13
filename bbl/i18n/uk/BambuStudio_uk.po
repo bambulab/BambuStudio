@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-10 17:50+0800\n"
+"POT-Creation-Date: 2025-10-13 10:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -7583,31 +7583,25 @@ msgstr ""
 msgid "Please refer to Wiki before use->"
 msgstr ""
 
+msgid "Current firmware does not support file transfer to internal storage."
+msgstr ""
+
 msgid "Send to Printer storage"
 msgstr ""
 
 msgid "Try to connect"
 msgstr ""
 
-msgid "click to retry"
+msgid "Internal Storage"
+msgstr ""
+
+msgid "External Storage"
 msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr ""
 
-msgid "No available external storage was obtained. Please confirm and try again."
-msgstr ""
-
-msgid "Media capability acquisition timeout, please check if the firmware version supports it."
-msgstr ""
-
-msgid "Sending..."
-msgstr ""
-
-msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
-msgstr ""
-
-msgid "Sending failed, please try again!"
+msgid "Connection timed out, please check your network."
 msgstr ""
 
 msgid "Connection failed. Click the icon to retry"
@@ -7626,6 +7620,12 @@ msgid "The printer is required to be in the same LAN as Bambu Studio."
 msgstr "Для роботи з Bambu Studio, принтер повинен бути в тій самій локальній мережі (LAN)."
 
 msgid "The printer does not support sending to printer storage."
+msgstr ""
+
+msgid "Sending..."
+msgstr ""
+
+msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
 msgstr ""
 
 msgid "Helio action completed successfully."
@@ -9004,10 +9004,10 @@ msgstr ""
 msgid "Optimization"
 msgstr ""
 
-msgid "Chamber Temperature"
+msgid "Environment Temperature"
 msgstr ""
 
-msgid "If it is for the A series and P1P, please enter the ambient temperature here."
+msgid "Chamber Temperature"
 msgstr ""
 
 msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."

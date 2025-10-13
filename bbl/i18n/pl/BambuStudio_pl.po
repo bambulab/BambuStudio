@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-10 17:50+0800\n"
+"POT-Creation-Date: 2025-10-13 10:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3738,7 +3738,7 @@ msgid "Measuring Surface"
 msgstr "Pomiar powierzchni"
 
 msgid "Calibrating the detection position of nozzle clumping"
-msgstr ""
+msgstr "Kalibracja pozycji wykrywania zalepiania dyszy"
 
 msgid "Unknown"
 msgstr "Nieznane"
@@ -4252,7 +4252,7 @@ msgid "High-temperature Heatbed Calibration"
 msgstr "Kalibracja podgrzewanego stołu w wysokiej temperaturze"
 
 msgid "Nozzle clumping detection Calibration"
-msgstr ""
+msgstr "Kalibracja wykrywania zalepienia dyszy"
 
 msgid "Calibration program"
 msgstr "Program kalibracji"
@@ -7634,32 +7634,26 @@ msgstr "Aktualne firmware obsługuje maksymalnie 16 materiałów. Możesz zmniej
 msgid "Please refer to Wiki before use->"
 msgstr "Przed użyciem zapoznaj się z Wiki->"
 
+msgid "Current firmware does not support file transfer to internal storage."
+msgstr "Aktualne firmware nie obsługuje przesyłania plików do pamięci wewnętrznej."
+
 msgid "Send to Printer storage"
 msgstr "Wyślij do pamięci drukarki"
 
 msgid "Try to connect"
 msgstr "Spróbuj się połączyć"
 
-msgid "click to retry"
-msgstr "kliknij, aby spróbować ponownie"
+msgid "Internal Storage"
+msgstr "Pamięć wewnętrzna"
+
+msgid "External Storage"
+msgstr "Pamięć zewnętrzna"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Przekroczono limit czasu przesyłania pliku: Sprawdź, czy wersja firmware to obsługuje."
 
-msgid "No available external storage was obtained. Please confirm and try again."
-msgstr "Nie uzyskano dostępnej pamięci zewnętrznej. Potwierdź i spróbuj ponownie."
-
-msgid "Media capability acquisition timeout, please check if the firmware version supports it."
-msgstr "Przekroczono limit czasu pozyskiwania mediów. Sprawdź, czy wersja firmware obsługuje tę funkcję."
-
-msgid "Sending..."
-msgstr "Wysyłam..."
-
-msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
-msgstr "Przekroczono limit czasu wgrywania pliku. Sprawdź czy Twoja wersja oprogramowania obsługuje tą operację oraz czy drukarka działa poprawnie."
-
-msgid "Sending failed, please try again!"
-msgstr "Wysyłanie nie powiodło się. Proszę spróbować ponownie!"
+msgid "Connection timed out, please check your network."
+msgstr "Przekroczono limit czasu połączenia, sprawdź swoje połączenie sieciowe."
 
 msgid "Connection failed. Click the icon to retry"
 msgstr "Połączenie nieudane. Kliknij ikonę, aby spróbować ponownie"
@@ -7678,6 +7672,12 @@ msgstr "Drukarka musi być w tej samej sieci LAN co Bambu Studio."
 
 msgid "The printer does not support sending to printer storage."
 msgstr "Drukarka nie obsługuje wysyłania do pamięci drukarki."
+
+msgid "Sending..."
+msgstr "Wysyłam..."
+
+msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
+msgstr "Przekroczono limit czasu wgrywania pliku. Sprawdź czy Twoja wersja oprogramowania obsługuje tą operację oraz czy drukarka działa poprawnie."
 
 msgid "Helio action completed successfully."
 msgstr "Akcja Helio została pomyślnie zakończona."
@@ -9078,11 +9078,11 @@ msgstr "Symulacja"
 msgid "Optimization"
 msgstr "Optymalizacja"
 
+msgid "Environment Temperature"
+msgstr ""
+
 msgid "Chamber Temperature"
 msgstr "Temperatura komory"
-
-msgid "If it is for the A series and P1P, please enter the ambient temperature here."
-msgstr ""
 
 msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
 msgstr "Uwaga: Dostosuj powyższą temperaturę w zależności od rzeczywistych warunków. Dokładniejsze dane zapewniają bardziej precyzyjne wyniki analizy."
@@ -9139,16 +9139,16 @@ msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upp
 msgstr "Nie udało się uzyskać Helio PAT. Liczba wydanych PAT osiągnęła górny limit. Proszę sprawdzać informacje na oficjalnej stronie Helio. Proszę śledzić informacje na stronie Helio i kliknąć \"Odśwież\",  gdy będzie dostępny."
 
 msgid "Print Time Improvement"
-msgstr ""
+msgstr "Poprawa czasu druku"
 
 msgid "Average Improvement"
-msgstr ""
+msgstr "Średnia poprawy"
 
 msgid "Consistency Improvement"
-msgstr ""
+msgstr "Poprawa spójności"
 
 msgid "Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next."
-msgstr ""
+msgstr "Twój gcode został zoptymalizowany pod kątem najwyższej jakości druku. Aby jeszcze bardziej poprawić wydruk, odwiedź nasze wiki, gdzie znajdziesz wskazówki i porady dotyczące dalszych działań."
 
 msgid "Air Pump"
 msgstr "Pompa powietrza"
@@ -14468,6 +14468,18 @@ msgid ""
 msgstr ""
 "Skurcz, wypaczenia i naprężenia\n"
 "Kontrolując wskaźnik termiczny, możesz wyeliminować termicznie przyczyny wypaczeń oraz naprężeń."
+
+#~ msgid "click to retry"
+#~ msgstr "kliknij, aby spróbować ponownie"
+
+#~ msgid "No available external storage was obtained. Please confirm and try again."
+#~ msgstr "Nie uzyskano dostępnej pamięci zewnętrznej. Potwierdź i spróbuj ponownie."
+
+#~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
+#~ msgstr "Przekroczono limit czasu pozyskiwania mediów. Sprawdź, czy wersja firmware obsługuje tę funkcję."
+
+#~ msgid "Sending failed, please try again!"
+#~ msgstr "Wysyłanie nie powiodło się. Proszę spróbować ponownie!"
 
 #~ msgid "Summary"
 #~ msgstr "Podsumowanie"

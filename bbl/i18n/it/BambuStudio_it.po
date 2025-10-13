@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-10 17:50+0800\n"
+"POT-Creation-Date: 2025-10-13 10:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7613,32 +7613,26 @@ msgstr ""
 msgid "Please refer to Wiki before use->"
 msgstr "Consulta il Wiki prima di utilizzarlo->"
 
+msgid "Current firmware does not support file transfer to internal storage."
+msgstr ""
+
 msgid "Send to Printer storage"
 msgstr "Invia alla memoria stampante"
 
 msgid "Try to connect"
 msgstr "Prova a connetterti"
 
-msgid "click to retry"
-msgstr "clicca per riprovare"
+msgid "Internal Storage"
+msgstr ""
+
+msgid "External Storage"
+msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Timeout caricamento file: controlla se la versione del firmware lo supporta."
 
-msgid "No available external storage was obtained. Please confirm and try again."
-msgstr "Non è stata ottenuta alcuna memoria esterna disponibile. Conferma e riprova."
-
-msgid "Media capability acquisition timeout, please check if the firmware version supports it."
-msgstr "Timeout di acquisizione della capacità multimediale, verifica se la versione del firmware lo supporta."
-
-msgid "Sending..."
-msgstr "Invio…"
-
-msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
-msgstr "Il caricamento del file è scaduto. Verifica se la versione del firmware supporta questa operazione o controlla che la stampante funzioni correttamente."
-
-msgid "Sending failed, please try again!"
-msgstr "Invio fallito, riprova!"
+msgid "Connection timed out, please check your network."
+msgstr ""
 
 msgid "Connection failed. Click the icon to retry"
 msgstr "Connessione fallita. Clicca sull'icona per riprovare"
@@ -7657,6 +7651,12 @@ msgstr "La stampante deve essere nella stessa LAN di Bambu Studio."
 
 msgid "The printer does not support sending to printer storage."
 msgstr "La stampante non supporta l'invio alla memoria della stampante."
+
+msgid "Sending..."
+msgstr "Invio…"
+
+msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
+msgstr "Il caricamento del file è scaduto. Verifica se la versione del firmware supporta questa operazione o controlla che la stampante funzioni correttamente."
 
 msgid "Helio action completed successfully."
 msgstr "Azione Helio completata con successo."
@@ -9042,11 +9042,11 @@ msgstr "Simulazione"
 msgid "Optimization"
 msgstr "Ottimizzazione"
 
+msgid "Environment Temperature"
+msgstr ""
+
 msgid "Chamber Temperature"
 msgstr "Temperatura Camera"
-
-msgid "If it is for the A series and P1P, please enter the ambient temperature here."
-msgstr ""
 
 msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
 msgstr "Nota: Imposta la temperatura sopra indicata in base alla situazione reale. Più i dati sono accurati, più precisi saranno i risultati dell’analisi."
@@ -14428,6 +14428,18 @@ msgid ""
 msgstr ""
 "Ritiro, Warping e Tensioni\n"
 "Controllando l’indice termico è possibile eliminare le cause termiche che generano deformazioni e tensioni."
+
+#~ msgid "click to retry"
+#~ msgstr "clicca per riprovare"
+
+#~ msgid "No available external storage was obtained. Please confirm and try again."
+#~ msgstr "Non è stata ottenuta alcuna memoria esterna disponibile. Conferma e riprova."
+
+#~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
+#~ msgstr "Timeout di acquisizione della capacità multimediale, verifica se la versione del firmware lo supporta."
+
+#~ msgid "Sending failed, please try again!"
+#~ msgstr "Invio fallito, riprova!"
 
 #~ msgid "Summary"
 #~ msgstr "Sommario"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-10 17:50+0800\n"
+"POT-Creation-Date: 2025-10-13 10:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7604,32 +7604,26 @@ msgstr ""
 msgid "Please refer to Wiki before use->"
 msgstr "Veuillez vous référer au Wiki avant utilisation->"
 
+msgid "Current firmware does not support file transfer to internal storage."
+msgstr ""
+
 msgid "Send to Printer storage"
 msgstr "Envoyer au stockage de l'imprimante"
 
 msgid "Try to connect"
 msgstr "Essayez de vous connecter"
 
-msgid "click to retry"
-msgstr "cliquez pour réessayer"
+msgid "Internal Storage"
+msgstr ""
+
+msgid "External Storage"
+msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Délai d'attente pour le téléchargement du fichier, veuillez vérifier si la version du micrologiciel le prend en charge."
 
-msgid "No available external storage was obtained. Please confirm and try again."
-msgstr "No available external storage was found. Please confirm and try again."
-
-msgid "Media capability acquisition timeout, please check if the firmware version supports it."
-msgstr "Délai d'acquisition de la capacité du support, veuillez vérifier si la version du firmware le prend en charge."
-
-msgid "Sending..."
-msgstr "Envoi..."
-
-msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
-msgstr "Le téléchargement du fichier a expiré. Veuillez vérifier si la version du firmware prend en charge cette opération ou si l'imprimante fonctionne correctement."
-
-msgid "Sending failed, please try again!"
-msgstr "L'envoi a échoué, veuillez réessayer !"
+msgid "Connection timed out, please check your network."
+msgstr ""
 
 msgid "Connection failed. Click the icon to retry"
 msgstr "La connexion a échoué. Cliquez sur l'icône pour réessayer"
@@ -7648,6 +7642,12 @@ msgstr "L'imprimante doit se trouver sur le même réseau local que Bambu Studio
 
 msgid "The printer does not support sending to printer storage."
 msgstr "L'imprimante ne prend pas en charge l'envoi vers le stockage de l'imprimante."
+
+msgid "Sending..."
+msgstr "Envoi..."
+
+msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
+msgstr "Le téléchargement du fichier a expiré. Veuillez vérifier si la version du firmware prend en charge cette opération ou si l'imprimante fonctionne correctement."
 
 msgid "Helio action completed successfully."
 msgstr "Action Helio terminée avec succès."
@@ -9031,11 +9031,11 @@ msgstr ""
 msgid "Optimization"
 msgstr "Optimisation"
 
+msgid "Environment Temperature"
+msgstr ""
+
 msgid "Chamber Temperature"
 msgstr "Température de Chambre"
-
-msgid "If it is for the A series and P1P, please enter the ambient temperature here."
-msgstr ""
 
 msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
 msgstr "Remarque : Veuillez régler la température ci-dessus en fonction de la situation réelle. Plus les données sont précises, plus les résultats de l'analyse seront exacts."
@@ -14422,6 +14422,18 @@ msgid ""
 msgstr ""
 "Retrait, Warping et Contraintes\n"
 "En contrôlant l'indice thermique, vous pouvez éliminer les causes thermiques du soulèvement et des contraintes."
+
+#~ msgid "click to retry"
+#~ msgstr "cliquez pour réessayer"
+
+#~ msgid "No available external storage was obtained. Please confirm and try again."
+#~ msgstr "No available external storage was found. Please confirm and try again."
+
+#~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
+#~ msgstr "Délai d'acquisition de la capacité du support, veuillez vérifier si la version du firmware le prend en charge."
+
+#~ msgid "Sending failed, please try again!"
+#~ msgstr "L'envoi a échoué, veuillez réessayer !"
 
 #~ msgid "Summary"
 #~ msgstr "Résumé"

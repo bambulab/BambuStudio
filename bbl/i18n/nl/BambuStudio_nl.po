@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-10 17:50+0800\n"
+"POT-Creation-Date: 2025-10-13 10:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7621,32 +7621,26 @@ msgstr ""
 msgid "Please refer to Wiki before use->"
 msgstr "Raadpleeg de Wiki voor gebruik->"
 
+msgid "Current firmware does not support file transfer to internal storage."
+msgstr ""
+
 msgid "Send to Printer storage"
 msgstr "Verzenden naar printeropslag"
 
 msgid "Try to connect"
 msgstr "Probeer verbinding te maken"
 
-msgid "click to retry"
-msgstr "klik om het opnieuw te proberen"
+msgid "Internal Storage"
+msgstr ""
+
+msgid "External Storage"
+msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Time-out voor uploadbestand: controleer of de firmwareversie dit ondersteunt."
 
-msgid "No available external storage was obtained. Please confirm and try again."
-msgstr "Er werd geen beschikbare externe opslag verkregen. Bevestig en probeer het opnieuw."
-
-msgid "Media capability acquisition timeout, please check if the firmware version supports it."
-msgstr "Time-out voor het verkrijgen van mediamogelijkheden, controleer of de firmwareversie dit ondersteunt."
-
-msgid "Sending..."
-msgstr "Bezig met versturen..."
-
-msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
-msgstr "Bestand uploaden heeft vertraging. Controleer of de firmwareversie deze bewerking ondersteunt of controleer of de printer goed werkt."
-
-msgid "Sending failed, please try again!"
-msgstr "Verzenden is mislukt, probeer het opnieuw!"
+msgid "Connection timed out, please check your network."
+msgstr ""
 
 msgid "Connection failed. Click the icon to retry"
 msgstr "Verbinding mislukt. Klik op het pictogram om het opnieuw te proberen."
@@ -7665,6 +7659,12 @@ msgstr "De printer moet zich in hetzelfde LAN bevinden als Bambu Studio."
 
 msgid "The printer does not support sending to printer storage."
 msgstr "De printer biedt geen ondersteuning voor verzenden naar de printeropslag."
+
+msgid "Sending..."
+msgstr "Bezig met versturen..."
+
+msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
+msgstr "Bestand uploaden heeft vertraging. Controleer of de firmwareversie deze bewerking ondersteunt of controleer of de printer goed werkt."
 
 msgid "Helio action completed successfully."
 msgstr "Helio-actie succesvol voltooid."
@@ -9052,11 +9052,11 @@ msgstr "Simulatie"
 msgid "Optimization"
 msgstr "Optimalisatie"
 
+msgid "Environment Temperature"
+msgstr ""
+
 msgid "Chamber Temperature"
 msgstr "Kamertemperatuur"
-
-msgid "If it is for the A series and P1P, please enter the ambient temperature here."
-msgstr ""
 
 msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
 msgstr "Opmerking: Stel de bovenstaande temperatuur af op basis van de werkelijke omstandigheden. Nauwkeurigere gegevens zorgen voor preciezere analyseresultaten."
@@ -14437,6 +14437,18 @@ msgid ""
 msgstr ""
 "Krimp, kromtrekken en spanning\n"
 "Door de thermische index te regelen, kunt u de door warmte veroorzaakte oorzaken van kromtrekken en spanning verwijderen."
+
+#~ msgid "click to retry"
+#~ msgstr "klik om het opnieuw te proberen"
+
+#~ msgid "No available external storage was obtained. Please confirm and try again."
+#~ msgstr "Er werd geen beschikbare externe opslag verkregen. Bevestig en probeer het opnieuw."
+
+#~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
+#~ msgstr "Time-out voor het verkrijgen van mediamogelijkheden, controleer of de firmwareversie dit ondersteunt."
+
+#~ msgid "Sending failed, please try again!"
+#~ msgstr "Verzenden is mislukt, probeer het opnieuw!"
 
 #~ msgid "Summary"
 #~ msgstr "Samenvatting"
