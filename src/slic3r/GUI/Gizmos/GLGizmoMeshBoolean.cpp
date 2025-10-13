@@ -303,9 +303,9 @@ void BooleanWarningManager::render_warning(const WarningItem& item, float width,
     // Render warning text
     const float avail = width - icon_size - MeshBooleanConfig::ICON_SPACING;
     if (item.severity == WarningSeverity::Error)
-        imgui->error_text_wrapped(item.text, avail);
+        imgui->error_text_wrapped(_L(item.text), avail);
     else
-        imgui->warning_text_wrapped(item.text, avail);
+        imgui->warning_text_wrapped(_L(item.text), avail);
 }
 
 void BooleanWarningManager::render_warnings_list(const std::vector<WarningItem>& warnings, float width, ImTextureID warning_icon, ImTextureID error_icon, ImGuiWrapper* imgui, float icon_size)
@@ -783,7 +783,7 @@ BooleanOperationResult BooleanOperationEngine::perform_intersection(const Volume
             return result;
         }
 
-        std:vector<TriangleMesh> pre_union_result;
+        std::vector<TriangleMesh> pre_union_result;
 
         // Build per-object unions
         for (auto &kv : by_object) {
