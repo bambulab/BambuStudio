@@ -1051,19 +1051,20 @@ std::optional<TriangleMesh> BooleanOperationEngine::execute_boolean_on_meshes(co
                 its_merge_vertices(accumulated_result.its, true);
                 its_remove_degenerate_faces(accumulated_result.its, true);
                 its_compactify_vertices(accumulated_result.its, true);
+#if 0
+                // Rebuild mesh from scratch
+                indexed_triangle_set cleaned_its;
+                cleaned_its.vertices = accumulated_result.its.vertices;
+                cleaned_its.indices = accumulated_result.its.indices;
+                accumulated_result = TriangleMesh(std::move(cleaned_its));
 
-                // // Rebuild mesh from scratch
-                // indexed_triangle_set cleaned_its;
-                // cleaned_its.vertices = accumulated_result.its.vertices;
-                // cleaned_its.indices = accumulated_result.its.indices;
-                // accumulated_result = TriangleMesh(std::move(cleaned_its));
-
-                // its_merge_vertices(accumulated_result.its, true);
-                // its_compactify_vertices(accumulated_result.its, true);
+                its_merge_vertices(accumulated_result.its, true);
+                its_compactify_vertices(accumulated_result.its, true);
             } else {
                 // Minimal cleanup for difference/union to preserve precision
                 its_remove_degenerate_faces(accumulated_result.its);
                 its_compactify_vertices(accumulated_result.its);
+#endif
             }
 
         } catch (const std::exception &e) {
@@ -1410,17 +1411,28 @@ void BooleanOperationEngine::delete_volumes_from_model(const std::vector<ModelVo
     auto& objects = *wxGetApp().obj_list()->objects();
 
     for (ModelVolume* volume : volumes_to_delete) {
+        if (!volume) continue; // Skip null pointers
+
         ModelObject* obj = volume->get_object();
+        if (!obj) continue; // Skip if no parent object
 
         // Find object index
         auto obj_it = std::find(objects.begin(), objects.end(), obj);
-        if (obj_it == objects.end()) continue;
+        if (obj_it == objects.end()) continue; // Object not in list (may have been deleted)
         int obj_idx = obj_it - objects.begin();
+
+        // Validate that the object still exists and has volumes
+        if (obj_idx < 0 || obj_idx >= (int)objects.size()) continue;
+        if (objects[obj_idx] != obj) continue; // Double check object pointer matches
 
         // Find volume index
         auto vol_it = std::find(obj->volumes.begin(), obj->volumes.end(), volume);
-        if (vol_it == obj->volumes.end()) continue;
+        if (vol_it == obj->volumes.end()) continue; // Volume not found (may have been deleted)
         int vol_idx = vol_it - obj->volumes.begin();
+
+        // Validate volume index
+        if (vol_idx < 0 || vol_idx >= (int)obj->volumes.size()) continue;
+        if (obj->volumes[vol_idx] != volume) continue; // Double check volume pointer matches
 
         items.emplace_back(ItemType::itVolume, obj_idx, vol_idx);
     }
@@ -1548,8 +1560,18 @@ bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             }
 
             bool added = false;
+            bool already_in_list = false;
+
             // Add volume / Object to list
             if (m_target_mode == BooleanTargetMode::Part) {
+                // Check if volume is already in the list
+                const auto& working_list = m_volume_manager.get_working_list();
+                const auto& list_a = m_volume_manager.get_list_a();
+                const auto& list_b = m_volume_manager.get_list_b();
+                already_in_list = (std::find(working_list.begin(), working_list.end(), volume_idx) != working_list.end() ||
+                                   std::find(list_a.begin(), list_a.end(), volume_idx) != list_a.end() ||
+                                   std::find(list_b.begin(), list_b.end(), volume_idx) != list_b.end());
+
                 added = m_volume_manager.add_volume_to_list(volume_idx, shift_down);
             } else {
                 // Object mode: ensure selection/list are object-scoped, not single mesh
@@ -1561,7 +1583,9 @@ bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 for (unsigned int v : vols) m_volume_manager.add_to_selection(v);
             }
 
-            if (added) {
+            // For Part mode: if added or already in list, update selection
+            // For Object mode: only if added (existing behavior)
+            if (added || (m_target_mode == BooleanTargetMode::Part && already_in_list)) {
                 // Select the volume in the appropriate list
                 if (m_target_mode == BooleanTargetMode::Part) {
                     m_volume_manager.add_to_selection(volume_idx);
@@ -1583,6 +1607,7 @@ bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
                 // Re-apply color overrides so newly added indices get list colors immediately
                 apply_color_overrides_for_mode(m_operation_mode);
+                refresh_canvas();
                 return true;
             }
             return true;

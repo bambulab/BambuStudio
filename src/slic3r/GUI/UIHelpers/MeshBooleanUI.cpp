@@ -534,9 +534,9 @@ void MeshBooleanUI::draw_only_entity_checkbox()
         // Show tooltip on hover
         if (ImGui::IsItemHovered()) {
             if (m_imgui) {
-                m_imgui->tooltip(_u8L("Perform Boolean operations on entities only"), ImGui::GetFontSize() * 20.0f);
+                m_imgui->tooltip(_u8L("Perform Boolean operations on entities only."), ImGui::GetFontSize() * 20.0f);
             } else {
-                ImGui::SetTooltip("%s", _u8L("Perform Boolean operations on entities only").c_str());
+                ImGui::SetTooltip("%s", _u8L("Perform Boolean operations on entities only.").c_str());
             }
         }
     }
@@ -967,6 +967,10 @@ bool MeshBooleanUI::draw_selectable(const ListItemInfo& item_info, bool selected
     float content_start_x = item_min.x + MeshBooleanConfig::SPACING_TEXT;
     float actual_height = item_max.y - item_min.y;
 
+    // Determine if this is a non-entity item for graying out
+    bool is_non_entity = !item_info.is_object_mode && item_info.type != ModelVolumeType::MODEL_PART;
+    bool should_gray_out = m_entity_only && is_non_entity;
+
     // Draw icon if available (prefer nearest sampling to avoid blur on integer pixel grid)
     if (icon_id) {
         ImVec2 icon_pos = ImVec2(
@@ -1000,7 +1004,17 @@ bool MeshBooleanUI::draw_selectable(const ListItemInfo& item_info, bool selected
     );
     text_pos.x = IM_ROUND(text_pos.x);
     text_pos.y = IM_ROUND(text_pos.y);
-    ImU32 text_color = m_is_dark_mode ? MeshBooleanConfig::COLOR_TEXT_DARK : MeshBooleanConfig::COLOR_TEXT;
+
+    // Determine text color: gray out non-entity items when Entity Only mode is enabled
+    ImU32 text_color;
+    if (should_gray_out) {
+        // Gray color for non-entity items when Entity Only is enabled
+        text_color = m_is_dark_mode ? IM_COL32(108, 108, 108, 255) : IM_COL32(163, 163, 163, 255);
+    } else {
+        // Normal text color
+        text_color = m_is_dark_mode ? MeshBooleanConfig::COLOR_TEXT_DARK : MeshBooleanConfig::COLOR_TEXT;
+    }
+
     // Use AddText with same rounding for start position to avoid sub-pixel blur
     draw_list->AddText(text_pos, text_color, display_text.c_str());
 

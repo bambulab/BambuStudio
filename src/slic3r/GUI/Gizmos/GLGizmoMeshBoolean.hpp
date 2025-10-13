@@ -71,7 +71,7 @@ struct MeshBooleanConfig {
     static constexpr float MARGIN_RIGHT_OFFSET = SPACING_XS;   // Right margin adjustment
 
     // ========================== RENDERING (GIZMO) ==========================
-    static constexpr float CORNER_BOX_LINE_SCALE = 1.5f;
+    static constexpr float CORNER_BOX_LINE_SCALE = 3.0f;
 
     // ========================== BOOLEAN OPERATIONS ==========================
     static constexpr const char* OP_UNION = "UNION";
