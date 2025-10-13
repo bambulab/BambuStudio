@@ -187,6 +187,7 @@ void MeshBooleanUI::draw_volume_lists()
 
     const Selection &selection = m_parent->get_selection();
     std::string mode_text = m_target_mode == BooleanTargetMode::Object ? "Object" : "Part";
+    std::string title_text = m_target_mode == BooleanTargetMode::Object ? _L("Selected Objects").ToStdString() : _L("Selected Parts").ToStdString();
 
     if (m_operation_mode == MeshBooleanOperation::Difference) {
         // Center the AB lists as a group
@@ -194,7 +195,7 @@ void MeshBooleanUI::draw_volume_lists()
 
         // Header line: Selected Objects [A-B] : (with [A-B] in bold)
         ImGui::BeginGroup();
-        ImGui::TextUnformatted(("Selected " + mode_text + "s").c_str());
+        ImGui::TextUnformatted(title_text.c_str());
         ImGui::SameLine(0, 0);
         if (m_imgui) m_imgui->push_bold_font();
         ImGui::TextUnformatted(" [A - B]");
@@ -265,16 +266,19 @@ void MeshBooleanUI::draw_control_buttons()
     float checkbox_spacing = ImGui::GetStyle().ItemInnerSpacing.x + 4.0f;
     float checkbox_total_width = checkbox_icon_width + checkbox_spacing + checkbox_text_width;
     float button_group_width = (m_operation_mode == MeshBooleanOperation::Difference) ? (m_computed_icon_size_button * 4 + MeshBooleanConfig::ICON_SPACING * 3) : m_computed_icon_size_button;
-    float spacing_between = m_computed_control_width - checkbox_total_width - button_group_width;
 
-    // Center the control row
-    set_centered_cursor_x(m_computed_control_width);
+    // Calculate positions for left-aligned checkbox and right-aligned buttons
+    float ctrl_start_x = (ImGui::GetWindowWidth() - m_computed_control_width) * 0.5f;
+    float checkbox_pos_x = ctrl_start_x;
+    float buttons_pos_x = ctrl_start_x + m_computed_control_width - button_group_width;
 
-    // Render checkbox using helper function
+    // Position and render checkbox
+    ImGui::SetCursorPosX(checkbox_pos_x);
     render_checkbox(_L("Keep original models"), m_keep_original_models, !b_async_working_or_cancelling);
 
-    // Move to button area
-    ImGui::SameLine(0, spacing_between);
+    // Position button group (right-aligned within control width)
+    ImGui::SameLine(0, 0);
+    ImGui::SetCursorPosX(buttons_pos_x);
 
     // Check selection state
     bool has_selection = false;
@@ -436,7 +440,7 @@ void MeshBooleanUI::draw_action_buttons()
     bool cancel_enabled = true; // Always enabled
 
     // Determine button text and color based on async state (reuse already calculated text)
-    std::string button_text = reset_cancel_text;
+    auto button_text = async_is_busy ? _L("Cancel") : _L("Reset");
     bool is_cancel = async_is_busy;
 
     if (!cancel_enabled) {
@@ -495,7 +499,7 @@ void MeshBooleanUI::draw_only_entity_checkbox()
     ImGui::BeginGroup();
 
     bool previous_entity_only = m_entity_only;
-    render_checkbox(_u8L("Entity Only"), m_entity_only, !b_async_working_or_cancelling);
+    render_checkbox(_L("Entity Only"), m_entity_only, !b_async_working_or_cancelling);
 
     // Get checkbox bounding box for proper alignment
     ImVec2  checkbox_size = ImGui::GetItemRectSize();
@@ -807,7 +811,7 @@ void MeshBooleanUI::draw_object_list(const std::string& table_name, ImVec2 size,
     else if (table_name.find("SUB_B") != std::string::npos)
         title = "B";
     else
-        title = m_target_mode == BooleanTargetMode::Object ? "Selected Objects" : "Selected Parts";
+        title = m_target_mode == BooleanTargetMode::Object ? _L("Selected Objects").ToStdString() : _L("Selected Parts").ToStdString();
 
     // Add count to title
     std::string count_text = "(" + std::to_string(items.size()) + ")";
