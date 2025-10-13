@@ -122,6 +122,9 @@ src/slic3r/GUI/DeviceManager.cpp
 src/slic3r/GUI/DeviceErrorDialog.cpp
 src/slic3r/GUI/ExtraRenderers.cpp
 src/slic3r/GUI/Field.cpp
+src/slic3r/GUI/GCodeRenderer/AdvancedRenderer.cpp
+src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+src/slic3r/GUI/GCodeRenderer/LegacyRenderer.cpp
 src/slic3r/GUI/GCodeViewer.cpp
 src/slic3r/GUI/GLCanvas3D.cpp
 src/slic3r/GUI/Calibration.cpp
