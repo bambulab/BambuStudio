@@ -71,7 +71,7 @@ static const wxColour DISCONNECT_TEXT_COL = wxColour(171, 172, 172);
 static const wxColour NORMAL_TEXT_COL     = wxColour(48,58,60);
 static const wxColour NORMAL_FAN_TEXT_COL = wxColour(107, 107, 107);
 static const wxColour WARNING_INFO_BG_COL = wxColour(255, 111, 0);
-static const wxColour STAGE_TEXT_COL      = wxColour(146, 146, 146);
+static const wxColour STAGE_TEXT_COL      = wxColour(107, 107, 107);
 
 static const wxColour GROUP_STATIC_LINE_COL = wxColour(206, 206, 206);
 
@@ -705,11 +705,11 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     m_staticText_progress_left = new wxStaticText(penel_text, wxID_ANY, L("N/A"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_progress_left->Wrap(-1);
     m_staticText_progress_left->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
-    m_staticText_progress_left->SetForegroundColour(wxColour(146, 146, 146));
+    m_staticText_progress_left->SetForegroundColour(wxColour(107, 107, 107));
 
     m_staticText_layers = new wxStaticText(penel_text, wxID_ANY, _L("Layer: N/A"));
     m_staticText_layers->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
-    m_staticText_layers->SetForegroundColour(wxColour(146, 146, 146));
+    m_staticText_layers->SetForegroundColour(wxColour(107, 107, 107));
     m_staticText_layers->Hide();
 
     bSizer_text->Add(sizer_percent, 0, wxEXPAND, 0);
@@ -809,7 +809,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     m_staticText_finish_time->SetLabel(finish_time_str);
     m_staticText_finish_time->Wrap(-1);
     m_staticText_finish_time->SetFont(Label::Body_14);
-    m_staticText_finish_time->SetForegroundColour(wxColour(146, 146, 146));
+    m_staticText_finish_time->SetForegroundColour(wxColour(107, 107, 107));
     m_staticText_finish_time->SetToolTip(_L("The estimated printing time for \nmulti-color models may be inaccurate."));
     m_staticText_finish_day = new RectTextPanel(penel_finish_time);
     m_staticText_finish_day->SetMinSize(wxSize(20, 20));
