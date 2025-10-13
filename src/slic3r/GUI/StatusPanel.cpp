@@ -3426,7 +3426,7 @@ void StatusPanel::update_ams(MachineObject *obj)
                         m_ams_control->StopRridLoading(ams_id, tray_id);
                     }
                 } else {
-                    int check_flag = (1 << (16 + ams_id_int - 128));
+                    int check_flag = (1 << (16 + (ams_id_int - 128) * 4 + tray_id_int));
                     if ((obj->tray_reading_bits & check_flag) != 0) {
                         m_ams_control->PlayRridLoading(ams_id, tray_id);
                     } else {
