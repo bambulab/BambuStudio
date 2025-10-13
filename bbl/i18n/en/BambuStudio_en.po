@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 20:42+0800\n"
+"POT-Creation-Date: 2025-10-13 21:39+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -12702,7 +12702,7 @@ msgid "Intersection operation requires at least two volumes."
 msgstr "Intersection operation requires at least two parts."
 
 msgid "Difference operation requires at least one volume in both A and B lists."
-msgstr "Difference operation requires at least one part in both A and B lists."
+msgstr "Subtraction operation requires at least one part in both A and B lists."
 
 msgid "Union operation requires at least two objects."
 msgstr ""
@@ -12711,13 +12711,13 @@ msgid "Intersection operation requires at least two objects."
 msgstr ""
 
 msgid "Difference operation requires at least one object in both A and B lists."
-msgstr ""
+msgstr "Subtraction operation requires at least one object in both A and B lists."
 
 msgid "Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
 msgstr ""
 
 msgid "No overlapping region found. Boolean intersection failed."
-msgstr "No overlapping region found. Boolean intersection failed. Please ensure all items in the list overlap."
+msgstr "No overlapping region found. Boolean intersection failed. Ensure that all items in the list overlap each other."
 
 msgid "Mesh Boolean"
 msgstr "Mesh Boolean"
@@ -12744,13 +12744,13 @@ msgid "Execute"
 msgstr ""
 
 msgid "Entity Only"
-msgstr ""
+msgstr "Entity only"
 
 msgid "Perform Boolean operations on entities only."
 msgstr ""
 
 msgid "This object contains non-part components."
-msgstr ""
+msgstr "This object contains non-model parts."
 
 msgid "Network Test"
 msgstr "Network Test"
