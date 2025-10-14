@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-14 09:43+0800\n"
+"POT-Creation-Date: 2025-10-14 18:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2754,10 +2754,6 @@ msgstr "Prima di inviare alla stampante è necessario inserire la memoria."
 msgid "Thermal Preconditioning for first layer optimization"
 msgstr "Precondizionamento termico per l'ottimizzazione del primo layer"
 
-#, c-format, boost-format
-msgid "Remaining time: %s"
-msgstr "Tempo rimanente: %s"
-
 msgid "Remaining time: Calculating..."
 msgstr "Tempo rimanente: Calcolo in corso..."
 
@@ -2768,7 +2764,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Remaining time: %dmin%ds"
-msgstr ""
+msgstr "Tempo rimanente: %dmin%ds"
 
 msgid "Choose SLA archive:"
 msgstr "Seleziona l'archivio SLA:"
@@ -3738,7 +3734,7 @@ msgid "Measuring Surface"
 msgstr "Misura superficie"
 
 msgid "Calibrating the detection position of nozzle clumping"
-msgstr ""
+msgstr "Calibrazione posizione di rilevamento intasamento del nozzle"
 
 msgid "Unknown"
 msgstr "Sconosciuto"
@@ -3925,13 +3921,13 @@ msgid "Loading G-codes"
 msgstr "Caricamento del G-code"
 
 msgid "Loading gcode data"
-msgstr ""
+msgstr "Caricamento dati G-code"
 
 msgid "Loading segments"
-msgstr ""
+msgstr "Caricamento segmenti"
 
 msgid "Summary"
-msgstr "Sommario"
+msgstr "Riepilogo"
 
 msgid "Layer Height"
 msgstr "Altezza layer"
@@ -3970,7 +3966,7 @@ msgid "Flushed"
 msgstr "Spurgo"
 
 msgid "Tower"
-msgstr "Tower"
+msgstr "Torre"
 
 msgid "Total"
 msgstr "Totale"
@@ -3988,7 +3984,7 @@ msgid "up to"
 msgstr "fino a"
 
 msgid "above"
-msgstr "sopra"
+msgstr "oltre "
 
 msgid "from"
 msgstr "da"
@@ -4027,7 +4023,7 @@ msgid "Travel"
 msgstr "Spostamento"
 
 msgid "Seams"
-msgstr "Giunzioni"
+msgstr "Cuciture"
 
 msgid "Retract"
 msgstr "Retrazione"
@@ -4087,13 +4083,13 @@ msgid "Prepare and timelapse time"
 msgstr "Tempo di preparazione e timelapse"
 
 msgid "Prepare time"
-msgstr "Tempo preparazione"
+msgstr "Tempo di preparazione"
 
 msgid "Model printing time"
-msgstr "Tempo stampa del modello"
+msgstr "Tempo di stampa del modello"
 
 msgid "Switch to silent mode"
-msgstr "Passa a modalità silenziosa"
+msgstr "Passa alla modalità silenziosa"
 
 msgid "Switch to normal mode"
 msgstr "Passa a modalità normale"
@@ -4114,21 +4110,21 @@ msgid "Right nozzle"
 msgstr "Nozzle destro"
 
 msgid "Please place filaments on the printer based on grouping result."
-msgstr "Posizionare i filamenti sulla stampante in base al risultato del raggruppamento."
+msgstr "Posizionare i filamenti sulla stampante in base al risultato di raggruppamento."
 
 msgid "Tips:"
 msgstr "Suggerimenti:"
 
 msgid "Current grouping of slice result is not optimal."
-msgstr "Il raggruppamento attuale del risultato dello slicing non è ottimale."
+msgstr "L'attuale raggruppamento dei risultati delle sezioni non è ottimale."
 
 #, boost-format
 msgid "Increase %1%g filament and %2% changes compared to optimal grouping."
-msgstr "Aumenta di %1% il consumo di filamento e di %2% le variazioni rispetto al raggruppamento ottimale."
+msgstr "Aumenta di %1%g il filamento e di %2% le variazioni rispetto al raggruppamento ottimale."
 
 #, boost-format
 msgid "Increase %1%g filament and save %2% changes compared to optimal grouping."
-msgstr "Aumenta di %1% il consumo di filamento e risparmia %2% di tempo rispetto al raggruppamento ottimale."
+msgstr "Aumenta del %1%g il filamento e risparmia il %2% dei cambiamenti rispetto al raggruppamento ottimale."
 
 #, boost-format
 msgid "Save %1%g filament and increase %2% changes compared to optimal grouping."
@@ -4144,22 +4140,22 @@ msgstr "Risparmia %1% g di filamento e aumenta del %2% le variazioni rispetto a 
 
 #, boost-format
 msgid "Increase %1%g filament and save %2% changes compared to a printer with one nozzle."
-msgstr "Aumenta di %1% il consumo di filamento e risparmia %2% di tempo rispetto a una stampante con un solo nozzle."
+msgstr "Aumenta del %1%g il filamento e risparmia %2% di modifiche rispetto a una stampante con un solo nozzle."
 
 msgid "Set to Optimal"
 msgstr "Imposta su Ottimale"
 
 msgid "Regroup filament"
-msgstr "Raggruppa il filamento"
+msgstr "Raggruppa filamento"
 
 msgid "Height: "
-msgstr "Altezza:"
+msgstr "Altezza: "
 
 msgid "Width: "
-msgstr "Larghezza:"
+msgstr "Larghezza: "
 
 msgid "Speed: "
-msgstr "Velocità:"
+msgstr "Velocità: "
 
 msgid "Flow: "
 msgstr "Flusso: "
@@ -4168,10 +4164,10 @@ msgid "Layer Time: "
 msgstr "Tempo layer:"
 
 msgid "Fan Speed: "
-msgstr "Velocità ventola:"
+msgstr "Velocità ventola: "
 
 msgid "Temperature: "
-msgstr "Temperatura:"
+msgstr "Temperatura: "
 
 msgid "Thermal Index"
 msgstr "Indice Termico"
@@ -4189,7 +4185,7 @@ msgid "Generating geometry vertex data"
 msgstr "Generazione dati vertici geometria"
 
 msgid "Generating geometry index data"
-msgstr "Generazione dati di indice geometrico"
+msgstr "Generazione dei dati dell'indice geometrico"
 
 msgid ""
 "An object is placed in the left/right nozzle-only area or exceeds the printable height of the left nozzle.\n"
@@ -4520,7 +4516,7 @@ msgid "High-temperature Heatbed Calibration"
 msgstr "Calibrazione del piano ad alta temperatura"
 
 msgid "Nozzle clumping detection Calibration"
-msgstr ""
+msgstr "Calibrazione Rilevamento Intasamento Nozzle"
 
 msgid "Calibration program"
 msgstr "Dettagli Calibrazione"
@@ -7822,7 +7818,7 @@ msgid "AMS is setting up. Please try again later."
 msgstr "AMS è in fase di configurazione. Riprova più tardi."
 
 msgid "Not all filaments used in slicing are mapped to the printer. Please check the mapping of filaments."
-msgstr ""
+msgstr "Non tutti i filamenti utilizzati nel slicing sono mappati sulla stampante. Controlla la mappatura dei filamenti."
 
 msgid "Please do not mix-use the Ext with AMS"
 msgstr "Non utilizzare contemporaneamente Ext con AMS."
@@ -7858,13 +7854,13 @@ msgid "This printer does not support printing all plates"
 msgstr "Questa stampante non supporta la stampa di piatti multipla"
 
 msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
-msgstr ""
+msgstr "Il firmware attuale supporta un massimo di 16 materiali. Puoi ridurre il numero di materiali a 16 o meno nella pagina di preparazione oppure provare ad aggiornare il firmware. Se dopo l'aggiornamento hai ancora limitazioni, attendi il supporto nei futuri aggiornamenti del firmware."
 
 msgid "Please refer to Wiki before use->"
 msgstr "Consulta il Wiki prima di utilizzarlo->"
 
 msgid "Current firmware does not support file transfer to internal storage."
-msgstr ""
+msgstr "Il firmware attuale non supporta il trasferimento di file sulla memoria interna."
 
 msgid "Send to Printer storage"
 msgstr "Invia alla memoria stampante"
@@ -7873,16 +7869,16 @@ msgid "Try to connect"
 msgstr "Prova a connetterti"
 
 msgid "Internal Storage"
-msgstr ""
+msgstr "Archiviazione Interna"
 
 msgid "External Storage"
-msgstr ""
+msgstr "Archiviazione esterna"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Timeout caricamento file: controlla se la versione del firmware lo supporta."
 
 msgid "Connection timed out, please check your network."
-msgstr ""
+msgstr "Connessione scaduta, controlla la tua rete."
 
 msgid "Connection failed. Click the icon to retry"
 msgstr "Connessione fallita. Clicca sull'icona per riprovare"
@@ -8068,6 +8064,8 @@ msgid ""
 "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
 "overrides XY, disable independent support layer height and use PLA for both support interface and support base"
 msgstr ""
+"Quando si utilizza il PLA come materiale di supporto per il TPU, consigliamo le seguenti impostazioni:\n"
+"Distanza Z superiore: 0, Spaziatura interfaccia: 0, Distanza XY supporto/oggetto: 0, Motivo: rettilineo interlacciato, abilita Z che sovrascrive XY, disabilita Altezza layer di supporto indipendente e usa il PLA sia per l’interfaccia che per la base di supporto"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
@@ -8075,6 +8073,8 @@ msgid ""
 "overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
 "and support base"
 msgstr ""
+"Quando si utilizza materiale solubile per il supporto, si consigliano le seguenti impostazioni:\n"
+"0 distanza z superiore, spaziatura interfaccia 0, distanza xy supporto/oggetto 0, schema rettilineo interlacciato, abilita la sovrascrittura Z che prevale su XY, disabilita l'altezza indipendente del layer di supporto e utilizza materiali solubili sia per l'interfaccia di supporto che per la base di supporto"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -8090,6 +8090,8 @@ msgid ""
 "0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
 "independent support layer height"
 msgstr ""
+"Quando si utilizza il materiale di supporto per l'interfaccia, si consigliano le seguenti impostazioni:\n"
+"0 distanza z superiore, 0 spaziatura dell'interfaccia, trama rettilineo e disabilita l'altezza del layer di supporto."
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
@@ -8097,6 +8099,9 @@ msgid ""
 "overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
 "and support base"
 msgstr ""
+"Quando si utilizza materiale solubile per l'interfaccia di supporto, si consigliano le seguenti impostazioni:\n"
+"0 distanza z superiore, spaziatura dell'interfaccia 0, distanza xy supporto/oggetto 0, schema rettilineo interlacciato, disabilita \n"
+"altezza indipendente del layer di supporto e utilizzo di materiali solubili sia per l'interfaccia di supporto che per la base di supporto"
 
 msgid ""
 "Layer height is too small.\n"
@@ -9287,7 +9292,7 @@ msgid "Optimization"
 msgstr "Ottimizzazione"
 
 msgid "Environment Temperature"
-msgstr ""
+msgstr "Temperatura Ambientale"
 
 msgid "Chamber Temperature"
 msgstr "Temperatura Camera"
@@ -9347,16 +9352,16 @@ msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upp
 msgstr "Impossibile ottenere l’Helio PAT. Il numero di PAT emessi ha raggiunto il limite massimo. Presta attenzione alle informazioni presenti sul sito ufficiale di Helio. Fare clic su Aggiorna per ottenerlo nuovamente non appena sarà disponibile."
 
 msgid "Print Time Improvement"
-msgstr ""
+msgstr "Miglioramento Tempo Di Stampa"
 
 msgid "Average Improvement"
-msgstr ""
+msgstr "Miglioramento Medio"
 
 msgid "Consistency Improvement"
-msgstr ""
+msgstr "Miglioramento della coerenza"
 
 msgid "Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next."
-msgstr ""
+msgstr "Il tuo g-code è stato ottimizzato per la migliore stampa possibile. Per migliorare ulteriormente la tua stampa, consulta la nostra wiki per consigli e trucchi su cosa fare next."
 
 msgid "Air Pump"
 msgstr "Compressore Aria"
@@ -9890,10 +9895,10 @@ msgid "mm or %"
 msgstr "mm o %"
 
 msgid "Avoid crossing wall - Includes support"
-msgstr ""
+msgstr "Evitare di attraversare la parete - Include il supporto"
 
 msgid "Including support while avoiding crossing wall."
-msgstr ""
+msgstr "Inclusione del supporto evitando di attraversare la parete."
 
 msgid "Other layers"
 msgstr "Altri layer"
@@ -11900,10 +11905,10 @@ msgid "Tree Organic"
 msgstr "Tree Organic"
 
 msgid "Z overrides X/Y"
-msgstr ""
+msgstr "Z sovrascrive X/Y"
 
 msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
-msgstr ""
+msgstr "Quando la distanza z superiore prevale sulla distanza xy supporto/oggetto, dare priorità alla generazione di supporti sotto le sporgenze e lasciare uno spazio vuoto della stessa dimensione della distanza z superiore nel modello. Nel caso opposto, invece, lo spazio vuoto tra supporti e modello segue sempre la distanza xy supporto/oggetto."
 
 msgid "Independent support layer height"
 msgstr "Altezza layer supporto indipendente"
@@ -13084,25 +13089,31 @@ msgid "Union"
 msgstr "Unione"
 
 msgid "Difference"
-msgstr "Subtraction"
+msgstr "Differenza"
 
 msgid "Intersection"
 msgstr "Intersezione"
 
-msgid "Keep original models"
+msgid "Selected Objects"
 msgstr ""
+
+msgid "Selected Parts"
+msgstr ""
+
+msgid "Keep original models"
+msgstr "Mantieni modelli originali"
 
 msgid "Execute"
-msgstr ""
+msgstr "Esegui"
 
 msgid "Entity Only"
-msgstr ""
+msgstr "Solo entità"
 
 msgid "Perform Boolean operations on entities only."
-msgstr ""
+msgstr "Esegui operazioni booleane solo sulle entità."
 
 msgid "This object contains non-part components."
-msgstr ""
+msgstr "Questo oggetto contiene componenti non parti."
 
 msgid "Network Test"
 msgstr "Test di rete"
@@ -13675,7 +13686,7 @@ msgstr "Il numero di estrusori per stampanti e la stampante selezionata per la c
 
 #, c-format, boost-format
 msgid "The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."
-msgstr ""
+msgstr "Il diametro del nozzle dell’estrusore %s è di 0,2 mm e non consente la calibrazione automatica della dinamica del flusso."
 
 #, c-format, boost-format
 msgid ""
@@ -14693,6 +14704,10 @@ msgid ""
 msgstr ""
 "Ritiro, Warping e Tensioni\n"
 "Controllando l’indice termico è possibile eliminare le cause termiche che generano deformazioni e tensioni."
+
+#, c-format, boost-format
+#~ msgid "Remaining time: %s"
+#~ msgstr "Tempo rimanente: %s"
 
 #, c-format, boost-format
 #~ msgid "The nozzle diameter of %s extruder is 0.2mm which does not support automatic Flow Dynamics calibration."
