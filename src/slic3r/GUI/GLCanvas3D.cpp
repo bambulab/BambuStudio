@@ -3961,13 +3961,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         //}
 
         // BBS: use keypad to change extruder
-        case '1': {
-            if (!m_timer_set_color.IsRunning()) {
-                m_timer_set_color.StartOnce(500);
-                break;
-            }
-        }
-        case '0':   //Color logic for material 10
+        case '0'://Color logic for material 10
+        case '1': 
         case '2':
         case '3':
         case '4':
@@ -3976,12 +3971,14 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case '7':
         case '8':
         case '9': {
-            if (m_timer_set_color.IsRunning()) {
-                if (keyCode < '7')  keyCode += 10;
-                m_timer_set_color.Stop();
+            int digit = keyCode - '0';
+            if (m_color_input_value < 0 || !m_timer_set_color.IsRunning()) {
+                m_color_input_value = digit;
+            } else {
+                m_color_input_value = m_color_input_value * 10 + digit;
             }
-            if (m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation)
-                obj_list->set_extruder_for_selected_items(keyCode - '0');
+            if (m_timer_set_color.IsRunning()) m_timer_set_color.Stop();
+            m_timer_set_color.StartOnce(500);
             break;
         }
 
@@ -4577,8 +4574,8 @@ void GLCanvas3D::on_render_timer(wxTimerEvent& evt)
 void GLCanvas3D::on_set_color_timer(wxTimerEvent& evt)
 {
     auto obj_list = wxGetApp().obj_list();
-    if (m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation)
-        obj_list->set_extruder_for_selected_items(1);
+    if (m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation && m_color_input_value > 0) { obj_list->set_extruder_for_selected_items(m_color_input_value); }
+    m_color_input_value = -1;
     m_timer_set_color.Stop();
 }
 
