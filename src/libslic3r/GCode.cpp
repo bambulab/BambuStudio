@@ -797,6 +797,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 float new_retract_length = full_config.retraction_length.get_at(new_filament_id);
                 float old_retract_length_toolchange = (old_filament_id != -1) ? full_config.retract_length_toolchange.get_at(old_filament_id) : 0;
                 float new_retract_length_toolchange = full_config.retract_length_toolchange.get_at(new_filament_id);
+                float old_filament_retract_length_nc = full_config.filament_retract_length_nc.get_at(old_filament_id);
                 int old_filament_temp = (old_filament_id != -1) ? (gcodegen.on_first_layer()? full_config.nozzle_temperature_initial_layer.get_at(old_filament_id) : full_config.nozzle_temperature.get_at(old_filament_id)) : 210;
                 int new_filament_temp = gcodegen.on_first_layer() ? full_config.nozzle_temperature_initial_layer.get_at(new_filament_id) : full_config.nozzle_temperature.get_at(new_filament_id);
                 float new_extruder_retracted_length = gcodegen.m_writer.get_extruder_retracted_length(new_filament_id);
@@ -826,6 +827,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 config.set_key_value("fan_speed", new ConfigOptionInt((int)0));
                 config.set_key_value("old_retract_length", new ConfigOptionFloat(old_retract_length));
                 config.set_key_value("new_retract_length", new ConfigOptionFloat(new_retract_length));
+                config.set_key_value("filament_retract_length_nc", new ConfigOptionFloat(old_filament_retract_length_nc));
                 config.set_key_value("old_retract_length_toolchange", new ConfigOptionFloat(old_retract_length_toolchange));
                 config.set_key_value("new_retract_length_toolchange", new ConfigOptionFloat(new_retract_length_toolchange));
                 config.set_key_value("new_extruder_retracted_length", new ConfigOptionFloat(new_extruder_retracted_length));
@@ -6634,7 +6636,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
         new_filament_temp = m_config.nozzle_temperature_initial_layer.get_at(new_filament_id);
 
     Vec3d nozzle_pos = m_writer.get_position();
-    float old_retract_length, old_retract_length_toolchange, wipe_volume;
+    float old_retract_length, old_retract_length_toolchange, old_filament_retract_length_nc, wipe_volume;
     int old_filament_temp, old_filament_e_feedrate;
 
     float filament_area = float((M_PI / 4.f) * pow(m_config.filament_diameter.get_at(new_filament_id), 2));
@@ -6653,6 +6655,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
 
         old_retract_length = m_config.retraction_length.get_at(old_filament_id);
         old_retract_length_toolchange = m_config.retract_length_toolchange.get_at(old_filament_id);
+        old_filament_retract_length_nc = m_config.filament_retract_length_nc.get_at(old_filament_id);
         old_filament_temp = this->on_first_layer()? m_config.nozzle_temperature_initial_layer.get_at(old_filament_id) : m_config.nozzle_temperature.get_at(old_filament_id);
 
         //During the filament change, the extruder will extrude an extra length of grab_length for the corresponding detection, so the purge can reduce this length.
@@ -6690,6 +6693,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     } else {
         old_retract_length = 0.f;
         old_retract_length_toolchange = 0.f;
+        old_filament_retract_length_nc = 0.f;
         old_filament_temp = 0;
         wipe_volume = 0.f;
         old_filament_e_feedrate = 200;
@@ -6715,6 +6719,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     dyn_config.set_key_value("fan_speed", new ConfigOptionInt((int)0));
     dyn_config.set_key_value("old_retract_length", new ConfigOptionFloat(old_retract_length));
     dyn_config.set_key_value("new_retract_length", new ConfigOptionFloat(new_retract_length));
+    dyn_config.set_key_value("filament_retract_length_nc", new ConfigOptionFloat(old_filament_retract_length_nc));
     dyn_config.set_key_value("old_retract_length_toolchange", new ConfigOptionFloat(old_retract_length_toolchange));
     dyn_config.set_key_value("new_retract_length_toolchange", new ConfigOptionFloat(new_retract_length_toolchange));
     dyn_config.set_key_value("new_extruder_retracted_length", new ConfigOptionFloat(new_extruder_retracted_length));

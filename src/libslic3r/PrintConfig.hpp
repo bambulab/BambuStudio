@@ -1143,6 +1143,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsNullable,      z_hop))
     // BBS
     ((ConfigOptionEnumsGenericNullable,z_hop_types))
+    ((ConfigOptionFloatsNullable,      filament_retract_length_nc))
     ((ConfigOptionFloatsNullable,      retract_restart_extra))
     ((ConfigOptionFloatsNullable,      retract_restart_extra_toolchange))
     ((ConfigOptionFloatsNullable,      retraction_speed))
