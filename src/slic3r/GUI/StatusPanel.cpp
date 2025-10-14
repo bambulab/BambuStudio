@@ -23,6 +23,7 @@
 #include <wx/sstream.h>
 #include <wx/zstream.h>
 
+#include "DeviceCore/DevAxis.h"
 #include "DeviceCore/DevBed.h"
 #include "DeviceCore/DevChamber.h"
 #include "DeviceCore/DevCtrl.h"
@@ -665,8 +666,8 @@ void PrintingTaskPanel::create_panel(wxWindow *parent)
     bSizer_text->Add(0, 0, 0, wxLEFT, FromDIP(20));
     bSizer_text->Add(m_staticText_progress_left, 0, wxALIGN_CENTER_VERTICAL | wxALL, 0);
 
-    m_printing_stage_panel = new wxPanel(penel_finish_time);
-    wxBoxSizer *printingstage_vertical_sizer = new wxBoxSizer(wxVERTICAL);
+    m_printing_stage_panel                     = new wxPanel(penel_finish_time);
+    wxBoxSizer *printingstage_vertical_sizer   = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *printingstage_horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_printing_stage_underline = new wxPanel(m_printing_stage_panel);
@@ -718,7 +719,8 @@ void PrintingTaskPanel::create_panel(wxWindow *parent)
     penel_text->Layout();
 
     // Create question button
-    m_question_button = new ScalableButton(m_printing_stage_panel, wxID_ANY, "thermal_question", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+    m_question_button = new ScalableButton(m_printing_stage_panel, wxID_ANY, "thermal_question", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER,
+                                           true);
     m_question_button->SetToolTip(_L("Click to view thermal preconditioning explanation"));
     m_question_button->SetBackgroundColour(wxColour(255, 255, 255));
     m_question_button->Hide(); // Hide by default
@@ -745,7 +747,7 @@ void PrintingTaskPanel::create_panel(wxWindow *parent)
     printingstage_horizontal_sizer->Add(m_printing_stage_value, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 0);
     printingstage_horizontal_sizer->Add(m_question_button, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(5));
     printingstage_vertical_sizer->Add(printingstage_horizontal_sizer, 0, wxALIGN_CENTER_VERTICAL, 0);
-    printingstage_vertical_sizer->Add(m_printing_stage_underline, 0, wxEXPAND |wxALIGN_TOP, 0);
+    printingstage_vertical_sizer->Add(m_printing_stage_underline, 0, wxEXPAND | wxALIGN_TOP, 0);
     m_printing_stage_panel->SetSizer(printingstage_vertical_sizer);
 
     m_staticText_finish_time = new Label(penel_finish_time);
@@ -774,8 +776,7 @@ void PrintingTaskPanel::create_panel(wxWindow *parent)
     progress_left_sizer->Add(penel_text, 0, wxEXPAND | wxALL, 0);
     progress_left_sizer->Add(m_gauge_progress, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(10));
 
-
-    progress_left_sizer->Add(penel_finish_time, 0, wxEXPAND |wxALL, 0);
+    progress_left_sizer->Add(penel_finish_time, 0, wxEXPAND | wxALL, 0);
     // progress_left_sizer->SetMaxSize(wxSize(FromDIP(600), -1));
 
     progress_right_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(18));
@@ -2750,7 +2751,7 @@ void StatusPanel::update(MachineObject *obj)
         std::string current_printer_type = obj->printer_type;
         bool        supports_safety      = DevPrinterConfigUtil::support_safety_options(current_printer_type);
 
-        DevConfig* config = obj->GetConfig();
+        DevConfig *config = obj->GetConfig();
 
         if (config->SupportFirstLayerInspect() || config->SupportAIMonitor() || obj->is_support_build_plate_marker_detect || obj->is_support_auto_recovery_step_loss) {
             m_options_btn->Show();
@@ -2761,7 +2762,6 @@ void StatusPanel::update(MachineObject *obj)
         } else {
             m_options_btn->Hide();
         }
-
 
         if (obj->support_door_open_check()) {
             if (supports_safety) {
@@ -2805,7 +2805,7 @@ void StatusPanel::show_recenter_dialog()
 {
     RecenterDialog dlg(this);
     if (dlg.ShowModal() == wxID_OK) {
-        if (obj) { obj->command_go_home(); }
+        if (obj) { obj->GetAxis()->Ctrl_GoHome(); }
     }
 }
 
@@ -3035,9 +3035,7 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
         m_tempCtrl_chamber->SetIconNormal();
     }
 
-    if (to_update_layout) {
-        this->Layout();
-    }
+    if (to_update_layout) { this->Layout(); }
 }
 
 void StatusPanel::update_misc_ctrl(MachineObject *obj)
@@ -3105,7 +3103,7 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
     m_extruder_label->Show(!m_extruder_switching_status->has_content_shown()); /*hide the label if there are shown infos from m_extruder_switching_status*/
 
     /*other*/
-    if (obj->is_core_xy()) {
+    if (obj->GetAxis()->IsArchCoreXY()) {
         m_staticText_z_tip->SetLabel(_L("Bed"));
     } else {
         m_staticText_z_tip->SetLabel("Z");
@@ -3784,39 +3782,41 @@ void StatusPanel::on_axis_ctrl_xy(wxCommandEvent &event)
     // check is at home
     static std::unordered_set<int> s_x_ctrl_idxes{1, 3, 5, 7};
     static std::unordered_set<int> s_y_ctrl_idxes{0, 2, 4, 6};
-    if (s_x_ctrl_idxes.count(event.GetInt()) != 0 && !obj->is_axis_at_home("X")) {
+    if (s_x_ctrl_idxes.count(event.GetInt()) != 0 && !obj->GetAxis()->IsAxisAtHomeX()) {
         BOOST_LOG_TRIVIAL(info) << "axis x is not at home";
         show_recenter_dialog();
         return;
-    } else if (s_y_ctrl_idxes.count(event.GetInt()) != 0 && !obj->is_axis_at_home("Y")) {
+    } else if (s_y_ctrl_idxes.count(event.GetInt()) != 0 && !obj->GetAxis()->IsAxisAtHomeY()) {
         BOOST_LOG_TRIVIAL(info) << "axis y is not at home";
         show_recenter_dialog();
         return;
     }
 
     if (event.GetInt() == 0) {
-        obj->command_axis_control("Y", 1.0, 10.0f, 3000);
+        obj->GetAxis()->Ctrl_Axis("Y", 1.0, 10.0f, 3000);
     } else if (event.GetInt() == 1) {
-        obj->command_axis_control("X", 1.0, -10.0f, 3000);
+        obj->GetAxis()->Ctrl_Axis("X", 1.0, -10.0f, 3000);
     } else if (event.GetInt() == 2) {
-        obj->command_axis_control("Y", 1.0, -10.0f, 3000);
+        obj->GetAxis()->Ctrl_Axis("Y", 1.0, -10.0f, 3000);
     } else if (event.GetInt() == 3) {
-        obj->command_axis_control("X", 1.0, 10.0f, 3000);
+        obj->GetAxis()->Ctrl_Axis("X", 1.0, 10.0f, 3000);
     } else if (event.GetInt() == 4) {
-        obj->command_axis_control("Y", 1.0, 1.0f, 3000);
+        obj->GetAxis()->Ctrl_Axis("Y", 1.0, 1.0f, 3000);
     } else if (event.GetInt() == 5) {
-        obj->command_axis_control("X", 1.0, -1.0f, 3000);
+        obj->GetAxis()->Ctrl_Axis("X", 1.0, -1.0f, 3000);
     } else if (event.GetInt() == 6) {
-        obj->command_axis_control("Y", 1.0, -1.0f, 3000);
+        obj->GetAxis()->Ctrl_Axis("Y", 1.0, -1.0f, 3000);
     } else if (event.GetInt() == 7) {
-        obj->command_axis_control("X", 1.0, 1.0f, 3000);
+        obj->GetAxis()->Ctrl_Axis("X", 1.0, 1.0f, 3000);
     } else if (event.GetInt() == 8) {
         if (axis_go_home_dlg == nullptr) {
             axis_go_home_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Auto homing"));
             axis_go_home_dlg->update_text(_L("Are you sure you want to trigger auto homing?"));
             axis_go_home_dlg->m_button_ok->SetLabel(_L("Homing"));
             axis_go_home_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent &e) {
-                if (obj) { obj->command_go_home(); }
+                if (obj) {
+                    obj->GetAxis()->Ctrl_GoHome();
+                }
             });
         }
         axis_go_home_dlg->on_show();
@@ -3826,7 +3826,7 @@ void StatusPanel::on_axis_ctrl_xy(wxCommandEvent &event)
 bool StatusPanel::check_axis_z_at_home(MachineObject *obj)
 {
     if (obj) {
-        if (!obj->is_axis_at_home("Z")) {
+        if (!obj->GetAxis()->IsAxisAtHomeZ()) {
             BOOST_LOG_TRIVIAL(info) << "axis z is not at home";
             show_recenter_dialog();
             return false;
@@ -3839,7 +3839,7 @@ bool StatusPanel::check_axis_z_at_home(MachineObject *obj)
 void StatusPanel::on_axis_ctrl_z_up_10(wxCommandEvent &event)
 {
     if (obj) {
-        obj->command_axis_control("Z", 1.0, -10.0f, 900);
+        obj->GetAxis()->Ctrl_Axis("Z", 1.0, -10.0f, 900);
         if (!check_axis_z_at_home(obj)) return;
     }
 }
@@ -3847,7 +3847,7 @@ void StatusPanel::on_axis_ctrl_z_up_10(wxCommandEvent &event)
 void StatusPanel::on_axis_ctrl_z_up_1(wxCommandEvent &event)
 {
     if (obj) {
-        obj->command_axis_control("Z", 1.0, -1.0f, 900);
+        obj->GetAxis()->Ctrl_Axis("Z", 1.0, -1.0f, 900);
         if (!check_axis_z_at_home(obj)) return;
     }
 }
@@ -3855,7 +3855,7 @@ void StatusPanel::on_axis_ctrl_z_up_1(wxCommandEvent &event)
 void StatusPanel::on_axis_ctrl_z_down_1(wxCommandEvent &event)
 {
     if (obj) {
-        obj->command_axis_control("Z", 1.0, 1.0f, 900);
+        obj->GetAxis()->Ctrl_Axis("Z", 1.0, 1.0f, 900);
         if (!check_axis_z_at_home(obj)) return;
     }
 }
@@ -3863,7 +3863,7 @@ void StatusPanel::on_axis_ctrl_z_down_1(wxCommandEvent &event)
 void StatusPanel::on_axis_ctrl_z_down_10(wxCommandEvent &event)
 {
     if (obj) {
-        obj->command_axis_control("Z", 1.0, 10.0f, 900);
+        obj->GetAxis()->Ctrl_Axis("Z", 1.0, 10.0f, 900);
         if (!check_axis_z_at_home(obj)) return;
     }
 }
@@ -3885,34 +3885,36 @@ void StatusPanel::axis_ctrl_e_hint(bool up_down)
     // ctrl_e_hint_dlg->on_show();
 }
 
-void StatusPanel::on_axis_ctrl_e_up_10(wxCommandEvent &event)
+void StatusPanel::on_axis_ctrl_e_up_10(wxCommandEvent& event)
 {
     if (obj) {
         auto ext = obj->GetExtderSystem()->GetCurrentExtder();
-        if (ext && ext->GetCurrentTemp() >= TEMP_THRESHOLD_ALLOW_E_CTRL)
+        if (ext && ext->GetCurrentTemp() >= TEMP_THRESHOLD_ALLOW_E_CTRL) {
             if (obj->is_enable_np) {
                 obj->command_extruder_control(ext->GetExtId(), -10.0f);
             } else {
-                obj->command_axis_control("E", 1.0, -10.0f, 900);
+                obj->GetAxis()->Ctrl_Axis("E", 1.0, -10.0f, 900);
             }
-
-        else
+        } else {
             axis_ctrl_e_hint(true);
+        }
     }
 }
 
-void StatusPanel::on_axis_ctrl_e_down_10(wxCommandEvent &event)
+void StatusPanel::on_axis_ctrl_e_down_10(wxCommandEvent& event)
 {
     if (obj) {
         auto ext = obj->GetExtderSystem()->GetCurrentExtder();
         if (ext && ext->GetCurrentTemp() >= TEMP_THRESHOLD_ALLOW_E_CTRL)
+        {
             if (obj->is_enable_np) {
                 obj->command_extruder_control(ext->GetExtId(), 10.0f);
             } else {
-                obj->command_axis_control("E", 1.0, 10.0f, 900);
-            }
-        else
+                obj->GetAxis()->Ctrl_Axis("E", 1.0, 10.0f, 900);
+            } 
+        } else {
             axis_ctrl_e_hint(false);
+        }
     }
 }
 
@@ -4693,16 +4695,6 @@ void StatusPanel::on_camera_enter(wxMouseEvent &event)
 void StatusPanel::on_camera_leave(wxMouseEvent &event)
 {
     if (obj && m_camera_popup) { m_camera_popup->Dismiss(); }
-}
-
-void StatusPanel::on_auto_leveling(wxCommandEvent &event)
-{
-    if (obj) obj->command_auto_leveling();
-}
-
-void StatusPanel::on_xyz_abs(wxCommandEvent &event)
-{
-    if (obj) obj->command_xyz_abs();
 }
 
 void StatusPanel::on_nozzle_selected(wxCommandEvent &event)

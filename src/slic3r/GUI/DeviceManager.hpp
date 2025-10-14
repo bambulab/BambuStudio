@@ -70,6 +70,7 @@ enum ManualPaCaliMethod {
 // Previous definitions
 class DevAms;
 class DevAmsTray;
+class DevAxis;
 class DevBed;
 class DevChamber;
 class DevConfig;
@@ -112,6 +113,7 @@ private:
     DevNozzleMappingResult m_auto_nozzle_mapping;
 
     /*parts*/
+    std::shared_ptr<DevAxis>    m_axis;
     std::shared_ptr<DevChamber> m_chamber;
     DevLamp*          m_lamp;
     std::shared_ptr<DevExtensionTool> m_extension_tool;
@@ -267,6 +269,9 @@ public:
     bool is_in_extrusion_cali();
     bool is_extrusion_cali_finished();
 
+    /* Networking */
+    NetworkAgent *get_agent() const { return m_agent; }
+
     /* AMS */
     DevAms*     get_curr_Ams();
     DevAmsTray* get_curr_tray();
@@ -337,6 +342,7 @@ public:
     DevFilaSystem*   GetFilaSystem() const { return m_fila_system;}
     bool             HasAms() const;
 
+    std::shared_ptr<DevAxis>    GetAxis() const { return m_axis; }
     std::shared_ptr<DevChamber> GetChamber() const { return m_chamber; }
     DevLamp*         GetLamp() const { return m_lamp; }
     DevFan*          GetFan() const { return m_fan; }
@@ -457,8 +463,6 @@ public:
     int m_push_count = 0;
     int m_full_msg_count = 0; /*the full message count, there are full or diff messages from network*/
     bool calibration_done { false };
-
-    bool is_axis_at_home(std::string axis);
 
     bool is_filament_at_extruder();
 
@@ -597,7 +601,6 @@ public:
     bool is_support_upgrade_kit{false};
     bool is_support_filament_setting_inprinting{false};
     bool is_support_internal_timelapse { false };// fun[28], support timelapse without SD card
-    bool m_support_mqtt_homing { false };// fun[32]
     bool is_support_brtc{false};                 // fun[31], support tcp and upload protocol
     bool is_support_ext_change_assist{false};
     bool is_support_partskip{false};
@@ -684,9 +687,6 @@ public:
     int command_ack_proceed(json& proceed);
 
     /* control apis */
-    int command_xyz_abs();
-    int command_auto_leveling();
-    int command_go_home();
 
     int command_task_abort();
     /* cancelled the job_id */
@@ -741,10 +741,6 @@ public:
 
     int command_nozzle_blob_detect(bool nozzle_blob_detect);
 
-    // axis string is X, Y, Z, E
-    bool m_support_mqtt_axis_control = false;
-    int command_axis_control(std::string axis, double unit = 1.0f, double input_val = 1.0f, int speed = 3000);
-
     int command_extruder_control(int nozzle_id, double val);
     // calibration printer
     bool is_support_command_calibration();
@@ -794,7 +790,6 @@ public:
     bool is_in_printing_pause() const;
     bool is_in_prepare();
     bool is_printing_finished();
-    bool is_core_xy();
     void reset_update_time();
     void reset();
     static bool is_in_printing_status(std::string status);

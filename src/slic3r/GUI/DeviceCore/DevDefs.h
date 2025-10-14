@@ -23,8 +23,8 @@ namespace Slic3r
 
 enum PrinterArch
 {
-    ARCH_CORE_XY,
-    ARCH_I3,
+    ARCH_CORE_XY,// move hotbed
+    ARCH_I3,//move z
 };
 
 enum PrinterSeries
