@@ -1187,6 +1187,11 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
             context.group_info.strategy = FGStrategy::BestCost;
             context.group_info.mode = fg_mode;
             context.group_info.ignore_ext_filament = ignore_ext_filament;
+
+            if(mode == FilamentMapMode::fmmManual)
+                context.group_info.filament_volume_map = print_config.filament_volume_map.values;
+            else    // hrybid flow means no special request
+                context.group_info.filament_volume_map = std::vector<int>(filament_nums,(int)(NozzleVolumeType::nvtHybrid));
         }
 
         context.nozzle_info.nozzle_list = build_nozzle_list(nozzle_groups);

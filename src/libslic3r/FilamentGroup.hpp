@@ -84,7 +84,8 @@ namespace Slic3r
             double max_gap_threshold;
             FGMode mode;
             FGStrategy strategy;
-            bool ignore_ext_filament;  //wai gua filament
+            bool ignore_ext_filament;
+            std::vector<int> filament_volume_map;
         } group_info;
 
         struct MachineInfo {
@@ -178,12 +179,12 @@ namespace Slic3r
         std::vector<int> calc_filament_group_by_pam();
 
     private:
-        std::unordered_map<int, std::vector<int>> rebuild_nozzle_unprintables(const std::unordered_map<int, std::vector<int>>& extruder_unprintables);
+        std::unordered_map<int, std::vector<int>> rebuild_nozzle_unprintables(const std::vector<unsigned int>& used_filaments, const std::unordered_map<int, std::vector<int>>& extruder_unprintables, const std::vector<int>& filament_volume_map);
     private:
         FilamentGroupContext m_context;
     };
 
-    std::vector<int> calc_filament_group_for_manual_multi_nozzle(const std::vector<int>& filament_map_manual, const FilamentGroupContext& ctx);
+    std::vector<int> calc_filament_group_for_manual_multi_nozzle(const std::vector<int>& filament_map_manual,const FilamentGroupContext& ctx);
 
     std::vector<int> calc_filament_group_for_match_multi_nozzle(const FilamentGroupContext& ctx);
 
