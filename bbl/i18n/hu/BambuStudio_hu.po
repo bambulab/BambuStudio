@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-14 09:43+0800\n"
+"POT-Creation-Date: 2025-10-14 18:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2753,10 +2753,6 @@ msgstr "A nyomtatóra küldés előtt szükség van egy tárhelyre."
 
 msgid "Thermal Preconditioning for first layer optimization"
 msgstr "Előkondicionálás a jobb kezdőréteg érdekében"
-
-#, c-format, boost-format
-msgid "Remaining time: %s"
-msgstr "Hátralévő idő: %s"
 
 msgid "Remaining time: Calculating..."
 msgstr "Hátralévő idő: Számítás folyamatban..."
@@ -13091,6 +13087,12 @@ msgstr "Subtraction"
 msgid "Intersection"
 msgstr "Metszéspont"
 
+msgid "Selected Objects"
+msgstr ""
+
+msgid "Selected Parts"
+msgstr ""
+
 msgid "Keep original models"
 msgstr ""
 
@@ -14698,6 +14700,10 @@ msgid ""
 msgstr ""
 "Zsugorodás, vetemedés és feszültség\n"
 "A hőindex szabályozásával kiküszöbölhetők a vetemedés és a feszültség hő okozta okai."
+
+#, c-format, boost-format
+#~ msgid "Remaining time: %s"
+#~ msgstr "Hátralévő idő: %s"
 
 #, c-format, boost-format
 #~ msgid "The nozzle diameter of %s extruder is 0.2mm which does not support automatic Flow Dynamics calibration."
