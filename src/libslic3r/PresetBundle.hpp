@@ -142,6 +142,8 @@ public:
     void remove_user_presets_directory(const std::string preset_folder);
     void update_system_preset_setting_ids(std::map<std::string, std::map<std::string, std::string>>& system_presets);
 
+    std::vector<std::vector<std::vector<float>>> get_full_flush_matrix(bool with_multiplier = true) const;
+
     //BBS: add API to get previous machine
     int validate_presets(const std::string &file_name, DynamicPrintConfig& config, std::set<std::string>& different_gcodes);
 
