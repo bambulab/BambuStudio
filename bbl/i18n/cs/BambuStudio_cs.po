@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 21:39+0800\n"
+"POT-Creation-Date: 2025-10-14 09:43+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -3869,6 +3869,276 @@ msgstr "Neplatný formát. Očekávaný vektorový formát: \"%1%\""
 msgid "Clear color"
 msgstr ""
 
+msgid "Loading G-codes"
+msgstr "Načítání G-kódů"
+
+msgid "Loading gcode data"
+msgstr ""
+
+msgid "Loading segments"
+msgstr ""
+
+msgid "Summary"
+msgstr ""
+
+msgid "Layer Height"
+msgstr "Výška vrstvy"
+
+msgid "Line Width"
+msgstr "Šířka Extruze"
+
+msgid "Fan Speed"
+msgstr "Rychlost ventilátoru"
+
+msgid "Flow"
+msgstr "Průtok"
+
+msgid "Tool"
+msgstr "Nástroj"
+
+msgid "Layer Time"
+msgstr "Čas vrstvy"
+
+msgid "Thermal Index (min)"
+msgstr ""
+
+msgid "Thermal Index (max)"
+msgstr ""
+
+msgid "Thermal Index (mean)"
+msgstr ""
+
+msgid "Statistics of All Plates"
+msgstr "Statistiky všech Podložek"
+
+msgid "Display"
+msgstr "Displej"
+
+msgid "Flushed"
+msgstr "Čištění"
+
+msgid "Tower"
+msgstr ""
+
+msgid "Total"
+msgstr "Celkem"
+
+msgid "Total cost"
+msgstr ""
+
+msgid "Time"
+msgstr "Čas"
+
+msgid "Time Estimation"
+msgstr "Časový odhad"
+
+msgid "up to"
+msgstr "až do"
+
+msgid "above"
+msgstr "nad"
+
+msgid "from"
+msgstr "z"
+
+msgid "Slicing Result"
+msgstr ""
+
+msgid "Color Scheme"
+msgstr "Barevné schéma"
+
+msgid "Percent"
+msgstr "Procento"
+
+msgid "Used filament"
+msgstr "Použito filamentu"
+
+msgid "Layer Height (mm)"
+msgstr "Výška vrstvy (mm)"
+
+msgid "Line Width (mm)"
+msgstr "Šířka Extruze (mm)"
+
+msgid "Speed (mm/s)"
+msgstr "Rychlost (mm/s)"
+
+msgid "Fan Speed (%)"
+msgstr "Rychlost ventilátoru (%)"
+
+msgid "Temperature (°C)"
+msgstr "Teplota (°C)"
+
+msgid "Volumetric flow rate (mm³/s)"
+msgstr "Objemový průtok (mm³/s)"
+
+msgid "Travel"
+msgstr "Rychloposun"
+
+msgid "Seams"
+msgstr "Švy"
+
+msgid "Retract"
+msgstr "Retrakce"
+
+msgid "Unretract"
+msgstr "Deretrakce"
+
+msgid "Filament Changes"
+msgstr "Výměna Filamentu"
+
+msgid "Wipe"
+msgstr "Čištění"
+
+msgid "Options"
+msgstr "Možnosti"
+
+msgid "travel"
+msgstr "Cestování"
+
+msgid "Extruder"
+msgstr "Extruder"
+
+msgid "Cost"
+msgstr "Náklady"
+
+msgid "Total time"
+msgstr "Celkový čas"
+
+msgid "Filament change times"
+msgstr "Doby výměny Filamentu"
+
+msgid "Color change"
+msgstr "Změna barvy"
+
+msgid "Print"
+msgstr "Tisk"
+
+msgid "Printer"
+msgstr "Tiskárna"
+
+msgid "Print settings"
+msgstr "Nastavení tisku"
+
+msgid "Total Estimation"
+msgstr "Celkový odhad"
+
+msgid "Normal mode"
+msgstr "Normální režim"
+
+msgid "Total Filament"
+msgstr ""
+
+msgid "Model Filament"
+msgstr ""
+
+msgid "Prepare and timelapse time"
+msgstr ""
+
+msgid "Prepare time"
+msgstr "Čas přípravy"
+
+msgid "Model printing time"
+msgstr "Doba tisku modelu"
+
+msgid "Switch to silent mode"
+msgstr "Přepnout do tichého režimu"
+
+msgid "Switch to normal mode"
+msgstr "Přepnout do normálního režimu"
+
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr ""
+
+msgid "Filament Grouping"
+msgstr ""
+
+msgid "Why this grouping"
+msgstr ""
+
+msgid "Left nozzle"
+msgstr ""
+
+msgid "Right nozzle"
+msgstr ""
+
+msgid "Please place filaments on the printer based on grouping result."
+msgstr ""
+
+msgid "Tips:"
+msgstr "Tipy:"
+
+msgid "Current grouping of slice result is not optimal."
+msgstr ""
+
+#, boost-format
+msgid "Increase %1%g filament and %2% changes compared to optimal grouping."
+msgstr ""
+
+#, boost-format
+msgid "Increase %1%g filament and save %2% changes compared to optimal grouping."
+msgstr ""
+
+#, boost-format
+msgid "Save %1%g filament and increase %2% changes compared to optimal grouping."
+msgstr ""
+
+#, boost-format
+msgid "Save %1%g filament and %2% changes compared to a printer with one nozzle."
+msgstr ""
+
+#, boost-format
+msgid "Save %1%g filament and increase %2% changes compared to a printer with one nozzle."
+msgstr ""
+
+#, boost-format
+msgid "Increase %1%g filament and save %2% changes compared to a printer with one nozzle."
+msgstr ""
+
+msgid "Set to Optimal"
+msgstr ""
+
+msgid "Regroup filament"
+msgstr ""
+
+msgid "Height: "
+msgstr "Výška: "
+
+msgid "Width: "
+msgstr "Šířka: "
+
+msgid "Speed: "
+msgstr "Rychlost: "
+
+msgid "Flow: "
+msgstr "Průtok: "
+
+msgid "Layer Time: "
+msgstr "Čas vrstvy: "
+
+msgid "Fan Speed: "
+msgstr "Rychlost ventilátoru: "
+
+msgid "Temperature: "
+msgstr "Teplota: "
+
+msgid "Thermal Index"
+msgstr ""
+
+msgid "Min: "
+msgstr ""
+
+msgid "Max: "
+msgstr ""
+
+msgid "Mean: "
+msgstr ""
+
+msgid "Generating geometry vertex data"
+msgstr "Generování dat vrcholů geometrie"
+
+msgid "Generating geometry index data"
+msgstr "Generování dat indexu geometrie"
+
 msgid ""
 "An object is placed in the left/right nozzle-only area or exceeds the printable height of the left nozzle.\n"
 "Please ensure the filaments used by this object are not arranged to other nozzles."
@@ -4328,9 +4598,6 @@ msgstr "Slicuj Vše"
 
 msgid "Export G-code file"
 msgstr "Exportovat soubor s G-kódem"
-
-msgid "Print"
-msgstr "Tisk"
 
 msgid "Send"
 msgstr "Odeslat"
@@ -5248,9 +5515,6 @@ msgstr "Lampa"
 msgid "Bed"
 msgstr "Podložka"
 
-msgid "Extruder"
-msgstr "Extruder"
-
 msgid "Debug Info"
 msgstr "Informace o ladění"
 
@@ -5931,9 +6195,6 @@ msgstr "Použito Filamentu (g)"
 msgid "Used Materials"
 msgstr "Použité materiály"
 
-msgid "Cost"
-msgstr "Náklady"
-
 msgid "Estimated time"
 msgstr "Odhadovaný čas"
 
@@ -5948,9 +6209,6 @@ msgstr ""
 
 msgid "AMS(1 slot)"
 msgstr ""
-
-msgid "Flow"
-msgstr "Průtok"
 
 msgid "Not installed"
 msgstr ""
@@ -5985,9 +6243,6 @@ msgstr ""
 
 msgid "Sync extruder infomation"
 msgstr ""
-
-msgid "Printer"
-msgstr "Tiskárna"
 
 msgid "Click to edit preset"
 msgstr "Klikněte pro editaci přednastavení"
@@ -6596,9 +6851,6 @@ msgstr "Trojúhelníky: %1%\n"
 msgid " (Repair)"
 msgstr " (Oprava)"
 
-msgid "Tips:"
-msgstr "Tipy:"
-
 msgid "To repair the model, please use a third-party tool before importing it into Bambu Studio, such as "
 msgstr ""
 
@@ -6727,9 +6979,6 @@ msgstr ""
 
 msgid "All"
 msgstr "Všechny"
-
-msgid "Color change"
-msgstr "Změna barvy"
 
 msgid "Disabled"
 msgstr ""
@@ -6927,9 +7176,6 @@ msgid "Dark Mode"
 msgstr "Tmavý režim"
 
 msgid "Enable dark mode"
-msgstr ""
-
-msgid "Filament Grouping"
 msgstr ""
 
 msgid "Pop up to select filament grouping mode"
@@ -8150,13 +8396,7 @@ msgstr ""
 msgid "(Modified)"
 msgstr ""
 
-msgid "Left nozzle"
-msgstr ""
-
 msgid "Preset(Old)"
-msgstr ""
-
-msgid "Right nozzle"
 msgstr ""
 
 msgid "Modified Value(New)"
@@ -9800,9 +10040,6 @@ msgstr "Normální tisk"
 
 msgid "The default acceleration of both normal printing and travel except initial layer"
 msgstr "Výchozí zrychlení normálního tisku i pohybu kromě počáteční vrstvy"
-
-msgid "Travel"
-msgstr "Rychloposun"
 
 msgid "The acceleration of travel except initial layer"
 msgstr ""
@@ -13244,7 +13481,7 @@ msgid "The number of printer extruders and the printer selected for calibration 
 msgstr ""
 
 #, c-format, boost-format
-msgid "The nozzle diameter of %s extruder is 0.2mm which does not support automatic Flow Dynamics calibration."
+msgid "The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."
 msgstr ""
 
 #, c-format, boost-format
@@ -14211,153 +14448,6 @@ msgid ""
 "Shrinkage, Warping & Stress\n"
 "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
 msgstr ""
-
-#~ msgid "Layer Height"
-#~ msgstr "Výška vrstvy"
-
-#~ msgid "Line Width"
-#~ msgstr "Šířka Extruze"
-
-#~ msgid "Fan Speed"
-#~ msgstr "Rychlost ventilátoru"
-
-#~ msgid "Tool"
-#~ msgstr "Nástroj"
-
-#~ msgid "Layer Time"
-#~ msgstr "Čas vrstvy"
-
-#~ msgid "Height: "
-#~ msgstr "Výška: "
-
-#~ msgid "Width: "
-#~ msgstr "Šířka: "
-
-#~ msgid "Speed: "
-#~ msgstr "Rychlost: "
-
-#~ msgid "Flow: "
-#~ msgstr "Průtok: "
-
-#~ msgid "Layer Time: "
-#~ msgstr "Čas vrstvy: "
-
-#~ msgid "Fan Speed: "
-#~ msgstr "Rychlost ventilátoru: "
-
-#~ msgid "Temperature: "
-#~ msgstr "Teplota: "
-
-#~ msgid "Loading G-codes"
-#~ msgstr "Načítání G-kódů"
-
-#~ msgid "Generating geometry vertex data"
-#~ msgstr "Generování dat vrcholů geometrie"
-
-#~ msgid "Generating geometry index data"
-#~ msgstr "Generování dat indexu geometrie"
-
-#~ msgid "Statistics of All Plates"
-#~ msgstr "Statistiky všech Podložek"
-
-#~ msgid "Display"
-#~ msgstr "Displej"
-
-#~ msgid "Flushed"
-#~ msgstr "Čištění"
-
-#~ msgid "Total"
-#~ msgstr "Celkem"
-
-#~ msgid "Time"
-#~ msgstr "Čas"
-
-#~ msgid "Time Estimation"
-#~ msgstr "Časový odhad"
-
-#~ msgid "up to"
-#~ msgstr "až do"
-
-#~ msgid "above"
-#~ msgstr "nad"
-
-#~ msgid "from"
-#~ msgstr "z"
-
-#~ msgid "Color Scheme"
-#~ msgstr "Barevné schéma"
-
-#~ msgid "Percent"
-#~ msgstr "Procento"
-
-#~ msgid "Used filament"
-#~ msgstr "Použito filamentu"
-
-#~ msgid "Layer Height (mm)"
-#~ msgstr "Výška vrstvy (mm)"
-
-#~ msgid "Line Width (mm)"
-#~ msgstr "Šířka Extruze (mm)"
-
-#~ msgid "Speed (mm/s)"
-#~ msgstr "Rychlost (mm/s)"
-
-#~ msgid "Fan Speed (%)"
-#~ msgstr "Rychlost ventilátoru (%)"
-
-#~ msgid "Temperature (°C)"
-#~ msgstr "Teplota (°C)"
-
-#~ msgid "Volumetric flow rate (mm³/s)"
-#~ msgstr "Objemový průtok (mm³/s)"
-
-#~ msgid "Seams"
-#~ msgstr "Švy"
-
-#~ msgid "Retract"
-#~ msgstr "Retrakce"
-
-#~ msgid "Unretract"
-#~ msgstr "Deretrakce"
-
-#~ msgid "Filament Changes"
-#~ msgstr "Výměna Filamentu"
-
-#~ msgid "Wipe"
-#~ msgstr "Čištění"
-
-#~ msgid "Options"
-#~ msgstr "Možnosti"
-
-#~ msgid "travel"
-#~ msgstr "Cestování"
-
-#~ msgid "Total time"
-#~ msgstr "Celkový čas"
-
-#~ msgid "Filament change times"
-#~ msgstr "Doby výměny Filamentu"
-
-#~ msgid "Print settings"
-#~ msgstr "Nastavení tisku"
-
-#~ msgid "Total Estimation"
-#~ msgstr "Celkový odhad"
-
-#~ msgid "Normal mode"
-#~ msgstr "Normální režim"
-
-#~ msgid "Prepare time"
-#~ msgstr "Čas přípravy"
-
-#~ msgid "Model printing time"
-#~ msgstr "Doba tisku modelu"
-
-#~ msgid "Switch to silent mode"
-#~ msgstr "Přepnout do tichého režimu"
-
-#~ msgid "Switch to normal mode"
-#~ msgstr "Přepnout do normálního režimu"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "Odfiltrujte mezery menší než zadaná hraniční hodnota. Toto nastavení neovlivní horní/spodní vrstvy"
