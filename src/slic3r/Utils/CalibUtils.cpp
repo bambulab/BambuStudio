@@ -1653,7 +1653,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
             return false;
         }
 
-        if (NozzleVolumeType(nozzle_volume_type - 1) != cali_info.nozzle_volume_type) {
+        if (!(NozzleVolumeType(nozzle_volume_type - 1) == cali_info.nozzle_volume_type || cali_info.nozzle_volume_type == NozzleVolumeType::nvtHybrid)) {
             if (is_multi_extruder)
                 error_message = wxString::Format(_L("The currently selected nozzle type of %s extruder does not match the actual printer nozzle type.\n"
                                                 "Please click the Sync button above and restart the calibration."), name);
@@ -1726,7 +1726,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
             return false;
         }
 
-        if (NozzleVolumeType(nozzle_volume_type - 1) != cali_info.nozzle_volume_type) {
+        if (!(NozzleVolumeType(nozzle_volume_type - 1) == cali_info.nozzle_volume_type || cali_info.nozzle_volume_type == NozzleVolumeType::nvtHybrid)) {
             if (is_multi_extruder)
                 error_message = wxString::Format(_L("The currently selected nozzle type of %s extruder does not match the actual printer nozzle type.\n"
                                                 "Please click the Sync button above and restart the calibration."), name);
@@ -1783,7 +1783,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject* obj, co
         return false;
     }
 
-    if (NozzleVolumeType(nozzle_volume_type - 1) != cali_info.nozzle_volume_type) {
+    if (!(NozzleVolumeType(nozzle_volume_type - 1) == cali_info.nozzle_volume_type || cali_info.nozzle_volume_type == NozzleVolumeType::nvtHybrid)) {
         if (is_multi_extruder)
             error_message = wxString::Format(_L("The currently selected nozzle type of %s extruder does not match the actual printer nozzle type.\n"
                                             "Please click the Sync button above and restart the calibration."), name);

@@ -294,7 +294,7 @@ protected:
     bool is_blocking_printing();
     bool need_check_sdcard(MachineObject* obj);
 
-    std::vector<std::pair<wxString, int>> make_nozzles_info(const DevNozzle& r_nozzle, const std::map<int, DevNozzle>& nozzle_map, const NozzleDiameterType& nozzle_diameter, const NozzleFlowType& nozzle_flow);
+    std::vector<std::pair<wxString, int>> make_nozzles_info(const DevNozzle& r_nozzle, const std::map<int, DevNozzle>& nozzle_map, const NozzleDiameterType& nozzle_diameter, const std::vector<NozzleFlowType>& nozzle_flows);
 
     std::map<std::string, std::pair<bool, wxString>> m_tips_map;
     void init_filament_list_tips();
