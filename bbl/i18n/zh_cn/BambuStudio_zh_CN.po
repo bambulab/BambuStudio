@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 21:39+0800\n"
+"POT-Creation-Date: 2025-10-14 09:43+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3891,6 +3891,276 @@ msgstr "无效格式，应该是\"%1%\"这种数组格式"
 msgid "Clear color"
 msgstr "清除颜色"
 
+msgid "Loading G-codes"
+msgstr "正在加载G-code"
+
+msgid "Loading gcode data"
+msgstr "正在加载gcode数据"
+
+msgid "Loading segments"
+msgstr "正在加载线段"
+
+msgid "Summary"
+msgstr "概要"
+
+msgid "Layer Height"
+msgstr "层高"
+
+msgid "Line Width"
+msgstr "线宽"
+
+msgid "Fan Speed"
+msgstr "风扇速度"
+
+msgid "Flow"
+msgstr "流量"
+
+msgid "Tool"
+msgstr "工具"
+
+msgid "Layer Time"
+msgstr "层时间"
+
+msgid "Thermal Index (min)"
+msgstr "热指数（最小）"
+
+msgid "Thermal Index (max)"
+msgstr "热指数（最大）"
+
+msgid "Thermal Index (mean)"
+msgstr "热指数（平均）"
+
+msgid "Statistics of All Plates"
+msgstr "所有盘切片信息"
+
+msgid "Display"
+msgstr "显示"
+
+msgid "Flushed"
+msgstr "冲刷"
+
+msgid "Tower"
+msgstr "擦料塔"
+
+msgid "Total"
+msgstr "总计"
+
+msgid "Total cost"
+msgstr "总成本"
+
+msgid "Time"
+msgstr "时间"
+
+msgid "Time Estimation"
+msgstr "时间预估"
+
+msgid "up to"
+msgstr "达到"
+
+msgid "above"
+msgstr "高于"
+
+msgid "from"
+msgstr "从"
+
+msgid "Slicing Result"
+msgstr "切片结果"
+
+msgid "Color Scheme"
+msgstr "颜色方案"
+
+msgid "Percent"
+msgstr "百分比"
+
+msgid "Used filament"
+msgstr "使用的耗材丝"
+
+msgid "Layer Height (mm)"
+msgstr "层高（mm）"
+
+msgid "Line Width (mm)"
+msgstr "线宽（mm）"
+
+msgid "Speed (mm/s)"
+msgstr "速度（mm/s）"
+
+msgid "Fan Speed (%)"
+msgstr "风扇速度（%）"
+
+msgid "Temperature (°C)"
+msgstr "温度（℃）"
+
+msgid "Volumetric flow rate (mm³/s)"
+msgstr "体积流量速度（mm³/s）"
+
+msgid "Travel"
+msgstr "空驶"
+
+msgid "Seams"
+msgstr "缝"
+
+msgid "Retract"
+msgstr "回抽"
+
+msgid "Unretract"
+msgstr "装填回抽"
+
+msgid "Filament Changes"
+msgstr "耗材丝更换"
+
+msgid "Wipe"
+msgstr "擦拭"
+
+msgid "Options"
+msgstr "选项"
+
+msgid "travel"
+msgstr "空驶"
+
+msgid "Extruder"
+msgstr "挤出机"
+
+msgid "Cost"
+msgstr "成本"
+
+msgid "Total time"
+msgstr "总时间"
+
+msgid "Filament change times"
+msgstr "换料次数"
+
+msgid "Color change"
+msgstr "颜色更换"
+
+msgid "Print"
+msgstr "打印"
+
+msgid "Printer"
+msgstr "打印机"
+
+msgid "Print settings"
+msgstr "打印设置"
+
+msgid "Total Estimation"
+msgstr "总预估"
+
+msgid "Normal mode"
+msgstr "普通模式"
+
+msgid "Total Filament"
+msgstr "总耗材丝"
+
+msgid "Model Filament"
+msgstr "模型耗材丝"
+
+msgid "Prepare and timelapse time"
+msgstr "准备与延时摄影时间"
+
+msgid "Prepare time"
+msgstr "准备时间"
+
+msgid "Model printing time"
+msgstr "模型打印时间"
+
+msgid "Switch to silent mode"
+msgstr "切换到静音模式"
+
+msgid "Switch to normal mode"
+msgstr "切换到普通模式"
+
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "将会自动根据最优耗材分组重新切片，分组结果将会在切片后展示。"
+
+msgid "Filament Grouping"
+msgstr "耗材分组"
+
+msgid "Why this grouping"
+msgstr "为什么这样分组"
+
+msgid "Left nozzle"
+msgstr "左喷嘴"
+
+msgid "Right nozzle"
+msgstr "右喷嘴"
+
+msgid "Please place filaments on the printer based on grouping result."
+msgstr "请按上述分组结果到打印机放置耗材"
+
+msgid "Tips:"
+msgstr "提示："
+
+msgid "Current grouping of slice result is not optimal."
+msgstr "当前材料分组不是最优结果。"
+
+#, boost-format
+msgid "Increase %1%g filament and %2% changes compared to optimal grouping."
+msgstr "如果使用最优分组可多节省%1%g耗材和%2%次换料。"
+
+#, boost-format
+msgid "Increase %1%g filament and save %2% changes compared to optimal grouping."
+msgstr "相较于最优分组，多使用%1%g耗材，减少%2%次换料。"
+
+#, boost-format
+msgid "Save %1%g filament and increase %2% changes compared to optimal grouping."
+msgstr "相较于最优分组，节省%1%g耗材，增加%2%次换料。"
+
+#, boost-format
+msgid "Save %1%g filament and %2% changes compared to a printer with one nozzle."
+msgstr "相较于单头打印机可节省%1%g耗材和%2%次换料。"
+
+#, boost-format
+msgid "Save %1%g filament and increase %2% changes compared to a printer with one nozzle."
+msgstr "相较于单头打印机，节省%1%g耗材，增加%2%次换料。"
+
+#, boost-format
+msgid "Increase %1%g filament and save %2% changes compared to a printer with one nozzle."
+msgstr "相较于单头打印机，多使用%1%g耗材，减少%2%次换料。"
+
+msgid "Set to Optimal"
+msgstr "设置为最优"
+
+msgid "Regroup filament"
+msgstr "重新分组"
+
+msgid "Height: "
+msgstr "层高: "
+
+msgid "Width: "
+msgstr "线宽: "
+
+msgid "Speed: "
+msgstr "速度: "
+
+msgid "Flow: "
+msgstr "挤出流量: "
+
+msgid "Layer Time: "
+msgstr "层时间: "
+
+msgid "Fan Speed: "
+msgstr "风扇速度: "
+
+msgid "Temperature: "
+msgstr "温度: "
+
+msgid "Thermal Index"
+msgstr "热指数"
+
+msgid "Min: "
+msgstr "最小: "
+
+msgid "Max: "
+msgstr "最大: "
+
+msgid "Mean: "
+msgstr "平均: "
+
+msgid "Generating geometry vertex data"
+msgstr "正在生成几何顶点数据"
+
+msgid "Generating geometry index data"
+msgstr "正在生成几何索引数据"
+
 msgid ""
 "An object is placed in the left/right nozzle-only area or exceeds the printable height of the left nozzle.\n"
 "Please ensure the filaments used by this object are not arranged to other nozzles."
@@ -4359,9 +4629,6 @@ msgstr "切片所有盘"
 
 msgid "Export G-code file"
 msgstr "导出G-code文件"
-
-msgid "Print"
-msgstr "打印"
 
 msgid "Send"
 msgstr "发送"
@@ -5276,9 +5543,6 @@ msgstr "LED灯"
 msgid "Bed"
 msgstr "热床"
 
-msgid "Extruder"
-msgstr "挤出机"
-
 msgid "Debug Info"
 msgstr "调试信息"
 
@@ -5957,9 +6221,6 @@ msgstr "耗材丝消耗重量(g)"
 msgid "Used Materials"
 msgstr "材料消耗"
 
-msgid "Cost"
-msgstr "成本"
-
 msgid "Estimated time"
 msgstr "预估打印时间"
 
@@ -5974,9 +6235,6 @@ msgstr "AMS（4槽）"
 
 msgid "AMS(1 slot)"
 msgstr "AMS（单槽）"
-
-msgid "Flow"
-msgstr "流量"
 
 msgid "Not installed"
 msgstr "未安装"
@@ -6016,9 +6274,6 @@ msgstr "有未设置的喷嘴类型。请在同步之前设置所有挤出机的
 
 msgid "Sync extruder infomation"
 msgstr "同步挤出机信息"
-
-msgid "Printer"
-msgstr "打印机"
 
 msgid "Click to edit preset"
 msgstr "点击编辑配置"
@@ -6637,9 +6892,6 @@ msgstr "三角形：%1%\n"
 msgid " (Repair)"
 msgstr "（修复）"
 
-msgid "Tips:"
-msgstr "提示："
-
 msgid "To repair the model, please use a third-party tool before importing it into Bambu Studio, such as "
 msgstr "如需修复模型，请使用第三方工具处理后再导入 Bambu Studio，例如"
 
@@ -6776,9 +7028,6 @@ msgstr "Studio会记住上次该型号打印机选择的打印板。"
 
 msgid "All"
 msgstr "所有"
-
-msgid "Color change"
-msgstr "颜色更换"
 
 msgid "Disabled"
 msgstr "关闭"
@@ -6977,9 +7226,6 @@ msgstr "深色模式"
 
 msgid "Enable dark mode"
 msgstr "开启深色模式"
-
-msgid "Filament Grouping"
-msgstr "耗材分组"
 
 msgid "Pop up to select filament grouping mode"
 msgstr "弹窗以选择耗材分组模式"
@@ -8212,14 +8458,8 @@ msgstr "使用机器预设的修改值"
 msgid "(Modified)"
 msgstr "(待修改）"
 
-msgid "Left nozzle"
-msgstr "左喷嘴"
-
 msgid "Preset(Old)"
 msgstr "预设（旧）"
-
-msgid "Right nozzle"
-msgstr "右喷嘴"
 
 msgid "Modified Value(New)"
 msgstr "修改值（新）"
@@ -9878,9 +10118,6 @@ msgstr "普通打印"
 
 msgid "The default acceleration of both normal printing and travel except initial layer"
 msgstr "除首层之外的默认的打印和空驶的加速度"
-
-msgid "Travel"
-msgstr "空驶"
 
 msgid "The acceleration of travel except initial layer"
 msgstr ""
@@ -13382,7 +13619,7 @@ msgid "The number of printer extruders and the printer selected for calibration 
 msgstr ""
 
 #, c-format, boost-format
-msgid "The nozzle diameter of %s extruder is 0.2mm which does not support automatic Flow Dynamics calibration."
+msgid "The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."
 msgstr "%s 挤出机的喷嘴直径为0.2毫米，不支持自动流量校准。"
 
 #, c-format, boost-format
@@ -14397,6 +14634,10 @@ msgstr ""
 "收缩、翘曲与应力\n"
 "通过控制热指数，可以消除由热引起的翘曲和应力根源。"
 
+#, c-format, boost-format
+#~ msgid "The nozzle diameter of %s extruder is 0.2mm which does not support automatic Flow Dynamics calibration."
+#~ msgstr "%s 挤出机的喷嘴直径为0.2毫米，不支持自动流量校准。"
+
 #~ msgid "No available external storage was obtained. Please confirm and try again."
 #~ msgstr "没有可用的外部存储介质。请确认后重试。"
 
@@ -14405,237 +14646,6 @@ msgstr ""
 
 #~ msgid "Sending failed, please try again!"
 #~ msgstr "发送失败，请重试！"
-
-#~ msgid "Summary"
-#~ msgstr "概要"
-
-#~ msgid "Layer Height"
-#~ msgstr "层高"
-
-#~ msgid "Line Width"
-#~ msgstr "线宽"
-
-#~ msgid "Fan Speed"
-#~ msgstr "风扇速度"
-
-#~ msgid "Thermal Index (min)"
-#~ msgstr "热指数（最小）"
-
-#~ msgid "Thermal Index (max)"
-#~ msgstr "热指数（最大）"
-
-#~ msgid "Thermal Index (mean)"
-#~ msgstr "热指数（平均）"
-
-#~ msgid "Tool"
-#~ msgstr "工具"
-
-#~ msgid "Layer Time"
-#~ msgstr "层时间"
-
-#~ msgid "Height: "
-#~ msgstr "层高: "
-
-#~ msgid "Width: "
-#~ msgstr "线宽: "
-
-#~ msgid "Speed: "
-#~ msgstr "速度: "
-
-#~ msgid "Flow: "
-#~ msgstr "挤出流量: "
-
-#~ msgid "Layer Time: "
-#~ msgstr "层时间"
-
-#~ msgid "Fan Speed: "
-#~ msgstr "风扇速度: "
-
-#~ msgid "Temperature: "
-#~ msgstr "温度: "
-
-#~ msgid "Thermal Index"
-#~ msgstr "热指数"
-
-#~ msgid "Min: "
-#~ msgstr "最小: "
-
-#~ msgid "Max: "
-#~ msgstr "最大: "
-
-#~ msgid "Mean: "
-#~ msgstr "平均: "
-
-#~ msgid "Loading G-codes"
-#~ msgstr "正在加载G-code"
-
-#~ msgid "Generating geometry vertex data"
-#~ msgstr "正在生成几何顶点数据"
-
-#~ msgid "Generating geometry index data"
-#~ msgstr "正在生成几何索引数据"
-
-#~ msgid "Statistics of All Plates"
-#~ msgstr "所有盘切片信息"
-
-#~ msgid "Display"
-#~ msgstr "显示"
-
-#~ msgid "Flushed"
-#~ msgstr "冲刷"
-
-#~ msgid "Tower"
-#~ msgstr "擦料塔"
-
-#~ msgid "Total"
-#~ msgstr "总计"
-
-#~ msgid "Total cost"
-#~ msgstr "总成本"
-
-#~ msgid "Time"
-#~ msgstr "时间"
-
-#~ msgid "Time Estimation"
-#~ msgstr "时间预估"
-
-#~ msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-#~ msgstr "将会自动根据最优耗材分组重新切片，分组结果将会在切片后展示。"
-
-#~ msgid "Why this grouping"
-#~ msgstr "为什么这样分组"
-
-#~ msgid "Please place filaments on the printer based on grouping result."
-#~ msgstr "请按上述分组结果到打印机放置耗材"
-
-#~ msgid "Current grouping of slice result is not optimal."
-#~ msgstr "当前材料分组不是最优结果。"
-
-#, boost-format
-#~ msgid "Increase %1%g filament and %2% changes compared to optimal grouping."
-#~ msgstr "如果使用最优分组可多节省%1%g耗材和%2%次换料。"
-
-#, boost-format
-#~ msgid "Increase %1%g filament and save %2% changes compared to optimal grouping."
-#~ msgstr "相较于最优分组，多使用%1%g耗材，减少%2%次换料。"
-
-#, boost-format
-#~ msgid "Save %1%g filament and increase %2% changes compared to optimal grouping."
-#~ msgstr "相较于最优分组，节省%1%g耗材，增加%2%次换料。"
-
-#, boost-format
-#~ msgid "Save %1%g filament and %2% changes compared to a printer with one nozzle."
-#~ msgstr "相较于单头打印机可节省%1%g耗材和%2%次换料。"
-
-#, boost-format
-#~ msgid "Save %1%g filament and increase %2% changes compared to a printer with one nozzle."
-#~ msgstr "相较于单头打印机，节省%1%g耗材，增加%2%次换料。"
-
-#, boost-format
-#~ msgid "Increase %1%g filament and save %2% changes compared to a printer with one nozzle."
-#~ msgstr "相较于单头打印机，多使用%1%g耗材，减少%2%次换料。"
-
-#~ msgid "Set to Optimal"
-#~ msgstr "设置为最优"
-
-#~ msgid "Regroup filament"
-#~ msgstr "重新分组"
-
-#~ msgid "up to"
-#~ msgstr "达到"
-
-#~ msgid "above"
-#~ msgstr "高于"
-
-#~ msgid "from"
-#~ msgstr "从"
-
-#~ msgid "Slicing Result"
-#~ msgstr "切片结果"
-
-#~ msgid "Color Scheme"
-#~ msgstr "颜色方案"
-
-#~ msgid "Percent"
-#~ msgstr "百分比"
-
-#~ msgid "Used filament"
-#~ msgstr "使用的耗材丝"
-
-#~ msgid "Layer Height (mm)"
-#~ msgstr "层高（mm）"
-
-#~ msgid "Line Width (mm)"
-#~ msgstr "线宽（mm）"
-
-#~ msgid "Speed (mm/s)"
-#~ msgstr "速度(mm/s)"
-
-#~ msgid "Fan Speed (%)"
-#~ msgstr "风扇速度（%）"
-
-#~ msgid "Temperature (°C)"
-#~ msgstr "温度（℃）"
-
-#~ msgid "Volumetric flow rate (mm³/s)"
-#~ msgstr "体积流量速度（mm³/s）"
-
-#~ msgid "Seams"
-#~ msgstr "缝"
-
-#~ msgid "Retract"
-#~ msgstr "回抽"
-
-#~ msgid "Unretract"
-#~ msgstr "装填回抽"
-
-#~ msgid "Filament Changes"
-#~ msgstr "耗材丝更换"
-
-#~ msgid "Wipe"
-#~ msgstr "擦拭"
-
-#~ msgid "Options"
-#~ msgstr "选项"
-
-#~ msgid "travel"
-#~ msgstr "空驶"
-
-#~ msgid "Total time"
-#~ msgstr "总时间"
-
-#~ msgid "Filament change times"
-#~ msgstr "换料次数"
-
-#~ msgid "Print settings"
-#~ msgstr "打印设置"
-
-#~ msgid "Total Estimation"
-#~ msgstr "总预估"
-
-#~ msgid "Normal mode"
-#~ msgstr "普通模式"
-
-#~ msgid "Total Filament"
-#~ msgstr "总耗材丝"
-
-#~ msgid "Model Filament"
-#~ msgstr "模型耗材丝"
-
-#~ msgid "Prepare and timelapse time"
-#~ msgstr "准备与延时摄影时间"
-
-#~ msgid "Prepare time"
-#~ msgstr "准备时间"
-
-#~ msgid "Model printing time"
-#~ msgstr "模型打印时间"
-
-#~ msgid "Switch to silent mode"
-#~ msgstr "切换到静音模式"
-
-#~ msgid "Switch to normal mode"
-#~ msgstr "切换到普通模式"
 
 #~ msgid ""
 #~ "When using PLA to support TPU, We recommend the following settings:\n"
