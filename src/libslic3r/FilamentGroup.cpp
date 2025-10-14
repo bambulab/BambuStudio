@@ -1236,19 +1236,31 @@ namespace Slic3r
         return filament_labels_ret;
     }
 
-    std::unordered_map<int, std::vector<int>> FilamentGroupMultiNozzle::rebuild_nozzle_unprintables(const std::unordered_map<int, std::vector<int>>& extruder_unprintables)
+    std::unordered_map<int, std::vector<int>> FilamentGroupMultiNozzle::rebuild_nozzle_unprintables(const std::vector<unsigned int>& used_filaments, const std::unordered_map<int, std::vector<int>>& extruder_unprintables, const std::vector<int>& filament_volume_map)
     {
         std::unordered_map<int, std::vector<int>> nozzle_unprintables;
-        for (auto& elem : extruder_unprintables) {
-            int filament_idx = elem.first;
-            std::vector<int> unprintable_extruders = elem.second;
-            std::vector<int> unprintable_nozzles;
-            for (auto eid : unprintable_extruders) {
-                std::vector<int> nozzles_for_extruder = m_context.nozzle_info.extruder_nozzle_list[eid];
-                append(unprintable_nozzles, nozzles_for_extruder);
+
+        for(size_t fidx = 0 ;fidx<used_filaments.size(); ++fidx){
+            NozzleVolumeType expected_volume = NozzleVolumeType(filament_volume_map[used_filaments[fidx]]);
+            std::vector<int> unexpected_extruders;
+            if(extruder_unprintables.find(fidx) != extruder_unprintables.end()){
+                unexpected_extruders = extruder_unprintables.at(fidx);
             }
-            nozzle_unprintables[filament_idx] = unprintable_nozzles;
+
+            std::vector<int> unprintable_nozzles;
+            for(size_t nozzle_idx =0 ;nozzle_idx < m_context.nozzle_info.nozzle_list.size(); ++nozzle_idx){
+                auto nozzle_info = m_context.nozzle_info.nozzle_list[nozzle_idx];
+
+                if(std::find(unexpected_extruders.begin(), unexpected_extruders.end(), nozzle_info.extruder_id)!= unexpected_extruders.end() || (expected_volume!=nvtHybrid && expected_volume != nozzle_info.volume_type))
+                    unprintable_nozzles.push_back(nozzle_idx);
+            }
+            if(unprintable_nozzles.empty())
+                continue;
+
+            sort_remove_duplicates(unprintable_nozzles);
+            nozzle_unprintables[fidx] = unprintable_nozzles;
         }
+
         return nozzle_unprintables;
     }
 
@@ -1318,7 +1330,7 @@ namespace Slic3r
         std::vector<unsigned int> used_filaments = collect_sorted_used_filaments(m_context.model_info.layer_filaments);
         std::unordered_map<int, std::vector<int>>unplaceable_limits;
         extract_unprintable_limit_indices(m_context.model_info.unprintable_filaments, used_filaments, unplaceable_limits); // turn filament idx to idx in used filaments
-        unplaceable_limits = rebuild_nozzle_unprintables(unplaceable_limits);
+        unplaceable_limits = rebuild_nozzle_unprintables(used_filaments,unplaceable_limits,m_context.group_info.filament_volume_map);
 
         int k = m_context.nozzle_info.nozzle_list.size();
         auto distance_evaluator = std::make_shared<FlushDistanceEvaluator>(m_context.model_info.flush_matrix, used_filaments, m_context.model_info.layer_filaments);
