@@ -12,6 +12,15 @@
 #include <string>
 #include <nlohmann/json.hpp>
 
+// Reserved for future usage
+#define DEV_RESERVED_FOR_FUTURE(...) /* stripped */
+
+// Previous definitions
+namespace Slic3r
+{
+    class MachineObject;
+}
+
 enum PrinterArch
 {
     ARCH_CORE_XY,
@@ -115,10 +124,9 @@ struct DevNozzleMappingResult
 
 public:
     void Clear();
-    bool IsEmpty() const
-    {
-        return m_result.empty();
-    }
+    bool IsEmpty() const { return m_result.empty();}
+
+    int GetMappedNozzlePosIdByFilaId(Slic3r::MachineObject* obj, int fila_id) const;// return -1 if not mapped
 };
 
 class devPrinterUtil

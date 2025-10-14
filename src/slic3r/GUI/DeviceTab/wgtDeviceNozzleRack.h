@@ -209,6 +209,9 @@ public:
     void SetSelected(bool selected);
     bool IsSelected() const { return m_is_selected; }
 
+    bool IsDisabled() const { return m_is_disabled; }
+    void SetDisable(bool disabled);
+
     void Rescale();
 
 private:
@@ -231,6 +234,9 @@ private:
     bool  m_enable_select = false;
     ScalableBitmap* m_nozzle_selected_image{ nullptr };
     wxStaticBitmap* m_nozzle_selected_bitmap{ nullptr };
+
+    // enable or disable
+    bool m_is_disabled = false;
 
     // Images
     ScalableBitmap* m_nozzle_normal_image{ nullptr };

@@ -834,6 +834,7 @@ void AmsMapingPopup::msw_rescale()
 {
     m_left_extra_slot->msw_rescale();
     m_right_extra_slot->msw_rescale();
+    m_rack_nozzle_select->Rescale();
     for (auto item : m_mapping_item_list) { item->msw_rescale(); }
     for (auto container : m_amsmapping_container_list) { container->msw_rescale(); }
 
@@ -1490,12 +1491,8 @@ void AmsMapingPopup::update_rack_select(MachineObject *obj)
     bool show_rack_select_area = false;
     if (!m_mapping_from_multi_machines && !m_use_in_sync_dialog &&
         obj && obj->GetNozzleRack()->IsSupported() && !obj->get_nozzle_mapping_result().m_nozzle_mapping.empty()) {
-        const auto &nozzle_mapping_result = obj->get_nozzle_mapping_result().m_nozzle_mapping;
-        if (auto iter = nozzle_mapping_result.find(m_current_filament_id); iter != nozzle_mapping_result.end()) {
-            m_rack_nozzle_select->UpdateRackSelect(obj->GetNozzleRack(), iter->second);
-        } else {
-            m_rack_nozzle_select->UpdateRackSelect(obj->GetNozzleRack(), -1);
-        }
+        int mapped_nozzle_pos_id =  obj->get_nozzle_mapping_result().GetMappedNozzlePosIdByFilaId(obj, m_current_filament_id);
+        m_rack_nozzle_select->UpdateRackSelect(obj->GetNozzleRack(), mapped_nozzle_pos_id);
 
         show_rack_select_area = true;
     }
