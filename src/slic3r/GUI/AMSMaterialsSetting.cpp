@@ -911,15 +911,16 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     std::string nozzle_diameter_str = stream.str();
     std::set<std::string> printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(DevPrinterConfigUtil::get_printer_display_name(obj->printer_type), nozzle_diameter_str);
 
+    auto & filaments = preset_bundle->filaments;
     if (preset_bundle) {
-        BOOST_LOG_TRIVIAL(trace) << "system_preset_bundle filament number=" << preset_bundle->filaments.size();
-        for (auto filament_it = preset_bundle->filaments.begin(); filament_it != preset_bundle->filaments.end(); filament_it++) {
+        BOOST_LOG_TRIVIAL(trace) << "system_preset_bundle filament number=" << filaments.size();
+        for (auto filament_it = filaments.begin(); filament_it != filaments.end(); filament_it++) {
             //filter by system preset
             Preset& preset = *filament_it;
             /*The situation where the user preset is not displayed is as follows:
                 1. Not a root preset
                 2. Not system preset and the printer firmware does not support user preset */
-            if (preset_bundle->filaments.get_preset_base(*filament_it) != &preset || (!filament_it->is_system && !obj->is_support_user_preset)) {
+            if (filaments.get_preset_base(*filament_it) != &preset || (!filament_it->is_system && !obj->is_support_user_preset)) {
                 continue;
             }
 
@@ -932,35 +933,20 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
                     } else {
                         filament_id_set.insert(filament_it->filament_id);
                         // name matched
-                        if (filament_it->is_system) {
-                            filament_items.push_back(filament_it->alias);
-                            _collect_filament_info(filament_it->alias, preset, query_filament_vendors, query_filament_types);
+                        auto fialment_alias = filaments.get_preset_alias(*filament_it, true);
+                        if (!fialment_alias.empty()) {
+                            filament_items.push_back(from_u8(fialment_alias));
+                            _collect_filament_info(fialment_alias, preset, query_filament_vendors, query_filament_types);
 
                             FilamentInfos filament_infos;
-                            filament_infos.filament_id             = filament_it->filament_id;
-                            filament_infos.setting_id              = filament_it->setting_id;
-                            map_filament_items[filament_it->alias] = filament_infos;
-                        } else {
-                            char   target = '@';
-                            size_t pos    = filament_it->name.find(target);
-                            if (pos != std::string::npos) {
-                                std::string user_preset_alias    = filament_it->name.substr(0, pos - 1);
-                                wxString    wx_user_preset_alias = wxString(user_preset_alias.c_str(), wxConvUTF8);
-                                user_preset_alias                = wx_user_preset_alias.ToStdString();
-
-                                filament_items.push_back(user_preset_alias);
-                                _collect_filament_info(user_preset_alias, preset, query_filament_vendors, query_filament_types);
-
-                                FilamentInfos filament_infos;
-                                filament_infos.filament_id            = filament_it->filament_id;
-                                filament_infos.setting_id             = filament_it->setting_id;
-                                map_filament_items[user_preset_alias] = filament_infos;
-                            }
+                            filament_infos.filament_id         = filament_it->filament_id;
+                            filament_infos.setting_id          = filament_it->setting_id;
+                            map_filament_items[fialment_alias] = filament_infos;
                         }
 
                         if (filament_it->filament_id == ams_filament_id) {
-                            hint_filament_name = from_u8(filament_it->alias);
-                            bambu_filament_name = from_u8(filament_it->alias);
+                            hint_filament_name  = from_u8(fialment_alias);
+                            bambu_filament_name = from_u8(fialment_alias);
 
 
                             // update if nozzle_temperature_range is found
