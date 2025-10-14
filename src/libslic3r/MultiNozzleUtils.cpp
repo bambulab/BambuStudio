@@ -360,6 +360,33 @@ int MultiNozzleGroupResult::get_config_idx_for_filament(int filament_idx, const 
 
 }
 
+int MultiNozzleGroupResult::estimate_seq_flush_weight(const std::vector<std::vector<std::vector<float>>>& flush_matrix, const std::vector<int>& filament_change_seq) const
+{
+    auto get_weight_from_volume = [](float volume){
+        return static_cast<int>(volume * 1.26 * 0.01);
+    };
+
+    float total_flush_volume = 0;
+    MultiNozzleUtils::NozzleStatusRecorder recorder;
+    for(auto filament: filament_change_seq){
+        auto nozzle = get_nozzle_for_filament(filament);
+        if(!nozzle)
+            continue;
+
+        int extruder_id = nozzle->extruder_id;
+        int nozzle_id = nozzle->group_id;
+        int last_filament = recorder.get_filament_in_nozzle(nozzle_id);
+
+        if(last_filament!= -1 && last_filament != filament){
+            float flush_volume = flush_matrix[extruder_id][last_filament][filament];
+            total_flush_volume += flush_volume;
+        }
+        recorder.set_nozzle_status(nozzle_id, filament);
+    }
+
+    return get_weight_from_volume(total_flush_volume);
+}
+
 
 
 }} // namespace Slic3r::MultiNozzleUtils

@@ -84,7 +84,14 @@ public:
 
     int  get_config_idx_for_filament(int filament_idx, const PrintConfig& config);
 
-
+    /**
+     * @brief 预估给定序列的冲刷重量
+     *
+     * @param flush_matrix 换挤出机的矩阵，挤出机-起始耗材-结束耗材
+     * @param filament_change_seq 换料序列
+     * @return int 冲刷重量
+     */
+    int estimate_seq_flush_weight(const std::vector<std::vector<std::vector<float>>>& flush_matrix, const std::vector<int>& filament_change_seq) const;
 
 public:
     int                       get_extruder_id(int filament_id) const;       // 根据材料id取逻辑挤出机id
