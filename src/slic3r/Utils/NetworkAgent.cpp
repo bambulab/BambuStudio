@@ -174,7 +174,7 @@ std::string NetworkAgent::get_libpath_in_current_directory(std::string library_n
 }
 
 
-int NetworkAgent::initialize_network_module(bool using_backup)
+int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cert)
 {
     //int ret = -1;
     std::string library;
@@ -186,7 +186,10 @@ int NetworkAgent::initialize_network_module(bool using_backup)
         plugin_folder = plugin_folder/"backup";
     }
     std::optional<SignerSummary> self_cert_summary, module_cert_summary;
-    self_cert_summary = SummarizeSelf();
+    if (validate_cert)
+        self_cert_summary = SummarizeSelf();
+    else
+        BOOST_LOG_TRIVIAL(info) << "wouldn't validate networking dll cert";
     if (!self_cert_summary)
         BOOST_LOG_TRIVIAL(info) << "self cert not exist";
 
