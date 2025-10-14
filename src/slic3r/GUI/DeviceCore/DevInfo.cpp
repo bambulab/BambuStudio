@@ -31,6 +31,7 @@ void DevInfo::ParseInfo(const nlohmann::json &print_jj) {
     if (print_jj.contains("device")) {
         const auto& device_jj = print_jj["device"];
         DevJsonValParser::ParseVal(device_jj, "connection_type", m_dev_connection_type);
+        DevJsonValParser::ParseVal(device_jj, "type", m_device_mode);
     }
 }
 // end of class DevInfo

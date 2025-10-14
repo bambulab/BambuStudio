@@ -32,6 +32,7 @@
 #include <wx/dir.h>
 #include "fast_float/fast_float.h"
 
+#include "DeviceCore/DevAxis.h"
 #include "DeviceCore/DevChamber.h"
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevExtensionTool.h"
@@ -548,6 +549,7 @@ MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::s
     vt_slot.push_back(vslot);
 
     {
+        m_axis    = DevAxis::Create(this);
         m_chamber = DevChamber::Create(this);
         m_lamp = new DevLamp(this);
         m_fan = new DevFan(this);
@@ -856,21 +858,6 @@ bool MachineObject::check_pa_result_validation(PACalibResult& result)
 {
     if (result.k_value < 0 || result.k_value > 10)
         return false;
-
-    return true;
-}
-
-bool MachineObject::is_axis_at_home(std::string axis)
-{
-    if (m_home_flag == 0) { return true; }
-
-    if (axis == "X") {
-        return (m_home_flag & 1) == 1;
-    } else if (axis == "Y") {
-        return ((m_home_flag >> 1) & 1) == 1;
-    } else if (axis == "Z") {
-        return ((m_home_flag >> 2) & 1) == 1;
-    }
 
     return true;
 }
@@ -1256,31 +1243,6 @@ int MachineObject::command_clean_print_error_uiop(int print_error)
 
     return this->publish_json(j);
 }
-
-int MachineObject::command_xyz_abs()
-{
-    return this->publish_gcode("G90 \n");
-}
-
-int MachineObject::command_auto_leveling()
-{
-    return this->publish_gcode("G29 \n");
-}
-
-int MachineObject::command_go_home()
-{
-    if (m_support_mqtt_homing)
-    {
-        json j;
-        j["print"]["command"] = "back_to_center";
-        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        return this->publish_json(j);
-    }
-
-    // gcode command
-    return this->is_in_printing() ? this->publish_gcode("G28 X\n") : this->publish_gcode("G28 \n");
-}
-
 
 int MachineObject::command_task_partskip(std::vector<int> part_ids)
 {
@@ -1723,53 +1685,6 @@ int MachineObject::command_ams_air_print_detect(bool air_print_detect)
     ams_air_print_status = air_print_detect;
 
     return this->publish_json(j);
-}
-
-
-int MachineObject::command_axis_control(std::string axis, double unit, double input_val, int speed)
-{
-    if (m_support_mqtt_axis_control)
-    {
-        json j;
-        j["print"]["command"] = "xyz_ctrl";
-        j["print"]["axis"] = axis;
-        j["print"]["dir"] = input_val > 0 ? 1 : -1;
-        j["print"]["mode"] = (std::abs(input_val) >= 10) ? 1 : 0;
-        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        return this->publish_json(j);
-    }
-
-    double value = input_val;
-    if (!is_core_xy()) {
-        if ( axis.compare("Y") == 0
-            || axis.compare("Z")  == 0) {
-            value = -1.0 * input_val;
-        }
-    }
-
-    char cmd[256];
-    if (axis.compare("X") == 0
-        || axis.compare("Y") == 0
-        || axis.compare("Z") == 0) {
-        sprintf(cmd, "M211 S \nM211 X1 Y1 Z1\nM1002 push_ref_mode\nG91 \nG1 %s%0.1f F%d\nM1002 pop_ref_mode\nM211 R\n", axis.c_str(), value * unit, speed);
-    }
-    else if (axis.compare("E") == 0) {
-        sprintf(cmd, "M83 \nG0 %s%0.1f F%d\n", axis.c_str(), value * unit, speed);
-    }
-    else {
-        return -1;
-    }
-
-    try {
-        json j;
-        j["axis_control"] = axis;
-
-        NetworkAgent* agent = GUI::wxGetApp().getAgent();
-        if (agent) agent->track_event("printer_control", j.dump());
-    }
-    catch (...) {}
-
-    return this->publish_gcode(cmd);
 }
 
 int MachineObject::command_extruder_control(int nozzle_id, double val)
@@ -2277,13 +2192,6 @@ bool MachineObject::is_printing_finished()
         || print_status.compare("FAILED") == 0) {
         return true;
     }
-    return false;
-}
-
-bool MachineObject::is_core_xy()
-{
-    if (get_printer_arch() == PrinterArch::ARCH_CORE_XY)
-        return true;
     return false;
 }
 
@@ -3235,6 +3143,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     if (!key_field_only) {
                         /* temperature */
 
+                        m_axis->ParseAxis(jj);
                         DevBed::ParseV1_0(jj, m_bed);
                         m_chamber->ParseChamber(jj);
 
@@ -4934,9 +4843,7 @@ void MachineObject::parse_new_info(json print)
         is_support_nozzle_blob_detection = get_flag_bits(fun, 13);
         is_support_upgrade_kit = get_flag_bits(fun, 14);
         is_support_internal_timelapse = get_flag_bits(fun, 28);
-        m_support_mqtt_homing = get_flag_bits(fun, 32);
         is_support_brtc = get_flag_bits(fun, 31);
-        m_support_mqtt_axis_control = get_flag_bits(fun, 38);
         m_support_mqtt_bet_ctrl = get_flag_bits(fun, 39);
         is_support_new_auto_cali_method = get_flag_bits(fun, 40);
         is_support_spaghetti_detection = get_flag_bits(fun, 42);
