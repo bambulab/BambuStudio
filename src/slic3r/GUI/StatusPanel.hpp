@@ -754,9 +754,6 @@ protected:
     void on_switch_vcamera(wxMouseEvent &event);
     void on_camera_enter(wxMouseEvent &event);
     void on_camera_leave(wxMouseEvent& event);
-    void on_auto_leveling(wxCommandEvent &event);
-    void on_xyz_abs(wxCommandEvent &event);
-
 
     void on_show_parts_options(wxCommandEvent& event);
     /* print options */
