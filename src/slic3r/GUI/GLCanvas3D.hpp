@@ -587,6 +587,7 @@ private:
     bool m_in_render;
     wxTimer m_timer;
     wxTimer m_timer_set_color;
+    int m_color_input_value = -1;
     LayersEditing m_layers_editing;
     Mouse m_mouse;
     GLGizmosManager m_gizmos;
