@@ -218,6 +218,22 @@ void DevNozzleMappingResult::Clear()
 }
 
 
+int DevNozzleMappingResult::GetMappedNozzlePosIdByFilaId(MachineObject* obj, int fila_id) const
+{
+    auto iter = m_nozzle_mapping.find(fila_id);
+    if (iter == m_nozzle_mapping.end()) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": not mapped for " << fila_id;
+        return -1;// the filament is not mapped by the machine
+    }
+
+    if (obj->GetNozzleSystem()->GetReplaceNozzleTar().has_value() && iter->second == obj->GetNozzleSystem()->GetReplaceNozzleTar().value()) {
+        return 0;// 0 means right extueder
+    }
+
+    return iter->second;
+}
+
+
 void MachineObject::set_manual_nozzle_mapping(int fila_id, int nozzle_pos_id)
 {
     m_auto_nozzle_mapping.m_nozzle_mapping[fila_id] = nozzle_pos_id;
