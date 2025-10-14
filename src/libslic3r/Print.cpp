@@ -164,6 +164,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "retraction_length",
         "retract_length_toolchange",
         "z_hop",
+        "filament_retract_length_nc",
         "retract_restart_extra",
         "retract_restart_extra_toolchange",
         "retraction_speed",

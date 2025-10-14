@@ -4050,6 +4050,17 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInts { 1 });
     def->cli = ConfigOptionDef::nocli;
 
+    def = this->add("filament_retract_length_nc", coFloats);
+    def->label = L("length when change nozzle");
+    def->tooltip = L("When this retraction value is modified, it will be used as the amount of filament retracted "
+                   "inside the nozzle before changing nozzles.");
+    def->sidetext = L("mm");
+    def->mode = comDevelop;
+    def->nullable = true;
+    def->min = 0;
+    def->max = 18;
+    def->set_default_value(new ConfigOptionFloatsNullable { 10. });
+
     def = this->add("retract_restart_extra", coFloats);
     def->label = L("Extra length on restart");
     //def->label = "Extra length on restart";
@@ -5458,7 +5469,7 @@ void PrintConfigDef::init_filament_option_keys()
     m_filament_option_keys = {
         "filament_diameter", "min_layer_height", "max_layer_height","volumetric_speed_coefficients",
         "retraction_length", "z_hop", "z_hop_types", "retraction_speed", "deretraction_speed",
-        "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
+        "retract_before_wipe", "filament_retract_length_nc","retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "filament_colour",
         "default_filament_profile","retraction_distances_when_cut","long_retractions_when_cut"
     };
@@ -5467,6 +5478,7 @@ void PrintConfigDef::init_filament_option_keys()
         "deretraction_speed",
         "long_retractions_when_cut",
         "retract_before_wipe",
+        "filament_retract_length_nc",
         "retract_restart_extra",
         "retract_when_changing_layer",
         "retraction_distances_when_cut",
@@ -6346,6 +6358,7 @@ std::set<std::string> filament_options_with_variant = {
     //"filament_extruder_id",
     "filament_extruder_variant",
     "filament_retraction_length",
+    "filament_retract_length_nc",
     "filament_z_hop",
     "filament_z_hop_types",
     "filament_retract_restart_extra",
