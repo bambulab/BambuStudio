@@ -64,7 +64,7 @@ namespace Slic3r {
             int subdivision_level = 1;         // Higher = smoother (for Organic/Rounded)
             
             // Advanced options
-            bool clip_to_mesh = true;          // Clip to original mesh boundary
+            bool clip_to_mesh = false;         // Clip to original mesh boundary
             float min_cell_size = 0.0f;        // Minimum cell size (0 = no limit)
             float adaptive_factor = 1.0f;      // For adaptive seeding
             bool restricted_voronoi = false;   // Restrict Voronoi to surface (RVD)

@@ -2973,7 +2973,7 @@ namespace Slic3r {
 
         seeds.reserve(dim * dim * dim);
 
-        // Generate grid WITHOUT inside test (seeds are guaranteed inside due to shrunk bbox)
+        // Generate dense grid of candidate points
         for (int x = 0; x < dim; ++x) {
             for (int y = 0; y < dim; ++y) {
                 for (int z = 0; z < dim; ++z) {
@@ -2983,23 +2983,34 @@ namespace Slic3r {
             }
         }
 
-        BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Generated " << seeds.size() << " seeds";
+        BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Generated " << seeds.size() << " candidate seeds";
 
-        // If we have too many seeds, uniformly sample
-        if (seeds.size() > size_t(num_seeds)) {
-            std::vector<Vec3d> sampled;
-            sampled.reserve(num_seeds);
-            
-            int step_size = std::max(1, int(seeds.size()) / num_seeds);
-            for (size_t i = 0; i < seeds.size() && sampled.size() < size_t(num_seeds); i += step_size) {
-                sampled.push_back(seeds[i]);
-            }
-            
-            seeds = sampled;
-            BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Sampled down to " << seeds.size() << " seeds";
+        // Filter to points that are actually inside the mesh volume
+        AABBMesh aabb_mesh(mesh);
+        std::vector<Vec3d> inside;
+        inside.reserve(seeds.size());
+        for (const Vec3d& point : seeds) {
+            if (is_point_inside_mesh(aabb_mesh, point))
+                inside.push_back(point);
         }
 
-        return seeds;
+        if (inside.empty()) {
+            BOOST_LOG_TRIVIAL(warning) << "generate_grid_seeds() - No grid points inside mesh; falling back to random sampling";
+            return generate_random_seeds(mesh, num_seeds, 1337);
+        }
+
+        // If we have too many seeds, uniformly sample to requested count
+        if (inside.size() > size_t(num_seeds)) {
+            std::vector<Vec3d> sampled;
+            sampled.reserve(num_seeds);
+            size_t step_size = std::max<size_t>(1, inside.size() / size_t(num_seeds));
+            for (size_t i = 0; i < inside.size() && sampled.size() < size_t(num_seeds); i += step_size)
+                sampled.push_back(inside[i]);
+            inside.swap(sampled);
+        }
+
+        BOOST_LOG_TRIVIAL(info) << "generate_grid_seeds() - Returning " << inside.size() << " grid seeds inside mesh";
+        return inside;
     }
 
     // PHASE 4: Surface-based seeding - place seeds offset inward from mesh surface
@@ -3316,14 +3327,23 @@ namespace Slic3r {
         std::uniform_real_distribution<double> dist_z(bbox.min.z(), bbox.max.z());
 
         seeds.reserve(num_seeds);
+        AABBMesh aabb_mesh(mesh);
 
-        // Generate seeds WITHOUT inside test
-        for (int i = 0; i < num_seeds; ++i) {
+        int attempts = 0;
+        const int max_attempts = std::max(1000, num_seeds * 50);
+        while (seeds.size() < size_t(num_seeds) && attempts < max_attempts) {
             Vec3d point(dist_x(gen), dist_y(gen), dist_z(gen));
-            seeds.push_back(point);
+            attempts++;
+            if (is_point_inside_mesh(aabb_mesh, point))
+                seeds.push_back(point);
         }
 
-        BOOST_LOG_TRIVIAL(info) << "generate_random_seeds() - Generated " << seeds.size() << " random seeds";
+        if (seeds.size() < size_t(num_seeds)) {
+            BOOST_LOG_TRIVIAL(warning) << "generate_random_seeds() - Only generated " << seeds.size()
+                                       << " seeds inside mesh (target " << num_seeds << ")";
+        }
+
+        BOOST_LOG_TRIVIAL(info) << "generate_random_seeds() - Generated " << seeds.size() << " random seeds inside mesh";
 
         return seeds;
     }
