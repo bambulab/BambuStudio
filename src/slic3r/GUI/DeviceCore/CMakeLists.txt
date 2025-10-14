@@ -55,6 +55,7 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceCore/DevNozzleSystem.cpp
     GUI/DeviceCore/DevUtil.h
     GUI/DeviceCore/DevUtil.cpp
-
+    GUI/DeviceCore/DevUtilBackend.h
+    GUI/DeviceCore/DevUtilBackend.cpp
 )
 set(SLIC3R_GUI_SOURCES ${SLIC3R_GUI_SOURCES} PARENT_SCOPE)

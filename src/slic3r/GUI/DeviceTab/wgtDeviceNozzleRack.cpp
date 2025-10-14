@@ -905,6 +905,10 @@ void wgtDeviceNozzleRackNozzleItem::SetNozzleStatus(NOZZLE_STATUS status, const 
 
 void wgtDeviceNozzleRackNozzleItem::OnBtnNozzleStatus(wxMouseEvent& evt)
 {
+    if (m_is_disabled) {
+        return;
+    }
+
     auto rack = m_rack.lock();
     if (rack && m_status == wgtDeviceNozzleRackNozzleItem::NOZZLE_ERROR)
     {
@@ -932,7 +936,9 @@ void wgtDeviceNozzleRackNozzleItem::Rescale()
 
     if (m_nozzle_selected_image) {
         m_nozzle_selected_image->msw_rescale();
-        m_nozzle_selected_bitmap->SetBitmap(m_nozzle_selected_image->bmp());
+        if (m_is_selected) {
+            m_nozzle_selected_bitmap->SetBitmap(m_nozzle_selected_image->bmp());
+        }
     };
 
     switch (m_status)
@@ -980,7 +986,7 @@ void wgtDeviceNozzleRackNozzleItem::EnableSelect()
 
 void wgtDeviceNozzleRackNozzleItem::OnItemSelected(wxMouseEvent& evt)
 {
-    if (m_enable_select){
+    if (m_enable_select && !m_is_disabled){
         SetSelected(true);
         wxCommandEvent command_evt(EVT_NOZZLE_RACK_NOZZLE_ITEM_SELECTED, GetId());
         command_evt.SetEventObject(this);
@@ -990,5 +996,25 @@ void wgtDeviceNozzleRackNozzleItem::OnItemSelected(wxMouseEvent& evt)
     evt.Skip();
 }
 
+
+void wgtDeviceNozzleRackNozzleItem::SetDisable(bool disabled)
+{
+    if (m_is_disabled == disabled) {
+        return;
+    }
+
+    m_is_disabled = disabled;
+
+    auto bg_clr = disabled ? StateColor::darkModeColorFor("#E5E7EB") : StateColor::darkModeColorFor(*wxWHITE);
+    m_nozzle_icon->SetBackgroundColour(bg_clr);
+    m_nozzle_label_id->SetBackgroundColour(bg_clr);
+    m_nozzle_label_1->SetBackgroundColour(bg_clr);
+    m_nozzle_status_icon->SetBackgroundColour(bg_clr);
+    m_nozzle_label_2->SetBackgroundColour(bg_clr);
+    m_nozzle_selected_bitmap->SetBackgroundColour(bg_clr);
+
+    SetBackgroundColor(bg_clr);
+    Refresh();
+};
 
 };

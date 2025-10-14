@@ -72,6 +72,7 @@ void wgtDeviceNozzleRackSelect::CreateGui()
     main_sizer->AddSpacer(FromDIP(12));
     main_sizer->Add(m_toolhead_nozzle, 0, wxALIGN_LEFT);
 
+    SetBackgroundColour(*wxWHITE);
     SetSizer(main_sizer);
     Layout();
     Fit();
@@ -83,10 +84,11 @@ static void s_update_item(wgtDeviceNozzleRackNozzleItem* item, std::shared_ptr<D
         item->Update(rack, nozzle_info.IsOnRack());
         if (!nozzle_info.IsEmpty() && !nozzle_info.IsAbnormal() && !nozzle_info.IsUnknown() &&
             nozzle_info.GetNozzleType() == selected_nozzle.GetNozzleType() && 
-            nozzle_info.GetNozzleDiameter() == selected_nozzle.GetNozzleDiameter()){
-            item->Enable(true);
+            nozzle_info.GetNozzleDiameter() == selected_nozzle.GetNozzleDiameter() &&
+            nozzle_info.GetNozzleFlowType() == selected_nozzle.GetNozzleFlowType()){
+            item->SetDisable(false);
         } else{
-            item->Enable(false);
+            item->SetDisable(true);
         }
     }
 }
