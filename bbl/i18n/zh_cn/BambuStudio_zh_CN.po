@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-14 09:43+0800\n"
+"POT-Creation-Date: 2025-10-14 18:15+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -24,7 +24,7 @@ msgid "The filament model is unknown. Still using the previous filament preset."
 msgstr "未知的材料型号，将使用之前的材料预设。"
 
 msgid "The filament model is unknown. Generic filament presets will be used."
-msgstr ""
+msgstr "未知的耗材类型。将使用通用耗材预设。"
 
 msgid "The filament may not be compatible with the current machine settings. A random filament preset will be used."
 msgstr "该材料与当前机器设置不兼容，将使用随机的材料预设。"
@@ -45,7 +45,7 @@ msgid "left extruder"
 msgstr "左挤出机"
 
 msgid "extruder"
-msgstr ""
+msgstr "挤出机"
 
 msgid "TPU is not supported by AMS."
 msgstr "AMS不支持TPU。"
@@ -2740,10 +2740,6 @@ msgstr "发送到打印机前，需要先插入存储设备"
 
 msgid "Thermal Preconditioning for first layer optimization"
 msgstr "首层优化保温准备"
-
-#, c-format, boost-format
-msgid "Remaining time: %s"
-msgstr "剩余时间 ： %s"
 
 msgid "Remaining time: Calculating..."
 msgstr "剩余时间：计算中"
@@ -11476,7 +11472,7 @@ msgid "Default Nozzle Volume Type"
 msgstr "默认喷嘴体积类型"
 
 msgid "Extra length on restart"
-msgstr "启动时额外长度"
+msgstr "额外回填长度"
 
 msgid "When the retraction is compensated after the travel move, the extruder will push this additional amount of filament. This setting is rarely needed."
 msgstr "在空驶结束后进行回抽补偿时，挤出机会多挤出相应的耗材。这个设置通常不需要调整。"
@@ -13041,6 +13037,12 @@ msgstr "差集"
 
 msgid "Intersection"
 msgstr "交集"
+
+msgid "Selected Objects"
+msgstr "已选择物体"
+
+msgid "Selected Parts"
+msgstr "已选择零件"
 
 msgid "Keep original models"
 msgstr "保留原模型"
@@ -14633,6 +14635,10 @@ msgid ""
 msgstr ""
 "收缩、翘曲与应力\n"
 "通过控制热指数，可以消除由热引起的翘曲和应力根源。"
+
+#, c-format, boost-format
+#~ msgid "Remaining time: %s"
+#~ msgstr "剩余时间 ： %s"
 
 #, c-format, boost-format
 #~ msgid "The nozzle diameter of %s extruder is 0.2mm which does not support automatic Flow Dynamics calibration."

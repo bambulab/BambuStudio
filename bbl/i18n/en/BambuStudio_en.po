@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-14 09:43+0800\n"
+"POT-Creation-Date: 2025-10-14 18:15+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2738,10 +2738,6 @@ msgid "Storage needs to be inserted before sending to printer."
 msgstr ""
 
 msgid "Thermal Preconditioning for first layer optimization"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Remaining time: %s"
 msgstr ""
 
 msgid "Remaining time: Calculating..."
@@ -12973,6 +12969,12 @@ msgstr "Subtraction"
 
 msgid "Intersection"
 msgstr "Intersection"
+
+msgid "Selected Objects"
+msgstr ""
+
+msgid "Selected Parts"
+msgstr ""
 
 msgid "Keep original models"
 msgstr ""

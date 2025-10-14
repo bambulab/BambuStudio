@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-14 09:43+0800\n"
+"POT-Creation-Date: 2025-10-14 18:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2753,10 +2753,6 @@ msgstr "Es necesario insertar el almacenamiento antes de enviarlo a la impresora
 
 msgid "Thermal Preconditioning for first layer optimization"
 msgstr "Pre-acondicionamiento térmico para la optimización de la primera capa"
-
-#, c-format, boost-format
-msgid "Remaining time: %s"
-msgstr "Tiempo restante: %s"
 
 msgid "Remaining time: Calculating..."
 msgstr "Tiempo restante: Calculando..."
@@ -13098,6 +13094,12 @@ msgstr "Subtraction"
 msgid "Intersection"
 msgstr "Intersección"
 
+msgid "Selected Objects"
+msgstr ""
+
+msgid "Selected Parts"
+msgstr ""
+
 msgid "Keep original models"
 msgstr ""
 
@@ -14708,6 +14710,10 @@ msgid ""
 msgstr ""
 "Disminución, deformación y estrés\n"
 "Al controlar el índice térmico puedes remover las causas de calor de la deformación y el estrés."
+
+#, c-format, boost-format
+#~ msgid "Remaining time: %s"
+#~ msgstr "Tiempo restante: %s"
 
 #, c-format, boost-format
 #~ msgid "The nozzle diameter of %s extruder is 0.2mm which does not support automatic Flow Dynamics calibration."

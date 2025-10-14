@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-14 09:43+0800\n"
+"POT-Creation-Date: 2025-10-14 18:15+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -2737,10 +2737,6 @@ msgid "Storage needs to be inserted before sending to printer."
 msgstr ""
 
 msgid "Thermal Preconditioning for first layer optimization"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Remaining time: %s"
 msgstr ""
 
 msgid "Remaining time: Calculating..."
@@ -12927,6 +12923,12 @@ msgstr "Rozdíl"
 
 msgid "Intersection"
 msgstr "Průsečík"
+
+msgid "Selected Objects"
+msgstr ""
+
+msgid "Selected Parts"
+msgstr ""
 
 msgid "Keep original models"
 msgstr ""
