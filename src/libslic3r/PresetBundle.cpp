@@ -1262,6 +1262,38 @@ void PresetBundle::update_system_preset_setting_ids(std::map<std::string, std::m
     return;
 }
 
+
+std::vector<std::vector<std::vector<float>>> PresetBundle::get_full_flush_matrix(bool with_multiplier) const
+{
+    auto full_config = this->full_config();
+    int extruder_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+    std::vector<double> flush_volume_value = full_config.option<ConfigOptionFloatsNullable>("flush_volumes_matrix")->values;
+    int filament_nums = full_config.option<ConfigOptionStrings>("filament_type")->values.size();
+
+    std::vector<std::vector<std::vector<float>>> matrix;
+    for(size_t extruder_id = 0; extruder_id < extruder_nums; ++ extruder_id){
+        std::vector<float>              flush_matrix(cast<float>(get_flush_volumes_matrix(flush_volume_value, extruder_id, extruder_nums)));
+        std::vector<std::vector<float>> wipe_volumes;
+        for (unsigned int i = 0; i < filament_nums; ++i)
+            wipe_volumes.push_back(std::vector<float>(flush_matrix.begin() + i * filament_nums, flush_matrix.begin() + (i + 1) * filament_nums));
+
+        matrix.emplace_back(wipe_volumes);
+    }
+
+    if(with_multiplier){
+        auto flush_multiplies = project_config.option<ConfigOptionFloats>("flush_multiplier")->values;
+        flush_multiplies.resize(extruder_nums, 1);
+        for (size_t extruder_id = 0; extruder_id < extruder_nums; ++extruder_id) {
+            for (auto& vec : matrix[extruder_id]) {
+                for (auto& v : vec)
+                    v *= flush_multiplies[extruder_id];
+            }
+        }
+    }
+
+    return matrix;
+}
+
 //BBS: validate printers from previous project
 static std::set<std::string> gcodes_key_set =  {"filament_end_gcode", "filament_start_gcode", "change_filament_gcode", "layer_change_gcode", "machine_end_gcode", "machine_pause_gcode", "machine_start_gcode",
             "template_custom_gcode", "printing_by_object_gcode", "before_layer_change_gcode", "time_lapse_gcode", "wrapping_detection_gcode"};
