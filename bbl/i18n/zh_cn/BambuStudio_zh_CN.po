@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-14 18:15+0800\n"
+"POT-Creation-Date: 2025-10-14 18:46+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -13003,22 +13003,22 @@ msgid "Intersection operation requires at least two volumes."
 msgstr "交集至少需要两个零件。"
 
 msgid "Difference operation requires at least one volume in both A and B lists."
-msgstr "差集需要A 和 B 列表中至少各有一个零件。"
+msgstr "差集操作需要 A 和 B 列表中至少各有一个零件。"
 
 msgid "Union operation requires at least two objects."
-msgstr "并集操作需要至少两个物体。"
+msgstr "并集操作需要至少两个对象。"
 
 msgid "Intersection operation requires at least two objects."
-msgstr "交集至少需要两个物体。"
+msgstr "交集操作需要至少两个对象。"
 
 msgid "Difference operation requires at least one object in both A and B lists."
-msgstr "差集需要A 和 B 列表中至少各有一个物体。"
+msgstr "差集操作需要 A 和 B 列表中至少各有一个对象。"
 
 msgid "Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
 msgstr "无法按对象分组，及合并零件。请检查是否存在自相交、非流形几何体或开放网格。"
 
 msgid "No overlapping region found. Boolean intersection failed."
-msgstr "未找到重叠区域，相交结果失败。请确认列表中所有元素存在重叠。"
+msgstr "未找到重叠区域，交集失败。请确认列表中所有元素存在重叠。"
 
 msgid "Mesh Boolean"
 msgstr "布尔运算"
@@ -13027,7 +13027,7 @@ msgid "- Object mode: Please select at least two objects."
 msgstr "- 对象模式：请至少选择两个对象。"
 
 msgid "- Part mode: Please select one object with at least two meshes."
-msgstr "- 部件模式：请选择一个包含至少两个零件的对象。"
+msgstr "- 零件模式：请选择一个包含至少两个零件的对象。"
 
 msgid "Union"
 msgstr "并集"
@@ -13039,10 +13039,10 @@ msgid "Intersection"
 msgstr "交集"
 
 msgid "Selected Objects"
-msgstr "已选择物体"
+msgstr "已选择的对象"
 
 msgid "Selected Parts"
-msgstr "已选择零件"
+msgstr "已选择的零件"
 
 msgid "Keep original models"
 msgstr "保留原模型"
