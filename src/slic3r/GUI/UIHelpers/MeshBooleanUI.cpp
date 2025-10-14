@@ -187,7 +187,7 @@ void MeshBooleanUI::draw_volume_lists()
 
     const Selection &selection = m_parent->get_selection();
     std::string mode_text = m_target_mode == BooleanTargetMode::Object ? "Object" : "Part";
-    std::string title_text = m_target_mode == BooleanTargetMode::Object ? _L("Selected Objects").ToStdString() : _L("Selected Parts").ToStdString();
+    std::string title_text = m_target_mode == BooleanTargetMode::Object ? _u8L("Selected Objects") : _u8L("Selected Parts");
 
     if (m_operation_mode == MeshBooleanOperation::Difference) {
         // Center the AB lists as a group
@@ -512,12 +512,7 @@ void MeshBooleanUI::draw_only_entity_checkbox()
 
     if (info_icon) {
         ImVec2 icon_pos = ImGui::GetCursorScreenPos();
-
-#ifdef __WXOSX__
         icon_pos.y += (checkbox_size.y - m_computed_icon_size_display) * 0.5f;
-#else
-        icon_pos.y += (checkbox_size.y - m_computed_icon_size_display);
-#endif
 
         // Draw icon
         ImGui::GetWindowDrawList()->AddImage(
@@ -811,7 +806,7 @@ void MeshBooleanUI::draw_object_list(const std::string& table_name, ImVec2 size,
     else if (table_name.find("SUB_B") != std::string::npos)
         title = "B";
     else
-        title = m_target_mode == BooleanTargetMode::Object ? _L("Selected Objects").ToStdString() : _L("Selected Parts").ToStdString();
+        title = m_target_mode == BooleanTargetMode::Object ? _u8L("Selected Objects") : _u8L("Selected Parts");
 
     // Add count to title
     std::string count_text = "(" + std::to_string(items.size()) + ")";
