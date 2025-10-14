@@ -590,7 +590,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
                 extruder_id = m_obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
             }
 
-            if (extruder_id == 0) {
+            if (extruder_id == MAIN_EXTRUDER_ID) {
                 default_name += L("Right Nozzle");
                 if (has_rack) {
                     default_name += "_";
@@ -602,7 +602,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
                         default_name += "N/A";
                     }
                 }
-            } else if (extruder_id == 1){
+            } else if (extruder_id == DEPUTY_EXTRUDER_ID){
                 default_name += L("Left Nozzle");
             }
         }
