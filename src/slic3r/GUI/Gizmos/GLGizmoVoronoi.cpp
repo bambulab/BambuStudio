@@ -33,6 +33,7 @@
 #include <boost/log/trivial.hpp>
 
 extern "C" {
+#define JC_VORONOI_IMPLEMENTATION
 #include "jc_voronoi.h"
 }
 #ifndef M_PI
