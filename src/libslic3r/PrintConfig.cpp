@@ -2877,6 +2877,7 @@ void PrintConfigDef::init_fff_params()
     def->readonly=false;
 
     def = this->add("apply_top_surface_compensation", coBool);
+    def->label  = L("Apply top surface compensation");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
