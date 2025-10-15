@@ -356,7 +356,7 @@ public:
     virtual void append(const ConfigOption *rhs) = 0;
     virtual void set(const ConfigOption* rhs, size_t start, size_t len) = 0;
     virtual void set_with_restore(const ConfigOptionVectorBase* rhs, std::vector<int>& restore_index, int stride) = 0;
-    virtual void set_with_restore_2(const std::string key, const ConfigOptionVectorBase* rhs, std::vector<int>& restore_index, int start, int len) = 0;
+    virtual void set_with_restore_2(const std::string key, const ConfigOptionVectorBase* rhs, std::vector<int>& restore_index, int start, int len, bool skip_error = false) = 0;
     virtual void set_only_diff(const ConfigOptionVectorBase* rhs, std::vector<int>& diff_index, int stride) = 0;
     virtual void set_to_index(const ConfigOptionVectorBase* rhs, std::vector<int>& dest_index, int stride) = 0;
     virtual void set_with_nil(const ConfigOptionVectorBase* rhs, const ConfigOptionVectorBase* inherits, int stride) = 0;
@@ -515,7 +515,7 @@ public:
     //restore_index: which index in this vector need to be restored
     //start: which index in this vector need to be replaced
     //count: how many items in this vector need to be replaced
-    virtual void set_with_restore_2(const std::string key, const ConfigOptionVectorBase* rhs, std::vector<int>& restore_index, int start, int len) override
+    virtual void set_with_restore_2(const std::string key, const ConfigOptionVectorBase* rhs, std::vector<int>& restore_index, int start, int len, bool skip_error = false) override
     {
         if (rhs->type() == this->type()) {
             //backup original ones
@@ -536,11 +536,17 @@ public:
             }
 
             // Assign the new value from the rhs vector.
-            auto other = static_cast<const ConfigOptionVector<T>*>(rhs);
+            auto other = const_cast<ConfigOptionVector<T>*>(static_cast<const ConfigOptionVector<T>*>(rhs));
 
             if (other->values.size() != (restore_index.size())) {
-                std::string error_message = "ConfigOptionVector::set_with_restore_2(): Assigning from an vector with invalid restore_index size: key="+key;
-                throw ConfigurationError(error_message);
+                if (skip_error) {
+                    T default_v = other->values.front();
+                    other->values.resize(restore_index.size(), default_v);
+                }
+                else {
+                    std::string error_message = "ConfigOptionVector::set_with_restore_2(): Assigning from an vector with invalid restore_index size: key="+key;
+                    throw ConfigurationError(error_message);
+                }
             }
 
             for (size_t i = 0; i < restore_index.size(); i++) {
