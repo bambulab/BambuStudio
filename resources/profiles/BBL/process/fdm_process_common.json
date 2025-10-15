@@ -172,5 +172,8 @@
     "xy_contour_compensation": "0",
     "xy_hole_compensation": "0",
     "z_direction_outwall_speed_continuous": "0",
+    "sparse_infill_filament": "0",
+    "wall_filament": "0",
+    "solid_infill_filament": "0",
     "first_x_layer_fan_speed": "0"
 }

@@ -100,15 +100,47 @@ unsigned int LayerTools::solid_infill_filament(const PrintRegion &region) const
 // Returns a zero based extruder this eec should be printed with, according to PrintRegion config or extruder_override if overriden.
 unsigned int LayerTools::extruder(const ExtrusionEntityCollection &extrusions, const PrintRegion &region) const
 {
-	assert(region.config().wall_filament.value > 0);
-	assert(region.config().sparse_infill_filament.value > 0);
-	assert(region.config().solid_infill_filament.value > 0);
+	assert(region.config().wall_filament.value >= 0);
+	assert(region.config().sparse_infill_filament.value >= 0);
+	assert(region.config().solid_infill_filament.value >= 0);
 	// 1 based extruder ID.
-	unsigned int extruder = ((this->extruder_override == 0) ?
-	    (is_infill(extrusions.role()) ?
-	    	(is_solid_infill(extrusions.entities.front()->role()) ? region.config().solid_infill_filament : region.config().sparse_infill_filament) :
-			region.config().wall_filament.value) :
-		this->extruder_override);
+    unsigned int extruder = 0;
+    // use separate filament for different features only if the potion was open
+    if (this->extruder_override == 0) {
+        ExtrusionRole extrusions_role = extrusions.role();
+        if (is_perimeter(extrusions_role)) {
+            extruder = region.config().wall_filament.value;
+        } else if (is_solid_infill(extrusions_role)) {
+            extruder = region.config().solid_infill_filament.value;
+        } else if (is_infill(extrusions_role)) {
+            extruder = region.config().sparse_infill_filament.value;
+        } else if (extrusions_role == ExtrusionRole::erMixed) {
+            //this set of extrusions contain multi roles, follow a Priority to decide which to use
+            int curr_priority = 0;
+            for (const ExtrusionEntity *ee : extrusions.entities)
+                if (ee->role() == ExtrusionRole::erTopSolidInfill) {
+                    if (curr_priority < 100) { // top surface 1st priority
+                        extruder      = region.config().solid_infill_filament.value;
+                        curr_priority = 100;
+                    }
+                } else if (is_perimeter(ee->role())) {
+                    if (curr_priority < 90) { // top surface 1st priority
+                        extruder      = region.config().wall_filament.value;
+                        curr_priority = 90;
+                    }
+                } else if (is_solid_infill(extrusions_role)) {
+                    if (curr_priority < 80) { // top surface 1st priority
+                        extruder      = region.config().solid_infill_filament.value;
+                        curr_priority = 80;
+                    }
+                } else if (is_infill(extrusions_role)) {
+                    if (curr_priority < 70) { // top surface 1st priority
+                        extruder      = region.config().sparse_infill_filament.value;
+                        curr_priority = 70;
+                    }
+                }
+        }
+    }
 	return (extruder == 0) ? 0 : extruder - 1;
 }
 

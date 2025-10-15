@@ -2936,6 +2936,9 @@ static void clamp_exturder_to_default(ConfigOptionInt &opt, size_t num_extruders
     if (opt.value > (int)num_extruders)
         // assign the default extruder
         opt.value = 1;
+    else if (opt.value < 1)
+        // assign the default extruder
+        opt.value = 1;
 }
 
 PrintObjectConfig PrintObject::object_config_from_model_object(const PrintObjectConfig &default_object_config, const ModelObject &object, size_t num_extruders, std::vector<int>& variant_index)
@@ -2972,9 +2975,10 @@ static void apply_to_print_region_config(PrintRegionConfig &out, const DynamicPr
             if (ConfigOption* my_opt = out.option(it->first, false); my_opt != nullptr) {
                 if (one_of(it->first, keys_extruders)) {
                     // Ignore "default" extruders.
-                    int extruder = static_cast<const ConfigOptionInt*>(it->second.get())->value;
-                    if (extruder > 0)
-                        my_opt->setInt(extruder);
+                    // BBS: 2025-10-20 skip these filament settings, they will be processed out of this func
+                    //int extruder = static_cast<const ConfigOptionInt*>(it->second.get())->value;
+                    //if (extruder > 0)
+                    //    my_opt->setInt(extruder);
                 } else {
                     if (*my_opt != *(it->second)) {
                         if (my_opt->is_scalar() || variant_index.empty() || (print_options_with_variant.find(it->first) == print_options_with_variant.end()))
@@ -3008,6 +3012,36 @@ PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &defau
         assert(volume.is_model_part());
         apply_to_print_region_config(config, *layer_range_config, variant_index);
     }
+
+    {//over write the seprate filament for features config
+        auto resolve_filament_value = [&](const std::string &key, int default_or_parent, int previous_value) -> int {
+            int   filament_vlue_temp = 0;
+            auto *opt_vol            = volume.config.get().opt<ConfigOptionInt>(key);
+            auto *opt_obj            = volume.get_object()->config.get().opt<ConfigOptionInt>(key);
+            if (opt_vol) // deside use which value
+                filament_vlue_temp = opt_vol->value;
+            else if (opt_obj)
+                filament_vlue_temp = opt_obj->value;
+            else
+                filament_vlue_temp = default_or_parent;
+
+            if (layer_range_config != nullptr && volume.is_model_part()) {
+                auto *opt = layer_range_config->opt<ConfigOptionInt>(key);
+                if (opt) filament_vlue_temp = opt->value;
+            }
+
+            if (filament_vlue_temp > 0)
+                return filament_vlue_temp;
+            else
+                return previous_value;
+        };
+        config.wall_filament.value          = resolve_filament_value("wall_filament", default_or_parent_region_config.wall_filament.value, config.wall_filament.value);
+        config.sparse_infill_filament.value = resolve_filament_value("sparse_infill_filament", default_or_parent_region_config.sparse_infill_filament.value,
+                                                                     config.sparse_infill_filament.value);
+        config.solid_infill_filament.value  = resolve_filament_value("solid_infill_filament", default_or_parent_region_config.solid_infill_filament.value,
+                                                                     config.solid_infill_filament.value);
+    }
+
     // Clamp invalid extruders to the default extruder (with index 1).
     clamp_exturder_to_default(config.sparse_infill_filament,       num_extruders);
     clamp_exturder_to_default(config.wall_filament,    num_extruders);

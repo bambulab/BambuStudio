@@ -1241,8 +1241,13 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         // #4043
         if (total_copies_count > 1 && m_config.print_sequence != PrintSequence::ByObject)
             return {L("Please select \"By object\" print sequence to print multiple objects in spiral vase mode."), nullptr, "spiral_mode"};
+        bool SFFF_enabled = false;
+        for (const PrintObject *object : m_objects) {
+            auto cfg = object->object_extruders();
+            if (cfg.size() > 1) SFFF_enabled = true;
+        }
         assert(m_objects.size() == 1);
-        if (m_objects.front()->all_regions().size() > 1)
+        if (m_objects.front()->all_regions().size() > 1 || SFFF_enabled)
             return {L("The spiral vase mode does not work when an object contains more than one materials."), nullptr, "spiral_mode"};
     }
 
