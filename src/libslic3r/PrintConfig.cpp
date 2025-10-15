@@ -3082,12 +3082,13 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloatOrPercent(20, false));
 
     def = this->add("sparse_infill_filament", coInt);
-    def->label = L("Infill");
+    def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
+    def->label = L("Sparse infill filament");
     def->category = L("Extruders");
     def->tooltip = L("Filament to print internal sparse infill.");
-    def->min = 1;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionInt(1));
+    def->min = 0;
+    def->mode     = comDevelop;
+    def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("sparse_infill_line_width", coFloat);
     def->label = L("Sparse infill");
@@ -3666,12 +3667,13 @@ void PrintConfigDef::init_fff_params()
     //def->label = L("Walls");
     //def->category = L("Extruders");
     //def->tooltip = L("Filament to print walls");
-    def->label = "Walls";
+    def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
+    def->label = "Walls filament";
     def->category = "Extruders";
     def->tooltip = "Filament to print walls";
-    def->min = 1;
+    def->min = 0;
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionInt(1));
+    def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("inner_wall_line_width", coFloat);
     def->label = L("Inner wall");
@@ -4303,12 +4305,13 @@ void PrintConfigDef::init_fff_params()
     //def->label = L("Solid infill");
     //def->category = L("Extruders");
     //def->tooltip = L("Filament to print solid infill");
-    def->label = "Solid infill";
+    def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
+    def->label = "Solid infill filament";
     def->category = "Extruders";
     def->tooltip = "Filament to print solid infill";
-    def->min = 1;
+    def->min = 0;
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionInt(1));
+    def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("internal_solid_infill_line_width", coFloat);
     def->label = L("Internal solid infill");
