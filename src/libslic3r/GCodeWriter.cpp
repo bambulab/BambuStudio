@@ -803,6 +803,15 @@ std::string GCodeWriter::unretract()
     return gcode;
 }
 
+double GCodeWriter::get_extruder_retracted_length(const int filament_id)
+{
+    double res = 0.0;
+    auto extruder = m_filament_extruders[filament_id];
+    if (extruder.is_share_extruder()) res = extruder.get_share_retracted_length();
+    else res = extruder.get_single_retracted_length();
+
+    return res;
+}
 
 std::string GCodeWriter::unlift()
 {

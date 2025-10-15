@@ -85,6 +85,7 @@ public:
     std::string retract(bool before_wipe = false);
     std::string retract_for_toolchange(bool before_wipe = false);
     std::string unretract();
+    double get_extruder_retracted_length(const int filament_id);
     // do lift instantly
     std::string eager_lift(const LiftType type,bool tool_change = false);
     // record a lift request, do realy lift in next travel

@@ -800,6 +800,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 float new_retract_length_toolchange = full_config.retract_length_toolchange.get_at(new_filament_id);
                 int old_filament_temp = (old_filament_id != -1) ? (gcodegen.on_first_layer()? full_config.nozzle_temperature_initial_layer.get_at(old_filament_id) : full_config.nozzle_temperature.get_at(old_filament_id)) : 210;
                 int new_filament_temp = gcodegen.on_first_layer() ? full_config.nozzle_temperature_initial_layer.get_at(new_filament_id) : full_config.nozzle_temperature.get_at(new_filament_id);
+                float new_extruder_retracted_length = gcodegen.m_writer.get_extruder_retracted_length(new_filament_id);
                 Vec3d nozzle_pos = gcode_writer.get_position();
 
                 float purge_volume = tcr.purge_volume < EPSILON ? 0 : std::max(tcr.purge_volume, g_min_purge_volume);
@@ -828,6 +829,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 config.set_key_value("new_retract_length", new ConfigOptionFloat(new_retract_length));
                 config.set_key_value("old_retract_length_toolchange", new ConfigOptionFloat(old_retract_length_toolchange));
                 config.set_key_value("new_retract_length_toolchange", new ConfigOptionFloat(new_retract_length_toolchange));
+                config.set_key_value("new_extruder_retracted_length", new ConfigOptionFloat(new_extruder_retracted_length));
                 config.set_key_value("old_filament_temp", new ConfigOptionInt(old_filament_temp));
                 config.set_key_value("new_filament_temp", new ConfigOptionInt(new_filament_temp));
                 config.set_key_value("x_after_toolchange", new ConfigOptionFloat(tool_change_start_pos(0)));
@@ -6564,6 +6566,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     // BBS
     float new_retract_length = m_config.retraction_length.get_at(new_filament_id);
     float new_retract_length_toolchange = m_config.retract_length_toolchange.get_at(new_filament_id);
+    float new_extruder_retracted_length = m_writer.get_extruder_retracted_length(new_filament_id);
     int new_filament_temp = this->on_first_layer() ? m_config.nozzle_temperature_initial_layer.get_at(new_filament_id) : m_config.nozzle_temperature.get_at(new_filament_id);
     // BBS: if print_z == 0 use first layer temperature
     if (abs(print_z) < EPSILON)
@@ -6643,6 +6646,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     dyn_config.set_key_value("new_retract_length", new ConfigOptionFloat(new_retract_length));
     dyn_config.set_key_value("old_retract_length_toolchange", new ConfigOptionFloat(old_retract_length_toolchange));
     dyn_config.set_key_value("new_retract_length_toolchange", new ConfigOptionFloat(new_retract_length_toolchange));
+    dyn_config.set_key_value("new_extruder_retracted_length", new ConfigOptionFloat(new_extruder_retracted_length));
     dyn_config.set_key_value("old_filament_temp", new ConfigOptionInt(old_filament_temp));
     dyn_config.set_key_value("new_filament_temp", new ConfigOptionInt(new_filament_temp));
     dyn_config.set_key_value("x_after_toolchange", new ConfigOptionFloat(nozzle_pos(0)));
