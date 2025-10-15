@@ -4337,6 +4337,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
+        optgroup->append_single_option_line("apply_top_surface_compensation");
 
         option =optgroup->get_option("thumbnail_size");
         option.opt.full_width=true;
