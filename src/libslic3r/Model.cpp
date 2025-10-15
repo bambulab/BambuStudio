@@ -3111,6 +3111,27 @@ std::vector<int> ModelVolume::get_extruders() const
     if (volume_extruder_id > 0)
         volume_extruders.push_back(volume_extruder_id);
 
+        // push back filaments for features
+    if (this->config.option("wall_filament") && this->config.option("wall_filament")->getInt() > 0) volume_extruders.push_back(this->config.option("wall_filament")->getInt());
+    // wall_filament of this volume not set, try use object options
+    else if (this->config.option("wall_filament") == nullptr && this->get_object()->config.option("wall_filament") &&
+             this->get_object()->config.option("wall_filament")->getInt() > 0)
+        volume_extruders.push_back(this->get_object()->config.option("wall_filament")->getInt());
+    //due to we cannot access the global config inside modelvolume,
+    // we have to limit the global preset of filament for features
+
+    if (this->config.option("solid_infill_filament") && this->config.option("solid_infill_filament")->getInt() > 0)
+        volume_extruders.push_back(this->config.option("solid_infill_filament")->getInt());
+    else if (this->config.option("solid_infill_filament") == nullptr && this->get_object()->config.option("solid_infill_filament") &&
+             this->get_object()->config.option("solid_infill_filament")->getInt() > 0)
+        volume_extruders.push_back(this->get_object()->config.option("solid_infill_filament")->getInt());
+
+    if (this->config.option("sparse_infill_filament") && this->config.option("sparse_infill_filament")->getInt() > 0)
+        volume_extruders.push_back(this->config.option("sparse_infill_filament")->getInt());
+    else if (this->config.option("sparse_infill_filament") == nullptr && this->get_object()->config.option("sparse_infill_filament") &&
+             this->get_object()->config.option("sparse_infill_filament")->getInt() > 0)
+        volume_extruders.push_back(this->get_object()->config.option("sparse_infill_filament")->getInt());
+
     return volume_extruders;
 }
 

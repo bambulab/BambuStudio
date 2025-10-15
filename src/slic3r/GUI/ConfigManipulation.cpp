@@ -444,6 +444,15 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         is_msg_dlg_already_exist = false;
     }
 
+    if (is_global_config && (config->opt_int("wall_filament") || config->opt_int("sparse_infill_filament")
+        || config->opt_int("solid_infill_filament") )) {
+        DynamicPrintConfig new_conf = *config;
+        new_conf.set_key_value("wall_filament", new ConfigOptionInt(0));
+        new_conf.set_key_value("sparse_infill_filament", new ConfigOptionInt(0));
+        new_conf.set_key_value("solid_infill_filament", new ConfigOptionInt(0));
+        apply(config, &new_conf);
+    }
+
     //BBS
     //if (config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne &&
     //    config->opt_bool("enable_overhang_speed"))
@@ -862,6 +871,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
 
     toggle_line("flush_into_objects", !is_global_config);
     toggle_line("print_flow_ratio", !is_global_config);
+    toggle_line("wall_filament", !is_global_config);
+    toggle_line("solid_infill_filament", !is_global_config);
+    toggle_line("sparse_infill_filament", !is_global_config);
 
     toggle_line("support_interface_not_for_body",config->opt_int("support_interface_filament")&&!config->opt_int("support_filament"));
 
