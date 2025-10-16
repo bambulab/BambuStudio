@@ -12,44 +12,63 @@ wxDEFINE_EVENT(EVT_NOZZLE_SELECTED, wxCommandEvent);
 static const int LeftExtruderIdx = 0;
 static const int RightExtruderIdx = 1;
 
-ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow* parent,int default_count, int max_nozzle_count, bool force_no_zero)
-    :GUI::DPIDialog(parent, wxID_ANY, "Set nozzle count", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeType volume_type, int standard_count, int highflow_count, int max_nozzle_count, bool force_no_zero)
+    : GUI::DPIDialog(parent, wxID_ANY, "Set nozzle count", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX), m_volume_type(volume_type)
 {
     this->SetBackgroundColour(*wxWHITE);
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
-    wxPanel* content = new wxPanel(this);
+    wxPanel *content = new wxPanel(this);
     content->SetBackgroundColour(*wxWHITE);
 
-    wxBitmap icon = create_scaled_bitmap("hotend_thumbnail",nullptr,FromDIP(60));
-    auto* nozzle_icon = new wxStaticBitmap(content, wxID_ANY, icon);
+    wxBitmap icon        = create_scaled_bitmap("hotend_thumbnail", nullptr, FromDIP(60));
+    auto    *nozzle_icon = new wxStaticBitmap(content, wxID_ANY, icon);
 
-    wxBoxSizer* content_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *content_sizer = new wxBoxSizer(wxHORIZONTAL);
     content->SetSizer(content_sizer);
 
-    wxBoxSizer* choice_sizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *choice_sizer = new wxBoxSizer(wxVERTICAL);
 
     auto* label = new wxStaticText(content, wxID_ANY, _L("Please set nozzle count"));
     choice_sizer->Add(label, 0, wxALL | wxALIGN_LEFT, FromDIP(10));
 
     wxArrayString nozzle_choices;
-    for (int i = 0; i <= max_nozzle_count; ++i)
-        nozzle_choices.Add(wxString::Format("%d", i));
+    for (int i = 0; i <= max_nozzle_count; ++i) nozzle_choices.Add(wxString::Format("%d", i));
 
-    m_choice = new wxChoice(content, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(100), -1), nozzle_choices);
-    m_choice->SetSelection(default_count);
-    m_choice->SetBackgroundColour(*wxWHITE);
-    choice_sizer->Add(m_choice, 0, wxLEFT | wxBOTTOM | wxRIGHT, FromDIP(10));
+    bool show_standard = (volume_type == nvtStandard || volume_type == nvtHybrid);
+    bool show_highflow = (volume_type == nvtHighFlow || volume_type == nvtHybrid);
 
-    m_error_label = new Label(this,"");
+    if (show_standard) {
+        // Standard nozzle choice
+        auto *standard_label = new wxStaticText(content, wxID_ANY, _L(get_nozzle_volume_type_string(nvtStandard)));
+        choice_sizer->Add(standard_label, 0, wxALL | wxALIGN_LEFT, FromDIP(5));
+
+        m_standard_choice = new wxChoice(content, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(100), -1), nozzle_choices);
+        m_standard_choice->SetSelection(standard_count);
+        m_standard_choice->SetBackgroundColour(*wxWHITE);
+        choice_sizer->Add(m_standard_choice, 0, wxLEFT | wxBOTTOM | wxRIGHT, FromDIP(10));
+    }
+
+    if (show_highflow) {
+        // Highflow nozzle choice
+        auto *highflow_label = new wxStaticText(content, wxID_ANY, _L(get_nozzle_volume_type_string(nvtHighFlow)));
+        choice_sizer->Add(highflow_label, 0, wxALL | wxALIGN_LEFT, FromDIP(5));
+
+        m_highflow_choice = new wxChoice(content, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(100), -1), nozzle_choices);
+        m_highflow_choice->SetSelection(highflow_count);
+        m_highflow_choice->SetBackgroundColour(*wxWHITE);
+        choice_sizer->Add(m_highflow_choice, 0, wxLEFT | wxBOTTOM | wxRIGHT, FromDIP(10));
+    }
+
+    m_error_label = new Label(this, "");
     m_error_label->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#E14747")));
     m_error_label->SetFont(Label::Body_12);
     m_error_label->Hide();
 
-    m_choice->Bind(wxEVT_CHOICE, [this,force_no_zero,content](wxCommandEvent& e) {
-        int count = e.GetInt();
-        if(count >0 && m_error_label->IsShown()){
+    auto update_nozzle_error = [this, force_no_zero, content](int standard_count, int highflow_count) {
+        int total_count = standard_count + highflow_count;
+        if (total_count > 0 && m_error_label->IsShown()) {
             m_error_label->Hide();
             m_confirm_btn->Enable();
             content->Freeze();
@@ -57,7 +76,7 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow* parent,int default_co
             this->Fit();
             content->Thaw();
         }
-        else if(count == 0 && force_no_zero){
+        else if(total_count == 0 && force_no_zero){
             m_error_label->SetLabel(_L("Error: Can not set both nozzle count to zero."));
             m_error_label->Wrap(content->GetSize().x);
             m_error_label->Show();
@@ -67,18 +86,31 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow* parent,int default_co
             this->Fit();
             content->Thaw();
         }
-        e.Skip();
-    });
+    };
+
+    if (m_standard_choice) {
+        m_standard_choice->Bind(wxEVT_CHOICE, [this, update_nozzle_error](wxCommandEvent &e) {
+            int standard_count = m_standard_choice->GetSelection();
+            int highflow_count = m_highflow_choice ? m_highflow_choice->GetSelection() : 0;
+            update_nozzle_error(standard_count, highflow_count);
+            e.Skip();
+        });
+    }
+
+    if (m_highflow_choice) {
+        m_highflow_choice->Bind(wxEVT_CHOICE, [this, update_nozzle_error](wxCommandEvent &e) {
+            int standard_count = m_standard_choice ? m_standard_choice->GetSelection() : 0;
+            int highflow_count = m_highflow_choice->GetSelection();
+            update_nozzle_error(standard_count, highflow_count);
+            e.Skip();
+        });
+    }
 
     content_sizer->Add(nozzle_icon, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(15));
     content_sizer->Add(choice_sizer, 0, wxALIGN_CENTRE_VERTICAL);
 
-    StateColor btn_bg_green(
-        std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled),
-        std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
-    );
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
 
     m_confirm_btn = new Button(this, _L("Confirm"));
     m_confirm_btn->SetBackgroundColor(btn_bg_green);
@@ -86,10 +118,9 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow* parent,int default_co
     m_confirm_btn->SetMinSize(wxSize(FromDIP(68), FromDIP(23)));
     m_confirm_btn->SetMinSize(wxSize(FromDIP(68), FromDIP(23)));
     m_confirm_btn->SetCornerRadius(12);
-    m_confirm_btn->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {EndModal(wxID_OK);});
+    m_confirm_btn->Bind(wxEVT_LEFT_DOWN, [this](auto &e) { EndModal(wxID_OK); });
 
-
-    wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *mainSizer = new wxBoxSizer(wxVERTICAL);
     mainSizer->Add(content, 1, wxEXPAND);
     mainSizer->Add(m_error_label, 0, wxALL, FromDIP(5));
     mainSizer->Add(m_confirm_btn, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, FromDIP(20));
@@ -98,9 +129,15 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow* parent,int default_co
     CentreOnParent();
 }
 
-int ManualNozzleCountDialog::GetNozzleCount() const
+int ManualNozzleCountDialog::GetNozzleCount(NozzleVolumeType volume_type) const
 {
-    return m_choice->GetSelection();
+    if(volume_type == nvtStandard)
+        return m_standard_choice ? m_standard_choice->GetSelection() : 0;
+    else if(volume_type == nvtHighFlow)
+        return m_highflow_choice ? m_highflow_choice->GetSelection() : 0;
+    else if(volume_type == nvtHybrid)
+        return (m_standard_choice ? m_standard_choice->GetSelection() : 0) + (m_highflow_choice ? m_highflow_choice->GetSelection() : 0);
+    return 0;
 }
 
 void manuallySetNozzleCount(int extruder_id)
@@ -117,29 +154,28 @@ void manuallySetNozzleCount(int extruder_id)
     ConfigOptionEnumsGeneric* nozzle_volume_type_opt = full_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
     NozzleVolumeType volume_type = NozzleVolumeType(nozzle_volume_type_opt->values[extruder_id]);
     double nozzle_diameter = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values[extruder_id];
-    auto nozzle_count_map = get_extruder_nozzle_stats(full_config.option<ConfigOptionStrings>("extruder_nozzle_stats")->values);
-    int default_nozzle_count = 1;
-    if (extruder_id < nozzle_count_map.size()) {
-        default_nozzle_count = std::accumulate(nozzle_count_map[extruder_id].begin(), nozzle_count_map[extruder_id].end(), 0, [](int a, auto& elem) {
-            return a + elem.second;
-            });
-    }
-    else
-        default_nozzle_count = extruder_max_nozzle_count->values[extruder_id];
+    int standard_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id, nvtStandard);
+    int highflow_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id, nvtHighFlow);
 
-    bool force_no_zero = true;
+
+    bool force_no_zero = volume_type == nvtHybrid;
     if(nozzle_volume_type_opt->values.size() > 1){
-        int other_nozzle_count = std::accumulate(nozzle_count_map[1-extruder_id].begin(), nozzle_count_map[1 - extruder_id].end(), 0, [](int a, auto& elem) {
-            return a + elem.second;
-            });
-        force_no_zero = other_nozzle_count == 0;
+        int other_nozzle_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1 - extruder_id);
+        force_no_zero |= (other_nozzle_count == 0);
     }
 
-    ManualNozzleCountDialog dialog(GUI::wxGetApp().plater(), default_nozzle_count, extruder_max_nozzle_count->values[extruder_id],force_no_zero);
+    ManualNozzleCountDialog dialog(GUI::wxGetApp().plater(), volume_type, standard_count, highflow_count, extruder_max_nozzle_count->values[extruder_id], force_no_zero);
 
     if (dialog.ShowModal() == wxID_OK) {
-        int nozzle_count = dialog.GetNozzleCount();
-        setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count,true);
+        int nozzle_count = dialog.GetNozzleCount(volume_type);
+        if (volume_type == nvtHybrid) {
+            setExtruderNozzleCount(preset_bundle, extruder_id, nvtStandard, dialog.GetNozzleCount(nvtStandard), true);
+            setExtruderNozzleCount(preset_bundle, extruder_id, nvtHighFlow, dialog.GetNozzleCount(nvtHighFlow), false);
+        }
+        else {
+            setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count, true);
+        }
+        updateNozzleCountDisplay(preset_bundle, extruder_id, volume_type);
     }
 }
 
@@ -1080,6 +1116,7 @@ std::optional<NozzleOption> tryPopUpMultiNozzleDialog(MachineObject* obj)
                 }
             }
         }
+        preset_bundle->extruder_nozzle_stat.set_nozzle_data_flag(ExtruderNozzleStat::ndfMachine);
         return selected_option;
     }
 

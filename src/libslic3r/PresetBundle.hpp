@@ -67,6 +67,11 @@ class PresetBundle;
 struct ExtruderNozzleStat
 {
 public:
+    enum NozzleDataFlag {
+        ndfMachine = 0,
+        ndfNone
+    };
+public:
     void on_volume_type_switch(int extruder_id, NozzleVolumeType type);
     void on_printer_model_change(PresetBundle* preset_bundle);
     void set_extruder_nozzle_count(int extruder_id, NozzleVolumeType type, int count, bool clear);
@@ -75,8 +80,10 @@ public:
     const std::vector<std::map<NozzleVolumeType, int>> get_raw_stat() const { return extruder_nozzle_counts; }
     void set_raw_stat(const std::vector<std::map<NozzleVolumeType, int>>& data) { extruder_nozzle_counts = data; }
 
+    void set_nozzle_data_flag(NozzleDataFlag flag){ data_flag = flag; }
 private:
     std::vector<std::map<NozzleVolumeType,int>> extruder_nozzle_counts;
+    NozzleDataFlag data_flag{ ndfNone };
 };
 
 // Bundle of Print + Filament + Printer presets.
