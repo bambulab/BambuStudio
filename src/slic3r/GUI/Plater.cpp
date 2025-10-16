@@ -11677,12 +11677,13 @@ void Plater::priv::record_start_print_preset(std::string action) {
                     for (int k = 0; k < values.size(); ++k) {
                         std::string str = values[k];
                         const ConfigOption* config = full_config.option(str);
-                        auto serialized = config->serialize();
-                        if (str == "post_process") {
-                            serialized = sanitize_config_paths(serialized);
-                        }
-                        if (config)
+                        if (config) {
+                            auto serialized = config->serialize();
+                            if (str == "post_process") {
+                                serialized = sanitize_config_paths(serialized);
+                            }
                             j_system[str] = serialized;
+                        }
                     }
                 }
             }
