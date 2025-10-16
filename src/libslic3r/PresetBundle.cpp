@@ -289,11 +289,18 @@ void ExtruderNozzleStat::on_printer_model_change(PresetBundle* preset_bundle)
 
 void ExtruderNozzleStat::on_volume_type_switch(int extruder_id, NozzleVolumeType type)
 { 
-    if(extruder_id<0 || extruder_id >= extruder_nozzle_counts.size())
-        return;
-    int current_count = get_extruder_nozzle_count(extruder_id, std::nullopt);
-    extruder_nozzle_counts[extruder_id].clear();
-    extruder_nozzle_counts[extruder_id][type] = current_count;
+
+    if (data_flag == NozzleDataFlag::ndfMachine) {
+        // do nothing here
+    }
+    else if (type != nvtHybrid) {
+        int current_count = get_extruder_nozzle_count(extruder_id, std::nullopt);
+        if (extruder_id >= extruder_nozzle_counts.size()) {
+            extruder_nozzle_counts.resize(extruder_id + 1);
+        }
+        extruder_nozzle_counts[extruder_id].clear();
+        extruder_nozzle_counts[extruder_id][type] = current_count;
+    }
 }
 
 void ExtruderNozzleStat::set_extruder_nozzle_count(int extruder_id, NozzleVolumeType type, int count, bool clear)
