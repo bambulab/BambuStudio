@@ -1246,7 +1246,8 @@ namespace Slic3r
             };
 
         int last_extruder_idx = 0;
-        std::vector<int> last_nozzle_idx(extruders.size(), 0);
+        // set size to max extruder_id in case extruder_id is not continuous
+        std::vector<int> last_nozzle_idx(*std::max_element(extruders.begin(),extruders.end()) + 1,0);
 
         for (size_t layer = 0; layer < layer_filaments.size(); ++layer) {
             auto& out_seq = (*filament_sequences)[layer];
