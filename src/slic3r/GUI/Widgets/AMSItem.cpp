@@ -1401,7 +1401,10 @@ void AMSLib::render_generic_lib(wxDC &dc)
     auto alpha = m_info.material_colour.Alpha();
     int height = size.y;
     int curr_height = height * float(m_info.material_remain * 1.0 / 100.0);
-    if (curr_height != 0) { curr_height = std::max(curr_height, FromDIP(2)); }/*STUDIO-11323 too small to show, enlarge it*/
+    if (m_info.material_remain < 10)// Display Optimization for Empty Consumable Remaining Quantity in AMS
+    {
+        curr_height = height * 0.1;
+    }
     dc.SetFont(::Label::Body_13);
 
     int top = height - curr_height;
