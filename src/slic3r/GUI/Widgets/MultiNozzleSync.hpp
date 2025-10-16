@@ -35,14 +35,16 @@ namespace Slic3r::GUI {
 class ManualNozzleCountDialog : public DPIDialog
 {
 public:
-    ManualNozzleCountDialog(wxWindow *parent, int default_selection,int max_nozzle_count, bool force_no_zero);
+    ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeType volume_type, int standard_count, int highflow_count,int max_nozzle_count, bool force_no_zero);
     ~ManualNozzleCountDialog() {};
     virtual void on_dpi_changed(const wxRect& suggested_rect) {};
-    int GetNozzleCount() const;
+    int GetNozzleCount(NozzleVolumeType volume_type) const;
 private:
-    wxChoice *m_choice;
-    Button* m_confirm_btn;
-    Label* m_error_label;
+    wxChoice* m_standard_choice { nullptr };
+    wxChoice* m_highflow_choice { nullptr };
+    Button* m_confirm_btn{ nullptr };
+    Label* m_error_label{ nullptr };
+    NozzleVolumeType m_volume_type;
 };
 
 

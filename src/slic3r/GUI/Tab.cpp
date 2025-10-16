@@ -4601,7 +4601,6 @@ void TabPrinter::on_preset_loaded()
             ConfigOptionEnumsGeneric* nozzle_volume_type_option = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
             if (nozzle_volume_type_option->deserialize(prev_nozzle_volume_type)) {
                 for (size_t idx = 0; idx < nozzle_volume_type_option->size(); ++idx) {
-                    // TODO: replace extruder_nozzle_count with a structure in later version
                     m_preset_bundle->extruder_nozzle_stat.on_volume_type_switch(idx, NozzleVolumeType(nozzle_volume_type_option->values[idx]));
                 };
                 use_default_nozzle_volume_type = false;
@@ -4621,10 +4620,12 @@ void TabPrinter::on_preset_loaded()
             bool has_multiple_nozzle = std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int i) { return i > 1; });
             if (extruder_max_nozzle_count && nozzle_volume_type) {
                 wxGetApp().plater()->sidebar().enable_nozzle_count_edit(has_multiple_nozzle);
+                m_preset_bundle->extruder_nozzle_stat.on_printer_model_change(m_preset_bundle);
                 for (size_t idx = 0; idx < extruders_count; ++idx) {
-                    setExtruderNozzleCount(m_preset_bundle, idx, NozzleVolumeType(nozzle_volume_type->values[idx]), extruder_max_nozzle_count->values[idx],true);
+                    updateNozzleCountDisplay(m_preset_bundle, idx, NozzleVolumeType(nozzle_volume_type->values[idx]));
                 }
             }
+            m_preset_bundle->extruder_nozzle_stat.set_nozzle_data_flag(ExtruderNozzleStat::ndfNone);
         }
         m_base_preset_model = base_model;
     }
@@ -6257,7 +6258,7 @@ void TabPrinter::set_extruder_volume_type(int extruder_id, NozzleVolumeType type
     assert(nozzle_volumes->values.size() > (size_t)extruder_id);
     nozzle_volumes->values[extruder_id] = type;
 
-    int nozzle_count_val = m_preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id);
+    m_preset_bundle->extruder_nozzle_stat.on_volume_type_switch(extruder_id, type);
     updateNozzleCountDisplay(m_preset_bundle, extruder_id, type);
 
     on_value_change((boost::format("nozzle_volume_type#%1%") % extruder_id).str(), int(type));
