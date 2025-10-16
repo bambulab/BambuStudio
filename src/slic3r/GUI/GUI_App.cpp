@@ -1086,8 +1086,8 @@ void GUI_App::post_init()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: false";
     }
 
-    
-    
+
+
     wxGetApp().report_consent_common(app_config->get("firstguide", "privacyuse") == "true"? true : false, "studio_improvement_policy_enable", "StudioImprovementPolicy");
 
     /*request helio config*/
@@ -2937,7 +2937,7 @@ bool GUI_App::on_init_inner()
         const bool cancel_glmultidraw = app_config->get_bool("cancel_glmultidraw");
         p_ogl_manager->set_cancle_glmultidraw(cancel_glmultidraw);
 
-        const bool b_advanced_gcode_viewer_enabled = app_config->get_bool("enable_advanced_gcode_viewer");
+        const bool b_advanced_gcode_viewer_enabled = app_config->get_bool("enable_advanced_gcode_viewer_");
         p_ogl_manager->set_advanced_gcode_viewer_enabled(b_advanced_gcode_viewer_enabled);
     }
 
@@ -7748,7 +7748,7 @@ void GUI_App::report_consent_common(bool agree, std::string scene, std::string f
     if (app_config->get("region") == "China") {
         formID += "-CN";
     }
-    
+
     formItem["formID"] = formID;
     formItem["op"] = agree? "Opt-in" : "Withdraw";
     formItemArray.push_back(formItem);
