@@ -6,8 +6,21 @@
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 
+#include <wx/string.h>
+
 namespace Slic3r
 {
+
+
+Slic3r::MultiNozzleUtils::NozzleInfo DevUtilBackend::GetNozzleInfo(const DevNozzle& dev_nozzle)
+{
+    MultiNozzleUtils::NozzleInfo info;
+    info.diameter = dev_nozzle.GetNozzleDiameterStr().ToStdString();
+    info.volume_type = (dev_nozzle.GetNozzleFlowType() == NozzleFlowType::H_FLOW ? NozzleVolumeType::nvtHighFlow : NozzleVolumeType::nvtStandard);
+    info.extruder_id = dev_nozzle.GetLogicExtruderId();
+
+    return info;
+}
 
 std::optional<Slic3r::MultiNozzleUtils::MultiNozzleGroupResult>
 DevUtilBackend::GetNozzleGroupResult(Slic3r::GUI::Plater* plater)

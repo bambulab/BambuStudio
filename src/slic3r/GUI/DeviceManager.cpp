@@ -3041,7 +3041,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
 
 
             if (jj.contains("command")) {
-                parse_auto_nozzle_mapping(jj);//"get_auto_nozzle_mapping"
+                m_auto_nozzle_mapping.ParseAutoNozzleMapping(this, jj);
 
                 if (jj["command"].get<std::string>() == "ams_change_filament") {
                     if (jj.contains("errno")) {

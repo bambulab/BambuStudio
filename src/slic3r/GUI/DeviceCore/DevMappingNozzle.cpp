@@ -2,7 +2,9 @@
 
 #include "DevNozzleRack.h"
 #include "DevNozzleSystem.h"
+
 #include "DevUtil.h"
+#include "DevUtilBackend.h"
 
 #include "libslic3r/MultiNozzleUtils.hpp"
 #include "libslic3r/Print.hpp"
@@ -10,6 +12,8 @@
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/BackgroundSlicingProcess.hpp"
+
+#include "slic3r/GUI/GUI_App.hpp"
 
 #include <nlohmann/json.hpp>
 using namespace nlohmann;
@@ -174,32 +178,27 @@ int MachineObject::ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, con
 }
 
 
-void s_auto_nozzle_mapping(const nlohmann::json &print_jj, DevNozzleMappingResult& result)
-{
-    result.Clear();
-    DevJsonValParser::ParseVal(print_jj, "result", result.m_result);
-    DevJsonValParser::ParseVal(print_jj, "reason", result.m_mqtt_reason);
-    DevJsonValParser::ParseVal(print_jj, "errno", result.m_errno);
-    DevJsonValParser::ParseVal(print_jj, "detail", result.m_detail_json);
-    DevJsonValParser::ParseVal(print_jj, "type", result.m_type);
-
-    if (print_jj.contains("mapping")) {
-        result.m_nozzle_mapping_json = print_jj["mapping"];
-        const auto& mapping = print_jj["mapping"].get<std::vector<int>>();
-        for (int fila_id = 0; fila_id < mapping.size(); ++fila_id) {
-            result.m_nozzle_mapping[fila_id] =  mapping[fila_id];
-        }
-    }
-
-    result.m_detail_msg = result.m_detail_json.dump(1);
-    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": get_auto_nozzle_mapping: " << result.m_result;
-};
-
-void MachineObject::parse_auto_nozzle_mapping(const json& print_jj)
+void DevNozzleMappingResult::ParseAutoNozzleMapping(Slic3r::MachineObject* obj, const json& print_jj)
 {
     if (print_jj.contains("command") && print_jj["command"].get<string>() == "get_auto_nozzle_mapping") {
-        if (print_jj.contains("sequence_id") && print_jj["sequence_id"] == m_auto_nozzle_mapping.m_sequence_id) {
-            s_auto_nozzle_mapping(print_jj, m_auto_nozzle_mapping);
+        if (print_jj.contains("sequence_id") && print_jj["sequence_id"] == m_sequence_id) {
+            Clear();
+            DevJsonValParser::ParseVal(print_jj, "result", m_result);
+            DevJsonValParser::ParseVal(print_jj, "reason", m_mqtt_reason);
+            DevJsonValParser::ParseVal(print_jj, "errno", m_errno);
+            DevJsonValParser::ParseVal(print_jj, "detail", m_detail_json);
+            DevJsonValParser::ParseVal(print_jj, "type", m_type);
+
+            if (print_jj.contains("mapping")) {
+                m_nozzle_mapping_json = print_jj["mapping"];
+                const auto& mapping = print_jj["mapping"].get<std::vector<int>>();
+                for (int fila_id = 0; fila_id < mapping.size(); ++fila_id) {
+                    m_nozzle_mapping[fila_id] = mapping[fila_id];
+                }
+            }
+
+            m_flush_weight_base = GetFlushWeight(obj);
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": get_auto_nozzle_mapping: " << m_result;
         }
     }
 }
@@ -215,6 +214,23 @@ void DevNozzleMappingResult::Clear()
     m_detail_json.clear();
     m_nozzle_mapping.clear();
     m_nozzle_mapping_json.clear();
+
+    m_flush_weight_base = -1;
+    m_flush_weight_current = -1;
+}
+
+
+void DevNozzleMappingResult::SetManualNozzleMapping(Slic3r::MachineObject* obj, int fila_id, int nozzle_pos_id)
+{
+    if (nozzle_pos_id == MAIN_EXTRUDER_ID && obj->GetNozzleSystem()->GetReplaceNozzleTar().has_value()){
+        nozzle_pos_id = obj->GetNozzleSystem()->GetReplaceNozzleTar().value();// special case of tar_id. see protocol definition
+    }
+
+    if (m_nozzle_mapping[fila_id] != nozzle_pos_id) {
+        m_nozzle_mapping[fila_id] = nozzle_pos_id;
+        m_flush_weight_current = GetFlushWeight(obj);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": fila_id=" << fila_id << ", nozzle_pos_id=" << nozzle_pos_id;
+    }
 }
 
 
@@ -233,11 +249,69 @@ int DevNozzleMappingResult::GetMappedNozzlePosIdByFilaId(MachineObject* obj, int
     return iter->second;
 }
 
-
-void MachineObject::set_manual_nozzle_mapping(int fila_id, int nozzle_pos_id)
+float DevNozzleMappingResult::GetFlushWeight(Slic3r::MachineObject* obj) const
 {
-    m_auto_nozzle_mapping.m_nozzle_mapping[fila_id] = nozzle_pos_id;
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": fila_id=" << fila_id << ", nozzle_pos_id=" << nozzle_pos_id;
-};
+    auto plater = Slic3r::GUI::wxGetApp().plater();
+    if (!plater) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": plater is nullptr";
+        return -1;
+    }
+
+    GCodeProcessorResult* gcode_result = plater->background_process().get_current_gcode_result();
+    if (!gcode_result) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": gcode_result is nullptr";
+        return -1;
+    }
+
+    if (gcode_result->filament_change_sequence.empty()) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": filament_change_sequence is empty";
+        return -1;
+    }
+
+    if (!Slic3r::GUI::wxGetApp().preset_bundle) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": preset_bundle is nullptr";
+        return -1;
+    };
+
+    const std::vector<std::vector<std::vector<float>>>& flush_matrix = Slic3r::GUI::wxGetApp().preset_bundle->get_full_flush_matrix();
+
+    float total_flush_volume = 0;
+    MultiNozzleUtils::NozzleStatusRecorder recorder;
+    for (auto filament : gcode_result->filament_change_sequence) {
+        auto nozzle_pos = GetMappedNozzlePosIdByFilaId(obj, filament);
+        if (nozzle_pos == -1){
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": nozzle_pos is -1 for fila_id=" << filament;
+            continue;
+        }
+
+        auto nozzle_info = obj->GetNozzleSystem()->GetNozzleByPosId(nozzle_pos);
+        if (nozzle_info.IsEmpty()) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": nozzle_info IsEmpty for fila_id=" << filament << ", nozzle_pos=" << nozzle_pos;
+            continue;
+        }
+
+        int extruder_id = nozzle_info.GetLogicExtruderId();
+        int nozzle_id = nozzle_info.GetNozzlePosId();
+        int last_filament = recorder.get_filament_in_nozzle(nozzle_id);
+
+        if (last_filament != -1 && last_filament != filament) {
+            if (flush_matrix.size() > extruder_id &&
+                flush_matrix[extruder_id].size() > last_filament &&
+                flush_matrix[extruder_id][last_filament].size() > filament){
+                total_flush_volume += flush_matrix[extruder_id][last_filament][filament];
+            }
+            else{
+                assert(false && "missing flush volume");
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": missing flush volume for extruder_id=" << extruder_id
+                                           << ", last_filament=" << last_filament << ", filament=" << filament;
+            }
+        }
+
+        recorder.set_nozzle_status(nozzle_id, filament);
+    }
+
+    // estimate the flush weight: total_flush_volume * 1.26 * 0.001
+    return total_flush_volume * 1.26 * 0.001;
+}
 
 } // namespace Slic3r
