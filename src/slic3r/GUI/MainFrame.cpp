@@ -1179,6 +1179,10 @@ void MainFrame::init_tabpanel()
 #else
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxBookCtrlEvent& e) {
 #endif
+        if (e.GetEventObject() != m_tabpanel){
+            return;// The event maybe from child TabPanel
+        }
+
         //BBS
         wxWindow* panel = m_tabpanel->GetCurrentPage();
         int sel = m_tabpanel->GetSelection();
