@@ -509,6 +509,9 @@ public:
 private:
     void EnableEditing(bool enable);
 
+    /* update ams backup*/
+    void update_ams_backup(MachineObject* obj_);
+
     /* update scroll area size*/
     void update_scroll_area_size();
 

@@ -2964,6 +2964,17 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
     update_user_printer();
 }
 
+void SelectMachineDialog::update_ams_backup(MachineObject* obj_)
+{
+    bool to_show = obj_ && obj_->GetFilaSystem()->CanShowFilamentBackup() && _HasAms(m_ams_mapping_result);
+    if (to_show != m_ams_backup_tip->IsShown() || to_show != img_ams_backup->IsShown()) {
+        m_ams_backup_tip->Show(to_show);
+        img_ams_backup->Show(to_show);
+        Layout();
+        Fit();
+    }
+}
+
 void SelectMachineDialog::on_timer(wxTimerEvent &event)
 {
     DeviceManager* dev_ = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -2978,23 +2989,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         change_materialitem_tip(true);
     }
 
-    if (!obj_->GetFilaSystem()->HasAms()
-        || obj_->ams_exist_bits == 0
-        || !obj_->is_support_filament_backup
-        || !obj_->GetExtderSystem()->HasFilamentBackup()
-        || !obj_->GetFilaSystem()->IsAutoRefillEnabled()
-        || !_HasAms(m_ams_mapping_result)) {
-        if (m_ams_backup_tip->IsShown()) {
-            m_ams_backup_tip->Hide();
-            img_ams_backup->Hide();
-        }
-    }
-    else {
-        if (!m_ams_backup_tip->IsShown()) {
-            m_ams_backup_tip->Show();
-            img_ams_backup->Show();
-        }
-    }
+    update_ams_backup(obj_);
 
     load_option_vals(obj_);
     update_show_status(obj_);

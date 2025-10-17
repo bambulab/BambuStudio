@@ -1,4 +1,5 @@
 #include <nlohmann/json.hpp>
+#include "DevExtruderSystem.h"
 #include "DevFilaSystem.h"
 
 // TODO: remove this include
@@ -290,6 +291,11 @@ bool DevFilaSystem::IsBBL_Filament(std::string tag_uid)
     }
 
     return false;
+}
+
+bool DevFilaSystem::CanShowFilamentBackup() const
+{
+    return m_owner->is_support_filament_backup && IsAutoRefillEnabled() && HasAms() && m_owner->GetExtderSystem()->HasFilamentBackup();
 }
 
 void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaSystem* system, bool key_field_only)
