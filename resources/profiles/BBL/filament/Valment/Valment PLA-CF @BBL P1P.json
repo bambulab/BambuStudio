@@ -1,0 +1,12 @@
+{
+  "type": "filament",
+  "name": "Valment PLA-CF @BBL P1P",
+  "inherits": "Valment PLA-CF @base",
+  "from": "system",
+  "setting_id": "VLMNT03_06",
+  "instantiation": "true",
+  "fan_cooling_layer_time": ["80"],
+  "fan_min_speed": ["50"],
+  "slow_down_layer_time": ["8"],
+  "compatible_printers": ["Bambu Lab P1P 0.4 nozzle", "Bambu Lab P1P 0.6 nozzle", "Bambu Lab P1P 0.8 nozzle"]
+}
