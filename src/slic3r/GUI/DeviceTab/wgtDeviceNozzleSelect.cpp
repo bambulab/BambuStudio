@@ -90,6 +90,14 @@ static void s_update_item(wgtDeviceNozzleRackNozzleItem* item, std::shared_ptr<D
         } else{
             item->SetDisable(true);
         }
+
+        if (nozzle_info.IsUnknown()) {
+            if(item->GetToolTipText() != _L("Nozzle information needs to be read")) {
+                item->SetToolTip(_L("Nozzle information needs to be read"));
+            }
+        } else {
+            item->SetToolTip(wxEmptyString);
+        }
     }
 }
 

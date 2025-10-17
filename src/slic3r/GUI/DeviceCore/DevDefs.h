@@ -110,7 +110,39 @@ enum class DevFirmwareUpgradingState : int
 
 struct DevNozzleMappingResult
 {
+    friend class MachineObject;
+public:
+    void Clear();
+
+    bool HasResult() const { return !m_result.empty();}
+    std::string GetResultStr() const { return m_result; }
+
+    // mqtt error info
+    std::string GetMqttReason() const { return m_mqtt_reason; }
+
+    // command error info
+    int GetErrno() const { return m_errno; }
+    std::string GetDetailMsg() const { return m_detail_msg; }
+
+    // nozzle mapping
+    std::unordered_map<int, int> GetNozzleMapping() const { return m_nozzle_mapping; }
+    nlohmann::json GetNozzleMappingJson() const { return m_nozzle_mapping_json; }
+    void SetManualNozzleMapping(Slic3r::MachineObject* obj, int fila_id, int nozzle_pos_id);
+    int  GetMappedNozzlePosIdByFilaId(Slic3r::MachineObject* obj, int fila_id) const;// return -1 if not mapped
+
+    // flush weight
+    float  GetFlushWeightBase() const { return m_flush_weight_base;}
+    float  GetFlushWeightCurrent() const { return m_flush_weight_current; }
+
+public:
+    void ParseAutoNozzleMapping(Slic3r::MachineObject* obj, const nlohmann::json& print_jj);
+
+private:
+    float  GetFlushWeight(Slic3r::MachineObject* obj) const;
+
+private:
     std::string m_sequence_id;
+
     std::string m_result;
     std::string m_mqtt_reason;
     std::string m_type; // auto or manual
@@ -122,11 +154,8 @@ struct DevNozzleMappingResult
     nlohmann::json m_nozzle_mapping_json;
     std::unordered_map<int, int> m_nozzle_mapping; // key: fila_id, value: nozzle_id (from 0x10), the tar_id is no extruder
 
-public:
-    void Clear();
-    bool IsEmpty() const { return m_result.empty();}
-
-    int GetMappedNozzlePosIdByFilaId(Slic3r::MachineObject* obj, int fila_id) const;// return -1 if not mapped
+    float m_flush_weight_base = -1;// the base weight for flush
+    float m_flush_weight_current = -1;// the weight current
 };
 
 class devPrinterUtil
