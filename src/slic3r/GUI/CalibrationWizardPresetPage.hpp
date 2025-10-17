@@ -189,7 +189,7 @@ public:
     void stripWhiteSpace(std::string& str);
     void update_priner_status_msg(wxString msg, bool is_warning);
     void update(MachineObject* obj) override;
-    void update_flow_ratio_type(FlowRatioCalibrationType type) { curr_obj->flow_ratio_calibration_type = type; }
+    void update_flow_ratio_type(FlowRatioCalibrationType type) { if(curr_obj) curr_obj->GetCalib()->SetFlowRatioCalibType(type); }
 
     void on_device_connected(MachineObject* obj) override;
 

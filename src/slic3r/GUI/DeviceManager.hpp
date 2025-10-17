@@ -22,6 +22,7 @@
 #include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevFirmware.h"
 #include "DeviceCore/DevUtil.h"
+#include "DeviceCore/DevCalib.h"
 
 #include "DeviceErrorDialog.hpp"
 
@@ -62,10 +63,6 @@ class Plater;
 }
 
 class NetworkAgent;
-enum ManualPaCaliMethod {
-    PA_LINE = 0,
-    PA_PATTERN,
-};
 
 enum class CalibSendStatus {
     IDLE = 0,
@@ -129,6 +126,7 @@ private:
     DevFan*           m_fan;
     DevBed *          m_bed;
     DevStorage*       m_storage;
+    DevCalib*         m_calib;
 
     /*Ctrl*/
     DevCtrl* m_ctrl;
@@ -350,10 +348,11 @@ public:
 
     std::shared_ptr<DevAxis>    GetAxis() const { return m_axis; }
     std::shared_ptr<DevChamber> GetChamber() const { return m_chamber; }
-    DevLamp*         GetLamp() const { return m_lamp; }
-    DevFan*          GetFan() const { return m_fan; }
-    DevBed *         GetBed() const { return m_bed; };
-    DevStorage      *GetStorage() const { return m_storage; }
+    DevLamp*        GetLamp()   const { return m_lamp; }
+    DevFan*         GetFan()    const { return m_fan; }
+    DevBed *        GetBed()    const { return m_bed; };
+    DevStorage*     GetStorage()const { return m_storage; }
+    DevCalib*       GetCalib()  const { return m_calib; }
 
     DevCtrl*   GetCtrl() const { return m_ctrl; }       /* ctrl*/
     DevHMS*    GetHMS() const { return m_hms_system; }   /* hms*/
@@ -418,43 +417,6 @@ public:
     time_t  nozzle_blob_detection_hold_start = 0;
 
     CalibSendStatus     calib_send_status{CalibSendStatus::IDLE};
-    bool    is_support_new_auto_cali_method{false};
-    int last_cali_version = -1;
-    int cali_version = -1;
-    float                      cali_selected_nozzle_dia { 0.0 };
-    // 1: record when start calibration in preset page
-    // 2: reset when start calibration in start page
-    // 3: save tray_id, filament_id, setting_id, and name, nozzle_dia
-    std::vector<CaliPresetInfo> selected_cali_preset;
-    float                      cache_flow_ratio { 0.0 };
-    bool                       cali_finished = true;
-    FlowRatioCalibrationType   flow_ratio_calibration_type = FlowRatioCalibrationType::COMPLETE_CALIBRATION;
-
-    ManualPaCaliMethod         manual_pa_cali_method = ManualPaCaliMethod::PA_LINE;
-    bool                       has_get_pa_calib_tab{ false };
-    bool                       request_tab_from_bbs { false };
-    std::vector<PACalibResult> pa_calib_tab;
-    bool                       get_pa_calib_result { false };
-    std::vector<PACalibResult> pa_calib_results;
-    bool                       get_flow_calib_result { false };
-    std::vector<FlowRatioCalibResult> flow_ratio_results;
-    void reset_pa_cali_history_result()
-    {
-        has_get_pa_calib_tab = false;
-        pa_calib_tab.clear();
-    }
-
-    void reset_pa_cali_result() {
-        get_pa_calib_result = false;
-        pa_calib_results.clear();
-    }
-
-    void reset_flow_rate_cali_result() {
-        get_flow_calib_result = false;
-        flow_ratio_results.clear();
-    }
-
-    bool check_pa_result_validation(PACalibResult& result);
 
     std::vector<int> stage_list_info;
     int stage_curr = 0;

@@ -164,6 +164,20 @@ float to_nozzle_diameter_float(const NozzleDiameterType &type)
     }
 }
 
+NozzleDiameterType to_nozzle_diameter_type(float diameter)
+{
+    if (is_approx(diameter, 0.2f))
+        return NozzleDiameterType::NOZZLE_DIAMETER_0_2;
+    else if (is_approx(diameter, 0.4f))
+        return NozzleDiameterType::NOZZLE_DIAMETER_0_4;
+    else if (is_approx(diameter, 0.6f))
+        return NozzleDiameterType::NOZZLE_DIAMETER_0_6;
+    else if (is_approx(diameter, 0.8f))
+        return NozzleDiameterType::NOZZLE_DIAMETER_0_8;
+    else
+        return NozzleDiameterType::NONE_DIAMETER_TYPE;
+}
+
 NozzleFlowType to_nozzle_flow_type(const std::string &type)
 {
     if(type == "Standard")
@@ -605,7 +619,10 @@ void CalibUtils::calib_PA(const X1CCalibInfos& calib_infos, int mode, wxString& 
     if (calib_infos.calib_datas.size() > 0) {
         if (!check_printable_status_before_cali(obj_, calib_infos, error_message))
             return;
-        obj_->command_start_pa_calibration(calib_infos, mode);
+        else{
+            obj_->GetCalib()->ResetPAResult();
+            obj_->command_start_pa_calibration(calib_infos, mode);
+        }
     }
 }
 
@@ -632,21 +649,19 @@ bool CalibUtils::get_PA_calib_results(std::vector<PACalibResult>& pa_calib_resul
     if (obj_ == nullptr)
         return false;
 
-    pa_calib_results = obj_->pa_calib_results;
+    pa_calib_results = obj_->GetCalib()->GetPAResult();
     return pa_calib_results.size() > 0;
 }
 
 void CalibUtils::emit_get_PA_calib_infos(const PACalibExtruderInfo &cali_info)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev)
-        return;
+    if (!dev) return;
 
     MachineObject *obj_ = dev->get_selected_machine();
-    if (obj_ == nullptr)
-        return;
+    if (obj_ == nullptr) return;
 
-    obj_->command_get_pa_calibration_tab(cali_info);
+    obj_->GetCalib()->RequestPAHistory(cali_info);
 }
 
 bool CalibUtils::get_PA_calib_tab(std::vector<PACalibResult> &pa_calib_infos)
@@ -659,10 +674,12 @@ bool CalibUtils::get_PA_calib_tab(std::vector<PACalibResult> &pa_calib_infos)
     if (obj_ == nullptr)
         return false;
 
-    if (obj_->has_get_pa_calib_tab) {
-        pa_calib_infos.assign(obj_->pa_calib_tab.begin(), obj_->pa_calib_tab.end());
+    if (obj_->GetCalib()->IsPAHistoryReady()) {
+        pa_calib_infos = obj_->GetCalib()->GetPAHistory();
+        return true;
+    } else{
+        return false;
     }
-    return obj_->has_get_pa_calib_tab;
 }
 
 void CalibUtils::set_PA_calib_result(const std::vector<PACalibResult> &pa_calib_values, bool is_auto_cali)
@@ -747,7 +764,7 @@ bool CalibUtils::get_flow_ratio_calib_results(std::vector<FlowRatioCalibResult>&
     if (obj_ == nullptr)
         return false;
 
-    flow_ratio_calib_results = obj_->flow_ratio_results;
+    flow_ratio_calib_results = obj_->GetCalib()->GetFlowRatioResult();
     return flow_ratio_calib_results.size() > 0;
 }
 
@@ -1560,7 +1577,7 @@ bool CalibUtils::get_pa_k_n_value_by_cali_idx(const MachineObject *obj, int cali
     if (!obj)
         return false;
 
-    for (auto pa_calib_info : obj->pa_calib_tab) {
+    for (auto pa_calib_info : obj->GetCalib()->GetPAHistory()) {
         if (pa_calib_info.cali_idx == cali_idx) {
             out_k = pa_calib_info.k_value;
             out_n = pa_calib_info.n_coef;

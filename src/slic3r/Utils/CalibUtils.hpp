@@ -101,6 +101,8 @@ extern void update_speed_parameter(const std::string &key);
 extern std::vector<double> generate_max_speed_parameter_value(const std::string &key);
 
 float to_nozzle_diameter_float(const NozzleDiameterType &type);
+NozzleDiameterType to_nozzle_diameter_type(float diameter);
+
 NozzleFlowType to_nozzle_flow_type(const std::string &type);
 extern NozzleFlowType to_nozzle_flow_type(const NozzleVolumeType &type);
 extern NozzleVolumeType to_nozzle_volume_type(const NozzleFlowType &type);

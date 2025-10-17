@@ -204,8 +204,9 @@ void HistoryWindow::sync_history_result(MachineObject* obj)
 
     m_calib_results_history.clear();
     if (obj) {
+        auto pa_calib_tab = obj->GetCalib()->GetPAHistory();
         if (obj->is_multi_extruders()) {
-            for (const PACalibResult &pa_result : obj->pa_calib_tab) {
+            for (const PACalibResult &pa_result : pa_calib_tab) {
                 if (pa_result.extruder_id == 0 && m_extruder_switch_btn->GetValue()) {
                     // left extruder
                     m_calib_results_history.emplace_back(pa_result);
@@ -216,7 +217,7 @@ void HistoryWindow::sync_history_result(MachineObject* obj)
             }
         }
         else {
-            m_calib_results_history = obj->pa_calib_tab;
+            m_calib_results_history = pa_calib_tab;
         }
     }
 
@@ -270,14 +271,14 @@ void HistoryWindow::update(MachineObject* obj)
 {
     if (!obj) return;
 
-    if (obj->cali_version != obj->last_cali_version) {
-        if (obj->has_get_pa_calib_tab) {
+    if (obj->GetCalib()->IsVersionExpired()) {
+        if (obj->GetCalib()->IsPAHistoryReady()) {
             reqeust_history_result(obj);
         }
     }
 
     // sync when history is not empty
-    if (obj->has_get_pa_calib_tab && m_calib_results_history.empty()) {
+    if (obj->GetCalib()->IsPAHistoryReady() && m_calib_results_history.empty()) {
         sync_history_result(curr_obj);
     }
 }
@@ -297,7 +298,7 @@ void HistoryWindow::reqeust_history_result(MachineObject* obj)
 {
     if (curr_obj) {
         // reset
-        curr_obj->reset_pa_cali_history_result();
+        curr_obj->GetCalib()->ResetPAHistory();
         m_calib_results_history.clear();
         sync_history_data();
 

@@ -109,7 +109,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
                 wxColour(255, 255, 255);
             }
 
-            if (it->second->is_tray_info_ready() && obj->cali_version >= 0) {
+            if (it->second->is_tray_info_ready() && obj->GetCalib()->IsVersionInited()) {
                 CalibUtils::get_pa_k_n_value_by_cali_idx(obj, it->second->cali_idx, info.k, info.n);
             }
             else {
@@ -166,7 +166,7 @@ void AMSinfo::parse_ext_info(MachineObject* obj, DevAmsTray tray) {
         wxColour(255, 255, 255);
     }
     info.material_state = AMSCanType::AMS_CAN_TYPE_VIRTUAL;
-    if (tray.is_tray_info_ready() && obj->cali_version >= 0) {
+    if (tray.is_tray_info_ready() && obj->GetCalib()->IsVersionInited()) {
         CalibUtils::get_pa_k_n_value_by_cali_idx(obj, tray.cali_idx, info.k, info.n);
     }
     else {
@@ -1088,7 +1088,7 @@ void AMSLib::render_generic_text(wxDC &dc)
     if (m_info.material_name.empty()) {
         show_k_value = false;
     }
-    else if (m_info.cali_idx == -1 || (m_obj && (CalibUtils::get_selected_calib_idx(m_obj->pa_calib_tab, m_info.cali_idx) == -1))) {
+    else if (m_info.cali_idx == -1 || (m_obj && (CalibUtils::get_selected_calib_idx(m_obj->GetCalib()->GetPAHistory(), m_info.cali_idx) == -1))) {
         if (m_obj && m_obj->GetConfig() && m_obj->GetConfig()->SupportCalibrationPA_FlowAuto())
             show_k_value = false;
         else
