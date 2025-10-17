@@ -1313,6 +1313,10 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         else {
             print_diff_set.erase("extruder_ams_count");
             print_diff_set.erase("extruder_nozzle_stats");
+            if (map_mode == fmmManual) {
+                // this param is not used in gui studio
+                print_diff_set.erase("filament_nozzle_map");
+            }
             std::vector<int> old_filament_map = m_config.filament_map.values;
             std::vector<int> new_filament_map = new_full_config.option<ConfigOptionInts>("filament_map", true)->values;
 

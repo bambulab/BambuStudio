@@ -6266,8 +6266,14 @@ void TabPrinter::set_extruder_volume_type(int extruder_id, NozzleVolumeType type
 
     //save to app config
     if (!m_base_preset_name.empty()) {
-        ConfigOptionEnumsGeneric* nozzle_volume_type_option = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-        std::string nozzle_volume_type_str = nozzle_volume_type_option->serialize();
+        // do not save hybrid flow status to config
+        ConfigOptionEnumsGeneric nozzle_volume_type_option = *m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+        for(size_t i = 0; i < nozzle_volume_type_option.values.size(); i++){
+            if(nozzle_volume_type_option.values[i] == (int)(nvtHybrid)){
+                nozzle_volume_type_option.values[i] = (int)(nvtStandard);
+            }
+        }
+        std::string nozzle_volume_type_str = nozzle_volume_type_option.serialize();
         wxGetApp().app_config->save_nozzle_volume_types_to_config(m_base_preset_name, nozzle_volume_type_str);
     }
 

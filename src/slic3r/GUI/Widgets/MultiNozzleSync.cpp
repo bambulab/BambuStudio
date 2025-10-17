@@ -176,6 +176,7 @@ void manuallySetNozzleCount(int extruder_id)
             setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count, true);
         }
         updateNozzleCountDisplay(preset_bundle, extruder_id, volume_type);
+        wxGetApp().plater()->update();
     }
 }
 
