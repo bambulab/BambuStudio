@@ -149,6 +149,7 @@
 #include "PhysicalPrinterDialog.hpp"
 #include "PrintHostDialogs.hpp"
 #include "PlateSettingsDialog.hpp"
+#include "PlateMoveDialog.hpp"
 #include "DailyTips.hpp"
 #include "CreatePresetsDialog.hpp"
 #include "StepMeshDialog.hpp"
@@ -4463,6 +4464,7 @@ public:
     void on_object_select(SimpleEvent&);
     void show_right_click_menu(Vec2d mouse_position, wxMenu *menu);
     void on_plate_name_change(SimpleEvent &);
+    void on_move_plate(SimpleEvent &);
     void on_right_click(RBtnEvent&);
     //BBS: add model repair
     void on_repair_model(wxCommandEvent &event);
@@ -4853,6 +4855,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
             });
         view3D_canvas->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
         view3D_canvas->Bind(EVT_GLCANVAS_PLATE_NAME_CHANGE, &priv::on_plate_name_change, this);
+        view3D_canvas->Bind(EVT_GLCANVAS_MOVE_PLATE, &priv::on_move_plate, this);
         view3D_canvas->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
         //BBS: add part plate related logic
         view3D_canvas->Bind(EVT_GLCANVAS_PLATE_RIGHT_CLICK, &priv::on_plate_right_click, this);
@@ -10120,6 +10123,12 @@ void Plater::priv::on_object_select(SimpleEvent& evt)
 }
 
 void Plater::priv::on_plate_name_change(SimpleEvent &) {
+    wxGetApp().obj_list()->update_selections();
+    selection_changed();
+}
+
+void Plater::priv::on_move_plate(SimpleEvent &)
+{
     wxGetApp().obj_list()->update_selections();
     selection_changed();
 }
@@ -17924,16 +17933,20 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
     return;
 }
 
-
+bool Plater::force_ban_check_volume_bbox_state_with_extruder_area() {
+    return m_force_ban_check_volume_bbox_state_with_extruder_area;
+}
 //BBS: select Plate by hover_id
-int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModidyPlateName)
+int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModidyPlateName, bool is_swap_plate)
 {
     int ret;
     int action, plate_index;
 
     plate_index = hover_id / PartPlate::GRABBER_COUNT;
     action      = isModidyPlateName ? PartPlate::PLATE_NAME_ID : hover_id % PartPlate::GRABBER_COUNT;
-
+    if (is_swap_plate) {
+        action = -1;
+    }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": enter, hover_id %1%, plate_index %2%, action %3%")%hover_id % plate_index %action;
     if (action == 0)
     {
@@ -18093,16 +18106,6 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "can not select plate %1%" << plate_index;
             ret = -1;
         }
-    } else if ((action == 6) && (!right_click)) {
-        // move plate to the front
-        take_snapshot("move plate to the front");
-        ret = p->partplate_list.move_plate_to_index(plate_index, 0);
-        p->partplate_list.update_slice_context_to_current_plate(p->background_process);
-        p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
-        p->sidebar->obj_list()->reload_all_plates();
-        p->partplate_list.update_plates();
-        update();
-        p->partplate_list.select_plate(0);
     }
     else if ((action == PartPlate::PLATE_FILAMENT_MAP_ID) && (!right_click)) {
         ret = select_plate(plate_index);
@@ -18131,6 +18134,31 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             if (result == wxID_YES) {
                 wxString dlg_plate_name = dlg.get_plate_name();
                 curr_plate->set_plate_name(dlg_plate_name.ToUTF8().data());
+            }
+        } else {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "can not select plate %1%" << plate_index;
+            ret = -1;
+        }
+    } else if (is_swap_plate) {
+        ret = select_plate(plate_index);
+        if (!ret) {
+            PlateMoveDialog dlg(this, wxID_ANY, _L("Move Plate"));
+            int result = dlg.ShowModal();
+            if (result == wxID_YES) {
+                int swap_index = dlg.get_swap_index();
+                int cur_index  = p->partplate_list.get_curr_plate_index();
+                if (cur_index != swap_index && swap_index >= 0) {
+                    take_snapshot("move plate to the front");
+                    m_force_ban_check_volume_bbox_state_with_extruder_area = true;
+                    ret = p->partplate_list.move_plate_to_index(plate_index, swap_index);
+                    p->partplate_list.update_slice_context_to_current_plate(p->background_process);
+                    p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
+                    p->sidebar->obj_list()->reload_all_plates();
+                    p->partplate_list.update_plates();
+                    update();
+                    m_force_ban_check_volume_bbox_state_with_extruder_area = false;
+                    p->partplate_list.select_plate(swap_index);
+                }
             }
         } else {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "can not select plate %1%" << plate_index;

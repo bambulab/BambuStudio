@@ -1512,6 +1512,20 @@ void MenuFactory::create_plate_menu()
         []() { return plater()->can_delete_plate(); }, m_parent);
 #endif
 
+    append_menu_item(
+        menu, wxID_ANY, _L("Move Plate"), "",
+        [](wxCommandEvent &e) {
+            int result    = -1;
+            int hover_idx = plater()->canvas3D()->GetHoverId();
+            if (hover_idx == -1) {
+                int plate_idx = plater()->GetPlateIndexByRightMenuInLeftUI();
+                result        = plater()->select_plate_by_hover_id(plate_idx * PartPlate::GRABBER_COUNT, false, false, true);
+            } else {
+                result = plater()->select_plate_by_hover_id(hover_idx, false, false, true);
+            }
+            if (result >= 0) { plater()->get_current_canvas3D()->post_event(SimpleEvent(EVT_GLCANVAS_MOVE_PLATE)); }
+        },
+        "", nullptr, [this]() { return plater()->get_partplate_list().get_plate_count() >= 2; }, m_parent);
 
     // add shapes
     menu->AppendSeparator();
@@ -2331,6 +2345,7 @@ void MenuFactory::append_menu_item_fill_bed(wxMenu *menu)
         menu, wxID_ANY, _L("Fill bed with copies"), _L("Fill the remaining area of bed with copies of the selected object"),
         [](wxCommandEvent &) { plater()->fill_bed_with_instances(); }, "", nullptr, []() { return plater()->can_increase_instances(); }, m_parent);
 }
+
 void MenuFactory::append_menu_item_plate_name(wxMenu *menu)
 {
     wxString name= _L("Edit Plate Name");

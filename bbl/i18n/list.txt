@@ -168,6 +168,7 @@ src/slic3r/GUI/PresetComboBoxes.cpp
 src/slic3r/GUI/PresetHints.cpp
 src/slic3r/GUI/ProgressStatusBar.cpp
 src/slic3r/GUI/PlateSettingsDialog.cpp
+src/slic3r/GUI/PlateSwapDialog.cpp
 src/slic3r/GUI/PrivacyUpdateDialog.cpp
 src/slic3r/GUI/PublishDialog.cpp
 src/slic3r/GUI/SavePresetDialog.cpp
