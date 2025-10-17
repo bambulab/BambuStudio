@@ -229,12 +229,38 @@ protected:
     void doRender(wxDC& dc);
 };
 
+class DevIconLabel : public wxPanel
+{
+public:
+    DevIconLabel(wxWindow* parent, const wxString& icon, const wxString& label);
+
+public:
+    void SetAllBackgroundColor(const wxColour& color);
+
+    Label* GetLabelItem() const { return m_label; }
+    void SetLabel(const wxString& label);
+    void SetIcon(const wxString& icon);
+
+    void Rescale();
+
+private:
+    void CreateGui();
+
+private:
+    Label*          m_label{ nullptr };
+    wxString        m_icon_str;
+    wxStaticBitmap* m_icon{ nullptr };
+};
+
 class AmsMapingPopup : public PopupWindow
 {
     bool m_use_in_sync_dialog = false;
     bool m_ams_remain_detect_flag = false;
     bool m_ext_mapping_filatype_check = true;
     wxStaticText* m_title_text{ nullptr };
+
+    wgtDeviceNozzleRackSelect *m_rack_nozzle_select{nullptr};
+    DevIconLabel* m_flush_warning_panel;
 
 public:
     AmsMapingPopup(wxWindow *parent,bool use_in_sync_dialog = false);
@@ -267,7 +293,6 @@ public:
 
     wxPanel *    m_left_marea_panel{nullptr};
     wxPanel *    m_right_marea_panel{nullptr};
-    wgtDeviceNozzleRackSelect *m_rack_nozzle_select{nullptr};
     wxPanel *    m_left_first_text_panel{nullptr};
     wxPanel *    m_right_first_text_panel{nullptr};
     wxBoxSizer * m_left_split_ams_sizer{nullptr};
@@ -321,6 +346,7 @@ public:
 private:
     // events
     void OnNozzleMappingSelected(wxCommandEvent& evt);
+    void update_flush_waste(MachineObject* obj);
 
 private:
     std::weak_ptr<DevNozzleRack> m_rack;

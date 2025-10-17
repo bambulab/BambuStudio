@@ -110,6 +110,9 @@ namespace Slic3r
    public:
        MachineObject* GetOwner() const { return m_owner; }
 
+       // nozzles
+       DevNozzle                       GetNozzleByPosId(int pos_id) const { return pos_id < 0x10 ? GetExtNozzle(pos_id) : GetRackNozzle(pos_id - 0x10); };
+
        // nozzles on extruder
        bool                            ContainsExtNozzle(int id) const { return m_ext_nozzles.find(id) != m_ext_nozzles.end(); }
        DevNozzle                       GetExtNozzle(int id) const;

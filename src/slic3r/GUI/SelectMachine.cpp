@@ -2461,8 +2461,8 @@ void SelectMachineDialog::on_send_print()
     m_print_job->task_ams_mapping      = ams_mapping_array;
     m_print_job->task_ams_mapping2     = ams_mapping_array2;
     m_print_job->task_ams_mapping_info = ams_mapping_info;
-    if (!obj_->get_nozzle_mapping_result().IsEmpty()) {
-        m_print_job->task_nozzle_mapping = obj_->get_nozzle_mapping_result().m_nozzle_mapping_json.dump();
+    if (!obj_->get_nozzle_mapping_result().GetNozzleMappingJson().empty()) {
+        m_print_job->task_nozzle_mapping = obj_->get_nozzle_mapping_result().GetNozzleMappingJson().dump();
     }
 
     /* build nozzles info for multi extruders printers */
@@ -4961,7 +4961,7 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResult(MachineObject* obj_)
     }
 
     const auto& nozzle_mapping_res = obj_->get_nozzle_mapping_result();
-    if (nozzle_mapping_res.IsEmpty()) {
+    if (!nozzle_mapping_res.HasResult()) {
         if (time(nullptr) - s_nozzle_mapping_last_request_time > 10) { // avoid too many requests
             int rtn = obj_->ctrl_get_auto_nozzle_mapping(m_plater, m_ams_mapping_result, m_checkbox_list["flow_cali"]->getValueInt());
             if (rtn == 0) {
@@ -4979,21 +4979,21 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResult(MachineObject* obj_)
         return false;
     }
 
-    if (nozzle_mapping_res.m_result == "failed") {
-        const auto& err_msg = wxString::Format(_L("Failed to receive nozzle auto-mapping table from printer { msg: %s }. Please refresh the printer information."), nozzle_mapping_res.m_mqtt_reason);
+    if (nozzle_mapping_res.GetResultStr() == "failed") {
+        const auto& err_msg = wxString::Format(_L("Failed to receive nozzle auto-mapping table from printer { msg: %s }. Please refresh the printer information."), nozzle_mapping_res.GetMqttReason());
         show_status(PrintDialogStatus::PrintStatusRackNozzleMappingError, { err_msg });
         return false;
     }
 
-    if (nozzle_mapping_res.m_result == "fail") {
-        const wxString& err_msg = wxString::Format(_L("The printer failed to build the nozzle auto-mapping table { code: %d }. Please refresh the printer information."), nozzle_mapping_res.m_errno);
+    if (nozzle_mapping_res.GetResultStr() == "fail") {
+        const wxString& err_msg = wxString::Format(_L("The printer failed to build the nozzle auto-mapping table { code: %d }. Please refresh the printer information."), nozzle_mapping_res.GetErrno());
         show_status(PrintDialogStatus::PrintStatusRackNozzleMappingError, { err_msg });
         return false;
     }
 
-    if (!obj_->get_nozzle_mapping_result().m_nozzle_mapping.empty()) {
-        if (m_nozzle_mapping_result != obj_->get_nozzle_mapping_result().m_nozzle_mapping) {
-            m_nozzle_mapping_result = obj_->get_nozzle_mapping_result().m_nozzle_mapping;
+    if (!obj_->get_nozzle_mapping_result().GetNozzleMapping().empty()) {
+        if (m_nozzle_mapping_result != obj_->get_nozzle_mapping_result().GetNozzleMapping()) {
+            m_nozzle_mapping_result = obj_->get_nozzle_mapping_result().GetNozzleMapping();
             sync_ams_mapping_result(m_ams_mapping_result);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": sync_ams_mapping_result done.";
         }

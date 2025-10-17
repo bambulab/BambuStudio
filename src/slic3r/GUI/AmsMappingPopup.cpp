@@ -749,7 +749,9 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_right_tips->SetBackgroundColour(StateColor::darkModeColorFor("0xFFFFFF"));
      m_right_tips->SetFont(::Label::Body_13);
      m_right_tips->SetLabel(m_right_tip_text);
+
      m_sizer_ams_right_horizonal->Add(m_right_tips, 0, wxEXPAND , 0);
+     m_sizer_ams_right_horizonal->AddStretchSpacer();
 
      m_reset_btn = new ScalableButton(m_right_first_text_panel, wxID_ANY, wxGetApp().dark_mode() ? "erase_dark" : "erase", wxEmptyString, wxDefaultSize, wxDefaultPosition,
                                       wxBU_EXACTFIT | wxNO_BORDER, true, 14);
@@ -783,7 +785,13 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      content_sizer->Add(content_ams_sizer, 1, wxEXPAND | wxLEFT);
      content_sizer->Add(m_rack_nozzle_select, 1, wxEXPAND | wxLEFT, FromDIP(25));
 
+     m_flush_warning_panel = new DevIconLabel(m_right_marea_panel, "dev_warning", "");
+     m_flush_warning_panel->SetAllBackgroundColor(StateColor::darkModeColorFor("#FFFFE0"));
+     m_flush_warning_panel->GetLabelItem()->SetForegroundColour(StateColor::darkModeColorFor("#F09A17"));
+     m_flush_warning_panel->Show(false);
+
      m_sizer_ams_right->Add(m_right_first_text_panel, 0, wxEXPAND | wxBOTTOM | wxTOP, FromDIP(8));
+     m_sizer_ams_right->Add(m_flush_warning_panel, 0, wxBOTTOM | wxALIGN_LEFT, FromDIP(8));
      m_sizer_ams_right->Add(content_sizer, 0, wxEXPAND, 0);
 
      m_left_marea_panel->SetSizer(m_sizer_ams_left);
@@ -834,9 +842,11 @@ void AmsMapingPopup::msw_rescale()
 {
     m_left_extra_slot->msw_rescale();
     m_right_extra_slot->msw_rescale();
-    m_rack_nozzle_select->Rescale();
     for (auto item : m_mapping_item_list) { item->msw_rescale(); }
     for (auto container : m_amsmapping_container_list) { container->msw_rescale(); }
+
+    m_flush_warning_panel->Rescale();
+    m_rack_nozzle_select->Rescale();
 
     Fit();
     Refresh();
@@ -1115,7 +1125,7 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
 
     /*rack*/
     update_rack_select(obj);
-
+    update_flush_waste(obj);
 
     if (wxGetApp().dark_mode() && m_reset_btn->GetName() != "erase_dark") {
         m_reset_btn->SetName("erase_dark");
@@ -1490,7 +1500,7 @@ void AmsMapingPopup::update_rack_select(MachineObject *obj)
 
     bool show_rack_select_area = false;
     if (!m_mapping_from_multi_machines && !m_use_in_sync_dialog &&
-        obj && obj->GetNozzleRack()->IsSupported() && !obj->get_nozzle_mapping_result().m_nozzle_mapping.empty()) {
+        obj && obj->GetNozzleRack()->IsSupported() && !obj->get_nozzle_mapping_result().GetNozzleMapping().empty()) {
         int mapped_nozzle_pos_id =  obj->get_nozzle_mapping_result().GetMappedNozzlePosIdByFilaId(obj, m_current_filament_id);
         m_rack_nozzle_select->UpdateRackSelect(obj->GetNozzleRack(), mapped_nozzle_pos_id);
 
@@ -1498,7 +1508,7 @@ void AmsMapingPopup::update_rack_select(MachineObject *obj)
     }
 
     if (show_rack_select_area != m_rack_nozzle_select->IsShown()) {
-        m_right_tip_text = show_rack_select_area ? _L("Select filament and hotends which installed to the right nozzle") : _L("Select filament that installed to the right nozzle");
+        m_right_tip_text = show_rack_select_area ? _L("Select Filament && Hotends") : _L("Select Filament");
         m_right_tips->SetLabel(m_right_tip_text);
         m_rack_nozzle_select->Show(show_rack_select_area);
         Layout();
@@ -1511,10 +1521,28 @@ void AmsMapingPopup::OnNozzleMappingSelected(wxCommandEvent& evt)
     if (auto ptr = m_rack.lock()) {
         MachineObject* obj = ptr->GetNozzleSystem()->GetOwner();
         obj->set_manual_nozzle_mapping(m_current_filament_id, m_rack_nozzle_select->GetSelectedNozzlePosID());
+        update_flush_waste(obj);
     }
 
     evt.Skip();
     Dismiss();
+}
+
+void AmsMapingPopup::update_flush_waste(MachineObject* obj)
+{
+    if (!obj) {
+        m_flush_warning_panel->Hide();
+        return;
+    };
+
+    float flush_waste_base = obj->get_nozzle_mapping_result().GetFlushWeightBase();
+    float flush_waste_current = obj->get_nozzle_mapping_result().GetFlushWeightCurrent();
+    if ((flush_waste_base != -1) && (flush_waste_current != -1) && flush_waste_current > flush_waste_base){
+        m_flush_warning_panel->SetLabel(wxString::Format(_L("Printing with the current nozzle may produce an extra %0.2f g of waste."), flush_waste_current - flush_waste_base));
+        m_flush_warning_panel->Show();
+    } else {
+        m_flush_warning_panel->Hide();
+    }
 }
 
  MappingItem::MappingItem(wxWindow *parent)
@@ -2869,6 +2897,59 @@ void AmsHumidityLevelList::doRender(wxDC& dc)
 
         left += FromDIP(46) + FromDIP(54);
     }
+}
+
+DevIconLabel::DevIconLabel(wxWindow* parent, const wxString& icon, const wxString& label)
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
+{
+    CreateGui();
+
+    SetIcon(icon);
+    SetLabel(label);
+}
+
+void DevIconLabel::CreateGui()
+{
+    wxSizer* sizer_main = new wxBoxSizer(wxHORIZONTAL);
+    m_icon = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);
+    m_icon->SetBackgroundColour(*wxWHITE);
+
+    m_label = new Label(this);
+    m_label->SetFont(::Label::Body_13);
+    m_label->SetBackgroundColour(*wxWHITE);
+
+    sizer_main->Add(m_icon, 0, wxALIGN_CENTER_VERTICAL, 0);
+    sizer_main->Add(m_label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(8));
+    SetSizer(sizer_main);
+    Layout();
+    Fit();
+}
+
+void DevIconLabel::SetLabel(const wxString& label)
+{
+    m_label->SetLabel(label);
+}
+
+void DevIconLabel::SetIcon(const wxString& icon)
+{
+    if (m_icon_str != icon) {
+        m_icon_str = icon;
+        m_icon->SetBitmap(create_scaled_bitmap(icon.ToStdString(), this, 20));
+        Refresh();
+    }
+}
+
+void DevIconLabel::SetAllBackgroundColor(const wxColour& color)
+{
+    SetBackgroundColour(color);
+    m_icon->SetBackgroundColour(color);
+    m_label->SetBackgroundColour(color);
+}
+
+void Slic3r::GUI::DevIconLabel::Rescale()
+{
+    m_icon->SetBitmap(create_scaled_bitmap(m_icon_str.ToStdString(), this, 20));
+    Refresh();
 }
 
 }} // namespace Slic3r::GUI
