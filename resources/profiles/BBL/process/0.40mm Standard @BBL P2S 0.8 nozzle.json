@@ -6,7 +6,6 @@
     "setting_id": "GP157",
     "instantiation": "true",
     "description": "Standard profile for 0.8mm nozzle, prioritizing speed.",
-    "bottom_surface_pattern": "monotonicline",
     "bridge_speed": [
         "30",
         "30"
@@ -161,6 +160,7 @@
         "10000",
         "10000"
     ],
+    "top_surface_pattern": "monotonicline",
     "vertical_shell_speed": [
         "80%",
         "80%"
