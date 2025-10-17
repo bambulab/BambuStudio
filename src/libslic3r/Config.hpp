@@ -356,7 +356,7 @@ public:
     virtual void append(const ConfigOption *rhs) = 0;
     virtual void set(const ConfigOption* rhs, size_t start, size_t len) = 0;
     virtual void set_with_restore(const ConfigOptionVectorBase* rhs, std::vector<int>& restore_index, int stride) = 0;
-    virtual void set_with_restore_2(const ConfigOptionVectorBase* rhs, std::vector<int>& restore_index, int start, int len) = 0;
+    virtual void set_with_restore_2(const std::string key, const ConfigOptionVectorBase* rhs, std::vector<int>& restore_index, int start, int len) = 0;
     virtual void set_only_diff(const ConfigOptionVectorBase* rhs, std::vector<int>& diff_index, int stride) = 0;
     virtual void set_to_index(const ConfigOptionVectorBase* rhs, std::vector<int>& dest_index, int stride) = 0;
     virtual void set_with_nil(const ConfigOptionVectorBase* rhs, const ConfigOptionVectorBase* inherits, int stride) = 0;
@@ -515,7 +515,7 @@ public:
     //restore_index: which index in this vector need to be restored
     //start: which index in this vector need to be replaced
     //count: how many items in this vector need to be replaced
-    virtual void set_with_restore_2(const ConfigOptionVectorBase* rhs, std::vector<int>& restore_index, int start, int len) override
+    virtual void set_with_restore_2(const std::string key, const ConfigOptionVectorBase* rhs, std::vector<int>& restore_index, int start, int len) override
     {
         if (rhs->type() == this->type()) {
             //backup original ones
@@ -538,8 +538,10 @@ public:
             // Assign the new value from the rhs vector.
             auto other = static_cast<const ConfigOptionVector<T>*>(rhs);
 
-            if (other->values.size() != (restore_index.size()))
-                throw ConfigurationError("ConfigOptionVector::set_with_restore_2(): Assigning from an vector with invalid restore_index size");
+            if (other->values.size() != (restore_index.size())) {
+                std::string error_message = "ConfigOptionVector::set_with_restore_2(): Assigning from an vector with invalid restore_index size: key="+key;
+                throw ConfigurationError(error_message);
+            }
 
             for (size_t i = 0; i < restore_index.size(); i++) {
                 if ((restore_index[i] != -1)&&(restore_index[i] < backup_values.size())) {
@@ -549,8 +551,10 @@ public:
                     this->values.insert(this->values.begin() + start + i, other->values[i]);
             }
         }
-        else
-            throw ConfigurationError("ConfigOptionVector::set_with_restore_2(): Assigning an incompatible type");
+        else {
+                std::string error_message = "ConfigOptionVector::set_with_restore_2(): Assigning an incompatible type: key="+key;
+                throw ConfigurationError(error_message);
+        }
     }
 
     //set a item related with extruder variants when loading user config, only set the different value of some extruder
@@ -569,7 +573,7 @@ public:
                 if (diff_index[i] != -1) {
                     for (size_t j = 0; j < stride; j++)
                     {
-                        if (!other->is_nil(diff_index[i]))
+                        if (!other->is_nil(diff_index[i] * stride))
                             this->values[i * stride +j] = other->values[diff_index[i] * stride +j];
                     }
                 }

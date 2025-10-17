@@ -203,6 +203,7 @@ void wxMediaCtrl3::PlayThread()
         if (!url->HasScheme())
             break;
 
+
         //reset frame
         frameCount     = 0;
         lastSecondTime = std::chrono::system_clock::now();
@@ -215,6 +216,15 @@ void wxMediaCtrl3::PlayThread()
             error = Bambu_Open(tunnel);
             if (error == 0)
                 error = Bambu_would_block;
+
+            else if (error == -2)
+            {
+                m_error = error;
+                BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::DLL load error ";
+                lk.lock();
+                NotifyStopped();
+                continue;
+            }
         }
         lk.lock();
         while (error == int(Bambu_would_block)) {

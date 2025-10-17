@@ -11,7 +11,8 @@
 #include "slic3r/Utils/BBLUtil.hpp"
 #include "NetworkAgent.hpp"
 
-
+#include "slic3r/Utils/FileTransferUtils.hpp"
+#include "slic3r/Utils/CertificateVerify.hpp"
 
 using namespace BBL;
 
@@ -116,6 +117,7 @@ func_get_model_mall_home_url        NetworkAgent::get_model_mall_home_url_ptr = 
 func_get_model_mall_detail_url      NetworkAgent::get_model_mall_detail_url_ptr = nullptr;
 func_get_subtask                    NetworkAgent::get_subtask_ptr = nullptr;
 func_get_my_profile                 NetworkAgent::get_my_profile_ptr = nullptr;
+func_get_my_token                   NetworkAgent::get_my_token_ptr = nullptr;
 func_track_enable                   NetworkAgent::track_enable_ptr = nullptr;
 func_track_remove_files             NetworkAgent::track_remove_files_ptr = nullptr;
 func_track_event                    NetworkAgent::track_event_ptr = nullptr;
@@ -172,7 +174,7 @@ std::string NetworkAgent::get_libpath_in_current_directory(std::string library_n
 }
 
 
-int NetworkAgent::initialize_network_module(bool using_backup)
+int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cert)
 {
     //int ret = -1;
     std::string library;
@@ -183,6 +185,13 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     if (using_backup) {
         plugin_folder = plugin_folder/"backup";
     }
+    std::optional<SignerSummary> self_cert_summary, module_cert_summary;
+    if (validate_cert)
+        self_cert_summary = SummarizeSelf();
+    else
+        BOOST_LOG_TRIVIAL(info) << "wouldn't validate networking dll cert";
+    if (!self_cert_summary)
+        BOOST_LOG_TRIVIAL(info) << "self cert not exist";
 
     //first load the library
 #if defined(_MSC_VER) || defined(_WIN32)
@@ -190,13 +199,18 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     wchar_t lib_wstr[128];
     memset(lib_wstr, 0, sizeof(lib_wstr));
     ::MultiByteToWideChar(CP_UTF8, NULL, library.c_str(), strlen(library.c_str())+1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
-    netwoking_module = LoadLibrary(lib_wstr);
-    /*if (!netwoking_module) {
-        library = std::string(BAMBU_NETWORK_LIBRARY) + ".dll";
-        memset(lib_wstr, 0, sizeof(lib_wstr));
-        ::MultiByteToWideChar(CP_UTF8, NULL, library.c_str(), strlen(library.c_str()) + 1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
+    if (self_cert_summary) {
+        module_cert_summary = SummarizeModule(library);
+        if (module_cert_summary) {
+            if (IsSamePublisher(*self_cert_summary, *module_cert_summary))
+                netwoking_module = LoadLibrary(lib_wstr);
+            else
+                BOOST_LOG_TRIVIAL(info) << "module is from another publisher:" << module_cert_summary->as_print();
+        }
+        else
+            BOOST_LOG_TRIVIAL(info) << "module_cert is null";
+    } else
         netwoking_module = LoadLibrary(lib_wstr);
-    }*/
     if (!netwoking_module) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", try load library directly from current directory");
 
@@ -205,10 +219,21 @@ int NetworkAgent::initialize_network_module(bool using_backup)
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", can not get path in current directory for %1%") % BAMBU_NETWORK_LIBRARY;
             return -1;
         }
-        //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", current path %1%")%library_path;
         memset(lib_wstr, 0, sizeof(lib_wstr));
         ::MultiByteToWideChar(CP_UTF8, NULL, library_path.c_str(), strlen(library_path.c_str())+1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
-        netwoking_module = LoadLibrary(lib_wstr);
+        if (self_cert_summary) {
+            module_cert_summary = SummarizeModule(library_path);
+            if (module_cert_summary) {
+                if (IsSamePublisher(*self_cert_summary, *module_cert_summary))
+                    netwoking_module = LoadLibrary(lib_wstr);
+                else
+                    BOOST_LOG_TRIVIAL(info) << "module is from another publisher:" << module_cert_summary->as_print();
+            }
+            else
+                BOOST_LOG_TRIVIAL(info) << "module_cert is null";
+        }
+        else
+            netwoking_module = LoadLibrary(lib_wstr);
     }
 #else
     #if defined(__WXMAC__)
@@ -217,17 +242,24 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     library = plugin_folder.string() + "/" + std::string("lib") + std::string(BAMBU_NETWORK_LIBRARY) + ".so";
     #endif
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", line %1%, loading network module, using_backup %2%\n")%__LINE__ %using_backup;
-    netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
+    module_cert_summary = SummarizeModule(library);
+    if (self_cert_summary) {
+        module_cert_summary = SummarizeModule(library);
+        if (module_cert_summary) {
+            if (IsSamePublisher(*self_cert_summary, *module_cert_summary))
+                netwoking_module = dlopen(library.c_str(), RTLD_LAZY);
+            else
+                BOOST_LOG_TRIVIAL(info) << "module is from another publisher:" << module_cert_summary->as_print();
+        }
+        else
+            BOOST_LOG_TRIVIAL(info) << "module_cert is null";
+    }
+    else
+        netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
     if (!netwoking_module) {
-        /*#if defined(__WXMAC__)
-        library = std::string("lib") + BAMBU_NETWORK_LIBRARY + ".dylib";
-        #else
-        library = std::string("lib") + BAMBU_NETWORK_LIBRARY + ".so";
-        #endif*/
-        //netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
         char* dll_error = dlerror();
-        printf("error, dlerror is %s\n", dll_error);
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", error, dlerror is %1%")%dll_error;
+        std::string err       = dll_error ? std::string(dll_error) : std::string("(null)");
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", error, dlerror is %1%") % err;
     }
     printf("after dlopen, network_module is %p\n", netwoking_module);
 #endif
@@ -237,6 +269,9 @@ int NetworkAgent::initialize_network_module(bool using_backup)
         return -1;
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", line %1%,  successfully loaded library, using_backup %2%, module %3%")%__LINE__ %using_backup %netwoking_module;
+
+    // load file transfer interface
+    InitFTModule(netwoking_module);
 
     //load the functions
     check_debug_consistent_ptr        =  reinterpret_cast<func_check_debug_consistent>(get_network_function("bambu_network_check_debug_consistent"));
@@ -327,6 +362,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     get_model_mall_home_url_ptr       =  reinterpret_cast<func_get_model_mall_home_url>(get_network_function("bambu_network_get_model_mall_home_url"));
     get_model_mall_detail_url_ptr     =  reinterpret_cast<func_get_model_mall_detail_url>(get_network_function("bambu_network_get_model_mall_detail_url"));
     get_my_profile_ptr                =  reinterpret_cast<func_get_my_profile>(get_network_function("bambu_network_get_my_profile"));
+    get_my_token_ptr                  =  reinterpret_cast<func_get_my_profile>(get_network_function("bambu_network_get_my_token"));
     track_enable_ptr                  =  reinterpret_cast<func_track_enable>(get_network_function("bambu_network_track_enable"));
     track_remove_files_ptr            =  reinterpret_cast<func_track_remove_files>(get_network_function("bambu_network_track_remove_files"));
     track_event_ptr                   =  reinterpret_cast<func_track_event>(get_network_function("bambu_network_track_event"));
@@ -347,6 +383,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
 int NetworkAgent::unload_network_module()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", network module %1%")%netwoking_module;
+    UnloadFTModule();
 #if defined(_MSC_VER) || defined(_WIN32)
     if (netwoking_module) {
         FreeLibrary(netwoking_module);
@@ -447,6 +484,7 @@ int NetworkAgent::unload_network_module()
     get_model_mall_home_url_ptr       =  nullptr;
     get_model_mall_detail_url_ptr     =  nullptr;
     get_my_profile_ptr                =  nullptr;
+    get_my_token_ptr                  =  nullptr;
     track_enable_ptr                  =  nullptr;
     track_remove_files_ptr            =  nullptr;
     track_event_ptr                   =  nullptr;
@@ -1461,6 +1499,17 @@ int NetworkAgent::get_my_profile(std::string token, unsigned int *http_code, std
     int ret = 0;
     if (network_agent && get_my_profile_ptr) {
         ret = get_my_profile_ptr(network_agent, token, http_code, http_body);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::get_my_token(std::string ticket, unsigned int* http_code, std::string* http_body)
+{
+    int ret = 0;
+    if (network_agent && get_my_token_ptr) {
+        ret = get_my_token_ptr(network_agent, ticket, http_code, http_body);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
     }

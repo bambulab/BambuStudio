@@ -188,6 +188,8 @@ void AppConfig::set_defaults()
         set_bool("show_shells_in_preview", true);
     if (get("enable_text_styles").empty())
         set_bool("enable_text_styles", false);
+    if (get("use_last_fold_state_gcodeview_option_panel").empty())
+        set_bool("use_last_fold_state_gcodeview_option_panel", true);
     if (get("enable_lod").empty())
         set_bool("enable_lod", true);
     if (get("gamma_correct_in_import_obj").empty())
@@ -223,6 +225,9 @@ void AppConfig::set_defaults()
 
     if (get("enable_advanced_antialiasing").empty())
         set_bool("enable_advanced_antialiasing", false);
+
+    if (get("enable_advanced_gcode_viewer").empty())
+        set_bool("enable_advanced_gcode_viewer", false);
 
     if (get("gizmo_keep_screen_size").empty())
         set_bool("gizmo_keep_screen_size", true);
@@ -462,6 +467,13 @@ void AppConfig::set_defaults()
     if (get("show_wrapping_detect_dialog").empty()) {
         set_bool("show_wrapping_detect_dialog", true);
     }
+    if (get("ignore_module_cert").empty()) {
+        set_bool("ignore_module_cert", false);
+    }
+    if (get("webview_auto_fill").empty()) {
+        set_bool("webview_auto_fill", true);
+    }
+    erase("app", "item_webview_auto_fill");
 
     if (get("prompt_for_brittle_filaments").empty()){
         set_bool("prompt_for_brittle_filaments", true);
@@ -663,14 +675,16 @@ std::string AppConfig::load()
                         for (auto cali_it = calis_j["presets"].begin(); cali_it != calis_j["presets"].end(); cali_it++) {
                             CaliPresetInfo preset_info;
                             preset_info.tray_id     = cali_it.value()["tray_id"].get<int>();
+                            preset_info.nozzle_diameter = cali_it.value()["nozzle_diameter"].get<float>();
+                            preset_info.filament_id     = cali_it.value()["filament_id"].get<std::string>();
+                            preset_info.setting_id      = cali_it.value()["setting_id"].get<std::string>();
+                            preset_info.name            = cali_it.value()["name"].get<std::string>();
                             if (cali_it.value().contains("extruder_id"))
                                 preset_info.extruder_id = cali_it.value()["extruder_id"].get<int>();
                             if (cali_it.value().contains("nozzle_volume_type"))
                                 preset_info.nozzle_volume_type  = NozzleVolumeType(cali_it.value()["nozzle_volume_type"].get<int>());
-                            preset_info.nozzle_diameter = cali_it.value()["nozzle_diameter"].get<float>();
-                            preset_info.filament_id = cali_it.value()["filament_id"].get<std::string>();
-                            preset_info.setting_id  = cali_it.value()["setting_id"].get<std::string>();
-                            preset_info.name        = cali_it.value()["name"].get<std::string>();
+                            if (cali_it.value().contains("bed_type"))
+                                preset_info.bed_type = BedType(cali_it.value()["bed_type"].get<int>());
                             cali_info.selected_presets.push_back(preset_info);
                         }
                     }
@@ -796,6 +810,7 @@ void AppConfig::save()
             preset_json["tray_id"] = filament_preset.tray_id;
             preset_json["extruder_id"]      = filament_preset.extruder_id;
             preset_json["nozzle_volume_type"]  = int(filament_preset.nozzle_volume_type);
+            preset_json["bed_type"] = int(filament_preset.bed_type);
             preset_json["nozzle_diameter"]  = filament_preset.nozzle_diameter;
             preset_json["filament_id"]      = filament_preset.filament_id;
             preset_json["setting_id"]       = filament_preset.setting_id;

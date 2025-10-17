@@ -132,6 +132,7 @@ void GLGizmoRotate::on_render()
         return;
 
     const Selection& selection = m_parent.get_selection();
+    if (selection.is_empty()) { return; }
     if (m_hover_id != 0 && !m_grabbers[0].dragging) {
         init_data_from_selection(selection);
     }

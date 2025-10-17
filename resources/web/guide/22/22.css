@@ -1,70 +1,93 @@
-
-.ChooseBlock
-{
-	display:flex;
-	line-height: 32px;
+#Content {
+  display:flex;
+  flex-direction: row;
 }
 
-.CName
-{
-	width:130px;
-	font-weight: 700;
-	height: 100%;
-	text-align: right;
-	white-space: nowrap;
-	flex-shrink: 0;
+#leftBlock {
+  flex: 1;
+  padding-left: 9px;
+  padding-right: 9px;
+  border-right: 1px solid #EEEEEE;
 }
 
-.CValues
-{
-	display:flex;
-	justify-content: flex-start;
-	align-content: flex-start;
-	flex-wrap: wrap;
+#rightBlock {
+  flex: 2;
+  padding-left: 15px;
+  padding-right: 9px;
 }
 
-input
+.CNameBlock {
+  font-weight: 700;
+  height: 28px;
+}
+
+.inlineAlign {
+  display: inline-block;
+  vertical-align: middle;
+  line-height:normal;
+}
+
+.CNameIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.CArrow
 {
-	margin-left: 20px;
-	margin-right: 6px;
+  width: 20px;
+  height: 20px;
+  background-image: url(../img/pull.svg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  float: right;
+  transition: transform 0.3s ease;
+  transform: rotate(90deg);
+}
+.CArrow.active {
+  transform: rotate(0deg);
+}
+
+.CValues {
+  padding: 8px;
+  background-color: #F8F8F8;
+}
+
+input {
+	margin-right: 8px;
 	vertical-align: middle;
+  width: 16px;
+  height: 16px;
 }
 
-#ItemSelectArea
-{
-	flex: 0 0 40px;
-	height:40px;
-	border-top: 1px solid #00AE42;
-	display: flex;
-	align-items: center;
+.inputIndent { margin-left: 8px;}
+
+.checkboxText {
+  width: 212px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
 }
 
-#ItemSelectArea .SmallBtn
-{
-	margin-left:5px;
+/* right block */
+.SelectAll {
+  width: 100%;
+  text-align: right;
+  font-weight: 700;
 }
 
-
-#ItemBlockArea
-{
-	flex: 1 0 236px;
-	display:flex;
-	overflow-x:auto;
-	flex-wrap:wrap;
-	flex-direction: column;
-	justify-content:flex-start;
-	align-items: flex-start;
-	align-content:flex-start;
-	line-height: 32px;
+#ItemBlockArea {
+  column-count: 2;
+  column-gap: 16px;
+  padding-top: 16px;
 }
 
-.MItem
-{
-	min-width: 220px;
-	height: 32px;
+.cols > *{
+  break-inside: avoid;
 }
 
-
+/* NoticeMask */
 #NoticeMask
 {
 	background-color: #000;

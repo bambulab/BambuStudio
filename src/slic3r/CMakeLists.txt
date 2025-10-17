@@ -166,6 +166,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoSVG.hpp
     GUI/Gizmos/GLGizmoMeshBoolean.cpp
     GUI/Gizmos/GLGizmoMeshBoolean.hpp
+    GUI/UIHelpers/MeshBooleanUI.cpp
+    GUI/UIHelpers/MeshBooleanUI.hpp
+    GUI/UIHelpers/TextEllipsis.cpp
+    GUI/UIHelpers/TextEllipsis.hpp
     GUI/GLSelectionRectangle.cpp
     GUI/GLSelectionRectangle.hpp
     GUI/Gizmos/GizmoObjectManipulation.cpp
@@ -206,7 +210,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/GUI_Utils.hpp
     GUI/I18N.cpp
     GUI/I18N.hpp
-	GUI/IconManager.cpp
+    GUI/IconManager.cpp
     GUI/IconManager.hpp
     GUI/MainFrame.cpp
     GUI/MainFrame.hpp
@@ -272,6 +276,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/MonitorPage.hpp
     GUI/StatusPanel.cpp
     GUI/StatusPanel.hpp
+    GUI/ThermalPreconditioningDialog.cpp
+    GUI/ThermalPreconditioningDialog.hpp
     GUI/HMS.hpp
     GUI/HMS.cpp
     GUI/SliceInfoPanel.cpp
@@ -511,6 +517,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Calibration.cpp
     GUI/PrintOptionsDialog.hpp
     GUI/PrintOptionsDialog.cpp
+    GUI/SafetyOptionsDialog.hpp
+    GUI/SafetyOptionsDialog.cpp
     GUI/CreatePresetsDialog.hpp
     GUI/CreatePresetsDialog.cpp
     Utils/json_diff.hpp
@@ -535,6 +543,13 @@ set(SLIC3R_GUI_SOURCES
     GUI/SendMultiMachinePage.cpp
     GUI/TaskManager.cpp
     GUI/TaskManager.hpp
+    GUI/RenderEnums.hpp
+    GUI/GCodeRenderer/AdvancedRenderer.hpp
+    GUI/GCodeRenderer/AdvancedRenderer.cpp
+    GUI/GCodeRenderer/BaseRenderer.hpp
+    GUI/GCodeRenderer/BaseRenderer.cpp
+    GUI/GCodeRenderer/LegacyRenderer.hpp
+    GUI/GCodeRenderer/LegacyRenderer.cpp
     Utils/WxFontUtils.cpp
     Utils/WxFontUtils.hpp
     Utils/EmbossStyleManager.cpp
@@ -587,14 +602,18 @@ set(SLIC3R_GUI_SOURCES
     Utils/CalibUtils.cpp
     Utils/CalibUtils.hpp
     Utils/ProfileDescription.hpp
-	Utils/FontConfigHelp.cpp
-	Utils/FontConfigHelp.hpp
-	Utils/FontUtils.cpp
-	Utils/FontUtils.hpp
+    Utils/FontConfigHelp.cpp
+    Utils/FontConfigHelp.hpp
+    Utils/FontUtils.cpp
+    Utils/FontUtils.hpp
     Utils/WxFontUtils.hpp
     Utils/WxFontUtils.cpp
     Utils/HelioDragon.cpp
-	Utils/HelioDragon.hpp
+    Utils/HelioDragon.hpp
+    Utils/FileTransferUtils.cpp
+    Utils/FileTransferUtils.hpp
+    Utils/CertificateVerify.hpp
+    Utils/CertificateVerify.cpp
 )
 
 add_subdirectory(GUI/DeviceCore)

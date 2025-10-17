@@ -83,7 +83,6 @@ wxDEFINE_EVENT(EVT_USER_LOGIN_HANDLE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CHECK_PRIVACY_VER, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CHECK_PRIVACY_SHOW, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SHOW_IP_DIALOG, wxCommandEvent);
-wxDEFINE_EVENT(EVT_SET_SELECTED_MACHINE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_MACHINE_LIST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_PRESET_CB, SimpleEvent);
 
@@ -1191,6 +1190,9 @@ void MainFrame::init_tabpanel()
                 m_param_panel->OnActivate();
             }
             else if (sel == tpPreview) {
+                m_plater->reset_check_status();
+                if (!m_plater->check_ams_status(m_slice_select == eSliceAll))
+                    return;
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW));
                 m_param_panel->OnActivate();
             }
@@ -1781,9 +1783,6 @@ wxBoxSizer* MainFrame::create_side_tools()
 
     m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
-            m_plater->reset_check_status();
-            if (!m_plater->check_ams_status(m_slice_select == eSliceAll))
-                return;
 
             //this->m_plater->select_view_3D("Preview");
             m_plater->exit_gizmo();
@@ -3562,7 +3561,7 @@ void MainFrame::update_calibration_button_status()
     bool isBBL = printer_preset.is_bbl_vendor_preset(wxGetApp().preset_bundle);
     bool is_multi_extruder = wxGetApp().preset_bundle->get_printer_extruder_count() > 1;
     // Show calibration Menu for BBL printers if Develop Mode is on.
-    bool show_calibration = (!isBBL || wxGetApp().app_config->get("developer_mode") == "true") && !is_multi_extruder;
+    bool show_calibration = (!isBBL || wxGetApp().app_config->get("developer_mode") == "true");
     wxGetApp().mainframe->show_calibration_button(show_calibration, isBBL);
 }
 

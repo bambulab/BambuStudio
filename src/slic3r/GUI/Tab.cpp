@@ -928,7 +928,8 @@ void Tab::init_options_list()
 
     for (const std::string& opt_key : m_config->keys())
     {
-        if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "compatible_prints" || opt_key == "compatible_printers" || opt_key == "thumbnail_size" || opt_key == "wrapping_exclude_area") {
+        if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "compatible_prints" || opt_key == "compatible_printers" || opt_key == "thumbnail_size" ||
+            opt_key == "wrapping_exclude_area" || opt_key == "post_process") {
             m_options_list.emplace(opt_key, m_opt_status_value);
             continue;
         }
@@ -1617,18 +1618,19 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
         if ((is_soluble_filament(filament_id) || support_TPU) &&
             !(m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 &&
-              m_config->opt_float("support_object_xy_distance") == 0 &&
+              m_config->opt_float("support_object_xy_distance") == 0 && m_config->opt_bool("top_z_overrides_xy_distance") &&
               m_config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipRectilinearInterlaced &&
               filament_id == interface_filament_id)) {
             wxString msg_text;
             if (support_TPU)
                 msg_text = _L("When using PLA to support TPU, We recommend the following settings:\n"
-                              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-                              "independent support layer height and use PLA for both support interface and support base");
+                              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+                              "overrides XY, disable independent support layer height and use PLA for both support interface and support base");
             else
                 msg_text = _L("When using soluble material for the support, We recommend the following settings:\n"
-                                   "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-                                   "independent support layer height and use soluble materials for both support interface and support base");
+                              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+                              "overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+                              "and support base");
             msg_text += "\n\n" + _L("Change these settings automatically? \n"
                                     "Yes - Change these settings automatically\n"
                                     "No  - Do not change these settings for me");
@@ -1640,6 +1642,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                 new_conf.set_key_value("support_object_xy_distance", new ConfigOptionFloat(0));
                 new_conf.set_key_value("support_interface_pattern",
                                        new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
+                new_conf.set_key_value("top_z_overrides_xy_distance", new ConfigOptionBool(true));
                 new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
                 new_conf.set_key_value("support_interface_filament", new ConfigOptionInt(filament_id + 1));
                 m_config_manipulation.apply(m_config, &new_conf);
@@ -1664,23 +1667,24 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
 
         if ((is_support_filament(interface_filament_id, false) &&
-             !(m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 &&
+             !(m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 && m_config->opt_bool("top_z_overrides_xy_distance") &&
                m_config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipRectilinearInterlaced &&
                (support_TPU ? m_config->opt_float("support_object_xy_distance") == 0 : -1))) ||
             (is_soluble_filament(interface_filament_id) && !is_soluble_filament(filament_id))) {
             wxString msg_text;
             if (support_TPU) {
                 msg_text = _L("When using PLA to support TPU, We recommend the following settings:\n"
-                              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-                              "independent support layer height and use PLA for both support interface and support base");
-            }
-            else if (!is_soluble_filament(interface_filament_id)) {
+                              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+                              "overrides XY, disable independent support layer height and use PLA for both support interface and support base");
+            } else if (!is_soluble_filament(interface_filament_id)) {
                 msg_text = _L("When using support material for the support interface, We recommend the following settings:\n"
-                              "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height");
-            }else {
+                              "0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
+                              "independent support layer height");
+            } else {
                 msg_text = _L("When using soluble material for the support interface, We recommend the following settings:\n"
-                              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-                              "independent support layer height and use soluble materials for both support interface and support base");
+                              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+                              "overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+                              "and support base");
             }
             msg_text += "\n\n" + _L("Change these settings automatically? \n"
                                     "Yes - Change these settings automatically\n"
@@ -1692,6 +1696,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                 new_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0));
                 new_conf.set_key_value("support_interface_pattern",
                                        new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
+                new_conf.set_key_value("top_z_overrides_xy_distance", new ConfigOptionBool(true));
                 new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
                 if (support_TPU || (is_soluble_filament(interface_filament_id) && !is_soluble_filament(filament_id))) {
                     new_conf.set_key_value("support_object_xy_distance", new ConfigOptionFloat(0));
@@ -2161,6 +2166,8 @@ void Tab::update_preset_description_line()
 
 static void validate_custom_note_cb(Tab *tab, ConfigOptionsGroupShp opt_group, const t_config_option_key &opt_key, const boost::any &value)
 {
+    tab->update_dirty();
+    tab->on_value_change(opt_key, value);
     if (boost::any_cast<std::string>(value).size() > 40 * 1024) {
         MessageDialog dialog(static_cast<wxWindow *>(wxGetApp().mainframe), _L("The notes are too large, and may not be synchronized to the cloud. Please keep it within 40k."),
                              "", wxICON_WARNING | wxOK);
@@ -2276,6 +2283,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("smooth_coefficient","parameter/quality-advance-settings");
         optgroup->append_single_option_line("reduce_crossing_wall","parameter/quality-advance-settings");
         optgroup->append_single_option_line("max_travel_detour_distance","parameter/quality-advance-settings");
+        optgroup->append_single_option_line("avoid_crossing_wall_includes_support","parameter/quality-advance-settings");
         optgroup->append_single_option_line("z_direction_outwall_speed_continuous", "parameter/quality-advance-settings");
 
     page = add_options_page(L("Strength"), "empty");
@@ -2430,6 +2438,7 @@ void TabPrint::build()
         //optgroup->append_single_option_line("support_interface_loop_pattern");
 
         optgroup->append_single_option_line("support_object_xy_distance", "support");
+        optgroup->append_single_option_line("top_z_overrides_xy_distance", "support");
         optgroup->append_single_option_line("support_object_first_layer_gap", "support");
         optgroup->append_single_option_line("bridge_no_support", "support#base-pattern");
         optgroup->append_single_option_line("max_bridge_length", "support#tree-support-only-options");
@@ -3322,7 +3331,7 @@ void TabFilament::add_filament_overrides_page()
                                         "filament_z_hop_types",
                                         "filament_retraction_speed",
                                         "filament_deretraction_speed",
-                                        //"filament_retract_restart_extra",
+                                        "filament_retract_restart_extra",
                                         "filament_retraction_minimum_travel",
                                         "filament_retract_when_changing_layer",
                                         "filament_wipe",
@@ -3356,7 +3365,7 @@ void TabFilament::update_filament_overrides_page()
                                             "filament_z_hop_types",
                                             "filament_retraction_speed",
                                             "filament_deretraction_speed",
-                                            //"filament_retract_restart_extra",
+                                            "filament_retract_restart_extra",
                                             "filament_retraction_minimum_travel",
                                             "filament_retract_when_changing_layer",
                                             "filament_wipe",
@@ -3562,8 +3571,14 @@ void TabFilament::build()
         //};
         //optgroup->append_line(line);
         optgroup = page->new_optgroup(L("Cooling for specific layer"), L"param_cooling");
-    optgroup->append_single_option_line("close_fan_the_first_x_layers", "auto-cooling");
+        //optgroup->append_single_option_line("close_fan_the_first_x_layers", "auto-cooling");
         //optgroup->append_single_option_line("full_fan_speed_layer");
+        line = {L("Special cooling settings"),
+                L("set addition fan speed before fist x layer")};
+        line.label_path = "auto-cooling";
+        line.append_option(optgroup->get_option("close_fan_the_first_x_layers"));
+        line.append_option(optgroup->get_option("first_x_layer_fan_speed"));
+        optgroup->append_line(line);
 
         optgroup = page->new_optgroup(L("Part cooling fan"), L"param_cooling_fan");
         line = { L("Min fan speed threshold"), L("Part cooling fan speed will start to run at min speed when the estimated layer time is no longer than the layer time in setting. When layer time is shorter than threshold, fan speed is interpolated between the minimum and maximum fan speed according to layer printing time") };
@@ -3578,6 +3593,7 @@ void TabFilament::build()
         optgroup->append_line(line);
         optgroup->append_single_option_line("reduce_fan_stop_start_freq", "auto-cooling");
         optgroup->append_single_option_line("slow_down_for_layer_cooling", "auto-cooling");
+        optgroup->append_single_option_line("no_slow_down_for_cooling_on_outwalls", "auto-cooling");
         optgroup->append_single_option_line("slow_down_min_speed","auto-cooling");
 
         optgroup->append_single_option_line("enable_overhang_bridge_fan", "auto-cooling");
@@ -3723,6 +3739,7 @@ void TabFilament::toggle_options()
     {
         bool cooling = m_config->opt_bool("slow_down_for_layer_cooling", 0);
         toggle_option("slow_down_min_speed", cooling);
+        toggle_option("no_slow_down_for_cooling_on_outwalls", cooling);
 
         bool has_enable_overhang_bridge_fan = m_config->opt_bool("enable_overhang_bridge_fan", 0);
         for (auto el : {"overhang_fan_speed", "pre_start_fan_time", "overhang_fan_threshold"})
@@ -3996,6 +4013,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Accessory") /*, L"param_accessory"*/);
         optgroup->append_single_option_line("nozzle_type");
         optgroup->append_single_option_line("auxiliary_fan");
+        optgroup->append_single_option_line("fan_direction");
         optgroup->append_single_option_line("support_chamber_temp_control");
         optgroup->append_single_option_line("support_air_filtration");
 
@@ -4267,8 +4285,11 @@ PageShp TabPrinter::build_kinematics_page()
         }
         append_option_line(optgroup, "machine_max_acceleration_extruding");
         append_option_line(optgroup, "machine_max_acceleration_retracting");
-        if (m_supports_travel_acceleration)
+
+        auto gcf = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
+        if (gcf == gcfMarlinFirmware || gcf == gcfMarlinLegacy || gcf == gcfKlipper) {
             append_option_line(optgroup, "machine_max_acceleration_travel");
+        }
 
     optgroup = page->new_optgroup(L("Jerk limitation"));
         for (const std::string &axis : axes)	{
@@ -4428,7 +4449,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             optgroup->append_single_option_line("z_hop_types", "parameter/retraction#z-hop-type", extruder_idx);
             optgroup->append_single_option_line("retraction_speed", "parameter/retraction#retraction-speed", extruder_idx);
             optgroup->append_single_option_line("deretraction_speed", "parameter/retraction#deretraction-speed", extruder_idx);
-            //optgroup->append_single_option_line("retract_restart_extra", "", extruder_idx);
+            optgroup->append_single_option_line("retract_restart_extra", "", extruder_idx);
             optgroup->append_single_option_line("retraction_minimum_travel", "parameter/retraction#travel-distance-threshold", extruder_idx);
             optgroup->append_single_option_line("retract_when_changing_layer", "parameter/retraction#retract-on-layer-change", extruder_idx);
             optgroup->append_single_option_line("wipe", "parameter/retraction#wipe-while-retracting", extruder_idx);
@@ -4704,7 +4725,7 @@ void TabPrinter::toggle_options()
             //BBS
             toggle_option(el, retraction && !use_firmware_retraction, i);
 
-        bool wipe = retraction && m_config->opt_bool_nullable("wipe", i);
+        bool wipe = retraction && m_config->opt_bool_nullable("wipe", variant_index);
         toggle_option("retract_before_wipe", wipe, i);
 
         if (use_firmware_retraction && wipe) {
@@ -4753,6 +4774,8 @@ void TabPrinter::toggle_options()
             for (int i = 0; i < max_field; ++ i)
 	            toggle_option(opt, !is_BBL_printer, i);
     }
+
+    toggle_line("fan_direction", m_config->opt_bool("auxiliary_fan"));
 }
 
 void TabPrinter::update()
@@ -4775,13 +4798,6 @@ void TabPrinter::update_fff()
     if (m_use_silent_mode != m_config->opt_bool("silent_mode"))	{
         m_rebuild_kinematics_page = true;
         m_use_silent_mode = m_config->opt_bool("silent_mode");
-    }
-
-    auto gcf_ = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
-    bool supports_travel_acceleration = (gcf_ == gcfMarlinFirmware || gcf_ == gcfMarlinLegacy || gcf_ == gcfKlipper);
-    if (m_supports_travel_acceleration != supports_travel_acceleration) {
-        m_rebuild_kinematics_page = true;
-        m_supports_travel_acceleration = supports_travel_acceleration;
     }
 
     toggle_options();

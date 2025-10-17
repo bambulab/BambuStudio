@@ -15,6 +15,8 @@
 #include "Plater.hpp"
 #include "MainFrame.hpp"
 #include "format.hpp"
+#include "GCodeViewer.hpp"
+#include "slic3r/GUI/GCodeRenderer/BaseRenderer.hpp"
 
 #include <wx/listbook.h>
 #include <wx/notebook.h>
@@ -295,7 +297,6 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Model* model)
     m_canvas->set_model(model);
     m_canvas->set_process(m_process);
     m_canvas->set_type(GLCanvas3D::ECanvasType::CanvasPreview);
-    m_canvas->enable_legend_texture(true);
 
     //BBS: GUI refactor: GLToolbar
     if (wxGetApp().is_editor()) {
@@ -435,7 +436,7 @@ void Preview::sys_color_changed()
     // m_layers_slider->sys_color_changed();
 }
 
-void Preview::on_tick_changed(Type type)
+void Preview::on_tick_changed(CustomGCode::Type type)
 {
     //if (type == Type::PausePrint) {
     //    m_schedule_background_process();
@@ -720,7 +721,7 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
     }
 
     //BBS: support preview gcode directly even if no slicing
-    bool directly_preview = print->is_step_done(psGCodeExport) && !m_gcode_result->moves.empty();
+    bool directly_preview = (only_gcode || print->is_step_done(psGCodeExport)) && !m_gcode_result->moves.empty();
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": directly_preview: %1%, gcode_result moves %2%, has_layers %3%") % directly_preview % m_gcode_result->moves.size() %has_layers;
     if (wxGetApp().is_editor() && !has_layers && !directly_preview) {
         show_sliders(false);
@@ -731,14 +732,15 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
     else if (directly_preview && !has_layers)
         keep_z_range = false;
 
-    GCodeViewer::EViewType gcode_view_type = m_canvas->get_gcode_view_preview_type();
+    const auto& t_gcode_viewer = m_canvas->get_gcode_viewer();
+    gcode::EViewType gcode_view_type = t_gcode_viewer.get_view_type();
     bool gcode_preview_data_valid = !m_gcode_result->moves.empty();
 
     // Collect colors per extruder.
     std::vector<std::string> colors;
     std::vector<CustomGCode::Item> color_print_values = {};
     // set color print values, if it si selected "ColorPrint" view type
-    if (gcode_view_type == GCodeViewer::EViewType::ColorPrint) {
+    if (gcode_view_type == gcode::EViewType::ColorPrint) {
         colors = wxGetApp().plater()->get_colors_for_color_print(m_gcode_result);
 
         if (!gcode_preview_data_valid) {
@@ -750,7 +752,7 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
             colors.push_back("#808080"); // gray color for pause print or custom G-code
         }
     }
-    else if (gcode_preview_data_valid || gcode_view_type == GCodeViewer::EViewType::Tool) {
+    else if (gcode_preview_data_valid || gcode_view_type == gcode::EViewType::Tool) {
         colors = wxGetApp().plater()->get_extruder_colors_from_plater_config(m_gcode_result);
         color_print_values.clear();
     }
@@ -760,7 +762,7 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
     if (IsShown()) {
         m_canvas->set_selected_extruder(0);
         bool is_slice_result_valid = wxGetApp().plater()->get_partplate_list().get_curr_plate()->is_slice_result_valid();
-        if (gcode_preview_data_valid && (is_slice_result_valid || m_only_gcode)) {
+        if (gcode_preview_data_valid && (is_slice_result_valid || only_gcode)) {
             // Load the real G-code preview.
             //BBS: add more log
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": will load gcode_preview from result, moves count %1%") % m_gcode_result->moves.size();

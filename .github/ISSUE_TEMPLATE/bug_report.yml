@@ -55,6 +55,14 @@ body:
       placeholder: Bambu Lab X1 series/Bambu Lab P1P/...
     validations:
       required: true
+  - type: input
+    id: firmware_version
+    attributes:
+      label: Printer Firmware Version
+      description: Please check the firmware version in the printer’s settings menu.
+      placeholder: e.g. 01.01.03.00
+    validations:
+      required: true
   - type: textarea
     id: reproduce_steps
     attributes:

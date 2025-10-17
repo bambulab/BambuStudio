@@ -9,6 +9,7 @@
         "0.4",
         "0.4"
     ],
+    "fan_direction": "left",
     "printer_model": "Bambu Lab H2D Pro",
     "printer_variant": "0.4",
     "default_filament_profile": [
@@ -103,6 +104,7 @@
         "10"
     ],
     "support_chamber_temp_control": "1",
+    "support_object_skip_flush": "0",
     "wrapping_exclude_area": [
         "145x310",
         "256x310",

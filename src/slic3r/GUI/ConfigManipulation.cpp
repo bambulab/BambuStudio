@@ -341,42 +341,86 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         is_msg_dlg_already_exist = false;
     }
 
+    if (config->option<ConfigOptionBool>("enable_wrapping_detection")->value) {
+        std::string printer_type = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+        if (!DevPrinterConfigUtil::support_wrapping_detection(printer_type)) {
+            DynamicPrintConfig new_conf = *config;
+            new_conf.set_key_value("enable_wrapping_detection", new ConfigOptionBool(false));
+            apply(config, &new_conf);
+        }
+    }
+
     double sparse_infill_density = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
     auto timelapse_type = config->opt_enum<TimelapseType>("timelapse_type");
 
-    if (!is_plate_config &&
-        config->opt_bool("spiral_mode") &&
-        !(config->opt_int("wall_loops") == 1 &&
-            config->opt_int("top_shell_layers") == 0 &&
-            sparse_infill_density == 0 &&
-            !config->opt_bool("enable_support") &&
-            config->opt_int("enforce_support_layers") == 0 &&
-            config->opt_enum<EnsureVerticalThicknessLevel>("ensure_vertical_shell_thickness") == EnsureVerticalThicknessLevel::evtEnabled &&
-            !config->opt_bool("detect_thin_wall") &&
-            config->opt_enum<TimelapseType>("timelapse_type") == TimelapseType::tlTraditional &&
-            !config->opt_bool("z_direction_outwall_speed_continuous") &&
-            !config->opt_bool("enable_wrapping_detection")))
+    DynamicPrintConfig *global_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+
+    bool object_spiral_mode = false;
+    if (is_global_config) {
+        auto plates = wxGetApp().plater()->get_partplate_list().get_plate_list();
+        for (auto& plate : plates) {
+            if (plate->config()->has("spiral_mode") && plate->config()->opt_bool("spiral_mode")) object_spiral_mode = true;
+        }
+    }
+    bool adjust_spiral_mode_params = false;
+    if (config->opt_bool("spiral_mode") || object_spiral_mode) {
+        adjust_spiral_mode_params = (config->opt_enum<TimelapseType>("timelapse_type") != TimelapseType::tlTraditional ||
+                                     config->opt_bool("z_direction_outwall_speed_continuous") ||
+                                     config->opt_bool("enable_wrapping_detection"));
+    }
+    if (config->opt_bool("spiral_mode") && !adjust_spiral_mode_params) {
+        adjust_spiral_mode_params = (config->opt_int("wall_loops") != 1 ||
+                                     config->opt_int("top_shell_layers") != 0 || sparse_infill_density != 0 ||
+                                     config->opt_bool("enable_support") ||
+                                     config->opt_int("enforce_support_layers") != 0 ||
+                                     config->opt_enum<EnsureVerticalThicknessLevel>("ensure_vertical_shell_thickness") != EnsureVerticalThicknessLevel::evtEnabled ||
+                                     config->opt_bool("detect_thin_wall"));
+
+        if (!is_global_config && !adjust_spiral_mode_params) {
+            adjust_spiral_mode_params = (global_config->opt_enum<TimelapseType>("timelapse_type") != TimelapseType::tlTraditional ||
+                                         global_config->opt_bool("z_direction_outwall_speed_continuous") ||
+                                         global_config->opt_bool("enable_wrapping_detection"));
+        }
+    }
+
+    if (!is_plate_config && adjust_spiral_mode_params)
     {
         DynamicPrintConfig new_conf = *config;
         auto answer = show_spiral_mode_settings_dialog(is_object_config);
         bool support = true;
         if (answer == wxID_YES) {
-            new_conf.set_key_value("wall_loops", new ConfigOptionInt(1));
-            new_conf.set_key_value("top_shell_layers", new ConfigOptionInt(0));
-            new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
-            new_conf.set_key_value("enable_support", new ConfigOptionBool(false));
-            new_conf.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
-            new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionEnum<EnsureVerticalThicknessLevel>(EnsureVerticalThicknessLevel::evtEnabled));
-            new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
+            if (!is_global_config) {
+                global_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
+                global_config->set_key_value("z_direction_outwall_speed_continuous", new ConfigOptionBool(false));
+                global_config->set_key_value("enable_wrapping_detection", new ConfigOptionBool(false));
+            }
+
             new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
             new_conf.set_key_value("z_direction_outwall_speed_continuous", new ConfigOptionBool(false));
             new_conf.set_key_value("enable_wrapping_detection", new ConfigOptionBool(false));
-            sparse_infill_density = 0;
+            if (config->opt_bool("spiral_mode")) {
+                    new_conf.set_key_value("wall_loops", new ConfigOptionInt(1));
+                    new_conf.set_key_value("top_shell_layers", new ConfigOptionInt(0));
+                    new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+                    new_conf.set_key_value("enable_support", new ConfigOptionBool(false));
+                    new_conf.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
+                    new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionEnum<EnsureVerticalThicknessLevel>(EnsureVerticalThicknessLevel::evtEnabled));
+                    new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
+            }
+
             timelapse_type = TimelapseType::tlTraditional;
-            support = false;
+            if (new_conf.has("sparse_infill_density") && new_conf.option<ConfigOptionPercent>("sparse_infill_density") == 0) sparse_infill_density = 0;
+            if (new_conf.has("enable_support") && !new_conf.opt_bool("enable_support")) support = false;
         }
         else {
             new_conf.set_key_value("spiral_mode", new ConfigOptionBool(false));
+            if (object_spiral_mode) {
+                auto plates = wxGetApp().plater()->get_partplate_list().get_plate_list();
+                for (auto &plate : plates) {
+                    if (plate->config()->has("spiral_mode") && plate->config()->opt_bool("spiral_mode"))
+                        plate->config()->set_key_value("spiral_mode", new ConfigOptionBool(false));
+                }
+            }
         }
         apply(config, &new_conf);
         if (cb_value_change) {
@@ -781,7 +825,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
 
     bool have_avoid_crossing_perimeters = config->opt_bool("reduce_crossing_wall");
     toggle_line("max_travel_detour_distance", have_avoid_crossing_perimeters);
-
+    toggle_line("avoid_crossing_wall_includes_support", have_avoid_crossing_perimeters);    
+    
     bool has_overhang_speed = config->opt_bool_nullable("enable_overhang_speed", variant_index);
     for (auto el : { "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed"})
         toggle_line(el, has_overhang_speed, variant_index);
@@ -795,7 +840,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
 
     toggle_line("support_interface_not_for_body",config->opt_int("support_interface_filament")&&!config->opt_int("support_filament"));
 
-    bool has_fuzzy_skin = (config->opt_enum<FuzzySkinType>("fuzzy_skin") != FuzzySkinType::None);
+    bool has_fuzzy_skin = (config->opt_enum<FuzzySkinType>("fuzzy_skin") != FuzzySkinType::Disabled_fuzzy);
     for (auto el : { "fuzzy_skin_thickness", "fuzzy_skin_point_distance"})
         toggle_line(el, has_fuzzy_skin);
 
@@ -839,9 +884,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     for (auto el : {"seam_slope_type", "seam_slope_start_height", "seam_slope_gap", "seam_slope_min_length"})
         toggle_line(el, override_filament_scarf_seam_settings);
 
-    ConfigOptionPoints *wrapping_exclude_area_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionPoints>("wrapping_exclude_area");
-    bool support_wrapping_detect = wrapping_exclude_area_opt &&wrapping_exclude_area_opt->values.size() > 3;
-    toggle_line("enable_wrapping_detection", support_wrapping_detect);
+    std::string printer_type = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    toggle_line("enable_wrapping_detection", DevPrinterConfigUtil::support_wrapping_detection(printer_type));
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

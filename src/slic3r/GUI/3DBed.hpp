@@ -89,6 +89,7 @@ private:
     std::string m_model_filename;
     // Print volume bounding box exteded with axes and model.
     BoundingBoxf3 m_extended_bounding_box;
+    BoundingBoxf3 m_printable_bounding_box;
     // Slightly expanded print bed polygon, for collision detection.
     //Polygon m_polygon;
     GLModel m_triangles;
@@ -135,6 +136,7 @@ public:
 
     // Bounding box around the print bed, axes and model, for rendering.
     const BoundingBoxf3& extended_bounding_box() const { return m_extended_bounding_box; }
+    const BoundingBoxf3 &printable_bounding_box() const { return m_printable_bounding_box; }
     BoundingBoxf3 get_cur_bed_model_box();
     const std::string &  get_model_filename() { return m_model_filename; }
     const GLModel &      get_model() { return m_model; }
@@ -151,7 +153,8 @@ public:
 private:
     //BBS: add partplate related logic
     // Calculate an extended bounding box from axes and current model for visualization purposes.
-    BoundingBoxf3 calc_extended_bounding_box(bool consider_model_offset = true) const;
+    BoundingBoxf3 calc_printable_bounding_box() const;
+    BoundingBoxf3 calc_extended_bounding_box() const;
     void calc_triangles(const ExPolygon& poly);
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
     void update_model_offset() const;

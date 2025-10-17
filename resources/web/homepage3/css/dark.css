@@ -99,7 +99,7 @@ html,body
 	box-shadow: 0px 0px 3px #DCDCDC;
 }
 
-#HotModel_Search_Btn img
+.searchBtn img
 {
 	filter: brightness(78%);
 }
@@ -133,24 +133,24 @@ html,body
 	filter: invert(1);
 }
 
-#HotModel_Search_Bar
+.searchBar
 {
 	border: 1px solid #5C5C5C;
 	background-color: #242428;
 }
 
-#HotModel_Search_InputArea
+.searchInputArea
 {
 }
 
-#HotModel_Search_Input
+.searchInput
 {
 	background-color: #242428;
 	caret-color: white;
 	color: #FFFFFF;
 }
 
-#HotModel_Search_Btn img
+.searchBtn img
 {
 	filter: invert(100%) brightness(100);
 }
@@ -184,4 +184,18 @@ html,body
 #HideBtn:hover
 {
 	background-color: rgba(70, 70, 71, 1);
+}
+
+
+/*wiki.css*/
+.topicBlock{
+	background-color: #000000;
+}
+
+.card{
+	background-color: #737373;
+}
+
+.topicCard{
+	background-color: #737373;
 }

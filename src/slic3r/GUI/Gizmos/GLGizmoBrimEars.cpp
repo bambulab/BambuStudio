@@ -100,7 +100,7 @@ bool GLGizmoBrimEars::is_use_point(const BrimPoint &point) const
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
         trsf = volume->get_instance_transformation().get_matrix();
     }
-    
+
     auto world_point = trsf * point.pos.cast<double>();
     if (world_point[2] > 0) return false;
     return true;
@@ -146,7 +146,7 @@ void GLGizmoBrimEars::render_points(const Selection &selection, bool picking) co
         }else {
             volume_matrix = vol->get_instance_transformation().get_matrix();
         }
-        
+
         // keep show brim ear
         // if (is_mesh_point_clipped(brim_point.pos.cast<double>()))
         //     continue;
@@ -483,8 +483,10 @@ void GLGizmoBrimEars::delete_selected_points()
 {
     Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Delete brim ear");
 
-    for (unsigned int idx = 0; idx < m_editing_cache.size(); ++idx) {
-        if (m_editing_cache[idx].selected) { m_editing_cache.erase(m_editing_cache.begin() + (idx--)); }
+    for (int idx = m_editing_cache.size() - 1; idx >= 0; idx--) {
+        if (m_editing_cache[idx].selected ) {
+            m_editing_cache.erase(m_editing_cache.begin() + idx);
+        }
     }
 
     select_point(NoPoints);

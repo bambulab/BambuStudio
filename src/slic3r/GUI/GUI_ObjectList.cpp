@@ -26,6 +26,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <wx/progdlg.h>
+#include <libslic3r/Orient.hpp>
 #include <wx/listbook.h>
 #include <wx/numformatter.h>
 #include <wx/headerctrl.h>
@@ -146,8 +147,12 @@ ObjectList::ObjectList(wxWindow* parent) :
 		int new_selected_column = -1;
 #endif //__WXMSW__
         GLGizmosManager &gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
-        if ((wxGetKeyState(WXK_SHIFT) || wxGetKeyState(WXK_CONTROL))
-            && gizmos_mgr.is_gizmo_activable_when_single_full_instance()) {
+        if ((wxGetKeyState(WXK_SHIFT) || wxGetKeyState(WXK_CONTROL)
+#ifdef __APPLE__
+             || wxGetKeyState(WXK_RAW_CONTROL) || wxGetKeyState(WXK_COMMAND)
+#endif
+                 ) &&
+            gizmos_mgr.is_gizmo_activable_when_single_full_instance()) {
             // selection will not be single_full_instance after shift_pressed,Caused exe crashed
             UnselectAll();
             Select(m_last_selected_item);
@@ -2507,6 +2512,15 @@ void ObjectList::load_shape_object(const std::string &type_name)
     // Create mesh
     BoundingBoxf3 bb;
     TriangleMesh mesh = create_mesh(type_name, bb);
+    const Slic3r::DynamicPrintConfig& full_config = wxGetApp().preset_bundle->full_config();
+    // rotate the overhang faces to the machine cooling fan
+    if (full_config.has("fan_direction") && full_config.has("auxiliary_fan"))
+    {
+        int fan_config_idx = full_config.option<ConfigOptionEnum<FanDirection>>("fan_direction")->value;
+        FanDirection config_dir = static_cast<FanDirection>(fan_config_idx);
+        orientation::orient_for_cooling(mesh, config_dir);
+    }
+
     // BBS: remove "Shape" prefix
     load_mesh_object(mesh, _(type_name));
     wxGetApp().mainframe->update_title();
@@ -3759,15 +3773,6 @@ void ObjectList::part_selection_changed()
 
                     ModelVolume *volume = (*m_objects)[obj_idx]->volumes[volume_id];
                     enable_manipulation       = !((*m_objects)[obj_idx]->is_cut() && (volume->is_cut_connector() || volume->is_model_part()));
-
-                    GLGizmosManager& gizmos_mgr = wxGetApp().plater()->canvas3D()->get_gizmos_manager();
-                    if (gizmos_mgr.get_current_type() == GLGizmosManager::EType::MeshBoolean) {
-                        GLGizmoMeshBoolean* mesh_boolean = static_cast<GLGizmoMeshBoolean*>(gizmos_mgr.get_gizmo(GLGizmosManager::MeshBoolean));
-                        if (mesh_boolean->get_selecting_state() == MeshBooleanSelectingState::SelectSource)
-                            mesh_boolean->set_src_volume(volume);
-                        else if (mesh_boolean->get_selecting_state() == MeshBooleanSelectingState::SelectTool)
-                            mesh_boolean->set_tool_volume(volume);
-                    }
                 }
                 else if (type & itInstance) {
                     og_name = _L("Instance manipulation");

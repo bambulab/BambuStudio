@@ -1242,6 +1242,12 @@ wxWindow* PreferencesDialog::create_general_page()
         p_ogl_manager->set_toolbar_rendering_style(idx);
     });
 
+#ifdef BBL_ENABLE_ADVANCED_GCODE_VIEWER
+    auto  enable_advanced_gcode_viewer = create_item_checkbox(_L("Enable advanced gcode viewer"), page,
+        _L("Enable advanced gcode viewer."), 50,
+        "enable_advanced_gcode_viewer");
+#endif
+
     float range_min = 1.0, range_max = 2.5;
     auto item_grabber_size_settings = create_item_range_input(_L("Grabber scale"), page,
                                                               _L("Set grabber size for move,rotate,scale tool.") + _L("Value range") + ":[" + std::to_string(range_min) + "," +
@@ -1318,6 +1324,12 @@ wxWindow* PreferencesDialog::create_general_page()
     hyperlink->SetFont(Label::Head_13);
     item_priv_policy->Add(hyperlink, 0, wxALIGN_CENTER, 0);
 
+#ifdef _WIN32
+    auto item_webview_auto_fill = create_item_checkbox(_L("Auto-fill previously logged-in accounts."), page,
+                                                        _L(""), 50,
+                                                        "webview_auto_fill");
+#endif
+
     auto title_develop_mode = create_item_title(_L("Develop Mode"), page, _L("Develop Mode"));
     auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), page, _L("Develop mode"), 50, "developer_mode");
     auto item_skip_ams_blacklist_check  = create_item_checkbox(_L("Skip AMS blacklist check"), page, _L("Skip AMS blacklist check"), 50, "skip_ams_blacklist_check");
@@ -1345,6 +1357,9 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_enable_record_gcodeviewer_option_item, 0, wxTOP, FromDIP(3));
 
     sizer_page->Add(enable_lod_settings, 0, wxTOP, FromDIP(3));
+#ifdef BBL_ENABLE_ADVANCED_GCODE_VIEWER
+    sizer_page->Add(enable_advanced_gcode_viewer, 0, wxTOP, FromDIP(3));
+#endif
     sizer_page->Add(item_toolbar_style, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_grabber_size_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(title_presets, 0, wxTOP | wxEXPAND, FromDIP(20));
@@ -1400,6 +1415,9 @@ wxWindow* PreferencesDialog::create_general_page()
 
     sizer_page->Add(title_user_experience, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_priv_policy, 0, wxTOP, FromDIP(3));
+#ifdef _WIN32
+    sizer_page->Add(item_webview_auto_fill, 0, wxTOP, FromDIP(3));
+#endif
 
     sizer_page->Add(title_develop_mode, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_develop_mode, 0, wxTOP, FromDIP(3));

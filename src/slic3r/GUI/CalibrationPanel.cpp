@@ -601,7 +601,8 @@ void CalibrationPanel::show_status(int status)
     if (last_status & (int)MonitorStatus::MONITOR_CONNECTING != 0) {
         NetworkAgent* agent = wxGetApp().getAgent();
         json j;
-        j["dev_id"] = obj ? obj->get_dev_id() : "obj_nullptr";
+        //j["dev_id"] = obj ? obj->get_dev_id() : "obj_nullptr";
+        j["dev_id"] = "";
         if (status & (int)MonitorStatus::MONITOR_DISCONNECTED != 0) {
             j["result"] = "failed";
             if (agent) {
@@ -659,9 +660,6 @@ bool CalibrationPanel::Show(bool show) {
             obj = dev->get_selected_machine();
             if (obj == nullptr) {
                 dev->load_last_machine();
-                obj = dev->get_selected_machine();
-                if (obj)
-                    GUI::wxGetApp().sidebar().load_ams_list(obj->get_dev_id(), obj);
             }
             else {
                 obj->reset_update_time();
@@ -699,7 +697,6 @@ void CalibrationPanel::set_default()
 {
     obj = nullptr;
     last_conn_type = "undefined";
-    wxGetApp().sidebar().load_ams_list({}, {});
 }
 
 void CalibrationPanel::msw_rescale()

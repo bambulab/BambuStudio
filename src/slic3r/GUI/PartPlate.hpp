@@ -159,7 +159,7 @@ private:
     void calc_bounding_boxes() const;
     void calc_height_limit();
 
-    int get_right_icon_offset_bed();
+    int get_right_icon_offset_bed(int i = 0);
     void calc_vertex_for_plate_name(GLTexture &texture, GLModel &buffer);
     void calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int index, GLModel &buffer);
     bool calc_bed_3d_boundingbox(BoundingBoxf3 & box_in_plate_origin);
@@ -176,7 +176,8 @@ private:
 
     void render_icon_texture(GLModel &buffer, GLTexture &texture);
     void render_plate_name_texture();
-    void render_icons(bool bottom, bool only_body = false, int hover_id = -1);
+    void render_icons(bool bottom, bool only_body = false, int hover_id = -1,bool render_name_edit_icon = true);
+    void render_plate_name_icon_and_texture(bool only_body = false, int hover_id = -1);
 
     void render_numbers(bool bottom);
     void on_render_for_picking();
@@ -419,6 +420,11 @@ public:
     void update_slice_ready_status(bool ready_slice)
     {
         m_ready_for_slice = ready_slice;
+    }
+
+    //does plate contain object partly outside plate
+    bool has_outside_object() {
+        return !instance_outside_set.empty();
     }
 
     //bedtype mismatch or not
@@ -695,6 +701,16 @@ public:
                 this->filename  = part.filename;
                 this->texture   = part.texture;
                 this->vbo_id    = part.vbo_id;
+            }
+
+            void  update_pos(float xx, float yy, float ww, float hh){
+                x        = xx;
+                y        = yy;
+                w        = ww;
+                h        = hh;
+            }
+            void update_file(std::string file) {
+                filename = file;
             }
 
             void update_buffer();

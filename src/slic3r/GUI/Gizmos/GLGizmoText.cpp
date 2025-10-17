@@ -17,6 +17,7 @@
 #include "slic3r/Utils/WxFontUtils.hpp"
 #include "slic3r/GUI/Jobs/CreateFontNameImageJob.hpp"
 #include "slic3r/GUI/Jobs/NotificationProgressIndicator.hpp"
+#include "slic3r/GUI/UIHelpers/TextEllipsis.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
 
 #include <wx/font.h>
@@ -100,7 +101,7 @@ static const struct Limits
 {
     MinMax<double> emboss{0.01, 1e4};                    // in mm
     MinMax<float>  size_in_mm{1.0f, 1000.f};             // in mm
-    Limit<float>   boldness{{-.1f, .1f}, {-5e5f, 5e5f}}; // in font points
+    Limit<float>   boldness{{-0.1f, 0.5f}, {-5e5f, 5e5f}}; // in font points
     Limit<float>   skew{{-1.f, 1.f}, {-100.f, 100.f}};   // ration without unit
     MinMax<int>    char_gap{-20000, 20000};              // in font points
     MinMax<int>    line_gap{-20000, 20000};              // in font points
@@ -1091,23 +1092,27 @@ void GLGizmoText::draw_delete_style_button()
     }
 }
 
-void GLGizmoText::update_boldness()
+void GLGizmoText::update_default_boldness()
 {
     std::optional<float> &boldness = m_style_manager.get_font_prop().boldness;
     if (m_bold) {
         set_default_boldness(boldness);
+        m_custom_boldness = *boldness;
     } else {
         boldness = 0.0f;
+        m_custom_boldness = 0.0f;
     }
 }
 
-void GLGizmoText::update_italic()
+void GLGizmoText::update_default_italic()
 {
     std::optional<float> &skew = m_style_manager.get_font_prop().skew;
     if (m_italic) {
         skew = 0.2f;
+        m_custom_skew = 0.2f;
     } else {
         skew = 0.0f;
+        m_custom_skew = 0.0f;
     }
 }
 
@@ -1380,8 +1385,7 @@ bool GLGizmoText::process(bool make_snapshot, std::optional<Transform3d> volume_
     // exist loaded font file?
     if (!m_style_manager.is_active_font())
         return false;
-    update_boldness();
-    update_italic();
+
     if (update_text) {
         m_need_update_text = true;
     }
@@ -2256,6 +2260,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     bool exist_change = false;
     if (ImGui::ImageButton(m_is_dark_mode ? normal_B_dark : normal_B, {button_size - 2 * ImGui::GetStyle().FramePadding.x, button_size - 2 * ImGui::GetStyle().FramePadding.y})) {
         m_bold = !m_bold;
+        update_default_boldness();
         // update_boldness(); in process();
         exist_change = true;
     }
@@ -2268,6 +2273,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     push_button_style(m_italic);
     if (ImGui::ImageButton(m_is_dark_mode ? normal_T_dark : normal_T, {button_size - 2 * ImGui::GetStyle().FramePadding.x, button_size - 2 * ImGui::GetStyle().FramePadding.y})) {
         m_italic = !m_italic;
+        update_default_italic();
         exist_change = true;
     }
     if (exist_change) {
@@ -2276,6 +2282,22 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     }
     pop_button_style();
     ImGui::PopStyleVar(3);
+    const float slider_icon_width = m_imgui->get_slider_icon_size().x;
+    const float slider_width      = list_width - 1.5 * slider_icon_width - space_size;
+    const float drag_left_width   = caption_size + slider_width + space_size;
+    ImGui::AlignTextToFramePadding();
+    if (ImGui::TreeNode(_u8L("Advanced").c_str())) {
+        if (!m_is_advanced_edit_style) {
+            m_is_advanced_edit_style = true;
+            m_imgui->set_requires_extra_frame();
+        } else {
+            draw_advanced(caption_size,  slider_width,  slider_icon_width,  drag_left_width);
+        }
+        ImGui::TreePop();
+    } else if (m_is_advanced_edit_style) {
+        m_is_advanced_edit_style = false;
+        m_imgui->set_requires_extra_frame();
+    }
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(_L("Thickness"));
@@ -2292,13 +2314,23 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
         auto depth_x = caption_size + space_size * 2 + temp_input_width;
         ImGui::SameLine(depth_x);
         float depth_cap = m_imgui->calc_text_size(_L("Embeded depth")).x;
-        ImGui::PushItemWidth(depth_cap);
-        m_imgui->text(_L("Embeded depth"));
-
+        std::string display_text  = _u8L("Embeded depth");
         auto depth_input_x = depth_x + depth_cap + space_size * 2;
+        ImFont *imgui_font    = m_style_manager.get_imgui_font();
+        auto    valid_width   = full_width - depth_input_x;
+        if (valid_width < 80) {
+            valid_width = 80;
+            depth_cap   = full_width - valid_width - depth_x - space_size * 2;
+            depth_input_x = depth_x + depth_cap + space_size * 2;
+            display_text = ellipsize_text_imgui(_u8L("Embeded depth"), depth_cap);
+        }
+        ImGui::PushItemWidth(depth_cap);
+        m_imgui->text(display_text);
+        if (ImGui::IsItemHovered()) {
+            m_imgui->tooltip(_u8L("Embeded depth"), m_gui_cfg->max_tooltip_width);
+        }
         ImGui::SameLine(depth_input_x);
 
-        auto valid_width = full_width - depth_input_x;
         ImGui::PushItemWidth(valid_width);
         old_value = m_embeded_depth;
         if (ImGui::InputFloat("###text_embeded_depth", &m_embeded_depth, 0.0f, 0.0f, "%.2f")) {
@@ -2309,9 +2341,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
         }
     }
 
-    const float slider_icon_width = m_imgui->get_slider_icon_size().x;
-    const float slider_width      = list_width - 1.5 * slider_icon_width - space_size;
-    const float drag_left_width   = caption_size + slider_width + space_size;
+
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(_L("Text Gap"));
@@ -2849,6 +2879,96 @@ bool GLGizmoText::rev_input_mm(const std::string &         name,
 
 void GLGizmoText::draw_depth(bool use_inch) {}
 
+void GLGizmoText::draw_advanced(float caption_size, float slider_width, float slider_icon_width, float drag_left_width)
+{
+    const auto &ff = m_style_manager.get_font_file_with_cache();
+    if (!ff.has_value()) {
+        ImGui::Text("%s", _u8L("Advanced options cannot be changed for the selected font.\n"
+                               "Select another font.")
+                              .c_str());
+        return;
+    }
+
+    FontProp &                 font_prop    = m_style_manager.get_font_prop();
+    const FontFile::Info &     font_info    = get_font_info(*ff.font_file, font_prop);
+
+   /* bool exist_change = false;
+    bool last_change  = false;*/
+    const StyleManager::Style *stored_style = nullptr;
+    if (m_style_manager.exist_stored_style()) {
+        stored_style = m_style_manager.get_stored_style();
+    }
+    std::optional<float> &boldness      = m_style_manager.get_font_prop().boldness;
+    m_custom_boldness              =  boldness.value_or(0);
+     // input boldness
+    auto def_boldness = stored_style ? &stored_style->prop.boldness : nullptr;
+    int  min_boldness = static_cast<int>(font_info.ascent * limits.boldness.gui.min);
+    int  max_boldness = static_cast<int>(font_info.ascent * limits.boldness.gui.max);
+    float ad_space_size   = m_imgui->get_style_scaling() * 12;
+    ImGui::AlignTextToFramePadding();
+    m_imgui->text(_L("Boldness"));
+    ImGui::SameLine(caption_size + ad_space_size);
+    ImGui::PushItemWidth(slider_width);
+    if (m_imgui->bbl_slider_float_style("##text_boldness", &m_custom_boldness, min_boldness, max_boldness, "%.0f", 1.0f, true)) {
+        set_default_boldness(boldness);
+        boldness           = m_custom_boldness;
+    }
+    bool is_stop_sliding = m_imgui->get_last_slider_status().deactivated_after_edit;
+    if (is_stop_sliding) {
+        m_need_update_text = true;
+    }
+    ImGui::SameLine(drag_left_width + ad_space_size);
+    ImGui::PushItemWidth(1.5 * slider_icon_width);
+    if (ImGui::BBLDragFloat("##text_boldness_input", &m_custom_boldness, 1, min_boldness, max_boldness, "%.0f")) {
+        bool need_deal = false;
+        if (abs(m_text_boldness_min_max - max_boldness) < 0.01f || abs(m_text_boldness_min_max + min_boldness) < 0.01f) {
+            if (abs(m_custom_boldness - m_text_boldness_min_max) > 0.01f) {
+                m_text_boldness_min_max = m_custom_boldness;
+                need_deal          = true;
+            }
+        } else {
+            need_deal          = true;
+            m_text_boldness_min_max = 0.f;
+        }
+        if (need_deal) {
+            boldness           = m_custom_boldness;
+            m_need_update_text = true;
+        }
+    }
+    std::optional<float> &skew = m_style_manager.get_font_prop().skew;
+    m_custom_skew              = skew.value_or(0);
+    float min_skew             = static_cast<float>(limits.skew.gui.min);
+    float max_skew             = static_cast<float>(limits.skew.gui.max);
+    m_imgui->text(_L("Skew"));
+    ImGui::SameLine(caption_size + ad_space_size);
+    ImGui::PushItemWidth(slider_width);
+    if (m_imgui->bbl_slider_float_style("##text_skew", &m_custom_skew, min_skew, max_skew, "%.1f", 1.0f, true)) {
+        skew = m_custom_skew;
+    }
+    is_stop_sliding = m_imgui->get_last_slider_status().deactivated_after_edit;
+    if (is_stop_sliding) {
+        m_need_update_text = true;
+    }
+    ImGui::SameLine(drag_left_width + ad_space_size);
+    ImGui::PushItemWidth(1.5 * slider_icon_width);
+    if (ImGui::BBLDragFloat("##text_skew_input", &m_custom_skew, 1, min_skew, max_skew, "%.1f")) {
+        bool need_deal = false;
+        if (abs(m_text_skew_min_max - max_skew) < 0.01f || abs(m_text_skew_min_max + min_skew) < 0.01f) {
+            if (abs(m_custom_skew - m_text_skew_min_max) > 0.01f) {
+                m_text_skew_min_max = m_custom_skew;
+                need_deal               = true;
+            }
+        } else {
+            need_deal               = true;
+            m_text_skew_min_max = 0.f;
+        }
+        if (need_deal) {
+            skew           = m_custom_skew;
+            m_need_update_text = true;
+        }
+    }
+}
+
 void GLGizmoText::init_font_name_texture()
 {
     Timer t("init_font_name_texture");
@@ -3261,6 +3381,8 @@ TextInfo GLGizmoText::get_text_info()
     m_italic                  = m_style_manager.get_font_prop().skew > 0;
     text_info.m_bold          = m_bold;
     text_info.m_italic        = m_italic;
+    text_info.text_configuration.style.prop.boldness = m_custom_boldness;
+    text_info.text_configuration.style.prop.skew = m_custom_skew ;
 
     text_info.m_thickness     = m_thickness;
     text_info.m_embeded_depth = m_embeded_depth;
@@ -3306,8 +3428,9 @@ void GLGizmoText::load_from_text_info(const TextInfo &text_info)
         wxString font_name = wxString::FromUTF8(m_font_name.c_str());//wxString(m_font_name.c_str(), wxConvUTF8);
         select_facename(font_name,false);
     }
-    update_boldness();
-    update_italic();
+    m_custom_boldness = *text_info.text_configuration.style.prop.boldness;
+    m_custom_skew = *text_info.text_configuration.style.prop.skew;
+
     if (is_text_changed) {
         process(true,std::nullopt,false);
     }

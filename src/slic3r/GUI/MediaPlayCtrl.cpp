@@ -35,8 +35,8 @@ static std::map<int, std::string> error_messages = {
     {100, L("The player is not loaded, please click \"play\" button to retry.")},
     {101, L("The player is not loaded, please click \"play\" button to retry.")},
     {102, L("The player is not loaded, please click \"play\" button to retry.")},
-    {103, L("The player is not loaded, please click \"play\" button to retry.")}
-};
+    {103, L("The player is not loaded, please click \"play\" button to retry.")},
+    {-2, L("Plugin library failed to load. Click here to view the solution.")}};
 
 namespace Slic3r {
 namespace GUI {
@@ -441,7 +441,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
             SetStatus(_L("Video Stopped."), false);
         m_last_state = MEDIASTATE_IDLE;
         bool auto_retry = wxGetApp().app_config->get("liveview", "auto_retry") != "false";
-        if (!auto_retry || m_failed_code >= 100 || m_failed_code == 1) // not keep retry on local error or EOS
+        if (!auto_retry || m_failed_code >= 100 || m_failed_code == 1 || m_failed_code == -2) // not keep retry on local error or EOS
             m_next_retry = wxDateTime();
     } else if (!msg.IsEmpty()) {
         SetStatus(msg, false);
@@ -459,7 +459,8 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
             && (m_user_triggered || m_failed_retry > 3)) {
         json j;
         j["stage"]          = last_state;
-        j["dev_id"]         = m_machine;
+        //j["dev_id"]         = m_machine;
+        j["dev_id"]         = "";
         j["dev_ip"]         = "";
         j["result"]         = "failed";
         j["user_triggered"] = m_user_triggered;
@@ -482,7 +483,8 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
 
     if (last_state == wxMEDIASTATE_PLAYING && m_stat.size() == 4) {
         json j;
-        j["dev_id"]         = m_machine;
+        //j["dev_id"]         = m_machine;
+        j["dev_id"]         = "";
         j["dev_ip"]         = "";
         j["result"]         = m_failed_code ? "failed" : "success";
         j["tunnel"]         = tunnel;
@@ -697,7 +699,8 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
             // track event
             json j;
             j["stage"] =  std::to_string(m_last_state);
-            j["dev_id"] = m_machine;
+            //j["dev_id"] = m_machine;
+            j["dev_id"] = "";
             j["dev_ip"] = "";
             j["result"] = "success";
             j["code"] = 0;
@@ -722,6 +725,8 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
         } else if (event.GetId()) {
             if (m_failed_code == 0)
                 m_failed_code = 2;
+            else if (m_failed_code == -2)
+                SetStatus(_L("DLL load error"));
             Stop();
         }
     } else {

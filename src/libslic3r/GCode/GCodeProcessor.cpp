@@ -171,6 +171,12 @@ static float get_z_height(const std::string_view comment_1)
     return print_z;
 }
 
+void FilamentPrintableResult::reset()
+{
+    conflict_filament.clear();
+    plate_name = "";
+}
+
 CommandProcessor::CommandProcessor()
 {
     root = std::make_unique<TrieNode>();
@@ -2493,11 +2499,13 @@ void GCodeProcessor::finalize(bool post_process)
     auto it = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [](const std::pair<ExtrusionRole, float>& item) { return erCustom == item.first; });
     auto prepare_time = (it != time_mode.roles_times.end()) ? it->second : 0.0f;
 
+    std::vector<float>& layer_times = m_result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].layers_times;
+    m_result.initial_layer_time     = layer_times.size() > 0 ? std::max(float(0.0), layer_times[0] - prepare_time) : 0;
+
     //update times for results
     for (size_t i = 0; i < m_result.moves.size(); i++) {
         //field layer_duration contains the layer id for the move in which the layer_duration has to be set.
         size_t layer_id = size_t(m_result.moves[i].layer_duration);
-        std::vector<float>& layer_times = m_result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].layers_times;
         if (layer_times.size() > layer_id - 1 && layer_id > 0)
             m_result.moves[i].layer_duration = layer_id == 1 ? std::max(0.f,layer_times[layer_id - 1] - prepare_time) : layer_times[layer_id - 1];
         else
@@ -5946,8 +5954,14 @@ void GCodeProcessor::update_slice_warnings()
         if (used_filaments[idx] < m_result.required_nozzle_HRC.size())
             filament_hrc = m_result.required_nozzle_HRC[used_filaments[idx]];
 
-        int filament_extruder_id = m_filament_maps[used_filaments[idx]];
-        int extruder_hrc = nozzle_hrc_lists[filament_extruder_id];
+        int extruder_hrc = 0;
+        int filament_extruder_id = 0;
+        if (used_filaments[idx] >= 0 && used_filaments[idx] < m_filament_maps.size()) {
+            filament_extruder_id = m_filament_maps[used_filaments[idx]];
+            if (filament_extruder_id >= 0 && filament_extruder_id < nozzle_hrc_lists.size()) {
+                extruder_hrc = nozzle_hrc_lists[filament_extruder_id];
+            }
+        }
 
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": Check HRC: filament:%1%, hrc=%2%, extruder:%3%, hrc:%4%") % used_filaments[idx] % filament_hrc % filament_extruder_id % extruder_hrc;
 

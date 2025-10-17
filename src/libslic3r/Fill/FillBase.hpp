@@ -39,6 +39,10 @@ struct LockRegionParam
 {
     LockRegionParam() {}
     std::map<float, ExPolygons> skin_density_params;
+    std::map<float, ExPolygons> skin_depths_params;
+    std::map<float, ExPolygons> locked_depths_params;
+
+    ExPolygons outlook;
     std::map<float, ExPolygons> skeleton_density_params;
     std::map<Flow, ExPolygons>  skin_flow_params;
     std::map<Flow, ExPolygons>  skeleton_flow_params;
@@ -90,8 +94,6 @@ struct FillParams
     bool            symmetric_infill_y_axis{false};
     coord_t         symmetric_y_axis{0};
     bool            locked_zag{false};
-    float           infill_lock_depth{0.0};
-    float           skin_infill_depth{0.0};
 };
 static_assert(IsTriviallyCopyable<FillParams>::value, "FillParams class is not POD (and it should be - see constructor).");
 

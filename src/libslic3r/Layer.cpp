@@ -148,26 +148,27 @@ ExPolygons Layer::merged(float offset_scaled) const
 // If there is any incompatibility, separate LayerRegions have to be created.
 bool Layer::has_compatible_layer_regions(const PrintRegionConfig &config, const PrintRegionConfig &other_config)
 {
-    return config.wall_filament             == other_config.wall_filament
-        && config.wall_loops                  == other_config.wall_loops
-        && config.inner_wall_speed.get_at(get_extruder_id(config.wall_filament))  == other_config.inner_wall_speed.get_at(get_extruder_id(config.wall_filament))
-        && config.outer_wall_speed.get_at(get_extruder_id(config.wall_filament))  == other_config.outer_wall_speed.get_at(get_extruder_id(config.wall_filament))
-        && config.gap_infill_speed.get_at(get_extruder_id(config.wall_filament))  == other_config.gap_infill_speed.get_at(get_extruder_id(config.wall_filament))
-        && config.detect_overhang_wall                   == other_config.detect_overhang_wall
-        && config.filter_out_gap_fill.value == other_config.filter_out_gap_fill.value
-        && config.opt_serialize("inner_wall_line_width") == other_config.opt_serialize("inner_wall_line_width")
-        && config.detect_thin_wall                  == other_config.detect_thin_wall
-        && config.infill_wall_overlap              == other_config.infill_wall_overlap
-        && config.seam_slope_conditional == other_config.seam_slope_conditional
-        && config.override_filament_scarf_seam_setting == other_config.override_filament_scarf_seam_setting
-        && config.seam_slope_type                      == other_config.seam_slope_type
-        && config.seam_slope_start_height              == other_config.seam_slope_start_height
-        && config.seam_slope_gap                       == other_config.seam_slope_gap
-        && config.seam_slope_min_length                == other_config.seam_slope_min_length
-        //&& config.scarf_angle_threshold  == other_config.scarf_angle_threshold
-        && config.seam_slope_entire_loop  == other_config.seam_slope_entire_loop
-        && config.seam_slope_steps        == other_config.seam_slope_steps
-        && config.seam_slope_inner_walls  == other_config.seam_slope_inner_walls;
+    return config.wall_filament == other_config.wall_filament
+           && config.wall_loops == other_config.wall_loops
+           && config.wall_sequence == other_config.wall_sequence
+           && config.inner_wall_speed.get_at(get_extruder_id(config.wall_filament)) == other_config.inner_wall_speed.get_at(get_extruder_id(config.wall_filament))
+           && config.outer_wall_speed.get_at(get_extruder_id(config.wall_filament)) == other_config.outer_wall_speed.get_at(get_extruder_id(config.wall_filament))
+           && config.gap_infill_speed.get_at(get_extruder_id(config.wall_filament)) == other_config.gap_infill_speed.get_at(get_extruder_id(config.wall_filament))
+           && config.detect_overhang_wall == other_config.detect_overhang_wall
+           && config.filter_out_gap_fill.value == other_config.filter_out_gap_fill.value
+           && config.opt_serialize("inner_wall_line_width") == other_config.opt_serialize("inner_wall_line_width")
+           && config.opt_serialize("outer_wall_line_width") == other_config.opt_serialize("outer_wall_line_width")
+           && config.detect_thin_wall == other_config.detect_thin_wall
+           && config.infill_wall_overlap == other_config.infill_wall_overlap
+           && config.override_filament_scarf_seam_setting == other_config.override_filament_scarf_seam_setting
+           && config.seam_slope_type == other_config.seam_slope_type
+           && config.seam_slope_start_height == other_config.seam_slope_start_height
+           && config.seam_slope_gap == other_config.seam_slope_gap
+           && config.seam_slope_min_length == other_config.seam_slope_min_length
+           && config.seam_slope_conditional == other_config.seam_slope_conditional
+           && config.seam_slope_entire_loop == other_config.seam_slope_entire_loop
+           && config.seam_slope_steps == other_config.seam_slope_steps
+           && config.seam_slope_inner_walls == other_config.seam_slope_inner_walls;
 }
 
 // Here the perimeters are created cummulatively for all layer regions sharing the same parameters influencing the perimeters.

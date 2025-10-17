@@ -26,7 +26,7 @@ UserPresetsDialog::UserPresetsDialog(wxWindow *parent)
     m_switch_button = new SwitchButton(this);
     m_switch_button->SetFont(Label::Body_13);
     m_switch_button->SetMaxSize({FromDIP(182), -1});
-    m_switch_button->SetLabels(" " + _L("Custom filaments") + " ", _L("Others"));
+    m_switch_button->SetLabels(" " + _L("Custom") + " ", _L("Others"));
     m_switch_button->Bind(wxEVT_TOGGLEBUTTON, [this](auto &evt) { evt.Skip(); on_collection_changed(m_collection); });
 
     m_search = new TextInput(this, "", "", "im_text_search");
@@ -74,7 +74,7 @@ UserPresetsDialog::UserPresetsDialog(wxWindow *parent)
     m_button_delete     = new Button(this, _L("Delete"));
     m_button_delete->SetBorderColorNormal(wxColor("#D01B1B"));
     m_button_delete->SetTextColorNormal(wxColor("#D01B1B"));
-    m_check_all->Bind(wxEVT_TOGGLEBUTTON, [this](auto &evt) { on_all_checked(evt.IsChecked(), true); });
+    m_check_all->Bind(wxEVT_TOGGLEBUTTON, [this](auto &evt) { evt.Skip(); on_all_checked(evt.IsChecked(), true); });
     label->Bind(wxEVT_LEFT_UP, [this](auto &evt) {
         bool checked = !m_check_all->GetValue();
         m_check_all->SetValue(checked);

@@ -69,6 +69,7 @@ static void mark_node_pos(
 
 
 std::string GCodeEditor::process_layer(std::string &&                       gcode,
+                                         bool&                               not_set_additional_fan,
                                          const size_t                         layer_id,
                                          std::vector<PerExtruderAdjustments> &per_extruder_adjustments,
                                          const std::vector<int> &             object_label,
@@ -86,7 +87,7 @@ std::string GCodeEditor::process_layer(std::string &&                       gcod
         // This is either an object layer or the very last print layer. Calculate cool down over the collected support layers
         // and one object layer.
         // record parse gcode info to per_extruder_adjustments
-        per_extruder_adjustments = this->parse_layer_gcode(m_gcode, m_current_pos, object_label, spiral_vase, layer_id > 0);
+        per_extruder_adjustments = this->parse_layer_gcode(m_gcode, not_set_additional_fan, m_current_pos, object_label, spiral_vase, layer_id > 0);
         out = m_gcode;
         m_gcode.clear();
     }
@@ -96,8 +97,8 @@ std::string GCodeEditor::process_layer(std::string &&                       gcod
 //native-resource://sandbox_fs/webcontent/resource/assets/img/41ecc25c56.png
 // Parse the layer G-code for the moves, which could be adjusted.
 // Return the list of parsed lines, bucketed by an extruder.
-std::vector<PerExtruderAdjustments> GCodeEditor::parse_layer_gcode(
-    const std::string &gcode,
+std::vector<PerExtruderAdjustments> GCodeEditor::parse_layer_gcode(  const                           std::string &gcode,
+                                                                     bool&                           not_set_additional_fan,
                                                                      std::vector<float> &            current_pos,
                                                                      const std::vector<int> &        object_label,
                                                                      bool                            spiral_vase,
@@ -158,6 +159,8 @@ std::vector<PerExtruderAdjustments> GCodeEditor::parse_layer_gcode(
         } else if (boost::starts_with(sline, cooling_node_label)) {
             std::string sub = sline.substr(cooling_node_label.size());
             cooling_node_id = std::stoi(sub);
+        } else if (boost::contains(sline, ";not reset fan")){
+            not_set_additional_fan = true;
         }
 
         if (line.type) {
@@ -208,6 +211,8 @@ std::vector<PerExtruderAdjustments> GCodeEditor::parse_layer_gcode(
 
             if (external_perimeter) {
                 line.type |= CoolingLine::TYPE_EXTERNAL_PERIMETER;
+                if (m_config.no_slow_down_for_cooling_on_outwalls.get_at(adjustment->extruder_id))
+                    line.type &= ~CoolingLine::TYPE_ADJUSTABLE; // Dont slowdown external perimeters for layer cooling flag
                 if (line.type & CoolingLine::TYPE_ADJUSTABLE && join_z_smooth && !spiral_vase) {
                     // BBS: collect outwall info
                     mark_node_pos(append_wall_ptr, line_idx, node_pos, object_label, cooling_node_id, object_id, adjustment);
@@ -325,6 +330,10 @@ std::vector<PerExtruderAdjustments> GCodeEditor::parse_layer_gcode(
             line.type = CoolingLine::TYPE_OBJECT_START;
         } else if (boost::starts_with(sline, "M625")) {
             line.type = CoolingLine::TYPE_OBJECT_END;
+        } else if (boost::contains(sline, ";set fan changing filament")) {
+            line.type = CoolingLine::TYPE_SET_FAN_CHANGING_FILAMENT;
+        } else if (boost::contains(sline, ";not set fan changing filament")) {
+            line.type = CoolingLine::TYPE_NOT_SET_FAN_CHANGING_FILAMENT;
         }
         if (line.type != 0)
             adjustment->lines.emplace_back(std::move(line));
@@ -338,6 +347,7 @@ std::vector<PerExtruderAdjustments> GCodeEditor::parse_layer_gcode(
 std::string GCodeEditor::write_layer_gcode(
     // Source G-code for the current layer.
     const std::string                      &gcode,
+    const bool                             &not_set_additional_fan,
     // ID of the current layer, used to disable fan for the first n layers.
     size_t                                  layer_id,
     // Total time of this layer after slow down, used to control the fan.
@@ -373,7 +383,7 @@ std::string GCodeEditor::write_layer_gcode(
         sfImmediatelyApply
     };
 
-    auto change_extruder_set_fan = [this, layer_id, layer_time, &new_gcode, &overhang_fan_control, &overhang_fan_speed, &pre_start_overhang_fan_time](SetFanType type) {
+    auto change_extruder_set_fan = [this, layer_id, layer_time, &new_gcode, &overhang_fan_control, &overhang_fan_speed, &pre_start_overhang_fan_time, not_set_additional_fan](SetFanType type) {
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_current_extruder)
         int fan_min_speed = EXTRUDER_CONFIG(fan_min_speed);
         int fan_speed_new = EXTRUDER_CONFIG(reduce_fan_stop_start_freq) ? fan_min_speed : 0;
@@ -410,14 +420,15 @@ std::string GCodeEditor::write_layer_gcode(
                 fan_speed_new    = std::clamp(int(float(fan_speed_new) * factor + 0.5f), 0, 255);
                 overhang_fan_speed = std::clamp(int(float(overhang_fan_speed) * factor + 0.5f), 0, 255);
             }
-#undef EXTRUDER_CONFIG
+
             overhang_fan_control= overhang_fan_speed > fan_speed_new;
         } else {
             overhang_fan_control= false;
             overhang_fan_speed   = 0;
             fan_speed_new      = 0;
-            additional_fan_speed_new = 0;
+            additional_fan_speed_new = EXTRUDER_CONFIG(first_x_layer_fan_speed);
         }
+#undef EXTRUDER_CONFIG
         if (fan_speed_new != m_fan_speed) {
             m_fan_speed = fan_speed_new;
             //BBS
@@ -431,9 +442,9 @@ std::string GCodeEditor::write_layer_gcode(
         //BBS
         if (additional_fan_speed_new != m_additional_fan_speed) {
             m_additional_fan_speed = additional_fan_speed_new;
-            if (type == SetFanType::sfImmediatelyApply && m_config.auxiliary_fan.value)
+            if (type == SetFanType::sfImmediatelyApply && m_set_fan_changing_filament_start && m_config.auxiliary_fan.value)
                 new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
-            else if (type == SetFanType::sfChangingLayer)
+            else if (type == SetFanType::sfChangingLayer && !not_set_additional_fan)
                 this->m_set_addition_fan_changing_layer = true;
             //BBS: don't need to handle change filament, because we are always force to resume fan speed when filament change is finished
         }
@@ -478,7 +489,11 @@ std::string GCodeEditor::write_layer_gcode(
         const char *line_end    = gcode.c_str() + line->line_end;
         if (line_start > pos)
             new_gcode.append(pos, line_start - pos);
-        if (line->type & CoolingLine::TYPE_SET_TOOL) {
+        if(line->type & CoolingLine::TYPE_SET_FAN_CHANGING_FILAMENT)
+            m_set_fan_changing_filament_start = true;
+        else if(line->type & CoolingLine::TYPE_NOT_SET_FAN_CHANGING_FILAMENT){
+            m_set_fan_changing_filament_start = false;
+        }else if (line->type & CoolingLine::TYPE_SET_TOOL) {
             unsigned int new_extruder = (unsigned int)atoi(line_start + m_toolchange_prefix.size());
             if (new_extruder != m_current_extruder) {
                 m_current_extruder = new_extruder;
@@ -503,7 +518,7 @@ std::string GCodeEditor::write_layer_gcode(
             //BBS: force to write a fan speed command again
             if (m_current_fan_speed != -1)
                 new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_current_fan_speed);
-            if (m_additional_fan_speed != -1 && m_config.auxiliary_fan.value)
+            if (m_additional_fan_speed != -1 && m_set_fan_changing_filament_start && m_config.auxiliary_fan.value)
                 new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
         } else if (line->type & CoolingLine::TYPE_SET_FAN_CHANGING_LAYER) {
             //BBS: check whether fan speed need to changed when change layer

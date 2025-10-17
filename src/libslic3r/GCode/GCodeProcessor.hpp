@@ -154,9 +154,10 @@ namespace Slic3r {
         std::string plate_name;
         FilamentPrintableResult(){};
         FilamentPrintableResult(std::vector<int> &conflict_filament, std::string plate_name) : conflict_filament(conflict_filament), plate_name(plate_name) {}
-        bool has_value(){
+        bool has_value() const{
            return !conflict_filament.empty();
         };
+        void reset();
     };
 
     struct GCodeProcessorResult
@@ -173,6 +174,7 @@ namespace Slic3r {
         ConflictResultOpt conflict_result;
         GCodeCheckResult  gcode_check_result;
         FilamentPrintableResult filament_printable_reuslt;
+        float initial_layer_time;
 
         struct SettingsIds
         {
@@ -320,6 +322,7 @@ namespace Slic3r {
             layer_filaments = other.layer_filaments;
             filament_change_count_map = other.filament_change_count_map;
             skippable_part_time = other.skippable_part_time;
+            initial_layer_time = other.initial_layer_time;
 #if ENABLE_GCODE_VIEWER_STATISTICS
             time = other.time;
 #endif

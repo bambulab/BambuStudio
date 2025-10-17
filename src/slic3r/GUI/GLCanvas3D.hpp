@@ -15,7 +15,6 @@
 #include "GLSelectionRectangle.hpp"
 #include "MeshUtils.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
-#include "GCodeViewer.hpp"
 #include "Camera.hpp"
 #include "IMToolbar.hpp"
 #include "slic3r/GUI/3DBed.hpp"
@@ -57,6 +56,9 @@ namespace CustomGCode { struct Item; }
 
 namespace GUI {
 
+namespace gcode {
+    class GCodeViewer;
+};
 class PartPlateList;
 class OpenGLManager;
 class GLToolbar;
@@ -411,7 +413,8 @@ class GLCanvas3D
         PrimeTowerOutside,
         NozzleFilamentIncompatible,
         MixtureFilamentIncompatible,
-        AsemblyInvalid // for asembly view only
+        AsemblyInvalid, // for asembly view only
+        FlushingVolumeZero
     };
 
     class RenderStats
@@ -609,7 +612,7 @@ private:
 
     GLVolumeCollection m_paint_outline_volumes;
     GLVolumeCollection m_volumes;
-    GCodeViewer m_gcode_viewer;
+    mutable std::shared_ptr<gcode::GCodeViewer> m_p_gcode_viewer{ nullptr };
 
     RenderTimer m_render_timer;
 
@@ -816,11 +819,10 @@ public:
     const float get_scale() const;
 
     //BBS
-    GCodeViewer& get_gcode_viewer() { return m_gcode_viewer; }
-    void init_gcode_viewer(ConfigOptionMode mode, Slic3r::PresetBundle* preset_bundle) { m_gcode_viewer.init(mode, preset_bundle); }
-    void reset_gcode_toolpaths() { m_gcode_viewer.reset(); }
-    const GCodeViewer::SequentialView& get_gcode_sequential_view() const { return m_gcode_viewer.get_sequential_view(); }
-    void update_gcode_sequential_view_current(unsigned int first, unsigned int last) { m_gcode_viewer.update_sequential_view_current(first, last); }
+    gcode::GCodeViewer& get_gcode_viewer() const;
+    void init_gcode_viewer(ConfigOptionMode mode, Slic3r::PresetBundle* preset_bundle);
+    void reset_gcode_toolpaths();
+    void update_gcode_sequential_view_current(unsigned int first, unsigned int last);
 
     void toggle_selected_volume_visibility(bool selected_visible);
     void toggle_sla_auxiliaries_visibility(bool visible, const ModelObject* mo = nullptr, int instance_idx = -1);
@@ -976,17 +978,20 @@ public:
     void delete_selected();
     void ensure_on_bed(unsigned int object_idx, bool allow_negative_z);
 
-    bool is_gcode_legend_enabled() const { return m_gcode_viewer.is_legend_enabled(); }
-    GCodeViewer::EViewType get_gcode_view_type() const { return m_gcode_viewer.get_view_type(); }
-    const std::vector<double>& get_gcode_layers_zs() const;
-    int                        get_gcode_layers_count() const;
+    int get_gcode_layers_count() const;
+    bool is_gcode_legend_enabled() const;
+    std::vector<double> get_gcode_layers_zs() const;
     std::vector<double> get_volumes_print_zs(bool active_only) const;
-    unsigned int get_gcode_options_visibility_flags() const { return m_gcode_viewer.get_options_visibility_flags(); }
+
     void set_gcode_options_visibility_from_flags(unsigned int flags);
-    unsigned int get_toolpath_role_visibility_flags() const { return m_gcode_viewer.get_toolpath_role_visibility_flags(); }
+    unsigned int get_gcode_options_visibility_flags() const;
+
+    unsigned int get_toolpath_role_visibility_flags() const;
+
     void set_volumes_z_range(const std::array<double, 2>& range);
-    std::vector<CustomGCode::Item>& get_custom_gcode_per_print_z() { return m_gcode_viewer.get_custom_gcode_per_print_z(); }
-    size_t get_gcode_extruders_count() { return m_gcode_viewer.get_extruders_count(); }
+    std::vector<CustomGCode::Item>& get_custom_gcode_per_print_z() const;
+
+    size_t get_gcode_extruders_count()const;
 
     std::vector<int> load_object(const ModelObject& model_object, int obj_idx, std::vector<int> instance_idxs, bool lod_enabled);
     std::vector<int> load_object(const Model& model, int obj_idx, bool lod_enabled);
@@ -996,14 +1001,12 @@ public:
     void reload_scene(bool refresh_immediately, bool force_full_scene_refresh = false);
     //BBS: always load shell at preview
     void load_shells(const Print& print, bool force_previewing = false);
-    void reset_shells() { m_gcode_viewer.reset_shell(); }
-    void set_shells_on_previewing(bool is_preview) { m_gcode_viewer.set_shells_on_preview(is_preview); }
+    void reset_shells();
+    void set_shells_on_previewing(bool is_preview);
 
     //BBS: add only gcode mode
     void load_gcode_preview(const GCodeProcessorResult& gcode_result, const std::vector<std::string>& str_tool_colors, bool only_gcode);
     void refresh_gcode_preview_render_paths();
-    void set_gcode_view_preview_type(GCodeViewer::EViewType type) { return m_gcode_viewer.set_view_type(type); }
-    GCodeViewer::EViewType get_gcode_view_preview_type() const { return m_gcode_viewer.get_view_type(); }
     void load_sla_preview();
     //void load_preview(const std::vector<std::string>& str_tool_colors, const std::vector<CustomGCode::Item>& color_print_values);
     void bind_event_handlers();
@@ -1280,6 +1283,7 @@ private:
     // generates a warning notification containing the given message
     void _set_warning_notification(EWarning warning, bool state);
 
+    bool is_flushing_matrix_error();
     bool _is_any_volume_outside() const;
 
     // updates the selection from the content of m_hover_volume_idxs

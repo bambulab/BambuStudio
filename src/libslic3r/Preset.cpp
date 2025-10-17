@@ -195,6 +195,16 @@ void extend_default_config_length(DynamicPrintConfig& config, const bool set_nil
     }
 }
 
+std::map<std::string, std::string> VendorProfile::PrinterModel::get_bed_texture_maps() const
+{
+    std::map<std::string, std::string> maps;
+    if (use_double_extruder_default_texture.size() > 0) { maps["use_double_extruder_default_texture"] = use_double_extruder_default_texture; }
+    if (bottom_texture_end_name.size() > 0) { maps["bottom_texture_end_name"] = bottom_texture_end_name; }
+    if (bottom_texture_rect.size() > 0) { maps["bottom_texture_rect"] = bottom_texture_rect; }
+    if (bottom_texture_rect_longer.size() > 0) { maps["bottom_texture_rect_longer"] = bottom_texture_rect_longer; }
+    if (middle_texture_rect.size() > 0) { maps["middle_texture_rect"] = middle_texture_rect; }
+    return maps;
+}
 
 VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem::path &path, bool load_all)
 {
@@ -915,7 +925,7 @@ static std::vector<std::string> s_Preset_print_options {
     "symmetric_infill_y_axis",
     "minimum_sparse_infill_area", "reduce_infill_retraction", "ironing_pattern", "ironing_type",
     "ironing_flow", "ironing_speed", "ironing_spacing","ironing_direction", "ironing_inset",
-    "max_travel_detour_distance",
+    "max_travel_detour_distance", "avoid_crossing_wall_includes_support",
     "fuzzy_skin", "fuzzy_skin_thickness", "fuzzy_skin_point_distance",
 #ifdef HAS_PRESSURE_EQUALIZER
     "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative",
@@ -930,8 +940,8 @@ static std::vector<std::string> s_Preset_print_options {
     "raft_layers", "raft_first_layer_density", "raft_first_layer_expansion", "raft_contact_distance", "raft_expansion",
     "support_base_pattern", "support_base_pattern_spacing", "support_expansion", "support_style",
     // BBS
-    "print_extruder_id", "print_extruder_variant",
-    "independent_support_layer_height",
+    "print_extruder_id", "print_extruder_variant", "independent_support_layer_height",
+    "top_z_overrides_xy_distance",
     "support_angle", "support_interface_top_layers", "support_interface_bottom_layers",
     "support_interface_pattern", "support_interface_spacing", "support_interface_loop_pattern",
     "support_top_z_distance", "support_on_build_plate_only","support_critical_regions_only", "support_remove_small_overhang",
@@ -984,8 +994,8 @@ static std::vector<std::string> s_Preset_filament_options{/*"filament_colour", *
     "counter_limit_min", "counter_limit_max", "hole_limit_min", "hole_limit_max", "diameter_limit",
     // "bed_type",
     //BBS:temperature_vitrification
-    "temperature_vitrification", "reduce_fan_stop_start_freq", "slow_down_for_layer_cooling", "fan_min_speed","filament_ramming_travel_time","filament_pre_cooling_temperature",
-    "fan_max_speed", "enable_overhang_bridge_fan", "overhang_fan_speed", "pre_start_fan_time", "overhang_fan_threshold", "overhang_threshold_participating_cooling","close_fan_the_first_x_layers", "full_fan_speed_layer", "fan_cooling_layer_time", "slow_down_layer_time", "slow_down_min_speed",
+    "temperature_vitrification", "reduce_fan_stop_start_freq", "slow_down_for_layer_cooling", "no_slow_down_for_cooling_on_outwalls", "fan_min_speed","filament_ramming_travel_time","filament_pre_cooling_temperature",
+    "fan_max_speed", "enable_overhang_bridge_fan", "overhang_fan_speed", "pre_start_fan_time", "overhang_fan_threshold", "overhang_threshold_participating_cooling","close_fan_the_first_x_layers","first_x_layer_fan_speed", "full_fan_speed_layer", "fan_cooling_layer_time", "slow_down_layer_time", "slow_down_min_speed",
     "filament_start_gcode", "filament_end_gcode",
     //exhaust fan control
     "activate_air_filtration","during_print_exhaust_fan_speed","complete_print_exhaust_fan_speed",
@@ -1025,7 +1035,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "silent_mode",
     // BBS
     "scan_first_layer", "wrapping_detection_layers", "wrapping_exclude_area", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode", "template_custom_gcode",
-    "nozzle_type","auxiliary_fan", "nozzle_volume","upward_compatible_machine", "z_hop_types","support_chamber_temp_control","support_air_filtration","printer_structure","thumbnail_size",
+    "nozzle_type","auxiliary_fan", "fan_direction", "nozzle_volume","upward_compatible_machine", "z_hop_types","support_chamber_temp_control","support_air_filtration","printer_structure","thumbnail_size",
     "best_object_pos", "head_wrap_detect_zone","printer_notes",
     "enable_long_retraction_when_cut","long_retractions_when_cut","retraction_distances_when_cut",
     //OrcaSlicer
@@ -1034,7 +1044,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "printhost_cafile","printhost_port","printhost_authorization_type",
     "printhost_user", "printhost_password", "printhost_ssl_ignore_revoke",
     "use_relative_e_distances", "extruder_type","use_firmware_retraction",
-    "grab_length","machine_switch_extruder_time","hotend_cooling_rate","hotend_heating_rate","enable_pre_heating", "physical_extruder_map",
+    "grab_length","machine_switch_extruder_time","hotend_cooling_rate","hotend_heating_rate","enable_pre_heating", "support_object_skip_flush","physical_extruder_map",
     "bed_temperature_formula","machine_prepare_compensation_time", "nozzle_flush_dataset","apply_top_surface_compensation"
 };
 
@@ -1299,8 +1309,8 @@ void PresetCollection::load_presets(
                         preset.filament_id = key_values[BBL_JSON_KEY_FILAMENT_ID];
                     if (key_values.find(BBL_JSON_KEY_DESCRIPTION) != key_values.end())
                         preset.description = key_values[BBL_JSON_KEY_DESCRIPTION];
-                    if (key_values.find("instantiation") != key_values.end())
-                        preset.is_visible = key_values["instantiation"] != "false";
+                    if (key_values.find(BBL_JSON_KEY_INSTANTIATION) != key_values.end())
+                        preset.is_visible = key_values[BBL_JSON_KEY_INSTANTIATION] != "false";
 
                     //BBS: use inherit config as the base
                     Preset* inherit_preset = nullptr;
@@ -1341,6 +1351,19 @@ void PresetCollection::load_presets(
                     if (!incorrect_keys.empty())
                         BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" << PathSanitizer::sanitize(preset.file)
                                                  << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
+
+                    if (preset.type == Preset::TYPE_FILAMENT && preset.is_user() && preset.inherits().empty()) {
+                        auto compatible_printers = dynamic_cast<ConfigOptionStrings *>(preset.config.option("compatible_printers", true));
+                        if (compatible_printers && compatible_printers->values.empty()) {
+                            size_t at_pos = name.find('@');
+                            if (at_pos != std::string::npos && at_pos + 1 < name.length()) {
+                                compatible_printers->values.push_back(name.substr(at_pos + 1));
+                                preset.save(nullptr);
+                                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " added compatible_printers for preset: " << name;
+                            }
+                        }
+                    }
+
                     preset.loaded = true;
                     //BBS: add some workaround for previous incorrect settings
                     if ((!preset.setting_id.empty())&&(preset.setting_id == preset.base_id))
@@ -1368,6 +1391,7 @@ void PresetCollection::load_presets(
                     if (fs::exists(file_path))
                         fs::remove(file_path);
                 }
+
                 presets_loaded.emplace_back(preset);
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " load config successful and preset name is:" << preset.name;
             } catch (const std::runtime_error &err) {

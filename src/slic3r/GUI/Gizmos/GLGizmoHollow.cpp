@@ -396,10 +396,11 @@ void GLGizmoHollow::delete_selected_points()
     Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Delete drainage hole");
     sla::DrainHoles& drain_holes = m_c->selection_info()->model_object()->sla_drain_holes;
 
-    for (unsigned int idx=0; idx<drain_holes.size(); ++idx) {
+    for (int idx=0; idx<drain_holes.size(); ++idx) {
         if (m_selected[idx]) {
             m_selected.erase(m_selected.begin()+idx);
-            drain_holes.erase(drain_holes.begin() + (idx--));
+            drain_holes.erase(drain_holes.begin() + idx);
+            idx--;
         }
     }
 
@@ -531,7 +532,7 @@ RENDER_AGAIN:
 
     if (m_imgui->button(m_desc["preview"]))
         hollow_mesh();
-    
+
     bool config_changed = false;
 
     ImGui::Separator();

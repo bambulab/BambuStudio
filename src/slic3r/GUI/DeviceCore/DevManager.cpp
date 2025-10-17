@@ -230,7 +230,7 @@ namespace Slic3r
 
                 obj->last_alive = Slic3r::Utils::get_current_time_utc();
                 obj->m_is_online = true;
-
+                obj->set_dev_name(dev_name);
                 /* if (!obj->dev_ip.empty()) {
                 Slic3r::GUI::wxGetApp().app_config->set_str("ip_address", obj->dev_id, obj->dev_ip);
                 Slic3r::GUI::wxGetApp().app_config->save();
@@ -385,6 +385,8 @@ namespace Slic3r
         selected_machine = "";
         local_selected_machine = "";
 
+        OnSelectedMachineChanged(selected_machine, "");
+
         // clean user list
         for (auto it = userMachineList.begin(); it != userMachineList.end(); it++)
         {
@@ -400,17 +402,21 @@ namespace Slic3r
 
     bool DeviceManager::set_selected_machine(std::string dev_id)
     {
-        BOOST_LOG_TRIVIAL(info) << "set_selected_machine=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
+        BOOST_LOG_TRIVIAL(info) << "set_selected_machine=" << BBLCrossTalk::Crosstalk_DevId(dev_id)
+            << " cur_selected=" << BBLCrossTalk::Crosstalk_DevId(selected_machine);
         auto my_machine_list = get_my_machine_list();
         auto it = my_machine_list.find(dev_id);
 
-        // disconnect last
+        // disconnect last if dev_id difference from previous one
         auto last_selected = my_machine_list.find(selected_machine);
-        if (last_selected != my_machine_list.end())
+        if (last_selected != my_machine_list.end() && selected_machine != dev_id)
         {
             if (last_selected->second->connection_type() == "lan")
             {
                 m_agent->disconnect_printer();
+            }
+            else if (last_selected->second->connection_type() == "cloud") {
+                m_agent->set_user_selected_machine("");
             }
         }
 
@@ -419,8 +425,12 @@ namespace Slic3r
         {
             if (selected_machine == dev_id)
             {
+                // same dev_id, cloud => reset update time
                 if (it->second->connection_type() != "lan")
                 {
+                    BOOST_LOG_TRIVIAL(info) << "set_selected_machine: same cloud machine, dev_id =" << BBLCrossTalk::Crosstalk_DevId(dev_id)
+                        << ", just reset update time";
+
                     // only reset update time
                     it->second->reset_update_time();
 
@@ -429,8 +439,12 @@ namespace Slic3r
 
                     return true;
                 }
+                // same dev_id, lan => disconnect and reconnect
                 else
                 {
+                    BOOST_LOG_TRIVIAL(info) << "set_selected_machine: same lan machine, dev_id =" << BBLCrossTalk::Crosstalk_DevId(dev_id)
+                        << ", disconnect and reconnect";
+
                     // lan mode printer reconnect printer
                     if (m_agent)
                     {
@@ -452,20 +466,14 @@ namespace Slic3r
                 {
                     if (it->second->connection_type() != "lan" || it->second->connection_type().empty())
                     {
-                        if (m_agent->get_user_selected_machine() == dev_id)
-                        {
-                            it->second->reset_update_time();
-                        }
-                        else
-                        {
-                            BOOST_LOG_TRIVIAL(info) << "static: set_selected_machine: same dev_id = " << BBLCrossTalk::Crosstalk_DevId(dev_id);
-                            m_agent->set_user_selected_machine(dev_id);
-                            it->second->reset();
-                        }
+                        // diff dev_id, cloud => set_user_selected_machine(new)
+                        BOOST_LOG_TRIVIAL(info) << "set_selected_machine: select new cloud machine, dev_id =" << BBLCrossTalk::Crosstalk_DevId(dev_id);
+                        m_agent->set_user_selected_machine(dev_id);
+                        it->second->reset();
                     }
                     else
                     {
-                        BOOST_LOG_TRIVIAL(info) << "static: set_selected_machine: same dev_id = empty";
+                        BOOST_LOG_TRIVIAL(info) << "set_selected_machine: select new lan machine, dev_id =" << BBLCrossTalk::Crosstalk_DevId(dev_id);
                         it->second->reset();
 #if !BBL_RELEASE_TO_PUBLIC
                         it->second->connect(Slic3r::GUI::wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false);
@@ -481,6 +489,11 @@ namespace Slic3r
                 data.second.checked_filament.clear();
             }
         }
+
+        if (selected_machine != dev_id) {
+            OnSelectedMachineChanged(selected_machine, dev_id);
+        }
+
         selected_machine = dev_id;
         return true;
     }
@@ -782,7 +795,16 @@ namespace Slic3r
     void DeviceManager::OnSelectedMachineLost()
     {
         GUI::wxGetApp().sidebar().update_sync_status(nullptr);
-        GUI::wxGetApp().sidebar().load_ams_list(string(), nullptr);
+        GUI::wxGetApp().sidebar().load_ams_list(nullptr);
+    }
+
+    void DeviceManager::OnSelectedMachineChanged(const std::string& /*pre_dev_id*/,
+                                                 const std::string& /*new_dev_id*/)
+    {
+        if (MachineObject* obj_ = get_selected_machine()) {
+            GUI::wxGetApp().sidebar().update_sync_status(obj_);
+            GUI::wxGetApp().sidebar().load_ams_list(obj_);
+        };
     }
 
     void DeviceManager::reload_printer_settings()

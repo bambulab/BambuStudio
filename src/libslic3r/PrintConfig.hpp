@@ -42,6 +42,7 @@ enum class FuzzySkinType {
     External,
     All,
     AllWalls,
+    Disabled_fuzzy,
 };
 
 enum PrintHostType {
@@ -260,12 +261,20 @@ enum LayerSeq {
     flsCutomize
 };
 
+enum FanDirection {
+    fdUndefine = 0,
+    fdLeft,
+    fdRight,
+    fdBoth
+};
+
 static std::unordered_map<NozzleType, std::string>NozzleTypeEumnToStr = {
     {NozzleType::ntUndefine,        "undefine"},
     {NozzleType::ntHardenedSteel,   "hardened_steel"},
     {NozzleType::ntStainlessSteel,  "stainless_steel"},
     {NozzleType::ntTungstenCarbide, "tungsten_carbide"},
-    {NozzleType::ntBrass,           "brass"}
+    {NozzleType::ntBrass,           "brass"},
+    {NozzleType::ntE3D,             "E3D"}
 };
 
 static std::unordered_map<std::string, NozzleType>NozzleTypeStrToEumn = {
@@ -273,7 +282,8 @@ static std::unordered_map<std::string, NozzleType>NozzleTypeStrToEumn = {
     {"hardened_steel", NozzleType::ntHardenedSteel},
     {"stainless_steel", NozzleType::ntStainlessSteel},
     {"tungsten_carbide", NozzleType::ntTungstenCarbide},
-    {"brass", NozzleType::ntBrass}
+    {"brass", NozzleType::ntBrass},
+    {"E3D", NozzleType::ntE3D}
 };
 
 // BBS
@@ -845,7 +855,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     // BBS
     ((ConfigOptionBool,                flush_into_infill))
     ((ConfigOptionBool,                flush_into_support))
-    ((ConfigOptionEnum<WallSequence>,  wall_sequence))
+    //((ConfigOptionEnum<WallSequence>,  wall_sequence))
     // BBS
     ((ConfigOptionFloat,              tree_support_branch_distance))
     ((ConfigOptionFloat,              tree_support_branch_diameter))
@@ -957,6 +967,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsOrPercentsNullable, vertical_shell_speed))
     ((ConfigOptionInt, top_color_penetration_layers))
     ((ConfigOptionInt, bottom_color_penetration_layers))
+    ((ConfigOptionEnum<WallSequence>, wall_sequence))
     //BBS
     ((ConfigOptionBoolsNullable, enable_overhang_speed))
     ((ConfigOptionFloatsNullable, overhang_1_4_speed))
@@ -1073,6 +1084,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               machine_switch_extruder_time))
     ((ConfigOptionFloat,               machine_prepare_compensation_time))
     ((ConfigOptionBool,                enable_pre_heating))
+    ((ConfigOptionBool,                support_object_skip_flush))
     ((ConfigOptionEnum<BedTempFormula>, bed_temperature_formula))
     ((ConfigOptionInts,                physical_extruder_map))
     ((ConfigOptionFloatsNullable,      hotend_cooling_rate))
@@ -1130,6 +1142,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnumsGenericNullable,nozzle_type))
     ((ConfigOptionEnum<PrinterStructure>,printer_structure))
     ((ConfigOptionBool,                auxiliary_fan))
+    ((ConfigOptionEnum<FanDirection>,fan_direction))
     ((ConfigOptionBool,                support_chamber_temp_control))
     ((ConfigOptionBool,                apply_top_surface_compensation))
     ((ConfigOptionBool,                support_air_filtration))
@@ -1155,6 +1168,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,               reduce_crossing_wall))
     ((ConfigOptionBool,               z_direction_outwall_speed_continuous))
     ((ConfigOptionFloatOrPercent,     max_travel_detour_distance))
+    ((ConfigOptionBool,               avoid_crossing_wall_includes_support))
     ((ConfigOptionPoints,             printable_area))
     ((ConfigOptionPointsGroups,       extruder_printable_area))
     //BBS: add bed_exclude_area
@@ -1184,6 +1198,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInts,               other_layers_print_sequence))
     ((ConfigOptionInt,                other_layers_print_sequence_nums))
     ((ConfigOptionBools,              slow_down_for_layer_cooling))
+    ((ConfigOptionBools,              no_slow_down_for_cooling_on_outwalls))
     ((ConfigOptionFloatsNullable,     default_acceleration))
     ((ConfigOptionFloatsNullable,     travel_acceleration))
     ((ConfigOptionFloatsNullable,     initial_layer_travel_acceleration))
@@ -1193,6 +1208,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInts,               during_print_exhaust_fan_speed))
     ((ConfigOptionInts,               complete_print_exhaust_fan_speed))
     ((ConfigOptionInts,               close_fan_the_first_x_layers))
+    ((ConfigOptionFloats,             first_x_layer_fan_speed))
     ((ConfigOptionEnum<DraftShield>,  draft_shield))
     ((ConfigOptionFloat,              extruder_clearance_height_to_rod))//BBs
     ((ConfigOptionFloat,              extruder_clearance_height_to_lid))//BBS
@@ -1287,6 +1303,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,               is_infill_first))
     // BBS: move from PrintObjectConfig
     ((ConfigOptionBool,               independent_support_layer_height))
+    ((ConfigOptionBool,               top_z_overrides_xy_distance))
     ((ConfigOptionBool,               exclude_object))
     ((ConfigOptionPercents,            filament_shrink))
     ((ConfigOptionFloats,             grab_length))

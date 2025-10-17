@@ -53,6 +53,7 @@
 #define BBL_JSON_KEY_FILAMENT_ID    "filament_id"
 #define BBL_JSON_KEY_UPDATE_TIME    "updated_time"
 #define BBL_JSON_KEY_INHERITS       "inherits"
+#define BBL_JSON_KEY_INCLUDES       "include"
 #define BBL_JSON_KEY_INSTANTIATION  "instantiation"
 #define BBL_JSON_KEY_NOZZLE_DIAMETER            "nozzle_diameter"
 #define BBL_JSON_KEY_PRINTER_TECH                 "machine_tech"
@@ -63,7 +64,9 @@
 #define BBL_JSON_KEY_IMAGE_BED_TYPE             "image_bed_type"
 #define BBL_JSON_KEY_DEFAULT_BED_TYPE           "default_bed_type"
 #define BBL_JSON_KEY_BOTTOM_TEXTURE_END_NAME    "bottom_texture_end_name"
+#define BBL_JSON_KEY_USE_DOUBLE_EXTRUDER_DEFAULT_TEXTURE  "use_double_extruder_default_texture"
 #define BBL_JSON_KEY_BOTTOM_TEXTURE_RECT        "bottom_texture_rect"
+#define BBL_JSON_KEY_BOTTOM_TEXTURE_RECT_LONGER  "bottom_texture_rect_longer"
 #define BBL_JSON_KEY_MIDDLE_TEXTURE_RECT        "middle_texture_rect"
 #define BBL_JSON_KEY_RIGHT_ICON_OFFSET_BED      "right_icon_offset_bed"
 
@@ -130,7 +133,9 @@ public:
         std::string                 image_bed_type;
         std::string                 default_bed_type;
         std::string                 bottom_texture_end_name;
+        std::string                 use_double_extruder_default_texture;
         std::string                 bottom_texture_rect;
+        std::string                 bottom_texture_rect_longer;
         std::string                 middle_texture_rect;
         std::string                 right_icon_offset_bed;
         std::string                 hotend_model;
@@ -142,6 +147,7 @@ public:
         }
 
         const PrinterVariant* variant(const std::string &name) const { return const_cast<PrinterModel*>(this)->variant(name); }
+        std::map<std::string, std::string> get_bed_texture_maps() const;
     };
     std::vector<PrinterModel>          models;
 

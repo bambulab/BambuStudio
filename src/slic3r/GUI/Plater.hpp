@@ -119,9 +119,11 @@ wxDECLARE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
 using ColorEvent = Event<wxColour>;
 wxDECLARE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 
+// helio
 wxDECLARE_EVENT(EVT_HELIO_PROCESSING_COMPLETED, HelioCompletionEvent);
 wxDECLARE_EVENT(EVT_HELIO_PROCESSING_STARTED, SimpleEvent);
 wxDECLARE_EVENT(EVT_HELIO_INPUT_DLG, SimpleEvent);
+// end helio
 wxDECLARE_EVENT(EVT_GCODE_VIEWER_CHANGED, SimpleEvent);
 
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
@@ -162,11 +164,12 @@ public:
     //void update_partplate(PartPlateList& list);
     void update_presets(Slic3r::Preset::Type preset_type);
     //BBS
+    const std::vector<BedType>& get_cur_combox_bed_types() { return m_cur_combox_bed_types; }
     void update_presets_from_to(Slic3r::Preset::Type preset_type, std::string from, std::string to);
     bool set_bed_type(const std::string& bed_type_name);
     void save_bed_type_to_config(const std::string &bed_type_name);
     BedType get_cur_select_bed_type();
-    std::string get_cur_select_bed_image();
+    std::string get_cur_select_bed_image(bool& exist);
     void set_bed_type_accord_combox(BedType bed_type);
     bool reset_bed_type_combox_choices(bool is_sidebar_init = false);
     bool use_default_bed_type(bool is_bbl_preset = true);
@@ -188,7 +191,7 @@ public:
     bool is_new_project_in_gcode3mf();
     // BBS
     void on_bed_type_change(BedType bed_type);
-    void load_ams_list(std::string const & device, MachineObject* obj);
+    void load_ams_list(MachineObject* obj);
     std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj);
     void sync_ams_list(bool is_from_big_sync_btn = false);
     bool sync_extruder_list();
@@ -210,6 +213,7 @@ public:
 
     ConfigOptionsGroup*     og_freq_chng_params(const bool is_fff);
     wxButton*               get_wiping_dialog_button();
+    void                    set_flushing_volume_warning(const bool flushing_volume_modify);
 
     // BBS
     void                    enable_buttons(bool enable);
@@ -358,6 +362,7 @@ public:
     bool is_empty_project();
     bool is_multi_extruder_ams_empty();
     // BBS
+    bool is_new_project_and_check_state() { return m_new_project_and_check_state; }
     wxString get_project_name();
     void update_all_plate_thumbnails(bool force_update = false);
     void update_obj_preview_thumbnail(ModelObject *, int obj_idx, int vol_idx, std::vector<std::array<float, 4>> colors, int camera_view_angle_type);
@@ -366,7 +371,7 @@ public:
 
     const VendorProfile::PrinterModel * get_curr_printer_model();
     std::map<std::string, std::string> get_bed_texture_maps();
-    int                                get_right_icon_offset_bed();
+    int                                get_right_icon_offset_bed(int i = 0);
     bool                               get_enable_wrapping_detection();
 
     static wxColour get_next_color_for_filament();
@@ -475,6 +480,7 @@ public:
     void export_toolpaths_to_obj() const;
     void reslice();
     void stop_helio_process();
+    void feedback_helio_process(float rating, std::string commend);
     void record_slice_preset(std::string action);
     void reslice_SLA_supports(const ModelObject &object, bool postpone_error_messages = false);
     void reslice_SLA_hollowing(const ModelObject &object, bool postpone_error_messages = false);
@@ -509,11 +515,12 @@ public:
     //void take_snapshot(const wxString &snapshot_name);
     void take_snapshot(const std::string &snapshot_name, UndoRedo::SnapshotType snapshot_type);
     //void take_snapshot(const wxString &snapshot_name, UndoRedo::SnapshotType snapshot_type);
-
+    size_t get_active_snapshot_time();
     void undo();
     void redo();
     void undo_to(int selection);
     void redo_to(int selection);
+    void undo_redo_to(size_t time_to_load);
     bool undo_redo_string_getter(const bool is_undo, int idx, const char** out_text);
     void undo_redo_topmost_string_getter(const bool is_undo, std::string& out_text);
     int update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
@@ -924,6 +931,7 @@ private:
     bool m_exported_file { false };
     bool skip_thumbnail_invalid { false };
     bool m_loading_project {false };
+    bool m_new_project_and_check_state{false};
     std::string m_preview_only_filename;
     int m_valid_plates_count { 0 };
     int m_check_status = 0; // 0 not check, 1 check success, 2 check failed

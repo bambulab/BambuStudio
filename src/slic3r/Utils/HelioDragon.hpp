@@ -4,8 +4,10 @@
 #include <string>
 #include <wx/string.h>
 #include <boost/optional.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/asio/ip/address.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/nowide/cstdio.hpp>
 
 #include <condition_variable>
 #include <mutex>
@@ -47,8 +49,7 @@ public:
         std::array<int, 2> layers_to_optimize = { -1, -1 };
 
         bool isDefault() {
-            return  (chamber_temp == -1) &&
-                    (min_velocity == -1) &&
+            return  (min_velocity == -1) &&
                     (max_velocity == -1) &&
                     (min_volumetric_speed == -1) &&
                     (max_volumetric_speed == -1);
@@ -161,7 +162,16 @@ public:
         std::string url;
         std::string error;
         std::string trace_id;
+        std::string qualityMeanImprovement;
+        std::string qualityStdImprovement;
     };
+
+    struct RatingData
+    {
+        int action = 0;
+        std::string qualityMeanImprovement;
+        std::string qualityStdImprovement;
+    };  
 
     
     static std::string get_helio_api_url();
@@ -170,6 +180,7 @@ public:
     static void request_support_machine(const std::string helio_api_url, const std::string helio_api_key, int page);
     static void request_support_material(const std::string helio_api_url, const std::string helio_api_key, int page);
     static void request_pat_token(std::function<void(std::string)> func);
+    static void optimization_feedback(const std::string helio_api_url, const std::string helio_api_key, std::string optimization_id, float rating, std::string comment);
     static PresignedURLResult create_presigned_url(const std::string helio_api_url, const std::string helio_api_key);
     static UploadFileResult   upload_file_to_presigned_url(const std::string file_path_string, const std::string upload_url);
 
@@ -214,7 +225,6 @@ public:
     static CreateOptimizationResult create_optimization(const std::string helio_api_url,
                                                         const std::string helio_api_key,
                                                         const std::string gcode_id,
-                                                        SimulationInput sinput,
                                                         OptimizationInput oinput);
 
     static void stop_optimization(const std::string helio_api_url,
@@ -365,7 +375,7 @@ public:
     }
 
     void stop_current_helio_action();
-
+    void feedback_current_helio_action(float rating, std::string commend);
     void clear_helio_file_cache();
 
     void helio_threaded_process_start(std::mutex&                                slicing_mutex,
@@ -422,7 +432,8 @@ public:
     void save_downloaded_gcode_and_load_preview(std::string                                file_download_url,
                                                 std::string                                helio_gcode_path,
                                                 std::string                                tmp_path,
-                                                std::unique_ptr<GUI::NotificationManager>& notification_manager);
+                                                std::unique_ptr<GUI::NotificationManager>& notification_manager,
+                                                HelioQuery::RatingData                    rating_data);
 
     std::string create_path_for_simulated_gcode(std::string unsimulated_gcode_path)
     {
@@ -452,7 +463,7 @@ public:
         return (parent / new_filename).string();
     }
 
-    void load_helio_file_to_viwer(std::string file_path, std::string tmp_path);
+    void load_helio_file_to_viwer(std::string file_path, std::string tmp_path, HelioQuery::RatingData rating_data);
 };
 } // namespace Slic3r
 #endif

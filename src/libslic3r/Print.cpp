@@ -93,6 +93,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "additional_cooling_fan_speed",
         "reduce_crossing_wall",
         "max_travel_detour_distance",
+        "avoid_crossing_wall_includes_support",
         "printable_area",
         //BBS: add bed_exclude_area
         "bed_exclude_area",
@@ -106,8 +107,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "overhang_fan_threshold",
         "overhang_threshold_participating_cooling",
         "slow_down_for_layer_cooling",
+        "no_slow_down_for_cooling_on_outwalls",
         "deretraction_speed",
         "close_fan_the_first_x_layers",
+        "first_x_layer_fan_speed",
         "machine_end_gcode",
         "printing_by_object_gcode",
         "filament_end_gcode",
@@ -323,7 +326,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
                 || opt_key == "filament_scarf_gap"
                 || opt_key == "filament_scarf_length"
                 || opt_key == "filament_change_length"
-                || opt_key == "independent_support_layer_height") {
+                || opt_key == "independent_support_layer_height" 
+                || opt_key == "top_z_overrides_xy_distance") {
             steps.emplace_back(psWipeTower);
             // Soluble support interface / non-soluble base interface produces non-soluble interface layers below soluble interface layers.
             // Thus switching between soluble / non-soluble interface layer material may require recalculation of supports.
@@ -2034,6 +2038,8 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         m_skirt.clear();
         m_skirt_convex_hull.clear();
         m_first_layer_convex_hull.points.clear();
+        for (PrintObject *object : m_objects)  object->m_skirt.clear();
+
         const bool draft_shield = config().draft_shield != dsDisabled;
 
         if (this->has_skirt() && draft_shield) {
@@ -4367,7 +4373,7 @@ void WipeTowerData::construct_mesh(float width, float depth, float height, float
     wipe_tower_mesh_data = WipeTowerMeshData{};
     float first_layer_height=0.08; //brim height
     if (width < EPSILON || depth < EPSILON || height < EPSILON) return;
-    if (!is_rib_wipe_tower) {
+    if (!is_rib_wipe_tower || rib_length < EPSILON) {
         wipe_tower_mesh_data->real_wipe_tower_mesh = make_cube(width, depth, height);
         wipe_tower_mesh_data->real_brim_mesh       = make_cube(width + 2 * brim_width, depth + 2 * brim_width, first_layer_height);
         wipe_tower_mesh_data->real_brim_mesh.translate({-brim_width, -brim_width, 0});
@@ -4384,6 +4390,8 @@ void WipeTowerData::construct_mesh(float width, float depth, float height, float
         wipe_tower_mesh_data->real_brim_mesh.translate(Vec3f(rib_offset[0], rib_offset[1], 0));
         wipe_tower_mesh_data->bottom.translate(scaled(Vec2f(rib_offset[0], rib_offset[1])));
     }
+    //wipe_tower_mesh_data->real_wipe_tower_mesh.write_ascii("../wipe_tower_mesh.obj");
+   //wipe_tower_mesh_data->real_brim_mesh.write_ascii("../wipe_tower_brim_mesh.obj");
 }
 
 PrintRegion *PrintObjectRegions::FuzzySkinPaintedRegion::parent_print_object_region(const LayerRangeRegions &layer_range) const

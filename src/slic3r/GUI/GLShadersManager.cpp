@@ -34,7 +34,8 @@ std::pair<bool, std::string> GLShadersManager::init()
 
     bool valid = true;
 
-    const std::string glsl_version_prefix = GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 1) ? "140/" : "110/";
+    bool gl31 = GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 1);
+    const std::string glsl_version_prefix = gl31 ? "140/" : "110/";
 
     // used to render bed axes and model, selection hints, gcode sequential view marker model, preview shells, options in gcode preview
     valid &= append_shader("gouraud_light", { glsl_version_prefix + "gouraud_light.vs", glsl_version_prefix + "gouraud_light.fs" });
@@ -96,6 +97,12 @@ std::pair<bool, std::string> GLShadersManager::init()
     valid &= append_shader("fxaa", { glsl_version_prefix + "fxaa.vs", glsl_version_prefix + "fxaa.fs" });
 
     valid &= append_shader("gaussian_blur33", { glsl_version_prefix + "gaussian_blur33.vs", glsl_version_prefix + "gaussian_blur33.fs" });
+
+    if (gl31) {
+        valid &= append_shader("gcode", { glsl_version_prefix + "gcode.vs", glsl_version_prefix + "gcode.fs" });
+        valid &= append_shader("gcode_options", { glsl_version_prefix + "gcode_options.vs", glsl_version_prefix + "gcode_options.fs" });
+        valid &= append_shader("gcode_custom_effect", { glsl_version_prefix + "gcode.vs", glsl_version_prefix + "gcode_custom_effect.fs" });
+    }
 
     return { valid, error };
 }

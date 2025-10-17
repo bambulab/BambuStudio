@@ -60,9 +60,10 @@ void SwitchButton::SetThumbColor(StateColor const& color)
 
 void SwitchButton::SetValue(bool value)
 {
-	if (value != GetValue())
-		wxBitmapToggleButton::SetValue(value);
-	update();
+    if (value != GetValue()) {
+        wxBitmapToggleButton::SetValue(value);
+        update();
+    }
 }
 
 void SwitchButton::Rescale()
@@ -200,17 +201,30 @@ SwitchBoard::SwitchBoard(wxWindow *parent, wxString leftL, wxString right, wxSiz
 void SwitchBoard::updateState(wxString target)
 {
     if (target.empty()) {
+        if (!switch_left && !switch_right) {
+            return;
+        }
+
         switch_left = false;
         switch_right = false;
     } else {
         if (target == "left") {
+            if (switch_left && !switch_right) {
+                return;
+            }
+
             switch_left = true;
             switch_right = false;
         } else if (target == "right") {
+            if (!switch_left && switch_right) {
+                return;
+            }
+
             switch_left  = false;
             switch_right = true;
         }
     }
+
     Refresh();
 }
 

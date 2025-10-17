@@ -8,6 +8,8 @@ src/slic3r/GUI/DeviceCore/DevConfigUtil.cpp
 src/slic3r/GUI/DeviceCore/DevCtrl.h
 src/slic3r/GUI/DeviceCore/DevCtrl.cpp
 src/slic3r/GUI/DeviceCore/DevDefs.h
+src/slic3r/GUI/DeviceCore/DevExtensionTool.h
+src/slic3r/GUI/DeviceCore/DevExtensionTool.cpp
 src/slic3r/GUI/DeviceCore/DevExtruderSystem.h
 src/slic3r/GUI/DeviceCore/DevExtruderSystem.cpp
 src/slic3r/GUI/DeviceCore/DevExtruderSystemCtrl.cpp
@@ -100,6 +102,8 @@ src/slic3r/GUI/Jobs/RotoptimizeJob.cpp
 src/slic3r/GUI/Jobs/BindJob.cpp
 src/slic3r/GUI/Jobs/PrintJob.cpp
 src/slic3r/GUI/Jobs/SendJob.cpp
+src/slic3r/GUI/ThermalPreconditioningDialog.cpp
+src/slic3r/GUI/ThermalPreconditioningDialog.hpp
 src/slic3r/GUI/Jobs/SLAImportJob.cpp
 src/slic3r/GUI/Jobs/UpgradeNetworkJob.cpp
 src/slic3r/GUI/AboutDialog.cpp
@@ -118,6 +122,9 @@ src/slic3r/GUI/DeviceManager.cpp
 src/slic3r/GUI/DeviceErrorDialog.cpp
 src/slic3r/GUI/ExtraRenderers.cpp
 src/slic3r/GUI/Field.cpp
+src/slic3r/GUI/GCodeRenderer/AdvancedRenderer.cpp
+src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+src/slic3r/GUI/GCodeRenderer/LegacyRenderer.cpp
 src/slic3r/GUI/GCodeViewer.cpp
 src/slic3r/GUI/GLCanvas3D.cpp
 src/slic3r/GUI/Calibration.cpp
@@ -143,6 +150,7 @@ src/slic3r/GUI/ObjectDataViewModel.cpp
 src/slic3r/GUI/OpenGLManager.cpp
 src/slic3r/GUI/OptionsGroup.cpp
 src/slic3r/GUI/PrintOptionsDialog.cpp
+src/slic3r/GUI/SafetyOptionsDialog.cpp
 src/slic3r/GUI/ParamsPanel.cpp
 src/slic3r/GUI/PartPlate.cpp
 src/slic3r/GUI/Plater.cpp
@@ -179,6 +187,7 @@ src/slic3r/GUI/KBShortcutsDialog.cpp
 src/slic3r/GUI/ReleaseNote.cpp
 src/slic3r/GUI/ReleaseNote.hpp
 src/slic3r/GUI/HelioReleaseNote.cpp
+src/slic3r/GUI/HelioReleaseNote.hpp
 src/slic3r/GUI/UpgradePanel.cpp
 src/slic3r/Utils/FixModelByWin10.cpp
 src/slic3r/Utils/PresetUpdater.cpp
@@ -215,6 +224,7 @@ src/slic3r/GUI/BonjourDialog.cpp
 src/slic3r/GUI/calib_dlg.cpp
 src/slic3r/GUI/PrintHostDialogs.cpp
 src/slic3r/GUI/Gizmos/GLGizmoMeshBoolean.cpp
+src/slic3r/GUI/UIHelpers/MeshBooleanUI.cpp
 src/slic3r/GUI/NetworkTestDialog.cpp
 src/slic3r/GUI/CreatePresetsDialog.cpp
 src/slic3r/GUI/DailyTips.cpp

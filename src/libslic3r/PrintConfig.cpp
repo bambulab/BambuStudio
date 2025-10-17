@@ -154,7 +154,8 @@ static t_config_enum_values s_keys_map_FuzzySkinType {
     { "none",           int(FuzzySkinType::None) },
     { "external",       int(FuzzySkinType::External) },
     { "all",            int(FuzzySkinType::All) },
-    { "allwalls",       int(FuzzySkinType::AllWalls)}
+    { "allwalls",       int(FuzzySkinType::AllWalls)},
+    { "disabled_fuzzy", int(FuzzySkinType::Disabled_fuzzy)}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FuzzySkinType)
 
@@ -393,6 +394,14 @@ static t_config_enum_values s_keys_map_NozzleType {
     { "brass",          int(NozzleType::ntBrass) }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(NozzleType)
+
+static t_config_enum_values s_keys_map_FanDirection {
+    { "undefine",       int(FanDirection::fdUndefine) },
+    { "left",       int(FanDirection::fdLeft) },
+    { "right",      int(FanDirection::fdRight) },
+    { "both",       int(FanDirection::fdBoth)}
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FanDirection)
 
 static t_config_enum_values s_keys_map_PrinterStructure {
     {"undefine",        int(PrinterStructure::psUndefine)},
@@ -739,6 +748,13 @@ void PrintConfigDef::init_fff_params()
     def->max_literal = 1000;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
+
+    def           = this->add("avoid_crossing_wall_includes_support", coBool);
+    def->label    = L("Avoid crossing wall - Includes support");
+    def->category = L("Quality");
+    def->tooltip  = L("Including support while avoiding crossing wall.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
 
     // BBS
     def             = this->add("supertack_plate_temp", coInts);
@@ -1326,6 +1342,16 @@ void PrintConfigDef::init_fff_params()
                      "This can improve the cooling quality for needle and small details");
     def->set_default_value(new ConfigOptionBools { true });
 
+    def = this->add("no_slow_down_for_cooling_on_outwalls", coBools);
+    def->label = L("Don't slow down outer walls");
+    def->tooltip = L("If enabled, this setting will ensure external perimeters are not slowed down to meet the minimum layer time. "
+                     "This is particularly helpful in the below scenarios:\n"
+                     "1. To avoid changes in shine when printing glossy filaments\n"
+                     "2. To avoid changes in external wall speed which may create slight wall artifacts that appear like Z banding\n"
+                     "3. To avoid printing at speeds which cause VFAs (fine artifacts) on the external walls");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionBools{false});
+
     def = this->add("default_acceleration", coFloats);
     def->label = L("Normal printing");
     def->tooltip = L("The default acceleration of both normal printing and travel except initial layer");
@@ -1390,14 +1416,22 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInts{80});
 
     def = this->add("close_fan_the_first_x_layers", coInts);
-    def->label = L("No cooling for the first");
-    def->tooltip = L("Close all cooling fan for the first certain layers. Cooling fan of the first layer used to be closed "
-                     "to get better build plate adhesion");
+    def->label = L("For the first");
+    def->tooltip = L("Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed "
+                     "to get better build plate adhesion and used for auto cooling function");
     def->sidetext = L("layers");
     def->min = 0;
     def->max = 1000;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 1 });
+
+    def           = this->add("first_x_layer_fan_speed", coFloats);
+    def->label    = L("Fan speed");
+    def->tooltip  = L("Special cooling fan speed for the first certain layers");
+    def->sidetext = "%";
+    def->min      = 0;
+    def->max      = 100;
+    def->set_default_value(new ConfigOptionFloats{0});
 
     def = this->add("bridge_no_support", coBool);
     def->label = L("Don't support bridges");
@@ -1922,6 +1956,9 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloatsNullable{2});
 
     def = this->add("enable_pre_heating", coBool);
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("support_object_skip_flush", coBool);
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("bed_temperature_formula", coEnum);
@@ -2510,10 +2547,12 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("external");
     def->enum_values.push_back("all");
     def->enum_values.push_back("allwalls");
-    def->enum_labels.push_back(L("None"));
+    def->enum_values.push_back("disabled_fuzzy");
+    def->enum_labels.push_back(L("None(allow paint)"));
     def->enum_labels.push_back(L("Contour"));
     def->enum_labels.push_back(L("Contour and hole"));
     def->enum_labels.push_back(L("All walls"));
+    def->enum_labels.push_back(L("Disabled"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<FuzzySkinType>(FuzzySkinType::None));
 
@@ -2539,7 +2578,8 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("filter_out_gap_fill", coFloat);
     def->label    = L("Filter out tiny gaps");
-    def->tooltip  = L("Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers");
+    def->sidetext = L("mm");
+    def->tooltip  = L("Filter out gaps smaller than the threshold specified. Gaps smaller than this threshold will be ignored");
     def->mode     = comDevelop;
     def->set_default_value(new ConfigOptionFloat(0));
 
@@ -2673,6 +2713,21 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Enable this option if machine has auxiliary part cooling fan");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("fan_direction", coEnum);
+    def->label = L("Fan direction");
+    def->tooltip = L("Cooling fan direction of the printer");
+    def->enum_keys_map = &ConfigOptionEnum<FanDirection>::get_enum_values();
+    def->enum_values.push_back("undefine");
+    def->enum_values.push_back("left");
+    def->enum_values.push_back("right");
+    def->enum_values.push_back("both");
+    def->enum_labels.push_back(L("Undefine"));
+    def->enum_labels.push_back(L("Left"));
+    def->enum_labels.push_back(L("Right"));
+    def->enum_labels.push_back(L("Both"));
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionEnum<FanDirection>(fdUndefine));
 
     def =this->add("support_chamber_temp_control",coBool);
     def->label=L("Support control chamber temperature");
@@ -3821,17 +3876,18 @@ void PrintConfigDef::init_fff_params()
     def = this->add("retract_restart_extra", coFloats);
     def->label = L("Extra length on restart");
     //def->label = "Extra length on restart";
-    //def->tooltip = L("When the retraction is compensated after the travel move, the extruder will push "
-    //               "this additional amount of filament. This setting is rarely needed.");
+    def->tooltip = L("When the retraction is compensated after the travel move, the extruder will push "
+                   "this additional amount of filament. This setting is rarely needed.");
     def->sidetext = L("mm");
     def->mode = comDevelop;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable { 0. });
 
     def = this->add("retract_restart_extra_toolchange", coFloats);
     def->label = L("Extra length on restart");
     //def->label = "Extra length on restart";
-    //def->tooltip = L("When the retraction is compensated after changing tool, the extruder will push "
-    //               "this additional amount of filament.");
+    def->tooltip = L("When the retraction is compensated after changing tool, the extruder will push "
+                   "this additional amount of filament.");
     def->sidetext = L("mm");
     def->mode = comDevelop;
     def->nullable = true;
@@ -4515,6 +4571,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialStyle>(smsDefault));
 
+    def           = this->add("top_z_overrides_xy_distance", coBool);
+    def->label    = L("Z overrides X/Y");
+    def->category = L("Support");
+    def->tooltip  = L("When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, "
+                       "and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports "
+                       "and the model follows support/object xy distance all the time");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("independent_support_layer_height", coBool);
     def->label = L("Independent support layer height");
     def->category = L("Support");
@@ -4960,10 +5025,11 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("prime_tower_rib_width", coFloat);
     def->label    = L("Rib width");
-    def->tooltip  = L("Rib width");
+    def->tooltip  = L("Rib width is always less than half the prime tower side length.");
     def->sidetext = L("mm");
     def->mode     = comAdvanced;
     def->min      = 0;
+    def->max      = 300;
     def->set_default_value(new ConfigOptionFloat(8));
 
     def          = this->add("prime_tower_skip_points", coBool);
@@ -8624,6 +8690,15 @@ Polygon get_bed_shape_with_excluded_area(const PrintConfig& cfg, bool use_share)
             exclude_polys.push_back(exclude_poly);
             exclude_poly.points.clear();
         }
+    }
+    if (cfg.enable_wrapping_detection.value) {
+        Pointfs wrapping_detection_area = cfg.wrapping_exclude_area.values;
+        Polygon wrapping_poly;
+        for (size_t i = 0; i < wrapping_detection_area.size(); ++i) {
+            auto pt = wrapping_detection_area[i];
+            wrapping_poly.points.push_back(Point(scale_(pt.x()), scale_(pt.y())));
+        }
+        exclude_polys.push_back(wrapping_poly);
     }
     auto tmp = diff({ bed_poly }, exclude_polys);
     if (!tmp.empty()) bed_poly = tmp[0];

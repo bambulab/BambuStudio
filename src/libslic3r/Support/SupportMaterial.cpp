@@ -1604,6 +1604,7 @@ static inline std::tuple<Polygons, Polygons, double> detect_contacts(
             [](float acc, const LayerRegion* layerm) { return std::min(acc, float(layerm->flow(frExternalPerimeter).scaled_width())); });
 
         float lower_layer_offset = 0;
+        const coordf_t xy_expansion       = scale_(object_config.support_expansion.value);
         for (LayerRegion* layerm : layer.regions()) {
             Polygons layerm_polygons = to_polygons(layerm->slices.surfaces);
 
@@ -1635,7 +1636,7 @@ static inline std::tuple<Polygons, Polygons, double> detect_contacts(
                         slices_margin.polygons);
                 }
 #else
-                diff_polygons = diff(diff_polygons, slices_margin.polygons);
+                diff_polygons = diff(offset(diff_polygons, xy_expansion), slices_margin.polygons);
 #endif
             }
             polygons_append(contact_polygons, diff_polygons);

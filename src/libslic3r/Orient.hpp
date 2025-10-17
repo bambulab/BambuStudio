@@ -26,10 +26,18 @@ struct OrientMesh {
     TriangleMesh mesh;              /// The real mesh data
     double overhang_angle = 30;
     double angle{ 0 };
+    double angle_vertical{ 0 };
     Vec3d axis{ 0,0,1 };
+    Vec3d axis_vertical{ 0,0,1 };
     Vec3d orientation{ 0,0,1 };
-    Matrix3d rotation_matrix;
-    Vec3d euler_angles;
+    Vec3d orientation_vertical{ -1,0,0 };
+    Matrix3d rotation_matrix = Matrix3d::Identity();
+    Matrix3d rotation_matrix_vertical = Matrix3d::Identity();
+    Vec3d euler_angles = {0, 0, 0};
+    Vec3d euler_angles_vertical = {0, 0, 0};
+    Vec3d cooling_direction = {0, 0, 0};
+    bool has_cooling_fan{false};
+
     std::string name;
 
     /// Optional setter function which can store arbitrary data in its closure
@@ -54,7 +62,7 @@ struct OrientParamsArea {
     float FIRST_LAY_H = 0.2f;//0.0475;
     float VECTOR_TOL = -0.00083f;
     float NEGL_FACE_SIZE = 0.01f;
-    float ASCENT = -0.5f;
+    float ASCENT = -0.86602540378f;
     float PLAFOND_ADV = 0.0599f;
     float CONTOUR_AMOUNT = 0.0182427f;
     float OV_H = 2.574f;
@@ -71,7 +79,7 @@ struct OrientParamsArea {
     float BOTTOM_HULL_MAX = 2000;// max bottom hull area
     float APPERANCE_FACE_SUPP=3; // penalty of generating supports on appearance face
 
-    float overhang_angle = 60.f;
+    float overhang_angle = 30.f;
     bool use_low_angle_face = true;
     bool min_volume = false;
     Eigen::Vector3f fun_dir;
@@ -153,6 +161,9 @@ void orient(OrientMeshs &items, const OrientMeshs &excludes, const OrientParams 
 void orient(ModelObject* obj);
 
 void orient(ModelInstance* instance);
+
+// rotate z axis for cooling
+void orient_for_cooling(TriangleMesh& mesh, const FanDirection& fan_dir);
 
 }} // namespace Slic3r::orientment
 

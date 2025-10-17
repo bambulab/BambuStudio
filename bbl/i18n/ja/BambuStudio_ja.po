@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 15:18+0800\n"
+"POT-Creation-Date: 2025-10-14 18:46+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -45,6 +45,12 @@ msgstr "押出機"
 
 msgid "TPU is not supported by AMS."
 msgstr "TPUはAMSではサポートされていません。"
+
+msgid "AMS does not support 'Bambu Lab PET-CF'."
+msgstr "AMSは「Bambu Lab PET-CF」に対応していません。"
+
+msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
+msgstr "詰まり防止のために、TPUの造形前にコールドプルを行ってください。プリンターのコールドプルメンテナンス機能をご利用いただけます。"
 
 msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
 msgstr "湿ったPVAは柔軟になりAMS内部で詰まる恐れがあります。使用前に十分乾燥させてください。"
@@ -89,6 +95,9 @@ msgstr "待機中"
 #, c-format, boost-format
 msgid "%d ℃"
 msgstr ""
+
+msgid "Model:"
+msgstr "モデル"
 
 msgid "Serial:"
 msgstr "シリアル番号"
@@ -1064,6 +1073,9 @@ msgstr "太さ"
 msgid "Input text"
 msgstr "テキスト"
 
+msgid "Advanced"
+msgstr "高度な設定"
+
 msgid "Embeded depth"
 msgstr "埋め込み深さ"
 
@@ -1086,7 +1098,7 @@ msgid "Warning:text normal has been reset."
 msgstr "警告: テキストの標準がリセットされました。"
 
 msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
-msgstr ""
+msgstr "警告：現在の文字間隔は最適ではありません。編集を続けると、より適切な文字間隔が自動的に調整されます。"
 
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "警告: 古いマトリックスには少なくとも2つのパラメータ（反転、スケーリング、回転）が含まれています。編集を続けると、正しくない可能性があります。テキストをドラッグするか、現在のポーズをキャンセルして保存後、再編集してください。"
@@ -1118,6 +1130,20 @@ msgstr "フォント 「%1%」 を選択できません。"
 
 msgid "Revert text size."
 msgstr "文字サイズを元に戻す"
+
+msgid ""
+"Advanced options cannot be changed for the selected font.\n"
+"Select another font."
+msgstr ""
+"選択されたフォントの詳細設定は変更できません。\n"
+"別のフォントを選択してください。"
+
+#. TRN - Input label. Be short as possible
+msgid "Boldness"
+msgstr "太さ"
+
+msgid "Skew"
+msgstr "スキュー"
 
 msgid "No symbol"
 msgstr "シンボルなし"
@@ -1152,10 +1178,6 @@ msgstr "テキストギャップ"
 #. TRN - Input label. Be short as possible
 msgid "Line gap"
 msgstr "ラインギャップ"
-
-#. TRN - Input label. Be short as possible
-msgid "Boldness"
-msgstr "太さ"
 
 #. TRN - Input label. Be short as possible
 #. Like Font italic
@@ -1682,9 +1704,6 @@ msgstr "拭き上げ設定"
 
 msgid "Bed adhension"
 msgstr "ベッド接着"
-
-msgid "Advanced"
-msgstr "高度な設定"
 
 msgid "Add part"
 msgstr "パーツを追加"
@@ -2481,7 +2500,11 @@ msgstr "右（補助）"
 
 msgctxt "air_duct"
 msgid "Right(Filter)"
-msgstr ""
+msgstr "右（フィルター）"
+
+msgctxt "air_duct"
+msgid "Left(Aux)"
+msgstr "左（補助）"
 
 msgid "Hotend"
 msgstr "ホットエンド"
@@ -2714,6 +2737,19 @@ msgstr "送信しました、%s秒後自動閉じます。"
 
 msgid "Storage needs to be inserted before sending to printer."
 msgstr "プリンタに送る前に、ストレージを挿入する必要があります。"
+
+msgid "Thermal Preconditioning for first layer optimization"
+msgstr "一層目の最適化のための熱前処理"
+
+msgid "Remaining time: Calculating..."
+msgstr "残り時間: 計算中..."
+
+msgid "The heated bed's thermal preconditioning helps optimize the first layer print quality. Printing will start once preconditioning is complete."
+msgstr "ヒートベッドの熱的な予備調整は、一層目の造形品質を最適化するのに役立ちます。予備調整が完了すると、造形が開始されます。"
+
+#, c-format, boost-format
+msgid "Remaining time: %dmin%ds"
+msgstr ""
 
 msgid "Choose SLA archive:"
 msgstr "SLA アーカイブを選択します:"
@@ -3158,6 +3194,27 @@ msgstr "空打ち検出"
 
 msgid "Detects clogging and filament grinding, halting printing immediately to conserve time and filament."
 msgstr "目詰まりやフィラメントの摩耗を検知し、直ちに印刷を停止することで、時間とフィラメントを節約します。"
+
+msgid "AMS Type"
+msgstr "AMS タイプ"
+
+msgid "Switching"
+msgstr "切り替え中"
+
+msgid "The printer is busy and cannot switch AMS type."
+msgstr "プリンターが使用中のため、AMSタイプを切り替えできません。"
+
+msgid "Please unload all filament before switching."
+msgstr "切り替えを行う前に、すべてのフィラメントをアンロードしてください。"
+
+msgid "AMS type switching needs firmware update, taking about 30s. Switch now ?"
+msgstr "AMSタイプの切り替えにはファームウェア更新が必要です（約30秒）。今すぐ切り替えますか？"
+
+msgid "Arrange AMS Order"
+msgstr "AMSの順序を並べ替え"
+
+msgid "AMS ID will be reset. If you want a specific ID sequence, disconnect all AMS before resetting and connect them in the desired order after resetting."
+msgstr "AMS IDはリセットされます。特定のID順を設定したい場合は、リセット前にすべてのAMSを取り外し、リセット後に希望の順番で接続してください。"
 
 msgid "File"
 msgstr "ファイル"
@@ -3659,8 +3716,8 @@ msgstr "カットモジュールオフセットキャリブレーション"
 msgid "Measuring Surface"
 msgstr "表面を測定"
 
-msgid "Thermal Preconditioning for first layer optimization"
-msgstr "一層目の最適化のための熱前処理"
+msgid "Calibrating the detection position of nozzle clumping"
+msgstr ""
 
 msgid "Unknown"
 msgstr "不明"
@@ -3778,11 +3835,14 @@ msgstr "了解しました。火災警報をオフにします。"
 msgid "Retry (problem solved)"
 msgstr "再試行 (問題は解決済み)"
 
+msgid "Cancle"
+msgstr "キャンセル"
+
 msgid "Stop Drying"
 msgstr "乾燥を中止"
 
-msgid "Cancle"
-msgstr ""
+msgid "Proceed"
+msgstr "続行する"
 
 msgid "Done"
 msgstr "完了"
@@ -3836,6 +3896,18 @@ msgstr ""
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "無効なフォーマット、%1%であるはずです。"
 
+msgid "Clear color"
+msgstr "カラーをクリア"
+
+msgid "Loading G-codes"
+msgstr "G-codeの読み込み"
+
+msgid "Loading gcode data"
+msgstr ""
+
+msgid "Loading segments"
+msgstr ""
+
 msgid "Summary"
 msgstr "概要"
 
@@ -3848,15 +3920,6 @@ msgstr "線幅"
 msgid "Fan Speed"
 msgstr "ファン回転速度"
 
-msgid "Thermal Index (min)"
-msgstr "熱指数（最小）"
-
-msgid "Thermal Index (max)"
-msgstr "熱指数（最大）"
-
-msgid "Thermal Index (mean)"
-msgstr "熱指数（平均）"
-
 msgid "Flow"
 msgstr "流量"
 
@@ -3866,47 +3929,14 @@ msgstr "ツール"
 msgid "Layer Time"
 msgstr "積層時間"
 
-msgid "Height: "
-msgstr "高度"
+msgid "Thermal Index (min)"
+msgstr "熱指数（最小）"
 
-msgid "Width: "
-msgstr "幅"
+msgid "Thermal Index (max)"
+msgstr "熱指数（最大）"
 
-msgid "Speed: "
-msgstr "速度"
-
-msgid "Flow: "
-msgstr "フロー"
-
-msgid "Layer Time: "
-msgstr "積層時間"
-
-msgid "Fan Speed: "
-msgstr "ファン回転速度"
-
-msgid "Temperature: "
-msgstr "温度"
-
-msgid "Thermal Index"
-msgstr "熱指数"
-
-msgid "Min: "
-msgstr "最小 :"
-
-msgid "Max: "
-msgstr "最大: "
-
-msgid "Mean: "
-msgstr "平均:"
-
-msgid "Loading G-codes"
-msgstr "G-codeの読み込み"
-
-msgid "Generating geometry vertex data"
-msgstr "ジオメトリ頂点データを生成中"
-
-msgid "Generating geometry index data"
-msgstr "ジオメトリ頂点データを生成中"
+msgid "Thermal Index (mean)"
+msgstr "熱指数（平均）"
 
 msgid "Statistics of All Plates"
 msgstr "全プレート統計"
@@ -3931,60 +3961,6 @@ msgstr "時間"
 
 msgid "Time Estimation"
 msgstr "予想時間"
-
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "最適なフィラメントのグループ化に基づき自動で再スライスし、スライス後にグループ化の結果を表示します。"
-
-msgid "Filament Grouping"
-msgstr "フィラメントグループ化"
-
-msgid "Why this grouping"
-msgstr "なぜこのグループ化が必要ですか？"
-
-msgid "Left nozzle"
-msgstr "左ノズル"
-
-msgid "Right nozzle"
-msgstr "右ノズル"
-
-msgid "Please place filaments on the printer based on grouping result."
-msgstr "グループ化結果に基づいてプリンタにフィラメントを配置してください。"
-
-msgid "Tips:"
-msgstr "ヒント"
-
-msgid "Current grouping of slice result is not optimal."
-msgstr "現在のスライス結果のグルーピングは最適ではありません。"
-
-#, boost-format
-msgid "Increase %1%g filament and %2% changes compared to optimal grouping."
-msgstr "最適なグルーピングと比べて、%1%gのフィラメントを増加させ、%2%回の変更を増やします。"
-
-#, boost-format
-msgid "Increase %1%g filament and save %2% changes compared to optimal grouping."
-msgstr "最適なグルーピングと比べて、%1%gのフィラメントを増加させ、%2%回の変更を削減します。"
-
-#, boost-format
-msgid "Save %1%g filament and increase %2% changes compared to optimal grouping."
-msgstr "最適なグルーピングと比べて、%1%gのフィラメントを節約し、%2%回の変更を増加させます。"
-
-#, boost-format
-msgid "Save %1%g filament and %2% changes compared to a printer with one nozzle."
-msgstr "単一ノズルプリンターと比べて、%1%gのフィラメントを節約し、%2%回の変更を削減します。"
-
-#, boost-format
-msgid "Save %1%g filament and increase %2% changes compared to a printer with one nozzle."
-msgstr "単一ノズルプリンターと比べて、%1%gのフィラメントを節約し、%2%回の変更を増加させます。"
-
-#, boost-format
-msgid "Increase %1%g filament and save %2% changes compared to a printer with one nozzle."
-msgstr "単一ノズルプリンタと比べて、%1%gのフィラメントを増加させ、%2%回の変更を削減します。"
-
-msgid "Set to Optimal"
-msgstr "最適に設定"
-
-msgid "Regroup filament"
-msgstr "フィラメントの再グループ化"
 
 msgid "up to"
 msgstr "最大"
@@ -4099,6 +4075,99 @@ msgstr "サイレントモードに切り替える"
 
 msgid "Switch to normal mode"
 msgstr "通常モードに切り替え"
+
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "最適なフィラメントのグループ化に基づき自動で再スライスし、スライス後にグループ化の結果を表示します。"
+
+msgid "Filament Grouping"
+msgstr "フィラメントグループ化"
+
+msgid "Why this grouping"
+msgstr "なぜこのグループ化が必要ですか？"
+
+msgid "Left nozzle"
+msgstr "左ノズル"
+
+msgid "Right nozzle"
+msgstr "右ノズル"
+
+msgid "Please place filaments on the printer based on grouping result."
+msgstr "グループ化結果に基づいてプリンタにフィラメントを配置してください。"
+
+msgid "Tips:"
+msgstr "ヒント"
+
+msgid "Current grouping of slice result is not optimal."
+msgstr "現在のスライス結果のグルーピングは最適ではありません。"
+
+#, boost-format
+msgid "Increase %1%g filament and %2% changes compared to optimal grouping."
+msgstr "最適なグルーピングと比べて、%1%gのフィラメントを増加させ、%2%回の変更を増やします。"
+
+#, boost-format
+msgid "Increase %1%g filament and save %2% changes compared to optimal grouping."
+msgstr "最適なグルーピングと比べて、%1%gのフィラメントを増加させ、%2%回の変更を削減します。"
+
+#, boost-format
+msgid "Save %1%g filament and increase %2% changes compared to optimal grouping."
+msgstr "最適なグルーピングと比べて、%1%gのフィラメントを節約し、%2%回の変更を増加させます。"
+
+#, boost-format
+msgid "Save %1%g filament and %2% changes compared to a printer with one nozzle."
+msgstr "単一ノズルプリンターと比べて、%1%gのフィラメントを節約し、%2%回の変更を削減します。"
+
+#, boost-format
+msgid "Save %1%g filament and increase %2% changes compared to a printer with one nozzle."
+msgstr "単一ノズルプリンターと比べて、%1%gのフィラメントを節約し、%2%回の変更を増加させます。"
+
+#, boost-format
+msgid "Increase %1%g filament and save %2% changes compared to a printer with one nozzle."
+msgstr "単一ノズルプリンタと比べて、%1%gのフィラメントを増加させ、%2%回の変更を削減します。"
+
+msgid "Set to Optimal"
+msgstr "最適に設定"
+
+msgid "Regroup filament"
+msgstr "フィラメントの再グループ化"
+
+msgid "Height: "
+msgstr "高度"
+
+msgid "Width: "
+msgstr "幅"
+
+msgid "Speed: "
+msgstr "速度"
+
+msgid "Flow: "
+msgstr "フロー"
+
+msgid "Layer Time: "
+msgstr "積層時間"
+
+msgid "Fan Speed: "
+msgstr "ファン回転速度"
+
+msgid "Temperature: "
+msgstr "温度"
+
+msgid "Thermal Index"
+msgstr "熱指数"
+
+msgid "Min: "
+msgstr "最小 :"
+
+msgid "Max: "
+msgstr "最大: "
+
+msgid "Mean: "
+msgstr "平均:"
+
+msgid "Generating geometry vertex data"
+msgstr "ジオメトリ頂点データを生成中"
+
+msgid "Generating geometry index data"
+msgstr "ジオメトリ頂点データを生成中"
 
 msgid ""
 "An object is placed in the left/right nozzle-only area or exceeds the printable height of the left nozzle.\n"
@@ -4406,11 +4475,17 @@ msgstr "混合物にPLAとPETGフィラメントが検出されました。印�
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "プライムタワーがプレートの境界をはみ出しています。"
 
+msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
+msgstr "部分フラッシング量が0に設定されています。マルチカラー造形では、モデル内で色が混ざる可能性があります。フラッシング設定を再調整してください。"
+
 msgid "Click Wiki for help."
 msgstr "詳しくはWikiをクリックしてください。"
 
 msgid "Click here to regroup"
 msgstr "再グループ化するにはここをクリック"
+
+msgid "Flushing Volume"
+msgstr "フラッシュ量"
 
 msgid "Calibration step selection"
 msgstr "キャリブレーション項目を選択"
@@ -4423,6 +4498,9 @@ msgstr "ベッドレベリング"
 
 msgid "High-temperature Heatbed Calibration"
 msgstr "高温ヒートベッドキャリブレーション"
+
+msgid "Nozzle clumping detection Calibration"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "キャリブレーション項目"
@@ -5028,6 +5106,9 @@ msgstr "プレーヤーが誤動作しています。システムプレーヤー
 msgid "The player is not loaded, please click \"play\" button to retry."
 msgstr "プレイヤーが読み込まれていません。「再生」ボタンをクリックして再試行してください。"
 
+msgid "Plugin library failed to load. Click here to view the solution."
+msgstr "プラグインライブラリの読み込みに失敗しました。解決方法を確認するには、こちらをクリックしてください。"
+
 msgid "Temporarily closed because there is no operation for a while."
 msgstr "しばらく操作がなかったため、一時的に閉じられました。"
 
@@ -5062,7 +5143,7 @@ msgid "Please check the network and try again, You can restart or update the pri
 msgstr "ネットワークを確認し、もう一度試してください。問題が解決しない場合は、プリンタを再起動するか更新してください。"
 
 msgid "Multi-device/client simultaneous liveview is not supported. Please close the liveview on other devices/clients and try again."
-msgstr ""
+msgstr "複数のデバイスやクライアントで同時にライブビューを使用することはできません。他のデバイスやクライアントでのライブビューを終了してから、再度お試しください。"
 
 msgid "Video Stopped."
 msgstr "ビデオが停止しました。"
@@ -5098,6 +5179,9 @@ msgstr "情報"
 
 msgid "Playing..."
 msgstr "再生中..."
+
+msgid "DLL load error"
+msgstr "DLL読み込みエラー"
 
 msgid "Loading..."
 msgstr "読込み中"
@@ -5399,6 +5483,9 @@ msgstr "中止"
 msgid "Layer: N/A"
 msgstr "レイヤー: N/A"
 
+msgid "Click to view thermal preconditioning explanation"
+msgstr "熱的予備調整の説明を見るにはクリックしてください"
+
 msgid "Estimated finish time: "
 msgstr "推定完了時刻："
 
@@ -5447,6 +5534,9 @@ msgstr "パーツ構成"
 msgid "Print Options"
 msgstr "造型オプション"
 
+msgid "Safety Options"
+msgstr "安全オプション"
+
 msgid "100%"
 msgstr "100％"
 
@@ -5477,6 +5567,9 @@ msgstr "この印刷を停止してもよろしいですか?"
 msgid "The printer is busy on other print job"
 msgstr "プリンタは別の印刷ジョブでビジー状態です。"
 
+msgid "When printing is paused, filament loading and unloading are only supported for external slots."
+msgstr "造形が一時停止中の場合、フィラメントのロードおよびアンロードは外部スロットでのみ対応しています。"
+
 msgid "Current extruder is busy changing filament"
 msgstr "押出機がフィラメントを交換中です。"
 
@@ -5485,6 +5578,9 @@ msgstr "現在のスロットにはすでにフィラメントがロードされ
 
 msgid "The selected slot is empty."
 msgstr "選択されたスロットは空です。"
+
+msgid "Printer 2D mode does not support 3D calibration"
+msgstr "プリンターの2Dモードは3Dキャリブレーションに対応していません"
 
 msgid "Downloading..."
 msgstr "ダウンロード中"
@@ -5519,6 +5615,9 @@ msgstr "原点復帰"
 
 msgid "Please heat the nozzle to above 170 degree before loading or unloading filament."
 msgstr "フィラメントを出し入れする前に、ノズルを170度以上に加熱してください。"
+
+msgid "Chamber temperature cannot be changed in cooling mode while printing."
+msgstr "冷却モード中は、造形中にチャンバー温度を調整できません。"
 
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr "チャンバー温度が40℃を超えると、システムは自動的に加熱モードに切り替わります。切り替えの確認をお願いします。"
@@ -5987,15 +6086,6 @@ msgstr "1層目検査"
 msgid "Auto-recovery from step loss"
 msgstr "ステップロスから自動回復"
 
-msgid "Open Door Detection"
-msgstr "ドア開閉検出"
-
-msgid "Notification"
-msgstr "通知"
-
-msgid "Pause printing"
-msgstr "印刷を一時停止"
-
 msgid "Store Sent Files on External Storage"
 msgstr "送信したファイルを外部ストレージに保存"
 
@@ -6011,11 +6101,26 @@ msgstr "フィラメント絡み検出"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "ノズルにフィラメントやその他の異物が詰まっていないか確認してください。"
 
-msgid "Nozzle Type"
-msgstr "ノズルタイプ"
+msgid "Open Door Detection"
+msgstr "ドア開閉検出"
 
-msgid "Nozzle Flow"
-msgstr "ノズル流量"
+msgid "Notification"
+msgstr "通知"
+
+msgid "Pause printing"
+msgstr "印刷を一時停止"
+
+msgctxt "Nozzle Type"
+msgid "Type"
+msgstr "タイプ"
+
+msgctxt "Nozzle Diameter"
+msgid "Diameter"
+msgstr "直径"
+
+msgctxt "Nozzle Flow"
+msgid "Flow"
+msgstr "流量"
 
 msgid "Please change the nozzle settings on the printer."
 msgstr "プリンタのノズル設定を変更してください。"
@@ -6032,11 +6137,26 @@ msgstr "ステンレススチール"
 msgid "Tungsten Carbide"
 msgstr "炭化タングステン"
 
+msgid "Brass"
+msgstr "真鍮"
+
 msgid "High flow"
 msgstr "大流量"
 
 msgid "No wiki link available for this printer."
 msgstr "このプリンターのWikiリンクはありません。"
+
+msgid "Refreshing"
+msgstr "更新中"
+
+msgid "Unavailable while heating maintenance function is on."
+msgstr "加熱メンテナンス機能がオンの場合は使用できません。"
+
+msgid "Idel Heating Protection"
+msgstr "アイドル加熱保護"
+
+msgid "Stops heating automatically after 5 mins of idle to ensure safety."
+msgstr "安全のため、5分間操作がないと自動で加熱を停止します。"
 
 msgid "Global"
 msgstr "全般"
@@ -6442,7 +6562,7 @@ msgid "Slicing Plate %d"
 msgstr "プレート%dをスライス"
 
 msgid "A Helio simulation or optimization task is in progress."
-msgstr ""
+msgstr "Helioのシミュレーションまたは最適化タスクを実行中です。"
 
 msgid "Invalid printer preset. Unable to slice with Helio."
 msgstr "プリンターのプリセットが無効です。Helioでスライスできません。"
@@ -6458,7 +6578,7 @@ msgid "Helio does not support materials %s"
 msgstr "Helioは素材「%s」には対応していません。"
 
 msgid "Helio functions do not support the print sequence of \"ByObject\"."
-msgstr ""
+msgstr "Helioの機能は「ByObject」の造形順序には対応していません。"
 
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
@@ -6475,13 +6595,13 @@ msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
 msgstr "Helio PATの取得に失敗しました。［更新］をクリックして再取得してください。"
 
 msgid "Successfully obtained PAT."
-msgstr ""
+msgstr "PATの取得に成功しました。"
 
 msgid "The printer list and material list are being synchronized. Please try again later."
-msgstr ""
+msgstr "プリンターリストと素材リストを同期中です。しばらくしてから再度お試しください。"
 
 msgid "Synchronizing Helio"
-msgstr ""
+msgstr "Helioを同期中"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "スライシングエラーを解決して、もう一度公開していください"
@@ -6707,11 +6827,11 @@ msgstr "修復する前に、カスタムサポート、シームファセット
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
-msgstr ""
+msgstr "プリンターが接続されていません。同期を行う前に、デバイスページで %s を接続してください。"
 
 #, c-format, boost-format
 msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
-msgstr ""
+msgstr "デバイスページで現在接続されているプリンターは %s ではありません。同期を行う前に、%s に切り替えてください。"
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "プリンタにフィラメントはありません。最初にプリンタにフィラメントをロードしてください。"
@@ -7003,6 +7123,12 @@ msgstr "折りたたみ不可"
 msgid "Toolbar Style"
 msgstr "ツールバースタイル"
 
+msgid "Enable advanced gcode viewer"
+msgstr "高度なG-codeビューアを有効にする"
+
+msgid "Enable advanced gcode viewer."
+msgstr "高度なG-codeビューアを有効にする"
+
 msgid "Grabber scale"
 msgstr "掴む範囲"
 
@@ -7116,6 +7242,9 @@ msgstr "ユーザー体験向上プログラムに参加する"
 
 msgid "What data would be collected?"
 msgstr "どのようなデータが収集されますか?"
+
+msgid "Auto-fill previously logged-in accounts."
+msgstr "以前にログインしたアカウントを自動入力します。"
 
 msgid "Develop Mode"
 msgstr "開発者モード"
@@ -7590,6 +7719,14 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Ple
 msgstr "現在の素材（%s）の硬度が、%s（%s）の硬度を超えています。ノズルまたは材料の設定を確認し、再度お試しください。"
 
 #, c-format, boost-format
+msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
+msgstr "[ %s ]の造形には高温環境が必要です。ドアを閉じてください。"
+
+#, c-format, boost-format
+msgid "[ %s ] requires printing in a high-temperature environment."
+msgstr "[%s] の造形には高温環境が必要です。"
+
+#, c-format, boost-format
 msgid "The filament on %s may soften. Please unload."
 msgstr "%s のフィラメントが軟化する可能性があります。アンロードしてください。"
 
@@ -7599,6 +7736,9 @@ msgstr "%s のフィラメントが不明なため、軟化する可能性があ
 
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "適切なフィラメントが自動で見つかりませんでした。手動で選択してください。"
+
+msgid "Install toolhead enhanced cooling fan to prevent filament softening."
+msgstr "フィラメントの軟化を防ぐために、ツールヘッド用の強化冷却ファンを取り付けてください。"
 
 msgid "Cool"
 msgstr "クール"
@@ -7639,6 +7779,9 @@ msgstr "プリンターが指令を実行中です。実行終了してから造
 msgid "AMS is setting up. Please try again later."
 msgstr "AMSを設定中です。後でもう一度お試しください。"
 
+msgid "Not all filaments used in slicing are mapped to the printer. Please check the mapping of filaments."
+msgstr ""
+
 msgid "Please do not mix-use the Ext with AMS"
 msgstr "ExtとAMSの混合使用はお控えください。"
 
@@ -7672,14 +7815,14 @@ msgstr "カスタム値を使用するには、動的流量キャリブレーシ
 msgid "This printer does not support printing all plates"
 msgstr "プリンターが全てのプレートを造形することができません"
 
-msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
-msgstr "詰まり防止のために、TPUの造形前にコールドプルを行ってください。プリンターのコールドプルメンテナンス機能をご利用いただけます。"
-
-msgid "High chamber temperature is required. Please close the door."
-msgstr "チャンバー内を高温に保つ必要があります。ドアを閉めてください。"
+msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
+msgstr ""
 
 msgid "Please refer to Wiki before use->"
 msgstr "ご利用の前に、Wikiの説明をご確認ください。"
+
+msgid "Current firmware does not support file transfer to internal storage."
+msgstr ""
 
 msgid "Send to Printer storage"
 msgstr "プリンタストレージに送信"
@@ -7687,26 +7830,17 @@ msgstr "プリンタストレージに送信"
 msgid "Try to connect"
 msgstr "接続を試みる"
 
-msgid "click to retry"
-msgstr "クリックして再試行"
+msgid "Internal Storage"
+msgstr ""
+
+msgid "External Storage"
+msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "アップロードファイルのタイムアウト：ファームウェアのバージョンが対応しているか確認してください。"
 
-msgid "No available external storage was obtained. Please confirm and try again."
-msgstr "使用可能な外部ストレージがありません。ご確認の上、再度お試しください。"
-
-msgid "Media capability acquisition timeout, please check if the firmware version supports it."
-msgstr "メディア能力の取得タイムアウトが発生しました。ファームウェアのバージョンがこれをサポートしているか確認してください。"
-
-msgid "Sending..."
-msgstr "送信中..."
-
-msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
-msgstr "ファイルのアップロードがタイムアウトしました。ファームウェアのバージョンがこの操作をサポートしているか確認するか、プリンタが正常に動作しているかを確認してください。"
-
-msgid "Sending failed, please try again!"
-msgstr "送信できませんでした。もう一度試してください。"
+msgid "Connection timed out, please check your network."
+msgstr ""
 
 msgid "Connection failed. Click the icon to retry"
 msgstr "接続に失敗しました。アイコンをクリックして再試行してください。"
@@ -7726,8 +7860,14 @@ msgstr "プリンタはBambu Studioと同じLAN内にある必要があります
 msgid "The printer does not support sending to printer storage."
 msgstr "このプリンタは、プリンタストレージへの送信をサポートしていません。"
 
+msgid "Sending..."
+msgstr "送信中..."
+
+msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
+msgstr "ファイルのアップロードがタイムアウトしました。ファームウェアのバージョンがこの操作をサポートしているか確認するか、プリンタが正常に動作しているかを確認してください。"
+
 msgid "Helio action completed successfully."
-msgstr ""
+msgstr "Helioアクションが正常に完了しました。"
 
 msgid "Slice ok."
 msgstr "スライス完了"
@@ -7883,29 +8023,16 @@ msgstr ""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use PLA for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+"overrides XY, disable independent support layer height and use PLA for both support interface and support base"
 msgstr ""
-"推奨設定（TPUをPLAでサポートする場合）：\n"
-"ー　Top Z距離：0\n"
-"ー　インターフェース間隔：0\n"
-"ー　サポートとモデルのXY距離：0\n"
-"ー　パターン：交互の直線\n"
-"ー　独立サポート層の高さ：無効化\n"
-"ー　サポートインターフェース／ベース：PLAを使用"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+"and support base"
 msgstr ""
-"推奨設定（サポート材に水溶性素材を使用する場合）：\n"
-"ー　Top Z距離：0\n"
-"ー　インターフェース間隔：0\n"
-"ー　サポートとモデルのXY距離：0\n"
-"ー　パターン：交互の直線\n"
-"ー　独立サポート層の高さ：無効化\n"
-"ー　サポートインターフェース／ベース：両方に水溶性素材を使用"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -7918,23 +8045,16 @@ msgstr ""
 
 msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
+"independent support layer height"
 msgstr ""
-"サポートインターフェースにサポート材料を使用する場合、以下の設定をお勧めします：\n"
-"0トップZ距離、0インターフェース間隔、交差直線パターン、および独立した積層ピッチを無効にする。"
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+"and support base"
 msgstr ""
-"推奨設定（サポートインターフェースに水溶性素材を使用する場合）：\n"
-"ー　Top Z距離：0\n"
-"ー　インターフェース間隔：0\n"
-"ー　サポートとモデルのXY距離：0\n"
-"ー　パターン：交互の直線\n"
-"ー　独立サポート層の高さ：無効化\n"
-"ー　サポートインターフェース／ベース：両方に水溶性素材を使用"
 
 msgid ""
 "Layer height is too small.\n"
@@ -8110,6 +8230,12 @@ msgstr "フィラメント斜め継ぎ目設定"
 
 msgid "Cooling for specific layer"
 msgstr "特定層の冷却"
+
+msgid "Special cooling settings"
+msgstr "特殊冷却設定"
+
+msgid "set addition fan speed before fist x layer"
+msgstr "指定した最初のx層に対して、追加のファン速度を設定します"
 
 msgid "Part cooling fan"
 msgstr "パーツ冷却ファン"
@@ -9052,31 +9178,31 @@ msgid "reconnect"
 msgstr "再接続"
 
 msgid "Third-party Extension"
-msgstr ""
+msgstr "サードパーティ拡張機能"
 
 msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
-msgstr ""
+msgstr "より高強度な造形、反りの軽減、そして高速な造形を実現 — 高速な物理ベースのFEMシミュレーションによる最適化"
 
 msgid "Uninstall the Helio Additive extension"
-msgstr ""
+msgstr "Helioアディティブ拡張機能をアンインストールする"
 
 msgid "Use Immediately"
-msgstr ""
+msgstr "すぐに使用する"
 
 msgid "Third-Party Extension"
-msgstr ""
+msgstr "サードパーティ拡張機能"
 
 msgid "HELIO ADDITIVE"
 msgstr ""
 
 msgid "Helio Additive third - party software service feature has been successfully enabled!"
-msgstr ""
+msgstr "Helio Additiveの外部ソフトウェアサービス機能が有効になりました！"
 
 msgid "Helio-PAT"
 msgstr ""
 
 msgid "Copy successful!"
-msgstr ""
+msgstr "コピーに成功しました！"
 
 msgid "Helio Additive"
 msgstr ""
@@ -9088,79 +9214,94 @@ msgid "Terms of Use of Helio Additive"
 msgstr "Helio Additive の利用規約"
 
 msgid "Agree and proceed"
-msgstr ""
+msgstr "同意して続行する"
 
 msgid "Got it"
-msgstr ""
+msgstr "了解しました"
 
 msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
-msgstr ""
+msgstr "Helio PATの取得に失敗しました。「更新」をクリックして再取得してください。"
 
 msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
-msgstr ""
+msgstr "PATの取得に失敗しました。上限に達しているため、取得できません。再取得するには「更新」ボタンをクリックしてください。"
 
 msgid "Simulation"
-msgstr ""
+msgstr "シミュレーション"
 
 msgid "Optimization"
+msgstr "最適化"
+
+msgid "Environment Temperature"
 msgstr ""
 
 msgid "Chamber Temperature"
 msgstr "チャンバー温度"
 
 msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
-msgstr ""
+msgstr "注意: 実際の条件に基づいて上記の温度を調整します。より正確なデータを使用すると、より正確な分析結果が得られます。"
 
 msgid "Helio's advanced feature for power users: available post purchase on its official website."
-msgstr ""
+msgstr "Helioの上級者向け機能は、公式サイトで購入後にご利用いただけます。"
 
 msgid "Monthly quota remaining: "
-msgstr ""
+msgstr "月間割当残量: "
 
 msgid "Add-ons available: "
-msgstr ""
+msgstr "利用可能なアドオン: "
 
 msgid "Optimise Outer Walls"
-msgstr ""
+msgstr "外壁の最適化"
 
 msgid "Advanced Settings"
-msgstr ""
+msgstr "詳細設定"
 
 msgid "Min Velocity"
-msgstr ""
+msgstr "最小速度"
 
 msgid "Max Velocity"
-msgstr ""
+msgstr "最大速度"
 
 msgid "Min Volumetric Speed"
-msgstr ""
+msgstr "最小体積速度"
 
 msgid "Max Volumetric Speed"
 msgstr "最大体積速度"
 
 msgid "Last Trace ID: "
-msgstr ""
+msgstr "最後のトレースID: "
 
 msgid "Buy Now"
-msgstr ""
+msgstr "今すぐ購入"
 
 msgid "Click for more details"
 msgstr "詳細はこちら"
 
 msgid "Start Simulation"
-msgstr ""
+msgstr "シミュレーションを開始"
 
 msgid "Start Optimization"
-msgstr ""
+msgstr "最適化を開始"
 
 msgid "Buy add-ons"
-msgstr ""
+msgstr "アドオンを購入する"
 
 msgid "Layers to Optimize "
-msgstr ""
+msgstr "最適化対象のレイヤー"
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
 msgstr "Helio PATの取得に失敗しました。発行済みのPAT数が上限に達しています。Helio公式サイトの情報をご確認のうえ、利用可能になりましたら「更新」をクリックして再取得してください。"
+
+msgid "Print Time Improvement"
+msgstr ""
+
+msgid "Average Improvement"
+msgstr ""
+
+msgid "Consistency Improvement"
+msgstr ""
+
+msgid "Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next."
+msgstr ""
 
 msgid "Air Pump"
 msgstr "エアポンプ"
@@ -9176,9 +9317,6 @@ msgstr "カットモジュール"
 
 msgid "Auto Fire Extinguishing System"
 msgstr "自動消火システム"
-
-msgid "Model:"
-msgstr "モデル"
 
 msgid "Update firmware"
 msgstr "ファームウェアを更新"
@@ -9696,6 +9834,12 @@ msgstr "ウォールを横切らないようにするための最大迂回距離
 msgid "mm or %"
 msgstr "mm 或は %"
 
+msgid "Avoid crossing wall - Includes support"
+msgstr ""
+
+msgid "Including support while avoiding crossing wall."
+msgstr ""
+
 msgid "Other layers"
 msgstr "他の層"
 
@@ -9945,6 +10089,20 @@ msgstr "冷却の為減速"
 msgid "Enable this option to slow printing speed down to make the final layer time not shorter than the layer time threshold in \"Max fan speed threshold\", so that layer can be cooled for a longer time. This can improve the cooling quality for needle and small details"
 msgstr "このオプションを有効にすると、「最大ファンスピードのしきい値」に設定されたレイヤー時間のしきい値より短くならないように、印刷速度を低下させます。これにより、レイヤーの冷却時間が長くなり、細部の印刷品質が向上します。"
 
+msgid "Don't slow down outer walls"
+msgstr "外周壁の速度を低下させない"
+
+msgid ""
+"If enabled, this setting will ensure external perimeters are not slowed down to meet the minimum layer time. This is particularly helpful in the below scenarios:\n"
+"1. To avoid changes in shine when printing glossy filaments\n"
+"2. To avoid changes in external wall speed which may create slight wall artifacts that appear like Z banding\n"
+"3. To avoid printing at speeds which cause VFAs (fine artifacts) on the external walls"
+msgstr ""
+"この設定を有効にすると、最小レイヤー時間を満たすために外周壁の速度が低下するのを防ぎます。以下のようなケースで特に効果的です：\n"
+"1. 光沢フィラメントの印刷時に、艶のムラを防ぐため\n"
+"2. 外周壁の速度変化によって発生する、Zバンディングのような微細なアーティファクトを防ぐため\n"
+"3. 外周壁にVFAs（微細なアーティファクト）が出る原因となる低速印刷を避けるため"
+
 msgid "Normal printing"
 msgstr "通常造形"
 
@@ -9987,14 +10145,17 @@ msgstr "印刷中の排気ファンの速度。この速度は、フィラメン
 msgid "Speed of exhuast fan after printing completes"
 msgstr "印刷完了後の排気ファンの速度"
 
-msgid "No cooling for the first"
-msgstr "冷却しない最初層数"
+msgid "For the first"
+msgstr "最初に"
 
-msgid "Close all cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion"
-msgstr "1層目を造形時に全てのファンをオフにします。ベッドとの接着性を高めます"
+msgid "Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
+msgstr "最初の特定のレイヤーに対して、特別な冷却ファン設定を適用します。ビルドプレートへの密着性を高めるため、1層目の冷却ファンは以前はオフにされており、自動冷却機能と併用されていました。"
 
 msgid "layers"
 msgstr "積層"
+
+msgid "Special cooling fan speed for the first certain layers"
+msgstr "最初の特定レイヤー用の特別な冷却ファン速度"
 
 msgid "Don't support bridges"
 msgstr "ブリッジにサポートしない"
@@ -10330,13 +10491,13 @@ msgid "Filament diameter is used to calculate extrusion in gcode, so it's import
 msgstr "フィラメントの直径はG-code内の押出し計算に使用されるため、重要であり正確である必要があります。"
 
 msgid "Adaptive volumetric speed"
-msgstr ""
+msgstr "適応体積速度"
 
 msgid "When enabled, the extrusion flow is limited by the smaller of the fitted value (calculated from line width and layer height) and the user-defined maximum flow. When disabled, only the user-defined maximum flow is applied."
-msgstr ""
+msgstr "有効にすると、押出フローは「ライン幅とレイヤー高さから計算された適合値」と「ユーザーが設定した最大フロー値」のうち小さい方で制限されます。無効にした場合は、ユーザー設定の最大フロー値のみが適用されます。"
 
 msgid "Max volumetric speed multinomial coefficients"
-msgstr ""
+msgstr "最大体積速度の多項式係数"
 
 msgid "Shrinkage"
 msgstr "収縮"
@@ -10350,10 +10511,10 @@ msgstr ""
 "この補正はチェック後に適用されるため、オブジェクト間に十分なスペースを確保してください。"
 
 msgid "Velocity Adaptation Factor"
-msgstr ""
+msgstr "速度適応係数"
 
 msgid "This parameter reflects the speed at which a material transitions from one state to another. It, along with the smooth coefficient, determines the final length of the transition zone. A larger value: requires a shorter transition zone. A smaller value: requires a longer transition zone to avoid flow instability."
-msgstr ""
+msgstr "このパラメーターは、材料がある状態から別の状態へと変化する速度を表します。スムーズ係数とともに、遷移ゾーンの最終的な長さを決定する役割を持ちます。値が大きいほど短い遷移ゾーンで済み、値が小さい場合はフローの不安定を避けるために、より長い遷移ゾーンが必要になります。"
 
 msgid "Adhesiveness Category"
 msgstr "粘着性カテゴリー"
@@ -10629,6 +10790,9 @@ msgstr "最大回転速度の積層"
 msgid "Randomly jitter while printing the wall, so that the surface has a rough look. This setting controls the fuzzy position"
 msgstr "この設定により、壁面を造形時にノズルがランダムで軽微な振動を加えます。これにより、表面にザラザラ感が出来上がります。"
 
+msgid "None(allow paint)"
+msgstr "なし（ペイント可）"
+
 msgid "All walls"
 msgstr "すべての壁"
 
@@ -10647,8 +10811,8 @@ msgstr "各線分上に導入されたランダムな点間の平均距離"
 msgid "Filter out tiny gaps"
 msgstr "微小な隙間を除外"
 
-msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
-msgstr "指定したしきい値より小さい隙間を除外します。この設定はトップ/ボトムレイヤーには影響しません。"
+msgid "Filter out gaps smaller than the threshold specified. Gaps smaller than this threshold will be ignored"
+msgstr "指定したしきい値より小さい隙間を除外します。このしきい値未満の隙間は無視されます。"
 
 msgid "Precise wall"
 msgstr "精密ウォール"
@@ -10722,9 +10886,6 @@ msgstr "ステンレススチール"
 msgid "Tungsten carbide"
 msgstr "炭化タングステン"
 
-msgid "Brass"
-msgstr "真鍮"
-
 msgid "Printer structure"
 msgstr "プリンタ構造"
 
@@ -10739,6 +10900,15 @@ msgstr "ベッド形状に対する最適な自動配置位置（範囲 [0,1]）
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "パーツ補助冷却ファンがある場合、このオプションを有効にしてください。"
+
+msgid "Fan direction"
+msgstr "ファンの向き"
+
+msgid "Cooling fan direction of the printer"
+msgstr "プリンターの冷却ファンの向き"
+
+msgid "Both"
+msgstr "両方"
 
 msgid "Support control chamber temperature"
 msgstr "チャンバー温度の制御サポート"
@@ -11299,6 +11469,12 @@ msgstr "デフォルトノズルボリュームタイプ"
 msgid "Extra length on restart"
 msgstr "再開時の追加長さ"
 
+msgid "When the retraction is compensated after the travel move, the extruder will push this additional amount of filament. This setting is rarely needed."
+msgstr "移動後にリトラクションが補正される際、押出機はこの追加量のフィラメントを押し出します。この設定が必要になるケースはほとんどありません。"
+
+msgid "When the retraction is compensated after changing tool, the extruder will push this additional amount of filament."
+msgstr "ツール変更後にリトラクションが補正される際、押出機はこの追加量のフィラメントを押し出します。"
+
 msgid "Retraction Speed"
 msgstr "引き込み速度"
 
@@ -11669,6 +11845,12 @@ msgstr "ツリーハイブリッド"
 msgid "Tree Organic"
 msgstr "ツリーオーガニック"
 
+msgid "Z overrides X/Y"
+msgstr ""
+
+msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
+msgstr ""
+
 msgid "Independent support layer height"
 msgstr "独立サポート層ピッチ"
 
@@ -11922,6 +12104,9 @@ msgstr "正の値はリブ壁のサイズを増加させ、負の値はサイズ
 
 msgid "Rib width"
 msgstr "リブ幅"
+
+msgid "Rib width is always less than half the prime tower side length."
+msgstr "リブの幅は常にプライムタワーの一辺の長さの半分未満になります。"
 
 msgid "Skip points"
 msgstr "ポイントをスキップ"
@@ -12482,6 +12667,9 @@ msgstr "プリンタ%s のノズル情報が設定されていません。キャ
 msgid "AMS and nozzle information are synced"
 msgstr "AMSとノズルの情報は同期されています。"
 
+msgid "Nozzle Flow"
+msgstr "ノズル流量"
+
 msgid "Nozzle Info"
 msgstr "ノズル情報"
 
@@ -12672,9 +12860,9 @@ msgid ""
 "Start temp >= End temp + 5)"
 msgstr ""
 "有効な値を入力してください：\n"
-"\t•\t開始温度：350度以下\n"
-"\t•\t終了温度：180度 以上\n"
-"\t•\t開始温度は終了温度より5 度以上高くしてください"
+"	•	開始温度：350度以下\n"
+"	•	終了温度：180度 以上\n"
+"	•	開始温度は終了温度より5 度以上高くしてください"
 
 msgid "Max volumetric speed test"
 msgstr "最大体積速度テスト"
@@ -12694,9 +12882,9 @@ msgid ""
 "end >= start + step)"
 msgstr ""
 "有効な値を入力してください：\n"
-"\t•\t開始値（start） > 0\n"
-"\t•\tステップサイズ（step） ≥ 0\n"
-"\t•\t終了値（end） ≥ 開始値 + ステップサイズ"
+"	•	開始値（start） > 0\n"
+"	•	ステップサイズ（step） ≥ 0\n"
+"	•	終了値（end） ≥ 開始値 + ステップサイズ"
 
 msgid "VFA test"
 msgstr "VFA テスト"
@@ -12713,9 +12901,9 @@ msgid ""
 "end >= start + step)"
 msgstr ""
 "有効な値を入力してください：\n"
-"\t•\t開始値（start） > 10\n"
-"\t•\tステップサイズ（step） ≥ 0\n"
-"\t•\t終了値（end） ≥ 開始値 + ステップサイズ"
+"	•	開始値（start） > 10\n"
+"	•	ステップサイズ（step） ≥ 0\n"
+"	•	終了値（end） ≥ 開始値 + ステップサイズ"
 
 msgid "Start retraction length: "
 msgstr "引き込み開始の長さ： "
@@ -12797,55 +12985,77 @@ msgstr "キャンセル中"
 msgid "Error uploading to print host:"
 msgstr "プリントホストへのアップロードエラー:"
 
-msgid "Unable to perform boolean operation on selected parts"
-msgstr "選択したパーツに対してブール演算を実行できません"
+msgid "Unable to perform boolean operation on selected parts."
+msgstr "選択したパーツに対してブール演算を実行できません."
 
-msgid "Performed boolean intersection fails because the selected parts have no intersection"
-msgstr "選択したパーツに交差がないため、ブール演算の交差処理に失敗しました。"
+msgid "Operation Canceled."
+msgstr "操作はキャンセルされました。"
+
+msgid "Operation Failed."
+msgstr "操作に失敗しました。"
+
+msgid "Union operation requires at least two volumes."
+msgstr "結合処理を行うには、少なくとも2つのボリュームが必要です。"
+
+msgid "Intersection operation requires at least two volumes."
+msgstr "交差処理を行うには、少なくとも2つのボリュームが必要です。"
+
+msgid "Difference operation requires at least one volume in both A and B lists."
+msgstr "差分処理を行うには、AリストとBリストの両方に少なくとも1つのボリュームが必要です。"
+
+msgid "Union operation requires at least two objects."
+msgstr "結合処理を行うには、少なくとも2つのオブジェクトが必要です。"
+
+msgid "Intersection operation requires at least two objects."
+msgstr "交差処理処理を行うには、少なくとも2つのオブジェクトが必要です。"
+
+msgid "Difference operation requires at least one object in both A and B lists."
+msgstr "差分処理を行うには、AリストとBリストの両方に少なくとも1つのオブジェクトが必要です。"
+
+msgid "Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
+msgstr "オブジェクト単位でのパーツのグループ化と結合に失敗しました。自己交差、非マニホールド形状、またはメッシュの開口部がないかご確認ください。"
+
+msgid "No overlapping region found. Boolean intersection failed."
+msgstr "重なり合う領域が見つかりませんでした。ブール交差処理に失敗しました。"
 
 msgid "Mesh Boolean"
 msgstr "メッシュブール演算"
 
-msgid ""
-"Please add at least one more object and select them together,\n"
-"then right click to assembly these objects."
-msgstr "少なくとももう一つオブジェクトを追加し、一緒に選択してください。その後、右クリックしてオブジェクトを組み立ててください。"
+msgid "- Object mode: Please select at least two objects."
+msgstr "- オブジェクトモード：2つ以上のオブジェクトを選択してください。"
 
-msgid "Please right click to assembly these objects."
-msgstr "右クリックして、これらのオブジェクトを組み立ててください。"
+msgid "- Part mode: Please select one object with at least two meshes."
+msgstr "- パーツモード: 2つ以上のメッシュを含む1つのオブジェクトを選択してください。"
 
 msgid "Union"
 msgstr "合成"
 
 msgid "Difference"
-msgstr "違い"
+msgstr "Subtraction"
 
 msgid "Intersection"
 msgstr "交差点"
 
-msgid "Source Volume"
-msgstr "ソースボリューム"
+msgid "Selected Objects"
+msgstr ""
 
-msgid "Tool Volume"
-msgstr "ツールボリューム"
+msgid "Selected Parts"
+msgstr ""
 
-msgid "selected"
-msgstr "選択済み"
+msgid "Keep original models"
+msgstr ""
 
-msgid "Part 1"
-msgstr "パート1"
+msgid "Execute"
+msgstr ""
 
-msgid "Subtract from"
-msgstr "減算"
+msgid "Entity Only"
+msgstr ""
 
-msgid "Part 2"
-msgstr "パート 2"
+msgid "Perform Boolean operations on entities only."
+msgstr ""
 
-msgid "Subtract with"
-msgstr "減算"
-
-msgid "Delete input"
-msgstr "入力を削除"
+msgid "This object contains non-part components."
+msgstr ""
 
 msgid "Network Test"
 msgstr "ネットワークテスト"
@@ -13350,6 +13560,18 @@ msgstr "折りたたむ"
 msgid "Daily Tips"
 msgstr "毎日のヒント"
 
+msgid ""
+"The printer nozzle information has not been set.\n"
+"Please configure it before proceeding with the calibration."
+msgstr ""
+"プリンターのノズル情報が設定されていません。\n"
+"キャリブレーションを行う前に、設定を完了してください。"
+
+msgid ""
+"The nozzle type does not match the actual printer nozzle type.\n"
+"Please click the Sync button above and restart the calibration."
+msgstr "ノズルの種類が、実際のプリンターノズルと一致していません。上の［同期］ボタンをクリックしてから、キャリブレーションを再実行してください。"
+
 #, c-format, boost-format
 msgid ""
 "Please input valid values:\n"
@@ -13400,6 +13622,10 @@ msgid "The number of printer extruders and the printer selected for calibration 
 msgstr "プリンタの押出機の数と、キャリブレーション対象として選択されたプリンタの数が一致しません。"
 
 #, c-format, boost-format
+msgid "The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."
+msgstr ""
+
+#, c-format, boost-format
 msgid ""
 "The currently selected nozzle diameter of %s extruder does not match the actual nozzle diameter.\n"
 "Please click the Sync button above and restart the calibration."
@@ -13421,9 +13647,6 @@ msgid ""
 msgstr ""
 "現在選択されている%s 押出機のノズルタイプが、実際のプリンタのノズルタイプと一致していません。\n"
 "上の「同期」ボタンをクリックし、キャリブレーションを再開してください。"
-
-msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "自動キャリブレーションは、左右のノズル径が同じ場合にのみ対応します。"
 
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "キャリブレーションできません。設定されたキャリブレーション値の範囲が広すぎるか、ステップが小さすぎる可能性があります。"
@@ -13726,16 +13949,16 @@ msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "造形速度を重視した、0.8mmノズル用の標準プロファイルです。"
 
 msgid "Failed to create GCodeV2"
-msgstr ""
+msgstr "GCodeV2 の作成に失敗しました。"
 
 msgid "Failed to parse response"
-msgstr ""
+msgstr "応答の解析に失敗しました"
 
 msgid "Helio simulation task failed"
-msgstr ""
+msgstr "Helioシミュレーションタスクが失敗しました"
 
 msgid "Helio optimization task failed"
-msgstr ""
+msgstr "Helio最適化タスクが失敗しました"
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Helio APIエンドポイントが未設定です。設定内容を確認してください。"
@@ -13768,31 +13991,31 @@ msgid "Helio: simulation failed"
 msgstr "Helio：シミュレーションに失敗しました"
 
 msgid "Helio: Simulation check failed"
-msgstr ""
+msgstr "Helio：シミュレーションチェックに失敗しました"
 
-msgid "Helio: Failed to create Simulation\n"
-msgstr ""
+msgid "Helio: Failed to create Simulation"
+msgstr "Helio: シミュレーションの作成に失敗しました"
 
-msgid "Helio: Failed to create GCode\n"
-msgstr ""
+msgid "Helio: Failed to create GCode"
+msgstr "Helio: Gコードの作成に失敗しました"
 
 msgid "Helio: optimization successfully created"
-msgstr ""
+msgstr "Helio：最適化が正常に作成されました"
 
 msgid "Helio: optimization working"
-msgstr ""
+msgstr "Helio: 最適化作業中"
 
 msgid "Helio: Optimzaion check failed"
-msgstr ""
+msgstr "Helio：最適化チェックに失敗しました"
 
-msgid "Helio: Failed to create Optimization\n"
-msgstr ""
+msgid "Helio: Failed to create Optimization"
+msgstr "Helio：最適化の作成に失敗しました"
 
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio：Gコードのダウンロードに成功しました"
 
-msgid "Helio: GCode download failed\n"
-msgstr ""
+msgid "Helio: GCode download failed"
+msgstr "Helio：GCodeのダウンロードに失敗しました"
 
 msgid "No AMS"
 msgstr "AMS無し"
@@ -13924,9 +14147,6 @@ msgstr "削除しました"
 
 msgid "Management user presets"
 msgstr "ユーザープリセットの管理"
-
-msgid "Custom filaments"
-msgstr "カスタムフィラメント"
 
 msgid "No content"
 msgstr "コンテンツなし"
@@ -14299,66 +14519,88 @@ msgid ""
 "Single-Material Only\n"
 "Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
 msgstr ""
+"単一材料のみ対応\n"
+"現在、Helioは1つの材料と1つのノズルに対してのみシミュレーションを行います。マルチマテリアルまたはマルチ押出機のGコードでは、熱的な連続性を損なう長い停止時間が挿入されるため、シミュレーション結果が正確でなくなります。"
 
 #: resources/data/helio_hints.ini: [hint: One Plate per Job]
 msgid ""
 "One Plate per Job\n"
 "Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
 msgstr ""
+"ジョブあたり1枚のプレートのみ対応\n"
+"アップロードするGコードは、1つのビルドプレートに限定してください。現在、マルチプレートのプロジェクトには対応しておらず、最初のプレートのみが処理されます。"
 
 #: resources/data/helio_hints.ini: [hint: What is the Thermal Quality Index?]
 msgid ""
 "What is the Thermal Quality Index?\n"
 "The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
 msgstr ""
+"サーマルクオリティインデックスとは？\n"
+"サーマルクオリティインデックス（範囲：–100 〜 +100）は、各領域がどれだけ熱い／冷たい状態で造形されているかを示します。緑色（≈ 0） は「ちょうど良い」温度ゾーンであり、強度が高く、反りのない造形に最適です。最良の結果を得るには、モデル全体をできるだけ緑のゾーンに保ちましょう。"
 
 #: resources/data/helio_hints.ini: [hint: Voxel-Level Accuracy]
 msgid ""
 "Voxel-Level Accuracy\n"
 "We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
 msgstr ""
+"ボクセルレベルの高精度予測\n"
+"あらゆる時点において、すべてのボクセルの温度を予測しています。標準的なジョブであれば、予測誤差は通常±5〜10℃の範囲に収まります。ただし、一時停止、カスタムファームウェア、特殊な冷却設定がある場合は、この誤差が大きくなることがあります。"
 
 #: resources/data/helio_hints.ini: [hint: Fan & Airflow Model]
 msgid ""
 "Fan & Airflow Model\n"
 "A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
 msgstr ""
+"ファン & エアフローモデル\n"
+"簡略化されたファンおよび室内空気流モデルにより、CFD（数値流体力学）の重い計算なしで、冷却設定が部品温度に与える影響を視覚化できます。日常的なチューニングに最適です。なお、チャンバー内の渦（ボルテックス）は現在シミュレーション対象外のため、処理は高速に保たれています。"
 
 #: resources/data/helio_hints.ini: [hint: TQI Limits Explained]
 msgid ""
 "TQI Limits Explained\n"
 "-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
 msgstr ""
+"TQI（サーマルクオリティインデックス）の範囲について\n"
+"–100：冷えすぎ→ 引張強度は理想的な値（0）で造形した部品と比べて約50％低下します（ASTM D638 ドッグボーン試験による）。+100：熱すぎ→ レイヤーが溶けたままになり、垂れや崩れが発生する可能性があります。0付近を維持することで、最大の強度と精度が得られます。"
 
 #: resources/data/helio_hints.ini: [hint: What Drives Runtime?]
 msgid ""
 "What Drives Runtime?\n"
 "Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
 msgstr ""
+"処理時間が延びる要因とは？\n"
+"レイヤー数の増加、高密度のインフィル、細かいアーク（小さなメッシュ要素）、非常に遅い印刷速度などは、シミュレーション時間を長くします。これは、ソルバーがより多くの秒数分の計算ステップを必要とするためです。マルチコアCPUやCUDA対応GPUを使用すると、処理を高速化できます。"
 
 #: resources/data/helio_hints.ini: [hint: Nozzle Temp Range]
 msgid ""
 "Nozzle Temp Range\n"
 "Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
 msgstr ""
+"ノズル温度範囲\n"
+"対応している設定温度は 190～320 °C です。この範囲外の値は、物理的に妥当なシミュレーション結果を保つため、自動的に制限されます。"
 
 #: resources/data/helio_hints.ini: [hint: Debugging Flowchart]
 msgid ""
 "Debugging Flowchart\n"
 "Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
 msgstr ""
+"デバッグフローチャート\n"
+"結果がおかしく見える理由が分かりませんか。設定・Gコード・材料の問題を数分で特定できるよう、ステップごとのデバッグ用フローチャートをご用意しています。"
 
 #: resources/data/helio_hints.ini: [hint: Why Cooling Varies]
 msgid ""
 "Why Cooling Varies\n"
 "Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
 msgstr ""
+"冷却が変化する理由\n"
+"外周壁やブリッジは冷却が早く、厚みのある内部は熱がこもりやすくなります。形状、気流、ツールパスなどの要素が影響し、それらの違いをシミュレーションが可視化します。"
 
 #: resources/data/helio_hints.ini: [hint: Extrusion Temp Model]
 msgid ""
 "Extrusion Temp Model\n"
 "Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
 msgstr ""
+"押出温度モデル\n"
+"材料の特性によって溶融曲線が決まりますが、実際にフィラメントが受け取る熱量はプリンターの構造によって左右されます。そのため、このモデルは材料ごとに異なり、プリンターに合わせてキャリブレーションされています。"
 
 #: resources/data/helio_hints.ini: [hint: Nozzle setting of 190 °C vs 320
 #: °C?]
@@ -14366,33 +14608,156 @@ msgid ""
 "Nozzle setting of 190 °C vs 320 °C?\n"
 "A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
 msgstr ""
+"ノズル設定温度 190 °C と 320 °C の違いは？\n"
+"ノズル温度を100 °C変えても、サーマルインデックスへの影響はわずかです。というのも、部品の熱履歴において支配的なのは、押出時の温度・フロー率・造形後の冷却だからです。"
 
 #: resources/data/helio_hints.ini: [hint: Bed Temperature influence]
 msgid ""
 "Bed Temperature influence\n"
 "Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
 msgstr ""
+"ベッド温度の影響について\n"
+"現在、モデルに反映されるのは一層目のベッド温度のみです。その後のベッド温度の変化は、まだシミュレーションに反映されていません。"
 
 #: resources/data/helio_hints.ini: [hint: Actual Tool-Path]
 msgid ""
 "Actual Tool-Path\n"
 "Yes—your exact G-code path, speeds and fan commands are simulated."
 msgstr ""
+"実際のツールパスについて\n"
+"はい、Gコードの正確なツールパス、速度、ファンの指令までシミュレーションされています。"
 
 #: resources/data/helio_hints.ini: [hint: Mesh Resolution]
 msgid ""
 "Mesh Resolution\n"
 "The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
 msgstr ""
+"メッシュ解像度\n"
+"ボクセルグリッドはGコードのライン間隔よりも高密度に設定されており、計算リソースを無駄にすることなく、レイヤーごとの細部まで捉えることができます。"
 
 #: resources/data/helio_hints.ini: [hint: Shrinkage, Warping & Stress]
 msgid ""
 "Shrinkage, Warping & Stress\n"
 "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
 msgstr ""
+"収縮・反り・内部応力\n"
+"サーマルインデックスを適切に管理することで、熱による反りや応力の原因を取り除くことができます。"
 
-#~ msgid "Helio Simulation"
-#~ msgstr "Helioシミュレーション"
+#, c-format, boost-format
+#~ msgid "Remaining time: %s"
+#~ msgstr "残り時間: %s"
+
+#, c-format, boost-format
+#~ msgid "The nozzle diameter of %s extruder is 0.2mm which does not support automatic Flow Dynamics calibration."
+#~ msgstr "%s押出機のノズル径は0.2mmのため、自動\bフローダイナミクスキャリブレーションには対応していません。"
+
+#~ msgid "click to retry"
+#~ msgstr "クリックして再試行"
+
+#~ msgid "No available external storage was obtained. Please confirm and try again."
+#~ msgstr "使用可能な外部ストレージがありません。ご確認の上、再度お試しください。"
+
+#~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
+#~ msgstr "メディア能力の取得タイムアウトが発生しました。ファームウェアのバージョンがこれをサポートしているか確認してください。"
+
+#~ msgid "Sending failed, please try again!"
+#~ msgstr "送信できませんでした。もう一度試してください。"
+
+#~ msgid ""
+#~ "When using PLA to support TPU, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use PLA for both support interface and support base"
+#~ msgstr ""
+#~ "推奨設定（TPUをPLAでサポートする場合）：\n"
+#~ "ー　Top Z距離：0\n"
+#~ "ー　インターフェース間隔：0\n"
+#~ "ー　サポートとモデルのXY距離：0\n"
+#~ "ー　パターン：交互の直線\n"
+#~ "ー　独立サポート層の高さ：無効化\n"
+#~ "ー　サポートインターフェース／ベース：PLAを使用"
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "推奨設定（サポート材に水溶性素材を使用する場合）：\n"
+#~ "ー　Top Z距離：0\n"
+#~ "ー　インターフェース間隔：0\n"
+#~ "ー　サポートとモデルのXY距離：0\n"
+#~ "ー　パターン：交互の直線\n"
+#~ "ー　独立サポート層の高さ：無効化\n"
+#~ "ー　サポートインターフェース／ベース：両方に水溶性素材を使用"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+#~ msgstr ""
+#~ "サポートインターフェースにサポート材料を使用する場合、以下の設定をお勧めします：\n"
+#~ "0トップZ距離、0インターフェース間隔、交差直線パターン、および独立した積層ピッチを無効にする。"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "推奨設定（サポートインターフェースに水溶性素材を使用する場合）：\n"
+#~ "ー　Top Z距離：0\n"
+#~ "ー　インターフェース間隔：0\n"
+#~ "ー　サポートとモデルのXY距離：0\n"
+#~ "ー　パターン：交互の直線\n"
+#~ "ー　独立サポート層の高さ：無効化\n"
+#~ "ー　サポートインターフェース／ベース：両方に水溶性素材を使用"
+
+#~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
+#~ msgstr "指定したしきい値より小さい隙間を除外します。この設定はトップ/ボトムレイヤーには影響しません。"
+
+#~ msgid "Unable to perform boolean operation on selected parts"
+#~ msgstr "選択したパーツに対してブール演算を実行できません"
+
+#~ msgid "Performed boolean intersection fails because the selected parts have no intersection"
+#~ msgstr "選択したパーツに交差がないため、ブール演算の交差処理に失敗しました。"
+
+#~ msgid ""
+#~ "Please add at least one more object and select them together,\n"
+#~ "then right click to assembly these objects."
+#~ msgstr "少なくとももう一つオブジェクトを追加し、一緒に選択してください。その後、右クリックしてオブジェクトを組み立ててください。"
+
+#~ msgid "Please right click to assembly these objects."
+#~ msgstr "右クリックして、これらのオブジェクトを組み立ててください。"
+
+#~ msgid "Source Volume"
+#~ msgstr "ソースボリューム"
+
+#~ msgid "Tool Volume"
+#~ msgstr "ツールボリューム"
+
+#~ msgid "selected"
+#~ msgstr "選択済み"
+
+#~ msgid "Part 1"
+#~ msgstr "パート1"
+
+#~ msgid "Subtract from"
+#~ msgstr "減算"
+
+#~ msgid "Part 2"
+#~ msgstr "パート 2"
+
+#~ msgid "Subtract with"
+#~ msgstr "減算"
+
+#~ msgid "Delete input"
+#~ msgstr "入力を削除"
+
+#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "自動キャリブレーションは、左右のノズル径が同じ場合にのみ対応します。"
+
+#~ msgid "Helio Action"
+#~ msgstr "Helioアクション"
+
+#~ msgid "Nozzle Type"
+#~ msgstr "ノズルタイプ"
 
 #~ msgid "Helio Options"
 #~ msgstr "Helio オプション"
@@ -14436,6 +14801,21 @@ msgstr ""
 #~ msgid "Agree"
 #~ msgstr "同意"
 
+#~ msgid "No cooling for the first"
+#~ msgstr "冷却しない最初層数"
+
+#~ msgid "Close all cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion"
+#~ msgstr "1層目を造形時に全てのファンをオフにします。ベッドとの接着性を高めます"
+
+#~ msgid "Custom filaments"
+#~ msgstr "カスタムフィラメント"
+
+#~ msgid "Helio Simulation"
+#~ msgstr "Helioシミュレーション"
+
+#~ msgid "High chamber temperature is required. Please close the door."
+#~ msgstr "チャンバー内を高温に保つ必要があります。ドアを閉めてください。"
+
 #~ msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
 #~ msgstr "ご注意：上記の温度は実際の状況に応じて設定してください。データが正確であるほど、分析結果の精度も高くなります。"
 
@@ -14444,9 +14824,6 @@ msgstr ""
 
 #~ msgid "Helio: Process Started"
 #~ msgstr "Helio：プロセスを開始しました"
-
-#~ msgid "Helio Action"
-#~ msgstr "Helioアクション"
 
 #~ msgctxt "air_duct"
 #~ msgid "Right"

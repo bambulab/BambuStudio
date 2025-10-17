@@ -337,6 +337,10 @@ void PrintObject::make_perimeters()
         }
         m_typed_slices = false;
     }
+    if (this->config().enable_circle_compensation) { // we need the circle_compensation information
+        for (Layer *layer : m_layers) layer->apply_auto_circle_compensation();
+        m_typed_slices = true;
+    }
 
     // compare each layer to the one below, and mark those slices needing
     // one additional inner perimeter, like the top of domed objects-
@@ -508,7 +512,8 @@ void PrintObject::prepare_infill()
     // Then the classifcation of $layerm->slices is transfered onto
     // the $layerm->fill_surfaces by clipping $layerm->fill_surfaces
     // by the cummulative area of the previous $layerm->fill_surfaces.
-    this->detect_surfaces_type();
+    std::vector<std::vector<SurfaceCollection>> slice_surfaces_cpy;
+    this->detect_surfaces_type(slice_surfaces_cpy);
     m_print->throw_if_canceled();
 
     // Also tiny stInternal surfaces are turned to stInternalSolid.
@@ -569,7 +574,7 @@ void PrintObject::prepare_infill()
 
     if (m_config.interlocking_beam.value)
         discover_shell_for_perimeters();
-
+    reset_slice_surfaces(slice_surfaces_cpy);
     // Only active if config->infill_only_where_needed. This step trims the sparse infill,
     // so it acts as an internal support. It maintains all other infill types intact.
     // Here the internal surfaces and perimeters have to be supported by the sparse infill.
@@ -633,7 +638,7 @@ void PrintObject::infill()
                for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                    m_print->throw_if_canceled();
                    m_layers[layer_idx]->make_fills(adaptive_fill_octree.get(), support_fill_octree.get(), this->m_lightning_generator.get());
-               }
+                }
            }
         );
         m_print->throw_if_canceled();
@@ -1272,6 +1277,23 @@ bool PrintObject::invalidate_all_steps()
 	return result;
 }
 
+void PrintObject::reset_slice_surfaces(const std::vector<std::vector<SurfaceCollection>> &slice_surfaces_cpy){
+    //reset infill surface and slice data back
+    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
+        for (size_t idx_layer = 0; idx_layer < m_layers.size(); ++ idx_layer) {
+
+            Layer       *layer  = m_layers[idx_layer];
+            LayerRegion *layerm = layer->m_regions[region_id];
+            if(layerm->region().config().sparse_infill_pattern == ipLockedZag){
+                layerm->slices = slice_surfaces_cpy[idx_layer][region_id];
+                ExPolygons exps;
+                layerm->fill_surfaces.keep_type(SurfaceType::stInternal, exps);
+                layerm->fill_surfaces.append(exps, SurfaceType::stTop);
+            }
+        }
+    }
+}
+
 // This function analyzes slices of a region (SurfaceCollection slices).
 // Each region slice (instance of Surface) is analyzed, whether it is supported or whether it is the top surface.
 // Initially all slices are of type stInternal.
@@ -1281,7 +1303,7 @@ bool PrintObject::invalidate_all_steps()
 // stBottom       - Part of a region, which is not supported by the same region, but it is supported either by another region, or by a soluble interface layer.
 // stInternal     - Part of a region, which is supported by the same region type.
 // If a part of a region is of stBottom and stTop, the stBottom wins.
-void PrintObject::detect_surfaces_type()
+void PrintObject::detect_surfaces_type(std::vector<std::vector<SurfaceCollection>> &slice_surfaces_cpy)
 {
     BOOST_LOG_TRIVIAL(info) << "Detecting solid surfaces..." << log_memory_info();
 
@@ -1307,6 +1329,7 @@ void PrintObject::detect_surfaces_type()
         if (interface_shells)
             surfaces_new.assign(num_layers, Surfaces());
 
+        slice_surfaces_cpy.resize(m_layers.size());
         // interface_shell 启用与否，决定着是否区分不同材料。开启后，不同材料间的接触面都会被识别为顶面、底面
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0,
@@ -1315,7 +1338,7 @@ void PrintObject::detect_surfaces_type()
             		((num_layers > 1) ? num_layers - 1 : num_layers) :
             		// In non-spiral vase mode, go over all layers.
             		m_layers.size()),
-            [this, spiral_mode, region_id, interface_shells, &surfaces_new](const tbb::blocked_range<size_t>& range) {
+                [this, spiral_mode, region_id, interface_shells, &surfaces_new, &slice_surfaces_cpy](const tbb::blocked_range<size_t> &range) {
                 // BBS coconut: can't set to stBottom when soluable support is used, as the support may not be actaully generated, e.g. when "on build plate only" option is enabled. See github #3507.
                 SurfaceType surface_type_bottom_other = stBottomBridge;
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
@@ -1323,6 +1346,12 @@ void PrintObject::detect_surfaces_type()
                     // BOOST_LOG_TRIVIAL(trace) << "Detecting solid surfaces for region " << region_id << " and layer " << layer->print_z;
                     Layer       *layer  = m_layers[idx_layer];
                     LayerRegion *layerm = layer->m_regions[region_id];
+                    slice_surfaces_cpy[idx_layer].resize(layer->m_regions.size());
+                    //record surface data
+                    if(layerm->region().config().sparse_infill_pattern == ipLockedZag) {
+                        // layerm->fill_surfaces_copy = layerm->fill_expolygons;
+                        slice_surfaces_cpy[idx_layer][region_id] = layerm->slices;
+                    }
                     // comparison happens against the *full* slices (considering all regions)
                     // unless internal shells are requested
                     Layer       *upper_layer = (idx_layer + 1 < this->layer_count()) ? m_layers[idx_layer + 1] : nullptr;

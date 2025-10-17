@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 15:18+0800\n"
+"POT-Creation-Date: 2025-10-14 18:46+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -45,6 +45,12 @@ msgstr "extrusor"
 
 msgid "TPU is not supported by AMS."
 msgstr "El AMS no admite TPU."
+
+msgid "AMS does not support 'Bambu Lab PET-CF'."
+msgstr "El AMS no incluye 'Bambu Lab PET-CF'."
+
+msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
+msgstr "Antes de imprimir en TPU, tire de la tinta en frío para evitar obstrucciones. Puede usar el mantenimiento de la impresora con tirada en frío."
 
 msgid "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
 msgstr "El PVA húmedo se volverá flexible y se atascará dentro del AMS; asegúrate de secarlo bien antes de usarlo."
@@ -89,6 +95,9 @@ msgstr "Inactivo"
 #, c-format, boost-format
 msgid "%d ℃"
 msgstr ""
+
+msgid "Model:"
+msgstr "Modelo:"
 
 msgid "Serial:"
 msgstr "Número de serie:"
@@ -343,7 +352,7 @@ msgid "Tool-Rotate"
 msgstr "Herramienta-rotar"
 
 msgid "Tool-Lay on Face"
-msgstr "Herramienta - Alinear sobre una cara"
+msgstr "Herramienta – Poner sobre la cara"
 
 msgid "Bottom:"
 msgstr "Abajo:"
@@ -1065,6 +1074,9 @@ msgstr "Grosor"
 msgid "Input text"
 msgstr "Texto de entrada"
 
+msgid "Advanced"
+msgstr "Avanzado"
+
 msgid "Embeded depth"
 msgstr "Profundidad incrustada"
 
@@ -1087,7 +1099,7 @@ msgid "Warning:text normal has been reset."
 msgstr "Advertencia: el texto normal se ha restablecido."
 
 msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
-msgstr ""
+msgstr "Advertencia: el espaciado actual del texto no es muy razonable. Si continúa editando, se generará un espaciado de texto más razonable."
 
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "Advertencia: la matriz anterior tiene al menos dos parámetros: reflejo, escala y rotación. Si continúa editando, puede que no sea correcto. Arrastra el texto o cancela usando la postura actual, guárdalo y vuelve a editarlo."
@@ -1119,6 +1131,20 @@ msgstr "No se puede seleccionar la fuente %1% \"."
 
 msgid "Revert text size."
 msgstr "Revierte el tamaño del texto."
+
+msgid ""
+"Advanced options cannot be changed for the selected font.\n"
+"Select another font."
+msgstr ""
+"No se pueden cambiar las opciones avanzadas para la fuente seleccionada.\n"
+"Seleccione otra fuente."
+
+#. TRN - Input label. Be short as possible
+msgid "Boldness"
+msgstr "Audacia"
+
+msgid "Skew"
+msgstr "Sesgar"
 
 msgid "No symbol"
 msgstr "Sin símbolo"
@@ -1153,10 +1179,6 @@ msgstr "Brecha de texto"
 #. TRN - Input label. Be short as possible
 msgid "Line gap"
 msgstr "Brecha de línea"
-
-#. TRN - Input label. Be short as possible
-msgid "Boldness"
-msgstr "Audacia"
 
 #. TRN - Input label. Be short as possible
 #. Like Font italic
@@ -1684,9 +1706,6 @@ msgstr "Opciones de limpieza"
 
 msgid "Bed adhension"
 msgstr "Adhesión a la cama"
-
-msgid "Advanced"
-msgstr "Avanzado"
 
 msgid "Add part"
 msgstr "Añadir pieza"
@@ -2488,7 +2507,11 @@ msgstr "Der (Aux)"
 
 msgctxt "air_duct"
 msgid "Right(Filter)"
-msgstr ""
+msgstr "Derecha(Filtro)"
+
+msgctxt "air_duct"
+msgid "Left(Aux)"
+msgstr "Izq (Aux)"
 
 msgid "Hotend"
 msgstr "Cabezal caliente"
@@ -2727,6 +2750,19 @@ msgstr "Se ha enviado correctamente. Cerrar la página actual en %s s"
 
 msgid "Storage needs to be inserted before sending to printer."
 msgstr "Es necesario insertar el almacenamiento antes de enviarlo a la impresora."
+
+msgid "Thermal Preconditioning for first layer optimization"
+msgstr "Pre-acondicionamiento térmico para la optimización de la primera capa"
+
+msgid "Remaining time: Calculating..."
+msgstr "Tiempo restante: Calculando..."
+
+msgid "The heated bed's thermal preconditioning helps optimize the first layer print quality. Printing will start once preconditioning is complete."
+msgstr "El pre-acondicionamiento térmico de la cama térmica ayuda a optimizar la calidad de impresión de la primera capa. La impresión comenzará una vez que el pre-acondicionamiento esté completo."
+
+#, c-format, boost-format
+msgid "Remaining time: %dmin%ds"
+msgstr ""
 
 msgid "Choose SLA archive:"
 msgstr "Elija el archivo de SLA:"
@@ -3173,6 +3209,27 @@ msgstr "Detección de impresión en el aire"
 
 msgid "Detects clogging and filament grinding, halting printing immediately to conserve time and filament."
 msgstr "Detecta las obstrucciones y la trituración de los filamentos, deteniendo la impresión de inmediato para ahorrar tiempo y filamento."
+
+msgid "AMS Type"
+msgstr "Tipo de AMS"
+
+msgid "Switching"
+msgstr "Cambiando"
+
+msgid "The printer is busy and cannot switch AMS type."
+msgstr "La impresora está ocupada y no puede cambiar el tipo de AMS."
+
+msgid "Please unload all filament before switching."
+msgstr "Por favor, descargue todos los archivos antes de cambiar."
+
+msgid "AMS type switching needs firmware update, taking about 30s. Switch now ?"
+msgstr "El cambio de tipo AMS necesita una actualización de firmware, que tarda unos 30 segundos. ¿Desea cambiar ahora?"
+
+msgid "Arrange AMS Order"
+msgstr "Organizar pedido de AMS"
+
+msgid "AMS ID will be reset. If you want a specific ID sequence, disconnect all AMS before resetting and connect them in the desired order after resetting."
+msgstr "Se restablecerá el ID de AMS. Si desea una secuencia de ID específica, desconecte todos los AMS antes de reiniciar y conéctelos en el orden deseado después."
 
 msgid "File"
 msgstr "Archivo"
@@ -3674,8 +3731,8 @@ msgstr ""
 msgid "Measuring Surface"
 msgstr "Medir la superficie"
 
-msgid "Thermal Preconditioning for first layer optimization"
-msgstr "Pre-acondicionamiento térmico para la optimización de la primera capa"
+msgid "Calibrating the detection position of nozzle clumping"
+msgstr ""
 
 msgid "Unknown"
 msgstr "Desconocido"
@@ -3746,10 +3803,10 @@ msgid "Resume Printing"
 msgstr "Reanudar impresión"
 
 msgid "Resume (defects acceptable)"
-msgstr "Currículum (se aceptan defectos)"
+msgstr "Continuar (se aceptan defectos)"
 
 msgid "Resume (problem solved)"
-msgstr "Currículum (problema resuelto)"
+msgstr "Continuar (problema resuelto)"
 
 msgid "Stop Printing"
 msgstr "Detener la impresión"
@@ -3793,11 +3850,14 @@ msgstr "Entendido, apague la alarma de incendios."
 msgid "Retry (problem solved)"
 msgstr "Reintentar (problema resuelto)"
 
+msgid "Cancle"
+msgstr "Cancelar"
+
 msgid "Stop Drying"
 msgstr "Detener el secado"
 
-msgid "Cancle"
-msgstr ""
+msgid "Proceed"
+msgstr "Proceder"
 
 msgid "Done"
 msgstr "Listo"
@@ -3852,6 +3912,18 @@ msgstr ""
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Formato inválido. Formato de vector esperado: \"%1%\""
 
+msgid "Clear color"
+msgstr "Borrar color"
+
+msgid "Loading G-codes"
+msgstr "Carga de códigos G"
+
+msgid "Loading gcode data"
+msgstr ""
+
+msgid "Loading segments"
+msgstr ""
+
 msgid "Summary"
 msgstr "Resumen"
 
@@ -3864,15 +3936,6 @@ msgstr "Ancho de línea"
 msgid "Fan Speed"
 msgstr "Velocidad del ventilador"
 
-msgid "Thermal Index (min)"
-msgstr "Índice Térmico (mín)"
-
-msgid "Thermal Index (max)"
-msgstr "Índice térmico (máx)"
-
-msgid "Thermal Index (mean)"
-msgstr "Índice Térmico (media)"
-
 msgid "Flow"
 msgstr "Flujo"
 
@@ -3882,47 +3945,14 @@ msgstr "Herramienta"
 msgid "Layer Time"
 msgstr "Tiempo de capa"
 
-msgid "Height: "
-msgstr "Altura:"
+msgid "Thermal Index (min)"
+msgstr "Índice Térmico (mín)"
 
-msgid "Width: "
-msgstr "Ancho:"
+msgid "Thermal Index (max)"
+msgstr "Índice térmico (máx)"
 
-msgid "Speed: "
-msgstr "Velocidad:"
-
-msgid "Flow: "
-msgstr "Flujo:"
-
-msgid "Layer Time: "
-msgstr "Tiempo de capa:"
-
-msgid "Fan Speed: "
-msgstr "Velocidad del ventilador:"
-
-msgid "Temperature: "
-msgstr "Temperatura:"
-
-msgid "Thermal Index"
-msgstr "Índice Térmico"
-
-msgid "Min: "
-msgstr ""
-
-msgid "Max: "
-msgstr "Máx: "
-
-msgid "Mean: "
-msgstr "Media: "
-
-msgid "Loading G-codes"
-msgstr "Carga de códigos G"
-
-msgid "Generating geometry vertex data"
-msgstr "Generación de datos de vértices de la geometría"
-
-msgid "Generating geometry index data"
-msgstr "Generación de datos de índices geométricos"
+msgid "Thermal Index (mean)"
+msgstr "Índice Térmico (media)"
 
 msgid "Statistics of All Plates"
 msgstr "Estadísticas de todas las planchas"
@@ -3947,60 +3977,6 @@ msgstr "Tiempo"
 
 msgid "Time Estimation"
 msgstr "Estimación de tiempo"
-
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "Vuelva a cortar automáticamente de acuerdo con la agrupación óptima de filamentos y los resultados de la agrupación se mostrarán después del corte."
-
-msgid "Filament Grouping"
-msgstr "Agrupación de filamentos"
-
-msgid "Why this grouping"
-msgstr "¿Por qué esta agrupación?"
-
-msgid "Left nozzle"
-msgstr "Boquilla izquierda"
-
-msgid "Right nozzle"
-msgstr "Boquilla derecha"
-
-msgid "Please place filaments on the printer based on grouping result."
-msgstr "Por favor, coloque los filamentos en la impresora según el resultado de la agrupación."
-
-msgid "Tips:"
-msgstr "Consejos"
-
-msgid "Current grouping of slice result is not optimal."
-msgstr "La agrupación actual del resultado de los cortes no es óptima."
-
-#, boost-format
-msgid "Increase %1%g filament and %2% changes compared to optimal grouping."
-msgstr "Aumentar %1%g filamento y %2% en comparación con la agrupación óptima."
-
-#, boost-format
-msgid "Increase %1%g filament and save %2% changes compared to optimal grouping."
-msgstr "Aumentar %1%g filamento y guardar %2% cambios en comparación con la agrupación óptima."
-
-#, boost-format
-msgid "Save %1%g filament and increase %2% changes compared to optimal grouping."
-msgstr "Aumentar %1%g filamento y guardar %2% cambios en comparación con la agrupación óptima."
-
-#, boost-format
-msgid "Save %1%g filament and %2% changes compared to a printer with one nozzle."
-msgstr "Ahorra un %1%g de filamento y un %2% de cambios en comparación con una impresora con una sola boquilla."
-
-#, boost-format
-msgid "Save %1%g filament and increase %2% changes compared to a printer with one nozzle."
-msgstr "Ahorra un %1%g de filamento y aumenta un %2% los cambios en comparación con una impresora con una boquilla."
-
-#, boost-format
-msgid "Increase %1%g filament and save %2% changes compared to a printer with one nozzle."
-msgstr "Aumente un %1%g de filamento y ahorre un %2% de cambios en comparación con una impresora con una boquilla."
-
-msgid "Set to Optimal"
-msgstr "Establecer en óptimo"
-
-msgid "Regroup filament"
-msgstr "Reagrupar filamentos"
 
 msgid "up to"
 msgstr "hasta"
@@ -4115,6 +4091,99 @@ msgstr "Cambiar al modo silencioso"
 
 msgid "Switch to normal mode"
 msgstr "Cambiar al modo normal"
+
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "Vuelva a cortar automáticamente de acuerdo con la agrupación óptima de filamentos y los resultados de la agrupación se mostrarán después del corte."
+
+msgid "Filament Grouping"
+msgstr "Agrupación de filamentos"
+
+msgid "Why this grouping"
+msgstr "¿Por qué esta agrupación?"
+
+msgid "Left nozzle"
+msgstr "Boquilla izquierda"
+
+msgid "Right nozzle"
+msgstr "Boquilla derecha"
+
+msgid "Please place filaments on the printer based on grouping result."
+msgstr "Por favor, coloque los filamentos en la impresora según el resultado de la agrupación."
+
+msgid "Tips:"
+msgstr "Consejos"
+
+msgid "Current grouping of slice result is not optimal."
+msgstr "La agrupación actual del resultado de los cortes no es óptima."
+
+#, boost-format
+msgid "Increase %1%g filament and %2% changes compared to optimal grouping."
+msgstr "Aumentar %1%g filamento y %2% en comparación con la agrupación óptima."
+
+#, boost-format
+msgid "Increase %1%g filament and save %2% changes compared to optimal grouping."
+msgstr "Aumentar %1%g filamento y guardar %2% cambios en comparación con la agrupación óptima."
+
+#, boost-format
+msgid "Save %1%g filament and increase %2% changes compared to optimal grouping."
+msgstr "Aumentar %1%g filamento y guardar %2% cambios en comparación con la agrupación óptima."
+
+#, boost-format
+msgid "Save %1%g filament and %2% changes compared to a printer with one nozzle."
+msgstr "Ahorra un %1%g de filamento y un %2% de cambios en comparación con una impresora con una sola boquilla."
+
+#, boost-format
+msgid "Save %1%g filament and increase %2% changes compared to a printer with one nozzle."
+msgstr "Ahorra un %1%g de filamento y aumenta un %2% los cambios en comparación con una impresora con una boquilla."
+
+#, boost-format
+msgid "Increase %1%g filament and save %2% changes compared to a printer with one nozzle."
+msgstr "Aumente un %1%g de filamento y ahorre un %2% de cambios en comparación con una impresora con una boquilla."
+
+msgid "Set to Optimal"
+msgstr "Establecer en óptimo"
+
+msgid "Regroup filament"
+msgstr "Reagrupar filamentos"
+
+msgid "Height: "
+msgstr "Altura: "
+
+msgid "Width: "
+msgstr "Ancho: "
+
+msgid "Speed: "
+msgstr "Velocidad: "
+
+msgid "Flow: "
+msgstr "Flujo: "
+
+msgid "Layer Time: "
+msgstr "Tiempo de capa: "
+
+msgid "Fan Speed: "
+msgstr "Velocidad del ventilador: "
+
+msgid "Temperature: "
+msgstr "Temperatura: "
+
+msgid "Thermal Index"
+msgstr "Índice Térmico"
+
+msgid "Min: "
+msgstr ""
+
+msgid "Max: "
+msgstr "Máx: "
+
+msgid "Mean: "
+msgstr "Media: "
+
+msgid "Generating geometry vertex data"
+msgstr "Generación de datos de vértices de la geometría"
+
+msgid "Generating geometry index data"
+msgstr "Generación de datos de índices geométricos"
 
 msgid ""
 "An object is placed in the left/right nozzle-only area or exceeds the printable height of the left nozzle.\n"
@@ -4422,11 +4491,17 @@ msgstr "Filamentos de PLA y PETG detectados en la mezcla. Ajuste los parámetros
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "La torre principal se extiende más allá del límite de la placa."
 
+msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
+msgstr "Volumen de vaciado parcial establecido en 0. La impresión multicolor puede causar mezcla de colores en los modelos. Por favor, reajuste los ajustes de vaciado."
+
 msgid "Click Wiki for help."
 msgstr "Haga clic en la Wiki para obtener ayuda."
 
 msgid "Click here to regroup"
 msgstr "Haga clic aquí para reagruparse"
+
+msgid "Flushing Volume"
+msgstr "Volumen de descarga"
 
 msgid "Calibration step selection"
 msgstr "Selección del paso de calibración"
@@ -4439,6 +4514,9 @@ msgstr "Nivelación de la plataforma de impresión"
 
 msgid "High-temperature Heatbed Calibration"
 msgstr "Calibración de camas térmicas de alta temperatura"
+
+msgid "Nozzle clumping detection Calibration"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "Programa de calibración"
@@ -5052,6 +5130,9 @@ msgstr "El reproductor no funciona correctamente. Vuelva a instalar el reproduct
 msgid "The player is not loaded, please click \"play\" button to retry."
 msgstr "El reproductor no se carga; haga clic en el botón \"reproducir\" para volver a intentarlo."
 
+msgid "Plugin library failed to load. Click here to view the solution."
+msgstr "La biblioteca de complementos no pudo cargarse. Haga clic aquí para ver la solución."
+
 msgid "Temporarily closed because there is no operation for a while."
 msgstr "Cerrado temporalmente porque no ha habido actividad durante un tiempo."
 
@@ -5086,7 +5167,7 @@ msgid "Please check the network and try again, You can restart or update the pri
 msgstr "Compruebe la red e inténtelo de nuevo. Puede reiniciar o actualizar la impresora si el problema persiste."
 
 msgid "Multi-device/client simultaneous liveview is not supported. Please close the liveview on other devices/clients and try again."
-msgstr ""
+msgstr "No se permite la visualización en vivo simultánea en múltiples dispositivos o clientes. Por favor, cierre la visualización en vivo en otros dispositivos/clientes e inténtelo de nuevo."
 
 msgid "Video Stopped."
 msgstr "Vídeo detenido."
@@ -5125,6 +5206,9 @@ msgstr "Información"
 
 msgid "Playing..."
 msgstr "Reproduciendo..."
+
+msgid "DLL load error"
+msgstr "Error al cargar el DLL"
 
 msgid "Loading..."
 msgstr "Cargando..."
@@ -5429,6 +5513,9 @@ msgstr "Detener"
 msgid "Layer: N/A"
 msgstr "Capa: N/A"
 
+msgid "Click to view thermal preconditioning explanation"
+msgstr "Haga clic para ver la explicación del pre-acondicionamiento térmico"
+
 msgid "Estimated finish time: "
 msgstr "Tiempo estimado de finalización: "
 
@@ -5479,6 +5566,9 @@ msgstr "Piezas de impresora"
 msgid "Print Options"
 msgstr "Opciones de impresión"
 
+msgid "Safety Options"
+msgstr "Opciones de seguridad"
+
 msgid "100%"
 msgstr "100%"
 
@@ -5509,6 +5599,9 @@ msgstr "¿Está seguro de que desea detener esta impresión?"
 msgid "The printer is busy on other print job"
 msgstr "La impresora está ocupada con otro trabajo de impresión."
 
+msgid "When printing is paused, filament loading and unloading are only supported for external slots."
+msgstr "Cuando la impresión está en pausa, la carga y descarga de filamento solo se admiten en ranuras externas."
+
 msgid "Current extruder is busy changing filament"
 msgstr "El extrusor actual está ocupado cambiando el filamento"
 
@@ -5517,6 +5610,9 @@ msgstr "La ranura actual ya se ha cargado"
 
 msgid "The selected slot is empty."
 msgstr "La ranura seleccionada está vacía."
+
+msgid "Printer 2D mode does not support 3D calibration"
+msgstr "El modo 2D de la impresora no admite la calibración 3D"
 
 msgid "Downloading..."
 msgstr "Descargando…"
@@ -5551,6 +5647,9 @@ msgstr "A posición de inicio"
 
 msgid "Please heat the nozzle to above 170 degree before loading or unloading filament."
 msgstr "Caliente la boquilla a más de 170 grados antes de cargar o descargar el filamento."
+
+msgid "Chamber temperature cannot be changed in cooling mode while printing."
+msgstr "La temperatura de la cámara no se puede cambiar en el modo de enfriamiento mientras se imprime."
 
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr "Si la temperatura de la cámara supera los 40 ℃, el sistema cambiará automáticamente al modo de calefacción. Confirme si desea cambiar."
@@ -6025,15 +6124,6 @@ msgstr "Inspección de la primera capa"
 msgid "Auto-recovery from step loss"
 msgstr "Recuperación automática de la pérdida de pasos"
 
-msgid "Open Door Detection"
-msgstr "Detección de puerta abierta"
-
-msgid "Notification"
-msgstr "Notificación"
-
-msgid "Pause printing"
-msgstr "Pausar la impresión"
-
 msgid "Store Sent Files on External Storage"
 msgstr "Almacene los archivos enviados en un almacenamiento externo"
 
@@ -6049,11 +6139,26 @@ msgstr "Filament Tangle Detection"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "Verifique si la boquilla está obstruida por filamento u otros objetos extraños."
 
-msgid "Nozzle Type"
-msgstr "Tipo de boquilla"
+msgid "Open Door Detection"
+msgstr "Detección de puerta abierta"
 
-msgid "Nozzle Flow"
-msgstr "Flujo de boquilla"
+msgid "Notification"
+msgstr "Notificación"
+
+msgid "Pause printing"
+msgstr "Pausar la impresión"
+
+msgctxt "Nozzle Type"
+msgid "Type"
+msgstr "Tipo"
+
+msgctxt "Nozzle Diameter"
+msgid "Diameter"
+msgstr "Diámetro"
+
+msgctxt "Nozzle Flow"
+msgid "Flow"
+msgstr "Flujo"
 
 msgid "Please change the nozzle settings on the printer."
 msgstr "Cambie la configuración de la boquilla en la impresora."
@@ -6070,11 +6175,26 @@ msgstr "Acero inoxidable"
 msgid "Tungsten Carbide"
 msgstr "Carburo de tungsteno"
 
+msgid "Brass"
+msgstr "Latón"
+
 msgid "High flow"
 msgstr "Flujo alto"
 
 msgid "No wiki link available for this printer."
 msgstr "No hay ningún enlace wiki disponible para esta impresora."
+
+msgid "Refreshing"
+msgstr "Recargando"
+
+msgid "Unavailable while heating maintenance function is on."
+msgstr "No disponible mientras la función de mantenimiento de calefacción está activada."
+
+msgid "Idel Heating Protection"
+msgstr "Protección de calentamiento en reposo"
+
+msgid "Stops heating automatically after 5 mins of idle to ensure safety."
+msgstr "Deja de calentar automáticamente después de 5 minutos de inactividad para garantizar la seguridad."
 
 msgid "Global"
 msgstr "Global"
@@ -6486,7 +6606,7 @@ msgid "Slicing Plate %d"
 msgstr "Placa de corte %d"
 
 msgid "A Helio simulation or optimization task is in progress."
-msgstr ""
+msgstr "Está en curso una tarea de simulación u optimización de Helio."
 
 msgid "Invalid printer preset. Unable to slice with Helio."
 msgstr "Preajuste de impresora no válido. No se puede realizar el corte con Helio."
@@ -6502,7 +6622,7 @@ msgid "Helio does not support materials %s"
 msgstr "Helio no admite materiales %s"
 
 msgid "Helio functions do not support the print sequence of \"ByObject\"."
-msgstr ""
+msgstr "Las funciones Helio no admiten la secuencia de impresión de \"ByObject\"."
 
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
@@ -6521,13 +6641,13 @@ msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
 msgstr "No se pudo obtener el Helio PAT. Haga clic en \"Actualizar\" para intentarlo de nuevo."
 
 msgid "Successfully obtained PAT."
-msgstr ""
+msgstr "PAT obtenido con éxito."
 
 msgid "The printer list and material list are being synchronized. Please try again later."
-msgstr ""
+msgstr "La lista de impresoras y la lista de materiales se están sincronizando. Inténtelo de nuevo más tarde."
 
 msgid "Synchronizing Helio"
-msgstr ""
+msgstr "Sincronización de Helio"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Por favor, resuelve los errores de corte y publica de nuevo."
@@ -6751,11 +6871,11 @@ msgstr "Se eliminaron los soportes personalizados, las caras de costura y la pin
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
-msgstr ""
+msgstr "La impresora no está conectada. Vaya a la página del dispositivo para conectar una %s antes de realizar la sincronización."
 
 #, c-format, boost-format
 msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
-msgstr ""
+msgstr "La impresora actualmente conectada en la página del dispositivo no es %s. Cambie a %s antes de la sincronización."
 
 msgid "There are no filaments on the printer. Please load the filaments on the printer first."
 msgstr "No hay filamentos en la impresora. Cargue primero los filamentos en la impresora."
@@ -7049,6 +7169,12 @@ msgstr "Inplegable"
 msgid "Toolbar Style"
 msgstr "Estilo de la barra de herramientas"
 
+msgid "Enable advanced gcode viewer"
+msgstr "Habilitar el visor avanzado de G-code"
+
+msgid "Enable advanced gcode viewer."
+msgstr "Habilitar el visor avanzado de G-code."
+
 msgid "Grabber scale"
 msgstr "Escala Grabber"
 
@@ -7162,6 +7288,9 @@ msgstr "Únase al Programa de Mejora de la Experiencia del Cliente."
 
 msgid "What data would be collected?"
 msgstr "¿Qué datos se recogerían?"
+
+msgid "Auto-fill previously logged-in accounts."
+msgstr "Completar automáticamente cuentas en las que se inició sesión previamente."
 
 msgid "Develop Mode"
 msgstr "Modo de desarrollo"
@@ -7638,6 +7767,14 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Ple
 msgstr "La dureza del material actual (%s) supera la dureza de %s (%s). Compruebe la configuración de la boquilla o del material e inténtelo de nuevo."
 
 #, c-format, boost-format
+msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
+msgstr "[ %s ] requiere impresión en un entorno de alta temperatura. Cierre la puerta."
+
+#, c-format, boost-format
+msgid "[ %s ] requires printing in a high-temperature environment."
+msgstr "[ %s ] requiere impresión en un ambiente de alta temperatura."
+
+#, c-format, boost-format
 msgid "The filament on %s may soften. Please unload."
 msgstr "El filamento %s puede ablandarse. Descárguelo, por favor."
 
@@ -7647,6 +7784,9 @@ msgstr "%sSe desconoce el filamento y puede ablandarse. Por favor, ajuste el fil
 
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "No se puede hacer coincidir automáticamente con el filamento adecuado. Haga clic para hacer coincidir manualmente."
+
+msgid "Install toolhead enhanced cooling fan to prevent filament softening."
+msgstr "Instale un ventilador de enfriamiento mejorado en el cabezal de la herramienta para evitar que el filamento se ablande."
 
 msgid "Cool"
 msgstr "Genial"
@@ -7687,6 +7827,9 @@ msgstr "La impresora está ejecutando instrucciones. Por favor, reinicie la impr
 msgid "AMS is setting up. Please try again later."
 msgstr "AMS se está configurando. Vuelve a intentarlo más tarde."
 
+msgid "Not all filaments used in slicing are mapped to the printer. Please check the mapping of filaments."
+msgstr ""
+
 msgid "Please do not mix-use the Ext with AMS"
 msgstr "Por favor, no mezcle Ext con Ams"
 
@@ -7720,14 +7863,14 @@ msgstr "Establezca la calibración de flujo dinámico en «DESACTIVADA» para ha
 msgid "This printer does not support printing all plates"
 msgstr "Esta impresora no admite la impresión de todas las planchas"
 
-msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
-msgstr "Antes de imprimir en TPU, tire de la tinta en frío para evitar obstrucciones. Puede usar el mantenimiento de la impresora con tirada en frío."
-
-msgid "High chamber temperature is required. Please close the door."
-msgstr "Se requiere una temperatura de cámara alta. Cierre la puerta, por favor."
+msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
+msgstr ""
 
 msgid "Please refer to Wiki before use->"
 msgstr "Consulte la Wiki antes de usar->"
+
+msgid "Current firmware does not support file transfer to internal storage."
+msgstr ""
 
 msgid "Send to Printer storage"
 msgstr "Enviar al almacenamiento de la impresora"
@@ -7735,26 +7878,17 @@ msgstr "Enviar al almacenamiento de la impresora"
 msgid "Try to connect"
 msgstr "Intente conectarse"
 
-msgid "click to retry"
-msgstr "haga click para reintentarlo"
+msgid "Internal Storage"
+msgstr ""
+
+msgid "External Storage"
+msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Tiempo de espera para cargar archivo: verifique si la versión del firmware lo admite."
 
-msgid "No available external storage was obtained. Please confirm and try again."
-msgstr "No se obtuvo almacenamiento externo disponible. Confirme y vuelva a intentarlo."
-
-msgid "Media capability acquisition timeout, please check if the firmware version supports it."
-msgstr "Tiempo de espera de adquisición de capacidad de medios, verifique si la versión del firmware lo admite."
-
-msgid "Sending..."
-msgstr "Enviando..."
-
-msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
-msgstr "Se agotó el tiempo de espera para subir archivos. Compruebe si la versión del firmware admite esta operación o compruebe si la impresora funciona correctamente."
-
-msgid "Sending failed, please try again!"
-msgstr "Envío fallido, ¡inténtalo de nuevo!"
+msgid "Connection timed out, please check your network."
+msgstr ""
 
 msgid "Connection failed. Click the icon to retry"
 msgstr "Error de conexión. Haga clic en el icono para reintentar."
@@ -7774,8 +7908,14 @@ msgstr "La impresora debe estar en la misma LAN que Bambu Studio."
 msgid "The printer does not support sending to printer storage."
 msgstr "La impresora no admite el envío al almacenamiento de la impresora."
 
+msgid "Sending..."
+msgstr "Enviando..."
+
+msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
+msgstr "Se agotó el tiempo de espera para subir archivos. Compruebe si la versión del firmware admite esta operación o compruebe si la impresora funciona correctamente."
+
 msgid "Helio action completed successfully."
-msgstr ""
+msgstr "La acción de Helio se completó con éxito."
 
 msgid "Slice ok."
 msgstr "Rebanado correcto."
@@ -7931,21 +8071,16 @@ msgstr ""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use PLA for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+"overrides XY, disable independent support layer height and use PLA for both support interface and support base"
 msgstr ""
-"Cuando utilice PLA para admitir TPU, recomendamos los siguientes ajustes:\n"
-"0 distancia z superior, 0 espaciado de interfaz, 0 distancia soporte/objeto xy, patrón rectilíneo entrelazado, desactivado \n"
-"independientemente de la altura de la capa de soporte y utilice PLA tanto para la interfaz de soporte como para la base de soporte"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+"and support base"
 msgstr ""
-"Cuando utilice material soluble para el soporte, recomendamos los siguientes ajustes:\n"
-"0 distancia z superior, 0 espaciado de interfaz, 0 distancia soporte/objeto xy, patrón rectilíneo entrelazado, desactivado \n"
-"independientemente de la altura de la capa de soporte y utilice materiales solubles tanto para la interfaz de soporte como para la base de soporte"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -7958,19 +8093,16 @@ msgstr ""
 
 msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
+"independent support layer height"
 msgstr ""
-"Al usar material de soporte para la interfaz de soporte, recomendamos los siguientes ajustes:\n"
-"0 distancia z superior, 0 espaciado de interfaz, patrón rectilíneo entrelazado e inhabilita la altura de la capa de soporte independiente"
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+"and support base"
 msgstr ""
-"Cuando utilice material soluble para la interfaz de soporte, se recomienda la siguiente configuración:\n"
-"0 distancia z superior, 0 espaciado de interfaz, 0 distancia soporte/objeto xy, patrón rectilíneo entrelazado, desactivado \n"
-"independientemente de la altura de la capa de soporte y utilice materiales solubles tanto para la interfaz de soporte como para la base de soporte"
 
 msgid ""
 "Layer height is too small.\n"
@@ -8155,6 +8287,12 @@ msgstr "Ajustes de costura de cicatriz de filamento"
 
 msgid "Cooling for specific layer"
 msgstr "Ventilación para la capa específica"
+
+msgid "Special cooling settings"
+msgstr "Ajustes de refrigeración especiales"
+
+msgid "set addition fan speed before fist x layer"
+msgstr "establece la velocidad del ventilador de adición antes de la primera capa x"
 
 msgid "Part cooling fan"
 msgstr "Ventilador de refrigeración de piezas"
@@ -9103,34 +9241,34 @@ msgid "reconnect"
 msgstr "reconectar"
 
 msgid "Third-party Extension"
-msgstr ""
+msgstr "Extensión de terceros"
 
 msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
-msgstr ""
+msgstr "Piezas más resistentes, menos deformaciones, impresiones más rápidas gracias a una rápida simulación FEM basada en física"
 
 msgid "Uninstall the Helio Additive extension"
-msgstr ""
+msgstr "Desinstalar la extensión Helio Additive"
 
 msgid "Use Immediately"
-msgstr ""
+msgstr "Usar inmediatamente"
 
 msgid "Third-Party Extension"
-msgstr ""
+msgstr "Extensión de terceros"
 
 msgid "HELIO ADDITIVE"
-msgstr ""
+msgstr "ADITIVO HELIO"
 
 msgid "Helio Additive third - party software service feature has been successfully enabled!"
-msgstr ""
+msgstr "¡La función de servicio de software de terceros Helio Additive se ha habilitado correctamente!"
 
 msgid "Helio-PAT"
 msgstr ""
 
 msgid "Copy successful!"
-msgstr ""
+msgstr "¡Copia completada!"
 
 msgid "Helio Additive"
-msgstr "Aditivo de Helio"
+msgstr "Helio Adicional"
 
 msgid "Privacy Policy of Helio Additive"
 msgstr "Política de privacidad de Helio Additive"
@@ -9139,79 +9277,94 @@ msgid "Terms of Use of Helio Additive"
 msgstr "Términos de uso de Helio Additive"
 
 msgid "Agree and proceed"
-msgstr ""
+msgstr "Acepte y proceda"
 
 msgid "Got it"
-msgstr ""
+msgstr "Entendido"
 
 msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
-msgstr ""
+msgstr "No se ha podido obtener Helio PAT, haga clic en Actualizar para obtenerlo nuevamente."
 
 msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
-msgstr ""
+msgstr "No se ha podido obtener el PAT. Se alcanzó el límite de cantidad, por lo que no se puede obtener. Haga clic en el botón Actualizar para volver a obtener el PAT."
 
 msgid "Simulation"
-msgstr ""
+msgstr "Simulación"
 
 msgid "Optimization"
+msgstr "Optimización"
+
+msgid "Environment Temperature"
 msgstr ""
 
 msgid "Chamber Temperature"
 msgstr "Temperatura de la cámara"
 
 msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
-msgstr ""
+msgstr "Nota: Ajuste la temperatura indicada anteriormente según las condiciones reales. Datos más precisos garantizan resultados de análisis más precisos."
 
 msgid "Helio's advanced feature for power users: available post purchase on its official website."
-msgstr ""
+msgstr "Función avanzada de Helio para usuarios potenciales: la compra de postales disponible en su sitio web oficial."
 
 msgid "Monthly quota remaining: "
-msgstr ""
+msgstr "Cuota mensual restante: "
 
 msgid "Add-ons available: "
-msgstr ""
+msgstr "Complementos disponibles: "
 
 msgid "Optimise Outer Walls"
-msgstr ""
+msgstr "Muro de Optimización"
 
 msgid "Advanced Settings"
-msgstr ""
+msgstr "Opciones avanzadas"
 
 msgid "Min Velocity"
-msgstr ""
+msgstr "Velocidad mínima"
 
 msgid "Max Velocity"
-msgstr ""
+msgstr "Velocidad máxima"
 
 msgid "Min Volumetric Speed"
-msgstr ""
+msgstr "Velocidad volumétrica mínima"
 
 msgid "Max Volumetric Speed"
 msgstr "Velocidad volumétrica máxima"
 
 msgid "Last Trace ID: "
-msgstr ""
+msgstr "Último ID de seguimiento: "
 
 msgid "Buy Now"
-msgstr ""
+msgstr "Comprar ahora"
 
 msgid "Click for more details"
 msgstr "Haga clic para más detalles"
 
 msgid "Start Simulation"
-msgstr ""
+msgstr "Iniciar simulación"
 
 msgid "Start Optimization"
-msgstr ""
+msgstr "Iniciar Optimización"
 
 msgid "Buy add-ons"
-msgstr ""
+msgstr "Comprar complementos"
 
 msgid "Layers to Optimize "
-msgstr ""
+msgstr "Capas para optimizar "
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
 msgstr "No se ha podido obtener el PAT de Helio. El número de PATs emitidos ha alcanzado el límite superior. Por favor, preste atención a la información en el sitio web oficial de Helio. Haga clic en Actualizar para obtenerlo nuevamente una vez que esté disponible."
+
+msgid "Print Time Improvement"
+msgstr ""
+
+msgid "Average Improvement"
+msgstr ""
+
+msgid "Consistency Improvement"
+msgstr ""
+
+msgid "Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next."
+msgstr ""
 
 msgid "Air Pump"
 msgstr "Bomba de aire"
@@ -9227,9 +9380,6 @@ msgstr "Módulo de corte"
 
 msgid "Auto Fire Extinguishing System"
 msgstr "Sistema automático de extinción de incendios"
-
-msgid "Model:"
-msgstr "Modelo:"
 
 msgid "Update firmware"
 msgstr "Actualizar Firmware"
@@ -9747,6 +9897,12 @@ msgstr "Distancia máxima de desvío para evitar cruzar el muro. No desviar si l
 msgid "mm or %"
 msgstr "mm o %"
 
+msgid "Avoid crossing wall - Includes support"
+msgstr ""
+
+msgid "Including support while avoiding crossing wall."
+msgstr ""
+
 msgid "Other layers"
 msgstr "Otras capas"
 
@@ -9996,6 +10152,20 @@ msgstr "Reducir la velocidad de impresión para mejorar el enfriamiento de las c
 msgid "Enable this option to slow printing speed down to make the final layer time not shorter than the layer time threshold in \"Max fan speed threshold\", so that layer can be cooled for a longer time. This can improve the cooling quality for needle and small details"
 msgstr "Active esta opción para ralentizar la velocidad de impresión para que el tiempo de capa final no sea inferior al umbral de tiempo de capa en \"Umbral de velocidad máxima del ventilador\", de modo que la capa pueda enfriarse durante más tiempo. Esto puede mejorar la calidad de los detalles finos."
 
+msgid "Don't slow down outer walls"
+msgstr "No frene los muros exteriores"
+
+msgid ""
+"If enabled, this setting will ensure external perimeters are not slowed down to meet the minimum layer time. This is particularly helpful in the below scenarios:\n"
+"1. To avoid changes in shine when printing glossy filaments\n"
+"2. To avoid changes in external wall speed which may create slight wall artifacts that appear like Z banding\n"
+"3. To avoid printing at speeds which cause VFAs (fine artifacts) on the external walls"
+msgstr ""
+"Si está habilitado, esta configuración asegurará que los perímetros externos no se ralenticen para cumplir con el tiempo mínimo de la capa. Esto es especialmente útil en los siguientes escenarios:\n"
+"1. Para evitar cambios en el brillo al imprimir filamentos brillantes\n"
+"2. Para evitar cambios en la velocidad de la pared externa, que puedan crear ligeros artefactos en la pared que parecen bandas en Z\n"
+"3. Para evitar imprimir a velocidades que causen VFA (artefactos finos) en las paredes externas"
+
 msgid "Normal printing"
 msgstr "Impresión normal"
 
@@ -10038,14 +10208,17 @@ msgstr "Velocidad del ventilador de escape durante la impresión. Esta velocidad
 msgid "Speed of exhuast fan after printing completes"
 msgstr "Velocidad del extractor de aire una vez finalizada la impresión"
 
-msgid "No cooling for the first"
-msgstr "No hay refrigeración para la primera"
+msgid "For the first"
+msgstr "Por primera vez"
 
-msgid "Close all cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion"
-msgstr "Apague todos los ventiladores de refrigeración de las primeras capas. El ventilador de la primera capa debe estar cerrado para conseguir una mejor adhesión de la placa de impresión."
+msgid "Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
+msgstr "Configure un ventilador de refrigeración especial para las primeras capas determinadas. El ventilador de refrigeración de la primera capa solía estar cerrado para lograr una mejor adhesión a la placa de construcción y se usaba para la función de enfriamiento automático"
 
 msgid "layers"
 msgstr "capas"
+
+msgid "Special cooling fan speed for the first certain layers"
+msgstr "Velocidad especial del ventilador de refrigeración para las primeras capas determinadas"
 
 msgid "Don't support bridges"
 msgstr "No soportar puentes"
@@ -10381,13 +10554,13 @@ msgid "Filament diameter is used to calculate extrusion in gcode, so it's import
 msgstr "El diámetro del filamento se utiliza para calcular la extrusión en el gcode, por lo que es importante y debe ser preciso"
 
 msgid "Adaptive volumetric speed"
-msgstr ""
+msgstr "Velocidad volumétrica adaptativa"
 
 msgid "When enabled, the extrusion flow is limited by the smaller of the fitted value (calculated from line width and layer height) and the user-defined maximum flow. When disabled, only the user-defined maximum flow is applied."
-msgstr ""
+msgstr "Cuando está habilitado, el flujo de extrusión se limita al menor valor entre el valor ajustado (calculado a partir del ancho de línea y la altura de capa) y el flujo máximo definido por el usuario. Cuando está deshabilitado, solo se aplica el flujo máximo definido por el usuario."
 
 msgid "Max volumetric speed multinomial coefficients"
-msgstr ""
+msgstr "Coeficientes multinomiales de velocidad volumétrica máxima"
 
 msgid "Shrinkage"
 msgstr "Contracción"
@@ -10401,10 +10574,10 @@ msgstr ""
 "Asegúrese de dejar suficiente espacio entre los objetos, ya que esta compensación se realiza después de las comprobaciones."
 
 msgid "Velocity Adaptation Factor"
-msgstr ""
+msgstr "Factor de adaptación de velocidad"
 
 msgid "This parameter reflects the speed at which a material transitions from one state to another. It, along with the smooth coefficient, determines the final length of the transition zone. A larger value: requires a shorter transition zone. A smaller value: requires a longer transition zone to avoid flow instability."
-msgstr ""
+msgstr "Este parámetro refleja la velocidad a la que un material cambia de un estado a otro. Este, junto con el coeficiente de suavidad, determina la longitud final de la zona de transición. Un valor mayor: requiere una zona de transición más corta. Un valor menor: requiere una zona de transición más larga para evitar la inestabilidad del flujo."
 
 msgid "Adhesiveness Category"
 msgstr "Categoría de adhesividad"
@@ -10680,6 +10853,9 @@ msgstr "Velocidad máxima del ventilador en la capa"
 msgid "Randomly jitter while printing the wall, so that the surface has a rough look. This setting controls the fuzzy position"
 msgstr "Agitar aleatoriamente mientras se imprime la pared, de modo que la superficie tenga un aspecto rugoso. Esta configuración controla la posición difusa."
 
+msgid "None(allow paint)"
+msgstr "Ninguno (permitir pintura)"
+
 msgid "All walls"
 msgstr "Todas las paredes"
 
@@ -10698,8 +10874,8 @@ msgstr "La distancia promedio entre los puntos aleatorios introducidos en cada s
 msgid "Filter out tiny gaps"
 msgstr "Filtra los pequeños huecos"
 
-msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
-msgstr "Filtra los huecos menores que el umbral especificado. Este ajuste no afectará a las capas superior/inferior."
+msgid "Filter out gaps smaller than the threshold specified. Gaps smaller than this threshold will be ignored"
+msgstr "Filtrar huecos más pequeños que el umbral especificado. Se ignorarán huecos más pequeños que este umbral"
 
 msgid "Precise wall"
 msgstr "Pared precisa"
@@ -10773,9 +10949,6 @@ msgstr "Acero inoxidable"
 msgid "Tungsten carbide"
 msgstr "Carburo de tungsteno"
 
-msgid "Brass"
-msgstr "Latón"
-
 msgid "Printer structure"
 msgstr "Estructura de la impresora"
 
@@ -10790,6 +10963,15 @@ msgstr "Mejor posición de autodisposición en el intervalo [0,1] con respecto a
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "Habilite esta opción si la máquina tiene un ventilador auxiliar de refrigeración de piezas"
+
+msgid "Fan direction"
+msgstr "Dirección del ventilador"
+
+msgid "Cooling fan direction of the printer"
+msgstr "Dirección del ventilador de refrigeración de la impresora"
+
+msgid "Both"
+msgstr "Ambos"
 
 msgid "Support control chamber temperature"
 msgstr "Soporte para controlar la temperatura de la cámara"
@@ -11346,6 +11528,12 @@ msgstr "Tipo de volumen de boquilla predeterminado"
 msgid "Extra length on restart"
 msgstr "Longitud extra en la reanudación"
 
+msgid "When the retraction is compensated after the travel move, the extruder will push this additional amount of filament. This setting is rarely needed."
+msgstr "Cuando la retracción se compensa después de un movimiento de desplazamiento, el extrusor empujará esta cantidad adicional de filamento. Esta configuración rara vez es necesaria."
+
+msgid "When the retraction is compensated after changing tool, the extruder will push this additional amount of filament."
+msgstr "Cuando la retracción se compensa después de cambiar de herramienta, el extrusor empujará esta cantidad adicional de filamento."
+
 msgid "Retraction Speed"
 msgstr "Velocidad de retracción"
 
@@ -11718,6 +11906,12 @@ msgstr "Árbol híbrido"
 msgid "Tree Organic"
 msgstr "Árbol orgánico"
 
+msgid "Z overrides X/Y"
+msgstr ""
+
+msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
+msgstr ""
+
 msgid "Independent support layer height"
 msgstr "Altura de la capa de soporte independiente"
 
@@ -11969,6 +12163,9 @@ msgstr "Los valores positivos pueden aumentar el tamaño de la pared de la nerva
 
 msgid "Rib width"
 msgstr "Ancho de nervadura"
+
+msgid "Rib width is always less than half the prime tower side length."
+msgstr "El ancho de las costillas es siempre menos de la mitad de la longitud lateral de la torre prima."
 
 msgid "Skip points"
 msgstr "Omitir puntos"
@@ -12528,6 +12725,9 @@ msgstr "No se ha establecido la información del %s inyector de la impresora. Co
 msgid "AMS and nozzle information are synced"
 msgstr "La información de AMS y de la boquilla está sincronizada"
 
+msgid "Nozzle Flow"
+msgstr "Flujo de boquilla"
+
 msgid "Nozzle Info"
 msgstr "Información sobre la boquilla"
 
@@ -12843,57 +13043,77 @@ msgstr "Cancelando"
 msgid "Error uploading to print host:"
 msgstr "Error al cargar en el servidor de impresión:"
 
-msgid "Unable to perform boolean operation on selected parts"
-msgstr "No se puede realizar la operación booleana en las piezas seleccionadas"
+msgid "Unable to perform boolean operation on selected parts."
+msgstr "No se puede realizar la operación booleana en las partes seleccionadas."
 
-msgid "Performed boolean intersection fails because the selected parts have no intersection"
-msgstr "La intersección booleana realizada falla porque las partes seleccionadas no tienen no intersección"
+msgid "Operation Canceled."
+msgstr "Operación cancelada."
+
+msgid "Operation Failed."
+msgstr "Operación fallida."
+
+msgid "Union operation requires at least two volumes."
+msgstr "La operación de la Unión requiere al menos dos volúmenes."
+
+msgid "Intersection operation requires at least two volumes."
+msgstr "La operación de intersección requiere al menos dos volúmenes."
+
+msgid "Difference operation requires at least one volume in both A and B lists."
+msgstr "La operación de diferencia requiere al menos un volumen en las listas A y B."
+
+msgid "Union operation requires at least two objects."
+msgstr "La operación de unión requiere al menos dos objetos."
+
+msgid "Intersection operation requires at least two objects."
+msgstr "La operación de intersección requiere al menos dos objetos."
+
+msgid "Difference operation requires at least one object in both A and B lists."
+msgstr "La operación de diferencia requiere al menos un objeto en las listas A y B."
+
+msgid "Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
+msgstr "No se pudieron agrupar ni fusionar las piezas por objeto. Compruebe si hay autointersecciones, geometría no múltiple o mallas abiertas."
+
+msgid "No overlapping region found. Boolean intersection failed."
+msgstr "No se ha encontrado ninguna región superpuesta. La intersección booleana ha fallado."
 
 msgid "Mesh Boolean"
 msgstr "Malla booleana"
 
-msgid ""
-"Please add at least one more object and select them together,\n"
-"then right click to assembly these objects."
-msgstr ""
-"Añada al menos un objeto más y selecciónelos juntos,\n"
-"luego haga clic con el botón derecho para ensamblar estos objetos."
+msgid "- Object mode: Please select at least two objects."
+msgstr "- Modo objeto: Por favor, seleccione al menos dos objetos."
 
-msgid "Please right click to assembly these objects."
-msgstr "Haga clic con el botón derecho para ensamblar estos objetos."
+msgid "- Part mode: Please select one object with at least two meshes."
+msgstr "- Modo de pieza: Por favor, seleccione un objeto con al menos dos mallas."
 
 msgid "Union"
 msgstr "Unión"
 
 msgid "Difference"
-msgstr "Diferencia"
+msgstr "Subtraction"
 
 msgid "Intersection"
 msgstr "Intersección"
 
-msgid "Source Volume"
-msgstr "Volumen de origen"
+msgid "Selected Objects"
+msgstr ""
 
-msgid "Tool Volume"
-msgstr "Volumen de la herramienta"
+msgid "Selected Parts"
+msgstr ""
 
-msgid "selected"
-msgstr "Seleccionado"
+msgid "Keep original models"
+msgstr ""
 
-msgid "Part 1"
-msgstr "Parte 1"
+msgid "Execute"
+msgstr ""
 
-msgid "Subtract from"
-msgstr "Restar de"
+msgid "Entity Only"
+msgstr ""
 
-msgid "Part 2"
-msgstr "Parte 2"
+msgid "Perform Boolean operations on entities only."
+msgstr ""
 
-msgid "Subtract with"
-msgstr "Resta con"
-
-msgid "Delete input"
-msgstr "Eliminar entrada"
+msgid "This object contains non-part components."
+msgstr ""
 
 msgid "Network Test"
 msgstr "Prueba de red"
@@ -13405,6 +13625,20 @@ msgstr "Colapso"
 msgid "Daily Tips"
 msgstr "Consejos diarios"
 
+msgid ""
+"The printer nozzle information has not been set.\n"
+"Please configure it before proceeding with the calibration."
+msgstr ""
+"No se ha establecido la información de la boquilla de la impresora.\n"
+"Por favor, configúrela antes de continuar con la calibración."
+
+msgid ""
+"The nozzle type does not match the actual printer nozzle type.\n"
+"Please click the Sync button above and restart the calibration."
+msgstr ""
+"El tipo de boquilla no coincide con el actual tipo de la boquilla de la impresora.\n"
+"Haga clic en el botón de sincronización que aparece arriba y reinicie la calibración."
+
 #, c-format, boost-format
 msgid ""
 "Please input valid values:\n"
@@ -13455,6 +13689,10 @@ msgid "The number of printer extruders and the printer selected for calibration 
 msgstr "La cantidad de extrusores de impresora y la impresora seleccionada para la calibración no coinciden."
 
 #, c-format, boost-format
+msgid "The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."
+msgstr ""
+
+#, c-format, boost-format
 msgid ""
 "The currently selected nozzle diameter of %s extruder does not match the actual nozzle diameter.\n"
 "Please click the Sync button above and restart the calibration."
@@ -13476,9 +13714,6 @@ msgid ""
 msgstr ""
 "El tipo de boquilla seleccionado actualmente%s El extrusor no coincide con el tipo de boquilla de la impresora. \n"
 "Haga clic en el botón Sincronizar que aparece arriba y reinicie la calibración."
-
-msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "La calibración automática solo es compatible con los casos en los que los diámetros de la boquilla izquierda y derecha son idénticos."
 
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "No se puede calibrar: puede deberse a que el intervalo del valor de calibración establecido es demasiado grande o a que el paso es demasiado pequeño."
@@ -13781,16 +14016,16 @@ msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Perfil estándar para boquilla de 0.8 mm, que prioriza la velocidad."
 
 msgid "Failed to create GCodeV2"
-msgstr ""
+msgstr "No se pudo crear G-CodeV2"
 
 msgid "Failed to parse response"
-msgstr ""
+msgstr "No se pudo analizar la respuesta"
 
 msgid "Helio simulation task failed"
-msgstr ""
+msgstr "La tarea de simulación de Helio falló"
 
 msgid "Helio optimization task failed"
-msgstr ""
+msgstr "La tarea de optimización de Helio falló"
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "El punto final de la API de Helio está vacío, por favor verifique la configuración."
@@ -13823,31 +14058,31 @@ msgid "Helio: simulation failed"
 msgstr "Helio: la simulación ha fallado"
 
 msgid "Helio: Simulation check failed"
-msgstr ""
+msgstr "Helio: Ha fallado la comprobación de simulación"
 
-msgid "Helio: Failed to create Simulation\n"
-msgstr ""
+msgid "Helio: Failed to create Simulation"
+msgstr "Helio: Error al crear la simulación"
 
-msgid "Helio: Failed to create GCode\n"
-msgstr ""
+msgid "Helio: Failed to create GCode"
+msgstr "Helio: Error al crear G-Code"
 
 msgid "Helio: optimization successfully created"
-msgstr ""
+msgstr "Helio: optimización creada con éxito"
 
 msgid "Helio: optimization working"
-msgstr ""
+msgstr "Helio: optimización en funcionamiento"
 
 msgid "Helio: Optimzaion check failed"
-msgstr ""
+msgstr "Helio: Ha fallado la comprobación de optimización"
 
-msgid "Helio: Failed to create Optimization\n"
-msgstr ""
+msgid "Helio: Failed to create Optimization"
+msgstr "Helio: Error al crear la optimización"
 
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio: El G-Code se ha descargado con éxito"
 
-msgid "Helio: GCode download failed\n"
-msgstr ""
+msgid "Helio: GCode download failed"
+msgstr "Helio: Error en la descarga de G-Code"
 
 msgid "No AMS"
 msgstr "SIN AMS"
@@ -13978,9 +14213,6 @@ msgid "Removed"
 msgstr "Eliminado"
 
 msgid "Management user presets"
-msgstr ""
-
-msgid "Custom filaments"
 msgstr ""
 
 msgid "No content"
@@ -14355,66 +14587,88 @@ msgid ""
 "Single-Material Only\n"
 "Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
 msgstr ""
+"Solo material\n"
+"Helio actualmente simula un material y una boquilla por trabajo. El código G multi-material o multi-extrusor añade pausas largas que interrumpen la continuidad térmica, por lo que los resultados no serían significativos."
 
 #: resources/data/helio_hints.ini: [hint: One Plate per Job]
 msgid ""
 "One Plate per Job\n"
 "Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
 msgstr ""
+"Una placa por trabajo\n"
+"Cargue el código G con una sola placa de construcción; los proyectos de varias placas aún no son compatibles, por lo que solo se ejecutaría la primera placa."
 
 #: resources/data/helio_hints.ini: [hint: What is the Thermal Quality Index?]
 msgid ""
 "What is the Thermal Quality Index?\n"
 "The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
 msgstr ""
+"¿Qué es el Índice de Calidad Térmica?\n"
+"El Índice de Calidad Térmica (escala de –100 a +100) muestra la temperatura de impresión de cada región. El verde (≈ 0) es la zona ideal para piezas resistentes y sin deformaciones. Para obtener mejores resultados, mantenga la mayor parte de la pieza en verde."
 
 #: resources/data/helio_hints.ini: [hint: Voxel-Level Accuracy]
 msgid ""
 "Voxel-Level Accuracy\n"
 "We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
 msgstr ""
+"Precisión en cuanto al voxel\n"
+"Predecimos la temperatura en cada voxel en cada paso de tiempo, y para trabajos estándar la previsión suele estar dentro de ±5–10 °C. Las pausas, el firmware personalizado o una refrigeración inusual pueden ampliar ese margen."
 
 #: resources/data/helio_hints.ini: [hint: Fan & Airflow Model]
 msgid ""
 "Fan & Airflow Model\n"
 "A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
 msgstr ""
+"Modelo de ventilador y flujo de aire\n"
+"Un modelo simplificado de ventilador y sala muestra cómo la configuración de refrigeración modifica la temperatura de las piezas sin necesidad de cálculos lentos de CFD, ideal para el ajuste diario. Los vórtices de la cámara aún no se simulan, por lo que las ejecuciones se mantienen rápidas."
 
 #: resources/data/helio_hints.ini: [hint: TQI Limits Explained]
 msgid ""
 "TQI Limits Explained\n"
 "-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
 msgstr ""
+"Límites de TQI explicados\n"
+"-100 → demasiado frío: la resistencia a la tracción es aproximadamente un 50 % menor que la de las piezas impresas en el valor ideal 0 (pruebas ASTM D638 con muestra en forma de hueso de perro). +100 → demasiado caliente: las capas permanecen fundidas y pueden hundirse o colapsar. Mantenga las zonas cerca de 0 para lograr la máxima resistencia y precisión."
 
 #: resources/data/helio_hints.ini: [hint: What Drives Runtime?]
 msgid ""
 "What Drives Runtime?\n"
 "Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
 msgstr ""
+"¿Qué impulsa el tiempo de ejecución?\n"
+"Las capas adicionales, el relleno denso, muchos arcos diminutos (elementos de malla pequeños) o velocidades de impresión muy lentas prolongan el tiempo de simulación porque el solucionador debe procesar más segundos. Las CPU multinúcleo o las GPU CUDA aceleran el proceso."
 
 #: resources/data/helio_hints.ini: [hint: Nozzle Temp Range]
 msgid ""
 "Nozzle Temp Range\n"
 "Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
 msgstr ""
+"Rango de temperatura de la boquilla\n"
+"Los puntos de ajuste admitidos son 190 – 320 °C; todo lo que esté fuera está limitado para mantener la física realista."
 
 #: resources/data/helio_hints.ini: [hint: Debugging Flowchart]
 msgid ""
 "Debugging Flowchart\n"
 "Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
 msgstr ""
+"Diagrama de flujo de depuración\n"
+"¿No sabe por qué un resultado no es correcto? Siga nuestro diagrama de flujo de depuración paso a paso para rastrear problemas de configuración, código G y materiales en minutos."
 
 #: resources/data/helio_hints.ini: [hint: Why Cooling Varies]
 msgid ""
 "Why Cooling Varies\n"
 "Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
 msgstr ""
+"Por qué varía el enfriamiento\n"
+"Las paredes exteriores y los puentes se enfrían más rápido, mientras que los interiores gruesos se mantienen más cálidos: la geometría, el flujo de aire y la trayectoria de la herramienta influyen, y la simulación visualiza estas diferencias."
 
 #: resources/data/helio_hints.ini: [hint: Extrusion Temp Model]
 msgid ""
 "Extrusion Temp Model\n"
 "Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
 msgstr ""
+"Modelo de temperatura de extrusión\n"
+"Las propiedades del material dan forma a la curva de fusión, pero la geometría de la impresora decide cuánto calor gana realmente el filamento, por lo que el modelo es específico del material y está calibrado por la impresora."
 
 #: resources/data/helio_hints.ini: [hint: Nozzle setting of 190 °C vs 320
 #: °C?]
@@ -14422,33 +14676,146 @@ msgid ""
 "Nozzle setting of 190 °C vs 320 °C?\n"
 "A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
 msgstr ""
+"¿Ajuste de la boquilla de 190 °C frente a 320 °C?\n"
+"Un cambio de boquilla de 100 °C solo aumenta el índice térmico porque la temperatura de extrusión, el caudal y el enfriamiento posterior a la deposición dominan el historial térmico de la pieza."
 
 #: resources/data/helio_hints.ini: [hint: Bed Temperature influence]
 msgid ""
 "Bed Temperature influence\n"
 "Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
 msgstr ""
+"Influencia de la temperatura de la cama \n"
+"Solo la temperatura de la cama de la primera capa alimenta el modelo en este momento; los cambios de lecho posteriores aún no se capturan."
 
 #: resources/data/helio_hints.ini: [hint: Actual Tool-Path]
 msgid ""
 "Actual Tool-Path\n"
 "Yes—your exact G-code path, speeds and fan commands are simulated."
 msgstr ""
+"La ruta real de la herramienta\n"
+"Sí: la ruta exacta del código G, las velocidades y los comandos del fan son simulados."
 
 #: resources/data/helio_hints.ini: [hint: Mesh Resolution]
 msgid ""
 "Mesh Resolution\n"
 "The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
 msgstr ""
+"Resolución de malla\n"
+"La cuadrícula de voxeles es más fina que el espaciado de línea del código G, lo que captura detalles capa por capa sin desperdiciar computación."
 
 #: resources/data/helio_hints.ini: [hint: Shrinkage, Warping & Stress]
 msgid ""
 "Shrinkage, Warping & Stress\n"
 "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
 msgstr ""
+"Disminución, deformación y estrés\n"
+"Al controlar el índice térmico puedes remover las causas de calor de la deformación y el estrés."
 
-#~ msgid "Helio Simulation"
-#~ msgstr "Simulación de Helio"
+#, c-format, boost-format
+#~ msgid "Remaining time: %s"
+#~ msgstr "Tiempo restante: %s"
+
+#, c-format, boost-format
+#~ msgid "The nozzle diameter of %s extruder is 0.2mm which does not support automatic Flow Dynamics calibration."
+#~ msgstr "El diámetro de la boquilla del extrusor %s es de 0,2 mm, lo que no admite la calibración automática de dinámica de flujo."
+
+#~ msgid "click to retry"
+#~ msgstr "haga click para reintentarlo"
+
+#~ msgid "No available external storage was obtained. Please confirm and try again."
+#~ msgstr "No se obtuvo almacenamiento externo disponible. Confirme y vuelva a intentarlo."
+
+#~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
+#~ msgstr "Tiempo de espera de adquisición de capacidad de medios, verifique si la versión del firmware lo admite."
+
+#~ msgid "Sending failed, please try again!"
+#~ msgstr "Envío fallido, ¡inténtalo de nuevo!"
+
+#~ msgid ""
+#~ "When using PLA to support TPU, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use PLA for both support interface and support base"
+#~ msgstr ""
+#~ "Cuando utilice PLA para admitir TPU, recomendamos los siguientes ajustes:\n"
+#~ "0 distancia z superior, 0 espaciado de interfaz, 0 distancia soporte/objeto xy, patrón rectilíneo entrelazado, desactivado \n"
+#~ "independientemente de la altura de la capa de soporte y utilice PLA tanto para la interfaz de soporte como para la base de soporte"
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "Cuando utilice material soluble para el soporte, recomendamos los siguientes ajustes:\n"
+#~ "0 distancia z superior, 0 espaciado de interfaz, 0 distancia soporte/objeto xy, patrón rectilíneo entrelazado, desactivado \n"
+#~ "independientemente de la altura de la capa de soporte y utilice materiales solubles tanto para la interfaz de soporte como para la base de soporte"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+#~ msgstr ""
+#~ "Al usar material de soporte para la interfaz de soporte, recomendamos los siguientes ajustes:\n"
+#~ "0 distancia z superior, 0 espaciado de interfaz, patrón rectilíneo entrelazado e inhabilita la altura de la capa de soporte independiente"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "Cuando utilice material soluble para la interfaz de soporte, se recomienda la siguiente configuración:\n"
+#~ "0 distancia z superior, 0 espaciado de interfaz, 0 distancia soporte/objeto xy, patrón rectilíneo entrelazado, desactivado \n"
+#~ "independientemente de la altura de la capa de soporte y utilice materiales solubles tanto para la interfaz de soporte como para la base de soporte"
+
+#~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
+#~ msgstr "Filtra los huecos menores que el umbral especificado. Este ajuste no afectará a las capas superior/inferior."
+
+#~ msgid "Unable to perform boolean operation on selected parts"
+#~ msgstr "No se puede realizar la operación booleana en las piezas seleccionadas"
+
+#~ msgid "Performed boolean intersection fails because the selected parts have no intersection"
+#~ msgstr "La intersección booleana realizada falla porque las partes seleccionadas no tienen no intersección"
+
+#~ msgid ""
+#~ "Please add at least one more object and select them together,\n"
+#~ "then right click to assembly these objects."
+#~ msgstr ""
+#~ "Añada al menos un objeto más y selecciónelos juntos,\n"
+#~ "luego haga clic con el botón derecho para ensamblar estos objetos."
+
+#~ msgid "Please right click to assembly these objects."
+#~ msgstr "Haga clic con el botón derecho para ensamblar estos objetos."
+
+#~ msgid "Source Volume"
+#~ msgstr "Volumen de origen"
+
+#~ msgid "Tool Volume"
+#~ msgstr "Volumen de la herramienta"
+
+#~ msgid "selected"
+#~ msgstr "Seleccionado"
+
+#~ msgid "Part 1"
+#~ msgstr "Parte 1"
+
+#~ msgid "Subtract from"
+#~ msgstr "Restar de"
+
+#~ msgid "Part 2"
+#~ msgstr "Parte 2"
+
+#~ msgid "Subtract with"
+#~ msgstr "Resta con"
+
+#~ msgid "Delete input"
+#~ msgstr "Eliminar entrada"
+
+#~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "La calibración automática solo es compatible con los casos en los que los diámetros de la boquilla izquierda y derecha son idénticos."
+
+#~ msgid "Helio Action"
+#~ msgstr "Acción Helio"
+
+#~ msgid "Nozzle Type"
+#~ msgstr "Tipo de boquilla"
 
 #~ msgid "Helio Options"
 #~ msgstr "Opciones Helio"
@@ -14492,6 +14859,18 @@ msgstr ""
 #~ msgid "Agree"
 #~ msgstr "Aceptar"
 
+#~ msgid "No cooling for the first"
+#~ msgstr "No hay refrigeración para la primera"
+
+#~ msgid "Close all cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion"
+#~ msgstr "Apague todos los ventiladores de refrigeración de las primeras capas. El ventilador de la primera capa debe estar cerrado para conseguir una mejor adhesión de la placa de impresión."
+
+#~ msgid "Helio Simulation"
+#~ msgstr "Simulación de Helio"
+
+#~ msgid "High chamber temperature is required. Please close the door."
+#~ msgstr "Se requiere una temperatura de cámara alta. Cierre la puerta, por favor."
+
 #~ msgid "Note: Please set the above temperature according to the actual situation. The more accurate the data is, the more precise the analysis results will be."
 #~ msgstr "Nota: Por favor, establezca la temperatura superior de acuerdo a la situación actual. Cuanto más precisos sean los datos, más precisos serán los resultados del análisis."
 
@@ -14500,9 +14879,6 @@ msgstr ""
 
 #~ msgid "Helio: Process Started"
 #~ msgstr "Helio: Proceso iniciado"
-
-#~ msgid "Helio Action"
-#~ msgstr "Acción Helio"
 
 #~ msgctxt "air_duct"
 #~ msgid "Right"
