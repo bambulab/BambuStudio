@@ -5,7 +5,6 @@
     "from": "system",
     "setting_id": "GP219",
     "instantiation": "true",
-    "bottom_surface_pattern": "monotonicline",
     "default_acceleration": [
         "4000",
         "8000",
@@ -62,7 +61,6 @@
         "1000",
         "1000"
     ],
-    "top_surface_pattern": "monotonic",
     "compatible_printers": [
         "Bambu Lab X2D 0.2 nozzle"
     ]

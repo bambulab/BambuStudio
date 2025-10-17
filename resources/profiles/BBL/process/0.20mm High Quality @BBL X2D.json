@@ -6,7 +6,6 @@
     "setting_id": "GP224",
     "instantiation": "true",
     "description": "High quality profile for 0.2mm layer height, prioritizing strength and print quality.",
-    "bottom_surface_pattern": "monotonicline",
     "default_acceleration": [
         "4000",
         "4000",
@@ -94,7 +93,6 @@
         "1000",
         "1000"
     ],
-    "top_surface_pattern": "monotonic",
     "compatible_printers": [
         "Bambu Lab X2D 0.4 nozzle"
     ]

@@ -6,7 +6,6 @@
     "setting_id": "GP154",
     "instantiation": "true",
     "description": "It has a big layer height, and results in apparent layer lines and ordinary printing quality and printing time.",
-    "bottom_surface_pattern": "monotonicline",
     "default_acceleration": [
         "10000",
         "10000",
@@ -61,7 +60,6 @@
         "1000",
         "1000"
     ],
-    "top_surface_pattern": "monotonic",
     "compatible_printers": [
         "Bambu Lab X2D 0.6 nozzle"
     ]
