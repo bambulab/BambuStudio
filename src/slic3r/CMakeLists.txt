@@ -352,6 +352,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/TextLines.hpp
     GUI/PlateSettingsDialog.cpp
     GUI/PlateSettingsDialog.hpp
+    GUI/PlateMoveDialog.cpp
+    GUI/PlateMoveDialog.hpp
     GUI/ImGuiWrapper.hpp
     GUI/ImGuiWrapper.cpp
     GUI/ImageMessageDialog.hpp

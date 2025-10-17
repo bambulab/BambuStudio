@@ -188,7 +188,7 @@ private:
 
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
-    static const unsigned int GRABBER_COUNT         = 9;
+    static const unsigned int GRABBER_COUNT         = 8;
     static const unsigned int PLATE_FILAMENT_MAP_ID = GRABBER_COUNT - 2;
     static const unsigned int PLATE_NAME_ID = GRABBER_COUNT-1;
 
@@ -601,8 +601,6 @@ class PartPlateList : public ObjectBase
     GLTexture m_logo_texture;
     GLTexture m_del_texture;
     GLTexture m_del_hovered_texture;
-    GLTexture m_move_front_hovered_texture;
-    GLTexture m_move_front_texture;
     GLTexture m_arrange_texture;
     GLTexture m_arrange_hovered_texture;
     GLTexture m_orient_texture;
@@ -676,7 +674,6 @@ private:
     GLModel                               m_lock_icon;
     GLModel                               m_plate_settings_icon;
     GLModel                               m_plate_filament_map_icon;
-    GLModel                               m_move_front_icon;
     GLModel                               m_plate_idx_icon;
     float                                 m_scale_factor{1.0f};
 

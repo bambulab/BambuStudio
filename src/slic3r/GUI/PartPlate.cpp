@@ -822,13 +822,6 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id, bool ren
         else {
             m_partplate_list->m_plate_settings_icon.set_visible(false);
         }
-
-        if (hover_id == 6) {
-            render_icon_texture(m_partplate_list->m_move_front_icon, m_partplate_list->m_move_front_hovered_texture);
-            show_tooltip(_u8L("Move plate to the front"));
-        } else {
-            render_icon_texture(m_partplate_list->m_move_front_icon, m_partplate_list->m_move_front_texture);
-        }
     }
     if (render_name_edit_icon) {
         render_plate_name_texture();
@@ -1088,7 +1081,6 @@ void PartPlate::on_render_for_picking() {
 
     std::vector<GLModel *> gl_models = {&m_partplate_list->m_triangles, &m_partplate_list->m_del_icon, &m_partplate_list->m_orient_icon, &m_partplate_list->m_arrange_icon,
                                         &m_partplate_list->m_lock_icon, &m_partplate_list->m_plate_settings_icon,
-                                        &m_partplate_list->m_move_front_icon,
                                         &m_partplate_list->m_plate_filament_map_icon,//some case not show
                                         &m_plate_name_edit_icon};
     for (size_t i = 0; i < gl_models.size(); i++) {
@@ -3902,21 +3894,6 @@ void PartPlateList::generate_icon_textures()
 		}
 	}
 
-    // if (m_move_front_texture.get_id() == 0)
-    {
-        file_name = path + (m_is_dark ? "plate_move_front_dark.svg" : "plate_move_front.svg");
-        if (!m_move_front_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
-        }
-    }
-
-    // if (m_move_front_hovered_texture.get_id() == 0)
-    {
-        file_name = path + (m_is_dark ? "plate_move_front_hover_dark.svg" : "plate_move_front_hover.svg");
-        if (!m_move_front_hovered_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
-        }
-    }
 	// if (m_plate_name_edit_texture.get_id() == 0)
 	{
 		file_name = path + (m_is_dark ? "plate_name_edit_dark.svg" : "plate_name_edit.svg");
@@ -3979,8 +3956,6 @@ void PartPlateList::release_icon_textures()
 	m_logo_texture.reset();
 	m_del_texture.reset();
 	m_del_hovered_texture.reset();
-    m_move_front_hovered_texture.reset();
-    m_move_front_texture.reset();
 	m_arrange_texture.reset();
 	m_arrange_hovered_texture.reset();
 	m_orient_texture.reset();
@@ -5895,8 +5870,7 @@ bool PartPlateList::set_shapes(const Pointfs              &shape,
         calc_vertex_for_icons(2, m_arrange_icon);
         calc_vertex_for_icons(3, m_lock_icon);
         calc_vertex_for_icons(4, m_plate_settings_icon);
-        calc_vertex_for_icons(5, m_move_front_icon);
-        calc_vertex_for_icons(6, m_plate_filament_map_icon);
+        calc_vertex_for_icons(5, m_plate_filament_map_icon);
         calc_vertex_for_number(0, false, m_plate_idx_icon);
     }
 	return true;

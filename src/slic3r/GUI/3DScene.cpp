@@ -1973,7 +1973,7 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                 case BuildVolume::Type::Rectangle:
                 //FIXME this test does not evaluate collision of a build volume bounding box with non-convex objects.
                     state = plate_build_volume.volume_state_bbox(bb);
-                    if ((state == BuildVolume::ObjectState::Inside) && (extruder_count > 1))
+                    if ((state == BuildVolume::ObjectState::Inside) && (extruder_count > 1) && !GUI::wxGetApp().plater()->force_ban_check_volume_bbox_state_with_extruder_area())
                     {
                         state = plate_build_volume.check_volume_bbox_state_with_extruder_areas(bb, inside_extruders);
                     }

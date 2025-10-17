@@ -1200,6 +1200,7 @@ void GLCanvas3D::SequentialPrintClearance::reset()
 wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_PLATE_NAME_CHANGE, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_MOVE_PLATE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_PLATE_SELECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, RBtnEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_PLATE_RIGHT_CLICK, RBtnPlateEvent);
@@ -10618,9 +10619,9 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
         plate_build_volume      = plate->get_build_volume();
 
         for (GLVolume* vol : volumes.volumes) {
-            if (!vol->is_modifier  
-                && !vol->is_wipe_tower  
-                && (!thumbnail_params.parts_only || vol->composite_id.volume_id >= 0) 
+            if (!vol->is_modifier
+                && !vol->is_wipe_tower
+                && (!thumbnail_params.parts_only || vol->composite_id.volume_id >= 0)
                 && (vol->partly_inside || is_volume_in_plate_boundingbox(*vol, plate_idx, plate_build_volume))) {
                     visible_volumes.emplace_back(vol);
             }

@@ -281,6 +281,8 @@ private:
 
 class Plater: public wxPanel
 {
+    bool m_force_ban_check_volume_bbox_state_with_extruder_area{false};
+
 public:
     using fs_path = boost::filesystem::path;
 
@@ -704,6 +706,7 @@ public:
     const Camera& get_picking_camera() const;
     Camera& get_picking_camera();
 
+    bool force_ban_check_volume_bbox_state_with_extruder_area();
     //BBS: partplate list related functions
     PartPlateList& get_partplate_list();
     void validate_current_plate(bool& model_fits, bool& validate_error);
@@ -712,7 +715,7 @@ public:
     //BBS: update progress result
     void apply_background_progress();
     //BBS: select the plate by hover_id
-    int select_plate_by_hover_id(int hover_id, bool right_click = false, bool isModidyPlateName = false);
+    int select_plate_by_hover_id(int hover_id, bool right_click = false, bool isModidyPlateName = false, bool is_swap_plate = false);
     //BBS: delete the plate, index= -1 means the current plate
     int delete_plate(int plate_index = -1);
     //BBS: select the sliced plate by index
