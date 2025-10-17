@@ -312,52 +312,6 @@ namespace FilamentGroupUtils
         return ret;
     }
 
-    std::vector<MultiNozzleUtils::NozzleInfo> build_nozzle_list(std::vector<MultiNozzleUtils::NozzleGroupInfo> nozzle_groups)
-    {
-        std::vector<MultiNozzleUtils::NozzleInfo> ret;
-        std::sort(nozzle_groups.begin(), nozzle_groups.end());
-        int nozzle_id = 0;
-        for (auto& group : nozzle_groups) {
-            for (int i = 0; i < group.nozzle_count; ++i) {
-                MultiNozzleUtils::NozzleInfo tmp;
-                tmp.diameter = group.diameter;
-                tmp.extruder_id = group.extruder_id;
-                tmp.volume_type = group.volume_type;
-                tmp.group_id = nozzle_id++;
-                ret.emplace_back(std::move(tmp));
-            }
-        }
-        return ret;
-    }
-
-    std::vector<MultiNozzleUtils::NozzleInfo> build_nozzle_list(double diameter, const std::vector<int>& filament_nozzle_map, const std::vector<int>& filament_volume_map, const std::vector<int>& filament_map)
-    {
-        std::string diameter_str = format_diameter_to_str(diameter);
-
-        std::map<int, std::vector<int>> nozzle_to_filaments;
-        for(size_t idx = 0; idx < filament_nozzle_map.size(); ++idx){
-            int nozzle_id = filament_nozzle_map[idx];
-            nozzle_to_filaments[nozzle_id].emplace_back(static_cast<int>(idx));
-        }
-
-        std::vector<MultiNozzleUtils::NozzleInfo> ret;
-
-        for(auto& elem : nozzle_to_filaments){
-            int nozzle_id = elem.first;
-            auto& filaments = elem.second;
-
-            MultiNozzleUtils::NozzleInfo info;
-            info.diameter = diameter_str;
-            info.group_id = nozzle_id;
-            info.extruder_id = filament_map[filaments.front()];
-            info.volume_type = NozzleVolumeType(filament_volume_map[filaments.front()]);
-            ret.emplace_back(std::move(info));
-        }
-        return ret;
-    }
-
-
-
     std::map<int,std::vector<int>> build_extruder_nozzle_list(const std::vector<MultiNozzleUtils::NozzleInfo>& nozzle_list)
     {
         std::map<int, std::vector<int>> ret;
