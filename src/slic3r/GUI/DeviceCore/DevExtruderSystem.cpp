@@ -96,6 +96,11 @@ namespace Slic3r
 
     std::optional<DevExtder> DevExtderSystem::GetExtderById(int extder_id) const
     {
+        if (extder_id == 0xF) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " the extruder maybe changing: " << extder_id;
+            return std::nullopt;
+        }
+
         if (extder_id >= m_extders.size())
         {
             assert(false && "Invalid extruder ID");
