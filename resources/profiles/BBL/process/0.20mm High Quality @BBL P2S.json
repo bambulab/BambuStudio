@@ -6,7 +6,6 @@
     "setting_id": "GP211",
     "instantiation": "true",
     "description": "High quality profile for 0.2mm layer height, prioritizing strength and print quality.",
-    "bottom_surface_pattern": "monotonicline",
     "bridge_speed": [
         "50",
         "50"
@@ -147,7 +146,6 @@
         "150",
         "150"
     ],
-    "top_surface_pattern": "monotonic",
     "travel_speed": [
         "600",
         "600"
