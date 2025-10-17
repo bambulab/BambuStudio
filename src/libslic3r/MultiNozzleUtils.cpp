@@ -4,6 +4,47 @@
 
 namespace Slic3r { namespace MultiNozzleUtils {
 
+std::vector<NozzleInfo> build_nozzle_list(std::vector<NozzleGroupInfo> nozzle_groups)
+{
+    std::vector<NozzleInfo> ret;
+    std::sort(nozzle_groups.begin(), nozzle_groups.end());
+    int nozzle_id = 0;
+    for (auto& group : nozzle_groups) {
+        for (int i = 0; i < group.nozzle_count; ++i) {
+            NozzleInfo tmp;
+            tmp.diameter = group.diameter;
+            tmp.extruder_id = group.extruder_id;
+            tmp.volume_type = group.volume_type;
+            tmp.group_id = nozzle_id++;
+            ret.emplace_back(std::move(tmp));
+        }
+    }
+    return ret;
+}
+
+std::vector<NozzleInfo> build_nozzle_list(double diameter, const std::vector<int>& filament_nozzle_map, const std::vector<int>& filament_volume_map, const std::vector<int>& filament_map)
+{
+    std::string diameter_str = format_diameter_to_str(diameter);
+    std::map<int, std::vector<int>> nozzle_to_filaments;
+    for(size_t idx = 0; idx < filament_nozzle_map.size(); ++idx){
+        int nozzle_id = filament_nozzle_map[idx];
+        nozzle_to_filaments[nozzle_id].emplace_back(static_cast<int>(idx));
+    }
+    std::vector<NozzleInfo> ret;
+    for(auto& elem : nozzle_to_filaments){
+        int nozzle_id = elem.first;
+        auto& filaments = elem.second;
+        NozzleInfo info;
+        info.diameter = diameter_str;
+        info.group_id = nozzle_id;
+        info.extruder_id = filament_map[filaments.front()];
+        info.volume_type = NozzleVolumeType(filament_volume_map[filaments.front()]);
+        ret.emplace_back(std::move(info));
+    }
+    return ret;
+}
+
+
 MultiNozzleGroupResult::MultiNozzleGroupResult(const std::vector<int> &filament_nozzle_map, const std::vector<NozzleInfo> &nozzle_list, const std::vector<unsigned int>& used_filaments_)
 {
     filament_map = filament_nozzle_map;
@@ -106,6 +147,60 @@ std::optional<MultiNozzleGroupResult> MultiNozzleGroupResult::init_from_slice_fi
         return std::nullopt;
 
     return MultiNozzleGroupResult(new_filament_nozzle_map, nozzle_list_vec, used_filaments);
+}
+
+std::optional<MultiNozzleGroupResult> MultiNozzleGroupResult::init_from_cli_config(const std::vector<unsigned int>& used_filaments,const std::vector<int>& filament_map, const std::vector<int>& filament_volume_map, const std::vector<int>& filament_nozzle_map, const std::vector<std::map<NozzleVolumeType, int>>& nozzle_count, float diameter)
+{
+    std::vector<MultiNozzleUtils::NozzleGroupInfo> nozzle_groups;
+    for(size_t extruder_id = 0; extruder_id < nozzle_count.size(); ++extruder_id){
+        for (auto elem : nozzle_count[extruder_id]) {
+            MultiNozzleUtils::NozzleGroupInfo group_info;
+            group_info.diameter = format_diameter_to_str(diameter);
+            group_info.volume_type = elem.first;
+            group_info.nozzle_count = elem.second;
+            group_info.extruder_id = extruder_id;
+            nozzle_groups.emplace_back(group_info);
+        }
+    }
+
+    auto nozzle_list = build_nozzle_list(nozzle_groups);
+    std::vector<bool> used_nozzle(nozzle_list.size(),false);
+
+    std::map<int,int> input_nozzle_id_to_output;
+
+    std::vector<int> output_nozzle_map(filament_nozzle_map.size(),0);
+
+    for(auto filament_idx : used_filaments){
+        NozzleVolumeType req_type = NozzleVolumeType(filament_volume_map[filament_idx]);
+        int req_extruder = filament_map[filament_idx];
+        int input_nozzle_idx = filament_nozzle_map[filament_idx];
+
+        if(input_nozzle_id_to_output.find(input_nozzle_idx) != input_nozzle_id_to_output.end()){
+            output_nozzle_map[filament_idx] = input_nozzle_id_to_output[input_nozzle_idx];
+            continue;
+        }
+
+        int output_nozzle_idx = -1;
+        for(size_t nozzle_idx = 0; nozzle_idx < nozzle_list.size(); ++nozzle_idx){
+            if(used_nozzle[nozzle_idx])
+                continue;
+            auto& nozzle_info = nozzle_list[nozzle_idx];
+            if(!(nozzle_info.extruder_id == req_extruder&& nozzle_info.volume_type == req_type))
+                continue;
+
+            output_nozzle_idx = nozzle_idx;
+            input_nozzle_id_to_output[input_nozzle_idx] = output_nozzle_idx;
+            used_nozzle[nozzle_idx] = true;
+            break;
+        }
+
+        if(output_nozzle_idx == -1){
+            return std::nullopt;
+        }
+        output_nozzle_map[filament_idx] = output_nozzle_idx;
+    }
+
+    return MultiNozzleGroupResult(output_nozzle_map,nozzle_list,used_filaments);
 }
 
 int MultiNozzleGroupResult::get_extruder_id(int filament_id) const

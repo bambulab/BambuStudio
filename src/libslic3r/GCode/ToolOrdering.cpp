@@ -1068,12 +1068,15 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
         return MultiNozzleGroupResult(manual_filament_map, nozzle_list, used_filaments);
     }
 
-    if (mode == FilamentMapMode::fmmNozzleManual){
+    if (mode == FilamentMapMode::fmmNozzleManual) {
         // directly build group result based on filament nozzle map
         auto manual_filament_map = print_config.filament_map.values;
         std::transform(manual_filament_map.begin(), manual_filament_map.end(), manual_filament_map.begin(), [](int v) { return v - 1; });
-        auto nozzle_list = build_nozzle_list(print_config.nozzle_diameter.values.front(),print_config.filament_nozzle_map.values, print_config.filament_volume_map.values, manual_filament_map);
-        return MultiNozzleGroupResult(print_config.filament_nozzle_map.values,nozzle_list, used_filaments);
+        auto nozzle_result = MultiNozzleGroupResult::init_from_cli_config(used_filaments, manual_filament_map, print_config.filament_volume_map.values, print_config.filament_nozzle_map.values, get_extruder_nozzle_stats(print_config.extruder_nozzle_stats.values), print_config.nozzle_diameter.values.front());
+        if (!nozzle_result) {
+            BOOST_LOG_TRIVIAL(error) << "Failed to build nozzle group result from filament nozzle map!";
+        }
+        return  *nozzle_result;
     }
 
 

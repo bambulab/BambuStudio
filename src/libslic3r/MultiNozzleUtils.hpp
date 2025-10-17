@@ -68,6 +68,14 @@ public:
     MultiNozzleGroupResult(const std::vector<int> &filament_nozzle_map, const std::vector<NozzleInfo> &nozzle_list, const std::vector<unsigned int>& used_filament);
     static std::optional<MultiNozzleGroupResult> init_from_slice_filament(const std::vector<int>          &filament_map,
                                                                           const std::vector<FilamentInfo> &filament_info); // 1 based filament_map
+
+    static std::optional<MultiNozzleGroupResult> init_from_cli_config(const std::vector<unsigned int>& used_filaments,
+                                                                      const std::vector<int>& filament_map,
+                                                                      const std::vector<int>& filament_volume_map,
+                                                                      const std::vector<int>& filament_nozzle_map,
+                                                                      const std::vector<std::map<NozzleVolumeType,int>>& nozzle_count,
+                                                                      float diameter);
+
     bool                                         are_filaments_same_extruder(int filament_id1, int filament_id2) const;    // 判断两个材料是否处于同一个挤出机
     bool                                         are_filaments_same_nozzle(int filament_id1, int filament_id2) const;      // 判断两个材料是否处于同一个喷嘴
     int                                          get_extruder_count() const;                                               // 获取挤出机数量
@@ -115,6 +123,11 @@ public:
     void clear_nozzle_status(int nozzle_id);
     void set_nozzle_status(int nozzle_id, int filament_id);
 };
+
+
+std::vector<NozzleInfo> build_nozzle_list(std::vector<NozzleGroupInfo> info);
+std::vector<NozzleInfo> build_nozzle_list(double diameter,const std::vector<int>& filament_nozzle_map, const std::vector<int>& filament_volume_map, const std::vector<int>& filament_map);
+
 
 } // namespace MultiNozzleUtils
 } // namespace Slic3r
