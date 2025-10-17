@@ -6,7 +6,6 @@
     "setting_id": "GP213",
     "instantiation": "true",
     "description": "Strength profile for 0.6mm nozzle, prioritizing strength.",
-    "bottom_surface_pattern": "monotonicline",
     "bridge_speed": [
         "30",
         "30"
@@ -142,7 +141,6 @@
         "80",
         "80"
     ],
-    "top_surface_pattern": "monotonic",
     "travel_speed": [
         "600",
         "600"

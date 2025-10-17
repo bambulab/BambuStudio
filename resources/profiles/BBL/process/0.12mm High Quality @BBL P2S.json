@@ -5,7 +5,6 @@
     "from": "system",
     "setting_id": "GP207",
     "instantiation": "true",
-    "bottom_surface_pattern": "monotonicline",
     "bridge_speed": [
         "50",
         "50"
@@ -147,7 +146,6 @@
         "150",
         "150"
     ],
-    "top_surface_pattern": "monotonic",
     "travel_speed": [
         "600",
         "600"
