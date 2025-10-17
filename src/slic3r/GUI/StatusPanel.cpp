@@ -1198,9 +1198,11 @@ void PrintingTaskPanel::on_stage_clicked(wxMouseEvent &event)
     MachineObject *obj = dev_manager ? dev_manager->get_selected_machine() : nullptr;
 
     if (obj && obj->stage_curr == 58) {
-            wxWindow *top    = wxGetTopLevelParent(this);
-            ThermalPreconditioningDialog m_thermal_dialog(top ? top : this, obj->get_dev_id() , "Calculating...");
-            m_thermal_dialog.ShowModal();
+        wxWindow                    *top = wxGetTopLevelParent(this);
+        bool      is_show_remain_time = obj->get_stage_remaining_seconds() >= 0 ? true : false;
+        BOOST_LOG_TRIVIAL(info) << "is_show_remain_time = " << is_show_remain_time;
+        ThermalPreconditioningDialog m_thermal_dialog(top ? top : this, obj->get_dev_id(), is_show_remain_time);
+        m_thermal_dialog.ShowModal();
     }
 
     event.Skip();
