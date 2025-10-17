@@ -85,14 +85,14 @@ void CaliPresetCaliStagePanel::create_panel(wxWindow* parent)
     m_top_sizer->AddSpacer(PRESET_GAP);
     // events
     m_complete_radioBox->Bind(wxEVT_RADIOBUTTON, [this](auto& e) {
-        m_stage_panel_parent->get_current_object()->flow_ratio_calibration_type = COMPLETE_CALIBRATION;
+        m_stage_panel_parent->get_current_object()->GetCalib()->SetFlowRatioCalibType(COMPLETE_CALIBRATION);
         input_panel->Show(false);
         m_stage = CALI_MANUAL_STAGE_1;
         GetParent()->Layout();
         GetParent()->Fit();
         });
     m_fine_radioBox->Bind(wxEVT_RADIOBUTTON, [this](auto& e) {
-        m_stage_panel_parent->get_current_object()->flow_ratio_calibration_type = FINE_CALIBRATION;
+        m_stage_panel_parent->get_current_object()->GetCalib()->SetFlowRatioCalibType(FINE_CALIBRATION);
         input_panel->Show();
         m_stage = CALI_MANUAL_STAGE_2;
         GetParent()->Layout();
@@ -593,13 +593,13 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
                                 << " dev_id = " << BBLCrossTalk::Crosstalk_DevId(curr_obj->get_dev_id())
                                 << ", print_type = " << curr_obj->printer_type
                                 << ", printer_status = " << curr_obj->print_status
-                                << ", cali_finished = " << curr_obj->cali_finished
-                                << ", cali_version = " << curr_obj->cali_version
-                                << ", cache_flow_ratio = " << curr_obj->cache_flow_ratio
+                                << ", cali_finished = " << curr_obj->GetCalib()->GetStashCalibFinished()
+                                << ", cali_version = " << curr_obj->GetCalib()->GetCalibVersion()
+                                << ", cache_flow_ratio = " << curr_obj->GetCalib()->GetStashFlowRatio()
                                 << ", sub_task_name = " << curr_obj->subtask_name
                                 << ", gcode_file_name = " << curr_obj->m_gcode_file;
 
-        for (const CaliPresetInfo &preset_info : curr_obj->selected_cali_preset) {
+        for (const CaliPresetInfo &preset_info : curr_obj->GetCalib()->GetSelectedCalibPreset()) {
             BOOST_LOG_TRIVIAL(info) << "CalibrationPresetPage: sync_nozzle_info - selected preset: "
                                     << "tray_id = " << preset_info.tray_id
                                     << ", nozzle_diameter = " << preset_info.nozzle_diameter
@@ -1667,7 +1667,8 @@ void CalibrationPresetPage::update_combobox_filaments(MachineObject* obj)
 
     //step 1: update combobox filament list
     float nozzle_value = get_nozzle_value();
-    obj->cali_selected_nozzle_dia = nozzle_value;
+
+    obj->GetCalib()->SetSelectedNozzleDiameter(to_nozzle_diameter_type(nozzle_value));
     if (nozzle_value < 1e-3) {
         return;
     }
@@ -2207,7 +2208,7 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
     };
 
     //set flow ratio calibration type
-    m_cali_stage_panel->set_flow_ratio_calibration_type(obj->flow_ratio_calibration_type);
+    m_cali_stage_panel->set_flow_ratio_calibration_type(obj->GetCalib()->GetFlowRatioCalibType());
     // set nozzle value from machine
     bool nozzle_is_set = false;
     for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {

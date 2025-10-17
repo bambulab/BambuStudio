@@ -171,13 +171,13 @@ void CalibrationCaliPage::update(MachineObject* obj)
                                         << ", printer_status = " << obj->print_status
                                         << ", is_connected = " << obj->is_connected()
                                         << ", m_is_between_start_and_running = " << m_is_between_start_and_running
-                                        << ", cali_finished = " << obj->cali_finished
-                                        << ", cali_version = " << obj->cali_version
-                                        << ", cache_flow_ratio = " << obj->cache_flow_ratio
+                                        << ", cali_finished = " << obj->GetCalib()->GetStashCalibFinished()
+                                        << ", cali_version = " << obj->GetCalib()->GetCalibVersion()
+                                        << ", cache_flow_ratio = " << obj->GetCalib()->GetStashFlowRatio()
                                         << ", sub_task_name = " << obj->subtask_name
                                         << ", gcode_file_name = " << obj->m_gcode_file
-                                        << ", get_pa_calib_result" << obj->get_pa_calib_result
-                                        << ", get_flow_calib_result" << obj->get_flow_calib_result;
+                                        << ", get_pa_calib_result" << obj->GetCalib()->IsPAResultReady()
+                                        << ", get_flow_calib_result" << obj->GetCalib()->IsFlowRateReady();
             }
         }
         else {
@@ -213,7 +213,7 @@ void CalibrationCaliPage::update(MachineObject* obj)
                 if (get_obj_calibration_mode(obj) == m_cali_mode) {
                     if (obj->is_printing_finished()) {
                         if (obj->print_status == "FINISH") {
-                            if (obj->get_pa_calib_result) {
+                            if (obj->GetCalib()->IsPAResultReady()) {
                                 enable_cali = true;
                             }
                             else {
@@ -246,7 +246,7 @@ void CalibrationCaliPage::update(MachineObject* obj)
                 if (get_obj_calibration_mode(obj) == m_cali_mode) {
                     if (obj->is_printing_finished()) {
                         if (obj->print_status == "FINISH") {
-                            if (obj->get_flow_calib_result) {
+                            if (obj->GetCalib()->IsFlowRateReady()) {
                                 enable_cali = true;
                             }
                             else {
@@ -515,8 +515,8 @@ void CalibrationCaliPage::msw_rescale()
 float CalibrationCaliPage::get_selected_calibration_nozzle_dia(MachineObject* obj)
 {
     // return selected if this is set
-    if (obj->cali_selected_nozzle_dia > 1e-3 && obj->cali_selected_nozzle_dia < 10.0f)
-        return obj->cali_selected_nozzle_dia;
+    if(obj->GetCalib()->GetSelectedNozzleDiameter() != NozzleDiameterType::NONE_DIAMETER_TYPE)
+        return to_nozzle_diameter_float(obj->GetCalib()->GetSelectedNozzleDiameter());
 
     // return default nozzle if nozzle diameter is set
     if (obj->GetExtderSystem()->GetNozzleDiameter(0) > 1e-3 && obj->GetExtderSystem()->GetNozzleDiameter(0) < 10.0f)

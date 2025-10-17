@@ -530,7 +530,7 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
         }
 
         // set k / n value
-        if (obj->cali_version <= -1 && obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
+        if (!obj->GetCalib()->IsVersionInited() && obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
             // set extrusion cali ratio
             int cali_tray_id = ams_id * 4 + slot_id;
 
@@ -539,7 +539,7 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
                 k_text.ToDouble(&k);
             }
             catch (...) {
-                ;
+
             }
 
             double n = 0.0;
@@ -547,7 +547,7 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
                 n_text.ToDouble(&n);
             }
             catch (...) {
-                ;
+
             }
             obj->command_extrusion_cali_set(cali_tray_id, "", "", k, n);
         }
@@ -675,7 +675,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
     wxString k_text = m_input_k_val->GetTextCtrl()->GetValue();
     wxString n_text = m_input_n_val->GetTextCtrl()->GetValue();
 
-    if (obj->cali_version <= -1 && (obj->get_printer_series() != PrinterSeries::SERIES_X1) && !ExtrusionCalibration::check_k_validation(k_text)) {
+    if (!obj->GetCalib()->IsVersionInited() && (obj->get_printer_series() != PrinterSeries::SERIES_X1) && !ExtrusionCalibration::check_k_validation(k_text)) {
         wxString k_tips = wxString::Format(_L("Please input a valid value (K in %.1f~%.1f)"), MIN_PA_K_VALUE, MAX_PA_K_VALUE);
         wxString kn_tips = wxString::Format(_L("Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"), MIN_PA_K_VALUE, MAX_PA_K_VALUE, 0.6, 2.0);
         MessageDialog msg_dlg(nullptr, k_tips, wxEmptyString, wxICON_WARNING | wxOK);
@@ -705,7 +705,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
             vt_tray = VIRTUAL_TRAY_DEPUTY_ID;
         }
 
-        if (obj->cali_version >= 0) {
+        if (obj->GetCalib()->IsVersionInited()) {
             PACalibIndexInfo select_index_info;
             select_index_info.tray_id = vt_tray;
             select_index_info.ams_id = ams_id;
@@ -746,7 +746,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
             ;
         }
 
-        if (obj->cali_version >= 0) {
+        if (obj->GetCalib()->IsVersionInited()) {
             PACalibIndexInfo select_index_info;
             select_index_info.tray_id = cali_tray_id;
             select_index_info.ams_id = ams_id;
@@ -857,7 +857,7 @@ bool AMSMaterialsSetting::is_virtual_tray()
 
 void AMSMaterialsSetting::update_widgets()
 {
-    if (obj && obj->get_printer_series() == PrinterSeries::SERIES_X1 && obj->cali_version <= -1) {
+    if (obj && obj->get_printer_series() == PrinterSeries::SERIES_X1 && !obj->GetCalib()->IsVersionInited()) {
         // Low version firmware does not display k value
         m_panel_normal->Show();
         m_panel_kn->Hide();
@@ -869,7 +869,7 @@ void AMSMaterialsSetting::update_widgets()
         else
             m_panel_normal->Hide();
         m_panel_kn->Show();
-    } else if (obj && (obj->ams_support_virtual_tray || obj->cali_version >= 0)) {
+    } else if (obj && (obj->ams_support_virtual_tray || obj->GetCalib()->IsVersionInited())) {
         m_panel_normal->Show();
         m_panel_kn->Show();
     } else {
@@ -1031,7 +1031,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
             m_readonly_filament->Hide();
         }
 
-        if (obj->cali_version >= 0) {
+        if (obj->GetCalib()->IsVersionInited()) {
             m_title_pa_profile->Show();
             m_comboBox_cali_result->Show();
             m_input_k_val->Disable();
@@ -1208,7 +1208,7 @@ void AMSMaterialsSetting::update_pa_profile_items()
     items.push_back(_L("Default"));
 
     m_input_k_val->GetTextCtrl()->SetValue(wxEmptyString);
-    std::vector<PACalibResult> cali_history = obj->pa_calib_tab;
+    std::vector<PACalibResult> cali_history = obj->GetCalib()->GetPAHistory();
     std::sort(cali_history.begin(), cali_history.end(), [](const PACalibResult &left, const PACalibResult &right) { return left.nozzle_pos_id < right.nozzle_pos_id; });
     for (auto cali_item : cali_history) {
         if (cali_item.filament_id == ams_filament_id) {
@@ -1343,7 +1343,7 @@ int AMSMaterialsSetting::get_cali_index_by_ams_slot(MachineObject *obj, int ams_
     int *from_printer = static_cast<int *>(m_comboBox_filament->GetClientData());
     if (!from_printer || (*from_printer != 1)) return -1;
 
-    if (obj->cali_version >= 0) {
+    if (obj->GetCalib()->IsVersionInited()) {
         if (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
             for (auto slot : obj->vt_slot) {
                 if (slot.id == std::to_string(ams_id)) return slot.cali_idx;
@@ -1497,7 +1497,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         dlg.ShowModal();
     }
 
-    std::vector<PACalibResult> cali_history = obj->pa_calib_tab;
+    std::vector<PACalibResult> cali_history = obj->GetCalib()->GetPAHistory();
     auto iter = std::find_if(cali_history.begin(), cali_history.end(), [cur_cali_idx=get_cali_index_by_ams_slot(obj, ams_id, slot_id)](const PACalibResult& item){
         return item.cali_idx == cur_cali_idx;
     });
@@ -1509,7 +1509,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         m_comboBox_nozzle_type->SetValue(wxEmptyString);
     }
 
-    if (obj->cali_version >= 0) {
+    if (obj->GetCalib()->IsVersionInited()) {
         update_pa_profile_items();
 
         int cali_idx = get_cali_index_by_ams_slot(obj, ams_id, slot_id);
