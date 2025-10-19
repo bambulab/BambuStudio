@@ -9900,7 +9900,7 @@ msgstr "Desvie e evite atravessar paredes para evitar a possibilidade de criar b
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Suavização da velocidade da parede ao longo de Z(experimental)"
 
-msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
+msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
 msgstr "Suavizando a velocidade da parede externa na direção z para obter melhor qualidade de superfície: o tempo de impressão aumentará. Isso não funciona no modo vaso espiral"
 
 msgid "Avoid crossing wall - Max detour length"

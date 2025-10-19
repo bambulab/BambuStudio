@@ -9874,7 +9874,7 @@ msgstr "표면에 얼룩이 생기지 않도록 우회하고 벽을 가로질러
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Z를 따라 벽 속도 평활화(실험적)"
 
-msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
+msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
 msgstr "더 나은 표면 품질을 얻기 위해 Z 방향으로 아웃월 속도를 부드럽게 합니다. 출력 시간이 늘어납니다. 나선형 꽃병 모드에서는 작동하지 않습니다."
 
 msgid "Avoid crossing wall - Max detour length"

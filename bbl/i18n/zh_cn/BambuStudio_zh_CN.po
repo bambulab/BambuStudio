@@ -9828,7 +9828,7 @@ msgstr "空驶时绕过外墙以避免在模型外观面产生斑点"
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "平滑z方向外墙速度（实验）"
 
-msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
+msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
 msgstr "平滑 Z 方向外墙速度以获得更好的表面质量。该功能会增加打印时间，同时无法在旋转花瓶模式下生效。"
 
 msgid "Avoid crossing wall - Max detour length"

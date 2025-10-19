@@ -9895,7 +9895,7 @@ msgstr "Dolambaçlı yoldan gidin ve yüzeyde lekeye neden olabilecek duvar boyu
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Z boyunca duvar hızını yumuşatma (deneysel)"
 
-msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
+msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
 msgstr "Daha iyi yüzey kalitesi elde etmek için z yönünde dış duvar hızını yumuşatma. Baskı süresi artacaktır. Spiral vazo modunda çalışmaz."
 
 msgid "Avoid crossing wall - Max detour length"

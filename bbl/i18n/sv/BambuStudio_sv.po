@@ -9892,7 +9892,7 @@ msgstr "Ta en omväg och undvik att färdas över väggar för att undvika riske
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Utjämning vägg hastighet längs Z(experimentell)"
 
-msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
+msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
 msgstr "Utjämning av ytterväggens hastighet i z-riktningen för att få bättre ytkvalitet: Utskriftstiden kommer att öka. Detta fungerar inte i spiralvas läge."
 
 msgid "Avoid crossing wall - Max detour length"

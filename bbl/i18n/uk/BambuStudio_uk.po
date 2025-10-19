@@ -9841,7 +9841,7 @@ msgstr "Обійдіть і уникайте подорожей по стіні,
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Згладжування швидкості стінки по вісі Z(експериментальне)"
 
-msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
+msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
 msgstr "Згладжувати швидкість по вісі Z для досягнення кращої якості поверхні. Сповільнює друк. Не працює в режимі вази."
 
 msgid "Avoid crossing wall - Max detour length"

@@ -9798,8 +9798,8 @@ msgstr "Detour and avoid traveling across walls to avoid the possibility of crea
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr ""
 
-msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
-msgstr "Smoothing outer wall speed in z direction to get better surface quality: Print time will increase. This is not work in spiral vase mode."
+msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
+msgstr "Smoothing outer wall speed in z direction to get better surface quality: Print time will increase. This does not work in spiral vase mode."
 
 msgid "Avoid crossing wall - Max detour length"
 msgstr "Avoid crossing wall - Max detour length"

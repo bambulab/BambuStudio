@@ -9894,7 +9894,7 @@ msgstr "Maak omwegen en vermijd het reizen over muren om te voorkomen dat er klo
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Afvlakken wandsnelheid langs Z(experimenteel)"
 
-msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
+msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
 msgstr "Gladstrijken van de snelheid van de buitenwand in z-richting om een betere oppervlaktekwaliteit te krijgen: de afdruktijd zal toenemen. Dit is geen werk in de spiraalvormige vaasmodus."
 
 msgid "Avoid crossing wall - Max detour length"

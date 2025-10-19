@@ -9878,7 +9878,7 @@ msgstr "Elkerüli a falak keresztezését, ezáltal csökkentve az esetleges hib
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Falnyomtatás sebességének simítása (kísérleti)"
 
-msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
+msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
 msgstr "Kisimítja a Z-tengely sebességét a jobb felületminőség elérése érdekében. Növeli a nyomtatási idő. Nem működik spirálváza módban."
 
 msgid "Avoid crossing wall - Max detour length"

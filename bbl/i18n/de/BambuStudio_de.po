@@ -9880,7 +9880,7 @@ msgstr "Fährt einen Umweg um zu vermeiden über Wände zu fahren, was Blobs auf
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Geschwindigkeit der Wandglättung entlang Z (experimentell)"
 
-msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
+msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
 msgstr "Glätten der Außenwand in Z-Richtung, um eine bessere Oberflächenqualität zu erzielen: Die Druckzeit wird länger. Im Spiraldruckmodus funktioniert das nicht."
 
 msgid "Avoid crossing wall - Max detour length"
