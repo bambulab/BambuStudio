@@ -237,6 +237,7 @@ DynamicPrintConfig PresetBundle::construct_full_config(
     out.option<ConfigOptionString>("printer_settings_id", true)->value    = in_printer_preset.name;
     out.option<ConfigOptionStrings>("filament_ids", true)->values         = filament_ids;
     out.option<ConfigOptionInts>("filament_map", true)->values            = filament_maps;
+    out.option<ConfigOptionInts>("filament_volume_map", true)->values     = filament_volume_maps;
 
     auto add_if_some_non_empty = [&out](std::vector<std::string> &&values, const std::string &key) {
         bool nonempty = false;
@@ -289,7 +290,7 @@ void ExtruderNozzleStat::on_printer_model_change(PresetBundle* preset_bundle)
 }
 
 void ExtruderNozzleStat::on_volume_type_switch(int extruder_id, NozzleVolumeType type)
-{ 
+{
 
     if (data_flag == NozzleDataFlag::ndfMachine) {
         // do nothing here
