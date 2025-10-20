@@ -237,7 +237,10 @@ static t_config_option_keys print_config_diffs(
         const ConfigOption *opt_new_filament = std::binary_search(extruder_retract_keys.begin(), extruder_retract_keys.end(), opt_key) ? new_full_config.option(filament_prefix + opt_key) : nullptr;
 
         if (opt_new_filament != nullptr) {
-            compute_filament_override_value(opt_key, opt_old, opt_new, opt_new_filament, new_full_config, print_diff, filament_overrides, filament_maps);
+            std::vector<int> filament_map_indices(filament_maps.size(), 0);
+            for (int i = 0; i < filament_maps.size(); i++)
+                filament_map_indices[i] = filament_maps[i] - 1;
+            compute_filament_override_value(opt_key, opt_old, opt_new, opt_new_filament, new_full_config, print_diff, filament_overrides, filament_map_indices);
         } else if (*opt_new != *opt_old) {
             //BBS: add plate_index logic for wipe_tower_x/wipe_tower_y
             if (!opt_key.compare("wipe_tower_x") || !opt_key.compare("wipe_tower_y")) {
