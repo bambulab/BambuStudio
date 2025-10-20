@@ -17,6 +17,7 @@
 #include "BBLUtil.hpp"
 #include "../GUI/Plater.hpp"
 #include "../GUI/DeviceCore/DevNozzleSystem.h"
+#include "../GUI/DeviceCore/DevNozzleRack.h"
 
 namespace Slic3r {
 namespace GUI {
@@ -1139,10 +1140,12 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
         return left_item.index < right_item.index;
     });
 
+    std::map<std::pair<int, NozzleVolumeType>, int> extruder_nozzle_counts;
     std::vector<Preset> filament_presets;
-    std::vector<int>    filament_map, f_volume_maps;
+    std::vector<int>    filament_map, f_volume_maps, f_nozzle_map;
     filament_map.resize(calib_infos.size(), 1);
     f_volume_maps.resize(calib_infos.size(), static_cast<int>(NozzleVolumeType::nvtStandard));
+    f_nozzle_map.resize(calib_infos.size(), 0);
     std::vector<int> physical_extruder_maps = dynamic_cast<ConfigOptionInts *>(printer_config.option("physical_extruder_map", true))->values;
     for (size_t i = 0; i < sorted_calib_infos.size(); ++i) {
         CalibInfo calib_info = sorted_calib_infos[i];
@@ -1154,13 +1157,38 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
                 break;
             }
         }
+
+        f_volume_maps[i] = static_cast<int>(calib_info.nozzle_volume_type);
+        f_nozzle_map[i]  = static_cast<int>(calib_info.nozzle_pos_id);
+
+        std::pair<int, NozzleVolumeType> key = {filament_map[i], calib_info.nozzle_volume_type};
+        if (extruder_nozzle_counts.find(key) != extruder_nozzle_counts.end()) {
+            extruder_nozzle_counts[key]++;
+        } else {
+            extruder_nozzle_counts[key] = 1;
+        }
     }
     //todo: need to use the correct filament_volume_map later
+
+    ExtruderNozzleStat nozzle_stat;
+    for (auto item : extruder_nozzle_counts) {
+        nozzle_stat.set_extruder_nozzle_count(item.first.first, item.first.second, item.second, false);
+    }
 
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     DynamicPrintConfig full_config   = PresetBundle::construct_full_config(printer_preset, print_preset, preset_bundle->project_config, filament_presets, false, filament_map, f_volume_maps);
 
     set_for_auto_pa_model_and_config(sorted_calib_infos, full_config, model);
+
+    auto rack = obj_->GetNozzleSystem()->GetNozzleRack();
+    if (rack->IsSupported()) {
+        full_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = FilamentMapMode::fmmNozzleManual;
+        full_config.option<ConfigOptionInts>("filament_nozzle_map", true)->values = f_nozzle_map;
+
+        auto str_values = save_extruder_nozzle_stats_to_string(nozzle_stat.get_raw_stat());
+        full_config.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values = str_values;
+    }
+
     if (!process_and_store_3mf(&model, full_config, params, error_message))
         return false;
 
