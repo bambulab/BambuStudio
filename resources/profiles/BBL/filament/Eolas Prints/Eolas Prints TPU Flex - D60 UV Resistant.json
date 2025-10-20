@@ -1,0 +1,62 @@
+{
+  "type": "filament",
+  "name": "Eolas Prints TPU Flex - D60 UV Resistant",
+  "filament_id": "GF_EOLAS_PRINTS_TPU_D60_UV",
+  "setting_id": "GF_EOLAS_PRINTS_TPU_D60_UV",
+  "inherits": "fdm_filament_tpu",
+  "instantiation": "true",
+  "color": "#4d9398",
+  "cost": 37.90,
+  "density": 1.21,
+  "diameter": 1.75,
+  "nozzle_diameter_profiles": {
+    "0.2": {
+      "nozzle_temperature": 220,
+      "nozzle_temperature_initial_layer": 225,
+      "bed_temperature": 60,
+      "bed_temperature_initial_layer": 65,
+      "max_volumetric_speed": 4,
+      "speed_print": 50,
+      "retraction_length": 0.5,
+      "retraction_speed": 25,
+      "z_lift": 0.2,
+      "travel_speed": 120,
+      "fan_speed": 0,
+      "fan_speed_initial_layer": 0,
+      "min_layer_time": 8
+    },
+    "0.4": {
+      "nozzle_temperature": 220,
+      "nozzle_temperature_initial_layer": 225,
+      "bed_temperature": 60,
+      "bed_temperature_initial_layer": 65,
+      "max_volumetric_speed": 8,
+      "speed_print": 80,
+      "retraction_length": 0.5,
+      "retraction_speed": 25,
+      "z_lift": 0.2,
+      "travel_speed": 120,
+      "fan_speed": 0,
+      "fan_speed_initial_layer": 0,
+      "min_layer_time": 5
+    },
+    "0.6": {
+      "nozzle_temperature": 220,
+      "nozzle_temperature_initial_layer": 225,
+      "bed_temperature": 60,
+      "bed_temperature_initial_layer": 65,
+      "max_volumetric_speed": 12,
+      "speed_print": 110,
+      "retraction_length": 0.5,
+      "retraction_speed": 25,
+      "z_lift": 0.2,
+      "travel_speed": 120,
+      "fan_speed": 0,
+      "fan_speed_initial_layer": 0,
+      "min_layer_time": 5
+    }
+  },
+  "printer_models": [
+    "X1C", "X1E", "P1S", "P1", "P2S", "H2", "H2S", "H2D", "A1", "A1_mini"
+  ]
+}

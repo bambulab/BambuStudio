@@ -6318,6 +6318,78 @@
         {
             "name": "0.56mm Standard @BBL X1C 0.8 nozzle",
             "sub_path": "process/0.56mm Standard @BBL X1C 0.8 nozzle.json"
+        },
+        {
+            "name": "Eolas Prints PLA Premium",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA Premium.json"
+        },
+        {
+            "name": "Eolas Prints PLA Matte",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA Matte.json"
+        },
+        {
+            "name": "Eolas Prints PLA Silk",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA Silk.json"
+        },
+        {
+            "name": "Eolas Prints PLA Neon",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA Neon.json"
+        },
+        {
+            "name": "Eolas Prints PLA High Speed",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA High Speed.json"
+        },
+        {
+            "name": "Eolas Prints PLA INGEO 850",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA INGEO 850.json"
+        },
+        {
+            "name": "Eolas Prints PLA INGEO 870",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA INGEO 870.json"
+        },
+        {
+            "name": "Eolas Prints PLA Antibacterial",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA Antibacterial.json"
+        },
+        {
+            "name": "Eolas Prints PLA Transition",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA Transition.json"
+        },
+        {
+            "name": "Eolas Prints PETG",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PETG.json"
+        },
+        {
+            "name": "Eolas Prints PETG UV Resistant",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PETG UV Resistant.json"
+        },
+        {
+            "name": "Eolas Prints PETG Transition",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PETG Transition.json"
+        },
+        {
+            "name": "Eolas Prints TPU Flex 93A",
+            "sub_path": "filament/Eolas Prints/Eolas Prints TPU Flex - 93A.json"
+        },
+        {
+            "name": "Eolas Prints TPU D53",
+            "sub_path": "filament/Eolas Prints/Eolas Prints TPU Flex - D53.json"
+        },
+        {
+            "name": "Eolas Prints TPU D60 UV",
+            "sub_path": "filament/Eolas Prints/Eolas Prints TPU Flex - D60 UV Resistant.json"
+        },
+        {
+            "name": "Eolas Prints TPU Transition",
+            "sub_path": "filament/Eolas Prints/Eolas Prints TPU Transition.json"
+        },
+        {
+            "name": "Eolas Prints ABS",
+            "sub_path": "filament/Eolas Prints/Eolas Prints ABS.json"
+        },
+        {
+            "name": "Eolas Prints ASA",
+            "sub_path": "filament/Eolas Prints/Eolas Prints ASA.json"
         }
     ]
 }
