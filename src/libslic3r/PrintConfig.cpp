@@ -8062,7 +8062,7 @@ void update_static_print_config_from_dynamic(ConfigBase& config, const DynamicPr
 }
 
 void compute_filament_override_value(const std::string& opt_key, const ConfigOption *opt_old_machine, const ConfigOption *opt_new_machine, const ConfigOption *opt_new_filament, const DynamicPrintConfig& new_full_config,
-    t_config_option_keys& diff_keys, DynamicPrintConfig& filament_overrides, std::vector<int>& f_maps)
+    t_config_option_keys& diff_keys, DynamicPrintConfig& filament_overrides, std::vector<int>& f_map_indices)
 {
     bool is_nil = opt_new_filament->is_nil();
 
@@ -8084,7 +8084,7 @@ void compute_filament_override_value(const std::string& opt_key, const ConfigOpt
     }
 
     auto opt_copy = opt_new_machine->clone();
-    opt_copy->apply_override(opt_new_filament, f_maps);
+    opt_copy->apply_override(opt_new_filament, f_map_indices);
     bool changed = *opt_old_machine != *opt_copy;
 
     if (changed) {

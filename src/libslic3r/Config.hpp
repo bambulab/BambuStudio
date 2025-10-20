@@ -763,6 +763,7 @@ public:
     }
     // Apply an override option, possibly a nullable one.
     // assume lhs is not nullable even it is nullable
+    //default_index are 0 based
     bool apply_override(const ConfigOption *rhs, std::vector<int>& default_index) override {
         //if (this->nullable())
         //	throw ConfigurationError("Cannot override a nullable ConfigOption.");
@@ -798,8 +799,8 @@ public:
                 this->values[i] = rhs_vec->values[i];
                 modified        = true;
             } else {
-                if ((i < default_index.size()) && (default_index[i] - 1 < default_value.size()))
-                    this->values[i] = default_value[default_index[i] - 1];
+                if ((i < default_index.size()) && (default_index[i]  < default_value.size()))
+                    this->values[i] = default_value[default_index[i]];
                 else
                     this->values[i] = default_value[0];
             }
