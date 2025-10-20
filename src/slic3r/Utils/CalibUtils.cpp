@@ -1769,8 +1769,10 @@ bool CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
         plate_data->gcode_file      = temp_gcode_path;
         plate_data->is_sliced_valid = true;
         plate_data->printer_model_id = obj_->printer_type;
-        FilamentInfo& filament_info = plate_data->slice_filaments_info.front();
-        filament_info.type          = full_config.opt_string("filament_type", 0);
+        for (size_t i = 0; i < plate_data->slice_filaments_info.size(); ++i) {
+            FilamentInfo &filament_info = plate_data->slice_filaments_info[i];
+            filament_info.type          = full_config.opt_string("filament_type", i);
+        }
     }
 
     //draw thumbnails
