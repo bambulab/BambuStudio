@@ -320,8 +320,8 @@ std::vector<std::set<int>> PrintObject::detect_extruder_geometric_unprintables()
 std::unordered_map<int, std::unordered_map<int,double>>  PrintObject::calc_estimated_filament_print_time() const
 {
     auto get_limit_from_volumetric_speed = [&](int filament_idx, int extruder_idx, double width, double height) {
-        double max_volumetric_speed = print()->config().filament_max_volumetric_speed.values[extruder_idx];
-        double flow_ratio = print()->config().filament_flow_ratio.values[extruder_idx];
+        double max_volumetric_speed = print()->config().filament_max_volumetric_speed.values[filament_idx];
+        double flow_ratio = print()->config().filament_flow_ratio.values[filament_idx];
 
         double mm3_per_mm = height * (width - height * (1 - PI / 4)) * flow_ratio;
         return max_volumetric_speed / mm3_per_mm;
