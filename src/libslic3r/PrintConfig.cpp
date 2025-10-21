@@ -8171,6 +8171,11 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->cli = "gcodeviewer";
     def->set_default_value(new ConfigOptionBool(false));*/
 
+    def = this->add("cli_safe_params", coBool);
+    def->label = "Enable CLI Safety Checks";
+    def->tooltip = "When enabled, parameters exceeding the printer's safety limits (e.g., acceleration) will be clamped to safe defaults. Disable at your own risk.";
+    def->set_default_value(new ConfigOptionBool(true));
+
     def = this->add("slice", coInt);
     def->label = "Slice";
     def->tooltip = "Slice the plates: 0-all plates, i-plate i, others-invalid";
