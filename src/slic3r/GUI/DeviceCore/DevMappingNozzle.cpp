@@ -231,6 +231,17 @@ void DevNozzleMappingResult::SetManualNozzleMapping(Slic3r::MachineObject* obj, 
         m_flush_weight_current = GetFlushWeight(obj);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": fila_id=" << fila_id << ", nozzle_pos_id=" << nozzle_pos_id;
     }
+
+    try {
+        auto mapping = m_nozzle_mapping_json.get<std::vector<int>>();
+        if (mapping.at(fila_id) != nozzle_pos_id) {
+            mapping[fila_id] = nozzle_pos_id;
+            m_nozzle_mapping_json = mapping;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": updated to " << m_nozzle_mapping_json.dump();
+        }
+    } catch (std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": exception: " << e.what();
+    };
 }
 
 
