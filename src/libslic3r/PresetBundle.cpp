@@ -50,7 +50,8 @@ static std::vector<std::string> s_project_options {
     "filament_map_mode",
     "filament_map",
     "filament_volume_map",
-    "filament_nozzle_map"
+    "filament_nozzle_map",
+    "extruder_nozzle_stats"
 };
 
 //BBS: add BBL as default
@@ -3388,7 +3389,10 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     if (this->extruder_ams_counts.empty())
         this->extruder_ams_counts = get_extruder_ams_count(extruder_ams_count);
 
-    {
+    if (auto nozzle_stats_ptr = config.option<ConfigOptionStrings>("extruder_nozzle_stats")) {
+        this->extruder_nozzle_stat = ExtruderNozzleStat(get_extruder_nozzle_stats(nozzle_stats_ptr->values));
+    }
+    else {
         auto nozzle_volume_opt = config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
         if (this->extruder_nozzle_stat.get_raw_stat().size() != nozzle_volume_opt->size())
             this->extruder_nozzle_stat.on_printer_model_change(this);

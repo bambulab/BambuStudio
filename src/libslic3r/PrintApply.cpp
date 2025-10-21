@@ -1312,7 +1312,6 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         }
         else {
             print_diff_set.erase("extruder_ams_count");
-            print_diff_set.erase("extruder_nozzle_stats");
             if (map_mode == fmmManual) {
                 // this param is not used in gui studio
                 print_diff_set.erase("filament_nozzle_map");

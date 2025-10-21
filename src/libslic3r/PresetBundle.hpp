@@ -72,6 +72,8 @@ public:
         ndfNone
     };
 public:
+    ExtruderNozzleStat() = default;
+    ExtruderNozzleStat(const std::vector<std::map<NozzleVolumeType, int>>& nozzle_counts, const NozzleDataFlag flag = ndfNone) : extruder_nozzle_counts(nozzle_counts), data_flag(flag) {}
     void on_volume_type_switch(int extruder_id, NozzleVolumeType type);
     void on_printer_model_change(PresetBundle* preset_bundle);
     void set_extruder_nozzle_count(int extruder_id, NozzleVolumeType type, int count, bool clear);

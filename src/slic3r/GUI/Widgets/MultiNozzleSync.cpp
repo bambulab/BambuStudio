@@ -66,18 +66,23 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeT
     m_error_label->SetFont(Label::Body_12);
     m_error_label->Hide();
 
-    auto update_nozzle_error = [this, force_no_zero, content](int standard_count, int highflow_count) {
+    auto update_nozzle_error = [this, force_no_zero, content, max_nozzle_count](int standard_count, int highflow_count) {
         int total_count = standard_count + highflow_count;
-        if (total_count > 0 && m_error_label->IsShown()) {
+        if (0 < total_count && total_count <= max_nozzle_count&& m_error_label->IsShown()) {
             m_error_label->Hide();
             m_confirm_btn->Enable();
             content->Freeze();
             this->Layout();
             this->Fit();
             content->Thaw();
-        }
-        else if(total_count == 0 && force_no_zero){
-            m_error_label->SetLabel(_L("Error: Can not set both nozzle count to zero."));
+        } else if (total_count == 0 && force_no_zero || total_count > max_nozzle_count) {
+            wxString error_tip;
+            if (total_count == 0)
+                error_tip = _L("Error: Can not set both nozzle count to zero.");
+            else
+                error_tip = wxString::Format(_L("Error: Nozzle count can not exceed %d."), max_nozzle_count);
+
+            m_error_label->SetLabel(error_tip);
             m_error_label->Wrap(content->GetSize().x);
             m_error_label->Show();
             m_confirm_btn->Disable();
