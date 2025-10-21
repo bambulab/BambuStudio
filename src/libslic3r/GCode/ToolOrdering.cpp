@@ -1322,8 +1322,8 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
 
             auto group_result = m_print->get_nozzle_group_result();
             m_print->update_filament_maps_to_config(
-                group_result->get_extruder_map(false),
-                group_result->get_volume_map(),
+                FilamentGroupUtils::update_used_filament_values(print_config->filament_map.values,group_result->get_extruder_map(false),used_filaments),
+                FilamentGroupUtils::update_used_filament_values(print_config->filament_volume_map.values,group_result->get_volume_map(),used_filaments),
                 group_result->get_nozzle_map()
             );
 
