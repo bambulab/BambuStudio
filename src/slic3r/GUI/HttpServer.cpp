@@ -153,6 +153,7 @@ parse_login_params(const boost::beast::http::request<boost::beast::http::string_
 
     size_t qpos = target.find('?');
     if (qpos == std::string::npos) {
+        BOOST_LOG_TRIVIAL(info) << "third_party_login: target invalid";
         return std::nullopt;
     }
     std::string query = target.substr(qpos + 1);
@@ -165,11 +166,15 @@ parse_login_params(const boost::beast::http::request<boost::beast::http::string_
     if (auto it = params.find("redirect_url"); it != params.end())
         out.redirect_url = url_decode(it->second);
 
-    if (out.ticket.empty() || out.redirect_url.empty())
+    if (out.ticket.empty() || out.redirect_url.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "third_party_login: ticket or redirect_url empty";
         return std::nullopt;
+    }
 
-    if (!is_http_scheme(out.redirect_url))
+    if (!is_http_scheme(out.redirect_url)) {
+        BOOST_LOG_TRIVIAL(info) << "third_party_login: redirect_url empty is not a valid http url";
         return std::nullopt;
+    }
 
     return out;
 }
@@ -229,25 +234,35 @@ void session::handle_request()
     using http::status;
     using http::string_body;
 
+    BOOST_LOG_TRIVIAL(info) << "third_party_login: new request received";
+
     auto login_params = parse_login_params(req_);
 
     if (login_params) {
         auto login_info = TicketLoginTask::perform_sync(login_params->ticket);
-        if (login_info.empty())
+        if (login_info.empty()) {
+            BOOST_LOG_TRIVIAL(info) << "third_party_login: login info empty, login failed";
             do_write_302(*login_params, false);
+        }
         else {
             NetworkAgent *agent = wxGetApp().getAgent();
             agent->change_user(login_info);
             if (agent->is_user_login()) {
                 wxGetApp().request_user_login(1);
+                BOOST_LOG_TRIVIAL(info) << "third_party_login: all good, login successful";
                 do_write_302(*login_params, true);
-            } else
+            }
+            else {
+                BOOST_LOG_TRIVIAL(info) << "third_party_login: after applying the login information, the application remains unlogged, login failed";
                 do_write_302(*login_params, false);
+            }
             GUI::wxGetApp().CallAfter([this] { wxGetApp().ShowUserLogin(false); });
         }
     }
-    else
+    else {
+        BOOST_LOG_TRIVIAL(info) << "third_party_login: login param empty, login failed";
         do_write_404();
+    }
 }
 
 std::string TicketLoginTask::perform_sync(const std::string &ticket)
@@ -279,13 +294,17 @@ std::optional<std::string> TicketLoginTask::do_request_login_info(const std::str
         NetworkAgent *agent = wxGetApp().getAgent();
         unsigned int  http_code;
         std::string   http_body;
-        if (agent->get_my_token(ticket, &http_code, &http_body) < 0)
+        if (agent->get_my_token(ticket, &http_code, &http_body) < 0) {
+            BOOST_LOG_TRIVIAL(info) << "third_party_login: get_my_token failed, http_code = " << http_code;
             return std::nullopt;
+        }
         else {
             auto token_resp = nlohmann::json::parse(http_body);
             auto token_data = token_resp.get<TokenResp>();
-            if (agent->get_my_profile(token_data.accessToken, &http_code, &http_body) < 0)
+            if (agent->get_my_profile(token_data.accessToken, &http_code, &http_body) < 0) {
+                BOOST_LOG_TRIVIAL(info) << "third_party_login: get_my_profile failed, http_code = " << http_code;
                 return std::nullopt;
+            }
             else {
                 auto profile_resp = nlohmann::json::parse(http_body);
                 auto profile_data = profile_resp.get<ProfileResp>();
@@ -299,12 +318,14 @@ std::optional<std::string> TicketLoginTask::do_request_login_info(const std::str
                 j["data"]["user"]["name"]       = profile_data.name;
                 j["data"]["user"]["account"]    = profile_data.account;
                 j["data"]["user"]["avatar"]     = profile_data.avatar;
+                BOOST_LOG_TRIVIAL(info) << "third_party_login: login info ready";
                 return std::string(j.dump());
             }
         }
     }
     catch (...)
     {
+        BOOST_LOG_TRIVIAL(info) << "third_party_login: do_request_login_info exception";
         return std::nullopt;
     }
 }
