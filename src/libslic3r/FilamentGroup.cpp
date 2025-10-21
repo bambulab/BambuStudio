@@ -175,7 +175,7 @@ namespace Slic3r
                 return;
             }
             double gap_rate = (double)std::abs(elem.cost - best.cost) / (double)best.cost;
-            if (gap_rate < gap_threshold)
+            if (gap_rate <= gap_threshold)
                 heap.push(elem);
             };
 
@@ -588,7 +588,7 @@ namespace Slic3r
             if (groups[context.machine_info.master_extruder_id] < (used_filaments.size() + 1)/2)
                 score += ABSOLUTE_FLUSH_GAP_TOLERANCE; //slightly prefer master extruders with more flush
             MemoryedGroup group(used_labels, score, prefer_level);
-            update_memoryed_groups(group, memory_threshold == 0 ? 1 : memory_threshold, memoryed_groups);
+            update_memoryed_groups(group, memory_threshold, memoryed_groups);
         }
         return memoryed_groups.top().group;
     }
@@ -1351,6 +1351,7 @@ namespace Slic3r
         }
 
         PAM.set_cluster_group_size(cluster_size_limit);
+        PAM.set_memory_threshold(m_context.group_info.max_gap_threshold);
         PAM.do_clustering(m_context, 1500);
 
         auto memoryed_groups = PAM.get_memoryed_groups();

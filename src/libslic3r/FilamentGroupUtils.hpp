@@ -100,6 +100,8 @@ namespace Slic3r
 
         std::vector<FilamentUsageType> build_filament_usage_type_list(const PrintConfig& config, const std::vector<const PrintObject*>& objects);
 
+        std::vector<int> update_used_filament_values(const std::vector<int>& old_values, const std::vector<int>& new_values, const std::vector<unsigned int>& used_filaments);
+
 }
 
 

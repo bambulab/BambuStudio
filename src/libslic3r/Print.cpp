@@ -2100,21 +2100,17 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
 
             auto physical_unprintables = this->get_physical_unprintable_filaments(used_filaments);
             auto geometric_unprintables = this->get_geometric_unprintable_filaments();
-            std::vector<int>filament_maps = this->get_filament_maps();
-            auto map_mode = get_filament_map_mode();
             // get recommended filament map
             {
-                if(get_nozzle_group_result().has_value()){
-                    filament_maps = get_nozzle_group_result()->get_extruder_map();
-                }
-                else{
-                    auto group_result = ToolOrdering::get_recommended_filament_maps(this,all_filaments,map_mode,physical_unprintables,geometric_unprintables);
+                if (!get_nozzle_group_result().has_value()) {
+                    auto map_mode = get_filament_map_mode();
+                    auto group_result = ToolOrdering::get_recommended_filament_maps(this, all_filaments, map_mode, physical_unprintables, geometric_unprintables);
                     set_nozzle_group_result(group_result);
                 }
                 auto group_result = get_nozzle_group_result();
                 update_filament_maps_to_config(
-                    group_result->get_extruder_map(false),
-                    group_result->get_volume_map(),
+                    FilamentGroupUtils::update_used_filament_values(this->config().filament_map.values, group_result->get_extruder_map(false), used_filaments),
+                    FilamentGroupUtils::update_used_filament_values(this->config().filament_volume_map.values, group_result->get_volume_map(), used_filaments),
                     group_result->get_nozzle_map()
                 );
             }

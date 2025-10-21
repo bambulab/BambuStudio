@@ -353,5 +353,14 @@ namespace FilamentGroupUtils
         }
         return filament_usage_types;
     }
+
+    std::vector<int> update_used_filament_values(const std::vector<int>& old_values, const std::vector<int>& new_values, const std::vector<unsigned int>& used_filaments)
+    {
+        std::vector<int> res = old_values;
+        for (size_t i = 0; i < used_filaments.size(); ++i) {
+            res[used_filaments[i]] = new_values[used_filaments[i]];
+        }
+        return res;
+    }
 }
 }
