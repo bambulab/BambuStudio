@@ -10,21 +10,6 @@
   "density": 1.21,
   "diameter": 1.75,
   "nozzle_diameter_profiles": {
-    "0.2": {
-      "nozzle_temperature": 220,
-      "nozzle_temperature_initial_layer": 225,
-      "bed_temperature": 60,
-      "bed_temperature_initial_layer": 65,
-      "max_volumetric_speed": 4,
-      "speed_print": 50,
-      "retraction_length": 0.5,
-      "retraction_speed": 25,
-      "z_lift": 0.2,
-      "travel_speed": 120,
-      "fan_speed": 0,
-      "fan_speed_initial_layer": 0,
-      "min_layer_time": 8
-    },
     "0.4": {
       "nozzle_temperature": 220,
       "nozzle_temperature_initial_layer": 225,
