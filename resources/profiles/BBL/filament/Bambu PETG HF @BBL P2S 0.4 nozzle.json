@@ -9,7 +9,7 @@
         "20"
     ],
     "fan_min_speed": [
-        "20"
+        "30"
     ],
     "filament_deretraction_speed": [
         "nil",
@@ -137,6 +137,9 @@
     "filament_adaptive_volumetric_speed": [
         "0",
         "0"
+    ],
+    "fan_max_speed": [
+        "60"
     ],
     "long_retractions_when_ec": [
         "0",
