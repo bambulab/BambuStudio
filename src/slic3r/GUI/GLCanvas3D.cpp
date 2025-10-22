@@ -11039,7 +11039,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                         wxString    region = L"en";
                         if (language.find("zh") == 0)
                         	region = L"zh";
-                        wxGetApp().open_browser_with_warning_dialog(wxString::Format(L"https://wiki.bambulab.com/%s/filament-acc/filament/pla-basic-and-petg-hf", region));
+                        wxGetApp().open_browser_with_warning_dialog(wxString::Format(L"https://wiki.bambulab.com/%s/filament-acc/filament/h2d-pla-and-petg-mutual-support", region));
                         return false;
                     });
             }
