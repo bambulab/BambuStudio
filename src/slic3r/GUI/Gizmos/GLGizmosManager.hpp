@@ -151,6 +151,18 @@ public:
         IC_DISTRIBUTE_X,
         IC_DISTRIBUTE_Y,
         IC_DISTRIBUTE_Z,
+        IC_ALIGN_X_MIN_DARK,
+        IC_ALIGN_X_CENTER_DARK,
+        IC_ALIGN_X_MAX_DARK,
+        IC_ALIGN_Y_MIN_DARK,
+        IC_ALIGN_Y_CENTER_DARK,
+        IC_ALIGN_Y_MAX_DARK,
+        IC_ALIGN_Z_MIN_DARK,
+        IC_ALIGN_Z_CENTER_DARK,
+        IC_ALIGN_Z_MAX_DARK,
+        IC_DISTRIBUTE_X_DARK,
+        IC_DISTRIBUTE_Y_DARK,
+        IC_DISTRIBUTE_Z_DARK,
     };
 
     explicit GLGizmosManager(GLCanvas3D& parent);

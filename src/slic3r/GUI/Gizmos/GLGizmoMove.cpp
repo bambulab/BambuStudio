@@ -189,9 +189,6 @@ void GLGizmoMove3D::on_render()
 {
     Selection& selection = m_parent.get_selection();
     if (selection.is_empty()) { return; }
-    glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
-    glsafe(::glEnable(GL_DEPTH_TEST));
-
     const auto &[box, box_trafo]    = selection.get_bounding_box_in_current_reference_system();
     m_bounding_box                  = box;
     m_center                        = box_trafo.translation();
@@ -203,6 +200,139 @@ void GLGizmoMove3D::on_render()
     const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
     if (!p_ogl_manager) {
         return;
+    }
+    glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    if (m_object_manipulation) {
+        m_object_manipulation->set_dark_mode(m_is_dark_mode);
+        if (m_object_manipulation->m_align_type != GLGizmoAlignment::AlignType::NONE) {
+            if (!m_align_plane.is_initialized()) {
+                indexed_triangle_set its = its_make_xoy_center_rect(1.f, 1.f);//1.f
+                m_align_plane.init_from(its);
+            }
+            float scale = 1.1f;
+            // update m_align_plane pos and tran
+            Geometry::Transformation cur_tran;
+            auto                     box_size = m_bounding_box.size();
+            switch (m_object_manipulation->m_align_type) {
+            case GLGizmoAlignment::AlignType::CENTER_X: {
+                cur_tran.set_scaling_factor(Vec3d(box_size[2] * scale, box_size[1] * scale, 1));
+                auto offset = m_orient_matrix * m_bounding_box.center();
+                cur_tran.set_offset(offset);
+                cur_tran.set_rotation(Vec3d(0, PI / 2.f, 0));
+                break;
+            }
+            case GLGizmoAlignment::AlignType::DISTRIBUTE_X:
+            case GLGizmoAlignment::AlignType::X_MIN: {
+                cur_tran.set_scaling_factor(Vec3d(box_size[2] * scale, box_size[1] * scale, 1));
+                auto center = m_bounding_box.center();
+                center[0]   = m_bounding_box.min[0];
+                auto offset = m_orient_matrix * center;
+                cur_tran.set_offset(offset);
+                cur_tran.set_rotation(Vec3d(0, PI / 2.f, 0));
+                break;
+            }
+            case GLGizmoAlignment::AlignType::X_MAX: {
+                cur_tran.set_scaling_factor(Vec3d(box_size[2] * scale, box_size[1] * scale, 1));
+                auto center = m_bounding_box.center();
+                center[0]   = m_bounding_box.max[0];
+                auto offset = m_orient_matrix * center;
+                cur_tran.set_offset(offset);
+                cur_tran.set_rotation(Vec3d(0, PI / 2.f, 0));
+                break;
+            }
+            case GLGizmoAlignment::AlignType::CENTER_Y: {
+                cur_tran.set_scaling_factor(Vec3d(box_size[0] * scale, box_size[2] * scale, 1));
+                auto center = m_bounding_box.center();
+                auto offset = m_orient_matrix * center;
+                cur_tran.set_offset(offset);
+                cur_tran.set_rotation(Vec3d(PI / 2.f, 0, 0));
+                break;
+            }
+            case GLGizmoAlignment::AlignType::DISTRIBUTE_Y:
+            case GLGizmoAlignment::AlignType::Y_MIN: {
+                cur_tran.set_scaling_factor(Vec3d(box_size[0] * scale, box_size[2] * scale, 1));
+                auto center = m_bounding_box.center();
+                center[1]   = m_bounding_box.min[1];
+                auto offset = m_orient_matrix * center;
+                cur_tran.set_offset(offset);
+                cur_tran.set_rotation(Vec3d(PI / 2.f, 0, 0));
+                break;
+            }
+            case GLGizmoAlignment::AlignType::Y_MAX: {
+                cur_tran.set_scaling_factor(Vec3d(box_size[0] * scale, box_size[2] * scale, 1));
+                auto center = m_bounding_box.center();
+                center[1]   = m_bounding_box.max[1];
+                auto offset = m_orient_matrix * center;
+                cur_tran.set_offset(offset);
+                cur_tran.set_rotation(Vec3d(PI / 2.f, 0, 0));
+                break;
+            }
+            case GLGizmoAlignment::AlignType::CENTER_Z: {
+                cur_tran.set_scaling_factor(Vec3d(box_size[0] * scale, box_size[1] * scale, 1));
+                auto center = m_bounding_box.center();
+                auto offset = m_orient_matrix * center;
+                cur_tran.set_offset(offset);
+                break;
+            }
+            case GLGizmoAlignment::AlignType::DISTRIBUTE_Z:
+            case GLGizmoAlignment::AlignType::Z_MIN: {
+                cur_tran.set_scaling_factor(Vec3d(box_size[0] * scale, box_size[1] * scale, 1));
+                auto center = m_bounding_box.center();
+                center[2]   = m_bounding_box.min[2];
+                auto offset = m_orient_matrix * center;
+                cur_tran.set_offset(offset);
+                break;
+            }
+            case GLGizmoAlignment::AlignType::Z_MAX: {
+                cur_tran.set_scaling_factor(Vec3d(box_size[0] * scale, box_size[1] * scale, 1));
+                auto center = m_bounding_box.center();
+                center[2]   = m_bounding_box.max[2];
+                auto offset = m_orient_matrix * center;
+                cur_tran.set_offset(offset);
+                break;
+            }
+            default: break;
+            }
+            // render
+            glsafe(::glEnable(GL_DEPTH_TEST));
+            glsafe(::glDisable(GL_CULL_FACE));
+            glsafe(::glEnable(GL_BLEND));
+            glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
+            ColorRGBA cp_clr = {1.0f, 1.0f, 1.0f, 0.5f};
+
+            const Camera &camera            = wxGetApp().plater()->get_camera();
+            const auto &  view_matrix       = camera.get_view_matrix();
+            const auto &  projection_matrix = camera.get_projection_matrix();
+            auto          volume_size       = selection.get_volume_idxs().size();
+            if (GLGizmoAlignment::AlignType::DISTRIBUTE_X == m_object_manipulation->m_align_type) {
+                float step  = m_bounding_box.size()[0] / (volume_size + 1);
+                auto  start = cur_tran.get_offset();
+                for (int i = 0; i < volume_size; i++) {
+                    cur_tran.set_offset(start + Vec3d((i + 1) * step, 0.f, 0.f));
+                    render_glmodel(m_align_plane, cp_clr.get_data(), view_matrix * cur_tran.get_matrix(), projection_matrix);
+                }
+            } else if (GLGizmoAlignment::AlignType::DISTRIBUTE_Y == m_object_manipulation->m_align_type) {
+                float step  = m_bounding_box.size()[1] / (volume_size + 1);
+                auto  start = cur_tran.get_offset();
+                for (int i = 0; i < volume_size; i++) {
+                    cur_tran.set_offset(start + Vec3d(0.f, (i + 1) * step, 0.f));
+                    render_glmodel(m_align_plane, cp_clr.get_data(), view_matrix * cur_tran.get_matrix(), projection_matrix);
+                }
+            } else if (GLGizmoAlignment::AlignType::DISTRIBUTE_Z == m_object_manipulation->m_align_type) {
+                float step  = m_bounding_box.size()[2] / (volume_size + 1);
+                auto  start = cur_tran.get_offset();
+                for (int i = 0; i < volume_size; i++) {
+                    cur_tran.set_offset(start + Vec3d(0.f, 0.f, (i + 1) * step));
+                    render_glmodel(m_align_plane, cp_clr.get_data(), view_matrix * cur_tran.get_matrix(), projection_matrix);
+                }
+            } else {
+                render_glmodel(m_align_plane, cp_clr.get_data(), view_matrix * cur_tran.get_matrix(), projection_matrix);
+            }
+            glsafe(::glEnable(GL_CULL_FACE));
+            glsafe(::glDisable(GL_BLEND));
+        }
     }
 
     float space_size = 20.f * INV_ZOOM * GLGizmoBase::Grabber::GrabberSizeFactor;
