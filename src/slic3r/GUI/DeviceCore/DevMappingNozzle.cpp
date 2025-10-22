@@ -86,14 +86,23 @@ int MachineObject::ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, con
 
     // filament seq
     json filament_seq_jj;
+    int max_fila_id = 0;
     std::unordered_set<int> filaid_set;
     for (int idx = 0; idx < gcode_result->filament_change_sequence.size(); idx++) {
         int fila_id = gcode_result->filament_change_sequence[idx];
         if (filaid_set.count(fila_id) == 0) {
             filaid_set.insert(fila_id);
             filament_seq_jj[fila_id + 1] = idx;
+            max_fila_id = std::max(max_fila_id, fila_id + 1);
         }
     }
+
+    for (int fila_id = 0; fila_id <= max_fila_id; fila_id++) {
+        if (filament_seq_jj[fila_id].is_null()) {
+            filament_seq_jj[fila_id] = -1;// fill the used fila_id with -1
+        }
+    }
+
     command_jj["print"]["filament_seq"] = filament_seq_jj;
 
     // ams mapping
