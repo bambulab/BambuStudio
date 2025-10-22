@@ -282,6 +282,17 @@ FilamentMapMode PartPlate::get_real_filament_map_mode(const DynamicConfig& g_con
 	return g_mode;
 }
 
+std::vector<int> PartPlate::get_real_filament_volume_maps(const DynamicConfig& g_config, bool* use_global_param) const
+{
+	auto maps = get_filament_volume_maps();
+	if (!maps.empty()) {
+		if (use_global_param) { *use_global_param = false; }
+		return maps;
+	}
+	auto g_maps = g_config.option<ConfigOptionInts>("filament_volume_map")->values;
+	if (use_global_param) { *use_global_param = true; }
+	return g_maps;
+}
 
 bool PartPlate::has_spiral_mode_config() const
 {
@@ -3355,7 +3366,12 @@ void PartPlate::on_filament_added()
 
 	if(m_config.has("filament_volume_map")){
 		std::vector<int>& filament_volume_map = m_config.option<ConfigOptionInts>("filament_volume_map")->values;
-		filament_volume_map.push_back(static_cast<int>(NozzleVolumeType::nvtStandard));
+		int volume_type = 0;
+		auto nozzle_volumes = wxGetApp().preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+        if (nozzle_volumes && !nozzle_volumes->values.empty())
+			volume_type = nozzle_volumes->values[0];
+
+		filament_volume_map.push_back(volume_type);
 	}
 }
 

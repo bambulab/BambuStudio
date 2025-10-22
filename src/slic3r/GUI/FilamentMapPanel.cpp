@@ -28,14 +28,48 @@ void FilamentMapManualPanel::OnTimer(wxTimerEvent &)
     auto proj_config = preset_bundle->project_config;
     auto nozzle_volume_values = proj_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
     std::vector<int> filament_map = GetFilamentMaps();
+    std::vector<int> filament_volume_map = GetFilamentVolumeMaps();
     std::vector<int>nozzle_count(nozzle_volume_values.size());
     for (size_t eid = 0; eid < nozzle_volume_values.size(); ++eid) {
-        int count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(eid, NozzleVolumeType(nozzle_volume_values[eid]));
-        if(count == 0 && std::find_if(m_filament_list.begin(), m_filament_list.end(), [this,eid,filament_map](int fid){ return (filament_map[fid - 1] - 1) == eid;}) != m_filament_list.end()) {
-            // the nozzle volume type is not supported by the printer, but is used in the model
-            valid = false;
-            invalid_eid = eid;
-            break;
+        NozzleVolumeType extruder_volume_type = NozzleVolumeType(nozzle_volume_values[eid]);
+        bool extruder_used = std::find_if(m_filament_list.begin(), m_filament_list.end(), 
+            [this, eid, filament_map](int fid) { 
+                return (filament_map[fid - 1] - 1) == eid;
+            }) != m_filament_list.end();
+
+        if (!extruder_used) {
+            continue;
+        }
+
+        if (extruder_volume_type == nvtHybrid) {
+            int standard_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(eid, NozzleVolumeType::nvtStandard);
+            int highflow_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(eid, NozzleVolumeType::nvtHighFlow);
+
+            auto has_material_of_type = [this, eid, &filament_map, &filament_volume_map](NozzleVolumeType volume_type) {
+                return std::find_if(m_filament_list.begin(), m_filament_list.end(),
+                    [this, eid, &filament_map, &filament_volume_map, volume_type](int fid) {
+                        return (filament_map[fid - 1] - 1) == eid && 
+                               fid - 1 < filament_volume_map.size() && 
+                               filament_volume_map[fid - 1] == static_cast<int>(volume_type);
+                    }) != m_filament_list.end();
+            };
+            
+            bool has_standard = has_material_of_type(NozzleVolumeType::nvtStandard);
+            bool has_highflow = has_material_of_type(NozzleVolumeType::nvtHighFlow);
+
+            if ((has_standard && standard_count == 0) || 
+                (has_highflow && highflow_count == 0)) {
+                valid = false;
+                invalid_eid = eid;
+                break;
+            }
+        } else {
+            int count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(eid, extruder_volume_type);
+            if (count == 0) {
+                valid = false;
+                invalid_eid = eid;
+                break;
+            }
         }
     }
 
@@ -84,13 +118,96 @@ std::vector<int> FilamentMapManualPanel::GetFilamentMaps() const
     return new_filament_map;
 }
 
+std::vector<int> FilamentMapManualPanel::GetFilamentVolumeMaps() const
+{
+    std::vector<int> volume_map(m_filament_map.size(), 0);
+
+    std::vector<int> left_filaments = this->GetLeftFilaments();
+    std::vector<int> right_high_flow_filaments = this->GetRightHighFlowFilaments();
+    std::vector<int> right_standard_filaments = this->GetRightStandardFilaments();
+
+    auto preset_bundle = wxGetApp().preset_bundle;
+    auto proj_config = preset_bundle->project_config;
+    auto nozzle_volume_values = proj_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
+
+    for (int i = 0; i < volume_map.size(); ++i) {
+        int filament_id = i + 1;
+
+        if (std::find(left_filaments.begin(), left_filaments.end(), filament_id) != left_filaments.end()) {
+            if (nozzle_volume_values.size() > 0) {
+                volume_map[i] = nozzle_volume_values[0];
+            }
+        }
+        else if (std::find(right_high_flow_filaments.begin(), right_high_flow_filaments.end(), filament_id) != right_high_flow_filaments.end()) {
+            volume_map[i] = 1;
+        }
+        else if (std::find(right_standard_filaments.begin(), right_standard_filaments.end(), filament_id) != right_standard_filaments.end()) {
+            volume_map[i] = 0;
+        }
+    }
+
+    return volume_map;
+}
+
+void FilamentMapManualPanel::SyncPanelHeights()
+{
+    if (!m_left_panel || !m_right_panel) return;
+
+    auto curr_left = m_left_panel->GetMinSize();
+    auto curr_right = m_right_panel->GetMinSize();
+
+    m_left_panel->SetMinSize(wxSize(FromDIP(260), -1));
+    m_right_panel->SetMinSize(wxSize(FromDIP(260), -1));
+
+    m_left_panel->Layout();
+    m_left_panel->Fit();
+    m_right_panel->Layout();
+    m_right_panel->Fit();
+
+    wxSize left_best_size  = m_left_panel->GetBestSize();
+    wxSize right_best_size = m_right_panel->GetBestSize();
+
+    int max_height = std::max(left_best_size.GetHeight(), right_best_size.GetHeight());
+    bool height_changed = curr_left.GetHeight() != max_height || curr_right.GetHeight() != max_height;
+    if (!height_changed) {
+        if (curr_left.GetHeight() > 0)
+            m_left_panel->SetMinSize(curr_left);
+        if (curr_right.GetHeight() > 0)
+            m_right_panel->SetMinSize(curr_right);
+        if (GetParent()) {
+            GetParent()->Layout();
+            GetParent()->Fit();
+        }
+        return;
+    }
+
+    m_left_panel->SetMinSize(wxSize(FromDIP(260), max_height));
+    m_right_panel->SetMinSize(wxSize(FromDIP(260), max_height));
+
+    Layout();
+    Fit();
+
+    if (GetParent()) {
+        GetParent()->Layout();
+        GetParent()->Fit();
+    }
+}
+
+void FilamentMapManualPanel::OnDragDropCompleted(wxCommandEvent& event)
+{
+    SyncPanelHeights();
+    event.Skip();
+}
+
 FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *parent,
                                                const std::vector<std::string> &color,
                                                const std::vector<std::string> &type,
                                                const std::vector<int>         &filament_list,
-                                               const std::vector<int>         &filament_map)
-    : wxPanel(parent), m_filament_map(filament_map), m_filament_color(color), m_filament_type(type), m_filament_list(filament_list)
+                                               const std::vector<int>         &filament_map,
+                                               const std::vector<int>         &filament_volume_map)
+    : wxPanel(parent), m_filament_map(filament_map), m_filament_color(color), m_filament_type(type), m_filament_list(filament_list), m_filament_volume_map(filament_volume_map)
 {
+    SetName(wxT("FilamentMapManualPanel"));
     SetBackgroundColour(BgNormalColor);
 
     auto top_sizer = new wxBoxSizer(wxVERTICAL);
@@ -101,9 +218,11 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
 
     auto drag_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_left_panel  = new DragDropPanel(this, _L("Left Nozzle"), false);
-    m_right_panel = new DragDropPanel(this, _L("Right Nozzle"), false);
+    m_left_panel  = new DragDropPanel(this, _L("Left Extruder"), false);
+    m_right_panel = new SeparatedDragDropPanel(this, _L("Right Extruder"), false);
     m_switch_btn  = new ScalableButton(this, wxID_ANY, "switch_filament_maps");
+
+    UpdateNozzleVolumeType();
 
     for (size_t idx = 0; idx < m_filament_map.size(); ++idx) {
         auto iter = std::find(m_filament_list.begin(), m_filament_list.end(), idx + 1);
@@ -114,7 +233,8 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
             m_left_panel->AddColorBlock(color, type, idx + 1);
         } else {
             assert(m_filament_map[idx] == 2);
-            m_right_panel->AddColorBlock(color, type, idx + 1);
+            bool is_high_flow = (idx < m_filament_volume_map.size()) && (m_filament_volume_map[idx] == 1);
+            m_right_panel->AddColorBlock(color, type, idx + 1, is_high_flow);
         }
     }
     m_left_panel->SetMinSize({ FromDIP(260),-1 });
@@ -146,13 +266,39 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
 
     m_timer = new wxTimer(this);
     Bind(wxEVT_TIMER, &FilamentMapManualPanel::OnTimer, this);
+    Bind(wxEVT_DRAG_DROP_COMPLETED, &FilamentMapManualPanel::OnDragDropCompleted, this);
 
     m_switch_btn->Bind(wxEVT_BUTTON, &FilamentMapManualPanel::OnSwitchFilament, this);
 
     SetSizer(top_sizer);
     Layout();
     Fit();
+    if (GetParent()) {
+        GetParent()->Layout();
+        GetParent()->Fit();
+    }
     GUI::wxGetApp().UpdateDarkUIWin(this);
+}
+
+void FilamentMapManualPanel::UpdateNozzleVolumeType()
+{
+    auto check_separation = [this]() {
+        auto preset_bundle = wxGetApp().preset_bundle;
+        auto nozzle_volume_values = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
+        if (nozzle_volume_values.size() <= 1)
+            return false;
+
+        return nozzle_volume_values[1] == static_cast<int>(NozzleVolumeType::nvtHybrid);
+    };
+    bool should_separate = check_separation();
+    m_right_panel->SetUseSeparation(should_separate);
+
+    Layout();
+    Fit();
+    if (GetParent()) {
+        GetParent()->Layout();
+        GetParent()->Fit();
+    }
 }
 
 FilamentMapManualPanel::~FilamentMapManualPanel()
@@ -166,7 +312,7 @@ void FilamentMapManualPanel::OnSwitchFilament(wxCommandEvent &)
     auto right_blocks = m_right_panel->get_filament_blocks();
 
     for (auto &block : left_blocks) {
-        m_right_panel->AddColorBlock(block->GetColor(), block->GetType(), block->GetFilamentId(), false);
+        m_right_panel->AddColorBlock(block->GetColor(), block->GetType(), block->GetFilamentId(), false, false);
         m_left_panel->RemoveColorBlock(block, false);
     }
 
@@ -176,6 +322,14 @@ void FilamentMapManualPanel::OnSwitchFilament(wxCommandEvent &)
     }
     this->GetParent()->Layout();
     this->GetParent()->Fit();
+    
+    if (m_right_panel->IsUseSeparation()) {
+        m_left_panel->Layout();
+        m_left_panel->Fit();
+        m_right_panel->Layout();
+        m_right_panel->Fit();
+        SyncPanelHeights();
+    }
 }
 
 void FilamentMapManualPanel::Hide()

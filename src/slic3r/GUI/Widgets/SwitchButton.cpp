@@ -15,6 +15,7 @@
 #include <wx/dcmemory.h>
 
 wxDEFINE_EVENT(wxCUSTOMEVT_SWITCH_POS, wxCommandEvent);
+wxDEFINE_EVENT(wxCUSTOMEVT_MULTISWITCH_SELECTION, wxCommandEvent);
 wxDEFINE_EVENT(wxEXPAND_LEFT_DOWN, wxCommandEvent);
 
 SwitchButton::SwitchButton(wxWindow* parent, wxWindowID id)
@@ -729,4 +730,223 @@ void ExpandButtonHolder::doRender(wxDC& dc)
 #endif
         dc.DrawRoundedRectangle(0, 0, size.x, size.y, FromDIP(10));
     }
+}
+
+MultiSwitchButton::MultiSwitchButton(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
+    : StaticBox(parent, id, pos, size, style)
+    , sel(-1)
+    , m_bg_color(StateColor(
+        std::make_pair(0xE8E8E8, (int) StateColor::NotChecked),
+        std::make_pair(0x00AE42, (int) StateColor::Normal)))
+    , m_bg_color_grayed(StateColor(
+        std::make_pair(0xE8E8E8, (int) StateColor::NotChecked),
+        std::make_pair(0x6DC48D, (int) StateColor::Normal)))
+    , m_text_color(StateColor(
+        std::make_pair(0x6B6B6B, (int) StateColor::NotChecked),
+        std::make_pair(0xFFFFFE, (int) StateColor::Normal)))
+    , m_text_color_grayed(StateColor(
+        std::make_pair(0x999999, (int) StateColor::NotChecked),
+        std::make_pair(0x99DFB2, (int) StateColor::Normal)))
+    , m_button_radius(10.0)
+    , m_button_padding(10, 6)
+{
+    SetCornerRadius(m_button_radius);
+    SetBorderWidth(0);
+
+    sizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->AddSpacer(8);
+    auto hsizer = new wxBoxSizer(wxVERTICAL);
+    hsizer->Add(sizer, 1, wxEXPAND | wxTOP | wxBOTTOM, 0);
+    SetSizer(hsizer);
+    SetMinSize(wxSize(-1, 20));
+
+    Bind(wxEVT_COMMAND_BUTTON_CLICKED, &MultiSwitchButton::button_clicked, this);
+
+    SetFont(Label::Body_12);
+}
+
+MultiSwitchButton::~MultiSwitchButton()
+{
+    DeleteAllOptions();
+}
+
+int MultiSwitchButton::AppendOption(const wxString &option, void *clientData)
+{
+    Button *btn = new Button();
+    btn->Create(this, option, "", wxBORDER_NONE);
+    btn->SetFont(GetFont());
+
+    int states = state_handler.states();
+    wxColor color = m_bg_color.colorForStates(states);
+    btn->SetBackgroundColour(color);
+    btn->SetBackgroundColor(m_bg_color);
+    btn->SetTextColor(m_text_color);
+    btn->SetCornerRadius(m_button_radius);
+    btn->SetPaddingSize(m_button_padding);
+    btn->SetClientData(clientData);
+
+    btns.push_back(btn);
+
+    if (btns.size() > 1) { sizer->AddSpacer(0); }
+    sizer->Add(btn, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL);
+    wxSize textSize = btn->GetTextExtent(option);
+    wxSize minSize  = wxSize(textSize.x + m_button_padding.x * 2 + 6, -1);
+    btn->SetMinSize(minSize);
+
+    return btns.size() - 1;
+}
+
+void MultiSwitchButton::SetOptions(const std::vector<wxString>& options)
+{
+    DeleteAllOptions();
+    for (const auto& option : options) {
+        AppendOption(option);
+    }
+    sizer->AddSpacer(0);
+    if (btns.size() == 1) {
+        btns[0]->SetLeftCornerWhite();
+        btns[0]->SetRightCornerWhite();
+    } else if (btns.size() > 1) {
+        btns.front()->SetLeftCornerWhite();
+        btns.back()->SetRightCornerWhite();
+    }
+    Layout();
+    Refresh();
+}
+
+void MultiSwitchButton::DeleteAllOptions()
+{
+    sel = -1;
+    for (auto btn : btns) {
+        if (btn) {
+            btn->Destroy();
+        }
+    }
+    btns.clear();
+    sizer->Clear(true);
+    sizer->AddSpacer(0);
+}
+
+unsigned int MultiSwitchButton::GetCount() const
+{
+    return btns.size();
+}
+
+int MultiSwitchButton::GetSelection() const
+{
+    return sel;
+}
+
+void MultiSwitchButton::SetSelection(int index)
+{
+    if (index < 0 || index >= (int) btns.size() || index == sel) {
+        return;
+    }
+
+    sel = index;
+    update_button_styles();
+    send_selection_event();
+    Refresh();
+}
+
+wxString MultiSwitchButton::GetSelectedText() const
+{
+    if (sel >= 0 && sel < (int)btns.size()) {
+        return btns[sel]->GetLabel();
+    }
+    return wxString();
+}
+
+wxString MultiSwitchButton::GetOptionText(unsigned int index) const
+{
+    return index < btns.size() ? btns[index]->GetLabel() : wxString();
+}
+
+void MultiSwitchButton::SetOptionText(unsigned int index, const wxString &text)
+{
+    if (index >= btns.size()) return;
+    btns[index]->SetLabel(text);
+}
+
+void *MultiSwitchButton::GetOptionData(unsigned int index) const
+{
+    if (index >= btns.size()) return nullptr;
+    return btns[index]->GetClientData();
+}
+
+void MultiSwitchButton::SetOptionData(unsigned int index, void *client)
+{
+    if (index >= btns.size()) return;
+    btns[index]->SetClientData(client);
+}
+
+void MultiSwitchButton::update_button_styles()
+{
+    for (int i = 0; i < (int) btns.size(); ++i) {
+        btns[i]->SetValue(i == sel);
+
+        auto bg_color   = btns[i]->IsGrayed() ? m_bg_color_grayed : m_bg_color;
+        auto text_color = btns[i]->IsGrayed() ? m_text_color_grayed : m_text_color;
+        btns[i]->SetBackgroundColor(bg_color);
+        btns[i]->SetTextColor(text_color);
+        btns[i]->Refresh();
+    }
+}
+
+void MultiSwitchButton::SetBackgroundColor(const StateColor &color)
+{
+    m_bg_color = color;
+    update_button_styles();
+}
+
+void MultiSwitchButton::SetTextColor(const StateColor &color)
+{
+    m_text_color = color;
+    update_button_styles();
+}
+
+void MultiSwitchButton::SetButtonCornerRadius(double radius)
+{
+    m_button_radius = radius;
+    SetCornerRadius(radius);
+    for (auto *btn : btns) {
+        btn->SetCornerRadius(radius);
+    }
+    Layout();
+    Refresh();
+}
+
+void MultiSwitchButton::SetButtonPadding(const wxSize &padding)
+{
+    m_button_padding = padding;
+    for (auto *btn : btns) {
+        btn->SetPaddingSize(padding);
+    }
+    Layout();
+    Refresh();
+}
+
+void MultiSwitchButton::Rescale()
+{
+    for (auto *btn : btns) {
+        btn->Rescale();
+    }
+}
+
+void MultiSwitchButton::button_clicked(wxCommandEvent &event)
+{
+    SetFocus();
+    auto btn  = event.GetEventObject();
+    auto iter = std::find(btns.begin(), btns.end(), btn);
+    SetSelection(iter == btns.end() ? -1 : iter - btns.begin());
+}
+
+bool MultiSwitchButton::send_selection_event()
+{
+    wxCommandEvent evt(wxCUSTOMEVT_MULTISWITCH_SELECTION, GetId());
+    evt.SetEventObject(this);
+    evt.SetInt(sel);
+    evt.SetString(GetSelectedText());
+    GetEventHandler()->ProcessEvent(evt);
+    return true;
 }

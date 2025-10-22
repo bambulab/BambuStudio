@@ -1903,7 +1903,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_volume_map", coInts);
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionInts{(int)(NozzleVolumeType::nvtHybrid)});
+    def->set_default_value(new ConfigOptionInts{(int)(NozzleVolumeType::nvtStandard)});
 
 
     def = this->add("physical_extruder_map",coInts);
@@ -3951,8 +3951,10 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<NozzleVolumeType>::get_enum_values();
     def->enum_values.push_back(L("Standard"));
     def->enum_values.push_back(L("High Flow"));
+    def->enum_values.push_back(L("Hybrid"));
     def->enum_labels.push_back(L("Standard"));
     def->enum_labels.push_back(L("High Flow"));
+    def->enum_labels.push_back(L("Hybrid"));
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionEnumsGeneric{ NozzleVolumeType::nvtStandard });
 

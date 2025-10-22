@@ -13,20 +13,32 @@ wxDECLARE_EVENT(wxEVT_INVALID_MANUAL_MAP, wxCommandEvent);
 class FilamentMapManualPanel : public wxPanel
 {
 public:
-    FilamentMapManualPanel(wxWindow *parent, const std::vector<std::string> &color, const std::vector<std::string> &type, const std::vector<int> &filament_list, const std::vector<int> &filament_map);
+    FilamentMapManualPanel(wxWindow                       *parent,
+                           const std::vector<std::string> &color,
+                           const std::vector<std::string> &type,
+                           const std::vector<int>         &filament_list,
+                           const std::vector<int>         &filament_map,
+                           const std::vector<int>         &filament_volume_map);
     ~FilamentMapManualPanel();
     std::vector<int> GetFilamentMaps() const;
+    std::vector<int> GetFilamentVolumeMaps() const;
     std::vector<int> GetLeftFilaments() const { return m_left_panel->GetAllFilaments(); }
     std::vector<int> GetRightFilaments() const { return m_right_panel->GetAllFilaments(); }
+
+    std::vector<int> GetRightHighFlowFilaments() const { return m_right_panel->GetHighFlowFilaments(); }
+    std::vector<int> GetRightStandardFilaments() const { return m_right_panel->GetStandardFilaments(); }
+    void UpdateNozzleVolumeType();
 
     void Hide();
     void Show();
 
 private:
     void OnTimer(wxTimerEvent &evt);
-    void           OnSwitchFilament(wxCommandEvent &);
+    void OnSwitchFilament(wxCommandEvent &);
+    void SyncPanelHeights();
+    void OnDragDropCompleted(wxCommandEvent &evt);
     DragDropPanel *m_left_panel;
-    DragDropPanel *m_right_panel;
+    SeparatedDragDropPanel *m_right_panel;
 
     Label *m_description;
     Label *m_tips;
@@ -35,6 +47,7 @@ private:
     ScalableButton *m_switch_btn;
 
     std::vector<int>         m_filament_map;
+    std::vector<int>         m_filament_volume_map;
     std::vector<int>         m_filament_list;
     std::vector<std::string> m_filament_color;
     std::vector<std::string> m_filament_type;

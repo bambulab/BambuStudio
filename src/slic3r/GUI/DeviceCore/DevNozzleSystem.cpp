@@ -217,7 +217,7 @@ const std::vector<DevNozzle> DevNozzleSystem::CollectNozzles(int ext_loc, Nozzle
             return false;
         }
 
-        if (nozzle.m_diameter != diameter) {
+        if (diameter >= 0.0f && nozzle.m_diameter != diameter) {
             return false;
         }
 

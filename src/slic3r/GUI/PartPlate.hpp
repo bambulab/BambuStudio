@@ -233,6 +233,7 @@ public:
 
     std::vector<int> get_real_filament_maps(const DynamicConfig& g_config, bool* use_global_param = nullptr)const;
     FilamentMapMode  get_real_filament_map_mode(const DynamicConfig& g_config,bool * use_global_param = nullptr) const;
+    std::vector<int> get_real_filament_volume_maps(const DynamicConfig &g_config, bool *use_global_param = nullptr) const;
 
     FilamentMapMode get_filament_map_mode() const;
     void set_filament_map_mode(const FilamentMapMode& mode);
