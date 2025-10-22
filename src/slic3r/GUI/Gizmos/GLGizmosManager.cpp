@@ -215,9 +215,17 @@ bool GLGizmosManager::init_icon_textures()
         icon_list.insert(std::make_pair((int)IC_ALIGN_X_MIN, texture_id));
     else
         return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_x_min_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_ALIGN_X_MIN_DARK, texture_id));
+    else
+        return false;
 
     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_x_center.svg", 64, 64, texture_id))
         icon_list.insert(std::make_pair((int)IC_ALIGN_X_CENTER, texture_id));
+    else
+        return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_x_center_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_ALIGN_X_CENTER_DARK, texture_id));
     else
         return false;
 
@@ -225,9 +233,17 @@ bool GLGizmosManager::init_icon_textures()
         icon_list.insert(std::make_pair((int)IC_ALIGN_X_MAX, texture_id));
     else
         return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_x_max_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_ALIGN_X_MAX_DARK, texture_id));
+    else
+        return false;
 
     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_y_min.svg", 64, 64, texture_id))
         icon_list.insert(std::make_pair((int)IC_ALIGN_Y_MIN, texture_id));
+    else
+        return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_y_min_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_ALIGN_Y_MIN_DARK, texture_id));
     else
         return false;
 
@@ -235,9 +251,17 @@ bool GLGizmosManager::init_icon_textures()
         icon_list.insert(std::make_pair((int)IC_ALIGN_Y_CENTER, texture_id));
     else
         return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_y_center_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_ALIGN_Y_CENTER_DARK, texture_id));
+    else
+        return false;
 
     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_y_max.svg", 64, 64, texture_id))
         icon_list.insert(std::make_pair((int)IC_ALIGN_Y_MAX, texture_id));
+    else
+        return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_y_max_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_ALIGN_Y_MAX_DARK, texture_id));
     else
         return false;
 
@@ -245,9 +269,17 @@ bool GLGizmosManager::init_icon_textures()
         icon_list.insert(std::make_pair((int)IC_ALIGN_Z_MIN, texture_id));
     else
         return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_z_min_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_ALIGN_Z_MIN_DARK, texture_id));
+    else
+        return false;
 
     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_z_center.svg", 64, 64, texture_id))
         icon_list.insert(std::make_pair((int)IC_ALIGN_Z_CENTER, texture_id));
+    else
+        return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_z_center_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_ALIGN_Z_CENTER_DARK, texture_id));
     else
         return false;
 
@@ -255,9 +287,17 @@ bool GLGizmosManager::init_icon_textures()
         icon_list.insert(std::make_pair((int)IC_ALIGN_Z_MAX, texture_id));
     else
         return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_z_max_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_ALIGN_Z_MAX_DARK, texture_id));
+    else
+        return false;
 
     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/distribute_x.svg", 64, 64, texture_id))
         icon_list.insert(std::make_pair((int)IC_DISTRIBUTE_X, texture_id));
+    else
+        return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/distribute_x_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_DISTRIBUTE_X_DARK, texture_id));
     else
         return false;
 
@@ -265,9 +305,13 @@ bool GLGizmosManager::init_icon_textures()
         icon_list.insert(std::make_pair((int)IC_DISTRIBUTE_Y, texture_id));
     else
         return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/distribute_y_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_DISTRIBUTE_Y_DARK, texture_id));
+    else
+        return false;
 
-    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/distribute_z.svg", 64, 64, texture_id))
-        icon_list.insert(std::make_pair((int)IC_DISTRIBUTE_Z, texture_id));
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/distribute_z_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int)IC_DISTRIBUTE_Z_DARK, texture_id));
     else
         return false;
 

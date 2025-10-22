@@ -6,7 +6,7 @@
 #include "libslic3r/Point.hpp"
 #include <float.h>
 #include "slic3r/GUI/Selection.hpp"
-//#include "slic3r/GUI/GLCanvas3D.hpp"
+#include "GLGizmoAlignment.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -57,6 +57,8 @@ public:
 
     bool            m_imperial_units { false };
     bool            m_use_object_cs{false};
+
+    GLGizmoAlignment::AlignType m_align_type{GLGizmoAlignment::AlignType::NONE};
     // Mirroring buttons and their current state
     //enum MirrorButtonState {
     //    mbHidden,
@@ -115,6 +117,7 @@ public:
 	// Called from the App to update the UI if dirty.
 	void		update_if_dirty();
 
+    void        set_dark_mode(bool flag);
     void        set_uniform_scaling(const bool uniform_scale);
     bool        get_uniform_scaling() const { return m_uniform_scale; }
     void        set_use_object_cs(bool flag){ if (m_use_object_cs != flag) m_use_object_cs = flag; }
@@ -145,6 +148,15 @@ public:
     void show_scale_tooltip_information(ImGuiWrapper *imgui_wrapper, float caption_max, float x, float y);
     void set_init_rotation(const Geometry::Transformation &value);
 
+    void show_align_icon(ImGuiWrapper *imgui_wrapper,
+                         float         max_tooltip_width,
+                         GLGizmoAlignment::AlignType,
+                         int                icon,
+                         float              icon_size,
+                         const wxString &function_tip,
+                         const wxString &enable_tip,
+                         bool show_enable_tip = false);
+
 private:
     void reset_settings_value();
     void update_settings_value(const Selection& selection);
@@ -174,6 +186,8 @@ private:
     std::map<std::string, wxString> m_desc_scale;
     Vec3d                           m_init_rotation;
     Transform3d                     m_init_rotation_scale_tran;
+
+    bool m_is_dark_mode{false};
 };
 
 }}

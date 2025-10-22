@@ -2,7 +2,7 @@
 #include <imgui/imgui_internal.h>
 
 #include "GizmoObjectManipulation.hpp"
-#include "GLGizmoAlignment.hpp"
+
 #include "slic3r/GUI/GUI_ObjectList.hpp"
 //#include "I18N.hpp"
 #include "GLGizmosManager.hpp"
@@ -62,6 +62,10 @@ GizmoObjectManipulation::GizmoObjectManipulation(GLCanvas3D& glcanvas)
     m_desc_move["part_selection"]         = _L("Part selection");
     m_desc_move["snap_step_caption"] = shift + _L("Left mouse button");
     m_desc_move["snap_step"]        = _L("Fixed step drag");
+    m_desc_move["multiple_selected_objects_caption"] = _L("Keep holding down Ctrl") + _L("Left mouse button");
+    m_desc_move["multiple_selected_objects"]        = _L("Select multiple objects");
+    m_desc_move["multiple_selected_parts_caption"]   = _L("Keep holding down Alt") + _L("Left mouse button");
+    m_desc_move["multiple_selected_parts"]          = _L("Select multiple parts");
 
     m_desc_rotate["part_selection_caption"] = alt + _L("Left mouse button");
     m_desc_rotate["part_selection"]         = _L("Part selection");
@@ -603,6 +607,10 @@ void GizmoObjectManipulation::reset_scale_value()
     change_scale_value(2, 100.);
 }
 
+void GizmoObjectManipulation::set_dark_mode(bool flag) {
+    m_is_dark_mode = flag;
+}
+
 void GizmoObjectManipulation::set_uniform_scaling(const bool use_uniform_scale)
 {
     if (!use_uniform_scale)
@@ -719,7 +727,7 @@ void GizmoObjectManipulation::show_move_tooltip_information(ImGuiWrapper *imgui_
     ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP);
     ImTextureID hover_id  = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP_HOVER);
 
-    caption_max += imgui_wrapper->calc_text_size(": ").x + 35.f;
+    caption_max += imgui_wrapper->calc_text_size("xx: ").x + 35.f;
 
     float  font_size   = ImGui::GetFontSize();
     ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
@@ -735,11 +743,18 @@ void GizmoObjectManipulation::show_move_tooltip_information(ImGuiWrapper *imgui_
             imgui_wrapper->text_colored(ImGuiWrapper::COL_WINDOW_BG, text);
         };
 
-        for (const auto &t : std::array<std::string, 2>{"part_selection", "snap_step"})
+        for (const auto &t : std::array<std::string, 4>{"part_selection", "snap_step", "multiple_selected_objects", "multiple_selected_parts"})
             draw_text_with_caption(m_desc_move.at(t + "_caption") + ": ", m_desc_move.at(t));
         ImGui::EndTooltip();
     }
     ImGui::PopStyleVar(2);
+    //if (m_coordinates_type == ECoordinatesType::Instance) {
+    //    ImVec2 current_pos0 = ImGui::GetCursorPos();
+    //    ImGui::SameLine(font_size * 4);
+    //    ImVec2 current_pos = ImGui::GetCursorPos();
+    //    ImGui::SetCursorPos(ImVec2(current_pos.x, current_pos.y + 3.0f)); //ImGui::SetCursorPos(ImVec2(current_pos.x + 30.0f, current_pos.y - 25.0f));
+    //    imgui_wrapper->text(_L("Tip:If you want to use alignment function, please use Ctrl or Alt key to select more."));
+    //}
 }
 
 void GizmoObjectManipulation::show_rotate_tooltip_information(ImGuiWrapper *imgui_wrapper, float caption_max, float x, float y)
@@ -854,15 +869,15 @@ void GizmoObjectManipulation::set_init_rotation(const Geometry::Transformation &
 
     // Rotation
     float unit_size = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
-    unit_size *= 2.25f;
+    unit_size *= 2.0f;
     {
-        float min_width_inputs = caption_max + 3.0f * unit_size + 4.0f * space_size + end_text_size;
-        float button_width   = unit_size * 0.6f;
-        float button_spacing = unit_size * 0.02f;
-        float row_width      = 4.0f * button_width + 3.0f * button_spacing;
-        float min_width_buttons = caption_max + space_size + row_width + space_size;
-        float target_width = (min_width_inputs > min_width_buttons) ? min_width_inputs : min_width_buttons;
-        ImGui::SetWindowSize(ImVec2(target_width, ImGui::GetWindowHeight()));
+        //float min_width_inputs = caption_max + 3.0f * unit_size + 4.0f * space_size + end_text_size;
+        //float button_width   = unit_size * 0.6f;
+        //float button_spacing = unit_size * 0.02f;
+        //float row_width      = 4.0f * button_width + 3.0f * button_spacing;
+        //float min_width_buttons = caption_max + space_size + row_width + space_size;
+        //float target_width = (min_width_inputs > min_width_buttons) ? min_width_inputs : min_width_buttons;
+        ////ImGui::SetWindowSize(ImVec2(target_width, ImGui::GetWindowHeight()));
     }
     int   index      = 1;
     int   index_unit = 1;
@@ -884,20 +899,23 @@ void GizmoObjectManipulation::set_init_rotation(const Geometry::Transformation &
     float caption_cs_size     = imgui_wrapper->calc_text_size("").x;
     float caption_size        = caption_cs_size + 2 * space_size;
     float combox_content_size = imgui_wrapper->calc_text_size(_L("Object coordinates")).x * 1.2 + imgui_wrapper->calc_text_size("xxx").x + imgui_wrapper->scaled(3);
+    float intput_box_space_size = space_size * 1.9f;
+    float temp_space_size       = intput_box_space_size - space_size;
     ImGuiWrapper::push_combo_style(m_glcanvas.get_scale());
     bool combox_changed = false;
     if (render_combo(imgui_wrapper, "", modes, selection_idx, caption_size, combox_content_size)) {
         combox_changed = true;
     }
     ImGuiWrapper::pop_combo_style();
-    caption_max = combox_content_size - 4 * space_size;
+    caption_max = combox_content_size - 3 * space_size;
+    index       = 2;
     ImGui::SameLine(caption_max + index * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::TextAlignCenter("X");
-    ImGui::SameLine(caption_max + unit_size + (++index) * space_size);
+    ImGui::SameLine(caption_max + unit_size + (++index) * space_size + temp_space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::TextAlignCenter("Y");
-    ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
+    ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size + temp_space_size *1.2);
     ImGui::PushItemWidth(unit_size);
     ImGui::TextAlignCenter("Z");
 
@@ -910,17 +928,16 @@ void GizmoObjectManipulation::set_init_rotation(const Geometry::Transformation &
     else {
         imgui_wrapper->text(_L("Position"));
     }
-
-    ImGui::SameLine(caption_max + index * space_size);
+    ImGui::SameLine(caption_max + index * space_size + space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::BBLInputDouble(label_values[0][0], &display_position[0], 0.0f, 0.0f, "%.2f");
-    ImGui::SameLine(caption_max + unit_size + (++index) * space_size);
+    ImGui::SameLine(caption_max + unit_size + (++index) * space_size + intput_box_space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::BBLInputDouble(label_values[0][1], &display_position[1], 0.0f, 0.0f, "%.2f");
-    ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
+    ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size + intput_box_space_size + space_size *0.75f);
     ImGui::PushItemWidth(unit_size);
     ImGui::BBLInputDouble(label_values[0][2], &display_position[2], 0.0f, 0.0f, "%.2f");
-    ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
+    ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size + intput_box_space_size);
     imgui_wrapper->text(this->m_new_unit_string);
     bool is_avoid_one_update{false};
     if (combox_changed) {
@@ -955,268 +972,97 @@ void GizmoObjectManipulation::set_init_rotation(const Geometry::Transformation &
     // Add align and distribute buttons using AlignmentHelper
     Selection& align_selection = m_glcanvas.get_selection();
     size_t selection_count = align_selection.get_volume_idxs().size();
-    if (selection_count >= 1) {
-        ImGui::Dummy(ImVec2(0.0f, ImGui::GetFrameHeight() * 0.3f));
+    if (selection_count >= 1 && m_coordinates_type == ECoordinatesType::World) {
+        float scale_icon           = 1.2f;
+        float icon_size            = ImGui::GetFrameHeight() * scale_icon;
+        float temp_tip_caption_max = imgui_wrapper->calc_text_size(_L("Align objects to the minimum X position")).x * 1.3f;
         ImGui::AlignTextToFramePadding();
-        float icon_size = ImGui::GetFrameHeight()*1.3f;
-        float button_spacing = unit_size * 0.01f;
-        float group_width = unit_size * 0.8f;
-        float button_in_group_width = (group_width - 3 * button_spacing)*1.1 / 4;
-        float start_x = caption_max + space_size;
+        imgui_wrapper->text(_L("Align") + "/" + _L("Distribute"));//ImGui::Dummy(ImVec2(0.0f, ImGui::GetFrameHeight() * 0.3f));
+        if (ImGui::IsItemHovered()) {
+            imgui_wrapper->tooltip(_L("Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"),
+                                   temp_tip_caption_max *1.5);
+        }
+
+        float button_spacing = 0;
+        float start_x = caption_max + space_size *1.5;
         ImGui::SameLine(start_x);
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(61.f / 255.f, 203.f / 255.f, 115.f / 255.f, 1.f));
-        if (m_alignment_helper->can_align(GLGizmoAlignment::AlignType::X_MIN)) {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_MIN);
-            if (ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size))) {
-                m_alignment_helper->align_objects(GLGizmoAlignment::AlignType::X_MIN);
-            }
-            if (ImGui::IsItemHovered()) {
-                ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-                ImGui::SetTooltip("%s", _L("Align objects to the minimum X position").ToUTF8().data());
-                ImGui::PopStyleColor(2);
-            }
-        } else {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_MIN);
-            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3f);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size));
-            ImGui::PopStyleColor(2);
-            ImGui::PopStyleVar();
-        }
+        show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::X_MIN,
+                        (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_MIN_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_MIN,
+                        icon_size,
+                        _L("Align objects to the minimum X position"), "");
+
         ImGui::SameLine(0, button_spacing);
-        if (m_alignment_helper->can_align(GLGizmoAlignment::AlignType::CENTER_X)) {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_CENTER);
-            if (ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size))) {
-                m_alignment_helper->align_objects(GLGizmoAlignment::AlignType::CENTER_X);
-            }
-            if (ImGui::IsItemHovered()) {
-                ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-                ImGui::SetTooltip("%s", _L("Align objects to the center X position").ToUTF8().data());
-                ImGui::PopStyleColor(2);
-            }
-        } else {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_CENTER);
-            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3f);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size));
-            ImGui::PopStyleColor(2);
-            ImGui::PopStyleVar();
-        }
+        show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::CENTER_X,
+                        (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_CENTER_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_CENTER,
+                        icon_size,
+                        _L("Align objects to the center X position"), "");
+
         ImGui::SameLine(0, button_spacing);
-        if (m_alignment_helper->can_align(GLGizmoAlignment::AlignType::X_MAX)) {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_MAX);
-            if (ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size))) {
-                m_alignment_helper->align_objects(GLGizmoAlignment::AlignType::X_MAX);
-            }
-            if (ImGui::IsItemHovered()) {
-                ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-                ImGui::SetTooltip("%s", _L("Align objects to the maximum X position").ToUTF8().data());
-                ImGui::PopStyleColor(2);
-            }
-        } else {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_MAX);
-            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3f);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size));
-            ImGui::PopStyleColor(2);
-            ImGui::PopStyleVar();
-        }
+        show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::X_MAX,
+                        (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_MAX_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_MAX,
+                        icon_size,
+                        _L("Align objects to the maximum X position"), "");
+
+
         ImGui::SameLine(0, button_spacing);
-        if (m_alignment_helper->can_distribute(GLGizmoAlignment::DistributeType::DISTRIBUTE_X)) {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_X);
-            if (ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size))) {
-                m_alignment_helper->distribute_objects(GLGizmoAlignment::DistributeType::DISTRIBUTE_X);
-            }
-            if (ImGui::IsItemHovered()) {
-                ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-                ImGui::SetTooltip("%s", _L("Distribute objects evenly along X axis").ToUTF8().data());
-                ImGui::PopStyleColor(2);
-            }
-        } else {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_X);
-            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3f);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size));
-            ImGui::PopStyleColor(2);
-            ImGui::PopStyleVar();
-        }
-        ImGui::SameLine(start_x + unit_size + space_size);
-        if (m_alignment_helper->can_align(GLGizmoAlignment::AlignType::Y_MAX)) {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MAX);
-            if (ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size))){
-                m_alignment_helper->align_objects(GLGizmoAlignment::AlignType::Y_MAX);
-            }
-            if (ImGui::IsItemHovered()) {
-                ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-                ImGui::SetTooltip("%s", _L("Align objects to the maximum Y position").ToUTF8().data());
-                ImGui::PopStyleColor(2);
-            }
-        } else {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MAX);
-            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3f);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size));
-            ImGui::PopStyleColor(2);
-            ImGui::PopStyleVar();
-        }
+        show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::DISTRIBUTE_X,
+                        (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_X_DARK : GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_X,
+                         icon_size,
+                        _L("Distribute objects evenly along X axis"), _L("Please select at least 3 parts or objects"), true);
+        float new_space_size = space_size *0.8f;
+        ImGui::SameLine(start_x + unit_size + space_size + new_space_size);
+        show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::Y_MAX,
+                        (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MAX_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MAX,
+                        icon_size,
+                        _L("Align objects to the maximum Y position"), "");
+
         ImGui::SameLine(0, button_spacing);
-        if (m_alignment_helper->can_align(GLGizmoAlignment::AlignType::CENTER_Y)) {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_CENTER);
-            if (ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size))) {
-                m_alignment_helper->align_objects(GLGizmoAlignment::AlignType::CENTER_Y);
-            }
-            if (ImGui::IsItemHovered()) {
-                ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-                ImGui::SetTooltip("%s", _L("Align objects to the center Y position").ToUTF8().data());
-                ImGui::PopStyleColor(2);
-            }
-        } else {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_CENTER);
-            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3f);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size));
-            ImGui::PopStyleColor(2);
-            ImGui::PopStyleVar();
-        }
+        show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::CENTER_Y,
+                        (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_CENTER_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_CENTER,
+                        icon_size,
+                        _L("Align objects to the center Y position"), "");
+
         ImGui::SameLine(0, button_spacing);
-        if (m_alignment_helper->can_align(GLGizmoAlignment::AlignType::Y_MIN)) {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MIN);
-            if (ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size))) {
-                m_alignment_helper->align_objects(GLGizmoAlignment::AlignType::Y_MIN);
-            }
-            if (ImGui::IsItemHovered()) {
-                ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-                ImGui::SetTooltip("%s", _L("Align objects to the minimum Y position").ToUTF8().data());
-                ImGui::PopStyleColor(2);
-            }
-        } else {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MIN);
-            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3f);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size));
-            ImGui::PopStyleColor(2);
-            ImGui::PopStyleVar();
-        }
+        show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::Y_MIN,
+                        (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MIN_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MIN,
+                        icon_size,
+                        _L("Align objects to the minimum Y position"), "");
+
         ImGui::SameLine(0, button_spacing);
-        if (m_alignment_helper->can_distribute(GLGizmoAlignment::DistributeType::DISTRIBUTE_Y)) {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_Y);
-            if (ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size))) {
-                m_alignment_helper->distribute_objects(GLGizmoAlignment::DistributeType::DISTRIBUTE_Y);
-            }
-            if (ImGui::IsItemHovered()) {
-                ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-                ImGui::SetTooltip("%s", _L("Distribute objects evenly along Y axis").ToUTF8().data());
-                ImGui::PopStyleColor(2);
-            }
-        } else {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_Y);
-            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3f);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size));
-            ImGui::PopStyleColor(2);
-            ImGui::PopStyleVar();
-        }
-        ImGui::SameLine(start_x + 2 * (unit_size + space_size));
-        if (m_alignment_helper->can_align(GLGizmoAlignment::AlignType::Z_MIN)) {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_MIN);
-            if (ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size))) {
-                m_alignment_helper->align_objects(GLGizmoAlignment::AlignType::Z_MIN);
-            }
-            if (ImGui::IsItemHovered()) {
-                ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-                ImGui::SetTooltip("%s", _L("Align objects to the minimum Z position").ToUTF8().data());
-                ImGui::PopStyleColor(2);
-            }
-        } else {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_MIN);
-            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3f);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size));
-            ImGui::PopStyleColor(2);
-            ImGui::PopStyleVar();
-        }
+        show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::DISTRIBUTE_Y,
+                        (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_Y_DARK : GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_Y,
+                        icon_size,
+                        _L("Distribute objects evenly along Y axis"), _L("Please select at least 3 parts or objects"), true);
+
+        ImGui::SameLine(start_x + 2 * (unit_size + space_size) + new_space_size + new_space_size);
+        show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::Z_MIN,
+                        (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_MIN_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_MIN,
+                        icon_size,
+                        _L("Align objects to the minimum Z position"), _L("Please select at least 2 parts and do not select entire object"), true);
+
         ImGui::SameLine(0, button_spacing);
-        if (m_alignment_helper->can_align(GLGizmoAlignment::AlignType::CENTER_Z)) {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_CENTER);
-            if (ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size))) {
-                m_alignment_helper->align_objects(GLGizmoAlignment::AlignType::CENTER_Z);
-            }
-            if (ImGui::IsItemHovered()) {
-                ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-                ImGui::SetTooltip("%s", _L("Align objects to the center Z position").ToUTF8().data());
-                ImGui::PopStyleColor(2);
-            }
-        } else {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_CENTER);
-            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3f);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size));
-            ImGui::PopStyleColor(2);
-            ImGui::PopStyleVar();
-        }
+        show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::CENTER_Z,
+                        (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_CENTER_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_CENTER,
+                        icon_size,
+                        _L("Align objects to the center Z position"), _L("Please select at least 2 parts and do not select entire object"), true);
+
         ImGui::SameLine(0, button_spacing);
-        if (m_alignment_helper->can_align(GLGizmoAlignment::AlignType::Z_MAX)) {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_MAX);
-            if (ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size))) {
-                m_alignment_helper->align_objects(GLGizmoAlignment::AlignType::Z_MAX);
-            }
-            if (ImGui::IsItemHovered()) {
-                ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-                ImGui::SetTooltip("%s", _L("Align objects to the maximum Z position").ToUTF8().data());
-                ImGui::PopStyleColor(2);
-            }
-        } else {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_MAX);
-            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3f);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size));
-            ImGui::PopStyleColor(2);
-            ImGui::PopStyleVar();
-        }
+        show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::Z_MAX,
+                        (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_MAX_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_MAX,
+                        icon_size,
+                        _L("Align objects to the maximum Z position"), _L("Please select at least 2 parts and do not select entire object"),true);
+
         ImGui::SameLine(0, button_spacing);
-        if (m_alignment_helper->can_distribute(GLGizmoAlignment::DistributeType::DISTRIBUTE_Z)) {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_Z);
-            if (ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size))) {
-                m_alignment_helper->distribute_objects(GLGizmoAlignment::DistributeType::DISTRIBUTE_Z);
-            }
-            if (ImGui::IsItemHovered()) {
-                ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-                ImGui::SetTooltip("%s", _L("Distribute objects evenly along Z axis").ToUTF8().data());
-                ImGui::PopStyleColor(2);
-            }
-        } else {
-            ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_Z);
-            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3f);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::ImageButton3(normal_id, normal_id, ImVec2(button_in_group_width, icon_size));
-            ImGui::PopStyleColor(2);
-            ImGui::PopStyleVar();
-        }
+        wxString look = _L("Distribute objects evenly along Z axis");
+        show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::DISTRIBUTE_Z,
+                        (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_Z_DARK : GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_Z, icon_size,
+                        _L("Distribute objects evenly along Z axis"), _L("Please select at least 3 parts and do not select entire object"), true);
+
         ImGui::PopStyleColor();
+        if (!ImGui::IsAnyItemHovered()) {
+            m_align_type = GLGizmoAlignment::AlignType::NONE;
+        }
     }
 
     float get_cur_y      = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
@@ -1232,6 +1078,67 @@ void GizmoObjectManipulation::set_init_rotation(const Geometry::Transformation &
     imgui_wrapper->end();
     ImGui::PopStyleVar(1);
     ImGuiWrapper::pop_toolbar_style();
+}
+
+void GizmoObjectManipulation::show_align_icon(ImGuiWrapper *              imgui_wrapper,
+                                              float                       max_tooltip_width,
+                                              GLGizmoAlignment::AlignType align_type,
+                                              int                         icon,
+                                              float                       icon_size,
+                                              const wxString &            function_tip,
+                                              const wxString &            enable_tip,
+                                              bool                        show_enable_tip)
+{
+    bool can_align = false;
+    if (GLGizmoAlignment::AlignType::DISTRIBUTE_X <= align_type) {
+        can_align = m_alignment_helper->can_distribute(align_type);
+    } else {
+        can_align = m_alignment_helper->can_align(align_type);
+    }
+
+    ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id((GLGizmosManager::MENU_ICON_NAME) icon);
+    if (!can_align) {
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3f);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_Button]);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyle().Colors[ImGuiCol_Button]);
+    }
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+    if (ImGui::ImageButton3(normal_id, normal_id, ImVec2(icon_size, icon_size))) {
+        if (can_align) {
+            if (GLGizmoAlignment::AlignType::DISTRIBUTE_X <= align_type) {
+                m_alignment_helper->distribute_objects(align_type);
+            } else {
+                m_alignment_helper->align_objects(align_type);
+            }
+        }
+    }
+    ImGui::PopStyleVar();
+    if (!can_align) {
+        ImGui::PopStyleColor(2);
+        ImGui::PopStyleVar();
+    }
+
+    if (ImGui::IsItemHovered()) {
+        if (can_align) {
+            m_align_type = align_type;
+        } else {
+            m_align_type = GLGizmoAlignment::AlignType::NONE;
+        }
+        //imgui_wrapper->tooltip(tip, max_tooltip_width);
+        ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+        if (can_align) {
+            ImGui::SetTooltip("%s", function_tip.ToUTF8().data());
+        } else {
+            if (show_enable_tip) {
+                wxString           combinedStr = function_tip+"\n" + enable_tip;
+                ImGui::SetTooltip("%s", combinedStr.ToUTF8().data());
+            } else {
+                ImGui::SetTooltip("%s", function_tip.ToUTF8().data());
+            }
+        }
+        ImGui::PopStyleColor(2);
+    }
 }
 
 void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrapper, std::string window_name, float x, float y, float bottom_limit)
