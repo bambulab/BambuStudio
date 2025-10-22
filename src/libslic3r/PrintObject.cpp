@@ -1098,6 +1098,7 @@ bool PrintObject::invalidate_state_by_config_options(
 #endif
         } else if (
                opt_key == "interface_shells"
+            || opt_key == "fill_multiline"
             || opt_key == "infill_combination"
             || opt_key == "bottom_shell_thickness"
             || opt_key == "top_shell_thickness"
