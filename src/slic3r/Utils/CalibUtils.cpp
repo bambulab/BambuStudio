@@ -413,9 +413,27 @@ static void init_multi_extruder_params_for_cali(DynamicPrintConfig& config, cons
     std::vector<int>& filament_maps = config.option<ConfigOptionInts>("filament_map", true)->values;
     filament_maps.clear();
     filament_maps.resize(num_filaments, extruder_id);
+    config.option<ConfigOptionInts>("filament_volume_map", true)->values = {static_cast<int>(calib_info.nozzle_volume_type)};
 
     config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = FilamentMapMode::fmmManual;
 
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev)
+        return;
+
+    const MachineObject *obj = dev->get_selected_machine();
+    if (obj == nullptr)
+        return;
+
+    if (obj->GetNozzleSystem()->GetNozzleRack()->IsSupported()) {
+        config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = FilamentMapMode::fmmNozzleManual;
+        config.option<ConfigOptionInts>("filament_nozzle_map", true)->values = {calib_info.nozzle_pos_id};
+
+        ExtruderNozzleStat nozzle_stat;
+        nozzle_stat.set_extruder_nozzle_count(extruder_id - 1, calib_info.nozzle_volume_type, 1, false);
+        auto str_values = save_extruder_nozzle_stats_to_string(nozzle_stat.get_raw_stat());
+        config.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values = str_values;
+    }
 }
 
 
