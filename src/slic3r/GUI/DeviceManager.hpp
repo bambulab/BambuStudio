@@ -132,7 +132,7 @@ private:
 
     /*Upgrade*/
     std::shared_ptr<DevUpgrade> m_upgrade;
-   
+
     /*HMS*/
     DevHMS* m_hms_system;
 
@@ -313,7 +313,7 @@ public:
     /* E3D has extra nozzle flow type info */
     bool has_extra_flow_type{false};
 
-    [[nodiscard]] bool is_nozzle_flow_type_supported() const { return is_enable_np | has_extra_flow_type; };
+    [[nodiscard]] bool is_nozzle_flow_type_supported() const { return is_enable_np | has_extra_flow_type; }
     [[nodiscard]] wxString get_nozzle_replace_url() const;
 
     /*online*/
