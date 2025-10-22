@@ -306,6 +306,7 @@ static constexpr const char* SPIRAL_VASE_MODE = "spiral_mode";
 static constexpr const char* FILAMENT_MAP_MODE_ATTR = "filament_map_mode";
 static constexpr const char* FILAMENT_MAP_ATTR = "filament_maps";
 static constexpr const char* LIMIT_FILAMENT_MAP_ATTR = "limit_filament_maps";
+static constexpr const char* FILAMENT_VOL_MAP_ATTR = "filament_volume_maps";
 static constexpr const char* GCODE_FILE_ATTR = "gcode_file";
 static constexpr const char* THUMBNAIL_FILE_ATTR = "thumbnail_file";
 static constexpr const char* NO_LIGHT_THUMBNAIL_FILE_ATTR = "thumbnail_no_light_file";
@@ -4284,6 +4285,17 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     m_curr_plater->filament_maps = filament_map;
                 }
             }
+            else if (key == FILAMENT_VOL_MAP_ATTR) {
+                if (m_curr_plater){
+                    auto filament_volume_map = get_vector_from_string(value);
+                    for (size_t idx = 0; idx < filament_volume_map.size(); ++idx) {
+                        if (filament_volume_map[idx] > 1) {
+                            filament_volume_map[idx] = 0;
+                        }
+                    }
+                    m_curr_plater->config.set_key_value("filament_volume_map", new ConfigOptionInts(filament_volume_map));
+                }
+            }
             else if (key == GCODE_FILE_ATTR)
             {
                 m_curr_plater->gcode_file = value;
@@ -7779,6 +7791,18 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     for (int i = 0; i < values.size(); ++i) {
                         stream << values[i];
                         if (i != (values.size() - 1))
+                            stream << " ";
+                    }
+                    stream << "\"/>\n";
+                }
+
+                ConfigOptionInts* filament_volume_maps_opt = plate_data->config.option<ConfigOptionInts>("filament_volume_map");
+                if (filament_map_mode_opt != nullptr && filament_volume_maps_opt != nullptr) {
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << FILAMENT_VOL_MAP_ATTR << "\" " << VALUE_ATTR << "=\"";
+                    const std::vector<int>& volume_values = filament_volume_maps_opt->values;
+                    for (int i = 0; i < volume_values.size(); ++i) {
+                        stream << volume_values[i];
+                        if (i != (volume_values.size() - 1))
                             stream << " ";
                     }
                     stream << "\"/>\n";
