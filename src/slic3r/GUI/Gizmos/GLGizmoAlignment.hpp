@@ -16,6 +16,7 @@ class GLGizmoAlignment
 {
 public:
     enum class AlignType {
+        NONE = -1,
         CENTER_X,
         CENTER_Y,
         CENTER_Z,
@@ -24,9 +25,7 @@ public:
         X_MAX,
         X_MIN,
         Z_MAX,
-        Z_MIN
-    };
-    enum class DistributeType {
+        Z_MIN,
         DISTRIBUTE_X,
         DISTRIBUTE_Y,
         DISTRIBUTE_Z
@@ -45,7 +44,7 @@ public:
     ~GLGizmoAlignment() = default;
 
     bool align_objects(AlignType type);
-    bool distribute_objects(DistributeType type);
+    bool distribute_objects(AlignType type);
 
     bool align_to_center_x();
     bool align_to_center_y();
@@ -62,7 +61,7 @@ public:
     bool distribute_z();
 
     bool can_align(AlignType type) const;
-    bool can_distribute(DistributeType type) const;
+    bool can_distribute(AlignType type) const;
 
     std::vector<ObjectInfo> get_selected_objects_info() const;
 

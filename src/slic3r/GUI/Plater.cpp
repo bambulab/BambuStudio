@@ -7288,19 +7288,19 @@ void Plater::priv::center_selection()
 void Plater::priv::distribute_selection_y()
 {
     GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
-alignment_helper.distribute_objects(GLGizmoAlignment::DistributeType::DISTRIBUTE_Y);
+    alignment_helper.distribute_objects(GLGizmoAlignment::AlignType::DISTRIBUTE_Y);
 }
 
 void Plater::priv::distribute_selection_x()
 {
     GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
-alignment_helper.distribute_objects(GLGizmoAlignment::DistributeType::DISTRIBUTE_X);
+    alignment_helper.distribute_objects(GLGizmoAlignment::AlignType::DISTRIBUTE_X);
 }
 
 void Plater::priv::distribute_selection_z()
 {
     GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
-alignment_helper.distribute_objects(GLGizmoAlignment::DistributeType::DISTRIBUTE_Z);
+    alignment_helper.distribute_objects(GLGizmoAlignment::AlignType::DISTRIBUTE_Z);
 }
 
 void Plater::priv::align_selection_y_max()

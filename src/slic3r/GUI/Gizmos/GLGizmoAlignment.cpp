@@ -41,20 +41,20 @@ bool GLGizmoAlignment::align_objects(AlignType type)
     }
 }
 
-bool GLGizmoAlignment::distribute_objects(DistributeType type)
+bool GLGizmoAlignment::distribute_objects(AlignType type)
 {
     if (!can_distribute(type)) {
         return false;
     }
 
     switch (type) {
-        case DistributeType::DISTRIBUTE_X:
+    case AlignType::DISTRIBUTE_X:
         return distribute_x();
-    case DistributeType::DISTRIBUTE_Y:
+    case AlignType::DISTRIBUTE_Y:
         return distribute_y();
-    case DistributeType::DISTRIBUTE_Z:
+    case AlignType::DISTRIBUTE_Z:
         return distribute_z();
-        default:
+    default:
             return false;
     }
 }
@@ -718,7 +718,7 @@ bool GLGizmoAlignment::can_align(AlignType type) const
     return validate_selection_for_align();
 }
 
-bool GLGizmoAlignment::can_distribute(DistributeType type) const
+bool GLGizmoAlignment::can_distribute(AlignType type) const
 {
     const Selection& selection = get_selection();
 
@@ -731,16 +731,16 @@ bool GLGizmoAlignment::can_distribute(DistributeType type) const
     if (selection.is_multiple_volume() || selection.is_multiple_modifier()) {
         size_t count = selection.get_volume_idxs().size();
         if (count < 3) return false;
-        return (type == DistributeType::DISTRIBUTE_X ||
-                type == DistributeType::DISTRIBUTE_Y ||
-                type == DistributeType::DISTRIBUTE_Z);
+        return (type == AlignType::DISTRIBUTE_X ||
+                type == AlignType::DISTRIBUTE_Y ||
+                type == AlignType::DISTRIBUTE_Z);
     }
 
     if (selection.is_multiple_full_object()) {
         auto objects = get_selected_objects_info();
         if (objects.size() < 3) return false;
-        return (type == DistributeType::DISTRIBUTE_X ||
-                type == DistributeType::DISTRIBUTE_Y);
+        return (type == AlignType::DISTRIBUTE_X ||
+                type == AlignType::DISTRIBUTE_Y);
     }
 
     return validate_selection_for_distribute();

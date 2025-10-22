@@ -27,7 +27,7 @@ class GLGizmoMove3D : public GLGizmoBase
     Vec3d m_starting_box_bottom_center;
 
     GLModel m_vbo_cone;
-
+    GLModel m_align_plane;
     //BBS: add size adjust related
     GizmoObjectManipulation* m_object_manipulation;
 

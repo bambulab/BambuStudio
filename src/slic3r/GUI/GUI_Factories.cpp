@@ -1887,7 +1887,7 @@ void MenuFactory::append_menu_item_align_distribute(wxMenu *menu)
             else {
                 auto canvas3d = plater()->get_view3D_canvas3D();
                 GLGizmoAlignment alignment_helper(*canvas3d);
-return alignment_helper.can_distribute(GLGizmoAlignment::DistributeType::DISTRIBUTE_Y);
+                return alignment_helper.can_distribute(GLGizmoAlignment::AlignType::DISTRIBUTE_Y);
             }
         },m_parent);
 
@@ -1905,7 +1905,7 @@ return alignment_helper.can_distribute(GLGizmoAlignment::DistributeType::DISTRIB
             else {
                 auto canvas3d = plater()->get_view3D_canvas3D();
                 GLGizmoAlignment alignment_helper(*canvas3d);
-                return alignment_helper.can_distribute(GLGizmoAlignment::DistributeType::DISTRIBUTE_X);
+                return alignment_helper.can_distribute(GLGizmoAlignment::AlignType::DISTRIBUTE_X);
             }
         },
         m_parent);
@@ -1924,7 +1924,7 @@ return alignment_helper.can_distribute(GLGizmoAlignment::DistributeType::DISTRIB
             else {
                 auto                   canvas3d = plater()->get_view3D_canvas3D();
                 GLGizmoAlignment alignment_helper(*canvas3d);
-                return alignment_helper.can_distribute(GLGizmoAlignment::DistributeType::DISTRIBUTE_Z);
+                return alignment_helper.can_distribute(GLGizmoAlignment::AlignType::DISTRIBUTE_Z);
             }
         },
         m_parent);
@@ -2106,9 +2106,9 @@ return alignment_helper.can_distribute(GLGizmoAlignment::DistributeType::DISTRIB
                                     alignment_helper.can_align(GLGizmoAlignment::AlignType::Z_MAX) ||
                                     alignment_helper.can_align(GLGizmoAlignment::AlignType::Z_MIN);
 
-                bool has_any_distribute = alignment_helper.can_distribute(GLGizmoAlignment::DistributeType::DISTRIBUTE_X) ||
-                                         alignment_helper.can_distribute(GLGizmoAlignment::DistributeType::DISTRIBUTE_Y) ||
-                                         alignment_helper.can_distribute(GLGizmoAlignment::DistributeType::DISTRIBUTE_Z);
+                bool has_any_distribute = alignment_helper.can_distribute(GLGizmoAlignment::AlignType::DISTRIBUTE_X) ||
+                                          alignment_helper.can_distribute(GLGizmoAlignment::AlignType::DISTRIBUTE_Y) ||
+                                          alignment_helper.can_distribute(GLGizmoAlignment::AlignType::DISTRIBUTE_Z);
 
                 return has_any_align || has_any_distribute;
             }
