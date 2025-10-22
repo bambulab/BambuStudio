@@ -65,7 +65,8 @@
 		"has_cali_line": true,
 		"printer_is_enclosed": true,
 		"enable_set_nozzle_info": false,
-		"support_safety_options": false
+		"support_safety_options": false,
+		"support_disable_cali_flow_type": true
 	},
 	"01.01.01.00": {
 		"print": {

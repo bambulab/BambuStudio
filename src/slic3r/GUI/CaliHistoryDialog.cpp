@@ -35,17 +35,14 @@ enum CaliColumnType : int {
 
 bool support_nozzle_volume(const MachineObject* obj)
 {
-    if (!obj)
+    if (!obj) return false;
+
+    if(DevPrinterConfigUtil::support_disable_cali_flow_type(obj->printer_type))
         return false;
-    Preset * machine_preset = get_printer_preset(obj);
-    if (machine_preset) {
-        int extruder_nums = machine_preset->config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
-        auto nozzle_volume_opt = machine_preset->config.option<ConfigOptionFloatsNullable>("nozzle_volume");
-        if (nozzle_volume_opt) {
-            int printer_variant_size = nozzle_volume_opt->values.size();
-            return (printer_variant_size / extruder_nums) > 1;
-        }
-    }
+
+    if (obj->is_nozzle_flow_type_supported())
+        return true;
+
     return false;
 }
 
@@ -901,6 +898,7 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
         const ConfigOptionDef *nozzle_volume_type_def = print_config_def.get("nozzle_volume_type");
         if (nozzle_volume_type_def && nozzle_volume_type_def->enum_keys_map) {
             for (auto item : nozzle_volume_type_def->enum_labels) {
+                if (item == "Hybrid") continue;
                 m_comboBox_nozzle_type->Append(_L(item), wxNullBitmap, new int{to_nozzle_flow_type(item)});
             }
         }
