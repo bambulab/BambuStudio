@@ -303,7 +303,10 @@ void CalibrationDialog::update_cali(MachineObject *obj)
         else {
             m_calibration_btn->Enable();
         }
+
         m_calibration_flow->DeleteAllItems();
+        last_stage_list_info = obj->stage_list_info;
+
         m_calibration_btn->SetLabel(_L("Start Calibration"));
         if (!m_checkbox_list["vibration"]->GetValue() && !m_checkbox_list["bed_leveling"]->GetValue() &&
             !m_checkbox_list["xcam_cali"]->GetValue() && !m_checkbox_list["motor_noise"]->GetValue() &&
