@@ -76,6 +76,7 @@ public:
 
     /*calibration*/
     static std::vector<std::string> get_unsupport_auto_cali_filaments(std::string type_str) { return get_value_from_config<std::vector<std::string>>(type_str, "auto_cali_not_support_filaments"); }
+    static bool support_disable_cali_flow_type(std::string type_str) { return get_value_from_config<bool>(type_str,"support_disable_cali_flow_type"); }
 
     /*detection*/
      static bool support_wrapping_detection(const std::string& type_str) { return get_value_from_config<bool>(type_str, "support_wrapping_detection"); }
