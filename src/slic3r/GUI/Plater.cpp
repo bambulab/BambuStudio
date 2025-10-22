@@ -978,9 +978,13 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
     combo_flow->GetDropDown().SetUseContentWidth(true);
     combo_flow->Bind(wxEVT_COMBOBOX, [this, index, combo_flow](wxCommandEvent &evt) {
         auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
-        printer_tab->set_extruder_volume_type(index, NozzleVolumeType(intptr_t(combo_flow->GetClientData(evt.GetInt()))));
-        if (GUI::wxGetApp().plater())
-            GUI::wxGetApp().plater()->update_machine_sync_status();
+        NozzleVolumeType volume_type = NozzleVolumeType(intptr_t(combo_flow->GetClientData(evt.GetInt())));
+        printer_tab->set_extruder_volume_type(index, volume_type);
+        auto plater = GUI::wxGetApp().plater();
+        if (plater) {
+            plater->update_filament_volume_map(index, static_cast<int>(volume_type));
+            plater->update_machine_sync_status();
+        }
     });
     this->combo_flow = combo_flow;
 
@@ -16732,12 +16736,23 @@ void Plater::set_global_filament_map(const std::vector<int>& filament_map)
     project_config.option<ConfigOptionInts>("filament_map")->values = filament_map;
 }
 
+void Plater::set_global_filament_volume_map(const std::vector<int>& filament_volume_map)
+{
+    auto& project_config = wxGetApp().preset_bundle->project_config;
+    project_config.option<ConfigOptionInts>("filament_volume_map")->values = filament_volume_map;
+}
+
 std::vector<int> Plater::get_global_filament_map() const
 {
     auto& project_config = wxGetApp().preset_bundle->project_config;
     return project_config.option<ConfigOptionInts>("filament_map")->values;
 }
 
+std::vector<int> Plater::get_global_filament_volume_map() const
+{
+    auto& project_config = wxGetApp().preset_bundle->project_config;
+    return project_config.option<ConfigOptionInts>("filament_volume_map")->values;
+}
 
 FilamentMapMode Plater::get_global_filament_map_mode() const
 {
@@ -17715,19 +17730,24 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
     int value = evt.GetInt(); //1 means from gcode view
     bool need_slice = value ==1;  // If from gcode view, should slice
 
+    auto preset_bundle = wxGetApp().preset_bundle;
     const auto& project_config = wxGetApp().preset_bundle->project_config;
     auto filament_colors = config()->option<ConfigOptionStrings>("filament_colour")->values;
     auto filament_types = config()->option<ConfigOptionStrings>("filament_type")->values;
 
     auto plate_filament_maps = curr_plate->get_real_filament_maps(project_config);
     auto plate_filament_map_mode = curr_plate->get_filament_map_mode();
+    auto plate_filament_volume_maps = curr_plate->get_real_filament_volume_maps(project_config);
     if (plate_filament_maps.size() != filament_colors.size())  // refine it later, save filament map to app config
         plate_filament_maps.resize(filament_colors.size(), 1);
+    if (plate_filament_volume_maps.size() != filament_colors.size())
+        plate_filament_volume_maps.resize(filament_colors.size(), 0);
 
     FilamentMapDialog filament_dlg(this,
         filament_colors,
         filament_types,
         plate_filament_maps,
+        plate_filament_volume_maps,
         curr_plate->get_extruders(true),
         plate_filament_map_mode,
         this->get_machine_sync_status(),
@@ -17741,16 +17761,21 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
         FilamentMapMode  old_map_mode = curr_plate->get_filament_map_mode();
         FilamentMapMode  new_map_mode = filament_dlg.get_mode();
 
+        std::vector<int> new_filament_volume_maps = filament_dlg.get_filament_volume_maps();
+        std::vector<int> old_filament_volume_maps = curr_plate->get_real_filament_volume_maps(project_config);
+
         if (new_map_mode != old_map_mode) {
             curr_plate->set_filament_map_mode(new_map_mode);
         }
 
         if (new_map_mode == fmmManual){
             curr_plate->set_filament_maps(new_filament_maps);
+            curr_plate->set_filament_volume_maps(new_filament_volume_maps);
         }
 
         bool need_invalidate = (old_map_mode != new_map_mode ||
-                                old_filament_maps != new_filament_maps);
+                                old_filament_maps != new_filament_maps ||
+                                old_filament_volume_maps != new_filament_volume_maps);
 
         if (need_invalidate) {
             if (need_slice) {
@@ -18338,6 +18363,28 @@ void Plater::update_machine_sync_status()
     }
     MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
     GUI::wxGetApp().sidebar().update_sync_status(obj);
+}
+
+void Plater::update_filament_volume_map(int extruder_id, int volume_type)
+{
+    int   selected_volume_type = volume_type == static_cast<int>(NozzleVolumeType::nvtHybrid) ? 0 : volume_type;
+    auto& partplate_list       = get_partplate_list();
+    for (int idx = 0; idx < partplate_list.get_plate_count(); ++idx) {
+        auto plate = partplate_list.get_plate(idx);
+        if (!plate) continue;
+        auto filament_map        = plate->get_filament_maps();
+        auto filament_volume_map = plate->get_filament_volume_maps();
+        if (filament_map.empty() || filament_volume_map.empty()) continue;
+        if (filament_volume_map.size() < filament_map.size()) {
+            filament_volume_map.resize(filament_map.size(), 0);
+        }
+        for (int i = 0; i < filament_map.size(); ++i) {
+            if (filament_map[i] == extruder_id + 1) {
+                filament_volume_map[i] = selected_volume_type;
+            }
+        }
+        plate->set_filament_volume_maps(filament_volume_map);
+    }
 }
 
 void Plater::show_wrapping_detect_dialog_if_necessary()

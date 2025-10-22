@@ -806,15 +806,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(const wxString &caption, const wxStri
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
-struct SyncExtruderParams
-{
-    DynamicConfig *config;
-    int from;
-    int to;
-    bool left_to_right;
-};
-
-UnsavedChangesDialog::UnsavedChangesDialog(const wxString &caption, const wxString &header, DynamicConfig *config, int from, int to, bool left_to_right)
+UnsavedChangesDialog::UnsavedChangesDialog(const wxString &caption, const wxString &header, DynamicConfig *config, int from, int to, bool left_to_right, NozzleVolumeType nozzle)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe),
                 wxID_ANY,
                 caption,
@@ -823,7 +815,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(const wxString &caption, const wxStri
                 wxCAPTION | wxCLOSE_BOX)
     , m_buttons(ActionButtons::SAVE | ActionButtons::DONT_SAVE)
 {
-    SyncExtruderParams params { config, from, to, left_to_right };
+    SyncExtruderParams params { config, from, to, left_to_right, nozzle };
     build(Preset::TYPE_PRINT, reinterpret_cast<PresetCollection*>(&params), "SyncExtruderParams", header);
     this->CenterOnScreen();
     wxGetApp().UpdateDlgDarkUI(this);
@@ -933,12 +925,10 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
         wxBoxSizer *top_title_oldv = new wxBoxSizer(wxVERTICAL);
         wxBoxSizer *top_title_oldv_h = new wxBoxSizer(wxHORIZONTAL);
 
-        wxString modified = _L("(Modified)");
-        static_oldv_title = new wxStaticText(m_panel_oldv, wxID_ANY, params ? _L("Left nozzle") + (params->left_to_right ? "" : modified) : _L("Preset(Old)"), wxDefaultPosition,
-                                             wxDefaultSize, 0);
+        static_oldv_title = new wxStaticText(m_panel_oldv, wxID_ANY, params ? _L("Left nozzle") + ": " + get_nozzle_volume_type_name(params->nozzle) : _L("Preset(Old)"), wxDefaultPosition, wxDefaultSize, 0);
         static_oldv_title->SetFont(::Label::Body_13);
         static_oldv_title->Wrap(-1);
-        static_oldv_title->SetForegroundColour(*wxWHITE);
+        static_oldv_title->SetForegroundColour(params && params->left_to_right ? wxGetApp().get_label_clr_modified() : *wxWHITE);
         top_title_oldv_h->Add(static_oldv_title, 0, wxALIGN_CENTER | wxBOTTOM | wxTOP, 5);
         top_title_oldv->Add(top_title_oldv_h, 1, wxALIGN_CENTER, 0);
         m_panel_oldv->SetSizer(top_title_oldv);
@@ -954,11 +944,11 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
         wxBoxSizer *top_title_newv = new wxBoxSizer(wxVERTICAL);
         wxBoxSizer *top_title_newv_h = new wxBoxSizer(wxHORIZONTAL);
 
-        static_newv_title = new wxStaticText(m_panel_newv, wxID_ANY, params ? _L("Right nozzle") + (!params->left_to_right ? "" : modified) : _L("Modified Value(New)"),
+        static_newv_title = new wxStaticText(m_panel_newv, wxID_ANY, params ? _L("Right nozzle") + ": " + get_nozzle_volume_type_name(params->nozzle) : _L("Modified Value(New)"),
                                              wxDefaultPosition, wxDefaultSize, 0);
         static_newv_title->SetFont(::Label::Body_13);
         static_newv_title->Wrap(-1);
-        static_newv_title->SetForegroundColour(*wxWHITE);
+        static_newv_title->SetForegroundColour(params && !params->left_to_right ? wxGetApp().get_label_clr_modified() : *wxWHITE);
 
         top_title_newv_h->Add(static_newv_title, 0, wxALIGN_CENTER | wxBOTTOM | wxTOP, 5);
 
@@ -1093,7 +1083,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
             update_tree(type, params->config, params->to, params->from);
         m_action_line->SetLabel(header);
         m_action_line->Wrap(UNSAVE_CHANGE_DIALOG_SCROLL_WINDOW_SIZE.x);
-        update_list();
+        update_list(params);
     } else {
         update(type, dependent_presets, new_selected_preset, header);
     }
@@ -1505,7 +1495,7 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
     update_list();
 }
 
-void UnsavedChangesDialog::update_list()
+void UnsavedChangesDialog::update_list(SyncExtruderParams *params)
 {
     if (!m_scrolledWindow) {
         Layout();
@@ -1653,7 +1643,7 @@ void UnsavedChangesDialog::update_list()
                 auto text_oldv = new wxStaticText(panel_oldv, wxID_ANY, data.old_value, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
                 text_oldv->SetFont(::Label::Body_13);
                 text_oldv->Wrap(-1);
-                text_oldv->SetForegroundColour(GREY700);
+                text_oldv->SetForegroundColour(params && params->left_to_right ? wxGetApp().get_label_clr_modified() : GREY700);
                 sizer_old_v->Add(text_oldv, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5);
 
                 panel_oldv->SetSizer(sizer_old_v);
@@ -1667,7 +1657,7 @@ void UnsavedChangesDialog::update_list()
                 auto text_newv = new wxStaticText(panel_newv, wxID_ANY, data.new_value, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
                 text_newv->SetFont(::Label::Body_13);
                 text_newv->Wrap(-1);
-                text_newv->SetForegroundColour(GREY700);
+                text_newv->SetForegroundColour(params && !params->left_to_right ? wxGetApp().get_label_clr_modified() : GREY700);
 
                 sizer_new_v->Add(text_newv, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5);
 

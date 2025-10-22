@@ -126,7 +126,8 @@ namespace Slic3r
 
        // nozzles on extruder and rack
        bool IsRackMaximumInstalled() const;
-       const std::vector<DevNozzle> CollectNozzles(int ext_loc, NozzleFlowType flow_type, float diameter) const;
+
+       const std::vector<DevNozzle> CollectNozzles(int ext_loc, NozzleFlowType flow_type, float diameter = -1.0f) const;
        ExtruderNozzleInfos  GetExtruderNozzleInfo() const;
        std::vector<MultiNozzleUtils::NozzleGroupInfo> GetNozzleGroups() const;
        bool  IsIdle() const { return m_state_0_4 == NOZZLE_SYSTEM_IDLE; }

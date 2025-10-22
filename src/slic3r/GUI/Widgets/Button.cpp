@@ -196,6 +196,9 @@ void Button::paintEvent(wxPaintEvent& evt)
 void Button::render(wxDC& dc)
 {
     StaticBox::render(dc);
+    if (m_left_corner_white || m_right_corner_white) {
+        renderWhiteCorners(dc);
+    }
     int states = state_handler.states();
     wxSize size = GetSize();
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
@@ -291,6 +294,63 @@ void Button::render(wxDC& dc)
 #endif
         dc.DrawText(text, pt);
     }
+}
+
+void Button::renderWhiteCorners(wxDC& dc)
+{
+    wxSize size = GetSize();
+    int r = static_cast<int>(radius);
+    wxColor parent_bg_color = StaticBox::GetParentBackgroundColor(GetParent());
+    int states = state_handler.states();
+    wxColor bg_color = background_color.colorForStates(states);
+
+    auto drawWhiteCorners = [&](wxDC &dc) {
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.SetBrush(wxBrush(parent_bg_color));
+
+        if (m_left_corner_white) {
+            dc.DrawRectangle(0, 0, r, r);
+            dc.DrawRectangle(0, size.y - r, r, r);
+
+            dc.SetBrush(wxBrush(bg_color));
+            dc.DrawRoundedRectangle(0, 0, r * 2, r * 2, r);
+            dc.DrawRoundedRectangle(0, size.y - r * 2, r * 2, r * 2, r);
+        }
+
+        if (m_right_corner_white) {
+            dc.DrawRectangle(size.x - r, 0, r, r);
+            dc.DrawRectangle(size.x - r, size.y - r, r, r);
+
+            dc.SetBrush(wxBrush(bg_color));
+            dc.DrawRoundedRectangle(size.x - r * 2, 0, r * 2, r * 2, r);
+            dc.DrawRoundedRectangle(size.x - r * 2, size.y - r * 2, r * 2, r * 2, r);
+        }
+    };
+#ifdef __WXMSW__
+    auto renderWithAntialiasing = [&]() -> bool {
+        wxMemoryDC memdc(&dc);
+        if (!memdc.IsOk()) return false;
+
+        wxBitmap bmp(size.x, size.y);
+        memdc.SelectObject(bmp);
+        memdc.Blit({0, 0}, size, &dc, {0, 0});
+
+        wxGCDC gcdc(memdc);
+        if (!gcdc.IsOk()) return false;
+
+        drawWhiteCorners(gcdc);
+
+        memdc.SelectObject(wxNullBitmap);
+        dc.DrawBitmap(bmp, 0, 0);
+        return true;
+    };
+
+    if (!renderWithAntialiasing()) {
+        drawWhiteCorners(dc);
+    }
+#else
+    drawWhiteCorners(dc);
+#endif
 }
 
 void Button::messureSize()

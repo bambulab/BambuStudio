@@ -557,8 +557,10 @@ public:
 
     void set_global_filament_map_mode(FilamentMapMode mode);
     void set_global_filament_map(const std::vector<int>& filament_map);
+    void set_global_filament_volume_map(const std::vector<int>& volume_map);
     std::vector<int> get_global_filament_map() const;
     FilamentMapMode get_global_filament_map_mode() const;
+    std::vector<int> get_global_filament_volume_map() const;
 
     void update_menus();
     wxString get_selected_printer_name_in_combox();
@@ -740,6 +742,7 @@ public:
     // check whether nozzle staus is synced with printer, extruder = -1 means check both extruder
     bool is_extruder_stat_synced(int extruder_id = -1);
     void update_machine_sync_status();
+    void update_filament_volume_map(int extruder_id, int volume_type);
 
     void show_wrapping_detect_dialog_if_necessary();
 

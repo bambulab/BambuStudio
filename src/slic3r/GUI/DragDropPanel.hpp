@@ -13,13 +13,17 @@
 
 namespace Slic3r { namespace GUI {
 
+wxDECLARE_EVENT(wxEVT_DRAG_DROP_COMPLETED, wxCommandEvent);
+
+class FilamentMapManualPanel;
+
 wxColor Hex2Color(const std::string& str);
 
 class ColorPanel;
 class DragDropPanel : public wxPanel
 {
 public:
-    DragDropPanel(wxWindow *parent, const wxString &label, bool is_auto);
+    DragDropPanel(wxWindow *parent, const wxString &label, bool is_auto, bool has_title = true, bool is_sub = false);
 
     void AddColorBlock(const wxColour &color, const std::string &type, int filament_id, bool update_ui = true);
     void RemoveColorBlock(ColorPanel *panel, bool update_ui = true);
@@ -38,6 +42,8 @@ private:
     bool         m_is_auto;
 
     std::vector<ColorPanel *> m_filament_blocks;
+
+    void NotifyDragDropCompleted();
 private:
     bool m_is_draging = false;
 };
@@ -64,6 +70,43 @@ private:
     int            m_filament_id;
 
 };
+
+class SeparatedDragDropPanel : public wxPanel
+{
+public:
+    SeparatedDragDropPanel(wxWindow *parent, const wxString &label, bool use_separation = false);
+
+    void AddColorBlock(const wxColour &color, const std::string &type, int filament_id, bool is_high_flow = false, bool update_ui = true);
+    void RemoveColorBlock(ColorPanel *panel, bool update_ui = true);
+
+    std::vector<int> GetAllFilaments() const;
+    std::vector<int> GetHighFlowFilaments() const;
+    std::vector<int> GetStandardFilaments() const;
+
+    std::vector<ColorPanel *> get_filament_blocks() const;
+    std::vector<ColorPanel *> get_high_flow_blocks() const;
+    std::vector<ColorPanel *> get_standard_blocks() const;
+
+    void SetUseSeparation(bool use_separation);
+    bool IsUseSeparation() const { return m_use_separation; }
+    void ClearAllBlocks();
+
+private:
+    void UpdateLayout();
+
+    wxBoxSizer   *m_main_sizer;
+    wxPanel      *m_content_panel;
+    wxBoxSizer   *m_content_sizer;
+    wxStaticText *m_label;
+
+    DragDropPanel *m_high_flow_panel;
+    DragDropPanel *m_standard_panel;
+
+    DragDropPanel *m_unified_panel;
+
+    bool m_use_separation;
+};
+
 }} // namespace Slic3r::GUI
 
 #endif /* slic3r_DragDropPanel_hpp_ */
