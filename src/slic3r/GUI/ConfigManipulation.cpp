@@ -351,6 +351,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     double sparse_infill_density = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
+    int fill_multiline = config->option<ConfigOptionInt>("fill_multiline")->value;
     auto timelapse_type = config->opt_enum<TimelapseType>("timelapse_type");
 
     DynamicPrintConfig *global_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
@@ -676,6 +677,20 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     // sparse_infill_filament uses the same logic as in Print::extruders()
     for (auto el : { "sparse_infill_pattern", "sparse_infill_anchor_max", "infill_combination", "minimum_sparse_infill_area", "sparse_infill_filament", "infill_shift_step", "infill_rotate_step", "symmetric_infill_y_axis"})
         toggle_line(el, have_infill);
+
+    // Determine if the selected infill pattern supports multiline infill.
+    InfillPattern pattern = config->opt_enum<InfillPattern>("sparse_infill_pattern");
+
+    bool support_multiline_infill = pattern == ipCubic || pattern == ipGrid || pattern == ipRectilinear || pattern == ipStars || pattern == ipAlignedRectilinear ||
+                                    pattern == ipGyroid || pattern == ipHoneycomb || pattern == ipLightning || pattern == ip3DHoneycomb ||
+                                    pattern == ipAdaptiveCubic || pattern == ipSupportCubic;
+
+    toggle_line("fill_multiline", have_infill && support_multiline_infill);
+    if (support_multiline_infill == false) {
+        DynamicPrintConfig new_conf = *config;
+        new_conf.set_key_value("fill_multiline", new ConfigOptionInt(1));
+        apply(config, &new_conf);
+    }
     // Only allow configuration of open anchors if the anchoring is enabled.
     bool has_infill_anchors = have_infill && config->option<ConfigOptionFloatOrPercent>("sparse_infill_anchor_max")->value > 0;
     toggle_line("sparse_infill_anchor", has_infill_anchors);

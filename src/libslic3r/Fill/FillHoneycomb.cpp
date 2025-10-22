@@ -19,7 +19,7 @@ void FillHoneycomb::_fill_surface_single(
     if (it_m == this->cache.end()) {
         it_m = this->cache.insert(it_m, std::pair<CacheID, CacheData>(cache_id, CacheData()));
         CacheData &m        = it_m->second;
-        coord_t min_spacing = coord_t(scale_(this->spacing));
+        coord_t min_spacing = coord_t(scale_(this->spacing)) * params.multiline;
         m.distance          = coord_t(min_spacing / params.density);
         m.hex_side          = coord_t(m.distance / (sqrt(3)/2));
         m.hex_width         = m.distance * 2; // $m->{hex_width} == $m->{hex_side} * sqrt(3);
@@ -69,9 +69,12 @@ void FillHoneycomb::_fill_surface_single(
                 x += m.distance;
             }
             p.rotate(-direction.first, m.hex_center);
+            p.simplify(5 * spacing); // simplify to 5x line width
             all_polylines.push_back(p);
         }
     }
+    // Apply multiline offset if needed
+    multiline_fill(all_polylines, params, 1.1 * spacing);
     
     all_polylines = intersection_pl(std::move(all_polylines), expolygon);
     if (params.dont_connect() || all_polylines.size() <= 1)

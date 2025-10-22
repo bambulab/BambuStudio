@@ -16,6 +16,9 @@ void Filler::_fill_surface_single(
     if (!generator) return;
     const Layer &layer      = generator->getTreesForLayer(this->layer_id);
     Polylines    fill_lines = layer.convertToLines(to_polygons(expolygon), scaled<coord_t>(0.5 * this->spacing - this->overlap));
+    
+    // Apply multiline offset if needed
+    multiline_fill(fill_lines, params, spacing);
 
     if (params.dont_connect() || fill_lines.size() <= 1) {
         append(polylines_out, chain_polylines(std::move(fill_lines)));
