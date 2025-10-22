@@ -38,35 +38,33 @@ int UserManager::parse_json(std::string payload)
 
     try {
         if (j_pre.contains("bind")) {
-            if (j_pre["bind"].contains("command")) {
+#if !BBL_RELEASE_TO_PUBLIC
+            BOOST_LOG_TRIVIAL(info) << "user message bind = " << payload;
+#endif
+            std::string command = j_pre["bind"].contains("command")
+                ? j_pre["bind"]["command"].get<std::string>() : "";
+            std::string dev_id = j_pre["bind"].contains("dev_id")
+                ? j_pre["bind"]["dev_id"].get<std::string>() : "";
+            std::string result = j_pre["bind"].contains("result")
+                ? j_pre["bind"]["result"].get<std::string>() : "";
+            //bind
+            if (command == "bind" && result == "success") {
+                DeviceManager* dev = GUI::wxGetApp().getDeviceManager();
+                if (!dev) { return -1; }
 
-                //bind
-                if (j_pre["bind"]["command"].get<std::string>() == "bind") {
-                    std::string dev_id;
-                std:; string result;
-
-                    if (j_pre["bind"].contains("dev_id")) {
-                        dev_id = j_pre["bind"]["dev_id"].get<std::string>();
-                    }
-
-                    if (j_pre["bind"].contains("result")) {
-                        result = j_pre["bind"]["result"].get<std::string>();
-                    }
-
-                    if (result == "success") {
-                        DeviceManager* dev = GUI::wxGetApp().getDeviceManager();
-                        if (!dev) {return -1;}
-
-                        if (GUI::wxGetApp().m_ping_code_binding_dialog && GUI::wxGetApp().m_ping_code_binding_dialog->IsShown()) {
-                            GUI::wxGetApp().m_ping_code_binding_dialog->EndModal(wxCLOSE);
-                            GUI::MessageDialog msgdialog(nullptr, _L("Log in successful."), "", wxAPPLY | wxOK);
-                            msgdialog.ShowModal();
-                        }
-                        dev->update_user_machine_list_info();
-                        dev->set_selected_machine(dev_id);
-                        return 0;
-                    }
+                if (GUI::wxGetApp().m_ping_code_binding_dialog && GUI::wxGetApp().m_ping_code_binding_dialog->IsShown()) {
+                    GUI::wxGetApp().m_ping_code_binding_dialog->EndModal(wxCLOSE);
+                    GUI::MessageDialog msgdialog(nullptr, _L("Log in successful."), "", wxAPPLY | wxOK);
+                    msgdialog.ShowModal();
                 }
+                dev->update_user_machine_list_info();
+                dev->set_selected_machine(dev_id);
+                return 0;
+            }
+            else if (command == "unbind" && result == "success") {
+                DeviceManager* dev = GUI::wxGetApp().getDeviceManager();
+                if (!dev) { return -1; }
+                dev->erase_user_machine(dev_id);
             }
         }
     }
