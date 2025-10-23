@@ -23,6 +23,9 @@
     "impact_strength_z": [
         "19.8"
     ],
+    "required_nozzle_HRC": [
+        "40"
+    ],
     "temperature_vitrification": [
         "45"
     ],
