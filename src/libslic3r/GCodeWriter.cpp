@@ -806,9 +806,13 @@ std::string GCodeWriter::unretract()
 double GCodeWriter::get_extruder_retracted_length(const int filament_id)
 {
     double res = 0.0;
-    auto extruder = m_filament_extruders[filament_id];
-    if (extruder.is_share_extruder()) res = extruder.get_share_retracted_length();
-    else res = extruder.get_single_retracted_length();
+    auto   filament_extruder_iter = Slic3r::lower_bound_by_predicate(m_filament_extruders.begin(), m_filament_extruders.end(), [filament_id](const Extruder &e) { return e.id() < filament_id; });
+    assert(filament_extruder_iter != m_filament_extruders.end() && filament_extruder_iter->id() == filament_id);
+
+    if (filament_extruder_iter->is_share_extruder())
+        res = filament_extruder_iter->get_share_retracted_length();
+    else
+        res = filament_extruder_iter->get_single_retracted_length();
 
     return res;
 }
