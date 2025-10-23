@@ -534,6 +534,7 @@ struct Sidebar::priv
 
     bool sync_extruder_list(bool &only_external_material);
     bool switch_diameter(bool single);
+    void update_right_extruder_group_color();
     void update_sync_status(const MachineObject* obj);
     void adjust_filament_title_layout();
 
@@ -543,6 +544,66 @@ struct Sidebar::priv
     void hide_rich_tip(wxButton* btn);
 #endif
 };
+
+void Sidebar::priv::update_right_extruder_group_color()
+{
+    if (!right_extruder) return;
+
+    PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
+    int extruder_count = preset_bundle.get_printer_extruder_count();
+
+    if (extruder_count < 2) {
+        right_extruder->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+        if (right_extruder->btn_edit) {
+            right_extruder->btn_edit->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+        }
+        for (wxWindow* child : right_extruder->GetChildren()) {
+            child->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+        }
+        right_extruder->Refresh();
+        right_extruder->Update();
+
+        if (plater->sidebar().m_extruder_warning_dialog) {
+            plater->sidebar().m_extruder_warning_dialog->on_hide();
+        }
+        return;
+    }
+
+    wxString right_diameter = right_extruder->combo_diameter->GetValue();
+    auto extruders = preset_bundle.printers.get_edited_preset().config.option<ConfigOptionEnumsGeneric>("extruder_type")->values;
+
+    wxColour clr;
+    bool show_warning = false;
+    if (right_diameter == "0.2" && extruders.size() >= 2 && ExtruderType(extruders[1]) == ExtruderType::etBowden) {
+        clr = wxColour("#6B6B6B");
+        show_warning = true;
+    } else {
+        clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+        if (plater->sidebar().m_extruder_warning_dialog) {
+            plater->sidebar().m_extruder_warning_dialog->on_hide();
+        }
+    }
+
+    right_extruder->SetBackgroundColour(clr);
+    if (right_extruder->btn_edit) {
+        right_extruder->btn_edit->SetBackgroundColour(clr);
+    }
+    for (wxWindow* child : right_extruder->GetChildren()) {
+        child->SetBackgroundColour(clr);
+    }
+    right_extruder->Refresh();
+    right_extruder->Update();
+
+    if (show_warning) {
+        MainFrame* mainframe = wxGetApp().mainframe;
+        if (mainframe && mainframe->m_tabpanel) {
+            int current_tab = mainframe->m_tabpanel->GetSelection();
+            if (current_tab == MainFrame::tp3DEditor) {
+                plater->sidebar().pop_extruder_warning_dialog();
+            }
+        }
+    }
+}
 
 void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
 {
@@ -1266,7 +1327,11 @@ bool Sidebar::priv::switch_diameter(bool single)
         return false;
     }
     preset->is_visible = true; // force visible
-    return wxGetApp().get_tab(Preset::TYPE_PRINTER)->select_preset(preset->name);
+    bool result = wxGetApp().get_tab(Preset::TYPE_PRINTER)->select_preset(preset->name);
+    if (result) {
+        update_right_extruder_group_color();
+    }
+    return result;
 }
 
 static bool is_skip_high_flow_printer(const std::string& printer)
@@ -2158,6 +2223,10 @@ Sidebar::Sidebar(Plater *parent)
     auto *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(p->scrolled, 1, wxEXPAND);
     SetSizer(sizer);
+
+    wxGetApp().CallAfter([this]() {
+        p->update_right_extruder_group_color();
+    });
 }
 
 Sidebar::~Sidebar() {}
@@ -2552,6 +2621,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
                     update_extruder_diameter(*p->single_extruder);
                 p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
             }
+            p->update_right_extruder_group_color();
         }
 
         if (GUI::wxGetApp().plater())
@@ -3659,6 +3729,32 @@ void Sidebar::pop_finsish_sync_ams_dialog()
         m_fna_dialog->on_show();
     });
 
+}
+
+void Sidebar::pop_extruder_warning_dialog()
+{
+    wxTheApp->CallAfter([this]() {
+        ExtruderWarningDialog::InputInfo warning_info;
+
+        wxPoint extruder_pos  = p->right_extruder->GetScreenPosition();
+        wxSize  extruder_size = p->right_extruder->GetSize();
+
+        warning_info.dialog_pos = wxPoint(extruder_pos.x + extruder_size.x + FromDIP(10), extruder_pos.y + extruder_size.y / 2);
+
+        if (m_extruder_warning_dialog) {
+            m_extruder_warning_dialog->Destroy();
+            m_extruder_warning_dialog = nullptr;
+        }
+
+        m_extruder_warning_dialog = new ExtruderWarningDialog(warning_info, "warning");
+
+        m_extruder_warning_dialog->Bind(wxEVT_DESTROY, [this](wxWindowDestroyEvent &e) {
+            m_extruder_warning_dialog = nullptr;
+            e.Skip();
+        });
+
+        m_extruder_warning_dialog->on_show();
+    });
 }
 
 static std::vector<Search::InputInfo> get_search_inputs(ConfigOptionMode mode)
