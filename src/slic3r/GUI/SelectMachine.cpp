@@ -1754,7 +1754,7 @@ bool SelectMachineDialog::is_nozzle_hrc_matched(const NozzleType& nozzle_type, s
     while (iter != m_materialList.end()) {
         Material* item = iter->second;
         MaterialItem* m = item->item;
-        auto filament_nozzle_hrc = preset_bundle->get_required_hrc_by_filament_type(m->m_material_name.ToStdString());
+        auto filament_nozzle_hrc = preset_bundle->get_required_hrc_by_filament_id(m->m_filament_id);
 
         if (abs(filament_nozzle_hrc) > abs(printer_nozzle_hrc)) {
             filament_type = m->m_material_name.ToStdString();
@@ -3766,18 +3766,18 @@ void SelectMachineDialog::reset_and_sync_ams_list()
 
             if (m_filaments_map[extruder] == 1)
             {
-                item = new MaterialItem(m_filament_left_panel, colour_rgb, _L(display_materials[extruder]));
+                item = new MaterialItem(m_filament_left_panel, colour_rgb, _L(display_materials[extruder]), m_filaments_id[extruder]);
                 m_sizer_ams_mapping_left->Add(item, 0, wxALL, FromDIP(5));
             }
             else if (m_filaments_map[extruder] == 2)
             {
-                item = new MaterialItem(m_filament_right_panel, colour_rgb, _L(display_materials[extruder]));
+                item = new MaterialItem(m_filament_right_panel, colour_rgb, _L(display_materials[extruder]), m_filaments_id[extruder]);
                 m_sizer_ams_mapping_right->Add(item, 0, wxALL, FromDIP(5));
             }
         }
         else
         {
-            item = new MaterialItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]));
+            item = new MaterialItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]), m_filaments_id[extruder]);
             m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
         }
         item->SetToolTip(m_ams_tooltip);
@@ -4279,15 +4279,15 @@ void SelectMachineDialog::set_default_from_sdcard()
                 auto nozzle_id = m_filaments_map[fo.id];
 
                 if (nozzle_id == 1) {
-                    item = new MaterialItem(m_filament_left_panel, wxColour(fo.color), fo.get_display_filament_type());
+                    item = new MaterialItem(m_filament_left_panel, wxColour(fo.color), fo.get_display_filament_type(), fo.filament_id);
                     m_sizer_ams_mapping_left->Add(item, 0, wxALL, FromDIP(5));
                 } else if (nozzle_id == 2) {
-                    item = new MaterialItem(m_filament_right_panel, wxColour(fo.color), fo.get_display_filament_type());
+                    item = new MaterialItem(m_filament_right_panel, wxColour(fo.color), fo.get_display_filament_type(), fo.filament_id);
                     m_sizer_ams_mapping_right->Add(item, 0, wxALL, FromDIP(5));
                 }
             }
         } else {
-            item = new MaterialItem(m_filament_panel, wxColour(fo.color), fo.get_display_filament_type());
+            item = new MaterialItem(m_filament_panel, wxColour(fo.color), fo.get_display_filament_type(), fo.filament_id);
             m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
         }
 

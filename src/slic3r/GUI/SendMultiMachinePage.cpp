@@ -1498,7 +1498,7 @@ void SendMultiMachinePage::sync_ams_list()
         auto colour_rgb = wxColour((int)rgb[0], (int)rgb[1], (int)rgb[2], (int)rgb[3]);
         if (extruder >= materials.size() || extruder < 0 || extruder >= display_materials.size()) continue;
 
-        MaterialItem* item = new MaterialItem(m_main_page, colour_rgb, _L(display_materials[extruder]));
+        MaterialItem* item = new MaterialItem(m_main_page, colour_rgb, _L(display_materials[extruder]), m_filaments_id[extruder]);
         //item->set_ams_info(wxColour("#CECECE"), "A1", 0, std::vector<wxColour>());
         item->set_ams_info(wxColour("#CECECE"), "Ext", 0, std::vector<wxColour>());
         m_ams_list_sizer->Add(item, 0, wxALL, FromDIP(4));

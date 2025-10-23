@@ -1958,7 +1958,7 @@ bool SyncAmsInfoDialog::is_same_nozzle_type(std::string &filament_type, NozzleTy
     while (iter != m_materialList.end()) {
         Material *    item                = iter->second;
         auto               m              = item->item;
-        auto          filament_nozzle_hrc = preset_bundle->get_required_hrc_by_filament_type(m->m_material_name.ToStdString());
+        auto          filament_nozzle_hrc = preset_bundle->get_required_hrc_by_filament_id(m->m_filament_id);
 
         if (abs(filament_nozzle_hrc) > abs(printer_nozzle_hrc)) {
             filament_type = m->m_material_name.ToStdString();
@@ -2659,10 +2659,10 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
         MaterialSyncItem *item = nullptr;
         if (use_double_extruder) {
             if (m_filaments_map[extruder] == 1) {
-                item = new MaterialSyncItem(m_filament_panel, colour_rgb, _L(display_materials[extruder])); // m_filament_left_panel//special
+                item = new MaterialSyncItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]), m_filaments_id[extruder]); // m_filament_left_panel//special
                 m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));                                   // m_sizer_ams_mapping_left
             } else if (m_filaments_map[extruder] == 2) {
-                item = new MaterialSyncItem(m_filament_panel, colour_rgb, _L(display_materials[extruder])); // m_filament_right_panel
+                item = new MaterialSyncItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]), m_filaments_id[extruder]); // m_filament_right_panel
                 m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));                                   // m_sizer_ams_mapping_right
             }
             else {
@@ -2670,7 +2670,7 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
                 continue;
             }
         } else {
-            item = new MaterialSyncItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]));
+            item = new MaterialSyncItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]), m_filaments_id[extruder]);
             m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
         }
         auto item_index_str = std::to_string(item_index);
@@ -2874,17 +2874,17 @@ void SyncAmsInfoDialog::generate_override_fix_ams_list()
         MaterialSyncItem *item = nullptr;
         if (use_double_extruder) {
             if (m_filaments_map[extruder] == 1) {
-                item = new MaterialSyncItem(m_fix_filament_panel, colour_rgb, _L(display_materials[extruder])); // m_filament_left_panel//special
+                item = new MaterialSyncItem(m_fix_filament_panel, colour_rgb, _L(display_materials[extruder]), m_filaments_id[extruder]); // m_filament_left_panel//special
                 m_fix_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));                                       // m_sizer_ams_mapping_left
             } else if (m_filaments_map[extruder] == 2) {
-                item = new MaterialSyncItem(m_fix_filament_panel, colour_rgb, _L(display_materials[extruder])); // m_filament_right_panel
+                item = new MaterialSyncItem(m_fix_filament_panel, colour_rgb, _L(display_materials[extruder]), m_filaments_id[extruder]); // m_filament_right_panel
                 m_fix_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));                                       // m_sizer_ams_mapping_right
             } else {
                 BOOST_LOG_TRIVIAL(error) << "check error:MaterialItem *item = nullptr";
                 continue;
             }
         } else {
-            item = new MaterialSyncItem(m_fix_filament_panel, colour_rgb, _L(display_materials[extruder]));
+            item = new MaterialSyncItem(m_fix_filament_panel, colour_rgb, _L(display_materials[extruder]), m_filaments_id[extruder]);
             m_fix_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
         }
         item->set_material_index_str(std::to_string(item_index));
