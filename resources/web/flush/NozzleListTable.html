@@ -248,12 +248,12 @@
         <label for="${radioId}" class="${isRecommended ? 'recommended' : ''}">${labelText}</label>
         `;
 
-          const leftCell = document.createElement('td');
-          const leftExtruder = option.extruders['0'] || { type: 'Standard', count: 0 };
-          leftCell.textContent = `${leftExtruder.count}个 (${leftExtruder.type == "Standard" ? standard_label : highflow_label})`;
-          const rightCell = document.createElement('td');
-          const rightExtruder = option.extruders['1'] || { type: 'Standard', count: 0 };
-          rightCell.textContent = `${rightExtruder.count}个 (${rightExtruder.type == "Standard" ? standard_label : highflow_label})`;
+      const leftCell = document.createElement('td');
+      const leftExtruder = option.extruders['0'] || { type: 'standard', count: 0 };
+      leftCell.textContent = `${leftExtruder.count}${language === "zh-cn" ? "个" : ""}`;
+      const rightCell = document.createElement('td');
+      const rightExtruder = option.extruders['1'] || { type: 'standard', count: 0 };
+      rightCell.textContent = `${rightExtruder.count}${language === "zh-cn" ? "个" : ""}`;
 
       // 添加单元格到行
       row.appendChild(diameterCell);
