@@ -2768,6 +2768,12 @@ std::vector<std::set<int>> Print::get_physical_unprintable_filaments(const std::
         physical_unprintables[extruder_id].insert(f);
     }
 
+    //Bowden extruder does not support 0.2mm nozzles
+    for (int i_exd = 0; i_exd < extruder_num; ++i_exd) {
+        if (m_config.extruder_type.values[i_exd] == 1 && std::abs(m_config.nozzle_diameter.values[i_exd] - 0.2) < EPSILON )
+            for (auto f : used_filaments) physical_unprintables[i_exd].insert(f);
+    }
+
     return physical_unprintables;
 }
 

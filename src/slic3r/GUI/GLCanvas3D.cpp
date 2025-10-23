@@ -6747,6 +6747,7 @@ void GLCanvas3D::_update_slice_error_status()
     _set_warning_notification_if_needed(EWarning::MultiExtruderPrintableError);
     _set_warning_notification_if_needed(EWarning::MultiExtruderHeightOutside);
     _set_warning_notification_if_needed(EWarning::FilamentUnPrintableOnFirstLayer);
+    _set_warning_notification_if_needed(EWarning::FilamentPrintableError);
 }
 
 void GLCanvas3D::_switch_toolbars_icon_filename()
@@ -10088,6 +10089,8 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
                     show = t_gcode_viewer.has_data() && (t_gcode_viewer.get_gcode_check_result().error_code & (1 << 1));
                 else if (warning == EWarning::FilamentUnPrintableOnFirstLayer)
                     show = t_gcode_viewer.has_data() && t_gcode_viewer.get_filament_printable_result().has_value();
+                else if (warning == EWarning::FilamentPrintableError)
+                    show = t_gcode_viewer.has_data() && (t_gcode_viewer.get_gcode_check_result().error_code & (1 << 10));
             }
         }
     }

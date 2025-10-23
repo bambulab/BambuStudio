@@ -1515,14 +1515,20 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
     std::vector<int> used_filaments = get_extruders(true);  // 1 base
     if (!used_filaments.empty()) {
         for (auto filament_idx : used_filaments) {
-            int filament_id = filament_idx - 1;
-            std::string filament_type = config.option<ConfigOptionStrings>("filament_type")->values.at(filament_id);
-            int filament_printable_status = config.option<ConfigOptionInts>("filament_printable")->values.at(filament_id);
+            int              filament_id               = filament_idx - 1;
+            auto             nozzle_diam               = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+            auto             extruder_type             = config.option<ConfigOptionEnumsGeneric>("extruder_type");
+            std::string      filament_type             = config.option<ConfigOptionStrings>("filament_type")->values.at(filament_id);
+            int              filament_printable_status = config.option<ConfigOptionInts>("filament_printable")->values.at(filament_id);
             std::vector<int> filament_map  = get_real_filament_maps(config);
             int extruder_idx = filament_map[filament_id] - 1;
             if (!(filament_printable_status >> extruder_idx & 1)) {
                 wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
                 error_message  = wxString::Format(_L("The %s nozzle can not print %s."), extruder_name, filament_type);
+                return false;
+            } else if (nozzle_diam && std::abs(nozzle_diam->values.at(extruder_idx) - 0.2) < EPSILON && extruder_type->values.at(extruder_idx) == 1) {
+                wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
+                error_message          = wxString::Format(_L("The %s nozzle (0.2mm) can not work with Bowden extruder."), extruder_name, filament_type);
                 return false;
             }
         }
