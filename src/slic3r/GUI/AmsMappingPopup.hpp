@@ -93,7 +93,7 @@ protected:
     wxString m_mapping_text;
 
 public:
-    MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname);
+    MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname, std::string filament_id);
     ~MaterialItem();
 
     void allow_paint_dropdown(bool flag);
@@ -118,6 +118,8 @@ protected:
     void messure_size();
 
 public:
+    std::string m_filament_id;
+
     wxColour    m_material_coloul;
     wxString    m_material_name;
     wxString    m_mapped_nozzle_str;
@@ -156,7 +158,7 @@ public:
 class MaterialSyncItem : public MaterialItem
 {
 public:
-    MaterialSyncItem(wxWindow *parent, wxColour mcolour, wxString mname);
+    MaterialSyncItem(wxWindow *parent, wxColour mcolour, wxString mname, std::string filament_id);
     ~MaterialSyncItem();
     int  get_real_offset();
     void render(wxDC &dc) override;

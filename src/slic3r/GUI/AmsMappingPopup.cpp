@@ -57,7 +57,7 @@ static void _add_containers(const AmsMapingPopup *                 win,
     }
 }
 
- MaterialItem::MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname)
+ MaterialItem::MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname, std::string filament_id)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
  {
     m_arraw_bitmap_gray  = ScalableBitmap(this, "drop_down2", FromDIP(8));
@@ -72,6 +72,8 @@ static void _add_containers(const AmsMapingPopup *                 win,
     m_material_coloul = mcolour;
     m_material_name = mname;
     m_ams_coloul      = wxColour(0xEE,0xEE,0xEE);
+
+    m_filament_id = filament_id;
 
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
@@ -382,7 +384,7 @@ void MaterialItem::doRender(wxDC& dc)
     if (m_match)
     {
         dc.DrawText(m_mapping_text, wxPoint(GetSize().x / 2 + (GetSize().x / 2 - mapping_txt_size.x) / 2 - FromDIP(8) - FromDIP(LEFT_OFFSET) + text_pos_x, text_pos_y));
-        
+
         int arrow_y = text_pos_y + (mapping_txt_size.y - m_arraw_bitmap_white.GetBmpHeight()) / 2;
         if ((acolor.Red() > 160 && acolor.Green() > 160 && acolor.Blue() > 160) && (acolor.Red() < 180 && acolor.Green() < 180 && acolor.Blue() < 180))
         {
@@ -429,7 +431,7 @@ void MaterialItem::messure_size()
     }
 }
 
- MaterialSyncItem::MaterialSyncItem(wxWindow *parent, wxColour mcolour, wxString mname) : MaterialItem(parent, mcolour, mname)
+MaterialSyncItem::MaterialSyncItem(wxWindow *parent, wxColour mcolour, wxString mname, std::string filament_id) : MaterialItem(parent, mcolour, mname, filament_id)
 {
 
 }

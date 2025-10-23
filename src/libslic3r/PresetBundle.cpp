@@ -1777,22 +1777,22 @@ const std::string& PresetBundle::get_preset_name_by_alias( const Preset::Type& p
 }
 
 //BBS: get filament required hrc by filament type
-const int PresetBundle::get_required_hrc_by_filament_type(const std::string& filament_type) const
+const int PresetBundle::get_required_hrc_by_filament_id(const std::string& filament_id) const
 {
-    static std::unordered_map<std::string, int>filament_type_to_hrc;
-    if (filament_type_to_hrc.empty()) {
+    static std::unordered_map<std::string, int>filament_id_to_hrc;
+    if (filament_id_to_hrc.empty()) {
         for (auto iter = filaments.m_presets.begin(); iter != filaments.m_presets.end(); iter++) {
             if (iter->vendor && iter->vendor->id == "BBL") {
-                if (iter->config.has("filament_type") && iter->config.has("required_nozzle_HRC")) {
-                    auto type = iter->config.opt_string("filament_type", 0);
+                if (!iter->filament_id.empty() && iter->config.has("required_nozzle_HRC")) {
+                    auto id = iter->filament_id;
                     auto hrc = iter->config.opt_int("required_nozzle_HRC", 0);
-                    filament_type_to_hrc[type] = hrc;
+                    filament_id_to_hrc[id] = hrc;
                 }
             }
         }
     }
-    auto iter = filament_type_to_hrc.find(filament_type);
-    if (iter != filament_type_to_hrc.end())
+    auto iter = filament_id_to_hrc.find(filament_id);
+    if (iter != filament_id_to_hrc.end())
         return iter->second;
     else
         return 0;
