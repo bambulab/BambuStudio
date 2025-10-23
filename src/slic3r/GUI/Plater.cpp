@@ -5339,7 +5339,8 @@ wxString Plater::get_slice_warning_string(GCodeProcessorResult::SliceWarning& wa
     } else if (warning.msg == NOZZLE_HRC_CHECKER) {
         return _L("The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be attrited or damaged.");
     } else if (warning.msg == NOT_SUPPORT_TRADITIONAL_TIMELAPSE) {
-        return _L("Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode.");
+        return _L("Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode.") +_L("\n") +
+               _L("'Process'-'Others'-'Special Mode'-'Timelapsed'");
     } else if (warning.msg == NOT_GENERATE_TIMELAPSE) {
         return wxString();
     } else if (warning.msg == SMOOTH_TIMELAPSE_WITHOUT_PRIME_TOWER) {
