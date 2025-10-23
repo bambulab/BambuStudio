@@ -51,7 +51,8 @@ static std::vector<std::string> s_project_options {
     "filament_map",
     "filament_volume_map",
     "filament_nozzle_map",
-    "extruder_nozzle_stats"
+    "extruder_nozzle_stats",
+    "prime_volume_mode"
 };
 
 //BBS: add BBL as default

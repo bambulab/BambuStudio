@@ -303,6 +303,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "other_layers_print_sequence_nums"
             || opt_key == "extruder_ams_count"
             || opt_key == "extruder_nozzle_stats"
+            || opt_key == "prime_volume_mode"
             || opt_key == "filament_map_mode"
             || opt_key == "filament_map"
             || opt_key == "filament_nozzle_map"
@@ -2871,6 +2872,10 @@ const WipeTowerData& Print::wipe_tower_data(size_t filaments_cnt) const
 
     if (! is_step_done(psWipeTower) && filaments_cnt !=0) {
         std::vector<double> filament_wipe_volume = m_config.filament_prime_volume.values;
+        if (m_config.prime_volume_mode == pvmSaving) {
+            for (auto& v : filament_wipe_volume)
+                v = 15.f;
+        }
         double wipe_volume = get_max_element(filament_wipe_volume);
         int filament_depth_count = m_config.nozzle_diameter.values.size() == 2 ? filaments_cnt : filaments_cnt - 1;
         if (filaments_cnt == 1 && enable_timelapse_print()) filament_depth_count = 1;
@@ -3028,8 +3033,15 @@ void Print::_make_wipe_tower()
                 float grab_purge_volume = m_config.grab_length.get_at(extruder_id) * 2.4; //(diameter/2)^2*PI=2.4
                 volume_to_purge = std::max(0.f, volume_to_purge - grab_purge_volume);
 
+                float wipe_volume_ec = m_config.filament_prime_volume.values[filament_id];
+                float wipe_volume_nc = m_config.filament_prime_volume_nc.values[filament_id];
+                // special primte volume settings for H2C
+                if(m_config.prime_volume_mode == PrimeVolumeMode::pvmSaving){
+                    wipe_volume_ec = 15.f;
+                    wipe_volume_nc = 15.f;
+                }
                 wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, old_filament_id, filament_id,
-                                           m_config.filament_prime_volume.values[filament_id], m_config.filament_prime_volume_nc.values[filament_id], volume_to_purge);
+                                           wipe_volume_ec, wipe_volume_nc, volume_to_purge);
                 old_filament_id = filament_id;
 
                 nozzle_recorder.set_nozzle_status(nozzle_id, filament_id);

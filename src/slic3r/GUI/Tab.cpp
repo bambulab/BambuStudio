@@ -4919,7 +4919,6 @@ void TabPrinter::on_preset_loaded()
         }
 
         // only reset nozzle count when printer model is changed
-        // TODO: 换预设的时候，如果是混合模式，不知道怎么设置默认喷嘴数量
         if (base_model != m_base_preset_model) {
             auto extruder_max_nozzle_count = current_printer.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
             auto nozzle_volume_type = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
@@ -4932,6 +4931,11 @@ void TabPrinter::on_preset_loaded()
                 }
             }
             m_preset_bundle->extruder_nozzle_stat.set_nozzle_data_flag(ExtruderNozzleStat::ndfNone);
+
+            // only trigger prime volume type for printers with multi nozzle
+            auto prime_volume_type = m_preset_bundle->project_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode");
+            if(!has_multiple_nozzle)
+                prime_volume_type->value = PrimeVolumeMode::pvmDefault;
         }
         m_base_preset_model = base_model;
     }
