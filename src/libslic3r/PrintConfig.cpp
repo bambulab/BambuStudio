@@ -455,6 +455,11 @@ static const t_config_enum_values s_keys_map_FilamentMapMode = {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FilamentMapMode)
 
+static const t_config_enum_values s_keys_map_PrimeVolumeMode = {
+    { "Default", pvmDefault},
+    { "Saving", pvmSaving}
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrimeVolumeMode)
 
 //BBS
 std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type)
@@ -3971,6 +3976,15 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("extruder_nozzle_stats", coStrings);
     def->set_default_value(new ConfigOptionStrings { });
+
+    def = this->add("prime_volume_mode", coEnum);
+    def->enum_values.push_back("Default");
+    def->enum_values.push_back("Saving");
+    def->enum_labels.push_back(L("Default"));
+    def->enum_labels.push_back(L("Saving"));
+    def->enum_keys_map = &ConfigOptionEnum<PrimeVolumeMode>::get_enum_values();
+    def->set_default_value(new ConfigOptionEnum<PrimeVolumeMode>{ PrimeVolumeMode::pvmDefault });
+
 
     def = this->add("extruder_nozzle_count", coInts);
     def->label = "extruder nozzle count";
