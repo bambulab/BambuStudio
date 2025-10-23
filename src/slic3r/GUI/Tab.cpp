@@ -4936,6 +4936,7 @@ void TabPrinter::on_preset_loaded()
             auto prime_volume_type = m_preset_bundle->project_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode");
             if(!has_multiple_nozzle)
                 prime_volume_type->value = PrimeVolumeMode::pvmDefault;
+            wxGetApp().plater()->sidebar().enable_purge_mode_btn(has_multiple_nozzle);
         }
         m_base_preset_model = base_model;
     }

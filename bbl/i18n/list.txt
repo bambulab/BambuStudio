@@ -266,3 +266,5 @@ src/slic3r/GUI/FilamentPickerDialog.cpp
 src/slic3r/GUI/FilamentPickerDialog.hpp
 src/slic3r/GUI/Widgets/MultiNozzleSync.cpp
 src/slic3r/GUI/Widgets/MultiNozzleSync.hpp
+src/slic3r/GUI/PurgeModeDialog.cpp
+src/slic3r/GUI/PurgeModeDialog.hpp

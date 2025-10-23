@@ -521,6 +521,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Calibration.cpp
     GUI/PrintOptionsDialog.hpp
     GUI/PrintOptionsDialog.cpp
+    GUI/PurgeModeDialog.hpp
+    GUI/PurgeModeDialog.cpp
     GUI/SafetyOptionsDialog.hpp
     GUI/SafetyOptionsDialog.cpp
     GUI/CreatePresetsDialog.hpp

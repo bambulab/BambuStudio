@@ -152,6 +152,7 @@
 #include "DailyTips.hpp"
 #include "CreatePresetsDialog.hpp"
 #include "StepMeshDialog.hpp"
+#include "PurgeModeDialog.hpp"
 #include "FilamentMapDialog.hpp"
 
 #include "DeviceCore/DevFilaSystem.h"
@@ -496,6 +497,7 @@ struct Sidebar::priv
     wxStaticLine* m_staticline2;
     wxPanel* m_panel_project_title;
     ScalableButton* m_filament_icon = nullptr;
+    Button * m_purge_mode_btn = nullptr;
     Button * m_flushing_volume_btn = nullptr;
     wxSearchCtrl* m_search_bar = nullptr;
     Search::SearchObjectDialog* dia = nullptr;
@@ -1865,6 +1867,40 @@ Sidebar::Sidebar(Plater *parent)
 
     bSizer39->AddStretchSpacer(1);
 
+    p->m_purge_mode_btn = new Button(p->m_panel_filament_title, _L("Purge mode"));
+    p->m_purge_mode_btn->SetFont(Label::Body_10);
+    p->m_purge_mode_btn->SetPaddingSize(wxSize(FromDIP(6), FromDIP(3)));
+    p->m_purge_mode_btn->SetCornerRadius(FromDIP(8));
+
+    StateColor purge_bg_col(std::pair<wxColour, int>(wxColour(219, 253, 231), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
+
+    StateColor purge_fg_col(std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Pressed), std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Normal));
+
+    StateColor purge_bd_col(std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
+
+    p->m_purge_mode_btn->SetBackgroundColor(purge_bg_col);
+    p->m_purge_mode_btn->SetBorderColor(purge_bd_col);
+    p->m_purge_mode_btn->SetTextColor(purge_fg_col);
+    p->m_purge_mode_btn->SetFocus();
+    p->m_purge_mode_btn->Rescale();
+
+    p->m_purge_mode_btn->Bind(wxEVT_BUTTON, ([parent, this](wxCommandEvent &e) {
+        auto &preset_bundle = *wxGetApp().preset_bundle;
+    
+        PurgeModeDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe));
+        if (dlg.ShowModal() == wxID_OK) {
+            preset_bundle.project_config.set_key_value("prime_volume_mode", new ConfigOptionEnum<PrimeVolumeMode>(dlg.get_selected_mode()));
+            wxGetApp().plater()->update();
+        }
+    }));
+
+    bSizer39->Add(p->m_purge_mode_btn, 0, wxALIGN_CENTER_VERTICAL, FromDIP(4));
+    //bSizer39->Hide(p->m_purge_mode_btn);
+    bSizer39->Add(FromDIP(12), 0, 0, 0, 0);
+
     // BBS
     // add wiping dialog
     //wiping_dialog_button->SetFont(wxGetApp().normal_font());
@@ -2660,6 +2696,7 @@ void Sidebar::msw_rescale()
     p->m_bpButton_ams_filament->msw_rescale();
     p->m_bpButton_set_filament->msw_rescale();
     p->m_flushing_volume_btn->Rescale();
+    p->m_purge_mode_btn->Rescale();
     //BBS
     p->combo_printer_bed->Rescale();
     p->combo_printer_bed->SetMinSize({-1, 3 * wxGetApp().em_unit()});
@@ -2738,6 +2775,7 @@ void Sidebar::sys_color_changed()
     p->m_bpButton_ams_filament->msw_rescale();
     p->m_bpButton_set_filament->msw_rescale();
     p->m_flushing_volume_btn->Rescale();
+    p->m_purge_mode_btn->Rescale();
 
     // BBS
 #if 0
@@ -3132,6 +3170,11 @@ void Sidebar::set_extruder_nozzle_count(int extruder_id, int nozzle_count)
 void Sidebar::enable_nozzle_count_edit(bool enable){
     p->left_extruder->SetEditEnabled(enable);
     p->right_extruder->SetEditEnabled(enable);
+}
+
+void Sidebar::enable_purge_mode_btn(bool enable)
+{
+    p->m_purge_mode_btn->Show(enable);
 }
 
 void Sidebar::load_ams_list(MachineObject* obj)
