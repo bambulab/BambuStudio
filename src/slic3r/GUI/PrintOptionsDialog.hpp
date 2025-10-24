@@ -142,6 +142,14 @@ protected:
     wxBoxSizer* create_settings_group(wxWindow* parent);
     wxPanel     *m_line;
 
+    Label* text_plate_build{nullptr};
+    Label* text_plate_build_caption{nullptr};
+    CheckBox* m_cb_plate_type{nullptr};
+    Label* text_plate_type{nullptr};
+    Label* text_plate_type_caption{nullptr};
+    CheckBox* m_cb_plate_align{nullptr};
+    Label* text_plate_align{nullptr};
+    Label* text_plate_align_caption{nullptr};
 
     bool print_halt = false;
 
