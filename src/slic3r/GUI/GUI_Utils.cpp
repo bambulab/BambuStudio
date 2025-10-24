@@ -495,7 +495,7 @@ WikiPanel::WikiPanel(wxWindow *parent, const wxString &wiki_text, const wxString
 
 void WikiPanel::init_components()
 {
-    SetBackgroundColour(GetParent()->GetBackgroundColour());
+    SetBackgroundColour(*wxWHITE);
 
     // Create scalable icons
     m_wiki_icon       = new ScalableBitmap(this, "wiki", 16);
@@ -506,7 +506,6 @@ void WikiPanel::init_components()
 
     // Create text label
     m_wiki_label = new wxStaticText(this, wxID_ANY, m_wiki_text);
-    m_wiki_label->SetBackgroundColour(*wxWHITE);
     m_wiki_label->SetForegroundColour(wxColour("#6B6B6B"));
     m_wiki_label->SetFont(Label::Body_13);
 
