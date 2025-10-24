@@ -5758,7 +5758,7 @@ bool MachineObject::HasAms() const
     return m_fila_system->HasAms();
 }
 
-bool MachineObject::IsDetectOnInsertEnabled() const
+std::optional<bool> MachineObject::IsDetectOnInsertEnabled() const
 {
     return m_fila_system->GetAmsSystemSetting().IsDetectOnInsertEnabled();
 }
