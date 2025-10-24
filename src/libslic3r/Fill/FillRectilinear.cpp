@@ -3031,7 +3031,7 @@ void make_fill_lines(const ExPolygonWithOffset &poly_with_offset, Point refpt, d
 
 bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillParams params, const std::initializer_list<SweepParams> &sweep_params, Polylines &polylines_out)
 {
-    assert(sweep_params.size() > 1);
+    assert(sweep_params.size() >= 1);
     assert(! params.full_infill());
     params.density /= double(sweep_params.size());
     int n_multilines = params.multiline;
@@ -3074,7 +3074,7 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
 Polylines FillRectilinear::fill_surface(const Surface *surface, const FillParams &params)
 {
     Polylines polylines_out;
-    if (params.full_infill() || params.pattern == ipCrossZag || params.pattern == ipZigZag || params.pattern == ipLockedZag)
+    if (params.full_infill() || params.multiline == 1 || params.pattern == ipCrossZag || params.pattern == ipZigZag || params.pattern == ipLockedZag)
     {
         if (!fill_surface_by_lines(surface, params, 0.f, 0.f, polylines_out))
         BOOST_LOG_TRIVIAL(error) << "FillRectilinear::fill_surface() fill_surface_by_lines() failed to fill a region.";
