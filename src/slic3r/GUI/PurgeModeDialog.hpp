@@ -54,7 +54,6 @@ protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
 
 private:
-    wxPanel *create_option_panel(wxWindow *parent, const wxString &title, const wxString &description, bool selected);
     void     select_option(PrimeVolumeMode mode);
     void     update_panel_selection();
 
