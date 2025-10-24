@@ -2080,6 +2080,18 @@ int MachineObject::command_xcam_control_buildplate_marker_detector(bool on_off)
     return command_xcam_control("buildplate_marker_detector", on_off);
 }
 
+int MachineObject::command_xcam_control_build_plate_type_detector(bool on_off)
+{
+    xcam_build_plate_type_detect.SetOptimisticValue(on_off);
+    return command_xcam_control("buildplate_marker_detector", on_off);
+}
+
+int MachineObject::command_xcam_control_build_plate_align_detector(bool on_off)
+{
+    xcam_build_plate_align_detect.SetOptimisticValue(on_off);
+    return command_xcam_control("plate_offset_switch", on_off);
+}
+
 int MachineObject::command_xcam_control_first_layer_inspector(bool on_off, bool print_halt)
 {
     xcam_first_layer_inspector = on_off;
@@ -3388,6 +3400,9 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                          default: break;
                                          }
 
+                                         is_support_build_plate_type_detect = true;
+
+                                         xcam_build_plate_align_detect.UpdateValue(get_flag_bits(cfg, 20));
                                     }
                                     else if (jj["xcam"].contains("printing_monitor")) {
                                         // new protocol
@@ -3422,6 +3437,9 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                     } else {
                                         is_support_build_plate_marker_detect = false;
                                     }
+                                }
+                                if (jj["xcam"].contains("buildplate_marker_detector")){
+                                    xcam_build_plate_type_detect.UpdateValue(jj["xcam"]["buildplate_marker_detector"].get<bool>());
                                 }
                             }
                         }
@@ -3625,6 +3643,10 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                 if (time(nullptr) - xcam_buildplate_marker_hold_start > HOLD_TIME_3SEC) {
                                     xcam_buildplate_marker_detector = enable;
                                 }
+                                xcam_build_plate_type_detect.UpdateValue(enable);
+                            }
+                            else if (jj["module_name"].get<std::string>() == "plate_offset_switch") {
+                                xcam_build_plate_align_detect.UpdateValue(enable);
                             }
                             else if (jj["module_name"].get<std::string>() == "printing_monitor") {
                                 if (time(nullptr) - xcam_ai_monitoring_hold_start > HOLD_TIME_3SEC) {
@@ -4868,6 +4890,7 @@ void MachineObject::parse_new_info(json print)
     // fun2 may have infinite length, use get_flag_bits_no_border
     if (!fun2.empty()) {
         is_support_print_with_emmc = get_flag_bits_no_border(fun2, 0) == 1;
+        is_support_build_plate_align_detect = get_flag_bits_no_border(fun2, 2) == 1;
     }
 
     /*aux*/
