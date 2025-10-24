@@ -4187,6 +4187,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
             else if (key == OTHER_LAYERS_PRINT_SEQUENCE_ATTR) {
                 m_curr_plater->config.set_key_value("other_layers_print_sequence", new ConfigOptionInts(get_vector_from_string(value)));
+                auto temp_other_layers_print_sequence = m_curr_plater->config.option<ConfigOptionInts>("other_layers_print_sequence");
+                if (temp_other_layers_print_sequence && temp_other_layers_print_sequence->values.size() > 2) {
+                    if (temp_other_layers_print_sequence->values[0] > 0 && temp_other_layers_print_sequence->values[0] < INT_MAX &&
+                        temp_other_layers_print_sequence->values[1] == INT_MAX)
+                        temp_other_layers_print_sequence->values[1] = INT_MAX - 1;
+                }
             }
             else if (key == OTHER_LAYERS_PRINT_SEQUENCE_NUMS_ATTR) {
                 m_curr_plater->config.set_key_value("other_layers_print_sequence_nums", new ConfigOptionInt(stoi(value)));
