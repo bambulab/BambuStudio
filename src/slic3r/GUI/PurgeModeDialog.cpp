@@ -30,6 +30,10 @@ static const wxColour TextErrorColor       = wxColour("#E14747");
 PurgeModeDialog::PurgeModeDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY, _L("Purge Mode Settings"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
 {
     SetBackgroundColour(*wxWHITE);
+    SetMinSize(wxSize(FromDIP(520), FromDIP(320)));
+    SetMaxSize(wxSize(FromDIP(520), FromDIP(320)));
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % Slic3r::resources_dir()).str();
+    SetIcon(wxIcon(Slic3r::encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -47,6 +51,7 @@ PurgeModeDialog::PurgeModeDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY,
     // Standard option
     m_standard_panel = new PurgeModeBtnPanel(options_panel, _L("Standard Mode"), _L("Performs full purging for the best print quality. Requires more material and time."),
                                              "shield");
+    m_standard_panel->SetMinSize(wxSize(FromDIP(200), FromDIP(150)));
     m_standard_panel->Select(mode == pvmDefault);
     m_standard_panel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) { select_option(pvmDefault); });
     panels_sizer->Add(m_standard_panel, 1, wxEXPAND | wxRIGHT, FromDIP(12));
@@ -54,6 +59,7 @@ PurgeModeDialog::PurgeModeDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY,
     // Purge Saving option
     m_saving_panel = new PurgeModeBtnPanel(options_panel, _L("Purge Saving"),
                                            _L("Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."), "leaf");
+    m_saving_panel->SetMinSize(wxSize(FromDIP(200), FromDIP(150)));
     m_saving_panel->Select(mode == pvmSaving);
     m_saving_panel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) { select_option(pvmSaving); });
     panels_sizer->Add(m_saving_panel, 1, wxEXPAND | wxLEFT, FromDIP(12));
@@ -68,7 +74,7 @@ PurgeModeDialog::PurgeModeDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY,
     wiki_sizer->Add(learn_more_text, 0, wxALIGN_CENTER_VERTICAL);
     auto wiki = new WikiPanel(options_panel);
     wiki_sizer->Add(wiki, 0, wxLEFT, FromDIP(2));
-    options_sizer->Add(wiki_sizer, 0, wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
+    options_sizer->Add(wiki_sizer, 0, wxLEFT | wxRIGHT, FromDIP(20));
 
     options_panel->SetSizer(options_sizer);
     main_sizer->Add(options_panel, 1, wxEXPAND);
@@ -97,7 +103,7 @@ PurgeModeDialog::PurgeModeDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY,
     );
 
     auto ok_btn = new Button(this, _L("Confirm"));
-    ok_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    ok_btn->SetMinSize(wxSize(FromDIP(62), FromDIP(24)));
     ok_btn->SetCornerRadius(FromDIP(12));
     ok_btn->SetBackgroundColor(ok_btn_bg);
     ok_btn->SetFont(Label::Body_12);
@@ -106,7 +112,7 @@ PurgeModeDialog::PurgeModeDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY,
     ok_btn->SetId(wxID_OK);
 
     auto cancel_btn = new Button(this, _L("Cancel"));
-    cancel_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    cancel_btn->SetMinSize(wxSize(FromDIP(62), FromDIP(24)));
     cancel_btn->SetCornerRadius(FromDIP(12));
     cancel_btn->SetBackgroundColor(cancel_btn_bg);
     cancel_btn->SetFont(Label::Body_12);
@@ -120,59 +126,10 @@ PurgeModeDialog::PurgeModeDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY,
     main_sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, FromDIP(20));
 
     SetSizer(main_sizer);
-    SetMinSize(wxSize(FromDIP(580), FromDIP(280)));
     Fit();
     CenterOnParent();
 
-    wxGetApp().UpdateDarkUIWin(this);
-}
-
-wxPanel *PurgeModeDialog::create_option_panel(wxWindow *parent, const wxString &title, const wxString &description, bool selected)
-{
-    auto panel = new wxPanel(parent, wxID_ANY);
-    panel->SetBackgroundColour(*wxWHITE);
-
-    // Set border color based on selection
-    if (selected) {
-        panel->SetBackgroundColour(wxColour("#DBFDE7")); // Light green background
-    }
-
-    auto sizer = new wxBoxSizer(wxHORIZONTAL);
-
-    // Check mark (only show if selected)
-    auto check_mark = new wxStaticText(panel, wxID_ANY, selected ? wxT("A") : wxT(""));
-    check_mark->SetForegroundColour(wxColour("#00AE42")); // Green color
-    check_mark->SetFont(wxGetApp().bold_font());
-    sizer->Add(check_mark, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(15));
-
-    // Text content
-    auto text_sizer = new wxBoxSizer(wxVERTICAL);
-
-    auto title_text = new wxStaticText(panel, wxID_ANY, title);
-    title_text->SetFont(wxGetApp().bold_font());
-    text_sizer->Add(title_text, 0, wxBOTTOM, FromDIP(5));
-
-    auto desc_text = new wxStaticText(panel, wxID_ANY, description);
-    desc_text->SetFont(Label::Body_12);
-    desc_text->SetForegroundColour(wxColour("#6B6B6A"));
-    desc_text->Wrap(FromDIP(200));
-    text_sizer->Add(desc_text, 0);
-
-    sizer->Add(text_sizer, 1, wxALL, FromDIP(12));
-
-    panel->SetSizer(sizer);
-    panel->SetMinSize(wxSize(FromDIP(240), FromDIP(120)));
-
-    // Add border
-    panel->Bind(wxEVT_PAINT, [panel, selected, this](wxPaintEvent &evt) {
-        wxPaintDC dc(panel);
-        dc.SetPen(wxPen(selected ? wxColour("#00AE42") : wxColour("#C8C8C8"), 2));
-        dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        auto size = panel->GetSize();
-        dc.DrawRoundedRectangle(0, 0, size.x, size.y, FromDIP(8));
-    });
-
-    return panel;
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void PurgeModeDialog::select_option(PrimeVolumeMode mode)
@@ -241,15 +198,15 @@ GUI::PurgeModeBtnPanel::PurgeModeBtnPanel(wxWindow *parent, const wxString &labe
     m_detail          = new Label(this, detail);
     m_detail->SetFont(Label::Body_12);
     m_detail->SetForegroundColour(TextNormalGreyColor);
-    m_detail->Wrap(FromDIP(240));
-    detail_sizer->Add(m_detail, 1, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, horizontal_margin);
+    m_detail->Wrap(FromDIP(200));
+    detail_sizer->Add(m_detail, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, horizontal_margin);
 
-    sizer->AddSpacer(FromDIP(10));
+    sizer->AddSpacer(FromDIP(15));
     sizer->Add(icon_sizer, 0, wxEXPAND);
-    sizer->AddSpacer(FromDIP(5));
+    sizer->AddSpacer(FromDIP(10));
     sizer->Add(label_sizer, 0, wxEXPAND);
-    sizer->AddSpacer(FromDIP(3));
-    sizer->Add(detail_sizer, 1, wxEXPAND);
+    sizer->AddSpacer(FromDIP(6));
+    sizer->Add(detail_sizer, 0, wxEXPAND);
     sizer->AddSpacer(FromDIP(10));
 
     SetSizer(sizer);
