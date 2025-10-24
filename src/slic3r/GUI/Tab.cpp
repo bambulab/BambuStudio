@@ -3130,7 +3130,7 @@ void TabPrintPlate::on_value_change(const std::string& opt_key, const boost::any
                         for (int i = 0; i < wxGetApp().filaments_cnt(); i++) {
                             initial_sequence.push_back(i + 1);
                         }
-                        std::vector<LayerPrintSequence> initial_layer_sequence{ std::make_pair(std::make_pair(2, INT_MAX), initial_sequence) };
+                        std::vector<LayerPrintSequence> initial_layer_sequence{ std::make_pair(std::make_pair(2, INT_MAX-1), initial_sequence) };
                         plate->set_other_layers_print_sequence(initial_layer_sequence);
                     }
                     wxCommandEvent evt(EVT_OPEN_PLATESETTINGSDIALOG);
