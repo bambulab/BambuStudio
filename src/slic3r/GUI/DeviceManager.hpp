@@ -573,6 +573,13 @@ public:
     bool is_support_build_plate_marker_detect{false};
     PlateMakerDectect m_plate_maker_detect_type{ POS_CHECK };
 
+    /* plate build type & align detect*/
+    DevDirtyHandler<bool> xcam_build_plate_type_detect{true, HOLD_TIME_3SEC, DirtyMode::TIMER};
+    DevDirtyHandler<bool> xcam_build_plate_align_detect{true, HOLD_TIME_3SEC, DirtyMode::TIMER};
+
+    bool is_support_build_plate_type_detect{false};
+    bool is_support_build_plate_align_detect{false};
+
     /*PA flow calibration is using in sending print*/
     bool is_support_pa_calibration{false};
     bool is_support_flow_calibration{false};
@@ -777,6 +784,8 @@ public:
     int command_xcam_control_auto_recovery_step_loss(bool on_off);
     int command_xcam_control_allow_prompt_sound(bool on_off);
     int command_xcam_control_filament_tangle_detect(bool on_off);
+    int command_xcam_control_build_plate_type_detector(bool on_off);
+    int command_xcam_control_build_plate_align_detector(bool on_off);
 
     /* common apis */
     inline bool is_local() { return !get_dev_ip().empty(); }
