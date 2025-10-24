@@ -3946,7 +3946,7 @@ void TreeSupport::generate_contact_points()
                     overhangs_regular = overhangs;
                 }
 
-                overhangs_regular = diff_ex(overhangs_regular, relevant_forbidden);
+                if(!is_sharp_tail) overhangs_regular = diff_ex(overhangs_regular, relevant_forbidden);
                 for (auto &overhang : overhangs_regular) {
                     if (is_sharp_tail && !m_support_params.soluble_interface && overhang.area() < SQ(scale_(2.))) add_interface = false;
                     BoundingBox overhang_bounds = get_extents(overhang);
