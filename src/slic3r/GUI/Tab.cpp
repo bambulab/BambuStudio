@@ -4119,6 +4119,9 @@ void TabFilament::toggle_options()
         std::string volumetric_speed_cos = m_config->opt_string("volumetric_speed_coefficients", (unsigned int)(m_variant_combo->GetSelection()));
         bool enable_fit = volumetric_speed_cos != "0 0 0 0 0 0";
         toggle_option("filament_adaptive_volumetric_speed", enable_fit, 256 + (unsigned int) (m_variant_combo->GetSelection()));
+        auto prime_volume = this->m_preset_bundle->project_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode")->value;
+        toggle_option("filament_prime_volume", prime_volume == PrimeVolumeMode::pvmDefault, 256 + (unsigned int) (m_variant_combo->GetSelection()));
+        toggle_option("filament_prime_volume_nc", prime_volume == PrimeVolumeMode::pvmDefault, 256 + (unsigned int) (m_variant_combo->GetSelection()));
     }
 
     if (m_active_page->title() == "Multi Filament") {
