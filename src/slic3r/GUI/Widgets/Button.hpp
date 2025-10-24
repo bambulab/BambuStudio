@@ -77,6 +77,8 @@ public:
     bool IsGrayed() { return grayed; }
     void SetGrayed(bool gray) { grayed = gray; }
 
+    wxRect GetTextRect() const { return textSize; }
+
 protected:
 #ifdef __WIN32__
     WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) override;

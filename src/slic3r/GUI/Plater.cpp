@@ -534,6 +534,7 @@ struct Sidebar::priv
     bool sync_extruder_list(bool &only_external_material);
     bool switch_diameter(bool single);
     void update_sync_status(const MachineObject* obj);
+    void adjust_filament_title_layout();
 
 #ifdef _WIN32
     wxString btn_reslice_tip;
@@ -613,6 +614,66 @@ void Sidebar::priv::flush_printer_sync(bool restart)
     btn_sync_printer->SetBackgroundColorNormal((*counter_sync_printer & 1) ? "#F8F8F8" :"#00AE42");
     if (--*counter_sync_printer <= 0)
         timer_sync_printer->Stop();
+}
+
+void Sidebar::priv::adjust_filament_title_layout()
+{
+    if (!m_panel_filament_title) return;
+
+    wxSize panel_size      = m_panel_filament_title->GetSize();
+    int    available_width = panel_size.GetWidth() - FromDIP(220);
+
+    int button_count = 4; // add, del, ams, set
+    if (m_purge_mode_btn->IsShown()) button_count++;
+    if (m_flushing_volume_btn->IsShown()) button_count++;
+
+    if (button_count == 0) return;
+
+    int purge_ideal_width = 0, flush_ideal_width = 0;
+    if (m_purge_mode_btn->IsShown()) {
+        purge_ideal_width = m_purge_mode_btn->GetTextRect().width + 10;
+    }
+    if (m_flushing_volume_btn->IsShown()) {
+        flush_ideal_width = m_flushing_volume_btn->GetTextRect().width + 10;
+    }
+
+    int icon_ideal_size   = m_bpButton_add_filament ? m_bpButton_add_filament->GetSize().GetWidth() : FromDIP(24);
+    int icon_button_count = 4; // add, del, ams, set
+
+    int button_spacing    = FromDIP(4);
+    int total_spacing     = button_spacing * (button_count - 1);
+    int ideal_total_width = purge_ideal_width + flush_ideal_width + (icon_button_count * icon_ideal_size) + total_spacing;
+
+    if (available_width >= ideal_total_width) {
+        if (m_purge_mode_btn->IsShown()) {
+            m_purge_mode_btn->SetMinSize(wxSize(purge_ideal_width, -1));
+            m_purge_mode_btn->SetMaxSize(wxSize(purge_ideal_width, -1));
+        }
+
+        if (m_flushing_volume_btn->IsShown()) {
+            m_flushing_volume_btn->SetMinSize(wxSize(flush_ideal_width, -1));
+            m_flushing_volume_btn->SetMaxSize(wxSize(flush_ideal_width, -1));
+        }
+
+        m_panel_filament_title->Layout();
+        return;
+    }
+
+    int button_width = std::max(FromDIP(24), (available_width - total_spacing) / button_count);
+    button_width     = std::min(button_width, FromDIP(80));
+    button_width     = std::max(button_width, FromDIP(20));
+
+    if (m_purge_mode_btn->IsShown()) {
+        m_purge_mode_btn->SetMinSize(wxSize(button_width, -1));
+        m_purge_mode_btn->SetMaxSize(wxSize(button_width, -1));
+    }
+
+    if (m_flushing_volume_btn->IsShown()) {
+        m_flushing_volume_btn->SetMinSize(wxSize(button_width, -1));
+        m_flushing_volume_btn->SetMaxSize(wxSize(button_width, -1));
+    }
+
+    m_panel_filament_title->Layout();
 }
 
 Sidebar::priv::~priv()
@@ -1844,6 +1905,13 @@ Sidebar::Sidebar(Plater *parent)
             p->m_panel_filament_content->SetMaxSize({-1, 0});
         }
         m_scrolled_sizer->Layout();
+        e.Skip();
+    });
+    p->m_panel_filament_title->Bind(wxEVT_SIZE, [this](wxSizeEvent &event) {
+        wxGetApp().CallAfter([this]() {
+            p->adjust_filament_title_layout();
+        });
+        event.Skip();
     });
 
     wxBoxSizer* bSizer39;
@@ -2690,6 +2758,7 @@ void Sidebar::msw_rescale()
         p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
     }
 
+    p->adjust_filament_title_layout();
     p->m_filament_icon->msw_rescale();
     p->m_bpButton_add_filament->msw_rescale();
     p->m_bpButton_del_filament->msw_rescale();
@@ -2875,6 +2944,9 @@ void Sidebar::on_filament_count_change(size_t num_filaments)
         else
             sizer->Hide(p->m_flushing_volume_btn);
     }
+    wxGetApp().CallAfter([this]() {
+        p->adjust_filament_title_layout();
+    });
 
     auto min_size = p->m_panel_filament_content->GetSizer()->GetMinSize();
     if (min_size.y > p->m_panel_filament_content->GetMaxHeight())
@@ -2931,6 +3003,9 @@ void Sidebar::on_filaments_delete(size_t filament_id)
         else
             sizer->Hide(p->m_flushing_volume_btn);
     }
+    wxGetApp().CallAfter([this]() {
+        p->adjust_filament_title_layout();
+    });
 
     for (size_t idx = filament_id ; idx < p->combos_filament.size(); ++idx) {
         p->combos_filament[idx]->update();
@@ -3175,6 +3250,9 @@ void Sidebar::enable_nozzle_count_edit(bool enable){
 void Sidebar::enable_purge_mode_btn(bool enable)
 {
     p->m_purge_mode_btn->Show(enable);
+    wxGetApp().CallAfter([this]() {
+        p->adjust_filament_title_layout();
+    });
 }
 
 void Sidebar::load_ams_list(MachineObject* obj)
