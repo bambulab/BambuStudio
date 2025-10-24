@@ -268,7 +268,7 @@ int DevFilaSystem::GetExtruderIdByAmsId(const std::string& ams_id) const
 std::string DevFilaSystem::GetNozzleFlowStringByAmsId(const std::string& ams_id) const
 {
     auto extuder_id = GetExtruderIdByAmsId(ams_id);
-    auto nozzle = GetOwner()->GetNozzleSystem()->GetNozzle(extuder_id);
+    auto nozzle = GetOwner()->GetNozzleSystem()->GetExtNozzle(extuder_id);
     return nozzle.GetNozzleFlowTypeString(nozzle.GetNozzleFlowType());
 }
 

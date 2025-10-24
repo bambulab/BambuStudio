@@ -2263,29 +2263,6 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
         options_line_ignore = wxGetApp().app_config->get("disable_auto_flow_cali_tips") == "true";
     }
 
-    if (m_checkbox_list["flow_cali"]->IsShown() && false) {
-        m_checkbox_list["flow_cali"]->update_tooltip(
-            _L("Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value.\n") +
-            _L("On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value.\n") +
-            _L("Off: Prioritize using the value from your manual flow calibration."));
-
-        if (m_checkbox_list["flow_cali"]->getValue() == "auto") {
-            m_options_line_label->SetLabel(_L("If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder "
-                                              "will use the system default value."));
-            m_options_line_label->Wrap(FromDIP(630));
-            m_options_line_panel->Show(!options_line_ignore);
-        } else if (m_checkbox_list["flow_cali"]->getValue() == "on") {
-            m_options_line_label->SetLabel(_L("Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."));
-            m_options_line_label->Wrap(FromDIP(630));
-            m_options_line_panel->Show(!options_line_ignore);
-        } else {
-            m_options_line_panel->Hide();
-        }
-    } else {
-        m_checkbox_list["flow_cali"]->update_tooltip(_L("This process determines the dynamic flow values to improve overall print quality.\n*Automatic mode: Skip if the filament was calibrated recently."));
-        m_options_line_panel->Hide();
-    }
-
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " end";
 }
 

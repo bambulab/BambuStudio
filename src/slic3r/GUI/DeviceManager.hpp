@@ -309,7 +309,7 @@ public:
     int ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, const std::vector<FilamentInfo>& ams_mapping, int flow_cali_opt);
 
     /* ams settings*/
-    bool IsDetectOnInsertEnabled() const;
+    std::optional<bool> IsDetectOnInsertEnabled() const;
     //bool IsDetectOnPowerupEnabled() const { return m_enable_detect_on_powerup; }
     //bool IsDetectRemainEnabled() const { return m_enable_detect_remain; }
     //bool IsAutoRefillEnabled() const { return m_enable_auto_refill; }
