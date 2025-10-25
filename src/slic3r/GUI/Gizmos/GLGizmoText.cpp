@@ -1097,7 +1097,7 @@ void GLGizmoText::update_default_boldness()
     std::optional<float> &boldness = m_style_manager.get_font_prop().boldness;
     if (m_bold) {
         set_default_boldness(boldness);
-        m_custom_boldness = *boldness;
+        m_custom_boldness = boldness.value_or(0.f);
     } else {
         boldness = 0.0f;
         m_custom_boldness = 0.0f;
@@ -1575,8 +1575,19 @@ void GLGizmoText::load_init_text(bool first_open_text)
     if (selection.is_single_volume_or_modifier() || selection.is_single_full_object()) {
         auto model_volume = get_selected_model_volume(m_parent);
         if (model_volume) {
-            TextInfo text_info = model_volume->get_text_info();
             if (model_volume->is_text()) {
+                {
+                    const auto &          ff        = m_style_manager.get_font_file_with_cache();
+                    FontProp &            font_prop = m_style_manager.get_font_prop();
+                    const FontFile::Info &font_info = get_font_info(*ff.font_file, font_prop);
+                    // min max value
+                    int   min_boldness = static_cast<int>(font_info.ascent * limits.boldness.gui.min);
+                    int   max_boldness = static_cast<int>(font_info.ascent * limits.boldness.gui.max);
+                    float min_skew = static_cast<float>(limits.skew.gui.min);
+                    float max_skew = static_cast<float>(limits.skew.gui.max);
+                    model_volume->check_boldness_skew_min_max(min_boldness, max_boldness, min_skew, max_skew);
+                }
+                TextInfo text_info = model_volume->get_text_info();
                 if (m_last_text_mv == model_volume && !m_is_serializing) {
                     return;
                 }
@@ -3428,9 +3439,8 @@ void GLGizmoText::load_from_text_info(const TextInfo &text_info)
         wxString font_name = wxString::FromUTF8(m_font_name.c_str());//wxString(m_font_name.c_str(), wxConvUTF8);
         select_facename(font_name,false);
     }
-    m_custom_boldness = *text_info.text_configuration.style.prop.boldness;
-    m_custom_skew = *text_info.text_configuration.style.prop.skew;
-
+    m_custom_boldness          = text_info.text_configuration.style.prop.boldness.value_or(0.f);
+    m_custom_skew              = text_info.text_configuration.style.prop.skew.value_or(0.f);
     if (is_text_changed) {
         process(true,std::nullopt,false);
     }
