@@ -3101,7 +3101,7 @@ static std::map<std::string, std::map<std::string, std::string>> filament_preset
 };
 
 //convert the old filament preset to new one after split
-static void convert_filament_preset_name(std::string& machine_name, std::string& filament_name)
+void convert_filament_preset_name(std::string& machine_name, std::string& filament_name)
 {
     auto machine_iter = filament_preset_convert.find(machine_name);
     if (machine_iter != filament_preset_convert.end())

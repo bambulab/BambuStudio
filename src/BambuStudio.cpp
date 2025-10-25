@@ -1529,7 +1529,7 @@ int CLI::run(int argc, char **argv)
     std::vector<NozzleVolumeType> current_nozzle_volume_type, new_nozzle_volume_type;
     std::string new_printer_name, current_printer_name, new_process_name, current_process_name, current_printer_system_name, current_process_system_name, new_process_system_name, new_printer_system_name, printer_model_id, current_printer_model, printer_model, new_default_process_name;
     std::vector<std::string> upward_compatible_printers, new_print_compatible_printers, current_print_compatible_printers, current_different_settings;
-    std::vector<std::string> current_filaments_name, current_filaments_system_name, current_inherits_group, current_extruder_variants, new_extruder_variants, current_print_extruder_variants, new_printer_extruder_variants;
+    std::vector<std::string> current_filaments_name, current_filaments_system_name, converted_filaments_system_name, current_inherits_group, current_extruder_variants, new_extruder_variants, current_print_extruder_variants, new_printer_extruder_variants;
     DynamicPrintConfig load_process_config, load_machine_config;
     bool new_process_config_is_system = true, new_printer_config_is_system = true;
     std::string pipe_name, makerlab_name, makerlab_version, different_process_setting;
@@ -1868,6 +1868,9 @@ int CLI::run(int argc, char **argv)
                         BOOST_LOG_TRIVIAL(info) << boost::format("no inherits_group: use system name the same as current name");
                     }
                     filament_count = current_filaments_name.size();
+                    converted_filaments_system_name = current_filaments_system_name;
+                    for (int f_index = 0; f_index < filament_count; f_index++)
+                        convert_filament_preset_name(current_printer_system_name, converted_filaments_system_name[f_index]);
                     upward_compatible_printers = config.option<ConfigOptionStrings>("upward_compatible_machine", true)->values;
                     current_print_compatible_printers  = config.option<ConfigOptionStrings>("print_compatible_printers", true)->values;
                     current_different_settings = config.option<ConfigOptionStrings>("different_settings_to_system", true)->values;
@@ -2580,7 +2583,7 @@ int CLI::run(int argc, char **argv)
                         flush_and_exit(CLI_CONFIG_FILE_ERROR);
                     }
 
-                    if (config_name != current_filaments_system_name[index]) {
+                    if ((config_name != current_filaments_system_name[index]) || (config_name != converted_filaments_system_name[index])) {
                         BOOST_LOG_TRIVIAL(error) << boost::format("wrong filament config file %1% loaded, current filament config name %2%, index %3%")%config_name %current_filaments_system_name[index] %index;
                         record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
                         flush_and_exit(CLI_CONFIG_FILE_ERROR);
@@ -2597,9 +2600,9 @@ int CLI::run(int argc, char **argv)
             else
             {
                 current_index = 0;
-                for (int index = 0; index < current_filaments_system_name.size(); index++)
+                for (int index = 0; index < converted_filaments_system_name.size(); index++)
                 {
-                    std::string system_filament_path = resources_dir() + "/profiles/BBL/filament_full/"+current_filaments_system_name[index]+".json";
+                    std::string system_filament_path = resources_dir() + "/profiles/BBL/filament_full/"+converted_filaments_system_name[index]+".json";
                     current_index++;
                     if (! boost::filesystem::exists(system_filament_path)) {
                         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__<< boost::format(":%1%, can not find system preset file: %2% ")%__LINE__ %system_filament_path;
