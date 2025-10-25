@@ -3512,12 +3512,7 @@ namespace Slic3r
                     ImGui::PushItemWidth(item_size);
                     imgui.text(buf);
                     // helio
-                    if (view_type != EViewType::ThermalIndexMin && view_type != EViewType::ThermalIndexMax && view_type != EViewType::ThermalIndexMean) {
-                        sprintf(buf, "%s%.0f", speed.c_str(), m_curr_move.feedrate);
-                        ImGui::PushItemWidth(item_size);
-                        imgui.text(buf);
-                    }
-                    else {
+                    if (view_type == EViewType::ThermalIndexMin || view_type == EViewType::ThermalIndexMax || view_type == EViewType::ThermalIndexMean) {
                         sprintf(buf, "%s", thermal_index.c_str());
                         ImGui::PushItemWidth(item_size);
                         imgui.text(buf);
