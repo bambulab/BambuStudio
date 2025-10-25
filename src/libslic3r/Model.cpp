@@ -3508,6 +3508,24 @@ void ModelVolume::set_text_configuration(const TextConfiguration text_configurat
     m_text_info.text_configuration = text_configuration;
 }
 
+void ModelVolume::check_boldness_skew_min_max(float min_boldness, float max_boldness, float min_skew, float max_skew)
+{
+    float temp_custom_boldness = m_text_info.text_configuration.style.prop.boldness.value_or(0.f);
+    if (temp_custom_boldness > max_boldness) {
+        m_text_info.text_configuration.style.prop.boldness = 0.f;
+    } else if (temp_custom_boldness < min_boldness) {
+        m_text_info.text_configuration.style.prop.boldness = 0.f;
+    }
+
+    float temp_custom_skew  = m_text_info.text_configuration.style.prop.skew.value_or(0.f);
+    if (temp_custom_skew > max_skew) {
+        m_text_info.text_configuration.style.prop.skew = 0.f;
+    }
+    else if(temp_custom_skew < min_skew) {
+        m_text_info.text_configuration.style.prop.skew = 0.f;
+    }
+}
+
 const Transform3d &ModelVolume::get_matrix(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
 {
     return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror);
