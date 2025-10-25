@@ -360,6 +360,7 @@ public:
     virtual void set_only_diff(const ConfigOptionVectorBase* rhs, std::vector<int>& diff_index, int stride) = 0;
     virtual void set_to_index(const ConfigOptionVectorBase* rhs, std::vector<int>& dest_index, int stride) = 0;
     virtual void set_with_nil(const ConfigOptionVectorBase* rhs, const ConfigOptionVectorBase* inherits, int stride) = 0;
+    virtual void set_with_default(const ConfigOptionVectorBase* inherits) = 0;
     // Resize the vector of values, copy the newly added values from opt_default if provided.
     virtual void resize(size_t n, const ConfigOption *opt_default = nullptr) = 0;
     // Clear the values vector.
@@ -647,6 +648,28 @@ public:
         }
         else
             throw ConfigurationError("ConfigOptionVector::set_with_nil(): Assigning an incompatible type");
+    }
+
+    //set a item related with extruder variants when load user config, set the missed value of some extruder to default ones from inherits
+    //this item has missed value with old user config
+    //inherits: item from inherit config
+    virtual void set_with_default(const ConfigOptionVectorBase* inherits) override
+    {
+        if (inherits->type() == this->type()) {
+            auto inherits_opt = static_cast<const ConfigOptionVector<T>*>(inherits);
+
+            if (inherits->size() <= this->size())
+                return;
+            size_t delta = inherits->size() - this->size();
+            this->values.resize(inherits->size(), this->values.front());
+
+            for (size_t i = 0; i < delta; i++) {
+                size_t index = inherits->size() - delta + i;
+                this->values[index] = inherits_opt->values[index];
+            }
+        }
+        else
+            throw ConfigurationError("ConfigOptionVector::set_with_default(): Assigning an incompatible type");
     }
 
     const T& get_at(size_t i) const
