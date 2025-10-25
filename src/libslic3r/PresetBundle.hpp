@@ -342,6 +342,9 @@ private:
 
 ENABLE_ENUM_BITMASK_OPERATORS(PresetBundle::LoadConfigBundleAttribute)
 
+//add these functions here to allow other access
+extern void convert_filament_preset_name(std::string& machine_name, std::string& filament_name);
+
 } // namespace Slic3r
 
 #endif /* slic3r_PresetBundle_hpp_ */
