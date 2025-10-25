@@ -13,7 +13,7 @@ EVT_BUTTON(wxID_OK, ThermalPreconditioningDialog::on_ok_clicked)
 END_EVENT_TABLE()
 
 ThermalPreconditioningDialog::ThermalPreconditioningDialog(wxWindow *parent, std::string dev_id, bool is_show_remain_time)
-    : wxDialog(parent, wxID_ANY, _L("Thermal Preconditioning for first layer optimization"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : wxDialog(parent, wxID_ANY, _L("Thermal Preconditioning for first layer optimization"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
     , m_dev_id(dev_id)
 {
     wxBitmap bitmap = create_scaled_bitmap("thermal_preconditioning_title", this, 16);
@@ -120,6 +120,7 @@ void ThermalPreconditioningDialog::on_timer(wxTimerEvent &event) {
     if (IsShown() && m_obj && m_obj->stage_curr == 58) {
         update_thermal_remaining_time();
     } else {
+        EndModal(wxID_OK);
         m_refresh_timer->Stop();
     }
 }
