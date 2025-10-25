@@ -2312,6 +2312,27 @@ int CLI::run(int argc, char **argv)
             std::string inherits;
             if ((config_from == "User")||(config_from == "user")) {
                 inherits = config.option<ConfigOptionString>("inherits", true)->value;
+                if (!inherits.empty()) {
+                    //process the default values for old configs
+                    std::string parent_filament_path = resources_dir() + "/profiles/BBL/filament_full/"+inherits+".json";
+                    if (boost::filesystem::exists(parent_filament_path)) {
+                        DynamicPrintConfig  parent_config;
+                        std::string config_type, config_name, filament_id, config_from;
+                        int ret = load_config_file(parent_filament_path, parent_config, config_type, config_name, filament_id, config_from);
+                        if (!ret && (config_type == "filament")) {
+                            for (auto& opt_key: filament_options_with_variant)
+                            {
+                                ConfigOption *opt = config.option(opt_key);
+                                ConfigOption *parent_opt = parent_config.option(opt_key);
+                                ConfigOptionVectorBase* opt_vec = static_cast<ConfigOptionVectorBase*>(opt);
+                                const ConfigOptionVectorBase* opt_vec_parent = static_cast<const ConfigOptionVectorBase*>(parent_opt);
+                                //set with default
+                                if (opt && parent_opt)
+                                    opt_vec->set_with_default(opt_vec_parent);
+                            }
+                        }
+                    }
+                }
             }
             load_filaments_inherit.push_back(inherits);
             load_filaments_id.push_back(filament_id);
