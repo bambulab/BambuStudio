@@ -733,7 +733,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("z_direction_outwall_speed_continuous", coBool);
     def->label = L("Smoothing wall speed along Z(experimental)");
     def->category = L("Quality");
-    def->tooltip  = L("Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode.");
+    def->tooltip  = L("Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode.");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
