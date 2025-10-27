@@ -636,6 +636,14 @@ bool GLGizmosManager::is_allow_select_all() const {
     return false;
 }
 
+bool GLGizmosManager::is_allow_multi_select_parts_or_objects() const
+{
+    if (m_current == Undefined || m_current == EType::Move || m_current == EType::Rotate || m_current == EType::Scale) {
+        return true;
+    }
+    return false;
+}
+
 bool GLGizmosManager::is_allow_show_volume_highlight_outline() const
 {
     if (m_current == EType::Cut) {

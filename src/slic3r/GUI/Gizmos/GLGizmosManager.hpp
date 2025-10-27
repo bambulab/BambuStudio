@@ -261,6 +261,7 @@ public:
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false, bool alt_down = false, bool control_down = false);
     bool is_paint_gizmo()const;
     bool is_allow_select_all() const;
+    bool is_allow_multi_select_parts_or_objects() const;
     bool is_allow_show_volume_highlight_outline() const;
     bool is_allow_drag_volume() const;
     bool is_allow_mouse_drag_selected() const;
