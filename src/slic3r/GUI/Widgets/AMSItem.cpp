@@ -1104,6 +1104,8 @@ void AMSLib::render_generic_text(wxDC &dc)
         show_k_value = false;
     }
 
+    wxString tooltip_text;
+
     auto tmp_lib_colour = m_info.material_colour;
     change_the_opacity(tmp_lib_colour);
 
@@ -1199,6 +1201,7 @@ void AMSLib::render_generic_text(wxDC &dc)
                 }
                 dc.DrawText(m_info.material_name, pot);
             }
+            tooltip_text += m_info.material_name;
         }
 
         //draw k&n
@@ -1210,7 +1213,12 @@ void AMSLib::render_generic_text(wxDC &dc)
                 auto tsize = dc.GetMultiLineTextExtent(str_k);
                 auto pot_k = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 - FromDIP(9) + tsize.y);
                 dc.DrawText(str_k, pot_k);
+
+                tooltip_text += "\n" + str_k;
             }
+        }
+        if (GetToolTipText() != tooltip_text) {
+            SetToolTip(tooltip_text);
         }
     }
 
