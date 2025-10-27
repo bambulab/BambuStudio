@@ -16,8 +16,8 @@
         "nil"
     ],
     "filament_flow_ratio": [
-        "0.94",
-        "0.94"
+        "0.97",
+        "0.97"
     ],
     "filament_flush_temp": [
         "0",
@@ -40,8 +40,8 @@
         "-1"
     ],
     "filament_ramming_volumetric_speed_nc": [
-        "30",
-        "45"
+        "-1",
+        "-1"
     ],
     "filament_retract_before_wipe": [
         "nil",
@@ -79,9 +79,6 @@
         "1",
         "1"
     ],
-    "filament_prime_volume_nc": [
-        "60"
-    ],
     "filament_z_hop": [
         "nil",
         "nil"
@@ -107,8 +104,8 @@
         "0"
     ],
     "filament_ramming_travel_time_nc": [
-        "0",
-        "0"
+        "1",
+        "1"
     ],
     "filament_enable_overhang_speed": [
         "1",
@@ -137,6 +134,18 @@
     "filament_adaptive_volumetric_speed": [
         "0",
         "0"
+    ],
+    "filament_prime_volume_nc": [
+        "30"
+    ],
+    "filament_change_length": [
+        "4"
+    ],
+    "filament_change_length_nc": [
+        "4"
+    ],
+    "filament_prime_volume": [
+        "30"
     ],
     "long_retractions_when_ec": [
         "1",

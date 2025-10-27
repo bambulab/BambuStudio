@@ -5,7 +5,6 @@
     "from": "system",
     "setting_id": "GFSL99_22",
     "instantiation": "true",
-    "description": "The generic presets are conservatively tuned for compatibility with a wider range of filaments. For higher printing quality and speeds, please use Bambu filaments with Bambu presets.",
     "additional_cooling_fan_speed": [
         "75"
     ],
@@ -77,9 +76,6 @@
         "nil",
         "nil"
     ],
-    "filament_prime_volume_nc": [
-        "60"
-    ],
     "filament_z_hop": [
         "nil",
         "nil"
@@ -105,8 +101,8 @@
         "0"
     ],
     "filament_ramming_travel_time_nc": [
-        "0",
-        "0"
+        "1",
+        "1"
     ],
     "filament_enable_overhang_speed": [
         "1",
@@ -135,6 +131,18 @@
     "filament_adaptive_volumetric_speed": [
         "0",
         "0"
+    ],
+    "filament_prime_volume_nc": [
+        "30"
+    ],
+    "filament_change_length": [
+        "4"
+    ],
+    "filament_change_length_nc": [
+        "4"
+    ],
+    "filament_prime_volume": [
+        "30"
     ],
     "long_retractions_when_ec": [
         "1",

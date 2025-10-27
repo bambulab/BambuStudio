@@ -5,7 +5,6 @@
     "from": "system",
     "setting_id": "GFSN97_08",
     "instantiation": "true",
-    "description": "When printing this filament, there's a risk of nozzle clogging, oozing, warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials.",
     "chamber_temperatures": [
         "60"
     ],
@@ -83,9 +82,6 @@
         "nil",
         "nil"
     ],
-    "filament_prime_volume_nc": [
-        "60"
-    ],
     "filament_z_hop": [
         "nil",
         "nil"
@@ -111,6 +107,10 @@
         "0"
     ],
     "filament_ramming_travel_time_nc": [
+        "1",
+        "1"
+    ],
+    "filament_adaptive_volumetric_speed": [
         "0",
         "0"
     ],
@@ -138,9 +138,17 @@
         "10",
         "10"
     ],
-    "filament_adaptive_volumetric_speed": [
-        "0",
-        "0"
+    "filament_prime_volume_nc": [
+        "30"
+    ],
+    "filament_change_length": [
+        "4"
+    ],
+    "filament_change_length_nc": [
+        "4"
+    ],
+    "filament_prime_volume": [
+        "30"
     ],
     "long_retractions_when_ec": [
         "1",

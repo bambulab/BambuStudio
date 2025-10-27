@@ -77,7 +77,7 @@
         "nil"
     ],
     "filament_prime_volume": [
-        "60"
+        "30"
     ],
     "filament_z_hop": [
         "nil",
@@ -104,8 +104,8 @@
         "0"
     ],
     "filament_ramming_travel_time_nc": [
-        "0",
-        "0"
+        "1",
+        "1"
     ],
     "filament_enable_overhang_speed": [
         "1",
@@ -136,7 +136,13 @@
         "0"
     ],
     "filament_prime_volume_nc": [
-        "60"
+        "30"
+    ],
+    "filament_change_length": [
+        "4"
+    ],
+    "filament_change_length_nc": [
+        "4"
     ],
     "long_retractions_when_ec": [
         "1",
