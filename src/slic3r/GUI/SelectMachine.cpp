@@ -4815,10 +4815,11 @@ void SelectMachineDialog::on_flow_pa_caliation_option_changed(wxCommandEvent& ev
                     event.Skip();
                     return;
                 }
-            }
 
-            // request nozzle mapping result if right extruder nozzles used in slicing
-            obj_->ctrl_get_auto_nozzle_mapping(m_plater, m_ams_mapping_result, m_checkbox_list["flow_cali"]->getValueInt());
+                // STUDIO-15239
+                // request nozzle mapping result if right extruder nozzles used in slicing
+                obj_->ctrl_get_auto_nozzle_mapping(m_plater, m_ams_mapping_result, m_checkbox_list["flow_cali"]->getValueInt());
+            }
         }
     }
 
