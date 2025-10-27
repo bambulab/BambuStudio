@@ -346,30 +346,9 @@ protected:
     void on_save(cereal::BinaryOutputArchive &ar) const override;
 
 private:
-    struct SavedVolumeColorState {
-        std::array<float, 4> original_color;
-        bool original_force_native_color;
-        bool original_force_neutral_color;
-    };
-
-    // Helper to manage temporary volume color overrides during gizmo lifetime
-    struct ColorOverrideManager {
-        std::unordered_map<unsigned int, SavedVolumeColorState> saved; // key: global volume index
-        bool applied { false };
-
-        void apply_for_indices(const Selection &selection,
-                               const std::vector<unsigned int>& volume_indices,
-                               const std::array<float,4>& rgba);
-
-        void restore_non_selected_indices(const Selection &selection);
-        void clear() { saved.clear(); applied = false; }
-    };
-
-
     // ========================== CORE MODULES ==========================
     bool m_enable{ false };
     BooleanWarningManager m_warning_manager;
-    ColorOverrideManager m_color_overrides;
     VolumeListManager m_volume_manager;
     BooleanOperationEngine m_boolean_engine;
     mutable int m_last_plate_idx_for_visibility {-1};

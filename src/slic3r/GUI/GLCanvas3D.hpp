@@ -867,6 +867,13 @@ public:
     void                                set_color_clip_plane(const Vec3d &cp_normal, double offset) { m_volumes.set_color_clip_plane(cp_normal, offset); }
     void                                set_color_clip_plane_colors(const std::array<ColorRGBA, 2> &colors) { m_volumes.set_color_clip_plane_colors(colors); }
 
+    // Volume color override methods (for mesh boolean gizmo)
+    void set_use_volume_color_override(bool use) { m_volumes.set_use_volume_color_override(use); }
+    void set_volume_color_override(unsigned int volume_idx, const std::array<float, 4>& color) { m_volumes.set_volume_color_override(volume_idx, color); }
+    void set_volumes_color_override(const std::vector<unsigned int>& volume_indices, const std::array<float, 4>& color) { m_volumes.set_volumes_color_override(volume_indices, color); }
+    void clear_volume_color_override(unsigned int volume_idx) { m_volumes.clear_volume_color_override(volume_idx); }
+    void clear_all_volume_color_overrides() { m_volumes.clear_all_volume_color_overrides(); }
+
     void set_color_by(const std::string& value);
 
     void set_show_world_axes(bool flag) { m_show_world_axes = flag; }
