@@ -14,6 +14,11 @@
 #include <boost/log/trivial.hpp>
 #include "nlohmann/json.hpp"
 
+ /* Sequence Id*/
+#define STUDIO_START_SEQ_ID    20000
+#define STUDIO_END_SEQ_ID      30000
+#define CLOUD_SEQ_ID     0
+
 namespace Slic3r
 {
 
@@ -31,6 +36,10 @@ public:
     static float string_to_float(const std::string& str_value);
 
     static std::string convertToIp(long long ip);
+
+    // sequence id check
+    static bool is_studio_cmd(int seq) { return seq >= STUDIO_START_SEQ_ID && seq < STUDIO_END_SEQ_ID;};
+    static bool is_cloud_cmd(int seq) { return seq == CLOUD_SEQ_ID;};
 };
 
 
