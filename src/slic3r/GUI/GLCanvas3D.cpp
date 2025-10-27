@@ -1568,8 +1568,30 @@ void GLCanvas3D::update_gcode_sequential_view_current(unsigned int first, unsign
     t_gcode_viewer.update_sequential_view_current(first, last);
 }
 
-unsigned int GLCanvas3D::get_volumes_count() const
-{
+bool GLCanvas3D::is_in_same_model_object(const std::vector<int> volume_ids) {
+    if (volume_ids.size() >= 2) {
+        auto gl_volume        = m_selection.get_volume(volume_ids[0]);
+        if (gl_volume) {
+            std::set<int> object_sets;
+            object_sets.insert(gl_volume->object_idx());
+            for (int i = 1; i < volume_ids.size(); i++) {
+                auto temp_volume = m_selection.get_volume(volume_ids[i]);
+                if (temp_volume) {
+                    auto temp_object_idx = temp_volume->object_idx();
+                    if (object_sets.find(temp_object_idx) == object_sets.end()) { return false; }
+                } else {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "check code";
+                }
+            }
+            if (object_sets.size() == 1) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+unsigned int GLCanvas3D::get_volumes_count() const {
     return (unsigned int)m_volumes.volumes.size();
 }
 
@@ -3967,7 +3989,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 
         // BBS: use keypad to change extruder
         case '0'://Color logic for material 10
-        case '1': 
+        case '1':
         case '2':
         case '3':
         case '4':
@@ -4949,7 +4971,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 // Don't deselect a volume if layer editing is enabled or any gizmo is active. We want the object to stay selected
                 // during the scene manipulation.
 
-                if (m_picking_enabled && (!any_gizmo_active || !evt.CmdDown()) && (!m_hover_volume_idxs.empty())) {
+                if (m_picking_enabled && (m_gizmos.is_allow_multi_select_parts_or_objects() || !evt.CmdDown()) && (!m_hover_volume_idxs.empty())) {
                     if (evt.LeftDown() && !m_hover_volume_idxs.empty()) {
                         int volume_idx = get_first_hover_volume_idx();
                         bool already_selected = m_selection.contains_volume(volume_idx);
@@ -4959,16 +4981,26 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
                         if (already_selected && ctrl_down)
                             m_selection.remove(volume_idx);
-                        else if (alt_down) {
+                        else if (alt_down) {//support  select multi parts
                             Selection::EMode mode = Selection::Volume;
-                            if (already_selected) {
-                                std::vector<unsigned int> volume_idxs;
-                                for (auto idx : curr_idxs) { volume_idxs.emplace_back(idx); }
-                                m_selection.remove_volumes(mode, volume_idxs);
+                            std::vector<int> volume_idxs;
+                            for (auto idx : curr_idxs) {
+                                volume_idxs.emplace_back(idx);
                             }
-                            std::vector<unsigned int> add_volume_idxs;
-                            add_volume_idxs.emplace_back(volume_idx);
-                            m_selection.add_volumes(mode, add_volume_idxs, true);
+                            if (already_selected) {
+                                if (!is_in_same_model_object(volume_idxs)) {
+                                    m_selection.clear();
+                                    m_selection.add_volumes(mode, {(unsigned int) volume_idx}, false);
+                                } else {
+                                    m_selection.remove_volumes(mode, {(unsigned int) volume_idx});
+                                }
+                            } else {
+                                volume_idxs.emplace_back(volume_idx);
+                                if (!is_in_same_model_object(volume_idxs)) {
+                                    m_selection.clear();
+                                }
+                                m_selection.add_volumes(mode, {(unsigned int) volume_idx}, false);
+                            }
                         }
                         else {
                             m_selection.add(volume_idx, !ctrl_down, true);
@@ -7387,8 +7419,9 @@ void GLCanvas3D::_picking_pass()
                 wxGetApp().plater()->get_partplate_list().reset_hover_id();
                 if (0 <= volume_id && volume_id < (int)m_volumes.volumes.size()) {
                     // do not add the volume id if any gizmo is active and CTRL is pressed
-                    if (m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined || !wxGetKeyState(WXK_CONTROL))
+                    if (m_gizmos.is_allow_multi_select_parts_or_objects() || !wxGetKeyState(WXK_CONTROL)) {
                         hover_volume_idxs->emplace_back(volume_id);
+                    }
                     const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(-1);
                 }
                 else
