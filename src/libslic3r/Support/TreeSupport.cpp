@@ -3899,6 +3899,7 @@ void TreeSupport::generate_contact_points()
                 return contact_node;
             };
 
+            auto extrudable_collision = offset_ex(layer->lower_layer->lslices_extrudable, m_ts_data->m_xy_distance);
             for (const auto& overhang_with_type : layer->loverhangs_with_type)  {
                 const auto &overhang_part = overhang_with_type.first;
                 const auto &overhang_type = overhang_with_type.second;
@@ -3946,7 +3947,8 @@ void TreeSupport::generate_contact_points()
                     overhangs_regular = overhangs;
                 }
 
-                if(!is_sharp_tail) overhangs_regular = diff_ex(overhangs_regular, relevant_forbidden);
+                if (!is_sharp_tail && layer->lower_layer) 
+                    overhangs_regular = diff_ex(overhangs_regular, extrudable_collision);
                 for (auto &overhang : overhangs_regular) {
                     if (is_sharp_tail && !m_support_params.soluble_interface && overhang.area() < SQ(scale_(2.))) add_interface = false;
                     BoundingBox overhang_bounds = get_extents(overhang);
