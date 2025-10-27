@@ -5,7 +5,6 @@
     "from": "system",
     "setting_id": "GFSB02_08",
     "instantiation": "true",
-    "description": "This filament is only used to print models with a low density usually, and some special parameters are required. To get better printing quality, please refer to this wiki: ASA Aero Printing Guide.",
     "chamber_temperatures": [
         "60"
     ],
@@ -77,9 +76,6 @@
         "5",
         "5"
     ],
-    "filament_prime_volume_nc": [
-        "60"
-    ],
     "filament_z_hop": [
         "0",
         "0"
@@ -105,8 +101,8 @@
         "0"
     ],
     "filament_ramming_travel_time_nc": [
-        "0",
-        "0"
+        "1",
+        "1"
     ],
     "filament_enable_overhang_speed": [
         "1",
@@ -135,6 +131,18 @@
     "filament_adaptive_volumetric_speed": [
         "0",
         "0"
+    ],
+    "filament_prime_volume_nc": [
+        "30"
+    ],
+    "filament_change_length": [
+        "4"
+    ],
+    "filament_change_length_nc": [
+        "4"
+    ],
+    "filament_prime_volume": [
+        "30"
     ],
     "long_retractions_when_ec": [
         "1",

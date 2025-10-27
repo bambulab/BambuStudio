@@ -5,7 +5,6 @@
     "from": "system",
     "setting_id": "GFSU04_05",
     "instantiation": "true",
-    "description": "This filament is too soft and not compatible with the AMS. Printing it is of many requirements, and to get better printing quality, please refer to this wiki: TPU printing guide.",
     "additional_cooling_fan_speed": [
         "100"
     ],
@@ -87,7 +86,7 @@
         "nil"
     ],
     "filament_prime_volume_nc": [
-        "60"
+        "30"
     ],
     "filament_z_hop": [
         "nil",
@@ -144,6 +143,15 @@
     "filament_adaptive_volumetric_speed": [
         "0",
         "0"
+    ],
+    "filament_change_length": [
+        "4"
+    ],
+    "filament_change_length_nc": [
+        "4"
+    ],
+    "filament_prime_volume": [
+        "30"
     ],
     "impact_strength_z": [
         "88.7"

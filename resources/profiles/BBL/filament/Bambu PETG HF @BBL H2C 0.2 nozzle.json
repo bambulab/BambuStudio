@@ -79,9 +79,6 @@
         "nil",
         "nil"
     ],
-    "filament_prime_volume_nc": [
-        "60"
-    ],
     "filament_z_hop": [
         "nil",
         "nil"
@@ -135,11 +132,17 @@
         "10"
     ],
     "filament_change_length": [
-        "10"
+        "4"
     ],
     "filament_adaptive_volumetric_speed": [
         "0",
         "0"
+    ],
+    "filament_prime_volume_nc": [
+        "30"
+    ],
+    "filament_change_length_nc": [
+        "4"
     ],
     "long_retractions_when_ec": [
         "1",
