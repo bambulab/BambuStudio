@@ -188,6 +188,7 @@ typedef struct  _sliced_plate_info{
     float main_predication{0.f};
     int filament_change_times {0};
     int layer_filament_change {0};
+    int obj_cached_cnt {0};
 
     std::vector<object_info_t> objects;
     std::vector<filament_info_t> filaments;
@@ -486,6 +487,7 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
             plate_json["main_predication"] = sliced_plate_info.main_predication;
             plate_json["filament_change_times"] = sliced_plate_info.filament_change_times;
             plate_json["layer_filament_change"] = sliced_plate_info.layer_filament_change;
+            plate_json["obj_cached_cnt"] = sliced_plate_info.obj_cached_cnt;
 
             //object info
             if (!sliced_plate_info.objects.empty())
@@ -5947,12 +5949,13 @@ int CLI::run(int argc, char **argv)
         } else if (opt_key == "load_slicedata") {
             load_slicedata = true;
             load_slice_data_dir = m_config.opt_string(opt_key);
-            if (export_slicedata) {
+            /*if (export_slicedata) {
                 BOOST_LOG_TRIVIAL(error) << "should not set load_slicedata and export_slicedata together." << std::endl;
                 record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
                 flush_and_exit(CLI_INVALID_PARAMS);
             }
-            else if (duplicate_count > 0)
+            else*/
+            if (duplicate_count > 0)
             {
                 BOOST_LOG_TRIVIAL(error) << "should not set load_slicedata when set repetitions." << std::endl;
                 record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
@@ -6030,11 +6033,11 @@ int CLI::run(int argc, char **argv)
         } else if (opt_key == "export_slicedata") {
             export_slicedata = true;
             export_slice_data_dir = m_config.opt_string(opt_key);
-            if (load_slicedata) {
+            /*if (load_slicedata) {
                 BOOST_LOG_TRIVIAL(error) << "should not set load_slicedata and export_slicedata together." << std::endl;
                 record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
                 flush_and_exit(CLI_INVALID_PARAMS);
-            }
+            }*/
         } else if (opt_key == "slice") {
             //BBS: slice 0 means all plates, i means plate i;
             plate_to_slice = m_config.option<ConfigOptionInt>("slice")->value;
@@ -6768,10 +6771,10 @@ int CLI::run(int argc, char **argv)
                                 }
 #endif
                                 if (export_slicedata) {
-                                    BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ":will export Slicing data to " << export_slice_data_dir;
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% will export Slicing data to %2%")%(index+1) %export_slice_data_dir;
                                     std::string plate_dir = export_slice_data_dir+"/"+std::to_string(index+1);
                                     bool with_space = (get_logging_level() >= 4)?true:false;
-                                    int ret = print->export_cached_data(plate_dir, with_space);
+                                    int ret = print->export_cached_data(plate_dir, sliced_plate_info.obj_cached_cnt, with_space);
                                     if (ret) {
                                         BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": export Slicing data error, ret=" << ret;
                                         export_slicedata_error = true;
@@ -6780,6 +6783,7 @@ int CLI::run(int argc, char **argv)
                                         record_exit_reson(outfile_dir, ret, index+1, cli_errors[ret], sliced_info);
                                         flush_and_exit(ret);
                                     }
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% exported %2% objects")%(index+1) %(sliced_plate_info.obj_cached_cnt);
                                 }
                                 end_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
                                 sliced_plate_info.sliced_time = end_time - start_time;
