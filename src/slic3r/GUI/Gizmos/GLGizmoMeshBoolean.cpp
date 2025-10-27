@@ -170,42 +170,6 @@ namespace {
     }
 } // anonymous namespace
 
-// ========================== COLOR OVERRIDES ==========================
-
-void GLGizmoMeshBoolean::ColorOverrideManager::apply_for_indices(const Selection &selection,
-                                                                 const std::vector<unsigned int>& volume_indices,
-                                                                 const std::array<float,4>& rgba)
-{
-    for (unsigned int idx : volume_indices) {
-        const GLVolume *glv_c = selection.get_volume(idx);
-        if (!glv_c) continue;
-        GLVolume *glv = const_cast<GLVolume*>(glv_c);
-        if (saved.find(idx) == saved.end()) {
-            saved.emplace(idx, SavedVolumeColorState{ glv->color, glv->force_native_color, glv->force_neutral_color });
-        }
-        glv->force_native_color  = true;
-        glv->force_neutral_color = false;
-        glv->set_color(rgba);
-        glv->set_render_color(rgba[0], rgba[1], rgba[2], rgba[3]);
-    }
-    applied = true;
-}
-
-void GLGizmoMeshBoolean::ColorOverrideManager::restore_non_selected_indices(const Selection &selection)
-{
-    for (auto &it : saved) {
-        unsigned int vol_idx = it.first;
-        const GLVolume *glv_c = selection.get_volume(vol_idx);
-        if (!glv_c) continue;
-        GLVolume *glv = const_cast<GLVolume*>(glv_c);
-        const SavedVolumeColorState &s = it.second;
-        glv->force_native_color  = s.original_force_native_color;
-        glv->force_neutral_color = s.original_force_neutral_color;
-        glv->set_color(s.original_color);
-        glv->set_render_color(s.original_color[0], s.original_color[1], s.original_color[2], s.original_color[3]);
-    }
-    clear();
-}
 
 // ========================== WARNING SYSTEM IMPLEMENTATION ==========================
 // All methods for managing and displaying warnings
@@ -1496,10 +1460,10 @@ GLGizmoMeshBoolean::GLGizmoMeshBoolean(GLCanvas3D& parent, unsigned int sprite_i
         // Refresh object caches after list changes
         m_volume_manager.update_obj_lists(m_parent.get_selection());
 
-        // Handle color overrides
-        if (m_color_overrides.applied) {
-            restore_list_color_overrides();
-        }
+        // Handle color overrides - refresh them after list changes
+        restore_list_color_overrides();
+        apply_color_overrides_for_mode(m_operation_mode);
+
         m_warning_manager.clear_warnings();
         refresh_canvas();
         return true; // Delete successful
@@ -1936,6 +1900,9 @@ void GLGizmoMeshBoolean::init_volume_manager(){
 
 void GLGizmoMeshBoolean::apply_color_overrides_for_mode(MeshBooleanOperation mode)
 {
+    // Enable volume color override
+    m_parent.set_use_volume_color_override(true);
+
     if (mode == MeshBooleanOperation::Difference) apply_a_b_list_color_overrides(mode);
     else apply_working_list_color_overrides(mode);
 }
@@ -2054,8 +2021,8 @@ void GLGizmoMeshBoolean::execute_mesh_boolean()
         if (result.success) {
             // For Part mode: clear color overrides before applying result (which may delete volumes)
             // to avoid index mismatch after volume deletion
-            if (settings.target_mode == BooleanTargetMode::Part && m_color_overrides.applied) {
-                m_color_overrides.clear();
+            if (settings.target_mode == BooleanTargetMode::Part) {
+                restore_list_color_overrides();
             }
 
             // Collect unique ModelObject* from volume indices
@@ -2130,12 +2097,12 @@ void GLGizmoMeshBoolean::apply_color_overrides_for_list(const std::vector<unsign
             ModelVolume* mv = get_model_volume(*glv, selection.get_model()->objects);
             if (!mv) continue;
             if (mv->is_model_part())
-                m_color_overrides.apply_for_indices(selection, {idx}, color_for_model_part);
+                m_parent.set_volume_color_override(idx, color_for_model_part);
             else
-                m_color_overrides.apply_for_indices(selection, {idx}, abgr_u32_to_rgba(MeshBooleanConfig::COLOR_NON_MODEL));
+                m_parent.set_volume_color_override(idx, abgr_u32_to_rgba(MeshBooleanConfig::COLOR_NON_MODEL));
         }
     } else {
-        m_color_overrides.apply_for_indices(selection, list, color_for_model_part);
+        m_parent.set_volumes_color_override(list, color_for_model_part);
     }
 }
 
@@ -2194,9 +2161,8 @@ void GLGizmoMeshBoolean::apply_working_list_color_overrides(MeshBooleanOperation
 
 void GLGizmoMeshBoolean::restore_list_color_overrides()
 {
-    if (!m_color_overrides.applied) return;
-    m_color_overrides.restore_non_selected_indices(m_parent.get_selection());
-    m_parent.update_volumes_colors_by_extruder(); // wipe tower update here
+    // Clear all volume color overrides
+    m_parent.clear_all_volume_color_overrides();
     refresh_canvas();
 }
 

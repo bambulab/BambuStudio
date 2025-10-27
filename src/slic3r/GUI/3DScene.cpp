@@ -1730,7 +1730,9 @@ void GLVolumeCollection::render(GUI::ERenderPipelineStage             render_pip
 
         if (GUI::ERenderPipelineStage::Silhouette != render_pipeline_stage) {
             shader->set_uniform("is_text_shape", volume.first->is_text_shape);
-            shader->set_uniform("uniform_color", volume.first->render_color);
+            // Use volume color override if enabled
+            const std::array<float, 4>& effective_color = get_volume_render_color(volume.second.first, volume.first->render_color);
+            shader->set_uniform("uniform_color", effective_color);
             shader->set_uniform("z_range", m_z_range);
             shader->set_uniform("clipping_plane", m_clipping_plane);
             shader->set_uniform("use_color_clip_plane", m_use_color_clip_plane);
