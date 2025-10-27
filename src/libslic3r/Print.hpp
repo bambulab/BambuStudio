@@ -849,7 +849,7 @@ public:
     // If preview_data is not null, the preview_data is filled in for the G-code visualization (not used by the command line Slic3r).
     std::string         export_gcode(const std::string& path_template, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
     //return 0 means successful
-    int                 export_cached_data(const std::string& dir_path, bool with_space=false);
+    int                 export_cached_data(const std::string& dir_path, int& obj_cnt_exported, bool with_space=false);
     int                 load_cached_data(const std::string& directory);
 
     // methods for handling state
@@ -1104,6 +1104,8 @@ private:
     ConflictResultOpt m_conflict_result;
     FakeWipeTower     m_fake_wipe_tower;
     bool              m_has_auto_filament_map_result{false};
+
+    std::set<PrintObject*> m_reslicing_objects;
 
     std::vector<std::set<int>> m_geometric_unprintable_filaments;
     std::unordered_map<int, std::unordered_map<int, double>> m_filament_print_time;

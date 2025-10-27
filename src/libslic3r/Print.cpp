@@ -336,7 +336,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
                 || opt_key == "filament_scarf_gap"
                 || opt_key == "filament_scarf_length"
                 || opt_key == "filament_change_length"
-                || opt_key == "independent_support_layer_height" 
+                || opt_key == "independent_support_layer_height"
                 || opt_key == "top_z_overrides_xy_distance"
                 || opt_key == "filament_change_length_nc") {
             steps.emplace_back(psWipeTower);
@@ -1828,7 +1828,8 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
     };
     int object_count = m_objects.size();
     std::set<PrintObject*> need_slicing_objects;
-    std::set<PrintObject*> re_slicing_objects;
+    //std::set<PrintObject*> re_slicing_objects;
+    m_reslicing_objects.clear();
     if (!use_cache) {
         for (int index = 0; index < object_count; index++)
         {
@@ -1840,8 +1841,10 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
                     break;
                 }
             }
-            if (!obj->get_shared_object())
+            if (!obj->get_shared_object()) {
                 need_slicing_objects.insert(obj);
+                m_reslicing_objects.insert(obj);
+            }
         }
     }
     else {
@@ -1869,7 +1872,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
                     //throw Slic3r::SlicingError("Can not find the cached data.");
                     //don't report errot, set use_cache to false, and reslice these objects
                     need_slicing_objects.insert(obj);
-                    re_slicing_objects.insert(obj);
+                    m_reslicing_objects.insert(obj);
                     //use_cache = false;
                 }
             }
@@ -1969,7 +1972,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
     }
     else {
         for (PrintObject *obj : m_objects) {
-            if (re_slicing_objects.count(obj) == 0) {
+            if (m_reslicing_objects.count(obj) == 0) {
                 if (obj->set_started(posSlice))
                     obj->set_done(posSlice);
                 if (obj->set_started(posPerimeters))
@@ -2194,7 +2197,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
     //BBS
     for (PrintObject *obj : m_objects) {
         if (((!use_cache)&&(need_slicing_objects.count(obj) != 0))
-            || (use_cache &&(re_slicing_objects.count(obj) != 0))){
+            || (use_cache &&(m_reslicing_objects.count(obj) != 0))){
             obj->simplify_extrusion_path();
         }
         else {
@@ -3945,10 +3948,11 @@ static void from_json(const json& j, groupedVolumeSlices& firstlayer_group)
     }
 }
 
-int Print::export_cached_data(const std::string& directory, bool with_space)
+int Print::export_cached_data(const std::string& directory, int& obj_cnt_exported, bool with_space)
 {
     int ret = 0;
     boost::filesystem::path directory_path(directory);
+    obj_cnt_exported = 0;
 
     auto convert_layer_to_json = [](json& layer_json, const Layer* layer) {
         json slice_polygons_json = json::array(), slice_bboxs_json = json::array(), overhang_polygons_json = json::array(), layer_regions_json = json::array();
@@ -3995,13 +3999,15 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
     };
 
     //firstly clear this directory
-    if (fs::exists(directory_path)) {
+    /*if (fs::exists(directory_path)) {
         fs::remove_all(directory_path);
-    }
+    }*/
     try {
-        if (!fs::create_directory(directory_path)) {
-            BOOST_LOG_TRIVIAL(error) << boost::format("create directory %1% failed")%directory;
-            return CLI_EXPORT_CACHE_DIRECTORY_CREATE_FAILED;
+        if (!fs::exists(directory_path)) {
+            if (!fs::create_directory(directory_path)) {
+                BOOST_LOG_TRIVIAL(error) << boost::format("create directory %1% failed")%directory;
+                return CLI_EXPORT_CACHE_DIRECTORY_CREATE_FAILED;
+            }
         }
     }
     catch (...)
@@ -4013,19 +4019,30 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
     int count = 0;
     std::vector<std::string> filename_vector;
     std::vector<json> json_vector;
+    size_t region_cnt = this->num_print_regions();
+    size_t hash_values = 0;
+    for (size_t region_idx = 0; region_idx < region_cnt; region_idx++)
+    {
+        boost::hash_combine(hash_values, this->get_print_region(region_idx).config_hash());
+    }
     for (PrintObject *obj : m_objects) {
         const ModelObject* model_obj = obj->model_object();
-        if (obj->get_shared_object()) {
+        /*if (obj->get_shared_object()) {
             BOOST_LOG_TRIVIAL(info) << boost::format("shared object %1%, skip directly")%model_obj->name;
             continue;
+        }*/
+        if (m_reslicing_objects.count(obj) == 0) {
+            BOOST_LOG_TRIVIAL(info) << boost::format("shared object or already cached before: %1%, skip directly")%model_obj->name;
+            continue;
         }
+        obj_cnt_exported++;
 
         const PrintInstance &print_instance = obj->instances()[0];
         const ModelInstance *model_instance = print_instance.model_instance;
         size_t identify_id = (model_instance->loaded_id > 0)?model_instance->loaded_id: model_instance->id().id;
-        std::string file_name = directory +"/obj_"+std::to_string(identify_id)+".json";
+        std::string file_name = directory + "/obj_" + std::to_string(identify_id) + "_" + std::to_string(region_cnt) + "_" + std::to_string(hash_values) + ".json";
 
-        BOOST_LOG_TRIVIAL(info) << boost::format("begin to dump object %1%, identify_id %2% to %3%")%model_obj->name %identify_id %file_name;
+        BOOST_LOG_TRIVIAL(info) << boost::format("begin to dump object %1%, identify_id %2%, hash %3% to %4%, region count %5%")%model_obj->name %identify_id %hash_values %file_name %region_cnt;
 
         try {
             json root_json, layers_json = json::array(), support_layers_json = json::array(), first_layer_groups = json::array();
@@ -4236,6 +4253,12 @@ int Print::load_cached_data(const std::string& directory)
 
     int count = 0;
     std::vector<std::pair<std::string, PrintObject*>> object_filenames;
+    size_t region_cnt = this->num_print_regions();
+    size_t hash_values = 0;
+    for (size_t region_idx = 0; region_idx < region_cnt; region_idx++)
+    {
+        boost::hash_combine(hash_values, this->get_print_region(region_idx).config_hash());
+    }
     for (PrintObject *obj : m_objects) {
         const ModelObject* model_obj = obj->model_object();
         const PrintInstance &print_instance = obj->instances()[0];
@@ -4251,10 +4274,10 @@ int Print::load_cached_data(const std::string& directory)
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": object %1%'s loaded_id is 0, need to use the instance_id %2%")%model_obj->name %identify_id;
             //continue;
         }
-        std::string file_name = directory +"/obj_"+std::to_string(identify_id)+".json";
+        std::string file_name = directory + "/obj_" + std::to_string(identify_id) + "_" + std::to_string(region_cnt) + "_" + std::to_string(hash_values) + ".json";
 
         if (!fs::exists(file_name)) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": file %1% not exist, maybe a shared object, skip it")%file_name;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": file %1% not exist, maybe a shared object or not generated before, skip it")%file_name;
             continue;
         }
         object_filenames.push_back({file_name, obj});

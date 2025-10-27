@@ -7573,7 +7573,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
             else if (nozzle_volume_type != filament_nvt) {
                 if (extruder_nozzle_volume_count > extruder_count) {
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: nozzle_volume_type is %2%,  not equal to filament_nvt %3%")%__LINE__ %nozzle_volume_type %filament_nvt;
-                    assert(false);
+                    //assert(false);
                 }
             }
 
