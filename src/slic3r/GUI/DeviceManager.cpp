@@ -1145,14 +1145,6 @@ void MachineObject::parse_version_func()
 {
 }
 
-bool MachineObject::is_studio_cmd(int sequence_id)
-{
-    if (sequence_id >= START_SEQ_ID && sequence_id < END_SEQ_ID) {
-        return true;
-    }
-    return false;
-}
-
 bool MachineObject::canEnableTimelapse(wxString &error_message) const
 {
     if (!is_support_timelapse) {
@@ -3023,7 +3015,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                 }
 
                 if (jj["command"].get<std::string>() == "set_ctt") {
-                    if (m_agent && is_studio_cmd(sequence_id)) {
+                    if (m_agent && DevUtil::is_studio_cmd(sequence_id)) {
                         if (jj["errno"].is_number()) {
                             wxString text;
                             if (jj["errno"].get<int>() == -2) {
@@ -3045,13 +3037,10 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
 
                 if (!key_field_only)
                 {
-                    if (is_studio_cmd(sequence_id) && jj.contains("command") && jj.contains("err_code"))
-                    {
-                        if (jj["err_code"].is_number())
-                        {
-                            /* proceed action*/
-                            json action_json = jj.contains("err_index") ? jj : json();
-
+                    // add DevUtil::is_cloud_cmd for cloud print error code
+                    if ((DevUtil::is_studio_cmd(sequence_id) || DevUtil::is_cloud_cmd(sequence_id)) && jj.contains("command") && jj.contains("err_code")) {
+                        if (jj["err_code"].is_number()) {
+                            json action_json = jj.contains("err_index") ? jj : json();/* proceed action*/
                             add_command_error_code_dlg(jj["err_code"].get<int>(), action_json);
                         }
                     }
@@ -3781,7 +3770,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     } catch (...) {}
 #pragma endregion
                 } else if (jj["command"].get<std::string>() == "gcode_line") {
-                    if (m_agent && is_studio_cmd(sequence_id)) {
+                    if (m_agent && DevUtil::is_studio_cmd(sequence_id)) {
                         json t;
                         //t["dev_id"] = this->get_dev_id();
                         t["dev_id"] = "";
@@ -4296,7 +4285,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             try
                             {
                                 std::string str_seq = j["upgrade"]["sequence_id"].get<std::string>();
-                                check_studio_cmd = is_studio_cmd(stoi(str_seq));
+                                check_studio_cmd = DevUtil::is_studio_cmd(stoi(str_seq));
                             }
                             catch (...) { }
                         }

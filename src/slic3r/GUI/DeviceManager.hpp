@@ -21,6 +21,8 @@
 #include "DeviceCore/DevDefs.h"
 #include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevFirmware.h"
+#include "DeviceCore/DevUtil.h"
+
 #include "DeviceErrorDialog.hpp"
 
 #include <wx/object.h>
@@ -47,8 +49,6 @@
 #define GET_VERSION_RETRYS      10
 #define RETRY_INTERNAL          2000
 
-#define START_SEQ_ID            20000
-#define END_SEQ_ID              30000
 #define SUBSCRIBE_RETRY_COUNT   5
 
 using namespace nlohmann;
@@ -149,7 +149,7 @@ public:
 public:
 
     /* static members and functions */
-    static inline int m_sequence_id = START_SEQ_ID;
+    static inline int m_sequence_id = STUDIO_START_SEQ_ID;
 
     /* properties */
     std::string get_dev_name() const { return dev_name; }
@@ -670,7 +670,6 @@ public:
 
     std::string parse_version();
     void parse_version_func();
-    bool is_studio_cmd(int seq);
 
     /* quick check*/
     bool canEnableTimelapse(wxString& error_message) const;
