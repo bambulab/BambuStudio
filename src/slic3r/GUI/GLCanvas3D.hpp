@@ -812,6 +812,7 @@ public:
     void set_as_dirty();
     void requires_check_outside_state() { m_requires_check_outside_state = true; }
 
+    bool is_in_same_model_object(const std::vector<int> volume_ids);
     unsigned int get_volumes_count() const;
     const GLVolumeCollection& get_volumes() const { return m_volumes; }
     void reset_volumes(bool set_notice = true);
