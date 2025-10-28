@@ -2620,6 +2620,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("bottom_shell_layers");
         optgroup->append_single_option_line("bottom_shell_thickness");
         optgroup->append_single_option_line("bottom_color_penetration_layers");
+        optgroup->append_single_option_line("infill_instead_top_bottom_surfaces");
         optgroup->append_single_option_line("internal_solid_infill_pattern");
 
         optgroup = page->new_optgroup(L("Sparse infill"), L"param_infill");

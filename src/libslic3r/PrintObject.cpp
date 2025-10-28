@@ -1131,7 +1131,8 @@ bool PrintObject::invalidate_state_by_config_options(
                opt_key == "bottom_shell_layers"
             || opt_key == "top_shell_layers"
             || opt_key == "top_color_penetration_layers"
-            || opt_key == "bottom_color_penetration_layers") {
+            || opt_key == "bottom_color_penetration_layers"
+            || opt_key == "infill_instead_top_bottom_surfaces") {
 
             steps.emplace_back(posSlice);
 #if (0)
@@ -1340,7 +1341,7 @@ void PrintObject::reset_slice_surfaces(const std::vector<std::vector<SurfaceColl
 
             Layer       *layer  = m_layers[idx_layer];
             LayerRegion *layerm = layer->m_regions[region_id];
-            if(layerm->region().config().sparse_infill_pattern == ipLockedZag){
+            if (layerm->region().config().infill_instead_top_bottom_surfaces && layerm->region().config().sparse_infill_pattern == ipLockedZag) {
                 layerm->slices = slice_surfaces_cpy[idx_layer][region_id];
                 ExPolygons exps;
                 layerm->fill_surfaces.keep_type(SurfaceType::stInternal, exps);
@@ -1404,7 +1405,7 @@ void PrintObject::detect_surfaces_type(std::vector<std::vector<SurfaceCollection
                     LayerRegion *layerm = layer->m_regions[region_id];
                     slice_surfaces_cpy[idx_layer].resize(layer->m_regions.size());
                     //record surface data
-                    if(layerm->region().config().sparse_infill_pattern == ipLockedZag) {
+                    if (layerm->region().config().infill_instead_top_bottom_surfaces && layerm->region().config().sparse_infill_pattern == ipLockedZag) {
                         // layerm->fill_surfaces_copy = layerm->fill_expolygons;
                         slice_surfaces_cpy[idx_layer][region_id] = layerm->slices;
                     }
