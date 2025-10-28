@@ -1404,9 +1404,9 @@ int CLI::run(int argc, char **argv)
          "0,0,1,1,1,1,1,1",
          "--slice=1",
          "F:/cube_h2d.3mf"
-     };
-     int debug_argc = sizeof(debug_argv) / sizeof(debug_argv[0]);
-     if (!this->setup(debug_argc, debug_argv))
+    };
+    int debug_argc = sizeof(debug_argv) / sizeof(debug_argv[0]);
+    if (!this->setup(debug_argc, debug_argv))
 #else
     if (!this->setup(argc, argv))
 #endif
@@ -6505,6 +6505,7 @@ int CLI::run(int argc, char **argv)
                         if (new_extruder_count == 1) {
                             for (int index = 0; index < filament_count; index++)
                                 final_filament_maps[index] = 1;
+                            part_plate->set_filament_maps(final_filament_maps);
                         }
                         if(!new_print_config.has("nozzle_volume_type")) {
                             //set default nozzle_volume_type
