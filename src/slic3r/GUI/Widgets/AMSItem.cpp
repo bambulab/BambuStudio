@@ -1095,7 +1095,7 @@ void AMSLib::render_generic_text(wxDC &dc)
         show_k_value = false;
     }
     else if (m_info.cali_idx == -1 || (m_obj && (CalibUtils::get_selected_calib_idx(m_obj->pa_calib_tab, m_info.cali_idx) == -1))) {
-        if (m_obj && m_obj->GetConfig()->SupportCalibrationPA_FlowAuto())
+        if (m_obj && m_obj->GetConfig() && m_obj->GetConfig()->SupportCalibrationPA_FlowAuto())
             show_k_value = false;
         else
             get_default_k_n_value(m_info.filament_id, m_info.k, m_info.n);

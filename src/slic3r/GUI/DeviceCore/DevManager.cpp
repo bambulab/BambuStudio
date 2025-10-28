@@ -676,7 +676,7 @@ namespace Slic3r
                     }
                     else
                     {
-                        obj = new MachineObject(this, m_agent, "", "", "");
+                        obj = new MachineObject(this, m_agent, "", dev_id, "");
                         if (m_agent)
                         {
                             obj->set_bind_status(m_agent->get_user_name());
@@ -751,9 +751,10 @@ namespace Slic3r
         unsigned int http_code;
         std::string body;
         int result = m_agent->get_user_print_info(&http_code, &body);
-        if (result == 0)
-        {
-            parse_user_print_info(body);
+        if (result == 0) {
+            Slic3r::GUI::wxGetApp().CallAfter([this, body]() {
+                parse_user_print_info(body);
+            });
         }
     }
 
