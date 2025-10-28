@@ -546,7 +546,7 @@ void Layer::set_outlook_range(LockRegionParam &lock_param){
     for (size_t region_id = 0; region_id < this->regions().size(); ++region_id) {
         LayerRegion &layerm = *this->regions()[region_id];
 
-        if (layerm.region().config().sparse_infill_pattern == ipLockedZag) {
+        if (layerm.region().config().infill_instead_top_bottom_surfaces && layerm.region().config().sparse_infill_pattern == ipLockedZag) {
             for (const Surface &surface : layerm.fill_surfaces.surfaces) {
                 if (surface.surface_type != stInternal)
 					lock_param.outlook.push_back(surface.expolygon);

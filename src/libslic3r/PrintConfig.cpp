@@ -4967,6 +4967,12 @@ void PrintConfigDef::init_fff_params()
     def->min      = 1;
     def->set_default_value(new ConfigOptionInt(3));
 
+    def           = this->add("infill_instead_top_bottom_surfaces", coBool);
+    def->label    = L("Use infill instead of top and bottom surfaces");
+    def->category = L("Strength");
+    def->tooltip  = L("Using infill instead of top and bottom surfaces.");
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("travel_speed", coFloats);
     def->label = L("Travel");
     def->tooltip = L("Speed of travel which is faster and without extrusion");
