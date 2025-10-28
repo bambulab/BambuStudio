@@ -1,4 +1,4 @@
-﻿//**********************************************************/
+//**********************************************************/
 /* File: wgtDeviceNozzleRackUpdate.cpp
 *  Description: The panel with rack updating
 *

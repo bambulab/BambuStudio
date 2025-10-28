@@ -1,4 +1,4 @@
-﻿#include "PurgeModeDialog.hpp"
+#include "PurgeModeDialog.hpp"
 
 #include <wx/sizer.h>
 #include <wx/stattext.h>
