@@ -1,4 +1,4 @@
-﻿#include "MultiNozzleSync.hpp"
+#include "MultiNozzleSync.hpp"
 #include "../GUI_App.hpp"
 #include "../DeviceCore/DevManager.h"
 #include "libslic3r/PresetBundle.hpp"
