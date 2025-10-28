@@ -4483,7 +4483,7 @@ void SelectMachineDialog::UpdateStatusCheckWarning_ExtensionTool(MachineObject* 
 
     if (auto extension_tool = obj_->GetExtensionTool().lock())
     {
-        if (extension_tool->IsToolTypeFanF000() && !extension_tool->IsMounted() )
+        if (!extension_tool->IsToolTypeFanF000() || !extension_tool->IsMounted() )
         {
             for (const FilamentInfo& item : m_ams_mapping_result)
             {
