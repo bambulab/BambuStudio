@@ -56,6 +56,10 @@
     ],
     "filament_list": [
         {
+            "name": "fdm_filament_template_direct_dual",
+            "sub_path": "filament/fdm_filament_template_direct_dual.json"
+        },
+        {
             "name": "fdm_filament_common",
             "sub_path": "filament/fdm_filament_common.json"
         },
@@ -6066,10 +6070,6 @@
         {
             "name": "Generic TPU for AMS @BBL X1C",
             "sub_path": "filament/Generic TPU for AMS @BBL X1C.json"
-        },
-        {
-            "name": "fdm_filament_dual_common",
-            "sub_path": "filament/fdm_filament_dual_common.json"
         }
     ],
     "machine_list": [
