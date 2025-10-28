@@ -683,15 +683,18 @@ DevAmsTray *MachineObject::get_curr_tray()
 }
 
 std::string MachineObject::get_filament_id(std::string ams_id, std::string tray_id) const {
-    return this->get_tray(ams_id, tray_id).setting_id;
+    const auto& tray = this->get_tray(ams_id, tray_id);
+    return tray.has_value() ? tray->get_filament_id() : "";
 }
 
 std::string MachineObject::get_filament_type(const std::string& ams_id, const std::string& tray_id) const {
-    return this->get_tray(ams_id, tray_id).get_filament_type();
+    auto tray = this->get_tray(ams_id, tray_id);
+    return tray.has_value() ? tray->get_filament_type() : "";
 }
 
 std::string MachineObject::get_filament_display_type(const std::string& ams_id, const std::string& tray_id) const {
-    return this->get_tray(ams_id, tray_id).get_display_filament_type();
+    const auto& tray = this->get_tray(ams_id, tray_id);
+    return tray.has_value() ? tray->get_display_filament_type() : "";
 }
 
 void MachineObject::_parse_ams_status(int ams_status)
@@ -4626,8 +4629,7 @@ bool MachineObject::contains_tray(const std::string &ams_id, const std::string &
     return false;
 }
 
-/*use contains_tray or is_tray_info_ready to check*/
-DevAmsTray MachineObject::get_tray(const std::string &ams_id, const std::string &tray_id) const
+std::optional<DevAmsTray> MachineObject::get_tray(const std::string &ams_id, const std::string &tray_id) const
 {
     if (ams_id.empty() && tray_id.empty()) {
         return DevAmsTray(tray_id);
@@ -4643,7 +4645,7 @@ DevAmsTray MachineObject::get_tray(const std::string &ams_id, const std::string 
         }
     }
 
-    return DevAmsTray(tray_id);
+    return std::nullopt;
 }
 
 bool MachineObject::check_enable_np(const json& print) const

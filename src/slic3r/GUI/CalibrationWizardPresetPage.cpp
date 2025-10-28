@@ -1502,26 +1502,28 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
     get_tray_ams_and_slot_id(curr_obj, tray_id, ams_id, slot_id, out_tray_id);
 
     if (wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
-        bool in_blacklist = false;
-        std::string action;
-        wxString info;
-        std::string filamnt_type;
-        preset->get_filament_type(filamnt_type);
+        DevFilaBlacklist::CheckResult result;
+        DevFilaBlacklist::CheckFilamentInfo check_info;
+        check_info.dev_id = curr_obj->get_dev_id();
+        check_info.model_id = curr_obj->printer_type;
+        check_info.fila_id = preset->filament_id;
+        preset->get_filament_type(check_info.fila_type);
+        check_info.ams_id = ams_id;
+        check_info.slot_id = slot_id;
+        check_info.nozzle_flow = curr_obj->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id));
 
         auto vendor = dynamic_cast<ConfigOptionStrings*> (preset->config.option("filament_vendor"));
         if (vendor && (vendor->values.size() > 0)) {
-            std::string vendor_name = vendor->values[0];
-            std::string nozzle_flow = curr_obj->GetFilaSystem() ? curr_obj->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id)) : std::string();
-
-            DevFilaBlacklist::check_filaments_in_blacklist(curr_obj->printer_type, vendor_name, filamnt_type, preset->filament_id, ams_id, slot_id, "", nozzle_flow, in_blacklist, action, info);
+            check_info.fila_vendor = vendor->values[0];
+            result = DevFilaBlacklist::check_filaments_in_blacklist(check_info);
         }
 
-        if (in_blacklist) {
-            error_tips = info.ToUTF8().data();
-            if (action == "prohibition") {
+        if (result.in_blacklist) {
+            error_tips = result.info_msg.ToUTF8().data();
+            if (result.action == "prohibition") {
                 return false;
             }
-            else if (action == "warning") {
+            else if (result.action == "warning") {
                 return true;
             }
         }
