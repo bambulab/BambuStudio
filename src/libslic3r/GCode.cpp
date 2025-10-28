@@ -5026,18 +5026,17 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
     double small_peri_speed=-1;
     // apply the small perimeter speed
-    if (speed==-1 && loop.length() <= SMALL_PERIMETER_LENGTH(NOZZLE_CONFIG(small_perimeter_threshold)))
+    if (loop.length() <= SMALL_PERIMETER_LENGTH(NOZZLE_CONFIG(small_perimeter_threshold)))
         small_peri_speed = NOZZLE_CONFIG(small_perimeter_speed).get_abs_value(NOZZLE_CONFIG(outer_wall_speed));
 
     // extrude along the path
     std::string gcode;
-    bool is_small_peri=false;
 
     const auto  speed_for_path = [&speed, &small_peri_speed](const ExtrusionPath &path) {
-        // don't apply small perimeter setting for overhangs/bridges/non-perimeters
-        const bool is_small_peri = is_perimeter(path.role()) && !is_bridge(path.role()) && small_peri_speed > 0 &&
-                                   (path.get_overhang_degree() == 0 || path.get_overhang_degree() > 5);
-        return is_small_peri ? small_peri_speed : speed;
+        // don't apply small perimeter setting for bridge/non-perimeters
+        const bool is_small_peri = is_perimeter(path.role()) && !is_bridge(path.role()) && small_peri_speed > 0;
+        return !is_small_peri ? speed :
+            (speed == -1) ? small_peri_speed : std::min(small_peri_speed, speed);
     };
 
     //BBS: avoid overhang on conditional scarf mode
@@ -5949,7 +5948,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     double min_speed = double(m_config.slow_down_min_speed.get_at(m_writer.filament()->id()));
     // set speed
-    if (speed == -1) {
+    auto calc_speed_by_role = [&]() -> void {
         if (path.role() == erPerimeter) {
             speed = NOZZLE_CONFIG(inner_wall_speed);
             //reset speed by auto compensation speed
@@ -6007,7 +6006,16 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         } else {
             throw Slic3r::InvalidArgument("Invalid speed");
         }
-    }
+    };
+    if (speed == -1) // not set speed, calc it
+        calc_speed_by_role();
+    else if (speed > EPSILON && is_perimeter(path.role())) {
+        // for perimeter, use the min speed of small_perimeter_speed and path_role speed
+        double previous_speed = speed;
+        calc_speed_by_role();
+        speed = std::min(previous_speed, speed);
+    } //otherwise, keep previous speed in other conditions
+
     //BBS: if not set the speed, then use the filament_max_volumetric_speed directly
     double filament_max_volumetric_speed = FILAMENT_CONFIG(filament_max_volumetric_speed);
     if (FILAMENT_CONFIG(filament_adaptive_volumetric_speed)){
