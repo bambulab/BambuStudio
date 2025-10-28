@@ -6276,10 +6276,6 @@
         {
             "name": "Bambu Lab H2D Pro 0.8 nozzle",
             "sub_path": "machine/Bambu Lab H2D Pro 0.8 nozzle.json"
-        },
-        {
-            "name": "Bambu Lab O1C 0.4 nozzle",
-            "sub_path": "machine/Bambu Lab O1C 0.4 nozzle.json"
         }
     ],
     "process_list": [

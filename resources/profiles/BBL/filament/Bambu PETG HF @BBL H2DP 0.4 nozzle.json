@@ -108,6 +108,18 @@
         "0",
         "0"
     ],
+    "filament_ramming_volumetric_speed_nc": [
+        "-1",
+        "-1"
+    ],
+    "filament_pre_cooling_temperature_nc": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time_nc": [
+        "0",
+        "0"
+    ],
     "hole_coef_2": [
         "-0.006"
     ],
