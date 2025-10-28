@@ -842,7 +842,7 @@ public:
 
     /*get ams slot info*/
     bool    contains_tray(const std::string &ams_id, const std::string &tray_id) const;
-    DevAmsTray get_tray(const std::string &ams_id, const std::string &tray_id) const;/*use contains_tray() check first*/
+    std::optional<DevAmsTray> get_tray(const std::string &ams_id, const std::string &tray_id) const;/*use contains_tray() check first*/
 
     /*for parse new info*/
     bool check_enable_np(const json& print) const;

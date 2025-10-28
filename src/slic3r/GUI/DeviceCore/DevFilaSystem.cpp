@@ -104,7 +104,6 @@ std::string DevAmsTray::get_filament_type()
     return m_fila_type;
 }
 
-
 DevAms::DevAms(const std::string& ams_id, int extruder_id, AmsType type)
 {
     m_ams_id = ams_id;

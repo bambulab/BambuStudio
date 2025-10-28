@@ -463,6 +463,8 @@ public:
     void UpdateStatusCheckWarning_ExtensionTool(MachineObject* obj_);
     void CheckWarningRackStatus(MachineObject* obj_);
 
+    bool CheckErrorWarningFilamentMapping(MachineObject* obj_);//return true if no errors
+
     void update_ams_check(MachineObject* obj);
     void update_filament_change_count();
     void on_rename_click(wxMouseEvent &event);
