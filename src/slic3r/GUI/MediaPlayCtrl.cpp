@@ -643,6 +643,16 @@ void MediaPlayCtrl::ToggleStream()
                     .ShowModal();
                 return;
             }
+
+            if (url.find("agora") != std::string::npos && wxGetApp().app_config->get("not_show_agora_tips") != "1") {
+                MessageDialog msg_dlg(this->GetParent(),
+                                      _L("The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."),
+                                      _L("Information"), wxOK | wxICON_INFORMATION);
+                msg_dlg.show_dsa_button();
+                msg_dlg.ShowModal();
+                if (msg_dlg.get_checkbox_state()) wxGetApp().app_config->set("not_show_agora_tips", "1");
+            }
+
             std::string             file_url = data_dir() + "/cameratools/url.txt";
             boost::nowide::ofstream file(file_url);
             auto                    url2 = encode_path(url.c_str());
@@ -870,7 +880,7 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
         boost::filesystem::path start_dir(boost::filesystem::path(data_dir()) / "plugins");
 #ifdef __WXMSW__
         auto plugins_dir = boost::nowide::widen(data_dir()) + L"\\plugins\\";
-        for (auto dll : {L"BambuSource.dll", L"live555.dll"}) {
+        for (auto dll : {L"BambuSource.dll", L"live555.dll", L"agora_rtc_sdk.dll", L"libagora-core.dll", L"libagora-ffmpeg.dll", L"libagora-soundtouch.dll"}) {
             auto file_dll  = tools_dir + dll;
             auto file_dll2 = plugins_dir + dll;
             if (!boost::filesystem::exists(file_dll) || boost::filesystem::last_write_time(file_dll) != boost::filesystem::last_write_time(file_dll2))
