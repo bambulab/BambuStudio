@@ -20,6 +20,15 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+
+/* mac need the macro while including <boost/stacktrace.hpp>*/
+#ifdef  __APPLE__
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+#endif
+#include <boost/stacktrace.hpp>
+
 #include <wx/dir.h>
 #include "fast_float/fast_float.h"
 
@@ -497,6 +506,12 @@ MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::s
     slice_info(nullptr),
     m_is_online(false)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " called for dev_id=" << BBLCrossTalk::Crosstalk_DevId(id) << ", main_thread=" << wxThread::IsMain();
+    if (!wxThread::IsMain()) {
+        assert(false && "critical warning");
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "called from other thread, callstack: " << boost::stacktrace::stacktrace();
+    }
+
     m_manager = manager;
     m_agent = agent;
 
@@ -554,6 +569,12 @@ MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::s
 
 MachineObject::~MachineObject()
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " called for dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id()) << ", main_thread=" << wxThread::IsMain();
+    if (!wxThread::IsMain()) {
+        assert(false && "critical warning");
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " called from other thread, callstack: " << boost::stacktrace::stacktrace();
+    }
+
     if (subtask_) {
         delete subtask_;
         subtask_ = nullptr;
