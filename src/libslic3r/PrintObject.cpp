@@ -2933,7 +2933,13 @@ void PrintObject::bridge_over_infill()
 
 static void clamp_exturder_to_default(ConfigOptionInt &opt, size_t num_extruders)
 {
-    if (opt.value > (int)num_extruders)
+    if (opt.value > (int) num_extruders)
+        // assign the default extruder
+        opt.value = 1;
+}
+static void clamp_exturder_to_default_protect0(ConfigOptionInt &opt, size_t num_extruders)
+{
+    if (opt.value > (int) num_extruders)
         // assign the default extruder
         opt.value = 1;
     else if (opt.value < 1)
@@ -3043,9 +3049,9 @@ PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &defau
     }
 
     // Clamp invalid extruders to the default extruder (with index 1).
-    clamp_exturder_to_default(config.sparse_infill_filament,       num_extruders);
-    clamp_exturder_to_default(config.wall_filament,    num_extruders);
-    clamp_exturder_to_default(config.solid_infill_filament, num_extruders);
+    clamp_exturder_to_default_protect0(config.sparse_infill_filament, num_extruders);
+    clamp_exturder_to_default_protect0(config.wall_filament, num_extruders);
+    clamp_exturder_to_default_protect0(config.solid_infill_filament, num_extruders);
     if (config.sparse_infill_density.value < 0.00011f)
         // Switch of infill for very low infill rates, also avoid division by zero in infill generator for these very low rates.
         // See GH issue #5910.
