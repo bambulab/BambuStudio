@@ -574,6 +574,10 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
 
 void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
 {
+    if (!obj) {
+        return;
+    }
+
     //get filament id
     ams_filament_id = "";
     ams_setting_id = "";
@@ -584,36 +588,33 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
             auto filament_item = map_filament_items[into_u8(m_comboBox_filament->GetValue())];
             std::string filament_id = filament_item.filament_id;
             if (it->filament_id.compare(filament_id) == 0) {
-
-
                 //check is it in the filament blacklist
                 if (wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
-                    bool in_blacklist = false;
-                    std::string action;
-                    wxString info;
-                    std::string filamnt_type;
-                    std::string filamnt_name;
-                    it->get_filament_type(filamnt_type);
+                    DevFilaBlacklist::CheckFilamentInfo check_info;
+                    check_info.dev_id = obj->get_dev_id();
+                    check_info.model_id = obj->printer_type;
+                    check_info.fila_id = it->filament_id;
+                    it->get_filament_type(check_info.fila_type);
+                    check_info.fila_name = it->alias;
+                    check_info.ams_id = ams_id;
+                    check_info.slot_id = slot_id;
+                    check_info.nozzle_flow = obj->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id));
 
                     auto vendor = dynamic_cast<ConfigOptionStrings *>(it->config.option("filament_vendor"));
-
                     if (vendor && (vendor->values.size() > 0)) {
-                        std::string vendor_name = vendor->values[0];
-                        std::string nozzle_flow = obj->GetFilaSystem() ? obj->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id)) : std::string();
+                        check_info.fila_vendor = vendor->values[0];
 
-                        DevFilaBlacklist::check_filaments_in_blacklist(obj->printer_type, vendor_name, filamnt_type, it->filament_id, ams_id, slot_id, it->alias, nozzle_flow, in_blacklist, action, info);
-                    }
-
-                    if (in_blacklist) {
-                        if (action == "prohibition") {
-                            MessageDialog msg_wingow(nullptr, info, _L("Error"), wxICON_WARNING | wxOK);
-                            msg_wingow.ShowModal();
-                            //m_comboBox_filament->SetSelection(m_filament_selection);
-                            return;
-                        }
-                        else if (action == "warning") {
-                            MessageDialog msg_wingow(nullptr, info, _L("Warning"), wxICON_INFORMATION | wxOK);
-                            msg_wingow.ShowModal();
+                        auto result = DevFilaBlacklist::check_filaments_in_blacklist(check_info);
+                        if (result.in_blacklist) {
+                            if (result.action == "prohibition") {
+                                MessageDialog msg_wingow(nullptr, result.info_msg, _L("Error"), wxICON_WARNING | wxOK);
+                                msg_wingow.ShowModal();
+                                //m_comboBox_filament->SetSelection(m_filament_selection);
+                                return;
+                            } else if (result.action == "warning") {
+                                MessageDialog msg_wingow(nullptr, result.info_msg, _L("Warning"), wxICON_INFORMATION | wxOK);
+                                msg_wingow.ShowModal();
+                            }
                         }
                     }
                 }

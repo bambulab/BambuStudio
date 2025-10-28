@@ -46,24 +46,33 @@ bool DevFilaBlacklist::load_filaments_blacklist_config()
 
 
 
-static std::string _get_filament_name_from_ams(int ams_id, int slot_id)
+static std::string _get_filament_name_from_ams(const std::string& dev_id, int ams_id, int slot_id)
 {
     std::string name;
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) { return name; }
+    if (!dev) {
+        return name;
+    }
 
-    MachineObject* obj = dev->get_selected_machine();
-    if (obj == nullptr) { return name; }
+    MachineObject* obj = dev->get_my_machine(dev_id);
+    if (obj == nullptr) {
+        return name;
+    }
 
-    if (ams_id < 0 || slot_id < 0)
-    {
+    if (ams_id < 0 || slot_id < 0) {
         return name;
     }
 
     const auto tray = obj->get_tray(std::to_string(ams_id), std::to_string(slot_id));
-    if (!tray.is_tray_info_ready()) { return name; }
+    if (!tray.has_value()) {
+        return name;
+    }
 
-    std::string filament_id = tray.setting_id;
+    if (!tray->is_tray_info_ready()) {
+        return name;
+    }
+
+    std::string filament_id = tray->setting_id;
 
     PresetBundle* preset_bundle = GUI::wxGetApp().preset_bundle;
     auto          option = preset_bundle->get_filament_by_filament_id(filament_id);
@@ -72,12 +81,15 @@ static std::string _get_filament_name_from_ams(int ams_id, int slot_id)
 }
 
 // moved from tao.wang and zhimin.zeng
-void check_filaments(std::string  model_id,
+void check_filaments(const std::string& dev_id,
+                     std::string  model_id,
                      std::string  tag_vendor,
                      std::string  tag_type,
+                     const std::optional<bool>& fila_used_for_support,
                      int          ams_id,
                      int          slot_id,
                      std::string  tag_name,
+                     const std::optional<int>& extruder_id,
                      std::string  nozzle_flow,
                      bool& in_blacklist,
                      std::string& ac,
@@ -86,7 +98,7 @@ void check_filaments(std::string  model_id,
 {
     if (tag_name.empty())
     {
-        tag_name = _get_filament_name_from_ams(ams_id, slot_id);
+        tag_name = _get_filament_name_from_ams(dev_id, ams_id, slot_id);
     }
 
     in_blacklist = false;
@@ -106,7 +118,9 @@ void check_filaments(std::string  model_id,
             std::string name_suffix = filament_item.contains("name_suffix") ? filament_item["name_suffix"].get<std::string>() : "";
             std::string name = filament_item.contains("name") ? filament_item["name"].get<std::string>() : "";
             std::string slot = filament_item.contains("slot") ? filament_item["slot"].get<std::string>() : "";
+            std::optional<bool> used_for_print_support = filament_item.contains("used_for_print_support") ? filament_item["used_for_print_support"].get<bool>() : std::optional<bool>();
             std::vector<std::string> model_ids = filament_item.contains("model_id") ? filament_item["model_id"].get<std::vector<std::string>>() : std::vector<std::string>();
+            std::vector<int> extruder_ids = filament_item.contains("extruder_id") ? filament_item["extruder_id"].get<std::vector<int>>() : std::vector<int>();
             std::vector<std::string> nozzle_flows = filament_item.contains("nozzle_flows") ? filament_item["nozzle_flows"].get<std::vector<std::string>>() : std::vector<std::string>();
             std::string action = filament_item.contains("action") ? filament_item["action"].get<std::string>() : "";
             std::string description = filament_item.contains("description") ? filament_item["description"].get<std::string>() : "";
@@ -152,6 +166,11 @@ void check_filaments(std::string  model_id,
                 if ((tag_name.substr(tag_name.length() - name_suffix.length()) != name_suffix)) { continue; }
             }
 
+            // check filament used for print support
+            if (used_for_print_support != fila_used_for_support) {
+                continue;
+            }
+
             // check loc
             if (!slot.empty())
             {
@@ -166,6 +185,11 @@ void check_filaments(std::string  model_id,
                 {
                     continue;
                 }
+            }
+
+            // check extruder id
+            if(!extruder_ids.empty() && extruder_id.has_value() && std::find(extruder_ids.begin(), extruder_ids.end(), extruder_id.value()) == extruder_ids.end()){
+                continue;
             }
 
             in_blacklist = true;
@@ -187,38 +211,22 @@ void check_filaments(std::string  model_id,
             L("CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution.");
             L("PPS-CF is brittle and could break in bended PTFE tube above Toolhead.");
             L("PPA-CF is brittle and could break in bended PTFE tube above Toolhead.");
+            L("The filament may require slicing parameter adjustments.");
+            L("Using non-bambu filament may have printing quality issues.");
             L("Default settings may affect print quality. Adjust as needed for best results.");
         }
     }
 }
 
 
-
-void DevFilaBlacklist::check_filaments_in_blacklist(std::string model_id,
-                                                    std::string tag_vendor,
-                                                    std::string tag_type,
-                                                    const std::string& filament_id,
-                                                    int                ams_id,
-                                                    int                slot_id,
-                                                    std::string        tag_name,
-                                                    std::string        nozzle_flow,
-                                                    bool& in_blacklist,
-                                                    std::string& ac,
-                                                    wxString& info)
-{
-    wxString wiki_url;
-    check_filaments_in_blacklist_url(model_id, tag_vendor, tag_type, filament_id, ams_id, slot_id, tag_name, nozzle_flow, in_blacklist, ac, info, wiki_url);
-}
-
-
-bool check_filaments_printable(const std::string &tag_vendor, const std::string &tag_type, const std::string& filament_id, int ams_id, bool &in_blacklist, std::string &ac, wxString &info)
+bool check_filaments_printable(const std::string& dev_id, const std::string &tag_vendor, const std::string &tag_type, const std::string& filament_id, int ams_id, bool &in_blacklist, std::string &ac, wxString &info)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) {
         return true;
     }
 
-    MachineObject *obj = dev->get_selected_machine();
+    MachineObject* obj = dev->get_my_machine(dev_id);
     if (obj == nullptr || !obj->is_multi_extruders()) {
         return true;
     }
@@ -251,21 +259,24 @@ bool check_filaments_printable(const std::string &tag_vendor, const std::string 
     }
 
     return true;
-}
+};
 
-void DevFilaBlacklist::check_filaments_in_blacklist_url(std::string model_id, std::string tag_vendor, std::string tag_type, const std::string& filament_id, int ams_id, int slot_id, std::string tag_name, std::string nozzle_flow, bool& in_blacklist, std::string& ac, wxString& info, wxString& wiki_url)
+DevFilaBlacklist::CheckResult DevFilaBlacklist::check_filaments_in_blacklist(const CheckFilamentInfo& info)
 {
-    if (ams_id < 0 || slot_id < 0)
-    {
-        return;
+    CheckResult result;
+    if (info.ams_id < 0 || info.slot_id < 0) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": ERROR: check_filaments_in_blacklist invalid ams_id or slot_id";
+        return result;
     }
 
-    if (!check_filaments_printable(tag_vendor, tag_type, filament_id, ams_id, in_blacklist, ac, info))
-    {
-        return;
+    if (!check_filaments_printable(info.dev_id, info.fila_vendor, info.fila_type, info.fila_id, info.ams_id, result.in_blacklist, result.action, result.info_msg)) {
+        return result;
     }
 
-    check_filaments(model_id, tag_vendor, tag_type, ams_id, slot_id, tag_name, nozzle_flow, in_blacklist, ac, info, wiki_url);
-}
+    check_filaments(info.dev_id, info.model_id, info.fila_vendor, info.fila_type, info.used_for_print_support,
+                    info.ams_id, info.slot_id, info.fila_name, info.extruder_id, info.nozzle_flow, 
+                    result.in_blacklist, result.action, result.info_msg, result.wiki_url);
+    return result;
+};
 
 }

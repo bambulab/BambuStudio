@@ -75,6 +75,7 @@ public:
 
     wxColour    get_color()  const { return decode_color(color); };
 
+    std::string get_filament_id() const { return setting_id; }
     std::string get_display_filament_type() const;
     std::string get_filament_type();
 
