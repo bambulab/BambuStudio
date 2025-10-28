@@ -2036,8 +2036,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         auto layer_height_floor = *std::min_element(min_layer_height_from_nozzle.begin(), min_layer_height_from_nozzle.end());
         auto layer_height_ceil  = *std::max_element(max_layer_height_from_nozzle.begin(), max_layer_height_from_nozzle.end());
         float layer_height = m_config->opt_float("layer_height");
-        bool exceed_minimum_flag = layer_height < layer_height_floor;
-        bool exceed_maximum_flag = layer_height > layer_height_ceil;
+        bool exceed_minimum_flag = (layer_height_floor - layer_height) > EPSILON;
+        bool exceed_maximum_flag = (layer_height - layer_height_ceil) > EPSILON;
 
         if (exceed_maximum_flag || exceed_minimum_flag) {
             if(layer_height < EPSILON){
