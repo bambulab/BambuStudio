@@ -3951,14 +3951,19 @@ void StatusPanel::on_set_nozzle_temp(int nozzle_id)
     try {
         long nozzle_temp;
 
-        if (nozzle_id == MAIN_EXTRUDER_ID) {
-            const auto &nozzle_system = obj->GetNozzleSystem();
-            if (nozzle_system->GetNozzleRack()->IsSupported() && nozzle_system->GetExtNozzle(nozzle_id).IsEmpty()) {
-                MessageDialog msg_dlg(this, _L("Right extruder hotend not detected. Cannot set nozzle temperature."), _L("Warning"), wxICON_WARNING | wxOK);
-                msg_dlg.ShowModal();
-                return;
-            }
+        const auto& extder = obj->GetExtderSystem()->GetExtderById(nozzle_id);
+        if (!extder) {
+            return;
+        }
 
+        if (!extder->HasNozzleInstalled()) {
+            // en: The extruder hotend not detected. Cannot set nozzle temperature.
+            MessageDialog msg_dlg(this, _L("Right extruder hotend not detected. Cannot set nozzle temperature."), _L("Warning"), wxICON_WARNING | wxOK);
+            msg_dlg.ShowModal();
+            return;
+        }
+
+        if (nozzle_id == MAIN_EXTRUDER_ID) {
             wxString str = m_tempCtrl_nozzle->GetTextCtrl()->GetValue();
             if (str.ToLong(&nozzle_temp) && obj) {
                 set_hold_count(m_temp_nozzle_timeout);
