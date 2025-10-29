@@ -32,6 +32,14 @@
     "extruder_variant_list": [
         "Direct Drive Standard,Direct Drive High Flow"
     ],
+    "hotend_cooling_rate": [
+        "2",
+        "2"
+    ],
+    "hotend_heating_rate": [
+        "2",
+        "2"
+    ],
     "long_retractions_when_cut": [
         "0",
         "0"
@@ -141,6 +149,10 @@
     "nozzle_volume": [
         "107",
         "107"
+    ],
+    "nozzle_flush_dataset": [
+        "0",
+        "0"
     ],
     "printer_extruder_id": [
         "1",
