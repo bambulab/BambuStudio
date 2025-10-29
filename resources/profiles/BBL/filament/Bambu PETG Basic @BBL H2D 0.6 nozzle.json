@@ -5,15 +5,32 @@
     "from": "system",
     "setting_id": "GFSG00_16",
     "instantiation": "true",
-    "fan_max_speed": [
-        "60"
-    ],
     "fan_min_speed": [
         "20"
     ],
     "filament_max_volumetric_speed": [
-        "16",
-        "16"
+        "21",
+        "28"
+    ],
+    "filament_retraction_length": [
+        "0.4",
+        "0.4"
+    ],
+    "filament_wipe": [
+        "1",
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "1",
+        "1"
+    ],
+    "filament_z_hop": [
+        "0.2",
+        "0.2"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift",
+        "Spiral Lift"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -23,11 +40,11 @@
         "fdm_filament_template_direct_dual"
     ],
     "nozzle_temperature": [
-        "255",
+        "250",
         "255"
     ],
     "nozzle_temperature_initial_layer": [
-        "255",
+        "245",
         "255"
     ],
     "pre_start_fan_time": [

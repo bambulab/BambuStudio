@@ -5,11 +5,17 @@
     "from": "system",
     "setting_id": "GFSG00_00",
     "instantiation": "true",
-    "filament_max_volumetric_speed": [
+    "fan_max_speed": [
+        "50"
+    ],
+    "fan_min_speed": [
+        "20"
+    ],
+    "filament_long_retractions_when_cut": [
         "1",
         "1"
     ],
-    "filament_long_retractions_when_cut": [
+    "filament_max_volumetric_speed": [
         "1",
         "1"
     ],
@@ -33,8 +39,11 @@
         "255"
     ],
     "nozzle_temperature_initial_layer": [
-        "255",
-        "255"
+        "245",
+        "245"
+    ],
+    "overhang_fan_threshold": [
+        "25%"
     ],
     "retraction_distances_when_ec": [
         "0",
