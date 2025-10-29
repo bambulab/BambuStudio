@@ -8,7 +8,6 @@
     "nozzle_diameter": [
         "0.4"
     ],
-    "fan_direction": "left",
     "printer_model": "Bambu Lab X1",
     "printer_variant": "0.4",
     "auxiliary_fan": "0",
@@ -34,6 +33,15 @@
     ],
     "extruder_variant_list": [
         "Direct Drive Standard,Direct Drive High Flow"
+    ],
+    "fan_direction": "left",
+    "hotend_cooling_rate": [
+        "2",
+        "2"
+    ],
+    "hotend_heating_rate": [
+        "2",
+        "2"
     ],
     "long_retractions_when_cut": [
         "0",
@@ -144,6 +152,10 @@
     "nozzle_volume": [
         "107",
         "107"
+    ],
+    "nozzle_flush_dataset": [
+        "0",
+        "0"
     ],
     "printer_extruder_id": [
         "1",
