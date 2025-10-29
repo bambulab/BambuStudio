@@ -774,6 +774,7 @@ void AMSMaterialsSetting::set_empty_color(wxColour color)
 {
     m_clr_picker->is_empty(true);
     m_clr_picker->set_color(color);
+    m_clr_picker->set_colors({ color });
     m_clr_name->SetLabelText(wxEmptyString);
 }
 
@@ -799,8 +800,10 @@ void AMSMaterialsSetting::set_ctype(int ctype)
 
 void AMSMaterialsSetting::on_picker_color(wxCommandEvent& event)
 {
-    unsigned int color_num  = event.GetInt();
-    set_color(wxColour(color_num>>24&0xFF, color_num>>16&0xFF, color_num>>8&0xFF, color_num&0xFF));
+    unsigned int color_num = event.GetInt();
+    const wxColour& color = wxColour(color_num >> 24 & 0xFF, color_num >> 16 & 0xFF, color_num >> 8 & 0xFF, color_num & 0xFF);
+    set_color(color);
+    set_colors({ color });
 }
 
 void AMSMaterialsSetting::on_clr_picker(wxMouseEvent &event)
