@@ -29,6 +29,10 @@
     "filament_change_length_nc": [
         "4"
     ],
+    "filament_retract_length_nc": [
+        "18",
+        "18"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],

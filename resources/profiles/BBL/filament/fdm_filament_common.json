@@ -195,6 +195,9 @@
     "filament_ramming_travel_time_nc": [
         "0"
     ],
+    "filament_retract_length_nc": [
+        "14"
+    ],
     "hot_plate_temp": [
         "60"
     ],

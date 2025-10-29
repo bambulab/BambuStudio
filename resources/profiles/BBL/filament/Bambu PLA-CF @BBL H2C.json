@@ -19,6 +19,12 @@
         "18",
         "18"
     ],
+    "filament_prime_volume": [
+        "30"
+    ],
+    "filament_prime_volume_nc": [
+        "30"
+    ],
     "filament_pre_cooling_temperature_nc": [
         "200",
         "200"
@@ -31,17 +37,15 @@
         "1",
         "1"
     ],
-    "filament_prime_volume_nc": [
-        "30"
-    ],
     "filament_change_length": [
         "4"
     ],
     "filament_change_length_nc": [
         "4"
     ],
-    "filament_prime_volume": [
-        "30"
+    "filament_retract_length_nc": [
+        "18",
+        "18"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
