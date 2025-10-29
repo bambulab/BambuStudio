@@ -43,6 +43,10 @@
         "0",
         "0"
     ],
+    "filament_retract_length_nc": [
+        "14",
+        "14"
+    ],
     "filament_ramming_volumetric_speed": [
         "-1",
         "-1"
