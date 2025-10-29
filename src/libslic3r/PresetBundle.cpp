@@ -3260,31 +3260,55 @@ ConfigSubstitutions PresetBundle::load_config_file(const std::string &path, Forw
     return ConfigSubstitutions{};
 }
 
-
-//some filament presets split from one to sperate ones
-//following map recording these filament presets
-//for example: previously ''Bambu PLA Basic @BBL H2D 0.6 nozzle' was saved in ''Bambu PLA Basic @BBL H2D' with 0.4
-static std::map<std::string, std::map<std::string, std::string>> filament_preset_convert = {
-{"Bambu Lab H2D 0.6 nozzle", {{"Bambu PLA Basic @BBL H2D", "Bambu PLA Basic @BBL H2D 0.6 nozzle"},
-                              {"Bambu PLA Matte @BBL H2D", "Bambu PLA Matte @BBL H2D 0.6 nozzle"},
-                              {"Bambu ABS @BBL H2D", "Bambu ABS @BBL H2D 0.6 nozzle"}}},
-{"Bambu Lab H2D 0.8 nozzle", {{"Bambu PETG HF @BBL H2D 0.6 nozzle", "Bambu PETG HF @BBL H2D 0.8 nozzle"},
-                              {"Bambu ASA @BBL H2D 0.6 nozzle", "Bambu ASA @BBL H2D 0.8 nozzle"}}}
-};
-
-//convert the old filament preset to new one after split
-void convert_filament_preset_name(std::string& machine_name, std::string& filament_name)
+// some filament presets split from one to sperate ones
+// following map recording these filament presets
+// for example: previously ''Bambu PLA Basic @BBL H2D 0.6 nozzle' was saved in ''Bambu PLA Basic @BBL H2D' with 0.4
+bool find_filament_preset_map_name(std::string machine_name, std::string filament_old_name, std::string &filament_new_name)
 {
-    auto machine_iter = filament_preset_convert.find(machine_name);
-    if (machine_iter != filament_preset_convert.end())
-    {
-        std::map<std::string, std::string>& filament_maps = machine_iter->second;
-        auto filament_iter = filament_maps.find(filament_name);
-        if (filament_iter != filament_maps.end())
-        {
-            filament_name = filament_iter->second;
+    static std::map<std::string, std::map<std::string, std::string>> filament_preset_convert;
+
+    if (filament_preset_convert.empty()) {
+        namespace fs  = boost::filesystem;
+        fs::path path = fs::path(Slic3r::resources_dir()) / "profiles" / "BBL" / "filament" / "filament_name_map.json";
+
+        std::ifstream file(path.string());
+        if (!file.is_open()) {
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format("Failed to open filament preset map: %1%") % path.string();
+            return false;
+        }
+
+        json j;
+        try {
+            file >> j;
+        } catch (const std::exception &e) {
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format("JSON parse error: %1%") % e.what();
+            return false;
+        }
+
+        for (auto &[printer_name, filament_json] : j.items()) {
+            std::map<std::string, std::string> inner_map;
+            for (auto &[old_name, new_name] : filament_json.items()) inner_map[old_name] = new_name;
+            filament_preset_convert[printer_name] = std::move(inner_map);
         }
     }
+
+    auto machine_iter = filament_preset_convert.find(machine_name);
+    if (machine_iter != filament_preset_convert.end()) {
+        std::map<std::string, std::string> &filament_maps = machine_iter->second;
+        auto                                filament_iter = filament_maps.find(filament_old_name);
+        if (filament_iter != filament_maps.end()) {
+            filament_new_name = filament_iter->second;
+            return true;
+        }
+    }
+    return false;
+}
+
+// convert the old filament preset to new one after split
+void convert_filament_preset_name(std::string &machine_name, std::string &filament_name)
+{
+    std::string filament_new_name;
+    if (find_filament_preset_map_name(machine_name, filament_name, filament_new_name)) filament_name = filament_new_name;
 }
 // Load a config file from a boost property_tree. This is a private method called from load_config_file.
 // is_external == false on if called from ConfigWizard
