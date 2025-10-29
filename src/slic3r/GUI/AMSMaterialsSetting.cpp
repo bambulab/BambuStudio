@@ -907,7 +907,13 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     std::set<std::string> filament_id_set;
     PresetBundle *        preset_bundle = wxGetApp().preset_bundle;
     std::ostringstream    stream;
-    stream << std::fixed << std::setprecision(1) << obj->GetExtderSystem()->GetNozzleDiameter(0);
+    int extruder_id = obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
+    if (!obj->GetExtderSystem()->GetExtderById(extruder_id))
+    {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " get extruder id failed";
+        extruder_id = 0;
+    }
+    stream << std::fixed << std::setprecision(1) << obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
     std::string nozzle_diameter_str = stream.str();
     std::set<std::string> printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(DevPrinterConfigUtil::get_printer_display_name(obj->printer_type), nozzle_diameter_str);
 
