@@ -11,6 +11,9 @@
     "printer_model": "Bambu Lab P1S",
     "printer_variant": "0.6",
     "default_print_profile": "0.30mm Standard @BBL X1C 0.6 nozzle",
+    "default_filament_profile": [
+        "Bambu PLA Basic @BBL P1S 0.6 nozzle"
+    ],
     "max_layer_height": [
         "0.42"
     ],
