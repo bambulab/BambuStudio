@@ -47,7 +47,7 @@ public:
     wxString GetDisplayName() const;
 
     // installed nozzle info
-    bool           HasNozzleInstalled() const = delete;//{ return m_has_nozzle; }
+    bool           HasNozzleInstalled() const  { return m_has_nozzle; }
 
     int            GetNozzleId() const { return m_current_nozzle_id; }
     int            GetTargetNozzleId() const = delete;//{ return m_target_nozzle_id; }
