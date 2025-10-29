@@ -4687,10 +4687,10 @@ bool MachineObject::contains_tray(const std::string &ams_id, const std::string &
     return false;
 }
 
+/*use contains_tray or is_tray_info_ready to check*/
 DevAmsTray MachineObject::get_tray(const std::string &ams_id, const std::string &tray_id) const
 {
-    if (ams_id.empty() && tray_id.empty())
-    {
+    if (ams_id.empty() && tray_id.empty()) {
         return DevAmsTray(tray_id);
     }
 
@@ -4704,7 +4704,6 @@ DevAmsTray MachineObject::get_tray(const std::string &ams_id, const std::string 
         }
     }
 
-    assert(0);/*use contains_tray() check first*/
     return DevAmsTray(tray_id);
 }
 

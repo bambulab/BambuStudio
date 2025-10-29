@@ -4551,7 +4551,7 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
     for (auto slicing_nozzle : nozzle_vec) {
         try {
             NozzleDef data;
-            data.nozzle_diameter = stof(slicing_nozzle.diameter);
+            data.nozzle_diameter = boost::lexical_cast<float>(slicing_nozzle.diameter);
             data.nozzle_flow_type = (slicing_nozzle.volume_type == NozzleVolumeType::nvtHighFlow ? NozzleFlowType::H_FLOW : NozzleFlowType::S_FLOW);
             need_nozzle_map[data]++;
         } catch (const std::exception& e) {

@@ -33,16 +33,24 @@ static int s_get_physical_extruder_id(int total_ext_count, int logical_extruder_
 
 static std::string  s_get_diameter_str(float diameter)
 {
-    return wxString::Format("%.2f", diameter).ToUTF8().data();
+    return (boost::format("%.2f") % diameter).str();
 }
 
 static std::string s_get_diameter_str(const std::string& diameter)
 {
     try {
+        float dia = boost::lexical_cast<float>(diameter);
+        return s_get_diameter_str(dia);
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " failed to boost::lexical_cast: " << diameter;
+        return diameter;
+    }
+
+    try {
         float dia = std::stof(diameter);
         return s_get_diameter_str(dia);
     } catch (...) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " failed to convert: " << diameter;
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " std::stof: " << diameter;
         return diameter;
     }
 }
