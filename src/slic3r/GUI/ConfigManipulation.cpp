@@ -223,16 +223,26 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     //BBS: limite the max layer_herght
-    if (config->opt_float("layer_height") > 0.6 + EPSILON)
-    {
+    if (config->opt_float("layer_height") > 0.6 + EPSILON) {
         const wxString msg_text = _(L("Too large layer height.\nReset to 0.2"));
-        MessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
-        DynamicPrintConfig new_conf = *config;
-        is_msg_dlg_already_exist = true;
-        dialog.ShowModal();
-        new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.2));
-        apply(config, &new_conf);
-        is_msg_dlg_already_exist = false;
+        if (wxGetApp().app_config->get("developer_mode") == "true") {
+            MessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxYES_NO);
+            is_msg_dlg_already_exist = true;
+            if (dialog.ShowModal() == wxID_YES) {
+                DynamicPrintConfig new_conf = *config;
+                new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.2));
+                apply(config, &new_conf);
+            }
+            is_msg_dlg_already_exist = false;
+        } else {
+            MessageDialog      dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
+            DynamicPrintConfig new_conf = *config;
+            is_msg_dlg_already_exist    = true;
+            dialog.ShowModal();
+            new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.2));
+            apply(config, &new_conf);
+            is_msg_dlg_already_exist = false;
+        }
     }
 
     //limit scarf start height
