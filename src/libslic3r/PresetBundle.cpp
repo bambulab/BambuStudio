@@ -3391,7 +3391,8 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     if (this->extruder_ams_counts.empty())
         this->extruder_ams_counts = get_extruder_ams_count(extruder_ams_count);
 
-    if (auto nozzle_stats_ptr = config.option<ConfigOptionStrings>("extruder_nozzle_stats")) {
+    if (auto nozzle_stats_ptr = config.option<ConfigOptionStrings>("extruder_nozzle_stats");
+        nozzle_stats_ptr && !std::any_of(nozzle_stats_ptr->values.begin(), nozzle_stats_ptr->values.end(), [](const std::string& elem) {return elem.empty(); })) {
         this->extruder_nozzle_stat = ExtruderNozzleStat(get_extruder_nozzle_stats(nozzle_stats_ptr->values));
     }
     else {
