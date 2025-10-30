@@ -24,7 +24,7 @@
 #include <algorithm> // std::sort
 #include <cstdlib>
 #include <tuple> // std::make_tuple std::get<>
-
+#include <stdint.h>  // uint32_t definition
 
     double square_root(const double& number)
     {
