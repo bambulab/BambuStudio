@@ -1486,7 +1486,11 @@ bool PartPlate::check_mixture_filament_compatible(const DynamicPrintConfig &conf
     auto                     filament_type_opt = config.option<ConfigOptionStrings>("filament_type");
     for (auto filament : used_filaments) {
         int filament_idx = filament - 1;
-        filament_types.push_back(filament_type_opt->values[filament_idx]);
+        if (filament_idx >= 0 && filament_type_opt && filament_idx < filament_type_opt->values.size()) {
+            filament_types.push_back(filament_type_opt->values[filament_idx]);
+        } else {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "todo:check this case" ;
+        }
     };
 
     {
