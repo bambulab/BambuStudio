@@ -563,7 +563,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
                         _L("This process determines the dynamic flow values to improve overall print quality.\n*Automatic mode: Skip if the filament was calibrated recently."),
                         ops_auto, "flow_cali");
     option_flow_dynamics_cali->Bind(EVT_SWITCH_PRINT_OPTION, &SelectMachineDialog::on_flow_pa_caliation_option_changed, this);
-    
+
     auto option_nozzle_offset_cali_cali  = new PrintOption(
         m_options_other,
         _L("Nozzle Offset Calibration"),
@@ -1653,7 +1653,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusRackReading ||
-               status == PrintDialogStatus::PrintStatusNozzleNoMatchedHotends || 
+               status == PrintDialogStatus::PrintStatusNozzleNoMatchedHotends ||
                status == PrintDialogStatus::PrintStatusNozzleRackMaximumInstalled ||
                status == PrintDialogStatus::PrintStatusRackNozzleMappingWaiting) {
         Enable_Refresh_Button(true);
@@ -1869,6 +1869,8 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
         auto tid = m_ams_mapping_result[i].tray_id;
 
+        auto option = GUI::wxGetApp().preset_bundle->get_filament_by_filament_id(m_ams_mapping_result[i].filament_id);
+        std::string filament_name = option ? option->filament_name : "";
         std::string filament_type = boost::to_upper_copy(m_ams_mapping_result[i].type);
         std::string filament_brand;
 
@@ -1884,7 +1886,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         wxString wiki_url;
         std::string nozzle_flow = obj_->GetFilaSystem() ? obj_->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id)) : std::string();
 
-        DevFilaBlacklist::check_filaments_in_blacklist_url(obj_->printer_type, filament_brand, filament_type, m_ams_mapping_result[i].filament_id, ams_id, slot_id, "", nozzle_flow, in_blacklist,
+        DevFilaBlacklist::check_filaments_in_blacklist_url(obj_->printer_type, filament_brand, filament_type, m_ams_mapping_result[i].filament_id, ams_id, slot_id, filament_name, nozzle_flow, in_blacklist,
                                                         action, info, wiki_url);
         if (in_blacklist && action == "warning") {
             confirm_text.push_back(ConfirmBeforeSendInfo(info, wiki_url));
@@ -3240,7 +3242,7 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         show_status(PrintDialogStatus::PrintStatusNoSdcard);
         return;
     }
-    if (wxGetApp().preset_bundle->filament_presets.size() > 16 && m_print_type != PrintFromType::FROM_SDCARD_VIEW) { 
+    if (wxGetApp().preset_bundle->filament_presets.size() > 16 && m_print_type != PrintFromType::FROM_SDCARD_VIEW) {
         if (!obj_->is_enable_ams_np && !obj_->is_enable_np)
         {
             show_status(PrintDialogStatus::PrintStatusColorQuantityExceed);
@@ -3309,6 +3311,9 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
 
         auto tid = m_ams_mapping_result[i].tray_id;
 
+        auto option = GUI::wxGetApp().preset_bundle->get_filament_by_filament_id(m_ams_mapping_result[i].filament_id);
+        std::string filament_name = option ? option->filament_name : "";
+
         std::string filament_type = boost::to_upper_copy(m_ams_mapping_result[i].type);
         std::string filament_brand;
 
@@ -3322,7 +3327,7 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         wxString wiki_url;
         std::string nozzle_flow = obj_->GetFilaSystem() ? obj_->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id)) : std::string();
 
-        DevFilaBlacklist::check_filaments_in_blacklist_url(obj_->printer_type, filament_brand, filament_type, m_ams_mapping_result[i].filament_id, ams_id, slot_id, "", nozzle_flow, in_blacklist,
+        DevFilaBlacklist::check_filaments_in_blacklist_url(obj_->printer_type, filament_brand, filament_type, m_ams_mapping_result[i].filament_id, ams_id, slot_id, filament_name, nozzle_flow, in_blacklist,
                                                         action, info, wiki_url);
         if (in_blacklist) {
 
@@ -3338,7 +3343,7 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         }
     }
 
-    if (!CheckErrorSyncNozzleMappingResult(obj_)) /*check nozzle mapping result for rack*/ { 
+    if (!CheckErrorSyncNozzleMappingResult(obj_)) /*check nozzle mapping result for rack*/ {
         return;
     }
 
@@ -4788,7 +4793,7 @@ bool SelectMachineDialog::CheckErrorExtruderNozzleWithSlicing(MachineObject* obj
                     show_status(PrintDialogStatus::PrintStatusNozzleTypeMismatch, error_msg);
                     return false;
                 }
-            } 
+            }
         }
     }
 
@@ -5818,7 +5823,7 @@ void NozzleStatePanel::UpdateGui()
 
     auto installed_r_nozzles = m_installed_nozzles[MAIN_EXTRUDER_ID];
     for (auto item : installed_r_nozzles) {
-        
+
         slicing_vbox->AddSpacer(FromDIP(3));
         installed_vbox->Add(s_create_hcontent(this, _L("Right"), item.first, item.second), wxALIGN_LEFT);
     }
