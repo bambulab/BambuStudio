@@ -35,9 +35,6 @@
         "Spiral Lift",
         "Spiral Lift"
     ],
-    "first_x_layer_fan_speed": [
-        "40"
-    ],
     "filament_ramming_travel_time": [
         "0",
         "0"
