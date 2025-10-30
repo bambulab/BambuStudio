@@ -646,6 +646,7 @@ int GuideFrame::SaveProfile()
         m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", false);
 
     m_MainPtr->app_config->set("region", m_Region);
+    wxGetApp().update_log_sink_region();
 
     //finish
     if (m_GuideFinish)

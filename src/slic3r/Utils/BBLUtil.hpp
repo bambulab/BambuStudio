@@ -21,4 +21,23 @@ private:
     static std::string Crosstalk_ChannelName(const std::string& str);
 };
 
-} // namespace Slic3r
+class BBL_Encrypt
+{
+public:
+    BBL_Encrypt() = delete;
+    ~BBL_Encrypt() = delete;
+
+public:
+    static bool AESEncrypt(unsigned char* src, unsigned src_len, unsigned char* encrypt,
+                           unsigned& out_len, const std::string& fixed_key);
+    static bool AESDecrypt(unsigned char* encrypt, unsigned encrypt_len, unsigned char* src,
+                           unsigned& out_len, const std::string& fixed_key);
+
+    // warning: the len should be multiple of AES_BLOCK_SIZE
+    static bool AES256CBC_Encrypt(unsigned char* src, unsigned src_len, unsigned char* encrypt,
+                                  unsigned& out_len, const std::string& key, const std::string& iv);
+    static bool AES256CBC_Decrypt(unsigned char* encrypt, unsigned encrypt_len, unsigned char* src,
+                                  unsigned& out_len, const std::string& key, const std::string& iv);
+};
+
+}; // namespace Slic3r

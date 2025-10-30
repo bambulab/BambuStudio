@@ -720,6 +720,8 @@ public:
     void set_picking_color(const ColorRGB& color);
     const ColorRGB& get_picking_color() const;
 
+    void update_log_sink_region();
+
 private:
     int             updating_bambu_networking();
     bool            on_init_inner();
