@@ -329,6 +329,7 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
             } else {
                 wxGetApp().request_user_logout();
                 config->set("region", region.ToStdString());
+                wxGetApp().update_log_sink_region();
                 auto area = config->get_country_code();
                 if (agent) {
                     agent->set_country_code(area);
@@ -337,6 +338,7 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
             }
         } else {
             config->set("region", region.ToStdString());
+            wxGetApp().update_log_sink_region();
         }
         wxGetApp().update_publish_status();
         //e.Skip();
