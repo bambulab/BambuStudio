@@ -930,6 +930,12 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         }
 
         if (need_travel_after_change_filament_gcode) {
+            // After a filament change, the travel path leading to the wipe tower:
+            // start_point inside the previous printed object,
+            // end_point at the tower¡¯s start_pos or at the starting point of the tower¡¯s detour path.
+            // In this case, disable ¡°avoid crossing perimeters¡± to prevent inserting additional path points inside the previous printed object.
+            gcodegen.m_avoid_crossing_perimeters.disable_once();
+
             // move to start_pos for wiping after toolchange
             if (!is_used_travel_avoid_perimeter) {
                 std::string start_pos_str = gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, tool_change_start_pos + plate_origin_2d), erMixed, "Move to start pos");
