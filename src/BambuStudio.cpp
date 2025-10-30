@@ -6505,19 +6505,27 @@ int CLI::run(int argc, char **argv)
                             }
                         }
 
-                        //set filament_map
-                        std::vector<int>& final_filament_maps = new_print_config.option<ConfigOptionInts>("filament_map", true)->values;
-                        if (final_filament_maps.size() < filament_count)
-                            final_filament_maps.resize(filament_count, 1);
-                        if (new_extruder_count == 1) {
-                            for (int index = 0; index < filament_count; index++)
-                                final_filament_maps[index] = 1;
-                            part_plate->set_filament_maps(final_filament_maps);
-                        }
                         if(!new_print_config.has("nozzle_volume_type")) {
                             //set default nozzle_volume_type
                             ConfigOptionEnumsGeneric* final_nozzle_volume_type_opt = new_print_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type", true);
                             final_nozzle_volume_type_opt->values.resize(new_extruder_count, nvtStandard);
+                        }
+
+                        //set filament_map
+                        std::vector<int>& final_filament_maps = new_print_config.option<ConfigOptionInts>("filament_map", true)->values;
+                        std::vector<int>& final_volume_maps = new_print_config.option<ConfigOptionInts>("filament_volume_map", true)->values;
+                        int default_extruder_id = 1; // 1 based;
+                        if (final_filament_maps.size() < filament_count)
+                            final_filament_maps.resize(filament_count, default_extruder_id);
+                        if (final_volume_maps.size() < filament_count)
+                            final_volume_maps.resize(filament_count, new_print_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values[default_extruder_id - 1]); // default use volume type for left extruder
+                        if (new_extruder_count == 1) {
+                            for (int index = 0; index < filament_count; index++) {
+                                final_filament_maps[index] = default_extruder_id;
+                                final_volume_maps[index] = new_print_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values[default_extruder_id - 1];
+                            }
+                            part_plate->set_filament_maps(final_filament_maps);
+                            part_plate->set_filament_volume_maps(final_volume_maps);
                         }
 
                         print->apply(model, new_print_config);
