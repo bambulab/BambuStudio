@@ -914,6 +914,8 @@ void CalibrationPresetPage::init_selection_values()
 
 void CalibrationPresetPage::init_filament_list_tips(){
     m_tips_map["base"] = std::make_pair(true, _L("Tips for calibration material: \n- Materials that can share same hot bed temperature\n- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)\n"));
+    m_tips_map["bowden_right"] = std::make_pair(false, _L("- Right Nozzle (Aux) does not support automatic flow calibration."));
+    m_tips_map["bowden_left"] = std::make_pair(false, _L("- Left Nozzle (Aux) does not support automatic flow calibration."));
     m_tips_map["rack"] = std::make_pair(false, _L("- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"));
 }
 
@@ -2477,15 +2479,20 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
 void CalibrationPresetPage::disable_bowden_extuder_auto_dyn_cali(wxWindow* cali_panel){
     // only support one extruder is bowden
     if ((m_cali_method == CalibrationMethod::CALI_METHOD_AUTO || m_cali_method == CalibrationMethod::CALI_METHOD_NEW_AUTO) && get_extruder_type(MAIN_EXTRUDER_ID) == ExtruderType::etBowden) {
-        m_filament_list_tips->SetLabel(_L("Tips for calibration material: \n- Materials that can share same hot bed temperature\n- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)\n- Right Nozzle (Aux) does not support automatic flow calibration."));
+        m_tips_map["bowden_left"].first = false;
+        m_tips_map["bowden_right"].first = true;
         cali_panel->Disable();
     } else if ((m_cali_method == CalibrationMethod::CALI_METHOD_AUTO || m_cali_method == CalibrationMethod::CALI_METHOD_NEW_AUTO) && get_extruder_type(DEPUTY_EXTRUDER_ID) == ExtruderType::etBowden) {
-        m_filament_list_tips->SetLabel(_L("Tips for calibration material: \n- Materials that can share same hot bed temperature\n- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)\n- Left Nozzle (Aux) does not support automatic flow calibration."));
+        m_tips_map["bowden_left"].first = true;
+        m_tips_map["bowden_right"].first = false;
         cali_panel->Disable();
     } else {
-        m_filament_list_tips->SetLabel(_L("Tips for calibration material: \n- Materials that can share same hot bed temperature\n- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"));
+        m_tips_map["bowden_left"].first = false;
+        m_tips_map["bowden_right"].first = false;
         cali_panel->Enable();
     }
+
+    m_filament_list_tips->SetLabel(get_filament_tips());
 }
 
 void CalibrationPresetPage::update_nozzle_id_combox()
