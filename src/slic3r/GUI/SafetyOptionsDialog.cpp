@@ -210,7 +210,7 @@ wxBoxSizer* SafetyOptionsDialog::create_settings_group(wxWindow* parent)
 
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_idel_heating_protection = new CheckBox(m_idel_heating_container);
-    m_text_idel_heating_protection = new Label(m_idel_heating_container, _L("Idel Heating Protection"));
+    m_text_idel_heating_protection = new Label(m_idel_heating_container, _L("Idle Heating Protection"));
     m_text_idel_heating_protection->SetFont(Label::Body_14);
     line_sizer->AddSpacer(FromDIP(5));
     line_sizer->Add(m_cb_idel_heating_protection, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
