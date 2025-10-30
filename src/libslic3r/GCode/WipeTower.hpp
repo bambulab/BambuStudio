@@ -339,6 +339,7 @@ public:
         std::pair<std::vector<float>,std::vector<float>>  precool_t;//Pre-cooling time, set to 0 to ensure the ramming speed is controlled solely by ramming volumetric speed.
         std::pair<std::vector<float>, std::vector<float>> precool_t_first_layer;
         std::pair<int,int>    precool_target_temp;
+        float filament_cooling_before_tower = 0.f;
     };
 
 
@@ -466,7 +467,7 @@ private:
     //bool            m_set_extruder_trimpot      = false;
     bool            m_adhesion                  = true;
     GCodeFlavor     m_gcode_flavor;
-
+    bool                      m_is_multiple_nozzle = false;
     std::vector<unsigned int> m_normal_accels;
     std::vector<unsigned int> m_first_layer_normal_accels;
     std::vector<unsigned int> m_travel_accels;
@@ -474,6 +475,7 @@ private:
     unsigned int              m_max_accels;
     bool                      m_accel_to_decel_enable;
     float                     m_accel_to_decel_factor;
+    std::vector<double>       m_hotend_heating_rate;
 
     // Bed properties
     enum {
