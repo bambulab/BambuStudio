@@ -2246,7 +2246,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     first_non_support_filaments.resize(print.config().nozzle_diameter.size(), -1);
     first_filaments.resize(print.config().nozzle_diameter.size(), -1);
     float max_additional_fan = 0.f;
-    if (print.config().print_sequence == PrintSequence::ByObject) {
+    if (print.config().print_sequence == PrintSequence::ByObject && print.objects().size()>1) {
         // Order object instances for sequential print.
         print_object_instances_ordering = sort_object_instances_by_model_order(print);
 //        print_object_instances_ordering = sort_object_instances_by_max_z(print);
