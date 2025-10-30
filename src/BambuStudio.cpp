@@ -5395,6 +5395,10 @@ int CLI::run(int argc, char **argv)
                         float w = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("prime_tower_width"))->value;
                         float a = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("wipe_tower_rotation_angle"))->value;
                         std::vector<double> v = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("filament_prime_volume"))->values;
+                        if (m_print_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode", true)->value == pvmSaving) {
+                            for (auto& val : v)
+                                val = 15.f;
+                        }
                         unsigned int filaments_cnt = plate_data_src[plate_to_slice-1]->slice_filaments_info.size();
                         if ((filaments_cnt == 0) || need_skip)
                         {
