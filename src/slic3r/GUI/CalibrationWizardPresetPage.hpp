@@ -301,10 +301,6 @@ protected:
     void init_filament_list_tips();
     wxString get_filament_tips();
 
-    std::map<std::string, std::pair<bool, wxString>> m_tips_map;
-    void init_filament_list_tips();
-    wxString get_filament_tips();
-
     CaliPresetPageStatus  get_status() { return m_page_status; }
 
     CaliPageStepGuide* m_step_panel{ nullptr };
