@@ -28,6 +28,7 @@ public:
     std::vector<int> GetRightHighFlowFilaments() const { return m_right_panel->GetHighFlowFilaments(); }
     std::vector<int> GetRightStandardFilaments() const { return m_right_panel->GetStandardFilaments(); }
     void UpdateNozzleVolumeType();
+    void UpdateNozzleCountDisplay();
 
     void Hide();
     void Show();
@@ -37,12 +38,14 @@ private:
     void OnSwitchFilament(wxCommandEvent &);
     void SyncPanelHeights();
     void OnDragDropCompleted(wxCommandEvent &evt);
+    void OnSuggestionClicked(wxCommandEvent& event);
     DragDropPanel *m_left_panel;
     SeparatedDragDropPanel *m_right_panel;
 
     Label *m_description;
     Label *m_tips;
     Label *m_errors;
+    wxPanel *m_suggestion_panel;
 
     ScalableButton *m_switch_btn;
 
