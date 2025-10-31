@@ -2619,7 +2619,7 @@ int CLI::run(int argc, char **argv)
                         flush_and_exit(CLI_CONFIG_FILE_ERROR);
                     }
 
-                    if ((config_name != current_filaments_system_name[index]) || (config_name != converted_filaments_system_name[index])) {
+                    if ((config_name != current_filaments_system_name[index]) && (config_name != converted_filaments_system_name[index])) {
                         BOOST_LOG_TRIVIAL(error) << boost::format("wrong filament config file %1% loaded, current filament config name %2%, index %3%")%config_name %current_filaments_system_name[index] %index;
                         record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
                         flush_and_exit(CLI_CONFIG_FILE_ERROR);
