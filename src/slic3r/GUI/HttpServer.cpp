@@ -146,6 +146,16 @@ static bool is_http_scheme(const std::string& url)
     return url.rfind("http://", 0) == 0 || url.rfind("https://", 0) == 0;
 }
 
+static HttpReqType parse_request_type(const boost::beast::http::request<boost::beast::http::string_body>& req)
+{
+    std::string target = req.target();
+    if (boost::starts_with(target, "/refresh_token")) {
+        return HttpReqType::RefreshToken;
+    }
+
+    return HttpReqType::Login;
+}
+
 static std::optional<LoginParams>
 parse_login_params(const boost::beast::http::request<boost::beast::http::string_body>& req)
 {
@@ -227,7 +237,7 @@ void session::do_write_302(LoginParams params, bool result)
         });
 }
 
-void session::handle_request()
+void session::handle_login()
 {
     using namespace boost::beast;
     using http::field;
@@ -262,6 +272,97 @@ void session::handle_request()
     else {
         BOOST_LOG_TRIVIAL(info) << "third_party_login: login param empty, login failed";
         do_write_404();
+    }
+}
+
+void session::send_text_response(const std::string& text_data)
+{
+    using namespace boost::beast;
+    using http::field;
+    using http::status;
+    using http::string_body;
+
+    auto res = std::make_shared<http::response<string_body>>(status::ok, 11);
+    res->set(field::content_type, "text/plain; charset=utf-8");
+    res->keep_alive(false);
+    res->body() = text_data;
+    res->prepare_payload();
+
+    auto self = shared_from_this();
+    http::async_write(socket_, *res, [self, res](boost::beast::error_code ec, std::size_t bytes_transferred) {
+        if (!ec) {
+            BOOST_LOG_TRIVIAL(info) << "Successfully sent " << bytes_transferred << " bytes response";
+            boost::system::error_code ignored_ec;
+            self->socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, ignored_ec);
+        } else {
+            BOOST_LOG_TRIVIAL(error) << "Failed to send response: " << ec.message();
+        }
+    });
+}
+
+static void refresh_agora_url(char const* device, char const* dev_ver, char const* channel, std::shared_ptr<session> sess)
+{
+    std::string device2 = device;
+    device2 += "|";
+    device2 += dev_ver;
+    device2 += "|\"agora\"|";
+    device2 += channel;
+    wxGetApp().getAgent()->get_camera_url(device2,  [sess](std::string url) {
+        sess->send_text_response(url);
+    });
+}
+
+void session::handle_refresh_token()
+{
+    BOOST_LOG_TRIVIAL(info) << "new request received: refresh token";
+
+    struct refresh_token_params
+    {
+        std::string device;
+        std::string dev_ver;
+        std::string channel;
+    } out;
+
+    std::string target = req_.target(); // "/refresh_token?device=...&dev_ver=...&channel=..."
+    size_t qpos = target.find('?');
+    if (qpos == std::string::npos) {
+        BOOST_LOG_TRIVIAL(info) << "refresh token: invalid format";
+        return;
+    }
+    std::string query = target.substr(qpos + 1);
+
+    auto params = parse_query(query);
+
+    if (auto it = params.find("did"); it != params.end())
+        out.device = url_decode(it->second);
+    if (auto it = params.find("dver"); it != params.end())
+        out.dev_ver = url_decode(it->second);
+    if (auto it = params.find("dcha"); it != params.end())
+        out.channel = url_decode(it->second);
+
+    if (out.device.empty() || out.dev_ver.empty() || out.channel.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "refresh token: refresh token param empty, refresh failed";
+        do_write_404();
+        return;
+    }
+
+    refresh_agora_url(out.device.c_str(), out.dev_ver.c_str(), out.channel.c_str(), shared_from_this());
+}
+
+void session::handle_request()
+{
+    HttpReqType req_type = parse_request_type(req_);
+    switch (req_type) {
+    case HttpReqType::RefreshToken:
+        handle_refresh_token();
+        break;
+    case HttpReqType::Login:
+        handle_login();
+        break;
+    default:
+        BOOST_LOG_TRIVIAL(info) << "Unknown request type";
+        do_write_404();
+        break;
     }
 }
 
