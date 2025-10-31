@@ -2265,14 +2265,6 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comSimple;
     def->set_default_value(new ConfigOptionFloats{60.});
 
-    def = this->add("filament_cooling_before_tower", coFloats);
-    def->label  = L("Wipe tower cooling");
-    def->tooltip = L("Temperature drop before entering filament tower");
-    def->sidetext = "°C";
-    def->mode = comDevelop;
-    def->nullable = true;
-    def->set_default_value(new ConfigOptionFloatsNullable{10});
-
     // BBS
     def = this->add("temperature_vitrification", coInts);
     def->label = L("Softening temperature");
@@ -6396,8 +6388,7 @@ std::set<std::string> filament_options_with_variant = {
     "filament_flush_volumetric_speed",
     "filament_flush_temp",
     "volumetric_speed_coefficients",
-    "filament_adaptive_volumetric_speed",
-    "filament_cooling_before_tower"
+    "filament_adaptive_volumetric_speed"
 };
 
 // Parameters that are the same as the number of extruders

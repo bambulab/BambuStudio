@@ -729,7 +729,6 @@ namespace Slic3r {
             size_t total_layer_num;
             std::vector<double> cooling_rate{ 2.f }; // Celsius degree per second
             std::vector<double> heating_rate{ 2.f }; // Celsius degree per second
-            std::vector<double> filament_cooling_before_tower {10.f}; // temperature drop before entering wipe tower
             std::vector<int> pre_cooling_temp{ 0 };
             float inject_time_threshold{ 30.f }; // only active pre cooling & heating if time gap is bigger than threshold
             bool enable_pre_heating{ false };
@@ -748,8 +747,7 @@ namespace Slic3r {
                 const std::vector<int>& pre_cooling_temp_,
                 const float inject_time_threshold_,
                 const bool  enable_pre_heating_,
-                const std::vector<int>& extruder_max_nozzle_count_,
-                const std::vector<double>& filament_cooling_before_tower_
+                const std::vector<int>& extruder_max_nozzle_count_
             ) :
                 used_filaments(used_filaments_),
                 filament_lists(filament_lists_),
@@ -763,8 +761,7 @@ namespace Slic3r {
                 pre_cooling_temp(pre_cooling_temp_),
                 enable_pre_heating(enable_pre_heating_),
                 inject_time_threshold(inject_time_threshold_),
-                extruder_max_nozzle_count(extruder_max_nozzle_count_),
-                filament_cooling_before_tower(filament_cooling_before_tower_)
+                extruder_max_nozzle_count(extruder_max_nozzle_count_)
             {
             }
 
@@ -853,7 +850,6 @@ namespace Slic3r {
                 const std::vector<std::string>& filament_types_,
                 const std::vector<int>& filament_maps_,
                 const std::vector<int>& filament_nozzle_temps_,
-                const std::vector<int>& filament_nozzle_temps_initial_layer_,
                 const std::vector<int>& physical_extruder_map_,
                 int valid_machine_id_,
                 float inject_time_threshold_,
@@ -862,7 +858,6 @@ namespace Slic3r {
                 const std::vector<double>& heating_rate_,
                 const std::vector<std::pair<unsigned int,unsigned int>>& skippable_blocks_,
                 const std::vector<int>& extruder_max_nozzle_count_,
-                const std::vector<double>& filament_cooling_before_tower_,
                 unsigned int machine_start_gcode_end_id_,
                 unsigned int machine_end_gcode_start_id_
             ) :
@@ -870,7 +865,6 @@ namespace Slic3r {
                 filament_types(filament_types_),
                 filament_maps(filament_maps_),
                 filament_nozzle_temps(filament_nozzle_temps_),
-                filament_nozzle_temps_initial_layer(filament_nozzle_temps_initial_layer_),
                 physical_extruder_map(physical_extruder_map_),
                 valid_machine_id(valid_machine_id_),
                 inject_time_threshold(inject_time_threshold_),
@@ -879,7 +873,6 @@ namespace Slic3r {
                 heating_rate(heating_rate_),
                 skippable_blocks(skippable_blocks_),
                 extruder_max_nozzle_count(extruder_max_nozzle_count_),
-                filament_cooling_before_tower(filament_cooling_before_tower_),
                 machine_start_gcode_end_id(machine_start_gcode_end_id_),
                 machine_end_gcode_start_id(machine_end_gcode_start_id_)
             {
@@ -891,7 +884,6 @@ namespace Slic3r {
             const std::vector<std::string>& filament_types;
             const std::vector<int>& filament_maps;
             const std::vector<int>& filament_nozzle_temps;
-            const std::vector<int>& filament_nozzle_temps_initial_layer;
             const std::vector<int>& physical_extruder_map;
             const int valid_machine_id;
             const float inject_time_threshold;
@@ -900,7 +892,6 @@ namespace Slic3r {
             const std::vector<int>& filament_pre_cooling_temps; // target cooling temp during post extrusion
             const std::vector<std::pair<unsigned int, unsigned int>>& skippable_blocks;
             const std::vector<int>& extruder_max_nozzle_count;
-            const std::vector<double>& filament_cooling_before_tower;
             const unsigned int machine_start_gcode_end_id;
             const unsigned int machine_end_gcode_start_id;
 
@@ -1078,7 +1069,6 @@ namespace Slic3r {
         float m_enable_pre_heating{ false };
         std::vector<int> m_physical_extruder_map;
         std::vector<int> m_extruder_max_nozzle_count;
-        std::vector<double> m_filament_cooling_before_tower;
 
         //BBS: x, y offset for gcode generated
         double          m_x_offset{ 0 };
