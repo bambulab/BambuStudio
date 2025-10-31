@@ -77,36 +77,41 @@ void FilamentMapManualPanel::OnTimer(wxTimerEvent &)
         }
     }
 
-    if (m_invalid_id == invalid_eid)
-        return;
+    bool update_ui  = m_invalid_id != invalid_eid;
+    bool send_event = update_ui || m_force_validation;
 
     m_invalid_id = invalid_eid;
 
-    if(valid){
-        m_errors->Hide();
-        m_suggestion_panel->Hide();
+    if (update_ui) {
+        if (valid) {
+            m_errors->Hide();
+            m_suggestion_panel->Hide();
+        } else {
+            m_errors->SetLabel(wxString::Format(_L("Error: %s extruder has no available %s nozzle, current group result is invalid."),
+                                                invalid_eid == 0 ? _L("Left") : _L("Right"), invalid_nozzle == NozzleVolumeType::nvtStandard ? _L("Standard") : _L("High Flow")));
+            m_errors->Show();
+            m_suggestion_panel->Show();
+        }
+        m_left_panel->Freeze();
+        m_right_panel->Freeze();
+        m_tips->Freeze();
+        m_description->Freeze();
+        Layout();
+        Fit();
+        this->GetParent()->Layout();
+        this->GetParent()->Fit();
+        m_left_panel->Thaw();
+        m_right_panel->Thaw();
+        m_tips->Thaw();
+        m_description->Thaw();
     }
-    else{
-        m_errors->SetLabel(wxString::Format(_L("Error: %s extruder has no available %s nozzle, current group result is invalid."), invalid_eid == 0 ? _L("Left") : _L("Right"),
-                                            invalid_nozzle == NozzleVolumeType::nvtStandard ? _L("Standard") : _L("High Flow")));
-        m_errors->Show();
-        m_suggestion_panel->Show();
+
+    if (send_event) {
+        wxCommandEvent event(wxEVT_INVALID_MANUAL_MAP);
+        event.SetInt(valid);
+        ProcessEvent(event);
+        m_force_validation = false;
     }
-    m_left_panel->Freeze();
-    m_right_panel->Freeze();
-    m_tips->Freeze();
-    m_description->Freeze();
-    Layout();
-    Fit();
-    this->GetParent()->Layout();
-    this->GetParent()->Fit();
-    m_left_panel->Thaw();
-    m_right_panel->Thaw();
-    m_tips->Thaw();
-    m_description->Thaw();
-    wxCommandEvent event(wxEVT_INVALID_MANUAL_MAP);
-    event.SetInt(valid);
-    ProcessEvent(event);
 }
 
 void FilamentMapManualPanel::OnSuggestionClicked(wxCommandEvent &event)
@@ -422,6 +427,7 @@ void FilamentMapManualPanel::Show()
     m_right_panel->Show();
     m_switch_btn->Show();
     wxPanel::Show();
+    m_force_validation = true;
     m_timer->Start(500);
 }
 
