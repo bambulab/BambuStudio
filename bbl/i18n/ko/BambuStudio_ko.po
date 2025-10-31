@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-30 10:51+0800\n"
+"POT-Creation-Date: 2025-10-31 12:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6662,6 +6662,12 @@ msgstr "필라멘트에 필요한 노즐 경도는 프린터의 기본 노즐 �
 msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
 msgstr "기존 타임랩스 사진을 활성화하면 표면 결함이 발생할 수 있습니다. 부드러운 모드로 변경하는 것이 좋습니다."
 
+msgid "\n"
+msgstr ""
+
+msgid "'Process'-'Others'-'Special Mode'-'Timelapsed'"
+msgstr ""
+
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "타임랩스용 스무드 모드가 활성화되어 있지만 프라임 타워가 꺼져 있어 출력 결함이 발생할 수 있습니다. 프라임 타워를 활성화하고 다시 슬라이스한 후 다시 출력하세요."
 
@@ -11476,6 +11482,9 @@ msgstr "이렇게 하면 내부채움 선을 내부둘레와 짧은 추가둘레
 
 msgid "0 (not anchored)"
 msgstr "0 (앵커링되지 않음)"
+
+msgid "Sparse infill filament"
+msgstr ""
 
 msgid "Filament to print internal sparse infill."
 msgstr "드문 내부 채움을 출력할 필라멘트."
