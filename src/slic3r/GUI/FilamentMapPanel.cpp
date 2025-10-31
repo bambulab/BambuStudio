@@ -1,4 +1,5 @@
 #include "FilamentMapPanel.hpp"
+#include "Widgets/MultiNozzleSync.hpp"
 #include "GUI_App.hpp"
 #include <wx/dcbuffer.h>
 #include "wx/graphics.h"
@@ -24,6 +25,7 @@ void FilamentMapManualPanel::OnTimer(wxTimerEvent &)
 {
     bool valid = true;
     int  invalid_eid = -1;
+    NozzleVolumeType invalid_nozzle = NozzleVolumeType::nvtStandard;
     auto preset_bundle = wxGetApp().preset_bundle;
     auto proj_config = preset_bundle->project_config;
     auto nozzle_volume_values = proj_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
@@ -61,6 +63,7 @@ void FilamentMapManualPanel::OnTimer(wxTimerEvent &)
                 (has_highflow && highflow_count == 0)) {
                 valid = false;
                 invalid_eid = eid;
+                invalid_nozzle = (has_standard && standard_count == 0) ? NozzleVolumeType::nvtStandard : NozzleVolumeType::nvtHighFlow;
                 break;
             }
         } else {
@@ -68,6 +71,7 @@ void FilamentMapManualPanel::OnTimer(wxTimerEvent &)
             if (count == 0) {
                 valid = false;
                 invalid_eid = eid;
+                invalid_nozzle = extruder_volume_type;
                 break;
             }
         }
@@ -80,10 +84,13 @@ void FilamentMapManualPanel::OnTimer(wxTimerEvent &)
 
     if(valid){
         m_errors->Hide();
+        m_suggestion_panel->Hide();
     }
     else{
-        m_errors->SetLabel(wxString::Format(_L("Error: %s extruder has no available nozzle, current group result is invalid."), invalid_eid == 0 ? _L("Left") : _L("Right")));
+        m_errors->SetLabel(wxString::Format(_L("Error: %s extruder has no available %s nozzle, current group result is invalid."), invalid_eid == 0 ? _L("Left") : _L("Right"),
+                                            invalid_nozzle == NozzleVolumeType::nvtStandard ? _L("Standard") : _L("High Flow")));
         m_errors->Show();
+        m_suggestion_panel->Show();
     }
     m_left_panel->Freeze();
     m_right_panel->Freeze();
@@ -100,6 +107,31 @@ void FilamentMapManualPanel::OnTimer(wxTimerEvent &)
     wxCommandEvent event(wxEVT_INVALID_MANUAL_MAP);
     event.SetInt(valid);
     ProcessEvent(event);
+}
+
+void FilamentMapManualPanel::OnSuggestionClicked(wxCommandEvent &event)
+{
+    wxWindow *current = this;
+    while (current && !wxDynamicCast(current, wxDialog)) {
+        current = current->GetParent();
+    }
+
+    if (current) {
+        wxDialog *dlg = wxDynamicCast(current, wxDialog);
+        if (dlg) {
+            int invalid_eid = m_invalid_id;
+            dlg->EndModal(wxID_CANCEL);
+
+            CallAfter([invalid_eid]() {
+                if (invalid_eid == 0) {
+                    manuallySetNozzleCount(0);
+                } else if (invalid_eid == 1) {
+                    manuallySetNozzleCount(1);
+                }
+                wxGetApp().plater()->update();
+            });
+        }
+    }
 }
 
 std::vector<int> FilamentMapManualPanel::GetFilamentMaps() const
@@ -251,18 +283,39 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
     top_sizer->Add(drag_sizer, 0, wxALIGN_CENTER | wxEXPAND);
 
     m_tips = new Label(this, _L("Tips: You can drag the filaments to reassign them to different nozzles."));
-    m_tips->SetFont(Label::Body_14);
+    m_tips->SetFont(Label::Body_13);
     m_tips->SetForegroundColour(TextNormalGreyColor);
     top_sizer->AddSpacer(FromDIP(20));
     top_sizer->Add(m_tips, 0, wxALIGN_LEFT | wxLEFT, FromDIP(15));
 
     m_errors = new Label(this, "");
-    m_errors->SetFont(Label::Body_14);
+    m_errors->SetFont(Label::Body_13);
     m_errors->SetForegroundColour(TextErrorColor);
     top_sizer->AddSpacer(FromDIP(10));
     top_sizer->Add(m_errors, 0, wxALIGN_LEFT | wxLEFT, FromDIP(15));
 
     m_errors->Hide();
+
+    m_suggestion_panel = new wxPanel(this, wxID_ANY);
+    m_suggestion_panel->SetBackgroundColour(*wxWHITE);
+    auto suggestion_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto suggestion_text  = new Label(m_suggestion_panel, _L("Please adjust your grouping or click "));
+    suggestion_text->SetFont(Label::Body_13);
+    suggestion_text->SetForegroundColour(TextErrorColor);
+    suggestion_text->SetBackgroundColour(*wxWHITE);
+    auto suggestion_btn   = new ScalableButton(m_suggestion_panel, wxID_ANY, "edit", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true, 14);
+    suggestion_btn->SetBackgroundColour(*wxWHITE);
+    auto suggestion_text2 = new Label(m_suggestion_panel, _L(" to set nozzle count"));
+    suggestion_text2->SetFont(Label::Body_13);
+    suggestion_text2->SetForegroundColour(TextErrorColor);
+    suggestion_text2->SetBackgroundColour(*wxWHITE);
+    suggestion_sizer->Add(suggestion_text, 0, wxALIGN_CENTER_VERTICAL);
+    suggestion_sizer->Add(suggestion_btn, 0, wxALIGN_CENTER_VERTICAL);
+    suggestion_sizer->Add(suggestion_text2, 0, wxALIGN_CENTER_VERTICAL);
+    m_suggestion_panel->SetSizer(suggestion_sizer);
+    top_sizer->Add(m_suggestion_panel, 0, wxALIGN_LEFT | wxLEFT, FromDIP(15));
+    m_suggestion_panel->Hide();
+    suggestion_btn->Bind(wxEVT_BUTTON, &FilamentMapManualPanel::OnSuggestionClicked, this);
 
     m_timer = new wxTimer(this);
     Bind(wxEVT_TIMER, &FilamentMapManualPanel::OnTimer, this);
@@ -293,11 +346,33 @@ void FilamentMapManualPanel::UpdateNozzleVolumeType()
     bool should_separate = check_separation();
     m_right_panel->SetUseSeparation(should_separate);
 
+    UpdateNozzleCountDisplay();
+
     Layout();
     Fit();
     if (GetParent()) {
         GetParent()->Layout();
         GetParent()->Fit();
+    }
+}
+
+void FilamentMapManualPanel::UpdateNozzleCountDisplay()
+{
+    auto preset_bundle = wxGetApp().preset_bundle;
+
+    int left_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(0);
+    wxString left_title = wxString::Format(_L("Left Extruder(%d)"), left_count);
+    m_left_panel->UpdateLabel(left_title);
+
+    if (m_right_panel->IsUseSeparation()) {
+        int standard_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1, NozzleVolumeType::nvtStandard);
+        int highflow_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1, NozzleVolumeType::nvtHighFlow);
+        wxString right_title = wxString::Format(_L("Right Extruder(Std: %d, HF: %d)"), standard_count, highflow_count);
+        m_right_panel->UpdateLabel(right_title);
+    } else {
+        int right_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1);
+        wxString right_title = wxString::Format(_L("Right Extruder(%d)"), right_count);
+        m_right_panel->UpdateLabel(right_title);
     }
 }
 

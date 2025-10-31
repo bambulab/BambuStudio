@@ -1,5 +1,4 @@
 #include "DragDropPanel.hpp"
-#include "Widgets/Label.hpp"
 #include "GUI_App.hpp"
 #include <slic3r/GUI/wxExtensions.hpp>
 
@@ -218,12 +217,12 @@ DragDropPanel::DragDropPanel(wxWindow *parent, const wxString &label, bool is_au
         auto title_sizer = new wxBoxSizer(wxHORIZONTAL);
         title_panel->SetSizer(title_sizer);
 
-        Label *static_text = new Label(this, label);
-        static_text->SetFont(is_sub ? Label::Body_12 : Label::Head_13);
-        static_text->SetForegroundColour(is_sub ? 0x6B6B6B : 0x000000);
-        static_text->SetBackgroundColour(is_sub ? 0xF8F8F8 : 0xEEEEEE);
+        m_title_label = new Label(this, label);
+        m_title_label->SetFont(is_sub ? Label::Body_12 : Label::Head_13);
+        m_title_label->SetForegroundColour(is_sub ? 0x6B6B6B : 0x000000);
+        m_title_label->SetBackgroundColour(is_sub ? 0xF8F8F8 : 0xEEEEEE);
 
-        title_sizer->Add(static_text, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+        title_sizer->Add(m_title_label, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
 
         m_sizer->Add(title_panel, 0, wxEXPAND);
         m_sizer->AddSpacer(10);
@@ -293,6 +292,15 @@ void DragDropPanel::DoDragDrop(ColorPanel *panel, const wxColour &color, const s
     ColorDropSource source(this, panel, color, type, filament_id);
     if (source.DoDragDrop(wxDrag_CopyOnly) == wxDragResult::wxDragCopy) {
         this->RemoveColorBlock(panel);
+    }
+}
+
+void DragDropPanel::UpdateLabel(const wxString &label)
+{
+    if (m_title_label) {
+        m_title_label->SetLabel(label);
+        m_title_label->Refresh();
+        Layout();
     }
 }
 
@@ -439,6 +447,15 @@ void SeparatedDragDropPanel::UpdateLayout()
         if (GetParent()->GetParent()) {
             GetParent()->GetParent()->Layout();
         }
+    }
+}
+
+void SeparatedDragDropPanel::UpdateLabel(const wxString &label)
+{
+    if (m_label) {
+        m_label->SetLabel(label);
+        m_label->Refresh();
+        Layout();
     }
 }
 

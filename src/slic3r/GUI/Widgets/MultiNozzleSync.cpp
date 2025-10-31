@@ -132,6 +132,7 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeT
 
     SetSizerAndFit(mainSizer);
     CentreOnParent();
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 int ManualNozzleCountDialog::GetNozzleCount(NozzleVolumeType volume_type) const

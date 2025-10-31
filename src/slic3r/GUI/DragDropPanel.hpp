@@ -3,6 +3,7 @@
 
 #include "GUI.hpp"
 #include "GUI_Utils.hpp"
+#include "Widgets/Label.hpp"
 
 #include <wx/simplebook.h>
 #include <wx/dialog.h>
@@ -28,6 +29,7 @@ public:
     void AddColorBlock(const wxColour &color, const std::string &type, int filament_id, bool update_ui = true);
     void RemoveColorBlock(ColorPanel *panel, bool update_ui = true);
     void DoDragDrop(ColorPanel *panel, const wxColour &color, const std::string &type, int filament_id);
+    void UpdateLabel(const wxString &label);
 
     std::vector<int> GetAllFilaments() const;
 
@@ -39,6 +41,7 @@ public:
 private:
     wxBoxSizer *m_sizer;
     wxGridSizer *m_grid_item_sizer;
+    Label       *m_title_label = nullptr;
     bool         m_is_auto;
 
     std::vector<ColorPanel *> m_filament_blocks;
@@ -90,6 +93,7 @@ public:
     void SetUseSeparation(bool use_separation);
     bool IsUseSeparation() const { return m_use_separation; }
     void ClearAllBlocks();
+    void UpdateLabel(const wxString &label);
 
 private:
     void UpdateLayout();
