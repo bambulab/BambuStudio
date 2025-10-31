@@ -62,7 +62,9 @@ class PlaterWorker: public Worker {
 
             } wctl{c};
 
-            CursorSetterRAII busycursor{wctl};
+            if (m_job->show_busy_cursor()) {
+                CursorSetterRAII busycursor{ wctl };
+            }
 
             using namespace std::chrono;
             steady_clock::time_point process_start = steady_clock::now();
