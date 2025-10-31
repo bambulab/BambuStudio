@@ -175,7 +175,9 @@ private:
     void draw_control_buttons();
     void draw_action_buttons();
     void draw_only_entity_checkbox();
-    void draw_progress_bar(); // Async progress display
+    void draw_warnings(); // Warnings and error messages
+    void draw_separator(); // Separator line between content and controls
+    void draw_progress_bar(); // Async progress display (progress bar + status text)
 
     // Tab and button helpers
     bool draw_tab_button(const char* icon_name, const char* text, bool selected,
