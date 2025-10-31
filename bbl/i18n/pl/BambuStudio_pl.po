@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-30 10:51+0800\n"
+"POT-Creation-Date: 2025-10-31 12:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6687,6 +6687,12 @@ msgstr "Twardość dyszy wymagana przez filament jest wyższa niż domyślna twa
 msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
 msgstr "Włączenie tradycyjnego timelapsu może powodować niedoskonałości powierzchni. Zaleca się zmianę trybu na płynny."
 
+msgid "\n"
+msgstr ""
+
+msgid "'Process'-'Others'-'Special Mode'-'Timelapsed'"
+msgstr ""
+
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "Włączono tryb płynny dla timelapse, ale wieża główna jest wyłączona, co może powodować wady wydruku. Włącz wieżę czyszczącą, ponownie wykonaj cięcie i wydrukuj."
 
@@ -11512,6 +11518,9 @@ msgstr "Połączenie wypełnienia z wewnętrznym obrysem poprzez dodawanie krót
 
 msgid "0 (not anchored)"
 msgstr "0 (bez kotwiczenia)"
+
+msgid "Sparse infill filament"
+msgstr ""
 
 msgid "Filament to print internal sparse infill."
 msgstr "Filament do drukowania wewnętrznego wypełnienia."

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-30 10:51+0800\n"
+"POT-Creation-Date: 2025-10-31 12:33+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -6800,6 +6800,12 @@ msgstr "Твердость сопла, установленного по умо�
 msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
 msgstr "Включение обычного режима таймлапса может привести к появлению дефектов поверхности, поэтому рекомендуется изменить режим на плавный."
 
+msgid "\n"
+msgstr ""
+
+msgid "'Process'-'Others'-'Special Mode'-'Timelapsed'"
+msgstr ""
+
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "Для таймлапса включён плавный режим, но черновая башня отключена, что может привести к дефектам печати. Включите черновую башню и перенарежьте файл для печати."
 
@@ -11741,6 +11747,9 @@ msgstr "Слайсер пытается соединить две ближайш
 
 msgid "0 (not anchored)"
 msgstr "0 (без привязок)"
+
+msgid "Sparse infill filament"
+msgstr ""
 
 msgid "Filament to print internal sparse infill."
 msgstr "Пластиковая нить для печати заполнения."

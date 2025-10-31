@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-30 10:51+0800\n"
+"POT-Creation-Date: 2025-10-31 12:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6677,6 +6677,12 @@ msgstr "A dureza do bico exigida pelo filamento é maior do que a dureza padrão
 msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
 msgstr "Habilitar a fotografia tradicional em timelapse pode causar imperfeições na superfície. Recomenda-se mudar para o modo suave."
 
+msgid "\n"
+msgstr ""
+
+msgid "'Process'-'Others'-'Special Mode'-'Timelapsed'"
+msgstr ""
+
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "O modo suave para timelapse está habilitado, mas a torre principal está desligada, o que pode causar defeitos de impressão. Habilite a torre principal, fatie novamente e imprima novamente."
 
@@ -11502,6 +11508,9 @@ msgstr "Conecte uma linha de preenchimento esparsa a um perímetro interno com u
 
 msgid "0 (not anchored)"
 msgstr "0 (não ancorado)"
+
+msgid "Sparse infill filament"
+msgstr ""
 
 msgid "Filament to print internal sparse infill."
 msgstr "Filamento para imprimir preenchimento interno esparso."

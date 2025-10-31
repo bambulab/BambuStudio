@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-30 10:51+0800\n"
+"POT-Creation-Date: 2025-10-31 12:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6674,6 +6674,12 @@ msgstr "Ez a filament nagyobb keménységű fúvókát igényel. Kérjük, cser�
 msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
 msgstr "A hagyományos timelapse engedélyezése felületi hibákat okozhat. Javasoljuk, hogy válts a sima módra."
 
+msgid "\n"
+msgstr ""
+
+msgid "'Process'-'Others'-'Special Mode'-'Timelapsed'"
+msgstr ""
+
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "A sima timelapse-mód engedélyezve van, de a törlőtorony ki van kapcsolva, ami nyomtatási hibákat okozhat. Kérjük, engedélyezd a törlőtoronyt és indítsd el újból a nyomtatást."
 
@@ -11480,6 +11486,9 @@ msgstr "Ez összeköti a ritkás kitöltés vonalát a belső peremmel, egy röv
 
 msgid "0 (not anchored)"
 msgstr "0 (nincs lehorgonyozva)"
+
+msgid "Sparse infill filament"
+msgstr ""
 
 msgid "Filament to print internal sparse infill."
 msgstr "Filament a belső ritkás kitöltésekhez."
