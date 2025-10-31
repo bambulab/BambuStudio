@@ -6,8 +6,11 @@
 #include "slic3r/GUI/OpenGLManager.hpp"
 #include "slic3r/GUI/IMSlider.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
+#include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/Geometry/ConvexHull.hpp"
 #include <GL/glew.h>
+#include <boost/nowide/cstdio.hpp>
+#include <wx/numformatter.h>
 namespace
 {
     Slic3r::Vec2f get_view_data_index_from_view_type(const Slic3r::GUI::gcode::EViewType type)
