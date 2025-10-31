@@ -56,6 +56,7 @@ private:
     std::vector<std::string> m_filament_type;
     wxTimer* m_timer;
     int m_invalid_id{ -1 };
+    bool m_force_validation{ false };
 };
 
 class FilamentMapBtnPanel : public wxPanel
