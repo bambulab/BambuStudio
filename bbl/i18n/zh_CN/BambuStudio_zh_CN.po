@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-30 10:51+0800\n"
+"POT-Creation-Date: 2025-10-31 12:33+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -551,7 +551,7 @@ msgid "Translate(Relative)"
 msgstr "平移(相对)"
 
 msgid "Align objects to the minimum X position"
-msgstr ""
+msgstr "将对象或零件对齐到包围盒X轴最小位置"
 
 msgid "Align"
 msgstr ""
@@ -6629,6 +6629,12 @@ msgstr "耗材丝所要求的喷嘴硬度高于打印机默认的喷嘴硬度。
 msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
 msgstr "开启传统模式延时摄影可能导致表面瑕疵，建议修改为平滑模式。"
 
+msgid "\n"
+msgstr ""
+
+msgid "'Process'-'Others'-'Special Mode'-'Timelapsed'"
+msgstr ""
+
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "检测到您使用了延时摄影的平滑模式，但未启用擦料塔，这可能导致打印瑕疵。建议开启擦料塔后重新切片打印。"
 
@@ -11063,7 +11069,7 @@ msgid "Fill multiline"
 msgstr "填充多线"
 
 msgid "Using multiple lines for the infill pattern, if supported by infill pattern."
-msgstr ""
+msgstr "启用多线填充模式，当所选填充图案支持时生效。"
 
 msgid "Sparse infill pattern"
 msgstr "稀疏填充图案"
@@ -11433,6 +11439,9 @@ msgstr "使用一小段额外的走线将稀疏填充和内墙连接在一起。
 
 msgid "0 (not anchored)"
 msgstr "0（无）"
+
+msgid "Sparse infill filament"
+msgstr ""
 
 msgid "Filament to print internal sparse infill."
 msgstr "打印内部稀疏填充的耗材丝"
@@ -11888,10 +11897,10 @@ msgid "Saving"
 msgstr ""
 
 msgid "length when change nozzle"
-msgstr ""
+msgstr "换喷嘴时回抽量"
 
 msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the nozzle before changing nozzles."
-msgstr ""
+msgstr "当调整此回抽值时，它将作为更换喷嘴前喷嘴内耗材的回抽量。"
 
 msgid "Extra length on restart"
 msgstr "额外回填长度"

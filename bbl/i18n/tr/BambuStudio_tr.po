@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-30 10:51+0800\n"
+"POT-Creation-Date: 2025-10-31 12:33+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -6676,6 +6676,12 @@ msgstr "Filamentin gerektirdiği nozul sertliği, yazıcının varsayılan nozul
 msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
 msgstr "Geleneksel timelapse etkinleştirilmesi yüzey kusurlarına neden olabilir. Yumuşak moda geçilmesi önerilir."
 
+msgid "\n"
+msgstr ""
+
+msgid "'Process'-'Others'-'Special Mode'-'Timelapsed'"
+msgstr ""
+
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "Timelapse için pürüzsüz mod etkinleştirildi, ancak ana kule kapalı, bu da baskı hatalarına neden olabilir. Lütfen ana kuleyi etkinleştirin, yeniden dilimleyin ve tekrar yazdırın."
 
@@ -11497,6 +11503,9 @@ msgstr "Seyrek bir dolgu çizgisini ek bir çevrenin kısa bir segmentiyle bir i
 
 msgid "0 (not anchored)"
 msgstr "0 (bağlı değil)"
+
+msgid "Sparse infill filament"
+msgstr ""
 
 msgid "Filament to print internal sparse infill."
 msgstr "İç seyrek dolguyu yazdırmak için filament."

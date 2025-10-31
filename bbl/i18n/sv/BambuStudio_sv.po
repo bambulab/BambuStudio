@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-30 10:51+0800\n"
+"POT-Creation-Date: 2025-10-31 12:33+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -6669,6 +6669,12 @@ msgstr "Nozzelns hårdhet som filamentet kräver är högre än printerns standa
 msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
 msgstr "Aktivering av traditionell timelapse fotografering kan orsaka ojämnheter i ytan. Det rekommenderas att ändra till jämnt läge."
 
+msgid "\n"
+msgstr ""
+
+msgid "'Process'-'Others'-'Special Mode'-'Timelapsed'"
+msgstr ""
+
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "Smooth läget för timelapse är aktiverat, men prime tornet är avstängt, vilket kan orsaka utskriftsfel. Vänligen aktivera prime tornet, bered om och skriv ut igen."
 
@@ -11494,6 +11500,9 @@ msgstr "Anslut en gles utfyllnadslinje till en inre perimeter med ett kort segme
 
 msgid "0 (not anchored)"
 msgstr "0 (ej förankrad)"
+
+msgid "Sparse infill filament"
+msgstr ""
 
 msgid "Filament to print internal sparse infill."
 msgstr "Filamentet är avsett för sparsam ifyllnad."
