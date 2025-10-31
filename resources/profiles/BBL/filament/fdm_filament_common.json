@@ -63,9 +63,6 @@
     "fan_min_speed": [
         "35"
     ],
-    "filament_cooling_before_tower": [
-        "10"
-    ],
     "filament_cost": [
         "0"
     ],

@@ -1106,7 +1106,6 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             context.filament_types,
             context.filament_maps,
             context.filament_nozzle_temp,
-            context.filament_nozzle_temp,
             context.physical_extruder_map,
             valid_machine_id,
             context.inject_time_threshold,
@@ -1115,7 +1114,6 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             context.heating_rate,
             skippable_blocks,
             context.extruder_max_nozzle_count,
-            context.filament_cooling_before_tower,
             machine_start_gcode_end_line_id,
             machine_end_gcode_start_line_id
         );
@@ -1833,7 +1831,6 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_enable_pre_heating = config.enable_pre_heating;
     m_physical_extruder_map = config.physical_extruder_map.values;
     m_extruder_max_nozzle_count = config.extruder_max_nozzle_count.values;
-    m_filament_cooling_before_tower = config.filament_cooling_before_tower.values;
 
     m_extruder_offsets.resize(filament_count);
     m_extruder_colors.resize(filament_count);
@@ -1964,11 +1961,6 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     const ConfigOptionIntsNullable* extruder_max_nozzle_count = config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
     if(extruder_max_nozzle_count != nullptr){
         m_extruder_max_nozzle_count = extruder_max_nozzle_count->values;
-    }
-
-    const ConfigOptionFloatsNullable* filament_cooling_before_tower = config.option<ConfigOptionFloatsNullable>("filament_cooling_before_tower");
-    if (filament_cooling_before_tower != nullptr) {
-        m_filament_cooling_before_tower = filament_cooling_before_tower->values;
     }
 
     const ConfigOptionInts* physical_extruder_map = config.option<ConfigOptionInts>("physical_extruder_map");
@@ -2569,8 +2561,7 @@ void GCodeProcessor::finalize(bool post_process)
             m_filament_pre_cooling_temp,
             inject_time_threshold,
             m_enable_pre_heating,
-            m_extruder_max_nozzle_count,
-            m_filament_cooling_before_tower
+            m_extruder_max_nozzle_count
         );
         m_time_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends, context);
     }
@@ -6178,12 +6169,10 @@ int GCodeProcessor::get_config_idx_for_filament(int filament_idx) const
 
 void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimeProcessor::InsertedLinesMap& inserted_operation_lines)
 {
-    bool is_multiple_nozzle = std::any_of(extruder_max_nozzle_count.begin(), extruder_max_nozzle_count.end(), [](auto& elem) {return elem > 1; });
-    auto get_nozzle_temp = [this, is_multiple_nozzle](int filament_id, bool is_first_layer, bool from_or_to) {
+    auto get_nozzle_temp = [this](int filament_id,bool from_or_to) {
         if (filament_id == -1)
             return from_or_to ? 140 : 0; // default temp
-        double temp = (is_first_layer ? filament_nozzle_temps_initial_layer[filament_id] : filament_nozzle_temps[filament_id]);
-        return is_multiple_nozzle ? (int)(temp - this->filament_cooling_before_tower[filament_id]) : (int)(temp);
+        return filament_nozzle_temps[filament_id];
         };
 
     std::map<int, std::vector<ExtruderFreeBlock>> per_extruder_free_blocks;
@@ -6198,8 +6187,8 @@ void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimePro
             bool is_end = std::next(iter) == extruder_free_blcoks.end();
             bool apply_pre_cooling = true;
             bool apply_pre_heating = is_end ? false : true;
-            float curr_temp = get_nozzle_temp(iter->last_filament_id,false,true);
-            float target_temp = get_nozzle_temp(iter->next_filament_id,false, false);
+            float curr_temp = get_nozzle_temp(iter->last_filament_id,true);
+            float target_temp = get_nozzle_temp(iter->next_filament_id, false);
             inject_cooling_heating_command(inserted_operation_lines, *iter, curr_temp, target_temp, apply_pre_cooling, apply_pre_heating);
         }
     }
