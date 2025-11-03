@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-31 12:33+0800\n"
+"POT-Creation-Date: 2025-11-03 16:14+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3996,6 +3996,9 @@ msgstr ""
 msgid "Calibrating the detection position of nozzle clumping"
 msgstr ""
 
+msgid "Purifying the chamber air"
+msgstr ""
+
 msgid "Timelapse is not supported on this printer."
 msgstr "Timelapse stöds inte på den här printern."
 
@@ -6353,23 +6356,38 @@ msgstr "Paus känslighet:"
 msgid "Spaghetti Detection"
 msgstr "Spaghetti Detektion"
 
-msgid "Detect spaghetti failure(scattered lose filament)."
-msgstr "Upptäck spaghettifel (spridd lös filament)."
+msgid "Detects spaghetti failure(scattered lose filament)."
+msgstr ""
 
 msgid "Purge Chute Pile-Up Detection"
 msgstr "Detektering av samling i rensrännan"
 
-msgid "Monitor if the waste is piled up in the purge chute."
-msgstr "Övervaka om avfallet samlas på hög i rensningsrännan."
+msgid "Monitors if the waste is piled up in the purge chute."
+msgstr ""
 
 msgid "Nozzle Clumping Detection"
 msgstr "Detektering av nozzel klumpar"
 
-msgid "Check if the nozzle is clumping by filaments or other foreign objects."
-msgstr "Kontrollera om nozzle täpps igen av filament eller andra främmande föremål."
+msgid "Checks if the nozzle is clumping by filaments or other foreign objects."
+msgstr ""
 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
 msgstr "Detekterar utskrift i luften orsakad av nozzle stopp eller filament slirning."
+
+msgid "Ensures the build plate type and placement are correct."
+msgstr ""
+
+msgid "Type Detection"
+msgstr ""
+
+msgid "Pauses printing when the detected build plate type does not mhatch the selected one."
+msgstr ""
+
+msgid "Alignment Detection"
+msgstr ""
+
+msgid "Pauses printing when build plate misalignment is detected."
+msgstr ""
 
 msgid "First Layer Inspection"
 msgstr "Första Lager Inspektion"
@@ -6389,8 +6407,8 @@ msgstr "Tillåt Prompt Ljud"
 msgid "Filament Tangle Detect"
 msgstr "Filament Tangle Detection"
 
-msgid "Check if the nozzle is clumping by filament or other foreign objects."
-msgstr "Kontrollera om nozzeln täpps igen av filament eller andra främmande föremål."
+msgid "Checks if the nozzle is clumping by filament or other foreign objects."
+msgstr ""
 
 msgid "Open Door Detection"
 msgstr "Detektering av öppen dörr"
@@ -6434,8 +6452,8 @@ msgstr "Laddar om"
 msgid "Unavailable while heating maintenance function is on."
 msgstr "Ej tillgänglig när värme underhålls funktionen är på."
 
-msgid "Idel Heating Protection"
-msgstr "Skydd för inaktiv uppvärmning"
+msgid "Idle Heating Protection"
+msgstr ""
 
 msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr "Avbryter uppvärmningen automatiskt efter 5 minuters inaktivitet för att garantera säkerheten."
@@ -11831,6 +11849,12 @@ msgstr "Hastighet för inre vägg"
 msgid "Number of walls of every layer"
 msgstr "Antal väggar för varje lager"
 
+msgid "Embedding the wall into the infill"
+msgstr ""
+
+msgid "Embedding the wall into parts where the wall loops are absent ensures that the wall connects seamlessly to the infill."
+msgstr ""
+
 msgid "Post-processing Scripts"
 msgstr "Skript för efterbehandling"
 
@@ -13527,11 +13551,14 @@ msgstr "Korsande operations drift kräver minst två volymer."
 msgid "Difference operation requires at least one object in both A and B lists."
 msgstr "Skillnads operationen kräver minst en volym i både A- och B-listorna."
 
-msgid "Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
-msgstr "Det gick inte att gruppera och sammanfoga delar efter objekt. Kontrollera självkorsningar, ej manifold geometri eller öppna mesh."
+msgid "Failed to group parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
+msgstr ""
 
 msgid "No overlapping region found. Boolean intersection failed."
 msgstr "Ingen överlappande region hittades. Boolesk skärningspunkt misslyckades."
+
+msgid "Mesh preparation failed."
+msgstr ""
 
 msgid "Mesh Boolean"
 msgstr "Mesh Boolean"
@@ -13570,6 +13597,15 @@ msgid "Perform Boolean operations on entities only."
 msgstr ""
 
 msgid "This object contains non-part components."
+msgstr ""
+
+msgid "Preparing data..."
+msgstr ""
+
+msgid "Computing..."
+msgstr ""
+
+msgid "Applying result.."
 msgstr ""
 
 msgid "Network Test"
@@ -14736,7 +14772,7 @@ msgid "(Sync with printer)"
 msgstr "(Synkronisera med printer)"
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available nozzle, current group result is invalid."
+msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
 msgstr ""
 
 msgid "We will slice according to this grouping method:"
@@ -14744,6 +14780,24 @@ msgstr "Vi kommer att bereda enligt denna grupperingsmetod:"
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "Tips och tricks: Du kan dra filamenten för att omfördela dem till olika nozzle."
+
+msgid "Please adjust your grouping or click "
+msgstr ""
+
+msgid " to set nozzle count"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Left Extruder(%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right Extruder(Std: %d, HF: %d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right Extruder(%d)"
+msgstr ""
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "Grupperings metoden för filament för plattan bestäms av rullgardins alternativet vid beredning plattan knappen."
@@ -15215,6 +15269,24 @@ msgid ""
 msgstr ""
 "Krympning, Warping & Stress\n"
 "Genom att styra termiska index kan du ta bort de värmedrivna orsakerna till varp och stress."
+
+#~ msgid "Detect spaghetti failure(scattered lose filament)."
+#~ msgstr "Upptäck spaghettifel (spridd lös filament)."
+
+#~ msgid "Monitor if the waste is piled up in the purge chute."
+#~ msgstr "Övervaka om avfallet samlas på hög i rensningsrännan."
+
+#~ msgid "Check if the nozzle is clumping by filaments or other foreign objects."
+#~ msgstr "Kontrollera om nozzle täpps igen av filament eller andra främmande föremål."
+
+#~ msgid "Check if the nozzle is clumping by filament or other foreign objects."
+#~ msgstr "Kontrollera om nozzeln täpps igen av filament eller andra främmande föremål."
+
+#~ msgid "Idel Heating Protection"
+#~ msgstr "Skydd för inaktiv uppvärmning"
+
+#~ msgid "Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
+#~ msgstr "Det gick inte att gruppera och sammanfoga delar efter objekt. Kontrollera självkorsningar, ej manifold geometri eller öppna mesh."
 
 #~ msgid "Debug Info"
 #~ msgstr "Felsöknings Information"

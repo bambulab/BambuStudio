@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-31 12:33+0800\n"
+"POT-Creation-Date: 2025-11-03 16:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3994,6 +3994,9 @@ msgstr ""
 msgid "Calibrating the detection position of nozzle clumping"
 msgstr ""
 
+msgid "Purifying the chamber air"
+msgstr ""
+
 msgid "Timelapse is not supported on this printer."
 msgstr "이 프린터에서는 타임랩스가 지원되지 않습니다."
 
@@ -6344,23 +6347,38 @@ msgstr "일시 중지 감도:"
 msgid "Spaghetti Detection"
 msgstr "스파게티 감지"
 
-msgid "Detect spaghetti failure(scattered lose filament)."
-msgstr "스파게티 실패(흩어진 필라멘트 손실)를 감지합니다."
+msgid "Detects spaghetti failure(scattered lose filament)."
+msgstr ""
 
 msgid "Purge Chute Pile-Up Detection"
 msgstr "퍼지 슈트 쌓임 감지"
 
-msgid "Monitor if the waste is piled up in the purge chute."
-msgstr "퍼지 슈트에 폐기물이 쌓여 있는지 모니터링합니다."
+msgid "Monitors if the waste is piled up in the purge chute."
+msgstr ""
 
 msgid "Nozzle Clumping Detection"
 msgstr "노즐 클럼핑(Clumping) 감지"
 
-msgid "Check if the nozzle is clumping by filaments or other foreign objects."
-msgstr "노즐에 필라멘트나 기타 이물질이 뭉쳐 있는지 확인하세요."
+msgid "Checks if the nozzle is clumping by filaments or other foreign objects."
+msgstr ""
 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
 msgstr "노즐 막힘 또는 필라멘트 갈기로 인한 공중 출력를 감지합니다."
+
+msgid "Ensures the build plate type and placement are correct."
+msgstr ""
+
+msgid "Type Detection"
+msgstr ""
+
+msgid "Pauses printing when the detected build plate type does not mhatch the selected one."
+msgstr ""
+
+msgid "Alignment Detection"
+msgstr ""
+
+msgid "Pauses printing when build plate misalignment is detected."
+msgstr ""
 
 msgid "First Layer Inspection"
 msgstr "첫 레이어 검사"
@@ -6380,8 +6398,8 @@ msgstr "프롬프트 사운드 허용"
 msgid "Filament Tangle Detect"
 msgstr "필라멘트 엉킴 감지"
 
-msgid "Check if the nozzle is clumping by filament or other foreign objects."
-msgstr "필라멘트나 기타 이물질로 인해 노즐이 뭉치는지 확인합니다."
+msgid "Checks if the nozzle is clumping by filament or other foreign objects."
+msgstr ""
 
 msgid "Open Door Detection"
 msgstr "문 열림 감지"
@@ -6425,8 +6443,8 @@ msgstr "새로 고침 중"
 msgid "Unavailable while heating maintenance function is on."
 msgstr "가열 유지 기능이 켜져 있는 동안 사용할 수 없습니다."
 
-msgid "Idel Heating Protection"
-msgstr "유휴 가열 보호"
+msgid "Idle Heating Protection"
+msgstr ""
 
 msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr "안전을 위해 5분간 사용하지 않으면 자동으로 가열이 중단됩니다."
@@ -11813,6 +11831,12 @@ msgstr "내벽 속도"
 msgid "Number of walls of every layer"
 msgstr "각 레이어의 벽 개수"
 
+msgid "Embedding the wall into the infill"
+msgstr ""
+
+msgid "Embedding the wall into parts where the wall loops are absent ensures that the wall connects seamlessly to the infill."
+msgstr ""
+
 msgid "Post-processing Scripts"
 msgstr "후처리 스크립트"
 
@@ -13506,11 +13530,14 @@ msgstr "교차 작업에는 최소 두 개의 객체가 필요합니다."
 msgid "Difference operation requires at least one object in both A and B lists."
 msgstr "차분 연산에는 A와 B 목록에 최소한 하나의 객체가 필요합니다."
 
-msgid "Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
-msgstr "객체별 부품 그룹화 및 병합에 실패했습니다. 자기 교차, 비매니폴드 형상 또는 열린 메쉬를 확인해 주세요."
+msgid "Failed to group parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
+msgstr ""
 
 msgid "No overlapping region found. Boolean intersection failed."
 msgstr "겹치는 영역을 찾을 수 없습니다. 부울 교집합이 실패했습니다."
+
+msgid "Mesh preparation failed."
+msgstr ""
 
 msgid "Mesh Boolean"
 msgstr "메시 부울"
@@ -13549,6 +13576,15 @@ msgid "Perform Boolean operations on entities only."
 msgstr ""
 
 msgid "This object contains non-part components."
+msgstr ""
+
+msgid "Preparing data..."
+msgstr ""
+
+msgid "Computing..."
+msgstr ""
+
+msgid "Applying result.."
 msgstr ""
 
 msgid "Network Test"
@@ -14716,7 +14752,7 @@ msgid "(Sync with printer)"
 msgstr "(프린터와 동기화)"
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available nozzle, current group result is invalid."
+msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
 msgstr ""
 
 msgid "We will slice according to this grouping method:"
@@ -14724,6 +14760,24 @@ msgstr "이 그룹화 방법에 따라 슬라이싱합니다:"
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "팁: 팁: 필라멘트를 드래그하여 다른 노즐에 재할당할 수 있습니다."
+
+msgid "Please adjust your grouping or click "
+msgstr ""
+
+msgid " to set nozzle count"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Left Extruder(%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right Extruder(Std: %d, HF: %d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right Extruder(%d)"
+msgstr ""
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "현재 플레이트의 필라멘트 그룹화 방법은 슬라이스 플레이트 버튼의 드롭다운 옵션에 따라 결정됩니다."
@@ -15195,6 +15249,24 @@ msgid ""
 msgstr ""
 "수축, 뒤틀림 및 응력\n"
 "열 지수를 제어하여 열에 의해 발생하는 뒤틀림과 응력의 원인을 제거할 수 있습니다."
+
+#~ msgid "Detect spaghetti failure(scattered lose filament)."
+#~ msgstr "스파게티 실패(흩어진 필라멘트 손실)를 감지합니다."
+
+#~ msgid "Monitor if the waste is piled up in the purge chute."
+#~ msgstr "퍼지 슈트에 폐기물이 쌓여 있는지 모니터링합니다."
+
+#~ msgid "Check if the nozzle is clumping by filaments or other foreign objects."
+#~ msgstr "노즐에 필라멘트나 기타 이물질이 뭉쳐 있는지 확인하세요."
+
+#~ msgid "Check if the nozzle is clumping by filament or other foreign objects."
+#~ msgstr "필라멘트나 기타 이물질로 인해 노즐이 뭉치는지 확인합니다."
+
+#~ msgid "Idel Heating Protection"
+#~ msgstr "유휴 가열 보호"
+
+#~ msgid "Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
+#~ msgstr "객체별 부품 그룹화 및 병합에 실패했습니다. 자기 교차, 비매니폴드 형상 또는 열린 메쉬를 확인해 주세요."
 
 #~ msgid "Debug Info"
 #~ msgstr "디버그 정보"

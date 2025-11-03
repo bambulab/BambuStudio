@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-31 12:33+0800\n"
+"POT-Creation-Date: 2025-11-03 16:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4001,6 +4001,9 @@ msgstr ""
 msgid "Calibrating the detection position of nozzle clumping"
 msgstr "Calibrazione posizione di rilevamento intasamento del nozzle"
 
+msgid "Purifying the chamber air"
+msgstr ""
+
 msgid "Timelapse is not supported on this printer."
 msgstr "Timelapse non supportato su questa stampante."
 
@@ -6350,23 +6353,38 @@ msgstr "Sensibilità Pausa:"
 msgid "Spaghetti Detection"
 msgstr "Rilevamento spaghetti"
 
-msgid "Detect spaghetti failure(scattered lose filament)."
-msgstr "Rilevamento del guasto spaghetti (filamento sparso)."
+msgid "Detects spaghetti failure(scattered lose filament)."
+msgstr ""
 
 msgid "Purge Chute Pile-Up Detection"
 msgstr "Rilevamento Accumulo Scivolo Spurgo"
 
-msgid "Monitor if the waste is piled up in the purge chute."
-msgstr "Controlla se gli scarti si accumulano nel canale di spurgo."
+msgid "Monitors if the waste is piled up in the purge chute."
+msgstr ""
 
 msgid "Nozzle Clumping Detection"
 msgstr "Rilevamento clog sul nozzle"
 
-msgid "Check if the nozzle is clumping by filaments or other foreign objects."
-msgstr "Controlla se il nozzle è intasato da filamento o altri oggetti estranei."
+msgid "Checks if the nozzle is clumping by filaments or other foreign objects."
+msgstr ""
 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
 msgstr "Rileva la stampa a vuoto causata dall'ostruzione del nozzle o dalla macinazione del filamento."
+
+msgid "Ensures the build plate type and placement are correct."
+msgstr ""
+
+msgid "Type Detection"
+msgstr ""
+
+msgid "Pauses printing when the detected build plate type does not mhatch the selected one."
+msgstr ""
+
+msgid "Alignment Detection"
+msgstr ""
+
+msgid "Pauses printing when build plate misalignment is detected."
+msgstr ""
 
 msgid "First Layer Inspection"
 msgstr "Ispezione del primo layer"
@@ -6386,8 +6404,8 @@ msgstr "Consenti suono di richiesta"
 msgid "Filament Tangle Detect"
 msgstr "Rilevamento groviglio filamento"
 
-msgid "Check if the nozzle is clumping by filament or other foreign objects."
-msgstr "Controllare se il nozzle è intasato dal filamento o altri oggetti estranei."
+msgid "Checks if the nozzle is clumping by filament or other foreign objects."
+msgstr ""
 
 msgid "Open Door Detection"
 msgstr "Rilevamento porta aperta"
@@ -6431,8 +6449,8 @@ msgstr "Aggiornamento"
 msgid "Unavailable while heating maintenance function is on."
 msgstr "Non disponibile durante il riscaldamento della funzione di manutenzione."
 
-msgid "Idel Heating Protection"
-msgstr "Protezione riscaldamento inattivo"
+msgid "Idle Heating Protection"
+msgstr ""
 
 msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr "Smette di riscaldare automaticamente dopo 5 minuti d'inattività per garantire la sicurezza."
@@ -11821,6 +11839,12 @@ msgstr "Velocità pareti interne"
 msgid "Number of walls of every layer"
 msgstr "Numero di pareti per layer"
 
+msgid "Embedding the wall into the infill"
+msgstr ""
+
+msgid "Embedding the wall into parts where the wall loops are absent ensures that the wall connects seamlessly to the infill."
+msgstr ""
+
 msgid "Post-processing Scripts"
 msgstr "Script post-elaborazione"
 
@@ -13517,11 +13541,14 @@ msgstr "L'operazione di intersezione richiede almeno due oggetti."
 msgid "Difference operation requires at least one object in both A and B lists."
 msgstr "L'operazione di differenza richiede almeno un oggetto in entrambe le liste A e B."
 
-msgid "Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
-msgstr "Impossibile raggruppare e unire le parti per oggetto. Verifica la presenza di auto intersezioni, geometrie non manifold o mesh aperte."
+msgid "Failed to group parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
+msgstr ""
 
 msgid "No overlapping region found. Boolean intersection failed."
 msgstr "Nessuna regione sovrapposta trovata. Intersezione booleana non riuscita."
+
+msgid "Mesh preparation failed."
+msgstr ""
 
 msgid "Mesh Boolean"
 msgstr "Mesh booleana"
@@ -13561,6 +13588,15 @@ msgstr "Esegui operazioni booleane solo sulle entità."
 
 msgid "This object contains non-part components."
 msgstr "Questo oggetto contiene componenti non parti."
+
+msgid "Preparing data..."
+msgstr ""
+
+msgid "Computing..."
+msgstr ""
+
+msgid "Applying result.."
+msgstr ""
 
 msgid "Network Test"
 msgstr "Test di rete"
@@ -14722,7 +14758,7 @@ msgid "(Sync with printer)"
 msgstr "(Sincronizzazione con stampante)"
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available nozzle, current group result is invalid."
+msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
 msgstr ""
 
 msgid "We will slice according to this grouping method:"
@@ -14730,6 +14766,24 @@ msgstr "Verrà eseguito lo slicer in base a questo metodo di raggruppamento:"
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "Suggerimenti: Puoi trascinare i filamenti per riassegnarli a diversi nozzle."
+
+msgid "Please adjust your grouping or click "
+msgstr ""
+
+msgid " to set nozzle count"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Left Extruder(%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right Extruder(Std: %d, HF: %d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right Extruder(%d)"
+msgstr ""
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "Il metodo di raggruppamento del filamento per il piano attuale è determinato dall'opzione a discesa nel pulsante del piano di slicing."
@@ -15201,6 +15255,24 @@ msgid ""
 msgstr ""
 "Ritiro, Warping e Tensioni\n"
 "Controllando l’indice termico è possibile eliminare le cause termiche che generano deformazioni e tensioni."
+
+#~ msgid "Detect spaghetti failure(scattered lose filament)."
+#~ msgstr "Rilevamento del guasto spaghetti (filamento sparso)."
+
+#~ msgid "Monitor if the waste is piled up in the purge chute."
+#~ msgstr "Controlla se gli scarti si accumulano nel canale di spurgo."
+
+#~ msgid "Check if the nozzle is clumping by filaments or other foreign objects."
+#~ msgstr "Controlla se il nozzle è intasato da filamento o altri oggetti estranei."
+
+#~ msgid "Check if the nozzle is clumping by filament or other foreign objects."
+#~ msgstr "Controllare se il nozzle è intasato dal filamento o altri oggetti estranei."
+
+#~ msgid "Idel Heating Protection"
+#~ msgstr "Protezione riscaldamento inattivo"
+
+#~ msgid "Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
+#~ msgstr "Impossibile raggruppare e unire le parti per oggetto. Verifica la presenza di auto intersezioni, geometrie non manifold o mesh aperte."
 
 #~ msgid "Debug Info"
 #~ msgstr "Informazioni di debug"
